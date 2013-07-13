@@ -82,6 +82,20 @@ void test2dHyperbolicRotation(double tol)
   }
 }
 
+template<typename T>
+void test3dRotation(double tol)
+{
+  Matrix<T,3,1> v;
+  T angle;
+
+  for (int i=0; i<=20; ++i) {
+    v = Matrix<T,3,1>::Random();
+    v.normalize();
+    angle = pow(10, (i-10) / 5.);
+    VERIFY(AngleAxis<T>(angle, v).matrix().isApprox(AngleAxis<T>(1,v).matrix().pow(angle), tol));
+  }
+}
+
 template<typename MatrixType>
 void testGeneral(const MatrixType& m, double tol)
 {
@@ -156,6 +170,7 @@ void testLogThenExp(MatrixType m, double tol)
 }
 
 typedef Matrix<double,3,3,RowMajor>         Matrix3dRowMajor;
+typedef Matrix<long double,3,3>             Matrix3e;
 typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
  
 void test_matrix_power()
@@ -167,6 +182,10 @@ void test_matrix_power()
   CALL_SUBTEST_1(test2dHyperbolicRotation<float>(1e-5));
   CALL_SUBTEST_9(test2dHyperbolicRotation<long double>(1e-14));
 
+  CALL_SUBTEST_10(test3dRotation<double>(1e-13));
+  CALL_SUBTEST_11(test3dRotation<float>(1e-5));
+  CALL_SUBTEST_12(test3dRotation<long double>(1e-13));
+
   CALL_SUBTEST_2(testGeneral(Matrix2d(),         1e-13));
   CALL_SUBTEST_7(testGeneral(Matrix3dRowMajor(), 1e-13));
   CALL_SUBTEST_3(testGeneral(Matrix4cd(),        1e-13));
@@ -176,6 +195,9 @@ void test_matrix_power()
   CALL_SUBTEST_8(testGeneral(Matrix4f(),         1e-4));
   CALL_SUBTEST_6(testGeneral(MatrixXf(2,2),      1e-3)); // see bug 614
   CALL_SUBTEST_9(testGeneral(MatrixXe(7,7),      1e-13));
+  CALL_SUBTEST_10(testGeneral(Matrix3d(),        1e-13));
+  CALL_SUBTEST_11(testGeneral(Matrix3f(),        1e-4));
+  CALL_SUBTEST_12(testGeneral(Matrix3e(),        1e-13));
 
   CALL_SUBTEST_2(testSingular(Matrix2d(),         1e-13));
   CALL_SUBTEST_7(testSingular(Matrix3dRowMajor(), 1e-13));
@@ -186,6 +208,9 @@ void test_matrix_power()
   CALL_SUBTEST_8(testSingular(Matrix4f(),         1e-4));
   CALL_SUBTEST_6(testSingular(MatrixXf(2,2),      1e-3));
   CALL_SUBTEST_9(testSingular(MatrixXe(7,7),      1e-13));
+  CALL_SUBTEST_10(testSingular(Matrix3d(),        1e-13));
+  CALL_SUBTEST_11(testSingular(Matrix3f(),        1e-4));
+  CALL_SUBTEST_12(testSingular(Matrix3e(),        1e-13));
 
   CALL_SUBTEST_2(testLogThenExp(Matrix2d(),         1e-13));
   CALL_SUBTEST_7(testLogThenExp(Matrix3dRowMajor(), 1e-13));
@@ -196,4 +221,7 @@ void test_matrix_power()
   CALL_SUBTEST_8(testLogThenExp(Matrix4f(),         1e-4));
   CALL_SUBTEST_6(testLogThenExp(MatrixXf(2,2),      1e-3));
   CALL_SUBTEST_9(testLogThenExp(MatrixXe(7,7),      1e-13));
+  CALL_SUBTEST_10(testLogThenExp(Matrix3d(),        1e-13));
+  CALL_SUBTEST_11(testLogThenExp(Matrix3f(),        1e-4));
+  CALL_SUBTEST_12(testLogThenExp(Matrix3e(),        1e-13));
 }
