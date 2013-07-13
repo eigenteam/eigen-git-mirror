@@ -45,6 +45,21 @@ struct traits<SparseVector<_Scalar, _Options, _Index> >
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
+
+// Sparse-Vector-Assignment kinds:
+enum {
+  SVA_RuntimeSwitch,
+  SVA_Inner,
+  SVA_Outer
+};
+
+template< typename Dest, typename Src,
+          int AssignmentKind = !bool(Src::IsVectorAtCompileTime) ? SVA_RuntimeSwitch
+                             :    (((Src::Flags&RowMajorBit)==RowMajorBit) && (Src::RowsAtCompileTime==1))
+                               || (((Src::Flags&RowMajorBit)==0) && (Src::ColsAtCompileTime==1)) ? SVA_Inner
+                             : SVA_Outer>
+struct sparse_vector_assign_selector;
+
 }
 
 template<typename _Scalar, int _Options, typename _Index>
@@ -241,11 +256,11 @@ class SparseVector
     template<typename OtherDerived>
     inline SparseVector& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      if (     (bool(OtherDerived::IsVectorAtCompileTime)   && int(RowsAtCompileTime)!=int(OtherDerived::RowsAtCompileTime))
-          || ((!bool(OtherDerived::IsVectorAtCompileTime))  && ( bool(IsColVector) ? other.cols()>1 : other.rows()>1 )))
-        return assign(other.transpose(), typename internal::conditional<((Flags & RowMajorBit) == (OtherDerived::Flags & RowMajorBit)),internal::true_type,internal::false_type>::type());
-      else
-        return assign(other, typename internal::conditional<((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)),internal::true_type,internal::false_type>::type());
+      SparseVector tmp(other.size());
+      tmp.reserve(other.nonZeros());
+      internal::sparse_vector_assign_selector<SparseVector,OtherDerived>::run(tmp,other.derived());
+      this->swap(tmp);
+      return *this;
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -327,12 +342,6 @@ protected:
       EIGEN_STATIC_ASSERT((_Options&(ColMajor|RowMajor))==Options,INVALID_MATRIX_TEMPLATE_PARAMETERS);
     }
     
-    template<typename OtherDerived>
-    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other, internal::true_type);
-    
-    template<typename OtherDerived>
-    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other, internal::false_type);
-    
     Storage m_data;
     Index m_size;
 };
@@ -401,32 +410,38 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
     const Index m_start;
 };
 
-template<typename Scalar, int _Options, typename _Index>
-template<typename OtherDerived>
-EIGEN_DONT_INLINE SparseVector<Scalar,_Options,_Index>& SparseVector<Scalar,_Options,_Index>::assign(const SparseMatrixBase<OtherDerived>& _other, internal::true_type)
-{
-  const OtherDerived& other(_other.derived());
-  
-  Index size = other.size();
-  Index nnz = other.nonZeros();
-  resize(size);
-  reserve(nnz);
-  for(Index i=0; i<size; ++i)
-  {
-    typename OtherDerived::InnerIterator it(other, i);
-    if(it)
-        insert(i) = it.value();
-  }
-  return *this;
-}
+namespace internal {
 
-template<typename Scalar, int _Options, typename _Index>
-template<typename OtherDerived>
-EIGEN_DONT_INLINE SparseVector<Scalar,_Options,_Index>& SparseVector<Scalar,_Options,_Index>::assign(const SparseMatrixBase<OtherDerived>& _other, internal::false_type)
-{
-  const OtherDerived& other(_other.derived());
-  // there is no special optimization
-  return Base::operator=(other);
+template< typename Dest, typename Src>
+struct sparse_vector_assign_selector<Dest,Src,SVA_Inner> {
+  static void run(Dest& dst, const Src& src) {
+    eigen_internal_assert(src.innerSize()==src.size());
+    for(typename Src::InnerIterator it(src, 0); it; ++it)
+      dst.insert(it.index()) = it.value();
+  }
+};
+
+template< typename Dest, typename Src>
+struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
+  static void run(Dest& dst, const Src& src) {
+    eigen_internal_assert(src.outerSize()==src.size());
+    for(typename Dest::Index i=0; i<src.size(); ++i)
+    {
+      typename Src::InnerIterator it(src, i);
+      if(it)
+        dst.insert(i) = it.value();
+    }
+  }
+};
+
+template< typename Dest, typename Src>
+struct sparse_vector_assign_selector<Dest,Src,SVA_RuntimeSwitch> {
+  static void run(Dest& dst, const Src& src) {
+    if(src.outerSize()==1)  sparse_vector_assign_selector<Dest,Src,SVA_Inner>::run(dst, src);
+    else                    sparse_vector_assign_selector<Dest,Src,SVA_Outer>::run(dst, src);
+  }
+};
+
 }
 
 } // end namespace Eigen
