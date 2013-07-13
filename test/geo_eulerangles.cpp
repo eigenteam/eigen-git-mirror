@@ -17,13 +17,16 @@ template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
   typedef AngleAxis<Scalar> AngleAxisx;
+  using std::abs;
   
   #define VERIFY_EULER(I,J,K, X,Y,Z) { \
     Matrix3 m(AngleAxisx(ea[0], Vector3::Unit##X()) * AngleAxisx(ea[1], Vector3::Unit##Y()) * AngleAxisx(ea[2], Vector3::Unit##Z())); \
     Vector3 eabis = m.eulerAngles(I,J,K); \
     Matrix3 mbis(AngleAxisx(eabis[0], Vector3::Unit##X()) * AngleAxisx(eabis[1], Vector3::Unit##Y()) * AngleAxisx(eabis[2], Vector3::Unit##Z())); \
     VERIFY_IS_APPROX(m,  mbis); \
-    if(I!=K || ea[1]!=0) VERIFY_IS_APPROX(ea, eabis); \
+    /* If I==K, and ea[1]==0, then there no unique solution. */ \
+    /* The remark apply in the case where I!=K, and |ea[1]| is close to pi/2. */ \
+    if( (I!=K || ea[1]!=0) && (I==K || !internal::isApprox(abs(ea[1]),Scalar(M_PI/2),test_precision<Scalar>())) ) VERIFY((ea-eabis).norm() <= test_precision<Scalar>()); \
   }
   VERIFY_EULER(0,1,2, X,Y,Z);
   VERIFY_EULER(0,1,0, X,Y,X);
