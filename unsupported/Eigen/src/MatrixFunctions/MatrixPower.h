@@ -14,16 +14,48 @@ namespace Eigen {
 
 template<typename MatrixType> class MatrixPower;
 
+/**
+ * \ingroup MatrixFunctions_Module
+ *
+ * \brief Proxy for the matrix power of some matrix.
+ *
+ * \tparam MatrixType  type of the base, a matrix.
+ *
+ * This class holds the arguments to the matrix power until it is
+ * assigned or evaluated for some other reason (so the argument
+ * should not be changed in the meantime). It is the return type of
+ * MatrixPower::operator() and related functions and most of the
+ * time this is the only way it is used.
+ */
+/* TODO This class is only used by MatrixPower, so it should be nested
+ * into MatrixPower, like MatrixPower::ReturnValue. However, my
+ * compiler complained about unused template parameter in the
+ * following declaration in namespace internal.
+ *
+ * template<typename MatrixType>
+ * struct traits<MatrixPower<MatrixType>::ReturnValue>;
+ */
 template<typename MatrixType>
-class MatrixPowerRetval : public ReturnByValue< MatrixPowerRetval<MatrixType> >
+class MatrixPowerParenthesesReturnValue : public ReturnByValue< MatrixPowerParenthesesReturnValue<MatrixType> >
 {
   public:
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
 
-    MatrixPowerRetval(MatrixPower<MatrixType>& pow, RealScalar p) : m_pow(pow), m_p(p)
+    /**
+     * \brief Constructor.
+     *
+     * \param[in] pow  %MatrixPower storing the base.
+     * \param[in] p    scalar, the exponent of the matrix power.
+     */
+    MatrixPowerParenthesesReturnValue(MatrixPower<MatrixType>& pow, RealScalar p) : m_pow(pow), m_p(p)
     { }
 
+    /**
+     * \brief Compute the matrix power.
+     *
+     * \param[out] result
+     */
     template<typename ResultType>
     inline void evalTo(ResultType& res) const
     { m_pow.compute(res, m_p); }
@@ -286,8 +318,8 @@ class MatrixPower : internal::noncopyable
      * \return The expression \f$ A^p \f$, where A is specified in the
      * constructor.
      */
-    const MatrixPowerRetval<MatrixType> operator()(RealScalar p)
-    { return MatrixPowerRetval<MatrixType>(*this, p); }
+    const MatrixPowerParenthesesReturnValue<MatrixType> operator()(RealScalar p)
+    { return MatrixPowerParenthesesReturnValue<MatrixType>(*this, p); }
 
     /**
      * \brief Compute the matrix power.
@@ -530,7 +562,7 @@ class MatrixComplexPowerReturnValue : public ReturnByValue< MatrixComplexPowerRe
 namespace internal {
 
 template<typename MatrixPowerType>
-struct traits< MatrixPowerRetval<MatrixPowerType> >
+struct traits< MatrixPowerParenthesesReturnValue<MatrixPowerType> >
 { typedef typename MatrixPowerType::PlainObject ReturnType; };
 
 template<typename Derived>
