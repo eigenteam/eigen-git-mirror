@@ -513,7 +513,7 @@ class MatrixPowerReturnValue : public ReturnByValue< MatrixPowerReturnValue<Deri
      * \brief Constructor.
      *
      * \param[in] A  %Matrix (expression), the base of the matrix power.
-     * \param[in] p  scalar, the exponent of the matrix power.
+     * \param[in] p  real scalar, the exponent of the matrix power.
      */
     MatrixPowerReturnValue(const Derived& A, RealScalar p) : m_A(A), m_p(p)
     { }
@@ -536,6 +536,19 @@ class MatrixPowerReturnValue : public ReturnByValue< MatrixPowerReturnValue<Deri
     const RealScalar m_p;
 };
 
+/**
+ * \ingroup MatrixFunctions_Module
+ *
+ * \brief Proxy for the matrix power of some matrix (expression).
+ *
+ * \tparam Derived  type of the base, a matrix (expression).
+ *
+ * This class holds the arguments to the matrix power until it is
+ * assigned or evaluated for some other reason (so the argument
+ * should not be changed in the meantime). It is the return type of
+ * MatrixBase::pow() and related functions and most of the
+ * time this is the only way it is used.
+ */
 template<typename Derived>
 class MatrixComplexPowerReturnValue : public ReturnByValue< MatrixComplexPowerReturnValue<Derived> >
 {
@@ -544,9 +557,24 @@ class MatrixComplexPowerReturnValue : public ReturnByValue< MatrixComplexPowerRe
     typedef typename std::complex<typename Derived::RealScalar> ComplexScalar;
     typedef typename Derived::Index Index;
 
+    /**
+     * \brief Constructor.
+     *
+     * \param[in] A  %Matrix (expression), the base of the matrix power.
+     * \param[in] p  complex scalar, the exponent of the matrix power.
+     */
     MatrixComplexPowerReturnValue(const Derived& A, const ComplexScalar& p) : m_A(A), m_p(p)
     { }
 
+    /**
+     * \brief Compute the matrix power.
+     *
+     * Because \p p is complex, \f$ A^p \f$ is simply evaluated as \f$
+     * \exp(p \log(A)) \f$.
+     *
+     * \param[out] result  \f$ A^p \f$ where \p A and \p p are as in the
+     * constructor.
+     */
     template<typename ResultType>
     inline void evalTo(ResultType& res) const
     { res = (m_p * m_A.log()).exp(); }
