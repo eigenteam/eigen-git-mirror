@@ -68,6 +68,21 @@ class MatrixPowerParenthesesReturnValue : public ReturnByValue< MatrixPowerParen
     const RealScalar m_p;
 };
 
+/**
+ * \ingroup MatrixFunctions_Module
+ *
+ * \brief Class for computing matrix powers.
+ *
+ * \tparam MatrixType  type of the base, expected to be an instantiation
+ * of the Matrix class template.
+ *
+ * This class is capable of computing triangular real/complex matrices
+ * raised to a power in the interval \f$ (-1, 1) \f$.
+ *
+ * \note Currently this class is only used by MatrixPower. One may
+ * insist that this be nested into MatrixPower. This class is here to
+ * faciliate future development of triangular matrix functions.
+ */
 template<typename MatrixType>
 class MatrixPowerAtomic : internal::noncopyable
 {
@@ -95,14 +110,35 @@ class MatrixPowerAtomic : internal::noncopyable
     static RealScalar computeSuperDiag(RealScalar, RealScalar, RealScalar p);
 
   public:
+    /**
+     * \brief Constructor.
+     *
+     * \param[in] T  the base of the matrix power.
+     * \param[in] p  the exponent of the matrix power, should be in
+     * \f$ (-1, 1) \f$.
+     *
+     * The class stores a reference to T, so it should not be changed
+     * (or destroyed) before evaluation. Only the upper triangular
+     * part of T is read.
+     */
     MatrixPowerAtomic(const MatrixType& T, RealScalar p);
+    
+    /**
+     * \brief Compute the matrix power.
+     *
+     * \param[out] res  \f$ A^p \f$ where A and p are specified in the
+     * constructor.
+     */
     void compute(ResultType& res) const;
 };
 
 template<typename MatrixType>
 MatrixPowerAtomic<MatrixType>::MatrixPowerAtomic(const MatrixType& T, RealScalar p) :
   m_A(T), m_p(p)
-{ eigen_assert(T.rows() == T.cols()); }
+{
+  eigen_assert(T.rows() == T.cols());
+  eigen_assert(p > -1 && p < 1);
+}
 
 template<typename MatrixType>
 void MatrixPowerAtomic<MatrixType>::compute(ResultType& res) const
