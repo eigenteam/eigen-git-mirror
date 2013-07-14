@@ -1,43 +1,13 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2012 Chen-Pang He <jdh8@ms63.hinet.net>
+// Copyright (C) 2012, 2013 Chen-Pang He <jdh8@ms63.hinet.net>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "matrix_functions.h"
-
-// for complex matrices, any matrix is fine
-template<typename MatrixType, int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex>
-struct generateSingularMatrix
-{
-  static void run(MatrixType& result, typename MatrixType::Index size)
-  {
-    result = MatrixType::Random(size, size);
-    result.col(0).fill(0);
-  }
-};
-
-// for real matrices, make sure none of the eigenvalues are negative
-template<typename MatrixType>
-struct generateSingularMatrix<MatrixType,0>
-{
-  static void run(MatrixType& result, typename MatrixType::Index size)
-  {
-    MatrixType mat = MatrixType::Random(size, size);
-    mat.col(0).fill(0);
-    ComplexSchur<MatrixType> schur(mat);
-    typename ComplexSchur<MatrixType>::ComplexMatrixType T = schur.matrixT();
-
-    for (typename MatrixType::Index i = 0; i < size; ++i) {
-      if (T.coeff(i,i).imag() == 0 && T.coeff(i,i).real() < 0)
-	T.coeffRef(i,i) = -T.coeff(i,i);
-    }
-    result = (schur.matrixU() * (T.template triangularView<Upper>() * schur.matrixU().adjoint())).real();
-  }
-};
 
 template<typename T>
 void test2dRotation(double tol)
@@ -126,33 +96,61 @@ void testGeneral(const MatrixType& m, double tol)
   }
 }
 
+// For complex matrices, any matrix is fine.
+template<typename MatrixType, int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex>
+struct processTriangularMatrix
+{
+  static void run(MatrixType&, MatrixType&, const MatrixType&)
+  { }
+};
+
+// For real matrices, make sure none of the eigenvalues are negative.
+template<typename MatrixType>
+struct processTriangularMatrix<MatrixType,0>
+{
+  static void run(MatrixType& m, MatrixType& T, const MatrixType& U)
+  {
+    typedef typename MatrixType::Index Index;
+    const Index size = m.cols();
+
+    for (Index i=0; i < size; ++i) {
+      if (i == size - 1 || T.coeff(i+1,i) == 0)
+        T.coeffRef(i,i) = std::abs(T.coeff(i,i));
+      else
+        ++i;
+    }
+    m = U * T * U.adjoint();
+  }
+};
+
 template<typename MatrixType>
 void testSingular(MatrixType m, double tol)
 {
-  typedef typename MatrixType::RealScalar RealScalar;
-  MatrixType m1, m2, m3, m4, m5;
-  RealScalar x, y;
+  const int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex;
+  typedef typename internal::conditional< IsComplex, MatrixSquareRootTriangular<MatrixType>,
+          MatrixSquareRootQuasiTriangular<MatrixType> >::type SquareRootType;
+  typedef typename internal::conditional<IsComplex, TriangularView<MatrixType,Upper>, const MatrixType&>::type TriangularType;
+  typename internal::conditional< IsComplex, ComplexSchur<MatrixType>, RealSchur<MatrixType> >::type schur;
+  MatrixType T;
 
   for (int i=0; i < g_repeat; ++i) {
-    generateSingularMatrix<MatrixType>::run(m1, m.rows());
-    MatrixPower<MatrixType> mpow(m1);
+    m.setRandom();
+    m.col(0).fill(0);
 
-    x = internal::random<RealScalar>(0, 1);
-    y = internal::random<RealScalar>(0, 1);
-    m2 = mpow(x);
-    m3 = mpow(y);
+    schur.compute(m);
+    T = schur.matrixT();
+    const MatrixType& U = schur.matrixU();
+    processTriangularMatrix<MatrixType>::run(m, T, U);
+    MatrixPower<MatrixType> mpow(m);
 
-    m4 = mpow(x+y);
-    m5.noalias() = m2 * m3;
-    VERIFY(m4.isApprox(m5, tol));
+    SquareRootType(T).compute(T);
+    VERIFY(mpow(0.5).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
 
-    m4 = mpow(x*y);
-    m5 = m2.pow(y);
-    VERIFY(m4.isApprox(m5, tol));
+    SquareRootType(T).compute(T);
+    VERIFY(mpow(0.25).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
 
-    m4 = (x * m1).pow(y);
-    m5 = std::pow(x, y) * m3;
-    VERIFY(m4.isApprox(m5, tol));
+    SquareRootType(T).compute(T);
+    VERIFY(mpow(0.125).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
   }
 }
 
