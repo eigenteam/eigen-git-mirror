@@ -134,7 +134,7 @@ void testSingular(MatrixType m, double tol)
   RealScalar x, y;
 
   for (int i=0; i < g_repeat; ++i) {
-    generateTestMatrix<MatrixType>::run(m1, m.rows());
+    generateSingularMatrix<MatrixType>::run(m1, m.rows());
     MatrixPower<MatrixType> mpow(m1);
 
     x = internal::random<RealScalar>(0, 1);
