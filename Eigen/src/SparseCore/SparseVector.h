@@ -56,7 +56,7 @@ enum {
 template< typename Dest, typename Src,
           int AssignmentKind = !bool(Src::IsVectorAtCompileTime) ? SVA_RuntimeSwitch
                              :    (((Src::Flags&RowMajorBit)==RowMajorBit) && (Src::RowsAtCompileTime==1))
-                               || (((Src::Flags&RowMajorBit)==0) && (Src::ColsAtCompileTime==1)) ? SVA_Inner
+                               || ((((Src::Flags&RowMajorBit)==0) && (Src::ColsAtCompileTime==1))) ? SVA_Inner
                              : SVA_Outer>
 struct sparse_vector_assign_selector;
 
@@ -257,7 +257,6 @@ class SparseVector
     inline SparseVector& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
       SparseVector tmp(other.size());
-      tmp.reserve(other.nonZeros());
       internal::sparse_vector_assign_selector<SparseVector,OtherDerived>::run(tmp,other.derived());
       this->swap(tmp);
       return *this;
