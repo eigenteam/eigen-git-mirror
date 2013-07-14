@@ -96,33 +96,6 @@ void testGeneral(const MatrixType& m, double tol)
   }
 }
 
-// For complex matrices, any matrix is fine.
-template<typename MatrixType, int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex>
-struct processTriangularMatrix
-{
-  static void run(MatrixType&, MatrixType&, const MatrixType&)
-  { }
-};
-
-// For real matrices, make sure none of the eigenvalues are negative.
-template<typename MatrixType>
-struct processTriangularMatrix<MatrixType,0>
-{
-  static void run(MatrixType& m, MatrixType& T, const MatrixType& U)
-  {
-    typedef typename MatrixType::Index Index;
-    const Index size = m.cols();
-
-    for (Index i=0; i < size; ++i) {
-      if (i == size - 1 || T.coeff(i+1,i) == 0)
-        T.coeffRef(i,i) = std::abs(T.coeff(i,i));
-      else
-        ++i;
-    }
-    m = U * T * U.adjoint();
-  }
-};
-
 template<typename MatrixType>
 void testSingular(MatrixType m, double tol)
 {
