@@ -1,7 +1,7 @@
 This unsupported package is about a divide and conquer algorithm to compute SVD.
 
 The implementation follows as closely as possible the following reference paper : 
-www.cs.yale.edu/publications/techreports/tr933.pdf‎
+http://www.cs.yale.edu/publications/techreports/tr933.pdf
 
 The code documentation uses the same names for variables as the reference paper. The code, deflation included, is
 working  but there are a few things that could be optimised as explained in the TODOBdsvd. 
