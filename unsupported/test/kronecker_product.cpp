@@ -107,31 +107,34 @@ void test_kronecker_product()
 
   SparseMatrix<double,RowMajor> SM_row_a(SM_a), SM_row_b(SM_b);
 
-  // test kroneckerProduct(DM_block,DM,DM_fixedSize)
+  // test DM_fixedSize = kroneckerProduct(DM_block,DM)
   Matrix<double, 6, 6> DM_fix_ab = kroneckerProduct(DM_a.topLeftCorner<2,3>(),DM_b);
 
   CALL_SUBTEST(check_kronecker_product(DM_fix_ab));
+  CALL_SUBTEST(check_kronecker_product(kroneckerProduct(DM_a.topLeftCorner<2,3>(),DM_b)));
 
   for(int i=0;i<DM_fix_ab.rows();++i)
     for(int j=0;j<DM_fix_ab.cols();++j)
        VERIFY_IS_APPROX(kroneckerProduct(DM_a,DM_b).coeff(i,j), DM_fix_ab(i,j));
 
-  // test kroneckerProduct(DM,DM,DM_block)
+  // test DM_block = kroneckerProduct(DM,DM)
   MatrixXd DM_block_ab(10,15);
   DM_block_ab.block<6,6>(2,5) = kroneckerProduct(DM_a,DM_b);
   CALL_SUBTEST(check_kronecker_product(DM_block_ab.block<6,6>(2,5)));
 
-  // test kroneckerProduct(DM,DM,DM)
+  // test DM = kroneckerProduct(DM,DM)
   MatrixXd DM_ab = kroneckerProduct(DM_a,DM_b);
   CALL_SUBTEST(check_kronecker_product(DM_ab));
+  CALL_SUBTEST(check_kronecker_product(kroneckerProduct(DM_a,DM_b)));
 
-  // test kroneckerProduct(SM,DM,SM)
+  // test SM = kroneckerProduct(SM,DM)
   SparseMatrix<double> SM_ab = kroneckerProduct(SM_a,DM_b);
   CALL_SUBTEST(check_kronecker_product(SM_ab));
   SparseMatrix<double,RowMajor> SM_ab2 = kroneckerProduct(SM_a,DM_b);
   CALL_SUBTEST(check_kronecker_product(SM_ab2));
+  CALL_SUBTEST(check_kronecker_product(kroneckerProduct(SM_a,DM_b)));
 
-  // test kroneckerProduct(DM,SM,SM)
+  // test SM = kroneckerProduct(DM,SM)
   SM_ab.setZero();
   SM_ab.insert(0,0)=37.0;
   SM_ab = kroneckerProduct(DM_a,SM_b);
@@ -140,8 +143,9 @@ void test_kronecker_product()
   SM_ab2.insert(0,0)=37.0;
   SM_ab2 = kroneckerProduct(DM_a,SM_b);
   CALL_SUBTEST(check_kronecker_product(SM_ab2));
+  CALL_SUBTEST(check_kronecker_product(kroneckerProduct(DM_a,SM_b)));
 
-  // test kroneckerProduct(SM,SM,SM)
+  // test SM = kroneckerProduct(SM,SM)
   SM_ab.resize(2,33);
   SM_ab.insert(0,0)=37.0;
   SM_ab = kroneckerProduct(SM_a,SM_b);
@@ -150,8 +154,9 @@ void test_kronecker_product()
   SM_ab2.insert(0,0)=37.0;
   SM_ab2 = kroneckerProduct(SM_a,SM_b);
   CALL_SUBTEST(check_kronecker_product(SM_ab2));
+  CALL_SUBTEST(check_kronecker_product(kroneckerProduct(SM_a,SM_b)));
 
-  // test kroneckerProduct(SM,SM,SM) with sparse pattern
+  // test SM = kroneckerProduct(SM,SM) with sparse pattern
   SM_a.resize(4,5);
   SM_b.resize(3,2);
   SM_a.resizeNonZeros(0);
@@ -169,7 +174,7 @@ void test_kronecker_product()
   SM_ab = kroneckerProduct(SM_a,SM_b);
   CALL_SUBTEST(check_sparse_kronecker_product(SM_ab));
 
-  // test dimension of result of kroneckerProduct(DM,DM,DM)
+  // test dimension of result of DM = kroneckerProduct(DM,DM)
   MatrixXd DM_a2(2,1);
   MatrixXd DM_b2(5,4);
   MatrixXd DM_ab2 = kroneckerProduct(DM_a2,DM_b2);
