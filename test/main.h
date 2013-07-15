@@ -270,6 +270,7 @@ inline bool test_isApprox(const Type1& a, const Type2& b)
 
 // The idea behind this function is to compare the two scalars a and b where
 // the scalar ref is a hint about the expected order of magnitude of a and b.
+// WARNING: the scalar a and b must be positive
 // Therefore, if for some reason a and b are very small compared to ref,
 // we won't issue a false negative.
 // This test could be: abs(a-b) <= eps * ref

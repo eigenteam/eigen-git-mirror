@@ -28,6 +28,7 @@ template<> struct adjoint_specific<false> {
   template<typename Vec, typename Mat, typename Scalar>
   static void run(const Vec& v1, const Vec& v2, Vec& v3, const Mat& square, Scalar s1, Scalar s2) {
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    using std::abs;
     
     RealScalar ref = NumTraits<Scalar>::IsInteger ? RealScalar(0) : (std::max)((s1 * v1 + s2 * v2).norm(),v3.norm());
     VERIFY(test_isApproxWithRef((s1 * v1 + s2 * v2).dot(v3),     numext::conj(s1) * v1.dot(v3) + numext::conj(s2) * v2.dot(v3), ref));
@@ -44,7 +45,7 @@ template<> struct adjoint_specific<false> {
     
     // check compatibility of dot and adjoint
     ref = NumTraits<Scalar>::IsInteger ? 0 : (std::max)((std::max)(v1.norm(),v2.norm()),(std::max)((square * v2).norm(),(square.adjoint() * v1).norm()));
-    VERIFY(test_isApproxWithRef(v1.dot(square * v2), (square.adjoint() * v1).dot(v2), ref));
+    VERIFY(internal::isMuchSmallerThan(abs(v1.dot(square * v2) - (square.adjoint() * v1).dot(v2)), ref, test_precision<Scalar>()));
     
     // check that Random().normalized() works: tricky as the random xpr must be evaluated by
     // normalized() in order to produce a consistent result.
