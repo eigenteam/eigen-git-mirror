@@ -377,11 +377,19 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   if (m_perm_c.size()) {
     m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This vector is filled but not subsequently used.  
     //Then, permute only the column pointers
+    Index * outerIndexPtr;
+    if (mat.isCompressed()) outerIndexPtr = const_cast<Index *>(mat.outerIndexPtr());
+    else
+    {
+      outerIndexPtr = new Index[mat.cols()+1];
+      for(Index i = 0; i <= mat.cols(); i++) outerIndexPtr[i] = m_mat.outerIndexPtr()[i];
+    }
     for (Index i = 0; i < mat.cols(); i++)
     {
-      m_mat.outerIndexPtr()[m_perm_c.indices()(i)] = mat.outerIndexPtr()[i]; 
-      m_mat.innerNonZeroPtr()[m_perm_c.indices()(i)] = mat.outerIndexPtr()[i+1] - mat.outerIndexPtr()[i]; 
+      m_mat.outerIndexPtr()[m_perm_c.indices()(i)] = outerIndexPtr[i];
+      m_mat.innerNonZeroPtr()[m_perm_c.indices()(i)] = outerIndexPtr[i+1] - outerIndexPtr[i];
     }
+    if(!mat.isCompressed()) delete[] outerIndexPtr;
   }
   // Compute the column elimination tree of the permuted matrix 
   IndexVector firstRowElt;
@@ -453,11 +461,19 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   {
     m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers.
     //Then, permute only the column pointers
+    Index * outerIndexPtr;
+    if (matrix.isCompressed()) outerIndexPtr = const_cast<Index *>(matrix.outerIndexPtr());
+    else
+    {
+      outerIndexPtr = new Index[matrix.cols()+1];
+      for(Index i = 0; i <= matrix.cols(); i++) outerIndexPtr[i] = m_mat.outerIndexPtr()[i];
+    }
     for (Index i = 0; i < matrix.cols(); i++)
     {
-      m_mat.outerIndexPtr()[m_perm_c.indices()(i)] = matrix.outerIndexPtr()[i]; 
-      m_mat.innerNonZeroPtr()[m_perm_c.indices()(i)] = matrix.outerIndexPtr()[i+1] - matrix.outerIndexPtr()[i]; 
+      m_mat.outerIndexPtr()[m_perm_c.indices()(i)] = outerIndexPtr[i];
+      m_mat.innerNonZeroPtr()[m_perm_c.indices()(i)] = outerIndexPtr[i+1] - outerIndexPtr[i];
     }
+    if(!matrix.isCompressed()) delete[] outerIndexPtr;
   } 
   else 
   { //FIXME This should not be needed if the empty permutation is handled transparently
