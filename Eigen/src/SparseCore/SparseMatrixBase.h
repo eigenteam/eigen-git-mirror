@@ -89,6 +89,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
           */
 
       IsRowMajor = Flags&RowMajorBit ? 1 : 0,
+      
+      InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? int(SizeAtCompileTime)
+                             : int(IsRowMajor) ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
 
       #ifndef EIGEN_PARSED_BY_DOXYGEN
       _HasDirectAccess = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC

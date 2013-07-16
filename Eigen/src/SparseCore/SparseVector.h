@@ -55,9 +55,8 @@ enum {
 
 template< typename Dest, typename Src,
           int AssignmentKind = !bool(Src::IsVectorAtCompileTime) ? SVA_RuntimeSwitch
-                             :    (((Src::Flags&RowMajorBit)==RowMajorBit) && (Src::RowsAtCompileTime==1))
-                               || ((((Src::Flags&RowMajorBit)==0) && (Src::ColsAtCompileTime==1))) ? SVA_Inner
-                             : SVA_Outer>
+                             : Src::InnerSizeAtCompileTime==1 ? SVA_Outer
+                             : SVA_Inner>
 struct sparse_vector_assign_selector;
 
 }
