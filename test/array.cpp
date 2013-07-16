@@ -190,7 +190,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   if(!NumTraits<Scalar>::IsComplex)
     VERIFY_IS_APPROX(numext::real(m1), m1);
 
-  VERIFY((m1.abs().log() == log(abs(m1))).all());
+  VERIFY_IS_APPROX(m1.abs().log() , log(abs(m1)));
 
 //   VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));
