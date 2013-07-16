@@ -377,12 +377,13 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   if (m_perm_c.size()) {
     m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This vector is filled but not subsequently used.  
     //Then, permute only the column pointers
-    Index * outerIndexPtr;
-    if (mat.isCompressed()) outerIndexPtr = const_cast<Index *>(mat.outerIndexPtr());
+    const Index * outerIndexPtr;
+    if (mat.isCompressed()) outerIndexPtr = mat.outerIndexPtr();
     else
     {
-      outerIndexPtr = new Index[mat.cols()+1];
-      for(Index i = 0; i <= mat.cols(); i++) outerIndexPtr[i] = m_mat.outerIndexPtr()[i];
+      Index *outerIndexPtr_t = new Index[mat.cols()+1];
+      for(Index i = 0; i <= mat.cols(); i++) outerIndexPtr_t[i] = m_mat.outerIndexPtr()[i];
+      outerIndexPtr = outerIndexPtr_t;
     }
     for (Index i = 0; i < mat.cols(); i++)
     {
@@ -461,12 +462,13 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   {
     m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers.
     //Then, permute only the column pointers
-    Index * outerIndexPtr;
-    if (matrix.isCompressed()) outerIndexPtr = const_cast<Index *>(matrix.outerIndexPtr());
+    const Index * outerIndexPtr;
+    if (matrix.isCompressed()) outerIndexPtr = matrix.outerIndexPtr();
     else
     {
-      outerIndexPtr = new Index[matrix.cols()+1];
-      for(Index i = 0; i <= matrix.cols(); i++) outerIndexPtr[i] = m_mat.outerIndexPtr()[i];
+      Index* outerIndexPtr_t = new Index[matrix.cols()+1];
+      for(Index i = 0; i <= matrix.cols(); i++) outerIndexPtr_t[i] = m_mat.outerIndexPtr()[i];
+      outerIndexPtr = outerIndexPtr_t;
     }
     for (Index i = 0; i < matrix.cols(); i++)
     {
