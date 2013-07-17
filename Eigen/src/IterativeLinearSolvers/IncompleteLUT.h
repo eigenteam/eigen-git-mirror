@@ -150,8 +150,7 @@ class IncompleteLUT : internal::noncopyable
     {
       analyzePattern(amat); 
       factorize(amat);
-      eigen_assert(m_factorizationIsOk == true); 
-      m_isInitialized = true;
+      m_isInitialized = m_factorizationIsOk;
       return *this;
     }
 
