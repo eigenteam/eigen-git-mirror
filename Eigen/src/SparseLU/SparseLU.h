@@ -14,9 +14,10 @@
 
 namespace Eigen {
 
-template <typename _MatrixType, typename _OrderingType> class SparseLU;
+template <typename _MatrixType, typename _OrderingType = COLAMDOrdering<typename _MatrixType::Index> > class SparseLU;
 template <typename MappedSparseMatrixType> struct SparseLUMatrixLReturnType;
 template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixUReturnType;
+
 /** \ingroup SparseLU_Module
   * \class SparseLU
   * 
@@ -62,7 +63,7 @@ template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixURetu
   *  "unsupported/Eigen/src/IterativeSolvers/Scaling.h"
   * 
   * \tparam _MatrixType The type of the sparse matrix. It must be a column-major SparseMatrix<>
-  * \tparam _OrderingType The ordering method to use, either AMD, COLAMD or METIS
+  * \tparam _OrderingType The ordering method to use, either AMD, COLAMD or METIS. Default is COLMAD
   * 
   * 
   * \sa \ref TutorialSparseDirectSolvers
@@ -105,9 +106,9 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     void simplicialfactorize(const MatrixType& matrix);
     
     /**
-     * Compute the symbolic and numeric factorization of the input sparse matrix.
-     * The input matrix should be in column-major storage. 
-     */
+      * Compute the symbolic and numeric factorization of the input sparse matrix.
+      * The input matrix should be in column-major storage. 
+      */
     void compute (const MatrixType& matrix)
     {
       // Analyze 
@@ -125,38 +126,38 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     }
     
     /** \returns an expression of the matrix L, internally stored as supernodes
-     * The only operation available with this expression is the triangular solve
-     * \code
-     * y = b; matrixL().solveInPlace(y);
-     * \endcode
-     */
+      * The only operation available with this expression is the triangular solve
+      * \code
+      * y = b; matrixL().solveInPlace(y);
+      * \endcode
+      */
     SparseLUMatrixLReturnType<SCMatrix> matrixL() const
     {
       return SparseLUMatrixLReturnType<SCMatrix>(m_Lstore);
     }
     /** \returns an expression of the matrix U,
-     * The only operation available with this expression is the triangular solve
-     * \code
-     * y = b; matrixU().solveInPlace(y);
-     * \endcode
-     */
+      * The only operation available with this expression is the triangular solve
+      * \code
+      * y = b; matrixU().solveInPlace(y);
+      * \endcode
+      */
     SparseLUMatrixUReturnType<SCMatrix,MappedSparseMatrix<Scalar,ColMajor,Index> > matrixU() const
     {
       return SparseLUMatrixUReturnType<SCMatrix, MappedSparseMatrix<Scalar,ColMajor,Index> >(m_Lstore, m_Ustore);
     }
 
     /**
-     * \returns a reference to the row matrix permutation \f$ P_r \f$ such that \f$P_r A P_c^T = L U\f$
-     * \sa colsPermutation()
-     */
+      * \returns a reference to the row matrix permutation \f$ P_r \f$ such that \f$P_r A P_c^T = L U\f$
+      * \sa colsPermutation()
+      */
     inline const PermutationType& rowsPermutation() const
     {
       return m_perm_r;
     }
     /**
-     * \returns a reference to the column matrix permutation\f$ P_c^T \f$ such that \f$P_r A P_c^T = L U\f$
-     * \sa rowsPermutation()
-         */
+      * \returns a reference to the column matrix permutation\f$ P_c^T \f$ such that \f$P_r A P_c^T = L U\f$
+      * \sa rowsPermutation()
+      */
     inline const PermutationType& colsPermutation() const
     {
       return m_perm_c;
@@ -182,7 +183,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
           return internal::solve_retval<SparseLU, Rhs>(*this, B.derived());
     }
 
-        /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
+    /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
       *
       * \sa compute()
       */
@@ -195,7 +196,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
           return internal::sparse_solve_retval<SparseLU, Rhs>(*this, B.derived());
     }
     
-     /** \brief Reports whether previous computation was successful.
+    /** \brief Reports whether previous computation was successful.
       *
       * \returns \c Success if computation was succesful,
       *          \c NumericalIssue if the LU factorization reports a problem, zero diagonal for instance
@@ -208,9 +209,10 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       eigen_assert(m_isInitialized && "Decomposition is not initialized.");
       return m_info;
     }
+    
     /**
-     * \returns A string describing the type of error
-     */
+      * \returns A string describing the type of error
+      */
     std::string lastErrorMessage() const
     {
       return m_lastError; 
@@ -240,6 +242,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       
       return true; 
     }
+    
     /**
       * \returns the absolute value of the determinant of the matrix of which
       * *this is the QR decomposition.
@@ -249,7 +252,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       * One way to work around that is to use logAbsDeterminant() instead.
       *
       * \sa logAbsDeterminant(), signDeterminant()
-     */
+      */
      Scalar absDeterminant()
     {
       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
@@ -276,8 +279,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
        * of which **this is the QR decomposition
        *
        * \note This method is useful to work around the risk of overflow/underflow that's
-       * inherent to the determinant computation
-       *a
+       * inherent to the determinant computation.
+       *
        * \sa absDeterminant(), signDeterminant()
        */
      Scalar logAbsDeterminant() const
@@ -353,15 +356,15 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
 
 // Functions needed by the anaysis phase
 /** 
- * Compute the column permutation to minimize the fill-in
- * 
- *  - Apply this permutation to the input matrix - 
- * 
- *  - Compute the column elimination tree on the permuted matrix 
- * 
- *  - Postorder the elimination tree and the column permutation
- * 
- */
+  * Compute the column permutation to minimize the fill-in
+  * 
+  *  - Apply this permutation to the input matrix - 
+  * 
+  *  - Compute the column elimination tree on the permuted matrix 
+  * 
+  *  - Postorder the elimination tree and the column permutation
+  * 
+  */
 template <typename MatrixType, typename OrderingType>
 void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
 {
@@ -428,23 +431,23 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
 
 
 /** 
- *  - Numerical factorization 
- *  - Interleaved with the symbolic factorization 
- * On exit,  info is 
- * 
- *    = 0: successful factorization
- * 
- *    > 0: if info = i, and i is
- * 
- *       <= A->ncol: U(i,i) is exactly zero. The factorization has
- *          been completed, but the factor U is exactly singular,
- *          and division by zero will occur if it is used to solve a
- *          system of equations.
- * 
- *       > A->ncol: number of bytes allocated when memory allocation
- *         failure occurred, plus A->ncol. If lwork = -1, it is
- *         the estimated amount of space needed, plus A->ncol.  
- */
+  *  - Numerical factorization 
+  *  - Interleaved with the symbolic factorization 
+  * On exit,  info is 
+  * 
+  *    = 0: successful factorization
+  * 
+  *    > 0: if info = i, and i is
+  * 
+  *       <= A->ncol: U(i,i) is exactly zero. The factorization has
+  *          been completed, but the factor U is exactly singular,
+  *          and division by zero will occur if it is used to solve a
+  *          system of equations.
+  * 
+  *       > A->ncol: number of bytes allocated when memory allocation
+  *         failure occurred, plus A->ncol. If lwork = -1, it is
+  *         the estimated amount of space needed, plus A->ncol.  
+  */
 template <typename MatrixType, typename OrderingType>
 void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
 {
