@@ -364,7 +364,7 @@ public:
     Scalar determinant() const
     {
       Scalar detL = Base::m_matrix.diagonal().prod();
-      return internal::abs2(detL);
+      return numext::abs2(detL);
     }
 };
 
@@ -599,7 +599,7 @@ public:
       else
       {
         Scalar detL = Diagonal<const CholMatrixType>(Base::m_matrix).prod();
-        return internal::abs2(detL);
+        return numext::abs2(detL);
       }
     }
     

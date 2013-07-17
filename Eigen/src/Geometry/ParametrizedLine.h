@@ -41,7 +41,7 @@ public:
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1,Options> VectorType;
 
   /** Default constructor without initialization */
-  inline explicit ParametrizedLine() {}
+  inline ParametrizedLine() {}
   
   template<int OtherOptions>
   ParametrizedLine(const ParametrizedLine<Scalar,AmbientDimAtCompileTime,OtherOptions>& other)

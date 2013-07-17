@@ -25,7 +25,7 @@
 #ifndef EIGEN_ARPACKGENERALIZEDSELFADJOINTEIGENSOLVER_H
 #define EIGEN_ARPACKGENERALIZEDSELFADJOINTEIGENSOLVER_H
 
-
+#include <Eigen/Dense>
 
 namespace Eigen { 
 
@@ -337,6 +337,8 @@ ArpackGeneralizedSelfAdjointEigenSolver<MatrixType, MatrixSolver, BisSPD>&
 {
     MatrixType B(0,0);
     compute(A, B, nbrEigenvalues, eigs_sigma, options, tol);
+    
+    return *this;
 }
 
 
@@ -681,7 +683,9 @@ template<typename Scalar, typename RealScalar> struct arpack_wrapper
       int *nev, RealScalar *tol, Scalar *resid, int *ncv,
       Scalar *v, int *ldv, int *iparam, int *ipntr,
       Scalar *workd, Scalar *workl, int *lworkl, int *info)
-  { EIGEN_STATIC_ASSERT(false, static_assertion<true>::NUMERIC_TYPE_MUST_BE_REAL); }
+  { 
+    EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL)
+  }
 
   static inline void seupd(int *rvec, char *All, int *select, Scalar *d,
       Scalar *z, int *ldz, RealScalar *sigma,
@@ -689,7 +693,9 @@ template<typename Scalar, typename RealScalar> struct arpack_wrapper
       RealScalar *tol, Scalar *resid, int *ncv, Scalar *v,
       int *ldv, int *iparam, int *ipntr, Scalar *workd,
       Scalar *workl, int *lworkl, int *ierr)
-  { EIGEN_STATIC_ASSERT(false, static_assertion<true>::NUMERIC_TYPE_MUST_BE_REAL); }
+  {
+    EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL)
+  }
 };
 
 template <> struct arpack_wrapper<float, float>

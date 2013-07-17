@@ -88,7 +88,7 @@ template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m
 
 void test_eigensolver_generic()
 {
-  int s;
+  int s = 0;
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( eigensolver(Matrix4f()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
@@ -108,7 +108,7 @@ void test_eigensolver_generic()
   CALL_SUBTEST_4( eigensolver_verify_assert(Matrix2d()) );
 
   // Test problem size constructors
-  CALL_SUBTEST_5(EigenSolver<MatrixXf>(s));
+  CALL_SUBTEST_5(EigenSolver<MatrixXf> tmp(s));
 
   // regression test for bug 410
   CALL_SUBTEST_2(
@@ -121,5 +121,5 @@ void test_eigensolver_generic()
   }
   );
   
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }

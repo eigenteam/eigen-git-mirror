@@ -69,6 +69,30 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     const _MatrixTypeNested& matrix() const { return m_matrix; }
     _MatrixTypeNested& matrix() { return m_matrix.const_cast_derived(); }
 
+    /** \returns an expression of the matrix product between a sparse self-adjoint matrix \c *this and a sparse matrix \a rhs.
+      *
+      * Note that there is no algorithmic advantage of performing such a product compared to a general sparse-sparse matrix product.
+      * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
+      */
+    template<typename OtherDerived>
+    SparseSparseProduct<SparseMatrix<Scalar,  ((internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor),Index>, OtherDerived>
+    operator*(const SparseMatrixBase<OtherDerived>& rhs) const
+    {
+      return SparseSparseProduct<SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index>, OtherDerived>(*this, rhs.derived());
+    }
+    
+    /** \returns an expression of the matrix product between a sparse matrix \a lhs and a sparse self-adjoint matrix \a rhs.
+      *
+      * Note that there is no algorithmic advantage of performing such a product compared to a general sparse-sparse matrix product.
+      * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
+      */
+    template<typename OtherDerived> friend
+    SparseSparseProduct<OtherDerived, SparseMatrix<Scalar,  ((internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor),Index> >
+    operator*(const SparseMatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
+    {
+      return SparseSparseProduct< OtherDerived, SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index> >(lhs.derived(), rhs.derived());
+    }
+    
     /** Efficient sparse self-adjoint matrix times dense vector/matrix product */
     template<typename OtherDerived>
     SparseSelfAdjointTimeDenseProduct<MatrixType,OtherDerived,UpLo>
@@ -240,7 +264,7 @@ class SparseSelfAdjointTimeDenseProduct
           Index b = LhsIsRowMajor ? i.index() : j;
           typename Lhs::Scalar v = i.value();
           dest.row(a) += (v) * m_rhs.row(b);
-          dest.row(b) += internal::conj(v) * m_rhs.row(a);
+          dest.row(b) += numext::conj(v) * m_rhs.row(a);
         }
         if (ProcessFirstHalf && i && (i.index()==j))
           dest.row(j) += i.value() * m_rhs.row(j);
@@ -367,7 +391,7 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
         dest.valuePtr()[k] = it.value();
         k = count[ip]++;
         dest.innerIndexPtr()[k] = jp;
-        dest.valuePtr()[k] = internal::conj(it.value());
+        dest.valuePtr()[k] = numext::conj(it.value());
       }
     }
   }
@@ -428,7 +452,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
       
       if(!StorageOrderMatch) std::swap(ip,jp);
       if( ((int(DstUpLo)==int(Lower) && ip<jp) || (int(DstUpLo)==int(Upper) && ip>jp)))
-        dest.valuePtr()[k] = conj(it.value());
+        dest.valuePtr()[k] = numext::conj(it.value());
       else
         dest.valuePtr()[k] = it.value();
     }
@@ -461,7 +485,10 @@ class SparseSymmetricPermutationProduct
     template<typename DestScalar, int Options, typename DstIndex>
     void evalTo(SparseMatrix<DestScalar,Options,DstIndex>& _dest) const
     {
-      internal::permute_symm_to_fullsymm<UpLo>(m_matrix,_dest,m_perm.indices().data());
+//       internal::permute_symm_to_fullsymm<UpLo>(m_matrix,_dest,m_perm.indices().data());
+      SparseMatrix<DestScalar,(Options&RowMajor)==RowMajor ? ColMajor : RowMajor, DstIndex> tmp;
+      internal::permute_symm_to_fullsymm<UpLo>(m_matrix,tmp,m_perm.indices().data());
+      _dest = tmp;
     }
     
     template<typename DestType,unsigned int DestUpLo> void evalTo(SparseSelfAdjointView<DestType,DestUpLo>& dest) const

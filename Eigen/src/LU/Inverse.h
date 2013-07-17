@@ -348,7 +348,7 @@ inline const internal::inverse_impl<Derived> MatrixBase<Derived>::inverse() cons
   * This is only for fixed-size square matrices of size up to 4x4.
   *
   * \param inverse Reference to the matrix in which to store the inverse.
-  * \param determinant Reference to the variable in which to store the inverse.
+  * \param determinant Reference to the variable in which to store the determinant.
   * \param invertible Reference to the bool variable in which to store whether the matrix is invertible.
   * \param absDeterminantThreshold Optional parameter controlling the invertibility check.
   *                                The matrix will be declared invertible if the absolute value of its

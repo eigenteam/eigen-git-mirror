@@ -92,8 +92,8 @@ void dogleg(
     /* at which the quadratic is minimized. */
     bnorm = qtb.stableNorm();
     temp = bnorm / gnorm * (bnorm / qnorm) * (sgnorm / delta);
-    temp = temp - delta / qnorm * abs2(sgnorm / delta) + sqrt(abs2(temp - delta / qnorm) + (1.-abs2(delta / qnorm)) * (1.-abs2(sgnorm / delta)));
-    alpha = delta / qnorm * (1. - abs2(sgnorm / delta)) / temp;
+    temp = temp - delta / qnorm * numext::abs2(sgnorm / delta) + sqrt(numext::abs2(temp - delta / qnorm) + (1.-numext::abs2(delta / qnorm)) * (1.-numext::abs2(sgnorm / delta)));
+    alpha = delta / qnorm * (1. - numext::abs2(sgnorm / delta)) / temp;
 algo_end:
 
     /* form appropriate convex combination of the gauss-newton */

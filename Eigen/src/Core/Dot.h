@@ -115,7 +115,7 @@ MatrixBase<Derived>::eigen2_dot(const MatrixBase<OtherDerived>& other) const
 template<typename Derived>
 EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
 {
-  return internal::real((*this).cwiseAbs2().sum());
+  return numext::real((*this).cwiseAbs2().sum());
 }
 
 /** \returns, for vectors, the \em l2 norm of \c *this, and for matrices the Frobenius norm.
@@ -170,6 +170,7 @@ struct lpNorm_selector
   EIGEN_DEVICE_FUNC
   static inline RealScalar run(const MatrixBase<Derived>& m)
   {
+    using std::pow;
     return pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
   }
 };
@@ -235,7 +236,7 @@ bool MatrixBase<Derived>::isOrthogonal
 {
   typename internal::nested<Derived,2>::type nested(derived());
   typename internal::nested<OtherDerived,2>::type otherNested(other.derived());
-  return internal::abs2(nested.dot(otherNested)) <= prec * prec * nested.squaredNorm() * otherNested.squaredNorm();
+  return numext::abs2(nested.dot(otherNested)) <= prec * prec * nested.squaredNorm() * otherNested.squaredNorm();
 }
 
 /** \returns true if *this is approximately an unitary matrix,

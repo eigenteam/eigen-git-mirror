@@ -294,7 +294,7 @@ void ComplexEigenSolver<MatrixType>::doComputeEigenvectors(const RealScalar& mat
       {
         // If the i-th and k-th eigenvalue are equal, then z equals 0.
         // Use a small value instead, to prevent division by zero.
-        internal::real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
+        numext::real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
       }
       m_matX.coeffRef(i,k) = m_matX.coeff(i,k) / z;
     }

@@ -36,7 +36,7 @@ public:
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
 
   /** Default constructor without initialization */
-  inline explicit ParametrizedLine() {}
+  inline ParametrizedLine() {}
 
   /** Constructs a dynamic-size line with \a _dim the dimension
     * of the ambient space */

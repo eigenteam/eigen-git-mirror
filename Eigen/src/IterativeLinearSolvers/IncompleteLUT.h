@@ -150,8 +150,7 @@ class IncompleteLUT : internal::noncopyable
     {
       analyzePattern(amat); 
       factorize(amat);
-      eigen_assert(m_factorizationIsOk == true); 
-      m_isInitialized = true;
+      m_isInitialized = m_factorizationIsOk;
       return *this;
     }
 
@@ -310,7 +309,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
         jr(k) = jpos;
         ++sizeu;
       }
-      rownorm += internal::abs2(j_it.value());
+      rownorm += numext::abs2(j_it.value());
     }
 
     // 2 - detect possible zero row

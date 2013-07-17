@@ -131,7 +131,7 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
       Index i = it.index();
       if(i <= k)
       {
-        y[i] += internal::conj(it.value());            /* scatter A(i,k) into Y (sum duplicates) */
+        y[i] += numext::conj(it.value());            /* scatter A(i,k) into Y (sum duplicates) */
         Index len;
         for(len = 0; tags[i] != k; i = m_parent[i])
         {
@@ -145,7 +145,7 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
 
     /* compute numerical values kth row of L (a sparse triangular solve) */
 
-    RealScalar d = internal::real(y[k]) * m_shiftScale + m_shiftOffset;    // get D(k,k), apply the shift function, and clear Y(k)
+    RealScalar d = numext::real(y[k]) * m_shiftScale + m_shiftOffset;    // get D(k,k), apply the shift function, and clear Y(k)
     y[k] = 0.0;
     for(; top < size; ++top)
     {
@@ -163,8 +163,8 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
       Index p2 = Lp[i] + m_nonZerosPerCol[i];
       Index p;
       for(p = Lp[i] + (DoLDLT ? 0 : 1); p < p2; ++p)
-        y[Li[p]] -= internal::conj(Lx[p]) * yi;
-      d -= internal::real(l_ki * internal::conj(yi));
+        y[Li[p]] -= numext::conj(Lx[p]) * yi;
+      d -= numext::real(l_ki * numext::conj(yi));
       Li[p] = k;                          /* store L(k,i) in column form of L */
       Lx[p] = l_ki;
       ++m_nonZerosPerCol[i];              /* increment count of nonzeros in col i */

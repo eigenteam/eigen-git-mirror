@@ -232,10 +232,10 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
     RealScalar beta = 1;
     for(Index j=0; j<n; ++j)
     {
-      RealScalar Ljj = real(mat.coeff(j,j));
-      RealScalar dj = abs2(Ljj);
+      RealScalar Ljj = numext::real(mat.coeff(j,j));
+      RealScalar dj = numext::abs2(Ljj);
       Scalar wj = temp.coeff(j);
-      RealScalar swj2 = sigma*abs2(wj);
+      RealScalar swj2 = sigma*numext::abs2(wj);
       RealScalar gamma = dj*beta + swj2;
 
       RealScalar x = dj + swj2/beta;
@@ -251,7 +251,7 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
       {
         temp.tail(rs) -= (wj/Ljj) * mat.col(j).tail(rs);
         if(gamma != 0)
-          mat.col(j).tail(rs) = (nLjj/Ljj) * mat.col(j).tail(rs) + (nLjj * sigma*conj(wj)/gamma)*temp.tail(rs);
+          mat.col(j).tail(rs) = (nLjj/Ljj) * mat.col(j).tail(rs) + (nLjj * sigma*numext::conj(wj)/gamma)*temp.tail(rs);
       }
     }
   }
@@ -277,7 +277,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
       Block<MatrixType,1,Dynamic> A10(mat,k,0,1,k);
       Block<MatrixType,Dynamic,Dynamic> A20(mat,k+1,0,rs,k);
 
-      RealScalar x = real(mat.coeff(k,k));
+      RealScalar x = numext::real(mat.coeff(k,k));
       if (k>0) x -= A10.squaredNorm();
       if (x<=RealScalar(0))
         return k;

@@ -141,10 +141,10 @@ template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
   Scalar s1 = internal::random<Scalar>(),
          s2 = internal::random<Scalar>();
 
-  VERIFY(internal::real(s1)==internal::real_ref(s1));
-  VERIFY(internal::imag(s1)==internal::imag_ref(s1));
-  internal::real_ref(s1) = internal::real(s2);
-  internal::imag_ref(s1) = internal::imag(s2);
+  VERIFY(numext::real(s1)==numext::real_ref(s1));
+  VERIFY(numext::imag(s1)==numext::imag_ref(s1));
+  numext::real_ref(s1) = numext::real(s2);
+  numext::imag_ref(s1) = numext::imag(s2);
   VERIFY(internal::isApprox(s1, s2, NumTraits<RealScalar>::epsilon()));
   // extended precision in Intel FPUs means that s1 == s2 in the line above is not guaranteed.
 

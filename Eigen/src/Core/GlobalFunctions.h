@@ -39,6 +39,7 @@ namespace Eigen
 {
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(real,scalar_real_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(imag,scalar_imag_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(conj,scalar_conjugate_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sin,scalar_sin_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cos,scalar_cos_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(asin,scalar_asin_op)
@@ -86,6 +87,6 @@ namespace Eigen
   }
 }
 
-// TODO: cleanly disable those functions that are not supported on Array (internal::real_ref, internal::random, internal::isApprox...)
+// TODO: cleanly disable those functions that are not supported on Array (numext::real_ref, internal::random, internal::isApprox...)
 
 #endif // EIGEN_GLOBAL_FUNCTIONS_H

@@ -45,7 +45,7 @@ struct isMuchSmallerThan_object_selector
   EIGEN_DEVICE_FUNC
   static bool run(const Derived& x, const OtherDerived& y, const typename Derived::RealScalar& prec)
   {
-    return x.cwiseAbs2().sum() <= abs2(prec) * y.cwiseAbs2().sum();
+    return x.cwiseAbs2().sum() <= numext::abs2(prec) * y.cwiseAbs2().sum();
   }
 };
 
@@ -65,7 +65,7 @@ struct isMuchSmallerThan_scalar_selector
   EIGEN_DEVICE_FUNC
   static bool run(const Derived& x, const typename Derived::RealScalar& y, const typename Derived::RealScalar& prec)
   {
-    return x.cwiseAbs2().sum() <= abs2(prec * y);
+    return x.cwiseAbs2().sum() <= numext::abs2(prec * y);
   }
 };
 

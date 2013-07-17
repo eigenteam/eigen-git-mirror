@@ -114,7 +114,7 @@ template<typename PlainObjectType> void check_const_correctness(const PlainObjec
   VERIFY( !(Map<ConstPlainObjectType, Aligned>::Flags & LvalueBit) );
 }
 
-void test_map()
+void test_mapped_matrix()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( map_class_vector(Matrix<float, 1, 1>()) );

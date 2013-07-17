@@ -160,7 +160,7 @@ struct SluMatrix : SuperMatrix
     res.ncol      = mat.cols();
 
     res.storage.lda       = MatrixType::IsVectorAtCompileTime ? mat.size() : mat.outerStride();
-    res.storage.values    = mat.data();
+    res.storage.values    = (void*)(mat.data());
     return res;
   }
 
@@ -377,7 +377,7 @@ class SuperLUBase : internal::noncopyable
     }
     
     template<typename Stream>
-    void dumpMemory(Stream& s)
+    void dumpMemory(Stream& /*s*/)
     {}
     
   protected:

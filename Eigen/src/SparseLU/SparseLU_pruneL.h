@@ -56,7 +56,7 @@ void SparseLUImpl<Scalar,Index>::pruneL(const Index jcol, const IndexVector& per
   Index jsupno = glu.supno(jcol); 
   Index i,irep,irep1; 
   bool movnum, do_prune = false; 
-  Index kmin, kmax, minloc, maxloc,krow; 
+  Index kmin = 0, kmax = 0, minloc, maxloc,krow; 
   for (i = 0; i < nseg; i++)
   {
     irep = segrep(i); 

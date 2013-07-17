@@ -156,7 +156,7 @@ template<typename Scalar> void packetmath()
     CHECK_CWISE2(REF_DIV,  internal::pdiv);
   #endif
   CHECK_CWISE1(internal::negate, internal::pnegate);
-  CHECK_CWISE1(internal::conj, internal::pconj);
+  CHECK_CWISE1(numext::conj, internal::pconj);
 
   for(int offset=0;offset<3;++offset)
   {
@@ -218,8 +218,8 @@ template<typename Scalar> void packetmath_real()
 
   for (int i=0; i<size; ++i)
   {
-    data1[i] = internal::random<Scalar>(-1e3,1e3);
-    data2[i] = internal::random<Scalar>(-1e3,1e3);
+    data1[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-3,3));
+    data2[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-3,3));
   }
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSin, std::sin, internal::psin);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasCos, std::cos, internal::pcos);
@@ -242,8 +242,8 @@ template<typename Scalar> void packetmath_real()
 
   for (int i=0; i<size; ++i)
   {
-    data1[i] = internal::random<Scalar>(0,1e6);
-    data2[i] = internal::random<Scalar>(0,1e6);
+    data1[i] = internal::random<Scalar>(0,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
+    data2[i] = internal::random<Scalar>(0,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
   }
   if(internal::random<float>(0,1)<0.1)
     data1[internal::random<int>(0, PacketSize)] = 0;

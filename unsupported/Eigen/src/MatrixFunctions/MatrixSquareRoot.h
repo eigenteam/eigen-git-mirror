@@ -94,7 +94,7 @@ void MatrixSquareRootQuasiTriangular<MatrixType>::computeDiagonalPartOfSqrt(Matr
   const Index size = m_A.rows();
   for (Index i = 0; i < size; i++) {
     if (i == size - 1 || T.coeff(i+1, i) == 0) {
-      eigen_assert(T(i,i) > 0);
+      eigen_assert(T(i,i) >= 0);
       sqrtT.coeffRef(i,i) = sqrt(T.coeff(i,i));
     }
     else {

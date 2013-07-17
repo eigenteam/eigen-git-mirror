@@ -214,9 +214,9 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), U
     triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount-1, ClearOpposite>::run(dst, src);
 
     if(row == col)
-      dst.coeffRef(row, col) = real(src.coeff(row, col));
+      dst.coeffRef(row, col) = numext::real(src.coeff(row, col));
     else if(row < col)
-      dst.coeffRef(col, row) = conj(dst.coeffRef(row, col) = src.coeff(row, col));
+      dst.coeffRef(col, row) = numext::conj(dst.coeffRef(row, col) = src.coeff(row, col));
   }
 };
 
@@ -239,9 +239,9 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), U
     triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount-1, ClearOpposite>::run(dst, src);
 
     if(row == col)
-      dst.coeffRef(row, col) = real(src.coeff(row, col));
+      dst.coeffRef(row, col) = numext::real(src.coeff(row, col));
     else if(row > col)
-      dst.coeffRef(col, row) = conj(dst.coeffRef(row, col) = src.coeff(row, col));
+      dst.coeffRef(col, row) = numext::conj(dst.coeffRef(row, col) = src.coeff(row, col));
   }
 };
 
@@ -262,7 +262,7 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dyn
       for(Index i = 0; i < j; ++i)
       {
         dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = conj(dst.coeff(i,j));
+        dst.coeffRef(j,i) = numext::conj(dst.coeff(i,j));
       }
       dst.copyCoeff(j, j, src);
     }
@@ -280,7 +280,7 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dyn
       for(Index j = 0; j < i; ++j)
       {
         dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = conj(dst.coeff(i,j));
+        dst.coeffRef(j,i) = numext::conj(dst.coeff(i,j));
       }
       dst.copyCoeff(i, i, src);
     }

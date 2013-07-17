@@ -109,13 +109,13 @@ LevenbergMarquardt<FunctorType>::minimizeOneStep(FVectorType  &x)
     /* compute the scaled actual reduction. */
     actred = -1.;
     if (Scalar(.1) * fnorm1 < m_fnorm)
-        actred = 1. - internal::abs2(fnorm1 / m_fnorm);
+        actred = 1. - numext::abs2(fnorm1 / m_fnorm);
 
     /* compute the scaled predicted reduction and */
     /* the scaled directional derivative. */
     m_wa3 = m_rfactor.template triangularView<Upper>() * (m_permutation.inverse() *m_wa1);
-    temp1 = internal::abs2(m_wa3.stableNorm() / m_fnorm);
-    temp2 = internal::abs2(sqrt(m_par) * pnorm / m_fnorm);
+    temp1 = numext::abs2(m_wa3.stableNorm() / m_fnorm);
+    temp2 = numext::abs2(sqrt(m_par) * pnorm / m_fnorm);
     prered = temp1 + temp2 / Scalar(.5);
     dirder = -(temp1 + temp2);
 

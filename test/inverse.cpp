@@ -86,19 +86,19 @@ template<typename MatrixType> void inverse(const MatrixType& m)
 
 void test_inverse()
 {
-  int s;
+  int s = 0;
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( inverse(Matrix<double,1,1>()) );
     CALL_SUBTEST_2( inverse(Matrix2d()) );
     CALL_SUBTEST_3( inverse(Matrix3f()) );
     CALL_SUBTEST_4( inverse(Matrix4f()) );
     CALL_SUBTEST_4( inverse(Matrix<float,4,4,DontAlign>()) );
-    s = internal::random<int>(50,320);
+    s = internal::random<int>(50,320); 
     CALL_SUBTEST_5( inverse(MatrixXf(s,s)) );
     s = internal::random<int>(25,100);
     CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
     CALL_SUBTEST_7( inverse(Matrix4d()) );
     CALL_SUBTEST_7( inverse(Matrix<double,4,4,DontAlign>()) );
   }
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }

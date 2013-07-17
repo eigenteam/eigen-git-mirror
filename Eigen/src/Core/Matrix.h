@@ -205,7 +205,7 @@ class Matrix
       * \sa resize(Index,Index)
       */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE explicit Matrix() : Base()
+    EIGEN_STRONG_INLINE Matrix() : Base()
     {
       Base::_check_template_params();
       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED

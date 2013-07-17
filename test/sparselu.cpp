@@ -26,7 +26,7 @@
 // SparseLU solve does not accept column major matrices for the destination.
 // However, as expected, the generic check_sparse_square_solving routines produces row-major
 // rhs and destination matrices when compiled with EIGEN_DEFAULT_TO_ROW_MAJOR
-//
+
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #undef EIGEN_DEFAULT_TO_ROW_MAJOR
 #endif
@@ -37,7 +37,7 @@
 
 template<typename T> void test_sparselu_T()
 {
-  SparseLU<SparseMatrix<T, ColMajor>, COLAMDOrdering<int> > sparselu_colamd;
+  SparseLU<SparseMatrix<T, ColMajor> /*, COLAMDOrdering<int>*/ > sparselu_colamd; // COLAMDOrdering is the default
   SparseLU<SparseMatrix<T, ColMajor>, AMDOrdering<int> > sparselu_amd; 
   SparseLU<SparseMatrix<T, ColMajor, long int>, NaturalOrdering<long int> > sparselu_natural;
   

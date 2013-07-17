@@ -15,6 +15,10 @@
 #include<iostream>
 using namespace std;
 
+template<typename T> EIGEN_DONT_INLINE
+void kill_extra_precision(T& x) { eigen_assert(&x != 0); }
+
+
 template<typename BoxType> void alignedbox(const BoxType& _box)
 {
   /* this test covers the following files:
@@ -36,6 +40,10 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
   BoxType b0(dim);
   BoxType b1(VectorType::Random(dim),VectorType::Random(dim));
   BoxType b2;
+  
+  kill_extra_precision(b1);
+  kill_extra_precision(p0);
+  kill_extra_precision(p1);
 
   b0.extend(p0);
   b0.extend(p1);

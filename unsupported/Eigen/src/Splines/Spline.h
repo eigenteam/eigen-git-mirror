@@ -295,11 +295,7 @@ namespace Eigen
     enum { Order = SplineTraits<SplineType>::OrderAtCompileTime };
     enum { DerivativeOrder = DerivativeType::ColsAtCompileTime };
 
-    typedef typename SplineTraits<SplineType>::Scalar Scalar;
-
-    typedef typename SplineTraits<SplineType>::BasisVectorType BasisVectorType;
     typedef typename SplineTraits<SplineType>::ControlPointVectorType ControlPointVectorType;
-
     typedef typename SplineTraits<SplineType,DerivativeOrder>::BasisDerivativeType BasisDerivativeType;
     typedef typename BasisDerivativeType::ConstRowXpr BasisDerivativeRowXpr;    
 
@@ -358,7 +354,6 @@ namespace Eigen
     typedef typename SplineTraits<SplineType>::Scalar Scalar;
     typedef typename SplineTraits<SplineType>::BasisVectorType BasisVectorType;
     typedef typename SplineTraits<SplineType>::KnotVectorType KnotVectorType;
-    typedef typename SplineTraits<SplineType>::ControlPointVectorType ControlPointVectorType;
 
     const KnotVectorType& U = spline.knots();
 

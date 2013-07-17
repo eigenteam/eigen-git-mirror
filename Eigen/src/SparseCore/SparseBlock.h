@@ -27,6 +27,7 @@ public:
     
     class InnerIterator: public XprType::InnerIterator
     {
+        typedef typename BlockImpl::Index Index;
       public:
         inline InnerIterator(const BlockType& xpr, Index outer)
           : XprType::InnerIterator(xpr.m_matrix, xpr.m_outerStart + outer), m_outer(outer)
@@ -38,6 +39,7 @@ public:
     };
     class ReverseInnerIterator: public XprType::ReverseInnerIterator
     {
+        typedef typename BlockImpl::Index Index;
       public:
         inline ReverseInnerIterator(const BlockType& xpr, Index outer)
           : XprType::ReverseInnerIterator(xpr.m_matrix, xpr.m_outerStart + outer), m_outer(outer)

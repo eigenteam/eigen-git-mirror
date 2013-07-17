@@ -83,10 +83,12 @@ class SPQR
     ~SPQR()
     {
       // Calls SuiteSparseQR_free()
-      cholmod_free_sparse(&m_H, &m_cc); 
-      cholmod_free_dense(&m_HTau, &m_cc);
-      delete[] m_E;
-      delete[] m_HPinv; 
+      cholmod_l_free_sparse(&m_H, &m_cc);
+      cholmod_l_free_sparse(&m_cR, &m_cc);
+      cholmod_l_free_dense(&m_HTau, &m_cc);
+      std::free(m_E);
+      std::free(m_HPinv);
+      cholmod_l_finish(&m_cc);
     }
     void compute(const _MatrixType& matrix)
     {
@@ -244,7 +246,7 @@ struct SPQR_QProduct : ReturnByValue<SPQR_QProduct<SPQRType,Derived> >
     y_cd = viewAsCholmod(m_other.const_cast_derived());
     x_cd = SuiteSparseQR_qmult<Scalar>(method, m_spqr.m_H, m_spqr.m_HTau, m_spqr.m_HPinv, &y_cd, cc);
     res = Matrix<Scalar,ResType::RowsAtCompileTime,ResType::ColsAtCompileTime>::Map(reinterpret_cast<Scalar*>(x_cd->x), x_cd->nrow, x_cd->ncol);
-    cholmod_free_dense(&x_cd, cc); 
+    cholmod_l_free_dense(&x_cd, cc);
   }
   const SPQRType& m_spqr; 
   const Derived& m_other; 

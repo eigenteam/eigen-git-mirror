@@ -1,18 +1,18 @@
 namespace Eigen {
 
-/** \page TopicFunctionTakingEigenTypes Writing Functions Taking Eigen Types as Parameters
+/** \page TopicFunctionTakingEigenTypes Writing Functions Taking %Eigen Types as Parameters
 
-Eigen's use of expression templates results in potentially every expression being of a different type. If you pass such an expression to a function taking a parameter of type Matrix, your expression will implicitly be evaluated into a temporary Matrix, which will then be passed to the function. This means that you lose the benefit of expression templates. Concretely, this has two drawbacks:
+%Eigen's use of expression templates results in potentially every expression being of a different type. If you pass such an expression to a function taking a parameter of type Matrix, your expression will implicitly be evaluated into a temporary Matrix, which will then be passed to the function. This means that you lose the benefit of expression templates. Concretely, this has two drawbacks:
  \li The evaluation into a temporary may be useless and inefficient;
  \li This only allows the function to read from the expression, not to write to it.
 
-Fortunately, all this myriad of expression types have in common that they all inherit a few common, templated base classes. By letting your function take templated parameters of these base types, you can let them play nicely with Eigen's expression templates.
+Fortunately, all this myriad of expression types have in common that they all inherit a few common, templated base classes. By letting your function take templated parameters of these base types, you can let them play nicely with %Eigen's expression templates.
 
 \eigenAutoToc
 
 \section TopicFirstExamples Some First Examples
 
-This section will provide simple examples for different types of objects Eigen is offering. Before starting with the actual examples, we need to recapitulate which base objects we can work with (see also \ref TopicClassHierarchy).
+This section will provide simple examples for different types of objects %Eigen is offering. Before starting with the actual examples, we need to recapitulate which base objects we can work with (see also \ref TopicClassHierarchy).
 
  \li MatrixBase: The common base class for all dense matrix expressions (as opposed to array expressions, as opposed to sparse and special matrix classes). Use it in functions that are meant to work only on dense matrices.
  \li ArrayBase: The common base class for all dense array expressions (as opposed to matrix expressions, etc). Use it in functions that are meant to work only on arrays.
@@ -20,7 +20,7 @@ This section will provide simple examples for different types of objects Eigen i
  \li EigenBase: The base class unifying all types of objects that can be evaluated into dense matrices or arrays, for example special matrix classes such as diagonal matrices, permutation matrices, etc. It can be used in functions that are meant to work on any such general type.
 
 <b> %EigenBase Example </b><br/><br/>
-Prints the dimensions of the most generic object present in Eigen. It coulde be any matrix expressions, any dense or sparse matrix and any array.
+Prints the dimensions of the most generic object present in %Eigen. It could be any matrix expressions, any dense or sparse matrix and any array.
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr><td>
@@ -76,9 +76,42 @@ where the first argument \c v1 is a vector and the second argument \c 2*v2 is an
 
 These examples are just intended to give the reader a first impression of how functions can be written which take a plain and constant Matrix or Array argument. They are also intended to give the reader an idea about the most common base classes being the optimal candidates for functions. In the next section we will look in more detail at an example and the different ways it can be implemented, while discussing each implementation's problems and advantages. For the discussion below, Matrix and Array as well as MatrixBase and ArrayBase can be exchanged and all arguments still hold.
 
+
+\section TopicUsingRefClass How to write generic, but non-templated function?
+
+In all the previous examples, the functions had to be template functions. This approach allows to write very generic code, but it is often desirable to write non templated function and still keep some level of genericity to avoid stupid copies of the arguments. The typical example is to write functions accepting both a MatrixXf or a block of a MatrixXf. This exactly the purpose of the Ref class. Here is a simple example:
+
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include function_taking_ref.cpp
+</td>
+<td>
+\verbinclude function_taking_ref.out
+</td></tr></table>
+In the first two calls to inv_cond, no copy occur because the memory layout of the arguments matches the memory layout accepted by Ref<MatrixXf>. However, in the last call, we have a generic expression that will be automatically evaluated into a temporary MatrixXf by the Ref<> object.
+
+A Ref object can also be writable. Here is an example of a function computing the covariance matrix of two input matrices where each row is an observation:
+\code
+void cov(const Ref<const MatrixXf> x, const Ref<const MatrixXf> y, Ref<MatrixXf> C)
+{
+  const float num_observations = static_cast<float>(x.rows());
+  const RowVectorXf x_mean = x.colwise().sum() / num_observations;
+  const RowVectorXf y_mean = y.colwise().sum() / num_observations;
+  C = (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
+}
+\endcode
+and here are two examples calling cov without any copy:
+\code
+MatrixXf m1, m2, m3
+cov(m1, m2, m3);
+cov(m1.leftCols<3>(), m2.leftCols<3>(), m3.topLeftCorner<3,3>());
+\endcode
+The Ref<> class has two other optional template arguments allowing to control the kind of memory layout that can be accepted without any copy. See the class Ref documentation for the details.
+
 \section TopicPlainFunctionsWorking In which cases do functions taking plain Matrix or Array arguments work?
 
-Let's assume one wants to write a function computing the covariance matrix of two input matrices where each row is an observation. The implementation of this function might look like this
+Without using template functions, and without the Ref class, a naive implementation of the previous cov function might look like this
 \code
 MatrixXf cov(const MatrixXf& x, const MatrixXf& y)
 {
@@ -88,7 +121,7 @@ MatrixXf cov(const MatrixXf& x, const MatrixXf& y)
   return (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
 }
 \endcode
-and contrary to what one might think at first, this implementation is fine unless you require a genric implementation that works with double matrices too and unless you do not care about temporary objects. Why is that the case? Where are temporaries involved? How can code as given below compile?
+and contrary to what one might think at first, this implementation is fine unless you require a generic implementation that works with double matrices too and unless you do not care about temporary objects. Why is that the case? Where are temporaries involved? How can code as given below compile?
 \code
 MatrixXf x,y,z;
 MatrixXf C = cov(x,y+z);
@@ -96,6 +129,7 @@ MatrixXf C = cov(x,y+z);
 In this special case, the example is fine and will be working because both parameters are declared as \e const references. The compiler creates a temporary and evaluates the expression x+z into this temporary. Once the function is processed, the temporary is released and the result is assigned to C.
 
 \b Note: Functions taking \e const references to Matrix (or Array) can process expressions at the cost of temporaries.
+
 
 \section TopicPlainFunctionsFailing In which cases do functions taking a plain Matrix or Array argument fail?
 
@@ -149,7 +183,7 @@ MatrixXf y = MatrixXf::Random(100,3);
 MatrixXf C;
 cov(x, y, C);
 \endcode
-This is not the case anymore, when we are using an implementation taking MatrixBase as a parameter. In general, Eigen supports automatic resizing but it is not possible to do so on expressions. Why should resizing of a matrix Block be allowed? It is a reference to a sub-matrix and we definitely don't want to resize that. So how can we incorporate resizing if we cannot resize on MatrixBase? The solution is to resize the derived object as in this implementation.
+This is not the case anymore, when we are using an implementation taking MatrixBase as a parameter. In general, %Eigen supports automatic resizing but it is not possible to do so on expressions. Why should resizing of a matrix Block be allowed? It is a reference to a sub-matrix and we definitely don't want to resize that. So how can we incorporate resizing if we cannot resize on MatrixBase? The solution is to resize the derived object as in this implementation.
 \code
 template <typename Derived, typename OtherDerived>
 void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived> const & C_)

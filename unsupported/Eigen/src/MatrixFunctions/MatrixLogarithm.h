@@ -116,7 +116,7 @@ void MatrixLogarithmAtomic<MatrixType>::compute2x2(const MatrixType& A, MatrixTy
     // computation in previous branch is inaccurate if A(1,1) \approx A(0,0)
     int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - M_PI) / (2*M_PI)));
     Scalar y = A(1,1) - A(0,0), x = A(1,1) + A(0,0);
-    result(0,1) = A(0,1) * (Scalar(2) * internal::atanh2(y,x) + Scalar(0,2*M_PI*unwindingNumber)) / y;
+    result(0,1) = A(0,1) * (Scalar(2) * numext::atanh2(y,x) + Scalar(0,2*M_PI*unwindingNumber)) / y;
   }
 }
 

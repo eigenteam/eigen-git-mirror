@@ -30,10 +30,9 @@ struct selfadjoint_packed_rank1_update<Scalar,Index,ColMajor,UpLo,ConjLhs,ConjRh
 
     for (Index i=0; i<size; ++i)
     {
-      Map<Matrix<Scalar,Dynamic,1> >(mat, UpLo==Lower ? size-i : (i+1))
-	  += alpha * cj(vec[i]) * ConjRhsType(OtherMap(vec+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1)));
+      Map<Matrix<Scalar,Dynamic,1> >(mat, UpLo==Lower ? size-i : (i+1)) += alpha * cj(vec[i]) * ConjRhsType(OtherMap(vec+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1)));
       //FIXME This should be handled outside.
-      mat[UpLo==Lower ? 0 : i] = real(mat[UpLo==Lower ? 0 : i]);
+      mat[UpLo==Lower ? 0 : i] = numext::real(mat[UpLo==Lower ? 0 : i]);
       mat += UpLo==Lower ? size-i : (i+1);
     }
   }

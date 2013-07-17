@@ -43,8 +43,8 @@ template<typename MatrixType> void generalized_eigensolver_real(const MatrixType
 
 void test_eigensolver_generalized_real()
 {
-  int s;
   for(int i = 0; i < g_repeat; i++) {
+    int s = 0;
     CALL_SUBTEST_1( generalized_eigensolver_real(Matrix4f()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
     CALL_SUBTEST_2( generalized_eigensolver_real(MatrixXd(s,s)) );
@@ -54,7 +54,6 @@ void test_eigensolver_generalized_real()
     CALL_SUBTEST_2( generalized_eigensolver_real(MatrixXd(2,2)) );
     CALL_SUBTEST_3( generalized_eigensolver_real(Matrix<double,1,1>()) );
     CALL_SUBTEST_4( generalized_eigensolver_real(Matrix2d()) );
+    TEST_SET_BUT_UNUSED_VARIABLE(s)
   }
-  
-  EIGEN_UNUSED_VARIABLE(s)
 }

@@ -105,8 +105,9 @@ template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pnegate(const Packet& a) { return -a; }
 
 /** \internal \returns conj(a) (coeff-wise) */
+
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
-pconj(const Packet& a) { return conj(a); }
+pconj(const Packet& a) { return numext::conj(a); }
 
 /** \internal \returns a * b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet

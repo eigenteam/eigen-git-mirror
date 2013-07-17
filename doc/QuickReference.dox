@@ -45,7 +45,7 @@ All combinations are allowed: you can have a matrix with a fixed number of rows 
 Matrix<double, 6, Dynamic>                  // Dynamic number of columns (heap allocation)
 Matrix<double, Dynamic, 2>                  // Dynamic number of rows (heap allocation)
 Matrix<double, Dynamic, Dynamic, RowMajor>  // Fully dynamic, row major (heap allocation)
-Matrix<double, 13, 3>                       // Fully fixed (static allocation)
+Matrix<double, 13, 3>                       // Fully fixed (usually allocated on stack)
 \endcode
 
 In most cases, you can simply use one of the convenience typedefs for \ref matrixtypedefs "matrices" and \ref arraytypedefs "arrays". Some examples:

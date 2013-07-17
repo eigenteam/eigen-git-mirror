@@ -608,24 +608,24 @@ int EIGEN_BLAS_FUNC(her2k)(char *uplo, char *op, int *n, int *k, RealScalar *pal
     if(UPLO(*uplo)==UP)
     {
       matrix(c, *n, *n, *ldc).triangularView<Upper>()
-        +=         alpha *matrix(a, *n, *k, *lda)*matrix(b, *n, *k, *ldb).adjoint()
-        +  internal::conj(alpha)*matrix(b, *n, *k, *ldb)*matrix(a, *n, *k, *lda).adjoint();
+        +=            alpha *matrix(a, *n, *k, *lda)*matrix(b, *n, *k, *ldb).adjoint()
+        +  numext::conj(alpha)*matrix(b, *n, *k, *ldb)*matrix(a, *n, *k, *lda).adjoint();
     }
     else if(UPLO(*uplo)==LO)
       matrix(c, *n, *n, *ldc).triangularView<Lower>()
         += alpha*matrix(a, *n, *k, *lda)*matrix(b, *n, *k, *ldb).adjoint()
-        +  internal::conj(alpha)*matrix(b, *n, *k, *ldb)*matrix(a, *n, *k, *lda).adjoint();
+        +  numext::conj(alpha)*matrix(b, *n, *k, *ldb)*matrix(a, *n, *k, *lda).adjoint();
   }
   else if(OP(*op)==ADJ)
   {
     if(UPLO(*uplo)==UP)
       matrix(c, *n, *n, *ldc).triangularView<Upper>()
-        += alpha*matrix(a, *k, *n, *lda).adjoint()*matrix(b, *k, *n, *ldb)
-        +  internal::conj(alpha)*matrix(b, *k, *n, *ldb).adjoint()*matrix(a, *k, *n, *lda);
+        +=             alpha*matrix(a, *k, *n, *lda).adjoint()*matrix(b, *k, *n, *ldb)
+        +  numext::conj(alpha)*matrix(b, *k, *n, *ldb).adjoint()*matrix(a, *k, *n, *lda);
     else if(UPLO(*uplo)==LO)
       matrix(c, *n, *n, *ldc).triangularView<Lower>()
-        += alpha*matrix(a, *k, *n, *lda).adjoint()*matrix(b, *k, *n, *ldb)
-        +  internal::conj(alpha)*matrix(b, *k, *n, *ldb).adjoint()*matrix(a, *k, *n, *lda);
+        +=             alpha*matrix(a, *k, *n, *lda).adjoint()*matrix(b, *k, *n, *ldb)
+        +  numext::conj(alpha)*matrix(b, *k, *n, *ldb).adjoint()*matrix(a, *k, *n, *lda);
   }
 
   return 1;

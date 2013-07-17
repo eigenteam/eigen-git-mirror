@@ -112,8 +112,8 @@ void test_kronecker_product()
 
   CALL_SUBTEST(check_kronecker_product(DM_fix_ab));
 
-  for(unsigned int i=0;i<DM_fix_ab.rows();++i)
-    for(unsigned int j=0;j<DM_fix_ab.cols();++j)
+  for(int i=0;i<DM_fix_ab.rows();++i)
+    for(int j=0;j<DM_fix_ab.cols();++j)
        VERIFY_IS_APPROX(kroneckerProduct(DM_a,DM_b).coeff(i,j), DM_fix_ab(i,j));
 
   // test kroneckerProduct(DM,DM,DM_block)

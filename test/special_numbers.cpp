@@ -11,13 +11,12 @@
 
 template<typename Scalar> void special_numbers()
 {
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, Dynamic,Dynamic> MatType;
   int rows = internal::random<int>(1,300);
   int cols = internal::random<int>(1,300);
   
-  Scalar nan = Scalar(0)/Scalar(0);
-  Scalar inf = Scalar(1)/Scalar(0);
+  Scalar nan = std::numeric_limits<Scalar>::quiet_NaN();
+  Scalar inf = std::numeric_limits<Scalar>::infinity();
   Scalar s1 = internal::random<Scalar>();
   
   MatType m1    = MatType::Random(rows,cols),

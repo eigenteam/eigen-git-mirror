@@ -152,6 +152,7 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
 template<typename ArrayType> void array_real(const ArrayType& m)
 {
   using std::abs;
+  using std::sqrt;
   typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -160,8 +161,8 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   Index cols = m.cols();
 
   ArrayType m1 = ArrayType::Random(rows, cols),
-             m2 = ArrayType::Random(rows, cols),
-             m3(rows, cols);
+            m2 = ArrayType::Random(rows, cols),
+            m3(rows, cols);
 
   Scalar  s1 = internal::random<Scalar>();
 
@@ -182,14 +183,14 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
 //   VERIFY_IS_APPROX(m1.abs().sqrt(), std::sqrt(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().sqrt(), sqrt(abs(m1)));
-  VERIFY_IS_APPROX(m1.abs(), sqrt(internal::abs2(m1)));
+  VERIFY_IS_APPROX(m1.abs(), sqrt(numext::abs2(m1)));
 
-  VERIFY_IS_APPROX(internal::abs2(internal::real(m1)) + internal::abs2(internal::imag(m1)), internal::abs2(m1));
-  VERIFY_IS_APPROX(internal::abs2(real(m1)) + internal::abs2(imag(m1)), internal::abs2(m1));
+  VERIFY_IS_APPROX(numext::abs2(numext::real(m1)) + numext::abs2(numext::imag(m1)), numext::abs2(m1));
+  VERIFY_IS_APPROX(numext::abs2(real(m1)) + numext::abs2(imag(m1)), numext::abs2(m1));
   if(!NumTraits<Scalar>::IsComplex)
-    VERIFY_IS_APPROX(internal::real(m1), m1);
+    VERIFY_IS_APPROX(numext::real(m1), m1);
 
-  VERIFY((m1.abs().log() == log(abs(m1))).all());
+  VERIFY_IS_APPROX(m1.abs().log() , log(abs(m1)));
 
 //   VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));
@@ -211,6 +212,13 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   s1 += Scalar(tiny);
   m1 += ArrayType::Constant(rows,cols,Scalar(tiny));
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
+  
+  // check inplace transpose
+  m3 = m1;
+  m3.transposeInPlace();
+  VERIFY_IS_APPROX(m3,m1.transpose());
+  m3.transposeInPlace();
+  VERIFY_IS_APPROX(m3,m1);
 }
 
 template<typename ArrayType> void array_complex(const ArrayType& m)

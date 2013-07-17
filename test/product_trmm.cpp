@@ -54,7 +54,7 @@ void trmm(int rows=internal::random<int>(1,EIGEN_TEST_MAX_SIZE),
   ge_sx_save = ge_sx;
   VERIFY_IS_APPROX( ge_sx_save - (ge_right.adjoint() * (-s1 * triTr).conjugate()).eval(), ge_sx.noalias() -= (ge_right.adjoint() * (-s1 * mat).adjoint().template triangularView<Mode>()).eval());
   
-  VERIFY_IS_APPROX( ge_xs = (s1*mat).adjoint().template triangularView<Mode>() * ge_left.adjoint(), internal::conj(s1) * triTr.conjugate() * ge_left.adjoint());
+  VERIFY_IS_APPROX( ge_xs = (s1*mat).adjoint().template triangularView<Mode>() * ge_left.adjoint(), numext::conj(s1) * triTr.conjugate() * ge_left.adjoint());
   
   // TODO check with sub-matrix expressions ?
 }

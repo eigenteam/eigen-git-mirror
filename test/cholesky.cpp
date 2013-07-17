@@ -82,14 +82,14 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     symm += a1 * a1.adjoint();
   }
 
-  SquareMatrixType symmUp = symm.template triangularView<Upper>();
-  SquareMatrixType symmLo = symm.template triangularView<Lower>();
-
   // to test if really Cholesky only uses the upper triangular part, uncomment the following
   // FIXME: currently that fails !!
   //symm.template part<StrictlyLower>().setZero();
 
   {
+    SquareMatrixType symmUp = symm.template triangularView<Upper>();
+    SquareMatrixType symmLo = symm.template triangularView<Lower>();
+    
     LLT<SquareMatrixType,Lower> chollo(symmLo);
     VERIFY_IS_APPROX(symm, chollo.reconstructedMatrix());
     vecX = chollo.solve(vecB);
@@ -113,6 +113,21 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     VERIFY_IS_APPROX(MatrixType(chollo.matrixU().transpose().conjugate()), MatrixType(chollo.matrixL()));
     VERIFY_IS_APPROX(MatrixType(cholup.matrixL().transpose().conjugate()), MatrixType(cholup.matrixU()));
     VERIFY_IS_APPROX(MatrixType(cholup.matrixU().transpose().conjugate()), MatrixType(cholup.matrixL()));
+    
+    // test some special use cases of SelfCwiseBinaryOp:
+    MatrixType m1 = MatrixType::Random(rows,cols), m2(rows,cols);
+    m2 = m1;
+    m2 += symmLo.template selfadjointView<Lower>().llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2 = m1;
+    m2 -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2 = m1;
+    m2.noalias() += symmLo.template selfadjointView<Lower>().llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
+    m2 = m1;
+    m2.noalias() -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
+    VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
   }
 
   // LDLT
@@ -165,21 +180,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     if(sign == -1)
       symm = -symm;
   }
-
-  // test some special use cases of SelfCwiseBinaryOp:
-  MatrixType m1 = MatrixType::Random(rows,cols), m2(rows,cols);
-  m2 = m1;
-  m2 += symmLo.template selfadjointView<Lower>().llt().solve(matB);
-  VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
-  m2 = m1;
-  m2 -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
-  VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
-  m2 = m1;
-  m2.noalias() += symmLo.template selfadjointView<Lower>().llt().solve(matB);
-  VERIFY_IS_APPROX(m2, m1 + symmLo.template selfadjointView<Lower>().llt().solve(matB));
-  m2 = m1;
-  m2.noalias() -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
-  VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
 
   // update/downdate
   CALL_SUBTEST(( test_chol_update<SquareMatrixType,LLT>(symm)  ));
@@ -268,10 +268,18 @@ template<typename MatrixType> void cholesky_indefinite(const MatrixType& m)
 {
   eigen_assert(m.rows() == 2 && m.cols() == 2);
   MatrixType mat;
-  mat << 1, 0, 0, -1;
-  LDLT<MatrixType> ldlt(mat);
-  VERIFY(!ldlt.isNegative());
-  VERIFY(!ldlt.isPositive());
+  {
+    mat << 1, 0, 0, -1;
+    LDLT<MatrixType> ldlt(mat);
+    VERIFY(!ldlt.isNegative());
+    VERIFY(!ldlt.isPositive());
+  }
+  {
+    mat << 1, 2, 2, 1;
+    LDLT<MatrixType> ldlt(mat);
+    VERIFY(!ldlt.isNegative());
+    VERIFY(!ldlt.isPositive());
+  }
 }
 
 template<typename MatrixType> void cholesky_verify_assert()
@@ -296,7 +304,7 @@ template<typename MatrixType> void cholesky_verify_assert()
 
 void test_cholesky()
 {
-  int s;
+  int s = 0;
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( cholesky(Matrix<double,1,1>()) );
     CALL_SUBTEST_3( cholesky(Matrix2d()) );
@@ -319,5 +327,6 @@ void test_cholesky()
   CALL_SUBTEST_9( LLT<MatrixXf>(10) );
   CALL_SUBTEST_9( LDLT<MatrixXf>(10) );
   
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(nb_temporaries)
 }

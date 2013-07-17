@@ -47,7 +47,7 @@ T poly_eval( const Polynomials& poly, const T& x )
 {
   typedef typename NumTraits<T>::Real Real;
 
-  if( internal::abs2( x ) <= Real(1) ){
+  if( numext::abs2( x ) <= Real(1) ){
     return poly_eval_horner( poly, x ); }
   else
   {

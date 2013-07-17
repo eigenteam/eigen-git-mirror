@@ -50,7 +50,7 @@ public:
   typedef const Block<const Coefficients,AmbientDimAtCompileTime,1> ConstNormalReturnType;
 
   /** Default constructor without initialization */
-  inline explicit Hyperplane() {}
+  inline Hyperplane() {}
   
   template<int OtherOptions>
   Hyperplane(const Hyperplane<Scalar,AmbientDimAtCompileTime,OtherOptions>& other)

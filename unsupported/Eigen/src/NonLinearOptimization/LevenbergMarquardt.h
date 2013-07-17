@@ -285,13 +285,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (Scalar(.1) * fnorm1 < fnorm)
-            actred = 1. - internal::abs2(fnorm1 / fnorm);
+            actred = 1. - numext::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
         wa3 = fjac.template triangularView<Upper>() * (qrfac.colsPermutation().inverse() *wa1);
-        temp1 = internal::abs2(wa3.stableNorm() / fnorm);
-        temp2 = internal::abs2(sqrt(par) * pnorm / fnorm);
+        temp1 = numext::abs2(wa3.stableNorm() / fnorm);
+        temp2 = numext::abs2(sqrt(par) * pnorm / fnorm);
         prered = temp1 + temp2 / Scalar(.5);
         dirder = -(temp1 + temp2);
 
@@ -535,13 +535,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (Scalar(.1) * fnorm1 < fnorm)
-            actred = 1. - internal::abs2(fnorm1 / fnorm);
+            actred = 1. - numext::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
         wa3 = fjac.topLeftCorner(n,n).template triangularView<Upper>() * (permutation.inverse() * wa1);
-        temp1 = internal::abs2(wa3.stableNorm() / fnorm);
-        temp2 = internal::abs2(sqrt(par) * pnorm / fnorm);
+        temp1 = numext::abs2(wa3.stableNorm() / fnorm);
+        temp2 = numext::abs2(sqrt(par) * pnorm / fnorm);
         prered = temp1 + temp2 / Scalar(.5);
         dirder = -(temp1 + temp2);
 

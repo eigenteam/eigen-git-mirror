@@ -2,7 +2,7 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialSparse Sparse matrix manipulations
 
-\eigeneigenAutoToc
+\eigenAutoToc
 
 Manipulating and solving sparse problems involves various modules which are summarized below:
 
@@ -14,7 +14,7 @@ Manipulating and solving sparse problems involves various modules which are summ
 <td>%Sparse LU factorization to solve general square sparse systems</td></tr>
 <tr><td>\link SparseQR_Module SparseQR \endlink</td><td>\code #include<Eigen/SparseQR>\endcode </td><td>%Sparse QR factorization for solving sparse linear least-squares problems</td></tr>
 <tr><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>\code#include <Eigen/IterativeLinearSolvers>\endcode</td><td>Iterative solvers to solve large general linear square problems (including self-adjoint positive definite problems)</td></tr>
-<tr><td>\link Sparse_modules Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>Includes all the above modules</td></tr>
+<tr><td>\link Sparse_Module Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>Includes all the above modules</td></tr>
 </table>
 
 \section TutorialSparseIntro Sparse matrix format
@@ -116,7 +116,7 @@ Describing the \a buildProblem and \a save functions is out of the scope of this
 
 The SparseMatrix and SparseVector classes take three template arguments:
  * the scalar type (e.g., double)
- * the storage order (ColMajor or RowMajor, the default is RowMajor)
+ * the storage order (ColMajor or RowMajor, the default is ColMajor)
  * the inner index type (default is \c int).
 
 As for dense Matrix objects, constructors takes the size of the object.
@@ -290,9 +290,9 @@ sm3 = 4 * sm1.adjoint() * sm2;
     \endcode
     The second algorithm prunes on the fly the explicit zeros, or the values smaller than a given threshold. It is enabled and controlled through the prune() functions:
     \code
-sm3 = (sm1 * sm2).prune();                  // removes numerical zeros
-sm3 = (sm1 * sm2).prune(ref);               // removes elements much smaller than ref
-sm3 = (sm1 * sm2).prune(ref,epsilon);       // removes elements smaller than ref*epsilon
+sm3 = (sm1 * sm2).pruned();                  // removes numerical zeros
+sm3 = (sm1 * sm2).pruned(ref);               // removes elements much smaller than ref
+sm3 = (sm1 * sm2).pruned(ref,epsilon);       // removes elements smaller than ref*epsilon
     \endcode
 
   - \b permutations. Finally, permutations can be applied to sparse matrices too:

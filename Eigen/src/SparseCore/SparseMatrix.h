@@ -31,7 +31,7 @@ namespace Eigen {
   *
   * \tparam _Scalar the scalar type, i.e. the type of the coefficients
   * \tparam _Options Union of bit flags controlling the storage scheme. Currently the only possibility
-  *                 is RowMajor. The default is 0 which means column-major.
+  *                 is ColMajor or RowMajor. The default is 0 which means column-major.
   * \tparam _Index the type of the indices. It has to be a \b signed type (e.g., short, int, std::ptrdiff_t). Default is \c int.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
@@ -170,6 +170,8 @@ class SparseMatrix
       * This function returns Scalar(0) if the element is an explicit \em zero */
     inline Scalar coeff(Index row, Index col) const
     {
+      eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
+      
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
       Index end = m_innerNonZeros ? m_outerIndex[outer] + m_innerNonZeros[outer] : m_outerIndex[outer+1];
@@ -186,6 +188,8 @@ class SparseMatrix
       */
     inline Scalar& coeffRef(Index row, Index col)
     {
+      eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
+      
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
 
@@ -215,6 +219,8 @@ class SparseMatrix
       */
     Scalar& insert(Index row, Index col)
     {
+      eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
+      
       if(isCompressed())
       {
         reserve(VectorXi::Constant(outerSize(), 2));
@@ -281,7 +287,6 @@ class SparseMatrix
     template<class SizesType>
     inline void reserveInnerVectors(const SizesType& reserveSizes)
     {
-      
       if(isCompressed())
       {
         std::size_t totalReserveSize = 0;
@@ -526,59 +531,63 @@ class SparseMatrix
       */
     void conservativeResize(Index rows, Index cols) 
     {
-        // No change
-        if (this->rows() == rows && this->cols() == cols) return;
+      // No change
+      if (this->rows() == rows && this->cols() == cols) return;
+      
+      // If one dimension is null, then there is nothing to be preserved
+      if(rows==0 || cols==0) return resize(rows,cols);
 
-        Index innerChange = IsRowMajor ? cols - this->cols() : rows - this->rows();
-        Index outerChange = IsRowMajor ? rows - this->rows() : cols - this->cols();
-        Index newInnerSize = IsRowMajor ? cols : rows;
+      Index innerChange = IsRowMajor ? cols - this->cols() : rows - this->rows();
+      Index outerChange = IsRowMajor ? rows - this->rows() : cols - this->cols();
+      Index newInnerSize = IsRowMajor ? cols : rows;
 
-        // Deals with inner non zeros
-        if (m_innerNonZeros)
+      // Deals with inner non zeros
+      if (m_innerNonZeros)
+      {
+        // Resize m_innerNonZeros
+        Index *newInnerNonZeros = static_cast<Index*>(std::realloc(m_innerNonZeros, (m_outerSize + outerChange) * sizeof(Index)));
+        if (!newInnerNonZeros) internal::throw_std_bad_alloc();
+        m_innerNonZeros = newInnerNonZeros;
+        
+        for(Index i=m_outerSize; i<m_outerSize+outerChange; i++)          
+          m_innerNonZeros[i] = 0;
+      } 
+      else if (innerChange < 0) 
+      {
+        // Inner size decreased: allocate a new m_innerNonZeros
+        m_innerNonZeros = static_cast<Index*>(std::malloc((m_outerSize+outerChange+1) * sizeof(Index)));
+        if (!m_innerNonZeros) internal::throw_std_bad_alloc();
+        for(Index i = 0; i < m_outerSize; i++)
+          m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i];
+      }
+      
+      // Change the m_innerNonZeros in case of a decrease of inner size
+      if (m_innerNonZeros && innerChange < 0)
+      {
+        for(Index i = 0; i < m_outerSize + (std::min)(outerChange, Index(0)); i++)
         {
-          // Resize m_innerNonZeros
-          Index *newInnerNonZeros = static_cast<Index*>(std::realloc(m_innerNonZeros, (m_outerSize + outerChange) * sizeof(Index)));
-          if (!newInnerNonZeros) internal::throw_std_bad_alloc();
-          m_innerNonZeros = newInnerNonZeros;
+          Index &n = m_innerNonZeros[i];
+          Index start = m_outerIndex[i];
+          while (n > 0 && m_data.index(start+n-1) >= newInnerSize) --n; 
+        }
+      }
+      
+      m_innerSize = newInnerSize;
+
+      // Re-allocate outer index structure if necessary
+      if (outerChange == 0)
+        return;
           
-          for(Index i=m_outerSize; i<m_outerSize+outerChange; i++)          
-            m_innerNonZeros[i] = 0;
-        } 
-        else if (innerChange < 0) 
-        {
-          // Inner size decreased: allocate a new m_innerNonZeros
-          m_innerNonZeros = static_cast<Index*>(std::malloc((m_outerSize+outerChange+1) * sizeof(Index)));
-          if (!m_innerNonZeros) internal::throw_std_bad_alloc();
-          for(Index i = 0; i < m_outerSize; i++)
-            m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i];
-        }
-        
-        // Change the m_innerNonZeros in case of a decrease of inner size
-        if (m_innerNonZeros && innerChange < 0) {
-              for(Index i = 0; i < m_outerSize + (std::min)(outerChange, Index(0)); i++)
-              {
-                Index &n = m_innerNonZeros[i];
-                Index start = m_outerIndex[i];
-                while (n > 0 && m_data.index(start+n-1) >= newInnerSize) --n; 
-              }
-        }
-        
-        m_innerSize = newInnerSize;
-
-        // Re-allocate outer index structure if necessary
-        if (outerChange == 0)
-          return;
-            
-        Index *newOuterIndex = static_cast<Index*>(std::realloc(m_outerIndex, (m_outerSize + outerChange + 1) * sizeof(Index)));
-        if (!newOuterIndex) internal::throw_std_bad_alloc();
-        m_outerIndex = newOuterIndex;
-        if (outerChange > 0) {
-          Index last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
-          for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
-            m_outerIndex[i] = last; 
-        }
-        m_outerSize += outerChange;
-        
+      Index *newOuterIndex = static_cast<Index*>(std::realloc(m_outerIndex, (m_outerSize + outerChange + 1) * sizeof(Index)));
+      if (!newOuterIndex) internal::throw_std_bad_alloc();
+      m_outerIndex = newOuterIndex;
+      if (outerChange > 0)
+      {
+        Index last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
+        for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
+          m_outerIndex[i] = last; 
+      }
+      m_outerSize += outerChange;
     }
     
     /** Resizes the matrix to a \a rows x \a cols matrix and initializes it to zero.
@@ -637,8 +646,19 @@ class SparseMatrix
     inline SparseMatrix(const SparseMatrixBase<OtherDerived>& other)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
+      EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       check_template_parameters();
       *this = other.derived();
+    }
+    
+    /** Constructs a sparse matrix from the sparse selfadjoint view \a other */
+    template<typename OtherDerived, unsigned int UpLo>
+    inline SparseMatrix(const SparseSelfAdjointView<OtherDerived, UpLo>& other)
+      : m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
+    {
+      check_template_parameters();
+      *this = other;
     }
 
     /** Copy constructor (it performs a deep copy) */
@@ -671,13 +691,22 @@ class SparseMatrix
       m_data.swap(other.m_data);
     }
 
+    /** Sets *this to the identity matrix */
+    inline void setIdentity()
+    {
+      eigen_assert(rows() == cols() && "ONLY FOR SQUARED MATRICES");
+      this->m_data.resize(rows());
+      Eigen::Map<Matrix<Index, Dynamic, 1> >(&this->m_data.index(0), rows()).setLinSpaced(0, rows()-1);
+      Eigen::Map<Matrix<Scalar, Dynamic, 1> >(&this->m_data.value(0), rows()).setOnes();
+      Eigen::Map<Matrix<Index, Dynamic, 1> >(this->m_outerIndex, rows()+1).setLinSpaced(0, rows());
+    }
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {
       if (other.isRValue())
       {
         swap(other.const_cast_derived());
       }
-      else
+      else if(this!=&other)
       {
         initAssignment(other);
         if(other.isCompressed())
@@ -822,6 +851,7 @@ private:
   static void check_template_parameters()
   {
     EIGEN_STATIC_ASSERT(NumTraits<Index>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
+    EIGEN_STATIC_ASSERT((Options&(ColMajor|RowMajor))==Options,INVALID_MATRIX_TEMPLATE_PARAMETERS);
   }
 
   struct default_prunning_func {
@@ -911,19 +941,25 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   typedef typename SparseMatrixType::Scalar Scalar;
   SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
 
-  // pass 1: count the nnz per inner-vector
-  VectorXi wi(trMat.outerSize());
-  wi.setZero();
-  for(InputIterator it(begin); it!=end; ++it)
-    wi(IsRowMajor ? it->col() : it->row())++;
+  if(begin<end)
+  {
+    // pass 1: count the nnz per inner-vector
+    VectorXi wi(trMat.outerSize());
+    wi.setZero();
+    for(InputIterator it(begin); it!=end; ++it)
+    {
+      eigen_assert(it->row()>=0 && it->row()<mat.rows() && it->col()>=0 && it->col()<mat.cols());
+      wi(IsRowMajor ? it->col() : it->row())++;
+    }
 
-  // pass 2: insert all the elements into trMat
-  trMat.reserve(wi);
-  for(InputIterator it(begin); it!=end; ++it)
-    trMat.insertBackUncompressed(it->row(),it->col()) = it->value();
+    // pass 2: insert all the elements into trMat
+    trMat.reserve(wi);
+    for(InputIterator it(begin); it!=end; ++it)
+      trMat.insertBackUncompressed(it->row(),it->col()) = it->value();
 
-  // pass 3:
-  trMat.sumupDuplicates();
+    // pass 3:
+    trMat.sumupDuplicates();
+  }
 
   // pass 4: transposed copy -> implicit sorting
   mat = trMat;
@@ -1020,6 +1056,9 @@ template<typename Scalar, int _Options, typename _Index>
 template<typename OtherDerived>
 EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Options,_Index>::operator=(const SparseMatrixBase<OtherDerived>& other)
 {
+  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+  
   const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
   if (needToTranspose)
   {

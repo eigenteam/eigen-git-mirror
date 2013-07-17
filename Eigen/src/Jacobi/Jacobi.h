@@ -50,16 +50,16 @@ template<typename Scalar> class JacobiRotation
     /** Concatenates two planar rotation */
     JacobiRotation operator*(const JacobiRotation& other)
     {
-      using internal::conj;
+      using numext::conj;
       return JacobiRotation(m_c * other.m_c - conj(m_s) * other.m_s,
                             conj(m_c * conj(other.m_s) + conj(m_s) * conj(other.m_c)));
     }
 
     /** Returns the transposed transformation */
-    JacobiRotation transpose() const { using internal::conj; return JacobiRotation(m_c, -conj(m_s)); }
+    JacobiRotation transpose() const { using numext::conj; return JacobiRotation(m_c, -conj(m_s)); }
 
     /** Returns the adjoint transformation */
-    JacobiRotation adjoint() const { using internal::conj; return JacobiRotation(conj(m_c), -m_s); }
+    JacobiRotation adjoint() const { using numext::conj; return JacobiRotation(conj(m_c), -m_s); }
 
     template<typename Derived>
     bool makeJacobi(const MatrixBase<Derived>&, typename Derived::Index p, typename Derived::Index q);
@@ -94,7 +94,7 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
   else
   {
     RealScalar tau = (x-z)/(RealScalar(2)*abs(y));
-    RealScalar w = sqrt(internal::abs2(tau) + RealScalar(1));
+    RealScalar w = sqrt(numext::abs2(tau) + RealScalar(1));
     RealScalar t;
     if(tau>RealScalar(0))
     {
@@ -105,8 +105,8 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
       t = RealScalar(1) / (tau - w);
     }
     RealScalar sign_t = t > RealScalar(0) ? RealScalar(1) : RealScalar(-1);
-    RealScalar n = RealScalar(1) / sqrt(internal::abs2(t)+RealScalar(1));
-    m_s = - sign_t * (internal::conj(y) / abs(y)) * abs(t) * n;
+    RealScalar n = RealScalar(1) / sqrt(numext::abs2(t)+RealScalar(1));
+    m_s = - sign_t * (numext::conj(y) / abs(y)) * abs(t) * n;
     m_c = n;
     return true;
   }
@@ -125,7 +125,7 @@ template<typename Scalar>
 template<typename Derived>
 inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, typename Derived::Index p, typename Derived::Index q)
 {
-  return makeJacobi(internal::real(m.coeff(p,p)), m.coeff(p,q), internal::real(m.coeff(q,q)));
+  return makeJacobi(numext::real(m.coeff(p,p)), m.coeff(p,q), numext::real(m.coeff(q,q)));
 }
 
 /** Makes \c *this as a Givens rotation \c G such that applying \f$ G^* \f$ to the left of the vector
@@ -157,11 +157,11 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 {
   using std::sqrt;
   using std::abs;
-  using internal::conj;
+  using numext::conj;
   
   if(q==Scalar(0))
   {
-    m_c = internal::real(p)<0 ? Scalar(-1) : Scalar(1);
+    m_c = numext::real(p)<0 ? Scalar(-1) : Scalar(1);
     m_s = 0;
     if(r) *r = m_c * p;
   }
@@ -173,17 +173,17 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
   }
   else
   {
-    RealScalar p1 = internal::norm1(p);
-    RealScalar q1 = internal::norm1(q);
+    RealScalar p1 = numext::norm1(p);
+    RealScalar q1 = numext::norm1(q);
     if(p1>=q1)
     {
       Scalar ps = p / p1;
-      RealScalar p2 = internal::abs2(ps);
+      RealScalar p2 = numext::abs2(ps);
       Scalar qs = q / p1;
-      RealScalar q2 = internal::abs2(qs);
+      RealScalar q2 = numext::abs2(qs);
 
       RealScalar u = sqrt(RealScalar(1) + q2/p2);
-      if(internal::real(p)<RealScalar(0))
+      if(numext::real(p)<RealScalar(0))
         u = -u;
 
       m_c = Scalar(1)/u;
@@ -193,12 +193,12 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
     else
     {
       Scalar ps = p / q1;
-      RealScalar p2 = internal::abs2(ps);
+      RealScalar p2 = numext::abs2(ps);
       Scalar qs = q / q1;
-      RealScalar q2 = internal::abs2(qs);
+      RealScalar q2 = numext::abs2(qs);
 
       RealScalar u = q1 * sqrt(p2 + q2);
-      if(internal::real(p)<RealScalar(0))
+      if(numext::real(p)<RealScalar(0))
         u = -u;
 
       p1 = abs(p);
@@ -231,7 +231,7 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
   else if(abs(p) > abs(q))
   {
     Scalar t = q/p;
-    Scalar u = sqrt(Scalar(1) + internal::abs2(t));
+    Scalar u = sqrt(Scalar(1) + numext::abs2(t));
     if(p<Scalar(0))
       u = -u;
     m_c = Scalar(1)/u;
@@ -241,7 +241,7 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
   else
   {
     Scalar t = p/q;
-    Scalar u = sqrt(Scalar(1) + internal::abs2(t));
+    Scalar u = sqrt(Scalar(1) + numext::abs2(t));
     if(q<Scalar(0))
       u = -u;
     m_s = -Scalar(1)/u;
@@ -337,8 +337,8 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y,
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] =  c * xi + conj(s) * yi;
-      y[i] = -s * xi + conj(c) * yi;
+      x[i] =  c * xi + numext::conj(s) * yi;
+      y[i] = -s * xi + numext::conj(c) * yi;
     }
 
     Scalar* EIGEN_RESTRICT px = x + alignedStart;
@@ -385,8 +385,8 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y,
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
-      x[i] =  c * xi + conj(s) * yi;
-      y[i] = -s * xi + conj(c) * yi;
+      x[i] =  c * xi + numext::conj(s) * yi;
+      y[i] = -s * xi + numext::conj(c) * yi;
     }
   }
 
@@ -418,8 +418,8 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y,
     {
       Scalar xi = *x;
       Scalar yi = *y;
-      *x =  c * xi + conj(s) * yi;
-      *y = -s * xi + conj(c) * yi;
+      *x =  c * xi + numext::conj(s) * yi;
+      *y = -s * xi + numext::conj(c) * yi;
       x += incrx;
       y += incry;
     }

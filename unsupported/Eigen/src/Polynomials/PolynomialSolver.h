@@ -83,10 +83,10 @@ class PolynomialSolverBase
     inline const RootType& selectComplexRoot_withRespectToNorm( squaredNormBinaryPredicate& pred ) const
     {
       Index res=0;
-      RealScalar norm2 = internal::abs2( m_roots[0] );
+      RealScalar norm2 = numext::abs2( m_roots[0] );
       for( Index i=1; i<m_roots.size(); ++i )
       {
-        const RealScalar currNorm2 = internal::abs2( m_roots[i] );
+        const RealScalar currNorm2 = numext::abs2( m_roots[i] );
         if( pred( currNorm2, norm2 ) ){
           res=i; norm2=currNorm2; }
       }
@@ -150,7 +150,7 @@ class PolynomialSolverBase
             res = i; }
         }
       }
-      return internal::real_ref(m_roots[res]);
+      return numext::real_ref(m_roots[res]);
     }
 
 
@@ -191,7 +191,7 @@ class PolynomialSolverBase
             res = i; }
         }
       }
-      return internal::real_ref(m_roots[res]);
+      return numext::real_ref(m_roots[res]);
     }
 
   public:

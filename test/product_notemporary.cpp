@@ -9,7 +9,7 @@
 
 static int nb_temporaries;
 
-void on_temporary_creation(int size) {
+inline void on_temporary_creation(int size) {
   // here's a great place to set a breakpoint when debugging failures in this test!
   if(size!=0) nb_temporaries++;
 }

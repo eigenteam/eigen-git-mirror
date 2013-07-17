@@ -45,6 +45,20 @@ struct traits<SparseVector<_Scalar, _Options, _Index> >
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
+
+// Sparse-Vector-Assignment kinds:
+enum {
+  SVA_RuntimeSwitch,
+  SVA_Inner,
+  SVA_Outer
+};
+
+template< typename Dest, typename Src,
+          int AssignmentKind = !bool(Src::IsVectorAtCompileTime) ? SVA_RuntimeSwitch
+                             : Src::InnerSizeAtCompileTime==1 ? SVA_Outer
+                             : SVA_Inner>
+struct sparse_vector_assign_selector;
+
 }
 
 template<typename _Scalar, int _Options, typename _Index>
@@ -83,14 +97,18 @@ class SparseVector
 
     inline Scalar coeff(Index row, Index col) const
     {
-      eigen_assert((IsColVector ? col : row)==0);
+      eigen_assert(IsColVector ? (col==0 && row>=0 && row<m_size) : (row==0 && col>=0 && col<m_size));
       return coeff(IsColVector ? row : col);
     }
-    inline Scalar coeff(Index i) const { return m_data.at(i); }
+    inline Scalar coeff(Index i) const
+    {
+      eigen_assert(i>=0 && i<m_size);
+      return m_data.at(i);
+    }
 
     inline Scalar& coeffRef(Index row, Index col)
     {
-      eigen_assert((IsColVector ? col : row)==0);
+      eigen_assert(IsColVector ? (col==0 && row>=0 && row<m_size) : (row==0 && col>=0 && col<m_size));
       return coeff(IsColVector ? row : col);
     }
 
@@ -102,6 +120,7 @@ class SparseVector
       */
     inline Scalar& coeffRef(Index i)
     {
+      eigen_assert(i>=0 && i<m_size);
       return m_data.atWithInsertion(i);
     }
 
@@ -135,6 +154,8 @@ class SparseVector
 
     inline Scalar& insert(Index row, Index col)
     {
+      eigen_assert(IsColVector ? (col==0 && row>=0 && row<m_size) : (row==0 && col>=0 && col<m_size));
+      
       Index inner = IsColVector ? row : col;
       Index outer = IsColVector ? col : row;
       eigen_assert(outer==0);
@@ -142,6 +163,8 @@ class SparseVector
     }
     Scalar& insert(Index i)
     {
+      eigen_assert(i>=0 && i<m_size);
+      
       Index startId = 0;
       Index p = Index(m_data.size()) - 1;
       // TODO smart realloc
@@ -184,22 +207,24 @@ class SparseVector
 
     void resizeNonZeros(Index size) { m_data.resize(size); }
 
-    inline SparseVector() : m_size(0) { resize(0); }
+    inline SparseVector() : m_size(0) { check_template_parameters(); resize(0); }
 
-    inline SparseVector(Index size) : m_size(0) { resize(size); }
+    inline SparseVector(Index size) : m_size(0) { check_template_parameters(); resize(size); }
 
-    inline SparseVector(Index rows, Index cols) : m_size(0) { resize(rows,cols); }
+    inline SparseVector(Index rows, Index cols) : m_size(0) { check_template_parameters(); resize(rows,cols); }
 
     template<typename OtherDerived>
     inline SparseVector(const SparseMatrixBase<OtherDerived>& other)
       : m_size(0)
     {
+      check_template_parameters();
       *this = other.derived();
     }
 
     inline SparseVector(const SparseVector& other)
       : SparseBase(other), m_size(0)
     {
+      check_template_parameters();
       *this = other.derived();
     }
 
@@ -230,11 +255,10 @@ class SparseVector
     template<typename OtherDerived>
     inline SparseVector& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      if ( (bool(OtherDerived::IsVectorAtCompileTime) && int(RowsAtCompileTime)!=int(OtherDerived::RowsAtCompileTime))
-          || ((!bool(OtherDerived::IsVectorAtCompileTime)) && ( bool(IsColVector) ? other.cols()>1 : other.rows()>1 )))
-        return assign(other.transpose());
-      else
-        return assign(other);
+      SparseVector tmp(other.size());
+      internal::sparse_vector_assign_selector<SparseVector,OtherDerived>::run(tmp,other.derived());
+      this->swap(tmp);
+      return *this;
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -309,8 +333,12 @@ class SparseVector
 #   endif
 
 protected:
-    template<typename OtherDerived>
-    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other);
+  
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT(NumTraits<Index>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
+      EIGEN_STATIC_ASSERT((_Options&(ColMajor|RowMajor))==Options,INVALID_MATRIX_TEMPLATE_PARAMETERS);
+    }
     
     Storage m_data;
     Index m_size;
@@ -380,33 +408,40 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
     const Index m_start;
 };
 
-template<typename Scalar, int _Options, typename _Index>
-template<typename OtherDerived>
-EIGEN_DONT_INLINE SparseVector<Scalar,_Options,_Index>& SparseVector<Scalar,_Options,_Index>::assign(const SparseMatrixBase<OtherDerived>& _other)
-{
-  const OtherDerived& other(_other.derived());
-  const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-  if(needToTranspose)
-  {
-    Index size = other.size();
-    Index nnz = other.nonZeros();
-    resize(size);
-    reserve(nnz);
-    for(Index i=0; i<size; ++i)
+namespace internal {
+
+template< typename Dest, typename Src>
+struct sparse_vector_assign_selector<Dest,Src,SVA_Inner> {
+  static void run(Dest& dst, const Src& src) {
+    eigen_internal_assert(src.innerSize()==src.size());
+    for(typename Src::InnerIterator it(src, 0); it; ++it)
+      dst.insert(it.index()) = it.value();
+  }
+};
+
+template< typename Dest, typename Src>
+struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
+  static void run(Dest& dst, const Src& src) {
+    eigen_internal_assert(src.outerSize()==src.size());
+    for(typename Dest::Index i=0; i<src.size(); ++i)
     {
-      typename OtherDerived::InnerIterator it(other, i);
+      typename Src::InnerIterator it(src, i);
       if(it)
-          insert(i) = it.value();
+        dst.insert(i) = it.value();
     }
-    return *this;
   }
-  else
-  {
-    // there is no special optimization
-    return Base::operator=(other);
+};
+
+template< typename Dest, typename Src>
+struct sparse_vector_assign_selector<Dest,Src,SVA_RuntimeSwitch> {
+  static void run(Dest& dst, const Src& src) {
+    if(src.outerSize()==1)  sparse_vector_assign_selector<Dest,Src,SVA_Inner>::run(dst, src);
+    else                    sparse_vector_assign_selector<Dest,Src,SVA_Outer>::run(dst, src);
   }
+};
+
 }
-    
+
 } // end namespace Eigen
 
 #endif // EIGEN_SPARSEVECTOR_H

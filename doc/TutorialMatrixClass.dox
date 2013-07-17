@@ -79,8 +79,8 @@ Matrix3f a;
 MatrixXf b;
 \endcode
 Here,
-\li \c a is a 3x3 matrix, with a static float[9] array of uninitialized coefficients,
-\li \c b is a dynamic-size matrix whose size is currently 0x0, and whose array of
+\li \c a is a 3-by-3 matrix, with a plain float[9] array of uninitialized coefficients,
+\li \c b is a dynamic-size matrix whose size is currently 0-by-0, and whose array of
 coefficients hasn't yet been allocated at all.
 
 Constructors taking sizes are also available. For matrices, the number of rows is always passed first.
@@ -197,7 +197,7 @@ The simple answer is: use fixed
 sizes for very small sizes where you can, and use dynamic sizes for larger sizes or where you have to. For small sizes,
 especially for sizes smaller than (roughly) 16, using fixed sizes is hugely beneficial
 to performance, as it allows Eigen to avoid dynamic memory allocation and to unroll
-loops. Internally, a fixed-size Eigen matrix is just a plain static array, i.e. doing
+loops. Internally, a fixed-size Eigen matrix is just a plain array, i.e. doing
 \code Matrix4f mymatrix; \endcode
 really amounts to just doing
 \code float mymatrix[16]; \endcode
@@ -212,8 +212,9 @@ member variables.
 The limitation of using fixed sizes, of course, is that this is only possible
 when you know the sizes at compile time. Also, for large enough sizes, say for sizes
 greater than (roughly) 32, the performance benefit of using fixed sizes becomes negligible.
-Worse, trying to create a very large matrix using fixed sizes could result in a stack overflow,
-since Eigen will try to allocate the array as a static array, which by default goes on the stack.
+Worse, trying to create a very large matrix using fixed sizes inside a function could result in a
+stack overflow, since Eigen will try to allocate the array automatically as a local variable, and
+this is normally done on the stack.
 Finally, depending on circumstances, Eigen can also be more aggressive trying to vectorize
 (use SIMD instructions) when dynamic sizes are used, see \ref TopicVectorization "Vectorization".
 
@@ -239,7 +240,7 @@ Matrix<typename Scalar,
 \li \c MaxRowsAtCompileTime and \c MaxColsAtCompileTime are useful when you want to specify that, even though
       the exact sizes of your matrices are not known at compile time, a fixed upper bound is known at
       compile time. The biggest reason why you might want to do that is to avoid dynamic memory allocation.
-      For example the following matrix type uses a static array of 12 floats, without dynamic memory allocation:
+      For example the following matrix type uses a plain array of 12 floats, without dynamic memory allocation:
       \code
       Matrix<float, Dynamic, Dynamic, 0, 3, 4>
       \endcode

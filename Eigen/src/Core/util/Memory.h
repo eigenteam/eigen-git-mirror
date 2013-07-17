@@ -58,10 +58,17 @@
 
 #endif
 
-#if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) \
- && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
-  #define EIGEN_HAS_POSIX_MEMALIGN 1
-#else
+// See bug 554 (http://eigen.tuxfamily.org/bz/show_bug.cgi?id=554)
+// It seems to be unsafe to check _POSIX_ADVISORY_INFO without including unistd.h first.
+// Currently, let's include it only on unix systems:
+#if defined(__unix__) || defined(__unix)
+  #include <unistd.h>
+  #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
+    #define EIGEN_HAS_POSIX_MEMALIGN 1
+  #endif
+#endif
+
+#ifndef EIGEN_HAS_POSIX_MEMALIGN
   #define EIGEN_HAS_POSIX_MEMALIGN 0
 #endif
 
@@ -215,7 +222,7 @@ inline void* aligned_malloc(size_t size)
     if(posix_memalign(&result, 16, size)) result = 0;
   #elif EIGEN_HAS_MM_MALLOC
     result = _mm_malloc(size, 16);
-#elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
+  #elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
     result = _aligned_malloc(size, 16);
   #else
     result = handmade_aligned_malloc(size);

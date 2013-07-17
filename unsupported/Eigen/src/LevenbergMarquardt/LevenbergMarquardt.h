@@ -107,7 +107,7 @@ void lmpar2(const QRSolver &qr, const VectorType  &diag, const VectorType  &qtb,
   * http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm
   */
 template<typename _FunctorType>
-class LevenbergMarquardt
+class LevenbergMarquardt : internal::no_assignment_operator
 {
   public:
     typedef _FunctorType FunctorType;
@@ -302,8 +302,8 @@ LevenbergMarquardt<FunctorType>::minimizeInit(FVectorType  &x)
         for (Index j = 0; j < n; ++j)
             if (m_diag[j] <= 0.) 
             {
-              return LevenbergMarquardtSpace::ImproperInputParameters;
               m_info = InvalidInput;
+              return LevenbergMarquardtSpace::ImproperInputParameters;
             }
 
     /*     evaluate the function at the starting point */

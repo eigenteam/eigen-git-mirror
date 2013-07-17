@@ -115,6 +115,9 @@ template<> EIGEN_STRONG_INLINE Packet4i psub<Packet4i>(const Packet4i& a, const 
 template<> EIGEN_STRONG_INLINE Packet4f pnegate(const Packet4f& a) { return vnegq_f32(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pnegate(const Packet4i& a) { return vnegq_s32(a); }
 
+template<> EIGEN_STRONG_INLINE Packet4f pconj(const Packet4f& a) { return a; }
+template<> EIGEN_STRONG_INLINE Packet4i pconj(const Packet4i& a) { return a; }
+
 template<> EIGEN_STRONG_INLINE Packet4f pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vmulq_f32(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i pmul<Packet4i>(const Packet4i& a, const Packet4i& b) { return vmulq_s32(a,b); }
 
@@ -188,15 +191,15 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)   { EI
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
   float32x2_t lo, hi;
-  lo = vdup_n_f32(*from);
-  hi = vdup_n_f32(*(from+1));
+  lo = vld1_dup_f32(from);
+  hi = vld1_dup_f32(from+1);
   return vcombine_f32(lo, hi);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ploaddup<Packet4i>(const int*     from)
 {
   int32x2_t lo, hi;
-  lo = vdup_n_s32(*from);
-  hi = vdup_n_s32(*(from+1));
+  lo = vld1_dup_s32(from);
+  hi = vld1_dup_s32(from+1);
   return vcombine_s32(lo, hi);
 }
 

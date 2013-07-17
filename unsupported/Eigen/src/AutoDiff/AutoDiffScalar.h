@@ -47,8 +47,8 @@ template<typename _DerType, bool Enable> struct auto_diff_special_op;
   *
   * It supports the following list of global math function:
   *  - std::abs, std::sqrt, std::pow, std::exp, std::log, std::sin, std::cos,
-  *  - internal::abs, internal::sqrt, internal::pow, internal::exp, internal::log, internal::sin, internal::cos,
-  *  - internal::conj, internal::real, internal::imag, internal::abs2.
+  *  - internal::abs, internal::sqrt, numext::pow, internal::exp, internal::log, internal::sin, internal::cos,
+  *  - internal::conj, internal::real, internal::imag, numext::abs2.
   *
   * AutoDiffScalar can be used as the scalar type of an Eigen::Matrix object. However,
   * in that case, the expression template mechanism only occurs at the top Matrix level,
@@ -549,7 +549,7 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
   return ReturnType(abs(x.value()), x.derivatives() * (x.value()<0 ? -1 : 1) );)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs2,
-  using internal::abs2;
+  using numext::abs2;
   return ReturnType(abs2(x.value()), x.derivatives() * (Scalar(2)*x.value()));)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(sqrt,
@@ -612,17 +612,17 @@ atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(tan,
   using std::tan;
   using std::cos;
-  return ReturnType(tan(x.value()),x.derivatives() * (Scalar(1)/internal::abs2(cos(x.value()))));)
+  return ReturnType(tan(x.value()),x.derivatives() * (Scalar(1)/numext::abs2(cos(x.value()))));)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(asin,
   using std::sqrt;
   using std::asin;
-  return ReturnType(asin(x.value()),x.derivatives() * (Scalar(1)/sqrt(1-internal::abs2(x.value()))));)
+  return ReturnType(asin(x.value()),x.derivatives() * (Scalar(1)/sqrt(1-numext::abs2(x.value()))));)
   
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(acos,
   using std::sqrt;
   using std::acos;
-  return ReturnType(acos(x.value()),x.derivatives() * (Scalar(-1)/sqrt(1-internal::abs2(x.value()))));)
+  return ReturnType(acos(x.value()),x.derivatives() * (Scalar(-1)/sqrt(1-numext::abs2(x.value()))));)
 
 #undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
 
