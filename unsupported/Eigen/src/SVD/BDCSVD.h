@@ -37,10 +37,14 @@ namespace Eigen {
 template<typename _MatrixType> 
 class BDCSVD : public SVDBase<_MatrixType>
 {
+  typedef SVDBase<_MatrixType> Base;
     
 public:
+  using Base::rows;
+  using Base::cols;
+  
   typedef _MatrixType MatrixType;
-  typedef typename SVDBase<_MatrixType>::MatrixType::Scalar Scalar;
+  typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   typedef typename MatrixType::Index Index;
   enum {
