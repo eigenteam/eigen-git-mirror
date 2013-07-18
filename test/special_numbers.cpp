@@ -33,7 +33,7 @@ template<typename Scalar> void special_numbers()
   mboth = mnan + minf;
   
   VERIFY(!m1.hasNaN());
-  VERIFY(m1.hasNonFinite());
+  VERIFY(m1.allFinite());
   
   VERIFY(mnan.hasNaN());
   VERIFY((s1*mnan).hasNaN());
@@ -42,11 +42,11 @@ template<typename Scalar> void special_numbers()
   VERIFY(mboth.hasNaN());
   VERIFY(mboth.array().hasNaN());
   
-  VERIFY(!mnan.hasNonFinite());
-  VERIFY(!minf.hasNonFinite());
-  VERIFY(!(minf-mboth).hasNonFinite());
-  VERIFY(!mboth.hasNonFinite());
-  VERIFY(!mboth.array().hasNonFinite());
+  VERIFY(!mnan.allFinite());
+  VERIFY(!minf.allFinite());
+  VERIFY(!(minf-mboth).allFinite());
+  VERIFY(!mboth.allFinite());
+  VERIFY(!mboth.array().allFinite());
 }
 
 void test_special_numbers()
