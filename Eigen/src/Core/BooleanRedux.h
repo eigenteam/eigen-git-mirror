@@ -131,7 +131,7 @@ inline typename DenseBase<Derived>::Index DenseBase<Derived>::count() const
 
 /** \returns true is \c *this contains at least one Not A Number (NaN).
   *
-  * \sa hasNonFinite()
+  * \sa allFinite()
   */
 template<typename Derived>
 inline bool DenseBase<Derived>::hasNaN() const
@@ -144,7 +144,7 @@ inline bool DenseBase<Derived>::hasNaN() const
   * \sa hasNaN()
   */
 template<typename Derived>
-inline bool DenseBase<Derived>::hasNonFinite() const
+inline bool DenseBase<Derived>::allFinite() const
 {
   return !((derived()-derived()).hasNaN());
 }

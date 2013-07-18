@@ -348,7 +348,7 @@ template<typename Derived> class DenseBase
     bool isOnes(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     
     inline bool hasNaN() const;
-    inline bool hasNonFinite() const;
+    inline bool allFinite() const;
 
     inline Derived& operator*=(const Scalar& other);
     inline Derived& operator/=(const Scalar& other);
