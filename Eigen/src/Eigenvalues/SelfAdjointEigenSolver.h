@@ -20,6 +20,8 @@ class GeneralizedSelfAdjointEigenSolver;
 
 namespace internal {
 template<typename SolverType,int Size,bool IsComplex> struct direct_selfadjoint_eigenvalues;
+template<typename MatrixType, typename DiagType, typename SubDiagType>
+ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const typename MatrixType::Index maxIterations, bool computeEigenvectors, MatrixType& eivec);
 }
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
@@ -98,6 +100,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     typedef typename internal::plain_col_type<MatrixType, RealScalar>::type RealVectorType;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
+    typedef typename TridiagonalizationType::SubDiagonalType SubDiagonalType;
 
     /** \brief Default constructor for fixed-size matrices.
       *
@@ -206,6 +209,19 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa compute(const MatrixType&, int options)
       */
     SelfAdjointEigenSolver& computeDirect(const MatrixType& matrix, int options = ComputeEigenvectors);
+
+    /**
+      *\brief Computes the eigen decomposition from a tridiagonal symmetric matrix
+      *
+      * \param[in] diag The vector containing the diagonal of the matrix.
+      * \param[in] subdiag The subdiagonal of the matrix.
+      * \returns Reference to \c *this
+      *
+      * This function assumes that the matrix has been reduced to tridiagonal form.
+      *
+      * \sa compute(const MatrixType&, int) for more information
+      */
+    SelfAdjointEigenSolver& computeFromTridiagonal(const RealVectorType& diag, const SubDiagonalType& subdiag , int options=ComputeEigenvectors);
 
     /** \brief Returns the eigenvectors of given matrix.
       *
@@ -415,58 +431,8 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   mat.template triangularView<Lower>() /= scale;
   m_subdiag.resize(n-1);
   internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
-  
-  Index end = n-1;
-  Index start = 0;
-  Index iter = 0; // total number of iterations
 
-  while (end>0)
-  {
-    for (Index i = start; i<end; ++i)
-      if (internal::isMuchSmallerThan(abs(m_subdiag[i]),(abs(diag[i])+abs(diag[i+1]))))
-        m_subdiag[i] = 0;
-
-    // find the largest unreduced block
-    while (end>0 && m_subdiag[end-1]==0)
-    {
-      end--;
-    }
-    if (end<=0)
-      break;
-
-    // if we spent too many iterations, we give up
-    iter++;
-    if(iter > m_maxIterations * n) break;
-
-    start = end - 1;
-    while (start>0 && m_subdiag[start-1]!=0)
-      start--;
-
-    internal::tridiagonal_qr_step<MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor>(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
-  }
-
-  if (iter <= m_maxIterations * n)
-    m_info = Success;
-  else
-    m_info = NoConvergence;
-
-  // Sort eigenvalues and corresponding vectors.
-  // TODO make the sort optional ?
-  // TODO use a better sort algorithm !!
-  if (m_info == Success)
-  {
-    for (Index i = 0; i < n-1; ++i)
-    {
-      Index k;
-      m_eivalues.segment(i,n-i).minCoeff(&k);
-      if (k > 0)
-      {
-        std::swap(m_eivalues[i], m_eivalues[k+i]);
-        if(computeEigenvectors)
-          m_eivec.col(i).swap(m_eivec.col(k+i));
-      }
-    }
-  }
+  m_info = internal::computeFromTridiagonal_impl(diag, m_subdiag, m_maxIterations, computeEigenvectors, m_eivec);
   
   // scale back the eigen values
   m_eivalues *= scale;
@@ -476,8 +442,99 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   return *this;
 }
 
+template<typename MatrixType>
+SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
+::computeFromTridiagonal(const RealVectorType& diag, const SubDiagonalType& subdiag , int options)
+{
+  //TODO : Add an option to scale the values beforehand
+  bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors;
+
+  m_eivalues = diag;
+  m_subdiag = subdiag;
+  if (computeEigenvectors)
+  {
+    m_eivec.setIdentity(diag.size(), diag.size());
+  }
+  m_info = computeFromTridiagonal_impl(m_eivalues, m_subdiag, m_maxIterations, computeEigenvectors, m_eivec);
+
+  m_isInitialized = true;
+  m_eigenvectorsOk = computeEigenvectors;
+  return *this;
+}
 
 namespace internal {
+/**
+  * \internal
+  * \brief Compute the eigendecomposition from a tridiagonal matrix
+  *
+  * \param[in,out] diag : On input, the diagonal of the matrix, on output the eigenvalues
+  * \param[in] subdiag : The subdiagonal part of the matrix.
+  * \param[in,out] : On input, the maximum number of iterations, on output, the effective number of iterations.
+  * \param[out] eivec : The matrix to store the eigenvectors... if needed. allocated on input
+  * \returns \c Success or \c NoConvergence
+  */
+template<typename MatrixType, typename DiagType, typename SubDiagType>
+ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const typename MatrixType::Index maxIterations, bool computeEigenvectors, MatrixType& eivec)
+{
+  using std::abs;
+
+  ComputationInfo info;
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+
+  Index n = diag.size();
+  Index end = n-1;
+  Index start = 0;
+  Index iter = 0; // total number of iterations
+
+  while (end>0)
+  {
+    for (Index i = start; i<end; ++i)
+      if (internal::isMuchSmallerThan(abs(subdiag[i]),(abs(diag[i])+abs(diag[i+1]))))
+        subdiag[i] = 0;
+
+    // find the largest unreduced block
+    while (end>0 && subdiag[end-1]==0)
+    {
+      end--;
+    }
+    if (end<=0)
+      break;
+
+    // if we spent too many iterations, we give up
+    iter++;
+    if(iter > maxIterations * n) break;
+
+    start = end - 1;
+    while (start>0 && subdiag[start-1]!=0)
+      start--;
+
+    internal::tridiagonal_qr_step<MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor>(diag.data(), subdiag.data(), start, end, computeEigenvectors ? eivec.data() : (Scalar*)0, n);
+  }
+  if (iter <= maxIterations * n)
+    info = Success;
+  else
+    info = NoConvergence;
+
+  // Sort eigenvalues and corresponding vectors.
+  // TODO make the sort optional ?
+  // TODO use a better sort algorithm !!
+  if (info == Success)
+  {
+    for (Index i = 0; i < n-1; ++i)
+    {
+      Index k;
+      diag.segment(i,n-i).minCoeff(&k);
+      if (k > 0)
+      {
+        std::swap(diag[i], diag[k+i]);
+        if(computeEigenvectors)
+          eivec.col(i).swap(eivec.col(k+i));
+      }
+    }
+  }
+  return info;
+}
   
 template<typename SolverType,int Size,bool IsComplex> struct direct_selfadjoint_eigenvalues
 {

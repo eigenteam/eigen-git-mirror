@@ -99,6 +99,15 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   // FIXME tridiag.matrixQ().adjoint() does not work
   VERIFY_IS_APPROX(MatrixType(symmA.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT().eval() * MatrixType(tridiag.matrixQ()).adjoint());
   
+  // Test computation of eigenvalues from tridiagonal matrix
+  if(rows > 1)
+  {
+    SelfAdjointEigenSolver<MatrixType> eiSymmTridiag;
+    eiSymmTridiag.computeFromTridiagonal(tridiag.matrixT().diagonal(), tridiag.matrixT().diagonal(-1), ComputeEigenvectors);
+    VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiSymmTridiag.eigenvalues());
+    VERIFY_IS_APPROX(tridiag.matrixT(), eiSymmTridiag.eigenvectors().real() * eiSymmTridiag.eigenvalues().asDiagonal() * eiSymmTridiag.eigenvectors().real().transpose());
+  }
+
   if (rows > 1)
   {
     // Test matrix with NaN
