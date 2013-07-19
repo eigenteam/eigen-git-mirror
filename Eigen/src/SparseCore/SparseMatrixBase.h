@@ -105,7 +105,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
                      >::type AdjointReturnType;
 
 
-    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor> PlainObject;
+    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, Index> PlainObject;
 
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
