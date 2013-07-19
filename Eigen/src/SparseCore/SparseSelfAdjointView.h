@@ -75,22 +75,22 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
       */
     template<typename OtherDerived>
-    SparseSparseProduct<SparseMatrix<Scalar,  ((internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor),Index>, OtherDerived>
+    SparseSparseProduct<typename OtherDerived::PlainObject, OtherDerived>
     operator*(const SparseMatrixBase<OtherDerived>& rhs) const
     {
-      return SparseSparseProduct<SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index>, OtherDerived>(*this, rhs.derived());
+      return SparseSparseProduct<typename OtherDerived::PlainObject, OtherDerived>(*this, rhs.derived());
     }
-    
+
     /** \returns an expression of the matrix product between a sparse matrix \a lhs and a sparse self-adjoint matrix \a rhs.
       *
       * Note that there is no algorithmic advantage of performing such a product compared to a general sparse-sparse matrix product.
       * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
       */
     template<typename OtherDerived> friend
-    SparseSparseProduct<OtherDerived, SparseMatrix<Scalar,  ((internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor),Index> >
+    SparseSparseProduct<OtherDerived, typename OtherDerived::PlainObject >
     operator*(const SparseMatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
     {
-      return SparseSparseProduct< OtherDerived, SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index> >(lhs.derived(), rhs.derived());
+      return SparseSparseProduct<OtherDerived, typename OtherDerived::PlainObject>(lhs.derived(), rhs);
     }
     
     /** Efficient sparse self-adjoint matrix times dense vector/matrix product */
