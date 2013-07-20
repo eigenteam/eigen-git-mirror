@@ -262,6 +262,10 @@ where \f$ T_1 \f$ is invertible. Then \f$ T^p \f$ is given by
       0     & 0
     \end{array}. \right] \f]
 
+\warning Fractional power of a matrix with a non-semisimple zero
+eigenvalue is not well-defined. We introduce an assertion failure
+against inaccurate result, e.g. \include MatrixPower_failure.cpp
+
 Details of the algorithm can be found in: Nicholas J. Higham and
 Lijing Lin, "A Schur-Pad&eacute; algorithm for fractional powers of a
 matrix," <em>SIAM J. %Matrix Anal. Applic.</em>,
