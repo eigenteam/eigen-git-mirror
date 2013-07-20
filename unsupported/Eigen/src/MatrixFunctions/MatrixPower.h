@@ -447,6 +447,8 @@ void MatrixPower<MatrixType>::compute(ResultType& res, RealScalar p)
     default:
       RealScalar intpart;
       split(p, intpart);
+
+      res = MatrixType::Identity(rows(), cols());
       computeIntPower(res, intpart);
       if (p) computeFracPower(res, p);
   }
@@ -514,15 +516,18 @@ void MatrixPower<MatrixType>::computeIntPower(ResultType& res, RealScalar p)
 {
   RealScalar pp = std::abs(p);
 
-  if (p<0)  m_tmp = m_A.inverse();
-  else      m_tmp = m_A;
+  if (p<0) 
+    m_tmp = m_A.inverse();
+  else     
+    m_tmp = m_A;
 
-  res = MatrixType::Identity(rows(), cols());
-  while (pp >= 1) {
+  while (true) {
     if (std::fmod(pp, 2) >= 1)
       res = m_tmp * res;
-    m_tmp *= m_tmp;
     pp /= 2;
+    if (pp < 1)
+      break;
+    m_tmp *= m_tmp;
   }
 }
 
