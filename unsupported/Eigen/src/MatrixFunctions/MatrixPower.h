@@ -389,7 +389,7 @@ class MatrixPower : internal::noncopyable
     /** \brief Reference to the base of matrix power. */
     typename MatrixType::Nested m_A;
 
-    /** \brief Temporary storage for computing integral power. */
+    /** \brief Temporary storage. */
     MatrixType m_tmp;
 
     /** \brief Store the result of Schur decomposition. */
