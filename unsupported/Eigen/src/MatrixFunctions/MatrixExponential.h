@@ -126,6 +126,7 @@ class MatrixExponential : internal::noncopyable
      */
     void computeUV(long double);
 
+    struct ScalingOp;
     typedef typename internal::traits<MatrixType>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename std::complex<RealScalar> ComplexScalar;
@@ -153,22 +154,35 @@ class MatrixExponential : internal::noncopyable
 
     /** \brief L1 norm of m_M. */
     RealScalar m_l1norm;
-
-    /** \brief Scaling operator. */
-    struct ScalingOp;
 };
 
+/** \brief Scaling operator.
+ *
+ * This struct is used by CwiseUnaryOp to scale a matrix by \f$ 2^{-s} \f$.
+ */
 template <typename MatrixType>
 struct MatrixExponential<MatrixType>::ScalingOp
 {
+  /** \brief Constructor.
+   *
+   * \param[in] squarings  The integer \f$ s \f$ in this document.
+   */
   ScalingOp(int squarings) : m_squarings(squarings) { }
 
+  /** \brief Scale a matrix coefficient.
+   *
+   * \param[in,out] x  The scalar to be scaled, becoming \f$ 2^{-s} x \f$.
+   */
   inline const RealScalar operator() (const RealScalar& x) const
   {
     using std::ldexp;
     return ldexp(x, -m_squarings);
   }
 
+  /** \brief Scale a matrix coefficient.
+   *
+   * \param[in,out] x  The scalar to be scaled, becoming \f$ 2^{-s} x \f$.
+   */
   inline const ComplexScalar operator() (const ComplexScalar& x) const
   {
     using std::ldexp;
