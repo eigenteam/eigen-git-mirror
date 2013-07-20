@@ -12,8 +12,15 @@
 #ifndef KRONECKER_TENSOR_PRODUCT_H
 #define KRONECKER_TENSOR_PRODUCT_H
 
-namespace Eigen { 
+namespace Eigen {
 
+/*!
+ * \ingroup KroneckerProduct_Module
+ *
+ * \brief The base class of dense and sparse Kronecker product.
+ *
+ * \tparam Derived is the derived type.
+ */
 template<typename Derived>
 class KroneckerProductBase : public ReturnByValue<Derived>
 {
@@ -27,6 +34,7 @@ class KroneckerProductBase : public ReturnByValue<Derived>
     typedef typename Traits::Index Index;
 
   public:
+    /*! \brief Constructor. */
     KroneckerProductBase(const Lhs& A, const Rhs& B)
       : m_A(A), m_B(B)
     {}
@@ -34,12 +42,20 @@ class KroneckerProductBase : public ReturnByValue<Derived>
     inline Index rows() const { return m_A.rows() * m_B.rows(); }
     inline Index cols() const { return m_A.cols() * m_B.cols(); }
 
+    /*!
+     * This overrides ReturnByValue::coeff because this function is
+     * efficient enough.
+     */
     Scalar coeff(Index row, Index col) const
     {
       return m_A.coeff(row / m_B.rows(), col / m_B.cols()) *
              m_B.coeff(row % m_B.rows(), col % m_B.cols());
     }
 
+    /*!
+     * This overrides ReturnByValue::coeff because this function is
+     * efficient enough.
+     */
     Scalar coeff(Index i) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -52,6 +68,8 @@ class KroneckerProductBase : public ReturnByValue<Derived>
 };
 
 /*!
+ * \ingroup KroneckerProduct_Module
+ *
  * \brief Kronecker tensor product helper class for dense matrices
  *
  * This class is the return value of kroneckerProduct(MatrixBase,
@@ -80,6 +98,8 @@ class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<Lhs,Rhs> >
 };
 
 /*!
+ * \ingroup KroneckerProduct_Module
+ *
  * \brief Kronecker tensor product helper class for sparse matrices
  *
  * If at least one of the operands is a sparse matrix expression,
