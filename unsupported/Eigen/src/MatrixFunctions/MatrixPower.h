@@ -381,7 +381,7 @@ class MatrixPower : internal::noncopyable
     RealScalar m_conditionNumber;
     Index m_rank, m_nulls;
 
-    RealScalar split(RealScalar, RealScalar*);
+    void split(RealScalar&, RealScalar&);
     void initialize();
 
     template<typename ResultType>
@@ -414,26 +414,26 @@ void MatrixPower<MatrixType>::compute(ResultType& res, RealScalar p)
       res(0,0) = std::pow(m_A.coeff(0,0), p);
       break;
     default:
-      RealScalar intpart, x = split(p, &intpart);
+      RealScalar intpart;
+      split(p, intpart);
       computeIntPower(res, intpart);
-      if (x) computeFracPower(res, x);
+      if (p) computeFracPower(res, p);
   }
 }
 
 template<typename MatrixType>
-typename MatrixPower<MatrixType>::RealScalar MatrixPower<MatrixType>::split(RealScalar x, RealScalar* intpart)
+void MatrixPower<MatrixType>::split(RealScalar& p, RealScalar& intpart)
 {
-  *intpart = std::floor(x);
-  RealScalar res = x - *intpart;
+  intpart = std::floor(p);
+  p -= intpart;
 
-  if (!m_conditionNumber && res)
+  if (!m_conditionNumber && p)
     initialize();
 
-  if (res > RealScalar(0.5) && res > (1-res) * std::pow(m_conditionNumber, res)) {
-    --res;
-    ++*intpart;
+  if (p > RealScalar(0.5) && p > (1-p) * std::pow(m_conditionNumber, p)) {
+    --p;
+    ++intpart;
   }
-  return res;
 }
 
 template<typename MatrixType>
