@@ -375,20 +375,51 @@ class MatrixPower : internal::noncopyable
     typedef Matrix<ComplexScalar, Dynamic, Dynamic, MatrixType::Options,
               MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> ComplexMatrix;
 
+    /** \brief Reference to the base of matrix power. */
     typename MatrixType::Nested m_A;
-    MatrixType m_tmp;
-    ComplexMatrix m_T, m_U, m_fT;
-    RealScalar m_conditionNumber;
-    Index m_rank, m_nulls;
 
-    void split(RealScalar&, RealScalar&);
+    /** \brief Temporary storage for computing integral power. */
+    MatrixType m_tmp;
+
+    /** \brief Store the result of Schur decomposition. */
+    ComplexMatrix m_T, m_U;
+    
+    /** \brief Store fractional power of m_T. */
+    ComplexMatrix m_fT;
+
+    /**
+     * \brief Condition number of m_A.
+     *
+     * It is initialized as 0 to avoid performing unnecessary Schur
+     * decomposition, which is the bottleneck.
+     */
+    RealScalar m_conditionNumber;
+
+    /** \brief Rank of m_A. */
+    Index m_rank;
+    
+    /** \brief Rank deficiency of m_A. */
+    Index m_nulls;
+
+    /**
+     * \brief Split p into integral part and fractional part.
+     *
+     * \param[in]  p        The exponent.
+     * \param[out] p        The fractional part ranging in \f$ (-1, 1) \f$.
+     * \param[out] intpart  The integral part.
+     *
+     * Only if the fractional part is nonzero, it calls initialize().
+     */
+    void split(RealScalar& p, RealScalar& intpart);
+
+    /** \brief Perform Schur decomposition for fractional power. */
     void initialize();
 
     template<typename ResultType>
-    void computeIntPower(ResultType&, RealScalar);
+    void computeIntPower(ResultType& res, RealScalar p);
 
     template<typename ResultType>
-    void computeFracPower(ResultType&, RealScalar);
+    void computeFracPower(ResultType& res, RealScalar p);
 
     template<int Rows, int Cols, int Options, int MaxRows, int MaxCols>
     static void revertSchur(
@@ -427,9 +458,12 @@ void MatrixPower<MatrixType>::split(RealScalar& p, RealScalar& intpart)
   intpart = std::floor(p);
   p -= intpart;
 
+  // Perform Schur decomposition if it is not yet performed and the power is
+  // not an integer.
   if (!m_conditionNumber && p)
     initialize();
 
+  // Choose the more stable of intpart = floor(p) and intpart = ceil(p).
   if (p > RealScalar(0.5) && p > (1-p) * std::pow(m_conditionNumber, p)) {
     --p;
     ++intpart;
@@ -448,6 +482,7 @@ void MatrixPower<MatrixType>::initialize()
   m_U = schurOfA.matrixU();
   m_conditionNumber = m_T.diagonal().array().abs().maxCoeff() / m_T.diagonal().array().abs().minCoeff();
 
+  // Move zero eigenvalues to the bottom right corner.
   for (Index i = cols()-1; i>=0; --i) {
     if (m_rank <= 2)
       return;
