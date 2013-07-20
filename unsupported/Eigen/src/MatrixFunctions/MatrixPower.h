@@ -143,11 +143,12 @@ MatrixPowerAtomic<MatrixType>::MatrixPowerAtomic(const MatrixType& T, RealScalar
 template<typename MatrixType>
 void MatrixPowerAtomic<MatrixType>::compute(ResultType& res) const
 {
+  using std::pow;
   switch (m_A.rows()) {
     case 0:
       break;
     case 1:
-      res(0,0) = std::pow(m_A(0,0), m_p);
+      res(0,0) = pow(m_A(0,0), m_p);
       break;
     case 2:
       compute2x2(res, m_p);
@@ -162,6 +163,7 @@ void MatrixPowerAtomic<MatrixType>::computePade(int degree, const MatrixType& Im
 {
   int i = 2*degree;
   res = (m_p-degree) / (2*i-2) * IminusT;
+
   for (--i; i; --i) {
     res = (MatrixType::Identity(IminusT.rows(), IminusT.cols()) + res).template triangularView<Upper>()
 	.solve((i==1 ? -m_p : i&1 ? (-m_p-i/2)/(2*i) : (m_p-i/2)/(2*i-2)) * IminusT).eval();
@@ -175,7 +177,6 @@ void MatrixPowerAtomic<MatrixType>::compute2x2(ResultType& res, RealScalar p) co
 {
   using std::abs;
   using std::pow;
-  
   res.coeffRef(0,0) = pow(m_A.coeff(0,0), p);
 
   for (Index i=1; i < m_A.cols(); ++i) {
@@ -193,6 +194,7 @@ void MatrixPowerAtomic<MatrixType>::compute2x2(ResultType& res, RealScalar p) co
 template<typename MatrixType>
 void MatrixPowerAtomic<MatrixType>::computeBig(ResultType& res) const
 {
+  using std::ldexp;
   const int digits = std::numeric_limits<RealScalar>::digits;
   const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
 				    digits <=  53? 2.789358995219730e-1:                    // double precision
@@ -224,7 +226,7 @@ void MatrixPowerAtomic<MatrixType>::computeBig(ResultType& res) const
   computePade(degree, IminusT, res);
 
   for (; numberOfSquareRoots; --numberOfSquareRoots) {
-    compute2x2(res, std::ldexp(m_p, -numberOfSquareRoots));
+    compute2x2(res, ldexp(m_p, -numberOfSquareRoots));
     res = res.template triangularView<Upper>() * res;
   }
   compute2x2(res, m_p);
@@ -289,19 +291,28 @@ template<typename MatrixType>
 inline typename MatrixPowerAtomic<MatrixType>::ComplexScalar
 MatrixPowerAtomic<MatrixType>::computeSuperDiag(const ComplexScalar& curr, const ComplexScalar& prev, RealScalar p)
 {
-  ComplexScalar logCurr = std::log(curr);
-  ComplexScalar logPrev = std::log(prev);
-  int unwindingNumber = std::ceil((numext::imag(logCurr - logPrev) - M_PI) / (2*M_PI));
+  using std::ceil;
+  using std::exp;
+  using std::log;
+  using std::sinh;
+
+  ComplexScalar logCurr = log(curr);
+  ComplexScalar logPrev = log(prev);
+  int unwindingNumber = ceil((numext::imag(logCurr - logPrev) - M_PI) / (2*M_PI));
   ComplexScalar w = numext::atanh2(curr - prev, curr + prev) + ComplexScalar(0, M_PI*unwindingNumber);
-  return RealScalar(2) * std::exp(RealScalar(0.5) * p * (logCurr + logPrev)) * std::sinh(p * w) / (curr - prev);
+  return RealScalar(2) * exp(RealScalar(0.5) * p * (logCurr + logPrev)) * sinh(p * w) / (curr - prev);
 }
 
 template<typename MatrixType>
 inline typename MatrixPowerAtomic<MatrixType>::RealScalar
 MatrixPowerAtomic<MatrixType>::computeSuperDiag(RealScalar curr, RealScalar prev, RealScalar p)
 {
+  using std::exp;
+  using std::log;
+  using std::sinh;
+
   RealScalar w = numext::atanh2(curr - prev, curr + prev);
-  return 2 * std::exp(p * (std::log(curr) + std::log(prev)) / 2) * std::sinh(p * w) / (curr - prev);
+  return 2 * exp(p * (log(curr) + log(prev)) / 2) * sinh(p * w) / (curr - prev);
 }
 
 /**
@@ -438,11 +449,12 @@ template<typename MatrixType>
 template<typename ResultType>
 void MatrixPower<MatrixType>::compute(ResultType& res, RealScalar p)
 {
+  using std::pow;
   switch (cols()) {
     case 0:
       break;
     case 1:
-      res(0,0) = std::pow(m_A.coeff(0,0), p);
+      res(0,0) = pow(m_A.coeff(0,0), p);
       break;
     default:
       RealScalar intpart;
@@ -457,7 +469,10 @@ void MatrixPower<MatrixType>::compute(ResultType& res, RealScalar p)
 template<typename MatrixType>
 void MatrixPower<MatrixType>::split(RealScalar& p, RealScalar& intpart)
 {
-  intpart = std::floor(p);
+  using std::floor;
+  using std::pow;
+
+  intpart = floor(p);
   p -= intpart;
 
   // Perform Schur decomposition if it is not yet performed and the power is
@@ -466,7 +481,7 @@ void MatrixPower<MatrixType>::split(RealScalar& p, RealScalar& intpart)
     initialize();
 
   // Choose the more stable of intpart = floor(p) and intpart = ceil(p).
-  if (p > RealScalar(0.5) && p > (1-p) * std::pow(m_conditionNumber, p)) {
+  if (p > RealScalar(0.5) && p > (1-p) * pow(m_conditionNumber, p)) {
     --p;
     ++intpart;
   }
@@ -514,7 +529,9 @@ template<typename MatrixType>
 template<typename ResultType>
 void MatrixPower<MatrixType>::computeIntPower(ResultType& res, RealScalar p)
 {
-  RealScalar pp = std::abs(p);
+  using std::abs;
+  using std::fmod;
+  RealScalar pp = abs(p);
 
   if (p<0) 
     m_tmp = m_A.inverse();
@@ -522,7 +539,7 @@ void MatrixPower<MatrixType>::computeIntPower(ResultType& res, RealScalar p)
     m_tmp = m_A;
 
   while (true) {
-    if (std::fmod(pp, 2) >= 1)
+    if (fmod(pp, 2) >= 1)
       res = m_tmp * res;
     pp /= 2;
     if (pp < 1)
