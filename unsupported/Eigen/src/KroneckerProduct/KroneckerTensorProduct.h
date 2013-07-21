@@ -12,11 +12,64 @@
 #ifndef KRONECKER_TENSOR_PRODUCT_H
 #define KRONECKER_TENSOR_PRODUCT_H
 
-namespace Eigen { 
-
-template<typename Scalar, int Options, typename Index> class SparseMatrix;
+namespace Eigen {
 
 /*!
+ * \ingroup KroneckerProduct_Module
+ *
+ * \brief The base class of dense and sparse Kronecker product.
+ *
+ * \tparam Derived is the derived type.
+ */
+template<typename Derived>
+class KroneckerProductBase : public ReturnByValue<Derived>
+{
+  private:
+    typedef typename internal::traits<Derived> Traits;
+    typedef typename Traits::Lhs Lhs;
+    typedef typename Traits::Rhs Rhs;
+    typedef typename Traits::Scalar Scalar;
+
+  protected:
+    typedef typename Traits::Index Index;
+
+  public:
+    /*! \brief Constructor. */
+    KroneckerProductBase(const Lhs& A, const Rhs& B)
+      : m_A(A), m_B(B)
+    {}
+
+    inline Index rows() const { return m_A.rows() * m_B.rows(); }
+    inline Index cols() const { return m_A.cols() * m_B.cols(); }
+
+    /*!
+     * This overrides ReturnByValue::coeff because this function is
+     * efficient enough.
+     */
+    Scalar coeff(Index row, Index col) const
+    {
+      return m_A.coeff(row / m_B.rows(), col / m_B.cols()) *
+             m_B.coeff(row % m_B.rows(), col % m_B.cols());
+    }
+
+    /*!
+     * This overrides ReturnByValue::coeff because this function is
+     * efficient enough.
+     */
+    Scalar coeff(Index i) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
+      return m_A.coeff(i / m_A.size()) * m_B.coeff(i % m_A.size());
+    }
+
+  protected:
+    typename Lhs::Nested m_A;
+    typename Rhs::Nested m_B;
+};
+
+/*!
+ * \ingroup KroneckerProduct_Module
+ *
  * \brief Kronecker tensor product helper class for dense matrices
  *
  * This class is the return value of kroneckerProduct(MatrixBase,
@@ -27,43 +80,26 @@ template<typename Scalar, int Options, typename Index> class SparseMatrix;
  * \tparam Rhs  Type of the rignt-hand side, a matrix expression.
  */
 template<typename Lhs, typename Rhs>
-class KroneckerProduct : public ReturnByValue<KroneckerProduct<Lhs,Rhs> >
+class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<Lhs,Rhs> >
 {
   private:
-    typedef ReturnByValue<KroneckerProduct> Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::Index Index;
+    typedef KroneckerProductBase<KroneckerProduct> Base;
+    using Base::m_A;
+    using Base::m_B;
 
   public:
     /*! \brief Constructor. */
     KroneckerProduct(const Lhs& A, const Rhs& B)
-      : m_A(A), m_B(B)
+      : Base(A, B)
     {}
 
     /*! \brief Evaluate the Kronecker tensor product. */
     template<typename Dest> void evalTo(Dest& dst) const;
-    
-    inline Index rows() const { return m_A.rows() * m_B.rows(); }
-    inline Index cols() const { return m_A.cols() * m_B.cols(); }
-
-    Scalar coeff(Index row, Index col) const
-    {
-      return m_A.coeff(row / m_B.rows(), col / m_B.cols()) *
-             m_B.coeff(row % m_B.rows(), col % m_B.cols());
-    }
-
-    Scalar coeff(Index i) const
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(KroneckerProduct);
-      return m_A.coeff(i / m_A.size()) * m_B.coeff(i % m_A.size());
-    }
-
-  private:
-    typename Lhs::Nested m_A;
-    typename Rhs::Nested m_B;
 };
 
 /*!
+ * \ingroup KroneckerProduct_Module
+ *
  * \brief Kronecker tensor product helper class for sparse matrices
  *
  * If at least one of the operands is a sparse matrix expression,
@@ -77,40 +113,28 @@ class KroneckerProduct : public ReturnByValue<KroneckerProduct<Lhs,Rhs> >
  * \tparam Rhs  Type of the rignt-hand side, a matrix expression.
  */
 template<typename Lhs, typename Rhs>
-class KroneckerProductSparse : public EigenBase<KroneckerProductSparse<Lhs,Rhs> >
+class KroneckerProductSparse : public KroneckerProductBase<KroneckerProductSparse<Lhs,Rhs> >
 {
   private:
-    typedef typename internal::traits<KroneckerProductSparse>::Index Index;
+    typedef KroneckerProductBase<KroneckerProductSparse> Base;
+    using Base::m_A;
+    using Base::m_B;
 
   public:
     /*! \brief Constructor. */
     KroneckerProductSparse(const Lhs& A, const Rhs& B)
-      : m_A(A), m_B(B)
+      : Base(A, B)
     {}
 
     /*! \brief Evaluate the Kronecker tensor product. */
     template<typename Dest> void evalTo(Dest& dst) const;
-    
-    inline Index rows() const { return m_A.rows() * m_B.rows(); }
-    inline Index cols() const { return m_A.cols() * m_B.cols(); }
-
-    template<typename Scalar, int Options, typename Index>
-    operator SparseMatrix<Scalar, Options, Index>()
-    {
-      SparseMatrix<Scalar, Options, Index> result;
-      evalTo(result.derived());
-      return result;
-    }
-
-  private:
-    typename Lhs::Nested m_A;
-    typename Rhs::Nested m_B;
 };
 
 template<typename Lhs, typename Rhs>
 template<typename Dest>
 void KroneckerProduct<Lhs,Rhs>::evalTo(Dest& dst) const
 {
+  typedef typename Base::Index Index;
   const int BlockRows = Rhs::RowsAtCompileTime,
             BlockCols = Rhs::ColsAtCompileTime;
   const Index Br = m_B.rows(),
@@ -124,9 +148,10 @@ template<typename Lhs, typename Rhs>
 template<typename Dest>
 void KroneckerProductSparse<Lhs,Rhs>::evalTo(Dest& dst) const
 {
+  typedef typename Base::Index Index;
   const Index Br = m_B.rows(),
               Bc = m_B.cols();
-  dst.resize(rows(),cols());
+  dst.resize(this->rows(), this->cols());
   dst.resizeNonZeros(0);
   dst.reserve(m_A.nonZeros() * m_B.nonZeros());
 
@@ -155,6 +180,7 @@ struct traits<KroneckerProduct<_Lhs,_Rhs> >
   typedef typename remove_all<_Lhs>::type Lhs;
   typedef typename remove_all<_Rhs>::type Rhs;
   typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
+  typedef typename promote_index_type<typename Lhs::Index, typename Rhs::Index>::type Index;
 
   enum {
     Rows = size_at_compile_time<traits<Lhs>::RowsAtCompileTime, traits<Rhs>::RowsAtCompileTime>::ret,
@@ -193,6 +219,8 @@ struct traits<KroneckerProductSparse<_Lhs,_Rhs> >
           | EvalBeforeNestingBit | EvalBeforeAssigningBit,
     CoeffReadCost = Dynamic
   };
+
+  typedef SparseMatrix<Scalar> ReturnType;
 };
 
 } // end namespace internal
@@ -227,6 +255,16 @@ KroneckerProduct<A,B> kroneckerProduct(const MatrixBase<A>& a, const MatrixBase<
  *
  * Computes Kronecker tensor product of two matrices, at least one of
  * which is sparse
+ *
+ * \warning If you want to replace a matrix by its Kronecker product
+ *          with some matrix, do \b NOT do this:
+ * \code
+ * A = kroneckerProduct(A,B); // bug!!! caused by aliasing effect
+ * \endcode
+ * instead, use eval() to work around this:
+ * \code
+ * A = kroneckerProduct(A,B).eval();
+ * \endcode
  *
  * \param a  Dense/sparse matrix a
  * \param b  Dense/sparse matrix b

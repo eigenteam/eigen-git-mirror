@@ -13,8 +13,6 @@
 
 #include <cfloat>
 #include <list>
-#include <functional>
-#include <iterator>
 
 #include <Eigen/Core>
 #include <Eigen/LU>
@@ -230,21 +228,64 @@ const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(RealScalar p) con
 \endcode
 
 \param[in]  M  base of the matrix power, should be a square matrix.
-\param[in]  p  exponent of the matrix power, should be real.
+\param[in]  p  exponent of the matrix power.
 
 The matrix power \f$ M^p \f$ is defined as \f$ \exp(p \log(M)) \f$,
 where exp denotes the matrix exponential, and log denotes the matrix
 logarithm.
 
-The matrix \f$ M \f$ should meet the conditions to be an argument of
-matrix logarithm. If \p p is not of the real scalar type of \p M, it
-is casted into the real scalar type of \p M.
+If \p p is complex, the scalar type of \p M should be the type of \p
+p . \f$ M^p \f$ simply evaluates into \f$ \exp(p \log(M)) \f$.
+Therefore, the matrix \f$ M \f$ should meet the conditions to be an
+argument of matrix logarithm.
 
-This function computes the matrix power using the Schur-Pad&eacute;
+If \p p is real, it is casted into the real scalar type of \p M. Then
+this function computes the matrix power using the Schur-Pad&eacute;
 algorithm as implemented by class MatrixPower. The exponent is split
 into integral part and fractional part, where the fractional part is
 in the interval \f$ (-1, 1) \f$. The main diagonal and the first
 super-diagonal is directly computed.
+
+If \p M is singular with a semisimple zero eigenvalue and \p p is
+positive, the Schur factor \f$ T \f$ is reordered with Givens
+rotations, i.e.
+
+\f[ T = \left[ \begin{array}{cc}
+      T_1 & T_2 \\
+      0   & 0
+    \end{array} \right] \f]
+
+where \f$ T_1 \f$ is invertible. Then \f$ T^p \f$ is given by
+
+\f[ T^p = \left[ \begin{array}{cc}
+      T_1^p & T_1^{-1} T_1^p T_2 \\
+      0     & 0
+    \end{array}. \right] \f]
+
+\warning Fractional power of a matrix with a non-semisimple zero
+eigenvalue is not well-defined. We introduce an assertion failure
+against inaccurate result, e.g. \code
+#include <unsupported/Eigen/MatrixFunctions>
+#include <iostream>
+
+int main()
+{
+  Eigen::Matrix4d A;
+  A << 0, 0, 2, 3,
+       0, 0, 4, 5,
+       0, 0, 6, 7,
+       0, 0, 8, 9;
+  std::cout << A.pow(0.37) << std::endl;
+  
+  // The 1 makes eigenvalue 0 non-semisimple.
+  A.coeffRef(0, 1) = 1;
+
+  // This fails if EIGEN_NO_DEBUG is undefined.
+  std::cout << A.pow(0.37) << std::endl;
+
+  return 0;
+}
+\endcode
 
 Details of the algorithm can be found in: Nicholas J. Higham and
 Lijing Lin, "A Schur-Pad&eacute; algorithm for fractional powers of a

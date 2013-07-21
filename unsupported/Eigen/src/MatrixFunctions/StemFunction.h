@@ -16,7 +16,7 @@ namespace Eigen {
   * \brief Stem functions corresponding to standard mathematical functions.
   */
 template <typename Scalar>
-class StdStemFunctions
+class StdStemFunctions : internal::noncopyable
 {
   public:
 

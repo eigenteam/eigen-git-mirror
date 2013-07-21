@@ -24,7 +24,7 @@ namespace Eigen {
   * \sa MatrixSquareRoot, MatrixSquareRootTriangular
   */
 template <typename MatrixType>
-class MatrixSquareRootQuasiTriangular
+class MatrixSquareRootQuasiTriangular : internal::noncopyable
 {
   public:
 
@@ -36,7 +36,7 @@ class MatrixSquareRootQuasiTriangular
       * The class stores a reference to \p A, so it should not be
       * changed (or destroyed) before compute() is called.
       */
-    MatrixSquareRootQuasiTriangular(const MatrixType& A) 
+    explicit MatrixSquareRootQuasiTriangular(const MatrixType& A) 
       : m_A(A) 
     {
       eigen_assert(A.rows() == A.cols());
@@ -253,10 +253,10 @@ void MatrixSquareRootQuasiTriangular<MatrixType>
   * \sa MatrixSquareRoot, MatrixSquareRootQuasiTriangular
   */
 template <typename MatrixType>
-class MatrixSquareRootTriangular
+class MatrixSquareRootTriangular : internal::noncopyable
 {
   public:
-    MatrixSquareRootTriangular(const MatrixType& A) 
+    explicit MatrixSquareRootTriangular(const MatrixType& A) 
       : m_A(A) 
     {
       eigen_assert(A.rows() == A.cols());
@@ -321,7 +321,7 @@ class MatrixSquareRoot
       * The class stores a reference to \p A, so it should not be
       * changed (or destroyed) before compute() is called.
       */
-    MatrixSquareRoot(const MatrixType& A); 
+    explicit MatrixSquareRoot(const MatrixType& A); 
     
     /** \brief Compute the matrix square root
       *
@@ -341,7 +341,7 @@ class MatrixSquareRoot<MatrixType, 0>
 {
   public:
 
-    MatrixSquareRoot(const MatrixType& A) 
+    explicit MatrixSquareRoot(const MatrixType& A) 
       : m_A(A) 
     {  
       eigen_assert(A.rows() == A.cols());
@@ -370,11 +370,11 @@ class MatrixSquareRoot<MatrixType, 0>
 // ********** Partial specialization for complex matrices **********
 
 template <typename MatrixType>
-class MatrixSquareRoot<MatrixType, 1>
+class MatrixSquareRoot<MatrixType, 1> : internal::noncopyable
 {
   public:
 
-    MatrixSquareRoot(const MatrixType& A) 
+    explicit MatrixSquareRoot(const MatrixType& A) 
       : m_A(A) 
     {  
       eigen_assert(A.rows() == A.cols());
@@ -422,7 +422,7 @@ template<typename Derived> class MatrixSquareRootReturnValue
       * \param[in]  src  %Matrix (expression) forming the argument of the
       * matrix square root.
       */
-    MatrixSquareRootReturnValue(const Derived& src) : m_src(src) { }
+    explicit MatrixSquareRootReturnValue(const Derived& src) : m_src(src) { }
 
     /** \brief Compute the matrix square root.
       *
@@ -442,8 +442,6 @@ template<typename Derived> class MatrixSquareRootReturnValue
 
   protected:
     const Derived& m_src;
-  private:
-    MatrixSquareRootReturnValue& operator=(const MatrixSquareRootReturnValue&);
 };
 
 namespace internal {

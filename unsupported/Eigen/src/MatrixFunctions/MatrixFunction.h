@@ -34,7 +34,7 @@ namespace Eigen {
 template <typename MatrixType, 
 	  typename AtomicType,  
           int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex>
-class MatrixFunction
+class MatrixFunction : internal::noncopyable
 {  
   public:
 
@@ -65,7 +65,7 @@ class MatrixFunction
   * \brief Partial specialization of MatrixFunction for real matrices
   */
 template <typename MatrixType, typename AtomicType>
-class MatrixFunction<MatrixType, AtomicType, 0>
+class MatrixFunction<MatrixType, AtomicType, 0> : internal::noncopyable
 {  
   private:
 
@@ -111,8 +111,6 @@ class MatrixFunction<MatrixType, AtomicType, 0>
   private:
     typename internal::nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
     AtomicType& m_atomic; /**< \brief Class for computing matrix function of atomic blocks. */
-
-    MatrixFunction& operator=(const MatrixFunction&);
 };
 
       
@@ -120,7 +118,7 @@ class MatrixFunction<MatrixType, AtomicType, 0>
   * \brief Partial specialization of MatrixFunction for complex matrices
   */
 template <typename MatrixType, typename AtomicType>
-class MatrixFunction<MatrixType, AtomicType, 1>
+class MatrixFunction<MatrixType, AtomicType, 1> : internal::noncopyable
 {
   private:
 
@@ -176,8 +174,6 @@ class MatrixFunction<MatrixType, AtomicType, 1>
       * separation constant is set to 0.1, a value taken from the
       * paper by Davies and Higham. */
     static const RealScalar separation() { return static_cast<RealScalar>(0.1); }
-
-    MatrixFunction& operator=(const MatrixFunction&);
 };
 
 /** \brief Constructor. 
@@ -531,8 +527,6 @@ template<typename Derived> class MatrixFunctionReturnValue
   private:
     typename internal::nested<Derived>::type m_A;
     StemFunction *m_f;
-
-    MatrixFunctionReturnValue& operator=(const MatrixFunctionReturnValue&);
 };
 
 namespace internal {

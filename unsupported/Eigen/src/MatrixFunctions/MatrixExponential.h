@@ -21,8 +21,8 @@ namespace Eigen {
   * expected to be an instantiation of the Matrix class template.
   */
 template <typename MatrixType>
-class MatrixExponential {
-
+class MatrixExponential : internal::noncopyable
+{
   public:
 
     /** \brief Constructor.
@@ -32,7 +32,7 @@ class MatrixExponential {
       *
       * \param[in] M  matrix whose exponential is to be computed.
       */
-    MatrixExponential(const MatrixType &M);
+    explicit MatrixExponential(const MatrixType &M);
 
     /** \brief Computes the matrix exponential.
       *
@@ -42,10 +42,6 @@ class MatrixExponential {
     void compute(ResultType &result);
 
   private:
-
-    // Prevent copying
-    MatrixExponential(const MatrixExponential&);
-    MatrixExponential& operator=(const MatrixExponential&);
 
     /** \brief Compute the (3,3)-Pad&eacute; approximant to the exponential.
      *
@@ -130,6 +126,7 @@ class MatrixExponential {
      */
     void computeUV(long double);
 
+    struct ScalingOp;
     typedef typename internal::traits<MatrixType>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename std::complex<RealScalar> ComplexScalar;
@@ -157,6 +154,43 @@ class MatrixExponential {
 
     /** \brief L1 norm of m_M. */
     RealScalar m_l1norm;
+};
+
+/** \brief Scaling operator.
+ *
+ * This struct is used by CwiseUnaryOp to scale a matrix by \f$ 2^{-s} \f$.
+ */
+template <typename MatrixType>
+struct MatrixExponential<MatrixType>::ScalingOp
+{
+  /** \brief Constructor.
+   *
+   * \param[in] squarings  The integer \f$ s \f$ in this document.
+   */
+  ScalingOp(int squarings) : m_squarings(squarings) { }
+
+  /** \brief Scale a matrix coefficient.
+   *
+   * \param[in,out] x  The scalar to be scaled, becoming \f$ 2^{-s} x \f$.
+   */
+  inline const RealScalar operator() (const RealScalar& x) const
+  {
+    using std::ldexp;
+    return ldexp(x, -m_squarings);
+  }
+
+  /** \brief Scale a matrix coefficient.
+   *
+   * \param[in,out] x  The scalar to be scaled, becoming \f$ 2^{-s} x \f$.
+   */
+  inline const ComplexScalar operator() (const ComplexScalar& x) const
+  {
+    using std::ldexp;
+    return ComplexScalar(ldexp(x.real(), -m_squarings), ldexp(x.imag(), -m_squarings));
+  }
+
+  private:
+    int m_squarings;
 };
 
 template <typename MatrixType>
@@ -284,7 +318,6 @@ template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(float)
 {
   using std::frexp;
-  using std::pow;
   if (m_l1norm < 4.258730016922831e-001) {
     pade3(m_M);
   } else if (m_l1norm < 1.880152677804762e+000) {
@@ -293,7 +326,7 @@ void MatrixExponential<MatrixType>::computeUV(float)
     const float maxnorm = 3.925724783138660f;
     frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade7(A);
   }
 }
@@ -302,7 +335,6 @@ template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(double)
 {
   using std::frexp;
-  using std::pow;
   if (m_l1norm < 1.495585217958292e-002) {
     pade3(m_M);
   } else if (m_l1norm < 2.539398330063230e-001) {
@@ -315,7 +347,7 @@ void MatrixExponential<MatrixType>::computeUV(double)
     const double maxnorm = 5.371920351148152;
     frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade13(A);
   }
 }
@@ -324,7 +356,6 @@ template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(long double)
 {
   using std::frexp;
-  using std::pow;
 #if   LDBL_MANT_DIG == 53   // double precision
   computeUV(double());
 #elif LDBL_MANT_DIG <= 64   // extended precision
@@ -340,7 +371,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     const long double maxnorm = 4.0246098906697353063L;
     frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade13(A);
   }
 #elif LDBL_MANT_DIG <= 106  // double-double
@@ -358,7 +389,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     const long double maxnorm = 3.2579440895405400856599663723517L;
     frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade17(A);
   }
 #elif LDBL_MANT_DIG <= 112  // quadruple precison
@@ -376,7 +407,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     const long double maxnorm = 2.884233277829519311757165057717815L;
     frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade17(A);
   }
 #else
@@ -407,7 +438,7 @@ template<typename Derived> struct MatrixExponentialReturnValue
       * \param[in] src %Matrix (expression) forming the argument of the
       * matrix exponential.
       */
-    MatrixExponentialReturnValue(const Derived& src) : m_src(src) { }
+    explicit MatrixExponentialReturnValue(const Derived& src) : m_src(src) { }
 
     /** \brief Compute the matrix exponential.
       *
@@ -427,8 +458,6 @@ template<typename Derived> struct MatrixExponentialReturnValue
 
   protected:
     const Derived& m_src;
-  private:
-    MatrixExponentialReturnValue& operator=(const MatrixExponentialReturnValue&);
 };
 
 namespace internal {
