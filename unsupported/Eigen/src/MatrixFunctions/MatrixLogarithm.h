@@ -141,7 +141,7 @@ void MatrixLogarithmAtomic<MatrixType>::computeBig(const MatrixType& A, MatrixTy
         break;
       ++numberOfExtraSquareRoots;
     }
-    MatrixSquareRootTriangular<MatrixType>(T).compute(sqrtT);
+    matrix_sqrt_triangular(T, sqrtT);
     T = sqrtT.template triangularView<Upper>();
     ++numberOfSquareRoots;
   }

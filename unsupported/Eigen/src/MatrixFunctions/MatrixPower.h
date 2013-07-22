@@ -219,7 +219,7 @@ void MatrixPowerAtomic<MatrixType>::computeBig(ResultType& res) const
 	break;
       hasExtraSquareRoot = true;
     }
-    MatrixSquareRootTriangular<MatrixType>(T).compute(sqrtT);
+    matrix_sqrt_triangular(T, sqrtT);
     T = sqrtT.template triangularView<Upper>();
     ++numberOfSquareRoots;
   }

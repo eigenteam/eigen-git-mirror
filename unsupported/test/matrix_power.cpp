@@ -100,8 +100,6 @@ template<typename MatrixType>
 void testSingular(MatrixType m, double tol)
 {
   const int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex;
-  typedef typename internal::conditional< IsComplex, MatrixSquareRootTriangular<MatrixType>,
-          MatrixSquareRootQuasiTriangular<MatrixType> >::type SquareRootType;
   typedef typename internal::conditional<IsComplex, TriangularView<MatrixType,Upper>, const MatrixType&>::type TriangularType;
   typename internal::conditional< IsComplex, ComplexSchur<MatrixType>, RealSchur<MatrixType> >::type schur;
   MatrixType T;
@@ -116,13 +114,13 @@ void testSingular(MatrixType m, double tol)
     processTriangularMatrix<MatrixType>::run(m, T, U);
     MatrixPower<MatrixType> mpow(m);
 
-    SquareRootType(T).compute(T);
+    T = T.sqrt();
     VERIFY(mpow(0.5).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
 
-    SquareRootType(T).compute(T);
+    T = T.sqrt();
     VERIFY(mpow(0.25).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
 
-    SquareRootType(T).compute(T);
+    T = T.sqrt();
     VERIFY(mpow(0.125).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
   }
 }
