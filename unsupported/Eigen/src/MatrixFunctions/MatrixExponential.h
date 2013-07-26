@@ -258,7 +258,7 @@ struct matrix_exp_computeUV<MatrixType, long double>
   {
 #if   LDBL_MANT_DIG == 53   // double precision
   
-    matrix_exp_computeUV<MatrixType, double>(arg, U, V, squarings);
+    matrix_exp_computeUV<MatrixType, double>::run(arg, U, V, squarings);
   
 #else
   

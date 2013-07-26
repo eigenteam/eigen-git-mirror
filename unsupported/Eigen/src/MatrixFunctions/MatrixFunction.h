@@ -18,7 +18,7 @@ namespace Eigen {
 namespace internal {
 
 /** \brief Maximum distance allowed between eigenvalues to be considered "close". */
-static const float matrix_function_separation = 0.1;
+static const float matrix_function_separation = 0.1f;
 
 /** \ingroup MatrixFunctions_Module
   * \class MatrixFunctionAtomic
