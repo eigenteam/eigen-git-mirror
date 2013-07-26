@@ -307,9 +307,9 @@ struct transfer_constness
   *
   * Example. Suppose that a, b, and c are of type Matrix3d. The user forms the expression a*(b+c).
   * b+c is an expression "sum of matrices", which we will denote by S. In order to determine how to nest it,
-  * the Product expression uses: nested<S, 3>::ret, which turns out to be Matrix3d because the internal logic of
+  * the Product expression uses: nested<S, 3>::type, which turns out to be Matrix3d because the internal logic of
   * nested determined that in this case it was better to evaluate the expression b+c into a temporary. On the other hand,
-  * since a is of type Matrix3d, the Product expression nests it as nested<Matrix3d, 3>::ret, which turns out to be
+  * since a is of type Matrix3d, the Product expression nests it as nested<Matrix3d, 3>::type, which turns out to be
   * const Matrix3d&, because the internal logic of nested determined that since a was already a matrix, there was no point
   * in copying it into another matrix.
   */
