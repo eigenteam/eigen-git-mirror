@@ -547,7 +547,7 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sin() const
 {
   eigen_assert(rows() == cols());
   typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sin);
+  return MatrixFunctionReturnValue<Derived>(derived(), internal::stem_function_sin<ComplexScalar>);
 }
 
 template <typename Derived>
@@ -555,7 +555,7 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cos() const
 {
   eigen_assert(rows() == cols());
   typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cos);
+  return MatrixFunctionReturnValue<Derived>(derived(), internal::stem_function_cos<ComplexScalar>);
 }
 
 template <typename Derived>
@@ -563,7 +563,7 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sinh() const
 {
   eigen_assert(rows() == cols());
   typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sinh);
+  return MatrixFunctionReturnValue<Derived>(derived(), internal::stem_function_sinh<ComplexScalar>);
 }
 
 template <typename Derived>
@@ -571,7 +571,7 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cosh() const
 {
   eigen_assert(rows() == cols());
   typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cosh);
+  return MatrixFunctionReturnValue<Derived>(derived(), internal::stem_function_cosh<ComplexScalar>);
 }
 
 } // end namespace Eigen
