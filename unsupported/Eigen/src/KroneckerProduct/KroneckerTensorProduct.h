@@ -26,11 +26,11 @@ class KroneckerProductBase : public ReturnByValue<Derived>
 {
   private:
     typedef typename internal::traits<Derived> Traits;
-    typedef typename Traits::Lhs Lhs;
-    typedef typename Traits::Rhs Rhs;
     typedef typename Traits::Scalar Scalar;
 
   protected:
+    typedef typename Traits::Lhs Lhs;
+    typedef typename Traits::Rhs Rhs;
     typedef typename Traits::Index Index;
 
   public:
@@ -79,8 +79,8 @@ class KroneckerProductBase : public ReturnByValue<Derived>
  * \tparam Lhs  Type of the left-hand side, a matrix expression.
  * \tparam Rhs  Type of the rignt-hand side, a matrix expression.
  */
-template<typename Lhs, typename Rhs>
-class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<Lhs,Rhs> >
+template<typename TLhs, typename TRhs>
+class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<TLhs,TRhs> >
 {
   private:
     typedef KroneckerProductBase<KroneckerProduct> Base;
@@ -112,8 +112,8 @@ class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<Lhs,Rhs> >
  * \tparam Lhs  Type of the left-hand side, a matrix expression.
  * \tparam Rhs  Type of the rignt-hand side, a matrix expression.
  */
-template<typename Lhs, typename Rhs>
-class KroneckerProductSparse : public KroneckerProductBase<KroneckerProductSparse<Lhs,Rhs> >
+template<typename TLhs, typename TRhs>
+class KroneckerProductSparse : public KroneckerProductBase<KroneckerProductSparse<TLhs,TRhs> >
 {
   private:
     typedef KroneckerProductBase<KroneckerProductSparse> Base;
