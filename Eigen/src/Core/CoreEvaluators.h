@@ -1001,25 +1001,25 @@ protected:
   typename evaluator<ArgType>::nestedType m_argImpl;
 };
 
-template<typename ArgType>
-struct evaluator_impl<MatrixWrapper<ArgType> >
-  : evaluator_impl_wrapper_base<MatrixWrapper<ArgType> >
+template<typename TArgType>
+struct evaluator_impl<MatrixWrapper<TArgType> >
+  : evaluator_impl_wrapper_base<MatrixWrapper<TArgType> >
 {
-  typedef MatrixWrapper<ArgType> XprType;
+  typedef MatrixWrapper<TArgType> XprType;
 
   evaluator_impl(const XprType& wrapper) 
-    : evaluator_impl_wrapper_base<MatrixWrapper<ArgType> >(wrapper.nestedExpression())
+    : evaluator_impl_wrapper_base<MatrixWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
 
-template<typename ArgType>
-struct evaluator_impl<ArrayWrapper<ArgType> >
-  : evaluator_impl_wrapper_base<ArrayWrapper<ArgType> >
+template<typename TArgType>
+struct evaluator_impl<ArrayWrapper<TArgType> >
+  : evaluator_impl_wrapper_base<ArrayWrapper<TArgType> >
 {
-  typedef ArrayWrapper<ArgType> XprType;
+  typedef ArrayWrapper<TArgType> XprType;
 
   evaluator_impl(const XprType& wrapper) 
-    : evaluator_impl_wrapper_base<ArrayWrapper<ArgType> >(wrapper.nestedExpression())
+    : evaluator_impl_wrapper_base<ArrayWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
 
