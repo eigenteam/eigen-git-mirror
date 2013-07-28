@@ -76,7 +76,7 @@ public:
     using std::sqrt;
     using std::abs;
     // since we compare against 1, this is equal to computing the relative error
-    eigen_assert( abs(m_axis.derived().squaredNorm() - 1) < sqrt( dummy_precision<Scalar>() ) );
+    eigen_assert( abs(m_axis.derived().squaredNorm() - 1) < sqrt( NumTraits<Scalar>::dummy_precision() ) );
   }
 
   /** Constructs and initialize the angle-axis rotation from a quaternion \a q. */
@@ -180,7 +180,7 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionType& q)
     using std::sqrt;
     using std::abs;
     // since we compare against 1, this is equal to computing the relative error
-    eigen_assert( abs(m_axis.derived().squaredNorm() - 1) < sqrt( dummy_precision<Scalar>() ) );
+    eigen_assert( abs(m_axis.derived().squaredNorm() - 1) < sqrt( NumTraits<Scalar>::dummy_precision() ) );
   }
   return *this;
 }
