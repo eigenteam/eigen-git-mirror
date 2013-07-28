@@ -54,6 +54,13 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
   VERIFY(b2.contains(b1));
   VERIFY_IS_APPROX(b2.clamp(b0), b0);
 
+  // intersection
+  BoxType box1(VectorType::Random(dim));
+  box1.extend(VectorType::Random(dim));
+  BoxType box2(VectorType::Random(dim));
+  box2.extend(VectorType::Random(dim));
+
+  VERIFY(box1.intersects(box2) == !box1.intersection(box2).isEmpty()); 
 
   // alignment -- make sure there is no memory alignment assertion
   BoxType *bp0 = new BoxType(dim);
