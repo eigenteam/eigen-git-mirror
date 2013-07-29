@@ -79,8 +79,8 @@ class KroneckerProductBase : public ReturnByValue<Derived>
  * \tparam Lhs  Type of the left-hand side, a matrix expression.
  * \tparam Rhs  Type of the rignt-hand side, a matrix expression.
  */
-template<typename TLhs, typename TRhs>
-class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<TLhs,TRhs> >
+template<typename Lhs, typename Rhs>
+class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<Lhs,Rhs> >
 {
   private:
     typedef KroneckerProductBase<KroneckerProduct> Base;
@@ -112,8 +112,8 @@ class KroneckerProduct : public KroneckerProductBase<KroneckerProduct<TLhs,TRhs>
  * \tparam Lhs  Type of the left-hand side, a matrix expression.
  * \tparam Rhs  Type of the rignt-hand side, a matrix expression.
  */
-template<typename TLhs, typename TRhs>
-class KroneckerProductSparse : public KroneckerProductBase<KroneckerProductSparse<TLhs,TRhs> >
+template<typename Lhs, typename Rhs>
+class KroneckerProductSparse : public KroneckerProductBase<KroneckerProductSparse<Lhs,Rhs> >
 {
   private:
     typedef KroneckerProductBase<KroneckerProductSparse> Base;
