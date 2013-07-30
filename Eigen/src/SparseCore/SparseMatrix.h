@@ -384,7 +384,7 @@ class SparseMatrix
       eigen_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
       Index p = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
-      m_data.append(0, inner);
+      m_data.append(Scalar(0), inner);
       return m_data.value(p);
     }
 
@@ -394,7 +394,7 @@ class SparseMatrix
     {
       Index p = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
-      m_data.append(0, inner);
+      m_data.append(Scalar(0), inner);
       return m_data.value(p);
     }
 
