@@ -219,9 +219,9 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     }
 
     template<typename Rhs, typename Dest>
-    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &_X) const
+    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X_base) const
     {
-      Dest& X(_X.derived());
+      Dest& X(X_base.derived());
       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first");
       EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
                         THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
