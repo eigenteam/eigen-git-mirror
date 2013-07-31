@@ -358,6 +358,7 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
   return *this;
 }
 
+#ifndef __CUDACC__
 /** \return the Householder QR decomposition of \c *this.
   *
   * \sa class HouseholderQR
@@ -368,6 +369,7 @@ MatrixBase<Derived>::householderQr() const
 {
   return HouseholderQR<PlainObject>(eval());
 }
+#endif // __CUDACC__
 
 } // end namespace Eigen
 

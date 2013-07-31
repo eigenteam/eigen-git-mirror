@@ -575,6 +575,7 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
   return res;
 }
 
+#ifndef __CUDACC__
 /** \cholesky_module
   * \returns the Cholesky decomposition with full pivoting without square root of \c *this
   */
@@ -594,6 +595,7 @@ MatrixBase<Derived>::ldlt() const
 {
   return LDLT<PlainObject>(derived());
 }
+#endif // __CUDACC__
 
 } // end namespace Eigen
 

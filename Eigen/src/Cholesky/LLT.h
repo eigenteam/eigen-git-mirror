@@ -465,6 +465,7 @@ MatrixType LLT<MatrixType,_UpLo>::reconstructedMatrix() const
   return matrixL() * matrixL().adjoint().toDenseMatrix();
 }
 
+#ifndef __CUDACC__
 /** \cholesky_module
   * \returns the LLT decomposition of \c *this
   */
@@ -484,7 +485,8 @@ SelfAdjointView<MatrixType, UpLo>::llt() const
 {
   return LLT<PlainObject,UpLo>(m_matrix);
 }
-
+#endif // __CUDACC__
+  
 } // end namespace Eigen
 
 #endif // EIGEN_LLT_H

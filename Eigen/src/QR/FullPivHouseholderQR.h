@@ -607,6 +607,7 @@ inline typename FullPivHouseholderQR<MatrixType>::MatrixQReturnType FullPivHouse
   return MatrixQReturnType(m_qr, m_hCoeffs, m_rows_transpositions);
 }
 
+#ifndef __CUDACC__
 /** \return the full-pivoting Householder QR decomposition of \c *this.
   *
   * \sa class FullPivHouseholderQR
@@ -617,6 +618,7 @@ MatrixBase<Derived>::fullPivHouseholderQr() const
 {
   return FullPivHouseholderQR<PlainObject>(eval());
 }
+#endif // __CUDACC__
 
 } // end namespace Eigen
 
