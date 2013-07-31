@@ -1,4 +1,5 @@
 [patterns]
+*.sh = LF
 *.MINPACK = CRLF
 scripts/*.in = LF
 debug/msvc/*.dat = CRLF
