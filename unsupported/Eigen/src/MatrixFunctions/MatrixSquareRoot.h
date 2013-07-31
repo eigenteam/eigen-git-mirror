@@ -318,7 +318,10 @@ struct matrix_sqrt_compute<MatrixType, 1>
 template<typename Derived> class MatrixSquareRootReturnValue
 : public ReturnByValue<MatrixSquareRootReturnValue<Derived> >
 {
+  protected:
     typedef typename Derived::Index Index;
+    typedef typename internal::nested<Derived, 10>::type DerivedNested;
+
   public:
     /** \brief Constructor.
       *
@@ -335,16 +338,15 @@ template<typename Derived> class MatrixSquareRootReturnValue
     template <typename ResultType>
     inline void evalTo(ResultType& result) const
     {
-      typedef typename Derived::PlainObject PlainObject;
-      const PlainObject srcEvaluated = m_src.eval();
-      internal::matrix_sqrt_compute<PlainObject>::run(srcEvaluated, result);
+      typedef typename internal::remove_all<DerivedNested>::type DerivedNestedClean;
+      internal::matrix_sqrt_compute<DerivedNestedClean>::run(m_src, result);
     }
 
     Index rows() const { return m_src.rows(); }
     Index cols() const { return m_src.cols(); }
 
   protected:
-    const Derived& m_src;
+    const DerivedNested m_src;
 };
 
 namespace internal {

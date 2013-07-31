@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2011, 2013 Jitse Niesen <jitse@maths.leeds.ac.uk>
 // Copyright (C) 2011 Chen-Pang He <jdh8@ms63.hinet.net>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -306,9 +306,13 @@ template<typename Derived> class MatrixLogarithmReturnValue
 : public ReturnByValue<MatrixLogarithmReturnValue<Derived> >
 {
 public:
-
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::Index Index;
+
+protected:
+  typedef typename internal::nested<Derived, 10>::type DerivedNested;
+
+public:
 
   /** \brief Constructor.
     *
@@ -323,25 +327,24 @@ public:
   template <typename ResultType>
   inline void evalTo(ResultType& result) const
   {
-    typedef typename Derived::PlainObject PlainObject;
-    typedef internal::traits<PlainObject> Traits;
+    typedef typename internal::remove_all<DerivedNested>::type DerivedNestedClean;
+    typedef internal::traits<DerivedNestedClean> Traits;
     static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
     static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
-    static const int Options = PlainObject::Options;
+    static const int Options = DerivedNestedClean::Options;
     typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
     typedef Matrix<ComplexScalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
     typedef internal::MatrixLogarithmAtomic<DynMatrixType> AtomicType;
     AtomicType atomic;
     
-    const PlainObject Aevaluated = m_A.eval();
-    internal::matrix_function_compute<PlainObject>::run(Aevaluated, atomic, result);
+    internal::matrix_function_compute<DerivedNestedClean>::run(m_A, atomic, result);
   }
 
   Index rows() const { return m_A.rows(); }
   Index cols() const { return m_A.cols(); }
   
 private:
-  typename internal::nested<Derived>::type m_A;
+  const DerivedNested m_A;
 };
 
 namespace internal {

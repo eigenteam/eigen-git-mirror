@@ -392,17 +392,14 @@ template<typename Derived> struct MatrixExponentialReturnValue
     template <typename ResultType>
     inline void evalTo(ResultType& result) const
     {
-      const typename Derived::PlainObject srcEvaluated = m_src.eval();
-      internal::matrix_exp_compute(srcEvaluated, result);
+      internal::matrix_exp_compute(m_src, result);
     }
 
     Index rows() const { return m_src.rows(); }
     Index cols() const { return m_src.cols(); }
 
   protected:
-    const Derived& m_src;
-  private:
-    MatrixExponentialReturnValue& operator=(const MatrixExponentialReturnValue&);
+    const typename internal::nested<Derived, 10>::type m_src;
 };
 
 namespace internal {
