@@ -68,11 +68,7 @@ macro(ei_add_test_internal testname testname_with_suffix)
     endif()
   endif() 
 
-  if(EIGEN_BIN_BASH_EXISTS)
-    add_test(${testname_with_suffix} "${Eigen_SOURCE_DIR}/test/runtest.sh" "${testname_with_suffix}")
-  else()
-    add_test(${testname_with_suffix} "${targetname}")
-  endif()
+  add_test(${testname_with_suffix} "${targetname}")
   
   # Specify target and test labels accoirding to EIGEN_CURRENT_SUBPROJECT
   get_property(current_subproject GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT)  
