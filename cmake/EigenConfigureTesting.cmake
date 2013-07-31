@@ -24,31 +24,39 @@ set(CMAKE_MAKE_PROGRAM "@EIGEN_MAKECOMMAND_PLACEHOLDER@")
 # This call activates testing and generates the DartConfiguration.tcl
 include(CTest)
 
-set(EIGEN_TEST_BUILD_FLAGS " " CACHE STRING "Options passed to the build command of unit tests")
+set(EIGEN_TEST_BUILD_FLAGS "" CACHE STRING "Options passed to the build command of unit tests")
 
 # overwrite default DartConfiguration.tcl
 # The worarounds are different for each version of the MSVC IDE
+set(EIGEN_TEST_TARGET buildtests)
 if(MSVC_IDE)
   if(CMAKE_MAKE_PROGRAM_SAVE MATCHES "devenv") # devenv
-    set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} Eigen.sln /build \"Release\" /project buildtests ${EIGEN_TEST_BUILD_FLAGS} \n# ")    
+    set(EIGEN_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM_SAVE} Eigen.sln /build Release /project ${EIGEN_TEST_TARGET}")
   else() # msbuild
-    set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests.vcxproj /p:Configuration=\${CTEST_CONFIGURATION_TYPE}  ${EIGEN_TEST_BUILD_FLAGS}\n# ")
+    set(EIGEN_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM_SAVE} ${EIGEN_TEST_TARGET}.vcxproj /p:Configuration=\${CTEST_CONFIGURATION_TYPE}")
   endif()
+
+  # append the build flags if provided
+  if(NOT "${EIGEN_TEST_BUILD_FLAGS}" MATCHES "^[ \t]*$")
+    set(EIGEN_BUILD_COMMAND "${EIGEN_BUILD_COMMAND} ${EIGEN_TEST_BUILD_FLAGS}")
+  endif()
+  
+  # apply the dartconfig hack ...
+  set(EIGEN_MAKECOMMAND_PLACEHOLDER "${EIGEN_BUILD_COMMAND}\n#")
 else()
   # for make and nmake
-  set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests ${EIGEN_TEST_BUILD_FLAGS}")
+  set(EIGEN_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM_SAVE} ${EIGEN_TEST_TARGET} ${EIGEN_TEST_BUILD_FLAGS}")
+  set(EIGEN_MAKECOMMAND_PLACEHOLDER "${EIGEN_BUILD_COMMAND}")
 endif()
 
-# copy ctest properties, which currently
-# o raise the warning levels
 configure_file(${CMAKE_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/DartConfiguration.tcl)
 
 # restore default CMAKE_MAKE_PROGRAM
 set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
-# un-set temporary variables so that it is like they never existed. 
-# CMake 2.6.3 introduces the more logical unset() syntax for this.
-set(CMAKE_MAKE_PROGRAM_SAVE) 
-set(EIGEN_MAKECOMMAND_PLACEHOLDER)
+
+# un-set temporary variables so that it is like they never existed
+unset(CMAKE_MAKE_PROGRAM_SAVE) 
+unset(EIGEN_MAKECOMMAND_PLACEHOLDER)
 
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
 
