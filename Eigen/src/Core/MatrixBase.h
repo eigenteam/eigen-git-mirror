@@ -98,6 +98,7 @@ template<typename Derived> class MatrixBase
 
     /** \returns the size of the main diagonal, which is min(rows(),cols()).
       * \sa rows(), cols(), SizeAtCompileTime. */
+    EIGEN_DEVICE_FUNC
     inline Index diagonalSize() const { return (std::min)(rows(),cols()); }
 
     /** \brief The plain matrix type corresponding to this expression.
@@ -206,6 +207,7 @@ template<typename Derived> class MatrixBase
     void applyOnTheRight(const EigenBase<OtherDerived>& other);
 
     template<typename DiagonalDerived>
+    EIGEN_DEVICE_FUNC
     const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
 
@@ -231,15 +233,23 @@ template<typename Derived> class MatrixBase
     EIGEN_DEVICE_FUNC void adjointInPlace();
 
     typedef Diagonal<Derived> DiagonalReturnType;
+    EIGEN_DEVICE_FUNC
     DiagonalReturnType diagonal();
-	typedef typename internal::add_const<Diagonal<const Derived> >::type ConstDiagonalReturnType;
+    
+    typedef typename internal::add_const<Diagonal<const Derived> >::type ConstDiagonalReturnType;
+    EIGEN_DEVICE_FUNC
     ConstDiagonalReturnType diagonal() const;
 
     template<int Index> struct DiagonalIndexReturnType { typedef Diagonal<Derived,Index> Type; };
     template<int Index> struct ConstDiagonalIndexReturnType { typedef const Diagonal<const Derived,Index> Type; };
 
-    template<int Index> typename DiagonalIndexReturnType<Index>::Type diagonal();
-    template<int Index> typename ConstDiagonalIndexReturnType<Index>::Type diagonal() const;
+    template<int Index> 
+    EIGEN_DEVICE_FUNC
+    typename DiagonalIndexReturnType<Index>::Type diagonal();
+
+    template<int Index>
+    EIGEN_DEVICE_FUNC
+    typename ConstDiagonalIndexReturnType<Index>::Type diagonal() const;
 
     // Note: The "MatrixBase::" prefixes are added to help MSVC9 to match these declarations with the later implementations.
     // On the other hand they confuse MSVC8...
@@ -247,7 +257,10 @@ template<typename Derived> class MatrixBase
     typename MatrixBase::template DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
     typename MatrixBase::template ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
     #else
+    EIGEN_DEVICE_FUNC
     typename DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
+    
+    EIGEN_DEVICE_FUNC
     typename ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
     #endif
 
@@ -285,6 +298,7 @@ template<typename Derived> class MatrixBase
     static const BasisReturnType UnitZ();
     static const BasisReturnType UnitW();
 
+    EIGEN_DEVICE_FUNC
     const DiagonalWrapper<const Derived> asDiagonal() const;
     const PermutationWrapper<const Derived> asPermutation() const;
 

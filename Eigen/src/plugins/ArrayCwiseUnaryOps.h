@@ -201,6 +201,7 @@ cube() const
 }
 
 #define EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(METHOD_NAME,FUNCTOR) \
+  EIGEN_DEVICE_FUNC \
   inline const CwiseUnaryOp<std::binder2nd<FUNCTOR<Scalar> >, const Derived> \
   METHOD_NAME(const Scalar& s) const { \
     return CwiseUnaryOp<std::binder2nd<FUNCTOR<Scalar> >, const Derived> \
