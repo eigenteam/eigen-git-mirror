@@ -391,7 +391,8 @@ template<typename Derived> class DenseBase
     /** swaps *this with the expression \a other.
       *
       */
-    template<typename OtherDerived> EIGEN_DEVICE_FUNC
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void swap(const DenseBase<OtherDerived>& other,
               int = OtherDerived::ThisConstantIsPrivateInPlainObjectBase)
     {
@@ -401,7 +402,8 @@ template<typename Derived> class DenseBase
     /** swaps *this with the matrix or array \a other.
       *
       */
-    template<typename OtherDerived> EIGEN_DEVICE_FUNC
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void swap(PlainObjectBase<OtherDerived>& other)
     {
       SwapWrapper<Derived>(derived()).lazyAssign(other.derived());

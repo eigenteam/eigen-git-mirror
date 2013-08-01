@@ -532,6 +532,7 @@ struct assign_selector<Derived,OtherDerived,false,false> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
   template<typename ActualDerived, typename ActualOtherDerived>
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& evalTo(ActualDerived& dst, const ActualOtherDerived& other) { other.evalTo(dst); return dst; }
 };
 template<typename Derived, typename OtherDerived>
@@ -544,6 +545,7 @@ struct assign_selector<Derived,OtherDerived,false,true> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose()); }
   template<typename ActualDerived, typename ActualOtherDerived>
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& evalTo(ActualDerived& dst, const ActualOtherDerived& other) { Transpose<ActualDerived> dstTrans(dst); other.evalTo(dstTrans); return dst; }
 };
 template<typename Derived, typename OtherDerived>
@@ -556,18 +558,21 @@ struct assign_selector<Derived,OtherDerived,true,true> {
 
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::operator=(const DenseBase<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
 }
 
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::operator=(const DenseBase& other)
 {
   return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
 }
 
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase& other)
 {
   return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
@@ -575,6 +580,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase& ot
 
 template<typename Derived>
 template <typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const DenseBase<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
@@ -582,6 +588,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const DenseBase<Othe
 
 template<typename Derived>
 template <typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());
@@ -589,6 +596,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<Othe
 
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
   return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());

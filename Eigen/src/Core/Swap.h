@@ -33,11 +33,16 @@ template<typename ExpressionType> class SwapWrapper
     EIGEN_DENSE_PUBLIC_INTERFACE(SwapWrapper)
     typedef typename internal::packet_traits<Scalar>::type Packet;
 
+    EIGEN_DEVICE_FUNC
     inline SwapWrapper(ExpressionType& xpr) : m_expression(xpr) {}
 
+    EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_expression.rows(); }
+    EIGEN_DEVICE_FUNC
     inline Index cols() const { return m_expression.cols(); }
+    EIGEN_DEVICE_FUNC
     inline Index outerStride() const { return m_expression.outerStride(); }
+    EIGEN_DEVICE_FUNC
     inline Index innerStride() const { return m_expression.innerStride(); }
     
     typedef typename internal::conditional<
@@ -46,30 +51,37 @@ template<typename ExpressionType> class SwapWrapper
                        const Scalar
                      >::type ScalarWithConstIfNotLvalue;
                      
+    EIGEN_DEVICE_FUNC
     inline ScalarWithConstIfNotLvalue* data() { return m_expression.data(); }
+    EIGEN_DEVICE_FUNC
     inline const Scalar* data() const { return m_expression.data(); }
 
+    EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index rowId, Index colId)
     {
       return m_expression.const_cast_derived().coeffRef(rowId, colId);
     }
 
+    EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index index)
     {
       return m_expression.const_cast_derived().coeffRef(index);
     }
 
+    EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index rowId, Index colId) const
     {
       return m_expression.coeffRef(rowId, colId);
     }
 
+    EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index index) const
     {
       return m_expression.coeffRef(index);
     }
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void copyCoeff(Index rowId, Index colId, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
@@ -81,6 +93,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void copyCoeff(Index index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
@@ -115,6 +128,7 @@ template<typename ExpressionType> class SwapWrapper
       _other.template writePacket<LoadMode>(index, tmp);
     }
 
+    EIGEN_DEVICE_FUNC
     ExpressionType& expression() const { return m_expression; }
 
   protected:

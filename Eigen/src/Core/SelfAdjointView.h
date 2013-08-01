@@ -69,17 +69,23 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     };
     typedef typename MatrixType::PlainObject PlainObject;
 
+    EIGEN_DEVICE_FUNC
     inline SelfAdjointView(MatrixType& matrix) : m_matrix(matrix)
     {}
 
+    EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC
     inline Index cols() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC
     inline Index outerStride() const { return m_matrix.outerStride(); }
+    EIGEN_DEVICE_FUNC
     inline Index innerStride() const { return m_matrix.innerStride(); }
 
     /** \sa MatrixBase::coeff()
       * \warning the coordinates must fit into the referenced triangular part
       */
+    EIGEN_DEVICE_FUNC
     inline Scalar coeff(Index row, Index col) const
     {
       Base::check_coordinates_internal(row, col);
@@ -89,6 +95,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     /** \sa MatrixBase::coeffRef()
       * \warning the coordinates must fit into the referenced triangular part
       */
+    EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index row, Index col)
     {
       Base::check_coordinates_internal(row, col);
@@ -96,13 +103,17 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     }
 
     /** \internal */
+    EIGEN_DEVICE_FUNC
     const MatrixTypeNestedCleaned& _expression() const { return m_matrix; }
 
+    EIGEN_DEVICE_FUNC
     const MatrixTypeNestedCleaned& nestedExpression() const { return m_matrix; }
+    EIGEN_DEVICE_FUNC
     MatrixTypeNestedCleaned& nestedExpression() { return *const_cast<MatrixTypeNestedCleaned*>(&m_matrix); }
 
     /** Efficient self-adjoint matrix times vector/matrix product */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     SelfadjointProductMatrix<MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
     operator*(const MatrixBase<OtherDerived>& rhs) const
     {
@@ -113,6 +124,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
     /** Efficient vector/matrix times self-adjoint matrix product */
     template<typename OtherDerived> friend
+    EIGEN_DEVICE_FUNC
     SelfadjointProductMatrix<OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
     operator*(const MatrixBase<OtherDerived>& lhs, const SelfAdjointView& rhs)
     {
@@ -132,6 +144,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       * \sa rankUpdate(const MatrixBase<DerivedU>&, Scalar)
       */
     template<typename DerivedU, typename DerivedV>
+    EIGEN_DEVICE_FUNC
     SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, const Scalar& alpha = Scalar(1));
 
     /** Perform a symmetric rank K update of the selfadjoint matrix \c *this:
@@ -145,6 +158,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       * \sa rankUpdate(const MatrixBase<DerivedU>&, const MatrixBase<DerivedV>&, Scalar)
       */
     template<typename DerivedU>
+    EIGEN_DEVICE_FUNC
     SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha = Scalar(1));
 
 /////////// Cholesky module ///////////
@@ -159,11 +173,14 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     /** Return type of eigenvalues() */
     typedef Matrix<RealScalar, internal::traits<MatrixType>::ColsAtCompileTime, 1> EigenvaluesReturnType;
 
+    EIGEN_DEVICE_FUNC
     EigenvaluesReturnType eigenvalues() const;
+    EIGEN_DEVICE_FUNC
     RealScalar operatorNorm() const;
     
     #ifdef EIGEN2_SUPPORT
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     SelfAdjointView& operator=(const MatrixBase<OtherDerived>& other)
     {
       enum {
@@ -174,6 +191,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       return *this;
     }
     template<typename OtherMatrixType, unsigned int OtherMode>
+    EIGEN_DEVICE_FUNC
     SelfAdjointView& operator=(const TriangularView<OtherMatrixType, OtherMode>& other)
     {
       enum {
@@ -209,6 +227,7 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), U
     row = (UnrollCount-1) % Derived1::RowsAtCompileTime
   };
 
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &dst, const Derived2 &src)
   {
     triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount-1, ClearOpposite>::run(dst, src);
@@ -223,6 +242,7 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), U
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, 0, ClearOpposite>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &, const Derived2 &) {}
 };
 
@@ -234,6 +254,7 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), U
     row = (UnrollCount-1) % Derived1::RowsAtCompileTime
   };
 
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &dst, const Derived2 &src)
   {
     triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount-1, ClearOpposite>::run(dst, src);
@@ -248,6 +269,7 @@ struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), U
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, 0, ClearOpposite>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &, const Derived2 &) {}
 };
 
@@ -255,6 +277,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
@@ -272,6 +295,7 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dyn
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dynamic, ClearOpposite>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(Derived1 &dst, const Derived2 &src)
   {
   typedef typename Derived1::Index Index;

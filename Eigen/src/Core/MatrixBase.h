@@ -278,31 +278,41 @@ template<typename Derived> class MatrixBase
     template<unsigned int Mode> struct TriangularViewReturnType { typedef TriangularView<Derived, Mode> Type; };
     template<unsigned int Mode> struct ConstTriangularViewReturnType { typedef const TriangularView<const Derived, Mode> Type; };
 
-    template<unsigned int Mode> typename TriangularViewReturnType<Mode>::Type triangularView();
-    template<unsigned int Mode> typename ConstTriangularViewReturnType<Mode>::Type triangularView() const;
+    template<unsigned int Mode>
+    EIGEN_DEVICE_FUNC
+    typename TriangularViewReturnType<Mode>::Type triangularView();
+    template<unsigned int Mode>
+    EIGEN_DEVICE_FUNC
+    typename ConstTriangularViewReturnType<Mode>::Type triangularView() const;
 
     template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SelfAdjointView<Derived, UpLo> Type; };
     template<unsigned int UpLo> struct ConstSelfAdjointViewReturnType { typedef const SelfAdjointView<const Derived, UpLo> Type; };
 
-    template<unsigned int UpLo> typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView();
-    template<unsigned int UpLo> typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView() const;
+    template<unsigned int UpLo> 
+    EIGEN_DEVICE_FUNC
+    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView();
+    template<unsigned int UpLo>
+    EIGEN_DEVICE_FUNC
+    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView() const;
 
     const SparseView<Derived> sparseView(const Scalar& m_reference = Scalar(0),
                                          const typename NumTraits<Scalar>::Real& m_epsilon = NumTraits<Scalar>::dummy_precision()) const;
-    static const IdentityReturnType Identity();
-    static const IdentityReturnType Identity(Index rows, Index cols);
-    static const BasisReturnType Unit(Index size, Index i);
-    static const BasisReturnType Unit(Index i);
-    static const BasisReturnType UnitX();
-    static const BasisReturnType UnitY();
-    static const BasisReturnType UnitZ();
-    static const BasisReturnType UnitW();
+    EIGEN_DEVICE_FUNC static const IdentityReturnType Identity();
+    EIGEN_DEVICE_FUNC static const IdentityReturnType Identity(Index rows, Index cols);
+    EIGEN_DEVICE_FUNC static const BasisReturnType Unit(Index size, Index i);
+    EIGEN_DEVICE_FUNC static const BasisReturnType Unit(Index i);
+    EIGEN_DEVICE_FUNC static const BasisReturnType UnitX();
+    EIGEN_DEVICE_FUNC static const BasisReturnType UnitY();
+    EIGEN_DEVICE_FUNC static const BasisReturnType UnitZ();
+    EIGEN_DEVICE_FUNC static const BasisReturnType UnitW();
 
     EIGEN_DEVICE_FUNC
     const DiagonalWrapper<const Derived> asDiagonal() const;
     const PermutationWrapper<const Derived> asPermutation() const;
 
+    EIGEN_DEVICE_FUNC
     Derived& setIdentity();
+    EIGEN_DEVICE_FUNC
     Derived& setIdentity(Index rows, Index cols);
 
     bool isIdentity(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
@@ -430,11 +440,17 @@ template<typename Derived> class MatrixBase
     };
     #endif // EIGEN_PARSED_BY_DOXYGEN
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     typename cross_product_return_type<OtherDerived>::type
     cross(const MatrixBase<OtherDerived>& other) const;
+    
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     PlainObject cross3(const MatrixBase<OtherDerived>& other) const;
+    
+    EIGEN_DEVICE_FUNC
     PlainObject unitOrthogonal(void) const;
+    
     Matrix<Scalar,3,1> eulerAngles(Index a0, Index a1, Index a2) const;
     
     #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS

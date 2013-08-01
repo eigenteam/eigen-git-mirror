@@ -128,7 +128,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     enum { NeedsToAlign = SizeAtCompileTime != Dynamic && (internal::traits<Derived>::Flags & AlignedBit) != 0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
+    EIGEN_DEVICE_FUNC
     Base& base() { return *static_cast<Base*>(this); }
+    EIGEN_DEVICE_FUNC
     const Base& base() const { return *static_cast<const Base*>(this); }
 
     EIGEN_DEVICE_FUNC
@@ -351,6 +353,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * Matrices are resized relative to the top-left element. In case values need to be 
       * appended to the matrix they will be uninitialized.
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void conservativeResize(Index nbRows, Index nbCols)
     {
       internal::conservative_resize_like_impl<Derived>::run(*this, nbRows, nbCols);
@@ -363,6 +366,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * In case the matrix is growing, new rows will be uninitialized.
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void conservativeResize(Index nbRows, NoChange_t)
     {
       // Note: see the comment in conservativeResize(Index,Index)
@@ -376,6 +380,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * In case the matrix is growing, new columns will be uninitialized.
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, Index nbCols)
     {
       // Note: see the comment in conservativeResize(Index,Index)
@@ -390,6 +395,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * When values are appended, they will be uninitialized.
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void conservativeResize(Index size)
     {
       internal::conservative_resize_like_impl<Derived>::run(*this, size);
@@ -405,6 +411,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * appended to the matrix they will copied from \c other.
       */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void conservativeResizeLike(const DenseBase<OtherDerived>& other)
     {
       internal::conservative_resize_like_impl<Derived,OtherDerived>::run(*this, other);
@@ -647,6 +654,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
 
     template<typename T0, typename T1>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init2(Index nbRows, Index nbCols, typename internal::enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
       EIGEN_STATIC_ASSERT(bool(NumTraits<T0>::IsInteger) &&
@@ -670,6 +678,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * data pointers.
       */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void _swap(DenseBase<OtherDerived> const & other)
     {
       enum { SwapPointers = internal::is_same<Derived, OtherDerived>::value && Base::SizeAtCompileTime==Dynamic };
@@ -790,6 +799,7 @@ struct conservative_resize_like_impl<Derived,OtherDerived,true>
 template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>
 struct matrix_swap_impl
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(MatrixTypeA& a, MatrixTypeB& b)
   {
     a.base().swap(b);
@@ -799,6 +809,7 @@ struct matrix_swap_impl
 template<typename MatrixTypeA, typename MatrixTypeB>
 struct matrix_swap_impl<MatrixTypeA, MatrixTypeB, true>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(MatrixTypeA& a, MatrixTypeB& b)
   {
     static_cast<typename MatrixTypeA::Base&>(a).m_storage.swap(static_cast<typename MatrixTypeB::Base&>(b).m_storage);

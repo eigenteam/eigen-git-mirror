@@ -746,6 +746,7 @@ namespace internal {
 template<typename Derived, bool Big = (Derived::SizeAtCompileTime>=16)>
 struct setIdentity_impl
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& m)
   {
     return m = Derived::Identity(m.rows(), m.cols());
@@ -756,6 +757,7 @@ template<typename Derived>
 struct setIdentity_impl<Derived, true>
 {
   typedef typename Derived::Index Index;
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& m)
   {
     m.setZero();

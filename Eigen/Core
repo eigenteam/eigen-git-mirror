@@ -30,7 +30,7 @@
 #endif
 
 #if defined(__CUDA_ARCH__)
-  #define EIGEN_USING_STD_MATH(FUNC)
+  #define EIGEN_USING_STD_MATH(FUNC) using ::FUNC;
 #else
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif

@@ -109,6 +109,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Example: \include SelfAdjointEigenSolver_SelfAdjointEigenSolver.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_SelfAdjointEigenSolver.out
       */
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver()
         : m_eivec(),
           m_eivalues(),
@@ -128,6 +129,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa compute() for an example
       */
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver(Index size)
         : m_eivec(size, size),
           m_eivalues(size),
@@ -150,6 +152,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa compute(const MatrixType&, int)
       */
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
@@ -189,6 +192,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa SelfAdjointEigenSolver(const MatrixType&, int)
       */
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver& compute(const MatrixType& matrix, int options = ComputeEigenvectors);
     
     /** \brief Computes eigendecomposition of given matrix using a direct algorithm
@@ -205,6 +209,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa compute(const MatrixType&, int options)
       */
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver& computeDirect(const MatrixType& matrix, int options = ComputeEigenvectors);
 
     /** \brief Returns the eigenvectors of given matrix.
@@ -225,6 +230,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa eigenvalues()
       */
+    EIGEN_DEVICE_FUNC
     const MatrixType& eigenvectors() const
     {
       eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
@@ -247,6 +253,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa eigenvectors(), MatrixBase::eigenvalues()
       */
+    EIGEN_DEVICE_FUNC
     const RealVectorType& eigenvalues() const
     {
       eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
@@ -271,6 +278,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa operatorInverseSqrt(),
       *     \ref MatrixFunctions_Module "MatrixFunctions Module"
       */
+    EIGEN_DEVICE_FUNC
     MatrixType operatorSqrt() const
     {
       eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
@@ -296,6 +304,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa operatorSqrt(), MatrixBase::inverse(),
       *     \ref MatrixFunctions_Module "MatrixFunctions Module"
       */
+    EIGEN_DEVICE_FUNC
     MatrixType operatorInverseSqrt() const
     {
       eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
@@ -307,6 +316,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
       */
+    EIGEN_DEVICE_FUNC
     ComputationInfo info() const
     {
       eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
@@ -321,6 +331,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     static const int m_maxIterations = 30;
 
     #ifdef EIGEN2_SUPPORT
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
@@ -330,6 +341,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       compute(matrix, computeEigenvectors);
     }
     
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
         : m_eivec(matA.cols(), matA.cols()),
           m_eivalues(matA.cols()),
@@ -339,11 +351,13 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       static_cast<GeneralizedSelfAdjointEigenSolver<MatrixType>*>(this)->compute(matA, matB, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
     }
     
+    EIGEN_DEVICE_FUNC
     void compute(const MatrixType& matrix, bool computeEigenvectors)
     {
       compute(matrix, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
     }
 
+    EIGEN_DEVICE_FUNC
     void compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
     {
       compute(matA, matB, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
@@ -377,10 +391,12 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   */
 namespace internal {
 template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
+EIGEN_DEVICE_FUNC
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);
 }
 
 template<typename MatrixType>
+EIGEN_DEVICE_FUNC
 SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 ::compute(const MatrixType& matrix, int options)
 {
@@ -481,6 +497,7 @@ namespace internal {
   
 template<typename SolverType,int Size,bool IsComplex> struct direct_selfadjoint_eigenvalues
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(SolverType& eig, const typename SolverType::MatrixType& A, int options)
   { eig.compute(A,options); }
 };
@@ -491,12 +508,13 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
   
+  EIGEN_DEVICE_FUNC
   static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
-    using std::sqrt;
-    using std::atan2;
-    using std::cos;
-    using std::sin;
+    EIGEN_USING_STD_MATH(sqrt)
+    EIGEN_USING_STD_MATH(atan2)
+    EIGEN_USING_STD_MATH(cos)
+    EIGEN_USING_STD_MATH(sin)
     const Scalar s_inv3 = Scalar(1.0)/Scalar(3.0);
     const Scalar s_sqrt3 = sqrt(Scalar(3.0));
 
@@ -531,15 +549,16 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
 
     // Sort in increasing order.
     if (roots(0) >= roots(1))
-      std::swap(roots(0),roots(1));
+      internal::swap(roots(0),roots(1));
     if (roots(1) >= roots(2))
     {
-      std::swap(roots(1),roots(2));
+      internal::swap(roots(1),roots(2));
       if (roots(0) >= roots(1))
-        std::swap(roots(0),roots(1));
+        internal::swap(roots(0),roots(1));
     }
   }
   
+  EIGEN_DEVICE_FUNC
   static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
     using std::sqrt;
@@ -660,12 +679,14 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
 };
 
 // 2x2 direct eigenvalues decomposition, code from Hauke Heibel
-template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2,false>
+template<typename SolverType> 
+struct direct_selfadjoint_eigenvalues<SolverType,2,false>
 {
   typedef typename SolverType::MatrixType MatrixType;
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
   
+  EIGEN_DEVICE_FUNC
   static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
     using std::sqrt;
@@ -675,6 +696,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
     roots(1) = t1 + t0;
   }
   
+  EIGEN_DEVICE_FUNC
   static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
     using std::sqrt;
@@ -728,6 +750,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
 }
 
 template<typename MatrixType>
+EIGEN_DEVICE_FUNC
 SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 ::computeDirect(const MatrixType& matrix, int options)
 {
@@ -737,6 +760,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
 namespace internal {
 template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
+EIGEN_DEVICE_FUNC
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
 {
   using std::abs;

@@ -331,6 +331,7 @@ class Matrix
       * of same type it is enough to swap the data pointers.
       */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     { this->_swap(other.derived()); }
 
