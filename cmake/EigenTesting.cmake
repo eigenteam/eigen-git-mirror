@@ -306,17 +306,17 @@ macro(ei_set_sitename)
 endmacro(ei_set_sitename)
 
 macro(ei_get_compilerver VAR)
-  if(MSVC)
-    # on windows system, we use a modified CMake script  
-    include(EigenDetermineVSServicePack)
-    EigenDetermineVSServicePack( my_service_pack )
+    if(MSVC)
+      # on windows system, we use a modified CMake script  
+      include(EigenDetermineVSServicePack)
+      EigenDetermineVSServicePack( my_service_pack )
 
-    if( my_service_pack )
-      set(${VAR} ${my_service_pack})
+      if( my_service_pack )
+        set(${VAR} ${my_service_pack})
+      else()
+        set(${VAR} "na")
+      endif()
     else()
-      set(${VAR} "na")
-    endif()
-  else()
     # on all other system we rely on ${CMAKE_CXX_COMPILER}
     # supporting a "--version" flag
     
