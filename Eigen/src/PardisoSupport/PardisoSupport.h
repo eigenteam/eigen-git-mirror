@@ -219,7 +219,7 @@ class PardisoImpl
     void pardisoInit(int type)
     {
       m_type = type;
-      bool symmetric = abs(m_type) < 10;
+      bool symmetric = std::abs(m_type) < 10;
       m_iparm[0] = 1;   // No solver default
       m_iparm[1] = 3;   // use Metis for the ordering
       m_iparm[2] = 1;   // Numbers of processors, value of OMP_NUM_THREADS
@@ -278,7 +278,7 @@ class PardisoImpl
     Index m_size;
     
   private:
-    PardisoImpl(PardisoImpl &) {}
+    PardisoImpl(const PardisoImpl&);
 };
 
 template<class Derived>
@@ -436,7 +436,7 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
     }
     
   private:
-    PardisoLU(PardisoLU& ) {}
+    PardisoLU(const PardisoLU&);
 };
 
 /** \ingroup PardisoSupport_Module
@@ -495,7 +495,7 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
     }
     
   private:
-    PardisoLLT(PardisoLLT& ) {}
+    PardisoLLT(const PardisoLLT&);
 };
 
 /** \ingroup PardisoSupport_Module
@@ -554,7 +554,7 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
     }
     
   private:
-    PardisoLDLT(PardisoLDLT& ) {}
+    PardisoLDLT(const PardisoLDLT&);
 };
 
 namespace internal {
