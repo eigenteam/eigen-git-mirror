@@ -96,6 +96,19 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE std::ptrdiff_t
 #endif
 
+// A Clang feature extension to determine compiler features.
+// We use it to determine 'cxx_rvalue_references'
+#ifndef __has_feature
+# define __has_feature(x) 0
+#endif
+
+// Do we support r-value references?
+#if (__has_feature(cxx_rvalue_references) || \
+     defined(__GXX_EXPERIMENTAL_CXX0X__) || \
+     (defined(_MSC_VER) && _MSC_VER >= 1600))
+  #define EIGEN_HAVE_RVALUE_REFERENCES
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
