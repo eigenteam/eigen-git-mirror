@@ -97,8 +97,12 @@ void testGeneral(const MatrixType& m, double tol)
 }
 
 template<typename MatrixType>
-void testSingular(const MatrixType& m, double tol)
+void testSingular(const MatrixType& m_const, double tol)
 {
+  // we need to pass by reference in order to prevent errors with
+  // MSVC for aligned data types ...
+  MatrixType& m = const_cast<MatrixType&>(m_const);
+
   const int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex;
   typedef typename internal::conditional<IsComplex, TriangularView<MatrixType,Upper>, const MatrixType&>::type TriangularType;
   typename internal::conditional< IsComplex, ComplexSchur<MatrixType>, RealSchur<MatrixType> >::type schur;
@@ -126,8 +130,12 @@ void testSingular(const MatrixType& m, double tol)
 }
 
 template<typename MatrixType>
-void testLogThenExp(const MatrixType& m, double tol)
+void testLogThenExp(const MatrixType& m_const, double tol)
 {
+  // we need to pass by reference in order to prevent errors with
+  // MSVC for aligned data types ...
+  MatrixType& m = const_cast<MatrixType&>(m_const);
+
   typedef typename MatrixType::Scalar Scalar;
   Scalar x;
 

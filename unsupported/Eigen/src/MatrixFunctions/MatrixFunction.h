@@ -426,7 +426,6 @@ struct matrix_function_compute<MatrixType, 1>
   static void run(const MatrixType& A, AtomicType& atomic, ResultType &result)
   {
     typedef internal::traits<MatrixType> Traits;
-    typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Index Index;
     
     // compute Schur decomposition of A
