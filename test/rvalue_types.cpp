@@ -26,10 +26,11 @@
 
 #include <Eigen/Core>
 
+#ifdef EIGEN_HAVE_RVALUE_REFERENCES
 template <typename MatrixType>
 void rvalue_copyassign(const MatrixType& m)
-{  
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+{
+
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
   
   // create a temporary which we are about to destroy by moving
@@ -49,8 +50,11 @@ void rvalue_copyassign(const MatrixType& m)
   // verify that the content did not change
   Scalar abs_diff = (m-n).array().abs().sum();
   VERIFY_IS_EQUAL(abs_diff, Scalar(0));
-#endif
 }
+#else
+template <typename MatrixType>
+void rvalue_copyassign(const MatrixType&) {}
+#endif
 
 void test_rvalue_types()
 {
