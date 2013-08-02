@@ -5,7 +5,8 @@ namespace Eigen {
 There are two uses for the \c template and \c typename keywords in C++. One of them is fairly well known
 amongst programmers: to define templates. The other use is more obscure: to specify that an expression refers
 to a template function or a type. This regularly trips up programmers that use the %Eigen library, often
-leading to error messages from the compiler that are difficult to understand.
+leading to error messages from the compiler that are difficult to understand, such as "expected expression" or
+"no match for operator<".
 
 \eigenAutoToc
 

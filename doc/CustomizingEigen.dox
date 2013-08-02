@@ -72,55 +72,32 @@ Then one can the following declaration in the config.h or whatever prerequisites
 
 \section InheritingFromMatrix Inheriting from Matrix
 
-Before inheriting from Matrix, be really, i mean REALLY sure that using
+Before inheriting from Matrix, be really, I mean REALLY, sure that using
 EIGEN_MATRIX_PLUGIN is not what you really want (see previous section).
 If you just need to add few members to Matrix, this is the way to go.
 
-An example of when you actually need to inherit Matrix, is when you have
-several layers of heritage such as  MyVerySpecificVector1,MyVerySpecificVector1 -> MyVector1 -> Matrix and.
-MyVerySpecificVector3,MyVerySpecificVector4 -> MyVector2 -> Matrix.
+An example of when you actually need to inherit Matrix, is when you
+have several layers of heritage such as 
+MyVerySpecificVector1, MyVerySpecificVector2 -> MyVector1 -> Matrix and
+MyVerySpecificVector3, MyVerySpecificVector4 -> MyVector2 -> Matrix.
 
 In order for your object to work within the %Eigen framework, you need to
 define a few members in your inherited class.
 
-Here is a minimalistic example:\n
-\code
-class MyVectorType : public  Eigen::VectorXd
-{
-public:
-    MyVectorType(void):Eigen::VectorXd() {}
+Here is a minimalistic example:
 
-    typedef Eigen::VectorXd Base;
+\include CustomizingEigen_Inheritance.cpp
 
-    // This constructor allows you to construct MyVectorType from Eigen expressions
-    template<typename OtherDerived>
-    MyVectorType(const Eigen::MatrixBase<OtherDerived>& other)
-        : Eigen::Vector3d(other)
-    { }
-
-    // This method allows you to assign Eigen expressions to MyVectorType
-    template<typename OtherDerived>
-    MyVectorType & operator= (const Eigen::MatrixBase <OtherDerived>& other)
-    {
-        this->Base::operator=(other);
-        return *this;
-    }
-};
-\endcode
+Output: \verbinclude CustomizingEigen_Inheritance.out
 
 This is the kind of error you can get if you don't provide those methods
-\code
-error: no match for ‘operator=’ in ‘delta =
-(((Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000,
-1> >*)(& delta)) + 8u)->Eigen::MatrixBase<Derived>::cwise [with Derived =
-Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000,
-1>]().Eigen::Cwise<ExpressionType>::operator* [with OtherDerived =
-Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>, ExpressionType =
-Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>](((const
-Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>
->&)(((const Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1,
->2, 10000, 1> >*)((const spectral1d*)where)) + 8u)))’                                                    
-\endcode
+\verbatim
+error: no match for ‘operator=’ in ‘v = Eigen::operator*(
+const Eigen::MatrixBase<Eigen::Matrix<double, -0x000000001, 1, 0, -0x000000001, 1> >::Scalar&, 
+const Eigen::MatrixBase<Eigen::Matrix<double, -0x000000001, 1> >::StorageBaseType&)
+(((const Eigen::MatrixBase<Eigen::Matrix<double, -0x000000001, 1> >::StorageBaseType&)
+((const Eigen::MatrixBase<Eigen::Matrix<double, -0x000000001, 1> >::StorageBaseType*)(& v))))’
+\endverbatim
 
 \anchor user_defined_scalars \section CustomScalarType Using custom scalar types
 
