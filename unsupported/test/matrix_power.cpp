@@ -97,7 +97,7 @@ void testGeneral(const MatrixType& m, double tol)
 }
 
 template<typename MatrixType>
-void testSingular(MatrixType m, double tol)
+void testSingular(const MatrixType& m, double tol)
 {
   const int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex;
   typedef typename internal::conditional<IsComplex, TriangularView<MatrixType,Upper>, const MatrixType&>::type TriangularType;
@@ -126,7 +126,7 @@ void testSingular(MatrixType m, double tol)
 }
 
 template<typename MatrixType>
-void testLogThenExp(MatrixType m, double tol)
+void testLogThenExp(const MatrixType& m, double tol)
 {
   typedef typename MatrixType::Scalar Scalar;
   Scalar x;
