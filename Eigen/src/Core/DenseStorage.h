@@ -180,7 +180,7 @@ template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic
         m_rows = other.m_rows;
         m_cols = other.m_cols;
       }
-      other.swap(*this); return *this; 
+      return *this; 
     }
     DenseStorage(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) : m_rows(nbRows), m_cols(nbCols) {}
     void swap(DenseStorage& other)
