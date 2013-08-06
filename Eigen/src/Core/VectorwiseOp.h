@@ -301,6 +301,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the squared norm
       * of each column (or row) of the referenced expression.
+      * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * Example: \include PartialRedux_squaredNorm.cpp
       * Output: \verbinclude PartialRedux_squaredNorm.out
@@ -311,6 +312,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression.
+      * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * Example: \include PartialRedux_norm.cpp
       * Output: \verbinclude PartialRedux_norm.out
@@ -322,7 +324,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression, using
-      * blue's algorithm.
+      * Blue's algorithm. 
+      * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::blueNorm() */
     const typename ReturnType<internal::member_blueNorm,RealScalar>::Type blueNorm() const
@@ -332,6 +335,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression, avoiding
       * underflow and overflow.
+      * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::stableNorm() */
     const typename ReturnType<internal::member_stableNorm,RealScalar>::Type stableNorm() const
@@ -341,6 +345,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression, avoiding
       * underflow and overflow using a concatenation of hypot() calls.
+      * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::hypotNorm() */
     const typename ReturnType<internal::member_hypotNorm,RealScalar>::Type hypotNorm() const
@@ -365,6 +370,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression representing
       * whether \b all coefficients of each respective column (or row) are \c true.
+      * This expression can be assigned to a vector with entries of type \c bool.
       *
       * \sa DenseBase::all() */
     const typename ReturnType<internal::member_all>::Type all() const
@@ -372,6 +378,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression representing
       * whether \b at \b least one coefficient of each respective column (or row) is \c true.
+      * This expression can be assigned to a vector with entries of type \c bool.
       *
       * \sa DenseBase::any() */
     const typename ReturnType<internal::member_any>::Type any() const
@@ -379,6 +386,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression representing
       * the number of \c true coefficients of each respective column (or row).
+      * This expression can be assigned to a vector whose entries have the same type as is used to
+      * index entries of the original matrix; for dense matrices, this is \c std::ptrdiff_t .
       *
       * Example: \include PartialRedux_count.cpp
       * Output: \verbinclude PartialRedux_count.out
