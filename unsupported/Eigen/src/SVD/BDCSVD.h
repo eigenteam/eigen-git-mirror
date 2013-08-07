@@ -139,7 +139,7 @@ public:
 
   void setSwitchSize(int s) 
   {
-    eigen_assert(s>3 && "BDCSVD the size of the algo switch has to be greater than 4");
+    eigen_assert(s>3 && "BDCSVD the size of the algo switch has to be greater than 3");
     algoswap = s;
   }
 
@@ -201,7 +201,7 @@ private:
   void deflation43(Index firstCol, Index shift, Index i, Index size);
   void deflation44(Index firstColu , Index firstColm, Index firstRowW, Index firstColW, Index i, Index j, Index size);
   void deflation(Index firstCol, Index lastCol, Index k, Index firstRowW, Index firstColW, Index shift);
-  void copyUV(MatrixXr naiveU, MatrixXr naiveV, MatrixX householderU, MatrixX houseHolderV);
+  void copyUV(MatrixX householderU, MatrixX houseHolderV);
 
 protected:
   MatrixXr m_naiveU, m_naiveV;
@@ -282,15 +282,8 @@ BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOp
   internal::UpperBidiagonalization<MatrixX > bid(copy);
 
   //**** step 2 Divide
-  // this is ugly and has to be redone (care of complex cast)
-  MatrixXr temp;
-  temp = bid.bidiagonal().toDenseMatrix().transpose();
-  m_computed.setZero();
-  for (int i=0; i<this->m_diagSize - 1; i++)   {
-    m_computed(i, i) = temp(i, i);
-    m_computed(i + 1, i) = temp(i + 1, i);
-  }
-  m_computed(this->m_diagSize - 1, this->m_diagSize - 1) = temp(this->m_diagSize - 1, this->m_diagSize - 1);
+  m_computed.topRows(this->m_diagSize) = bid.bidiagonal().toDenseMatrix().transpose();
+  m_computed.template bottomRows<1>().setZero();
   divide(0, this->m_diagSize - 1, 0, 0, 0);
 
   //**** step 3 copy
@@ -307,45 +300,31 @@ BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOp
       break;
     }
   }
-  copyUV(m_naiveV, m_naiveU, bid.householderU(), bid.householderV());
+  copyUV(bid.householderU(), bid.householderV());
   this->m_isInitialized = true;
   return *this;
 }// end compute
 
 
+// TODO: this function should accept householder sequences to save converting them to matrix
 template<typename MatrixType>
-void BDCSVD<MatrixType>::copyUV(MatrixXr naiveU, MatrixXr naiveV, MatrixX householderU, MatrixX householderV){
+void BDCSVD<MatrixType>::copyUV(MatrixX householderU, MatrixX householderV){
+  // Note exchange of U and V: m_matrixU is set from m_naiveV and vice versa
   if (this->computeU()){
-    MatrixX temp = MatrixX::Zero(naiveU.rows(), naiveU.cols());
-    temp.real() = naiveU;
-    if (this->m_computeThinU){
-      this->m_matrixU = MatrixX::Identity(householderU.cols(), this->m_nonzeroSingularValues );
-      this->m_matrixU.block(0, 0, this->m_diagSize, this->m_nonzeroSingularValues) = 
-	temp.block(0, 0, this->m_diagSize, this->m_nonzeroSingularValues);
-      this->m_matrixU = householderU * this->m_matrixU ;
-    }
-    else
-    {
-      this->m_matrixU = MatrixX::Identity(householderU.cols(), householderU.cols());
-      this->m_matrixU.block(0, 0, this->m_diagSize, this->m_diagSize) = temp.block(0, 0, this->m_diagSize, this->m_diagSize);
-      this->m_matrixU = householderU * this->m_matrixU ;
-    }
+    Index Ucols = this->m_computeThinU ? this->m_nonzeroSingularValues : householderU.cols();
+    this->m_matrixU = MatrixX::Identity(householderU.cols(), Ucols);
+    Index blockCols = this->m_computeThinU ? this->m_nonzeroSingularValues : this->m_diagSize;
+    this->m_matrixU.block(0, 0, this->m_diagSize, blockCols) = 
+        m_naiveV.template cast<Scalar>().block(0, 0, this->m_diagSize, blockCols);
+    this->m_matrixU = householderU * this->m_matrixU;
   }
   if (this->computeV()){
-    MatrixX temp = MatrixX::Zero(naiveV.rows(), naiveV.cols());
-    temp.real() = naiveV;
-    if (this->m_computeThinV){
-      this->m_matrixV = MatrixX::Identity(householderV.cols(),this->m_nonzeroSingularValues );
-      this->m_matrixV.block(0, 0, this->m_nonzeroSingularValues, this->m_nonzeroSingularValues) = 
-	temp.block(0, 0, this->m_nonzeroSingularValues, this->m_nonzeroSingularValues);
-      this->m_matrixV = householderV * this->m_matrixV ;
-    }
-    else  
-    {
-      this->m_matrixV = MatrixX::Identity(householderV.cols(), householderV.cols());
-      this->m_matrixV.block(0, 0, this->m_diagSize, this->m_diagSize) = temp.block(0, 0, this->m_diagSize, this->m_diagSize);
-      this->m_matrixV = householderV * this->m_matrixV;
-    }
+    Index Vcols = this->m_computeThinV ? this->m_nonzeroSingularValues : householderV.cols();
+    this->m_matrixV = MatrixX::Identity(householderV.cols(), Vcols);
+    Index blockCols = this->m_computeThinV ? this->m_nonzeroSingularValues : this->m_diagSize;
+    this->m_matrixV.block(0, 0, this->m_diagSize, blockCols) = 
+        m_naiveU.template cast<Scalar>().block(0, 0, this->m_diagSize, blockCols);
+    this->m_matrixV = householderV * this->m_matrixV;
   }
 }
 
