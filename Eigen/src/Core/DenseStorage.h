@@ -3,7 +3,7 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2010 Hauke Heibel <hauke.heibel@gmail.com>
+// Copyright (C) 2010-2013 Hauke Heibel <hauke.heibel@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -264,6 +264,22 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     DenseStorage(DenseIndex size, DenseIndex nbRows, DenseIndex nbCols)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(nbRows), m_cols(nbCols)
     { EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN }
+    DenseStorage(const DenseStorage& other)
+      : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(other.m_rows*other.m_cols))
+      , m_rows(other.m_rows)
+      , m_cols(other.m_cols)
+    {
+      internal::smart_copy(other.m_data, other.m_data+other.m_rows*other.m_cols, m_data);
+    }
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        DenseStorage tmp(other);
+        this->swap(tmp);
+      }
+      return *this;
+    }
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
@@ -308,9 +324,6 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
-  private:
-    DenseStorage(const DenseStorage&);
-    DenseStorage& operator=(const DenseStorage&);
 };
 
 // matrix with dynamic width and fixed height (so that matrix has dynamic size).
@@ -323,6 +336,21 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
     DenseStorage(DenseIndex size, DenseIndex, DenseIndex nbCols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_cols(nbCols)
     { EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN }
+    DenseStorage(const DenseStorage& other)
+      : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(_Rows*other.m_cols))
+      , m_cols(other.m_cols)
+    {
+      internal::smart_copy(other.m_data, other.m_data+_Rows*m_cols, m_data);
+    }
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        DenseStorage tmp(other);
+        this->swap(tmp);
+      }
+      return *this;
+    }    
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
@@ -362,9 +390,6 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
-  private:
-    DenseStorage(const DenseStorage&);
-    DenseStorage& operator=(const DenseStorage&);
 };
 
 // matrix with dynamic height and fixed width (so that matrix has dynamic size).
@@ -377,6 +402,21 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
     DenseStorage(DenseIndex size, DenseIndex nbRows, DenseIndex) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(nbRows)
     { EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN }
+    DenseStorage(const DenseStorage& other)
+      : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(other.m_rows*_Cols))
+      , m_rows(other.m_rows)
+    {
+      internal::smart_copy(other.m_data, other.m_data+other.m_rows*_Cols, m_data);
+    }
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        DenseStorage tmp(other);
+        this->swap(tmp);
+      }
+      return *this;
+    }    
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
@@ -416,9 +456,6 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     }
     const T *data() const { return m_data; }
     T *data() { return m_data; }
-  private:
-    DenseStorage(const DenseStorage&);
-    DenseStorage& operator=(const DenseStorage&);
 };
 
 } // end namespace Eigen
