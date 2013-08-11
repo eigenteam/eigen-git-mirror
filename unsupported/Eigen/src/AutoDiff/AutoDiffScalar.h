@@ -604,7 +604,7 @@ atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
   Scalar tmp4 = tmp3/(tmp2+tmp3);
   
   if (tmp4!=0)
-    ret.derivatives() = (a.value() * b.derivatives() - a.derivatives() * b.value()) * (tmp2+tmp3);
+    ret.derivatives() = (a.derivatives() * b.value() - a.value() * b.derivatives()) * (tmp2+tmp3);
 
   return ret;
 }
