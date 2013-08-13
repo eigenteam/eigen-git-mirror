@@ -39,6 +39,13 @@ struct functor_traits<scalar_sum_op<Scalar> > {
   };
 };
 
+
+template<> struct scalar_sum_op<bool> : scalar_sum_op<int> {
+	EIGEN_DEPRECATED
+	scalar_sum_op() {}
+};
+
+
 /** \internal
   * \brief Template functor to compute the product of two scalars
   *
