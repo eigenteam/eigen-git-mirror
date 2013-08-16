@@ -19,7 +19,7 @@ namespace internal {
 /** \internal
   * \brief Template functor to compute the sum of two scalars
   *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+, class VectorwiseOp, MatrixBase::sum()
+  * \sa class CwiseBinaryOp, MatrixBase::operator+, class VectorwiseOp, DenseBase::sum()
   */
 template<typename Scalar> struct scalar_sum_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sum_op)
@@ -39,7 +39,11 @@ struct functor_traits<scalar_sum_op<Scalar> > {
   };
 };
 
-
+/** \internal
+  * \brief Template specialization to deprecate the summation of boolean expressions.
+  * This is required to solve Bug 426.
+  * \sa DenseBase::count(), DenseBase::any(), ArrayBase::cast(), MatrixBase::cast()
+  */
 template<> struct scalar_sum_op<bool> : scalar_sum_op<int> {
 	EIGEN_DEPRECATED
 	scalar_sum_op() {}
