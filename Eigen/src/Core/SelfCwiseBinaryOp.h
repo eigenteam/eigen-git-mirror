@@ -35,7 +35,7 @@ struct traits<SelfCwiseBinaryOp<BinaryOp,Lhs,Rhs> >
   enum {
     // Note that it is still a good idea to preserve the DirectAccessBit
     // so that assign can correctly align the data.
-    Flags = traits<CwiseBinaryOp<BinaryOp,Lhs,Rhs> >::Flags | (Lhs::Flags&DirectAccessBit) | (Lhs::Flags&LvalueBit),
+    Flags = traits<CwiseBinaryOp<BinaryOp,Lhs,Rhs> >::Flags | (Lhs::Flags&AlignedBit) | (Lhs::Flags&DirectAccessBit) | (Lhs::Flags&LvalueBit),
     OuterStrideAtCompileTime = Lhs::OuterStrideAtCompileTime,
     InnerStrideAtCompileTime = Lhs::InnerStrideAtCompileTime
   };
