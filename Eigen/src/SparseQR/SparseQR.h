@@ -205,7 +205,7 @@ class SparseQR
     
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the QR factorization reports a numerical problem
       *          \c InvalidInput if the input matrix is invalid
       *
@@ -256,7 +256,7 @@ class SparseQR
 /** \brief Preprocessing step of a QR factorization 
   * 
   * In this step, the fill-reducing permutation is computed and applied to the columns of A
-  * and the column elimination tree is computed as well. Only the sparcity pattern of \a mat is exploited.
+  * and the column elimination tree is computed as well. Only the sparsity pattern of \a mat is exploited.
   * 
   * \note In this step it is assumed that there is no empty row in the matrix \a mat.
   */
@@ -292,7 +292,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
 /** \brief Performs the numerical QR factorization of the input matrix
   * 
   * The function SparseQR::analyzePattern(const MatrixType&) must have been called beforehand with
-  * a matrix having the same sparcity pattern than \a mat.
+  * a matrix having the same sparsity pattern than \a mat.
   * 
   * \param mat The sparse column-major matrix
   */
@@ -445,7 +445,8 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
      }
     else
     {
-      beta = std::sqrt(numext::abs2(c0) + sqrNorm);
+      using std::sqrt;
+      beta = sqrt(numext::abs2(c0) + sqrNorm);
       if(numext::real(c0) >= RealScalar(0))
         beta = -beta;
       tval(Qidx(0)) = 1;
