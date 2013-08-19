@@ -466,7 +466,7 @@ template<> EIGEN_STRONG_INLINE Packet4f psqrt<Packet4f>(const Packet4f& x) { ret
 
 #endif
 
-template<> EIGEN_STRONG_INLINE Packet4f psqrt<Packet2d>(const Packet2d& x) { return _mm_sqrt_pd(x); }
+template<> EIGEN_STRONG_INLINE Packet2d psqrt<Packet2d>(const Packet2d& x) { return _mm_sqrt_pd(x); }
 
 } // end namespace internal
 
