@@ -83,7 +83,8 @@ template<> struct packet_traits<double> : default_packet_traits
     size=2,
 
     HasDiv  = 1,
-    HasExp  = 1
+    HasExp  = 1,
+    HasSqrt = 1
   };
 };
 template<> struct packet_traits<int>    : default_packet_traits
