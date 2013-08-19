@@ -284,6 +284,7 @@ using std::ptrdiff_t;
   #include "src/Core/Assign.h"
 #endif
 
+#include "src/Core/ArrayBase.h"
 #include "src/Core/util/BlasUtil.h"
 #include "src/Core/DenseStorage.h"
 #include "src/Core/NestByValue.h"
@@ -347,7 +348,6 @@ using std::ptrdiff_t;
 #include "src/Core/Random.h"
 #include "src/Core/Replicate.h"
 #include "src/Core/Reverse.h"
-#include "src/Core/ArrayBase.h"
 #include "src/Core/ArrayWrapper.h"
 
 #ifdef EIGEN_ENABLE_EVALUATORS

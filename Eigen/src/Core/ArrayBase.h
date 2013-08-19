@@ -123,10 +123,8 @@ template<typename Derived> class ArrayBase
       return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
     }
 
-    Derived& operator+=(const Scalar& scalar)
-    { return *this = derived() + scalar; }
-    Derived& operator-=(const Scalar& scalar)
-    { return *this = derived() - scalar; }
+    Derived& operator+=(const Scalar& scalar);
+    Derived& operator-=(const Scalar& scalar);
 
     template<typename OtherDerived>
     Derived& operator+=(const ArrayBase<OtherDerived>& other);

@@ -178,6 +178,24 @@ inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
 }
 
 template<typename Derived>
+inline Derived& ArrayBase<Derived>::operator+=(const Scalar& other)
+{
+  typedef typename Derived::PlainObject PlainObject;
+  SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
+  tmp = PlainObject::Constant(rows(),cols(),other);
+  return derived();
+}
+
+template<typename Derived>
+inline Derived& ArrayBase<Derived>::operator-=(const Scalar& other)
+{
+  typedef typename Derived::PlainObject PlainObject;
+  SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
+  tmp = PlainObject::Constant(rows(),cols(),other);
+  return derived();
+}
+
+template<typename Derived>
 inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
 {
   typedef typename internal::conditional<NumTraits<Scalar>::IsInteger,
