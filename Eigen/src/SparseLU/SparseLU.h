@@ -255,6 +255,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       */
      Scalar absDeterminant()
     {
+      using std::abs;
       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
       // Initialize with the determinant of the row matrix
       Scalar det = Scalar(1.);
@@ -267,7 +268,6 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
           if(it.row() < j) continue;
           if(it.row() == j)
           {
-            using std::abs;
             det *= abs(it.value());
             break;
           }
@@ -286,6 +286,9 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
        */
      Scalar logAbsDeterminant() const
      {
+       using std::log;
+       using std::abs;
+       
        eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
        Scalar det = Scalar(0.);
        for (Index j = 0; j < this->cols(); ++j)
@@ -295,7 +298,6 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
            if(it.row() < j) continue;
            if(it.row() == j)
            {
-             using std::log, std::abs;
              det += log(abs(it.value()));
              break;
            }
