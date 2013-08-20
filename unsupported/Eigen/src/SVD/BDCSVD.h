@@ -10,6 +10,7 @@
 // Copyright (C) 2013 Nicolas Carre <nicolas.carre@ensimag.fr>
 // Copyright (C) 2013 Jean Ceccato <jean.ceccato@ensimag.fr>
 // Copyright (C) 2013 Pierre Zoppitelli <pierre.zoppitelli@ensimag.fr>
+// Copyright (C) 2013 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -20,7 +21,7 @@
 
 #define EPSILON 0.0000000000000001
 
-#define ALGOSWAP 32
+#define ALGOSWAP 16
 
 namespace Eigen {
 /** \ingroup SVD_Module
@@ -198,6 +199,7 @@ private:
   void allocate(Index rows, Index cols, unsigned int computationOptions);
   void divide (Index firstCol, Index lastCol, Index firstRowW, 
 	       Index firstColW, Index shift);
+  void computeSVDofM(Index firstCol, Index n, MatrixXr& U, VectorType& singVals, MatrixXr& V);
   void deflation43(Index firstCol, Index shift, Index i, Index size);
   void deflation44(Index firstColu , Index firstColm, Index firstRowW, Index firstColW, Index i, Index j, Index size);
   void deflation(Index firstCol, Index lastCol, Index k, Index firstRowW, Index firstColW, Index shift);
@@ -292,6 +294,7 @@ BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOp
     this->m_singularValues.coeffRef(i) = a;
     if (a == 0){
       this->m_nonzeroSingularValues = i;
+      this->m_singularValues.tail(this->m_diagSize - i - 1).setZero();
       break;
     }
     else  if (i == this->m_diagSize - 1)
@@ -455,26 +458,158 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
   m_computed.col(firstCol + shift).segment(firstCol + shift + k + 1, n - k - 1) << betaK * f.transpose().real();
 
 
-  // the line below do the deflation of the matrix for the third part of the algorithm
-  // Here the deflation is commented because the third part of the algorithm is not implemented
-  // the third part of the algorithm is a fast SVD on the matrix m_computed which works thanks to the deflation
-
+  // Second part: try to deflate singular values in combined matrix
   deflation(firstCol, lastCol, k, firstRowW, firstColW, shift);
 
-  // Third part of the algorithm, since the real third part of the algorithm is not implemeted we use a JacobiSVD
-  JacobiSVD<MatrixXr> res= JacobiSVD<MatrixXr>(m_computed.block(firstCol + shift, firstCol +shift, n + 1, n), 
-					       ComputeFullU | (ComputeFullV * compV)) ;
-  if (compU) m_naiveU.block(firstCol, firstCol, n + 1, n + 1) *= res.matrixU();
-  else m_naiveU.block(0, firstCol, 2, n + 1) *= res.matrixU();
-  
-  if (compV) m_naiveV.block(firstRowW, firstColW, n, n) *= res.matrixV();
-  m_computed.block(firstCol + shift, firstCol + shift, n, n) << MatrixXr::Zero(n, n);
-  for (int i=0; i<n; i++)
-    m_computed(firstCol + shift + i, firstCol + shift +i) = res.singularValues().coeffRef(i);
-  // end of the third part
-
-
+  // Third part: compute SVD of combined matrix
+  MatrixXr UofSVD, VofSVD;
+  VectorType singVals;
+  computeSVDofM(firstCol + shift, n, UofSVD, singVals, VofSVD);
+  if (compU) m_naiveU.block(firstCol, firstCol, n + 1, n + 1) *= UofSVD;
+  else m_naiveU.block(0, firstCol, 2, n + 1) *= UofSVD;
+  if (compV) m_naiveV.block(firstRowW, firstColW, n, n) *= VofSVD;
+  m_computed.block(firstCol + shift, firstCol + shift, n, n).setZero();
+  m_computed.block(firstCol + shift, firstCol + shift, n, n).diagonal() = singVals;
 }// end divide
+
+// Compute SVD of m_computed.block(firstCol, firstCol, n + 1, n); this block only has non-zeros in
+// the first column and on the diagonal and has undergone deflation, so diagonal is in increasing
+// order except for possibly the (0,0) entry. The computed SVD is stored U, singVals and V, except
+// that if compV is false, then V is not computed. Singular values are sorted in decreasing order.
+//
+// TODO Opportunities for optimization: better root finding algo, better stopping criterion, better
+// handling of round-off errors, be consistent in ordering
+template <typename MatrixType>
+void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, VectorType& singVals, MatrixXr& V)
+{
+  using std::abs;
+  Block<MatrixXr> block = m_computed.block(firstCol, firstCol, n, n);
+
+  // TODO Get rid of these copies (?)
+  Array<RealScalar, Dynamic, 1> col0 = m_computed.block(firstCol, firstCol, n, 1);
+  Array<RealScalar, Dynamic, 1> diag = m_computed.block(firstCol, firstCol, n, n).diagonal();
+  diag(0) = 0;
+
+  // compute singular values and vectors (in decreasing order)
+  singVals.resize(n);
+  U.resize(n+1, n+1);
+  if (compV) V.resize(n, n);
+
+  if (col0.hasNaN() || diag.hasNaN()) return;
+
+  Array<RealScalar, Dynamic, 1> shifts(n), mus(n);
+  for (Index k = 0; k < n; ++k) {
+    if (col0(k) == 0) {
+      // entry is deflated, so singular value is on diagonal
+      singVals(k) = diag(k);
+      mus(k) = 0;
+      shifts(k) = diag(k);
+      continue;
+    } 
+
+    // otherwise, use bisection to find singular value
+    RealScalar left = diag(k);
+    RealScalar right = (k != n-1) ? diag(k+1) : (diag(n-1) + col0.matrix().norm());
+
+    // first decide whether it's closer to the left end or the right end
+    RealScalar mid = left + (right-left) / 2;
+    RealScalar fMid = 1 + (col0.square() / ((diag + mid) * (diag - mid))).sum();
+
+    RealScalar shift;
+    if (k == 0 || fMid > 0) shift = left;
+    else shift = right;
+
+    // measure everything relative to shifted
+    Array<RealScalar, Dynamic, 1> diagShifted = diag - shift;
+    RealScalar leftShifted, rightShifted;
+    if (shift == left) {
+      leftShifted = 1e-30;
+      if (k == 0) rightShifted = right - left;
+      else rightShifted = (right - left) * 0.6; // theoretically we can take 0.5, but let's be safe
+    } else {
+      leftShifted = -(right - left) * 0.6;
+      rightShifted = -1e-30;
+    }
+
+    RealScalar fLeft = 1 + (col0.square() / ((diagShifted - leftShifted) * (diag + shift + leftShifted))).sum();
+    RealScalar fRight = 1 + (col0.square() / ((diagShifted - rightShifted) * (diag + shift + rightShifted))).sum();
+    assert(fLeft * fRight < 0);
+        
+    while (rightShifted - leftShifted > 2 * NumTraits<RealScalar>::epsilon() * (std::max)(abs(leftShifted), abs(rightShifted))) {
+      RealScalar midShifted = (leftShifted + rightShifted) / 2;
+      RealScalar fMid = 1 + (col0.square() / ((diagShifted - midShifted) * (diag + shift + midShifted))).sum();
+      if (fLeft * fMid < 0) {
+        rightShifted = midShifted;
+        fRight = fMid;
+      } else {
+        leftShifted = midShifted;
+        fLeft = fMid;
+      }
+    }
+      
+    singVals[k] = shift + (leftShifted + rightShifted) / 2;
+    shifts[k] = shift;
+    mus[k] = (leftShifted + rightShifted) / 2;
+
+    // perturb singular value slightly if it equals diagonal entry to avoid division by zero later
+    // (deflation is supposed to avoid this from happening)
+    if (singVals[k] == left) singVals[k] *= 1 + NumTraits<RealScalar>::epsilon();
+    if (singVals[k] == right) singVals[k] *= 1 - NumTraits<RealScalar>::epsilon();
+  }
+
+  // zhat is perturbation of col0 for which singular vectors can be computed stably (see Section 3.1)
+  Array<RealScalar, Dynamic, 1> zhat(n);
+  for (Index k = 0; k < n; ++k) {
+    if (col0(k) == 0) 
+      zhat(k) = 0;
+    else {
+      // see equation (3.6)
+      using std::sqrt;
+      RealScalar tmp = 
+        sqrt(
+             (singVals(n-1) + diag(k)) * (mus(n-1) + (shifts(n-1) - diag(k)))
+             * (
+                ((singVals.head(k).array() + diag(k)) * (mus.head(k) + (shifts.head(k) - diag(k))))
+                / ((diag.head(k).array() + diag(k)) * (diag.head(k).array() - diag(k)))
+               ).prod() 
+             * (
+                ((singVals.segment(k, n-k-1).array() + diag(k)) * (mus.segment(k, n-k-1) + (shifts.segment(k, n-k-1) - diag(k))))
+                / ((diag.tail(n-k-1) + diag(k)) * (diag.tail(n-k-1) - diag(k)))
+               ).prod()
+             );
+      if (col0(k) > 0) zhat(k) = tmp;
+      else zhat(k) = -tmp;
+    }
+  }
+
+  MatrixXr Mhat = MatrixXr::Zero(n,n);
+  Mhat.diagonal() = diag;
+  Mhat.col(0) = zhat;
+
+  // compute singular vectors
+  for (Index k = 0; k < n; ++k) {
+    if (zhat(k) == 0) {
+      U.col(k) = VectorType::Unit(n+1, k);
+      if (compV) V.col(k) = VectorType::Unit(n, k);
+    } else {
+      U.col(k).head(n) = zhat / (((diag - shifts(k)) - mus(k)) * (diag + singVals[k]));
+      U(n,k) = 0;
+      U.col(k).normalize();
+    
+      if (compV) {
+        V.col(k).tail(n-1) = (diag * zhat / (((diag - shifts(k)) - mus(k)) * (diag + singVals[k]))).tail(n-1);
+        V(0,k) = -1;
+        V.col(k).normalize();
+      }
+    }
+  }
+  U.col(n) = VectorType::Unit(n+1, n);
+
+  // Reverse order so that singular values in increased order
+  singVals.reverseInPlace();
+  U.leftCols(n) = U.leftCols(n).rowwise().reverse().eval();
+  if (compV) V = V.rowwise().reverse().eval();
+}
 
 
 // page 12_13
@@ -551,15 +686,16 @@ void BDCSVD<MatrixType>::deflation44(Index firstColu , Index firstColm, Index fi
 }// end deflation 44
 
 
-
+// acts on block from (firstCol+shift, firstCol+shift) to (lastCol+shift, lastCol+shift) [inclusive]
 template <typename MatrixType>
 void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index firstRowW, Index firstColW, Index shift){
   //condition 4.1
-  RealScalar EPS = EPSILON * (std::max<RealScalar>(m_computed(firstCol + shift + 1, firstCol + shift + 1), m_computed(firstCol + k, firstCol + k)));
+  RealScalar EPS = NumTraits<RealScalar>::epsilon() * 10 * (std::max<RealScalar>(m_computed(firstCol + shift + 1, firstCol + shift + 1), m_computed(firstCol + k, firstCol + k)));
   const Index length = lastCol + 1 - firstCol;
   if (m_computed(firstCol + shift, firstCol + shift) < EPS){
     m_computed(firstCol + shift, firstCol + shift) = EPS;
   }
+
   //condition 4.2
   for (Index i=firstCol + shift + 1;i<=lastCol + shift;i++){
     if (std::abs(m_computed(i, firstCol + shift)) < EPS){
@@ -672,7 +808,6 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
   delete [] permutation;
   delete [] realInd;
   delete [] realCol;
-
 }//end deflation
 
 
