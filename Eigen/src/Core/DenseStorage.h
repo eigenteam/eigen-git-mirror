@@ -38,12 +38,12 @@ struct plain_array
 
   plain_array() 
   { 
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= EIGEN_STACK_ALLOCATION_LIMIT, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
   }
 
   plain_array(constructor_without_unaligned_array_assert) 
   { 
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= EIGEN_STACK_ALLOCATION_LIMIT, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
   }
 };
 
@@ -76,12 +76,12 @@ struct plain_array<T, Size, MatrixOrArrayOptions, 16>
   plain_array() 
   { 
     EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf);
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= EIGEN_STACK_ALLOCATION_LIMIT, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
   }
 
   plain_array(constructor_without_unaligned_array_assert) 
   { 
-    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= EIGEN_STACK_ALLOCATION_LIMIT, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
   }
 };
 
