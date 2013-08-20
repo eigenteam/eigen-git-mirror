@@ -126,11 +126,12 @@ template<typename _MatrixType> class FullPivHouseholderQR
     }
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
-      * *this is the QR decomposition, if any exists.
+      * \c *this is the QR decomposition.
       *
       * \param b the right-hand-side of the equation to solve.
       *
-      * \returns a solution.
+      * \returns the exact or least-square solution if the rank is greater or equal to the number of columns of A,
+      * and an arbitrary solution otherwise.
       *
       * \note The case where b is a matrix is not yet implemented. Also, this
       *       code is space inefficient.
@@ -516,17 +517,6 @@ struct solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
                                   dec().hCoeffs().coeff(k), &temp.coeffRef(0));
     }
 
-    if(!dec().isSurjective())
-    {
-      // is c is in the image of R ?
-      RealScalar biggest_in_upper_part_of_c = c.topRows(   dec().rank()     ).cwiseAbs().maxCoeff();
-      RealScalar biggest_in_lower_part_of_c = c.bottomRows(rows-dec().rank()).cwiseAbs().maxCoeff();
-      // FIXME brain dead
-      const RealScalar m_precision = NumTraits<Scalar>::epsilon() * (std::min)(rows,cols);
-      // this internal:: prefix is needed by at least gcc 3.4 and ICC
-      if(!internal::isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
-        return;
-    }
     dec().matrixQR()
        .topLeftCorner(dec().rank(), dec().rank())
        .template triangularView<Upper>()
