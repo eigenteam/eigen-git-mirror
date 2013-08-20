@@ -268,7 +268,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
         {
           if(it.index() == j)
           {
-            det *= (std::abs)(it.value());
+            using std::abs;
+            det *= (abs)(it.value());
             break;
           }
         }
@@ -295,7 +296,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
            if(it.row() < j) continue;
            if(it.row() == j)
            {
-             det += (std::log)((std::abs)(it.value()));
+             using std::log, std::abs;
+             det += (log)((abs)(it.value()));
              break;
            }
          }
