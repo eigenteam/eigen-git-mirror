@@ -26,6 +26,34 @@ namespace internal {
  *  |real |cplx |real | alpha is converted to a cplx when calling the run function, no vectorization
  *  |cplx |real |cplx | invalid, the caller has to do tmp: = A * B; C += alpha*tmp
  *  |cplx |real |real | optimal case, vectorization possible via real-cplx mul
+ *
+ * Accesses to the matrix coefficients follow the following logic:
+ *
+ * - if all columns have the same alignment then
+ *   - if the columns have the same alignment as the result vector, then easy! (-> AllAligned case)
+ *   - otherwise perform unaligned loads only (-> NoneAligned case)
+ * - otherwise
+ *   - if even columns have the same alignment then
+ *     // odd columns are guaranteed to have the same alignment too
+ *     - if even or odd columns have the same alignment as the result, then
+ *       // for a register size of 2 scalars, this is guarantee to be the case (e.g., SSE with double)
+ *       - perform half aligned and half unaligned loads (-> EvenAligned case)
+ *     - otherwise perform unaligned loads only (-> NoneAligned case)
+ *   - otherwise, if the register size is 4 scalars (e.g., SSE with float) then
+ *     - one over 4 consecutive columns is guaranteed to be aligned with the result vector,
+ *       perform simple aligned loads for this column and aligned loads plus re-alignment for the other. (-> FirstAligned case)
+ *       // this re-alignment is done by the palign function implemented for SSE in Eigen/src/Core/arch/SSE/PacketMath.h
+ *   - otherwise,
+ *     // if we get here, this means the register size is greater than 4 (e.g., AVX with floats),
+ *     // we currently fall back to the NoneAligned case
+ *
+ * The same reasoning apply for the transposed case.
+ * 
+ * The last case (PacketSize>4) could probably be improved by generalizing the FirstAligned case, but since we do not support AVX yet...
+ * One might also wonder why in the EvenAligned case we perform unaligned loads instead of using the aligned-loads plus re-alignment
+ * strategy as in the FirstAligned case. The reason is that we observed that unaligned loads on a 8 byte boundary are not too slow
+ * compared to unaligned loads on a 4 byte boundary.
+ *
  */
 template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
 struct general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjugateLhs,RhsScalar,ConjugateRhs,Version>
