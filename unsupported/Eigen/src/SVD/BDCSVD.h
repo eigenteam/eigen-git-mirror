@@ -203,7 +203,8 @@ private:
   void deflation43(Index firstCol, Index shift, Index i, Index size);
   void deflation44(Index firstColu , Index firstColm, Index firstRowW, Index firstColW, Index i, Index j, Index size);
   void deflation(Index firstCol, Index lastCol, Index k, Index firstRowW, Index firstColW, Index shift);
-  void copyUV(MatrixX householderU, MatrixX houseHolderV);
+  void copyUV(const typename internal::UpperBidiagonalization<MatrixX>::HouseholderUSequenceType& householderU, 
+              const typename internal::UpperBidiagonalization<MatrixX>::HouseholderVSequenceType& householderV);
 
 protected:
   MatrixXr m_naiveU, m_naiveV;
@@ -281,7 +282,7 @@ BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOp
   if (isTranspose) copy = matrix.adjoint();
   else copy = matrix;
   
-  internal::UpperBidiagonalization<MatrixX > bid(copy);
+  internal::UpperBidiagonalization<MatrixX> bid(copy);
 
   //**** step 2 Divide
   m_computed.topRows(this->m_diagSize) = bid.bidiagonal().toDenseMatrix().transpose();
@@ -309,9 +310,10 @@ BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOp
 }// end compute
 
 
-// TODO: this function should accept householder sequences to save converting them to matrix
 template<typename MatrixType>
-void BDCSVD<MatrixType>::copyUV(MatrixX householderU, MatrixX householderV){
+void BDCSVD<MatrixType>::copyUV(const typename internal::UpperBidiagonalization<MatrixX>::HouseholderUSequenceType& householderU, 
+                                const typename internal::UpperBidiagonalization<MatrixX>::HouseholderVSequenceType& householderV)
+{
   // Note exchange of U and V: m_matrixU is set from m_naiveV and vice versa
   if (this->computeU()){
     Index Ucols = this->m_computeThinU ? this->m_nonzeroSingularValues : householderU.cols();
