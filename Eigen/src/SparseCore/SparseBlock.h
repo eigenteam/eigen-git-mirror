@@ -66,13 +66,14 @@ public:
     typename XprType::Nested m_matrix;
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, OuterSize> m_outerSize;
-
+  
+  public:
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
 };
 
 
 /***************************************************************************
-* specialisation for SparseMatrix
+* specialization for SparseMatrix
 ***************************************************************************/
 
 template<typename _Scalar, int _Options, typename _Index, int BlockRows, int BlockCols>
@@ -125,7 +126,7 @@ public:
     {
       typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _NestedMatrixType;
       _NestedMatrixType& matrix = const_cast<_NestedMatrixType&>(m_matrix);;
-      // This assignement is slow if this vector set is not empty
+      // This assignment is slow if this vector set is not empty
       // and/or it is not at the end of the nonzeros of the underlying matrix.
 
       // 1 - eval to a temporary to avoid transposition and/or aliasing issues
@@ -134,7 +135,7 @@ public:
       // 2 - let's check whether there is enough allocated memory
       Index nnz           = tmp.nonZeros();
       Index start         = m_outerStart==0 ? 0 : matrix.outerIndexPtr()[m_outerStart]; // starting position of the current block
-      Index end           = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()]; // ending posiiton of the current block
+      Index end           = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()]; // ending position of the current block
       Index block_size    = end - start;                                                // available room in the current block
       Index tail_size     = m_matrix.outerIndexPtr()[m_matrix.outerSize()] - end;
       
@@ -147,14 +148,14 @@ public:
         // realloc manually to reduce copies
         typename SparseMatrixType::Storage newdata(m_matrix.data().allocatedSize() - block_size + nnz);
 
-        std::memcpy(&newdata.value(0), &m_matrix.data().value(0), start*sizeof(Scalar));
-        std::memcpy(&newdata.index(0), &m_matrix.data().index(0), start*sizeof(Index));
+        internal::smart_copy(&m_matrix.data().value(0),  &m_matrix.data().value(0) + start, &newdata.value(0));
+        internal::smart_copy(&m_matrix.data().index(0),  &m_matrix.data().index(0) + start, &newdata.index(0));
 
-        std::memcpy(&newdata.value(start), &tmp.data().value(0), nnz*sizeof(Scalar));
-        std::memcpy(&newdata.index(start), &tmp.data().index(0), nnz*sizeof(Index));
+        internal::smart_copy(&tmp.data().value(0),  &tmp.data().value(0) + nnz, &newdata.value(start));
+        internal::smart_copy(&tmp.data().index(0),  &tmp.data().index(0) + nnz, &newdata.index(start));
 
-        std::memcpy(&newdata.value(start+nnz), &matrix.data().value(end), tail_size*sizeof(Scalar));
-        std::memcpy(&newdata.index(start+nnz), &matrix.data().index(end), tail_size*sizeof(Index));
+        internal::smart_copy(&matrix.data().value(end),  &matrix.data().value(end) + tail_size, &newdata.value(start+nnz));
+        internal::smart_copy(&matrix.data().index(end),  &matrix.data().index(end) + tail_size, &newdata.index(start+nnz));
         
         newdata.resize(m_matrix.outerIndexPtr()[m_matrix.outerSize()] - block_size + nnz);
 
@@ -165,11 +166,11 @@ public:
         // no need to realloc, simply copy the tail at its respective position and insert tmp
         matrix.data().resize(start + nnz + tail_size);
 
-        std::memmove(&matrix.data().value(start+nnz), &matrix.data().value(end), tail_size*sizeof(Scalar));
-        std::memmove(&matrix.data().index(start+nnz), &matrix.data().index(end), tail_size*sizeof(Index));
+        internal::smart_memmove(&matrix.data().value(end),  &matrix.data().value(end) + tail_size, &matrix.data().value(start + nnz));
+        internal::smart_memmove(&matrix.data().index(end),  &matrix.data().index(end) + tail_size, &matrix.data().index(start + nnz));
 
-        std::memcpy(&matrix.data().value(start), &tmp.data().value(0), nnz*sizeof(Scalar));
-        std::memcpy(&matrix.data().index(start), &tmp.data().index(0), nnz*sizeof(Index));
+        internal::smart_copy(&tmp.data().value(0),  &tmp.data().value(0) + nnz, &matrix.value(start));
+        internal::smart_copy(&tmp.data().index(0),  &tmp.data().index(0) + nnz, &matrix.index(start));
       }
       
       // update innerNonZeros
