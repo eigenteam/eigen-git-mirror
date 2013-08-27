@@ -86,15 +86,71 @@ template<typename _MatrixType> class UpperBidiagonalization
     bool m_isInitialized;
 };
 
+// Standard upper bidiagonalization without fancy optimizations
+// This version should be faster for small matrix size
+template<typename MatrixType>
+void upperbidiagonalization_inplace_unblocked(MatrixType& mat,
+                                              typename MatrixType::RealScalar *diagonal,
+                                              typename MatrixType::RealScalar *upper_diagonal,
+                                              typename MatrixType::Scalar* tempData = 0)
+{
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+
+  Index rows = mat.rows();
+  Index cols = mat.cols();
+  Index size = (std::min)(rows, cols);
+
+  typedef Matrix<Scalar,Dynamic,1,ColMajor,MatrixType::MaxRowsAtCompileTime,1> TempType;
+  TempType tempVector;
+  if(tempData==0)
+  {
+    tempVector.resize(rows);
+    tempData = tempVector.data();
+  }
+
+  for (Index k = 0; /* breaks at k==cols-1 below */ ; ++k)
+  {
+    Index remainingRows = rows - k;
+    Index remainingCols = cols - k - 1;
+
+    // construct left householder transform in-place in A
+    mat.col(k).tail(remainingRows)
+       .makeHouseholderInPlace(mat.coeffRef(k,k), diagonal[k]);
+    // apply householder transform to remaining part of A on the left
+    mat.bottomRightCorner(remainingRows, remainingCols)
+       .applyHouseholderOnTheLeft(mat.col(k).tail(remainingRows-1), mat.coeff(k,k), tempData);
+
+    if(k == cols-1) break;
+
+    // construct right householder transform in-place in mat
+    mat.row(k).tail(remainingCols)
+       .makeHouseholderInPlace(mat.coeffRef(k,k+1), upper_diagonal[k]);
+    // apply householder transform to remaining part of mat on the left
+    mat.bottomRightCorner(remainingRows-1, remainingCols)
+       .applyHouseholderOnTheRight(mat.row(k).tail(remainingCols-1).transpose(), mat.coeff(k,k+1), tempData);
+  }
+}
 
 /** \internal
-  * Helper routine for the block bidiagonal reduction.
-  * This function reduces to bidiagonal form the left \c rows x \a blockSize vertical
-  * and \a blockSize x \c cols horizontal panels of the \a A. The bottom-right block
-  * is left unchanged, and the Arices X and Y.
+  * Helper routine for the block reduction to upper bidiagonal form.
+  *
+  * Let's partition the matrix A:
+  * 
+  *      | A00 A01 |
+  *  A = |         |
+  *      | A10 A11 |
+  *
+  * This function reduces to bidiagonal form the left \c rows x \a blockSize vertical panel [A00/A10]
+  * and the \a blockSize x \c cols horizontal panel [A00 A01] of the matrix \a A. The bottom-right block A11
+  * is updated using matrix-matrix products:
+  *   A22 -= V * Y^T - X * U^T
+  * where V and U contains the left and right Householder vectors. U and V are stored in A10, and A01
+  * respectively, and the update matrices X and Y are computed during the reduction.
+  * 
   */
 template<typename MatrixType>
-void upperbidiagonalization_inplace_helper(MatrixType& A,
+void upperbidiagonalization_blocked_helper(MatrixType& A,
                                            typename MatrixType::RealScalar *diagonal,
                                            typename MatrixType::RealScalar *upper_diagonal,
                                            typename MatrixType::Index bs,
@@ -145,10 +201,10 @@ void upperbidiagonalization_inplace_helper(MatrixType& A,
         // let's use the begining of column k of Y as a temporary vector
         SubColumnType tmp( Y.col(k).head(k) );
         y_k.noalias()  = A.block(k,k+1, remainingRows,remainingCols).adjoint() * v_k; // bottleneck
-        tmp.noalias()  = V_k1.adjoint() * v_k;
+        tmp.noalias()  = V_k1.adjoint()  * v_k;
         y_k.noalias() -= Y_k.leftCols(k) * tmp;
-        tmp.noalias()  = X_k1.adjoint() * v_k;
-        y_k.noalias() -= U_k1.adjoint() * tmp;
+        tmp.noalias()  = X_k1.adjoint()  * v_k;
+        y_k.noalias() -= U_k1.adjoint()  * tmp;
         y_k *= numext::conj(tau_v);
       }
 
@@ -201,14 +257,14 @@ void upperbidiagonalization_inplace_helper(MatrixType& A,
   // update A22
   if(bcols>bs && brows>bs)
   {
-    SubMatType A22( A.bottomRightCorner(brows-bs,bcols-bs) );
-    SubMatType A21( A.block(bs,0, brows-bs,bs) );
-    SubMatType A12( A.block(0,bs, bs, bcols-bs) );
-    Scalar tmp = A12(bs-1,0);
-    A12(bs-1,0) = 1;
-    A22.noalias() -= A21 * Y.topLeftCorner(bcols,bs).bottomRows(bcols-bs).adjoint();
-    A22.noalias() -= X.topLeftCorner(brows,bs).bottomRows(brows-bs) * A12;
-    A12(bs-1,0) = tmp;
+    SubMatType A11( A.bottomRightCorner(brows-bs,bcols-bs) );
+    SubMatType A10( A.block(bs,0, brows-bs,bs) );
+    SubMatType A01( A.block(0,bs, bs,bcols-bs) );
+    Scalar tmp = A01(bs-1,0);
+    A01(bs-1,0) = 1;
+    A11.noalias() -= A10 * Y.topLeftCorner(bcols,bs).bottomRows(bcols-bs).adjoint();
+    A11.noalias() -= X.topLeftCorner(brows,bs).bottomRows(brows-bs) * A01;
+    A01(bs-1,0) = tmp;
   }
 }
 
@@ -223,7 +279,7 @@ void upperbidiagonalization_inplace_helper(MatrixType& A,
 template<typename MatrixType, typename BidiagType>
 void upperbidiagonalization_inplace_blocked(MatrixType& A, BidiagType& bidiagonal,
                                             typename MatrixType::Index maxBlockSize=32,
-                                            typename MatrixType::Scalar* tempData = 0)
+                                            typename MatrixType::Scalar* /*tempData*/ = 0)
 {
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
@@ -233,28 +289,14 @@ void upperbidiagonalization_inplace_blocked(MatrixType& A, BidiagType& bidiagona
   Index cols = A.cols();
   Index size = (std::min)(rows, cols);
 
-  typedef Matrix<Scalar,Dynamic,1,ColMajor,MatrixType::MaxColsAtCompileTime,1> TempType;
-  TempType tempVector;
-  if(tempData==0)
-  {
-    tempVector.resize(cols);
-    tempData = tempVector.data();
-  }
-
-  Matrix<Scalar,Dynamic,Dynamic,ColMajor> X(rows,maxBlockSize), Y(cols, maxBlockSize);
-  X.setOnes();
-  Y.setOnes();
-
+  Matrix<Scalar,MatrixType::RowsAtCompileTime,Dynamic,ColMajor,MatrixType::MaxRowsAtCompileTime> X(rows,maxBlockSize);
+  Matrix<Scalar,MatrixType::ColsAtCompileTime,Dynamic,ColMajor,MatrixType::MaxColsAtCompileTime> Y(cols,maxBlockSize);
   Index blockSize = (std::min)(maxBlockSize,size);
 
-  
-
   Index k = 0;
-  for (k = 0; k < size; k += blockSize)
+  for(k = 0; k < size; k += blockSize)
   {
     Index bs = (std::min)(size-k,blockSize);  // actual size of the block
-    Index tcols = cols - k - bs;              // trailing columns
-    Index trows = rows - k - bs;              // trailing rows
     Index brows = rows - k;                   // rows of the block
     Index bcols = cols - k;                   // columns of the block
 
@@ -267,72 +309,36 @@ void upperbidiagonalization_inplace_blocked(MatrixType& A, BidiagType& bidiagona
     //      | A20 A21 A22 |
     //
     // where A11 is a bs x bs diagonal block,
-    // and performs the bidiagonalization of A11, A21, A12, without updating A22.
-    // 
-    // A22 will be updated in a second stage using matrices X and Y and level 3 operations:
-    //    A22 -= V*Y^T - X*U^T
-    // where V and U contains the left and right Householder vectors
-    //  
-    // Finally, the algorithm continue on the updated A22.
-    
-    
-
-    // Let:
+    // and let:
     //      | A11 A12 |
     //  B = |         |
     //      | A21 A22 |
+
     BlockType B = A.block(k,k,brows,bcols);
-    upperbidiagonalization_inplace_helper<BlockType>(B,
-                                          &(bidiagonal.template diagonal<0>().coeffRef(k)),
-                                          &(bidiagonal.template diagonal<1>().coeffRef(k)),
-                                          bs,
-                                          X.topLeftCorner(brows,bs),
-                                          Y.topLeftCorner(bcols,bs)
-                                         );
-  }
-}
-
-// Standard upper bidiagonalization without fancy optimizations
-// This version should be faster for small matrix size
-template<typename MatrixType, typename BidiagType>
-void upperbidiagonalization_inplace_unblocked(MatrixType& mat, BidiagType& bidiagonal,
-                                              typename MatrixType::Scalar* tempData = 0)
-{
-  typedef typename MatrixType::Index Index;
-  typedef typename MatrixType::Scalar Scalar;
-
-  Index rows = mat.rows();
-  Index cols = mat.cols();
-  Index size = (std::min)(rows, cols);
-
-  typedef Matrix<Scalar,Dynamic,1,ColMajor,MatrixType::MaxRowsAtCompileTime,1> TempType;
-  TempType tempVector;
-  if(tempData==0)
-  {
-    tempVector.resize(rows);
-    tempData = tempVector.data();
-  }
-
-  for (Index k = 0; /* breaks at k==cols-1 below */ ; ++k)
-  {
-    Index remainingRows = rows - k;
-    Index remainingCols = cols - k - 1;
-
-    // construct left householder transform in-place in A
-    mat.col(k).tail(remainingRows)
-       .makeHouseholderInPlace(mat.coeffRef(k,k), bidiagonal.template diagonal<0>().coeffRef(k));
-    // apply householder transform to remaining part of A on the left
-    mat.bottomRightCorner(remainingRows, remainingCols)
-       .applyHouseholderOnTheLeft(mat.col(k).tail(remainingRows-1), mat.coeff(k,k), tempData);
-
-    if(k == cols-1) break;
-
-    // construct right householder transform in-place in mat
-    mat.row(k).tail(remainingCols)
-       .makeHouseholderInPlace(mat.coeffRef(k,k+1), bidiagonal.template diagonal<1>().coeffRef(k));
-    // apply householder transform to remaining part of mat on the left
-    mat.bottomRightCorner(remainingRows-1, remainingCols)
-       .applyHouseholderOnTheRight(mat.row(k).tail(remainingCols-1).transpose(), mat.coeff(k,k+1), tempData);
+    
+    // This stage performs the bidiagonalization of A11, A21, A12, and updating of A22.
+    // Finally, the algorithm continue on the updated A22.
+    //
+    // However, if B is too small, or A22 empty, then let's use an unblocked strategy
+    if(k+bs==cols || bcols<48) // somewhat arbitrary threshold
+    {
+      upperbidiagonalization_inplace_unblocked(B,
+                                               &(bidiagonal.template diagonal<0>().coeffRef(k)),
+                                               &(bidiagonal.template diagonal<1>().coeffRef(k)),
+                                               X.data()
+                                              );
+      break; // We're done
+    }
+    else
+    {
+      upperbidiagonalization_blocked_helper<BlockType>( B,
+                                                        &(bidiagonal.template diagonal<0>().coeffRef(k)),
+                                                        &(bidiagonal.template diagonal<1>().coeffRef(k)),
+                                                        bs,
+                                                        X.topLeftCorner(brows,bs),
+                                                        Y.topLeftCorner(bcols,bs)
+                                                      );
+    }
   }
 }
 
@@ -348,19 +354,10 @@ UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::comput
 
   ColVectorType temp(rows);
 
-  upperbidiagonalization_inplace_unblocked(m_householder, m_bidiagonal, temp.data());
-
-  MatrixType A = matrix;
-  BidiagonalType B(cols,cols);
-  upperbidiagonalization_inplace_blocked(A, B, 8);
-
-  std::cout << (m_householder-A)/*.maxCoeff()*/ << "\n\n";
-  std::cout << m_householder << "\n\n"
-            << m_bidiagonal.template diagonal<0>() << "\n"
-            << m_bidiagonal.template diagonal<1>() << "\n\n";
-  std::cout << A << "\n\n"
-            << B.template diagonal<0>() << "\n"
-            << B.template diagonal<1>() << "\n\n";
+  upperbidiagonalization_inplace_unblocked(m_householder,
+                                           &(m_bidiagonal.template diagonal<0>().coeffRef(0)),
+                                           &(m_bidiagonal.template diagonal<1>().coeffRef(0)),
+                                           temp.data());
 
   m_isInitialized = true;
   return *this;
