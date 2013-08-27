@@ -21,6 +21,9 @@ namespace Eigen {
   * \param XprType the type of the expression in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
+  * \param InnerPanel is true, if the block maps to a set of rows of a row major matrix or
+  *        to set of columns of a column major matrix (optional). The parameter allows to determine
+  *        at compile time whether aligned access is possible on the block expression.
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
   * type of DenseBase::block(Index,Index,Index,Index) and DenseBase::block<int,int>(Index,Index) and
