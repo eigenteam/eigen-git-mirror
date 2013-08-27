@@ -66,7 +66,7 @@ void matrix_log_compute_2x2(const MatrixType& A, MatrixType& result)
 }
 
 /* \brief Get suitable degree for Pade approximation. (specialized for RealScalar = float) */
-int matrix_log_get_pade_degree(float normTminusI)
+inline int matrix_log_get_pade_degree(float normTminusI)
 {
   const float maxNormForPade[] = { 2.5111573934555054e-1 /* degree = 3 */ , 4.0535837411880493e-1,
             5.3149729967117310e-1 };
@@ -80,7 +80,7 @@ int matrix_log_get_pade_degree(float normTminusI)
 }
 
 /* \brief Get suitable degree for Pade approximation. (specialized for RealScalar = double) */
-int matrix_log_get_pade_degree(double normTminusI)
+inline int matrix_log_get_pade_degree(double normTminusI)
 {
   const double maxNormForPade[] = { 1.6206284795015624e-2 /* degree = 3 */ , 5.3873532631381171e-2,
             1.1352802267628681e-1, 1.8662860613541288e-1, 2.642960831111435e-1 };
@@ -94,7 +94,7 @@ int matrix_log_get_pade_degree(double normTminusI)
 }
 
 /* \brief Get suitable degree for Pade approximation. (specialized for RealScalar = long double) */
-int matrix_log_get_pade_degree(long double normTminusI)
+inline int matrix_log_get_pade_degree(long double normTminusI)
 {
 #if   LDBL_MANT_DIG == 53         // double precision
   const long double maxNormForPade[] = { 1.6206284795015624e-2L /* degree = 3 */ , 5.3873532631381171e-2L,
