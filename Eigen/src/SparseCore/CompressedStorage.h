@@ -51,8 +51,8 @@ class CompressedStorage
     CompressedStorage& operator=(const CompressedStorage& other)
     {
       resize(other.size());
-      memcpy(m_values, other.m_values, m_size * sizeof(Scalar));
-      memcpy(m_indices, other.m_indices, m_size * sizeof(Index));
+      internal::smart_copy(other.m_values,  other.m_values  + m_size, m_values);
+      internal::smart_copy(other.m_indices, other.m_indices + m_size, m_indices);
       return *this;
     }
 

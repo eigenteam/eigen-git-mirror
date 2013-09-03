@@ -711,7 +711,7 @@ class SparseMatrix
         initAssignment(other);
         if(other.isCompressed())
         {
-          memcpy(m_outerIndex, other.m_outerIndex, (m_outerSize+1)*sizeof(Index));
+          internal::smart_copy(other.m_outerIndex, other.m_outerIndex + m_outerSize + 1, m_outerIndex);
           m_data = other.m_data;
         }
         else
