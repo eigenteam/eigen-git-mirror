@@ -393,6 +393,8 @@ public:
   protected:
     friend class InnerIterator;
     friend class ReverseInnerIterator;
+    
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
 
     typename XprType::Nested m_matrix;
     const internal::variable_if_dynamic<Index, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
