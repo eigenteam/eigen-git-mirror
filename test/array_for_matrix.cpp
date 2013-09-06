@@ -202,6 +202,12 @@ template<typename MatrixTraits> void resize(const MatrixTraits& t)
   VERIFY(a1.size()==cols);
 }
 
+void regression_bug_654()
+{
+  ArrayXf a = RowVectorXf(3);
+  VectorXf v = Array<float,1,Dynamic>(3);
+}
+
 void test_array_for_matrix()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -239,4 +245,5 @@ void test_array_for_matrix()
     CALL_SUBTEST_5( resize(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_6( resize(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
+  CALL_SUBTEST_6( regression_bug_654() );
 }
