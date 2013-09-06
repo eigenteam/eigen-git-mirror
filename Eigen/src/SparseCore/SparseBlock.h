@@ -169,8 +169,8 @@ public:
         internal::smart_memmove(&matrix.data().value(end),  &matrix.data().value(end) + tail_size, &matrix.data().value(start + nnz));
         internal::smart_memmove(&matrix.data().index(end),  &matrix.data().index(end) + tail_size, &matrix.data().index(start + nnz));
 
-        internal::smart_copy(&tmp.data().value(0),  &tmp.data().value(0) + nnz, &matrix.value(start));
-        internal::smart_copy(&tmp.data().index(0),  &tmp.data().index(0) + nnz, &matrix.index(start));
+        internal::smart_copy(&tmp.data().value(0),  &tmp.data().value(0) + nnz, &matrix.data().value(start));
+        internal::smart_copy(&tmp.data().index(0),  &tmp.data().index(0) + nnz, &matrix.data().index(start));
       }
       
       // update innerNonZeros
