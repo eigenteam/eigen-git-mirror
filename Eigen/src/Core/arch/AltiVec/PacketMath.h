@@ -56,8 +56,8 @@ typedef __vector unsigned char  Packet16uc;
 #define DST_CTRL(size, count, stride) (((size) << 24) | ((count) << 16) | (stride))
 
 // Define global static constants:
-static Packet4f p4f_COUNTDOWN = { 3.0, 2.0, 1.0, 0.0 };
-static Packet4i p4i_COUNTDOWN = { 3, 2, 1, 0 };
+static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
+static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
 static Packet16uc p16uc_REVERSE = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
 static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0);
 static Packet16uc p16uc_DUPLICATE = {0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7};
@@ -286,15 +286,15 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
   Packet4f p;
-  if((ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4f>(from);
-  else                              p = ploadu<Packet4f>(from);
+  if((ptrdiff_t(from) % 16) == 0)  p = pload<Packet4f>(from);
+  else                             p = ploadu<Packet4f>(from);
   return vec_perm(p, p, p16uc_DUPLICATE);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ploaddup<Packet4i>(const int*     from)
 {
   Packet4i p;
-  if((ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4i>(from);
-  else                              p = ploadu<Packet4i>(from);
+  if((ptrdiff_t(from) % 16) == 0)  p = pload<Packet4i>(from);
+  else                             p = ploadu<Packet4i>(from);
   return vec_perm(p, p, p16uc_DUPLICATE);
 }
 
