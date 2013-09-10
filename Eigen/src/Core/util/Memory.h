@@ -729,15 +729,6 @@ public:
         ::new( p ) T( value );
     }
 
-    // Support for c++11
-#if (__cplusplus >= 201103L)
-    template<typename... Args>
-    void  construct(pointer p, Args&&... args)
-    {
-      ::new(p) T(std::forward<Args>(args)...);
-    }
-#endif
-
     void destroy( pointer p )
     {
         p->~T();
