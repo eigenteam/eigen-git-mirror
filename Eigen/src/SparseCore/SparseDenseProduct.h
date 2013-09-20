@@ -139,12 +139,13 @@ struct traits<SparseTimeDenseProduct<Lhs,Rhs> >
 };
 
 template<typename SparseLhsType, typename DenseRhsType, typename DenseResType,
+         typename AlphaType,
          int LhsStorageOrder = ((SparseLhsType::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor,
          bool ColPerCol = ((DenseRhsType::Flags&RowMajorBit)==0) || DenseRhsType::ColsAtCompileTime==1>
 struct sparse_time_dense_product_impl;
 
 template<typename SparseLhsType, typename DenseRhsType, typename DenseResType>
-struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, RowMajor, true>
+struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, typename DenseResType::Scalar, RowMajor, true>
 {
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
@@ -167,21 +168,30 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, R
   }
 };
 
-template<typename SparseLhsType, typename DenseRhsType, typename DenseResType>
-struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, ColMajor, true>
+template<typename T1, typename T2/*, int _Options, typename _StrideType*/>
+struct scalar_product_traits<T1, Ref<T2/*, _Options, _StrideType*/> >
+{
+  enum {
+    Defined = 1
+  };
+  typedef typename CwiseUnaryOp<scalar_multiple2_op<T1, typename T2::Scalar>, T2>::PlainObject ReturnType;
+};
+template<typename SparseLhsType, typename DenseRhsType, typename DenseResType, typename AlphaType>
+struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, AlphaType, ColMajor, true>
 {
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::InnerIterator LhsInnerIterator;
   typedef typename Lhs::Index Index;
-  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
+  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const AlphaType& alpha)
   {
     for(Index c=0; c<rhs.cols(); ++c)
     {
       for(Index j=0; j<lhs.outerSize(); ++j)
       {
-        typename Res::Scalar rhs_j = alpha * rhs.coeff(j,c);
+//        typename Res::Scalar rhs_j = alpha * rhs.coeff(j,c);
+        typename internal::scalar_product_traits<AlphaType, typename Rhs::Scalar>::ReturnType rhs_j(alpha * rhs.coeff(j,c));
         for(LhsInnerIterator it(lhs,j); it ;++it)
           res.coeffRef(it.index(),c) += it.value() * rhs_j;
       }
@@ -190,7 +200,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, C
 };
 
 template<typename SparseLhsType, typename DenseRhsType, typename DenseResType>
-struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, RowMajor, false>
+struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, typename DenseResType::Scalar, RowMajor, false>
 {
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
@@ -209,7 +219,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, R
 };
 
 template<typename SparseLhsType, typename DenseRhsType, typename DenseResType>
-struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, ColMajor, false>
+struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, typename DenseResType::Scalar, ColMajor, false>
 {
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
@@ -230,7 +240,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, C
 template<typename SparseLhsType, typename DenseRhsType, typename DenseResType,typename AlphaType>
 inline void sparse_time_dense_product(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const AlphaType& alpha)
 {
-  sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType>::run(lhs, rhs, res, alpha);
+  sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, AlphaType>::run(lhs, rhs, res, alpha);
 }
 
 } // end namespace internal
