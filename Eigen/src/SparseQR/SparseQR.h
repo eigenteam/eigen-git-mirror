@@ -580,7 +580,7 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
     }
     else
     {
-      eigen_assert(m_qr.m_Q.cols() == m_other.rows() && "Non conforming object sizes");
+      eigen_assert(m_qr.m_Q.rows() == m_other.rows() && "Non conforming object sizes");
       // Compute res = Q' * other column by column
       for(Index j = 0; j < res.cols(); j++)
       {
