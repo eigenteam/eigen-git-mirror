@@ -573,6 +573,7 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
         {
           Scalar tau = Scalar(0);
           tau = m_qr.m_Q.col(k).dot(res.col(j));
+          if(tau==Scalar(0)) continue;
           tau = tau * m_qr.m_hcoeffs(k);
           res.col(j) -= tau * m_qr.m_Q.col(k);
         }
@@ -588,6 +589,7 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
         {
           Scalar tau = Scalar(0);
           tau = m_qr.m_Q.col(k).dot(res.col(j));
+          if(tau==Scalar(0)) continue;
           tau = tau * m_qr.m_hcoeffs(k);
           res.col(j) -= tau * m_qr.m_Q.col(k);
         }
