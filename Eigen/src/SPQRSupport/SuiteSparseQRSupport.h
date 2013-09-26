@@ -147,7 +147,7 @@ class SPQR
       eigen_assert(b.cols()==1 && "This method is for vectors only");
       
       //Compute Q^T * b
-      Dest y; 
+      typename Dest::PlainObject y;
       y = matrixQ().transpose() * b;
         // Solves with the triangular matrix R
       Index rk = this->rank();
