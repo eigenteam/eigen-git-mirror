@@ -39,13 +39,16 @@ RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),asum_)(int *n, 
 // computes a dot product of a conjugated vector with another vector.
 int EIGEN_BLAS_FUNC(dotcw)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar* pres)
 {
-//   std::cerr << "_dotc " << *n << " " << *incx << " " << *incy << "\n";
+  Scalar* res = reinterpret_cast<Scalar*>(pres);
 
-  if(*n<=0) return 0;
+  if(*n<=0)
+  {
+    *res = Scalar(0);
+    return 0;
+  }
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
-  Scalar* res = reinterpret_cast<Scalar*>(pres);
 
   if(*incx==1 && *incy==1)    *res = (vector(x,*n).dot(vector(y,*n)));
   else if(*incx>0 && *incy>0) *res = (vector(x,*n,*incx).dot(vector(y,*n,*incy)));
@@ -58,13 +61,16 @@ int EIGEN_BLAS_FUNC(dotcw)(int *n, RealScalar *px, int *incx, RealScalar *py, in
 // computes a vector-vector dot product without complex conjugation.
 int EIGEN_BLAS_FUNC(dotuw)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar* pres)
 {
-//   std::cerr << "_dotu " << *n << " " << *incx << " " << *incy << "\n";
+  Scalar* res = reinterpret_cast<Scalar*>(pres);
 
-  if(*n<=0) return 0;
+  if(*n<=0)
+  {
+    *res = Scalar(0);
+    return 0;
+  }
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
-  Scalar* res = reinterpret_cast<Scalar*>(pres);
 
   if(*incx==1 && *incy==1)    *res = (vector(x,*n).cwiseProduct(vector(y,*n))).sum();
   else if(*incx>0 && *incy>0) *res = (vector(x,*n,*incx).cwiseProduct(vector(y,*n,*incy))).sum();
