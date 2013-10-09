@@ -418,3 +418,31 @@ else()
 endif()
 
 message(STATUS "")
+
+set ( EIGEN_CONFIG_CMAKE_PATH
+      lib${LIB_SUFFIX}/cmake/eigen3
+      CACHE PATH "The directory where the CMake files are installed"
+    )
+if ( NOT IS_ABSOLUTE EIGEN_CONFIG_CMAKE_PATH )
+  set ( EIGEN_CONFIG_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/${EIGEN_CONFIG_CMAKE_PATH} )
+endif ()
+
+set ( EIGEN_USE_FILE ${EIGEN_CONFIG_CMAKE_PATH}/UseEigen3.cmake )
+set ( EIGEN_VERSION_STRING ${EIGEN_VERSION_NUMBER} )
+set ( EIGEN_VERSION_MAJOR  ${EIGEN_WORLD_VERSION} )
+set ( EIGEN_VERSION_MINOR  ${EIGEN_MAJOR_VERSION} )
+set ( EIGEN_VERSION_PATCH  ${EIGEN_MINOR_VERSION} )
+set ( EIGEN_DEFINITIONS "")
+set ( EIGEN_INCLUDE_DIR ${INCLUDE_INSTALL_DIR} )
+set ( EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} )
+set ( EIGEN_ROOT_DIR ${CMAKE_INSTALL_PREFIX} )
+
+configure_file ( ${CMAKE_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
+                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+                 @ONLY ESCAPE_QUOTES
+               )
+
+install ( FILES ${CMAKE_SOURCE_DIR}/cmake/UseEigen3.cmake
+                ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+          DESTINATION ${EIGEN_CONFIG_CMAKE_PATH}
+        )
