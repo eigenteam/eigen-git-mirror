@@ -163,10 +163,14 @@ template<typename MatrixType> void cwise_min_max(const MatrixType& m)
 
   // min/max with scalar input
   VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, minM1), m1.cwiseMin( minM1));
-  VERIFY_IS_APPROX(m1, m1.cwiseMin( maxM1));
+  VERIFY_IS_APPROX(m1, m1.cwiseMin(maxM1));
+  VERIFY_IS_APPROX(-m1, (-m1).cwiseMin(-minM1));
+  VERIFY_IS_APPROX(-m1.array(), ((-m1).array().min)( -minM1));
 
   VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, maxM1), m1.cwiseMax( maxM1));
-  VERIFY_IS_APPROX(m1, m1.cwiseMax( minM1));
+  VERIFY_IS_APPROX(m1, m1.cwiseMax(minM1));
+  VERIFY_IS_APPROX(-m1, (-m1).cwiseMax(-maxM1));
+  VERIFY_IS_APPROX(-m1.array(), ((-m1).array().max)(-maxM1));
 
   VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, minM1).array(), (m1.array().min)( minM1));
   VERIFY_IS_APPROX(m1.array(), (m1.array().min)( maxM1));
