@@ -941,7 +941,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   typedef typename SparseMatrixType::Scalar Scalar;
   SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
 
-  if(begin<end)
+  if(begin!=end)
   {
     // pass 1: count the nnz per inner-vector
     VectorXi wi(trMat.outerSize());
