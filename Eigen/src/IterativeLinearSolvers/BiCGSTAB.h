@@ -136,34 +136,13 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * and NumTraits<Scalar>::epsilon() for the tolerance.
   * 
   * This class can be used as the direct solver classes. Here is a typical usage example:
-  * \code
-  * int n = 10000;
-  * VectorXd x(n), b(n);
-  * SparseMatrix<double> A(n,n);
-  * // fill A and b
-  * BiCGSTAB<SparseMatrix<double> > solver;
-  * solver(A);
-  * x = solver.solve(b);
-  * std::cout << "#iterations:     " << solver.iterations() << std::endl;
-  * std::cout << "estimated error: " << solver.error()      << std::endl;
-  * // update b, and solve again
-  * x = solver.solve(b);
-  * \endcode
+  * \include BiCGSTAB_simple.cpp
   * 
   * By default the iterations start with x=0 as an initial guess of the solution.
   * One can control the start using the solveWithGuess() method. Here is a step by
   * step execution example starting with a random guess and printing the evolution
   * of the estimated error:
-  * * \code
-  * x = VectorXd::Random(n);
-  * solver.setMaxIterations(1);
-  * int i = 0;
-  * do {
-  *   x = solver.solveWithGuess(b,x);
-  *   std::cout << i << " : " << solver.error() << std::endl;
-  *   ++i;
-  * } while (solver.info()!=Success && i<100);
-  * \endcode
+  * \include BiCGSTAB_step_by_step.cpp
   * Note that such a step by step excution is slightly slower.
   * 
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
