@@ -110,11 +110,17 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
     VERIFY(! (m1 > m3).all() );
   }
 
-  // comparisons to scalar
+  // comparisons array to scalar
   VERIFY( (m1 != (m1(r,c)+1) ).any() );
-  VERIFY( (m1 > (m1(r,c)-1) ).any() );
-  VERIFY( (m1 < (m1(r,c)+1) ).any() );
-  VERIFY( (m1 == m1(r,c) ).any() );
+  VERIFY( (m1 >  (m1(r,c)-1) ).any() );
+  VERIFY( (m1 <  (m1(r,c)+1) ).any() );
+  VERIFY( (m1 ==  m1(r,c)    ).any() );
+
+  // comparisons scalar to array
+  VERIFY( ( (m1(r,c)+1) != m1).any() );
+  VERIFY( ( (m1(r,c)-1) <  m1).any() );
+  VERIFY( ( (m1(r,c)+1) >  m1).any() );
+  VERIFY( (  m1(r,c)    == m1).any() );
 
   // test Select
   VERIFY_IS_APPROX( (m1<m2).select(m1,m2), m1.cwiseMin(m2) );
