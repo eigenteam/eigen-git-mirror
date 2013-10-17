@@ -189,7 +189,7 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   if(align_cols)
   {
     // compute the largest width
-    for(Index j = 1; j < m.cols(); ++j)
+    for(Index j = 0; j < m.cols(); ++j)
       for(Index i = 0; i < m.rows(); ++i)
       {
         std::stringstream sstr;
