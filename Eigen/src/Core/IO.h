@@ -49,7 +49,7 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   */
 struct IOFormat
 {
-  /** Default contructor, see class IOFormat for the meaning of the parameters */
+  /** Default constructor, see class IOFormat for the meaning of the parameters */
   IOFormat(int _precision = StreamPrecision, int _flags = 0,
     const std::string& _coeffSeparator = " ",
     const std::string& _rowSeparator = "\n", const std::string& _rowPrefix="", const std::string& _rowSuffix="",
@@ -57,6 +57,10 @@ struct IOFormat
   : matPrefix(_matPrefix), matSuffix(_matSuffix), rowPrefix(_rowPrefix), rowSuffix(_rowSuffix), rowSeparator(_rowSeparator),
     rowSpacer(""), coeffSeparator(_coeffSeparator), precision(_precision), flags(_flags)
   {
+    // TODO check if rowPrefix, rowSuffix or rowSeparator contains a newline
+    // don't add rowSpacer if columns are not to be aligned
+    if((fmt.flags & DontAlignCols))
+      return;
     int i = int(matSuffix.length())-1;
     while (i>=0 && matSuffix[i]!='\n')
     {
