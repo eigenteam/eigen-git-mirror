@@ -22,6 +22,7 @@ namespace internal {
   * \sa class CwiseBinaryOp, MatrixBase::operator+, class VectorwiseOp, DenseBase::sum()
   */
 template<typename Scalar> struct scalar_sum_op {
+//   typedef Scalar result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sum_op)
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
   template<typename Packet>
@@ -45,8 +46,8 @@ struct functor_traits<scalar_sum_op<Scalar> > {
   * \sa DenseBase::count(), DenseBase::any(), ArrayBase::cast(), MatrixBase::cast()
   */
 template<> struct scalar_sum_op<bool> : scalar_sum_op<int> {
-	EIGEN_DEPRECATED
-	scalar_sum_op() {}
+  EIGEN_DEPRECATED
+  scalar_sum_op() {}
 };
 
 
@@ -687,6 +688,42 @@ struct scalar_add_op {
 };
 template<typename Scalar>
 struct functor_traits<scalar_add_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = packet_traits<Scalar>::HasAdd }; };
+
+/** \internal
+  * \brief Template functor to subtract a fixed scalar to another one
+  * \sa class CwiseUnaryOp, Array::operator-, struct scalar_add_op, struct scalar_rsub_op
+  */
+template<typename Scalar>
+struct scalar_sub_op {
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline scalar_sub_op(const scalar_sub_op& other) : m_other(other.m_other) { }
+  inline scalar_sub_op(const Scalar& other) : m_other(other) { }
+  inline Scalar operator() (const Scalar& a) const { return a - m_other; }
+  inline const Packet packetOp(const Packet& a) const
+  { return internal::psub(a, pset1<Packet>(m_other)); }
+  const Scalar m_other;
+};
+template<typename Scalar>
+struct functor_traits<scalar_sub_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = packet_traits<Scalar>::HasAdd }; };
+
+/** \internal
+  * \brief Template functor to subtract a scalar to fixed another one
+  * \sa class CwiseUnaryOp, Array::operator-, struct scalar_add_op, struct scalar_sub_op
+  */
+template<typename Scalar>
+struct scalar_rsub_op {
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline scalar_rsub_op(const scalar_rsub_op& other) : m_other(other.m_other) { }
+  inline scalar_rsub_op(const Scalar& other) : m_other(other) { }
+  inline Scalar operator() (const Scalar& a) const { return m_other - a; }
+  inline const Packet packetOp(const Packet& a) const
+  { return internal::psub(pset1<Packet>(m_other), a); }
+  const Scalar m_other;
+};
+template<typename Scalar>
+struct functor_traits<scalar_rsub_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = packet_traits<Scalar>::HasAdd }; };
 
 /** \internal

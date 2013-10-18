@@ -162,16 +162,16 @@ operator+(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& 
   *
   * \sa operator+(), operator-=()
   */
-inline const CwiseUnaryOp<internal::scalar_add_op<Scalar>, const Derived>
+inline const CwiseUnaryOp<internal::scalar_sub_op<Scalar>, const Derived>
 operator-(const Scalar& scalar) const
 {
-  return *this + (-scalar);
+  return CwiseUnaryOp<internal::scalar_sub_op<Scalar>, const Derived>(derived(), internal::scalar_sub_op<Scalar>(scalar));;
 }
 
-friend inline const CwiseUnaryOp<internal::scalar_add_op<Scalar>, const CwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const Derived> >
+friend inline const CwiseUnaryOp<internal::scalar_rsub_op<Scalar>, const Derived>
 operator-(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& other)
 {
-  return (-other) + scalar;
+  return CwiseUnaryOp<internal::scalar_rsub_op<Scalar>, const Derived>(other.derived(), internal::scalar_rsub_op<Scalar>(scalar));;
 }
 
 /** \returns an expression of the coefficient-wise && operator of *this and \a other
