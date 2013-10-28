@@ -28,12 +28,16 @@ struct functor_traits<scalar_random_op<Scalar> >
 
 /** \returns a random matrix expression
   *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
+  * 
   * The parameters \a rows and \a cols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
   * it is redundant to pass \a rows and \a cols as arguments, so Random() should be used
   * instead.
+  * 
   *
   * Example: \include MatrixBase_random_int_int.cpp
   * Output: \verbinclude MatrixBase_random_int_int.out
@@ -52,6 +56,9 @@ DenseBase<Derived>::Random(Index rows, Index cols)
 }
 
 /** \returns a random vector expression
+  *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
   *
   * The parameter \a size is the size of the returned vector.
   * Must be compatible with this MatrixBase type.
@@ -80,6 +87,9 @@ DenseBase<Derived>::Random(Index size)
 
 /** \returns a fixed-size random matrix or vector expression
   *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
+  * 
   * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
   * need to use the variants taking size arguments.
   *
@@ -101,6 +111,9 @@ DenseBase<Derived>::Random()
 
 /** Sets all coefficients in this expression to random values.
   *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
+  * 
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out
   *
@@ -114,6 +127,9 @@ inline Derived& DenseBase<Derived>::setRandom()
 
 /** Resizes to the given \a newSize, and sets all coefficients in this expression to random values.
   *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
+  * 
   * \only_for_vectors
   *
   * Example: \include Matrix_setRandom_int.cpp
@@ -130,6 +146,9 @@ PlainObjectBase<Derived>::setRandom(Index newSize)
 }
 
 /** Resizes to the given size, and sets all coefficients in this expression to random values.
+  *
+  * Numbers are uniformly spread through their whole definition range for integer types,
+  * and in the [-1:1] range for floating point scalar types.
   *
   * \param nbRows the new number of rows
   * \param nbCols the new number of columns
