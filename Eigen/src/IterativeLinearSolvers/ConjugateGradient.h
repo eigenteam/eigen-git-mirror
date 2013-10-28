@@ -107,12 +107,12 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
 }
 
 /** \ingroup IterativeLinearSolvers_Module
-  * \brief A conjugate gradient solver for sparse self-adjoint problems
+  * \brief A conjugate gradient solver for sparse (or dense) self-adjoint problems
   *
-  * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient algorithm.
-  * The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or sparse.
+  * This class allows to solve for A.x = b linear problems using an iterative conjugate gradient algorithm.
+  * The matrix A must be selfadjoint. The matrix A and the vectors x and b can be either dense or sparse.
   *
-  * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
+  * \tparam _MatrixType the type of the matrix A, can be a dense or a sparse matrix.
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
   * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
