@@ -143,7 +143,14 @@ const unsigned int DirectAccessBit = 0x40;
 
 /** \ingroup flags
   *
-  * means the first coefficient packet is guaranteed to be aligned */
+  * means the first coefficient packet is guaranteed to be aligned.
+  * An expression cannot has the AlignedBit without the PacketAccessBit flag.
+  * In other words, this means we are allow to perform an aligned packet access to the first element regardless
+  * of the expression kind:
+  * \code
+  * expression.packet<Aligned>(0);
+  * \endcode
+  */
 const unsigned int AlignedBit = 0x80;
 
 const unsigned int NestByRefBit = 0x100;
