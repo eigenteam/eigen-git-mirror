@@ -85,7 +85,8 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
       Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & ~RowMajorBit)
             | (EvalToRowMajor ? RowMajorBit : 0)
             | NestingFlags
-            | (LhsFlags & RhsFlags & AlignedBit)
+            | (CanVectorizeLhs ? (LhsFlags & AlignedBit) : 0)
+            | (CanVectorizeRhs ? (RhsFlags & AlignedBit) : 0)
             // TODO enable vectorization for mixed types
             | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0),
 
@@ -305,7 +306,6 @@ struct product_coeff_impl<InnerVectorizedTraversal, UnrollingIndex, Lhs, Rhs, Re
   {
     Packet pres;
     product_coeff_vectorized_unroller<UnrollingIndex+1-PacketSize, Lhs, Rhs, Packet>::run(row, col, lhs, rhs, pres);
-    product_coeff_impl<DefaultTraversal,UnrollingIndex,Lhs,Rhs,RetScalar>::run(row, col, lhs, rhs, res);
     res = predux(pres);
   }
 };
