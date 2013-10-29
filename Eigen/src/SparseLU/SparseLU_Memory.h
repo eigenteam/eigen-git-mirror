@@ -77,16 +77,23 @@ Index  SparseLUImpl<Scalar,Index>::expand(VectorType& vec, Index& length, Index 
     old_vec = vec.segment(0,nbElts); 
   
   //Allocate or expand the current vector
-  try 
+#ifdef EIGEN_EXCEPTIONS
+  try
+#endif
   {
     vec.resize(new_len); 
   }
+#ifdef EIGEN_EXCEPTIONS
   catch(std::bad_alloc& )
+#else
+  if(!vec.size())
+#endif
   {
-    if ( !num_expansions )
+    if (!num_expansions)
     {
       // First time to allocate from LUMemInit()
-      throw; // Pass the exception to LUMemInit() which has a try... catch block
+      // Let LUMemInit() deals with it.
+      return 0;
     }
     if (keep_prev)
     {
@@ -101,11 +108,17 @@ Index  SparseLUImpl<Scalar,Index>::expand(VectorType& vec, Index& length, Index 
       {
         alpha = (alpha + 1)/2;
         new_len = Index(alpha * length);
+#ifdef EIGEN_EXCEPTIONS
         try
+#endif
         {
           vec.resize(new_len); 
         }
+#ifdef EIGEN_EXCEPTIONS
         catch(std::bad_alloc& )
+#else
+        if (!vec.size())
+#endif
         {
           tries += 1; 
           if ( tries > 10) return new_len; 
@@ -166,14 +179,10 @@ Index SparseLUImpl<Scalar,Index>::memInit(Index m, Index n, Index annz, Index lw
   // Reserve memory for L/U factors
   do 
   {
-    try
-    {
-      expand<ScalarVector>(glu.lusup, glu.nzlumax, 0, 0, num_expansions); 
-      expand<ScalarVector>(glu.ucol,glu.nzumax, 0, 0, num_expansions); 
-      expand<IndexVector>(glu.lsub,glu.nzlmax, 0, 0, num_expansions); 
-      expand<IndexVector>(glu.usub,glu.nzumax, 0, 1, num_expansions); 
-    }
-    catch(std::bad_alloc& )
+    if(     (!expand<ScalarVector>(glu.lusup, glu.nzlumax, 0, 0, num_expansions))
+        ||  (!expand<ScalarVector>(glu.ucol,  glu.nzumax,  0, 0, num_expansions))
+        ||  (!expand<IndexVector> (glu.lsub,  glu.nzlmax,  0, 0, num_expansions))
+        ||  (!expand<IndexVector> (glu.usub,  glu.nzumax,  0, 1, num_expansions)) )
     {
       //Reduce the estimated size and retry
       glu.nzlumax /= 2;
@@ -181,10 +190,7 @@ Index SparseLUImpl<Scalar,Index>::memInit(Index m, Index n, Index annz, Index lw
       glu.nzlmax /= 2;
       if (glu.nzlumax < annz ) return glu.nzlumax; 
     }
-    
   } while (!glu.lusup.size() || !glu.ucol.size() || !glu.lsub.size() || !glu.usub.size());
-
-  
   
   ++num_expansions;
   return 0;
