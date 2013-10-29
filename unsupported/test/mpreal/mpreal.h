@@ -1262,9 +1262,9 @@ inline const mpreal mpreal::operator-()const
 
 inline const mpreal operator-(const mpreal& a, const mpreal& b)
 {
-	mpreal c(0, std::max(mpfr_get_prec(a.mpfr_ptr()), mpfr_get_prec(b.mpfr_ptr())));
-	mpfr_sub(c.mpfr_ptr(), a.mpfr_srcptr(), b.mpfr_srcptr(), mpreal::get_default_rnd());
-	return c;
+    mpreal c(0, (std::max)(mpfr_get_prec(a.mpfr_ptr()), mpfr_get_prec(b.mpfr_ptr())));
+    mpfr_sub(c.mpfr_ptr(), a.mpfr_srcptr(), b.mpfr_srcptr(), mpreal::get_default_rnd());
+    return c;
 }
 
 inline const mpreal operator-(const double  b, const mpreal& a)
@@ -1379,7 +1379,7 @@ inline mpreal& mpreal::operator*=(const int v)
 
 inline const mpreal operator*(const mpreal& a, const mpreal& b)
 {
-	mpreal c(0, std::max(mpfr_get_prec(a.mpfr_ptr()), mpfr_get_prec(b.mpfr_ptr())));
+	mpreal c(0, (std::max)(mpfr_get_prec(a.mpfr_ptr()), mpfr_get_prec(b.mpfr_ptr())));
 	mpfr_mul(c.mpfr_ptr(), a.mpfr_srcptr(), b.mpfr_srcptr(), mpreal::get_default_rnd());
 	return c;
 }
@@ -1455,7 +1455,7 @@ inline mpreal& mpreal::operator/=(const int v)
 
 inline const mpreal operator/(const mpreal& a, const mpreal& b)
 {
-	mpreal c(0, std::max(mpfr_get_prec(a.mpfr_ptr()), mpfr_get_prec(b.mpfr_ptr())));
+	mpreal c(0, (std::max)(mpfr_get_prec(a.mpfr_ptr()), mpfr_get_prec(b.mpfr_ptr())));
 	mpfr_div(c.mpfr_ptr(), a.mpfr_srcptr(), b.mpfr_srcptr(), mpreal::get_default_rnd());
 	return c;
 }
@@ -2393,7 +2393,7 @@ inline const mpreal const_catalan (mp_prec_t p, mp_rnd_t r)
     return x;
 }
 
-inline const mpreal const_infinity (int sign, mp_prec_t p, mp_rnd_t r)
+inline const mpreal const_infinity (int sign, mp_prec_t p, mp_rnd_t /*r*/)
 {
     mpreal x(0, p);
     mpfr_set_inf(x.mpfr_ptr(), sign);
