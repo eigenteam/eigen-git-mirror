@@ -418,8 +418,8 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
 
   m_precision = NumTraits<Scalar>::epsilon() * size;
 
-  m_rows_transpositions.resize(matrix.rows());
-  m_cols_transpositions.resize(matrix.cols());
+  m_rows_transpositions.resize(size);
+  m_cols_transpositions.resize(size);
   Index number_of_transpositions = 0;
 
   RealScalar biggest(0);
