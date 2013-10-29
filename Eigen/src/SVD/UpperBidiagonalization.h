@@ -99,7 +99,6 @@ void upperbidiagonalization_inplace_unblocked(MatrixType& mat,
 
   Index rows = mat.rows();
   Index cols = mat.cols();
-  Index size = (std::min)(rows, cols);
 
   typedef Matrix<Scalar,Dynamic,1,ColMajor,MatrixType::MaxRowsAtCompileTime,1> TempType;
   TempType tempVector;
@@ -171,7 +170,6 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
   for(Index k = 0; k < bs; ++k)
   {
     Index remainingRows = brows - k;
-    Index remainingSizeInBlock = bs - k - 1;
     Index remainingCols = bcols - k - 1;
 
     SubMatType X_k1( X.block(k,0, remainingRows,k) );
