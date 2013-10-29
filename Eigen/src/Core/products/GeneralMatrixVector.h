@@ -293,7 +293,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,Co
         // process aligned result's coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(LhsPacket))==0)
           for (Index i = alignedStart;i<alignedSize;i+=ResPacketSize)
-            pstore(&res[i], pcj.pmadd(ploadu<LhsPacket>(&lhs0[i]), ptmp0, pload<ResPacket>(&res[i])));
+            pstore(&res[i], pcj.pmadd(pload<LhsPacket>(&lhs0[i]), ptmp0, pload<ResPacket>(&res[i])));
         else
           for (Index i = alignedStart;i<alignedSize;i+=ResPacketSize)
             pstore(&res[i], pcj.pmadd(ploadu<LhsPacket>(&lhs0[i]), ptmp0, pload<ResPacket>(&res[i])));
