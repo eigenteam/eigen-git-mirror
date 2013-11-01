@@ -63,9 +63,10 @@ template<typename _MatrixType> class FullPivHouseholderQR
     typedef typename MatrixType::Index Index;
     typedef internal::FullPivHouseholderQRMatrixQReturnType<MatrixType> MatrixQReturnType;
     typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
-    typedef Matrix<Index, 1, ColsAtCompileTime, RowMajor, 1, MaxColsAtCompileTime> IntRowVectorType;
+    typedef Matrix<Index, 1,
+                   EIGEN_SIZE_MIN_PREFER_DYNAMIC(ColsAtCompileTime,RowsAtCompileTime), RowMajor, 1,
+                   EIGEN_SIZE_MIN_PREFER_FIXED(MaxColsAtCompileTime,MaxRowsAtCompileTime)> IntDiagSizeVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
-    typedef typename internal::plain_col_type<MatrixType, Index>::type IntColVectorType;
     typedef typename internal::plain_row_type<MatrixType>::type RowVectorType;
     typedef typename internal::plain_col_type<MatrixType>::type ColVectorType;
 
@@ -173,7 +174,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
     }
 
     /** \returns a const reference to the vector of indices representing the rows transpositions */
-    const IntColVectorType& rowsTranspositions() const
+    const IntDiagSizeVectorType& rowsTranspositions() const
     {
       eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rows_transpositions;
@@ -369,8 +370,8 @@ template<typename _MatrixType> class FullPivHouseholderQR
   protected:
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
-    IntColVectorType m_rows_transpositions;
-    IntRowVectorType m_cols_transpositions;
+    IntDiagSizeVectorType m_rows_transpositions;
+    IntDiagSizeVectorType m_cols_transpositions;
     PermutationType m_cols_permutation;
     RowVectorType m_temp;
     bool m_isInitialized, m_usePrescribedThreshold;
@@ -538,14 +539,14 @@ template<typename MatrixType> struct FullPivHouseholderQRMatrixQReturnType
 {
 public:
   typedef typename MatrixType::Index Index;
-  typedef typename internal::plain_col_type<MatrixType, Index>::type IntColVectorType;
+  typedef typename FullPivHouseholderQR<MatrixType>::IntDiagSizeVectorType IntDiagSizeVectorType;
   typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
   typedef Matrix<typename MatrixType::Scalar, 1, MatrixType::RowsAtCompileTime, RowMajor, 1,
                  MatrixType::MaxRowsAtCompileTime> WorkVectorType;
 
   FullPivHouseholderQRMatrixQReturnType(const MatrixType&       qr,
                                         const HCoeffsType&      hCoeffs,
-                                        const IntColVectorType& rowsTranspositions)
+                                        const IntDiagSizeVectorType& rowsTranspositions)
     : m_qr(qr),
       m_hCoeffs(hCoeffs),
       m_rowsTranspositions(rowsTranspositions)
@@ -585,7 +586,7 @@ public:
 protected:
   typename MatrixType::Nested m_qr;
   typename HCoeffsType::Nested m_hCoeffs;
-  typename IntColVectorType::Nested m_rowsTranspositions;
+  typename IntDiagSizeVectorType::Nested m_rowsTranspositions;
 };
 
 } // end namespace internal
