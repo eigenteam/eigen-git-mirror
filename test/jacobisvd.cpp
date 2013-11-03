@@ -125,13 +125,7 @@ void jacobisvd_solve(const MatrixType& m, unsigned int computationOptions)
     RhsType3 rhs3 = C * rhs2;
     JacobiSVD<MatrixType3, ColPivHouseholderQRPreconditioner> svd3(m3, computationOptions);
     SolutionType x3 = svd3.solve(rhs3);
-    if(svd3.rank()!=rank) {
-      std::cout << m3 << "\n\n";
-      std::cout << svd3.singularValues().transpose() << "\n";
-    std::cout << svd3.rank() << " == " << rank << "\n";
-    std::cout << x21.norm() << " == " << x3.norm() << "\n";
-    }
-//     VERIFY_IS_APPROX(m3*x3, rhs3);
+    VERIFY_IS_APPROX(m3*x3, rhs3);
     VERIFY_IS_APPROX(m3*x21, rhs3);
     VERIFY_IS_APPROX(m2*x3, rhs2);
     
