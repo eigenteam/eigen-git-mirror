@@ -530,7 +530,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
         m_isAllocated(false),
         m_usePrescribedThreshold(false),
         m_computationOptions(0),
-        m_rows(-1), m_cols(-1)
+        m_rows(-1), m_cols(-1), m_diagSize(0)
     {}
 
 
@@ -726,7 +726,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     {
       eigen_assert(m_isInitialized || m_usePrescribedThreshold);
       return m_usePrescribedThreshold ? m_prescribedThreshold
-                                      : NumTraits<Scalar>::epsilon();
+                                      : (std::max<Index>)(1,m_diagSize)*NumTraits<Scalar>::epsilon();
     }
 
     inline Index rows() const { return m_rows; }
@@ -918,11 +918,11 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
     // So A^{-1} = V S^{-1} U^*
 
     Matrix<Scalar, Dynamic, Rhs::ColsAtCompileTime, 0, _MatrixType::MaxRowsAtCompileTime, Rhs::MaxColsAtCompileTime> tmp;
-    Index nonzeroSingVals = dec().rank();
+    Index rank = dec().rank();
     
-    tmp.noalias() = dec().matrixU().leftCols(nonzeroSingVals).adjoint() * rhs();
-    tmp = dec().singularValues().head(nonzeroSingVals).asDiagonal().inverse() * tmp;
-    dst = dec().matrixV().leftCols(nonzeroSingVals) * tmp;
+    tmp.noalias() = dec().matrixU().leftCols(rank).adjoint() * rhs();
+    tmp = dec().singularValues().head(rank).asDiagonal().inverse() * tmp;
+    dst = dec().matrixV().leftCols(rank) * tmp;
   }
 };
 } // end namespace internal
