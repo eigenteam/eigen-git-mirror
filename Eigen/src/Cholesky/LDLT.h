@@ -502,7 +502,7 @@ struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
     // dst = D^-1 (L^-1 P b)
     // more precisely, use pseudo-inverse of D (see bug 241)
     using std::abs;
-    using std::max;
+    EIGEN_USING_STD_MATH(max);
     typedef typename LDLTType::MatrixType MatrixType;
     typedef typename LDLTType::Scalar Scalar;
     typedef typename LDLTType::RealScalar RealScalar;
@@ -575,6 +575,7 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
   return res;
 }
 
+#ifndef __CUDACC__
 /** \cholesky_module
   * \returns the Cholesky decomposition with full pivoting without square root of \c *this
   */
@@ -594,6 +595,7 @@ MatrixBase<Derived>::ldlt() const
 {
   return LDLT<PlainObject>(derived());
 }
+#endif // __CUDACC__
 
 } // end namespace Eigen
 

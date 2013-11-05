@@ -7,6 +7,7 @@
   *
   * \sa abs2()
   */
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived>
 abs() const
 {
@@ -20,6 +21,7 @@ abs() const
   *
   * \sa abs(), square()
   */
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived>
 abs2() const
 {
@@ -33,6 +35,7 @@ abs2() const
   *
   * \sa pow(), log(), sin(), cos()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived>
 exp() const
 {
@@ -46,6 +49,7 @@ exp() const
   *
   * \sa exp()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived>
 log() const
 {
@@ -59,6 +63,7 @@ log() const
   *
   * \sa pow(), square()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived>
 sqrt() const
 {
@@ -72,6 +77,7 @@ sqrt() const
   *
   * \sa sin(), acos()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_cos_op<Scalar>, const Derived>
 cos() const
 {
@@ -86,6 +92,7 @@ cos() const
   *
   * \sa cos(), asin()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_sin_op<Scalar>, const Derived>
 sin() const
 {
@@ -99,6 +106,7 @@ sin() const
   *
   * \sa cos(), asin()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_acos_op<Scalar>, const Derived>
 acos() const
 {
@@ -112,6 +120,7 @@ acos() const
   *
   * \sa sin(), acos()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_asin_op<Scalar>, const Derived>
 asin() const
 {
@@ -125,6 +134,7 @@ asin() const
   *
   * \sa cos(), sin()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_tan_op<Scalar>, Derived>
 tan() const
 {
@@ -139,6 +149,7 @@ tan() const
   *
   * \sa exp(), log()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived>
 pow(const Scalar& exponent) const
 {
@@ -154,6 +165,7 @@ pow(const Scalar& exponent) const
   *
   * \sa operator/(), operator*()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived>
 inverse() const
 {
@@ -167,6 +179,7 @@ inverse() const
   *
   * \sa operator/(), operator*(), abs2()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived>
 square() const
 {
@@ -180,6 +193,7 @@ square() const
   *
   * \sa square(), pow()
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived>
 cube() const
 {
@@ -187,6 +201,7 @@ cube() const
 }
 
 #define EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(METHOD_NAME,FUNCTOR) \
+  EIGEN_DEVICE_FUNC \
   inline const CwiseUnaryOp<std::binder2nd<FUNCTOR<Scalar> >, const Derived> \
   METHOD_NAME(const Scalar& s) const { \
     return CwiseUnaryOp<std::binder2nd<FUNCTOR<Scalar> >, const Derived> \

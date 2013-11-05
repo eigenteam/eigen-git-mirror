@@ -72,6 +72,7 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Dynamic-size constructor
       */
+    EIGEN_DEVICE_FUNC
     inline VectorBlock(VectorType& vector, Index start, Index size)
       : Base(vector,
              IsColVector ? start : 0, IsColVector ? 0 : start,
@@ -82,6 +83,7 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Fixed-size constructor
       */
+    EIGEN_DEVICE_FUNC
     inline VectorBlock(VectorType& vector, Index start)
       : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start)
     {

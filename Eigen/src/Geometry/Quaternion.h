@@ -572,7 +572,7 @@ template<class Derived>
 template<typename Derived1, typename Derived2>
 inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b)
 {
-  using std::max;
+  EIGEN_USING_STD_MATH(max);
   using std::sqrt;
   Vector3 v0 = a.normalized();
   Vector3 v1 = b.normalized();

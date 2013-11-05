@@ -57,10 +57,11 @@ template<typename Derived> class ReturnByValue
     EIGEN_DENSE_PUBLIC_INTERFACE(ReturnByValue)
 
     template<typename Dest>
+    EIGEN_DEVICE_FUNC
     inline void evalTo(Dest& dst) const
     { static_cast<const Derived*>(this)->evalTo(dst); }
-    inline Index rows() const { return static_cast<const Derived*>(this)->rows(); }
-    inline Index cols() const { return static_cast<const Derived*>(this)->cols(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return static_cast<const Derived*>(this)->rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return static_cast<const Derived*>(this)->cols(); }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 #define Unusable YOU_ARE_TRYING_TO_ACCESS_A_SINGLE_COEFFICIENT_IN_A_SPECIAL_EXPRESSION_WHERE_THAT_IS_NOT_ALLOWED_BECAUSE_THAT_WOULD_BE_INEFFICIENT

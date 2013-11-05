@@ -122,6 +122,7 @@ class CwiseBinaryOp : internal::no_assignment_operator,
     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
     typedef typename internal::remove_reference<RhsNested>::type _RhsNested;
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& aLhs, const Rhs& aRhs, const BinaryOp& func = BinaryOp())
       : m_lhs(aLhs), m_rhs(aRhs), m_functor(func)
     {
@@ -131,6 +132,7 @@ class CwiseBinaryOp : internal::no_assignment_operator,
       eigen_assert(aLhs.rows() == aRhs.rows() && aLhs.cols() == aRhs.cols());
     }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index rows() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::RowsAtCompileTime==Dynamic)
@@ -138,6 +140,7 @@ class CwiseBinaryOp : internal::no_assignment_operator,
       else
         return m_lhs.rows();
     }
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index cols() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::ColsAtCompileTime==Dynamic)
@@ -147,10 +150,13 @@ class CwiseBinaryOp : internal::no_assignment_operator,
     }
 
     /** \returns the left hand side nested expression */
+    EIGEN_DEVICE_FUNC
     const _LhsNested& lhs() const { return m_lhs; }
     /** \returns the right hand side nested expression */
+    EIGEN_DEVICE_FUNC
     const _RhsNested& rhs() const { return m_rhs; }
     /** \returns the functor representing the binary operation */
+    EIGEN_DEVICE_FUNC
     const BinaryOp& functor() const { return m_functor; }
 
   protected:
@@ -169,6 +175,7 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
     typedef typename internal::dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar coeff(Index rowId, Index colId) const
     {
       return derived().functor()(derived().lhs().coeff(rowId, colId),
@@ -182,6 +189,7 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
                                           derived().rhs().template packet<LoadMode>(rowId, colId));
     }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
     {
       return derived().functor()(derived().lhs().coeff(index),
@@ -227,3 +235,4 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 } // end namespace Eigen
 
 #endif // EIGEN_CWISE_BINARY_OP_H
+

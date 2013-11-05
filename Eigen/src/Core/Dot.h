@@ -29,6 +29,7 @@ template<typename T, typename U,
 struct dot_nocheck
 {
   typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
     return a.template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
@@ -39,6 +40,7 @@ template<typename T, typename U>
 struct dot_nocheck<T, U, true>
 {
   typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
     return a.transpose().template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
@@ -59,6 +61,7 @@ struct dot_nocheck<T, U, true>
   */
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
 typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
@@ -164,6 +167,7 @@ template<typename Derived, int p>
 struct lpNorm_selector
 {
   typedef typename NumTraits<typename traits<Derived>::Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const MatrixBase<Derived>& m)
   {
     using std::pow;
@@ -174,6 +178,7 @@ struct lpNorm_selector
 template<typename Derived>
 struct lpNorm_selector<Derived, 1>
 {
+  EIGEN_DEVICE_FUNC
   static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.cwiseAbs().sum();
@@ -183,6 +188,7 @@ struct lpNorm_selector<Derived, 1>
 template<typename Derived>
 struct lpNorm_selector<Derived, 2>
 {
+  EIGEN_DEVICE_FUNC
   static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.norm();
@@ -192,6 +198,7 @@ struct lpNorm_selector<Derived, 2>
 template<typename Derived>
 struct lpNorm_selector<Derived, Infinity>
 {
+  EIGEN_DEVICE_FUNC
   static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.cwiseAbs().maxCoeff();

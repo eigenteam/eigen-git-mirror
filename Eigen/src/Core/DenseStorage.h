@@ -44,12 +44,14 @@ struct plain_array
 {
   T array[Size];
 
-  plain_array() 
+  EIGEN_DEVICE_FUNC
+  plain_array()
   { 
     check_static_allocation_size<T,Size>();
   }
 
-  plain_array(constructor_without_unaligned_array_assert) 
+  EIGEN_DEVICE_FUNC
+  plain_array(constructor_without_unaligned_array_assert)
   { 
     check_static_allocation_size<T,Size>();
   }
@@ -81,12 +83,14 @@ struct plain_array<T, Size, MatrixOrArrayOptions, 16>
 {
   EIGEN_USER_ALIGN16 T array[Size];
 
+  EIGEN_DEVICE_FUNC
   plain_array() 
   { 
     EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf);
     check_static_allocation_size<T,Size>();
   }
 
+  EIGEN_DEVICE_FUNC
   plain_array(constructor_without_unaligned_array_assert) 
   { 
     check_static_allocation_size<T,Size>();
@@ -97,8 +101,8 @@ template <typename T, int MatrixOrArrayOptions, int Alignment>
 struct plain_array<T, 0, MatrixOrArrayOptions, Alignment>
 {
   EIGEN_USER_ALIGN16 T array[1];
-  plain_array() {}
-  plain_array(constructor_without_unaligned_array_assert) {}
+  EIGEN_DEVICE_FUNC plain_array() {}
+  EIGEN_DEVICE_FUNC plain_array(constructor_without_unaligned_array_assert) {}
 };
 
 } // end namespace internal
@@ -122,23 +126,26 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
 {
     internal::plain_array<T,Size,_Options> m_data;
   public:
-    DenseStorage() {}
+    EIGEN_DEVICE_FUNC DenseStorage() {}
+    EIGEN_DEVICE_FUNC
     DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()) {}
+    EIGEN_DEVICE_FUNC 
     DenseStorage(const DenseStorage& other) : m_data(other.m_data) {}
+    EIGEN_DEVICE_FUNC 
     DenseStorage& operator=(const DenseStorage& other)
     { 
       if (this != &other) m_data = other.m_data;
       return *this; 
     }
-    DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
-    void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
-    static DenseIndex rows(void) {return _Rows;}
-    static DenseIndex cols(void) {return _Cols;}
-    void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
-    void resize(DenseIndex,DenseIndex,DenseIndex) {}
-    const T *data() const { return m_data.array; }
-    T *data() { return m_data.array; }
+    EIGEN_DEVICE_FUNC DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
+    EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
+    EIGEN_DEVICE_FUNC static DenseIndex rows(void) {return _Rows;}
+    EIGEN_DEVICE_FUNC static DenseIndex cols(void) {return _Cols;}
+    EIGEN_DEVICE_FUNC void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
+    EIGEN_DEVICE_FUNC void resize(DenseIndex,DenseIndex,DenseIndex) {}
+    EIGEN_DEVICE_FUNC const T *data() const { return m_data.array; }
+    EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
 
 // null matrix

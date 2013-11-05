@@ -54,6 +54,7 @@ class CwiseNullaryOp : internal::no_assignment_operator,
     typedef typename internal::dense_xpr_base<CwiseNullaryOp>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
 
+    EIGEN_DEVICE_FUNC
     CwiseNullaryOp(Index nbRows, Index nbCols, const NullaryOp& func = NullaryOp())
       : m_rows(nbRows), m_cols(nbCols), m_functor(func)
     {
@@ -63,9 +64,12 @@ class CwiseNullaryOp : internal::no_assignment_operator,
             && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == nbCols));
     }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index rows() const { return m_rows.value(); }
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index cols() const { return m_cols.value(); }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar coeff(Index rowId, Index colId) const
     {
       return m_functor(rowId, colId);
@@ -77,6 +81,7 @@ class CwiseNullaryOp : internal::no_assignment_operator,
       return m_functor.packetOp(rowId, colId);
     }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
     {
       return m_functor(index);
@@ -89,6 +94,7 @@ class CwiseNullaryOp : internal::no_assignment_operator,
     }
 
     /** \returns the functor representing the nullary operation */
+    EIGEN_DEVICE_FUNC
     const NullaryOp& functor() const { return m_functor; }
 
   protected:
@@ -740,6 +746,7 @@ namespace internal {
 template<typename Derived, bool Big = (Derived::SizeAtCompileTime>=16)>
 struct setIdentity_impl
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& m)
   {
     return m = Derived::Identity(m.rows(), m.cols());
@@ -750,6 +757,7 @@ template<typename Derived>
 struct setIdentity_impl<Derived, true>
 {
   typedef typename Derived::Index Index;
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& m)
   {
     m.setZero();

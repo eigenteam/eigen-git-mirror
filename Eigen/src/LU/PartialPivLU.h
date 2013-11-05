@@ -472,12 +472,14 @@ struct solve_retval<PartialPivLU<_MatrixType>, Rhs>
   *
   * \sa class PartialPivLU
   */
+#ifndef __CUDACC__
 template<typename Derived>
 inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::partialPivLu() const
 {
   return PartialPivLU<PlainObject>(eval());
 }
+#endif
 
 #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
 /** \lu_module
@@ -488,12 +490,15 @@ MatrixBase<Derived>::partialPivLu() const
   *
   * \sa class PartialPivLU
   */
+#ifndef __CUDACC__
 template<typename Derived>
 inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::lu() const
 {
   return PartialPivLU<PlainObject>(eval());
 }
+#endif
+
 #endif
 
 } // end namespace Eigen

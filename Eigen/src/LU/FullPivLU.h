@@ -730,12 +730,14 @@ struct solve_retval<FullPivLU<_MatrixType>, Rhs>
   *
   * \sa class FullPivLU
   */
+#ifndef __CUDACC__
 template<typename Derived>
 inline const FullPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::fullPivLu() const
 {
   return FullPivLU<PlainObject>(eval());
 }
+#endif
 
 } // end namespace Eigen
 

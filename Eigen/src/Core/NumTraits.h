@@ -68,7 +68,16 @@ template<typename T> struct GenericNumTraits
                    >::type NonInteger;
   typedef T Nested;
 
-  static inline Real epsilon() { return std::numeric_limits<T>::epsilon(); }
+  EIGEN_DEVICE_FUNC
+  static inline Real epsilon()
+  {
+    #if defined(__CUDA_ARCH__)
+    return internal::device::numeric_limits<T>::epsilon();
+    #else
+    return std::numeric_limits<T>::epsilon();
+    #endif
+  }
+  EIGEN_DEVICE_FUNC
   static inline Real dummy_precision()
   {
     // make sure to override this for floating-point types
@@ -91,11 +100,13 @@ template<typename T> struct NumTraits : GenericNumTraits<T>
 template<> struct NumTraits<float>
   : GenericNumTraits<float>
 {
+  EIGEN_DEVICE_FUNC
   static inline float dummy_precision() { return 1e-5f; }
 };
 
 template<> struct NumTraits<double> : GenericNumTraits<double>
 {
+  EIGEN_DEVICE_FUNC
   static inline double dummy_precision() { return 1e-12; }
 };
 

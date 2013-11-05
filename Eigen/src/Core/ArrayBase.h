@@ -118,38 +118,50 @@ template<typename Derived> class ArrayBase
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const ArrayBase& other)
     {
       return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
     }
 
+    EIGEN_DEVICE_FUNC
     Derived& operator+=(const Scalar& scalar);
+    EIGEN_DEVICE_FUNC
     Derived& operator-=(const Scalar& scalar);
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator+=(const ArrayBase<OtherDerived>& other);
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator-=(const ArrayBase<OtherDerived>& other);
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator*=(const ArrayBase<OtherDerived>& other);
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator/=(const ArrayBase<OtherDerived>& other);
 
   public:
+    EIGEN_DEVICE_FUNC
     ArrayBase<Derived>& array() { return *this; }
+    EIGEN_DEVICE_FUNC
     const ArrayBase<Derived>& array() const { return *this; }
 
     /** \returns an \link Eigen::MatrixBase Matrix \endlink expression of this array
       * \sa MatrixBase::array() */
+    EIGEN_DEVICE_FUNC
     MatrixWrapper<Derived> matrix() { return derived(); }
+    EIGEN_DEVICE_FUNC
     const MatrixWrapper<const Derived> matrix() const { return derived(); }
 
 //     template<typename Dest>
 //     inline void evalTo(Dest& dst) const { dst = matrix(); }
 
   protected:
+    EIGEN_DEVICE_FUNC
     ArrayBase() : Base() {}
 
   private:

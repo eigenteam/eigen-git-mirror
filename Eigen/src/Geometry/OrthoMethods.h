@@ -132,6 +132,7 @@ struct unitOrthogonal_selector
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename Derived::Index Index;
   typedef Matrix<Scalar,2,1> Vector2;
+  EIGEN_DEVICE_FUNC
   static inline VectorType run(const Derived& src)
   {
     VectorType perp = VectorType::Zero(src.size());
@@ -154,6 +155,7 @@ struct unitOrthogonal_selector<Derived,3>
   typedef typename plain_matrix_type<Derived>::type VectorType;
   typedef typename traits<Derived>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline VectorType run(const Derived& src)
   {
     VectorType perp;
@@ -192,6 +194,7 @@ template<typename Derived>
 struct unitOrthogonal_selector<Derived,2>
 {
   typedef typename plain_matrix_type<Derived>::type VectorType;
+  EIGEN_DEVICE_FUNC
   static inline VectorType run(const Derived& src)
   { return VectorType(-numext::conj(src.y()), numext::conj(src.x())).normalized(); }
 };

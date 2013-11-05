@@ -37,11 +37,13 @@ class NoAlias
     /** Behaves like MatrixBase::lazyAssign(other)
       * \sa MatrixBase::lazyAssign() */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator=(const StorageBase<OtherDerived>& other)
     { return internal::assign_selector<ExpressionType,OtherDerived,false>::run(m_expression,other.derived()); }
 
     /** \sa MatrixBase::operator+= */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator+=(const StorageBase<OtherDerived>& other)
     {
       typedef SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
@@ -54,6 +56,7 @@ class NoAlias
 
     /** \sa MatrixBase::operator-= */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator-=(const StorageBase<OtherDerived>& other)
     {
       typedef SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
@@ -66,10 +69,12 @@ class NoAlias
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator+=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
     { other.derived().addTo(m_expression); return m_expression; }
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator-=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
     { other.derived().subTo(m_expression); return m_expression; }
 
@@ -78,6 +83,7 @@ class NoAlias
     { return m_expression.derived() += CoeffBasedProduct<Lhs,Rhs,NestByRefBit>(other.lhs(), other.rhs()); }
 
     template<typename Lhs, typename Rhs, int NestingFlags>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator-=(const CoeffBasedProduct<Lhs,Rhs,NestingFlags>& other)
     { return m_expression.derived() -= CoeffBasedProduct<Lhs,Rhs,NestByRefBit>(other.lhs(), other.rhs()); }
     
@@ -86,6 +92,7 @@ class NoAlias
     { return m_expression = func; }
 #endif
 
+    EIGEN_DEVICE_FUNC
     ExpressionType& expression() const
     {
       return m_expression;

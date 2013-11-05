@@ -141,11 +141,13 @@ class CoeffBasedProduct
 
   public:
 
+    EIGEN_DEVICE_FUNC
     inline CoeffBasedProduct(const CoeffBasedProduct& other)
       : Base(), m_lhs(other.m_lhs), m_rhs(other.m_rhs)
     {}
 
     template<typename Lhs, typename Rhs>
+    EIGEN_DEVICE_FUNC 
     inline CoeffBasedProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
@@ -158,9 +160,10 @@ class CoeffBasedProduct
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
 
-    EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
-    EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
     {
       Scalar res;
@@ -171,6 +174,7 @@ class CoeffBasedProduct
     /* Allow index-based non-packet access. It is impossible though to allow index-based packed access,
      * which is why we don't set the LinearAccessBit.
      */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
     {
       Scalar res;
@@ -192,22 +196,26 @@ class CoeffBasedProduct
     }
 
     // Implicit conversion to the nested type (trigger the evaluation of the product)
+    EIGEN_DEVICE_FUNC 
     EIGEN_STRONG_INLINE operator const PlainObject& () const
     {
       m_result.lazyAssign(*this);
       return m_result;
     }
 
-    const _LhsNested& lhs() const { return m_lhs; }
-    const _RhsNested& rhs() const { return m_rhs; }
+    EIGEN_DEVICE_FUNC const _LhsNested& lhs() const { return m_lhs; }
+    EIGEN_DEVICE_FUNC const _RhsNested& rhs() const { return m_rhs; }
 
+    EIGEN_DEVICE_FUNC
     const Diagonal<const LazyCoeffBasedProductType,0> diagonal() const
     { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this); }
 
     template<int DiagonalIndex>
+    EIGEN_DEVICE_FUNC 
     const Diagonal<const LazyCoeffBasedProductType,DiagonalIndex> diagonal() const
     { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this); }
 
+    EIGEN_DEVICE_FUNC
     const Diagonal<const LazyCoeffBasedProductType,Dynamic> diagonal(Index index) const
     { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this).diagonal(index); }
 
@@ -240,6 +248,7 @@ template<int UnrollingIndex, typename Lhs, typename Rhs, typename RetScalar>
 struct product_coeff_impl<DefaultTraversal, UnrollingIndex, Lhs, Rhs, RetScalar>
 {
   typedef typename Lhs::Index Index;
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, RetScalar &res)
   {
     product_coeff_impl<DefaultTraversal, UnrollingIndex-1, Lhs, Rhs, RetScalar>::run(row, col, lhs, rhs, res);
@@ -251,6 +260,7 @@ template<typename Lhs, typename Rhs, typename RetScalar>
 struct product_coeff_impl<DefaultTraversal, 0, Lhs, Rhs, RetScalar>
 {
   typedef typename Lhs::Index Index;
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, RetScalar &res)
   {
     res = lhs.coeff(row, 0) * rhs.coeff(0, col);
@@ -261,6 +271,7 @@ template<typename Lhs, typename Rhs, typename RetScalar>
 struct product_coeff_impl<DefaultTraversal, Dynamic, Lhs, Rhs, RetScalar>
 {
   typedef typename Lhs::Index Index;
+  EIGEN_DEVICE_FUNC 
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, RetScalar& res)
   {
     eigen_assert(lhs.cols()>0 && "you are using a non initialized matrix");

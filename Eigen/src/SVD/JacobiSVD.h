@@ -848,7 +848,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         // if this 2x2 sub-matrix is not diagonal already...
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever. Similarly, small denormal numbers are considered zero.
-        using std::max;
+        EIGEN_USING_STD_MATH(max);
         RealScalar threshold = (max)(considerAsZero, precision * (max)(abs(m_workMatrix.coeff(p,p)),
                                                                        abs(m_workMatrix.coeff(q,q))));
         if((max)(abs(m_workMatrix.coeff(p,q)),abs(m_workMatrix.coeff(q,p))) > threshold)
@@ -930,6 +930,7 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
 };
 } // end namespace internal
 
+#ifndef __CUDACC__
 /** \svd_module
   *
   * \return the singular value decomposition of \c *this computed by two-sided
@@ -943,6 +944,7 @@ MatrixBase<Derived>::jacobiSvd(unsigned int computationOptions) const
 {
   return JacobiSVD<PlainObject>(*this, computationOptions);
 }
+#endif // __CUDACC__
 
 } // end namespace Eigen
 

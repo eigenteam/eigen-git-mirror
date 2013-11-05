@@ -21,6 +21,7 @@ namespace internal {
 template<typename MatrixType, typename ResultType, int Size = MatrixType::RowsAtCompileTime>
 struct compute_inverse
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(const MatrixType& matrix, ResultType& result)
   {
     result = matrix.partialPivLu().inverse();
@@ -37,6 +38,7 @@ struct compute_inverse_and_det_with_check { /* nothing! general case not support
 template<typename MatrixType, typename ResultType>
 struct compute_inverse<MatrixType, ResultType, 1>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(const MatrixType& matrix, ResultType& result)
   {
     typedef typename MatrixType::Scalar Scalar;
@@ -47,6 +49,7 @@ struct compute_inverse<MatrixType, ResultType, 1>
 template<typename MatrixType, typename ResultType>
 struct compute_inverse_and_det_with_check<MatrixType, ResultType, 1>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(
     const MatrixType& matrix,
     const typename MatrixType::RealScalar& absDeterminantThreshold,
@@ -67,6 +70,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 1>
 ****************************/
 
 template<typename MatrixType, typename ResultType>
+EIGEN_DEVICE_FUNC 
 inline void compute_inverse_size2_helper(
     const MatrixType& matrix, const typename ResultType::Scalar& invdet,
     ResultType& result)
@@ -80,6 +84,7 @@ inline void compute_inverse_size2_helper(
 template<typename MatrixType, typename ResultType>
 struct compute_inverse<MatrixType, ResultType, 2>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(const MatrixType& matrix, ResultType& result)
   {
     typedef typename ResultType::Scalar Scalar;
@@ -91,6 +96,7 @@ struct compute_inverse<MatrixType, ResultType, 2>
 template<typename MatrixType, typename ResultType>
 struct compute_inverse_and_det_with_check<MatrixType, ResultType, 2>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(
     const MatrixType& matrix,
     const typename MatrixType::RealScalar& absDeterminantThreshold,
@@ -114,6 +120,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 2>
 ****************************/
 
 template<typename MatrixType, int i, int j>
+EIGEN_DEVICE_FUNC 
 inline typename MatrixType::Scalar cofactor_3x3(const MatrixType& m)
 {
   enum {
@@ -127,6 +134,7 @@ inline typename MatrixType::Scalar cofactor_3x3(const MatrixType& m)
 }
 
 template<typename MatrixType, typename ResultType>
+EIGEN_DEVICE_FUNC
 inline void compute_inverse_size3_helper(
     const MatrixType& matrix,
     const typename ResultType::Scalar& invdet,
@@ -145,6 +153,7 @@ inline void compute_inverse_size3_helper(
 template<typename MatrixType, typename ResultType>
 struct compute_inverse<MatrixType, ResultType, 3>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(const MatrixType& matrix, ResultType& result)
   {
     typedef typename ResultType::Scalar Scalar;
@@ -161,6 +170,7 @@ struct compute_inverse<MatrixType, ResultType, 3>
 template<typename MatrixType, typename ResultType>
 struct compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(
     const MatrixType& matrix,
     const typename MatrixType::RealScalar& absDeterminantThreshold,
@@ -188,6 +198,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
 ****************************/
 
 template<typename Derived>
+EIGEN_DEVICE_FUNC 
 inline const typename Derived::Scalar general_det3_helper
 (const MatrixBase<Derived>& matrix, int i1, int i2, int i3, int j1, int j2, int j3)
 {
@@ -196,6 +207,7 @@ inline const typename Derived::Scalar general_det3_helper
 }
 
 template<typename MatrixType, int i, int j>
+EIGEN_DEVICE_FUNC 
 inline typename MatrixType::Scalar cofactor_4x4(const MatrixType& matrix)
 {
   enum {
@@ -214,6 +226,7 @@ inline typename MatrixType::Scalar cofactor_4x4(const MatrixType& matrix)
 template<int Arch, typename Scalar, typename MatrixType, typename ResultType>
 struct compute_inverse_size4
 {
+  EIGEN_DEVICE_FUNC
   static void run(const MatrixType& matrix, ResultType& result)
   {
     result.coeffRef(0,0) =  cofactor_4x4<MatrixType,0,0>(matrix);
@@ -246,6 +259,7 @@ struct compute_inverse<MatrixType, ResultType, 4>
 template<typename MatrixType, typename ResultType>
 struct compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(
     const MatrixType& matrix,
     const typename MatrixType::RealScalar& absDeterminantThreshold,
@@ -279,14 +293,17 @@ struct inverse_impl : public ReturnByValue<inverse_impl<MatrixType> >
   typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   MatrixTypeNested m_matrix;
 
+  EIGEN_DEVICE_FUNC
   inverse_impl(const MatrixType& matrix)
     : m_matrix(matrix)
   {}
 
-  inline Index rows() const { return m_matrix.rows(); }
-  inline Index cols() const { return m_matrix.cols(); }
+  EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.rows(); }
+  EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.cols(); }
 
-  template<typename Dest> inline void evalTo(Dest& dst) const
+  template<typename Dest>
+  EIGEN_DEVICE_FUNC
+  inline void evalTo(Dest& dst) const
   {
     const int Size = EIGEN_PLAIN_ENUM_MIN(MatrixType::ColsAtCompileTime,Dest::ColsAtCompileTime);
     EIGEN_ONLY_USED_FOR_DEBUG(Size);

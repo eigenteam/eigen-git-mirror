@@ -62,6 +62,7 @@ template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
 struct real_default_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     return x;
@@ -72,6 +73,7 @@ template<typename Scalar>
 struct real_default_impl<Scalar,true>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     using std::real;
@@ -87,7 +89,6 @@ struct real_retval
   typedef typename NumTraits<Scalar>::Real type;
 };
 
-
 /****************************************************************************
 * Implementation of imag                                                 *
 ****************************************************************************/
@@ -96,6 +97,7 @@ template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
 struct imag_default_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar&)
   {
     return RealScalar(0);
@@ -106,6 +108,7 @@ template<typename Scalar>
 struct imag_default_impl<Scalar,true>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     using std::imag;
@@ -129,10 +132,12 @@ template<typename Scalar>
 struct real_ref_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar& run(Scalar& x)
   {
     return reinterpret_cast<RealScalar*>(&x)[0];
   }
+  EIGEN_DEVICE_FUNC
   static inline const RealScalar& run(const Scalar& x)
   {
     return reinterpret_cast<const RealScalar*>(&x)[0];
@@ -153,10 +158,12 @@ template<typename Scalar, bool IsComplex>
 struct imag_ref_default_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar& run(Scalar& x)
   {
     return reinterpret_cast<RealScalar*>(&x)[1];
   }
+  EIGEN_DEVICE_FUNC
   static inline const RealScalar& run(const Scalar& x)
   {
     return reinterpret_cast<RealScalar*>(&x)[1];
@@ -166,10 +173,12 @@ struct imag_ref_default_impl
 template<typename Scalar>
 struct imag_ref_default_impl<Scalar, false>
 {
+  EIGEN_DEVICE_FUNC
   static inline Scalar run(Scalar&)
   {
     return Scalar(0);
   }
+  EIGEN_DEVICE_FUNC
   static inline const Scalar run(const Scalar&)
   {
     return Scalar(0);
@@ -192,6 +201,7 @@ struct imag_ref_retval
 template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
 struct conj_impl
 {
+  EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
   {
     return x;
@@ -201,6 +211,7 @@ struct conj_impl
 template<typename Scalar>
 struct conj_impl<Scalar,true>
 {
+  EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
   {
     using std::conj;
@@ -222,6 +233,7 @@ template<typename Scalar>
 struct abs2_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     return x*x;
@@ -231,6 +243,7 @@ struct abs2_impl
 template<typename RealScalar>
 struct abs2_impl<std::complex<RealScalar> >
 {
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
     return real(x)*real(x) + imag(x)*imag(x);
@@ -251,6 +264,7 @@ template<typename Scalar, bool IsComplex>
 struct norm1_default_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     using std::abs;
@@ -261,6 +275,7 @@ struct norm1_default_impl
 template<typename Scalar>
 struct norm1_default_impl<Scalar, false>
 {
+  EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
   {
     using std::abs;
@@ -287,8 +302,8 @@ struct hypot_impl
   typedef typename NumTraits<Scalar>::Real RealScalar;
   static inline RealScalar run(const Scalar& x, const Scalar& y)
   {
-    using std::max;
-    using std::min;
+    EIGEN_USING_STD_MATH(max);
+    EIGEN_USING_STD_MATH(min);
     using std::abs;
     using std::sqrt;
     RealScalar _x = abs(x);
@@ -562,72 +577,84 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
 namespace numext {
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(real, Scalar) real(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(real, Scalar)::run(x);
 }  
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline typename internal::add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) >::type real_ref(const Scalar& x)
 {
   return internal::real_ref_impl<Scalar>::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) real_ref(Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(real_ref, Scalar)::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(imag, Scalar) imag(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(imag, Scalar)::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline typename internal::add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) >::type imag_ref(const Scalar& x)
 {
   return internal::imag_ref_impl<Scalar>::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) imag_ref(Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(imag_ref, Scalar)::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(conj, Scalar) conj(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(conj, Scalar)::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(abs2, Scalar) abs2(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(abs2, Scalar)::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(norm1, Scalar) norm1(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(norm1, Scalar)::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(hypot, Scalar) hypot(const Scalar& x, const Scalar& y)
 {
   return EIGEN_MATHFUNC_IMPL(hypot, Scalar)::run(x, y);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(atanh2, Scalar) atanh2(const Scalar& x, const Scalar& y)
 {
   return EIGEN_MATHFUNC_IMPL(atanh2, Scalar)::run(x, y);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(pow, Scalar) pow(const Scalar& x, const Scalar& y)
 {
   return EIGEN_MATHFUNC_IMPL(pow, Scalar)::run(x, y);
@@ -635,7 +662,9 @@ inline EIGEN_MATHFUNC_RETVAL(pow, Scalar) pow(const Scalar& x, const Scalar& y)
 
 // std::isfinite is non standard, so let's define our own version,
 // even though it is not very efficient.
-template<typename T> bool (isfinite)(const T& x)
+template<typename T>
+EIGEN_DEVICE_FUNC
+bool (isfinite)(const T& x)
 {
   return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
 }
@@ -657,18 +686,20 @@ template<typename Scalar>
 struct scalar_fuzzy_default_impl<Scalar, false, false>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y, const RealScalar& prec)
   {
     using std::abs;
     return abs(x) <= abs(y) * prec;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    using std::min;
+    EIGEN_USING_STD_MATH(min);
     using std::abs;
     return abs(x - y) <= (min)(abs(x), abs(y)) * prec;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     return x <= y || isApprox(x, y, prec);
@@ -679,15 +710,17 @@ template<typename Scalar>
 struct scalar_fuzzy_default_impl<Scalar, false, true>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const Scalar&, const RealScalar&)
   {
     return x == Scalar(0);
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar&)
   {
     return x == y;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar&)
   {
     return x <= y;
@@ -705,7 +738,7 @@ struct scalar_fuzzy_default_impl<Scalar, true, false>
   }
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    using std::min;
+    EIGEN_USING_STD_MATH(min);
     return numext::abs2(x - y) <= (min)(numext::abs2(x), numext::abs2(y)) * prec * prec;
   }
 };
@@ -713,21 +746,21 @@ struct scalar_fuzzy_default_impl<Scalar, true, false>
 template<typename Scalar>
 struct scalar_fuzzy_impl : scalar_fuzzy_default_impl<Scalar, NumTraits<Scalar>::IsComplex, NumTraits<Scalar>::IsInteger> {};
 
-template<typename Scalar, typename OtherScalar>
+template<typename Scalar, typename OtherScalar> EIGEN_DEVICE_FUNC
 inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y,
                                    typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
   return scalar_fuzzy_impl<Scalar>::template isMuchSmallerThan<OtherScalar>(x, y, precision);
 }
 
-template<typename Scalar>
+template<typename Scalar> EIGEN_DEVICE_FUNC
 inline bool isApprox(const Scalar& x, const Scalar& y,
                           typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
   return scalar_fuzzy_impl<Scalar>::isApprox(x, y, precision);
 }
 
-template<typename Scalar>
+template<typename Scalar> EIGEN_DEVICE_FUNC
 inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y,
                                     typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
@@ -750,17 +783,19 @@ template<> struct scalar_fuzzy_impl<bool>
 {
   typedef bool RealScalar;
   
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const bool& x, const bool&, const bool&)
   {
     return !x;
   }
   
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(bool x, bool y, bool)
   {
     return x == y;
   }
 
+  EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const bool& x, const bool& y, const bool&)
   {
     return (!x) || y;

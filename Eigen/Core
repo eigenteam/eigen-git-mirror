@@ -14,6 +14,27 @@
 // first thing Eigen does: stop the compiler from committing suicide
 #include "src/Core/util/DisableStupidWarnings.h"
 
+// Handle NVCC/CUDA
+#ifdef __CUDACC__
+  // Do not try asserts on CUDA!
+  #define EIGEN_NO_DEBUG
+  // Do not try to vectorize on CUDA!
+  #define EIGEN_DONT_VECTORIZE
+  
+  // All functions callable from CUDA code must be qualified with __device__
+  #define EIGEN_DEVICE_FUNC __host__ __device__
+  
+#else
+  #define EIGEN_DEVICE_FUNC
+  
+#endif
+
+#if defined(__CUDA_ARCH__)
+  #define EIGEN_USING_STD_MATH(FUNC) using ::FUNC;
+#else
+  #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
+#endif
+
 // then include this file where all our macros are defined. It's really important to do it first because
 // it's where we do all the alignment settings (platform detection and honoring the user's will if he
 // defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.

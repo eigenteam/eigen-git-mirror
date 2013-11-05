@@ -88,7 +88,31 @@ template<bool Condition, typename T> struct enable_if;
 template<typename T> struct enable_if<true,T>
 { typedef T type; };
 
+#if defined(__CUDA_ARCH__)
+template<typename T> EIGEN_DEVICE_FUNC   void swap(T &a, T &b) { T tmp = b; b = a; a = tmp; }
 
+namespace device {
+template<typename T> struct numeric_limits
+{
+  EIGEN_DEVICE_FUNC
+  static T epsilon() { return 0; }
+};
+template<> struct numeric_limits<float>
+{
+  EIGEN_DEVICE_FUNC
+  static float epsilon() { return __FLT_EPSILON__; }
+};
+template<> struct numeric_limits<double>
+{
+  EIGEN_DEVICE_FUNC
+  static double epsilon() { return __DBL_EPSILON__; }
+};
+
+}
+
+#else
+template<typename T> EIGEN_STRONG_INLINE void swap(T &a, T &b) { std::swap(a,b); }
+#endif
 
 /** \internal
   * A base class do disable default copy ctor and copy assignement operator.

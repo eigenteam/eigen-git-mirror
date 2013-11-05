@@ -30,6 +30,7 @@ struct CommaInitializer
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::Index Index;
 
+  EIGEN_DEVICE_FUNC
   inline CommaInitializer(XprType& xpr, const Scalar& s)
     : m_xpr(xpr), m_row(0), m_col(1), m_currentBlockRows(1)
   {
@@ -37,6 +38,7 @@ struct CommaInitializer
   }
 
   template<typename OtherDerived>
+  EIGEN_DEVICE_FUNC
   inline CommaInitializer(XprType& xpr, const DenseBase<OtherDerived>& other)
     : m_xpr(xpr), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
   {
@@ -44,6 +46,7 @@ struct CommaInitializer
   }
 
   /* inserts a scalar value in the target matrix */
+  EIGEN_DEVICE_FUNC
   CommaInitializer& operator,(const Scalar& s)
   {
     if (m_col==m_xpr.cols())
@@ -63,6 +66,7 @@ struct CommaInitializer
 
   /* inserts a matrix expression in the target matrix */
   template<typename OtherDerived>
+  EIGEN_DEVICE_FUNC
   CommaInitializer& operator,(const DenseBase<OtherDerived>& other)
   {
     if(other.cols()==0 || other.rows()==0)
@@ -88,6 +92,7 @@ struct CommaInitializer
     return *this;
   }
 
+  EIGEN_DEVICE_FUNC
   inline ~CommaInitializer()
   {
     eigen_assert((m_row+m_currentBlockRows) == m_xpr.rows()
@@ -102,6 +107,7 @@ struct CommaInitializer
     * quaternion.fromRotationMatrix((Matrix3f() << axis0, axis1, axis2).finished());
     * \endcode
     */
+  EIGEN_DEVICE_FUNC
   inline XprType& finished() { return m_xpr; }
 
   XprType& m_xpr;   // target expression
