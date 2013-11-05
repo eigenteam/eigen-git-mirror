@@ -286,3 +286,25 @@ option(EIGEN_TEST_EIGEN2 "Run whole Eigen2 test suite against EIGEN2_SUPPORT" OF
 if(EIGEN_TEST_EIGEN2)
   add_subdirectory(eigen2)
 endif()
+
+
+# NVCC unit tests
+option(EIGEN_TEST_NVCC "Enable NVCC support in unit tests" OFF)
+if(EIGEN_TEST_NVCC)
+  
+find_package(CUDA)
+if(CUDA_FOUND)
+  
+  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+  cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
+  set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
+  
+  ei_add_test(cuda_basic)
+  
+  unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+
+endif(CUDA_FOUND)
+
+endif(EIGEN_TEST_NVCC)
+

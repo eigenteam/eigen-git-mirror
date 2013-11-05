@@ -17,7 +17,14 @@
 // Handle NVCC/CUDA
 #ifdef __CUDACC__
   // Do not try asserts on CUDA!
+  #ifndef EIGEN_NO_DEBUG
   #define EIGEN_NO_DEBUG
+  #endif
+
+  #ifdef EIGEN_INTERNAL_DEBUGGING
+  #undef EIGEN_INTERNAL_DEBUGGING
+  #endif
+  
   // Do not try to vectorize on CUDA!
   #define EIGEN_DONT_VECTORIZE
   
@@ -190,7 +197,7 @@
   #include <intrin.h>
 #endif
 
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__)
   #define EIGEN_EXCEPTIONS
 #endif
 

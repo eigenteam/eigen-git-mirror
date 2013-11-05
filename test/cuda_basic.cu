@@ -1,0 +1,116 @@
+
+
+#define EIGEN_TEST_NO_LONGDOUBLE
+#define EIGEN_TEST_NO_COMPLEX
+#define EIGEN_TEST_FUNC cuda_basic
+#include "main.h"
+#include "cuda_common.h"
+
+#include <Eigen/Eigenvalues>
+
+// struct Foo{
+//   EIGEN_DEVICE_FUNC
+//   void operator()(int i, const float* mats, float* vecs) const {
+//     using namespace Eigen;
+//   //   Matrix3f M(data);
+//   //   Vector3f x(data+9);
+//   //   Map<Vector3f>(data+9) = M.inverse() * x;
+//     Matrix3f M(mats+i/16);
+//     Vector3f x(vecs+i*3);
+//   //   using std::min;
+//   //   using std::sqrt;
+//     Map<Vector3f>(vecs+i*3) << x.minCoeff(), 1, 2;// / x.dot(x);//(M.inverse() *  x) / x.x();
+//     //x = x*2 + x.y() * x + x * x.maxCoeff() - x / x.sum();
+//   }
+// };
+
+template<typename T>
+struct coeff_wise {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
+  {
+    using namespace Eigen;
+    T x1(in+i);
+    T x2(in+i+1);
+    T x3(in+i+2);
+    Map<T> res(out+i*T::MaxSizeAtCompileTime);
+    
+    res.array() += (in[0] * x1 + x2).array() * x3.array();
+  }
+};
+
+template<typename T>
+struct redux {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
+  {
+    using namespace Eigen;
+    int N = 6;
+    T x1(in+i);
+    out[i*N+0] = x1.minCoeff();
+    out[i*N+1] = x1.maxCoeff();
+    out[i*N+2] = x1.sum();
+    out[i*N+3] = x1.prod();
+//     out[i*N+4] = x1.colwise().sum().maxCoeff();
+//     out[i*N+5] = x1.rowwise().maxCoeff().sum();
+  }
+};
+
+template<typename T1, typename T2>
+struct prod {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T1::Scalar* in, typename T1::Scalar* out) const
+  {
+    using namespace Eigen;
+    typedef Matrix<typename T1::Scalar, T1::RowsAtCompileTime, T2::ColsAtCompileTime> T3;
+    T1 x1(in+i);
+    T2 x2(in+i+1);
+    Map<T3> res(out+i*T3::MaxSizeAtCompileTime);
+    res += in[i] * x1 * x2;
+  }
+};
+
+
+template<typename T>
+struct eigenvalues {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
+  {
+    using namespace Eigen;
+    typedef Matrix<typename T::Scalar, T::RowsAtCompileTime, 1> Vec;
+    T M(in+i);
+    Map<Vec> res(out+i*Vec::MaxSizeAtCompileTime);
+    T A = M*M.adjoint();
+    SelfAdjointEigenSolver<T> eig;
+    eig.computeDirect(A);
+    res = A.eigenvalues();
+  }
+};
+
+
+void test_cuda_basic()
+{
+  ei_test_init_cuda();
+  
+  int nthreads = 100;
+  Eigen::VectorXf in, out;
+  
+  #ifndef __CUDA_ARCH__
+  int data_size = nthreads * 16;
+  in.setRandom(data_size);
+  out.setRandom(data_size);
+  #endif
+  
+  CALL_SUBTEST( run_and_compare_to_cuda(coeff_wise<Vector3f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(coeff_wise<Array44f>(), nthreads, in, out) );
+  
+  CALL_SUBTEST( run_and_compare_to_cuda(redux<Array4f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(redux<Matrix3f>(), nthreads, in, out) );
+  
+  CALL_SUBTEST( run_and_compare_to_cuda(prod<Matrix3f,Matrix3f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(prod<Matrix4f,Vector4f>(), nthreads, in, out) );
+  
+//   CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix3f>(), nthreads, in, out) );
+//   CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix2f>(), nthreads, in, out) );
+
+}

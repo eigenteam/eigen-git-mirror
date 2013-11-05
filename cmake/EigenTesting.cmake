@@ -11,9 +11,20 @@ endmacro(ei_add_property)
 #internal. See documentation of ei_add_test for details.
 macro(ei_add_test_internal testname testname_with_suffix)
   set(targetname ${testname_with_suffix})
-
-  set(filename ${testname}.cpp)
-  add_executable(${targetname} ${filename})
+  
+  if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+    set(filename ${testname}.${EIGEN_ADD_TEST_FILENAME_EXTENSION})
+  else()
+    set(filename ${testname}.cpp)
+  endif()
+  
+  if(EIGEN_ADD_TEST_FILENAME_EXTENSION STREQUAL cu)
+    cuda_add_executable(${targetname} ${filename})
+  else()
+    add_executable(${targetname} ${filename})
+  endif()
+  
+  
   if (targetname MATCHES "^eigen2_")
     add_dependencies(eigen2_buildtests ${targetname})
   else()
@@ -127,7 +138,13 @@ macro(ei_add_test testname)
   set(EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}${testname}\n")
   set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}")
 
-  file(READ "${testname}.cpp" test_source)
+  if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+    set(filename ${testname}.${EIGEN_ADD_TEST_FILENAME_EXTENSION})
+  else()
+    set(filename ${testname}.cpp)
+  endif()
+  
+  file(READ "${filename}" test_source)
   set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+|EIGEN_SUFFIXES(;[0-9]+)+"
          occurences "${test_source}")
