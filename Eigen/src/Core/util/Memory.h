@@ -83,6 +83,7 @@ namespace Eigen {
 
 namespace internal {
 
+EIGEN_DEVICE_FUNC 
 inline void throw_std_bad_alloc()
 {
   #ifdef EIGEN_EXCEPTIONS
