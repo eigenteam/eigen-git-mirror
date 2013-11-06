@@ -78,6 +78,8 @@ template<typename ExpressionType>
 struct evaluator_impl_base
 {
   typedef typename ExpressionType::Index Index;
+  // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.
+  typedef traits<ExpressionType> ExpressionTraits;
 
   template<typename OtherEvaluatorType>
   void copyCoeff(Index row, Index col, const OtherEvaluatorType& other)
@@ -307,15 +309,17 @@ struct evaluator_impl<EvalToTemp<ArgType> >
 
   evaluator_impl(const XprType& xpr) 
     : m_result(xpr.rows(), xpr.cols()), m_resultImpl(m_result)
-  { 
-    copy_using_evaluator_without_resizing(m_result, xpr.arg());
+  {
+    // TODO we should simply do m_result(xpr.arg());
+    call_dense_assignment_loop(m_result, xpr.arg());
   }
 
   // This constructor is used when nesting an EvalTo evaluator in another evaluator
   evaluator_impl(const ArgType& arg) 
     : m_result(arg.rows(), arg.cols()), m_resultImpl(m_result)
-  { 
-    copy_using_evaluator_without_resizing(m_result, arg);
+  {
+    // TODO we should simply do m_result(xpr.arg());
+    call_dense_assignment_loop(m_result, arg);
   }
 
   typedef typename PlainObject::Index Index;

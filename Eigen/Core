@@ -383,6 +383,7 @@ using std::ptrdiff_t;
 #include "src/Core/ArrayWrapper.h"
 
 #ifdef EIGEN_ENABLE_EVALUATORS
+#include "src/Core/functors/AssignmentFunctors.h"
 #include "src/Core/Product.h"
 #include "src/Core/CoreEvaluators.h"
 #include "src/Core/AssignEvaluator.h"
