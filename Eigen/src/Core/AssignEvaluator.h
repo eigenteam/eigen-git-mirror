@@ -438,7 +438,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTravers
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversal, NoUnrolling>
 {
-  inline static void run(DstXprType &dst, const SrcXprType &src)
+  static inline void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
@@ -501,7 +501,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversa
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearTraversal, NoUnrolling>
 {
-  inline static void run(DstXprType &dst, const SrcXprType &src)
+  static inline void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
@@ -540,7 +540,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearTraversal, Comple
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversal, NoUnrolling>
 {
-  inline static void run(DstXprType &dst, const SrcXprType &src)
+  static inline void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
@@ -592,7 +592,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, AllAtOnceTraversal, NoUnrolling>
 {
-  inline static void run(DstXprType &dst, const SrcXprType &src)
+  static inline void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
