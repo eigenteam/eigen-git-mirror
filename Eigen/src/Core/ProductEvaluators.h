@@ -95,7 +95,7 @@ struct product_evaluator_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, 
   { }
   
   template<typename DstEvaluatorType, typename DstXprType>
-  void evalTo(DstEvaluatorType /* not used */, DstXprType& dst)
+  void evalTo(DstEvaluatorType /* not used */, DstXprType& dst) const
   {
     dst.resize(m_xpr.rows(), m_xpr.cols());
     GeneralProduct<Lhs, Rhs, ProductType>(m_xpr.lhs(), m_xpr.rhs()).evalTo(dst);
