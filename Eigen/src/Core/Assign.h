@@ -510,8 +510,6 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   internal::copy_using_evaluator_traits<Derived, OtherDerived>::debug();
 #endif
   eigen_assert(rows() == other.rows() && cols() == other.cols());
-//   internal::copy_using_evaluator_impl<Derived, OtherDerived, int(SameType) ? int(internal::copy_using_evaluator_traits<Derived, OtherDerived>::Traversal)
-//                                                        : int(InvalidTraversal)>::run(derived(),other.derived());
   internal::call_dense_assignment_loop(derived(),other.derived());
   
 #else // EIGEN_TEST_EVALUATORS
@@ -520,7 +518,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   internal::assign_traits<Derived, OtherDerived>::debug();
 #endif
   eigen_assert(rows() == other.rows() && cols() == other.cols());
-  internal::assign_impl<Derived, OtherDerived, int(SameType) ? int(internal::copy_using_evaluator_traits<Derived, OtherDerived>::Traversal)
+  internal::assign_impl<Derived, OtherDerived, int(SameType) ? int(internal::assign_traits<Derived, OtherDerived>::Traversal)
                                                              : int(InvalidTraversal)>::run(derived(),other.derived());
   
 #endif // EIGEN_TEST_EVALUATORS
