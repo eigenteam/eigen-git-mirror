@@ -504,12 +504,27 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT(SameType,YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
+#ifdef EIGEN_TEST_EVALUATORS
+  
+#ifdef EIGEN_DEBUG_ASSIGN
+  internal::copy_using_evaluator_traits<Derived, OtherDerived>::debug();
+#endif
+  eigen_assert(rows() == other.rows() && cols() == other.cols());
+//   internal::copy_using_evaluator_impl<Derived, OtherDerived, int(SameType) ? int(internal::copy_using_evaluator_traits<Derived, OtherDerived>::Traversal)
+//                                                        : int(InvalidTraversal)>::run(derived(),other.derived());
+  internal::call_dense_assignment_loop(derived(),other.derived());
+  
+#else // EIGEN_TEST_EVALUATORS
+
 #ifdef EIGEN_DEBUG_ASSIGN
   internal::assign_traits<Derived, OtherDerived>::debug();
 #endif
   eigen_assert(rows() == other.rows() && cols() == other.cols());
-  internal::assign_impl<Derived, OtherDerived, int(SameType) ? int(internal::assign_traits<Derived, OtherDerived>::Traversal)
-                                                       : int(InvalidTraversal)>::run(derived(),other.derived());
+  internal::assign_impl<Derived, OtherDerived, int(SameType) ? int(internal::copy_using_evaluator_traits<Derived, OtherDerived>::Traversal)
+                                                             : int(InvalidTraversal)>::run(derived(),other.derived());
+  
+#endif // EIGEN_TEST_EVALUATORS
+  
 #ifndef EIGEN_NO_DEBUG
   checkTransposeAliasing(other.derived());
 #endif

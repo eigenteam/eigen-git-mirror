@@ -36,7 +36,7 @@ struct traits<Product<Lhs, Rhs> >
   // We want A+B*C to be of type Product<Matrix, Sum> and not Product<Matrix, Matrix>
   // TODO: This flag should eventually go in a separate evaluator traits class
   enum {
-    Flags = traits<typename ProductReturnType<Lhs, Rhs>::Type>::Flags & ~EvalBeforeNestingBit
+    Flags = traits<typename ProductReturnType<Lhs, Rhs>::Type>::Flags & ~(EvalBeforeNestingBit | DirectAccessBit)
   };
 };
 } // end namespace internal

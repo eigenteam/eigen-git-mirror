@@ -184,9 +184,17 @@ template<typename Derived> class MatrixBase
     operator*(const MatrixBase<OtherDerived> &other) const
     { return this->lazyProduct(other); }
 #else
+
+#ifdef EIGEN_TEST_EVALUATORS
+    template<typename OtherDerived>
+    const Product<Derived,OtherDerived>
+    operator*(const MatrixBase<OtherDerived> &other) const;
+#else
     template<typename OtherDerived>
     const typename ProductReturnType<Derived,OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
+#endif
+
 #endif
 
     template<typename OtherDerived>

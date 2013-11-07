@@ -311,6 +311,14 @@ using std::ptrdiff_t;
 #include "src/Core/MatrixBase.h"
 #include "src/Core/EigenBase.h"
 
+#ifdef EIGEN_ENABLE_EVALUATORS
+#include "src/Core/functors/AssignmentFunctors.h"
+#include "src/Core/Product.h"
+#include "src/Core/CoreEvaluators.h"
+#include "src/Core/AssignEvaluator.h"
+#include "src/Core/ProductEvaluators.h"
+#endif
+
 #ifndef EIGEN_PARSED_BY_DOXYGEN // work around Doxygen bug triggered by Assign.h r814874
                                 // at least confirmed with Doxygen 1.5.5 and 1.5.6
   #include "src/Core/Assign.h"
@@ -381,14 +389,6 @@ using std::ptrdiff_t;
 #include "src/Core/Replicate.h"
 #include "src/Core/Reverse.h"
 #include "src/Core/ArrayWrapper.h"
-
-#ifdef EIGEN_ENABLE_EVALUATORS
-#include "src/Core/functors/AssignmentFunctors.h"
-#include "src/Core/Product.h"
-#include "src/Core/CoreEvaluators.h"
-#include "src/Core/AssignEvaluator.h"
-#include "src/Core/ProductEvaluators.h"
-#endif
 
 #ifdef EIGEN_USE_BLAS
 #include "src/Core/products/GeneralMatrixMatrix_MKL.h"

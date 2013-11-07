@@ -271,7 +271,13 @@ inline bool test_isApproxOrLessThan(const long double& a, const long double& b)
 template<typename Type1, typename Type2>
 inline bool test_isApprox(const Type1& a, const Type2& b)
 {
+#ifdef EIGEN_TEST_EVALUATORS
+  typename internal::eval<Type1>::type a_eval(a);
+  typename internal::eval<Type2>::type b_eval(b);
+  return a_eval.isApprox(b_eval, test_precision<typename Type1::Scalar>());
+#else
   return a.isApprox(b, test_precision<typename Type1::Scalar>());
+#endif
 }
 
 // The idea behind this function is to compare the two scalars a and b where
