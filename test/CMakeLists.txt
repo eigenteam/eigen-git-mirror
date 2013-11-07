@@ -127,10 +127,9 @@ set_property(GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT "Official")
 add_custom_target(BuildOfficial)
 
 option(EIGEN_TEST_EVALUATORS "Enable work in progress evaluators" OFF)
+if(EIGEN_TEST_EVALUATORS)
   add_definitions("-DEIGEN_TEST_EVALUATORS=1")
   add_definitions("-DEIGEN_ENABLE_EVALUATORS=1")
-if(EIGEN_TEST_EVALUATORS)
-  
 endif(EIGEN_TEST_EVALUATORS)
 
 ei_add_test(meta)
