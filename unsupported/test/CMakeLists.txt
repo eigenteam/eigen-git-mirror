@@ -28,6 +28,7 @@ endif(ADOLC_FOUND)
 ei_add_test(NonLinearOptimization)
 
 ei_add_test(NumericalDiff)
+ei_add_test(autodiff_scalar)
 ei_add_test(autodiff)
 
 if (NOT CMAKE_CXX_COMPILER MATCHES "clang\\+\\+$")
