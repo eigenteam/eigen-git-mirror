@@ -89,9 +89,9 @@ template<typename T> struct enable_if<true,T>
 { typedef T type; };
 
 #if defined(__CUDA_ARCH__)
-template<typename T> EIGEN_DEVICE_FUNC   void swap(T &a, T &b) { T tmp = b; b = a; a = tmp; }
 
 namespace device {
+
 template<typename T> struct numeric_limits
 {
   EIGEN_DEVICE_FUNC
@@ -110,8 +110,6 @@ template<> struct numeric_limits<double>
 
 }
 
-#else
-template<typename T> EIGEN_STRONG_INLINE void swap(T &a, T &b) { std::swap(a,b); }
 #endif
 
 /** \internal
@@ -261,6 +259,16 @@ template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
 } // end namespace internal
+
+namespace numext {
+  
+#if defined(__CUDA_ARCH__)
+template<typename T> EIGEN_DEVICE_FUNC   void swap(T &a, T &b) { T tmp = b; b = a; a = tmp; }
+#else
+template<typename T> EIGEN_STRONG_INLINE void swap(T &a, T &b) { std::swap(a,b); }
+#endif
+
+} // end namespace numext
 
 } // end namespace Eigen
 

@@ -606,12 +606,12 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
 
     // Sort in increasing order.
     if (roots(0) >= roots(1))
-      internal::swap(roots(0),roots(1));
+      numext::swap(roots(0),roots(1));
     if (roots(1) >= roots(2))
     {
-      internal::swap(roots(1),roots(2));
+      numext::swap(roots(1),roots(2));
       if (roots(0) >= roots(1))
-        internal::swap(roots(0),roots(1));
+        numext::swap(roots(0),roots(1));
     }
   }
   
