@@ -74,70 +74,13 @@ struct evaluator<const T>
 
 // ---------- base class for all writable evaluators ----------
 
+// TODO this class does not seem to be necessary anymore
 template<typename ExpressionType>
 struct evaluator_impl_base
 {
   typedef typename ExpressionType::Index Index;
   // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.
   typedef traits<ExpressionType> ExpressionTraits;
-
-  template<typename OtherEvaluatorType>
-  void copyCoeff(Index row, Index col, const OtherEvaluatorType& other)
-  {
-    derived().coeffRef(row, col) = other.coeff(row, col);
-  }
-
-  template<typename OtherEvaluatorType>
-  void copyCoeffByOuterInner(Index outer, Index inner, const OtherEvaluatorType& other)
-  {
-    Index row = rowIndexByOuterInner(outer, inner); 
-    Index col = colIndexByOuterInner(outer, inner); 
-    derived().copyCoeff(row, col, other);
-  }
-
-  template<typename OtherEvaluatorType>
-  void copyCoeff(Index index, const OtherEvaluatorType& other)
-  {
-    derived().coeffRef(index) = other.coeff(index);
-  }
-
-  template<int StoreMode, int LoadMode, typename OtherEvaluatorType>
-  void copyPacket(Index row, Index col, const OtherEvaluatorType& other)
-  {
-    derived().template writePacket<StoreMode>(row, col, 
-      other.template packet<LoadMode>(row, col));
-  }
-
-  template<int StoreMode, int LoadMode, typename OtherEvaluatorType>
-  void copyPacketByOuterInner(Index outer, Index inner, const OtherEvaluatorType& other)
-  {
-    Index row = rowIndexByOuterInner(outer, inner); 
-    Index col = colIndexByOuterInner(outer, inner); 
-    derived().template copyPacket<StoreMode, LoadMode>(row, col, other);
-  }
-
-  template<int StoreMode, int LoadMode, typename OtherEvaluatorType>
-  void copyPacket(Index index, const OtherEvaluatorType& other)
-  {
-    derived().template writePacket<StoreMode>(index, 
-      other.template packet<LoadMode>(index));
-  }
-
-  Index rowIndexByOuterInner(Index outer, Index inner) const
-  {
-    return int(ExpressionType::RowsAtCompileTime) == 1 ? 0
-      : int(ExpressionType::ColsAtCompileTime) == 1 ? inner
-      : int(ExpressionType::Flags)&RowMajorBit ? outer
-      : inner;
-  }
-
-  Index colIndexByOuterInner(Index outer, Index inner) const
-  {
-    return int(ExpressionType::ColsAtCompileTime) == 1 ? 0
-      : int(ExpressionType::RowsAtCompileTime) == 1 ? inner
-      : int(ExpressionType::Flags)&RowMajorBit ? inner
-      : outer;
-  }
 
   evaluator_impl<ExpressionType>& derived() 
   {
