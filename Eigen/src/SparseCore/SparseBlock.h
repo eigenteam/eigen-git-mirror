@@ -52,11 +52,11 @@ public:
 
     inline BlockImpl(const XprType& xpr, int i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
-    {std::cout << __LINE__ << "\n";}
+    {}
 
     inline BlockImpl(const XprType& xpr, int startRow, int startCol, int blockRows, int blockCols)
       : m_matrix(xpr), m_outerStart(IsRowMajor ? startRow : startCol), m_outerSize(IsRowMajor ? blockRows : blockCols)
-    {std::cout << __LINE__ << "\n";}
+    {}
 
     EIGEN_STRONG_INLINE Index rows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
     EIGEN_STRONG_INLINE Index cols() const { return IsRowMajor ? m_matrix.cols() : m_outerSize.value(); }
@@ -86,11 +86,12 @@ public:
 * specialization for SparseMatrix
 ***************************************************************************/
 
-template<typename _Scalar, int _Options, typename _Index, int BlockRows, int BlockCols>
-class BlockImpl<SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols,true,Sparse>
-  : public SparseMatrixBase<Block<SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols,true> >
+namespace internal {
+
+template<typename SparseMatrixType, int BlockRows, int BlockCols>
+class sparse_matrix_block_impl
+  : public SparseMatrixBase<Block<SparseMatrixType,BlockRows,BlockCols,true> >
 {
-    typedef SparseMatrix<_Scalar, _Options, _Index> SparseMatrixType;
     typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _MatrixTypeNested;
     typedef Block<SparseMatrixType, BlockRows, BlockCols, true> BlockType;
 public:
@@ -123,13 +124,13 @@ public:
         Index m_outer;
     };
 
-    inline BlockImpl(const SparseMatrixType& xpr, int i)
+    inline sparse_matrix_block_impl(const SparseMatrixType& xpr, int i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
-    {std::cout << __LINE__ << "\n";}
+    {}
 
-    inline BlockImpl(const SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+    inline sparse_matrix_block_impl(const SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
       : m_matrix(xpr), m_outerStart(IsRowMajor ? startRow : startCol), m_outerSize(IsRowMajor ? blockRows : blockCols)
-    {std::cout << __LINE__ << "\n";}
+    {}
 
     template<typename OtherDerived>
     inline BlockType& operator=(const SparseMatrixBase<OtherDerived>& other)
@@ -237,7 +238,7 @@ public:
 
     const Scalar& lastCoeff() const
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(BlockImpl);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(sparse_matrix_block_impl);
       eigen_assert(nonZeros()>0);
       if(m_matrix.isCompressed())
         return m_matrix.valuePtr()[m_matrix.outerIndexPtr()[m_outerStart+1]-1];
@@ -256,6 +257,44 @@ public:
 
 };
 
+} // namespace internal
+
+template<typename _Scalar, int _Options, typename _Index, int BlockRows, int BlockCols>
+class BlockImpl<SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols,true,Sparse>
+  : public internal::sparse_matrix_block_impl<SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols>
+{
+public:
+  typedef SparseMatrix<_Scalar, _Options, _Index> SparseMatrixType;
+  typedef internal::sparse_matrix_block_impl<SparseMatrixType,BlockRows,BlockCols> Base;
+  inline BlockImpl(SparseMatrixType& xpr, int i)
+    : Base(xpr, i)
+  {}
+
+  inline BlockImpl(SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+    : Base(xpr, startRow, startCol, blockRows, blockCols)
+  {}
+  
+  using Base::operator=;
+};
+
+template<typename _Scalar, int _Options, typename _Index, int BlockRows, int BlockCols>
+class BlockImpl<const SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols,true,Sparse>
+  : public internal::sparse_matrix_block_impl<const SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols>
+{
+public:
+  typedef const SparseMatrix<_Scalar, _Options, _Index> SparseMatrixType;
+  typedef internal::sparse_matrix_block_impl<SparseMatrixType,BlockRows,BlockCols> Base;
+  inline BlockImpl(SparseMatrixType& xpr, int i)
+    : Base(xpr, i)
+  {}
+
+  inline BlockImpl(SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+    : Base(xpr, startRow, startCol, blockRows, blockCols)
+  {}
+  
+  using Base::operator=;
+};
+  
 //----------
 
 /** \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
@@ -317,13 +356,13 @@ public:
         m_startCol( (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
         m_blockRows(xpr.rows()),
         m_blockCols(xpr.cols())
-    {std::cout << __LINE__ << "\n";}
+    {}
 
     /** Dynamic-size constructor
       */
     inline BlockImpl(const XprType& xpr, int startRow, int startCol, int blockRows, int blockCols)
       : m_matrix(xpr), m_startRow(startRow), m_startCol(startCol), m_blockRows(blockRows), m_blockCols(blockCols)
-    {std::cout << __LINE__ << "\n";}
+    {}
 
     inline int rows() const { return m_blockRows.value(); }
     inline int cols() const { return m_blockCols.value(); }
