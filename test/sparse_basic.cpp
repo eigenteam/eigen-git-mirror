@@ -198,6 +198,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       if(j>0)
         VERIFY(j==numext::real(m3.innerVector(j).lastCoeff()));
     }
+    
+    VERIFY(m3.innerVector(j0).nonZeros() == m3.transpose().innerVector(j0).nonZeros());
 
     //m2.innerVector(j0) = 2*m2.innerVector(j1);
     //refMat2.col(j0) = 2*refMat2.col(j1);
@@ -227,6 +229,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     
     VERIFY_IS_APPROX(m2, refMat2);
     
+    VERIFY(m2.innerVectors(j0,n0).nonZeros() == m2.transpose().innerVectors(j0,n0).nonZeros());
+    
     m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
     if(SparseMatrixType::IsRowMajor)
       refMat2.middleRows(j0,n0) = (refMat2.middleRows(j0,n0) + refMat2.middleRows(j1,n0)).eval();
@@ -234,7 +238,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       refMat2.middleCols(j0,n0) = (refMat2.middleCols(j0,n0) + refMat2.middleCols(j1,n0)).eval();
     
     VERIFY_IS_APPROX(m2, refMat2);
-    
   }
   
   // test basic computations

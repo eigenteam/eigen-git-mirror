@@ -52,14 +52,24 @@ public:
 
     inline BlockImpl(const XprType& xpr, int i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
-    {}
+    {std::cout << __LINE__ << "\n";}
 
     inline BlockImpl(const XprType& xpr, int startRow, int startCol, int blockRows, int blockCols)
       : m_matrix(xpr), m_outerStart(IsRowMajor ? startRow : startCol), m_outerSize(IsRowMajor ? blockRows : blockCols)
-    {}
+    {std::cout << __LINE__ << "\n";}
 
     EIGEN_STRONG_INLINE Index rows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
     EIGEN_STRONG_INLINE Index cols() const { return IsRowMajor ? m_matrix.cols() : m_outerSize.value(); }
+    
+    Index nonZeros() const
+    {
+      Index nnz = 0;
+      Index end = m_outerStart + m_outerSize.value();
+      for(int j=m_outerStart; j<end; ++j)
+        for(typename XprType::InnerIterator it(m_matrix, j); it; ++it)
+          ++nnz;
+      return nnz;
+    }
 
   protected:
 
@@ -115,11 +125,11 @@ public:
 
     inline BlockImpl(const SparseMatrixType& xpr, int i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
-    {}
+    {std::cout << __LINE__ << "\n";}
 
     inline BlockImpl(const SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
       : m_matrix(xpr), m_outerStart(IsRowMajor ? startRow : startCol), m_outerSize(IsRowMajor ? blockRows : blockCols)
-    {}
+    {std::cout << __LINE__ << "\n";}
 
     template<typename OtherDerived>
     inline BlockType& operator=(const SparseMatrixBase<OtherDerived>& other)
@@ -307,13 +317,13 @@ public:
         m_startCol( (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
         m_blockRows(xpr.rows()),
         m_blockCols(xpr.cols())
-    {}
+    {std::cout << __LINE__ << "\n";}
 
     /** Dynamic-size constructor
       */
     inline BlockImpl(const XprType& xpr, int startRow, int startCol, int blockRows, int blockCols)
       : m_matrix(xpr), m_startRow(startRow), m_startCol(startCol), m_blockRows(blockRows), m_blockCols(blockCols)
-    {}
+    {std::cout << __LINE__ << "\n";}
 
     inline int rows() const { return m_blockRows.value(); }
     inline int cols() const { return m_blockCols.value(); }
