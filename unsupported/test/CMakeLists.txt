@@ -99,4 +99,5 @@ if(EIGEN_TEST_CXX11)
   #        (MSVC doesn't need any for example, so this will
   #        clash there)
   ei_add_test(cxx11_meta "-std=c++0x")
+  ei_add_test(cxx11_tensor_simple "-std=c++0x")
 endif()
