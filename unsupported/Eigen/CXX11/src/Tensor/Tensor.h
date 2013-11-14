@@ -92,6 +92,9 @@ struct tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
     return std_array_get<RowMajor ? 0 : NumIndices - 1>(indices);
   }
 };
+
+/* Forward-declaration required for the symmetry support. */
+template<typename Tensor_, typename Symmetry_, int Flags = 0> class tensor_symmetry_value_setter;
 } // end namespace internal
 
 template<typename Scalar_, std::size_t NumIndices_, int Options_>
@@ -281,6 +284,18 @@ class Tensor
       #else
         m_storage.resize(size, dimensions);
       #endif
+    }
+
+    template<typename Symmetry_, typename... IndexTypes>
+    internal::tensor_symmetry_value_setter<Self, Symmetry_> symCoeff(const Symmetry_& symmetry, Index firstIndex, IndexTypes... otherIndices)
+    {
+      return symCoeff(symmetry, std::array<Index, NumIndices>{{firstIndex, otherIndices...}});
+    }
+
+    template<typename Symmetry_, typename... IndexTypes>
+    internal::tensor_symmetry_value_setter<Self, Symmetry_> symCoeff(const Symmetry_& symmetry, std::array<Index, NumIndices> const& indices)
+    {
+      return internal::tensor_symmetry_value_setter<Self, Symmetry_>(*this, symmetry, indices);
     }
 
   protected:
