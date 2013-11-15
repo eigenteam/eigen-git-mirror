@@ -229,8 +229,10 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       // Permute the right hand side to form X = Pr*B
       // on return, X is overwritten by the computed solution
       X.resize(B.rows(),B.cols());
+
+      // this ugly const_cast_derived() helps to detect aliasing when applying the permutations
       for(Index j = 0; j < B.cols(); ++j)
-        X.col(j) = rowsPermutation() * B.col(j);
+        X.col(j) = rowsPermutation() * B.const_cast_derived().col(j);
       
       //Forward substitution with L
       this->matrixL().solveInPlace(X);
