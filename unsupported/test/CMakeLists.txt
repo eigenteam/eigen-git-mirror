@@ -92,3 +92,13 @@ ei_add_test(gmres)
 ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(bdcsvd)
+
+option(EIGEN_TEST_CXX11 "Enable testing of C++11 features (e.g. Tensor module)." OFF)
+if(EIGEN_TEST_CXX11)
+  # FIXME: add C++11 compiler switch in some portable way
+  #        (MSVC doesn't need any for example, so this will
+  #        clash there)
+  ei_add_test(cxx11_meta "-std=c++0x")
+  ei_add_test(cxx11_tensor_simple "-std=c++0x")
+  ei_add_test(cxx11_tensor_symmetry "-std=c++0x")
+endif()
