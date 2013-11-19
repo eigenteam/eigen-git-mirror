@@ -94,10 +94,10 @@ template<typename _MatrixType> class FullPivHouseholderQR
     FullPivHouseholderQR(Index rows, Index cols)
       : m_qr(rows, cols),
         m_hCoeffs((std::min)(rows,cols)),
-        m_rows_transpositions(rows),
-        m_cols_transpositions(cols),
+        m_rows_transpositions((std::min)(rows,cols)),
+        m_cols_transpositions((std::min)(rows,cols)),
         m_cols_permutation(cols),
-        m_temp((std::min)(rows,cols)),
+        m_temp(cols),
         m_isInitialized(false),
         m_usePrescribedThreshold(false) {}
 
@@ -116,10 +116,10 @@ template<typename _MatrixType> class FullPivHouseholderQR
     FullPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs((std::min)(matrix.rows(), matrix.cols())),
-        m_rows_transpositions(matrix.rows()),
-        m_cols_transpositions(matrix.cols()),
+        m_rows_transpositions((std::min)(matrix.rows(), matrix.cols())),
+        m_cols_transpositions((std::min)(matrix.rows(), matrix.cols())),
         m_cols_permutation(matrix.cols()),
-        m_temp((std::min)(matrix.rows(), matrix.cols())),
+        m_temp(matrix.cols()),
         m_isInitialized(false),
         m_usePrescribedThreshold(false)
     {
