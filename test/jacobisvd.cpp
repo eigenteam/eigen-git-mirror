@@ -285,7 +285,7 @@ void jacobisvd_inf_nan()
 
 // Regression test for bug 286: JacobiSVD loops indefinitely with some
 // matrices containing denormal numbers.
-void jacobisvd_bug286()
+void jacobisvd_underoverflow()
 {
 #if defined __INTEL_COMPILER
 // shut up warning #239: floating point underflow
@@ -300,6 +300,15 @@ void jacobisvd_bug286()
 #endif
   JacobiSVD<Matrix2d> svd;
   svd.compute(M); // just check we don't loop indefinitely
+  
+  // Check for overflow:
+  Matrix3d M3;
+  M3 << 4.4331978442502944e+307, -5.8585363752028680e+307,  6.4527017443412964e+307,
+        3.7841695601406358e+307,  2.4331702789740617e+306, -3.5235707140272905e+307,
+       -8.7190887618028355e+307, -7.3453213709232193e+307, -2.4367363684472105e+307;
+
+  JacobiSVD<Matrix3d> svd3;
+  svd3.compute(M3); // just check we don't loop indefinitely
 }
 
 void jacobisvd_preallocate()
@@ -398,5 +407,5 @@ void test_jacobisvd()
   CALL_SUBTEST_9( jacobisvd_preallocate() );
 
   // Regression check for bug 286
-  CALL_SUBTEST_2( jacobisvd_bug286() );
+  CALL_SUBTEST_2( jacobisvd_underoverflow() );
 }

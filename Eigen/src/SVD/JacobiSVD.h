@@ -411,8 +411,8 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
 
 template<typename MatrixType, typename RealScalar, typename Index>
 void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
-                            JacobiRotation<RealScalar> *j_left,
-                            JacobiRotation<RealScalar> *j_right)
+                         JacobiRotation<RealScalar> *j_left,
+                         JacobiRotation<RealScalar> *j_right)
 {
   using std::sqrt;
   Matrix<RealScalar,2,2> m;
@@ -831,6 +831,11 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
     if(m_computeFullV) m_matrixV.setIdentity(m_cols,m_cols);
     if(m_computeThinV) m_matrixV.setIdentity(m_cols, m_diagSize);
   }
+  
+  // Scaling factor to reducover/under-flows
+  RealScalar scale = m_workMatrix.cwiseAbs().maxCoeff();
+  if(scale==RealScalar(0)) scale = RealScalar(1);
+  m_workMatrix /= scale;
 
   /*** step 2. The main Jacobi SVD iteration. ***/
 
@@ -879,6 +884,8 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
     m_singularValues.coeffRef(i) = a;
     if(computeU() && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
   }
+  
+  m_singularValues *= scale;
 
   /*** step 4. Sort singular values in descending order and compute the number of nonzero singular values ***/
 
