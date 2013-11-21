@@ -13,6 +13,8 @@
 
 #include "main.h"
 
+#define EIGEN_TESTMAP_MAX_SIZE 256
+
 template<typename VectorType> void map_class_vector(const VectorType& m)
 {
   typedef typename VectorType::Index Index;
@@ -25,15 +27,19 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   Scalar* array2 = internal::aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
   Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
+  Scalar  array4[EIGEN_TESTMAP_MAX_SIZE];
 
   Map<VectorType, Aligned>(array1, size) = VectorType::Random(size);
   Map<VectorType, Aligned>(array2, size) = Map<VectorType,Aligned>(array1, size);
   Map<VectorType>(array3unaligned, size) = Map<VectorType>(array1, size);
+  Map<VectorType>(array4, size)          = Map<VectorType,Aligned>(array1, size);
   VectorType ma1 = Map<VectorType, Aligned>(array1, size);
   VectorType ma2 = Map<VectorType, Aligned>(array2, size);
   VectorType ma3 = Map<VectorType>(array3unaligned, size);
+  VectorType ma4 = Map<VectorType>(array4, size);
   VERIFY_IS_EQUAL(ma1, ma2);
   VERIFY_IS_EQUAL(ma1, ma3);
+  VERIFY_IS_EQUAL(ma1, ma4);
   #ifdef EIGEN_VECTORIZE
   if(internal::packet_traits<Scalar>::Vectorizable)
     VERIFY_RAISES_ASSERT((Map<VectorType,Aligned>(array3unaligned, size)))
@@ -120,6 +126,7 @@ void test_mapped_matrix()
     CALL_SUBTEST_1( map_class_vector(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_1( check_const_correctness(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( map_class_vector(Vector4d()) );
+    CALL_SUBTEST_2( map_class_vector(VectorXd(13)) );
     CALL_SUBTEST_2( check_const_correctness(Matrix4d()) );
     CALL_SUBTEST_3( map_class_vector(RowVector4f()) );
     CALL_SUBTEST_4( map_class_vector(VectorXcf(8)) );
