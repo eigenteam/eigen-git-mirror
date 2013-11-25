@@ -514,7 +514,7 @@ struct dense_assignment_loop<Kernel, AllAtOnceTraversal, NoUnrolling>
 };
 
 /***************************************************************************
-* Part 4 : Generic Assignment routine
+* Part 4 : Generic dense assignment kernel
 ***************************************************************************/
 
 // This class generalize the assignment of a coefficient (or packet) from one dense evaluator
@@ -617,6 +617,10 @@ protected:
   DstXprType& m_dstExpr;
 };
 
+/***************************************************************************
+* Part 5 : Entry point for dense rectangular assignment
+***************************************************************************/
+
 template<typename DstXprType, typename SrcXprType, typename Functor>
 void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
@@ -645,195 +649,81 @@ void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src)
 }
 
 /***************************************************************************
-* Part 5 : Entry points
+* Part 6 : Generic assignment
 ***************************************************************************/
 
-// Based on DenseBase::LazyAssign()
-// The following functions are just for testing and they are meant to be moved to operator= and the likes.
 
-template<typename DstXprType, template <typename> class StorageBase, typename SrcXprType>
-EIGEN_STRONG_INLINE
-const DstXprType& copy_using_evaluator(const NoAlias<DstXprType, StorageBase>& dst, 
-                                       const EigenBase<SrcXprType>& src)
+// An evaluator must define its shape. It can be one of the following:
+struct DenseShape       {};
+struct DiagonalShape    {};
+struct BandShape        {};
+struct TriangularShape  {};
+struct SelfAdjointShape {};
+struct SparseShape      {};
+
+
+// Based on the respective shapes of the destination and source,
+// the class AssignmentKind determine the kind of assignment mechanism.
+// AssignmentKind must define a Kind typedef.
+template<int DstShape, int SrcShape> struct AssignmentKind;
+
+// AssignmentKind<.,.>::Kind can be one of the following:
+    struct Dense2Dense                  {};
+    struct Triangular2Triangular        {};
+//  struct Diagonal2Diagonal            {}; // <=> Dense2Dense
+    struct Sparse2Dense                 {};
+    struct Sparse2Sparse                {};
+
+// This is the main assignment class
+template< typename DstXprType, typename SrcXprType, typename Functor,
+          typename Kind = Dense2Dense,//AssignmentKind< evaluator<A>::Shape , evaluator<B>::Shape >::Kind,
+          typename Scalar = typename DstXprType::Scalar>
+struct Assignment;
+
+
+// The only purpose of this call_assignment() function is to deal with noalias() / AssumeAliasing.
+// Indeed, I (Gael) think that this concept of AssumeAliasing was a mistake, and it makes thing quite complicated.
+// So this intermediate function removes everything related to AssumeAliasing such that Assignment
+// does not has to bother about these annoying details.
+
+template<typename Dst, typename Src, typename Func>
+void call_assignment(Dst& dst, const Src& src, const Func& func)
 {
-  return noalias_copy_using_evaluator(dst.expression(), src.derived(), internal::assign_op<typename DstXprType::Scalar>());
+  typedef typename internal::conditional<evaluator_traits<Src>::AssumeAliasing==1, EvalToTemp<Src>, Src>::type ActualSrc;
+  Assignment<Dst,ActualSrc,Func>::run(dst, src, func);
 }
 
-template<typename XprType, int AssumeAliasing = evaluator_traits<XprType>::AssumeAliasing>
-struct AddEvalIfAssumingAliasing;
-
-template<typename XprType>
-struct AddEvalIfAssumingAliasing<XprType, 0>
+// by-pass AssumeAliasing
+template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
+void call_assignment(const NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
 {
-  static const XprType& run(const XprType& xpr) 
-  {
-    return xpr;
-  }
-};
-
-template<typename XprType>
-struct AddEvalIfAssumingAliasing<XprType, 1>
-{
-  static const EvalToTemp<XprType> run(const XprType& xpr)
-  {
-    return EvalToTemp<XprType>(xpr);
-  }
-};
-
-template<typename DstXprType, typename SrcXprType, typename Functor>
-EIGEN_STRONG_INLINE
-const DstXprType& copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src, const Functor &func)
-{
-  return noalias_copy_using_evaluator(dst.const_cast_derived(), 
-                                      AddEvalIfAssumingAliasing<SrcXprType>::run(src.derived()),
-                                      func
-                                     );
+  Assignment<Dst,Src,Func>::run(dst.expression(), src, func);
 }
 
-// this mimics operator=
-template<typename DstXprType, typename SrcXprType>
-EIGEN_STRONG_INLINE
-const DstXprType& copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
+// Generic Dense to Dense assignment
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
 {
-  return copy_using_evaluator(dst.const_cast_derived(), src.derived(), internal::assign_op<typename DstXprType::Scalar>());
-}
-
-template<typename DstXprType, typename SrcXprType, typename Functor>
-EIGEN_STRONG_INLINE
-const DstXprType& noalias_copy_using_evaluator(const PlainObjectBase<DstXprType>& dst, const EigenBase<SrcXprType>& src, const Functor &func)
-{
-#ifdef EIGEN_DEBUG_ASSIGN
-  internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
-#endif
-#ifdef EIGEN_NO_AUTOMATIC_RESIZING
-  eigen_assert((dst.size()==0 || (IsVectorAtCompileTime ? (dst.size() == src.size())
-                                                        : (dst.rows() == src.rows() && dst.cols() == src.cols())))
-              && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
-#else
-  dst.const_cast_derived().resizeLike(src.derived());
-#endif
-  call_dense_assignment_loop(dst.const_cast_derived(), src.derived(), func);
-  return dst.derived();
-}
-
-template<typename DstXprType, typename SrcXprType, typename Functor>
-EIGEN_STRONG_INLINE
-const DstXprType& noalias_copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src, const Functor &func)
-{
-  call_dense_assignment_loop(dst.const_cast_derived(), src.derived(), func);
-  return dst.derived();
-}
-
-// Based on DenseBase::swap()
-// TODO: Check whether we need to do something special for swapping two
-//       Arrays or Matrices. (Jitse)
-
-// Overload default assignPacket behavior for swapping them
-template<typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT>
-class swap_kernel : public generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar> >
-{
-  typedef generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar> > Base;
-  typedef typename DstEvaluatorTypeT::PacketScalar PacketScalar;
-  using Base::m_dst;
-  using Base::m_src;
-  using Base::m_functor;
-  
-public:
-  typedef typename Base::Scalar Scalar;
-  typedef typename Base::Index Index;
-  typedef typename Base::DstXprType DstXprType;
-  
-  swap_kernel(DstEvaluatorTypeT &dst, const SrcEvaluatorTypeT &src, DstXprType& dstExpr)
-    : Base(dst, src, swap_assign_op<Scalar>(), dstExpr)
-  {}
-  
-  template<int StoreMode, int LoadMode>
-  void assignPacket(Index row, Index col)
+  static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
-    m_functor.template swapPacket<StoreMode,LoadMode,PacketScalar>(&m_dst.coeffRef(row,col), &const_cast<SrcEvaluatorTypeT&>(m_src).coeffRef(row,col));
-  }
-  
-  template<int StoreMode, int LoadMode>
-  void assignPacket(Index index)
-  {
-    m_functor.template swapPacket<StoreMode,LoadMode,PacketScalar>(&m_dst.coeffRef(index), &const_cast<SrcEvaluatorTypeT&>(m_src).coeffRef(index));
-  }
-  
-  // TODO find a simple way not to have to copy/paste this function from generic_dense_assignment_kernel, by simple I mean no CRTP (Gael)
-  template<int StoreMode, int LoadMode>
-  void assignPacketByOuterInner(Index outer, Index inner)
-  {
-    Index row = Base::rowIndexByOuterInner(outer, inner); 
-    Index col = Base::colIndexByOuterInner(outer, inner);
-    assignPacket<StoreMode,LoadMode>(row, col);
-  }
-};
-  
-template<typename DstXprType, typename SrcXprType>
-void swap_using_evaluator(const DstXprType& dst, const SrcXprType& src)
-{
-  // TODO there is too much redundancy with call_dense_assignment_loop
-  
-  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-  
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+    // TODO check whether this is the right place to perform these checks:
+    enum{
+      SameType = internal::is_same<typename DstXprType::Scalar,typename SrcXprType::Scalar>::value
+    };
 
-  DstEvaluatorType dstEvaluator(dst);
-  SrcEvaluatorType srcEvaluator(src);
+    EIGEN_STATIC_ASSERT_LVALUE(DstXprType)
+    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(DstXprType,SrcXprType)
+    EIGEN_STATIC_ASSERT(SameType,YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     
-  typedef swap_kernel<DstEvaluatorType,SrcEvaluatorType> Kernel;
-  Kernel kernel(dstEvaluator, srcEvaluator, dst.const_cast_derived());
-  
-  dense_assignment_loop<Kernel>::run(kernel);
-}
-
-// Based on MatrixBase::operator+= (in CwiseBinaryOp.h)
-template<typename DstXprType, typename SrcXprType>
-void add_assign_using_evaluator(const MatrixBase<DstXprType>& dst, const MatrixBase<SrcXprType>& src)
-{
-  typedef typename DstXprType::Scalar Scalar;
-  copy_using_evaluator(dst.derived(), src.derived(), add_assign_op<Scalar>());
-}
-
-// Based on ArrayBase::operator+=
-template<typename DstXprType, typename SrcXprType>
-void add_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
-{
-  typedef typename DstXprType::Scalar Scalar;
-  copy_using_evaluator(dst.derived(), src.derived(), add_assign_op<Scalar>());
-}
-
-// TODO: Add add_assign_using_evaluator for EigenBase ? (Jitse)
-
-template<typename DstXprType, typename SrcXprType>
-void subtract_assign_using_evaluator(const MatrixBase<DstXprType>& dst, const MatrixBase<SrcXprType>& src)
-{
-  typedef typename DstXprType::Scalar Scalar;
-  copy_using_evaluator(dst.derived(), src.derived(), sub_assign_op<Scalar>());
-}
-
-template<typename DstXprType, typename SrcXprType>
-void subtract_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
-{
-  typedef typename DstXprType::Scalar Scalar;
-  copy_using_evaluator(dst.derived(), src.derived(), sub_assign_op<Scalar>());
-}
-
-template<typename DstXprType, typename SrcXprType>
-void multiply_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
-{
-  typedef typename DstXprType::Scalar Scalar;
-  copy_using_evaluator(dst.derived(), src.derived(), mul_assign_op<Scalar>());
-}
-
-template<typename DstXprType, typename SrcXprType>
-void divide_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
-{
-  typedef typename DstXprType::Scalar Scalar;
-  copy_using_evaluator(dst.derived(), src.derived(), div_assign_op<Scalar>());
-}
-
+    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+    
+    #ifdef EIGEN_DEBUG_ASSIGN
+      internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
+    #endif
+    
+    call_dense_assignment_loop(dst, src, func);
+  }
+};
 
 } // namespace internal
 

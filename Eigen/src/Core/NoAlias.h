@@ -30,8 +30,9 @@ namespace Eigen {
 template<typename ExpressionType, template <typename> class StorageBase>
 class NoAlias
 {
-    typedef typename ExpressionType::Scalar Scalar;
   public:
+    typedef typename ExpressionType::Scalar Scalar;
+    
     NoAlias(ExpressionType& expression) : m_expression(expression) {}
 
     /** Behaves like MatrixBase::lazyAssign(other)

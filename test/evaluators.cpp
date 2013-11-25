@@ -1,7 +1,81 @@
+
+#ifndef EIGEN_ENABLE_EVALUATORS
 #define EIGEN_ENABLE_EVALUATORS
+#endif
+
 #include "main.h"
 
-using internal::copy_using_evaluator;
+namespace Eigen {
+  
+  template<typename DstXprType, typename SrcXprType>
+  EIGEN_STRONG_INLINE
+  DstXprType& copy_using_evaluator(const EigenBase<DstXprType> &dst, const SrcXprType &src)
+  {
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::assign_op<typename DstXprType::Scalar>());
+    return dst.const_cast_derived();
+  }
+  
+  template<typename DstXprType, template <typename> class StorageBase, typename SrcXprType>
+  EIGEN_STRONG_INLINE
+  const DstXprType& copy_using_evaluator(const NoAlias<DstXprType, StorageBase>& dst, const SrcXprType &src)
+  {
+    call_assignment(dst, src.derived(), internal::assign_op<typename DstXprType::Scalar>());
+    return dst.expression();
+  }
+  
+  template<typename DstXprType, typename SrcXprType>
+  EIGEN_STRONG_INLINE
+  DstXprType& copy_using_evaluator(const PlainObjectBase<DstXprType> &dst, const SrcXprType &src)
+  {
+    #ifdef EIGEN_NO_AUTOMATIC_RESIZING
+    eigen_assert((dst.size()==0 || (IsVectorAtCompileTime ? (dst.size() == src.size())
+                                                          : (dst.rows() == src.rows() && dst.cols() == src.cols())))
+                && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
+  #else
+    dst.const_cast_derived().resizeLike(src.derived());
+  #endif
+    
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::assign_op<typename DstXprType::Scalar>());
+    return dst.const_cast_derived();
+  }
+
+  template<typename DstXprType, typename SrcXprType>
+  void add_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
+  {
+    typedef typename DstXprType::Scalar Scalar;
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::add_assign_op<Scalar>());
+  }
+
+  template<typename DstXprType, typename SrcXprType>
+  void subtract_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
+  {
+    typedef typename DstXprType::Scalar Scalar;
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::sub_assign_op<Scalar>());
+  }
+
+  template<typename DstXprType, typename SrcXprType>
+  void multiply_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
+  {
+    typedef typename DstXprType::Scalar Scalar;
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::mul_assign_op<Scalar>());
+  }
+
+  template<typename DstXprType, typename SrcXprType>
+  void divide_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
+  {
+    typedef typename DstXprType::Scalar Scalar;
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::div_assign_op<Scalar>());
+  }
+  
+  template<typename DstXprType, typename SrcXprType>
+  void swap_using_evaluator(const DstXprType& dst, const SrcXprType& src)
+  {
+    call_dense_swap_loop(dst.const_cast_derived(), src.const_cast_derived());
+  }
+  
+}
+
+
 using namespace std;
 
 #define VERIFY_IS_APPROX_EVALUATOR(DEST,EXPR) VERIFY_IS_APPROX(copy_using_evaluator(DEST,(EXPR)), (EXPR).eval());

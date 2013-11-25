@@ -293,6 +293,15 @@ struct transfer_constness
   >::type type;
 };
 
+#ifdef EIGEN_TEST_EVALUATORS
+
+// When using evaluators, we never evaluate when assembling the expression!!
+template<typename T, int n=1, typename PlainObject = typename eval<T>::type> struct nested
+{
+  typedef typename ref_selector<T>::type type;
+};
+
+#else
 /** \internal Determines how a given expression should be nested into another one.
   * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
   * nested into the bigger product expression. The choice is between nesting the expression b+c as-is, or
@@ -339,6 +348,7 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
       typename ref_selector<T>::type
   >::type type;
 };
+#endif // EIGEN_TEST_EVALUATORS
 
 template<typename T>
 EIGEN_DEVICE_FUNC
