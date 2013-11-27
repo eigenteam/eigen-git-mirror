@@ -105,7 +105,14 @@ struct evaluator_impl<PlainObjectBase<Derived> >
     RowsAtCompileTime = PlainObjectType::RowsAtCompileTime,
     ColsAtCompileTime = PlainObjectType::ColsAtCompileTime
   };
-
+  
+  evaluator_impl()
+    : m_data(0),
+      m_outerStride(IsVectorAtCompileTime  ? 0 
+                                           : int(IsRowMajor) ? ColsAtCompileTime 
+                                           : RowsAtCompileTime)
+  {}
+  
   evaluator_impl(const PlainObjectType& m) 
     : m_data(m.data()), m_outerStride(IsVectorAtCompileTime ? 0 : m.outerStride()) 
   { }
@@ -188,6 +195,8 @@ struct evaluator_impl<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   : evaluator_impl<PlainObjectBase<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> > >
 {
   typedef Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> XprType;
+  
+  evaluator_impl() {}
 
   evaluator_impl(const XprType& m) 
     : evaluator_impl<PlainObjectBase<XprType> >(m) 
@@ -200,6 +209,8 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {
   typedef Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> XprType;
 
+  evaluator_impl() {}
+  
   evaluator_impl(const XprType& m) 
     : evaluator_impl<PlainObjectBase<XprType> >(m) 
   { }
@@ -246,80 +257,31 @@ class EvalToTemp
  
 template<typename ArgType>
 struct evaluator_impl<EvalToTemp<ArgType> >
+  : public evaluator<typename ArgType::PlainObject>::type
 {
-  typedef EvalToTemp<ArgType> XprType;
-  typedef typename ArgType::PlainObject PlainObject;
+  typedef EvalToTemp<ArgType>                   XprType;
+  typedef typename ArgType::PlainObject         PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
 
   evaluator_impl(const XprType& xpr) 
-    : m_result(xpr.rows(), xpr.cols()), m_resultImpl(m_result)
+    : m_result(xpr.rows(), xpr.cols())
   {
+    ::new (static_cast<Base*>(this)) Base(m_result);
     // TODO we should simply do m_result(xpr.arg());
     call_dense_assignment_loop(m_result, xpr.arg());
   }
 
   // This constructor is used when nesting an EvalTo evaluator in another evaluator
   evaluator_impl(const ArgType& arg) 
-    : m_result(arg.rows(), arg.cols()), m_resultImpl(m_result)
+    : m_result(arg.rows(), arg.cols())
   {
+    ::new (static_cast<Base*>(this)) Base(m_result);
     // TODO we should simply do m_result(xpr.arg());
     call_dense_assignment_loop(m_result, arg);
   }
 
-  typedef typename PlainObject::Index Index;
-  typedef typename PlainObject::Scalar Scalar;
-  typedef typename PlainObject::CoeffReturnType CoeffReturnType;
-  typedef typename PlainObject::PacketScalar PacketScalar;
-  typedef typename PlainObject::PacketReturnType PacketReturnType;
-
-  // All other functions are forwarded to m_resultImpl
-
-  CoeffReturnType coeff(Index row, Index col) const 
-  { 
-    return m_resultImpl.coeff(row, col); 
-  }
-  
-  CoeffReturnType coeff(Index index) const 
-  { 
-    return m_resultImpl.coeff(index); 
-  }
-  
-  Scalar& coeffRef(Index row, Index col) 
-  { 
-    return m_resultImpl.coeffRef(row, col); 
-  }
-  
-  Scalar& coeffRef(Index index) 
-  { 
-    return m_resultImpl.coeffRef(index); 
-  }
-
-  template<int LoadMode> 
-  PacketReturnType packet(Index row, Index col) const
-  {
-    return m_resultImpl.template packet<LoadMode>(row, col);
-  }
-
-  template<int LoadMode> 
-  PacketReturnType packet(Index index) const
-  {
-    return m_resultImpl.packet<LoadMode>(index);
-  }
-
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x)
-  {
-    m_resultImpl.template writePacket<StoreMode>(row, col, x);
-  }
-
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x)
-  {
-    m_resultImpl.template writePacket<StoreMode>(index, x);
-  }
-
 protected:
   PlainObject m_result;
-  typename evaluator<PlainObject>::nestedType m_resultImpl;
 };
 
 // -------------------- Transpose --------------------
