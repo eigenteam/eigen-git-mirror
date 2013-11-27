@@ -425,7 +425,7 @@ namespace Architecture
 
 /** \internal \ingroup enums
   * Enum used as template parameter in GeneralProduct. */
-enum { CoeffBasedProductMode, LazyCoeffBasedProductMode, OuterProduct, InnerProduct, GemvProduct, GemmProduct };
+enum { DefaultProduct=0, CoeffBasedProductMode, LazyCoeffBasedProductMode, LazyProduct, OuterProduct, InnerProduct, GemvProduct, GemmProduct };
 
 /** \internal \ingroup enums
   * Enum used in experimental parallel implementation. */

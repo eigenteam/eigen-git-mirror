@@ -12,8 +12,7 @@
 
 namespace Eigen {
 
-template<typename Lhs, typename Rhs> class Product;
-template<typename Lhs, typename Rhs, typename StorageKind> class ProductImpl;
+template<typename Lhs, typename Rhs, int Option, int ProductTag, typename StorageKind> class ProductImpl;
 
 /** \class Product
   * \ingroup Core_Module
@@ -24,13 +23,17 @@ template<typename Lhs, typename Rhs, typename StorageKind> class ProductImpl;
   * \param Rhs the type of the right-hand side expression
   *
   * This class represents an expression of the product of two arbitrary matrices.
+  * 
+  * The other template parameters are:
+  * \tparam Option     can be DefaultProduct or LazyProduct
+  * \tparam ProductTag can be InnerProduct, OuterProduct, GemvProduct, GemmProduct. It is used to ease expression manipulations.
   *
   */
 
 // Use ProductReturnType to get correct traits, in particular vectorization flags
 namespace internal {
-template<typename Lhs, typename Rhs>
-struct traits<Product<Lhs, Rhs> >
+template<typename Lhs, typename Rhs, int Option, int ProductTag>
+struct traits<Product<Lhs, Rhs, Option, ProductTag> >
   : traits<typename ProductReturnType<Lhs, Rhs>::Type>
 { 
   // We want A+B*C to be of type Product<Matrix, Sum> and not Product<Matrix, Matrix>
@@ -42,14 +45,15 @@ struct traits<Product<Lhs, Rhs> >
 } // end namespace internal
 
 
-template<typename Lhs, typename Rhs>
-class Product : public ProductImpl<Lhs,Rhs,typename internal::promote_storage_type<typename internal::traits<Lhs>::StorageKind,
-                                                                            typename internal::traits<Rhs>::StorageKind>::ret>
+template<typename Lhs, typename Rhs, int Option, int ProductTag>
+class Product : public ProductImpl<Lhs,Rhs,Option,ProductTag,
+                                   typename internal::promote_storage_type<typename internal::traits<Lhs>::StorageKind,
+                                                                           typename internal::traits<Rhs>::StorageKind>::ret>
 {
   public:
     
     typedef typename ProductImpl<
-        Lhs, Rhs,
+        Lhs, Rhs, Option, ProductTag,
         typename internal::promote_storage_type<typename Lhs::StorageKind,
                                                 typename Rhs::StorageKind>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
@@ -78,13 +82,13 @@ class Product : public ProductImpl<Lhs,Rhs,typename internal::promote_storage_ty
     RhsNested m_rhs;
 };
 
-template<typename Lhs, typename Rhs>
-class ProductImpl<Lhs,Rhs,Dense> : public internal::dense_xpr_base<Product<Lhs,Rhs> >::type
+template<typename Lhs, typename Rhs, int Option, int ProductTag>
+class ProductImpl<Lhs,Rhs,Option,ProductTag,Dense> : public internal::dense_xpr_base<Product<Lhs,Rhs,Option,ProductTag> >::type
 {
     typedef Product<Lhs, Rhs> Derived;
   public:
 
-    typedef typename internal::dense_xpr_base<Product<Lhs, Rhs> >::type Base;
+    typedef typename internal::dense_xpr_base<Product<Lhs, Rhs, Option, ProductTag> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 };
 
@@ -100,6 +104,15 @@ const Product<Lhs,Rhs>
 prod(const Lhs& lhs, const Rhs& rhs)
 {
   return Product<Lhs,Rhs>(lhs,rhs);
+}
+
+/** \internal used to test the evaluator only
+  */
+template<typename Lhs,typename Rhs>
+const Product<Lhs,Rhs,LazyProduct>
+lazyprod(const Lhs& lhs, const Rhs& rhs)
+{
+  return Product<Lhs,Rhs,LazyProduct>(lhs,rhs);
 }
 
 } // end namespace Eigen

@@ -17,93 +17,171 @@ namespace Eigen {
   
 namespace internal {
   
-// We can evaluate the product either all at once, like GeneralProduct and its evalTo() function, or
-// traverse the matrix coefficient by coefficient, like CoeffBasedProduct.  Use the existing logic
-// in ProductReturnType to decide.
+  
+// Helper class to perform a dense product with the destination at hand.
+// Depending on the sizes of the factors, there are different evaluation strategies
+// as controlled by internal::product_type.
+template<typename Lhs, typename Rhs, int ProductType = internal::product_type<Lhs,Rhs>::value>
+struct dense_product_impl;
 
-template<typename XprType, typename ProductType>
-struct product_evaluator_dispatcher;
 
-template<typename Lhs, typename Rhs>
-struct evaluator_impl<Product<Lhs, Rhs> >
-  : product_evaluator_dispatcher<Product<Lhs, Rhs>, typename ProductReturnType<Lhs, Rhs>::Type> 
+// The evaluator for default dense products creates a temporary and call dense_product_impl
+template<typename Lhs, typename Rhs, int ProductTag>
+struct evaluator_impl<Product<Lhs, Rhs, DefaultProduct, ProductTag> > 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct, ProductTag>::PlainObject>::type
 {
-  typedef Product<Lhs, Rhs> XprType;
-  typedef product_evaluator_dispatcher<XprType, typename ProductReturnType<Lhs, Rhs>::Type> Base;
-
-  evaluator_impl(const XprType& xpr) : Base(xpr) 
-  { }
-};
-
-template<typename XprType, typename ProductType>
-struct product_evaluator_traits_dispatcher;
-
-template<typename Lhs, typename Rhs>
-struct evaluator_traits<Product<Lhs, Rhs> >
-  : product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, typename ProductReturnType<Lhs, Rhs>::Type> 
-{ 
-  static const int AssumeAliasing = 1;
-};
-
-// Case 1: Evaluate all at once
-//
-// We can view the GeneralProduct class as a part of the product evaluator. 
-// Four sub-cases: InnerProduct, OuterProduct, GemmProduct and GemvProduct.
-// InnerProduct is special because GeneralProduct does not have an evalTo() method in this case.
-
-template<typename Lhs, typename Rhs>
-struct product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, InnerProduct> > 
-{
-  static const int HasEvalTo = 0;
-};
-
-template<typename Lhs, typename Rhs>
-struct product_evaluator_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, InnerProduct> > 
-  : public evaluator<typename Product<Lhs, Rhs>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs> XprType;
+  typedef Product<Lhs, Rhs, DefaultProduct, ProductTag> XprType;
   typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type evaluator_base;
+  typedef typename evaluator<PlainObject>::type Base;
 
-  // TODO: Computation is too early (?)
-  product_evaluator_dispatcher(const XprType& xpr) : evaluator_base(m_result)
+  evaluator_impl(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
   {
-    m_result.coeffRef(0,0) = (xpr.lhs().transpose().cwiseProduct(xpr.rhs())).sum();
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    dense_product_impl<Lhs, Rhs>::evalTo(m_result, xpr.lhs(), xpr.rhs());
   }
   
 protected:  
   PlainObject m_result;
 };
 
-// For the other three subcases, simply call the evalTo() method of GeneralProduct
-// TODO: GeneralProduct should take evaluators, not expression objects.
 
-template<typename Lhs, typename Rhs, int ProductType>
-struct product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, ProductType> > 
+template<typename Lhs, typename Rhs>
+struct dense_product_impl<Lhs,Rhs,InnerProduct>
 {
-  static const int HasEvalTo = 1;
-};
-
-template<typename Lhs, typename Rhs, int ProductType>
-struct product_evaluator_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, ProductType> > 
-{
-  typedef Product<Lhs, Rhs> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type evaluator_base;
-  
-  product_evaluator_dispatcher(const XprType& xpr) : m_xpr(xpr)
-  { }
-  
-  template<typename DstEvaluatorType, typename DstXprType>
-  void evalTo(DstEvaluatorType /* not used */, DstXprType& dst) const
+  template<typename Dst>
+  static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    dst.resize(m_xpr.rows(), m_xpr.cols());
-    GeneralProduct<Lhs, Rhs, ProductType>(m_xpr.lhs(), m_xpr.rhs()).evalTo(dst);
+    dst.coeffRef(0,0) = (lhs.transpose().cwiseProduct(rhs)).sum();
   }
   
-protected: 
-  const XprType& m_xpr;
+  template<typename Dst>
+  static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    dst.coeffRef(0,0) += (lhs.transpose().cwiseProduct(rhs)).sum();
+  }
+  
+  template<typename Dst>
+  static void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  { dst.coeffRef(0,0) -= (lhs.transpose().cwiseProduct(rhs)).sum(); }
 };
+
+
+
+template<typename Lhs, typename Rhs>
+struct dense_product_impl<Lhs,Rhs,OuterProduct>
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dst>
+  static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    // TODO bypass GeneralProduct class
+    GeneralProduct<Lhs, Rhs, OuterProduct>(lhs,rhs).evalTo(dst);
+  }
+  
+  template<typename Dst>
+  static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    // TODO bypass GeneralProduct class
+    GeneralProduct<Lhs, Rhs, OuterProduct>(lhs,rhs).addTo(dst);
+  }
+  
+  template<typename Dst>
+  static inline void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    // TODO bypass GeneralProduct class
+    GeneralProduct<Lhs, Rhs, OuterProduct>(lhs,rhs).subTo(dst);
+  }
+  
+  template<typename Dst>
+  static inline void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {
+    // TODO bypass GeneralProduct class
+    GeneralProduct<Lhs, Rhs, OuterProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
+  }
+  
+};
+
+
+// This base class provides default implementations for evalTo, addTo, subTo, in terms of scaleAndAddTo
+template<typename Lhs, typename Rhs, typename Derived>
+struct dense_product_impl_base
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dst>
+  static void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  { dst.setZero(); scaleAndAddTo(dst, lhs, rhs, Scalar(1)); }
+
+  template<typename Dst>
+  static void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  { scaleAndAddTo(dst,lhs, rhs, Scalar(1)); }
+
+  template<typename Dst>
+  static void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  { scaleAndAddTo(dst, lhs, rhs, Scalar(-1)); }
+  
+  template<typename Dst>
+  static void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  { Derived::scaleAndAddTo(dst,lhs,rhs,alpha); }
+
+};
+
+template<typename Lhs, typename Rhs>
+struct dense_product_impl<Lhs,Rhs,GemvProduct> : dense_product_impl_base<Lhs,Rhs,dense_product_impl<Lhs,Rhs,GemvProduct> >
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  enum { Side = Lhs::IsVectorAtCompileTime ? OnTheLeft : OnTheRight };
+  typedef typename internal::conditional<int(Side)==OnTheRight,Lhs,Rhs>::type MatrixType;
+
+  template<typename Dest>
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {
+    internal::gemv_selector<Side,
+                            (int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
+                            bool(internal::blas_traits<MatrixType>::HasUsableDirectAccess)
+                           >::run(GeneralProduct<Lhs,Rhs,GemvProduct>(lhs,rhs), dst, alpha);
+  }
+};
+
+template<typename Lhs, typename Rhs>
+struct dense_product_impl<Lhs,Rhs,GemmProduct> : dense_product_impl_base<Lhs,Rhs,dense_product_impl<Lhs,Rhs,GemmProduct> >
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dest>
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {
+    // TODO bypass GeneralProduct class
+    GeneralProduct<Lhs, Rhs, GemmProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
+  }
+};
+
+template<typename Lhs, typename Rhs>
+struct dense_product_impl<Lhs,Rhs,CoeffBasedProductMode> 
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dst>
+  static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  { dst = lazyprod(lhs,rhs); }
+  
+  template<typename Dst>
+  static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  { dst += lazyprod(lhs,rhs); }
+  
+  template<typename Dst>
+  static inline void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  { dst -= lazyprod(lhs,rhs); }
+  
+  template<typename Dst>
+  static inline void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  { dst += alpha * lazyprod(lhs,rhs); }
+};
+
+template<typename Lhs, typename Rhs>
+struct dense_product_impl<Lhs,Rhs,LazyCoeffBasedProductMode> : dense_product_impl<Lhs,Rhs,CoeffBasedProductMode> {};
 
 // Case 2: Evaluate coeff by coeff
 //
@@ -117,20 +195,14 @@ struct etor_product_coeff_impl;
 template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl;
 
-template<typename Lhs, typename Rhs, typename LhsNested, typename RhsNested, int Flags>
-struct product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, CoeffBasedProduct<LhsNested, RhsNested, Flags> >
+template<typename Lhs, typename Rhs, int ProductTag>
+struct evaluator_impl<Product<Lhs, Rhs, LazyProduct, ProductTag> > 
+    : evaluator_impl_base<Product<Lhs, Rhs, LazyProduct, ProductTag> >
 {
-  static const int HasEvalTo = 0;
-};
+  typedef Product<Lhs, Rhs, LazyProduct, ProductTag> XprType;
+  typedef CoeffBasedProduct<Lhs, Rhs, 0> CoeffBasedProductType;
 
-template<typename Lhs, typename Rhs, typename LhsNested, typename RhsNested, int Flags>
-struct product_evaluator_dispatcher<Product<Lhs, Rhs>, CoeffBasedProduct<LhsNested, RhsNested, Flags> >
-  : evaluator_impl_base<Product<Lhs, Rhs> >
-{
-  typedef Product<Lhs, Rhs> XprType;
-  typedef CoeffBasedProduct<LhsNested, RhsNested, Flags> CoeffBasedProductType;
-
-  product_evaluator_dispatcher(const XprType& xpr) 
+  evaluator_impl(const XprType& xpr) 
     : m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs()),  
       m_innerDim(xpr.lhs().cols())
@@ -150,11 +222,13 @@ struct product_evaluator_dispatcher<Product<Lhs, Rhs>, CoeffBasedProduct<LhsNest
     InnerSize  = traits<CoeffBasedProductType>::InnerSize,
     CoeffReadCost = traits<CoeffBasedProductType>::CoeffReadCost,
     Unroll = CoeffReadCost != Dynamic && CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
-    CanVectorizeInner = traits<CoeffBasedProductType>::CanVectorizeInner
+    CanVectorizeInner = traits<CoeffBasedProductType>::CanVectorizeInner,
+    Flags = CoeffBasedProductType::Flags
   };
 
   typedef typename evaluator<Lhs>::type LhsEtorType;
   typedef typename evaluator<Rhs>::type RhsEtorType;
+  
   typedef etor_product_coeff_impl<CanVectorizeInner ? InnerVectorizedTraversal : DefaultTraversal,
                                   Unroll ? InnerSize-1 : Dynamic,
                                   LhsEtorType, RhsEtorType, Scalar> CoeffImpl;
@@ -183,8 +257,8 @@ struct product_evaluator_dispatcher<Product<Lhs, Rhs>, CoeffBasedProduct<LhsNest
   {
     PacketScalar res;
     typedef etor_product_packet_impl<Flags&RowMajorBit ? RowMajor : ColMajor,
-				     Unroll ? InnerSize-1 : Dynamic,
-				     LhsEtorType, RhsEtorType, PacketScalar, LoadMode> PacketImpl;
+                                     Unroll ? InnerSize-1 : Dynamic,
+                                     LhsEtorType, RhsEtorType, PacketScalar, LoadMode> PacketImpl;
     PacketImpl::run(row, col, m_lhsImpl, m_rhsImpl, m_innerDim, res);
     return res;
   }
@@ -196,6 +270,7 @@ protected:
   // TODO: Get rid of m_innerDim if known at compile time
   Index m_innerDim;
 };
+
 
 /***************************************************************************
 * Normal product .coeff() implementation (with meta-unrolling)
@@ -275,7 +350,6 @@ struct etor_product_coeff_impl<InnerVectorizedTraversal, UnrollingIndex, Lhs, Rh
   {
     Packet pres;
     etor_product_coeff_vectorized_unroller<UnrollingIndex+1-PacketSize, Lhs, Rhs, Packet>::run(row, col, lhs, rhs, innerDim, pres);
-    etor_product_coeff_impl<DefaultTraversal,UnrollingIndex,Lhs,Rhs,RetScalar>::run(row, col, lhs, rhs, innerDim, res);
     res = predux(pres);
   }
 };
