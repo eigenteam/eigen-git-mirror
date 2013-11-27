@@ -634,7 +634,9 @@ template<typename T> class aligned_stack_memory_handler
       /* memory allocated we can safely let the default implementation handle */ \
       /* this particular case. */ \
       static void *operator new(size_t size, void *ptr) { return ::operator new(size,ptr); } \
+      static void *operator new[](size_t size, void* ptr) { return ::operator new[](size,ptr); } \
       void operator delete(void * memory, void *ptr) throw() { return ::operator delete(memory,ptr); } \
+      void operator delete[](void * memory, void *ptr) throw() { return ::operator delete[](memory,ptr); } \
       /* nothrow-new (returns zero instead of std::bad_alloc) */ \
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void operator delete(void *ptr, const std::nothrow_t&) throw() { \
