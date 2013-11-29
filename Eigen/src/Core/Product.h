@@ -12,7 +12,7 @@
 
 namespace Eigen {
 
-template<typename Lhs, typename Rhs, int Option, int ProductTag, typename StorageKind> class ProductImpl;
+template<typename Lhs, typename Rhs, int Option, typename StorageKind> class ProductImpl;
 
 /** \class Product
   * \ingroup Core_Module
@@ -26,14 +26,13 @@ template<typename Lhs, typename Rhs, int Option, int ProductTag, typename Storag
   * 
   * The other template parameters are:
   * \tparam Option     can be DefaultProduct or LazyProduct
-  * \tparam ProductTag can be InnerProduct, OuterProduct, GemvProduct, GemmProduct. It is used to ease expression manipulations.
   *
   */
 
 // Use ProductReturnType to get correct traits, in particular vectorization flags
 namespace internal {
-template<typename Lhs, typename Rhs, int Option, int ProductTag>
-struct traits<Product<Lhs, Rhs, Option, ProductTag> >
+template<typename Lhs, typename Rhs, int Option>
+struct traits<Product<Lhs, Rhs, Option> >
   : traits<typename ProductReturnType<Lhs, Rhs>::Type>
 { 
   // We want A+B*C to be of type Product<Matrix, Sum> and not Product<Matrix, Matrix>
@@ -45,18 +44,23 @@ struct traits<Product<Lhs, Rhs, Option, ProductTag> >
 } // end namespace internal
 
 
-template<typename Lhs, typename Rhs, int Option, int ProductTag>
-class Product : public ProductImpl<Lhs,Rhs,Option,ProductTag,
-                                   typename internal::promote_storage_type<typename internal::traits<Lhs>::StorageKind,
-                                                                           typename internal::traits<Rhs>::StorageKind>::ret>
+template<typename _Lhs, typename _Rhs, int Option>
+class Product : public ProductImpl<_Lhs,_Rhs,Option,
+                                   typename internal::promote_storage_type<typename internal::traits<_Lhs>::StorageKind,
+                                                                           typename internal::traits<_Rhs>::StorageKind>::ret>
 {
   public:
     
+    typedef _Lhs Lhs;
+    typedef _Rhs Rhs;
+    
     typedef typename ProductImpl<
-        Lhs, Rhs, Option, ProductTag,
+        Lhs, Rhs, Option,
         typename internal::promote_storage_type<typename Lhs::StorageKind,
                                                 typename Rhs::StorageKind>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
+    
+    
 
     typedef typename Lhs::Nested LhsNested;
     typedef typename Rhs::Nested RhsNested;
@@ -82,13 +86,13 @@ class Product : public ProductImpl<Lhs,Rhs,Option,ProductTag,
     RhsNested m_rhs;
 };
 
-template<typename Lhs, typename Rhs, int Option, int ProductTag>
-class ProductImpl<Lhs,Rhs,Option,ProductTag,Dense> : public internal::dense_xpr_base<Product<Lhs,Rhs,Option,ProductTag> >::type
+template<typename Lhs, typename Rhs, int Option>
+class ProductImpl<Lhs,Rhs,Option,Dense> : public internal::dense_xpr_base<Product<Lhs,Rhs,Option> >::type
 {
     typedef Product<Lhs, Rhs> Derived;
   public:
 
-    typedef typename internal::dense_xpr_base<Product<Lhs, Rhs, Option, ProductTag> >::type Base;
+    typedef typename internal::dense_xpr_base<Product<Lhs, Rhs, Option> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 };
 

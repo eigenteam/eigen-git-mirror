@@ -16,7 +16,28 @@
 namespace Eigen {
   
 namespace internal {
+
+// Like more general binary expressions, products need they own evaluator:
+template< typename T,
+          int ProductTag = internal::product_tag<typename T::Lhs,typename T::Rhs>::ret,
+          typename LhsShape = typename evaluator_traits<typename T::Lhs>::Shape,
+          typename RhsShape = typename evaluator_traits<typename T::Rhs>::Shape,
+          typename LhsScalar = typename T::Lhs::Scalar,
+          typename RhsScalar = typename T::Rhs::Scalar
+        > struct product_evaluator;
+
+template<typename Lhs, typename Rhs, int Options>
+struct evaluator<Product<Lhs, Rhs, Options> > 
+ : public product_evaluator<Product<Lhs, Rhs, Options> >
+{
+  typedef Product<Lhs, Rhs, Options> XprType;
+  typedef product_evaluator<XprType> Base;
   
+  typedef evaluator type;
+  typedef evaluator nestedType;
+  
+  evaluator(const XprType& xpr) : Base(xpr) {}
+};
   
 // Helper class to perform a dense product with the destination at hand.
 // Depending on the sizes of the factors, there are different evaluation strategies
@@ -27,17 +48,14 @@ struct dense_product_impl;
 
 // The evaluator for default dense products creates a temporary and call dense_product_impl
 template<typename Lhs, typename Rhs, int ProductTag>
-struct evaluator<Product<Lhs, Rhs, DefaultProduct, ProductTag> > 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct, ProductTag>::PlainObject>::type
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, Dense, Dense, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
 {
-  typedef Product<Lhs, Rhs, DefaultProduct, ProductTag> XprType;
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
-  
-  typedef evaluator type;
-  typedef evaluator nestedType;
 
-  evaluator(const XprType& xpr)
+  product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
@@ -199,13 +217,13 @@ template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typen
 struct etor_product_packet_impl;
 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct evaluator<Product<Lhs, Rhs, LazyProduct, ProductTag> > 
-    : evaluator_base<Product<Lhs, Rhs, LazyProduct, ProductTag> >
+struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, Dense, Dense, typename Lhs::Scalar, typename Rhs::Scalar > 
+    : evaluator_base<Product<Lhs, Rhs, LazyProduct> >
 {
-  typedef Product<Lhs, Rhs, LazyProduct, ProductTag> XprType;
+  typedef Product<Lhs, Rhs, LazyProduct> XprType;
   typedef CoeffBasedProduct<Lhs, Rhs, 0> CoeffBasedProductType;
 
-  evaluator(const XprType& xpr) 
+  product_evaluator(const XprType& xpr) 
     : m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs()),  
       m_innerDim(xpr.lhs().cols())

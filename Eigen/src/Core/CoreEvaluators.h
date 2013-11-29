@@ -14,20 +14,70 @@
 #define EIGEN_COREEVALUATORS_H
 
 namespace Eigen {
-
+  
 namespace internal {
 
-template<typename T> struct evaluator;
+struct IndexBased {};
+struct IteratorBased {};
+
+// This class returns the evaluator kind from the expression storage kind.
+// Default assumes index based accessors
+template<typename StorageKind>
+struct storage_kind_to_evaluator_kind {
+  typedef IndexBased Kind;
+};
+
+// TODO to be moved to SparseCore:
+/*
+template<>
+struct storage_kind_to_evaluator_kind<Sparse> {
+  typedef IteratorBased Kind
+};
+*/
+
+// This class returns the evaluator shape from the expression storage kind.
+// It can be Dense, Sparse, Triangular, Diagonal, SelfAdjoint, Band, etc.
+template<typename StorageKind> struct storage_kind_to_shape;
+
+
+template<>
+struct storage_kind_to_shape<Dense> {
+  typedef Dense Shape;
+};
+
+// TODO to be moved to SparseCore:
+/*
+template<>
+struct storage_kind_to_shape<Sparse> {
+  typedef Sparse Shape;
+};
+*/
+
+template<typename T> struct evaluator_traits;
+
+template< typename T,
+          typename Kind = typename evaluator_traits<T>::Kind,
+          typename Scalar = typename T::Scalar> struct evaluator;
+          
+template< typename T,
+          typename LhsKind = typename evaluator_traits<typename T::Lhs>::Kind,
+          typename RhsKind = typename evaluator_traits<typename T::Rhs>::Kind,
+          typename LhsScalar = typename T::Lhs::Scalar,
+          typename RhsScalar = typename T::Rhs::Scalar> struct binary_evaluator;
 
 // evaluator_traits<T> contains traits for evaluator<T> 
 
- template<typename T>
+template<typename T>
 struct evaluator_traits_base
 {
   // TODO check whether these two indirections are really needed.
   // Basically, if nobody overwrite type and nestedType, then, they can be dropped
-  typedef evaluator<T> type;
-  typedef evaluator<T> nestedType;
+//   typedef evaluator<T> type;
+//   typedef evaluator<T> nestedType;
+  
+  // by default, get evalautor kind and shape from storage
+  typedef typename storage_kind_to_evaluator_kind<typename T::StorageKind>::Kind Kind;
+  typedef typename storage_kind_to_shape<typename T::StorageKind>::Shape Shape;
   
   // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
   // temporary; 0 if not.
@@ -58,8 +108,10 @@ struct evaluator<const T>
 template<typename ExpressionType>
 struct evaluator_base
 {
-  typedef typename evaluator_traits<ExpressionType>::type type;
-  typedef typename evaluator_traits<ExpressionType>::nestedType nestedType;
+//   typedef typename evaluator_traits<ExpressionType>::type type;
+//   typedef typename evaluator_traits<ExpressionType>::nestedType nestedType;
+  typedef evaluator<ExpressionType> type;
+  typedef evaluator<ExpressionType> nestedType;
   
   typedef typename ExpressionType::Index Index;
   // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.

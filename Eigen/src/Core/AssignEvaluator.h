@@ -646,7 +646,7 @@ struct SparseShape      {};
 // Based on the respective shapes of the destination and source,
 // the class AssignmentKind determine the kind of assignment mechanism.
 // AssignmentKind must define a Kind typedef.
-template<int DstShape, int SrcShape> struct AssignmentKind;
+template<typename DstShape, typename SrcShape> struct AssignmentKind;
 
 // AssignmentKind<.,.>::Kind can be one of the following:
     struct Dense2Dense                  {};
@@ -655,9 +655,11 @@ template<int DstShape, int SrcShape> struct AssignmentKind;
     struct Sparse2Dense                 {};
     struct Sparse2Sparse                {};
 
+template<> struct AssignmentKind<Dense,Dense> { typedef Dense2Dense Kind; };
+    
 // This is the main assignment class
 template< typename DstXprType, typename SrcXprType, typename Functor,
-          typename Kind = Dense2Dense,//AssignmentKind< evaluator<A>::Shape , evaluator<B>::Shape >::Kind,
+          typename Kind = typename AssignmentKind< typename evaluator_traits<DstXprType>::Shape , typename evaluator_traits<SrcXprType>::Shape >::Kind,
           typename Scalar = typename DstXprType::Scalar>
 struct Assignment;
 

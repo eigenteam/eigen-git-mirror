@@ -94,10 +94,7 @@ namespace internal {
   template<typename Lhs, typename Rhs> struct product_tag;
 }
 
-template<typename Lhs, typename Rhs,
-         int Option     = DefaultProduct,
-         int ProductTag = internal::product_tag<Lhs,Rhs>::ret
-         > class Product;
+template<typename Lhs, typename Rhs, int Option = DefaultProduct> class Product;
          
 template<typename Lhs, typename Rhs, int Mode>            class GeneralProduct;         // TODO deprecated
 template<typename Lhs, typename Rhs, int NestingFlags>    class CoeffBasedProduct;      // TODO deprecated
