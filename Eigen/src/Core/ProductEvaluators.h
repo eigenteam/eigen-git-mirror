@@ -27,14 +27,17 @@ struct dense_product_impl;
 
 // The evaluator for default dense products creates a temporary and call dense_product_impl
 template<typename Lhs, typename Rhs, int ProductTag>
-struct evaluator_impl<Product<Lhs, Rhs, DefaultProduct, ProductTag> > 
+struct evaluator<Product<Lhs, Rhs, DefaultProduct, ProductTag> > 
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct, ProductTag>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, DefaultProduct, ProductTag> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
+  
+  typedef evaluator type;
+  typedef evaluator nestedType;
 
-  evaluator_impl(const XprType& xpr)
+  evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
@@ -196,13 +199,13 @@ template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typen
 struct etor_product_packet_impl;
 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct evaluator_impl<Product<Lhs, Rhs, LazyProduct, ProductTag> > 
-    : evaluator_impl_base<Product<Lhs, Rhs, LazyProduct, ProductTag> >
+struct evaluator<Product<Lhs, Rhs, LazyProduct, ProductTag> > 
+    : evaluator_base<Product<Lhs, Rhs, LazyProduct, ProductTag> >
 {
   typedef Product<Lhs, Rhs, LazyProduct, ProductTag> XprType;
   typedef CoeffBasedProduct<Lhs, Rhs, 0> CoeffBasedProductType;
 
-  evaluator_impl(const XprType& xpr) 
+  evaluator(const XprType& xpr) 
     : m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs()),  
       m_innerDim(xpr.lhs().cols())
