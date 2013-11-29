@@ -32,8 +32,7 @@ public:
     DstIsAligned = Derived::Flags & AlignedBit,
     DstHasDirectAccess = Derived::Flags & DirectAccessBit,
     SrcIsAligned = OtherDerived::Flags & AlignedBit,
-    JointAlignment = bool(DstIsAligned) && bool(SrcIsAligned) ? Aligned : Unaligned,
-    SrcEvalBeforeAssign = (evaluator_traits<OtherDerived>::HasEvalTo == 1)
+    JointAlignment = bool(DstIsAligned) && bool(SrcIsAligned) ? Aligned : Unaligned
   };
 
 private:
@@ -68,8 +67,7 @@ private:
 
 public:
   enum {
-    Traversal = int(SrcEvalBeforeAssign) ? int(AllAtOnceTraversal) 
-              : int(MayInnerVectorize)   ? int(InnerVectorizedTraversal)
+    Traversal = int(MayInnerVectorize)   ? int(InnerVectorizedTraversal)
               : int(MayLinearVectorize)  ? int(LinearVectorizedTraversal)
               : int(MaySliceVectorize)   ? int(SliceVectorizedTraversal)
               : int(MayLinearize)        ? int(LinearTraversal)
@@ -493,23 +491,6 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
 
       alignedStart = std::min<Index>((alignedStart+alignedStep)%packetSize, innerSize);
     }
-  }
-};
-
-/****************************
-*** All-at-once traversal ***
-****************************/
-
-// TODO: this 'AllAtOnceTraversal' should be dropped or caught earlier (Gael)
-// Indeed, what to do with the kernel's functor??
-template<typename Kernel>
-struct dense_assignment_loop<Kernel, AllAtOnceTraversal, NoUnrolling>
-{
-  static inline void run(Kernel & kernel)
-  {
-    // Evaluate rhs in temporary to prevent aliasing problems in a = a * a;
-    // TODO: Do not pass the xpr object to evalTo() (Jitse)
-    kernel.srcEvaluator().evalTo(kernel.dstEvaluator(), kernel.dstExpression());
   }
 };
 

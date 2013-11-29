@@ -22,10 +22,6 @@ namespace internal {
 template<typename T>
 struct evaluator_traits
 {
-  // 1 if evaluator_impl<T>::evalTo() exists
-  // 0 if evaluator_impl<T> allows coefficient-based access
-  static const int HasEvalTo = 0;
-
   // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
   // temporary; 0 if not.
   static const int AssumeAliasing = 0;
@@ -37,32 +33,16 @@ template<typename ArgType>
 class EvalToTemp;
 
 // evaluator<T>::type is type of evaluator for T
-// evaluator<T>::nestedType is type of evaluator if T is nested inside another evaluator
  
 template<typename T>
 struct evaluator_impl 
 { };
- 
-template<typename T, int Nested = evaluator_traits<T>::HasEvalTo>
-struct evaluator_nested_type;
-
-template<typename T>
-struct evaluator_nested_type<T, 0>
-{
-  typedef evaluator_impl<T> type;
-};
-
-template<typename T>
-struct evaluator_nested_type<T, 1>
-{
-  typedef evaluator_impl<EvalToTemp<T> > type;
-};
 
 template<typename T>
 struct evaluator
 {
   typedef evaluator_impl<T> type;
-  typedef typename evaluator_nested_type<T>::type nestedType;
+  typedef evaluator_impl<T> nestedType;
 };
 
 // TODO: Think about const-correctness
