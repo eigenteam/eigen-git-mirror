@@ -387,7 +387,29 @@ template<typename Derived> class DenseBase
       // size types on MSVC.
       return typename internal::eval<Derived>::type(derived());
     }
+    
+#ifdef EIGEN_TEST_EVALUATORS
+    /** swaps *this with the expression \a other.
+      *
+      */
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    void swap(const DenseBase<OtherDerived>& other,
+              int = OtherDerived::ThisConstantIsPrivateInPlainObjectBase)
+    {
+      swap_using_evaluator(derived(), other.derived());
+    }
 
+    /** swaps *this with the matrix or array \a other.
+      *
+      */
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    void swap(PlainObjectBase<OtherDerived>& other)
+    {
+      swap_using_evaluator(derived(), other.derived());
+    }
+#else // EIGEN_TEST_EVALUATORS
     /** swaps *this with the expression \a other.
       *
       */
@@ -408,7 +430,7 @@ template<typename Derived> class DenseBase
     {
       SwapWrapper<Derived>(derived()).lazyAssign(other.derived());
     }
-
+#endif // EIGEN_TEST_EVALUATORS
 
     EIGEN_DEVICE_FUNC inline const NestByValue<Derived> nestByValue() const;
     EIGEN_DEVICE_FUNC inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
