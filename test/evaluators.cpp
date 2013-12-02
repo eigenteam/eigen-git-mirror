@@ -74,7 +74,8 @@ namespace Eigen {
   template<typename DstXprType, typename SrcXprType>
   void swap_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   {
-    call_dense_swap_loop(dst.const_cast_derived(), src.const_cast_derived());
+    typedef typename DstXprType::Scalar Scalar;
+    call_assignment(dst.const_cast_derived(), src.const_cast_derived(), internal::swap_assign_op<Scalar>());
   }
   
 }
@@ -193,7 +194,7 @@ void test_evaluators()
     VERIFY_IS_APPROX_EVALUATOR2(resXX, prod(mX4,m4X), mX4*m4X);
     VERIFY_IS_APPROX_EVALUATOR2(resXX, prod(mXX,mXX), mXX*mXX);
   }
-
+#endif
   {
     ArrayXXf a(2,3);
     ArrayXXf b(3,2);
@@ -202,7 +203,7 @@ void test_evaluators()
     
     // this does not work because Random is eval-before-nested: 
     // copy_using_evaluator(w, Vector2d::Random().transpose());
-    
+
     // test CwiseUnaryOp
     VERIFY_IS_APPROX_EVALUATOR(v2, 3 * v);
     VERIFY_IS_APPROX_EVALUATOR(w, (3 * v).transpose());
@@ -405,7 +406,7 @@ void test_evaluators()
     arr_ref.row(1) /= (arr_ref.row(2) + 1);
     VERIFY_IS_APPROX(arr, arr_ref);
   }
-#endif  
+  
   {
     // test triangular shapes
     MatrixXd A = MatrixXd::Random(6,6), B(6,6), C(6,6);

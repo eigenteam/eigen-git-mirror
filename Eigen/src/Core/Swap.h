@@ -139,15 +139,16 @@ template<typename ExpressionType> class SwapWrapper
 
 // #endif
 
-#ifdef EIGEN_TEST_EVALUATORS
+#ifdef EIGEN_ENABLE_EVALUATORS
 
 namespace internal {
 
 // Overload default assignPacket behavior for swapping them
 template<typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT>
-class dense_swap_kernel : public generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar> >
+class generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar>, Specialized>
+ : public generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar>, BuiltIn>
 {
-  typedef generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar> > Base;
+  typedef generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar>, BuiltIn> Base;
   typedef typename DstEvaluatorTypeT::PacketScalar PacketScalar;
   using Base::m_dst;
   using Base::m_src;
@@ -157,9 +158,10 @@ public:
   typedef typename Base::Scalar Scalar;
   typedef typename Base::Index Index;
   typedef typename Base::DstXprType DstXprType;
+  typedef swap_assign_op<Scalar> Functor;
   
-  dense_swap_kernel(DstEvaluatorTypeT &dst, const SrcEvaluatorTypeT &src, DstXprType& dstExpr)
-    : Base(dst, src, swap_assign_op<Scalar>(), dstExpr)
+  generic_dense_assignment_kernel(DstEvaluatorTypeT &dst, const SrcEvaluatorTypeT &src, const Functor &func, DstXprType& dstExpr)
+    : Base(dst, src, func, dstExpr)
   {}
   
   template<int StoreMode, int LoadMode>
@@ -183,25 +185,6 @@ public:
     assignPacket<StoreMode,LoadMode>(row, col);
   }
 };
-  
-template<typename DstXprType, typename SrcXprType>
-void call_dense_swap_loop(const DstXprType& dst, const SrcXprType& src)
-{
-  // TODO there is too much redundancy with call_dense_assignment_loop
-  
-  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-  
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-
-  DstEvaluatorType dstEvaluator(dst);
-  SrcEvaluatorType srcEvaluator(src);
-    
-  typedef dense_swap_kernel<DstEvaluatorType,SrcEvaluatorType> Kernel;
-  Kernel kernel(dstEvaluator, srcEvaluator, dst.const_cast_derived());
-  
-  dense_assignment_loop<Kernel>::run(kernel);
-}
 
 } // namespace internal
 

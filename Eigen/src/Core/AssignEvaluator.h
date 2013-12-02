@@ -504,7 +504,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
 // This abstraction level permits to keep the evaluation loops as simple and as generic as possible.
 // One can customize the assignment using this generic dense_assignment_kernel with different
 // functors, or by completely overloading it, by-passing a functor.
-template<typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor>
+template<typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor, int Version = Specialized>
 class generic_dense_assignment_kernel
 {
 protected:
