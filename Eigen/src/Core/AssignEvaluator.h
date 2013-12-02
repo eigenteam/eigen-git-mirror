@@ -679,6 +679,11 @@ void call_assignment(const NoAlias<Dst,StorageBase>& dst, const Src& src, const 
 {
   Assignment<Dst,Src,Func>::run(dst.expression(), src, func);
 }
+template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
+void call_assignment(NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
+{
+  Assignment<Dst,Src,Func>::run(dst.expression(), src, func);
+}
 
 // Generic Dense to Dense assignment
 template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>

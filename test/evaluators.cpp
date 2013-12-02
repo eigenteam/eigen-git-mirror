@@ -47,14 +47,14 @@ namespace Eigen {
   void add_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   {
     typedef typename DstXprType::Scalar Scalar;
-    call_assignment(dst.const_cast_derived(), src.derived(), internal::add_assign_op<Scalar>());
+    call_assignment(const_cast<DstXprType&>(dst), src.derived(), internal::add_assign_op<Scalar>());
   }
 
   template<typename DstXprType, typename SrcXprType>
   void subtract_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   {
     typedef typename DstXprType::Scalar Scalar;
-    call_assignment(dst.const_cast_derived(), src.derived(), internal::sub_assign_op<Scalar>());
+    call_assignment(const_cast<DstXprType&>(dst), src.derived(), internal::sub_assign_op<Scalar>());
   }
 
   template<typename DstXprType, typename SrcXprType>
@@ -151,6 +151,17 @@ void test_evaluators()
     c = a*a;
     copy_using_evaluator(a, prod(a,a));
     VERIFY_IS_APPROX(a,c);
+    
+    // check compound assignment of products
+    d = c;
+    add_assign_using_evaluator(c.noalias(), prod(a,b));
+    d.noalias() += a*b;
+    VERIFY_IS_APPROX(c, d);
+    
+    d = c;
+    subtract_assign_using_evaluator(c.noalias(), prod(a,b));
+    d.noalias() -= a*b;
+    VERIFY_IS_APPROX(c, d);
   }
   
   {

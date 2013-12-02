@@ -45,6 +45,12 @@ struct evaluator<Product<Lhs, Rhs, Options> >
 template<typename Lhs, typename Rhs, int ProductType = internal::product_type<Lhs,Rhs>::value>
 struct dense_product_impl;
 
+template<typename Lhs, typename Rhs>
+struct evaluator_traits<Product<Lhs, Rhs, DefaultProduct> > 
+ : evaluator_traits_base<Product<Lhs, Rhs, DefaultProduct> >
+{
+  enum { AssumeAliasing = 1 };
+};
 
 // The evaluator for default dense products creates a temporary and call dense_product_impl
 template<typename Lhs, typename Rhs, int ProductTag>
@@ -58,9 +64,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseSha
   product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
-    
     ::new (static_cast<Base*>(this)) Base(m_result);
-    
     dense_product_impl<Lhs, Rhs>::evalTo(m_result, xpr.lhs(), xpr.rhs());
   }
   
@@ -68,6 +72,38 @@ protected:
   PlainObject m_result;
 };
 
+// Dense = Product
+template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+{
+  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  {
+    dense_product_impl<Lhs, Rhs>::evalTo(dst, src.lhs(), src.rhs());
+  }
+};
+
+// Dense += Product
+template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_assign_op<Scalar>, Dense2Dense, Scalar>
+{
+  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
+  {
+    dense_product_impl<Lhs, Rhs>::addTo(dst, src.lhs(), src.rhs());
+  }
+};
+
+// Dense -= Product
+template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_assign_op<Scalar>, Dense2Dense, Scalar>
+{
+  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
+  {
+    dense_product_impl<Lhs, Rhs>::subTo(dst, src.lhs(), src.rhs());
+  }
+};
 
 template<typename Lhs, typename Rhs>
 struct dense_product_impl<Lhs,Rhs,InnerProduct>
