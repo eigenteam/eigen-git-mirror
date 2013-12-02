@@ -33,12 +33,12 @@ template<typename Lhs, typename Rhs, int Option, typename StorageKind> class Pro
 namespace internal {
 template<typename Lhs, typename Rhs, int Option>
 struct traits<Product<Lhs, Rhs, Option> >
-  : traits<typename ProductReturnType<Lhs, Rhs>::Type>
+  : traits<CoeffBasedProduct<Lhs, Rhs, NestByRefBit> >
 { 
   // We want A+B*C to be of type Product<Matrix, Sum> and not Product<Matrix, Matrix>
   // TODO: This flag should eventually go in a separate evaluator traits class
   enum {
-    Flags = traits<typename ProductReturnType<Lhs, Rhs>::Type>::Flags & ~(EvalBeforeNestingBit | DirectAccessBit)
+    Flags = traits<CoeffBasedProduct<Lhs, Rhs, NestByRefBit> >::Flags & ~(EvalBeforeNestingBit | DirectAccessBit)
   };
 };
 } // end namespace internal
