@@ -526,6 +526,8 @@ public:
   Index size() const        { return m_dstExpr.size(); }
   Index innerSize() const   { return m_dstExpr.innerSize(); }
   Index outerSize() const   { return m_dstExpr.outerSize(); }
+  Index rows() const        { return m_dstExpr.rows(); }
+  Index cols() const        { return m_dstExpr.cols(); }
   Index outerStride() const { return m_dstExpr.outerStride(); }
   
   // TODO get rid of this one:
@@ -534,16 +536,25 @@ public:
   DstEvaluatorType& dstEvaluator() { return m_dst; }
   const SrcEvaluatorType& srcEvaluator() const { return m_src; }
   
+  /// Assign src(row,col) to dst(row,col) through the assignment functor.
   void assignCoeff(Index row, Index col)
   {
     m_functor.assignCoeff(m_dst.coeffRef(row,col), m_src.coeff(row,col));
   }
   
+  /// This overload by-passes the source expression, i.e., dst(row,col) ?= value
+  void assignCoeff(Index row, Index col, const Scalar &value)
+  {
+    m_functor.assignCoeff(m_dst.coeffRef(row,col), value);
+  }
+  
+  /// \sa assignCoeff(Index,Index)
   void assignCoeff(Index index)
   {
     m_functor.assignCoeff(m_dst.coeffRef(index), m_src.coeff(index));
   }
   
+  /// \sa assignCoeff(Index,Index)
   void assignCoeffByOuterInner(Index outer, Index inner)
   {
     Index row = rowIndexByOuterInner(outer, inner); 
@@ -633,29 +644,15 @@ void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src)
 * Part 6 : Generic assignment
 ***************************************************************************/
 
-
-// An evaluator must define its shape. It can be one of the following:
-struct DenseShape       {};
-struct DiagonalShape    {};
-struct BandShape        {};
-struct TriangularShape  {};
-struct SelfAdjointShape {};
-struct SparseShape      {};
-
-
 // Based on the respective shapes of the destination and source,
 // the class AssignmentKind determine the kind of assignment mechanism.
 // AssignmentKind must define a Kind typedef.
 template<typename DstShape, typename SrcShape> struct AssignmentKind;
 
-// AssignmentKind<.,.>::Kind can be one of the following:
-    struct Dense2Dense                  {};
-    struct Triangular2Triangular        {};
-//  struct Diagonal2Diagonal            {}; // <=> Dense2Dense
-    struct Sparse2Dense                 {};
-    struct Sparse2Sparse                {};
+// Assignement kind defined in this file:
+struct Dense2Dense {};
 
-template<> struct AssignmentKind<Dense,Dense> { typedef Dense2Dense Kind; };
+template<> struct AssignmentKind<DenseShape,DenseShape> { typedef Dense2Dense Kind; };
     
 // This is the main assignment class
 template< typename DstXprType, typename SrcXprType, typename Functor,

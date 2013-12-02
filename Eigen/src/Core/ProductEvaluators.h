@@ -48,7 +48,7 @@ struct dense_product_impl;
 
 // The evaluator for default dense products creates a temporary and call dense_product_impl
 template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, Dense, Dense, typename Lhs::Scalar, typename Rhs::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
@@ -217,7 +217,7 @@ template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typen
 struct etor_product_packet_impl;
 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, Dense, Dense, typename Lhs::Scalar, typename Rhs::Scalar > 
+struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar > 
     : evaluator_base<Product<Lhs, Rhs, LazyProduct> >
 {
   typedef Product<Lhs, Rhs, LazyProduct> XprType;

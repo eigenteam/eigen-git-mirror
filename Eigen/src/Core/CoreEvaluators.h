@@ -42,14 +42,14 @@ template<typename StorageKind> struct storage_kind_to_shape;
 
 template<>
 struct storage_kind_to_shape<Dense> {
-  typedef Dense Shape;
+  typedef DenseShape Shape;
 };
 
 // TODO to be moved to SparseCore:
 /*
 template<>
 struct storage_kind_to_shape<Sparse> {
-  typedef Sparse Shape;
+  typedef SparseSpape Shape;
 };
 */
 
