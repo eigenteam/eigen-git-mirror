@@ -1127,7 +1127,7 @@ struct triangular_assignment_loop<Kernel, StrictlyUpper, Dynamic, ClearOpposite>
         kernel.assignCoeff(i, j);
       if (ClearOpposite)
         for(Index i = maxi; i < kernel.rows(); ++i)
-          kernel.assignCoeff(i, j) = Scalar(0);
+          kernel.assignCoeff(i, j, Scalar(0));
     }
   }
 };
