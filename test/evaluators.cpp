@@ -3,6 +3,10 @@
 #define EIGEN_ENABLE_EVALUATORS
 #endif
 
+#ifdef EIGEN_TEST_EVALUATORS
+#undef EIGEN_TEST_EVALUATORS
+#endif
+
 #include "main.h"
 
 namespace Eigen {
@@ -101,7 +105,7 @@ void test_evaluators()
 
   copy_using_evaluator(w.transpose(), v_const);
   VERIFY_IS_APPROX(w,v_const.transpose().eval());
-
+#if 0
   // Testing Array evaluator
   {
     ArrayXXf a(2,3);
@@ -400,5 +404,34 @@ void test_evaluators()
     divide_assign_using_evaluator(arr.row(1), arr.row(2) + 1);
     arr_ref.row(1) /= (arr_ref.row(2) + 1);
     VERIFY_IS_APPROX(arr, arr_ref);
+  }
+#endif  
+  {
+    // test triangular shapes
+    MatrixXd A = MatrixXd::Random(6,6), B(6,6), C(6,6);
+    A.setRandom();B.setRandom();
+    VERIFY_IS_APPROX_EVALUATOR2(B, A.triangularView<Upper>(), MatrixXd(A.triangularView<Upper>()));
+    
+    A.setRandom();B.setRandom();
+    VERIFY_IS_APPROX_EVALUATOR2(B, A.triangularView<UnitLower>(), MatrixXd(A.triangularView<UnitLower>()));
+    
+    A.setRandom();B.setRandom();
+    VERIFY_IS_APPROX_EVALUATOR2(B, A.triangularView<UnitUpper>(), MatrixXd(A.triangularView<UnitUpper>()));
+    
+    A.setRandom();B.setRandom();
+    C = B; C.triangularView<Upper>() = A;
+    copy_using_evaluator(B.triangularView<Upper>(), A);
+    VERIFY(B.isApprox(C) && "copy_using_evaluator(B.triangularView<Upper>(), A)");
+    
+    A.setRandom();B.setRandom();
+    C = B; C.triangularView<Lower>() = A.triangularView<Lower>();
+    copy_using_evaluator(B.triangularView<Lower>(), A.triangularView<Lower>());
+    VERIFY(B.isApprox(C) && "copy_using_evaluator(B.triangularView<Lower>(), A.triangularView<Lower>())");
+    
+    
+    A.setRandom();B.setRandom();
+    C = B; C.triangularView<Lower>() = A.triangularView<Upper>().transpose();
+    copy_using_evaluator(B.triangularView<Lower>(), A.triangularView<Upper>().transpose());
+    VERIFY(B.isApprox(C) && "copy_using_evaluator(B.triangularView<Lower>(), A.triangularView<Lower>().transpose())");
   }
 }

@@ -36,7 +36,13 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
       RowsAtCompileTime = internal::traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = internal::traits<Derived>::ColsAtCompileTime,
       MaxRowsAtCompileTime = internal::traits<Derived>::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = internal::traits<Derived>::MaxColsAtCompileTime
+      MaxColsAtCompileTime = internal::traits<Derived>::MaxColsAtCompileTime,
+      
+      SizeAtCompileTime = (internal::size_at_compile_time<internal::traits<Derived>::RowsAtCompileTime,
+                                                   internal::traits<Derived>::ColsAtCompileTime>::ret)
+        /**< This is equal to the number of coefficients, i.e. the number of
+          * rows times the number of columns, or to \a Dynamic if this is not
+          * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
     };
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
@@ -408,15 +414,24 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     EIGEN_DEVICE_FUNC
     void swap(TriangularBase<OtherDerived> const & other)
     {
+//       #ifdef EIGEN_TEST_EVALUATORS
+//       swap_using_evaluator(this->derived(), other.derived());
+//       #else
       TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.derived());
+//       #endif
     }
 
+    // TODO: this overload is ambiguous and it should be deprecated (Gael)
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     {
+//       #ifdef EIGEN_TEST_EVALUATORS
+//       swap_using_evaluator(this->derived(), other.derived());
+//       #else
       SwapWrapper<MatrixType> swaper(const_cast<MatrixType&>(m_matrix));
       TriangularView<SwapWrapper<MatrixType>,Mode>(swaper).lazyAssign(other.derived());
+//       #endif
     }
 
     EIGEN_DEVICE_FUNC
@@ -894,6 +909,306 @@ bool MatrixBase<Derived>::isLowerTriangular(const RealScalar& prec) const
   }
   return true;
 }
+
+
+#ifdef EIGEN_ENABLE_EVALUATORS
+
+/***************************************************************************
+****************************************************************************
+* Evaluators and Assignment of triangular expressions
+***************************************************************************
+***************************************************************************/
+
+namespace internal {
+
+  
+// TODO currently a triangular expression has the form TriangularView<.,.>
+//      in the future triangular-ness should be defined by the expression traits
+//      such that Transpose<TriangularView<.,.> > is valid. (currently TriangularBase::transpose() is overloaded to make it work)
+template<typename MatrixType, unsigned int Mode>
+struct evaluator_traits<TriangularView<MatrixType,Mode> >
+{
+  typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
+  typedef TriangularShape Shape;
+  
+  // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
+  // temporary; 0 if not.
+  static const int AssumeAliasing = 0;
+};
+
+template<typename MatrixType, unsigned int Mode, typename Kind>
+struct evaluator<TriangularView<MatrixType,Mode>, Kind, typename MatrixType::Scalar>
+ : evaluator<MatrixType>
+{
+  typedef TriangularView<MatrixType,Mode> XprType;
+  typedef evaluator<MatrixType> Base;
+  typedef evaluator type;
+  evaluator(const XprType &xpr) : Base(xpr.nestedExpression()) {}
+};
+
+// Additional assignement kinds:
+struct Triangular2Triangular    {};
+struct Triangular2Dense         {};
+struct Dense2Triangular         {};
+
+
+template<typename Kernel, unsigned int Mode, int UnrollCount, bool ClearOpposite> struct triangular_assignment_loop;
+
+
+template<int Mode, bool ClearOpposite, typename DstXprType, typename SrcXprType, typename Functor>
+void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
+{
+#ifdef EIGEN_DEBUG_ASSIGN
+  // TODO these traits should be computed from information provided by the evaluators
+  internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
+#endif
+  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+  
+  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
+  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+
+  DstEvaluatorType dstEvaluator(dst);
+  SrcEvaluatorType srcEvaluator(src);
+    
+  typedef generic_dense_assignment_kernel<DstEvaluatorType,SrcEvaluatorType,Functor> Kernel;
+  Kernel kernel(dstEvaluator, srcEvaluator, func, dst.const_cast_derived());
+  
+  enum {
+      unroll = DstXprType::SizeAtCompileTime != Dynamic
+            && internal::traits<SrcXprType>::CoeffReadCost != Dynamic
+            && DstXprType::SizeAtCompileTime * internal::traits<SrcXprType>::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT
+    };
+  
+  triangular_assignment_loop<Kernel, Mode, unroll ? int(DstXprType::SizeAtCompileTime) : Dynamic, ClearOpposite>::run(kernel);
+}
+
+template<int Mode, bool ClearOpposite, typename DstXprType, typename SrcXprType>
+void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src)
+{
+  call_triangular_assignment_loop<Mode,ClearOpposite>(dst, src, internal::assign_op<typename DstXprType::Scalar>());
+}
+
+
+template<> struct AssignmentKind<TriangularShape,TriangularShape> { typedef Triangular2Triangular Kind; };
+template<> struct AssignmentKind<DenseShape,TriangularShape>      { typedef Triangular2Dense      Kind; };
+template<> struct AssignmentKind<TriangularShape,DenseShape>      { typedef Dense2Triangular      Kind; };
+
+
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Triangular, Scalar>
+{
+  static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
+  {
+    eigen_assert(int(DstXprType::Mode) == int(SrcXprType::Mode));
+    
+    call_triangular_assignment_loop<DstXprType::Mode, false>(dst, src, func);  
+  }
+};
+
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Dense, Scalar>
+{
+  static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
+  {    
+    call_triangular_assignment_loop<SrcXprType::Mode, true>(dst, src, func);  
+  }
+};
+
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Dense2Triangular, Scalar>
+{
+  static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
+  {    
+    call_triangular_assignment_loop<DstXprType::Mode, false>(dst, src, func);  
+  }
+};
+
+
+template<typename Kernel, unsigned int Mode, int UnrollCount, bool ClearOpposite>
+struct triangular_assignment_loop
+{
+  enum {
+    col = (UnrollCount-1) / Kernel::RowsAtCompileTime,
+    row = (UnrollCount-1) % Kernel::RowsAtCompileTime
+  };
+  
+  typedef typename Kernel::Scalar Scalar;
+
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &kernel)
+  {
+    triangular_assignment_loop<Kernel, Mode, UnrollCount-1, ClearOpposite>::run(kernel);
+
+    // TODO should be a static assert
+    eigen_assert(    Mode == Upper              || Mode == Lower
+                  || Mode == StrictlyUpper      || Mode == StrictlyLower
+                  || Mode == UnitUpper          || Mode == UnitLower);
+    
+    if((Mode == Upper           && row <= col)
+    || (Mode == Lower           && row >= col)
+    || (Mode == StrictlyUpper   && row <  col)
+    || (Mode == StrictlyLower   && row >  col)
+    || (Mode == UnitUpper       && row <  col)
+    || (Mode == UnitLower       && row >  col))
+      kernel.assignCoeff(row, col);
+    else if(ClearOpposite)
+    {
+      if((Mode&UnitDiag) && row==col) kernel.assignCoeff(row, col, Scalar(1));
+      else                            kernel.assignCoeff(row, col, Scalar(0));
+    }
+  }
+};
+
+// prevent buggy user code from causing an infinite recursion
+template<typename Kernel, unsigned int Mode, bool ClearOpposite>
+struct triangular_assignment_loop<Kernel, Mode, 0, ClearOpposite>
+{
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &) {}
+};
+
+// TODO: merge the following 6 variants into a single one (or max two),
+//       and perhaps write them using sub-expressions
+
+// TODO: expreiment with a recursive assignment procedure splitting the current
+//       triangular part into one rectangular and two triangular parts.
+
+template<typename Kernel, bool ClearOpposite>
+struct triangular_assignment_loop<Kernel, Upper, Dynamic, ClearOpposite>
+{
+  typedef typename Kernel::Index Index;
+  typedef typename Kernel::Scalar Scalar;
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &kernel)
+  {
+    for(Index j = 0; j < kernel.cols(); ++j)
+    {
+      Index maxi = (std::min)(j, kernel.rows()-1);
+      for(Index i = 0; i <= maxi; ++i)
+        kernel.assignCoeff(i, j);
+      if (ClearOpposite)
+        for(Index i = maxi+1; i < kernel.rows(); ++i)
+          kernel.assignCoeff(i, j, Scalar(0));
+    }
+  }
+};
+
+template<typename Kernel, bool ClearOpposite>
+struct triangular_assignment_loop<Kernel, Lower, Dynamic, ClearOpposite>
+{
+  typedef typename Kernel::Index Index;
+  typedef typename Kernel::Scalar Scalar;
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &kernel)
+  {
+    for(Index j = 0; j < kernel.cols(); ++j)
+    {
+      for(Index i = j; i < kernel.rows(); ++i)
+        kernel.assignCoeff(i, j);
+      Index maxi = (std::min)(j, kernel.rows());
+      if (ClearOpposite)
+        for(Index i = 0; i < maxi; ++i)
+          kernel.assignCoeff(i, j, Scalar(0));
+    }
+  }
+};
+
+template<typename Kernel, bool ClearOpposite>
+struct triangular_assignment_loop<Kernel, StrictlyUpper, Dynamic, ClearOpposite>
+{
+  typedef typename Kernel::Index Index;
+  typedef typename Kernel::Scalar Scalar;
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &kernel)
+  {
+    for(Index j = 0; j < kernel.cols(); ++j)
+    {
+      Index maxi = (std::min)(j, kernel.rows());
+      for(Index i = 0; i < maxi; ++i)
+        kernel.assignCoeff(i, j);
+      if (ClearOpposite)
+        for(Index i = maxi; i < kernel.rows(); ++i)
+          kernel.assignCoeff(i, j) = Scalar(0);
+    }
+  }
+};
+
+template<typename Kernel, bool ClearOpposite>
+struct triangular_assignment_loop<Kernel, StrictlyLower, Dynamic, ClearOpposite>
+{
+  typedef typename Kernel::Index Index;
+  typedef typename Kernel::Scalar Scalar;
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &kernel)
+  {
+    for(Index j = 0; j < kernel.cols(); ++j)
+    {
+      for(Index i = j+1; i < kernel.rows(); ++i)
+        kernel.assignCoeff(i, j);
+      Index maxi = (std::min)(j, kernel.rows()-1);
+      if (ClearOpposite)
+        for(Index i = 0; i <= maxi; ++i)
+          kernel.assignCoeff(i, j, Scalar(0));
+    }
+  }
+};
+
+template<typename Kernel, bool ClearOpposite>
+struct triangular_assignment_loop<Kernel, UnitUpper, Dynamic, ClearOpposite>
+{
+  typedef typename Kernel::Index Index;
+  typedef typename Kernel::Scalar Scalar;
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &kernel)
+  {
+    for(Index j = 0; j < kernel.cols(); ++j)
+    {
+      Index maxi = (std::min)(j, kernel.rows());
+      Index i = 0;
+      for(; i < maxi; ++i)
+        kernel.assignCoeff(i, j);
+      
+      if(i<kernel.rows()) // then i==j
+        kernel.assignCoeff(i++, j, Scalar(1));
+      
+      if (ClearOpposite)
+      {
+        for(; i < kernel.rows(); ++i)
+          kernel.assignCoeff(i, j, Scalar(0));
+      }
+    }
+  }
+};
+template<typename Kernel, bool ClearOpposite>
+struct triangular_assignment_loop<Kernel, UnitLower, Dynamic, ClearOpposite>
+{
+  typedef typename Kernel::Index Index;
+  typedef typename Kernel::Scalar Scalar;
+  EIGEN_DEVICE_FUNC
+  static inline void run(Kernel &kernel)
+  {
+    for(Index j = 0; j < kernel.cols(); ++j)
+    {
+      Index maxi = (std::min)(j, kernel.rows());
+      Index i = 0;
+      if (ClearOpposite)
+      {
+        for(; i < maxi; ++i)
+          kernel.assignCoeff(i, j, Scalar(0));
+      }
+      
+      if(i<kernel.rows()) // then i==j
+        kernel.assignCoeff(i++, j, Scalar(1));
+      
+      for(; i < kernel.rows(); ++i)
+        kernel.assignCoeff(i, j);
+    }
+  }
+};
+
+} // end namespace internal
+
+#endif
 
 } // end namespace Eigen
 
