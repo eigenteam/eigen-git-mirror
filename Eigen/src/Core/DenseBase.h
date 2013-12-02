@@ -397,7 +397,7 @@ template<typename Derived> class DenseBase
     void swap(const DenseBase<OtherDerived>& other,
               int = OtherDerived::ThisConstantIsPrivateInPlainObjectBase)
     {
-      swap_using_evaluator(derived(), other.derived());
+      call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
     }
 
     /** swaps *this with the matrix or array \a other.
@@ -407,7 +407,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     void swap(PlainObjectBase<OtherDerived>& other)
     {
-      swap_using_evaluator(derived(), other.derived());
+      call_assignment(derived(), other.derived(), internal::swap_assign_op<Scalar>());
     }
 #else // EIGEN_TEST_EVALUATORS
     /** swaps *this with the expression \a other.

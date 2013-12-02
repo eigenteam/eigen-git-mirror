@@ -305,6 +305,7 @@ using std::ptrdiff_t;
 #include "src/Core/functors/UnaryFunctors.h"
 #include "src/Core/functors/NullaryFunctors.h"
 #include "src/Core/functors/StlFunctors.h"
+#include "src/Core/functors/AssignmentFunctors.h"
 
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"
@@ -312,7 +313,6 @@ using std::ptrdiff_t;
 #include "src/Core/EigenBase.h"
 
 #ifdef EIGEN_ENABLE_EVALUATORS
-#include "src/Core/functors/AssignmentFunctors.h"
 #include "src/Core/Product.h"
 #include "src/Core/CoreEvaluators.h"
 #include "src/Core/AssignEvaluator.h"

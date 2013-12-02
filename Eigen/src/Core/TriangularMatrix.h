@@ -414,11 +414,11 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     EIGEN_DEVICE_FUNC
     void swap(TriangularBase<OtherDerived> const & other)
     {
-//       #ifdef EIGEN_TEST_EVALUATORS
-//       swap_using_evaluator(this->derived(), other.derived());
-//       #else
-      TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.derived());
-//       #endif
+      #ifdef EIGEN_TEST_EVALUATORS
+      call_assignment(*this, other.const_cast_derived(), internal::swap_assign_op<Scalar>());
+      #else
+      TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.const_cast_derived().nestedExpression());
+      #endif
     }
 
     // TODO: this overload is ambiguous and it should be deprecated (Gael)
@@ -426,12 +426,12 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     {
-//       #ifdef EIGEN_TEST_EVALUATORS
-//       swap_using_evaluator(this->derived(), other.derived());
-//       #else
+      #ifdef EIGEN_TEST_EVALUATORS
+      call_assignment(*this, other.const_cast_derived(), internal::swap_assign_op<Scalar>());
+      #else
       SwapWrapper<MatrixType> swaper(const_cast<MatrixType&>(m_matrix));
       TriangularView<SwapWrapper<MatrixType>,Mode>(swaper).lazyAssign(other.derived());
-//       #endif
+      #endif
     }
 
     EIGEN_DEVICE_FUNC
@@ -988,7 +988,6 @@ void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& sr
   call_triangular_assignment_loop<Mode,ClearOpposite>(dst, src, internal::assign_op<typename DstXprType::Scalar>());
 }
 
-
 template<> struct AssignmentKind<TriangularShape,TriangularShape> { typedef Triangular2Triangular Kind; };
 template<> struct AssignmentKind<DenseShape,TriangularShape>      { typedef Triangular2Dense      Kind; };
 template<> struct AssignmentKind<TriangularShape,DenseShape>      { typedef Dense2Triangular      Kind; };
@@ -1028,8 +1027,8 @@ template<typename Kernel, unsigned int Mode, int UnrollCount, bool ClearOpposite
 struct triangular_assignment_loop
 {
   enum {
-    col = (UnrollCount-1) / Kernel::RowsAtCompileTime,
-    row = (UnrollCount-1) % Kernel::RowsAtCompileTime
+    col = (UnrollCount-1) / Kernel::DstEvaluatorType::RowsAtCompileTime,
+    row = (UnrollCount-1) % Kernel::DstEvaluatorType::RowsAtCompileTime
   };
   
   typedef typename Kernel::Scalar Scalar;

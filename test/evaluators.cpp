@@ -106,7 +106,7 @@ void test_evaluators()
 
   copy_using_evaluator(w.transpose(), v_const);
   VERIFY_IS_APPROX(w,v_const.transpose().eval());
-#if 0
+
   // Testing Array evaluator
   {
     ArrayXXf a(2,3);
@@ -194,7 +194,7 @@ void test_evaluators()
     VERIFY_IS_APPROX_EVALUATOR2(resXX, prod(mX4,m4X), mX4*m4X);
     VERIFY_IS_APPROX_EVALUATOR2(resXX, prod(mXX,mXX), mXX*mXX);
   }
-#endif
+
   {
     ArrayXXf a(2,3);
     ArrayXXf b(3,2);
@@ -409,7 +409,7 @@ void test_evaluators()
   
   {
     // test triangular shapes
-    MatrixXd A = MatrixXd::Random(6,6), B(6,6), C(6,6);
+    MatrixXd A = MatrixXd::Random(6,6), B(6,6), C(6,6), D(6,6);
     A.setRandom();B.setRandom();
     VERIFY_IS_APPROX_EVALUATOR2(B, A.triangularView<Upper>(), MatrixXd(A.triangularView<Upper>()));
     
@@ -434,5 +434,11 @@ void test_evaluators()
     C = B; C.triangularView<Lower>() = A.triangularView<Upper>().transpose();
     copy_using_evaluator(B.triangularView<Lower>(), A.triangularView<Upper>().transpose());
     VERIFY(B.isApprox(C) && "copy_using_evaluator(B.triangularView<Lower>(), A.triangularView<Lower>().transpose())");
+    
+    
+    A.setRandom();B.setRandom(); C = B; D = A;
+    C.triangularView<Upper>().swap(D.triangularView<Upper>());
+    swap_using_evaluator(B.triangularView<Upper>(), A.triangularView<Upper>());
+    VERIFY(B.isApprox(C) && "swap_using_evaluator(B.triangularView<Upper>(), A.triangularView<Upper>())");
   }
 }
