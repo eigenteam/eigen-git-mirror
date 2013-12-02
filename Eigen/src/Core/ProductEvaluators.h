@@ -58,7 +58,9 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseSha
   product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
+    
     ::new (static_cast<Base*>(this)) Base(m_result);
+    
     dense_product_impl<Lhs, Rhs>::evalTo(m_result, xpr.lhs(), xpr.rhs());
   }
   
@@ -186,7 +188,11 @@ struct dense_product_impl<Lhs,Rhs,CoeffBasedProductMode>
   
   template<typename Dst>
   static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
-  { dst = lazyprod(lhs,rhs); }
+  {
+    // TODO: use the following instead of calling call_assignment
+    // dst = lazyprod(lhs,rhs);
+    call_assignment(dst, lazyprod(lhs,rhs), internal::assign_op<Scalar>());
+  }
   
   template<typename Dst>
   static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
