@@ -209,12 +209,12 @@ struct dense_product_impl<Lhs,Rhs,GemmProduct> : dense_product_impl_base<Lhs,Rhs
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
-  template<typename Dest>
-  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-  {
-    // TODO bypass GeneralProduct class
-    GeneralProduct<Lhs, Rhs, GemmProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
-  }
+//   template<typename Dest>
+//   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+//   {
+//     // TODO bypass GeneralProduct class
+//     GeneralProduct<Lhs, Rhs, GemmProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
+//   }
 };
 
 template<typename Lhs, typename Rhs>
@@ -225,22 +225,28 @@ struct dense_product_impl<Lhs,Rhs,CoeffBasedProductMode>
   template<typename Dst>
   static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    // TODO: use the following instead of calling call_assignment
+    // TODO: use the following instead of calling call_assignment, same for the other methods
     // dst = lazyprod(lhs,rhs);
     call_assignment(dst, lazyprod(lhs,rhs), internal::assign_op<Scalar>());
   }
   
   template<typename Dst>
   static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
-  { dst += lazyprod(lhs,rhs); }
+  {
+    // dst += lazyprod(lhs,rhs);
+    call_assignment(dst, lazyprod(lhs,rhs), internal::add_assign_op<Scalar>());
+  }
   
   template<typename Dst>
   static inline void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
-  { dst -= lazyprod(lhs,rhs); }
+  {
+    // dst -= lazyprod(lhs,rhs);
+    call_assignment(dst, lazyprod(lhs,rhs), internal::sub_assign_op<Scalar>());
+  }
   
-  template<typename Dst>
-  static inline void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-  { dst += alpha * lazyprod(lhs,rhs); }
+//   template<typename Dst>
+//   static inline void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+//   { dst += alpha * lazyprod(lhs,rhs); }
 };
 
 template<typename Lhs, typename Rhs>
@@ -286,7 +292,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     CoeffReadCost = traits<CoeffBasedProductType>::CoeffReadCost,
     Unroll = CoeffReadCost != Dynamic && CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
     CanVectorizeInner = traits<CoeffBasedProductType>::CanVectorizeInner,
-    Flags = CoeffBasedProductType::Flags
+    Flags = traits<CoeffBasedProductType>::Flags
   };
 
   typedef typename evaluator<Lhs>::type LhsEtorType;

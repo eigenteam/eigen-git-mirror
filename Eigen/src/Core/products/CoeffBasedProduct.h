@@ -14,7 +14,7 @@
 namespace Eigen { 
 
 namespace internal {
-
+  
 /*********************************************************************************
 *  Coefficient based product implementation.
 *  It is designed for the following use cases:
@@ -109,6 +109,8 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
 };
 
 } // end namespace internal
+
+#ifndef EIGEN_TEST_EVALUATORS
 
 template<typename LhsNested, typename RhsNested, int NestingFlags>
 class CoeffBasedProduct
@@ -446,6 +448,8 @@ struct product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 };
 
 } // end namespace internal
+
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

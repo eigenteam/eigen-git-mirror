@@ -199,7 +199,11 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC 
+#ifdef EIGEN_TEST_EVALUATORS
+    const Product<Derived,OtherDerived,LazyProduct>
+#else
     const typename LazyProductReturnType<Derived,OtherDerived>::Type
+#endif
     lazyProduct(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>

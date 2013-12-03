@@ -53,11 +53,7 @@ struct storage_kind_to_shape<Sparse> {
 };
 */
 
-template<typename T> struct evaluator_traits;
 
-template< typename T,
-          typename Kind = typename evaluator_traits<T>::Kind,
-          typename Scalar = typename T::Scalar> struct evaluator;
           
 template< typename T,
           typename LhsKind = typename evaluator_traits<typename T::Lhs>::Kind,

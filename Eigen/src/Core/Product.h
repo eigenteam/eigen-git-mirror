@@ -79,6 +79,12 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
 
     const LhsNestedCleaned& lhs() const { return m_lhs; }
     const RhsNestedCleaned& rhs() const { return m_rhs; }
+    
+    /** Convertion to scalar for inner-products */
+    operator const Scalar() const {
+      EIGEN_STATIC_ASSERT(SizeAtCompileTime==1, IMPLICIT_CONVERSION_TO_SCALAR_IS_FOR_INNER_PRODUCT_ONLY);
+      return typename internal::evaluator<Product>::type(*this).coeff(0,0);
+    }
 
   protected:
 

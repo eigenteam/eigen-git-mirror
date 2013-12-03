@@ -66,6 +66,8 @@ namespace Eigen
   static bool g_has_set_repeat, g_has_set_seed;
 }
 
+#define TRACK std::cerr << __FILE__ << " " << __LINE__ << std::endl
+
 #define EI_PP_MAKE_STRING2(S) #S
 #define EI_PP_MAKE_STRING(S) EI_PP_MAKE_STRING2(S)
 
