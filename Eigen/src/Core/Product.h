@@ -79,12 +79,6 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
 
     const LhsNestedCleaned& lhs() const { return m_lhs; }
     const RhsNestedCleaned& rhs() const { return m_rhs; }
-    
-    /** Convertion to scalar for inner-products */
-    operator const Scalar() const {
-      EIGEN_STATIC_ASSERT(SizeAtCompileTime==1, IMPLICIT_CONVERSION_TO_SCALAR_IS_FOR_INNER_PRODUCT_ONLY);
-      return typename internal::evaluator<Product>::type(*this).coeff(0,0);
-    }
 
   protected:
 
@@ -92,13 +86,51 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
     RhsNested m_rhs;
 };
 
+namespace internal {
+  
+template<typename Lhs, typename Rhs, int Option, int ProductTab = internal::product_tag<Lhs,Rhs>::ret>
+class dense_product_base
+ : public internal::dense_xpr_base<Product<Lhs,Rhs,Option> >::type
+{};
+
+/** Convertion to scalar for inner-products */
 template<typename Lhs, typename Rhs, int Option>
-class ProductImpl<Lhs,Rhs,Option,Dense> : public internal::dense_xpr_base<Product<Lhs,Rhs,Option> >::type
+class dense_product_base<Lhs, Rhs, Option, InnerProduct>
+ : public internal::dense_xpr_base<Product<Lhs,Rhs,Option> >::type
+{
+  typedef Product<Lhs,Rhs,Option> ProductXpr;
+  typedef typename internal::dense_xpr_base<ProductXpr>::type Base;
+public:
+  using Base::derived;
+  typedef typename Base::Scalar Scalar;
+  typedef typename Base::Index Index;
+  
+  operator const Scalar() const
+  {
+    return typename internal::evaluator<ProductXpr>::type(derived()).coeff(0,0);
+  }
+  
+  Scalar coeff(Index row, Index col) const
+  {
+    return typename internal::evaluator<ProductXpr>::type(derived()).coeff(row,col);
+  }
+
+  Scalar coeff(Index i) const
+  {
+    return typename internal::evaluator<ProductXpr>::type(derived()).coeff(i);
+  }
+};
+
+} // namespace internal
+
+template<typename Lhs, typename Rhs, int Option>
+class ProductImpl<Lhs,Rhs,Option,Dense>
+  : public internal::dense_product_base<Lhs,Rhs,Option>
 {
     typedef Product<Lhs, Rhs> Derived;
   public:
-
-    typedef typename internal::dense_xpr_base<Product<Lhs, Rhs, Option> >::type Base;
+    
+    typedef typename internal::dense_product_base<Lhs, Rhs, Option> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 };
 
