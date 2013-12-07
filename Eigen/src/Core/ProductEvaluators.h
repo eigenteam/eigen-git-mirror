@@ -17,7 +17,7 @@ namespace Eigen {
   
 namespace internal {
 
-// Like more general binary expressions, products need they own evaluator:
+// Like more general binary expressions, products need their own evaluator:
 template< typename T,
           int ProductTag = internal::product_tag<typename T::Lhs,typename T::Rhs>::ret,
           typename LhsShape = typename evaluator_traits<typename T::Lhs>::Shape,
@@ -39,11 +39,14 @@ struct evaluator<Product<Lhs, Rhs, Options> >
   evaluator(const XprType& xpr) : Base(xpr) {}
 };
   
-// Helper class to perform a dense product with the destination at hand.
+// Helper class to perform a matrix product with the destination at hand.
 // Depending on the sizes of the factors, there are different evaluation strategies
 // as controlled by internal::product_type.
-template<typename Lhs, typename Rhs, int ProductType = internal::product_type<Lhs,Rhs>::value>
-struct dense_product_impl;
+template< typename Lhs, typename Rhs,
+          typename LhsShape = typename evaluator_traits<Lhs>::Shape,
+          typename RhsShape = typename evaluator_traits<Rhs>::Shape,
+          int ProductType = internal::product_type<Lhs,Rhs>::value>
+struct generic_product_impl;
 
 template<typename Lhs, typename Rhs>
 struct evaluator_traits<Product<Lhs, Rhs, DefaultProduct> > 
@@ -52,7 +55,7 @@ struct evaluator_traits<Product<Lhs, Rhs, DefaultProduct> >
   enum { AssumeAliasing = 1 };
 };
 
-// The evaluator for default dense products creates a temporary and call dense_product_impl
+// The evaluator for default dense products creates a temporary and call generic_product_impl
 template<typename Lhs, typename Rhs, int ProductTag>
 struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
@@ -65,7 +68,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseSha
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
-    dense_product_impl<Lhs, Rhs>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+    generic_product_impl<Lhs, Rhs>::evalTo(m_result, xpr.lhs(), xpr.rhs());
   }
   
 protected:  
@@ -79,7 +82,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
-    dense_product_impl<Lhs, Rhs>::evalTo(dst, src.lhs(), src.rhs());
+    generic_product_impl<Lhs, Rhs>::evalTo(dst, src.lhs(), src.rhs());
   }
 };
 
@@ -90,7 +93,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_ass
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
   {
-    dense_product_impl<Lhs, Rhs>::addTo(dst, src.lhs(), src.rhs());
+    generic_product_impl<Lhs, Rhs>::addTo(dst, src.lhs(), src.rhs());
   }
 };
 
@@ -101,12 +104,12 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_ass
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
   {
-    dense_product_impl<Lhs, Rhs>::subTo(dst, src.lhs(), src.rhs());
+    generic_product_impl<Lhs, Rhs>::subTo(dst, src.lhs(), src.rhs());
   }
 };
 
 template<typename Lhs, typename Rhs>
-struct dense_product_impl<Lhs,Rhs,InnerProduct>
+struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,InnerProduct>
 {
   template<typename Dst>
   static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
@@ -128,7 +131,7 @@ struct dense_product_impl<Lhs,Rhs,InnerProduct>
 
 
 template<typename Lhs, typename Rhs>
-struct dense_product_impl<Lhs,Rhs,OuterProduct>
+struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,OuterProduct>
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
@@ -165,7 +168,7 @@ struct dense_product_impl<Lhs,Rhs,OuterProduct>
 
 // This base class provides default implementations for evalTo, addTo, subTo, in terms of scaleAndAddTo
 template<typename Lhs, typename Rhs, typename Derived>
-struct dense_product_impl_base
+struct generic_product_impl_base
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
@@ -188,7 +191,8 @@ struct dense_product_impl_base
 };
 
 template<typename Lhs, typename Rhs>
-struct dense_product_impl<Lhs,Rhs,GemvProduct> : dense_product_impl_base<Lhs,Rhs,dense_product_impl<Lhs,Rhs,GemvProduct> >
+struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemvProduct>
+  : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemvProduct> >
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   enum { Side = Lhs::IsVectorAtCompileTime ? OnTheLeft : OnTheRight };
@@ -205,20 +209,21 @@ struct dense_product_impl<Lhs,Rhs,GemvProduct> : dense_product_impl_base<Lhs,Rhs
 };
 
 template<typename Lhs, typename Rhs>
-struct dense_product_impl<Lhs,Rhs,GemmProduct> : dense_product_impl_base<Lhs,Rhs,dense_product_impl<Lhs,Rhs,GemmProduct> >
+struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
+  : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct> >
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
-//   template<typename Dest>
-//   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-//   {
-//     // TODO bypass GeneralProduct class
-//     GeneralProduct<Lhs, Rhs, GemmProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
-//   }
+  template<typename Dest>
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {
+    // TODO bypass GeneralProduct class
+    GeneralProduct<Lhs, Rhs, GemmProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
+  }
 };
 
 template<typename Lhs, typename Rhs>
-struct dense_product_impl<Lhs,Rhs,CoeffBasedProductMode> 
+struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode> 
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
@@ -249,8 +254,10 @@ struct dense_product_impl<Lhs,Rhs,CoeffBasedProductMode>
 //   { dst += alpha * lazyprod(lhs,rhs); }
 };
 
+// This specialization enforces the use of a coefficient-based evaluation strategy
 template<typename Lhs, typename Rhs>
-struct dense_product_impl<Lhs,Rhs,LazyCoeffBasedProductMode> : dense_product_impl<Lhs,Rhs,CoeffBasedProductMode> {};
+struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,LazyCoeffBasedProductMode>
+  : generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode> {};
 
 // Case 2: Evaluate coeff by coeff
 //
@@ -546,6 +553,81 @@ struct etor_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
       res =  pmadd(lhs.template packet<LoadMode>(row, i), pset1<Packet>(rhs.coeff(i, col)), res);
   }
 };
+
+
+/***************************************************************************
+* Triangular products
+***************************************************************************/
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Lhs,Rhs,TriangularShape,DenseShape,ProductTag>
+  : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,TriangularShape,DenseShape,ProductTag> >
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dest>
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {
+    // TODO bypass TriangularProduct class
+    TriangularProduct<Lhs::Mode,true,typename Lhs::MatrixType,false,Rhs, Rhs::IsVectorAtCompileTime>(lhs.nestedExpression(),rhs).scaleAndAddTo(dst, alpha);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, TriangularShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  product_evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    generic_product_impl<Lhs, Rhs, TriangularShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Lhs,Rhs,DenseShape,TriangularShape,ProductTag>
+: generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,TriangularShape,ProductTag> >
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dest>
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {
+    // TODO bypass TriangularProduct class
+    TriangularProduct<Rhs::Mode,false,Lhs,Lhs::IsVectorAtCompileTime, typename Rhs::MatrixType, false>(lhs,rhs.nestedExpression()).scaleAndAddTo(dst, alpha);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, TriangularShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  product_evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    generic_product_impl<Lhs, Rhs, DenseShape, TriangularShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+
+
+
 
 } // end namespace internal
 

@@ -451,5 +451,10 @@ void test_evaluators()
     C.triangularView<Upper>().swap(D.triangularView<Upper>());
     swap_using_evaluator(B.triangularView<Upper>(), A.triangularView<Upper>());
     VERIFY(B.isApprox(C) && "swap_using_evaluator(B.triangularView<Upper>(), A.triangularView<Upper>())");
+    
+    
+    VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.triangularView<Upper>(),A), MatrixXd(A.triangularView<Upper>()*A));
+    
+    B.col(0).noalias() = prod( (2.1 * A.adjoint()).triangularView<UnitUpper>() , (A.row(0)).adjoint() );
   }
 }

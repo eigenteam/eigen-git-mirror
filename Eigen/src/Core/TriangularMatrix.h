@@ -49,6 +49,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::DenseMatrixType DenseMatrixType;
     typedef DenseMatrixType DenseType;
+    typedef Derived const& Nested;
 
     EIGEN_DEVICE_FUNC
     inline TriangularBase() { eigen_assert(!((Mode&UnitDiag) && (Mode&ZeroDiag))); }
@@ -204,6 +205,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     enum {
       Mode = _Mode,
+      Flags = internal::traits<TriangularView>::Flags,
       TransposeMode = (Mode & Upper ? Lower : 0)
                     | (Mode & Lower ? Upper : 0)
                     | (Mode & (UnitDiag))
@@ -326,6 +328,27 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       return m_matrix.transpose();
     }
 
+#ifdef EIGEN_TEST_EVALUATORS
+
+    /** Efficient triangular matrix times vector/matrix product */
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    const Product<TriangularView,OtherDerived>
+    operator*(const MatrixBase<OtherDerived>& rhs) const
+    {
+      return Product<TriangularView,OtherDerived>(*this, rhs.derived());
+    }
+
+    /** Efficient vector/matrix times triangular matrix product */
+    template<typename OtherDerived> friend
+    EIGEN_DEVICE_FUNC
+    const Product<OtherDerived,TriangularView>
+    operator*(const MatrixBase<OtherDerived>& lhs, const TriangularView& rhs)
+    {
+      return Product<OtherDerived,TriangularView>(lhs.derived(),rhs);
+    }
+    
+#else // EIGEN_TEST_EVALUATORS
     /** Efficient triangular matrix times vector/matrix product */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -347,6 +370,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
               <Mode,false,OtherDerived,OtherDerived::IsVectorAtCompileTime,MatrixType,false>
               (lhs.derived(),rhs.m_matrix);
     }
+#endif
 
     #ifdef EIGEN2_SUPPORT
     template<typename OtherDerived>

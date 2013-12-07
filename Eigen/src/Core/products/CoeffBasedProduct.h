@@ -49,8 +49,8 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
   enum {
       LhsCoeffReadCost = _LhsNested::CoeffReadCost,
       RhsCoeffReadCost = _RhsNested::CoeffReadCost,
-      LhsFlags = _LhsNested::Flags,
-      RhsFlags = _RhsNested::Flags,
+      LhsFlags = traits<_LhsNested>::Flags,
+      RhsFlags = traits<_RhsNested>::Flags,
 
       RowsAtCompileTime = _LhsNested::RowsAtCompileTime,
       ColsAtCompileTime = _RhsNested::ColsAtCompileTime,
