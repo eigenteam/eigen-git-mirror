@@ -455,6 +455,7 @@ void test_evaluators()
     
     VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.triangularView<Upper>(),A), MatrixXd(A.triangularView<Upper>()*A));
     
-    B.col(0).noalias() = prod( (2.1 * A.adjoint()).triangularView<UnitUpper>() , (A.row(0)).adjoint() );
+    VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.selfadjointView<Upper>(),A), MatrixXd(A.selfadjointView<Upper>()*A));
+    
   }
 }

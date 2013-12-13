@@ -628,6 +628,77 @@ protected:
 
 
 
+/***************************************************************************
+* SelfAdjoint products
+***************************************************************************/
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Lhs,Rhs,SelfAdjointShape,DenseShape,ProductTag>
+  : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,SelfAdjointShape,DenseShape,ProductTag> >
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dest>
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {// SelfadjointProductMatrix<MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
+    // TODO bypass SelfadjointProductMatrix class
+    SelfadjointProductMatrix<typename Lhs::MatrixType,Lhs::Mode,false,Rhs,0,Rhs::IsVectorAtCompileTime>(lhs.nestedExpression(),rhs).scaleAndAddTo(dst, alpha);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SelfAdjointShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  product_evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    generic_product_impl<Lhs, Rhs, SelfAdjointShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Lhs,Rhs,DenseShape,SelfAdjointShape,ProductTag>
+: generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,SelfAdjointShape,ProductTag> >
+{
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dest>
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  {//SelfadjointProductMatrix<OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
+    // TODO bypass SelfadjointProductMatrix class
+    SelfadjointProductMatrix<Lhs,0,Lhs::IsVectorAtCompileTime,typename Rhs::MatrixType,Rhs::Mode,false>(lhs,rhs.nestedExpression()).scaleAndAddTo(dst, alpha);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, SelfAdjointShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  product_evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    generic_product_impl<Lhs, Rhs, DenseShape, SelfAdjointShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+
 
 } // end namespace internal
 

@@ -50,11 +50,12 @@ template <typename Lhs, int LhsMode, bool LhsIsVector,
 struct SelfadjointProductMatrix;
 
 // FIXME could also be called SelfAdjointWrapper to be consistent with DiagonalWrapper ??
-template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
-  : public TriangularBase<SelfAdjointView<MatrixType, UpLo> >
+template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
+  : public TriangularBase<SelfAdjointView<_MatrixType, UpLo> >
 {
   public:
 
+    typedef _MatrixType MatrixType;
     typedef TriangularBase<SelfAdjointView> Base;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNestedCleaned MatrixTypeNestedCleaned;
@@ -65,7 +66,8 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef typename MatrixType::Index Index;
 
     enum {
-      Mode = internal::traits<SelfAdjointView>::Mode
+      Mode = internal::traits<SelfAdjointView>::Mode,
+      Flags = internal::traits<SelfAdjointView>::Flags
     };
     typedef typename MatrixType::PlainObject PlainObject;
 
@@ -111,6 +113,28 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     EIGEN_DEVICE_FUNC
     MatrixTypeNestedCleaned& nestedExpression() { return *const_cast<MatrixTypeNestedCleaned*>(&m_matrix); }
 
+#ifdef EIGEN_TEST_EVALUATORS
+
+    /** Efficient triangular matrix times vector/matrix product */
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    const Product<SelfAdjointView,OtherDerived>
+    operator*(const MatrixBase<OtherDerived>& rhs) const
+    {
+      return Product<SelfAdjointView,OtherDerived>(*this, rhs.derived());
+    }
+
+    /** Efficient vector/matrix times triangular matrix product */
+    template<typename OtherDerived> friend
+    EIGEN_DEVICE_FUNC
+    const Product<OtherDerived,SelfAdjointView>
+    operator*(const MatrixBase<OtherDerived>& lhs, const SelfAdjointView& rhs)
+    {
+      return Product<OtherDerived,SelfAdjointView>(lhs.derived(),rhs);
+    }
+
+#else // EIGEN_TEST_EVALUATORS
+
     /** Efficient self-adjoint matrix times vector/matrix product */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -132,6 +156,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
               <OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
               (lhs.derived(),rhs.m_matrix);
     }
+#endif
 
     /** Perform a symmetric rank 2 update of the selfadjoint matrix \c *this:
       * \f$ this = this + \alpha u v^* + conj(\alpha) v u^* \f$
@@ -309,6 +334,18 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dyn
       dst.copyCoeff(i, i, src);
     }
   }
+};
+
+// TODO currently a selfadjoint expression has the form SelfAdjointView<.,.>
+//      in the future selfadjoint-ness should be defined by the expression traits
+//      such that Transpose<SelfAdjointView<.,.> > is valid. (currently TriangularBase::transpose() is overloaded to make it work)
+template<typename MatrixType, unsigned int Mode>
+struct evaluator_traits<SelfAdjointView<MatrixType,Mode> >
+{
+  typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
+  typedef SelfAdjointShape Shape;
+  
+  static const int AssumeAliasing = 0;
 };
 
 } // end namespace internal
