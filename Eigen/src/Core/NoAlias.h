@@ -41,7 +41,7 @@ class NoAlias
     EIGEN_STRONG_INLINE ExpressionType& operator=(const StorageBase<OtherDerived>& other)
     {
       // TODO either call resize here or call "call_assignment" through m_expression.lazyAssign()  ??
-      m_expression.resizeLike(other.derived());
+      m_expression.resize(other.derived().rows(), other.derived().cols());
       call_assignment(*this, other.derived(), internal::assign_op<Scalar>());
       return m_expression;
     }

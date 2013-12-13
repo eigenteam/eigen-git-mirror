@@ -213,8 +213,12 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 {
+#ifdef EIGEN_TEST_EVALUATORS
+  call_assignment(derived(), other.derived(), internal::sub_assign_op<Scalar>());
+#else
   SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
+#endif
   return derived();
 }
 
@@ -227,8 +231,12 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
+#ifdef EIGEN_TEST_EVALUATORS
+  call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar>());
+#else
   SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
+#endif
   return derived();
 }
 
