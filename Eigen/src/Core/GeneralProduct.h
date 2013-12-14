@@ -82,7 +82,8 @@ private:
 
 public:
   enum {
-    value = selector::ret
+    value = selector::ret,
+    ret = selector::ret
   };
 #ifdef EIGEN_DEBUG_PRODUCT
   static void debug()
@@ -98,31 +99,31 @@ public:
 #endif
 };
 
-template<typename Lhs, typename Rhs> struct product_tag
-{
-private:
-  
-  typedef typename remove_all<Lhs>::type _Lhs;
-  typedef typename remove_all<Rhs>::type _Rhs;
-  enum {
-    Rows  = _Lhs::RowsAtCompileTime,
-    Cols  = _Rhs::ColsAtCompileTime,
-    Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::ColsAtCompileTime, _Rhs::RowsAtCompileTime)
-  };
-
-  enum {
-    rows_select = Rows==1 ? int(Rows) : int(Large),
-    cols_select = Cols==1 ? int(Cols) : int(Large),
-    depth_select = Depth==1 ? int(Depth) : int(Large)
-  };
-  typedef product_type_selector<rows_select, cols_select, depth_select> selector;
-
-public:
-  enum {
-    ret = selector::ret
-  };
-
-};
+// template<typename Lhs, typename Rhs> struct product_tag
+// {
+// private:
+//   
+//   typedef typename remove_all<Lhs>::type _Lhs;
+//   typedef typename remove_all<Rhs>::type _Rhs;
+//   enum {
+//     Rows  = _Lhs::RowsAtCompileTime,
+//     Cols  = _Rhs::ColsAtCompileTime,
+//     Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::ColsAtCompileTime, _Rhs::RowsAtCompileTime)
+//   };
+// 
+//   enum {
+//     rows_select = Rows==1 ? int(Rows) : int(Large),
+//     cols_select = Cols==1 ? int(Cols) : int(Large),
+//     depth_select = Depth==1 ? int(Depth) : int(Large)
+//   };
+//   typedef product_type_selector<rows_select, cols_select, depth_select> selector;
+// 
+// public:
+//   enum {
+//     ret = selector::ret
+//   };
+// 
+// };
 
 /* The following allows to select the kind of product at compile time
  * based on the three dimensions of the product.

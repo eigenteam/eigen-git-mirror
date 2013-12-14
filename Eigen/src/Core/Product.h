@@ -88,7 +88,7 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
 
 namespace internal {
   
-template<typename Lhs, typename Rhs, int Option, int ProductTab = internal::product_tag<Lhs,Rhs>::ret>
+template<typename Lhs, typename Rhs, int Option, int ProductTag = internal::product_type<Lhs,Rhs>::ret>
 class dense_product_base
  : public internal::dense_xpr_base<Product<Lhs,Rhs,Option> >::type
 {};
