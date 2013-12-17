@@ -1261,6 +1261,7 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
 template<typename Scalar, typename Index, int nr, bool Conjugate, bool PanelMode>
 struct gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, PanelMode>
 {
+  typedef typename packet_traits<Scalar>::type Packet;
   enum { PacketSize = packet_traits<Scalar>::size };
   EIGEN_DONT_INLINE void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols, Index stride=0, Index offset=0);
 };
@@ -1282,12 +1283,18 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, Pan
     if(PanelMode) count += nr * offset;
     for(Index k=0; k<depth; k++)
     {
-      const Scalar* b0 = &rhs[k*rhsStride + j2];
-                blockB[count+0] = cj(b0[0]);
-                blockB[count+1] = cj(b0[1]);
-      if(nr==4) blockB[count+2] = cj(b0[2]);
-      if(nr==4) blockB[count+3] = cj(b0[3]);
-      count += nr;
+      if (nr == PacketSize) {
+        Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
+        pstoreu(blockB+count, cj.pconj(A));
+        count += PacketSize;
+      } else {
+        const Scalar* b0 = &rhs[k*rhsStride + j2];
+                  blockB[count+0] = cj(b0[0]);
+                  blockB[count+1] = cj(b0[1]);
+        if(nr==4) blockB[count+2] = cj(b0[2]);
+        if(nr==4) blockB[count+3] = cj(b0[3]);
+        count += nr;
+      }
     }
     // skip what we have after
     if(PanelMode) count += nr * (stride-offset-depth);
