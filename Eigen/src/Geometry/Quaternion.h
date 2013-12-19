@@ -194,11 +194,11 @@ public:
   * \brief The quaternion class used to represent 3D orientations and rotations
   *
   * \tparam _Scalar the scalar type, i.e., the type of the coefficients
-  * \tparam _Options controls the memory alignement of the coeffecients. Can be \# AutoAlign or \# DontAlign. Default is AutoAlign.
+  * \tparam _Options controls the memory alignment of the coefficients. Can be \# AutoAlign or \# DontAlign. Default is AutoAlign.
   *
   * This class represents a quaternion \f$ w+xi+yj+zk \f$ that is a convenient representation of
   * orientations and rotations of objects in three dimensions. Compared to other representations
-  * like Euler angles or 3x3 matrices, quatertions offer the following advantages:
+  * like Euler angles or 3x3 matrices, quaternions offer the following advantages:
   * \li \b compact storage (4 scalars)
   * \li \b efficient to compose (28 flops),
   * \li \b stable spherical interpolation
@@ -385,7 +385,7 @@ class Map<Quaternion<_Scalar>, _Options >
 
     /** Constructs a Mapped Quaternion object from the pointer \a coeffs
       *
-      * The pointer \a coeffs must reference the four coeffecients of Quaternion in the following order:
+      * The pointer \a coeffs must reference the four coefficients of Quaternion in the following order:
       * \code *coeffs == {x, y, z, w} \endcode
       *
       * If the template parameter _Options is set to #Aligned, then the pointer coeffs must be aligned. */
@@ -399,16 +399,16 @@ class Map<Quaternion<_Scalar>, _Options >
 };
 
 /** \ingroup Geometry_Module
-  * Map an unaligned array of single precision scalar as a quaternion */
+  * Map an unaligned array of single precision scalars as a quaternion */
 typedef Map<Quaternion<float>, 0>         QuaternionMapf;
 /** \ingroup Geometry_Module
-  * Map an unaligned array of double precision scalar as a quaternion */
+  * Map an unaligned array of double precision scalars as a quaternion */
 typedef Map<Quaternion<double>, 0>        QuaternionMapd;
 /** \ingroup Geometry_Module
-  * Map a 16-bits aligned array of double precision scalars as a quaternion */
+  * Map a 16-byte aligned array of single precision scalars as a quaternion */
 typedef Map<Quaternion<float>, Aligned>   QuaternionMapAlignedf;
 /** \ingroup Geometry_Module
-  * Map a 16-bits aligned array of double precision scalars as a quaternion */
+  * Map a 16-byte aligned array of double precision scalars as a quaternion */
 typedef Map<Quaternion<double>, Aligned>  QuaternionMapAlignedd;
 
 /***************************************************************************
@@ -579,7 +579,7 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   Scalar c = v1.dot(v0);
 
   // if dot == -1, vectors are nearly opposites
-  // => accuraletly compute the rotation axis by computing the
+  // => accurately compute the rotation axis by computing the
   //    intersection of the two planes. This is done by solving:
   //       x^T v0 = 0
   //       x^T v1 = 0
