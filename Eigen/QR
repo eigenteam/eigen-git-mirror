@@ -15,7 +15,9 @@
   *
   * This module provides various QR decompositions
   * This module also provides some MatrixBase methods, including:
-  *  - MatrixBase::qr(),
+  *  - MatrixBase::householderQr()
+  *  - MatrixBase::colPivHouseholderQr()
+  *  - MatrixBase::fullPivHouseholderQr()
   *
   * \code
   * #include <Eigen/QR>
