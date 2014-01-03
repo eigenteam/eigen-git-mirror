@@ -81,9 +81,7 @@ static void run(Index rows, Index cols, Index depth,
     Index threads = omp_get_num_threads();
     
     std::size_t sizeA = kc*mc;
-    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, sizeA, 0);
-    ei_declare_aligned_stack_constructed_variable(RhsScalar, w, sizeW, 0);
     
     RhsScalar* blockB = blocking.blockB();
     eigen_internal_assert(blockB!=0);
@@ -122,7 +120,7 @@ static void run(Index rows, Index cols, Index depth,
         if(shift>0)
           while(info[j].sync!=k) {}
 
-        gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*actual_kc, mc, actual_kc, info[j].rhs_length, alpha, -1,-1,0,0, w);
+        gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*actual_kc, mc, actual_kc, info[j].rhs_length, alpha, -1,-1,0,0);
       }
 
       // Then keep going as usual with the remaining A'
@@ -134,7 +132,7 @@ static void run(Index rows, Index cols, Index depth,
         pack_lhs(blockA, &lhs(i,k), lhsStride, actual_kc, actual_mc);
 
         // C_i += A' * B'
-        gebp(res+i, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha, -1,-1,0,0, w);
+        gebp(res+i, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha, -1,-1,0,0);
       }
 
       // Release all the sub blocks B'_j of B' for the current thread,
@@ -152,11 +150,9 @@ static void run(Index rows, Index cols, Index depth,
     // this is the sequential version!
     std::size_t sizeA = kc*mc;
     std::size_t sizeB = kc*cols;
-    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
 
     ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(RhsScalar, blockB, sizeB, blocking.blockB());
-    ei_declare_aligned_stack_constructed_variable(RhsScalar, blockW, sizeW, blocking.blockW());
 
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     // (==GEMM_VAR1)
@@ -182,7 +178,7 @@ static void run(Index rows, Index cols, Index depth,
         pack_lhs(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc);
 
         // Everything is packed, we can now call the block * panel kernel:
-        gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha, -1, -1, 0, 0, blockW);
+        gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha, -1, -1, 0, 0);
       }
     }
   }

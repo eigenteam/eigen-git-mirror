@@ -10,6 +10,7 @@
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
+
 namespace Eigen { 
   
 namespace internal {
@@ -169,7 +170,7 @@ public:
     WorkSpaceFactor = nr * RhsPacketSize,
 
     LhsProgress = LhsPacketSize,
-    RhsProgress = RhsPacketSize
+    RhsProgress = 1
   };
 
   typedef typename packet_traits<LhsScalar>::type  _LhsPacket;
@@ -187,15 +188,9 @@ public:
     p = pset1<ResPacket>(ResScalar(0));
   }
 
-  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const RhsScalar* rhs, RhsScalar* b)
-  {
-    for(DenseIndex k=0; k<n; k++)
-      pstore1<RhsPacket>(&b[k*RhsPacketSize], rhs[k]);
-  }
-
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
   {
-    dest = pload<RhsPacket>(b);
+    dest = pset1<RhsPacket>(*b);
   }
 
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
@@ -240,7 +235,7 @@ public:
     WorkSpaceFactor = nr*RhsPacketSize,
 
     LhsProgress = LhsPacketSize,
-    RhsProgress = RhsPacketSize
+    RhsProgress = 1
   };
 
   typedef typename packet_traits<LhsScalar>::type  _LhsPacket;
@@ -258,15 +253,9 @@ public:
     p = pset1<ResPacket>(ResScalar(0));
   }
 
-  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const RhsScalar* rhs, RhsScalar* b)
-  {
-    for(DenseIndex k=0; k<n; k++)
-      pstore1<RhsPacket>(&b[k*RhsPacketSize], rhs[k]);
-  }
-
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
   {
-    dest = pload<RhsPacket>(b);
+    dest = pset1<RhsPacket>(*b);
   }
 
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
@@ -320,7 +309,7 @@ public:
     WorkSpaceFactor = Vectorizable ? 2*nr*RealPacketSize : nr,
 
     LhsProgress = ResPacketSize,
-    RhsProgress = Vectorizable ? 2*ResPacketSize : 1
+    RhsProgress = 1
   };
   
   typedef typename packet_traits<RealScalar>::type RealPacket;
@@ -344,30 +333,15 @@ public:
     p.second  = pset1<RealPacket>(RealScalar(0));
   }
 
-  /* Unpack the rhs coeff such that each complex coefficient is spread into
-   * two packects containing respectively the real and imaginary coefficient
-   * duplicated as many time as needed: (x+iy) => [x, ..., x] [y, ..., y]
-   */
-  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const Scalar* rhs, Scalar* b)
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, ResPacket& dest) const
   {
-    for(DenseIndex k=0; k<n; k++)
-    {
-      if(Vectorizable)
-      {
-        pstore1<RealPacket>((RealScalar*)&b[k*ResPacketSize*2+0],             real(rhs[k]));
-        pstore1<RealPacket>((RealScalar*)&b[k*ResPacketSize*2+ResPacketSize], imag(rhs[k]));
-      }
-      else
-        b[k] = rhs[k];
-    }
+    dest = pset1<ResPacket>(*b);
   }
-
-  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, ResPacket& dest) const { dest = *b; }
 
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, DoublePacket& dest) const
   {
-    dest.first  = pload<RealPacket>((const RealScalar*)b);
-    dest.second = pload<RealPacket>((const RealScalar*)(b+ResPacketSize));
+    dest.first  = pset1<RealPacket>(real(*b));
+    dest.second = pset1<RealPacket>(imag(*b));
   }
 
   // nothing special here
@@ -445,7 +419,7 @@ public:
     WorkSpaceFactor = nr*RhsPacketSize,
 
     LhsProgress = ResPacketSize,
-    RhsProgress = ResPacketSize
+    RhsProgress = 1
   };
 
   typedef typename packet_traits<LhsScalar>::type  _LhsPacket;
@@ -463,15 +437,9 @@ public:
     p = pset1<ResPacket>(ResScalar(0));
   }
 
-  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const RhsScalar* rhs, RhsScalar* b)
-  {
-    for(DenseIndex k=0; k<n; k++)
-      pstore1<RhsPacket>(&b[k*RhsPacketSize], rhs[k]);
-  }
-
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
   {
-    dest = pload<RhsPacket>(b);
+    dest = pset1<RhsPacket>(*b);
   }
 
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
@@ -529,14 +497,14 @@ struct gebp_kernel
 
   EIGEN_DONT_INLINE
   void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols, ResScalar alpha,
-                  Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, RhsScalar* unpackedB=0);
+                  Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0);
 };
 
 template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
 EIGEN_DONT_INLINE
 void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
   ::operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols, ResScalar alpha,
-               Index strideA, Index strideB, Index offsetA, Index offsetB, RhsScalar* unpackedB)
+               Index strideA, Index strideB, Index offsetA, Index offsetB)
   {
     Traits traits;
     
@@ -550,14 +518,9 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
     const Index peeled_mc2 = peeled_mc + (rows-peeled_mc >= LhsProgress ? LhsProgress : 0);
     const Index peeled_kc = (depth/4)*4;
 
-    if(unpackedB==0)
-      unpackedB = const_cast<RhsScalar*>(blockB - strideB * nr * RhsProgress);
-
     // loops on each micro vertical panel of rhs (depth x nr)
     for(Index j2=0; j2<packet_cols; j2+=nr)
     {
-      traits.unpackRhs(depth*nr,&blockB[j2*strideB+offsetB*nr],unpackedB); 
-
       // loops on each largest micro horizontal panel of lhs (mr x depth)
       // => we select a mr x nr micro block of res which is entirely
       //    stored into mr/packet_size x nr registers.
@@ -590,7 +553,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
         // performs "inner" product
         // TODO let's check wether the folowing peeled loop could not be
         //      optimized via optimal prefetching from one loop to the other
-        const RhsScalar* blB = unpackedB;
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
         for(Index k=0; k<peeled_kc; k+=4)
         {
           if(nr==2)
@@ -819,7 +782,7 @@ EIGEN_ASM_COMMENT("mybegin4");
         if(nr==4) traits.initAcc(C3);
 
         // performs "inner" product
-        const RhsScalar* blB = unpackedB;
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
         for(Index k=0; k<peeled_kc; k+=4)
         {
           if(nr==2)
@@ -1006,9 +969,6 @@ EIGEN_ASM_COMMENT("mybegin4");
     // => do the same but with nr==1
     for(Index j2=packet_cols; j2<cols; j2++)
     {
-      // unpack B
-      traits.unpackRhs(depth, &blockB[j2*strideB+offsetB], unpackedB);
-
       for(Index i=0; i<peeled_mc; i+=mr)
       {
         const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
@@ -1021,7 +981,7 @@ EIGEN_ASM_COMMENT("mybegin4");
         traits.initAcc(C0);
         traits.initAcc(C4);
 
-        const RhsScalar* blB = unpackedB;
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB];
         for(Index k=0; k<depth; k++)
         {
           LhsPacket A0, A1;
@@ -1060,7 +1020,7 @@ EIGEN_ASM_COMMENT("mybegin4");
         AccPacket C0;
         traits.initAcc(C0);
 
-        const RhsScalar* blB = unpackedB;
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB];
         for(Index k=0; k<depth; k++)
         {
           LhsPacket A0;
