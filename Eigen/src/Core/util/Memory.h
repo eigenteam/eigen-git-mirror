@@ -765,7 +765,7 @@ public:
     template <typename U, typename... Args>
     void construct( U* u, Args&&... args)
     {
-        ::new( u ) U( std::forward<Args>( args )... );
+        ::new( static_cast<void*>(u) ) U( std::forward<Args>( args )... );
     }
 #endif
 
