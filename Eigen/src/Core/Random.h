@@ -34,6 +34,8 @@ struct functor_traits<scalar_random_op<Scalar> >
   * The parameters \a rows and \a cols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
+  * \not_reentrant
+  * 
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
   * it is redundant to pass \a rows and \a cols as arguments, so Random() should be used
   * instead.
@@ -45,8 +47,10 @@ struct functor_traits<scalar_random_op<Scalar> >
   * This expression has the "evaluate before nesting" flag so that it will be evaluated into
   * a temporary matrix whenever it is nested in a larger expression. This prevents unexpected
   * behavior with expressions involving random matrices.
+  * 
+  * See DenseBase::NullaryExpr(Index, const CustomNullaryOp&) for an example using C++11 random generators.
   *
-  * \sa MatrixBase::setRandom(), MatrixBase::Random(Index), MatrixBase::Random()
+  * \sa DenseBase::setRandom(), DenseBase::Random(Index), DenseBase::Random()
   */
 template<typename Derived>
 inline const CwiseNullaryOp<internal::scalar_random_op<typename internal::traits<Derived>::Scalar>, Derived>
@@ -64,6 +68,7 @@ DenseBase<Derived>::Random(Index rows, Index cols)
   * Must be compatible with this MatrixBase type.
   *
   * \only_for_vectors
+  * \not_reentrant
   *
   * This variant is meant to be used for dynamic-size vector types. For fixed-size types,
   * it is redundant to pass \a size as argument, so Random() should be used
@@ -76,7 +81,7 @@ DenseBase<Derived>::Random(Index rows, Index cols)
   * a temporary vector whenever it is nested in a larger expression. This prevents unexpected
   * behavior with expressions involving random matrices.
   *
-  * \sa MatrixBase::setRandom(), MatrixBase::Random(Index,Index), MatrixBase::Random()
+  * \sa DenseBase::setRandom(), DenseBase::Random(Index,Index), DenseBase::Random()
   */
 template<typename Derived>
 inline const CwiseNullaryOp<internal::scalar_random_op<typename internal::traits<Derived>::Scalar>, Derived>
@@ -99,8 +104,10 @@ DenseBase<Derived>::Random(Index size)
   * This expression has the "evaluate before nesting" flag so that it will be evaluated into
   * a temporary matrix whenever it is nested in a larger expression. This prevents unexpected
   * behavior with expressions involving random matrices.
+  * 
+  * \not_reentrant
   *
-  * \sa MatrixBase::setRandom(), MatrixBase::Random(Index,Index), MatrixBase::Random(Index)
+  * \sa DenseBase::setRandom(), DenseBase::Random(Index,Index), DenseBase::Random(Index)
   */
 template<typename Derived>
 inline const CwiseNullaryOp<internal::scalar_random_op<typename internal::traits<Derived>::Scalar>, Derived>
@@ -113,6 +120,8 @@ DenseBase<Derived>::Random()
   *
   * Numbers are uniformly spread through their whole definition range for integer types,
   * and in the [-1:1] range for floating point scalar types.
+  * 
+  * \not_reentrant
   * 
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out
@@ -131,11 +140,12 @@ inline Derived& DenseBase<Derived>::setRandom()
   * and in the [-1:1] range for floating point scalar types.
   * 
   * \only_for_vectors
+  * \not_reentrant
   *
   * Example: \include Matrix_setRandom_int.cpp
   * Output: \verbinclude Matrix_setRandom_int.out
   *
-  * \sa MatrixBase::setRandom(), setRandom(Index,Index), class CwiseNullaryOp, MatrixBase::Random()
+  * \sa DenseBase::setRandom(), setRandom(Index,Index), class CwiseNullaryOp, DenseBase::Random()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
@@ -150,13 +160,15 @@ PlainObjectBase<Derived>::setRandom(Index newSize)
   * Numbers are uniformly spread through their whole definition range for integer types,
   * and in the [-1:1] range for floating point scalar types.
   *
+  * \not_reentrant
+  * 
   * \param nbRows the new number of rows
   * \param nbCols the new number of columns
   *
   * Example: \include Matrix_setRandom_int_int.cpp
   * Output: \verbinclude Matrix_setRandom_int_int.out
   *
-  * \sa MatrixBase::setRandom(), setRandom(Index), class CwiseNullaryOp, MatrixBase::Random()
+  * \sa DenseBase::setRandom(), setRandom(Index), class CwiseNullaryOp, DenseBase::Random()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
