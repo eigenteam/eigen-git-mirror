@@ -150,10 +150,6 @@ public:
   /** \returns the conjugated quaternion */
   Quaternion<Scalar> conjugate() const;
 
-  /** \returns an interpolation for a constant motion between \a other and \c *this
-    * \a t in [0;1]
-    * see http://en.wikipedia.org/wiki/Slerp
-    */
   template<class OtherDerived> Quaternion<Scalar> slerp(const Scalar& t, const QuaternionBase<OtherDerived>& other) const;
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
@@ -677,8 +673,13 @@ QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& oth
   return static_cast<Scalar>(2 * acos(d));
 }
 
+ 
+    
 /** \returns the spherical linear interpolation between the two quaternions
-  * \c *this and \a other at the parameter \a t
+  * \c *this and \a other at the parameter \a t in [0;1].
+  * 
+  * This represents an interpolation for a constant motion between \c *this and \a other,
+  * see also http://en.wikipedia.org/wiki/Slerp.
   */
 template <class Derived>
 template <class OtherDerived>
