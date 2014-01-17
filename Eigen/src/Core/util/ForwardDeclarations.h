@@ -79,6 +79,7 @@ template<typename ExpressionType> class ForceAlignedAccess;
 template<typename ExpressionType> class SwapWrapper;
 
 template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool InnerPanel = false> class Block;
+template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool InnerPanel = false> class Reshape;
 
 template<typename MatrixType, int Size=Dynamic> class VectorBlock;
 template<typename MatrixType> class Transpose;
