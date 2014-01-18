@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2014 yoco <peter.xiau@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -242,8 +243,8 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     inline Scalar& coeffRef(Index index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(XprType)
-      const RowCol row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
-                                       (RowsAtCompileTime == 1 ? index : 0));
+      const RowCol row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
+                                         RowsAtCompileTime == 1 ? index : 0);
       return m_xpr.const_cast_derived().coeffRef(row_col.first, row_col.second);
 
     }
@@ -251,16 +252,16 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
-      const RowCol row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
-                                       (RowsAtCompileTime == 1 ? index : 0));
+      const RowCol row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
+                                         RowsAtCompileTime == 1 ? index : 0);
       return m_xpr.const_cast_derived().coeffRef(row_col.first, row_col.second);
     }
 
     EIGEN_DEVICE_FUNC
     inline const CoeffReturnType coeff(Index index) const
     {
-      const RowCol row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
-                                       (RowsAtCompileTime == 1 ? index : 0));
+      const RowCol row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
+                                         RowsAtCompileTime == 1 ? index : 0);
       return m_xpr.coeff(row_col.first, row_col.second);
     }
 
@@ -285,7 +286,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     inline PacketScalar packet(Index index) const
     {
       const RowCol row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
-                                       RowsAtCompileTime == 1 ? index : 0);
+                                         RowsAtCompileTime == 1 ? index : 0);
       return m_xpr.template packet<Unaligned>(row_col.first, row_col.second);
     }
 
@@ -293,7 +294,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     inline void writePacket(Index index, const PacketScalar& val)
     {
       const RowCol row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
-                                       RowsAtCompileTime == 1 ? index : 0);
+                                         RowsAtCompileTime == 1 ? index : 0);
       return m_xpr.template packet<Unaligned>(row_col.first, row_col.second, val);
     }
 
