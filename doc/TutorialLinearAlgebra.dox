@@ -167,8 +167,8 @@ Here is an example:
 
 \section TutorialLinAlgLeastsquares Least squares solving
 
-The best way to do least squares solving is with a SVD decomposition. Eigen provides one as the JacobiSVD class, and its solve()
-is doing least-squares solving.
+The most accurate method to do least squares solving is with a SVD decomposition. Eigen provides one
+as the JacobiSVD class, and its solve() is doing least-squares solving.
 
 Here is an example:
 <table class="example">
@@ -179,9 +179,10 @@ Here is an example:
 </tr>
 </table>
 
-Another way, potentially faster but less reliable, is to use a LDLT decomposition
-of the normal matrix. In any case, just read any reference text on least squares, and it will be very easy for you
-to implement any linear least squares computation on top of Eigen.
+Another methods, potentially faster but less reliable, are to use a Cholesky decomposition of the
+normal matrix or a QR decomposition. Our page on \link LeastSquares least squares solving \endlink
+has more details.
+
 
 \section TutorialLinAlgSeparateComputation Separating the computation from the construction
 
