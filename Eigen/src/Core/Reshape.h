@@ -207,32 +207,34 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     EIGEN_DEVICE_FUNC inline Index rows() const { return m_reshapeRows.value(); }
     EIGEN_DEVICE_FUNC inline Index cols() const { return m_reshapeCols.value(); }
 
-    inline std::pair<Index, Index> index_remap(Index rowId, Index colId) const {
+    typedef std::pair<Index, Index> RowCol;
+
+    inline RowCol index_remap(Index rowId, Index colId) const {
       const Index nth_elem_idx = colId * m_reshapeRows.value() + rowId;
       const Index actual_col = nth_elem_idx / m_xpr.rows();
       const Index actual_row = nth_elem_idx % m_xpr.rows();
-      return {actual_row, actual_col};
+      return RowCol(actual_row, actual_col);
     }
 
     EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index rowId, Index colId)
     {
       EIGEN_STATIC_ASSERT_LVALUE(XprType)
-      const auto row_col = index_remap(rowId, colId);
+      const RowCol row_col = index_remap(rowId, colId);
       return m_xpr.const_cast_derived().coeffRef(row_col.first, row_col.second);
     }
 
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
-      const auto row_col = index_remap(rowId, colId);
+      const RowCol row_col = index_remap(rowId, colId);
       return m_xpr.derived().coeffRef(row_col.first, row_col.second);
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const CoeffReturnType coeff(Index rowId, Index colId) const
     {
-      const auto row_col = index_remap(rowId, colId);
+      const RowCol row_col = index_remap(rowId, colId);
       return m_xpr.coeff(row_col.first, row_col.second);
     }
 
@@ -240,7 +242,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     inline Scalar& coeffRef(Index index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(XprType)
-      const auto row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
+      const RowCol row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
                                        (RowsAtCompileTime == 1 ? index : 0));
       return m_xpr.const_cast_derived().coeffRef(row_col.first, row_col.second);
 
@@ -249,7 +251,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
-      const auto row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
+      const RowCol row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
                                        (RowsAtCompileTime == 1 ? index : 0));
       return m_xpr.const_cast_derived().coeffRef(row_col.first, row_col.second);
     }
@@ -257,7 +259,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     EIGEN_DEVICE_FUNC
     inline const CoeffReturnType coeff(Index index) const
     {
-      const auto row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
+      const RowCol row_col = index_remap((RowsAtCompileTime == 1 ? 0 : index)
                                        (RowsAtCompileTime == 1 ? index : 0));
       return m_xpr.coeff(row_col.first, row_col.second);
     }
@@ -266,7 +268,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     template<int LoadMode>
     inline PacketScalar packet(Index rowId, Index colId) const
     {
-      const auto row_col = index_remap(rowId, colId);
+      const RowCol row_col = index_remap(rowId, colId);
       return m_xpr.template packet<Unaligned>(row_col.first, row_col.second);
 
     }
@@ -274,7 +276,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     template<int LoadMode>
     inline void writePacket(Index rowId, Index colId, const PacketScalar& val)
     {
-      const auto row_col = index_remap(rowId, colId);
+      const RowCol row_col = index_remap(rowId, colId);
       m_xpr.const_cast_derived().template writePacket<Unaligned>
               (row_col.first, row_col.second, val);
     }
@@ -282,7 +284,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     template<int LoadMode>
     inline PacketScalar packet(Index index) const
     {
-      const auto row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
+      const RowCol row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
                                        RowsAtCompileTime == 1 ? index : 0);
       return m_xpr.template packet<Unaligned>(row_col.first, row_col.second);
     }
@@ -290,7 +292,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     template<int LoadMode>
     inline void writePacket(Index index, const PacketScalar& val)
     {
-      const auto row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
+      const RowCol row_col = index_remap(RowsAtCompileTime == 1 ? 0 : index,
                                        RowsAtCompileTime == 1 ? index : 0);
       return m_xpr.template packet<Unaligned>(row_col.first, row_col.second, val);
     }
@@ -317,7 +319,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
 
 ///** \internal Internal implementation of dense Reshapes in the direct access case.*/
 //template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel>
-//class ReshapeImpl_dense<XprType,ReshapeRows,ReshapeCols, InnerPanel,true>
+//class ReshapeImpl_dense<XprType,ReshapeRows,ReshapeCols, InnerPanel, true>
 //  : public MapBase<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> >
 //{
 //    typedef Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> ReshapeType;
