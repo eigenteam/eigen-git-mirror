@@ -22,9 +22,6 @@ namespace Eigen {
   * \param XprType the type of the expression in which we are taking a reshape
   * \param ReshapeRows the number of rows of the reshape we are taking at compile time (optional)
   * \param ReshapeCols the number of columns of the reshape we are taking at compile time (optional)
-  * \param InnerPanel is true, if the reshape maps to a set of rows of a row major matrix or
-  *        to set of columns of a column major matrix (optional). The parameter allows to determine
-  *        at compile time whether aligned access is possible on the reshape expression.
   *
   * This class represents an expression of either a fixed-size or dynamic-size reshape. It is the return
   * type of DenseBase::reshape(Index,Index) and DenseBase::reshape<int,int>() and
@@ -50,8 +47,8 @@ namespace Eigen {
   */
 
 namespace internal {
-template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel>
-struct traits<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> > : traits<XprType>
+template<typename XprType, int ReshapeRows, int ReshapeCols>
+struct traits<Reshape<XprType, ReshapeRows, ReshapeCols> > : traits<XprType>
 {
   typedef typename traits<XprType>::Scalar Scalar;
   typedef typename traits<XprType>::StorageKind StorageKind;
@@ -84,7 +81,7 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> > : traits<
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % packet_traits<Scalar>::size) == 0)
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
-    MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % 16) == 0)) ? AlignedBit : 0,
+    MaskAlignedBit = ((OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % 16) == 0)) ? AlignedBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
@@ -92,7 +89,8 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> > : traits<
                             && ColsAtCompileTime == ReshapeCols
                             && RowsAtCompileTime != Dynamic
                             && ColsAtCompileTime != Dynamic,
-    MaskDirectAccessBit = IsSameShapeAtCompileTime ? DirectAccessBit : 0,
+    MaskDirectAccessBit = (IsSameShapeAtCompileTime ? DirectAccessBit : 0)
+                       && DirectAccessBit,
     Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
                                         MaskDirectAccessBit |
                                         MaskPacketAccessBit |
@@ -101,17 +99,17 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> > : traits<
   };
 };
 
-template<typename XprType, int ReshapeRows=Dynamic, int ReshapeCols=Dynamic, bool InnerPanel = false,
+template<typename XprType, int ReshapeRows=Dynamic, int ReshapeCols=Dynamic,
          bool HasDirectAccess = internal::has_direct_access<XprType>::ret> class ReshapeImpl_dense;
          
 } // end namespace internal
 
-template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, typename StorageKind> class ReshapeImpl;
+template<typename XprType, int ReshapeRows, int ReshapeCols, typename StorageKind> class ReshapeImpl;
 
-template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel> class Reshape
-  : public ReshapeImpl<XprType, ReshapeRows, ReshapeCols, InnerPanel, typename internal::traits<XprType>::StorageKind>
+template<typename XprType, int ReshapeRows, int ReshapeCols> class Reshape
+  : public ReshapeImpl<XprType, ReshapeRows, ReshapeCols, typename internal::traits<XprType>::StorageKind>
 {
-    typedef ReshapeImpl<XprType, ReshapeRows, ReshapeCols, InnerPanel, typename internal::traits<XprType>::StorageKind> Impl;
+    typedef ReshapeImpl<XprType, ReshapeRows, ReshapeCols, typename internal::traits<XprType>::StorageKind> Impl;
   public:
     //typedef typename Impl::Base Base;
     typedef Impl Base;
@@ -143,11 +141,11 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel> cl
          
 // The generic default implementation for dense reshape simplu forward to the internal::ReshapeImpl_dense
 // that must be specialized for direct and non-direct access...
-template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel>
-class ReshapeImpl<XprType, ReshapeRows, ReshapeCols, InnerPanel, Dense>
-  : public internal::ReshapeImpl_dense<XprType, ReshapeRows, ReshapeCols, InnerPanel>
+template<typename XprType, int ReshapeRows, int ReshapeCols>
+class ReshapeImpl<XprType, ReshapeRows, ReshapeCols, Dense>
+  : public internal::ReshapeImpl_dense<XprType, ReshapeRows, ReshapeCols>
 {
-    typedef internal::ReshapeImpl_dense<XprType, ReshapeRows, ReshapeCols, InnerPanel> Impl;
+    typedef internal::ReshapeImpl_dense<XprType, ReshapeRows, ReshapeCols> Impl;
     typedef typename XprType::Index Index;
   public:
     typedef Impl Base;
@@ -160,10 +158,10 @@ class ReshapeImpl<XprType, ReshapeRows, ReshapeCols, InnerPanel, Dense>
 namespace internal {
 
 /** \internal Internal implementation of dense Reshapes in the general case. */
-template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bool HasDirectAccess> class ReshapeImpl_dense
-  : public internal::dense_xpr_base<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> >::type
+template<typename XprType, int ReshapeRows, int ReshapeCols, bool HasDirectAccess> class ReshapeImpl_dense
+  : public internal::dense_xpr_base<Reshape<XprType, ReshapeRows, ReshapeCols> >::type
 {
-    typedef Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> ReshapeType;
+    typedef Reshape<XprType, ReshapeRows, ReshapeCols> ReshapeType;
   public:
 
     typedef typename internal::dense_xpr_base<ReshapeType>::type Base;
@@ -301,11 +299,11 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
 };
 
 ///** \internal Internal implementation of dense Reshapes in the direct access case.*/
-//template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel>
-//class ReshapeImpl_dense<XprType,ReshapeRows,ReshapeCols, InnerPanel, true>
-//  : public MapBase<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> >
+//template<typename XprType, int ReshapeRows, int ReshapeCols>
+//class ReshapeImpl_dense<XprType,ReshapeRows,ReshapeCols, true>
+//  : public MapBase<Reshape<XprType, ReshapeRows, ReshapeCols> >
 //{
-//    typedef Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> ReshapeType;
+//    typedef Reshape<XprType, ReshapeRows, ReshapeCols> ReshapeType;
 //  public:
 //
 //    typedef MapBase<ReshapeType> Base;

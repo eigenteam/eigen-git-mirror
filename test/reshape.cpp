@@ -53,6 +53,8 @@ void test_reshape()
     }
   }
 
+  mx.reshape(8, 2).leftCols(2);
+
   // test dynamic-size matrix
   CALL_SUBTEST(dynamic_reshape_all_size(mx, 4, 4));
   CALL_SUBTEST(static_reshape_all_size(mx));
