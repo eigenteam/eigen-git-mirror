@@ -88,8 +88,13 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols, InnerPanel> > : traits<
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
+    IsSameShapeAtCompileTime = RowsAtCompileTime == ReshapeRows
+                            && ColsAtCompileTime == ReshapeCols
+                            && RowsAtCompileTime != Dynamic
+                            && ColsAtCompileTime != Dynamic,
+    MaskDirectAccessBit = IsSameShapeAtCompileTime ? DirectAccessBit : 0,
     Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
-                                        DirectAccessBit |
+                                        MaskDirectAccessBit |
                                         MaskPacketAccessBit |
                                         MaskAlignedBit),
     Flags = Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit
