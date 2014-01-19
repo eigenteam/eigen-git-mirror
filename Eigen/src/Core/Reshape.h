@@ -117,16 +117,6 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel> cl
     typedef Impl Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Reshape)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Reshape)
-  
-    /** Column or Row constructor
-      */
-    EIGEN_DEVICE_FUNC
-    inline Reshape(XprType& xpr, Index i) : Impl(xpr,i)
-    {
-      eigen_assert( (i>=0) && (
-          ((ReshapeRows==1) && (ReshapeCols==XprType::ColsAtCompileTime) && i<xpr.rows())
-        ||((ReshapeRows==XprType::RowsAtCompileTime) && (ReshapeCols==1) && i<xpr.cols())));
-    }
 
     /** Fixed-size constructor
       */
@@ -181,19 +171,6 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool InnerPanel, bo
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ReshapeImpl_dense)
 
     class InnerIterator;
-
-    /** Column or Row constructor
-      */
-    EIGEN_DEVICE_FUNC
-    inline ReshapeImpl_dense(XprType& xpr, Index i)
-      : m_xpr(xpr),
-        // It is a row if and only if ReshapeRows==1 and ReshapeCols==XprType::ColsAtCompileTime,
-        // and it is a column if and only if ReshapeRows==XprType::RowsAtCompileTime and ReshapeCols==1,
-        // all other cases are invalid.
-        // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
-        m_reshapeRows(ReshapeRows==1 ? 1 : xpr.rows()),
-        m_reshapeCols(ReshapeCols==1 ? 1 : xpr.cols())
-    {}
 
     /** Fixed-size constructor
       */
