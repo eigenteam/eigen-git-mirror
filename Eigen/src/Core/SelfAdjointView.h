@@ -244,6 +244,8 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
 
 namespace internal {
 
+#ifndef EIGEN_TEST_EVALUATORS
+ 
 template<typename Derived1, typename Derived2, int UnrollCount, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount, ClearOpposite>
 {
@@ -336,6 +338,8 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dyn
   }
 };
 
+#endif // EIGEN_TEST_EVALUATORS
+
 #ifdef EIGEN_ENABLE_EVALUATORS
 // TODO currently a selfadjoint expression has the form SelfAdjointView<.,.>
 //      in the future selfadjoint-ness should be defined by the expression traits
@@ -348,6 +352,7 @@ struct evaluator_traits<SelfAdjointView<MatrixType,Mode> >
   
   static const int AssumeAliasing = 0;
 };
+
 #endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace internal

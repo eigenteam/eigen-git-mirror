@@ -140,6 +140,7 @@ public:
 template<typename Kernel, int Index, int Stop>
 struct copy_using_evaluator_DefaultTraversal_CompleteUnrolling
 {
+  // FIXME: this is not very clean, perhaps this information should be provided by the kernel?
   typedef typename Kernel::DstEvaluatorType DstEvaluatorType;
   typedef typename DstEvaluatorType::XprType DstXprType;
   
@@ -204,9 +205,10 @@ struct copy_using_evaluator_LinearTraversal_CompleteUnrolling<Kernel, Stop, Stop
 template<typename Kernel, int Index, int Stop>
 struct copy_using_evaluator_innervec_CompleteUnrolling
 {
+  // FIXME: this is not very clean, perhaps this information should be provided by the kernel?
   typedef typename Kernel::DstEvaluatorType DstEvaluatorType;
   typedef typename DstEvaluatorType::XprType DstXprType;
-
+  
   enum {
     outer = Index / DstXprType::InnerSizeAtCompileTime,
     inner = Index % DstXprType::InnerSizeAtCompileTime,
@@ -233,8 +235,7 @@ struct copy_using_evaluator_innervec_InnerUnrolling
   static EIGEN_STRONG_INLINE void run(Kernel &kernel, int outer)
   {
     kernel.template assignPacketByOuterInner<Aligned, Aligned>(outer, Index);
-    typedef typename Kernel::DstEvaluatorType::XprType DstXprType;
-    enum { NextIndex = Index + packet_traits<typename DstXprType::Scalar>::size };
+    enum { NextIndex = Index + packet_traits<typename Kernel::Scalar>::size };
     copy_using_evaluator_innervec_InnerUnrolling<Kernel, NextIndex, Stop>::run(kernel, outer);
   }
 };
@@ -540,12 +541,6 @@ public:
   void assignCoeff(Index row, Index col)
   {
     m_functor.assignCoeff(m_dst.coeffRef(row,col), m_src.coeff(row,col));
-  }
-  
-  /// This overload by-passes the source expression, i.e., dst(row,col) ?= value
-  void assignCoeff(Index row, Index col, const Scalar &value)
-  {
-    m_functor.assignCoeff(m_dst.coeffRef(row,col), value);
   }
   
   /// \sa assignCoeff(Index,Index)

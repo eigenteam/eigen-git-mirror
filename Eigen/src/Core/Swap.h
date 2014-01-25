@@ -148,6 +148,7 @@ template<typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT>
 class generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar>, Specialized>
  : public generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar>, BuiltIn>
 {
+protected:
   typedef generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, swap_assign_op<typename DstEvaluatorTypeT::Scalar>, BuiltIn> Base;
   typedef typename DstEvaluatorTypeT::PacketScalar PacketScalar;
   using Base::m_dst;
