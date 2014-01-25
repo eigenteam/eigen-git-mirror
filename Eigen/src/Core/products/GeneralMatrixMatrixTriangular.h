@@ -20,7 +20,7 @@ namespace internal {
 /**********************************************************************
 * This file implements a general A * B product while
 * evaluating only one triangular part of the product.
-* This is more general version of self adjoint product (C += A A^T)
+* This is a more general version of self adjoint product (C += A A^T)
 * as the level 3 SYRK Blas routine.
 **********************************************************************/
 

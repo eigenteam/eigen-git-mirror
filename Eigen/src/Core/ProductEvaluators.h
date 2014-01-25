@@ -156,7 +156,8 @@ struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBi
                        const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
   {
-    call_assignment(dst.noalias(), (src.functor().m_other * src.nestedExpression().lhs()) * src.nestedExpression().rhs(), func);
+    // TODO use operator* instead of prod() once we have made enough progress
+    call_assignment(dst.noalias(), prod(src.functor().m_other * src.nestedExpression().lhs(), src.nestedExpression().rhs()), func);
   }
 };
 
