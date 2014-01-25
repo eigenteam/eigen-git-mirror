@@ -504,13 +504,18 @@ template<> EIGEN_STRONG_INLINE double predux_min<Packet2d>(const Packet2d& a)
 }
 template<> EIGEN_STRONG_INLINE int predux_min<Packet4i>(const Packet4i& a)
 {
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  Packet4i tmp = _mm_min_epi32(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(0,0,3,2)));
+  return pfirst(_mm_min_epi32(tmp,_mm_shuffle_epi32(tmp, 1)));
+#else
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., it does not like using std::min after the pstore !!)
   EIGEN_ALIGN16 int aux[4];
   pstore(aux, a);
-  register int aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
-  register int aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
+  int aux0 = aux[0]<aux[1] ? aux[0] : aux[1];
+  int aux2 = aux[2]<aux[3] ? aux[2] : aux[3];
   return aux0<aux2 ? aux0 : aux2;
+#endif // EIGEN_VECTORIZE_SSE4_1
 }
 
 // max
@@ -525,13 +530,18 @@ template<> EIGEN_STRONG_INLINE double predux_max<Packet2d>(const Packet2d& a)
 }
 template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
 {
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  Packet4i tmp = _mm_max_epi32(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(0,0,3,2)));
+  return pfirst(_mm_max_epi32(tmp,_mm_shuffle_epi32(tmp, 1)));
+#else
   // after some experiments, it is seems this is the fastest way to implement it
   // for GCC (eg., it does not like using std::min after the pstore !!)
   EIGEN_ALIGN16 int aux[4];
   pstore(aux, a);
-  register int aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
-  register int aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
+  int aux0 = aux[0]>aux[1] ? aux[0] : aux[1];
+  int aux2 = aux[2]>aux[3] ? aux[2] : aux[3];
   return aux0>aux2 ? aux0 : aux2;
+#endif // EIGEN_VECTORIZE_SSE4_1
 }
 
 #if (defined __GNUC__)
