@@ -839,8 +839,8 @@ struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
  
 protected:
   typename evaluator<ArgType>::nestedType m_argImpl;
-  const variable_if_dynamic<Index, XprType::RowsAtCompileTime> m_rows;
-  const variable_if_dynamic<Index, XprType::ColsAtCompileTime> m_cols;
+  const variable_if_dynamic<Index, ArgType::RowsAtCompileTime> m_rows;
+  const variable_if_dynamic<Index, ArgType::ColsAtCompileTime> m_cols;
 };
 
 
