@@ -1035,12 +1035,12 @@ struct Dense2Triangular         {};
 template<typename Kernel, unsigned int Mode, int UnrollCount, bool ClearOpposite> struct triangular_assignment_loop;
 
  
-// Specialization of the dense assignment kernel for triangular matrices.
-// The main additions are:
-//  - An overload of assignCoeff(i, j, val) that by-passes the source expression. Needed to set the opposite triangular part to 0.
-//  - When calling assignCoeff(i,j...), we guarantee that i!=j
-//  - New assignDiagonalCoeff(i), and assignDiagonalCoeff(i, val) for assigning coefficients on the diagonal.
-template<int Mode, int ClearOpposite, typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor, int Version = Specialized>
+/** \internal Specialization of the dense assignment kernel for triangular matrices.
+  * The main difference is that the triangular, diagonal, and opposite parts are processed through three different functions.
+  * \tparam UpLo must be either Lower or Upper
+  * \tparam Mode must be either 0, UnitDiag, ZeroDiag, or SelfAdjoint
+  */
+template<int UpLo, int Mode, int SetOpposite, typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor, int Version = Specialized>
 class triangular_dense_assignment_kernel : public generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor, Version>
 {
 protected:
@@ -1075,20 +1075,20 @@ public:
   
   void assignDiagonalCoeff(Index id)
   {
-         if((Mode&UnitDiag) && ClearOpposite) m_functor.assignCoeff(m_dst.coeffRef(id,id), Scalar(1));
-    else if((Mode&ZeroDiag) && ClearOpposite) m_functor.assignCoeff(m_dst.coeffRef(id,id), Scalar(0));
-    else if((Mode&(UnitDiag|ZeroDiag))==0)    Base::assignCoeff(id,id);
+         if(Mode==UnitDiag && SetOpposite) m_functor.assignCoeff(m_dst.coeffRef(id,id), Scalar(1));
+    else if(Mode==ZeroDiag && SetOpposite) m_functor.assignCoeff(m_dst.coeffRef(id,id), Scalar(0));
+    else if(Mode==0)                       Base::assignCoeff(id,id);
   }
   
   void assignOppositeCoeff(Index row, Index col)
   { 
     eigen_internal_assert(row!=col);
-    if(ClearOpposite)
+    if(SetOpposite)
       m_functor.assignCoeff(m_dst.coeffRef(row,col), Scalar(0));
   }
 };
 
-template<int Mode, bool ClearOpposite, typename DstXprType, typename SrcXprType, typename Functor>
+template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType, typename Functor>
 void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
 #ifdef EIGEN_DEBUG_ASSIGN
@@ -1103,22 +1103,23 @@ void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& sr
   DstEvaluatorType dstEvaluator(dst);
   SrcEvaluatorType srcEvaluator(src);
     
-  typedef triangular_dense_assignment_kernel<Mode,ClearOpposite,DstEvaluatorType,SrcEvaluatorType,Functor> Kernel;
+  typedef triangular_dense_assignment_kernel< Mode&(Lower|Upper),Mode&(UnitDiag|ZeroDiag|SelfAdjoint),SetOpposite,
+                                              DstEvaluatorType,SrcEvaluatorType,Functor> Kernel;
   Kernel kernel(dstEvaluator, srcEvaluator, func, dst.const_cast_derived());
   
   enum {
       unroll = DstXprType::SizeAtCompileTime != Dynamic
-//             && internal::traits<SrcXprType>::CoeffReadCost != Dynamic
-//             && DstXprType::SizeAtCompileTime * internal::traits<SrcXprType>::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT
+            && internal::traits<SrcXprType>::CoeffReadCost != Dynamic
+            && DstXprType::SizeAtCompileTime * internal::traits<SrcXprType>::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT
     };
   
-  triangular_assignment_loop<Kernel, Mode, unroll ? int(DstXprType::SizeAtCompileTime) : Dynamic, ClearOpposite>::run(kernel);
+  triangular_assignment_loop<Kernel, Mode, unroll ? int(DstXprType::SizeAtCompileTime) : Dynamic, SetOpposite>::run(kernel);
 }
 
-template<int Mode, bool ClearOpposite, typename DstXprType, typename SrcXprType>
+template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType>
 void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src)
 {
-  call_triangular_assignment_loop<Mode,ClearOpposite>(dst, src, internal::assign_op<typename DstXprType::Scalar>());
+  call_triangular_assignment_loop<Mode,SetOpposite>(dst, src, internal::assign_op<typename DstXprType::Scalar>());
 }
 
 template<> struct AssignmentKind<TriangularShape,TriangularShape> { typedef Triangular2Triangular Kind; };
@@ -1141,8 +1142,8 @@ template< typename DstXprType, typename SrcXprType, typename Functor, typename S
 struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Dense, Scalar>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
-  {    
-    call_triangular_assignment_loop<SrcXprType::Mode, true>(dst, src, func);  
+  {
+    call_triangular_assignment_loop<SrcXprType::Mode, (SrcXprType::Mode&SelfAdjoint)==0>(dst, src, func);  
   }
 };
 
@@ -1150,13 +1151,13 @@ template< typename DstXprType, typename SrcXprType, typename Functor, typename S
 struct Assignment<DstXprType, SrcXprType, Functor, Dense2Triangular, Scalar>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
-  {    
+  {
     call_triangular_assignment_loop<DstXprType::Mode, false>(dst, src, func);  
   }
 };
 
 
-template<typename Kernel, unsigned int Mode, int UnrollCount, bool ClearOpposite>
+template<typename Kernel, unsigned int Mode, int UnrollCount, bool SetOpposite>
 struct triangular_assignment_loop
 {
   // FIXME: this is not very clean, perhaps this information should be provided by the kernel?
@@ -1173,20 +1174,20 @@ struct triangular_assignment_loop
   EIGEN_DEVICE_FUNC
   static inline void run(Kernel &kernel)
   {
-    triangular_assignment_loop<Kernel, Mode, UnrollCount-1, ClearOpposite>::run(kernel);
+    triangular_assignment_loop<Kernel, Mode, UnrollCount-1, SetOpposite>::run(kernel);
     
     if(row==col)
       kernel.assignDiagonalCoeff(row);
     else if( ((Mode&Lower) && row>col) || ((Mode&Upper) && row<col) )
       kernel.assignCoeff(row,col);
-    else
+    else if(SetOpposite)
       kernel.assignOppositeCoeff(row,col);
   }
 };
 
 // prevent buggy user code from causing an infinite recursion
-template<typename Kernel, unsigned int Mode, bool ClearOpposite>
-struct triangular_assignment_loop<Kernel, Mode, 0, ClearOpposite>
+template<typename Kernel, unsigned int Mode, bool SetOpposite>
+struct triangular_assignment_loop<Kernel, Mode, 0, SetOpposite>
 {
   EIGEN_DEVICE_FUNC
   static inline void run(Kernel &) {}
@@ -1198,8 +1199,8 @@ struct triangular_assignment_loop<Kernel, Mode, 0, ClearOpposite>
 //       triangular part into one rectangular and two triangular parts.
 
 
-template<typename Kernel, unsigned int Mode, bool ClearOpposite>
-struct triangular_assignment_loop<Kernel, Mode, Dynamic, ClearOpposite>
+template<typename Kernel, unsigned int Mode, bool SetOpposite>
+struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
 {
   typedef typename Kernel::Index Index;
   typedef typename Kernel::Scalar Scalar;
@@ -1210,7 +1211,7 @@ struct triangular_assignment_loop<Kernel, Mode, Dynamic, ClearOpposite>
     {
       Index maxi = (std::min)(j, kernel.rows());
       Index i = 0;
-      if (((Mode&Lower) && ClearOpposite) || (Mode&Upper))
+      if (((Mode&Lower) && SetOpposite) || (Mode&Upper))
       {
         for(; i < maxi; ++i)
           if(Mode&Upper) kernel.assignCoeff(i, j);
@@ -1222,7 +1223,7 @@ struct triangular_assignment_loop<Kernel, Mode, Dynamic, ClearOpposite>
       if(i<kernel.rows()) // then i==j
         kernel.assignDiagonalCoeff(i++);
       
-      if (((Mode&Upper) && ClearOpposite) || (Mode&Lower))
+      if (((Mode&Upper) && SetOpposite) || (Mode&Lower))
       {
         for(; i < kernel.rows(); ++i)
           if(Mode&Lower) kernel.assignCoeff(i, j);
@@ -1241,7 +1242,7 @@ template<typename DenseDerived>
 void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
 {
   other.derived().resize(this->rows(), this->cols());
-  internal::call_triangular_assignment_loop<Derived::Mode,true /* ClearOpposite */>(other.derived(), derived().nestedExpression());
+  internal::call_triangular_assignment_loop<Derived::Mode,(Derived::Mode&SelfAdjoint)==0 /* SetOpposite */>(other.derived(), derived().nestedExpression());
 }
 
 #endif // EIGEN_ENABLE_EVALUATORS

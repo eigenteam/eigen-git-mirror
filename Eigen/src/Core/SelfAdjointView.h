@@ -353,6 +353,47 @@ struct evaluator_traits<SelfAdjointView<MatrixType,Mode> >
   static const int AssumeAliasing = 0;
 };
 
+template<int UpLo, int SetOpposite, typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor, int Version>
+class triangular_dense_assignment_kernel<UpLo,SelfAdjoint,SetOpposite,DstEvaluatorTypeT,SrcEvaluatorTypeT,Functor,Version>
+  : public generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor, Version>
+{
+protected:
+  typedef generic_dense_assignment_kernel<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor, Version> Base;
+  typedef typename Base::DstXprType DstXprType;
+  typedef typename Base::SrcXprType SrcXprType;
+  using Base::m_dst;
+  using Base::m_src;
+  using Base::m_functor;
+public:
+  
+  typedef typename Base::DstEvaluatorType DstEvaluatorType;
+  typedef typename Base::SrcEvaluatorType SrcEvaluatorType;
+  typedef typename Base::Scalar Scalar;
+  typedef typename Base::Index Index;
+  typedef typename Base::AssignmentTraits AssignmentTraits;
+  
+  
+  triangular_dense_assignment_kernel(DstEvaluatorType &dst, const SrcEvaluatorType &src, const Functor &func, DstXprType& dstExpr)
+    : Base(dst, src, func, dstExpr)
+  {}
+  
+  void assignCoeff(Index row, Index col)
+  {
+    eigen_internal_assert(row!=col);
+    Scalar tmp = m_src.coeff(row,col);
+    m_functor.assignCoeff(m_dst.coeffRef(row,col), tmp);
+    m_functor.assignCoeff(m_dst.coeffRef(col,row), numext::conj(tmp));
+  }
+  
+  void assignDiagonalCoeff(Index id)
+  {
+    Base::assignCoeff(id,id);
+  }
+  
+  void assignOppositeCoeff(Index, Index)
+  { eigen_internal_assert(false && "should never be called"); }
+};
+
 #endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace internal
