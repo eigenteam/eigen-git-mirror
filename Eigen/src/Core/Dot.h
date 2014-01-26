@@ -141,8 +141,13 @@ template<typename Derived>
 inline const typename MatrixBase<Derived>::PlainObject
 MatrixBase<Derived>::normalized() const
 {
-  typedef typename internal::nested<Derived>::type Nested;
+#ifndef EIGEN_TEST_EVALUATORS
+  typedef typename internal::nested<Derived,2>::type Nested;
   typedef typename internal::remove_reference<Nested>::type _Nested;
+#else
+  typedef typename internal::nested_eval<Derived,2>::type _Nested;
+//   typedef typename internal::remove_reference<Nested>::type _Nested;
+#endif // EIGEN_TEST_EVALUATORS
   _Nested n(derived());
   return n / n.norm();
 }
