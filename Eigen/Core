@@ -110,7 +110,13 @@
     #ifdef __SSE4_2__
       #define EIGEN_VECTORIZE_SSE4_2
     #endif
-
+    #ifdef __AVX__
+      #define EIGEN_VECTORIZE_AVX
+      #define EIGEN_VECTORIZE_SSE3
+      #define EIGEN_VECTORIZE_SSSE3
+      #define EIGEN_VECTORIZE_SSE4_1
+      #define EIGEN_VECTORIZE_SSE4_2
+    #endif
     // include files
 
     // This extern "C" works around a MINGW-w64 compilation issue
@@ -139,6 +145,9 @@
         #endif
         #ifdef EIGEN_VECTORIZE_SSE4_2
         #include <nmmintrin.h>
+        #endif
+        #ifdef EIGEN_VECTORIZE_AVX
+        #include <immintrin.h>
         #endif
       #endif
     } // end extern "C"
@@ -209,7 +218,9 @@
 namespace Eigen {
 
 inline static const char *SimdInstructionSetsInUse(void) {
-#if defined(EIGEN_VECTORIZE_SSE4_2)
+#if defined(EIGEN_VECTORIZE_AVX)
+  return "AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+#elif defined(EIGEN_VECTORIZE_SSE4_2)
   return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_SSE4_1)
   return "SSE, SSE2, SSE3, SSSE3, SSE4.1";
@@ -287,7 +298,12 @@ using std::ptrdiff_t;
 #include "src/Core/MathFunctions.h"
 #include "src/Core/GenericPacketMath.h"
 
-#if defined EIGEN_VECTORIZE_SSE
+#if defined EIGEN_VECTORIZE_AVX
+  // Use AVX for floats and doubles, SSE for integers
+  #include "src/Core/arch/AVX/PacketMath.h"
+  #include "src/Core/arch/AVX/Complex.h"
+  #include "src/Core/arch/SSE/PacketMath.h"  // For integers
+#elif defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/SSE/Complex.h"

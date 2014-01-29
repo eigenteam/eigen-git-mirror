@@ -196,6 +196,12 @@ if(NOT MSVC)
     message(STATUS "Enabling SSE4.2 in tests/examples")
   endif()
 
+  option(EIGEN_TEST_AVX "Enable/Disable AVX in tests/examples" ON)
+  if(EIGEN_TEST_AVX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
+    message(STATUS "Enabling AVX in tests/examples")
+  endif()
+
   option(EIGEN_TEST_ALTIVEC "Enable/Disable AltiVec in tests/examples" OFF)
   if(EIGEN_TEST_ALTIVEC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maltivec -mabi=altivec")

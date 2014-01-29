@@ -72,7 +72,11 @@
   #endif
   #define EIGEN_ALIGN 0
 #else
-  #define EIGEN_ALIGN 1
+  #if !defined(EIGEN_DONT_VECTORIZE) && defined(__AVX__)
+    #define EIGEN_ALIGN 32
+  #else
+    #define EIGEN_ALIGN 16
+  #endif
 #endif
 
 // EIGEN_ALIGN_STATICALLY is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
@@ -281,13 +285,16 @@
 #endif
 
 #define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
+#define EIGEN_ALIGN32 EIGEN_ALIGN_TO_BOUNDARY(32)
 
 #if EIGEN_ALIGN_STATICALLY
 #define EIGEN_USER_ALIGN_TO_BOUNDARY(n) EIGEN_ALIGN_TO_BOUNDARY(n)
 #define EIGEN_USER_ALIGN16 EIGEN_ALIGN16
+#define EIGEN_USER_ALIGN32 EIGEN_ALIGN32
 #else
 #define EIGEN_USER_ALIGN_TO_BOUNDARY(n)
 #define EIGEN_USER_ALIGN16
+#define EIGEN_USER_ALIGN32
 #endif
 
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD

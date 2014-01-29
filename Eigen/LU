@@ -27,7 +27,9 @@
 #include "src/LU/Determinant.h"
 #include "src/LU/Inverse.h"
 
-#if defined EIGEN_VECTORIZE_SSE
+// Use the SSE optimized version whenever possible. At the moment the
+// SSE version doesn't compile when AVX is enabled
+#if defined EIGEN_VECTORIZE_SSE && !defined EIGEN_VECTORIZE_AVX
   #include "src/LU/arch/Inverse_SSE.h"
 #endif
 

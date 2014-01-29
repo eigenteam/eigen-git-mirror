@@ -83,7 +83,7 @@ struct plain_array
 template <typename T, int Size, int MatrixOrArrayOptions>
 struct plain_array<T, Size, MatrixOrArrayOptions, 16>
 {
-  EIGEN_USER_ALIGN16 T array[Size];
+  EIGEN_USER_ALIGN32 T array[Size];
 
   EIGEN_DEVICE_FUNC
   plain_array() 
@@ -102,7 +102,7 @@ struct plain_array<T, Size, MatrixOrArrayOptions, 16>
 template <typename T, int MatrixOrArrayOptions, int Alignment>
 struct plain_array<T, 0, MatrixOrArrayOptions, Alignment>
 {
-  EIGEN_USER_ALIGN16 T array[1];
+  EIGEN_USER_ALIGN32 T array[1];
   EIGEN_DEVICE_FUNC plain_array() {}
   EIGEN_DEVICE_FUNC plain_array(constructor_without_unaligned_array_assert) {}
 };

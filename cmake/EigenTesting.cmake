@@ -264,6 +264,12 @@ macro(ei_testing_print_summary)
       message(STATUS "SSE4.2:            Using architecture defaults")
     endif()
 
+    if(EIGEN_TEST_AVX)
+      message(STATUS "AVX:               ON")
+    else()
+      message(STATUS "AVX:               Using architecture defaults")
+    endif()
+
     if(EIGEN_TEST_ALTIVEC)
       message(STATUS "Altivec:           ON")
     else()

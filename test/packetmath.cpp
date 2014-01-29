@@ -104,11 +104,12 @@ template<typename Scalar> void packetmath()
   const int PacketSize = internal::packet_traits<Scalar>::size;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
-  const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Packet packets[PacketSize*2];
-  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  const int max_size = PacketSize > 4 ? PacketSize : 4;
+  const int size = PacketSize*max_size;
+  EIGEN_ALIGN32 Scalar data1[size];
+  EIGEN_ALIGN32 Scalar data2[size];
+  EIGEN_ALIGN32 Packet packets[PacketSize*2];
+  EIGEN_ALIGN32 Scalar ref[size];
   RealScalar refvalue = 0;
   for (int i=0; i<size; ++i)
   {
@@ -140,6 +141,10 @@ template<typename Scalar> void packetmath()
     else if (offset==1) internal::palign<1>(packets[0], packets[1]);
     else if (offset==2) internal::palign<2>(packets[0], packets[1]);
     else if (offset==3) internal::palign<3>(packets[0], packets[1]);
+    else if (offset==4) internal::palign<4>(packets[0], packets[1]);
+    else if (offset==5) internal::palign<5>(packets[0], packets[1]);
+    else if (offset==6) internal::palign<6>(packets[0], packets[1]);
+    else if (offset==7) internal::palign<7>(packets[0], packets[1]);
     internal::pstore(data2, packets[0]);
 
     for (int i=0; i<PacketSize; ++i)
@@ -212,9 +217,9 @@ template<typename Scalar> void packetmath_real()
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN32 Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN32 Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN32 Scalar ref[internal::packet_traits<Scalar>::size*4];
 
   for (int i=0; i<size; ++i)
   {
@@ -257,9 +262,9 @@ template<typename Scalar> void packetmath_notcomplex()
   typedef typename internal::packet_traits<Scalar>::type Packet;
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
-  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN32 Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN32 Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN32 Scalar ref[internal::packet_traits<Scalar>::size*4];
   
   Array<Scalar,Dynamic,1>::Map(data1, internal::packet_traits<Scalar>::size*4).setRandom();
 
@@ -317,10 +322,10 @@ template<typename Scalar> void packetmath_complex()
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[PacketSize*4];
-  EIGEN_ALIGN16 Scalar data2[PacketSize*4];
-  EIGEN_ALIGN16 Scalar ref[PacketSize*4];
-  EIGEN_ALIGN16 Scalar pval[PacketSize*4];
+  EIGEN_ALIGN32 Scalar data1[PacketSize*4];
+  EIGEN_ALIGN32 Scalar data2[PacketSize*4];
+  EIGEN_ALIGN32 Scalar ref[PacketSize*4];
+  EIGEN_ALIGN32 Scalar pval[PacketSize*4];
 
   for (int i=0; i<size; ++i)
   {

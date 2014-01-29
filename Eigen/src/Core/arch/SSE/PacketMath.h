@@ -58,6 +58,9 @@ template<> struct is_arithmetic<__m128d> { enum { value = true }; };
   const Packet4i p4i_##NAME = pset1<Packet4i>(X)
 
 
+// Use the packet_traits defined in AVX/PacketMath.h instead if we're going
+// to leverage AVX instructions.
+#ifndef EIGEN_VECTORIZE_AVX
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet4f type;
@@ -87,6 +90,7 @@ template<> struct packet_traits<double> : default_packet_traits
     HasSqrt = 1
   };
 };
+#endif
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
@@ -115,8 +119,10 @@ template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { re
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
 #endif
 
+#ifndef EIGEN_VECTORIZE_AVX
 template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return _mm_add_ps(pset1<Packet4f>(a), _mm_set_ps(3,2,1,0)); }
 template<> EIGEN_STRONG_INLINE Packet2d plset<double>(const double& a) { return _mm_add_pd(pset1<Packet2d>(a),_mm_set_pd(1,0)); }
+#endif
 template<> EIGEN_STRONG_INLINE Packet4i plset<int>(const int& a) { return _mm_add_epi32(pset1<Packet4i>(a),_mm_set_epi32(3,2,1,0)); }
 
 template<> EIGEN_STRONG_INLINE Packet4f padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_add_ps(a,b); }
@@ -331,9 +337,11 @@ template<> EIGEN_STRONG_INLINE void pstore1<Packet2d>(double* to, const double& 
   pstore(to, vec2d_swizzle1(pa,0,0));
 }
 
+#ifndef EIGEN_VECTORIZE_AVX
 template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
+#endif
 
 #if defined(_MSC_VER) && defined(_WIN64) && !defined(__INTEL_COMPILER)
 // The temporary variable fixes an internal compilation error in vs <= 2008 and a wrong-result bug in vs 2010
