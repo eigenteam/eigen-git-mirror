@@ -12,7 +12,7 @@
 #ifndef EIGEN_RESHAPE_H
 #define EIGEN_RESHAPE_H
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \class Reshape
   * \ingroup Core_Module
@@ -89,19 +89,17 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols> > : traits<XprType>
                             && ColsAtCompileTime == ReshapeCols
                             && RowsAtCompileTime != Dynamic
                             && ColsAtCompileTime != Dynamic,
-    MaskDirectAccessBit = (IsSameShapeAtCompileTime ? DirectAccessBit : 0)
-                       && DirectAccessBit,
     Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
-                                        MaskDirectAccessBit |
+                                        DirectAccessBit |
                                         MaskPacketAccessBit |
                                         MaskAlignedBit),
-    Flags = Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit
+    Flags = (Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit)
   };
 };
 
 template<typename XprType, int ReshapeRows=Dynamic, int ReshapeCols=Dynamic,
          bool HasDirectAccess = internal::has_direct_access<XprType>::ret> class ReshapeImpl_dense;
-         
+
 } // end namespace internal
 
 template<typename XprType, int ReshapeRows, int ReshapeCols, typename StorageKind> class ReshapeImpl;
@@ -138,7 +136,7 @@ template<typename XprType, int ReshapeRows, int ReshapeCols> class Reshape
       eigen_assert(reshapeRows * reshapeCols == xpr.rows() * xpr.cols());
     }
 };
-         
+
 // The generic default implementation for dense reshape simplu forward to the internal::ReshapeImpl_dense
 // that must be specialized for direct and non-direct access...
 template<typename XprType, int ReshapeRows, int ReshapeCols>
@@ -287,10 +285,10 @@ template<typename XprType, int ReshapeRows, int ReshapeCols, bool HasDirectAcces
 
     EIGEN_DEVICE_FUNC
     const typename internal::remove_all<typename XprType::Nested>::type& nestedExpression() const
-    { 
-      return m_xpr; 
+    {
+      return m_xpr;
     }
-      
+
   protected:
 
     const typename XprType::Nested m_xpr;
