@@ -90,7 +90,7 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols> > : traits<XprType>
                             && RowsAtCompileTime != Dynamic
                             && ColsAtCompileTime != Dynamic,
     Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
-                                        DirectAccessBit |
+                                        (traits<XprType>::Flags & ~DirectAccessBit) |
                                         MaskPacketAccessBit |
                                         MaskAlignedBit),
     Flags = (Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit)
