@@ -61,11 +61,9 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols> > : traits<XprType>
     RowsAtCompileTime = MatrixRows == 0 ? 0 : ReshapeRows,
     ColsAtCompileTime = MatrixCols == 0 ? 0 : ReshapeCols,
     MaxRowsAtCompileTime = ReshapeRows==0 ? 0
-                         : RowsAtCompileTime != Dynamic ? int(RowsAtCompileTime)
-                         : int(traits<XprType>::MaxRowsAtCompileTime),
+                         : int(RowsAtCompileTime),
     MaxColsAtCompileTime = ReshapeCols==0 ? 0
-                         : ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime)
-                         : int(traits<XprType>::MaxColsAtCompileTime),
+                         : int(ColsAtCompileTime),
     XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0,
     IsRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
