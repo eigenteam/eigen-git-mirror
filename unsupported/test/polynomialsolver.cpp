@@ -106,7 +106,6 @@ void evalSolverSugarFunction( const POLYNOMIAL& pols, const ROOTS& roots, const 
 
     typedef typename POLYNOMIAL::Scalar                 Scalar;
     typedef typename REAL_ROOTS::Scalar                 Real;
-    typedef PolynomialSolver<Scalar, Deg >              PolynomialSolverType;
 
     //Test realRoots
     std::vector< Real > calc_realRoots;
