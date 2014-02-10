@@ -53,20 +53,16 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols> > : traits<XprType>
   typedef typename traits<XprType>::Scalar Scalar;
   typedef typename traits<XprType>::StorageKind StorageKind;
   typedef typename traits<XprType>::XprKind XprKind;
-  typedef typename nested<XprType>::type XprTypeNested;
-  typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
   enum{
     MatrixRows = traits<XprType>::RowsAtCompileTime,
     MatrixCols = traits<XprType>::ColsAtCompileTime,
-    RowsAtCompileTime = MatrixRows == 0 ? 0 : ReshapeRows,
-    ColsAtCompileTime = MatrixCols == 0 ? 0 : ReshapeCols,
-    MaxRowsAtCompileTime = ReshapeRows==0 ? 0
-                         : int(RowsAtCompileTime),
-    MaxColsAtCompileTime = ReshapeCols==0 ? 0
-                         : int(ColsAtCompileTime),
-    XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0,
-    IsRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
-               : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
+    RowsAtCompileTime = ReshapeRows,
+    ColsAtCompileTime = ReshapeCols,
+    MaxRowsAtCompileTime = ReshapeRows,
+    MaxColsAtCompileTime = ReshapeCols,
+    XprTypeIsRowMajor = (int(traits<XprType>::Flags) & RowMajorBit) != 0,
+    IsRowMajor = (RowsAtCompileTime == 1 && ColsAtCompileTime != 1) ? 1
+               : (ColsAtCompileTime == 1 && RowsAtCompileTime != 1) ? 0
                : XprTypeIsRowMajor,
     HasSameStorageOrderAsXprType = (IsRowMajor == XprTypeIsRowMajor),
     InnerSize = IsRowMajor ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
@@ -83,14 +79,11 @@ struct traits<Reshape<XprType, ReshapeRows, ReshapeCols> > : traits<XprType>
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
-    IsSameShapeAtCompileTime = RowsAtCompileTime == ReshapeRows
-                            && ColsAtCompileTime == ReshapeCols
-                            && RowsAtCompileTime != Dynamic
-                            && ColsAtCompileTime != Dynamic,
     Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
-                                        (traits<XprType>::Flags & ~DirectAccessBit) |
                                         MaskPacketAccessBit |
-                                        MaskAlignedBit),
+                                        MaskAlignedBit)
+                                    & ~DirectAccessBit,
+
     Flags = (Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit)
   };
 };
