@@ -608,7 +608,7 @@ template<typename T> class aligned_stack_memory_handler
   */
 #ifdef EIGEN_ALLOCA
 
-  #ifdef __arm__
+  #if defined(__arm__) || defined(_WIN32)
     #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+16)) & ~(size_t(15))) + 16)
   #else
     #define EIGEN_ALIGNED_ALLOCA EIGEN_ALLOCA
