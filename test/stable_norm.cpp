@@ -57,12 +57,12 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
 
   // get a non-zero random factor
   Scalar factor = internal::random<Scalar>();
-  while(factor<RealScalar(1e-3))
+  while(numext::abs2(factor)<RealScalar(1e-4))
     factor = internal::random<Scalar>();
   Scalar big = factor * ((std::numeric_limits<RealScalar>::max)() * RealScalar(1e-4));
   
   factor = internal::random<Scalar>();
-  while(factor<RealScalar(1e-3))
+  while(numext::abs2(factor)<RealScalar(1e-4))
     factor = internal::random<Scalar>();
   Scalar small = factor * ((std::numeric_limits<RealScalar>::min)() * RealScalar(1e4));
 
