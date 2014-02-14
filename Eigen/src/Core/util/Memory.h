@@ -761,10 +761,26 @@ public:
         ::new( p ) T( value );
     }
 
+#if (__cplusplus >= 201103L)
+    template <typename U, typename... Args>
+    void construct( U* u, Args&&... args)
+    {
+        ::new( static_cast<void*>(u) ) U( std::forward<Args>( args )... );
+    }
+#endif
+
     void destroy( pointer p )
     {
         p->~T();
     }
+
+#if (__cplusplus >= 201103L)
+    template <typename U>
+    void destroy( U* u )
+    {
+        u->~U();
+    }
+#endif
 
     void deallocate( pointer p, size_type /*num*/ )
     {
