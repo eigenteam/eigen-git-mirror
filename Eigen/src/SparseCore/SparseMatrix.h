@@ -402,7 +402,7 @@ class SparseMatrix
       * \sa insertBack, insertBackByOuterInner */
     inline void startVec(Index outer)
     {
-      eigen_assert(m_outerIndex[outer]==int(m_data.size()) && "You must call startVec for each inner vector sequentially");
+      eigen_assert(m_outerIndex[outer]==Index(m_data.size()) && "You must call startVec for each inner vector sequentially");
       eigen_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner vector sequentially");
       m_outerIndex[outer+1] = m_outerIndex[outer];
     }
@@ -480,7 +480,7 @@ class SparseMatrix
       if(m_innerNonZeros != 0)
         return; 
       m_innerNonZeros = static_cast<Index*>(std::malloc(m_outerSize * sizeof(Index)));
-      for (int i = 0; i < m_outerSize; i++)
+      for (Index i = 0; i < m_outerSize; i++)
       {
         m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i]; 
       }
@@ -752,8 +752,8 @@ class SparseMatrix
         else
           for (Index i=0; i<m.outerSize(); ++i)
           {
-            int p = m.m_outerIndex[i];
-            int pe = m.m_outerIndex[i]+m.m_innerNonZeros[i];
+            Index p = m.m_outerIndex[i];
+            Index pe = m.m_outerIndex[i]+m.m_innerNonZeros[i];
             Index k=p;
             for (; k<pe; ++k)
               s << "(" << m.m_data.value(k) << "," << m.m_data.index(k) << ") ";
@@ -1022,7 +1022,7 @@ void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
   wi.fill(-1);
   Index count = 0;
   // for each inner-vector, wi[inner_index] will hold the position of first element into the index/value buffers
-  for(int j=0; j<outerSize(); ++j)
+  for(Index j=0; j<outerSize(); ++j)
   {
     Index start   = count;
     Index oldEnd  = m_outerIndex[j]+m_innerNonZeros[j];
