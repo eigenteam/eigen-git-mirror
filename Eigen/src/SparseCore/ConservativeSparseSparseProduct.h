@@ -66,9 +66,9 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
     }
 
     // unordered insertion
-    for(int k=0; k<nnz; ++k)
+    for(Index k=0; k<nnz; ++k)
     {
-      int i = indices[k];
+      Index i = indices[k];
       res.insertBackByOuterInnerUnordered(j,i) = values[i];
       mask[i] = false;
     }
@@ -76,8 +76,8 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
 #if 0
     // alternative ordered insertion code:
 
-    int t200 = rows/(log2(200)*1.39);
-    int t = (rows*100)/139;
+    Index t200 = rows/(log2(200)*1.39);
+    Index t = (rows*100)/139;
 
     // FIXME reserve nnz non zeros
     // FIXME implement fast sort algorithms for very small nnz
@@ -90,9 +90,9 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
     if(true)
     {
       if(nnz>1) std::sort(indices.data(),indices.data()+nnz);
-      for(int k=0; k<nnz; ++k)
+      for(Index k=0; k<nnz; ++k)
       {
-        int i = indices[k];
+        Index i = indices[k];
         res.insertBackByOuterInner(j,i) = values[i];
         mask[i] = false;
       }
@@ -100,7 +100,7 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
     else
     {
       // dense path
-      for(int i=0; i<rows; ++i)
+      for(Index i=0; i<rows; ++i)
       {
         if(mask[i])
         {

@@ -27,7 +27,7 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
   // make sure to call innerSize/outerSize since we fake the storage order.
   Index rows = lhs.innerSize();
   Index cols = rhs.outerSize();
-  //int size = lhs.outerSize();
+  //Index size = lhs.outerSize();
   eigen_assert(lhs.outerSize() == rhs.innerSize());
 
   // allocate a temporary buffer

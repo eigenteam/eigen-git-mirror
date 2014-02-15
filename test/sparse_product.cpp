@@ -244,6 +244,7 @@ void test_sparse_product()
     CALL_SUBTEST_1( (sparse_product<SparseMatrix<double,RowMajor> >()) );
     CALL_SUBTEST_2( (sparse_product<SparseMatrix<std::complex<double>, ColMajor > >()) );
     CALL_SUBTEST_2( (sparse_product<SparseMatrix<std::complex<double>, RowMajor > >()) );
+    CALL_SUBTEST_3( (sparse_product<SparseMatrix<float,ColMajor,long int> >()) );
     CALL_SUBTEST_4( (sparse_product_regression_test<SparseMatrix<double,RowMajor>, Matrix<double, Dynamic, Dynamic, RowMajor> >()) );
   }
 }
