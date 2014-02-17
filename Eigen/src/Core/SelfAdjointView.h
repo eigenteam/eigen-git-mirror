@@ -132,6 +132,13 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     {
       return Product<OtherDerived,SelfAdjointView>(lhs.derived(),rhs);
     }
+    
+    friend EIGEN_DEVICE_FUNC
+    const SelfAdjointView<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,MatrixType>,UpLo>
+    operator*(const Scalar& s, const SelfAdjointView& mat)
+    {
+      return (s*mat.nestedExpression()).template selfadjointView<UpLo>();
+    }
 
 #else // EIGEN_TEST_EVALUATORS
 

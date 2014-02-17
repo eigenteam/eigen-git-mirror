@@ -62,6 +62,14 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     inline Index outerStride() const { return derived().outerStride(); }
     EIGEN_DEVICE_FUNC
     inline Index innerStride() const { return derived().innerStride(); }
+    
+    // dummy resize function
+    void resize(Index nbRows, Index nbCols)
+    {
+      EIGEN_UNUSED_VARIABLE(nbRows);
+      EIGEN_UNUSED_VARIABLE(nbCols);
+      eigen_assert(nbRows==rows() && nbCols==nbCols);
+    }
 
     EIGEN_DEVICE_FUNC
     inline Scalar coeff(Index row, Index col) const  { return derived().coeff(row,col); }
