@@ -151,19 +151,19 @@ void test_evaluators()
     c = a*a;
     copy_using_evaluator(a, prod(a,a));
     VERIFY_IS_APPROX(a,c);
-    
+
     // check compound assignment of products
     d = c;
     add_assign_using_evaluator(c.noalias(), prod(a,b));
     d.noalias() += a*b;
     VERIFY_IS_APPROX(c, d);
-    
+
     d = c;
     subtract_assign_using_evaluator(c.noalias(), prod(a,b));
     d.noalias() -= a*b;
     VERIFY_IS_APPROX(c, d);
   }
-  
+
   {
     // test product with all possible sizes
     int s = internal::random<int>(1,100);
@@ -456,6 +456,17 @@ void test_evaluators()
     VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.triangularView<Upper>(),A), MatrixXd(A.triangularView<Upper>()*A));
     
     VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.selfadjointView<Upper>(),A), MatrixXd(A.selfadjointView<Upper>()*A));
+    
+  }
+
+  {
+    // test diagonal shapes
+    VectorXd d = VectorXd::Random(6);
+    MatrixXd A = MatrixXd::Random(6,6), B(6,6);
+    A.setRandom();B.setRandom();
+    
+    VERIFY_IS_APPROX_EVALUATOR2(B, lazyprod(d.asDiagonal(),A), MatrixXd(d.asDiagonal()*A));
+    VERIFY_IS_APPROX_EVALUATOR2(B, lazyprod(A,d.asDiagonal()), MatrixXd(A*d.asDiagonal()));
     
   }
 }

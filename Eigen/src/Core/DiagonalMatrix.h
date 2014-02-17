@@ -66,6 +66,7 @@ class DiagonalBase : public EigenBase<Derived>
     EIGEN_DEVICE_FUNC
     inline Index cols() const { return diagonal().size(); }
 
+#ifndef EIGEN_TEST_EVALUATORS
     /** \returns the diagonal matrix product of \c *this by the matrix \a matrix.
       */
     template<typename MatrixDerived>
@@ -75,6 +76,15 @@ class DiagonalBase : public EigenBase<Derived>
     {
       return DiagonalProduct<MatrixDerived, Derived, OnTheLeft>(matrix.derived(), derived());
     }
+#else
+    template<typename MatrixDerived>
+    EIGEN_DEVICE_FUNC
+    const Product<Derived,MatrixDerived,LazyProduct>
+    operator*(const MatrixBase<MatrixDerived> &matrix) const
+    {
+      return Product<Derived, MatrixDerived, LazyProduct>(derived(),matrix.derived());
+    }
+#endif // EIGEN_TEST_EVALUATORS
 
     EIGEN_DEVICE_FUNC
     inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const DiagonalVectorType> >
@@ -270,7 +280,8 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
     ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
-    Flags =  traits<DiagonalVectorType>::Flags & LvalueBit
+    Flags =  traits<DiagonalVectorType>::Flags & LvalueBit,
+    CoeffReadCost = traits<_DiagonalVectorType>::CoeffReadCost
   };
 };
 }
@@ -340,6 +351,29 @@ bool MatrixBase<Derived>::isDiagonal(const RealScalar& prec) const
     }
   return true;
 }
+
+#ifdef EIGEN_ENABLE_EVALUATORS
+namespace internal {
+  
+// TODO currently a diagonal expression has the form DiagonalMatrix<> or DiagonalWrapper
+//      in the future diagonal-ness should be defined by the expression traits
+template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
+struct evaluator_traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
+{
+  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
+  typedef DiagonalShape Shape;
+  static const int AssumeAliasing = 0;
+};
+template<typename Derived>
+struct evaluator_traits<DiagonalWrapper<Derived> >
+{
+  typedef typename storage_kind_to_evaluator_kind<typename Derived::StorageKind>::Kind Kind;
+  typedef DiagonalShape Shape;
+  static const int AssumeAliasing = 0;
+};
+
+} // namespace internal
+#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 
