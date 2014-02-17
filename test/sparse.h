@@ -178,10 +178,10 @@ initSparse(double density,
   }
 }
 
-template<typename Scalar> void
+template<typename Scalar,int Options,typename Index> void
 initSparse(double density,
            Matrix<Scalar,1,Dynamic>& refVec,
-           SparseVector<Scalar,RowMajor>& sparseVec,
+           SparseVector<Scalar,Options,Index>& sparseVec,
            std::vector<int>* zeroCoords = 0,
            std::vector<int>* nonzeroCoords = 0)
 {
