@@ -531,6 +531,23 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
 
 namespace internal {
 
+#ifdef EIGEN_TEST_EVALUATORS
+
+// TODO remove this class which is now useless
+
+template<typename Derived, typename OtherDerived>
+struct assign_selector {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) {
+    call_assignment(dst, other.derived(), internal::assign_op<typename OtherDerived::Scalar>());
+    return dst;
+  }
+  template<typename ActualDerived, typename ActualOtherDerived>
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Derived& evalTo(ActualDerived& dst, const ActualOtherDerived& other) { other.evalTo(dst); return dst; }
+};
+
+#else // EIGEN_TEST_EVALUATORS
 template<typename Derived, typename OtherDerived,
          bool EvalBeforeAssigning = (int(internal::traits<OtherDerived>::Flags) & EvalBeforeAssigningBit) != 0,
          bool NeedToTranspose = ((int(Derived::RowsAtCompileTime) == 1 && int(OtherDerived::ColsAtCompileTime) == 1)
@@ -566,7 +583,7 @@ struct assign_selector<Derived,OtherDerived,true,true> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose().eval()); }
 };
-
+#endif // EIGEN_TEST_EVALUATORS
 } // end namespace internal
 
 template<typename Derived>
@@ -604,7 +621,11 @@ template <typename OtherDerived>
 EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<OtherDerived>& other)
 {
+#ifdef EIGEN_TEST_EVALUATORS
+  return internal::assign_selector<Derived,OtherDerived>::evalTo(derived(), other.derived());
+#else
   return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());
+#endif
 }
 
 template<typename Derived>
@@ -612,7 +633,11 @@ template<typename OtherDerived>
 EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
+#ifdef EIGEN_TEST_EVALUATORS
+  return internal::assign_selector<Derived,OtherDerived>::evalTo(derived(), other.derived());
+#else
   return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());
+#endif
 }
 
 } // end namespace Eigen

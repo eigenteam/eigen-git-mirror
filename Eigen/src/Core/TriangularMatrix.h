@@ -1235,6 +1235,7 @@ struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
 
 } // end namespace internal
 
+#ifdef EIGEN_TEST_EVALUATORS
 /** Assigns a triangular or selfadjoint matrix to a dense matrix.
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
@@ -1244,6 +1245,7 @@ void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
   other.derived().resize(this->rows(), this->cols());
   internal::call_triangular_assignment_loop<Derived::Mode,(Derived::Mode&SelfAdjoint)==0 /* SetOpposite */>(other.derived(), derived().nestedExpression());
 }
+#endif
 
 #endif // EIGEN_ENABLE_EVALUATORS
 

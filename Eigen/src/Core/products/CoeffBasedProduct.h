@@ -47,8 +47,8 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
                                          typename traits<_RhsNested>::Index>::type Index;
 
   enum {
-      LhsCoeffReadCost = _LhsNested::CoeffReadCost,
-      RhsCoeffReadCost = _RhsNested::CoeffReadCost,
+      LhsCoeffReadCost = traits<_LhsNested>::CoeffReadCost,
+      RhsCoeffReadCost = traits<_RhsNested>::CoeffReadCost,
       LhsFlags = traits<_LhsNested>::Flags,
       RhsFlags = traits<_RhsNested>::Flags,
 

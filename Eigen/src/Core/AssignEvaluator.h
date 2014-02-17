@@ -656,28 +656,75 @@ template< typename DstXprType, typename SrcXprType, typename Functor,
 struct Assignment;
 
 
-// The only purpose of this call_assignment() function is to deal with noalias() / AssumeAliasing.
+// The only purpose of this call_assignment() function is to deal with noalias() / AssumeAliasing and automatic transposition.
 // Indeed, I (Gael) think that this concept of AssumeAliasing was a mistake, and it makes thing quite complicated.
 // So this intermediate function removes everything related to AssumeAliasing such that Assignment
 // does not has to bother about these annoying details.
 
-template<typename Dst, typename Src, typename Func>
-void call_assignment(Dst& dst, const Src& src, const Func& func)
+template<typename Dst, typename Src> struct transpose_to_match
 {
-  typedef typename internal::conditional<evaluator_traits<Src>::AssumeAliasing==1, EvalToTemp<Src>, Src>::type ActualSrc;
-  Assignment<Dst,ActualSrc,Func>::run(dst, src, func);
+  enum {
+    NeedToTranspose = (  (int(Dst::RowsAtCompileTime) == 1 && int(Src::ColsAtCompileTime) == 1)
+                        |   // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
+                                // revert to || as soon as not needed anymore.
+                         (int(Dst::ColsAtCompileTime) == 1 && int(Src::RowsAtCompileTime) == 1))
+                     && int(Dst::SizeAtCompileTime) != 1
+  };
+  
+  typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst>::type type;
+};
+
+template<typename Dst, typename Src>
+void call_assignment(Dst& dst, const Src& src)
+{
+  call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
+}
+template<typename Dst, typename Src>
+void call_assignment(const Dst& dst, const Src& src)
+{
+  call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
+}
+                     
+// Deal with AssumeAliasing
+template<typename Dst, typename Src, typename Func>
+void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==1, void*>::type = 0)
+{
+  // The following initial implementation through an EvalToTemp object does not permit to
+  // perform deferred resizing as in 'A = A * B' when the size of 'A' as to be changed
+  //   typedef typename internal::conditional<evaluator_traits<Src>::AssumeAliasing==1, EvalToTemp<Src>, Src>::type ActualSrc;
+  //   Assignment<Dst,ActualSrc,Func>::run(dst, src, func);
+  
+  // TODO we should simply do tmp(src);
+#ifdef EIGEN_TEST_EVALUATORS
+  typename Src::PlainObject tmp(src);
+#else
+  typename Src::PlainObject tmp(src.rows(), src.cols());
+  call_assignment(tmp.noalias(), src);
+#endif
+  
+  // resizing
+  dst.resize(tmp.rows(), tmp.cols());
+  call_assignment(dst.noalias(), tmp, func);
+  TRACK;
+}
+
+template<typename Dst, typename Src, typename Func>
+void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==0, void*>::type = 0)
+{
+  Assignment<typename transpose_to_match<Dst,Src>::type,Src,Func>::run(dst, src, func);
 }
 
 // by-pass AssumeAliasing
+// FIXME the const version should probably not be needed
 template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
 void call_assignment(const NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
 {
-  Assignment<Dst,Src,Func>::run(dst.expression(), src, func);
+  Assignment<typename transpose_to_match<Dst,Src>::type,Src,Func>::run(dst.expression(), src, func);
 }
 template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
 void call_assignment(NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
 {
-  Assignment<Dst,Src,Func>::run(dst.expression(), src, func);
+  Assignment<typename transpose_to_match<Dst,Src>::type,Src,Func>::run(dst.expression(), src, func);
 }
 
 // Generic Dense to Dense assignment
