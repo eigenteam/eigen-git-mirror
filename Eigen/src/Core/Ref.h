@@ -12,10 +12,6 @@
 
 namespace Eigen { 
 
-template<typename Derived> class RefBase;
-template<typename PlainObjectType, int Options = 0,
-         typename StrideType = typename internal::conditional<PlainObjectType::IsVectorAtCompileTime,InnerStride<1>,OuterStride<> >::type > class Ref;
-
 /** \class Ref
   * \ingroup Core_Module
   *

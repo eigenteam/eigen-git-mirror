@@ -502,6 +502,18 @@ struct is_lvalue
                  bool(traits<ExpressionType>::Flags & LvalueBit) };
 };
 
+template<typename T> struct is_diagonal
+{ enum { ret = false }; };
+
+template<typename T> struct is_diagonal<DiagonalBase<T> >
+{ enum { ret = true }; };
+
+template<typename T> struct is_diagonal<DiagonalWrapper<T> >
+{ enum { ret = true }; };
+
+template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
+{ enum { ret = true }; };
+
 } // end namespace internal
 
 } // end namespace Eigen
