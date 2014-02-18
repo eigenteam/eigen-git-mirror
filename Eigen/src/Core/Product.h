@@ -109,16 +109,6 @@ public:
   {
     return typename internal::evaluator<ProductXpr>::type(derived()).coeff(0,0);
   }
-  
-  Scalar coeff(Index row, Index col) const
-  {
-    return typename internal::evaluator<ProductXpr>::type(derived()).coeff(row,col);
-  }
-
-  Scalar coeff(Index i) const
-  {
-    return typename internal::evaluator<ProductXpr>::type(derived()).coeff(i);
-  }
 };
 
 } // namespace internal
@@ -132,6 +122,22 @@ class ProductImpl<Lhs,Rhs,Option,Dense>
     
     typedef typename internal::dense_product_base<Lhs, Rhs, Option> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+    
+    Scalar coeff(Index row, Index col) const
+    {
+      EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
+      eigen_assert(this->rows() == 1 && this->cols() == 1);
+      
+      return typename internal::evaluator<Derived>::type(derived()).coeff(row,col);
+    }
+
+    Scalar coeff(Index i) const
+    {
+      EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
+      eigen_assert(this->rows() == 1 && this->cols() == 1);
+      
+      return typename internal::evaluator<Derived>::type(derived()).coeff(i);
+    }
 };
 
 /***************************************************************************

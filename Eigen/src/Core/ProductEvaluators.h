@@ -270,7 +270,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-  {
+  {TRACK;
     // TODO bypass GeneralProduct class
     GeneralProduct<Lhs, Rhs, GemmProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
   }
@@ -705,7 +705,7 @@ struct generic_product_impl<Lhs,Rhs,SelfAdjointShape,DenseShape,ProductTag>
   
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-  {// SelfadjointProductMatrix<MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
+  {
     // TODO bypass SelfadjointProductMatrix class
     SelfadjointProductMatrix<typename Lhs::MatrixType,Lhs::Mode,false,Rhs,0,Rhs::IsVectorAtCompileTime>(lhs.nestedExpression(),rhs).scaleAndAddTo(dst, alpha);
   }
@@ -739,7 +739,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,SelfAdjointShape,ProductTag>
   
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-  {//SelfadjointProductMatrix<OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
+  {
     // TODO bypass SelfadjointProductMatrix class
     SelfadjointProductMatrix<Lhs,0,Lhs::IsVectorAtCompileTime,typename Rhs::MatrixType,Rhs::Mode,false>(lhs,rhs.nestedExpression()).scaleAndAddTo(dst, alpha);
   }
@@ -825,6 +825,8 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   
   typedef Product<Lhs, Rhs, ProductKind> XprType;
   typedef typename XprType::PlainObject PlainObject;
+  
+  enum { StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor };
 
   product_evaluator(const XprType& xpr)
     : Base(xpr.rhs(), xpr.lhs().diagonal())
@@ -839,9 +841,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   template<int LoadMode>
   EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
   {
-    enum {
-      StorageOrder = Rhs::Flags & RowMajorBit ? RowMajor : ColMajor
-    };
     return this->template packet_impl<LoadMode>(row,col, row,
                                  typename internal::conditional<int(StorageOrder)==RowMajor, internal::true_type, internal::false_type>::type());
   }
@@ -849,9 +848,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   template<int LoadMode>
   EIGEN_STRONG_INLINE PacketScalar packet(Index idx) const
   {
-    enum {
-      StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor
-    };
     return packet<LoadMode>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
   }
   
@@ -873,6 +869,8 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   
   typedef Product<Lhs, Rhs, ProductKind> XprType;
   typedef typename XprType::PlainObject PlainObject;
+  
+  enum { StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor };
 
   product_evaluator(const XprType& xpr)
     : Base(xpr.lhs(), xpr.rhs().diagonal())
@@ -887,9 +885,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   template<int LoadMode>
   EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
   {
-    enum {
-      StorageOrder = Rhs::Flags & RowMajorBit ? RowMajor : ColMajor
-    };
     return this->template packet_impl<LoadMode>(row,col, col,
                                  typename internal::conditional<int(StorageOrder)==ColMajor, internal::true_type, internal::false_type>::type());
   }
@@ -897,9 +892,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   template<int LoadMode>
   EIGEN_STRONG_INLINE PacketScalar packet(Index idx) const
   {
-    enum {
-      StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor
-    };
     return packet<LoadMode>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
   }
   
