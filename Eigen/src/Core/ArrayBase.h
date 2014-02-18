@@ -177,6 +177,59 @@ template<typename Derived> class ArrayBase
     {EIGEN_STATIC_ASSERT(std::ptrdiff_t(sizeof(typename OtherDerived::Scalar))==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES); return *this;}
 };
 
+#ifdef EIGEN_TEST_EVALUATORS
+/** replaces \c *this by \c *this - \a other.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
+{
+  call_assignment(derived(), other.derived(), internal::sub_assign_op<Scalar>());
+  return derived();
+}
+
+/** replaces \c *this by \c *this + \a other.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
+{
+  call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar>());
+  return derived();
+}
+
+/** replaces \c *this by \c *this * \a other coefficient wise.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
+{
+  call_assignment(derived(), other.derived(), internal::mul_assign_op<Scalar>());
+  return derived();
+}
+
+/** replaces \c *this by \c *this / \a other coefficient wise.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
+{
+  call_assignment(derived(), other.derived(), internal::div_assign_op<Scalar>());
+  return derived();
+}
+#else // EIGEN_TEST_EVALUATORS
 /** replaces \c *this by \c *this - \a other.
   *
   * \returns a reference to \c *this
@@ -232,6 +285,7 @@ ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
   tmp = other.derived();
   return derived();
 }
+#endif
 
 } // end namespace Eigen
 

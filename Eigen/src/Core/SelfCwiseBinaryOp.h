@@ -12,6 +12,8 @@
 
 namespace Eigen { 
 
+#ifndef  EIGEN_TEST_EVALUATORS
+  
 /** \class SelfCwiseBinaryOp
   * \ingroup Core_Module
   *
@@ -179,6 +181,51 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
     SelfCwiseBinaryOp& operator=(const SelfCwiseBinaryOp&);
 };
 
+#endif // EIGEN_TEST_EVALUATORS
+
+#ifdef EIGEN_TEST_EVALUATORS
+template<typename Derived>
+inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
+{
+  typedef typename Derived::PlainObject PlainObject;
+  internal::call_assignment(this->derived(), PlainObject::Constant(rows(),cols(),other), internal::mul_assign_op<Scalar>());
+  return derived();
+}
+
+template<typename Derived>
+inline Derived& ArrayBase<Derived>::operator+=(const Scalar& other)
+{
+  typedef typename Derived::PlainObject PlainObject;
+  internal::call_assignment(this->derived(), PlainObject::Constant(rows(),cols(),other), internal::add_assign_op<Scalar>());
+  return derived();
+}
+
+template<typename Derived>
+inline Derived& ArrayBase<Derived>::operator-=(const Scalar& other)
+{
+  typedef typename Derived::PlainObject PlainObject;
+  internal::call_assignment(this->derived(), PlainObject::Constant(rows(),cols(),other), internal::sub_assign_op<Scalar>());
+  return derived();
+}
+
+template<typename Derived>
+inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
+{
+  typedef typename Derived::PlainObject PlainObject;
+  
+  typedef typename internal::conditional<NumTraits<Scalar>::IsInteger,
+                                        internal::div_assign_op<Scalar>,
+                                        internal::mul_assign_op<Scalar> >::type AssignOp;
+
+  Scalar actual_other;
+  if(NumTraits<Scalar>::IsInteger)  actual_other = other;
+  else                              actual_other = Scalar(1)/other;
+  
+  internal::call_assignment(this->derived(), PlainObject::Constant(rows(),cols(),actual_other), AssignOp());
+  
+  return derived();
+}
+#else
 template<typename Derived>
 inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
 {
@@ -220,6 +267,7 @@ inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
   tmp = PlainObject::Constant(rows(),cols(), actual_other);
   return derived();
 }
+#endif
 
 } // end namespace Eigen
 
