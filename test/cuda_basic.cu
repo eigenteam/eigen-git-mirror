@@ -1,8 +1,16 @@
 
 
+// workaround issue between gcc >= 4.7 and cuda 5.5
+#if (defined __GNUC__) && (__GNUC__>4 || __GNUC_MINOR__>=7)
+  #undef _GLIBCXX_ATOMIC_BUILTINS
+  #undef _GLIBCXX_USE_INT128
+#endif
+
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cuda_basic
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
+
 #include "main.h"
 #include "cuda_common.h"
 
@@ -70,6 +78,17 @@ struct prod {
   }
 };
 
+template<typename T1, typename T2>
+struct diagonal {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T1::Scalar* in, typename T1::Scalar* out) const
+  {
+    using namespace Eigen;
+    T1 x1(in+i);
+    Map<T2> res(out+i*T2::MaxSizeAtCompileTime);
+    res += x1.diagonal();
+  }
+};
 
 template<typename T>
 struct eigenvalues {
@@ -82,11 +101,10 @@ struct eigenvalues {
     Map<Vec> res(out+i*Vec::MaxSizeAtCompileTime);
     T A = M*M.adjoint();
     SelfAdjointEigenSolver<T> eig;
-    eig.computeDirect(A);
-    res = A.eigenvalues();
+    eig.computeDirect(M);
+    res = eig.eigenvalues();
   }
 };
-
 
 void test_cuda_basic()
 {
@@ -110,7 +128,10 @@ void test_cuda_basic()
   CALL_SUBTEST( run_and_compare_to_cuda(prod<Matrix3f,Matrix3f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_cuda(prod<Matrix4f,Vector4f>(), nthreads, in, out) );
   
-//   CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix3f>(), nthreads, in, out) );
-//   CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix2f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(diagonal<Matrix3f,Vector3f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_c<uda(diagonal<Matrix4f,Vector4f>(), nthreads, in, out) );
+  
+  CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix3f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(eigenvalues<Matrix2f>(), nthreads, in, out) );
 
 }

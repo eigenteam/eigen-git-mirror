@@ -39,6 +39,8 @@ int main(int argc, char** argv)
 }
 \endcode
 
+\warning note that all functions generating random matrices are \b not re-entrant nor thread-safe. Those include DenseBase::Random(), and DenseBase::setRandom() despite a call to Eigen::initParallel(). This is because these functions are based on std::rand which is not re-entrant. For thread-safe random generator, we recommend the use of boost::random of c++11 random feature.
+
 In the case your application is parallelized with OpenMP, you might want to disable Eigen's own parallization as detailed in the previous section.
 
 */

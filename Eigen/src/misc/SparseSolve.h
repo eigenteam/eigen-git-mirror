@@ -54,8 +54,10 @@ template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval_b
       static const int NbColsAtOnce = 4;
       int rhsCols = m_rhs.cols();
       int size = m_rhs.rows();
-      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmp(size,rhsCols);
-      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmpX(size,rhsCols);
+      // the temporary matrices do not need more columns than NbColsAtOnce:
+      int tmpCols = (std::min)(rhsCols, NbColsAtOnce); 
+      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmp(size,tmpCols);
+      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmpX(size,tmpCols);
       for(int k=0; k<rhsCols; k+=NbColsAtOnce)
       {
         int actualCols = std::min<int>(rhsCols-k, NbColsAtOnce);
