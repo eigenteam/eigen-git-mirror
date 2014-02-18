@@ -350,11 +350,12 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
 class BlockImpl<XprType,BlockRows,BlockCols,InnerPanel,Sparse>
   : public SparseMatrixBase<Block<XprType,BlockRows,BlockCols,InnerPanel> >, internal::no_assignment_operator
 {
-  typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
   typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
 public:
     enum { IsRowMajor = internal::traits<BlockType>::IsRowMajor };
     EIGEN_SPARSE_PUBLIC_INTERFACE(BlockType)
+    
+    typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
 
     /** Column or Row constructor
       */
