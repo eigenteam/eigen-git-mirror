@@ -532,6 +532,7 @@ namespace internal {
 
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
 struct traits<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
+  : traits<typename MatrixType::PlainObject>
 {
   typedef typename MatrixType::PlainObject ReturnType;
 };
