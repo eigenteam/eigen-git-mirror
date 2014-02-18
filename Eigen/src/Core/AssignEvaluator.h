@@ -676,12 +676,7 @@ void call_assignment(const Dst& dst, const Src& src)
 template<typename Dst, typename Src, typename Func>
 void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==1, void*>::type = 0)
 {TRACK;
-  // The following initial implementation through an EvalToTemp object does not permit to
-  // perform deferred resizing as in 'A = A * B' when the size of 'A' as to be changed
-  //   typedef typename internal::conditional<evaluator_traits<Src>::AssumeAliasing==1, EvalToTemp<Src>, Src>::type ActualSrc;
-  //   Assignment<Dst,ActualSrc,Func>::run(dst, src, func);
   
-  // TODO we should simply do tmp(src);
 #ifdef EIGEN_TEST_EVALUATORS
   typename Src::PlainObject tmp(src);
 #else
@@ -697,8 +692,6 @@ void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable
 template<typename Dst, typename Src, typename Func>
 void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==0, void*>::type = 0)
 {TRACK;
-  // There is no explicit no-aliasing, so we must resize here:
-  dst.resize(src.rows(), src.cols());
   call_assignment_no_alias(dst, src, func);
 }
 
@@ -727,6 +720,9 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
                          (int(Dst::ColsAtCompileTime) == 1 && int(Src::RowsAtCompileTime) == 1))
                      && int(Dst::SizeAtCompileTime) != 1
   };
+  
+  dst.resize(NeedToTranspose ? src.cols() : src.rows(),
+             NeedToTranspose ? src.rows() : src.cols());
   
   typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst>::type ActualDstTypeCleaned;
   typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst&>::type ActualDstType;

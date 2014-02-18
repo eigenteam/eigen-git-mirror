@@ -40,9 +40,7 @@ class NoAlias
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator=(const StorageBase<OtherDerived>& other)
     {
-      // TODO either call resize here or call "call_assignment" through m_expression.lazyAssign()  ??
-      m_expression.resize(other.derived().rows(), other.derived().cols());
-      call_assignment(*this, other.derived(), internal::assign_op<Scalar>());
+      call_assignment_no_alias(m_expression, other.derived(), internal::assign_op<Scalar>());
       return m_expression;
     }
     
@@ -50,7 +48,7 @@ class NoAlias
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator+=(const StorageBase<OtherDerived>& other)
     {
-      call_assignment(*this, other.derived(), internal::add_assign_op<Scalar>());
+      call_assignment_no_alias(m_expression, other.derived(), internal::add_assign_op<Scalar>());
       return m_expression;
     }
     
@@ -58,7 +56,7 @@ class NoAlias
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE ExpressionType& operator-=(const StorageBase<OtherDerived>& other)
     {
-      call_assignment(*this, other.derived(), internal::sub_assign_op<Scalar>());
+      call_assignment_no_alias(m_expression, other.derived(), internal::sub_assign_op<Scalar>());
       return m_expression;
     }
     
