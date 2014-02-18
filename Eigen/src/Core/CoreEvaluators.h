@@ -587,7 +587,7 @@ struct evaluator<MapBase<Derived, AccessorsType> >
   CoeffReturnType coeff(Index index) const 
   { 
     return coeff(RowsAtCompileTime == 1 ? 0 : index,
-		 RowsAtCompileTime == 1 ? index : 0);
+                 RowsAtCompileTime == 1 ? index : 0);
   }
 
   Scalar& coeffRef(Index row, Index col) 
@@ -598,7 +598,7 @@ struct evaluator<MapBase<Derived, AccessorsType> >
   Scalar& coeffRef(Index index) 
   { 
     return coeffRef(RowsAtCompileTime == 1 ? 0 : index,
-		    RowsAtCompileTime == 1 ? index : 0);
+                    RowsAtCompileTime == 1 ? index : 0);
   }
  
   template<int LoadMode> 
@@ -612,7 +612,7 @@ struct evaluator<MapBase<Derived, AccessorsType> >
   PacketReturnType packet(Index index) const 
   { 
     return packet<LoadMode>(RowsAtCompileTime == 1 ? 0 : index,
-			    RowsAtCompileTime == 1 ? index : 0);
+                            RowsAtCompileTime == 1 ? index : 0);
   }
   
   template<int StoreMode> 
@@ -626,8 +626,8 @@ struct evaluator<MapBase<Derived, AccessorsType> >
   void writePacket(Index index, const PacketScalar& x) 
   { 
     return writePacket<StoreMode>(RowsAtCompileTime == 1 ? 0 : index,
-				  RowsAtCompileTime == 1 ? index : 0,
-				  x);
+                                  RowsAtCompileTime == 1 ? index : 0,
+                                  x);
   }
  
 protected:
@@ -641,6 +641,19 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
   : public evaluator<MapBase<Map<PlainObjectType, MapOptions, StrideType> > >
 {
   typedef Map<PlainObjectType, MapOptions, StrideType> XprType;
+
+  evaluator(const XprType& map) 
+    : evaluator<MapBase<XprType> >(map) 
+  { }
+};
+
+// -------------------- Ref --------------------
+
+template<typename PlainObjectType, int RefOptions, typename StrideType> 
+struct evaluator<Ref<PlainObjectType, RefOptions, StrideType> >
+  : public evaluator<MapBase<Ref<PlainObjectType, RefOptions, StrideType> > >
+{
+  typedef Ref<PlainObjectType, RefOptions, StrideType> XprType;
 
   evaluator(const XprType& map) 
     : evaluator<MapBase<XprType> >(map) 
