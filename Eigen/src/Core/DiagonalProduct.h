@@ -13,6 +13,7 @@
 
 namespace Eigen { 
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 template<typename MatrixType, typename DiagonalType, int ProductOrder>
 struct traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
@@ -124,6 +125,17 @@ MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &a_diagonal) 
 {
   return DiagonalProduct<Derived, DiagonalDerived, OnTheRight>(derived(), a_diagonal.derived());
 }
+#else // EIGEN_TEST_EVALUATORS
+/** \returns the diagonal matrix product of \c *this by the diagonal matrix \a diagonal.
+  */
+template<typename Derived>
+template<typename DiagonalDerived>
+inline const Product<Derived, DiagonalDerived, LazyProduct>
+MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &a_diagonal) const
+{
+  return Product<Derived, DiagonalDerived, LazyProduct>(derived(),a_diagonal.derived());
+}
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

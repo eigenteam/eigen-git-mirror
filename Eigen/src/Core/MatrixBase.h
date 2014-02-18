@@ -215,10 +215,17 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     void applyOnTheRight(const EigenBase<OtherDerived>& other);
 
+#ifndef EIGEN_TEST_EVALUATORS
     template<typename DiagonalDerived>
     EIGEN_DEVICE_FUNC
     const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
+#else // EIGEN_TEST_EVALUATORS
+    template<typename DiagonalDerived>
+    EIGEN_DEVICE_FUNC
+    const Product<Derived, DiagonalDerived, LazyProduct>
+    operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
+#endif // EIGEN_TEST_EVALUATORS
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
