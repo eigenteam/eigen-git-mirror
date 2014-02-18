@@ -333,8 +333,11 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   typedef CoeffBasedProduct<Lhs, Rhs, 0> CoeffBasedProductType;
 
   product_evaluator(const XprType& xpr) 
-    : m_lhsImpl(xpr.lhs()), 
-      m_rhsImpl(xpr.rhs()),  
+    : m_lhs(xpr.lhs()),
+      m_rhs(xpr.rhs()),
+      m_lhsImpl(m_lhs),     // FIXME the creation of the evaluator objects should result in a no-op, but check that!
+      m_rhsImpl(m_rhs),     //       Moreover, they are only useful for the packet path, so we could completely disable them when not needed,
+                            //       or perhaps declare them on the fly on the packet method... We have experiment to check what's best.
       m_innerDim(xpr.lhs().cols())
   { }
 
@@ -355,31 +358,32 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     CanVectorizeInner = traits<CoeffBasedProductType>::CanVectorizeInner,
     Flags = traits<CoeffBasedProductType>::Flags
   };
-
-  typedef typename evaluator<Lhs>::type LhsEtorType;
-  typedef typename evaluator<Rhs>::type RhsEtorType;
   
-  typedef etor_product_coeff_impl<CanVectorizeInner ? InnerVectorizedTraversal : DefaultTraversal,
-                                  Unroll ? InnerSize-1 : Dynamic,
-                                  LhsEtorType, RhsEtorType, Scalar> CoeffImpl;
+  typedef typename internal::nested_eval<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
+  typedef typename internal::nested_eval<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
+  
+  typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;
+  typedef typename internal::remove_all<RhsNested>::type RhsNestedCleaned;
 
+  typedef typename evaluator<LhsNestedCleaned>::type LhsEtorType;
+  typedef typename evaluator<RhsNestedCleaned>::type RhsEtorType;
+  
   const CoeffReturnType coeff(Index row, Index col) const
   {
-    Scalar res;
-    CoeffImpl::run(row, col, m_lhsImpl, m_rhsImpl, m_innerDim, res);
-    return res;
+    // TODO check performance regression wrt to Eigen 3.2 which has special handling of this function
+    return (m_lhs.row(row).transpose().cwiseProduct( m_rhs.col(col) )).sum();
   }
 
   /* Allow index-based non-packet access. It is impossible though to allow index-based packed access,
    * which is why we don't set the LinearAccessBit.
+   * TODO: this seems possible when the result is a vector
    */
   const CoeffReturnType coeff(Index index) const
   {
-    Scalar res;
     const Index row = RowsAtCompileTime == 1 ? 0 : index;
     const Index col = RowsAtCompileTime == 1 ? index : 0;
-    CoeffImpl::run(row, col, m_lhsImpl, m_rhsImpl, m_innerDim, res);
-    return res;
+    // TODO check performance regression wrt to Eigen 3.2 which has special handling of this function
+    return (m_lhs.row(row).transpose().cwiseProduct( m_rhs.col(col) )).sum();
   }
 
   template<int LoadMode>
@@ -389,13 +393,17 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     typedef etor_product_packet_impl<Flags&RowMajorBit ? RowMajor : ColMajor,
                                      Unroll ? InnerSize-1 : Dynamic,
                                      LhsEtorType, RhsEtorType, PacketScalar, LoadMode> PacketImpl;
+
     PacketImpl::run(row, col, m_lhsImpl, m_rhsImpl, m_innerDim, res);
     return res;
   }
 
 protected:
-  typename evaluator<Lhs>::type m_lhsImpl;
-  typename evaluator<Rhs>::type m_rhsImpl;
+  const LhsNested m_lhs;
+  const RhsNested m_rhs;
+  
+  LhsEtorType m_lhsImpl;
+  RhsEtorType m_rhsImpl;
 
   // TODO: Get rid of m_innerDim if known at compile time
   Index m_innerDim;
@@ -413,143 +421,9 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProduc
   {}
 };
 
-/***************************************************************************
-* Normal product .coeff() implementation (with meta-unrolling)
-***************************************************************************/
-
-/**************************************
-*** Scalar path  - no vectorization ***
-**************************************/
-
-template<int UnrollingIndex, typename Lhs, typename Rhs, typename RetScalar>
-struct etor_product_coeff_impl<DefaultTraversal, UnrollingIndex, Lhs, Rhs, RetScalar>
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, RetScalar &res)
-  {
-    etor_product_coeff_impl<DefaultTraversal, UnrollingIndex-1, Lhs, Rhs, RetScalar>::run(row, col, lhs, rhs, innerDim, res);
-    res += lhs.coeff(row, UnrollingIndex) * rhs.coeff(UnrollingIndex, col);
-  }
-};
-
-template<typename Lhs, typename Rhs, typename RetScalar>
-struct etor_product_coeff_impl<DefaultTraversal, 0, Lhs, Rhs, RetScalar>
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, RetScalar &res)
-  {
-    res = lhs.coeff(row, 0) * rhs.coeff(0, col);
-  }
-};
-
-template<typename Lhs, typename Rhs, typename RetScalar>
-struct etor_product_coeff_impl<DefaultTraversal, Dynamic, Lhs, Rhs, RetScalar>
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, RetScalar& res)
-  {
-    eigen_assert(innerDim>0 && "you are using a non initialized matrix");
-    res = lhs.coeff(row, 0) * rhs.coeff(0, col);
-    for(Index i = 1; i < innerDim; ++i)
-      res += lhs.coeff(row, i) * rhs.coeff(i, col);
-  }
-};
-
-/*******************************************
-*** Scalar path with inner vectorization ***
-*******************************************/
-
-template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet>
-struct etor_product_coeff_vectorized_unroller
-{
-  typedef typename Lhs::Index Index;
-  enum { PacketSize = packet_traits<typename Lhs::Scalar>::size };
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, typename Lhs::PacketScalar &pres)
-  {
-    etor_product_coeff_vectorized_unroller<UnrollingIndex-PacketSize, Lhs, Rhs, Packet>::run(row, col, lhs, rhs, innerDim, pres);
-    pres = padd(pres, pmul( lhs.template packet<Aligned>(row, UnrollingIndex) , rhs.template packet<Aligned>(UnrollingIndex, col) ));
-  }
-};
-
-template<typename Lhs, typename Rhs, typename Packet>
-struct etor_product_coeff_vectorized_unroller<0, Lhs, Rhs, Packet>
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, typename Lhs::PacketScalar &pres)
-  {
-    pres = pmul(lhs.template packet<Aligned>(row, 0) , rhs.template packet<Aligned>(0, col));
-  }
-};
-
-template<int UnrollingIndex, typename Lhs, typename Rhs, typename RetScalar>
-struct etor_product_coeff_impl<InnerVectorizedTraversal, UnrollingIndex, Lhs, Rhs, RetScalar>
-{
-  typedef typename Lhs::PacketScalar Packet;
-  typedef typename Lhs::Index Index;
-  enum { PacketSize = packet_traits<typename Lhs::Scalar>::size };
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, RetScalar &res)
-  {
-    Packet pres;
-    etor_product_coeff_vectorized_unroller<UnrollingIndex+1-PacketSize, Lhs, Rhs, Packet>::run(row, col, lhs, rhs, innerDim, pres);
-    res = predux(pres);
-  }
-};
-
-template<typename Lhs, typename Rhs, int LhsRows = Lhs::RowsAtCompileTime, int RhsCols = Rhs::ColsAtCompileTime>
-struct etor_product_coeff_vectorized_dyn_selector
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, typename Lhs::Scalar &res)
-  {
-    res = lhs.row(row).transpose().cwiseProduct(rhs.col(col)).sum();
-  }
-};
-
-// NOTE the 3 following specializations are because taking .col(0) on a vector is a bit slower
-// NOTE maybe they are now useless since we have a specialization for Block<Matrix>
-template<typename Lhs, typename Rhs, int RhsCols>
-struct etor_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,RhsCols>
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index /*row*/, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, typename Lhs::Scalar &res)
-  {
-    res = lhs.transpose().cwiseProduct(rhs.col(col)).sum();
-  }
-};
-
-template<typename Lhs, typename Rhs, int LhsRows>
-struct etor_product_coeff_vectorized_dyn_selector<Lhs,Rhs,LhsRows,1>
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index row, Index /*col*/, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, typename Lhs::Scalar &res)
-  {
-    res = lhs.row(row).transpose().cwiseProduct(rhs).sum();
-  }
-};
-
-template<typename Lhs, typename Rhs>
-struct etor_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,1>
-{
-  typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE void run(Index /*row*/, Index /*col*/, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, typename Lhs::Scalar &res)
-  {
-    res = lhs.transpose().cwiseProduct(rhs).sum();
-  }
-};
-
-template<typename Lhs, typename Rhs, typename RetScalar>
-struct etor_product_coeff_impl<InnerVectorizedTraversal, Dynamic, Lhs, Rhs, RetScalar>
-{
-  typedef typename Lhs::Index Index;
-  static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, typename Lhs::Scalar &res)
-  {
-    etor_product_coeff_vectorized_dyn_selector<Lhs,Rhs>::run(row, col, lhs, rhs, innerDim, res);
-  }
-};
-
-/*******************
-*** Packet path  ***
-*******************/
+/****************************************
+*** Coeff based product, Packet path  ***
+****************************************/
 
 template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, Packet, LoadMode>
