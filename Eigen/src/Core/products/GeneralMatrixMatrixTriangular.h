@@ -264,6 +264,16 @@ struct general_product_to_triangular_selector<MatrixType,ProductType,UpLo,false>
   }
 };
 
+#ifdef EIGEN_TEST_EVALUATORS
+template<typename MatrixType, unsigned int UpLo>
+template<typename ProductType>
+TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::_assignProduct(const ProductType& prod, const Scalar& alpha)
+{
+  general_product_to_triangular_selector<MatrixType, ProductType, UpLo, internal::traits<ProductType>::InnerSize==1>::run(m_matrix.const_cast_derived(), prod, alpha);
+  
+  return *this;
+}
+#else
 template<typename MatrixType, unsigned int UpLo>
 template<typename ProductDerived, typename _Lhs, typename _Rhs>
 TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(const ProductBase<ProductDerived, _Lhs,_Rhs>& prod, const Scalar& alpha)
@@ -272,7 +282,7 @@ TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(
   
   return *this;
 }
-
+#endif
 } // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_H

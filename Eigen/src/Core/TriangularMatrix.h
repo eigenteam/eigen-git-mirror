@@ -233,6 +233,24 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     EIGEN_DEVICE_FUNC
     inline Index innerStride() const { return m_matrix.innerStride(); }
 
+#ifdef EIGEN_TEST_EVALUATORS
+
+    /** \sa MatrixBase::operator+=() */    
+    template<typename Other>
+    EIGEN_DEVICE_FUNC
+    TriangularView&  operator+=(const DenseBase<Other>& other) {
+      internal::call_assignment_no_alias(*this, other.derived(), internal::add_assign_op<Scalar>());
+      return *this;
+    }
+    /** \sa MatrixBase::operator-=() */
+    template<typename Other>
+    EIGEN_DEVICE_FUNC
+    TriangularView&  operator-=(const DenseBase<Other>& other) {
+      internal::call_assignment_no_alias(*this, other.derived(), internal::sub_assign_op<Scalar>());
+      return *this;
+    }
+    
+#else
     /** \sa MatrixBase::operator+=() */    
     template<typename Other>
     EIGEN_DEVICE_FUNC
@@ -241,6 +259,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     template<typename Other>
     EIGEN_DEVICE_FUNC
     TriangularView&  operator-=(const DenseBase<Other>& other) { return *this = m_matrix - other.derived(); }
+#endif
     /** \sa MatrixBase::operator*=() */
     EIGEN_DEVICE_FUNC
     TriangularView&  operator*=(const typename internal::traits<MatrixType>::Scalar& other) { return *this = m_matrix * other; }
@@ -527,12 +546,18 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
 #endif // EIGEN_TEST_EVALUATORS
 
-  protected:
+#ifdef EIGEN_TEST_EVALUATORS
+    template<typename ProductType>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TriangularView& _assignProduct(const ProductType& prod, const Scalar& alpha);
     
+  protected:
+#else
+  protected:
     template<typename ProductDerived, typename Lhs, typename Rhs>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TriangularView& assignProduct(const ProductBase<ProductDerived, Lhs,Rhs>& prod, const Scalar& alpha);
-
+#endif
     MatrixTypeNested m_matrix;
 };
 
@@ -720,7 +745,7 @@ template<typename OtherDerived>
 inline TriangularView<MatrixType, Mode>&
 TriangularView<MatrixType, Mode>::operator=(const MatrixBase<OtherDerived>& other)
 {
-  internal::call_assignment(*this, other.template triangularView<Mode>(), internal::assign_op<Scalar>());
+  internal::call_assignment_no_alias(*this, other.derived(), internal::assign_op<Scalar>());
   return *this;
 }
 
@@ -1253,6 +1278,45 @@ void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
   other.derived().resize(this->rows(), this->cols());
   internal::call_triangular_assignment_loop<Derived::Mode,(Derived::Mode&SelfAdjoint)==0 /* SetOpposite */>(other.derived(), derived().nestedExpression());
 }
+
+namespace internal {
+  
+// Triangular = Product
+template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_op<Scalar>, Dense2Triangular, Scalar>
+{
+  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  {
+    dst.setZero();
+    dst._assignProduct(src, 1);
+  }
+};
+
+// Triangular += Product
+template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_assign_op<Scalar>, Dense2Triangular, Scalar>
+{
+  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
+  {
+    dst._assignProduct(src, 1);
+  }
+};
+
+// Triangular -= Product
+template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_assign_op<Scalar>, Dense2Triangular, Scalar>
+{
+  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
+  {
+    dst._assignProduct(src, -1);
+  }
+};
+
+
+} // end namespace internal
 #endif
 
 #endif // EIGEN_ENABLE_EVALUATORS
