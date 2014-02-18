@@ -117,27 +117,38 @@ template<typename Lhs, typename Rhs, int Option>
 class ProductImpl<Lhs,Rhs,Option,Dense>
   : public internal::dense_product_base<Lhs,Rhs,Option>
 {
-    typedef Product<Lhs, Rhs> Derived;
+    typedef Product<Lhs, Rhs, Option> Derived;
+    
   public:
     
     typedef typename internal::dense_product_base<Lhs, Rhs, Option> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+  protected:
+    enum {
+      IsOneByOne = (RowsAtCompileTime == 1 || RowsAtCompileTime == Dynamic) && 
+                   (ColsAtCompileTime == 1 || ColsAtCompileTime == Dynamic),
+      EnableCoeff = IsOneByOne || Option==LazyProduct
+    };
     
+  public:
+  
     Scalar coeff(Index row, Index col) const
     {
-      EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
-      eigen_assert(this->rows() == 1 && this->cols() == 1);
+      EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
+      eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );
       
       return typename internal::evaluator<Derived>::type(derived()).coeff(row,col);
     }
 
     Scalar coeff(Index i) const
     {
-      EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
-      eigen_assert(this->rows() == 1 && this->cols() == 1);
+      EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
+      eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );
       
       return typename internal::evaluator<Derived>::type(derived()).coeff(i);
     }
+    
+  
 };
 
 /***************************************************************************
