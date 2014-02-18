@@ -663,19 +663,19 @@ struct Assignment;
 
 template<typename Dst, typename Src>
 void call_assignment(Dst& dst, const Src& src)
-{TRACK;
+{
   call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
 template<typename Dst, typename Src>
 void call_assignment(const Dst& dst, const Src& src)
-{TRACK;
+{
   call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
                      
 // Deal with AssumeAliasing
 template<typename Dst, typename Src, typename Func>
 void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==1, void*>::type = 0)
-{TRACK;
+{
   
 #ifdef EIGEN_TEST_EVALUATORS
   typename Src::PlainObject tmp(src);
@@ -691,7 +691,7 @@ void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable
 
 template<typename Dst, typename Src, typename Func>
 void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==0, void*>::type = 0)
-{TRACK;
+{
   call_assignment_no_alias(dst, src, func);
 }
 
@@ -700,19 +700,19 @@ void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable
 // When there is no aliasing, we require that 'dst' has been properly resized
 template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
 void call_assignment(const NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
-{TRACK;
+{
   call_assignment_no_alias(dst.expression(), src, func);
 }
 template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
 void call_assignment(NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
-{TRACK;
+{
   call_assignment_no_alias(dst.expression(), src, func);
 }
 
 
 template<typename Dst, typename Src, typename Func>
 void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
-{TRACK;
+{
   enum {
     NeedToTranspose = (  (int(Dst::RowsAtCompileTime) == 1 && int(Src::ColsAtCompileTime) == 1)
                         |   // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
@@ -737,7 +737,7 @@ template< typename DstXprType, typename SrcXprType, typename Functor, typename S
 struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
-  {TRACK;
+  {
     // TODO check whether this is the right place to perform these checks:
     enum{
       SameType = internal::is_same<typename DstXprType::Scalar,typename SrcXprType::Scalar>::value
