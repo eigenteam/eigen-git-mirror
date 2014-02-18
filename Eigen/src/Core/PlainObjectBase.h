@@ -682,7 +682,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
       // it wouldn't allow to copy a row-vector into a column-vector.
 #ifdef EIGEN_TEST_EVALUATORS
-      internal::call_assignment(this->noalias(), other.derived());
+      internal::call_assignment_no_alias(this->derived(), other.derived(), internal::assign_op<Scalar>());
       return this->derived();
 #else
       return internal::assign_selector<Derived,OtherDerived,false>::run(this->derived(), other.derived());
