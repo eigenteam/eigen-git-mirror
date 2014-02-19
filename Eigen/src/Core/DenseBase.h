@@ -404,6 +404,7 @@ template<typename Derived> class DenseBase
     void swap(const DenseBase<OtherDerived>& other,
               int = OtherDerived::ThisConstantIsPrivateInPlainObjectBase)
     {
+      eigen_assert(rows()==other.rows() && cols()==other.cols());
       call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
     }
 
@@ -414,6 +415,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     void swap(PlainObjectBase<OtherDerived>& other)
     {
+      eigen_assert(rows()==other.rows() && cols()==other.cols());
       call_assignment(derived(), other.derived(), internal::swap_assign_op<Scalar>());
     }
 #else // EIGEN_TEST_EVALUATORS
