@@ -287,8 +287,15 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     CommaInitializer<Derived> operator<< (const Scalar& s);
 
+#ifndef EIGEN_TEST_EVALUATORS
     template<unsigned int Added,unsigned int Removed>
     const Flagged<Derived, Added, Removed> flagged() const;
+#else
+    // TODO flagged is temporarly disabled. It seems useless now
+    template<unsigned int Added,unsigned int Removed>
+    const Derived& flagged() const
+    { return derived(); }
+#endif
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC

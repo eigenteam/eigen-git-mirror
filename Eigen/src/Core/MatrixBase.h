@@ -360,10 +360,19 @@ template<typename Derived> class MatrixBase
 
     NoAlias<Derived,Eigen::MatrixBase > noalias();
 
+#ifndef EIGEN_TEST_EVALUATORS
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
     template<bool Enable> inline typename internal::add_const_on_value_type<typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type>::type forceAlignedAccessIf() const;
     template<bool Enable> inline typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type forceAlignedAccessIf();
+#else
+    // TODO forceAlignedAccess is temporarly disabled
+    // Need to find a nicer workaround.
+    inline const Derived& forceAlignedAccess() const { return derived(); }
+    inline Derived& forceAlignedAccess() { return derived(); }
+    template<bool Enable> inline const Derived& forceAlignedAccessIf() const { return derived(); }
+    template<bool Enable> inline Derived& forceAlignedAccessIf() { return derived(); }
+#endif
 
     Scalar trace() const;
 
