@@ -23,8 +23,13 @@ struct isApprox_selector
   static bool run(const Derived& x, const OtherDerived& y, const typename Derived::RealScalar& prec)
   {
     EIGEN_USING_STD_MATH(min);
+#ifdef EIGEN_TEST_EVALUATORS
+    typename internal::nested_eval<Derived,2>::type nested(x);
+    typename internal::nested_eval<OtherDerived,2>::type otherNested(y);
+#else
     typename internal::nested<Derived,2>::type nested(x);
     typename internal::nested<OtherDerived,2>::type otherNested(y);
+#endif
     return (nested - otherNested).cwiseAbs2().sum() <= prec * prec * (min)(nested.cwiseAbs2().sum(), otherNested.cwiseAbs2().sum());
   }
 };
