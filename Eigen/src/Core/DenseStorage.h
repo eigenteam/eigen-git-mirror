@@ -40,7 +40,7 @@ void check_static_allocation_size()
   */
 template <typename T, int Size, int MatrixOrArrayOptions,
           int Alignment = (MatrixOrArrayOptions&DontAlign) ? 0
-                        : (((Size*sizeof(T))%16)==0) ? 16
+                        : (((Size*sizeof(T))%EIGEN_ALIGN_BYTES)==0) ? EIGEN_ALIGN_BYTES
                         : 0 >
 struct plain_array
 {
@@ -81,7 +81,7 @@ struct plain_array
 #endif
 
 template <typename T, int Size, int MatrixOrArrayOptions>
-struct plain_array<T, Size, MatrixOrArrayOptions, 16>
+struct plain_array<T, Size, MatrixOrArrayOptions, EIGEN_ALIGN_BYTES>
 {
   EIGEN_USER_ALIGN32 T array[Size];
 

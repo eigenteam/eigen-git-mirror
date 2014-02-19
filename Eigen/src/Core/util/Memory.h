@@ -32,7 +32,7 @@
 // page 114, "[The] LP64 model [...] is used by all 64-bit UNIX ports" so it's indeed
 // quite safe, at least within the context of glibc, to equate 64-bit with LP64.
 #if defined(__GLIBC__) && ((__GLIBC__>=2 && __GLIBC_MINOR__ >= 8) || __GLIBC__>2) \
- && defined(__LP64__) && ! defined( __SANITIZE_ADDRESS__ ) && (EIGEN_ALIGN == 16)
+ && defined(__LP64__) && ! defined( __SANITIZE_ADDRESS__ ) && (EIGEN_ALIGN_BYTES == 16)
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 0
@@ -42,14 +42,14 @@
 //   See http://svn.freebsd.org/viewvc/base/stable/6/lib/libc/stdlib/malloc.c?view=markup
 // FreeBSD 7 seems to have 16-byte aligned malloc except on ARM and MIPS architectures
 //   See http://svn.freebsd.org/viewvc/base/stable/7/lib/libc/stdlib/malloc.c?view=markup
-#if defined(__FreeBSD__) && !defined(__arm__) && !defined(__mips__) && (EIGEN_ALIGN == 16)
+#if defined(__FreeBSD__) && !defined(__arm__) && !defined(__mips__) && (EIGEN_ALIGN_BYTES == 16)
   #define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 0
 #endif
 
-#if (defined(__APPLE__) && (EIGEN_ALIGN == 16)) \
- || (defined(_WIN64) && (EIGEN_ALIGN == 16))   \
+#if (defined(__APPLE__) && (EIGEN_ALIGN_BYTES == 16)) \
+ || (defined(_WIN64) && (EIGEN_ALIGN_BYTES == 16))   \
  || EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED \
  || EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
@@ -105,9 +105,9 @@ inline void throw_std_bad_alloc()
   */
 inline void* handmade_aligned_malloc(std::size_t size)
 {
-  void *original = std::malloc(size+EIGEN_ALIGN);
+  void *original = std::malloc(size+EIGEN_ALIGN_BYTES);
   if (original == 0) return 0;
-  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(EIGEN_ALIGN-1))) + EIGEN_ALIGN);
+  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
 }
@@ -128,9 +128,9 @@ inline void* handmade_aligned_realloc(void* ptr, std::size_t size, std::size_t =
   if (ptr == 0) return handmade_aligned_malloc(size);
   void *original = *(reinterpret_cast<void**>(ptr) - 1);
   std::ptrdiff_t previous_offset = static_cast<char *>(ptr)-static_cast<char *>(original);
-  original = std::realloc(original,size+EIGEN_ALIGN);
+  original = std::realloc(original,size+EIGEN_ALIGN_BYTES);
   if (original == 0) return 0;
-  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(EIGEN_ALIGN-1))) + EIGEN_ALIGN);
+  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES);
   void *previous_aligned = static_cast<char *>(original)+previous_offset;
   if(aligned!=previous_aligned)
     std::memmove(aligned, previous_aligned, size);
@@ -221,11 +221,11 @@ inline void* aligned_malloc(size_t size)
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
     result = std::malloc(size);
   #elif EIGEN_HAS_POSIX_MEMALIGN
-    if(posix_memalign(&result, EIGEN_ALIGN, size)) result = 0;
+    if(posix_memalign(&result, EIGEN_ALIGN_BYTES, size)) result = 0;
   #elif EIGEN_HAS_MM_MALLOC
-    result = _mm_malloc(size, EIGEN_ALIGN);
+    result = _mm_malloc(size, EIGEN_ALIGN_BYTES);
   #elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
-    result = _aligned_malloc(size, EIGEN_ALIGN);
+    result = _aligned_malloc(size, EIGEN_ALIGN_BYTES);
   #else
     result = handmade_aligned_malloc(size);
   #endif
@@ -275,12 +275,12 @@ inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
   // implements _mm_malloc/_mm_free based on the corresponding _aligned_
   // functions. This may not always be the case and we just try to be safe.
   #if defined(_MSC_VER) && defined(_mm_free)
-    result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN);
+    result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN_BYTES);
   #else
     result = generic_aligned_realloc(ptr,new_size,old_size);
   #endif
 #elif defined(_MSC_VER)
-  result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN);
+  result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN_BYTES);
 #else
   result = handmade_aligned_realloc(ptr,new_size,old_size);
 #endif
@@ -608,8 +608,8 @@ template<typename T> class aligned_stack_memory_handler
   */
 #ifdef EIGEN_ALLOCA
   // The native alloca() that comes with llvm aligns buffer on 16 bytes even when AVX is enabled.
-  #if defined(__arm__) || EIGEN_ALIGN > 16
-    #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+EIGEN_ALIGN)) & ~(size_t(EIGEN_ALIGN-1))) + EIGEN_ALIGN)
+  #if defined(__arm__) || EIGEN_ALIGN_BYTES > 16
+    #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+EIGEN_ALIGN_BYTES)) & ~(size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES)
   #else
     #define EIGEN_ALIGNED_ALLOCA EIGEN_ALLOCA
   #endif
@@ -679,7 +679,7 @@ template<typename T> class aligned_stack_memory_handler
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size) \
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%EIGEN_ALIGN==0)))
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%EIGEN_ALIGN_BYTES==0)))
 
 /****************************************************************************/
 

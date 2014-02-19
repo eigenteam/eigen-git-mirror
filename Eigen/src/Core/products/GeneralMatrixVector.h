@@ -449,7 +449,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
   Index rowBound = ((rows-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (Index i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
-    EIGEN_ALIGN32 ResScalar tmp0 = ResScalar(0);
+    EIGEN_ALIGN_DEFAULT ResScalar tmp0 = ResScalar(0);
     ResScalar tmp1 = ResScalar(0), tmp2 = ResScalar(0), tmp3 = ResScalar(0);
 
     // this helps the compiler generating good binary code
@@ -558,7 +558,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
   {
     for (Index i=start; i<end; ++i)
     {
-      EIGEN_ALIGN32 ResScalar tmp0 = ResScalar(0);
+      EIGEN_ALIGN_DEFAULT ResScalar tmp0 = ResScalar(0);
       ResPacket ptmp0 = pset1<ResPacket>(tmp0);
       const LhsScalar* lhs0 = lhs + i*lhsStride;
       // process first unaligned result's coeffs

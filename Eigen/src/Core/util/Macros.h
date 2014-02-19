@@ -66,17 +66,22 @@
   #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
 #endif
 
+// Defined the boundary (in bytes) on which the data needs to be aligned. Note
+// that unless EIGEN_ALIGN is defined and not equal to 0, the data may not be
+// aligned at all regardless of the value of this #define.
+#define EIGEN_ALIGN_BYTES 16
+
 #ifdef EIGEN_DONT_ALIGN
   #ifndef EIGEN_DONT_ALIGN_STATICALLY
     #define EIGEN_DONT_ALIGN_STATICALLY
   #endif
   #define EIGEN_ALIGN 0
-#else
-  #if !defined(EIGEN_DONT_VECTORIZE) && defined(__AVX__)
-    #define EIGEN_ALIGN 32
-  #else
-    #define EIGEN_ALIGN 16
+#elif !defined(EIGEN_DONT_VECTORIZE)
+  #if defined(__AVX__)
+    #undef EIGEN_ALIGN_BYTES
+    #define EIGEN_ALIGN_BYTES 32
   #endif
+  #define EIGEN_ALIGN 1
 #endif
 
 // EIGEN_ALIGN_STATICALLY is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
@@ -286,15 +291,18 @@
 
 #define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
 #define EIGEN_ALIGN32 EIGEN_ALIGN_TO_BOUNDARY(32)
+#define EIGEN_ALIGN_DEFAULT EIGEN_ALIGN_TO_BOUNDARY(EIGEN_ALIGN_BYTES)
 
 #if EIGEN_ALIGN_STATICALLY
 #define EIGEN_USER_ALIGN_TO_BOUNDARY(n) EIGEN_ALIGN_TO_BOUNDARY(n)
 #define EIGEN_USER_ALIGN16 EIGEN_ALIGN16
 #define EIGEN_USER_ALIGN32 EIGEN_ALIGN32
+#define EIGEN_USER_ALIGN_DEFAULT EIGEN_ALIGN_DEFAULT
 #else
 #define EIGEN_USER_ALIGN_TO_BOUNDARY(n)
 #define EIGEN_USER_ALIGN16
 #define EIGEN_USER_ALIGN32
+#define EIGEN_USER_ALIGN_DEFAULT
 #endif
 
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD

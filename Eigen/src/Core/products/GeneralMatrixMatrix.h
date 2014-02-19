@@ -286,9 +286,9 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
       SizeW = MaxDepth * Traits::WorkSpaceFactor
     };
 
-    EIGEN_ALIGN32 LhsScalar m_staticA[SizeA];
-    EIGEN_ALIGN32 RhsScalar m_staticB[SizeB];
-    EIGEN_ALIGN32 RhsScalar m_staticW[SizeW];
+    EIGEN_ALIGN_DEFAULT LhsScalar m_staticA[SizeA];
+    EIGEN_ALIGN_DEFAULT RhsScalar m_staticB[SizeB];
+    EIGEN_ALIGN_DEFAULT RhsScalar m_staticW[SizeW];
 
   public:
 
