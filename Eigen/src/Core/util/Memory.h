@@ -608,7 +608,7 @@ template<typename T> class aligned_stack_memory_handler
   */
 #ifdef EIGEN_ALLOCA
   // The native alloca() that comes with llvm aligns buffer on 16 bytes even when AVX is enabled.
-  #if defined(__arm__) || EIGEN_ALIGN_BYTES > 16
+#if defined(__arm__) || defined(_WIN32) || EIGEN_ALIGN_BYTES > 16
     #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+EIGEN_ALIGN_BYTES)) & ~(size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES)
   #else
     #define EIGEN_ALIGNED_ALLOCA EIGEN_ALLOCA
@@ -761,10 +761,26 @@ public:
         ::new( p ) T( value );
     }
 
+#if (__cplusplus >= 201103L)
+    template <typename U, typename... Args>
+    void construct( U* u, Args&&... args)
+    {
+        ::new( static_cast<void*>(u) ) U( std::forward<Args>( args )... );
+    }
+#endif
+
     void destroy( pointer p )
     {
         p->~T();
     }
+
+#if (__cplusplus >= 201103L)
+    template <typename U>
+    void destroy( U* u )
+    {
+        u->~U();
+    }
+#endif
 
     void deallocate( pointer p, size_type /*num*/ )
     {

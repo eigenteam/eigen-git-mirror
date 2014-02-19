@@ -183,4 +183,38 @@ void test_kronecker_product()
   DM_b2.resize(4,8);
   DM_ab2 = kroneckerProduct(DM_a2,DM_b2);
   CALL_SUBTEST(check_dimension(DM_ab2,10*4,9*8));
+  
+  for(int i = 0; i < g_repeat; i++)
+  {
+    double density = Eigen::internal::random<double>(0.01,0.5);
+    int ra = Eigen::internal::random<int>(1,50);
+    int ca = Eigen::internal::random<int>(1,50);
+    int rb = Eigen::internal::random<int>(1,50);
+    int cb = Eigen::internal::random<int>(1,50);
+    SparseMatrix<float,ColMajor> sA(ra,ca), sB(rb,cb), sC;
+    SparseMatrix<float,RowMajor> sC2;
+    MatrixXf dA(ra,ca), dB(rb,cb), dC;
+    initSparse(density, dA, sA);
+    initSparse(density, dB, sB);
+    
+    sC = kroneckerProduct(sA,sB);
+    dC = kroneckerProduct(dA,dB);
+    VERIFY_IS_APPROX(MatrixXf(sC),dC);
+    
+    sC = kroneckerProduct(sA.transpose(),sB);
+    dC = kroneckerProduct(dA.transpose(),dB);
+    VERIFY_IS_APPROX(MatrixXf(sC),dC);
+    
+    sC = kroneckerProduct(sA.transpose(),sB.transpose());
+    dC = kroneckerProduct(dA.transpose(),dB.transpose());
+    VERIFY_IS_APPROX(MatrixXf(sC),dC);
+    
+    sC = kroneckerProduct(sA,sB.transpose());
+    dC = kroneckerProduct(dA,dB.transpose());
+    VERIFY_IS_APPROX(MatrixXf(sC),dC);
+    
+    sC2 = kroneckerProduct(sA,sB);
+    dC = kroneckerProduct(dA,dB);
+    VERIFY_IS_APPROX(MatrixXf(sC2),dC);
+  }
 }

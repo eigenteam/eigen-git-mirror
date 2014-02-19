@@ -70,7 +70,7 @@ Index  SparseLUImpl<Scalar,Index>::expand(VectorType& vec, Index& length, Index 
   if(num_expansions == 0 || keep_prev) 
     new_len = length ; // First time allocate requested
   else 
-    new_len = Index(alpha * length);
+    new_len = (std::max)(length+1,Index(alpha * length));
   
   VectorType old_vec; // Temporary vector to hold the previous values   
   if (nbElts > 0 )
@@ -107,7 +107,7 @@ Index  SparseLUImpl<Scalar,Index>::expand(VectorType& vec, Index& length, Index 
       do 
       {
         alpha = (alpha + 1)/2;
-        new_len = Index(alpha * length);
+        new_len = (std::max)(length+1,Index(alpha * length));
 #ifdef EIGEN_EXCEPTIONS
         try
 #endif
