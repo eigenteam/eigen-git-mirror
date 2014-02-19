@@ -90,7 +90,7 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
             // TODO enable vectorization for mixed types
             | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0),
 
-      CoeffReadCost = InnerSize == Dynamic ? Dynamic
+      CoeffReadCost = (InnerSize == Dynamic || LhsCoeffReadCost==Dynamic || RhsCoeffReadCost==Dynamic || NumTraits<Scalar>::AddCost==Dynamic || NumTraits<Scalar>::MulCost==Dynamic) ? Dynamic
                     : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
                       + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
 
