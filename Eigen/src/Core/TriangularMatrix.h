@@ -437,11 +437,19 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     EIGEN_DEVICE_FUNC
     void solveInPlace(const MatrixBase<OtherDerived>& other) const;
 
+#ifdef EIGEN_TEST_EVALUATORS
+    template<typename Other>
+    EIGEN_DEVICE_FUNC
+    inline const Solve<TriangularView, Other> 
+    solve(const MatrixBase<Other>& other) const
+    { return Solve<TriangularView, Other>(*this, other.derived()); }
+#else // EIGEN_TEST_EVALUATORS
     template<typename Other>
     EIGEN_DEVICE_FUNC
     inline const internal::triangular_solve_retval<OnTheLeft,TriangularView, Other> 
     solve(const MatrixBase<Other>& other) const
     { return solve<OnTheLeft>(other); }
+#endif // EIGEN_TEST_EVALUATORS
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -547,6 +555,15 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 #endif // EIGEN_TEST_EVALUATORS
 
 #ifdef EIGEN_TEST_EVALUATORS
+
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _solve_impl(const RhsType &rhs, DstType &dst) const {
+      if(!(internal::is_same<RhsType,DstType>::value && internal::extract_data(dst) == internal::extract_data(rhs)))
+        dst = rhs;
+      this->template solveInPlace(dst);
+    }
+
     template<typename ProductType>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TriangularView& _assignProduct(const ProductType& prod, const Scalar& alpha);

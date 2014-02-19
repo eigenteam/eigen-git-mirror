@@ -361,6 +361,9 @@ using std::ptrdiff_t;
 #include "src/Core/Flagged.h"
 #include "src/Core/ProductBase.h"
 #include "src/Core/GeneralProduct.h"
+#ifdef EIGEN_ENABLE_EVALUATORS
+#include "src/Core/Solve.h"
+#endif
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
 #include "src/Core/products/GeneralBlockPanelKernel.h"

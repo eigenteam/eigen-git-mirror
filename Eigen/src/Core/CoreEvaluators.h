@@ -495,14 +495,14 @@ struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   PacketScalar packet(Index row, Index col) const
   {
     return m_functor.packetOp(m_lhsImpl.template packet<LoadMode>(row, col),
-			      m_rhsImpl.template packet<LoadMode>(row, col));
+                              m_rhsImpl.template packet<LoadMode>(row, col));
   }
 
   template<int LoadMode>
   PacketScalar packet(Index index) const
   {
     return m_functor.packetOp(m_lhsImpl.template packet<LoadMode>(index),
-			      m_rhsImpl.template packet<LoadMode>(index));
+                              m_rhsImpl.template packet<LoadMode>(index));
   }
 
 protected:
