@@ -223,7 +223,7 @@ class SparseMatrix
       
       if(isCompressed())
       {
-        reserve(VectorXi::Constant(outerSize(), 2));
+        reserve(Matrix<Index,Dynamic,1>::Constant(outerSize(), 2));
       }
       return insertUncompressed(row,col);
     }
@@ -939,12 +939,13 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   EIGEN_UNUSED_VARIABLE(Options);
   enum { IsRowMajor = SparseMatrixType::IsRowMajor };
   typedef typename SparseMatrixType::Scalar Scalar;
+  typedef typename SparseMatrixType::Index Index;
   SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
 
   if(begin!=end)
   {
     // pass 1: count the nnz per inner-vector
-    VectorXi wi(trMat.outerSize());
+    Matrix<Index,Dynamic,1> wi(trMat.outerSize());
     wi.setZero();
     for(InputIterator it(begin); it!=end; ++it)
     {
@@ -1018,7 +1019,7 @@ void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
 {
   eigen_assert(!isCompressed());
   // TODO, in practice we should be able to use m_innerNonZeros for that task
-  VectorXi wi(innerSize());
+  Matrix<Index,Dynamic,1> wi(innerSize());
   wi.fill(-1);
   Index count = 0;
   // for each inner-vector, wi[inner_index] will hold the position of first element into the index/value buffers
@@ -1081,7 +1082,7 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
 
     // prefix sum
     Index count = 0;
-    VectorXi positions(dest.outerSize());
+    Matrix<Index,Dynamic,1> positions(dest.outerSize());
     for (Index j=0; j<dest.outerSize(); ++j)
     {
       Index tmp = dest.m_outerIndex[j];
