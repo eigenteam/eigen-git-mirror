@@ -31,7 +31,7 @@ template<typename Scalar>
 struct functor_traits<assign_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::ReadCost,
-    PacketAccess = packet_traits<Scalar>::IsVectorized
+    PacketAccess = packet_traits<Scalar>::Vectorizable
   };
 };
 
@@ -73,7 +73,7 @@ template<typename Scalar>
 struct functor_traits<sub_assign_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::ReadCost + NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasAdd
+    PacketAccess = packet_traits<Scalar>::HasSub
   };
 };
 
@@ -115,7 +115,7 @@ template<typename Scalar>
 struct functor_traits<div_assign_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::ReadCost + NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasMul
+    PacketAccess = packet_traits<Scalar>::HasDiv
   };
 };
 
@@ -156,7 +156,7 @@ template<typename Scalar>
 struct functor_traits<swap_assign_op<Scalar> > {
   enum {
     Cost = 3 * NumTraits<Scalar>::ReadCost,
-    PacketAccess = packet_traits<Scalar>::IsVectorized
+    PacketAccess = packet_traits<Scalar>::Vectorizable
   };
 };
 

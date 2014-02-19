@@ -24,7 +24,7 @@ namespace internal {
 
 // copy_using_evaluator_traits is based on assign_traits
 
-template <typename Derived, typename OtherDerived>
+template <typename Derived, typename OtherDerived, typename AssignFunc>
 struct copy_using_evaluator_traits
 {
 public:
@@ -50,7 +50,8 @@ private:
   enum {
     StorageOrdersAgree = (int(Derived::IsRowMajor) == int(OtherDerived::IsRowMajor)),
     MightVectorize = StorageOrdersAgree
-                  && (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit),
+                  && (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit)
+                  && (functor_traits<AssignFunc>::PacketAccess),
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
                        && int(DstIsAligned) && int(SrcIsAligned),
     MayLinearize = StorageOrdersAgree && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
@@ -517,7 +518,7 @@ public:
   typedef SrcEvaluatorTypeT SrcEvaluatorType;
   typedef typename DstEvaluatorType::Scalar Scalar;
   typedef typename DstEvaluatorType::Index Index;
-  typedef copy_using_evaluator_traits<DstXprType, SrcXprType> AssignmentTraits;
+  typedef copy_using_evaluator_traits<DstXprType, SrcXprType, Functor> AssignmentTraits;
   
   
   generic_dense_assignment_kernel(DstEvaluatorType &dst, const SrcEvaluatorType &src, const Functor &func, DstXprType& dstExpr)
@@ -613,7 +614,7 @@ void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src, co
 {
 #ifdef EIGEN_DEBUG_ASSIGN
   // TODO these traits should be computed from information provided by the evaluators
-  internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
+  internal::copy_using_evaluator_traits<DstXprType, SrcXprType, Functor>::debug();
 #endif
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
@@ -750,7 +751,7 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     
     #ifdef EIGEN_DEBUG_ASSIGN
-      internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
+      internal::copy_using_evaluator_traits<DstXprType, SrcXprType, Functor>::debug();
     #endif
     
     call_dense_assignment_loop(dst, src, func);
