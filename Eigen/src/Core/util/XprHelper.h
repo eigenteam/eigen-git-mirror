@@ -516,6 +516,19 @@ template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 
 } // end namespace internal
 
+// we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
+// that would take two operands of different types. If there were such an example, then this check should be
+// moved to the BinaryOp functors, on a per-case basis. This would however require a change in the BinaryOp functors, as
+// currently they take only one typename Scalar template parameter.
+// It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
+// So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
+// add together a float matrix and a double matrix.
+#define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
+  EIGEN_STATIC_ASSERT((internal::functor_is_product_like<BINOP>::ret \
+                        ? int(internal::scalar_product_traits<LHS, RHS>::Defined) \
+                        : int(internal::is_same<LHS, RHS>::value)), \
+    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+    
 } // end namespace Eigen
 
 #endif // EIGEN_XPRHELPER_H

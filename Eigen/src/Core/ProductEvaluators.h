@@ -647,8 +647,8 @@ struct diagonal_product_evaluator_base
   : evaluator_base<Derived>
 {
    typedef typename MatrixType::Index Index;
-   typedef typename MatrixType::Scalar Scalar;
-   typedef typename MatrixType::PacketScalar PacketScalar;
+   typedef typename scalar_product_traits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
+   typedef typename internal::packet_traits<Scalar>::type PacketScalar;
 public:
   diagonal_product_evaluator_base(const MatrixType &mat, const DiagonalType &diag)
     : m_diagImpl(diag), m_matImpl(mat)

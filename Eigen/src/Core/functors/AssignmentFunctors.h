@@ -81,22 +81,24 @@ struct functor_traits<sub_assign_op<Scalar> > {
   * \brief Template functor for scalar/packet assignment with multiplication
   *
   */
-template<typename Scalar> struct mul_assign_op {
+template<typename DstScalar, typename SrcScalar=DstScalar>
+struct mul_assign_op {
 
   EIGEN_EMPTY_STRUCT_CTOR(mul_assign_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Scalar& a, const Scalar& b) const { a *= b; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(DstScalar& a, const SrcScalar& b) const { a *= b; }
   
   template<int Alignment, typename Packet>
-  EIGEN_STRONG_INLINE void assignPacket(Scalar* a, const Packet& b) const
-  { internal::pstoret<Scalar,Packet,Alignment>(a,internal::pmul(internal::ploadt<Packet,Alignment>(a),b)); }
+  EIGEN_STRONG_INLINE void assignPacket(DstScalar* a, const Packet& b) const
+  { internal::pstoret<DstScalar,Packet,Alignment>(a,internal::pmul(internal::ploadt<Packet,Alignment>(a),b)); }
 };
-template<typename Scalar>
-struct functor_traits<mul_assign_op<Scalar> > {
+template<typename DstScalar, typename SrcScalar>
+struct functor_traits<mul_assign_op<DstScalar,SrcScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::ReadCost + NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasMul
+    Cost = NumTraits<DstScalar>::ReadCost + NumTraits<DstScalar>::MulCost,
+    PacketAccess = is_same<DstScalar,SrcScalar>::value && packet_traits<DstScalar>::HasMul
   };
 };
+template<typename DstScalar,typename SrcScalar> struct functor_is_product_like<mul_assign_op<DstScalar,SrcScalar> > { enum { ret = 1 }; };
 
 /** \internal
   * \brief Template functor for scalar/packet assignment with diviving

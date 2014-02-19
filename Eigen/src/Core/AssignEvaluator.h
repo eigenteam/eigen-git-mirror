@@ -729,6 +729,11 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
   typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst&>::type ActualDstType;
   ActualDstType actualDst(dst);
   
+  // TODO check whether this is the right place to perform these checks:
+  EIGEN_STATIC_ASSERT_LVALUE(Dst)
+  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(ActualDstTypeCleaned,Src)
+  EIGEN_CHECK_BINARY_COMPATIBILIY(Func,typename ActualDstTypeCleaned::Scalar,typename Src::Scalar);
+  
   Assignment<ActualDstTypeCleaned,Src,Func>::run(actualDst, src, func);
 }
 
@@ -739,15 +744,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
-    // TODO check whether this is the right place to perform these checks:
-    enum{
-      SameType = internal::is_same<typename DstXprType::Scalar,typename SrcXprType::Scalar>::value
-    };
-
-    EIGEN_STATIC_ASSERT_LVALUE(DstXprType)
-    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(DstXprType,SrcXprType)
-    EIGEN_STATIC_ASSERT(SameType,YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-    
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     
     #ifdef EIGEN_DEBUG_ASSIGN
