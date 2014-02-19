@@ -815,7 +815,8 @@ struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   typedef Replicate<ArgType, RowFactor, ColFactor> XprType;
 
   evaluator(const XprType& replicate) 
-    : m_argImpl(replicate.nestedExpression()),
+    : m_arg(replicate.nestedExpression()),
+      m_argImpl(m_arg),
       m_rows(replicate.nestedExpression().rows()),
       m_cols(replicate.nestedExpression().cols())
   { }
@@ -851,7 +852,14 @@ struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   }
  
 protected:
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  enum {
+    Factor = (RowFactor==Dynamic || ColFactor==Dynamic) ? Dynamic : RowFactor*ColFactor
+  };
+  typedef typename internal::nested_eval<ArgType,Factor>::type ArgTypeNested;
+  typedef typename internal::remove_all<ArgTypeNested>::type ArgTypeNestedCleaned;
+  
+  const ArgTypeNested m_arg; // FIXME is it OK to store both the argument and its evaluator?? (we have the same situation in evalautor_product)
+  typename evaluator<ArgTypeNestedCleaned>::nestedType m_argImpl;
   const variable_if_dynamic<Index, ArgType::RowsAtCompileTime> m_rows;
   const variable_if_dynamic<Index, ArgType::ColsAtCompileTime> m_cols;
 };
