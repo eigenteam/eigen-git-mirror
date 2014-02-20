@@ -721,7 +721,7 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
                          (int(Dst::ColsAtCompileTime) == 1 && int(Src::RowsAtCompileTime) == 1))
                      && int(Dst::SizeAtCompileTime) != 1
   };
-  
+
   dst.resize(NeedToTranspose ? src.cols() : src.rows(),
              NeedToTranspose ? src.rows() : src.cols());
   
