@@ -141,8 +141,10 @@ template<typename ExpressionType> class ArrayWrapper;
 template<typename ExpressionType> class MatrixWrapper;
 
 namespace internal {
+#ifndef EIGEN_TEST_EVALUATROS
 template<typename DecompositionType, typename Rhs> struct solve_retval_base;
 template<typename DecompositionType, typename Rhs> struct solve_retval;
+#endif
 template<typename DecompositionType> struct kernel_retval_base;
 template<typename DecompositionType> struct kernel_retval;
 template<typename DecompositionType> struct image_retval_base;
