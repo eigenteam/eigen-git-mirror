@@ -92,7 +92,11 @@ template<typename Derived>
 inline typename internal::traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
 {
   eigen_assert(rows() == cols());
+#ifdef EIGEN_TEST_EVALUATORS
+  typedef typename internal::nested_eval<Derived,Base::RowsAtCompileTime>::type Nested;
+#else
   typedef typename internal::nested<Derived,Base::RowsAtCompileTime>::type Nested;
+#endif
   return internal::determinant_impl<typename internal::remove_all<Nested>::type>::run(derived());
 }
 

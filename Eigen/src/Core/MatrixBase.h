@@ -412,8 +412,13 @@ template<typename Derived> class MatrixBase
     }
     #endif
 
+    #ifdef EIGEN_TEST_EVALUATORS
+    EIGEN_DEVICE_FUNC
+    const Inverse<Derived> inverse() const;
+    #else
     EIGEN_DEVICE_FUNC
     const internal::inverse_impl<Derived> inverse() const;
+    #endif
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
       ResultType& inverse,

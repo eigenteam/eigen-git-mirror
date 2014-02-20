@@ -7,8 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_INVERSE_H
-#define EIGEN_INVERSE_H
+#ifndef EIGEN_SOLVE_H
+#define EIGEN_SOLVE_H
 
 namespace Eigen {
 
@@ -81,7 +81,7 @@ protected:
 };
 
 
-// Specilaization of the Solve expression for dense results
+// Specialization of the Solve expression for dense results
 template<typename Decomposition, typename RhsType>
 class SolveImpl<Decomposition,RhsType,Dense>
   : public MatrixBase<Solve<Decomposition,RhsType> >

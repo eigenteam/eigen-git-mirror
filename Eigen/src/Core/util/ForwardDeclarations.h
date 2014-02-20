@@ -96,6 +96,7 @@ template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
 template<typename BinOp,     typename Lhs, typename Rhs>  class SelfCwiseBinaryOp;      // TODO deprecated
 template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;            // TODO deprecated
 template<typename Decomposition, typename Rhstype>        class Solve;
+template<typename XprType>                                class Inverse;
 
 namespace internal {
   template<typename Lhs, typename Rhs> struct product_tag;

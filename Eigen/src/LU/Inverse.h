@@ -42,7 +42,12 @@ struct compute_inverse<MatrixType, ResultType, 1>
   static inline void run(const MatrixType& matrix, ResultType& result)
   {
     typedef typename MatrixType::Scalar Scalar;
+#ifdef EIGEN_TEST_EVALUATORS
+    typename internal::evaluator<MatrixType>::type matrixEval(matrix);
+    result.coeffRef(0,0) = Scalar(1) / matrixEval.coeff(0,0);
+#else
     result.coeffRef(0,0) = Scalar(1) / matrix.coeff(0,0);
+#endif
   }
 };
 
@@ -75,10 +80,10 @@ inline void compute_inverse_size2_helper(
     const MatrixType& matrix, const typename ResultType::Scalar& invdet,
     ResultType& result)
 {
-  result.coeffRef(0,0) = matrix.coeff(1,1) * invdet;
+  result.coeffRef(0,0) =  matrix.coeff(1,1) * invdet;
   result.coeffRef(1,0) = -matrix.coeff(1,0) * invdet;
   result.coeffRef(0,1) = -matrix.coeff(0,1) * invdet;
-  result.coeffRef(1,1) = matrix.coeff(0,0) * invdet;
+  result.coeffRef(1,1) =  matrix.coeff(0,0) * invdet;
 }
 
 template<typename MatrixType, typename ResultType>
@@ -279,6 +284,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
 *** MatrixBase methods ***
 *************************/
 
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename MatrixType>
 struct traits<inverse_impl<MatrixType> >
 {
@@ -313,8 +319,140 @@ struct inverse_impl : public ReturnByValue<inverse_impl<MatrixType> >
     compute_inverse<MatrixTypeNestedCleaned, Dest>::run(m_matrix, dst);
   }
 };
+#endif
+} // end namespace internal
+
+#ifdef EIGEN_TEST_EVALUATORS
+
+// TODO move the general declaration in Core, and rename this file DenseInverseImpl.h, or something like this...
+
+template<typename XprType,typename StorageKind> class InverseImpl;
+
+namespace internal {
+
+template<typename XprType>
+struct traits<Inverse<XprType> >
+  : traits<typename XprType::PlainObject>
+{
+  typedef typename XprType::PlainObject PlainObject;
+  typedef traits<PlainObject> BaseTraits;
+  enum {
+    Flags = BaseTraits::Flags & RowMajorBit,
+    CoeffReadCost = Dynamic
+  };
+};
 
 } // end namespace internal
+
+/** \class Inverse
+  * \ingroup LU_Module
+  *
+  * \brief Expression of the inverse of another expression
+  *
+  * \tparam XprType the type of the expression we are taking the inverse
+  *
+  * This class represents an expression of A.inverse()
+  * and most of the time this is the only way it is used.
+  *
+  */
+template<typename XprType>
+class Inverse : public InverseImpl<XprType,typename internal::traits<XprType>::StorageKind>
+{
+public:
+  typedef typename XprType::Index Index;
+  typedef typename XprType::PlainObject                       PlainObject;
+  typedef typename internal::nested<XprType>::type            XprTypeNested;
+  typedef typename internal::remove_all<XprTypeNested>::type  XprTypeNestedCleaned;
+  
+  Inverse(const XprType &xpr)
+    : m_xpr(xpr)
+  {}
+  
+  EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
+  EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.cols(); }
+
+  EIGEN_DEVICE_FUNC const XprTypeNestedCleaned& nestedExpression() const { return m_xpr; }
+
+protected:
+  XprTypeNested &m_xpr;
+};
+
+// Specialization of the Inverse expression for dense expressions
+template<typename XprType>
+class InverseImpl<XprType,Dense>
+  : public MatrixBase<Inverse<XprType> >
+{
+  typedef Inverse<XprType> Derived;
+  
+public:
+  
+  typedef MatrixBase<Derived> Base;
+  EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+
+private:
+  
+  Scalar coeff(Index row, Index col) const;
+  Scalar coeff(Index i) const;
+};
+
+namespace internal {
+
+// Evaluator of Inverse -> eval into a temporary
+template<typename XprType>
+struct evaluator<Inverse<XprType> >
+  : public evaluator<typename Inverse<XprType>::PlainObject>::type
+{
+  typedef Inverse<XprType> InverseType;
+  typedef typename InverseType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+  
+  typedef evaluator type;
+  typedef evaluator nestedType;
+
+  evaluator(const InverseType& inv_xpr)
+    : m_result(inv_xpr.rows(), inv_xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    
+    typedef typename internal::nested_eval<XprType,XprType::ColsAtCompileTime>::type  ActualXprType;
+    typedef typename internal::remove_all<ActualXprType>::type                        ActualXprTypeCleanded;
+    
+    ActualXprType actual_xpr(inv_xpr.nestedExpression());
+    
+    compute_inverse<ActualXprTypeCleanded, PlainObject>::run(actual_xpr, m_result);
+  }
+  
+protected:
+  PlainObject m_result;
+};
+
+// Specialization for "dst = xpr.inverse()"
+// NOTE we need to specialize it for Dense2Dense to avoid ambiguous specialization error and a Sparse2Sparse specialization must exist somewhere
+template<typename DstXprType, typename XprType, typename Scalar>
+struct Assignment<DstXprType, Inverse<XprType>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+{
+  typedef Inverse<XprType> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  {
+    // FIXME shall we resize dst here?
+    const int Size = EIGEN_PLAIN_ENUM_MIN(XprType::ColsAtCompileTime,DstXprType::ColsAtCompileTime);
+    EIGEN_ONLY_USED_FOR_DEBUG(Size);
+    eigen_assert(( (Size<=1) || (Size>4) || (extract_data(src.nestedExpression())!=extract_data(dst)))
+              && "Aliasing problem detected in inverse(), you need to do inverse().eval() here.");
+
+    typedef typename internal::nested_eval<XprType,XprType::ColsAtCompileTime>::type  ActualXprType;
+    typedef typename internal::remove_all<ActualXprType>::type                        ActualXprTypeCleanded;
+    
+    ActualXprType actual_xpr(src.nestedExpression());
+    
+    compute_inverse<ActualXprTypeCleanded, DstXprType>::run(actual_xpr, dst);
+  }
+};
+
+  
+} // end namespace internal
+
+#endif
 
 /** \lu_module
   *
@@ -333,6 +471,15 @@ struct inverse_impl : public ReturnByValue<inverse_impl<MatrixType> >
   *
   * \sa computeInverseAndDetWithCheck()
   */
+#ifdef EIGEN_TEST_EVALUATORS
+template<typename Derived>
+inline const Inverse<Derived> MatrixBase<Derived>::inverse() const
+{
+  EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsInteger,THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES)
+  eigen_assert(rows() == cols());
+  return Inverse<Derived>(derived());
+}
+#else
 template<typename Derived>
 inline const internal::inverse_impl<Derived> MatrixBase<Derived>::inverse() const
 {
@@ -340,6 +487,7 @@ inline const internal::inverse_impl<Derived> MatrixBase<Derived>::inverse() cons
   eigen_assert(rows() == cols());
   return internal::inverse_impl<Derived>(derived());
 }
+#endif
 
 /** \lu_module
   *
