@@ -69,7 +69,7 @@ public:
     : m_dec(dec), m_rhs(rhs)
   {}
   
-  EIGEN_DEVICE_FUNC Index rows() const { return m_dec.rows(); }
+  EIGEN_DEVICE_FUNC Index rows() const { return m_dec.cols(); }
   EIGEN_DEVICE_FUNC Index cols() const { return m_rhs.cols(); }
 
   EIGEN_DEVICE_FUNC const Decomposition& dec() const { return m_dec; }
