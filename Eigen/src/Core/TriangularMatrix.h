@@ -174,7 +174,7 @@ struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
   typedef typename MatrixType::PlainObject DenseMatrixType;
   enum {
     Mode = _Mode,
-    Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
+    Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits | LvalueBit) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
     CoeffReadCost = MatrixTypeNestedCleaned::CoeffReadCost
   };
 };
