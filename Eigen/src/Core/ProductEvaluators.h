@@ -312,20 +312,6 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemvProduct>
 };
 
 template<typename Lhs, typename Rhs>
-struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
-  : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct> >
-{
-  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
-  
-  template<typename Dest>
-  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-  {
-    // TODO bypass GeneralProduct class
-    GeneralProduct<Lhs, Rhs, GemmProduct>(lhs,rhs).scaleAndAddTo(dst, alpha);
-  }
-};
-
-template<typename Lhs, typename Rhs>
 struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode> 
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
