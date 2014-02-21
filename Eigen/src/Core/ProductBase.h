@@ -11,7 +11,7 @@
 #define EIGEN_PRODUCTBASE_H
 
 namespace Eigen { 
-
+  
 /** \class ProductBase
   * \ingroup Core_Module
   *
@@ -175,6 +175,7 @@ class ProductBase : public MatrixBase<Derived>
 };
 
 #ifndef EIGEN_TEST_EVALUATORS
+
 // here we need to overload the nested rule for products
 // such that the nested type is a const reference to a plain matrix
 namespace internal {

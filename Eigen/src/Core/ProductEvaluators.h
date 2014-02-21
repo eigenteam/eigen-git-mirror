@@ -307,7 +307,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemvProduct>
     internal::gemv_selector<Side,
                             (int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
                             bool(internal::blas_traits<MatrixType>::HasUsableDirectAccess)
-                           >::run(GeneralProduct<Lhs,Rhs,GemvProduct>(lhs,rhs), dst, alpha);
+                           >::run(lhs, rhs, dst, alpha);
   }
 };
 
