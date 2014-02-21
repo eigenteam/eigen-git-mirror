@@ -736,7 +736,11 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
   
   Assignment<ActualDstTypeCleaned,Src,Func>::run(actualDst, src, func);
 }
-
+template<typename Dst, typename Src>
+void call_assignment_no_alias(Dst& dst, const Src& src)
+{
+  call_assignment_no_alias(dst, src, internal::assign_op<typename Dst::Scalar>());
+}
 
 // Generic Dense to Dense assignment
 template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>

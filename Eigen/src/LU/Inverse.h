@@ -351,7 +351,7 @@ struct traits<Inverse<XprType> >
   *
   * \tparam XprType the type of the expression we are taking the inverse
   *
-  * This class represents an expression of A.inverse()
+  * This class represents an abstract expression of A.inverse()
   * and most of the time this is the only way it is used.
   *
   */
@@ -377,7 +377,11 @@ protected:
   XprTypeNested &m_xpr;
 };
 
-// Specialization of the Inverse expression for dense expressions
+/** \internal
+  * Specialization of the Inverse expression for dense expressions.
+  * Direct access to the coefficients are discared.
+  * FIXME this intermediate class is probably not needed anymore.
+  */
 template<typename XprType>
 class InverseImpl<XprType,Dense>
   : public MatrixBase<Inverse<XprType> >
@@ -397,7 +401,16 @@ private:
 
 namespace internal {
 
-// Evaluator of Inverse -> eval into a temporary
+/** \internal
+  * \brief Default evaluator for Inverse expression.
+  * 
+  * This default evaluator for Inverse expression simply evaluate the inverse into a temporary
+  * by a call to internal::call_assignment_no_alias.
+  * Therefore, inverse implementers only have to specialize Assignment<Dst,Inverse<...>, ...> for
+  * there own nested expression.
+  *
+  * \sa class Inverse
+  */
 template<typename XprType>
 struct evaluator<Inverse<XprType> >
   : public evaluator<typename Inverse<XprType>::PlainObject>::type
@@ -413,13 +426,7 @@ struct evaluator<Inverse<XprType> >
     : m_result(inv_xpr.rows(), inv_xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
-    
-    typedef typename internal::nested_eval<XprType,XprType::ColsAtCompileTime>::type  ActualXprType;
-    typedef typename internal::remove_all<ActualXprType>::type                        ActualXprTypeCleanded;
-    
-    ActualXprType actual_xpr(inv_xpr.nestedExpression());
-    
-    compute_inverse<ActualXprTypeCleanded, PlainObject>::run(actual_xpr, m_result);
+    internal::call_assignment_no_alias(m_result, inv_xpr);
   }
   
 protected:
