@@ -174,6 +174,7 @@ class ProductBase : public MatrixBase<Derived>
     mutable PlainObject m_result;
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 // here we need to overload the nested rule for products
 // such that the nested type is a const reference to a plain matrix
 namespace internal {
@@ -262,6 +263,8 @@ class ScaledProduct
     const NestedProduct& m_prod;
     Scalar m_alpha;
 };
+
+#endif // EIGEN_TEST_EVALUATORS
 
 /** \internal
   * Overloaded to perform an efficient C = (A*B).lazy() */

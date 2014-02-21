@@ -247,6 +247,7 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
 *  Implementation of Outer Vector Vector Product
 ***********************************************************************/
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 // Column major
@@ -325,6 +326,8 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
       internal::outer_product_selector_run(*this, dest, adds(alpha), IsRowMajor<Dest>());
     }
 };
+
+#endif // EIGEN_TEST_EVALUATORS
 
 /***********************************************************************
 *  Implementation of General Matrix Vector Product
