@@ -532,6 +532,10 @@ struct etor_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 /***************************************************************************
 * Triangular products
 ***************************************************************************/
+template<int Mode, bool LhsIsTriangular,
+         typename Lhs, bool LhsIsVector,
+         typename Rhs, bool RhsIsVector>
+struct triangular_product_impl;
 
 template<typename Lhs, typename Rhs, int ProductTag>
 struct generic_product_impl<Lhs,Rhs,TriangularShape,DenseShape,ProductTag>
@@ -542,8 +546,8 @@ struct generic_product_impl<Lhs,Rhs,TriangularShape,DenseShape,ProductTag>
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    // TODO bypass TriangularProduct class
-    TriangularProduct<Lhs::Mode,true,typename Lhs::MatrixType,false,Rhs, Rhs::IsVectorAtCompileTime>(lhs.nestedExpression(),rhs).scaleAndAddTo(dst, alpha);
+    triangular_product_impl<Lhs::Mode,true,typename Lhs::MatrixType,false,Rhs, Rhs::IsVectorAtCompileTime>
+        ::run(dst, lhs.nestedExpression(), rhs, alpha);
   }
 };
 
@@ -576,8 +580,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,TriangularShape,ProductTag>
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    // TODO bypass TriangularProduct class
-    TriangularProduct<Rhs::Mode,false,Lhs,Lhs::IsVectorAtCompileTime, typename Rhs::MatrixType, false>(lhs,rhs.nestedExpression()).scaleAndAddTo(dst, alpha);
+    triangular_product_impl<Rhs::Mode,false,Lhs,Lhs::IsVectorAtCompileTime, typename Rhs::MatrixType, false>::run(dst, lhs, rhs.nestedExpression(), alpha);
   }
 };
 
@@ -605,6 +608,9 @@ protected:
 /***************************************************************************
 * SelfAdjoint products
 ***************************************************************************/
+template <typename Lhs, int LhsMode, bool LhsIsVector,
+          typename Rhs, int RhsMode, bool RhsIsVector>
+struct selfadjoint_product_impl;
 
 template<typename Lhs, typename Rhs, int ProductTag>
 struct generic_product_impl<Lhs,Rhs,SelfAdjointShape,DenseShape,ProductTag>
@@ -615,8 +621,7 @@ struct generic_product_impl<Lhs,Rhs,SelfAdjointShape,DenseShape,ProductTag>
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    // TODO bypass SelfadjointProductMatrix class
-    SelfadjointProductMatrix<typename Lhs::MatrixType,Lhs::Mode,false,Rhs,0,Rhs::IsVectorAtCompileTime>(lhs.nestedExpression(),rhs).scaleAndAddTo(dst, alpha);
+    selfadjoint_product_impl<typename Lhs::MatrixType,Lhs::Mode,false,Rhs,0,Rhs::IsVectorAtCompileTime>::run(dst, lhs.nestedExpression(), rhs, alpha);
   }
 };
 
@@ -649,8 +654,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,SelfAdjointShape,ProductTag>
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    // TODO bypass SelfadjointProductMatrix class
-    SelfadjointProductMatrix<Lhs,0,Lhs::IsVectorAtCompileTime,typename Rhs::MatrixType,Rhs::Mode,false>(lhs,rhs.nestedExpression()).scaleAndAddTo(dst, alpha);
+    selfadjoint_product_impl<Lhs,0,Lhs::IsVectorAtCompileTime,typename Rhs::MatrixType,Rhs::Mode,false>::run(dst, lhs, rhs.nestedExpression(), alpha);
   }
 };
 

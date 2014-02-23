@@ -372,7 +372,6 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
 /***************************************************************************
 * Wrapper to product_triangular_matrix_matrix
 ***************************************************************************/
-
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false> >
   : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>, Lhs, Rhs> >
@@ -380,6 +379,7 @@ struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false> >
 
 } // end namespace internal
 
+#ifndef EIGEN_TEST_EVALUATORS
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
   : public ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>, Lhs, Rhs >
@@ -421,6 +421,57 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
       );
   }
 };
+#else // EIGEN_TEST_EVALUATORS
+namespace internal {
+template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
+struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
+{
+  template<typename Dest> static void run(Dest& dst, const Lhs &a_lhs, const Rhs &a_rhs, const typename Dest::Scalar& alpha)
+  {
+    typedef typename Dest::Index      Index;
+    typedef typename Dest::Scalar     Scalar;
+    
+    typedef internal::blas_traits<Lhs> LhsBlasTraits;
+    typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
+    typedef typename internal::remove_all<ActualLhsType>::type ActualLhsTypeCleaned;
+    typedef internal::blas_traits<Rhs> RhsBlasTraits;
+    typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
+    typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
+    
+    typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
+    typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);
+
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(a_lhs)
+                               * RhsBlasTraits::extractScalarFactor(a_rhs);
+
+    typedef internal::gemm_blocking_space<(Dest::Flags&RowMajorBit) ? RowMajor : ColMajor,Scalar,Scalar,
+              Lhs::MaxRowsAtCompileTime, Rhs::MaxColsAtCompileTime, Lhs::MaxColsAtCompileTime,4> BlockingType;
+
+    enum { IsLower = (Mode&Lower) == Lower };
+    Index stripedRows  = ((!LhsIsTriangular) || (IsLower))  ? lhs.rows() : (std::min)(lhs.rows(),lhs.cols());
+    Index stripedCols  = ((LhsIsTriangular)  || (!IsLower)) ? rhs.cols() : (std::min)(rhs.cols(),rhs.rows());
+    Index stripedDepth = LhsIsTriangular ? ((!IsLower) ? lhs.cols() : (std::min)(lhs.cols(),lhs.rows()))
+                                         : ((IsLower)  ? rhs.rows() : (std::min)(rhs.rows(),rhs.cols()));
+
+    BlockingType blocking(stripedRows, stripedCols, stripedDepth);
+
+    internal::product_triangular_matrix_matrix<Scalar, Index,
+      Mode, LhsIsTriangular,
+      (internal::traits<ActualLhsTypeCleaned>::Flags&RowMajorBit) ? RowMajor : ColMajor, LhsBlasTraits::NeedToConjugate,
+      (internal::traits<ActualRhsTypeCleaned>::Flags&RowMajorBit) ? RowMajor : ColMajor, RhsBlasTraits::NeedToConjugate,
+      (internal::traits<Dest          >::Flags&RowMajorBit) ? RowMajor : ColMajor>
+      ::run(
+        stripedRows, stripedCols, stripedDepth,   // sizes
+        &lhs.coeffRef(0,0), lhs.outerStride(),    // lhs info
+        &rhs.coeffRef(0,0), rhs.outerStride(),    // rhs info
+        &dst.coeffRef(0,0), dst.outerStride(),    // result info
+        actualAlpha, blocking
+      );
+  }
+};
+
+} // end namespace internal
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

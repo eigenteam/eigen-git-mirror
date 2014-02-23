@@ -45,9 +45,11 @@ struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
 };
 }
 
+#ifndef EIGEN_TEST_EVALUATORS
 template <typename Lhs, int LhsMode, bool LhsIsVector,
           typename Rhs, int RhsMode, bool RhsIsVector>
 struct SelfadjointProductMatrix;
+#endif
 
 // FIXME could also be called SelfAdjointWrapper to be consistent with DiagonalWrapper ??
 template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView

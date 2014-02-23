@@ -688,7 +688,6 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
     typedef typename Lhs::Scalar   LhsScalar;
     typedef typename Rhs::Scalar   RhsScalar;
     typedef typename Dest::Scalar  ResScalar;
-    typedef typename Dest::RealScalar  RealScalar;
     
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;

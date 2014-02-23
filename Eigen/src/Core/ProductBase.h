@@ -11,6 +11,8 @@
 #define EIGEN_PRODUCTBASE_H
 
 namespace Eigen { 
+
+#ifndef EIGEN_TEST_EVALUATORS
   
 /** \class ProductBase
   * \ingroup Core_Module
@@ -173,8 +175,6 @@ class ProductBase : public MatrixBase<Derived>
 
     mutable PlainObject m_result;
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
 
 // here we need to overload the nested rule for products
 // such that the nested type is a const reference to a plain matrix
