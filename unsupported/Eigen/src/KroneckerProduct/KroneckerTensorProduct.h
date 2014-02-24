@@ -153,7 +153,22 @@ void KroneckerProductSparse<Lhs,Rhs>::evalTo(Dest& dst) const
               Bc = m_B.cols();
   dst.resize(this->rows(), this->cols());
   dst.resizeNonZeros(0);
-  dst.reserve(m_A.nonZeros() * m_B.nonZeros());
+  
+  // compute number of non-zeros per innervectors of dst
+  {
+    VectorXi nnzA = VectorXi::Zero(Dest::IsRowMajor ? m_A.rows() : m_A.cols());
+    for (Index kA=0; kA < m_A.outerSize(); ++kA)
+      for (typename Lhs::InnerIterator itA(m_A,kA); itA; ++itA)
+        nnzA(Dest::IsRowMajor ? itA.row() : itA.col())++;
+      
+    VectorXi nnzB = VectorXi::Zero(Dest::IsRowMajor ? m_B.rows() : m_B.cols());
+    for (Index kB=0; kB < m_B.outerSize(); ++kB)
+      for (typename Rhs::InnerIterator itB(m_B,kB); itB; ++itB)
+        nnzB(Dest::IsRowMajor ? itB.row() : itB.col())++;
+    
+    Matrix<int,Dynamic,Dynamic,ColMajor> nnzAB = nnzB * nnzA.transpose();
+    dst.reserve(VectorXi::Map(nnzAB.data(), nnzAB.size()));
+  }
 
   for (Index kA=0; kA < m_A.outerSize(); ++kA)
   {
