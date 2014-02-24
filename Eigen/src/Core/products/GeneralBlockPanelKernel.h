@@ -1130,6 +1130,10 @@ EIGEN_DONT_INLINE void gemm_pack_lhs<Scalar, Index, Pack1, Pack2, StorageOrder, 
   EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK LHS");
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
   eigen_assert( (StorageOrder==RowMajor) || ((Pack1%PacketSize)==0 && Pack1<=4*PacketSize) );
+#ifdef __clang__
+  // Workaround clang ABI change with unsed arguments
+  if(!PanelMode) depth += stride + offset;
+#endif
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
   const_blas_data_mapper<Scalar, Index, StorageOrder> lhs(_lhs,lhsStride);
   Index count = 0;
@@ -1216,6 +1220,10 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
 {
   EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS COLMAJOR");
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
+#ifdef __clang__
+  // Workaround clang ABI change with unsed arguments
+  if(!PanelMode) depth += stride + offset;
+#endif
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
   Index packet_cols = (cols/nr) * nr;
   Index count = 0;
@@ -1267,6 +1275,10 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, Pan
 {
   EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS ROWMAJOR");
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
+#ifdef __clang__
+  // Workaround clang ABI change with unsed arguments
+  if(!PanelMode) depth += stride + offset;
+#endif
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
   Index packet_cols = (cols/nr) * nr;
   Index count = 0;
