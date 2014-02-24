@@ -92,14 +92,8 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,Co
         ResScalar* res, Index resIncr,
   RhsScalar alpha)
 {
-  eigen_internal_assert(resIncr==1);
-#ifdef __clang__
-  // Workaround clang ABI change with unsed arguments
-  lhsStride += resIncr - 1;
-#else
   EIGEN_UNUSED_VARIABLE(resIncr);
-#endif
-  
+  eigen_internal_assert(resIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
   #endif
@@ -363,13 +357,8 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
   ResScalar* res, Index resIncr,
   ResScalar alpha)
 {
-  eigen_internal_assert(rhsIncr==1);
-#ifdef __clang__
-  // Workaround clang ABI change with unsed arguments
-  lhsStride += rhsIncr - 1;
-#else
   EIGEN_UNUSED_VARIABLE(rhsIncr);
-#endif
+  eigen_internal_assert(rhsIncr==1);
   
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
