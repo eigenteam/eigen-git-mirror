@@ -80,11 +80,8 @@ EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
-  ResScalar* res, Index
-  #ifdef EIGEN_INTERNAL_DEBUGGING
-    resIncr
-  #endif
-  , RhsScalar alpha);
+        ResScalar* res, Index resIncr,
+  RhsScalar alpha);
 };
 
 template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
@@ -92,12 +89,10 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,Co
   Index rows, Index cols,
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
-  ResScalar* res, Index
-  #ifdef EIGEN_INTERNAL_DEBUGGING
-    resIncr
-  #endif
-  , RhsScalar alpha)
+        ResScalar* res, Index resIncr,
+  RhsScalar alpha)
 {
+  EIGEN_UNUSED_VARIABLE(resIncr);
   eigen_internal_assert(resIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
@@ -351,7 +346,7 @@ EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
-  ResScalar* res, Index resIncr,
+        ResScalar* res, Index resIncr,
   ResScalar alpha);
 };
 
@@ -365,6 +360,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
 {
   EIGEN_UNUSED_VARIABLE(rhsIncr);
   eigen_internal_assert(rhsIncr==1);
+  
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
   #endif

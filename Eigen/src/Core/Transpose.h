@@ -293,7 +293,8 @@ struct inplace_transpose_selector<MatrixType,false> { // non square matrix
   * Notice however that this method is only useful if you want to replace a matrix by its own transpose.
   * If you just need the transpose of a matrix, use transpose().
   *
-  * \note if the matrix is not square, then \c *this must be a resizable matrix.
+  * \note if the matrix is not square, then \c *this must be a resizable matrix. 
+  * This excludes (non-square) fixed-size matrices, block-expressions and maps.
   *
   * \sa transpose(), adjoint(), adjointInPlace() */
 template<typename Derived>
@@ -324,6 +325,7 @@ inline void DenseBase<Derived>::transposeInPlace()
   * If you just need the adjoint of a matrix, use adjoint().
   *
   * \note if the matrix is not square, then \c *this must be a resizable matrix.
+  * This excludes (non-square) fixed-size matrices, block-expressions and maps.
   *
   * \sa transpose(), adjoint(), transposeInPlace() */
 template<typename Derived>
