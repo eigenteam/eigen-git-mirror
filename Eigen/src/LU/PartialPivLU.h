@@ -505,7 +505,7 @@ struct solve_retval<PartialPivLU<_MatrixType>, Rhs>
 #endif
 
 /***** Implementation of inverse() *****************************************************/
-
+#ifdef EIGEN_TEST_EVALUATORS
 template<typename DstXprType, typename MatrixType, typename Scalar>
 struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assign_op<Scalar>, Dense2Dense, Scalar>
 {
@@ -516,7 +516,7 @@ struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assi
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.cols()));
   }
 };
-
+#endif
 } // end namespace internal
 
 /******** MatrixBase methods *******/

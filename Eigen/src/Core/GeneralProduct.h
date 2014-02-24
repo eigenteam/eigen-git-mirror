@@ -13,6 +13,7 @@
 
 namespace Eigen { 
 
+#ifndef EIGEN_TEST_EVALUATORS
 /** \class GeneralProduct
   * \ingroup Core_Module
   *
@@ -34,6 +35,8 @@ namespace Eigen {
   */
 template<typename Lhs, typename Rhs, int ProductType = internal::product_type<Lhs,Rhs>::value>
 class GeneralProduct;
+#endif // EIGEN_TEST_EVALUATORS
+
 
 enum {
   Large = 2,
@@ -154,6 +157,7 @@ template<>              struct product_type_selector<Large,Large,Small>  { enum 
 
 } // end namespace internal
 
+#ifndef EIGEN_TEST_EVALUATORS
 /** \class ProductReturnType
   * \ingroup Core_Module
   *
@@ -201,6 +205,7 @@ struct ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
 template<typename Lhs, typename Rhs>
 struct LazyProductReturnType : public ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
 {};
+#endif
 
 /***********************************************************************
 *  Implementation of Inner Vector Vector Product
@@ -212,6 +217,7 @@ struct LazyProductReturnType : public ProductReturnType<Lhs,Rhs,LazyCoeffBasedPr
 // Cons: this could be a problem if in a meta unrolled algorithm a matrix-matrix
 // product ends up to a row-vector times col-vector product... To tackle this use
 // case, we could have a specialization for Block<MatrixType,1,1> with: operator=(Scalar x);
+#ifndef EIGEN_TEST_EVALUATORS
 
 namespace internal {
 
@@ -242,7 +248,7 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
       return Base::coeff(0,0);
     }
 };
-
+#endif // EIGEN_TEST_EVALUATORS
 /***********************************************************************
 *  Implementation of Outer Vector Vector Product
 ***********************************************************************/

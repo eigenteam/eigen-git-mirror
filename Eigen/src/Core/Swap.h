@@ -12,7 +12,7 @@
 
 namespace Eigen { 
 
-// #ifndef EIGEN_TEST_EVALUATORS
+#ifndef EIGEN_TEST_EVALUATORS
   
 /** \class SwapWrapper
   * \ingroup Core_Module
@@ -137,7 +137,7 @@ template<typename ExpressionType> class SwapWrapper
     ExpressionType& m_expression;
 };
 
-// #endif
+#endif
 
 #ifdef EIGEN_ENABLE_EVALUATORS
 
