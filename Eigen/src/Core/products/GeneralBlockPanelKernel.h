@@ -205,7 +205,15 @@ public:
 
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, AccPacket& tmp) const
   {
+    // It would be a lot cleaner to call pmadd all the time. Unfortunately if we
+    // let gcc allocate the register in which to store the result of the pmul
+    // (in the case where there is no FMA) gcc fails to figure out how to avoid
+    // spilling register.
+#ifdef EIGEN_VECTORIZE_FMA
+    c = pmadd(a,b,c);
+#else
     tmp = b; tmp = pmul(a,tmp); c = padd(c,tmp);
+#endif
   }
 
   EIGEN_STRONG_INLINE void acc(const AccPacket& c, const ResPacket& alpha, ResPacket& r) const
@@ -281,7 +289,11 @@ public:
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
+#ifdef EIGEN_VECTORIZE_FMA
+    c.v = pmadd(a.v,b,c.v);
+#else
     tmp = b; tmp = pmul(a.v,tmp); c.v = padd(c.v,tmp);
+#endif
   }
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const false_type&) const
@@ -486,7 +498,11 @@ public:
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
+#ifdef EIGEN_VECTORIZE_FMA
+    c = pmadd(a,b,c);
+#else
     tmp = b; tmp.v = pmul(a,tmp.v); c = padd(c,tmp);
+#endif
   }
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const false_type&) const
