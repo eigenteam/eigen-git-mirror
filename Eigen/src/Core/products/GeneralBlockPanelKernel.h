@@ -1144,6 +1144,8 @@ EIGEN_DONT_INLINE void gemm_pack_lhs<Scalar, Index, Pack1, Pack2, StorageOrder, 
   enum { PacketSize = packet_traits<Scalar>::size };
 
   EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK LHS");
+  EIGEN_UNUSED_VARIABLE(stride);
+  EIGEN_UNUSED_VARIABLE(offset);
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
   eigen_assert( (StorageOrder==RowMajor) || ((Pack1%PacketSize)==0 && Pack1<=4*PacketSize) );
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
@@ -1231,6 +1233,8 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
   ::operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols, Index stride, Index offset)
 {
   EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS COLMAJOR");
+  EIGEN_UNUSED_VARIABLE(stride);
+  EIGEN_UNUSED_VARIABLE(offset);
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
   Index packet_cols = (cols/nr) * nr;
@@ -1282,6 +1286,8 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, Pan
   ::operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols, Index stride, Index offset)
 {
   EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS ROWMAJOR");
+  EIGEN_UNUSED_VARIABLE(stride);
+  EIGEN_UNUSED_VARIABLE(offset);
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
   Index packet_cols = (cols/nr) * nr;

@@ -261,7 +261,12 @@
 #endif
 
 // Suppresses 'unused variable' warnings.
-#define EIGEN_UNUSED_VARIABLE(var) (void)var;
+namespace Eigen {
+  namespace internal {
+    template<typename T> void ignore_unused_variable(const T&) {}
+  }
+}
+#define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
 
 #if !defined(EIGEN_ASM_COMMENT)
   #if (defined __GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
