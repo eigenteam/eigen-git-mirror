@@ -365,6 +365,7 @@ using std::ptrdiff_t;
 #include "src/Core/GeneralProduct.h"
 #ifdef EIGEN_ENABLE_EVALUATORS
 #include "src/Core/Solve.h"
+#include "src/Core/Inverse.h"
 #endif
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"

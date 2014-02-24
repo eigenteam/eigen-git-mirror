@@ -25,7 +25,7 @@
 #include "src/LU/PartialPivLU_MKL.h"
 #endif
 #include "src/LU/Determinant.h"
-#include "src/LU/Inverse.h"
+#include "src/LU/InverseImpl.h"
 
 #if defined EIGEN_VECTORIZE_SSE
   #include "src/LU/arch/Inverse_SSE.h"
