@@ -346,7 +346,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       return m_usePrescribedThreshold ? m_prescribedThreshold
       // this formula comes from experimenting (see "LU precision tuning" thread on the list)
       // and turns out to be identical to Higham's formula used already in LDLt.
-                                      : NumTraits<Scalar>::epsilon() * m_qr.diagonalSize();
+                                      : NumTraits<Scalar>::epsilon() * RealScalar(m_qr.diagonalSize());
     }
 
     /** \returns the number of nonzero pivots in the QR decomposition.
@@ -417,7 +417,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
 
   m_temp.resize(cols);
 
-  m_precision = NumTraits<Scalar>::epsilon() * size;
+  m_precision = NumTraits<Scalar>::epsilon() * RealScalar(size);
 
   m_rows_transpositions.resize(size);
   m_cols_transpositions.resize(size);
