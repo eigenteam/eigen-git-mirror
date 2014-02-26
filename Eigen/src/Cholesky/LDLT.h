@@ -291,13 +291,6 @@ template<> struct ldlt_inplace<Lower>
         cutoff = abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
       }
 
-      // Finish early if the matrix is not full rank.
-      if(biggest_in_corner < cutoff)
-      {
-        for(Index i = k; i < size; i++) transpositions.coeffRef(i) = i;
-        break;
-      }
-
       transpositions.coeffRef(k) = index_of_biggest_in_corner;
       if(k != index_of_biggest_in_corner)
       {
@@ -333,6 +326,7 @@ template<> struct ldlt_inplace<Lower>
         if(rs>0)
           A21.noalias() -= A20 * temp.head(k);
       }
+      
       if((rs>0) && (abs(mat.coeffRef(k,k)) > cutoff))
         A21 /= mat.coeffRef(k,k);
 
@@ -518,12 +512,12 @@ struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
     typedef typename LDLTType::RealScalar RealScalar;
     const Diagonal<const MatrixType> vectorD = dec().vectorD();
     RealScalar tolerance = (max)(vectorD.array().abs().maxCoeff() * NumTraits<Scalar>::epsilon(),
-				 RealScalar(1) / NumTraits<RealScalar>::highest()); // motivated by LAPACK's xGELSS
+                                 RealScalar(1) / NumTraits<RealScalar>::highest()); // motivated by LAPACK's xGELSS
     for (Index i = 0; i < vectorD.size(); ++i) {
       if(abs(vectorD(i)) > tolerance)
-	dst.row(i) /= vectorD(i);
+        dst.row(i) /= vectorD(i);
       else
-	dst.row(i).setZero();
+        dst.row(i).setZero();
     }
 
     // dst = L^-T (D^-1 L^-1 P b)
