@@ -464,7 +464,7 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
   * There is also the variant first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
   */
 template<typename Scalar, typename Index>
-static inline Index first_aligned(const Scalar* array, Index size)
+inline Index first_aligned(const Scalar* array, Index size)
 {
   enum { PacketSize = packet_traits<Scalar>::size,
          PacketAlignedMask = PacketSize-1
@@ -492,7 +492,7 @@ static inline Index first_aligned(const Scalar* array, Index size)
 /** \internal Returns the smallest integer multiple of \a base and greater or equal to \a size
   */ 
 template<typename Index> 
-inline static Index first_multiple(Index size, Index base)
+inline Index first_multiple(Index size, Index base)
 {
   return ((size+base-1)/base)*base;
 }
