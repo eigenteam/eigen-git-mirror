@@ -356,8 +356,6 @@ template<typename Derived> class MatrixBase
 
     Scalar trace() const;
 
-/////////// Array module ///////////
-
     template<int p> EIGEN_DEVICE_FUNC RealScalar lpNorm() const;
 
     EIGEN_DEVICE_FUNC MatrixBase<Derived>& matrix() { return *this; }
@@ -365,8 +363,10 @@ template<typename Derived> class MatrixBase
 
     /** \returns an \link Eigen::ArrayBase Array \endlink expression of this matrix
       * \sa ArrayBase::matrix() */
-    EIGEN_DEVICE_FUNC ArrayWrapper<Derived> array() { return derived(); }
-    EIGEN_DEVICE_FUNC const ArrayWrapper<const Derived> array() const { return derived(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ArrayWrapper<Derived> array() { return derived(); }
+    /** \returns a const \link Eigen::ArrayBase Array \endlink expression of this matrix
+      * \sa ArrayBase::matrix() */
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const ArrayWrapper<const Derived> array() const { return derived(); }
 
 /////////// LU module ///////////
 
