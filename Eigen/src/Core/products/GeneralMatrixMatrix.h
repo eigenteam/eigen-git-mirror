@@ -422,7 +422,9 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
       internal::parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>(GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), this->rows(), this->cols(), Dest::Flags&RowMajorBit);
     }
 };
-#else // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_TEST_EVALUATORS
+
+#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
   
 template<typename Lhs, typename Rhs>
@@ -477,7 +479,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
 };
 
 } // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 

@@ -431,7 +431,8 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
       );
   }
 };
-#else // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_TEST_EVALUATORS
+#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
   
 template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
@@ -481,7 +482,7 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,RhsMode,false>
 
 } // end namespace internal
 
-#endif
+#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 

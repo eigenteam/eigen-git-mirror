@@ -353,10 +353,13 @@ template<typename Lhs, typename Rhs>
 struct traits<GeneralProduct<Lhs,Rhs,GemvProduct> >
  : traits<ProductBase<GeneralProduct<Lhs,Rhs,GemvProduct>, Lhs, Rhs> >
 {};
-#endif
-
 template<int Side, int StorageOrder, bool BlasCompatible>
 struct gemv_selector;
+#endif
+#ifdef EIGEN_ENABLE_EVALUATORS
+template<int Side, int StorageOrder, bool BlasCompatible>
+struct gemv_dense_sense_selector;
+#endif
 
 } // end namespace internal
 
@@ -594,23 +597,25 @@ template<> struct gemv_selector<OnTheRight,RowMajor,false>
   }
 };
 
-#else // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_TEST_EVALUATORS
+
+#ifdef EIGEN_ENABLE_EVALUATORS
 
 // The vector is on the left => transposition
 template<int StorageOrder, bool BlasCompatible>
-struct gemv_selector<OnTheLeft,StorageOrder,BlasCompatible>
+struct gemv_dense_sense_selector<OnTheLeft,StorageOrder,BlasCompatible>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
     Transpose<Dest> destT(dest);
     enum { OtherStorageOrder = StorageOrder == RowMajor ? ColMajor : RowMajor };
-    gemv_selector<OnTheRight,OtherStorageOrder,BlasCompatible>
+    gemv_dense_sense_selector<OnTheRight,OtherStorageOrder,BlasCompatible>
       ::run(rhs.transpose(), lhs.transpose(), destT, alpha);
   }
 };
 
-template<> struct gemv_selector<OnTheRight,ColMajor,true>
+template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static inline void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
@@ -685,7 +690,7 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
   }
 };
 
-template<> struct gemv_selector<OnTheRight,RowMajor,true>
+template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,true>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
@@ -737,7 +742,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
   }
 };
 
-template<> struct gemv_selector<OnTheRight,ColMajor,false>
+template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,false>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
@@ -750,7 +755,7 @@ template<> struct gemv_selector<OnTheRight,ColMajor,false>
   }
 };
 
-template<> struct gemv_selector<OnTheRight,RowMajor,false>
+template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,false>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
@@ -763,7 +768,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,false>
   }
 };
 
-#endif // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace internal
 

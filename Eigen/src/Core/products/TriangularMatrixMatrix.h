@@ -421,7 +421,8 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
       );
   }
 };
-#else // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_TEST_EVALUATORS
+#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
@@ -471,7 +472,7 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
 };
 
 } // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 

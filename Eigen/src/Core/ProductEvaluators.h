@@ -304,7 +304,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemvProduct>
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    internal::gemv_selector<Side,
+    internal::gemv_dense_sense_selector<Side,
                             (int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
                             bool(internal::blas_traits<MatrixType>::HasUsableDirectAccess)
                            >::run(lhs, rhs, dst, alpha);

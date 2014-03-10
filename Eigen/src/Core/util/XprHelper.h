@@ -293,44 +293,10 @@ struct transfer_constness
   >::type type;
 };
 
-#ifdef EIGEN_TEST_EVALUATORS
 
-// When using evaluators, we never evaluate when assembling the expression!!
-// TODO: get rid of this nested class since it's just an alias for ref_selector.
-template<typename T, int n=1, typename PlainObject = typename eval<T>::type> struct nested
-{
-  typedef typename ref_selector<T>::type type;
-};
 
-// However, we still need a mechanism to detect whether an expression which is evaluated multiple time
-// has to be evaluated into a temporary.
-// That's the purpose of this new nested_eval helper: 
-template<typename T, int n, typename PlainObject = typename eval<T>::type> struct nested_eval
-{
-  enum {
-    // For the purpose of this test, to keep it reasonably simple, we arbitrarily choose a value of Dynamic values.
-    // the choice of 10000 makes it larger than any practical fixed value and even most dynamic values.
-    // in extreme cases where these assumptions would be wrong, we would still at worst suffer performance issues
-    // (poor choice of temporaries).
-    // It's important that this value can still be squared without integer overflowing.
-    DynamicAsInteger = 10000,
-    ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
-    CoeffReadCost = traits<T>::CoeffReadCost,
-    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
-    NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
-    CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
-    CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger
-  };
+#ifndef EIGEN_TEST_EVALUATORS
 
-  typedef typename conditional<
-        int(CostEvalAsInteger) < int(CostNoEvalAsInteger),
-        PlainObject,
-        typename ref_selector<T>::type
-  >::type type;
-};
-
-#else
 /** \internal Determines how a given expression should be nested into another one.
   * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
   * nested into the bigger product expression. The choice is between nesting the expression b+c as-is, or
@@ -377,7 +343,47 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
       typename ref_selector<T>::type
   >::type type;
 };
+
+#else
+
+// When using evaluators, we never evaluate when assembling the expression!!
+// TODO: get rid of this nested class since it's just an alias for ref_selector.
+template<typename T, int n=1, typename PlainObject = typename eval<T>::type> struct nested
+{
+  typedef typename ref_selector<T>::type type;
+};
+
 #endif // EIGEN_TEST_EVALUATORS
+
+#ifdef EIGEN_ENABLE_EVALUATORS
+// However, we still need a mechanism to detect whether an expression which is evaluated multiple time
+// has to be evaluated into a temporary.
+// That's the purpose of this new nested_eval helper: 
+template<typename T, int n, typename PlainObject = typename eval<T>::type> struct nested_eval
+{
+  enum {
+    // For the purpose of this test, to keep it reasonably simple, we arbitrarily choose a value of Dynamic values.
+    // the choice of 10000 makes it larger than any practical fixed value and even most dynamic values.
+    // in extreme cases where these assumptions would be wrong, we would still at worst suffer performance issues
+    // (poor choice of temporaries).
+    // It's important that this value can still be squared without integer overflowing.
+    DynamicAsInteger = 10000,
+    ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
+    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
+    CoeffReadCost = traits<T>::CoeffReadCost,
+    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
+    NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
+    CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
+    CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger
+  };
+
+  typedef typename conditional<
+        int(CostEvalAsInteger) < int(CostNoEvalAsInteger),
+        PlainObject,
+        typename ref_selector<T>::type
+  >::type type;
+};
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC
