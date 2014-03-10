@@ -13,7 +13,7 @@
 #define EIGEN_ASSIGN_H
 
 namespace Eigen {
-
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 /***************************************************************************
@@ -486,6 +486,8 @@ struct assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling, Ve
 };
 
 } // end namespace internal
+
+#endif // EIGEN_TEST_EVALUATORS
 
 /***************************************************************************
 * Part 4 : implementation of DenseBase methods
