@@ -32,7 +32,9 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
 
     enum {
       Mode = internal::traits<Derived>::Mode,
+#ifndef EIGEN_TEST_EVALUATORS
       CoeffReadCost = internal::traits<Derived>::CoeffReadCost,
+#endif
       RowsAtCompileTime = internal::traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = internal::traits<Derived>::ColsAtCompileTime,
       MaxRowsAtCompileTime = internal::traits<Derived>::MaxRowsAtCompileTime,
@@ -174,8 +176,11 @@ struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
   typedef typename MatrixType::PlainObject DenseMatrixType;
   enum {
     Mode = _Mode,
-    Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits | LvalueBit) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
+    Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits | LvalueBit) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode
+#ifndef EIGEN_TEST_EVALUATORS
+    ,
     CoeffReadCost = MatrixTypeNestedCleaned::CoeffReadCost
+#endif
   };
 };
 }
@@ -1141,10 +1146,6 @@ public:
 template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType, typename Functor>
 void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
-#ifdef EIGEN_DEBUG_ASSIGN
-  // TODO these traits should be computed from information provided by the evaluators
-  internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
-#endif
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
   typedef typename evaluator<DstXprType>::type DstEvaluatorType;
@@ -1159,8 +1160,8 @@ void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& sr
   
   enum {
       unroll = DstXprType::SizeAtCompileTime != Dynamic
-            && internal::traits<SrcXprType>::CoeffReadCost != Dynamic
-            && DstXprType::SizeAtCompileTime * internal::traits<SrcXprType>::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT
+            && SrcEvaluatorType::CoeffReadCost != Dynamic
+            && DstXprType::SizeAtCompileTime * SrcEvaluatorType::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT
     };
   
   triangular_assignment_loop<Kernel, Mode, unroll ? int(DstXprType::SizeAtCompileTime) : Dynamic, SetOpposite>::run(kernel);

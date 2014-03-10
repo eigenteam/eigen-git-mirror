@@ -508,9 +508,6 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
 
 #ifdef EIGEN_TEST_EVALUATORS
   
-#ifdef EIGEN_DEBUG_ASSIGN
-  internal::copy_using_evaluator_traits<Derived, OtherDerived>::debug();
-#endif
   eigen_assert(rows() == other.rows() && cols() == other.cols());
   internal::call_dense_assignment_loop(derived(),other.derived());
   

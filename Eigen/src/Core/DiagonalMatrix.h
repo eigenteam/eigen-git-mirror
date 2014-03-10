@@ -280,8 +280,11 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
     ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
-    Flags =  traits<DiagonalVectorType>::Flags & LvalueBit,
+    Flags =  traits<DiagonalVectorType>::Flags & LvalueBit
+#ifndef EIGEN_TEST_EVALUATORS
+    ,
     CoeffReadCost = traits<_DiagonalVectorType>::CoeffReadCost
+#endif
   };
 };
 }

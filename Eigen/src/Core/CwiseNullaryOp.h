@@ -39,8 +39,11 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
       & (  HereditaryBits
          | (functor_has_linear_access<NullaryOp>::ret ? LinearAccessBit : 0)
          | (functor_traits<NullaryOp>::PacketAccess ? PacketAccessBit : 0)))
-      | (functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit),
+      | (functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit)
+#ifndef EIGEN_TEST_EVALUATORS  
+    ,
     CoeffReadCost = functor_traits<NullaryOp>::Cost
+#endif
   };
 };
 }

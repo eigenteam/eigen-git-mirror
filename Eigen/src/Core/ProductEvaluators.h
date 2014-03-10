@@ -109,6 +109,9 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseSha
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+//   enum {
+//     CoeffReadCost = 0 // FIXME why is it needed? (this was already the case before the evaluators, see traits<ProductBase>)
+//   };
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
 
@@ -366,6 +369,11 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
 {
   typedef Product<Lhs, Rhs, LazyProduct> XprType;
   typedef CoeffBasedProduct<Lhs, Rhs, 0> CoeffBasedProductType;
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketScalar PacketScalar;
+  typedef typename XprType::PacketReturnType PacketReturnType;
 
   product_evaluator(const XprType& xpr) 
     : m_lhs(xpr.lhs()),
@@ -376,24 +384,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
       m_innerDim(xpr.lhs().cols())
   { }
 
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
-
   // Everything below here is taken from CoeffBasedProduct.h
 
-  enum {
-    RowsAtCompileTime = traits<CoeffBasedProductType>::RowsAtCompileTime,
-    PacketSize = packet_traits<Scalar>::size,
-    InnerSize  = traits<CoeffBasedProductType>::InnerSize,
-    CoeffReadCost = traits<CoeffBasedProductType>::CoeffReadCost,
-    Unroll = CoeffReadCost != Dynamic && CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
-    CanVectorizeInner = traits<CoeffBasedProductType>::CanVectorizeInner,
-    Flags = traits<CoeffBasedProductType>::Flags
-  };
-  
   typedef typename internal::nested_eval<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
   typedef typename internal::nested_eval<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
   
@@ -402,6 +394,22 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
 
   typedef typename evaluator<LhsNestedCleaned>::type LhsEtorType;
   typedef typename evaluator<RhsNestedCleaned>::type RhsEtorType;
+  
+  enum {
+    RowsAtCompileTime = traits<CoeffBasedProductType>::RowsAtCompileTime,
+    PacketSize = packet_traits<Scalar>::size,
+    InnerSize  = traits<CoeffBasedProductType>::InnerSize,
+    
+    LhsCoeffReadCost = LhsEtorType::CoeffReadCost,
+    RhsCoeffReadCost = RhsEtorType::CoeffReadCost,
+    CoeffReadCost = (InnerSize == Dynamic || LhsCoeffReadCost==Dynamic || RhsCoeffReadCost==Dynamic || NumTraits<Scalar>::AddCost==Dynamic || NumTraits<Scalar>::MulCost==Dynamic) ? Dynamic
+                  : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
+                    + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
+
+    Unroll = CoeffReadCost != Dynamic && CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
+    CanVectorizeInner = traits<CoeffBasedProductType>::CanVectorizeInner,
+    Flags = traits<CoeffBasedProductType>::Flags
+  };
   
   const CoeffReturnType coeff(Index row, Index col) const
   {
@@ -689,6 +697,10 @@ struct diagonal_product_evaluator_base
    typedef typename scalar_product_traits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
 public:
+  enum {
+    CoeffReadCost = NumTraits<Scalar>::MulCost + evaluator<MatrixType>::CoeffReadCost + evaluator<DiagonalType>::CoeffReadCost
+  };
+  
   diagonal_product_evaluator_base(const MatrixType &mat, const DiagonalType &diag)
     : m_diagImpl(diag), m_matImpl(mat)
   {
@@ -739,7 +751,9 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   typedef Product<Lhs, Rhs, ProductKind> XprType;
   typedef typename XprType::PlainObject PlainObject;
   
-  enum { StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor };
+  enum {
+    StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor
+  };
 
   product_evaluator(const XprType& xpr)
     : Base(xpr.rhs(), xpr.lhs().diagonal())

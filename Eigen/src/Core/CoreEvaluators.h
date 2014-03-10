@@ -71,7 +71,7 @@ struct evaluator_traits_base
 //   typedef evaluator<T> type;
 //   typedef evaluator<T> nestedType;
   
-  // by default, get evalautor kind and shape from storage
+  // by default, get evaluator kind and shape from storage
   typedef typename storage_kind_to_evaluator_kind<typename T::StorageKind>::Kind Kind;
   typedef typename storage_kind_to_shape<typename T::StorageKind>::Shape Shape;
   
@@ -124,12 +124,19 @@ struct evaluator<PlainObjectBase<Derived> >
   : evaluator_base<Derived>
 {
   typedef PlainObjectBase<Derived> PlainObjectType;
+  typedef typename PlainObjectType::Index Index;
+  typedef typename PlainObjectType::Scalar Scalar;
+  typedef typename PlainObjectType::CoeffReturnType CoeffReturnType;
+  typedef typename PlainObjectType::PacketScalar PacketScalar;
+  typedef typename PlainObjectType::PacketReturnType PacketReturnType;
 
   enum {
     IsRowMajor = PlainObjectType::IsRowMajor,
     IsVectorAtCompileTime = PlainObjectType::IsVectorAtCompileTime,
     RowsAtCompileTime = PlainObjectType::RowsAtCompileTime,
-    ColsAtCompileTime = PlainObjectType::ColsAtCompileTime
+    ColsAtCompileTime = PlainObjectType::ColsAtCompileTime,
+    
+    CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
   
   evaluator()
@@ -142,12 +149,6 @@ struct evaluator<PlainObjectBase<Derived> >
   evaluator(const PlainObjectType& m) 
     : m_data(m.data()), m_outerStride(IsVectorAtCompileTime ? 0 : m.outerStride()) 
   { }
-
-  typedef typename PlainObjectType::Index Index;
-  typedef typename PlainObjectType::Scalar Scalar;
-  typedef typename PlainObjectType::CoeffReturnType CoeffReturnType;
-  typedef typename PlainObjectType::PacketScalar PacketScalar;
-  typedef typename PlainObjectType::PacketReturnType PacketReturnType;
 
   CoeffReturnType coeff(Index row, Index col) const
   {
@@ -320,6 +321,10 @@ struct evaluator<Transpose<ArgType> >
   : evaluator_base<Transpose<ArgType> >
 {
   typedef Transpose<ArgType> XprType;
+  
+  enum {
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost
+  };
 
   evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
 
@@ -384,6 +389,10 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
   : evaluator_base<CwiseNullaryOp<NullaryOp,PlainObjectType> >
 {
   typedef CwiseNullaryOp<NullaryOp,PlainObjectType> XprType;
+  
+  enum {
+    CoeffReadCost = internal::functor_traits<NullaryOp>::Cost
+  };
 
   evaluator(const XprType& n) 
     : m_functor(n.functor()) 
@@ -426,6 +435,10 @@ struct evaluator<CwiseUnaryOp<UnaryOp, ArgType> >
   : evaluator_base<CwiseUnaryOp<UnaryOp, ArgType> >
 {
   typedef CwiseUnaryOp<UnaryOp, ArgType> XprType;
+  
+  enum {
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost + functor_traits<UnaryOp>::Cost
+  };
 
   evaluator(const XprType& op) 
     : m_functor(op.functor()), 
@@ -470,6 +483,10 @@ struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   : evaluator_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  
+  enum {
+    CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost
+  };
 
   evaluator(const XprType& xpr) 
     : m_functor(xpr.functor()),
@@ -518,6 +535,10 @@ struct evaluator<CwiseUnaryView<UnaryOp, ArgType> >
   : evaluator_base<CwiseUnaryView<UnaryOp, ArgType> >
 {
   typedef CwiseUnaryView<UnaryOp, ArgType> XprType;
+  
+  enum {
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost + functor_traits<UnaryOp>::Cost
+  };
 
   evaluator(const XprType& op) 
     : m_unaryOp(op.functor()), 
@@ -561,7 +582,6 @@ struct evaluator<MapBase<Derived, AccessorsType> >
 {
   typedef MapBase<Derived, AccessorsType> MapType;
   typedef Derived XprType;
-
   typedef typename XprType::PointerType PointerType;
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
@@ -569,15 +589,16 @@ struct evaluator<MapBase<Derived, AccessorsType> >
   typedef typename XprType::PacketScalar PacketScalar;
   typedef typename XprType::PacketReturnType PacketReturnType;
   
+  enum {
+    RowsAtCompileTime = XprType::RowsAtCompileTime,
+    CoeffReadCost = NumTraits<Scalar>::ReadCost
+  };
+  
   evaluator(const XprType& map) 
     : m_data(const_cast<PointerType>(map.data())),  
       m_rowStride(map.rowStride()),
       m_colStride(map.colStride())
   { }
- 
-  enum {
-    RowsAtCompileTime = XprType::RowsAtCompileTime
-  };
  
   CoeffReturnType coeff(Index row, Index col) const 
   { 
@@ -670,6 +691,9 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
   : block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel>
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
+  enum {
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost
+  };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;
   evaluator(const XprType& block) : block_evaluator_type(block) {}
 };
@@ -703,8 +727,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAcc
   
   CoeffReturnType coeff(Index index) const 
   { 
-    return coeff(RowsAtCompileTime == 1 ? 0 : index,
-		 RowsAtCompileTime == 1 ? index : 0);
+    return coeff(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
   }
 
   Scalar& coeffRef(Index row, Index col) 
@@ -714,8 +737,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAcc
   
   Scalar& coeffRef(Index index) 
   { 
-    return coeffRef(RowsAtCompileTime == 1 ? 0 : index,
-		    RowsAtCompileTime == 1 ? index : 0);
+    return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
   }
  
   template<int LoadMode> 
@@ -728,7 +750,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAcc
   PacketReturnType packet(Index index) const 
   { 
     return packet<LoadMode>(RowsAtCompileTime == 1 ? 0 : index,
-			    RowsAtCompileTime == 1 ? index : 0);
+                            RowsAtCompileTime == 1 ? index : 0);
   }
   
   template<int StoreMode> 
@@ -741,8 +763,8 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAcc
   void writePacket(Index index, const PacketScalar& x) 
   { 
     return writePacket<StoreMode>(RowsAtCompileTime == 1 ? 0 : index,
-				  RowsAtCompileTime == 1 ? index : 0,
-				  x);
+                                  RowsAtCompileTime == 1 ? index : 0,
+                                  x);
   }
  
 protected:
@@ -773,6 +795,11 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
   : evaluator_base<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 {
   typedef Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> XprType;
+  enum {
+    CoeffReadCost = evaluator<ConditionMatrixType>::CoeffReadCost
+                  + EIGEN_SIZE_MAX(evaluator<ThenMatrixType>::CoeffReadCost,
+                                   evaluator<ElseMatrixType>::CoeffReadCost)
+  };
 
   evaluator(const XprType& select) 
     : m_conditionImpl(select.conditionMatrix()),
@@ -813,6 +840,18 @@ struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   : evaluator_base<Replicate<ArgType, RowFactor, ColFactor> >
 {
   typedef Replicate<ArgType, RowFactor, ColFactor> XprType;
+  typedef typename XprType::Index Index;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketReturnType PacketReturnType;
+  enum {
+    Factor = (RowFactor==Dynamic || ColFactor==Dynamic) ? Dynamic : RowFactor*ColFactor
+  };
+  typedef typename internal::nested_eval<ArgType,Factor>::type ArgTypeNested;
+  typedef typename internal::remove_all<ArgTypeNested>::type ArgTypeNestedCleaned;
+  
+  enum {
+    CoeffReadCost = evaluator<ArgTypeNestedCleaned>::CoeffReadCost
+  };
 
   evaluator(const XprType& replicate) 
     : m_arg(replicate.nestedExpression()),
@@ -821,10 +860,6 @@ struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
       m_cols(replicate.nestedExpression().cols())
   { }
  
-  typedef typename XprType::Index Index;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
-
   CoeffReturnType coeff(Index row, Index col) const
   {
     // try to avoid using modulo; this is a pure optimization strategy
@@ -852,13 +887,7 @@ struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   }
  
 protected:
-  enum {
-    Factor = (RowFactor==Dynamic || ColFactor==Dynamic) ? Dynamic : RowFactor*ColFactor
-  };
-  typedef typename internal::nested_eval<ArgType,Factor>::type ArgTypeNested;
-  typedef typename internal::remove_all<ArgTypeNested>::type ArgTypeNestedCleaned;
-  
-  const ArgTypeNested m_arg; // FIXME is it OK to store both the argument and its evaluator?? (we have the same situation in evalautor_product)
+  const ArgTypeNested m_arg; // FIXME is it OK to store both the argument and its evaluator?? (we have the same situation in evaluator_product)
   typename evaluator<ArgTypeNestedCleaned>::nestedType m_argImpl;
   const variable_if_dynamic<Index, ArgType::RowsAtCompileTime> m_rows;
   const variable_if_dynamic<Index, ArgType::ColsAtCompileTime> m_cols;
@@ -876,6 +905,15 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
   : evaluator_base<PartialReduxExpr<ArgType, MemberOp, Direction> >
 {
   typedef PartialReduxExpr<ArgType, MemberOp, Direction> XprType;
+  typedef typename XprType::Scalar InputScalar;
+  enum {
+    TraversalSize = Direction==Vertical ? XprType::RowsAtCompileTime :  XprType::ColsAtCompileTime
+  };
+  typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
+  enum {
+    CoeffReadCost = TraversalSize==Dynamic ? Dynamic
+                  : TraversalSize * evaluator<ArgType>::CoeffReadCost + int(CostOpType::value)
+  };
 
   evaluator(const XprType expr)
     : m_expr(expr)
@@ -909,6 +947,9 @@ struct evaluator_wrapper_base
   : evaluator_base<XprType>
 {
   typedef typename remove_all<typename XprType::NestedExpressionType>::type ArgType;
+  enum {
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost
+  };
 
   evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
 
@@ -1015,7 +1056,9 @@ struct evaluator<Reverse<ArgType, Direction> >
     OffsetCol  = ReverseCol && IsRowMajor ? PacketSize : 1,
     ReversePacket = (Direction == BothDirections)
                     || ((Direction == Vertical)   && IsColMajor)
-                    || ((Direction == Horizontal) && IsRowMajor)
+                    || ((Direction == Horizontal) && IsRowMajor),
+                    
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost
   };
   typedef internal::reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
 
@@ -1093,6 +1136,10 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
   : evaluator_base<Diagonal<ArgType, DiagIndex> >
 {
   typedef Diagonal<ArgType, DiagIndex> XprType;
+  
+  enum {
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost
+  };
 
   evaluator(const XprType& diagonal) 
     : m_argImpl(diagonal.nestedExpression()),

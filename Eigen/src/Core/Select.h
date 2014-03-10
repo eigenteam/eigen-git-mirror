@@ -43,10 +43,13 @@ struct traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
     ColsAtCompileTime = ConditionMatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = ConditionMatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ConditionMatrixType::MaxColsAtCompileTime,
-    Flags = (unsigned int)ThenMatrixType::Flags & ElseMatrixType::Flags & HereditaryBits,
+    Flags = (unsigned int)ThenMatrixType::Flags & ElseMatrixType::Flags & HereditaryBits
+#ifndef EIGEN_TEST_EVALUATORS
+    ,
     CoeffReadCost = traits<typename remove_all<ConditionMatrixNested>::type>::CoeffReadCost
                   + EIGEN_SIZE_MAX(traits<typename remove_all<ThenMatrixNested>::type>::CoeffReadCost,
                                    traits<typename remove_all<ElseMatrixNested>::type>::CoeffReadCost)
+#endif
   };
 };
 }

@@ -46,8 +46,11 @@ struct traits<CwiseUnaryOp<UnaryOp, XprType> >
   enum {
     Flags = _XprTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit
-      | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)),
+      | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))
+#ifndef EIGEN_TEST_EVALUATORS
+    ,
     CoeffReadCost = _XprTypeNested::CoeffReadCost + functor_traits<UnaryOp>::Cost
+#endif
   };
 };
 }

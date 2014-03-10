@@ -47,8 +47,6 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
                                          typename traits<_RhsNested>::Index>::type Index;
 
   enum {
-      LhsCoeffReadCost = traits<_LhsNested>::CoeffReadCost,
-      RhsCoeffReadCost = traits<_RhsNested>::CoeffReadCost,
       LhsFlags = traits<_LhsNested>::Flags,
       RhsFlags = traits<_RhsNested>::Flags,
 
@@ -89,11 +87,13 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
             | (CanVectorizeRhs ? (RhsFlags & AlignedBit) : 0)
             // TODO enable vectorization for mixed types
             | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0),
-
+#ifndef EIGEN_TEST_EVALUATORS
+      LhsCoeffReadCost = traits<_LhsNested>::CoeffReadCost,
+      RhsCoeffReadCost = traits<_RhsNested>::CoeffReadCost,
       CoeffReadCost = (InnerSize == Dynamic || LhsCoeffReadCost==Dynamic || RhsCoeffReadCost==Dynamic || NumTraits<Scalar>::AddCost==Dynamic || NumTraits<Scalar>::MulCost==Dynamic) ? Dynamic
                     : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
                       + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
-
+#endif
       /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
       * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
       * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect

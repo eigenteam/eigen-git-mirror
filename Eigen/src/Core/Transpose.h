@@ -45,7 +45,9 @@ struct traits<Transpose<MatrixType> > : traits<MatrixType>
     Flags0 = MatrixTypeNestedPlain::Flags & ~(LvalueBit | NestByRefBit),
     Flags1 = Flags0 | FlagsLvalueBit,
     Flags = Flags1 ^ RowMajorBit,
+#ifndef EIGEN_TEST_EVALUATORS
     CoeffReadCost = MatrixTypeNestedPlain::CoeffReadCost,
+#endif
     InnerStrideAtCompileTime = inner_stride_at_compile_time<MatrixType>::ret,
     OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret
   };

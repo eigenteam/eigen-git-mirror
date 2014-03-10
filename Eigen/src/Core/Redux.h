@@ -331,7 +331,7 @@ public:
     IsRowMajor = XprType::IsRowMajor,
     SizeAtCompileTime = XprType::SizeAtCompileTime,
     InnerSizeAtCompileTime = XprType::InnerSizeAtCompileTime,
-    CoeffReadCost = XprType::CoeffReadCost
+    CoeffReadCost = evaluator<XprType>::CoeffReadCost
   };
   
   Index rows() const { return m_xpr.rows(); }

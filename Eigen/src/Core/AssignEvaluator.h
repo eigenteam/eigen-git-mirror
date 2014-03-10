@@ -24,37 +24,45 @@ namespace internal {
 
 // copy_using_evaluator_traits is based on assign_traits
 
-template <typename Derived, typename OtherDerived, typename AssignFunc>
+template <typename DstEvaluator, typename SrcEvaluator, typename AssignFunc>
 struct copy_using_evaluator_traits
 {
+  typedef typename DstEvaluator::XprType Dst;
+  typedef typename SrcEvaluator::XprType Src;
+  // TODO, we should get these flags from the evaluators
+  enum {
+    DstFlags = Dst::Flags,
+    SrcFlags = Src::Flags
+  };
+  
 public:
   enum {
-    DstIsAligned = Derived::Flags & AlignedBit,
-    DstHasDirectAccess = Derived::Flags & DirectAccessBit,
-    SrcIsAligned = OtherDerived::Flags & AlignedBit,
+    DstIsAligned = DstFlags & AlignedBit,
+    DstHasDirectAccess = DstFlags & DirectAccessBit,
+    SrcIsAligned = SrcFlags & AlignedBit,
     JointAlignment = bool(DstIsAligned) && bool(SrcIsAligned) ? Aligned : Unaligned
   };
 
 private:
   enum {
-    InnerSize = int(Derived::IsVectorAtCompileTime) ? int(Derived::SizeAtCompileTime)
-              : int(Derived::Flags)&RowMajorBit ? int(Derived::ColsAtCompileTime)
-              : int(Derived::RowsAtCompileTime),
-    InnerMaxSize = int(Derived::IsVectorAtCompileTime) ? int(Derived::MaxSizeAtCompileTime)
-              : int(Derived::Flags)&RowMajorBit ? int(Derived::MaxColsAtCompileTime)
-              : int(Derived::MaxRowsAtCompileTime),
-    MaxSizeAtCompileTime = Derived::SizeAtCompileTime,
-    PacketSize = packet_traits<typename Derived::Scalar>::size
+    InnerSize = int(Dst::IsVectorAtCompileTime) ? int(Dst::SizeAtCompileTime)
+              : int(DstFlags)&RowMajorBit ? int(Dst::ColsAtCompileTime)
+              : int(Dst::RowsAtCompileTime),
+    InnerMaxSize = int(Dst::IsVectorAtCompileTime) ? int(Dst::MaxSizeAtCompileTime)
+              : int(DstFlags)&RowMajorBit ? int(Dst::MaxColsAtCompileTime)
+              : int(Dst::MaxRowsAtCompileTime),
+    MaxSizeAtCompileTime = Dst::SizeAtCompileTime,
+    PacketSize = packet_traits<typename Dst::Scalar>::size
   };
 
   enum {
-    StorageOrdersAgree = (int(Derived::IsRowMajor) == int(OtherDerived::IsRowMajor)),
+    StorageOrdersAgree = (int(Dst::IsRowMajor) == int(Src::IsRowMajor)),
     MightVectorize = StorageOrdersAgree
-                  && (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit)
+                  && (int(DstFlags) & int(SrcFlags) & ActualPacketAccessBit)
                   && (functor_traits<AssignFunc>::PacketAccess),
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
                        && int(DstIsAligned) && int(SrcIsAligned),
-    MayLinearize = StorageOrdersAgree && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
+    MayLinearize = StorageOrdersAgree && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
     MayLinearVectorize = MightVectorize && MayLinearize && DstHasDirectAccess
                        && (DstIsAligned || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
@@ -81,12 +89,12 @@ public:
 private:
   enum {
     UnrollingLimit      = EIGEN_UNROLLING_LIMIT * (Vectorized ? int(PacketSize) : 1),
-    MayUnrollCompletely = int(Derived::SizeAtCompileTime) != Dynamic
-                       && int(OtherDerived::CoeffReadCost) != Dynamic
-                       && int(Derived::SizeAtCompileTime) * int(OtherDerived::CoeffReadCost) <= int(UnrollingLimit),
+    MayUnrollCompletely = int(Dst::SizeAtCompileTime) != Dynamic
+                       && int(SrcEvaluator::CoeffReadCost) != Dynamic
+                       && int(Dst::SizeAtCompileTime) * int(SrcEvaluator::CoeffReadCost) <= int(UnrollingLimit),
     MayUnrollInner      = int(InnerSize) != Dynamic
-                       && int(OtherDerived::CoeffReadCost) != Dynamic
-                       && int(InnerSize) * int(OtherDerived::CoeffReadCost) <= int(UnrollingLimit)
+                       && int(SrcEvaluator::CoeffReadCost) != Dynamic
+                       && int(InnerSize) * int(SrcEvaluator::CoeffReadCost) <= int(UnrollingLimit)
   };
 
 public:
@@ -518,12 +526,16 @@ public:
   typedef SrcEvaluatorTypeT SrcEvaluatorType;
   typedef typename DstEvaluatorType::Scalar Scalar;
   typedef typename DstEvaluatorType::Index Index;
-  typedef copy_using_evaluator_traits<DstXprType, SrcXprType, Functor> AssignmentTraits;
+  typedef copy_using_evaluator_traits<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor> AssignmentTraits;
   
   
   generic_dense_assignment_kernel(DstEvaluatorType &dst, const SrcEvaluatorType &src, const Functor &func, DstXprType& dstExpr)
     : m_dst(dst), m_src(src), m_functor(func), m_dstExpr(dstExpr)
-  {}
+  {
+    #ifdef EIGEN_DEBUG_ASSIGN
+    AssignmentTraits::debug();
+    #endif
+  }
   
   Index size() const        { return m_dstExpr.size(); }
   Index innerSize() const   { return m_dstExpr.innerSize(); }
@@ -612,10 +624,6 @@ protected:
 template<typename DstXprType, typename SrcXprType, typename Functor>
 void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
-#ifdef EIGEN_DEBUG_ASSIGN
-  // TODO these traits should be computed from information provided by the evaluators
-  internal::copy_using_evaluator_traits<DstXprType, SrcXprType, Functor>::debug();
-#endif
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
   typedef typename evaluator<DstXprType>::type DstEvaluatorType;
@@ -749,10 +757,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    
-    #ifdef EIGEN_DEBUG_ASSIGN
-      internal::copy_using_evaluator_traits<DstXprType, SrcXprType, Functor>::debug();
-    #endif
     
     call_dense_assignment_loop(dst, src, func);
   }

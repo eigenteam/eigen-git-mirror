@@ -370,7 +370,9 @@ template<typename T, int n, typename PlainObject = typename eval<T>::type> struc
     DynamicAsInteger = 10000,
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
     ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
-    CoeffReadCost = traits<T>::CoeffReadCost,
+    CoeffReadCost = evaluator<T>::CoeffReadCost,  // TODO What if an evaluator evaluate itself into a tempory?
+                                                  // Then CoeffReadCost will be small but we still have to evaluate if n>1... 
+                                                  // The solution might be to ask the evaluator if it creates a temp. Perhaps we could even ask the number of temps?
     CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
     NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
     CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,

@@ -52,6 +52,7 @@ struct traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
     Flags = (Flags0 & ~RowMajorBit) | (RowsAtCompileTime == 1 ? RowMajorBit : 0),
     TraversalSize = Direction==Vertical ? MatrixType::RowsAtCompileTime :  MatrixType::ColsAtCompileTime
   };
+#ifndef EIGEN_TEST_EVALUATORS
   #if EIGEN_GNUC_AT_LEAST(3,4)
   typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
   #else
@@ -61,6 +62,7 @@ struct traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
     CoeffReadCost = TraversalSize==Dynamic ? Dynamic
                   : TraversalSize * traits<_MatrixTypeNested>::CoeffReadCost + int(CostOpType::value)
   };
+#endif
 };
 }
 

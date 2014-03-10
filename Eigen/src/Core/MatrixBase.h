@@ -66,8 +66,10 @@ template<typename Derived> class MatrixBase
     using Base::MaxSizeAtCompileTime;
     using Base::IsVectorAtCompileTime;
     using Base::Flags;
+#ifndef EIGEN_TEST_EVALUATORS
     using Base::CoeffReadCost;
-
+#endif
+    
     using Base::derived;
     using Base::const_cast_derived;
     using Base::rows;

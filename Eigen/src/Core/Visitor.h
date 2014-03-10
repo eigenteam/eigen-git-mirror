@@ -53,6 +53,35 @@ struct visitor_impl<Visitor, Derived, Dynamic>
   }
 };
 
+#ifdef EIGEN_ENABLE_EVALUATORS
+// evaluator adaptor
+template<typename XprType>
+class visitor_evaluator
+{
+public:
+  visitor_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
+  
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  
+  enum {
+    RowsAtCompileTime = XprType::RowsAtCompileTime,
+    CoeffReadCost = internal::evaluator<XprType>::CoeffReadCost
+  };
+  
+  Index rows() const { return m_xpr.rows(); }
+  Index cols() const { return m_xpr.cols(); }
+  Index size() const { return m_xpr.size(); }
+
+  CoeffReturnType coeff(Index row, Index col) const
+  { return m_evaluator.coeff(row, col); }
+  
+protected:
+  typename internal::evaluator<XprType>::nestedType m_evaluator;
+  const XprType &m_xpr;
+};
+#endif
 } // end namespace internal
 
 /** Applies the visitor \a visitor to the whole coefficients of the matrix or vector.
@@ -76,6 +105,19 @@ template<typename Derived>
 template<typename Visitor>
 void DenseBase<Derived>::visit(Visitor& visitor) const
 {
+#ifdef EIGEN_TEST_EVALUATORS
+  typedef typename internal::visitor_evaluator<Derived> ThisEvaluator;
+  ThisEvaluator thisEval(derived());
+  
+  enum { unroll =   SizeAtCompileTime != Dynamic
+                &&  ThisEvaluator::CoeffReadCost != Dynamic
+                &&  (SizeAtCompileTime == 1 || internal::functor_traits<Visitor>::Cost != Dynamic)
+                &&  SizeAtCompileTime * ThisEvaluator::CoeffReadCost + (SizeAtCompileTime-1) * internal::functor_traits<Visitor>::Cost
+                <= EIGEN_UNROLLING_LIMIT };
+  return internal::visitor_impl<Visitor, ThisEvaluator,
+      unroll ? int(SizeAtCompileTime) : Dynamic
+    >::run(thisEval, visitor);
+#else
   enum { unroll = SizeAtCompileTime != Dynamic
                    && CoeffReadCost != Dynamic
                    && (SizeAtCompileTime == 1 || internal::functor_traits<Visitor>::Cost != Dynamic)
@@ -84,6 +126,7 @@ void DenseBase<Derived>::visit(Visitor& visitor) const
   return internal::visitor_impl<Visitor, Derived,
       unroll ? int(SizeAtCompileTime) : Dynamic
     >::run(derived(), visitor);
+#endif
 }
 
 namespace internal {
