@@ -530,9 +530,9 @@ public:
 
   inline Transform& operator=(const UniformScaling<Scalar>& t);
   inline Transform& operator*=(const UniformScaling<Scalar>& s) { return scale(s.factor()); }
-  inline Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode)> operator*(const UniformScaling<Scalar>& s) const
+  inline TransformTimeDiagonalReturnType operator*(const UniformScaling<Scalar>& s) const
   {
-    Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode),Options> res = *this;
+    TransformTimeDiagonalReturnType res = *this;
     res.scale(s.factor());
     return res;
   }
