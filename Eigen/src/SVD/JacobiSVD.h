@@ -653,6 +653,16 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       * \note SVD solving is implicitly least-squares. Thus, this method serves both purposes of exact solving and least-squares solving.
       * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
       */
+#ifdef EIGEN_TEST_EVALUATORS
+    template<typename Rhs>
+    inline const Solve<JacobiSVD, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "JacobiSVD is not initialized.");
+      eigen_assert(computeU() && computeV() && "JacobiSVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
+      return Solve<JacobiSVD, Rhs>(*this, b.derived());
+    }
+#else
     template<typename Rhs>
     inline const internal::solve_retval<JacobiSVD, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -661,6 +671,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       eigen_assert(computeU() && computeV() && "JacobiSVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
       return internal::solve_retval<JacobiSVD, Rhs>(*this, b.derived());
     }
+#endif
 
     /** \returns the number of singular values that are not exactly 0 */
     Index nonzeroSingularValues() const
@@ -734,6 +745,12 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
 
     inline Index rows() const { return m_rows; }
     inline Index cols() const { return m_cols; }
+    
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl(const RhsType &rhs, DstType &dst) const;
+    #endif
 
   private:
     void allocate(Index rows, Index cols, unsigned int computationOptions);
@@ -912,7 +929,27 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   return *this;
 }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template<typename _MatrixType, int QRPreconditioner>
+template<typename RhsType, typename DstType>
+void JacobiSVD<_MatrixType,QRPreconditioner>::_solve_impl(const RhsType &rhs, DstType &dst) const
+{
+  eigen_assert(rhs.rows() == rows());
+
+  // A = U S V^*
+  // So A^{-1} = V S^{-1} U^*
+
+  Matrix<Scalar, Dynamic, RhsType::ColsAtCompileTime, 0, _MatrixType::MaxRowsAtCompileTime, RhsType::MaxColsAtCompileTime> tmp;
+  Index l_rank = rank();
+  
+  tmp.noalias() =  m_matrixU.leftCols(l_rank).adjoint() * rhs;
+  tmp = m_singularValues.head(l_rank).asDiagonal().inverse() * tmp;
+  dst = m_matrixV.leftCols(l_rank) * tmp;
+}
+#endif
+
 namespace internal {
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename _MatrixType, int QRPreconditioner, typename Rhs>
 struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
   : solve_retval_base<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
@@ -922,19 +959,10 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    eigen_assert(rhs().rows() == dec().rows());
-
-    // A = U S V^*
-    // So A^{-1} = V S^{-1} U^*
-
-    Matrix<Scalar, Dynamic, Rhs::ColsAtCompileTime, 0, _MatrixType::MaxRowsAtCompileTime, Rhs::MaxColsAtCompileTime> tmp;
-    Index rank = dec().rank();
-    
-    tmp.noalias() = dec().matrixU().leftCols(rank).adjoint() * rhs();
-    tmp = dec().singularValues().head(rank).asDiagonal().inverse() * tmp;
-    dst = dec().matrixV().leftCols(rank) * tmp;
+    dec()._solve_impl(rhs(), dst);
   }
 };
+#endif
 } // end namespace internal
 
 #ifndef __CUDACC__

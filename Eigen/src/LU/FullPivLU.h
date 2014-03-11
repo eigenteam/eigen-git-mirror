@@ -702,8 +702,8 @@ struct image_retval<FullPivLU<_MatrixType> >
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 template<typename _MatrixType>
 template<typename RhsType, typename DstType>
-void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const {
-  
+void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
+{  
   /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
   * So we proceed as follows:
   * Step 1: compute c = P * rhs.
