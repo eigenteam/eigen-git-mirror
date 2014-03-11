@@ -16,11 +16,7 @@ namespace internal {
 template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
  : traits<_MatrixType>
 {
-  typedef traits<_MatrixType> BaseTraits;
-  enum {
-    Flags = BaseTraits::Flags & RowMajorBit,
-    CoeffReadCost = Dynamic
-  };
+  enum { Flags = 0 };
 };
 
 } // end namespace internal
@@ -755,7 +751,7 @@ void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
 
 namespace internal {
 
-#ifdef EIGEN_TEST_EVALUATORS
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename _MatrixType, typename Rhs>
 struct solve_retval<FullPivLU<_MatrixType>, Rhs>
   : solve_retval_base<FullPivLU<_MatrixType>, Rhs>

@@ -60,7 +60,9 @@ class PermutationBase : public EigenBase<Derived>
     typedef typename Traits::IndicesType IndicesType;
     enum {
       Flags = Traits::Flags,
+#ifndef EIGEN_TEST_EVALUATORS
       CoeffReadCost = Traits::CoeffReadCost,
+#endif
       RowsAtCompileTime = Traits::RowsAtCompileTime,
       ColsAtCompileTime = Traits::ColsAtCompileTime,
       MaxRowsAtCompileTime = Traits::MaxRowsAtCompileTime,
@@ -473,8 +475,11 @@ struct traits<PermutationWrapper<_IndicesType> >
     ColsAtCompileTime = _IndicesType::SizeAtCompileTime,
     MaxRowsAtCompileTime = IndicesType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = IndicesType::MaxColsAtCompileTime,
-    Flags = 0,
+    Flags = 0
+#ifndef EIGEN_TEST_EVALUATORS
+    ,
     CoeffReadCost = _IndicesType::CoeffReadCost
+#endif
   };
 };
 }
@@ -626,7 +631,9 @@ class Transpose<PermutationBase<Derived> >
     typedef typename Derived::DenseMatrixType DenseMatrixType;
     enum {
       Flags = Traits::Flags,
+#ifndef EIGEN_TEST_EVALUATORS
       CoeffReadCost = Traits::CoeffReadCost,
+#endif
       RowsAtCompileTime = Traits::RowsAtCompileTime,
       ColsAtCompileTime = Traits::ColsAtCompileTime,
       MaxRowsAtCompileTime = Traits::MaxRowsAtCompileTime,
