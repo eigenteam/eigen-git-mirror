@@ -62,8 +62,8 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
     
     
 
-    typedef typename Lhs::Nested LhsNested;
-    typedef typename Rhs::Nested RhsNested;
+    typedef typename internal::nested<Lhs>::type LhsNested;
+    typedef typename internal::nested<Rhs>::type RhsNested;
     typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;
     typedef typename internal::remove_all<RhsNested>::type RhsNestedCleaned;
 
