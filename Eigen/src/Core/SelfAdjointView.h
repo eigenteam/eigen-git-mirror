@@ -39,8 +39,11 @@ struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
   enum {
     Mode = UpLo | SelfAdjoint,
     Flags =  MatrixTypeNestedCleaned::Flags & (HereditaryBits)
-           & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)), // FIXME these flags should be preserved
+           & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)) // FIXME these flags should be preserved
+#ifndef EIGEN_TEST_EVALUATORS
+    ,
     CoeffReadCost = MatrixTypeNestedCleaned::CoeffReadCost
+#endif
   };
 };
 }

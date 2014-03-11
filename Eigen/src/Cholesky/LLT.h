@@ -117,6 +117,17 @@ template<typename _MatrixType, int _UpLo> class LLT
       *
       * \sa solveInPlace(), MatrixBase::llt()
       */
+#ifdef EIGEN_TEST_EVALUATORS
+    template<typename Rhs>
+    inline const Solve<LLT, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "LLT is not initialized.");
+      eigen_assert(m_matrix.rows()==b.rows()
+                && "LLT::solve(): invalid number of rows of the right hand side matrix b");
+      return Solve<LLT, Rhs>(*this, b.derived());
+    }
+#else
     template<typename Rhs>
     inline const internal::solve_retval<LLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -126,6 +137,7 @@ template<typename _MatrixType, int _UpLo> class LLT
                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<LLT, Rhs>(*this, b.derived());
     }
+#endif
 
     #ifdef EIGEN2_SUPPORT
     template<typename OtherDerived, typename ResultType>
@@ -172,6 +184,12 @@ template<typename _MatrixType, int _UpLo> class LLT
 
     template<typename VectorType>
     LLT rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
+    
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl(const RhsType &rhs, DstType &dst) const;
+    #endif
 
   protected:
     /** \internal
@@ -415,8 +433,19 @@ LLT<_MatrixType,_UpLo> LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, c
 
   return *this;
 }
-    
+ 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template<typename _MatrixType,int _UpLo>
+template<typename RhsType, typename DstType>
+void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
+{
+  dst = rhs;
+  solveInPlace(dst);
+}
+#endif
+
 namespace internal {
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename _MatrixType, int UpLo, typename Rhs>
 struct solve_retval<LLT<_MatrixType, UpLo>, Rhs>
   : solve_retval_base<LLT<_MatrixType, UpLo>, Rhs>
@@ -430,6 +459,7 @@ struct solve_retval<LLT<_MatrixType, UpLo>, Rhs>
     dec().solveInPlace(dst);
   }
 };
+#endif
 }
 
 /** \internal use x = llt_object.solve(x);

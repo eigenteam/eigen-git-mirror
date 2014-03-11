@@ -348,7 +348,7 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
 
 // When using evaluators, we never evaluate when assembling the expression!!
 // TODO: get rid of this nested class since it's just an alias for ref_selector.
-template<typename T, int n=1, typename PlainObject = typename eval<T>::type> struct nested
+template<typename T, int n=1, typename PlainObject = void> struct nested
 {
   typedef typename ref_selector<T>::type type;
 };

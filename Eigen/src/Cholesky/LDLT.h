@@ -181,6 +181,17 @@ template<typename _MatrixType, int _UpLo> class LDLT
       *
       * \sa MatrixBase::ldlt()
       */
+#ifdef EIGEN_TEST_EVALUATORS
+    template<typename Rhs>
+    inline const Solve<LDLT, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "LDLT is not initialized.");
+      eigen_assert(m_matrix.rows()==b.rows()
+                && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
+      return Solve<LDLT, Rhs>(*this, b.derived());
+    }
+#else
     template<typename Rhs>
     inline const internal::solve_retval<LDLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -190,6 +201,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
                 && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<LDLT, Rhs>(*this, b.derived());
     }
+#endif
 
     #ifdef EIGEN2_SUPPORT
     template<typename OtherDerived, typename ResultType>
@@ -233,6 +245,12 @@ template<typename _MatrixType, int _UpLo> class LDLT
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return Success;
     }
+    
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl(const RhsType &rhs, DstType &dst) const;
+    #endif
 
   protected:
 
@@ -492,7 +510,44 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Deri
   return *this;
 }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template<typename _MatrixType, int _UpLo>
+template<typename RhsType, typename DstType>
+void LDLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
+{
+  eigen_assert(rhs.rows() == rows());
+  // dst = P b
+  dst = m_transpositions * rhs;
+
+  // dst = L^-1 (P b)
+  matrixL().solveInPlace(dst);
+
+  // dst = D^-1 (L^-1 P b)
+  // more precisely, use pseudo-inverse of D (see bug 241)
+  using std::abs;
+  EIGEN_USING_STD_MATH(max);
+  const Diagonal<const MatrixType> vecD = vectorD();
+  RealScalar tolerance = (max)( vecD.array().abs().maxCoeff() * NumTraits<Scalar>::epsilon(),
+                                RealScalar(1) / NumTraits<RealScalar>::highest()); // motivated by LAPACK's xGELSS
+  
+  for (Index i = 0; i < vecD.size(); ++i)
+  {
+    if(abs(vecD(i)) > tolerance)
+      dst.row(i) /= vecD(i);
+    else
+      dst.row(i).setZero();
+  }
+
+  // dst = L^-T (D^-1 L^-1 P b)
+  matrixU().solveInPlace(dst);
+
+  // dst = P^-1 (L^-T D^-1 L^-1 P b) = A^-1 b
+  dst = m_transpositions.transpose() * dst;
+}
+#endif
+  
 namespace internal {
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename _MatrixType, int _UpLo, typename Rhs>
 struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
   : solve_retval_base<LDLT<_MatrixType,_UpLo>, Rhs>
@@ -502,37 +557,10 @@ struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    eigen_assert(rhs().rows() == dec().matrixLDLT().rows());
-    // dst = P b
-    dst = dec().transpositionsP() * rhs();
-
-    // dst = L^-1 (P b)
-    dec().matrixL().solveInPlace(dst);
-
-    // dst = D^-1 (L^-1 P b)
-    // more precisely, use pseudo-inverse of D (see bug 241)
-    using std::abs;
-    EIGEN_USING_STD_MATH(max);
-    typedef typename LDLTType::MatrixType MatrixType;
-    typedef typename LDLTType::Scalar Scalar;
-    typedef typename LDLTType::RealScalar RealScalar;
-    const Diagonal<const MatrixType> vectorD = dec().vectorD();
-    RealScalar tolerance = (max)(vectorD.array().abs().maxCoeff() * NumTraits<Scalar>::epsilon(),
-				 RealScalar(1) / NumTraits<RealScalar>::highest()); // motivated by LAPACK's xGELSS
-    for (Index i = 0; i < vectorD.size(); ++i) {
-      if(abs(vectorD(i)) > tolerance)
-	dst.row(i) /= vectorD(i);
-      else
-	dst.row(i).setZero();
-    }
-
-    // dst = L^-T (D^-1 L^-1 P b)
-    dec().matrixU().solveInPlace(dst);
-
-    // dst = P^-1 (L^-T D^-1 L^-1 P b) = A^-1 b
-    dst = dec().transpositionsP().transpose() * dst;
+    dec()._solve_impl(rhs(),dst);
   }
 };
+#endif
 }
 
 /** \internal use x = ldlt_object.solve(x);
