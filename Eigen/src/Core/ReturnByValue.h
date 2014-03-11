@@ -33,6 +33,7 @@ struct traits<ReturnByValue<Derived> >
   };
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 /* The ReturnByValue object doesn't even have a coeff() method.
  * So the only way that nesting it in an expression can work, is by evaluating it into a plain matrix.
  * So internal::nested always gives the plain return matrix type.
@@ -44,6 +45,13 @@ struct nested<ReturnByValue<Derived>, n, PlainObject>
 {
   typedef typename traits<Derived>::ReturnType type;
 };
+#else
+template<typename Derived,int n,typename PlainObject>
+struct nested_eval<ReturnByValue<Derived>, n, PlainObject>
+{
+  typedef typename traits<Derived>::ReturnType type;
+};
+#endif
 
 } // end namespace internal
 
