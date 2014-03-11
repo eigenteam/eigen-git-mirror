@@ -34,8 +34,9 @@ struct quaternionbase_assign_impl;
 template<class Derived>
 class QuaternionBase : public RotationBase<Derived, 3>
 {
+ public:
   typedef RotationBase<Derived, 3> Base;
-public:
+
   using Base::operator*;
   using Base::derived;
 
@@ -223,10 +224,10 @@ struct traits<Quaternion<_Scalar,_Options> >
 template<typename _Scalar, int _Options>
 class Quaternion : public QuaternionBase<Quaternion<_Scalar,_Options> >
 {
+public:
   typedef QuaternionBase<Quaternion<_Scalar,_Options> > Base;
   enum { IsAligned = internal::traits<Quaternion>::IsAligned };
 
-public:
   typedef _Scalar Scalar;
 
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Quaternion)
@@ -334,9 +335,9 @@ template<typename _Scalar, int _Options>
 class Map<const Quaternion<_Scalar>, _Options >
   : public QuaternionBase<Map<const Quaternion<_Scalar>, _Options> >
 {
+  public:
     typedef QuaternionBase<Map<const Quaternion<_Scalar>, _Options> > Base;
 
-  public:
     typedef _Scalar Scalar;
     typedef typename internal::traits<Map>::Coefficients Coefficients;
     EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
@@ -371,9 +372,9 @@ template<typename _Scalar, int _Options>
 class Map<Quaternion<_Scalar>, _Options >
   : public QuaternionBase<Map<Quaternion<_Scalar>, _Options> >
 {
+  public:
     typedef QuaternionBase<Map<Quaternion<_Scalar>, _Options> > Base;
 
-  public:
     typedef _Scalar Scalar;
     typedef typename internal::traits<Map>::Coefficients Coefficients;
     EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
