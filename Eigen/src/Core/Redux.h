@@ -351,7 +351,7 @@ public:
     MaxRowsAtCompileTime = XprType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = XprType::MaxColsAtCompileTime,
     // TODO we should not remove DirectAccessBit and rather find an elegant way to query the alignment offset at runtime from the evaluator
-    Flags = XprType::Flags & ~DirectAccessBit,
+    Flags = evaluator<XprType>::Flags & ~DirectAccessBit,
     IsRowMajor = XprType::IsRowMajor,
     SizeAtCompileTime = XprType::SizeAtCompileTime,
     InnerSizeAtCompileTime = XprType::InnerSizeAtCompileTime,

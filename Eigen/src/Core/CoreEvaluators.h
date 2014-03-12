@@ -756,23 +756,23 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
   enum {
     CoeffReadCost = evaluator<ArgType>::CoeffReadCost,
     
-    RowsAtCompileTime = traits<ArgType>::RowsAtCompileTime,
-    ColsAtCompileTime = traits<ArgType>::ColsAtCompileTime,
-    MaxRowsAtCompileTime = traits<ArgType>::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = traits<ArgType>::MaxColsAtCompileTime,
+    RowsAtCompileTime = traits<XprType>::RowsAtCompileTime,
+    ColsAtCompileTime = traits<XprType>::ColsAtCompileTime,
+    MaxRowsAtCompileTime = traits<XprType>::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = traits<XprType>::MaxColsAtCompileTime,
     
-    XprTypeIsRowMajor = (int(traits<ArgType>::Flags)&RowMajorBit) != 0,
+    ArgTypeIsRowMajor = (int(evaluator<ArgType>::Flags)&RowMajorBit) != 0,
     IsRowMajor = (MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1) ? 1
                : (MaxColsAtCompileTime==1 && MaxRowsAtCompileTime!=1) ? 0
-               : XprTypeIsRowMajor,
-    HasSameStorageOrderAsXprType = (IsRowMajor == XprTypeIsRowMajor),
+               : ArgTypeIsRowMajor,
+    HasSameStorageOrderAsArgType = (IsRowMajor == ArgTypeIsRowMajor),
     InnerSize = IsRowMajor ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
-    InnerStrideAtCompileTime = HasSameStorageOrderAsXprType
-                             ? int(inner_stride_at_compile_time<XprType>::ret)
-                             : int(outer_stride_at_compile_time<XprType>::ret),
-    OuterStrideAtCompileTime = HasSameStorageOrderAsXprType
-                             ? int(outer_stride_at_compile_time<XprType>::ret)
-                             : int(inner_stride_at_compile_time<XprType>::ret),
+    InnerStrideAtCompileTime = HasSameStorageOrderAsArgType
+                             ? int(inner_stride_at_compile_time<ArgType>::ret)
+                             : int(outer_stride_at_compile_time<ArgType>::ret),
+    OuterStrideAtCompileTime = HasSameStorageOrderAsArgType
+                             ? int(outer_stride_at_compile_time<ArgType>::ret)
+                             : int(inner_stride_at_compile_time<ArgType>::ret),
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % packet_traits<Scalar>::size) == 0)
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
