@@ -118,6 +118,12 @@ public:
 #ifdef EIGEN_DEBUG_ASSIGN
   static void debug()
   {
+    std::cerr << "DstXpr: " << typeid(typename DstEvaluator::XprType).name() << std::endl;
+    std::cerr << "SrcXpr: " << typeid(typename SrcEvaluator::XprType).name() << std::endl;
+    std::cerr.setf(std::ios::hex, std::ios::basefield);
+    EIGEN_DEBUG_VAR(DstFlags)
+    EIGEN_DEBUG_VAR(SrcFlags)
+    std::cerr.unsetf(std::ios::hex);
     EIGEN_DEBUG_VAR(DstIsAligned)
     EIGEN_DEBUG_VAR(SrcIsAligned)
     EIGEN_DEBUG_VAR(JointAlignment)
@@ -126,10 +132,6 @@ public:
     EIGEN_DEBUG_VAR(PacketSize)
     EIGEN_DEBUG_VAR(StorageOrdersAgree)
     EIGEN_DEBUG_VAR(MightVectorize)
-    std::cerr.setf(std::ios::hex, std::ios::basefield);
-    EIGEN_DEBUG_VAR(DstFlags)
-    EIGEN_DEBUG_VAR(SrcFlags)
-    std::cerr.unsetf(std::ios::hex);
     EIGEN_DEBUG_VAR(MayLinearize)
     EIGEN_DEBUG_VAR(MayInnerVectorize)
     EIGEN_DEBUG_VAR(MayLinearVectorize)
@@ -139,6 +141,7 @@ public:
     EIGEN_DEBUG_VAR(MayUnrollCompletely)
     EIGEN_DEBUG_VAR(MayUnrollInner)
     EIGEN_DEBUG_VAR(Unrolling)
+    std::cerr << std::endl;
   }
 #endif
 };

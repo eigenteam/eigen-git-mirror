@@ -65,6 +65,29 @@ public:
               ? CompleteUnrolling
               : NoUnrolling
   };
+  
+#ifdef EIGEN_DEBUG_ASSIGN
+  static void debug()
+  {
+#ifdef EIGEN_TEST_EVALUATORS
+    std::cerr << "Xpr: " << typeid(typename Derived::XprType).name() << std::endl;
+#else
+    std::cerr << "Xpr: " << typeid(Derived).name() << std::endl;
+#endif
+    std::cerr.setf(std::ios::hex, std::ios::basefield);
+    EIGEN_DEBUG_VAR(Derived::Flags)
+    std::cerr.unsetf(std::ios::hex);
+    EIGEN_DEBUG_VAR(InnerMaxSize)
+    EIGEN_DEBUG_VAR(PacketSize)
+    EIGEN_DEBUG_VAR(MightVectorize)
+    EIGEN_DEBUG_VAR(MayLinearVectorize)
+    EIGEN_DEBUG_VAR(MaySliceVectorize)
+    EIGEN_DEBUG_VAR(Traversal)
+    EIGEN_DEBUG_VAR(UnrollingLimit)
+    EIGEN_DEBUG_VAR(Unrolling)
+    std::cerr << std::endl;
+  }
+#endif
 };
 
 /***************************************************************************
@@ -311,10 +334,11 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
 
 #ifdef EIGEN_ENABLE_EVALUATORS
 // evaluator adaptor
-template<typename XprType>
+template<typename _XprType>
 class redux_evaluator
 {
 public:
+  typedef _XprType XprType;
   redux_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
   
   typedef typename XprType::Index Index;
