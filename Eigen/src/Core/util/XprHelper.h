@@ -124,6 +124,7 @@ template<typename _Scalar, int _Rows, int _Cols,
     typedef Matrix<_Scalar, _Rows, _Cols, Options, _MaxRows, _MaxCols> type;
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 class compute_matrix_flags
 {
@@ -157,6 +158,57 @@ class compute_matrix_flags
   public:
     enum { ret = LinearAccessBit | LvalueBit | DirectAccessBit | NestByRefBit | packet_access_bit | row_major_bit | aligned_bit };
 };
+
+#else // EIGEN_TEST_EVALUATORS
+
+template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
+class compute_matrix_flags
+{
+    enum { row_major_bit = Options&RowMajor ? RowMajorBit : 0 };
+  public:
+    // FIXME currently we still have to handle DirectAccessBit at the expression level to handle DenseCoeffsBase<>
+    // and then propagate this information to the evaluator's flags.
+    // However, I (Gael) think that DirectAccessBit should only matter at the evaluation stage.
+    enum { ret = DirectAccessBit | LvalueBit | NestByRefBit | row_major_bit };
+};
+#endif
+
+#ifdef EIGEN_ENABLE_EVALUATORS
+template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
+class compute_matrix_evaluator_flags
+{
+    enum {
+      row_major_bit = Options&RowMajor ? RowMajorBit : 0,
+      is_dynamic_size_storage = MaxRows==Dynamic || MaxCols==Dynamic,
+
+      aligned_bit =
+      (
+            ((Options&DontAlign)==0)
+        && (
+#if EIGEN_ALIGN_STATICALLY
+             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % 16) == 0))
+#else
+             0
+#endif
+
+          ||
+
+#if EIGEN_ALIGN
+             is_dynamic_size_storage
+#else
+             0
+#endif
+
+          )
+      ) ? AlignedBit : 0,
+      packet_access_bit = packet_traits<Scalar>::Vectorizable && aligned_bit ? PacketAccessBit : 0
+    };
+
+  public:
+    enum { ret = LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit };
+};
+
+#endif // EIGEN_ENABLE_EVALUATORS
 
 template<int _Rows, int _Cols> struct size_at_compile_time
 {

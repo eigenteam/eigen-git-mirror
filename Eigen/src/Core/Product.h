@@ -33,14 +33,29 @@ template<typename Lhs, typename Rhs, int Option, typename StorageKind> class Pro
 namespace internal {
 template<typename Lhs, typename Rhs, int Option>
 struct traits<Product<Lhs, Rhs, Option> >
-  : traits<CoeffBasedProduct<Lhs, Rhs, NestByRefBit> >
-{ 
-  // We want A+B*C to be of type Product<Matrix, Sum> and not Product<Matrix, Matrix>
-  // TODO: This flag should eventually go in a separate evaluator traits class
+{
+  typedef typename remove_all<Lhs>::type LhsCleaned;
+  typedef typename remove_all<Rhs>::type RhsCleaned;
+  
+  typedef MatrixXpr XprKind;
+  
+  typedef typename scalar_product_traits<typename LhsCleaned::Scalar, typename RhsCleaned::Scalar>::ReturnType Scalar;
+  typedef typename promote_storage_type<typename traits<LhsCleaned>::StorageKind,
+                                           typename traits<RhsCleaned>::StorageKind>::ret StorageKind;
+  typedef typename promote_index_type<typename traits<LhsCleaned>::Index,
+                                         typename traits<RhsCleaned>::Index>::type Index;
+  
   enum {
-    Flags = traits<CoeffBasedProduct<Lhs, Rhs, NestByRefBit> >::Flags & ~(EvalBeforeNestingBit | DirectAccessBit)
+    RowsAtCompileTime    = LhsCleaned::RowsAtCompileTime,
+    ColsAtCompileTime    = RhsCleaned::ColsAtCompileTime,
+    MaxRowsAtCompileTime = LhsCleaned::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = RhsCleaned::MaxColsAtCompileTime,
+    
+    // The storage order is somewhat arbitrary here. The correct one will be determined through the evaluator.
+    Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0)
   };
 };
+
 } // end namespace internal
 
 
@@ -59,8 +74,6 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
         typename internal::promote_storage_type<typename Lhs::StorageKind,
                                                 typename Rhs::StorageKind>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
-    
-    
 
     typedef typename internal::nested<Lhs>::type LhsNested;
     typedef typename internal::nested<Rhs>::type RhsNested;

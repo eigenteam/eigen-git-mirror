@@ -26,6 +26,7 @@ struct traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
 
+#ifndef EIGEN_TEST_EVALUATORS
     _StorageOrder = MatrixType::Flags & RowMajorBit ? RowMajor : ColMajor,
     _ScalarAccessOnDiag =  !((int(_StorageOrder) == ColMajor && int(ProductOrder) == OnTheLeft)
                           ||(int(_StorageOrder) == RowMajor && int(ProductOrder) == OnTheRight)),
@@ -34,11 +35,10 @@ struct traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
     //_Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagonalType::DiagonalVectorType::Flags)&PacketAccessBit))),
     _Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && _SameTypes && (_ScalarAccessOnDiag || (bool(int(DiagonalType::DiagonalVectorType::Flags)&PacketAccessBit))),
     _LinearAccessMask = (RowsAtCompileTime==1 || ColsAtCompileTime==1) ? LinearAccessBit : 0,
-
-    Flags = ((HereditaryBits|_LinearAccessMask) & (unsigned int)(MatrixType::Flags)) | (_Vectorizable ? PacketAccessBit : 0) | AlignedBit //(int(MatrixType::Flags)&int(DiagonalType::DiagonalVectorType::Flags)&AlignedBit),
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
+    Flags = ((HereditaryBits|_LinearAccessMask) & (unsigned int)(MatrixType::Flags)) | (_Vectorizable ? PacketAccessBit : 0) | AlignedBit, //(int(MatrixType::Flags)&int(DiagonalType::DiagonalVectorType::Flags)&AlignedBit),
     CoeffReadCost = NumTraits<Scalar>::MulCost + MatrixType::CoeffReadCost + DiagonalType::DiagonalVectorType::CoeffReadCost
+#else
+    Flags = RowMajorBit & (unsigned int)(MatrixType::Flags)
 #endif
   };
 };

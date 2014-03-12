@@ -41,12 +41,17 @@ struct traits<Transpose<MatrixType> > : traits<MatrixType>
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+#ifndef EIGEN_TEST_EVALUATORS
     FlagsLvalueBit = is_lvalue<MatrixType>::value ? LvalueBit : 0,
     Flags0 = MatrixTypeNestedPlain::Flags & ~(LvalueBit | NestByRefBit),
     Flags1 = Flags0 | FlagsLvalueBit,
     Flags = Flags1 ^ RowMajorBit,
-#ifndef EIGEN_TEST_EVALUATORS
     CoeffReadCost = MatrixTypeNestedPlain::CoeffReadCost,
+#else
+    FlagsLvalueBit = is_lvalue<MatrixType>::value ? LvalueBit : 0,
+    Flags0 = MatrixTypeNestedPlain::Flags & ~(LvalueBit | NestByRefBit),
+    Flags1 = Flags0 | FlagsLvalueBit,
+    Flags = Flags1 ^ RowMajorBit,
 #endif
     InnerStrideAtCompileTime = inner_stride_at_compile_time<MatrixType>::ret,
     OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret

@@ -28,11 +28,10 @@ template <typename DstEvaluator, typename SrcEvaluator, typename AssignFunc>
 struct copy_using_evaluator_traits
 {
   typedef typename DstEvaluator::XprType Dst;
-  typedef typename SrcEvaluator::XprType Src;
-  // TODO, we should get these flags from the evaluators
+  
   enum {
-    DstFlags = Dst::Flags,
-    SrcFlags = Src::Flags
+    DstFlags = DstEvaluator::Flags,
+    SrcFlags = SrcEvaluator::Flags
   };
   
 public:
@@ -56,7 +55,9 @@ private:
   };
 
   enum {
-    StorageOrdersAgree = (int(Dst::IsRowMajor) == int(Src::IsRowMajor)),
+    DstIsRowMajor = DstEvaluator::Flags&RowMajorBit,
+    SrcIsRowMajor = SrcEvaluator::Flags&RowMajorBit,
+    StorageOrdersAgree = (int(DstIsRowMajor) == int(SrcIsRowMajor)),
     MightVectorize = StorageOrdersAgree
                   && (int(DstFlags) & int(SrcFlags) & ActualPacketAccessBit)
                   && (functor_traits<AssignFunc>::PacketAccess),
@@ -596,7 +597,7 @@ public:
     typedef typename DstEvaluatorType::ExpressionTraits Traits;
     return int(Traits::RowsAtCompileTime) == 1 ? 0
       : int(Traits::ColsAtCompileTime) == 1 ? inner
-      : int(Traits::Flags)&RowMajorBit ? outer
+      : int(DstEvaluatorType::Flags)&RowMajorBit ? outer
       : inner;
   }
 
@@ -605,7 +606,7 @@ public:
     typedef typename DstEvaluatorType::ExpressionTraits Traits;
     return int(Traits::ColsAtCompileTime) == 1 ? 0
       : int(Traits::RowsAtCompileTime) == 1 ? inner
-      : int(Traits::Flags)&RowMajorBit ? inner
+      : int(DstEvaluatorType::Flags)&RowMajorBit ? inner
       : outer;
   }
   

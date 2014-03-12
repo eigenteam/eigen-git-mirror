@@ -79,10 +79,11 @@ struct traits<Map<PlainObjectType, MapOptions, StrideType> >
     OuterStrideAtCompileTime = StrideType::OuterStrideAtCompileTime == 0
                              ? int(PlainObjectType::OuterStrideAtCompileTime)
                              : int(StrideType::OuterStrideAtCompileTime),
+    IsAligned = bool(EIGEN_ALIGN) && ((int(MapOptions)&Aligned)==Aligned),
+#ifndef EIGEN_TEST_EVALUATORS
     HasNoInnerStride = InnerStrideAtCompileTime == 1,
     HasNoOuterStride = StrideType::OuterStrideAtCompileTime == 0,
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
-    IsAligned = bool(EIGEN_ALIGN) && ((int(MapOptions)&Aligned)==Aligned),
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     KeepsPacketAccess = bool(HasNoInnerStride)
                         && ( bool(IsDynamicSize)
@@ -95,6 +96,10 @@ struct traits<Map<PlainObjectType, MapOptions, StrideType> >
            ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
     Flags3 = is_lvalue<PlainObjectType>::value ? int(Flags2) : (int(Flags2) & ~LvalueBit),
     Flags = KeepsPacketAccess ? int(Flags3) : (int(Flags3) & ~PacketAccessBit)
+#else
+    Flags0 = TraitsBase::Flags & (~NestByRefBit),
+    Flags = is_lvalue<PlainObjectType>::value ? int(Flags0) : (int(Flags0) & ~LvalueBit)
+#endif
   };
 private:
   enum { Options }; // Expressions don't have Options

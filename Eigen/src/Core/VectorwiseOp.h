@@ -48,8 +48,12 @@ struct traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
+#ifndef EIGEN_TEST_EVALUATORS
     Flags0 = (unsigned int)_MatrixTypeNested::Flags & HereditaryBits,
     Flags = (Flags0 & ~RowMajorBit) | (RowsAtCompileTime == 1 ? RowMajorBit : 0),
+#else
+    Flags = RowsAtCompileTime == 1 ? RowMajorBit : 0,
+#endif
     TraversalSize = Direction==Vertical ? MatrixType::RowsAtCompileTime :  MatrixType::ColsAtCompileTime
   };
 #ifndef EIGEN_TEST_EVALUATORS

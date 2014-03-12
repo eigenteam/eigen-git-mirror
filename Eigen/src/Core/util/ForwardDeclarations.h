@@ -157,6 +157,18 @@ template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynami
 
 namespace internal {
 template<typename Lhs, typename Rhs> struct product_type;
+/** \internal
+  * \class product_evaluator
+  * Products need their own evaluator with more template arguments allowing for
+  * easier partial template specializations.
+  */
+template< typename T,
+          int ProductTag = internal::product_type<typename T::Lhs,typename T::Rhs>::ret,
+          typename LhsShape = typename evaluator_traits<typename T::Lhs>::Shape,
+          typename RhsShape = typename evaluator_traits<typename T::Rhs>::Shape,
+          typename LhsScalar = typename T::Lhs::Scalar,
+          typename RhsScalar = typename T::Rhs::Scalar
+        > struct product_evaluator;
 }
 
 template<typename Lhs, typename Rhs,

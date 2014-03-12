@@ -44,12 +44,13 @@ struct traits<CwiseUnaryOp<UnaryOp, XprType> >
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
   enum {
+#ifndef EIGEN_TEST_EVALUATORS
     Flags = _XprTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit
-      | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
+      | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)),
     CoeffReadCost = _XprTypeNested::CoeffReadCost + functor_traits<UnaryOp>::Cost
+#else
+    Flags = _XprTypeNested::Flags & RowMajorBit 
 #endif
   };
 };

@@ -45,14 +45,15 @@ struct traits<Reverse<MatrixType, Direction> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
 
+#ifndef EIGEN_TEST_EVALUATORS
     // let's enable LinearAccess only with vectorization because of the product overhead
     LinearAccess = ( (Direction==BothDirections) && (int(_MatrixTypeNested::Flags)&PacketAccessBit) )
                  ? LinearAccessBit : 0,
 
-    Flags = int(_MatrixTypeNested::Flags) & (HereditaryBits | LvalueBit | PacketAccessBit | LinearAccess)
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
+    Flags = int(_MatrixTypeNested::Flags) & (HereditaryBits | LvalueBit | PacketAccessBit | LinearAccess),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+#else
+    Flags = _MatrixTypeNested::Flags & (RowMajorBit | LvalueBit)
 #endif
   };
 };

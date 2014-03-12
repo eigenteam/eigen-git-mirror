@@ -68,6 +68,7 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprTyp
     MaxColsAtCompileTime = BlockCols==0 ? 0
                          : ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime)
                          : int(traits<XprType>::MaxColsAtCompileTime),
+
     XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0,
     IsRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
@@ -80,6 +81,10 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprTyp
     OuterStrideAtCompileTime = HasSameStorageOrderAsXprType
                              ? int(outer_stride_at_compile_time<XprType>::ret)
                              : int(inner_stride_at_compile_time<XprType>::ret),
+    // IsAligned is needed by MapBase's assertions
+    // We can sefely set it to false here. Internal alignment errors will be detected by an eigen_internal_assert in the respective evaluator
+    IsAligned = 0,
+#ifndef EIGEN_TEST_EVALUATORS
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % packet_traits<Scalar>::size) == 0)
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
@@ -92,6 +97,12 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprTyp
                                         MaskPacketAccessBit |
                                         MaskAlignedBit),
     Flags = Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit
+#else
+    // FIXME, this traits is rather specialized for dense object...
+    FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
+    FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
+    Flags = (traits<XprType>::Flags & DirectAccessBit) | FlagsLvalueBit | FlagsRowMajorBit // FIXME DirectAccessBit should not be handled by expressions
+#endif
   };
 };
 

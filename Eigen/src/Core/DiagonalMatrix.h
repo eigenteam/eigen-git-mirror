@@ -275,6 +275,7 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
   typedef typename DiagonalVectorType::Scalar Scalar;
   typedef typename DiagonalVectorType::Index Index;
   typedef typename DiagonalVectorType::StorageKind StorageKind;
+  typedef typename traits<DiagonalVectorType>::XprKind XprKind;
   enum {
     RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,

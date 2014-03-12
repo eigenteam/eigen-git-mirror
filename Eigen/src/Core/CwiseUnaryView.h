@@ -37,9 +37,11 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    Flags = (traits<_MatrixTypeNested>::Flags & (HereditaryBits | LvalueBit | LinearAccessBit | DirectAccessBit)),
 #ifndef EIGEN_TEST_EVALUATORS
+    Flags = (traits<_MatrixTypeNested>::Flags & (HereditaryBits | LvalueBit | LinearAccessBit | DirectAccessBit)),
     CoeffReadCost = traits<_MatrixTypeNested>::CoeffReadCost + functor_traits<ViewOp>::Cost,
+#else
+    Flags = traits<_MatrixTypeNested>::Flags & (RowMajorBit | LvalueBit | DirectAccessBit), // FIXME DirectAccessBit should not be handled by expressions
 #endif
     MatrixTypeInnerStride =  inner_stride_at_compile_time<MatrixType>::ret,
     // need to cast the sizeof's from size_t to int explicitly, otherwise:

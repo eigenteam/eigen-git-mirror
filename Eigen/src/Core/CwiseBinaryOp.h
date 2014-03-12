@@ -65,6 +65,7 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   typedef typename remove_reference<LhsNested>::type _LhsNested;
   typedef typename remove_reference<RhsNested>::type _RhsNested;
   enum {
+#ifndef EIGEN_TEST_EVALUATORS
     LhsFlags = _LhsNested::Flags,
     RhsFlags = _RhsNested::Flags,
     SameType = is_same<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::value,
@@ -78,12 +79,13 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
            )
         )
      ),
-    Flags = (Flags0 & ~RowMajorBit) | (LhsFlags & RowMajorBit)
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
+    Flags = (Flags0 & ~RowMajorBit) | (LhsFlags & RowMajorBit),
+    
     LhsCoeffReadCost = _LhsNested::CoeffReadCost,
     RhsCoeffReadCost = _RhsNested::CoeffReadCost,
     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + functor_traits<BinaryOp>::Cost
+#else
+    Flags = _LhsNested::Flags & RowMajorBit
 #endif
   };
 };
