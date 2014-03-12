@@ -13,6 +13,7 @@
 
 namespace Eigen { 
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
   
 /*********************************************************************************
@@ -450,6 +451,8 @@ struct product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 } // end namespace internal
 
 #endif // EIGEN_TEST_EVALUATORS
+
+#endif // <EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 
