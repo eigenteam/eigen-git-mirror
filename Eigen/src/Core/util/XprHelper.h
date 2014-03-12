@@ -432,7 +432,8 @@ template<typename T, int n, typename PlainObject = typename eval<T>::type> struc
   };
 
   typedef typename conditional<
-        int(CostEvalAsInteger) < int(CostNoEvalAsInteger),
+        ( (int(evaluator<T>::Flags) & EvalBeforeNestingBit) ||
+          (int(CostEvalAsInteger) < int(CostNoEvalAsInteger)) ),
         PlainObject,
         typename ref_selector<T>::type
   >::type type;

@@ -110,6 +110,8 @@ struct evaluator<Inverse<XprType> >
   
   typedef evaluator type;
   typedef evaluator nestedType;
+  
+  enum { Flags = Base::Flags | EvalBeforeNestingBit };
 
   evaluator(const InverseType& inv_xpr)
     : m_result(inv_xpr.rows(), inv_xpr.cols())

@@ -53,9 +53,8 @@ const int Infinity = -1;
 const unsigned int RowMajorBit = 0x1;
 
 /** \ingroup flags
-  * \deprecated
   * means the expression should be evaluated by the calling expression */
-const unsigned int EvalBeforeNestingBit = 0x2;  // FIXME deprecated
+const unsigned int EvalBeforeNestingBit = 0x2;
 
 /** \ingroup flags
   * \deprecated
