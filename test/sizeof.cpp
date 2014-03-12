@@ -21,6 +21,8 @@ template<typename MatrixType> void verifySizeOf(const MatrixType&)
 void test_sizeof()
 {
   CALL_SUBTEST(verifySizeOf(Matrix<float, 1, 1>()) );
+  CALL_SUBTEST(verifySizeOf(Vector2d()) );
+  CALL_SUBTEST(verifySizeOf(Vector4f()) );
   CALL_SUBTEST(verifySizeOf(Matrix4d()) );
   CALL_SUBTEST(verifySizeOf(Matrix<double, 4, 2>()) );
   CALL_SUBTEST(verifySizeOf(Matrix<bool, 7, 5>()) );

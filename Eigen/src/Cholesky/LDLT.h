@@ -309,13 +309,6 @@ template<> struct ldlt_inplace<Lower>
         cutoff = abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
       }
 
-      // Finish early if the matrix is not full rank.
-      if(biggest_in_corner < cutoff)
-      {
-        for(Index i = k; i < size; i++) transpositions.coeffRef(i) = i;
-        break;
-      }
-
       transpositions.coeffRef(k) = index_of_biggest_in_corner;
       if(k != index_of_biggest_in_corner)
       {
@@ -351,6 +344,7 @@ template<> struct ldlt_inplace<Lower>
         if(rs>0)
           A21.noalias() -= A20 * temp.head(k);
       }
+      
       if((rs>0) && (abs(mat.coeffRef(k,k)) > cutoff))
         A21 /= mat.coeffRef(k,k);
 

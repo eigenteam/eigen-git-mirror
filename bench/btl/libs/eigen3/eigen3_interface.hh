@@ -52,8 +52,8 @@ public :
   static BTL_DONT_INLINE void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
     A.resize(A_stl[0].size(), A_stl.size());
 
-    for (int j=0; j<A_stl.size() ; j++){
-      for (int i=0; i<A_stl[j].size() ; i++){
+    for (unsigned int j=0; j<A_stl.size() ; j++){
+      for (unsigned int i=0; i<A_stl[j].size() ; i++){
         A.coeffRef(i,j) = A_stl[j][i];
       }
     }
@@ -62,13 +62,13 @@ public :
   static BTL_DONT_INLINE  void vector_from_stl(gene_vector & B, stl_vector & B_stl){
     B.resize(B_stl.size(),1);
 
-    for (int i=0; i<B_stl.size() ; i++){
+    for (unsigned int i=0; i<B_stl.size() ; i++){
       B.coeffRef(i) = B_stl[i];
     }
   }
 
   static BTL_DONT_INLINE  void vector_to_stl(gene_vector & B, stl_vector & B_stl){
-    for (int i=0; i<B_stl.size() ; i++){
+    for (unsigned int i=0; i<B_stl.size() ; i++){
       B_stl[i] = B.coeff(i);
     }
   }

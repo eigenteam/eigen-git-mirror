@@ -46,7 +46,7 @@
 
 #if (defined __GNUC__) && (!defined __INTEL_COMPILER) && !defined(__arm__) && !defined(__powerpc__)
 #define BTL_DISABLE_SSE_EXCEPTIONS()  { \
-  int aux; \
+  int aux = 0; \
   asm( \
   "stmxcsr   %[aux]           \n\t" \
   "orl       $32832, %[aux]   \n\t" \

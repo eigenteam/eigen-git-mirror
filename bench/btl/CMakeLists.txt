@@ -48,6 +48,12 @@ include_directories(
 #   set(DEFAULT_LIBRARIES ${MKL_LIBRARIES})
 # endif (MKL_FOUND)
 
+find_library(EIGEN_BTL_RT_LIBRARY rt)
+# if we cannot find it easily, then we don't need it!
+if(NOT EIGEN_BTL_RT_LIBRARY)
+  set(EIGEN_BTL_RT_LIBRARY "")
+endif()
+
 MACRO(BTL_ADD_BENCH targetname)
 
   foreach(_current_var ${ARGN})
@@ -70,7 +76,7 @@ MACRO(BTL_ADD_BENCH targetname)
   IF(BUILD_${targetname})
     ADD_EXECUTABLE(${targetname} ${_sources})
     ADD_TEST(${targetname} "${targetname}")
-    target_link_libraries(${targetname} ${DEFAULT_LIBRARIES} rt)
+    target_link_libraries(${targetname} ${DEFAULT_LIBRARIES} ${EIGEN_BTL_RT_LIBRARY})
   ENDIF(BUILD_${targetname})
 
 ENDMACRO(BTL_ADD_BENCH)
