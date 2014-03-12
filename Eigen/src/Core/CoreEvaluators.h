@@ -779,10 +779,10 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % 16) == 0)) ? AlignedBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     FlagsRowMajorBit = XprType::Flags&RowMajorBit,
-    Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
-                                        DirectAccessBit |
-                                        MaskPacketAccessBit |
-                                        MaskAlignedBit),
+    Flags0 = evaluator<ArgType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
+                                           DirectAccessBit |
+                                           MaskPacketAccessBit |
+                                           MaskAlignedBit),
     Flags = Flags0 | FlagsLinearAccessBit | FlagsRowMajorBit
   };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;

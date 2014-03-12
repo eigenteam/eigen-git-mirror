@@ -51,6 +51,14 @@ struct traits<Product<Lhs, Rhs, Option> >
     MaxRowsAtCompileTime = LhsCleaned::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = RhsCleaned::MaxColsAtCompileTime,
     
+    // FIXME: only needed by GeneralMatrixMatrixTriangular
+    InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(LhsCleaned::ColsAtCompileTime, RhsCleaned::RowsAtCompileTime),
+    
+#ifndef EIGEN_TEST_EVALUATORS
+    // dummy, for evaluators unit test only
+    CoeffReadCost = Dynamic,
+#endif
+    
     // The storage order is somewhat arbitrary here. The correct one will be determined through the evaluator.
     Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0)
   };

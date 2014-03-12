@@ -128,7 +128,11 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     DenseStorage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
 
   public:
+#ifndef EIGEN_TEST_EVALUATORS
     enum { NeedsToAlign = SizeAtCompileTime != Dynamic && (internal::traits<Derived>::Flags & AlignedBit) != 0 };
+#else
+    enum { NeedsToAlign = SizeAtCompileTime != Dynamic && (internal::traits<Derived>::EvaluatorFlags & AlignedBit) != 0 };
+#endif
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     EIGEN_DEVICE_FUNC

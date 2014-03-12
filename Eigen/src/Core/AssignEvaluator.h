@@ -126,6 +126,10 @@ public:
     EIGEN_DEBUG_VAR(PacketSize)
     EIGEN_DEBUG_VAR(StorageOrdersAgree)
     EIGEN_DEBUG_VAR(MightVectorize)
+    std::cerr.setf(std::ios::hex, std::ios::basefield);
+    EIGEN_DEBUG_VAR(DstFlags)
+    EIGEN_DEBUG_VAR(SrcFlags)
+    std::cerr.unsetf(std::ios::hex);
     EIGEN_DEBUG_VAR(MayLinearize)
     EIGEN_DEBUG_VAR(MayInnerVectorize)
     EIGEN_DEBUG_VAR(MayLinearVectorize)
