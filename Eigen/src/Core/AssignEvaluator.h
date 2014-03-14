@@ -574,13 +574,13 @@ public:
   template<int StoreMode, int LoadMode>
   void assignPacket(Index row, Index col)
   {
-    m_functor.assignPacket<StoreMode>(&m_dst.coeffRef(row,col), m_src.template packet<LoadMode>(row,col));
+    m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(row,col), m_src.template packet<LoadMode>(row,col));
   }
   
   template<int StoreMode, int LoadMode>
   void assignPacket(Index index)
   {
-    m_functor.assignPacket<StoreMode>(&m_dst.coeffRef(index), m_src.template packet<LoadMode>(index));
+    m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(index), m_src.template packet<LoadMode>(index));
   }
   
   template<int StoreMode, int LoadMode>
