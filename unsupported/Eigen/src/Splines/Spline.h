@@ -57,7 +57,7 @@ namespace Eigen
     **/
     Spline() 
     : m_knots(1, (Degree==Dynamic ? 2 : 2*Degree+2))
-    , m_ctrls(ControlPointVectorType::Zero(2,(Degree==Dynamic ? 1 : Degree+1))) 
+    , m_ctrls(ControlPointVectorType::Zero(Dimension,(Degree==Dynamic ? 1 : Degree+1))) 
     {
       // in theory this code can go to the initializer list but it will get pretty
       // much unreadable ...
