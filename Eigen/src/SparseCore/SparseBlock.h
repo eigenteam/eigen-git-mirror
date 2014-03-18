@@ -338,7 +338,10 @@ const Block<const Derived,Dynamic,Dynamic,true> SparseMatrixBase<Derived>::inner
 namespace internal {
   
 template< typename XprType, int BlockRows, int BlockCols, bool InnerPanel,
-          bool OuterVector =  (BlockCols==1 && XprType::IsRowMajor) || (BlockRows==1 && !XprType::IsRowMajor)>
+          bool OuterVector =  (BlockCols==1 && XprType::IsRowMajor)
+                               | // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
+                                 // revert to || as soon as not needed anymore. 
+                              (BlockRows==1 && !XprType::IsRowMajor)>
 class GenericSparseBlockInnerIteratorImpl;
 
 }

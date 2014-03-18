@@ -249,7 +249,7 @@ For an introduction on linear solvers and decompositions, check this \link Tutor
   <dt><b>Implicit Multi Threading (MT)</b></dt>
     <dd>Means the algorithm can take advantage of multicore processors via OpenMP. "Implicit" means the algortihm itself is not parallelized, but that it relies on parallelized matrix-matrix product rountines.</dd>
   <dt><b>Explicit Multi Threading (MT)</b></dt>
-    <dd>Means the algorithm is explicitely parallelized to take advantage of multicore processors via OpenMP.</dd>
+    <dd>Means the algorithm is explicitly parallelized to take advantage of multicore processors via OpenMP.</dd>
   <dt><b>Meta-unroller</b></dt>
     <dd>Means the algorithm is automatically and explicitly unrolled for very small fixed size matrices.</dd>
   <dt><b></b></dt>

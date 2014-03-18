@@ -113,9 +113,9 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
 
     for (size_t i=starti; i<alignedStart; ++i)
     {
-      res[i] += t0 * A0[i] + t1 * A1[i];
-      t2 += numext::conj(A0[i]) * rhs[i];
-      t3 += numext::conj(A1[i]) * rhs[i];
+      res[i] += cj0.pmul(A0[i], t0) + cj0.pmul(A1[i],t1);
+      t2 += cj1.pmul(A0[i], rhs[i]);
+      t3 += cj1.pmul(A1[i], rhs[i]);
     }
     // Yes this an optimization for gcc 4.3 and 4.4 (=> huge speed up)
     // gcc 4.2 does this optimization automatically.

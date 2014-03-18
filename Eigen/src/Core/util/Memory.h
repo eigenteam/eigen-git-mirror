@@ -274,12 +274,12 @@ inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
   // The defined(_mm_free) is just here to verify that this MSVC version
   // implements _mm_malloc/_mm_free based on the corresponding _aligned_
   // functions. This may not always be the case and we just try to be safe.
-  #if defined(_MSC_VER) && defined(_mm_free)
+  #if defined(_MSC_VER) && (!defined(_WIN32_WCE)) && defined(_mm_free)
     result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN_BYTES);
   #else
     result = generic_aligned_realloc(ptr,new_size,old_size);
   #endif
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
   result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN_BYTES);
 #else
   result = handmade_aligned_realloc(ptr,new_size,old_size);
@@ -464,7 +464,7 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
   * There is also the variant first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
   */
 template<typename Scalar, typename Index>
-static inline Index first_aligned(const Scalar* array, Index size)
+inline Index first_aligned(const Scalar* array, Index size)
 {
   enum { PacketSize = packet_traits<Scalar>::size,
          PacketAlignedMask = PacketSize-1
@@ -492,7 +492,7 @@ static inline Index first_aligned(const Scalar* array, Index size)
 /** \internal Returns the smallest integer multiple of \a base and greater or equal to \a size
   */ 
 template<typename Index> 
-inline static Index first_multiple(Index size, Index base)
+inline Index first_multiple(Index size, Index base)
 {
   return ((size+base-1)/base)*base;
 }

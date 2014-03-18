@@ -34,8 +34,9 @@ struct quaternionbase_assign_impl;
 template<class Derived>
 class QuaternionBase : public RotationBase<Derived, 3>
 {
+ public:
   typedef RotationBase<Derived, 3> Base;
-public:
+
   using Base::operator*;
   using Base::derived;
 
@@ -203,6 +204,8 @@ public:
   * \li \c Quaternionf for \c float
   * \li \c Quaterniond for \c double
   *
+  * \warning Operations interpreting the quaternion as rotation have undefined behavior if the quaternion is not normalized.
+  *
   * \sa  class AngleAxis, class Transform
   */
 
@@ -223,10 +226,10 @@ struct traits<Quaternion<_Scalar,_Options> >
 template<typename _Scalar, int _Options>
 class Quaternion : public QuaternionBase<Quaternion<_Scalar,_Options> >
 {
+public:
   typedef QuaternionBase<Quaternion<_Scalar,_Options> > Base;
   enum { IsAligned = internal::traits<Quaternion>::IsAligned };
 
-public:
   typedef _Scalar Scalar;
 
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Quaternion)
@@ -334,9 +337,9 @@ template<typename _Scalar, int _Options>
 class Map<const Quaternion<_Scalar>, _Options >
   : public QuaternionBase<Map<const Quaternion<_Scalar>, _Options> >
 {
+  public:
     typedef QuaternionBase<Map<const Quaternion<_Scalar>, _Options> > Base;
 
-  public:
     typedef _Scalar Scalar;
     typedef typename internal::traits<Map>::Coefficients Coefficients;
     EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
@@ -344,7 +347,7 @@ class Map<const Quaternion<_Scalar>, _Options >
 
     /** Constructs a Mapped Quaternion object from the pointer \a coeffs
       *
-      * The pointer \a coeffs must reference the four coeffecients of Quaternion in the following order:
+      * The pointer \a coeffs must reference the four coefficients of Quaternion in the following order:
       * \code *coeffs == {x, y, z, w} \endcode
       *
       * If the template parameter _Options is set to #Aligned, then the pointer coeffs must be aligned. */
@@ -371,9 +374,9 @@ template<typename _Scalar, int _Options>
 class Map<Quaternion<_Scalar>, _Options >
   : public QuaternionBase<Map<Quaternion<_Scalar>, _Options> >
 {
+  public:
     typedef QuaternionBase<Map<Quaternion<_Scalar>, _Options> > Base;
 
-  public:
     typedef _Scalar Scalar;
     typedef typename internal::traits<Map>::Coefficients Coefficients;
     EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
@@ -464,7 +467,7 @@ QuaternionBase<Derived>::_transformVector(Vector3 v) const
     // Note that this algorithm comes from the optimization by hand
     // of the conversion to a Matrix followed by a Matrix/Vector product.
     // It appears to be much faster than the common algorithm found
-    // in the litterature (30 versus 39 flops). It also requires two
+    // in the literature (30 versus 39 flops). It also requires two
     // Vector3 as temporaries.
     Vector3 uv = this->vec().cross(v);
     uv += uv;
@@ -667,10 +670,10 @@ QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& oth
 {
   using std::acos;
   using std::abs;
-  double d = abs(this->dot(other));
-  if (d>=1.0)
+  Scalar d = abs(this->dot(other));
+  if (d>=Scalar(1))
     return Scalar(0);
-  return static_cast<Scalar>(2 * acos(d));
+  return Scalar(2) * acos(d);
 }
 
  
