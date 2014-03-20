@@ -169,6 +169,10 @@ ploaddup(const typename unpacket_traits<Packet>::type* from) { return *from; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
 
+/** \internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pload1(const typename unpacket_traits<Packet>::type  *a) { return pset1<Packet>(*a); }
+
 /** \internal \brief Returns a packet with coefficients (a,a+1,...,a+packet_size-1). */
 template<typename Scalar> inline typename packet_traits<Scalar>::type
 plset(const Scalar& a) { return a; }

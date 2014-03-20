@@ -110,24 +110,22 @@ template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { re
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set_pd(from,from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set_epi32(from,from,from,from); }
 #else
-
-// GCC generates a shufps instruction for set1_ps instead of the more efficient pshufd instruction.
-// However, with AVX, we want it to generate a vbroadcastss.
-// Moreover, we cannot use intrinsics here because then gcc generates crappy code in some cases (see bug 203)
-#if (defined __GNUC__) && (!defined __INTEL_COMPILER) && (!defined __clang__) && (!defined __AVX__)
-  template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) {
-    Packet4f res;
-    asm("pshufd $0, %[a], %[b]" : [b] "=x" (res) : [a] "x" (from));
-    return res;
-  }
-#else
-  template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set_ps1(from); }
-#endif
-
+template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set_ps1(from); }
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set1_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
 #endif
 
+// GCC generates a shufps instruction for _mm_set1_ps/_mm_load1_ps instead of the more efficient pshufd instruction.
+// However, using inrinsics for pset1 makes gcc to generate crappy code in some cases (see bug 203)
+// Using inline assembly is also not an option because then gcc fails to reorder properly the instructions.
+// Therefore, we introduced the pload1 functions to be used in product kernels for which bug 203 does not apply.
+// Also note that with AVX, we want it to generate a vbroadcastss.
+#if (defined __GNUC__) && (!defined __INTEL_COMPILER) && (!defined __clang__) && (!defined __AVX__)
+template<> EIGEN_STRONG_INLINE Packet4f pload1<Packet4f>(const float *from) {
+  return vec4f_swizzle1(_mm_load_ss(from),0,0,0,0);
+}
+#endif
+  
 template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return _mm_add_ps(pset1<Packet4f>(a), _mm_set_ps(3,2,1,0)); }
 template<> EIGEN_STRONG_INLINE Packet2d plset<double>(const double& a) { return _mm_add_pd(pset1<Packet2d>(a),_mm_set_pd(1,0)); }
 template<> EIGEN_STRONG_INLINE Packet4i plset<int>(const int& a) { return _mm_add_epi32(pset1<Packet4i>(a),_mm_set_epi32(3,2,1,0)); }
