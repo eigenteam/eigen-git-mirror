@@ -110,7 +110,20 @@ template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { re
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set_pd(from,from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set_epi32(from,from,from,from); }
 #else
-template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set1_ps(from); }
+
+// GCC generates a shufps instruction for set1_ps instead of the more efficient pshufd instruction.
+// However, with AVX, we want it to generate a vbroadcastss.
+// Moreover, we cannot use intrinsics here because then gcc generates crappy code in some cases (see bug 203)
+#if (defined __GNUC__) && (!defined __INTEL_COMPILER) && (!defined __clang__) && (!defined __AVX__)
+  template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) {
+    Packet4f res;
+    asm("pshufd $0, %[a], %[b]" : [b] "=x" (res) : [a] "x" (from));
+    return res;
+  }
+#else
+  template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set_ps1(from); }
+#endif
+
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set1_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
 #endif
