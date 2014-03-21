@@ -82,6 +82,8 @@
     #define EIGEN_ALIGN_BYTES 32
   #endif
   #define EIGEN_ALIGN 1
+#else
+  #define EIGEN_ALIGN 0
 #endif
 
 // EIGEN_ALIGN_STATICALLY is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
