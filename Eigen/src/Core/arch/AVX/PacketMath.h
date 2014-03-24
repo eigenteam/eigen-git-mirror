@@ -304,37 +304,27 @@ template<> EIGEN_STRONG_INLINE double predux_mul<Packet4d>(const Packet4d& a)
 
 template<> EIGEN_STRONG_INLINE float predux_min<Packet8f>(const Packet8f& a)
 {
-  float result = a[0];
-  for (int i = 1; i < 8; ++i) {
-    if (a[i] < result) result = a[i];
-  }
-  return result;
+  Packet8f tmp = _mm256_min_ps(a, _mm256_permute2f128_ps(a,a,1));
+  tmp = _mm256_min_ps(tmp, _mm256_shuffle_ps(tmp,tmp,_MM_SHUFFLE(1,0,3,2)));
+  return pfirst(_mm256_min_ps(tmp, _mm256_shuffle_ps(tmp,tmp,1)));
 }
 template<> EIGEN_STRONG_INLINE double predux_min<Packet4d>(const Packet4d& a)
 {
-  double result = a[0];
-  for (int i = 1; i < 4; ++i) {
-    if (a[i] < result) result = a[i];
-  }
-  return result;
+  Packet4d tmp = _mm256_min_pd(a, _mm256_permute2f128_pd(a,a,1));
+  return pfirst(_mm256_min_pd(tmp, _mm256_shuffle_pd(tmp, tmp, 1)));
 }
 
 template<> EIGEN_STRONG_INLINE float predux_max<Packet8f>(const Packet8f& a)
 {
-  float result = a[0];
-  for (int i = 1; i < 8; ++i) {
-    if (a[i] > result) result = a[i];
-  }
-  return result;
+  Packet8f tmp = _mm256_max_ps(a, _mm256_permute2f128_ps(a,a,1));
+  tmp = _mm256_max_ps(tmp, _mm256_shuffle_ps(tmp,tmp,_MM_SHUFFLE(1,0,3,2)));
+  return pfirst(_mm256_max_ps(tmp, _mm256_shuffle_ps(tmp,tmp,1)));
 }
 
 template<> EIGEN_STRONG_INLINE double predux_max<Packet4d>(const Packet4d& a)
 {
-  double result = a[0];
-  for (int i = 1; i < 4; ++i) {
-    if (a[i] > result) result = a[i];
-  }
-  return result;
+  Packet4d tmp = _mm256_max_pd(a, _mm256_permute2f128_pd(a,a,1));
+  return pfirst(_mm256_max_pd(tmp, _mm256_shuffle_pd(tmp, tmp, 1)));
 }
 
 
