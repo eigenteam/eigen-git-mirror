@@ -76,11 +76,9 @@ template<> EIGEN_STRONG_INLINE Packet4cf ploadu<Packet4cf>(const std::complex<fl
 
 template<> EIGEN_STRONG_INLINE Packet4cf pset1<Packet4cf>(const std::complex<float>& from)
 {
-  __m256 result;
-  for (int i = 0; i < 8; i+=2) {
-    result[i] = std::real(from);
-    result[i+1] = std::imag(from);
-  }
+  const float r = std::real(from);
+  const float i = std::imag(from);
+  const __m256 result = _mm256_set_ps(i, r, i, r, i, r, i, r);
   return Packet4cf(result);
 }
 
@@ -108,15 +106,15 @@ template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet4cf>(const Pack
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cf preverse(const Packet4cf& a) {
+  __m128 low  = _mm256_extractf128_ps(a.v, 0);
+  __m128 high = _mm256_extractf128_ps(a.v, 1);
+  __m128d lowd  = _mm_castps_pd(low);
+  __m128d highd = _mm_castps_pd(high);
+  low  = _mm_castpd_ps(_mm_shuffle_pd(lowd,lowd,0x1));
+  high = _mm_castpd_ps(_mm_shuffle_pd(highd,highd,0x1));
   __m256 result;
-  result[0] = a.v[6];
-  result[1] = a.v[7];
-  result[2] = a.v[4];
-  result[3] = a.v[5];
-  result[4] = a.v[2];
-  result[5] = a.v[3];
-  result[6] = a.v[0];
-  result[7] = a.v[1];
+  result = _mm256_insertf128_ps(result, low, 1);
+  result = _mm256_insertf128_ps(result, high, 0);
   return Packet4cf(result);
 }
 
@@ -298,13 +296,11 @@ template<> EIGEN_STRONG_INLINE Packet2cd pload <Packet2cd>(const std::complex<do
 template<> EIGEN_STRONG_INLINE Packet2cd ploadu<Packet2cd>(const std::complex<double>* from)
 { EIGEN_DEBUG_UNALIGNED_LOAD return Packet2cd(ploadu<Packet4d>((const double*)from)); }
 
-template<> EIGEN_STRONG_INLINE Packet2cd pset1<Packet2cd>(const std::complex<double>&  from)
+template<> EIGEN_STRONG_INLINE Packet2cd pset1<Packet2cd>(const std::complex<double>& from)
 {
-  __m256d result;
-  for (int i = 0; i < 4; i+=2) {
-    result[i] = std::real(from);
-    result[i+1] = std::imag(from);
-  }
+  const double r = std::real(from);
+  const double i = std::imag(from);
+  const __m256d result = _mm256_set_pd(i, r, i, r);
   return Packet2cd(result);
 }
 
@@ -321,11 +317,7 @@ template<> EIGEN_STRONG_INLINE std::complex<double>  pfirst<Packet2cd>(const Pac
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cd preverse(const Packet2cd& a) {
-  __m256d result;
-  result[0] = a.v[2];
-  result[1] = a.v[3];
-  result[2] = a.v[0];
-  result[3] = a.v[1];
+  __m256d result = _mm256_permute2f128_pd(a.v, a.v, 1);
   return Packet2cd(result);
 }
 
