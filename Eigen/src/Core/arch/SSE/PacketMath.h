@@ -397,7 +397,7 @@ template<> EIGEN_STRONG_INLINE void
 pbroadcast4<Packet4f>(const float *a,
                       Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
 {
-  a3 = pload<Packet4f>(a);
+  a3 = ploadu<Packet4f>(a);
   a0 = vec4f_swizzle1(a3, 0,0,0,0);
   a1 = vec4f_swizzle1(a3, 1,1,1,1);
   a2 = vec4f_swizzle1(a3, 2,2,2,2);
@@ -413,10 +413,10 @@ pbroadcast4<Packet2d>(const double *a,
   a2 = _mm_loaddup_pd(a+2);
   a3 = _mm_loaddup_pd(a+3);
 #else
-  a1 = pload<Packet2d>(a);
+  a1 = ploadu<Packet2d>(a);
   a0 = vec2d_swizzle1(a1, 0,0);
   a1 = vec2d_swizzle1(a1, 1,1);
-  a3 = pload<Packet2d>(a+2);
+  a3 = ploadu<Packet2d>(a+2);
   a2 = vec2d_swizzle1(a3, 0,0);
   a3 = vec2d_swizzle1(a3, 1,1);
 #endif

@@ -63,7 +63,7 @@ struct symm_pack_lhs
     for(Index i=peeled_mc; i<rows; i++)
     {
       for(Index k=0; k<i; k++)
-        blockA[count++] = lhs(i, k);              // normal
+        blockA[count++] = lhs(i, k);                   // normal
 
       blockA[count++] = numext::real(lhs(i, i));       // real (diagonal)
 
@@ -91,10 +91,17 @@ struct symm_pack_rhs
       {
         blockB[count+0] = rhs(k,j2+0);
         blockB[count+1] = rhs(k,j2+1);
-        if (nr==4)
+        if (nr>=4)
         {
           blockB[count+2] = rhs(k,j2+2);
           blockB[count+3] = rhs(k,j2+3);
+        }
+        if (nr>=8)
+        {
+          blockB[count+4] = rhs(k,j2+4);
+          blockB[count+5] = rhs(k,j2+5);
+          blockB[count+6] = rhs(k,j2+6);
+          blockB[count+7] = rhs(k,j2+7);
         }
         count += nr;
       }
@@ -109,10 +116,17 @@ struct symm_pack_rhs
       {
         blockB[count+0] = numext::conj(rhs(j2+0,k));
         blockB[count+1] = numext::conj(rhs(j2+1,k));
-        if (nr==4)
+        if (nr>=4)
         {
           blockB[count+2] = numext::conj(rhs(j2+2,k));
           blockB[count+3] = numext::conj(rhs(j2+3,k));
+        }
+        if (nr>=8)
+        {
+          blockB[count+4] = numext::conj(rhs(j2+4,k));
+          blockB[count+5] = numext::conj(rhs(j2+5,k));
+          blockB[count+6] = numext::conj(rhs(j2+6,k));
+          blockB[count+7] = numext::conj(rhs(j2+7,k));
         }
         count += nr;
       }
@@ -137,10 +151,17 @@ struct symm_pack_rhs
       {
         blockB[count+0] = rhs(k,j2+0);
         blockB[count+1] = rhs(k,j2+1);
-        if (nr==4)
+        if (nr>=4)
         {
           blockB[count+2] = rhs(k,j2+2);
           blockB[count+3] = rhs(k,j2+3);
+        }
+        if (nr>=8)
+        {
+          blockB[count+4] = rhs(k,j2+4);
+          blockB[count+5] = rhs(k,j2+5);
+          blockB[count+6] = rhs(k,j2+6);
+          blockB[count+7] = rhs(k,j2+7);
         }
         count += nr;
       }
@@ -153,10 +174,17 @@ struct symm_pack_rhs
       {
         blockB[count+0] = numext::conj(rhs(j2+0,k));
         blockB[count+1] = numext::conj(rhs(j2+1,k));
-        if (nr==4)
+        if (nr>=4)
         {
           blockB[count+2] = numext::conj(rhs(j2+2,k));
           blockB[count+3] = numext::conj(rhs(j2+3,k));
+        }
+        if (nr>=8)
+        {
+          blockB[count+4] = numext::conj(rhs(j2+4,k));
+          blockB[count+5] = numext::conj(rhs(j2+5,k));
+          blockB[count+6] = numext::conj(rhs(j2+6,k));
+          blockB[count+7] = numext::conj(rhs(j2+7,k));
         }
         count += nr;
       }
@@ -422,11 +450,11 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
       NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(RhsIsUpper,bool(RhsBlasTraits::NeedToConjugate)),
       internal::traits<Dest>::Flags&RowMajorBit  ? RowMajor : ColMajor>
       ::run(
-        lhs.rows(), rhs.cols(),                 // sizes
-        &lhs.coeffRef(0,0),    lhs.outerStride(),  // lhs info
-        &rhs.coeffRef(0,0),    rhs.outerStride(),  // rhs info
-        &dst.coeffRef(0,0), dst.outerStride(),  // result info
-        actualAlpha                             // alpha
+        lhs.rows(), rhs.cols(),                     // sizes
+        &lhs.coeffRef(0,0),    lhs.outerStride(),   // lhs info
+        &rhs.coeffRef(0,0),    rhs.outerStride(),   // rhs info
+        &dst.coeffRef(0,0), dst.outerStride(),      // result info
+        actualAlpha                                 // alpha
       );
   }
 };
