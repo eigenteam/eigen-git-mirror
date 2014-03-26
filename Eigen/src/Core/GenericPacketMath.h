@@ -169,6 +169,44 @@ ploaddup(const typename unpacket_traits<Packet>::type* from) { return *from; }
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pset1(const typename unpacket_traits<Packet>::type& a) { return a; }
 
+/** \internal \returns a packet with constant coefficients \a a[0], e.g.: (a[0],a[0],a[0],a[0]) */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pload1(const typename unpacket_traits<Packet>::type  *a) { return pset1<Packet>(*a); }
+
+/** \internal equivalent to
+  * \code
+  * a0 = pload1(a+0);
+  * a1 = pload1(a+1);
+  * a2 = pload1(a+2);
+  * a3 = pload1(a+3);
+  * \endcode
+  * \sa pset1, pload1, ploaddup, pbroadcast2
+  */
+template<typename Packet> EIGEN_DEVICE_FUNC
+inline void pbroadcast4(const typename unpacket_traits<Packet>::type *a,
+                        Packet& a0, Packet& a1, Packet& a2, Packet& a3)
+{
+  a0 = pload1<Packet>(a+0);
+  a1 = pload1<Packet>(a+1);
+  a2 = pload1<Packet>(a+2);
+  a3 = pload1<Packet>(a+3);
+}
+
+/** \internal equivalent to
+  * \code
+  * a0 = pload1(a+0);
+  * a1 = pload1(a+1);
+  * \endcode
+  * \sa pset1, pload1, ploaddup, pbroadcast4
+  */
+template<typename Packet> EIGEN_DEVICE_FUNC
+inline void pbroadcast2(const typename unpacket_traits<Packet>::type *a,
+                        Packet& a0, Packet& a1)
+{
+  a0 = pload1<Packet>(a+0);
+  a1 = pload1<Packet>(a+1);
+}
+
 /** \internal \brief Returns a packet with coefficients (a,a+1,...,a+packet_size-1). */
 template<typename Scalar> inline typename packet_traits<Scalar>::type
 plset(const Scalar& a) { return a; }

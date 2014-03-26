@@ -114,11 +114,22 @@ template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { re
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set_pd(from,from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set_epi32(from,from,from,from); }
 #else
-template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set1_ps(from); }
+template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set_ps1(from); }
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set1_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
 #endif
 
+// GCC generates a shufps instruction for _mm_set1_ps/_mm_load1_ps instead of the more efficient pshufd instruction.
+// However, using inrinsics for pset1 makes gcc to generate crappy code in some cases (see bug 203)
+// Using inline assembly is also not an option because then gcc fails to reorder properly the instructions.
+// Therefore, we introduced the pload1 functions to be used in product kernels for which bug 203 does not apply.
+// Also note that with AVX, we want it to generate a vbroadcastss.
+#if (defined __GNUC__) && (!defined __INTEL_COMPILER) && (!defined __clang__) && (!defined __AVX__)
+template<> EIGEN_STRONG_INLINE Packet4f pload1<Packet4f>(const float *from) {
+  return vec4f_swizzle1(_mm_load_ss(from),0,0,0,0);
+}
+#endif
+  
 #ifndef EIGEN_VECTORIZE_AVX
 template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return _mm_add_ps(pset1<Packet4f>(a), _mm_set_ps(3,2,1,0)); }
 template<> EIGEN_STRONG_INLINE Packet2d plset<double>(const double& a) { return _mm_add_pd(pset1<Packet2d>(a),_mm_set_pd(1,0)); }
@@ -391,6 +402,38 @@ template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a)
   return _mm_sub_epi32(_mm_xor_si128(a,aux),aux);
   #endif
 }
+
+// with AVX, the default implementations based on pload1 are faster
+#ifndef __AVX__
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet4f>(const float *a,
+                      Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
+{
+  a3 = ploadu<Packet4f>(a);
+  a0 = vec4f_swizzle1(a3, 0,0,0,0);
+  a1 = vec4f_swizzle1(a3, 1,1,1,1);
+  a2 = vec4f_swizzle1(a3, 2,2,2,2);
+  a3 = vec4f_swizzle1(a3, 3,3,3,3);
+}
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet2d>(const double *a,
+                      Packet2d& a0, Packet2d& a1, Packet2d& a2, Packet2d& a3)
+{
+#ifdef EIGEN_VECTORIZE_SSE3
+  a0 = _mm_loaddup_pd(a+0);
+  a1 = _mm_loaddup_pd(a+1);
+  a2 = _mm_loaddup_pd(a+2);
+  a3 = _mm_loaddup_pd(a+3);
+#else
+  a1 = ploadu<Packet2d>(a);
+  a0 = vec2d_swizzle1(a1, 0,0);
+  a1 = vec2d_swizzle1(a1, 1,1);
+  a3 = ploadu<Packet2d>(a+2);
+  a2 = vec2d_swizzle1(a3, 0,0);
+  a3 = vec2d_swizzle1(a3, 1,1);
+#endif
+}
+#endif
 
 EIGEN_STRONG_INLINE void punpackp(Packet4f* vecs)
 {
