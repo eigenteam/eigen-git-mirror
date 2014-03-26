@@ -78,19 +78,21 @@ template<> EIGEN_STRONG_INLINE Packet4cf pset1<Packet4cf>(const std::complex<flo
 {
   const float r = std::real(from);
   const float i = std::imag(from);
+  // Beware, _mm256_set_ps expects the scalar values in reverse order (i.e. 7 to 0)
   const __m256 result = _mm256_set_ps(i, r, i, r, i, r, i, r);
   return Packet4cf(result);
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cf ploaddup<Packet4cf>(const std::complex<float>* from)
 {
-  __m256 result;
-  for (int i = 0; i < 2; ++i) {
-    result[4*i] = std::real(from[i]);
-    result[4*i+1] = std::imag(from[i]);
-    result[4*i+2] = std::real(from[i]);
-    result[4*i+3] = std::imag(from[i]);
-  }
+  // This should be optimized.
+  __m128 complex1 = _mm_loadl_pi(_mm_set1_ps(0.0f), (const __m64*)from);
+  complex1 = _mm_movelh_ps(complex1, complex1);
+  __m128 complex2 = _mm_loadl_pi(_mm_set1_ps(0.0f), (const __m64*)(from+1));
+  complex2 = _mm_movelh_ps(complex2, complex2);
+  __m256 result = _mm256_setzero_ps();
+  result = _mm256_insertf128_ps(result, complex1, 0);
+  result = _mm256_insertf128_ps(result, complex2, 1);
   return Packet4cf(result);
 }
 
@@ -102,7 +104,10 @@ template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::co
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet4cf>(const Packet4cf& a)
 {
-  return std::complex<float>(a.v[0], a.v[1]);
+  __m128 low  = _mm256_extractf128_ps(a.v, 0);
+  std::complex<float> res;
+  _mm_storel_pi((__m64*)&res, low);
+  return res;
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cf preverse(const Packet4cf& a) {
@@ -112,7 +117,7 @@ template<> EIGEN_STRONG_INLINE Packet4cf preverse(const Packet4cf& a) {
   __m128d highd = _mm_castps_pd(high);
   low  = _mm_castpd_ps(_mm_shuffle_pd(lowd,lowd,0x1));
   high = _mm_castpd_ps(_mm_shuffle_pd(highd,highd,0x1));
-  __m256 result;
+  __m256 result = _mm256_setzero_ps();
   result = _mm256_insertf128_ps(result, low, 1);
   result = _mm256_insertf128_ps(result, high, 0);
   return Packet4cf(result);
@@ -300,6 +305,7 @@ template<> EIGEN_STRONG_INLINE Packet2cd pset1<Packet2cd>(const std::complex<dou
 {
   const double r = std::real(from);
   const double i = std::imag(from);
+  // Beware, _mm256_set_pd expects the scalar values in reverse order (i.e. 3 to 0)
   const __m256d result = _mm256_set_pd(i, r, i, r);
   return Packet2cd(result);
 }
@@ -313,7 +319,10 @@ template<> EIGEN_STRONG_INLINE void prefetch<std::complex<double> >(const std::c
 
 template<> EIGEN_STRONG_INLINE std::complex<double>  pfirst<Packet2cd>(const Packet2cd& a)
 {
-  return std::complex<double>(a.v[0],a.v[1]);
+  __m128d low = _mm256_extractf128_pd(a.v, 0);
+  EIGEN_ALIGN16 double res[2];
+  _mm_store_pd(res, low);
+  return std::complex<double>(res[0],res[1]);
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cd preverse(const Packet2cd& a) {
