@@ -391,6 +391,38 @@ template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a)
   #endif
 }
 
+// with AVX, the default implementations based on pload1 are faster
+#ifndef __AVX__
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet4f>(const float *a,
+                      Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
+{
+  a3 = pload<Packet4f>(a);
+  a0 = vec4f_swizzle1(a3, 0,0,0,0);
+  a1 = vec4f_swizzle1(a3, 1,1,1,1);
+  a2 = vec4f_swizzle1(a3, 2,2,2,2);
+  a3 = vec4f_swizzle1(a3, 3,3,3,3);
+}
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet2d>(const double *a,
+                      Packet2d& a0, Packet2d& a1, Packet2d& a2, Packet2d& a3)
+{
+#ifdef EIGEN_VECTORIZE_SSE3
+  a0 = _mm_loaddup_pd(a+0);
+  a1 = _mm_loaddup_pd(a+1);
+  a2 = _mm_loaddup_pd(a+2);
+  a3 = _mm_loaddup_pd(a+3);
+#else
+  a1 = pload<Packet2d>(a);
+  a0 = vec2d_swizzle1(a1, 0,0);
+  a1 = vec2d_swizzle1(a1, 1,1);
+  a3 = pload<Packet2d>(a+2);
+  a2 = vec2d_swizzle1(a3, 0,0);
+  a3 = vec2d_swizzle1(a3, 1,1);
+#endif
+}
+#endif
+
 EIGEN_STRONG_INLINE void punpackp(Packet4f* vecs)
 {
   vecs[1] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0x55));
