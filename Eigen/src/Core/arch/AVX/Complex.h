@@ -221,13 +221,11 @@ template<> struct conj_helper<Packet4cf, Packet8f, false,false>
 
 template<> EIGEN_STRONG_INLINE Packet4cf pdiv<Packet4cf>(const Packet4cf& a, const Packet4cf& b)
 {
-  Packet4cf res;
-  for (int i = 0; i < 8; i+=2) {
-    std::complex<float> result = std::complex<float>(a.v[i], a.v[i+1]) / std::complex<float>(b.v[i], b.v[i+1]);
-    res.v[i] = std::real(result);
-    res.v[i+1] = std::imag(result);
-  }
-  return res;
+  Packet4cf num = pmul(a, pconj(b));
+  __m256 tmp = _mm256_mul_ps(b.v, b.v);
+  __m256 tmp2    = _mm256_shuffle_ps(tmp,tmp,0xB1);
+  __m256 denom = _mm256_add_ps(tmp, tmp2);
+  return Packet4cf(_mm256_div_ps(num.v, denom));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cf pcplxflip<Packet4cf>(const Packet4cf& x)
@@ -282,13 +280,12 @@ template<> EIGEN_STRONG_INLINE Packet2cd pconj(const Packet2cd& a)
 
 template<> EIGEN_STRONG_INLINE Packet2cd pmul<Packet2cd>(const Packet2cd& a, const Packet2cd& b)
 {
-  __m256d tmp1 = _mm256_mul_pd(_mm256_permute_pd(a.v, 0), b.v);
-  // FIXME: _mm256_permute_pd(b.v, _MM_SHUFFLE2(1,0) won't work as expected, figure out an alternative.
-  __m256d op = {b.v[1], b.v[0], b.v[3], b.v[2]};
-  __m256d tmp2 = _mm256_mul_pd(_mm256_permute_pd(a.v, 15), op);
-  __m256d result = _mm256_addsub_pd(tmp1, tmp2);
-
-  return Packet2cd(result);
+  __m256d tmp1 = _mm256_shuffle_pd(a.v,a.v,0x0);
+  __m256d even = _mm256_mul_pd(tmp1, b.v);
+  __m256d tmp2 = _mm256_shuffle_pd(a.v,a.v,0xF);
+  __m256d tmp3 = _mm256_shuffle_pd(b.v,b.v,0x5);
+  __m256d odd  = _mm256_mul_pd(tmp2, tmp3);
+  return Packet2cd(_mm256_addsub_pd(even, odd));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cd pand   <Packet2cd>(const Packet2cd& a, const Packet2cd& b) { return Packet2cd(_mm256_and_pd(a.v,b.v)); }
@@ -418,13 +415,10 @@ template<> struct conj_helper<Packet2cd, Packet4d, false,false>
 
 template<> EIGEN_STRONG_INLINE Packet2cd pdiv<Packet2cd>(const Packet2cd& a, const Packet2cd& b)
 {
-  Packet2cd res;
-  for (int i = 0; i < 4; i+=2) {
-    std::complex<double> result = std::complex<double>(a.v[i], a.v[i+1]) / std::complex<double>(b.v[i], b.v[i+1]);
-    res.v[i] = std::real(result);
-    res.v[i+1] = std::imag(result);
-  }
-  return res;
+  Packet2cd num = pmul(a, pconj(b));
+  __m256d tmp = _mm256_mul_pd(b.v, b.v);
+  __m256d denom = _mm256_hadd_pd(tmp, tmp);
+  return Packet2cd(_mm256_div_pd(num.v, denom));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cd pcplxflip<Packet2cd>(const Packet2cd& x)
