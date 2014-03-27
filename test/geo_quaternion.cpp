@@ -181,9 +181,9 @@ template<typename Scalar> void mapQuaternion(void){
           v1 = Vector3::Random();
   Scalar  a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
 
-  EIGEN_ALIGN16 Scalar array1[4];
-  EIGEN_ALIGN16 Scalar array2[4];
-  EIGEN_ALIGN16 Scalar array3[4+1];
+  EIGEN_ALIGN_DEFAULT Scalar array1[4];
+  EIGEN_ALIGN_DEFAULT Scalar array2[4];
+  EIGEN_ALIGN_DEFAULT Scalar array3[4+1];
   Scalar* array3unaligned = array3+1;
   
   MQuaternionA    mq1(array1);
@@ -232,9 +232,9 @@ template<typename Scalar> void quaternionAlignment(void){
   typedef Quaternion<Scalar,AutoAlign> QuaternionA;
   typedef Quaternion<Scalar,DontAlign> QuaternionUA;
 
-  EIGEN_ALIGN16 Scalar array1[4];
-  EIGEN_ALIGN16 Scalar array2[4];
-  EIGEN_ALIGN16 Scalar array3[4+1];
+  EIGEN_ALIGN_DEFAULT Scalar array1[4];
+  EIGEN_ALIGN_DEFAULT Scalar array2[4];
+  EIGEN_ALIGN_DEFAULT Scalar array3[4+1];
   Scalar* arrayunaligned = array3+1;
 
   QuaternionA *q1 = ::new(reinterpret_cast<void*>(array1)) QuaternionA;
@@ -248,7 +248,7 @@ template<typename Scalar> void quaternionAlignment(void){
   VERIFY_IS_APPROX(q1->coeffs(), q2->coeffs());
   VERIFY_IS_APPROX(q1->coeffs(), q3->coeffs());
   #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
-  if(internal::packet_traits<Scalar>::Vectorizable)
+  if(internal::packet_traits<Scalar>::Vectorizable && internal::packet_traits<Scalar>::size<=4)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(arrayunaligned)) QuaternionA));
   #endif
 }

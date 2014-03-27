@@ -129,9 +129,9 @@ template<typename Scalar> void hyperplane_alignment()
   typedef Hyperplane<Scalar,3,AutoAlign> Plane3a;
   typedef Hyperplane<Scalar,3,DontAlign> Plane3u;
 
-  EIGEN_ALIGN16 Scalar array1[4];
-  EIGEN_ALIGN16 Scalar array2[4];
-  EIGEN_ALIGN16 Scalar array3[4+1];
+  EIGEN_ALIGN_DEFAULT Scalar array1[4];
+  EIGEN_ALIGN_DEFAULT Scalar array2[4];
+  EIGEN_ALIGN_DEFAULT Scalar array3[4+1];
   Scalar* array3u = array3+1;
 
   Plane3a *p1 = ::new(reinterpret_cast<void*>(array1)) Plane3a;
@@ -146,7 +146,7 @@ template<typename Scalar> void hyperplane_alignment()
   VERIFY_IS_APPROX(p1->coeffs(), p3->coeffs());
   
   #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
-  if(internal::packet_traits<Scalar>::Vectorizable)
+  if(internal::packet_traits<Scalar>::Vectorizable && internal::packet_traits<Scalar>::size<=4)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Plane3a));
   #endif
 }

@@ -86,7 +86,7 @@ template<typename Scalar> void parametrizedline_alignment()
   VERIFY_IS_APPROX(p1->direction(), p3->direction());
   
   #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
-  if(internal::packet_traits<Scalar>::Vectorizable)
+  if(internal::packet_traits<Scalar>::Vectorizable && internal::packet_traits<Scalar>::size<=4)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Line4a));
   #endif
 }
