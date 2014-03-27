@@ -99,8 +99,6 @@ template<> EIGEN_STRONG_INLINE Packet4cf ploaddup<Packet4cf>(const std::complex<
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float>* to, const Packet4cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore(&numext::real_ref(*to), from.v); }
 template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<float>* to, const Packet4cf& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(&numext::real_ref(*to), from.v); }
 
-template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::complex<float>* addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
-
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet4cf>(const Packet4cf& a)
 {
@@ -125,28 +123,29 @@ template<> EIGEN_STRONG_INLINE Packet4cf preverse(const Packet4cf& a) {
 
 template<> EIGEN_STRONG_INLINE std::complex<float> predux<Packet4cf>(const Packet4cf& a)
 {
-  return std::complex<float>(a.v[0]+a.v[2]+a.v[4]+a.v[6], a.v[1]+a.v[3]+a.v[5]+a.v[7]);
+  return predux(padd(Packet2cf(_mm256_extractf128_ps(a.v,0)),
+                     Packet2cf(_mm256_extractf128_ps(a.v,1))));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cf preduxp<Packet4cf>(const Packet4cf* vecs)
 {
-  __m256 result = _mm256_setzero_ps();
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 8; j+=2) {
-      result[2*i] += vecs[i].v[j];
-      result[2*i+1] += vecs[i].v[j+1];
-    }
-  }
-  return Packet4cf(result);
+  Packet8f t0 = _mm256_shuffle_ps(vecs[0].v, vecs[0].v, _MM_SHUFFLE(3, 1, 2 ,0));
+  Packet8f t1 = _mm256_shuffle_ps(vecs[1].v, vecs[1].v, _MM_SHUFFLE(3, 1, 2 ,0));
+  t0 = _mm256_hadd_ps(t0,t1);
+  Packet8f t2 = _mm256_shuffle_ps(vecs[2].v, vecs[2].v, _MM_SHUFFLE(3, 1, 2 ,0));
+  Packet8f t3 = _mm256_shuffle_ps(vecs[3].v, vecs[3].v, _MM_SHUFFLE(3, 1, 2 ,0));
+  t2 = _mm256_hadd_ps(t2,t3);
+  
+  t1 = _mm256_permute2f128_ps(t0,t2, 0 + (2<<4));
+  t3 = _mm256_permute2f128_ps(t0,t2, 1 + (3<<4));
+
+  return Packet4cf(_mm256_add_ps(t1,t3));
 }
 
 template<> EIGEN_STRONG_INLINE std::complex<float> predux_mul<Packet4cf>(const Packet4cf& a)
 {
-  std::complex<float> result(a.v[0], a.v[1]);
-  for (int i = 2; i < 8; i+=2) {
-    result *= std::complex<float>(a.v[i], a.v[i+1]);
-  }
-  return result;
+  return predux_mul(pmul(Packet2cf(_mm256_extractf128_ps(a.v, 0)),
+                         Packet2cf(_mm256_extractf128_ps(a.v, 1))));
 }
 
 template<int Offset>
@@ -155,16 +154,7 @@ struct palign_impl<Offset,Packet4cf>
   static EIGEN_STRONG_INLINE void run(Packet4cf& first, const Packet4cf& second)
   {
     if (Offset==0) return;
-    for (int i = 0; i < 4-Offset; ++i)
-    {
-      first.v[2*i] = first.v[2*(i+Offset)];
-      first.v[2*i+1] = first.v[2*(i+Offset)+1];
-    }
-    for (int i = 4-Offset; i < 4; ++i)
-    {
-      first.v[2*i] = second.v[2*(i-4+Offset)];
-      first.v[2*i+1] = second.v[2*(i-4+Offset)+1];
-    }
+    palign_impl<Offset*2,Packet8f>::run(first.v, second.v);
   }
 };
 
@@ -230,12 +220,7 @@ template<> EIGEN_STRONG_INLINE Packet4cf pdiv<Packet4cf>(const Packet4cf& a, con
 
 template<> EIGEN_STRONG_INLINE Packet4cf pcplxflip<Packet4cf>(const Packet4cf& x)
 {
-  Packet4cf res;
-  for (int i = 0; i < 8; i+=2) {
-    res.v[i] = x.v[i+1];
-    res.v[i+1] = x.v[i];
-  }
-  return res;
+  return Packet4cf(_mm256_shuffle_ps(x.v, x.v, _MM_SHUFFLE(2, 3, 0 ,1)));
 }
 
 //---------- double ----------
@@ -312,8 +297,6 @@ template<> EIGEN_STRONG_INLINE Packet2cd ploaddup<Packet2cd>(const std::complex<
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<double> >(std::complex<double> *   to, const Packet2cd& from) { EIGEN_DEBUG_ALIGNED_STORE pstore((double*)to, from.v); }
 template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<double> >(std::complex<double> *   to, const Packet2cd& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu((double*)to, from.v); }
 
-template<> EIGEN_STRONG_INLINE void prefetch<std::complex<double> >(const std::complex<double> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
-
 template<> EIGEN_STRONG_INLINE std::complex<double>  pfirst<Packet2cd>(const Packet2cd& a)
 {
   __m128d low = _mm256_extractf128_pd(a.v, 0);
@@ -329,24 +312,22 @@ template<> EIGEN_STRONG_INLINE Packet2cd preverse(const Packet2cd& a) {
 
 template<> EIGEN_STRONG_INLINE std::complex<double> predux<Packet2cd>(const Packet2cd& a)
 {
-  return std::complex<double>(a.v[0]+a.v[2], a.v[1]+a.v[3]);
+  return predux(padd(Packet1cd(_mm256_extractf128_pd(a.v,0)),
+                     Packet1cd(_mm256_extractf128_pd(a.v,1))));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cd preduxp<Packet2cd>(const Packet2cd* vecs)
 {
-  __m256d result = _mm256_setzero_pd();
-  for (int i = 0; i < 2; ++i) {
-    for (int j = 0; j < 4; j+=2) {
-      result[2*i] += vecs[i].v[j];
-      result[2*i+1] += vecs[i].v[j+1];
-    }
-  }
-  return Packet2cd(result);
+  Packet4d t0 = _mm256_permute2f128_pd(vecs[0].v,vecs[1].v, 0 + (2<<4));
+  Packet4d t1 = _mm256_permute2f128_pd(vecs[0].v,vecs[1].v, 1 + (3<<4));
+
+  return Packet2cd(_mm256_add_pd(t0,t1));
 }
 
 template<> EIGEN_STRONG_INLINE std::complex<double> predux_mul<Packet2cd>(const Packet2cd& a)
 {
-  return std::complex<double>(a.v[0], a.v[1]) * std::complex<double>(a.v[2], a.v[3]);
+  return predux(pmul(Packet1cd(_mm256_extractf128_pd(a.v,0)),
+                     Packet1cd(_mm256_extractf128_pd(a.v,1))));
 }
 
 template<int Offset>
@@ -355,10 +336,7 @@ struct palign_impl<Offset,Packet2cd>
   static EIGEN_STRONG_INLINE void run(Packet2cd& first, const Packet2cd& second)
   {
     if (Offset==0) return;
-    first.v[0] = first.v[2];
-    first.v[1] = first.v[3];
-    first.v[2] = second.v[0];
-    first.v[3] = second.v[1];
+    palign_impl<Offset*2,Packet4d>::run(first.v, second.v);
   }
 };
 
@@ -423,12 +401,7 @@ template<> EIGEN_STRONG_INLINE Packet2cd pdiv<Packet2cd>(const Packet2cd& a, con
 
 template<> EIGEN_STRONG_INLINE Packet2cd pcplxflip<Packet2cd>(const Packet2cd& x)
 {
-  Packet2cd res;
-  for (int i = 0; i < 4; i+=2) {
-    res.v[i] = x.v[i+1];
-    res.v[i+1] = x.v[i];
-  }
-  return res;
+  return Packet2cd(_mm256_shuffle_pd(x.v, x.v, 0x5));
 }
 
 } // end namespace internal

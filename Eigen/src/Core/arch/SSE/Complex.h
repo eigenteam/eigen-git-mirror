@@ -22,6 +22,9 @@ struct Packet2cf
   __m128  v;
 };
 
+// Use the packet_traits defined in AVX/PacketMath.h instead if we're going
+// to leverage AVX instructions.
+#ifndef EIGEN_VECTORIZE_AVX
 template<> struct packet_traits<std::complex<float> >  : default_packet_traits
 {
   typedef Packet2cf type;
@@ -42,6 +45,7 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
     HasSetLinear = 0
   };
 };
+#endif
 
 template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
 
@@ -248,6 +252,9 @@ struct Packet1cd
   __m128d  v;
 };
 
+// Use the packet_traits defined in AVX/PacketMath.h instead if we're going
+// to leverage AVX instructions.
+#ifndef EIGEN_VECTORIZE_AVX
 template<> struct packet_traits<std::complex<double> >  : default_packet_traits
 {
   typedef Packet1cd type;
@@ -268,6 +275,7 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
     HasSetLinear = 0
   };
 };
+#endif
 
 template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1}; };
 

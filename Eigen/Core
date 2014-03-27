@@ -303,9 +303,10 @@ using std::ptrdiff_t;
 
 #if defined EIGEN_VECTORIZE_AVX
   // Use AVX for floats and doubles, SSE for integers
+  #include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/SSE/Complex.h"
   #include "src/Core/arch/AVX/PacketMath.h"
   #include "src/Core/arch/AVX/Complex.h"
-  #include "src/Core/arch/SSE/PacketMath.h"  // For integers
 #elif defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
