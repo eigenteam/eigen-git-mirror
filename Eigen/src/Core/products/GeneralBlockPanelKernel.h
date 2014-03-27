@@ -594,8 +594,9 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           // performs "inner" products
           const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
-          LhsPacket A0, A1;
+          LhsPacket A0;
           // uncomment for register prefetching
+          // LhsPacket A1;
           // traits.loadLhs(blA, A0);
           for(Index k=0; k<peeled_kc; k+=4)
           {
@@ -762,8 +763,9 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           // performs "inner" products
           const RhsScalar* blB = &blockB[j2*strideB+offsetB*4];
-          LhsPacket A0, A1;
+          LhsPacket A0;
           // uncomment for register prefetching
+          // LhsPacket A1;
           // traits.loadLhs(blA, A0);
           for(Index k=0; k<peeled_kc; k+=4)
           {
