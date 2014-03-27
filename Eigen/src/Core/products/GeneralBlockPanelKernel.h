@@ -1091,7 +1091,11 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, Pan
       if (nr == PacketSize) {
         Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
         pstoreu(blockB+count, cj.pconj(A));
-        count += PacketSize;
+      } else if (nr == 2*PacketSize) {
+        Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
+        Packet B = ploadu<Packet>(&rhs[k*rhsStride + j2 + PacketSize]);
+        pstoreu(blockB+count, cj.pconj(A));
+        pstoreu(blockB+count+PacketSize, cj.pconj(B));
       } else {
         const Scalar* b0 = &rhs[k*rhsStride + j2];
                   blockB[count+0] = cj(b0[0]);
@@ -1102,8 +1106,8 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, Pan
         if(nr>=8) blockB[count+5] = cj(b0[5]);
         if(nr>=8) blockB[count+6] = cj(b0[6]);
         if(nr>=8) blockB[count+7] = cj(b0[7]);
-        count += nr;
       }
+      count += nr;
     }
     // skip what we have after
     if(PanelMode) count += nr * (stride-offset-depth);
