@@ -414,6 +414,47 @@ struct palign_impl<Offset,Packet4d>
   }
 };
 
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet8f>& kernel) {
+  __m256 T0 = _mm256_unpacklo_ps(kernel.packet[0], kernel.packet[1]);
+  __m256 T1 = _mm256_unpackhi_ps(kernel.packet[0], kernel.packet[1]);
+  __m256 T2 = _mm256_unpacklo_ps(kernel.packet[2], kernel.packet[3]);
+  __m256 T3 = _mm256_unpackhi_ps(kernel.packet[2], kernel.packet[3]);
+  __m256 T4 = _mm256_unpacklo_ps(kernel.packet[4], kernel.packet[5]);
+  __m256 T5 = _mm256_unpackhi_ps(kernel.packet[4], kernel.packet[5]);
+  __m256 T6 = _mm256_unpacklo_ps(kernel.packet[6], kernel.packet[7]);
+  __m256 T7 = _mm256_unpackhi_ps(kernel.packet[6], kernel.packet[7]);
+  __m256 S0 = _mm256_shuffle_ps(T0,T2,_MM_SHUFFLE(1,0,1,0));
+  __m256 S1 = _mm256_shuffle_ps(T0,T2,_MM_SHUFFLE(3,2,3,2));
+  __m256 S2 = _mm256_shuffle_ps(T1,T3,_MM_SHUFFLE(1,0,1,0));
+  __m256 S3 = _mm256_shuffle_ps(T1,T3,_MM_SHUFFLE(3,2,3,2));
+  __m256 S4 = _mm256_shuffle_ps(T4,T6,_MM_SHUFFLE(1,0,1,0));
+  __m256 S5 = _mm256_shuffle_ps(T4,T6,_MM_SHUFFLE(3,2,3,2));
+  __m256 S6 = _mm256_shuffle_ps(T5,T7,_MM_SHUFFLE(1,0,1,0));
+  __m256 S7 = _mm256_shuffle_ps(T5,T7,_MM_SHUFFLE(3,2,3,2));
+  kernel.packet[0] = _mm256_permute2f128_ps(S0, S4, 0x20);
+  kernel.packet[1] = _mm256_permute2f128_ps(S1, S5, 0x20);
+  kernel.packet[2] = _mm256_permute2f128_ps(S2, S6, 0x20);
+  kernel.packet[3] = _mm256_permute2f128_ps(S3, S7, 0x20);
+  kernel.packet[4] = _mm256_permute2f128_ps(S0, S4, 0x31);
+  kernel.packet[5] = _mm256_permute2f128_ps(S1, S5, 0x31);
+  kernel.packet[6] = _mm256_permute2f128_ps(S2, S6, 0x31);
+  kernel.packet[7] = _mm256_permute2f128_ps(S3, S7, 0x31);
+}
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet4d>& kernel) {
+  __m256d T0 = _mm256_shuffle_pd(kernel.packet[0], kernel.packet[1], 15);
+  __m256d T1 = _mm256_shuffle_pd(kernel.packet[0], kernel.packet[1], 0);
+  __m256d T2 = _mm256_shuffle_pd(kernel.packet[2], kernel.packet[3], 15);
+  __m256d T3 = _mm256_shuffle_pd(kernel.packet[2], kernel.packet[3], 0);
+
+  kernel.packet[1] = _mm256_permute2f128_pd(T0, T2, 32);
+  kernel.packet[3] = _mm256_permute2f128_pd(T0, T2, 49);
+  kernel.packet[0] = _mm256_permute2f128_pd(T1, T3, 32);
+  kernel.packet[2] = _mm256_permute2f128_pd(T1, T3, 49);
+}
+
 } // end namespace internal
 
 } // end namespace Eigen
