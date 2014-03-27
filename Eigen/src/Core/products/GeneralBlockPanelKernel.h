@@ -954,9 +954,22 @@ EIGEN_DONT_INLINE void gemm_pack_lhs<Scalar, Index, Pack1, Pack2, StorageOrder, 
     }
     else
     {
-      for(Index k=0; k<depth; k++)
-      {
-        // TODO add a vectorized transpose here
+      const Index peeled_k = (depth/PacketSize)*PacketSize;
+      Index k=0;
+      for(; k<peeled_k; k+=PacketSize) {
+        for (Index m = 0; m < Pack1; m += PacketSize) {
+          Kernel<Packet> kernel;
+          for (int p = 0; p < PacketSize; ++p) {
+            kernel.packet[p] = ploadu<Packet>(&lhs(i+p+m, k));
+          }
+          ptranspose(kernel);
+          for (int p = 0; p < PacketSize; ++p) {
+            pstore(blockA+count+m+Pack1*p, cj.pconj(kernel.packet[p]));
+          }
+        }
+        count += PacketSize*Pack1;
+      }
+      for(; k<depth; k++) {
         Index w=0;
         for(; w<Pack1-3; w+=4)
         {
