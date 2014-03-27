@@ -356,8 +356,38 @@ template<typename Scalar> void packetmath_complex()
     internal::pstore(pval,internal::pcplxflip(internal::pload<Packet>(data1)));
     VERIFY(areApprox(ref, pval, PacketSize) && "pcplxflip");
   }
-  
-  
+}
+
+template<typename Scalar> void packetmath_scatter_gather() {
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
+  Scalar data1[PacketSize];
+  RealScalar refvalue = 0;
+  for (int i=0; i<PacketSize; ++i) {
+    data1[i] = internal::random<Scalar>()/RealScalar(PacketSize);
+  }
+  Scalar buffer[PacketSize*11];
+  memset(buffer, 0, 11*sizeof(Packet));
+  Packet packet = internal::pload<Packet>(data1);
+  internal::pscatter<Scalar, Packet>(buffer, packet, 11);
+
+  for (int i = 0; i < PacketSize*11; ++i) {
+    if ((i%11) == 0) {
+      VERIFY(isApproxAbs(buffer[i], data1[i/11], refvalue));
+    } else {
+      VERIFY(isApproxAbs(buffer[i], Scalar(0), refvalue));
+    }
+  }
+
+  for (int i=0; i<PacketSize*7; ++i) {
+    buffer[i] = internal::random<Scalar>()/RealScalar(PacketSize);
+  }
+  packet = internal::pgather<Scalar, Packet>(buffer, 7);
+  internal::pstore(data1, packet);
+  for (int i = 0; i < PacketSize; ++i) {
+    VERIFY(isApproxAbs(data1[i], buffer[i*7], refvalue));
+  }
 }
 
 void test_packetmath()
@@ -378,5 +408,10 @@ void test_packetmath()
 
     CALL_SUBTEST_1( packetmath_complex<std::complex<float> >() );
     CALL_SUBTEST_2( packetmath_complex<std::complex<double> >() );
+
+    CALL_SUBTEST_1( packetmath_scatter_gather<float>() );
+    CALL_SUBTEST_2( packetmath_scatter_gather<double>() );
+    CALL_SUBTEST_3( packetmath_scatter_gather<std::complex<float> >() );
+    CALL_SUBTEST_3( packetmath_scatter_gather<std::complex<double> >() );
   }
 }
