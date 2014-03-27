@@ -435,6 +435,16 @@ EIGEN_STRONG_INLINE Packet1cd pcplxflip/*<Packet1cd>*/(const Packet1cd& x)
   return Packet1cd(preverse(x.v));
 }
 
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet2cf>& kernel) {
+  __m128d w1 = _mm_castps_pd(kernel.packet[0].v);
+  __m128d w2 = _mm_castps_pd(kernel.packet[1].v);
+
+  __m128 tmp = _mm_castpd_ps(_mm_unpackhi_pd(w1, w2));
+  kernel.packet[0].v = _mm_castpd_ps(_mm_unpacklo_pd(w1, w2));
+  kernel.packet[1].v = tmp;
+}
+
 } // end namespace internal
 
 } // end namespace Eigen

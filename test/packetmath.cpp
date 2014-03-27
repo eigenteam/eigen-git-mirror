@@ -208,6 +208,18 @@ template<typename Scalar> void packetmath()
     ref[i] = data1[PacketSize-i-1];
   internal::pstore(data2, internal::preverse(internal::pload<Packet>(data1)));
   VERIFY(areApprox(ref, data2, PacketSize) && "internal::preverse");
+
+  internal::Kernel<Packet> kernel;
+  for (int i=0; i<PacketSize; ++i) {
+    kernel.packet[i] = internal::pload<Packet>(data1+i*PacketSize);
+  }
+  ptranspose(kernel);
+  for (int i=0; i<PacketSize; ++i) {
+    internal::pstore(data2, kernel.packet[i]);
+    for (int j = 0; j < PacketSize; ++j) {
+      VERIFY(isApproxAbs(data2[j], data1[i+j*PacketSize], refvalue));
+    }
+  }
 }
 
 template<typename Scalar> void packetmath_real()

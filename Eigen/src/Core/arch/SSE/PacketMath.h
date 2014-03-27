@@ -707,6 +707,31 @@ struct palign_impl<Offset,Packet2d>
 };
 #endif
 
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet4f>& kernel) {
+  _MM_TRANSPOSE4_PS(kernel.packet[0], kernel.packet[1], kernel.packet[2], kernel.packet[3]);
+}
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet2d>& kernel) {
+  __m128d tmp = _mm_unpackhi_pd(kernel.packet[0], kernel.packet[1]);
+  kernel.packet[0] = _mm_unpacklo_pd(kernel.packet[0], kernel.packet[1]);
+  kernel.packet[1] = tmp;
+}
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet4i>& kernel) {
+  __m128i T0 = _mm_unpacklo_epi32(kernel.packet[0], kernel.packet[1]);
+  __m128i T1 = _mm_unpacklo_epi32(kernel.packet[2], kernel.packet[3]);
+  __m128i T2 = _mm_unpackhi_epi32(kernel.packet[0], kernel.packet[1]);
+  __m128i T3 = _mm_unpackhi_epi32(kernel.packet[2], kernel.packet[3]);
+
+  kernel.packet[0] = _mm_unpacklo_epi64(T0, T1);
+  kernel.packet[1] = _mm_unpackhi_epi64(T0, T1);
+  kernel.packet[2] = _mm_unpacklo_epi64(T2, T3);
+  kernel.packet[3] = _mm_unpackhi_epi64(T2, T3);
+}
+
 } // end namespace internal
 
 } // end namespace Eigen

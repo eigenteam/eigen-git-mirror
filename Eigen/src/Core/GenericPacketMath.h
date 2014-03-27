@@ -386,9 +386,22 @@ template<> inline std::complex<double> pmul(const std::complex<double>& a, const
 
 #endif
 
+
+/***************************************************************************
+ * Kernel, that is a collection of N packets where N is the number of words
+ * in the packet.
+***************************************************************************/
+template <typename Packet> struct Kernel {
+  Packet packet[unpacket_traits<Packet>::size];
+};
+
+template<typename Packet> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet>& /*kernel*/) {
+  // Nothing to do in the scalar case, i.e. a 1x1 matrix.
+}
+
 } // end namespace internal
 
 } // end namespace Eigen
 
 #endif // EIGEN_GENERIC_PACKET_MATH_H
-
