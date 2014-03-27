@@ -521,12 +521,7 @@ public:
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
-#ifdef EIGEN_VECTORIZE_FMA
-    EIGEN_UNUSED_VARIABLE(tmp);
-    c = pmadd(a,b,c);
-#else
     tmp = b; tmp.v = pmul(a,tmp.v); c = padd(c,tmp);
-#endif
   }
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const false_type&) const
