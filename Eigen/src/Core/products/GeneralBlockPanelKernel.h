@@ -215,6 +215,7 @@ public:
     // (in the case where there is no FMA) gcc fails to figure out how to avoid
     // spilling register.
 #ifdef EIGEN_VECTORIZE_FMA
+    EIGEN_UNUSED_VARIABLE(tmp);
     c = pmadd(a,b,c);
 #else
     tmp = b; tmp = pmul(a,tmp); c = padd(c,tmp);
@@ -299,6 +300,7 @@ public:
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
 #ifdef EIGEN_VECTORIZE_FMA
+    EIGEN_UNUSED_VARIABLE(tmp);
     c.v = pmadd(a.v,b,c.v);
 #else
     tmp = b; tmp = pmul(a.v,tmp); c.v = padd(c.v,tmp);
@@ -520,6 +522,7 @@ public:
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
 #ifdef EIGEN_VECTORIZE_FMA
+    EIGEN_UNUSED_VARIABLE(tmp);
     c = pmadd(a,b,c);
 #else
     tmp = b; tmp.v = pmul(a,tmp.v); c = padd(c,tmp);
