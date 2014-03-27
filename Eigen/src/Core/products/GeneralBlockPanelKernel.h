@@ -1033,6 +1033,7 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
   Index packet_cols = (cols/nr) * nr;
   Index count = 0;
+  const Index peeled_k = (depth/PacketSize)*PacketSize;
   for(Index j2=0; j2<packet_cols; j2+=nr)
   {
     // skip what we have before
@@ -1045,7 +1046,22 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
     const Scalar* b5 = &rhs[(j2+5)*rhsStride];
     const Scalar* b6 = &rhs[(j2+6)*rhsStride];
     const Scalar* b7 = &rhs[(j2+7)*rhsStride];
-    for(Index k=0; k<depth; k++)
+    Index k=0;
+    if(nr == PacketSize)
+    {
+      for(; k<peeled_k; k+=PacketSize) {
+	Kernel<Packet> kernel;
+	for (int p = 0; p < PacketSize; ++p) {
+	  kernel.packet[p] = ploadu<Packet>(&rhs[(j2+p)*rhsStride+k]);
+	}
+	ptranspose(kernel);
+	for (int p = 0; p < PacketSize; ++p) {
+	  pstoreu(blockB+count, cj.pconj(kernel.packet[p]));
+	  count+=PacketSize;
+	}
+      }
+    }
+    for(; k<depth; k++)
     {
                 blockB[count+0] = cj(b0[k]);
                 blockB[count+1] = cj(b1[k]);
