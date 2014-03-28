@@ -362,12 +362,12 @@ template<typename Scalar> void packetmath_scatter_gather() {
   typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   const int PacketSize = internal::packet_traits<Scalar>::size;
-  Scalar data1[PacketSize];
+  EIGEN_ALIGN_DEFAULT Scalar data1[PacketSize];
   RealScalar refvalue = 0;
   for (int i=0; i<PacketSize; ++i) {
     data1[i] = internal::random<Scalar>()/RealScalar(PacketSize);
   }
-  Scalar buffer[PacketSize*11];
+  EIGEN_ALIGN_DEFAULT Scalar buffer[PacketSize*11];
   memset(buffer, 0, 11*sizeof(Packet));
   Packet packet = internal::pload<Packet>(data1);
   internal::pscatter<Scalar, Packet>(buffer, packet, 11);
