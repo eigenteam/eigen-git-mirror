@@ -28,10 +28,12 @@ struct Packet2cf
 template<> struct packet_traits<std::complex<float> >  : default_packet_traits
 {
   typedef Packet2cf type;
+  typedef Packet2cf half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 2,
+    HasHalfPacket = 0,
 
     HasAdd    = 1,
     HasSub    = 1,
@@ -276,10 +278,12 @@ struct Packet1cd
 template<> struct packet_traits<std::complex<double> >  : default_packet_traits
 {
   typedef Packet1cd type;
+  typedef Packet1cd half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 0,
     size = 1,
+    HasHalfPacket = 0,
 
     HasAdd    = 1,
     HasSub    = 1,

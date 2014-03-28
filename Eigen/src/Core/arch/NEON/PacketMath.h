@@ -66,6 +66,7 @@ typedef uint32x4_t  Packet4ui;
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet4f type;
+  typedef Packet4f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
@@ -83,6 +84,7 @@ template<> struct packet_traits<float>  : default_packet_traits
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
+  typedef Packet4i half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,

@@ -64,10 +64,12 @@ template<> struct is_arithmetic<__m128d> { enum { value = true }; };
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet4f type;
+  typedef Packet4f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=4,
+    HasHalfPacket = 0,
 
     HasDiv  = 1,
     HasSin  = EIGEN_FAST_MATH,
@@ -80,10 +82,12 @@ template<> struct packet_traits<float>  : default_packet_traits
 template<> struct packet_traits<double> : default_packet_traits
 {
   typedef Packet2d type;
+  typedef Packet2d half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=2,
+    HasHalfPacket = 0,
 
     HasDiv  = 1,
     HasExp  = 1,
@@ -94,6 +98,7 @@ template<> struct packet_traits<double> : default_packet_traits
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
+  typedef Packet4i half;
   enum {
     // FIXME check the Has*
     Vectorizable = 1,

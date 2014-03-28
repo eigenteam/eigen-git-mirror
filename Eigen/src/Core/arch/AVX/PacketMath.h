@@ -40,10 +40,12 @@ template<> struct is_arithmetic<__m256d> { enum { value = true }; };
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet8f type;
+  typedef Packet4f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=8,
+    HasHalfPacket = 1,
 
     HasDiv  = 1,
     HasSin  = 0,
@@ -56,10 +58,12 @@ template<> struct packet_traits<float>  : default_packet_traits
 template<> struct packet_traits<double> : default_packet_traits
 {
   typedef Packet4d type;
+  typedef Packet2d half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=4,
+    HasHalfPacket = 1,
 
     HasDiv  = 1,
     HasExp  = 0
