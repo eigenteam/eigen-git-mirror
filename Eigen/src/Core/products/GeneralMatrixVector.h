@@ -136,11 +136,16 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,Co
   // find how many columns do we have to skip to be aligned with the result (if possible)
   Index skipColumns = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
-  // TODO: extend the code to support aligned loads whenever possible when LhsPacketSize > 4.
-  if( (size_t(lhs)%sizeof(LhsScalar)) || (size_t(res)%sizeof(ResScalar)) || LhsPacketSize > 4)
+  if( (size_t(lhs)%sizeof(LhsScalar)) || (size_t(res)%sizeof(ResScalar)) )
   {
     alignedSize = 0;
     alignedStart = 0;
+  }
+  else if(LhsPacketSize > 4)
+  {
+    // TODO: extend the code to support aligned loads whenever possible when LhsPacketSize > 4.
+    // Currently, it seems to be better to perform unaligned loads anyway
+    alignmentPattern = NoneAligned;
   }
   else if (LhsPacketSize>1)
   {
@@ -401,12 +406,15 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   Index skipRows = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
-  // TODO: extend the code to support aligned loads whenever possible when LhsPacketSize > 4.
-  if( (sizeof(LhsScalar)!=sizeof(RhsScalar)) || (size_t(lhs)%sizeof(LhsScalar)) || (size_t(rhs)%sizeof(RhsScalar)) ||
-      (LhsPacketSize > 4))
+  if( (sizeof(LhsScalar)!=sizeof(RhsScalar)) || (size_t(lhs)%sizeof(LhsScalar)) || (size_t(rhs)%sizeof(RhsScalar)) )
   {
     alignedSize = 0;
     alignedStart = 0;
+  }
+  else if(LhsPacketSize > 4)
+  {
+    // TODO: extend the code to support aligned loads whenever possible when LhsPacketSize > 4.
+    alignmentPattern = NoneAligned;
   }
   else if (LhsPacketSize>1)
   {
