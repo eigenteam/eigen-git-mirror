@@ -411,6 +411,7 @@ void test_packetmath()
 
     CALL_SUBTEST_1( packetmath_scatter_gather<float>() );
     CALL_SUBTEST_2( packetmath_scatter_gather<double>() );
+    CALL_SUBTEST_3( packetmath_scatter_gather<int>() );
     CALL_SUBTEST_3( packetmath_scatter_gather<std::complex<float> >() );
     CALL_SUBTEST_3( packetmath_scatter_gather<std::complex<double> >() );
   }

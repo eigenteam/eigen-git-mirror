@@ -111,6 +111,24 @@ template<> EIGEN_STRONG_INLINE Packet2cf ploaddup<Packet2cf>(const std::complex<
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore(&numext::real_ref(*to), from.v); }
 template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(&numext::real_ref(*to), from.v); }
 
+
+template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, int stride)
+{
+  return Packet2cf(_mm_set_ps(std::imag(from[1*stride]), std::real(from[1*stride]),
+			      std::imag(from[0*stride]), std::real(from[0*stride])));
+}
+
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, int stride)
+{
+  /*  for (int i = 0; i < 2; i+=2) {
+    to[stride*i] = std::complex<float>(from.v[i], from.v[i+1]);
+    }*/
+  to[stride*0] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 0)),
+				     _mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 1)));
+  to[stride*1] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 2)),
+				     _mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 3)));
+}
+
 template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::complex<float> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Packet2cf& a)

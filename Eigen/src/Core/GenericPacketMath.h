@@ -223,7 +223,7 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
  { return ploadu<Packet>(from); }
 
  template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pscatter(Scalar* to, const Packet& from, int /*stride*/)
-{ (*to) = from; }
+ { pstore(to, from); }
 
 /** \internal tries to do cache prefetching of \a addr */
 template<typename Scalar> inline void prefetch(const Scalar* addr)
