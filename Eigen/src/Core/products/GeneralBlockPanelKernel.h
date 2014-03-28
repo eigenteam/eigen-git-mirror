@@ -167,8 +167,6 @@ public:
     // register block size along the M direction (currently, this one cannot be modified)
     mr = LhsPacketSize,
     
-    WorkSpaceFactor = nr * RhsPacketSize,
-
     LhsProgress = LhsPacketSize,
     RhsProgress = 1
   };
@@ -251,7 +249,6 @@ public:
     NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
     nr = NumberOfRegisters/2,
     mr = LhsPacketSize,
-    WorkSpaceFactor = nr*RhsPacketSize,
 
     LhsProgress = LhsPacketSize,
     RhsProgress = 1
@@ -341,7 +338,6 @@ public:
     // FIXME: should depend on NumberOfRegisters
     nr = 4,
     mr = ResPacketSize,
-    WorkSpaceFactor = Vectorizable ? 2*nr*RealPacketSize : nr,
 
     LhsProgress = ResPacketSize,
     RhsProgress = 1
@@ -473,7 +469,6 @@ public:
     // FIXME: should depend on NumberOfRegisters
     nr = 4,
     mr = ResPacketSize,
-    WorkSpaceFactor = nr*RhsPacketSize,
 
     LhsProgress = ResPacketSize,
     RhsProgress = 1
@@ -578,63 +573,46 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
     if(strideA==-1) strideA = depth;
     if(strideB==-1) strideB = depth;
     conj_helper<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> cj;
-    Index packet_cols = (cols/nr) * nr;
+    Index packet_cols8 = nr>=8 ? (cols/8) * 8 : 0;
+    Index packet_cols4 = nr>=4 ? (cols/4) * 4 : 0;
     // Here we assume that mr==LhsProgress
     const Index peeled_mc = (rows/mr)*mr;
     const Index peeled_kc = (depth/4)*4;
 
     // loops on each micro vertical panel of rhs (depth x nr)
-    for(Index j2=0; j2<packet_cols; j2+=nr)
+    // First pass using depth x 8 panels
+    if(nr>=8)
     {
-      // loops on each largest micro horizontal panel of lhs (mr x depth)
-      // => we select a mr x nr micro block of res which is entirely
-      //    stored into mr/packet_size x nr registers.
-      for(Index i=0; i<peeled_mc; i+=mr)
+      for(Index j2=0; j2<packet_cols8; j2+=nr)
       {
-        const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
-        // prefetch(&blA[0]);
-
-        // gets res block as register
-        AccPacket C0, C1, C2, C3, C4, C5, C6, C7;
-                  traits.initAcc(C0);
-                  traits.initAcc(C1);
-                  traits.initAcc(C2);
-                  traits.initAcc(C3);
-        if(nr==8) traits.initAcc(C4);
-        if(nr==8) traits.initAcc(C5);
-        if(nr==8) traits.initAcc(C6);
-        if(nr==8) traits.initAcc(C7);
-
-        ResScalar* r0 = &res[(j2+0)*resStride + i];
-
-        // performs "inner" products
-        const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
-        LhsPacket A0, A1;
-        // uncomment for register prefetching
-        // traits.loadLhs(blA, A0);
-        for(Index k=0; k<peeled_kc; k+=4)
+        // loops on each largest micro horizontal panel of lhs (mr x depth)
+        // => we select a mr x nr micro block of res which is entirely
+        //    stored into mr/packet_size x nr registers.
+        for(Index i=0; i<peeled_mc; i+=mr)
         {
-          if(nr==4)
-          {
-            EIGEN_ASM_COMMENT("begin gegp micro kernel 1p x 4");
-            
-            RhsPacket B_0, B1;
-            
-#define EIGEN_GEBGP_ONESTEP4(K) \
-            traits.loadLhs(&blA[K*LhsProgress], A0);  \
-            traits.broadcastRhs(&blB[0+4*K*RhsProgress], B_0, B1); \
-            traits.madd(A0, B_0,C0, B_0); \
-            traits.madd(A0, B1, C1, B1); \
-            traits.broadcastRhs(&blB[2+4*K*RhsProgress], B_0, B1); \
-            traits.madd(A0, B_0,C2, B_0); \
-            traits.madd(A0, B1, C3, B1)
-        
-            EIGEN_GEBGP_ONESTEP4(0);
-            EIGEN_GEBGP_ONESTEP4(1);
-            EIGEN_GEBGP_ONESTEP4(2);
-            EIGEN_GEBGP_ONESTEP4(3);
-          }
-          else // nr==8
+          const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
+          // prefetch(&blA[0]);
+
+          // gets res block as register
+          AccPacket C0, C1, C2, C3, C4, C5, C6, C7;
+          traits.initAcc(C0);
+          traits.initAcc(C1);
+          traits.initAcc(C2);
+          traits.initAcc(C3);
+          traits.initAcc(C4);
+          traits.initAcc(C5);
+          traits.initAcc(C6);
+          traits.initAcc(C7);
+
+          ResScalar* r0 = &res[(j2+0)*resStride + i];
+
+          // performs "inner" products
+          const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
+          LhsPacket A0;
+          // uncomment for register prefetching
+          // LhsPacket A1;
+          // traits.loadLhs(blA, A0);
+          for(Index k=0; k<peeled_kc; k+=4)
           {
             EIGEN_ASM_COMMENT("begin gegp micro kernel 1p x 8");
             RhsPacket B_0, B1, B2, B3;
@@ -674,35 +652,23 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
             EIGEN_GEBGP_ONESTEP8(1,A0,A1);
             EIGEN_GEBGP_ONESTEP8(2,A1,A0);
             EIGEN_GEBGP_ONESTEP8(3,A0,A1);
-          }
 
-          blB += 4*nr*RhsProgress;
-          blA += 4*mr;
-        }
-        // process remaining peeled loop
-        for(Index k=peeled_kc; k<depth; k++)
-        {
-          if(nr==4)
-          {
-            RhsPacket B_0, B1;
-            EIGEN_GEBGP_ONESTEP4(0);
+            blB += 4*8*RhsProgress;
+            blA += 4*mr;
           }
-          else // nr == 8
+          // process remaining peeled loop
+          for(Index k=peeled_kc; k<depth; k++)
           {
             RhsPacket B_0, B1, B2, B3;
             EIGEN_GEBGP_ONESTEP8(0,A1,A0);
             // uncomment for register prefetching
             // A0 = A1;
+
+            blB += 8*RhsProgress;
+            blA += mr;
           }
+  #undef EIGEN_GEBGP_ONESTEP8
 
-          blB += nr*RhsProgress;
-          blA += mr;
-        }
-#undef EIGEN_GEBGP_ONESTEP4
-#undef EIGEN_GEBGP_ONESTEP8
-
-        if(nr==8)
-        {
           ResPacket R0, R1, R2, R3, R4, R5, R6;
           ResPacket alphav = pset1<ResPacket>(alpha);
 
@@ -732,60 +698,20 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           pstoreu(r0+5*resStride, R5);
           pstoreu(r0+6*resStride, R6);
           pstoreu(r0+7*resStride, R0);
-        }
-        else // nr==4
-        {
-          ResPacket R0, R1, R2;
-          ResPacket alphav = pset1<ResPacket>(alpha);
-
-          R0 = ploadu<ResPacket>(r0+0*resStride);
-          R1 = ploadu<ResPacket>(r0+1*resStride);
-          R2 = ploadu<ResPacket>(r0+2*resStride);
-          traits.acc(C0, alphav, R0);
-          pstoreu(r0+0*resStride, R0);
-          R0 = ploadu<ResPacket>(r0+3*resStride);
-
-          traits.acc(C1, alphav, R1);
-          traits.acc(C2, alphav, R2);
-          traits.acc(C3, alphav, R0);
           
-          pstoreu(r0+1*resStride, R1);
-          pstoreu(r0+2*resStride, R2);
-          pstoreu(r0+3*resStride, R0);
         }
         
-      }
-      
-      for(Index i=peeled_mc; i<rows; i++)
-      {
-        const LhsScalar* blA = &blockA[i*strideA+offsetA];
-        prefetch(&blA[0]);
-
-        // gets a 1 x nr res block as registers
-        ResScalar C0(0), C1(0), C2(0), C3(0), C4(0), C5(0), C6(0), C7(0);
-        // FIXME directly use blockB ???
-        const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
-        // TODO peel this loop
-        for(Index k=0; k<depth; k++)
+        for(Index i=peeled_mc; i<rows; i++)
         {
-          if(nr==4)
-          {
-            LhsScalar A0;
-            RhsScalar B_0, B_1;
+          const LhsScalar* blA = &blockA[i*strideA+offsetA];
+          prefetch(&blA[0]);
 
-            A0 = blA[k];
-            
-            B_0 = blB[0];
-            B_1 = blB[1];
-            MADD(cj,A0,B_0,C0,  B_0);
-            MADD(cj,A0,B_1,C1,  B_1);
-            
-            B_0 = blB[2];
-            B_1 = blB[3];
-            MADD(cj,A0,B_0,C2,  B_0);
-            MADD(cj,A0,B_1,C3,  B_1);
-          }
-          else // nr==8
+          // gets a 1 x 8 res block as registers
+          ResScalar C0(0), C1(0), C2(0), C3(0), C4(0), C5(0), C6(0), C7(0);
+          // FIXME directly use blockB ???
+          const RhsScalar* blB = &blockB[j2*strideB+offsetB*8];
+          // TODO peel this loop
+          for(Index k=0; k<depth; k++)
           {
             LhsScalar A0;
             RhsScalar B_0, B_1;
@@ -811,24 +737,143 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
             B_1 = blB[7];
             MADD(cj,A0,B_0,C6,  B_0);
             MADD(cj,A0,B_1,C7,  B_1);
-          }
 
-          blB += nr;
+            blB += 8;
+          }
+          res[(j2+0)*resStride + i] += alpha*C0;
+          res[(j2+1)*resStride + i] += alpha*C1;
+          res[(j2+2)*resStride + i] += alpha*C2;
+          res[(j2+3)*resStride + i] += alpha*C3;
+          res[(j2+4)*resStride + i] += alpha*C4;
+          res[(j2+5)*resStride + i] += alpha*C5;
+          res[(j2+6)*resStride + i] += alpha*C6;
+          res[(j2+7)*resStride + i] += alpha*C7;
         }
-                  res[(j2+0)*resStride + i] += alpha*C0;
-                  res[(j2+1)*resStride + i] += alpha*C1;
-                  res[(j2+2)*resStride + i] += alpha*C2;
-                  res[(j2+3)*resStride + i] += alpha*C3;
-        if(nr==8) res[(j2+4)*resStride + i] += alpha*C4;
-        if(nr==8) res[(j2+5)*resStride + i] += alpha*C5;
-        if(nr==8) res[(j2+6)*resStride + i] += alpha*C6;
-        if(nr==8) res[(j2+7)*resStride + i] += alpha*C7;
+      }
+    }
+    
+    // Second pass using depth x 4 panels
+    // If nr==8, then we have at most one such panel
+    if(nr>=4)
+    {
+      for(Index j2=packet_cols8; j2<packet_cols4; j2+=4)
+      {
+        // loops on each largest micro horizontal panel of lhs (mr x depth)
+        // => we select a mr x 4 micro block of res which is entirely
+        //    stored into mr/packet_size x 4 registers.
+        for(Index i=0; i<peeled_mc; i+=mr)
+        {
+          const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
+          // prefetch(&blA[0]);
+
+          // gets res block as register
+          AccPacket C0, C1, C2, C3;
+          traits.initAcc(C0);
+          traits.initAcc(C1);
+          traits.initAcc(C2);
+          traits.initAcc(C3);
+
+          ResScalar* r0 = &res[(j2+0)*resStride + i];
+
+          // performs "inner" products
+          const RhsScalar* blB = &blockB[j2*strideB+offsetB*4];
+          LhsPacket A0;
+          // uncomment for register prefetching
+          // LhsPacket A1;
+          // traits.loadLhs(blA, A0);
+          for(Index k=0; k<peeled_kc; k+=4)
+          {
+            EIGEN_ASM_COMMENT("begin gegp micro kernel 1p x 4");
+            
+            RhsPacket B_0, B1;
+            
+#define EIGEN_GEBGP_ONESTEP4(K) \
+            traits.loadLhs(&blA[K*LhsProgress], A0);  \
+            traits.broadcastRhs(&blB[0+4*K*RhsProgress], B_0, B1); \
+            traits.madd(A0, B_0,C0, B_0); \
+            traits.madd(A0, B1, C1, B1); \
+            traits.broadcastRhs(&blB[2+4*K*RhsProgress], B_0, B1); \
+            traits.madd(A0, B_0,C2, B_0); \
+            traits.madd(A0, B1, C3, B1)
+        
+            EIGEN_GEBGP_ONESTEP4(0);
+            EIGEN_GEBGP_ONESTEP4(1);
+            EIGEN_GEBGP_ONESTEP4(2);
+            EIGEN_GEBGP_ONESTEP4(3);
+
+            blB += 4*4*RhsProgress;
+            blA += 4*mr;
+          }
+          // process remaining peeled loop
+          for(Index k=peeled_kc; k<depth; k++)
+          {
+            RhsPacket B_0, B1;
+            EIGEN_GEBGP_ONESTEP4(0);
+
+            blB += 4*RhsProgress;
+            blA += mr;
+          }
+  #undef EIGEN_GEBGP_ONESTEP4
+
+          ResPacket R0, R1, R2;
+          ResPacket alphav = pset1<ResPacket>(alpha);
+
+          R0 = ploadu<ResPacket>(r0+0*resStride);
+          R1 = ploadu<ResPacket>(r0+1*resStride);
+          R2 = ploadu<ResPacket>(r0+2*resStride);
+          traits.acc(C0, alphav, R0);
+          pstoreu(r0+0*resStride, R0);
+          R0 = ploadu<ResPacket>(r0+3*resStride);
+
+          traits.acc(C1, alphav, R1);
+          traits.acc(C2, alphav, R2);
+          traits.acc(C3, alphav, R0);
+          
+          pstoreu(r0+1*resStride, R1);
+          pstoreu(r0+2*resStride, R2);
+          pstoreu(r0+3*resStride, R0);
+        }
+        
+        for(Index i=peeled_mc; i<rows; i++)
+        {
+          const LhsScalar* blA = &blockA[i*strideA+offsetA];
+          prefetch(&blA[0]);
+
+          // gets a 1 x 4 res block as registers
+          ResScalar C0(0), C1(0), C2(0), C3(0);
+          // FIXME directly use blockB ???
+          const RhsScalar* blB = &blockB[j2*strideB+offsetB*4];
+          // TODO peel this loop
+          for(Index k=0; k<depth; k++)
+          {
+            LhsScalar A0;
+            RhsScalar B_0, B_1;
+
+            A0 = blA[k];
+            
+            B_0 = blB[0];
+            B_1 = blB[1];
+            MADD(cj,A0,B_0,C0,  B_0);
+            MADD(cj,A0,B_1,C1,  B_1);
+            
+            B_0 = blB[2];
+            B_1 = blB[3];
+            MADD(cj,A0,B_0,C2,  B_0);
+            MADD(cj,A0,B_1,C3,  B_1);
+
+            blB += 4;
+          }
+          res[(j2+0)*resStride + i] += alpha*C0;
+          res[(j2+1)*resStride + i] += alpha*C1;
+          res[(j2+2)*resStride + i] += alpha*C2;
+          res[(j2+3)*resStride + i] += alpha*C3;
+        }
       }
     }
     
     // process remaining rhs/res columns one at a time
     // => do the same but with nr==1
-    for(Index j2=packet_cols; j2<cols; j2++)
+    for(Index j2=packet_cols4; j2<cols; j2++)
     {
       for(Index i=0; i<peeled_mc; i+=mr)
       {
@@ -1029,54 +1074,96 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
   EIGEN_UNUSED_VARIABLE(offset);
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
-  Index packet_cols = (cols/nr) * nr;
+  Index packet_cols8 = nr>=8 ? (cols/8) * 8 : 0;
+  Index packet_cols4 = nr>=4 ? (cols/4) * 4 : 0;
   Index count = 0;
   const Index peeled_k = (depth/PacketSize)*PacketSize;
-  for(Index j2=0; j2<packet_cols; j2+=nr)
+  if(nr>=8)
   {
-    // skip what we have before
-    if(PanelMode) count += nr * offset;
-    const Scalar* b0 = &rhs[(j2+0)*rhsStride];
-    const Scalar* b1 = &rhs[(j2+1)*rhsStride];
-    const Scalar* b2 = &rhs[(j2+2)*rhsStride];
-    const Scalar* b3 = &rhs[(j2+3)*rhsStride];
-    const Scalar* b4 = &rhs[(j2+4)*rhsStride];
-    const Scalar* b5 = &rhs[(j2+5)*rhsStride];
-    const Scalar* b6 = &rhs[(j2+6)*rhsStride];
-    const Scalar* b7 = &rhs[(j2+7)*rhsStride];
-    Index k=0;
-    if(nr == PacketSize)
+    for(Index j2=0; j2<packet_cols8; j2+=8)
     {
-      for(; k<peeled_k; k+=PacketSize) {
-	Kernel<Packet> kernel;
-	for (int p = 0; p < PacketSize; ++p) {
-	  kernel.packet[p] = ploadu<Packet>(&rhs[(j2+p)*rhsStride+k]);
-	}
-	ptranspose(kernel);
-	for (int p = 0; p < PacketSize; ++p) {
-	  pstoreu(blockB+count, cj.pconj(kernel.packet[p]));
-	  count+=PacketSize;
-	}
+      // skip what we have before
+      if(PanelMode) count += 8 * offset;
+      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
+      const Scalar* b1 = &rhs[(j2+1)*rhsStride];
+      const Scalar* b2 = &rhs[(j2+2)*rhsStride];
+      const Scalar* b3 = &rhs[(j2+3)*rhsStride];
+      const Scalar* b4 = &rhs[(j2+4)*rhsStride];
+      const Scalar* b5 = &rhs[(j2+5)*rhsStride];
+      const Scalar* b6 = &rhs[(j2+6)*rhsStride];
+      const Scalar* b7 = &rhs[(j2+7)*rhsStride];
+      Index k=0;
+      if(PacketSize==8) // TODO enbale vectorized transposition for PacketSize==4
+      {
+        for(; k<peeled_k; k+=PacketSize) {
+          Kernel<Packet> kernel;
+          for (int p = 0; p < PacketSize; ++p) {
+            kernel.packet[p] = ploadu<Packet>(&rhs[(j2+p)*rhsStride+k]);
+          }
+          ptranspose(kernel);
+          for (int p = 0; p < PacketSize; ++p) {
+            pstoreu(blockB+count, cj.pconj(kernel.packet[p]));
+            count+=PacketSize;
+          }
+        }
       }
+      for(; k<depth; k++)
+      {
+        blockB[count+0] = cj(b0[k]);
+        blockB[count+1] = cj(b1[k]);
+        blockB[count+2] = cj(b2[k]);
+        blockB[count+3] = cj(b3[k]);
+        blockB[count+4] = cj(b4[k]);
+        blockB[count+5] = cj(b5[k]);
+        blockB[count+6] = cj(b6[k]);
+        blockB[count+7] = cj(b7[k]);
+        count += 8;
+      }
+      // skip what we have after
+      if(PanelMode) count += 8 * (stride-offset-depth);
     }
-    for(; k<depth; k++)
+  }
+  
+  if(nr>=4)
+  {
+    for(Index j2=packet_cols8; j2<packet_cols4; j2+=4)
     {
-                blockB[count+0] = cj(b0[k]);
-                blockB[count+1] = cj(b1[k]);
-      if(nr>=4) blockB[count+2] = cj(b2[k]);
-      if(nr>=4) blockB[count+3] = cj(b3[k]);
-      if(nr>=8) blockB[count+4] = cj(b4[k]);
-      if(nr>=8) blockB[count+5] = cj(b5[k]);
-      if(nr>=8) blockB[count+6] = cj(b6[k]);
-      if(nr>=8) blockB[count+7] = cj(b7[k]);
-      count += nr;
+      // skip what we have before
+      if(PanelMode) count += 4 * offset;
+      const Scalar* b0 = &rhs[(j2+0)*rhsStride];
+      const Scalar* b1 = &rhs[(j2+1)*rhsStride];
+      const Scalar* b2 = &rhs[(j2+2)*rhsStride];
+      const Scalar* b3 = &rhs[(j2+3)*rhsStride];
+      Index k=0;
+      if(PacketSize==4) // TODO enbale vectorized transposition for PacketSize==2 ??
+      {
+        for(; k<peeled_k; k+=PacketSize) {
+          Kernel<Packet> kernel;
+          for (int p = 0; p < PacketSize; ++p) {
+            kernel.packet[p] = ploadu<Packet>(&rhs[(j2+p)*rhsStride+k]);
+          }
+          ptranspose(kernel);
+          for (int p = 0; p < PacketSize; ++p) {
+            pstoreu(blockB+count, cj.pconj(kernel.packet[p]));
+            count+=PacketSize;
+          }
+        }
+      }
+      for(; k<depth; k++)
+      {
+        blockB[count+0] = cj(b0[k]);
+        blockB[count+1] = cj(b1[k]);
+        blockB[count+2] = cj(b2[k]);
+        blockB[count+3] = cj(b3[k]);
+        count += 4;
+      }
+      // skip what we have after
+      if(PanelMode) count += 4 * (stride-offset-depth);
     }
-    // skip what we have after
-    if(PanelMode) count += nr * (stride-offset-depth);
   }
 
   // copy the remaining columns one at a time (nr==1)
-  for(Index j2=packet_cols; j2<cols; ++j2)
+  for(Index j2=packet_cols4; j2<cols; ++j2)
   {
     if(PanelMode) count += offset;
     const Scalar* b0 = &rhs[(j2+0)*rhsStride];
@@ -1107,40 +1194,70 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, Pan
   EIGEN_UNUSED_VARIABLE(offset);
   eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
   conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
-  Index packet_cols = (cols/nr) * nr;
+  Index packet_cols8 = nr>=8 ? (cols/8) * 8 : 0;
+  Index packet_cols4 = nr>=4 ? (cols/4) * 4 : 0;
   Index count = 0;
-  for(Index j2=0; j2<packet_cols; j2+=nr)
+  
+  if(nr>=8)
   {
-    // skip what we have before
-    if(PanelMode) count += nr * offset;
-    for(Index k=0; k<depth; k++)
+    for(Index j2=0; j2<packet_cols8; j2+=8)
     {
-      if (nr == PacketSize) {
-        Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
-        pstoreu(blockB+count, cj.pconj(A));
-      } else if (nr == 2*PacketSize) {
-        Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
-        Packet B = ploadu<Packet>(&rhs[k*rhsStride + j2 + PacketSize]);
-        pstoreu(blockB+count, cj.pconj(A));
-        pstoreu(blockB+count+PacketSize, cj.pconj(B));
-      } else {
-        const Scalar* b0 = &rhs[k*rhsStride + j2];
-                  blockB[count+0] = cj(b0[0]);
-                  blockB[count+1] = cj(b0[1]);
-        if(nr>=4) blockB[count+2] = cj(b0[2]);
-        if(nr>=4) blockB[count+3] = cj(b0[3]);
-        if(nr>=8) blockB[count+4] = cj(b0[4]);
-        if(nr>=8) blockB[count+5] = cj(b0[5]);
-        if(nr>=8) blockB[count+6] = cj(b0[6]);
-        if(nr>=8) blockB[count+7] = cj(b0[7]);
+      // skip what we have before
+      if(PanelMode) count += 8 * offset;
+      for(Index k=0; k<depth; k++)
+      {
+        if (PacketSize==8) {
+          Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
+          pstoreu(blockB+count, cj.pconj(A));
+        } else if (PacketSize==4) {
+          Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
+          Packet B = ploadu<Packet>(&rhs[k*rhsStride + j2 + PacketSize]);
+          pstoreu(blockB+count, cj.pconj(A));
+          pstoreu(blockB+count+PacketSize, cj.pconj(B));
+        } else {
+          const Scalar* b0 = &rhs[k*rhsStride + j2];
+          blockB[count+0] = cj(b0[0]);
+          blockB[count+1] = cj(b0[1]);
+          blockB[count+2] = cj(b0[2]);
+          blockB[count+3] = cj(b0[3]);
+          blockB[count+4] = cj(b0[4]);
+          blockB[count+5] = cj(b0[5]);
+          blockB[count+6] = cj(b0[6]);
+          blockB[count+7] = cj(b0[7]);
+        }
+        count += 8;
       }
-      count += nr;
+      // skip what we have after
+      if(PanelMode) count += 8 * (stride-offset-depth);
     }
-    // skip what we have after
-    if(PanelMode) count += nr * (stride-offset-depth);
+  }
+  if(nr>=4)
+  {
+    for(Index j2=packet_cols8; j2<packet_cols4; j2+=4)
+    {
+      // skip what we have before
+      if(PanelMode) count += 4 * offset;
+      for(Index k=0; k<depth; k++)
+      {
+        if (PacketSize==4) {
+          Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
+          pstoreu(blockB+count, cj.pconj(A));
+          count += PacketSize;
+        } else {
+          const Scalar* b0 = &rhs[k*rhsStride + j2];
+          blockB[count+0] = cj(b0[0]);
+          blockB[count+1] = cj(b0[1]);
+          blockB[count+2] = cj(b0[2]);
+          blockB[count+3] = cj(b0[3]);
+          count += 4;
+        }
+      }
+      // skip what we have after
+      if(PanelMode) count += 4 * (stride-offset-depth);
+    }
   }
   // copy the remaining columns one at a time (nr==1)
-  for(Index j2=packet_cols; j2<cols; ++j2)
+  for(Index j2=packet_cols4; j2<cols; ++j2)
   {
     if(PanelMode) count += offset;
     const Scalar* b0 = &rhs[j2];

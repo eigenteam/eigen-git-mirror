@@ -132,7 +132,7 @@
     extern "C" {
       // In theory we should only include immintrin.h and not the other *mmintrin.h header files directly.
       // Doing so triggers some issues with ICC. However old gcc versions seems to not have this file, thus:
-      #ifdef __INTEL_COMPILER
+      #if defined(__INTEL_COMPILER) && __INTEL_COMPILER >= 1110
         #include <immintrin.h>
       #else
         #include <emmintrin.h>

@@ -278,13 +278,11 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
     typedef gebp_traits<LhsScalar,RhsScalar> Traits;
     enum {
       SizeA = ActualRows * MaxDepth,
-      SizeB = ActualCols * MaxDepth,
-      SizeW = MaxDepth * Traits::WorkSpaceFactor
+      SizeB = ActualCols * MaxDepth
     };
 
     EIGEN_ALIGN_DEFAULT LhsScalar m_staticA[SizeA];
     EIGEN_ALIGN_DEFAULT RhsScalar m_staticB[SizeB];
-    EIGEN_ALIGN_DEFAULT RhsScalar m_staticW[SizeW];
 
   public:
 
@@ -295,12 +293,10 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
       this->m_kc = MaxDepth;
       this->m_blockA = m_staticA;
       this->m_blockB = m_staticB;
-      this->m_blockW = m_staticW;
     }
 
     inline void allocateA() {}
     inline void allocateB() {}
-    inline void allocateW() {}
     inline void allocateAll() {}
 };
 
@@ -319,7 +315,6 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
 
     DenseIndex m_sizeA;
     DenseIndex m_sizeB;
-    DenseIndex m_sizeW;
 
   public:
 
@@ -332,7 +327,6 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
       computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, this->m_mc, this->m_nc);
       m_sizeA = this->m_mc * this->m_kc;
       m_sizeB = this->m_kc * this->m_nc;
-      m_sizeW = this->m_kc*Traits::WorkSpaceFactor;
     }
 
     void allocateA()
@@ -347,24 +341,16 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
         this->m_blockB = aligned_new<RhsScalar>(m_sizeB);
     }
 
-    void allocateW()
-    {
-      if(this->m_blockW==0)
-        this->m_blockW = aligned_new<RhsScalar>(m_sizeW);
-    }
-
     void allocateAll()
     {
       allocateA();
       allocateB();
-      allocateW();
     }
 
     ~gemm_blocking_space()
     {
       aligned_delete(this->m_blockA, m_sizeA);
       aligned_delete(this->m_blockB, m_sizeB);
-      aligned_delete(this->m_blockW, m_sizeW);
     }
 };
 
