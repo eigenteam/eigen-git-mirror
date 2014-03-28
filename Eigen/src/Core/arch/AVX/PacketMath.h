@@ -179,6 +179,41 @@ template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*   to, const Packet8f& 
 template<> EIGEN_STRONG_INLINE void pstoreu<double>(double* to, const Packet4d& from) { EIGEN_DEBUG_UNALIGNED_STORE _mm256_storeu_pd(to, from); }
 template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*       to, const Packet8i& from) { EIGEN_DEBUG_UNALIGNED_STORE _mm256_storeu_si256(reinterpret_cast<__m256i*>(to), from); }
 
+// TODO: leverage _mm256_i32gather_ps and _mm256_i32gather_pd if AVX2 instructions are available
+template<> EIGEN_DEVICE_FUNC inline Packet8f pgather<float, Packet8f>(const float* from, int stride)
+{
+  return _mm256_set_ps(from[7*stride], from[6*stride], from[5*stride], from[4*stride],
+		       from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
+}
+template<> EIGEN_DEVICE_FUNC inline Packet4d pgather<double, Packet4d>(const double* from, int stride)
+{
+  return _mm256_set_pd(from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
+}
+
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet8f>(float* to, const Packet8f& from, int stride)
+{
+  __m128 low = _mm256_extractf128_ps(from, 0);
+  to[stride*0] = _mm_cvtss_f32(low);
+  to[stride*1] = _mm_cvtss_f32(_mm_shuffle_ps(low, low, 1));
+  to[stride*2] = _mm_cvtss_f32(_mm_shuffle_ps(low, low, 2));
+  to[stride*3] = _mm_cvtss_f32(_mm_shuffle_ps(low, low, 3));
+
+  __m128 high = _mm256_extractf128_ps(from, 1);
+  to[stride*4] = _mm_cvtss_f32(high);
+  to[stride*5] = _mm_cvtss_f32(_mm_shuffle_ps(high, high, 1));
+  to[stride*6] = _mm_cvtss_f32(_mm_shuffle_ps(high, high, 2));
+  to[stride*7] = _mm_cvtss_f32(_mm_shuffle_ps(high, high, 3));
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet4d>(double* to, const Packet4d& from, int stride)
+{
+  __m128d low = _mm256_extractf128_pd(from, 0);
+  to[stride*0] = _mm_cvtsd_f64(low);
+  to[stride*1] = _mm_cvtsd_f64(_mm_shuffle_pd(low, low, 1));
+  __m128d high = _mm256_extractf128_pd(from, 1);
+  to[stride*2] = _mm_cvtsd_f64(high);
+  to[stride*3] = _mm_cvtsd_f64(_mm_shuffle_pd(high, high, 1));
+}
+
 template<> EIGEN_STRONG_INLINE void pstore1<Packet8f>(float* to, const float& a)
 {
   Packet8f pa = pset1<Packet8f>(a);
