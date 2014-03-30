@@ -173,6 +173,7 @@ template<> EIGEN_STRONG_INLINE Packet8i ploadu<Packet8i>(const int* from) { EIGE
 // Loads 4 floats from memory a returns the packet {a0, a0  a1, a1, a2, a2, a3, a3}
 template<> EIGEN_STRONG_INLINE Packet8f ploaddup<Packet8f>(const float* from)
 {
+  // FIXME we should only load the first 128bits
   Packet8f tmp  = ploadu<Packet8f>(from);
   Packet8f tmp1 = _mm256_permute_ps(tmp, _MM_SHUFFLE(3,3,2,2));
   Packet8f tmp2 = _mm256_permute_ps(tmp, _MM_SHUFFLE(1,1,0,0));
@@ -181,6 +182,7 @@ template<> EIGEN_STRONG_INLINE Packet8f ploaddup<Packet8f>(const float* from)
 // Loads 2 doubles from memory a returns the packet {a0, a0  a1, a1}
 template<> EIGEN_STRONG_INLINE Packet4d ploaddup<Packet4d>(const double* from)
 {
+  // FIXME we should only load the first 128bits
   Packet4d tmp = ploadu<Packet4d>(from);
   Packet4d tmp1  = _mm256_permute_pd(tmp,0);
   Packet4d tmp2  = _mm256_permute_pd(tmp,3);
@@ -195,11 +197,12 @@ template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*   to, const Packet8f& 
 template<> EIGEN_STRONG_INLINE void pstoreu<double>(double* to, const Packet4d& from) { EIGEN_DEBUG_UNALIGNED_STORE _mm256_storeu_pd(to, from); }
 template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*       to, const Packet8i& from) { EIGEN_DEBUG_UNALIGNED_STORE _mm256_storeu_si256(reinterpret_cast<__m256i*>(to), from); }
 
-// TODO: leverage _mm256_i32gather_ps and _mm256_i32gather_pd if AVX2 instructions are available
+// NOTE: leverage _mm256_i32gather_ps and _mm256_i32gather_pd if AVX2 instructions are available
+// NOTE: for the record the following seems to be slower: return _mm256_i32gather_ps(from, _mm256_set1_epi32(stride), 4);
 template<> EIGEN_DEVICE_FUNC inline Packet8f pgather<float, Packet8f>(const float* from, int stride)
 {
   return _mm256_set_ps(from[7*stride], from[6*stride], from[5*stride], from[4*stride],
-		       from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
+                       from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
 }
 template<> EIGEN_DEVICE_FUNC inline Packet4d pgather<double, Packet4d>(const double* from, int stride)
 {

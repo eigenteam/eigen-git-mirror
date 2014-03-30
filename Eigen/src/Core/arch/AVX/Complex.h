@@ -87,15 +87,10 @@ template<> EIGEN_STRONG_INLINE Packet4cf pset1<Packet4cf>(const std::complex<flo
 
 template<> EIGEN_STRONG_INLINE Packet4cf ploaddup<Packet4cf>(const std::complex<float>* from)
 {
-  // This should be optimized.
-  __m128 complex1 = _mm_loadl_pi(_mm_set1_ps(0.0f), (const __m64*)from);
-  complex1 = _mm_movelh_ps(complex1, complex1);
-  __m128 complex2 = _mm_loadl_pi(_mm_set1_ps(0.0f), (const __m64*)(from+1));
-  complex2 = _mm_movelh_ps(complex2, complex2);
-  __m256 result = _mm256_setzero_ps();
-  result = _mm256_insertf128_ps(result, complex1, 0);
-  result = _mm256_insertf128_ps(result, complex2, 1);
-  return Packet4cf(result);
+  // FIXME The following might be optimized using _mm256_movedup_pd
+  Packet2cf a = ploaddup<Packet2cf>(from);
+  Packet2cf b = ploaddup<Packet2cf>(from+1);
+  return  Packet4cf(_mm256_insertf128_ps(_mm256_castps128_ps256(a.v), b.v, 1));
 }
 
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float>* to, const Packet4cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore(&numext::real_ref(*to), from.v); }
@@ -104,33 +99,30 @@ template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<f
 template<> EIGEN_DEVICE_FUNC inline Packet4cf pgather<std::complex<float>, Packet4cf>(const std::complex<float>* from, int stride)
 {
   return Packet4cf(_mm256_set_ps(std::imag(from[3*stride]), std::real(from[3*stride]),
-				 std::imag(from[2*stride]), std::real(from[2*stride]),
-				 std::imag(from[1*stride]), std::real(from[1*stride]),
-				 std::imag(from[0*stride]), std::real(from[0*stride])));
+                                 std::imag(from[2*stride]), std::real(from[2*stride]),
+                                 std::imag(from[1*stride]), std::real(from[1*stride]),
+                                 std::imag(from[0*stride]), std::real(from[0*stride])));
 }
 
 template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet4cf>(std::complex<float>* to, const Packet4cf& from, int stride)
 {
   __m128 low = _mm256_extractf128_ps(from.v, 0);
   to[stride*0] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(low, low, 0)),
-				     _mm_cvtss_f32(_mm_shuffle_ps(low, low, 1)));
+                                     _mm_cvtss_f32(_mm_shuffle_ps(low, low, 1)));
   to[stride*1] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(low, low, 2)),
-				     _mm_cvtss_f32(_mm_shuffle_ps(low, low, 3)));
+                                     _mm_cvtss_f32(_mm_shuffle_ps(low, low, 3)));
 
   __m128 high = _mm256_extractf128_ps(from.v, 1);
   to[stride*2] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(high, high, 0)),
-				     _mm_cvtss_f32(_mm_shuffle_ps(high, high, 1)));
+                                     _mm_cvtss_f32(_mm_shuffle_ps(high, high, 1)));
   to[stride*3] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(high, high, 2)),
-				     _mm_cvtss_f32(_mm_shuffle_ps(high, high, 3)));
+                                     _mm_cvtss_f32(_mm_shuffle_ps(high, high, 3)));
 
 }
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet4cf>(const Packet4cf& a)
 {
-  __m128 low  = _mm256_extractf128_ps(a.v, 0);
-  std::complex<float> res;
-  _mm_storel_pi((__m64*)&res, low);
-  return res;
+  return pfirst(Packet2cf(_mm256_castps256_ps128(a.v)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cf preverse(const Packet4cf& a) {
