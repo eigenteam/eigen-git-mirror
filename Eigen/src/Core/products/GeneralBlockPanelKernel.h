@@ -639,7 +639,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
         for(Index i=0; i<peeled_mc; i+=mr)
         {
           const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
-          // prefetch(&blA[0]);
+          prefetch(&blA[0]);
 
           // gets res block as register
           AccPacket C0, C1, C2, C3, C4, C5, C6, C7;
@@ -771,6 +771,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           for(Index i=peeled_mc; i<rows2; i+=2)
           {
             const LhsScalar* blA = &blockA[i*strideA+offsetA];
+            prefetch(&blA[0]);
             const RhsScalar* blB = &blockB[j2*strideB+offsetB*8];
             
             EIGEN_ASM_COMMENT("begin_vectorized_multiplication_of_last_rows 2x8");
@@ -822,6 +823,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           {
             Index i = rows-1;
             const LhsScalar* blA = &blockA[i*strideA+offsetA];
+            prefetch(&blA[0]);
             const RhsScalar* blB = &blockB[j2*strideB+offsetB*8];
             
             EIGEN_ASM_COMMENT("begin_vectorized_multiplication_of_last_rows 8");
@@ -863,6 +865,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           for(Index i=peeled_mc; i<rows; i++)
           {
             const LhsScalar* blA = &blockA[i*strideA+offsetA];
+            prefetch(&blA[0]);
             const RhsScalar* blB = &blockB[j2*strideB+offsetB*8];
             
             // gets a 1 x 8 res block as registers
@@ -924,6 +927,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
         for(Index i=0; i<peeled_mc; i+=mr)
         {
           const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
+          prefetch(&blA[0]);
 
           // gets res block as register
           AccPacket C0, C1, C2, C3;
@@ -996,6 +1000,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
         for(Index i=peeled_mc; i<rows; i++)
         {
           const LhsScalar* blA = &blockA[i*strideA+offsetA];
+          prefetch(&blA[0]);
           const RhsScalar* blB = &blockB[j2*strideB+offsetB*4];
           
           // TODO vectorize in more cases
@@ -1067,6 +1072,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
         traits.initAcc(C0);
 
         const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
+        prefetch(&blA[0]);
         const RhsScalar* blB = &blockB[j2*strideB+offsetB];
         for(Index k=0; k<depth; k++)
         {
@@ -1091,6 +1097,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
       for(Index i=peeled_mc; i<rows; i++)
       {
         const LhsScalar* blA = &blockA[i*strideA+offsetA];
+        prefetch(&blA[0]);
         // gets a 1 x 1 res block as registers
         ResScalar C0(0);
         const RhsScalar* blB = &blockB[j2*strideB+offsetB];
