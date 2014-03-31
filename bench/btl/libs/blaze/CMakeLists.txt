@@ -1,0 +1,8 @@
+
+find_package(BLAZE)
+find_package(Boost)
+if (BLAZE_FOUND AND Boost_FOUND)
+  include_directories(${BLAZE_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+  btl_add_bench(btl_blaze main.cpp)
+  target_link_libraries(btl_blaze ${Boost_LIBRARIES} ${Boost_system_LIBRARY} /opt/local/lib/libboost_system-mt.a )
+endif (BLAZE_FOUND)
