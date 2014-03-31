@@ -129,13 +129,25 @@ int main(int argc, char ** argv)
   int tries = 2;  // number of tries, we keep the best
 
   int s = 2048;
+  int m = s;
+  int n = s;
+  int p = s;
   int cache_size = -1;
 
   bool need_help = false;
   for (int i=1; i<argc; ++i)
   {
     if(argv[i][0]=='s')
+    {
       s = atoi(argv[i]+1);
+      m = n = p = s;
+    }
+    else if(argv[i][0]=='m')
+    {
+       m = atoi(argv[++i]);
+       n = atoi(argv[++i]);
+       p = atoi(argv[++i]);
+    }
     else if(argv[i][0]=='c')
       cache_size = atoi(argv[i]+1);
     else if(argv[i][0]=='t')
@@ -155,9 +167,7 @@ int main(int argc, char ** argv)
   if(cache_size>0)
     setCpuCacheSizes(cache_size,96*cache_size);
 
-  int m = s;
-  int n = s;
-  int p = s;
+  
   A a(m,p); a.setRandom();
   B b(p,n); b.setRandom();
   C c(m,n); c.setOnes();
