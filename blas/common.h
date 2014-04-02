@@ -106,13 +106,13 @@ matrix(T* data, int rows, int cols, int stride)
 }
 
 template<typename T>
-Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> > vector(T* data, int size, int incr)
+Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> > make_vector(T* data, int size, int incr)
 {
   return Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> >(data, size, InnerStride<Dynamic>(incr));
 }
 
 template<typename T>
-Map<Matrix<T,Dynamic,1> > vector(T* data, int size)
+Map<Matrix<T,Dynamic,1> > make_vector(T* data, int size)
 {
   return Map<Matrix<T,Dynamic,1> >(data, size);
 }
@@ -124,8 +124,8 @@ T* get_compact_vector(T* x, int n, int incx)
     return x;
 
   T* ret = new Scalar[n];
-  if(incx<0) vector(ret,n) = vector(x,n,-incx).reverse();
-  else       vector(ret,n) = vector(x,n, incx);
+  if(incx<0) make_vector(ret,n) = make_vector(x,n,-incx).reverse();
+  else       make_vector(ret,n) = make_vector(x,n, incx);
   return ret;
 }
 
@@ -135,8 +135,8 @@ T* copy_back(T* x_cpy, T* x, int n, int incx)
   if(x_cpy==x)
     return 0;
 
-  if(incx<0) vector(x,n,-incx).reverse() = vector(x_cpy,n);
-  else       vector(x,n, incx)           = vector(x_cpy,n);
+  if(incx<0) make_vector(x,n,-incx).reverse() = make_vector(x_cpy,n);
+  else       make_vector(x,n, incx)           = make_vector(x_cpy,n);
   return x_cpy;
 }
 

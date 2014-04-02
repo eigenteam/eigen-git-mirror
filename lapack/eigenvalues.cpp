@@ -64,14 +64,14 @@ EIGEN_LAPACK_FUNC(syev,(char *jobz, char *uplo, int* n, Scalar* a, int *lda, Sca
   
   if(eig.info()==NoConvergence)
   {
-    vector(w,*n).setZero();
+    make_vector(w,*n).setZero();
     if(computeVectors)
       matrix(a,*n,*n,*lda).setIdentity();
     //*info = 1;
     return 0;
   }
   
-  vector(w,*n) = eig.eigenvalues();
+  make_vector(w,*n) = eig.eigenvalues();
   if(computeVectors)
     matrix(a,*n,*n,*lda) = eig.eigenvectors();
   
