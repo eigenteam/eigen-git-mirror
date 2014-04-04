@@ -82,10 +82,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     symm += a1 * a1.adjoint();
   }
 
-  // to test if really Cholesky only uses the upper triangular part, uncomment the following
-  // FIXME: currently that fails !!
-  //symm.template part<StrictlyLower>().setZero();
-
   {
     SquareMatrixType symmUp = symm.template triangularView<Upper>();
     SquareMatrixType symmLo = symm.template triangularView<Lower>();
