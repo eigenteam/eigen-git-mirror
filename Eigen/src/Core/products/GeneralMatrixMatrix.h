@@ -241,7 +241,6 @@ class level3_blocking
   protected:
     LhsScalar* m_blockA;
     RhsScalar* m_blockB;
-    RhsScalar* m_blockW;
 
     DenseIndex m_mc;
     DenseIndex m_nc;
@@ -250,7 +249,7 @@ class level3_blocking
   public:
 
     level3_blocking()
-      : m_blockA(0), m_blockB(0), m_blockW(0), m_mc(0), m_nc(0), m_kc(0)
+      : m_blockA(0), m_blockB(0), m_mc(0), m_nc(0), m_kc(0)
     {}
 
     inline DenseIndex mc() const { return m_mc; }
@@ -259,7 +258,6 @@ class level3_blocking
 
     inline LhsScalar* blockA() { return m_blockA; }
     inline RhsScalar* blockB() { return m_blockB; }
-    inline RhsScalar* blockW() { return m_blockW; }
 };
 
 template<int StorageOrder, typename _LhsScalar, typename _RhsScalar, int MaxRows, int MaxCols, int MaxDepth, int KcFactor>
