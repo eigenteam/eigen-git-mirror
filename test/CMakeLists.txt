@@ -315,6 +315,9 @@ find_package(CUDA)
 if(CUDA_FOUND)
   
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") 
+    set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
+  endif()
   cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
   
