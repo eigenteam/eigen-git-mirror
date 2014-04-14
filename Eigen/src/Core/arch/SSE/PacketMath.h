@@ -271,14 +271,17 @@ template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { E
 // TODO: do the same for MSVC (ICC is compatible)
 // NOTE: with the code below, MSVC's compiler crashes!
 
-#if defined(__GNUC__) && defined(__i386__)
+#if defined(__GNUC__) && (defined(__i386__) || (defined(__x86_64) && EIGEN_GNUC_AT_LEAST(4, 8)))
   // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 1
+  #define EIGEN_AVOID_CUSTOM_UNALIGNED_STORES 1
 #elif defined(__clang__)
   // bug 201: Segfaults in __mm_loadh_pd with clang 2.8
   #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 1
+  #define EIGEN_AVOID_CUSTOM_UNALIGNED_STORES 0
 #else
   #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 0
+  #define EIGEN_AVOID_CUSTOM_UNALIGNED_STORES 0
 #endif
 
 template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
@@ -338,8 +341,12 @@ template<> EIGEN_STRONG_INLINE void pstore<int>(int*       to, const Packet4i& f
 
 template<> EIGEN_STRONG_INLINE void pstoreu<double>(double* to, const Packet2d& from) {
   EIGEN_DEBUG_UNALIGNED_STORE
+#if EIGEN_AVOID_CUSTOM_UNALIGNED_STORES
+  _mm_storeu_pd(to, from);
+#else
   _mm_storel_pd((to), from);
   _mm_storeh_pd((to+1), from);
+#endif
 }
 template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*  to, const Packet4f& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(reinterpret_cast<double*>(to), _mm_castps_pd(from)); }
 template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*      to, const Packet4i& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(reinterpret_cast<double*>(to), _mm_castsi128_pd(from)); }
