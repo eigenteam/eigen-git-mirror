@@ -366,6 +366,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
 {
   using std::sqrt;
   using std::abs;
+  using std::max;
   eigen_assert(matrix.cols() == matrix.rows());
 
   // Reduce to real Schur form.
@@ -390,7 +391,19 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
       else
       {
         Scalar p = Scalar(0.5) * (m_matT.coeff(i, i) - m_matT.coeff(i+1, i+1));
-        Scalar z = sqrt(abs(p * p + m_matT.coeff(i+1, i) * m_matT.coeff(i, i+1)));
+        Scalar z;
+        // Compute z = sqrt(abs(p * p + m_matT.coeff(i+1, i) * m_matT.coeff(i, i+1)));
+        // without overflow
+        {
+          Scalar t0 = m_matT.coeff(i+1, i);
+          Scalar t1 = m_matT.coeff(i, i+1);
+          Scalar maxval = (max)(abs(p),(max)(abs(t0),abs(t1)));
+          t0 /= maxval;
+          t1 /= maxval;
+          Scalar p0 = p/maxval;
+          z = maxval * sqrt(abs(p0 * p0 + t0 * t1));
+        }
+        
         m_eivalues.coeffRef(i)   = ComplexScalar(m_matT.coeff(i+1, i+1) + p, z);
         m_eivalues.coeffRef(i+1) = ComplexScalar(m_matT.coeff(i+1, i+1) + p, -z);
         i += 2;
