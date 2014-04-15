@@ -447,6 +447,7 @@ struct DiagonalShape    { static std::string debugName() { return "DiagonalShape
 struct BandShape        { static std::string debugName() { return "BandShape"; } };
 struct TriangularShape  { static std::string debugName() { return "TriangularShape"; } };
 struct SelfAdjointShape { static std::string debugName() { return "SelfAdjointShape"; } };
+struct PermutationShape { static std::string debugName() { return "PermutationShape"; } };
 struct SparseShape      { static std::string debugName() { return "SparseShape"; } };
 #endif
 

@@ -29,8 +29,30 @@ template<typename Lhs, typename Rhs, int Option, typename StorageKind> class Pro
   *
   */
 
-// Use ProductReturnType to get correct traits, in particular vectorization flags
+
 namespace internal {
+
+// Determine the scalar of Product<Lhs, Rhs>. This is normally the same as Lhs::Scalar times
+// Rhs::Scalar, but product with permutation matrices inherit the scalar of the other factor.
+template<typename Lhs, typename Rhs, typename LhsShape = typename evaluator_traits<Lhs>::Shape, 
+         typename RhsShape = typename evaluator_traits<Rhs>::Shape >
+struct product_result_scalar
+{
+  typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
+};
+
+template<typename Lhs, typename Rhs, typename RhsShape>
+struct product_result_scalar<Lhs, Rhs, PermutationShape, RhsShape>
+{
+  typedef typename Rhs::Scalar Scalar;
+};
+
+template<typename Lhs, typename Rhs, typename LhsShape>
+  struct product_result_scalar<Lhs, Rhs, LhsShape, PermutationShape>
+{
+  typedef typename Lhs::Scalar Scalar;
+};
+
 template<typename Lhs, typename Rhs, int Option>
 struct traits<Product<Lhs, Rhs, Option> >
 {
@@ -39,7 +61,7 @@ struct traits<Product<Lhs, Rhs, Option> >
   
   typedef MatrixXpr XprKind;
   
-  typedef typename scalar_product_traits<typename LhsCleaned::Scalar, typename RhsCleaned::Scalar>::ReturnType Scalar;
+  typedef typename product_result_scalar<LhsCleaned,RhsCleaned>::Scalar Scalar;
   typedef typename promote_storage_type<typename traits<LhsCleaned>::StorageKind,
                                            typename traits<RhsCleaned>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<LhsCleaned>::Index,
