@@ -63,7 +63,7 @@ public:
   EIGEN_DEVICE_FUNC const XprTypeNestedCleaned& nestedExpression() const { return m_xpr; }
 
 protected:
-  XprTypeNested &m_xpr;
+  XprTypeNested m_xpr;
 };
 
 /** \internal
