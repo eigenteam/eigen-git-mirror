@@ -15,7 +15,7 @@ namespace Eigen {
 namespace internal {
 
 // pack a selfadjoint block diagonal for use with the gebp_kernel
-template<typename Scalar, typename Index, int Pack1, int Pack2, int StorageOrder>
+template<typename Scalar, typename Index, int Pack1, int Pack2_dummy, int StorageOrder>
 struct symm_pack_lhs
 {
   template<int BlockRows> inline
@@ -45,22 +45,29 @@ struct symm_pack_lhs
   }
   void operator()(Scalar* blockA, const Scalar* _lhs, Index lhsStride, Index cols, Index rows)
   {
+    enum { PacketSize = packet_traits<Scalar>::size };
     const_blas_data_mapper<Scalar,Index,StorageOrder> lhs(_lhs,lhsStride);
     Index count = 0;
-    Index peeled_mc = (rows/Pack1)*Pack1;
-    for(Index i=0; i<peeled_mc; i+=Pack1)
-    {
-      pack<Pack1>(blockA, lhs, cols, i, count);
-    }
-
-    if(rows-peeled_mc>=Pack2)
-    {
-      pack<Pack2>(blockA, lhs, cols, peeled_mc, count);
-      peeled_mc += Pack2;
-    }
+    //Index peeled_mc3 = (rows/Pack1)*Pack1;
+    
+    const Index peeled_mc3 = Pack1>=3*PacketSize ? (rows/(3*PacketSize))*(3*PacketSize) : 0;
+    const Index peeled_mc2 = Pack1>=2*PacketSize ? peeled_mc3+((rows-peeled_mc3)/(2*PacketSize))*(2*PacketSize) : 0;
+    const Index peeled_mc1 = Pack1>=1*PacketSize ? (rows/(1*PacketSize))*(1*PacketSize) : 0;
+    
+    if(Pack1>=3*PacketSize)
+      for(Index i=0; i<peeled_mc3; i+=3*PacketSize)
+        pack<3*PacketSize>(blockA, lhs, cols, i, count);
+    
+    if(Pack1>=2*PacketSize)
+      for(Index i=peeled_mc3; i<peeled_mc2; i+=2*PacketSize)
+        pack<2*PacketSize>(blockA, lhs, cols, i, count);
+    
+    if(Pack1>=1*PacketSize)
+      for(Index i=peeled_mc2; i<peeled_mc1; i+=1*PacketSize)
+        pack<1*PacketSize>(blockA, lhs, cols, i, count);
 
     // do the same with mr==1
-    for(Index i=peeled_mc; i<rows; i++)
+    for(Index i=peeled_mc1; i<rows; i++)
     {
       for(Index k=0; k<i; k++)
         blockA[count++] = lhs(i, k);                   // normal

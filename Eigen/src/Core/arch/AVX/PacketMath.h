@@ -83,9 +83,9 @@ template<> struct packet_traits<int>    : default_packet_traits
 };
 */
 
-template<> struct unpacket_traits<Packet8f> { typedef float  type; enum {size=8}; };
-template<> struct unpacket_traits<Packet4d> { typedef double type; enum {size=4}; };
-template<> struct unpacket_traits<Packet8i> { typedef int    type; enum {size=8}; };
+template<> struct unpacket_traits<Packet8f> { typedef float  type; typedef Packet4f half; enum {size=8}; };
+template<> struct unpacket_traits<Packet4d> { typedef double type; typedef Packet2d half; enum {size=4}; };
+template<> struct unpacket_traits<Packet8i> { typedef int    type; typedef Packet4i half; enum {size=8}; };
 
 template<> EIGEN_STRONG_INLINE Packet8f pset1<Packet8f>(const float&  from) { return _mm256_set1_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet4d pset1<Packet4d>(const double& from) { return _mm256_set1_pd(from); }
@@ -141,7 +141,16 @@ template<> EIGEN_STRONG_INLINE Packet8f pmadd(const Packet8f& a, const Packet8f&
   return _mm256_fmadd_ps(a,b,c);
 #endif
 }
-template<> EIGEN_STRONG_INLINE Packet4d pmadd(const Packet4d& a, const Packet4d& b, const Packet4d& c) { return _mm256_fmadd_pd(a,b,c); }
+template<> EIGEN_STRONG_INLINE Packet4d pmadd(const Packet4d& a, const Packet4d& b, const Packet4d& c) {
+#if defined(__clang__) || defined(__GNUC__)
+  // see above
+  Packet4d res = c;
+  asm("vfmadd231pd %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
+  return res;
+#else
+  return _mm256_fmadd_pd(a,b,c);
+#endif
+}
 #endif
 
 template<> EIGEN_STRONG_INLINE Packet8f pmin<Packet8f>(const Packet8f& a, const Packet8f& b) { return _mm256_min_ps(a,b); }
@@ -187,6 +196,13 @@ template<> EIGEN_STRONG_INLINE Packet4d ploaddup<Packet4d>(const double* from)
   Packet4d tmp1  = _mm256_permute_pd(tmp,0);
   Packet4d tmp2  = _mm256_permute_pd(tmp,3);
   return _mm256_blend_pd(tmp1,_mm256_permute2f128_pd(tmp2,tmp2,1),12);
+}
+
+// Loads 2 floats from memory a returns the packet {a0, a0  a0, a0, a1, a1, a1, a1}
+template<> EIGEN_STRONG_INLINE Packet8f ploadquad<Packet8f>(const float* from)
+{
+  Packet8f tmp = _mm256_castps128_ps256(_mm_broadcast_ss(from));
+  return _mm256_insertf128_ps(tmp, _mm_broadcast_ss(from+1), 1);
 }
 
 template<> EIGEN_STRONG_INLINE void pstore<float>(float*   to, const Packet8f& from) { EIGEN_DEBUG_ALIGNED_STORE _mm256_store_ps(to, from); }
@@ -343,6 +359,11 @@ template<> EIGEN_STRONG_INLINE double predux<Packet4d>(const Packet4d& a)
 {
   Packet4d tmp0 = _mm256_hadd_pd(a,_mm256_permute2f128_pd(a,a,1));
   return pfirst(_mm256_hadd_pd(tmp0,tmp0));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f predux4<Packet8f>(const Packet8f& a)
+{
+  return _mm_add_ps(_mm256_castps256_ps128(a),_mm256_extractf128_ps(a,1));
 }
 
 template<> EIGEN_STRONG_INLINE float predux_mul<Packet8f>(const Packet8f& a)

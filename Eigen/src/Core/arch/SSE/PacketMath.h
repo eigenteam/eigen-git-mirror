@@ -107,9 +107,9 @@ template<> struct packet_traits<int>    : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; };
-template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2}; };
-template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
+template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; typedef Packet4f half; };
+template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2}; typedef Packet2d half; };
+template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; typedef Packet4i half; };
 
 #if defined(_MSC_VER) && (_MSC_VER==1500)
 // Workaround MSVC 9 internal compiler error.
