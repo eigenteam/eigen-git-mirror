@@ -1292,6 +1292,32 @@ private:
   EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value() > 0 ? m_index.value() : 0; }
 };
 
+// -------------------- ReturnByValue --------------------
+
+// Expression is evaluated in a temporary; default implementation of Assignment is bypassed so that
+// when a ReturnByValue expression is assigned, the evaluator is not constructed.
+// TODO: Finalize port to new regime; ReturnByValue should not exist in the expression world
+
+template<typename Derived>
+struct evaluator<ReturnByValue<Derived> > 
+  : evaluator<typename ReturnByValue<Derived>::PlainObject>::type
+{
+  typedef typename ReturnByValue<Derived>::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  typedef evaluator type;
+  typedef evaluator nestedType;
+  
+  evaluator(const ReturnByValue<Derived>& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    xpr.evalTo(m_result);
+  }
+
+  PlainObject m_result;
+};
+
 } // namespace internal
 
 } // end namespace Eigen
