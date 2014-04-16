@@ -386,7 +386,37 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
       typedef internal::scalar_product_op<LhsScalar,RhsScalar> BinOp;
       EIGEN_CHECK_BINARY_COMPATIBILIY(BinOp,LhsScalar,RhsScalar);
     }
+    
+    template<typename Dest>
+    inline void evalTo(Dest& dst) const
+    {
+      if((m_rhs.rows()+dst.rows()+dst.cols())<20)
+        dst.noalias() = m_lhs .lazyProduct( m_rhs );
+      else
+      {
+        dst.setZero();
+        scaleAndAddTo(dst,Scalar(1));
+      }
+    }
 
+    template<typename Dest>
+    inline void addTo(Dest& dst) const
+    {
+      if((m_rhs.rows()+dst.rows()+dst.cols())<20)
+        dst.noalias() += m_lhs .lazyProduct( m_rhs );
+      else
+        scaleAndAddTo(dst,Scalar(1));
+    }
+
+    template<typename Dest>
+    inline void subTo(Dest& dst) const
+    {
+      if((m_rhs.rows()+dst.rows()+dst.cols())<20)
+        dst.noalias() -= m_lhs .lazyProduct( m_rhs );
+      else
+        scaleAndAddTo(dst,Scalar(-1));
+    }
+    
     template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
     {
       eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
