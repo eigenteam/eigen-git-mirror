@@ -182,20 +182,19 @@ template<> EIGEN_STRONG_INLINE Packet8i ploadu<Packet8i>(const int* from) { EIGE
 // Loads 4 floats from memory a returns the packet {a0, a0  a1, a1, a2, a2, a3, a3}
 template<> EIGEN_STRONG_INLINE Packet8f ploaddup<Packet8f>(const float* from)
 {
-  // FIXME we should only load the first 128bits
-  Packet8f tmp  = ploadu<Packet8f>(from);
-  Packet8f tmp1 = _mm256_permute_ps(tmp, _MM_SHUFFLE(3,3,2,2));
-  Packet8f tmp2 = _mm256_permute_ps(tmp, _MM_SHUFFLE(1,1,0,0));
-  return _mm256_blend_ps(_mm256_permute2f128_ps(tmp1,tmp1,1),tmp2,15);
+  // TODO try to find a way to avoid the need of a temporary register
+  Packet8f tmp  = _mm256_castps128_ps256(_mm_loadu_ps(from));
+  tmp = _mm256_insertf128_ps(tmp, _mm_movehl_ps(_mm256_castps256_ps128(tmp),_mm256_castps256_ps128(tmp)), 1);
+  return _mm256_unpacklo_ps(tmp,tmp);
 }
 // Loads 2 doubles from memory a returns the packet {a0, a0  a1, a1}
 template<> EIGEN_STRONG_INLINE Packet4d ploaddup<Packet4d>(const double* from)
 {
-  // FIXME we should only load the first 128bits
-  Packet4d tmp = ploadu<Packet4d>(from);
-  Packet4d tmp1  = _mm256_permute_pd(tmp,0);
-  Packet4d tmp2  = _mm256_permute_pd(tmp,3);
-  return _mm256_blend_pd(tmp1,_mm256_permute2f128_pd(tmp2,tmp2,1),12);
+  // TODO try to find a way to avoid the need of a temporary register
+  Packet2d tmp0 = _mm_loadu_pd(from);
+  Packet2d tmp1 = _mm_permute_pd(tmp0,3);
+  tmp0 = _mm_permute_pd(tmp0,0);
+  return _mm256_insertf128_pd(_mm256_castpd128_pd256(tmp0), tmp1, 1);
 }
 
 // Loads 2 floats from memory a returns the packet {a0, a0  a0, a0, a1, a1, a1, a1}
