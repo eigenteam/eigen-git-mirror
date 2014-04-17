@@ -97,11 +97,25 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX(sd*mcd*md, sd*mcd*md.template cast<CD>());
   VERIFY_IS_APPROX(scd*md*mcd, scd*md.template cast<CD>().eval()*mcd);
   VERIFY_IS_APPROX(scd*mcd*md, scd*mcd*md.template cast<CD>());
-
+  
   VERIFY_IS_APPROX(sf*mf*mcf, sf*mf.template cast<CF>()*mcf);
   VERIFY_IS_APPROX(sf*mcf*mf, sf*mcf*mf.template cast<CF>());
   VERIFY_IS_APPROX(scf*mf*mcf, scf*mf.template cast<CF>()*mcf);
   VERIFY_IS_APPROX(scf*mcf*mf, scf*mcf*mf.template cast<CF>());
+  
+  VERIFY_IS_APPROX(sd*md.adjoint()*mcd, (sd*md).template cast<CD>().eval().adjoint()*mcd);
+  VERIFY_IS_APPROX(sd*mcd.adjoint()*md, sd*mcd.adjoint()*md.template cast<CD>());
+  VERIFY_IS_APPROX(sd*md.adjoint()*mcd.adjoint(), (sd*md).template cast<CD>().eval().adjoint()*mcd.adjoint());
+  VERIFY_IS_APPROX(sd*mcd.adjoint()*md.adjoint(), sd*mcd.adjoint()*md.template cast<CD>().adjoint());
+  VERIFY_IS_APPROX(sd*md*mcd.adjoint(), (sd*md).template cast<CD>().eval()*mcd.adjoint());
+  VERIFY_IS_APPROX(sd*mcd*md.adjoint(), sd*mcd*md.template cast<CD>().adjoint());
+  
+  VERIFY_IS_APPROX(sf*mf.adjoint()*mcf, (sf*mf).template cast<CF>().eval().adjoint()*mcf);
+  VERIFY_IS_APPROX(sf*mcf.adjoint()*mf, sf*mcf.adjoint()*mf.template cast<CF>());
+  VERIFY_IS_APPROX(sf*mf.adjoint()*mcf.adjoint(), (sf*mf).template cast<CF>().eval().adjoint()*mcf.adjoint());
+  VERIFY_IS_APPROX(sf*mcf.adjoint()*mf.adjoint(), sf*mcf.adjoint()*mf.template cast<CF>().adjoint());
+  VERIFY_IS_APPROX(sf*mf*mcf.adjoint(), (sf*mf).template cast<CF>().eval()*mcf.adjoint());
+  VERIFY_IS_APPROX(sf*mcf*mf.adjoint(), sf*mcf*mf.template cast<CF>().adjoint());
 
   VERIFY_IS_APPROX(sf*mf*vcf, (sf*mf).template cast<CF>().eval()*vcf);
   VERIFY_IS_APPROX(scf*mf*vcf,(scf*mf.template cast<CF>()).eval()*vcf);
