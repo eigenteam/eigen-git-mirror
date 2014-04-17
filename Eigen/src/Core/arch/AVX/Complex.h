@@ -78,11 +78,7 @@ template<> EIGEN_STRONG_INLINE Packet4cf ploadu<Packet4cf>(const std::complex<fl
 
 template<> EIGEN_STRONG_INLINE Packet4cf pset1<Packet4cf>(const std::complex<float>& from)
 {
-  const float r = std::real(from);
-  const float i = std::imag(from);
-  // Beware, _mm256_set_ps expects the scalar values in reverse order (i.e. 7 to 0)
-  const __m256 result = _mm256_set_ps(i, r, i, r, i, r, i, r);
-  return Packet4cf(result);
+  return Packet4cf(_mm256_castps_pd(_mm256_broadcast_sd((const double*)(const void*)&from)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cf ploaddup<Packet4cf>(const std::complex<float>* from)
@@ -304,11 +300,9 @@ template<> EIGEN_STRONG_INLINE Packet2cd ploadu<Packet2cd>(const std::complex<do
 
 template<> EIGEN_STRONG_INLINE Packet2cd pset1<Packet2cd>(const std::complex<double>& from)
 {
-  const double r = std::real(from);
-  const double i = std::imag(from);
-  // Beware, _mm256_set_pd expects the scalar values in reverse order (i.e. 3 to 0)
-  const __m256d result = _mm256_set_pd(i, r, i, r);
-  return Packet2cd(result);
+  // in case casting to a __m128d* is really not safe, then we can still fallback to this version: (much slower though)
+//   return Packet2cd(_mm256_loadu2_m128d((const double*)&from,(const double*)&from));
+    return Packet2cd(_mm256_broadcast_pd((const __m128d*)(const void*)&from));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cd ploaddup<Packet2cd>(const std::complex<double>* from) { return pset1<Packet2cd>(*from); }
