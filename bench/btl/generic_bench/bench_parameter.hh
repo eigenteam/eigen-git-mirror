@@ -41,7 +41,7 @@
 // min matrix size for LU bench
 #define MIN_LU 5
 // max matrix size for LU bench
-#define MAX_LU 5000
+#define MAX_LU 3000
 // max size for tiny vector and matrix
 #define TINY_MV_MAX_SIZE 16
 // default nb_sample for x86 timer
