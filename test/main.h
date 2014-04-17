@@ -31,6 +31,7 @@
 // B0 is defined in POSIX header termios.h
 #define B0 FORBIDDEN_IDENTIFIER
 
+#define EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
 
 // shuts down ICC's remark #593: variable "XXX" was set but never used
 #define TEST_SET_BUT_UNUSED_VARIABLE(X) X = X + 0;
