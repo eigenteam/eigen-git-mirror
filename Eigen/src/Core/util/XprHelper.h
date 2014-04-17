@@ -101,6 +101,7 @@ template<typename T> struct packet_traits;
 template<typename T> struct unpacket_traits
 {
   typedef T type;
+  typedef T half;
   enum {size=1};
 };
 
