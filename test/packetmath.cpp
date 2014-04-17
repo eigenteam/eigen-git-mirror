@@ -183,11 +183,30 @@ template<typename Scalar> void packetmath()
       VERIFY(areApprox(ref, data2, PacketSize) && "ploaddup");
     }
   }
+  if(PacketSize>2)
+  {
+    for(int offset=0;offset<4;++offset)
+    {
+      for(int i=0;i<PacketSize/4;++i)
+        ref[4*i+0] = ref[4*i+1] = ref[4*i+2] = ref[4*i+3] = data1[offset+i];
+      internal::pstore(data2,internal::ploadquad<Packet>(data1+offset));
+      VERIFY(areApprox(ref, data2, PacketSize) && "ploadquad");
+    }
+  }
 
   ref[0] = 0;
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
   VERIFY(isApproxAbs(ref[0], internal::predux(internal::pload<Packet>(data1)), refvalue) && "internal::predux");
+  
+  {
+    for (int i=0; i<4; ++i)
+      ref[i] = 0;
+    for (int i=0; i<PacketSize; ++i)
+      ref[i%4] += data1[i];
+    internal::pstore(data2, internal::predux4(internal::pload<Packet>(data1)));
+    VERIFY(areApprox(ref, data2, PacketSize>4?PacketSize/2:PacketSize) && "internal::predux4");
+  }
 
   ref[0] = 1;
   for (int i=0; i<PacketSize; ++i)
@@ -396,8 +415,8 @@ void test_packetmath()
     CALL_SUBTEST_1( packetmath<float>() );
     CALL_SUBTEST_2( packetmath<double>() );
     CALL_SUBTEST_3( packetmath<int>() );
-    CALL_SUBTEST_1( packetmath<std::complex<float> >() );
-    CALL_SUBTEST_2( packetmath<std::complex<double> >() );
+    CALL_SUBTEST_4( packetmath<std::complex<float> >() );
+    CALL_SUBTEST_5( packetmath<std::complex<double> >() );
 
     CALL_SUBTEST_1( packetmath_notcomplex<float>() );
     CALL_SUBTEST_2( packetmath_notcomplex<double>() );
@@ -406,13 +425,13 @@ void test_packetmath()
     CALL_SUBTEST_1( packetmath_real<float>() );
     CALL_SUBTEST_2( packetmath_real<double>() );
 
-    CALL_SUBTEST_1( packetmath_complex<std::complex<float> >() );
-    CALL_SUBTEST_2( packetmath_complex<std::complex<double> >() );
+    CALL_SUBTEST_4( packetmath_complex<std::complex<float> >() );
+    CALL_SUBTEST_5( packetmath_complex<std::complex<double> >() );
 
     CALL_SUBTEST_1( packetmath_scatter_gather<float>() );
     CALL_SUBTEST_2( packetmath_scatter_gather<double>() );
     CALL_SUBTEST_3( packetmath_scatter_gather<int>() );
-    CALL_SUBTEST_3( packetmath_scatter_gather<std::complex<float> >() );
-    CALL_SUBTEST_3( packetmath_scatter_gather<std::complex<double> >() );
+    CALL_SUBTEST_4( packetmath_scatter_gather<std::complex<float> >() );
+    CALL_SUBTEST_5( packetmath_scatter_gather<std::complex<double> >() );
   }
 }
