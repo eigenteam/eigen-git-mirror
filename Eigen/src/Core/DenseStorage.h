@@ -88,7 +88,7 @@ struct plain_array<T, Size, MatrixOrArrayOptions, EIGEN_ALIGN_BYTES>
   EIGEN_DEVICE_FUNC
   plain_array() 
   { 
-    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf);
+    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(EIGEN_ALIGN_BYTES-1);
     check_static_allocation_size<T,Size>();
   }
 
