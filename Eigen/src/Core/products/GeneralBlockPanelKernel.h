@@ -106,7 +106,11 @@ void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n)
   // In unit tests we do not want to use extra large matrices,
   // so we reduce the block size to check the blocking strategy is not flawed
 #ifndef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
-  k = std::min<SizeType>(k,240);
+//   k = std::min<SizeType>(k,240);
+//   n = std::min<SizeType>(n,3840/sizeof(RhsScalar));
+//   m = std::min<SizeType>(m,3840/sizeof(RhsScalar));
+  
+  k = std::min<SizeType>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
   n = std::min<SizeType>(n,3840/sizeof(RhsScalar));
   m = std::min<SizeType>(m,3840/sizeof(RhsScalar));
 #else
