@@ -390,7 +390,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
     template<typename Dest>
     inline void evalTo(Dest& dst) const
     {
-      if((m_rhs.rows()+dst.rows()+dst.cols())<20)
+      if((m_rhs.rows()+dst.rows()+dst.cols())<20 && m_rhs.rows()>0)
         dst.noalias() = m_lhs .lazyProduct( m_rhs );
       else
       {
@@ -402,7 +402,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
     template<typename Dest>
     inline void addTo(Dest& dst) const
     {
-      if((m_rhs.rows()+dst.rows()+dst.cols())<20)
+      if((m_rhs.rows()+dst.rows()+dst.cols())<20 && m_rhs.rows()>0)
         dst.noalias() += m_lhs .lazyProduct( m_rhs );
       else
         scaleAndAddTo(dst,Scalar(1));
@@ -411,7 +411,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
     template<typename Dest>
     inline void subTo(Dest& dst) const
     {
-      if((m_rhs.rows()+dst.rows()+dst.cols())<20)
+      if((m_rhs.rows()+dst.rows()+dst.cols())<20 && m_rhs.rows()>0)
         dst.noalias() -= m_lhs .lazyProduct( m_rhs );
       else
         scaleAndAddTo(dst,Scalar(-1));
