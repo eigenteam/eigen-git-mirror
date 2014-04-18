@@ -9,6 +9,8 @@
 
 #include "main.h"
 
+typedef Matrix<float,8,1> Vector8f;
+
 struct TestNew1
 {
   MatrixXd m; // good: m will allocate its own array, taking care of alignment.
@@ -69,7 +71,7 @@ void construct_at_boundary(int boundary)
 {
   char buf[sizeof(T)+256];
   size_t _buf = reinterpret_cast<size_t>(buf);
-  _buf += (16 - (_buf % 16)); // make 16-byte aligned
+  _buf += (EIGEN_ALIGN_BYTES - (_buf % EIGEN_ALIGN_BYTES)); // make 16/32-byte aligned
   _buf += boundary; // make exact boundary-aligned
   T *x = ::new(reinterpret_cast<void*>(_buf)) T;
   x[0].setZero(); // just in order to silence warnings
@@ -85,18 +87,18 @@ void unalignedassert()
   construct_at_boundary<Vector4f>(16);
   construct_at_boundary<Matrix2f>(16);
   construct_at_boundary<Matrix3f>(4);
-  construct_at_boundary<Matrix4f>(16);
+  construct_at_boundary<Matrix4f>(EIGEN_ALIGN_BYTES);
 
   construct_at_boundary<Vector2d>(16);
   construct_at_boundary<Vector3d>(4);
-  construct_at_boundary<Vector4d>(16);
-  construct_at_boundary<Matrix2d>(16);
+  construct_at_boundary<Vector4d>(EIGEN_ALIGN_BYTES);
+  construct_at_boundary<Matrix2d>(EIGEN_ALIGN_BYTES);
   construct_at_boundary<Matrix3d>(4);
-  construct_at_boundary<Matrix4d>(16);
+  construct_at_boundary<Matrix4d>(EIGEN_ALIGN_BYTES);
 
   construct_at_boundary<Vector2cf>(16);
   construct_at_boundary<Vector3cf>(4);
-  construct_at_boundary<Vector2cd>(16);
+  construct_at_boundary<Vector2cd>(EIGEN_ALIGN_BYTES);
   construct_at_boundary<Vector3cd>(16);
   #endif
 
@@ -110,14 +112,21 @@ void unalignedassert()
   check_unalignedassert_good<Depends<true> >();
 
 #if EIGEN_ALIGN_STATICALLY
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4f>(8));
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4f>(8));
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2d>(8));
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4d>(8));
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix2d>(8));
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4d>(8));
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cf>(8));
-  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cd>(8));
+  if(EIGEN_ALIGN_BYTES==16)
+  {
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4f>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2d>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cf>(8));
+  }
+  for(int b=8; b<EIGEN_ALIGN_BYTES; b+=8)
+  {
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector8f>(b));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4f>(b));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4d>(b));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix2d>(b));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4d>(b));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cd>(b));
+  }
 #endif
 }
 

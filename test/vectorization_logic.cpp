@@ -90,8 +90,8 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
     typedef Matrix<Scalar,2*PacketSize,2*PacketSize> Matrix22;
     typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16> Matrix44;
     typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16,DontAlign|EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION> Matrix44u;
-    typedef Matrix<Scalar,4*PacketSize,16,ColMajor> Matrix44c;
-    typedef Matrix<Scalar,4*PacketSize,16,RowMajor> Matrix44r;
+    typedef Matrix<Scalar,4*PacketSize,4*PacketSize,ColMajor> Matrix44c;
+    typedef Matrix<Scalar,4*PacketSize,4*PacketSize,RowMajor> Matrix44r;
 
     typedef Matrix<Scalar,
         (PacketSize==8 ? 4 : PacketSize==4 ? 2 : PacketSize==2 ? 1 : /*PacketSize==1 ?*/ 1),
@@ -149,15 +149,15 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
         LinearTraversal,CompleteUnrolling));
       VERIFY(test_assign(Matrix33c().col(0),Matrix33c().col(1)+Matrix33c().col(1),
         LinearTraversal,CompleteUnrolling));
-      
+              
       VERIFY(test_assign(Matrix3(),Matrix3().cwiseQuotient(Matrix3()),
         LinearVectorizedTraversal,CompleteUnrolling));
-
+        
       VERIFY(test_assign(Matrix<Scalar,17,17>(),Matrix<Scalar,17,17>()+Matrix<Scalar,17,17>(),
         LinearTraversal,NoUnrolling));
-
-      VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(10,4),
-      DefaultTraversal,CompleteUnrolling));
+        
+      VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
+        DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
     }
     
     VERIFY(test_redux(Matrix3(),
@@ -174,18 +174,19 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
 
     VERIFY(test_redux(Matrix44r().template block<1,2*PacketSize>(2,1),
       LinearVectorizedTraversal,CompleteUnrolling));
-    
+
     VERIFY((test_assign<
             Map<Matrix22, Aligned, OuterStride<3*PacketSize> >,
             Matrix22
             >(InnerVectorizedTraversal,CompleteUnrolling)));
 
     VERIFY((test_assign<
-            Map<Matrix22, Aligned, InnerStride<3*PacketSize> >,
-            Matrix22
+            Map<Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>, Aligned, InnerStride<3*PacketSize> >,
+            Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>
             >(DefaultTraversal,CompleteUnrolling)));
 
-    VERIFY((test_assign(Matrix11(), Matrix11()*Matrix11(), InnerVectorizedTraversal, CompleteUnrolling)));
+    VERIFY((test_assign(Matrix11(), Matrix<Scalar,PacketSize,EIGEN_PLAIN_ENUM_MIN(2,PacketSize)>()*Matrix<Scalar,EIGEN_PLAIN_ENUM_MIN(2,PacketSize),PacketSize>(),
+                        PacketSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD?DefaultTraversal:InnerVectorizedTraversal, CompleteUnrolling)));
     #endif
 
     VERIFY(test_assign(MatrixXX(10,10),MatrixXX(20,20).block(10,10,2,3),

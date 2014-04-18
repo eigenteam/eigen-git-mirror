@@ -105,6 +105,8 @@ public:
     EIGEN_DEBUG_VAR(DstIsAligned)
     EIGEN_DEBUG_VAR(SrcIsAligned)
     EIGEN_DEBUG_VAR(JointAlignment)
+    EIGEN_DEBUG_VAR(Derived::SizeAtCompileTime)
+    EIGEN_DEBUG_VAR(OtherDerived::CoeffReadCost)
     EIGEN_DEBUG_VAR(InnerSize)
     EIGEN_DEBUG_VAR(InnerMaxSize)
     EIGEN_DEBUG_VAR(PacketSize)
