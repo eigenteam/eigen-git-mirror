@@ -415,6 +415,7 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
                          JacobiRotation<RealScalar> *j_right)
 {
   using std::sqrt;
+  using std::abs;
   Matrix<RealScalar,2,2> m;
   m << numext::real(matrix.coeff(p,p)), numext::real(matrix.coeff(p,q)),
        numext::real(matrix.coeff(q,p)), numext::real(matrix.coeff(q,q));
@@ -428,9 +429,11 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   }
   else
   {
-    RealScalar u = d / t;
-    rot1.c() = RealScalar(1) / sqrt(RealScalar(1) + numext::abs2(u));
-    rot1.s() = rot1.c() * u;
+    RealScalar t2d2 = numext::hypot(t,d);
+    rot1.c() = abs(t)/t2d2;
+    rot1.s() = d/t2d2;
+    if(t<RealScalar(0))
+      rot1.s() = -rot1.s();
   }
   m.applyOnTheLeft(0,1,rot1);
   j_right->makeJacobi(m,0,1);

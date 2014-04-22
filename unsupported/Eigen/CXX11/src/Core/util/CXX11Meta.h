@@ -285,7 +285,7 @@ struct equal_op         { template<typename A, typename B> constexpr static inli
 struct not_equal_op     { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a != b)  { return a != b;  } };
 struct lesser_op        { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a < b)   { return a < b;   } };
 struct lesser_equal_op  { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a <= b)  { return a <= b;  } };
-struct greater_op       { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a < b)   { return a < b;   } };
+struct greater_op       { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a > b)   { return a > b;   } };
 struct greater_equal_op { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a >= b)  { return a >= b;  } };
 
 /* generic unary operations */
