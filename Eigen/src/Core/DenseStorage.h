@@ -68,13 +68,13 @@ struct plain_array
   template<typename PtrType>
   EIGEN_ALWAYS_INLINE PtrType eigen_unaligned_array_assert_workaround_gcc47(PtrType array) { return array; }
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask) \
-    eigen_assert((reinterpret_cast<size_t>(eigen_unaligned_array_assert_workaround_gcc47(array)) & sizemask) == 0 \
+    eigen_assert((reinterpret_cast<size_t>(eigen_unaligned_array_assert_workaround_gcc47(array)) & (sizemask)) == 0 \
               && "this assertion is explained here: " \
               "http://eigen.tuxfamily.org/dox-devel/group__TopicUnalignedArrayAssert.html" \
               " **** READ THIS WEB PAGE !!! ****");
 #else
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask) \
-    eigen_assert((reinterpret_cast<size_t>(array) & sizemask) == 0 \
+    eigen_assert((reinterpret_cast<size_t>(array) & (sizemask)) == 0 \
               && "this assertion is explained here: " \
               "http://eigen.tuxfamily.org/dox-devel/group__TopicUnalignedArrayAssert.html" \
               " **** READ THIS WEB PAGE !!! ****");
