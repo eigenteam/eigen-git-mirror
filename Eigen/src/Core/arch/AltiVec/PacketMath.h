@@ -163,6 +163,43 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   {
   return vc;
 }
 
+template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, int stride)
+{
+  float EIGEN_ALIGN16 af[4];
+  af[0] = from[0*stride];
+  af[1] = from[1*stride];
+  af[2] = from[2*stride];
+  af[3] = from[3*stride];
+ return vec_ld(0, af);
+}
+template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, int stride)
+{
+  int EIGEN_ALIGN16 ai[4];
+  ai[0] = from[0*stride];
+  ai[1] = from[1*stride];
+  ai[2] = from[2*stride];
+  ai[3] = from[3*stride];
+ return vec_ld(0, ai);
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, const Packet4f& from, int stride)
+{
+  float EIGEN_ALIGN16 af[4];
+  vec_st(from, 0, af);
+  to[0*stride] = af[0];
+  to[1*stride] = af[1];
+  to[2*stride] = af[2];
+  to[3*stride] = af[3];
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const Packet4i& from, int stride)
+{
+  int EIGEN_ALIGN16 ai[4];
+  vec_st(from, 0, ai);
+  to[0*stride] = ai[0];
+  to[1*stride] = ai[1];
+  to[2*stride] = ai[2];
+  to[3*stride] = ai[3];
+}
+
 template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return vec_add(pset1<Packet4f>(a), p4f_COUNTDOWN); }
 template<> EIGEN_STRONG_INLINE Packet4i plset<int>(const int& a)     { return vec_add(pset1<Packet4i>(a), p4i_COUNTDOWN); }
 

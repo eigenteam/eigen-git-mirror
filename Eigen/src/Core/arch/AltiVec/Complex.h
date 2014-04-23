@@ -66,6 +66,22 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
   return res;
 }
 
+template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, int stride)
+{
+  std::complex<float> EIGEN_ALIGN16 af[2];
+  af[0] = from[0*stride];
+  af[1] = from[1*stride];
+ return Packet2cf(vec_ld(0, af));
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, int stride)
+{
+  std::complex<float> EIGEN_ALIGN16 af[2];
+  vec_st(from.v, 0, af);
+  to[0*stride] = af[0];
+  to[1*stride] = af[1];
+}
+
+
 template<> EIGEN_STRONG_INLINE Packet2cf padd<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(vec_add(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf psub<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(vec_sub(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf pnegate(const Packet2cf& a) { return Packet2cf(pnegate(a.v)); }
