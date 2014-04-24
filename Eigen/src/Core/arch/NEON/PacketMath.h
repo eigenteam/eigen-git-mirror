@@ -447,8 +447,29 @@ PALIGN_NEON(0,Packet4i,vextq_s32)
 PALIGN_NEON(1,Packet4i,vextq_s32)
 PALIGN_NEON(2,Packet4i,vextq_s32)
 PALIGN_NEON(3,Packet4i,vextq_s32)
-    
+
 #undef PALIGN_NEON
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet4f>& kernel) {
+  float32x4x2_t tmp1 = vzipq_f32(kernel.packet[0], kernel.packet[1]);
+  float32x4x2_t tmp2 = vzipq_f32(kernel.packet[2], kernel.packet[3]);
+
+  kernel.packet[0] = vcombine_f32(vget_low_f32(tmp1.val[0]), vget_low_f32(tmp2.val[0]));
+  kernel.packet[1] = vcombine_f32(vget_high_f32(tmp1.val[0]), vget_high_f32(tmp2.val[0]));
+  kernel.packet[2] = vcombine_f32(vget_low_f32(tmp1.val[1]), vget_low_f32(tmp2.val[1]));
+  kernel.packet[3] = vcombine_f32(vget_high_f32(tmp1.val[1]), vget_high_f32(tmp2.val[1]));
+}
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet4i>& kernel) {
+  int32x4x2_t tmp1 = vzipq_s32(kernel.packet[0], kernel.packet[1]);
+  int32x4x2_t tmp2 = vzipq_s32(kernel.packet[2], kernel.packet[3]);
+  kernel.packet[0] = vcombine_s32(vget_low_s32(tmp1.val[0]), vget_low_s32(tmp2.val[0]));
+  kernel.packet[1] = vcombine_s32(vget_high_s32(tmp1.val[0]), vget_high_s32(tmp2.val[0]));
+  kernel.packet[2] = vcombine_s32(vget_low_s32(tmp1.val[1]), vget_low_s32(tmp2.val[1]));
+  kernel.packet[3] = vcombine_s32(vget_high_s32(tmp1.val[1]), vget_high_s32(tmp2.val[1]));
+}
 
 } // end namespace internal
 
