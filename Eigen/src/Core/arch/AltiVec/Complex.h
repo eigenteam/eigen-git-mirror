@@ -21,6 +21,8 @@ static Packet16uc p16uc_COMPLEX_REV  = vec_sld(p16uc_REVERSE, p16uc_REVERSE, 8);
 static Packet16uc p16uc_COMPLEX_REV2 = vec_sld(p16uc_FORWARD, p16uc_FORWARD, 8);//{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_PSET_HI = (Packet16uc) vec_mergeh((Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 1));//{ 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_PSET_LO = (Packet16uc) vec_mergeh((Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 2), (Packet4ui) vec_splat((Packet4ui)p16uc_FORWARD, 3));//{ 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 };
+static Packet16uc p16uc_COMPLEX_TRANSPOSE_0 = { 0,1,2,3, 4,5,6,7, 16,17,18,19, 20,21,22,23};
+static Packet16uc p16uc_COMPLEX_TRANSPOSE_1 = { 8,9,10,11, 12,13,14,15, 24,25,26,27, 28,29,30,31};
 
 //---------- float ----------
 struct Packet2cf
@@ -52,7 +54,7 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
+template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; typedef Packet2cf half; };
 
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
@@ -71,12 +73,12 @@ template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packe
   std::complex<float> EIGEN_ALIGN16 af[2];
   af[0] = from[0*stride];
   af[1] = from[1*stride];
- return Packet2cf(vec_ld(0, af));
+  return Packet2cf(vec_ld(0, (const float*)af));
 }
 template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, int stride)
 {
   std::complex<float> EIGEN_ALIGN16 af[2];
-  vec_st(from.v, 0, af);
+  vec_st(from.v, 0, (float*)af);
   to[0*stride] = af[0];
   to[1*stride] = af[1];
 }
@@ -225,6 +227,13 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
 template<> EIGEN_STRONG_INLINE Packet2cf pcplxflip<Packet2cf>(const Packet2cf& x)
 {
   return Packet2cf(vec_perm(x.v, x.v, p16uc_COMPLEX_REV));
+}
+
+template<> EIGEN_STRONG_INLINE void ptranspose(Kernel<Packet2cf>& kernel)
+{
+  Packet4f tmp = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_COMPLEX_TRANSPOSE_0);
+  kernel.packet[1].v = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_COMPLEX_TRANSPOSE_1);
+  kernel.packet[0].v = tmp;
 }
 
 } // end namespace internal

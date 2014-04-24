@@ -146,6 +146,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packetbi & v)
   return s;
 }
 */
+
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   float EIGEN_ALIGN16 af[4];
@@ -532,6 +533,32 @@ struct palign_impl<Offset,Packet4i>
       first = vec_sld(first, second, Offset*4);
   }
 };
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet4f>& kernel) {
+  Packet4f t0, t1, t2, t3;
+  t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
+  t1 = vec_mergel(kernel.packet[0], kernel.packet[2]);
+  t2 = vec_mergeh(kernel.packet[1], kernel.packet[3]);
+  t3 = vec_mergel(kernel.packet[1], kernel.packet[3]);
+  kernel.packet[0] = vec_mergeh(t0, t2);
+  kernel.packet[1] = vec_mergel(t0, t2);
+  kernel.packet[2] = vec_mergeh(t1, t3);
+  kernel.packet[3] = vec_mergel(t1, t3);
+}
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(Kernel<Packet4i>& kernel) {
+  Packet4i t0, t1, t2, t3;
+  t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
+  t1 = vec_mergel(kernel.packet[0], kernel.packet[2]);
+  t2 = vec_mergeh(kernel.packet[1], kernel.packet[3]);
+  t3 = vec_mergel(kernel.packet[1], kernel.packet[3]);
+  kernel.packet[0] = vec_mergeh(t0, t2);
+  kernel.packet[1] = vec_mergel(t0, t2);
+  kernel.packet[2] = vec_mergeh(t1, t3);
+  kernel.packet[3] = vec_mergel(t1, t3);
+}
 
 } // end namespace internal
 
