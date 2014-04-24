@@ -22,6 +22,12 @@ namespace internal {
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS (2*sizeof(void*))
 #endif
 
+#ifdef EIGEN_VECTORIZE_FMA
+#ifndef EIGEN_HAS_FUSED_MADD
+#define EIGEN_HAS_FUSED_MADD 1
+#endif
+#endif
+
 #if defined EIGEN_VECTORIZE_AVX && defined __GNUC__ && !(defined __clang__ || defined __INTEL_COMPILER)
 // With GCC's default ABI version, a __m128 or __m256 are the same types and therefore we cannot
 // have overloads for both types without linking error.

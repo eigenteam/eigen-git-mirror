@@ -22,6 +22,12 @@ namespace internal {
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS (2*sizeof(void*))
 #endif
 
+#ifdef EIGEN_VECTORIZE_FMA
+#ifndef EIGEN_HAS_FUSED_MADD
+#define EIGEN_HAS_FUSED_MADD 1
+#endif
+#endif
+
 typedef __m256  Packet8f;
 typedef __m256i Packet8i;
 typedef __m256d Packet4d;

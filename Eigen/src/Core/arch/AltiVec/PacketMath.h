@@ -18,6 +18,10 @@ namespace internal {
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
 #endif
 
+#ifndef EIGEN_HAS_FUSED_MADD
+#define EIGEN_HAS_FUSED_MADD 1
+#endif
+
 #ifndef EIGEN_HAS_FUSE_CJMADD
 #define EIGEN_HAS_FUSE_CJMADD 1
 #endif
