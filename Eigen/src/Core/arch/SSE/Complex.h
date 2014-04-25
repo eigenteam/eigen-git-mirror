@@ -462,8 +462,8 @@ EIGEN_STRONG_INLINE Packet1cd pcplxflip/*<Packet1cd>*/(const Packet1cd& x)
   return Packet1cd(preverse(Packet2d(x.v)));
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet2cf>& kernel) {
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet2cf,2>& kernel) {
   __m128d w1 = _mm_castps_pd(kernel.packet[0].v);
   __m128d w2 = _mm_castps_pd(kernel.packet[1].v);
 

@@ -498,8 +498,8 @@ struct palign_impl<Offset,Packet4d>
   }
 };
 
-template<> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet8f>& kernel) {
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet8f,8>& kernel) {
   __m256 T0 = _mm256_unpacklo_ps(kernel.packet[0], kernel.packet[1]);
   __m256 T1 = _mm256_unpackhi_ps(kernel.packet[0], kernel.packet[1]);
   __m256 T2 = _mm256_unpacklo_ps(kernel.packet[2], kernel.packet[3]);
@@ -526,8 +526,26 @@ ptranspose(Kernel<Packet8f>& kernel) {
   kernel.packet[7] = _mm256_permute2f128_ps(S3, S7, 0x31);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet4d>& kernel) {
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet8f,4>& kernel) {
+  __m256 T0 = _mm256_unpacklo_ps(kernel.packet[0], kernel.packet[1]);
+  __m256 T1 = _mm256_unpackhi_ps(kernel.packet[0], kernel.packet[1]);
+  __m256 T2 = _mm256_unpacklo_ps(kernel.packet[2], kernel.packet[3]);
+  __m256 T3 = _mm256_unpackhi_ps(kernel.packet[2], kernel.packet[3]);
+
+  __m256 S0 = _mm256_shuffle_ps(T0,T2,_MM_SHUFFLE(1,0,1,0));
+  __m256 S1 = _mm256_shuffle_ps(T0,T2,_MM_SHUFFLE(3,2,3,2));
+  __m256 S2 = _mm256_shuffle_ps(T1,T3,_MM_SHUFFLE(1,0,1,0));
+  __m256 S3 = _mm256_shuffle_ps(T1,T3,_MM_SHUFFLE(3,2,3,2));
+
+  kernel.packet[0] = _mm256_permute2f128_ps(S0, S1, 0x20);
+  kernel.packet[1] = _mm256_permute2f128_ps(S2, S3, 0x20);
+  kernel.packet[2] = _mm256_permute2f128_ps(S0, S1, 0x31);
+  kernel.packet[3] = _mm256_permute2f128_ps(S2, S3, 0x31);
+}
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet4d,4>& kernel) {
   __m256d T0 = _mm256_shuffle_pd(kernel.packet[0], kernel.packet[1], 15);
   __m256d T1 = _mm256_shuffle_pd(kernel.packet[0], kernel.packet[1], 0);
   __m256d T2 = _mm256_shuffle_pd(kernel.packet[2], kernel.packet[3], 15);

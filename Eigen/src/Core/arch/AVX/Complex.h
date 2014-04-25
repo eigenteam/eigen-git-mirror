@@ -431,8 +431,8 @@ template<> EIGEN_STRONG_INLINE Packet2cd pcplxflip<Packet2cd>(const Packet2cd& x
   return Packet2cd(_mm256_shuffle_pd(x.v, x.v, 0x5));
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet4cf>& kernel) {
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet4cf,4>& kernel) {
   __m256d P0 = _mm256_castps_pd(kernel.packet[0].v);
   __m256d P1 = _mm256_castps_pd(kernel.packet[1].v);
   __m256d P2 = _mm256_castps_pd(kernel.packet[2].v);
@@ -449,8 +449,8 @@ ptranspose(Kernel<Packet4cf>& kernel) {
   kernel.packet[2].v = _mm256_castpd_ps(_mm256_permute2f128_pd(T1, T3, 49));
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet2cd>& kernel) {
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet2cd,2>& kernel) {
   __m256d tmp = _mm256_permute2f128_pd(kernel.packet[0].v, kernel.packet[1].v, 0+(2<<4));
   kernel.packet[1].v = _mm256_permute2f128_pd(kernel.packet[0].v, kernel.packet[1].v, 1+(3<<4));
  kernel.packet[0].v = tmp;

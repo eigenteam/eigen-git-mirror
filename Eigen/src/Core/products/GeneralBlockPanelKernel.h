@@ -1585,7 +1585,7 @@ EIGEN_DONT_INLINE void gemm_pack_lhs<Scalar, Index, Pack1, Pack2, RowMajor, Conj
         {
           for (Index m = 0; m < pack; m += PacketSize)
           {
-            Kernel<Packet> kernel;
+            PacketBlock<Packet> kernel;
             for (int p = 0; p < PacketSize; ++p) kernel.packet[p] = ploadu<Packet>(&lhs(i+p+m, k));
             ptranspose(kernel);
             for (int p = 0; p < PacketSize; ++p) pstore(blockA+count+m+(pack)*p, cj.pconj(kernel.packet[p]));
@@ -1675,7 +1675,7 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
 //       if(PacketSize==8) // TODO enbale vectorized transposition for PacketSize==4
 //       {
 //         for(; k<peeled_k; k+=PacketSize) {
-//           Kernel<Packet> kernel;
+//           PacketBlock<Packet> kernel;
 //           for (int p = 0; p < PacketSize; ++p) {
 //             kernel.packet[p] = ploadu<Packet>(&rhs[(j2+p)*rhsStride+k]);
 //           }
@@ -1713,19 +1713,22 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, Pan
       const Scalar* b1 = &rhs[(j2+1)*rhsStride];
       const Scalar* b2 = &rhs[(j2+2)*rhsStride];
       const Scalar* b3 = &rhs[(j2+3)*rhsStride];
+      
       Index k=0;
-      if(PacketSize==4) // TODO enbale vectorized transposition for PacketSize==2 ??
+      if((PacketSize%4)==0) // TODO enbale vectorized transposition for PacketSize==2 ??
       {
         for(; k<peeled_k; k+=PacketSize) {
-          Kernel<Packet> kernel;
-          for (int p = 0; p < PacketSize; ++p) {
-            kernel.packet[p] = ploadu<Packet>(&rhs[(j2+p)*rhsStride+k]);
-          }
+          PacketBlock<Packet,(PacketSize%4)==0?4:PacketSize> kernel;
+          kernel.packet[0] = ploadu<Packet>(&b0[k]);
+          kernel.packet[1] = ploadu<Packet>(&b1[k]);
+          kernel.packet[2] = ploadu<Packet>(&b2[k]);
+          kernel.packet[3] = ploadu<Packet>(&b3[k]);
           ptranspose(kernel);
-          for (int p = 0; p < PacketSize; ++p) {
-            pstoreu(blockB+count, cj.pconj(kernel.packet[p]));
-            count+=PacketSize;
-          }
+          pstoreu(blockB+count+0*PacketSize, cj.pconj(kernel.packet[0]));
+          pstoreu(blockB+count+1*PacketSize, cj.pconj(kernel.packet[1]));
+          pstoreu(blockB+count+2*PacketSize, cj.pconj(kernel.packet[2]));
+          pstoreu(blockB+count+3*PacketSize, cj.pconj(kernel.packet[3]));
+          count+=4*PacketSize;
         }
       }
       for(; k<depth; k++)

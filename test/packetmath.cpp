@@ -228,7 +228,7 @@ template<typename Scalar> void packetmath()
   internal::pstore(data2, internal::preverse(internal::pload<Packet>(data1)));
   VERIFY(areApprox(ref, data2, PacketSize) && "internal::preverse");
 
-  internal::Kernel<Packet> kernel;
+  internal::PacketBlock<Packet> kernel;
   for (int i=0; i<PacketSize; ++i) {
     kernel.packet[i] = internal::pload<Packet>(data1+i*PacketSize);
   }
@@ -236,7 +236,7 @@ template<typename Scalar> void packetmath()
   for (int i=0; i<PacketSize; ++i) {
     internal::pstore(data2, kernel.packet[i]);
     for (int j = 0; j < PacketSize; ++j) {
-      VERIFY(isApproxAbs(data2[j], data1[i+j*PacketSize], refvalue));
+      VERIFY(isApproxAbs(data2[j], data1[i+j*PacketSize], refvalue) && "ptranspose");
     }
   }
 }
@@ -393,9 +393,9 @@ template<typename Scalar> void packetmath_scatter_gather() {
 
   for (int i = 0; i < PacketSize*11; ++i) {
     if ((i%11) == 0) {
-      VERIFY(isApproxAbs(buffer[i], data1[i/11], refvalue));
+      VERIFY(isApproxAbs(buffer[i], data1[i/11], refvalue) && "pscatter");
     } else {
-      VERIFY(isApproxAbs(buffer[i], Scalar(0), refvalue));
+      VERIFY(isApproxAbs(buffer[i], Scalar(0), refvalue) && "pscatter");
     }
   }
 
@@ -405,7 +405,7 @@ template<typename Scalar> void packetmath_scatter_gather() {
   packet = internal::pgather<Scalar, Packet>(buffer, 7);
   internal::pstore(data1, packet);
   for (int i = 0; i < PacketSize; ++i) {
-    VERIFY(isApproxAbs(data1[i], buffer[i*7], refvalue));
+    VERIFY(isApproxAbs(data1[i], buffer[i*7], refvalue) && "pgather");
   }
 }
 

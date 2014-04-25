@@ -229,7 +229,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pcplxflip<Packet2cf>(const Packet2cf& x
   return Packet2cf(vec_perm(x.v, x.v, p16uc_COMPLEX_REV));
 }
 
-template<> EIGEN_STRONG_INLINE void ptranspose(Kernel<Packet2cf>& kernel)
+template<> EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet2cf,2>& kernel)
 {
   Packet4f tmp = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_COMPLEX_TRANSPOSE_0);
   kernel.packet[1].v = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_COMPLEX_TRANSPOSE_1);

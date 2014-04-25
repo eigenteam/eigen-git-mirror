@@ -417,15 +417,15 @@ template<> inline std::complex<double> pmul(const std::complex<double>& a, const
 
 
 /***************************************************************************
- * Kernel, that is a collection of N packets where N is the number of words
- * in the packet.
+ * PacketBlock, that is a collection of N packets where the number of words
+ * in the packet is a multiple of N.
 ***************************************************************************/
-template <typename Packet> struct Kernel {
-  Packet packet[unpacket_traits<Packet>::size];
+template <typename Packet,int N=unpacket_traits<Packet>::size> struct PacketBlock {
+  Packet packet[N];
 };
 
 template<typename Packet> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet>& /*kernel*/) {
+ptranspose(PacketBlock<Packet,1>& /*kernel*/) {
   // Nothing to do in the scalar case, i.e. a 1x1 matrix.
 }
 

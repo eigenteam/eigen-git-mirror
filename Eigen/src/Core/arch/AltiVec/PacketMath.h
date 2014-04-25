@@ -539,7 +539,7 @@ struct palign_impl<Offset,Packet4i>
 };
 
 template<> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet4f>& kernel) {
+ptranspose(PacketBlock<Packet4f,4>& kernel) {
   Packet4f t0, t1, t2, t3;
   t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
   t1 = vec_mergel(kernel.packet[0], kernel.packet[2]);
@@ -552,7 +552,7 @@ ptranspose(Kernel<Packet4f>& kernel) {
 }
 
 template<> EIGEN_DEVICE_FUNC inline void
-ptranspose(Kernel<Packet4i>& kernel) {
+ptranspose(PacketBlock<Packet4i,4>& kernel) {
   Packet4i t0, t1, t2, t3;
   t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
   t1 = vec_mergel(kernel.packet[0], kernel.packet[2]);
