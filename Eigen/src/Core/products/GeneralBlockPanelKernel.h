@@ -214,11 +214,11 @@ public:
     p = pset1<ResPacket>(ResScalar(0));
   }
   
-//   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
-//   {
-//     pbroadcast4(b, b0, b1, b2, b3);
-//   }
-//   
+  EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
+  {
+    pbroadcast4(b, b0, b1, b2, b3);
+  }
+  
 //   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1)
 //   {
 //     pbroadcast2(b, b0, b1);
@@ -342,11 +342,11 @@ public:
     dest = ploadu<LhsPacket>(a);
   }
 
-//   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
-//   {
-//     pbroadcast4(b, b0, b1, b2, b3);
-//   }
-//   
+  EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
+  {
+    pbroadcast4(b, b0, b1, b2, b3);
+  }
+  
 //   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1)
 //   {
 //     pbroadcast2(b, b0, b1);
@@ -713,10 +713,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
     const Index peeled_mc1 = mr>=1*Traits::LhsProgress ? (rows/(1*LhsProgress))*(1*LhsProgress) : 0;
     enum { pk = 8 }; // NOTE Such a large peeling factor is important for large matrices (~ +5% when >1000 on Haswell)
     const Index peeled_kc  = depth & ~(pk-1);
+    const Index prefetch_res_offset = 32/sizeof(ResScalar);    
 //     const Index depth2     = depth & ~1;
-    
-//     std::cout << mr << " " << peeled_mc3 << " " << peeled_mc2 << " " << peeled_mc1 << "\n";
-    
     
     //---------- Process 3 * LhsProgress rows at once ----------
     // This corresponds to 3*LhsProgress x nr register blocks.
@@ -736,19 +734,12 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           prefetch(&blA[0]);
 
           // gets res block as register
-          AccPacket C0, C1, C2, C3, C4, C5, C6, C7, C8, C9, C10, C11;
-          traits.initAcc(C0);
-          traits.initAcc(C1);
-          traits.initAcc(C2);
-          traits.initAcc(C3);
-          traits.initAcc(C4);
-          traits.initAcc(C5);
-          traits.initAcc(C6);
-          traits.initAcc(C7);
-          traits.initAcc(C8);
-          traits.initAcc(C9);
-          traits.initAcc(C10);
-          traits.initAcc(C11);
+          AccPacket C0, C1, C2,  C3,
+                    C4, C5, C6,  C7,
+                    C8, C9, C10, C11;
+          traits.initAcc(C0);  traits.initAcc(C1);  traits.initAcc(C2);  traits.initAcc(C3);
+          traits.initAcc(C4);  traits.initAcc(C5);  traits.initAcc(C6);  traits.initAcc(C7);
+          traits.initAcc(C8);  traits.initAcc(C9);  traits.initAcc(C10); traits.initAcc(C11);
 
           ResScalar* r0 = &res[(j2+0)*resStride + i];
           ResScalar* r1 = &res[(j2+1)*resStride + i];
@@ -767,7 +758,6 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            IACA_START
             EIGEN_ASM_COMMENT("begin gegp micro kernel 3p x 4");
             RhsPacket B_0;
             LhsPacket A2;
@@ -950,25 +940,20 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           prefetch(&blA[0]);
 
           // gets res block as register
-          AccPacket C0, C1, C2, C3, C4, C5, C6, C7;
-          traits.initAcc(C0);
-          traits.initAcc(C1);
-          traits.initAcc(C2);
-          traits.initAcc(C3);
-          traits.initAcc(C4);
-          traits.initAcc(C5);
-          traits.initAcc(C6);
-          traits.initAcc(C7);
+          AccPacket C0, C1, C2, C3,
+                    C4, C5, C6, C7;
+          traits.initAcc(C0); traits.initAcc(C1); traits.initAcc(C2); traits.initAcc(C3);
+          traits.initAcc(C4); traits.initAcc(C5); traits.initAcc(C6); traits.initAcc(C7);
 
           ResScalar* r0 = &res[(j2+0)*resStride + i];
           ResScalar* r1 = &res[(j2+1)*resStride + i];
           ResScalar* r2 = &res[(j2+2)*resStride + i];
           ResScalar* r3 = &res[(j2+3)*resStride + i];
           
-          internal::prefetch(r0);
-          internal::prefetch(r1);
-          internal::prefetch(r2);
-          internal::prefetch(r3);
+          internal::prefetch(r0+prefetch_res_offset);
+          internal::prefetch(r1+prefetch_res_offset);
+          internal::prefetch(r2+prefetch_res_offset);
+          internal::prefetch(r3+prefetch_res_offset);
 
           // performs "inner" products
           const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
@@ -977,26 +962,22 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            IACA_START
             EIGEN_ASM_COMMENT("begin gegp micro kernel 2pX4");
-            RhsPacket B_0, B1;
-        
-#define EIGEN_GEBGP_ONESTEP(K) \
-            traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);  \
-            traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);  \
-            traits.loadRhs(&blB[(0+4*K)*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C0, B1); \
-            traits.madd(A1, B_0, C4, B_0); \
-            traits.loadRhs(&blB[1+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C1, B1); \
-            traits.madd(A1, B_0, C5, B_0); \
-            traits.loadRhs(&blB[2+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C2, B1); \
-            traits.madd(A1, B_0, C6, B_0); \
-            traits.loadRhs(&blB[3+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C3 , B1); \
-            traits.madd(A1, B_0, C7, B_0)
-        
+            RhsPacket B_0, B1, B2, B3, T0;
+
+   #define EIGEN_GEBGP_ONESTEP(K) \
+            traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);                    \
+            traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);                    \
+            traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
+            traits.madd(A0, B_0, C0, T0);                                     \
+            traits.madd(A1, B_0, C4, B_0);                                    \
+            traits.madd(A0, B1,  C1, T0);                                     \
+            traits.madd(A1, B1,  C5, B1);                                     \
+            traits.madd(A0, B2,  C2, T0);                                     \
+            traits.madd(A1, B2,  C6, B2);                                     \
+            traits.madd(A0, B3,  C3, T0);                                     \
+            traits.madd(A1, B3,  C7, B3)
+            
             internal::prefetch(blB+(48+0));
             EIGEN_GEBGP_ONESTEP(0);
             EIGEN_GEBGP_ONESTEP(1);
@@ -1010,12 +991,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*4*RhsProgress;
             blA += pk*(2*Traits::LhsProgress);
-            IACA_END
           }
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)
           {
-            RhsPacket B_0, B1;
+            RhsPacket B_0, B1, B2, B3, T0;
             EIGEN_GEBGP_ONESTEP(0);
             blB += 4*RhsProgress;
             blA += 2*Traits::LhsProgress;
@@ -1065,6 +1045,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           traits.initAcc(C4);
 
           ResScalar* r0 = &res[(j2+0)*resStride + i];
+          internal::prefetch(r0+prefetch_res_offset);
 
           // performs "inner" products
           const RhsScalar* blB = &blockB[j2*strideB+offsetB];
@@ -1079,7 +1060,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
             traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);  \
             traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);  \
             traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);   \
-            traits.madd(A0, B_0, C0, B1); \
+            traits.madd(A0, B_0, C0, B1);                   \
             traits.madd(A1, B_0, C4, B_0)
         
             EIGEN_GEBGP_ONESTEP(0);
@@ -1143,10 +1124,10 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           ResScalar* r2 = &res[(j2+2)*resStride + i];
           ResScalar* r3 = &res[(j2+3)*resStride + i];
           
-          internal::prefetch(r0);
-          internal::prefetch(r1);
-          internal::prefetch(r2);
-          internal::prefetch(r3);
+          internal::prefetch(r0+prefetch_res_offset);
+          internal::prefetch(r1+prefetch_res_offset);
+          internal::prefetch(r2+prefetch_res_offset);
+          internal::prefetch(r3+prefetch_res_offset);
 
           // performs "inner" products
           const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
@@ -1155,19 +1136,18 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            IACA_START
             EIGEN_ASM_COMMENT("begin gegp micro kernel 1pX4");
             RhsPacket B_0, B1;
         
 #define EIGEN_GEBGP_ONESTEP(K) \
             traits.loadLhs(&blA[(0+1*K)*LhsProgress], A0);  \
             traits.loadRhs(&blB[(0+4*K)*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C0, B1); \
-            traits.loadRhs(&blB[1+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C1, B1); \
-            traits.loadRhs(&blB[2+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C2, B1); \
-            traits.loadRhs(&blB[3+4*K*RhsProgress], B_0); \
+            traits.madd(A0, B_0, C0, B1);                   \
+            traits.loadRhs(&blB[1+4*K*RhsProgress], B_0);   \
+            traits.madd(A0, B_0, C1, B1);                   \
+            traits.loadRhs(&blB[2+4*K*RhsProgress], B_0);   \
+            traits.madd(A0, B_0, C2, B1);                   \
+            traits.loadRhs(&blB[3+4*K*RhsProgress], B_0);   \
             traits.madd(A0, B_0, C3 , B1); \
         
             internal::prefetch(blB+(48+0));
@@ -1183,7 +1163,6 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*4*RhsProgress;
             blA += pk*1*LhsProgress;
-            IACA_END
           }
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)
@@ -1272,11 +1251,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
     }
     //---------- Process remaining rows, 1 at once ----------
     {
-      // loop on each row of the lhs (1*LhsProgress x depth)
-      for(Index i=peeled_mc1; i<rows; i+=1)
+      // loop on each panel of the rhs
+      for(Index j2=0; j2<packet_cols4; j2+=nr)
       {
-        // loop on each panel of the rhs
-        for(Index j2=0; j2<packet_cols4; j2+=nr)
+        // loop on each row of the lhs (1*LhsProgress x depth)
+        for(Index i=peeled_mc1; i<rows; i+=1)
         {
           const LhsScalar* blA = &blockA[i*strideA+offsetA];
           prefetch(&blA[0]);
@@ -1298,24 +1277,25 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
             Index k=0;
             for(; k<endk4; k+=4*spk)
             {
-              SLhsPacket A0;
-              SRhsPacket B_0;
+              SLhsPacket A0,A1;
+              SRhsPacket B_0,B_1;
               
               straits.loadLhsUnaligned(blB+0*SwappedTraits::LhsProgress, A0);
-              straits.loadRhsQuad(blA+0*spk, B_0);
-              straits.madd(A0,B_0,C0,B_0);
+              straits.loadLhsUnaligned(blB+1*SwappedTraits::LhsProgress, A1);
               
-              straits.loadLhsUnaligned(blB+1*SwappedTraits::LhsProgress, A0);
-              straits.loadRhsQuad(blA+1*spk, B_0);
-              straits.madd(A0,B_0,C1,B_0);
+              
+              straits.loadRhsQuad(blA+0*spk, B_0);
+              straits.loadRhsQuad(blA+1*spk, B_1);
+              straits.madd(A0,B_0,C0,B_0);
+              straits.madd(A1,B_1,C1,B_1);
+              
               
               straits.loadLhsUnaligned(blB+2*SwappedTraits::LhsProgress, A0);
+              straits.loadLhsUnaligned(blB+3*SwappedTraits::LhsProgress, A1);
               straits.loadRhsQuad(blA+2*spk, B_0);
+              straits.loadRhsQuad(blA+3*spk, B_1);
               straits.madd(A0,B_0,C2,B_0);
-              
-              straits.loadLhsUnaligned(blB+3*SwappedTraits::LhsProgress, A0);
-              straits.loadRhsQuad(blA+3*spk, B_0);
-              straits.madd(A0,B_0,C3,B_0);
+              straits.madd(A1,B_1,C3,B_1);
               
               blB += 4*SwappedTraits::LhsProgress;
               blA += 4*spk;
@@ -1399,8 +1379,12 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
             res[(j2+3)*resStride + i] += alpha*C3;
           }
         }
-        // remaining columns
-        for(Index j2=packet_cols4; j2<cols; j2++)
+      }
+      // remaining columns
+      for(Index j2=packet_cols4; j2<cols; j2++)
+      {
+        // loop on each row of the lhs (1*LhsProgress x depth)
+        for(Index i=peeled_mc1; i<rows; i+=1)
         {
           const LhsScalar* blA = &blockA[i*strideA+offsetA];
           prefetch(&blA[0]);
