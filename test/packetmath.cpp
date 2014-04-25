@@ -171,6 +171,30 @@ template<typename Scalar> void packetmath()
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
   }
   
+  for(int offset=0;offset<3;++offset)
+  {
+    for (int i=0; i<PacketSize*4; ++i)
+      ref[i] = data1[offset+i/PacketSize];
+    Packet A0, A1, A2, A3;
+    internal::pbroadcast4<Packet>(&data1[offset], A0, A1, A2, A3);
+    internal::pstore(data2+0*PacketSize, A0);
+    internal::pstore(data2+1*PacketSize, A1);
+    internal::pstore(data2+2*PacketSize, A2);
+    internal::pstore(data2+3*PacketSize, A3);
+    VERIFY(areApprox(ref, data2, 4*PacketSize) && "internal::pbroadcast4");
+  }
+  
+  for(int offset=0;offset<3;++offset)
+  {
+    for (int i=0; i<PacketSize*2; ++i)
+      ref[i] = data1[offset+i/PacketSize];
+    Packet A0, A1, A2, A3;
+    internal::pbroadcast2<Packet>(&data1[offset], A0, A1);
+    internal::pstore(data2+0*PacketSize, A0);
+    internal::pstore(data2+1*PacketSize, A1);
+    VERIFY(areApprox(ref, data2, 2*PacketSize) && "internal::pbroadcast2");
+  }
+  
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
   
   if(PacketSize>1)
