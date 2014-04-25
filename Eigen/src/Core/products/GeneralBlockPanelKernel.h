@@ -188,7 +188,7 @@ public:
     nr = 4,
 
     // register block size along the M direction (currently, this one cannot be modified)
-#ifdef EIGEN_HAS_FUSED_MADD
+#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC)
     // we assume 16 registers
     mr = 3*LhsPacketSize,
 #else
@@ -296,7 +296,7 @@ public:
     
     NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
     nr = 4,
-#ifdef EIGEN_HAS_FUSED_MADD
+#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC)
     // we assume 16 registers
     mr = 3*LhsPacketSize,
 #else
@@ -759,29 +759,29 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           for(Index k=0; k<peeled_kc; k+=pk)
           {
             EIGEN_ASM_COMMENT("begin gegp micro kernel 3p x 4");
-            RhsPacket B_0;
+            RhsPacket B_0, T0;
             LhsPacket A2;
-        
+
 #define EIGEN_GEBGP_ONESTEP(K) \
             internal::prefetch(blA+(3*K+16)*LhsProgress); \
             traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
             traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
             traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
             traits.loadRhs(&blB[(0+4*K)*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C0, B_0); \
-            traits.madd(A1, B_0, C4, B_0); \
+            traits.madd(A0, B_0, C0, T0); \
+            traits.madd(A1, B_0, C4, T0); \
             traits.madd(A2, B_0, C8, B_0); \
             traits.loadRhs(&blB[1+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C1, B_0); \
-            traits.madd(A1, B_0, C5, B_0); \
+            traits.madd(A0, B_0, C1, T0); \
+            traits.madd(A1, B_0, C5, T0); \
             traits.madd(A2, B_0, C9, B_0); \
             traits.loadRhs(&blB[2+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C2,  B_0); \
-            traits.madd(A1, B_0, C6,  B_0); \
+            traits.madd(A0, B_0, C2,  T0); \
+            traits.madd(A1, B_0, C6,  T0); \
             traits.madd(A2, B_0, C10, B_0); \
             traits.loadRhs(&blB[3+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C3 , B_0); \
-            traits.madd(A1, B_0, C7,  B_0); \
+            traits.madd(A0, B_0, C3 , T0); \
+            traits.madd(A1, B_0, C7,  T0); \
             traits.madd(A2, B_0, C11, B_0)
         
             internal::prefetch(blB+(48+0));
@@ -802,7 +802,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)
           {
-            RhsPacket B_0;
+            RhsPacket B_0, T0;
             LhsPacket A2;
             EIGEN_GEBGP_ONESTEP(0);
             blB += 4*RhsProgress;
