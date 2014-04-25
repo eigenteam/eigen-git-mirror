@@ -451,7 +451,7 @@ PALIGN_NEON(3,Packet4i,vextq_s32)
 
 #undef PALIGN_NEON
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet4f,4>& kernel) {
   float32x4x2_t tmp1 = vzipq_f32(kernel.packet[0], kernel.packet[1]);
   float32x4x2_t tmp2 = vzipq_f32(kernel.packet[2], kernel.packet[3]);
@@ -462,7 +462,7 @@ ptranspose(PacketBlock<Packet4f,4>& kernel) {
   kernel.packet[3] = vcombine_f32(vget_high_f32(tmp1.val[1]), vget_high_f32(tmp2.val[1]));
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet4i,4>& kernel) {
   int32x4x2_t tmp1 = vzipq_s32(kernel.packet[0], kernel.packet[1]);
   int32x4x2_t tmp2 = vzipq_s32(kernel.packet[2], kernel.packet[3]);

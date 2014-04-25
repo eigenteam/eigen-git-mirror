@@ -263,7 +263,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
   return Packet2cf(pdiv(res.v, vaddq_f32(s,rev_s)));
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet2cf,2>& kernel) {
   float32x4_t tmp = vcombine_f32(vget_high_f32(kernel.packet[0].v), vget_high_f32(kernel.packet[1].v));
   kernel.packet[0].v = vcombine_f32(vget_low_f32(kernel.packet[0].v), vget_low_f32(kernel.packet[1].v));
