@@ -300,6 +300,7 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       Index ts = (IsLower && actual_k2>=cols) ? 0 : actual_kc;
 
       Scalar* geb = blockB+ts*ts;
+      geb = geb + internal::first_aligned(geb,EIGEN_ALIGN_BYTES/sizeof(Scalar));
 
       pack_rhs(geb, &rhs(actual_k2,IsLower ? 0 : k2), rhsStride, actual_kc, rs);
 
