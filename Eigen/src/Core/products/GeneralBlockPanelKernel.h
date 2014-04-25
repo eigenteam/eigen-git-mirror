@@ -1255,6 +1255,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
       }
     }
     //---------- Process remaining rows, 1 at once ----------
+    if(peeled_mc1<rows)
     {
       // loop on each panel of the rhs
       for(Index j2=0; j2<packet_cols4; j2+=nr)
@@ -1288,12 +1289,10 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
               straits.loadLhsUnaligned(blB+0*SwappedTraits::LhsProgress, A0);
               straits.loadLhsUnaligned(blB+1*SwappedTraits::LhsProgress, A1);
               
-              
               straits.loadRhsQuad(blA+0*spk, B_0);
               straits.loadRhsQuad(blA+1*spk, B_1);
               straits.madd(A0,B_0,C0,B_0);
               straits.madd(A1,B_1,C1,B_1);
-              
               
               straits.loadLhsUnaligned(blB+2*SwappedTraits::LhsProgress, A0);
               straits.loadLhsUnaligned(blB+3*SwappedTraits::LhsProgress, A1);
