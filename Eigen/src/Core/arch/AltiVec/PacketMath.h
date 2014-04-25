@@ -168,6 +168,28 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   {
   return vc;
 }
 
+
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet4f>(const float *a,
+                      Packet4f& a0, Packet4f& a1, Packet4f& a2, Packet4f& a3)
+{
+  a3 = vec_ld(0,a);
+  a0 = vec_splat(a3, 0);
+  a1 = vec_splat(a3, 1);
+  a2 = vec_splat(a3, 2);
+  a3 = vec_splat(a3, 3);
+}
+template<> EIGEN_STRONG_INLINE void
+pbroadcast4<Packet4i>(const int *a,
+                      Packet4i& a0, Packet4i& a1, Packet4i& a2, Packet4i& a3)
+{
+  a3 = vec_ld(0,a);
+  a0 = vec_splat(a3, 0);
+  a1 = vec_splat(a3, 1);
+  a2 = vec_splat(a3, 2);
+  a3 = vec_splat(a3, 3);
+}
+
 template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, int stride)
 {
   float EIGEN_ALIGN16 af[4];
@@ -538,7 +560,7 @@ struct palign_impl<Offset,Packet4i>
   }
 };
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet4f,4>& kernel) {
   Packet4f t0, t1, t2, t3;
   t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
@@ -551,7 +573,7 @@ ptranspose(PacketBlock<Packet4f,4>& kernel) {
   kernel.packet[3] = vec_mergel(t1, t3);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet4i,4>& kernel) {
   Packet4i t0, t1, t2, t3;
   t0 = vec_mergeh(kernel.packet[0], kernel.packet[2]);
