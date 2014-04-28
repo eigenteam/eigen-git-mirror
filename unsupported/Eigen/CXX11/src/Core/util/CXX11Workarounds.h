@@ -40,7 +40,17 @@
 #error This library needs at least a C++11 compliant compiler. If you use g++/clang, please enable the -std=c++11 compiler flag. (-std=c++0x on older versions.)
 #endif
 
+using std::array;
+
 namespace Eigen {
+
+// Use std::array as Eigen array
+/*template <typename T, size_t N>
+struct array : public std::array<T, N> {
+  array() = default;
+  array(const std::initializer_list<T>& a);// : std::array<T, N>(a) {};
+  array(const std::array<T, N>& a);
+};*/
 
 namespace internal {
 
@@ -60,9 +70,9 @@ namespace internal {
 #define STD_GET_ARR_HACK             std::template get<I, T, N>(a)
 #endif
 
-template<std::size_t I, class T, std::size_t N> constexpr inline T&       std_array_get(std::array<T,N>&       a) { return (T&)       STD_GET_ARR_HACK; }
-template<std::size_t I, class T, std::size_t N> constexpr inline T&&      std_array_get(std::array<T,N>&&      a) { return (T&&)      STD_GET_ARR_HACK; }
-template<std::size_t I, class T, std::size_t N> constexpr inline T const& std_array_get(std::array<T,N> const& a) { return (T const&) STD_GET_ARR_HACK; }
+template<std::size_t I, class T, std::size_t N> constexpr inline T&       array_get(std::array<T,N>&       a) { return (T&)       STD_GET_ARR_HACK; }
+template<std::size_t I, class T, std::size_t N> constexpr inline T&&      array_get(std::array<T,N>&&      a) { return (T&&)      STD_GET_ARR_HACK; }
+template<std::size_t I, class T, std::size_t N> constexpr inline T const& array_get(std::array<T,N> const& a) { return (T const&) STD_GET_ARR_HACK; }
 
 #undef STD_GET_ARR_HACK
 

@@ -10,9 +10,10 @@
 #ifndef EIGEN_CXX11_TENSOR_MODULE
 #define EIGEN_CXX11_TENSOR_MODULE
 
-#include <Eigen/CXX11/Core>
+#include "Eigen/src/Core/util/StaticAssert.h"
+#include "unsupported/Eigen/CXX11/Core"
 
-#include <Eigen/src/Core/util/DisableStupidWarnings.h>
+#include "Eigen/src/Core/util/DisableStupidWarnings.h"
 
 /** \defgroup CXX11_Tensor_Module Tensor Module
   *
@@ -27,13 +28,21 @@
 #include <cstddef>
 #include <cstring>
 
-#include "src/Tensor/TensorStorage.h"
-#include "src/Tensor/Tensor.h"
+#include "Eigen/Core"
 
-#include <Eigen/src/Core/util/ReenableStupidWarnings.h>
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorForwardDeclarations.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorTraits.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorBase.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorEvaluator.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorExpr.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorStorage.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/Tensor.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorMap.h"
+
+#include "Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_CXX11_TENSOR_MODULE
-
-/*
- * kate: space-indent on; indent-width 2; mixedindent off; indent-mode cstyle;
- */

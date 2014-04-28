@@ -121,6 +121,11 @@
   #define EIGEN_HAVE_RVALUE_REFERENCES
 #endif
 
+// Does the compiler support variadic templates?
+#if __cplusplus > 199711L
+#define EIGEN_HAS_VARIADIC_TEMPLATES 1
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
