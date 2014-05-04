@@ -85,15 +85,15 @@ public :
   }
 
   static inline void transposed_matrix_matrix_product(const gene_matrix & A, const gene_matrix & B, gene_matrix & X, int N){
-    X = A.transpose()*B.transpose();
+    X = (trans(A)*trans(B));
   }
 
   static inline void ata_product(const gene_matrix & A, gene_matrix & X, int N){
-    X = (A.transpose()*A);
+    X = (trans(A)*A);
   }
 
   static inline void aat_product(const gene_matrix & A, gene_matrix & X, int N){
-    X = (A*A.transpose());
+    X = (A*trans(A));
   }
 
   static inline void matrix_vector_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
@@ -101,7 +101,7 @@ public :
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
-    X = (A.transpose()*B);
+    X = (trans(A)*B);
   }
 
   static inline void axpy(const real coef, const gene_vector & X, gene_vector & Y, int N){
