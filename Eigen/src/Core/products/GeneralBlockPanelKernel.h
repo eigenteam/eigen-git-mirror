@@ -10,12 +10,6 @@
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
-#ifdef USE_IACA
-#include "iacaMarks.h"
-#else
-#define IACA_START
-#define IACA_END
-#endif
 
 namespace Eigen { 
   
