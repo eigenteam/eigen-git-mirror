@@ -586,7 +586,7 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   //    which yields a singular value problem
   if (c < Scalar(-1)+NumTraits<Scalar>::dummy_precision())
   {
-    c = max<Scalar>(c,-1);
+    c = (max)(c,Scalar(-1));
     Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
     JacobiSVD<Matrix<Scalar,2,3> > svd(m, ComputeFullV);
     Vector3 axis = svd.matrixV().col(2);
