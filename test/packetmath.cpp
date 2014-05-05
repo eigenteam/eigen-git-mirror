@@ -186,7 +186,7 @@ template<typename Scalar> void packetmath()
   {
     for (int i=0; i<PacketSize*2; ++i)
       ref[i] = data1[i/PacketSize];
-    Packet A0, A1, A2, A3;
+    Packet A0, A1;
     internal::pbroadcast2<Packet>(data1, A0, A1);
     internal::pstore(data2+0*PacketSize, A0);
     internal::pstore(data2+1*PacketSize, A1);
