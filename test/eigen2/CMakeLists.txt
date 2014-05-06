@@ -5,6 +5,11 @@ add_dependencies(buildtests eigen2_buildtests)
 
 add_definitions("-DEIGEN2_SUPPORT_STAGE10_FULL_EIGEN2_API")
 
+# Disable unused warnings for this module
+# As EIGEN2 support is deprecated, it is not really worth fixing them
+ei_add_cxx_compiler_flag("-Wno-unused-local-typedefs")
+ei_add_cxx_compiler_flag("-Wno-unused-but-set-variable")
+
 ei_add_test(eigen2_meta)
 ei_add_test(eigen2_sizeof)
 ei_add_test(eigen2_dynalloc)
