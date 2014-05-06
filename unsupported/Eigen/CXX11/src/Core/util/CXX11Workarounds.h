@@ -17,9 +17,6 @@
 #error Intel Compiler only supports required C++ features since version 13.1.
 // note that most stuff in principle works with 13.0 but when combining
 // some features, at some point 13.0 will just fail with an internal assertion
-#elif defined(__clang__) && (__clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 1))
-// note that it _should_ work with 3.1 but it was only tested with 3.2
-#error Clang C++ Compiler (clang++) only supports required C++ features since version 3.1.
 #elif defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 6))
 // G++ < 4.6 by default will continue processing the source files - even if we use #error to make
 // it error out. For this reason, we use the pragma to make sure G++ aborts at the first error
@@ -40,17 +37,10 @@
 #error This library needs at least a C++11 compliant compiler. If you use g++/clang, please enable the -std=c++11 compiler flag. (-std=c++0x on older versions.)
 #endif
 
-using std::array;
-
 namespace Eigen {
 
 // Use std::array as Eigen array
-/*template <typename T, size_t N>
-struct array : public std::array<T, N> {
-  array() = default;
-  array(const std::initializer_list<T>& a);// : std::array<T, N>(a) {};
-  array(const std::array<T, N>& a);
-};*/
+template <typename T, std::size_t N> using array = std::array<T, N>;
 
 namespace internal {
 

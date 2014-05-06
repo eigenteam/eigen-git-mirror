@@ -62,6 +62,20 @@ class TensorBase
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived>
     cwiseAbs() const { return derived(); }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived>
+    cwisePow(Scalar exponent) const {
+      return TensorCwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived>
+          (derived(), internal::scalar_pow_op<Scalar>(exponent));
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Derived>
+    operator * (Scalar scale) const {
+      return TensorCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Derived>
+          (derived(), internal::scalar_multiple_op<Scalar>(scale));
+    }
+
     // Coefficient-wise binary operators.
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const OtherDerived>

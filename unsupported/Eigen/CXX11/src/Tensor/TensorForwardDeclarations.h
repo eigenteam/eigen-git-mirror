@@ -13,6 +13,7 @@
 namespace Eigen {
 
 template<typename Scalar_, std::size_t NumIndices_, int Options_ = 0> class Tensor;
+template<typename Scalar_, typename Dimensions, int Options_ = 0> class TensorFixedSize;
 template<typename PlainObjectType> class TensorMap;
 template<typename Derived> class TensorBase;
 

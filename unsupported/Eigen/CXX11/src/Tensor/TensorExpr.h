@@ -54,7 +54,7 @@ struct nested<TensorCwiseUnaryOp<UnaryOp, XprType>, 1, typename eval<TensorCwise
 
 
 template<typename UnaryOp, typename XprType>
-class TensorCwiseUnaryOp
+class TensorCwiseUnaryOp : public TensorBase<TensorCwiseUnaryOp<UnaryOp, XprType> >
 {
   public:
   typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Scalar Scalar;
@@ -74,11 +74,6 @@ class TensorCwiseUnaryOp
     EIGEN_DEVICE_FUNC
     const typename internal::remove_all<typename XprType::Nested>::type&
     nestedExpression() const { return m_xpr; }
-
-    /** \returns the nested expression */
-    EIGEN_DEVICE_FUNC
-    typename internal::remove_all<typename XprType::Nested>::type&
-    nestedExpression() { return m_xpr.const_cast_derived(); }
 
   protected:
     typename XprType::Nested m_xpr;
@@ -124,7 +119,7 @@ struct nested<TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>, 1, typename
 
 
 template<typename BinaryOp, typename LhsXprType, typename RhsXprType>
-class TensorCwiseBinaryOp
+class TensorCwiseBinaryOp : public TensorBase<TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType> >
 {
   public:
   typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Scalar Scalar;

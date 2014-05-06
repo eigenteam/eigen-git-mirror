@@ -57,6 +57,15 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_> >
 };
 
 
+template<typename Scalar_, typename Dimensions, int Options_>
+struct traits<TensorFixedSize<Scalar_, Dimensions, Options_> >
+{
+  typedef Scalar_ Scalar;
+  typedef Dense StorageKind;
+  typedef DenseIndex Index;
+};
+
+
 template<typename PlainObjectType>
 struct traits<TensorMap<PlainObjectType> >
   : public traits<PlainObjectType>
@@ -68,16 +77,28 @@ struct traits<TensorMap<PlainObjectType> >
 };
 
 
-template<typename _Scalar, std::size_t NumIndices_, int Options_>
-struct eval<Tensor<_Scalar, NumIndices_, Options_>, Eigen::Dense>
+template<typename _Scalar, std::size_t NumIndices_, int Options>
+struct eval<Tensor<_Scalar, NumIndices_, Options>, Eigen::Dense>
 {
-  typedef const Tensor<_Scalar, NumIndices_, Options_>& type;
+  typedef const Tensor<_Scalar, NumIndices_, Options>& type;
 };
 
-template<typename _Scalar, std::size_t NumIndices_, int Options_>
-struct eval<const Tensor<_Scalar, NumIndices_, Options_>, Eigen::Dense>
+template<typename _Scalar, std::size_t NumIndices_, int Options>
+struct eval<const Tensor<_Scalar, NumIndices_, Options>, Eigen::Dense>
 {
-  typedef const Tensor<_Scalar, NumIndices_, Options_>& type;
+  typedef const Tensor<_Scalar, NumIndices_, Options>& type;
+};
+
+template<typename Scalar_, typename Dimensions, int Options>
+struct eval<TensorFixedSize<Scalar_, Dimensions, Options>, Eigen::Dense>
+{
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options>& type;
+};
+
+template<typename Scalar_, typename Dimensions, int Options>
+struct eval<const TensorFixedSize<Scalar_, Dimensions, Options>, Eigen::Dense>
+{
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options>& type;
 };
 
 template<typename PlainObjectType>
@@ -102,6 +123,18 @@ template <typename Scalar_, std::size_t NumIndices_, int Options_>
 struct nested<const Tensor<Scalar_, NumIndices_, Options_>, 1, typename eval<const Tensor<Scalar_, NumIndices_, Options_> >::type>
 {
   typedef const Tensor<Scalar_, NumIndices_, Options_>& type;
+};
+
+template <typename Scalar_, typename Dimensions, int Options>
+struct nested<TensorFixedSize<Scalar_, Dimensions, Options>, 1, typename eval<TensorFixedSize<Scalar_, Dimensions, Options> >::type>
+{
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options>& type;
+};
+
+template <typename Scalar_, typename Dimensions, int Options>
+struct nested<const TensorFixedSize<Scalar_, Dimensions, Options>, 1, typename eval<const TensorFixedSize<Scalar_, Dimensions, Options> >::type>
+{
+  typedef const TensorFixedSize<Scalar_, Dimensions, Options>& type;
 };
 
 template <typename PlainObjectType>

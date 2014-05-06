@@ -11,16 +11,63 @@
 #define EIGEN_EMULATE_CXX11_META_H
 
 
+
 namespace Eigen {
 
 // The array class is only available starting with cxx11. Emulate our own here
 // if needed
 template <typename T, size_t n> class array {
  public:
-  T& operator[] (size_t index) { return values[index]; }
-  const T& operator[] (size_t index) const { return values[index]; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& operator[] (size_t index) { return values[index]; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { return values[index]; }
 
   T values[n];
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array() { }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(const T& v) {
+    EIGEN_STATIC_ASSERT(n==1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2) {
+    EIGEN_STATIC_ASSERT(n==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v1;
+    values[1] = v2;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3) {
+    EIGEN_STATIC_ASSERT(n==3, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v1;
+    values[1] = v2;
+    values[2] = v3;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3, const T& v4) {
+    EIGEN_STATIC_ASSERT(n==4, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v1;
+    values[1] = v2;
+    values[2] = v3;
+    values[3] = v4;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5) {
+    EIGEN_STATIC_ASSERT(n==5, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v1;
+    values[1] = v2;
+    values[2] = v3;
+    values[3] = v4;
+    values[4] = v5;
+  }
+
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+  array(std::initializer_list<T> l) {
+    std::copy(l.begin(), l.end(), values);
+  }
+#endif
 };
 
 
@@ -35,8 +82,10 @@ namespace internal {
 struct empty_list { static const std::size_t count = 0; };
 
 template<typename T, typename Tail=empty_list> struct type_list {
-  T head;
-  Tail tail;
+  typedef T HeadType;
+  typedef Tail TailType;
+  static const T head;
+  static const Tail tail;
   static const std::size_t count = 1 + Tail::count;
 };
 
@@ -54,9 +103,25 @@ template<> struct make_type_list<> {
 };
 
 
+template <std::size_t index, class TList> struct get_type;
 
+template <class Head, class Tail>
+struct get_type<0, type_list<Head, Tail> >
+{
+  typedef Head type;
+};
+
+template <std::size_t i, class Head, class Tail>
+struct get_type<i, type_list<Head, Tail> >
+{
+  typedef typename get_type<i-1, Tail>::type type;
+};
+
+
+/* numeric list */
 template <typename T, T n>
 struct type2val {
+  typedef T type;
   static const T value = n;
 };
 
@@ -84,6 +149,28 @@ template<typename T, T V> struct gen_numeric_list_repeated<T, 5, V> {
 };
 
 
+template <std::size_t index, class NList> struct get;
+
+template <class Head, class Tail>
+struct get<0, type_list<Head, Tail> >
+{
+  typedef typename Head::type type;
+  static const type value = Head::value;
+};
+
+template <std::size_t i, class Head, class Tail>
+struct get<i, type_list<Head, Tail> >
+{
+  typedef typename get<i-1, Tail>::type type;
+  static const type value = get<i-1, Tail>::value;
+};
+
+template <class NList> struct arg_prod {
+  static const typename NList::HeadType::type value = get<0, NList>::value * arg_prod<typename NList::TailType>::value;
+};
+template <> struct arg_prod<empty_list> {
+  static const int value = 1;
+};
 
 template<int n, typename t>
 array<t, n> repeat(t v) {

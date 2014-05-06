@@ -24,15 +24,12 @@ namespace Eigen {
   * TODO: add support for vectorization
   */
 
-
 template<typename Derived>
 struct TensorEvaluator
 {
   typedef typename Derived::Index Index;
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::Scalar& CoeffReturnType;
-  //typedef typename Derived::PacketScalar PacketScalar;
-  typedef TensorEvaluator<Derived> nestedType;
 
   TensorEvaluator(Derived& m)
       : m_data(const_cast<Scalar*>(m.data()))
@@ -72,7 +69,6 @@ template<typename UnaryOp, typename ArgType>
 struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType> >
 {
   typedef TensorCwiseUnaryOp<UnaryOp, ArgType> XprType;
-  typedef TensorEvaluator<ArgType> nestedType;
 
   TensorEvaluator(const XprType& op)
     : m_functor(op.functor()),
@@ -89,7 +85,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType> >
 
  private:
   const UnaryOp m_functor;
-  typename TensorEvaluator<ArgType>::nestedType m_argImpl;
+  TensorEvaluator<ArgType> m_argImpl;
 };
 
 
@@ -99,8 +95,6 @@ template<typename BinaryOp, typename LeftArgType, typename RightArgType>
 struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArgType> >
 {
   typedef TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArgType> XprType;
-  typedef TensorEvaluator<LeftArgType> leftType;
-  typedef TensorEvaluator<RightArgType> rightType;
 
   TensorEvaluator(const XprType& op)
     : m_functor(op.functor()),
@@ -118,8 +112,8 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
 
  private:
   const BinaryOp m_functor;
-  typename TensorEvaluator<LeftArgType>::nestedType m_leftImpl;
-  typename TensorEvaluator<RightArgType>::nestedType m_rightImpl;
+  TensorEvaluator<LeftArgType> m_leftImpl;
+  TensorEvaluator<RightArgType> m_rightImpl;
 };
 
 } // end namespace Eigen

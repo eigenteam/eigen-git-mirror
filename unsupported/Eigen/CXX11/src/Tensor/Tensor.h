@@ -60,26 +60,6 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename Index, std::size_t NumIndices, std::size_t n, bool RowMajor>
-struct tensor_index_linearization_helper
-{
-  static inline Index run(array<Index, NumIndices> const& indices, array<Index, NumIndices> const& dimensions)
-  {
-    return array_get<RowMajor ? n : (NumIndices - n - 1)>(indices) +
-      array_get<RowMajor ? n : (NumIndices - n - 1)>(dimensions) *
-        tensor_index_linearization_helper<Index, NumIndices, n - 1, RowMajor>::run(indices, dimensions);
-  }
-};
-
-template<typename Index, std::size_t NumIndices, bool RowMajor>
-struct tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
-{
-  static inline Index run(array<Index, NumIndices> const& indices, array<Index, NumIndices> const&)
-  {
-    return array_get<RowMajor ? 0 : NumIndices - 1>(indices);
-  }
-};
-
 /* Forward-declaration required for the symmetry support. */
 template<typename Tensor_, typename Symmetry_, int Flags = 0> class tensor_symmetry_value_setter;
 
@@ -102,13 +82,15 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     static const int Options = Options_;
     static const std::size_t NumIndices = NumIndices_;
 
+  typedef DSizes<DenseIndex, NumIndices_> Dimensions;
+
   protected:
     TensorStorage<Scalar, NumIndices, Dynamic, Options> m_storage;
 
   public:
     EIGEN_STRONG_INLINE Index                         dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
-    EIGEN_STRONG_INLINE array<Index, NumIndices> dimensions()             const { return m_storage.dimensions(); }
-    EIGEN_STRONG_INLINE Index                         size()                   const { return internal::array_prod(m_storage.dimensions()); }
+    EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions()    const { return m_storage.dimensions(); }
+    EIGEN_STRONG_INLINE Index                         size()                   const { return m_storage.size(); }
     EIGEN_STRONG_INLINE Scalar                        *data()                        { return m_storage.data(); }
     EIGEN_STRONG_INLINE const Scalar                  *data()                  const { return m_storage.data(); }
 
@@ -232,13 +214,6 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     {
     }
 
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
-//    inline Tensor(Self&& other)
-//      : m_storage(other.m_storage)
-//    {
-//    }
-#endif
-
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     inline Tensor(Index firstDimension, IndexTypes... otherDimensions)
@@ -327,7 +302,11 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
 
     inline Index linearizedIndex(const array<Index, NumIndices>& indices) const
     {
-      return internal::tensor_index_linearization_helper<Index, NumIndices, NumIndices - 1, Options&RowMajor>::run(indices, m_storage.dimensions());
+      if (Options&RowMajor) {
+        return m_storage.dimensions().IndexOfRowMajor(indices);
+      } else {
+        return m_storage.dimensions().IndexOfColMajor(indices);
+      }
     }
 };
 

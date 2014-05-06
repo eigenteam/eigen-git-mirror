@@ -32,6 +32,35 @@ namespace Eigen {
   */
 template<typename T, std::size_t NumIndices_, DenseIndex Size, int Options_, typename Dimensions = void> class TensorStorage;
 
+
+// Pure fixed-size storage
+template<typename T, std::size_t NumIndices_, DenseIndex Size, int Options_, typename FixedDimensions>
+class TensorStorage
+{
+ private:
+  T m_data[Size];
+  FixedDimensions m_dimensions;
+
+ public:
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE TensorStorage() {
+    EIGEN_STATIC_ASSERT(Size == FixedDimensions::total_size, YOU_MADE_A_PROGRAMMING_MISTAKE)
+  }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T *data() { return m_data; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T *data() const { return m_data; }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const FixedDimensions dimensions() const { return m_dimensions; }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE DenseIndex size() const { return m_dimensions.TotalSize(); }
+};
+
+
+
 // pure-dynamic, but without specification of all dimensions explicitly
 template<typename T, std::size_t NumIndices_, int Options_>
 class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
@@ -44,7 +73,7 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
     TensorStorage(const TensorStorage<T, NumIndices_, Dynamic, Options_, void>& other) : Base_(other) { }
 
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
-//    TensorStorage(TensorStorage<T, NumIndices_, Dynamic, Options_, void>&&) = default;
+  //    TensorStorage(TensorStorage<T, NumIndices_, Dynamic, Options_, void>&&) = default;
 #endif
     TensorStorage(internal::constructor_without_unaligned_array_assert) : Base_(internal::constructor_without_unaligned_array_assert()) {}
     TensorStorage(DenseIndex size, const array<DenseIndex, NumIndices_>& dimensions) : Base_(size, dimensions) {}
@@ -57,11 +86,11 @@ template<typename T, std::size_t NumIndices_, int Options_>
 class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type>
 {
     T *m_data;
-    array<DenseIndex, NumIndices_> m_dimensions;
+    DSizes<DenseIndex, NumIndices_> m_dimensions;
 
     typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type> Self_;
   public:
-  TensorStorage() : m_data(0), m_dimensions() {}
+    TensorStorage() : m_data(0), m_dimensions() {}
     TensorStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(0), m_dimensions(internal::template repeat<NumIndices_, DenseIndex>(0)) {}
     TensorStorage(DenseIndex size, const array<DenseIndex, NumIndices_>& dimensions)
@@ -83,25 +112,25 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
     }
 
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
-/*    TensorStorage(Self_&& other)
+  /*    TensorStorage(Self_&& other)
       : m_data(std::move(other.m_data)), m_dimensions(std::move(other.m_dimensions))
     {
       other.m_data = nullptr;
     }
-*/
+
     Self_& operator=(Self_&& other)
     {
       using std::swap;
       swap(m_data, other.m_data);
       swap(m_dimensions, other.m_dimensions);
       return *this;
-      }
+      }*/
 #endif
 
     ~TensorStorage() { internal::conditional_aligned_delete_auto<T,(Options_&DontAlign)==0>(m_data, internal::array_prod(m_dimensions)); }
     void swap(Self_& other)
     { std::swap(m_data,other.m_data); std::swap(m_dimensions,other.m_dimensions); }
-  const array<DenseIndex, NumIndices_>& dimensions() const {return m_dimensions;}
+  const DSizes<DenseIndex, NumIndices_>& dimensions() const {return m_dimensions;}
 
   void conservativeResize(DenseIndex size, const array<DenseIndex, NumIndices_>& nbDimensions)
     {
@@ -124,9 +153,10 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
 
     T *data() { return m_data; }
     const T *data() const { return m_data; }
+
+  DenseIndex size() const { return m_dimensions.TotalSize(); }
 };
 
-// TODO: implement fixed-size stuff
 
 } // end namespace Eigen
 
