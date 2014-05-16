@@ -33,6 +33,9 @@ struct traits<TensorCwiseUnaryOp<UnaryOp, XprType> >
   typedef typename result_of<
                      UnaryOp(typename XprType::Scalar)
                    >::type Scalar;
+  typedef typename result_of<
+                     UnaryOp(typename XprType::Packet)
+                   >::type Packet;
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
 };
@@ -57,14 +60,16 @@ template<typename UnaryOp, typename XprType>
 class TensorCwiseUnaryOp : public TensorBase<TensorCwiseUnaryOp<UnaryOp, XprType> >
 {
   public:
-  typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Scalar Scalar;
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename Eigen::internal::nested<TensorCwiseUnaryOp>::type Nested;
-  typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::StorageKind StorageKind;
-  typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Index Index;
+    typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Scalar Scalar;
+    typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Packet Packet;
+    typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
+    typedef typename XprType::CoeffReturnType CoeffReturnType;
+    typedef typename XprType::PacketReturnType PacketReturnType;
+    typedef typename Eigen::internal::nested<TensorCwiseUnaryOp>::type Nested;
+    typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::StorageKind StorageKind;
+    typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Index Index;
 
-   inline TensorCwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorCwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
       : m_xpr(xpr), m_functor(func) {}
 
     EIGEN_DEVICE_FUNC
@@ -92,6 +97,7 @@ struct traits<TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType> >
                        typename RhsXprType::Scalar
                      )
                    >::type Scalar;
+  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<LhsXprType>::StorageKind,
                                            typename traits<RhsXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<LhsXprType>::Index,
@@ -123,14 +129,17 @@ class TensorCwiseBinaryOp : public TensorBase<TensorCwiseBinaryOp<BinaryOp, LhsX
 {
   public:
   typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Scalar Scalar;
+  typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::promote_storage_type<typename LhsXprType::CoeffReturnType,
                                                   typename RhsXprType::CoeffReturnType>::ret CoeffReturnType;
+  typedef typename internal::promote_storage_type<typename LhsXprType::PacketReturnType,
+                                                  typename RhsXprType::PacketReturnType>::ret PacketReturnType;
   typedef typename Eigen::internal::nested<TensorCwiseBinaryOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Index Index;
 
-  inline TensorCwiseBinaryOp(const LhsXprType& lhs, const RhsXprType& rhs, const BinaryOp& func = BinaryOp())
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorCwiseBinaryOp(const LhsXprType& lhs, const RhsXprType& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs_xpr(lhs), m_rhs_xpr(rhs), m_functor(func) {}
 
     EIGEN_DEVICE_FUNC

@@ -33,11 +33,17 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     typedef typename internal::traits<Self>::StorageKind StorageKind;
     typedef typename internal::traits<Self>::Index Index;
     typedef Scalar_ Scalar;
-    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
+    typedef typename internal::packet_traits<Scalar>::type Packet;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
 
-  static const int Options = Options_;
+    static const int Options = Options_;
+
+    enum {
+      IsAligned = bool(EIGEN_ALIGN),
+      PacketAccess = true,
+    };
+
   typedef Dimensions_ Dimensions;
   static const std::size_t NumIndices = Dimensions::count;
 

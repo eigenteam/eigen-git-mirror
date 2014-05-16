@@ -72,9 +72,6 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
     TensorStorage() { }
     TensorStorage(const TensorStorage<T, NumIndices_, Dynamic, Options_, void>& other) : Base_(other) { }
 
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
-  //    TensorStorage(TensorStorage<T, NumIndices_, Dynamic, Options_, void>&&) = default;
-#endif
     TensorStorage(internal::constructor_without_unaligned_array_assert) : Base_(internal::constructor_without_unaligned_array_assert()) {}
     TensorStorage(DenseIndex size, const array<DenseIndex, NumIndices_>& dimensions) : Base_(size, dimensions) {}
 
@@ -110,22 +107,6 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
       }
       return *this;
     }
-
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
-  /*    TensorStorage(Self_&& other)
-      : m_data(std::move(other.m_data)), m_dimensions(std::move(other.m_dimensions))
-    {
-      other.m_data = nullptr;
-    }
-
-    Self_& operator=(Self_&& other)
-    {
-      using std::swap;
-      swap(m_data, other.m_data);
-      swap(m_dimensions, other.m_dimensions);
-      return *this;
-      }*/
-#endif
 
     ~TensorStorage() { internal::conditional_aligned_delete_auto<T,(Options_&DontAlign)==0>(m_data, internal::array_prod(m_dimensions)); }
     void swap(Self_& other)

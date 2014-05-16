@@ -79,16 +79,16 @@ struct Sizes : internal::numeric_list<std::size_t, Indices...> {
 
   Sizes() { }
   template <typename DenseIndex>
-  explicit Sizes(const array<DenseIndex, Base::count>&/* indices*/) {
+  explicit Sizes(const array<DenseIndex, Base::count>& /*indices*/) {
     // todo: add assertion
   }
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  explicit Sizes(std::initializer_list<std::size_t>/* l*/) {
+  explicit Sizes(std::initializer_list<std::size_t> /*l*/) {
     // todo: add assertion
   }
 #endif
 
-  template <typename T> Sizes& operator = (const T&/* other*/) {
+  template <typename T> Sizes& operator = (const T& /*other*/) {
     // add assertion failure if the size of other is different
     return *this;
   }
@@ -119,7 +119,7 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
   static const size_t count = Base::count;
   static const std::size_t total_size = internal::arg_prod<Base>::value;
 
-  static const size_t TotalSize() {
+  static size_t TotalSize() {
     return internal::arg_prod<Base>::value;
   }
 
@@ -181,14 +181,11 @@ template <typename DenseIndex, std::size_t NumDims>
 struct DSizes : array<DenseIndex, NumDims> {
   typedef array<DenseIndex, NumDims> Base;
 
-  size_t TotalSize() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t TotalSize() const {
     return internal::array_prod(*static_cast<const Base*>(this));
   }
 
   DSizes() { }
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  //  explicit DSizes(std::initializer_list<DenseIndex> l) : Base(l) { }
-#endif
   explicit DSizes(const array<DenseIndex, NumDims>& a) : Base(a) { }
 
   DSizes& operator = (const array<DenseIndex, NumDims>& other) {
@@ -203,7 +200,6 @@ struct DSizes : array<DenseIndex, NumDims> {
   size_t IndexOfRowMajor(const array<DenseIndex, NumDims>& indices) const {
     return internal::tensor_index_linearization_helper<DenseIndex, NumDims, NumDims - 1, true>::run(indices, *static_cast<const Base*>(this));
   }
-
 };
 
 

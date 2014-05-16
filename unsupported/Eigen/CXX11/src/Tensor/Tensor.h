@@ -75,9 +75,15 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     typedef typename internal::traits<Self>::StorageKind StorageKind;
     typedef typename internal::traits<Self>::Index Index;
     typedef Scalar_ Scalar;
-    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
+    typedef typename internal::packet_traits<Scalar>::type Packet;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
+    typedef typename Base::PacketReturnType PacketReturnType;
+
+    enum {
+      IsAligned = bool(EIGEN_ALIGN),
+      PacketAccess = true,
+    };
 
     static const int Options = Options_;
     static const std::size_t NumIndices = NumIndices_;

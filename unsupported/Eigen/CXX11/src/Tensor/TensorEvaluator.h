@@ -29,32 +29,38 @@ struct TensorEvaluator
 {
   typedef typename Derived::Index Index;
   typedef typename Derived::Scalar Scalar;
-  typedef typename Derived::Scalar& CoeffReturnType;
+  typedef typename Derived::Packet Packet;
+  typedef typename Derived::Scalar CoeffReturnType;
+  typedef typename Derived::Packet PacketReturnType;
+
+  enum {
+    IsAligned = Derived::IsAligned,
+    PacketAccess = Derived::PacketAccess,
+  };
 
   TensorEvaluator(Derived& m)
       : m_data(const_cast<Scalar*>(m.data()))
   { }
 
-  CoeffReturnType coeff(Index index) const {
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const {
     return m_data[index];
   }
 
-  Scalar& coeffRef(Index index) {
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index) {
     return m_data[index];
   }
 
-  // to do: vectorized evaluation.
-  /*  template<int LoadMode>
+  template<int LoadMode>
   PacketReturnType packet(Index index) const
   {
-    return ploadt<PacketScalar, LoadMode>(m_data + index);
+    return internal::ploadt<Packet, LoadMode>(m_data + index);
   }
 
-  template<int StoreMode>
-  void writePacket(Index index, const PacketScalar& x)
+  template <int StoreMode>
+  void writePacket(Index index, const Packet& x)
   {
-  return pstoret<Scalar, PacketScalar, StoreMode>(const_cast<Scalar*>(m_data) + index, x);
-  }*/
+    return internal::pstoret<Scalar, Packet, StoreMode>(m_data + index, x);
+  }
 
  protected:
   Scalar* m_data;
@@ -70,6 +76,11 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType> >
 {
   typedef TensorCwiseUnaryOp<UnaryOp, ArgType> XprType;
 
+  enum {
+    IsAligned = TensorEvaluator<ArgType>::IsAligned,
+    PacketAccess = TensorEvaluator<ArgType>::PacketAccess & internal::functor_traits<UnaryOp>::PacketAccess,
+  };
+
   TensorEvaluator(const XprType& op)
     : m_functor(op.functor()),
       m_argImpl(op.nestedExpression())
@@ -77,10 +88,17 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType> >
 
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketReturnType PacketReturnType;
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(m_argImpl.coeff(index));
+  }
+
+  template<int LoadMode>
+  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  {
+    return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
   }
 
  private:
@@ -96,6 +114,12 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
 {
   typedef TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArgType> XprType;
 
+  enum {
+    IsAligned = TensorEvaluator<LeftArgType>::IsAligned & TensorEvaluator<RightArgType>::IsAligned,
+    PacketAccess = TensorEvaluator<LeftArgType>::PacketAccess & TensorEvaluator<RightArgType>::PacketAccess &
+                   internal::functor_traits<BinaryOp>::PacketAccess,
+  };
+
   TensorEvaluator(const XprType& op)
     : m_functor(op.functor()),
       m_leftImpl(op.lhsExpression()),
@@ -104,10 +128,16 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
 
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketReturnType PacketReturnType;
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(m_leftImpl.coeff(index), m_rightImpl.coeff(index));
+  }
+  template<int LoadMode>
+  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  {
+    return m_functor.packetOp(m_leftImpl.template packet<LoadMode>(index), m_rightImpl.template packet<LoadMode>(index));
   }
 
  private:

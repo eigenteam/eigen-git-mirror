@@ -159,9 +159,37 @@ static void test_3d()
 }
 
 
+static void test_array()
+{
+  TensorFixedSize<float, Sizes<2, 3, 7> > mat1;
+  float val = 0.0;
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        mat1(array<ptrdiff_t, 3>(i,j,k)) = val;
+        val += 1.0;
+      }
+    }
+  }
+
+  TensorFixedSize<float, Sizes<2, 3, 7> > mat3;
+  mat3 = mat1.cwisePow(3.5f);
+
+  val = 0.0;
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        VERIFY_IS_APPROX(mat3(array<ptrdiff_t, 3>(i,j,k)), powf(val, 3.5f));
+        val += 1.0;
+      }
+    }
+  }
+}
+
 void test_cxx11_tensor_fixed_size()
 {
   CALL_SUBTEST(test_1d());
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
+  CALL_SUBTEST(test_array());
 }

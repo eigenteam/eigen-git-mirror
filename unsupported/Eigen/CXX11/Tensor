@@ -31,6 +31,7 @@
 #include "Eigen/Core"
 
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorForwardDeclarations.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorDeviceType.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorDimensions.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorTraits.h"
 
@@ -39,6 +40,7 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorEvaluator.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorExpr.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorDevice.h"
 
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorStorage.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/Tensor.h"

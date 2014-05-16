@@ -28,6 +28,7 @@ class TensorBase
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::traits<Derived>::Index Index;
     typedef Scalar CoeffReturnType;
+    typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
 
     Derived& setZero() {
       return setConstant(Scalar(0));
@@ -81,6 +82,17 @@ class TensorBase
     const TensorCwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const OtherDerived>
     operator+(const OtherDerived& other) const  {
       return TensorCwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
+    }
+
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_difference_op<Scalar>, const Derived, const OtherDerived>
+    operator-(const OtherDerived& other) const  {
+      return TensorCwiseBinaryOp<internal::scalar_difference_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
+    }
+
+    template <typename DeviceType>
+    TensorDevice<Derived, DeviceType> device(const DeviceType& device) {
+      return TensorDevice<Derived, DeviceType>(device, derived());
     }
 
   protected:
