@@ -316,7 +316,7 @@ class PolynomialSolverBase
   * - real roots with greatest, smallest absolute real value.
   * - greatest, smallest real roots.
   *
-  * WARNING: this polynomial solver is experimental, part of the unsuported Eigen modules.
+  * WARNING: this polynomial solver is experimental, part of the unsupported Eigen modules.
   *
   *
   * Currently a QR algorithm is used to compute the eigenvalues of the companion matrix of
