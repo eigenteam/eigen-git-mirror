@@ -38,6 +38,9 @@ bool aux_evalSolver( const POLYNOMIAL& pols, SOLVER& psolve )
 
   const Index deg = pols.size()-1;
 
+  // Test template constructor from coefficient vector
+  SOLVER solve_constr (pols);
+
   psolve.compute( pols );
   const RootsType& roots( psolve.roots() );
   EvalRootsType evr( deg );
