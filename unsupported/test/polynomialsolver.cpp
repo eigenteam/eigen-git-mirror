@@ -210,5 +210,6 @@ void test_polynomialsolver()
     CALL_SUBTEST_10((polynomialsolver<double,Dynamic>(
             internal::random<int>(9,13)
             )) );
+    CALL_SUBTEST_11((polynomialsolver<float,Dynamic>(1)) );
   }
 }
