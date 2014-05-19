@@ -380,6 +380,13 @@ class PolynomialSolver<_Scalar,1> : public PolynomialSolverBase<_Scalar,1>
       m_roots[0] = -poly[0]/poly[poly.size()-1];
     }
 
+  public:
+    template< typename OtherPolynomial >
+    inline PolynomialSolver( const OtherPolynomial& poly ){
+      compute( poly ); }
+
+    inline PolynomialSolver(){}
+
   protected:
     using                   PS_Base::m_roots;
 };
