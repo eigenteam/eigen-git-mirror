@@ -17,8 +17,10 @@ template<typename Scalar_, typename Dimensions, int Options_ = 0> class TensorFi
 template<typename PlainObjectType, int Options_ = Unaligned> class TensorMap;
 template<typename Derived> class TensorBase;
 
+template<typename NullaryOp, typename PlainObjectType> class TensorCwiseNullaryOp;
 template<typename UnaryOp, typename XprType> class TensorCwiseUnaryOp;
 template<typename BinaryOp, typename LeftXprType, typename RightXprType> class TensorCwiseBinaryOp;
+template<typename IfXprType, typename ThenXprType, typename ElseXprType> class TensorSelectOp;
 
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 

@@ -68,6 +68,42 @@ struct TensorEvaluator
 
 
 
+// -------------------- CwiseNullaryOp --------------------
+
+template<typename NullaryOp, typename PlainObjectType>
+struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, PlainObjectType> >
+{
+  typedef TensorCwiseNullaryOp<NullaryOp, PlainObjectType> XprType;
+
+  enum {
+    IsAligned = true,
+    PacketAccess = internal::functor_traits<NullaryOp>::PacketAccess,
+  };
+
+  TensorEvaluator(const XprType& op)
+    : m_functor(op.functor())
+  { }
+
+  typedef typename XprType::Index Index;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketReturnType PacketReturnType;
+
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
+  {
+    return m_functor(index);
+  }
+
+  template<int LoadMode>
+  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  {
+    return m_functor.packetOp(index);
+  }
+
+ private:
+  const NullaryOp m_functor;
+};
+
+
 
 // -------------------- CwiseUnaryOp --------------------
 
@@ -145,6 +181,54 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   TensorEvaluator<LeftArgType> m_leftImpl;
   TensorEvaluator<RightArgType> m_rightImpl;
 };
+
+
+// -------------------- SelectOp --------------------
+
+template<typename IfArgType, typename ThenArgType, typename ElseArgType>
+struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType> >
+{
+  typedef TensorSelectOp<IfArgType, ThenArgType, ElseArgType> XprType;
+
+  enum {
+    IsAligned = TensorEvaluator<ThenArgType>::IsAligned & TensorEvaluator<ElseArgType>::IsAligned,
+    PacketAccess = TensorEvaluator<ThenArgType>::PacketAccess & TensorEvaluator<ElseArgType>::PacketAccess/* &
+                                                                                                             TensorEvaluator<IfArgType>::PacketAccess*/,
+  };
+
+  TensorEvaluator(const XprType& op)
+    : m_condImpl(op.ifExpression()),
+      m_thenImpl(op.thenExpression()),
+      m_elseImpl(op.elseExpression())
+  { }
+
+  typedef typename XprType::Index Index;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketReturnType PacketReturnType;
+
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
+  {
+    return m_condImpl.coeff(index) ? m_thenImpl.coeff(index) : m_elseImpl.coeff(index);
+  }
+  template<int LoadMode>
+  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  {
+    static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+    internal::Selector<PacketSize> select;
+    for (Index i = 0; i < PacketSize; ++i) {
+      select.select[i] = m_condImpl.coeff(index+i);
+    }
+    return internal::pblend(select,
+                            m_thenImpl.template packet<LoadMode>(index),
+                            m_elseImpl.template packet<LoadMode>(index));
+  }
+
+ private:
+  TensorEvaluator<IfArgType> m_condImpl;
+  TensorEvaluator<ThenArgType> m_thenImpl;
+  TensorEvaluator<ElseArgType> m_elseImpl;
+};
+
 
 } // end namespace Eigen
 
