@@ -92,6 +92,7 @@ R.transpose()                      // R.' or conj(R')
 R.diagonal()                       // diag(R)
 x.asDiagonal()                     // diag(x)
 R.transpose().colwise().reverse(); // rot90(R)
+R.conjugate()                      // conj(R)
 
 // All the same as Matlab, but matlab doesn't have *= style operators.
 // Matrix-vector.  Matrix-matrix.   Matrix-scalar.
