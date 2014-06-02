@@ -114,10 +114,9 @@ void test_eigensolver_generic()
   CALL_SUBTEST_2(
   {
      MatrixXd A(1,1);
-     A(0,0) = std::sqrt(-1.);
+     A(0,0) = std::sqrt(-1.); // is Not-a-Number
      Eigen::EigenSolver<MatrixXd> solver(A);
-     MatrixXd V(1, 1);
-     V(0,0) = solver.eigenvectors()(0,0).real();
+     VERIFY_IS_EQUAL(solver.info(), NumericalIssue);
   }
   );
   
