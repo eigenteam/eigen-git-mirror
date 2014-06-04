@@ -293,7 +293,7 @@ struct tensor_symmetry_calculate_flags
   }
 };
 
-template<typename Tensor_, typename Symmetry_, int Flags>
+template<typename Tensor_, typename Symmetry_, int Flags = 0>
 class tensor_symmetry_value_setter
 {
   public:

@@ -661,7 +661,7 @@ static void test_tensor_epsilon()
   Tensor<int, 3> epsilon(3,3,3);
 
   epsilon.setZero();
-  epsilon.symCoeff(sym, 0, 1, 2) =  1;
+  sym(epsilon, 0, 1, 2) = 1;
 
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
@@ -683,7 +683,7 @@ static void test_tensor_sym()
     for (int k = l; k < 10; k++) {
       for (int j = 0; j < 10; j++) {
         for (int i = j; i < 10; i++) {
-          t.symCoeff(sym, i, j, k, l) = (i + j) * (k + l);
+          sym(t, i, j, k, l) = (i + j) * (k + l);
         }
       }
     }
@@ -712,7 +712,7 @@ static void test_tensor_asym()
     for (int k = l + 1; k < 10; k++) {
       for (int j = 0; j < 10; j++) {
         for (int i = j + 1; i < 10; i++) {
-          t.symCoeff(sym, i, j, k, l) = ((i * j) + (k * l));
+          sym(t, i, j, k, l) = ((i * j) + (k * l));
         }
       }
     }
@@ -751,7 +751,7 @@ static void test_tensor_dynsym()
     for (int k = l; k < 10; k++) {
       for (int j = 0; j < 10; j++) {
         for (int i = j; i < 10; i++) {
-          t.symCoeff(sym, i, j, k, l) = (i + j) * (k + l);
+          sym(t, i, j, k, l) = (i + j) * (k + l);
         }
       }
     }
@@ -787,7 +787,7 @@ static void test_tensor_randacc()
       std::swap(i, j);
     if (k < l)
       std::swap(k, l);
-    t.symCoeff(sym, i, j, k, l) = (i + j) * (k + l);
+    sym(t, i, j, k, l) = (i + j) * (k + l);
   }
 
   for (int l = 0; l < 10; l++) {

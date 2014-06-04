@@ -50,6 +50,19 @@ class DynamicSGroup
 
     inline int globalFlags() const { return m_globalFlags; }
     inline std::size_t size() const { return m_elements.size(); }
+
+    template<typename Tensor_, typename... IndexTypes>
+    inline internal::tensor_symmetry_value_setter<Tensor_, DynamicSGroup> operator()(Tensor_& tensor, typename Tensor_::Index firstIndex, IndexTypes... otherIndices) const
+    {
+      static_assert(sizeof...(otherIndices) + 1 == Tensor_::NumIndices, "Number of indices used to access a tensor coefficient must be equal to the rank of the tensor.");
+      return operator()(tensor, std::array<typename Tensor_::Index, Tensor_::NumIndices>{{firstIndex, otherIndices...}});
+    }
+
+    template<typename Tensor_>
+    inline internal::tensor_symmetry_value_setter<Tensor_, DynamicSGroup> operator()(Tensor_& tensor, std::array<typename Tensor_::Index, Tensor_::NumIndices> const& indices) const
+    {
+      return internal::tensor_symmetry_value_setter<Tensor_, DynamicSGroup>(tensor, *this, indices);
+    }
   private:
     struct GroupElement {
       std::vector<int> representation;
