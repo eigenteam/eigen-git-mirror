@@ -42,14 +42,14 @@ struct numeric_list<T, n, nn...> { constexpr static std::size_t count = sizeof..
  *     typename gen_numeric_list_repeated<int, 0, 5>::type      numeric_list<int, 0,0,0,0,0>
  */
 
-template<typename T, std::size_t n, T... ii> struct gen_numeric_list              : gen_numeric_list<T, n-1, n-1, ii...> {};
-template<typename T, T... ii>                struct gen_numeric_list<T, 0, ii...> { typedef numeric_list<T, ii...> type; };
+template<typename T, std::size_t n, T start = 0, T... ii> struct gen_numeric_list                     : gen_numeric_list<T, n-1, start, start + n-1, ii...> {};
+template<typename T, T start, T... ii>                    struct gen_numeric_list<T, 0, start, ii...> { typedef numeric_list<T, ii...> type; };
 
-template<typename T, std::size_t n, T... ii> struct gen_numeric_list_reversed              : gen_numeric_list_reversed<T, n-1, ii..., n-1> {};
-template<typename T, T... ii>                struct gen_numeric_list_reversed<T, 0, ii...> { typedef numeric_list<T, ii...> type; };
+template<typename T, std::size_t n, T start = 0, T... ii> struct gen_numeric_list_reversed                     : gen_numeric_list_reversed<T, n-1, start, ii..., start + n-1> {};
+template<typename T, T start, T... ii>                    struct gen_numeric_list_reversed<T, 0, start, ii...> { typedef numeric_list<T, ii...> type; };
 
-template<typename T, std::size_t n, T a, T b, T... ii> struct gen_numeric_list_swapped_pair                    : gen_numeric_list_swapped_pair<T, n-1, a, b, (n-1) == a ? b : ((n-1) == b ? a : (n-1)), ii...> {};
-template<typename T, T a, T b, T... ii>                struct gen_numeric_list_swapped_pair<T, 0, a, b, ii...> { typedef numeric_list<T, ii...> type; };
+template<typename T, std::size_t n, T a, T b, T start = 0, T... ii> struct gen_numeric_list_swapped_pair                           : gen_numeric_list_swapped_pair<T, n-1, a, b, start, (start + n-1) == a ? b : ((start + n-1) == b ? a : (start + n-1)), ii...> {};
+template<typename T, T a, T b, T start, T... ii>                    struct gen_numeric_list_swapped_pair<T, 0, a, b, start, ii...> { typedef numeric_list<T, ii...> type; };
 
 template<typename T, std::size_t n, T V, T... nn> struct gen_numeric_list_repeated                 : gen_numeric_list_repeated<T, n-1, V, V, nn...> {};
 template<typename T, T V, T... nn>                struct gen_numeric_list_repeated<T, 0, V, nn...> { typedef numeric_list<T, nn...> type; };
