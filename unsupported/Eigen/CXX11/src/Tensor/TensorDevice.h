@@ -59,7 +59,7 @@ template <typename ExpressionType> class TensorDevice<ExpressionType, ThreadPool
 #endif
 
 
-#ifdef EIGEN_USE_GPU
+#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <typename ExpressionType> class TensorDevice<ExpressionType, GpuDevice>
 {
   public:

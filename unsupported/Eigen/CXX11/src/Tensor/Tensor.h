@@ -81,7 +81,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     typedef typename Base::PacketReturnType PacketReturnType;
 
     enum {
-      IsAligned = bool(EIGEN_ALIGN),
+      IsAligned = bool(EIGEN_ALIGN) & !(Options_&DontAlign),
       PacketAccess = true,
     };
 
@@ -94,11 +94,11 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     TensorStorage<Scalar, NumIndices, Dynamic, Options> m_storage;
 
   public:
-    EIGEN_STRONG_INLINE Index                         dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
-    EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions()    const { return m_storage.dimensions(); }
-    EIGEN_STRONG_INLINE Index                         size()                   const { return m_storage.size(); }
-    EIGEN_STRONG_INLINE Scalar                        *data()                        { return m_storage.data(); }
-    EIGEN_STRONG_INLINE const Scalar                  *data()                  const { return m_storage.data(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                         dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions()    const { return m_storage.dimensions(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                         size()                   const { return m_storage.size(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar                        *data()                        { return m_storage.data(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar                  *data()                  const { return m_storage.data(); }
 
     // This makes EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     // work, because that uses base().coeffRef() - and we don't yet
@@ -116,13 +116,13 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     }
 #endif
 
-    inline const Scalar& coeff(const array<Index, NumIndices>& indices) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(const array<Index, NumIndices>& indices) const
     {
       eigen_internal_assert(checkIndexRange(indices));
       return m_storage.data()[linearizedIndex(indices)];
     }
 
-    inline const Scalar& coeff(Index index) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
       return m_storage.data()[index];
@@ -138,13 +138,13 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     }
 #endif
 
-    inline Scalar& coeffRef(const array<Index, NumIndices>& indices)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(const array<Index, NumIndices>& indices)
     {
       eigen_internal_assert(checkIndexRange(indices));
       return m_storage.data()[linearizedIndex(indices)];
     }
 
-    inline Scalar& coeffRef(Index index)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
     {
       eigen_internal_assert(index >= 0 && index < size());
       return m_storage.data()[index];
@@ -160,19 +160,19 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     }
 #endif
 
-    inline const Scalar& operator()(const array<Index, NumIndices>& indices) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()(const array<Index, NumIndices>& indices) const
     {
       eigen_assert(checkIndexRange(indices));
       return coeff(indices);
     }
 
-    inline const Scalar& operator()(Index index) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
       return coeff(index);
     }
 
-    inline const Scalar& operator[](Index index) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator[](Index index) const
     {
       // The bracket operator is only for vectors, use the parenthesis operator instead.
       EIGEN_STATIC_ASSERT(NumIndices == 1, YOU_MADE_A_PROGRAMMING_MISTAKE);
@@ -189,19 +189,19 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     }
 #endif
 
-    inline Scalar& operator()(const array<Index, NumIndices>& indices)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()(const array<Index, NumIndices>& indices)
     {
       eigen_assert(checkIndexRange(indices));
       return coeffRef(indices);
     }
 
-    inline Scalar& operator()(Index index)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()(Index index)
     {
       eigen_assert(index >= 0 && index < size());
       return coeffRef(index);
     }
 
-    inline Scalar& operator[](Index index)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator[](Index index)
     {
       // The bracket operator is only for vectors, use the parenthesis operator instead
       EIGEN_STATIC_ASSERT(NumIndices == 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -223,11 +223,10 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     inline Tensor(Index firstDimension, IndexTypes... otherDimensions)
-      : m_storage()
+        : m_storage(internal::array_prod(array<Index, NumIndices>{{firstDimension, otherDimensions...}}), array<Index, NumIndices>{{firstDimension, otherDimensions...}})
     {
       // The number of dimensions used to construct a tensor must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      resize(array<Index, NumIndices>{{firstDimension, otherDimensions...}});
     }
 #endif
 
@@ -236,7 +235,6 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     {
       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
-
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -306,7 +304,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
         array_zip_and_reduce<logical_and_op, lesser_op>(indices, m_storage.dimensions());
     }
 
-    inline Index linearizedIndex(const array<Index, NumIndices>& indices) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index linearizedIndex(const array<Index, NumIndices>& indices) const
     {
       if (Options&RowMajor) {
         return m_storage.dimensions().IndexOfRowMajor(indices);

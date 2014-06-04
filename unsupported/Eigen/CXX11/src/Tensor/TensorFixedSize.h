@@ -52,7 +52,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
   public:
     EIGEN_STRONG_INLINE Index                    dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
-    EIGEN_STRONG_INLINE array<Index, NumIndices> dimensions()             const { return m_storage.dimensions(); }
+    EIGEN_STRONG_INLINE const Dimensions&        dimensions()             const { return m_storage.dimensions(); }
     EIGEN_STRONG_INLINE Index                    size()                   const { return m_storage.size(); }
     EIGEN_STRONG_INLINE Scalar                   *data()                        { return m_storage.data(); }
     EIGEN_STRONG_INLINE const Scalar             *data()                  const { return m_storage.data(); }

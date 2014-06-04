@@ -35,14 +35,14 @@ namespace Eigen {
 namespace internal {
 
 template<std::size_t n, typename Dimension> struct dget {
-  static const std::size_t value = internal::get<n, typename Dimension::Base>::value;
-  };
+  static const std::size_t value = get<n, typename Dimension::Base>::value;
+};
 
 
 template<typename Index, std::size_t NumIndices, std::size_t n, bool RowMajor>
 struct fixed_size_tensor_index_linearization_helper
 {
-  template <typename Dimensions>
+  template <typename Dimensions> EIGEN_DEVICE_FUNC
   static inline Index run(array<Index, NumIndices> const& indices,
                           const Dimensions& dimensions)
   {
@@ -55,7 +55,7 @@ struct fixed_size_tensor_index_linearization_helper
 template<typename Index, std::size_t NumIndices, bool RowMajor>
 struct fixed_size_tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
 {
-  template <typename Dimensions>
+  template <typename Dimensions> EIGEN_DEVICE_FUNC
   static inline Index run(array<Index, NumIndices> const& indices,
                           const Dimensions&)
   {
@@ -93,11 +93,11 @@ struct Sizes : internal::numeric_list<std::size_t, Indices...> {
     return *this;
   }
 
-  template <typename DenseIndex>
+  template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfColMajor(const array<DenseIndex, Base::count>& indices) const {
     return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *static_cast<const Base*>(this));
   }
-  template <typename DenseIndex>
+  template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfRowMajor(const array<DenseIndex, Base::count>& indices) const {
     return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *static_cast<const Base*>(this));
   }
@@ -139,11 +139,11 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
     return *this;
   }
 
-  template <typename DenseIndex>
+  template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfColMajor(const array<DenseIndex, Base::count>& indices) const {
     return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *this);
   }
-  template <typename DenseIndex>
+  template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfRowMajor(const array<DenseIndex, Base::count>& indices) const {
     return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *this);
   }
@@ -180,13 +180,18 @@ struct tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
 template <typename DenseIndex, std::size_t NumDims>
 struct DSizes : array<DenseIndex, NumDims> {
   typedef array<DenseIndex, NumDims> Base;
+  static const std::size_t count = NumDims;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t TotalSize() const {
     return internal::array_prod(*static_cast<const Base*>(this));
   }
 
-  DSizes() { }
-  explicit DSizes(const array<DenseIndex, NumDims>& a) : Base(a) { }
+  EIGEN_DEVICE_FUNC DSizes() {
+    for (int i = 0 ; i < NumDims; ++i) {
+      (*this)[i] = 0;
+    }
+  }
+  EIGEN_DEVICE_FUNC explicit DSizes(const array<DenseIndex, NumDims>& a) : Base(a) { }
 
   DSizes& operator = (const array<DenseIndex, NumDims>& other) {
     *static_cast<Base*>(this) = other;
@@ -194,10 +199,10 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
 
   // A constexpr would be so much better here
-  size_t IndexOfColMajor(const array<DenseIndex, NumDims>& indices) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t IndexOfColMajor(const array<DenseIndex, NumDims>& indices) const {
     return internal::tensor_index_linearization_helper<DenseIndex, NumDims, NumDims - 1, false>::run(indices, *static_cast<const Base*>(this));
   }
-  size_t IndexOfRowMajor(const array<DenseIndex, NumDims>& indices) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t IndexOfRowMajor(const array<DenseIndex, NumDims>& indices) const {
     return internal::tensor_index_linearization_helper<DenseIndex, NumDims, NumDims - 1, true>::run(indices, *static_cast<const Base*>(this));
   }
 };

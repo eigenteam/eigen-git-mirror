@@ -30,13 +30,16 @@ class TensorBase
     typedef Scalar CoeffReturnType;
     typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
 
-    Derived& setZero() {
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Derived& setZero() {
       return setConstant(Scalar(0));
     }
-    Derived& setConstant(const Scalar& val) {
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Derived& setConstant(const Scalar& val) {
       return derived() = constant(val);
     }
-    Derived& setRandom() {
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Derived& setRandom() {
       return derived() = random();
     }
 
@@ -45,13 +48,13 @@ class TensorBase
     EIGEN_STRONG_INLINE const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived>
     constant(const Scalar& value) const {
       return TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived>
-          (internal::scalar_constant_op<Scalar>(value));
+          (derived(), internal::scalar_constant_op<Scalar>(value));
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseNullaryOp<internal::scalar_random_op<Scalar>, const Derived>
     random() const {
-      return TensorCwiseNullaryOp<internal::scalar_random_op<Scalar>, const Derived>();
+      return TensorCwiseNullaryOp<internal::scalar_random_op<Scalar>, const Derived>(derived());
     }
 
     // Coefficient-wise unary operators
@@ -124,77 +127,86 @@ class TensorBase
     // Coefficient-wise binary operators.
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const OtherDerived>
-    operator+(const OtherDerived& other) const  {
+    operator+(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_difference_op<Scalar>, const Derived, const OtherDerived>
-    operator-(const OtherDerived& other) const  {
+    operator-(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<internal::scalar_difference_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_product_op<Scalar>, const Derived, const OtherDerived>
-    operator*(const OtherDerived& other) const  {
+    operator*(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<internal::scalar_product_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_quotient_op<Scalar>, const Derived, const OtherDerived>
-    operator/(const OtherDerived& other) const  {
+    operator/(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<internal::scalar_quotient_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_max_op<Scalar>, const Derived, const OtherDerived>
-    cwiseMax(const OtherDerived& other) const  {
+    cwiseMax(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<internal::scalar_max_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_min_op<Scalar>, const Derived, const OtherDerived>
-    cwiseMin(const OtherDerived& other) const  {
+    cwiseMin(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<internal::scalar_min_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
     // Comparisons and tests.
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<std::less<Scalar>, const Derived, const OtherDerived>
-    operator<(const OtherDerived& other) const  {
+    operator<(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<std::less<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<std::less_equal<Scalar>, const Derived, const OtherDerived>
-    operator<=(const OtherDerived& other) const  {
+    operator<=(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<std::less_equal<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<std::greater<Scalar>, const Derived, const OtherDerived>
-    operator>(const OtherDerived& other) const  {
+    operator>(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<std::greater<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<std::greater_equal<Scalar>, const Derived, const OtherDerived>
-    operator>=(const OtherDerived& other) const  {
+    operator>=(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<std::greater_equal<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<std::equal_to<Scalar>, const Derived, const OtherDerived>
-    operator==(const OtherDerived& other) const  {
+    operator==(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<std::equal_to<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<std::not_equal_to<Scalar>, const Derived, const OtherDerived>
-    operator!=(const OtherDerived& other) const  {
+    operator!=(const OtherDerived& other) const {
       return TensorCwiseBinaryOp<std::not_equal_to<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
     }
 
+    // Contractions.
+    typedef std::pair<Index, Index> DimensionPair;
+
+    template<typename OtherDerived, typename Dimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorContractionOp<const Dimensions, const Derived, const OtherDerived>
+    contract(const OtherDerived& other, const Dimensions& dims) const {
+      return TensorContractionOp<const Dimensions, const Derived, const OtherDerived>(derived(), other.derived(), dims);
+    }
+
     // Coefficient-wise ternary operators.
-    template<typename ThenDerived,typename ElseDerived>
+    template<typename ThenDerived, typename ElseDerived>
     inline const TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>
-    select(const ThenDerived& thenTensor, const ElseDerived& elseTensor) const{
+    select(const ThenDerived& thenTensor, const ElseDerived& elseTensor) const {
       return TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>(derived(), thenTensor.derived(), elseTensor.derived());
     }
 

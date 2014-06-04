@@ -37,17 +37,14 @@ struct ThreadPoolDevice {
 // GPU offloading
 #ifdef EIGEN_USE_GPU
 struct GpuDevice {
-  // todo: support for multiple gpu;
-  GpuDevice() {
-    cudaStreamCreate(&stream_);
-  }
-  ~GpuDevice() {
-    cudaStreamDestroy(stream_);
-  }
-  const cudaStream_t& stream() const { return stream_; }
+  // The cudastream is not owned: the caller is responsible for its initialization and eventual destruction.
+  GpuDevice(const cudaStream_t* stream) : stream_(stream) { eigen_assert(stream); }
+
+  const cudaStream_t& stream() const { return *stream_; }
 
  private:
-  cudaStream_t stream_;
+  // TODO: multigpu.
+  const cudaStream_t* stream_;
 };
 #endif
 

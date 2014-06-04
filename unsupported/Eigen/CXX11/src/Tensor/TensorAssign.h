@@ -53,7 +53,6 @@ template<typename Derived1, typename Derived2>
 struct TensorAssign<Derived1, Derived2, true>
 {
   typedef typename Derived1::Index Index;
-  EIGEN_DEVICE_FUNC
   static inline void run(Derived1& dst, const Derived2& src)
   {
     TensorEvaluator<Derived1> evalDst(dst);
@@ -63,7 +62,7 @@ struct TensorAssign<Derived1, Derived2, true>
     static const int LhsStoreMode = TensorEvaluator<Derived1>::IsAligned ? Aligned : Unaligned;
     static const int RhsLoadMode = TensorEvaluator<Derived2>::IsAligned ? Aligned : Unaligned;
     static const int PacketSize = unpacket_traits<typename TensorEvaluator<Derived1>::PacketReturnType>::size;
-    static const int VectorizedSize = (size / PacketSize) * PacketSize;
+    const int VectorizedSize = (size / PacketSize) * PacketSize;
 
     for (Index i = 0; i < VectorizedSize; i += PacketSize) {
       evalDst.template writePacket<LhsStoreMode>(i, evalSrc.template packet<RhsLoadMode>(i));
@@ -148,7 +147,7 @@ struct TensorAssignMultiThreaded
 
 
 // GPU: the evaluation of the expressions is offloaded to a GPU.
-#ifdef EIGEN_USE_GPU
+#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <typename LhsEvaluator, typename RhsEvaluator>
 __global__ void EigenMetaKernelNoCheck(LhsEvaluator evalDst, const RhsEvaluator evalSrc) {
   const int index = blockIdx.x * blockDim.x + threadIdx.x;

@@ -53,7 +53,7 @@ class TensorStorage
   EIGEN_STRONG_INLINE const T *data() const { return m_data; }
 
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE const FixedDimensions dimensions() const { return m_dimensions; }
+  EIGEN_STRONG_INLINE const FixedDimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE DenseIndex size() const { return m_dimensions.TotalSize(); }
@@ -111,7 +111,8 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
     ~TensorStorage() { internal::conditional_aligned_delete_auto<T,(Options_&DontAlign)==0>(m_data, internal::array_prod(m_dimensions)); }
     void swap(Self_& other)
     { std::swap(m_data,other.m_data); std::swap(m_dimensions,other.m_dimensions); }
-  const DSizes<DenseIndex, NumIndices_>& dimensions() const {return m_dimensions;}
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions() const {return m_dimensions;}
 
   void conservativeResize(DenseIndex size, const array<DenseIndex, NumIndices_>& nbDimensions)
     {
@@ -132,10 +133,10 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
       m_dimensions = nbDimensions;
     }
 
-    T *data() { return m_data; }
-    const T *data() const { return m_data; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T *data() { return m_data; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const T *data() const { return m_data; }
 
-  DenseIndex size() const { return m_dimensions.TotalSize(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex size() const { return m_dimensions.TotalSize(); }
 };
 
 
