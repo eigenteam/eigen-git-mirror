@@ -32,8 +32,8 @@ using Eigen::GlobalImagFlag;
 
 // helper function to determine if the compiler intantiated a static
 // or dynamic symmetry group
-template<std::size_t NumIndices, typename... Sym>
-bool isDynGroup(StaticSGroup<NumIndices, Sym...> const& dummy)
+template<typename... Sym>
+bool isDynGroup(StaticSGroup<Sym...> const& dummy)
 {
   (void)dummy;
   return false;
@@ -86,7 +86,7 @@ static void test_symgroups_static()
   std::array<int, 7> identity{{0,1,2,3,4,5,6}};
 
   // Simple static symmetry group
-  StaticSGroup<7,
+  StaticSGroup<
     AntiSymmetry<0,1>,
     Hermiticity<0,2>
   > group;
@@ -113,7 +113,7 @@ static void test_symgroups_dynamic()
     identity.push_back(i);
 
   // Simple dynamic symmetry group
-  DynamicSGroup group(7);
+  DynamicSGroup group;
   group.add(0,1,NegationFlag);
   group.add(0,2,ConjugationFlag);
 
@@ -143,7 +143,7 @@ static void test_symgroups_selection()
   {
     // Do the same test as in test_symgroups_static but
     // require selection via SGroup
-    SGroup<7,
+    SGroup<
       AntiSymmetry<0,1>,
       Hermiticity<0,2>
     > group;
@@ -168,7 +168,7 @@ static void test_symgroups_selection()
     // simple factorizing group: 5 generators, 2^5 = 32 elements
     // selection should make this dynamic, although static group
     // can still be reasonably generated
-    SGroup<10,
+    SGroup<
       Symmetry<0,1>,
       Symmetry<2,3>,
       Symmetry<4,5>,
@@ -196,7 +196,7 @@ static void test_symgroups_selection()
     // no verify that we could also generate a static group
     // with these generators
     found.clear();
-    StaticSGroup<10,
+    StaticSGroup<
       Symmetry<0,1>,
       Symmetry<2,3>,
       Symmetry<4,5>,
@@ -211,7 +211,7 @@ static void test_symgroups_selection()
 
   {
     // try to create a HUGE group
-    SGroup<7,
+    SGroup<
       Symmetry<0,1>,
       Symmetry<1,2>,
       Symmetry<2,3>,
@@ -657,7 +657,7 @@ static void test_symgroups_selection()
 
 static void test_tensor_epsilon()
 {
-  SGroup<3, AntiSymmetry<0,1>, AntiSymmetry<1,2>> sym;
+  SGroup<AntiSymmetry<0,1>, AntiSymmetry<1,2>> sym;
   Tensor<int, 3> epsilon(3,3,3);
 
   epsilon.setZero();
@@ -674,7 +674,7 @@ static void test_tensor_epsilon()
 
 static void test_tensor_sym()
 {
-  SGroup<4, Symmetry<0,1>, Symmetry<2,3>> sym;
+  SGroup<Symmetry<0,1>, Symmetry<2,3>> sym;
   Tensor<int, 4> t(10,10,10,10);
 
   t.setZero();
@@ -703,7 +703,7 @@ static void test_tensor_sym()
 
 static void test_tensor_asym()
 {
-  SGroup<4, AntiSymmetry<0,1>, AntiSymmetry<2,3>> sym;
+  SGroup<AntiSymmetry<0,1>, AntiSymmetry<2,3>> sym;
   Tensor<int, 4> t(10,10,10,10);
 
   t.setZero();
@@ -740,7 +740,7 @@ static void test_tensor_asym()
 
 static void test_tensor_dynsym()
 {
-  DynamicSGroup sym(4);
+  DynamicSGroup sym;
   sym.addSymmetry(0,1);
   sym.addSymmetry(2,3);
   Tensor<int, 4> t(10,10,10,10);
@@ -770,7 +770,7 @@ static void test_tensor_dynsym()
 
 static void test_tensor_randacc()
 {
-  SGroup<4, Symmetry<0,1>, Symmetry<2,3>> sym;
+  SGroup<Symmetry<0,1>, Symmetry<2,3>> sym;
   Tensor<int, 4> t(10,10,10,10);
 
   t.setZero();

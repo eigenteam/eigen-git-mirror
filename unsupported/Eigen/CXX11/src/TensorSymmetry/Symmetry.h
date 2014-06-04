@@ -30,6 +30,7 @@ template<std::size_t NumIndices, typename... Sym>                   struct tenso
 template<bool instantiate, std::size_t NumIndices, typename... Sym> struct tensor_static_symgroup_if;
 template<typename Tensor_> struct tensor_symmetry_calculate_flags;
 template<typename Tensor_> struct tensor_symmetry_assign_value;
+template<typename... Sym> struct tensor_symmetry_num_indices;
 
 } // end namespace internal
 
@@ -94,7 +95,7 @@ class DynamicSGroup;
   * This class is a child class of DynamicSGroup. It uses the template arguments
   * specified to initialize itself.
   */
-template<std::size_t NumIndices, typename... Gen>
+template<typename... Gen>
 class DynamicSGroupFromTemplateArgs;
 
 /** \class StaticSGroup
@@ -116,7 +117,7 @@ class DynamicSGroupFromTemplateArgs;
   * group becomes too large. (In that case, unrolling may not even be
   * beneficial.)
   */
-template<std::size_t NumIndices, typename... Gen>
+template<typename... Gen>
 class StaticSGroup;
 
 /** \class SGroup
@@ -131,23 +132,49 @@ class StaticSGroup;
   * \sa StaticSGroup
   * \sa DynamicSGroup
   */
-template<std::size_t NumIndices, typename... Gen>
-class SGroup : public internal::tensor_symmetry_pre_analysis<NumIndices, Gen...>::root_type
+template<typename... Gen>
+class SGroup : public internal::tensor_symmetry_pre_analysis<internal::tensor_symmetry_num_indices<Gen...>::value, Gen...>::root_type
 {
   public:
+    constexpr static std::size_t NumIndices = internal::tensor_symmetry_num_indices<Gen...>::value;
     typedef typename internal::tensor_symmetry_pre_analysis<NumIndices, Gen...>::root_type Base;
 
     // make standard constructors + assignment operators public
     inline SGroup() : Base() { }
-    inline SGroup(const SGroup<NumIndices, Gen...>& other) : Base(other) { }
-    inline SGroup(SGroup<NumIndices, Gen...>&& other) : Base(other) { }
-    inline SGroup<NumIndices, Gen...>& operator=(const SGroup<NumIndices, Gen...>& other) { Base::operator=(other); return *this; }
-    inline SGroup<NumIndices, Gen...>& operator=(SGroup<NumIndices, Gen...>&& other) { Base::operator=(other); return *this; }
+    inline SGroup(const SGroup<Gen...>& other) : Base(other) { }
+    inline SGroup(SGroup<Gen...>&& other) : Base(other) { }
+    inline SGroup<Gen...>& operator=(const SGroup<Gen...>& other) { Base::operator=(other); return *this; }
+    inline SGroup<Gen...>& operator=(SGroup<Gen...>&& other) { Base::operator=(other); return *this; }
 
     // all else is defined in the base class
 };
 
 namespace internal {
+
+template<typename... Sym> struct tensor_symmetry_num_indices
+{
+  constexpr static std::size_t value = 1;
+};
+
+template<int One_, int Two_, typename... Sym> struct tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...>
+{
+private:
+  constexpr static std::size_t One = static_cast<std::size_t>(One_);
+  constexpr static std::size_t Two = static_cast<std::size_t>(Two_);
+  constexpr static std::size_t Three = tensor_symmetry_num_indices<Sym...>::value;
+
+  // don't use std::max, since it's not constexpr until C++14...
+  constexpr static std::size_t maxOneTwoPlusOne = ((One > Two) ? One : Two) + 1;
+public:
+  constexpr static std::size_t value = (maxOneTwoPlusOne > Three) ? maxOneTwoPlusOne : Three;
+};
+
+template<int One_, int Two_, typename... Sym> struct tensor_symmetry_num_indices<AntiSymmetry<One_, Two_>, Sym...>
+  : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...> {};
+template<int One_, int Two_, typename... Sym> struct tensor_symmetry_num_indices<Hermiticity<One_, Two_>, Sym...>
+  : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...> {};
+template<int One_, int Two_, typename... Sym> struct tensor_symmetry_num_indices<AntiHermiticity<One_, Two_>, Sym...>
+  : public tensor_symmetry_num_indices<Symmetry<One_, Two_>, Sym...> {};
 
 /** \internal
   *
@@ -199,7 +226,7 @@ namespace internal {
 template<std::size_t NumIndices>
 struct tensor_symmetry_pre_analysis<NumIndices>
 {
-  typedef StaticSGroup<NumIndices> root_type;
+  typedef StaticSGroup<> root_type;
 };
 
 template<std::size_t NumIndices, typename Gen_, typename... Gens_>
@@ -212,7 +239,7 @@ struct tensor_symmetry_pre_analysis<NumIndices, Gen_, Gens_...>
 
   typedef typename conditional<
     possible_size == 0 || possible_size >= max_static_elements,
-    DynamicSGroupFromTemplateArgs<NumIndices, Gen_, Gens_...>,
+    DynamicSGroupFromTemplateArgs<Gen_, Gens_...>,
     typename helper::type
   >::type root_type;
 };
