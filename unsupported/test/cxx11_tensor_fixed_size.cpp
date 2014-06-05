@@ -33,10 +33,10 @@ static void test_1d()
 
   float data3[6];
   TensorMap<TensorFixedSize<float, Sizes<6> > > vec3(data3, 6);
-  vec3 = vec1.cwiseSqrt();
+  vec3 = vec1.sqrt();
   float data4[6];
   TensorMap<TensorFixedSize<float, Sizes<6>, RowMajor> > vec4(data4, 6);
-  vec4 = vec2.cwiseSqrt();
+  vec4 = vec2.sqrt();
 
   VERIFY_IS_EQUAL((vec3.size()), 6);
   //  VERIFY_IS_EQUAL((vec3.dimensions()[0]), 6);
@@ -92,8 +92,8 @@ static void test_2d()
 
   TensorFixedSize<float, Sizes<2, 3>> mat3;
   TensorFixedSize<float, Sizes<2, 3>, RowMajor> mat4;
-  mat3 = mat1.cwiseAbs();
-  mat4 = mat2.cwiseAbs();
+  mat3 = mat1.abs();
+  mat4 = mat2.abs();
 
   VERIFY_IS_EQUAL((mat3.size()), 2*3);
     //  VERIFY_IS_EQUAL((mat3.dimension(0)), 2);
@@ -136,9 +136,9 @@ static void test_3d()
   }
 
   TensorFixedSize<float, Sizes<2, 3, 7> > mat3;
-  mat3 = mat1.cwiseSqrt();
+  mat3 = mat1.sqrt();
   TensorFixedSize<float, Sizes<2, 3, 7>, RowMajor> mat4;
-  mat4 = mat2.cwiseSqrt();
+  mat4 = mat2.sqrt();
 
   VERIFY_IS_EQUAL((mat3.size()), 2*3*7);
   //  VERIFY_IS_EQUAL((mat3.dimension(0)), 2);
@@ -173,7 +173,7 @@ static void test_array()
   }
 
   TensorFixedSize<float, Sizes<2, 3, 7> > mat3;
-  mat3 = mat1.cwisePow(3.5f);
+  mat3 = mat1.pow(3.5f);
 
   val = 0.0;
   for (int i = 0; i < 2; ++i) {

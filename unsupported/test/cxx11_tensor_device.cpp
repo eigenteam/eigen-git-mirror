@@ -15,7 +15,7 @@
 
 
 #include "main.h"
-#include <Eigen/CXX11/Tensor>
+#include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
 using Eigen::RowMajor;
@@ -39,8 +39,12 @@ struct CPUContext {
 
 // Context for evaluation on GPU
 struct GPUContext {
-  GPUContext(const Eigen::TensorMap<Eigen::Tensor<float, 3> >& in1, Eigen::TensorMap<Eigen::Tensor<float, 3> >& in2, Eigen::TensorMap<Eigen::Tensor<float, 3> >& out) : in1_(in1), in2_(in2), out_(out) { }
-
+  GPUContext(const Eigen::TensorMap<Eigen::Tensor<float, 3> >& in1, Eigen::TensorMap<Eigen::Tensor<float, 3> >& in2, Eigen::TensorMap<Eigen::Tensor<float, 3> >& out) : in1_(in1), in2_(in2), out_(out), gpu_device_(&stream_) {
+    cudaStreamCreate(&stream_);
+  }
+  ~GPUContext() {
+    cudaStreamDestroy(stream_);
+  }
   const Eigen::TensorMap<Eigen::Tensor<float, 3> >& in1() const { return in1_; }
   const Eigen::TensorMap<Eigen::Tensor<float, 3> >& in2() const { return in2_; }
   Eigen::TensorDevice<Eigen::TensorMap<Eigen::Tensor<float, 3> >, Eigen::GpuDevice> out() { return TensorDevice<Eigen::TensorMap<Eigen::Tensor<float, 3> >, Eigen::GpuDevice>(gpu_device_, out_); }
@@ -49,6 +53,7 @@ struct GPUContext {
   const Eigen::TensorMap<Eigen::Tensor<float, 3> >& in1_;
   const Eigen::TensorMap<Eigen::Tensor<float, 3> >& in2_;
   Eigen::TensorMap<Eigen::Tensor<float, 3> >& out_;
+  cudaStream_t stream_;
   Eigen::GpuDevice gpu_device_;
 };
 
@@ -57,7 +62,7 @@ struct GPUContext {
 template <typename Context>
 static void test_contextual_eval(Context* context)
 {
-  context->out() = context->in1() + context->in2() * 3.14f;
+  context->out() = context->in1() + context->in2() * 3.14f + context->in1().constant(2.718f);
 }
 
 static void test_cpu() {
@@ -73,7 +78,7 @@ static void test_cpu() {
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
-        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f);
+        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f + 2.718f);
       }
     }
   }
@@ -111,7 +116,7 @@ static void test_gpu() {
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
-        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f);
+        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f + 2.718f);
       }
     }
   }
