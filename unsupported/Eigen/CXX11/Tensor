@@ -40,6 +40,8 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorEvaluator.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorExpr.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorContraction.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorConvolution.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorMorphing.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorDevice.h"
 

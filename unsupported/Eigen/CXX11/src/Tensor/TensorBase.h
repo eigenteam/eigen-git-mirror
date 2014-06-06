@@ -203,11 +203,25 @@ class TensorBase
       return TensorContractionOp<const Dimensions, const Derived, const OtherDerived>(derived(), other.derived(), dims);
     }
 
+    // Convolutions.
+    template<typename KernelDerived, typename Dimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorConvolutionOp<const Dimensions, const Derived, const KernelDerived>
+    convolve(const KernelDerived& kernel, const Dimensions& dims) const {
+      return TensorConvolutionOp<const Dimensions, const Derived, const KernelDerived>(derived(), kernel.derived(), dims);
+    }
+
     // Coefficient-wise ternary operators.
     template<typename ThenDerived, typename ElseDerived>
     inline const TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>
     select(const ThenDerived& thenTensor, const ElseDerived& elseTensor) const {
       return TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>(derived(), thenTensor.derived(), elseTensor.derived());
+    }
+
+    // Morphing operators (slicing tbd).
+    template <typename NewDimensions>
+    inline const TensorReshapingOp<const Derived, const NewDimensions>
+    reshape(const NewDimensions& newDimensions) const {
+      return TensorReshapingOp<const Derived, const NewDimensions>(derived(), newDimensions);
     }
 
     // Select the device on which to evaluate the expression.
