@@ -49,7 +49,7 @@ else()
   set(EIGEN_MAKECOMMAND_PLACEHOLDER "${EIGEN_BUILD_COMMAND}")
 endif()
 
-configure_file(${CMAKE_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/DartConfiguration.tcl)
+configure_file(${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/DartConfiguration.tcl)
 
 # restore default CMAKE_MAKE_PROGRAM
 set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
@@ -58,7 +58,7 @@ set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
 unset(CMAKE_MAKE_PROGRAM_SAVE) 
 unset(EIGEN_MAKECOMMAND_PLACEHOLDER)
 
-configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
 
 # some documentation of this function would be nice
 ei_init_testing()
