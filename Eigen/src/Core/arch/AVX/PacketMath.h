@@ -59,6 +59,7 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasLog  = 0,
     HasExp  = 0,
     HasSqrt = 0
+    HasBlend = 1,
   };
  };
 template<> struct packet_traits<double> : default_packet_traits
@@ -73,6 +74,7 @@ template<> struct packet_traits<double> : default_packet_traits
 
     HasDiv  = 1,
     HasExp  = 0
+    HasBlend = 1,
   };
 };
 
@@ -555,6 +557,19 @@ ptranspose(PacketBlock<Packet4d,4>& kernel) {
   kernel.packet[3] = _mm256_permute2f128_pd(T0, T2, 49);
   kernel.packet[0] = _mm256_permute2f128_pd(T1, T3, 32);
   kernel.packet[2] = _mm256_permute2f128_pd(T1, T3, 49);
+}
+
+template<> EIGEN_STRONG_INLINE Packet8f pblend(const Selector<8>& ifPacket, const Packet8f& thenPacket, const Packet8f& elsePacket) {
+  const __m256 zero = _mm256_setzero_ps();
+  const __m256 select = _mm256_set_ps(ifPacket.select[7], ifPacket.select[6], ifPacket.select[5], ifPacket.select[4], ifPacket.select[3], ifPacket.select[2], ifPacket.select[1], ifPacket.select[0]);
+  __m256 false_mask = _mm256_cmp_ps(select, zero, _CMP_EQ_UQ);
+  return _mm256_blendv_ps(thenPacket, elsePacket, false_mask);
+}
+template<> EIGEN_STRONG_INLINE Packet4d pblend(const Selector<4>& ifPacket, const Packet4d& thenPacket, const Packet4d& elsePacket) {
+  const __m256d zero = _mm256_setzero_pd();
+  const __m256d select = _mm256_set_pd(ifPacket.select[3], ifPacket.select[2], ifPacket.select[1], ifPacket.select[0]);
+  __m256d false_mask = _mm256_cmp_pd(select, zero, _CMP_EQ_UQ);
+  return _mm256_blendv_pd(thenPacket, elsePacket, false_mask);
 }
 
 } // end namespace internal

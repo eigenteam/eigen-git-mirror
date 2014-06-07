@@ -54,6 +54,7 @@ struct default_packet_traits
     HasMax    = 1,
     HasConj   = 1,
     HasSetLinear = 1,
+    HasBlend  = 0,
 
     HasDiv    = 0,
     HasSqrt   = 0,
@@ -427,6 +428,19 @@ template <typename Packet,int N=unpacket_traits<Packet>::size> struct PacketBloc
 template<typename Packet> EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet,1>& /*kernel*/) {
   // Nothing to do in the scalar case, i.e. a 1x1 matrix.
+}
+
+/***************************************************************************
+ * Selector, i.e. vector of N boolean values used to select (i.e. blend)
+ * words from 2 packets.
+***************************************************************************/
+template <size_t N> struct Selector {
+  bool select[N];
+};
+
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pblend(const Selector<unpacket_traits<Packet>::size>& ifPacket, const Packet& thenPacket, const Packet& elsePacket) {
+  return ifPacket.select[0] ? thenPacket : elsePacket;
 }
 
 } // end namespace internal
