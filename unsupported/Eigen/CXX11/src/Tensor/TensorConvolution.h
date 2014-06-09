@@ -35,6 +35,10 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   typedef typename KernelXprType::Nested RhsNested;
   typedef typename remove_reference<LhsNested>::type _LhsNested;
   typedef typename remove_reference<RhsNested>::type _RhsNested;
+
+  enum {
+    Flags = 0,
+  };
 };
 
 template<typename Dimensions, typename InputXprType, typename KernelXprType>

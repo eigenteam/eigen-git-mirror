@@ -36,6 +36,10 @@ struct traits<TensorCwiseNullaryOp<NullaryOp, XprType> >
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
+
+  enum {
+    Flags = 0,
+  };
 };
 
 }  // end namespace internal
@@ -153,6 +157,10 @@ struct traits<TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType> >
   typedef typename RhsXprType::Nested RhsNested;
   typedef typename remove_reference<LhsNested>::type _LhsNested;
   typedef typename remove_reference<RhsNested>::type _RhsNested;
+
+  enum {
+    Flags = 0,
+  };
 };
 
 template<typename BinaryOp, typename LhsXprType, typename RhsXprType>

@@ -15,7 +15,7 @@ namespace Eigen {
 template<typename Scalar_, std::size_t NumIndices_, int Options_ = 0> class Tensor;
 template<typename Scalar_, typename Dimensions, int Options_ = 0> class TensorFixedSize;
 template<typename PlainObjectType, int Options_ = Unaligned> class TensorMap;
-template<typename Derived> class TensorBase;
+template<typename Derived, int AccessLevel = internal::accessors_level<Derived>::value> class TensorBase;
 
 template<typename NullaryOp, typename PlainObjectType> class TensorCwiseNullaryOp;
 template<typename UnaryOp, typename XprType> class TensorCwiseUnaryOp;
@@ -28,6 +28,10 @@ template<typename ExpressionType, typename DeviceType> class TensorDevice;
 
 // Move to internal?
 template<typename Derived> struct TensorEvaluator;
+
+namespace internal {
+template<typename Derived, typename OtherDerived, bool Vectorizable> struct TensorAssign;
+}  // end namespace internal
 
 }  // end namespace Eigen
 

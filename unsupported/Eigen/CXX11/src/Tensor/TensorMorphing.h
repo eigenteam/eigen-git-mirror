@@ -21,7 +21,7 @@ namespace Eigen {
   */
 namespace internal {
 template<typename XprType, typename NewDimensions>
-struct traits<TensorReshapingOp<XprType, NewDimensions> >
+struct traits<TensorReshapingOp<XprType, NewDimensions> > : public traits<XprType>
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename XprType::Scalar Scalar;
@@ -81,6 +81,7 @@ template<typename ArgType, typename NewDimensions>
 struct TensorEvaluator<const TensorReshapingOp<ArgType, NewDimensions> >
 {
   typedef TensorReshapingOp<ArgType, NewDimensions> XprType;
+  typedef NewDimensions Dimensions;
 
   enum {
     IsAligned = TensorEvaluator<ArgType>::IsAligned,
@@ -95,7 +96,7 @@ struct TensorEvaluator<const TensorReshapingOp<ArgType, NewDimensions> >
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
-  const NewDimensions& dimensions() const { return m_dimensions; }
+  const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {

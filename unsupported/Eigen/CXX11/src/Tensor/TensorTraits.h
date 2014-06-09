@@ -52,7 +52,7 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_> >
   typedef DenseIndex Index;
   enum {
     Options = Options_,
-    Flags = compute_tensor_flags<Scalar_, Options_>::ret,
+    Flags = compute_tensor_flags<Scalar_, Options_>::ret | LvalueBit,
   };
 };
 
@@ -63,6 +63,10 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_> >
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
   typedef DenseIndex Index;
+  enum {
+    Options = Options_,
+    Flags = compute_tensor_flags<Scalar_, Options_>::ret | LvalueBit,
+  };
 };
 
 

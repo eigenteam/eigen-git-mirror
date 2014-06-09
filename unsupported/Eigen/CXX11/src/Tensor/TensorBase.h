@@ -22,26 +22,13 @@ namespace Eigen {
   */
 
 template<typename Derived>
-class TensorBase
+class TensorBase<Derived, ReadOnlyAccessors>
 {
   public:
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::traits<Derived>::Index Index;
     typedef Scalar CoeffReturnType;
     typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
-
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Derived& setZero() {
-      return setConstant(Scalar(0));
-    }
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Derived& setConstant(const Scalar& val) {
-      return derived() = constant(val);
-    }
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Derived& setRandom() {
-      return derived() = random();
-    }
 
     // Nullary operators
     EIGEN_DEVICE_FUNC
@@ -224,14 +211,53 @@ class TensorBase
       return TensorReshapingOp<const Derived, const NewDimensions>(derived(), newDimensions);
     }
 
+  protected:
+    template <typename OtherDerived, int AccessLevel> friend class TensorBase;
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
+};
+
+
+template<typename Derived>
+class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyAccessors> {
+ public:
+    typedef typename internal::traits<Derived>::Scalar Scalar;
+    typedef typename internal::traits<Derived>::Index Index;
+    typedef Scalar CoeffReturnType;
+    typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
+
+    template <typename OtherDerived, int AccessLevel> friend class TensorBase;
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Derived& setZero() {
+      return setConstant(Scalar(0));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Derived& setConstant(const Scalar& val) {
+      return derived() = this->constant(val);
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Derived& setRandom() {
+      return derived() = this->random();
+    }
+
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Derived& operator+=(const OtherDerived& other) {
+      return derived() = TensorCwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
+    }
+
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Derived& operator-=(const OtherDerived& other) {
+      return derived() = TensorCwiseBinaryOp<internal::scalar_difference_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
+    }
+
     // Select the device on which to evaluate the expression.
     template <typename DeviceType>
     TensorDevice<Derived, DeviceType> device(const DeviceType& device) {
       return TensorDevice<Derived, DeviceType>(device, derived());
     }
 
-  protected:
-    template <typename OtherDerived> friend class TensorBase;
+ protected:
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Derived& derived() { return *static_cast<Derived*>(this); }
     EIGEN_DEVICE_FUNC

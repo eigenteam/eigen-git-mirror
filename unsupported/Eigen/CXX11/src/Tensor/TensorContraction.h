@@ -35,6 +35,10 @@ struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
   typedef typename RhsXprType::Nested RhsNested;
   typedef typename remove_reference<LhsNested>::type _LhsNested;
   typedef typename remove_reference<RhsNested>::type _RhsNested;
+
+  enum {
+    Flags = 0,
+  };
 };
 
 template<typename Dimensions, typename LhsXprType, typename RhsXprType>
