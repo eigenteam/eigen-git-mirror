@@ -73,7 +73,7 @@ struct Sizes : internal::numeric_list<std::size_t, Indices...> {
   typedef internal::numeric_list<std::size_t, Indices...> Base;
   static const std::size_t total_size = internal::arg_prod(Indices...);
 
-  static std::size_t TotalSize() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t TotalSize() {
     return internal::arg_prod(Indices...);
   }
 
@@ -119,7 +119,7 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
   static const size_t count = Base::count;
   static const std::size_t total_size = internal::arg_prod<Base>::value;
 
-  static size_t TotalSize() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t TotalSize() {
     return internal::arg_prod<Base>::value;
   }
 
@@ -156,7 +156,8 @@ namespace internal {
 template<typename Index, std::size_t NumIndices, std::size_t n, bool RowMajor>
 struct tensor_index_linearization_helper
 {
-  static inline Index run(array<Index, NumIndices> const& indices, array<Index, NumIndices> const& dimensions)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Index run(array<Index, NumIndices> const& indices, array<Index, NumIndices> const& dimensions)
   {
     return array_get<RowMajor ? n : (NumIndices - n - 1)>(indices) +
       array_get<RowMajor ? n : (NumIndices - n - 1)>(dimensions) *
@@ -167,7 +168,8 @@ struct tensor_index_linearization_helper
 template<typename Index, std::size_t NumIndices, bool RowMajor>
 struct tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
 {
-  static inline Index run(array<Index, NumIndices> const& indices, array<Index, NumIndices> const&)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Index run(array<Index, NumIndices> const& indices, array<Index, NumIndices> const&)
   {
     return array_get<RowMajor ? 0 : NumIndices - 1>(indices);
   }
