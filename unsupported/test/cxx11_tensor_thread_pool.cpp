@@ -12,7 +12,6 @@
 
 #include "main.h"
 #include <Eigen/CXX11/Tensor>
-#include "thread/threadpool.h"
 
 using Eigen::Tensor;
 
@@ -25,9 +24,7 @@ void test_cxx11_tensor_thread_pool()
   in1.setRandom();
   in2.setRandom();
 
-  ThreadPool thread_pool(2);
-  thread_pool.StartWorkers();
-  Eigen::ThreadPoolDevice thread_pool_device(&thread_pool, 3);
+  Eigen::ThreadPoolDevice thread_pool_device(3);
   out.device(thread_pool_device) = in1 + in2 * 3.14f;
 
   for (int i = 0; i < 2; ++i) {
