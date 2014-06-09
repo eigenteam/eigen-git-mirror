@@ -54,17 +54,17 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       PacketAccess = true,
     };
 
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, Index firstDimension) : m_data(dataPtr), m_dimensions(array<DenseIndex, NumIndices>(firstDimension)) {
-      // The number of dimensions used to construct a tensor must be equal to the rank of the tensor.
-      EIGEN_STATIC_ASSERT(1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    }
-
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes> EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, Index firstDimension, IndexTypes... otherDimensions) : m_data(dataPtr), m_dimensions(array<DenseIndex, NumIndices>({{firstDimension, otherDimensions...}})) {
       // The number of dimensions used to construct a tensor must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+#else
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, Index firstDimension) : m_data(dataPtr), m_dimensions(array<DenseIndex, NumIndices>(firstDimension)) {
+      // The number of dimensions used to construct a tensor must be equal to the rank of the tensor.
+      EIGEN_STATIC_ASSERT(1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
 #endif
 
