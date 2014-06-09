@@ -182,22 +182,31 @@ array<t, n> repeat(t v) {
 }
 
 template<std::size_t n, typename t>
-t array_prod(const array<t, n>& a) {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const array<t, n>& a) {
   t prod = 1;
   for (size_t i = 0; i < n; ++i) { prod *= a[i]; }
   return prod;
 }
 template<typename t>
-t array_prod(const array<t, 0>& /*a*/) {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const array<t, 0>& /*a*/) {
   return 0;
 }
 
-template<std::size_t I, class T, std::size_t N> inline T& array_get(array<T,N>& a) {
+template<std::size_t I, class T, std::size_t N>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T& array_get(array<T,N>& a) {
   return a[I];
 }
-template<std::size_t I, class T, std::size_t N> inline const T& array_get(const array<T,N>& a) {
+template<std::size_t I, class T, std::size_t N> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+const T& array_get(const array<T,N>& a) {
   return a[I];
 }
+
+
+template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<const array<T,N> > {
+  static const size_t value = N;
+};
+
 
 struct sum_op {
   template<typename A, typename B> static inline bool run(A a, B b) { return a + b; }

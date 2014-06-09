@@ -107,7 +107,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 {
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
 
-  static const int NumDims = max_n_1<TensorEvaluator<LeftArgType>::Dimensions::count + TensorEvaluator<RightArgType>::Dimensions::count - 2 * Indices::size>::size;
+  static const int NumDims = max_n_1<TensorEvaluator<LeftArgType>::Dimensions::count + TensorEvaluator<RightArgType>::Dimensions::count - 2 * internal::array_size<Indices>::value>::size;
   typedef typename XprType::Index Index;
   typedef DSizes<Index, NumDims> Dimensions;
 
@@ -128,7 +128,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     const typename TensorEvaluator<LeftArgType>::Dimensions& left_dims = m_leftImpl.dimensions();
     for (int i = 0; i < TensorEvaluator<LeftArgType>::Dimensions::count; ++i) {
       bool skip = false;
-      for (int j = 0; j < Indices::size; ++j) {
+      for (int j = 0; j < internal::array_size<Indices>::value; ++j) {
         if (op.indices()[j].first == i) {
           skip = true;
           m_leftOffsets[2*skipped] = stride;
@@ -151,7 +151,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     const typename TensorEvaluator<RightArgType>::Dimensions& right_dims = m_rightImpl.dimensions();
     for (int i = 0; i < TensorEvaluator<RightArgType>::Dimensions::count; ++i) {
       bool skip = false;
-      for (int j = 0; j < Indices::size; ++j) {
+      for (int j = 0; j < internal::array_size<Indices>::value; ++j) {
         if (op.indices()[j].second == i) {
           skip = true;
           m_rightOffsets[2*skipped] = stride;
@@ -168,7 +168,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
 
     // Scalar case
-    if (TensorEvaluator<LeftArgType>::Dimensions::count + TensorEvaluator<LeftArgType>::Dimensions::count == 2 * Indices::size) {
+    if (TensorEvaluator<LeftArgType>::Dimensions::count + TensorEvaluator<LeftArgType>::Dimensions::count == 2 * internal::array_size<Indices>::value) {
       m_dimensions[0] = 1;
     }
   }
@@ -209,7 +209,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     for (int j = 0; j < m_stitchsize[StitchIndex]; ++j) {
       const Index left = firstLeft+j*m_leftOffsets[2*StitchIndex];
       const Index right = firstRight+j*m_rightOffsets[2*StitchIndex];
-      if (StitchIndex < Indices::size-1) {
+      if (StitchIndex < internal::array_size<Indices>::value-1) {
         partialStitch(left, right, StitchIndex+1, accum);
       } else {
         accum += m_leftImpl.coeff(left) * m_rightImpl.coeff(right);
@@ -218,9 +218,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   }
 
  private:
-  array<Index, 2*Indices::size> m_leftOffsets;
-  array<Index, 2*Indices::size> m_rightOffsets;
-  array<Index, Indices::size> m_stitchsize;
+  array<Index, 2*internal::array_size<Indices>::value> m_leftOffsets;
+  array<Index, 2*internal::array_size<Indices>::value> m_rightOffsets;
+  array<Index, internal::array_size<Indices>::value> m_stitchsize;
   Index m_shiftright;
   Dimensions m_dimensions;
   TensorEvaluator<LeftArgType> m_leftImpl;
