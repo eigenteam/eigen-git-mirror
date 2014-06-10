@@ -100,7 +100,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   typedef TensorConvolutionOp<Indices, InputArgType, KernelArgType> XprType;
 
   static const int NumDims = TensorEvaluator<InputArgType, Device>::Dimensions::count;
-  static const int KernelDims = Indices::size;
+  static const int KernelDims = internal::array_size<Indices>::value;
   typedef typename XprType::Index Index;
   typedef DSizes<Index, NumDims> Dimensions;
 

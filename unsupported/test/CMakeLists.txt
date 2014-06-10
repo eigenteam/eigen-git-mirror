@@ -95,9 +95,8 @@ ei_add_test(bdcsvd)
 
 option(EIGEN_TEST_CXX11 "Enable testing of C++11 features (e.g. Tensor module)." ON)
 if(EIGEN_TEST_CXX11)
-  # FIXME: add C++11 compiler switch in some portable way
-  #        (MSVC doesn't need any for example, so this will
-  #        clash there)
+  # It should be safe to always run these tests as there is some fallback code for
+  # older compiler that don't support cxx11.
   ei_add_test(cxx11_meta "-std=c++0x")
   ei_add_test(cxx11_tensor_simple "-std=c++0x")
   ei_add_test(cxx11_tensor_symmetry "-std=c++0x")
@@ -107,7 +106,7 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_convolution "-std=c++0x")
   ei_add_test(cxx11_tensor_expr "-std=c++0x")
   ei_add_test(cxx11_tensor_map "-std=c++0x")
-  ei_add_test(cxx11_tensor_device  "-std=c++0x")
+#  ei_add_test(cxx11_tensor_device  "-std=c++0x")
 #  ei_add_test(cxx11_tensor_fixed_size "-std=c++0x")
-  ei_add_test(cxx11_tensor_thread_pool "-std=c++0x")
+#  ei_add_test(cxx11_tensor_thread_pool "-std=c++0x")
 endif()

@@ -11,6 +11,7 @@
 
 #include <Eigen/CXX11/Tensor>
 
+using Eigen::DefaultDevice;
 using Eigen::Tensor;
 
 typedef Tensor<float, 1>::DimensionPair DimPair;
@@ -29,9 +30,10 @@ static void test_evals()
   Tensor<float, 2> mat4(3,3);
   mat4.setZero();
   Eigen::array<DimPair, 1> dims3({{DimPair(0, 0)}});
-  TensorEvaluator<decltype(mat1.contract(mat2, dims3))> eval(mat1.contract(mat2, dims3));
+  typedef TensorEvaluator<decltype(mat1.contract(mat2, dims3)), DefaultDevice> Evaluator;
+  Evaluator eval(mat1.contract(mat2, dims3), DefaultDevice());
   eval.evalTo(mat4.data());
-  EIGEN_STATIC_ASSERT(TensorEvaluator<decltype(mat1.contract(mat2, dims3))>::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT(Evaluator::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
   VERIFY_IS_EQUAL(eval.dimensions()[0], 3);
   VERIFY_IS_EQUAL(eval.dimensions()[1], 3);
 
@@ -48,9 +50,10 @@ static void test_evals()
   Tensor<float, 2> mat5(2,2);
   mat5.setZero();
   Eigen::array<DimPair, 1> dims4({{DimPair(1, 1)}});
-  TensorEvaluator<decltype(mat1.contract(mat2, dims4))> eval2(mat1.contract(mat2, dims4));
+  typedef TensorEvaluator<decltype(mat1.contract(mat2, dims4)), DefaultDevice> Evaluator2;
+  Evaluator2 eval2(mat1.contract(mat2, dims4), DefaultDevice());
   eval2.evalTo(mat5.data());
-  EIGEN_STATIC_ASSERT(TensorEvaluator<decltype(mat1.contract(mat2, dims4))>::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT(Evaluator2::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
   VERIFY_IS_EQUAL(eval2.dimensions()[0], 2);
   VERIFY_IS_EQUAL(eval2.dimensions()[1], 2);
 
@@ -62,9 +65,10 @@ static void test_evals()
   Tensor<float, 2> mat6(2,2);
   mat6.setZero();
   Eigen::array<DimPair, 1> dims6({{DimPair(1, 0)}});
-  TensorEvaluator<decltype(mat1.contract(mat3, dims6))> eval3(mat1.contract(mat3, dims6));
+  typedef TensorEvaluator<decltype(mat1.contract(mat3, dims6)), DefaultDevice> Evaluator3;
+  Evaluator3 eval3(mat1.contract(mat3, dims6), DefaultDevice());
   eval3.evalTo(mat6.data());
-  EIGEN_STATIC_ASSERT(TensorEvaluator<decltype(mat1.contract(mat3, dims6))>::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT(Evaluator3::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
   VERIFY_IS_EQUAL(eval3.dimensions()[0], 2);
   VERIFY_IS_EQUAL(eval3.dimensions()[1], 2);
 
@@ -86,9 +90,10 @@ static void test_scalar()
   Tensor<float, 1> scalar(1);
   scalar.setZero();
   Eigen::array<DimPair, 1> dims({{DimPair(0, 0)}});
-  TensorEvaluator<decltype(vec1.contract(vec2, dims))> eval(vec1.contract(vec2, dims));
+  typedef TensorEvaluator<decltype(vec1.contract(vec2, dims)), DefaultDevice> Evaluator;
+  Evaluator eval(vec1.contract(vec2, dims), DefaultDevice());
   eval.evalTo(scalar.data());
-  EIGEN_STATIC_ASSERT(TensorEvaluator<decltype(vec1.contract(vec2, dims))>::NumDims==1ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT(Evaluator::NumDims==1ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
 
   float expected = 0.0f;
   for (int i = 0; i < 6; ++i) {
@@ -109,9 +114,10 @@ static void test_multidims()
   Tensor<float, 3> mat3(2, 2, 2);
   mat3.setZero();
   Eigen::array<DimPair, 2> dims({{DimPair(1, 2), DimPair(2, 3)}});
-  TensorEvaluator<decltype(mat1.contract(mat2, dims))> eval(mat1.contract(mat2, dims));
+  typedef TensorEvaluator<decltype(mat1.contract(mat2, dims)), DefaultDevice> Evaluator;
+  Evaluator eval(mat1.contract(mat2, dims), DefaultDevice());
   eval.evalTo(mat3.data());
-  EIGEN_STATIC_ASSERT(TensorEvaluator<decltype(mat1.contract(mat2, dims))>::NumDims==3ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT(Evaluator::NumDims==3ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
   VERIFY_IS_EQUAL(eval.dimensions()[0], 2);
   VERIFY_IS_EQUAL(eval.dimensions()[1], 2);
   VERIFY_IS_EQUAL(eval.dimensions()[2], 2);

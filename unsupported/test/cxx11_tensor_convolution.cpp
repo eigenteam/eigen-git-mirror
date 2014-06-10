@@ -12,7 +12,7 @@
 #include <Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
-
+using Eigen::DefaultDevice;
 
 static void test_evals()
 {
@@ -26,9 +26,10 @@ static void test_evals()
   result.setZero();
   Eigen::array<Tensor<float, 2>::Index, 1> dims3({0});
 
-  TensorEvaluator<decltype(input.convolve(kernel, dims3))> eval(input.convolve(kernel, dims3));
+  typedef TensorEvaluator<decltype(input.convolve(kernel, dims3)), DefaultDevice> Evaluator;
+  Evaluator eval(input.convolve(kernel, dims3), DefaultDevice());
   eval.evalTo(result.data());
-  EIGEN_STATIC_ASSERT(TensorEvaluator<decltype(input.convolve(kernel, dims3))>::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT(Evaluator::NumDims==2ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
   VERIFY_IS_EQUAL(eval.dimensions()[0], 2);
   VERIFY_IS_EQUAL(eval.dimensions()[1], 3);
 
