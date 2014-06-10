@@ -94,27 +94,27 @@ class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, Input
 };
 
 
-template<typename Indices, typename InputArgType, typename KernelArgType>
-struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelArgType> >
+template<typename Indices, typename InputArgType, typename KernelArgType, typename Device>
+struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelArgType>, Device>
 {
   typedef TensorConvolutionOp<Indices, InputArgType, KernelArgType> XprType;
 
-  static const int NumDims = TensorEvaluator<InputArgType>::Dimensions::count;
+  static const int NumDims = TensorEvaluator<InputArgType, Device>::Dimensions::count;
   static const int KernelDims = Indices::size;
   typedef typename XprType::Index Index;
   typedef DSizes<Index, NumDims> Dimensions;
 
   enum {
-    IsAligned = TensorEvaluator<InputArgType>::IsAligned & TensorEvaluator<KernelArgType>::IsAligned,
+    IsAligned = TensorEvaluator<InputArgType, Device>::IsAligned & TensorEvaluator<KernelArgType, Device>::IsAligned,
     PacketAccess = /*TensorEvaluator<InputArgType>::PacketAccess & TensorEvaluator<KernelArgType>::PacketAccess */
                    false,
   };
 
-  TensorEvaluator(const XprType& op)
-      : m_inputImpl(op.inputExpression()), m_kernelImpl(op.kernelExpression()), m_dimensions(op.inputExpression().dimensions())
+  TensorEvaluator(const XprType& op, const Device& device)
+      : m_inputImpl(op.inputExpression(), device), m_kernelImpl(op.kernelExpression(), device), m_dimensions(op.inputExpression().dimensions())
   {
-    const typename TensorEvaluator<InputArgType>::Dimensions& input_dims = m_inputImpl.dimensions();
-    const typename TensorEvaluator<KernelArgType>::Dimensions& kernel_dims = m_kernelImpl.dimensions();
+    const typename TensorEvaluator<InputArgType, Device>::Dimensions& input_dims = m_inputImpl.dimensions();
+    const typename TensorEvaluator<KernelArgType, Device>::Dimensions& kernel_dims = m_kernelImpl.dimensions();
 
     for (int i = 0; i < NumDims; ++i) {
       if (i > 0) {
@@ -200,8 +200,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   array<Index, KernelDims> m_indexStride;
   array<Index, KernelDims> m_kernelStride;
   Dimensions m_dimensions;
-  TensorEvaluator<InputArgType> m_inputImpl;
-  TensorEvaluator<KernelArgType> m_kernelImpl;
+  TensorEvaluator<InputArgType, Device> m_inputImpl;
+  TensorEvaluator<KernelArgType, Device> m_kernelImpl;
 };
 
 

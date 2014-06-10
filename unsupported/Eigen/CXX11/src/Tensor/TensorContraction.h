@@ -102,31 +102,31 @@ template <> struct max_n_1<0> {
 };
 
 
-template<typename Indices, typename LeftArgType, typename RightArgType>
-struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType> >
+template<typename Indices, typename LeftArgType, typename RightArgType, typename Device>
+struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device>
 {
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
 
-  static const int NumDims = max_n_1<TensorEvaluator<LeftArgType>::Dimensions::count + TensorEvaluator<RightArgType>::Dimensions::count - 2 * internal::array_size<Indices>::value>::size;
+  static const int NumDims = max_n_1<TensorEvaluator<LeftArgType, Device>::Dimensions::count + TensorEvaluator<RightArgType, Device>::Dimensions::count - 2 * internal::array_size<Indices>::value>::size;
   typedef typename XprType::Index Index;
   typedef DSizes<Index, NumDims> Dimensions;
 
   enum {
-    IsAligned = TensorEvaluator<LeftArgType>::IsAligned & TensorEvaluator<RightArgType>::IsAligned,
+    IsAligned = TensorEvaluator<LeftArgType, Device>::IsAligned & TensorEvaluator<RightArgType, Device>::IsAligned,
     PacketAccess = /*TensorEvaluator<LeftArgType>::PacketAccess & TensorEvaluator<RightArgType>::PacketAccess */
                    false,
   };
 
-  TensorEvaluator(const XprType& op)
-      : m_leftImpl(op.lhsExpression()), m_rightImpl(op.rhsExpression())
+  TensorEvaluator(const XprType& op, const Device& device)
+      : m_leftImpl(op.lhsExpression(), device), m_rightImpl(op.rhsExpression(), device)
   {
     Index index = 0;
     Index stride = 1;
     m_shiftright = 1;
 
     int skipped = 0;
-    const typename TensorEvaluator<LeftArgType>::Dimensions& left_dims = m_leftImpl.dimensions();
-    for (int i = 0; i < TensorEvaluator<LeftArgType>::Dimensions::count; ++i) {
+    const typename TensorEvaluator<LeftArgType, Device>::Dimensions& left_dims = m_leftImpl.dimensions();
+    for (int i = 0; i < TensorEvaluator<LeftArgType, Device>::Dimensions::count; ++i) {
       bool skip = false;
       for (int j = 0; j < internal::array_size<Indices>::value; ++j) {
         if (op.indices()[j].first == i) {
@@ -148,8 +148,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     stride = 1;
     skipped = 0;
-    const typename TensorEvaluator<RightArgType>::Dimensions& right_dims = m_rightImpl.dimensions();
-    for (int i = 0; i < TensorEvaluator<RightArgType>::Dimensions::count; ++i) {
+    const typename TensorEvaluator<RightArgType, Device>::Dimensions& right_dims = m_rightImpl.dimensions();
+    for (int i = 0; i < TensorEvaluator<RightArgType, Device>::Dimensions::count; ++i) {
       bool skip = false;
       for (int j = 0; j < internal::array_size<Indices>::value; ++j) {
         if (op.indices()[j].second == i) {
@@ -168,7 +168,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
 
     // Scalar case
-    if (TensorEvaluator<LeftArgType>::Dimensions::count + TensorEvaluator<LeftArgType>::Dimensions::count == 2 * internal::array_size<Indices>::value) {
+    if (TensorEvaluator<LeftArgType, Device>::Dimensions::count + TensorEvaluator<LeftArgType, Device>::Dimensions::count == 2 * internal::array_size<Indices>::value) {
       m_dimensions[0] = 1;
     }
   }
@@ -223,8 +223,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   array<Index, internal::array_size<Indices>::value> m_stitchsize;
   Index m_shiftright;
   Dimensions m_dimensions;
-  TensorEvaluator<LeftArgType> m_leftImpl;
-  TensorEvaluator<RightArgType> m_rightImpl;
+  TensorEvaluator<LeftArgType, Device> m_leftImpl;
+  TensorEvaluator<RightArgType, Device> m_rightImpl;
 };
 
 

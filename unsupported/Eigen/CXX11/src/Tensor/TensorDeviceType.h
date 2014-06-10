@@ -15,6 +15,12 @@ namespace Eigen {
 
 // Default device for the machine (typically a single cpu core)
 struct DefaultDevice {
+  EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
+    return internal::aligned_malloc(num_bytes);
+  }
+  EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
+    internal::aligned_free(buffer);
+  }
 };
 
 
@@ -22,14 +28,19 @@ struct DefaultDevice {
 // We should really use a thread pool here but first we need to find a portable thread pool library.
 #ifdef EIGEN_USE_THREADS
 struct ThreadPoolDevice {
-  ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : /*pool_(pool), */num_threads_(num_cores) { }
+ ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : /*pool_(pool), */num_threads_(num_cores) { }
   size_t numThreads() const { return num_threads_; }
-  /*ThreadPool* threadPool() const { return pool_; }*/
+
+  EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
+    return internal::aligned_malloc(num_bytes);
+  }
+  EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
+    internal::aligned_free(buffer);
+  }
 
  private:
   // todo: NUMA, ...
   size_t num_threads_;
-  /*ThreadPool* pool_;*/
 };
 #endif
 
@@ -40,7 +51,16 @@ struct GpuDevice {
   // The cudastream is not owned: the caller is responsible for its initialization and eventual destruction.
   GpuDevice(const cudaStream_t* stream) : stream_(stream) { eigen_assert(stream); }
 
-  const cudaStream_t& stream() const { return *stream_; }
+  EIGEN_STRONG_INLINE const cudaStream_t& stream() const { return *stream_; }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
+    void* result;
+    cudaMalloc(&result, num_bytes);
+    return result;
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
+    cudaFree(buffer);
+  }
 
  private:
   // TODO: multigpu.

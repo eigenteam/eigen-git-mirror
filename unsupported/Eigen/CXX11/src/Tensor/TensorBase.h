@@ -198,17 +198,23 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     // Coefficient-wise ternary operators.
-    template<typename ThenDerived, typename ElseDerived>
-    inline const TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>
+    template<typename ThenDerived, typename ElseDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>
     select(const ThenDerived& thenTensor, const ElseDerived& elseTensor) const {
       return TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>(derived(), thenTensor.derived(), elseTensor.derived());
     }
 
     // Morphing operators (slicing tbd).
-    template <typename NewDimensions>
-    inline const TensorReshapingOp<const Derived, const NewDimensions>
+    template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReshapingOp<const Derived, const NewDimensions>
     reshape(const NewDimensions& newDimensions) const {
       return TensorReshapingOp<const Derived, const NewDimensions>(derived(), newDimensions);
+    }
+
+    // Force the evaluation of the expression.
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorForcedEvalOp<const Derived> eval() const {
+      return TensorForcedEvalOp<const Derived>(derived());
     }
 
   protected:

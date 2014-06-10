@@ -31,7 +31,7 @@ template <typename ExpressionType, typename DeviceType> class TensorDevice {
 
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE TensorDevice& operator=(const OtherDerived& other) {
-      internal::TensorAssign<ExpressionType, const OtherDerived>::run(m_expression, other);
+      internal::TensorAssign<ExpressionType, const OtherDerived, DeviceType>::run(m_expression, other, m_device);
       return *this;
     }
 

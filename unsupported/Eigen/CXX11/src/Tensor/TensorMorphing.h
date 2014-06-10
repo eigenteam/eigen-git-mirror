@@ -77,19 +77,19 @@ class TensorReshapingOp : public TensorBase<TensorReshapingOp<XprType, NewDimens
 };
 
 
-template<typename ArgType, typename NewDimensions>
-struct TensorEvaluator<const TensorReshapingOp<ArgType, NewDimensions> >
+template<typename ArgType, typename NewDimensions, typename Device>
+struct TensorEvaluator<const TensorReshapingOp<ArgType, NewDimensions>, Device>
 {
   typedef TensorReshapingOp<ArgType, NewDimensions> XprType;
   typedef NewDimensions Dimensions;
 
   enum {
-    IsAligned = TensorEvaluator<ArgType>::IsAligned,
-    PacketAccess = TensorEvaluator<ArgType>::PacketAccess,
+    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
+    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
   };
 
-  TensorEvaluator(const XprType& op)
-      : m_impl(op.expression()), m_dimensions(op.dimensions())
+  TensorEvaluator(const XprType& op, const Device& device)
+      : m_impl(op.expression(), device), m_dimensions(op.dimensions())
   { }
 
   typedef typename XprType::Index Index;
@@ -111,7 +111,7 @@ struct TensorEvaluator<const TensorReshapingOp<ArgType, NewDimensions> >
 
  private:
   NewDimensions m_dimensions;
-  TensorEvaluator<ArgType> m_impl;
+  TensorEvaluator<ArgType, Device> m_impl;
 };
 
 

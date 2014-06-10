@@ -32,15 +32,15 @@ namespace Eigen {
 namespace internal {
 
 // Default strategy: the expressions are evaluated with a single cpu thread.
-template<typename Derived1, typename Derived2, bool Vectorizable = TensorEvaluator<Derived1>::PacketAccess & TensorEvaluator<Derived2>::PacketAccess>
+template<typename Derived1, typename Derived2, typename Device = DefaultDevice, bool Vectorizable = TensorEvaluator<Derived1, Device>::PacketAccess & TensorEvaluator<Derived2, Device>::PacketAccess>
 struct TensorAssign
 {
   typedef typename Derived1::Index Index;
   EIGEN_DEVICE_FUNC
-  static inline void run(Derived1& dst, const Derived2& src)
+  static inline void run(Derived1& dst, const Derived2& src, const Device& device = Device())
   {
-    TensorEvaluator<Derived1> evalDst(dst);
-    TensorEvaluator<Derived2> evalSrc(src);
+    TensorEvaluator<Derived1, Device> evalDst(dst, device);
+    TensorEvaluator<Derived2, Device> evalSrc(src, device);
     const Index size = dst.size();
     for (Index i = 0; i < size; ++i) {
       evalDst.coeffRef(i) = evalSrc.coeff(i);
@@ -49,19 +49,19 @@ struct TensorAssign
 };
 
 
-template<typename Derived1, typename Derived2>
-struct TensorAssign<Derived1, Derived2, true>
+template<typename Derived1, typename Derived2, typename Device>
+struct TensorAssign<Derived1, Derived2, Device, true>
 {
   typedef typename Derived1::Index Index;
-  static inline void run(Derived1& dst, const Derived2& src)
+  static inline void run(Derived1& dst, const Derived2& src, const Device& device = Device())
   {
-    TensorEvaluator<Derived1> evalDst(dst);
-    TensorEvaluator<Derived2> evalSrc(src);
+    TensorEvaluator<Derived1, Device> evalDst(dst, device);
+    TensorEvaluator<Derived2, Device> evalSrc(src, device);
     const Index size = dst.size();
 
-    static const int LhsStoreMode = TensorEvaluator<Derived1>::IsAligned ? Aligned : Unaligned;
-    static const int RhsLoadMode = TensorEvaluator<Derived2>::IsAligned ? Aligned : Unaligned;
-    static const int PacketSize = unpacket_traits<typename TensorEvaluator<Derived1>::PacketReturnType>::size;
+    static const int LhsStoreMode = TensorEvaluator<Derived1, Device>::IsAligned ? Aligned : Unaligned;
+    static const int RhsLoadMode = TensorEvaluator<Derived2, Device>::IsAligned ? Aligned : Unaligned;
+    static const int PacketSize = unpacket_traits<typename TensorEvaluator<Derived1, Device>::PacketReturnType>::size;
     const int VectorizedSize = (size / PacketSize) * PacketSize;
 
     for (Index i = 0; i < VectorizedSize; i += PacketSize) {
@@ -116,12 +116,12 @@ struct TensorAssignMultiThreaded
   typedef typename Derived1::Index Index;
   static inline void run(Derived1& dst, const Derived2& src, const ThreadPoolDevice& device)
   {
-    TensorEvaluator<Derived1> evalDst(dst);
-    TensorEvaluator<Derived2> evalSrc(src);
+    TensorEvaluator<Derived1, DefaultDevice> evalDst(dst, DefaultDevice());
+    TensorEvaluator<Derived2, DefaultDevice> evalSrc(src, Defaultevice());
     const Index size = dst.size();
 
-    static const bool Vectorizable = TensorEvaluator<Derived1>::PacketAccess & TensorEvaluator<Derived2>::PacketAccess;
-    static const int PacketSize = Vectorizable ? unpacket_traits<typename TensorEvaluator<Derived1>::PacketReturnType>::size : 1;
+    static const bool Vectorizable = TensorEvaluator<Derived1, DefaultDevice>::PacketAccess & TensorEvaluator<Derived2, DefaultDevice>::PacketAccess;
+    static const int PacketSize = Vectorizable ? unpacket_traits<typename TensorEvaluator<Derived1, DefaultDevice>::PacketReturnType>::size : 1;
 
     int blocksz = static_cast<int>(ceil(static_cast<float>(size)/device.numThreads()) + PacketSize - 1);
     const Index blocksize = std::max<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
@@ -131,7 +131,7 @@ struct TensorAssignMultiThreaded
     vector<std::future<void> > results;
     results.reserve(numblocks);
     for (int i = 0; i < numblocks; ++i) {
-      results.push_back(std::async(std::launch::async, &EvalRange<TensorEvaluator<Derived1>, TensorEvaluator<Derived2>, Index>::run, evalDst, evalSrc, i*blocksize, (i+1)*blocksize));
+      results.push_back(std::async(std::launch::async, &EvalRange<TensorEvaluator<Derived1, DefaultDevice>, TensorEvaluator<Derived2, DefaultDevice>, Index>::run, evalDst, evalSrc, i*blocksize, (i+1)*blocksize));
     }
 
     for (int i = 0; i < numblocks; ++i) {
@@ -167,19 +167,19 @@ struct TensorAssignGpu
   typedef typename Derived1::Index Index;
   static inline void run(Derived1& dst, const Derived2& src, const GpuDevice& device)
   {
-    TensorEvaluator<Derived1> evalDst(dst);
-    TensorEvaluator<Derived2> evalSrc(src);
+    TensorEvaluator<Derived1, GpuDevice> evalDst(dst, device);
+    TensorEvaluator<Derived2, GpuDevice> evalSrc(src, device);
     const Index size = dst.size();
     const int block_size = std::min<int>(size, 32*32);
     const int num_blocks = size / block_size;
-    EigenMetaKernelNoCheck<TensorEvaluator<Derived1>, TensorEvaluator<Derived2> > <<<num_blocks, block_size, 0, device.stream()>>>(evalDst, evalSrc);
+    EigenMetaKernelNoCheck<TensorEvaluator<Derived1, GpuDevice>, TensorEvaluator<Derived2, GpuDevice> > <<<num_blocks, block_size, 0, device.stream()>>>(evalDst, evalSrc);
 
     const int remaining_items = size % block_size;
     if (remaining_items > 0) {
       const int peel_start_offset = num_blocks * block_size;
       const int peel_block_size = std::min<int>(size, 32);
       const int peel_num_blocks = (remaining_items + peel_block_size - 1) / peel_block_size;
-      EigenMetaKernelPeel<TensorEvaluator<Derived1>, TensorEvaluator<Derived2> > <<<peel_num_blocks, peel_block_size, 0, device.stream()>>>(evalDst, evalSrc, peel_start_offset, size);
+      EigenMetaKernelPeel<TensorEvaluator<Derived1, GpuDevice>, TensorEvaluator<Derived2, GpuDevice> > <<<peel_num_blocks, peel_block_size, 0, device.stream()>>>(evalDst, evalSrc, peel_start_offset, size);
     }
   }
 };
