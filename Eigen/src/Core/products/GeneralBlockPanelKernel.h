@@ -10,12 +10,6 @@
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
-#ifdef USE_IACA
-#include "iacaMarks.h"
-#else
-#define IACA_START
-#define IACA_END
-#endif
 
 namespace Eigen { 
   
@@ -805,7 +799,6 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*4*RhsProgress;
             blA += pk*3*Traits::LhsProgress;
-            IACA_END
           }
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)

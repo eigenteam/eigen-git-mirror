@@ -91,17 +91,35 @@ static void test_gen_numeric_list()
   VERIFY((is_same<typename gen_numeric_list<int, 5>::type, numeric_list<int, 0, 1, 2, 3, 4>>::value));
   VERIFY((is_same<typename gen_numeric_list<int, 10>::type, numeric_list<int, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9>>::value));
 
+  VERIFY((is_same<typename gen_numeric_list<int, 0, 42>::type, numeric_list<int>>::value));
+  VERIFY((is_same<typename gen_numeric_list<int, 1, 42>::type, numeric_list<int, 42>>::value));
+  VERIFY((is_same<typename gen_numeric_list<int, 2, 42>::type, numeric_list<int, 42, 43>>::value));
+  VERIFY((is_same<typename gen_numeric_list<int, 5, 42>::type, numeric_list<int, 42, 43, 44, 45, 46>>::value));
+  VERIFY((is_same<typename gen_numeric_list<int, 10, 42>::type, numeric_list<int, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51>>::value));
+
   VERIFY((is_same<typename gen_numeric_list_reversed<int, 0>::type, numeric_list<int>>::value));
   VERIFY((is_same<typename gen_numeric_list_reversed<int, 1>::type, numeric_list<int, 0>>::value));
   VERIFY((is_same<typename gen_numeric_list_reversed<int, 2>::type, numeric_list<int, 1, 0>>::value));
   VERIFY((is_same<typename gen_numeric_list_reversed<int, 5>::type, numeric_list<int, 4, 3, 2, 1, 0>>::value));
   VERIFY((is_same<typename gen_numeric_list_reversed<int, 10>::type, numeric_list<int, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0>>::value));
 
+  VERIFY((is_same<typename gen_numeric_list_reversed<int, 0, 42>::type, numeric_list<int>>::value));
+  VERIFY((is_same<typename gen_numeric_list_reversed<int, 1, 42>::type, numeric_list<int, 42>>::value));
+  VERIFY((is_same<typename gen_numeric_list_reversed<int, 2, 42>::type, numeric_list<int, 43, 42>>::value));
+  VERIFY((is_same<typename gen_numeric_list_reversed<int, 5, 42>::type, numeric_list<int, 46, 45, 44, 43, 42>>::value));
+  VERIFY((is_same<typename gen_numeric_list_reversed<int, 10, 42>::type, numeric_list<int, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42>>::value));
+
   VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 0, 2, 3>::type, numeric_list<int>>::value));
   VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 1, 2, 3>::type, numeric_list<int, 0>>::value));
   VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 2, 2, 3>::type, numeric_list<int, 0, 1>>::value));
   VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 5, 2, 3>::type, numeric_list<int, 0, 1, 3, 2, 4>>::value));
   VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 10, 2, 3>::type, numeric_list<int, 0, 1, 3, 2, 4, 5, 6, 7, 8, 9>>::value));
+
+  VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 0, 44, 45, 42>::type, numeric_list<int>>::value));
+  VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 1, 44, 45, 42>::type, numeric_list<int, 42>>::value));
+  VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 2, 44, 45, 42>::type, numeric_list<int, 42, 43>>::value));
+  VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 5, 44, 45, 42>::type, numeric_list<int, 42, 43, 45, 44, 46>>::value));
+  VERIFY((is_same<typename gen_numeric_list_swapped_pair<int, 10, 44, 45, 42>::type, numeric_list<int, 42, 43, 45, 44, 46, 47, 48, 49, 50, 51>>::value));
 
   VERIFY((is_same<typename gen_numeric_list_repeated<int, 0, 0>::type, numeric_list<int>>::value));
   VERIFY((is_same<typename gen_numeric_list_repeated<int, 1, 0>::type, numeric_list<int, 0>>::value));

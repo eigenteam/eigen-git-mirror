@@ -449,12 +449,12 @@ set ( EIGEN_INCLUDE_DIR ${INCLUDE_INSTALL_DIR} )
 set ( EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} )
 set ( EIGEN_ROOT_DIR ${CMAKE_INSTALL_PREFIX} )
 
-configure_file ( ${CMAKE_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
                  ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
                  @ONLY ESCAPE_QUOTES
                )
 
-install ( FILES ${CMAKE_SOURCE_DIR}/cmake/UseEigen3.cmake
+install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
           DESTINATION ${EIGEN_CONFIG_CMAKE_PATH}
         )

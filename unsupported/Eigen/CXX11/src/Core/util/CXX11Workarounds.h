@@ -48,13 +48,15 @@ namespace internal {
  *     - libstdc++ from version 4.7 onwards has it nevertheless,
  *                                          so use that
  *     - libstdc++ older versions: use _M_instance directly
- *     - libc++ all versions so far: use __elems_ directly
+ *     - libc++ from version 3.4 onwards has it IF compiled with
+ *                                       -std=c++1y
+ *     - libc++ older versions or -std=c++11: use __elems_ directly
  *     - all other libs: use std::get to be portable, but
  *                       this may not be constexpr
  */
 #if defined(__GLIBCXX__) && __GLIBCXX__ < 20120322
 #define STD_GET_ARR_HACK             a._M_instance[I]
-#elif defined(_LIBCPP_VERSION)
+#elif defined(_LIBCPP_VERSION) && (!defined(_LIBCPP_STD_VER) || _LIBCPP_STD_VER <= 11)
 #define STD_GET_ARR_HACK             a.__elems_[I]
 #else
 #define STD_GET_ARR_HACK             std::template get<I, T, N>(a)

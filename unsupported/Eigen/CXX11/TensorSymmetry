@@ -10,7 +10,7 @@
 #ifndef EIGEN_CXX11_TENSORSYMMETRY_MODULE
 #define EIGEN_CXX11_TENSORSYMMETRY_MODULE
 
-#include <Eigen/CXX11/Tensor>
+#include <unsupported/Eigen/CXX11/Tensor>
 
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
