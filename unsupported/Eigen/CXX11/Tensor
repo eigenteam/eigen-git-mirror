@@ -42,8 +42,12 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorContraction.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorConvolution.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorMorphing.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorEvalTo.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorForcedEval.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
+
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorDevice.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorExecutor.h"
 
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorStorage.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/Tensor.h"

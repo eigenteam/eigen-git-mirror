@@ -38,27 +38,32 @@ struct TensorEvaluator
     PacketAccess = Derived::PacketAccess,
   };
 
-  EIGEN_DEVICE_FUNC TensorEvaluator(Derived& m, const Device&)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(Derived& m, const Device&)
       : m_data(const_cast<Scalar*>(m.data())), m_dims(m.dimensions())
   { }
 
-  EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_dims; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dims; }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() { }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
+    eigen_assert(m_data);
     return m_data[index];
   }
 
-  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(Index index) {
+    eigen_assert(m_data);
     return m_data[index];
   }
 
-  template<int LoadMode>
+  template<int LoadMode> EIGEN_STRONG_INLINE
   PacketReturnType packet(Index index) const
   {
     return internal::ploadt<Packet, LoadMode>(m_data + index);
   }
 
-  template <int StoreMode>
+  template <int StoreMode> EIGEN_STRONG_INLINE
   void writePacket(Index index, const Packet& x)
   {
     return internal::pstoret<Scalar, Packet, StoreMode>(m_data + index, x);
@@ -95,13 +100,16 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() { }
+
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(index);
   }
 
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(index);
   }
@@ -137,13 +145,20 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
+    m_argImpl.evalSubExprsIfNeeded();
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
+    m_argImpl.cleanup();
+  }
+
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(m_argImpl.coeff(index));
   }
 
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
   }
@@ -184,12 +199,21 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
     return m_leftImpl.dimensions();
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
+    m_leftImpl.evalSubExprsIfNeeded();
+    m_rightImpl.evalSubExprsIfNeeded();
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
+    m_leftImpl.cleanup();
+    m_rightImpl.cleanup();
+  }
+
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(m_leftImpl.coeff(index), m_rightImpl.coeff(index));
   }
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(m_leftImpl.template packet<LoadMode>(index), m_rightImpl.template packet<LoadMode>(index));
   }
@@ -230,12 +254,24 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
     // TODO: use then or else impl instead if they happen to be known at compile time.
     return m_condImpl.dimensions();
   }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
+    m_condImpl.evalSubExprsIfNeeded();
+    m_thenImpl.evalSubExprsIfNeeded();
+    m_elseImpl.evalSubExprsIfNeeded();
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
+    m_condImpl.cleanup();
+    m_thenImpl.cleanup();
+    m_elseImpl.cleanup();
+  }
+
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_condImpl.coeff(index) ? m_thenImpl.coeff(index) : m_elseImpl.coeff(index);
   }
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  PacketReturnType packet(Index index) const
   {
     static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     internal::Selector<PacketSize> select;

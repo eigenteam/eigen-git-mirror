@@ -153,6 +153,15 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   const Dimensions& dimensions() const { return m_dimensions; }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
+    m_inputImpl.evalSubExprsIfNeeded();
+    m_kernelImpl.evalSubExprsIfNeeded();
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
+    m_inputImpl.cleanup();
+    m_kernelImpl.cleanup();
+  }
+
   void evalTo(typename XprType::Scalar* buffer) const {
     for (int i = 0; i < dimensions().TotalSize(); ++i) {
       buffer[i] += coeff(i);

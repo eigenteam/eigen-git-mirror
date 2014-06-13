@@ -184,6 +184,14 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       buffer[i] += coeff(i);
     }
   }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
+    m_leftImpl.evalSubExprsIfNeeded();
+    m_rightImpl.evalSubExprsIfNeeded();
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
+    m_leftImpl.cleanup();
+    m_rightImpl.cleanup();
+  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {

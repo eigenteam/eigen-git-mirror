@@ -200,7 +200,9 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
       // FIXME: check that the dimensions of other match the dimensions of *this.
       // Unfortunately this isn't possible yet when the rhs is an expression.
-      internal::TensorAssign<TensorFixedSize, const OtherDerived>::run(*this, other);
+      typedef TensorAssignOp<Self, const OtherDerived> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 

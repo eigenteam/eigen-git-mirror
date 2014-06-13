@@ -236,7 +236,9 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       // FIXME: we need to resize the tensor to fix the dimensions of the other.
       // Unfortunately this isn't possible yet when the rhs is an expression.
       // resize(other.dimensions());
-      internal::TensorAssign<Tensor, const OtherDerived>::run(*this, other);
+      typedef TensorAssignOp<Tensor, const OtherDerived> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 

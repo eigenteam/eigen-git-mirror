@@ -25,13 +25,16 @@ template<typename XprType> class TensorReductionOp;
 template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;
+template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
+
+template<typename XprType> class TensorEvalToOp;
 template<typename XprType> class TensorForcedEvalOp;
 
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
 
 namespace internal {
-template<typename Derived, typename OtherDerived, typename Device, bool Vectorizable> struct TensorAssign;
+template<typename Expression, typename Device, bool Vectorizable> class TensorExecutor;
 }  // end namespace internal
 
 }  // end namespace Eigen

@@ -31,7 +31,10 @@ template <typename ExpressionType, typename DeviceType> class TensorDevice {
 
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE TensorDevice& operator=(const OtherDerived& other) {
-      internal::TensorAssign<ExpressionType, const OtherDerived, DeviceType>::run(m_expression, other, m_device);
+      typedef TensorAssignOp<ExpressionType, const OtherDerived> Assign;
+      Assign assign(m_expression, other);
+      static const bool Vectorize = TensorEvaluator<const Assign, DeviceType>::PacketAccess;
+      internal::TensorExecutor<const Assign, DeviceType, Vectorize>::run(assign, m_device);
       return *this;
     }
 
@@ -48,7 +51,10 @@ template <typename ExpressionType> class TensorDevice<ExpressionType, ThreadPool
 
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE TensorDevice& operator=(const OtherDerived& other) {
-      internal::TensorAssignMultiThreaded<ExpressionType, const OtherDerived>::run(m_expression, other, m_device);
+      typedef TensorAssignOp<ExpressionType, const OtherDerived> Assign;
+      Assign assign(m_expression, other);
+      static const bool Vectorize = TensorEvaluator<const Assign, ThreadPoolDevice>::PacketAccess;
+      internal::TensorExecutor<const Assign, ThreadPoolDevice, Vectorize>::run(assign, m_device);
       return *this;
     }
 
@@ -67,13 +73,15 @@ template <typename ExpressionType> class TensorDevice<ExpressionType, GpuDevice>
 
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE TensorDevice& operator=(const OtherDerived& other) {
-      internal::TensorAssignGpu<ExpressionType, const OtherDerived>::run(m_expression, other, m_device);
+      typedef TensorAssignOp<ExpressionType, const OtherDerived> Assign;
+      Assign assign(m_expression, other);
+      internal::TensorExecutor<const Assign, GpuDevice, false>::run(assign, m_device);
       return *this;
     }
 
   protected:
     const GpuDevice& m_device;
-    ExpressionType& m_expression;
+    ExpressionType m_expression;
 };
 #endif
 

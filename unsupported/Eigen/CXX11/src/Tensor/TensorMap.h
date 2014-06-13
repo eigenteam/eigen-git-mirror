@@ -246,7 +246,9 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     EIGEN_DEVICE_FUNC
     Self& operator=(const OtherDerived& other)
     {
-      internal::TensorAssign<Self, const OtherDerived>::run(*this, other);
+      typedef TensorAssignOp<Self, const OtherDerived> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 

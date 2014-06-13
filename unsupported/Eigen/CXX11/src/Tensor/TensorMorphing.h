@@ -98,6 +98,13 @@ struct TensorEvaluator<const TensorReshapingOp<ArgType, NewDimensions>, Device>
 
   const Dimensions& dimensions() const { return m_dimensions; }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
+    m_impl.evalSubExprsIfNeeded();
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
+    m_impl.cleanup();
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
     return m_impl.coeff(index);
