@@ -65,6 +65,12 @@ static void test_contextual_eval(Context* context)
   context->out() = context->in1() + context->in2() * 3.14f + context->in1().constant(2.718f);
 }
 
+template <typename Context>
+static void test_forced_contextual_eval(Context* context)
+{
+  context->out() = (context->in1() + context->in2()).eval() * 3.14f + context->in1().constant(2.718f);
+}
+
 static void test_cpu() {
   Eigen::Tensor<float, 3> in1(Eigen::array<int, 3>(2,3,7));
   Eigen::Tensor<float, 3> in2(Eigen::array<int, 3>(2,3,7));
@@ -72,13 +78,22 @@ static void test_cpu() {
 
   in1.setRandom();
   in2.setRandom();
+
   CPUContext context(in1, in2, out);
   test_contextual_eval(&context);
-
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f + 2.718f);
+      }
+    }
+  }
+
+  test_forced_contextual_eval(&context);
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), (in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k))) * 3.14f + 2.718f);
       }
     }
   }
@@ -111,12 +126,21 @@ static void test_gpu() {
 
   GPUContext context(gpu_in1, gpu_in2, gpu_out);
   test_contextual_eval(&context);
-
   cudaMemcpy(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost);
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f + 2.718f);
+      }
+    }
+  }
+
+  test_forced_contextual_eval(&context);
+  cudaMemcpy(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost);
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), (in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k))) * 3.14f + 2.718f);
       }
     }
   }
