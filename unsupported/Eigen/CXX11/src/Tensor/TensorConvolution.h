@@ -208,9 +208,9 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   array<Index, KernelDims> m_indexStride;
   array<Index, KernelDims> m_kernelStride;
-  Dimensions m_dimensions;
   TensorEvaluator<InputArgType, Device> m_inputImpl;
   TensorEvaluator<KernelArgType, Device> m_kernelImpl;
+  Dimensions m_dimensions;
 };
 
 
