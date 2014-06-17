@@ -129,7 +129,6 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
    MKLPREFIX##axpy(&n, &alpha_,(const MKLTYPE*)x, &incx, (MKLTYPE*)_res, &incy); \
 /* Non-square case - doesn't fit to MKL ?TRMV. Fall to default triangular product*/ \
    if (size<(std::max)(rows,cols)) { \
-     typedef Matrix<EIGTYPE, Dynamic, Dynamic> MatrixLhs; \
      if (ConjRhs) x_tmp = rhs.conjugate(); else x_tmp = rhs; \
      x = x_tmp.data(); \
      if (size<rows) { \
@@ -214,7 +213,6 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
    MKLPREFIX##axpy(&n, &alpha_,(const MKLTYPE*)x, &incx, (MKLTYPE*)_res, &incy); \
 /* Non-square case - doesn't fit to MKL ?TRMV. Fall to default triangular product*/ \
    if (size<(std::max)(rows,cols)) { \
-     typedef Matrix<EIGTYPE, Dynamic, Dynamic> MatrixLhs; \
      if (ConjRhs) x_tmp = rhs.conjugate(); else x_tmp = rhs; \
      x = x_tmp.data(); \
      if (size<rows) { \
