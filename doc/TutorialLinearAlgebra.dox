@@ -40,14 +40,16 @@ depending on your matrix and the trade-off you want to make:
     <tr>
         <th>Decomposition</th>
         <th>Method</th>
-        <th>Requirements on the matrix</th>
-        <th>Speed</th>
+        <th>Requirements<br/>on the matrix</th>
+        <th>Speed<br/> (small-to-medium)</th>
+        <th>Speed<br/> (large)</th>
         <th>Accuracy</th>
     </tr>
     <tr>
         <td>PartialPivLU</td>
         <td>partialPivLu()</td>
         <td>Invertible</td>
+        <td>++</td>
         <td>++</td>
         <td>+</td>
     </tr>
@@ -56,6 +58,7 @@ depending on your matrix and the trade-off you want to make:
         <td>fullPivLu()</td>
         <td>None</td>
         <td>-</td>
+        <td>- -</td>
         <td>+++</td>
     </tr>
     <tr>
@@ -63,20 +66,23 @@ depending on your matrix and the trade-off you want to make:
         <td>householderQr()</td>
         <td>None</td>
         <td>++</td>
+        <td>++</td>
         <td>+</td>
     </tr>
     <tr class="alt">
         <td>ColPivHouseholderQR</td>
         <td>colPivHouseholderQr()</td>
         <td>None</td>
-        <td>+</td>
         <td>++</td>
+        <td>-</td>
+        <td>+++</td>
     </tr>
     <tr>
         <td>FullPivHouseholderQR</td>
         <td>fullPivHouseholderQr()</td>
         <td>None</td>
         <td>-</td>
+        <td>- -</td>
         <td>+++</td>
     </tr>
     <tr class="alt">
@@ -84,21 +90,31 @@ depending on your matrix and the trade-off you want to make:
         <td>llt()</td>
         <td>Positive definite</td>
         <td>+++</td>
+        <td>+++</td>
         <td>+</td>
     </tr>
     <tr>
         <td>LDLT</td>
         <td>ldlt()</td>
-        <td>Positive or negative semidefinite</td>
+        <td>Positive or negative<br/> semidefinite</td>
         <td>+++</td>
+        <td>+</td>
         <td>++</td>
+    </tr>
+    <tr class="alt">
+        <td>JacobiSVD</td>
+        <td>jacobiSvd()</td>
+        <td>None</td>
+        <td>- -</td>
+        <td>- - -</td>
+        <td>+++</td>
     </tr>
 </table>
 
 All of these decompositions offer a solve() method that works as in the above example.
 
 For example, if your matrix is positive definite, the above table says that a very good
-choice is then the LDLT decomposition. Here's an example, also demonstrating that using a general
+choice is then the LLT or LDLT decomposition. Here's an example, also demonstrating that using a general
 matrix (not a vector) as right hand side is possible.
 
 <table class="example">
