@@ -320,6 +320,26 @@ struct functor_traits<scalar_asin_op<Scalar> >
   };
 };
 
+
+/** \internal
+  * \brief Template functor to compute the atan of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::atan()
+  */
+template<typename Scalar> struct scalar_atan_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_atan_op)
+  inline const Scalar operator() (const Scalar& a) const { using std::atan; return atan(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::patan(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_atan_op<Scalar> >
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasATan
+  };
+};
+
 /** \internal
   * \brief Template functor to compute the inverse of a scalar
   * \sa class CwiseUnaryOp, Cwise::inverse()
