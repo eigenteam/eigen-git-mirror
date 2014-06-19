@@ -143,6 +143,9 @@ tan() const
 
 /** \returns an expression of the coefficient-wise arc tan of *this.
   *
+  * Example: \include Cwise_atan.cpp
+  * Output: \verbinclude Cwise_atan.out
+  *
   * \sa cos(), sin(), tan()
   */
 inline const CwiseUnaryOp<internal::scalar_atan_op<Scalar>, Derived>
