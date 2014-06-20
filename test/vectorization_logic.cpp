@@ -232,12 +232,8 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
             Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>
             >(DefaultTraversal,CompleteUnrolling)));
 
-<<<<<<< local
-    VERIFY((test_assign(Matrix11(), Matrix11().lazyProduct(Matrix11()), InnerVectorizedTraversal, CompleteUnrolling)));
-=======
     VERIFY((test_assign(Matrix11(), Matrix<Scalar,PacketSize,EIGEN_PLAIN_ENUM_MIN(2,PacketSize)>()*Matrix<Scalar,EIGEN_PLAIN_ENUM_MIN(2,PacketSize),PacketSize>(),
                         PacketSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD?DefaultTraversal:InnerVectorizedTraversal, CompleteUnrolling)));
->>>>>>> other
     #endif
 
     VERIFY(test_assign(MatrixXX(10,10),MatrixXX(20,20).block(10,10,2,3),
