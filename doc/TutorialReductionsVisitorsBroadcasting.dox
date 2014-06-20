@@ -32,7 +32,7 @@ Eigen also provides the \link MatrixBase::norm() norm() \endlink method, which r
 
 These operations can also operate on matrices; in that case, a n-by-p matrix is seen as a vector of size (n*p), so for example the \link MatrixBase::norm() norm() \endlink method returns the "Frobenius" or "Hilbert-Schmidt" norm. We refrain from speaking of the \f$\ell^2\f$ norm of a matrix because that can mean different things.
 
-If you want other \f$\ell^p\f$ norms, use the \link MatrixBase::lpNorm() lpNnorm<p>() \endlink method. The template parameter \a p can take the special value \a Infinity if you want the \f$\ell^\infty\f$ norm, which is the maximum of the absolute values of the coefficients.
+If you want other \f$\ell^p\f$ norms, use the \link MatrixBase::lpNorm() lpNorm<p>() \endlink method. The template parameter \a p can take the special value \a Infinity if you want the \f$\ell^\infty\f$ norm, which is the maximum of the absolute values of the coefficients.
 
 The following example demonstrates these methods.
 

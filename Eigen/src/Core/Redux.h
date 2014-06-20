@@ -325,10 +325,16 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
   };
   static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
-    Scalar res = func.predux(redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
-    if (VectorizedSize != Size)
-      res = func(res,redux_novec_unroller<Func, Derived, VectorizedSize, Size-VectorizedSize>::run(mat,func));
-    return res;
+    eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
+    if (VectorizedSize > 0) {
+      Scalar res = func.predux(redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
+      if (VectorizedSize != Size)
+        res = func(res,redux_novec_unroller<Func, Derived, VectorizedSize, Size-VectorizedSize>::run(mat,func));
+      return res;
+    }
+    else {
+      return redux_novec_unroller<Func, Derived, 0, Size>::run(mat,func);
+    }
   }
 };
 

@@ -196,6 +196,18 @@ if(NOT MSVC)
     message(STATUS "Enabling SSE4.2 in tests/examples")
   endif()
 
+  option(EIGEN_TEST_AVX "Enable/Disable AVX in tests/examples" OFF)
+  if(EIGEN_TEST_AVX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
+    message(STATUS "Enabling AVX in tests/examples")
+  endif()
+
+  option(EIGEN_TEST_FMA "Enable/Disable FMA in tests/examples" OFF)
+  if(EIGEN_TEST_FMA)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfma")
+    message(STATUS "Enabling FMA in tests/examples")
+  endif()
+
   option(EIGEN_TEST_ALTIVEC "Enable/Disable AltiVec in tests/examples" OFF)
   if(EIGEN_TEST_ALTIVEC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maltivec -mabi=altivec")
@@ -437,12 +449,12 @@ set ( EIGEN_INCLUDE_DIR ${INCLUDE_INSTALL_DIR} )
 set ( EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} )
 set ( EIGEN_ROOT_DIR ${CMAKE_INSTALL_PREFIX} )
 
-configure_file ( ${CMAKE_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
                  ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
                  @ONLY ESCAPE_QUOTES
                )
 
-install ( FILES ${CMAKE_SOURCE_DIR}/cmake/UseEigen3.cmake
+install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
           DESTINATION ${EIGEN_CONFIG_CMAKE_PATH}
         )

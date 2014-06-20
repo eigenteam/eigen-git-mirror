@@ -41,7 +41,7 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * Example: \include LLT_example.cpp
   * Output: \verbinclude LLT_example.out
   *    
-  * \sa MatrixBase::llt(), class LDLT
+  * \sa MatrixBase::llt(), SelfAdjointView::llt(), class LDLT
   */
  /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
@@ -115,7 +115,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       * Example: \include LLT_solve.cpp
       * Output: \verbinclude LLT_solve.out
       *
-      * \sa solveInPlace(), MatrixBase::llt()
+      * \sa solveInPlace(), MatrixBase::llt(), SelfAdjointView::llt()
       */
 #ifdef EIGEN_TEST_EVALUATORS
     template<typename Rhs>
@@ -498,6 +498,7 @@ MatrixType LLT<MatrixType,_UpLo>::reconstructedMatrix() const
 #ifndef __CUDACC__
 /** \cholesky_module
   * \returns the LLT decomposition of \c *this
+  * \sa SelfAdjointView::llt()
   */
 template<typename Derived>
 inline const LLT<typename MatrixBase<Derived>::PlainObject>
@@ -508,6 +509,7 @@ MatrixBase<Derived>::llt() const
 
 /** \cholesky_module
   * \returns the LLT decomposition of \c *this
+  * \sa SelfAdjointView::llt()
   */
 template<typename MatrixType, unsigned int UpLo>
 inline const LLT<typename SelfAdjointView<MatrixType, UpLo>::PlainObject, UpLo>

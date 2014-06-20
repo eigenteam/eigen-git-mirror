@@ -141,6 +141,12 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,Co
     alignedSize = 0;
     alignedStart = 0;
   }
+  else if(LhsPacketSize > 4)
+  {
+    // TODO: extend the code to support aligned loads whenever possible when LhsPacketSize > 4.
+    // Currently, it seems to be better to perform unaligned loads anyway
+    alignmentPattern = NoneAligned;
+  }
   else if (LhsPacketSize>1)
   {
     eigen_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(LhsPacket)==0 || size<LhsPacketSize);
@@ -405,6 +411,11 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
     alignedSize = 0;
     alignedStart = 0;
   }
+  else if(LhsPacketSize > 4)
+  {
+    // TODO: extend the code to support aligned loads whenever possible when LhsPacketSize > 4.
+    alignmentPattern = NoneAligned;
+  }
   else if (LhsPacketSize>1)
   {
     eigen_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(LhsPacket)==0  || depth<LhsPacketSize);
@@ -442,7 +453,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
   Index rowBound = ((rows-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (Index i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
-    EIGEN_ALIGN16 ResScalar tmp0 = ResScalar(0);
+    EIGEN_ALIGN_DEFAULT ResScalar tmp0 = ResScalar(0);
     ResScalar tmp1 = ResScalar(0), tmp2 = ResScalar(0), tmp3 = ResScalar(0);
 
     // this helps the compiler generating good binary code
@@ -551,7 +562,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,Co
   {
     for (Index i=start; i<end; ++i)
     {
-      EIGEN_ALIGN16 ResScalar tmp0 = ResScalar(0);
+      EIGEN_ALIGN_DEFAULT ResScalar tmp0 = ResScalar(0);
       ResPacket ptmp0 = pset1<ResPacket>(tmp0);
       const LhsScalar* lhs0 = lhs + i*lhsStride;
       // process first unaligned result's coeffs

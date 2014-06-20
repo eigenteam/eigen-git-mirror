@@ -166,11 +166,10 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(internal::traits<Derived>::Flags&PacketAccessBit,
                                         internal::inner_stride_at_compile_time<Derived>::ret==1),
                           PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
-      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::Flags&AlignedBit, (size_t(m_data) % 16) == 0) && "data is not aligned");
+      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::Flags&AlignedBit, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
 #else
-      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::IsAligned, (size_t(m_data) % 16) == 0) && "data is not aligned");
+      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::IsAligned, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
 #endif
-      
     }
 
     PointerType m_data;
@@ -254,6 +253,8 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
 
     using Base::Base::operator=;
 };
+
+#undef EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS
 
 } // end namespace Eigen
 

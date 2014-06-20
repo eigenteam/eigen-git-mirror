@@ -22,13 +22,18 @@ struct Packet2cf
   __m128  v;
 };
 
+// Use the packet_traits defined in AVX/PacketMath.h instead if we're going
+// to leverage AVX instructions.
+#ifndef EIGEN_VECTORIZE_AVX
 template<> struct packet_traits<std::complex<float> >  : default_packet_traits
 {
   typedef Packet2cf type;
+  typedef Packet2cf half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 2,
+    HasHalfPacket = 0,
 
     HasAdd    = 1,
     HasSub    = 1,
@@ -42,8 +47,9 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
     HasSetLinear = 0
   };
 };
+#endif
 
-template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
+template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; typedef Packet2cf half; };
 
 template<> EIGEN_STRONG_INLINE Packet2cf padd<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_add_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf psub<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_sub_ps(a.v,b.v)); }
@@ -104,8 +110,23 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
 
 template<> EIGEN_STRONG_INLINE Packet2cf ploaddup<Packet2cf>(const std::complex<float>* from) { return pset1<Packet2cf>(*from); }
 
-template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore(&numext::real_ref(*to), from.v); }
-template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(&numext::real_ref(*to), from.v); }
+template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore(&numext::real_ref(*to), Packet4f(from.v)); }
+template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(&numext::real_ref(*to), Packet4f(from.v)); }
+
+
+template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, int stride)
+{
+  return Packet2cf(_mm_set_ps(std::imag(from[1*stride]), std::real(from[1*stride]),
+                              std::imag(from[0*stride]), std::real(from[0*stride])));
+}
+
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, int stride)
+{
+  to[stride*0] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 0)),
+                                     _mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 1)));
+  to[stride*1] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 2)),
+                                     _mm_cvtss_f32(_mm_shuffle_ps(from.v, from.v, 3)));
+}
 
 template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::complex<float> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 
@@ -124,7 +145,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Pack
   #endif
 }
 
-template<> EIGEN_STRONG_INLINE Packet2cf preverse(const Packet2cf& a) { return Packet2cf(_mm_castpd_ps(preverse(_mm_castps_pd(a.v)))); }
+template<> EIGEN_STRONG_INLINE Packet2cf preverse(const Packet2cf& a) { return Packet2cf(_mm_castpd_ps(preverse(Packet2d(_mm_castps_pd(a.v))))); }
 
 template<> EIGEN_STRONG_INLINE std::complex<float> predux<Packet2cf>(const Packet2cf& a)
 {
@@ -214,7 +235,7 @@ template<> struct conj_helper<Packet4f, Packet2cf, false,false>
   { return padd(c, pmul(x,y)); }
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet4f& x, const Packet2cf& y) const
-  { return Packet2cf(Eigen::internal::pmul(x, y.v)); }
+  { return Packet2cf(Eigen::internal::pmul<Packet4f>(x, y.v)); }
 };
 
 template<> struct conj_helper<Packet2cf, Packet4f, false,false>
@@ -223,7 +244,7 @@ template<> struct conj_helper<Packet2cf, Packet4f, false,false>
   { return padd(c, pmul(x,y)); }
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& x, const Packet4f& y) const
-  { return Packet2cf(Eigen::internal::pmul(x.v, y)); }
+  { return Packet2cf(Eigen::internal::pmul<Packet4f>(x.v, y)); }
 };
 
 template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
@@ -248,13 +269,18 @@ struct Packet1cd
   __m128d  v;
 };
 
+// Use the packet_traits defined in AVX/PacketMath.h instead if we're going
+// to leverage AVX instructions.
+#ifndef EIGEN_VECTORIZE_AVX
 template<> struct packet_traits<std::complex<double> >  : default_packet_traits
 {
   typedef Packet1cd type;
+  typedef Packet1cd half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 0,
     size = 1,
+    HasHalfPacket = 0,
 
     HasAdd    = 1,
     HasSub    = 1,
@@ -268,12 +294,13 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
     HasSetLinear = 0
   };
 };
+#endif
 
-template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1}; };
+template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1}; typedef Packet1cd half; };
 
 template<> EIGEN_STRONG_INLINE Packet1cd padd<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_add_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd psub<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_sub_pd(a.v,b.v)); }
-template<> EIGEN_STRONG_INLINE Packet1cd pnegate(const Packet1cd& a) { return Packet1cd(pnegate(a.v)); }
+template<> EIGEN_STRONG_INLINE Packet1cd pnegate(const Packet1cd& a) { return Packet1cd(pnegate(Packet2d(a.v))); }
 template<> EIGEN_STRONG_INLINE Packet1cd pconj(const Packet1cd& a)
 {
   const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
@@ -311,8 +338,8 @@ template<> EIGEN_STRONG_INLINE Packet1cd pset1<Packet1cd>(const std::complex<dou
 template<> EIGEN_STRONG_INLINE Packet1cd ploaddup<Packet1cd>(const std::complex<double>* from) { return pset1<Packet1cd>(*from); }
 
 // FIXME force unaligned store, this is a temporary fix
-template<> EIGEN_STRONG_INLINE void pstore <std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE pstore((double*)to, from.v); }
-template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu((double*)to, from.v); }
+template<> EIGEN_STRONG_INLINE void pstore <std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE pstore((double*)to, Packet2d(from.v)); }
+template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu((double*)to, Packet2d(from.v)); }
 
 template<> EIGEN_STRONG_INLINE void prefetch<std::complex<double> >(const std::complex<double> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 
@@ -410,7 +437,7 @@ template<> struct conj_helper<Packet2d, Packet1cd, false,false>
   { return padd(c, pmul(x,y)); }
 
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet2d& x, const Packet1cd& y) const
-  { return Packet1cd(Eigen::internal::pmul(x, y.v)); }
+  { return Packet1cd(Eigen::internal::pmul<Packet2d>(x, y.v)); }
 };
 
 template<> struct conj_helper<Packet1cd, Packet2d, false,false>
@@ -419,7 +446,7 @@ template<> struct conj_helper<Packet1cd, Packet2d, false,false>
   { return padd(c, pmul(x,y)); }
 
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& x, const Packet2d& y) const
-  { return Packet1cd(Eigen::internal::pmul(x.v, y)); }
+  { return Packet1cd(Eigen::internal::pmul<Packet2d>(x.v, y)); }
 };
 
 template<> EIGEN_STRONG_INLINE Packet1cd pdiv<Packet1cd>(const Packet1cd& a, const Packet1cd& b)
@@ -432,7 +459,17 @@ template<> EIGEN_STRONG_INLINE Packet1cd pdiv<Packet1cd>(const Packet1cd& a, con
 
 EIGEN_STRONG_INLINE Packet1cd pcplxflip/*<Packet1cd>*/(const Packet1cd& x)
 {
-  return Packet1cd(preverse(x.v));
+  return Packet1cd(preverse(Packet2d(x.v)));
+}
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet2cf,2>& kernel) {
+  __m128d w1 = _mm_castps_pd(kernel.packet[0].v);
+  __m128d w2 = _mm_castps_pd(kernel.packet[1].v);
+
+  __m128 tmp = _mm_castpd_ps(_mm_unpackhi_pd(w1, w2));
+  kernel.packet[0].v = _mm_castpd_ps(_mm_unpacklo_pd(w1, w2));
+  kernel.packet[1].v = tmp;
 }
 
 } // end namespace internal

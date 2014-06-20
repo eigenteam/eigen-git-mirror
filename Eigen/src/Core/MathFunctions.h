@@ -669,6 +669,15 @@ bool (isfinite)(const T& x)
   return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
 }
 
+template<typename T>
+EIGEN_DEVICE_FUNC
+bool (isfinite)(const std::complex<T>& x)
+{
+  using std::real;
+  using std::imag;
+  return isfinite(real(x)) && isfinite(imag(x));
+}
+
 } // end namespace numext
 
 namespace internal {

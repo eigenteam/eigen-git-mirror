@@ -57,8 +57,8 @@ int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
 
   if(beta!=Scalar(1))
   {
-    if(beta==Scalar(0)) vector(actual_y, *n).setZero();
-    else                vector(actual_y, *n) *= beta;
+    if(beta==Scalar(0)) make_vector(actual_y, *n).setZero();
+    else                make_vector(actual_y, *n) *= beta;
   }
 
   if(alpha!=Scalar(0))

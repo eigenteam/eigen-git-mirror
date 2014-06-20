@@ -28,6 +28,7 @@ struct Packet2cf
 template<> struct packet_traits<std::complex<float> >  : default_packet_traits
 {
   typedef Packet2cf type;
+  typedef Packet2cf half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
@@ -46,7 +47,7 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
   };
 };
 
-template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
+template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; typedef Packet2cf half; };
 
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
@@ -109,6 +110,22 @@ template<> EIGEN_STRONG_INLINE Packet2cf ploaddup<Packet2cf>(const std::complex<
 
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore((float*)to, from.v); }
 template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu((float*)to, from.v); }
+
+template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, int stride)
+{
+  Packet4f res;
+  res = vsetq_lane_f32(std::real(from[0*stride]), res, 0);
+  res = vsetq_lane_f32(std::imag(from[0*stride]), res, 1);
+  res = vsetq_lane_f32(std::real(from[1*stride]), res, 2);
+  res = vsetq_lane_f32(std::imag(from[1*stride]), res, 3);
+  return Packet2cf(res);
+}
+
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, int stride)
+{
+  to[stride*0] = std::complex<float>(vgetq_lane_f32(from.v, 0), vgetq_lane_f32(from.v, 1));
+  to[stride*1] = std::complex<float>(vgetq_lane_f32(from.v, 2), vgetq_lane_f32(from.v, 3));
+}
 
 template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::complex<float> *   addr) { EIGEN_ARM_PREFETCH((float *)addr); }
 
@@ -245,6 +262,14 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
 
   return Packet2cf(pdiv(res.v, vaddq_f32(s,rev_s)));
 }
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet2cf,2>& kernel) {
+  float32x4_t tmp = vcombine_f32(vget_high_f32(kernel.packet[0].v), vget_high_f32(kernel.packet[1].v));
+  kernel.packet[0].v = vcombine_f32(vget_low_f32(kernel.packet[0].v), vget_low_f32(kernel.packet[1].v));
+  kernel.packet[1].v = tmp;
+}
+
 
 } // end namespace internal
 

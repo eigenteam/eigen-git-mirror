@@ -140,7 +140,16 @@ x2 = solver.solve(b2);
 For direct methods, the solution are computed at the machine precision. Sometimes, the solution need not be too accurate. In this case, the iterative methods are more suitable and the desired accuracy can be set before the solve step using \b setTolerance(). For all the available functions, please, refer to the documentation of the \link IterativeLinearSolvers_Module Iterative solvers module \endlink. 
 
 \section BenchmarkRoutine
-Most of the time, all you need is to know how much time it will take to qolve your system, and hopefully, what is the most suitable solver. In Eigen, we provide a benchmark routine that can be used for this purpose. It is very easy to use. In the build directory, navigate to bench/spbench and compile the routine by typing \b make \e spbenchsolver. Run it with --help option to get the list of all available options. Basically, the matrices to test should be in <a href="http://math.nist.gov/MatrixMarket/formats.html">MatrixMarket Coordinate format</a>, and the routine returns the statistics from all available solvers in Eigen. 
+Most of the time, all you need is to know how much time it will take to qolve your system, and hopefully, what is the most suitable solver. In Eigen, we provide a benchmark routine that can be used for this purpose. It is very easy to use. In the build directory, navigate to bench/spbench and compile the routine by typing \b make \e spbenchsolver. Run it with --help option to get the list of all available options. Basically, the matrices to test should be in <a href="http://math.nist.gov/MatrixMarket/formats.html">MatrixMarket Coordinate format</a>, and the routine returns the statistics from all available solvers in Eigen.
+
+To export your matrices and right-hand-side vectors in the matrix-market format, you can the the unsupported SparseExtra module:
+\code
+#include <unsupported/Eigen/SparseExtra>
+...
+Eigen::saveMarket(A, "filename.mtx");
+Eigen::saveMarket(A, "filename_SPD.mtx", Eigen::Symmetric); // if A is symmetric-positive-definite
+Eigen::saveMarketVector(B, "filename_b.mtx");
+\endcode
 
 The following table gives an example of XML statistics from several Eigen built-in and external solvers. 
 <TABLE border="1">

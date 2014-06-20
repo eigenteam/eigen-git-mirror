@@ -63,7 +63,7 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
   x = _mm_or_ps(x, p4f_half);
 
   emm0 = _mm_sub_epi32(emm0, p4i_0x7f);
-  Packet4f e = padd(_mm_cvtepi32_ps(emm0), p4f_1);
+  Packet4f e = padd(Packet4f(_mm_cvtepi32_ps(emm0)), p4f_1);
 
   /* part2:
      if( x < SQRTHF ) {
@@ -72,9 +72,9 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
      } else { x = x - 1.0; }
   */
   Packet4f mask = _mm_cmplt_ps(x, p4f_cephes_SQRTHF);
-  Packet4f tmp = _mm_and_ps(x, mask);
+  Packet4f tmp = pand(x, mask);
   x = psub(x, p4f_1);
-  e = psub(e, _mm_and_ps(p4f_1, mask));
+  e = psub(e, pand(p4f_1, mask));
   x = padd(x, tmp);
 
   Packet4f x2 = pmul(x,x);
@@ -167,7 +167,7 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
   emm0 = _mm_cvttps_epi32(fx);
   emm0 = _mm_add_epi32(emm0, p4i_0x7f);
   emm0 = _mm_slli_epi32(emm0, 23);
-  return pmul(y, _mm_castsi128_ps(emm0));
+  return pmul(y, Packet4f(_mm_castsi128_ps(emm0)));
 }
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d pexp<Packet2d>(const Packet2d& _x)
@@ -241,7 +241,7 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
   emm0 = _mm_add_epi32(emm0, p4i_1023_0);
   emm0 = _mm_slli_epi32(emm0, 20);
   emm0 = _mm_shuffle_epi32(emm0, _MM_SHUFFLE(1,2,0,3));
-  return pmul(x, _mm_castsi128_pd(emm0));
+  return pmul(x, Packet2d(_mm_castsi128_pd(emm0)));
 }
 
 /* evaluation of 4 sines at onces, using SSE2 intrinsics.

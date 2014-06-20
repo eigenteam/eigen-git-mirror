@@ -10,10 +10,12 @@
 #include "main.h"
 
 #if EIGEN_ALIGN
-#define ALIGNMENT 16
+#define ALIGNMENT EIGEN_ALIGN_BYTES
 #else
 #define ALIGNMENT 1
 #endif
+
+typedef Matrix<float,8,1> Vector8f;
 
 void check_handmade_aligned_malloc()
 {
@@ -68,7 +70,7 @@ struct MyStruct
 {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   char dummychar;
-  Vector4f avec;
+  Vector8f avec;
 };
 
 class MyClassA
@@ -76,15 +78,19 @@ class MyClassA
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     char dummychar;
-    Vector4f avec;
+    Vector8f avec;
 };
 
 template<typename T> void check_dynaligned()
 {
-  T* obj = new T;
-  VERIFY(T::NeedsToAlign==1);
-  VERIFY(size_t(obj)%ALIGNMENT==0);
-  delete obj;
+  // TODO have to be updated once we support multiple alignment values
+  if(T::SizeAtCompileTime % ALIGNMENT == 0)
+  {
+    T* obj = new T;
+    VERIFY(T::NeedsToAlign==1);
+    VERIFY(size_t(obj)%ALIGNMENT==0);
+    delete obj;
+  }
 }
 
 void test_dynalloc()
@@ -102,6 +108,7 @@ void test_dynalloc()
     CALL_SUBTEST(check_dynaligned<Matrix4f>() );
     CALL_SUBTEST(check_dynaligned<Vector4d>() );
     CALL_SUBTEST(check_dynaligned<Vector4i>() );
+    CALL_SUBTEST(check_dynaligned<Vector8f>() );
   }
   
   // check static allocation, who knows ?

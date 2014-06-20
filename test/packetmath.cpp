@@ -104,11 +104,12 @@ template<typename Scalar> void packetmath()
   const int PacketSize = internal::packet_traits<Scalar>::size;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
-  const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Packet packets[PacketSize*2];
-  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  const int max_size = PacketSize > 4 ? PacketSize : 4;
+  const int size = PacketSize*max_size;
+  EIGEN_ALIGN_DEFAULT Scalar data1[size];
+  EIGEN_ALIGN_DEFAULT Scalar data2[size];
+  EIGEN_ALIGN_DEFAULT Packet packets[PacketSize*2];
+  EIGEN_ALIGN_DEFAULT Scalar ref[size];
   RealScalar refvalue = 0;
   for (int i=0; i<size; ++i)
   {
@@ -140,6 +141,10 @@ template<typename Scalar> void packetmath()
     else if (offset==1) internal::palign<1>(packets[0], packets[1]);
     else if (offset==2) internal::palign<2>(packets[0], packets[1]);
     else if (offset==3) internal::palign<3>(packets[0], packets[1]);
+    else if (offset==4) internal::palign<4>(packets[0], packets[1]);
+    else if (offset==5) internal::palign<5>(packets[0], packets[1]);
+    else if (offset==6) internal::palign<6>(packets[0], packets[1]);
+    else if (offset==7) internal::palign<7>(packets[0], packets[1]);
     internal::pstore(data2, packets[0]);
 
     for (int i=0; i<PacketSize; ++i)
@@ -166,6 +171,28 @@ template<typename Scalar> void packetmath()
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
   }
   
+  {
+    for (int i=0; i<PacketSize*4; ++i)
+      ref[i] = data1[i/PacketSize];
+    Packet A0, A1, A2, A3;
+    internal::pbroadcast4<Packet>(data1, A0, A1, A2, A3);
+    internal::pstore(data2+0*PacketSize, A0);
+    internal::pstore(data2+1*PacketSize, A1);
+    internal::pstore(data2+2*PacketSize, A2);
+    internal::pstore(data2+3*PacketSize, A3);
+    VERIFY(areApprox(ref, data2, 4*PacketSize) && "internal::pbroadcast4");
+  }
+  
+  {
+    for (int i=0; i<PacketSize*2; ++i)
+      ref[i] = data1[i/PacketSize];
+    Packet A0, A1;
+    internal::pbroadcast2<Packet>(data1, A0, A1);
+    internal::pstore(data2+0*PacketSize, A0);
+    internal::pstore(data2+1*PacketSize, A1);
+    VERIFY(areApprox(ref, data2, 2*PacketSize) && "internal::pbroadcast2");
+  }
+  
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
   
   if(PacketSize>1)
@@ -178,11 +205,30 @@ template<typename Scalar> void packetmath()
       VERIFY(areApprox(ref, data2, PacketSize) && "ploaddup");
     }
   }
+  if(PacketSize>2)
+  {
+    for(int offset=0;offset<4;++offset)
+    {
+      for(int i=0;i<PacketSize/4;++i)
+        ref[4*i+0] = ref[4*i+1] = ref[4*i+2] = ref[4*i+3] = data1[offset+i];
+      internal::pstore(data2,internal::ploadquad<Packet>(data1+offset));
+      VERIFY(areApprox(ref, data2, PacketSize) && "ploadquad");
+    }
+  }
 
   ref[0] = 0;
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
   VERIFY(isApproxAbs(ref[0], internal::predux(internal::pload<Packet>(data1)), refvalue) && "internal::predux");
+  
+  {
+    for (int i=0; i<4; ++i)
+      ref[i] = 0;
+    for (int i=0; i<PacketSize; ++i)
+      ref[i%4] += data1[i];
+    internal::pstore(data2, internal::predux4(internal::pload<Packet>(data1)));
+    VERIFY(areApprox(ref, data2, PacketSize>4?PacketSize/2:PacketSize) && "internal::predux4");
+  }
 
   ref[0] = 1;
   for (int i=0; i<PacketSize; ++i)
@@ -203,6 +249,18 @@ template<typename Scalar> void packetmath()
     ref[i] = data1[PacketSize-i-1];
   internal::pstore(data2, internal::preverse(internal::pload<Packet>(data1)));
   VERIFY(areApprox(ref, data2, PacketSize) && "internal::preverse");
+
+  internal::PacketBlock<Packet> kernel;
+  for (int i=0; i<PacketSize; ++i) {
+    kernel.packet[i] = internal::pload<Packet>(data1+i*PacketSize);
+  }
+  ptranspose(kernel);
+  for (int i=0; i<PacketSize; ++i) {
+    internal::pstore(data2, kernel.packet[i]);
+    for (int j = 0; j < PacketSize; ++j) {
+      VERIFY(isApproxAbs(data2[j], data1[i+j*PacketSize], refvalue) && "ptranspose");
+    }
+  }
 }
 
 template<typename Scalar> void packetmath_real()
@@ -212,9 +270,9 @@ template<typename Scalar> void packetmath_real()
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_DEFAULT Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_DEFAULT Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_DEFAULT Scalar ref[internal::packet_traits<Scalar>::size*4];
 
   for (int i=0; i<size; ++i)
   {
@@ -257,9 +315,9 @@ template<typename Scalar> void packetmath_notcomplex()
   typedef typename internal::packet_traits<Scalar>::type Packet;
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
-  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_DEFAULT Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_DEFAULT Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_DEFAULT Scalar ref[internal::packet_traits<Scalar>::size*4];
   
   Array<Scalar,Dynamic,1>::Map(data1, internal::packet_traits<Scalar>::size*4).setRandom();
 
@@ -317,10 +375,10 @@ template<typename Scalar> void packetmath_complex()
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[PacketSize*4];
-  EIGEN_ALIGN16 Scalar data2[PacketSize*4];
-  EIGEN_ALIGN16 Scalar ref[PacketSize*4];
-  EIGEN_ALIGN16 Scalar pval[PacketSize*4];
+  EIGEN_ALIGN_DEFAULT Scalar data1[PacketSize*4];
+  EIGEN_ALIGN_DEFAULT Scalar data2[PacketSize*4];
+  EIGEN_ALIGN_DEFAULT Scalar ref[PacketSize*4];
+  EIGEN_ALIGN_DEFAULT Scalar pval[PacketSize*4];
 
   for (int i=0; i<size; ++i)
   {
@@ -339,8 +397,38 @@ template<typename Scalar> void packetmath_complex()
     internal::pstore(pval,internal::pcplxflip(internal::pload<Packet>(data1)));
     VERIFY(areApprox(ref, pval, PacketSize) && "pcplxflip");
   }
-  
-  
+}
+
+template<typename Scalar> void packetmath_scatter_gather() {
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
+  EIGEN_ALIGN_DEFAULT Scalar data1[PacketSize];
+  RealScalar refvalue = 0;
+  for (int i=0; i<PacketSize; ++i) {
+    data1[i] = internal::random<Scalar>()/RealScalar(PacketSize);
+  }
+  EIGEN_ALIGN_DEFAULT Scalar buffer[PacketSize*11];
+  memset(buffer, 0, 11*sizeof(Packet));
+  Packet packet = internal::pload<Packet>(data1);
+  internal::pscatter<Scalar, Packet>(buffer, packet, 11);
+
+  for (int i = 0; i < PacketSize*11; ++i) {
+    if ((i%11) == 0) {
+      VERIFY(isApproxAbs(buffer[i], data1[i/11], refvalue) && "pscatter");
+    } else {
+      VERIFY(isApproxAbs(buffer[i], Scalar(0), refvalue) && "pscatter");
+    }
+  }
+
+  for (int i=0; i<PacketSize*7; ++i) {
+    buffer[i] = internal::random<Scalar>()/RealScalar(PacketSize);
+  }
+  packet = internal::pgather<Scalar, Packet>(buffer, 7);
+  internal::pstore(data1, packet);
+  for (int i = 0; i < PacketSize; ++i) {
+    VERIFY(isApproxAbs(data1[i], buffer[i*7], refvalue) && "pgather");
+  }
 }
 
 void test_packetmath()
@@ -349,8 +437,8 @@ void test_packetmath()
     CALL_SUBTEST_1( packetmath<float>() );
     CALL_SUBTEST_2( packetmath<double>() );
     CALL_SUBTEST_3( packetmath<int>() );
-    CALL_SUBTEST_1( packetmath<std::complex<float> >() );
-    CALL_SUBTEST_2( packetmath<std::complex<double> >() );
+    CALL_SUBTEST_4( packetmath<std::complex<float> >() );
+    CALL_SUBTEST_5( packetmath<std::complex<double> >() );
 
     CALL_SUBTEST_1( packetmath_notcomplex<float>() );
     CALL_SUBTEST_2( packetmath_notcomplex<double>() );
@@ -359,7 +447,13 @@ void test_packetmath()
     CALL_SUBTEST_1( packetmath_real<float>() );
     CALL_SUBTEST_2( packetmath_real<double>() );
 
-    CALL_SUBTEST_1( packetmath_complex<std::complex<float> >() );
-    CALL_SUBTEST_2( packetmath_complex<std::complex<double> >() );
+    CALL_SUBTEST_4( packetmath_complex<std::complex<float> >() );
+    CALL_SUBTEST_5( packetmath_complex<std::complex<double> >() );
+
+    CALL_SUBTEST_1( packetmath_scatter_gather<float>() );
+    CALL_SUBTEST_2( packetmath_scatter_gather<double>() );
+    CALL_SUBTEST_3( packetmath_scatter_gather<int>() );
+    CALL_SUBTEST_4( packetmath_scatter_gather<std::complex<float> >() );
+    CALL_SUBTEST_5( packetmath_scatter_gather<std::complex<double> >() );
   }
 }

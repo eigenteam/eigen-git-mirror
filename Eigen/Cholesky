@@ -10,9 +10,11 @@
   *
   *
   * This module provides two variants of the Cholesky decomposition for selfadjoint (hermitian) matrices.
-  * Those decompositions are accessible via the following MatrixBase methods:
-  *  - MatrixBase::llt(),
+  * Those decompositions are also accessible via the following methods:
+  *  - MatrixBase::llt()
   *  - MatrixBase::ldlt()
+  *  - SelfAdjointView::llt()
+  *  - SelfAdjointView::ldlt()
   *
   * \code
   * #include <Eigen/Cholesky>

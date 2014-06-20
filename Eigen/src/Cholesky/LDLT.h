@@ -43,7 +43,7 @@ namespace internal {
   * Remember that Cholesky decompositions are not rank-revealing. Also, do not use a Cholesky
   * decomposition to determine whether a system of equations has a solution.
   *
-  * \sa MatrixBase::ldlt(), class LLT
+  * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt(), class LLT
   */
 template<typename _MatrixType, int _UpLo> class LDLT
 {
@@ -179,7 +179,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * least-square solution of \f$ D y_3 = y_2 \f$ is computed. This does not mean that this function
       * computes the least-square solution of \f$ A x = b \f$ is \f$ A \f$ is singular.
       *
-      * \sa MatrixBase::ldlt()
+      * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt()
       */
 #ifdef EIGEN_TEST_EVALUATORS
     template<typename Rhs>
@@ -610,6 +610,7 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
 #ifndef __CUDACC__
 /** \cholesky_module
   * \returns the Cholesky decomposition with full pivoting without square root of \c *this
+  * \sa MatrixBase::ldlt()
   */
 template<typename MatrixType, unsigned int UpLo>
 inline const LDLT<typename SelfAdjointView<MatrixType, UpLo>::PlainObject, UpLo>
@@ -620,6 +621,7 @@ SelfAdjointView<MatrixType, UpLo>::ldlt() const
 
 /** \cholesky_module
   * \returns the Cholesky decomposition with full pivoting without square root of \c *this
+  * \sa SelfAdjointView::ldlt()
   */
 template<typename Derived>
 inline const LDLT<typename MatrixBase<Derived>::PlainObject>

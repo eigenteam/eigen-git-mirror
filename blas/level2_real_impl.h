@@ -51,8 +51,8 @@ int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *p
 
   if(beta!=Scalar(1))
   {
-    if(beta==Scalar(0)) vector(actual_y, *n).setZero();
-    else                vector(actual_y, *n) *= beta;
+    if(beta==Scalar(0)) make_vector(actual_y, *n).setZero();
+    else                make_vector(actual_y, *n) *= beta;
   }
 
   int code = UPLO(*uplo);
@@ -179,7 +179,7 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
 
   Scalar* x_cpy = get_compact_vector(x,*n,*incx);
   Scalar* y_cpy = get_compact_vector(y,*n,*incy);
-  
+
   int code = UPLO(*uplo);
   if(code>=2 || func[code]==0)
     return 0;
@@ -366,5 +366,3 @@ int EIGEN_BLAS_FUNC(ger)(int *m, int *n, Scalar *palpha, Scalar *px, int *incx, 
 
   return 1;
 }
-
-
