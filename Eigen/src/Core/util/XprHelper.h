@@ -465,6 +465,15 @@ struct dense_xpr_base<Derived, ArrayXpr>
   typedef ArrayBase<Derived> type;
 };
 
+template<typename Derived, typename XprKind = typename traits<Derived>::XprKind, typename StorageKind = typename traits<Derived>::StorageKind>
+struct generic_xpr_base;
+
+template<typename Derived, typename XprKind>
+struct generic_xpr_base<Derived, XprKind, Dense>
+{
+  typedef typename dense_xpr_base<Derived,XprKind>::type type;
+};
+
 /** \internal Helper base class to add a scalar multiple operator
   * overloads for complex types */
 template<typename Derived,typename Scalar,typename OtherScalar,

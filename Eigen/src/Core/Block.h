@@ -344,6 +344,9 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
   : public MapBase<Block<XprType, BlockRows, BlockCols, InnerPanel> >
 {
     typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
+    enum {
+      XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0
+    };
   public:
 
     typedef MapBase<BlockType> Base;
@@ -354,9 +357,8 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
       */
     EIGEN_DEVICE_FUNC
     inline BlockImpl_dense(XprType& xpr, Index i)
-      : Base(internal::const_cast_ptr(&xpr.coeffRef(
-              (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0,
-              (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0)),
+      : Base(xpr.data() + i * (    ((BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) && (!XprTypeIsRowMajor)) 
+                                || ((BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) && ( XprTypeIsRowMajor)) ? xpr.innerStride() : xpr.outerStride()),
              BlockRows==1 ? 1 : xpr.rows(),
              BlockCols==1 ? 1 : xpr.cols()),
         m_xpr(xpr)
@@ -368,7 +370,8 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
       */
     EIGEN_DEVICE_FUNC
     inline BlockImpl_dense(XprType& xpr, Index startRow, Index startCol)
-      : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol))), m_xpr(xpr)
+      : Base(xpr.data()+xpr.innerStride()*(XprTypeIsRowMajor?startCol:startRow) + xpr.outerStride()*(XprTypeIsRowMajor?startRow:startCol)),
+        m_xpr(xpr)
     {
       init();
     }
@@ -379,7 +382,7 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
     inline BlockImpl_dense(XprType& xpr,
           Index startRow, Index startCol,
           Index blockRows, Index blockCols)
-      : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol)), blockRows, blockCols),
+      : Base(xpr.data()+xpr.innerStride()*(XprTypeIsRowMajor?startCol:startRow) + xpr.outerStride()*(XprTypeIsRowMajor?startRow:startCol), blockRows, blockCols),
         m_xpr(xpr)
     {
       init();

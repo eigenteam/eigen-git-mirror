@@ -92,6 +92,34 @@ Derived& DenseBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
   return derived();
 }
 
+#ifdef EIGEN_TEST_EVALUATORS
+namespace internal {
+
+template<typename Derived>
+struct evaluator<ReturnByValue<Derived> >
+  : public evaluator<typename internal::traits<Derived>::ReturnType>::type
+{
+  typedef ReturnByValue<Derived> XprType;
+  typedef typename internal::traits<Derived>::ReturnType PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+  
+  typedef evaluator type;
+  typedef evaluator nestedType;
+
+  evaluator(const XprType& xpr) 
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    xpr.evalTo(m_result);
+  }
+
+protected:
+  PlainObject m_result;
+};
+
+} // end namespace internal
+#endif
+
 } // end namespace Eigen
 
 #endif // EIGEN_RETURNBYVALUE_H

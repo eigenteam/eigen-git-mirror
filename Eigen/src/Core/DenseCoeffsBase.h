@@ -97,8 +97,12 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
     {
       eigen_internal_assert(row >= 0 && row < rows()
-                        && col >= 0 && col < cols());
+                         && col >= 0 && col < cols());
+#ifndef EIGEN_TEST_EVALUATORS
       return derived().coeff(row, col);
+#else
+      return typename internal::evaluator<Derived>::type(derived()).coeff(row,col);
+#endif
     }
 
     EIGEN_DEVICE_FUNC
@@ -117,7 +121,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     {
       eigen_assert(row >= 0 && row < rows()
           && col >= 0 && col < cols());
-      return derived().coeff(row, col);
+      return coeff(row, col);
     }
 
     /** Short version: don't use this function, use
@@ -140,7 +144,11 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     coeff(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
+#ifndef EIGEN_TEST_EVALUATORS
       return derived().coeff(index);
+#else
+      return typename internal::evaluator<Derived>::type(derived()).coeff(index);
+#endif
     }
 
 
@@ -161,7 +169,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
                           THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
       #endif
       eigen_assert(index >= 0 && index < size());
-      return derived().coeff(index);
+      return coeff(index);
     }
 
     /** \returns the coefficient at given index.
@@ -179,7 +187,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     operator()(Index index) const
     {
       eigen_assert(index >= 0 && index < size());
-      return derived().coeff(index);
+      return coeff(index);
     }
 
     /** equivalent to operator[](0).  */
@@ -219,9 +227,12 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketReturnType packet(Index row, Index col) const
     {
-      eigen_internal_assert(row >= 0 && row < rows()
-                      && col >= 0 && col < cols());
+      eigen_internal_assert(row >= 0 && row < rows() && col >= 0 && col < cols());
+#ifndef EIGEN_TEST_EVALUATORS
       return derived().template packet<LoadMode>(row,col);
+#else
+      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode>(row,col);
+#endif
     }
 
 
@@ -247,7 +258,11 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
+#ifndef EIGEN_TEST_EVALUATORS
       return derived().template packet<LoadMode>(index);
+#else
+      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode>(index);
+#endif
     }
 
   protected:
@@ -327,8 +342,12 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     EIGEN_STRONG_INLINE Scalar& coeffRef(Index row, Index col)
     {
       eigen_internal_assert(row >= 0 && row < rows()
-                        && col >= 0 && col < cols());
+                         && col >= 0 && col < cols());
+#ifndef EIGEN_TEST_EVALUATORS
       return derived().coeffRef(row, col);
+#else
+      return typename internal::evaluator<Derived>::type(derived()).coeffRef(row,col);
+#endif
     }
 
     EIGEN_DEVICE_FUNC
@@ -350,7 +369,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     {
       eigen_assert(row >= 0 && row < rows()
           && col >= 0 && col < cols());
-      return derived().coeffRef(row, col);
+      return coeffRef(row, col);
     }
 
 
@@ -374,7 +393,11 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     coeffRef(Index index)
     {
       eigen_internal_assert(index >= 0 && index < size());
+#ifndef EIGEN_TEST_EVALUATORS
       return derived().coeffRef(index);
+#else
+      return typename internal::evaluator<Derived>::type(derived()).coeffRef(index);
+#endif
     }
 
     /** \returns a reference to the coefficient at given index.
@@ -393,7 +416,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
                           THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
       #endif
       eigen_assert(index >= 0 && index < size());
-      return derived().coeffRef(index);
+      return coeffRef(index);
     }
 
     /** \returns a reference to the coefficient at given index.
@@ -410,7 +433,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     operator()(Index index)
     {
       eigen_assert(index >= 0 && index < size());
-      return derived().coeffRef(index);
+      return coeffRef(index);
     }
 
     /** equivalent to operator[](0).  */
@@ -437,6 +460,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     EIGEN_STRONG_INLINE Scalar&
     w() { return (*this)[3]; }
 
+#ifndef EIGEN_TEST_EVALUATORS
     /** \internal
       * Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
       * to ensure that a packet really starts there. This method is only available on expressions having the
@@ -573,6 +597,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       derived().template copyPacket< OtherDerived, StoreMode, LoadMode>(row, col, other);
     }
 #endif
+#endif // EIGEN_TEST_EVALUATORS
 
 };
 

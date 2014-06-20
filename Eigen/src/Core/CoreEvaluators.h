@@ -27,14 +27,6 @@ struct storage_kind_to_evaluator_kind {
   typedef IndexBased Kind;
 };
 
-// TODO to be moved to SparseCore:
-/*
-template<>
-struct storage_kind_to_evaluator_kind<Sparse> {
-  typedef IteratorBased Kind
-};
-*/
-
 // This class returns the evaluator shape from the expression storage kind.
 // It can be Dense, Sparse, Triangular, Diagonal, SelfAdjoint, Band, etc.
 template<typename StorageKind> struct storage_kind_to_shape;
@@ -45,22 +37,28 @@ struct storage_kind_to_shape<Dense> {
   typedef DenseShape Shape;
 };
 
-// TODO to be moved to SparseCore:
-/*
-template<>
-struct storage_kind_to_shape<Sparse> {
-  typedef SparseSpape Shape;
-};
-*/
+// Evaluators have to be specialized with respect to various criteria such as:
+//  - storage/structure/shape
+//  - scalar type
+//  - etc.
+// Therefore, we need specialization of evaluator providing additional template arguments for each kind of evaluators.
+// We currently distinguish the following kind of evaluators:
+// - unary_evaluator    for expressions taking only one arguments (CwiseUnaryOp, CwiseUnaryView, Transpose, MatrixWrapper, ArrayWrapper, Reverse, Replicate)
+// - binary_evaluator   for expression taking two arguments (CwiseBinaryOp)
+// - product_evaluator  for linear algebra products (Product); special case of binary_evaluator because it requires additional tags for dispatching.
+// - mapbase_evaluator  for Map, Block, Ref
+// - block_evaluator    for Block (special dispatching to a mapbase_evaluator or unary_evaluator)
 
-
-          
 template< typename T,
-          typename LhsKind = typename evaluator_traits<typename T::Lhs>::Kind,
-          typename RhsKind = typename evaluator_traits<typename T::Rhs>::Kind,
+          typename LhsKind   = typename evaluator_traits<typename T::Lhs>::Kind,
+          typename RhsKind   = typename evaluator_traits<typename T::Rhs>::Kind,
           typename LhsScalar = typename T::Lhs::Scalar,
           typename RhsScalar = typename T::Rhs::Scalar> struct binary_evaluator;
 
+template< typename T,
+          typename Kind   = typename evaluator_traits<typename T::NestedExpression>::Kind,
+          typename Scalar = typename T::Scalar> struct unary_evaluator;
+          
 // evaluator_traits<T> contains traits for evaluator<T> 
 
 template<typename T>
@@ -80,15 +78,20 @@ struct evaluator_traits_base
   static const int AssumeAliasing = 0;
 };
 
+// Default evaluator traits
 template<typename T>
 struct evaluator_traits : public evaluator_traits_base<T>
 {
 };
 
-// expression class for evaluating nested expression to a temporary
- 
-template<typename ArgType>
-class EvalToTemp;
+
+// By default, we assume a unary expression:
+template<typename T>
+struct evaluator : public unary_evaluator<T>
+{
+  typedef unary_evaluator<T> Base;
+  evaluator(const T& xpr) : Base(xpr) {}
+};
 
 
 // TODO: Think about const-correctness
@@ -118,6 +121,8 @@ struct evaluator_base
 //
 // evaluator<PlainObjectBase> is a common base class for the
 // Matrix and Array evaluators.
+// Here we directly specialize evaluator. This is not really a unary expression, and it is, by definition, dense,
+// so no need for more sophisticated dispatching.
 
 template<typename Derived>
 struct evaluator<PlainObjectBase<Derived> >
@@ -245,81 +250,10 @@ struct evaluator<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   { }
 };
 
-// -------------------- EvalToTemp --------------------
-
-template<typename ArgType>
-struct traits<EvalToTemp<ArgType> >
-  : public traits<ArgType>
-{ };
-
-template<typename ArgType>
-class EvalToTemp
-  : public dense_xpr_base<EvalToTemp<ArgType> >::type
-{
- public:
- 
-  typedef typename dense_xpr_base<EvalToTemp>::type Base;
-  EIGEN_GENERIC_PUBLIC_INTERFACE(EvalToTemp)
- 
-  EvalToTemp(const ArgType& arg)
-    : m_arg(arg)
-  { }
- 
-  const ArgType& arg() const
-  {
-    return m_arg;
-  }
-
-  Index rows() const 
-  {
-    return m_arg.rows();
-  }
-
-  Index cols() const 
-  {
-    return m_arg.cols();
-  }
-
- private:
-  const ArgType& m_arg;
-};
- 
-template<typename ArgType>
-struct evaluator<EvalToTemp<ArgType> >
-  : public evaluator<typename ArgType::PlainObject>::type
-{
-  typedef EvalToTemp<ArgType>                   XprType;
-  typedef typename ArgType::PlainObject         PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-  
-  typedef evaluator type;
-  typedef evaluator nestedType;
-
-  evaluator(const XprType& xpr) 
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    // TODO we should simply do m_result(xpr.arg());
-    call_dense_assignment_loop(m_result, xpr.arg());
-  }
-
-  // This constructor is used when nesting an EvalTo evaluator in another evaluator
-  evaluator(const ArgType& arg) 
-    : m_result(arg.rows(), arg.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    // TODO we should simply do m_result(xpr.arg());
-    call_dense_assignment_loop(m_result, arg);
-  }
-
-protected:
-  PlainObject m_result;
-};
-
 // -------------------- Transpose --------------------
 
 template<typename ArgType>
-struct evaluator<Transpose<ArgType> >
+struct unary_evaluator<Transpose<ArgType> >
   : evaluator_base<Transpose<ArgType> >
 {
   typedef Transpose<ArgType> XprType;
@@ -329,7 +263,7 @@ struct evaluator<Transpose<ArgType> >
     Flags = evaluator<ArgType>::Flags ^ RowMajorBit
   };
 
-  evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
+  unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
@@ -386,6 +320,8 @@ protected:
 };
 
 // -------------------- CwiseNullaryOp --------------------
+// Like Matrix and Array, this is not really a unary expression, so we directly specialize evaluator.
+// Likewise, there is not need to more sophisticated dispatching here.
 
 template<typename NullaryOp, typename PlainObjectType>
 struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
@@ -441,7 +377,7 @@ protected:
 // -------------------- CwiseUnaryOp --------------------
 
 template<typename UnaryOp, typename ArgType>
-struct evaluator<CwiseUnaryOp<UnaryOp, ArgType> >
+struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
   : evaluator_base<CwiseUnaryOp<UnaryOp, ArgType> >
 {
   typedef CwiseUnaryOp<UnaryOp, ArgType> XprType;
@@ -454,7 +390,7 @@ struct evaluator<CwiseUnaryOp<UnaryOp, ArgType> >
             | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))
   };
 
-  evaluator(const XprType& op) 
+  unary_evaluator(const XprType& op) 
     : m_functor(op.functor()), 
       m_argImpl(op.nestedExpression()) 
   { }
@@ -492,8 +428,19 @@ protected:
 
 // -------------------- CwiseBinaryOp --------------------
 
+// this is a binary expression
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+  : public binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+{
+  typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > Base;
+  
+  evaluator(const XprType& xpr) : Base(xpr) {}
+};
+
+template<typename BinaryOp, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   : evaluator_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
@@ -517,7 +464,7 @@ struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     Flags = (Flags0 & ~RowMajorBit) | (LhsFlags & RowMajorBit)
   };
 
-  evaluator(const XprType& xpr) 
+  binary_evaluator(const XprType& xpr) 
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -560,7 +507,7 @@ protected:
 // -------------------- CwiseUnaryView --------------------
 
 template<typename UnaryOp, typename ArgType>
-struct evaluator<CwiseUnaryView<UnaryOp, ArgType> >
+struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType> >
   : evaluator_base<CwiseUnaryView<UnaryOp, ArgType> >
 {
   typedef CwiseUnaryView<UnaryOp, ArgType> XprType;
@@ -571,7 +518,7 @@ struct evaluator<CwiseUnaryView<UnaryOp, ArgType> >
     Flags = (evaluator<ArgType>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit))
   };
 
-  evaluator(const XprType& op) 
+  unary_evaluator(const XprType& op) 
     : m_unaryOp(op.functor()), 
       m_argImpl(op.nestedExpression()) 
   { }
@@ -884,6 +831,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
 
 
 // -------------------- Select --------------------
+// TODO shall we introduce a ternary_evaluator?
 
 // TODO enable vectorization for Select
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
@@ -934,7 +882,7 @@ protected:
 // -------------------- Replicate --------------------
 
 template<typename ArgType, int RowFactor, int ColFactor> 
-struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
+struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   : evaluator_base<Replicate<ArgType, RowFactor, ColFactor> >
 {
   typedef Replicate<ArgType, RowFactor, ColFactor> XprType;
@@ -953,7 +901,7 @@ struct evaluator<Replicate<ArgType, RowFactor, ColFactor> >
     Flags = (evaluator<ArgTypeNestedCleaned>::Flags & HereditaryBits & ~RowMajorBit) | (traits<XprType>::Flags & RowMajorBit)
   };
 
-  evaluator(const XprType& replicate) 
+  unary_evaluator(const XprType& replicate) 
     : m_arg(replicate.nestedExpression()),
       m_argImpl(m_arg),
       m_rows(replicate.nestedExpression().rows()),
@@ -1111,23 +1059,23 @@ protected:
 };
 
 template<typename TArgType>
-struct evaluator<MatrixWrapper<TArgType> >
+struct unary_evaluator<MatrixWrapper<TArgType> >
   : evaluator_wrapper_base<MatrixWrapper<TArgType> >
 {
   typedef MatrixWrapper<TArgType> XprType;
 
-  evaluator(const XprType& wrapper) 
+  unary_evaluator(const XprType& wrapper) 
     : evaluator_wrapper_base<MatrixWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
 
 template<typename TArgType>
-struct evaluator<ArrayWrapper<TArgType> >
+struct unary_evaluator<ArrayWrapper<TArgType> >
   : evaluator_wrapper_base<ArrayWrapper<TArgType> >
 {
   typedef ArrayWrapper<TArgType> XprType;
 
-  evaluator(const XprType& wrapper) 
+  unary_evaluator(const XprType& wrapper) 
     : evaluator_wrapper_base<ArrayWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
@@ -1139,7 +1087,7 @@ struct evaluator<ArrayWrapper<TArgType> >
 template<typename PacketScalar, bool ReversePacket> struct reverse_packet_cond;
 
 template<typename ArgType, int Direction>
-struct evaluator<Reverse<ArgType, Direction> >
+struct unary_evaluator<Reverse<ArgType, Direction> >
   : evaluator_base<Reverse<ArgType, Direction> >
 {
   typedef Reverse<ArgType, Direction> XprType;
@@ -1173,7 +1121,7 @@ struct evaluator<Reverse<ArgType, Direction> >
   };
   typedef internal::reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
 
-  evaluator(const XprType& reverse) 
+  unary_evaluator(const XprType& reverse) 
     : m_argImpl(reverse.nestedExpression()),
       m_rows(ReverseRow ? reverse.nestedExpression().rows() : 0),
       m_cols(ReverseCol ? reverse.nestedExpression().cols() : 0)
@@ -1290,6 +1238,87 @@ protected:
 private:
   EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value() > 0 ? 0 : -m_index.value(); }
   EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value() > 0 ? m_index.value() : 0; }
+};
+
+
+
+//----------------------------------------------------------------------
+// deprecated code
+//----------------------------------------------------------------------
+
+// -------------------- EvalToTemp --------------------
+
+// expression class for evaluating nested expression to a temporary
+
+template<typename ArgType> class EvalToTemp;
+
+template<typename ArgType>
+struct traits<EvalToTemp<ArgType> >
+  : public traits<ArgType>
+{ };
+
+template<typename ArgType>
+class EvalToTemp
+  : public dense_xpr_base<EvalToTemp<ArgType> >::type
+{
+ public:
+ 
+  typedef typename dense_xpr_base<EvalToTemp>::type Base;
+  EIGEN_GENERIC_PUBLIC_INTERFACE(EvalToTemp)
+ 
+  EvalToTemp(const ArgType& arg)
+    : m_arg(arg)
+  { }
+ 
+  const ArgType& arg() const
+  {
+    return m_arg;
+  }
+
+  Index rows() const 
+  {
+    return m_arg.rows();
+  }
+
+  Index cols() const 
+  {
+    return m_arg.cols();
+  }
+
+ private:
+  const ArgType& m_arg;
+};
+ 
+template<typename ArgType>
+struct evaluator<EvalToTemp<ArgType> >
+  : public evaluator<typename ArgType::PlainObject>::type
+{
+  typedef EvalToTemp<ArgType>                   XprType;
+  typedef typename ArgType::PlainObject         PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+  
+  typedef evaluator type;
+  typedef evaluator nestedType;
+
+  evaluator(const XprType& xpr) 
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    // TODO we should simply do m_result(xpr.arg());
+    call_dense_assignment_loop(m_result, xpr.arg());
+  }
+
+  // This constructor is used when nesting an EvalTo evaluator in another evaluator
+  evaluator(const ArgType& arg) 
+    : m_result(arg.rows(), arg.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    // TODO we should simply do m_result(xpr.arg());
+    call_dense_assignment_loop(m_result, arg);
+  }
+
+protected:
+  PlainObject m_result;
 };
 
 } // namespace internal

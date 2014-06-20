@@ -94,23 +94,26 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageKind>
 class CwiseBinaryOpImpl;
 
-template<typename BinaryOp, typename Lhs, typename Rhs>
+template<typename BinaryOp, typename LhsType, typename RhsType>
 class CwiseBinaryOp : internal::no_assignment_operator,
   public CwiseBinaryOpImpl<
-          BinaryOp, Lhs, Rhs,
-          typename internal::promote_storage_type<typename internal::traits<Lhs>::StorageKind,
-                                           typename internal::traits<Rhs>::StorageKind>::ret>
+          BinaryOp, LhsType, RhsType,
+          typename internal::promote_storage_type<typename internal::traits<LhsType>::StorageKind,
+                                           typename internal::traits<RhsType>::StorageKind>::ret>
 {
   public:
+    
+    typedef typename internal::remove_all<LhsType>::type Lhs;
+    typedef typename internal::remove_all<RhsType>::type Rhs;
 
     typedef typename CwiseBinaryOpImpl<
-        BinaryOp, Lhs, Rhs,
-        typename internal::promote_storage_type<typename internal::traits<Lhs>::StorageKind,
+        BinaryOp, LhsType, RhsType,
+        typename internal::promote_storage_type<typename internal::traits<LhsType>::StorageKind,
                                          typename internal::traits<Rhs>::StorageKind>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
 
-    typedef typename internal::nested<Lhs>::type LhsNested;
-    typedef typename internal::nested<Rhs>::type RhsNested;
+    typedef typename internal::nested<LhsType>::type LhsNested;
+    typedef typename internal::nested<RhsType>::type RhsNested;
     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
     typedef typename internal::remove_reference<RhsNested>::type _RhsNested;
 
@@ -157,6 +160,7 @@ class CwiseBinaryOp : internal::no_assignment_operator,
     const BinaryOp m_functor;
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
   : public internal::dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type
@@ -195,6 +199,16 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
                                           derived().rhs().template packet<LoadMode>(index));
     }
 };
+#else
+// Generic API dispatcher
+template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageKind>
+class CwiseBinaryOpImpl
+  : public internal::generic_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type
+{
+public:
+  typedef typename internal::generic_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type Base;
+};
+#endif
 
 /** replaces \c *this by \c *this - \a other.
   *

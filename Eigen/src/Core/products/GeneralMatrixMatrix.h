@@ -219,8 +219,8 @@ struct gemm_functor
       cols = m_rhs.cols();
 
     Gemm::run(rows, cols, m_lhs.cols(),
-              /*(const Scalar*)*/&m_lhs.coeffRef(row,0), m_lhs.outerStride(),
-              /*(const Scalar*)*/&m_rhs.coeffRef(0,col), m_rhs.outerStride(),
+              &m_lhs.coeffRef(row,0), m_lhs.outerStride(),
+              &m_rhs.coeffRef(0,col), m_rhs.outerStride(),
               (Scalar*)&(m_dest.coeffRef(row,col)), m_dest.outerStride(),
               m_actualAlpha, m_blocking, info);
   }

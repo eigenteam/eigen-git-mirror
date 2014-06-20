@@ -74,6 +74,7 @@ template<typename Derived> class DenseBase
     using Base::colIndexByOuterInner;
     using Base::coeff;
     using Base::coeffByOuterInner;
+#ifndef EIGEN_TEST_EVALUATORS
     using Base::packet;
     using Base::packetByOuterInner;
     using Base::writePacket;
@@ -84,6 +85,7 @@ template<typename Derived> class DenseBase
     using Base::copyCoeffByOuterInner;
     using Base::copyPacket;
     using Base::copyPacketByOuterInner;
+#endif
     using Base::operator();
     using Base::operator[];
     using Base::x;
@@ -280,7 +282,8 @@ template<typename Derived> class DenseBase
     Derived& operator=(const ReturnByValue<OtherDerived>& func);
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
+    /** Copies \a other into *this without evaluating other. \returns a reference to *this.
+      * \deprecated */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     Derived& lazyAssign(const DenseBase<OtherDerived>& other);

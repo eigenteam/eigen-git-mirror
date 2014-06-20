@@ -81,6 +81,7 @@ public:
   
   typedef MatrixBase<Derived> Base;
   EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+  typedef typename internal::remove_all<XprType>::type NestedExpression;
 
 private:
   
@@ -101,19 +102,19 @@ namespace internal {
   * \sa class Inverse
   */
 template<typename XprType>
-struct evaluator<Inverse<XprType> >
+struct unary_evaluator<Inverse<XprType> >
   : public evaluator<typename Inverse<XprType>::PlainObject>::type
 {
   typedef Inverse<XprType> InverseType;
   typedef typename InverseType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
   
-  typedef evaluator type;
-  typedef evaluator nestedType;
+  typedef evaluator<XprType> type;
+  typedef evaluator<XprType> nestedType;
   
   enum { Flags = Base::Flags | EvalBeforeNestingBit };
 
-  evaluator(const InverseType& inv_xpr)
+  unary_evaluator(const InverseType& inv_xpr)
     : m_result(inv_xpr.rows(), inv_xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);

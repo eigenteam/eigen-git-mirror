@@ -123,7 +123,11 @@ template<typename Derived> class ArrayBase
     EIGEN_DEVICE_FUNC
     Derived& operator=(const ArrayBase& other)
     {
+#ifndef EIGEN_TEST_EVALUATORS
       return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
+#else
+      internal::call_assignment(derived(), other.derived());
+#endif
     }
 
     EIGEN_DEVICE_FUNC

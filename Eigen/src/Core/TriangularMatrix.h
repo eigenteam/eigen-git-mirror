@@ -1071,8 +1071,8 @@ struct evaluator_traits<TriangularView<MatrixType,Mode> >
   static const int AssumeAliasing = 0;
 };
 
-template<typename MatrixType, unsigned int Mode, typename Kind>
-struct evaluator<TriangularView<MatrixType,Mode>, Kind, typename MatrixType::Scalar>
+template<typename MatrixType, unsigned int Mode>
+struct evaluator<TriangularView<MatrixType,Mode> >
  : evaluator<typename internal::remove_all<MatrixType>::type>
 {
   typedef TriangularView<MatrixType,Mode> XprType;

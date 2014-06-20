@@ -38,9 +38,7 @@ template<typename Derived> struct accessors_level
 
 template<typename T> struct evaluator_traits;
 
-template< typename T,
-          typename Kind = typename evaluator_traits<T>::Kind,
-          typename Scalar = typename T::Scalar> struct evaluator;
+template< typename T> struct evaluator;
 
 } // end namespace internal
 

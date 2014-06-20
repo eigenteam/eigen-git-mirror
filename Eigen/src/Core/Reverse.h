@@ -77,6 +77,7 @@ template<typename MatrixType, int Direction> class Reverse
 
     typedef typename internal::dense_xpr_base<Reverse>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Reverse)
+    typedef typename internal::remove_all<MatrixType>::type NestedExpression;
     using Base::IsRowMajor;
 
     // next line is necessary because otherwise const version of operator()

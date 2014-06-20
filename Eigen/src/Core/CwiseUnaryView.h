@@ -66,6 +66,7 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
 
     typedef typename CwiseUnaryViewImpl<ViewOp, MatrixType,typename internal::traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryView)
+    typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     inline CwiseUnaryView(const MatrixType& mat, const ViewOp& func = ViewOp())
       : m_matrix(mat), m_functor(func) {}
@@ -104,8 +105,8 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryViewImpl)
     
-    inline Scalar* data() { return &coeffRef(0); }
-    inline const Scalar* data() const { return &coeff(0); }
+    inline Scalar* data() { return &(this->coeffRef(0)); }
+    inline const Scalar* data() const { return &(this->coeff(0)); }
 
     inline Index innerStride() const
     {
@@ -116,6 +117,8 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     {
       return derived().nestedExpression().outerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
+    
+#ifndef EIGEN_TEST_EVALUATORS
 
     EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
     {
@@ -136,6 +139,8 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     {
       return derived().functor()(const_cast_derived().nestedExpression().coeffRef(index));
     }
+    
+#endif
 };
 
 } // end namespace Eigen
