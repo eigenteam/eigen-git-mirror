@@ -95,6 +95,10 @@ Derived& DenseBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 #ifdef EIGEN_TEST_EVALUATORS
 namespace internal {
 
+// Expression is evaluated in a temporary; default implementation of Assignment is bypassed so that
+// when a ReturnByValue expression is assigned, the evaluator is not constructed.
+// TODO: Finalize port to new regime; ReturnByValue should not exist in the expression world
+  
 template<typename Derived>
 struct evaluator<ReturnByValue<Derived> >
   : public evaluator<typename internal::traits<Derived>::ReturnType>::type

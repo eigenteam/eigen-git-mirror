@@ -885,6 +885,93 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   
 };
 
+/***************************************************************************
+* Products with permutation matrices
+***************************************************************************/
+  
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Rhs, PermutationShape, DenseShape, ProductType>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    permut_matrix_product_retval<Lhs, Rhs, OnTheLeft, false> pmpr(lhs, rhs);
+    pmpr.evalTo(dst);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Rhs, DenseShape, PermutationShape, ProductType>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    permut_matrix_product_retval<Rhs, Lhs, OnTheRight, false> pmpr(rhs, lhs);
+    pmpr.evalTo(dst);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Transpose<Lhs>, Rhs, PermutationShape, DenseShape, ProductType>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
+  {
+    permut_matrix_product_retval<Lhs, Rhs, OnTheLeft, true> pmpr(lhs.nestedPermutation(), rhs);
+    pmpr.evalTo(dst);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Transpose<Rhs>, DenseShape, PermutationShape, ProductType>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
+  {
+    permut_matrix_product_retval<Rhs, Lhs, OnTheRight, true> pmpr(rhs.nestedPermutation(), lhs);
+    pmpr.evalTo(dst);
+  }
+};
+
+// TODO: left/right and self-adj/symmetric/permutation look the same ... Too much boilerplate? 
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, PermutationShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  product_evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    generic_product_impl<Lhs, Rhs, PermutationShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, PermutationShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  product_evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    generic_product_impl<Lhs, Rhs, DenseShape, PermutationShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+
 } // end namespace internal
 
 } // end namespace Eigen
