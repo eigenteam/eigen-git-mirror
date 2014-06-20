@@ -109,7 +109,7 @@ class NaturalOrdering
   * \class COLAMDOrdering
   *
   * Functor computing the \em column \em approximate \em minimum \em degree ordering 
-  * The matrix should be in column-major format
+  * The matrix should be in column-major and \b compressed format (see SparseMatrix::makeCompressed()).
   */
 template<typename Index>
 class COLAMDOrdering
@@ -118,10 +118,14 @@ class COLAMDOrdering
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType; 
     typedef Matrix<Index, Dynamic, 1> IndexVector;
     
-    /** Compute the permutation vector form a sparse matrix */
+    /** Compute the permutation vector \a perm form the sparse matrix \a mat
+      * \warning The input sparse matrix \a mat must be in compressed mode (see SparseMatrix::makeCompressed()).
+      */
     template <typename MatrixType>
     void operator() (const MatrixType& mat, PermutationType& perm)
     {
+      eigen_assert(mat.isCompressed() && "COLAMDOrdering requires a sparse matrix in compressed mode. Call .makeCompressed() before passing it to COLAMDOrdering");
+      
       Index m = mat.rows();
       Index n = mat.cols();
       Index nnz = mat.nonZeros();

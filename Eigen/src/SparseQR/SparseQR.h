@@ -58,6 +58,7 @@ namespace internal {
   * \tparam _OrderingType The fill-reducing ordering method. See the \link OrderingMethods_Module 
   *  OrderingMethods \endlink module for the list of built-in and external ordering methods.
   * 
+  * \warning The input sparse matrix A must be in compressed mode (see SparseMatrix::makeCompressed()).
   * 
   */
 template<typename _MatrixType, typename _OrderingType>
@@ -77,10 +78,23 @@ class SparseQR
     SparseQR () : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false)
     { }
     
+    /** Construct a QR factorization of the matrix \a mat.
+      * 
+      * \warning The matrix \a mat must be in compressed mode (see SparseMatrix::makeCompressed()).
+      * 
+      * \sa compute()
+      */
     SparseQR(const MatrixType& mat) : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false)
     {
       compute(mat);
     }
+    
+    /** Computes the QR factorization of the sparse matrix \a mat.
+      * 
+      * \warning The matrix \a mat must be in compressed mode (see SparseMatrix::makeCompressed()).
+      * 
+      * \sa analyzePattern(), factorize()
+      */
     void compute(const MatrixType& mat)
     {
       analyzePattern(mat);
@@ -256,6 +270,8 @@ class SparseQR
 
 /** \brief Preprocessing step of a QR factorization 
   * 
+  * \warning The matrix \a mat must be in compressed mode (see SparseMatrix::makeCompressed()).
+  * 
   * In this step, the fill-reducing permutation is computed and applied to the columns of A
   * and the column elimination tree is computed as well. Only the sparcity pattern of \a mat is exploited.
   * 
@@ -264,6 +280,7 @@ class SparseQR
 template <typename MatrixType, typename OrderingType>
 void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
 {
+  eigen_assert(mat.isCompressed() && "SparseQR requires a sparse matrix in compressed mode. Call .makeCompressed() before passing it to SparseQR");
   // Compute the column fill reducing ordering
   OrderingType ord; 
   ord(mat, m_perm_c); 
