@@ -133,6 +133,12 @@ template<typename T> struct plain_matrix_type<T,Sparse>
     typedef SparseMatrix<_Scalar, _Options, _Index> type;
 };
 
+template<typename Derived>
+struct generic_xpr_base<Derived, MatrixXpr, Sparse>
+{
+  typedef SparseMatrixBase<Derived> type;
+};
+
 } // end namespace internal
 
 /** \ingroup SparseCore_Module

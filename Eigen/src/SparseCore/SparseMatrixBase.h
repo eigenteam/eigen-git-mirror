@@ -39,11 +39,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef EigenBase<Derived> Base;
     
     template<typename OtherDerived>
-    Derived& operator=(const EigenBase<OtherDerived> &other)
-    {
-      other.derived().evalTo(derived());
-      return derived();
-    }
+    Derived& operator=(const EigenBase<OtherDerived> &other);
 
     enum {
 
@@ -175,87 +171,20 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     
     template<typename OtherDerived>
-    Derived& operator=(const ReturnByValue<OtherDerived>& other)
-    {
-      other.evalTo(derived());
-      return derived();
-    }
-
+    Derived& operator=(const ReturnByValue<OtherDerived>& other);
 
     template<typename OtherDerived>
-    inline Derived& operator=(const SparseMatrixBase<OtherDerived>& other)
-    {
-      return assign(other.derived());
-    }
+    inline Derived& operator=(const SparseMatrixBase<OtherDerived>& other);
 
-    inline Derived& operator=(const Derived& other)
-    {
-//       if (other.isRValue())
-//         derived().swap(other.const_cast_derived());
-//       else
-      return assign(other.derived());
-    }
+    inline Derived& operator=(const Derived& other);
 
   protected:
 
     template<typename OtherDerived>
-    inline Derived& assign(const OtherDerived& other)
-    {
-      const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-      const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
-      if ((!transpose) && other.isRValue())
-      {
-        // eval without temporary
-        derived().resize(other.rows(), other.cols());
-        derived().setZero();
-        derived().reserve((std::max)(this->rows(),this->cols())*2);
-        for (Index j=0; j<outerSize; ++j)
-        {
-          derived().startVec(j);
-          for (typename OtherDerived::InnerIterator it(other, j); it; ++it)
-          {
-            Scalar v = it.value();
-            derived().insertBackByOuterInner(j,it.index()) = v;
-          }
-        }
-        derived().finalize();
-      }
-      else
-      {
-        assignGeneric(other);
-      }
-      return derived();
-    }
+    inline Derived& assign(const OtherDerived& other);
 
     template<typename OtherDerived>
-    inline void assignGeneric(const OtherDerived& other)
-    {
-      //const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-      eigen_assert(( ((internal::traits<Derived>::SupportedAccessPatterns&OuterRandomAccessPattern)==OuterRandomAccessPattern) ||
-                  (!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)))) &&
-                  "the transpose operation is supposed to be handled in SparseMatrix::operator=");
-
-      enum { Flip = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit) };
-
-      const Index outerSize = other.outerSize();
-      //typedef typename internal::conditional<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::type TempType;
-      // thanks to shallow copies, we always eval to a tempary
-      Derived temp(other.rows(), other.cols());
-
-      temp.reserve((std::max)(this->rows(),this->cols())*2);
-      for (Index j=0; j<outerSize; ++j)
-      {
-        temp.startVec(j);
-        for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
-        {
-          Scalar v = it.value();
-          temp.insertBackByOuterInner(Flip?it.index():j,Flip?j:it.index()) = v;
-        }
-      }
-      temp.finalize();
-
-      derived() = temp.markAsRValue();
-    }
+    inline void assignGeneric(const OtherDerived& other);
 
   public:
 

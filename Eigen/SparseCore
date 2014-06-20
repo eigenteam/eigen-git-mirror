@@ -35,14 +35,16 @@ struct Sparse {};
 
 #include "src/SparseCore/SparseUtil.h"
 #include "src/SparseCore/SparseMatrixBase.h"
+#include "src/SparseCore/SparseAssign.h"
 #include "src/SparseCore/CompressedStorage.h"
 #include "src/SparseCore/AmbiVector.h"
 #include "src/SparseCore/SparseMatrix.h"
 #include "src/SparseCore/MappedSparseMatrix.h"
 #include "src/SparseCore/SparseVector.h"
+#include "src/SparseCore/SparseCwiseUnaryOp.h"
+#ifndef EIGEN_TEST_EVALUATORS
 #include "src/SparseCore/SparseBlock.h"
 #include "src/SparseCore/SparseTranspose.h"
-#include "src/SparseCore/SparseCwiseUnaryOp.h"
 #include "src/SparseCore/SparseCwiseBinaryOp.h"
 #include "src/SparseCore/SparseDot.h"
 #include "src/SparseCore/SparsePermutation.h"
@@ -57,6 +59,7 @@ struct Sparse {};
 #include "src/SparseCore/SparseSelfAdjointView.h"
 #include "src/SparseCore/TriangularSolver.h"
 #include "src/SparseCore/SparseView.h"
+#endif
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 
