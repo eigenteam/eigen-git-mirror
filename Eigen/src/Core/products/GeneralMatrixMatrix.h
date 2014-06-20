@@ -471,6 +471,38 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
     MaxDepthAtCompileTime = EIGEN_SIZE_MIN_PREFER_FIXED(Lhs::MaxColsAtCompileTime,Rhs::MaxRowsAtCompileTime)
   };
   
+  typedef generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode> lazyproduct;
+  
+  template<typename Dst>
+  static void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    if((rhs.rows()+dst.rows()+dst.cols())<20 && rhs.rows()>0)
+      lazyproduct::evalTo(dst, lhs, rhs);
+    else
+    {
+      dst.setZero();
+      scaleAndAddTo(dst, lhs, rhs, Scalar(1));
+    }
+  }
+
+  template<typename Dst>
+  static void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    if((rhs.rows()+dst.rows()+dst.cols())<20 && rhs.rows()>0)
+      lazyproduct::addTo(dst, lhs, rhs);
+    else
+      scaleAndAddTo(dst,lhs, rhs, Scalar(1));
+  }
+
+  template<typename Dst>
+  static void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    if((rhs.rows()+dst.rows()+dst.cols())<20 && rhs.rows()>0)
+      lazyproduct::subTo(dst, lhs, rhs);
+    else
+      scaleAndAddTo(dst, lhs, rhs, Scalar(-1));
+  }
+  
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& a_lhs, const Rhs& a_rhs, const Scalar& alpha)
   {
@@ -494,7 +526,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
         (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>,
       ActualLhsTypeCleaned, ActualRhsTypeCleaned, Dest, BlockingType> GemmFunctor;
 
-    BlockingType blocking(dst.rows(), dst.cols(), lhs.cols());
+    BlockingType blocking(dst.rows(), dst.cols(), lhs.cols(), true);
 
     internal::parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>
                               (GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), a_lhs.rows(), a_rhs.cols(), Dest::Flags&RowMajorBit);

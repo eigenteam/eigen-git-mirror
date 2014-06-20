@@ -658,7 +658,7 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
                         && ( bool(IsDynamicSize)
                            || HasNoOuterStride
                            || ( OuterStrideAtCompileTime!=Dynamic
-                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime)%16)==0 ) ),
+                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime)%EIGEN_ALIGN_BYTES)==0 ) ),
     Flags0 = evaluator<PlainObjectType>::Flags,
     Flags1 = IsAligned ? (int(Flags0) | AlignedBit) : (int(Flags0) & ~AlignedBit),
     Flags2 = (bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime))
@@ -723,8 +723,9 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % packet_traits<Scalar>::size) == 0)
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
-    MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % 16) == 0)) ? AlignedBit : 0,
-    FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
+    
+    MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % EIGEN_ALIGN_BYTES) == 0)) ? AlignedBit : 0,
+    FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (InnerPanel && (traits<XprType>::Flags&LinearAccessBit))) ? LinearAccessBit : 0,    
     FlagsRowMajorBit = XprType::Flags&RowMajorBit,
     Flags0 = evaluator<ArgType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
                                            DirectAccessBit |
@@ -825,7 +826,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
     : mapbase_evaluator<XprType, typename XprType::PlainObject>(block) 
   {
     // FIXME this should be an internal assertion
-    eigen_assert(EIGEN_IMPLIES(evaluator<XprType>::Flags&AlignedBit, (size_t(block.data()) % 16) == 0) && "data is not aligned");
+    eigen_assert(EIGEN_IMPLIES(evaluator<XprType>::Flags&AlignedBit, (size_t(block.data()) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
   }
 };
 
