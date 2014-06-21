@@ -234,6 +234,39 @@ void check_global_interpolation2d()
   }
 }
 
+void check_global_interpolation_with_derivatives2d()
+{
+  typedef Spline2d::PointType PointType;
+  typedef Spline2d::KnotVectorType KnotVectorType;
+
+  const unsigned int numPoints = 100;
+  const unsigned int dimension = 2;
+  const unsigned int degree = 3;
+
+  ArrayXXd points = ArrayXXd::Random(dimension, numPoints);
+
+  KnotVectorType knots;
+  Eigen::ChordLengths(points, knots);
+
+  ArrayXXd derivatives = ArrayXXd::Random(dimension, numPoints);
+  Eigen::IndexArray derivativeIndices(numPoints);
+
+  for (Eigen::DenseIndex i = 0; i < numPoints; ++i)
+    derivativeIndices(i) = i;
+
+  const Spline2d spline = SplineFitting<Spline2d>::InterpolateWithDerivatives(
+    points, derivatives, derivativeIndices, degree);  
+    
+  for (Eigen::DenseIndex i = 0; i < points.cols(); ++i)
+  {
+    PointType point = spline(knots(i));
+    PointType referencePoint = points.col(i);
+    VERIFY((point - referencePoint).matrix().norm() < 1e-12);
+    PointType derivative = spline.derivatives(knots(i), 1).col(1);
+    PointType referenceDerivative = derivatives.col(i);
+    VERIFY((derivative - referenceDerivative).matrix().norm() < 1e-10);
+  }
+}
 
 void test_splines()
 {
@@ -241,4 +274,5 @@ void test_splines()
   CALL_SUBTEST( eval_spline3d_onbrks() );
   CALL_SUBTEST( eval_closed_spline2d() );
   CALL_SUBTEST( check_global_interpolation2d() );
+  CALL_SUBTEST( check_global_interpolation_with_derivatives2d() );
 }

@@ -48,6 +48,9 @@ namespace Eigen
       
       /** \brief The data type used to store knot vectors. */
       typedef Array<Scalar,1,Dynamic> KnotVectorType;
+
+      /** \brief The data type used to store parameter vectors. */
+      typedef Array<Scalar,1,Dynamic> ParameterVectorType;
       
       /** \brief The data type representing the spline's control points. */
       typedef Array<Scalar,Dimension,Dynamic> ControlPointVectorType;
@@ -85,6 +88,8 @@ namespace Eigen
     
     /** \brief 3D double B-spline with dynamic degree. */
     typedef Spline<double,3> Spline3d;
+
+    typedef Array<DenseIndex, 1, Dynamic> IndexArray;
 }
 
 #endif // EIGEN_SPLINES_FWD_H
