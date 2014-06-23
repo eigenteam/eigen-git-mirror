@@ -232,24 +232,17 @@ class Matrix
     }
 #endif
 
-    /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
-      *
-      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
-      * it is redundant to pass the dimension here, so it makes more sense to use the default
-      * constructor Matrix() instead.
-      */
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+
+    // This constructor is for both 1x1 matrices and dynamic vectors
+    template<typename T>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE explicit Matrix(Index dim)
-      : Base(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
+    EIGEN_STRONG_INLINE explicit Matrix(const T& x)
     {
       Base::_check_template_params();
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
-      eigen_assert(dim >= 0);
-      eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
-      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
+      Base::template _init1<T>(x);
     }
 
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const T0& x, const T1& y)
@@ -258,6 +251,19 @@ class Matrix
       Base::template _init2<T0,T1>(x, y);
     }
     #else
+    /** \brief Constructs a fixed-sized matrix initialized with coefficients starting at \a data */
+    EIGEN_DEVICE_FUNC
+    explicit Matrix(const Scalar *data);
+
+    /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
+      *
+      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
+      * it is redundant to pass the dimension here, so it makes more sense to use the default
+      * constructor Matrix() instead.
+      */
+    EIGEN_STRONG_INLINE explicit Matrix(Index dim);
+    /** \brief Constructs an initialized 1x1 matrix with the given coefficient */
+    Matrix(const Scalar& x);
     /** \brief Constructs an uninitialized matrix with \a rows rows and \a cols columns.
       *
       * This is useful for dynamic-size matrices. For fixed-size matrices,
@@ -291,8 +297,6 @@ class Matrix
       m_storage.data()[3] = w;
     }
 
-    EIGEN_DEVICE_FUNC
-    explicit Matrix(const Scalar *data);
 
     /** \brief Constructor copying the value of the expression \a other */
     template<typename OtherDerived>

@@ -690,6 +690,55 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[1] = val1;
     }
 
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<Base::SizeAtCompileTime!=1,T>::type* = 0)
+    {
+      EIGEN_STATIC_ASSERT(bool(NumTraits<T>::IsInteger),
+                          FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
+      resize(size);
+    }
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Scalar& val0, typename internal::enable_if<Base::SizeAtCompileTime==1,T>::type* = 0)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 1)
+      m_storage.data()[0] = val0;
+    }
+
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Scalar* data){
+      this->_set_noalias(ConstMapType(data));
+    }
+
+    template<typename T, typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const DenseBase<OtherDerived>& other){
+      this->_set_noalias(other);
+    }
+
+    template<typename T, typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const EigenBase<OtherDerived>& other){
+      this->derived() = other;
+    }
+
+    template<typename T, typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const ReturnByValue<OtherDerived>& other)
+    {
+      resize(other.rows(), other.cols());
+      other.evalTo(this->derived());
+    }
+
+    template<typename T, typename OtherDerived, int ColsAtCompileTime>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
+    {
+      this->derived() = r;
+    }
+
     template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>
     friend struct internal::matrix_swap_impl;
 

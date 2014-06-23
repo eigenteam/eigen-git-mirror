@@ -144,24 +144,16 @@ class Array
     }
 #endif
 
-    /** Constructs a vector or row-vector with given dimension. \only_for_vectors
-      *
-      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
-      * it is redundant to pass the dimension here, so it makes more sense to use the default
-      * constructor Matrix() instead.
-      */
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE explicit Array(Index dim)
-      : Base(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
-    {
-      Base::_check_template_params();
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Array)
-      eigen_assert(dim >= 0);
-      eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
-      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
-    }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE explicit Array(const T& x)
+    {
+      Base::_check_template_params();
+      Base::template _init1<T>(x);
+    }
+
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const T0& val0, const T1& val1)
@@ -170,11 +162,23 @@ class Array
       this->template _init2<T0,T1>(val0, val1);
     }
     #else
-    /** constructs an uninitialized matrix with \a rows rows and \a cols columns.
+    /** \brief Constructs a fixed-sized array initialized with coefficients starting at \a data */
+    EIGEN_DEVICE_FUNC explicit Array(const Scalar *data);
+    /** Constructs a vector or row-vector with given dimension. \only_for_vectors
       *
-      * This is useful for dynamic-size matrices. For fixed-size matrices,
+      * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
+      * it is redundant to pass the dimension here, so it makes more sense to use the default
+      * constructor Array() instead.
+      */
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE explicit Array(Index dim);
+    /** constructs an initialized 1x1 Array with the given coefficient */
+    Array(const Scalar& value);
+    /** constructs an uninitialized array with \a rows rows and \a cols columns.
+      *
+      * This is useful for dynamic-size arrays. For fixed-size arrays,
       * it is redundant to pass these parameters, so one should use the default constructor
-      * Matrix() instead. */
+      * Array() instead. */
     Array(Index rows, Index cols);
     /** constructs an initialized 2D vector with given coefficients */
     Array(const Scalar& val0, const Scalar& val1);
@@ -201,8 +205,6 @@ class Array
       m_storage.data()[2] = val2;
       m_storage.data()[3] = val3;
     }
-
-    EIGEN_DEVICE_FUNC explicit Array(const Scalar *data);
 
     /** Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
