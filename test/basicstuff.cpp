@@ -180,15 +180,41 @@ void casting()
 template <typename Scalar>
 void fixedSizeMatrixConstruction()
 {
-  const Scalar raw[3] = {1,2,3};
-  Matrix<Scalar,3,1> m(raw);
-  Array<Scalar,3,1> a(raw);
-  VERIFY(m(0) == 1);
-  VERIFY(m(1) == 2);
-  VERIFY(m(2) == 3);
-  VERIFY(a(0) == 1);
-  VERIFY(a(1) == 2);
-  VERIFY(a(2) == 3);  
+  Scalar raw[4];
+  for(int k=0; k<4; ++k)
+    raw[k] = internal::random<Scalar>();
+  {
+    Matrix<Scalar,4,1> m(raw);
+    Array<Scalar,4,1> a(raw);
+    for(int k=0; k<4; ++k) VERIFY(m(k) == raw[k]);
+    for(int k=0; k<4; ++k) VERIFY(a(k) == raw[k]);    
+    VERIFY_IS_EQUAL(m,(Matrix<Scalar,4,1>(raw[0],raw[1],raw[2],raw[3])));
+    VERIFY((a==(Array<Scalar,4,1>(raw[0],raw[1],raw[2],raw[3]))).all());
+  }
+  {
+    Matrix<Scalar,3,1> m(raw);
+    Array<Scalar,3,1> a(raw);
+    for(int k=0; k<3; ++k) VERIFY(m(k) == raw[k]);
+    for(int k=0; k<3; ++k) VERIFY(a(k) == raw[k]);
+    VERIFY_IS_EQUAL(m,(Matrix<Scalar,3,1>(raw[0],raw[1],raw[2])));
+    VERIFY((a==Array<Scalar,3,1>(raw[0],raw[1],raw[2])).all());
+  }
+  {
+    Matrix<Scalar,2,1> m(raw);
+    Array<Scalar,2,1> a(raw);
+    for(int k=0; k<2; ++k) VERIFY(m(k) == raw[k]);
+    for(int k=0; k<2; ++k) VERIFY(a(k) == raw[k]);
+    VERIFY_IS_EQUAL(m,(Matrix<Scalar,2,1>(raw[0],raw[1])));
+    VERIFY((a==Array<Scalar,2,1>(raw[0],raw[1])).all());
+  }
+  {
+    Matrix<Scalar,1,1> m(raw);
+    Array<Scalar,1,1> a(raw);
+    VERIFY(m(0) == raw[0]);
+    VERIFY(a(0) == raw[0]);
+    VERIFY_IS_EQUAL(m,(Matrix<Scalar,1,1>(raw[0])));
+    VERIFY((a==Array<Scalar,1,1>(raw[0])).all());
+  }
 }
 
 void test_basicstuff()
@@ -209,6 +235,8 @@ void test_basicstuff()
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<unsigned char>());
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<double>());
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<double>());
+  CALL_SUBTEST_1(fixedSizeMatrixConstruction<int>());
+  CALL_SUBTEST_1(fixedSizeMatrixConstruction<std::ptrdiff_t>());
 
   CALL_SUBTEST_2(casting());
 }
