@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2011 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2011-2013 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2011-2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -738,8 +738,10 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
                      && int(Dst::SizeAtCompileTime) != 1
   };
 
-  dst.resize(NeedToTranspose ? src.cols() : src.rows(),
-             NeedToTranspose ? src.rows() : src.cols());
+  typename Dst::Index dstRows = NeedToTranspose ? src.cols() : src.rows();
+  typename Dst::Index dstCols = NeedToTranspose ? src.rows() : src.cols();
+  if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+    dst.resize(dstRows, dstCols);
   
   typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst>::type ActualDstTypeCleaned;
   typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst&>::type ActualDstType;
@@ -749,7 +751,7 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
   EIGEN_STATIC_ASSERT_LVALUE(Dst)
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(ActualDstTypeCleaned,Src)
   EIGEN_CHECK_BINARY_COMPATIBILIY(Func,typename ActualDstTypeCleaned::Scalar,typename Src::Scalar);
-  
+
   Assignment<ActualDstTypeCleaned,Src,Func>::run(actualDst, src, func);
 }
 template<typename Dst, typename Src>

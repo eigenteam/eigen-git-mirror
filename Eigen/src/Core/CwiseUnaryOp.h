@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -135,7 +135,7 @@ class CwiseUnaryOpImpl<UnaryOp,XprType,Dense>
       return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(index));
     }
 };
-#else
+#else // EIGEN_TEST_EVALUATORS
 // Generic API dispatcher
 template<typename UnaryOp, typename XprType, typename StorageKind>
 class CwiseUnaryOpImpl
@@ -144,7 +144,7 @@ class CwiseUnaryOpImpl
 public:
   typedef typename internal::generic_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type Base;
 };
-#endif
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

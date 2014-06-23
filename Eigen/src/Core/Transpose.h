@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -107,6 +107,17 @@ struct TransposeImpl_base<MatrixType, false>
 };
 
 } // end namespace internal
+
+#ifdef EIGEN_TEST_EVALUATORS
+// Generic API dispatcher
+template<typename XprType, typename StorageKind>
+class TransposeImpl
+  : public internal::generic_xpr_base<Transpose<XprType> >::type
+{
+public:
+  typedef typename internal::generic_xpr_base<Transpose<XprType> >::type Base;
+};
+#endif
 
 template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
   : public internal::TransposeImpl_base<MatrixType>::type

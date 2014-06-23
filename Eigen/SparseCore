@@ -42,10 +42,10 @@ struct Sparse {};
 #include "src/SparseCore/MappedSparseMatrix.h"
 #include "src/SparseCore/SparseVector.h"
 #include "src/SparseCore/SparseCwiseUnaryOp.h"
+#include "src/SparseCore/SparseCwiseBinaryOp.h"
+#include "src/SparseCore/SparseTranspose.h"
 #ifndef EIGEN_TEST_EVALUATORS
 #include "src/SparseCore/SparseBlock.h"
-#include "src/SparseCore/SparseTranspose.h"
-#include "src/SparseCore/SparseCwiseBinaryOp.h"
 #include "src/SparseCore/SparseDot.h"
 #include "src/SparseCore/SparsePermutation.h"
 #include "src/SparseCore/SparseRedux.h"

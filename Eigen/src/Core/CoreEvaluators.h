@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2011 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2011-2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -253,7 +253,7 @@ struct evaluator<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 // -------------------- Transpose --------------------
 
 template<typename ArgType>
-struct unary_evaluator<Transpose<ArgType> >
+struct unary_evaluator<Transpose<ArgType>, IndexBased>
   : evaluator_base<Transpose<ArgType> >
 {
   typedef Transpose<ArgType> XprType;
@@ -440,7 +440,7 @@ struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
-struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBased>
   : evaluator_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;

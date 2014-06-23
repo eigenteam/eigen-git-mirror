@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -12,6 +12,7 @@
 
 namespace Eigen { 
 
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
   : public SparseMatrixBase<Transpose<MatrixType> >
 {
@@ -57,6 +58,57 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInn
     Index row() const { return Base::col(); }
     Index col() const { return Base::row(); }
 };
+
+#else // EIGEN_TEST_EVALUATORS
+
+namespace internal {
+  
+template<typename ArgType>
+struct unary_evaluator<Transpose<ArgType>, IteratorBased>
+  : public evaluator_base<Transpose<ArgType> >
+{
+    typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
+    typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
+  public:
+    typedef Transpose<ArgType> XprType;
+    typedef typename XprType::Index Index;
+
+    class InnerIterator : public EvalIterator
+    {
+    public:
+      EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& unaryOp, typename XprType::Index outer)
+        : EvalIterator(unaryOp.m_argImpl,outer)
+      {}
+      
+      Index row() const { return EvalIterator::col(); }
+      Index col() const { return EvalIterator::row(); }
+    };
+    
+    class ReverseInnerIterator : public EvalReverseIterator
+    {
+    public:
+      EIGEN_STRONG_INLINE ReverseInnerIterator(const unary_evaluator& unaryOp, typename XprType::Index outer)
+        : EvalReverseIterator(unaryOp.m_argImpl,outer)
+      {}
+      
+      Index row() const { return EvalReverseIterator::col(); }
+      Index col() const { return EvalReverseIterator::row(); }
+    };
+    
+    enum {
+      CoeffReadCost = evaluator<ArgType>::CoeffReadCost,
+      Flags = XprType::Flags
+    };
+    
+    unary_evaluator(const XprType& op) :m_argImpl(op.nestedExpression()) {}
+
+  protected:
+    typename evaluator<ArgType>::nestedType m_argImpl;
+};
+
+} // end namespace internal
+
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 
