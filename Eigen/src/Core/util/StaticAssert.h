@@ -107,9 +107,9 @@
         {Eigen::internal::static_assertion<bool(CONDITION)>::MSG;}
 
     #else
-
+      // In some cases clang interprets bool(CONDITION) as function declaration
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        if (Eigen::internal::static_assertion<bool(CONDITION)>::MSG) {}
+        if (Eigen::internal::static_assertion<static_cast<bool>(CONDITION)>::MSG) {}
 
     #endif
 
