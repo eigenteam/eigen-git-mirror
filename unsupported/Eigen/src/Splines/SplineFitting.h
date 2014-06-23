@@ -90,8 +90,8 @@ namespace Eigen
       return;
     }
 
-    uint startIndex;
-    uint endIndex;
+    unsigned int startIndex;
+    unsigned int endIndex;
   
     unsigned int numInternalDerivatives = numDerivatives;
     
