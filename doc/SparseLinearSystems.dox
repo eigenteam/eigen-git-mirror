@@ -102,7 +102,7 @@ x2 = solver.solve(b2);
 The compute() method is equivalent to calling both analyzePattern() and factorize().
 
 Finally, each solver provides some specific features, such as determinant, access to the factors, controls of the iterations, and so on.
-More details are availble in the documentations of the respective classes.
+More details are available in the documentations of the respective classes.
 
 \section TheSparseCompute The Compute Step
 In the compute() function, the matrix is generally factorized: LLT for self-adjoint matrices, LDLT for general hermitian matrices, LU for non hermitian matrices and QR for rectangular matrices. These are the results of using direct solvers. For this class of solvers precisely, the compute step is further subdivided into analyzePattern() and factorize(). 
@@ -140,7 +140,7 @@ x2 = solver.solve(b2);
 For direct methods, the solution are computed at the machine precision. Sometimes, the solution need not be too accurate. In this case, the iterative methods are more suitable and the desired accuracy can be set before the solve step using \b setTolerance(). For all the available functions, please, refer to the documentation of the \link IterativeLinearSolvers_Module Iterative solvers module \endlink. 
 
 \section BenchmarkRoutine
-Most of the time, all you need is to know how much time it will take to qolve your system, and hopefully, what is the most suitable solver. In Eigen, we provide a benchmark routine that can be used for this purpose. It is very easy to use. In the build directory, navigate to bench/spbench and compile the routine by typing \b make \e spbenchsolver. Run it with --help option to get the list of all available options. Basically, the matrices to test should be in <a href="http://math.nist.gov/MatrixMarket/formats.html">MatrixMarket Coordinate format</a>, and the routine returns the statistics from all available solvers in Eigen.
+Most of the time, all you need is to know how much time it will take to solve your system, and hopefully, what is the most suitable solver. In Eigen, we provide a benchmark routine that can be used for this purpose. It is very easy to use. In the build directory, navigate to bench/spbench and compile the routine by typing \b make \e spbenchsolver. Run it with --help option to get the list of all available options. Basically, the matrices to test should be in <a href="http://math.nist.gov/MatrixMarket/formats.html">MatrixMarket Coordinate format</a>, and the routine returns the statistics from all available solvers in Eigen.
 
 To export your matrices and right-hand-side vectors in the matrix-market format, you can the the unsupported SparseExtra module:
 \code
