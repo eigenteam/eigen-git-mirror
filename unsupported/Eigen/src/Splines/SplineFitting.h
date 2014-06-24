@@ -82,8 +82,8 @@ namespace Eigen
   {
     typedef typename ParameterVectorType::Scalar Scalar;
 
-    const unsigned int numParameters = parameters.size();
-    const unsigned int numDerivatives = derivativeIndices.size();
+    DenseIndex numParameters = parameters.size();
+    DenseIndex numDerivatives = derivativeIndices.size();
 
     if (numDerivatives < 1)
     {
@@ -91,10 +91,10 @@ namespace Eigen
       return;
     }
 
-    unsigned int startIndex;
-    unsigned int endIndex;
+    DenseIndex startIndex;
+    DenseIndex endIndex;
   
-    unsigned int numInternalDerivatives = numDerivatives;
+    DenseIndex numInternalDerivatives = numDerivatives;
     
     if (derivativeIndices[0] == 0)
     {
@@ -117,12 +117,12 @@ namespace Eigen
 
     // There are (endIndex - startIndex + 1) knots obtained from the averaging
     // and 2 for the first and last parameters.
-    unsigned int numAverageKnots = endIndex - startIndex + 3;
+    DenseIndex numAverageKnots = endIndex - startIndex + 3;
     KnotVectorType averageKnots(numAverageKnots);
     averageKnots[0] = parameters[0];
 
     int newKnotIndex = 0;
-    for (unsigned int i = startIndex; i <= endIndex; ++i)
+    for (DenseIndex i = startIndex; i <= endIndex; ++i)
       averageKnots[++newKnotIndex] = parameters.segment(i, degree).mean();
     averageKnots[++newKnotIndex] = parameters[numParameters - 1];
 
@@ -135,7 +135,7 @@ namespace Eigen
       temporaryParameters[0] = averageKnots[i];
       ParameterVectorType parameterIndices(numParameters);
       int temporaryParameterIndex = 1;
-      for (size_t j = 0; j < numParameters; ++j)
+      for (int j = 0; j < numParameters; ++j)
       {
 	Scalar parameter = parameters[j];
 	if (parameter >= averageKnots[i] && parameter < averageKnots[i + 1])
