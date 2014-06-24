@@ -17,6 +17,7 @@
 
 #include "SplineFwd.h"
 
+#include <Eigen/LU>
 #include <Eigen/QR>
 
 namespace Eigen
@@ -404,8 +405,8 @@ namespace Eigen
     A(n - 1, n - 1) = 1;
     
     // Solve
-    HouseholderQR<MatrixType> qr(A);
-    ControlPointVectorType controlPoints = qr.solve(MatrixType(b.transpose())).transpose();
+    FullPivLU<MatrixType> lu(A);
+    ControlPointVectorType controlPoints = lu.solve(MatrixType(b.transpose())).transpose();
 
     SplineType spline(knots, controlPoints);
     

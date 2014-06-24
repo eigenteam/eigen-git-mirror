@@ -261,7 +261,7 @@ void check_global_interpolation_with_derivatives2d()
   {
     PointType point = spline(knots(i));
     PointType referencePoint = points.col(i);
-    VERIFY((point - referencePoint).matrix().norm() < 1e-12);
+    VERIFY((point - referencePoint).matrix().norm() < 1e-10);
     PointType derivative = spline.derivatives(knots(i), 1).col(1);
     PointType referenceDerivative = derivatives.col(i);
     VERIFY((derivative - referenceDerivative).matrix().norm() < 1e-10);
