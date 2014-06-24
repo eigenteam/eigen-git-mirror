@@ -76,9 +76,9 @@ namespace Eigen
    **/
   template <typename KnotVectorType, typename ParameterVectorType>
   void KnotAveragingWithDerivatives(const ParameterVectorType& parameters,
-				    const unsigned int degree,
-				    const IndexArray& derivativeIndices,
-				    KnotVectorType& knots)
+                                    const unsigned int degree,
+                                    const IndexArray& derivativeIndices,
+                                    KnotVectorType& knots)
   {
     typedef typename ParameterVectorType::Scalar Scalar;
 
@@ -137,35 +137,35 @@ namespace Eigen
       int temporaryParameterIndex = 1;
       for (size_t j = 0; j < numParameters; ++j)
       {
-	Scalar parameter = parameters[j];
-	if (parameter >= averageKnots[i] && parameter < averageKnots[i + 1])
-	{
-	  parameterIndices[temporaryParameterIndex] = j;
-	  temporaryParameters[temporaryParameterIndex++] = parameter;
-	}
+        Scalar parameter = parameters[j];
+        if (parameter >= averageKnots[i] && parameter < averageKnots[i + 1])
+        {
+          parameterIndices[temporaryParameterIndex] = j;
+          temporaryParameters[temporaryParameterIndex++] = parameter;
+        }
       }
       temporaryParameters[temporaryParameterIndex] = averageKnots[i + 1];
 
       for (int j = 0; j <= temporaryParameterIndex - 2; ++j)
       {
-	for (DenseIndex k = 0; k < derivativeIndices.size(); ++k)
-	{
-	  if (parameterIndices[j + 1] == derivativeIndices[k]
-	      && parameterIndices[j + 1] != 0
-	      && parameterIndices[j + 1] != numParameters - 1)
-	  {
-	    derivativeKnots[++newKnotIndex] = temporaryParameters.segment(j, 3).mean();
-	    break;
-	  }
-	}
+        for (DenseIndex k = 0; k < derivativeIndices.size(); ++k)
+        {
+          if (parameterIndices[j + 1] == derivativeIndices[k]
+              && parameterIndices[j + 1] != 0
+              && parameterIndices[j + 1] != numParameters - 1)
+          {
+            derivativeKnots[++newKnotIndex] = temporaryParameters.segment(j, 3).mean();
+            break;
+          }
+        }
       }
     }
     
     KnotVectorType temporaryKnots(averageKnots.size() + derivativeKnots.size());
 
     std::merge(averageKnots.data(), averageKnots.data() + averageKnots.size(),
-	       derivativeKnots.data(), derivativeKnots.data() + derivativeKnots.size(),
-	       temporaryKnots.data());
+               derivativeKnots.data(), derivativeKnots.data() + derivativeKnots.size(),
+               temporaryKnots.data());
 
     // Number of control points (one for each point and derivative) plus spline order.
     DenseIndex numKnots = numParameters + numDerivatives + degree + 1;
@@ -257,9 +257,9 @@ namespace Eigen
      **/
     template <typename PointArrayType>
     static SplineType InterpolateWithDerivatives(const PointArrayType& points,
-						 const PointArrayType& derivatives,
-						 const IndexArray& derivativeIndices,
-						 const unsigned int degree);
+                                                 const PointArrayType& derivatives,
+                                                 const IndexArray& derivativeIndices,
+                                                 const unsigned int degree);
 
     /**
      * \brief Fits an interpolating spline to the given data points and derivatives.
@@ -279,10 +279,10 @@ namespace Eigen
      */
     template <typename PointArrayType>
     static SplineType InterpolateWithDerivatives(const PointArrayType& points,
-						 const PointArrayType& derivatives,
-						 const IndexArray& derivativeIndices,
-						 const unsigned int degree,
-						 const ParameterVectorType& parameters);
+                                                 const PointArrayType& derivatives,
+                                                 const IndexArray& derivativeIndices,
+                                                 const unsigned int degree,
+                                                 const ParameterVectorType& parameters);
   };
 
   template <typename SplineType>
@@ -330,10 +330,10 @@ namespace Eigen
   template <typename PointArrayType>
   SplineType 
   SplineFitting<SplineType>::InterpolateWithDerivatives(const PointArrayType& points,
-							const PointArrayType& derivatives,
-							const IndexArray& derivativeIndices,
-							const unsigned int degree,
-							const ParameterVectorType& parameters)
+                                                        const PointArrayType& derivatives,
+                                                        const IndexArray& derivativeIndices,
+                                                        const unsigned int degree,
+                                                        const ParameterVectorType& parameters)
   {
     typedef typename SplineType::KnotVectorType::Scalar Scalar;      
     typedef typename SplineType::ControlPointVectorType ControlPointVectorType;
@@ -387,16 +387,16 @@ namespace Eigen
 
       if (derivativeIndices[derivativeIndex] == i)
       {
-	A.block(row, span - degree, 2, degree + 1)
-	  = SplineType::BasisFunctionDerivatives(parameters[i], 1, degree, knots);
+        A.block(row, span - degree, 2, degree + 1)
+          = SplineType::BasisFunctionDerivatives(parameters[i], 1, degree, knots);
 
-	b.col(row++) = points.col(i);
-	b.col(row++) = derivatives.col(derivativeIndex++);
+        b.col(row++) = points.col(i);
+        b.col(row++) = derivatives.col(derivativeIndex++);
       }
       else
       {
-	A.row(row++).segment(span - degree, degree + 1)
-	  = SplineType::BasisFunctions(parameters[i], degree, knots);
+        A.row(row++).segment(span - degree, degree + 1)
+          = SplineType::BasisFunctions(parameters[i], degree, knots);
       }
     }
     b.col(0) = points.col(0);
@@ -417,9 +417,9 @@ namespace Eigen
   template <typename PointArrayType>
   SplineType
   SplineFitting<SplineType>::InterpolateWithDerivatives(const PointArrayType& points,
-							const PointArrayType& derivatives,
-							const IndexArray& derivativeIndices,
-							const unsigned int degree)
+                                                        const PointArrayType& derivatives,
+                                                        const IndexArray& derivativeIndices,
+                                                        const unsigned int degree)
   {
     ParameterVectorType parameters;
     ChordLengths(points, parameters);
