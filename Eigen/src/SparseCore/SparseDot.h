@@ -26,7 +26,12 @@ SparseMatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   eigen_assert(size() == other.size());
   eigen_assert(other.size()>0 && "you are using a non initialized vector");
 
+#ifndef EIGEN_TEST_EVALUATORS
   typename Derived::InnerIterator i(derived(),0);
+#else
+  typename internal::evaluator<Derived>::type thisEval(derived());
+  typename internal::evaluator<Derived>::InnerIterator i(thisEval, 0);
+#endif
   Scalar res(0);
   while (i)
   {
@@ -49,6 +54,7 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
 
   eigen_assert(size() == other.size());
 
+#ifndef EIGEN_TEST_EVALUATORS
   typedef typename Derived::Nested  Nested;
   typedef typename OtherDerived::Nested  OtherNested;
   typedef typename internal::remove_all<Nested>::type  NestedCleaned;
@@ -59,6 +65,13 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
 
   typename NestedCleaned::InnerIterator i(nthis,0);
   typename OtherNestedCleaned::InnerIterator j(nother,0);
+#else
+  typename internal::evaluator<Derived>::type thisEval(derived());
+  typename internal::evaluator<Derived>::InnerIterator i(thisEval, 0);
+  
+  typename internal::evaluator<OtherDerived>::type  otherEval(other.derived());
+  typename internal::evaluator<OtherDerived>::InnerIterator j(otherEval, 0);
+#endif
   Scalar res(0);
   while (i && j)
   {

@@ -18,8 +18,14 @@ SparseMatrixBase<Derived>::sum() const
 {
   eigen_assert(rows()>0 && cols()>0 && "you are using a non initialized matrix");
   Scalar res(0);
+#ifndef EIGEN_TEST_EVALUATORS
   for (Index j=0; j<outerSize(); ++j)
     for (typename Derived::InnerIterator iter(derived(),j); iter; ++iter)
+#else
+  typename internal::evaluator<Derived>::type thisEval(derived());
+  for (Index j=0; j<outerSize(); ++j)
+    for (typename internal::evaluator<Derived>::InnerIterator iter(thisEval,j); iter; ++iter)
+#endif
       res += iter.value();
   return res;
 }

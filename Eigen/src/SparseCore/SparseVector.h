@@ -433,6 +433,28 @@ struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
   }
 };
 #else // EIGEN_TEST_EVALUATORS
+
+template<typename _Scalar, int _Options, typename _Index>
+struct evaluator<SparseVector<_Scalar,_Options,_Index> >
+  : evaluator_base<SparseVector<_Scalar,_Options,_Index> >
+{
+  typedef SparseVector<_Scalar,_Options,_Index> SparseVectorType;
+  typedef typename SparseVectorType::InnerIterator InnerIterator;
+  typedef typename SparseVectorType::ReverseInnerIterator ReverseInnerIterator;
+  
+  enum {
+    CoeffReadCost = NumTraits<_Scalar>::ReadCost,
+    Flags = SparseVectorType::Flags
+  };
+  
+  evaluator(const SparseVectorType &mat) : m_matrix(mat) {}
+  
+  operator SparseVectorType&() { return m_matrix.const_cast_derived(); }
+  operator const SparseVectorType&() const { return m_matrix; }
+  
+  const SparseVectorType &m_matrix;
+};
+
 template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_Inner> {
   static void run(Dest& dst, const Src& src) {
