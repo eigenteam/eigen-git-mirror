@@ -93,6 +93,17 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
     ViewOp m_functor;
 };
 
+#ifdef EIGEN_TEST_EVALUATORS
+// Generic API dispatcher
+template<typename ViewOp, typename XprType, typename StorageKind>
+class CwiseUnaryViewImpl
+  : public internal::generic_xpr_base<CwiseUnaryView<ViewOp, XprType> >::type
+{
+public:
+  typedef typename internal::generic_xpr_base<CwiseUnaryView<ViewOp, XprType> >::type Base;
+};
+#endif
+
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
   : public internal::dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type
