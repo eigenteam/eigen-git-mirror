@@ -337,6 +337,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Block<Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize);
     const Block<const Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize) const;
 
+#ifndef EIGEN_TEST_EVALUATORS
     /** \internal use operator= */
     template<typename DenseDerived>
     void evalTo(MatrixBase<DenseDerived>& dst) const
@@ -346,6 +347,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         for (typename Derived::InnerIterator i(derived(),j); i; ++i)
           dst.coeffRef(i.row(),i.col()) = i.value();
     }
+#endif
 
     Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> toDense() const
     {

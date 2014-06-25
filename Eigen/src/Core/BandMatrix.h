@@ -327,6 +327,29 @@ class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,Options&SelfAdjoint
   protected:
 };
 
+
+#ifdef EIGEN_TEST_EVALUATORS
+
+struct BandShape {};
+
+template<typename _Scalar, int _Rows, int _Cols, int _Supers, int _Subs, int _Options>
+struct evaluator_traits<BandMatrix<_Scalar,_Rows,_Cols,_Supers,_Subs,_Options> >
+  : public evaluator_traits_base<BandMatrix<_Scalar,_Rows,_Cols,_Supers,_Subs,_Options> >
+{
+  typedef BandShape Shape;
+};
+
+template<typename _CoefficientsType,int _Rows, int _Cols, int _Supers, int _Subs,int _Options>
+struct evaluator_traits<BandMatrixWrapper<_CoefficientsType,_Rows,_Cols,_Supers,_Subs,_Options> >
+  : public evaluator_traits_base<BandMatrixWrapper<_CoefficientsType,_Rows,_Cols,_Supers,_Subs,_Options> >
+{
+  typedef BandShape Shape;
+};
+
+template<> struct AssignmentKind<DenseShape,BandShape> { typedef EigenBase2EigenBase Kind; };
+#endif
+
+
 } // end namespace internal
 
 } // end namespace Eigen

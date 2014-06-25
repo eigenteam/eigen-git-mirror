@@ -73,6 +73,18 @@ struct traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
   };
 };
 
+#ifdef EIGEN_TEST_EVALUATORS
+
+struct HouseholderSequenceShape {};
+
+template<typename VectorsType, typename CoeffsType, int Side>
+struct evaluator_traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
+  : public evaluator_traits_base<HouseholderSequence<VectorsType,CoeffsType,Side> >
+{
+  typedef HouseholderSequenceShape Shape;
+};
+#endif
+
 template<typename VectorsType, typename CoeffsType, int Side>
 struct hseq_side_dependent_impl
 {

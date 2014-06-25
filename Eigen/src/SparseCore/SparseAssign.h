@@ -167,8 +167,10 @@ struct storage_kind_to_shape<Sparse> {
 };
 
 struct Sparse2Sparse {};
+struct Sparse2Dense  {};
 
 template<> struct AssignmentKind<SparseShape,SparseShape> { typedef Sparse2Sparse Kind; };
+template<> struct AssignmentKind<DenseShape,SparseShape>  { typedef Sparse2Dense  Kind; };
 
 
 template<typename DstXprType, typename SrcXprType>
@@ -239,6 +241,24 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     
     assign_sparse_to_sparse(dst.derived(), src.derived());
+  }
+};
+
+// Sparse to Dense assignment
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
+{
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  {
+    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+    typedef typename SrcXprType::Index Index;
+    
+    dst.setZero();
+    typename internal::evaluator<SrcXprType>::type srcEval(src);
+    typename internal::evaluator<DstXprType>::type dstEval(dst);
+    for (Index j=0; j<src.outerSize(); ++j)
+      for (typename internal::evaluator<SrcXprType>::InnerIterator i(srcEval,j); i; ++i)
+        dstEval.coeffRef(i.row(),i.col()) = i.value();
   }
 };
 

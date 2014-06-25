@@ -611,7 +611,7 @@ template <typename OtherDerived>
 EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<OtherDerived>& other)
 {
-  other.derived().evalTo(derived());
+  internal::call_assignment(derived(), other.derived());
   return derived();
 }
 

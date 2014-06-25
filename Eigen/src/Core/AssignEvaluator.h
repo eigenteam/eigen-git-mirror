@@ -663,7 +663,9 @@ template<typename DstShape, typename SrcShape> struct AssignmentKind;
 
 // Assignement kind defined in this file:
 struct Dense2Dense {};
+struct EigenBase2EigenBase {};
 
+template<typename,typename> struct AssignmentKind { typedef EigenBase2EigenBase Kind; };
 template<> struct AssignmentKind<DenseShape,DenseShape> { typedef Dense2Dense Kind; };
     
 // This is the main assignment class
@@ -750,8 +752,12 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
   // TODO check whether this is the right place to perform these checks:
   EIGEN_STATIC_ASSERT_LVALUE(Dst)
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(ActualDstTypeCleaned,Src)
-  EIGEN_CHECK_BINARY_COMPATIBILIY(Func,typename ActualDstTypeCleaned::Scalar,typename Src::Scalar);
 
+  // TODO this line is commented to allow matrix = permutation
+  // Actually, the "Scalar" type for a permutation matrix does not really make sense,
+  // perhaps it could be void, and EIGEN_CHECK_BINARY_COMPATIBILIY could allow micing void with anything...?
+//   EIGEN_CHECK_BINARY_COMPATIBILIY(Func,typename ActualDstTypeCleaned::Scalar,typename Src::Scalar);
+  
   Assignment<ActualDstTypeCleaned,Src,Func>::run(actualDst, src, func);
 }
 template<typename Dst, typename Src>
@@ -769,6 +775,19 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     
     call_dense_assignment_loop(dst, src, func);
+  }
+};
+
+// Generic assignment through evalTo.
+// TODO: not sure we have to keep that one, but it helps porting current code to new evaluator mechanism.
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Scalar>
+{
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  {
+    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+    
+    src.evalTo(dst);
   }
 };
 

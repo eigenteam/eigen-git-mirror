@@ -67,7 +67,7 @@ public:
     Index nonZeros() const
     {
 #ifndef EIGEN_TEST_EVALUATORS
-      typedef typename internal::evaluator<XprType>::type EvaluatorType;
+      Index nnz = 0;
       Index end = m_outerStart + m_outerSize.value();
       for(int j=m_outerStart; j<end; ++j)
         for(typename XprType::InnerIterator it(m_matrix, j); it; ++it)
@@ -641,7 +641,7 @@ public:
 template<typename ArgType, int BlockRows, int BlockCols, int InnerPanel>
 class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::OuterVectorInnerIterator
 {
-  const XprType& m_block;
+  const unary_evaluator& m_eval;
   Index m_outerPos;
   Index m_innerIndex;
   Scalar m_value;
@@ -649,10 +649,10 @@ class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBas
 public:
 
   EIGEN_STRONG_INLINE OuterVectorInnerIterator(const unary_evaluator& aEval, Index outer)
-    : m_block(aEval.m_block),
-      m_outerPos( (IsRowMajor ? aEval.startCol() : aEval.startRow()) - 1), // -1 so that operator++ finds the first non-zero entry
-      m_innerIndex(IsRowMajor ? aEval.startRow() : aEval.startCol()),
-      m_end(IsRowMajor ? aEval.startCol()+aEval.blockCols() : aEval.startRow()+aEval.blockRows())
+    : m_eval(aEval),
+      m_outerPos( (IsRowMajor ? aEval.m_block.startCol() : aEval.m_block.startRow()) - 1), // -1 so that operator++ finds the first non-zero entry
+      m_innerIndex(IsRowMajor ? aEval.m_block.startRow() : aEval.m_block.startCol()),
+      m_end(IsRowMajor ? aEval.m_block.startCol()+aEval.m_block.blockCols() : aEval.m_block.startRow()+aEval.m_block.blockRows())
   {
     EIGEN_UNUSED_VARIABLE(outer);
     eigen_assert(outer==0);
@@ -660,7 +660,7 @@ public:
     ++(*this);
   }
   
-  inline Index index()  const { return m_outerPos - (IsRowMajor ? m_block.startCol() : m_block.startRow()); }
+  inline Index index()  const { return m_outerPos - (IsRowMajor ? m_eval.m_block.startCol() : m_eval.m_block.startRow()); }
   inline Index outer()  const { return 0; }
   inline Index row()    const { return IsRowMajor ? 0 : index(); }
   inline Index col()    const { return IsRowMajor ? index() : 0; }
@@ -673,7 +673,7 @@ public:
     while(m_outerPos<m_end)
     {
       m_outerPos++;
-      typename XprType::InnerIterator it(m_block.m_matrix, m_outerPos);
+      EvalIterator it(m_eval.m_argImpl, m_outerPos);
       // search for the key m_innerIndex in the current outer-vector
       while(it && it.index() < m_innerIndex) ++it;
       if(it && it.index()==m_innerIndex)

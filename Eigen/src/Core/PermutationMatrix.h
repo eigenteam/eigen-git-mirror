@@ -803,6 +803,8 @@ struct evaluator_traits<Transpose<PermutationBase<Derived> > >
   static const int AssumeAliasing = 0;
 };
 
+template<> struct AssignmentKind<DenseShape,PermutationShape> { typedef EigenBase2EigenBase Kind; };
+
 } // end namespace internal
 #endif // EIGEN_TEST_EVALUATORS
 

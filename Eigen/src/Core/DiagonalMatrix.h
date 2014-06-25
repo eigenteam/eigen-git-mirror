@@ -44,6 +44,8 @@ class DiagonalBase : public EigenBase<Derived>
 
     EIGEN_DEVICE_FUNC
     DenseMatrixType toDenseMatrix() const { return derived(); }
+    
+#ifndef EIGEN_TEST_EVALUATORS
     template<typename DenseDerived>
     EIGEN_DEVICE_FUNC
     void evalTo(MatrixBase<DenseDerived> &other) const;
@@ -55,6 +57,7 @@ class DiagonalBase : public EigenBase<Derived>
     EIGEN_DEVICE_FUNC
     void subTo(MatrixBase<DenseDerived> &other) const
     { other.diagonal() -= diagonal(); }
+#endif // EIGEN_TEST_EVALUATORS
 
     EIGEN_DEVICE_FUNC
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
@@ -122,6 +125,7 @@ class DiagonalBase : public EigenBase<Derived>
     #endif
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename Derived>
 template<typename DenseDerived>
 void DiagonalBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
@@ -129,6 +133,8 @@ void DiagonalBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
   other.setZero();
   other.diagonal() = diagonal();
 }
+#endif // EIGEN_TEST_EVALUATORS
+
 #endif
 
 /** \class DiagonalMatrix
@@ -374,6 +380,21 @@ struct evaluator_traits<DiagonalWrapper<Derived> >
   typedef typename storage_kind_to_evaluator_kind<typename Derived::StorageKind>::Kind Kind;
   typedef DiagonalShape Shape;
   static const int AssumeAliasing = 0;
+};
+
+struct Diagonal2Dense {};
+
+template<> struct AssignmentKind<DenseShape,DiagonalShape> { typedef Diagonal2Dense Kind; };
+
+// Diagonal matrix to Dense assignment
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Dense, Scalar>
+{
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  {
+    dst.setZero();
+    dst.diagonal() = src.diagonal();
+  }
 };
 
 } // namespace internal

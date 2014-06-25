@@ -32,10 +32,7 @@ struct storage_kind_to_evaluator_kind {
 template<typename StorageKind> struct storage_kind_to_shape;
 
 
-template<>
-struct storage_kind_to_shape<Dense> {
-  typedef DenseShape Shape;
-};
+template<> struct storage_kind_to_shape<Dense> { typedef DenseShape Shape; };
 
 // Evaluators have to be specialized with respect to various criteria such as:
 //  - storage/structure/shape
@@ -507,7 +504,7 @@ protected:
 // -------------------- CwiseUnaryView --------------------
 
 template<typename UnaryOp, typename ArgType>
-struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType> >
+struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType>, IndexBased>
   : evaluator_base<CwiseUnaryView<UnaryOp, ArgType> >
 {
   typedef CwiseUnaryView<UnaryOp, ArgType> XprType;
