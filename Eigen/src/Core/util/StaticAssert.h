@@ -159,7 +159,7 @@
 
 #define EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
      ( \
-        (int(TYPE0::SizeAtCompileTime)==0 && int(TYPE1::SizeAtCompileTime)==0) \
+        (int(internal::size_of_xpr_at_compile_time<TYPE0>::ret)==0 && int(internal::size_of_xpr_at_compile_time<TYPE1>::ret)==0) \
     || (\
           (int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
         || int(TYPE1::RowsAtCompileTime)==Eigen::Dynamic \

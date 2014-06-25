@@ -216,6 +216,11 @@ template<int _Rows, int _Cols> struct size_at_compile_time
   enum { ret = (_Rows==Dynamic || _Cols==Dynamic) ? Dynamic : _Rows * _Cols };
 };
 
+template<typename XprType> struct size_of_xpr_at_compile_time
+{
+  enum { ret = size_at_compile_time<traits<XprType>::RowsAtCompileTime,traits<XprType>::ColsAtCompileTime>::ret };
+};
+
 /* plain_matrix_type : the difference from eval is that plain_matrix_type is always a plain matrix type,
  * whereas eval is a const reference in the case of a matrix
  */
