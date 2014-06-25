@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -12,6 +12,7 @@
 
 namespace Eigen { 
 
+// Subset of columns or rows
 template<typename XprType, int BlockRows, int BlockCols>
 class BlockImpl<XprType,BlockRows,BlockCols,true,Sparse>
   : public SparseMatrixBase<Block<XprType,BlockRows,BlockCols,true> >
@@ -25,6 +26,7 @@ protected:
 public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(BlockType)
     
+#ifndef EIGEN_TEST_EVALUATORS
     class InnerIterator: public XprType::InnerIterator
     {
         typedef typename BlockImpl::Index Index;
@@ -49,6 +51,7 @@ public:
       protected:
         Index m_outer;
     };
+#endif // EIGEN_TEST_EVALUATORS
 
     inline BlockImpl(const XprType& xpr, int i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
@@ -63,13 +66,30 @@ public:
     
     Index nonZeros() const
     {
-      Index nnz = 0;
+#ifndef EIGEN_TEST_EVALUATORS
+      typedef typename internal::evaluator<XprType>::type EvaluatorType;
       Index end = m_outerStart + m_outerSize.value();
       for(int j=m_outerStart; j<end; ++j)
         for(typename XprType::InnerIterator it(m_matrix, j); it; ++it)
           ++nnz;
       return nnz;
+#else // EIGEN_TEST_EVALUATORS
+      typedef typename internal::evaluator<XprType>::type EvaluatorType;
+      EvaluatorType matEval(m_matrix);
+      Index nnz = 0;
+      Index end = m_outerStart + m_outerSize.value();
+      for(int j=m_outerStart; j<end; ++j)
+        for(typename EvaluatorType::InnerIterator it(matEval, j); it; ++it)
+          ++nnz;
+      return nnz;
+#endif // EIGEN_TEST_EVALUATORS
     }
+    
+    inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
+    Index startRow() const { return IsRowMajor ? m_outerStart : 0; }
+    Index startCol() const { return IsRowMajor ? 0 : m_outerStart; }
+    Index blockRows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
+    Index blockCols() const { return IsRowMajor ? m_matrix.cols() : m_outerSize.value(); }
 
   protected:
 
@@ -101,6 +121,7 @@ protected:
     enum { OuterSize = IsRowMajor ? BlockRows : BlockCols };
 public:
     
+#ifndef EIGEN_TEST_EVALUATORS
     class InnerIterator: public SparseMatrixType::InnerIterator
     {
       public:
@@ -123,6 +144,7 @@ public:
       protected:
         Index m_outer;
     };
+#endif // EIGEN_TEST_EVALUATORS
 
     inline sparse_matrix_block_impl(const SparseMatrixType& xpr, int i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
@@ -248,6 +270,12 @@ public:
 
     EIGEN_STRONG_INLINE Index rows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
     EIGEN_STRONG_INLINE Index cols() const { return IsRowMajor ? m_matrix.cols() : m_outerSize.value(); }
+    
+    inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
+    Index startRow() const { return IsRowMajor ? m_outerStart : 0; }
+    Index startCol() const { return IsRowMajor ? 0 : m_outerStart; }
+    Index blockRows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
+    Index blockCols() const { return IsRowMajor ? m_matrix.cols() : m_outerSize.value(); }
 
   protected:
 
@@ -404,8 +432,7 @@ public:
                     m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
     
-    inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
-    
+#ifndef EIGEN_TEST_EVALUATORS
     typedef internal::GenericSparseBlockInnerIteratorImpl<XprType,BlockRows,BlockCols,InnerPanel> InnerIterator;
     
     class ReverseInnerIterator : public _MatrixTypeNested::ReverseInnerIterator
@@ -431,6 +458,14 @@ public:
       
       inline operator bool() const { return Base::operator bool() && Base::index() >= m_begin; }
     };
+#endif // EIGEN_TEST_EVALUATORS
+    
+    inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
+    Index startRow() const { return m_startRow.value(); }
+    Index startCol() const { return m_startCol.value(); }
+    Index blockRows() const { return m_blockRows.value(); }
+    Index blockCols() const { return m_blockCols.value(); }
+    
   protected:
     friend class internal::GenericSparseBlockInnerIteratorImpl<XprType,BlockRows,BlockCols,InnerPanel>;
     friend class ReverseInnerIterator;
@@ -535,7 +570,127 @@ namespace internal {
     
     inline operator bool() const { return m_outerPos < m_end; }
   };
+
+#ifdef EIGEN_TEST_EVALUATORS
+
+//
+template<typename ArgType, int BlockRows, int BlockCols, int InnerPanel>
+struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased >
+ : public evaluator_base<Block<ArgType,BlockRows,BlockCols,InnerPanel> >
+{
+    class InnerVectorInnerIterator;
+    class OuterVectorInnerIterator;
+  public:
+    typedef Block<ArgType,BlockRows,BlockCols,InnerPanel> XprType;
+    typedef typename XprType::Index Index;
+    typedef typename XprType::Scalar Scalar;
+    
+    class ReverseInnerIterator;
+    
+    enum {
+      IsRowMajor = XprType::IsRowMajor,
+      
+      OuterVector =  (BlockCols==1 && ArgType::IsRowMajor)
+                    | // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
+                      // revert to || as soon as not needed anymore. 
+                     (BlockRows==1 && !ArgType::IsRowMajor),
+      
+      CoeffReadCost = evaluator<ArgType>::CoeffReadCost,
+      Flags = XprType::Flags
+    };
+    
+    typedef typename internal::conditional<OuterVector,OuterVectorInnerIterator,InnerVectorInnerIterator>::type InnerIterator;
+    
+    unary_evaluator(const XprType& op)
+      : m_argImpl(op.nestedExpression()), m_block(op)
+    {}
+
+  protected:
+    typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
+    typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
+    
+    typename evaluator<ArgType>::nestedType m_argImpl;
+    const XprType &m_block;
+};
+
+template<typename ArgType, int BlockRows, int BlockCols, int InnerPanel>
+class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::InnerVectorInnerIterator
+ : public EvalIterator
+{
+  const XprType& m_block;
+  Index m_end;
+public:
+
+  EIGEN_STRONG_INLINE InnerVectorInnerIterator(const unary_evaluator& aEval, Index outer)
+    : EvalIterator(aEval.m_argImpl, outer + (IsRowMajor ? aEval.m_block.startRow() : aEval.m_block.startCol())),
+      m_block(aEval.m_block),
+      m_end(IsRowMajor ? aEval.m_block.startCol()+aEval.m_block.blockCols() : aEval.m_block.startRow()+aEval.m_block.blockRows())
+  {
+    while( (EvalIterator::operator bool()) && (EvalIterator::index() < (IsRowMajor ? m_block.startCol() : m_block.startRow())) )
+      EvalIterator::operator++();
+  }
   
+  inline Index index()  const { return EvalIterator::index() - (IsRowMajor ? m_block.startCol() : m_block.startRow()); }
+  inline Index outer()  const { return EvalIterator::outer() - (IsRowMajor ? m_block.startRow() : m_block.startCol()); }
+  inline Index row()    const { return EvalIterator::row()   - m_block.startRow(); }
+  inline Index col()    const { return EvalIterator::col()   - m_block.startCol(); }
+  
+  inline operator bool() const { return EvalIterator::operator bool() && EvalIterator::index() < m_end; }
+};
+
+template<typename ArgType, int BlockRows, int BlockCols, int InnerPanel>
+class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::OuterVectorInnerIterator
+{
+  const XprType& m_block;
+  Index m_outerPos;
+  Index m_innerIndex;
+  Scalar m_value;
+  Index m_end;
+public:
+
+  EIGEN_STRONG_INLINE OuterVectorInnerIterator(const unary_evaluator& aEval, Index outer)
+    : m_block(aEval.m_block),
+      m_outerPos( (IsRowMajor ? aEval.startCol() : aEval.startRow()) - 1), // -1 so that operator++ finds the first non-zero entry
+      m_innerIndex(IsRowMajor ? aEval.startRow() : aEval.startCol()),
+      m_end(IsRowMajor ? aEval.startCol()+aEval.blockCols() : aEval.startRow()+aEval.blockRows())
+  {
+    EIGEN_UNUSED_VARIABLE(outer);
+    eigen_assert(outer==0);
+    
+    ++(*this);
+  }
+  
+  inline Index index()  const { return m_outerPos - (IsRowMajor ? m_block.startCol() : m_block.startRow()); }
+  inline Index outer()  const { return 0; }
+  inline Index row()    const { return IsRowMajor ? 0 : index(); }
+  inline Index col()    const { return IsRowMajor ? index() : 0; }
+  
+  inline Scalar value() const { return m_value; }
+  
+  inline OuterVectorInnerIterator& operator++()
+  {
+    // search next non-zero entry
+    while(m_outerPos<m_end)
+    {
+      m_outerPos++;
+      typename XprType::InnerIterator it(m_block.m_matrix, m_outerPos);
+      // search for the key m_innerIndex in the current outer-vector
+      while(it && it.index() < m_innerIndex) ++it;
+      if(it && it.index()==m_innerIndex)
+      {
+        m_value = it.value();
+        break;
+      }
+    }
+    return *this;
+  }
+  
+  inline operator bool() const { return m_outerPos < m_end; }
+};
+
+  
+#endif // EIGEN_TEST_EVALUATORS  
+
 } // end namespace internal
 
 

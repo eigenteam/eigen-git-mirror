@@ -737,13 +737,25 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
   evaluator(const XprType& block) : block_evaluator_type(block) {}
 };
 
+// no direct-access => dispatch to a unary evaluator
 template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAccess*/ false>
-  : evaluator_base<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
+  : unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
   block_evaluator(const XprType& block) 
+    : unary_evaluator<XprType>(block) 
+  {}
+};
+
+template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
+struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBased>
+  : evaluator_base<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
+{
+  typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
+
+  unary_evaluator(const XprType& block) 
     : m_argImpl(block.nestedExpression()), 
       m_startRow(block.startRow()), 
       m_startCol(block.startCol()) 

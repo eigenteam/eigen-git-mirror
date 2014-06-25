@@ -181,7 +181,6 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
   typedef typename internal::evaluator<DstXprType>::type DstEvaluatorType;
   typedef typename internal::evaluator<SrcXprType>::type SrcEvaluatorType;
 
-  DstEvaluatorType dstEvaluator(dst);
   SrcEvaluatorType srcEvaluator(src);
     
   const bool transpose = (DstEvaluatorType::Flags & RowMajorBit) != (SrcEvaluatorType::Flags & RowMajorBit);

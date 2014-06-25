@@ -122,6 +122,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class 
     typedef Impl Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+    
+    typedef typename internal::remove_all<XprType>::type NestedExpression;
   
     /** Column or Row constructor
       */
