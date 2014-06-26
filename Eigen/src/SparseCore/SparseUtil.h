@@ -43,6 +43,8 @@ EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
+#ifndef EIGEN_TEST_EVALUATORS
+
 #define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, BaseClass) \
   typedef BaseClass Base; \
   typedef typename Eigen::internal::traits<Derived >::Scalar Scalar; \
@@ -59,6 +61,25 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
   using Base::derived; \
   using Base::const_cast_derived;
 
+#else // EIGEN_TEST_EVALUATORS
+
+#define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, BaseClass) \
+  typedef BaseClass Base; \
+  typedef typename Eigen::internal::traits<Derived >::Scalar Scalar; \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Eigen::internal::nested<Derived >::type Nested; \
+  typedef typename Eigen::internal::traits<Derived >::StorageKind StorageKind; \
+  typedef typename Eigen::internal::traits<Derived >::Index Index; \
+  enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::internal::traits<Derived >::ColsAtCompileTime, \
+        Flags = Eigen::internal::traits<Derived >::Flags, \
+        SizeAtCompileTime = Base::SizeAtCompileTime, \
+        IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
+  using Base::derived; \
+  using Base::const_cast_derived;
+  
+#endif // EIGEN_TEST_EVALUATORS
+  
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived >)
 
