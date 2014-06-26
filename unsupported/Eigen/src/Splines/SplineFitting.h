@@ -74,7 +74,7 @@ namespace Eigen
    * Curve interpolation with directional constraints for engineering design. 
    * Engineering with Computers
    **/
-  template <typename KnotVectorType, typename ParameterVectorType>
+  template <typename KnotVectorType, typename ParameterVectorType, typename IndexArray>
   void KnotAveragingWithDerivatives(const ParameterVectorType& parameters,
                                     const unsigned int degree,
                                     const IndexArray& derivativeIndices,
@@ -255,7 +255,7 @@ namespace Eigen
      * Curve interpolation with directional constraints for engineering design. 
      * Engineering with Computers
      **/
-    template <typename PointArrayType>
+    template <typename PointArrayType, typename IndexArray>
     static SplineType InterpolateWithDerivatives(const PointArrayType& points,
                                                  const PointArrayType& derivatives,
                                                  const IndexArray& derivativeIndices,
@@ -277,7 +277,7 @@ namespace Eigen
      * Curve interpolation with directional constraints for engineering design. 
      * Engineering with Computers
      */
-    template <typename PointArrayType>
+    template <typename PointArrayType, typename IndexArray>
     static SplineType InterpolateWithDerivatives(const PointArrayType& points,
                                                  const PointArrayType& derivatives,
                                                  const IndexArray& derivativeIndices,
@@ -327,7 +327,7 @@ namespace Eigen
   }
   
   template <typename SplineType>
-  template <typename PointArrayType>
+  template <typename PointArrayType, typename IndexArray>
   SplineType 
   SplineFitting<SplineType>::InterpolateWithDerivatives(const PointArrayType& points,
                                                         const PointArrayType& derivatives,
@@ -414,7 +414,7 @@ namespace Eigen
   }
   
   template <typename SplineType>
-  template <typename PointArrayType>
+  template <typename PointArrayType, typename IndexArray>
   SplineType
   SplineFitting<SplineType>::InterpolateWithDerivatives(const PointArrayType& points,
                                                         const PointArrayType& derivatives,

@@ -88,8 +88,6 @@ namespace Eigen
     
     /** \brief 3D double B-spline with dynamic degree. */
     typedef Spline<double,3> Spline3d;
-
-    typedef Array<DenseIndex, 1, Dynamic> IndexArray;
 }
 
 #endif // EIGEN_SPLINES_FWD_H
