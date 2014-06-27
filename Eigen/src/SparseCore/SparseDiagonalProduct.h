@@ -266,24 +266,29 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
   typedef typename evaluator<CwiseProductType>::type CwiseProductEval;
   typedef typename evaluator<CwiseProductType>::InnerIterator CwiseProductIterator;
   
-  class InnerIterator : public CwiseProductIterator
+  class InnerIterator
   {
   public:
     InnerIterator(const sparse_diagonal_product_evaluator &xprEval, Index outer)
-      : CwiseProductIterator(CwiseProductEval(xprEval.m_sparseXprNested.innerVector(outer).cwiseProduct(xprEval.m_diagCoeffNested)),0),
-        m_cwiseEval(xprEval.m_sparseXprNested.innerVector(outer).cwiseProduct(xprEval.m_diagCoeffNested)),
+      : m_cwiseEval(xprEval.m_sparseXprNested.innerVector(outer).cwiseProduct(xprEval.m_diagCoeffNested)),
+        m_cwiseIter(m_cwiseEval, 0),
         m_outer(outer)
-    {
-      ::new (static_cast<CwiseProductIterator*>(this)) CwiseProductIterator(m_cwiseEval,0);
-    }
+    {}
     
+    inline Scalar value() const  { return m_cwiseIter.value(); }
+    inline Index index() const  { return m_cwiseIter.index(); }
     inline Index outer() const  { return m_outer; }
-    inline Index col() const    { return SparseXprType::IsRowMajor ? CwiseProductIterator::index() : m_outer; }
-    inline Index row() const    { return SparseXprType::IsRowMajor ? m_outer : CwiseProductIterator::index(); }
+    inline Index col() const    { return SparseXprType::IsRowMajor ? m_cwiseIter.index() : m_outer; }
+    inline Index row() const    { return SparseXprType::IsRowMajor ? m_outer : m_cwiseIter.index(); }
+    
+    EIGEN_STRONG_INLINE InnerIterator& operator++()
+    { ++m_cwiseIter; return *this; }
+    inline operator bool() const  { return m_cwiseIter; }
     
   protected:
-    Index m_outer;
     CwiseProductEval m_cwiseEval;
+    CwiseProductIterator m_cwiseIter;
+    Index m_outer;
   };
   
   sparse_diagonal_product_evaluator(const SparseXprType &sparseXpr, const DiagCoeffType &diagCoeff)

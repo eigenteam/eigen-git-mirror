@@ -607,7 +607,6 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
 
   protected:
     typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
-    typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
     
     typename evaluator<ArgType>::nestedType m_argImpl;
     const XprType &m_block;
@@ -620,7 +619,7 @@ class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBas
   const XprType& m_block;
   Index m_end;
 public:
-
+  
   EIGEN_STRONG_INLINE InnerVectorInnerIterator(const unary_evaluator& aEval, Index outer)
     : EvalIterator(aEval.m_argImpl, outer + (IsRowMajor ? aEval.m_block.startRow() : aEval.m_block.startCol())),
       m_block(aEval.m_block),
