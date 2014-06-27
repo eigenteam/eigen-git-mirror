@@ -48,6 +48,7 @@ struct Sparse {};
 #include "src/SparseCore/SparseDot.h"
 #include "src/SparseCore/SparseRedux.h"
 #include "src/SparseCore/SparseView.h"
+#include "src/SparseCore/SparseDiagonalProduct.h"
 #ifndef EIGEN_TEST_EVALUATORS
 #include "src/SparseCore/SparsePermutation.h"
 #include "src/SparseCore/SparseFuzzy.h"
@@ -55,7 +56,6 @@ struct Sparse {};
 #include "src/SparseCore/SparseSparseProductWithPruning.h"
 #include "src/SparseCore/SparseProduct.h"
 #include "src/SparseCore/SparseDenseProduct.h"
-#include "src/SparseCore/SparseDiagonalProduct.h"
 #include "src/SparseCore/SparseTriangularView.h"
 #include "src/SparseCore/SparseSelfAdjointView.h"
 #include "src/SparseCore/TriangularSolver.h"

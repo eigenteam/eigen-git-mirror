@@ -269,6 +269,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const typename SparseSparseProductReturnType<Derived,OtherDerived>::Type
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
 
+#ifndef EIGEN_TEST_EVALUATORS
     // sparse * diagonal
     template<typename OtherDerived>
     const SparseDiagonalProduct<Derived,OtherDerived>
@@ -279,6 +280,19 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const SparseDiagonalProduct<OtherDerived,Derived>
     operator*(const DiagonalBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
     { return SparseDiagonalProduct<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
+#else // EIGEN_TEST_EVALUATORS
+    // sparse * diagonal
+    template<typename OtherDerived>
+    const Product<Derived,OtherDerived>
+    operator*(const DiagonalBase<OtherDerived> &other) const
+    { return Product<Derived,OtherDerived>(derived(), other.derived()); }
+
+    // diagonal * sparse
+    template<typename OtherDerived> friend
+    const Product<OtherDerived,Derived>
+    operator*(const DiagonalBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
+    { return Product<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
+#endif // EIGEN_TEST_EVALUATORS
 
     /** dense * sparse (return a dense object unless it is an outer product) */
     template<typename OtherDerived> friend
