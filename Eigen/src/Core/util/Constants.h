@@ -154,6 +154,16 @@ const unsigned int AlignedBit = 0x80;
 
 const unsigned int NestByRefBit = 0x100;
 
+/** \ingroup flags
+  *
+  * for an expression, this means that the storage order
+  * can be either row-major or column-major.
+  * The precise choice will be decided at evaluation time or when
+  * combined with other expressions.
+  * \sa \ref RowMajorBit, \ref TopicStorageOrders */
+const unsigned int NoPreferredStorageOrderBit = 0x200;
+
+
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit

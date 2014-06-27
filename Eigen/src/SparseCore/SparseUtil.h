@@ -149,7 +149,7 @@ template<typename T> struct plain_matrix_type<T,Sparse>
 {
   typedef typename traits<T>::Scalar _Scalar;
   typedef typename traits<T>::Index _Index;
-  enum { _Options = ((traits<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
+  enum { _Options = ((evaluator<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
   public:
     typedef SparseMatrix<_Scalar, _Options, _Index> type;
 };

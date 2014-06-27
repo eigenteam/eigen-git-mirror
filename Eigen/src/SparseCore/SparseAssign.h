@@ -220,7 +220,7 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
     for (Index j=0; j<outerSize; ++j)
     {
       temp.startVec(j);
-      for (typename SrcEvaluatorType::InnerIterator it(src, j); it; ++it)
+      for (typename SrcEvaluatorType::InnerIterator it(srcEvaluator, j); it; ++it)
       {
         Scalar v = it.value();
         temp.insertBackByOuterInner(Flip?it.index():j,Flip?j:it.index()) = v;

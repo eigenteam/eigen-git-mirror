@@ -82,7 +82,10 @@ struct traits<Product<Lhs, Rhs, Option> >
 #endif
     
     // The storage order is somewhat arbitrary here. The correct one will be determined through the evaluator.
-    Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0)
+    Flags = (   MaxRowsAtCompileTime==1
+             || ((LhsCleaned::Flags&NoPreferredStorageOrderBit) && (RhsCleaned::Flags&RowMajorBit))
+             || ((RhsCleaned::Flags&NoPreferredStorageOrderBit) && (LhsCleaned::Flags&RowMajorBit)) )
+          ? RowMajorBit : (MaxColsAtCompileTime==1 ? 0 : NoPreferredStorageOrderBit)
   };
 };
 
@@ -155,6 +158,16 @@ public:
 };
 
 } // namespace internal
+
+#ifdef EIGEN_TEST_EVALUATORS
+// Generic API dispatcher
+template<typename Lhs, typename Rhs, int Option, typename StorageKind>
+class ProductImpl : public internal::generic_xpr_base<Product<Lhs,Rhs,Option>, MatrixXpr, StorageKind>::type
+{
+  public:
+    typedef typename internal::generic_xpr_base<Product<Lhs,Rhs,Option>, MatrixXpr, StorageKind>::type Base;
+};
+#endif
 
 template<typename Lhs, typename Rhs, int Option>
 class ProductImpl<Lhs,Rhs,Option,Dense>

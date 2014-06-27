@@ -30,7 +30,7 @@ class DiagonalBase : public EigenBase<Derived>
       MaxRowsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
       MaxColsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
       IsVectorAtCompileTime = 0,
-      Flags = 0
+      Flags = NoPreferredStorageOrderBit
     };
 
     typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, 0, MaxRowsAtCompileTime, MaxColsAtCompileTime> DenseMatrixType;
@@ -159,7 +159,7 @@ struct traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
   typedef Dense StorageKind;
   typedef DenseIndex Index;
   enum {
-    Flags = LvalueBit
+    Flags = LvalueBit | NoPreferredStorageOrderBit
   };
 };
 }
@@ -287,7 +287,7 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
     ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
-    Flags =  traits<DiagonalVectorType>::Flags & LvalueBit
+    Flags =  (traits<DiagonalVectorType>::Flags & LvalueBit) | NoPreferredStorageOrderBit
 #ifndef EIGEN_TEST_EVALUATORS
     ,
     CoeffReadCost = traits<_DiagonalVectorType>::CoeffReadCost
