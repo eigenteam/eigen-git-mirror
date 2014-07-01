@@ -449,8 +449,6 @@ struct MatrixXpr {};
 /** The type used to identify an array expression */
 struct ArrayXpr {};
 
-
-#ifdef EIGEN_ENABLE_EVALUATORS
 // An evaluator must define its shape. By default, it can be one of the following:
 struct DenseShape       { static std::string debugName() { return "DenseShape"; } };
 struct DiagonalShape    { static std::string debugName() { return "DiagonalShape"; } };
@@ -459,8 +457,6 @@ struct TriangularShape  { static std::string debugName() { return "TriangularSha
 struct SelfAdjointShape { static std::string debugName() { return "SelfAdjointShape"; } };
 struct PermutationShape { static std::string debugName() { return "PermutationShape"; } };
 struct SparseShape      { static std::string debugName() { return "SparseShape"; } };
-#endif
-
 
 } // end namespace Eigen
 

@@ -56,8 +56,9 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
                        typename Rhs::Scalar
                      )
                    >::type Scalar;
-  typedef typename promote_storage_type<typename traits<Lhs>::StorageKind,
-                                           typename traits<Rhs>::StorageKind>::ret StorageKind;
+  typedef typename cwise_promote_storage_type<typename traits<Lhs>::StorageKind,
+                                              typename traits<Rhs>::StorageKind,
+                                              BinaryOp>::ret StorageKind;
   typedef typename promote_index_type<typename traits<Lhs>::Index,
                                          typename traits<Rhs>::Index>::type Index;
   typedef typename Lhs::Nested LhsNested;
@@ -98,8 +99,9 @@ template<typename BinaryOp, typename LhsType, typename RhsType>
 class CwiseBinaryOp : internal::no_assignment_operator,
   public CwiseBinaryOpImpl<
           BinaryOp, LhsType, RhsType,
-          typename internal::promote_storage_type<typename internal::traits<LhsType>::StorageKind,
-                                           typename internal::traits<RhsType>::StorageKind>::ret>
+          typename internal::cwise_promote_storage_type<typename internal::traits<LhsType>::StorageKind,
+                                                        typename internal::traits<RhsType>::StorageKind,
+                                                        BinaryOp>::ret>
 {
   public:
     
@@ -108,8 +110,9 @@ class CwiseBinaryOp : internal::no_assignment_operator,
 
     typedef typename CwiseBinaryOpImpl<
         BinaryOp, LhsType, RhsType,
-        typename internal::promote_storage_type<typename internal::traits<LhsType>::StorageKind,
-                                         typename internal::traits<Rhs>::StorageKind>::ret>::Base Base;
+        typename internal::cwise_promote_storage_type<typename internal::traits<LhsType>::StorageKind,
+                                                      typename internal::traits<Rhs>::StorageKind,
+                                                      BinaryOp>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
 
     typedef typename internal::nested<LhsType>::type LhsNested;

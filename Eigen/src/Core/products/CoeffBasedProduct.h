@@ -42,8 +42,9 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
   typedef typename remove_all<LhsNested>::type _LhsNested;
   typedef typename remove_all<RhsNested>::type _RhsNested;
   typedef typename scalar_product_traits<typename _LhsNested::Scalar, typename _RhsNested::Scalar>::ReturnType Scalar;
-  typedef typename promote_storage_type<typename traits<_LhsNested>::StorageKind,
-                                           typename traits<_RhsNested>::StorageKind>::ret StorageKind;
+  typedef typename product_promote_storage_type<typename traits<_LhsNested>::StorageKind,
+                                                typename traits<_RhsNested>::StorageKind,
+                                                0>::ret StorageKind;
   typedef typename promote_index_type<typename traits<_LhsNested>::Index,
                                          typename traits<_RhsNested>::Index>::type Index;
 

@@ -231,6 +231,10 @@ template<typename T> struct plain_matrix_type<T,Dense>
 {
   typedef typename plain_matrix_type_dense<T,typename traits<T>::XprKind>::type type;
 };
+template<typename T> struct plain_matrix_type<T,DiagonalShape>
+{
+  typedef typename T::PlainObject type;
+};
 
 template<typename T> struct plain_matrix_type_dense<T,MatrixXpr>
 {
@@ -271,6 +275,11 @@ template<typename T> struct eval<T,Dense>
 //                 traits<T>::MaxRowsAtCompileTime,
 //                 traits<T>::MaxColsAtCompileTime
 //           > type;
+};
+
+template<typename T> struct eval<T,DiagonalShape>
+{
+  typedef typename plain_matrix_type<T>::type type;
 };
 
 // for matrices, no need to evaluate, just use a const reference to avoid a useless copy
@@ -515,12 +524,51 @@ template<typename XprType, typename CastType> struct cast_return_type
                               const XprType&,CastType>::type type;
 };
 
-template <typename A, typename B> struct promote_storage_type;
+/** \internal Specify the "storage kind" of applying a coefficient-wise
+  * binary operations between two expressions of kinds A and B respectively.
+  * The template parameter Functor permits to specialize the resulting storage kind wrt to
+  * the functor.
+  * The default rules are as follows:
+  * \code
+  * A     op A      -> A
+  * A     op dense  -> dense
+  * dense op B      -> dense
+  * A     *  dense  -> A
+  * dense *  B      -> B
+  * \endcode
+  */
+template <typename A, typename B, typename Functor> struct cwise_promote_storage_type;
 
-template <typename A> struct promote_storage_type<A,A>
-{
-  typedef A ret;
-};
+template <typename A, typename Functor>                   struct cwise_promote_storage_type<A,A,Functor>                                      { typedef A     ret; };
+template <typename Functor>                               struct cwise_promote_storage_type<Dense,Dense,Functor>                              { typedef Dense ret; };
+template <typename ScalarA, typename ScalarB>             struct cwise_promote_storage_type<Dense,Dense,scalar_product_op<ScalarA,ScalarB> >  { typedef Dense ret; };
+template <typename A, typename Functor>                   struct cwise_promote_storage_type<A,Dense,Functor>                                  { typedef Dense ret; };
+template <typename B, typename Functor>                   struct cwise_promote_storage_type<Dense,B,Functor>                                  { typedef Dense ret; };
+template <typename A, typename ScalarA, typename ScalarB> struct cwise_promote_storage_type<A,Dense,scalar_product_op<ScalarA,ScalarB> >      { typedef A     ret; };
+template <typename B, typename ScalarA, typename ScalarB> struct cwise_promote_storage_type<Dense,B,scalar_product_op<ScalarA,ScalarB> >      { typedef B     ret; };
+
+/** \internal Specify the "storage kind" of multiplying an expression of kind A with kind B.
+  * The template parameter ProductTag permits to specialize the resulting storage kind wrt to
+  * some compile-time properties of the product: GemmProduct, GemvProduct, OuterProduct, InnerProduct.
+  * The default rules are as follows:
+  * \code
+  *  K * K            -> K
+  *  dense * K        -> dense
+  *  K * dense        -> dense
+  *  diag * K         -> K
+  *  K * diag         -> K
+  * \endcode
+  */
+template <typename A, typename B, int ProductTag> struct product_promote_storage_type;
+
+template <typename A, int ProductTag> struct product_promote_storage_type<A,            A,              ProductTag> { typedef A     ret;};
+template <int ProductTag>             struct product_promote_storage_type<Dense,        Dense,          ProductTag> { typedef Dense ret;};
+template <typename A, int ProductTag> struct product_promote_storage_type<A,            Dense,          ProductTag> { typedef Dense ret; };
+template <typename B, int ProductTag> struct product_promote_storage_type<Dense,        B,              ProductTag> { typedef Dense ret; };
+template <typename A, int ProductTag> struct product_promote_storage_type<A,            DiagonalShape,  ProductTag> { typedef A ret; };
+template <typename B, int ProductTag> struct product_promote_storage_type<DiagonalShape,B,              ProductTag> { typedef B ret; };
+template <int ProductTag>             struct product_promote_storage_type<Dense,        DiagonalShape,  ProductTag> { typedef Dense ret; };
+template <int ProductTag>             struct product_promote_storage_type<DiagonalShape,Dense,          ProductTag> { typedef Dense ret; };
 
 /** \internal gives the plain matrix or array type to store a row/column/diagonal of a matrix type.
   * \param Scalar optional parameter allowing to pass a different scalar type than the one of the MatrixType.

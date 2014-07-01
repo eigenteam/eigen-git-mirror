@@ -62,8 +62,9 @@ struct traits<Product<Lhs, Rhs, Option> >
   typedef MatrixXpr XprKind;
   
   typedef typename product_result_scalar<LhsCleaned,RhsCleaned>::Scalar Scalar;
-  typedef typename promote_storage_type<typename traits<LhsCleaned>::StorageKind,
-                                           typename traits<RhsCleaned>::StorageKind>::ret StorageKind;
+  typedef typename product_promote_storage_type<typename traits<LhsCleaned>::StorageKind,
+                                                typename traits<RhsCleaned>::StorageKind,
+                                                internal::product_type<Lhs,Rhs>::ret>::ret StorageKind;
   typedef typename promote_index_type<typename traits<LhsCleaned>::Index,
                                          typename traits<RhsCleaned>::Index>::type Index;
   
@@ -94,8 +95,9 @@ struct traits<Product<Lhs, Rhs, Option> >
 
 template<typename _Lhs, typename _Rhs, int Option>
 class Product : public ProductImpl<_Lhs,_Rhs,Option,
-                                   typename internal::promote_storage_type<typename internal::traits<_Lhs>::StorageKind,
-                                                                           typename internal::traits<_Rhs>::StorageKind>::ret>
+                                   typename internal::product_promote_storage_type<typename internal::traits<_Lhs>::StorageKind,
+                                                                                   typename internal::traits<_Rhs>::StorageKind,
+                                                                                   internal::product_type<_Lhs,_Rhs>::ret>::ret>
 {
   public:
     
@@ -104,8 +106,9 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
     
     typedef typename ProductImpl<
         Lhs, Rhs, Option,
-        typename internal::promote_storage_type<typename Lhs::StorageKind,
-                                                typename Rhs::StorageKind>::ret>::Base Base;
+        typename internal::product_promote_storage_type<typename Lhs::StorageKind,
+                                                        typename Rhs::StorageKind,
+                                                        internal::product_type<Lhs,Rhs>::ret>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
 
     typedef typename internal::nested<Lhs>::type LhsNested;

@@ -31,12 +31,6 @@ namespace Eigen {
 
 namespace internal {
 
-template<> struct promote_storage_type<Dense,Sparse>
-{ typedef Sparse ret; };
-
-template<> struct promote_storage_type<Sparse,Dense>
-{ typedef Sparse ret; };
-
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived,
   typename _LhsStorageMode = typename traits<Lhs>::StorageKind,
   typename _RhsStorageMode = typename traits<Rhs>::StorageKind>

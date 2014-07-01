@@ -465,22 +465,6 @@ class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType>,
 
 struct PermutationStorage {};
 
-#ifdef EIGEN_TEST_EVALUATORS
-
-// storage type  of product of permutation wrapper with dense
-
-namespace internal {
-
-template<> struct promote_storage_type<Dense, PermutationStorage>
-{ typedef Dense ret; };
-
-template<> struct promote_storage_type<PermutationStorage, Dense>
-{ typedef Dense ret; };
-
-} // end namespace internal
- 
-#endif // EIGEN_TEST_EVALUATORS
-
 template<typename _IndicesType> class TranspositionsWrapper;
 namespace internal {
 template<typename _IndicesType>
