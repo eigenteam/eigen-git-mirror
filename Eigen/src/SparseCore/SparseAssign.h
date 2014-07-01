@@ -143,7 +143,7 @@ template<typename Derived>
 template<typename OtherDerived>
 inline Derived& SparseMatrixBase<Derived>::operator=(const SparseMatrixBase<OtherDerived>& other)
 {
-  internal::call_assignment_no_alias(derived(), other.derived());
+  internal::call_assignment/*_no_alias*/(derived(), other.derived());
   return derived();
 }
 
@@ -184,7 +184,7 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
   typedef typename internal::evaluator<SrcXprType>::type SrcEvaluatorType;
 
   SrcEvaluatorType srcEvaluator(src);
-    
+
   const bool transpose = (DstEvaluatorType::Flags & RowMajorBit) != (SrcEvaluatorType::Flags & RowMajorBit);
   const Index outerSize = (int(SrcEvaluatorType::Flags) & RowMajorBit) ? src.rows() : src.cols();
   if ((!transpose) && src.isRValue())

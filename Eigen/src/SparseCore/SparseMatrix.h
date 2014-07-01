@@ -649,7 +649,13 @@ class SparseMatrix
       EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       check_template_parameters();
+#ifndef EIGEN_TEST_EVALUATORS
       *this = other.derived();
+#else
+      const bool needToTranspose = (Flags & RowMajorBit) != (internal::evaluator<OtherDerived>::Flags & RowMajorBit);
+      if (needToTranspose)  *this = other.derived();
+      else                  internal::call_assignment_no_alias(*this, other.derived());
+#endif
     }
     
     /** Constructs a sparse matrix from the sparse selfadjoint view \a other */
@@ -722,6 +728,7 @@ class SparseMatrix
       return *this;
     }
 
+#ifndef EIGEN_TEST_EVALUATORS
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Lhs, typename Rhs>
     inline SparseMatrix& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
@@ -738,6 +745,7 @@ class SparseMatrix
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
     { return Base::operator=(other.derived()); }
     #endif
+#endif // EIGEN_TEST_EVALUATORS
 
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other);
@@ -1174,7 +1182,9 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
   else
   {
     if(other.isRValue())
+    {
       initAssignment(other.derived());
+    }
     // there is no special optimization
     return Base::operator=(other.derived());
   }
@@ -1336,12 +1346,13 @@ struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
     Flags = SparseMatrixType::Flags
   };
   
-  evaluator(const SparseMatrixType &mat) : m_matrix(mat) {}
+  evaluator() : m_matrix(0) {}
+  evaluator(const SparseMatrixType &mat) : m_matrix(&mat) {}
   
-  operator SparseMatrixType&() { return m_matrix.const_cast_derived(); }
-  operator const SparseMatrixType&() const { return m_matrix; }
+  operator SparseMatrixType&() { return m_matrix->const_cast_derived(); }
+  operator const SparseMatrixType&() const { return *m_matrix; }
   
-  const SparseMatrixType &m_matrix;
+  const SparseMatrixType *m_matrix;
 };
 
 }
