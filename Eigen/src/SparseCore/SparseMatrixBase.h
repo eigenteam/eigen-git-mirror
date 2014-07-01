@@ -394,6 +394,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     { return typename internal::eval<Derived>::type(derived()); }
 
     Scalar sum() const;
+    
+    inline const SparseView<Derived>
+    pruned(const Scalar& reference = Scalar(0), const RealScalar& epsilon = NumTraits<Scalar>::dummy_precision()) const;
 
   protected:
 

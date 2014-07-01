@@ -242,7 +242,37 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseSh
 protected:  
   PlainObject m_result;
 };
+
+template<typename Lhs, typename Rhs, int Options>
+struct evaluator<SparseView<Product<Lhs, Rhs, Options> > > 
+ : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef SparseView<Product<Lhs, Rhs, Options> > XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
   
+  typedef evaluator type;
+  typedef evaluator nestedType;
+  
+  evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    using std::abs;
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
+    typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
+    LhsNested lhsNested(xpr.nestedExpression().lhs());
+    RhsNested rhsNested(xpr.nestedExpression().rhs());
+    
+    internal::sparse_sparse_product_with_pruning_selector<typename remove_all<LhsNested>::type,
+                                                          typename remove_all<RhsNested>::type, PlainObject>::run(lhsNested,rhsNested,m_result,
+                                                                                                                  abs(xpr.reference())*xpr.epsilon());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+
 } // end namespace internal
 
 #endif // EIGEN_TEST_EVALUATORS

@@ -233,10 +233,30 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
 #endif // EIGEN_TEST_EVALUATORS
 
 template<typename Derived>
-const SparseView<Derived> MatrixBase<Derived>::sparseView(const Scalar& m_reference,
-                                                          const typename NumTraits<Scalar>::Real& m_epsilon) const
+const SparseView<Derived> MatrixBase<Derived>::sparseView(const Scalar& reference,
+                                                          const typename NumTraits<Scalar>::Real& epsilon) const
 {
-  return SparseView<Derived>(derived(), m_reference, m_epsilon);
+  return SparseView<Derived>(derived(), reference, epsilon);
+}
+
+/** \returns an expression of \c *this with values smaller than
+  * \a reference * \a epsilon are removed.
+  *
+  * This method is typically used in conjunction with the product of two sparse matrices
+  * to automatically prune the smallest values as follows:
+  * \code
+  * C = (A*B).pruned();             // suppress numerical zeros (exact)
+  * C = (A*B).pruned(ref);
+  * C = (A*B).pruned(ref,epsilon);
+  * \endcode
+  * where \c ref is a meaningful non zero reference value.
+  * */
+template<typename Derived>
+const SparseView<Derived>
+SparseMatrixBase<Derived>::pruned(const Scalar& reference,
+                                  const RealScalar& epsilon) const
+{
+  return SparseView<Derived>(derived(), reference, epsilon);
 }
 
 } // end namespace Eigen
