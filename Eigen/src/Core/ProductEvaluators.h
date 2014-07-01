@@ -858,7 +858,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   typedef Product<Lhs, Rhs, ProductKind> XprType;
   typedef typename XprType::PlainObject PlainObject;
   
-  enum { StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor };
+  enum { StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor };
 
   product_evaluator(const XprType& xpr)
     : Base(xpr.lhs(), xpr.rhs().diagonal())
