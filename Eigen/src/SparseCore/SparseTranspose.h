@@ -61,6 +61,17 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInn
 
 #else // EIGEN_TEST_EVALUATORS
 
+// Implement nonZeros() for transpose. I'm not sure that's the best approach for that.
+// Perhaps it should be implemented in Transpose<> itself.
+template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
+  : public SparseMatrixBase<Transpose<MatrixType> >
+{
+  protected:
+    typedef SparseMatrixBase<Transpose<MatrixType> > Base;
+  public:
+    inline typename MatrixType::Index nonZeros() const { return Base::derived().nestedExpression().nonZeros(); }
+};
+
 namespace internal {
   
 template<typename ArgType>
