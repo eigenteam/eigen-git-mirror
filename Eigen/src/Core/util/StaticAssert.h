@@ -168,13 +168,8 @@
        ) \
      )
 
-#ifdef EIGEN2_SUPPORT
-  #define EIGEN_STATIC_ASSERT_NON_INTEGER(TYPE) \
-    eigen_assert(!NumTraits<Scalar>::IsInteger);
-#else
-  #define EIGEN_STATIC_ASSERT_NON_INTEGER(TYPE) \
+#define EIGEN_STATIC_ASSERT_NON_INTEGER(TYPE) \
     EIGEN_STATIC_ASSERT(!NumTraits<TYPE>::IsInteger, THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES)
-#endif
 
 
 // static assertion failing if it is guaranteed at compile-time that the two matrix expression types have different sizes

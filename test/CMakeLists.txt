@@ -157,7 +157,6 @@ ei_add_test(vectorization_logic)
 ei_add_test(basicstuff)
 ei_add_test(linearstructure)
 ei_add_test(integer_types)
-ei_add_test(cwiseop)
 ei_add_test(unalignedcount)
 ei_add_test(exceptions)
 ei_add_test(redux)
@@ -258,8 +257,6 @@ if(QT4_FOUND)
   ei_add_test(qtvector "" "${QT_QTCORE_LIBRARY}")
 endif(QT4_FOUND)
 
-ei_add_test(eigen2support)
-
 if(UMFPACK_FOUND)
   ei_add_test(umfpack_support "" "${UMFPACK_ALL_LIBS}")
 endif()
@@ -303,7 +300,7 @@ ei_add_property(EIGEN_TESTING_SUMMARY "Sparse lib flags:  ${SPARSE_LIBS}\n")
 
 option(EIGEN_TEST_EIGEN2 "Run whole Eigen2 test suite against EIGEN2_SUPPORT" OFF)
 if(EIGEN_TEST_EIGEN2)
-  add_subdirectory(eigen2)
+  message(WARNING "The Eigen2 test suite has been removed")
 endif()
 
 

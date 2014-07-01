@@ -95,21 +95,6 @@ class DiagonalBase : public EigenBase<Derived>
     {
       return other.diagonal() * scalar;
     }
-    
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    bool isApprox(const DiagonalBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
-    {
-      return diagonal().isApprox(other.diagonal(), precision);
-    }
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    bool isApprox(const MatrixBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
-    {
-      return toDenseMatrix().isApprox(other, precision);
-    }
-    #endif
 };
 
 template<typename Derived>

@@ -110,14 +110,9 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
     EIGEN_DENSE_PUBLIC_INTERFACE(Map)
 
     typedef typename Base::PointerType PointerType;
-#if EIGEN2_SUPPORT_STAGE <= STAGE30_FULL_EIGEN3_API
-    typedef const Scalar* PointerArgType;
-    inline PointerType cast_to_pointer_type(PointerArgType ptr) { return const_cast<PointerType>(ptr); }
-#else
     typedef PointerType PointerArgType;
     EIGEN_DEVICE_FUNC
     inline PointerType cast_to_pointer_type(PointerArgType ptr) { return ptr; }
-#endif
 
     EIGEN_DEVICE_FUNC
     inline Index innerStride() const

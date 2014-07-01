@@ -131,17 +131,13 @@ class ProductBase : public MatrixBase<Derived>
     const Diagonal<FullyLazyCoeffBaseProductType,Dynamic> diagonal(Index index) const
     { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs).diagonal(index); }
 
-    // restrict coeff accessors to 1x1 expressions. No need to care about mutators here since this isnt a Lvalue expression
+    // restrict coeff accessors to 1x1 expressions. No need to care about mutators here since this isn't an Lvalue expression
     typename Base::CoeffReturnType coeff(Index row, Index col) const
     {
-#ifdef EIGEN2_SUPPORT
-      return lhs().row(row).cwiseProduct(rhs().col(col).transpose()).sum();
-#else
       EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
       eigen_assert(this->rows() == 1 && this->cols() == 1);
       Matrix<Scalar,1,1> result = *this;
       return result.coeff(row,col);
-#endif
     }
 
     typename Base::CoeffReturnType coeff(Index i) const

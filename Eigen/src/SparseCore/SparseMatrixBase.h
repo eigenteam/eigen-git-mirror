@@ -369,17 +369,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename OtherDerived>
     Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);
 
-    #ifdef EIGEN2_SUPPORT
-    // deprecated
-    template<typename OtherDerived>
-    typename internal::plain_matrix_type_column_major<OtherDerived>::type
-    solveTriangular(const MatrixBase<OtherDerived>& other) const;
-
-    // deprecated
-    template<typename OtherDerived>
-    void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
-    #endif // EIGEN2_SUPPORT
-
     template<int Mode>
     inline const SparseTriangularView<Derived, Mode> triangularView() const;
 

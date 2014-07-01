@@ -506,17 +506,6 @@ template<typename Derived> class DenseBase
 #   endif
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
-#ifdef EIGEN2_SUPPORT
-
-    Block<Derived> corner(CornerType type, Index cRows, Index cCols);
-    const Block<Derived> corner(CornerType type, Index cRows, Index cCols) const;
-    template<int CRows, int CCols>
-    Block<Derived, CRows, CCols> corner(CornerType type);
-    template<int CRows, int CCols>
-    const Block<Derived, CRows, CCols> corner(CornerType type) const;
-
-#endif // EIGEN2_SUPPORT
-
 
     // disable the use of evalTo for dense objects with a nice compilation error
     template<typename Dest>

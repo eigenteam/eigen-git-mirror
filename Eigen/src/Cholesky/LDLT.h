@@ -151,13 +151,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return m_sign == internal::PositiveSemiDef || m_sign == internal::ZeroSign;
     }
-    
-    #ifdef EIGEN2_SUPPORT
-    inline bool isPositiveDefinite() const
-    {
-      return isPositive();
-    }
-    #endif
 
     /** \returns true if the matrix is negative (semidefinite) */
     inline bool isNegative(void) const
@@ -190,15 +183,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
                 && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<LDLT, Rhs>(*this, b.derived());
     }
-
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived, typename ResultType>
-    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const
-    {
-      *result = this->solve(b);
-      return true;
-    }
-    #endif
 
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;

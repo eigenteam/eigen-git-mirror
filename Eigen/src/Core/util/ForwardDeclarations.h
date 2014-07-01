@@ -236,35 +236,12 @@ template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Translation;
 
-#ifdef EIGEN2_SUPPORT
-template<typename Derived, int _Dim> class eigen2_RotationBase;
-template<typename Lhs, typename Rhs> class eigen2_Cross;
-template<typename Scalar> class eigen2_Quaternion;
-template<typename Scalar> class eigen2_Rotation2D;
-template<typename Scalar> class eigen2_AngleAxis;
-template<typename Scalar,int Dim> class eigen2_Transform;
-template <typename _Scalar, int _AmbientDim> class eigen2_ParametrizedLine;
-template <typename _Scalar, int _AmbientDim> class eigen2_Hyperplane;
-template<typename Scalar,int Dim> class eigen2_Translation;
-template<typename Scalar,int Dim> class eigen2_Scaling;
-#endif
-
-#if EIGEN2_SUPPORT_STAGE < STAGE20_RESOLVE_API_CONFLICTS
-template<typename Scalar> class Quaternion;
-template<typename Scalar,int Dim> class Transform;
-template <typename _Scalar, int _AmbientDim> class ParametrizedLine;
-template <typename _Scalar, int _AmbientDim> class Hyperplane;
-template<typename Scalar,int Dim> class Scaling;
-#endif
-
-#if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
 template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar,int Dim,int Mode,int _Options=AutoAlign> class Transform;
 template <typename _Scalar, int _AmbientDim, int Options=AutoAlign> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim, int Options=AutoAlign> class Hyperplane;
 template<typename Scalar> class UniformScaling;
 template<typename MatrixType,int Direction> class Homogeneous;
-#endif
 
 // MatrixFunctions module
 template<typename Derived> struct MatrixExponentialReturnValue;
@@ -282,18 +259,6 @@ struct stem_function
   typedef ComplexScalar type(ComplexScalar, int);
 };
 }
-
-
-#ifdef EIGEN2_SUPPORT
-template<typename ExpressionType> class Cwise;
-template<typename MatrixType> class Minor;
-template<typename MatrixType> class LU;
-template<typename MatrixType> class QR;
-template<typename MatrixType> class SVD;
-namespace internal {
-template<typename MatrixType, unsigned int Mode> struct eigen2_part_return_type;
-}
-#endif
 
 } // end namespace Eigen
 

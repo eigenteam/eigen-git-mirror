@@ -342,35 +342,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
               (lhs.derived(),rhs.m_matrix);
     }
 
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived>
-    struct eigen2_product_return_type
-    {
-      typedef typename TriangularView<MatrixType,Mode>::DenseMatrixType DenseMatrixType;
-      typedef typename OtherDerived::PlainObject::DenseType OtherPlainObject;
-      typedef typename ProductReturnType<DenseMatrixType, OtherPlainObject>::Type ProdRetType;
-      typedef typename ProdRetType::PlainObject type;
-    };
-    template<typename OtherDerived>
-    const typename eigen2_product_return_type<OtherDerived>::type
-    operator*(const EigenBase<OtherDerived>& rhs) const
-    {
-      typename OtherDerived::PlainObject::DenseType rhsPlainObject;
-      rhs.evalTo(rhsPlainObject);
-      return this->toDenseMatrix() * rhsPlainObject;
-    }
-    template<typename OtherMatrixType>
-    bool isApprox(const TriangularView<OtherMatrixType, Mode>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
-    {
-      return this->toDenseMatrix().isApprox(other.toDenseMatrix(), precision);
-    }
-    template<typename OtherDerived>
-    bool isApprox(const MatrixBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
-    {
-      return this->toDenseMatrix().isApprox(other, precision);
-    }
-    #endif // EIGEN2_SUPPORT
-
     template<int Side, typename Other>
     EIGEN_DEVICE_FUNC
     inline const internal::triangular_solve_retval<Side,TriangularView, Other>
@@ -779,41 +750,6 @@ void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
 /***************************************************************************
 * Implementation of MatrixBase methods
 ***************************************************************************/
-
-#ifdef EIGEN2_SUPPORT
-
-// implementation of part<>(), including the SelfAdjoint case.
-
-namespace internal {
-template<typename MatrixType, unsigned int Mode>
-struct eigen2_part_return_type
-{
-  typedef TriangularView<MatrixType, Mode> type;
-};
-
-template<typename MatrixType>
-struct eigen2_part_return_type<MatrixType, SelfAdjoint>
-{
-  typedef SelfAdjointView<MatrixType, Upper> type;
-};
-}
-
-/** \deprecated use MatrixBase::triangularView() */
-template<typename Derived>
-template<unsigned int Mode>
-const typename internal::eigen2_part_return_type<Derived, Mode>::type MatrixBase<Derived>::part() const
-{
-  return derived();
-}
-
-/** \deprecated use MatrixBase::triangularView() */
-template<typename Derived>
-template<unsigned int Mode>
-typename internal::eigen2_part_return_type<Derived, Mode>::type MatrixBase<Derived>::part()
-{
-  return derived();
-}
-#endif
 
 /**
   * \returns an expression of a triangular view extracted from the current matrix

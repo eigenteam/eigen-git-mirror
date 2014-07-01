@@ -156,10 +156,8 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     EIGEN_STRONG_INLINE CoeffReturnType
     operator[](Index index) const
     {
-      #ifndef EIGEN2_SUPPORT
       EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
                           THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
-      #endif
       eigen_assert(index >= 0 && index < size());
       return derived().coeff(index);
     }
@@ -388,10 +386,8 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     EIGEN_STRONG_INLINE Scalar&
     operator[](Index index)
     {
-      #ifndef EIGEN2_SUPPORT
       EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
                           THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
-      #endif
       eigen_assert(index >= 0 && index < size());
       return derived().coeffRef(index);
     }
