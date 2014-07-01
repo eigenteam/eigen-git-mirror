@@ -12,6 +12,8 @@
 
 namespace Eigen { 
 
+#ifndef EIGEN_TEST_EVALUATORS
+  
 template<typename Lhs, typename Rhs>
 struct SparseSparseProductReturnType
 {
@@ -182,6 +184,68 @@ SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other
 {
   return typename SparseSparseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
+
+#else // EIGEN_TEST_EVALUATORS
+
+
+/** \returns an expression of the product of two sparse matrices.
+  * By default a conservative product preserving the symbolic non zeros is performed.
+  * The automatic pruning of the small values can be achieved by calling the pruned() function
+  * in which case a totally different product algorithm is employed:
+  * \code
+  * C = (A*B).pruned();             // supress numerical zeros (exact)
+  * C = (A*B).pruned(ref);
+  * C = (A*B).pruned(ref,epsilon);
+  * \endcode
+  * where \c ref is a meaningful non zero reference value.
+  * */
+template<typename Derived>
+template<typename OtherDerived>
+inline const Product<Derived,OtherDerived>
+SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other) const
+{
+  return Product<Derived,OtherDerived>(derived(), other.derived());
+}
+
+namespace internal {
+
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
+    typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
+    LhsNested lhsNested(lhs);
+    RhsNested rhsNested(rhs);
+    internal::conservative_sparse_sparse_product_selector<typename remove_all<LhsNested>::type,
+                                                          typename remove_all<RhsNested>::type, Dest>::run(lhsNested,rhsNested,dst);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseShape, SparseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+{
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+
+  product_evaluator(const XprType& xpr)
+    : m_result(xpr.rows(), xpr.cols())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_result);
+    generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+  }
+  
+protected:  
+  PlainObject m_result;
+};
+  
+} // end namespace internal
+
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

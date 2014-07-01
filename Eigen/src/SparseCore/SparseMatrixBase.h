@@ -190,8 +190,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
   public:
 
+#ifndef EIGEN_TEST_EVALUATORS
     template<typename Lhs, typename Rhs>
     inline Derived& operator=(const SparseSparseProduct<Lhs,Rhs>& product);
+#endif
 
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
@@ -264,12 +266,12 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
     cwiseProduct(const MatrixBase<OtherDerived> &other) const;
 
+#ifndef EIGEN_TEST_EVALUATORS
     // sparse * sparse
     template<typename OtherDerived>
     const typename SparseSparseProductReturnType<Derived,OtherDerived>::Type
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
-
-#ifndef EIGEN_TEST_EVALUATORS
+    
     // sparse * diagonal
     template<typename OtherDerived>
     const SparseDiagonalProduct<Derived,OtherDerived>
@@ -292,6 +294,11 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const Product<OtherDerived,Derived>
     operator*(const DiagonalBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
     { return Product<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
+    
+    // sparse * sparse
+    template<typename OtherDerived>
+    const Product<Derived,OtherDerived>
+    operator*(const SparseMatrixBase<OtherDerived> &other) const;
 #endif // EIGEN_TEST_EVALUATORS
 
     /** dense * sparse (return a dense object unless it is an outer product) */
