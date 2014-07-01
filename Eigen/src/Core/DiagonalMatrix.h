@@ -156,7 +156,7 @@ struct traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
  : traits<Matrix<_Scalar,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
   typedef Matrix<_Scalar,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1> DiagonalVectorType;
-  typedef Dense StorageKind;
+  typedef DiagonalShape StorageKind;
   typedef DenseIndex Index;
   enum {
     Flags = LvalueBit | NoPreferredStorageOrderBit
@@ -280,7 +280,7 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
   typedef _DiagonalVectorType DiagonalVectorType;
   typedef typename DiagonalVectorType::Scalar Scalar;
   typedef typename DiagonalVectorType::Index Index;
-  typedef typename DiagonalVectorType::StorageKind StorageKind;
+  typedef DiagonalShape StorageKind;
   typedef typename traits<DiagonalVectorType>::XprKind XprKind;
   enum {
     RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
@@ -364,23 +364,8 @@ bool MatrixBase<Derived>::isDiagonal(const RealScalar& prec) const
 
 #ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
-  
-// TODO currently a diagonal expression has the form DiagonalMatrix<> or DiagonalWrapper
-//      in the future diagonal-ness should be defined by the expression traits
-template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-struct evaluator_traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
-{
-  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
-  typedef DiagonalShape Shape;
-  static const int AssumeAliasing = 0;
-};
-template<typename Derived>
-struct evaluator_traits<DiagonalWrapper<Derived> >
-{
-  typedef typename storage_kind_to_evaluator_kind<typename Derived::StorageKind>::Kind Kind;
-  typedef DiagonalShape Shape;
-  static const int AssumeAliasing = 0;
-};
+
+template<> struct storage_kind_to_shape<DiagonalShape> { typedef DiagonalShape Shape; };
 
 struct Diagonal2Dense {};
 
