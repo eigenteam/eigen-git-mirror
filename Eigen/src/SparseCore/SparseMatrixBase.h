@@ -282,6 +282,17 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const SparseDiagonalProduct<OtherDerived,Derived>
     operator*(const DiagonalBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
     { return SparseDiagonalProduct<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
+    
+    /** dense * sparse (return a dense object unless it is an outer product) */
+    template<typename OtherDerived> friend
+    const typename DenseSparseProductReturnType<OtherDerived,Derived>::Type
+    operator*(const MatrixBase<OtherDerived>& lhs, const Derived& rhs)
+    { return typename DenseSparseProductReturnType<OtherDerived,Derived>::Type(lhs.derived(),rhs); }
+
+    /** sparse * dense (returns a dense object unless it is an outer product) */
+    template<typename OtherDerived>
+    const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
+    operator*(const MatrixBase<OtherDerived> &other) const;
 #else // EIGEN_TEST_EVALUATORS
     // sparse * diagonal
     template<typename OtherDerived>
@@ -299,18 +310,19 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename OtherDerived>
     const Product<Derived,OtherDerived>
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
-#endif // EIGEN_TEST_EVALUATORS
-
-    /** dense * sparse (return a dense object unless it is an outer product) */
-    template<typename OtherDerived> friend
-    const typename DenseSparseProductReturnType<OtherDerived,Derived>::Type
-    operator*(const MatrixBase<OtherDerived>& lhs, const Derived& rhs)
-    { return typename DenseSparseProductReturnType<OtherDerived,Derived>::Type(lhs.derived(),rhs); }
-
-    /** sparse * dense (returns a dense object unless it is an outer product) */
+    
+    // sparse * dense
     template<typename OtherDerived>
-    const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
-    operator*(const MatrixBase<OtherDerived> &other) const;
+    const Product<Derived,OtherDerived>
+    operator*(const MatrixBase<OtherDerived> &other) const
+    { return Product<Derived,OtherDerived>(derived(), other.derived()); }
+    
+    // dense * sparse
+    template<typename OtherDerived> friend
+    const Product<OtherDerived,Derived>
+    operator*(const MatrixBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
+    { return Product<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
+#endif // EIGEN_TEST_EVALUATORS
     
      /** \returns an expression of P H P^-1 where H is the matrix represented by \c *this */
     SparseSymmetricPermutationProduct<Derived,Upper|Lower> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
