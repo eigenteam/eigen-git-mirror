@@ -5,7 +5,7 @@ namespace Eigen {
 You can control some aspects of %Eigen by defining the preprocessor tokens using \c \#define. These macros
 should be defined before any %Eigen headers are included. Often they are best set in the project options.
 
-This page lists the preprocesor tokens recognised by %Eigen.
+This page lists the preprocessor tokens recognized by %Eigen.
 
 \eigenAutoToc
 
@@ -18,10 +18,9 @@ one option, and other parts (or libraries that you use) are compiled with anothe
 fail to link or exhibit subtle bugs. Nevertheless, these options can be useful for people who know what they
 are doing.
 
- - \b EIGEN2_SUPPORT - if defined, enables the Eigen2 compatibility mode. This is meant to ease the transition
-   of Eigen2 to Eigen3 (see \ref Eigen2ToEigen3). Not defined by default.
- - \b EIGEN2_SUPPORT_STAGEnn_xxx (for various values of nn and xxx) - staged migration path from Eigen2 to
-   Eigen3; see \ref Eigen2SupportModes.
+ - \b EIGEN2_SUPPORT and \b EIGEN2_SUPPORT_STAGEnn_xxx are disabled starting from the 3.3 release.
+   Defining one of these will raise a compile-error. If you need to compile Eigen2 code,
+   <a href="http://eigen.tuxfamily.org/index.php?title=Eigen2">check this site</a>.
  - \b EIGEN_DEFAULT_DENSE_INDEX_TYPE - the type for column and row indices in matrices, vectors and array
    (DenseBase::Index). Set to \c std::ptrdiff_t by default.
  - \b EIGEN_DEFAULT_IO_FORMAT - the IOFormat to use when printing a matrix if no %IOFormat is specified.
@@ -55,7 +54,7 @@ run time. However, these assertions do cost time and can thus be turned off.
 
 \section TopicPreprocessorDirectivesPerformance Alignment, vectorization and performance tweaking
 
- - \b EIGEN_MALLOC_ALREADY_ALIGNED - Can be set to 0 or 1 to tell whether default system malloc already
+ - \b EIGEN_MALLOC_ALREADY_ALIGNED - Can be set to 0 or 1 to tell whether default system \c malloc already
    returns aligned buffers. In not defined, then this information is automatically deduced from the compiler
    and system preprocessor tokens.
  - \b EIGEN_DONT_ALIGN - disables alignment completely. %Eigen will not try to align its objects and does not

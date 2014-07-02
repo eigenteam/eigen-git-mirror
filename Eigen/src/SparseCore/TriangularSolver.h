@@ -305,30 +305,6 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<Ot
 //     other = otherCopy;
 }
 
-#ifdef EIGEN2_SUPPORT
-
-// deprecated stuff:
-
-/** \deprecated */
-template<typename Derived>
-template<typename OtherDerived>
-void SparseMatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
-{
-  this->template triangular<Flags&(Upper|Lower)>().solveInPlace(other);
-}
-
-/** \deprecated */
-template<typename Derived>
-template<typename OtherDerived>
-typename internal::plain_matrix_type_column_major<OtherDerived>::type
-SparseMatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
-{
-  typename internal::plain_matrix_type_column_major<OtherDerived>::type res(other);
-  derived().solveTriangularInPlace(res);
-  return res;
-}
-#endif // EIGEN2_SUPPORT
-
 } // end namespace Eigen
 
 #endif // EIGEN_SPARSETRIANGULARSOLVER_H

@@ -115,14 +115,9 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
     EIGEN_DENSE_PUBLIC_INTERFACE(Map)
 
     typedef typename Base::PointerType PointerType;
-#if EIGEN2_SUPPORT_STAGE <= STAGE30_FULL_EIGEN3_API
-    typedef const Scalar* PointerArgType;
-    inline PointerType cast_to_pointer_type(PointerArgType ptr) { return const_cast<PointerType>(ptr); }
-#else
     typedef PointerType PointerArgType;
     EIGEN_DEVICE_FUNC
     inline PointerType cast_to_pointer_type(PointerArgType ptr) { return ptr; }
-#endif
 
     EIGEN_DEVICE_FUNC
     inline Index innerStride() const
@@ -184,19 +179,6 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
     StrideType m_stride;
 };
 
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-inline Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>
-  ::Array(const Scalar *data)
-{
-  this->_set_noalias(Eigen::Map<const Array>(data));
-}
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-inline Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>
-  ::Matrix(const Scalar *data)
-{
-  this->_set_noalias(Eigen::Map<const Matrix>(data));
-}
 
 } // end namespace Eigen
 

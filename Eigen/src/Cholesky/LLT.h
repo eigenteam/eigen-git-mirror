@@ -139,17 +139,6 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 #endif
 
-    #ifdef EIGEN2_SUPPORT
-    template<typename OtherDerived, typename ResultType>
-    bool solve(const MatrixBase<OtherDerived>& b, ResultType *result) const
-    {
-      *result = this->solve(b);
-      return true;
-    }
-    
-    bool isPositiveDefinite() const { return true; }
-    #endif
-
     template<typename Derived>
     void solveInPlace(MatrixBase<Derived> &bAndX) const;
 

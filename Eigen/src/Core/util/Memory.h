@@ -552,7 +552,7 @@ template<typename T> struct smart_memmove_helper<T,false> {
 // you can overwrite Eigen's default behavior regarding alloca by defining EIGEN_ALLOCA
 // to the appropriate stack allocation function
 #ifndef EIGEN_ALLOCA
-  #if (defined __linux__) || (defined __APPLE__)
+  #if (defined __linux__) || (defined __APPLE__) || (defined alloca)
     #define EIGEN_ALLOCA alloca
   #elif defined(_MSC_VER)
     #define EIGEN_ALLOCA _alloca
