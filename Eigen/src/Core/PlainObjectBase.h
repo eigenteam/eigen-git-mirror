@@ -692,7 +692,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 
     template<typename T>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<Base::SizeAtCompileTime!=1,T>::type* = 0)
+    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<Base::SizeAtCompileTime!=1 || !internal::is_convertible<T, Scalar>::value,T>::type* = 0)
     {
       EIGEN_STATIC_ASSERT(bool(NumTraits<T>::IsInteger),
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
@@ -700,7 +700,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
     template<typename T>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void _init1(const Scalar& val0, typename internal::enable_if<Base::SizeAtCompileTime==1,T>::type* = 0)
+    EIGEN_STRONG_INLINE void _init1(const Scalar& val0, typename internal::enable_if<Base::SizeAtCompileTime==1 && internal::is_convertible<T, Scalar>::value,T>::type* = 0)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 1)
       m_storage.data()[0] = val0;

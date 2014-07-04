@@ -80,6 +80,25 @@ template<typename T> struct add_const_on_value_type<T*>        { typedef T const
 template<typename T> struct add_const_on_value_type<T* const>  { typedef T const* const type; };
 template<typename T> struct add_const_on_value_type<T const* const>  { typedef T const* const type; };
 
+
+template<typename From, typename To>
+struct is_convertible
+{
+private:
+  struct yes {int a[1];};
+  struct no  {int a[2];};
+  
+  template<typename T>
+  static yes test (const T&) {}
+  
+  template<typename> static no test (...) {}
+
+public:
+  static From ms_from;
+  enum { value = sizeof(test<To>(ms_from))==sizeof(yes) };
+};
+
+
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.
   */
