@@ -486,7 +486,6 @@ struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
     using std::abs;
     EIGEN_USING_STD_MATH(max);
     typedef typename LDLTType::MatrixType MatrixType;
-    typedef typename LDLTType::Scalar Scalar;
     typedef typename LDLTType::RealScalar RealScalar;
     const Diagonal<const MatrixType> vectorD = dec().vectorD();
     // In some previous versions, tolerance was set to the max of 1/highest and the maximal diagonal entry * epsilon
