@@ -1,3 +1,4 @@
+/// \brief Namespace containing all symbols from the %Eigen library.
 namespace Eigen {
 
 /** \mainpage Eigen's unsupported modules
@@ -22,4 +23,6 @@ subject to be included in Eigen in the future.
 
 */
 
+/// \brief Namespace containing low-level routines from the %Eigen library.
+namespace internal {}
 }
