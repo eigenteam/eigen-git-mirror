@@ -220,6 +220,9 @@
 /** \brief Namespace containing all symbols from the %Eigen library. */
 namespace Eigen {
 
+/** \brief Namespace containing low-level routines from the %Eigen library. */
+namespace internal {}
+
 inline static const char *SimdInstructionSetsInUse(void) {
 #if defined(EIGEN_VECTORIZE_AVX)
   return "AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
