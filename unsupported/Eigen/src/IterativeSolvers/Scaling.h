@@ -9,6 +9,10 @@
 
 #ifndef EIGEN_ITERSCALING_H
 #define EIGEN_ITERSCALING_H
+
+namespace Eigen {
+using std::abs;
+
 /**
   * \ingroup IterativeSolvers_Module
   * \brief iterative scaling algorithm to equilibrate rows and column norms in matrices
@@ -41,8 +45,6 @@
   * 
   * \sa \ref IncompleteLUT 
   */
-namespace Eigen {
-using std::abs; 
 template<typename _MatrixType>
 class IterScaling
 {
