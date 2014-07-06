@@ -355,6 +355,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     bool m_eigenvectorsOk;
 };
 
+namespace internal {
 /** \internal
   *
   * \eigenvalues_module \ingroup Eigenvalues_Module
@@ -371,7 +372,6 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   * Implemented from Golub's "Matrix Computations", algorithm 8.3.2:
   * "implicit symmetric QR step with Wilkinson shift"
   */
-namespace internal {
 template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
 EIGEN_DEVICE_FUNC
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);
