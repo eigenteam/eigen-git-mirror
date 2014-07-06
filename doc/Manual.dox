@@ -160,6 +160,6 @@ namespace Eigen {
 /** \addtogroup Splines_Module
     \ingroup Geometry_Reference */
 
-/** \brief Namespace containing low-level routines from the %Eigen library. */
+/** \internal \brief Namespace containing low-level routines from the %Eigen library. */
 namespace internal {}
 }
