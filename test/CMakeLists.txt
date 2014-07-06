@@ -251,6 +251,8 @@ ei_add_test(bicgstab)
 ei_add_test(sparselu)
 ei_add_test(sparseqr)
 
+ei_add_test(ctorleak)
+
 # ei_add_test(denseLM)
 
 if(QT4_FOUND)

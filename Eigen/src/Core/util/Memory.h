@@ -338,15 +338,6 @@ template<> inline void* conditional_aligned_realloc<false>(void* ptr, size_t new
 *** Construction/destruction of array elements                             ***
 *****************************************************************************/
 
-/** \internal Constructs the elements of an array.
-  * The \a size parameter tells on how many objects to call the constructor of T.
-  */
-template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
-{
-  for (size_t i=0; i < size; ++i) ::new (ptr + i) T;
-  return ptr;
-}
-
 /** \internal Destructs the elements of an array.
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
@@ -355,6 +346,24 @@ template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
   // always destruct an array starting from the end.
   if(ptr)
     while(size) ptr[--size].~T();
+}
+
+/** \internal Constructs the elements of an array.
+  * The \a size parameter tells on how many objects to call the constructor of T.
+  */
+template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
+{
+  size_t i;
+  try
+    {
+      for (i = 0; i < size; ++i) ::new (ptr + i) T;
+      return ptr;
+    }
+  catch (...)
+    {
+      destruct_elements_of_array(ptr, i);
+      throw;
+    }
 }
 
 /*****************************************************************************
@@ -376,14 +385,30 @@ template<typename T> inline T* aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(aligned_malloc(sizeof(T)*size));
-  return construct_elements_of_array(result, size);
+  try
+    {
+      return construct_elements_of_array(result, size);
+    }
+  catch (...)
+    {
+      aligned_free(result);
+      throw;
+    }
 }
 
 template<typename T, bool Align> inline T* conditional_aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
-  return construct_elements_of_array(result, size);
+  try
+    {
+      return construct_elements_of_array(result, size);
+    }
+  catch (...)
+    {
+      conditional_aligned_free<Align>(result);
+      throw;
+    }
 }
 
 /** \internal Deletes objects constructed with aligned_new
@@ -412,7 +437,17 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
     destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(new_size > old_size)
-    construct_elements_of_array(result+old_size, new_size-old_size);
+    {
+      try
+        {
+          construct_elements_of_array(result+old_size, new_size-old_size);
+        }
+      catch (...)
+        {
+          conditional_aligned_free<Align>(result);
+          throw;
+        }
+    }
   return result;
 }
 
@@ -422,7 +457,17 @@ template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t s
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
   if(NumTraits<T>::RequireInitialization)
-    construct_elements_of_array(result, size);
+    {
+      try
+        {
+          construct_elements_of_array(result, size);
+        }
+      catch (...)
+        {
+          conditional_aligned_free<Align>(result);
+          throw;
+        }
+    }
   return result;
 }
 
@@ -434,7 +479,17 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new_auto(
     destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(NumTraits<T>::RequireInitialization && (new_size > old_size))
-    construct_elements_of_array(result+old_size, new_size-old_size);
+    {
+      try
+        {
+          construct_elements_of_array(result+old_size, new_size-old_size);
+        }
+      catch (...)
+        {
+          conditional_aligned_free<Align>(result);
+          throw;
+        }
+    }
   return result;
 }
 
