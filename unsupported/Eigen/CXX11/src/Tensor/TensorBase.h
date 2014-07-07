@@ -204,11 +204,16 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>(derived(), thenTensor.derived(), elseTensor.derived());
     }
 
-    // Morphing operators (slicing tbd).
+    // Morphing operators.
     template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorReshapingOp<const Derived, const NewDimensions>
+    const TensorReshapingOp<const NewDimensions, const Derived>
     reshape(const NewDimensions& newDimensions) const {
-      return TensorReshapingOp<const Derived, const NewDimensions>(derived(), newDimensions);
+      return TensorReshapingOp<const NewDimensions, const Derived>(derived(), newDimensions);
+    }
+    template <typename StartIndices, typename Sizes> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorSlicingOp<const StartIndices, const Sizes, const Derived>
+    slice(const StartIndices& startIndices, const Sizes& sizes) const {
+      return TensorSlicingOp<const StartIndices, const Sizes, const Derived>(derived(), startIndices, sizes);
     }
 
     // Force the evaluation of the expression.
@@ -255,6 +260,17 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Derived& operator-=(const OtherDerived& other) {
       return derived() = TensorCwiseBinaryOp<internal::scalar_difference_op<Scalar>, const Derived, const OtherDerived>(derived(), other.derived());
+    }
+
+    template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorReshapingOp<const NewDimensions, Derived>
+    reshape(const NewDimensions& newDimensions) {
+      return TensorReshapingOp<const NewDimensions, Derived>(derived(), newDimensions);
+    }
+    template <typename StartIndices, typename Sizes> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorSlicingOp<const StartIndices, const Sizes, Derived>
+    slice(const StartIndices& startIndices, const Sizes& sizes) const {
+      return TensorSlicingOp<const StartIndices, const Sizes, Derived>(derived(), startIndices, sizes);
     }
 
     // Select the device on which to evaluate the expression.
