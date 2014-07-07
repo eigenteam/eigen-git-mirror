@@ -25,6 +25,7 @@ template<typename XprType> class TensorReductionOp;
 template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;
+template<typename StartIndices, typename Sizes, typename XprType> class TensorSlicingOp;
 template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
 
 template<typename XprType> class TensorEvalToOp;
