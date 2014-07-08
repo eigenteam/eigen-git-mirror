@@ -209,7 +209,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       VERIFY_IS_APPROX(A * vecX, vecB);
     }
     
-    // check matrices with wide spectrum
+    // check matrices with a wide spectrum
     if(rows>=3)
     {
       RealScalar s = (std::min)(16,std::numeric_limits<RealScalar>::max_exponent10/8);

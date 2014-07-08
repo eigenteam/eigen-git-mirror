@@ -295,7 +295,7 @@ template<> struct ldlt_inplace<Lower>
 
       if(k>0)
       {
-        temp.head(k) = mat.diagonal().head(k).asDiagonal() * A10.adjoint();
+        temp.head(k) = mat.diagonal().real().head(k).asDiagonal() * A10.adjoint();
         mat.coeffRef(k,k) -= (A10 * temp.head(k)).value();
         if(rs>0)
           A21.noalias() -= A20 * temp.head(k);
@@ -305,10 +305,10 @@ template<> struct ldlt_inplace<Lower>
       // was smaller than the cutoff value. However, soince LDLT is not rank-revealing
       // we should only make sure we do not introduce INF or NaN values.
       // LAPACK also uses 0 as the cutoff value.
-      if((rs>0) && (abs(mat.coeffRef(k,k)) > RealScalar(0)))
-        A21 /= mat.coeffRef(k,k);
-
       RealScalar realAkk = numext::real(mat.coeffRef(k,k));
+      if((rs>0) && (abs(realAkk) > RealScalar(0)))
+        A21 /= realAkk;
+
       if (sign == PositiveSemiDef) {
         if (realAkk < 0) sign = Indefinite;
       } else if (sign == NegativeSemiDef) {
@@ -487,7 +487,7 @@ struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
     EIGEN_USING_STD_MATH(max);
     typedef typename LDLTType::MatrixType MatrixType;
     typedef typename LDLTType::RealScalar RealScalar;
-    const Diagonal<const MatrixType> vectorD = dec().vectorD();
+    const typename Diagonal<const MatrixType>::RealReturnType vectorD(dec().vectorD());
     // In some previous versions, tolerance was set to the max of 1/highest and the maximal diagonal entry * epsilon
     // as motivated by LAPACK's xGELSS:
     // RealScalar tolerance = (max)(vectorD.array().abs().maxCoeff() *NumTraits<RealScalar>::epsilon(),RealScalar(1) / NumTraits<RealScalar>::highest());
@@ -552,7 +552,7 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
   // L^* P
   res = matrixU() * res;
   // D(L^*P)
-  res = vectorD().asDiagonal() * res;
+  res = vectorD().real().asDiagonal() * res;
   // L(DL^*P)
   res = matrixL() * res;
   // P^T (LDL^*P)
