@@ -11,7 +11,6 @@
 #define EIGEN_ITERSCALING_H
 
 namespace Eigen {
-using std::abs;
 
 /**
   * \ingroup IterativeSolvers_Module
@@ -73,6 +72,7 @@ class IterScaling
      */
     void compute (const MatrixType& mat)
     {
+      using std::abs;
       int m = mat.rows(); 
       int n = mat.cols();
       eigen_assert((m>0 && m == n) && "Please give a non - empty matrix");
