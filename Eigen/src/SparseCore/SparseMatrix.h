@@ -940,7 +940,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   enum { IsRowMajor = SparseMatrixType::IsRowMajor };
   typedef typename SparseMatrixType::Scalar Scalar;
   typedef typename SparseMatrixType::Index Index;
-  SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
+  SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor,Index> trMat(mat.rows(),mat.cols());
 
   if(begin!=end)
   {
