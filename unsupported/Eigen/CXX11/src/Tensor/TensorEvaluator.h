@@ -23,6 +23,7 @@ namespace Eigen {
   * leading to lvalues (slicing, reshaping, etc...)
   */
 
+// Generic evaluator
 template<typename Derived, typename Device>
 struct TensorEvaluator
 {
@@ -38,7 +39,7 @@ struct TensorEvaluator
     PacketAccess = Derived::PacketAccess,
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(Derived& m, const Device&)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device&)
       : m_data(const_cast<Scalar*>(m.data())), m_dims(m.dimensions())
   { }
 
@@ -73,6 +74,49 @@ struct TensorEvaluator
   Scalar* m_data;
   Dimensions m_dims;
 };
+
+
+// Default evaluator for rvalues
+template<typename Derived, typename Device>
+struct TensorEvaluator<const Derived, Device>
+{
+  typedef typename Derived::Index Index;
+  typedef typename Derived::Scalar Scalar;
+  typedef typename Derived::Packet Packet;
+  typedef typename Derived::Scalar CoeffReturnType;
+  typedef typename Derived::Packet PacketReturnType;
+  typedef typename Derived::Dimensions Dimensions;
+
+  enum {
+    IsAligned = Derived::IsAligned,
+    PacketAccess = Derived::PacketAccess,
+  };
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device&)
+      : m_data(m.data()), m_dims(m.dimensions())
+  { }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dims; }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() { }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
+    eigen_assert(m_data);
+    return m_data[index];
+  }
+
+  template<int LoadMode> EIGEN_STRONG_INLINE
+  PacketReturnType packet(Index index) const
+  {
+    return internal::ploadt<Packet, LoadMode>(m_data + index);
+  }
+
+ protected:
+  const Scalar* m_data;
+  Dimensions m_dims;
+};
+
 
 
 
