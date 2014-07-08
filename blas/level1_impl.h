@@ -59,7 +59,7 @@ int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amax_)(int *n, RealScalar *px, int *inc
   DenseIndex ret;
   if(*incx==1)  make_vector(x,*n).cwiseAbs().maxCoeff(&ret);
   else          make_vector(x,*n,std::abs(*incx)).cwiseAbs().maxCoeff(&ret);
-  return ret+1;
+  return int(ret)+1;
 }
 
 int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amin_)(int *n, RealScalar *px, int *incx)
@@ -70,7 +70,7 @@ int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amin_)(int *n, RealScalar *px, int *inc
   DenseIndex ret;
   if(*incx==1)  make_vector(x,*n).cwiseAbs().minCoeff(&ret);
   else          make_vector(x,*n,std::abs(*incx)).cwiseAbs().minCoeff(&ret);
-  return ret+1;
+  return int(ret)+1;
 }
 
 int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealScalar *ps)
