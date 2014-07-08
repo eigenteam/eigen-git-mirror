@@ -83,10 +83,10 @@ class CompressedStorage
         reallocate(m_size);
     }
 
-    void resize(size_t size, float reserveSizeFactor = 0)
+    void resize(size_t size, double reserveSizeFactor = 0)
     {
       if (m_allocatedSize<size)
-        reallocate(size + size_t(reserveSizeFactor*size));
+        reallocate(size + size_t(reserveSizeFactor*double(size)));
       m_size = size;
     }
 
