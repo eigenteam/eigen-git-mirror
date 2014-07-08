@@ -181,7 +181,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     if(rows>=3)
     {
       SquareMatrixType A = symm;
-      int c = internal::random<int>(0,rows-2);
+      Index c = internal::random<Index>(0,rows-2);
       A.bottomRightCorner(c,c).setZero();
       // Make sure a solution exists:
       vecX.setRandom();
@@ -196,7 +196,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     // check non-full rank matrices
     if(rows>=3)
     {
-      int r = internal::random<int>(1,rows-1);
+      Index r = internal::random<Index>(1,rows-1);
       Matrix<Scalar,Dynamic,Dynamic> a = Matrix<Scalar,Dynamic,Dynamic>::Random(rows,r);
       SquareMatrixType A = a * a.adjoint();
       // Make sure a solution exists:
@@ -215,7 +215,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       RealScalar s = (std::min)(16,std::numeric_limits<RealScalar>::max_exponent10/8);
       Matrix<Scalar,Dynamic,Dynamic> a = Matrix<Scalar,Dynamic,Dynamic>::Random(rows,rows);
       Matrix<RealScalar,Dynamic,1> d =  Matrix<RealScalar,Dynamic,1>::Random(rows);
-      for(int k=0; k<rows; ++k)
+      for(Index k=0; k<rows; ++k)
         d(k) = d(k)*std::pow(RealScalar(10),internal::random<RealScalar>(-s,s));
       SquareMatrixType A = a * d.asDiagonal() * a.adjoint();
       // Make sure a solution exists:

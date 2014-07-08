@@ -50,11 +50,11 @@ public:
         Index m_outer;
     };
 
-    inline BlockImpl(const XprType& xpr, int i)
+    inline BlockImpl(const XprType& xpr, Index i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
     {}
 
-    inline BlockImpl(const XprType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+    inline BlockImpl(const XprType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
       : m_matrix(xpr), m_outerStart(IsRowMajor ? startRow : startCol), m_outerSize(IsRowMajor ? blockRows : blockCols)
     {}
 
@@ -65,7 +65,7 @@ public:
     {
       Index nnz = 0;
       Index end = m_outerStart + m_outerSize.value();
-      for(int j=m_outerStart; j<end; ++j)
+      for(Index j=m_outerStart; j<end; ++j)
         for(typename XprType::InnerIterator it(m_matrix, j); it; ++it)
           ++nnz;
       return nnz;
@@ -124,11 +124,11 @@ public:
         Index m_outer;
     };
 
-    inline sparse_matrix_block_impl(const SparseMatrixType& xpr, int i)
+    inline sparse_matrix_block_impl(const SparseMatrixType& xpr, Index i)
       : m_matrix(xpr), m_outerStart(i), m_outerSize(OuterSize)
     {}
 
-    inline sparse_matrix_block_impl(const SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+    inline sparse_matrix_block_impl(const SparseMatrixType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
       : m_matrix(xpr), m_outerStart(IsRowMajor ? startRow : startCol), m_outerSize(IsRowMajor ? blockRows : blockCols)
     {}
 
@@ -228,8 +228,8 @@ public:
     Index nonZeros() const
     {
       if(m_matrix.isCompressed())
-        return  std::size_t(m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()])
-              - std::size_t(m_matrix.outerIndexPtr()[m_outerStart]);
+        return  Index(  std::size_t(m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()])
+                      - std::size_t(m_matrix.outerIndexPtr()[m_outerStart]));
       else if(m_outerSize.value()==0)
         return 0;
       else
@@ -264,13 +264,14 @@ class BlockImpl<SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols,true
   : public internal::sparse_matrix_block_impl<SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols>
 {
 public:
+  typedef _Index Index;
   typedef SparseMatrix<_Scalar, _Options, _Index> SparseMatrixType;
   typedef internal::sparse_matrix_block_impl<SparseMatrixType,BlockRows,BlockCols> Base;
-  inline BlockImpl(SparseMatrixType& xpr, int i)
+  inline BlockImpl(SparseMatrixType& xpr, Index i)
     : Base(xpr, i)
   {}
 
-  inline BlockImpl(SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+  inline BlockImpl(SparseMatrixType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
     : Base(xpr, startRow, startCol, blockRows, blockCols)
   {}
   
@@ -282,13 +283,14 @@ class BlockImpl<const SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCol
   : public internal::sparse_matrix_block_impl<const SparseMatrix<_Scalar, _Options, _Index>,BlockRows,BlockCols>
 {
 public:
+  typedef _Index Index;
   typedef const SparseMatrix<_Scalar, _Options, _Index> SparseMatrixType;
   typedef internal::sparse_matrix_block_impl<SparseMatrixType,BlockRows,BlockCols> Base;
-  inline BlockImpl(SparseMatrixType& xpr, int i)
+  inline BlockImpl(SparseMatrixType& xpr, Index i)
     : Base(xpr, i)
   {}
 
-  inline BlockImpl(SparseMatrixType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+  inline BlockImpl(SparseMatrixType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
     : Base(xpr, startRow, startCol, blockRows, blockCols)
   {}
   
@@ -362,7 +364,7 @@ public:
 
     /** Column or Row constructor
       */
-    inline BlockImpl(const XprType& xpr, int i)
+    inline BlockImpl(const XprType& xpr, Index i)
       : m_matrix(xpr),
         m_startRow( (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0),
         m_startCol( (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
@@ -372,32 +374,32 @@ public:
 
     /** Dynamic-size constructor
       */
-    inline BlockImpl(const XprType& xpr, int startRow, int startCol, int blockRows, int blockCols)
+    inline BlockImpl(const XprType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
       : m_matrix(xpr), m_startRow(startRow), m_startCol(startCol), m_blockRows(blockRows), m_blockCols(blockCols)
     {}
 
-    inline int rows() const { return m_blockRows.value(); }
-    inline int cols() const { return m_blockCols.value(); }
+    inline Index rows() const { return m_blockRows.value(); }
+    inline Index cols() const { return m_blockCols.value(); }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived()
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline const Scalar coeff(int row, int col) const
+    inline const Scalar coeff(Index row, Index col) const
     {
       return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       return m_matrix.const_cast_derived()
              .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                        m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
-    inline const Scalar coeff(int index) const
+    inline const Scalar coeff(Index index) const
     {
       return m_matrix
              .coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),

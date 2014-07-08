@@ -68,14 +68,14 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
   return res;
 }
 
-template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, DenseIndex stride)
 {
   std::complex<float> EIGEN_ALIGN16 af[2];
   af[0] = from[0*stride];
   af[1] = from[1*stride];
   return Packet2cf(vec_ld(0, (const float*)af));
 }
-template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, DenseIndex stride)
 {
   std::complex<float> EIGEN_ALIGN16 af[2];
   vec_st(from.v, 0, (float*)af);

@@ -92,7 +92,7 @@ template<> EIGEN_STRONG_INLINE Packet4cf ploaddup<Packet4cf>(const std::complex<
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float>* to, const Packet4cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore(&numext::real_ref(*to), from.v); }
 template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<float>* to, const Packet4cf& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(&numext::real_ref(*to), from.v); }
 
-template<> EIGEN_DEVICE_FUNC inline Packet4cf pgather<std::complex<float>, Packet4cf>(const std::complex<float>* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet4cf pgather<std::complex<float>, Packet4cf>(const std::complex<float>* from, DenseIndex stride)
 {
   return Packet4cf(_mm256_set_ps(std::imag(from[3*stride]), std::real(from[3*stride]),
                                  std::imag(from[2*stride]), std::real(from[2*stride]),
@@ -100,7 +100,7 @@ template<> EIGEN_DEVICE_FUNC inline Packet4cf pgather<std::complex<float>, Packe
                                  std::imag(from[0*stride]), std::real(from[0*stride])));
 }
 
-template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet4cf>(std::complex<float>* to, const Packet4cf& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet4cf>(std::complex<float>* to, const Packet4cf& from, DenseIndex stride)
 {
   __m128 low = _mm256_extractf128_ps(from.v, 0);
   to[stride*0] = std::complex<float>(_mm_cvtss_f32(_mm_shuffle_ps(low, low, 0)),

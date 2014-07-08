@@ -322,7 +322,7 @@ template<> struct trmv_selector<RowMajor>
     if(!DirectlyUseRhs)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = actualRhs.size();
+      Index size = actualRhs.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       Map<typename _ActualRhsType::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;

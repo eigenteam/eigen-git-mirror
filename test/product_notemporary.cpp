@@ -7,13 +7,12 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-static int nb_temporaries;
+static long int nb_temporaries;
 
-inline void on_temporary_creation(int size) {
+inline void on_temporary_creation(long int size) {
   // here's a great place to set a breakpoint when debugging failures in this test!
   if(size!=0) nb_temporaries++;
 }
-  
 
 #define EIGEN_DENSE_STORAGE_CTOR_PLUGIN { on_temporary_creation(size); }
 

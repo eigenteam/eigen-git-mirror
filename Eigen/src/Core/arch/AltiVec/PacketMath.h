@@ -190,7 +190,7 @@ pbroadcast4<Packet4i>(const int *a,
   a3 = vec_splat(a3, 3);
 }
 
-template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, DenseIndex stride)
 {
   float EIGEN_ALIGN16 af[4];
   af[0] = from[0*stride];
@@ -199,7 +199,7 @@ template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const floa
   af[3] = from[3*stride];
  return vec_ld(0, af);
 }
-template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, DenseIndex stride)
 {
   int EIGEN_ALIGN16 ai[4];
   ai[0] = from[0*stride];
@@ -208,7 +208,7 @@ template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* f
   ai[3] = from[3*stride];
  return vec_ld(0, ai);
 }
-template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, const Packet4f& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, const Packet4f& from, DenseIndex stride)
 {
   float EIGEN_ALIGN16 af[4];
   vec_st(from, 0, af);
@@ -217,7 +217,7 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, co
   to[2*stride] = af[2];
   to[3*stride] = af[3];
 }
-template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const Packet4i& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const Packet4i& from, DenseIndex stride)
 {
   int EIGEN_ALIGN16 ai[4];
   vec_st(from, 0, ai);
