@@ -21,6 +21,12 @@ struct DefaultDevice {
   EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
     internal::aligned_free(buffer);
   }
+  EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
+    ::memcpy(dst, src, n);
+  }
+  EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
+    ::memset(buffer, c, n);
+  }
 };
 
 
@@ -28,7 +34,7 @@ struct DefaultDevice {
 // We should really use a thread pool here but first we need to find a portable thread pool library.
 #ifdef EIGEN_USE_THREADS
 struct ThreadPoolDevice {
- ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : /*pool_(pool), */num_threads_(num_cores) { }
+  ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : /*pool_(pool), */num_threads_(num_cores) { }
   size_t numThreads() const { return num_threads_; }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
@@ -36,6 +42,12 @@ struct ThreadPoolDevice {
   }
   EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
     internal::aligned_free(buffer);
+  }
+  EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
+    ::memcpy(dst, src, n);
+  }
+  EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
+    ::memset(buffer, c, n);
   }
 
  private:
@@ -47,19 +59,60 @@ struct ThreadPoolDevice {
 
 // GPU offloading
 #ifdef EIGEN_USE_GPU
+static int m_numMultiProcessors = 0;
+static int m_maxThreadsPerBlock = 0;
+static int m_maxThreadsPerMultiProcessor = 0;
+
+static inline int getNumCudaMultiProcessors() {
+  if (m_numMultiProcessors == 0) {
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    m_maxThreadsPerBlock = deviceProp.maxThreadsPerBlock;
+    m_maxThreadsPerMultiProcessor = deviceProp.maxThreadsPerMultiProcessor;
+    m_numMultiProcessors = deviceProp.multiProcessorCount;
+  }
+  return m_numMultiProcessors;
+}
+static inline int maxCudaThreadsPerBlock() {
+  if (m_maxThreadsPerBlock == 0) {
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    m_numMultiProcessors = deviceProp.multiProcessorCount;
+    m_maxThreadsPerMultiProcessor = deviceProp.maxThreadsPerMultiProcessor;
+    m_maxThreadsPerBlock = deviceProp.maxThreadsPerBlock;
+  }
+  return m_maxThreadsPerBlock;
+}
+static inline int maxCudaThreadsPerMultiProcessor() {
+  if (m_maxThreadsPerBlock == 0) {
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, 0);
+    m_numMultiProcessors = deviceProp.multiProcessorCount;
+    m_maxThreadsPerBlock = deviceProp.maxThreadsPerBlock;
+    m_maxThreadsPerMultiProcessor = deviceProp.maxThreadsPerMultiProcessor;
+  }
+  return m_maxThreadsPerMultiProcessor;
+}
+
 struct GpuDevice {
   // The cudastream is not owned: the caller is responsible for its initialization and eventual destruction.
   GpuDevice(const cudaStream_t* stream) : stream_(stream) { eigen_assert(stream); }
 
   EIGEN_STRONG_INLINE const cudaStream_t& stream() const { return *stream_; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
+  /*EIGEN_DEVICE_FUNC*/ EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     void* result;
     cudaMalloc(&result, num_bytes);
     return result;
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
+  /*EIGEN_DEVICE_FUNC */EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
     cudaFree(buffer);
+  }
+  EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
+    cudaMemcpyAsync(dst, src, n, cudaMemcpyDeviceToDevice, *stream_);
+  }
+  EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
+    cudaMemsetAsync(buffer, c, n, *stream_);
   }
 
  private:
