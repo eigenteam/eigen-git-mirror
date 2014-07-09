@@ -320,11 +320,12 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
     Index inputIndex = 0;
-    for (int i = NumDims - 1; i >= 0; --i) {
+    for (int i = NumDims - 1; i > 0; --i) {
       const Index idx = index / m_outputStrides[i];
       inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
       index -= idx * m_outputStrides[i];
     }
+    inputIndex += (index + m_offsets[0]);
     return m_impl.coeff(inputIndex);
   }
 
@@ -399,11 +400,12 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
     Index inputIndex = 0;
-    for (int i = NumDims - 1; i >= 0; --i) {
+    for (int i = NumDims - 1; i > 0; --i) {
       const Index idx = index / m_outputStrides[i];
       inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
       index -= idx * m_outputStrides[i];
     }
+    inputIndex += (index + m_offsets[0]);
     return m_impl.coeff(inputIndex);
   }
 
@@ -416,11 +418,12 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
     Index inputIndex = 0;
-    for (int i = NumDims - 1; i >= 0; --i) {
+    for (int i = NumDims - 1; i > 0; --i) {
       const Index idx = index / m_outputStrides[i];
       inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
       index -= idx * m_outputStrides[i];
     }
+    inputIndex += (index + m_offsets[0]);
     return m_impl.coeffRef(inputIndex);
   }
 
