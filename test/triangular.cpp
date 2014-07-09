@@ -113,6 +113,13 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
   m3.setZero();
   m3.template triangularView<Upper>().setOnes();
   VERIFY_IS_APPROX(m2,m3);
+  
+  m1.setRandom();
+  m3 = m1.template triangularView<Upper>();
+  Matrix<Scalar, MatrixType::ColsAtCompileTime, Dynamic> m5(cols, internal::random<int>(1,20));  m5.setRandom();
+  Matrix<Scalar, Dynamic, MatrixType::RowsAtCompileTime> m6(internal::random<int>(1,20), rows);  m6.setRandom();
+  VERIFY_IS_APPROX(m1.template triangularView<Upper>() * m5, m3*m5);
+  VERIFY_IS_APPROX(m6*m1.template triangularView<Upper>(), m6*m3);
 
 }
 
