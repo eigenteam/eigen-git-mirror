@@ -273,8 +273,10 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   static const int NumDims = internal::array_size<Sizes>::value;
 
   enum {
-    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
-    PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/false,
+    // Alignment can't be guaranteed at compile time since it depends on the
+    // slice offsets and sizes.
+    IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
+    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -329,11 +331,40 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     return m_impl.coeff(inputIndex);
   }
 
-  /*  template<int LoadMode>
+  template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    return m_impl.template packet<LoadMode>(index);
-    }*/
+    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
+    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+
+    Index inputIndices[] = {0, 0};
+    Index indices[] = {index, index + packetSize - 1};
+    for (int i = NumDims - 1; i > 0; --i) {
+      const Index idx0 = indices[0] / m_outputStrides[i];
+      const Index idx1 = indices[1] / m_outputStrides[i];
+      inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
+      inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
+      indices[0] -= idx0 * m_outputStrides[i];
+      indices[1] -= idx1 * m_outputStrides[i];
+    }
+    inputIndices[0] += (indices[0] + m_offsets[0]);
+    inputIndices[1] += (indices[1] + m_offsets[0]);
+    if (inputIndices[1] - inputIndices[0] == packetSize - 1) {
+      PacketReturnType rslt = m_impl.template packet<Unaligned>(inputIndices[0]);
+      return rslt;
+    }
+    else {
+      CoeffReturnType values[packetSize];
+      values[0] = m_impl.coeff(inputIndices[0]);
+      values[packetSize-1] = m_impl.coeff(inputIndices[1]);
+      for (int i = 1; i < packetSize-1; ++i) {
+        values[i] = coeff(index+i);
+      }
+      PacketReturnType rslt = internal::pload<PacketReturnType>(values);
+      return rslt;
+    }
+  }
 
  private:
   Dimensions m_dimensions;
@@ -353,8 +384,8 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   static const int NumDims = internal::array_size<Sizes>::value;
 
   enum {
-    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
-    PacketAccess = /*TensorEvaluator<ArgType, Device>::PacketAccess*/false,
+    IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
+    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -409,11 +440,38 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     return m_impl.coeff(inputIndex);
   }
 
-  /*  template<int LoadMode>
+  template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    return m_impl.template packet<LoadMode>(index);
-    }*/
+    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
+    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    Index inputIndices[] = {0, 0};
+    Index indices[] = {index, index + packetSize - 1};
+    for (int i = NumDims - 1; i > 0; --i) {
+      const Index idx0 = indices[0] / m_outputStrides[i];
+      const Index idx1 = indices[1] / m_outputStrides[i];
+      inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
+      inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
+      indices[0] -= idx0 * m_outputStrides[i];
+      indices[1] -= idx1 * m_outputStrides[i];
+    }
+    inputIndices[0] += (indices[0] + m_offsets[0]);
+    inputIndices[1] += (indices[1] + m_offsets[0]);
+    if (inputIndices[1] - inputIndices[0] == packetSize - 1) {
+      PacketReturnType rslt = m_impl.template packet<LoadMode>(inputIndices[0]);
+      return rslt;
+    }
+    else {
+      CoeffReturnType values[packetSize];
+      values[0] = m_impl.coeff(inputIndices[0]);
+      values[packetSize-1] = m_impl.coeff(inputIndices[1]);
+      for (int i = 1; i < packetSize-1; ++i) {
+        values[i] = coeff(index+i);
+      }
+      PacketReturnType rslt = internal::pload<PacketReturnType>(values);
+      return rslt;
+    }
+  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
@@ -425,6 +483,36 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     }
     inputIndex += (index + m_offsets[0]);
     return m_impl.coeffRef(inputIndex);
+  }
+
+  template <int StoreMode> EIGEN_STRONG_INLINE
+  void writePacket(Index index, const PacketReturnType& x)
+  {
+    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
+    Index inputIndices[] = {0, 0};
+    Index indices[] = {index, index + packetSize - 1};
+    for (int i = NumDims - 1; i > 0; --i) {
+      const Index idx0 = indices[0] / m_outputStrides[i];
+      const Index idx1 = indices[1] / m_outputStrides[i];
+      inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
+      inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
+      indices[0] -= idx0 * m_outputStrides[i];
+      indices[1] -= idx1 * m_outputStrides[i];
+    }
+    inputIndices[0] += (indices[0] + m_offsets[0]);
+    inputIndices[1] += (indices[1] + m_offsets[0]);
+    if (inputIndices[1] - inputIndices[0] == packetSize - 1) {
+      m_impl.template writePacket<StoreMode>(inputIndices[0], x);
+    }
+    else {
+      CoeffReturnType values[packetSize];
+      internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
+      m_impl.coeffRef(inputIndices[0]) = values[0];
+      m_impl.coeffRef(inputIndices[1]) = values[packetSize-1];
+      for (int i = 1; i < packetSize-1; ++i) {
+        coeffRef(index+i) = values[i];
+      }
+    }
   }
 
  private:
