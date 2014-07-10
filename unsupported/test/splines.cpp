@@ -252,7 +252,7 @@ void check_global_interpolation_with_derivatives2d()
   VectorXd derivativeIndices(numPoints);
 
   for (Eigen::DenseIndex i = 0; i < numPoints; ++i)
-    derivativeIndices(i) = i;
+      derivativeIndices(i) = static_cast<double>(i);
 
   const Spline2d spline = SplineFitting<Spline2d>::InterpolateWithDerivatives(
     points, derivatives, derivativeIndices, degree);  

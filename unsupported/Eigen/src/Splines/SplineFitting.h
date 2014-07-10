@@ -128,7 +128,7 @@ namespace Eigen
 
     newKnotIndex = -1;
   
-    ParameterVectorType temporaryParameters(numParameters);
+    ParameterVectorType temporaryParameters(numParameters + 1);
     KnotVectorType derivativeKnots(numInternalDerivatives);
     for (unsigned int i = 0; i < numAverageKnots - 1; ++i)
     {
