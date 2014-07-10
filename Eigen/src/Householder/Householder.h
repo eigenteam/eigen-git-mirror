@@ -80,7 +80,7 @@ void MatrixBase<Derived>::makeHouseholder(
   {
     tau = RealScalar(0);
     beta = numext::real(c0);
-    essential.setZero();
+    essential.setZero(size()-1);
   }
   else
   {
