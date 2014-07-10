@@ -219,7 +219,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
     if(!EvalToDest)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = dest.size();
+      Index size = dest.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       MappedDest(actualDestPtr, dest.size()) = dest;
@@ -228,7 +228,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
     if(!UseRhs)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = rhs.size();
+      Index size = rhs.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       Map<typename _ActualRhsType::PlainObject>(actualRhsPtr, rhs.size()) = rhs;

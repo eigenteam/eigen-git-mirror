@@ -136,12 +136,12 @@ class COLAMDOrdering
       Index stats [COLAMD_STATS];
       internal::colamd_set_defaults(knobs);
       
-      Index info;
       IndexVector p(n+1), A(Alen); 
       for(Index i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
       for(Index i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
       // Call Colamd routine to compute the ordering 
-      info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+      Index info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+      EIGEN_UNUSED_VARIABLE(info);
       eigen_assert( info && "COLAMD failed " );
       
       perm.resize(n);

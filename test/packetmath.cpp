@@ -408,14 +408,17 @@ template<typename Scalar> void packetmath_scatter_gather() {
   for (int i=0; i<PacketSize; ++i) {
     data1[i] = internal::random<Scalar>()/RealScalar(PacketSize);
   }
-  EIGEN_ALIGN_DEFAULT Scalar buffer[PacketSize*11];
-  memset(buffer, 0, 11*sizeof(Packet));
+  
+  int stride = internal::random<int>(1,20);
+  
+  EIGEN_ALIGN_DEFAULT Scalar buffer[PacketSize*20];
+  memset(buffer, 0, 20*sizeof(Packet));
   Packet packet = internal::pload<Packet>(data1);
-  internal::pscatter<Scalar, Packet>(buffer, packet, 11);
+  internal::pscatter<Scalar, Packet>(buffer, packet, stride);
 
-  for (int i = 0; i < PacketSize*11; ++i) {
-    if ((i%11) == 0) {
-      VERIFY(isApproxAbs(buffer[i], data1[i/11], refvalue) && "pscatter");
+  for (int i = 0; i < PacketSize*20; ++i) {
+    if ((i%stride) == 0 && i<stride*PacketSize) {
+      VERIFY(isApproxAbs(buffer[i], data1[i/stride], refvalue) && "pscatter");
     } else {
       VERIFY(isApproxAbs(buffer[i], Scalar(0), refvalue) && "pscatter");
     }

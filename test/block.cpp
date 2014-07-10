@@ -141,11 +141,11 @@ template<typename MatrixType> void block(const MatrixType& m)
   VERIFY_IS_EQUAL( (m1.transpose().block(c1,r1,c2-c1+1,r2-r1+1).col(0)) , (m1.row(r1).segment(c1,c2-c1+1)).transpose() );
 
   // expressions without direct access
-  VERIFY_IS_EQUAL( ((m1+m2).block(r1,c1,rows-r1,cols-c1).block(r2-r1,c2-c1,rows-r2,cols-c2)) , ((m1+m2).block(r2,c2,rows-r2,cols-c2)) );
-  VERIFY_IS_EQUAL( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).row(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)) );
-  VERIFY_IS_EQUAL( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).col(0)) , ((m1+m2).col(c1).segment(r1,r2-r1+1)) );
-  VERIFY_IS_EQUAL( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).transpose().col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
-  VERIFY_IS_EQUAL( ((m1+m2).transpose().block(c1,r1,c2-c1+1,r2-r1+1).col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
+  VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,rows-r1,cols-c1).block(r2-r1,c2-c1,rows-r2,cols-c2)) , ((m1+m2).block(r2,c2,rows-r2,cols-c2)) );
+  VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).row(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)) );
+  VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).col(0)) , ((m1+m2).col(c1).segment(r1,r2-r1+1)) );
+  VERIFY_IS_APPROX( ((m1+m2).block(r1,c1,r2-r1+1,c2-c1+1).transpose().col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
+  VERIFY_IS_APPROX( ((m1+m2).transpose().block(c1,r1,c2-c1+1,r2-r1+1).col(0)) , ((m1+m2).row(r1).segment(c1,c2-c1+1)).transpose() );
 
   // evaluation into plain matrices from expressions with direct access (stress MapBase)
   DynamicMatrixType dm;

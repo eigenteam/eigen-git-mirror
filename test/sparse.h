@@ -71,7 +71,7 @@ initSparse(double density,
     //sparseMat.startVec(j);
     for(Index i=0; i<sparseMat.innerSize(); i++)
     {
-      int ai(i), aj(j);
+      Index ai(i), aj(j);
       if(IsRowMajor)
         std::swap(ai,aj);
       Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
@@ -163,7 +163,7 @@ initSparse(double density,
 {
   sparseVec.reserve(int(refVec.size()*density));
   sparseVec.setZero();
-  for(Index i=0; i<refVec.size(); i++)
+  for(int i=0; i<refVec.size(); i++)
   {
     Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
     if (v!=Scalar(0))

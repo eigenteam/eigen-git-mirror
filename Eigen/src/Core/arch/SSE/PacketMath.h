@@ -383,32 +383,32 @@ template<> EIGEN_STRONG_INLINE void pstoreu<double>(double* to, const Packet2d& 
 template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*  to, const Packet4f& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(reinterpret_cast<double*>(to), Packet2d(_mm_castps_pd(from))); }
 template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*      to, const Packet4i& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu(reinterpret_cast<double*>(to), Packet2d(_mm_castsi128_pd(from))); }
 
-template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, DenseIndex stride)
 {
  return _mm_set_ps(from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
 }
-template<> EIGEN_DEVICE_FUNC inline Packet2d pgather<double, Packet2d>(const double* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet2d pgather<double, Packet2d>(const double* from, DenseIndex stride)
 {
  return _mm_set_pd(from[1*stride], from[0*stride]);
 }
-template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, DenseIndex stride)
 {
  return _mm_set_epi32(from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
  }
 
-template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, const Packet4f& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet4f>(float* to, const Packet4f& from, DenseIndex stride)
 {
   to[stride*0] = _mm_cvtss_f32(from);
   to[stride*1] = _mm_cvtss_f32(_mm_shuffle_ps(from, from, 1));
   to[stride*2] = _mm_cvtss_f32(_mm_shuffle_ps(from, from, 2));
   to[stride*3] = _mm_cvtss_f32(_mm_shuffle_ps(from, from, 3));
 }
-template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet2d>(double* to, const Packet2d& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet2d>(double* to, const Packet2d& from, DenseIndex stride)
 {
   to[stride*0] = _mm_cvtsd_f64(from);
   to[stride*1] = _mm_cvtsd_f64(_mm_shuffle_pd(from, from, 1));
 }
-template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const Packet4i& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const Packet4i& from, DenseIndex stride)
 {
   to[stride*0] = _mm_cvtsi128_si32(from);
   to[stride*1] = _mm_cvtsi128_si32(_mm_shuffle_epi32(from, 1));

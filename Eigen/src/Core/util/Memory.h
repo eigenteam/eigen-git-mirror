@@ -607,12 +607,9 @@ template<typename T> class aligned_stack_memory_handler
   * The underlying stack allocation function can controlled with the EIGEN_ALLOCA preprocessor token.
   */
 #ifdef EIGEN_ALLOCA
-  // The native alloca() that comes with llvm aligns buffer on 16 bytes even when AVX is enabled.
-#if defined(__arm__) || defined(_WIN32) || EIGEN_ALIGN_BYTES > 16
-    #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+EIGEN_ALIGN_BYTES)) & ~(size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES)
-  #else
-    #define EIGEN_ALIGNED_ALLOCA EIGEN_ALLOCA
-  #endif
+  // We always manually re-align the result of EIGEN_ALLOCA.
+  // If alloca is already aligned, the compiler should be smart enough to optimize away the re-alignment.
+  #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+EIGEN_ALIGN_BYTES-1)) + EIGEN_ALIGN_BYTES-1) & ~(size_t(EIGEN_ALIGN_BYTES-1)))
 
   #define ei_declare_aligned_stack_constructed_variable(TYPE,NAME,SIZE,BUFFER) \
     Eigen::internal::check_size_for_overflow<TYPE>(SIZE); \

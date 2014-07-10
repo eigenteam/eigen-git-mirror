@@ -224,17 +224,17 @@ template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*       to, const Packet8i& 
 
 // NOTE: leverage _mm256_i32gather_ps and _mm256_i32gather_pd if AVX2 instructions are available
 // NOTE: for the record the following seems to be slower: return _mm256_i32gather_ps(from, _mm256_set1_epi32(stride), 4);
-template<> EIGEN_DEVICE_FUNC inline Packet8f pgather<float, Packet8f>(const float* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet8f pgather<float, Packet8f>(const float* from, DenseIndex stride)
 {
   return _mm256_set_ps(from[7*stride], from[6*stride], from[5*stride], from[4*stride],
                        from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
 }
-template<> EIGEN_DEVICE_FUNC inline Packet4d pgather<double, Packet4d>(const double* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet4d pgather<double, Packet4d>(const double* from, DenseIndex stride)
 {
   return _mm256_set_pd(from[3*stride], from[2*stride], from[1*stride], from[0*stride]);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet8f>(float* to, const Packet8f& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet8f>(float* to, const Packet8f& from, DenseIndex stride)
 {
   __m128 low = _mm256_extractf128_ps(from, 0);
   to[stride*0] = _mm_cvtss_f32(low);
@@ -248,7 +248,7 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<float, Packet8f>(float* to, co
   to[stride*6] = _mm_cvtss_f32(_mm_shuffle_ps(high, high, 2));
   to[stride*7] = _mm_cvtss_f32(_mm_shuffle_ps(high, high, 3));
 }
-template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet4d>(double* to, const Packet4d& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet4d>(double* to, const Packet4d& from, DenseIndex stride)
 {
   __m128d low = _mm256_extractf128_pd(from, 0);
   to[stride*0] = _mm_cvtsd_f64(low);

@@ -111,7 +111,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf ploaddup<Packet2cf>(const std::complex<
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE pstore((float*)to, from.v); }
 template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu((float*)to, from.v); }
 
-template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, int stride)
+template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packet2cf>(const std::complex<float>* from, DenseIndex stride)
 {
   Packet4f res;
   res = vsetq_lane_f32(std::real(from[0*stride]), res, 0);
@@ -121,7 +121,7 @@ template<> EIGEN_DEVICE_FUNC inline Packet2cf pgather<std::complex<float>, Packe
   return Packet2cf(res);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, int stride)
+template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf>(std::complex<float>* to, const Packet2cf& from, DenseIndex stride)
 {
   to[stride*0] = std::complex<float>(vgetq_lane_f32(from.v, 0), vgetq_lane_f32(from.v, 1));
   to[stride*1] = std::complex<float>(vgetq_lane_f32(from.v, 2), vgetq_lane_f32(from.v, 3));
