@@ -523,6 +523,7 @@ namespace internal {
       while(m_outerPos<m_end)
       {
         m_outerPos++;
+        if(m_outerPos==m_end) break;
         typename XprType::InnerIterator it(m_block.m_matrix, m_outerPos);
         // search for the key m_innerIndex in the current outer-vector
         while(it && it.index() < m_innerIndex) ++it;
