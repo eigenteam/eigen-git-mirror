@@ -9,32 +9,6 @@
 
 #include "sparse.h"
 
-template<typename SparseMatrixType, typename DenseMatrix, bool IsRowMajor=SparseMatrixType::IsRowMajor> struct test_outer;
-
-template<typename SparseMatrixType, typename DenseMatrix> struct test_outer<SparseMatrixType,DenseMatrix,false> {
-  static void run(SparseMatrixType& m2, SparseMatrixType& m4, DenseMatrix& refMat2, DenseMatrix& refMat4) {
-    typedef typename SparseMatrixType::Index Index;
-    Index c  = internal::random<Index>(0,m2.cols()-1);
-    Index c1 = internal::random<Index>(0,m2.cols()-1);
-    VERIFY_IS_APPROX(m4=m2.col(c)*refMat2.col(c1).transpose(), refMat4=refMat2.col(c)*refMat2.col(c1).transpose());
-    VERIFY_IS_APPROX(m4=refMat2.col(c1)*m2.col(c).transpose(), refMat4=refMat2.col(c1)*refMat2.col(c).transpose());
-  }
-};
-
-template<typename SparseMatrixType, typename DenseMatrix> struct test_outer<SparseMatrixType,DenseMatrix,true> {
-  static void run(SparseMatrixType& m2, SparseMatrixType& m4, DenseMatrix& refMat2, DenseMatrix& refMat4) {
-    typedef typename SparseMatrixType::Index Index;
-    Index r  = internal::random<Index>(0,m2.rows()-1);
-    Index c1 = internal::random<Index>(0,m2.cols()-1);
-    VERIFY_IS_APPROX(m4=m2.row(r).transpose()*refMat2.col(c1).transpose(), refMat4=refMat2.row(r).transpose()*refMat2.col(c1).transpose());
-    VERIFY_IS_APPROX(m4=refMat2.col(c1)*m2.row(r), refMat4=refMat2.col(c1)*refMat2.row(r));
-  }
-};
-
-// (m2,m4,refMat2,refMat4,dv1);
-//     VERIFY_IS_APPROX(m4=m2.innerVector(c)*dv1.transpose(), refMat4=refMat2.colVector(c)*dv1.transpose());
-//     VERIFY_IS_APPROX(m4=dv1*mcm.col(c).transpose(), refMat4=dv1*refMat2.col(c).transpose());
-
 template<typename SparseMatrixType> void sparse_product()
 {
   typedef typename SparseMatrixType::Index Index;
@@ -119,7 +93,30 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(dm4=refMat2t.transpose()*m3t.transpose(), refMat4=refMat2t.transpose()*refMat3t.transpose());
 
     // sparse * dense and dense * sparse outer product
-    test_outer<SparseMatrixType,DenseMatrix>::run(m2,m4,refMat2,refMat4);
+    {
+      Index c  = internal::random<Index>(0,depth-1);
+      Index r  = internal::random<Index>(0,rows-1);
+      Index c1 = internal::random<Index>(0,cols-1);
+      Index r1 = internal::random<Index>(0,depth-1);
+      
+      VERIFY_IS_APPROX( m4=m2.col(c)*refMat3.col(c1).transpose(), refMat4=refMat2.col(c)*refMat3.col(c1).transpose());
+      VERIFY_IS_APPROX(dm4=m2.col(c)*refMat3.col(c1).transpose(), refMat4=refMat2.col(c)*refMat3.col(c1).transpose());
+
+      VERIFY_IS_APPROX(m4=refMat3.col(c1)*m2.col(c).transpose(), refMat4=refMat3.col(c1)*refMat2.col(c).transpose());
+      VERIFY_IS_APPROX(dm4=refMat3.col(c1)*m2.col(c).transpose(), refMat4=refMat3.col(c1)*refMat2.col(c).transpose());
+
+      VERIFY_IS_APPROX( m4=refMat3.row(r1).transpose()*m2.col(c).transpose(), refMat4=refMat3.row(r1).transpose()*refMat2.col(c).transpose());
+      VERIFY_IS_APPROX(dm4=refMat3.row(r1).transpose()*m2.col(c).transpose(), refMat4=refMat3.row(r1).transpose()*refMat2.col(c).transpose());
+
+      VERIFY_IS_APPROX( m4=m2.row(r).transpose()*refMat3.col(c1).transpose(), refMat4=refMat2.row(r).transpose()*refMat3.col(c1).transpose());
+      VERIFY_IS_APPROX(dm4=m2.row(r).transpose()*refMat3.col(c1).transpose(), refMat4=refMat2.row(r).transpose()*refMat3.col(c1).transpose());
+
+      VERIFY_IS_APPROX( m4=refMat3.col(c1)*m2.row(r), refMat4=refMat3.col(c1)*refMat2.row(r));
+      VERIFY_IS_APPROX(dm4=refMat3.col(c1)*m2.row(r), refMat4=refMat3.col(c1)*refMat2.row(r));
+
+      VERIFY_IS_APPROX( m4=refMat3.row(r1).transpose()*m2.row(r), refMat4=refMat3.row(r1).transpose()*refMat2.row(r));
+      VERIFY_IS_APPROX(dm4=refMat3.row(r1).transpose()*m2.row(r), refMat4=refMat3.row(r1).transpose()*refMat2.row(r));
+    }
 
     VERIFY_IS_APPROX(m6=m6*m6, refMat6=refMat6*refMat6);
     
