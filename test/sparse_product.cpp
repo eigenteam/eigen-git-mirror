@@ -100,18 +100,22 @@ template<typename SparseMatrixType> void sparse_product()
       Index r1 = internal::random<Index>(0,depth-1);
       
       VERIFY_IS_APPROX( m4=m2.col(c)*refMat3.col(c1).transpose(), refMat4=refMat2.col(c)*refMat3.col(c1).transpose());
+      VERIFY_IS_APPROX( m4=m2.middleCols(c,1)*refMat3.col(c1).transpose(), refMat4=refMat2.col(c)*refMat3.col(c1).transpose());
       VERIFY_IS_APPROX(dm4=m2.col(c)*refMat3.col(c1).transpose(), refMat4=refMat2.col(c)*refMat3.col(c1).transpose());
-
+      
       VERIFY_IS_APPROX(m4=refMat3.col(c1)*m2.col(c).transpose(), refMat4=refMat3.col(c1)*refMat2.col(c).transpose());
+      VERIFY_IS_APPROX(m4=refMat3.col(c1)*m2.middleCols(c,1).transpose(), refMat4=refMat3.col(c1)*refMat2.col(c).transpose());
       VERIFY_IS_APPROX(dm4=refMat3.col(c1)*m2.col(c).transpose(), refMat4=refMat3.col(c1)*refMat2.col(c).transpose());
 
       VERIFY_IS_APPROX( m4=refMat3.row(r1).transpose()*m2.col(c).transpose(), refMat4=refMat3.row(r1).transpose()*refMat2.col(c).transpose());
       VERIFY_IS_APPROX(dm4=refMat3.row(r1).transpose()*m2.col(c).transpose(), refMat4=refMat3.row(r1).transpose()*refMat2.col(c).transpose());
 
       VERIFY_IS_APPROX( m4=m2.row(r).transpose()*refMat3.col(c1).transpose(), refMat4=refMat2.row(r).transpose()*refMat3.col(c1).transpose());
+      VERIFY_IS_APPROX( m4=m2.middleRows(r,1).transpose()*refMat3.col(c1).transpose(), refMat4=refMat2.row(r).transpose()*refMat3.col(c1).transpose());
       VERIFY_IS_APPROX(dm4=m2.row(r).transpose()*refMat3.col(c1).transpose(), refMat4=refMat2.row(r).transpose()*refMat3.col(c1).transpose());
 
       VERIFY_IS_APPROX( m4=refMat3.col(c1)*m2.row(r), refMat4=refMat3.col(c1)*refMat2.row(r));
+      VERIFY_IS_APPROX( m4=refMat3.col(c1)*m2.middleRows(r,1), refMat4=refMat3.col(c1)*refMat2.row(r));
       VERIFY_IS_APPROX(dm4=refMat3.col(c1)*m2.row(r), refMat4=refMat3.col(c1)*refMat2.row(r));
 
       VERIFY_IS_APPROX( m4=refMat3.row(r1).transpose()*m2.row(r), refMat4=refMat3.row(r1).transpose()*refMat2.row(r));
