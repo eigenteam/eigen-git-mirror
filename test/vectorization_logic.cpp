@@ -124,8 +124,9 @@ bool test_redux(const Xpr&, int traversal, int unrolling)
 
 template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectorizable> struct vectorization_logic
 {
+  typedef internal::packet_traits<Scalar> PacketTraits;
   enum {
-    PacketSize = internal::packet_traits<Scalar>::size
+    PacketSize = PacketTraits::size
   };
   static void run()
   {
@@ -198,7 +199,7 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
         LinearTraversal,CompleteUnrolling));
               
       VERIFY(test_assign(Matrix3(),Matrix3().cwiseQuotient(Matrix3()),
-        LinearVectorizedTraversal,CompleteUnrolling));
+        PacketTraits::HasDiv ? LinearVectorizedTraversal : LinearTraversal,CompleteUnrolling));
         
       VERIFY(test_assign(Matrix<Scalar,17,17>(),Matrix<Scalar,17,17>()+Matrix<Scalar,17,17>(),
         LinearTraversal,NoUnrolling));
@@ -256,6 +257,7 @@ void test_vectorization_logic()
 
 #ifdef EIGEN_VECTORIZE
 
+  CALL_SUBTEST( vectorization_logic<int>::run() );
   CALL_SUBTEST( vectorization_logic<float>::run() );
   CALL_SUBTEST( vectorization_logic<double>::run() );
   CALL_SUBTEST( vectorization_logic<std::complex<float> >::run() );
