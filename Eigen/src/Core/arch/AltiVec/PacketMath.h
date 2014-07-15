@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Konstantinos Margaritis <markos@codex.gr>
+// Copyright (C) 2008-2014 Konstantinos Margaritis <markos@freevec.org>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -62,17 +62,17 @@ typedef __vector unsigned char  Packet16uc;
 // Define global static constants:
 static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
 static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
-static Packet16uc p16uc_REVERSE = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
-static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0);
-static Packet16uc p16uc_DUPLICATE = {0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7};
+static Packet16uc p16uc_REVERSE = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0); //{ 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15}
+static Packet16uc p16uc_DUPLICATE = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7};
 
-static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16);
-static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1);
-static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0);
-static Packet4f p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1);
+static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1); //{ 1, 1, 1, 1}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16); //{ -16, -16, -16, -16}
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
+static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0); //{ 1.0, 1.0, 1.0, 1.0}
+static Packet4f p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1); //{ 0x80000000, 0x80000000, 0x80000000, 0x80000000}
 
 template<> struct packet_traits<float>  : default_packet_traits
 {
@@ -82,8 +82,10 @@ template<> struct packet_traits<float>  : default_packet_traits
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=4,
+    HasHalfPacket=0,
 
     // FIXME check the Has*
+    HasDiv  = 1,
     HasSin  = 0,
     HasCos  = 0,
     HasLog  = 0,
