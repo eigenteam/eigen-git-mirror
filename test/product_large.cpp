@@ -61,4 +61,13 @@ void test_product_large()
     VERIFY_IS_APPROX(r2, (mat1.row(2)*mat2).eval());
   }
 #endif
+
+  // Regression test for bug 714:
+#ifdef EIGEN_HAS_OPENMP
+  std::cout << "Testing omp_set_dynamic(1)\n";
+  omp_set_dynamic(1);
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_6( product(Matrix<float,Dynamic,Dynamic>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+  }
+#endif
 }
