@@ -375,17 +375,19 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
     Scalar z;
     JacobiRotation<Scalar> rot;
     RealScalar n = sqrt(numext::abs2(work_matrix.coeff(p,p)) + numext::abs2(work_matrix.coeff(q,p)));
+    
     if(n==0)
     {
       z = abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
       work_matrix.row(p) *= z;
       if(svd.computeU()) svd.m_matrixU.col(p) *= conj(z);
       if(work_matrix.coeff(q,q)!=Scalar(0))
+      {
         z = abs(work_matrix.coeff(q,q)) / work_matrix.coeff(q,q);
-      else
-        z = Scalar(0);
-      work_matrix.row(q) *= z;
-      if(svd.computeU()) svd.m_matrixU.col(q) *= conj(z);
+        work_matrix.row(q) *= z;
+        if(svd.computeU()) svd.m_matrixU.col(q) *= conj(z);
+      }
+      // otherwise the second row is already zero, so we have nothing to do.
     }
     else
     {
@@ -835,7 +837,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
     if(m_computeThinV) m_matrixV.setIdentity(m_cols, m_diagSize);
   }
   
-  // Scaling factor to reducover/under-flows
+  // Scaling factor to reduce over/under-flows
   RealScalar scale = m_workMatrix.cwiseAbs().maxCoeff();
   if(scale==RealScalar(0)) scale = RealScalar(1);
   m_workMatrix /= scale;
