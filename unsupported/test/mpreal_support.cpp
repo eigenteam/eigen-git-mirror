@@ -1,3 +1,4 @@
+#include <bench/BenchTimer.h>
 #include "main.h"
 #include <Eigen/MPRealSupport>
 #include <Eigen/LU>
@@ -32,12 +33,11 @@ void test_mpreal_support()
     VERIFY_IS_APPROX(A.array().abs2().sqrt(), A.array().abs());
     VERIFY_IS_APPROX(A.array().sin(),         sin(A.array()));
     VERIFY_IS_APPROX(A.array().cos(),         cos(A.array()));
-    
 
     // Cholesky
     X = S.selfadjointView<Lower>().llt().solve(B);
     VERIFY_IS_APPROX((S.selfadjointView<Lower>()*X).eval(),B);
-
+    
     // partial LU
     X = A.lu().solve(B);
     VERIFY_IS_APPROX((A*X).eval(),B);
