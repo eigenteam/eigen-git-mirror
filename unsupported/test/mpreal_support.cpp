@@ -1,4 +1,3 @@
-#include <bench/BenchTimer.h>
 #include "main.h"
 #include <Eigen/MPRealSupport>
 #include <Eigen/LU>
