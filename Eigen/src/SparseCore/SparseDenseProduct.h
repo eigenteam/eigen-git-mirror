@@ -102,8 +102,8 @@ class SparseDenseOuterProduct
       EIGEN_STATIC_ASSERT(Tr,YOU_MADE_A_PROGRAMMING_MISTAKE);
     }
 
-    EIGEN_STRONG_INLINE Index rows() const { return Tr ? m_rhs.rows() : m_lhs.rows(); }
-    EIGEN_STRONG_INLINE Index cols() const { return Tr ? m_lhs.cols() : m_rhs.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return Tr ? Index(m_rhs.rows()) : m_lhs.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return Tr ? m_lhs.cols() : Index(m_rhs.cols()); }
 
     EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
     EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
@@ -139,7 +139,7 @@ class SparseDenseOuterProduct<Lhs,Rhs,Transpose>::InnerIterator : public _LhsNes
     Scalar get(const _RhsNested &rhs, Index outer, Sparse = Sparse())
     {
       typename Traits::_RhsNested::InnerIterator it(rhs, outer);
-      if (it && it.index()==0 && it.value()!=0)
+      if (it && it.index()==0 && it.value()!=Scalar(0))
         return it.value();
       m_empty = true;
       return Scalar(0);

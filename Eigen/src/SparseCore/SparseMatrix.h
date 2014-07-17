@@ -800,7 +800,9 @@ protected:
     template<typename Other>
     void initAssignment(const Other& other)
     {
-      resize(other.rows(), other.cols());
+      eigen_assert(     other.rows() == typename Other::Index(Index(other.rows()))
+                    &&  other.cols() == typename Other::Index(Index(other.cols())) );
+      resize(Index(other.rows()), Index(other.cols()));
       if(m_innerNonZeros)
       {
         std::free(m_innerNonZeros);
@@ -940,7 +942,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   enum { IsRowMajor = SparseMatrixType::IsRowMajor };
   typedef typename SparseMatrixType::Scalar Scalar;
   typedef typename SparseMatrixType::Index Index;
-  SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
+  SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor,Index> trMat(mat.rows(),mat.cols());
 
   if(begin!=end)
   {

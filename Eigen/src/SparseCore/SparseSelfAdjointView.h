@@ -246,7 +246,7 @@ class SparseSelfAdjointTimeDenseProduct
               || ( (UpLo&Lower) && LhsIsRowMajor),
         ProcessSecondHalf = !ProcessFirstHalf
       };
-      for (Index j=0; j<m_lhs.outerSize(); ++j)
+      for (typename _Lhs::Index j=0; j<m_lhs.outerSize(); ++j)
       {
         LhsInnerIterator i(m_lhs,j);
         if (ProcessSecondHalf)

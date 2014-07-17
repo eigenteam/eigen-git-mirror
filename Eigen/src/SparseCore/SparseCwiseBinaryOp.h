@@ -69,7 +69,6 @@ class CwiseBinaryOpImpl<BinaryOp,Lhs,Rhs,Sparse>::InnerIterator
   : public internal::sparse_cwise_binary_op_inner_iterator_selector<BinaryOp,Lhs,Rhs,typename CwiseBinaryOpImpl<BinaryOp,Lhs,Rhs,Sparse>::InnerIterator>
 {
   public:
-    typedef typename Lhs::Index Index;
     typedef internal::sparse_cwise_binary_op_inner_iterator_selector<
       BinaryOp,Lhs,Rhs, InnerIterator> Base;
 
@@ -95,11 +94,11 @@ class sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Derived
 {
     typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename traits<CwiseBinaryXpr>::Scalar Scalar;
+    typedef typename traits<CwiseBinaryXpr>::Index Index;
     typedef typename traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename traits<CwiseBinaryXpr>::_RhsNested _RhsNested;
     typedef typename _LhsNested::InnerIterator LhsIterator;
     typedef typename _RhsNested::InnerIterator RhsIterator;
-    typedef typename Lhs::Index Index;
 
   public:
 
@@ -161,11 +160,11 @@ class sparse_cwise_binary_op_inner_iterator_selector<scalar_product_op<T>, Lhs, 
     typedef scalar_product_op<T> BinaryFunc;
     typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
+    typedef typename CwiseBinaryXpr::Index Index;
     typedef typename traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename _LhsNested::InnerIterator LhsIterator;
     typedef typename traits<CwiseBinaryXpr>::_RhsNested _RhsNested;
     typedef typename _RhsNested::InnerIterator RhsIterator;
-    typedef typename Lhs::Index Index;
   public:
 
     EIGEN_STRONG_INLINE sparse_cwise_binary_op_inner_iterator_selector(const CwiseBinaryXpr& xpr, Index outer)
@@ -215,15 +214,15 @@ class sparse_cwise_binary_op_inner_iterator_selector<scalar_product_op<T>, Lhs, 
     typedef scalar_product_op<T> BinaryFunc;
     typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
+    typedef typename CwiseBinaryXpr::Index Index;
     typedef typename traits<CwiseBinaryXpr>::_LhsNested _LhsNested;
     typedef typename traits<CwiseBinaryXpr>::RhsNested RhsNested;
     typedef typename _LhsNested::InnerIterator LhsIterator;
-    typedef typename Lhs::Index Index;
     enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
   public:
 
     EIGEN_STRONG_INLINE sparse_cwise_binary_op_inner_iterator_selector(const CwiseBinaryXpr& xpr, Index outer)
-      : m_rhs(xpr.rhs()), m_lhsIter(xpr.lhs(),outer), m_functor(xpr.functor()), m_outer(outer)
+      : m_rhs(xpr.rhs()), m_lhsIter(xpr.lhs(),typename _LhsNested::Index(outer)), m_functor(xpr.functor()), m_outer(outer)
     {}
 
     EIGEN_STRONG_INLINE Derived& operator++()
@@ -256,9 +255,9 @@ class sparse_cwise_binary_op_inner_iterator_selector<scalar_product_op<T>, Lhs, 
     typedef scalar_product_op<T> BinaryFunc;
     typedef CwiseBinaryOp<BinaryFunc, Lhs, Rhs> CwiseBinaryXpr;
     typedef typename CwiseBinaryXpr::Scalar Scalar;
+    typedef typename CwiseBinaryXpr::Index Index;
     typedef typename traits<CwiseBinaryXpr>::_RhsNested _RhsNested;
     typedef typename _RhsNested::InnerIterator RhsIterator;
-    typedef typename Lhs::Index Index;
 
     enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
   public:

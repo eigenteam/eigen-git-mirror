@@ -246,6 +246,7 @@ template<> struct ldlt_inplace<Lower>
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
+    typedef typename TranspositionType::StorageIndexType IndexType;
     eigen_assert(mat.rows()==mat.cols());
     const Index size = mat.rows();
 
@@ -265,7 +266,7 @@ template<> struct ldlt_inplace<Lower>
       mat.diagonal().tail(size-k).cwiseAbs().maxCoeff(&index_of_biggest_in_corner);
       index_of_biggest_in_corner += k;
 
-      transpositions.coeffRef(k) = index_of_biggest_in_corner;
+      transpositions.coeffRef(k) = IndexType(index_of_biggest_in_corner);
       if(k != index_of_biggest_in_corner)
       {
         // apply the transposition while taking care to consider only
@@ -274,7 +275,7 @@ template<> struct ldlt_inplace<Lower>
         mat.row(k).head(k).swap(mat.row(index_of_biggest_in_corner).head(k));
         mat.col(k).tail(s).swap(mat.col(index_of_biggest_in_corner).tail(s));
         std::swap(mat.coeffRef(k,k),mat.coeffRef(index_of_biggest_in_corner,index_of_biggest_in_corner));
-        for(int i=k+1;i<index_of_biggest_in_corner;++i)
+        for(Index i=k+1;i<index_of_biggest_in_corner;++i)
         {
           Scalar tmp = mat.coeffRef(i,k);
           mat.coeffRef(i,k) = numext::conj(mat.coeffRef(index_of_biggest_in_corner,i));
@@ -442,6 +443,7 @@ template<typename MatrixType, int _UpLo>
 template<typename Derived>
 LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Derived>& w, const typename NumTraits<typename MatrixType::Scalar>::Real& sigma)
 {
+  typedef typename TranspositionType::StorageIndexType IndexType;
   const Index size = w.rows();
   if (m_isInitialized)
   {
@@ -453,7 +455,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Deri
     m_matrix.setZero();
     m_transpositions.resize(size);
     for (Index i = 0; i < size; i++)
-      m_transpositions.coeffRef(i) = i;
+      m_transpositions.coeffRef(i) = IndexType(i);
     m_temporary.resize(size);
     m_sign = sigma>=0 ? internal::PositiveSemiDef : internal::NegativeSemiDef;
     m_isInitialized = true;

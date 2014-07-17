@@ -66,11 +66,11 @@ class PermutationBase : public EigenBase<Derived>
       MaxRowsAtCompileTime = Traits::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = Traits::MaxColsAtCompileTime
     };
-    typedef typename Traits::Scalar Scalar;
+    typedef typename Traits::StorageIndexType StorageIndexType;
     typedef typename Traits::Index Index;
-    typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime,0,MaxRowsAtCompileTime,MaxColsAtCompileTime>
+    typedef Matrix<StorageIndexType,RowsAtCompileTime,ColsAtCompileTime,0,MaxRowsAtCompileTime,MaxColsAtCompileTime>
             DenseMatrixType;
-    typedef PermutationMatrix<IndicesType::SizeAtCompileTime,IndicesType::MaxSizeAtCompileTime,Index>
+    typedef PermutationMatrix<IndicesType::SizeAtCompileTime,IndicesType::MaxSizeAtCompileTime,StorageIndexType>
             PlainPermutationType;
     using Base::derived;
     #endif
@@ -147,7 +147,7 @@ class PermutationBase : public EigenBase<Derived>
     /** Sets *this to be the identity permutation matrix */
     void setIdentity()
     {
-      for(Index i = 0; i < size(); ++i)
+      for(StorageIndexType i = 0; i < size(); ++i)
         indices().coeffRef(i) = i;
     }
 
@@ -173,8 +173,8 @@ class PermutationBase : public EigenBase<Derived>
       eigen_assert(i>=0 && j>=0 && i<size() && j<size());
       for(Index k = 0; k < size(); ++k)
       {
-        if(indices().coeff(k) == i) indices().coeffRef(k) = j;
-        else if(indices().coeff(k) == j) indices().coeffRef(k) = i;
+        if(indices().coeff(k) == i) indices().coeffRef(k) = StorageIndexType(j);
+        else if(indices().coeff(k) == j) indices().coeffRef(k) = StorageIndexType(i);
       }
       return derived();
     }
@@ -262,7 +262,7 @@ class PermutationBase : public EigenBase<Derived>
   *
   * \param SizeAtCompileTime the number of rows/cols, or Dynamic
   * \param MaxSizeAtCompileTime the maximum number of rows/cols, or Dynamic. This optional parameter defaults to SizeAtCompileTime. Most of the time, you should not have to specify it.
-  * \param IndexType the interger type of the indices
+  * \param StorageIndexType the interger type of the indices
   *
   * This class represents a permutation matrix, internally stored as a vector of integers.
   *
@@ -270,17 +270,18 @@ class PermutationBase : public EigenBase<Derived>
   */
 
 namespace internal {
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename IndexType>
-struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType> >
- : traits<Matrix<IndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndexType>
+struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType> >
+ : traits<Matrix<_StorageIndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
-  typedef IndexType Index;
-  typedef Matrix<IndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
+  typedef Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
+  typedef typename IndicesType::Index Index;
+  typedef _StorageIndexType StorageIndexType;
 };
 }
 
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename IndexType>
-class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType> >
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndexType>
+class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType> >
 {
     typedef PermutationBase<PermutationMatrix> Base;
     typedef internal::traits<PermutationMatrix> Traits;
@@ -288,6 +289,8 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef typename Traits::IndicesType IndicesType;
+    typedef typename Traits::StorageIndexType StorageIndexType;
+    typedef typename Traits::Index Index;
     #endif
 
     inline PermutationMatrix()
@@ -295,7 +298,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
     /** Constructs an uninitialized permutation matrix of given size.
       */
-    inline PermutationMatrix(int size) : m_indices(size)
+    inline PermutationMatrix(Index size) : m_indices(size)
     {}
 
     /** Copy constructor. */
@@ -384,18 +387,19 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
 
 namespace internal {
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename IndexType, int _PacketAccess>
-struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType>,_PacketAccess> >
- : traits<Matrix<IndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndexType, int _PacketAccess>
+struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType>,_PacketAccess> >
+ : traits<Matrix<_StorageIndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
-  typedef IndexType Index;
-  typedef Map<const Matrix<IndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, _PacketAccess> IndicesType;
+  typedef Map<const Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, _PacketAccess> IndicesType;
+  typedef typename IndicesType::Index Index;
+  typedef _StorageIndexType StorageIndexType;
 };
 }
 
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename IndexType, int _PacketAccess>
-class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType>,_PacketAccess>
-  : public PermutationBase<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType>,_PacketAccess> >
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndexType, int _PacketAccess>
+class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType>,_PacketAccess>
+  : public PermutationBase<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType>,_PacketAccess> >
 {
     typedef PermutationBase<Map> Base;
     typedef internal::traits<Map> Traits;
@@ -403,14 +407,15 @@ class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType>,
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef typename Traits::IndicesType IndicesType;
-    typedef typename IndicesType::Scalar Index;
+    typedef typename IndicesType::Scalar StorageIndexType;
+    typedef typename IndicesType::Index  Index;
     #endif
 
-    inline Map(const Index* indicesPtr)
+    inline Map(const StorageIndexType* indicesPtr)
       : m_indices(indicesPtr)
     {}
 
-    inline Map(const Index* indicesPtr, Index size)
+    inline Map(const StorageIndexType* indicesPtr, Index size)
       : m_indices(indicesPtr,size)
     {}
 
@@ -466,7 +471,8 @@ struct traits<PermutationWrapper<_IndicesType> >
 {
   typedef PermutationStorage StorageKind;
   typedef typename _IndicesType::Scalar Scalar;
-  typedef typename _IndicesType::Scalar Index;
+  typedef typename _IndicesType::Scalar StorageIndexType;
+  typedef typename _IndicesType::Index Index;
   typedef _IndicesType IndicesType;
   enum {
     RowsAtCompileTime = _IndicesType::SizeAtCompileTime,
