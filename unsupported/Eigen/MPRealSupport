@@ -27,6 +27,8 @@ namespace Eigen {
   * via the <a href="http://www.holoborodko.com/pavel/mpfr">MPFR C++</a>
   * library which itself is built upon <a href="http://www.mpfr.org/">MPFR</a>/<a href="http://gmplib.org/">GMP</a>.
   *
+  * \warning MPFR C++ is licensed under the GPL.
+  *
   * You can find a copy of MPFR C++ that is known to be compatible in the unsupported/test/mpreal folder.
   *
   * Here is an example:
