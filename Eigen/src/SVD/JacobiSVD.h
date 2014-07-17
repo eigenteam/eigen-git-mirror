@@ -375,17 +375,19 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
     Scalar z;
     JacobiRotation<Scalar> rot;
     RealScalar n = sqrt(numext::abs2(work_matrix.coeff(p,p)) + numext::abs2(work_matrix.coeff(q,p)));
+    
     if(n==0)
     {
       z = abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
       work_matrix.row(p) *= z;
       if(svd.computeU()) svd.m_matrixU.col(p) *= conj(z);
       if(work_matrix.coeff(q,q)!=Scalar(0))
+      {
         z = abs(work_matrix.coeff(q,q)) / work_matrix.coeff(q,q);
-      else
-        z = Scalar(0);
-      work_matrix.row(q) *= z;
-      if(svd.computeU()) svd.m_matrixU.col(q) *= conj(z);
+        work_matrix.row(q) *= z;
+        if(svd.computeU()) svd.m_matrixU.col(q) *= conj(z);
+      }
+      // otherwise the second row is already zero, so we have nothing to do.
     }
     else
     {
@@ -415,6 +417,7 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
                             JacobiRotation<RealScalar> *j_right)
 {
   using std::sqrt;
+  using std::abs;
   Matrix<RealScalar,2,2> m;
   m << numext::real(matrix.coeff(p,p)), numext::real(matrix.coeff(p,q)),
        numext::real(matrix.coeff(q,p)), numext::real(matrix.coeff(q,q));
@@ -428,9 +431,11 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   }
   else
   {
-    RealScalar u = d / t;
-    rot1.c() = RealScalar(1) / sqrt(RealScalar(1) + numext::abs2(u));
-    rot1.s() = rot1.c() * u;
+    RealScalar t2d2 = numext::hypot(t,d);
+    rot1.c() = abs(t)/t2d2;
+    rot1.s() = d/t2d2;
+    if(t<RealScalar(0))
+      rot1.s() = -rot1.s();
   }
   m.applyOnTheLeft(0,1,rot1);
   j_right->makeJacobi(m,0,1);
@@ -831,6 +836,11 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
     if(m_computeFullV) m_matrixV.setIdentity(m_cols,m_cols);
     if(m_computeThinV) m_matrixV.setIdentity(m_cols, m_diagSize);
   }
+  
+  // Scaling factor to reduce over/under-flows
+  RealScalar scale = m_workMatrix.cwiseAbs().maxCoeff();
+  if(scale==RealScalar(0)) scale = RealScalar(1);
+  m_workMatrix /= scale;
 
   /*** step 2. The main Jacobi SVD iteration. ***/
 
@@ -900,6 +910,8 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
       if(computeV()) m_matrixV.col(pos).swap(m_matrixV.col(i));
     }
   }
+  
+  m_singularValues *= scale;
 
   m_isInitialized = true;
   return *this;
