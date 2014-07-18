@@ -88,9 +88,9 @@ int main()
     inline static Real epsilon  (const Real& x)                                         {    return mpfr::machine_epsilon(x); }
 
     inline static Real dummy_precision()   
-    { 
-        unsigned int weak_prec = ((mpfr::mpreal::get_default_prec()-1) * 90) / 100;
-        return mpfr::machine_epsilon(weak_prec);
+    {
+      mpfr_prec_t weak_prec = ((mpfr::mpreal::get_default_prec()-1) * 90) / 100;
+      return mpfr::machine_epsilon(weak_prec);
     }
   };
 
