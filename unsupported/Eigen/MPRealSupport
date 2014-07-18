@@ -157,9 +157,12 @@ int main()
       void operator()(mpreal* res, Index resStride, const mpreal* blockA, const mpreal* blockB, Index rows, Index depth, Index cols, mpreal alpha,
                       Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0)
       {
+        if(rows==0 || cols==0 || depth==0)
+          return;
+
         mpreal  acc1(0,mpfr_get_prec(blockA[0].mpfr_srcptr())),
                 tmp (0,mpfr_get_prec(blockA[0].mpfr_srcptr()));
-        
+
         if(strideA==-1) strideA = depth;
         if(strideB==-1) strideB = depth;
 
