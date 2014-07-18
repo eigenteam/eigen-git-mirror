@@ -4,10 +4,29 @@
 
 struct Foo
 {
+  static unsigned object_count;
+  static unsigned object_limit;
   int dummy;
-  Foo() { if (!internal::random(0, 10)) throw Foo::Fail(); }
+
+  Foo()
+  {
+#ifdef EIGEN_EXCEPTIONS
+    // TODO: Is this the correct way to handle this?
+    if (Foo::object_count > Foo::object_limit) { throw Foo::Fail(); }
+#endif
+    ++Foo::object_count;
+  }
+
+  ~Foo()
+  {
+    --Foo::object_count;
+  }
+
   class Fail : public std::exception {};
 };
+
+unsigned Foo::object_count = 0;
+unsigned Foo::object_limit = 0;
 
 namespace Eigen
 {
@@ -34,10 +53,17 @@ namespace Eigen
 
 void test_ctorleak()
 {
+  Foo::object_count = 0;
+  Foo::object_limit = internal::random(0, 14 * 92 - 2);
+#ifdef EIGEN_EXCEPTIONS
   try
+#endif
     {
       Matrix<Foo, Dynamic, Dynamic> m(14, 92);
       eigen_assert(false);  // not reached
     }
+#ifdef EIGEN_EXCEPTIONS
   catch (const Foo::Fail&) { /* ignore */ }
+#endif
+  VERIFY_IS_EQUAL(static_cast<unsigned>(0), Foo::object_count);
 }

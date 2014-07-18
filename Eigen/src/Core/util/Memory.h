@@ -354,16 +354,20 @@ template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
 template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
 {
   size_t i;
+#ifdef EIGEN_EXCEPTIONS
   try
+#endif
     {
       for (i = 0; i < size; ++i) ::new (ptr + i) T;
       return ptr;
     }
+#ifdef EIGEN_EXCEPTIONS
   catch (...)
     {
       destruct_elements_of_array(ptr, i);
       throw;
     }
+#endif
 }
 
 /*****************************************************************************
@@ -385,30 +389,38 @@ template<typename T> inline T* aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(aligned_malloc(sizeof(T)*size));
+#ifdef EIGEN_EXCEPTIONS
   try
+#endif
     {
       return construct_elements_of_array(result, size);
     }
+#ifdef EIGEN_EXCEPTIONS
   catch (...)
     {
       aligned_free(result);
       throw;
     }
+#endif
 }
 
 template<typename T, bool Align> inline T* conditional_aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
+#ifdef EIGEN_EXCEPTIONS
   try
+#endif
     {
       return construct_elements_of_array(result, size);
     }
+#ifdef EIGEN_EXCEPTIONS
   catch (...)
     {
       conditional_aligned_free<Align>(result);
       throw;
     }
+#endif
 }
 
 /** \internal Deletes objects constructed with aligned_new
@@ -438,15 +450,19 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(new_size > old_size)
     {
+#ifdef EIGEN_EXCEPTIONS
       try
+#endif
         {
           construct_elements_of_array(result+old_size, new_size-old_size);
         }
+#ifdef EIGEN_EXCEPTIONS
       catch (...)
         {
           conditional_aligned_free<Align>(result);
           throw;
         }
+#endif
     }
   return result;
 }
@@ -458,15 +474,19 @@ template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t s
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
   if(NumTraits<T>::RequireInitialization)
     {
+#ifdef EIGEN_EXCEPTIONS
       try
+#endif
         {
           construct_elements_of_array(result, size);
         }
+#ifdef EIGEN_EXCEPTIONS
       catch (...)
         {
           conditional_aligned_free<Align>(result);
           throw;
         }
+#endif
     }
   return result;
 }
@@ -480,15 +500,19 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new_auto(
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(NumTraits<T>::RequireInitialization && (new_size > old_size))
     {
+#ifdef EIGEN_EXCEPTIONS
       try
+#endif
         {
           construct_elements_of_array(result+old_size, new_size-old_size);
         }
+#ifdef EIGEN_EXCEPTIONS
       catch (...)
         {
           conditional_aligned_free<Align>(result);
           throw;
         }
+#endif
     }
   return result;
 }
