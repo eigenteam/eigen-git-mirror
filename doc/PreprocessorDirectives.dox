@@ -61,6 +61,8 @@ run time. However, these assertions do cost time and can thus be turned off.
    expect that any objects passed to it are aligned. This will turn off vectorization. Not defined by default.
  - \b EIGEN_DONT_ALIGN_STATICALLY - disables alignment of arrays on the stack. Not defined by default, unless
    \c EIGEN_DONT_ALIGN is defined.
+ - \b EIGEN_DONT_PARALLELIZE - if defined, this disables multi-threading. This is only relevant if you enabled OpenMP.
+   See \ref TopicMultiThreading for details.
  - \b EIGEN_DONT_VECTORIZE - disables explicit vectorization when defined. Not defined by default, unless 
    alignment is disabled by %Eigen's platform test or the user defining \c EIGEN_DONT_ALIGN.
  - \b EIGEN_FAST_MATH - enables some optimizations which might affect the accuracy of the result. This currently
