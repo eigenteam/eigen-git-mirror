@@ -82,22 +82,31 @@ template<typename T> struct add_const_on_value_type<T const* const>  { typedef T
 
 
 template<typename From, typename To>
-struct is_convertible
+struct is_convertible_impl
 {
 private:
+  struct any_conversion
+  {
+    template <typename T> any_conversion(const volatile T&);
+    template <typename T> any_conversion(T&);
+  };
   struct yes {int a[1];};
   struct no  {int a[2];};
-  
-  template<typename T>
-  static yes test (const T&) {}
-  
-  template<typename> static no test (...) {}
+
+  static yes test(const To&, int);
+  static no  test(any_conversion, ...);
 
 public:
   static From ms_from;
-  enum { value = sizeof(test<To>(ms_from))==sizeof(yes) };
+  enum { value = sizeof(test(ms_from, 0))==sizeof(yes) };
 };
 
+template<typename From, typename To>
+struct is_convertible
+{
+  enum { value = is_convertible_impl<typename remove_all<From>::type,
+                                     typename remove_all<To  >::type>::value };
+};
 
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.

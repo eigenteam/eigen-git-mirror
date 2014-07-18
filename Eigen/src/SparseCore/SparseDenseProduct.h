@@ -248,8 +248,8 @@ class SparseDenseOuterProduct
       EIGEN_STATIC_ASSERT(Tr,YOU_MADE_A_PROGRAMMING_MISTAKE);
     }
 
-    EIGEN_STRONG_INLINE Index rows() const { return Tr ? m_rhs.rows() : m_lhs.rows(); }
-    EIGEN_STRONG_INLINE Index cols() const { return Tr ? m_lhs.cols() : m_rhs.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return Tr ? Index(m_rhs.rows()) : m_lhs.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return Tr ? m_lhs.cols() : Index(m_rhs.cols()); }
 
     EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
     EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
@@ -266,31 +266,33 @@ class SparseDenseOuterProduct<Lhs,Rhs,Transpose>::InnerIterator : public _LhsNes
     typedef typename SparseDenseOuterProduct::Index Index;
   public:
     EIGEN_STRONG_INLINE InnerIterator(const SparseDenseOuterProduct& prod, Index outer)
-      : Base(prod.lhs(), 0), m_outer(outer), m_factor(get(prod.rhs(), outer, typename internal::traits<Rhs>::StorageKind() ))
-    { }
+      : Base(prod.lhs(), 0), m_outer(outer), m_empty(false), m_factor(get(prod.rhs(), outer, typename internal::traits<Rhs>::StorageKind() ))
+    {}
 
     inline Index outer() const { return m_outer; }
     inline Index row() const { return Transpose ? m_outer : Base::index(); }
     inline Index col() const { return Transpose ? Base::index() : m_outer; }
 
     inline Scalar value() const { return Base::value() * m_factor; }
+    inline operator bool() const { return Base::operator bool() && !m_empty; }
 
   protected:
-    static Scalar get(const _RhsNested &rhs, Index outer, Dense = Dense())
+    Scalar get(const _RhsNested &rhs, Index outer, Dense = Dense()) const
     {
       return rhs.coeff(outer);
     }
     
-    static Scalar get(const _RhsNested &rhs, Index outer, Sparse = Sparse())
+    Scalar get(const _RhsNested &rhs, Index outer, Sparse = Sparse())
     {
       typename Traits::_RhsNested::InnerIterator it(rhs, outer);
-      if (it && it.index()==0)
+      if (it && it.index()==0 && it.value()!=Scalar(0))
         return it.value();
-      
+      m_empty = true;
       return Scalar(0);
     }
     
     Index m_outer;
+    bool m_empty;
     Scalar m_factor;
 };
 

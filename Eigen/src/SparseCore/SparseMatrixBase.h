@@ -366,7 +366,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     {
       dst.setZero();
       for (Index j=0; j<outerSize(); ++j)
-        for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+        for (typename Derived::InnerIterator i(derived(),typename Derived::Index(j)); i; ++i)
           dst.coeffRef(i.row(),i.col()) = i.value();
     }
 #endif

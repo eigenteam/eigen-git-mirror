@@ -51,20 +51,20 @@ template<typename OtherDerived>
 inline Derived& SparseMatrixBase<Derived>::assign(const OtherDerived& other)
 {
   const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-  const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
+  const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? Index(other.rows()) : Index(other.cols());
   if ((!transpose) && other.isRValue())
   {
     // eval without temporary
-    derived().resize(other.rows(), other.cols());
+    derived().resize(Index(other.rows()), Index(other.cols()));
     derived().setZero();
     derived().reserve((std::max)(this->rows(),this->cols())*2);
     for (Index j=0; j<outerSize; ++j)
     {
       derived().startVec(j);
-      for (typename OtherDerived::InnerIterator it(other, j); it; ++it)
+      for (typename OtherDerived::InnerIterator it(other, typename OtherDerived::Index(j)); it; ++it)
       {
         Scalar v = it.value();
-        derived().insertBackByOuterInner(j,it.index()) = v;
+        derived().insertBackByOuterInner(j,Index(it.index())) = v;
       }
     }
     derived().finalize();
@@ -87,19 +87,19 @@ inline void SparseMatrixBase<Derived>::assignGeneric(const OtherDerived& other)
 
   enum { Flip = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit) };
 
-  const Index outerSize = other.outerSize();
+  const Index outerSize = Index(other.outerSize());
   //typedef typename internal::conditional<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::type TempType;
   // thanks to shallow copies, we always eval to a tempary
-  Derived temp(other.rows(), other.cols());
+  Derived temp(Index(other.rows()), Index(other.cols()));
 
   temp.reserve((std::max)(this->rows(),this->cols())*2);
   for (Index j=0; j<outerSize; ++j)
   {
     temp.startVec(j);
-    for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
+    for (typename OtherDerived::InnerIterator it(other.derived(), typename OtherDerived::Index(j)); it; ++it)
     {
       Scalar v = it.value();
-      temp.insertBackByOuterInner(Flip?it.index():j,Flip?j:it.index()) = v;
+      temp.insertBackByOuterInner(Flip?Index(it.index()):j,Flip?j:Index(it.index())) = v;
     }
   }
   temp.finalize();
