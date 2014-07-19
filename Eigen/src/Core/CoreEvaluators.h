@@ -109,7 +109,7 @@ struct evaluator_base
   typedef evaluator<ExpressionType> type;
   typedef evaluator<ExpressionType> nestedType;
   
-  typedef typename ExpressionType::Index Index;
+  typedef typename traits<ExpressionType>::Index Index;
   // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.
   typedef traits<ExpressionType> ExpressionTraits;
 };

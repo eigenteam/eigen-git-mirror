@@ -186,14 +186,14 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
   SrcEvaluatorType srcEvaluator(src);
 
   const bool transpose = (DstEvaluatorType::Flags & RowMajorBit) != (SrcEvaluatorType::Flags & RowMajorBit);
-  const Index outerSize = (int(SrcEvaluatorType::Flags) & RowMajorBit) ? src.rows() : src.cols();
+  const Index outerEvaluationSize = (SrcEvaluatorType::Flags&RowMajorBit) ? src.rows() : src.cols();
   if ((!transpose) && src.isRValue())
   {
     // eval without temporary
     dst.resize(src.rows(), src.cols());
     dst.setZero();
     dst.reserve((std::max)(src.rows(),src.cols())*2);
-    for (Index j=0; j<outerSize; ++j)
+    for (Index j=0; j<outerEvaluationSize; ++j)
     {
       dst.startVec(j);
       for (typename SrcEvaluatorType::InnerIterator it(srcEvaluator, j); it; ++it)
@@ -213,11 +213,11 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
 
     enum { Flip = (DstEvaluatorType::Flags & RowMajorBit) != (SrcEvaluatorType::Flags & RowMajorBit) };
 
-    const Index outerSize = src.outerSize();
+    
     DstXprType temp(src.rows(), src.cols());
 
     temp.reserve((std::max)(src.rows(),src.cols())*2);
-    for (Index j=0; j<outerSize; ++j)
+    for (Index j=0; j<outerEvaluationSize; ++j)
     {
       temp.startVec(j);
       for (typename SrcEvaluatorType::InnerIterator it(srcEvaluator, j); it; ++it)
@@ -256,7 +256,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
     dst.setZero();
     typename internal::evaluator<SrcXprType>::type srcEval(src);
     typename internal::evaluator<DstXprType>::type dstEval(dst);
-    for (Index j=0; j<src.outerSize(); ++j)
+    const Index outerEvaluationSize = (internal::evaluator<SrcXprType>::Flags&RowMajorBit) ? src.rows() : src.cols();
+    for (Index j=0; j<outerEvaluationSize; ++j)
       for (typename internal::evaluator<SrcXprType>::InnerIterator i(srcEval,j); i; ++i)
         dstEval.coeffRef(i.row(),i.col()) = i.value();
   }
