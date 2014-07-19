@@ -102,9 +102,8 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
                         Transpose<const Derived>
                      >::type AdjointReturnType;
 
-
+    // FIXME storage order do not match evaluator storage order
     typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, Index> PlainObject;
-
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
