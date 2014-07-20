@@ -889,8 +889,8 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
 * Products with permutation matrices
 ***************************************************************************/
   
-template<typename Lhs, typename Rhs, int ProductType>
-struct generic_product_impl<Lhs, Rhs, PermutationShape, DenseShape, ProductType>
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Lhs, Rhs, PermutationShape, DenseShape, ProductTag>
 {
   template<typename Dest>
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
@@ -900,8 +900,8 @@ struct generic_product_impl<Lhs, Rhs, PermutationShape, DenseShape, ProductType>
   }
 };
 
-template<typename Lhs, typename Rhs, int ProductType>
-struct generic_product_impl<Lhs, Rhs, DenseShape, PermutationShape, ProductType>
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Lhs, Rhs, DenseShape, PermutationShape, ProductTag>
 {
   template<typename Dest>
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
@@ -911,8 +911,8 @@ struct generic_product_impl<Lhs, Rhs, DenseShape, PermutationShape, ProductType>
   }
 };
 
-template<typename Lhs, typename Rhs, int ProductType>
-struct generic_product_impl<Transpose<Lhs>, Rhs, PermutationShape, DenseShape, ProductType>
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Transpose<Lhs>, Rhs, PermutationShape, DenseShape, ProductTag>
 {
   template<typename Dest>
   static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
@@ -922,8 +922,8 @@ struct generic_product_impl<Transpose<Lhs>, Rhs, PermutationShape, DenseShape, P
   }
 };
 
-template<typename Lhs, typename Rhs, int ProductType>
-struct generic_product_impl<Lhs, Transpose<Rhs>, DenseShape, PermutationShape, ProductType>
+template<typename Lhs, typename Rhs, int ProductTag>
+struct generic_product_impl<Lhs, Transpose<Rhs>, DenseShape, PermutationShape, ProductTag>
 {
   template<typename Dest>
   static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
@@ -935,7 +935,7 @@ struct generic_product_impl<Lhs, Transpose<Rhs>, DenseShape, PermutationShape, P
 
 // TODO: left/right and self-adj/symmetric/permutation look the same ... Too much boilerplate? 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, PermutationShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, PermutationShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
@@ -954,7 +954,7 @@ protected:
 };
 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, PermutationShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, PermutationShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
