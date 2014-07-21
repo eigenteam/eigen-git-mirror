@@ -702,8 +702,6 @@ void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable
   call_assignment_no_alias(tmp, src, internal::assign_op<typename Dst::Scalar>());
 #endif
   
-  // resizing
-  dst.resize(tmp.rows(), tmp.cols());
   call_assignment_no_alias(dst, tmp, func);
 }
 
