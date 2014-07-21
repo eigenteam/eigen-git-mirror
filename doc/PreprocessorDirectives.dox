@@ -27,10 +27,23 @@ are doing.
    Defaults to the %IOFormat constructed by the default constructor IOFormat::IOFormat().
  - \b EIGEN_INITIALIZE_MATRICES_BY_ZERO - if defined, all entries of newly constructed matrices and arrays are
    initialized to zero, as are new entries in matrices and arrays after resizing. Not defined by default.
+   \warning The unary (resp. binary) constructor of \c 1x1 (resp. \c 2x1 or \c 1x2) fixed size matrices is
+   always interpreted as an initialization constructor where the argument(s) are the coefficient values
+   and not the sizes. For instance, \code Vector2d v(2,1); \endcode will create a vector with coeficients [2,1],
+   and \b not a \c 2x1 vector initialized with zeros (i.e., [0,0]). If such cases might occur, then it is
+   recommended to use the default constructor with a explicit call to resize:
+   \code
+   Matrix<?,SizeAtCompileTime,1> v;
+   v.resize(size);
+   Matrix<?,RowsAtCompileTime,ColsAtCompileTime> m;
+   m.resize(rows,cols);
+   \endcode
  - \b EIGEN_INITIALIZE_MATRICES_BY_NAN - if defined, all entries of newly constructed matrices and arrays are
    initialized to NaN, as are new entries in matrices and arrays after resizing. This option is especially
    useful for debugging purpose, though a memory tool like <a href="http://valgrind.org/">valgrind</a> is
    preferable. Not defined by default.
+   \warning See the documentation of \c EIGEN_INITIALIZE_MATRICES_BY_ZERO for a discussion on a limitations
+   of these macros when applied to \c 1x1, \c 1x2, and \c 2x1 fixed-size matrices.
  - \b EIGEN_NO_AUTOMATIC_RESIZING - if defined, the matrices (or arrays) on both sides of an assignment 
    <tt>a = b</tt> have to be of the same size; otherwise, %Eigen automatically resizes \c a so that it is of
    the correct size. Not defined by default.
