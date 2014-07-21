@@ -104,8 +104,8 @@ template<typename ArrayType> void vectorwiseop_array(const ArrayType& m)
   
   m2 = m1;
   // yes, there might be an aliasing issue there but ".rowwise() /="
-  // is suppposed to evaluate " m2.colwise().sum()" into to temporary to avoid
-  // evaluating the reducions multiple times
+  // is supposed to evaluate " m2.colwise().sum()" into a temporary to avoid
+  // evaluating the reduction multiple times
   if(ArrayType::RowsAtCompileTime>2 || ArrayType::RowsAtCompileTime==Dynamic)
   {
     m2.rowwise() /= m2.colwise().sum();

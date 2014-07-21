@@ -40,7 +40,11 @@ template<typename MatrixType> void qr()
   MatrixType c = qr.matrixQ() * r * qr.colsPermutation().inverse();
 
   VERIFY_IS_APPROX(m1, c);
-
+  
+  // stress the ReturnByValue mechanism
+  MatrixType tmp;
+  VERIFY_IS_APPROX(tmp.noalias() = qr.matrixQ() * r, (qr.matrixQ() * r).eval());
+  
   MatrixType m2 = MatrixType::Random(cols,cols2);
   MatrixType m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
