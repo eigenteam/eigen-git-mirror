@@ -72,6 +72,7 @@ namespace Eigen
 }
 
 #define TRACK std::cerr << __FILE__ << " " << __LINE__ << std::endl
+// #define TRACK while()
 
 #define EI_PP_MAKE_STRING2(S) #S
 #define EI_PP_MAKE_STRING(S) EI_PP_MAKE_STRING2(S)

@@ -201,9 +201,9 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     
     VERIFY(m3.innerVector(j0).nonZeros() == m3.transpose().innerVector(j0).nonZeros());
 
-    //m2.innerVector(j0) = 2*m2.innerVector(j1);
-    //refMat2.col(j0) = 2*refMat2.col(j1);
-    //VERIFY_IS_APPROX(m2, refMat2);
+//     m2.innerVector(j0) = 2*m2.innerVector(j1);
+//     refMat2.col(j0) = 2*refMat2.col(j1);
+//     VERIFY_IS_APPROX(m2, refMat2);
   }
 
   // test innerVectors()
@@ -239,7 +239,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     
     VERIFY_IS_APPROX(m2, refMat2);
   }
-  
+
   // test basic computations
   {
     DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
@@ -255,6 +255,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     initSparse<Scalar>(density, refM3, m3);
     initSparse<Scalar>(density, refM4, m4);
 
+    VERIFY_IS_APPROX(m1*s1, refM1*s1);
     VERIFY_IS_APPROX(m1+m2, refM1+refM2);
     VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
     VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));

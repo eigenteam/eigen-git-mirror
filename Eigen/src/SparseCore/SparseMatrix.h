@@ -52,7 +52,9 @@ struct traits<SparseMatrix<_Scalar, _Options, _Index> >
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
     Flags = _Options | NestByRefBit | LvalueBit,
+#ifndef EIGEN_TEST_EVALUATORS
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
+#endif
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
@@ -74,8 +76,10 @@ struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex>
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = 1,
-    Flags = 0,
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost*10
+    Flags = 0
+#ifndef EIGEN_TEST_EVALUATORS
+    , CoeffReadCost = _MatrixTypeNested::CoeffReadCost*10
+#endif
   };
 };
 
@@ -1343,6 +1347,8 @@ template<typename _Scalar, int _Options, typename _Index>
 struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
   : evaluator_base<SparseMatrix<_Scalar,_Options,_Index> >
 {
+  typedef _Scalar Scalar;
+  typedef _Index Index;
   typedef SparseMatrix<_Scalar,_Options,_Index> SparseMatrixType;
   typedef typename SparseMatrixType::InnerIterator InnerIterator;
   typedef typename SparseMatrixType::ReverseInnerIterator ReverseInnerIterator;
@@ -1358,6 +1364,8 @@ struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
   operator SparseMatrixType&() { return m_matrix->const_cast_derived(); }
   operator const SparseMatrixType&() const { return *m_matrix; }
   
+  Scalar coeff(Index row, Index col) const { return m_matrix->coeff(row,col); }
+
   const SparseMatrixType *m_matrix;
 };
 

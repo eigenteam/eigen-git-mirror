@@ -35,7 +35,7 @@ struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
   typedef typename nested<MatrixType>::type MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   typedef MatrixType ExpressionType;
-  typedef typename MatrixType::PlainObject DenseMatrixType;
+  typedef typename MatrixType::PlainObject FullMatrixType;
   enum {
     Mode = UpLo | SelfAdjoint,
     Flags =  MatrixTypeNestedCleaned::Flags & (HereditaryBits)
