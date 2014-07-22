@@ -183,6 +183,7 @@ void fixedSizeMatrixConstruction()
   Scalar raw[4];
   for(int k=0; k<4; ++k)
     raw[k] = internal::random<Scalar>();
+  
   {
     Matrix<Scalar,4,1> m(raw);
     Array<Scalar,4,1> a(raw);
@@ -200,18 +201,34 @@ void fixedSizeMatrixConstruction()
     VERIFY((a==Array<Scalar,3,1>(raw[0],raw[1],raw[2])).all());
   }
   {
-    Matrix<Scalar,2,1> m(raw);
-    Array<Scalar,2,1> a(raw);
+    Matrix<Scalar,2,1> m(raw), m2( (DenseIndex(raw[0])), (DenseIndex(raw[1])) );
+    Array<Scalar,2,1> a(raw),  a2( (DenseIndex(raw[0])), (DenseIndex(raw[1])) );
     for(int k=0; k<2; ++k) VERIFY(m(k) == raw[k]);
     for(int k=0; k<2; ++k) VERIFY(a(k) == raw[k]);
     VERIFY_IS_EQUAL(m,(Matrix<Scalar,2,1>(raw[0],raw[1])));
     VERIFY((a==Array<Scalar,2,1>(raw[0],raw[1])).all());
+    for(int k=0; k<2; ++k) VERIFY(m2(k) == DenseIndex(raw[k]));
+    for(int k=0; k<2; ++k) VERIFY(a2(k) == DenseIndex(raw[k]));
   }
   {
-    Matrix<Scalar,1,1> m(raw);
-    Array<Scalar,1,1> a(raw);
+    Matrix<Scalar,1,2> m(raw), m2( (DenseIndex(raw[0])), (DenseIndex(raw[1])) );
+    Array<Scalar,1,2> a(raw),  a2( (DenseIndex(raw[0])), (DenseIndex(raw[1])) );
+    for(int k=0; k<2; ++k) VERIFY(m(k) == raw[k]);
+    for(int k=0; k<2; ++k) VERIFY(a(k) == raw[k]);
+    VERIFY_IS_EQUAL(m,(Matrix<Scalar,1,2>(raw[0],raw[1])));
+    VERIFY((a==Array<Scalar,1,2>(raw[0],raw[1])).all());
+    for(int k=0; k<2; ++k) VERIFY(m2(k) == DenseIndex(raw[k]));
+    for(int k=0; k<2; ++k) VERIFY(a2(k) == DenseIndex(raw[k]));
+  }
+  {
+    Matrix<Scalar,1,1> m(raw), m1(raw[0]), m2( (DenseIndex(raw[0])) );
+    Array<Scalar,1,1> a(raw), a1(raw[0]), a2( (DenseIndex(raw[0])) );
     VERIFY(m(0) == raw[0]);
     VERIFY(a(0) == raw[0]);
+    VERIFY(m1(0) == raw[0]);
+    VERIFY(a1(0) == raw[0]);
+    VERIFY(m2(0) == DenseIndex(raw[0]));
+    VERIFY(a2(0) == DenseIndex(raw[0]));
     VERIFY_IS_EQUAL(m,(Matrix<Scalar,1,1>(raw[0])));
     VERIFY((a==Array<Scalar,1,1>(raw[0])).all());
   }
@@ -233,9 +250,10 @@ void test_basicstuff()
   }
 
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<unsigned char>());
-  CALL_SUBTEST_1(fixedSizeMatrixConstruction<double>());
+  CALL_SUBTEST_1(fixedSizeMatrixConstruction<float>());
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<double>());
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<int>());
+  CALL_SUBTEST_1(fixedSizeMatrixConstruction<long int>());
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<std::ptrdiff_t>());
 
   CALL_SUBTEST_2(casting());

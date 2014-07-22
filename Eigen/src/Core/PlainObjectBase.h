@@ -681,6 +681,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
       resize(nbRows,nbCols);
     }
+    
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC 
     EIGEN_STRONG_INLINE void _init2(const Scalar& val0, const Scalar& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
@@ -688,6 +689,15 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
       m_storage.data()[0] = val0;
       m_storage.data()[1] = val1;
+    }
+    
+    template<typename T0, typename T1>
+    EIGEN_DEVICE_FUNC 
+    EIGEN_STRONG_INLINE void _init2(const Index& val0, const Index& val1, typename internal::enable_if<(!internal::is_same<Index,Scalar>::value) && Base::SizeAtCompileTime==2,T1>::type* = 0)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
+      m_storage.data()[0] = Scalar(val0);
+      m_storage.data()[1] = Scalar(val1);
     }
 
     template<typename T>
