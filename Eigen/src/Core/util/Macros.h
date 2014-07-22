@@ -452,4 +452,16 @@ namespace Eigen {
       const RHS \
     >
 
+#ifdef EIGEN_EXCEPTIONS
+#  define EIGEN_THROW_X(X) throw X
+#  define EIGEN_THROW throw
+#  define EIGEN_TRY try
+#  define EIGEN_CATCH(X) catch (X)
+#else
+#  define EIGEN_THROW_X(X) std::abort()
+#  define EIGEN_THROW std::abort()
+#  define EIGEN_TRY if (true)
+#  define EIGEN_CATCH(X) else
+#endif
+
 #endif // EIGEN_MACROS_H

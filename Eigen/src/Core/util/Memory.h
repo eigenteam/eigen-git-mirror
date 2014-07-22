@@ -354,20 +354,16 @@ template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
 template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
 {
   size_t i;
-#ifdef EIGEN_EXCEPTIONS
-  try
-#endif
-    {
+  EIGEN_TRY
+  {
       for (i = 0; i < size; ++i) ::new (ptr + i) T;
       return ptr;
-    }
-#ifdef EIGEN_EXCEPTIONS
-  catch (...)
-    {
-      destruct_elements_of_array(ptr, i);
-      throw;
-    }
-#endif
+  }
+  EIGEN_CATCH(...)
+  {
+    destruct_elements_of_array(ptr, i);
+    EIGEN_THROW;
+  }
 }
 
 /*****************************************************************************
@@ -389,38 +385,30 @@ template<typename T> inline T* aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(aligned_malloc(sizeof(T)*size));
-#ifdef EIGEN_EXCEPTIONS
-  try
-#endif
-    {
-      return construct_elements_of_array(result, size);
-    }
-#ifdef EIGEN_EXCEPTIONS
-  catch (...)
-    {
-      aligned_free(result);
-      throw;
-    }
-#endif
+  EIGEN_TRY
+  {
+    return construct_elements_of_array(result, size);
+  }
+  EIGEN_CATCH(...)
+  {
+    aligned_free(result);
+    EIGEN_THROW;
+  }
 }
 
 template<typename T, bool Align> inline T* conditional_aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
-#ifdef EIGEN_EXCEPTIONS
-  try
-#endif
-    {
-      return construct_elements_of_array(result, size);
-    }
-#ifdef EIGEN_EXCEPTIONS
-  catch (...)
-    {
-      conditional_aligned_free<Align>(result);
-      throw;
-    }
-#endif
+  EIGEN_TRY
+  {
+    return construct_elements_of_array(result, size);
+  }
+  EIGEN_CATCH(...)
+  {
+    conditional_aligned_free<Align>(result);
+    EIGEN_THROW;
+  }
 }
 
 /** \internal Deletes objects constructed with aligned_new
@@ -449,21 +437,17 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
     destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(new_size > old_size)
+  {
+    EIGEN_TRY
     {
-#ifdef EIGEN_EXCEPTIONS
-      try
-#endif
-        {
-          construct_elements_of_array(result+old_size, new_size-old_size);
-        }
-#ifdef EIGEN_EXCEPTIONS
-      catch (...)
-        {
-          conditional_aligned_free<Align>(result);
-          throw;
-        }
-#endif
+      construct_elements_of_array(result+old_size, new_size-old_size);
     }
+    EIGEN_CATCH(...)
+    {
+      conditional_aligned_free<Align>(result);
+      EIGEN_THROW;
+    }
+  }
   return result;
 }
 
@@ -473,21 +457,17 @@ template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t s
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
   if(NumTraits<T>::RequireInitialization)
+  {
+    EIGEN_TRY
     {
-#ifdef EIGEN_EXCEPTIONS
-      try
-#endif
-        {
-          construct_elements_of_array(result, size);
-        }
-#ifdef EIGEN_EXCEPTIONS
-      catch (...)
-        {
-          conditional_aligned_free<Align>(result);
-          throw;
-        }
-#endif
+      construct_elements_of_array(result, size);
     }
+    EIGEN_CATCH(...)
+    {
+      conditional_aligned_free<Align>(result);
+      EIGEN_THROW;
+    }
+  }
   return result;
 }
 
@@ -499,21 +479,17 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new_auto(
     destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(NumTraits<T>::RequireInitialization && (new_size > old_size))
+  {
+    EIGEN_TRY
     {
-#ifdef EIGEN_EXCEPTIONS
-      try
-#endif
-        {
-          construct_elements_of_array(result+old_size, new_size-old_size);
-        }
-#ifdef EIGEN_EXCEPTIONS
-      catch (...)
-        {
-          conditional_aligned_free<Align>(result);
-          throw;
-        }
-#endif
+      construct_elements_of_array(result+old_size, new_size-old_size);
     }
+    EIGEN_CATCH(...)
+    {
+      conditional_aligned_free<Align>(result);
+      EIGEN_THROW;
+    }
+  }
   return result;
 }
 
@@ -713,20 +689,11 @@ template<typename T> class aligned_stack_memory_handler
 *****************************************************************************/
 
 #if EIGEN_ALIGN
-  #ifdef EIGEN_EXCEPTIONS
-    #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
+  #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void* operator new(size_t size, const std::nothrow_t&) throw() { \
-        try { return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); } \
-        catch (...) { return 0; } \
-        return 0; \
+        EIGEN_TRY { return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); } \
+        EIGEN_CATCH (...) { return 0; } \
       }
-  #else
-    #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
-      void* operator new(size_t size, const std::nothrow_t&) throw() { \
-        return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); \
-      }
-  #endif
-
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
       void *operator new(size_t size) { \
         return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); \

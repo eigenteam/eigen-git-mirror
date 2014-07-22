@@ -28,42 +28,24 @@ struct Foo
 unsigned Foo::object_count = 0;
 unsigned Foo::object_limit = 0;
 
-namespace Eigen
-{
-  template<>
-  struct NumTraits<Foo>
-  {
-    typedef double Real;
-    typedef double NonInteger;
-    typedef double Nested;
-    enum
-      {
-        IsComplex             =  0,
-        IsInteger             =  1,
-        ReadCost              = -1,
-        AddCost               = -1,
-        MulCost               = -1,
-        IsSigned              =  1,
-        RequireInitialization =  1
-      };
-    static inline Real epsilon() { return 1.0; }
-    static inline Real dummy_epsilon() { return 0.0; }
-  };
-}
 
 void test_ctorleak()
 {
+  typedef DenseIndex Index;
   Foo::object_count = 0;
-  Foo::object_limit = internal::random(0, 14 * 92 - 2);
+  for(int i = 0; i < g_repeat; i++) {
+    Index rows = internal::random<Index>(2,EIGEN_TEST_MAX_SIZE), cols = internal::random<Index>(2,EIGEN_TEST_MAX_SIZE);
+    Foo::object_limit = internal::random(0, rows*cols - 2);
 #ifdef EIGEN_EXCEPTIONS
-  try
-#endif
+    try
     {
-      Matrix<Foo, Dynamic, Dynamic> m(14, 92);
-      eigen_assert(false);  // not reached
-    }
-#ifdef EIGEN_EXCEPTIONS
-  catch (const Foo::Fail&) { /* ignore */ }
 #endif
+      Matrix<Foo, Dynamic, Dynamic> m(rows, cols);
+#ifdef EIGEN_EXCEPTIONS
+      VERIFY(false);  // not reached if exceptions are enabled
+    }
+    catch (const Foo::Fail&) { /* ignore */ }
+#endif
+  }
   VERIFY_IS_EQUAL(static_cast<unsigned>(0), Foo::object_count);
 }

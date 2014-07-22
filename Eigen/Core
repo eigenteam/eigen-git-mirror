@@ -42,6 +42,14 @@
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif
 
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__)
+  #define EIGEN_EXCEPTIONS
+#endif
+
+#ifdef EIGEN_EXCEPTIONS
+  #include <new>
+#endif
+
 // then include this file where all our macros are defined. It's really important to do it first because
 // it's where we do all the alignment settings (platform detection and honoring the user's will if he
 // defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.
@@ -207,14 +215,6 @@
 // required for __cpuid, needs to be included after cmath
 #if defined(_MSC_VER) && (defined(_M_IX86)||defined(_M_X64)) && (!defined(_WIN32_WCE))
   #include <intrin.h>
-#endif
-
-#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__)
-  #define EIGEN_EXCEPTIONS
-#endif
-
-#ifdef EIGEN_EXCEPTIONS
-  #include <new>
 #endif
 
 /** \brief Namespace containing all symbols from the %Eigen library. */
