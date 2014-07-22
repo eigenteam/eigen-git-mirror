@@ -229,6 +229,17 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Tensor& operator=(const Tensor& other)
+    {
+      // FIXME: we need to resize the tensor to fix the dimensions of the other.
+      // Unfortunately this isn't possible yet when the rhs is an expression.
+      // resize(other.dimensions());
+      typedef TensorAssignOp<Tensor, const Tensor> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Tensor& operator=(const OtherDerived& other)
