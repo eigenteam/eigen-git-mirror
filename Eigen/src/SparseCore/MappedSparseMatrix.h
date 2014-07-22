@@ -176,6 +176,34 @@ class MappedSparseMatrix<Scalar,_Flags,_Index>::ReverseInnerIterator
     const Index m_end;
 };
 
+#ifdef EIGEN_ENABLE_EVALUATORS
+namespace internal {
+
+template<typename _Scalar, int _Options, typename _Index>
+struct evaluator<MappedSparseMatrix<_Scalar,_Options,_Index> >
+  : evaluator_base<MappedSparseMatrix<_Scalar,_Options,_Index> >
+{
+  typedef MappedSparseMatrix<_Scalar,_Options,_Index> MappedSparseMatrixType;
+  typedef typename MappedSparseMatrixType::InnerIterator InnerIterator;
+  typedef typename MappedSparseMatrixType::ReverseInnerIterator ReverseInnerIterator;
+  
+  enum {
+    CoeffReadCost = NumTraits<_Scalar>::ReadCost,
+    Flags = MappedSparseMatrixType::Flags
+  };
+  
+  evaluator() : m_matrix(0) {}
+  evaluator(const MappedSparseMatrixType &mat) : m_matrix(&mat) {}
+  
+  operator MappedSparseMatrixType&() { return m_matrix->const_cast_derived(); }
+  operator const MappedSparseMatrixType&() const { return *m_matrix; }
+  
+  const MappedSparseMatrixType *m_matrix;
+};
+
+}
+#endif
+
 } // end namespace Eigen
 
 #endif // EIGEN_MAPPED_SPARSEMATRIX_H

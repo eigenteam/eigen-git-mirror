@@ -15,15 +15,15 @@ namespace Eigen {
 
 namespace internal {
   
-template<typename MatrixType, int Mode>
-struct traits<SparseTriangularView<MatrixType,Mode> >
-: public traits<MatrixType>
-{};
+// template<typename MatrixType, int Mode>
+// struct traits<SparseTriangularView<MatrixType,Mode> >
+// : public traits<MatrixType>
+// {};
 
 } // namespace internal
 
-template<typename MatrixType, int Mode> class SparseTriangularView
-  : public SparseMatrixBase<SparseTriangularView<MatrixType,Mode> >
+template<typename MatrixType, unsigned int Mode> class TriangularViewImpl<MatrixType,Mode,Sparse>
+  : public SparseMatrixBase<TriangularView<MatrixType,Mode> >
 {
     enum { SkipFirst = ((Mode&Lower) && !(MatrixType::Flags&RowMajorBit))
                     || ((Mode&Upper) &&  (MatrixType::Flags&RowMajorBit)),
@@ -31,45 +31,51 @@ template<typename MatrixType, int Mode> class SparseTriangularView
            SkipDiag = (Mode&ZeroDiag) ? 1 : 0,
            HasUnitDiag = (Mode&UnitDiag) ? 1 : 0
     };
+    
+    typedef TriangularView<MatrixType,Mode> TriangularViewType;
+    
+protected:
+    // dummy solve function to make TriangularView happy.
+    void solve() const;
 
   public:
     
-    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseTriangularView)
-
+    EIGEN_SPARSE_PUBLIC_INTERFACE(TriangularViewType)
+    
     class InnerIterator;
     class ReverseInnerIterator;
-
-    inline Index rows() const { return m_matrix.rows(); }
-    inline Index cols() const { return m_matrix.cols(); }
 
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename internal::remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
     typedef typename internal::remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
 
-    inline SparseTriangularView(const MatrixType& matrix) : m_matrix(matrix) {}
-
-    /** \internal */
-    inline const MatrixTypeNestedCleaned& nestedExpression() const { return m_matrix; }
-
+#ifndef EIGEN_TEST_EVALUATORS
     template<typename OtherDerived>
     typename internal::plain_matrix_type_column_major<OtherDerived>::type
     solve(const MatrixBase<OtherDerived>& other) const;
+#else // EIGEN_TEST_EVALUATORS
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _solve_impl(const RhsType &rhs, DstType &dst) const {
+      if(!(internal::is_same<RhsType,DstType>::value && internal::extract_data(dst) == internal::extract_data(rhs)))
+        dst = rhs;
+      this->template solveInPlace(dst);
+    }
+#endif // EIGEN_TEST_EVALUATORS
 
     template<typename OtherDerived> void solveInPlace(MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> void solveInPlace(SparseMatrixBase<OtherDerived>& other) const;
-
-  protected:
-    MatrixTypeNested m_matrix;
+  
 };
 
-template<typename MatrixType, int Mode>
-class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixTypeNestedCleaned::InnerIterator
+template<typename MatrixType, unsigned int Mode>
+class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixTypeNestedCleaned::InnerIterator
 {
     typedef typename MatrixTypeNestedCleaned::InnerIterator Base;
-    typedef typename SparseTriangularView::Index Index;
+    typedef typename TriangularViewType::Index Index;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const SparseTriangularView& view, Index outer)
+    EIGEN_STRONG_INLINE InnerIterator(const TriangularViewImpl& view, Index outer)
       : Base(view.nestedExpression(), outer), m_returnOne(false)
     {
       if(SkipFirst)
@@ -132,14 +138,14 @@ class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixTypeNe
     bool m_returnOne;
 };
 
-template<typename MatrixType, int Mode>
-class SparseTriangularView<MatrixType,Mode>::ReverseInnerIterator : public MatrixTypeNestedCleaned::ReverseInnerIterator
+template<typename MatrixType, unsigned int Mode>
+class TriangularViewImpl<MatrixType,Mode,Sparse>::ReverseInnerIterator : public MatrixTypeNestedCleaned::ReverseInnerIterator
 {
     typedef typename MatrixTypeNestedCleaned::ReverseInnerIterator Base;
-    typedef typename SparseTriangularView::Index Index;
+    typedef typename TriangularViewImpl::Index Index;
   public:
 
-    EIGEN_STRONG_INLINE ReverseInnerIterator(const SparseTriangularView& view, Index outer)
+    EIGEN_STRONG_INLINE ReverseInnerIterator(const TriangularViewType& view, Index outer)
       : Base(view.nestedExpression(), outer)
     {
       eigen_assert((!HasUnitDiag) && "ReverseInnerIterator does not support yet triangular views with a unit diagonal");
@@ -168,7 +174,7 @@ class SparseTriangularView<MatrixType,Mode>::ReverseInnerIterator : public Matri
 
 template<typename Derived>
 template<int Mode>
-inline const SparseTriangularView<Derived, Mode>
+inline const TriangularView<Derived, Mode>
 SparseMatrixBase<Derived>::triangularView() const
 {
   return derived();

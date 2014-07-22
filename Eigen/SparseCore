@@ -54,12 +54,12 @@ struct Sparse {};
 #include "src/SparseCore/SparseProduct.h"
 #include "src/SparseCore/SparseDenseProduct.h"
 #include "src/SparseCore/SparseSelfAdjointView.h"
+#include "src/SparseCore/SparseTriangularView.h"
+#include "src/SparseCore/TriangularSolver.h"
+
 #ifndef EIGEN_TEST_EVALUATORS
 #include "src/SparseCore/SparsePermutation.h"
 #include "src/SparseCore/SparseFuzzy.h"
-#include "src/SparseCore/SparseTriangularView.h"
-
-#include "src/SparseCore/TriangularSolver.h"
 #endif
 
 #include "src/Core/util/ReenableStupidWarnings.h"

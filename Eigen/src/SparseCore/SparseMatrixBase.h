@@ -333,7 +333,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);
 
     template<int Mode>
-    inline const SparseTriangularView<Derived, Mode> triangularView() const;
+    inline const TriangularView<Derived, Mode> triangularView() const;
 
     template<unsigned int UpLo> inline const SparseSelfAdjointView<Derived, UpLo> selfadjointView() const;
     template<unsigned int UpLo> inline SparseSelfAdjointView<Derived, UpLo> selfadjointView();

@@ -638,6 +638,9 @@ template<typename T> struct is_diagonal<DiagonalWrapper<T> >
 template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
+template<typename S1, typename S2> struct glue_shapes;
+template<> struct glue_shapes<DenseShape,TriangularShape> { typedef TriangularShape type;  };
+
 } // end namespace internal
 
 // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor

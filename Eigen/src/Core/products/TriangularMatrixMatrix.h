@@ -368,10 +368,12 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
 /***************************************************************************
 * Wrapper to product_triangular_matrix_matrix
 ***************************************************************************/
+#ifndef EIGEN_TEST_EVALUATORS
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false> >
   : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>, Lhs, Rhs> >
 {};
+#endif
 
 } // end namespace internal
 

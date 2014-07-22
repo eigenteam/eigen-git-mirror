@@ -253,8 +253,8 @@ template<typename _MatrixType, int _UpLo> struct traits<SimplicialLLT<_MatrixTyp
   typedef typename MatrixType::Scalar                         Scalar;
   typedef typename MatrixType::Index                          Index;
   typedef SparseMatrix<Scalar, ColMajor, Index>               CholMatrixType;
-  typedef SparseTriangularView<CholMatrixType, Eigen::Lower>  MatrixL;
-  typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
+  typedef TriangularView<CholMatrixType, Eigen::Lower>  MatrixL;
+  typedef TriangularView<typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return m; }
   static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };
@@ -266,8 +266,8 @@ template<typename _MatrixType,int _UpLo> struct traits<SimplicialLDLT<_MatrixTyp
   typedef typename MatrixType::Scalar                             Scalar;
   typedef typename MatrixType::Index                              Index;
   typedef SparseMatrix<Scalar, ColMajor, Index>                   CholMatrixType;
-  typedef SparseTriangularView<CholMatrixType, Eigen::UnitLower>  MatrixL;
-  typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
+  typedef TriangularView<CholMatrixType, Eigen::UnitLower>  MatrixL;
+  typedef TriangularView<typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return m; }
   static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };

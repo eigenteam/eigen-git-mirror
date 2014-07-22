@@ -450,13 +450,13 @@ struct MatrixXpr {};
 struct ArrayXpr {};
 
 // An evaluator must define its shape. By default, it can be one of the following:
-struct DenseShape       { static std::string debugName() { return "DenseShape"; } };
-struct DiagonalShape    { static std::string debugName() { return "DiagonalShape"; } };
-struct BandShape        { static std::string debugName() { return "BandShape"; } };
-struct TriangularShape  { static std::string debugName() { return "TriangularShape"; } };
-struct SelfAdjointShape { static std::string debugName() { return "SelfAdjointShape"; } };
-struct PermutationShape { static std::string debugName() { return "PermutationShape"; } };
-struct SparseShape      { static std::string debugName() { return "SparseShape"; } };
+struct DenseShape             { static std::string debugName() { return "DenseShape"; } };
+struct DiagonalShape          { static std::string debugName() { return "DiagonalShape"; } };
+struct BandShape              { static std::string debugName() { return "BandShape"; } };
+struct TriangularShape        { static std::string debugName() { return "TriangularShape"; } };
+struct SelfAdjointShape       { static std::string debugName() { return "SelfAdjointShape"; } };
+struct PermutationShape       { static std::string debugName() { return "PermutationShape"; } };
+struct SparseShape            { static std::string debugName() { return "SparseShape"; } };
 
 } // end namespace Eigen
 

@@ -94,7 +94,6 @@ template<typename _Scalar, int _Flags = 0, typename _Index = int>  class Dynamic
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseVector;
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class MappedSparseMatrix;
 
-template<typename MatrixType, int Mode>           class SparseTriangularView;
 template<typename MatrixType, unsigned int UpLo>  class SparseSelfAdjointView;
 template<typename Lhs, typename Rhs>              class SparseDiagonalProduct;
 template<typename MatrixType> class SparseView;
@@ -162,6 +161,12 @@ struct generic_xpr_base<Derived, MatrixXpr, Sparse>
 {
   typedef SparseMatrixBase<Derived> type;
 };
+
+struct SparseTriangularShape  { static std::string debugName() { return "SparseTriangularShape"; } };
+struct SparseSelfAdjointShape { static std::string debugName() { return "SparseSelfAdjointShape"; } };
+
+template<> struct glue_shapes<SparseShape,SelfAdjointShape> { typedef SparseSelfAdjointShape type;  };
+template<> struct glue_shapes<SparseShape,TriangularShape > { typedef SparseTriangularShape  type;  };
 
 } // end namespace internal
 

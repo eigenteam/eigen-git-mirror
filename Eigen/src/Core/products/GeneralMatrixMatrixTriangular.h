@@ -264,22 +264,23 @@ struct general_product_to_triangular_selector<MatrixType,ProductType,UpLo,false>
 #ifdef EIGEN_TEST_EVALUATORS
 template<typename MatrixType, unsigned int UpLo>
 template<typename ProductType>
-TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::_assignProduct(const ProductType& prod, const Scalar& alpha)
+TriangularView<MatrixType,UpLo>& TriangularViewImpl<MatrixType,UpLo,Dense>::_assignProduct(const ProductType& prod, const Scalar& alpha)
 {
-  eigen_assert(m_matrix.rows() == prod.rows() && m_matrix.cols() == prod.cols());
+  eigen_assert(derived().nestedExpression().rows() == prod.rows() && derived().cols() == prod.cols());
   
-  general_product_to_triangular_selector<MatrixType, ProductType, UpLo, internal::traits<ProductType>::InnerSize==1>::run(m_matrix.const_cast_derived(), prod, alpha);
+  general_product_to_triangular_selector<MatrixType, ProductType, UpLo, internal::traits<ProductType>::InnerSize==1>::run(derived().nestedExpression().const_cast_derived(), prod, alpha);
   
   return *this;
 }
 #else
 template<typename MatrixType, unsigned int UpLo>
 template<typename ProductDerived, typename _Lhs, typename _Rhs>
-TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(const ProductBase<ProductDerived, _Lhs,_Rhs>& prod, const Scalar& alpha)
+TriangularView<MatrixType,UpLo>& TriangularViewImpl<MatrixType,UpLo,Dense>::assignProduct(const ProductBase<ProductDerived, _Lhs,_Rhs>& prod, const Scalar& alpha)
 {
-  eigen_assert(m_matrix.rows() == prod.rows() && m_matrix.cols() == prod.cols());
+  eigen_assert(derived().rows() == prod.rows() && derived().cols() == prod.cols());
 
-  general_product_to_triangular_selector<MatrixType, ProductDerived, UpLo, (_Lhs::ColsAtCompileTime==1) || (_Rhs::RowsAtCompileTime==1)>::run(m_matrix.const_cast_derived(), prod.derived(), alpha);
+  general_product_to_triangular_selector<MatrixType, ProductDerived, UpLo, (_Lhs::ColsAtCompileTime==1) || (_Rhs::RowsAtCompileTime==1)>
+    ::run(derived().nestedExpression().const_cast_derived(), prod.derived(), alpha);
   
   return *this;
 }

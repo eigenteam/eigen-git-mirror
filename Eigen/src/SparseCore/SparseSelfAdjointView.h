@@ -392,8 +392,6 @@ inline void sparse_selfadjoint_time_dense_product(const SparseLhsType& lhs, cons
       res.row(j) += i.value() * rhs.row(j);
   }
 }
-
-struct SparseSelfAdjointShape { static std::string debugName() { return "SparseSelfAdjointShape"; } };
   
 // TODO currently a selfadjoint expression has the form SelfAdjointView<.,.>
 //      in the future selfadjoint-ness should be defined by the expression traits

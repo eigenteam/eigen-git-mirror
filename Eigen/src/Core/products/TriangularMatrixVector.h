@@ -157,6 +157,8 @@ EIGEN_DONT_INLINE void triangular_matrix_vector_product<Index,Mode,LhsScalar,Con
 * Wrapper to product_triangular_vector
 ***************************************************************************/
 
+#ifndef EIGEN_TEST_EVALUATORS
+
 template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,true> >
  : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,true>, Lhs, Rhs> >
@@ -166,7 +168,7 @@ template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
 struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,true,Rhs,false> >
  : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,true,Rhs,false>, Lhs, Rhs> >
 {};
-
+#endif
 
 template<int Mode,int StorageOrder>
 struct trmv_selector;
