@@ -270,8 +270,8 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
   enum {
     RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
-    MaxRowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
-    MaxColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
+    MaxRowsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
+    MaxColsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
     Flags =  (traits<DiagonalVectorType>::Flags & LvalueBit) | NoPreferredStorageOrderBit
 #ifndef EIGEN_TEST_EVALUATORS
     ,
