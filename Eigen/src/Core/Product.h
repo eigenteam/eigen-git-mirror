@@ -58,24 +58,26 @@ struct traits<Product<Lhs, Rhs, Option> >
 {
   typedef typename remove_all<Lhs>::type LhsCleaned;
   typedef typename remove_all<Rhs>::type RhsCleaned;
+  typedef traits<LhsCleaned> LhsTraits;
+  typedef traits<RhsCleaned> RhsTraits;
   
   typedef MatrixXpr XprKind;
   
   typedef typename product_result_scalar<LhsCleaned,RhsCleaned>::Scalar Scalar;
-  typedef typename product_promote_storage_type<typename traits<LhsCleaned>::StorageKind,
-                                                typename traits<RhsCleaned>::StorageKind,
+  typedef typename product_promote_storage_type<typename LhsTraits::StorageKind,
+                                                typename RhsTraits::StorageKind,
                                                 internal::product_type<Lhs,Rhs>::ret>::ret StorageKind;
-  typedef typename promote_index_type<typename traits<LhsCleaned>::Index,
-                                         typename traits<RhsCleaned>::Index>::type Index;
+  typedef typename promote_index_type<typename LhsTraits::Index,
+                                         typename RhsTraits::Index>::type Index;
   
   enum {
-    RowsAtCompileTime    = LhsCleaned::RowsAtCompileTime,
-    ColsAtCompileTime    = RhsCleaned::ColsAtCompileTime,
-    MaxRowsAtCompileTime = LhsCleaned::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = RhsCleaned::MaxColsAtCompileTime,
+    RowsAtCompileTime    = LhsTraits::RowsAtCompileTime,
+    ColsAtCompileTime    = RhsTraits::ColsAtCompileTime,
+    MaxRowsAtCompileTime = LhsTraits::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = RhsTraits::MaxColsAtCompileTime,
     
     // FIXME: only needed by GeneralMatrixMatrixTriangular
-    InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(LhsCleaned::ColsAtCompileTime, RhsCleaned::RowsAtCompileTime),
+    InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(LhsTraits::ColsAtCompileTime, RhsTraits::RowsAtCompileTime),
     
 #ifndef EIGEN_TEST_EVALUATORS
     // dummy, for evaluators unit test only
@@ -84,8 +86,8 @@ struct traits<Product<Lhs, Rhs, Option> >
     
     // The storage order is somewhat arbitrary here. The correct one will be determined through the evaluator.
     Flags = (   MaxRowsAtCompileTime==1
-             || ((LhsCleaned::Flags&NoPreferredStorageOrderBit) && (RhsCleaned::Flags&RowMajorBit))
-             || ((RhsCleaned::Flags&NoPreferredStorageOrderBit) && (LhsCleaned::Flags&RowMajorBit)) )
+             || ((LhsTraits::Flags&NoPreferredStorageOrderBit) && (RhsTraits::Flags&RowMajorBit))
+             || ((RhsTraits::Flags&NoPreferredStorageOrderBit) && (LhsTraits::Flags&RowMajorBit)) )
           ? RowMajorBit : (MaxColsAtCompileTime==1 ? 0 : NoPreferredStorageOrderBit)
   };
 };

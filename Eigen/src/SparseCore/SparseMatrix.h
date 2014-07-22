@@ -664,7 +664,11 @@ class SparseMatrix
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
       check_template_parameters();
+#ifndef EIGEN_TEST_EVALUATORS
       *this = other;
+#else
+      Base::operator=(other);
+#endif
     }
 
     /** Copy constructor (it performs a deep copy) */

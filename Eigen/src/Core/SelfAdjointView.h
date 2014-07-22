@@ -328,6 +328,7 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dyn
 #endif // EIGEN_TEST_EVALUATORS
 
 #ifdef EIGEN_ENABLE_EVALUATORS
+
 // TODO currently a selfadjoint expression has the form SelfAdjointView<.,.>
 //      in the future selfadjoint-ness should be defined by the expression traits
 //      such that Transpose<SelfAdjointView<.,.> > is valid. (currently TriangularBase::transpose() is overloaded to make it work)

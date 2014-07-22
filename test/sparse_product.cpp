@@ -19,7 +19,7 @@ template<typename SparseMatrixType> void sparse_product()
   typedef typename SparseMatrixType::Scalar Scalar;
   enum { Flags = SparseMatrixType::Flags };
 
-  double density = (std::max)(8./(rows*cols), 0.1);
+  double density = (std::max)(8./(rows*cols), 0.2);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
   typedef Matrix<Scalar,1,Dynamic> RowDenseVector;
@@ -109,7 +109,7 @@ template<typename SparseMatrixType> void sparse_product()
       Index c1 = internal::random<Index>(0,cols-1);
       Index r1 = internal::random<Index>(0,depth-1);
       DenseMatrix dm5  = DenseMatrix::Random(depth, cols);
-      
+
       VERIFY_IS_APPROX( m4=m2.col(c)*dm5.col(c1).transpose(), refMat4=refMat2.col(c)*dm5.col(c1).transpose());
       VERIFY_IS_EQUAL(m4.nonZeros(), (refMat4.array()!=0).count());
       VERIFY_IS_APPROX( m4=m2.middleCols(c,1)*dm5.col(c1).transpose(), refMat4=refMat2.col(c)*dm5.col(c1).transpose());
@@ -153,11 +153,11 @@ template<typename SparseMatrixType> void sparse_product()
     RowSpVector rv0(depth), rv1;
     RowDenseVector drv0(depth), drv1(rv1);
     initSparse(2*density,drv0, rv0);
-    
-    VERIFY_IS_APPROX(cv1=rv0*m3, dcv1=drv0*refMat3);
+
+    VERIFY_IS_APPROX(cv1=m3*cv0, dcv1=refMat3*dcv0);    
     VERIFY_IS_APPROX(rv1=rv0*m3, drv1=drv0*refMat3);
-    VERIFY_IS_APPROX(cv1=m3*cv0, dcv1=refMat3*dcv0);
     VERIFY_IS_APPROX(cv1=m3t.adjoint()*cv0, dcv1=refMat3t.adjoint()*dcv0);
+    VERIFY_IS_APPROX(cv1=rv0*m3, dcv1=drv0*refMat3);
     VERIFY_IS_APPROX(rv1=m3*cv0, drv1=refMat3*dcv0);
   }
   

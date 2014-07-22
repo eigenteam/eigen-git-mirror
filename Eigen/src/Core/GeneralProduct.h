@@ -62,14 +62,14 @@ template<typename Lhs, typename Rhs> struct product_type
   typedef typename remove_all<Lhs>::type _Lhs;
   typedef typename remove_all<Rhs>::type _Rhs;
   enum {
-    MaxRows  = _Lhs::MaxRowsAtCompileTime,
-    Rows  = _Lhs::RowsAtCompileTime,
-    MaxCols  = _Rhs::MaxColsAtCompileTime,
-    Cols  = _Rhs::ColsAtCompileTime,
-    MaxDepth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::MaxColsAtCompileTime,
-                                           _Rhs::MaxRowsAtCompileTime),
-    Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::ColsAtCompileTime,
-                                        _Rhs::RowsAtCompileTime)
+    MaxRows = traits<_Lhs>::MaxRowsAtCompileTime,
+    Rows    = traits<_Lhs>::RowsAtCompileTime,
+    MaxCols = traits<_Rhs>::MaxColsAtCompileTime,
+    Cols    = traits<_Rhs>::ColsAtCompileTime,
+    MaxDepth = EIGEN_SIZE_MIN_PREFER_FIXED(traits<_Lhs>::MaxColsAtCompileTime,
+                                           traits<_Rhs>::MaxRowsAtCompileTime),
+    Depth = EIGEN_SIZE_MIN_PREFER_FIXED(traits<_Lhs>::ColsAtCompileTime,
+                                        traits<_Rhs>::RowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,

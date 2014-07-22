@@ -127,6 +127,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& SparseMatrixBase<Derived>::operator=(const EigenBase<OtherDerived> &other)
 {
+  // TODO use the evaluator mechanism
   other.derived().evalTo(derived());
   return derived();
 }
@@ -135,6 +136,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& SparseMatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
+  // TODO use the evaluator mechanism
   other.evalTo(derived());
   return derived();
 }
@@ -143,6 +145,7 @@ template<typename Derived>
 template<typename OtherDerived>
 inline Derived& SparseMatrixBase<Derived>::operator=(const SparseMatrixBase<OtherDerived>& other)
 {
+  // FIXME, by default sparse evaluation do not alias, so we should be able to bypass the generic call_assignment
   internal::call_assignment/*_no_alias*/(derived(), other.derived());
   return derived();
 }
