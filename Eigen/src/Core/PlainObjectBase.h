@@ -693,7 +693,11 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC 
-    EIGEN_STRONG_INLINE void _init2(const Index& val0, const Index& val1, typename internal::enable_if<(!internal::is_same<Index,Scalar>::value) && Base::SizeAtCompileTime==2,T1>::type* = 0)
+    EIGEN_STRONG_INLINE void _init2(const Index& val0, const Index& val1,
+                                    typename internal::enable_if<    (!internal::is_same<Index,Scalar>::value)
+                                                                  && (internal::is_same<T0,Index>::value)
+                                                                  && (internal::is_same<T1,Index>::value)
+                                                                  && Base::SizeAtCompileTime==2,T1>::type* = 0)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
       m_storage.data()[0] = Scalar(val0);
@@ -719,8 +723,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Index& val0,
-                                    typename internal::enable_if<     (!internal::is_same<Index,Scalar>::value)
-                                                                  &&  Base::SizeAtCompileTime==1
+                                    typename internal::enable_if<    (!internal::is_same<Index,Scalar>::value)
+                                                                  && (internal::is_same<Index,T>::value)
+                                                                  && Base::SizeAtCompileTime==1
                                                                   && internal::is_convertible<T, Scalar>::value,T*>::type* = 0)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 1)

@@ -211,7 +211,10 @@ void fixedSizeMatrixConstruction()
     for(int k=0; k<2; ++k) VERIFY(a2(k) == DenseIndex(raw[k]));
   }
   {
-    Matrix<Scalar,1,2> m(raw), m2( (DenseIndex(raw[0])), (DenseIndex(raw[1])) );
+    Matrix<Scalar,1,2> m(raw),
+                       m2( (DenseIndex(raw[0])), (DenseIndex(raw[1])) ),
+                       m3( (int(raw[0])), (int(raw[1])) ),
+                       m4( (float(raw[0])), (float(raw[1])) );
     Array<Scalar,1,2> a(raw),  a2( (DenseIndex(raw[0])), (DenseIndex(raw[1])) );
     for(int k=0; k<2; ++k) VERIFY(m(k) == raw[k]);
     for(int k=0; k<2; ++k) VERIFY(a(k) == raw[k]);
@@ -219,9 +222,11 @@ void fixedSizeMatrixConstruction()
     VERIFY((a==Array<Scalar,1,2>(raw[0],raw[1])).all());
     for(int k=0; k<2; ++k) VERIFY(m2(k) == DenseIndex(raw[k]));
     for(int k=0; k<2; ++k) VERIFY(a2(k) == DenseIndex(raw[k]));
+    for(int k=0; k<2; ++k) VERIFY(m3(k) == int(raw[k]));
+    for(int k=0; k<2; ++k) VERIFY(m4(k) == float(raw[k]));
   }
   {
-    Matrix<Scalar,1,1> m(raw), m1(raw[0]), m2( (DenseIndex(raw[0])) );
+    Matrix<Scalar,1,1> m(raw), m1(raw[0]), m2( (DenseIndex(raw[0])) ), m3( (int(raw[0])) );
     Array<Scalar,1,1> a(raw), a1(raw[0]), a2( (DenseIndex(raw[0])) );
     VERIFY(m(0) == raw[0]);
     VERIFY(a(0) == raw[0]);
@@ -229,6 +234,7 @@ void fixedSizeMatrixConstruction()
     VERIFY(a1(0) == raw[0]);
     VERIFY(m2(0) == DenseIndex(raw[0]));
     VERIFY(a2(0) == DenseIndex(raw[0]));
+    VERIFY(m3(0) == int(raw[0]));
     VERIFY_IS_EQUAL(m,(Matrix<Scalar,1,1>(raw[0])));
     VERIFY((a==Array<Scalar,1,1>(raw[0])).all());
   }
