@@ -244,7 +244,7 @@ static void test_simple_assign()
   epsilon(0,1,2) = epsilon(2,0,1) = epsilon(1,2,0) = 1;
   epsilon(2,1,0) = epsilon(0,2,1) = epsilon(1,0,2) = -1;
 
-  Tensor<int, 3> e2(2,3,1);
+  Tensor<int, 3> e2(3,3,3);
   e2.setZero();
   VERIFY_IS_EQUAL((e2(1,2,0)), 0);
 

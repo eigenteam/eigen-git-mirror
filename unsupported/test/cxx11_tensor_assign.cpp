@@ -186,10 +186,53 @@ static void test_3d()
   }
 }
 
+static void test_same_type()
+{
+  Tensor<int, 1> orig_tensor(5);
+  Tensor<int, 1> dest_tensor(5);
+  orig_tensor.setRandom();
+  dest_tensor.setRandom();
+  int* orig_data = orig_tensor.data();
+  int* dest_data = dest_tensor.data();
+  dest_tensor = orig_tensor;
+  VERIFY_IS_EQUAL(orig_tensor.data(), orig_data);
+  VERIFY_IS_EQUAL(dest_tensor.data(), dest_data);
+  for (int i = 0; i < 5; ++i) {
+    VERIFY_IS_EQUAL(dest_tensor(i), orig_tensor(i));
+  }
+
+  TensorFixedSize<int, Sizes<5> > orig_array;
+  TensorFixedSize<int, Sizes<5> > dest_array;
+  orig_array.setRandom();
+  dest_array.setRandom();
+  orig_data = orig_array.data();
+  dest_data = dest_array.data();
+  dest_array = orig_array;
+  VERIFY_IS_EQUAL(orig_array.data(), orig_data);
+  VERIFY_IS_EQUAL(dest_array.data(), dest_data);
+  for (int i = 0; i < 5; ++i) {
+    VERIFY_IS_EQUAL(dest_array(i), orig_array(i));
+  }
+
+  int orig[5] = {1, 2, 3, 4, 5};
+  int dest[5] = {6, 7, 8, 9, 10};
+  TensorMap<Tensor<int, 1> > orig_map(orig, 5);
+  TensorMap<Tensor<int, 1> > dest_map(dest, 5);
+  orig_data = orig_map.data();
+  dest_data = dest_map.data();
+  dest_map = orig_map;
+  VERIFY_IS_EQUAL(orig_map.data(), orig_data);
+  VERIFY_IS_EQUAL(dest_map.data(), dest_data);
+  for (int i = 0; i < 5; ++i) {
+    VERIFY_IS_EQUAL(dest[i], i+1);
+  }
+}
+
 
 void test_cxx11_tensor_assign()
 {
   CALL_SUBTEST(test_1d());
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
+  CALL_SUBTEST(test_same_type());
 }
