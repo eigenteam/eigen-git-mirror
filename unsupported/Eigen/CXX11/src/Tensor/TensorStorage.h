@@ -38,7 +38,7 @@ template<typename T, std::size_t NumIndices_, DenseIndex Size, int Options_, typ
 class TensorStorage
 {
  private:
-  T m_data[Size];
+  EIGEN_ALIGN_DEFAULT T m_data[Size];
   FixedDimensions m_dimensions;
 
  public:
