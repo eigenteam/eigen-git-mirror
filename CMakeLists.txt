@@ -143,7 +143,7 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wpointer-arith")
   ei_add_cxx_compiler_flag("-Wwrite-strings")
   ei_add_cxx_compiler_flag("-Wformat-security")
-  ei_add_cxx_compiler_flag("-Wshorten-64-to-32")
+#   ei_add_cxx_compiler_flag("-Wshorten-64-to-32")
   ei_add_cxx_compiler_flag("-Wenum-conversion")
   ei_add_cxx_compiler_flag("-Wc++11-extensions")
   

@@ -152,7 +152,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>
     typedef CwiseUnaryOp<UnaryOp, ArgType> XprType;
 
     class InnerIterator;
-    class ReverseInnerIterator;
+//     class ReverseInnerIterator;
     
     enum {
       CoeffReadCost = evaluator<ArgType>::CoeffReadCost + functor_traits<UnaryOp>::Cost,
@@ -163,7 +163,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>
 
   protected:
     typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
-    typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
+//     typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
     
     const UnaryOp m_functor;
     typename evaluator<ArgType>::nestedType m_argImpl;
@@ -192,28 +192,28 @@ class unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::InnerIterat
     Scalar& valueRef();
 };
 
-template<typename UnaryOp, typename ArgType>
-class unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::ReverseInnerIterator
-    : public unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::EvalReverseIterator
-{
-    typedef typename XprType::Scalar Scalar;
-    typedef typename unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::EvalReverseIterator Base;
-  public:
-
-    EIGEN_STRONG_INLINE ReverseInnerIterator(const XprType& unaryOp, typename XprType::Index outer)
-      : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
-    {}
-
-    EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
-    { Base::operator--(); return *this; }
-
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
-
-  protected:
-    const UnaryOp m_functor;
-  private:
-    Scalar& valueRef();
-};
+// template<typename UnaryOp, typename ArgType>
+// class unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::ReverseInnerIterator
+//     : public unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::EvalReverseIterator
+// {
+//     typedef typename XprType::Scalar Scalar;
+//     typedef typename unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::EvalReverseIterator Base;
+//   public:
+// 
+//     EIGEN_STRONG_INLINE ReverseInnerIterator(const XprType& unaryOp, typename XprType::Index outer)
+//       : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
+//     {}
+// 
+//     EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
+//     { Base::operator--(); return *this; }
+// 
+//     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
+// 
+//   protected:
+//     const UnaryOp m_functor;
+//   private:
+//     Scalar& valueRef();
+// };
 
 
 
@@ -238,7 +238,7 @@ struct unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>
 
   protected:
     typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
-    typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
+//     typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
     
     const ViewOp m_functor;
     typename evaluator<ArgType>::nestedType m_argImpl;
@@ -266,27 +266,27 @@ class unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::InnerItera
     const ViewOp m_functor;
 };
 
-template<typename ViewOp, typename ArgType>
-class unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::ReverseInnerIterator
-    : public unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::EvalReverseIterator
-{
-    typedef typename XprType::Scalar Scalar;
-    typedef typename unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::EvalReverseIterator Base;
-  public:
-
-    EIGEN_STRONG_INLINE ReverseInnerIterator(const XprType& unaryOp, typename XprType::Index outer)
-      : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
-    {}
-
-    EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
-    { Base::operator--(); return *this; }
-
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
-    EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(Base::valueRef()); }
-
-  protected:
-    const ViewOp m_functor;
-};
+// template<typename ViewOp, typename ArgType>
+// class unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::ReverseInnerIterator
+//     : public unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::EvalReverseIterator
+// {
+//     typedef typename XprType::Scalar Scalar;
+//     typedef typename unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::EvalReverseIterator Base;
+//   public:
+// 
+//     EIGEN_STRONG_INLINE ReverseInnerIterator(const XprType& unaryOp, typename XprType::Index outer)
+//       : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
+//     {}
+// 
+//     EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
+//     { Base::operator--(); return *this; }
+// 
+//     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
+//     EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(Base::valueRef()); }
+// 
+//   protected:
+//     const ViewOp m_functor;
+// };
 
 
 } // end namespace internal

@@ -13,7 +13,8 @@
 
 namespace Eigen { 
 
-template<int RowCol,typename IndicesType,typename MatrixType, typename StorageKind> class PermutedImpl;
+// TODO: this does not seems to be needed at all:
+// template<int RowCol,typename IndicesType,typename MatrixType, typename StorageKind> class PermutedImpl;
 
 /** \class PermutationBase
   * \ingroup Core_Module
@@ -276,6 +277,7 @@ template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex
 struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType> >
  : traits<Matrix<_StorageIndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
+  typedef PermutationStorage StorageKind;
   typedef Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
   typedef typename IndicesType::Index Index;
   typedef _StorageIndexType StorageIndexType;
@@ -397,6 +399,7 @@ template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex
 struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType>,_PacketAccess> >
  : traits<Matrix<_StorageIndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
+  typedef PermutationStorage StorageKind;
   typedef Map<const Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, _PacketAccess> IndicesType;
   typedef typename IndicesType::Index Index;
   typedef _StorageIndexType StorageIndexType;
@@ -467,8 +470,6 @@ class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageInd
   *
   * \sa class PermutationBase, class PermutationMatrix
   */
-
-struct PermutationStorage {};
 
 template<typename _IndicesType> class TranspositionsWrapper;
 namespace internal {
@@ -665,6 +666,8 @@ struct traits<Transpose<PermutationBase<Derived> > >
 
 } // end namespace internal
 
+// TODO: the specificties should be handled by the evaluator,
+// at the very least we should only specialize TransposeImpl
 template<typename Derived>
 class Transpose<PermutationBase<Derived> >
   : public EigenBase<Transpose<PermutationBase<Derived> > >

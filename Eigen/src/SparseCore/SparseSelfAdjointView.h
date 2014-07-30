@@ -20,7 +20,7 @@ class SparseSelfAdjointTimeDenseProduct;
 template<typename Lhs, typename Rhs, int Mode>
 class DenseTimeSparseSelfAdjointProduct;
 
-#endif // #ifndef EIGEN_TEST_EVALUATORS
+#endif // EIGEN_TEST_EVALUATORS
   
 /** \ingroup SparseCore_Module
   * \class SparseSelfAdjointView
@@ -177,7 +177,7 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
     }
     
     /** \returns an expression of P H P^-1 */
-#ifndef EIGEN_TEST_EVALUATORS
+// #ifndef EIGEN_TEST_EVALUATORS
     SparseSymmetricPermutationProduct<_MatrixTypeNested,Mode> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
     {
       return SparseSymmetricPermutationProduct<_MatrixTypeNested,Mode>(m_matrix, perm);
@@ -189,7 +189,7 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
       permutedMatrix.evalTo(*this);
       return *this;
     }
-#endif // EIGEN_TEST_EVALUATORS
+// #endif // EIGEN_TEST_EVALUATORS
 
     SparseSelfAdjointView& operator=(const SparseSelfAdjointView& src)
     {
@@ -680,7 +680,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
 
 }
 
-#ifndef EIGEN_TEST_EVALUATORS
+// #ifndef EIGEN_TEST_EVALUATORS
 
 namespace internal {
 
@@ -731,9 +731,9 @@ class SparseSymmetricPermutationProduct
 
 };
 
-#else // EIGEN_TEST_EVALUATORS
+// #else // EIGEN_TEST_EVALUATORS
 
-#endif // EIGEN_TEST_EVALUATORS
+// #endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

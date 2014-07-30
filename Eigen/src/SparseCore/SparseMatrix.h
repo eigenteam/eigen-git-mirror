@@ -736,8 +736,8 @@ class SparseMatrix
       return *this;
     }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
 #ifndef EIGEN_TEST_EVALUATORS
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Lhs, typename Rhs>
     inline SparseMatrix& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
     { return Base::operator=(product); }
@@ -748,12 +748,12 @@ class SparseMatrix
       initAssignment(other);
       return Base::operator=(other.derived());
     }
-    
+#endif // EIGEN_TEST_EVALUATORS
+
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
     { return Base::operator=(other.derived()); }
-    #endif
-#endif // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other);

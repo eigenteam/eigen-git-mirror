@@ -557,18 +557,26 @@ template <typename B, typename ScalarA, typename ScalarB> struct cwise_promote_s
   *  K * dense        -> dense
   *  diag * K         -> K
   *  K * diag         -> K
+  *  Perm * K         -> K
+  * K * Perm          -> K
   * \endcode
   */
 template <typename A, typename B, int ProductTag> struct product_promote_storage_type;
 
-template <typename A, int ProductTag> struct product_promote_storage_type<A,            A,              ProductTag> { typedef A     ret;};
-template <int ProductTag>             struct product_promote_storage_type<Dense,        Dense,          ProductTag> { typedef Dense ret;};
-template <typename A, int ProductTag> struct product_promote_storage_type<A,            Dense,          ProductTag> { typedef Dense ret; };
-template <typename B, int ProductTag> struct product_promote_storage_type<Dense,        B,              ProductTag> { typedef Dense ret; };
-template <typename A, int ProductTag> struct product_promote_storage_type<A,            DiagonalShape,  ProductTag> { typedef A ret; };
-template <typename B, int ProductTag> struct product_promote_storage_type<DiagonalShape,B,              ProductTag> { typedef B ret; };
-template <int ProductTag>             struct product_promote_storage_type<Dense,        DiagonalShape,  ProductTag> { typedef Dense ret; };
-template <int ProductTag>             struct product_promote_storage_type<DiagonalShape,Dense,          ProductTag> { typedef Dense ret; };
+template <typename A, int ProductTag> struct product_promote_storage_type<A,                  A,                  ProductTag> { typedef A     ret;};
+template <int ProductTag>             struct product_promote_storage_type<Dense,              Dense,              ProductTag> { typedef Dense ret;};
+template <typename A, int ProductTag> struct product_promote_storage_type<A,                  Dense,              ProductTag> { typedef Dense ret; };
+template <typename B, int ProductTag> struct product_promote_storage_type<Dense,              B,                  ProductTag> { typedef Dense ret; };
+
+template <typename A, int ProductTag> struct product_promote_storage_type<A,                  DiagonalShape,      ProductTag> { typedef A ret; };
+template <typename B, int ProductTag> struct product_promote_storage_type<DiagonalShape,      B,                  ProductTag> { typedef B ret; };
+template <int ProductTag>             struct product_promote_storage_type<Dense,              DiagonalShape,      ProductTag> { typedef Dense ret; };
+template <int ProductTag>             struct product_promote_storage_type<DiagonalShape,      Dense,              ProductTag> { typedef Dense ret; };
+
+template <typename A, int ProductTag> struct product_promote_storage_type<A,                  PermutationStorage, ProductTag> { typedef A ret; };
+template <typename B, int ProductTag> struct product_promote_storage_type<PermutationStorage, B,                  ProductTag> { typedef B ret; };
+template <int ProductTag>             struct product_promote_storage_type<Dense,              PermutationStorage, ProductTag> { typedef Dense ret; };
+template <int ProductTag>             struct product_promote_storage_type<PermutationStorage, Dense,              ProductTag> { typedef Dense ret; };
 
 /** \internal gives the plain matrix or array type to store a row/column/diagonal of a matrix type.
   * \param Scalar optional parameter allowing to pass a different scalar type than the one of the MatrixType.
