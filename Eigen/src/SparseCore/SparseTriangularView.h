@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -12,15 +12,6 @@
 #define EIGEN_SPARSE_TRIANGULARVIEW_H
 
 namespace Eigen { 
-
-namespace internal {
-  
-// template<typename MatrixType, int Mode>
-// struct traits<SparseTriangularView<MatrixType,Mode> >
-// : public traits<MatrixType>
-// {};
-
-} // namespace internal
 
 template<typename MatrixType, unsigned int Mode> class TriangularViewImpl<MatrixType,Mode,Sparse>
   : public SparseMatrixBase<TriangularView<MatrixType,Mode> >
@@ -76,7 +67,7 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixT
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const TriangularViewImpl& view, Index outer)
-      : Base(view.nestedExpression(), outer), m_returnOne(false)
+      : Base(view.derived().nestedExpression(), outer), m_returnOne(false)
     {
       if(SkipFirst)
       {
@@ -146,7 +137,7 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::ReverseInnerIterator : public 
   public:
 
     EIGEN_STRONG_INLINE ReverseInnerIterator(const TriangularViewType& view, Index outer)
-      : Base(view.nestedExpression(), outer)
+      : Base(view.derived().nestedExpression(), outer)
     {
       eigen_assert((!HasUnitDiag) && "ReverseInnerIterator does not support yet triangular views with a unit diagonal");
       if(SkipLast) {
@@ -171,6 +162,115 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::ReverseInnerIterator : public 
       }
     }
 };
+
+#ifdef EIGEN_TEST_EVALUATORS
+namespace internal {
+
+template<typename ArgType, unsigned int Mode>
+struct unary_evaluator<TriangularView<ArgType,Mode>, IteratorBased>
+ : evaluator_base<TriangularView<ArgType,Mode> >
+{
+  typedef TriangularView<ArgType,Mode> XprType;
+  
+protected:
+  
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::Index Index;
+  typedef typename evaluator<ArgType>::InnerIterator EvalIterator;
+  
+  enum { SkipFirst = ((Mode&Lower) && !(ArgType::Flags&RowMajorBit))
+                    || ((Mode&Upper) &&  (ArgType::Flags&RowMajorBit)),
+         SkipLast = !SkipFirst,
+         SkipDiag = (Mode&ZeroDiag) ? 1 : 0,
+         HasUnitDiag = (Mode&UnitDiag) ? 1 : 0
+  };
+  
+public:
+  
+  enum {
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost,
+    Flags = XprType::Flags
+  };
+    
+  unary_evaluator(const XprType &xpr) : m_argImpl(xpr.nestedExpression()) {}
+  
+  class InnerIterator : public EvalIterator
+  {
+      typedef EvalIterator Base;
+    public:
+
+      EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& xprEval, Index outer)
+        : Base(xprEval.m_argImpl,outer)
+      {
+        if(SkipFirst)
+        {
+          while((*this) && ((HasUnitDiag||SkipDiag)  ? this->index()<=outer : this->index()<outer))
+            Base::operator++();
+          if(HasUnitDiag)
+            m_returnOne = true;
+        }
+        else if(HasUnitDiag && ((!Base::operator bool()) || Base::index()>=Base::outer()))
+        {
+          if((!SkipFirst) && Base::operator bool())
+            Base::operator++();
+          m_returnOne = true;
+        }
+      }
+
+      EIGEN_STRONG_INLINE InnerIterator& operator++()
+      {
+        if(HasUnitDiag && m_returnOne)
+          m_returnOne = false;
+        else
+        {
+          Base::operator++();
+          if(HasUnitDiag && (!SkipFirst) && ((!Base::operator bool()) || Base::index()>=Base::outer()))
+          {
+            if((!SkipFirst) && Base::operator bool())
+              Base::operator++();
+            m_returnOne = true;
+          }
+        }
+        return *this;
+      }
+      
+      EIGEN_STRONG_INLINE operator bool() const
+      {
+        if(HasUnitDiag && m_returnOne)
+          return true;
+        if(SkipFirst) return  Base::operator bool();
+        else
+        {
+          if (SkipDiag) return (Base::operator bool() && this->index() < this->outer());
+          else return (Base::operator bool() && this->index() <= this->outer());
+        }
+      }
+
+//       inline Index row() const { return (ArgType::Flags&RowMajorBit ? Base::outer() : this->index()); }
+//       inline Index col() const { return (ArgType::Flags&RowMajorBit ? this->index() : Base::outer()); }
+      inline Index index() const
+      {
+        if(HasUnitDiag && m_returnOne)  return Base::outer();
+        else                            return Base::index();
+      }
+      inline Scalar value() const
+      {
+        if(HasUnitDiag && m_returnOne)  return Scalar(1);
+        else                            return Base::value();
+      }
+
+    protected:
+      bool m_returnOne;
+    private:
+      Scalar& valueRef();
+  };
+  
+protected:
+  typename evaluator<ArgType>::type m_argImpl;
+};
+
+} // end namespace internal
+#endif
 
 template<typename Derived>
 template<int Mode>

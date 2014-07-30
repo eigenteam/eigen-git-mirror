@@ -216,7 +216,6 @@ ei_add_test(jacobi)
 ei_add_test(jacobisvd)
 ei_add_test(householder)
 if(NOT EIGEN_TEST_EVALUATORS)
-  ei_add_test(cwiseop) # Eigen2 related
   ei_add_test(geo_orthomethods)
   ei_add_test(geo_homogeneous)
   ei_add_test(geo_quaternion)

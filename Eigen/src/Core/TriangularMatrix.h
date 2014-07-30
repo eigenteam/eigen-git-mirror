@@ -176,7 +176,7 @@ struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
   typedef MatrixType ExpressionType;
   enum {
     Mode = _Mode,
-    Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits | LvalueBit) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode
+    Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits | LvalueBit) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)))
 #ifndef EIGEN_TEST_EVALUATORS
     ,
     CoeffReadCost = MatrixTypeNestedCleaned::CoeffReadCost
@@ -206,7 +206,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
   protected:
     typedef typename internal::traits<TriangularView>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<TriangularView>::MatrixTypeNestedNonRef MatrixTypeNestedNonRef;
-    typedef typename internal::traits<TriangularView>::MatrixTypeNestedCleaned MatrixTypeNestedCleaned;
 
     typedef typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
     
@@ -214,6 +213,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     typedef typename internal::traits<TriangularView>::StorageKind StorageKind;
     typedef typename internal::traits<TriangularView>::Index Index;
+    typedef typename internal::traits<TriangularView>::MatrixTypeNestedCleaned NestedExpression;
 
     enum {
       Mode = _Mode,
@@ -229,6 +229,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     {}
     
     using Base::operator=;
+    TriangularView& operator=(const TriangularView &other)
+    { return Base::operator=(other); }
 
     EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_matrix.rows(); }
@@ -236,9 +238,9 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline Index cols() const { return m_matrix.cols(); }
 
     EIGEN_DEVICE_FUNC
-    const MatrixTypeNestedCleaned& nestedExpression() const { return m_matrix; }
+    const NestedExpression& nestedExpression() const { return m_matrix; }
     EIGEN_DEVICE_FUNC
-    MatrixTypeNestedCleaned& nestedExpression() { return *const_cast<MatrixTypeNestedCleaned*>(&m_matrix); }
+    NestedExpression& nestedExpression() { return *const_cast<NestedExpression*>(&m_matrix); }
 
     /** \sa MatrixBase::conjugate() */
     EIGEN_DEVICE_FUNC
@@ -416,7 +418,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
 
     EIGEN_DEVICE_FUNC
     TriangularViewType& operator=(const TriangularViewImpl& other)
-    { return *this = other.nestedExpression(); }
+    { return *this = other.derived().nestedExpression(); }
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -462,11 +464,11 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     template<typename OtherDerived> friend
     EIGEN_DEVICE_FUNC
     TriangularProduct<Mode, false, OtherDerived, OtherDerived::RowsAtCompileTime==1, MatrixType, false>
-    operator*(const MatrixBase<OtherDerived>& lhs, const TriangularVieImplw& rhs)
+    operator*(const MatrixBase<OtherDerived>& lhs, const TriangularViewImpl& rhs)
     {
       return TriangularProduct
               <Mode, false, OtherDerived, OtherDerived::RowsAtCompileTime==1, MatrixType, false>
-              (lhs.derived(),rhs.nestedExpression());
+              (lhs.derived(),rhs.derived().nestedExpression());
     }
 #endif
 
@@ -827,20 +829,20 @@ TriangularViewImpl<MatrixType, Mode, Dense>::operator=(const MatrixBase<OtherDer
 // FIXME should we keep that possibility
 template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
-void TriangularViewImp<MatrixType, Mode, Dense>::lazyAssign(const MatrixBase<OtherDerived>& other)
+void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
   enum {
     unroll = MatrixType::SizeAtCompileTime != Dynamic
           && internal::traits<OtherDerived>::CoeffReadCost != Dynamic
           && MatrixType::SizeAtCompileTime*internal::traits<OtherDerived>::CoeffReadCost/2 <= EIGEN_UNROLLING_LIMIT
   };
-  eigen_assert(m_matrix.rows() == other.rows() && m_matrix.cols() == other.cols());
+  eigen_assert(derived().rows() == other.rows() && derived().cols() == other.cols());
 
   internal::triangular_assignment_selector
     <MatrixType, OtherDerived, int(Mode),
     unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic,
     false // do not change the opposite triangular part
-    >::run(m_matrix.const_cast_derived(), other.derived());
+    >::run(derived().nestedExpression().const_cast_derived(), other.derived());
 }
 
 
@@ -872,13 +874,13 @@ void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const TriangularBas
                    && MatrixType::SizeAtCompileTime * internal::traits<OtherDerived>::CoeffReadCost / 2
                         <= EIGEN_UNROLLING_LIMIT
   };
-  eigen_assert(m_matrix.rows() == other.rows() && m_matrix.cols() == other.cols());
+  eigen_assert(derived().rows() == other.rows() && derived().cols() == other.cols());
 
   internal::triangular_assignment_selector
     <MatrixType, OtherDerived, int(Mode),
     unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic,
     false // preserve the opposite triangular part
-    >::run(m_matrix.const_cast_derived(), other.derived().nestedExpression());
+    >::run(derived().nestedExpression().const_cast_derived(), other.derived().nestedExpression());
 }
 
 #endif // EIGEN_TEST_EVALUATORS
@@ -1043,13 +1045,13 @@ struct evaluator_traits<TriangularView<MatrixType,Mode> >
 };
 
 template<typename MatrixType, unsigned int Mode>
-struct evaluator<TriangularView<MatrixType,Mode> >
+struct unary_evaluator<TriangularView<MatrixType,Mode>, IndexBased>
  : evaluator<typename internal::remove_all<MatrixType>::type>
 {
   typedef TriangularView<MatrixType,Mode> XprType;
   typedef evaluator<typename internal::remove_all<MatrixType>::type> Base;
-  typedef evaluator type;
-  evaluator(const XprType &xpr) : Base(xpr.nestedExpression()) {}
+  typedef evaluator<XprType> type;
+  unary_evaluator(const XprType &xpr) : Base(xpr.nestedExpression()) {}
 };
 
 // Additional assignment kinds:

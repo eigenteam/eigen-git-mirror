@@ -54,7 +54,7 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
   typedef typename Eigen::internal::traits<Derived >::Index Index; \
   enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::internal::traits<Derived >::ColsAtCompileTime, \
-        Flags = Eigen::internal::traits<Derived >::Flags, \
+        Flags = Eigen::internal::traits<Derived>::Flags, \
         CoeffReadCost = Eigen::internal::traits<Derived >::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
@@ -72,7 +72,7 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
   typedef typename Eigen::internal::traits<Derived >::Index Index; \
   enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::internal::traits<Derived >::ColsAtCompileTime, \
-        Flags = Eigen::internal::traits<Derived >::Flags, \
+        Flags = Eigen::internal::traits<Derived>::Flags, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
   using Base::derived; \

@@ -238,7 +238,7 @@ template<typename DerivedU>
 SparseSelfAdjointView<MatrixType,Mode>&
 SparseSelfAdjointView<MatrixType,Mode>::rankUpdate(const SparseMatrixBase<DerivedU>& u, const Scalar& alpha)
 {
-  SparseMatrix<Scalar,MatrixType::Flags&RowMajorBit?RowMajor:ColMajor> tmp = u * u.adjoint();
+  SparseMatrix<Scalar,(MatrixType::Flags&RowMajorBit)?RowMajor:ColMajor> tmp = u * u.adjoint();
   if(alpha==Scalar(0))
     m_matrix.const_cast_derived() = tmp.template triangularView<Mode>();
   else
