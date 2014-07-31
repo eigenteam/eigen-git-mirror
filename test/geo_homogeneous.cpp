@@ -57,7 +57,6 @@ template<typename Scalar,int Size> void homogeneous(void)
 
   VERIFY_IS_APPROX((v0.transpose().rowwise().homogeneous().eval()) * t2,
                     v0.transpose().rowwise().homogeneous() * t2);
-                    m0.transpose().rowwise().homogeneous().eval();
   VERIFY_IS_APPROX((m0.transpose().rowwise().homogeneous().eval()) * t2,
                     m0.transpose().rowwise().homogeneous() * t2);
 
@@ -82,7 +81,7 @@ template<typename Scalar,int Size> void homogeneous(void)
   VERIFY_IS_APPROX(aff  * pts.colwise().homogeneous(), (aff  * pts1).colwise().hnormalized());
   VERIFY_IS_APPROX(caff * pts.colwise().homogeneous(), (caff * pts1).colwise().hnormalized());
   VERIFY_IS_APPROX(proj * pts.colwise().homogeneous(), (proj * pts1));
-  
+
   VERIFY_IS_APPROX((aff  * pts1).colwise().hnormalized(),  aff  * pts);
   VERIFY_IS_APPROX((caff * pts1).colwise().hnormalized(), caff * pts);
   

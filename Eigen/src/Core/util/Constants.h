@@ -454,6 +454,7 @@ struct ArrayXpr {};
 
 // An evaluator must define its shape. By default, it can be one of the following:
 struct DenseShape             { static std::string debugName() { return "DenseShape"; } };
+struct HomogeneousShape       { static std::string debugName() { return "HomogeneousShape"; } };
 struct DiagonalShape          { static std::string debugName() { return "DiagonalShape"; } };
 struct BandShape              { static std::string debugName() { return "BandShape"; } };
 struct TriangularShape        { static std::string debugName() { return "TriangularShape"; } };

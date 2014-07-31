@@ -332,6 +332,18 @@ struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
 };
 
 #ifdef EIGEN_TEST_EVALUATORS
+
+template<typename ArgType,int Direction>
+struct evaluator_traits<Homogeneous<ArgType,Direction> >
+{
+  typedef typename storage_kind_to_evaluator_kind<typename ArgType::StorageKind>::Kind Kind;
+  typedef HomogeneousShape Shape;  
+  static const int AssumeAliasing = 0;
+};
+
+template<> struct AssignmentKind<DenseShape,HomogeneousShape> { typedef Dense2Dense Kind; };
+
+
 template<typename ArgType,int Direction>
 struct unary_evaluator<Homogeneous<ArgType,Direction>, IndexBased>
   : evaluator<typename Homogeneous<ArgType,Direction>::PlainObject >::type
@@ -355,10 +367,13 @@ template< typename DstXprType, typename ArgType, typename Scalar>
 struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
 {
   typedef Homogeneous<ArgType,Vertical> SrcXprType;
+  // TODO clang generates garbage if this function is inlined. no valgrind error though.
+#ifdef __clang__
+  EIGEN_DONT_INLINE
+#endif
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
     dst.template topRows<ArgType::RowsAtCompileTime>(src.nestedExpression().rows()) = src.nestedExpression();
-//     dst.topRows(src.nestedExpression().rows()) = src.nestedExpression();
     dst.row(dst.rows()-1).setOnes();
   }
 };
@@ -368,16 +383,19 @@ template< typename DstXprType, typename ArgType, typename Scalar>
 struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
 {
   typedef Homogeneous<ArgType,Horizontal> SrcXprType;
+  // TODO clang generates garbage if this function is inlined. no valgrind error though.
+#ifdef __clang__
+  EIGEN_DONT_INLINE
+#endif
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
     dst.template leftCols<ArgType::ColsAtCompileTime>(src.nestedExpression().cols()) = src.nestedExpression();
-//     dst.leftCols(src.nestedExpression().cols()) = src.nestedExpression();
     dst.col(dst.cols()-1).setOnes();
   }
 };
 
 template<typename LhsArg, typename Rhs, int ProductTag>
-struct generic_product_impl<Homogeneous<LhsArg,Horizontal>, Rhs, DenseShape, DenseShape, ProductTag>
+struct generic_product_impl<Homogeneous<LhsArg,Horizontal>, Rhs, HomogeneousShape, DenseShape, ProductTag>
 {
   template<typename Dest>
   static void evalTo(Dest& dst, const Homogeneous<LhsArg,Horizontal>& lhs, const Rhs& rhs)
@@ -387,86 +405,24 @@ struct generic_product_impl<Homogeneous<LhsArg,Horizontal>, Rhs, DenseShape, Den
 };
 
 template<typename Lhs, typename RhsArg, int ProductTag>
-struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, DenseShape, DenseShape, ProductTag>
+struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, DenseShape, HomogeneousShape, ProductTag>
 {
   template<typename Dest>
   static void evalTo(Dest& dst, const Lhs& lhs, const Homogeneous<RhsArg,Vertical>& rhs)
   {
-    homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, Lhs>(rhs.nestedExpression(), lhs).evalTo(dst);
+    homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, Lhs>(lhs, rhs.nestedExpression()).evalTo(dst);
   }
 };
 
 template<typename Scalar, int Dim, int Mode,int Options, typename RhsArg, int ProductTag>
-struct generic_product_impl<Transform<Scalar,Dim,Mode,Options>, Homogeneous<RhsArg,Vertical>, DenseShape, DenseShape, ProductTag>
+struct generic_product_impl<Transform<Scalar,Dim,Mode,Options>, Homogeneous<RhsArg,Vertical>, DenseShape, HomogeneousShape, ProductTag>
 {
   typedef Transform<Scalar,Dim,Mode,Options> TransformType;
   template<typename Dest>
   static void evalTo(Dest& dst, const TransformType& lhs, const Homogeneous<RhsArg,Vertical>& rhs)
   {
-    homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, TransformType>(rhs.nestedExpression(), lhs).evalTo(dst);
+    homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, TransformType>(lhs, rhs.nestedExpression()).evalTo(dst);
   }
-};
-
-
-template<typename LhsArg, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Homogeneous<LhsArg,Horizontal>, Rhs, DefaultProduct>, ProductTag, DenseShape, DenseShape, typename traits<LhsArg>::Scalar, typename traits<Rhs>::Scalar> 
-  : public evaluator<typename Product<Homogeneous<LhsArg,Horizontal>, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Homogeneous<LhsArg,Horizontal> Lhs;
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
-template<typename Lhs, typename RhsArg, int ProductTag>
-struct product_evaluator<Product<Lhs, Homogeneous<RhsArg,Vertical>, DefaultProduct>, ProductTag, DenseShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<RhsArg>::Scalar> 
-  : public evaluator<typename Product<Lhs, Homogeneous<RhsArg,Vertical>, DefaultProduct>::PlainObject>::type
-{
-  typedef Homogeneous<RhsArg,Vertical> Rhs;
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
-template<typename Scalar, int Dim, int Mode,int Options, typename RhsArg, int ProductTag>
-struct product_evaluator<Product<Transform<Scalar,Dim,Mode,Options>, Homogeneous<RhsArg,Vertical>, DefaultProduct>, ProductTag, DenseShape, DenseShape, Scalar, typename traits<RhsArg>::Scalar> 
-  : public evaluator<typename Product<Transform<Scalar,Dim,Mode,Options>, Homogeneous<RhsArg,Vertical>, DefaultProduct>::PlainObject>::type
-{
-  typedef Transform<Scalar,Dim,Mode,Options> Lhs;
-  typedef Homogeneous<RhsArg,Vertical> Rhs;
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
 };
 
 #endif // EIGEN_TEST_EVALUATORS
