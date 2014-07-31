@@ -410,44 +410,6 @@ struct generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductType>
   }
 };
 
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, SparseShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, SparseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
 template<typename LhsT, typename RhsT, bool Transpose>
 struct sparse_dense_outer_product_evaluator
 {
@@ -530,7 +492,7 @@ protected:
 
 // sparse * dense outer product
 template<typename Lhs, typename Rhs>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, SparseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, SparseShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : sparse_dense_outer_product_evaluator<Lhs,Rhs, Lhs::IsRowMajor>
 {
   typedef sparse_dense_outer_product_evaluator<Lhs,Rhs, Lhs::IsRowMajor> Base;
@@ -545,7 +507,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, Sparse
 };
 
 template<typename Lhs, typename Rhs>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, DenseShape, SparseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, DenseShape, SparseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : sparse_dense_outer_product_evaluator<Lhs,Rhs, Rhs::IsRowMajor>
 {
   typedef sparse_dense_outer_product_evaluator<Lhs,Rhs, Rhs::IsRowMajor> Base;

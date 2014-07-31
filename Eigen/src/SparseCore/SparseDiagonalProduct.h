@@ -197,11 +197,11 @@ enum {
 template<typename SparseXprType, typename DiagonalCoeffType, int SDP_Tag>
 struct sparse_diagonal_product_evaluator;
 
-template<typename Lhs, typename Rhs, int Options, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, DiagonalShape, SparseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DiagonalShape, SparseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : public sparse_diagonal_product_evaluator<Rhs, typename Lhs::DiagonalVectorType, Rhs::Flags&RowMajorBit?SDP_AsScalarProduct:SDP_AsCwiseProduct>
 {
-  typedef Product<Lhs, Rhs, Options> XprType;
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
   typedef evaluator<XprType> type;
   typedef evaluator<XprType> nestedType;
   enum { CoeffReadCost = Dynamic, Flags = Rhs::Flags&RowMajorBit }; // FIXME CoeffReadCost & Flags
@@ -210,11 +210,11 @@ struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, DiagonalShape, 
   product_evaluator(const XprType& xpr) : Base(xpr.rhs(), xpr.lhs().diagonal()) {}
 };
 
-template<typename Lhs, typename Rhs, int Options, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, SparseShape, DiagonalShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseShape, DiagonalShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : public sparse_diagonal_product_evaluator<Lhs, Transpose<const typename Rhs::DiagonalVectorType>, Lhs::Flags&RowMajorBit?SDP_AsCwiseProduct:SDP_AsScalarProduct>
 {
-  typedef Product<Lhs, Rhs, Options> XprType;
+  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
   typedef evaluator<XprType> type;
   typedef evaluator<XprType> nestedType;
   enum { CoeffReadCost = Dynamic, Flags = Lhs::Flags&RowMajorBit }; // FIXME CoeffReadCost & Flags

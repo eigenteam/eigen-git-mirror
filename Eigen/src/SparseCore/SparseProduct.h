@@ -224,25 +224,6 @@ struct generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
   }
 };
 
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseShape, SparseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
 template<typename Lhs, typename Rhs, int Options>
 struct evaluator<SparseView<Product<Lhs, Rhs, Options> > > 
  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type

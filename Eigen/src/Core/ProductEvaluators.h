@@ -90,9 +90,10 @@ struct evaluator_traits<Product<Lhs, Rhs, DefaultProduct> >
   enum { AssumeAliasing = 1 };
 };
 
-// The evaluator for default dense products creates a temporary and call generic_product_impl
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+// This is the default evaluator implementation for products:
+// It creates a temporary and call generic_product_impl
+template<typename Lhs, typename Rhs, int ProductTag, typename LhsShape, typename RhsShape>
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, LhsShape, RhsShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
@@ -118,7 +119,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseSha
 //   
 //     generic_product_impl<LhsNestedCleaned, RhsNestedCleaned>::evalTo(m_result, lhs, rhs);
 
-    generic_product_impl<Lhs, Rhs>::evalTo(m_result, xpr.lhs(), xpr.rhs());
+    generic_product_impl<Lhs, Rhs, LhsShape, RhsShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
   }
   
 protected:  
@@ -501,8 +502,8 @@ protected:
 };
 
 template<typename Lhs, typename Rhs>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProductMode, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar > 
-  : product_evaluator<Product<Lhs, Rhs, LazyProduct>, CoeffBasedProductMode, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar >
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProductMode, DenseShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar > 
+  : product_evaluator<Product<Lhs, Rhs, LazyProduct>, CoeffBasedProductMode, DenseShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar >
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
   typedef Product<Lhs, Rhs, LazyProduct> BaseProduct;
@@ -608,26 +609,6 @@ struct generic_product_impl<Lhs,Rhs,TriangularShape,DenseShape,ProductTag>
 };
 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, TriangularShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, TriangularShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
-
-template<typename Lhs, typename Rhs, int ProductTag>
 struct generic_product_impl<Lhs,Rhs,DenseShape,TriangularShape,ProductTag>
 : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,TriangularShape,ProductTag> >
 {
@@ -639,26 +620,6 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,TriangularShape,ProductTag>
     triangular_product_impl<Rhs::Mode,false,Lhs,Lhs::RowsAtCompileTime==1, typename Rhs::MatrixType, false>::run(dst, lhs, rhs.nestedExpression(), alpha);
   }
 };
-
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, TriangularShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, TriangularShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
 
 
 /***************************************************************************
@@ -682,26 +643,6 @@ struct generic_product_impl<Lhs,Rhs,SelfAdjointShape,DenseShape,ProductTag>
 };
 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SelfAdjointShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, SelfAdjointShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
-
-template<typename Lhs, typename Rhs, int ProductTag>
 struct generic_product_impl<Lhs,Rhs,DenseShape,SelfAdjointShape,ProductTag>
 : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,SelfAdjointShape,ProductTag> >
 {
@@ -714,24 +655,6 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,SelfAdjointShape,ProductTag>
   }
 };
 
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, SelfAdjointShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, SelfAdjointShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
 
 /***************************************************************************
 * Diagonal products
@@ -931,45 +854,6 @@ struct generic_product_impl<Lhs, Transpose<Rhs>, DenseShape, PermutationShape, P
     permut_matrix_product_retval<Rhs, Lhs, OnTheRight, true> pmpr(rhs.nestedPermutation(), lhs);
     pmpr.evalTo(dst);
   }
-};
-
-// TODO: left/right and self-adj/symmetric/permutation look the same ... Too much boilerplate? 
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, PermutationShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, PermutationShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, PermutationShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, PermutationShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
 };
 
 } // end namespace internal

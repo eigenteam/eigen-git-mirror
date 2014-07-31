@@ -108,8 +108,8 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
     
     typedef typename ProductImpl<
         Lhs, Rhs, Option,
-        typename internal::product_promote_storage_type<typename Lhs::StorageKind,
-                                                        typename Rhs::StorageKind,
+        typename internal::product_promote_storage_type<typename internal::traits<Lhs>::StorageKind,
+                                                        typename internal::traits<Rhs>::StorageKind,
                                                         internal::product_type<Lhs,Rhs>::ret>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
 

@@ -67,8 +67,8 @@ struct evaluator_traits_base
 //   typedef evaluator<T> nestedType;
   
   // by default, get evaluator kind and shape from storage
-  typedef typename storage_kind_to_evaluator_kind<typename T::StorageKind>::Kind Kind;
-  typedef typename storage_kind_to_shape<typename T::StorageKind>::Shape Shape;
+  typedef typename storage_kind_to_evaluator_kind<typename traits<T>::StorageKind>::Kind Kind;
+  typedef typename storage_kind_to_shape<typename traits<T>::StorageKind>::Shape Shape;
   
   // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
   // temporary; 0 if not.

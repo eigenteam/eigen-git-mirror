@@ -62,6 +62,23 @@ struct transform_construct_from_matrix;
 
 template<typename TransformType> struct transform_take_affine_part;
 
+#ifdef EIGEN_TEST_EVALUATORS
+template<typename _Scalar, int _Dim, int _Mode, int _Options>
+struct traits<Transform<_Scalar,_Dim,_Mode,_Options> >
+{
+  typedef _Scalar Scalar;
+  typedef DenseIndex Index;
+  typedef Dense StorageKind;
+  enum {
+    RowsAtCompileTime = _Dim,
+    ColsAtCompileTime = _Dim,
+    MaxRowsAtCompileTime = _Dim,
+    MaxColsAtCompileTime = _Dim,
+    Flags = 0
+  };
+};
+#endif
+
 } // end namespace internal
 
 /** \geometry_module \ingroup Geometry_Module
@@ -355,6 +372,11 @@ public:
   inline Transform& operator=(const QTransform& other);
   inline QTransform toQTransform(void) const;
   #endif
+  
+#ifdef EIGEN_TEST_EVALUATORS
+  Index rows() const { return m_matrix.cols(); }
+  Index cols() const { return m_matrix.cols(); }
+#endif
 
   /** shortcut for m_matrix(row,col);
     * \sa MatrixBase::operator(Index,Index) const */

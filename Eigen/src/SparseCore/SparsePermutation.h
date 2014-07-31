@@ -196,6 +196,10 @@ struct generic_product_impl<Lhs, Transpose<Rhs>, SparseShape, PermutationShape, 
   }
 };
 
+// TODO, the following two overloads are only needed to define the right temporary type through 
+// typename traits<permut_sparsematrix_product_retval<Rhs,Lhs,OnTheRight,false> >::ReturnType
+// while it should be correctly handled by traits<Product<> >::PlainObject
+
 template<typename Lhs, typename Rhs, int ProductTag>
 struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, PermutationShape, SparseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
   : public evaluator<typename traits<permut_sparsematrix_product_retval<Lhs,Rhs,OnTheRight,false> >::ReturnType>::type

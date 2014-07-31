@@ -441,46 +441,11 @@ struct generic_product_impl<Lhs, RhsView, DenseShape, SparseSelfAdjointShape, Pr
   }
 };
 
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseSelfAdjointShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, SparseSelfAdjointShape, DenseShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
-template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, DenseShape, SparseSelfAdjointShape, typename Lhs::Scalar, typename Rhs::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
-{
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
-
-  product_evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
-  {
-    ::new (static_cast<Base*>(this)) Base(m_result);
-    generic_product_impl<Lhs, Rhs, DenseShape, SparseSelfAdjointShape, ProductTag>::evalTo(m_result, xpr.lhs(), xpr.rhs());
-  }
-  
-protected:  
-  PlainObject m_result;
-};
+// NOTE: these two overloads are needed to evaluate the sparse sefladjoint view into a full sparse matrix
+// TODO: maybe the copy could be handled by generic_product_impl so that these overloads would not be needed anymore
 
 template<typename LhsView, typename Rhs, int ProductTag>
-struct product_evaluator<Product<LhsView, Rhs, DefaultProduct>, ProductTag, SparseSelfAdjointShape, SparseShape, typename LhsView::Scalar, typename Rhs::Scalar>
+struct product_evaluator<Product<LhsView, Rhs, DefaultProduct>, ProductTag, SparseSelfAdjointShape, SparseShape, typename traits<LhsView>::Scalar, typename traits<Rhs>::Scalar>
   : public evaluator<typename Product<typename Rhs::PlainObject, Rhs, DefaultProduct>::PlainObject>::type
 {
   typedef Product<LhsView, Rhs, DefaultProduct> XprType;
@@ -488,9 +453,8 @@ struct product_evaluator<Product<LhsView, Rhs, DefaultProduct>, ProductTag, Spar
   typedef typename evaluator<PlainObject>::type Base;
 
   product_evaluator(const XprType& xpr)
-    : /*m_lhs(xpr.lhs()),*/ m_result(xpr.rows(), xpr.cols())
+    : m_lhs(xpr.lhs()), m_result(xpr.rows(), xpr.cols())
   {
-    m_lhs = xpr.lhs();
     ::new (static_cast<Base*>(this)) Base(m_result);
     generic_product_impl<typename Rhs::PlainObject, Rhs, SparseShape, SparseShape, ProductTag>::evalTo(m_result, m_lhs, xpr.rhs());
   }
@@ -501,7 +465,7 @@ protected:
 };
 
 template<typename Lhs, typename RhsView, int ProductTag>
-struct product_evaluator<Product<Lhs, RhsView, DefaultProduct>, ProductTag, SparseShape, SparseSelfAdjointShape, typename Lhs::Scalar, typename RhsView::Scalar>
+struct product_evaluator<Product<Lhs, RhsView, DefaultProduct>, ProductTag, SparseShape, SparseSelfAdjointShape, typename traits<Lhs>::Scalar, typename traits<RhsView>::Scalar>
   : public evaluator<typename Product<Lhs, typename Lhs::PlainObject, DefaultProduct>::PlainObject>::type
 {
   typedef Product<Lhs, RhsView, DefaultProduct> XprType;
