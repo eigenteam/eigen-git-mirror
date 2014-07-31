@@ -70,10 +70,11 @@ struct traits<Transform<_Scalar,_Dim,_Mode,_Options> >
   typedef DenseIndex Index;
   typedef Dense StorageKind;
   enum {
-    RowsAtCompileTime = _Dim,
-    ColsAtCompileTime = _Dim,
-    MaxRowsAtCompileTime = _Dim,
-    MaxColsAtCompileTime = _Dim,
+    Dim1 = _Dim==Dynamic ? _Dim : _Dim + 1,
+    RowsAtCompileTime = _Mode==Projective ? Dim1 : _Dim,
+    ColsAtCompileTime = Dim1,
+    MaxRowsAtCompileTime = RowsAtCompileTime,
+    MaxColsAtCompileTime = ColsAtCompileTime,
     Flags = 0
   };
 };
@@ -374,7 +375,7 @@ public:
   #endif
   
 #ifdef EIGEN_TEST_EVALUATORS
-  Index rows() const { return m_matrix.cols(); }
+  Index rows() const { return Mode==Projective ? m_matrix.cols() : m_matrix.cols()-1; }
   Index cols() const { return m_matrix.cols(); }
 #endif
 
