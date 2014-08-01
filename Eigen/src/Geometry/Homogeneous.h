@@ -351,6 +351,9 @@ struct unary_evaluator<Homogeneous<ArgType,Direction>, IndexBased>
   typedef Homogeneous<ArgType,Direction> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
+  
+  typedef evaluator<XprType> type;
+  typedef evaluator<XprType> nestedType;
 
   unary_evaluator(const XprType& op) 
     : Base(), m_temp(op)
@@ -367,10 +370,6 @@ template< typename DstXprType, typename ArgType, typename Scalar>
 struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
 {
   typedef Homogeneous<ArgType,Vertical> SrcXprType;
-  // TODO clang generates garbage if this function is inlined. no valgrind error though.
-#ifdef __clang__
-  EIGEN_DONT_INLINE
-#endif
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
     dst.template topRows<ArgType::RowsAtCompileTime>(src.nestedExpression().rows()) = src.nestedExpression();
@@ -383,10 +382,6 @@ template< typename DstXprType, typename ArgType, typename Scalar>
 struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
 {
   typedef Homogeneous<ArgType,Horizontal> SrcXprType;
-  // TODO clang generates garbage if this function is inlined. no valgrind error though.
-#ifdef __clang__
-  EIGEN_DONT_INLINE
-#endif
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
     dst.template leftCols<ArgType::ColsAtCompileTime>(src.nestedExpression().cols()) = src.nestedExpression();
