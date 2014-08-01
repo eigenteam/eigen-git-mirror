@@ -79,6 +79,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     };
 
     static const int Options = Options_;
+
     static const std::size_t NumIndices = NumIndices_;
 
   typedef DSizes<DenseIndex, NumIndices_> Dimensions;
@@ -232,11 +233,9 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Tensor& operator=(const Tensor& other)
     {
-      // FIXME: we need to resize the tensor to fix the dimensions of the other.
-      // Unfortunately this isn't possible yet when the rhs is an expression.
-      // resize(other.dimensions());
       typedef TensorAssignOp<Tensor, const Tensor> Assign;
       Assign assign(*this, other);
+      resize(TensorEvaluator<const Assign, DefaultDevice>(assign, DefaultDevice()).dimensions());
       internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
@@ -244,11 +243,9 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Tensor& operator=(const OtherDerived& other)
     {
-      // FIXME: we need to resize the tensor to fix the dimensions of the other.
-      // Unfortunately this isn't possible yet when the rhs is an expression.
-      // resize(other.dimensions());
       typedef TensorAssignOp<Tensor, const OtherDerived> Assign;
       Assign assign(*this, other);
+      resize(TensorEvaluator<const Assign, DefaultDevice>(assign, DefaultDevice()).dimensions());
       internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
