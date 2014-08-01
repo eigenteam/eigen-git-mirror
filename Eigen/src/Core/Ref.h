@@ -19,17 +19,17 @@ template<typename PlainObjectType, int Options = 0,
 /** \class Ref
   * \ingroup Core_Module
   *
-  * \brief A matrix or vector expression mapping an existing expressions
+  * \brief A matrix or vector expression mapping an existing expression
   *
   * \tparam PlainObjectType the equivalent matrix type of the mapped data
   * \tparam Options specifies whether the pointer is \c #Aligned, or \c #Unaligned.
   *                The default is \c #Unaligned.
   * \tparam StrideType optionally specifies strides. By default, Ref implies a contiguous storage along the inner dimension (inner stride==1),
-  *                   but accept a variable outer stride (leading dimension).
+  *                   but accepts a variable outer stride (leading dimension).
   *                   This can be overridden by specifying strides.
   *                   The type passed here must be a specialization of the Stride template, see examples below.
   *
-  * This class permits to write non template functions taking Eigen's object as parameters while limiting the number of copies.
+  * This class provides a way to write non-template functions taking Eigen objects as parameters while limiting the number of copies.
   * A Ref<> object can represent either a const expression or a l-value:
   * \code
   * // in-out argument:
@@ -58,15 +58,15 @@ template<typename PlainObjectType, int Options = 0,
   * foo2(A.col().segment(2,4)); // No temporary
   * \endcode
   *
-  * The range of inputs that can be referenced without temporary can be enlarged using the last two template parameter.
+  * The range of inputs that can be referenced without temporary can be enlarged using the last two template parameters.
   * Here is an example accepting an innerstride!=1:
   * \code
   * // in-out argument:
   * void foo3(Ref<VectorXf,0,InnerStride<> > x);
   * foo3(A.row());              // OK
   * \endcode
-  * The downside here is that the function foo3 might be significantly slower than foo1 because it won't be able to exploit vectorization, and will involved more
-  * expensive address computations even if the input is contiguously stored in memory. To overcome this issue, one might propose to overloads internally calling a
+  * The downside here is that the function foo3 might be significantly slower than foo1 because it won't be able to exploit vectorization, and will involve more
+  * expensive address computations even if the input is contiguously stored in memory. To overcome this issue, one might propose to overload internally calling a
   * template function, e.g.:
   * \code
   * // in the .h:
