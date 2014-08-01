@@ -262,7 +262,7 @@ class PermutationBase : public EigenBase<Derived>
   *
   * \param SizeAtCompileTime the number of rows/cols, or Dynamic
   * \param MaxSizeAtCompileTime the maximum number of rows/cols, or Dynamic. This optional parameter defaults to SizeAtCompileTime. Most of the time, you should not have to specify it.
-  * \param StorageIndexType the interger type of the indices
+  * \param StorageIndexType the integer type of the indices
   *
   * This class represents a permutation matrix, internally stored as a vector of integers.
   *
