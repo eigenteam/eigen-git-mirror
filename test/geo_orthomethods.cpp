@@ -49,11 +49,11 @@ template<typename Scalar> void orthomethods_3()
   mcross = mat3.colwise().cross(vec3);
   VERIFY_IS_APPROX(mcross.col(i), mat3.col(i).cross(vec3));
   
-  VERIFY_IS_MUCH_SMALLER_THAN((mat3.transpose() * mat3.colwise().cross(vec3)).diagonal().cwiseAbs().sum(), Scalar(1));
-  VERIFY_IS_MUCH_SMALLER_THAN((mat3.transpose() * mat3.colwise().cross(Vector3::Random())).diagonal().cwiseAbs().sum(), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN((mat3.adjoint() * mat3.colwise().cross(vec3)).diagonal().cwiseAbs().sum(), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN((mat3.adjoint() * mat3.colwise().cross(Vector3::Random())).diagonal().cwiseAbs().sum(), Scalar(1));
   
-  VERIFY_IS_MUCH_SMALLER_THAN((vec3.transpose() * mat3.colwise().cross(vec3)).cwiseAbs().sum(), Scalar(1));
-  VERIFY_IS_MUCH_SMALLER_THAN((vec3.transpose() * Matrix3::Random().colwise().cross(vec3)).cwiseAbs().sum(), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN((vec3.adjoint() * mat3.colwise().cross(vec3)).cwiseAbs().sum(), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN((vec3.adjoint() * Matrix3::Random().colwise().cross(vec3)).cwiseAbs().sum(), Scalar(1));
   
   mcross = mat3.rowwise().cross(vec3);
   VERIFY_IS_APPROX(mcross.row(i), mat3.row(i).cross(vec3));
