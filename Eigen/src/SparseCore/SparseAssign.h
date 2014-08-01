@@ -172,9 +172,9 @@ struct storage_kind_to_shape<Sparse> {
 struct Sparse2Sparse {};
 struct Sparse2Dense  {};
 
-template<> struct AssignmentKind<SparseShape,SparseShape> { typedef Sparse2Sparse Kind; };
-template<> struct AssignmentKind<SparseShape,SparseTriangularShape> { typedef Sparse2Sparse Kind; };
-template<> struct AssignmentKind<DenseShape,SparseShape>  { typedef Sparse2Dense  Kind; };
+template<> struct AssignmentKind<SparseShape, SparseShape>           { typedef Sparse2Sparse Kind; };
+template<> struct AssignmentKind<SparseShape, SparseTriangularShape> { typedef Sparse2Sparse Kind; };
+template<> struct AssignmentKind<DenseShape,  SparseShape>           { typedef Sparse2Dense  Kind; };
 
 
 template<typename DstXprType, typename SrcXprType>
@@ -252,7 +252,24 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
 template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
 struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
 {
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
+  {
+    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+    typedef typename SrcXprType::Index Index;
+    
+    typename internal::evaluator<SrcXprType>::type srcEval(src);
+    typename internal::evaluator<DstXprType>::type dstEval(dst);
+    const Index outerEvaluationSize = (internal::evaluator<SrcXprType>::Flags&RowMajorBit) ? src.rows() : src.cols();
+    for (Index j=0; j<outerEvaluationSize; ++j)
+      for (typename internal::evaluator<SrcXprType>::InnerIterator i(srcEval,j); i; ++i)
+        func.assignCoeff(dstEval.coeffRef(i.row(),i.col()), i.value());
+  }
+};
+
+template< typename DstXprType, typename SrcXprType, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense, Scalar>
+{
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     typedef typename SrcXprType::Index Index;
