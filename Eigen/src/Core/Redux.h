@@ -449,7 +449,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff() const
 {
-  return this->redux(Eigen::internal::scalar_min_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_min_op<Scalar>());
 }
 
 /** \returns the maximum of all coefficients of \c *this.
@@ -459,7 +459,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff() const
 {
-  return this->redux(Eigen::internal::scalar_max_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_max_op<Scalar>());
 }
 
 /** \returns the sum of all coefficients of *this
@@ -472,7 +472,7 @@ DenseBase<Derived>::sum() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
     return Scalar(0);
-  return this->redux(Eigen::internal::scalar_sum_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_sum_op<Scalar>());
 }
 
 /** \returns the mean of all coefficients of *this
@@ -483,7 +483,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::mean() const
 {
-  return Scalar(this->redux(Eigen::internal::scalar_sum_op<Scalar>())) / Scalar(this->size());
+  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar>())) / Scalar(this->size());
 }
 
 /** \returns the product of all coefficients of *this
@@ -499,7 +499,7 @@ DenseBase<Derived>::prod() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
     return Scalar(1);
-  return this->redux(Eigen::internal::scalar_product_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_product_op<Scalar>());
 }
 
 /** \returns the trace of \c *this, i.e. the sum of the coefficients on the main diagonal.

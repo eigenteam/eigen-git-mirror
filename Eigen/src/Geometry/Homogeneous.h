@@ -138,6 +138,13 @@ template<typename MatrixType,int _Direction> class Homogeneous
     }
 #endif
 
+    template<typename Func>
+    EIGEN_STRONG_INLINE typename internal::result_of<Func(Scalar)>::type
+    redux(const Func& func) const
+    {
+      return func(m_matrix.redux(func), Scalar(1));
+    }
+
   protected:
     typename MatrixType::Nested m_matrix;
 };
