@@ -965,7 +965,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
   typedef PartialReduxExpr<ArgType, MemberOp, Direction> XprType;
   typedef typename XprType::Scalar InputScalar;
   enum {
-    TraversalSize = Direction==Vertical ? ArgType::RowsAtCompileTime :  XprType::ColsAtCompileTime
+    TraversalSize = Direction==int(Vertical) ? int(ArgType::RowsAtCompileTime) :  int(XprType::ColsAtCompileTime)
   };
   typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
   enum {

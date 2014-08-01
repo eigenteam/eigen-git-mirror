@@ -200,7 +200,7 @@ public:
     public:
 
       EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& xprEval, Index outer)
-        : Base(xprEval.m_argImpl,outer)
+        : Base(xprEval.m_argImpl,outer), m_returnOne(false)
       {
         if(SkipFirst)
         {

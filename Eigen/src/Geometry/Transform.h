@@ -375,7 +375,7 @@ public:
   #endif
   
 #ifdef EIGEN_TEST_EVALUATORS
-  Index rows() const { return Mode==Projective ? m_matrix.cols() : m_matrix.cols()-1; }
+  Index rows() const { return int(Mode)==int(Projective) ? m_matrix.cols() : (m_matrix.cols()-1); }
   Index cols() const { return m_matrix.cols(); }
 #endif
 

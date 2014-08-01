@@ -178,7 +178,7 @@ class SparseQR
       y.resize((std::max)(cols(),Index(y.rows())),y.cols());
       y.topRows(rank) = this->matrixR().topLeftCorner(rank, rank).template triangularView<Upper>().solve(b.topRows(rank));
       y.bottomRows(y.rows()-rank).setZero();
-
+      
       // Apply the column permutation
       if (m_perm_c.size())  dest = colsPermutation() * y.topRows(cols());
       else                  dest = y.topRows(cols());
@@ -447,7 +447,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
       }
     } // End update current column
     
-    Scalar tau;
+    Scalar tau = 0;
     RealScalar beta = 0;
     
     if(nonzeroCol < diagSize)

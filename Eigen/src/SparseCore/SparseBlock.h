@@ -577,7 +577,7 @@ namespace internal {
 #ifdef EIGEN_TEST_EVALUATORS
 
 //
-template<typename ArgType, int BlockRows, int BlockCols, int InnerPanel>
+template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased >
  : public evaluator_base<Block<ArgType,BlockRows,BlockCols,InnerPanel> >
 {
@@ -615,7 +615,7 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
     const XprType &m_block;
 };
 
-template<typename ArgType, int BlockRows, int BlockCols, int InnerPanel>
+template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::InnerVectorInnerIterator
  : public EvalIterator
 {
@@ -640,7 +640,7 @@ public:
   inline operator bool() const { return EvalIterator::operator bool() && EvalIterator::index() < m_end; }
 };
 
-template<typename ArgType, int BlockRows, int BlockCols, int InnerPanel>
+template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::OuterVectorInnerIterator
 {
   const unary_evaluator& m_eval;
