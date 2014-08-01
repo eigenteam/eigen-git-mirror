@@ -251,8 +251,6 @@ ei_add_test(dense_storage)
 
 # # ei_add_test(denseLM)
 
-if(NOT EIGEN_TEST_EVALUATORS)
-
 if(QT4_FOUND)
   ei_add_test(qtvector "" "${QT_QTCORE_LIBRARY}")
 endif(QT4_FOUND)
@@ -284,8 +282,6 @@ endif()
 if(METIS_FOUND)
 ei_add_test(metis_support "" "${METIS_LIBRARIES}")
 endif()
-
-endif(NOT EIGEN_TEST_EVALUATORS)
 
 string(TOLOWER "${CMAKE_CXX_COMPILER}" cmake_cxx_compiler_tolower)
 if(cmake_cxx_compiler_tolower MATCHES "qcc")

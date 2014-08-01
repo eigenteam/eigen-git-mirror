@@ -211,8 +211,13 @@ template<typename OtherDerived>
 bool MatrixBase<Derived>::isOrthogonal
 (const MatrixBase<OtherDerived>& other, const RealScalar& prec) const
 {
+#ifndef EIGEN_TEST_EVALUATORS
   typename internal::nested<Derived,2>::type nested(derived());
   typename internal::nested<OtherDerived,2>::type otherNested(other.derived());
+#else
+  typename internal::nested_eval<Derived,2>::type nested(derived());
+  typename internal::nested_eval<OtherDerived,2>::type otherNested(other.derived());
+#endif
   return numext::abs2(nested.dot(otherNested)) <= prec * prec * nested.squaredNorm() * otherNested.squaredNorm();
 }
 

@@ -422,7 +422,11 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   // for larger sizes, evaluating has negligible cost and limits code size.
   typedef typename internal::conditional<
     RowsAtCompileTime == 2,
+#ifndef EIGEN_TEST_EVALUATORS
     typename internal::remove_all<typename internal::nested<Derived, 2>::type>::type,
+#else
+    typename internal::remove_all<typename internal::nested_eval<Derived, 2>::type>::type,
+#endif
     PlainObject
   >::type MatrixType;
   internal::compute_inverse_and_det_with_check<MatrixType, ResultType>::run
