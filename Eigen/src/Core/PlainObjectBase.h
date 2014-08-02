@@ -708,7 +708,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<Base::SizeAtCompileTime!=1 || !internal::is_convertible<T, Scalar>::value,T>::type* = 0)
     {
-      EIGEN_STATIC_ASSERT(bool(NumTraits<T>::IsInteger),
+      // NOTE MSVC 2008 complains if we directly put bool(NumTraits<T>::IsInteger) as the EIGEN_STATIC_ASSERT argument.
+      const bool is_integer = NumTraits<T>::IsInteger;
+      EIGEN_STATIC_ASSERT(is_integer,
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
       resize(size);
     }
