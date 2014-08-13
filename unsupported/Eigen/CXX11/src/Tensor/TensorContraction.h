@@ -184,9 +184,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       buffer[i] += coeff(i);
     }
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
-    m_leftImpl.evalSubExprsIfNeeded();
-    m_rightImpl.evalSubExprsIfNeeded();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded(Scalar*) {
+    m_leftImpl.evalSubExprsIfNeeded(NULL);
+    m_rightImpl.evalSubExprsIfNeeded(NULL);
+    return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_leftImpl.cleanup();
