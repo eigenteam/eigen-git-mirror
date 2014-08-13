@@ -173,7 +173,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
   }
 
-  //  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
@@ -225,6 +225,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       }
     }
   }
+
+  Scalar* data() const { return NULL; }
 
  private:
   array<Index, 2*internal::array_size<Indices>::value> m_leftOffsets;
