@@ -11,7 +11,7 @@
 #define EIGEN_CXX11_TENSOR_TENSOR_EXECUTOR_H
 
 #ifdef EIGEN_USE_THREADS
-#include <future>
+#include <future>"
 #endif
 
 namespace Eigen {
@@ -28,45 +28,49 @@ namespace internal {
 
 // Default strategy: the expression is evaluated with a single cpu thread.
 template<typename Expression, typename Device = DefaultDevice, bool Vectorizable = TensorEvaluator<Expression, Device>::PacketAccess>
-struct TensorExecutor
+class TensorExecutor
 {
+ public:
   typedef typename Expression::Index Index;
   EIGEN_DEVICE_FUNC
   static inline void run(const Expression& expr, const Device& device = Device())
   {
     TensorEvaluator<Expression, Device> evaluator(expr, device);
-    evaluator.evalSubExprsIfNeeded();
-
-    const Index size = evaluator.dimensions().TotalSize();
-    for (Index i = 0; i < size; ++i) {
-      evaluator.evalScalar(i);
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
+    if (needs_assign)
+    {
+      const Index size = evaluator.dimensions().TotalSize();
+      for (Index i = 0; i < size; ++i) {
+        evaluator.evalScalar(i);
+      }
     }
-
     evaluator.cleanup();
   }
 };
 
 
 template<typename Expression>
-struct TensorExecutor<Expression, DefaultDevice, true>
+class TensorExecutor<Expression, DefaultDevice, true>
 {
+ public:
   typedef typename Expression::Index Index;
   static inline void run(const Expression& expr, const DefaultDevice& device = DefaultDevice())
   {
     TensorEvaluator<Expression, DefaultDevice> evaluator(expr, device);
-    evaluator.evalSubExprsIfNeeded();
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
+    if (needs_assign)
+    {
+      const Index size = evaluator.dimensions().TotalSize();
+      static const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
+      const int VectorizedSize = (size / PacketSize) * PacketSize;
 
-    const Index size = evaluator.dimensions().TotalSize();
-    static const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
-    const int VectorizedSize = (size / PacketSize) * PacketSize;
-
-    for (Index i = 0; i < VectorizedSize; i += PacketSize) {
-      evaluator.evalPacket(i);
+      for (Index i = 0; i < VectorizedSize; i += PacketSize) {
+        evaluator.evalPacket(i);
+      }
+      for (Index i = VectorizedSize; i < size; ++i) {
+        evaluator.evalScalar(i);
+      }
     }
-    for (Index i = VectorizedSize; i < size; ++i) {
-      evaluator.evalScalar(i);
-    }
-
     evaluator.cleanup();
   }
 };
@@ -107,38 +111,40 @@ struct EvalRange<Evaluator, Index, true> {
 };
 
 template<typename Expression, bool Vectorizable>
-struct TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
+class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 {
+ public:
   typedef typename Expression::Index Index;
   static inline void run(const Expression& expr, const ThreadPoolDevice& device)
   {
     typedef TensorEvaluator<Expression, ThreadPoolDevice> Evaluator;
     Evaluator evaluator(expr, device);
-    evaluator.evalSubExprsIfNeeded();
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
+    if (needs_assign)
+    {
+      const Index size = evaluator.dimensions().TotalSize();
 
-    const Index size = evaluator.dimensions().TotalSize();
+      static const int PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
 
-    static const int PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
+      int blocksz = std::ceil<int>(static_cast<float>(size)/device.numThreads()) + PacketSize - 1;
+      const Index blocksize = std::max<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
+      const Index numblocks = size / blocksize;
 
-    int blocksz = std::ceil<int>(static_cast<float>(size)/device.numThreads()) + PacketSize - 1;
-    const Index blocksize = std::max<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
-    const Index numblocks = size / blocksize;
+      Index i = 0;
+      vector<std::future<void> > results;
+      results.reserve(numblocks);
+      for (int i = 0; i < numblocks; ++i) {
+         results.push_back(std::async(std::launch::async, &EvalRange<Evaluator, Index>::run, &evaluator, i*blocksize, (i+1)*blocksize));
+      }
 
-    Index i = 0;
-    vector<std::future<void> > results;
-    results.reserve(numblocks);
-    for (int i = 0; i < numblocks; ++i) {
-      results.push_back(std::async(std::launch::async, &EvalRange<Evaluator, Index>::run, &evaluator, i*blocksize, (i+1)*blocksize));
+      for (int i = 0; i < numblocks; ++i) {
+        results[i].get();
+      }
+
+      if (numblocks * blocksize < size) {
+        EvalRange<Evaluator, Index>::run(&evaluator, numblocks * blocksize, size);
+      }
     }
-
-    for (int i = 0; i < numblocks; ++i) {
-      results[i].get();
-    }
-
-    if (numblocks * blocksize < size) {
-      EvalRange<Evaluator, Index>::run(&evaluator, numblocks * blocksize, size);
-    }
-
     evaluator.cleanup();
   }
 };
@@ -157,19 +163,23 @@ __global__ void EigenMetaKernel(Evaluator eval, unsigned int size) {
 }
 
 template<typename Expression, bool Vectorizable>
-struct TensorExecutor<Expression, GpuDevice, Vectorizable>
+class TensorExecutor<Expression, GpuDevice, Vectorizable>
 {
+ public:
   typedef typename Expression::Index Index;
   static inline void run(const Expression& expr, const GpuDevice& device)
   {
     TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
-    evaluator.evalSubExprsIfNeeded();
-    const int num_blocks = getNumCudaMultiProcessors() * maxCudaThreadsPerMultiProcessor() / maxCudaThreadsPerBlock();
-    const int block_size = maxCudaThreadsPerBlock();
+    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
+    if (needs_assign)
+    {
+      const int num_blocks = getNumCudaMultiProcessors() * maxCudaThreadsPerMultiProcessor() / maxCudaThreadsPerBlock();
+      const int block_size = maxCudaThreadsPerBlock();
 
-    const Index size = evaluator.dimensions().TotalSize();
-    EigenMetaKernel<TensorEvaluator<Expression, GpuDevice> > <<<num_blocks, block_size, 0, device.stream()>>>(evaluator, size);
-    eigen_assert(cudaGetLastError() == cudaSuccess);
+      const Index size = evaluator.dimensions().TotalSize();
+      EigenMetaKernel<TensorEvaluator<Expression, GpuDevice> > <<<num_blocks, block_size, 0, device.stream()>>>(evaluator, size);
+      assert(cudaGetLastError() == cudaSuccess);
+    }
     evaluator.cleanup();
   }
 };
