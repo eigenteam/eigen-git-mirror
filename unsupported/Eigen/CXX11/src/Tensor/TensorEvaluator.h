@@ -39,13 +39,20 @@ struct TensorEvaluator
     PacketAccess = Derived::PacketAccess,
   };
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device&)
-      : m_data(const_cast<Scalar*>(m.data())), m_dims(m.dimensions())
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device& device)
+      : m_data(const_cast<Scalar*>(m.data())), m_dims(m.dimensions()), m_device(device)
   { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dims; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* dest) {
+    if (dest) {
+      m_device.memcpy((void*)dest, m_data, sizeof(Scalar) * m_dims.TotalSize());
+      return false;
+    }
+    return true;
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
@@ -70,9 +77,12 @@ struct TensorEvaluator
     return internal::pstoret<Scalar, Packet, StoreMode>(m_data + index, x);
   }
 
+  Scalar* data() const { return m_data; }
+
  protected:
   Scalar* m_data;
   Dimensions m_dims;
+  const Device& m_device;
 };
 
 
@@ -98,7 +108,7 @@ struct TensorEvaluator<const Derived, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dims; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) { return true; }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
@@ -111,6 +121,8 @@ struct TensorEvaluator<const Derived, Device>
   {
     return internal::ploadt<Packet, LoadMode>(m_data + index);
   }
+
+  const Scalar* data() const { return m_data; }
 
  protected:
   const Scalar* m_data;
@@ -138,13 +150,14 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   { }
 
   typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) { return true; }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() { }
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
@@ -157,6 +170,8 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   {
     return m_functor.packetOp(index);
   }
+
+  Scalar* data() const { return NULL; }
 
  private:
   const NullaryOp m_functor;
@@ -183,14 +198,16 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   { }
 
   typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
-    m_argImpl.evalSubExprsIfNeeded();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+    m_argImpl.evalSubExprsIfNeeded(NULL);
+    return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_argImpl.cleanup();
@@ -206,6 +223,8 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   {
     return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
   }
+
+  Scalar* data() const { return NULL; }
 
  private:
   const UnaryOp m_functor;
@@ -233,6 +252,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   { }
 
   typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename TensorEvaluator<LeftArgType, Device>::Dimensions Dimensions;
@@ -243,9 +263,10 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
     return m_leftImpl.dimensions();
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
-    m_leftImpl.evalSubExprsIfNeeded();
-    m_rightImpl.evalSubExprsIfNeeded();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+    m_leftImpl.evalSubExprsIfNeeded(NULL);
+    m_rightImpl.evalSubExprsIfNeeded(NULL);
+    return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_leftImpl.cleanup();
@@ -261,6 +282,8 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   {
     return m_functor.packetOp(m_leftImpl.template packet<LoadMode>(index), m_rightImpl.template packet<LoadMode>(index));
   }
+
+  Scalar* data() const { return NULL; }
 
  private:
   const BinaryOp m_functor;
@@ -289,6 +312,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   { }
 
   typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename TensorEvaluator<IfArgType, Device>::Dimensions Dimensions;
@@ -299,10 +323,11 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
     return m_condImpl.dimensions();
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
-    m_condImpl.evalSubExprsIfNeeded();
-    m_thenImpl.evalSubExprsIfNeeded();
-    m_elseImpl.evalSubExprsIfNeeded();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+    m_condImpl.evalSubExprsIfNeeded(NULL);
+    m_thenImpl.evalSubExprsIfNeeded(NULL);
+    m_elseImpl.evalSubExprsIfNeeded(NULL);
+    return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_condImpl.cleanup();
@@ -326,6 +351,8 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
                             m_thenImpl.template packet<LoadMode>(index),
                             m_elseImpl.template packet<LoadMode>(index));
   }
+
+  Scalar* data() const { return NULL; }
 
  private:
   TensorEvaluator<IfArgType, Device> m_condImpl;

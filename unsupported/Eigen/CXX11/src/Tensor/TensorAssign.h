@@ -102,6 +102,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   { }
 
   typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename TensorEvaluator<RightArgType, Device>::Dimensions Dimensions;
@@ -112,9 +113,14 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
     return m_rightImpl.dimensions();
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
-    m_leftImpl.evalSubExprsIfNeeded();
-    m_rightImpl.evalSubExprsIfNeeded();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+    eigen_assert(internal::dimensions_match(m_leftImpl.dimensions(), m_rightImpl.dimensions()));
+    m_leftImpl.evalSubExprsIfNeeded(NULL);
+    // If the lhs provides raw access to its storage area (i.e. if m_leftImpl.data() returns a non
+    // null value), attempt to evaluate the rhs expression in place. Returns true iff in place
+    // evaluation isn't supported and the caller still needs to manually assign the values generated
+    // by the rhs to the lhs.
+    return m_rightImpl.evalSubExprsIfNeeded(m_leftImpl.data());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_leftImpl.cleanup();
