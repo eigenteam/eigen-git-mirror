@@ -338,15 +338,6 @@ template<> inline void* conditional_aligned_realloc<false>(void* ptr, size_t new
 *** Construction/destruction of array elements                             ***
 *****************************************************************************/
 
-/** \internal Constructs the elements of an array.
-  * The \a size parameter tells on how many objects to call the constructor of T.
-  */
-template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
-{
-  for (size_t i=0; i < size; ++i) ::new (ptr + i) T;
-  return ptr;
-}
-
 /** \internal Destructs the elements of an array.
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
@@ -355,6 +346,24 @@ template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
   // always destruct an array starting from the end.
   if(ptr)
     while(size) ptr[--size].~T();
+}
+
+/** \internal Constructs the elements of an array.
+  * The \a size parameter tells on how many objects to call the constructor of T.
+  */
+template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
+{
+  size_t i;
+  EIGEN_TRY
+  {
+      for (i = 0; i < size; ++i) ::new (ptr + i) T;
+      return ptr;
+  }
+  EIGEN_CATCH(...)
+  {
+    destruct_elements_of_array(ptr, i);
+    EIGEN_THROW;
+  }
 }
 
 /*****************************************************************************
@@ -376,14 +385,30 @@ template<typename T> inline T* aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(aligned_malloc(sizeof(T)*size));
-  return construct_elements_of_array(result, size);
+  EIGEN_TRY
+  {
+    return construct_elements_of_array(result, size);
+  }
+  EIGEN_CATCH(...)
+  {
+    aligned_free(result);
+    EIGEN_THROW;
+  }
 }
 
 template<typename T, bool Align> inline T* conditional_aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
-  return construct_elements_of_array(result, size);
+  EIGEN_TRY
+  {
+    return construct_elements_of_array(result, size);
+  }
+  EIGEN_CATCH(...)
+  {
+    conditional_aligned_free<Align>(result);
+    EIGEN_THROW;
+  }
 }
 
 /** \internal Deletes objects constructed with aligned_new
@@ -412,7 +437,17 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
     destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(new_size > old_size)
-    construct_elements_of_array(result+old_size, new_size-old_size);
+  {
+    EIGEN_TRY
+    {
+      construct_elements_of_array(result+old_size, new_size-old_size);
+    }
+    EIGEN_CATCH(...)
+    {
+      conditional_aligned_free<Align>(result);
+      EIGEN_THROW;
+    }
+  }
   return result;
 }
 
@@ -422,7 +457,17 @@ template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t s
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
   if(NumTraits<T>::RequireInitialization)
-    construct_elements_of_array(result, size);
+  {
+    EIGEN_TRY
+    {
+      construct_elements_of_array(result, size);
+    }
+    EIGEN_CATCH(...)
+    {
+      conditional_aligned_free<Align>(result);
+      EIGEN_THROW;
+    }
+  }
   return result;
 }
 
@@ -434,7 +479,17 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new_auto(
     destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if(NumTraits<T>::RequireInitialization && (new_size > old_size))
-    construct_elements_of_array(result+old_size, new_size-old_size);
+  {
+    EIGEN_TRY
+    {
+      construct_elements_of_array(result+old_size, new_size-old_size);
+    }
+    EIGEN_CATCH(...)
+    {
+      conditional_aligned_free<Align>(result);
+      EIGEN_THROW;
+    }
+  }
   return result;
 }
 
@@ -552,7 +607,7 @@ template<typename T> struct smart_memmove_helper<T,false> {
 // you can overwrite Eigen's default behavior regarding alloca by defining EIGEN_ALLOCA
 // to the appropriate stack allocation function
 #ifndef EIGEN_ALLOCA
-  #if (defined __linux__) || (defined __APPLE__)
+  #if (defined __linux__) || (defined __APPLE__) || (defined alloca)
     #define EIGEN_ALLOCA alloca
   #elif defined(_MSC_VER)
     #define EIGEN_ALLOCA _alloca
@@ -607,12 +662,9 @@ template<typename T> class aligned_stack_memory_handler
   * The underlying stack allocation function can controlled with the EIGEN_ALLOCA preprocessor token.
   */
 #ifdef EIGEN_ALLOCA
-  // The native alloca() that comes with llvm aligns buffer on 16 bytes even when AVX is enabled.
-#if defined(__arm__) || defined(_WIN32) || EIGEN_ALIGN_BYTES > 16
-    #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+EIGEN_ALIGN_BYTES)) & ~(size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES)
-  #else
-    #define EIGEN_ALIGNED_ALLOCA EIGEN_ALLOCA
-  #endif
+  // We always manually re-align the result of EIGEN_ALLOCA.
+  // If alloca is already aligned, the compiler should be smart enough to optimize away the re-alignment.
+  #define EIGEN_ALIGNED_ALLOCA(SIZE) reinterpret_cast<void*>((reinterpret_cast<size_t>(EIGEN_ALLOCA(SIZE+EIGEN_ALIGN_BYTES-1)) + EIGEN_ALIGN_BYTES-1) & ~(size_t(EIGEN_ALIGN_BYTES-1)))
 
   #define ei_declare_aligned_stack_constructed_variable(TYPE,NAME,SIZE,BUFFER) \
     Eigen::internal::check_size_for_overflow<TYPE>(SIZE); \
@@ -637,20 +689,11 @@ template<typename T> class aligned_stack_memory_handler
 *****************************************************************************/
 
 #if EIGEN_ALIGN
-  #ifdef EIGEN_EXCEPTIONS
-    #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
+  #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void* operator new(size_t size, const std::nothrow_t&) throw() { \
-        try { return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); } \
-        catch (...) { return 0; } \
-        return 0; \
+        EIGEN_TRY { return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); } \
+        EIGEN_CATCH (...) { return 0; } \
       }
-  #else
-    #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
-      void* operator new(size_t size, const std::nothrow_t&) throw() { \
-        return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); \
-      }
-  #endif
-
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
       void *operator new(size_t size) { \
         return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); \
@@ -660,6 +703,8 @@ template<typename T> class aligned_stack_memory_handler
       } \
       void operator delete(void * ptr) throw() { Eigen::internal::conditional_aligned_free<NeedsToAlign>(ptr); } \
       void operator delete[](void * ptr) throw() { Eigen::internal::conditional_aligned_free<NeedsToAlign>(ptr); } \
+      void operator delete(void * ptr, std::size_t /* sz */) throw() { Eigen::internal::conditional_aligned_free<NeedsToAlign>(ptr); } \
+      void operator delete[](void * ptr, std::size_t /* sz */) throw() { Eigen::internal::conditional_aligned_free<NeedsToAlign>(ptr); } \
       /* in-place new and delete. since (at least afaik) there is no actual   */ \
       /* memory allocated we can safely let the default implementation handle */ \
       /* this particular case. */ \

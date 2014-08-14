@@ -85,13 +85,6 @@ template<typename T> struct GenericNumTraits
   }
   static inline T highest() { return (std::numeric_limits<T>::max)(); }
   static inline T lowest()  { return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)()); }
-  
-#ifdef EIGEN2_SUPPORT
-  enum {
-    HasFloatingPoint = !IsInteger
-  };
-  typedef NonInteger FloatingPoint;
-#endif
 };
 
 template<typename T> struct NumTraits : GenericNumTraits<T>

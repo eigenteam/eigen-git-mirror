@@ -34,6 +34,7 @@
 #if __cplusplus <= 199711L
 #include "src/Core/util/EmulateCXX11Meta.h"
 #else
+#include <array>
 #include "src/Core/util/CXX11Workarounds.h"
 #include "src/Core/util/CXX11Meta.h"
 #endif

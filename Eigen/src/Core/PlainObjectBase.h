@@ -681,6 +681,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
       resize(nbRows,nbCols);
     }
+    
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC 
     EIGEN_STRONG_INLINE void _init2(const Scalar& val0, const Scalar& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
@@ -688,6 +689,82 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
       m_storage.data()[0] = val0;
       m_storage.data()[1] = val1;
+    }
+    
+    template<typename T0, typename T1>
+    EIGEN_DEVICE_FUNC 
+    EIGEN_STRONG_INLINE void _init2(const Index& val0, const Index& val1,
+                                    typename internal::enable_if<    (!internal::is_same<Index,Scalar>::value)
+                                                                  && (internal::is_same<T0,Index>::value)
+                                                                  && (internal::is_same<T1,Index>::value)
+                                                                  && Base::SizeAtCompileTime==2,T1>::type* = 0)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
+      m_storage.data()[0] = Scalar(val0);
+      m_storage.data()[1] = Scalar(val1);
+    }
+
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<Base::SizeAtCompileTime!=1 || !internal::is_convertible<T, Scalar>::value,T>::type* = 0)
+    {
+      // NOTE MSVC 2008 complains if we directly put bool(NumTraits<T>::IsInteger) as the EIGEN_STATIC_ASSERT argument.
+      const bool is_integer = NumTraits<T>::IsInteger;
+      EIGEN_STATIC_ASSERT(is_integer,
+                          FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
+      resize(size);
+    }
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Scalar& val0, typename internal::enable_if<Base::SizeAtCompileTime==1 && internal::is_convertible<T, Scalar>::value,T>::type* = 0)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 1)
+      m_storage.data()[0] = val0;
+    }
+    
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Index& val0,
+                                    typename internal::enable_if<    (!internal::is_same<Index,Scalar>::value)
+                                                                  && (internal::is_same<Index,T>::value)
+                                                                  && Base::SizeAtCompileTime==1
+                                                                  && internal::is_convertible<T, Scalar>::value,T*>::type* = 0)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 1)
+      m_storage.data()[0] = Scalar(val0);
+    }
+
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Scalar* data){
+      this->_set_noalias(ConstMapType(data));
+    }
+
+    template<typename T, typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const DenseBase<OtherDerived>& other){
+      this->_set_noalias(other);
+    }
+
+    template<typename T, typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const EigenBase<OtherDerived>& other){
+      this->derived() = other;
+    }
+
+    template<typename T, typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const ReturnByValue<OtherDerived>& other)
+    {
+      resize(other.rows(), other.cols());
+      other.evalTo(this->derived());
+    }
+
+    template<typename T, typename OtherDerived, int ColsAtCompileTime>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
+    {
+      this->derived() = r;
     }
 
     template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>

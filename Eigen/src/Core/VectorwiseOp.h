@@ -560,9 +560,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
 /////////// Geometry module ///////////
 
-    #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
     Homogeneous<ExpressionType,Direction> homogeneous() const;
-    #endif
 
     typedef typename ExpressionType::PlainObject CrossReturnType;
     template<typename OtherDerived>

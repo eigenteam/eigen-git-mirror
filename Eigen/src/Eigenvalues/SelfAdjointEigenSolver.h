@@ -346,40 +346,6 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     static const int m_maxIterations = 30;
 
-    #ifdef EIGEN2_SUPPORT
-    EIGEN_DEVICE_FUNC
-    SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors)
-      : m_eivec(matrix.rows(), matrix.cols()),
-        m_eivalues(matrix.cols()),
-        m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
-        m_isInitialized(false)
-    {
-      compute(matrix, computeEigenvectors);
-    }
-    
-    EIGEN_DEVICE_FUNC
-    SelfAdjointEigenSolver(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
-        : m_eivec(matA.cols(), matA.cols()),
-          m_eivalues(matA.cols()),
-          m_subdiag(matA.cols() > 1 ? matA.cols() - 1 : 1),
-          m_isInitialized(false)
-    {
-      static_cast<GeneralizedSelfAdjointEigenSolver<MatrixType>*>(this)->compute(matA, matB, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
-    }
-    
-    EIGEN_DEVICE_FUNC
-    void compute(const MatrixType& matrix, bool computeEigenvectors)
-    {
-      compute(matrix, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
-    }
-
-    EIGEN_DEVICE_FUNC
-    void compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
-    {
-      compute(matA, matB, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
-    }
-    #endif // EIGEN2_SUPPORT
-
   protected:
     MatrixType m_eivec;
     RealVectorType m_eivalues;
@@ -389,6 +355,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     bool m_eigenvectorsOk;
 };
 
+namespace internal {
 /** \internal
   *
   * \eigenvalues_module \ingroup Eigenvalues_Module
@@ -405,7 +372,6 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   * Implemented from Golub's "Matrix Computations", algorithm 8.3.2:
   * "implicit symmetric QR step with Wilkinson shift"
   */
-namespace internal {
 template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
 EIGEN_DEVICE_FUNC
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);

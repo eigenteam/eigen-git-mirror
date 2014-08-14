@@ -32,8 +32,10 @@ struct traits<SparseDiagonalProduct<Lhs, Rhs> >
   typedef typename remove_all<Lhs>::type _Lhs;
   typedef typename remove_all<Rhs>::type _Rhs;
   typedef typename _Lhs::Scalar Scalar;
-  typedef typename promote_index_type<typename traits<Lhs>::Index,
-                                         typename traits<Rhs>::Index>::type Index;
+  // propagate the index type of the sparse matrix
+  typedef typename conditional< is_diagonal<_Lhs>::ret,
+                                typename traits<Rhs>::Index,
+                                typename traits<Lhs>::Index>::type Index;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -90,8 +92,8 @@ class SparseDiagonalProduct
       eigen_assert(lhs.cols() == rhs.rows() && "invalid sparse matrix * diagonal matrix product");
     }
 
-    EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
-    EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return Index(m_lhs.rows()); }
+    EIGEN_STRONG_INLINE Index cols() const { return Index(m_rhs.cols()); }
 
     EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
     EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
@@ -109,7 +111,7 @@ class sparse_diagonal_product_inner_iterator_selector
   : public CwiseUnaryOp<scalar_multiple_op<typename Lhs::Scalar>,const Rhs>::InnerIterator
 {
     typedef typename CwiseUnaryOp<scalar_multiple_op<typename Lhs::Scalar>,const Rhs>::InnerIterator Base;
-    typedef typename Lhs::Index Index;
+    typedef typename Rhs::Index Index;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, Index outer)
@@ -129,7 +131,7 @@ class sparse_diagonal_product_inner_iterator_selector
       scalar_product_op<typename Lhs::Scalar>,
       const typename Rhs::ConstInnerVectorReturnType,
       const typename Lhs::DiagonalVectorType>::InnerIterator Base;
-    typedef typename Lhs::Index Index;
+    typedef typename Rhs::Index Index;
     Index m_outer;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(

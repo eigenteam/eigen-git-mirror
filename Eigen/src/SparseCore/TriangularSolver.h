@@ -28,15 +28,16 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
+  typedef typename Lhs::Index Index;
   static void run(const Lhs& lhs, Rhs& other)
   {
-    for(int col=0 ; col<other.cols() ; ++col)
+    for(Index col=0 ; col<other.cols() ; ++col)
     {
-      for(int i=0; i<lhs.rows(); ++i)
+      for(Index i=0; i<lhs.rows(); ++i)
       {
         Scalar tmp = other.coeff(i,col);
         Scalar lastVal(0);
-        int lastIndex = 0;
+        Index lastIndex = 0;
         for(typename Lhs::InnerIterator it(lhs, i); it; ++it)
         {
           lastVal = it.value();
@@ -62,11 +63,12 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
+  typedef typename Lhs::Index Index;
   static void run(const Lhs& lhs, Rhs& other)
   {
-    for(int col=0 ; col<other.cols() ; ++col)
+    for(Index col=0 ; col<other.cols() ; ++col)
     {
-      for(int i=lhs.rows()-1 ; i>=0 ; --i)
+      for(Index i=lhs.rows()-1 ; i>=0 ; --i)
       {
         Scalar tmp = other.coeff(i,col);
         Scalar l_ii = 0;
@@ -100,11 +102,12 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
+  typedef typename Lhs::Index Index;
   static void run(const Lhs& lhs, Rhs& other)
   {
-    for(int col=0 ; col<other.cols() ; ++col)
+    for(Index col=0 ; col<other.cols() ; ++col)
     {
-      for(int i=0; i<lhs.cols(); ++i)
+      for(Index i=0; i<lhs.cols(); ++i)
       {
         Scalar& tmp = other.coeffRef(i,col);
         if (tmp!=Scalar(0)) // optimization when other is actually sparse
@@ -132,11 +135,12 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
+  typedef typename Lhs::Index Index;
   static void run(const Lhs& lhs, Rhs& other)
   {
-    for(int col=0 ; col<other.cols() ; ++col)
+    for(Index col=0 ; col<other.cols() ; ++col)
     {
-      for(int i=lhs.cols()-1; i>=0; --i)
+      for(Index i=lhs.cols()-1; i>=0; --i)
       {
         Scalar& tmp = other.coeffRef(i,col);
         if (tmp!=Scalar(0)) // optimization when other is actually sparse
@@ -209,7 +213,7 @@ struct sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef typename promote_index_type<typename traits<Lhs>::Index,
-                                         typename traits<Rhs>::Index>::type Index;
+                                      typename traits<Rhs>::Index>::type Index;
   static void run(const Lhs& lhs, Rhs& other)
   {
     const bool IsLower = (UpLo==Lower);
@@ -219,7 +223,7 @@ struct sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
     Rhs res(other.rows(), other.cols());
     res.reserve(other.nonZeros());
 
-    for(int col=0 ; col<other.cols() ; ++col)
+    for(Index col=0 ; col<other.cols() ; ++col)
     {
       // FIXME estimate number of non zeros
       tempVector.init(.99/*float(other.col(col).nonZeros())/float(other.rows())*/);
@@ -230,7 +234,7 @@ struct sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
         tempVector.coeffRef(rhsIt.index()) = rhsIt.value();
       }
 
-      for(int i=IsLower?0:lhs.cols()-1;
+      for(Index i=IsLower?0:lhs.cols()-1;
           IsLower?i<lhs.cols():i>=0;
           i+=IsLower?1:-1)
       {
@@ -267,7 +271,7 @@ struct sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
       }
 
 
-      int count = 0;
+      Index count = 0;
       // FIXME compute a reference value to filter zeros
       for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector/*,1e-12*/); it; ++it)
       {
@@ -304,30 +308,6 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<Ot
 //   if (copy)
 //     other = otherCopy;
 }
-
-#ifdef EIGEN2_SUPPORT
-
-// deprecated stuff:
-
-/** \deprecated */
-template<typename Derived>
-template<typename OtherDerived>
-void SparseMatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
-{
-  this->template triangular<Flags&(Upper|Lower)>().solveInPlace(other);
-}
-
-/** \deprecated */
-template<typename Derived>
-template<typename OtherDerived>
-typename internal::plain_matrix_type_column_major<OtherDerived>::type
-SparseMatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other) const
-{
-  typename internal::plain_matrix_type_column_major<OtherDerived>::type res(other);
-  derived().solveTriangularInPlace(res);
-  return res;
-}
-#endif // EIGEN2_SUPPORT
 
 } // end namespace Eigen
 

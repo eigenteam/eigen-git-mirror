@@ -12,13 +12,12 @@
 #undef EIGEN_DEFAULT_TO_ROW_MAJOR
 #endif
 
-static int nb_temporaries;
+static long int nb_temporaries;
 
-inline void on_temporary_creation(int) {
+inline void on_temporary_creation(long int) {
   // here's a great place to set a breakpoint when debugging failures in this test!
   nb_temporaries++;
 }
-  
 
 #define EIGEN_DENSE_STORAGE_CTOR_PLUGIN { on_temporary_creation(size); }
 

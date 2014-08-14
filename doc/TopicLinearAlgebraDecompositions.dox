@@ -116,7 +116,7 @@ For an introduction on linear solvers and decompositions, check this \link Tutor
         <td>JacobiSVD (two-sided)</td>
         <td>-</td>
         <td>Slow (but fast for small matrices)</td>
-        <td>Excellent-Proven<sup><a href="#note3">3</a></sup></td>
+        <td>Proven<sup><a href="#note3">3</a></sup></td>
         <td>Yes</td>
         <td>Singular values/vectors, least squares</td>
         <td>Yes (and does least squares)</td>
@@ -132,7 +132,7 @@ For an introduction on linear solvers and decompositions, check this \link Tutor
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
         <td>-</td>
-        <td>Good</td>
+        <td>Excellent</td>
         <td><em>Closed forms for 2x2 and 3x3</em></td>
     </tr>
 

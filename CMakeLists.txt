@@ -108,7 +108,8 @@ endif()
 set(EIGEN_TEST_MAX_SIZE "320" CACHE STRING "Maximal matrix/vector size, default is 320")
 
 macro(ei_add_cxx_compiler_flag FLAG)
-  string(REGEX REPLACE "-" "" SFLAG ${FLAG})
+  string(REGEX REPLACE "-" "" SFLAG1 ${FLAG})
+  string(REGEX REPLACE "\\+" "p" SFLAG ${SFLAG1})
   check_cxx_compiler_flag(${FLAG} COMPILER_SUPPORT_${SFLAG})
   if(COMPILER_SUPPORT_${SFLAG})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
@@ -118,7 +119,7 @@ endmacro(ei_add_cxx_compiler_flag)
 if(NOT MSVC)
   # We assume that other compilers are partly compatible with GNUCC
   
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
   set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O2")
   
@@ -142,6 +143,9 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wpointer-arith")
   ei_add_cxx_compiler_flag("-Wwrite-strings")
   ei_add_cxx_compiler_flag("-Wformat-security")
+  ei_add_cxx_compiler_flag("-Wshorten-64-to-32")
+  ei_add_cxx_compiler_flag("-Wenum-conversion")
+  ei_add_cxx_compiler_flag("-Wc++11-extensions")
   
   ei_add_cxx_compiler_flag("-Wno-psabi")
   ei_add_cxx_compiler_flag("-Wno-variadic-macros")
@@ -152,6 +156,7 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-fstrict-aliasing")
   ei_add_cxx_compiler_flag("-wd981")                    # disable ICC's "operands are evaluated in unspecified order" remark
   ei_add_cxx_compiler_flag("-wd2304")                   # disbale ICC's "warning #2304: non-explicit constructor with single argument may cause implicit type conversion" produced by -Wnon-virtual-dtor
+  
   
   # The -ansi flag must be added last, otherwise it is also used as a linker flag by check_cxx_compiler_flag making it fails
   # Moreover we should not set both -strict-ansi and -ansi
@@ -294,6 +299,12 @@ option(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT "Disable explicit alignment (hence vecto
 if(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT)
   add_definitions(-DEIGEN_DONT_ALIGN=1)
   message(STATUS "Disabling alignment in tests/examples")
+endif()
+
+option(EIGEN_TEST_NO_EXCEPTIONS "Disables C++ exceptions" OFF)
+if(EIGEN_TEST_NO_EXCEPTIONS)
+  ei_add_cxx_compiler_flag("-fno-exceptions")
+  message(STATUS "Disabling exceptions in tests/examples")
 endif()
 
 option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)

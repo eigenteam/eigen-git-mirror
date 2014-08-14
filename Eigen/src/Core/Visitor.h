@@ -194,7 +194,7 @@ DenseBase<Derived>::minCoeff(IndexType* index) const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   internal::min_coeff_visitor<Derived> minVisitor;
   this->visit(minVisitor);
-  *index = (RowsAtCompileTime==1) ? minVisitor.col : minVisitor.row;
+  *index = IndexType((RowsAtCompileTime==1) ? minVisitor.col : minVisitor.row);
   return minVisitor.res;
 }
 

@@ -234,10 +234,10 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstore(
 template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu(Scalar* to, const Packet& from)
 {  (*to) = from; }
 
- template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline Packet pgather(const Scalar* from, int /*stride*/)
+ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline Packet pgather(const Scalar* from, DenseIndex /*stride*/)
  { return ploadu<Packet>(from); }
 
- template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pscatter(Scalar* to, const Packet& from, int /*stride*/)
+ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pscatter(Scalar* to, const Packet& from, DenseIndex /*stride*/)
  { pstore(to, from); }
 
 /** \internal tries to do cache prefetching of \a addr */
@@ -318,6 +318,10 @@ Packet pasin(const Packet& a) { using std::asin; return asin(a); }
 /** \internal \returns the arc cosine of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pacos(const Packet& a) { using std::acos; return acos(a); }
+
+/** \internal \returns the atan of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet patan(const Packet& a) { using std::atan; return atan(a); }
 
 /** \internal \returns the exp of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
