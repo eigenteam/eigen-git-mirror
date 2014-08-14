@@ -18,11 +18,11 @@ static void test_simple_padding()
   Tensor<float, 4> tensor(2,3,5,7);
   tensor.setRandom();
 
-  array<pair<ptrdiff_t, ptrdiff_t>, 4> paddings;
-  paddings[0] = make_pair(0, 0);
-  paddings[1] = make_pair(2, 1);
-  paddings[2] = make_pair(3, 4);
-  paddings[3] = make_pair(0, 0);
+  array<std::pair<ptrdiff_t, ptrdiff_t>, 4> paddings;
+  paddings[0] = std::make_pair(0, 0);
+  paddings[1] = std::make_pair(2, 1);
+  paddings[2] = std::make_pair(3, 4);
+  paddings[3] = std::make_pair(0, 0);
 
   Tensor<float, 4> padded;
   padded = tensor.pad(paddings);
