@@ -26,6 +26,9 @@ template<typename Dimensions, typename LeftXprType, typename RightXprType> class
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;
 template<typename StartIndices, typename Sizes, typename XprType> class TensorSlicingOp;
+template<typename PaddingDimensions, typename XprType> class TensorPaddingOp;
+template<typename Shuffle, typename XprType> class TensorShufflingOp;
+template<typename Strides, typename XprType> class TensorStridingOp;
 template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
 
 template<typename XprType> class TensorEvalToOp;

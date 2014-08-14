@@ -215,6 +215,21 @@ class TensorBase<Derived, ReadOnlyAccessors>
     slice(const StartIndices& startIndices, const Sizes& sizes) const {
       return TensorSlicingOp<const StartIndices, const Sizes, const Derived>(derived(), startIndices, sizes);
     }
+    template <typename PaddingDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorPaddingOp<const PaddingDimensions, Derived>
+    pad(const PaddingDimensions& padding) const {
+      return TensorPaddingOp<const PaddingDimensions, Derived>(derived(), padding);
+    }
+    template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorShufflingOp<const Shuffle, Derived>
+    shuffle(const Shuffle& shuffle) const {
+      return TensorShufflingOp<const Shuffle, Derived>(derived(), shuffle);
+    }
+    template <typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorStridingOp<const Strides, Derived>
+    stride(const Strides& strides) const {
+      return TensorStridingOp<const Strides, Derived>(derived(), strides);
+    }
 
     // Force the evaluation of the expression.
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
