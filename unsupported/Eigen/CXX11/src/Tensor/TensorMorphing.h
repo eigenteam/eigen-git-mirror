@@ -305,8 +305,10 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     for (int i = 0; i < NumDims; ++i) {
       if (i > 0) {
         m_outputStrides[i] = m_outputStrides[i-1] * output_dims[i-1];
+        m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(m_outputStrides[i]);
       } else {
         m_outputStrides[0] = 1;
+        m_fastOutputStrides[0] = 1;
       }
     }
   }
@@ -331,7 +333,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   {
     Index inputIndex = 0;
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_outputStrides[i];
+      const Index idx = index / m_fastOutputStrides[i];
       inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
       index -= idx * m_outputStrides[i];
     }
@@ -349,8 +351,8 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx0 = indices[0] / m_outputStrides[i];
-      const Index idx1 = indices[1] / m_outputStrides[i];
+      const Index idx0 = indices[0] / m_fastOutputStrides[i];
+      const Index idx1 = indices[1] / m_fastOutputStrides[i];
       inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
       inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
       indices[0] -= idx0 * m_outputStrides[i];
@@ -379,6 +381,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
  private:
   Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;
+  array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
   array<Index, NumDims> m_inputStrides;
   const StartIndices m_offsets;
   TensorEvaluator<ArgType, Device> m_impl;
@@ -418,9 +421,11 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     for (int i = 0; i < NumDims; ++i) {
       if (i > 0) {
         m_outputStrides[i] = m_outputStrides[i-1] * output_dims[i-1];
+        m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(m_outputStrides[i]);
       } else {
         m_outputStrides[0] = 1;
-      }
+        m_fastOutputStrides[0] = 1;
+     }
     }
   }
 
@@ -444,7 +449,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   {
     Index inputIndex = 0;
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_outputStrides[i];
+      const Index idx = index / m_fastOutputStrides[i];
       inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
       index -= idx * m_outputStrides[i];
     }
@@ -460,8 +465,8 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx0 = indices[0] / m_outputStrides[i];
-      const Index idx1 = indices[1] / m_outputStrides[i];
+      const Index idx0 = indices[0] / m_fastOutputStrides[i];
+      const Index idx1 = indices[1] / m_fastOutputStrides[i];
       inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
       inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
       indices[0] -= idx0 * m_outputStrides[i];
@@ -489,7 +494,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   {
     Index inputIndex = 0;
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_outputStrides[i];
+      const Index idx = index / m_fastOutputStrides[i];
       inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
       index -= idx * m_outputStrides[i];
     }
@@ -504,8 +509,8 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx0 = indices[0] / m_outputStrides[i];
-      const Index idx1 = indices[1] / m_outputStrides[i];
+      const Index idx0 = indices[0] / m_fastOutputStrides[i];
+      const Index idx1 = indices[1] / m_fastOutputStrides[i];
       inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
       inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
       indices[0] -= idx0 * m_outputStrides[i];
@@ -532,6 +537,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
  private:
   Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;
+  array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
   array<Index, NumDims> m_inputStrides;
   const StartIndices m_offsets;
   TensorEvaluator<ArgType, Device> m_impl;

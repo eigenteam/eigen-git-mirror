@@ -34,6 +34,7 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorDeviceType.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorDimensions.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorTraits.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorIntDiv.h"
 
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorBase.h"
 
