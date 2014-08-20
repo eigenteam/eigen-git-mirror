@@ -76,6 +76,10 @@ namespace Eigen
 
 #define EIGEN_DEFAULT_IO_FORMAT IOFormat(4, 0, "  ", "\n", "", "", "", "")
 
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__)
+  #define EIGEN_EXCEPTIONS
+#endif
+
 #ifndef EIGEN_NO_ASSERTION_CHECKING
 
   namespace Eigen
@@ -172,7 +176,7 @@ namespace Eigen
 
 #ifndef VERIFY_RAISES_ASSERT
   #define VERIFY_RAISES_ASSERT(a) \
-    std::cout << "Can't VERIFY_RAISES_ASSERT( " #a " ) with exceptions disabled";
+    std::cout << "Can't VERIFY_RAISES_ASSERT( " #a " ) with exceptions disabled\n";
 #endif
     
   #if !defined(__CUDACC__)
