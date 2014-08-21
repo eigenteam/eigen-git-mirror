@@ -204,6 +204,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>(derived(), thenTensor.derived(), elseTensor.derived());
     }
 
+    template <typename Broadcast> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorBroadcastingOp<const Broadcast, const Derived>
+    broadcast(const Broadcast& broadcast) const {
+      return TensorBroadcastingOp<const Broadcast, const Derived>(derived(), broadcast);
+    }
+
     // Morphing operators.
     template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorReshapingOp<const NewDimensions, const Derived>
