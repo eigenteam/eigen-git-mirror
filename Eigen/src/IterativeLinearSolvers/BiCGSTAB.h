@@ -39,7 +39,6 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   int maxIters = iters;
 
   int n = mat.cols();
-  x = precond.solve(x);
   VectorType r  = rhs - mat * x;
   VectorType r0 = r;
   
