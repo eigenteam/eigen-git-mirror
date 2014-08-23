@@ -127,7 +127,7 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     return m_impl.template packet<LoadMode>(index);
   }
 
-  Scalar* data() const { return NULL; }
+  Scalar* data() const { return m_impl.data(); }
 
  protected:
   NewDimensions m_dimensions;
@@ -136,10 +136,12 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
 
 
 // Eval as lvalue
-// TODO(bsteiner): share the code with the evaluator for rvalue reshapes.
 template<typename NewDimensions, typename ArgType, typename Device>
-struct TensorEvaluator<TensorReshapingOp<NewDimensions, ArgType>, Device>
+  struct TensorEvaluator<TensorReshapingOp<NewDimensions, ArgType>, Device>
+  : public TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
+
 {
+  typedef TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device> Base;
   typedef TensorReshapingOp<NewDimensions, ArgType> XprType;
   typedef NewDimensions Dimensions;
 
@@ -149,7 +151,7 @@ struct TensorEvaluator<TensorReshapingOp<NewDimensions, ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_dimensions(op.dimensions())
+    : Base(op, device)
   { }
 
   typedef typename XprType::Index Index;
@@ -157,40 +159,15 @@ struct TensorEvaluator<TensorReshapingOp<NewDimensions, ArgType>, Device>
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
-    return m_impl.evalSubExprsIfNeeded(data);
-  }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
-    m_impl.cleanup();
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
-  {
-    return m_impl.coeff(index);
-  }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
-    return m_impl.coeffRef(index);
+    return this->m_impl.coeffRef(index);
   }
   template <int StoreMode> EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
-    m_impl.template writePacket<StoreMode>(index, x);
+    this->m_impl.template writePacket<StoreMode>(index, x);
   }
-  template<int LoadMode>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
-  {
-    return m_impl.template packet<LoadMode>(index);
-  }
-
-  Scalar* data() const { return NULL; }
-
- private:
-  NewDimensions m_dimensions;
-  TensorEvaluator<ArgType, Device> m_impl;
 };
 
 
@@ -286,7 +263,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
+      : m_impl(op.expression(), device), m_device(device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
   {
     for (int i = 0; i < internal::array_size<Dimensions>::value; ++i) {
       eigen_assert(m_impl.dimensions()[i] >= op.sizes()[i] + op.startIndices()[i]);
@@ -321,24 +298,37 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
     m_impl.evalSubExprsIfNeeded(NULL);
+    if (data && m_impl.data()) {
+      Index contiguous_values = 1;
+      for (int i = 0; i < NumDims; ++i) {
+        contiguous_values *= dimensions()[i];
+        if (dimensions()[i] != m_impl.dimensions()[i]) {
+          break;
+        }
+      }
+      // Use memcpy if it's going to be faster than using the regular evaluation.
+      if (contiguous_values > 2 * m_device.numThreads()) {
+        Scalar* src = m_impl.data();
+        for (int i = 0; i < internal::array_prod(dimensions()); i += contiguous_values) {
+          Index offset = srcCoeff(i);
+          m_device.memcpy(data+i, src+offset, contiguous_values * sizeof(Scalar));
+        }
+        return false;
+      }
+    }
     return true;
   }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    Index inputIndex = 0;
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_fastOutputStrides[i];
-      inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
-      index -= idx * m_outputStrides[i];
-    }
-    inputIndex += (index + m_offsets[0]);
-    return m_impl.coeff(inputIndex);
+    return m_impl.coeff(srcCoeff(index));
   }
 
   template<int LoadMode>
@@ -376,23 +366,37 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     }
   }
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return NULL; }
 
- private:
+ protected:
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
+  {
+    Index inputIndex = 0;
+    for (int i = NumDims - 1; i > 0; --i) {
+      const Index idx = index / m_fastOutputStrides[i];
+      inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
+      index -= idx * m_outputStrides[i];
+    }
+    inputIndex += (index + m_offsets[0]);
+    return inputIndex;
+  }
+
   Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;
   array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
   array<Index, NumDims> m_inputStrides;
   const StartIndices m_offsets;
   TensorEvaluator<ArgType, Device> m_impl;
+  const Device& m_device;
 };
 
 
 // Eval as lvalue
-// TODO(bsteiner): share the code with the evaluator for rvalue slices.
 template<typename StartIndices, typename Sizes, typename ArgType, typename Device>
 struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
+  : public TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
 {
+  typedef TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Device> Base;
   typedef TensorSlicingOp<StartIndices, Sizes, ArgType> XprType;
   static const int NumDims = internal::array_size<Sizes>::value;
 
@@ -402,32 +406,8 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
-  {
-    for (int i = 0; i < internal::array_size<Dimensions>::value; ++i) {
-      eigen_assert(m_impl.dimensions()[i] >= op.sizes()[i] + op.startIndices()[i]);
-    }
-
-    const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
-    for (int i = 0; i < NumDims; ++i) {
-      if (i > 0) {
-        m_inputStrides[i] = m_inputStrides[i-1] * input_dims[i-1];
-      } else {
-        m_inputStrides[0] = 1;
-      }
-    }
-
-    const Sizes& output_dims = op.sizes();
-    for (int i = 0; i < NumDims; ++i) {
-      if (i > 0) {
-        m_outputStrides[i] = m_outputStrides[i-1] * output_dims[i-1];
-        m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(m_outputStrides[i]);
-      } else {
-        m_outputStrides[0] = 1;
-        m_fastOutputStrides[0] = 1;
-     }
-    }
-  }
+    : Base(op, device)
+    { }
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
@@ -435,71 +415,9 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   typedef typename XprType::PacketReturnType PacketReturnType;
   typedef Sizes Dimensions;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
-    m_impl.evalSubExprsIfNeeded(NULL);
-    return true;
-  }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
-    m_impl.cleanup();
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
-  {
-    Index inputIndex = 0;
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_fastOutputStrides[i];
-      inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
-      index -= idx * m_outputStrides[i];
-    }
-    inputIndex += (index + m_offsets[0]);
-    return m_impl.coeff(inputIndex);
-  }
-
-  template<int LoadMode>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
-  {
-    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    Index inputIndices[] = {0, 0};
-    Index indices[] = {index, index + packetSize - 1};
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx0 = indices[0] / m_fastOutputStrides[i];
-      const Index idx1 = indices[1] / m_fastOutputStrides[i];
-      inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
-      inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
-      indices[0] -= idx0 * m_outputStrides[i];
-      indices[1] -= idx1 * m_outputStrides[i];
-    }
-    inputIndices[0] += (indices[0] + m_offsets[0]);
-    inputIndices[1] += (indices[1] + m_offsets[0]);
-    if (inputIndices[1] - inputIndices[0] == packetSize - 1) {
-      PacketReturnType rslt = m_impl.template packet<LoadMode>(inputIndices[0]);
-      return rslt;
-    }
-    else {
-      CoeffReturnType values[packetSize];
-      values[0] = m_impl.coeff(inputIndices[0]);
-      values[packetSize-1] = m_impl.coeff(inputIndices[1]);
-      for (int i = 1; i < packetSize-1; ++i) {
-        values[i] = coeff(index+i);
-      }
-      PacketReturnType rslt = internal::pload<PacketReturnType>(values);
-      return rslt;
-    }
-  }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
-    Index inputIndex = 0;
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_fastOutputStrides[i];
-      inputIndex += (idx + m_offsets[i]) * m_inputStrides[i];
-      index -= idx * m_outputStrides[i];
-    }
-    inputIndex += (index + m_offsets[0]);
-    return m_impl.coeffRef(inputIndex);
+    return this->m_impl.coeffRef(this->srcCoeff(index));
   }
 
   template <int StoreMode> EIGEN_STRONG_INLINE
@@ -509,38 +427,28 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
     for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx0 = indices[0] / m_fastOutputStrides[i];
-      const Index idx1 = indices[1] / m_fastOutputStrides[i];
-      inputIndices[0] += (idx0 + m_offsets[i]) * m_inputStrides[i];
-      inputIndices[1] += (idx1 + m_offsets[i]) * m_inputStrides[i];
-      indices[0] -= idx0 * m_outputStrides[i];
-      indices[1] -= idx1 * m_outputStrides[i];
+      const Index idx0 = indices[0] / this->m_fastOutputStrides[i];
+      const Index idx1 = indices[1] / this->m_fastOutputStrides[i];
+      inputIndices[0] += (idx0 + this->m_offsets[i]) * this->m_inputStrides[i];
+      inputIndices[1] += (idx1 + this->m_offsets[i]) * this->m_inputStrides[i];
+      indices[0] -= idx0 * this->m_outputStrides[i];
+      indices[1] -= idx1 * this->m_outputStrides[i];
     }
-    inputIndices[0] += (indices[0] + m_offsets[0]);
-    inputIndices[1] += (indices[1] + m_offsets[0]);
+    inputIndices[0] += (indices[0] + this->m_offsets[0]);
+    inputIndices[1] += (indices[1] + this->m_offsets[0]);
     if (inputIndices[1] - inputIndices[0] == packetSize - 1) {
-      m_impl.template writePacket<StoreMode>(inputIndices[0], x);
+      this->m_impl.template writePacket<StoreMode>(inputIndices[0], x);
     }
     else {
       CoeffReturnType values[packetSize];
       internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
-      m_impl.coeffRef(inputIndices[0]) = values[0];
-      m_impl.coeffRef(inputIndices[1]) = values[packetSize-1];
+      this->m_impl.coeffRef(inputIndices[0]) = values[0];
+      this->m_impl.coeffRef(inputIndices[1]) = values[packetSize-1];
       for (int i = 1; i < packetSize-1; ++i) {
-        coeffRef(index+i) = values[i];
+        this->coeffRef(index+i) = values[i];
       }
     }
   }
-
-  Scalar* data() const { return NULL; }
-
- private:
-  Dimensions m_dimensions;
-  array<Index, NumDims> m_outputStrides;
-  array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
-  array<Index, NumDims> m_inputStrides;
-  const StartIndices m_offsets;
-  TensorEvaluator<ArgType, Device> m_impl;
 };
 
 
