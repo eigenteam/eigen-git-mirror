@@ -27,6 +27,10 @@ struct DefaultDevice {
   EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
     ::memset(buffer, c, n);
   }
+
+  EIGEN_STRONG_INLINE size_t numThreads() const {
+    return 1;
+  }
 };
 
 
@@ -113,6 +117,11 @@ struct GpuDevice {
   }
   EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
     cudaMemsetAsync(buffer, c, n, *stream_);
+  }
+
+  EIGEN_STRONG_INLINE size_t numThreads() const {
+    // Fixme:
+    return 32;
   }
 
  private:

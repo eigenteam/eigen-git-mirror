@@ -52,7 +52,7 @@ static void test_reshape_in_expr() {
   TensorMap<Tensor<float, 5>> tensor2(m2.data(), 3,5,7,11,13);
   Tensor<float, 2>::Dimensions newDims1{{2,3*5*7*11}};
   Tensor<float, 2>::Dimensions newDims2{{3*5*7*11,13}};
-  array<Tensor<float, 1>::DimensionPair, 1> contract_along{{1, 0}};
+  array<Tensor<float, 1>::DimensionPair, 1> contract_along{{std::make_pair(1, 0)}};
   Tensor<float, 2> tensor3(2,13);
   tensor3 = tensor1.reshape(newDims1).contract(tensor2.reshape(newDims2), contract_along);
 
@@ -74,7 +74,8 @@ static void test_reshape_as_lvalue()
   Tensor<float, 3>::Dimensions dim{{2,3,7}};
   tensor2d.reshape(dim) = tensor;
 
-  Tensor<float, 5> tensor5d(2,3,1,7,1);
+  float scratch[2*3*1*7*1];
+  TensorMap<Tensor<float, 5>> tensor5d(scratch, 2,3,1,7,1);
   tensor5d.reshape(dim).device(Eigen::DefaultDevice()) = tensor;
 
   for (int i = 0; i < 2; ++i) {
@@ -94,14 +95,14 @@ static void test_simple_slice()
   tensor.setRandom();
 
   Tensor<float, 5> slice1(1,1,1,1,1);
-  Eigen::DSizes<ptrdiff_t, 5> indices(Eigen::array<ptrdiff_t, 5>(1,2,3,4,5));
-  Eigen::DSizes<ptrdiff_t, 5> sizes(Eigen::array<ptrdiff_t, 5>(1,1,1,1,1));
+  Eigen::DSizes<ptrdiff_t, 5> indices(1,2,3,4,5);
+  Eigen::DSizes<ptrdiff_t, 5> sizes(1,1,1,1,1);
   slice1 = tensor.slice(indices, sizes);
   VERIFY_IS_EQUAL(slice1(0,0,0,0,0), tensor(1,2,3,4,5));
 
   Tensor<float, 5> slice2(1,1,2,2,3);
-  Eigen::DSizes<ptrdiff_t, 5> indices2(Eigen::array<ptrdiff_t, 5>(1,1,3,4,5));
-  Eigen::DSizes<ptrdiff_t, 5> sizes2(Eigen::array<ptrdiff_t, 5>(1,1,2,2,3));
+  Eigen::DSizes<ptrdiff_t, 5> indices2(1,1,3,4,5);
+  Eigen::DSizes<ptrdiff_t, 5> sizes2(1,1,2,2,3);
   slice2 = tensor.slice(indices2, sizes2);
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 2; ++j) {
@@ -124,12 +125,12 @@ static void test_slice_in_expr() {
   TensorMap<Tensor<float, 2>> tensor1(m1.data(), 7, 7);
   TensorMap<Tensor<float, 2>> tensor2(m2.data(), 3, 3);
   Tensor<float, 2> tensor3(3,1);
-  array<Tensor<float, 1>::DimensionPair, 1> contract_along{{1, 0}};
+  array<Tensor<float, 1>::DimensionPair, 1> contract_along{{std::make_pair(1, 0)}};
 
-  Eigen::DSizes<ptrdiff_t, 2> indices1(Eigen::array<ptrdiff_t, 2>(1,2));
-  Eigen::DSizes<ptrdiff_t, 2> sizes1(Eigen::array<ptrdiff_t, 2>(3,3));
-  Eigen::DSizes<ptrdiff_t, 2> indices2(Eigen::array<ptrdiff_t, 2>(0,2));
-  Eigen::DSizes<ptrdiff_t, 2> sizes2(Eigen::array<ptrdiff_t, 2>(3,1));
+  Eigen::DSizes<ptrdiff_t, 2> indices1(1,2);
+  Eigen::DSizes<ptrdiff_t, 2> sizes1(3,3);
+  Eigen::DSizes<ptrdiff_t, 2> indices2(0,2);
+  Eigen::DSizes<ptrdiff_t, 2> sizes2(3,1);
   tensor3 = tensor1.slice(indices1, sizes1).contract(tensor2.slice(indices2, sizes2), contract_along);
 
   Map<MatrixXf> res(tensor3.data(), 3, 1);
@@ -153,18 +154,18 @@ static void test_slice_as_lvalue()
   tensor4.setRandom();
 
   Tensor<float, 3> result(4,5,7);
-  Eigen::DSizes<ptrdiff_t, 3> sizes12(Eigen::array<ptrdiff_t, 3>(2,2,7));
-  Eigen::DSizes<ptrdiff_t, 3> first_slice(Eigen::array<ptrdiff_t, 3>(0,0,0));
+  Eigen::DSizes<ptrdiff_t, 3> sizes12(2,2,7);
+  Eigen::DSizes<ptrdiff_t, 3> first_slice(0,0,0);
   result.slice(first_slice, sizes12) = tensor1;
-  Eigen::DSizes<ptrdiff_t, 3> second_slice(Eigen::array<ptrdiff_t, 3>(2,0,0));
+  Eigen::DSizes<ptrdiff_t, 3> second_slice(2,0,0);
   result.slice(second_slice, sizes12).device(Eigen::DefaultDevice()) = tensor2;
 
-  Eigen::DSizes<ptrdiff_t, 3> sizes3(Eigen::array<ptrdiff_t, 3>(4,3,5));
-  Eigen::DSizes<ptrdiff_t, 3> third_slice(Eigen::array<ptrdiff_t, 3>(0,2,0));
+  Eigen::DSizes<ptrdiff_t, 3> sizes3(4,3,5);
+  Eigen::DSizes<ptrdiff_t, 3> third_slice(0,2,0);
   result.slice(third_slice, sizes3) = tensor3;
 
-  Eigen::DSizes<ptrdiff_t, 3> sizes4(Eigen::array<ptrdiff_t, 3>(4,3,2));
-  Eigen::DSizes<ptrdiff_t, 3> fourth_slice(Eigen::array<ptrdiff_t, 3>(0,2,5));
+  Eigen::DSizes<ptrdiff_t, 3> sizes4(4,3,2);
+  Eigen::DSizes<ptrdiff_t, 3> fourth_slice(0,2,5);
   result.slice(fourth_slice, sizes4) = tensor4;
 
   for (int j = 0; j < 2; ++j) {

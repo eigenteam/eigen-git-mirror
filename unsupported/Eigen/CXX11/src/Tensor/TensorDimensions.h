@@ -195,6 +195,32 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
   EIGEN_DEVICE_FUNC explicit DSizes(const array<DenseIndex, NumDims>& a) : Base(a) { }
 
+  EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0) {
+    (*this)[0] = i0;
+  }
+  EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0, const DenseIndex i1) {
+    (*this)[0] = i0;
+    (*this)[1] = i1;
+  }
+  EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0, const DenseIndex i1, const DenseIndex i2) {
+    (*this)[0] = i0;
+    (*this)[1] = i1;
+    (*this)[2] = i2;
+  }
+  EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0, const DenseIndex i1, const DenseIndex i2, const DenseIndex i3) {
+    (*this)[0] = i0;
+    (*this)[1] = i1;
+    (*this)[2] = i2;
+    (*this)[3] = i3;
+  }
+  EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0, const DenseIndex i1, const DenseIndex i2, const DenseIndex i3, const DenseIndex i4) {
+    (*this)[0] = i0;
+    (*this)[1] = i1;
+    (*this)[2] = i2;
+    (*this)[3] = i3;
+    (*this)[4] = i4;
+  }
+
   DSizes& operator = (const array<DenseIndex, NumDims>& other) {
     *static_cast<Base*>(this) = other;
     return *this;
