@@ -75,7 +75,7 @@ class SparseQR
     typedef Matrix<Scalar, Dynamic, 1> ScalarVector;
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
   public:
-    SparseQR () : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false)
+    SparseQR () : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     { }
     
     /** Construct a QR factorization of the matrix \a mat.
@@ -84,7 +84,7 @@ class SparseQR
       * 
       * \sa compute()
       */
-    SparseQR(const MatrixType& mat) : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false)
+    SparseQR(const MatrixType& mat) : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     {
       compute(mat);
     }
@@ -262,6 +262,7 @@ class SparseQR
     IndexVector m_etree;            // Column elimination tree
     IndexVector m_firstRowElt;      // First element in each row
     bool m_isQSorted;               // whether Q is sorted or not
+    bool m_isEtreeOk;               // whether the elimination tree match the initial input matrix
     
     template <typename, typename > friend struct SparseQR_QProduct;
     template <typename > friend struct SparseQRMatrixQReturnType;
@@ -297,6 +298,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
   // Compute the column elimination tree of the permuted matrix
   m_outputPerm_c = m_perm_c.inverse();
   internal::coletree(mat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
+  m_isEtreeOk = true;
   
   m_R.resize(m, n);
   m_Q.resize(m, diagSize);
@@ -330,6 +332,15 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   Index nzcolR, nzcolQ;                                     // Number of nonzero for the current column of R and Q
   ScalarVector tval(m);                                     // The dense vector used to compute the current column
   RealScalar pivotThreshold = m_threshold;
+  
+  m_R.setZero();
+  m_Q.setZero();
+  if(!m_isEtreeOk)
+  {
+    m_outputPerm_c = m_perm_c.inverse();
+    internal::coletree(mat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
+    m_isEtreeOk = true;
+  }
     
   m_pmat = mat;
   m_pmat.uncompress(); // To have the innerNonZeroPtr allocated
@@ -513,6 +524,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
       
       // Recompute the column elimination tree
       internal::coletree(m_pmat, m_etree, m_firstRowElt, m_pivotperm.indices().data());
+      m_isEtreeOk = false;
     }
   }
   
