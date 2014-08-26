@@ -63,7 +63,7 @@
 // Currently, let's include it only on unix systems:
 #if defined(__unix__) || defined(__unix)
   #include <unistd.h>
-  #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
+  #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || (defined __PGI) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
     #define EIGEN_HAS_POSIX_MEMALIGN 1
   #endif
 #endif
