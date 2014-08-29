@@ -24,10 +24,10 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
   Index rows = lhs.innerSize();
   Index cols = rhs.outerSize();
   eigen_assert(lhs.outerSize() == rhs.innerSize());
-
-  std::vector<bool> mask(rows,false);
-  Matrix<Scalar,Dynamic,1> values(rows);
-  Matrix<Index,Dynamic,1>  indices(rows);
+  
+  ei_declare_aligned_stack_constructed_variable(bool,   mask,     rows, 0);
+  ei_declare_aligned_stack_constructed_variable(Scalar, values,   rows, 0);
+  ei_declare_aligned_stack_constructed_variable(Index,  indices,  rows, 0);
 
   // estimate the number of non zero entries
   // given a rhs column containing Y non zeros, we assume that the respective Y columns
@@ -77,7 +77,7 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
     else
     {
       // alternative ordered insertion code:
-      const Index t200 = rows/(log2(200)*1.39);
+      const Index t200 = rows/11; // 11 == (log2(200)*1.39)
       const Index t = (rows*100)/139;
 
       // FIXME reserve nnz non zeros
@@ -88,7 +88,7 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
       // result is clearly very sparse we use a linear bound up to 200.
       if((nnz<200 && nnz<t200) || nnz * log2(nnz) < t)
       {
-        if(nnz>1) std::sort(indices.data(),indices.data()+nnz);
+        if(nnz>1) std::sort(indices,indices+nnz);
         for(Index k=0; k<nnz; ++k)
         {
           Index i = indices[k];
@@ -133,14 +133,16 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
     typedef SparseMatrix<typename ResultType::Scalar,RowMajor,typename ResultType::Index> RowMajorMatrix;
-    typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::Index> ColMajorMatrix;
+    typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::Index> ColMajorMatrixAux;
+    typedef typename sparse_eval<ColMajorMatrixAux,ResultType::RowsAtCompileTime,ResultType::ColsAtCompileTime>::type ColMajorMatrix;
+    
     ColMajorMatrix resCol(lhs.rows(),rhs.cols());
     // FIXME, the following heuristic is probably not very good.
     if(lhs.rows()>=rhs.cols())
     {
       // perform sorted insertion
       internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, true);
-      res = resCol;
+      res.swap(resCol);
     }
     else
     {
