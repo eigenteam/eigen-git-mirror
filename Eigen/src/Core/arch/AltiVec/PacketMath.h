@@ -31,6 +31,12 @@ namespace internal {
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16
 #endif
 
+#ifdef __VSX__
+typedef __vector double         Packet2d;
+typedef __vector unsigned long  Packet2ul;
+typedef __vector long           Packet2l;
+#endif // __VSX__
+
 typedef __vector float          Packet4f;
 typedef __vector int            Packet4i;
 typedef __vector unsigned int   Packet4ui;
@@ -50,22 +56,37 @@ typedef __vector unsigned char  Packet16uc;
 #define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
   Packet4f p4f_##NAME = pset1<Packet4f>(X)
 
-#define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
-  Packet4f p4f_##NAME = vreinterpretq_f32_u32(pset1<int>(X))
-
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   Packet4i p4i_##NAME = pset1<Packet4i>(X)
+
+#define _EIGEN_DECLARE_CONST_Packet2d(NAME,X) \
+  Packet2d p2d_##NAME = pset1<Packet2d>(X)
+
+#define _EIGEN_DECLARE_CONST_Packet2l(NAME,X) \
+  Packet2l p2l_##NAME = pset1<Packet2l>(X)
 
 #define DST_CHAN 1
 #define DST_CTRL(size, count, stride) (((size) << 24) | ((count) << 16) | (stride))
 
+// Handle endianness properly while loading constants
 // Define global static constants:
+#ifdef _BIG_ENDIAN
 static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
 static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
 static Packet16uc p16uc_REVERSE = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
 static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0); //{ 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15}
 static Packet16uc p16uc_DUPLICATE = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7};
+#else
+static Packet4f p4f_COUNTDOWN = { 3.0, 2.0, 1.0, 0.0 };
+static Packet4i p4i_COUNTDOWN = { 3, 2, 1, 0 };
+static Packet16uc p16uc_REVERSE = { 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 };
+static Packet16uc p16uc_FORWARD = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3}; 
+static Packet16uc p16uc_DUPLICATE = { 4,5,6,7, 4,5,6,7, 0,1,2,3, 0,1,2,3 };
+static Packet2d p2d_ZERO_ = (Packet2d) { 0x8000000000000000, 0x8000000000000000 };
+static Packet2l p2l_ZERO = (Packet2l) { 0x0, 0x0 };
+#endif // _BIG_ENDIAN
 
+// These constants are endian-agnostic
 static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1); //{ 1, 1, 1, 1}
@@ -93,6 +114,24 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasSqrt = 0
   };
 };
+#ifdef __VSX__
+template<> struct packet_traits<double> : default_packet_traits
+{
+  typedef Packet2d type;
+  typedef Packet2d half;
+  enum {
+    Vectorizable = 1,
+    AlignedOnScalar = 1,
+    size=2,
+    HasHalfPacket = 0,
+
+    HasDiv  = 1,
+    HasExp  = 0,
+    HasSqrt = 0
+  };
+};
+#endif // __VSX__
+
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
@@ -104,6 +143,10 @@ template<> struct packet_traits<int>    : default_packet_traits
     size=4
   };
 };
+
+#ifdef __VSX__
+template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2}; typedef Packet2d half; };
+#endif // __VSX__
 
 template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; typedef Packet4f half; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; typedef Packet4i half; };
@@ -311,7 +354,6 @@ template<> EIGEN_STRONG_INLINE Packet4i pmin<Packet4i>(const Packet4i& a, const 
 template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_max(a, b); }
 template<> EIGEN_STRONG_INLINE Packet4i pmax<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_max(a, b); }
 
-// Logical Operations are not supported for float, so we have to reinterpret casts using NEON intrinsics
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_and(a, b); }
 template<> EIGEN_STRONG_INLINE Packet4i pand<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_and(a, b); }
 
@@ -327,10 +369,10 @@ template<> EIGEN_STRONG_INLINE Packet4i pandnot<Packet4i>(const Packet4i& a, con
 template<> EIGEN_STRONG_INLINE Packet4f pload<Packet4f>(const float* from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
 template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
 
+#ifndef __VSX__
 template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
-  // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   Packet16uc MSQ, LSQ;
   Packet16uc mask;
   MSQ = vec_ld(0, (unsigned char *)from);          // most significant quadword
@@ -350,6 +392,18 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
   mask = vec_lvsl(0, from);                        // create the permute mask
   return (Packet4i) vec_perm(MSQ, LSQ, mask);    // align the data
 }
+#else
+template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
+{
+  EIGEN_DEBUG_ALIGNED_LOAD
+  return (Packet4i) vec_vsx_ld((long)from & 15, from);      // align the data
+}
+template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
+{
+  EIGEN_DEBUG_ALIGNED_LOAD
+  return (Packet4f) vec_vsx_ld((long)from & 15, from);      // align the data
+}
+#endif
 
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {

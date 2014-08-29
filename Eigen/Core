@@ -171,6 +171,15 @@
     #undef bool
     #undef vector
     #undef pixel
+  #elif defined __VSX__
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_VSX
+    #include <altivec.h>
+    // We need to #undef all these ugly tokens defined in <altivec.h>
+    // => use __vector instead of vector
+    #undef bool
+    #undef vector
+    #undef pixel
   #elif defined  __ARM_NEON__
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_NEON
@@ -235,6 +244,8 @@ inline static const char *SimdInstructionSetsInUse(void) {
   return "SSE, SSE2";
 #elif defined(EIGEN_VECTORIZE_ALTIVEC)
   return "AltiVec";
+#elif defined(EIGEN_VECTORIZE_VSX)
+  return "VSX";
 #elif defined(EIGEN_VECTORIZE_NEON)
   return "ARM NEON";
 #else
@@ -286,8 +297,12 @@ using std::ptrdiff_t;
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/SSE/Complex.h"
-#elif defined EIGEN_VECTORIZE_ALTIVEC
+#elif defined(EIGEN_VECTORIZE_ALTIVEC) 
   #include "src/Core/arch/AltiVec/PacketMath.h"
+  #include "src/Core/arch/AltiVec/Complex.h"
+#elif defined(EIGEN_VECTORIZE_ALTIVEC) 
+  #include "src/Core/arch/AltiVec/PacketMath.h"
+  #include "src/Core/arch/AltiVec/VSX.h"
   #include "src/Core/arch/AltiVec/Complex.h"
 #elif defined EIGEN_VECTORIZE_NEON
   #include "src/Core/arch/NEON/PacketMath.h"

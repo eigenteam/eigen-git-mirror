@@ -182,7 +182,7 @@ public:
     nr = 4,
 
     // register block size along the M direction (currently, this one cannot be modified)
-#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC)
+#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
     // we assume 16 registers
     mr = 3*LhsPacketSize,
 #else
@@ -290,7 +290,7 @@ public:
     
     NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
     nr = 4,
-#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC)
+#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
     // we assume 16 registers
     mr = 3*LhsPacketSize,
 #else

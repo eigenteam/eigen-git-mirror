@@ -282,6 +282,12 @@ macro(ei_testing_print_summary)
       message(STATUS "Altivec:           Using architecture defaults")
     endif()
 
+    if(EIGEN_TEST_VSX)
+      message(STATUS "VSX:               ON")
+    else()
+      message(STATUS "VSX:               Using architecture defaults")
+    endif()
+
     if(EIGEN_TEST_NEON)
       message(STATUS "ARM NEON:          ON")
     else()

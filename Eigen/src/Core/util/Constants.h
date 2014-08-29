@@ -413,10 +413,16 @@ namespace Architecture
     Generic = 0x0,
     SSE = 0x1,
     AltiVec = 0x2,
+    VSX = 0x3,
+    NEON = 0x4,
 #if defined EIGEN_VECTORIZE_SSE
     Target = SSE
 #elif defined EIGEN_VECTORIZE_ALTIVEC
     Target = AltiVec
+#elif defined EIGEN_VECTORIZE_VSX
+    Target = VSX
+#elif defined EIGEN_VECTORIZE_NEON
+    Target = NEON
 #else
     Target = Generic
 #endif
