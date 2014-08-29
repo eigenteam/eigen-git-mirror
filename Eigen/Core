@@ -12,10 +12,13 @@
 #define EIGEN_CORE_H
 
 // EIGEN_TEST_EVALUATORS => EIGEN_ENABLE_EVALUATORS
-#ifdef EIGEN_TEST_EVALUATORS
-#ifndef EIGEN_ENABLE_EVALUATORS
-#define EIGEN_ENABLE_EVALUATORS
-#endif
+#ifndef EIGEN_TEST_NO_EVALUATORS
+  #ifndef EIGEN_TEST_EVALUATORS
+  #define EIGEN_TEST_EVALUATORS
+  #endif
+  #ifndef EIGEN_ENABLE_EVALUATORS
+  #define EIGEN_ENABLE_EVALUATORS
+  #endif
 #endif
 
 // first thing Eigen does: stop the compiler from committing suicide
