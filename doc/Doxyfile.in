@@ -460,7 +460,7 @@ HIDE_IN_BODY_DOCS      = NO
 # to NO (the default) then the documentation will be excluded.
 # Set it to YES to include the internal documentation.
 
-INTERNAL_DOCS          = NO
+INTERNAL_DOCS          = ${EIGEN_DOXY_INTERNAL}
 
 # If the CASE_SENSE_NAMES tag is set to NO then Doxygen will only generate
 # file names in lower-case letters. If set to YES upper-case letters are also
@@ -480,7 +480,7 @@ HIDE_SCOPE_NAMES       = NO
 # will put a list of the files that are included by a file in the documentation
 # of that file.
 
-SHOW_INCLUDE_FILES     = NO
+SHOW_INCLUDE_FILES     = ${EIGEN_DOXY_INTERNAL}
 
 # If the FORCE_LOCAL_INCLUDES tag is set to YES then Doxygen
 # will list include files with double quotes in the documentation
@@ -546,7 +546,7 @@ STRICT_PROTO_MATCHING  = NO
 # disable (NO) the todo list. This list is created by putting \todo
 # commands in the documentation.
 
-GENERATE_TODOLIST      = NO
+GENERATE_TODOLIST      = ${EIGEN_DOXY_INTERNAL}
 
 # The GENERATE_TESTLIST tag can be used to enable (YES) or
 # disable (NO) the test list. This list is created by putting \test
@@ -558,13 +558,13 @@ GENERATE_TESTLIST      = NO
 # disable (NO) the bug list. This list is created by putting \bug
 # commands in the documentation.
 
-GENERATE_BUGLIST       = NO
+GENERATE_BUGLIST       = ${EIGEN_DOXY_INTERNAL}
 
 # The GENERATE_DEPRECATEDLIST tag can be used to enable (YES) or
 # disable (NO) the deprecated list. This list is created by putting
 # \deprecated commands in the documentation.
 
-GENERATE_DEPRECATEDLIST= NO
+GENERATE_DEPRECATEDLIST= ${EIGEN_DOXY_INTERNAL}
 
 # The ENABLED_SECTIONS tag can be used to enable conditional
 # documentation sections, marked by \if sectionname ... \endif.

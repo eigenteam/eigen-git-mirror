@@ -55,8 +55,8 @@ public:
         Parameters()
             : factor(Scalar(100.))
             , maxfev(400)
-            , ftol(std::sqrt(NumTraits<Scalar>::epsilon()))
-            , xtol(std::sqrt(NumTraits<Scalar>::epsilon()))
+            , ftol(sqrt_(NumTraits<Scalar>::epsilon()))
+            , xtol(sqrt_(NumTraits<Scalar>::epsilon()))
             , gtol(Scalar(0.))
             , epsfcn(Scalar(0.)) {}
         Scalar factor;
@@ -72,7 +72,7 @@ public:
 
     LevenbergMarquardtSpace::Status lmder1(
             FVectorType &x,
-            const Scalar tol = std::sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = sqrt_(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status minimize(FVectorType &x);
@@ -83,12 +83,12 @@ public:
             FunctorType &functor,
             FVectorType &x,
             Index *nfev,
-            const Scalar tol = std::sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = sqrt_(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status lmstr1(
             FVectorType  &x,
-            const Scalar tol = std::sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = sqrt_(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status minimizeOptimumStorage(FVectorType  &x);
@@ -109,6 +109,8 @@ public:
 
     Scalar lm_param(void) { return par; }
 private:
+    static Scalar sqrt_(const Scalar& x) { using std::sqrt; return sqrt(x); }
+    
     FunctorType &functor;
     Index n;
     Index m;

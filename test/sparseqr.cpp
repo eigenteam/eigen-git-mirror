@@ -54,6 +54,8 @@ template<typename Scalar> void test_sparseqr_scalar()
   
   b = dA * DenseVector::Random(A.cols());
   solver.compute(A);
+  if(internal::random<float>(0,1)>0.5)
+    solver.factorize(A);  // this checks that calling analyzePattern is not needed if the pattern do not change.
   if (solver.info() != Success)
   {
     std::cerr << "sparse QR factorization failed\n";

@@ -176,8 +176,8 @@ void matrix_exp_pade17(const MatrixType &A, MatrixType &U, MatrixType &V)
   const MatrixType A4 = A2 * A2;
   const MatrixType A6 = A4 * A2;
   const MatrixType A8 = A4 * A4;
-  V = b[17] * m_tmp1 + b[15] * A6 + b[13] * A4 + b[11] * A2; // used for temporary storage
-  matrixType tmp = A8 * V;
+  V = b[17] * A8 + b[15] * A6 + b[13] * A4 + b[11] * A2; // used for temporary storage
+  MatrixType tmp = A8 * V;
   tmp += b[9] * A8 + b[7] * A6 + b[5] * A4 + b[3] * A2 
     + b[1] * MatrixType::Identity(A.rows(), A.cols());
   U.noalias() = A * tmp;

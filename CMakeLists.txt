@@ -119,7 +119,7 @@ endmacro(ei_add_cxx_compiler_flag)
 if(NOT MSVC)
   # We assume that other compilers are partly compatible with GNUCC
   
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
   set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O2")
   
@@ -299,6 +299,12 @@ option(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT "Disable explicit alignment (hence vecto
 if(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT)
   add_definitions(-DEIGEN_DONT_ALIGN=1)
   message(STATUS "Disabling alignment in tests/examples")
+endif()
+
+option(EIGEN_TEST_NO_EXCEPTIONS "Disables C++ exceptions" OFF)
+if(EIGEN_TEST_NO_EXCEPTIONS)
+  ei_add_cxx_compiler_flag("-fno-exceptions")
+  message(STATUS "Disabling exceptions in tests/examples")
 endif()
 
 option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)

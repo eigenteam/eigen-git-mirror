@@ -79,6 +79,10 @@ namespace Eigen
 
 #define EIGEN_DEFAULT_IO_FORMAT IOFormat(4, 0, "  ", "\n", "", "", "", "")
 
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__)
+  #define EIGEN_EXCEPTIONS
+#endif
+
 #ifndef EIGEN_NO_ASSERTION_CHECKING
 
   namespace Eigen
@@ -120,13 +124,14 @@ namespace Eigen
         if(report_on_cerr_on_assert_failure) \
           std::cerr <<  #a << " " __FILE__ << "(" << __LINE__ << ")\n"; \
         Eigen::no_more_assert = true;       \
-        throw Eigen::eigen_assert_exception(); \
+        EIGEN_THROW_X(Eigen::eigen_assert_exception()); \
       }                                     \
       else if (Eigen::internal::push_assert)       \
       {                                     \
         eigen_assert_list.push_back(std::string(EI_PP_MAKE_STRING(__FILE__) " (" EI_PP_MAKE_STRING(__LINE__) ") : " #a) ); \
       }
 
+    #ifdef EIGEN_EXCEPTIONS
     #define VERIFY_RAISES_ASSERT(a)                                                   \
       {                                                                               \
         Eigen::no_more_assert = false;                                                \
@@ -145,6 +150,7 @@ namespace Eigen
         Eigen::report_on_cerr_on_assert_failure = true;                               \
         Eigen::internal::push_assert = false;                                                \
       }
+    #endif //EIGEN_EXCEPTIONS
 
   #elif !defined(__CUDACC__) // EIGEN_DEBUG_ASSERTS
     // see bug 89. The copy_bool here is working around a bug in gcc <= 4.3
@@ -155,9 +161,10 @@ namespace Eigen
         if(report_on_cerr_on_assert_failure)  \
           eigen_plain_assert(a);              \
         else                                  \
-          throw Eigen::eigen_assert_exception(); \
+          EIGEN_THROW_X(Eigen::eigen_assert_exception()); \
       }
-    #define VERIFY_RAISES_ASSERT(a) {                             \
+    #ifdef EIGEN_EXCEPTIONS
+      #define VERIFY_RAISES_ASSERT(a) {                           \
         Eigen::no_more_assert = false;                            \
         Eigen::report_on_cerr_on_assert_failure = false;          \
         try {                                                     \
@@ -167,9 +174,14 @@ namespace Eigen
         catch (Eigen::eigen_assert_exception&) { VERIFY(true); }     \
         Eigen::report_on_cerr_on_assert_failure = true;           \
       }
-
+    #endif //EIGEN_EXCEPTIONS
   #endif // EIGEN_DEBUG_ASSERTS
 
+#ifndef VERIFY_RAISES_ASSERT
+  #define VERIFY_RAISES_ASSERT(a) \
+    std::cout << "Can't VERIFY_RAISES_ASSERT( " #a " ) with exceptions disabled\n";
+#endif
+    
   #if !defined(__CUDACC__)
   #define EIGEN_USE_CUSTOM_ASSERT
   #endif

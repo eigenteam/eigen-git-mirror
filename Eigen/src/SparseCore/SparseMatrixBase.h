@@ -291,7 +291,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     /** sparse * dense (returns a dense object unless it is an outer product) */
     template<typename OtherDerived>
     const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
-    operator*(const MatrixBase<OtherDerived> &other) const;
+    operator*(const MatrixBase<OtherDerived> &other) const
+    { return typename SparseDenseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived()); }
+    
 #else // EIGEN_TEST_EVALUATORS
     // sparse * diagonal
     template<typename OtherDerived>
