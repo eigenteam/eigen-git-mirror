@@ -15,7 +15,7 @@ namespace Eigen {
 namespace internal {
 
 template<typename Lhs, typename Rhs, typename ResultType>
-static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res, bool sortedInsertion = false)
 {
   typedef typename remove_all<Lhs>::type::Scalar Scalar;
   typedef typename remove_all<Lhs>::type::Index Index;
@@ -64,53 +64,51 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
           values[i] += x * y;
       }
     }
-
-    // unordered insertion
-    for(Index k=0; k<nnz; ++k)
+    if(!sortedInsertion)
     {
-      Index i = indices[k];
-      res.insertBackByOuterInnerUnordered(j,i) = values[i];
-      mask[i] = false;
-    }
-
-#if 0
-    // alternative ordered insertion code:
-
-    Index t200 = rows/(log2(200)*1.39);
-    Index t = (rows*100)/139;
-
-    // FIXME reserve nnz non zeros
-    // FIXME implement fast sort algorithms for very small nnz
-    // if the result is sparse enough => use a quick sort
-    // otherwise => loop through the entire vector
-    // In order to avoid to perform an expensive log2 when the
-    // result is clearly very sparse we use a linear bound up to 200.
-    //if((nnz<200 && nnz<t200) || nnz * log2(nnz) < t)
-    //res.startVec(j);
-    if(true)
-    {
-      if(nnz>1) std::sort(indices.data(),indices.data()+nnz);
+      // unordered insertion
       for(Index k=0; k<nnz; ++k)
       {
         Index i = indices[k];
-        res.insertBackByOuterInner(j,i) = values[i];
+        res.insertBackByOuterInnerUnordered(j,i) = values[i];
         mask[i] = false;
       }
     }
     else
     {
-      // dense path
-      for(Index i=0; i<rows; ++i)
+      // alternative ordered insertion code:
+      const Index t200 = rows/(log2(200)*1.39);
+      const Index t = (rows*100)/139;
+
+      // FIXME reserve nnz non zeros
+      // FIXME implement faster sorting algorithms for very small nnz
+      // if the result is sparse enough => use a quick sort
+      // otherwise => loop through the entire vector
+      // In order to avoid to perform an expensive log2 when the
+      // result is clearly very sparse we use a linear bound up to 200.
+      if((nnz<200 && nnz<t200) || nnz * log2(nnz) < t)
       {
-        if(mask[i])
+        if(nnz>1) std::sort(indices.data(),indices.data()+nnz);
+        for(Index k=0; k<nnz; ++k)
         {
-          mask[i] = false;
+          Index i = indices[k];
           res.insertBackByOuterInner(j,i) = values[i];
+          mask[i] = false;
+        }
+      }
+      else
+      {
+        // dense path
+        for(Index i=0; i<rows; ++i)
+        {
+          if(mask[i])
+          {
+            mask[i] = false;
+            res.insertBackByOuterInner(j,i) = values[i];
+          }
         }
       }
     }
-#endif
-
   }
   res.finalize();
 }
@@ -137,10 +135,20 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     typedef SparseMatrix<typename ResultType::Scalar,RowMajor,typename ResultType::Index> RowMajorMatrix;
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::Index> ColMajorMatrix;
     ColMajorMatrix resCol(lhs.rows(),rhs.cols());
-    internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol);
-    // sort the non zeros:
-    RowMajorMatrix resRow(resCol);
-    res = resRow;
+    // FIXME, the following heuristic is probably not very good.
+    if(lhs.rows()>=rhs.cols())
+    {
+      // perform sorted insertion
+      internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, true);
+      res = resCol;
+    }
+    else
+    {
+      // ressort to transpose to sort the entries
+      internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, false);
+      RowMajorMatrix resRow(resCol);
+      res = resRow;
+    }
   }
 };
 
