@@ -38,6 +38,10 @@ template<typename Scalar,int Size> void homogeneous(void)
   hv0 << v0, 1;
   VERIFY_IS_APPROX(v0.homogeneous(), hv0);
   VERIFY_IS_APPROX(v0, hv0.hnormalized());
+  
+  VERIFY_IS_APPROX(v0.homogeneous().sum(), hv0.sum());
+  VERIFY_IS_APPROX(v0.homogeneous().minCoeff(), hv0.minCoeff());
+  VERIFY_IS_APPROX(v0.homogeneous().maxCoeff(), hv0.maxCoeff());
 
   hm0 << m0, ones.transpose();
   VERIFY_IS_APPROX(m0.colwise().homogeneous(), hm0);
