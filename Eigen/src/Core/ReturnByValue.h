@@ -81,6 +81,7 @@ template<typename Derived> class ReturnByValue
     const Unusable& coeff(Index,Index) const { return *reinterpret_cast<const Unusable*>(this); }
     Unusable& coeffRef(Index) { return *reinterpret_cast<Unusable*>(this); }
     Unusable& coeffRef(Index,Index) { return *reinterpret_cast<Unusable*>(this); }
+#undef Unusable
 #endif
 };
 
