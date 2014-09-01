@@ -5,6 +5,11 @@ add_custom_target(BuildUnsupported)
 include_directories(../../test ../../unsupported ../../Eigen 
                     ${CMAKE_CURRENT_BINARY_DIR}/../../test)
 
+                    
+if(EIGEN_TEST_NO_EVALUATORS)
+  add_definitions("-DEIGEN_TEST_NO_EVALUATORS=1")
+endif(EIGEN_TEST_NO_EVALUATORS)
+
 find_package(GoogleHash)
 if(GOOGLEHASH_FOUND)
   add_definitions("-DEIGEN_GOOGLEHASH_SUPPORT")
@@ -28,18 +33,23 @@ endif(ADOLC_FOUND)
 ei_add_test(NonLinearOptimization)
 
 ei_add_test(NumericalDiff)
+if(EIGEN_TEST_NO_EVALUATORS)
 ei_add_test(autodiff_scalar)
 ei_add_test(autodiff)
+endif()
 
 if (NOT CMAKE_CXX_COMPILER MATCHES "clang\\+\\+$")
 ei_add_test(BVH)
 endif()
 
+if(EIGEN_TEST_NO_EVALUATORS)
 ei_add_test(matrix_exponential)
 ei_add_test(matrix_function)
 ei_add_test(matrix_power)
 ei_add_test(matrix_square_root)
 ei_add_test(alignedvector3)
+endif()
+
 ei_add_test(FFT)
 
 find_package(MPFR 2.3.0)
@@ -86,12 +96,14 @@ endif()
 
 ei_add_test(polynomialsolver)
 ei_add_test(polynomialutils)
-ei_add_test(kronecker_product)
 ei_add_test(splines)
 ei_add_test(gmres)
 ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
+if(EIGEN_TEST_NO_EVALUATORS)
 ei_add_test(bdcsvd)
+ei_add_test(kronecker_product)
+endif()
 
 option(EIGEN_TEST_CXX11 "Enable testing of C++11 features (e.g. Tensor module)." OFF)
 if(EIGEN_TEST_CXX11)
