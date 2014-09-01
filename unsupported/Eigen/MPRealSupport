@@ -159,11 +159,7 @@ int main()
       {
         if(rows==0 || cols==0 || depth==0)
           return;
-<<<<<<< local
 
-=======
-        
->>>>>>> other
         mpreal  acc1(0,mpfr_get_prec(blockA[0].mpfr_srcptr())),
                 tmp (0,mpfr_get_prec(blockA[0].mpfr_srcptr()));
 
