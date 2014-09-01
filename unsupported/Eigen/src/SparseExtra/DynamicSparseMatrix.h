@@ -352,6 +352,38 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator : public
     const Index m_outer;
 };
 
+#ifdef EIGEN_ENABLE_EVALUATORS
+namespace internal {
+
+template<typename _Scalar, int _Options, typename _Index>
+struct evaluator<DynamicSparseMatrix<_Scalar,_Options,_Index> >
+  : evaluator_base<DynamicSparseMatrix<_Scalar,_Options,_Index> >
+{
+  typedef _Scalar Scalar;
+  typedef _Index Index;
+  typedef DynamicSparseMatrix<_Scalar,_Options,_Index> SparseMatrixType;
+  typedef typename SparseMatrixType::InnerIterator InnerIterator;
+  typedef typename SparseMatrixType::ReverseInnerIterator ReverseInnerIterator;
+  
+  enum {
+    CoeffReadCost = NumTraits<_Scalar>::ReadCost,
+    Flags = SparseMatrixType::Flags
+  };
+  
+  evaluator() : m_matrix(0) {}
+  evaluator(const SparseMatrixType &mat) : m_matrix(&mat) {}
+  
+  operator SparseMatrixType&() { return m_matrix->const_cast_derived(); }
+  operator const SparseMatrixType&() const { return *m_matrix; }
+  
+  Scalar coeff(Index row, Index col) const { return m_matrix->coeff(row,col); }
+
+  const SparseMatrixType *m_matrix;
+};
+
+}
+#endif
+
 } // end namespace Eigen
 
 #endif // EIGEN_DYNAMIC_SPARSEMATRIX_H
