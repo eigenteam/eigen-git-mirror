@@ -28,6 +28,8 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
   ei_declare_aligned_stack_constructed_variable(bool,   mask,     rows, 0);
   ei_declare_aligned_stack_constructed_variable(Scalar, values,   rows, 0);
   ei_declare_aligned_stack_constructed_variable(Index,  indices,  rows, 0);
+  
+  std::memset(mask,0,sizeof(bool)*rows);
 
   // estimate the number of non zero entries
   // given a rhs column containing Y non zeros, we assume that the respective Y columns
@@ -155,14 +157,14 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     {
       // perform sorted insertion
       internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, true);
-      res.swap(resCol);
+      res = resCol.markAsRValue();
     }
     else
     {
       // ressort to transpose to sort the entries
       internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, false);
       RowMajorMatrix resRow(resCol);
-      res = resRow;
+      res = resRow.markAsRValue();
     }
   }
 };
