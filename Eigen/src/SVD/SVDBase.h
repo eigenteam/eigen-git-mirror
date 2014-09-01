@@ -190,6 +190,41 @@ public:
 
   inline Index rows() const { return m_rows; }
   inline Index cols() const { return m_cols; }
+  
+  /** \returns a (least squares) solution of \f$ A x = b \f$ using the current SVD decomposition of A.
+    *
+    * \param b the right-hand-side of the equation to solve.
+    *
+    * \note Solving requires both U and V to be computed. Thin U and V are enough, there is no need for full U or V.
+    *
+    * \note SVD solving is implicitly least-squares. Thus, this method serves both purposes of exact solving and least-squares solving.
+    * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
+    */
+#ifdef EIGEN_TEST_EVALUATORS
+  template<typename Rhs>
+  inline const Solve<Derived, Rhs>
+  solve(const MatrixBase<Rhs>& b) const
+  {
+    eigen_assert(m_isInitialized && "SVD is not initialized.");
+    eigen_assert(computeU() && computeV() && "SVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
+    return Solve<Derived, Rhs>(derived(), b.derived());
+  }
+#else
+  template<typename Rhs>
+  inline const internal::solve_retval<SVDBase, Rhs>
+  solve(const MatrixBase<Rhs>& b) const
+  {
+    eigen_assert(m_isInitialized && "SVD is not initialized.");
+    eigen_assert(computeU() && computeV() && "SVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
+    return internal::solve_retval<SVDBase, Rhs>(*this, b.derived());
+  }
+#endif
+  
+  #ifndef EIGEN_PARSED_BY_DOXYGEN
+  template<typename RhsType, typename DstType>
+  EIGEN_DEVICE_FUNC
+  void _solve_impl(const RhsType &rhs, DstType &dst) const;
+  #endif
 
 protected:
   // return true if already allocated
@@ -220,6 +255,41 @@ protected:
 
 };
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template<typename Derived>
+template<typename RhsType, typename DstType>
+void SVDBase<Derived>::_solve_impl(const RhsType &rhs, DstType &dst) const
+{
+  eigen_assert(rhs.rows() == rows());
+
+  // A = U S V^*
+  // So A^{-1} = V S^{-1} U^*
+
+  Matrix<Scalar, Dynamic, RhsType::ColsAtCompileTime, 0, MatrixType::MaxRowsAtCompileTime, RhsType::MaxColsAtCompileTime> tmp;
+  Index l_rank = rank();
+  
+  tmp.noalias() =  m_matrixU.leftCols(l_rank).adjoint() * rhs;
+  tmp = m_singularValues.head(l_rank).asDiagonal().inverse() * tmp;
+  dst = m_matrixV.leftCols(l_rank) * tmp;
+}
+#endif
+
+namespace internal {
+#ifndef EIGEN_TEST_EVALUATORS
+template<typename Derived, typename Rhs>
+struct solve_retval<SVDBase<Derived>, Rhs>
+  : solve_retval_base<SVDBase<Derived>, Rhs>
+{
+  typedef SVDBase<Derived> SVDType;
+  EIGEN_MAKE_SOLVE_HELPERS(SVDType,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dec().derived()._solve_impl(rhs(), dst);
+  }
+};
+#endif
+} // end namespace internal
 
 template<typename MatrixType>
 bool SVDBase<MatrixType>::allocate(Index rows, Index cols, unsigned int computationOptions)
