@@ -62,9 +62,13 @@ namespace internal {
   * 
   */
 template<typename _MatrixType, typename _OrderingType>
-class SparseQR
+class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
 {
+  protected:
+    typedef SparseSolverBase<SparseQR<_MatrixType,_OrderingType> > Base;
+    using Base::m_isInitialized;
   public:
+    using Base::_solve_impl;
     typedef _MatrixType MatrixType;
     typedef _OrderingType OrderingType;
     typedef typename MatrixType::Scalar Scalar;
@@ -75,7 +79,7 @@ class SparseQR
     typedef Matrix<Scalar, Dynamic, 1> ScalarVector;
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
   public:
-    SparseQR () : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
+    SparseQR () :  m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     { }
     
     /** Construct a QR factorization of the matrix \a mat.
@@ -84,7 +88,7 @@ class SparseQR
       * 
       * \sa compute()
       */
-    SparseQR(const MatrixType& mat) : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
+    SparseQR(const MatrixType& mat) : m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     {
       compute(mat);
     }
@@ -162,7 +166,7 @@ class SparseQR
     
     /** \internal */
     template<typename Rhs, typename Dest>
-    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &dest) const
+    bool _solve_impl(const MatrixBase<Rhs> &B, MatrixBase<Dest> &dest) const
     {
       eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
       eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
@@ -186,7 +190,6 @@ class SparseQR
       m_info = Success;
       return true;
     }
-    
 
     /** Sets the threshold that is used to determine linearly dependent columns during the factorization.
       *
@@ -199,6 +202,7 @@ class SparseQR
       m_threshold = threshold;
     }
     
+#ifndef EIGEN_TEST_EVALUATORS
     /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
       *
       * \sa compute()
@@ -217,6 +221,26 @@ class SparseQR
           eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
           return internal::sparse_solve_retval<SparseQR, Rhs>(*this, B.derived());
     }
+#else
+    /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
+      *
+      * \sa compute()
+      */
+    template<typename Rhs>
+    inline const Solve<SparseQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
+    {
+      eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
+      eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
+      return Solve<SparseQR, Rhs>(*this, B.derived());
+    }
+    template<typename Rhs>
+    inline const Solve<SparseQR, Rhs> solve(const SparseMatrixBase<Rhs>& B) const
+    {
+          eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
+          eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
+          return Solve<SparseQR, Rhs>(*this, B.derived());
+    }
+#endif // EIGEN_TEST_EVALUATORS
     
     /** \brief Reports whether previous computation was successful.
       *
@@ -244,7 +268,6 @@ class SparseQR
 
     
   protected:
-    bool m_isInitialized;
     bool m_analysisIsok;
     bool m_factorizationIsok;
     mutable ComputationInfo m_info;
@@ -554,6 +577,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   m_info = Success;
 }
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
   
 template<typename _MatrixType, typename OrderingType, typename Rhs>
@@ -565,7 +589,7 @@ struct solve_retval<SparseQR<_MatrixType,OrderingType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec()._solve_impl(rhs(),dst);
   }
 };
 template<typename _MatrixType, typename OrderingType, typename Rhs>
@@ -581,6 +605,7 @@ struct sparse_solve_retval<SparseQR<_MatrixType, OrderingType>, Rhs>
   }
 };
 } // end namespace internal
+#endif // EIGEN_TEST_EVALUATORS
 
 template <typename SparseQRType, typename Derived>
 struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived> >

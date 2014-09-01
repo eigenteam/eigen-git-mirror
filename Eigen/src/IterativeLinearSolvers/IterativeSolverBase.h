@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -18,8 +18,12 @@ namespace Eigen {
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
 template< typename Derived>
-class IterativeSolverBase : internal::noncopyable
+class IterativeSolverBase : public SparseSolverBase<Derived>
 {
+protected:
+  typedef SparseSolverBase<Derived> Base;
+  using Base::m_isInitialized;
+  
 public:
   typedef typename internal::traits<Derived>::MatrixType MatrixType;
   typedef typename internal::traits<Derived>::Preconditioner Preconditioner;
@@ -29,8 +33,7 @@ public:
 
 public:
 
-  Derived& derived() { return *static_cast<Derived*>(this); }
-  const Derived& derived() const { return *static_cast<const Derived*>(this); }
+  using Base::derived;
 
   /** Default constructor. */
   IterativeSolverBase()
@@ -159,6 +162,7 @@ public:
     return m_error;
   }
 
+#ifndef EIGEN_TEST_EVALUATORS
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
     *
     * \sa compute()
@@ -171,7 +175,9 @@ public:
               && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
     return internal::solve_retval<Derived, Rhs>(derived(), b.derived());
   }
+#endif
   
+#ifndef EIGEN_TEST_EVALUATORS
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
     *
     * \sa compute()
@@ -185,6 +191,7 @@ public:
               && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
     return internal::sparse_solve_retval<IterativeSolverBase, Rhs>(*this, b.derived());
   }
+#endif // EIGEN_TEST_EVALUATORS
 
   /** \returns Success if the iterations converged, and NoConvergence otherwise. */
   ComputationInfo info() const
@@ -193,6 +200,7 @@ public:
     return m_info;
   }
   
+#ifndef EIGEN_TEST_EVALUATORS
   /** \internal */
   template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
   void _solve_sparse(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
@@ -210,6 +218,25 @@ public:
       dest.col(k) = tx.sparseView(0);
     }
   }
+#else
+  /** \internal */
+  template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
+  void _solve_impl(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+  {
+    eigen_assert(rows()==b.rows());
+    
+    int rhsCols = b.cols();
+    int size = b.rows();
+    Eigen::Matrix<DestScalar,Dynamic,1> tb(size);
+    Eigen::Matrix<DestScalar,Dynamic,1> tx(size);
+    for(int k=0; k<rhsCols; ++k)
+    {
+      tb = b.col(k);
+      tx = derived().solve(tb);
+      dest.col(k) = tx.sparseView(0);
+    }
+  }
+#endif // EIGEN_TEST_EVALUATORS
 
 protected:
   void init()
@@ -229,9 +256,10 @@ protected:
   mutable RealScalar m_error;
   mutable int m_iterations;
   mutable ComputationInfo m_info;
-  mutable bool m_isInitialized, m_analysisIsOk, m_factorizationIsOk;
+  mutable bool m_analysisIsOk, m_factorizationIsOk;
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
  
 template<typename Derived, typename Rhs>
@@ -248,6 +276,7 @@ struct sparse_solve_retval<IterativeSolverBase<Derived>, Rhs>
 };
 
 } // end namespace internal
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

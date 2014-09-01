@@ -58,6 +58,7 @@ struct Sparse {};
 #include "src/SparseCore/TriangularSolver.h"
 #include "src/SparseCore/SparsePermutation.h"
 #include "src/SparseCore/SparseFuzzy.h"
+#include "src/SparseCore/SparseSolverBase.h"
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

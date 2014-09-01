@@ -350,7 +350,8 @@ void HouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) c
   dst.bottomRows(cols()-rank).setZero();
 }
 #endif
-  
+
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 template<typename _MatrixType, typename Rhs>
@@ -366,6 +367,7 @@ struct solve_retval<HouseholderQR<_MatrixType>, Rhs>
 };
 
 } // end namespace internal
+#endif // EIGEN_TEST_EVALUATORS
 
 /** Performs the QR factorization of the given matrix \a matrix. The result of
   * the factorization is stored into \c *this, and a reference to \c *this

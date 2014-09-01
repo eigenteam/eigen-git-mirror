@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
+// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -158,7 +159,11 @@ class IncompleteLUT : internal::noncopyable
     void setFillfactor(int fillfactor); 
     
     template<typename Rhs, typename Dest>
+#ifndef EIGEN_TEST_EVALUATORS
     void _solve(const Rhs& b, Dest& x) const
+#else
+    void _solve_impl(const Rhs& b, Dest& x) const
+#endif
     {
       x = m_Pinv * b;  
       x = m_lu.template triangularView<UnitLower>().solve(x);
@@ -166,14 +171,25 @@ class IncompleteLUT : internal::noncopyable
       x = m_P * x; 
     }
 
+#ifndef EIGEN_TEST_EVALUATORS
     template<typename Rhs> inline const internal::solve_retval<IncompleteLUT, Rhs>
-     solve(const MatrixBase<Rhs>& b) const
+    solve(const MatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "IncompleteLUT is not initialized.");
       eigen_assert(cols()==b.rows()
                 && "IncompleteLUT::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<IncompleteLUT, Rhs>(*this, b.derived());
     }
+#else
+    template<typename Rhs> inline const Solve<IncompleteLUT, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "IncompleteLUT is not initialized.");
+      eigen_assert(cols()==b.rows()
+                && "IncompleteLUT::solve(): invalid number of rows of the right hand side matrix b");
+      return Solve<IncompleteLUT, Rhs>(*this, b.derived());
+    }
+#endif
 
 protected:
 
@@ -445,6 +461,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
   m_info = Success;
 }
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 template<typename _MatrixType, typename Rhs>
@@ -461,6 +478,7 @@ struct solve_retval<IncompleteLUT<_MatrixType>, Rhs>
 };
 
 } // end namespace internal
+#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

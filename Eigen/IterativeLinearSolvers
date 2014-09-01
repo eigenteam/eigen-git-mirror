@@ -26,8 +26,12 @@
   * \endcode
   */
 
+#ifndef EIGEN_TEST_EVALUATORS
 #include "src/misc/Solve.h"
 #include "src/misc/SparseSolve.h"
+#else
+#include "src/IterativeLinearSolvers/SolveWithGuess.h"
+#endif
 
 #include "src/IterativeLinearSolvers/IterativeSolverBase.h"
 #include "src/IterativeLinearSolvers/BasicPreconditioners.h"

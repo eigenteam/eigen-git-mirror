@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -288,8 +288,12 @@ MappedSparseMatrix<Scalar,Flags,Index> map_superlu(SluMatrix& sluMat)
   * \brief The base class for the direct and incomplete LU factorization of SuperLU
   */
 template<typename _MatrixType, typename Derived>
-class SuperLUBase : internal::noncopyable
+class SuperLUBase : public SparseSolverBase<Derived>
 {
+  protected:
+    typedef SparseSolverBase<Derived> Base;
+    using Base::derived;
+    using Base::m_isInitialized;
   public:
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
@@ -308,9 +312,6 @@ class SuperLUBase : internal::noncopyable
     {
       clearFactors();
     }
-    
-    Derived& derived() { return *static_cast<Derived*>(this); }
-    const Derived& derived() const { return *static_cast<const Derived*>(this); }
     
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -336,6 +337,7 @@ class SuperLUBase : internal::noncopyable
       derived().factorize(matrix);
     }
     
+#ifndef EIGEN_TEST_EVALUATORS
     /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
       *
       * \sa compute()
@@ -361,7 +363,8 @@ class SuperLUBase : internal::noncopyable
                 && "SuperLU::solve(): invalid number of rows of the right hand side matrix b");
       return internal::sparse_solve_retval<SuperLUBase, Rhs>(*this, b.derived());
     }
-    
+#endif // EIGEN_TEST_EVALUATORS
+
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
       * This function is particularly useful when solving for several problems having the same structure.
@@ -453,7 +456,6 @@ class SuperLUBase : internal::noncopyable
     mutable char m_sluEqued;
 
     mutable ComputationInfo m_info;
-    bool m_isInitialized;
     int m_factorizationIsOk;
     int m_analysisIsOk;
     mutable bool m_extractedDataAreDirty;
@@ -491,6 +493,7 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
     typedef TriangularView<LUMatrixType,  Upper>           UMatrixType;
 
   public:
+    using Base::_solve_impl;
 
     SuperLU() : Base() { init(); }
 
@@ -528,7 +531,7 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     template<typename Rhs,typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const;
+    void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const;
     #endif // EIGEN_PARSED_BY_DOXYGEN
     
     inline const LMatrixType& matrixL() const
@@ -637,7 +640,7 @@ void SuperLU<MatrixType>::factorize(const MatrixType& a)
 
 template<typename MatrixType>
 template<typename Rhs,typename Dest>
-void SuperLU<MatrixType>::_solve(const MatrixBase<Rhs> &b, MatrixBase<Dest>& x) const
+void SuperLU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest>& x) const
 {
   eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or analyzePattern()/factorize()");
 
@@ -828,6 +831,7 @@ class SuperILU : public SuperLUBase<_MatrixType,SuperILU<_MatrixType> >
     typedef typename Base::Index Index;
 
   public:
+    using Base::_solve_impl;
 
     SuperILU() : Base() { init(); }
 
@@ -863,7 +867,7 @@ class SuperILU : public SuperLUBase<_MatrixType,SuperILU<_MatrixType> >
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     template<typename Rhs,typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const;
+    void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const;
     #endif // EIGEN_PARSED_BY_DOXYGEN
     
   protected:
@@ -948,7 +952,7 @@ void SuperILU<MatrixType>::factorize(const MatrixType& a)
 
 template<typename MatrixType>
 template<typename Rhs,typename Dest>
-void SuperILU<MatrixType>::_solve(const MatrixBase<Rhs> &b, MatrixBase<Dest>& x) const
+void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest>& x) const
 {
   eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or analyzePattern()/factorize()");
 
@@ -991,6 +995,7 @@ void SuperILU<MatrixType>::_solve(const MatrixBase<Rhs> &b, MatrixBase<Dest>& x)
 }
 #endif
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
   
 template<typename _MatrixType, typename Derived, typename Rhs>
@@ -1002,7 +1007,7 @@ struct solve_retval<SuperLUBase<_MatrixType,Derived>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec().derived()._solve(rhs(),dst);
+    dec().derived()._solve_impl(rhs(),dst);
   }
 };
 
@@ -1020,7 +1025,7 @@ struct sparse_solve_retval<SuperLUBase<_MatrixType,Derived>, Rhs>
 };
 
 } // end namespace internal
-
+#endif
 } // end namespace Eigen
 
 #endif // EIGEN_SUPERLUSUPPORT_H

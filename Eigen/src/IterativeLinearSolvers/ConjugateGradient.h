@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -193,6 +193,7 @@ public:
 
   ~ConjugateGradient() {}
   
+#ifndef EIGEN_TEST_EVALUATORS
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
     * \a x0 as an initial solution.
     *
@@ -208,10 +209,26 @@ public:
     return internal::solve_retval_with_guess
             <ConjugateGradient, Rhs, Guess>(*this, b.derived(), x0);
   }
+#else
+  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
+    * \a x0 as an initial solution.
+    *
+    * \sa compute()
+    */
+  template<typename Rhs,typename Guess>
+  inline const SolveWithGuess<ConjugateGradient, Rhs, Guess>
+  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
+  {
+    eigen_assert(m_isInitialized && "ConjugateGradient is not initialized.");
+    eigen_assert(Base::rows()==b.rows()
+              && "ConjugateGradient::solve(): invalid number of rows of the right hand side matrix b");
+    return SolveWithGuess<ConjugateGradient, Rhs, Guess>(*this, b.derived(), x0);
+  }
+#endif
 
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solveWithGuess(const Rhs& b, Dest& x) const
+  void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
@@ -231,18 +248,19 @@ public:
   }
   
   /** \internal */
+  using Base::_solve_impl;
   template<typename Rhs,typename Dest>
-  void _solve(const Rhs& b, Dest& x) const
+  void _solve_impl(const MatrixBase<Rhs>& b, Dest& x) const
   {
     x.setOnes();
-    _solveWithGuess(b,x);
+    _solve_with_guess_impl(b.derived(),x);
   }
 
 protected:
 
 };
 
-
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 template<typename _MatrixType, int _UpLo, typename _Preconditioner, typename Rhs>
@@ -254,11 +272,12 @@ struct solve_retval<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec()._solve_impl(rhs(),dst);
   }
 };
 
 } // end namespace internal
+#endif
 
 } // end namespace Eigen
 

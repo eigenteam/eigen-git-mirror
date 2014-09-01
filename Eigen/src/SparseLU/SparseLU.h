@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
-// Copyright (C) 2012 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2012-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -70,9 +70,14 @@ template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixURetu
   * \sa \ref OrderingMethods_Module
   */
 template <typename _MatrixType, typename _OrderingType>
-class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typename _MatrixType::Index>
+class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, public internal::SparseLUImpl<typename _MatrixType::Scalar, typename _MatrixType::Index>
 {
+  protected:
+    typedef SparseSolverBase<SparseLU<_MatrixType,_OrderingType> > APIBase;
+    using APIBase::m_isInitialized;
   public:
+    using APIBase::_solve_impl;
+    
     typedef _MatrixType MatrixType; 
     typedef _OrderingType OrderingType;
     typedef typename MatrixType::Scalar Scalar; 
@@ -86,11 +91,11 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     typedef internal::SparseLUImpl<Scalar, Index> Base;
     
   public:
-    SparseLU():m_isInitialized(true),m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
+    SparseLU():m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
     {
       initperfvalues(); 
     }
-    SparseLU(const MatrixType& matrix):m_isInitialized(true),m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
+    SparseLU(const MatrixType& matrix):m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
     {
       initperfvalues(); 
       compute(matrix);
@@ -168,6 +173,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       m_diagpivotthresh = thresh; 
     }
 
+#ifndef EIGEN_TEST_EVALUATORS
     /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
       *
       * \warning the destination matrix X in X = this->solve(B) must be colmun-major.
@@ -195,6 +201,20 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
                     && "SparseLU::solve(): invalid number of rows of the right hand side matrix B");
           return internal::sparse_solve_retval<SparseLU, Rhs>(*this, B.derived());
     }
+#else
+
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+    /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
+      *
+      * \warning the destination matrix X in X = this->solve(B) must be colmun-major.
+      *
+      * \sa compute()
+      */
+    template<typename Rhs>
+    inline const Solve<SparseLU, Rhs> solve(const MatrixBase<Rhs>& B) const;
+#endif // EIGEN_PARSED_BY_DOXYGEN
+    
+#endif // EIGEN_TEST_EVALUATORS
     
     /** \brief Reports whether previous computation was successful.
       *
@@ -219,7 +239,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     }
 
     template<typename Rhs, typename Dest>
-    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X_base) const
+    bool _solve_impl(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X_base) const
     {
       Dest& X(X_base.derived());
       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first");
@@ -332,7 +352,6 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       
     // Variables 
     mutable ComputationInfo m_info;
-    bool m_isInitialized;
     bool m_factorizationIsOk;
     bool m_analysisIsOk;
     std::string m_lastError;
@@ -728,6 +747,7 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
   const MatrixUType& m_mapU;
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
   
 template<typename _MatrixType, typename Derived, typename Rhs>
@@ -739,7 +759,7 @@ struct solve_retval<SparseLU<_MatrixType,Derived>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec()._solve_impl(rhs(),dst);
   }
 };
 
@@ -756,6 +776,7 @@ struct sparse_solve_retval<SparseLU<_MatrixType,Derived>, Rhs>
   }
 };
 } // end namespace internal
+#endif
 
 } // End namespace Eigen 
 
