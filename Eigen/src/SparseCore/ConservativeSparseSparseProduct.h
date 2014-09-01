@@ -28,6 +28,8 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
   ei_declare_aligned_stack_constructed_variable(bool,   mask,     rows, 0);
   ei_declare_aligned_stack_constructed_variable(Scalar, values,   rows, 0);
   ei_declare_aligned_stack_constructed_variable(Index,  indices,  rows, 0);
+  
+  std::memset(mask,0,sizeof(bool)*rows);
 
   // estimate the number of non zero entries
   // given a rhs column containing Y non zeros, we assume that the respective Y columns
@@ -136,20 +138,21 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::Index> ColMajorMatrixAux;
     typedef typename sparse_eval<ColMajorMatrixAux,ResultType::RowsAtCompileTime,ResultType::ColsAtCompileTime>::type ColMajorMatrix;
     
-    ColMajorMatrix resCol(lhs.rows(),rhs.cols());
     // FIXME, the following heuristic is probably not very good.
     if(lhs.rows()>=rhs.cols())
     {
+      ColMajorMatrix resCol(lhs.rows(),rhs.cols());
       // perform sorted insertion
       internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, true);
-      res.swap(resCol);
+      res = resCol.markAsRValue();
     }
     else
     {
+      ColMajorMatrixAux resCol(lhs.rows(),rhs.cols());
       // ressort to transpose to sort the entries
-      internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, false);
+      internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrixAux>(lhs, rhs, resCol, false);
       RowMajorMatrix resRow(resCol);
-      res = resRow;
+      res = resRow.markAsRValue();
     }
   }
 };
