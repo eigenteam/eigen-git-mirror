@@ -96,6 +96,13 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE std::ptrdiff_t
 #endif
 
+// Cross compiler wrapper around LLVM's __has_builtin
+#ifdef __has_builtin
+#  define EIGEN_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#  define EIGEN_HAS_BUILTIN(x) 0
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
