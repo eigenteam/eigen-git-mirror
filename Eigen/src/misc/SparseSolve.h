@@ -10,6 +10,8 @@
 #ifndef EIGEN_SPARSE_SOLVE_H
 #define EIGEN_SPARSE_SOLVE_H
 
+#ifndef EIGEN_TEST_EVALUATORS
+
 namespace Eigen { 
 
 namespace internal {
@@ -126,5 +128,7 @@ template<typename DecompositionType, typename Rhs, typename Guess> struct solve_
 } // namepsace internal
 
 } // end namespace Eigen
+
+#endif // EIGEN_TEST_EVALUATORS
 
 #endif // EIGEN_SPARSE_SOLVE_H

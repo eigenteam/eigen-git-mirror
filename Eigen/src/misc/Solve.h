@@ -10,6 +10,8 @@
 #ifndef EIGEN_MISC_SOLVE_H
 #define EIGEN_MISC_SOLVE_H
 
+#ifndef EIGEN_TEST_EVALUATORS
+
 namespace Eigen { 
 
 namespace internal {
@@ -72,5 +74,5 @@ template<typename _DecompositionType, typename Rhs> struct solve_retval_base
     : Base(dec, rhs) {}
 
 } // end namespace Eigen
-
+#endif // EIGEN_TEST_EVALUATORS
 #endif // EIGEN_MISC_SOLVE_H
