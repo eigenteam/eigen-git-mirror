@@ -108,6 +108,7 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
     using Base::m_isInitialized;
     using Base::m_tolerance; 
   public:
+    using Base::_solve_impl;
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Index Index;
@@ -138,6 +139,7 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
 
   ~DGMRES() {}
   
+#ifndef EIGEN_TEST_EVALUATORS
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
     * \a x0 as an initial solution.
     *
@@ -153,10 +155,11 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
     return internal::solve_retval_with_guess
             <DGMRES, Rhs, Guess>(*this, b.derived(), x0);
   }
+#endif
   
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solveWithGuess(const Rhs& b, Dest& x) const
+  void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {    
     bool failed = false;
     for(int j=0; j<b.cols(); ++j)
@@ -175,10 +178,10 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
 
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solve(const Rhs& b, Dest& x) const
+  void _solve_impl(const Rhs& b, MatrixBase<Dest>& x) const
   {
     x = b;
-    _solveWithGuess(b,x);
+    _solve_with_guess_impl(b,x.derived());
   }
   /** 
    * Get the restart value
@@ -522,6 +525,7 @@ int DGMRES<_MatrixType, _Preconditioner>::dgmresApplyDeflation(const RhsType &x,
   return 0; 
 }
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 
   template<typename _MatrixType, typename _Preconditioner, typename Rhs>
@@ -533,10 +537,11 @@ struct solve_retval<DGMRES<_MatrixType, _Preconditioner>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec()._solve_impl(rhs(),dst);
   }
 };
 } // end namespace internal
+#endif
 
 } // end namespace Eigen
 #endif 

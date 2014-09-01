@@ -13,8 +13,12 @@
 namespace Eigen { 
 
 template <typename _Scalar>
-class IncompleteLU
+class IncompleteLU : public SparseSolverBase<IncompleteLU<_Scalar> >
 {
+  protected:
+    typedef SparseSolverBase<IncompleteLU<_Scalar> > Base;
+    using Base::m_isInitialized;
+    
     typedef _Scalar Scalar;
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef typename Vector::Index Index;
@@ -23,10 +27,10 @@ class IncompleteLU
   public:
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
 
-    IncompleteLU() : m_isInitialized(false) {}
+    IncompleteLU() {}
 
     template<typename MatrixType>
-    IncompleteLU(const MatrixType& mat) : m_isInitialized(false)
+    IncompleteLU(const MatrixType& mat)
     {
       compute(mat);
     }
@@ -71,12 +75,13 @@ class IncompleteLU
     }
 
     template<typename Rhs, typename Dest>
-    void _solve(const Rhs& b, Dest& x) const
+    void _solve_impl(const Rhs& b, Dest& x) const
     {
       x = m_lu.template triangularView<UnitLower>().solve(b);
       x = m_lu.template triangularView<Upper>().solve(x);
     }
 
+#ifndef EIGEN_TEST_EVALUATORS
     template<typename Rhs> inline const internal::solve_retval<IncompleteLU, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
@@ -85,12 +90,13 @@ class IncompleteLU
                 && "IncompleteLU::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<IncompleteLU, Rhs>(*this, b.derived());
     }
+#endif
 
   protected:
     FactorType m_lu;
-    bool m_isInitialized;
 };
 
+#ifndef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 template<typename _MatrixType, typename Rhs>
@@ -102,11 +108,12 @@ struct solve_retval<IncompleteLU<_MatrixType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec()._solve_impl(rhs(),dst);
   }
 };
 
 } // end namespace internal
+#endif
 
 } // end namespace Eigen
 
