@@ -237,13 +237,13 @@ class CholmodBase : public SparseSolverBase<Derived>
       * \sa compute()
       */
     template<typename Rhs>
-    inline const internal::sparse_solve_retval<Derived, Rhs>
+    inline const internal::sparse_solve_retval<CholmodBase, Rhs>
     solve(const SparseMatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
       eigen_assert(rows()==b.rows()
                 && "CholmodDecomposition::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<Derived, Rhs>(derived(), b.derived());
+      return internal::sparse_solve_retval<CholmodBase, Rhs>(*this, b.derived());
     }
 #endif // EIGEN_TEST_EVALUATORS
     
