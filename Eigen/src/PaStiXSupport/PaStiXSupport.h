@@ -328,7 +328,6 @@ void PastixBase<Derived>::compute(ColSpMatrix& mat)
   factorize(mat);
   
   m_iparm(IPARM_MATRIX_VERIFICATION) = API_NO;
-  m_isInitialized = m_factorizationIsOk;
 }
 
 

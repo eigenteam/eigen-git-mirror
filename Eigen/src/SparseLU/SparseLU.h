@@ -482,6 +482,8 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   typedef typename IndexVector::Scalar Index; 
   
+  m_isInitialized = true;
+  
   
   // Apply the column permutation computed in analyzepattern()
   //   m_mat = matrix * m_perm_c.inverse(); 
