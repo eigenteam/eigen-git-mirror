@@ -284,6 +284,18 @@ struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprTyp
   }
 };
 
+// Specialization for "dst = dec.solve(rhs)"
+// NOTE we need to specialize it for Sparse2Sparse to avoid ambiguous specialization error
+template<typename DstXprType, typename DecType, typename RhsType, typename Scalar>
+struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar>, Sparse2Sparse, Scalar>
+{
+  typedef Solve<DecType,RhsType> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  {
+    src.dec()._solve_impl(src.rhs(), dst);
+  }
+};
+
 } // end namespace internal
 
 #endif // EIGEN_TEST_EVALUATORS

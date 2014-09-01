@@ -156,6 +156,14 @@ template<typename T> struct plain_matrix_type<T,Sparse>
     typedef SparseMatrix<_Scalar, _Options, _Index> type;
 };
 
+#ifdef EIGEN_TEST_EVALUATORS
+template<typename Decomposition, typename RhsType>
+struct solve_traits<Decomposition,RhsType,Sparse>
+{
+  typedef typename sparse_eval<RhsType, RhsType::RowsAtCompileTime, RhsType::ColsAtCompileTime>::type PlainObject;
+};
+#endif
+
 template<typename Derived>
 struct generic_xpr_base<Derived, MatrixXpr, Sparse>
 {
