@@ -94,8 +94,12 @@ Index QuickSplit(VectorV &row, VectorI &ind, Index ncut)
   *   http://comments.gmane.org/gmane.comp.lib.eigen/3302
   */
 template <typename _Scalar>
-class IncompleteLUT : internal::noncopyable
+class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar> >
 {
+  protected:
+    typedef SparseSolverBase<IncompleteLUT<_Scalar> > Base;
+    using Base::m_isInitialized;
+  public:
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef Matrix<Scalar,Dynamic,1> Vector;
@@ -108,13 +112,13 @@ class IncompleteLUT : internal::noncopyable
     
     IncompleteLUT()
       : m_droptol(NumTraits<Scalar>::dummy_precision()), m_fillfactor(10),
-        m_analysisIsOk(false), m_factorizationIsOk(false), m_isInitialized(false)
+        m_analysisIsOk(false), m_factorizationIsOk(false)
     {}
     
     template<typename MatrixType>
     IncompleteLUT(const MatrixType& mat, const RealScalar& droptol=NumTraits<Scalar>::dummy_precision(), int fillfactor = 10)
       : m_droptol(droptol),m_fillfactor(fillfactor),
-        m_analysisIsOk(false),m_factorizationIsOk(false),m_isInitialized(false)
+        m_analysisIsOk(false),m_factorizationIsOk(false)
     {
       eigen_assert(fillfactor != 0);
       compute(mat); 
@@ -159,11 +163,7 @@ class IncompleteLUT : internal::noncopyable
     void setFillfactor(int fillfactor); 
     
     template<typename Rhs, typename Dest>
-#ifndef EIGEN_TEST_EVALUATORS
-    void _solve(const Rhs& b, Dest& x) const
-#else
     void _solve_impl(const Rhs& b, Dest& x) const
-#endif
     {
       x = m_Pinv * b;  
       x = m_lu.template triangularView<UnitLower>().solve(x);
@@ -179,15 +179,6 @@ class IncompleteLUT : internal::noncopyable
       eigen_assert(cols()==b.rows()
                 && "IncompleteLUT::solve(): invalid number of rows of the right hand side matrix b");
       return internal::solve_retval<IncompleteLUT, Rhs>(*this, b.derived());
-    }
-#else
-    template<typename Rhs> inline const Solve<IncompleteLUT, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "IncompleteLUT is not initialized.");
-      eigen_assert(cols()==b.rows()
-                && "IncompleteLUT::solve(): invalid number of rows of the right hand side matrix b");
-      return Solve<IncompleteLUT, Rhs>(*this, b.derived());
     }
 #endif
 
@@ -208,7 +199,6 @@ protected:
     int m_fillfactor;
     bool m_analysisIsOk;
     bool m_factorizationIsOk;
-    bool m_isInitialized;
     ComputationInfo m_info;
     PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // Fill-reducing permutation
     PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // Inverse permutation
@@ -473,7 +463,7 @@ struct solve_retval<IncompleteLUT<_MatrixType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec()._solve_impl(rhs(),dst);
   }
 };
 
