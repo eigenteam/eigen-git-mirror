@@ -215,7 +215,7 @@ struct traits<KroneckerProductSparse<_Lhs,_Rhs> >
   typedef typename remove_all<_Lhs>::type Lhs;
   typedef typename remove_all<_Rhs>::type Rhs;
   typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
-  typedef typename promote_storage_type<typename traits<Lhs>::StorageKind, typename traits<Rhs>::StorageKind>::ret StorageKind;
+  typedef typename cwise_promote_storage_type<typename traits<Lhs>::StorageKind, typename traits<Rhs>::StorageKind, scalar_product_op<typename Lhs::Scalar, typename Rhs::Scalar> >::ret StorageKind;
   typedef typename promote_index_type<typename Lhs::Index, typename Rhs::Index>::type Index;
 
   enum {
