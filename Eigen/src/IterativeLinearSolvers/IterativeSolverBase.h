@@ -193,6 +193,22 @@ public:
   }
 #endif // EIGEN_TEST_EVALUATORS
 
+#ifdef EIGEN_TEST_EVALUATORS
+  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
+    * and \a x0 as an initial solution.
+    *
+    * \sa solve(), compute()
+    */
+  template<typename Rhs,typename Guess>
+  inline const SolveWithGuess<Derived, Rhs, Guess>
+  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
+  {
+    eigen_assert(m_isInitialized && "Solver is not initialized.");
+    eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
+    return SolveWithGuess<Derived, Rhs, Guess>(derived(), b.derived(), x0);
+  }
+#endif // EIGEN_TEST_EVALUATORS
+
   /** \returns Success if the iterations converged, and NoConvergence otherwise. */
   ComputationInfo info() const
   {

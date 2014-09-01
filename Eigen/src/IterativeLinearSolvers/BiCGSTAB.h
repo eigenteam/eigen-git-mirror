@@ -198,21 +198,6 @@ public:
     return internal::solve_retval_with_guess
             <BiCGSTAB, Rhs, Guess>(*this, b.derived(), x0);
   }
-#else
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
-    * \a x0 as an initial solution.
-    *
-    * \sa compute()
-    */
-  template<typename Rhs,typename Guess>
-  inline const SolveWithGuess<BiCGSTAB, Rhs, Guess>
-  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
-  {
-    eigen_assert(m_isInitialized && "BiCGSTAB is not initialized.");
-    eigen_assert(Base::rows()==b.rows()
-              && "BiCGSTAB::solve(): invalid number of rows of the right hand side matrix b");
-    return SolveWithGuess<BiCGSTAB, Rhs, Guess>(*this, b.derived(), x0);
-  }
 #endif
 
   /** \internal */
