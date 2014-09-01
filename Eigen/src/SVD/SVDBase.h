@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Copyright (C) 2013 Gauthier Brun <brun.gauthier@gmail.com>
 // Copyright (C) 2013 Nicolas Carre <nicolas.carre@ensimag.fr>
@@ -12,8 +13,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_SVD_H
-#define EIGEN_SVD_H
+#ifndef EIGEN_SVDBASE_H
+#define EIGEN_SVDBASE_H
 
 namespace Eigen {
 /** \ingroup SVD_Module
@@ -21,9 +22,10 @@ namespace Eigen {
  *
  * \class SVDBase
  *
- * \brief Mother class of SVD classes algorithms
+ * \brief Base class of SVD algorithms
  *
- * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
+ * \tparam Derived the type of the actual SVD decomposition
+ *
  * SVD decomposition consists in decomposing any n-by-p matrix \a A as a product
  *   \f[ A = U S V^* \f]
  * where \a U is a n-by-n unitary, \a V is a p-by-p unitary, and \a S is a n-by-p real positive matrix which is zero outside of its main diagonal;
@@ -42,12 +44,12 @@ namespace Eigen {
  * terminate in finite (and reasonable) time.
  * \sa MatrixBase::genericSvd()
  */
-template<typename _MatrixType> 
+template<typename Derived>
 class SVDBase
 {
 
 public:
-  typedef _MatrixType MatrixType;
+  typedef typename internal::traits<Derived>::MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   typedef typename MatrixType::Index Index;
@@ -61,46 +63,16 @@ public:
     MatrixOptions = MatrixType::Options
   };
 
-  typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime,
-		 MatrixOptions, MaxRowsAtCompileTime, MaxRowsAtCompileTime>
-  MatrixUType;
-  typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime,
-		 MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime>
-  MatrixVType;
+  typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, MatrixOptions, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixUType;
+  typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime, MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime> MatrixVType;
   typedef typename internal::plain_diag_type<MatrixType, RealScalar>::type SingularValuesType;
-  typedef typename internal::plain_row_type<MatrixType>::type RowType;
-  typedef typename internal::plain_col_type<MatrixType>::type ColType;
-  typedef Matrix<Scalar, DiagSizeAtCompileTime, DiagSizeAtCompileTime,
-		 MatrixOptions, MaxDiagSizeAtCompileTime, MaxDiagSizeAtCompileTime>
-  WorkMatrixType;
-	
-
-
-
-  /** \brief Method performing the decomposition of given matrix using custom options.
-   *
-   * \param matrix the matrix to decompose
-   * \param computationOptions optional parameter allowing to specify if you want full or thin U or V unitaries to be computed.
-   *                           By default, none is computed. This is a bit-field, the possible bits are #ComputeFullU, #ComputeThinU,
-   *                           #ComputeFullV, #ComputeThinV.
-   *
-   * Thin unitaries are only available if your matrix type has a Dynamic number of columns (for example MatrixXf). They also are not
-   * available with the (non-default) FullPivHouseholderQR preconditioner.
-   */
-  SVDBase& compute(const MatrixType& matrix, unsigned int computationOptions);
-
-  /** \brief Method performing the decomposition of given matrix using current options.
-   *
-   * \param matrix the matrix to decompose
-   *
-   * This method uses the current \a computationOptions, as already passed to the constructor or to compute(const MatrixType&, unsigned int).
-   */
-  //virtual SVDBase& compute(const MatrixType& matrix) = 0;
-  SVDBase& compute(const MatrixType& matrix);
+  
+  Derived& derived() { return *static_cast<Derived*>(this); }
+  const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
   /** \returns the \a U matrix.
    *
-   * For the SVDBase decomposition of a n-by-p matrix, letting \a m be the minimum of \a n and \a p,
+   * For the SVD decomposition of a n-by-p matrix, letting \a m be the minimum of \a n and \a p,
    * the U matrix is n-by-n if you asked for #ComputeFullU, and is n-by-m if you asked for #ComputeThinU.
    *
    * The \a m first columns of \a U are the left singular vectors of the matrix being decomposed.
@@ -141,25 +113,83 @@ public:
     return m_singularValues;
   }
 
-  
-
   /** \returns the number of singular values that are not exactly 0 */
   Index nonzeroSingularValues() const
   {
     eigen_assert(m_isInitialized && "SVD is not initialized.");
     return m_nonzeroSingularValues;
   }
+  
+  /** \returns the rank of the matrix of which \c *this is the SVD.
+    *
+    * \note This method has to determine which singular values should be considered nonzero.
+    *       For that, it uses the threshold value that you can control by calling
+    *       setThreshold(const RealScalar&).
+    */
+  inline Index rank() const
+  {
+    using std::abs;
+    eigen_assert(m_isInitialized && "JacobiSVD is not initialized.");
+    if(m_singularValues.size()==0) return 0;
+    RealScalar premultiplied_threshold = m_singularValues.coeff(0) * threshold();
+    Index i = m_nonzeroSingularValues-1;
+    while(i>=0 && m_singularValues.coeff(i) < premultiplied_threshold) --i;
+    return i+1;
+  }
+  
+  /** Allows to prescribe a threshold to be used by certain methods, such as rank() and solve(),
+    * which need to determine when singular values are to be considered nonzero.
+    * This is not used for the SVD decomposition itself.
+    *
+    * When it needs to get the threshold value, Eigen calls threshold().
+    * The default is \c NumTraits<Scalar>::epsilon()
+    *
+    * \param threshold The new value to use as the threshold.
+    *
+    * A singular value will be considered nonzero if its value is strictly greater than
+    *  \f$ \vert singular value \vert \leqslant threshold \times \vert max singular value \vert \f$.
+    *
+    * If you want to come back to the default behavior, call setThreshold(Default_t)
+    */
+  Derived& setThreshold(const RealScalar& threshold)
+  {
+    m_usePrescribedThreshold = true;
+    m_prescribedThreshold = threshold;
+    return derived();
+  }
 
+  /** Allows to come back to the default behavior, letting Eigen use its default formula for
+    * determining the threshold.
+    *
+    * You should pass the special object Eigen::Default as parameter here.
+    * \code svd.setThreshold(Eigen::Default); \endcode
+    *
+    * See the documentation of setThreshold(const RealScalar&).
+    */
+  Derived& setThreshold(Default_t)
+  {
+    m_usePrescribedThreshold = false;
+    return derived();
+  }
+
+  /** Returns the threshold that will be used by certain methods such as rank().
+    *
+    * See the documentation of setThreshold(const RealScalar&).
+    */
+  RealScalar threshold() const
+  {
+    eigen_assert(m_isInitialized || m_usePrescribedThreshold);
+    return m_usePrescribedThreshold ? m_prescribedThreshold
+                                    : (std::max<Index>)(1,m_diagSize)*NumTraits<Scalar>::epsilon();
+  }
 
   /** \returns true if \a U (full or thin) is asked for in this SVD decomposition */
   inline bool computeU() const { return m_computeFullU || m_computeThinU; }
   /** \returns true if \a V (full or thin) is asked for in this SVD decomposition */
   inline bool computeV() const { return m_computeFullV || m_computeThinV; }
 
-
   inline Index rows() const { return m_rows; }
   inline Index cols() const { return m_cols; }
-
 
 protected:
   // return true if already allocated
@@ -168,12 +198,12 @@ protected:
   MatrixUType m_matrixU;
   MatrixVType m_matrixV;
   SingularValuesType m_singularValues;
-  bool m_isInitialized, m_isAllocated;
+  bool m_isInitialized, m_isAllocated, m_usePrescribedThreshold;
   bool m_computeFullU, m_computeThinU;
   bool m_computeFullV, m_computeThinV;
   unsigned int m_computationOptions;
   Index m_nonzeroSingularValues, m_rows, m_cols, m_diagSize;
-
+  RealScalar m_prescribedThreshold;
 
   /** \brief Default Constructor.
    *
@@ -182,8 +212,9 @@ protected:
   SVDBase()
     : m_isInitialized(false),
       m_isAllocated(false),
+      m_usePrescribedThreshold(false),
       m_computationOptions(0),
-      m_rows(-1), m_cols(-1)
+      m_rows(-1), m_cols(-1), m_diagSize(0)
   {}
 
 
@@ -220,17 +251,13 @@ bool SVDBase<MatrixType>::allocate(Index rows, Index cols, unsigned int computat
   m_diagSize = (std::min)(m_rows, m_cols);
   m_singularValues.resize(m_diagSize);
   if(RowsAtCompileTime==Dynamic)
-    m_matrixU.resize(m_rows, m_computeFullU ? m_rows
-		     : m_computeThinU ? m_diagSize
-		     : 0);
+    m_matrixU.resize(m_rows, m_computeFullU ? m_rows : m_computeThinU ? m_diagSize : 0);
   if(ColsAtCompileTime==Dynamic)
-    m_matrixV.resize(m_cols, m_computeFullV ? m_cols
-		     : m_computeThinV ? m_diagSize
-		     : 0);
+    m_matrixV.resize(m_cols, m_computeFullV ? m_cols : m_computeThinV ? m_diagSize : 0);
 
   return false;
 }
 
 }// end namespace
 
-#endif // EIGEN_SVD_H
+#endif // EIGEN_SVDBASE_H
