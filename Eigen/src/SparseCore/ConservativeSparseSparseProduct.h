@@ -151,18 +151,19 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::Index> ColMajorMatrixAux;
     typedef typename sparse_eval<ColMajorMatrixAux,ResultType::RowsAtCompileTime,ResultType::ColsAtCompileTime>::type ColMajorMatrix;
     
-    ColMajorMatrix resCol(lhs.rows(),rhs.cols());
     // FIXME, the following heuristic is probably not very good.
     if(lhs.rows()>=rhs.cols())
     {
+      ColMajorMatrix resCol(lhs.rows(),rhs.cols());
       // perform sorted insertion
       internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, true);
       res = resCol.markAsRValue();
     }
     else
     {
+      ColMajorMatrixAux resCol(lhs.rows(),rhs.cols());
       // ressort to transpose to sort the entries
-      internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol, false);
+      internal::conservative_sparse_sparse_product_impl<Lhs,Rhs,ColMajorMatrixAux>(lhs, rhs, resCol, false);
       RowMajorMatrix resRow(resCol);
       res = resRow.markAsRValue();
     }
