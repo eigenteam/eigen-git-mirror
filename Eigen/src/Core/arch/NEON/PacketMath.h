@@ -52,7 +52,7 @@ typedef uint32x4_t  Packet4ui;
 
 // arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
 // which available on LLVM and GCC (at least)
-#if (defined(__has_builtin) && __has_builtin(__builtin_prefetch)) || defined(__GNUC__)
+#if EIGEN_HAS_BUILTIN(__builtin_prefetch) || defined(__GNUC__)
   #define EIGEN_ARM_PREFETCH(ADDR) __builtin_prefetch(ADDR);
 #elif defined __pld
   #define EIGEN_ARM_PREFETCH(ADDR) __pld(ADDR)
