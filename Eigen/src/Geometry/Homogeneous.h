@@ -120,7 +120,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
   * Example: \include MatrixBase_homogeneous.cpp
   * Output: \verbinclude MatrixBase_homogeneous.out
   *
-  * \sa class Homogeneous
+  * \sa VectorwiseOp::homogeneous(), class Homogeneous
   */
 template<typename Derived>
 inline typename MatrixBase<Derived>::HomogeneousReturnType
@@ -137,7 +137,7 @@ MatrixBase<Derived>::homogeneous() const
   * Example: \include VectorwiseOp_homogeneous.cpp
   * Output: \verbinclude VectorwiseOp_homogeneous.out
   *
-  * \sa MatrixBase::homogeneous() */
+  * \sa MatrixBase::homogeneous(), class Homogeneous */
 template<typename ExpressionType, int Direction>
 inline Homogeneous<ExpressionType,Direction>
 VectorwiseOp<ExpressionType,Direction>::homogeneous() const
