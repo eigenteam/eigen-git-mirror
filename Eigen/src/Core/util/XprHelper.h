@@ -383,13 +383,21 @@ struct special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public DenseCo
   const CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar) const
   {
+#ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
+    EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
+#endif
     return CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, Derived>
       (*static_cast<const Derived*>(this), scalar_multiple2_op<Scalar,OtherScalar>(scalar));
   }
 
   inline friend const CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar, const Derived& matrix)
-  { return static_cast<const special_scalar_op_base&>(matrix).operator*(scalar); }
+  {
+#ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
+    EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
+#endif
+    return static_cast<const special_scalar_op_base&>(matrix).operator*(scalar);
+  }
 };
 
 template<typename XprType, typename CastType> struct cast_return_type
