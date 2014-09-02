@@ -57,6 +57,8 @@ class BDCSVD : public SVDBase<BDCSVD<_MatrixType> >
 public:
   using Base::rows;
   using Base::cols;
+  using Base::computeU;
+  using Base::computeV;
   
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
@@ -72,15 +74,10 @@ public:
     MatrixOptions = MatrixType::Options
   };
 
-  typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, 
-		 MatrixOptions, MaxRowsAtCompileTime, MaxRowsAtCompileTime>
-  MatrixUType;
-  typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime, 
-		 MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime>
-  MatrixVType;
-  typedef typename internal::plain_diag_type<MatrixType, RealScalar>::type SingularValuesType;
-  typedef typename internal::plain_row_type<MatrixType>::type RowType;
-  typedef typename internal::plain_col_type<MatrixType>::type ColType;
+  typedef typename Base::MatrixUType MatrixUType;
+  typedef typename Base::MatrixVType MatrixVType;
+  typedef typename Base::SingularValuesType SingularValuesType;
+  
   typedef Matrix<Scalar, Dynamic, Dynamic> MatrixX;
   typedef Matrix<RealScalar, Dynamic, Dynamic> MatrixXr;
   typedef Matrix<RealScalar, Dynamic, 1> VectorType;
@@ -155,27 +152,6 @@ public:
     eigen_assert(s>3 && "BDCSVD the size of the algo switch has to be greater than 3");
     algoswap = s;
   }
-
-
-  /** \returns a (least squares) solution of \f$ A x = b \f$ using the current SVD decomposition of A.
-   *
-   * \param b the right - hand - side of the equation to solve.
-   *
-   * \note Solving requires both U and V to be computed. Thin U and V are enough, there is no need for full U or V.
-   *
-   * \note SVD solving is implicitly least - squares. Thus, this method serves both purposes of exact solving and least - squares solving.
-   * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
-   */
-  template<typename Rhs>
-  inline const internal::solve_retval<BDCSVD, Rhs>
-  solve(const MatrixBase<Rhs>& b) const
-  {
-    eigen_assert(this->m_isInitialized && "BDCSVD is not initialized.");
-    eigen_assert(computeU() && computeV() && 
-                 "BDCSVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
-    return internal::solve_retval<BDCSVD, Rhs>(*this, b.derived());
-  }
-
  
   const MatrixUType& matrixU() const
   {
@@ -188,10 +164,8 @@ public:
     {
       eigen_assert(this->computeU() && "This SVD decomposition didn't compute U. Did you ask for it?");
       return this->m_matrixU;
-    }
-     
+    }     
   }
-
 
   const MatrixVType& matrixV() const
   {
@@ -206,9 +180,6 @@ public:
       return this->m_matrixV;
     }
   }
-  
-  using Base::computeU;
-  using Base::computeV;
  
 private:
   void allocate(Index rows, Index cols, unsigned int computationOptions);
@@ -897,36 +868,6 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
   delete [] realCol;
 }//end deflation
 
-
-namespace internal{
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<BDCSVD<_MatrixType>, Rhs>
-  : solve_retval_base<BDCSVD<_MatrixType>, Rhs>
-{
-  typedef BDCSVD<_MatrixType> BDCSVDType;
-  EIGEN_MAKE_SOLVE_HELPERS(BDCSVDType, Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    eigen_assert(rhs().rows() == dec().rows());
-    // A = U S V^*
-    // So A^{ - 1} = V S^{ - 1} U^*    
-    Index diagSize = (std::min)(dec().rows(), dec().cols());
-    typename BDCSVDType::SingularValuesType invertedSingVals(diagSize);
-    Index nonzeroSingVals = dec().nonzeroSingularValues();
-    invertedSingVals.head(nonzeroSingVals) = dec().singularValues().head(nonzeroSingVals).array().inverse();
-    invertedSingVals.tail(diagSize - nonzeroSingVals).setZero();
-    
-    dst = dec().matrixV().leftCols(diagSize)
-      * invertedSingVals.asDiagonal()
-      * dec().matrixU().leftCols(diagSize).adjoint()
-      * rhs();	
-    return;
-  }
-};
-
-} //end namespace internal
 
   /** \svd_module
    *
