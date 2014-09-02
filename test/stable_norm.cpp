@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -12,6 +12,21 @@
 template<typename T> bool isNotNaN(const T& x)
 {
   return x==x;
+}
+
+template<typename T> bool isNaN(const T& x)
+{
+  return x!=x;
+}
+
+template<typename T> bool isInf(const T& x)
+{
+  return x > NumTraits<T>::highest();
+}
+
+template<typename T> bool isMinusInf(const T& x)
+{
+  return x < NumTraits<T>::lowest();
 }
 
 // workaround aggressive optimization in ICC
@@ -106,6 +121,58 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   VERIFY_IS_APPROX(vrand.rowwise().stableNorm(),      vrand.rowwise().norm());
   VERIFY_IS_APPROX(vrand.rowwise().blueNorm(),        vrand.rowwise().norm());
   VERIFY_IS_APPROX(vrand.rowwise().hypotNorm(),       vrand.rowwise().norm());
+  
+  // test NaN, +inf, -inf 
+  MatrixType v;
+  Index i = internal::random<Index>(0,rows-1);
+  Index j = internal::random<Index>(0,cols-1);
+
+  // NaN
+  {
+    v = vrand;
+    v(i,j) = RealScalar(0)/RealScalar(0);
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isNaN(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
+    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isNaN(v.blueNorm()));
+//     VERIFY(!isFinite(v.hypotNorm()));     //VERIFY(isNaN(v.hypotNorm()));
+  }
+  
+  // +inf
+  {
+    v = vrand;
+    v(i,j) = RealScalar(1)/RealScalar(0);
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isInf(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
+//     VERIFY(!isFinite(v.blueNorm()));      //VERIFY(isInf(v.blueNorm()));
+//     VERIFY(!isFinite(v.hypotNorm()));     //VERIFY(isInf(v.hypotNorm()));
+  }
+  
+  // -inf
+  {
+    v = vrand;
+    v(i,j) = RealScalar(-1)/RealScalar(0);
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isInf(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
+//     VERIFY(!isFinite(v.blueNorm()));      VERIFY(isInf(v.blueNorm()));
+//     VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isInf(v.hypotNorm()));
+  }
+  
+  // mix
+  {
+    Index i2 = internal::random<Index>(0,rows-1);
+    Index j2 = internal::random<Index>(0,cols-1);
+    v = vrand;
+    v(i,j) = RealScalar(-1)/RealScalar(0);
+    v(i2,j2) = RealScalar(0)/RealScalar(0);
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isNaN(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
+//     VERIFY(!isFinite(v.blueNorm()));      //VERIFY(isNaN(v.blueNorm()));
+//     VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isNaN(v.hypotNorm()));
+  }
 }
 
 void test_stable_norm()

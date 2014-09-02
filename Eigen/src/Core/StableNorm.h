@@ -20,7 +20,7 @@ inline void stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& sc
   using std::max;
   Scalar maxCoeff = bl.cwiseAbs().maxCoeff();
   
-  if (maxCoeff>scale)
+  if(maxCoeff>scale)
   {
     ssq = ssq * numext::abs2(scale/maxCoeff);
     Scalar tmp = Scalar(1)/maxCoeff;
@@ -29,11 +29,20 @@ inline void stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& sc
       invScale = NumTraits<Scalar>::highest();
       scale = Scalar(1)/invScale;
     }
+    else if(maxCoeff>NumTraits<Scalar>::highest()) // we got a INF
+    {
+      invScale = Scalar(1);
+      scale = maxCoeff;
+    }
     else
     {
       scale = maxCoeff;
       invScale = tmp;
     }
+  }
+  else if(maxCoeff!=maxCoeff) // we got a NaN
+  {
+    scale = maxCoeff;
   }
   
   // TODO if the maxCoeff is much much smaller than the current scale,
