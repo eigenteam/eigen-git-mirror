@@ -135,7 +135,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
     VERIFY(!isFinite(v.blueNorm()));      VERIFY(isNaN(v.blueNorm()));
-//     VERIFY(!isFinite(v.hypotNorm()));     //VERIFY(isNaN(v.hypotNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isNaN(v.hypotNorm()));
   }
   
   // +inf
@@ -146,7 +146,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
     VERIFY(!isFinite(v.blueNorm()));      VERIFY(isInf(v.blueNorm()));
-//     VERIFY(!isFinite(v.hypotNorm()));     //VERIFY(isInf(v.hypotNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isInf(v.hypotNorm()));
   }
   
   // -inf
@@ -157,7 +157,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
     VERIFY(!isFinite(v.blueNorm()));      VERIFY(isInf(v.blueNorm()));
-//     VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isInf(v.hypotNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isInf(v.hypotNorm()));
   }
   
   // mix
@@ -171,7 +171,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
     VERIFY(!isFinite(v.blueNorm()));      VERIFY(isNaN(v.blueNorm()));
-//     VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isNaN(v.hypotNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isNaN(v.hypotNorm()));
   }
 }
 

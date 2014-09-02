@@ -308,10 +308,17 @@ struct hypot_impl
     using std::sqrt;
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
-    RealScalar p = (max)(_x, _y);
-    if(p==RealScalar(0)) return 0;
-    RealScalar q = (min)(_x, _y);
-    RealScalar qp = q/p;
+    Scalar p, qp;
+    if(_x>_y)
+    {
+      p = _x;
+      qp = _y / p;
+    }
+    else
+    {
+      p = _y;
+      qp = _x / p;
+    }
     return p * sqrt(RealScalar(1) + qp*qp);
   }
 };
