@@ -64,7 +64,7 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
   using std::abs;
   const Derived& vec(_vec.derived());
   static bool initialized = false;
-  static RealScalar b1, b2, s1m, s2m, overfl, rbig, relerr;
+  static RealScalar b1, b2, s1m, s2m, rbig, relerr;
   if(!initialized)
   {
     int ibeta, it, iemin, iemax, iexp;
@@ -93,7 +93,6 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
     iexp  = - ((iemax+it)/2);
     s2m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));    // scaling factor for upper range
 
-    overfl  = rbig*s2m;                                             // overflow boundary for abig
     eps     = RealScalar(pow(double(ibeta), 1-it));
     relerr  = sqrt(eps);                                            // tolerance for neglecting asml
     initialized = true;
@@ -110,13 +109,13 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
     else if(ax < b1) asml += numext::abs2(ax*s1m);
     else             amed += numext::abs2(ax);
   }
+  if(amed!=amed)
+    return amed;  // we got a NaN
   if(abig > RealScalar(0))
   {
     abig = sqrt(abig);
-    if(abig > overfl)
-    {
-      return rbig;
-    }
+    if(abig > rbig) // overflow, or *this contains INF values
+      return abig;  // return INF
     if(amed > RealScalar(0))
     {
       abig = abig/s2m;
