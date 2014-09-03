@@ -71,7 +71,10 @@ template<typename Scalar,typename Index> void sparse_vector(int rows, int cols)
   VERIFY_IS_APPROX(v1.dot(v2), refV1.dot(refV2));
   VERIFY_IS_APPROX(v1.dot(refV2), refV1.dot(refV2));
 
+#ifdef EIGEN_TEST_EVALUATORS
+  // the following did not compiled without evaluators
   VERIFY_IS_APPROX(m1*v2, refM1*refV2);
+#endif
   VERIFY_IS_APPROX(v1.dot(m1*v2), refV1.dot(refM1*refV2));
   int i = internal::random<int>(0,rows-1);
   VERIFY_IS_APPROX(v1.dot(m1.col(i)), refV1.dot(refM1.col(i)));
