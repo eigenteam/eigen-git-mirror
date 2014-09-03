@@ -226,22 +226,18 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   enum {
     IsAligned = TensorEvaluator<InputArgType, Device>::IsAligned & TensorEvaluator<KernelArgType, Device>::IsAligned,
-    PacketAccess = /*TensorEvaluator<InputArgType>::PacketAccess & TensorEvaluator<KernelArgType>::PacketAccess */
-                   false,
+    PacketAccess = TensorEvaluator<InputArgType, Device>::PacketAccess & TensorEvaluator<KernelArgType, Device>::PacketAccess,
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_inputImpl(op.inputExpression(), device), m_kernelImpl(op.kernelExpression(), device)
+      : m_inputImpl(op.inputExpression(), device), m_kernelImpl(op.kernelExpression(), device), m_kernel(NULL), m_kernelArg(op.kernelExpression()), m_local_kernel(false), m_device(device)
   {
     const typename TensorEvaluator<InputArgType, Device>::Dimensions& input_dims = m_inputImpl.dimensions();
     const typename TensorEvaluator<KernelArgType, Device>::Dimensions& kernel_dims = m_kernelImpl.dimensions();
 
-    for (int i = 0; i < NumDims; ++i) {
-      if (i > 0) {
-        m_inputStride[i] = m_inputStride[i-1] * input_dims[i-1];
-      } else {
-        m_inputStride[0] = 1;
-      }
+    m_inputStride[0] = 1;
+    for (int i = 1; i < NumDims; ++i) {
+      m_inputStride[i] = m_inputStride[i-1] * input_dims[i-1];
     }
 
     m_dimensions = m_inputImpl.dimensions();
@@ -251,7 +247,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       const Index kernel_dim = kernel_dims[i];
       const Index result_dim = input_dim - kernel_dim + 1;
       m_dimensions[index] = result_dim;
-
       if (i > 0) {
         m_kernelStride[i] = m_kernelStride[i-1] * kernel_dims[i-1];
       } else {
@@ -260,15 +255,11 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       m_indexStride[i] = m_inputStride[index];
     }
 
-    for (int i = 0; i < NumDims; ++i) {
-      if (i > 0) {
-        m_outputStride[i] = m_outputStride[i-1] * m_dimensions[i-1];
-      } else {
-        m_outputStride[0] = 1;
-      }
+    m_outputStride[0] = 1;
+    for (int i = 1; i < NumDims; ++i) {
+      m_outputStride[i] = m_outputStride[i-1] * m_dimensions[i-1];
     }
   }
-
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -278,57 +269,126 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
     m_inputImpl.evalSubExprsIfNeeded(NULL);
-    m_kernelImpl.evalSubExprsIfNeeded(NULL);
+    preloadKernel();
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_inputImpl.cleanup();
-    m_kernelImpl.cleanup();
+    if (m_local_kernel) {
+      m_device.deallocate((void*)m_kernel);
+      m_local_kernel = false;
+    }
+    m_kernel = NULL;
   }
 
-  void evalTo(typename XprType::Scalar* buffer) const {
+  void evalTo(typename XprType::Scalar* buffer) {
+    evalSubExprsIfNeeded(NULL);
     for (int i = 0; i < dimensions().TotalSize(); ++i) {
       buffer[i] += coeff(i);
     }
+    cleanup();
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    Index startInput = 0;
-    for (int i = NumDims - 1; i >= 0; --i) {
-      const Index idx = index / m_outputStride[i];
-      startInput += idx * m_inputStride[i];
-      index -= idx * m_outputStride[i];
-    }
-
     CoeffReturnType result = CoeffReturnType(0);
-    convolve(startInput, 0, 0, result);
+    convolve(firstInput(index), 0, NumKernelDims-1, result);
     return result;
   }
 
-  /* TODO: vectorization
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
+  EIGEN_DEVICE_FUNC PacketReturnType packet(const Index index) const
   {
-    assert(false);
-  }*/
+    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+    Index indices[2] = {index, index+PacketSize-1};
+    Index startInputs[2] = {0, 0};
+    for (int i = NumDims - 1; i > 0; --i) {
+      const Index idx0 = indices[0] / m_outputStride[i];
+      const Index idx1 = indices[1] / m_outputStride[i];
+      startInputs[0] += idx0 * m_inputStride[i];
+      startInputs[1] += idx1 * m_inputStride[i];
+      indices[0] -= idx0 * m_outputStride[i];
+      indices[1] -= idx1 * m_outputStride[i];
+    }
+    startInputs[0] += indices[0];
+    startInputs[1] += indices[1];
 
-  EIGEN_DEVICE_FUNC void convolve(Index firstIndex, Index firstKernel, int DimIndex, CoeffReturnType& accum) const {
-    for (int j = 0; j < m_kernelImpl.dimensions()[DimIndex]; ++j) {
-      const Index input = firstIndex + j * m_indexStride[DimIndex];
-      const Index kernel = firstKernel + j * m_kernelStride[DimIndex];
-      if (DimIndex < NumKernelDims-1) {
-        convolve(input, kernel, DimIndex+1, accum);
-      } else {
-
-        accum += m_inputImpl.coeff(input) * m_kernelImpl.coeff(kernel);
+    if (startInputs[1]-startInputs[0] == PacketSize-1) {
+      PacketReturnType result = internal::pset1<PacketReturnType>(0);
+      convolvePacket(startInputs[0], 0, NumKernelDims-1, result);
+      return result;
+    } else {
+      EIGEN_ALIGN_DEFAULT Scalar data[PacketSize];
+      data[0] = Scalar(0);
+      convolve(startInputs[0], 0, NumKernelDims-1, data[0]);
+      for (int i = 1; i < PacketSize-1; ++i) {
+        data[i] = Scalar(0);
+        convolve(firstInput(index+i), 0, NumKernelDims-1, data[i]);
       }
+      data[PacketSize-1] = Scalar(0);
+      convolve(startInputs[1], 0, NumKernelDims-1, data[PacketSize-1]);
+      return internal::pload<PacketReturnType>(data);
     }
   }
 
   Scalar* data() const { return NULL; }
 
  private:
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index firstInput(Index index) const {
+    Index startInput = 0;
+    for (int i = NumDims - 1; i > 0; --i) {
+      const Index idx = index / m_outputStride[i];
+      startInput += idx * m_inputStride[i];
+      index -= idx * m_outputStride[i];
+    }
+    startInput += index;
+    return startInput;
+  }
+
+  EIGEN_DEVICE_FUNC void convolve(Index firstIndex, Index firstKernel, int DimIndex, CoeffReturnType& accum) const {
+    for (int j = 0; j < m_kernelImpl.dimensions()[DimIndex]; ++j) {
+      const Index input = firstIndex + j * m_indexStride[DimIndex];
+      const Index kernel = firstKernel + j * m_kernelStride[DimIndex];
+      if (DimIndex > 0) {
+        convolve(input, kernel, DimIndex-1, accum);
+      } else {
+        accum += m_inputImpl.coeff(input) * m_kernel[kernel];
+      }
+    }
+  }
+
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC void convolvePacket(Index firstIndex, Index firstKernel, int DimIndex, Packet& accum) const {
+    for (int j = 0; j < m_kernelImpl.dimensions()[DimIndex]; ++j) {
+      const Index input = firstIndex + j * m_indexStride[DimIndex];
+      const Index kernel = firstKernel + j * m_kernelStride[DimIndex];
+      if (DimIndex > 0) {
+        convolvePacket(input, kernel, DimIndex-1, accum);
+      } else {
+        accum = internal::pmadd<Packet>(m_inputImpl.template packet<Unaligned>(input), internal::pset1<Packet>(m_kernel[kernel]), accum);
+      }
+    }
+  }
+
+  EIGEN_STRONG_INLINE void preloadKernel() {
+    // Don't make a local copy of the kernel unless we have to (i.e. it's an
+    // expression that needs to be evaluated)
+    const Scalar* in_place = m_kernelImpl.data();
+    if (in_place) {
+      m_kernel = in_place;
+      m_local_kernel = false;
+    } else {
+      size_t kernel_sz = m_kernelImpl.dimensions().TotalSize() * sizeof(Scalar);
+      Scalar* local = (Scalar*)m_device.allocate(kernel_sz);
+      typedef TensorEvalToOp<const KernelArgType> EvalTo;
+      EvalTo evalToTmp(local, m_kernelArg);
+      internal::TensorExecutor<const EvalTo, Device, TensorEvaluator<KernelArgType, Device>::PacketAccess>::run(evalToTmp, m_device);
+
+      m_kernel = local;
+      m_local_kernel = true;
+    }
+  }
+
   // No copy, no assignment
   TensorEvaluator(const TensorEvaluator&);
   TensorEvaluator& operator = (const TensorEvaluator&);
@@ -341,6 +401,11 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   TensorEvaluator<InputArgType, Device> m_inputImpl;
   TensorEvaluator<KernelArgType, Device> m_kernelImpl;
   Dimensions m_dimensions;
+
+  KernelArgType m_kernelArg;
+  const Scalar* m_kernel;
+  bool m_local_kernel;
+  const Device& m_device;
 };
 
 

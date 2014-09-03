@@ -108,8 +108,9 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
-    m_impl.evalSubExprsIfNeeded();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+    m_impl.evalSubExprsIfNeeded(NULL);
+    return true;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalScalar(Index i) {
@@ -133,6 +134,8 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   {
     return internal::ploadt<Packet, LoadMode>(m_buffer + index);
   }
+
+  Scalar* data() const { return NULL; }
 
  private:
   TensorEvaluator<ArgType, Device> m_impl;
