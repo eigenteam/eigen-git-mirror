@@ -267,7 +267,6 @@ void SVDBase<Derived>::_solve_impl(const RhsType &rhs, DstType &dst) const
 
   Matrix<Scalar, Dynamic, RhsType::ColsAtCompileTime, 0, MatrixType::MaxRowsAtCompileTime, RhsType::MaxColsAtCompileTime> tmp;
   Index l_rank = rank();
-  
   tmp.noalias() =  m_matrixU.leftCols(l_rank).adjoint() * rhs;
   tmp = m_singularValues.head(l_rank).asDiagonal().inverse() * tmp;
   dst = m_matrixV.leftCols(l_rank) * tmp;
