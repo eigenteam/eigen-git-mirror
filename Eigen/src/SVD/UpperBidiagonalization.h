@@ -215,10 +215,10 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
         if(k) u_k -= U_k1.adjoint() * X.row(k).head(k).adjoint();
       }
 
-      // 5 - construct right Householder transform in-placecols
+      // 5 - construct right Householder transform in-place
       u_k.makeHouseholderInPlace(tau_u, upper_diagonal[k]);
 
-      // this eases the application of Householder transforAions
+      // this eases the application of Householder transformations
       // A(k,k+1) will store tau_u later
       A(k,k+1) = Scalar(1);
 

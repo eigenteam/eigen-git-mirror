@@ -299,8 +299,8 @@ struct householder_qr_inplace_blocked
     for (k = 0; k < size; k += blockSize)
     {
       Index bs = (std::min)(size-k,blockSize);  // actual size of the block
-      Index tcols = cols - k - bs;            // trailing columns
-      Index brows = rows-k;                   // rows of the block
+      Index tcols = cols - k - bs;              // trailing columns
+      Index brows = rows-k;                     // rows of the block
 
       // partition the matrix:
       //        A00 | A01 | A02
@@ -318,7 +318,7 @@ struct householder_qr_inplace_blocked
       if(tcols)
       {
         BlockType A21_22 = mat.block(k,k+bs,brows,tcols);
-        apply_block_householder_on_the_left(A21_22,A11_21,hCoeffsSegment.adjoint());
+        apply_block_householder_on_the_left(A21_22,A11_21,hCoeffsSegment, false); // false == backward
       }
     }
   }
