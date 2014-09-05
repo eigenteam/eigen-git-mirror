@@ -164,6 +164,7 @@ private:
   void deflation(Index firstCol, Index lastCol, Index k, Index firstRowW, Index firstColW, Index shift);
   template<typename HouseholderU, typename HouseholderV, typename NaiveU, typename NaiveV>
   void copyUV(const HouseholderU &householderU, const HouseholderV &householderV, const NaiveU &naiveU, const NaiveV &naivev);
+  static void structured_update(Block<MatrixXr,Dynamic,Dynamic> A, const MatrixXr &B, Index n1);
 
 protected:
   MatrixXr m_naiveU, m_naiveV;
@@ -240,6 +241,8 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
   internal::UpperBidiagonalization<MatrixX> bid(copy);
 
   //**** step 2 Divide
+  m_naiveU.setZero();
+  m_naiveV.setZero();
   m_computed.topRows(m_diagSize) = bid.bidiagonal().toDenseMatrix().transpose();
   m_computed.template bottomRows<1>().setZero();
   divide(0, m_diagSize - 1, 0, 0, 0);
@@ -289,6 +292,48 @@ void BDCSVD<MatrixType>::copyUV(const HouseholderU &householderU, const Househol
     m_matrixV.topLeftCorner(m_diagSize, blockCols) = naiveU.template cast<Scalar>().topLeftCorner(m_diagSize, blockCols);
     householderV.applyThisOnTheLeft(m_matrixV);
   }
+}
+
+/** \internal
+  * Performs A = A * B exploiting the special structure of the matrix A. Splitting A as:
+  *  A = [A1]
+  *      [A2]
+  * such that A1.rows()==n1, then we assume that at least half of the columns of A1 and A2 are zeros.
+  * We can thus pack them prior to the the matrix product. However, this is only worth the effort if the matrix is large
+  * enough.
+  */
+template<typename MatrixType>
+void BDCSVD<MatrixType>::structured_update(Block<MatrixXr,Dynamic,Dynamic> A, const MatrixXr &B, Index n1)
+{
+  Index n = A.rows();
+  if(n>100)
+  {
+    // If the matrices are large enough, let's exploit the sparse strucure of A by
+    // splitting it in half (wrt n1), and packing the non-zero columns.
+    DenseIndex n2 = n - n1;
+    MatrixXr A1(n1,n), A2(n2,n), B1(n,n), B2(n,n);
+    Index k1=0, k2=0;
+    for(Index j=0; j<n; ++j)
+    {
+      if( (A.col(j).head(n1).array()!=0).any() )
+      {
+        A1.col(k1) = A.col(j).head(n1);
+        B1.row(k1) = B.row(j);
+        ++k1;
+      }
+      if( (A.col(j).tail(n2).array()!=0).any() )
+      {
+        A2.col(k2) = A.col(j).tail(n2);
+        B2.row(k2) = B.row(j);
+        ++k2;
+      }
+    }
+  
+    A.topRows(n1).noalias()    = A1.leftCols(k1) * B1.topRows(k1);
+    A.bottomRows(n2).noalias() = A2.leftCols(k2) * B2.topRows(k2);
+  }
+  else
+    A *= B;  // FIXME this requires a temporary
 }
 
 // The divide algorithm is done "in place", we are always working on subsets of the same matrix. The divide methods takes as argument the 
@@ -415,9 +460,12 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
   MatrixXr UofSVD, VofSVD;
   VectorType singVals;
   computeSVDofM(firstCol + shift, n, UofSVD, singVals, VofSVD);
-  if (m_compU) m_naiveU.block(firstCol, firstCol, n + 1, n + 1) *= UofSVD;  // FIXME this requires a temporary
-  else         m_naiveU.middleCols(firstCol, n + 1) *= UofSVD;              // FIXME this requires a temporary, and exploit that there are 2 rows at compile time
-  if (m_compV) m_naiveV.block(firstRowW, firstColW, n, n) *= VofSVD;        // FIXME this requires a temporary
+  
+  if (m_compU)  structured_update(m_naiveU.block(firstCol, firstCol, n + 1, n + 1), UofSVD, (n+2)/2);
+  else          m_naiveU.middleCols(firstCol, n + 1) *= UofSVD; // FIXME this requires a temporary, and exploit that there are 2 rows at compile time
+  
+  if (m_compV)  structured_update(m_naiveV.block(firstRowW, firstColW, n, n), VofSVD, (n+1)/2);
+  
   m_computed.block(firstCol + shift, firstCol + shift, n, n).setZero();
   m_computed.block(firstCol + shift, firstCol + shift, n, n).diagonal() = singVals;
 }// end divide
