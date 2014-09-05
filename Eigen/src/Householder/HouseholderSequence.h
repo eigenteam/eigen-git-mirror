@@ -319,7 +319,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename Dest, typename Workspace>
     inline void applyThisOnTheLeft(Dest& dst, Workspace& workspace) const
     {
-      const Index BlockSize = 1;
+      const Index BlockSize = 48;
       // if the entries are large enough, then apply the reflectors by block
       if(m_length>BlockSize && dst.cols()>1)
       {
