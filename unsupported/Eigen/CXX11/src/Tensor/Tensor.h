@@ -55,7 +55,7 @@ namespace Eigen {
   * change dramatically.</dd>
   * </dl>
   *
-  * \ref TopicStorageOrders 
+  * \ref TopicStorageOrders
   */
 
 template<typename Scalar_, std::size_t NumIndices_, int Options_>
@@ -75,7 +75,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
 
     enum {
       IsAligned = bool(EIGEN_ALIGN) & !(Options_&DontAlign),
-      PacketAccess = true,
+      PacketAccess = (internal::packet_traits<Scalar>::size > 1),
     };
 
     static const int Options = Options_;
@@ -224,11 +224,30 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     }
 #endif
 
-    inline Tensor(const array<Index, NumIndices>& dimensions)
-      : m_storage(internal::array_prod(dimensions), dimensions)
+    inline explicit Tensor(const array<Index, NumIndices>& dimensions)
+        : m_storage(internal::array_prod(dimensions), dimensions)
     {
       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
+
+  template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE Tensor(const TensorBase<OtherDerived, ReadOnlyAccessors>& other)
+    {
+      typedef TensorAssignOp<Tensor, const OtherDerived> Assign;
+      Assign assign(*this, other.derived());
+      resize(TensorEvaluator<const Assign, DefaultDevice>(assign, DefaultDevice()).dimensions());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+    }
+  template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE Tensor(const TensorBase<OtherDerived, WriteAccessors>& other)
+  {
+    typedef TensorAssignOp<Tensor, const OtherDerived> Assign;
+    Assign assign(*this, other.derived());
+    resize(TensorEvaluator<const Assign, DefaultDevice>(assign, DefaultDevice()).dimensions());
+    internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+  }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Tensor& operator=(const Tensor& other)
