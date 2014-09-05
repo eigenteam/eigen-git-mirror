@@ -222,19 +222,19 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorSlicingOp<const StartIndices, const Sizes, const Derived>(derived(), startIndices, sizes);
     }
     template <typename PaddingDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    TensorPaddingOp<const PaddingDimensions, Derived>
+    const TensorPaddingOp<const PaddingDimensions, const Derived>
     pad(const PaddingDimensions& padding) const {
-      return TensorPaddingOp<const PaddingDimensions, Derived>(derived(), padding);
+      return TensorPaddingOp<const PaddingDimensions, const Derived>(derived(), padding);
     }
     template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    TensorShufflingOp<const Shuffle, Derived>
+    const TensorShufflingOp<const Shuffle, const Derived>
     shuffle(const Shuffle& shuffle) const {
-      return TensorShufflingOp<const Shuffle, Derived>(derived(), shuffle);
+      return TensorShufflingOp<const Shuffle, const Derived>(derived(), shuffle);
     }
     template <typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    TensorStridingOp<const Strides, Derived>
+    const TensorStridingOp<const Strides, const Derived>
     stride(const Strides& strides) const {
-      return TensorStridingOp<const Strides, Derived>(derived(), strides);
+      return TensorStridingOp<const Strides, const Derived>(derived(), strides);
     }
 
     // Force the evaluation of the expression.
@@ -244,6 +244,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
   protected:
+    template <typename Scalar, std::size_t NumIndices, int Options> friend class Tensor;
     template <typename OtherDerived, int AccessLevel> friend class TensorBase;
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
@@ -258,6 +259,7 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     typedef Scalar CoeffReturnType;
     typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
 
+    template <typename Scalar, std::size_t NumIndices, int Options> friend class Tensor;
     template <typename OtherDerived, int AccessLevel> friend class TensorBase;
 
     EIGEN_DEVICE_FUNC
@@ -292,6 +294,11 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     TensorSlicingOp<const StartIndices, const Sizes, Derived>
     slice(const StartIndices& startIndices, const Sizes& sizes) const {
       return TensorSlicingOp<const StartIndices, const Sizes, Derived>(derived(), startIndices, sizes);
+    }
+    template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorShufflingOp<const Shuffle, Derived>
+    shuffle(const Shuffle& shuffle) const {
+      return TensorShufflingOp<const Shuffle, Derived>(derived(), shuffle);
     }
 
     // Select the device on which to evaluate the expression.
