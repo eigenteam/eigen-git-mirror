@@ -48,7 +48,7 @@ struct nested<TensorPaddingOp<PaddingDimensions, XprType>, 1, typename eval<Tens
 
 
 template<typename PaddingDimensions, typename XprType>
-class TensorPaddingOp : public TensorBase<TensorPaddingOp<PaddingDimensions, XprType> >
+class TensorPaddingOp : public TensorBase<TensorPaddingOp<PaddingDimensions, XprType>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorPaddingOp>::Scalar Scalar;

@@ -163,7 +163,7 @@ template<typename NewDimensions, typename ArgType, typename Device>
   {
     return this->m_impl.coeffRef(index);
   }
-  template <int StoreMode> EIGEN_STRONG_INLINE
+  template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
     this->m_impl.template writePacket<StoreMode>(index, x);
@@ -314,7 +314,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
         Scalar* src = m_impl.data();
         for (int i = 0; i < internal::array_prod(dimensions()); i += contiguous_values) {
           Index offset = srcCoeff(i);
-          m_device.memcpy(data+i, src+offset, contiguous_values * sizeof(Scalar));
+          m_device.memcpy((void*)(data+i), src+offset, contiguous_values * sizeof(Scalar));
         }
         return false;
       }
@@ -334,7 +334,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
+    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
     EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index+packetSize-1 < dimensions().TotalSize());
 
@@ -355,7 +355,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       return rslt;
     }
     else {
-      CoeffReturnType values[packetSize];
+      typename internal::remove_const<CoeffReturnType>::type values[packetSize];
       values[0] = m_impl.coeff(inputIndices[0]);
       values[packetSize-1] = m_impl.coeff(inputIndices[1]);
       for (int i = 1; i < packetSize-1; ++i) {
@@ -420,10 +420,10 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     return this->m_impl.coeffRef(this->srcCoeff(index));
   }
 
-  template <int StoreMode> EIGEN_STRONG_INLINE
+  template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
-    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
+    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
     for (int i = NumDims - 1; i > 0; --i) {
