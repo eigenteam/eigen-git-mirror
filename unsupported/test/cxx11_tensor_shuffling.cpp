@@ -106,11 +106,58 @@ static void test_expr_shuffling()
       }
     }
   }
+
+  dst_slice_start[0] = 0;
+  result.setRandom();
+  for (int i = 0; i < 5; ++i) {
+    result.slice(dst_slice_start, dst_slice_dim) =
+        tensor.shuffle(shuffles).slice(dst_slice_start, dst_slice_dim);
+    dst_slice_start[0] += 1;
+  }
+
+  for (int i = 0; i < expected.dimension(0); ++i) {
+    for (int j = 0; j < expected.dimension(1); ++j) {
+      for (int k = 0; k < expected.dimension(2); ++k) {
+        for (int l = 0; l < expected.dimension(3); ++l) {
+          VERIFY_IS_EQUAL(result(i,j,k,l), expected(i,j,k,l));
+        }
+      }
+    }
+  }
 }
 
+
+static void test_shuffling_as_value()
+{
+  Tensor<float, 4> tensor(2,3,5,7);
+  tensor.setRandom();
+  array<ptrdiff_t, 4> shuffles;
+  shuffles[2] = 0;
+  shuffles[3] = 1;
+  shuffles[1] = 2;
+  shuffles[0] = 3;
+  Tensor<float, 4> shuffle(5,7,3,2);
+  shuffle.shuffle(shuffles) = tensor;
+
+  VERIFY_IS_EQUAL(shuffle.dimension(0), 5);
+  VERIFY_IS_EQUAL(shuffle.dimension(1), 7);
+  VERIFY_IS_EQUAL(shuffle.dimension(2), 3);
+  VERIFY_IS_EQUAL(shuffle.dimension(3), 2);
+
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        for (int l = 0; l < 7; ++l) {
+          VERIFY_IS_EQUAL(tensor(i,j,k,l), shuffle(k,l,j,i));
+        }
+      }
+    }
+  }
+}
 
 void test_cxx11_tensor_shuffling()
 {
    CALL_SUBTEST(test_simple_shuffling());
    CALL_SUBTEST(test_expr_shuffling());
+   CALL_SUBTEST(test_shuffling_as_value());
 }

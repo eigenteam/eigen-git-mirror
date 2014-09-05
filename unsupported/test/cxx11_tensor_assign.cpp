@@ -228,6 +228,30 @@ static void test_same_type()
   }
 }
 
+static void test_auto_resize()
+{
+  Tensor<int, 1> tensor1;
+  Tensor<int, 1> tensor2(3);
+  Tensor<int, 1> tensor3(5);
+  Tensor<int, 1> tensor4(7);
+
+  Tensor<int, 1> new_tensor(5);
+  new_tensor.setRandom();
+
+  tensor1 = tensor2 = tensor3 = tensor4 = new_tensor;
+
+  VERIFY_IS_EQUAL(tensor1.dimension(0), new_tensor.dimension(0));
+  VERIFY_IS_EQUAL(tensor2.dimension(0), new_tensor.dimension(0));
+  VERIFY_IS_EQUAL(tensor3.dimension(0), new_tensor.dimension(0));
+  VERIFY_IS_EQUAL(tensor4.dimension(0), new_tensor.dimension(0));
+  for (int i = 0; i < new_tensor.dimension(0); ++i) {
+    VERIFY_IS_EQUAL(tensor1(i), new_tensor(i));
+    VERIFY_IS_EQUAL(tensor2(i), new_tensor(i));
+    VERIFY_IS_EQUAL(tensor3(i), new_tensor(i));
+    VERIFY_IS_EQUAL(tensor4(i), new_tensor(i));
+  }
+}
+
 
 void test_cxx11_tensor_assign()
 {
@@ -235,4 +259,6 @@ void test_cxx11_tensor_assign()
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
   CALL_SUBTEST(test_same_type());
+  CALL_SUBTEST(test_auto_resize());
+
 }

@@ -257,12 +257,38 @@ static void test_simple_assign()
   VERIFY_IS_EQUAL((e2(1,0,2)), -1);
 }
 
+static void test_resize()
+{
+  Tensor<int, 3> epsilon;
+  epsilon.resize(2,3,7);
+  VERIFY_IS_EQUAL(epsilon.dimension(0), 2);
+  VERIFY_IS_EQUAL(epsilon.dimension(1), 3);
+  VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
+  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 2ul*3*7);
+
+  const int* old_data = epsilon.data();
+  epsilon.resize(3,2,7);
+  VERIFY_IS_EQUAL(epsilon.dimension(0), 3);
+  VERIFY_IS_EQUAL(epsilon.dimension(1), 2);
+  VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
+  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 2ul*3*7);
+  VERIFY_IS_EQUAL(epsilon.data(), old_data);
+
+  epsilon.resize(3,5,7);
+  VERIFY_IS_EQUAL(epsilon.dimension(0), 3);
+  VERIFY_IS_EQUAL(epsilon.dimension(1), 5);
+  VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
+  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 3ul*5*7);
+  VERIFY_IS_NOT_EQUAL(epsilon.data(), old_data);
+}
+
 void test_cxx11_tensor_simple()
 {
   CALL_SUBTEST(test_1d());
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
   CALL_SUBTEST(test_simple_assign());
+  CALL_SUBTEST(test_resize());
 }
 
 /*
