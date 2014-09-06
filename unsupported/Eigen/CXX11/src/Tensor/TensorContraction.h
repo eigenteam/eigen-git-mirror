@@ -168,7 +168,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
 
     // Scalar case
-    if (TensorEvaluator<LeftArgType, Device>::Dimensions::count + TensorEvaluator<LeftArgType, Device>::Dimensions::count == 2 * internal::array_size<Indices>::value) {
+    if (TensorEvaluator<LeftArgType, Device>::Dimensions::count + TensorEvaluator<RightArgType, Device>::Dimensions::count == 2 * internal::array_size<Indices>::value) {
       m_dimensions[0] = 1;
     }
   }
