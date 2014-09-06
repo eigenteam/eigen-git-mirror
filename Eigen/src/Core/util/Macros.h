@@ -279,7 +279,7 @@ namespace Eigen {
 
 #if !defined(EIGEN_ASM_COMMENT)
   #if (defined __GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
-    #define EIGEN_ASM_COMMENT(X)  asm("#" X)
+    #define EIGEN_ASM_COMMENT(X)  __asm__("#" X)
   #else
     #define EIGEN_ASM_COMMENT(X)
   #endif
