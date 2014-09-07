@@ -12,6 +12,15 @@
 
 namespace Eigen {
 
+// On WINCE, std::abs is defined for int only, so let's defined our own overloads:
+// This issue has been confirmed with MSVC 2008 only, but the issue might exist for more recent versions too.
+#if defined(_WIN32_WCE) && defined(_MSC_VER) && _MSC_VER<=1500
+long        abs(long        x) { return (labs(x));  }
+double      abs(double      x) { return (fabs(x));  }
+float       abs(float       x) { return (fabsf(x)); }
+long double abs(long double x) { return (fabsl(x)); }
+#endif
+  
 namespace internal {
 
 /** \internal \struct global_math_functions_filtering_base
