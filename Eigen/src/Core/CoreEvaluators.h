@@ -722,7 +722,7 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
                         ? PacketAccessBit : 0,
     
     MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % EIGEN_ALIGN_BYTES) == 0)) ? AlignedBit : 0,
-    FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (InnerPanel && (traits<XprType>::Flags&LinearAccessBit))) ? LinearAccessBit : 0,    
+    FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (InnerPanel && (evaluator<ArgType>::Flags&LinearAccessBit))) ? LinearAccessBit : 0,    
     FlagsRowMajorBit = XprType::Flags&RowMajorBit,
     Flags0 = evaluator<ArgType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
                                            DirectAccessBit |

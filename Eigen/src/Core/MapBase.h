@@ -11,9 +11,15 @@
 #ifndef EIGEN_MAPBASE_H
 #define EIGEN_MAPBASE_H
 
+#ifndef EIGEN_TEST_EVALUATORS
 #define EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS(Derived) \
       EIGEN_STATIC_ASSERT((int(internal::traits<Derived>::Flags) & LinearAccessBit) || Derived::IsVectorAtCompileTime, \
                           YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT)
+#else
+#define EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS(Derived) \
+      EIGEN_STATIC_ASSERT((int(internal::evaluator<Derived>::Flags) & LinearAccessBit) || Derived::IsVectorAtCompileTime, \
+                          YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT)
+#endif
 
 namespace Eigen { 
 
