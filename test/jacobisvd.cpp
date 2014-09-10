@@ -354,11 +354,33 @@ void jacobisvd_underoverflow()
   Matrix2d M;
   M << -7.90884e-313, -4.94e-324,
                  0, 5.60844e-313;
+  JacobiSVD<Matrix2d> svd;
+  svd.compute(M,ComputeFullU|ComputeFullV);
+  jacobisvd_check_full(M,svd);
+  
+  VectorXd value_set(9);
+  value_set << 0, 1, -1, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -4.94e-223, 4.94e-223;
+  Array4i id(0,0,0,0);
+  int k = 0;
+  do
+  {
+    M << value_set(id(0)), value_set(id(1)), value_set(id(2)), value_set(id(3));
+    svd.compute(M,ComputeFullU|ComputeFullV);
+    jacobisvd_check_full(M,svd);
+    
+    id(k)++;
+    if(id(k)>=value_set.size())
+    {
+      while(k<3 && id(k)>=value_set.size()) id(++k)++;
+      id.head(k).setZero();
+      k=0;
+    }
+    
+  } while((id<int(value_set.size())).all());
+  
 #if defined __INTEL_COMPILER
 #pragma warning pop
 #endif
-  JacobiSVD<Matrix2d> svd;
-  svd.compute(M); // just check we don't loop indefinitely
   
   // Check for overflow:
   Matrix3d M3;
@@ -367,7 +389,8 @@ void jacobisvd_underoverflow()
        -8.7190887618028355e+307, -7.3453213709232193e+307, -2.4367363684472105e+307;
 
   JacobiSVD<Matrix3d> svd3;
-  svd3.compute(M3); // just check we don't loop indefinitely
+  svd3.compute(M3,ComputeFullU|ComputeFullV); // just check we don't loop indefinitely
+  jacobisvd_check_full(M3,svd3);
 }
 
 void jacobisvd_preallocate()

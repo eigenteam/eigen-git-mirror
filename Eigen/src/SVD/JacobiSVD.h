@@ -425,18 +425,19 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   JacobiRotation<RealScalar> rot1;
   RealScalar t = m.coeff(0,0) + m.coeff(1,1);
   RealScalar d = m.coeff(1,0) - m.coeff(0,1);
-  if(t == RealScalar(0))
+  
+  if(d == RealScalar(0))
   {
-    rot1.c() = RealScalar(0);
-    rot1.s() = d > RealScalar(0) ? RealScalar(1) : RealScalar(-1);
+    rot1.s() = RealScalar(0);
+    rot1.c() = RealScalar(1);
   }
   else
   {
-    RealScalar t2d2 = numext::hypot(t,d);
-    rot1.c() = abs(t)/t2d2;
-    rot1.s() = d/t2d2;
-    if(t<RealScalar(0))
-      rot1.s() = -rot1.s();
+    // If d!=0, then t/d cannot overflow because the magnitude of the
+    // entries forming d are not too small compared to the ones forming t.
+    RealScalar u = t / d;
+    rot1.s() = RealScalar(1) / sqrt(RealScalar(1) + numext::abs2(u));
+    rot1.c() = rot1.s() * u;
   }
   m.applyOnTheLeft(0,1,rot1);
   j_right->makeJacobi(m,0,1);
