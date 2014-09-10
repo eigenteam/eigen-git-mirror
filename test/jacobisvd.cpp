@@ -333,6 +333,13 @@ void jacobisvd_inf_nan()
        0,   -0.5,                             0,
        nan,  0,                               0;
   svd.compute(m, ComputeFullU | ComputeFullV);
+  
+  m.resize(4,4);
+  m <<  1, 0, 0, 0,
+        0, 3, 1, 2e-308,
+        1, 0, 1, nan,
+        0, nan, nan, 0;
+  svd.compute(m, ComputeFullU | ComputeFullV);
 }
 
 // Regression test for bug 286: JacobiSVD loops indefinitely with some
