@@ -154,14 +154,19 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
                                            typename MatrixType::RealScalar *diagonal,
                                            typename MatrixType::RealScalar *upper_diagonal,
                                            typename MatrixType::Index bs,
-                                           Ref<Matrix<typename MatrixType::Scalar, Dynamic, Dynamic> > X,
-                                           Ref<Matrix<typename MatrixType::Scalar, Dynamic, Dynamic> > Y)
+                                           Ref<Matrix<typename MatrixType::Scalar, Dynamic, Dynamic,
+                                                      traits<MatrixType>::Flags & RowMajorBit> > X,
+                                           Ref<Matrix<typename MatrixType::Scalar, Dynamic, Dynamic,
+                                                      traits<MatrixType>::Flags & RowMajorBit> > Y)
 {
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
-  typedef Ref<Matrix<Scalar, Dynamic, 1> >                    SubColumnType;
-  typedef Ref<Matrix<Scalar, 1, Dynamic>, 0, InnerStride<> >  SubRowType;
-  typedef Ref<Matrix<Scalar, Dynamic, Dynamic> >              SubMatType;
+  enum { StorageOrder = traits<MatrixType>::Flags & RowMajorBit };
+  typedef InnerStride<int(StorageOrder) == int(ColMajor) ? 1 : Dynamic> ColInnerStride;
+  typedef InnerStride<int(StorageOrder) == int(ColMajor) ? Dynamic : 1> RowInnerStride;
+  typedef Ref<Matrix<Scalar, Dynamic, 1>, 0, ColInnerStride>    SubColumnType;
+  typedef Ref<Matrix<Scalar, 1, Dynamic>, 0, RowInnerStride>    SubRowType;
+  typedef Ref<Matrix<Scalar, Dynamic, Dynamic, StorageOrder > > SubMatType;
   
   Index brows = A.rows();
   Index bcols = A.cols();
@@ -288,8 +293,18 @@ void upperbidiagonalization_inplace_blocked(MatrixType& A, BidiagType& bidiagona
   Index cols = A.cols();
   Index size = (std::min)(rows, cols);
 
-  Matrix<Scalar,MatrixType::RowsAtCompileTime,Dynamic,ColMajor,MatrixType::MaxRowsAtCompileTime> X(rows,maxBlockSize);
-  Matrix<Scalar,MatrixType::ColsAtCompileTime,Dynamic,ColMajor,MatrixType::MaxColsAtCompileTime> Y(cols,maxBlockSize);
+  // X and Y are work space
+  enum { StorageOrder = traits<MatrixType>::Flags & RowMajorBit };
+  Matrix<Scalar,
+         MatrixType::RowsAtCompileTime,
+         Dynamic,
+         StorageOrder,
+         MatrixType::MaxRowsAtCompileTime> X(rows,maxBlockSize);
+  Matrix<Scalar,
+         MatrixType::ColsAtCompileTime,
+         Dynamic,
+         StorageOrder,
+         MatrixType::MaxColsAtCompileTime> Y(cols,maxBlockSize);
   Index blockSize = (std::min)(maxBlockSize,size);
 
   Index k = 0;
