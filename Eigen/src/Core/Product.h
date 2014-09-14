@@ -85,7 +85,7 @@ struct traits<Product<Lhs, Rhs, Option> >
 #endif
     
     // The storage order is somewhat arbitrary here. The correct one will be determined through the evaluator.
-    Flags = (   MaxRowsAtCompileTime==1
+    Flags = (   (MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1)
              || ((LhsTraits::Flags&NoPreferredStorageOrderBit) && (RhsTraits::Flags&RowMajorBit))
              || ((RhsTraits::Flags&NoPreferredStorageOrderBit) && (LhsTraits::Flags&RowMajorBit)) )
           ? RowMajorBit : (MaxColsAtCompileTime==1 ? 0 : NoPreferredStorageOrderBit)

@@ -30,13 +30,15 @@ std::string demangle_unrolling(int t)
 std::string demangle_flags(int f)
 {
   std::string res;
-  if(f&RowMajorBit) res += " | RowMajor";
-  if(f&PacketAccessBit) res += " | Packet";
-  if(f&LinearAccessBit) res += " | Linear";
-  if(f&LvalueBit) res += " | Lvalue";
-  if(f&DirectAccessBit) res += " | Direct";
-  if(f&AlignedBit) res += " | Aligned";
-  if(f&NestByRefBit) res += " | NestByRef";
+  if(f&RowMajorBit)                 res += " | RowMajor";
+  if(f&PacketAccessBit)             res += " | Packet";
+  if(f&LinearAccessBit)             res += " | Linear";
+  if(f&LvalueBit)                   res += " | Lvalue";
+  if(f&DirectAccessBit)             res += " | Direct";
+  if(f&AlignedBit)                  res += " | Aligned";
+  if(f&NestByRefBit)                res += " | NestByRef";
+  if(f&NoPreferredStorageOrderBit)  res += " | NoPreferredStorageOrderBit";
+  
   return res;
 }
 

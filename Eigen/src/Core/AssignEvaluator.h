@@ -55,8 +55,8 @@ private:
   };
 
   enum {
-    DstIsRowMajor = DstEvaluator::Flags&RowMajorBit,
-    SrcIsRowMajor = SrcEvaluator::Flags&RowMajorBit,
+    DstIsRowMajor = DstFlags&RowMajorBit,
+    SrcIsRowMajor = SrcFlags&RowMajorBit,
     StorageOrdersAgree = (int(DstIsRowMajor) == int(SrcIsRowMajor)),
     MightVectorize = StorageOrdersAgree
                   && (int(DstFlags) & int(SrcFlags) & ActualPacketAccessBit)
