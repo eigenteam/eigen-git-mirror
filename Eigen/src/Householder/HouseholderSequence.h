@@ -321,7 +321,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     {
       const Index BlockSize = 48;
       // if the entries are large enough, then apply the reflectors by block
-      if(m_length>BlockSize && dst.cols()>1)
+      if(m_length>=BlockSize && dst.cols()>1)
       {
         for(Index i = 0; i < m_length; i+=BlockSize)
         {
