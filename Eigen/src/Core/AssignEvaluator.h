@@ -763,6 +763,9 @@ void call_assignment_no_alias(Dst& dst, const Src& src)
   call_assignment_no_alias(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
 
+// forxard declaration
+template<typename Dst, typename Src> void check_for_aliasing(const Dst &dst, const Src &src);
+
 // Generic Dense to Dense assignment
 template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
 struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
@@ -770,6 +773,10 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+    
+#ifndef EIGEN_NO_DEBUG
+    internal::check_for_aliasing(dst, src);
+#endif
     
     call_dense_assignment_loop(dst, src, func);
   }

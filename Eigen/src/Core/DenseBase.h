@@ -314,10 +314,12 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     void transposeInPlace();
 #ifndef EIGEN_NO_DEBUG
+#ifndef EIGEN_TEST_EVALUATORS
   protected:
     template<typename OtherDerived>
     void checkTransposeAliasing(const OtherDerived& other) const;
   public:
+#endif
 #endif
 
 

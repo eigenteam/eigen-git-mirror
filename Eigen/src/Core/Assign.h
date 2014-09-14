@@ -521,12 +521,13 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   eigen_assert(rows() == other.rows() && cols() == other.cols());
   internal::assign_impl<Derived, OtherDerived, int(SameType) ? int(internal::assign_traits<Derived, OtherDerived>::Traversal)
                                                              : int(InvalidTraversal)>::run(derived(),other.derived());
-  
-#endif // EIGEN_TEST_EVALUATORS
-  
+
 #ifndef EIGEN_NO_DEBUG
   checkTransposeAliasing(other.derived());
 #endif
+  
+#endif // EIGEN_TEST_EVALUATORS
+
   return derived();
 }
 

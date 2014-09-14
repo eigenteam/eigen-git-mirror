@@ -437,15 +437,23 @@ struct checkTransposeAliasing_impl<Derived, OtherDerived, false>
     }
 };
 
+template<typename Dst, typename Src>
+void check_for_aliasing(const Dst &dst, const Src &src)
+{
+  internal::checkTransposeAliasing_impl<Dst, Src>::run(dst, src);
+}
+
 } // end namespace internal
 
+#ifndef EIGEN_TEST_EVALUATORS
 template<typename Derived>
 template<typename OtherDerived>
 void DenseBase<Derived>::checkTransposeAliasing(const OtherDerived& other) const
 {
     internal::checkTransposeAliasing_impl<Derived, OtherDerived>::run(derived(), other);
 }
-#endif
+#endif // EIGEN_TEST_EVALUATORS
+#endif // EIGEN_NO_DEBUG
 
 } // end namespace Eigen
 
