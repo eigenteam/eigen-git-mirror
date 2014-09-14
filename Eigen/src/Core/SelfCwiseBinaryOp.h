@@ -212,17 +212,7 @@ template<typename Derived>
 inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
 {
   typedef typename Derived::PlainObject PlainObject;
-  
-  typedef typename internal::conditional<NumTraits<Scalar>::IsInteger,
-                                        internal::div_assign_op<Scalar>,
-                                        internal::mul_assign_op<Scalar> >::type AssignOp;
-
-  Scalar actual_other;
-  if(NumTraits<Scalar>::IsInteger)  actual_other = other;
-  else                              actual_other = Scalar(1)/other;
-  
-  internal::call_assignment(this->derived(), PlainObject::Constant(rows(),cols(),actual_other), AssignOp());
-  
+  internal::call_assignment(this->derived(), PlainObject::Constant(rows(),cols(),other), internal::div_assign_op<Scalar>());
   return derived();
 }
 #else

@@ -9,7 +9,6 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 static bool g_called;
-
 #define EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN { g_called = true; }
 
 #include "main.h"
@@ -107,4 +106,19 @@ void test_linearstructure()
     CALL_SUBTEST_10( real_complex<Matrix4cd>() );
     CALL_SUBTEST_10( real_complex<MatrixXcf>(10,10) );
   }
+  
+#ifdef EIGEN_TEST_PART_4
+  {
+    // make sure that /=scalar and /scalar do not overflow
+    // rational: 1.0/4.94e-320 overflow, but m/4.94e-320 should not
+    Matrix4d m2, m3;
+    m3 = m2 =  Matrix4d::Random()*1e-20;
+    m2 = m2 / 4.9e-320;
+    VERIFY_IS_APPROX(m2.cwiseQuotient(m2), Matrix4d::Ones());
+    m3 /= 4.9e-320;
+    VERIFY_IS_APPROX(m3.cwiseQuotient(m3), Matrix4d::Ones());
+    
+    
+  }
+#endif
 }
