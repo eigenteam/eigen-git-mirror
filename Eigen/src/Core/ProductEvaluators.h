@@ -215,7 +215,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, cons
   // FIXME we should probably build an evaluator for dst and rhs
   const Index cols = dst.cols();
   for (Index j=0; j<cols; ++j)
-    func(dst.col(j), rhs.coeff(j) * lhs);
+    func(dst.col(j), rhs.coeff(0,j) * lhs);
 }
 
 // Row major result
@@ -227,7 +227,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, cons
   // FIXME we should probably build an evaluator for dst and lhs
   const Index rows = dst.rows();
   for (Index i=0; i<rows; ++i)
-    func(dst.row(i), lhs.coeff(i) * rhs);
+    func(dst.row(i), lhs.coeff(i,0) * rhs);
 }
 
 template<typename Lhs, typename Rhs>
