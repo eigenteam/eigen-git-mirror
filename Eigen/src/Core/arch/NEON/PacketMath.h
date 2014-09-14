@@ -57,7 +57,7 @@ typedef uint32x4_t  Packet4ui;
 #elif defined __pld
   #define EIGEN_ARM_PREFETCH(ADDR) __pld(ADDR)
 #elif !defined(__aarch64__)
-  #define EIGEN_ARM_PREFETCH(ADDR) asm volatile ( "   pld [%[addr]]\n" :: [addr] "r" (ADDR) : "cc" );
+  #define EIGEN_ARM_PREFETCH(ADDR) __asm__ __volatile__ ( "   pld [%[addr]]\n" :: [addr] "r" (ADDR) : "cc" );
 #else
   // by default no explicit prefetching
   #define EIGEN_ARM_PREFETCH(ADDR)

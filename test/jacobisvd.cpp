@@ -315,16 +315,30 @@ void jacobisvd_inf_nan()
   VERIFY(sub(some_inf, some_inf) != sub(some_inf, some_inf));
   svd.compute(MatrixType::Constant(10,10,some_inf), ComputeFullU | ComputeFullV);
 
-  Scalar some_nan = zero<Scalar>() / zero<Scalar>();
-  VERIFY(some_nan != some_nan);
-  svd.compute(MatrixType::Constant(10,10,some_nan), ComputeFullU | ComputeFullV);
+  Scalar nan = std::numeric_limits<Scalar>::quiet_NaN();
+  VERIFY(nan != nan);
+  svd.compute(MatrixType::Constant(10,10,nan), ComputeFullU | ComputeFullV);
 
   MatrixType m = MatrixType::Zero(10,10);
   m(internal::random<int>(0,9), internal::random<int>(0,9)) = some_inf;
   svd.compute(m, ComputeFullU | ComputeFullV);
 
   m = MatrixType::Zero(10,10);
-  m(internal::random<int>(0,9), internal::random<int>(0,9)) = some_nan;
+  m(internal::random<int>(0,9), internal::random<int>(0,9)) = nan;
+  svd.compute(m, ComputeFullU | ComputeFullV);
+  
+  // regression test for bug 791
+  m.resize(3,3);
+  m << 0,    2*NumTraits<Scalar>::epsilon(),  0.5,
+       0,   -0.5,                             0,
+       nan,  0,                               0;
+  svd.compute(m, ComputeFullU | ComputeFullV);
+  
+  m.resize(4,4);
+  m <<  1, 0, 0, 0,
+        0, 3, 1, 2e-308,
+        1, 0, 1, nan,
+        0, nan, nan, 0;
   svd.compute(m, ComputeFullU | ComputeFullV);
 }
 
@@ -340,11 +354,33 @@ void jacobisvd_underoverflow()
   Matrix2d M;
   M << -7.90884e-313, -4.94e-324,
                  0, 5.60844e-313;
+  JacobiSVD<Matrix2d> svd;
+  svd.compute(M,ComputeFullU|ComputeFullV);
+  jacobisvd_check_full(M,svd);
+  
+  VectorXd value_set(9);
+  value_set << 0, 1, -1, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -4.94e-223, 4.94e-223;
+  Array4i id(0,0,0,0);
+  int k = 0;
+  do
+  {
+    M << value_set(id(0)), value_set(id(1)), value_set(id(2)), value_set(id(3));
+    svd.compute(M,ComputeFullU|ComputeFullV);
+    jacobisvd_check_full(M,svd);
+    
+    id(k)++;
+    if(id(k)>=value_set.size())
+    {
+      while(k<3 && id(k)>=value_set.size()) id(++k)++;
+      id.head(k).setZero();
+      k=0;
+    }
+    
+  } while((id<int(value_set.size())).all());
+  
 #if defined __INTEL_COMPILER
 #pragma warning pop
 #endif
-  JacobiSVD<Matrix2d> svd;
-  svd.compute(M); // just check we don't loop indefinitely
   
   // Check for overflow:
   Matrix3d M3;
@@ -353,7 +389,8 @@ void jacobisvd_underoverflow()
        -8.7190887618028355e+307, -7.3453213709232193e+307, -2.4367363684472105e+307;
 
   JacobiSVD<Matrix3d> svd3;
-  svd3.compute(M3); // just check we don't loop indefinitely
+  svd3.compute(M3,ComputeFullU|ComputeFullV); // just check we don't loop indefinitely
+  jacobisvd_check_full(M3,svd3);
 }
 
 void jacobisvd_preallocate()
@@ -437,6 +474,7 @@ void test_jacobisvd()
 
     // Test on inf/nan matrix
     CALL_SUBTEST_7( jacobisvd_inf_nan<MatrixXf>() );
+    CALL_SUBTEST_10( jacobisvd_inf_nan<MatrixXd>() );
   }
 
   CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));

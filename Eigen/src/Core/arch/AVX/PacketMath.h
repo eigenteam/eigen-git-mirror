@@ -141,7 +141,7 @@ template<> EIGEN_STRONG_INLINE Packet8f pmadd(const Packet8f& a, const Packet8f&
   // so let's enforce it to generate a vfmadd231ps instruction since the most common use case is to accumulate
   // the result of the product.
   Packet8f res = c;
-  asm("vfmadd231ps %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
+  __asm__("vfmadd231ps %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
   return res;
 #else
   return _mm256_fmadd_ps(a,b,c);
@@ -151,7 +151,7 @@ template<> EIGEN_STRONG_INLINE Packet4d pmadd(const Packet4d& a, const Packet4d&
 #if defined(__clang__) || defined(__GNUC__)
   // see above
   Packet4d res = c;
-  asm("vfmadd231pd %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
+  __asm__("vfmadd231pd %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));
   return res;
 #else
   return _mm256_fmadd_pd(a,b,c);

@@ -83,6 +83,7 @@ template<typename Derived> class MatrixBase
     using Base::operator-=;
     using Base::operator*=;
     using Base::operator/=;
+    using Base::operator*;
 
     typedef typename Base::CoeffReturnType CoeffReturnType;
     typedef typename Base::ConstTransposeReturnType ConstTransposeReturnType;
