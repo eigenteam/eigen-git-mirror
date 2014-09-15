@@ -24,6 +24,20 @@
 #define ALGOSWAP 16
 
 namespace Eigen {
+
+template<typename _MatrixType> class BDCSVD;
+
+namespace internal {
+
+template<typename _MatrixType> 
+struct traits<BDCSVD<_MatrixType> >
+{
+  typedef _MatrixType MatrixType;
+};  
+
+} // end namespace internal
+  
+  
 /** \ingroup SVD_Module
  *
  *
@@ -36,9 +50,9 @@ namespace Eigen {
  * It should be used to speed up the calcul of SVD for big matrices. 
  */
 template<typename _MatrixType> 
-class BDCSVD : public SVDBase<_MatrixType>
+class BDCSVD : public SVDBase<BDCSVD<_MatrixType> >
 {
-  typedef SVDBase<_MatrixType> Base;
+  typedef SVDBase<BDCSVD> Base;
     
 public:
   using Base::rows;
@@ -77,9 +91,7 @@ public:
    * The default constructor is useful in cases in which the user intends to
    * perform decompositions via BDCSVD::compute(const MatrixType&).
    */
-  BDCSVD()
-    : SVDBase<_MatrixType>::SVDBase(), 
-      algoswap(ALGOSWAP), m_numIters(0)
+  BDCSVD() : algoswap(ALGOSWAP), m_numIters(0)
   {}
 
 
@@ -90,8 +102,7 @@ public:
    * \sa BDCSVD()
    */
   BDCSVD(Index rows, Index cols, unsigned int computationOptions = 0)
-    : SVDBase<_MatrixType>::SVDBase(), 
-      algoswap(ALGOSWAP), m_numIters(0)
+    : algoswap(ALGOSWAP), m_numIters(0)
   {
     allocate(rows, cols, computationOptions);
   }
@@ -107,8 +118,7 @@ public:
    * available with the (non - default) FullPivHouseholderQR preconditioner.
    */
   BDCSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
-    : SVDBase<_MatrixType>::SVDBase(), 
-      algoswap(ALGOSWAP), m_numIters(0)
+    : algoswap(ALGOSWAP), m_numIters(0)
   {
     compute(matrix, computationOptions);
   }
@@ -116,6 +126,7 @@ public:
   ~BDCSVD() 
   {
   }
+  
   /** \brief Method performing the decomposition of given matrix using custom options.
    *
    * \param matrix the matrix to decompose
@@ -126,7 +137,7 @@ public:
    * Thin unitaries are only available if your matrix type has a Dynamic number of columns (for example MatrixXf). They also are not
    * available with the (non - default) FullPivHouseholderQR preconditioner.
    */
-  SVDBase<MatrixType>& compute(const MatrixType& matrix, unsigned int computationOptions);
+  BDCSVD& compute(const MatrixType& matrix, unsigned int computationOptions);
 
   /** \brief Method performing the decomposition of given matrix using current options.
    *
@@ -134,7 +145,7 @@ public:
    *
    * This method uses the current \a computationOptions, as already passed to the constructor or to compute(const MatrixType&, unsigned int).
    */
-  SVDBase<MatrixType>& compute(const MatrixType& matrix)
+  BDCSVD& compute(const MatrixType& matrix)
   {
     return compute(matrix, this->m_computationOptions);
   }
@@ -160,8 +171,8 @@ public:
   solve(const MatrixBase<Rhs>& b) const
   {
     eigen_assert(this->m_isInitialized && "BDCSVD is not initialized.");
-    eigen_assert(SVDBase<_MatrixType>::computeU() && SVDBase<_MatrixType>::computeV() && 
-		 "BDCSVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
+    eigen_assert(computeU() && computeV() && 
+                 "BDCSVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
     return internal::solve_retval<BDCSVD, Rhs>(*this, b.derived());
   }
 
@@ -195,6 +206,9 @@ public:
       return this->m_matrixV;
     }
   }
+  
+  using Base::computeU;
+  using Base::computeV;
  
 private:
   void allocate(Index rows, Index cols, unsigned int computationOptions);
@@ -229,7 +243,7 @@ template<typename MatrixType>
 void BDCSVD<MatrixType>::allocate(Index rows, Index cols, unsigned int computationOptions)
 {
   isTranspose = (cols > rows);
-  if (SVDBase<MatrixType>::allocate(rows, cols, computationOptions)) return;
+  if (Base::allocate(rows, cols, computationOptions)) return;
   m_computed = MatrixXr::Zero(this->m_diagSize + 1, this->m_diagSize );
   if (isTranspose){
     compU = this->computeU();
@@ -262,8 +276,7 @@ void BDCSVD<MatrixType>::allocate(Index rows, Index cols, unsigned int computati
 
 // Methode which compute the BDCSVD for the int
 template<>
-SVDBase<Matrix<int, Dynamic, Dynamic> >&
-BDCSVD<Matrix<int, Dynamic, Dynamic> >::compute(const MatrixType& matrix, unsigned int computationOptions) {
+BDCSVD<Matrix<int, Dynamic, Dynamic> >& BDCSVD<Matrix<int, Dynamic, Dynamic> >::compute(const MatrixType& matrix, unsigned int computationOptions) {
   allocate(matrix.rows(), matrix.cols(), computationOptions);
   this->m_nonzeroSingularValues = 0;
   m_computed = Matrix<int, Dynamic, Dynamic>::Zero(rows(), cols());
@@ -279,8 +292,7 @@ BDCSVD<Matrix<int, Dynamic, Dynamic> >::compute(const MatrixType& matrix, unsign
 
 // Methode which compute the BDCSVD
 template<typename MatrixType>
-SVDBase<MatrixType>&
-BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOptions) 
+BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOptions) 
 {
   allocate(matrix.rows(), matrix.cols(), computationOptions);
   using std::abs;

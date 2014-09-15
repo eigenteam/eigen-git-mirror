@@ -30,6 +30,9 @@ abs2() const
 
 /** \returns an expression of the coefficient-wise exponential of *this.
   *
+  * This function computes the coefficient-wise exponential. The function MatrixBase::exp() in the
+  * unsupported module MatrixFunctions computes the matrix exponential.
+  *
   * Example: \include Cwise_exp.cpp
   * Output: \verbinclude Cwise_exp.out
   *
@@ -43,6 +46,9 @@ exp() const
 }
 
 /** \returns an expression of the coefficient-wise logarithm of *this.
+  *
+  * This function computes the coefficient-wise logarithm. The function MatrixBase::log() in the
+  * unsupported module MatrixFunctions computes the matrix logarithm.
   *
   * Example: \include Cwise_log.cpp
   * Output: \verbinclude Cwise_log.out
@@ -58,6 +64,9 @@ log() const
 
 /** \returns an expression of the coefficient-wise square root of *this.
   *
+  * This function computes the coefficient-wise square root. The function MatrixBase::sqrt() in the
+  * unsupported module MatrixFunctions computes the matrix square root.
+  *
   * Example: \include Cwise_sqrt.cpp
   * Output: \verbinclude Cwise_sqrt.out
   *
@@ -71,6 +80,9 @@ sqrt() const
 }
 
 /** \returns an expression of the coefficient-wise cosine of *this.
+  *
+  * This function computes the coefficient-wise cosine. The function MatrixBase::cos() in the
+  * unsupported module MatrixFunctions computes the matrix cosine.
   *
   * Example: \include Cwise_cos.cpp
   * Output: \verbinclude Cwise_cos.out
@@ -86,6 +98,9 @@ cos() const
 
 
 /** \returns an expression of the coefficient-wise sine of *this.
+  *
+  * This function computes the coefficient-wise sine. The function MatrixBase::sin() in the
+  * unsupported module MatrixFunctions computes the matrix sine.
   *
   * Example: \include Cwise_sin.cpp
   * Output: \verbinclude Cwise_sin.out
@@ -155,6 +170,9 @@ atan() const
 }
 
 /** \returns an expression of the coefficient-wise power of *this to the given exponent.
+  *
+  * This function computes the coefficient-wise power. The function MatrixBase::pow() in the
+  * unsupported module MatrixFunctions computes the matrix power.
   *
   * Example: \include Cwise_pow.cpp
   * Output: \verbinclude Cwise_pow.out

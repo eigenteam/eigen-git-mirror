@@ -12,6 +12,15 @@
 
 namespace Eigen {
 
+// On WINCE, std::abs is defined for int only, so let's defined our own overloads:
+// This issue has been confirmed with MSVC 2008 only, but the issue might exist for more recent versions too.
+#if defined(_WIN32_WCE) && defined(_MSC_VER) && _MSC_VER<=1500
+long        abs(long        x) { return (labs(x));  }
+double      abs(double      x) { return (fabs(x));  }
+float       abs(float       x) { return (fabsf(x)); }
+long double abs(long double x) { return (fabsl(x)); }
+#endif
+  
 namespace internal {
 
 /** \internal \struct global_math_functions_filtering_base
@@ -308,10 +317,17 @@ struct hypot_impl
     using std::sqrt;
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
-    RealScalar p = (max)(_x, _y);
-    if(p==RealScalar(0)) return 0;
-    RealScalar q = (min)(_x, _y);
-    RealScalar qp = q/p;
+    Scalar p, qp;
+    if(_x>_y)
+    {
+      p = _x;
+      qp = _y / p;
+    }
+    else
+    {
+      p = _y;
+      qp = _x / p;
+    }
     return p * sqrt(RealScalar(1) + qp*qp);
   }
 };

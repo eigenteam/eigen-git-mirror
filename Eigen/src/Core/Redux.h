@@ -207,7 +207,7 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
     const Index packetSize = packet_traits<Scalar>::size;
     const Index alignedStart = internal::first_aligned(mat);
     enum {
-      alignment = bool(Derived::Flags & DirectAccessBit) || bool(Derived::Flags & AlignedBit)
+      alignment = (bool(Derived::Flags & DirectAccessBit) && bool(packet_traits<Scalar>::AlignedOnScalar)) || bool(Derived::Flags & AlignedBit)
                 ? Aligned : Unaligned
     };
     const Index alignedSize2 = ((size-alignedStart)/(2*packetSize))*(2*packetSize);

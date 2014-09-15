@@ -144,11 +144,13 @@ class LevenbergMarquardt : internal::no_assignment_operator
     
     /** Sets the default parameters */
     void resetParameters() 
-    { 
+    {
+      using std::sqrt;        
+
       m_factor = 100.; 
       m_maxfev = 400; 
-      m_ftol = std::sqrt(NumTraits<RealScalar>::epsilon());
-      m_xtol = std::sqrt(NumTraits<RealScalar>::epsilon());
+      m_ftol = sqrt(NumTraits<RealScalar>::epsilon());
+      m_xtol = sqrt(NumTraits<RealScalar>::epsilon());
       m_gtol = 0. ; 
       m_epsfcn = 0. ;
     }

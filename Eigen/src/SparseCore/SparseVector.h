@@ -109,7 +109,7 @@ class SparseVector
     inline Scalar& coeffRef(Index row, Index col)
     {
       eigen_assert(IsColVector ? (col==0 && row>=0 && row<m_size) : (row==0 && col>=0 && col<m_size));
-      return coeff(IsColVector ? row : col);
+      return coeffRef(IsColVector ? row : col);
     }
 
     /** \returns a reference to the coefficient value at given index \a i
@@ -147,6 +147,18 @@ class SparseVector
       return insertBack(inner);
     }
     inline Scalar& insertBack(Index i)
+    {
+      m_data.append(0, i);
+      return m_data.value(m_data.size()-1);
+    }
+    
+    Scalar& insertBackByOuterInnerUnordered(Index outer, Index inner)
+    {
+      EIGEN_UNUSED_VARIABLE(outer);
+      eigen_assert(outer==0);
+      return insertBackUnordered(inner);
+    }
+    inline Scalar& insertBackUnordered(Index i)
     {
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);

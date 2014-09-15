@@ -6,19 +6,25 @@ using namespace Eigen;
 using namespace std;
 
 template<typename T>
-EIGEN_DONT_INLINE typename T::Scalar sqsumNorm(const T& v)
+EIGEN_DONT_INLINE typename T::Scalar sqsumNorm(T& v)
 {
   return v.norm();
 }
 
 template<typename T>
-EIGEN_DONT_INLINE typename T::Scalar hypotNorm(const T& v)
+EIGEN_DONT_INLINE typename T::Scalar stableNorm(T& v)
+{
+  return v.stableNorm();
+}
+
+template<typename T>
+EIGEN_DONT_INLINE typename T::Scalar hypotNorm(T& v)
 {
   return v.hypotNorm();
 }
 
 template<typename T>
-EIGEN_DONT_INLINE typename T::Scalar blueNorm(const T& v)
+EIGEN_DONT_INLINE typename T::Scalar blueNorm(T& v)
 {
   return v.blueNorm();
 }
@@ -217,20 +223,21 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
 }
 
 #define BENCH_PERF(NRM) { \
+  float af = 0; double ad = 0; std::complex<float> ac = 0; \
   Eigen::BenchTimer tf, td, tcf; tf.reset(); td.reset(); tcf.reset();\
   for (int k=0; k<tries; ++k) { \
     tf.start(); \
-    for (int i=0; i<iters; ++i) NRM(vf); \
+    for (int i=0; i<iters; ++i) { af += NRM(vf); } \
     tf.stop(); \
   } \
   for (int k=0; k<tries; ++k) { \
     td.start(); \
-    for (int i=0; i<iters; ++i) NRM(vd); \
+    for (int i=0; i<iters; ++i) { ad += NRM(vd); } \
     td.stop(); \
   } \
   /*for (int k=0; k<std::max(1,tries/3); ++k) { \
     tcf.start(); \
-    for (int i=0; i<iters; ++i) NRM(vcf); \
+    for (int i=0; i<iters; ++i) { ac += NRM(vcf); } \
     tcf.stop(); \
   } */\
   std::cout << #NRM << "\t" << tf.value() << "   " << td.value() <<  "    " << tcf.value() << "\n"; \
@@ -316,14 +323,17 @@ int main(int argc, char** argv)
     std::cout << "\n";
   }
 
+  y = 1;
   std::cout.precision(4);
-  std::cerr << "Performance (out of cache):\n";
+  int s1 = 1024*1024*32;
+  std::cerr << "Performance (out of cache, " << s1 << "):\n";
   {
     int iters = 1;
-    VectorXf vf = VectorXf::Random(1024*1024*32) * y;
-    VectorXd vd = VectorXd::Random(1024*1024*32) * y;
-    VectorXcf vcf = VectorXcf::Random(1024*1024*32) * y;
+    VectorXf vf = VectorXf::Random(s1) * y;
+    VectorXd vd = VectorXd::Random(s1) * y;
+    VectorXcf vcf = VectorXcf::Random(s1) * y;
     BENCH_PERF(sqsumNorm);
+    BENCH_PERF(stableNorm);
     BENCH_PERF(blueNorm);
     BENCH_PERF(pblueNorm);
     BENCH_PERF(lapackNorm);
@@ -332,13 +342,14 @@ int main(int argc, char** argv)
     BENCH_PERF(bl2passNorm);
   }
 
-  std::cerr << "\nPerformance (in cache):\n";
+  std::cerr << "\nPerformance (in cache, " << 512 << "):\n";
   {
     int iters = 100000;
     VectorXf vf = VectorXf::Random(512) * y;
     VectorXd vd = VectorXd::Random(512) * y;
     VectorXcf vcf = VectorXcf::Random(512) * y;
     BENCH_PERF(sqsumNorm);
+    BENCH_PERF(stableNorm);
     BENCH_PERF(blueNorm);
     BENCH_PERF(pblueNorm);
     BENCH_PERF(lapackNorm);

@@ -2,10 +2,15 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+static bool g_called;
+
+#define EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN { g_called = true; }
 
 #include "main.h"
 
@@ -68,6 +73,24 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   VERIFY_IS_APPROX(m1.block(0,0,rows,cols) * s1, m1 * s1);
 }
 
+// Make sure that complex * real and real * complex are properly optimized
+template<typename MatrixType> void real_complex(DenseIndex rows = MatrixType::RowsAtCompileTime, DenseIndex cols = MatrixType::ColsAtCompileTime)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+  
+  RealScalar s = internal::random<RealScalar>();
+  MatrixType m1 = MatrixType::Random(rows, cols);
+  
+  g_called = false;
+  VERIFY_IS_APPROX(s*m1, Scalar(s)*m1);
+  VERIFY(g_called && "real * matrix<complex> not properly optimized");
+  
+  g_called = false;
+  VERIFY_IS_APPROX(m1*s, m1*Scalar(s));
+  VERIFY(g_called && "matrix<complex> * real not properly optimized");
+}
+
 void test_linearstructure()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -80,5 +103,8 @@ void test_linearstructure()
     CALL_SUBTEST_7( linearStructure(MatrixXi (internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_8( linearStructure(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
     CALL_SUBTEST_9( linearStructure(ArrayXXf (internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    
+    CALL_SUBTEST_10( real_complex<Matrix4cd>() );
+    CALL_SUBTEST_10( real_complex<MatrixXcf>(10,10) );
   }
 }
