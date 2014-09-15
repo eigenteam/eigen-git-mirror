@@ -49,8 +49,8 @@ template<> struct storage_kind_to_shape<Dense> { typedef DenseShape Shape; };
 template< typename T,
           typename LhsKind   = typename evaluator_traits<typename T::Lhs>::Kind,
           typename RhsKind   = typename evaluator_traits<typename T::Rhs>::Kind,
-          typename LhsScalar = typename T::Lhs::Scalar,
-          typename RhsScalar = typename T::Rhs::Scalar> struct binary_evaluator;
+          typename LhsScalar = typename traits<typename T::Lhs>::Scalar,
+          typename RhsScalar = typename traits<typename T::Rhs>::Scalar> struct binary_evaluator;
 
 template< typename T,
           typename Kind   = typename evaluator_traits<typename T::NestedExpression>::Kind,
