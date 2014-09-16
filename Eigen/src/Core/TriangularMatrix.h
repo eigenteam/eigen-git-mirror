@@ -277,7 +277,16 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     solve(const MatrixBase<Other>& other) const
     { return Solve<TriangularView, Other>(*this, other.derived()); }
     
+  // workaround MSVC ICE
+  #ifdef _MSC_VER
+    template<int Side, typename Other>
+    EIGEN_DEVICE_FUNC
+    inline const internal::triangular_solve_retval<Side,TriangularView, Other>
+    solve(const MatrixBase<Other>& other) const
+    { return Base::template solve<Side>(other); }
+  #else
     using Base::solve;
+  #endif
 #endif // EIGEN_TEST_EVALUATORS
 
     EIGEN_DEVICE_FUNC
@@ -575,7 +584,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_STRONG_INLINE void _solve_impl(const RhsType &rhs, DstType &dst) const {
       if(!(internal::is_same<RhsType,DstType>::value && internal::extract_data(dst) == internal::extract_data(rhs)))
         dst = rhs;
-      this->template solveInPlace(dst);
+      this->solveInPlace(dst);
     }
 
     template<typename ProductType>
