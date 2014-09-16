@@ -402,30 +402,30 @@ struct generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductType>
   }
 };
 
-template<typename LhsT, typename RhsT, bool Transpose>
+template<typename LhsT, typename RhsT, bool NeedToTranspose>
 struct sparse_dense_outer_product_evaluator
 {
 protected:
-  typedef typename conditional<Transpose,RhsT,LhsT>::type Lhs1;
-  typedef typename conditional<Transpose,LhsT,RhsT>::type Rhs;
-  typedef Product<LhsT,RhsT> ProdXprType;
+  typedef typename conditional<NeedToTranspose,RhsT,LhsT>::type Lhs1;
+  typedef typename conditional<NeedToTranspose,LhsT,RhsT>::type ActualRhs;
+  typedef Product<LhsT,RhsT,DefaultProduct> ProdXprType;
   
   // if the actual left-hand side is a dense vector,
   // then build a sparse-view so that we can seamlessly iterator over it.
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
-            Lhs1, SparseView<Lhs1> >::type Lhs;
+            Lhs1, SparseView<Lhs1> >::type ActualLhs;
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
             Lhs1 const&, SparseView<Lhs1> >::type LhsArg;
             
-  typedef typename evaluator<Lhs>::type LhsEval;
-  typedef typename evaluator<Rhs>::type RhsEval;
-  typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
+  typedef typename evaluator<ActualLhs>::type LhsEval;
+  typedef typename evaluator<ActualRhs>::type RhsEval;
+  typedef typename evaluator<ActualLhs>::InnerIterator LhsIterator;
   typedef typename ProdXprType::Scalar Scalar;
   typedef typename ProdXprType::Index Index;
   
 public:
   enum {
-    Flags = Transpose ? RowMajorBit : 0,
+    Flags = NeedToTranspose ? RowMajorBit : 0,
     CoeffReadCost = Dynamic
   };
   
@@ -436,16 +436,15 @@ public:
       : LhsIterator(xprEval.m_lhsXprImpl, 0),
         m_outer(outer),
         m_empty(false),
-        m_factor(get(xprEval.m_rhsXprImpl, outer, typename internal::traits<Rhs>::StorageKind() ))
+        m_factor(get(xprEval.m_rhsXprImpl, outer, typename internal::traits<ActualRhs>::StorageKind() ))
     {}
     
     EIGEN_STRONG_INLINE Index outer() const { return m_outer; }
-    EIGEN_STRONG_INLINE Index row()   const { return Transpose ? m_outer : LhsIterator::index(); }
-    EIGEN_STRONG_INLINE Index col()   const { return Transpose ? LhsIterator::index() : m_outer; }
+    EIGEN_STRONG_INLINE Index row()   const { return NeedToTranspose ? m_outer : LhsIterator::index(); }
+    EIGEN_STRONG_INLINE Index col()   const { return NeedToTranspose ? LhsIterator::index() : m_outer; }
 
     EIGEN_STRONG_INLINE Scalar value() const { return LhsIterator::value() * m_factor; }
     EIGEN_STRONG_INLINE operator bool() const { return LhsIterator::operator bool() && (!m_empty); }
-    
     
   protected:
     Scalar get(const RhsEval &rhs, Index outer, Dense = Dense()) const
@@ -467,19 +466,19 @@ public:
     Scalar m_factor;
   };
   
-  sparse_dense_outer_product_evaluator(const Lhs &lhs, const Rhs &rhs)
-    : m_lhs(lhs), m_lhsXprImpl(m_lhs), m_rhsXprImpl(rhs)
+  sparse_dense_outer_product_evaluator(const ActualLhs &lhs, const ActualRhs &rhs)
+     : m_lhs(lhs), m_lhsXprImpl(m_lhs), m_rhsXprImpl(rhs)
   {}
   
   // transpose case
-  sparse_dense_outer_product_evaluator(const Rhs &rhs, const Lhs1 &lhs)
-    : m_lhs(lhs), m_lhsXprImpl(m_lhs), m_rhsXprImpl(rhs)
+  sparse_dense_outer_product_evaluator(const ActualRhs &rhs, const Lhs1 &lhs)
+     : m_lhs(lhs), m_lhsXprImpl(m_lhs), m_rhsXprImpl(rhs)
   {}
     
 protected:
   const LhsArg m_lhs;
-  typename evaluator<Lhs>::nestedType m_lhsXprImpl;
-  typename evaluator<Rhs>::nestedType m_rhsXprImpl;
+  typename evaluator<ActualLhs>::nestedType m_lhsXprImpl;
+  typename evaluator<ActualRhs>::nestedType m_rhsXprImpl;
 };
 
 // sparse * dense outer product
