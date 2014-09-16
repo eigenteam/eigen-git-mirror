@@ -130,7 +130,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   // NaN
   {
     v = vrand;
-    v(i,j) = RealScalar(0)/RealScalar(0);
+    v(i,j) = std::numeric_limits<RealScalar>::quiet_NaN();
     VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isNaN(v.squaredNorm()));
     VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
@@ -141,7 +141,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   // +inf
   {
     v = vrand;
-    v(i,j) = RealScalar(1)/RealScalar(0);
+    v(i,j) = std::numeric_limits<RealScalar>::infinity();
     VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isInf(v.squaredNorm()));
     VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
@@ -152,7 +152,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   // -inf
   {
     v = vrand;
-    v(i,j) = RealScalar(-1)/RealScalar(0);
+    v(i,j) = -std::numeric_limits<RealScalar>::infinity();
     VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isInf(v.squaredNorm()));
     VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
@@ -165,8 +165,8 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     Index i2 = internal::random<Index>(0,rows-1);
     Index j2 = internal::random<Index>(0,cols-1);
     v = vrand;
-    v(i,j) = RealScalar(-1)/RealScalar(0);
-    v(i2,j2) = RealScalar(0)/RealScalar(0);
+    v(i,j) = -std::numeric_limits<RealScalar>::infinity();
+    v(i2,j2) = std::numeric_limits<RealScalar>::quiet_NaN();
     VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isNaN(v.squaredNorm()));
     VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
     VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
