@@ -101,11 +101,11 @@ namespace internal {
   *
   * \sa class Inverse
   */
-template<typename XprType>
-struct unary_evaluator<Inverse<XprType> >
-  : public evaluator<typename Inverse<XprType>::PlainObject>::type
+template<typename ArgType>
+struct unary_evaluator<Inverse<ArgType> >
+  : public evaluator<typename Inverse<ArgType>::PlainObject>::type
 {
-  typedef Inverse<XprType> InverseType;
+  typedef Inverse<ArgType> InverseType;
   typedef typename InverseType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
   
