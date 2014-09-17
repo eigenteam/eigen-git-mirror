@@ -29,9 +29,10 @@ namespace Eigen {
 
 namespace internal {
 template<typename MatrixType>
-struct traits<Transpose<MatrixType> > : traits<MatrixType>
+struct traits<Transpose<MatrixType> >
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename traits<MatrixType>::Scalar Scalar;
+  typedef typename traits<MatrixType>::Index Index;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedPlain;
   typedef typename traits<MatrixType>::StorageKind StorageKind;
