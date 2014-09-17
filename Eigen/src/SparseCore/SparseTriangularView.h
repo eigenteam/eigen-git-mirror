@@ -50,7 +50,7 @@ protected:
     EIGEN_STRONG_INLINE void _solve_impl(const RhsType &rhs, DstType &dst) const {
       if(!(internal::is_same<RhsType,DstType>::value && internal::extract_data(dst) == internal::extract_data(rhs)))
         dst = rhs;
-      this->template solveInPlace(dst);
+      this->solveInPlace(dst);
     }
 #endif // EIGEN_TEST_EVALUATORS
 
