@@ -101,7 +101,7 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
       // otherwise => loop through the entire vector
       // In order to avoid to perform an expensive log2 when the
       // result is clearly very sparse we use a linear bound up to 200.
-      if((nnz<200 && nnz<t200) || nnz * log2(nnz) < t)
+      if((nnz<200 && nnz<t200) || nnz * numext::log2(int(nnz)) < t)
       {
         if(nnz>1) std::sort(indices,indices+nnz);
         for(Index k=0; k<nnz; ++k)
