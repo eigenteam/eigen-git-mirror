@@ -696,7 +696,7 @@ bool (isfinite)(const std::complex<T>& x)
 
 // Log base 2 for 32 bits positive integers.
 // Conveniently returns 0 for x==0.
-int log2(int x)
+inline int log2(int x)
 {
   eigen_assert(x>=0);
   unsigned int v(x);
