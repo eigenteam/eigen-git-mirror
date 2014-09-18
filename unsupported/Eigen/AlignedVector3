@@ -57,6 +57,9 @@ template<typename _Scalar> class AlignedVector3
 
     inline Index rows() const { return 3; }
     inline Index cols() const { return 1; }
+    
+    Scalar* data() { return m_coeffs.data(); }
+    const Scalar* data() const { return m_coeffs.data(); }
 
     inline const Scalar& coeff(Index row, Index col) const
     { return m_coeffs.coeff(row, col); }
@@ -182,6 +185,29 @@ template<typename _Scalar> class AlignedVector3
       return m_coeffs.template head<3>().isApprox(other,eps);
     }
 };
+
+namespace internal {
+
+template<typename Scalar>
+struct evaluator<AlignedVector3<Scalar> >
+  : evaluator<Map<const Matrix<Scalar,3,1>,Aligned> >::type
+{
+  typedef AlignedVector3<Scalar> XprType;
+  typedef Map<const Matrix<Scalar,3,1>,Aligned> MapType;
+  typedef typename evaluator<MapType>::type Base;
+  
+  typedef evaluator type;
+  typedef evaluator nestedType;
+
+  evaluator(const XprType &m) : Base(MapType(m.data())), m_map(m.data())
+  {
+    ::new (static_cast<Base*>(this)) Base(m_map);
+  }
+  
+  const MapType m_map;
+};
+
+}
 
 //@}
 
