@@ -37,12 +37,7 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-#ifndef EIGEN_TEST_EVALUATORS
-    Flags = (traits<_MatrixTypeNested>::Flags & (HereditaryBits | LvalueBit | LinearAccessBit | DirectAccessBit)),
-    CoeffReadCost = traits<_MatrixTypeNested>::CoeffReadCost + functor_traits<ViewOp>::Cost,
-#else
     Flags = traits<_MatrixTypeNested>::Flags & (RowMajorBit | LvalueBit | DirectAccessBit), // FIXME DirectAccessBit should not be handled by expressions
-#endif
     MatrixTypeInnerStride =  inner_stride_at_compile_time<MatrixType>::ret,
     // need to cast the sizeof's from size_t to int explicitly, otherwise:
     // "error: no integral type can represent all of the enumerator values
@@ -93,7 +88,6 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
     ViewOp m_functor;
 };
 
-#ifdef EIGEN_TEST_EVALUATORS
 // Generic API dispatcher
 template<typename ViewOp, typename XprType, typename StorageKind>
 class CwiseUnaryViewImpl
@@ -102,7 +96,6 @@ class CwiseUnaryViewImpl
 public:
   typedef typename internal::generic_xpr_base<CwiseUnaryView<ViewOp, XprType> >::type Base;
 };
-#endif
 
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
@@ -128,30 +121,6 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     {
       return derived().nestedExpression().outerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
-    
-#ifndef EIGEN_TEST_EVALUATORS
-
-    EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
-    {
-      return derived().functor()(derived().nestedExpression().coeff(row, col));
-    }
-
-    EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
-    {
-      return derived().functor()(derived().nestedExpression().coeff(index));
-    }
-
-    EIGEN_STRONG_INLINE Scalar& coeffRef(Index row, Index col)
-    {
-      return derived().functor()(const_cast_derived().nestedExpression().coeffRef(row, col));
-    }
-
-    EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
-    {
-      return derived().functor()(const_cast_derived().nestedExpression().coeffRef(index));
-    }
-    
-#endif
 };
 
 } // end namespace Eigen

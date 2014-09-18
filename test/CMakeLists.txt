@@ -139,11 +139,6 @@ endif(TEST_LIB)
 set_property(GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT "Official")
 add_custom_target(BuildOfficial)
 
-option(EIGEN_TEST_NO_EVALUATORS "Disable evaluators in unit tests" OFF)
-if(EIGEN_TEST_NO_EVALUATORS)
-  add_definitions("-DEIGEN_TEST_NO_EVALUATORS=1")
-endif(EIGEN_TEST_NO_EVALUATORS)
-
 ei_add_test(meta)
 ei_add_test(sizeof)
 ei_add_test(dynalloc)

@@ -35,16 +35,7 @@ template<typename NullaryOp, typename PlainObjectType>
 struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectType>
 {
   enum {
-#ifndef EIGEN_TEST_EVALUATORS  
-    Flags = (traits<PlainObjectType>::Flags
-      & (  HereditaryBits
-         | (functor_has_linear_access<NullaryOp>::ret ? LinearAccessBit : 0)
-         | (functor_traits<NullaryOp>::PacketAccess ? PacketAccessBit : 0)))
-      | (functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit),
-    CoeffReadCost = functor_traits<NullaryOp>::Cost
-#else
     Flags = traits<PlainObjectType>::Flags & RowMajorBit
-#endif
   };
 };
 }

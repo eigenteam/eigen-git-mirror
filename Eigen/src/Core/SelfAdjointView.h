@@ -40,19 +40,9 @@ struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
     Mode = UpLo | SelfAdjoint,
     Flags =  MatrixTypeNestedCleaned::Flags & (HereditaryBits)
            & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)) // FIXME these flags should be preserved
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
-    CoeffReadCost = MatrixTypeNestedCleaned::CoeffReadCost
-#endif
   };
 };
 }
-
-#ifndef EIGEN_TEST_EVALUATORS
-template <typename Lhs, int LhsMode, bool LhsIsVector,
-          typename Rhs, int RhsMode, bool RhsIsVector>
-struct SelfadjointProductMatrix;
-#endif
 
 // FIXME could also be called SelfAdjointWrapper to be consistent with DiagonalWrapper ??
 template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
@@ -118,8 +108,6 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     EIGEN_DEVICE_FUNC
     MatrixTypeNestedCleaned& nestedExpression() { return *const_cast<MatrixTypeNestedCleaned*>(&m_matrix); }
 
-#ifdef EIGEN_TEST_EVALUATORS
-
     /** Efficient triangular matrix times vector/matrix product */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -144,31 +132,6 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     {
       return (s*mat.nestedExpression()).template selfadjointView<UpLo>();
     }
-
-#else // EIGEN_TEST_EVALUATORS
-
-    /** Efficient self-adjoint matrix times vector/matrix product */
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    SelfadjointProductMatrix<MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
-    operator*(const MatrixBase<OtherDerived>& rhs) const
-    {
-      return SelfadjointProductMatrix
-              <MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>
-              (m_matrix, rhs.derived());
-    }
-
-    /** Efficient vector/matrix times self-adjoint matrix product */
-    template<typename OtherDerived> friend
-    EIGEN_DEVICE_FUNC
-    SelfadjointProductMatrix<OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
-    operator*(const MatrixBase<OtherDerived>& lhs, const SelfAdjointView& rhs)
-    {
-      return SelfadjointProductMatrix
-              <OtherDerived,0,OtherDerived::IsVectorAtCompileTime,MatrixType,Mode,false>
-              (lhs.derived(),rhs.m_matrix);
-    }
-#endif
 
     /** Perform a symmetric rank 2 update of the selfadjoint matrix \c *this:
       * \f$ this = this + \alpha u v^* + conj(\alpha) v u^* \f$
@@ -231,104 +194,6 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
 
 namespace internal {
 
-#ifndef EIGEN_TEST_EVALUATORS
- 
-template<typename Derived1, typename Derived2, int UnrollCount, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount, ClearOpposite>
-{
-  enum {
-    col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
-    row = (UnrollCount-1) % Derived1::RowsAtCompileTime
-  };
-
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount-1, ClearOpposite>::run(dst, src);
-
-    if(row == col)
-      dst.coeffRef(row, col) = numext::real(src.coeff(row, col));
-    else if(row < col)
-      dst.coeffRef(col, row) = numext::conj(dst.coeffRef(row, col) = src.coeff(row, col));
-  }
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, 0, ClearOpposite>
-{
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &, const Derived2 &) {}
-};
-
-template<typename Derived1, typename Derived2, int UnrollCount, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount, ClearOpposite>
-{
-  enum {
-    col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
-    row = (UnrollCount-1) % Derived1::RowsAtCompileTime
-  };
-
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount-1, ClearOpposite>::run(dst, src);
-
-    if(row == col)
-      dst.coeffRef(row, col) = numext::real(src.coeff(row, col));
-    else if(row > col)
-      dst.coeffRef(col, row) = numext::conj(dst.coeffRef(row, col) = src.coeff(row, col));
-  }
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, 0, ClearOpposite>
-{
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &, const Derived2 &) {}
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dynamic, ClearOpposite>
-{
-  typedef typename Derived1::Index Index;
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(Index j = 0; j < dst.cols(); ++j)
-    {
-      for(Index i = 0; i < j; ++i)
-      {
-        dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = numext::conj(dst.coeff(i,j));
-      }
-      dst.copyCoeff(j, j, src);
-    }
-  }
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dynamic, ClearOpposite>
-{
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-  typedef typename Derived1::Index Index;
-    for(Index i = 0; i < dst.rows(); ++i)
-    {
-      for(Index j = 0; j < i; ++j)
-      {
-        dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = numext::conj(dst.coeff(i,j));
-      }
-      dst.copyCoeff(i, i, src);
-    }
-  }
-};
-
-#endif // EIGEN_TEST_EVALUATORS
-
-#ifdef EIGEN_ENABLE_EVALUATORS
-
 // TODO currently a selfadjoint expression has the form SelfAdjointView<.,.>
 //      in the future selfadjoint-ness should be defined by the expression traits
 //      such that Transpose<SelfAdjointView<.,.> > is valid. (currently TriangularBase::transpose() is overloaded to make it work)
@@ -381,8 +246,6 @@ public:
   void assignOppositeCoeff(Index, Index)
   { eigen_internal_assert(false && "should never be called"); }
 };
-
-#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace internal
 

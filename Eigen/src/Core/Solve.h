@@ -99,7 +99,6 @@ private:
   Scalar coeff(Index i) const;
 };
 
-#ifdef EIGEN_TEST_EVALUATORS
 // Generic API dispatcher
 template<typename Decomposition, typename RhsType, typename StorageKind>
 class SolveImpl : public internal::generic_xpr_base<Solve<Decomposition,RhsType>, MatrixXpr, StorageKind>::type
@@ -107,7 +106,6 @@ class SolveImpl : public internal::generic_xpr_base<Solve<Decomposition,RhsType>
   public:
     typedef typename internal::generic_xpr_base<Solve<Decomposition,RhsType>, MatrixXpr, StorageKind>::type Base;
 };
-#endif
 
 namespace internal {
 

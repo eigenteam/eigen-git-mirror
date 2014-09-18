@@ -79,11 +79,6 @@ struct traits<Product<Lhs, Rhs, Option> >
     // FIXME: only needed by GeneralMatrixMatrixTriangular
     InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(LhsTraits::ColsAtCompileTime, RhsTraits::RowsAtCompileTime),
     
-#ifndef EIGEN_TEST_EVALUATORS
-    // dummy, for evaluators unit test only
-    CoeffReadCost = Dynamic,
-#endif
-    
     // The storage order is somewhat arbitrary here. The correct one will be determined through the evaluator.
     Flags = (   (MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1)
              || ((LhsTraits::Flags&NoPreferredStorageOrderBit) && (RhsTraits::Flags&RowMajorBit))
@@ -164,7 +159,6 @@ public:
 
 } // namespace internal
 
-#ifdef EIGEN_TEST_EVALUATORS
 // Generic API dispatcher
 template<typename Lhs, typename Rhs, int Option, typename StorageKind>
 class ProductImpl : public internal::generic_xpr_base<Product<Lhs,Rhs,Option>, MatrixXpr, StorageKind>::type
@@ -172,7 +166,6 @@ class ProductImpl : public internal::generic_xpr_base<Product<Lhs,Rhs,Option>, M
   public:
     typedef typename internal::generic_xpr_base<Product<Lhs,Rhs,Option>, MatrixXpr, StorageKind>::type Base;
 };
-#endif
 
 template<typename Lhs, typename Rhs, int Option>
 class ProductImpl<Lhs,Rhs,Option,Dense>

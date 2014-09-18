@@ -106,18 +106,6 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
         x = m_perm * x;
       x = m_scal.asDiagonal() * x;
     }
-    
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename Rhs> inline const internal::solve_retval<IncompleteCholesky, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_factorizationIsOk && "IncompleteLLT did not succeed");
-      eigen_assert(m_isInitialized && "IncompleteLLT is not initialized.");
-      eigen_assert(cols()==b.rows()
-                && "IncompleteLLT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<IncompleteCholesky, Rhs>(*this, b.derived());
-    }
-#endif
 
   protected:
     SparseMatrix<Scalar,ColMajor> m_L;  // The lower part stored in CSC
@@ -262,25 +250,6 @@ inline void IncompleteCholesky<Scalar,_UpLo, OrderingType>::updateList(const Idx
     listCol[rowIdx(jk)].push_back(col);
   }
 }
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-
-template<typename _Scalar, int _UpLo, typename OrderingType, typename Rhs>
-struct solve_retval<IncompleteCholesky<_Scalar,  _UpLo, OrderingType>, Rhs>
-  : solve_retval_base<IncompleteCholesky<_Scalar, _UpLo, OrderingType>, Rhs>
-{
-  typedef IncompleteCholesky<_Scalar, _UpLo, OrderingType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
-#endif
 
 } // end namespace Eigen 
 

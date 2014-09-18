@@ -30,13 +30,8 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 
   // Note that there is no need for an expression here since the compiler
   // optimize such a small temporary very well (even within a complex expression)
-#ifndef EIGEN_TEST_EVALUATORS
-  typename internal::nested<Derived,2>::type lhs(derived());
-  typename internal::nested<OtherDerived,2>::type rhs(other.derived());
-#else
   typename internal::nested_eval<Derived,2>::type lhs(derived());
   typename internal::nested_eval<OtherDerived,2>::type rhs(other.derived());
-#endif
   return typename cross_product_return_type<OtherDerived>::type(
     numext::conj(lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1)),
     numext::conj(lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2)),
@@ -81,13 +76,8 @@ MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,4)
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,4)
 
-#ifndef EIGEN_TEST_EVALUATORS
-  typedef typename internal::nested<Derived,2>::type DerivedNested;
-  typedef typename internal::nested<OtherDerived,2>::type OtherDerivedNested;
-#else
   typedef typename internal::nested_eval<Derived,2>::type DerivedNested;
   typedef typename internal::nested_eval<OtherDerived,2>::type OtherDerivedNested;
-#endif
   DerivedNested lhs(derived());
   OtherDerivedNested rhs(other.derived());
 
@@ -114,13 +104,8 @@ VectorwiseOp<ExpressionType,Direction>::cross(const MatrixBase<OtherDerived>& ot
   EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   
-#ifndef EIGEN_TEST_EVALUATORS
-  typename internal::nested<ExpressionType,2>::type mat(_expression());
-  typename internal::nested<OtherDerived,2>::type vec(other.derived());
-#else
   typename internal::nested_eval<ExpressionType,2>::type mat(_expression());
   typename internal::nested_eval<OtherDerived,2>::type vec(other.derived());
-#endif
 
   CrossReturnType res(_expression().rows(),_expression().cols());
   if(Direction==Vertical)

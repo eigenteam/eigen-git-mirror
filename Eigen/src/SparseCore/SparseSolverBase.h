@@ -65,7 +65,6 @@ class SparseSolverBase : internal::noncopyable
     Derived& derived() { return *static_cast<Derived*>(this); }
     const Derived& derived() const { return *static_cast<const Derived*>(this); }
     
-#ifdef EIGEN_TEST_EVALUATORS
     /** \returns an expression of the solution x of \f$ A x = b \f$ using the current decomposition of A.
       *
       * \sa compute()
@@ -91,17 +90,15 @@ class SparseSolverBase : internal::noncopyable
       eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
       return Solve<Derived, Rhs>(derived(), b.derived());
     }
-#endif
-
-
-#ifndef EIGEN_PARSED_BY_DOXYGEN
+    
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal default implementation of solving with a sparse rhs */
     template<typename Rhs,typename Dest>
     void _solve_impl(const SparseMatrixBase<Rhs> &b, SparseMatrixBase<Dest> &dest) const
     {
       internal::solve_sparse_through_dense_panels(derived(), b.derived(), dest.derived());
     }
-#endif // EIGEN_PARSED_BY_DOXYGEN
+    #endif // EIGEN_PARSED_BY_DOXYGEN
 
   protected:
     

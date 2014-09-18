@@ -147,7 +147,6 @@ template<typename _MatrixType> class ColPivHouseholderQR
       * Example: \include ColPivHouseholderQR_solve.cpp
       * Output: \verbinclude ColPivHouseholderQR_solve.out
       */
-#ifdef EIGEN_TEST_EVALUATORS
     template<typename Rhs>
     inline const Solve<ColPivHouseholderQR, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -155,15 +154,6 @@ template<typename _MatrixType> class ColPivHouseholderQR
       eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       return Solve<ColPivHouseholderQR, Rhs>(*this, b.derived());
     }
-#else
-    template<typename Rhs>
-    inline const internal::solve_retval<ColPivHouseholderQR, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return internal::solve_retval<ColPivHouseholderQR, Rhs>(*this, b.derived());
-    }
-#endif
 
     HouseholderSequenceType householderQ() const;
     HouseholderSequenceType matrixQ() const
@@ -304,22 +294,11 @@ template<typename _MatrixType> class ColPivHouseholderQR
       * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
       *       Use isInvertible() to first determine whether this matrix is invertible.
       */
-#ifdef EIGEN_TEST_EVALUATORS
     inline const Inverse<ColPivHouseholderQR> inverse() const
     {
       eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       return Inverse<ColPivHouseholderQR>(*this);
     }
-#else
-    inline const
-    internal::solve_retval<ColPivHouseholderQR, typename MatrixType::IdentityReturnType>
-    inverse() const
-    {
-      eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return internal::solve_retval<ColPivHouseholderQR,typename MatrixType::IdentityReturnType>
-               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()));
-    }
-#endif
 
     inline Index rows() const { return m_qr.rows(); }
     inline Index cols() const { return m_qr.cols(); }
@@ -582,21 +561,6 @@ void ColPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &
 
 namespace internal {
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
-  : solve_retval_base<ColPivHouseholderQR<_MatrixType>, Rhs>
-{
-  EIGEN_MAKE_SOLVE_HELPERS(ColPivHouseholderQR<_MatrixType>,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(), dst);
-  }
-};
-#endif
-
-#ifdef EIGEN_TEST_EVALUATORS
 template<typename DstXprType, typename MatrixType, typename Scalar>
 struct Assignment<DstXprType, Inverse<ColPivHouseholderQR<MatrixType> >, internal::assign_op<Scalar>, Dense2Dense, Scalar>
 {
@@ -607,7 +571,6 @@ struct Assignment<DstXprType, Inverse<ColPivHouseholderQR<MatrixType> >, interna
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.cols()));
   }
 };
-#endif
 
 } // end namespace internal
 

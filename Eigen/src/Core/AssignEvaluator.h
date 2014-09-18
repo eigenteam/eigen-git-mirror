@@ -695,13 +695,7 @@ void call_assignment(const Dst& dst, const Src& src)
 template<typename Dst, typename Src, typename Func>
 void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==1, void*>::type = 0)
 {
-#ifdef EIGEN_TEST_EVALUATORS
   typename plain_matrix_type<Src>::type tmp(src);
-#else
-  typename Src::PlainObject tmp(src.rows(), src.cols());
-  call_assignment_no_alias(tmp, src, internal::assign_op<typename Dst::Scalar>());
-#endif
-  
   call_assignment_no_alias(dst, tmp, func);
 }
 

@@ -23,149 +23,6 @@ template<typename Lhs, typename Rhs, int Mode,
   int StorageOrder = int(traits<Lhs>::Flags) & RowMajorBit>
 struct sparse_solve_triangular_selector;
 
-#ifndef EIGEN_TEST_EVALUATORS
-// forward substitution, row-major
-template<typename Lhs, typename Rhs, int Mode>
-struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,RowMajor>
-{
-  typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
-  static void run(const Lhs& lhs, Rhs& other)
-  {
-    for(Index col=0 ; col<other.cols() ; ++col)
-    {
-      for(Index i=0; i<lhs.rows(); ++i)
-      {
-        Scalar tmp = other.coeff(i,col);
-        Scalar lastVal(0);
-        Index lastIndex = 0;
-        for(typename Lhs::InnerIterator it(lhs, i); it; ++it)
-        {
-          lastVal = it.value();
-          lastIndex = it.index();
-          if(lastIndex==i)
-            break;
-          tmp -= lastVal * other.coeff(lastIndex,col);
-        }
-        if (Mode & UnitDiag)
-          other.coeffRef(i,col) = tmp;
-        else
-        {
-          eigen_assert(lastIndex==i);
-          other.coeffRef(i,col) = tmp/lastVal;
-        }
-      }
-    }
-  }
-};
-
-// backward substitution, row-major
-template<typename Lhs, typename Rhs, int Mode>
-struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
-{
-  typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
-  static void run(const Lhs& lhs, Rhs& other)
-  {
-    for(Index col=0 ; col<other.cols() ; ++col)
-    {
-      for(Index i=lhs.rows()-1 ; i>=0 ; --i)
-      {
-        Scalar tmp = other.coeff(i,col);
-        Scalar l_ii = 0;
-        typename Lhs::InnerIterator it(lhs, i);
-        while(it && it.index()<i)
-          ++it;
-        if(!(Mode & UnitDiag))
-        {
-          eigen_assert(it && it.index()==i);
-          l_ii = it.value();
-          ++it;
-        }
-        else if (it && it.index() == i)
-          ++it;
-        for(; it; ++it)
-        {
-          tmp -= it.value() * other.coeff(it.index(),col);
-        }
-
-        if (Mode & UnitDiag)
-          other.coeffRef(i,col) = tmp;
-        else
-          other.coeffRef(i,col) = tmp/l_ii;
-      }
-    }
-  }
-};
-
-// forward substitution, col-major
-template<typename Lhs, typename Rhs, int Mode>
-struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,ColMajor>
-{
-  typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
-  static void run(const Lhs& lhs, Rhs& other)
-  {
-    for(Index col=0 ; col<other.cols() ; ++col)
-    {
-      for(Index i=0; i<lhs.cols(); ++i)
-      {
-        Scalar& tmp = other.coeffRef(i,col);
-        if (tmp!=Scalar(0)) // optimization when other is actually sparse
-        {
-          typename Lhs::InnerIterator it(lhs, i);
-          while(it && it.index()<i)
-            ++it;
-          if(!(Mode & UnitDiag))
-          {
-            eigen_assert(it && it.index()==i);
-            tmp /= it.value();
-          }
-          if (it && it.index()==i)
-            ++it;
-          for(; it; ++it)
-            other.coeffRef(it.index(), col) -= tmp * it.value();
-        }
-      }
-    }
-  }
-};
-
-// backward substitution, col-major
-template<typename Lhs, typename Rhs, int Mode>
-struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
-{
-  typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
-  static void run(const Lhs& lhs, Rhs& other)
-  {
-    for(Index col=0 ; col<other.cols() ; ++col)
-    {
-      for(Index i=lhs.cols()-1; i>=0; --i)
-      {
-        Scalar& tmp = other.coeffRef(i,col);
-        if (tmp!=Scalar(0)) // optimization when other is actually sparse
-        {
-          if(!(Mode & UnitDiag))
-          {
-            // TODO replace this by a binary search. make sure the binary search is safe for partially sorted elements
-            typename Lhs::ReverseInnerIterator it(lhs, i);
-            while(it && it.index()!=i)
-              --it;
-            eigen_assert(it && it.index()==i);
-            other.coeffRef(i,col) /= it.value();
-          }
-          typename Lhs::InnerIterator it(lhs, i);
-          for(; it && it.index()<i; ++it)
-            other.coeffRef(it.index(), col) -= tmp * it.value();
-        }
-      }
-    }
-  }
-};
-
-#else // EIGEN_TEST_EVALUATORS
-
 // forward substitution, row-major
 template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,RowMajor>
@@ -316,7 +173,6 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
   }
 };
 
-#endif // EIGEN_TEST_EVALUATORS
 } // end namespace internal
 
 template<typename ExpressionType,unsigned int Mode>
@@ -337,18 +193,6 @@ void TriangularViewImpl<ExpressionType,Mode,Sparse>::solveInPlace(MatrixBase<Oth
   if (copy)
     other = otherCopy;
 }
-
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename ExpressionType,unsigned int Mode>
-template<typename OtherDerived>
-typename internal::plain_matrix_type_column_major<OtherDerived>::type
-TriangularViewImpl<ExpressionType,Mode,Sparse>::solve(const MatrixBase<OtherDerived>& other) const
-{
-  typename internal::plain_matrix_type_column_major<OtherDerived>::type res(other);
-  solveInPlace(res);
-  return res;
-}
-#endif
 
 // pure sparse path
 

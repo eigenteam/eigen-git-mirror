@@ -168,117 +168,6 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
 * Wrapper to product_selfadjoint_vector
 ***************************************************************************/
 
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-template<typename Lhs, int LhsMode, typename Rhs>
-struct traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true> >
-  : traits<ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>, Lhs, Rhs> >
-{};
-}
-
-template<typename Lhs, int LhsMode, typename Rhs>
-struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
-  : public ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>, Lhs, Rhs >
-{
-  EIGEN_PRODUCT_PUBLIC_INTERFACE(SelfadjointProductMatrix)
-
-  enum {
-    LhsUpLo = LhsMode&(Upper|Lower)
-  };
-
-  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
-
-  template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
-  {
-    typedef typename Dest::Scalar ResScalar;
-    typedef typename Base::RhsScalar RhsScalar;
-    typedef Map<Matrix<ResScalar,Dynamic,1>, Aligned> MappedDest;
-    
-    eigen_assert(dest.rows()==m_lhs.rows() && dest.cols()==m_rhs.cols());
-
-    typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(m_lhs);
-    typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(m_rhs);
-
-    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
-                               * RhsBlasTraits::extractScalarFactor(m_rhs);
-
-    enum {
-      EvalToDest = (Dest::InnerStrideAtCompileTime==1),
-      UseRhs = (_ActualRhsType::InnerStrideAtCompileTime==1)
-    };
-    
-    internal::gemv_static_vector_if<ResScalar,Dest::SizeAtCompileTime,Dest::MaxSizeAtCompileTime,!EvalToDest> static_dest;
-    internal::gemv_static_vector_if<RhsScalar,_ActualRhsType::SizeAtCompileTime,_ActualRhsType::MaxSizeAtCompileTime,!UseRhs> static_rhs;
-
-    ei_declare_aligned_stack_constructed_variable(ResScalar,actualDestPtr,dest.size(),
-                                                  EvalToDest ? dest.data() : static_dest.data());
-                                                  
-    ei_declare_aligned_stack_constructed_variable(RhsScalar,actualRhsPtr,rhs.size(),
-        UseRhs ? const_cast<RhsScalar*>(rhs.data()) : static_rhs.data());
-    
-    if(!EvalToDest)
-    {
-      #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      Index size = dest.size();
-      EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      #endif
-      MappedDest(actualDestPtr, dest.size()) = dest;
-    }
-      
-    if(!UseRhs)
-    {
-      #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      Index size = rhs.size();
-      EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      #endif
-      Map<typename _ActualRhsType::PlainObject>(actualRhsPtr, rhs.size()) = rhs;
-    }
-      
-      
-    internal::selfadjoint_matrix_vector_product<Scalar, Index, (internal::traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>::run
-      (
-        lhs.rows(),                             // size
-        &lhs.coeffRef(0,0),  lhs.outerStride(), // lhs info
-        actualRhsPtr, 1,                        // rhs info
-        actualDestPtr,                          // result info
-        actualAlpha                             // scale factor
-      );
-    
-    if(!EvalToDest)
-      dest = MappedDest(actualDestPtr, dest.size());
-  }
-};
-
-namespace internal {
-template<typename Lhs, typename Rhs, int RhsMode>
-struct traits<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false> >
-  : traits<ProductBase<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>, Lhs, Rhs> >
-{};
-}
-
-template<typename Lhs, typename Rhs, int RhsMode>
-struct SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>
-  : public ProductBase<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>, Lhs, Rhs >
-{
-  EIGEN_PRODUCT_PUBLIC_INTERFACE(SelfadjointProductMatrix)
-
-  enum {
-    RhsUpLo = RhsMode&(Upper|Lower)
-  };
-
-  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
-
-  template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
-  {
-    // let's simply transpose the product
-    Transpose<Dest> destT(dest);
-    SelfadjointProductMatrix<Transpose<const Rhs>, int(RhsUpLo)==Upper ? Lower : Upper, false,
-                             Transpose<const Lhs>, 0, true>(m_rhs.transpose(), m_lhs.transpose()).scaleAndAddTo(destT, alpha);
-  }
-};
-
-#else // EIGEN_TEST_EVALUATORS
-
 namespace internal {
 
 template<typename Lhs, int LhsMode, typename Rhs>
@@ -377,8 +266,6 @@ struct selfadjoint_product_impl<Lhs,0,true,Rhs,RhsMode,false>
 };
 
 } // end namespace internal
-
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

@@ -69,11 +69,7 @@ public:
 #ifdef EIGEN_DEBUG_ASSIGN
   static void debug()
   {
-#ifdef EIGEN_TEST_EVALUATORS
     std::cerr << "Xpr: " << typeid(typename Derived::XprType).name() << std::endl;
-#else
-    std::cerr << "Xpr: " << typeid(Derived).name() << std::endl;
-#endif
     std::cerr.setf(std::ios::hex, std::ios::basefield);
     EIGEN_DEBUG_VAR(Derived::Flags)
     std::cerr.unsetf(std::ios::hex);
@@ -338,7 +334,6 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
   }
 };
 
-#ifdef EIGEN_ENABLE_EVALUATORS
 // evaluator adaptor
 template<typename _XprType>
 class redux_evaluator
@@ -395,7 +390,6 @@ protected:
   typename internal::evaluator<XprType>::nestedType m_evaluator;
   const XprType &m_xpr;
 };
-#endif
 
 } // end namespace internal
 
@@ -417,7 +411,6 @@ EIGEN_STRONG_INLINE typename internal::result_of<Func(typename internal::traits<
 DenseBase<Derived>::redux(const Func& func) const
 {
   eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
-#ifdef EIGEN_TEST_EVALUATORS
   
   // FIXME, eval_nest should be handled by redux_evaluator, however:
   //  - it is currently difficult to provide the right Flags since they are still handled by the expressions
@@ -433,13 +426,6 @@ DenseBase<Derived>::redux(const Func& func) const
   ThisEvaluator thisEval(derived());
   
   return internal::redux_impl<Func, ThisEvaluator>::run(thisEval, func);
-  
-#else
-  typedef typename internal::remove_all<typename Derived::Nested>::type ThisNested;
-  
-  return internal::redux_impl<Func, ThisNested>
-            ::run(derived(), func);
-#endif
 }
 
 /** \returns the minimum of all coefficients of \c *this.

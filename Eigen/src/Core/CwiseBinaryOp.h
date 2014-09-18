@@ -66,28 +66,7 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   typedef typename remove_reference<LhsNested>::type _LhsNested;
   typedef typename remove_reference<RhsNested>::type _RhsNested;
   enum {
-#ifndef EIGEN_TEST_EVALUATORS
-    LhsFlags = _LhsNested::Flags,
-    RhsFlags = _RhsNested::Flags,
-    SameType = is_same<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::value,
-    StorageOrdersAgree = (int(Lhs::Flags)&RowMajorBit)==(int(Rhs::Flags)&RowMajorBit),
-    Flags0 = (int(LhsFlags) | int(RhsFlags)) & (
-        HereditaryBits
-      | (int(LhsFlags) & int(RhsFlags) &
-           ( AlignedBit
-           | (StorageOrdersAgree ? LinearAccessBit : 0)
-           | (functor_traits<BinaryOp>::PacketAccess && StorageOrdersAgree && SameType ? PacketAccessBit : 0)
-           )
-        )
-     ),
-    Flags = (Flags0 & ~RowMajorBit) | (LhsFlags & RowMajorBit),
-    
-    LhsCoeffReadCost = _LhsNested::CoeffReadCost,
-    RhsCoeffReadCost = _RhsNested::CoeffReadCost,
-    CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + functor_traits<BinaryOp>::Cost
-#else
     Flags = _LhsNested::Flags & RowMajorBit
-#endif
   };
 };
 } // end namespace internal
@@ -163,46 +142,6 @@ class CwiseBinaryOp : internal::no_assignment_operator,
     const BinaryOp m_functor;
 };
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename BinaryOp, typename Lhs, typename Rhs>
-class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
-  : public internal::dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type
-{
-    typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
-  public:
-
-    typedef typename internal::dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
-
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar coeff(Index rowId, Index colId) const
-    {
-      return derived().functor()(derived().lhs().coeff(rowId, colId),
-                                 derived().rhs().coeff(rowId, colId));
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(Index rowId, Index colId) const
-    {
-      return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(rowId, colId),
-                                          derived().rhs().template packet<LoadMode>(rowId, colId));
-    }
-
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
-    {
-      return derived().functor()(derived().lhs().coeff(index),
-                                 derived().rhs().coeff(index));
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
-    {
-      return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(index),
-                                          derived().rhs().template packet<LoadMode>(index));
-    }
-};
-#else
 // Generic API dispatcher
 template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageKind>
 class CwiseBinaryOpImpl
@@ -211,7 +150,6 @@ class CwiseBinaryOpImpl
 public:
   typedef typename internal::generic_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type Base;
 };
-#endif
 
 /** replaces \c *this by \c *this - \a other.
   *
@@ -222,12 +160,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 {
-#ifdef EIGEN_TEST_EVALUATORS
   call_assignment(derived(), other.derived(), internal::sub_assign_op<Scalar>());
-#else
-  SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
-#endif
   return derived();
 }
 
@@ -240,12 +173,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
-#ifdef EIGEN_TEST_EVALUATORS
   call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar>());
-#else
-  SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
-#endif
   return derived();
 }
 

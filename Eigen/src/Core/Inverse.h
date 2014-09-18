@@ -12,8 +12,6 @@
 
 namespace Eigen { 
 
-#ifdef EIGEN_TEST_EVALUATORS
-
 // TODO move the general declaration in Core, and rename this file DenseInverseImpl.h, or something like this...
 
 template<typename XprType,typename StorageKind> class InverseImpl;
@@ -126,8 +124,6 @@ protected:
 };
   
 } // end namespace internal
-
-#endif
 
 } // end namespace Eigen
 

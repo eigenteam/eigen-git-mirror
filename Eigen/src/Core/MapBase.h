@@ -11,15 +11,9 @@
 #ifndef EIGEN_MAPBASE_H
 #define EIGEN_MAPBASE_H
 
-#ifndef EIGEN_TEST_EVALUATORS
-#define EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS(Derived) \
-      EIGEN_STATIC_ASSERT((int(internal::traits<Derived>::Flags) & LinearAccessBit) || Derived::IsVectorAtCompileTime, \
-                          YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT)
-#else
 #define EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS(Derived) \
       EIGEN_STATIC_ASSERT((int(internal::evaluator<Derived>::Flags) & LinearAccessBit) || Derived::IsVectorAtCompileTime, \
                           YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT)
-#endif
 
 namespace Eigen { 
 
@@ -167,15 +161,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     EIGEN_DEVICE_FUNC
     void checkSanity() const
     {
-#ifndef EIGEN_TEST_EVALUATORS
-      // moved to evaluator
-      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(internal::traits<Derived>::Flags&PacketAccessBit,
-                                        internal::inner_stride_at_compile_time<Derived>::ret==1),
-                          PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
-      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::Flags&AlignedBit, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
-#else
       eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::IsAligned, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
-#endif
     }
 
     PointerType m_data;

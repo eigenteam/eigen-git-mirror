@@ -53,12 +53,10 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   mf+mf;
   VERIFY_RAISES_ASSERT(mf+md);
   VERIFY_RAISES_ASSERT(mf+mcf);
-#ifndef EIGEN_TEST_EVALUATORS
-  // they do not even compile when using evaluators
-  VERIFY_RAISES_ASSERT(vf=vd);
-  VERIFY_RAISES_ASSERT(vf+=vd);
-  VERIFY_RAISES_ASSERT(mcd=md);
-#endif
+  // the following do not even compile since the introduction of evaluators
+//   VERIFY_RAISES_ASSERT(vf=vd);
+//   VERIFY_RAISES_ASSERT(vf+=vd);
+//   VERIFY_RAISES_ASSERT(mcd=md);
   
   // check scalar products
   VERIFY_IS_APPROX(vcf * sf , vcf * complex<float>(sf));

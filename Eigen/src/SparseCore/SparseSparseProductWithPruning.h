@@ -47,10 +47,8 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
   else
     res.resize(rows, cols);
   
-  #ifdef EIGEN_TEST_EVALUATORS
   typename evaluator<Lhs>::type lhsEval(lhs);
   typename evaluator<Rhs>::type rhsEval(rhs);
-  #endif
 
   res.reserve(estimated_nnz_prod);
   double ratioColRes = double(estimated_nnz_prod)/double(lhs.rows()*rhs.cols());
@@ -61,20 +59,12 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
     // let's do a more accurate determination of the nnz ratio for the current column j of res
     tempVector.init(ratioColRes);
     tempVector.setZero();
-#ifndef EIGEN_TEST_EVALUATORS
-    for (typename Rhs::InnerIterator rhsIt(rhs, j); rhsIt; ++rhsIt)
-#else
     for (typename evaluator<Rhs>::InnerIterator rhsIt(rhsEval, j); rhsIt; ++rhsIt)
-#endif
     {
       // FIXME should be written like this: tmp += rhsIt.value() * lhs.col(rhsIt.index())
       tempVector.restart();
       Scalar x = rhsIt.value();
-#ifndef EIGEN_TEST_EVALUATORS
-      for (typename Lhs::InnerIterator lhsIt(lhs, rhsIt.index()); lhsIt; ++lhsIt)
-#else
       for (typename evaluator<Lhs>::InnerIterator lhsIt(lhsEval, rhsIt.index()); lhsIt; ++lhsIt)
-#endif
       {
         tempVector.coeffRef(lhsIt.index()) += lhsIt.value() * x;
       }
@@ -153,10 +143,6 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,RowMajor,R
   }
 };
 
-#ifndef EIGEN_TEST_EVALUATORS
-// NOTE the 2 others cases (col row *) must never occur since they are caught
-// by ProductReturnType which transforms it to (col col *) by evaluating rhs.
-#else
 template<typename Lhs, typename Rhs, typename ResultType>
 struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,ColMajor,RowMajor,RowMajor>
 {
@@ -204,7 +190,6 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,RowMajor,C
     internal::sparse_sparse_product_with_pruning_impl<ColMajorMatrixLhs,Rhs,ResultType>(colLhs, rhs, res, tolerance);
   }
 };
-#endif
 
 } // end namespace internal
 

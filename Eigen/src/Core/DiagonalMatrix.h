@@ -45,20 +45,6 @@ class DiagonalBase : public EigenBase<Derived>
     EIGEN_DEVICE_FUNC
     DenseMatrixType toDenseMatrix() const { return derived(); }
     
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename DenseDerived>
-    EIGEN_DEVICE_FUNC
-    void evalTo(MatrixBase<DenseDerived> &other) const;
-    template<typename DenseDerived>
-    EIGEN_DEVICE_FUNC
-    void addTo(MatrixBase<DenseDerived> &other) const
-    { other.diagonal() += diagonal(); }
-    template<typename DenseDerived>
-    EIGEN_DEVICE_FUNC
-    void subTo(MatrixBase<DenseDerived> &other) const
-    { other.diagonal() -= diagonal(); }
-#endif // EIGEN_TEST_EVALUATORS
-
     EIGEN_DEVICE_FUNC
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
     EIGEN_DEVICE_FUNC
@@ -69,17 +55,6 @@ class DiagonalBase : public EigenBase<Derived>
     EIGEN_DEVICE_FUNC
     inline Index cols() const { return diagonal().size(); }
 
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the diagonal matrix product of \c *this by the matrix \a matrix.
-      */
-    template<typename MatrixDerived>
-    EIGEN_DEVICE_FUNC
-    const DiagonalProduct<MatrixDerived, Derived, OnTheLeft>
-    operator*(const MatrixBase<MatrixDerived> &matrix) const
-    {
-      return DiagonalProduct<MatrixDerived, Derived, OnTheLeft>(matrix.derived(), derived());
-    }
-#else
     template<typename MatrixDerived>
     EIGEN_DEVICE_FUNC
     const Product<Derived,MatrixDerived,LazyProduct>
@@ -87,7 +62,6 @@ class DiagonalBase : public EigenBase<Derived>
     {
       return Product<Derived, MatrixDerived, LazyProduct>(derived(),matrix.derived());
     }
-#endif // EIGEN_TEST_EVALUATORS
 
     EIGEN_DEVICE_FUNC
     inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const DiagonalVectorType> >
@@ -109,16 +83,6 @@ class DiagonalBase : public EigenBase<Derived>
       return other.diagonal() * scalar;
     }
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename Derived>
-template<typename DenseDerived>
-void DiagonalBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
-{
-  other.setZero();
-  other.diagonal() = diagonal();
-}
-#endif // EIGEN_TEST_EVALUATORS
 
 #endif
 
@@ -273,10 +237,6 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
     MaxRowsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
     MaxColsAtCompileTime = DiagonalVectorType::MaxSizeAtCompileTime,
     Flags =  (traits<DiagonalVectorType>::Flags & LvalueBit) | NoPreferredStorageOrderBit
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
-    CoeffReadCost = traits<_DiagonalVectorType>::CoeffReadCost
-#endif
   };
 };
 }
@@ -347,7 +307,6 @@ bool MatrixBase<Derived>::isDiagonal(const RealScalar& prec) const
   return true;
 }
 
-#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
 
 template<> struct storage_kind_to_shape<DiagonalShape> { typedef DiagonalShape Shape; };
@@ -368,7 +327,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Dense, Scalar>
 };
 
 } // namespace internal
-#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 

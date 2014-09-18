@@ -11,12 +11,7 @@
 
 template <typename MatrixType> void run_nesting_ops(const MatrixType& _m)
 {
-#ifndef EIGEN_TEST_EVALUATORS
-  // TODO, with evaluator, the following is not correct anymore:
-  typename MatrixType::Nested m(_m);
-#else
   typename internal::nested_eval<MatrixType,2>::type m(_m);
-#endif
 
   // Make really sure that we are in debug mode!
   VERIFY_RAISES_ASSERT(eigen_assert(false));

@@ -21,9 +21,6 @@
   * 
   */
 
-#include "src/misc/Solve.h"
-#include "src/misc/SparseSolve.h"
-
 #include "OrderingMethods"
 #include "src/SparseCore/SparseColEtree.h"
 #include "src/SparseQR/SparseQR.h"

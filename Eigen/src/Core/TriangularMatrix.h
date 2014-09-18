@@ -32,9 +32,6 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
 
     enum {
       Mode = internal::traits<Derived>::Mode,
-#ifndef EIGEN_TEST_EVALUATORS
-      CoeffReadCost = internal::traits<Derived>::CoeffReadCost,
-#endif
       RowsAtCompileTime = internal::traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = internal::traits<Derived>::ColsAtCompileTime,
       MaxRowsAtCompileTime = internal::traits<Derived>::MaxRowsAtCompileTime,
@@ -177,20 +174,9 @@ struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
   enum {
     Mode = _Mode,
     Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits | LvalueBit) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)))
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
-    CoeffReadCost = MatrixTypeNestedCleaned::CoeffReadCost
-#endif
   };
 };
 }
-
-#ifndef EIGEN_TEST_EVALUATORS
-template<int Mode, bool LhsIsTriangular,
-         typename Lhs, bool LhsIsVector,
-         typename Rhs, bool RhsIsVector>
-struct TriangularProduct;
-#endif
 
 template<typename _MatrixType, unsigned int _Mode, typename StorageKind> class TriangularViewImpl;
 
@@ -270,7 +256,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       return m_matrix.transpose();
     }
 
-#ifdef EIGEN_TEST_EVALUATORS
     template<typename Other>
     EIGEN_DEVICE_FUNC
     inline const Solve<TriangularView, Other> 
@@ -287,7 +272,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
   #else
     using Base::solve;
   #endif
-#endif // EIGEN_TEST_EVALUATORS
 
     EIGEN_DEVICE_FUNC
     const SelfAdjointView<MatrixTypeNestedNonRef,Mode> selfadjointView() const
@@ -348,8 +332,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_DEVICE_FUNC
     inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
 
-#ifdef EIGEN_TEST_EVALUATORS
-
     /** \sa MatrixBase::operator+=() */    
     template<typename Other>
     EIGEN_DEVICE_FUNC
@@ -365,16 +347,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
       return derived();
     }
     
-#else
-    /** \sa MatrixBase::operator+=() */    
-    template<typename Other>
-    EIGEN_DEVICE_FUNC
-    TriangularViewType&  operator+=(const DenseBase<Other>& other) { return *this = derived().nestedExpression() + other.derived(); }
-    /** \sa MatrixBase::operator-=() */
-    template<typename Other>
-    EIGEN_DEVICE_FUNC
-    TriangularViewType&  operator-=(const DenseBase<Other>& other) { return *this = derived().nestedExpression() - other.derived(); }
-#endif
     /** \sa MatrixBase::operator*=() */
     EIGEN_DEVICE_FUNC
     TriangularViewType&  operator*=(const typename internal::traits<MatrixType>::Scalar& other) { return *this = derived().nestedExpression() * other; }
@@ -437,8 +409,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_DEVICE_FUNC
     void lazyAssign(const MatrixBase<OtherDerived>& other);  
 
-#ifdef EIGEN_TEST_EVALUATORS
-
     /** Efficient triangular matrix times vector/matrix product */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
@@ -456,30 +426,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     {
       return Product<OtherDerived,TriangularViewType>(lhs.derived(),rhs.derived());
     }
-    
-#else // EIGEN_TEST_EVALUATORS
-    /** Efficient triangular matrix times vector/matrix product */
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    TriangularProduct<Mode, true, MatrixType, false, OtherDerived, OtherDerived::ColsAtCompileTime==1>
-    operator*(const MatrixBase<OtherDerived>& rhs) const
-    {
-      return TriangularProduct
-              <Mode, true, MatrixType, false, OtherDerived, OtherDerived::ColsAtCompileTime==1>
-              (derived().nestedExpression(), rhs.derived());
-    }
-
-    /** Efficient vector/matrix times triangular matrix product */
-    template<typename OtherDerived> friend
-    EIGEN_DEVICE_FUNC
-    TriangularProduct<Mode, false, OtherDerived, OtherDerived::RowsAtCompileTime==1, MatrixType, false>
-    operator*(const MatrixBase<OtherDerived>& lhs, const TriangularViewImpl& rhs)
-    {
-      return TriangularProduct
-              <Mode, false, OtherDerived, OtherDerived::RowsAtCompileTime==1, MatrixType, false>
-              (lhs.derived(),rhs.derived().nestedExpression());
-    }
-#endif
 
     template<int Side, typename Other>
     EIGEN_DEVICE_FUNC
@@ -490,14 +436,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_DEVICE_FUNC
     void solveInPlace(const MatrixBase<OtherDerived>& other) const;
 
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename Other>
-    EIGEN_DEVICE_FUNC
-    inline const internal::triangular_solve_retval<OnTheLeft,TriangularViewType, Other> 
-    solve(const MatrixBase<Other>& other) const
-    { return solve<OnTheLeft>(other); }
-#endif // EIGEN_TEST_EVALUATORS
-
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     void solveInPlace(const MatrixBase<OtherDerived>& other) const
@@ -507,11 +445,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_DEVICE_FUNC
     void swap(TriangularBase<OtherDerived> const & other)
     {
-      #ifdef EIGEN_TEST_EVALUATORS
       call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
-      #else
-      TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(derived().nestedExpression())).lazyAssign(other.const_cast_derived().nestedExpression());
-      #endif
     }
 
     // TODO: this overload is ambiguous and it should be deprecated (Gael)
@@ -519,65 +453,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     {
-      #ifdef EIGEN_TEST_EVALUATORS
       call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
-      #else
-      SwapWrapper<MatrixType> swaper(const_cast<MatrixType&>(derived().nestedExpression()));
-      TriangularView<SwapWrapper<MatrixType>,Mode>(swaper).lazyAssign(other.derived());
-      #endif
     }
-    
-#ifndef EIGEN_TEST_EVALUATORS
-    
-    // TODO simplify the following:
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& operator=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
-    {
-      setZero();
-      return assignProduct(other,1);
-    }
-    
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& operator+=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
-    {
-      return assignProduct(other,1);
-    }
-    
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& operator-=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
-    {
-      return assignProduct(other,-1);
-    }
-    
-    
-    template<typename ProductDerived>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& operator=(const ScaledProduct<ProductDerived>& other)
-    {
-      setZero();
-      return assignProduct(other,other.alpha());
-    }
-    
-    template<typename ProductDerived>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& operator+=(const ScaledProduct<ProductDerived>& other)
-    {
-      return assignProduct(other,other.alpha());
-    }
-    
-    template<typename ProductDerived>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& operator-=(const ScaledProduct<ProductDerived>& other)
-    {
-      return assignProduct(other,-other.alpha());
-    }
-
-#endif // EIGEN_TEST_EVALUATORS
-
-#ifdef EIGEN_TEST_EVALUATORS
 
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
@@ -590,193 +467,11 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     template<typename ProductType>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TriangularViewType& _assignProduct(const ProductType& prod, const Scalar& alpha);
-    
-  protected:
-#else
-  protected:
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE TriangularViewType& assignProduct(const ProductBase<ProductDerived, Lhs,Rhs>& prod, const Scalar& alpha);
-#endif
 };
 
 /***************************************************************************
 * Implementation of triangular evaluation/assignment
 ***************************************************************************/
-
-namespace internal {
-
-#ifndef EIGEN_TEST_EVALUATORS
-  
-template<typename Derived1, typename Derived2, unsigned int Mode, int UnrollCount, bool ClearOpposite>
-struct triangular_assignment_selector
-{
-  enum {
-    col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
-    row = (UnrollCount-1) % Derived1::RowsAtCompileTime
-  };
-  
-  typedef typename Derived1::Scalar Scalar;
-
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    triangular_assignment_selector<Derived1, Derived2, Mode, UnrollCount-1, ClearOpposite>::run(dst, src);
-
-    eigen_assert( Mode == Upper || Mode == Lower
-            || Mode == StrictlyUpper || Mode == StrictlyLower
-            || Mode == UnitUpper || Mode == UnitLower);
-    if((Mode == Upper && row <= col)
-    || (Mode == Lower && row >= col)
-    || (Mode == StrictlyUpper && row < col)
-    || (Mode == StrictlyLower && row > col)
-    || (Mode == UnitUpper && row < col)
-    || (Mode == UnitLower && row > col))
-      dst.copyCoeff(row, col, src);
-    else if(ClearOpposite)
-    {
-      if (Mode&UnitDiag && row==col)
-        dst.coeffRef(row, col) = Scalar(1);
-      else
-        dst.coeffRef(row, col) = Scalar(0);
-    }
-  }
-};
-
-// prevent buggy user code from causing an infinite recursion
-template<typename Derived1, typename Derived2, unsigned int Mode, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, Mode, 0, ClearOpposite>
-{
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &, const Derived2 &) {}
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearOpposite>
-{
-  typedef typename Derived1::Index Index;
-  typedef typename Derived1::Scalar Scalar;
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(Index j = 0; j < dst.cols(); ++j)
-    {
-      Index maxi = (std::min)(j, dst.rows()-1);
-      for(Index i = 0; i <= maxi; ++i)
-        dst.copyCoeff(i, j, src);
-      if (ClearOpposite)
-        for(Index i = maxi+1; i < dst.rows(); ++i)
-          dst.coeffRef(i, j) = Scalar(0);
-    }
-  }
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, Lower, Dynamic, ClearOpposite>
-{
-  typedef typename Derived1::Index Index;
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(Index j = 0; j < dst.cols(); ++j)
-    {
-      for(Index i = j; i < dst.rows(); ++i)
-        dst.copyCoeff(i, j, src);
-      Index maxi = (std::min)(j, dst.rows());
-      if (ClearOpposite)
-        for(Index i = 0; i < maxi; ++i)
-          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
-    }
-  }
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dynamic, ClearOpposite>
-{
-  typedef typename Derived1::Index Index;
-  typedef typename Derived1::Scalar Scalar;
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(Index j = 0; j < dst.cols(); ++j)
-    {
-      Index maxi = (std::min)(j, dst.rows());
-      for(Index i = 0; i < maxi; ++i)
-        dst.copyCoeff(i, j, src);
-      if (ClearOpposite)
-        for(Index i = maxi; i < dst.rows(); ++i)
-          dst.coeffRef(i, j) = Scalar(0);
-    }
-  }
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, StrictlyLower, Dynamic, ClearOpposite>
-{
-  typedef typename Derived1::Index Index;
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(Index j = 0; j < dst.cols(); ++j)
-    {
-      for(Index i = j+1; i < dst.rows(); ++i)
-        dst.copyCoeff(i, j, src);
-      Index maxi = (std::min)(j, dst.rows()-1);
-      if (ClearOpposite)
-        for(Index i = 0; i <= maxi; ++i)
-          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
-    }
-  }
-};
-
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, UnitUpper, Dynamic, ClearOpposite>
-{
-  typedef typename Derived1::Index Index;
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(Index j = 0; j < dst.cols(); ++j)
-    {
-      Index maxi = (std::min)(j, dst.rows());
-      for(Index i = 0; i < maxi; ++i)
-        dst.copyCoeff(i, j, src);
-      if (ClearOpposite)
-      {
-        for(Index i = maxi+1; i < dst.rows(); ++i)
-          dst.coeffRef(i, j) = 0;
-      }
-    }
-    dst.diagonal().setOnes();
-  }
-};
-template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct triangular_assignment_selector<Derived1, Derived2, UnitLower, Dynamic, ClearOpposite>
-{
-  typedef typename Derived1::Index Index;
-  EIGEN_DEVICE_FUNC
-  static inline void run(Derived1 &dst, const Derived2 &src)
-  {
-    for(Index j = 0; j < dst.cols(); ++j)
-    {
-      Index maxi = (std::min)(j, dst.rows());
-      for(Index i = maxi+1; i < dst.rows(); ++i)
-        dst.copyCoeff(i, j, src);
-      if (ClearOpposite)
-      {
-        for(Index i = 0; i < maxi; ++i)
-          dst.coeffRef(i, j) = 0;
-      }
-    }
-    dst.diagonal().setOnes();
-  }
-};
-
-#endif // EIGEN_TEST_EVALUATORS
-
-} // end namespace internal
-
-#ifdef EIGEN_TEST_EVALUATORS
 
 // FIXME should we keep that possibility
 template<typename MatrixType, unsigned int Mode>
@@ -816,84 +511,6 @@ void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const TriangularBas
   internal::call_assignment(derived().noalias(), other.derived());
 }
 
-#else
-
-// FIXME should we keep that possibility
-template<typename MatrixType, unsigned int Mode>
-template<typename OtherDerived>
-inline TriangularView<MatrixType, Mode>&
-TriangularViewImpl<MatrixType, Mode, Dense>::operator=(const MatrixBase<OtherDerived>& other)
-{
-  if(OtherDerived::Flags & EvalBeforeAssigningBit)
-  {
-    typename internal::plain_matrix_type<OtherDerived>::type other_evaluated(other.rows(), other.cols());
-    other_evaluated.template triangularView<Mode>().lazyAssign(other.derived());
-    lazyAssign(other_evaluated);
-  }
-  else
-    lazyAssign(other.derived());
-  return derived();
-}
-
-// FIXME should we keep that possibility
-template<typename MatrixType, unsigned int Mode>
-template<typename OtherDerived>
-void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const MatrixBase<OtherDerived>& other)
-{
-  enum {
-    unroll = MatrixType::SizeAtCompileTime != Dynamic
-          && internal::traits<OtherDerived>::CoeffReadCost != Dynamic
-          && MatrixType::SizeAtCompileTime*internal::traits<OtherDerived>::CoeffReadCost/2 <= EIGEN_UNROLLING_LIMIT
-  };
-  eigen_assert(derived().rows() == other.rows() && derived().cols() == other.cols());
-
-  internal::triangular_assignment_selector
-    <MatrixType, OtherDerived, int(Mode),
-    unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic,
-    false // do not change the opposite triangular part
-    >::run(derived().nestedExpression().const_cast_derived(), other.derived());
-}
-
-
-
-template<typename MatrixType, unsigned int Mode>
-template<typename OtherDerived>
-inline TriangularView<MatrixType, Mode>&
-TriangularViewImpl<MatrixType, Mode, Dense>::operator=(const TriangularBase<OtherDerived>& other)
-{
-  eigen_assert(Mode == int(OtherDerived::Mode));
-  if(internal::traits<OtherDerived>::Flags & EvalBeforeAssigningBit)
-  {
-    typename OtherDerived::DenseMatrixType other_evaluated(other.rows(), other.cols());
-    other_evaluated.template triangularView<Mode>().lazyAssign(other.derived().nestedExpression());
-    lazyAssign(other_evaluated);
-  }
-  else
-    lazyAssign(other.derived().nestedExpression());
-  return derived();
-}
-
-template<typename MatrixType, unsigned int Mode>
-template<typename OtherDerived>
-void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const TriangularBase<OtherDerived>& other)
-{
-  enum {
-    unroll = MatrixType::SizeAtCompileTime != Dynamic
-                   && internal::traits<OtherDerived>::CoeffReadCost != Dynamic
-                   && MatrixType::SizeAtCompileTime * internal::traits<OtherDerived>::CoeffReadCost / 2
-                        <= EIGEN_UNROLLING_LIMIT
-  };
-  eigen_assert(derived().rows() == other.rows() && derived().cols() == other.cols());
-
-  internal::triangular_assignment_selector
-    <MatrixType, OtherDerived, int(Mode),
-    unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic,
-    false // preserve the opposite triangular part
-    >::run(derived().nestedExpression().const_cast_derived(), other.derived().nestedExpression());
-}
-
-#endif // EIGEN_TEST_EVALUATORS
-
 /***************************************************************************
 * Implementation of TriangularBase methods
 ***************************************************************************/
@@ -913,31 +530,6 @@ void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
   else
     evalToLazy(other.derived());
 }
-
-#ifndef EIGEN_TEST_EVALUATORS
-
-/** Assigns a triangular or selfadjoint matrix to a dense matrix.
-  * If the matrix is triangular, the opposite part is set to zero. */
-template<typename Derived>
-template<typename DenseDerived>
-void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
-{
-  enum {
-    unroll = DenseDerived::SizeAtCompileTime != Dynamic
-                   && internal::traits<Derived>::CoeffReadCost != Dynamic
-                   && DenseDerived::SizeAtCompileTime * internal::traits<Derived>::CoeffReadCost / 2
-                        <= EIGEN_UNROLLING_LIMIT
-  };
-  other.derived().resize(this->rows(), this->cols());
-
-  internal::triangular_assignment_selector
-    <DenseDerived, typename internal::traits<Derived>::MatrixTypeNestedCleaned, Derived::Mode,
-    unroll ? int(DenseDerived::SizeAtCompileTime) : Dynamic,
-    true // clear the opposite triangular part
-    >::run(other.derived(), derived().nestedExpression());
-}
-
-#endif // EIGEN_TEST_EVALUATORS
 
 /***************************************************************************
 * Implementation of TriangularView methods
@@ -1027,8 +619,6 @@ bool MatrixBase<Derived>::isLowerTriangular(const RealScalar& prec) const
   return true;
 }
 
-
-#ifdef EIGEN_ENABLE_EVALUATORS
 
 /***************************************************************************
 ****************************************************************************
@@ -1268,7 +858,6 @@ struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
 
 } // end namespace internal
 
-#ifdef EIGEN_TEST_EVALUATORS
 /** Assigns a triangular or selfadjoint matrix to a dense matrix.
   * If the matrix is triangular, the opposite part is set to zero. */
 template<typename Derived>
@@ -1315,11 +904,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_ass
   }
 };
 
-
 } // end namespace internal
-#endif
-
-#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 

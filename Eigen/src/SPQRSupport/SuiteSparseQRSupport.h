@@ -124,21 +124,6 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
      * Get the number of columns of the input matrix. 
      */
     inline Index cols() const { return m_cR->ncol; }
-   
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
-    *
-    * \sa compute()
-    */
-    template<typename Rhs>
-    inline const internal::solve_retval<SPQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
-    {
-      eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
-      eigen_assert(this->rows()==B.rows()
-                    && "SPQR::solve(): invalid number of rows of the right hand side matrix B");
-          return internal::solve_retval<SPQR, Rhs>(*this, B.derived());
-    }
-#endif // EIGEN_TEST_EVALUATORS
     
     template<typename Rhs, typename Dest>
     void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
@@ -291,25 +276,6 @@ struct SPQRMatrixQTransposeReturnType{
   }
   const SPQRType& m_spqr;
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-  
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<SPQR<_MatrixType>, Rhs>
-  : solve_retval_base<SPQR<_MatrixType>, Rhs>
-{
-  typedef SPQR<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-
-} // end namespace internal
-#endif
 
 }// End namespace Eigen
 #endif

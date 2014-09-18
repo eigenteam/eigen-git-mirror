@@ -173,36 +173,6 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
       m_diagpivotthresh = thresh; 
     }
 
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
-      *
-      * \warning the destination matrix X in X = this->solve(B) must be colmun-major.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<SparseLU, Rhs> solve(const MatrixBase<Rhs>& B) const 
-    {
-      eigen_assert(m_factorizationIsOk && "SparseLU is not initialized."); 
-      eigen_assert(rows()==B.rows()
-                    && "SparseLU::solve(): invalid number of rows of the right hand side matrix B");
-          return internal::solve_retval<SparseLU, Rhs>(*this, B.derived());
-    }
-
-    /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<SparseLU, Rhs> solve(const SparseMatrixBase<Rhs>& B) const 
-    {
-      eigen_assert(m_factorizationIsOk && "SparseLU is not initialized."); 
-      eigen_assert(rows()==B.rows()
-                    && "SparseLU::solve(): invalid number of rows of the right hand side matrix B");
-          return internal::sparse_solve_retval<SparseLU, Rhs>(*this, B.derived());
-    }
-#else
-
 #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
       *
@@ -213,8 +183,6 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     template<typename Rhs>
     inline const Solve<SparseLU, Rhs> solve(const MatrixBase<Rhs>& B) const;
 #endif // EIGEN_PARSED_BY_DOXYGEN
-    
-#endif // EIGEN_TEST_EVALUATORS
     
     /** \brief Reports whether previous computation was successful.
       *
@@ -748,37 +716,6 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
   const MatrixLType& m_mapL;
   const MatrixUType& m_mapU;
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-  
-template<typename _MatrixType, typename Derived, typename Rhs>
-struct solve_retval<SparseLU<_MatrixType,Derived>, Rhs>
-  : solve_retval_base<SparseLU<_MatrixType,Derived>, Rhs>
-{
-  typedef SparseLU<_MatrixType,Derived> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-
-template<typename _MatrixType, typename Derived, typename Rhs>
-struct sparse_solve_retval<SparseLU<_MatrixType,Derived>, Rhs>
-  : sparse_solve_retval_base<SparseLU<_MatrixType,Derived>, Rhs>
-{
-  typedef SparseLU<_MatrixType,Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-} // end namespace internal
-#endif
 
 } // End namespace Eigen 
 

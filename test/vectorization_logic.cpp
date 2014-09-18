@@ -45,22 +45,14 @@ std::string demangle_flags(int f)
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
-#ifdef EIGEN_TEST_EVALUATORS
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
-#else
-  typedef internal::assign_traits<Dst,Src> traits;
-#endif
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
     std::cerr << "Src: " << demangle_flags(Src::Flags) << std::endl;
-#ifdef EIGEN_TEST_EVALUATORS
     std::cerr << "     " << demangle_flags(internal::evaluator<Src>::Flags) << std::endl;
-#endif
     std::cerr << "Dst: " << demangle_flags(Dst::Flags) << std::endl;
-#ifdef EIGEN_TEST_EVALUATORS
     std::cerr << "     " << demangle_flags(internal::evaluator<Dst>::Flags) << std::endl;
-#endif
     traits::debug();
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)
               << " got " << demangle_traversal(traits::Traversal) << "\n";
@@ -73,22 +65,14 @@ bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 template<typename Dst, typename Src>
 bool test_assign(int traversal, int unrolling)
 {
-#ifdef EIGEN_TEST_EVALUATORS
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
-#else
-  typedef internal::assign_traits<Dst,Src> traits;
-#endif
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
     std::cerr << "Src: " << demangle_flags(Src::Flags) << std::endl;
-#ifdef EIGEN_TEST_EVALUATORS
     std::cerr << "     " << demangle_flags(internal::evaluator<Src>::Flags) << std::endl;
-#endif
     std::cerr << "Dst: " << demangle_flags(Dst::Flags) << std::endl;
-#ifdef EIGEN_TEST_EVALUATORS
     std::cerr << "     " << demangle_flags(internal::evaluator<Dst>::Flags) << std::endl;
-#endif
     traits::debug();
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)
               << " got " << demangle_traversal(traits::Traversal) << "\n";
@@ -101,19 +85,13 @@ bool test_assign(int traversal, int unrolling)
 template<typename Xpr>
 bool test_redux(const Xpr&, int traversal, int unrolling)
 {
-#ifdef EIGEN_TEST_EVALUATORS
   typedef internal::redux_traits<internal::scalar_sum_op<typename Xpr::Scalar>,internal::redux_evaluator<Xpr> > traits;
-#else
-  typedef internal::redux_traits<internal::scalar_sum_op<typename Xpr::Scalar>,Xpr> traits;
-#endif
   
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
     std::cerr << demangle_flags(Xpr::Flags) << std::endl;
-#ifdef EIGEN_TEST_EVALUATORS
     std::cerr << demangle_flags(internal::evaluator<Xpr>::Flags) << std::endl;
-#endif
     traits::debug();
     
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)

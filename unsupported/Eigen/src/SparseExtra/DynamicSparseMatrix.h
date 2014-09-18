@@ -352,7 +352,6 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator : public
     const Index m_outer;
 };
 
-#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
 
 template<typename _Scalar, int _Options, typename _Index>
@@ -382,7 +381,6 @@ struct evaluator<DynamicSparseMatrix<_Scalar,_Options,_Index> >
 };
 
 }
-#endif
 
 } // end namespace Eigen
 

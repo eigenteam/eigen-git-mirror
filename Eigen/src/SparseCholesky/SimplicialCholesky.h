@@ -84,36 +84,6 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
       return m_info;
     }
     
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<SimplicialCholeskyBase, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Simplicial LLT or LDLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "SimplicialCholeskyBase::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<SimplicialCholeskyBase, Rhs>(*this, b.derived());
-    }
-    
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<SimplicialCholeskyBase, Rhs>
-    solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Simplicial LLT or LDLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "SimplicialCholesky::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<SimplicialCholeskyBase, Rhs>(*this, b.derived());
-    }
-#endif // EIGEN_TEST_EVALUATORS
-    
     /** \returns the permutation P
       * \sa permutationPinv() */
     const PermutationMatrix<Dynamic,Dynamic,Index>& permutationP() const
@@ -157,11 +127,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
 
     /** \internal */
     template<typename Rhs,typename Dest>
-#ifndef EIGEN_TEST_EVALUATORS
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
-#else
     void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
-#endif
     {
       eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       eigen_assert(m_matrix.rows()==b.rows());
@@ -186,14 +152,12 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
       if(m_P.size()>0)
         dest = m_Pinv * dest;
     }
-
-#ifdef EIGEN_TEST_EVALUATORS
+    
     template<typename Rhs,typename Dest>
     void _solve_impl(const SparseMatrixBase<Rhs> &b, SparseMatrixBase<Dest> &dest) const
     {
       internal::solve_sparse_through_dense_panels(derived(), b, dest);
     }
-#endif
 
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
@@ -578,11 +542,7 @@ public:
 
     /** \internal */
     template<typename Rhs,typename Dest>
-#ifndef EIGEN_TEST_EVALUATORS
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
-#else
     void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
-#endif
     {
       eigen_assert(Base::m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       eigen_assert(Base::m_matrix.rows()==b.rows());
@@ -618,14 +578,12 @@ public:
         dest = Base::m_Pinv * dest;
     }
     
-#ifdef EIGEN_TEST_EVALUATORS
     /** \internal */
     template<typename Rhs,typename Dest>
     void _solve_impl(const SparseMatrixBase<Rhs> &b, SparseMatrixBase<Dest> &dest) const
     {
       internal::solve_sparse_through_dense_panels(*this, b, dest);
     }
-#endif
     
     Scalar determinant() const
     {
@@ -666,38 +624,6 @@ void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, CholMatrixTy
   ap.resize(size,size);
   ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
 }
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-  
-template<typename Derived, typename Rhs>
-struct solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
-  : solve_retval_base<SimplicialCholeskyBase<Derived>, Rhs>
-{
-  typedef SimplicialCholeskyBase<Derived> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec().derived()._solve(rhs(),dst);
-  }
-};
-
-template<typename Derived, typename Rhs>
-struct sparse_solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
-  : sparse_solve_retval_base<SimplicialCholeskyBase<Derived>, Rhs>
-{
-  typedef SimplicialCholeskyBase<Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-
-} // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

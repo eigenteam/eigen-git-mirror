@@ -172,36 +172,6 @@ class PardisoImpl : public SparseSolveBase<PardisoImpl<Derived>
     Derived& factorize(const MatrixType& matrix);
 
     Derived& compute(const MatrixType& matrix);
-    
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<PardisoImpl, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Pardiso solver is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "PardisoImpl::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<PardisoImpl, Rhs>(*this, b.derived());
-    }
-
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<PardisoImpl, Rhs>
-    solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Pardiso solver is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "PardisoImpl::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<PardisoImpl, Rhs>(*this, b.derived());
-    }
-#endif
 
     template<typename BDerived, typename XDerived>
     bool _solve_impl(const MatrixBase<BDerived> &b, MatrixBase<XDerived>& x) const;
@@ -545,38 +515,6 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
       m_matrix.template selfadjointView<Upper>() = matrix.template selfadjointView<UpLo>().twistedBy(p_null);
     }
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-  
-template<typename _Derived, typename Rhs>
-struct solve_retval<PardisoImpl<_Derived>, Rhs>
-  : solve_retval_base<PardisoImpl<_Derived>, Rhs>
-{
-  typedef PardisoImpl<_Derived> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-
-template<typename Derived, typename Rhs>
-struct sparse_solve_retval<PardisoImpl<Derived>, Rhs>
-  : sparse_solve_retval_base<PardisoImpl<Derived>, Rhs>
-{
-  typedef PardisoImpl<Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-
-} // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

@@ -21,7 +21,6 @@
   * \endcode
   */
 
-#include "src/misc/Solve.h"
 #include "src/Cholesky/LLT.h"
 #include "src/Cholesky/LDLT.h"
 #ifdef EIGEN_USE_LAPACKE

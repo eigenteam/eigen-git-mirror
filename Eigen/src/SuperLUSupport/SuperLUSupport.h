@@ -336,34 +336,6 @@ class SuperLUBase : public SparseSolverBase<Derived>
       derived().analyzePattern(matrix);
       derived().factorize(matrix);
     }
-    
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<SuperLUBase, Rhs> solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "SuperLU is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "SuperLU::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<SuperLUBase, Rhs>(*this, b.derived());
-    }
-    
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<SuperLUBase, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "SuperLU is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "SuperLU::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<SuperLUBase, Rhs>(*this, b.derived());
-    }
-#endif // EIGEN_TEST_EVALUATORS
 
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
@@ -995,37 +967,6 @@ void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest
 }
 #endif
 
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-  
-template<typename _MatrixType, typename Derived, typename Rhs>
-struct solve_retval<SuperLUBase<_MatrixType,Derived>, Rhs>
-  : solve_retval_base<SuperLUBase<_MatrixType,Derived>, Rhs>
-{
-  typedef SuperLUBase<_MatrixType,Derived> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec().derived()._solve_impl(rhs(),dst);
-  }
-};
-
-template<typename _MatrixType, typename Derived, typename Rhs>
-struct sparse_solve_retval<SuperLUBase<_MatrixType,Derived>, Rhs>
-  : sparse_solve_retval_base<SuperLUBase<_MatrixType,Derived>, Rhs>
-{
-  typedef SuperLUBase<_MatrixType,Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-
-} // end namespace internal
-#endif
 } // end namespace Eigen
 
 #endif // EIGEN_SUPERLUSUPPORT_H

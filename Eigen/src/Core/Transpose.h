@@ -42,18 +42,10 @@ struct traits<Transpose<MatrixType> >
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-#ifndef EIGEN_TEST_EVALUATORS
     FlagsLvalueBit = is_lvalue<MatrixType>::value ? LvalueBit : 0,
     Flags0 = MatrixTypeNestedPlain::Flags & ~(LvalueBit | NestByRefBit),
     Flags1 = Flags0 | FlagsLvalueBit,
     Flags = Flags1 ^ RowMajorBit,
-    CoeffReadCost = MatrixTypeNestedPlain::CoeffReadCost,
-#else
-    FlagsLvalueBit = is_lvalue<MatrixType>::value ? LvalueBit : 0,
-    Flags0 = MatrixTypeNestedPlain::Flags & ~(LvalueBit | NestByRefBit),
-    Flags1 = Flags0 | FlagsLvalueBit,
-    Flags = Flags1 ^ RowMajorBit,
-#endif
     InnerStrideAtCompileTime = inner_stride_at_compile_time<MatrixType>::ret,
     OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret
   };
@@ -109,7 +101,6 @@ struct TransposeImpl_base<MatrixType, false>
 
 } // end namespace internal
 
-#ifdef EIGEN_TEST_EVALUATORS
 // Generic API dispatcher
 template<typename XprType, typename StorageKind>
 class TransposeImpl
@@ -118,7 +109,6 @@ class TransposeImpl
 public:
   typedef typename internal::generic_xpr_base<Transpose<XprType> >::type Base;
 };
-#endif
 
 template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
   : public internal::TransposeImpl_base<MatrixType>::type
@@ -141,59 +131,6 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
 
     inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
     inline const Scalar* data() const { return derived().nestedExpression().data(); }
-    
-#ifndef EIGEN_TEST_EVALUATORS
-
-    EIGEN_DEVICE_FUNC
-    inline ScalarWithConstIfNotLvalue& coeffRef(Index rowId, Index colId)
-    {
-      EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return derived().nestedExpression().const_cast_derived().coeffRef(colId, rowId);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline ScalarWithConstIfNotLvalue& coeffRef(Index index)
-    {
-      EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return derived().nestedExpression().const_cast_derived().coeffRef(index);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index rowId, Index colId) const
-    {
-      return derived().nestedExpression().coeff(colId, rowId);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index index) const
-    {
-      return derived().nestedExpression().coeff(index);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index rowId, Index colId) const
-    {
-      return derived().nestedExpression().template packet<LoadMode>(colId, rowId);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index rowId, Index colId, const PacketScalar& x)
-    {
-      derived().nestedExpression().const_cast_derived().template writePacket<LoadMode>(colId, rowId, x);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index index) const
-    {
-      return derived().nestedExpression().template packet<LoadMode>(index);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index index, const PacketScalar& x)
-    {
-      derived().nestedExpression().const_cast_derived().template writePacket<LoadMode>(index, x);
-    }
-#endif
 
     // FIXME: shall we keep the const version of coeffRef?
     EIGEN_DEVICE_FUNC
@@ -446,14 +383,6 @@ void check_for_aliasing(const Dst &dst, const Src &src)
 
 } // end namespace internal
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename Derived>
-template<typename OtherDerived>
-void DenseBase<Derived>::checkTransposeAliasing(const OtherDerived& other) const
-{
-    internal::checkTransposeAliasing_impl<Derived, OtherDerived>::run(derived(), other);
-}
-#endif // EIGEN_TEST_EVALUATORS
 #endif // EIGEN_NO_DEBUG
 
 } // end namespace Eigen

@@ -367,87 +367,6 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
 
 } // end namespace internal
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename Lhs, typename Rhs>
-class GeneralProduct<Lhs, Rhs, GemmProduct>
-  : public ProductBase<GeneralProduct<Lhs,Rhs,GemmProduct>, Lhs, Rhs>
-{
-    enum {
-      MaxDepthAtCompileTime = EIGEN_SIZE_MIN_PREFER_FIXED(Lhs::MaxColsAtCompileTime,Rhs::MaxRowsAtCompileTime)
-    };
-  public:
-    EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
-    
-    typedef typename  Lhs::Scalar LhsScalar;
-    typedef typename  Rhs::Scalar RhsScalar;
-    typedef           Scalar      ResScalar;
-
-    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
-    {
-      typedef internal::scalar_product_op<LhsScalar,RhsScalar> BinOp;
-      EIGEN_CHECK_BINARY_COMPATIBILIY(BinOp,LhsScalar,RhsScalar);
-    }
-    
-    template<typename Dest>
-    inline void evalTo(Dest& dst) const
-    {
-      if((m_rhs.rows()+dst.rows()+dst.cols())<20 && m_rhs.rows()>0)
-        dst.noalias() = m_lhs .lazyProduct( m_rhs );
-      else
-      {
-        dst.setZero();
-        scaleAndAddTo(dst,Scalar(1));
-      }
-    }
-
-    template<typename Dest>
-    inline void addTo(Dest& dst) const
-    {
-      if((m_rhs.rows()+dst.rows()+dst.cols())<20 && m_rhs.rows()>0)
-        dst.noalias() += m_lhs .lazyProduct( m_rhs );
-      else
-        scaleAndAddTo(dst,Scalar(1));
-    }
-
-    template<typename Dest>
-    inline void subTo(Dest& dst) const
-    {
-      if((m_rhs.rows()+dst.rows()+dst.cols())<20 && m_rhs.rows()>0)
-        dst.noalias() -= m_lhs .lazyProduct( m_rhs );
-      else
-        scaleAndAddTo(dst,Scalar(-1));
-    }
-    
-    template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
-    {
-      eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
-
-      typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(m_lhs);
-      typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(m_rhs);
-
-      Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
-                                 * RhsBlasTraits::extractScalarFactor(m_rhs);
-
-      typedef internal::gemm_blocking_space<(Dest::Flags&RowMajorBit) ? RowMajor : ColMajor,LhsScalar,RhsScalar,
-              Dest::MaxRowsAtCompileTime,Dest::MaxColsAtCompileTime,MaxDepthAtCompileTime> BlockingType;
-
-      typedef internal::gemm_functor<
-        Scalar, Index,
-        internal::general_matrix_matrix_product<
-          Index,
-          LhsScalar, (_ActualLhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(LhsBlasTraits::NeedToConjugate),
-          RhsScalar, (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
-          (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>,
-        _ActualLhsType, _ActualRhsType, Dest, BlockingType> GemmFunctor;
-
-      BlockingType blocking(dst.rows(), dst.cols(), lhs.cols(), true);
-
-      internal::parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>(GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), this->rows(), this->cols(), Dest::Flags&RowMajorBit);
-    }
-};
-#endif // EIGEN_TEST_EVALUATORS
-
-#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
   
 template<typename Lhs, typename Rhs>
@@ -534,7 +453,6 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
 };
 
 } // end namespace internal
-#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 

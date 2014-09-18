@@ -459,58 +459,6 @@ EIGEN_DONT_INLINE void product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,f
 * Wrapper to product_selfadjoint_matrix
 ***************************************************************************/
 
-#ifndef EIGEN_TEST_EVALUATORS 
-namespace internal {
-template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
-struct traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false> >
-  : traits<ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>, Lhs, Rhs> >
-{};
-}
-
-template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
-struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
-  : public ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>, Lhs, Rhs >
-{
-  EIGEN_PRODUCT_PUBLIC_INTERFACE(SelfadjointProductMatrix)
-
-  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
-
-  enum {
-    LhsIsUpper = (LhsMode&(Upper|Lower))==Upper,
-    LhsIsSelfAdjoint = (LhsMode&SelfAdjoint)==SelfAdjoint,
-    RhsIsUpper = (RhsMode&(Upper|Lower))==Upper,
-    RhsIsSelfAdjoint = (RhsMode&SelfAdjoint)==SelfAdjoint
-  };
-
-  template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
-  {
-    eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
-
-    typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(m_lhs);
-    typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(m_rhs);
-
-    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
-                               * RhsBlasTraits::extractScalarFactor(m_rhs);
-
-    internal::product_selfadjoint_matrix<Scalar, Index,
-      EIGEN_LOGICAL_XOR(LhsIsUpper,
-                        internal::traits<Lhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, LhsIsSelfAdjoint,
-      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(LhsIsUpper,bool(LhsBlasTraits::NeedToConjugate)),
-      EIGEN_LOGICAL_XOR(RhsIsUpper,
-                        internal::traits<Rhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, RhsIsSelfAdjoint,
-      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(RhsIsUpper,bool(RhsBlasTraits::NeedToConjugate)),
-      internal::traits<Dest>::Flags&RowMajorBit  ? RowMajor : ColMajor>
-      ::run(
-        lhs.rows(), rhs.cols(),                     // sizes
-        &lhs.coeffRef(0,0),    lhs.outerStride(),   // lhs info
-        &rhs.coeffRef(0,0),    rhs.outerStride(),   // rhs info
-        &dst.coeffRef(0,0), dst.outerStride(),      // result info
-        actualAlpha                                 // alpha
-      );
-  }
-};
-#endif // EIGEN_TEST_EVALUATORS
-#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
   
 template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
@@ -559,8 +507,6 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,RhsMode,false>
 };
 
 } // end namespace internal
-
-#endif // EIGEN_ENABLE_EVALUATORS
 
 } // end namespace Eigen
 

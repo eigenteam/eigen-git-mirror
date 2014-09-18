@@ -200,7 +200,6 @@ public:
     * \note SVD solving is implicitly least-squares. Thus, this method serves both purposes of exact solving and least-squares solving.
     * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
     */
-#ifdef EIGEN_TEST_EVALUATORS
   template<typename Rhs>
   inline const Solve<Derived, Rhs>
   solve(const MatrixBase<Rhs>& b) const
@@ -209,16 +208,6 @@ public:
     eigen_assert(computeU() && computeV() && "SVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
     return Solve<Derived, Rhs>(derived(), b.derived());
   }
-#else
-  template<typename Rhs>
-  inline const internal::solve_retval<SVDBase, Rhs>
-  solve(const MatrixBase<Rhs>& b) const
-  {
-    eigen_assert(m_isInitialized && "SVD is not initialized.");
-    eigen_assert(computeU() && computeV() && "SVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
-    return internal::solve_retval<SVDBase, Rhs>(*this, b.derived());
-  }
-#endif
   
   #ifndef EIGEN_PARSED_BY_DOXYGEN
   template<typename RhsType, typename DstType>
@@ -272,23 +261,6 @@ void SVDBase<Derived>::_solve_impl(const RhsType &rhs, DstType &dst) const
   dst = m_matrixV.leftCols(l_rank) * tmp;
 }
 #endif
-
-namespace internal {
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename Derived, typename Rhs>
-struct solve_retval<SVDBase<Derived>, Rhs>
-  : solve_retval_base<SVDBase<Derived>, Rhs>
-{
-  typedef SVDBase<Derived> SVDType;
-  EIGEN_MAKE_SOLVE_HELPERS(SVDType,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec().derived()._solve_impl(rhs(), dst);
-  }
-};
-#endif
-} // end namespace internal
 
 template<typename MatrixType>
 bool SVDBase<MatrixType>::allocate(Index rows, Index cols, unsigned int computationOptions)

@@ -79,13 +79,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
           * constructed from this one. See the \ref flags "list of flags".
           */
 
-#ifndef EIGEN_TEST_EVALUATORS
-      CoeffReadCost = internal::traits<Derived>::CoeffReadCost,
-        /**< This is a rough measure of how expensive it is to read one coefficient from
-          * this expression.
-          */
-#endif
-
       IsRowMajor = Flags&RowMajorBit ? 1 : 0,
       
       InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? int(SizeAtCompileTime)
@@ -189,11 +182,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
   public:
 
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename Lhs, typename Rhs>
-    inline Derived& operator=(const SparseSparseProduct<Lhs,Rhs>& product);
-#endif
-
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
       typedef typename Derived::Nested Nested;
@@ -265,36 +253,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
     cwiseProduct(const MatrixBase<OtherDerived> &other) const;
 
-#ifndef EIGEN_TEST_EVALUATORS
-    // sparse * sparse
-    template<typename OtherDerived>
-    const typename SparseSparseProductReturnType<Derived,OtherDerived>::Type
-    operator*(const SparseMatrixBase<OtherDerived> &other) const;
-    
-    // sparse * diagonal
-    template<typename OtherDerived>
-    const SparseDiagonalProduct<Derived,OtherDerived>
-    operator*(const DiagonalBase<OtherDerived> &other) const;
-
-    // diagonal * sparse
-    template<typename OtherDerived> friend
-    const SparseDiagonalProduct<OtherDerived,Derived>
-    operator*(const DiagonalBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
-    { return SparseDiagonalProduct<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
-    
-    /** dense * sparse (return a dense object unless it is an outer product) */
-    template<typename OtherDerived> friend
-    const typename DenseSparseProductReturnType<OtherDerived,Derived>::Type
-    operator*(const MatrixBase<OtherDerived>& lhs, const Derived& rhs)
-    { return typename DenseSparseProductReturnType<OtherDerived,Derived>::Type(lhs.derived(),rhs); }
-
-    /** sparse * dense (returns a dense object unless it is an outer product) */
-    template<typename OtherDerived>
-    const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
-    operator*(const MatrixBase<OtherDerived> &other) const
-    { return typename SparseDenseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived()); }
-    
-#else // EIGEN_TEST_EVALUATORS
     // sparse * diagonal
     template<typename OtherDerived>
     const Product<Derived,OtherDerived>
@@ -323,7 +281,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const Product<OtherDerived,Derived>
     operator*(const MatrixBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
     { return Product<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
-#endif // EIGEN_TEST_EVALUATORS
     
      /** \returns an expression of P H P^-1 where H is the matrix represented by \c *this */
     SparseSymmetricPermutationProduct<Derived,Upper|Lower> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
@@ -359,18 +316,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     // set of inner-vectors
     Block<Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize);
     const Block<const Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize) const;
-
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \internal use operator= */
-    template<typename DenseDerived>
-    void evalTo(MatrixBase<DenseDerived>& dst) const
-    {
-      dst.setZero();
-      for (Index j=0; j<outerSize(); ++j)
-        for (typename Derived::InnerIterator i(derived(),typename Derived::Index(j)); i; ++i)
-          dst.coeffRef(i.row(),i.col()) = i.value();
-    }
-#endif
 
     Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> toDense() const
     {

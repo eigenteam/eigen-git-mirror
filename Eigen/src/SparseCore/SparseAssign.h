@@ -12,117 +12,6 @@
 
 namespace Eigen { 
 
-#ifndef EIGEN_TEST_EVALUATORS
-
-template<typename Derived>    
-template<typename OtherDerived>
-Derived& SparseMatrixBase<Derived>::operator=(const EigenBase<OtherDerived> &other)
-{
-  other.derived().evalTo(derived());
-  return derived();
-}
-
-template<typename Derived>
-template<typename OtherDerived>
-Derived& SparseMatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
-{
-  other.evalTo(derived());
-  return derived();
-}
-
-template<typename Derived>
-template<typename OtherDerived>
-inline Derived& SparseMatrixBase<Derived>::operator=(const SparseMatrixBase<OtherDerived>& other)
-{
-  return assign(other.derived());
-}
-
-template<typename Derived>
-inline Derived& SparseMatrixBase<Derived>::operator=(const Derived& other)
-{
-//   if (other.isRValue())
-//     derived().swap(other.const_cast_derived());
-//   else
-  return assign(other.derived());
-}
-
-template<typename Derived>
-template<typename OtherDerived>
-inline Derived& SparseMatrixBase<Derived>::assign(const OtherDerived& other)
-{
-  const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-  const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? Index(other.rows()) : Index(other.cols());
-  if ((!transpose) && other.isRValue())
-  {
-    // eval without temporary
-    derived().resize(Index(other.rows()), Index(other.cols()));
-    derived().setZero();
-    derived().reserve((std::max)(this->rows(),this->cols())*2);
-    for (Index j=0; j<outerSize; ++j)
-    {
-      derived().startVec(j);
-      for (typename OtherDerived::InnerIterator it(other, typename OtherDerived::Index(j)); it; ++it)
-      {
-        Scalar v = it.value();
-        derived().insertBackByOuterInner(j,Index(it.index())) = v;
-      }
-    }
-    derived().finalize();
-  }
-  else
-  {
-    assignGeneric(other);
-  }
-  return derived();
-}
-
-template<typename Derived>
-template<typename OtherDerived>
-inline void SparseMatrixBase<Derived>::assignGeneric(const OtherDerived& other)
-{
-  //const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-  eigen_assert(( ((internal::traits<Derived>::SupportedAccessPatterns&OuterRandomAccessPattern)==OuterRandomAccessPattern) ||
-              (!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)))) &&
-              "the transpose operation is supposed to be handled in SparseMatrix::operator=");
-
-  enum { Flip = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit) };
-
-  const Index outerSize = Index(other.outerSize());
-  //typedef typename internal::conditional<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::type TempType;
-  // thanks to shallow copies, we always eval to a tempary
-  Derived temp(Index(other.rows()), Index(other.cols()));
-
-  temp.reserve((std::max)(this->rows(),this->cols())*2);
-  for (Index j=0; j<outerSize; ++j)
-  {
-    temp.startVec(j);
-    for (typename OtherDerived::InnerIterator it(other.derived(), typename OtherDerived::Index(j)); it; ++it)
-    {
-      Scalar v = it.value();
-      temp.insertBackByOuterInner(Flip?Index(it.index()):j,Flip?j:Index(it.index())) = v;
-    }
-  }
-  temp.finalize();
-
-  derived() = temp.markAsRValue();
-}
-
-// template<typename Lhs, typename Rhs>
-// inline Derived& operator=(const SparseSparseProduct<Lhs,Rhs>& product);
-// 
-// template<typename OtherDerived>
-// Derived& operator+=(const SparseMatrixBase<OtherDerived>& other);
-// template<typename OtherDerived>
-// Derived& operator-=(const SparseMatrixBase<OtherDerived>& other);
-// 
-// Derived& operator*=(const Scalar& other);
-// Derived& operator/=(const Scalar& other);
-// 
-// template<typename OtherDerived>
-// Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);
-
-#else // EIGEN_TEST_EVALUATORS
-
 template<typename Derived>    
 template<typename OtherDerived>
 Derived& SparseMatrixBase<Derived>::operator=(const EigenBase<OtherDerived> &other)
@@ -297,8 +186,6 @@ struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar
 };
 
 } // end namespace internal
-
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

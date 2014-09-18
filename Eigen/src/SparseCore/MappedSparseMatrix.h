@@ -176,7 +176,6 @@ class MappedSparseMatrix<Scalar,_Flags,_Index>::ReverseInnerIterator
     const Index m_end;
 };
 
-#ifdef EIGEN_ENABLE_EVALUATORS
 namespace internal {
 
 template<typename _Scalar, int _Options, typename _Index>
@@ -202,7 +201,6 @@ struct evaluator<MappedSparseMatrix<_Scalar,_Options,_Index> >
 };
 
 }
-#endif
 
 } // end namespace Eigen
 

@@ -11,16 +11,6 @@
 #define EIGEN_SPARSE_SELFADJOINTVIEW_H
 
 namespace Eigen { 
-
-#ifndef EIGEN_TEST_EVALUATORS
-
-template<typename Lhs, typename Rhs, int Mode>
-class SparseSelfAdjointTimeDenseProduct;
-
-template<typename Lhs, typename Rhs, int Mode>
-class DenseTimeSparseSelfAdjointProduct;
-
-#endif // EIGEN_TEST_EVALUATORS
   
 /** \ingroup SparseCore_Module
   * \class SparseSelfAdjointView
@@ -80,76 +70,40 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
       * Note that there is no algorithmic advantage of performing such a product compared to a general sparse-sparse matrix product.
       * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
       */
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename OtherDerived>
-    SparseSparseProduct<typename OtherDerived::PlainObject, OtherDerived>
-    operator*(const SparseMatrixBase<OtherDerived>& rhs) const
-    {
-      return SparseSparseProduct<typename OtherDerived::PlainObject, OtherDerived>(*this, rhs.derived());
-    }
-#else
     template<typename OtherDerived>
     Product<SparseSelfAdjointView, OtherDerived>
     operator*(const SparseMatrixBase<OtherDerived>& rhs) const
     {
       return Product<SparseSelfAdjointView, OtherDerived>(*this, rhs.derived());
     }
-#endif
 
     /** \returns an expression of the matrix product between a sparse matrix \a lhs and a sparse self-adjoint matrix \a rhs.
       *
       * Note that there is no algorithmic advantage of performing such a product compared to a general sparse-sparse matrix product.
       * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
       */
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename OtherDerived> friend
-    SparseSparseProduct<OtherDerived, typename OtherDerived::PlainObject >
-    operator*(const SparseMatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
-    {
-      return SparseSparseProduct<OtherDerived, typename OtherDerived::PlainObject>(lhs.derived(), rhs);
-    }
-#else // EIGEN_TEST_EVALUATORS
     template<typename OtherDerived> friend
     Product<OtherDerived, SparseSelfAdjointView>
     operator*(const SparseMatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
     {
       return Product<OtherDerived, SparseSelfAdjointView>(lhs.derived(), rhs);
     }
-#endif // EIGEN_TEST_EVALUATORS
     
     /** Efficient sparse self-adjoint matrix times dense vector/matrix product */
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename OtherDerived>
-    SparseSelfAdjointTimeDenseProduct<MatrixType,OtherDerived,Mode>
-    operator*(const MatrixBase<OtherDerived>& rhs) const
-    {
-      return SparseSelfAdjointTimeDenseProduct<MatrixType,OtherDerived,Mode>(m_matrix, rhs.derived());
-    }
-#else
     template<typename OtherDerived>
     Product<SparseSelfAdjointView,OtherDerived>
     operator*(const MatrixBase<OtherDerived>& rhs) const
     {
       return Product<SparseSelfAdjointView,OtherDerived>(*this, rhs.derived());
     }
-#endif
 
     /** Efficient dense vector/matrix times sparse self-adjoint matrix product */
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename OtherDerived> friend
-    DenseTimeSparseSelfAdjointProduct<OtherDerived,MatrixType,Mode>
-    operator*(const MatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
-    {
-      return DenseTimeSparseSelfAdjointProduct<OtherDerived,_MatrixTypeNested,Mode>(lhs.derived(), rhs.m_matrix);
-    }
-#else
     template<typename OtherDerived> friend
     Product<OtherDerived,SparseSelfAdjointView>
     operator*(const MatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
     {
       return Product<OtherDerived,SparseSelfAdjointView>(lhs.derived(), rhs);
     }
-#endif
 
     /** Perform a symmetric rank K update of the selfadjoint matrix \c *this:
       * \f$ this = this + \alpha ( u u^* ) \f$ where \a u is a vector or matrix.
@@ -177,7 +131,7 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
     }
     
     /** \returns an expression of P H P^-1 */
-// #ifndef EIGEN_TEST_EVALUATORS
+    // TODO implement twists in a more evaluator friendly fashion
     SparseSymmetricPermutationProduct<_MatrixTypeNested,Mode> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
     {
       return SparseSymmetricPermutationProduct<_MatrixTypeNested,Mode>(m_matrix, perm);
@@ -189,7 +143,6 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
       permutedMatrix.evalTo(*this);
       return *this;
     }
-// #endif // EIGEN_TEST_EVALUATORS
 
     SparseSelfAdjointView& operator=(const SparseSelfAdjointView& src)
     {
@@ -250,98 +203,6 @@ SparseSelfAdjointView<MatrixType,Mode>::rankUpdate(const SparseMatrixBase<Derive
 /***************************************************************************
 * Implementation of sparse self-adjoint time dense matrix
 ***************************************************************************/
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-template<typename Lhs, typename Rhs, int Mode>
-struct traits<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,Mode> >
- : traits<ProductBase<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,Mode>, Lhs, Rhs> >
-{
-  typedef Dense StorageKind;
-};
-}
-
-template<typename Lhs, typename Rhs, int Mode>
-class SparseSelfAdjointTimeDenseProduct
-  : public ProductBase<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,Mode>, Lhs, Rhs>
-{
-  public:
-    EIGEN_PRODUCT_PUBLIC_INTERFACE(SparseSelfAdjointTimeDenseProduct)
-
-    SparseSelfAdjointTimeDenseProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
-    {}
-
-    template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
-    {
-      EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-      // TODO use alpha
-      eigen_assert(alpha==Scalar(1) && "alpha != 1 is not implemented yet, sorry");
-      typedef typename internal::remove_all<Lhs>::type _Lhs;
-      typedef typename _Lhs::InnerIterator LhsInnerIterator;
-      enum {
-        LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit,
-        ProcessFirstHalf =
-                 ((Mode&(Upper|Lower))==(Upper|Lower))
-              || ( (Mode&Upper) && !LhsIsRowMajor)
-              || ( (Mode&Lower) && LhsIsRowMajor),
-        ProcessSecondHalf = !ProcessFirstHalf
-      };
-      for (typename _Lhs::Index j=0; j<m_lhs.outerSize(); ++j)
-      {
-        LhsInnerIterator i(m_lhs,j);
-        if (ProcessSecondHalf)
-        {
-          while (i && i.index()<j) ++i;
-          if(i && i.index()==j)
-          {
-            dest.row(j) += i.value() * m_rhs.row(j);
-            ++i;
-          }
-        }
-        for(; (ProcessFirstHalf ? i && i.index() < j : i) ; ++i)
-        {
-          Index a = LhsIsRowMajor ? j : i.index();
-          Index b = LhsIsRowMajor ? i.index() : j;
-          typename Lhs::Scalar v = i.value();
-          dest.row(a) += (v) * m_rhs.row(b);
-          dest.row(b) += numext::conj(v) * m_rhs.row(a);
-        }
-        if (ProcessFirstHalf && i && (i.index()==j))
-          dest.row(j) += i.value() * m_rhs.row(j);
-      }
-    }
-
-  private:
-    SparseSelfAdjointTimeDenseProduct& operator=(const SparseSelfAdjointTimeDenseProduct&);
-};
-
-namespace internal {
-template<typename Lhs, typename Rhs, int Mode>
-struct traits<DenseTimeSparseSelfAdjointProduct<Lhs,Rhs,Mode> >
- : traits<ProductBase<DenseTimeSparseSelfAdjointProduct<Lhs,Rhs,Mode>, Lhs, Rhs> >
-{};
-}
-
-template<typename Lhs, typename Rhs, int Mode>
-class DenseTimeSparseSelfAdjointProduct
-  : public ProductBase<DenseTimeSparseSelfAdjointProduct<Lhs,Rhs,Mode>, Lhs, Rhs>
-{
-  public:
-    EIGEN_PRODUCT_PUBLIC_INTERFACE(DenseTimeSparseSelfAdjointProduct)
-
-    DenseTimeSparseSelfAdjointProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
-    {}
-
-    template<typename Dest> void scaleAndAddTo(Dest& /*dest*/, const Scalar& /*alpha*/) const
-    {
-      // TODO
-    }
-
-  private:
-    DenseTimeSparseSelfAdjointProduct& operator=(const DenseTimeSparseSelfAdjointProduct&);
-};
-
-#else // EIGEN_TEST_EVALUATORS
 
 namespace internal {
 
@@ -485,8 +346,6 @@ protected:
 };
 
 } // namespace internal
-
-#endif // EIGEN_TEST_EVALUATORS
 
 /***************************************************************************
 * Implementation of symmetric copies and permutations
@@ -644,7 +503,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
 
 }
 
-// #ifndef EIGEN_TEST_EVALUATORS
+// TODO implement twists in a more evaluator friendly fashion
 
 namespace internal {
 
@@ -694,10 +553,6 @@ class SparseSymmetricPermutationProduct
     const Perm& m_perm;
 
 };
-
-// #else // EIGEN_TEST_EVALUATORS
-
-// #endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

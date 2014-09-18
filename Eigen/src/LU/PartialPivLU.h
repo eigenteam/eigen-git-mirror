@@ -142,7 +142,6 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa TriangularView::solve(), inverse(), computeInverse()
       */
-#ifdef EIGEN_TEST_EVALUATORS
     template<typename Rhs>
     inline const Solve<PartialPivLU, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -150,15 +149,6 @@ template<typename _MatrixType> class PartialPivLU
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
       return Solve<PartialPivLU, Rhs>(*this, b.derived());
     }
-#else
-    template<typename Rhs>
-    inline const internal::solve_retval<PartialPivLU, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return internal::solve_retval<PartialPivLU, Rhs>(*this, b.derived());
-    }
-#endif
 
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
       *
@@ -167,20 +157,11 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::inverse(), LU::inverse()
       */
-#ifdef EIGEN_TEST_EVALUATORS
     inline const Inverse<PartialPivLU> inverse() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
       return Inverse<PartialPivLU>(*this);
     }
-#else
-    inline const internal::solve_retval<PartialPivLU,typename MatrixType::IdentityReturnType> inverse() const
-    {
-      eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return internal::solve_retval<PartialPivLU,typename MatrixType::IdentityReturnType>
-               (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()));
-    }
-#endif
 
     /** \returns the determinant of the matrix of which
       * *this is the LU decomposition. It has only linear complexity
@@ -490,22 +471,7 @@ MatrixType PartialPivLU<MatrixType>::reconstructedMatrix() const
 
 namespace internal {
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<PartialPivLU<_MatrixType>, Rhs>
-  : solve_retval_base<PartialPivLU<_MatrixType>, Rhs>
-{
-  EIGEN_MAKE_SOLVE_HELPERS(PartialPivLU<_MatrixType>,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(), dst);
-  }
-};
-#endif
-
 /***** Implementation of inverse() *****************************************************/
-#ifdef EIGEN_TEST_EVALUATORS
 template<typename DstXprType, typename MatrixType, typename Scalar>
 struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assign_op<Scalar>, Dense2Dense, Scalar>
 {
@@ -516,7 +482,6 @@ struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assi
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.cols()));
   }
 };
-#endif
 } // end namespace internal
 
 /******** MatrixBase methods *******/

@@ -125,43 +125,6 @@ template<typename _Scalar, int _Rows, int _Cols,
     typedef Matrix<_Scalar, _Rows, _Cols, Options, _MaxRows, _MaxCols> type;
 };
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-class compute_matrix_flags
-{
-    enum {
-      row_major_bit = Options&RowMajor ? RowMajorBit : 0,
-      is_dynamic_size_storage = MaxRows==Dynamic || MaxCols==Dynamic,
-
-      aligned_bit =
-      (
-            ((Options&DontAlign)==0)
-        && (
-#if EIGEN_ALIGN_STATICALLY
-             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % EIGEN_ALIGN_BYTES) == 0))
-#else
-             0
-#endif
-
-          ||
-
-#if EIGEN_ALIGN
-             is_dynamic_size_storage
-#else
-             0
-#endif
-
-          )
-      ) ? AlignedBit : 0,
-      packet_access_bit = packet_traits<Scalar>::Vectorizable && aligned_bit ? PacketAccessBit : 0
-    };
-
-  public:
-    enum { ret = LinearAccessBit | LvalueBit | DirectAccessBit | NestByRefBit | packet_access_bit | row_major_bit | aligned_bit };
-};
-
-#else // EIGEN_TEST_EVALUATORS
-
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 class compute_matrix_flags
 {
@@ -172,9 +135,7 @@ class compute_matrix_flags
     // However, I (Gael) think that DirectAccessBit should only matter at the evaluation stage.
     enum { ret = DirectAccessBit | LvalueBit | NestByRefBit | row_major_bit };
 };
-#endif
 
-#ifdef EIGEN_ENABLE_EVALUATORS
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 class compute_matrix_evaluator_flags
 {
@@ -208,8 +169,6 @@ class compute_matrix_evaluator_flags
   public:
     enum { ret = LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit };
 };
-
-#endif // EIGEN_ENABLE_EVALUATORS
 
 template<int _Rows, int _Cols> struct size_at_compile_time
 {
@@ -361,58 +320,6 @@ struct transfer_constness
 };
 
 
-
-#ifndef EIGEN_TEST_EVALUATORS
-
-/** \internal Determines how a given expression should be nested into another one.
-  * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
-  * nested into the bigger product expression. The choice is between nesting the expression b+c as-is, or
-  * evaluating that expression b+c into a temporary variable d, and nest d so that the resulting expression is
-  * a*d. Evaluating can be beneficial for example if every coefficient access in the resulting expression causes
-  * many coefficient accesses in the nested expressions -- as is the case with matrix product for example.
-  *
-  * \param T the type of the expression being nested
-  * \param n the number of coefficient accesses in the nested expression for each coefficient access in the bigger expression.
-  *
-  * Note that if no evaluation occur, then the constness of T is preserved.
-  *
-  * Example. Suppose that a, b, and c are of type Matrix3d. The user forms the expression a*(b+c).
-  * b+c is an expression "sum of matrices", which we will denote by S. In order to determine how to nest it,
-  * the Product expression uses: nested<S, 3>::type, which turns out to be Matrix3d because the internal logic of
-  * nested determined that in this case it was better to evaluate the expression b+c into a temporary. On the other hand,
-  * since a is of type Matrix3d, the Product expression nests it as nested<Matrix3d, 3>::type, which turns out to be
-  * const Matrix3d&, because the internal logic of nested determined that since a was already a matrix, there was no point
-  * in copying it into another matrix.
-  */
-template<typename T, int n=1, typename PlainObject = typename eval<T>::type> struct nested
-{
-  enum {
-    // for the purpose of this test, to keep it reasonably simple, we arbitrarily choose a value of Dynamic values.
-    // the choice of 10000 makes it larger than any practical fixed value and even most dynamic values.
-    // in extreme cases where these assumptions would be wrong, we would still at worst suffer performance issues
-    // (poor choice of temporaries).
-    // it's important that this value can still be squared without integer overflowing.
-    DynamicAsInteger = 10000,
-    ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
-    CoeffReadCost = traits<T>::CoeffReadCost,
-    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
-    NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
-    CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
-    CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger
-  };
-
-  typedef typename conditional<
-      ( (int(traits<T>::Flags) & EvalBeforeNestingBit) ||
-        int(CostEvalAsInteger) < int(CostNoEvalAsInteger)
-      ),
-      PlainObject,
-      typename ref_selector<T>::type
-  >::type type;
-};
-
-#else
-
 // When using evaluators, we never evaluate when assembling the expression!!
 // TODO: get rid of this nested class since it's just an alias for ref_selector.
 template<typename T, int n=1, typename PlainObject = void> struct nested
@@ -420,12 +327,20 @@ template<typename T, int n=1, typename PlainObject = void> struct nested
   typedef typename ref_selector<T>::type type;
 };
 
-#endif // EIGEN_TEST_EVALUATORS
-
-#ifdef EIGEN_ENABLE_EVALUATORS
 // However, we still need a mechanism to detect whether an expression which is evaluated multiple time
 // has to be evaluated into a temporary.
-// That's the purpose of this new nested_eval helper: 
+// That's the purpose of this new nested_eval helper:
+/** \internal Determines how a given expression should be nested when evaluated multiple times.
+  * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
+  * evaluated into the bigger product expression. The choice is between nesting the expression b+c as-is, or
+  * evaluating that expression b+c into a temporary variable d, and nest d so that the resulting expression is
+  * a*d. Evaluating can be beneficial for example if every coefficient access in the resulting expression causes
+  * many coefficient accesses in the nested expressions -- as is the case with matrix product for example.
+  *
+  * \param T the type of the expression being nested.
+  * \param n the number of coefficient accesses in the nested expression for each coefficient access in the bigger expression.
+  * \param PlainObject the type of the temporary if needed.
+  */
 template<typename T, int n, typename PlainObject = typename eval<T>::type> struct nested_eval
 {
   enum {
@@ -453,7 +368,6 @@ template<typename T, int n, typename PlainObject = typename eval<T>::type> struc
         typename ref_selector<T>::type
   >::type type;
 };
-#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC

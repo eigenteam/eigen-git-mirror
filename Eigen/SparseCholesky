@@ -34,11 +34,6 @@
 #error The SparseCholesky module has nothing to offer in MPL2 only mode
 #endif
 
-#ifndef EIGEN_TEST_EVALUATORS
-#include "src/misc/Solve.h"
-#include "src/misc/SparseSolve.h"
-#endif
-
 #include "src/SparseCholesky/SimplicialCholesky.h"
 
 #ifndef EIGEN_MPL2_ONLY

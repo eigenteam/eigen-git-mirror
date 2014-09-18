@@ -1,16 +1,4 @@
 
-#ifndef EIGEN_ENABLE_EVALUATORS
-#define EIGEN_ENABLE_EVALUATORS
-#endif
-
-#ifdef EIGEN_TEST_EVALUATORS
-#undef EIGEN_TEST_EVALUATORS
-#endif
-
-#ifdef EIGEN_TEST_NO_EVALUATORS
-#undef EIGEN_TEST_NO_EVALUATORS
-#endif
-
 #include "main.h"
 
 namespace Eigen {

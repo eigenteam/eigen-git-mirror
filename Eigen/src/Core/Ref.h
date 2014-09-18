@@ -243,11 +243,7 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
     template<typename Expression>
     void construct(const Expression& expr, internal::false_type)
     {
-#ifdef EIGEN_TEST_EVALUATORS
       internal::call_assignment_no_alias(m_object,expr,internal::assign_op<Scalar>());
-#else
-      m_object.lazyAssign(expr);
-#endif
       Base::construct(m_object);
     }
 

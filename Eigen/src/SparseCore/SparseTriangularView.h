@@ -40,11 +40,6 @@ protected:
     typedef typename internal::remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
     typedef typename internal::remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
 
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename OtherDerived>
-    typename internal::plain_matrix_type_column_major<OtherDerived>::type
-    solve(const MatrixBase<OtherDerived>& other) const;
-#else // EIGEN_TEST_EVALUATORS
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _solve_impl(const RhsType &rhs, DstType &dst) const {
@@ -52,7 +47,6 @@ protected:
         dst = rhs;
       this->solveInPlace(dst);
     }
-#endif // EIGEN_TEST_EVALUATORS
 
     template<typename OtherDerived> void solveInPlace(MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> void solveInPlace(SparseMatrixBase<OtherDerived>& other) const;
@@ -163,7 +157,6 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::ReverseInnerIterator : public 
     }
 };
 
-#ifdef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 template<typename ArgType, unsigned int Mode>
@@ -270,7 +263,6 @@ protected:
 };
 
 } // end namespace internal
-#endif
 
 template<typename Derived>
 template<int Mode>

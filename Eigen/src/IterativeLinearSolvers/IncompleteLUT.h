@@ -171,17 +171,6 @@ class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar> >
       x = m_P * x; 
     }
 
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename Rhs> inline const internal::solve_retval<IncompleteLUT, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "IncompleteLUT is not initialized.");
-      eigen_assert(cols()==b.rows()
-                && "IncompleteLUT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<IncompleteLUT, Rhs>(*this, b.derived());
-    }
-#endif
-
 protected:
 
     /** keeps off-diagonal entries; drops diagonal entries */
@@ -450,25 +439,6 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
   m_factorizationIsOk = true;
   m_info = Success;
 }
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<IncompleteLUT<_MatrixType>, Rhs>
-  : solve_retval_base<IncompleteLUT<_MatrixType>, Rhs>
-{
-  typedef IncompleteLUT<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-
-} // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

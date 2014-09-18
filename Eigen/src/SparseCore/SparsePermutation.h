@@ -103,48 +103,6 @@ struct permut_sparsematrix_product_retval
 
 }
 
-#ifndef EIGEN_TEST_EVALUATORS
-
-/** \returns the matrix with the permutation applied to the columns
-  */
-template<typename SparseDerived, typename PermDerived>
-inline const internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheRight, false>
-operator*(const SparseMatrixBase<SparseDerived>& matrix, const PermutationBase<PermDerived>& perm)
-{
-  return internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheRight, false>(perm, matrix.derived());
-}
-
-/** \returns the matrix with the permutation applied to the rows
-  */
-template<typename SparseDerived, typename PermDerived>
-inline const internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheLeft, false>
-operator*( const PermutationBase<PermDerived>& perm, const SparseMatrixBase<SparseDerived>& matrix)
-{
-  return internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheLeft, false>(perm, matrix.derived());
-}
-
-
-
-/** \returns the matrix with the inverse permutation applied to the columns.
-  */
-template<typename SparseDerived, typename PermDerived>
-inline const internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheRight, true>
-operator*(const SparseMatrixBase<SparseDerived>& matrix, const Transpose<PermutationBase<PermDerived> >& tperm)
-{
-  return internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheRight, true>(tperm.nestedPermutation(), matrix.derived());
-}
-
-/** \returns the matrix with the inverse permutation applied to the rows.
-  */
-template<typename SparseDerived, typename PermDerived>
-inline const internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheLeft, true>
-operator*(const Transpose<PermutationBase<PermDerived> >& tperm, const SparseMatrixBase<SparseDerived>& matrix)
-{
-  return internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheLeft, true>(tperm.nestedPermutation(), matrix.derived());
-}
-
-#else // EIGEN_TEST_EVALUATORS
-
 namespace internal {
 
 template <int ProductTag> struct product_promote_storage_type<Sparse,             PermutationStorage, ProductTag> { typedef Sparse ret; };
@@ -273,8 +231,6 @@ operator*(const Transpose<PermutationBase<PermDerived> >& tperm, const SparseMat
 {
   return Product<Transpose<PermutationBase<PermDerived> >, SparseDerived>(tperm, matrix.derived());
 }
-
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

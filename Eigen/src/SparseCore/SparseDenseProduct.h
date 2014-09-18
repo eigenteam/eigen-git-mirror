@@ -30,18 +30,10 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::Index Index;
-#ifndef EIGEN_TEST_EVALUATORS
-  typedef typename Lhs::InnerIterator LhsInnerIterator;
-#else
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
-#endif
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
-#ifndef EIGEN_TEST_EVALUATORS
-  const Lhs &lhsEval(lhs);
-#else
-  typename evaluator<Lhs>::type lhsEval(lhs);
-#endif
+    typename evaluator<Lhs>::type lhsEval(lhs);
     for(Index c=0; c<rhs.cols(); ++c)
     {
       Index n = lhs.outerSize();
@@ -71,18 +63,10 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, A
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::Index Index;
-#ifndef EIGEN_TEST_EVALUATORS
-  typedef typename Lhs::InnerIterator LhsInnerIterator;
-#else
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
-#endif
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const AlphaType& alpha)
   {
-#ifndef EIGEN_TEST_EVALUATORS
-  const Lhs &lhsEval(lhs);
-#else
-  typename evaluator<Lhs>::type lhsEval(lhs);
-#endif
+    typename evaluator<Lhs>::type lhsEval(lhs);
     for(Index c=0; c<rhs.cols(); ++c)
     {
       for(Index j=0; j<lhs.outerSize(); ++j)
@@ -103,18 +87,10 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::Index Index;
-#ifndef EIGEN_TEST_EVALUATORS
-  typedef typename Lhs::InnerIterator LhsInnerIterator;
-#else
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
-#endif
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
-#ifndef EIGEN_TEST_EVALUATORS
-  const Lhs &lhsEval(lhs);
-#else
-  typename evaluator<Lhs>::type lhsEval(lhs);
-#endif
+    typename evaluator<Lhs>::type lhsEval(lhs);
     for(Index j=0; j<lhs.outerSize(); ++j)
     {
       typename Res::RowXpr res_j(res.row(j));
@@ -131,18 +107,10 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::Index Index;
-#ifndef EIGEN_TEST_EVALUATORS
-  typedef typename Lhs::InnerIterator LhsInnerIterator;
-#else
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
-#endif
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
-#ifndef EIGEN_TEST_EVALUATORS
-  const Lhs &lhsEval(lhs);
-#else
-  typename evaluator<Lhs>::type lhsEval(lhs);
-#endif
+    typename evaluator<Lhs>::type lhsEval(lhs);
     for(Index j=0; j<lhs.outerSize(); ++j)
     {
       typename Rhs::ConstRowXpr rhs_j(rhs.row(j));
@@ -159,212 +127,6 @@ inline void sparse_time_dense_product(const SparseLhsType& lhs, const DenseRhsTy
 }
 
 } // end namespace internal
-
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename Lhs, typename Rhs, int InnerSize> struct SparseDenseProductReturnType
-{
-  typedef SparseTimeDenseProduct<Lhs,Rhs> Type;
-};
-
-template<typename Lhs, typename Rhs> struct SparseDenseProductReturnType<Lhs,Rhs,1>
-{
-  typedef typename internal::conditional<
-    Lhs::IsRowMajor,
-    SparseDenseOuterProduct<Rhs,Lhs,true>,
-    SparseDenseOuterProduct<Lhs,Rhs,false> >::type Type;
-};
-
-template<typename Lhs, typename Rhs, int InnerSize> struct DenseSparseProductReturnType
-{
-  typedef DenseTimeSparseProduct<Lhs,Rhs> Type;
-};
-
-template<typename Lhs, typename Rhs> struct DenseSparseProductReturnType<Lhs,Rhs,1>
-{
-  typedef typename internal::conditional<
-    Rhs::IsRowMajor,
-    SparseDenseOuterProduct<Rhs,Lhs,true>,
-    SparseDenseOuterProduct<Lhs,Rhs,false> >::type Type;
-};
-
-namespace internal {
-
-template<typename Lhs, typename Rhs, bool Tr>
-struct traits<SparseDenseOuterProduct<Lhs,Rhs,Tr> >
-{
-  typedef Sparse StorageKind;
-  typedef typename scalar_product_traits<typename traits<Lhs>::Scalar,
-                                         typename traits<Rhs>::Scalar>::ReturnType Scalar;
-  typedef typename Lhs::Index Index;
-  typedef typename Lhs::Nested LhsNested;
-  typedef typename Rhs::Nested RhsNested;
-  typedef typename remove_all<LhsNested>::type _LhsNested;
-  typedef typename remove_all<RhsNested>::type _RhsNested;
-
-  enum {
-    LhsCoeffReadCost = traits<_LhsNested>::CoeffReadCost,
-    RhsCoeffReadCost = traits<_RhsNested>::CoeffReadCost,
-
-    RowsAtCompileTime    = Tr ? int(traits<Rhs>::RowsAtCompileTime)     : int(traits<Lhs>::RowsAtCompileTime),
-    ColsAtCompileTime    = Tr ? int(traits<Lhs>::ColsAtCompileTime)     : int(traits<Rhs>::ColsAtCompileTime),
-    MaxRowsAtCompileTime = Tr ? int(traits<Rhs>::MaxRowsAtCompileTime)  : int(traits<Lhs>::MaxRowsAtCompileTime),
-    MaxColsAtCompileTime = Tr ? int(traits<Lhs>::MaxColsAtCompileTime)  : int(traits<Rhs>::MaxColsAtCompileTime),
-
-    Flags = Tr ? RowMajorBit : 0,
-
-    CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + NumTraits<Scalar>::MulCost
-  };
-};
-
-} // end namespace internal
-
-template<typename Lhs, typename Rhs, bool Tr>
-class SparseDenseOuterProduct
- : public SparseMatrixBase<SparseDenseOuterProduct<Lhs,Rhs,Tr> >
-{
-  public:
-
-    typedef SparseMatrixBase<SparseDenseOuterProduct> Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE(SparseDenseOuterProduct)
-    typedef internal::traits<SparseDenseOuterProduct> Traits;
-
-  private:
-
-    typedef typename Traits::LhsNested LhsNested;
-    typedef typename Traits::RhsNested RhsNested;
-    typedef typename Traits::_LhsNested _LhsNested;
-    typedef typename Traits::_RhsNested _RhsNested;
-
-  public:
-
-    class InnerIterator;
-
-    EIGEN_STRONG_INLINE SparseDenseOuterProduct(const Lhs& lhs, const Rhs& rhs)
-      : m_lhs(lhs), m_rhs(rhs)
-    {
-      EIGEN_STATIC_ASSERT(!Tr,YOU_MADE_A_PROGRAMMING_MISTAKE);
-    }
-
-    EIGEN_STRONG_INLINE SparseDenseOuterProduct(const Rhs& rhs, const Lhs& lhs)
-      : m_lhs(lhs), m_rhs(rhs)
-    {
-      EIGEN_STATIC_ASSERT(Tr,YOU_MADE_A_PROGRAMMING_MISTAKE);
-    }
-
-    EIGEN_STRONG_INLINE Index rows() const { return Tr ? Index(m_rhs.rows()) : m_lhs.rows(); }
-    EIGEN_STRONG_INLINE Index cols() const { return Tr ? m_lhs.cols() : Index(m_rhs.cols()); }
-
-    EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
-    EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
-
-  protected:
-    LhsNested m_lhs;
-    RhsNested m_rhs;
-};
-
-template<typename Lhs, typename Rhs, bool Transpose>
-class SparseDenseOuterProduct<Lhs,Rhs,Transpose>::InnerIterator : public _LhsNested::InnerIterator
-{
-    typedef typename _LhsNested::InnerIterator Base;
-    typedef typename SparseDenseOuterProduct::Index Index;
-  public:
-    EIGEN_STRONG_INLINE InnerIterator(const SparseDenseOuterProduct& prod, Index outer)
-      : Base(prod.lhs(), 0), m_outer(outer), m_empty(false), m_factor(get(prod.rhs(), outer, typename internal::traits<Rhs>::StorageKind() ))
-    {}
-
-    inline Index outer() const { return m_outer; }
-    inline Index row() const { return Transpose ? m_outer : Base::index(); }
-    inline Index col() const { return Transpose ? Base::index() : m_outer; }
-
-    inline Scalar value() const { return Base::value() * m_factor; }
-    inline operator bool() const { return Base::operator bool() && !m_empty; }
-
-  protected:
-    Scalar get(const _RhsNested &rhs, Index outer, Dense = Dense()) const
-    {
-      return rhs.coeff(outer);
-    }
-    
-    Scalar get(const _RhsNested &rhs, Index outer, Sparse = Sparse())
-    {
-      typename Traits::_RhsNested::InnerIterator it(rhs, outer);
-      if (it && it.index()==0 && it.value()!=Scalar(0))
-        return it.value();
-      m_empty = true;
-      return Scalar(0);
-    }
-    
-    Index m_outer;
-    bool m_empty;
-    Scalar m_factor;
-};
-
-namespace internal {
-template<typename Lhs, typename Rhs>
-struct traits<SparseTimeDenseProduct<Lhs,Rhs> >
- : traits<ProductBase<SparseTimeDenseProduct<Lhs,Rhs>, Lhs, Rhs> >
-{
-  typedef Dense StorageKind;
-  typedef MatrixXpr XprKind;
-};
-
-} // end namespace internal
-
-template<typename Lhs, typename Rhs>
-class SparseTimeDenseProduct
-  : public ProductBase<SparseTimeDenseProduct<Lhs,Rhs>, Lhs, Rhs>
-{
-  public:
-    EIGEN_PRODUCT_PUBLIC_INTERFACE(SparseTimeDenseProduct)
-
-    SparseTimeDenseProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
-    {}
-
-    template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
-    {
-      internal::sparse_time_dense_product(m_lhs, m_rhs, dest, alpha);
-    }
-
-  private:
-    SparseTimeDenseProduct& operator=(const SparseTimeDenseProduct&);
-};
-
-
-// dense = dense * sparse
-namespace internal {
-template<typename Lhs, typename Rhs>
-struct traits<DenseTimeSparseProduct<Lhs,Rhs> >
- : traits<ProductBase<DenseTimeSparseProduct<Lhs,Rhs>, Lhs, Rhs> >
-{
-  typedef Dense StorageKind;
-};
-} // end namespace internal
-
-template<typename Lhs, typename Rhs>
-class DenseTimeSparseProduct
-  : public ProductBase<DenseTimeSparseProduct<Lhs,Rhs>, Lhs, Rhs>
-{
-  public:
-    EIGEN_PRODUCT_PUBLIC_INTERFACE(DenseTimeSparseProduct)
-
-    DenseTimeSparseProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
-    {}
-
-    template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
-    {
-      Transpose<const _LhsNested> lhs_t(m_lhs);
-      Transpose<const _RhsNested> rhs_t(m_rhs);
-      Transpose<Dest> dest_t(dest);
-      internal::sparse_time_dense_product(rhs_t, lhs_t, dest_t, alpha);
-    }
-
-  private:
-    DenseTimeSparseProduct& operator=(const DenseTimeSparseProduct&);
-};
-
-#endif // EIGEN_TEST_EVALUATORS
-
-#ifdef EIGEN_TEST_EVALUATORS
 
 namespace internal {
 
@@ -513,8 +275,6 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, DenseS
 };
 
 } // end namespace internal
-
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

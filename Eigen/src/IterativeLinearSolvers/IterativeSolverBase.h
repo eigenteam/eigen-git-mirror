@@ -162,38 +162,6 @@ public:
     return m_error;
   }
 
-#ifndef EIGEN_TEST_EVALUATORS
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-    *
-    * \sa compute()
-    */
-  template<typename Rhs> inline const internal::solve_retval<Derived, Rhs>
-  solve(const MatrixBase<Rhs>& b) const
-  {
-    eigen_assert(m_isInitialized && "IterativeSolverBase is not initialized.");
-    eigen_assert(rows()==b.rows()
-              && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::solve_retval<Derived, Rhs>(derived(), b.derived());
-  }
-#endif
-  
-#ifndef EIGEN_TEST_EVALUATORS
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-    *
-    * \sa compute()
-    */
-  template<typename Rhs>
-  inline const internal::sparse_solve_retval<IterativeSolverBase, Rhs>
-  solve(const SparseMatrixBase<Rhs>& b) const
-  {
-    eigen_assert(m_isInitialized && "IterativeSolverBase is not initialized.");
-    eigen_assert(rows()==b.rows()
-              && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::sparse_solve_retval<IterativeSolverBase, Rhs>(*this, b.derived());
-  }
-#endif // EIGEN_TEST_EVALUATORS
-
-#ifdef EIGEN_TEST_EVALUATORS
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
     * and \a x0 as an initial solution.
     *
@@ -207,7 +175,6 @@ public:
     eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
     return SolveWithGuess<Derived, Rhs, Guess>(derived(), b.derived(), x0);
   }
-#endif // EIGEN_TEST_EVALUATORS
 
   /** \returns Success if the iterations converged, and NoConvergence otherwise. */
   ComputationInfo info() const
@@ -216,25 +183,6 @@ public:
     return m_info;
   }
   
-#ifndef EIGEN_TEST_EVALUATORS
-  /** \internal */
-  template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
-  void _solve_sparse(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
-  {
-    eigen_assert(rows()==b.rows());
-    
-    int rhsCols = b.cols();
-    int size = b.rows();
-    Eigen::Matrix<DestScalar,Dynamic,1> tb(size);
-    Eigen::Matrix<DestScalar,Dynamic,1> tx(size);
-    for(int k=0; k<rhsCols; ++k)
-    {
-      tb = b.col(k);
-      tx = derived().solve(tb);
-      dest.col(k) = tx.sparseView(0);
-    }
-  }
-#else
   /** \internal */
   template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
   void _solve_impl(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
@@ -252,7 +200,6 @@ public:
       dest.col(k) = tx.sparseView(0);
     }
   }
-#endif // EIGEN_TEST_EVALUATORS
 
 protected:
   void init()
@@ -274,25 +221,6 @@ protected:
   mutable ComputationInfo m_info;
   mutable bool m_analysisIsOk, m_factorizationIsOk;
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
- 
-template<typename Derived, typename Rhs>
-struct sparse_solve_retval<IterativeSolverBase<Derived>, Rhs>
-  : sparse_solve_retval_base<IterativeSolverBase<Derived>, Rhs>
-{
-  typedef IterativeSolverBase<Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec().derived()._solve_sparse(rhs(),dst);
-  }
-};
-
-} // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

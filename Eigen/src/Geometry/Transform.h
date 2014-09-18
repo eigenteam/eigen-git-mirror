@@ -62,7 +62,6 @@ struct transform_construct_from_matrix;
 
 template<typename TransformType> struct transform_take_affine_part;
 
-#ifdef EIGEN_TEST_EVALUATORS
 template<typename _Scalar, int _Dim, int _Mode, int _Options>
 struct traits<Transform<_Scalar,_Dim,_Mode,_Options> >
 {
@@ -78,7 +77,6 @@ struct traits<Transform<_Scalar,_Dim,_Mode,_Options> >
     Flags = 0
   };
 };
-#endif
 
 } // end namespace internal
 
@@ -374,10 +372,8 @@ public:
   inline QTransform toQTransform(void) const;
   #endif
   
-#ifdef EIGEN_TEST_EVALUATORS
   Index rows() const { return int(Mode)==int(Projective) ? m_matrix.cols() : (m_matrix.cols()-1); }
   Index cols() const { return m_matrix.cols(); }
-#endif
 
   /** shortcut for m_matrix(row,col);
     * \sa MatrixBase::operator(Index,Index) const */

@@ -174,7 +174,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
       *
       * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt()
       */
-#ifdef EIGEN_TEST_EVALUATORS
     template<typename Rhs>
     inline const Solve<LDLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -184,17 +183,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
                 && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
       return Solve<LDLT, Rhs>(*this, b.derived());
     }
-#else
-    template<typename Rhs>
-    inline const internal::solve_retval<LDLT, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "LDLT is not initialized.");
-      eigen_assert(m_matrix.rows()==b.rows()
-                && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<LDLT, Rhs>(*this, b.derived());
-    }
-#endif
 
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
@@ -524,23 +512,6 @@ void LDLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) cons
   dst = m_transpositions.transpose() * dst;
 }
 #endif
-  
-namespace internal {
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename _MatrixType, int _UpLo, typename Rhs>
-struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
-  : solve_retval_base<LDLT<_MatrixType,_UpLo>, Rhs>
-{
-  typedef LDLT<_MatrixType,_UpLo> LDLTType;
-  EIGEN_MAKE_SOLVE_HELPERS(LDLTType,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-#endif
-}
 
 /** \internal use x = ldlt_object.solve(x);
   *

@@ -422,30 +422,6 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
 
 namespace internal {
 
-#ifndef EIGEN_TEST_EVALUATORS
-template< typename Dest, typename Src>
-struct sparse_vector_assign_selector<Dest,Src,SVA_Inner> {
-  static void run(Dest& dst, const Src& src) {
-    eigen_internal_assert(src.innerSize()==src.size());
-    for(typename Src::InnerIterator it(src, 0); it; ++it)
-      dst.insert(it.index()) = it.value();
-  }
-};
-
-template< typename Dest, typename Src>
-struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
-  static void run(Dest& dst, const Src& src) {
-    eigen_internal_assert(src.outerSize()==src.size());
-    for(typename Dest::Index i=0; i<src.size(); ++i)
-    {
-      typename Src::InnerIterator it(src, i);
-      if(it)
-        dst.insert(i) = it.value();
-    }
-  }
-};
-#else // EIGEN_TEST_EVALUATORS
-
 template<typename _Scalar, int _Options, typename _Index>
 struct evaluator<SparseVector<_Scalar,_Options,_Index> >
   : evaluator_base<SparseVector<_Scalar,_Options,_Index> >
@@ -492,7 +468,6 @@ struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
     }
   }
 };
-#endif // EIGEN_TEST_EVALUATORS
 
 template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_RuntimeSwitch> {

@@ -16,7 +16,6 @@
   * \endcode
   */
 
-#include "src/misc/Solve.h"
 #include "src/misc/Kernel.h"
 #include "src/misc/Image.h"
 #include "src/LU/FullPivLU.h"

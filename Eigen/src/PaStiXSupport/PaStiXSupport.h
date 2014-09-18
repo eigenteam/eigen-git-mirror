@@ -153,22 +153,6 @@ class PastixBase : public SparseSolverBase<Derived>
     {
       clean();
     }
-
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<PastixBase, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Pastix solver is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "PastixBase::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<PastixBase, Rhs>(*this, b.derived());
-    }
-#endif
     
     template<typename Rhs,typename Dest>
     bool _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const;
@@ -226,22 +210,6 @@ class PastixBase : public SparseSolverBase<Derived>
       eigen_assert(m_isInitialized && "Decomposition is not initialized.");
       return m_info;
     }
-    
-#ifndef EIGEN_TEST_EVALUATORS
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<PastixBase, Rhs>
-    solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Pastix LU, LLT or LDLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "PastixBase::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<PastixBase, Rhs>(*this, b.derived());
-    }
-#endif // EIGEN_TEST_EVALUATORS
     
   protected:
 
@@ -692,38 +660,6 @@ class PastixLDLT : public PastixBase< PastixLDLT<_MatrixType, _UpLo> >
       internal::c_to_fortran_numbering(out);
     }
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<PastixBase<_MatrixType>, Rhs>
-  : solve_retval_base<PastixBase<_MatrixType>, Rhs>
-{
-  typedef PastixBase<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-
-template<typename _MatrixType, typename Rhs>
-struct sparse_solve_retval<PastixBase<_MatrixType>, Rhs>
-  : sparse_solve_retval_base<PastixBase<_MatrixType>, Rhs>
-{
-  typedef PastixBase<_MatrixType> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-
-} // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

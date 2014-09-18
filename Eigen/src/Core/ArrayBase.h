@@ -64,9 +64,6 @@ template<typename Derived> class ArrayBase
     using Base::MaxSizeAtCompileTime;
     using Base::IsVectorAtCompileTime;
     using Base::Flags;
-#ifndef EIGEN_TEST_EVALUATORS
-    using Base::CoeffReadCost;
-#endif
     
     using Base::derived;
     using Base::const_cast_derived;
@@ -123,11 +120,7 @@ template<typename Derived> class ArrayBase
     EIGEN_DEVICE_FUNC
     Derived& operator=(const ArrayBase& other)
     {
-#ifndef EIGEN_TEST_EVALUATORS
-      return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
-#else
       internal::call_assignment(derived(), other.derived());
-#endif
     }
 
     EIGEN_DEVICE_FUNC
@@ -183,7 +176,6 @@ template<typename Derived> class ArrayBase
     {EIGEN_STATIC_ASSERT(std::ptrdiff_t(sizeof(typename OtherDerived::Scalar))==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES); return *this;}
 };
 
-#ifdef EIGEN_TEST_EVALUATORS
 /** replaces \c *this by \c *this - \a other.
   *
   * \returns a reference to \c *this
@@ -235,63 +227,6 @@ ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
   call_assignment(derived(), other.derived(), internal::div_assign_op<Scalar>());
   return derived();
 }
-#else // EIGEN_TEST_EVALUATORS
-/** replaces \c *this by \c *this - \a other.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
-ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
-{
-  SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
-  return derived();
-}
-
-/** replaces \c *this by \c *this + \a other.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
-ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
-{
-  SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
-  return derived();
-}
-
-/** replaces \c *this by \c *this * \a other coefficient wise.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
-ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
-{
-  SelfCwiseBinaryOp<internal::scalar_product_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
-  return derived();
-}
-
-/** replaces \c *this by \c *this / \a other coefficient wise.
-  *
-  * \returns a reference to \c *this
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
-ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
-{
-  SelfCwiseBinaryOp<internal::scalar_quotient_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
-  return derived();
-}
-#endif
 
 } // end namespace Eigen
 

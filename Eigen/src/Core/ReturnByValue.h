@@ -33,25 +33,18 @@ struct traits<ReturnByValue<Derived> >
   };
 };
 
-#ifndef EIGEN_TEST_EVALUATORS
 /* The ReturnByValue object doesn't even have a coeff() method.
  * So the only way that nesting it in an expression can work, is by evaluating it into a plain matrix.
  * So internal::nested always gives the plain return matrix type.
  *
  * FIXME: I don't understand why we need this specialization: isn't this taken care of by the EvalBeforeNestingBit ??
+ * Answer: EvalBeforeNestingBit should be deprecated since we have the evaluators
  */
-template<typename Derived,int n,typename PlainObject>
-struct nested<ReturnByValue<Derived>, n, PlainObject>
-{
-  typedef typename traits<Derived>::ReturnType type;
-};
-#else
 template<typename Derived,int n,typename PlainObject>
 struct nested_eval<ReturnByValue<Derived>, n, PlainObject>
 {
   typedef typename traits<Derived>::ReturnType type;
 };
-#endif
 
 } // end namespace internal
 
@@ -93,7 +86,6 @@ Derived& DenseBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
   return derived();
 }
 
-#ifdef EIGEN_TEST_EVALUATORS
 namespace internal {
 
 // Expression is evaluated in a temporary; default implementation of Assignment is bypassed so that
@@ -123,7 +115,6 @@ protected:
 };
 
 } // end namespace internal
-#endif
 
 } // end namespace Eigen
 

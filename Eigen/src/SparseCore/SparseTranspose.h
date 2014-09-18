@@ -12,55 +12,6 @@
 
 namespace Eigen { 
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
-  : public SparseMatrixBase<Transpose<MatrixType> >
-{
-    typedef typename internal::remove_all<typename MatrixType::Nested>::type _MatrixTypeNested;
-  public:
-
-    EIGEN_SPARSE_PUBLIC_INTERFACE(Transpose<MatrixType> )
-
-    class InnerIterator;
-    class ReverseInnerIterator;
-
-    inline Index nonZeros() const { return derived().nestedExpression().nonZeros(); }
-};
-
-// NOTE: VC10 trigger an ICE if don't put typename TransposeImpl<MatrixType,Sparse>:: in front of Index,
-// a typedef typename TransposeImpl<MatrixType,Sparse>::Index Index;
-// does not fix the issue.
-// An alternative is to define the nested class in the parent class itself.
-template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::InnerIterator
-  : public _MatrixTypeNested::InnerIterator
-{
-    typedef typename _MatrixTypeNested::InnerIterator Base;
-    typedef typename TransposeImpl::Index Index;
-  public:
-
-    EIGEN_STRONG_INLINE InnerIterator(const TransposeImpl& trans, typename TransposeImpl<MatrixType,Sparse>::Index outer)
-      : Base(trans.derived().nestedExpression(), outer)
-    {}
-    Index row() const { return Base::col(); }
-    Index col() const { return Base::row(); }
-};
-
-template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInnerIterator
-  : public _MatrixTypeNested::ReverseInnerIterator
-{
-    typedef typename _MatrixTypeNested::ReverseInnerIterator Base;
-    typedef typename TransposeImpl::Index Index;
-  public:
-
-    EIGEN_STRONG_INLINE ReverseInnerIterator(const TransposeImpl& xpr, typename TransposeImpl<MatrixType,Sparse>::Index outer)
-      : Base(xpr.derived().nestedExpression(), outer)
-    {}
-    Index row() const { return Base::col(); }
-    Index col() const { return Base::row(); }
-};
-
-#else // EIGEN_TEST_EVALUATORS
-
 // Implement nonZeros() for transpose. I'm not sure that's the best approach for that.
 // Perhaps it should be implemented in Transpose<> itself.
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
@@ -118,8 +69,6 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
 };
 
 } // end namespace internal
-
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

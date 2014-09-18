@@ -49,9 +49,6 @@ struct traits<Homogeneous<MatrixType,Direction> >
     Flags = ColsAtCompileTime==1 ? (TmpFlags & ~RowMajorBit)
           : RowsAtCompileTime==1 ? (TmpFlags | RowMajorBit)
           : TmpFlags
-#ifndef EIGEN_TEST_EVALUATORS
-    , CoeffReadCost = _MatrixTypeNested::CoeffReadCost
-#endif // EIGEN_TEST_EVALUATORS
   };
 };
 
@@ -80,39 +77,6 @@ template<typename MatrixType,int _Direction> class Homogeneous
     
     const NestedExpression& nestedExpression() const { return m_matrix; }
 
-#ifndef EIGEN_TEST_EVALUATORS
-    inline Scalar coeff(Index row, Index col) const
-    {
-      if(  (int(Direction)==Vertical   && row==m_matrix.rows())
-        || (int(Direction)==Horizontal && col==m_matrix.cols()))
-        return 1;
-      return m_matrix.coeff(row, col);
-    }
-
-    template<typename Rhs>
-    inline const internal::homogeneous_right_product_impl<Homogeneous,Rhs>
-    operator* (const MatrixBase<Rhs>& rhs) const
-    {
-      eigen_assert(int(Direction)==Horizontal);
-      return internal::homogeneous_right_product_impl<Homogeneous,Rhs>(m_matrix,rhs.derived());
-    }
-
-    template<typename Lhs> friend
-    inline const internal::homogeneous_left_product_impl<Homogeneous,Lhs>
-    operator* (const MatrixBase<Lhs>& lhs, const Homogeneous& rhs)
-    {
-      eigen_assert(int(Direction)==Vertical);
-      return internal::homogeneous_left_product_impl<Homogeneous,Lhs>(lhs.derived(),rhs.m_matrix);
-    }
-
-    template<typename Scalar, int Dim, int Mode, int Options> friend
-    inline const internal::homogeneous_left_product_impl<Homogeneous,Transform<Scalar,Dim,Mode,Options> >
-    operator* (const Transform<Scalar,Dim,Mode,Options>& lhs, const Homogeneous& rhs)
-    {
-      eigen_assert(int(Direction)==Vertical);
-      return internal::homogeneous_left_product_impl<Homogeneous,Transform<Scalar,Dim,Mode,Options> >(lhs,rhs.m_matrix);
-    }
-#else
     template<typename Rhs>
     inline const Product<Homogeneous,Rhs>
     operator* (const MatrixBase<Rhs>& rhs) const
@@ -136,7 +100,6 @@ template<typename MatrixType,int _Direction> class Homogeneous
       eigen_assert(int(Direction)==Vertical);
       return Product<Transform<Scalar,Dim,Mode,Options>, Homogeneous>(lhs,rhs);
     }
-#endif
 
     template<typename Func>
     EIGEN_STRONG_INLINE typename internal::result_of<Func(Scalar)>::type
@@ -338,8 +301,6 @@ struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   typename Rhs::Nested m_rhs;
 };
 
-#ifdef EIGEN_TEST_EVALUATORS
-
 template<typename ArgType,int Direction>
 struct evaluator_traits<Homogeneous<ArgType,Direction> >
 {
@@ -426,8 +387,6 @@ struct generic_product_impl<Transform<Scalar,Dim,Mode,Options>, Homogeneous<RhsA
     homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, TransformType>(lhs, rhs.nestedExpression()).evalTo(dst);
   }
 };
-
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace internal
 

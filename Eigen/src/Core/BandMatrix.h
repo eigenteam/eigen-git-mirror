@@ -328,8 +328,6 @@ class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,Options&SelfAdjoint
 };
 
 
-#ifdef EIGEN_TEST_EVALUATORS
-
 struct BandShape {};
 
 template<typename _Scalar, int _Rows, int _Cols, int _Supers, int _Subs, int _Options>
@@ -347,8 +345,6 @@ struct evaluator_traits<BandMatrixWrapper<_CoefficientsType,_Rows,_Cols,_Supers,
 };
 
 template<> struct AssignmentKind<DenseShape,BandShape> { typedef EigenBase2EigenBase Kind; };
-#endif
-
 
 } // end namespace internal
 

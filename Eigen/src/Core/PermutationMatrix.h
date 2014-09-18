@@ -61,9 +61,6 @@ class PermutationBase : public EigenBase<Derived>
     typedef typename Traits::IndicesType IndicesType;
     enum {
       Flags = Traits::Flags,
-#ifndef EIGEN_TEST_EVALUATORS
-      CoeffReadCost = Traits::CoeffReadCost,
-#endif
       RowsAtCompileTime = Traits::RowsAtCompileTime,
       ColsAtCompileTime = Traits::ColsAtCompileTime,
       MaxRowsAtCompileTime = Traits::MaxRowsAtCompileTime,
@@ -291,9 +288,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     typedef internal::traits<PermutationMatrix> Traits;
   public:
 
-#ifdef EIGEN_TEST_EVALUATORS
     typedef const PermutationMatrix& Nested;
-#endif
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef typename Traits::IndicesType IndicesType;
@@ -484,18 +479,9 @@ struct traits<PermutationWrapper<_IndicesType> >
   enum {
     RowsAtCompileTime = _IndicesType::SizeAtCompileTime,
     ColsAtCompileTime = _IndicesType::SizeAtCompileTime,
-#ifdef EIGEN_TEST_EVALUATORS 
     MaxRowsAtCompileTime = IndicesType::MaxSizeAtCompileTime,
     MaxColsAtCompileTime = IndicesType::MaxSizeAtCompileTime,
-#else
-    MaxRowsAtCompileTime = IndicesType::MaxRowsAtCompileTime, // is this a bug in Eigen 2.2 ?
-    MaxColsAtCompileTime = IndicesType::MaxColsAtCompileTime,
-#endif
     Flags = 0
-#ifndef EIGEN_TEST_EVALUATORS
-    ,
-    CoeffReadCost = _IndicesType::CoeffReadCost
-#endif
   };
 };
 }
@@ -524,7 +510,6 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesTyp
     typename IndicesType::Nested m_indices;
 };
 
-#ifdef EIGEN_TEST_EVALUATORS
 
 // TODO: Do we need to define these operator* functions? Would it be better to have them inherited
 // from MatrixBase?
@@ -552,35 +537,6 @@ operator*(const PermutationBase<PermutationDerived> &permutation,
   return Product<PermutationDerived, MatrixDerived, DefaultProduct>
             (permutation.derived(), matrix.derived());
 }
-
-#else // EIGEN_TEST_EVALUATORS
-
-/** \returns the matrix with the permutation applied to the columns.
-  */
-template<typename Derived, typename PermutationDerived>
-inline const internal::permut_matrix_product_retval<PermutationDerived, Derived, OnTheRight>
-operator*(const MatrixBase<Derived>& matrix,
-          const PermutationBase<PermutationDerived> &permutation)
-{
-  return internal::permut_matrix_product_retval
-           <PermutationDerived, Derived, OnTheRight>
-           (permutation.derived(), matrix.derived());
-}
-
-/** \returns the matrix with the permutation applied to the rows.
-  */
-template<typename Derived, typename PermutationDerived>
-inline const internal::permut_matrix_product_retval
-               <PermutationDerived, Derived, OnTheLeft>
-operator*(const PermutationBase<PermutationDerived> &permutation,
-          const MatrixBase<Derived>& matrix)
-{
-  return internal::permut_matrix_product_retval
-           <PermutationDerived, Derived, OnTheLeft>
-           (permutation.derived(), matrix.derived());
-}
-
-#endif // EIGEN_TEST_EVALUATORS
 
 namespace internal {
 
@@ -682,9 +638,6 @@ class Transpose<PermutationBase<Derived> >
     typedef typename Derived::DenseMatrixType DenseMatrixType;
     enum {
       Flags = Traits::Flags,
-#ifndef EIGEN_TEST_EVALUATORS
-      CoeffReadCost = Traits::CoeffReadCost,
-#endif
       RowsAtCompileTime = Traits::RowsAtCompileTime,
       ColsAtCompileTime = Traits::ColsAtCompileTime,
       MaxRowsAtCompileTime = Traits::MaxRowsAtCompileTime,
@@ -713,8 +666,6 @@ class Transpose<PermutationBase<Derived> >
 
     DenseMatrixType toDenseMatrix() const { return *this; }
 
-#ifdef EIGEN_TEST_EVALUATORS
-
     /** \returns the matrix with the inverse permutation applied to the columns.
       */
     template<typename OtherDerived> friend
@@ -733,28 +684,6 @@ class Transpose<PermutationBase<Derived> >
       return Product<Transpose, OtherDerived, DefaultProduct>(*this, matrix.derived());
     }
 
-#else // EIGEN_TEST_EVALUATORS
-
-    /** \returns the matrix with the inverse permutation applied to the columns.
-      */
-    template<typename OtherDerived> friend
-    inline const internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheRight, true>
-    operator*(const MatrixBase<OtherDerived>& matrix, const Transpose& trPerm)
-    {
-      return internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheRight, true>(trPerm.m_permutation, matrix.derived());
-    }
-
-    /** \returns the matrix with the inverse permutation applied to the rows.
-      */
-    template<typename OtherDerived>
-    inline const internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheLeft, true>
-    operator*(const MatrixBase<OtherDerived>& matrix) const
-    {
-      return internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheLeft, true>(m_permutation, matrix.derived());
-    }
-
-#endif // EIGEN_TEST_EVALUATORS
-
     const PermutationType& nestedPermutation() const { return m_permutation; }
 
   protected:
@@ -767,7 +696,6 @@ const PermutationWrapper<const Derived> MatrixBase<Derived>::asPermutation() con
   return derived();
 }
 
-#ifdef EIGEN_TEST_EVALUATORS
 namespace internal {
   
 // TODO currently a permutation matrix expression has the form PermutationMatrix or PermutationWrapper
@@ -799,7 +727,6 @@ struct evaluator_traits<Transpose<PermutationBase<Derived> > >
 template<> struct AssignmentKind<DenseShape,PermutationShape> { typedef EigenBase2EigenBase Kind; };
 
 } // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

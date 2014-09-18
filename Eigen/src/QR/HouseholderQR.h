@@ -117,7 +117,6 @@ template<typename _MatrixType> class HouseholderQR
       * Example: \include HouseholderQR_solve.cpp
       * Output: \verbinclude HouseholderQR_solve.out
       */
-#ifdef EIGEN_TEST_EVALUATORS
     template<typename Rhs>
     inline const Solve<HouseholderQR, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -125,15 +124,6 @@ template<typename _MatrixType> class HouseholderQR
       eigen_assert(m_isInitialized && "HouseholderQR is not initialized.");
       return Solve<HouseholderQR, Rhs>(*this, b.derived());
     }
-#else
-    template<typename Rhs>
-    inline const internal::solve_retval<HouseholderQR, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "HouseholderQR is not initialized.");
-      return internal::solve_retval<HouseholderQR, Rhs>(*this, b.derived());
-    }
-#endif
 
     /** This method returns an expression of the unitary matrix Q as a sequence of Householder transformations.
       *
@@ -350,24 +340,6 @@ void HouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) c
   dst.bottomRows(cols()-rank).setZero();
 }
 #endif
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<HouseholderQR<_MatrixType>, Rhs>
-  : solve_retval_base<HouseholderQR<_MatrixType>, Rhs>
-{
-  EIGEN_MAKE_SOLVE_HELPERS(HouseholderQR<_MatrixType>,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(), dst);
-  }
-};
-
-} // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 /** Performs the QR factorization of the given matrix \a matrix. The result of
   * the factorization is stored into \c *this, and a reference to \c *this

@@ -44,14 +44,7 @@ struct traits<CwiseUnaryOp<UnaryOp, XprType> >
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
   enum {
-#ifndef EIGEN_TEST_EVALUATORS
-    Flags = _XprTypeNested::Flags & (
-      HereditaryBits | LinearAccessBit | AlignedBit
-      | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)),
-    CoeffReadCost = _XprTypeNested::CoeffReadCost + functor_traits<UnaryOp>::Cost
-#else
     Flags = _XprTypeNested::Flags & RowMajorBit 
-#endif
   };
 };
 }
@@ -97,45 +90,6 @@ class CwiseUnaryOp : internal::no_assignment_operator,
     const UnaryOp m_functor;
 };
 
-#ifndef EIGEN_TEST_EVALUATORS
-// This is the generic implementation for dense storage.
-// It can be used for any expression types implementing the dense concept.
-template<typename UnaryOp, typename XprType>
-class CwiseUnaryOpImpl<UnaryOp,XprType,Dense>
-  : public internal::dense_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type
-{
-  public:
-
-    typedef CwiseUnaryOp<UnaryOp, XprType> Derived;
-    typedef typename internal::dense_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
-    
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar coeff(Index rowId, Index colId) const
-    {
-      return derived().functor()(derived().nestedExpression().coeff(rowId, colId));
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(Index rowId, Index colId) const
-    {
-      return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(rowId, colId));
-    }
-
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
-    {
-      return derived().functor()(derived().nestedExpression().coeff(index));
-    }
-
-    template<int LoadMode>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
-    {
-      return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(index));
-    }
-};
-#else // EIGEN_TEST_EVALUATORS
 // Generic API dispatcher
 template<typename UnaryOp, typename XprType, typename StorageKind>
 class CwiseUnaryOpImpl
@@ -144,7 +98,6 @@ class CwiseUnaryOpImpl
 public:
   typedef typename internal::generic_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type Base;
 };
-#endif // EIGEN_TEST_EVALUATORS
 
 } // end namespace Eigen
 

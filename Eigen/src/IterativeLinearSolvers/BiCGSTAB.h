@@ -182,24 +182,6 @@ public:
 
   ~BiCGSTAB() {}
 
-#ifndef EIGEN_TEST_EVALUATORS
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
-    * \a x0 as an initial solution.
-    *
-    * \sa compute()
-    */
-  template<typename Rhs,typename Guess>
-  inline const internal::solve_retval_with_guess<BiCGSTAB, Rhs, Guess>
-  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
-  {
-    eigen_assert(m_isInitialized && "BiCGSTAB is not initialized.");
-    eigen_assert(Base::rows()==b.rows()
-              && "BiCGSTAB::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::solve_retval_with_guess
-            <BiCGSTAB, Rhs, Guess>(*this, b.derived(), x0);
-  }
-#endif
-
   /** \internal */
   template<typename Rhs,typename Dest>
   void _solve_with_guess_impl(const Rhs& b, Dest& x) const
@@ -233,25 +215,6 @@ public:
 protected:
 
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-
-template<typename _MatrixType, typename _Preconditioner, typename Rhs>
-struct solve_retval<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
-  : solve_retval_base<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
-{
-  typedef BiCGSTAB<_MatrixType, _Preconditioner> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-
-} // end namespace internal
-#endif
 
 } // end namespace Eigen
 

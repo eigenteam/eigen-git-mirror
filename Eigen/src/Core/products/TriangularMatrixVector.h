@@ -157,61 +157,11 @@ EIGEN_DONT_INLINE void triangular_matrix_vector_product<Index,Mode,LhsScalar,Con
 * Wrapper to product_triangular_vector
 ***************************************************************************/
 
-#ifndef EIGEN_TEST_EVALUATORS
-
-template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
-struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,true> >
- : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,true>, Lhs, Rhs> >
-{};
-
-template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
-struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,true,Rhs,false> >
- : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,true,Rhs,false>, Lhs, Rhs> >
-{};
-#endif
-
 template<int Mode,int StorageOrder>
 struct trmv_selector;
 
 } // end namespace internal
 
-#ifndef EIGEN_TEST_EVALUATORS
-template<int Mode, typename Lhs, typename Rhs>
-struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
-  : public ProductBase<TriangularProduct<Mode,true,Lhs,false,Rhs,true>, Lhs, Rhs >
-{
-  EIGEN_PRODUCT_PUBLIC_INTERFACE(TriangularProduct)
-
-  TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
-
-  template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
-  {
-    eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
-  
-    internal::trmv_selector<Mode,(int(internal::traits<Lhs>::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(m_lhs, m_rhs, dst, alpha);
-  }
-};
-
-template<int Mode, typename Lhs, typename Rhs>
-struct TriangularProduct<Mode,false,Lhs,true,Rhs,false>
-  : public ProductBase<TriangularProduct<Mode,false,Lhs,true,Rhs,false>, Lhs, Rhs >
-{
-  EIGEN_PRODUCT_PUBLIC_INTERFACE(TriangularProduct)
-
-  TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
-
-  template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
-  {
-    eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
-
-    Transpose<Dest> dstT(dst);
-    internal::trmv_selector<(Mode & (UnitDiag|ZeroDiag)) | ((Mode & Lower) ? Upper : Lower),
-                            (int(internal::traits<Rhs>::Flags)&RowMajorBit) ? ColMajor : RowMajor>
-            ::run(m_rhs.transpose(),m_lhs.transpose(), dstT, alpha);
-  }
-};
-
-#else // EIGEN_TEST_EVALUATORS
 namespace internal {
 
 template<int Mode, typename Lhs, typename Rhs>
@@ -240,7 +190,6 @@ struct triangular_product_impl<Mode,false,Lhs,true,Rhs,false>
 };
 
 } // end namespace internal
-#endif // EIGEN_TEST_EVALUATORS
 
 namespace internal {
 

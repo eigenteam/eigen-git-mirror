@@ -87,16 +87,6 @@ class DiagonalPreconditioner
       x = m_invdiag.array() * b.array() ;
     }
 
-#ifndef EIGEN_TEST_EVALUATORS
-    template<typename Rhs> inline const internal::solve_retval<DiagonalPreconditioner, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "DiagonalPreconditioner is not initialized.");
-      eigen_assert(m_invdiag.size()==b.rows()
-                && "DiagonalPreconditioner::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<DiagonalPreconditioner, Rhs>(*this, b.derived());
-    }
-#else
     template<typename Rhs> inline const Solve<DiagonalPreconditioner, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
@@ -105,31 +95,12 @@ class DiagonalPreconditioner
                 && "DiagonalPreconditioner::solve(): invalid number of rows of the right hand side matrix b");
       return Solve<DiagonalPreconditioner, Rhs>(*this, b.derived());
     }
-#endif
 
   protected:
     Vector m_invdiag;
     bool m_isInitialized;
 };
 
-#ifndef EIGEN_TEST_EVALUATORS
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<DiagonalPreconditioner<_MatrixType>, Rhs>
-  : solve_retval_base<DiagonalPreconditioner<_MatrixType>, Rhs>
-{
-  typedef DiagonalPreconditioner<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve_impl(rhs(),dst);
-  }
-};
-
-}
-#endif // EIGEN_TEST_EVALUATORS
 
 /** \ingroup IterativeLinearSolvers_Module
   * \brief A naive preconditioner which approximates any matrix as the identity matrix

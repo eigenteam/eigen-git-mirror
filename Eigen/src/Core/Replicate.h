@@ -54,13 +54,8 @@ struct traits<Replicate<MatrixType,RowFactor,ColFactor> >
                : MaxColsAtCompileTime==1 && MaxRowsAtCompileTime!=1 ? 0
                : (MatrixType::Flags & RowMajorBit) ? 1 : 0,
     
-#ifndef EIGEN_TEST_EVALUATORS
-    Flags = (_MatrixTypeNested::Flags & HereditaryBits & ~RowMajorBit) | (IsRowMajor ? RowMajorBit : 0),
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
-#else
     // FIXME enable DirectAccess with negative strides?
     Flags = IsRowMajor ? RowMajorBit : 0
-#endif
   };
 };
 }

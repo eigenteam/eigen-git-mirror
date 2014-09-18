@@ -40,10 +40,6 @@ public:
              RealScalar m_epsilon = NumTraits<Scalar>::dummy_precision()) : 
     m_matrix(mat), m_reference(m_reference), m_epsilon(m_epsilon) {}
 
-#ifndef EIGEN_TEST_EVALUATORS
-  class InnerIterator;
-#endif // EIGEN_TEST_EVALUATORS
-
   inline Index rows() const { return m_matrix.rows(); }
   inline Index cols() const { return m_matrix.cols(); }
 
@@ -62,43 +58,6 @@ protected:
   Scalar m_reference;
   RealScalar m_epsilon;
 };
-
-#ifndef EIGEN_TEST_EVALUATORS
-template<typename MatrixType>
-class SparseView<MatrixType>::InnerIterator : public _MatrixTypeNested::InnerIterator
-{
-  typedef typename SparseView::Index Index;
-public:
-  typedef typename _MatrixTypeNested::InnerIterator IterBase;
-  InnerIterator(const SparseView& view, Index outer) :
-  IterBase(view.m_matrix, outer), m_view(view)
-  {
-    incrementToNonZero();
-  }
-
-  EIGEN_STRONG_INLINE InnerIterator& operator++()
-  {
-    IterBase::operator++();
-    incrementToNonZero();
-    return *this;
-  }
-
-  using IterBase::value;
-
-protected:
-  const SparseView& m_view;
-
-private:
-  void incrementToNonZero()
-  {
-    while((bool(*this)) && internal::isMuchSmallerThan(value(), m_view.reference(), m_view.epsilon()))
-    {
-      IterBase::operator++();
-    }
-  }
-};
-
-#else // EIGEN_TEST_EVALUATORS
 
 namespace internal {
 
@@ -229,8 +188,6 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
 };
 
 } // end namespace internal
-
-#endif // EIGEN_TEST_EVALUATORS
 
 template<typename Derived>
 const SparseView<Derived> MatrixBase<Derived>::sparseView(const Scalar& reference,
