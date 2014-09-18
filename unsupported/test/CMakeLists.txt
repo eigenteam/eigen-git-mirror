@@ -36,11 +36,11 @@ if (NOT CMAKE_CXX_COMPILER MATCHES "clang\\+\\+$")
 ei_add_test(BVH)
 endif()
 
-# TODO ei_add_test(matrix_exponential)
-# TODO ei_add_test(matrix_function)
-# TODO ei_add_test(matrix_power)
-# TODO ei_add_test(matrix_square_root)
-# TODO ei_add_test(alignedvector3)
+ei_add_test(matrix_exponential)
+ei_add_test(matrix_function)
+ei_add_test(matrix_power)
+ei_add_test(matrix_square_root)
+ei_add_test(alignedvector3)
 
 ei_add_test(FFT)
 

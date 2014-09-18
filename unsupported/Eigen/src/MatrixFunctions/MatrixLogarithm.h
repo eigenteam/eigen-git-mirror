@@ -310,7 +310,7 @@ public:
   typedef typename Derived::Index Index;
 
 protected:
-  typedef typename internal::nested<Derived, 10>::type DerivedNested;
+  typedef typename internal::nested<Derived>::type DerivedNested;
 
 public:
 
@@ -327,17 +327,18 @@ public:
   template <typename ResultType>
   inline void evalTo(ResultType& result) const
   {
-    typedef typename internal::remove_all<DerivedNested>::type DerivedNestedClean;
-    typedef internal::traits<DerivedNestedClean> Traits;
+    typedef typename internal::nested_eval<Derived, 10>::type DerivedEvalType;
+    typedef typename internal::remove_all<DerivedEvalType>::type DerivedEvalTypeClean;
+    typedef internal::traits<DerivedEvalTypeClean> Traits;
     static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
     static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
-    static const int Options = DerivedNestedClean::Options;
+    static const int Options = DerivedEvalTypeClean::Options;
     typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
     typedef Matrix<ComplexScalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
     typedef internal::MatrixLogarithmAtomic<DynMatrixType> AtomicType;
     AtomicType atomic;
     
-    internal::matrix_function_compute<DerivedNestedClean>::run(m_A, atomic, result);
+    internal::matrix_function_compute<DerivedEvalTypeClean>::run(m_A, atomic, result);
   }
 
   Index rows() const { return m_A.rows(); }
