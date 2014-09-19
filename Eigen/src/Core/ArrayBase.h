@@ -122,6 +122,12 @@ template<typename Derived> class ArrayBase
     {
       internal::call_assignment(derived(), other.derived());
     }
+    
+    /** Set all the entries to \a value.
+      * \sa DenseBase::setConstant(), DenseBase::fill() */
+    EIGEN_DEVICE_FUNC
+    Derived& operator=(const Scalar &value)
+    { Base::setConstant(value); return derived(); }
 
     EIGEN_DEVICE_FUNC
     Derived& operator+=(const Scalar& scalar);

@@ -700,9 +700,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[1] = Scalar(val1);
     }
 
+    // The argument is convertible to the Index type and we either have a non 1x1 Matrix, or a dynamic-sized Array,
+    // then the argument is meant to be the size of the object.
     template<typename T>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<Base::SizeAtCompileTime!=1 || !internal::is_convertible<T, Scalar>::value,T>::type* = 0)
+    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<    (Base::SizeAtCompileTime!=1 || !internal::is_convertible<T, Scalar>::value)
+                                                                              && ((!internal::is_same<typename internal::traits<Derived>::XprKind,ArrayXpr>::value || Base::SizeAtCompileTime==Dynamic)),T>::type* = 0)
     {
       // NOTE MSVC 2008 complains if we directly put bool(NumTraits<T>::IsInteger) as the EIGEN_STATIC_ASSERT argument.
       const bool is_integer = NumTraits<T>::IsInteger;
@@ -710,6 +713,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
       resize(size);
     }
+    
+    // We have a 1x1 matrix/array => the argument is interpreted as the value of the unique coefficient (case where scalar type can be implicitely converted)
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Scalar& val0, typename internal::enable_if<Base::SizeAtCompileTime==1 && internal::is_convertible<T, Scalar>::value,T>::type* = 0)
@@ -718,6 +723,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[0] = val0;
     }
     
+    // We have a 1x1 matrix/array => the argument is interpreted as the value of the unique coefficient (case where scalar type match the index type)
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Index& val0,
@@ -730,18 +736,21 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[0] = Scalar(val0);
     }
 
+    // Initialize a fixed size matrix from a pointer to raw data
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Scalar* data){
       this->_set_noalias(ConstMapType(data));
     }
 
+    // Initialize an arbitrary matrix from a dense expression
     template<typename T, typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const DenseBase<OtherDerived>& other){
       this->_set_noalias(other);
     }
 
+    // Initialize an arbitrary matrix from a generic Eigen expression
     template<typename T, typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const EigenBase<OtherDerived>& other){
@@ -761,6 +770,31 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE void _init1(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
     {
       this->derived() = r;
+    }
+    
+    // For fixed -size arrays:
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Scalar& val0,
+                                    typename internal::enable_if<    Base::SizeAtCompileTime!=Dynamic
+                                                                  && Base::SizeAtCompileTime!=1
+                                                                  && internal::is_convertible<T, Scalar>::value
+                                                                  && internal::is_same<typename internal::traits<Derived>::XprKind,ArrayXpr>::value,T>::type* = 0)
+    {
+      Base::setConstant(val0);
+    }
+    
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Index& val0,
+                                    typename internal::enable_if<    (!internal::is_same<Index,Scalar>::value)
+                                                                  && (internal::is_same<Index,T>::value)
+                                                                  && Base::SizeAtCompileTime!=Dynamic
+                                                                  && Base::SizeAtCompileTime!=1
+                                                                  && internal::is_convertible<T, Scalar>::value
+                                                                  && internal::is_same<typename internal::traits<Derived>::XprKind,ArrayXpr>::value,T*>::type* = 0)
+    {
+      Base::setConstant(val0);
     }
 
     template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>
