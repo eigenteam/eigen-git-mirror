@@ -887,6 +887,11 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
     const Index m_outer;
     Index m_id;
     Index m_end;
+  private:
+    // If you get here, then you're not using the right InnerIterator type, e.g.:
+    //   SparseMatrix<double,RowMajor> A;
+    //   SparseMatrix<double>::InnerIterator it(A,0);
+    template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer);
 };
 
 template<typename Scalar, int _Options, typename _Index>
