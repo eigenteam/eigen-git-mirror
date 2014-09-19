@@ -282,9 +282,11 @@ template <typename MatrixType, typename OrderingType>
 void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
 {
   eigen_assert(mat.isCompressed() && "SparseQR requires a sparse matrix in compressed mode. Call .makeCompressed() before passing it to SparseQR");
+  // Copy to a column major matrix if the input is rowmajor
+  typename internal::conditional<MatrixType::IsRowMajor,QRMatrixType,const MatrixType&>::type matCpy(mat);
   // Compute the column fill reducing ordering
   OrderingType ord; 
-  ord(mat, m_perm_c); 
+  ord(matCpy, m_perm_c); 
   Index n = mat.cols();
   Index m = mat.rows();
   Index diagSize = (std::min)(m,n);
@@ -297,7 +299,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
   
   // Compute the column elimination tree of the permuted matrix
   m_outputPerm_c = m_perm_c.inverse();
-  internal::coletree(mat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
+  internal::coletree(matCpy, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
   m_isEtreeOk = true;
   
   m_R.resize(m, n);
@@ -335,21 +337,35 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   
   m_R.setZero();
   m_Q.setZero();
+  m_pmat = mat;
   if(!m_isEtreeOk)
   {
     m_outputPerm_c = m_perm_c.inverse();
-    internal::coletree(mat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
+    internal::coletree(m_pmat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
     m_isEtreeOk = true;
   }
-    
-  m_pmat = mat;
+
   m_pmat.uncompress(); // To have the innerNonZeroPtr allocated
+  
   // Apply the fill-in reducing permutation lazily:
-  for (int i = 0; i < n; i++)
   {
-    Index p = m_perm_c.size() ? m_perm_c.indices()(i) : i;
-    m_pmat.outerIndexPtr()[p] = mat.outerIndexPtr()[i]; 
-    m_pmat.innerNonZeroPtr()[p] = mat.outerIndexPtr()[i+1] - mat.outerIndexPtr()[i]; 
+    // If the input is row major, copy the original column indices,
+    // otherwise directly use the input matrix
+    // 
+    IndexVector originalOuterIndicesCpy;
+    const Index *originalOuterIndices = mat.outerIndexPtr();
+    if(MatrixType::IsRowMajor)
+    {
+      originalOuterIndicesCpy = IndexVector::Map(m_pmat.outerIndexPtr(),n+1);
+      originalOuterIndices = originalOuterIndicesCpy.data();
+    }
+    
+    for (int i = 0; i < n; i++)
+    {
+      Index p = m_perm_c.size() ? m_perm_c.indices()(i) : i;
+      m_pmat.outerIndexPtr()[p] = originalOuterIndices[i]; 
+      m_pmat.innerNonZeroPtr()[p] = originalOuterIndices[i+1] - originalOuterIndices[i]; 
+    }
   }
   
   /* Compute the default threshold as in MatLab, see:
@@ -384,7 +400,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
     // all the nodes (with indexes lower than rank) reachable through the column elimination tree (etree) rooted at node k.
     // Note: if the diagonal entry does not exist, then its contribution must be explicitly added,
     // thus the trick with found_diag that permits to do one more iteration on the diagonal element if this one has not been found.
-    for (typename MatrixType::InnerIterator itp(m_pmat, col); itp || !found_diag; ++itp)
+    for (typename QRMatrixType::InnerIterator itp(m_pmat, col); itp || !found_diag; ++itp)
     {
       Index curIdx = nonzeroCol;
       if(itp) curIdx = itp.row();
@@ -543,7 +559,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   if(nonzeroCol<n)
   {
     // Permute the triangular factor to put the 'dead' columns to the end
-    MatrixType tempR(m_R);
+    QRMatrixType tempR(m_R);
     m_R = tempR * m_pivotperm;
     
     // Update the column permutation
