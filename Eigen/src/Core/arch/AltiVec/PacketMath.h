@@ -62,21 +62,6 @@ typedef __vector unsigned char  Packet16uc;
 #define DST_CHAN 1
 #define DST_CTRL(size, count, stride) (((size) << 24) | ((count) << 16) | (stride))
 
-// Handle endianness properly while loading constants
-// Define global static constants:
-#ifdef _BIG_ENDIAN
-static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
-static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
-static Packet16uc p16uc_REVERSE = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
-static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0); //{ 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15}
-static Packet16uc p16uc_DUPLICATE = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7};
-#else
-static Packet4f p4f_COUNTDOWN = { 3.0, 2.0, 1.0, 0.0 };
-static Packet4i p4i_COUNTDOWN = { 3, 2, 1, 0 };
-static Packet16uc p16uc_REVERSE = { 0,1,2,3, 4,5,6,7, 8,9,10,11, 12,13,14,15 };
-static Packet16uc p16uc_FORWARD = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3}; 
-static Packet16uc p16uc_DUPLICATE = { 4,5,6,7, 4,5,6,7, 0,1,2,3, 0,1,2,3 };
-#endif // _BIG_ENDIAN
 
 // These constants are endian-agnostic
 static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
@@ -86,6 +71,40 @@ static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16); //{ -16, -16, -16, -16}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
 static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0); //{ 1.0, 1.0, 1.0, 1.0}
 static Packet4f p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1); //{ 0x80000000, 0x80000000, 0x80000000, 0x80000000}
+
+static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
+static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
+
+static Packet16uc p16uc_REVERSE32 = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3 };
+static Packet16uc p16uc_REVERSE64 = { 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
+static Packet16uc p16uc_DUPLICATE32_HI = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7 };
+
+// Handle endianness properly while loading constants
+// Define global static constants:
+#ifdef _BIG_ENDIAN
+static Packet16uc p16uc_PSET32_WODD   = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 2), 8);//{ 0,1,2,3, 0,1,2,3, 8,9,10,11, 8,9,10,11 };
+static Packet16uc p16uc_PSET32_WEVEN  = vec_sld(p16uc_DUPLICATE32_HI, (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
+static Packet16uc p16uc_HALF64_0_16 = vec_sld((Packet16uc)p4i_ZERO, vec_splat((Packet16uc) vec_abs(p4i_MINUS16), 3), 8);      //{ 0,0,0,0, 0,0,0,0, 16,16,16,16, 16,16,16,16};
+#else
+// Mask alignment
+#define _EIGEN_MASK_ALIGNMENT	0xfffffffffffffff0
+#define _EIGEN_ALIGNED_PTR(x)	((ptrdiff_t)(x) & _EIGEN_MASK_ALIGNMENT)
+
+static Packet16uc p16uc_FORWARD = p16uc_REVERSE32; 
+static Packet16uc p16uc_PSET32_WODD = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 1), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 0,1,2,3, 0,1,2,3, 8,9,10,11, 8,9,10,11 };
+static Packet16uc p16uc_PSET32_WEVEN = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 2), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
+static Packet16uc p16uc_HALF64_0_16 = vec_sld(vec_splat((Packet16uc) vec_abs(p4i_MINUS16), 0), (Packet16uc)p4i_ZERO, 8);      //{ 0,0,0,0, 0,0,0,0, 16,16,16,16, 16,16,16,16};
+
+#endif // _BIG_ENDIAN
+
+static Packet16uc p16uc_PSET64_HI = (Packet16uc) vec_mergeh((Packet4ui)p16uc_PSET32_WODD, (Packet4ui)p16uc_PSET32_WEVEN);     //{ 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 };
+static Packet16uc p16uc_PSET64_LO = (Packet16uc) vec_mergel((Packet4ui)p16uc_PSET32_WODD, (Packet4ui)p16uc_PSET32_WEVEN);     //{ 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 };
+
+static Packet16uc p16uc_COMPLEX32_REV = vec_sld(p16uc_REVERSE32, p16uc_REVERSE32, 8);                                         //{ 4,5,6,7, 0,1,2,3, 12,13,14,15, 8,9,10,11 };
+static Packet16uc p16uc_COMPLEX32_REV2 = vec_sld(p16uc_FORWARD, p16uc_FORWARD, 8);                                              //{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
+
+static Packet16uc p16uc_TRANSPOSE64_HI = vec_add(p16uc_PSET64_HI, p16uc_HALF64_0_16);                                         //{ 0,1,2,3, 4,5,6,7, 16,17,18,19, 20,21,22,23};
+static Packet16uc p16uc_TRANSPOSE64_LO = vec_add(p16uc_PSET64_LO, p16uc_HALF64_0_16);                                         //{ 8,9,10,11, 12,13,14,15, 24,25,26,27, 28,29,30,31};
 
 template<> struct packet_traits<float>  : default_packet_traits
 {
@@ -121,7 +140,19 @@ template<> struct packet_traits<int>    : default_packet_traits
 
 template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; typedef Packet4f half; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; typedef Packet4i half; };
-/*
+
+inline std::ostream & operator <<(std::ostream & s, const Packet16uc & v)
+{
+  union {
+    Packet16uc   v;
+    unsigned char n[16];
+  } vt;
+  vt.v = v;
+  for (int i=0; i< 16; i++)
+    s << (int)vt.n[i] << ", ";
+  return s;
+}
+
 inline std::ostream & operator <<(std::ostream & s, const Packet4f & v)
 {
   union {
@@ -154,7 +185,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet4ui & v)
   s << vt.n[0] << ", " << vt.n[1] << ", " << vt.n[2] << ", " << vt.n[3];
   return s;
 }
-
+/*
 inline std::ostream & operator <<(std::ostream & s, const Packetbi & v)
 {
   union {
@@ -164,8 +195,8 @@ inline std::ostream & operator <<(std::ostream & s, const Packetbi & v)
   vt.v = v;
   s << vt.n[0] << ", " << vt.n[1] << ", " << vt.n[2] << ", " << vt.n[3];
   return s;
-}
-*/
+}*/
+
 
 // Need to define them first or we get specialization after instantiation errors
 template<> EIGEN_STRONG_INLINE Packet4f pload<Packet4f>(const float* from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
@@ -370,12 +401,12 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
-  return (Packet4i) vec_vsx_ld((long)from & 15, from);      // align the data
+  return (Packet4i) vec_vsx_ld((long)from & 15, (const int*) _EIGEN_ALIGNED_PTR(from));
 }
 template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
-  return (Packet4f) vec_vsx_ld((long)from & 15, from);      // align the data
+  return (Packet4f) vec_vsx_ld((long)from & 15, (const float*) _EIGEN_ALIGNED_PTR(from));
 }
 #endif
 
@@ -384,16 +415,17 @@ template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
   Packet4f p;
   if((ptrdiff_t(from) % 16) == 0)  p = pload<Packet4f>(from);
   else                             p = ploadu<Packet4f>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE);
+  return vec_perm(p, p, p16uc_DUPLICATE32_HI);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ploaddup<Packet4i>(const int*     from)
 {
   Packet4i p;
   if((ptrdiff_t(from) % 16) == 0)  p = pload<Packet4i>(from);
   else                             p = ploadu<Packet4i>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE);
+  return vec_perm(p, p, p16uc_DUPLICATE32_HI);
 }
 
+#ifdef _BIG_ENDIAN
 template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*  to, const Packet4f& from)
 {
   EIGEN_DEBUG_UNALIGNED_STORE
@@ -430,6 +462,19 @@ template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*      to, const Packet4i& f
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
 }
+#else
+// We also need ot redefine little endian loading of Packet4i/Packet4f using VSX
+template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*       to, const Packet4i& from)
+{
+  EIGEN_DEBUG_ALIGNED_STORE
+  vec_vsx_st(from, (long)to & 15, (int*) _EIGEN_ALIGNED_PTR(to));
+}
+template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*   to, const Packet4f& from)
+{
+  EIGEN_DEBUG_ALIGNED_STORE
+  vec_vsx_st(from, (long)to & 15, (float*) _EIGEN_ALIGNED_PTR(to));
+}
+#endif
 
 template<> EIGEN_STRONG_INLINE void prefetch<float>(const float* addr) { vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN); }
 template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*     addr) { vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN); }
@@ -437,8 +482,8 @@ template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*     addr) { vec_dst
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
 template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int   EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
 
-template<> EIGEN_STRONG_INLINE Packet4f preverse(const Packet4f& a) { return (Packet4f)vec_perm((Packet16uc)a,(Packet16uc)a, p16uc_REVERSE); }
-template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a) { return (Packet4i)vec_perm((Packet16uc)a,(Packet16uc)a, p16uc_REVERSE); }
+template<> EIGEN_STRONG_INLINE Packet4f preverse(const Packet4f& a) { return (Packet4f)vec_perm((Packet16uc)a,(Packet16uc)a, p16uc_REVERSE32); }
+template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a) { return (Packet4i)vec_perm((Packet16uc)a,(Packet16uc)a, p16uc_REVERSE32); }
 
 template<> EIGEN_STRONG_INLINE Packet4f pabs(const Packet4f& a) { return vec_abs(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a) { return vec_abs(a); }
@@ -485,7 +530,11 @@ template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
 {
   Packet4i sum;
   sum = vec_sums(a, p4i_ZERO);
+#ifdef _BIG_ENDIAN
   sum = vec_sld(sum, p4i_ZERO, 12);
+#else
+  sum = vec_sld(p4i_ZERO, sum, 4);
+#endif
   return pfirst(sum);
 }
 
@@ -572,8 +621,25 @@ struct palign_impl<Offset,Packet4f>
 {
   static EIGEN_STRONG_INLINE void run(Packet4f& first, const Packet4f& second)
   {
-    if (Offset!=0)
-      first = vec_sld(first, second, Offset*4);
+#ifdef _BIG_ENDIAN
+    switch (Offset % 4) {
+    case 1:
+      first = vec_sld(first, second, 4); break;
+    case 2:
+      first = vec_sld(first, second, 8); break;
+    case 3:
+      first = vec_sld(first, second, 12); break;
+    }
+#else
+    switch (Offset % 4) {
+    case 1:
+      first = vec_sld(second, first, 12); break;
+    case 2:
+      first = vec_sld(second, first, 8); break;
+    case 3:
+      first = vec_sld(second, first, 4); break;
+    }
+#endif
   }
 };
 
@@ -582,8 +648,25 @@ struct palign_impl<Offset,Packet4i>
 {
   static EIGEN_STRONG_INLINE void run(Packet4i& first, const Packet4i& second)
   {
-    if (Offset!=0)
-      first = vec_sld(first, second, Offset*4);
+#ifdef _BIG_ENDIAN
+    switch (Offset % 4) {
+    case 1:
+      first = vec_sld(first, second, 4); break;
+    case 2:
+      first = vec_sld(first, second, 8); break;
+    case 3:
+      first = vec_sld(first, second, 12); break;
+    }
+#else
+    switch (Offset % 4) {
+    case 1:
+      first = vec_sld(second, first, 12); break;
+    case 2:
+      first = vec_sld(second, first, 8); break;
+    case 3:
+      first = vec_sld(second, first, 4); break;
+    }
+#endif
   }
 };
 
@@ -625,24 +708,15 @@ static Packet2d p2l_ONE = { 1, 1 };
 static Packet2d p2d_ONE = { 1.0, 1.0 }; 
 static Packet2d p2d_ZERO = { 0.0, 0.0 };
 static Packet2d p2d_ZERO_ = { (double) 0x8000000000000000, (double) 0x8000000000000000 };
-static Packet2d p2d_COUNTDOWN = { 1.0, 0.0 };
-
-#ifdef _BIG_ENDIAN
-static Packet16uc p16uc_SPLATQ1 = { 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 }; 
-static Packet16uc p16uc_SPLATQ2 = { 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 }; 
-#else
-static Packet16uc p16uc_SPLATQ1 = { 4,5,6,7, 0,1,2,3, 4,5,6,7, 0,1,3,4 }; 
-static Packet16uc p16uc_SPLATQ2 = { 12,13,14,15, 8,9,10,11, 12,13,14,15, 8,9,10,11 }; 
-#endif
-
+static Packet2d p2d_COUNTDOWN = { 0.0, 1.0 };
 
 static EIGEN_STRONG_INLINE Packet2d vec_splat_dbl(Packet2d& a, int index)
 {
   switch (index) {
   case 0:
-    return (Packet2d) vec_perm(a, a, p16uc_SPLATQ1);
+    return (Packet2d) vec_perm(a, a, p16uc_PSET64_HI);
   case 1:
-    return (Packet2d) vec_perm(a, a, p16uc_SPLATQ2);
+    return (Packet2d) vec_perm(a, a, p16uc_PSET64_LO);
   }
   return a;
 }
@@ -665,17 +739,17 @@ template<> struct packet_traits<double> : default_packet_traits
 
 template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2}; typedef Packet2d half; };
 
-/*
+
 inline std::ostream & operator <<(std::ostream & s, const Packet2d & v)
 {
   union {
-    Packetdf   v;
+    Packet2d   v;
     double n[2];
   } vt;
   vt.v = v;
   s << vt.n[0] << ", " << vt.n[1];
   return s;
-}*/
+}
 
 // Need to define them first or we get specialization after instantiation errors
 template<> EIGEN_STRONG_INLINE Packet2d pload<Packet2d>(const double* from) { EIGEN_DEBUG_ALIGNED_LOAD return (Packet2d) vec_ld(0, (const float *) from); } //FIXME
@@ -698,7 +772,7 @@ pbroadcast4<Packet2d>(const double *a,
   a1 = vec_splat_dbl(a1, 1);
   a3 = pload<Packet2d>(a+2);
   a2 = vec_splat_dbl(a3, 0);
-  a3 = vec_splat_dbl(a1, 1);
+  a3 = vec_splat_dbl(a3, 1);
 }
 template<> EIGEN_DEVICE_FUNC inline Packet2d pgather<double, Packet2d>(const double* from, DenseIndex stride)
 {
@@ -755,43 +829,30 @@ template<> EIGEN_STRONG_INLINE Packet2d pxor<Packet2d>(const Packet2d& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet2d pandnot<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_and(a, vec_nor(b, b)); }
 
-
 template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
-  return (Packet2d) vec_vsx_ld((int)((size_t)(from) & 15), (const float *)from);      // align the data
+  return (Packet2d) vec_vsx_ld((long)from & 15, (const float*) _EIGEN_ALIGNED_PTR(from));
 }
 template<> EIGEN_STRONG_INLINE Packet2d ploaddup<Packet2d>(const double*   from)
 {
   Packet2d p;
   if((ptrdiff_t(from) % 16) == 0)  p = pload<Packet2d>(from);
   else                             p = ploadu<Packet2d>(from);
-  return vec_perm(p, p, p16uc_DUPLICATE);
+  return vec_perm(p, p, p16uc_PSET64_HI);
 }
 
 template<> EIGEN_STRONG_INLINE void pstoreu<double>(double*  to, const Packet2d& from)
 {
-  EIGEN_DEBUG_UNALIGNED_STORE
-  // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
-  // Warning: not thread safe!
-  Packet16uc MSQ, LSQ, edges;
-  Packet16uc edgeAlign, align;
-
-  MSQ = vec_ld(0, (unsigned char *)to);                     // most significant quadword
-  LSQ = vec_ld(15, (unsigned char *)to);                    // least significant quadword
-  edgeAlign = vec_lvsl(0, to);                              // permute map to extract edges
-  edges=vec_perm(LSQ,MSQ,edgeAlign);                        // extract the edges
-  align = vec_lvsr( 0, to );                                // permute map to misalign data
-  MSQ = vec_perm(edges,(Packet16uc)from,align);             // misalign the data (MSQ)
-  LSQ = vec_perm((Packet16uc)from,edges,align);             // misalign the data (LSQ)
-  vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
-  vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
+  EIGEN_DEBUG_ALIGNED_STORE
+  vec_vsx_st((Packet4f)from, (long)to & 15, (float*) _EIGEN_ALIGNED_PTR(to));
 }
+
 template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { vec_dstt((const float *) addr, DST_CTRL(2,2,32), DST_CHAN); }
 
 template<> EIGEN_STRONG_INLINE double  pfirst<Packet2d>(const Packet2d& a) { double EIGEN_ALIGN16 x[2]; pstore(x, a); return x[0]; }
 
-template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a) { return (Packet2d)vec_perm((Packet16uc)a,(Packet16uc)a, p16uc_REVERSE); }
+template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a) { return (Packet2d)vec_perm((Packet16uc)a,(Packet16uc)a, p16uc_REVERSE64); }
 
 template<> EIGEN_STRONG_INLINE Packet2d pabs(const Packet2d& a) { return vec_abs(a); }
 
@@ -807,9 +868,10 @@ template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 {
   Packet2d v[2], sum;
 
-  v[0] = (Packet2d) vec_sld((Packet4ui) vecs[0], (Packet4ui) vecs[1], 8);
-  v[1] = (Packet2d) vec_sld((Packet4ui) vecs[1], (Packet4ui) vecs[0], 8);
-  sum = vec_add(v[0], v[1]);
+  v[0] = vec_add(vecs[0], (Packet2d) vec_sld((Packet4ui) vecs[0], (Packet4ui) vecs[0], 8));
+  v[1] = vec_add(vecs[1], (Packet2d) vec_sld((Packet4ui) vecs[1], (Packet4ui) vecs[1], 8));
+
+  sum = (Packet2d) vec_sld((Packet4ui) v[1], (Packet4ui) v[0], 8);
 
   return sum;
 }
@@ -817,26 +879,19 @@ template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 // mul
 template<> EIGEN_STRONG_INLINE double predux_mul<Packet2d>(const Packet2d& a)
 {
-  Packet2d prod;
-  prod = pmul(a, (Packet2d)vec_sld((Packet4ui) a, (Packet4ui)a, 8));
-  return pfirst(pmul(prod, (Packet2d)vec_sld((Packet4ui) prod, (Packet4ui) prod, 4)));
+  return pfirst(pmul(a, (Packet2d)vec_sld((Packet4ui) a, (Packet4ui) a, 8)));
 }
 
 // min
 template<> EIGEN_STRONG_INLINE double predux_min<Packet2d>(const Packet2d& a)
 {
-  Packet2d b, res;
-  b = vec_min(a, (Packet2d) vec_sld((Packet4ui) a, (Packet4ui) a, 8));
-  res = vec_min(b, (Packet2d) vec_sld((Packet4ui) b, (Packet4ui) b, 4));
-  return pfirst(res);
+  return pfirst(vec_min(a, (Packet2d) vec_sld((Packet4ui) a, (Packet4ui) a, 8)));
 }
 
 // max
 template<> EIGEN_STRONG_INLINE double predux_max<Packet2d>(const Packet2d& a)
 {
-  Packet2d res;
-  res = vec_max(a, (Packet2d) vec_sld((Packet4ui) a, (Packet4ui) a, 8));
-  return pfirst(res);
+  return pfirst(vec_max(a, (Packet2d) vec_sld((Packet4ui) a, (Packet4ui) a, 8)));
 }
 
 template<int Offset>
@@ -844,16 +899,20 @@ struct palign_impl<Offset,Packet2d>
 {
   static EIGEN_STRONG_INLINE void run(Packet2d& first, const Packet2d& second)
   {
-    if (Offset!=0)
-      first = (Packet2d) vec_sld((Packet4ui) first, (Packet4ui) second, Offset*8);
+    if (Offset == 1)
+#ifdef _BIG_ENDIAN
+      first = (Packet2d) vec_sld((Packet4ui) first, (Packet4ui) second, 8);
+#else
+      first = (Packet2d) vec_sld((Packet4ui) second, (Packet4ui) first, 8);
+#endif
   }
 };
 
 EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet2d,2>& kernel) {
   Packet2d t0, t1;
-  t0 = (Packet2d) vec_sld((Packet4ui) kernel.packet[0], (Packet4ui) kernel.packet[1], 8);
-  t1 = (Packet2d) vec_sld((Packet4ui) kernel.packet[1], (Packet4ui) kernel.packet[0], 8);
+  t0 = vec_perm(kernel.packet[0], kernel.packet[1], p16uc_TRANSPOSE64_HI);
+  t1 = vec_perm(kernel.packet[0], kernel.packet[1], p16uc_TRANSPOSE64_LO);
   kernel.packet[0] = t0;
   kernel.packet[1] = t1;
 }
