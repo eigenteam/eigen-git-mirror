@@ -647,7 +647,6 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     {
       internal::call_assignment(this->derived(), other.derived());
       return this->derived();
-      return this->derived();
     }
 
     /** \internal Like _set() but additionally makes the assumption that no aliasing effect can happen (which
