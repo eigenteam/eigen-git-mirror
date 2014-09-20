@@ -246,9 +246,9 @@ struct hybrj_functor : Functor<double>
     int operator()(const VectorXd &x, VectorXd &fvec)
     {
         double temp, temp1, temp2;
-        const int n = x.size();
+        const VectorXd::Index n = x.size();
         assert(fvec.size()==n);
-        for (int k = 0; k < n; k++)
+        for (VectorXd::Index k = 0; k < n; k++)
         {
             temp = (3. - 2.*x[k])*x[k];
             temp1 = 0.;
@@ -261,12 +261,12 @@ struct hybrj_functor : Functor<double>
     }
     int df(const VectorXd &x, MatrixXd &fjac)
     {
-        const int n = x.size();
+        const VectorXd::Index n = x.size();
         assert(fjac.rows()==n);
         assert(fjac.cols()==n);
-        for (int k = 0; k < n; k++)
+        for (VectorXd::Index k = 0; k < n; k++)
         {
-            for (int j = 0; j < n; j++)
+            for (VectorXd::Index j = 0; j < n; j++)
                 fjac(k,j) = 0.;
             fjac(k,k) = 3.- 4.*x[k];
             if (k) fjac(k,k-1) = -1.;
@@ -351,10 +351,10 @@ struct hybrd_functor : Functor<double>
     int operator()(const VectorXd &x, VectorXd &fvec) const
     {
         double temp, temp1, temp2;
-        const int n = x.size();
+        const VectorXd::Index n = x.size();
 
         assert(fvec.size()==n);
-        for (int k=0; k < n; k++)
+        for (VectorXd::Index k=0; k < n; k++)
         {
             temp = (3. - 2.*x[k])*x[k];
             temp1 = 0.;
@@ -455,7 +455,7 @@ struct lmstr_functor : Functor<double>
         assert(jac_row.size()==x.size());
         double tmp1, tmp2, tmp3, tmp4;
 
-        int i = rownb-2;
+        VectorXd::Index i = rownb-2;
         tmp1 = i+1;
         tmp2 = 16 - i - 1;
         tmp3 = (i>=8)? tmp2 : tmp1;
