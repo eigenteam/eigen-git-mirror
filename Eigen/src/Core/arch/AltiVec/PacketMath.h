@@ -94,17 +94,20 @@ static Packet16uc p16uc_FORWARD = p16uc_REVERSE32;
 static Packet16uc p16uc_PSET32_WODD = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 1), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 0,1,2,3, 0,1,2,3, 8,9,10,11, 8,9,10,11 };
 static Packet16uc p16uc_PSET32_WEVEN = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 2), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
 static Packet16uc p16uc_HALF64_0_16 = vec_sld(vec_splat((Packet16uc) vec_abs(p4i_MINUS16), 0), (Packet16uc)p4i_ZERO, 8);      //{ 0,0,0,0, 0,0,0,0, 16,16,16,16, 16,16,16,16};
-
 #endif // _BIG_ENDIAN
 
 static Packet16uc p16uc_PSET64_HI = (Packet16uc) vec_mergeh((Packet4ui)p16uc_PSET32_WODD, (Packet4ui)p16uc_PSET32_WEVEN);     //{ 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_PSET64_LO = (Packet16uc) vec_mergel((Packet4ui)p16uc_PSET32_WODD, (Packet4ui)p16uc_PSET32_WEVEN);     //{ 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 };
-
-static Packet16uc p16uc_COMPLEX32_REV = vec_sld(p16uc_REVERSE32, p16uc_REVERSE32, 8);                                         //{ 4,5,6,7, 0,1,2,3, 12,13,14,15, 8,9,10,11 };
-static Packet16uc p16uc_COMPLEX32_REV2 = vec_sld(p16uc_FORWARD, p16uc_FORWARD, 8);                                              //{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
-
 static Packet16uc p16uc_TRANSPOSE64_HI = vec_add(p16uc_PSET64_HI, p16uc_HALF64_0_16);                                         //{ 0,1,2,3, 4,5,6,7, 16,17,18,19, 20,21,22,23};
 static Packet16uc p16uc_TRANSPOSE64_LO = vec_add(p16uc_PSET64_LO, p16uc_HALF64_0_16);                                         //{ 8,9,10,11, 12,13,14,15, 24,25,26,27, 28,29,30,31};
+
+static Packet16uc p16uc_COMPLEX32_REV = vec_sld(p16uc_REVERSE32, p16uc_REVERSE32, 8);                                         //{ 4,5,6,7, 0,1,2,3, 12,13,14,15, 8,9,10,11 };
+
+#ifdef _BIG_ENDIAN
+static Packet16uc p16uc_COMPLEX32_REV2 = vec_sld(p16uc_FORWARD, p16uc_FORWARD, 8);                                            //{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
+#else
+static Packet16uc p16uc_COMPLEX32_REV2 = vec_sld(p16uc_PSET64_HI, p16uc_PSET64_LO, 8);                                            //{ 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
+#endif // _BIG_ENDIAN
 
 template<> struct packet_traits<float>  : default_packet_traits
 {
@@ -703,12 +706,11 @@ typedef __vector double              Packet2d;
 typedef __vector unsigned long long  Packet2ul;
 typedef __vector long long           Packet2l;
 
-static Packet2l p2l_ZERO = { 0x0, 0x0 };
-static Packet2d p2l_ONE = { 1, 1 };
+static Packet2l p2l_ZERO = (Packet2l) p4i_ZERO;
 static Packet2d p2d_ONE = { 1.0, 1.0 }; 
-static Packet2d p2d_ZERO = { 0.0, 0.0 };
-static Packet2d p2d_ZERO_ = { (double) 0x8000000000000000, (double) 0x8000000000000000 };
-static Packet2d p2d_COUNTDOWN = { 0.0, 1.0 };
+static Packet2d p2d_ZERO = (Packet2d) p4f_ZERO;
+static Packet2d p2d_ZERO_ = { -0.0, -0.0 };
+static Packet2d p2d_COUNTDOWN = (Packet2d) vec_sld((Packet16uc) p2d_ONE, (Packet16uc) p2d_ZERO, 8);
 
 static EIGEN_STRONG_INLINE Packet2d vec_splat_dbl(Packet2d& a, int index)
 {
