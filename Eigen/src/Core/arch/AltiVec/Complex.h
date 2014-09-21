@@ -242,6 +242,7 @@ EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet2cf,2>& kernel)
 }
 
 //---------- double ----------
+#ifdef __VSX__
 struct Packet1cd
 {
   EIGEN_STRONG_INLINE Packet1cd() {}
@@ -419,7 +420,7 @@ EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet1cd,2>& kernel)
   kernel.packet[1].v = vec_perm(kernel.packet[0].v, kernel.packet[1].v, p16uc_TRANSPOSE64_LO);
   kernel.packet[0].v = tmp;
 }
-
+#endif // __VSX__
 } // end namespace internal
 
 } // end namespace Eigen
