@@ -182,7 +182,7 @@ struct copy_using_evaluator_DefaultTraversal_CompleteUnrolling<Kernel, Stop, Sto
 template<typename Kernel, int Index, int Stop>
 struct copy_using_evaluator_DefaultTraversal_InnerUnrolling
 {
-  static EIGEN_STRONG_INLINE void run(Kernel &kernel, int outer)
+  static EIGEN_STRONG_INLINE void run(Kernel &kernel, typename Kernel::Index outer)
   {
     kernel.assignCoeffByOuterInner(outer, Index);
     copy_using_evaluator_DefaultTraversal_InnerUnrolling<Kernel, Index+1, Stop>::run(kernel, outer);
@@ -192,7 +192,7 @@ struct copy_using_evaluator_DefaultTraversal_InnerUnrolling
 template<typename Kernel, int Stop>
 struct copy_using_evaluator_DefaultTraversal_InnerUnrolling<Kernel, Stop, Stop>
 {
-  static EIGEN_STRONG_INLINE void run(Kernel&, int) { }
+  static EIGEN_STRONG_INLINE void run(Kernel&, typename Kernel::Index) { }
 };
 
 /***********************
@@ -249,7 +249,7 @@ struct copy_using_evaluator_innervec_CompleteUnrolling<Kernel, Stop, Stop>
 template<typename Kernel, int Index, int Stop>
 struct copy_using_evaluator_innervec_InnerUnrolling
 {
-  static EIGEN_STRONG_INLINE void run(Kernel &kernel, int outer)
+  static EIGEN_STRONG_INLINE void run(Kernel &kernel, typename Kernel::Index outer)
   {
     kernel.template assignPacketByOuterInner<Aligned, Aligned>(outer, Index);
     enum { NextIndex = Index + packet_traits<typename Kernel::Scalar>::size };
@@ -260,7 +260,7 @@ struct copy_using_evaluator_innervec_InnerUnrolling
 template<typename Kernel, int Stop>
 struct copy_using_evaluator_innervec_InnerUnrolling<Kernel, Stop, Stop>
 {
-  static EIGEN_STRONG_INLINE void run(Kernel &, int) { }
+  static EIGEN_STRONG_INLINE void run(Kernel &, typename Kernel::Index) { }
 };
 
 /***************************************************************************
