@@ -80,7 +80,6 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
       EIGEN_USING_STD_MATH(min);
       return m_index.value()<0 ? (min)(Index(m_matrix.cols()),Index(m_matrix.rows()+m_index.value()))
                                : (min)(Index(m_matrix.rows()),Index(m_matrix.cols()-m_index.value()));
-      
     }
 
     EIGEN_DEVICE_FUNC
@@ -148,14 +147,14 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename MatrixType::Nested>::type& 
+    inline const typename internal::remove_all<typename MatrixType::Nested>::type& 
     nestedExpression() const 
     {
       return m_matrix;
     }
 
     EIGEN_DEVICE_FUNC
-    int index() const
+    inline Index index() const
     {
       return m_index.value();
     }
@@ -172,7 +171,7 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value()>0 ? 0 : -m_index.value(); }
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value()>0 ? m_index.value() : 0; }
-    // triger a compile time error is someone try to call packet
+    // trigger a compile time error is someone try to call packet
     template<int LoadMode> typename MatrixType::PacketReturnType packet(Index) const;
     template<int LoadMode> typename MatrixType::PacketReturnType packet(Index,Index) const;
 };
