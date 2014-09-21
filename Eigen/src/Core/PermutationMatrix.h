@@ -119,7 +119,7 @@ class PermutationBase : public EigenBase<Derived>
     void evalTo(MatrixBase<DenseDerived>& other) const
     {
       other.setZero();
-      for (int i=0; i<rows();++i)
+      for (Index i=0; i<rows(); ++i)
         other.coeffRef(indices().coeff(i),i) = typename DenseDerived::Scalar(1);
     }
     #endif
@@ -164,10 +164,10 @@ class PermutationBase : public EigenBase<Derived>
       *
       * \returns a reference to *this.
       *
-      * \warning This is much slower than applyTranspositionOnTheRight(int,int):
+      * \warning This is much slower than applyTranspositionOnTheRight(Index,Index):
       * this has linear complexity and requires a lot of branching.
       *
-      * \sa applyTranspositionOnTheRight(int,int)
+      * \sa applyTranspositionOnTheRight(Index,Index)
       */
     Derived& applyTranspositionOnTheLeft(Index i, Index j)
     {
@@ -186,7 +186,7 @@ class PermutationBase : public EigenBase<Derived>
       *
       * This is a fast operation, it only consists in swapping two indices.
       *
-      * \sa applyTranspositionOnTheLeft(int,int)
+      * \sa applyTranspositionOnTheLeft(Index,Index)
       */
     Derived& applyTranspositionOnTheRight(Index i, Index j)
     {
@@ -216,13 +216,13 @@ class PermutationBase : public EigenBase<Derived>
     template<typename OtherDerived>
     void assignTranspose(const PermutationBase<OtherDerived>& other)
     {
-      for (int i=0; i<rows();++i) indices().coeffRef(other.indices().coeff(i)) = i;
+      for (Index i=0; i<rows();++i) indices().coeffRef(other.indices().coeff(i)) = i;
     }
     template<typename Lhs,typename Rhs>
     void assignProduct(const Lhs& lhs, const Rhs& rhs)
     {
       eigen_assert(lhs.cols() == rhs.rows());
-      for (int i=0; i<rows();++i) indices().coeffRef(i) = lhs.indices().coeff(rhs.indices().coeff(i));
+      for (Index i=0; i<rows();++i) indices().coeffRef(i) = lhs.indices().coeff(rhs.indices().coeff(i));
     }
 #endif
 
@@ -374,7 +374,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     PermutationMatrix(const Transpose<PermutationBase<Other> >& other)
       : m_indices(other.nestedPermutation().size())
     {
-      for (int i=0; i<m_indices.size();++i) m_indices.coeffRef(other.nestedPermutation().indices().coeff(i)) = i;
+      for (typename IndicesType::Index i=0; i<m_indices.size();++i) m_indices.coeffRef(other.nestedPermutation().indices().coeff(i)) = i;
     }
     template<typename Lhs,typename Rhs>
     PermutationMatrix(internal::PermPermProduct_t, const Lhs& lhs, const Rhs& rhs)
@@ -596,7 +596,7 @@ struct permut_matrix_product_retval
       }
       else
       {
-        for(int i = 0; i < n; ++i)
+        for(Index i = 0; i < n; ++i)
         {
           Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>
                (dst, ((Side==OnTheLeft) ^ Transposed) ? m_permutation.indices().coeff(i) : i)
@@ -645,19 +645,20 @@ class Transpose<PermutationBase<Derived> >
       MaxColsAtCompileTime = Traits::MaxColsAtCompileTime
     };
     typedef typename Traits::Scalar Scalar;
+    typedef typename Traits::Index Index;
     #endif
 
     Transpose(const PermutationType& p) : m_permutation(p) {}
 
-    inline int rows() const { return m_permutation.rows(); }
-    inline int cols() const { return m_permutation.cols(); }
+    inline Index rows() const { return m_permutation.rows(); }
+    inline Index cols() const { return m_permutation.cols(); }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename DenseDerived>
     void evalTo(MatrixBase<DenseDerived>& other) const
     {
       other.setZero();
-      for (int i=0; i<rows();++i)
+      for (Index i=0; i<rows();++i)
         other.coeffRef(i, m_permutation.indices().coeff(i)) = typename DenseDerived::Scalar(1);
     }
     #endif
