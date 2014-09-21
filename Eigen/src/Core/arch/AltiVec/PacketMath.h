@@ -336,6 +336,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pmul<Packet4i>(const Packet4i& a, const 
 */
 template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
+#ifndef __VSX__  // VSX actually provides a div instruction
   Packet4f t, y_0, y_1, res;
 
   // Altivec does not offer a divide instruction, we have to do a reciprocal approximation
@@ -345,8 +346,10 @@ template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const 
   t   = vec_nmsub(y_0, b, p4f_ONE);
   y_1 = vec_madd(y_0, t, y_0);
 
-  res = vec_madd(a, y_1, p4f_ZERO);
-  return res;
+  return vec_madd(a, y_1, p4f_ZERO);
+#else
+  return vec_div(a, b);
+#endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, const Packet4i& /*b*/)
@@ -801,20 +804,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pnegate(const Packet2d& a) { return psub
 template<> EIGEN_STRONG_INLINE Packet2d pconj(const Packet2d& a) { return a; }
 
 template<> EIGEN_STRONG_INLINE Packet2d pmul<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_madd(a,b,p2d_ZERO); }
-template<> EIGEN_STRONG_INLINE Packet2d pdiv<Packet2d>(const Packet2d& a, const Packet2d& b)
-{
-  Packet2d t, y_0, y_1, res;
-
-  // Altivec does not offer a divide instruction, we have to do a reciprocal approximation
-  y_0 = vec_re(b);
-
-  // Do one Newton-Raphson iteration to get the needed accuracy
-  t   = vec_nmsub(y_0, b, p2d_ONE);
-  y_1 = vec_madd(y_0, t, y_0);
-
-  res = vec_madd(a, y_1, p2d_ZERO);
-  return res;
-}
+template<> EIGEN_STRONG_INLINE Packet2d pdiv<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_div(a,b); }
 
 // for some weird raisons, it has to be overloaded for packet of integers
 template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return vec_madd(a, b, c); }
