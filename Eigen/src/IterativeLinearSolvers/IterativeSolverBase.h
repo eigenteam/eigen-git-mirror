@@ -60,10 +60,10 @@ public:
 
   ~IterativeSolverBase() {}
   
-  /** Initializes the iterative solver for the sparcity pattern of the matrix \a A for further solving \c Ax=b problems.
+  /** Initializes the iterative solver for the sparsity pattern of the matrix \a A for further solving \c Ax=b problems.
     *
-    * Currently, this function mostly call analyzePattern on the preconditioner. In the future
-    * we might, for instance, implement column reodering for faster matrix vector products.
+    * Currently, this function mostly calls analyzePattern on the preconditioner. In the future
+    * we might, for instance, implement column reordering for faster matrix vector products.
     */
   Derived& analyzePattern(const MatrixType& A)
   {
@@ -76,7 +76,7 @@ public:
   
   /** Initializes the iterative solver with the numerical values of the matrix \a A for further solving \c Ax=b problems.
     *
-    * Currently, this function mostly call factorize on the preconditioner.
+    * Currently, this function mostly calls factorize on the preconditioner.
     *
     * \warning this class stores a reference to the matrix A as well as some
     * precomputed values that depend on it. Therefore, if \a A is changed
@@ -95,8 +95,8 @@ public:
 
   /** Initializes the iterative solver with the matrix \a A for further solving \c Ax=b problems.
     *
-    * Currently, this function mostly initialized/compute the preconditioner. In the future
-    * we might, for instance, implement column reodering for faster matrix vector products.
+    * Currently, this function mostly initializes/computes the preconditioner. In the future
+    * we might, for instance, implement column reordering for faster matrix vector products.
     *
     * \warning this class stores a reference to the matrix A as well as some
     * precomputed values that depend on it. Therefore, if \a A is changed

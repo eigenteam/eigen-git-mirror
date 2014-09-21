@@ -143,7 +143,7 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * step execution example starting with a random guess and printing the evolution
   * of the estimated error:
   * \include BiCGSTAB_step_by_step.cpp
-  * Note that such a step by step excution is slightly slower.
+  * Note that such a step by step execution is slightly slower.
   * 
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
