@@ -64,8 +64,7 @@ template<typename Derived> class ArrayBase
     using Base::MaxSizeAtCompileTime;
     using Base::IsVectorAtCompileTime;
     using Base::Flags;
-    using Base::CoeffReadCost;
-
+    
     using Base::derived;
     using Base::const_cast_derived;
     using Base::rows;
@@ -121,8 +120,14 @@ template<typename Derived> class ArrayBase
     EIGEN_DEVICE_FUNC
     Derived& operator=(const ArrayBase& other)
     {
-      return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
+      internal::call_assignment(derived(), other.derived());
     }
+    
+    /** Set all the entries to \a value.
+      * \sa DenseBase::setConstant(), DenseBase::fill() */
+    EIGEN_DEVICE_FUNC
+    Derived& operator=(const Scalar &value)
+    { Base::setConstant(value); return derived(); }
 
     EIGEN_DEVICE_FUNC
     Derived& operator+=(const Scalar& scalar);
@@ -186,8 +191,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
 {
-  SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
+  call_assignment(derived(), other.derived(), internal::sub_assign_op<Scalar>());
   return derived();
 }
 
@@ -200,8 +204,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
+  call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar>());
   return derived();
 }
 
@@ -214,8 +217,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<internal::scalar_product_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
+  call_assignment(derived(), other.derived(), internal::mul_assign_op<Scalar,typename OtherDerived::Scalar>());
   return derived();
 }
 
@@ -228,8 +230,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<internal::scalar_quotient_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other.derived();
+  call_assignment(derived(), other.derived(), internal::div_assign_op<Scalar>());
   return derived();
 }
 

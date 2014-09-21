@@ -12,6 +12,15 @@
 
 namespace Eigen {
 
+// On WINCE, std::abs is defined for int only, so let's defined our own overloads:
+// This issue has been confirmed with MSVC 2008 only, but the issue might exist for more recent versions too.
+#if defined(_WIN32_WCE) && defined(_MSC_VER) && _MSC_VER<=1500
+long        abs(long        x) { return (labs(x));  }
+double      abs(double      x) { return (fabs(x));  }
+float       abs(float       x) { return (fabsf(x)); }
+long double abs(long double x) { return (fabsl(x)); }
+#endif
+  
 namespace internal {
 
 /** \internal \struct global_math_functions_filtering_base
@@ -308,10 +317,17 @@ struct hypot_impl
     using std::sqrt;
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
-    RealScalar p = (max)(_x, _y);
-    if(p==RealScalar(0)) return 0;
-    RealScalar q = (min)(_x, _y);
-    RealScalar qp = q/p;
+    Scalar p, qp;
+    if(_x>_y)
+    {
+      p = _x;
+      qp = _y / p;
+    }
+    else
+    {
+      p = _y;
+      qp = _x / p;
+    }
     return p * sqrt(RealScalar(1) + qp*qp);
   }
 };
@@ -676,6 +692,21 @@ bool (isfinite)(const std::complex<T>& x)
   using std::real;
   using std::imag;
   return isfinite(real(x)) && isfinite(imag(x));
+}
+
+// Log base 2 for 32 bits positive integers.
+// Conveniently returns 0 for x==0.
+inline int log2(int x)
+{
+  eigen_assert(x>=0);
+  unsigned int v(x);
+  static const int table[32] = { 0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30, 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31 };
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  return table[(v * 0x07C4ACDDU) >> 27];
 }
 
 } // end namespace numext

@@ -33,11 +33,7 @@ extern "C" {
   *
   */
 
-#include "src/misc/Solve.h"
-#include "src/misc/SparseSolve.h"
-
 #include "src/CholmodSupport/CholmodSupport.h"
-
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

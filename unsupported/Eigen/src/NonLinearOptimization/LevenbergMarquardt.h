@@ -45,18 +45,24 @@ namespace LevenbergMarquardtSpace {
 template<typename FunctorType, typename Scalar=double>
 class LevenbergMarquardt
 {
+    static Scalar sqrt_epsilon()
+    {
+      using std::sqrt;
+      return sqrt(NumTraits<Scalar>::epsilon());
+    }
+    
 public:
     LevenbergMarquardt(FunctorType &_functor)
         : functor(_functor) { nfev = njev = iter = 0;  fnorm = gnorm = 0.; useExternalScaling=false; }
 
     typedef DenseIndex Index;
-
+    
     struct Parameters {
         Parameters()
             : factor(Scalar(100.))
             , maxfev(400)
-            , ftol(sqrt_(NumTraits<Scalar>::epsilon()))
-            , xtol(sqrt_(NumTraits<Scalar>::epsilon()))
+            , ftol(sqrt_epsilon())
+            , xtol(sqrt_epsilon())
             , gtol(Scalar(0.))
             , epsfcn(Scalar(0.)) {}
         Scalar factor;
@@ -72,7 +78,7 @@ public:
 
     LevenbergMarquardtSpace::Status lmder1(
             FVectorType &x,
-            const Scalar tol = sqrt_(NumTraits<Scalar>::epsilon())
+            const Scalar tol = sqrt_epsilon()
             );
 
     LevenbergMarquardtSpace::Status minimize(FVectorType &x);
@@ -83,12 +89,12 @@ public:
             FunctorType &functor,
             FVectorType &x,
             Index *nfev,
-            const Scalar tol = sqrt_(NumTraits<Scalar>::epsilon())
+            const Scalar tol = sqrt_epsilon()
             );
 
     LevenbergMarquardtSpace::Status lmstr1(
             FVectorType  &x,
-            const Scalar tol = sqrt_(NumTraits<Scalar>::epsilon())
+            const Scalar tol = sqrt_epsilon()
             );
 
     LevenbergMarquardtSpace::Status minimizeOptimumStorage(FVectorType  &x);
@@ -109,7 +115,6 @@ public:
 
     Scalar lm_param(void) { return par; }
 private:
-    static Scalar sqrt_(const Scalar& x) { using std::sqrt; return sqrt(x); }
     
     FunctorType &functor;
     Index n;

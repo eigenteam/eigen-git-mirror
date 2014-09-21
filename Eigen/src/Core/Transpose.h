@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -29,9 +29,10 @@ namespace Eigen {
 
 namespace internal {
 template<typename MatrixType>
-struct traits<Transpose<MatrixType> > : traits<MatrixType>
+struct traits<Transpose<MatrixType> >
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename traits<MatrixType>::Scalar Scalar;
+  typedef typename traits<MatrixType>::Index Index;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedPlain;
   typedef typename traits<MatrixType>::StorageKind StorageKind;
@@ -45,7 +46,6 @@ struct traits<Transpose<MatrixType> > : traits<MatrixType>
     Flags0 = MatrixTypeNestedPlain::Flags & ~(LvalueBit | NestByRefBit),
     Flags1 = Flags0 | FlagsLvalueBit,
     Flags = Flags1 ^ RowMajorBit,
-    CoeffReadCost = MatrixTypeNestedPlain::CoeffReadCost,
     InnerStrideAtCompileTime = inner_stride_at_compile_time<MatrixType>::ret,
     OuterStrideAtCompileTime = outer_stride_at_compile_time<MatrixType>::ret
   };
@@ -61,6 +61,7 @@ template<typename MatrixType> class Transpose
 
     typedef typename TransposeImpl<MatrixType,typename internal::traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
+    typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     EIGEN_DEVICE_FUNC
     inline Transpose(MatrixType& a_matrix) : m_matrix(a_matrix) {}
@@ -100,12 +101,22 @@ struct TransposeImpl_base<MatrixType, false>
 
 } // end namespace internal
 
+// Generic API dispatcher
+template<typename XprType, typename StorageKind>
+class TransposeImpl
+  : public internal::generic_xpr_base<Transpose<XprType> >::type
+{
+public:
+  typedef typename internal::generic_xpr_base<Transpose<XprType> >::type Base;
+};
+
 template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
   : public internal::TransposeImpl_base<MatrixType>::type
 {
   public:
 
     typedef typename internal::TransposeImpl_base<MatrixType>::type Base;
+    using Base::coeffRef;
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(TransposeImpl)
 
@@ -121,20 +132,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
     inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
-    EIGEN_DEVICE_FUNC
-    inline ScalarWithConstIfNotLvalue& coeffRef(Index rowId, Index colId)
-    {
-      EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return derived().nestedExpression().const_cast_derived().coeffRef(colId, rowId);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline ScalarWithConstIfNotLvalue& coeffRef(Index index)
-    {
-      EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return derived().nestedExpression().const_cast_derived().coeffRef(index);
-    }
-
+    // FIXME: shall we keep the const version of coeffRef?
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
@@ -145,42 +143,6 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     inline const Scalar& coeffRef(Index index) const
     {
       return derived().nestedExpression().coeffRef(index);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index rowId, Index colId) const
-    {
-      return derived().nestedExpression().coeff(colId, rowId);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index index) const
-    {
-      return derived().nestedExpression().coeff(index);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index rowId, Index colId) const
-    {
-      return derived().nestedExpression().template packet<LoadMode>(colId, rowId);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index rowId, Index colId, const PacketScalar& x)
-    {
-      derived().nestedExpression().const_cast_derived().template writePacket<LoadMode>(colId, rowId, x);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index index) const
-    {
-      return derived().nestedExpression().template packet<LoadMode>(index);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index index, const PacketScalar& x)
-    {
-      derived().nestedExpression().const_cast_derived().template writePacket<LoadMode>(index, x);
     }
 };
 
@@ -413,15 +375,15 @@ struct checkTransposeAliasing_impl<Derived, OtherDerived, false>
     }
 };
 
+template<typename Dst, typename Src>
+void check_for_aliasing(const Dst &dst, const Src &src)
+{
+  internal::checkTransposeAliasing_impl<Dst, Src>::run(dst, src);
+}
+
 } // end namespace internal
 
-template<typename Derived>
-template<typename OtherDerived>
-void DenseBase<Derived>::checkTransposeAliasing(const OtherDerived& other) const
-{
-    internal::checkTransposeAliasing_impl<Derived, OtherDerived>::run(derived(), other);
-}
-#endif
+#endif // EIGEN_NO_DEBUG
 
 } // end namespace Eigen
 

@@ -121,9 +121,13 @@ inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *N
   * \sa \ref TutorialSparseDirectSolvers
   */
 template<typename _MatrixType>
-class UmfPackLU : internal::noncopyable
+class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
 {
+  protected:
+    typedef SparseSolverBase<UmfPackLU<_MatrixType> > Base;
+    using Base::m_isInitialized;
   public:
+    using Base::_solve_impl;
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
@@ -198,32 +202,6 @@ class UmfPackLU : internal::noncopyable
       factorize(matrix);
     }
 
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<UmfPackLU, Rhs> solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "UmfPackLU is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "UmfPackLU::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<UmfPackLU, Rhs>(*this, b.derived());
-    }
-
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<UmfPackLU, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "UmfPackLU is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "UmfPackLU::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<UmfPackLU, Rhs>(*this, b.derived());
-    }
-
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
       * This function is particularly useful when solving for several problems having the same structure.
@@ -274,7 +252,7 @@ class UmfPackLU : internal::noncopyable
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     template<typename BDerived,typename XDerived>
-    bool _solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived> &x) const;
+    bool _solve_impl(const MatrixBase<BDerived> &b, MatrixBase<XDerived> &x) const;
     #endif
 
     Scalar determinant() const;
@@ -328,7 +306,6 @@ class UmfPackLU : internal::noncopyable
     void* m_symbolic;
 
     mutable ComputationInfo m_info;
-    bool m_isInitialized;
     int m_factorizationIsOk;
     int m_analysisIsOk;
     mutable bool m_extractedDataAreDirty;
@@ -376,7 +353,7 @@ typename UmfPackLU<MatrixType>::Scalar UmfPackLU<MatrixType>::determinant() cons
 
 template<typename MatrixType>
 template<typename BDerived,typename XDerived>
-bool UmfPackLU<MatrixType>::_solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived> &x) const
+bool UmfPackLU<MatrixType>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBase<XDerived> &x) const
 {
   const int rhsCols = b.cols();
   eigen_assert((BDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major rhs yet");
@@ -395,37 +372,6 @@ bool UmfPackLU<MatrixType>::_solve(const MatrixBase<BDerived> &b, MatrixBase<XDe
 
   return true;
 }
-
-
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<UmfPackLU<_MatrixType>, Rhs>
-  : solve_retval_base<UmfPackLU<_MatrixType>, Rhs>
-{
-  typedef UmfPackLU<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-template<typename _MatrixType, typename Rhs>
-struct sparse_solve_retval<UmfPackLU<_MatrixType>, Rhs>
-  : sparse_solve_retval_base<UmfPackLU<_MatrixType>, Rhs>
-{
-  typedef UmfPackLU<_MatrixType> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 

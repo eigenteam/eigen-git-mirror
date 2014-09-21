@@ -16,7 +16,6 @@
   * \endcode
   */
 
-#include "src/misc/Solve.h"
 #include "src/misc/Kernel.h"
 #include "src/misc/Image.h"
 #include "src/LU/FullPivLU.h"
@@ -25,7 +24,7 @@
 #include "src/LU/PartialPivLU_MKL.h"
 #endif
 #include "src/LU/Determinant.h"
-#include "src/LU/Inverse.h"
+#include "src/LU/InverseImpl.h"
 
 // Use the SSE optimized version whenever possible. At the moment the
 // SSE version doesn't compile when AVX is enabled

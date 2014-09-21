@@ -26,9 +26,6 @@ extern "C" {
   *
   */
 
-#include "src/misc/Solve.h"
-#include "src/misc/SparseSolve.h"
-
 #include "src/UmfPackSupport/UmfPackSupport.h"
 
 #include "src/Core/util/ReenableStupidWarnings.h"

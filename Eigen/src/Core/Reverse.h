@@ -44,14 +44,7 @@ struct traits<Reverse<MatrixType, Direction> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-
-    // let's enable LinearAccess only with vectorization because of the product overhead
-    LinearAccess = ( (Direction==BothDirections) && (int(_MatrixTypeNested::Flags)&PacketAccessBit) )
-                 ? LinearAccessBit : 0,
-
-    Flags = int(_MatrixTypeNested::Flags) & (HereditaryBits | LvalueBit | PacketAccessBit | LinearAccess),
-
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+    Flags = _MatrixTypeNested::Flags & (RowMajorBit | LvalueBit)
   };
 };
 
@@ -74,6 +67,7 @@ template<typename MatrixType, int Direction> class Reverse
 
     typedef typename internal::dense_xpr_base<Reverse>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Reverse)
+    typedef typename internal::remove_all<MatrixType>::type NestedExpression;
     using Base::IsRowMajor;
 
     // next line is necessary because otherwise const version of operator()

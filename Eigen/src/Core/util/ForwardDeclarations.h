@@ -36,6 +36,10 @@ template<typename Derived> struct accessors_level
   };
 };
 
+template<typename T> struct evaluator_traits;
+
+template< typename T> struct evaluator;
+
 } // end namespace internal
 
 template<typename T> struct NumTraits;
@@ -87,11 +91,19 @@ template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename ViewOp,    typename MatrixType>         class CwiseUnaryView;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
-template<typename BinOp,     typename Lhs, typename Rhs>  class SelfCwiseBinaryOp;
-template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;
-template<typename Lhs, typename Rhs>                      class Product;
-template<typename Lhs, typename Rhs, int Mode>            class GeneralProduct;
-template<typename Lhs, typename Rhs, int NestingFlags>    class CoeffBasedProduct;
+template<typename BinOp,     typename Lhs, typename Rhs>  class SelfCwiseBinaryOp;      // TODO deprecated
+template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;            // TODO deprecated
+template<typename Decomposition, typename Rhstype>        class Solve;
+template<typename XprType>                                class Inverse;
+
+namespace internal {
+  template<typename Lhs, typename Rhs> struct product_tag;
+}
+
+template<typename Lhs, typename Rhs, int Option = DefaultProduct> class Product;
+         
+template<typename Lhs, typename Rhs, int Mode>            class GeneralProduct;         // TODO deprecated
+template<typename Lhs, typename Rhs, int NestingFlags>    class CoeffBasedProduct;      // TODO deprecated
 
 template<typename Derived> class DiagonalBase;
 template<typename _DiagonalVectorType> class DiagonalWrapper;
@@ -109,7 +121,12 @@ template<typename Derived,
          int Level = internal::accessors_level<Derived>::has_write_access ? WriteAccessors : ReadOnlyAccessors
 > class MapBase;
 template<int InnerStrideAtCompileTime, int OuterStrideAtCompileTime> class Stride;
+template<int Value = Dynamic> class InnerStride;
+template<int Value = Dynamic> class OuterStride;
 template<typename MatrixType, int MapOptions=Unaligned, typename StrideType = Stride<0,0> > class Map;
+template<typename Derived> class RefBase;
+template<typename PlainObjectType, int Options = 0,
+         typename StrideType = typename internal::conditional<PlainObjectType::IsVectorAtCompileTime,InnerStride<1>,OuterStride<> >::type > class Ref;
 
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
@@ -122,8 +139,6 @@ template<typename ExpressionType> class ArrayWrapper;
 template<typename ExpressionType> class MatrixWrapper;
 
 namespace internal {
-template<typename DecompositionType, typename Rhs> struct solve_retval_base;
-template<typename DecompositionType, typename Rhs> struct solve_retval;
 template<typename DecompositionType> struct kernel_retval_base;
 template<typename DecompositionType> struct kernel_retval;
 template<typename DecompositionType> struct image_retval_base;
@@ -136,6 +151,18 @@ template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynami
 
 namespace internal {
 template<typename Lhs, typename Rhs> struct product_type;
+/** \internal
+  * \class product_evaluator
+  * Products need their own evaluator with more template arguments allowing for
+  * easier partial template specializations.
+  */
+template< typename T,
+          int ProductTag = internal::product_type<typename T::Lhs,typename T::Rhs>::ret,
+          typename LhsShape = typename evaluator_traits<typename T::Lhs>::Shape,
+          typename RhsShape = typename evaluator_traits<typename T::Rhs>::Shape,
+          typename LhsScalar = typename traits<typename T::Lhs>::Scalar,
+          typename RhsScalar = typename traits<typename T::Rhs>::Scalar
+        > struct product_evaluator;
 }
 
 template<typename Lhs, typename Rhs,

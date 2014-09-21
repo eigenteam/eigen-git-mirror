@@ -13,7 +13,8 @@
 
 namespace Eigen { 
 
-template<int RowCol,typename IndicesType,typename MatrixType, typename StorageKind> class PermutedImpl;
+// TODO: this does not seems to be needed at all:
+// template<int RowCol,typename IndicesType,typename MatrixType, typename StorageKind> class PermutedImpl;
 
 /** \class PermutationBase
   * \ingroup Core_Module
@@ -60,7 +61,6 @@ class PermutationBase : public EigenBase<Derived>
     typedef typename Traits::IndicesType IndicesType;
     enum {
       Flags = Traits::Flags,
-      CoeffReadCost = Traits::CoeffReadCost,
       RowsAtCompileTime = Traits::RowsAtCompileTime,
       ColsAtCompileTime = Traits::ColsAtCompileTime,
       MaxRowsAtCompileTime = Traits::MaxRowsAtCompileTime,
@@ -274,6 +274,7 @@ template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex
 struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType> >
  : traits<Matrix<_StorageIndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
+  typedef PermutationStorage StorageKind;
   typedef Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
   typedef typename IndicesType::Index Index;
   typedef _StorageIndexType StorageIndexType;
@@ -286,6 +287,8 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     typedef PermutationBase<PermutationMatrix> Base;
     typedef internal::traits<PermutationMatrix> Traits;
   public:
+
+    typedef const PermutationMatrix& Nested;
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef typename Traits::IndicesType IndicesType;
@@ -391,6 +394,7 @@ template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex
 struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndexType>,_PacketAccess> >
  : traits<Matrix<_StorageIndexType,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
+  typedef PermutationStorage StorageKind;
   typedef Map<const Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, _PacketAccess> IndicesType;
   typedef typename IndicesType::Index Index;
   typedef _StorageIndexType StorageIndexType;
@@ -462,8 +466,6 @@ class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageInd
   * \sa class PermutationBase, class PermutationMatrix
   */
 
-struct PermutationStorage {};
-
 template<typename _IndicesType> class TranspositionsWrapper;
 namespace internal {
 template<typename _IndicesType>
@@ -477,10 +479,9 @@ struct traits<PermutationWrapper<_IndicesType> >
   enum {
     RowsAtCompileTime = _IndicesType::SizeAtCompileTime,
     ColsAtCompileTime = _IndicesType::SizeAtCompileTime,
-    MaxRowsAtCompileTime = IndicesType::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = IndicesType::MaxColsAtCompileTime,
-    Flags = 0,
-    CoeffReadCost = _IndicesType::CoeffReadCost
+    MaxRowsAtCompileTime = IndicesType::MaxSizeAtCompileTime,
+    MaxColsAtCompileTime = IndicesType::MaxSizeAtCompileTime,
+    Flags = 0
   };
 };
 }
@@ -509,35 +510,39 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesTyp
     typename IndicesType::Nested m_indices;
 };
 
+
+// TODO: Do we need to define these operator* functions? Would it be better to have them inherited
+// from MatrixBase?
+
 /** \returns the matrix with the permutation applied to the columns.
   */
-template<typename Derived, typename PermutationDerived>
-inline const internal::permut_matrix_product_retval<PermutationDerived, Derived, OnTheRight>
-operator*(const MatrixBase<Derived>& matrix,
-          const PermutationBase<PermutationDerived> &permutation)
+template<typename MatrixDerived, typename PermutationDerived>
+EIGEN_DEVICE_FUNC
+const Product<MatrixDerived, PermutationDerived, DefaultProduct>
+operator*(const MatrixBase<MatrixDerived> &matrix,
+          const PermutationBase<PermutationDerived>& permutation)
 {
-  return internal::permut_matrix_product_retval
-           <PermutationDerived, Derived, OnTheRight>
-           (permutation.derived(), matrix.derived());
+  return Product<MatrixDerived, PermutationDerived, DefaultProduct>
+            (matrix.derived(), permutation.derived());
 }
 
 /** \returns the matrix with the permutation applied to the rows.
   */
-template<typename Derived, typename PermutationDerived>
-inline const internal::permut_matrix_product_retval
-               <PermutationDerived, Derived, OnTheLeft>
+template<typename PermutationDerived, typename MatrixDerived>
+EIGEN_DEVICE_FUNC
+const Product<PermutationDerived, MatrixDerived, DefaultProduct>
 operator*(const PermutationBase<PermutationDerived> &permutation,
-          const MatrixBase<Derived>& matrix)
+          const MatrixBase<MatrixDerived>& matrix)
 {
-  return internal::permut_matrix_product_retval
-           <PermutationDerived, Derived, OnTheLeft>
-           (permutation.derived(), matrix.derived());
+  return Product<PermutationDerived, MatrixDerived, DefaultProduct>
+            (permutation.derived(), matrix.derived());
 }
 
 namespace internal {
 
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
 struct traits<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
+  : traits<typename MatrixType::PlainObject>
 {
   typedef typename MatrixType::PlainObject ReturnType;
 };
@@ -617,6 +622,8 @@ struct traits<Transpose<PermutationBase<Derived> > >
 
 } // end namespace internal
 
+// TODO: the specificties should be handled by the evaluator,
+// at the very least we should only specialize TransposeImpl
 template<typename Derived>
 class Transpose<PermutationBase<Derived> >
   : public EigenBase<Transpose<PermutationBase<Derived> > >
@@ -631,7 +638,6 @@ class Transpose<PermutationBase<Derived> >
     typedef typename Derived::DenseMatrixType DenseMatrixType;
     enum {
       Flags = Traits::Flags,
-      CoeffReadCost = Traits::CoeffReadCost,
       RowsAtCompileTime = Traits::RowsAtCompileTime,
       ColsAtCompileTime = Traits::ColsAtCompileTime,
       MaxRowsAtCompileTime = Traits::MaxRowsAtCompileTime,
@@ -663,19 +669,19 @@ class Transpose<PermutationBase<Derived> >
     /** \returns the matrix with the inverse permutation applied to the columns.
       */
     template<typename OtherDerived> friend
-    inline const internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheRight, true>
+    const Product<OtherDerived, Transpose, DefaultProduct>
     operator*(const MatrixBase<OtherDerived>& matrix, const Transpose& trPerm)
     {
-      return internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheRight, true>(trPerm.m_permutation, matrix.derived());
+      return Product<OtherDerived, Transpose, DefaultProduct>(matrix.derived(), trPerm.derived());
     }
 
     /** \returns the matrix with the inverse permutation applied to the rows.
       */
     template<typename OtherDerived>
-    inline const internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheLeft, true>
+    const Product<Transpose, OtherDerived, DefaultProduct>
     operator*(const MatrixBase<OtherDerived>& matrix) const
     {
-      return internal::permut_matrix_product_retval<PermutationType, OtherDerived, OnTheLeft, true>(m_permutation, matrix.derived());
+      return Product<Transpose, OtherDerived, DefaultProduct>(*this, matrix.derived());
     }
 
     const PermutationType& nestedPermutation() const { return m_permutation; }
@@ -689,6 +695,38 @@ const PermutationWrapper<const Derived> MatrixBase<Derived>::asPermutation() con
 {
   return derived();
 }
+
+namespace internal {
+  
+// TODO currently a permutation matrix expression has the form PermutationMatrix or PermutationWrapper
+//      or their transpose; in the future shape should be defined by the expression traits
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename IndexType>
+struct evaluator_traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType> >
+{
+  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
+  typedef PermutationShape Shape;
+  static const int AssumeAliasing = 0;
+};
+
+template<typename IndicesType>
+struct evaluator_traits<PermutationWrapper<IndicesType> >
+{
+  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
+  typedef PermutationShape Shape;
+  static const int AssumeAliasing = 0;
+};
+
+template<typename Derived>
+struct evaluator_traits<Transpose<PermutationBase<Derived> > >
+{
+  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
+  typedef PermutationShape Shape;
+  static const int AssumeAliasing = 0;
+};
+
+template<> struct AssignmentKind<DenseShape,PermutationShape> { typedef EigenBase2EigenBase Kind; };
+
+} // end namespace internal
 
 } // end namespace Eigen
 

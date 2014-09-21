@@ -81,6 +81,31 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_APPROX(m3.rowwise() += rv1, m1.rowwise() + rv1);
   m3 = m1;
   VERIFY_IS_APPROX(m3.rowwise() -= rv1, m1.rowwise() - rv1);
+  
+  // Conversion from scalar
+  VERIFY_IS_APPROX((m3 = s1), ArrayType::Constant(rows,cols,s1));
+  VERIFY_IS_APPROX((m3 = 1),  ArrayType::Constant(rows,cols,1));
+  VERIFY_IS_APPROX((m3.topLeftCorner(rows,cols) = 1),  ArrayType::Constant(rows,cols,1));
+  typedef Array<Scalar,
+                ArrayType::RowsAtCompileTime==Dynamic?2:ArrayType::RowsAtCompileTime,
+                ArrayType::ColsAtCompileTime==Dynamic?2:ArrayType::ColsAtCompileTime,
+                ArrayType::Options> FixedArrayType;
+  FixedArrayType f1(s1);
+  VERIFY_IS_APPROX(f1, FixedArrayType::Constant(s1));
+  FixedArrayType f2(numext::real(s1));
+  VERIFY_IS_APPROX(f2, FixedArrayType::Constant(numext::real(s1)));
+  FixedArrayType f3((int)100*numext::real(s1));
+  VERIFY_IS_APPROX(f3, FixedArrayType::Constant((int)100*numext::real(s1)));
+  f1.setRandom();
+  FixedArrayType f4(f1.data());
+  VERIFY_IS_APPROX(f4, f1);
+  
+  // Check possible conflicts with 1D ctor
+  typedef Array<Scalar, Dynamic, 1> OneDArrayType;
+  OneDArrayType o1(rows);
+  VERIFY(o1.size()==rows);
+  OneDArrayType o4((int)rows);
+  VERIFY(o4.size()==rows);
 }
 
 template<typename ArrayType> void comparisons(const ArrayType& m)

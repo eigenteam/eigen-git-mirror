@@ -48,11 +48,7 @@ namespace Eigen { struct SluMatrix; }
   *
   */
 
-#include "src/misc/Solve.h"
-#include "src/misc/SparseSolve.h"
-
 #include "src/SuperLUSupport/SuperLUSupport.h"
-
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

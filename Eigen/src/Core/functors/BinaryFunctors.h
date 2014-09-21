@@ -167,9 +167,17 @@ template<typename Scalar> struct scalar_hypot_op {
     EIGEN_USING_STD_MATH(max);
     EIGEN_USING_STD_MATH(min);
     using std::sqrt;
-    Scalar p = (max)(_x, _y);
-    Scalar q = (min)(_x, _y);
-    Scalar qp = q/p;
+    Scalar p, qp;
+    if(_x>_y)
+    {
+      p = _x;
+      qp = _y / p;
+    }
+    else
+    {
+      p = _y;
+      qp = _x / p;
+    }
     return p * sqrt(Scalar(1) + qp*qp);
   }
 };

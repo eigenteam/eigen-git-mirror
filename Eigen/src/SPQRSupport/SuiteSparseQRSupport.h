@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2012 Desire Nuentsa <desire.nuentsa_wakam@inria.fr>
+// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -54,8 +55,11 @@ namespace Eigen {
  * 
  */
 template<typename _MatrixType>
-class SPQR
+class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
 {
+  protected:
+    typedef SparseSolverBase<SPQR<_MatrixType> > Base;
+    using Base::m_isInitialized;
   public:
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
@@ -64,19 +68,13 @@ class SPQR
     typedef PermutationMatrix<Dynamic, Dynamic> PermutationType;
   public:
     SPQR() 
-      : m_isInitialized(false),
-      m_ordering(SPQR_ORDERING_DEFAULT),
-      m_allow_tol(SPQR_DEFAULT_TOL),
-      m_tolerance (NumTraits<Scalar>::epsilon())
+      : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon())
     { 
       cholmod_l_start(&m_cc);
     }
     
     SPQR(const _MatrixType& matrix) 
-    : m_isInitialized(false),
-      m_ordering(SPQR_ORDERING_DEFAULT),
-      m_allow_tol(SPQR_DEFAULT_TOL),
-      m_tolerance (NumTraits<Scalar>::epsilon())
+    : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon())
     {
       cholmod_l_start(&m_cc);
       compute(matrix);
@@ -126,22 +124,9 @@ class SPQR
      * Get the number of columns of the input matrix. 
      */
     inline Index cols() const { return m_cR->ncol; }
-   
-      /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<SPQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
-    {
-      eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
-      eigen_assert(this->rows()==B.rows()
-                    && "SPQR::solve(): invalid number of rows of the right hand side matrix B");
-          return internal::solve_retval<SPQR, Rhs>(*this, B.derived());
-    }
     
     template<typename Rhs, typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
     {
       eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
       eigen_assert(b.cols()==1 && "This method is for vectors only");
@@ -214,7 +199,6 @@ class SPQR
       return m_info;
     }
   protected:
-    bool m_isInitialized;
     bool m_analysisIsOk;
     bool m_factorizationIsOk;
     mutable bool m_isRUpToDate;
@@ -292,23 +276,6 @@ struct SPQRMatrixQTransposeReturnType{
   }
   const SPQRType& m_spqr;
 };
-
-namespace internal {
-  
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<SPQR<_MatrixType>, Rhs>
-  : solve_retval_base<SPQR<_MatrixType>, Rhs>
-{
-  typedef SPQR<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 }// End namespace Eigen
 #endif

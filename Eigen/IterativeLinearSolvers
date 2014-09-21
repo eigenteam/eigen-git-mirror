@@ -26,9 +26,7 @@
   * \endcode
   */
 
-#include "src/misc/Solve.h"
-#include "src/misc/SparseSolve.h"
-
+#include "src/IterativeLinearSolvers/SolveWithGuess.h"
 #include "src/IterativeLinearSolvers/IterativeSolverBase.h"
 #include "src/IterativeLinearSolvers/BasicPreconditioners.h"
 #include "src/IterativeLinearSolvers/ConjugateGradient.h"

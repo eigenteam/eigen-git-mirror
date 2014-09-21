@@ -82,7 +82,9 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cos() const
 \param[in]  M  a square matrix.
 \returns  expression representing \f$ \cos(M) \f$.
 
-This function calls \ref matrixbase_matrixfunction "matrixFunction()" with StdStemFunctions::cos().
+This function computes the matrix cosine. Use ArrayBase::cos() for computing the entry-wise cosine.
+
+The implementation calls \ref matrixbase_matrixfunction "matrixFunction()" with StdStemFunctions::cos().
 
 \sa \ref matrixbase_sin "sin()" for an example.
 
@@ -122,6 +124,9 @@ The matrix exponential can be used to solve linear ordinary
 differential equations: the solution of \f$ y' = My \f$ with the
 initial condition \f$ y(0) = y_0 \f$ is given by
 \f$ y(t) = \exp(M) y_0 \f$.
+
+The matrix exponential is different from applying the exp function to all the entries in the matrix.
+Use ArrayBase::exp() if you want to do the latter.
 
 The cost of the computation is approximately \f$ 20 n^3 \f$ for
 matrices of size \f$ n \f$. The number 20 depends weakly on the
@@ -176,6 +181,9 @@ The matrix logarithm of \f$ M \f$ is a matrix \f$ X \f$ such that
 the scalar logarithm, the equation \f$ \exp(X) = M \f$ may have
 multiple solutions; this function returns a matrix whose eigenvalues
 have imaginary part in the interval \f$ (-\pi,\pi] \f$.
+
+The matrix logarithm is different from applying the log function to all the entries in the matrix.
+Use ArrayBase::log() if you want to do the latter.
 
 In the real case, the matrix \f$ M \f$ should be invertible and
 it should have no eigenvalues which are real and negative (pairs of
@@ -232,7 +240,8 @@ const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(RealScalar p) con
 
 The matrix power \f$ M^p \f$ is defined as \f$ \exp(p \log(M)) \f$,
 where exp denotes the matrix exponential, and log denotes the matrix
-logarithm.
+logarithm. This is different from raising all the entries in the matrix
+to the p-th power. Use ArrayBase::pow() if you want to do the latter.
 
 If \p p is complex, the scalar type of \p M should be the type of \p
 p . \f$ M^p \f$ simply evaluates into \f$ \exp(p \log(M)) \f$.
@@ -391,7 +400,9 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sin() const
 \param[in]  M  a square matrix.
 \returns  expression representing \f$ \sin(M) \f$.
 
-This function calls \ref matrixbase_matrixfunction "matrixFunction()" with StdStemFunctions::sin().
+This function computes the matrix sine. Use ArrayBase::sin() for computing the entry-wise sine.
+
+The implementation calls \ref matrixbase_matrixfunction "matrixFunction()" with StdStemFunctions::sin().
 
 Example: \include MatrixSine.cpp
 Output: \verbinclude MatrixSine.out
@@ -428,7 +439,9 @@ const MatrixSquareRootReturnValue<Derived> MatrixBase<Derived>::sqrt() const
 
 The matrix square root of \f$ M \f$ is the matrix \f$ M^{1/2} \f$
 whose square is the original matrix; so if \f$ S = M^{1/2} \f$ then
-\f$ S^2 = M \f$. 
+\f$ S^2 = M \f$. This is different from taking the square root of all
+the entries in the matrix; use ArrayBase::sqrt() if you want to do the
+latter.
 
 In the <b>real case</b>, the matrix \f$ M \f$ should be invertible and
 it should have no eigenvalues which are real and negative (pairs of

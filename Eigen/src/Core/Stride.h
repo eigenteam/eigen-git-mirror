@@ -86,7 +86,7 @@ class Stride
 
 /** \brief Convenience specialization of Stride to specify only an inner stride
   * See class Map for some examples */
-template<int Value = Dynamic>
+template<int Value>
 class InnerStride : public Stride<0, Value>
 {
     typedef Stride<0, Value> Base;
@@ -98,7 +98,7 @@ class InnerStride : public Stride<0, Value>
 
 /** \brief Convenience specialization of Stride to specify only an outer stride
   * See class Map for some examples */
-template<int Value = Dynamic>
+template<int Value>
 class OuterStride : public Stride<Value, 0>
 {
     typedef Stride<Value, 0> Base;

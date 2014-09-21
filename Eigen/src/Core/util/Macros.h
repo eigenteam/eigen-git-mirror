@@ -107,6 +107,13 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE std::ptrdiff_t
 #endif
 
+// Cross compiler wrapper around LLVM's __has_builtin
+#ifdef __has_builtin
+#  define EIGEN_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#  define EIGEN_HAS_BUILTIN(x) 0
+#endif
+
 // A Clang feature extension to determine compiler features.
 // We use it to determine 'cxx_rvalue_references'
 #ifndef __has_feature
@@ -272,7 +279,7 @@ namespace Eigen {
 
 #if !defined(EIGEN_ASM_COMMENT)
   #if (defined __GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
-    #define EIGEN_ASM_COMMENT(X)  asm("#" X)
+    #define EIGEN_ASM_COMMENT(X)  __asm__("#" X)
   #else
     #define EIGEN_ASM_COMMENT(X)
   #endif
@@ -367,6 +374,8 @@ namespace Eigen {
 * documentation in a single line.
 **/
 
+// TODO The EIGEN_DENSE_PUBLIC_INTERFACE should not exists anymore
+  
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
   typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
@@ -377,7 +386,6 @@ namespace Eigen {
   enum { RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime, \
         Flags = Eigen::internal::traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::internal::traits<Derived>::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
@@ -396,13 +404,11 @@ namespace Eigen {
         MaxRowsAtCompileTime = Eigen::internal::traits<Derived>::MaxRowsAtCompileTime, \
         MaxColsAtCompileTime = Eigen::internal::traits<Derived>::MaxColsAtCompileTime, \
         Flags = Eigen::internal::traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::internal::traits<Derived>::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
   using Base::derived; \
-  using Base::const_cast_derived;
-
+  using Base::const_cast_derived;  
 
 #define EIGEN_PLAIN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_PLAIN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)

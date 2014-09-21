@@ -217,7 +217,7 @@ struct traits<Quaternion<_Scalar,_Options> >
   typedef _Scalar Scalar;
   typedef Matrix<_Scalar,4,1,_Options> Coefficients;
   enum{
-    IsAligned = internal::traits<Coefficients>::Flags & AlignedBit,
+    IsAligned = (internal::traits<Coefficients>::EvaluatorFlags & AlignedBit) != 0,
     Flags = IsAligned ? (AlignedBit | LvalueBit) : LvalueBit
   };
 };

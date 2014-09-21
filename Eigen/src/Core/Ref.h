@@ -12,10 +12,6 @@
 
 namespace Eigen { 
 
-template<typename Derived> class RefBase;
-template<typename PlainObjectType, int Options = 0,
-         typename StrideType = typename internal::conditional<PlainObjectType::IsVectorAtCompileTime,InnerStride<1>,OuterStride<> >::type > class Ref;
-
 /** \class Ref
   * \ingroup Core_Module
   *
@@ -247,7 +243,7 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
     template<typename Expression>
     void construct(const Expression& expr, internal::false_type)
     {
-      m_object.lazyAssign(expr);
+      internal::call_assignment_no_alias(m_object,expr,internal::assign_op<Scalar>());
       Base::construct(m_object);
     }
 

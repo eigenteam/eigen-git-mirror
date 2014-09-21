@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -422,11 +422,34 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
 
 namespace internal {
 
+template<typename _Scalar, int _Options, typename _Index>
+struct evaluator<SparseVector<_Scalar,_Options,_Index> >
+  : evaluator_base<SparseVector<_Scalar,_Options,_Index> >
+{
+  typedef SparseVector<_Scalar,_Options,_Index> SparseVectorType;
+  typedef typename SparseVectorType::InnerIterator InnerIterator;
+  typedef typename SparseVectorType::ReverseInnerIterator ReverseInnerIterator;
+  
+  enum {
+    CoeffReadCost = NumTraits<_Scalar>::ReadCost,
+    Flags = SparseVectorType::Flags
+  };
+  
+  evaluator(const SparseVectorType &mat) : m_matrix(mat) {}
+  
+  operator SparseVectorType&() { return m_matrix.const_cast_derived(); }
+  operator const SparseVectorType&() const { return m_matrix; }
+  
+  const SparseVectorType &m_matrix;
+};
+
 template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_Inner> {
   static void run(Dest& dst, const Src& src) {
     eigen_internal_assert(src.innerSize()==src.size());
-    for(typename Src::InnerIterator it(src, 0); it; ++it)
+    typedef typename internal::evaluator<Src>::type SrcEvaluatorType;
+    SrcEvaluatorType srcEval(src);
+    for(typename SrcEvaluatorType::InnerIterator it(srcEval, 0); it; ++it)
       dst.insert(it.index()) = it.value();
   }
 };
@@ -435,9 +458,11 @@ template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
   static void run(Dest& dst, const Src& src) {
     eigen_internal_assert(src.outerSize()==src.size());
+    typedef typename internal::evaluator<Src>::type SrcEvaluatorType;
+    SrcEvaluatorType srcEval(src);
     for(typename Dest::Index i=0; i<src.size(); ++i)
     {
-      typename Src::InnerIterator it(src, i);
+      typename SrcEvaluatorType::InnerIterator it(srcEval, i);
       if(it)
         dst.insert(i) = it.value();
     }

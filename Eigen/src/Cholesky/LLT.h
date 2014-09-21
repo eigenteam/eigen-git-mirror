@@ -118,13 +118,13 @@ template<typename _MatrixType, int _UpLo> class LLT
       * \sa solveInPlace(), MatrixBase::llt(), SelfAdjointView::llt()
       */
     template<typename Rhs>
-    inline const internal::solve_retval<LLT, Rhs>
+    inline const Solve<LLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
       eigen_assert(m_matrix.rows()==b.rows()
                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<LLT, Rhs>(*this, b.derived());
+      return Solve<LLT, Rhs>(*this, b.derived());
     }
 
     template<typename Derived>
@@ -161,6 +161,12 @@ template<typename _MatrixType, int _UpLo> class LLT
 
     template<typename VectorType>
     LLT rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
+    
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl(const RhsType &rhs, DstType &dst) const;
+    #endif
 
   protected:
     /** \internal
@@ -404,22 +410,16 @@ LLT<_MatrixType,_UpLo> LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, c
 
   return *this;
 }
-    
-namespace internal {
-template<typename _MatrixType, int UpLo, typename Rhs>
-struct solve_retval<LLT<_MatrixType, UpLo>, Rhs>
-  : solve_retval_base<LLT<_MatrixType, UpLo>, Rhs>
+ 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template<typename _MatrixType,int _UpLo>
+template<typename RhsType, typename DstType>
+void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
 {
-  typedef LLT<_MatrixType,UpLo> LLTType;
-  EIGEN_MAKE_SOLVE_HELPERS(LLTType,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dst = rhs();
-    dec().solveInPlace(dst);
-  }
-};
+  dst = rhs;
+  solveInPlace(dst);
 }
+#endif
 
 /** \internal use x = llt_object.solve(x);
   * 

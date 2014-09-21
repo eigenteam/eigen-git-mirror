@@ -5,6 +5,7 @@ add_custom_target(BuildUnsupported)
 include_directories(../../test ../../unsupported ../../Eigen 
                     ${CMAKE_CURRENT_BINARY_DIR}/../../test)
 
+                    
 find_package(GoogleHash)
 if(GOOGLEHASH_FOUND)
   add_definitions("-DEIGEN_GOOGLEHASH_SUPPORT")
@@ -40,6 +41,7 @@ ei_add_test(matrix_function)
 ei_add_test(matrix_power)
 ei_add_test(matrix_square_root)
 ei_add_test(alignedvector3)
+
 ei_add_test(FFT)
 
 find_package(MPFR 2.3.0)
@@ -86,12 +88,12 @@ endif()
 
 ei_add_test(polynomialsolver)
 ei_add_test(polynomialutils)
-ei_add_test(kronecker_product)
 ei_add_test(splines)
 ei_add_test(gmres)
 ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(bdcsvd)
+ei_add_test(kronecker_product)
 
 option(EIGEN_TEST_CXX11 "Enable testing of C++11 features (e.g. Tensor module)." OFF)
 if(EIGEN_TEST_CXX11)

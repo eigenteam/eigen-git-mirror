@@ -27,19 +27,37 @@ std::string demangle_unrolling(int t)
   if(t==CompleteUnrolling) return "CompleteUnrolling";
   return "?";
 }
+std::string demangle_flags(int f)
+{
+  std::string res;
+  if(f&RowMajorBit)                 res += " | RowMajor";
+  if(f&PacketAccessBit)             res += " | Packet";
+  if(f&LinearAccessBit)             res += " | Linear";
+  if(f&LvalueBit)                   res += " | Lvalue";
+  if(f&DirectAccessBit)             res += " | Direct";
+  if(f&AlignedBit)                  res += " | Aligned";
+  if(f&NestByRefBit)                res += " | NestByRef";
+  if(f&NoPreferredStorageOrderBit)  res += " | NoPreferredStorageOrderBit";
+  
+  return res;
+}
 
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
-  internal::assign_traits<Dst,Src>::debug();
-  bool res = internal::assign_traits<Dst,Src>::Traversal==traversal
-          && internal::assign_traits<Dst,Src>::Unrolling==unrolling;
+  typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
+  bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
+    std::cerr << "Src: " << demangle_flags(Src::Flags) << std::endl;
+    std::cerr << "     " << demangle_flags(internal::evaluator<Src>::Flags) << std::endl;
+    std::cerr << "Dst: " << demangle_flags(Dst::Flags) << std::endl;
+    std::cerr << "     " << demangle_flags(internal::evaluator<Dst>::Flags) << std::endl;
+    traits::debug();
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)
-              << " got " << demangle_traversal(internal::assign_traits<Dst,Src>::Traversal) << "\n";
+              << " got " << demangle_traversal(traits::Traversal) << "\n";
     std::cerr << " Expected Unrolling == " << demangle_unrolling(unrolling)
-              << " got " << demangle_unrolling(internal::assign_traits<Dst,Src>::Unrolling) << "\n";
+              << " got " << demangle_unrolling(traits::Unrolling) << "\n";
   }
   return res;
 }
@@ -47,15 +65,19 @@ bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 template<typename Dst, typename Src>
 bool test_assign(int traversal, int unrolling)
 {
-  internal::assign_traits<Dst,Src>::debug();
-  bool res = internal::assign_traits<Dst,Src>::Traversal==traversal
-          && internal::assign_traits<Dst,Src>::Unrolling==unrolling;
+  typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
+  bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
+    std::cerr << "Src: " << demangle_flags(Src::Flags) << std::endl;
+    std::cerr << "     " << demangle_flags(internal::evaluator<Src>::Flags) << std::endl;
+    std::cerr << "Dst: " << demangle_flags(Dst::Flags) << std::endl;
+    std::cerr << "     " << demangle_flags(internal::evaluator<Dst>::Flags) << std::endl;
+    traits::debug();
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)
-              << " got " << demangle_traversal(internal::assign_traits<Dst,Src>::Traversal) << "\n";
+              << " got " << demangle_traversal(traits::Traversal) << "\n";
     std::cerr << " Expected Unrolling == " << demangle_unrolling(unrolling)
-              << " got " << demangle_unrolling(internal::assign_traits<Dst,Src>::Unrolling) << "\n";
+              << " got " << demangle_unrolling(traits::Unrolling) << "\n";
   }
   return res;
 }
@@ -63,10 +85,15 @@ bool test_assign(int traversal, int unrolling)
 template<typename Xpr>
 bool test_redux(const Xpr&, int traversal, int unrolling)
 {
-  typedef internal::redux_traits<internal::scalar_sum_op<typename Xpr::Scalar>,Xpr> traits;
+  typedef internal::redux_traits<internal::scalar_sum_op<typename Xpr::Scalar>,internal::redux_evaluator<Xpr> > traits;
+  
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
+    std::cerr << demangle_flags(Xpr::Flags) << std::endl;
+    std::cerr << demangle_flags(internal::evaluator<Xpr>::Flags) << std::endl;
+    traits::debug();
+    
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)
               << " got " << demangle_traversal(traits::Traversal) << "\n";
     std::cerr << " Expected Unrolling == " << demangle_unrolling(unrolling)

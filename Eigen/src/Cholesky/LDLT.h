@@ -175,13 +175,13 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt()
       */
     template<typename Rhs>
-    inline const internal::solve_retval<LDLT, Rhs>
+    inline const Solve<LDLT, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       eigen_assert(m_matrix.rows()==b.rows()
                 && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<LDLT, Rhs>(*this, b.derived());
+      return Solve<LDLT, Rhs>(*this, b.derived());
     }
 
     template<typename Derived>
@@ -217,6 +217,12 @@ template<typename _MatrixType, int _UpLo> class LDLT
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return Success;
     }
+    
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl(const RhsType &rhs, DstType &dst) const;
+    #endif
 
   protected:
 
@@ -466,52 +472,46 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Deri
   return *this;
 }
 
-namespace internal {
-template<typename _MatrixType, int _UpLo, typename Rhs>
-struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
-  : solve_retval_base<LDLT<_MatrixType,_UpLo>, Rhs>
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template<typename _MatrixType, int _UpLo>
+template<typename RhsType, typename DstType>
+void LDLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
 {
-  typedef LDLT<_MatrixType,_UpLo> LDLTType;
-  EIGEN_MAKE_SOLVE_HELPERS(LDLTType,Rhs)
+  eigen_assert(rhs.rows() == rows());
+  // dst = P b
+  dst = m_transpositions * rhs;
 
-  template<typename Dest> void evalTo(Dest& dst) const
+  // dst = L^-1 (P b)
+  matrixL().solveInPlace(dst);
+
+  // dst = D^-1 (L^-1 P b)
+  // more precisely, use pseudo-inverse of D (see bug 241)
+  using std::abs;
+  EIGEN_USING_STD_MATH(max);
+  const typename Diagonal<const MatrixType>::RealReturnType vecD(vectorD());
+  // In some previous versions, tolerance was set to the max of 1/highest and the maximal diagonal entry * epsilon
+  // as motivated by LAPACK's xGELSS:
+  // RealScalar tolerance = (max)(vectorD.array().abs().maxCoeff() *NumTraits<RealScalar>::epsilon(),RealScalar(1) / NumTraits<RealScalar>::highest());
+  // However, LDLT is not rank revealing, and so adjusting the tolerance wrt to the highest
+  // diagonal element is not well justified and to numerical issues in some cases.
+  // Moreover, Lapack's xSYTRS routines use 0 for the tolerance.
+  RealScalar tolerance = RealScalar(1) / NumTraits<RealScalar>::highest();
+  
+  for (Index i = 0; i < vecD.size(); ++i)
   {
-    eigen_assert(rhs().rows() == dec().matrixLDLT().rows());
-    // dst = P b
-    dst = dec().transpositionsP() * rhs();
-
-    // dst = L^-1 (P b)
-    dec().matrixL().solveInPlace(dst);
-
-    // dst = D^-1 (L^-1 P b)
-    // more precisely, use pseudo-inverse of D (see bug 241)
-    using std::abs;
-    EIGEN_USING_STD_MATH(max);
-    typedef typename LDLTType::MatrixType MatrixType;
-    typedef typename LDLTType::RealScalar RealScalar;
-    const typename Diagonal<const MatrixType>::RealReturnType vectorD(dec().vectorD());
-    // In some previous versions, tolerance was set to the max of 1/highest and the maximal diagonal entry * epsilon
-    // as motivated by LAPACK's xGELSS:
-    // RealScalar tolerance = (max)(vectorD.array().abs().maxCoeff() *NumTraits<RealScalar>::epsilon(),RealScalar(1) / NumTraits<RealScalar>::highest());
-    // However, LDLT is not rank revealing, and so adjusting the tolerance wrt to the highest
-    // diagonal element is not well justified and to numerical issues in some cases.
-    // Moreover, Lapack's xSYTRS routines use 0 for the tolerance.
-    RealScalar tolerance = RealScalar(1) / NumTraits<RealScalar>::highest();
-    for (Index i = 0; i < vectorD.size(); ++i) {
-      if(abs(vectorD(i)) > tolerance)
-        dst.row(i) /= vectorD(i);
-      else
-        dst.row(i).setZero();
-    }
-
-    // dst = L^-T (D^-1 L^-1 P b)
-    dec().matrixU().solveInPlace(dst);
-
-    // dst = P^-1 (L^-T D^-1 L^-1 P b) = A^-1 b
-    dst = dec().transpositionsP().transpose() * dst;
+    if(abs(vecD(i)) > tolerance)
+      dst.row(i) /= vecD(i);
+    else
+      dst.row(i).setZero();
   }
-};
+
+  // dst = L^-T (D^-1 L^-1 P b)
+  matrixU().solveInPlace(dst);
+
+  // dst = P^-1 (L^-T D^-1 L^-1 P b) = A^-1 b
+  dst = m_transpositions.transpose() * dst;
 }
+#endif
 
 /** \internal use x = ldlt_object.solve(x);
   *

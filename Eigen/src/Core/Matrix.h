@@ -115,7 +115,8 @@ struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost,
+    // FIXME, the following flag in only used to define NeedsToAlign in PlainObjectBase
+    EvaluatorFlags = compute_matrix_evaluator_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
     Options = _Options,
     InnerStrideAtCompileTime = 1,
     OuterStrideAtCompileTime = (Options&RowMajor) ? ColsAtCompileTime : RowsAtCompileTime

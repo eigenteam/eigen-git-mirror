@@ -128,7 +128,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     DenseStorage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
 
   public:
-    enum { NeedsToAlign = SizeAtCompileTime != Dynamic && (internal::traits<Derived>::Flags & AlignedBit) != 0 };
+    enum { NeedsToAlign = SizeAtCompileTime != Dynamic && (internal::traits<Derived>::EvaluatorFlags & AlignedBit) != 0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     EIGEN_DEVICE_FUNC
@@ -639,21 +639,16 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * \internal
       */
+    // aliasing is dealt once in internall::call_assignment
+    // so at this stage we have to assume aliasing... and resising has to be done later.
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC 
     EIGEN_STRONG_INLINE Derived& _set(const DenseBase<OtherDerived>& other)
     {
-      _set_selector(other.derived(), typename internal::conditional<static_cast<bool>(int(OtherDerived::Flags) & EvalBeforeAssigningBit), internal::true_type, internal::false_type>::type());
+      internal::call_assignment(this->derived(), other.derived());
+      return this->derived();
       return this->derived();
     }
-
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC 
-    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const internal::true_type&) { _set_noalias(other.eval()); }
-
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC 
-    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const internal::false_type&) { _set_noalias(other); }
 
     /** \internal Like _set() but additionally makes the assumption that no aliasing effect can happen (which
       * is the case when creating a new matrix) so one can enforce lazy evaluation.
@@ -669,7 +664,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       //_resize_to_match(other);
       // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
       // it wouldn't allow to copy a row-vector into a column-vector.
-      return internal::assign_selector<Derived,OtherDerived,false>::run(this->derived(), other.derived());
+      internal::call_assignment_no_alias(this->derived(), other.derived(), internal::assign_op<Scalar>());
+      return this->derived();
     }
 
     template<typename T0, typename T1>
@@ -704,9 +700,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[1] = Scalar(val1);
     }
 
+    // The argument is convertible to the Index type and we either have a non 1x1 Matrix, or a dynamic-sized Array,
+    // then the argument is meant to be the size of the object.
     template<typename T>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<Base::SizeAtCompileTime!=1 || !internal::is_convertible<T, Scalar>::value,T>::type* = 0)
+    EIGEN_STRONG_INLINE void _init1(Index size, typename internal::enable_if<    (Base::SizeAtCompileTime!=1 || !internal::is_convertible<T, Scalar>::value)
+                                                                              && ((!internal::is_same<typename internal::traits<Derived>::XprKind,ArrayXpr>::value || Base::SizeAtCompileTime==Dynamic)),T>::type* = 0)
     {
       // NOTE MSVC 2008 complains if we directly put bool(NumTraits<T>::IsInteger) as the EIGEN_STATIC_ASSERT argument.
       const bool is_integer = NumTraits<T>::IsInteger;
@@ -714,6 +713,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
       resize(size);
     }
+    
+    // We have a 1x1 matrix/array => the argument is interpreted as the value of the unique coefficient (case where scalar type can be implicitely converted)
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Scalar& val0, typename internal::enable_if<Base::SizeAtCompileTime==1 && internal::is_convertible<T, Scalar>::value,T>::type* = 0)
@@ -722,6 +723,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[0] = val0;
     }
     
+    // We have a 1x1 matrix/array => the argument is interpreted as the value of the unique coefficient (case where scalar type match the index type)
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Index& val0,
@@ -734,18 +736,21 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       m_storage.data()[0] = Scalar(val0);
     }
 
+    // Initialize a fixed size matrix from a pointer to raw data
     template<typename T>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const Scalar* data){
       this->_set_noalias(ConstMapType(data));
     }
 
+    // Initialize an arbitrary matrix from a dense expression
     template<typename T, typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const DenseBase<OtherDerived>& other){
       this->_set_noalias(other);
     }
 
+    // Initialize an arbitrary matrix from a generic Eigen expression
     template<typename T, typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _init1(const EigenBase<OtherDerived>& other){
@@ -765,6 +770,31 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE void _init1(const RotationBase<OtherDerived,ColsAtCompileTime>& r)
     {
       this->derived() = r;
+    }
+    
+    // For fixed -size arrays:
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Scalar& val0,
+                                    typename internal::enable_if<    Base::SizeAtCompileTime!=Dynamic
+                                                                  && Base::SizeAtCompileTime!=1
+                                                                  && internal::is_convertible<T, Scalar>::value
+                                                                  && internal::is_same<typename internal::traits<Derived>::XprKind,ArrayXpr>::value,T>::type* = 0)
+    {
+      Base::setConstant(val0);
+    }
+    
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE void _init1(const Index& val0,
+                                    typename internal::enable_if<    (!internal::is_same<Index,Scalar>::value)
+                                                                  && (internal::is_same<Index,T>::value)
+                                                                  && Base::SizeAtCompileTime!=Dynamic
+                                                                  && Base::SizeAtCompileTime!=1
+                                                                  && internal::is_convertible<T, Scalar>::value
+                                                                  && internal::is_same<typename internal::traits<Derived>::XprKind,ArrayXpr>::value,T*>::type* = 0)
+    {
+      Base::setConstant(val0);
     }
 
     template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>

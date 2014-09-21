@@ -13,7 +13,8 @@
     ref2 = ref1 = DEST;                               \
     DEST.template triangularView<TRI>() OP;           \
     ref1 OP;                                          \
-    ref2.template triangularView<TRI>() = ref1;       \
+    ref2.template triangularView<TRI>()               \
+      = ref1.template triangularView<TRI>();          \
     VERIFY_IS_APPROX(DEST,ref2);                      \
   }
 
