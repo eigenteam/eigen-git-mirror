@@ -28,7 +28,7 @@ namespace internal {
 
 // NOTE Altivec has 32 registers, but Eigen only accepts a value of 8 or 16
 #ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
-#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS  32
 #endif
 
 typedef __vector float          Packet4f;
@@ -482,8 +482,16 @@ template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*   to, const Packet4f& 
 }
 #endif
 
-template<> EIGEN_STRONG_INLINE void prefetch<float>(const float* addr) { vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN); }
-template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*     addr) { vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN); }
+template<> EIGEN_STRONG_INLINE void prefetch<float>(const float* addr) {
+#ifndef __VSX__
+  vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN);
+#endif
+}
+template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*     addr) {
+#ifndef __VSX__
+ vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN);
+#endif
+}
 
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
 template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int   EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
