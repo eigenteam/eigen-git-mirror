@@ -219,6 +219,12 @@ if(NOT MSVC)
     message(STATUS "Enabling AltiVec in tests/examples")
   endif()
 
+  option(EIGEN_TEST_VSX "Enable/Disable VSX in tests/examples" OFF)
+  if(EIGEN_TEST_VSX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -mvsx")
+    message(STATUS "Enabling VSX in tests/examples")
+  endif()
+
   option(EIGEN_TEST_NEON "Enable/Disable Neon in tests/examples" OFF)
   if(EIGEN_TEST_NEON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -mcpu=cortex-a8")

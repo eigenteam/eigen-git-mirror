@@ -76,7 +76,7 @@
 #endif
 
 // bounds integer values for AltiVec
-#ifdef __ALTIVEC__
+#if defined(__ALTIVEC__) || defined(__VSX__)
 #define EIGEN_MAKING_DOCS
 #endif
 
