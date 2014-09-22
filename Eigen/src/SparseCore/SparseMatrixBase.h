@@ -324,8 +324,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     template<typename OtherDerived>
     bool isApprox(const SparseMatrixBase<OtherDerived>& other,
-                  const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const
-    { return toDense().isApprox(other.toDense(),prec); }
+                  const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
 
     template<typename OtherDerived>
     bool isApprox(const MatrixBase<OtherDerived>& other,

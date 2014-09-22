@@ -304,6 +304,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
 
     VERIFY_IS_APPROX(SparseMatrixType(m2.adjoint()), refMat2.adjoint());
+    
+    // check isApprox handles opposite storage order
+    typename Transpose<SparseMatrixType>::PlainObject m3(m2);
+    VERIFY(m2.isApprox(m3));
   }
 
   
