@@ -207,7 +207,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       TransposeMode = (Mode & Upper ? Lower : 0)
                     | (Mode & Lower ? Upper : 0)
                     | (Mode & (UnitDiag))
-                    | (Mode & (ZeroDiag))
+                    | (Mode & (ZeroDiag)),
+      IsVectorAtCompileTime = false
     };
 
     EIGEN_DEVICE_FUNC
