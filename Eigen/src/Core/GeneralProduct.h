@@ -261,7 +261,7 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
     if(!evalToDest)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = dest.size();
+      Index size = dest.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       if(!alphaIsCompatible)
@@ -327,7 +327,7 @@ template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,true>
     if(!DirectlyUseRhs)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = actualRhs.size();
+      Index size = actualRhs.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       Map<typename ActualRhsTypeCleaned::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
