@@ -374,7 +374,9 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     PermutationMatrix(const Transpose<PermutationBase<Other> >& other)
       : m_indices(other.nestedPermutation().size())
     {
-      for (typename IndicesType::Index i=0; i<m_indices.size();++i) m_indices.coeffRef(other.nestedPermutation().indices().coeff(i)) = i;
+      eigen_internal_assert(m_indices.size() <= NumTraits<StorageIndexType>::highest());
+      for (StorageIndexType i=0; i<m_indices.size();++i)
+        m_indices.coeffRef(other.nestedPermutation().indices().coeff(i)) = i;
     }
     template<typename Lhs,typename Rhs>
     PermutationMatrix(internal::PermPermProduct_t, const Lhs& lhs, const Rhs& rhs)
