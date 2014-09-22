@@ -675,8 +675,11 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
 
   template<typename Dest>   void solveInPlace(MatrixBase<Dest> &X) const
   {
-    Index nrhs = X.cols();
-    Index n = X.rows();
+    /* Explicit type conversion as the Index type of MatrixBase<Dest> may be wider than Index */
+    eigen_assert(X.rows() <= NumTraits<Index>::highest());
+    eigen_assert(X.cols() <= NumTraits<Index>::highest());
+    Index nrhs = Index(X.cols());
+    Index n    = Index(X.rows());
     // Backward solve with U
     for (Index k = m_mapL.nsuper(); k >= 0; k--)
     {
