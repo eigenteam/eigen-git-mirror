@@ -340,7 +340,7 @@ class redux_evaluator
 {
 public:
   typedef _XprType XprType;
-  redux_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
+  explicit redux_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
   
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;

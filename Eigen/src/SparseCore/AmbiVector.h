@@ -27,7 +27,7 @@ class AmbiVector
     typedef _Index Index;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
-    AmbiVector(Index size)
+    explicit AmbiVector(Index size)
       : m_buffer(0), m_zero(0), m_size(0), m_allocatedSize(0), m_allocatedElements(0), m_mode(-1)
     {
       resize(size);
@@ -288,7 +288,7 @@ class AmbiVector<_Scalar,_Index>::Iterator
       * In practice, all coefficients having a magnitude smaller than \a epsilon
       * are skipped.
       */
-    Iterator(const AmbiVector& vec, const RealScalar& epsilon = 0)
+    explicit Iterator(const AmbiVector& vec, const RealScalar& epsilon = 0)
       : m_vector(vec)
     {
       using std::abs;

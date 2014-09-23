@@ -94,6 +94,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
                         CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<const Derived> >,
                         Transpose<const Derived>
                      >::type AdjointReturnType;
+    typedef Transpose<Derived> TransposeReturnType;
+    template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SelfAdjointView<Derived, UpLo> Type; };
+    typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
 
     // FIXME storage order do not match evaluator storage order
     typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, Index> PlainObject;
@@ -114,6 +117,8 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Matrix<Scalar,Dynamic,Dynamic> > ConstantReturnType;
 
+    /** type of the equivalent dense matrix */
+    typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> DenseMatrixType;
     /** type of the equivalent square matrix */
     typedef Matrix<Scalar,EIGEN_SIZE_MAX(RowsAtCompileTime,ColsAtCompileTime),
                           EIGEN_SIZE_MAX(RowsAtCompileTime,ColsAtCompileTime)> SquareMatrixType;
@@ -303,9 +308,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     RealScalar norm()  const;
     RealScalar blueNorm() const;
 
-    Transpose<Derived> transpose() { return derived(); }
-    const Transpose<const Derived> transpose() const { return derived(); }
-    const AdjointReturnType adjoint() const { return transpose(); }
+    TransposeReturnType transpose() { return TransposeReturnType(derived()); }
+    const ConstTransposeReturnType transpose() const { return ConstTransposeReturnType(derived()); }
+    const AdjointReturnType adjoint() const { return AdjointReturnType(transpose()); }
 
     // inner-vector
     typedef Block<Derived,IsRowMajor?1:Dynamic,IsRowMajor?Dynamic:1,true>       InnerVectorReturnType;
@@ -317,9 +322,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Block<Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize);
     const Block<const Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize) const;
 
-    Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> toDense() const
+    DenseMatrixType toDense() const
     {
-      return derived();
+      return DenseMatrixType(derived());
     }
 
     template<typename OtherDerived>

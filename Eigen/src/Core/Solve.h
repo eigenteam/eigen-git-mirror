@@ -121,7 +121,7 @@ struct evaluator<Solve<Decomposition,RhsType> >
   typedef evaluator type;
   typedef evaluator nestedType;
 
-  evaluator(const SolveType& solve)
+  explicit evaluator(const SolveType& solve)
     : m_result(solve.rows(), solve.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);

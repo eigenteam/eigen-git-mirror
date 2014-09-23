@@ -59,7 +59,7 @@ struct evaluator<SparseView<Product<Lhs, Rhs, Options> > >
   typedef evaluator type;
   typedef evaluator nestedType;
   
-  evaluator(const XprType& xpr)
+  explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     using std::abs;

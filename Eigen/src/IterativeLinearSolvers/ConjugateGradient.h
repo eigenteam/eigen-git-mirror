@@ -189,7 +189,7 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  ConjugateGradient(const MatrixType& A) : Base(A) {}
+  explicit ConjugateGradient(const MatrixType& A) : Base(A) {}
 
   ~ConjugateGradient() {}
 

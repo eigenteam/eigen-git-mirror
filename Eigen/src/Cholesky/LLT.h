@@ -83,10 +83,10 @@ template<typename _MatrixType, int _UpLo> class LLT
       * according to the specified problem \a size.
       * \sa LLT()
       */
-    LLT(Index size) : m_matrix(size, size),
+    explicit LLT(Index size) : m_matrix(size, size),
                     m_isInitialized(false) {}
 
-    LLT(const MatrixType& matrix)
+    explicit LLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
         m_isInitialized(false)
     {
@@ -351,8 +351,8 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Lower>
 {
   typedef const TriangularView<const MatrixType, Lower> MatrixL;
   typedef const TriangularView<const typename MatrixType::AdjointReturnType, Upper> MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return m; }
-  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
+  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m.adjoint()); }
   static bool inplace_decomposition(MatrixType& m)
   { return llt_inplace<typename MatrixType::Scalar, Lower>::blocked(m)==-1; }
 };
@@ -361,8 +361,8 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 {
   typedef const TriangularView<const typename MatrixType::AdjointReturnType, Lower> MatrixL;
   typedef const TriangularView<const MatrixType, Upper> MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return m.adjoint(); }
-  static inline MatrixU getU(const MatrixType& m) { return m; }
+  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m.adjoint()); }
+  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m); }
   static bool inplace_decomposition(MatrixType& m)
   { return llt_inplace<typename MatrixType::Scalar, Upper>::blocked(m)==-1; }
 };

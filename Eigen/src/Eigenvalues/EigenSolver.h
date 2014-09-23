@@ -118,7 +118,7 @@ template<typename _MatrixType> class EigenSolver
       * according to the specified problem \a size.
       * \sa EigenSolver()
       */
-    EigenSolver(Index size)
+    explicit EigenSolver(Index size)
       : m_eivec(size, size),
         m_eivalues(size),
         m_isInitialized(false),
@@ -143,7 +143,7 @@ template<typename _MatrixType> class EigenSolver
       *
       * \sa compute()
       */
-    EigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
+    explicit EigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
         m_isInitialized(false),

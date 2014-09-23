@@ -53,7 +53,7 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
     
-    inline SparseSelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
+    explicit inline SparseSelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
     {
       eigen_assert(rows()==cols() && "SelfAdjointView is only for squared matrices");
     }
@@ -172,14 +172,14 @@ template<typename Derived>
 template<unsigned int Mode>
 const SparseSelfAdjointView<Derived, Mode> SparseMatrixBase<Derived>::selfadjointView() const
 {
-  return derived();
+  return SparseSelfAdjointView<Derived, Mode>(derived());
 }
 
 template<typename Derived>
 template<unsigned int Mode>
 SparseSelfAdjointView<Derived, Mode> SparseMatrixBase<Derived>::selfadjointView()
 {
-  return derived();
+  return SparseSelfAdjointView<Derived, Mode>(derived());
 }
 
 /***************************************************************************

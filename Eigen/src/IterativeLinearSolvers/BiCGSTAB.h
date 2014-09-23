@@ -178,7 +178,7 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  BiCGSTAB(const MatrixType& A) : Base(A) {}
+  explicit BiCGSTAB(const MatrixType& A) : Base(A) {}
 
   ~BiCGSTAB() {}
 

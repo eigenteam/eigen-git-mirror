@@ -457,7 +457,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     // FIXME is it still needed ?
     /** \internal */
     EIGEN_DEVICE_FUNC
-    PlainObjectBase(internal::constructor_without_unaligned_array_assert)
+    explicit PlainObjectBase(internal::constructor_without_unaligned_array_assert)
       : m_storage(internal::constructor_without_unaligned_array_assert())
     {
 //       _check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED

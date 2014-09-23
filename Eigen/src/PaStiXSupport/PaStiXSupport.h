@@ -417,7 +417,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
       init();
     }
     
-    PastixLU(const MatrixType& matrix):Base()
+    explicit PastixLU(const MatrixType& matrix):Base()
     {
       init();
       compute(matrix);
@@ -527,7 +527,7 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
       init();
     }
     
-    PastixLLT(const MatrixType& matrix):Base()
+    explicit PastixLLT(const MatrixType& matrix):Base()
     {
       init();
       compute(matrix);
@@ -608,7 +608,7 @@ class PastixLDLT : public PastixBase< PastixLDLT<_MatrixType, _UpLo> >
       init();
     }
     
-    PastixLDLT(const MatrixType& matrix):Base()
+    explicit PastixLDLT(const MatrixType& matrix):Base()
     {
       init();
       compute(matrix);

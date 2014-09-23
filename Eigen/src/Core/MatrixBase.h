@@ -327,7 +327,7 @@ template<typename Derived> class MatrixBase
 
     NoAlias<Derived,Eigen::MatrixBase > noalias();
 
-    // TODO forceAlignedAccess is temporarly disabled
+    // TODO forceAlignedAccess is temporarily disabled
     // Need to find a nicer workaround.
     inline const Derived& forceAlignedAccess() const { return derived(); }
     inline Derived& forceAlignedAccess() { return derived(); }
@@ -343,10 +343,10 @@ template<typename Derived> class MatrixBase
 
     /** \returns an \link Eigen::ArrayBase Array \endlink expression of this matrix
       * \sa ArrayBase::matrix() */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ArrayWrapper<Derived> array() { return derived(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ArrayWrapper<Derived> array() { return ArrayWrapper<Derived>(derived()); }
     /** \returns a const \link Eigen::ArrayBase Array \endlink expression of this matrix
       * \sa ArrayBase::matrix() */
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const ArrayWrapper<const Derived> array() const { return derived(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const ArrayWrapper<const Derived> array() const { return ArrayWrapper<const Derived>(derived()); }
 
 /////////// LU module ///////////
 

@@ -67,7 +67,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef typename MatrixType::PlainObject PlainObject;
 
     EIGEN_DEVICE_FUNC
-    inline SelfAdjointView(MatrixType& matrix) : m_matrix(matrix)
+    explicit inline SelfAdjointView(MatrixType& matrix) : m_matrix(matrix)
     {}
 
     EIGEN_DEVICE_FUNC
@@ -258,7 +258,7 @@ template<unsigned int UpLo>
 typename MatrixBase<Derived>::template ConstSelfAdjointViewReturnType<UpLo>::Type
 MatrixBase<Derived>::selfadjointView() const
 {
-  return derived();
+  return typename ConstSelfAdjointViewReturnType<UpLo>::Type(derived());
 }
 
 template<typename Derived>
@@ -266,7 +266,7 @@ template<unsigned int UpLo>
 typename MatrixBase<Derived>::template SelfAdjointViewReturnType<UpLo>::Type
 MatrixBase<Derived>::selfadjointView()
 {
-  return derived();
+  return typename SelfAdjointViewReturnType<UpLo>::Type(derived());
 }
 
 } // end namespace Eigen

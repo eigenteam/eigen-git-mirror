@@ -91,7 +91,7 @@ template<typename _MatrixType> class HouseholderQR
       * 
       * \sa compute()
       */
-    HouseholderQR(const MatrixType& matrix)
+    explicit HouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs((std::min)(matrix.rows(),matrix.cols())),
         m_temp(matrix.cols()),

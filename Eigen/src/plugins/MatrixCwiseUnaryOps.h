@@ -10,6 +10,11 @@
 
 // This file is a base class plugin containing matrix specifics coefficient wise functions.
 
+typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnType;
+typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
+typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
+typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> CwiseInverseReturnType;
+typedef CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >, const Derived> CwiseScalarEqualReturnType;
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   *
   * Example: \include MatrixBase_cwiseAbs.cpp
@@ -18,8 +23,8 @@
   * \sa cwiseAbs2()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived>
-cwiseAbs() const { return derived(); }
+EIGEN_STRONG_INLINE const AbsReturnType
+cwiseAbs() const { return AbsReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
   *
@@ -29,8 +34,8 @@ cwiseAbs() const { return derived(); }
   * \sa cwiseAbs()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived>
-cwiseAbs2() const { return derived(); }
+EIGEN_STRONG_INLINE const Abs2ReturnType
+cwiseAbs2() const { return Abs2ReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise square root of *this.
   *
@@ -40,8 +45,8 @@ cwiseAbs2() const { return derived(); }
   * \sa cwisePow(), cwiseSquare()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived>
-cwiseSqrt() const { return derived(); }
+inline const SqrtReturnType
+cwiseSqrt() const { return SqrtReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise inverse of *this.
   *
@@ -51,8 +56,8 @@ cwiseSqrt() const { return derived(); }
   * \sa cwiseProduct()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived>
-cwiseInverse() const { return derived(); }
+inline const CwiseInverseReturnType
+cwiseInverse() const { return CwiseInverseReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise == operator of \c *this and a scalar \a s
   *
@@ -64,9 +69,8 @@ cwiseInverse() const { return derived(); }
   * \sa cwiseEqual(const MatrixBase<OtherDerived> &) const
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >, const Derived>
+inline const CwiseScalarEqualReturnType
 cwiseEqual(const Scalar& s) const
 {
-  return CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >,const Derived>
-          (derived(), std::bind1st(std::equal_to<Scalar>(), s));
+  return CwiseScalarEqualReturnType(derived(), std::bind1st(std::equal_to<Scalar>(), s));
 }

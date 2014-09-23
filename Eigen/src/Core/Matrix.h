@@ -214,7 +214,7 @@ class Matrix
 
     // FIXME is it still needed
     EIGEN_DEVICE_FUNC
-    Matrix(internal::constructor_without_unaligned_array_assert)
+    explicit Matrix(internal::constructor_without_unaligned_array_assert)
       : Base(internal::constructor_without_unaligned_array_assert())
     { Base::_check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED }
 

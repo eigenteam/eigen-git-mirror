@@ -80,7 +80,7 @@ template<typename _MatrixType> class RealSchur
       *
       * \sa compute() for an example.
       */
-    RealSchur(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
+    explicit RealSchur(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
             : m_matT(size, size),
               m_matU(size, size),
               m_workspaceVector(size),
@@ -100,7 +100,7 @@ template<typename _MatrixType> class RealSchur
       * Example: \include RealSchur_RealSchur_MatrixType.cpp
       * Output: \verbinclude RealSchur_RealSchur_MatrixType.out
       */
-    RealSchur(const MatrixType& matrix, bool computeU = true)
+    explicit RealSchur(const MatrixType& matrix, bool computeU = true)
             : m_matT(matrix.rows(),matrix.cols()),
               m_matU(matrix.rows(),matrix.cols()),
               m_workspaceVector(matrix.rows()),

@@ -88,7 +88,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
       * 
       * \sa compute()
       */
-    SparseQR(const MatrixType& mat) : m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
+    explicit SparseQR(const MatrixType& mat) : m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     {
       compute(mat);
     }
@@ -636,7 +636,7 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
   typedef typename SparseQRType::Index Index;
   typedef typename SparseQRType::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
-  SparseQRMatrixQReturnType(const SparseQRType& qr) : m_qr(qr) {}
+  explicit SparseQRMatrixQReturnType(const SparseQRType& qr) : m_qr(qr) {}
   template<typename Derived>
   SparseQR_QProduct<SparseQRType, Derived> operator*(const MatrixBase<Derived>& other)
   {
@@ -672,7 +672,7 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
 template<typename SparseQRType>
 struct SparseQRMatrixQTransposeReturnType
 {
-  SparseQRMatrixQTransposeReturnType(const SparseQRType& qr) : m_qr(qr) {}
+  explicit SparseQRMatrixQTransposeReturnType(const SparseQRType& qr) : m_qr(qr) {}
   template<typename Derived>
   SparseQR_QProduct<SparseQRType,Derived> operator*(const MatrixBase<Derived>& other)
   {

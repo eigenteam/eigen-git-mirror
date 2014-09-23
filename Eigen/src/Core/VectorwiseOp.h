@@ -65,7 +65,7 @@ class PartialReduxExpr : internal::no_assignment_operator,
     typedef typename internal::traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
 
-    PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
+    explicit PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
       : m_matrix(mat), m_functor(func) {}
 
     Index rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
@@ -128,7 +128,7 @@ struct member_redux {
                    >::type  result_type;
   template<typename _Scalar, int Size> struct Cost
   { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };
-  member_redux(const BinaryOp func) : m_functor(func) {}
+  member_redux(const BinaryOp func) : m_functor(func) {}  // FIXME this should actually be explicit, but lets not exaggerate
   template<typename Derived>
   inline result_type operator()(const DenseBase<Derived>& mat) const
   { return mat.redux(m_functor); }
@@ -249,7 +249,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
   public:
 
-    inline VectorwiseOp(ExpressionType& matrix) : m_matrix(matrix) {}
+    explicit inline VectorwiseOp(ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
     inline const ExpressionType& _expression() const { return m_matrix; }
@@ -266,6 +266,21 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     redux(const BinaryOp& func = BinaryOp()) const
     { return typename ReduxReturnType<BinaryOp>::Type(_expression(), func); }
 
+    typedef typename ReturnType<internal::member_minCoeff>::Type MinCoeffReturnType;
+    typedef typename ReturnType<internal::member_maxCoeff>::Type MaxCoeffReturnType;
+    typedef typename ReturnType<internal::member_squaredNorm,RealScalar>::Type SquareNormReturnType;
+    typedef typename ReturnType<internal::member_norm,RealScalar>::Type NormReturnType;
+    typedef typename ReturnType<internal::member_blueNorm,RealScalar>::Type BlueNormReturnType;
+    typedef typename ReturnType<internal::member_stableNorm,RealScalar>::Type StableNormReturnType;
+    typedef typename ReturnType<internal::member_hypotNorm,RealScalar>::Type HypotNormReturnType;
+    typedef typename ReturnType<internal::member_sum>::Type SumReturnType;
+    typedef typename ReturnType<internal::member_mean>::Type MeanReturnType;
+    typedef typename ReturnType<internal::member_all>::Type AllReturnType;
+    typedef typename ReturnType<internal::member_any>::Type AnyReturnType;
+    typedef PartialReduxExpr<ExpressionType, internal::member_count<Index>, Direction> CountReturnType;
+    typedef typename ReturnType<internal::member_prod>::Type ProdReturnType;
+    typedef Reverse<ExpressionType, Direction> ReverseReturnType;
+
     /** \returns a row (or column) vector expression of the smallest coefficient
       * of each column (or row) of the referenced expression.
       * 
@@ -275,8 +290,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_minCoeff.out
       *
       * \sa DenseBase::minCoeff() */
-    const typename ReturnType<internal::member_minCoeff>::Type minCoeff() const
-    { return _expression(); }
+    const MinCoeffReturnType minCoeff() const
+    { return MinCoeffReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression of the largest coefficient
       * of each column (or row) of the referenced expression.
@@ -287,8 +302,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_maxCoeff.out
       *
       * \sa DenseBase::maxCoeff() */
-    const typename ReturnType<internal::member_maxCoeff>::Type maxCoeff() const
-    { return _expression(); }
+    const MaxCoeffReturnType maxCoeff() const
+    { return MaxCoeffReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression of the squared norm
       * of each column (or row) of the referenced expression.
@@ -298,8 +313,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_squaredNorm.out
       *
       * \sa DenseBase::squaredNorm() */
-    const typename ReturnType<internal::member_squaredNorm,RealScalar>::Type squaredNorm() const
-    { return _expression(); }
+    const SquareNormReturnType squaredNorm() const
+    { return SquareNormReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression.
@@ -309,8 +324,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_norm.out
       *
       * \sa DenseBase::norm() */
-    const typename ReturnType<internal::member_norm,RealScalar>::Type norm() const
-    { return _expression(); }
+    const NormReturnType norm() const
+    { return NormReturnType(_expression()); }
 
 
     /** \returns a row (or column) vector expression of the norm
@@ -319,8 +334,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::blueNorm() */
-    const typename ReturnType<internal::member_blueNorm,RealScalar>::Type blueNorm() const
-    { return _expression(); }
+    const BlueNormReturnType blueNorm() const
+    { return BlueNormReturnType(_expression()); }
 
 
     /** \returns a row (or column) vector expression of the norm
@@ -329,8 +344,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::stableNorm() */
-    const typename ReturnType<internal::member_stableNorm,RealScalar>::Type stableNorm() const
-    { return _expression(); }
+    const StableNormReturnType stableNorm() const
+    { return StableNormReturnType(_expression()); }
 
 
     /** \returns a row (or column) vector expression of the norm
@@ -339,8 +354,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::hypotNorm() */
-    const typename ReturnType<internal::member_hypotNorm,RealScalar>::Type hypotNorm() const
-    { return _expression(); }
+    const HypotNormReturnType hypotNorm() const
+    { return HypotNormReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression of the sum
       * of each column (or row) of the referenced expression.
@@ -349,31 +364,31 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_sum.out
       *
       * \sa DenseBase::sum() */
-    const typename ReturnType<internal::member_sum>::Type sum() const
-    { return _expression(); }
+    const SumReturnType sum() const
+    { return SumReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression of the mean
     * of each column (or row) of the referenced expression.
     *
     * \sa DenseBase::mean() */
-    const typename ReturnType<internal::member_mean>::Type mean() const
-    { return _expression(); }
+    const MeanReturnType mean() const
+    { return MeanReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression representing
       * whether \b all coefficients of each respective column (or row) are \c true.
       * This expression can be assigned to a vector with entries of type \c bool.
       *
       * \sa DenseBase::all() */
-    const typename ReturnType<internal::member_all>::Type all() const
-    { return _expression(); }
+    const AllReturnType all() const
+    { return AllReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression representing
       * whether \b at \b least one coefficient of each respective column (or row) is \c true.
       * This expression can be assigned to a vector with entries of type \c bool.
       *
       * \sa DenseBase::any() */
-    const typename ReturnType<internal::member_any>::Type any() const
-    { return _expression(); }
+    const AnyReturnType any() const
+    { return Any(_expression()); }
 
     /** \returns a row (or column) vector expression representing
       * the number of \c true coefficients of each respective column (or row).
@@ -384,8 +399,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_count.out
       *
       * \sa DenseBase::count() */
-    const PartialReduxExpr<ExpressionType, internal::member_count<Index>, Direction> count() const
-    { return _expression(); }
+    const CountReturnType count() const
+    { return CountReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression of the product
       * of each column (or row) of the referenced expression.
@@ -394,8 +409,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_prod.out
       *
       * \sa DenseBase::prod() */
-    const typename ReturnType<internal::member_prod>::Type prod() const
-    { return _expression(); }
+    const ProdReturnType prod() const
+    { return ProdReturnType(_expression()); }
 
 
     /** \returns a matrix expression
@@ -405,8 +420,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude Vectorwise_reverse.out
       *
       * \sa DenseBase::reverse() */
-    const Reverse<ExpressionType, Direction> reverse() const
-    { return Reverse<ExpressionType, Direction>( _expression() ); }
+    const ReverseReturnType reverse() const
+    { return ReverseReturnType( _expression() ); }
 
     typedef Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1> ReplicateReturnType;
     const ReplicateReturnType replicate(Index factor) const;
@@ -550,7 +565,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
 /////////// Geometry module ///////////
 
-    Homogeneous<ExpressionType,Direction> homogeneous() const;
+    typedef Homogeneous<ExpressionType,Direction> HomogeneousReturnType;
+    HomogeneousReturnType homogeneous() const;
 
     typedef typename ExpressionType::PlainObject CrossReturnType;
     template<typename OtherDerived>
@@ -595,7 +611,7 @@ template<typename Derived>
 inline const typename DenseBase<Derived>::ConstColwiseReturnType
 DenseBase<Derived>::colwise() const
 {
-  return derived();
+  return ConstColwiseReturnType(derived());
 }
 
 /** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
@@ -606,7 +622,7 @@ template<typename Derived>
 inline typename DenseBase<Derived>::ColwiseReturnType
 DenseBase<Derived>::colwise()
 {
-  return derived();
+  return ColwiseReturnType(derived());
 }
 
 /** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
@@ -620,7 +636,7 @@ template<typename Derived>
 inline const typename DenseBase<Derived>::ConstRowwiseReturnType
 DenseBase<Derived>::rowwise() const
 {
-  return derived();
+  return ConstRowwiseReturnType(derived());
 }
 
 /** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
@@ -631,7 +647,7 @@ template<typename Derived>
 inline typename DenseBase<Derived>::RowwiseReturnType
 DenseBase<Derived>::rowwise()
 {
-  return derived();
+  return RowwiseReturnType(derived());
 }
 
 } // end namespace Eigen

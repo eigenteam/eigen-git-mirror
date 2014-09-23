@@ -192,7 +192,7 @@ struct evaluator<MappedSparseMatrix<_Scalar,_Options,_Index> >
   };
   
   evaluator() : m_matrix(0) {}
-  evaluator(const MappedSparseMatrixType &mat) : m_matrix(&mat) {}
+  explicit evaluator(const MappedSparseMatrixType &mat) : m_matrix(&mat) {}
   
   operator MappedSparseMatrixType&() { return m_matrix->const_cast_derived(); }
   operator const MappedSparseMatrixType&() const { return *m_matrix; }

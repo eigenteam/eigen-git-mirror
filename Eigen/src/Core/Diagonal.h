@@ -70,7 +70,7 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
     EIGEN_DEVICE_FUNC
-    inline Diagonal(MatrixType& matrix, Index a_index = DiagIndex) : m_matrix(matrix), m_index(a_index) {}
+    explicit inline Diagonal(MatrixType& matrix, Index a_index = DiagIndex) : m_matrix(matrix), m_index(a_index) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Diagonal)
 
@@ -189,7 +189,7 @@ template<typename Derived>
 inline typename MatrixBase<Derived>::DiagonalReturnType
 MatrixBase<Derived>::diagonal()
 {
-  return derived();
+  return DiagonalReturnType(derived());
 }
 
 /** This is the const version of diagonal(). */
@@ -238,20 +238,20 @@ MatrixBase<Derived>::diagonal(Index index) const
   *
   * \sa MatrixBase::diagonal(), class Diagonal */
 template<typename Derived>
-template<int Index>
-inline typename MatrixBase<Derived>::template DiagonalIndexReturnType<Index>::Type
+template<int Index_>
+inline typename MatrixBase<Derived>::template DiagonalIndexReturnType<Index_>::Type
 MatrixBase<Derived>::diagonal()
 {
-  return derived();
+  return typename DiagonalIndexReturnType<Index_>::Type(derived());
 }
 
 /** This is the const version of diagonal<int>(). */
 template<typename Derived>
-template<int Index>
-inline typename MatrixBase<Derived>::template ConstDiagonalIndexReturnType<Index>::Type
+template<int Index_>
+inline typename MatrixBase<Derived>::template ConstDiagonalIndexReturnType<Index_>::Type
 MatrixBase<Derived>::diagonal() const
 {
-  return derived();
+  return typename ConstDiagonalIndexReturnType<Index_>::Type(derived());
 }
 
 } // end namespace Eigen

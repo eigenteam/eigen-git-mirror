@@ -180,7 +180,7 @@ class CholmodBase : public SparseSolverBase<Derived>
       cholmod_start(&m_cholmod);
     }
 
-    CholmodBase(const MatrixType& matrix)
+    explicit CholmodBase(const MatrixType& matrix)
       : m_cholmodFactor(0), m_info(Success)
     {
       m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);

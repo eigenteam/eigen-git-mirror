@@ -73,6 +73,7 @@ class PermutationBase : public EigenBase<Derived>
     typedef PermutationMatrix<IndicesType::SizeAtCompileTime,IndicesType::MaxSizeAtCompileTime,StorageIndexType>
             PlainPermutationType;
     using Base::derived;
+    typedef Transpose<PermutationBase> TransposeReturnType;
     #endif
 
     /** Copies the other permutation into *this */
@@ -198,14 +199,14 @@ class PermutationBase : public EigenBase<Derived>
       *
       * \note \note_try_to_help_rvo
       */
-    inline Transpose<PermutationBase> inverse() const
-    { return derived(); }
+    inline TransposeReturnType inverse() const
+    { return TransposeReturnType(derived()); }
     /** \returns the tranpose permutation matrix.
       *
       * \note \note_try_to_help_rvo
       */
-    inline Transpose<PermutationBase> transpose() const
-    { return derived(); }
+    inline TransposeReturnType transpose() const
+    { return TransposeReturnType(derived()); }
 
     /**** multiplication helpers to hopefully get RVO ****/
 
@@ -301,7 +302,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
     /** Constructs an uninitialized permutation matrix of given size.
       */
-    inline PermutationMatrix(Index size) : m_indices(size)
+    explicit inline PermutationMatrix(Index size) : m_indices(size)
     {}
 
     /** Copy constructor. */

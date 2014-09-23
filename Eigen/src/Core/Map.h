@@ -122,7 +122,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param a_stride optional Stride object, passing the strides.
       */
     EIGEN_DEVICE_FUNC
-    inline Map(PointerArgType dataPtr, const StrideType& a_stride = StrideType())
+    explicit inline Map(PointerArgType dataPtr, const StrideType& a_stride = StrideType())
       : Base(cast_to_pointer_type(dataPtr)), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();

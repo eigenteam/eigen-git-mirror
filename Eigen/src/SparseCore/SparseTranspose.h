@@ -62,7 +62,7 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
       Flags = XprType::Flags
     };
     
-    unary_evaluator(const XprType& op) :m_argImpl(op.nestedExpression()) {}
+    explicit unary_evaluator(const XprType& op) :m_argImpl(op.nestedExpression()) {}
 
   protected:
     typename evaluator<ArgType>::nestedType m_argImpl;

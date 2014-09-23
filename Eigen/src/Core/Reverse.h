@@ -89,7 +89,7 @@ template<typename MatrixType, int Direction> class Reverse
     typedef internal::reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
   public:
 
-    inline Reverse(const MatrixType& matrix) : m_matrix(matrix) { }
+    explicit inline Reverse(const MatrixType& matrix) : m_matrix(matrix) { }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Reverse)
 
@@ -184,7 +184,7 @@ template<typename Derived>
 inline typename DenseBase<Derived>::ReverseReturnType
 DenseBase<Derived>::reverse()
 {
-  return derived();
+  return ReverseReturnType(derived());
 }
 
 /** This is the const version of reverse(). */
@@ -192,7 +192,7 @@ template<typename Derived>
 inline const typename DenseBase<Derived>::ConstReverseReturnType
 DenseBase<Derived>::reverse() const
 {
-  return derived();
+  return ConstReverseReturnType(derived());
 }
 
 /** This is the "in place" version of reverse: it reverses \c *this.

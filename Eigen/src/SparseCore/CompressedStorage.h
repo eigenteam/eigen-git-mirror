@@ -36,7 +36,7 @@ class CompressedStorage
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {}
 
-    CompressedStorage(size_t size)
+    explicit CompressedStorage(size_t size)
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {
       resize(size);

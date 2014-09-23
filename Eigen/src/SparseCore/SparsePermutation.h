@@ -166,7 +166,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, Permutat
   typedef typename traits<permut_sparsematrix_product_retval<Lhs,Rhs,OnTheRight,false> >::ReturnType PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
 
-  product_evaluator(const XprType& xpr)
+  explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
@@ -185,7 +185,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseSh
   typedef typename traits<permut_sparsematrix_product_retval<Rhs,Lhs,OnTheRight,false> >::ReturnType PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
 
-  product_evaluator(const XprType& xpr)
+  explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);

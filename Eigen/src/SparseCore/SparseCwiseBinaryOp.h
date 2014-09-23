@@ -117,7 +117,7 @@ public:
     Flags = XprType::Flags
   };
   
-  binary_evaluator(const XprType& xpr) 
+  explicit binary_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -195,7 +195,7 @@ public:
     Flags = XprType::Flags
   };
   
-  binary_evaluator(const XprType& xpr) 
+  explicit binary_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -260,7 +260,7 @@ public:
     Flags = XprType::Flags
   };
   
-  binary_evaluator(const XprType& xpr) 
+  explicit binary_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -326,7 +326,7 @@ public:
     Flags = XprType::Flags
   };
   
-  binary_evaluator(const XprType& xpr) 
+  explicit binary_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  

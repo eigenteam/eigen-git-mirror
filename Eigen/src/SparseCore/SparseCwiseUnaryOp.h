@@ -29,7 +29,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>
       Flags = XprType::Flags
     };
     
-    unary_evaluator(const XprType& op) : m_functor(op.functor()), m_argImpl(op.nestedExpression()) {}
+    explicit unary_evaluator(const XprType& op) : m_functor(op.functor()), m_argImpl(op.nestedExpression()) {}
 
   protected:
     typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
@@ -104,7 +104,7 @@ struct unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>
       Flags = XprType::Flags
     };
     
-    unary_evaluator(const XprType& op) : m_functor(op.functor()), m_argImpl(op.nestedExpression()) {}
+    explicit unary_evaluator(const XprType& op) : m_functor(op.functor()), m_argImpl(op.nestedExpression()) {}
 
   protected:
     typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;

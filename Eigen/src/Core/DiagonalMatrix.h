@@ -63,24 +63,26 @@ class DiagonalBase : public EigenBase<Derived>
       return Product<Derived, MatrixDerived, LazyProduct>(derived(),matrix.derived());
     }
 
+    typedef DiagonalWrapper<const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const DiagonalVectorType> > InverseReturnType;
     EIGEN_DEVICE_FUNC
-    inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const DiagonalVectorType> >
+    inline const InverseReturnType
     inverse() const
     {
-      return diagonal().cwiseInverse();
+      return InverseReturnType(diagonal().cwiseInverse());
     }
     
+    typedef DiagonalWrapper<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DiagonalVectorType> > ScalarMultipleReturnType;
     EIGEN_DEVICE_FUNC
-    inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DiagonalVectorType> >
+    inline const ScalarMultipleReturnType
     operator*(const Scalar& scalar) const
     {
-      return diagonal() * scalar;
+      return ScalarMultipleReturnType(diagonal() * scalar);
     }
     EIGEN_DEVICE_FUNC
-    friend inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DiagonalVectorType> >
+    friend inline const ScalarMultipleReturnType
     operator*(const Scalar& scalar, const DiagonalBase& other)
     {
-      return other.diagonal() * scalar;
+      return ScalarMultipleReturnType(other.diagonal() * scalar);
     }
 };
 
@@ -144,7 +146,7 @@ class DiagonalMatrix
 
     /** Constructs a diagonal matrix with given dimension  */
     EIGEN_DEVICE_FUNC
-    inline DiagonalMatrix(Index dim) : m_diagonal(dim) {}
+    explicit inline DiagonalMatrix(Index dim) : m_diagonal(dim) {}
 
     /** 2D constructor. */
     EIGEN_DEVICE_FUNC
@@ -253,7 +255,7 @@ class DiagonalWrapper
 
     /** Constructor from expression of diagonal coefficients to wrap. */
     EIGEN_DEVICE_FUNC
-    inline DiagonalWrapper(DiagonalVectorType& a_diagonal) : m_diagonal(a_diagonal) {}
+    explicit inline DiagonalWrapper(DiagonalVectorType& a_diagonal) : m_diagonal(a_diagonal) {}
 
     /** \returns a const reference to the wrapped expression of diagonal coefficients. */
     EIGEN_DEVICE_FUNC
@@ -276,7 +278,7 @@ template<typename Derived>
 inline const DiagonalWrapper<const Derived>
 MatrixBase<Derived>::asDiagonal() const
 {
-  return derived();
+  return DiagonalWrapper<const Derived>(derived());
 }
 
 /** \returns true if *this is approximately equal to a diagonal matrix,

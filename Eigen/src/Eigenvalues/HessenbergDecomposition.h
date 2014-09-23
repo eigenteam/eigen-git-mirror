@@ -97,7 +97,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       *
       * \sa compute() for an example.
       */
-    HessenbergDecomposition(Index size = Size==Dynamic ? 2 : Size)
+    explicit HessenbergDecomposition(Index size = Size==Dynamic ? 2 : Size)
       : m_matrix(size,size),
         m_temp(size),
         m_isInitialized(false)
@@ -115,7 +115,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       *
       * \sa matrixH() for an example.
       */
-    HessenbergDecomposition(const MatrixType& matrix)
+    explicit HessenbergDecomposition(const MatrixType& matrix)
       : m_matrix(matrix),
         m_temp(matrix.rows()),
         m_isInitialized(false)

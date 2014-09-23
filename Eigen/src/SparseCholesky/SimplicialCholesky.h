@@ -57,7 +57,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
       : m_info(Success), m_shiftOffset(0), m_shiftScale(1)
     {}
 
-    SimplicialCholeskyBase(const MatrixType& matrix)
+    explicit SimplicialCholeskyBase(const MatrixType& matrix)
       : m_info(Success), m_shiftOffset(0), m_shiftScale(1)
     {
       derived().compute(matrix);
@@ -239,8 +239,8 @@ template<typename _MatrixType, int _UpLo, typename _Ordering> struct traits<Simp
   typedef SparseMatrix<Scalar, ColMajor, Index>               CholMatrixType;
   typedef TriangularView<CholMatrixType, Eigen::Lower>  MatrixL;
   typedef TriangularView<typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return m; }
-  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
+  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m.adjoint()); }
 };
 
 template<typename _MatrixType,int _UpLo, typename _Ordering> struct traits<SimplicialLDLT<_MatrixType,_UpLo,_Ordering> >
@@ -253,8 +253,8 @@ template<typename _MatrixType,int _UpLo, typename _Ordering> struct traits<Simpl
   typedef SparseMatrix<Scalar, ColMajor, Index>                   CholMatrixType;
   typedef TriangularView<CholMatrixType, Eigen::UnitLower>  MatrixL;
   typedef TriangularView<typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return m; }
-  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
+  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m.adjoint()); }
 };
 
 template<typename _MatrixType, int _UpLo, typename _Ordering> struct traits<SimplicialCholesky<_MatrixType,_UpLo,_Ordering> >
@@ -303,7 +303,7 @@ public:
     /** Default constructor */
     SimplicialLLT() : Base() {}
     /** Constructs and performs the LLT factorization of \a matrix */
-    SimplicialLLT(const MatrixType& matrix)
+    explicit SimplicialLLT(const MatrixType& matrix)
         : Base(matrix) {}
 
     /** \returns an expression of the factor L */
@@ -393,7 +393,7 @@ public:
     SimplicialLDLT() : Base() {}
 
     /** Constructs and performs the LLT factorization of \a matrix */
-    SimplicialLDLT(const MatrixType& matrix)
+    explicit SimplicialLDLT(const MatrixType& matrix)
         : Base(matrix) {}
 
     /** \returns a vector expression of the diagonal D */
@@ -473,7 +473,7 @@ public:
   public:
     SimplicialCholesky() : Base(), m_LDLT(true) {}
 
-    SimplicialCholesky(const MatrixType& matrix)
+    explicit SimplicialCholesky(const MatrixType& matrix)
       : Base(), m_LDLT(true)
     {
       compute(matrix);

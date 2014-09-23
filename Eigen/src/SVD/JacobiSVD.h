@@ -550,7 +550,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       * according to the specified problem size.
       * \sa JacobiSVD()
       */
-    JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
+    explicit JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
     {
       allocate(rows, cols, computationOptions);
     }
@@ -565,7 +565,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
      * Thin unitaries are only available if your matrix type has a Dynamic number of columns (for example MatrixXf). They also are not
      * available with the (non-default) FullPivHouseholderQR preconditioner.
      */
-    JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
+    explicit JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
     {
       compute(matrix, computationOptions);
     }

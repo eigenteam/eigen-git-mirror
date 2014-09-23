@@ -55,7 +55,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
+    explicit EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
     EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_expression.rows(); }
@@ -198,7 +198,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
     EIGEN_DEVICE_FUNC
-    inline MatrixWrapper(ExpressionType& a_matrix) : m_expression(a_matrix) {}
+    explicit inline MatrixWrapper(ExpressionType& a_matrix) : m_expression(a_matrix) {}
 
     EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_expression.rows(); }

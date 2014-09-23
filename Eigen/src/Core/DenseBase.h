@@ -275,6 +275,7 @@ template<typename Derived> class DenseBase
 
     // TODO flagged is temporarly disabled. It seems useless now
     template<unsigned int Added,unsigned int Removed>
+    EIGEN_DEPRECATED
     const Derived& flagged() const
     { return derived(); }
 
@@ -282,8 +283,9 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     CommaInitializer<Derived> operator<< (const DenseBase<OtherDerived>& other);
 
+    typedef Transpose<Derived> TransposeReturnType;
     EIGEN_DEVICE_FUNC
-    Eigen::Transpose<Derived> transpose();
+    TransposeReturnType transpose();
     typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
     EIGEN_DEVICE_FUNC
     ConstTransposeReturnType transpose() const;

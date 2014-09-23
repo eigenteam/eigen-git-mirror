@@ -185,7 +185,7 @@ public:
     Flags = XprType::Flags
   };
     
-  unary_evaluator(const XprType &xpr) : m_argImpl(xpr.nestedExpression()) {}
+  explicit unary_evaluator(const XprType &xpr) : m_argImpl(xpr.nestedExpression()) {}
   
   class InnerIterator : public EvalIterator
   {
@@ -269,7 +269,7 @@ template<int Mode>
 inline const TriangularView<Derived, Mode>
 SparseMatrixBase<Derived>::triangularView() const
 {
-  return derived();
+  return TriangularView<Derived, Mode>(derived());
 }
 
 } // end namespace Eigen

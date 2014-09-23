@@ -92,7 +92,7 @@ template<typename _MatrixType> class PartialPivLU
       * according to the specified problem \a size.
       * \sa PartialPivLU()
       */
-    PartialPivLU(Index size);
+    explicit PartialPivLU(Index size);
 
     /** Constructor.
       *
@@ -101,7 +101,7 @@ template<typename _MatrixType> class PartialPivLU
       * \warning The matrix should have full rank (e.g. if it's square, it should be invertible).
       * If you need to deal with non-full rank, use class FullPivLU instead.
       */
-    PartialPivLU(const MatrixType& matrix);
+    explicit PartialPivLU(const MatrixType& matrix);
 
     PartialPivLU& compute(const MatrixType& matrix);
 

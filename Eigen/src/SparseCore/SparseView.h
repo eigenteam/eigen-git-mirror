@@ -36,7 +36,7 @@ public:
   EIGEN_SPARSE_PUBLIC_INTERFACE(SparseView)
   typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
-  SparseView(const MatrixType& mat, const Scalar& m_reference = Scalar(0),
+  explicit SparseView(const MatrixType& mat, const Scalar& m_reference = Scalar(0),
              RealScalar m_epsilon = NumTraits<Scalar>::dummy_precision()) : 
     m_matrix(mat), m_reference(m_reference), m_epsilon(m_epsilon) {}
 
@@ -111,7 +111,7 @@ struct unary_evaluator<SparseView<ArgType>, IteratorBased>
       Flags = XprType::Flags
     };
     
-    unary_evaluator(const XprType& xpr) : m_argImpl(xpr.nestedExpression()), m_view(xpr) {}
+    explicit unary_evaluator(const XprType& xpr) : m_argImpl(xpr.nestedExpression()), m_view(xpr) {}
 
   protected:
     typename evaluator<ArgType>::nestedType m_argImpl;
@@ -180,7 +180,7 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
       Flags = XprType::Flags
     };
     
-    unary_evaluator(const XprType& xpr) : m_argImpl(xpr.nestedExpression()), m_view(xpr) {}
+    explicit unary_evaluator(const XprType& xpr) : m_argImpl(xpr.nestedExpression()), m_view(xpr) {}
 
   protected:
     typename evaluator<ArgType>::nestedType m_argImpl;

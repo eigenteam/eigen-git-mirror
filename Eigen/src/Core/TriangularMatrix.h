@@ -211,8 +211,9 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       IsVectorAtCompileTime = false
     };
 
+    // FIXME This, combined with const_cast_derived in transpose() leads to a const-correctness loophole
     EIGEN_DEVICE_FUNC
-    inline TriangularView(const MatrixType& matrix) : m_matrix(matrix)
+    explicit inline TriangularView(const MatrixType& matrix) : m_matrix(matrix)
     {}
     
     using Base::operator=;
@@ -229,32 +230,36 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     EIGEN_DEVICE_FUNC
     NestedExpression& nestedExpression() { return *const_cast<NestedExpression*>(&m_matrix); }
 
+    typedef TriangularView<MatrixConjugateReturnType,Mode> ConjugateReturnType;
     /** \sa MatrixBase::conjugate() */
     EIGEN_DEVICE_FUNC
-    inline TriangularView<MatrixConjugateReturnType,Mode> conjugate()
-    { return m_matrix.conjugate(); }
+    inline ConjugateReturnType conjugate()
+    { return ConjugateReturnType(m_matrix.conjugate()); }
     /** \sa MatrixBase::conjugate() const */
-    EIGEN_DEVICE_FUNC
-    inline const TriangularView<MatrixConjugateReturnType,Mode> conjugate() const
-    { return m_matrix.conjugate(); }
 
+    EIGEN_DEVICE_FUNC
+    inline const ConjugateReturnType conjugate() const
+    { return ConjugateReturnType(m_matrix.conjugate()); }
+
+    typedef TriangularView<const typename MatrixType::AdjointReturnType,TransposeMode> AdjointReturnType;
     /** \sa MatrixBase::adjoint() const */
     EIGEN_DEVICE_FUNC
-    inline const TriangularView<const typename MatrixType::AdjointReturnType,TransposeMode> adjoint() const
-    { return m_matrix.adjoint(); }
+    inline const AdjointReturnType adjoint() const
+    { return AdjointReturnType(m_matrix.adjoint()); }
 
-    /** \sa MatrixBase::transpose() */
+    typedef TriangularView<Transpose<MatrixType>,TransposeMode> TransposeReturnType;
+     /** \sa MatrixBase::transpose() */
     EIGEN_DEVICE_FUNC
-    inline TriangularView<Transpose<MatrixType>,TransposeMode> transpose()
+    inline TransposeReturnType transpose()
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return m_matrix.const_cast_derived().transpose();
+      return TransposeReturnType(m_matrix.const_cast_derived().transpose());
     }
     /** \sa MatrixBase::transpose() const */
     EIGEN_DEVICE_FUNC
-    inline const TriangularView<Transpose<MatrixType>,TransposeMode> transpose() const
+    inline const TransposeReturnType transpose() const
     {
-      return m_matrix.transpose();
+      return TransposeReturnType(m_matrix.transpose());
     }
 
     template<typename Other>
@@ -556,7 +561,7 @@ template<unsigned int Mode>
 typename MatrixBase<Derived>::template TriangularViewReturnType<Mode>::Type
 MatrixBase<Derived>::triangularView()
 {
-  return derived();
+  return typename TriangularViewReturnType<Mode>::Type(derived());
 }
 
 /** This is the const version of MatrixBase::triangularView() */
@@ -565,7 +570,7 @@ template<unsigned int Mode>
 typename MatrixBase<Derived>::template ConstTriangularViewReturnType<Mode>::Type
 MatrixBase<Derived>::triangularView() const
 {
-  return derived();
+  return typename ConstTriangularViewReturnType<Mode>::Type(derived());
 }
 
 /** \returns true if *this is approximately equal to an upper triangular matrix,

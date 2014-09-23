@@ -133,7 +133,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa compute() for an example
       */
     EIGEN_DEVICE_FUNC
-    SelfAdjointEigenSolver(Index size)
+    explicit SelfAdjointEigenSolver(Index size)
         : m_eivec(size, size),
           m_eivalues(size),
           m_subdiag(size > 1 ? size - 1 : 1),
@@ -156,7 +156,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa compute(const MatrixType&, int)
       */
     EIGEN_DEVICE_FUNC
-    SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
+    explicit SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
         m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),

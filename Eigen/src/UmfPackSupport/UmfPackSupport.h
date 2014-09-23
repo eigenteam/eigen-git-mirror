@@ -142,7 +142,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
 
     UmfPackLU() { init(); }
 
-    UmfPackLU(const MatrixType& matrix)
+    explicit UmfPackLU(const MatrixType& matrix)
     {
       init();
       compute(matrix);

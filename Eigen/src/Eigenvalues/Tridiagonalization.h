@@ -112,7 +112,7 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa compute() for an example.
       */
-    Tridiagonalization(Index size = Size==Dynamic ? 2 : Size)
+    explicit Tridiagonalization(Index size = Size==Dynamic ? 2 : Size)
       : m_matrix(size,size),
         m_hCoeffs(size > 1 ? size-1 : 1),
         m_isInitialized(false)
@@ -128,7 +128,7 @@ template<typename _MatrixType> class Tridiagonalization
       * Example: \include Tridiagonalization_Tridiagonalization_MatrixType.cpp
       * Output: \verbinclude Tridiagonalization_Tridiagonalization_MatrixType.out
       */
-    Tridiagonalization(const MatrixType& matrix)
+    explicit Tridiagonalization(const MatrixType& matrix)
       : m_matrix(matrix),
         m_hCoeffs(matrix.cols() > 1 ? matrix.cols()-1 : 1),
         m_isInitialized(false)

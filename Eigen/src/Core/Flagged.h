@@ -48,7 +48,7 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
         ExpressionType, const ExpressionType&>::type ExpressionTypeNested;
     typedef typename ExpressionType::InnerIterator InnerIterator;
 
-    inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}
+    explicit inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -132,7 +132,7 @@ template<unsigned int Added,unsigned int Removed>
 inline const Flagged<Derived, Added, Removed>
 DenseBase<Derived>::flagged() const
 {
-  return derived();
+  return Flagged<Derived, Added, Removed>(derived());
 }
 
 } // end namespace Eigen

@@ -63,7 +63,7 @@ class CwiseUnaryOp : internal::no_assignment_operator,
     typedef typename internal::remove_all<XprType>::type NestedExpression;
 
     EIGEN_DEVICE_FUNC
-    inline CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
+    explicit inline CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
       : m_xpr(xpr), m_functor(func) {}
 
     EIGEN_DEVICE_FUNC

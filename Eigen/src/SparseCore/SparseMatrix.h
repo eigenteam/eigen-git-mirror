@@ -89,6 +89,8 @@ class SparseMatrix
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
+    typedef Diagonal<const SparseMatrix> DiagonalReturnType;
+
     using Base::IsRowMajor;
     typedef internal::CompressedStorage<Scalar,Index> Storage;
     enum {
@@ -621,7 +623,7 @@ class SparseMatrix
     }
 
     /** \returns a const expression of the diagonal coefficients */
-    const Diagonal<const SparseMatrix> diagonal() const { return *this; }
+    const DiagonalReturnType diagonal() const { return DiagonalReturnType(*this); }
 
     /** Default constructor yielding an empty \c 0 \c x \c 0 matrix */
     inline SparseMatrix()
@@ -1272,7 +1274,7 @@ struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
   };
   
   evaluator() : m_matrix(0) {}
-  evaluator(const SparseMatrixType &mat) : m_matrix(&mat) {}
+  explicit evaluator(const SparseMatrixType &mat) : m_matrix(&mat) {}
   
   operator SparseMatrixType&() { return m_matrix->const_cast_derived(); }
   operator const SparseMatrixType&() const { return *m_matrix; }

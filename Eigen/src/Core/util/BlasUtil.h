@@ -231,7 +231,7 @@ struct blas_traits<Transpose<NestedXpr> >
   enum {
     IsTransposed = Base::IsTransposed ? 0 : 1
   };
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
+  static inline ExtractType extract(const XprType& x) { return ExtractType(Base::extract(x.nestedExpression())); }
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }
 };
 

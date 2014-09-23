@@ -120,7 +120,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       * 
       * \sa compute()
       */
-    FullPivHouseholderQR(const MatrixType& matrix)
+    explicit FullPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs((std::min)(matrix.rows(), matrix.cols())),
         m_rows_transpositions((std::min)(matrix.rows(), matrix.cols())),

@@ -173,7 +173,8 @@ protected:
   typedef Product<LhsT,RhsT,DefaultProduct> ProdXprType;
   
   // if the actual left-hand side is a dense vector,
-  // then build a sparse-view so that we can seamlessly iterator over it.
+  // then build a sparse-view so that we can seamlessly iterate over it.
+  // FIXME ActualLhs does not seem to be necessary
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
             Lhs1, SparseView<Lhs1> >::type ActualLhs;
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
@@ -228,7 +229,7 @@ public:
     Scalar m_factor;
   };
   
-  sparse_dense_outer_product_evaluator(const ActualLhs &lhs, const ActualRhs &rhs)
+  sparse_dense_outer_product_evaluator(const Lhs1 &lhs, const ActualRhs &rhs)
      : m_lhs(lhs), m_lhsXprImpl(m_lhs), m_rhsXprImpl(rhs)
   {}
   
@@ -253,7 +254,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, Sparse
   typedef Product<Lhs, Rhs> XprType;
   typedef typename XprType::PlainObject PlainObject;
 
-  product_evaluator(const XprType& xpr)
+  explicit product_evaluator(const XprType& xpr)
     : Base(xpr.lhs(), xpr.rhs())
   {}
   
@@ -268,7 +269,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, DenseS
   typedef Product<Lhs, Rhs> XprType;
   typedef typename XprType::PlainObject PlainObject;
 
-  product_evaluator(const XprType& xpr)
+  explicit product_evaluator(const XprType& xpr)
     : Base(xpr.lhs(), xpr.rhs())
   {}
   

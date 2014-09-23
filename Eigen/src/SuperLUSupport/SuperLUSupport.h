@@ -469,7 +469,7 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
 
     SuperLU() : Base() { init(); }
 
-    SuperLU(const MatrixType& matrix) : Base()
+    explicit SuperLU(const MatrixType& matrix) : Base()
     {
       init();
       Base::compute(matrix);

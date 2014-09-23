@@ -91,7 +91,7 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa compute() for an example.
       */
-    ComplexSchur(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
+    explicit ComplexSchur(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
       : m_matT(size,size),
         m_matU(size,size),
         m_hess(size),
@@ -109,7 +109,7 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa matrixT() and matrixU() for examples.
       */
-    ComplexSchur(const MatrixType& matrix, bool computeU = true)
+    explicit ComplexSchur(const MatrixType& matrix, bool computeU = true)
       : m_matT(matrix.rows(),matrix.cols()),
         m_matU(matrix.rows(),matrix.cols()),
         m_hess(matrix.rows()),

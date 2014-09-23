@@ -34,6 +34,11 @@ template<typename StorageKind> struct storage_kind_to_shape;
 
 template<> struct storage_kind_to_shape<Dense> { typedef DenseShape Shape; };
 
+
+// FIXME Is this necessary? And why was it not before refactoring???
+template<> struct storage_kind_to_shape<PermutationStorage> { typedef PermutationShape Shape; };
+
+
 // Evaluators have to be specialized with respect to various criteria such as:
 //  - storage/structure/shape
 //  - scalar type
@@ -87,7 +92,7 @@ template<typename T>
 struct evaluator : public unary_evaluator<T>
 {
   typedef unary_evaluator<T> Base;
-  evaluator(const T& xpr) : Base(xpr) {}
+  explicit evaluator(const T& xpr) : Base(xpr) {}
 };
 
 
@@ -150,7 +155,7 @@ struct evaluator<PlainObjectBase<Derived> >
                                            : RowsAtCompileTime)
   {}
   
-  evaluator(const PlainObjectType& m) 
+  explicit evaluator(const PlainObjectType& m)
     : m_data(m.data()), m_outerStride(IsVectorAtCompileTime ? 0 : m.outerStride()) 
   { }
 
@@ -242,7 +247,7 @@ struct evaluator<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 
   evaluator() {}
   
-  evaluator(const XprType& m) 
+  explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
   { }
 };
@@ -260,7 +265,7 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
     Flags = evaluator<ArgType>::Flags ^ RowMajorBit
   };
 
-  unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
+  explicit unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
@@ -337,7 +342,7 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
           | (functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit) // FIXME EvalBeforeNestingBit should be needed anymore
   };
 
-  evaluator(const XprType& n) 
+  explicit evaluator(const XprType& n)
     : m_functor(n.functor()) 
   { }
 
@@ -387,7 +392,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
             | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))
   };
 
-  unary_evaluator(const XprType& op) 
+  explicit unary_evaluator(const XprType& op)
     : m_functor(op.functor()), 
       m_argImpl(op.nestedExpression()) 
   { }
@@ -433,7 +438,7 @@ struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
   typedef binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > Base;
   
-  evaluator(const XprType& xpr) : Base(xpr) {}
+  explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
@@ -461,7 +466,7 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
     Flags = (Flags0 & ~RowMajorBit) | (LhsFlags & RowMajorBit)
   };
 
-  binary_evaluator(const XprType& xpr) 
+  explicit binary_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -515,7 +520,7 @@ struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType>, IndexBased>
     Flags = (evaluator<ArgType>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit))
   };
 
-  unary_evaluator(const XprType& op) 
+  explicit unary_evaluator(const XprType& op)
     : m_unaryOp(op.functor()), 
       m_argImpl(op.nestedExpression()) 
   { }
@@ -573,7 +578,7 @@ struct mapbase_evaluator : evaluator_base<Derived>
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
   
-  mapbase_evaluator(const XprType& map) 
+  explicit mapbase_evaluator(const XprType& map)
     : m_data(const_cast<PointerType>(map.data())),  
       m_xpr(map)
   {
@@ -663,7 +668,7 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     Flags = KeepsPacketAccess ? int(Flags2) : (int(Flags2) & ~PacketAccessBit)
   };
 
-  evaluator(const XprType& map) 
+  explicit evaluator(const XprType& map)
     : mapbase_evaluator<XprType, PlainObjectType>(map) 
   { }
 };
@@ -680,7 +685,7 @@ struct evaluator<Ref<PlainObjectType, RefOptions, StrideType> >
     Flags = evaluator<Map<PlainObjectType, RefOptions, StrideType> >::Flags
   };
 
-  evaluator(const XprType& ref) 
+  explicit evaluator(const XprType& ref)
     : mapbase_evaluator<XprType, PlainObjectType>(ref) 
   { }
 };
@@ -731,7 +736,7 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     Flags = Flags0 | FlagsLinearAccessBit | FlagsRowMajorBit
   };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;
-  evaluator(const XprType& block) : block_evaluator_type(block) {}
+  explicit evaluator(const XprType& block) : block_evaluator_type(block) {}
 };
 
 // no direct-access => dispatch to a unary evaluator
@@ -741,7 +746,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAcc
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  block_evaluator(const XprType& block) 
+  explicit block_evaluator(const XprType& block)
     : unary_evaluator<XprType>(block) 
   {}
 };
@@ -752,7 +757,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  unary_evaluator(const XprType& block) 
+  explicit unary_evaluator(const XprType& block)
     : m_argImpl(block.nestedExpression()), 
       m_startRow(block.startRow()), 
       m_startCol(block.startCol()) 
@@ -831,7 +836,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  block_evaluator(const XprType& block) 
+  explicit block_evaluator(const XprType& block)
     : mapbase_evaluator<XprType, typename XprType::PlainObject>(block) 
   {
     // FIXME this should be an internal assertion
@@ -857,7 +862,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
     Flags = (unsigned int)evaluator<ThenMatrixType>::Flags & evaluator<ElseMatrixType>::Flags & HereditaryBits
   };
 
-  evaluator(const XprType& select) 
+  explicit evaluator(const XprType& select)
     : m_conditionImpl(select.conditionMatrix()),
       m_thenImpl(select.thenMatrix()),
       m_elseImpl(select.elseMatrix())
@@ -911,7 +916,7 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
     Flags = (evaluator<ArgTypeNestedCleaned>::Flags & HereditaryBits & ~RowMajorBit) | (traits<XprType>::Flags & RowMajorBit)
   };
 
-  unary_evaluator(const XprType& replicate) 
+  explicit unary_evaluator(const XprType& replicate)
     : m_arg(replicate.nestedExpression()),
       m_argImpl(m_arg),
       m_rows(replicate.nestedExpression().rows()),
@@ -975,7 +980,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
     Flags = (traits<XprType>::Flags&RowMajorBit) | (evaluator<ArgType>::Flags&HereditaryBits)
   };
 
-  evaluator(const XprType expr)
+  explicit evaluator(const XprType expr)
     : m_expr(expr)
   {}
 
@@ -1012,7 +1017,7 @@ struct evaluator_wrapper_base
     Flags = evaluator<ArgType>::Flags
   };
 
-  evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
+  explicit evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
 
   typedef typename ArgType::Index Index;
   typedef typename ArgType::Scalar Scalar;
@@ -1074,7 +1079,7 @@ struct unary_evaluator<MatrixWrapper<TArgType> >
 {
   typedef MatrixWrapper<TArgType> XprType;
 
-  unary_evaluator(const XprType& wrapper) 
+  explicit unary_evaluator(const XprType& wrapper)
     : evaluator_wrapper_base<MatrixWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
@@ -1085,7 +1090,7 @@ struct unary_evaluator<ArrayWrapper<TArgType> >
 {
   typedef ArrayWrapper<TArgType> XprType;
 
-  unary_evaluator(const XprType& wrapper) 
+  explicit unary_evaluator(const XprType& wrapper)
     : evaluator_wrapper_base<ArrayWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
@@ -1131,7 +1136,7 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
   };
   typedef internal::reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
 
-  unary_evaluator(const XprType& reverse) 
+  explicit unary_evaluator(const XprType& reverse)
     : m_argImpl(reverse.nestedExpression()),
       m_rows(ReverseRow ? reverse.nestedExpression().rows() : 0),
       m_cols(ReverseCol ? reverse.nestedExpression().cols() : 0)
@@ -1212,7 +1217,7 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
     Flags = (unsigned int)evaluator<ArgType>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit) & ~RowMajorBit
   };
 
-  evaluator(const XprType& diagonal) 
+  explicit evaluator(const XprType& diagonal)
     : m_argImpl(diagonal.nestedExpression()),
       m_index(diagonal.index())
   { }
@@ -1275,7 +1280,7 @@ class EvalToTemp
   typedef typename dense_xpr_base<EvalToTemp>::type Base;
   EIGEN_GENERIC_PUBLIC_INTERFACE(EvalToTemp)
  
-  EvalToTemp(const ArgType& arg)
+  explicit EvalToTemp(const ArgType& arg)
     : m_arg(arg)
   { }
  
@@ -1309,7 +1314,7 @@ struct evaluator<EvalToTemp<ArgType> >
   typedef evaluator type;
   typedef evaluator nestedType;
 
-  evaluator(const XprType& xpr) 
+  explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);

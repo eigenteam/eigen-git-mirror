@@ -51,7 +51,7 @@ public:
   typedef typename internal::nested<XprType>::type            XprTypeNested;
   typedef typename internal::remove_all<XprTypeNested>::type  XprTypeNestedCleaned;
   
-  Inverse(const XprType &xpr)
+  explicit Inverse(const XprType &xpr)
     : m_xpr(xpr)
   {}
   

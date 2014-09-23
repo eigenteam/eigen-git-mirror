@@ -221,7 +221,7 @@ class SparseVector
 
     inline SparseVector() : m_size(0) { check_template_parameters(); resize(0); }
 
-    inline SparseVector(Index size) : m_size(0) { check_template_parameters(); resize(size); }
+    explicit inline SparseVector(Index size) : m_size(0) { check_template_parameters(); resize(size); }
 
     inline SparseVector(Index rows, Index cols) : m_size(0) { check_template_parameters(); resize(rows,cols); }
 
@@ -360,14 +360,14 @@ template<typename Scalar, int _Options, typename _Index>
 class SparseVector<Scalar,_Options,_Index>::InnerIterator
 {
   public:
-    InnerIterator(const SparseVector& vec, Index outer=0)
+	explicit InnerIterator(const SparseVector& vec, Index outer=0)
       : m_data(vec.m_data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {
       EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
-    InnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
+	explicit InnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
       : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {}
 
@@ -392,14 +392,14 @@ template<typename Scalar, int _Options, typename _Index>
 class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
 {
   public:
-    ReverseInnerIterator(const SparseVector& vec, Index outer=0)
+	explicit ReverseInnerIterator(const SparseVector& vec, Index outer=0)
       : m_data(vec.m_data), m_id(static_cast<Index>(m_data.size())), m_start(0)
     {
       EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
-    ReverseInnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
+	explicit ReverseInnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
       : m_data(data), m_id(static_cast<Index>(m_data.size())), m_start(0)
     {}
 
@@ -435,7 +435,7 @@ struct evaluator<SparseVector<_Scalar,_Options,_Index> >
     Flags = SparseVectorType::Flags
   };
   
-  evaluator(const SparseVectorType &mat) : m_matrix(mat) {}
+  explicit evaluator(const SparseVectorType &mat) : m_matrix(mat) {}
   
   operator SparseVectorType&() { return m_matrix.const_cast_derived(); }
   operator const SparseVectorType&() const { return m_matrix; }

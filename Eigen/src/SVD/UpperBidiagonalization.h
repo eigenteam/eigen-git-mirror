@@ -37,7 +37,7 @@ template<typename _MatrixType> class UpperBidiagonalization
     typedef Matrix<Scalar, ColsAtCompileTimeMinusOne, 1> SuperDiagVectorType;
     typedef HouseholderSequence<
               const MatrixType,
-              CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Diagonal<const MatrixType,0> >
+              const typename internal::remove_all<typename Diagonal<const MatrixType,0>::ConjugateReturnType>::type
             > HouseholderUSequenceType;
     typedef HouseholderSequence<
               const typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type,
@@ -53,7 +53,7 @@ template<typename _MatrixType> class UpperBidiagonalization
     */
     UpperBidiagonalization() : m_householder(), m_bidiagonal(), m_isInitialized(false) {}
 
-    UpperBidiagonalization(const MatrixType& matrix)
+    explicit UpperBidiagonalization(const MatrixType& matrix)
       : m_householder(matrix.rows(), matrix.cols()),
         m_bidiagonal(matrix.cols(), matrix.cols()),
         m_isInitialized(false)

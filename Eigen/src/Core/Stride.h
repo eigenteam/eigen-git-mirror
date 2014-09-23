@@ -93,7 +93,7 @@ class InnerStride : public Stride<0, Value>
   public:
     typedef DenseIndex Index;
     EIGEN_DEVICE_FUNC InnerStride() : Base() {}
-    EIGEN_DEVICE_FUNC InnerStride(Index v) : Base(0, v) {}
+    EIGEN_DEVICE_FUNC InnerStride(Index v) : Base(0, v) {} // FIXME making this explicit could break valid code
 };
 
 /** \brief Convenience specialization of Stride to specify only an outer stride
@@ -105,7 +105,7 @@ class OuterStride : public Stride<Value, 0>
   public:
     typedef DenseIndex Index;
     EIGEN_DEVICE_FUNC OuterStride() : Base() {}
-    EIGEN_DEVICE_FUNC OuterStride(Index v) : Base(v,0) {}
+    EIGEN_DEVICE_FUNC OuterStride(Index v) : Base(v,0) {} // FIXME making this explicit could break valid code
 };
 
 } // end namespace Eigen

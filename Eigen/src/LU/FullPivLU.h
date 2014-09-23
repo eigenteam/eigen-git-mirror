@@ -94,7 +94,7 @@ template<typename _MatrixType> class FullPivLU
       * \param matrix the matrix of which to compute the LU decomposition.
       *               It is required to be nonzero.
       */
-    FullPivLU(const MatrixType& matrix);
+    explicit FullPivLU(const MatrixType& matrix);
 
     /** Computes the LU decomposition of the given matrix.
       *

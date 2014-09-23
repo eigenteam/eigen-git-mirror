@@ -391,7 +391,7 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
       pardisoInit(Base::ScalarIsComplex ? 13 : 11);
     }
 
-    PardisoLU(const MatrixType& matrix)
+    explicit PardisoLU(const MatrixType& matrix)
       : Base()
     {
       pardisoInit(Base::ScalarIsComplex ? 13 : 11);
@@ -442,7 +442,7 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
       pardisoInit(Base::ScalarIsComplex ? 4 : 2);
     }
 
-    PardisoLLT(const MatrixType& matrix)
+    explicit PardisoLLT(const MatrixType& matrix)
       : Base()
     {
       pardisoInit(Base::ScalarIsComplex ? 4 : 2);
@@ -500,7 +500,7 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
       pardisoInit(Base::ScalarIsComplex ? ( bool(Options&Symmetric) ? 6 : -4 ) : -2);
     }
 
-    PardisoLDLT(const MatrixType& matrix)
+    explicit PardisoLDLT(const MatrixType& matrix)
       : Base()
     {
       pardisoInit(Base::ScalarIsComplex ? ( bool(Options&Symmetric) ? 6 : -4 ) : -2);

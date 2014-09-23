@@ -63,7 +63,7 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryView)
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
-    inline CwiseUnaryView(const MatrixType& mat, const ViewOp& func = ViewOp())
+    explicit inline CwiseUnaryView(const MatrixType& mat, const ViewOp& func = ViewOp())
       : m_matrix(mat), m_functor(func) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryView)

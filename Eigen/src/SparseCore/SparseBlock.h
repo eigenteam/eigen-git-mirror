@@ -443,7 +443,7 @@ namespace internal {
     Index m_end;
   public:
 
-    EIGEN_STRONG_INLINE GenericSparseBlockInnerIteratorImpl(const BlockType& block, Index outer = 0)
+    explicit EIGEN_STRONG_INLINE GenericSparseBlockInnerIteratorImpl(const BlockType& block, Index outer = 0)
       : 
         m_block(block),
         m_outerPos( (IsRowMajor ? block.m_startCol.value() : block.m_startRow.value()) - 1), // -1 so that operator++ finds the first non-zero entry
@@ -512,7 +512,7 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
     
     typedef typename internal::conditional<OuterVector,OuterVectorInnerIterator,InnerVectorInnerIterator>::type InnerIterator;
     
-    unary_evaluator(const XprType& op)
+    explicit unary_evaluator(const XprType& op)
       : m_argImpl(op.nestedExpression()), m_block(op)
     {}
 

@@ -65,7 +65,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     typedef typename _MatrixType::RealScalar RealScalar;
     typedef UF_long Index ; 
     typedef SparseMatrix<Scalar, ColMajor, Index> MatrixType;
-    typedef PermutationMatrix<Dynamic, Dynamic> PermutationType;
+    typedef Map<PermutationMatrix<Dynamic, Dynamic, Index> > PermutationType;
   public:
     SPQR() 
       : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon())
@@ -73,7 +73,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
       cholmod_l_start(&m_cc);
     }
     
-    SPQR(const _MatrixType& matrix) 
+    explicit SPQR(const _MatrixType& matrix)
     : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon())
     {
       cholmod_l_start(&m_cc);
@@ -164,11 +164,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     PermutationType colsPermutation() const
     { 
       eigen_assert(m_isInitialized && "Decomposition is not initialized.");
-      Index n = m_cR->ncol;
-      PermutationType colsPerm(n);
-      for(Index j = 0; j <n; j++) colsPerm.indices()(j) = m_E[j];
-      return colsPerm; 
-      
+      return PermutationType(m_E, m_cR->ncol);
     }
     /**
      * Gets the rank of the matrix. 

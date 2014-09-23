@@ -43,7 +43,7 @@ class DiagonalPreconditioner
     DiagonalPreconditioner() : m_isInitialized(false) {}
 
     template<typename MatType>
-    DiagonalPreconditioner(const MatType& mat) : m_invdiag(mat.cols())
+    explicit DiagonalPreconditioner(const MatType& mat) : m_invdiag(mat.cols())
     {
       compute(mat);
     }
@@ -114,7 +114,7 @@ class IdentityPreconditioner
     IdentityPreconditioner() {}
 
     template<typename MatrixType>
-    IdentityPreconditioner(const MatrixType& ) {}
+    explicit IdentityPreconditioner(const MatrixType& ) {}
     
     template<typename MatrixType>
     IdentityPreconditioner& analyzePattern(const MatrixType& ) { return *this; }

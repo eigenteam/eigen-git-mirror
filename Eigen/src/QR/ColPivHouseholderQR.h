@@ -117,7 +117,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       * 
       * \sa compute()
       */
-    ColPivHouseholderQR(const MatrixType& matrix)
+    explicit ColPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs((std::min)(matrix.rows(),matrix.cols())),
         m_colsPermutation(PermIndexType(matrix.cols())),

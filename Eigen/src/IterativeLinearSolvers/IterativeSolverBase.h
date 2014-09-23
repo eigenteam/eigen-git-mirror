@@ -52,7 +52,7 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  IterativeSolverBase(const MatrixType& A)
+  explicit IterativeSolverBase(const MatrixType& A)
   {
     init();
     compute(A);

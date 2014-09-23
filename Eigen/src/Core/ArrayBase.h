@@ -158,9 +158,9 @@ template<typename Derived> class ArrayBase
     /** \returns an \link Eigen::MatrixBase Matrix \endlink expression of this array
       * \sa MatrixBase::array() */
     EIGEN_DEVICE_FUNC
-    MatrixWrapper<Derived> matrix() { return derived(); }
+    MatrixWrapper<Derived> matrix() { return MatrixWrapper<Derived>(derived()); }
     EIGEN_DEVICE_FUNC
-    const MatrixWrapper<const Derived> matrix() const { return derived(); }
+    const MatrixWrapper<const Derived> matrix() const { return MatrixWrapper<const Derived>(derived()); }
 
 //     template<typename Dest>
 //     inline void evalTo(Dest& dst) const { dst = matrix(); }

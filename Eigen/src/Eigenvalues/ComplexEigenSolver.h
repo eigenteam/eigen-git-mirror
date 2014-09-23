@@ -104,7 +104,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       * according to the specified problem \a size.
       * \sa ComplexEigenSolver()
       */
-    ComplexEigenSolver(Index size)
+    explicit ComplexEigenSolver(Index size)
             : m_eivec(size, size),
               m_eivalues(size),
               m_schur(size),
@@ -122,7 +122,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       *
       * This constructor calls compute() to compute the eigendecomposition.
       */
-      ComplexEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
+    explicit ComplexEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
             : m_eivec(matrix.rows(),matrix.cols()),
               m_eivalues(matrix.cols()),
               m_schur(matrix.rows()),

@@ -64,7 +64,7 @@ template<typename MatrixType> class Transpose
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     EIGEN_DEVICE_FUNC
-    inline Transpose(MatrixType& a_matrix) : m_matrix(a_matrix) {}
+    explicit inline Transpose(MatrixType& a_matrix) : m_matrix(a_matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
@@ -169,7 +169,7 @@ template<typename Derived>
 inline Transpose<Derived>
 DenseBase<Derived>::transpose()
 {
-  return derived();
+  return TransposeReturnType(derived());
 }
 
 /** This is the const version of transpose().
@@ -207,8 +207,7 @@ template<typename Derived>
 inline const typename MatrixBase<Derived>::AdjointReturnType
 MatrixBase<Derived>::adjoint() const
 {
-  return this->transpose(); // in the complex case, the .conjugate() is be implicit here
-                            // due to implicit conversion to return type
+  return AdjointReturnType(this->transpose());
 }
 
 /***************************************************************************

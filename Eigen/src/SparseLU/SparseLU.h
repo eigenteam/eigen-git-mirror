@@ -95,7 +95,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     {
       initperfvalues(); 
     }
-    SparseLU(const MatrixType& matrix):m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
+    explicit SparseLU(const MatrixType& matrix):m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
     {
       initperfvalues(); 
       compute(matrix);
@@ -650,7 +650,7 @@ struct SparseLUMatrixLReturnType : internal::no_assignment_operator
 {
   typedef typename MappedSupernodalType::Index Index;
   typedef typename MappedSupernodalType::Scalar Scalar;
-  SparseLUMatrixLReturnType(const MappedSupernodalType& mapL) : m_mapL(mapL)
+  explicit SparseLUMatrixLReturnType(const MappedSupernodalType& mapL) : m_mapL(mapL)
   { }
   Index rows() { return m_mapL.rows(); }
   Index cols() { return m_mapL.cols(); }
@@ -667,7 +667,7 @@ struct SparseLUMatrixUReturnType : internal::no_assignment_operator
 {
   typedef typename MatrixLType::Index Index;
   typedef typename MatrixLType::Scalar Scalar;
-  SparseLUMatrixUReturnType(const MatrixLType& mapL, const MatrixUType& mapU)
+  explicit SparseLUMatrixUReturnType(const MatrixLType& mapL, const MatrixUType& mapU)
   : m_mapL(mapL),m_mapU(mapU)
   { }
   Index rows() { return m_mapL.rows(); }

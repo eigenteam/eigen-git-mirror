@@ -103,7 +103,7 @@ struct evaluator<ReturnByValue<Derived> >
   typedef evaluator type;
   typedef evaluator nestedType;
 
-  evaluator(const XprType& xpr) 
+  explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);

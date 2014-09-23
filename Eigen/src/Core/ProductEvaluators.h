@@ -35,7 +35,7 @@ struct evaluator<Product<Lhs, Rhs, Options> >
   typedef evaluator type;
   typedef evaluator nestedType;
   
-  evaluator(const XprType& xpr) : Base(xpr) {}
+  explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
  
 // Catch scalar * ( A * B ) and transform it to (A*scalar) * B
@@ -50,7 +50,7 @@ struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Produ
   typedef evaluator type;
   typedef evaluator nestedType;
   
-  evaluator(const XprType& xpr)
+  explicit evaluator(const XprType& xpr)
     : Base(xpr.functor().m_other * xpr.nestedExpression().lhs() * xpr.nestedExpression().rhs())
   {}
 };
@@ -66,7 +66,7 @@ struct evaluator<Diagonal<const Product<Lhs, Rhs, DefaultProduct>, DiagIndex> >
   typedef evaluator type;
   typedef evaluator nestedType;
 
-  evaluator(const XprType& xpr)
+  explicit evaluator(const XprType& xpr)
     : Base(Diagonal<const Product<Lhs, Rhs, LazyProduct>, DiagIndex>(
         Product<Lhs, Rhs, LazyProduct>(xpr.nestedExpression().lhs(), xpr.nestedExpression().rhs()),
         xpr.index() ))
@@ -103,7 +103,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, LhsShape
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
 
-  product_evaluator(const XprType& xpr)
+  explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
@@ -242,7 +242,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,OuterProduct>
   struct sub  { template<typename Dst, typename Src> void operator()(const Dst& dst, const Src& src) const { dst.const_cast_derived() -= src; } };
   struct adds {
     Scalar m_scale;
-    adds(const Scalar& s) : m_scale(s) {}
+    explicit adds(const Scalar& s) : m_scale(s) {}
     template<typename Dst, typename Src> void operator()(const Dst& dst, const Src& src) const {
       dst.const_cast_derived() += m_scale * src;
     }
@@ -377,7 +377,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   typedef typename XprType::PacketScalar PacketScalar;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
-  product_evaluator(const XprType& xpr) 
+  explicit product_evaluator(const XprType& xpr)
     : m_lhs(xpr.lhs()),
       m_rhs(xpr.rhs()),
       m_lhsImpl(m_lhs),     // FIXME the creation of the evaluator objects should result in a no-op, but check that!
@@ -508,7 +508,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProduc
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
   typedef Product<Lhs, Rhs, LazyProduct> BaseProduct;
   typedef product_evaluator<BaseProduct, CoeffBasedProductMode, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar > Base;
-  product_evaluator(const XprType& xpr) 
+  explicit product_evaluator(const XprType& xpr)
     : Base(BaseProduct(xpr.lhs(),xpr.rhs()))
   {}
 };
@@ -739,7 +739,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
     StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor
   };
 
-  product_evaluator(const XprType& xpr)
+  explicit product_evaluator(const XprType& xpr)
     : Base(xpr.rhs(), xpr.lhs().diagonal())
   {
   }
@@ -783,7 +783,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   
   enum { StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor };
 
-  product_evaluator(const XprType& xpr)
+  explicit product_evaluator(const XprType& xpr)
     : Base(xpr.lhs(), xpr.rhs().diagonal())
   {
   }

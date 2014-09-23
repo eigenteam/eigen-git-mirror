@@ -58,7 +58,7 @@ template<typename XprType>
 class visitor_evaluator
 {
 public:
-  visitor_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
+  explicit visitor_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
   
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;

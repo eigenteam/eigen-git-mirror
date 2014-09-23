@@ -116,7 +116,7 @@ class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar> >
     {}
     
     template<typename MatrixType>
-    IncompleteLUT(const MatrixType& mat, const RealScalar& droptol=NumTraits<Scalar>::dummy_precision(), int fillfactor = 10)
+    explicit IncompleteLUT(const MatrixType& mat, const RealScalar& droptol=NumTraits<Scalar>::dummy_precision(), int fillfactor = 10)
       : m_droptol(droptol),m_fillfactor(fillfactor),
         m_analysisIsOk(false),m_factorizationIsOk(false)
     {

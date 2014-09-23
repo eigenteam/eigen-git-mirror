@@ -59,7 +59,7 @@ protected:
 public:
 
   /** Construct a 2D counter clock wise rotation from the angle \a a in radian. */
-  inline Rotation2D(const Scalar& a) : m_angle(a) {}
+  explicit inline Rotation2D(const Scalar& a) : m_angle(a) {}
 
   /** \returns the rotation angle */
   inline Scalar angle() const { return m_angle; }

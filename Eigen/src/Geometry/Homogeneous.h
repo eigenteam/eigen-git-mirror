@@ -68,7 +68,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
     typedef MatrixBase<Homogeneous> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Homogeneous)
 
-    inline Homogeneous(const MatrixType& matrix)
+    explicit inline Homogeneous(const MatrixType& matrix)
       : m_matrix(matrix)
     {}
 
@@ -128,7 +128,7 @@ inline typename MatrixBase<Derived>::HomogeneousReturnType
 MatrixBase<Derived>::homogeneous() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return derived();
+  return HomogeneousReturnType(derived());
 }
 
 /** \geometry_module
@@ -143,7 +143,7 @@ template<typename ExpressionType, int Direction>
 inline Homogeneous<ExpressionType,Direction>
 VectorwiseOp<ExpressionType,Direction>::homogeneous() const
 {
-  return _expression();
+  return HomogeneousReturnType(_expression());
 }
 
 /** \geometry_module
@@ -323,7 +323,7 @@ struct unary_evaluator<Homogeneous<ArgType,Direction>, IndexBased>
   typedef evaluator<XprType> type;
   typedef evaluator<XprType> nestedType;
 
-  unary_evaluator(const XprType& op) 
+  explicit unary_evaluator(const XprType& op)
     : Base(), m_temp(op)
   {
     ::new (static_cast<Base*>(this)) Base(m_temp);
