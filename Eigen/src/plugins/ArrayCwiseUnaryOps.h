@@ -4,7 +4,7 @@
 //typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnType;
 //typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
 //typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
-//typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> CwiseInverseReturnType;
+typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> InverseReturnType;
 //typedef CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >, const Derived> CwiseScalarEqualReturnType;
 
 typedef CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived> ExpReturnType;
@@ -214,10 +214,10 @@ pow(const Scalar& exponent) const
   * \sa operator/(), operator*()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseInverseReturnType
+inline const InverseReturnType
 inverse() const
 {
-  return CwiseInverseReturnType(derived());
+  return InverseReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise square of *this.
