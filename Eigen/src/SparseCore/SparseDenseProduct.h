@@ -174,7 +174,6 @@ protected:
   
   // if the actual left-hand side is a dense vector,
   // then build a sparse-view so that we can seamlessly iterate over it.
-  // FIXME ActualLhs does not seem to be necessary
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
             Lhs1, SparseView<Lhs1> >::type ActualLhs;
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
