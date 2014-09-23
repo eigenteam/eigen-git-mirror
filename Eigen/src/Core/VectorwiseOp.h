@@ -128,7 +128,7 @@ struct member_redux {
                    >::type  result_type;
   template<typename _Scalar, int Size> struct Cost
   { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };
-  member_redux(const BinaryOp func) : m_functor(func) {}  // FIXME this should actually be explicit, but lets not exaggerate
+  explicit member_redux(const BinaryOp func) : m_functor(func) {}
   template<typename Derived>
   inline result_type operator()(const DenseBase<Derived>& mat) const
   { return mat.redux(m_functor); }
@@ -165,10 +165,10 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef typename internal::remove_all<ExpressionTypeNested>::type ExpressionTypeNestedCleaned;
 
     template<template<typename _Scalar> class Functor,
-                      typename Scalar=typename internal::traits<ExpressionType>::Scalar> struct ReturnType
+                      typename Scalar_=Scalar> struct ReturnType
     {
       typedef PartialReduxExpr<ExpressionType,
-                               Functor<Scalar>,
+                               Functor<Scalar_>,
                                Direction
                               > Type;
     };
@@ -176,7 +176,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     template<typename BinaryOp> struct ReduxReturnType
     {
       typedef PartialReduxExpr<ExpressionType,
-                               internal::member_redux<BinaryOp,typename internal::traits<ExpressionType>::Scalar>,
+                               internal::member_redux<BinaryOp,Scalar>,
                                Direction
                               > Type;
     };
@@ -264,11 +264,11 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     template<typename BinaryOp>
     const typename ReduxReturnType<BinaryOp>::Type
     redux(const BinaryOp& func = BinaryOp()) const
-    { return typename ReduxReturnType<BinaryOp>::Type(_expression(), func); }
+    { return typename ReduxReturnType<BinaryOp>::Type(_expression(), internal::member_redux<BinaryOp,Scalar>(func)); }
 
     typedef typename ReturnType<internal::member_minCoeff>::Type MinCoeffReturnType;
     typedef typename ReturnType<internal::member_maxCoeff>::Type MaxCoeffReturnType;
-    typedef typename ReturnType<internal::member_squaredNorm,RealScalar>::Type SquareNormReturnType;
+    typedef typename ReturnType<internal::member_squaredNorm,RealScalar>::Type SquaredNormReturnType;
     typedef typename ReturnType<internal::member_norm,RealScalar>::Type NormReturnType;
     typedef typename ReturnType<internal::member_blueNorm,RealScalar>::Type BlueNormReturnType;
     typedef typename ReturnType<internal::member_stableNorm,RealScalar>::Type StableNormReturnType;
@@ -313,8 +313,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_squaredNorm.out
       *
       * \sa DenseBase::squaredNorm() */
-    const SquareNormReturnType squaredNorm() const
-    { return SquareNormReturnType(_expression()); }
+    const SquaredNormReturnType squaredNorm() const
+    { return SquaredNormReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression.

@@ -10,9 +10,9 @@
 
 // This file is a base class plugin containing matrix specifics coefficient wise functions.
 
-typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnType;
-typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
-typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
+typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> CwiseAbsReturnType;
+typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> CwiseAbs2ReturnType;
+typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> CwiseSqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> CwiseInverseReturnType;
 typedef CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >, const Derived> CwiseScalarEqualReturnType;
 /** \returns an expression of the coefficient-wise absolute value of \c *this
@@ -23,8 +23,8 @@ typedef CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >, const Derived> Cwis
   * \sa cwiseAbs2()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const AbsReturnType
-cwiseAbs() const { return AbsReturnType(derived()); }
+EIGEN_STRONG_INLINE const CwiseAbsReturnType
+cwiseAbs() const { return CwiseAbsReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
   *
@@ -34,8 +34,8 @@ cwiseAbs() const { return AbsReturnType(derived()); }
   * \sa cwiseAbs()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const Abs2ReturnType
-cwiseAbs2() const { return Abs2ReturnType(derived()); }
+EIGEN_STRONG_INLINE const CwiseAbs2ReturnType
+cwiseAbs2() const { return CwiseAbs2ReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise square root of *this.
   *
@@ -45,8 +45,8 @@ cwiseAbs2() const { return Abs2ReturnType(derived()); }
   * \sa cwisePow(), cwiseSquare()
   */
 EIGEN_DEVICE_FUNC
-inline const SqrtReturnType
-cwiseSqrt() const { return SqrtReturnType(derived()); }
+inline const CwiseSqrtReturnType
+cwiseSqrt() const { return CwiseSqrtReturnType(derived()); }
 
 /** \returns an expression of the coefficient-wise inverse of *this.
   *
