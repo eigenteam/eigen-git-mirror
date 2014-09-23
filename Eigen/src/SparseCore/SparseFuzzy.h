@@ -18,7 +18,7 @@ bool SparseMatrixBase<Derived>::isApprox(const SparseMatrixBase<OtherDerived>& o
 {
   using std::min;
   const typename internal::nested_eval<Derived,2,PlainObject>::type actualA(derived());
-  typename internal::conditional<IsRowMajor==OtherDerived::IsRowMajor,
+  typename internal::conditional<bool(IsRowMajor)==bool(OtherDerived::IsRowMajor),
     const typename internal::nested_eval<OtherDerived,2,PlainObject>::type,
     const PlainObject>::type actualB(other.derived());
 
