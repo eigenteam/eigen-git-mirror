@@ -97,11 +97,12 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, LhsShape
   : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-//   enum {
-//     CoeffReadCost = 0 // FIXME why is it needed? (this was already the case before the evaluators, see traits<ProductBase>)
-//   };
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
+  enum {
+    Flags = Base::Flags | EvalBeforeNestingBit
+//     CoeffReadCost = 0 // FIXME why is it needed? (this was already the case before the evaluators, see traits<ProductBase>)
+  };
 
   explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
@@ -508,6 +509,9 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProduc
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
   typedef Product<Lhs, Rhs, LazyProduct> BaseProduct;
   typedef product_evaluator<BaseProduct, CoeffBasedProductMode, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar > Base;
+  enum {
+    Flags = Base::Flags | EvalBeforeNestingBit
+  };
   explicit product_evaluator(const XprType& xpr)
     : Base(BaseProduct(xpr.lhs(),xpr.rhs()))
   {}

@@ -25,8 +25,7 @@ struct traits<Inverse<XprType> >
   typedef typename XprType::PlainObject PlainObject;
   typedef traits<PlainObject> BaseTraits;
   enum {
-    Flags = BaseTraits::Flags & RowMajorBit,
-    CoeffReadCost = Dynamic
+    Flags = BaseTraits::Flags & RowMajorBit
   };
 };
 

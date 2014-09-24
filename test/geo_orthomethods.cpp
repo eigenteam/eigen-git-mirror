@@ -39,7 +39,10 @@ template<typename Scalar> void orthomethods_3()
          (v0.cross(v1)).normalized(),
          (v0.cross(v1).cross(v0)).normalized();
   VERIFY(mat3.isUnitary());
-
+  
+  mat3.setRandom();
+  VERIFY_IS_APPROX(v0.cross(mat3*v1), -(mat3*v1).cross(v0));
+  VERIFY_IS_APPROX(v0.cross(mat3.lazyProduct(v1)), -(mat3.lazyProduct(v1)).cross(v0));
 
   // colwise/rowwise cross product
   mat3.setRandom();
