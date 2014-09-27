@@ -13,6 +13,7 @@ namespace Eigen {
   - \subpage TopicUsingIntelMKL
   - \subpage TopicCUDA
   - \subpage TopicTemplateKeyword
+  - \subpage TopicNewExpressionType
   - \subpage UserManual_UnderstandingEigen
 */
   
