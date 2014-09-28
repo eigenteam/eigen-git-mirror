@@ -121,6 +121,7 @@ template<typename Derived> class ArrayBase
     Derived& operator=(const ArrayBase& other)
     {
       internal::call_assignment(derived(), other.derived());
+      return derived();
     }
     
     /** Set all the entries to \a value.
