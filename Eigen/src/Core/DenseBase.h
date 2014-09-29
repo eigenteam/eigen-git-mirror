@@ -54,7 +54,7 @@ template<typename Derived> class DenseBase
     /** Inner iterator type to iterate over the coefficients of a row or column.
       * \sa class InnerIterator
       */
-    typedef InnerIterator<Derived> InnerIterator;
+    typedef Eigen::InnerIterator<Derived> InnerIterator;
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
 
