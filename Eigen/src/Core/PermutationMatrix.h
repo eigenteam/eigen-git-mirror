@@ -303,7 +303,9 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     /** Constructs an uninitialized permutation matrix of given size.
       */
     explicit inline PermutationMatrix(Index size) : m_indices(size)
-    {}
+    {
+      eigen_internal_assert(size <= NumTraits<StorageIndexType>::highest());
+    }
 
     /** Copy constructor. */
     template<typename OtherDerived>
@@ -375,7 +377,8 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
       : m_indices(other.nestedPermutation().size())
     {
       eigen_internal_assert(m_indices.size() <= NumTraits<StorageIndexType>::highest());
-      for (StorageIndexType i=0; i<m_indices.size();++i)
+      StorageIndexType end = StorageIndexType(m_indices.size());
+      for (StorageIndexType i=0; i<end;++i)
         m_indices.coeffRef(other.nestedPermutation().indices().coeff(i)) = i;
     }
     template<typename Lhs,typename Rhs>
