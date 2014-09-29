@@ -17,9 +17,6 @@ namespace Eigen {
   
 namespace internal {
 
-struct IndexBased {};
-struct IteratorBased {};
-
 // This class returns the evaluator kind from the expression storage kind.
 // Default assumes index based accessors
 template<typename StorageKind>

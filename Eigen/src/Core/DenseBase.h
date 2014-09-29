@@ -50,7 +50,11 @@ template<typename Derived> class DenseBase
     using internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
                 typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator*;
 
-    class InnerIterator;
+
+    /** Inner iterator type to iterate over the coefficients of a row or column.
+      * \sa class InnerIterator
+      */
+    typedef InnerIterator<Derived> InnerIterator;
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
 

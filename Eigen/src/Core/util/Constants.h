@@ -468,6 +468,16 @@ struct SelfAdjointShape       { static std::string debugName() { return "SelfAdj
 struct PermutationShape       { static std::string debugName() { return "PermutationShape"; } };
 struct SparseShape            { static std::string debugName() { return "SparseShape"; } };
 
+namespace internal {
+
+  // random access iterators based on coeff*() accessors.
+struct IndexBased {};
+
+// evaluator based on iterators to access coefficients. 
+struct IteratorBased {};
+
+} // end namespace internal
+
 } // end namespace Eigen
 
 #endif // EIGEN_CONSTANTS_H

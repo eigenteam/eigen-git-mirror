@@ -137,6 +137,7 @@ template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;
 template<typename ExpressionType> class ArrayWrapper;
 template<typename ExpressionType> class MatrixWrapper;
+template<typename XprType> class InnerIterator;
 
 namespace internal {
 template<typename DecompositionType> struct kernel_retval_base;
