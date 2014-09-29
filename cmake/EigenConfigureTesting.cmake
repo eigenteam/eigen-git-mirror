@@ -24,9 +24,9 @@ set(EIGEN_TEST_BUILD_FLAGS "" CACHE STRING "Options passed to the build command 
 # At this stage, we can also add custom flags to the build tool through the user defined EIGEN_TEST_BUILD_FLAGS variable.
 file(READ  "${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl" EIGEN_DART_CONFIG_FILE)
 # try to grab the default flags
-string(REGEX MATCH "MakeCommand:.*-- (.*)DefaultCTestConfigurationType" EIGEN_DUMMY ${EIGEN_DART_CONFIG_FILE})
+string(REGEX MATCH "MakeCommand:.*-- (.*)\nDefaultCTestConfigurationType" EIGEN_DUMMY ${EIGEN_DART_CONFIG_FILE})
 if(NOT CMAKE_MATCH_1)
-string(REGEX MATCH "MakeCommand:.*gmake (.*)DefaultCTestConfigurationType" EIGEN_DUMMY ${EIGEN_DART_CONFIG_FILE})
+string(REGEX MATCH "MakeCommand:.*make (.*)\nDefaultCTestConfigurationType" EIGEN_DUMMY ${EIGEN_DART_CONFIG_FILE})
 endif()
 string(REGEX REPLACE "MakeCommand:.*DefaultCTestConfigurationType" "MakeCommand: ${CMAKE_COMMAND} --build . --target buildtests --config \"\${CTEST_CONFIGURATION_TYPE}\" -- ${CMAKE_MATCH_1} ${EIGEN_TEST_BUILD_FLAGS}\nDefaultCTestConfigurationType"
        EIGEN_DART_CONFIG_FILE2 ${EIGEN_DART_CONFIG_FILE})
