@@ -216,5 +216,17 @@ void test_kronecker_product()
     sC2 = kroneckerProduct(sA,sB);
     dC = kroneckerProduct(dA,dB);
     VERIFY_IS_APPROX(MatrixXf(sC2),dC);
+    
+    sC2 = kroneckerProduct(dA,sB);
+    dC = kroneckerProduct(dA,dB);
+    VERIFY_IS_APPROX(MatrixXf(sC2),dC);
+    
+    sC2 = kroneckerProduct(sA,dB);
+    dC = kroneckerProduct(dA,dB);
+    VERIFY_IS_APPROX(MatrixXf(sC2),dC);
+    
+    sC2 = kroneckerProduct(2*sA,sB);
+    dC = kroneckerProduct(2*dA,dB);
+    VERIFY_IS_APPROX(MatrixXf(sC2),dC);
   }
 }
