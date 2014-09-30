@@ -231,7 +231,7 @@ struct evaluator<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   
   evaluator() {}
 
-  evaluator(const XprType& m) 
+  explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
   { }
 };
