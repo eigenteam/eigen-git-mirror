@@ -397,6 +397,15 @@ template<typename Scalar, int Mode, int Options> void transformations()
   t20 = Translation2(v20) * (Rotation2D<Scalar>(s0) * Eigen::Scaling(s0));
   t21 = Translation2(v20) * Rotation2D<Scalar>(s0) * Eigen::Scaling(s0);
   VERIFY_IS_APPROX(t20,t21);
+  
+  // check basic features
+  {
+    Rotation2D<Scalar> r1;           // default ctor
+    r1 = Rotation2D<Scalar>(s0);     // copy assignment
+    VERIFY_IS_APPROX(r1.angle(),s0);
+    Rotation2D<Scalar> r2(r1);       // copy ctor
+    VERIFY_IS_APPROX(r2.angle(),s0);
+  }
 }
 
 template<typename Scalar> void transform_alignment()
