@@ -92,6 +92,8 @@ template<typename MatrixType> void real_complex(DenseIndex rows = MatrixType::Ro
 
 void test_linearstructure()
 {
+  g_called = true;
+  VERIFY(g_called); // avoid `unneeded-internal-declaration` warning.
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( linearStructure(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( linearStructure(Matrix2f()) );
