@@ -78,18 +78,24 @@ static Packet4i p4i_COUNTDOWN = { 0, 1, 2, 3 };
 static Packet16uc p16uc_REVERSE32 = { 12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3 };
 static Packet16uc p16uc_DUPLICATE32_HI = { 0,1,2,3, 0,1,2,3, 4,5,6,7, 4,5,6,7 };
 
+// Mask alignment
+#ifdef __PPC64__
+#define _EIGEN_MASK_ALIGNMENT	0xfffffffffffffff0
+#else
+#define _EIGEN_MASK_ALIGNMENT	0xfffffff0
+#endif
+
+#define _EIGEN_ALIGNED_PTR(x)	((ptrdiff_t)(x) & _EIGEN_MASK_ALIGNMENT)
+
 // Handle endianness properly while loading constants
 // Define global static constants:
 #ifdef _BIG_ENDIAN
 static Packet16uc p16uc_FORWARD = vec_lvsl(0, (float*)0); 
+static Packet16uc p16uc_REVERSE64 = { 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_PSET32_WODD   = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 0), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 2), 8);//{ 0,1,2,3, 0,1,2,3, 8,9,10,11, 8,9,10,11 };
 static Packet16uc p16uc_PSET32_WEVEN  = vec_sld(p16uc_DUPLICATE32_HI, (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 4,5,6,7, 4,5,6,7, 12,13,14,15, 12,13,14,15 };
 static Packet16uc p16uc_HALF64_0_16 = vec_sld((Packet16uc)p4i_ZERO, vec_splat((Packet16uc) vec_abs(p4i_MINUS16), 3), 8);      //{ 0,0,0,0, 0,0,0,0, 16,16,16,16, 16,16,16,16};
 #else
-// Mask alignment
-#define _EIGEN_MASK_ALIGNMENT	0xfffffffffffffff0
-#define _EIGEN_ALIGNED_PTR(x)	((ptrdiff_t)(x) & _EIGEN_MASK_ALIGNMENT)
-
 static Packet16uc p16uc_FORWARD = p16uc_REVERSE32; 
 static Packet16uc p16uc_REVERSE64 = { 8,9,10,11, 12,13,14,15, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_PSET32_WODD = vec_sld((Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 1), (Packet16uc) vec_splat((Packet4ui)p16uc_FORWARD, 3), 8);//{ 0,1,2,3, 0,1,2,3, 8,9,10,11, 8,9,10,11 };
@@ -716,7 +722,12 @@ static Packet2l p2l_ZERO = (Packet2l) p4i_ZERO;
 static Packet2d p2d_ONE = { 1.0, 1.0 }; 
 static Packet2d p2d_ZERO = (Packet2d) p4f_ZERO;
 static Packet2d p2d_ZERO_ = { -0.0, -0.0 };
+
+#ifdef _BIG_ENDIAN
+static Packet2d p2d_COUNTDOWN = (Packet2d) vec_sld((Packet16uc) p2d_ZERO, (Packet16uc) p2d_ONE, 8);
+#else
 static Packet2d p2d_COUNTDOWN = (Packet2d) vec_sld((Packet16uc) p2d_ONE, (Packet16uc) p2d_ZERO, 8);
+#endif
 
 static EIGEN_STRONG_INLINE Packet2d vec_splat_dbl(Packet2d& a, int index)
 {
@@ -862,11 +873,14 @@ template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a)
 template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 {
   Packet2d v[2], sum;
-
   v[0] = vec_add(vecs[0], (Packet2d) vec_sld((Packet4ui) vecs[0], (Packet4ui) vecs[0], 8));
   v[1] = vec_add(vecs[1], (Packet2d) vec_sld((Packet4ui) vecs[1], (Packet4ui) vecs[1], 8));
-
+ 
+#ifdef _BIG_ENDIAN
+ sum = (Packet2d) vec_sld((Packet4ui) v[0], (Packet4ui) v[1], 8);
+#else
   sum = (Packet2d) vec_sld((Packet4ui) v[1], (Packet4ui) v[0], 8);
+#endif
 
   return sum;
 }
