@@ -111,7 +111,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
   // test Tridiagonalization's methods
   Tridiagonalization<MatrixType> tridiag(symmC);
-  VERIFY_IS_APPROX(tridiag.diagonal(), tridiag.matrixT().template diagonal());
+  VERIFY_IS_APPROX(tridiag.diagonal(), tridiag.matrixT().diagonal());
   VERIFY_IS_APPROX(tridiag.subDiagonal(), tridiag.matrixT().template diagonal<-1>());
   MatrixType T = tridiag.matrixT();
   if(rows>1 && cols>1) {
