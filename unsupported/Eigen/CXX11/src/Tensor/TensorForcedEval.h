@@ -87,16 +87,12 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
 
   enum {
     IsAligned = true,
-    PacketAccess = true,
+    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_op(op.expression()), m_device(device), m_buffer(NULL)
   { }
-
-  EIGEN_DEVICE_FUNC ~TensorEvaluator() {
-    eigen_assert(!m_buffer);
-  }
 
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -104,14 +100,15 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
-  EIGEN_STRONG_INLINE void evalSubExprsIfNeeded() {
-    m_impl.evalSubExprsIfNeeded();
+  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+    m_impl.evalSubExprsIfNeeded(NULL);
     m_buffer = (Scalar*)m_device.allocate(m_impl.dimensions().TotalSize() * sizeof(Scalar));
 
     typedef TensorEvalToOp<const ArgType> EvalTo;
     EvalTo evalToTmp(m_buffer, m_op);
     internal::TensorExecutor<const EvalTo, Device, TensorEvaluator<ArgType, Device>::PacketAccess>::run(evalToTmp, m_device);
     m_impl.cleanup();
+    return true;
   }
   EIGEN_STRONG_INLINE void cleanup() {
     m_device.deallocate(m_buffer);
@@ -128,6 +125,8 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   {
     return internal::ploadt<Packet, LoadMode>(m_buffer + index);
   }
+
+  Scalar* data() const { return m_buffer; }
 
  private:
   TensorEvaluator<ArgType, Device> m_impl;
