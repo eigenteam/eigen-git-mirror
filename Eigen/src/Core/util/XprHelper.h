@@ -415,6 +415,14 @@ template <typename A> struct promote_storage_type<A,A>
 {
   typedef A ret;
 };
+template <typename A> struct promote_storage_type<A, const A>
+{
+  typedef A ret;
+};
+template <typename A> struct promote_storage_type<const A, A>
+{
+  typedef A ret;
+};
 
 /** \internal gives the plain matrix or array type to store a row/column/diagonal of a matrix type.
   * \param Scalar optional parameter allowing to pass a different scalar type than the one of the MatrixType.

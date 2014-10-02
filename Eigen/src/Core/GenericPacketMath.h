@@ -95,6 +95,8 @@ template<typename T> struct packet_traits : default_packet_traits
   };
 };
 
+template<typename T> struct packet_traits<const T> : packet_traits<T> { };
+
 /** \internal \returns a + b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 padd(const Packet& a,
