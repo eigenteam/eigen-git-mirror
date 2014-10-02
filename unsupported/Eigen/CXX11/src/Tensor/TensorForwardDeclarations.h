@@ -21,8 +21,9 @@ template<typename NullaryOp, typename PlainObjectType> class TensorCwiseNullaryO
 template<typename UnaryOp, typename XprType> class TensorCwiseUnaryOp;
 template<typename BinaryOp, typename LeftXprType, typename RightXprType> class TensorCwiseBinaryOp;
 template<typename IfXprType, typename ThenXprType, typename ElseXprType> class TensorSelectOp;
-template<typename XprType> class TensorReductionOp;
 template<typename Broadcast, typename XprType> class TensorBroadcastingOp;
+template<typename Op, typename Dims, typename XprType> class TensorReductionOp;
+template<typename Axis, typename LeftXprType, typename RightXprType> class TensorConcatenationOp;
 template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;

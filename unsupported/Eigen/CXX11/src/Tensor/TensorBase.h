@@ -204,10 +204,38 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>(derived(), thenTensor.derived(), elseTensor.derived());
     }
 
+    // Reductions.
+    template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<internal::SumReducer<Scalar>, const Dims, const Derived>
+    sum(const Dims& dims) const {
+      return TensorReductionOp<internal::SumReducer<Scalar>, const Dims, const Derived>(derived(), dims, internal::SumReducer<Scalar>());
+    }
+    template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<internal::MaxReducer<Scalar>, const Dims, const Derived>
+    maximum(const Dims& dims) const {
+      return TensorReductionOp<internal::MaxReducer<Scalar>, const Dims, const Derived>(derived(), dims, internal::MaxReducer<Scalar>());
+    }
+    template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<internal::MinReducer<Scalar>, const Dims, const Derived>
+    minimum(const Dims& dims) const {
+      return TensorReductionOp<internal::MinReducer<Scalar>, const Dims, const Derived>(derived(), dims, internal::MinReducer<Scalar>());
+    }
+    template <typename Reducer, typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<Reducer, const Dims, const Derived>
+    reduce(const Dims& dims, const Reducer& reducer) const {
+      return TensorReductionOp<Reducer, const Dims, const Derived>(derived(), dims, reducer);
+    }
+
     template <typename Broadcast> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorBroadcastingOp<const Broadcast, const Derived>
     broadcast(const Broadcast& broadcast) const {
       return TensorBroadcastingOp<const Broadcast, const Derived>(derived(), broadcast);
+    }
+
+    template <typename Axis, typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorConcatenationOp<Axis, const Derived, const OtherDerived>
+    concatenate(const OtherDerived& other, Axis axis) const {
+      return TensorConcatenationOp<Axis, const Derived, const OtherDerived>(derived(), other.derived(), axis);
     }
 
     // Morphing operators.
