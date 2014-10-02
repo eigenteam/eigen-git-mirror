@@ -18,13 +18,13 @@ namespace Eigen {
 namespace internal {
 
 // forward declarations
-template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs=false, bool ConjugateRhs=false>
+template<typename LhsScalar, typename RhsScalar, typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs=false, bool ConjugateRhs=false>
 struct gebp_kernel;
 
-template<typename Scalar, typename Index, int nr, int StorageOrder, bool Conjugate = false, bool PanelMode=false>
+template<typename Scalar, typename Index, typename DataMapper, int nr, int StorageOrder, bool Conjugate = false, bool PanelMode=false>
 struct gemm_pack_rhs;
 
-template<typename Scalar, typename Index, int Pack1, int Pack2, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
+template<typename Scalar, typename Index, typename DataMapper, int Pack1, int Pack2, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
 struct gemm_pack_lhs;
 
 template<
@@ -117,32 +117,96 @@ template<typename Scalar> struct get_factor<Scalar,typename NumTraits<Scalar>::R
   static EIGEN_STRONG_INLINE typename NumTraits<Scalar>::Real run(const Scalar& x) { return numext::real(x); }
 };
 
-// Lightweight helper class to access matrix coefficients.
-// Yes, this is somehow redundant with Map<>, but this version is much much lighter,
-// and so I hope better compilation performance (time and code quality).
-template<typename Scalar, typename Index, int StorageOrder>
-class blas_data_mapper
-{
+
+template<typename Scalar, typename Index, int AlignmentType>
+class MatrixLinearMapper {
   public:
-    blas_data_mapper(Scalar* data, Index stride) : m_data(data), m_stride(stride) {}
-    EIGEN_STRONG_INLINE Scalar& operator()(Index i, Index j)
-    { return m_data[StorageOrder==RowMajor ? j + i*m_stride : i + j*m_stride]; }
+  typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename packet_traits<Scalar>::half HalfPacket;
+
+  EIGEN_ALWAYS_INLINE MatrixLinearMapper(Scalar *data) : m_data(data) {}
+
+  EIGEN_ALWAYS_INLINE void prefetch(int i) const {
+    internal::prefetch(&operator()(i));
+  }
+
+  EIGEN_ALWAYS_INLINE Scalar& operator()(Index i) const {
+    return m_data[i];
+  }
+
+  EIGEN_ALWAYS_INLINE Packet loadPacket(Index i) const {
+    return ploadt<Packet, AlignmentType>(m_data + i);
+  }
+
+  EIGEN_ALWAYS_INLINE HalfPacket loadHalfPacket(Index i) const {
+    return ploadt<HalfPacket, AlignmentType>(m_data + i);
+  }
+
+  EIGEN_ALWAYS_INLINE void storePacket(Index i, Packet p) const {
+    pstoret<Scalar, Packet, AlignmentType>(m_data + i, p);
+  }
+
   protected:
-    Scalar* EIGEN_RESTRICT m_data;
-    Index m_stride;
+  Scalar *m_data;
+};
+
+// Lightweight helper class to access matrix coefficients.
+template<typename Scalar, typename Index, int StorageOrder, int AlignmentType = Unaligned>
+class blas_data_mapper {
+  public:
+  typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename packet_traits<Scalar>::half HalfPacket;
+
+  typedef MatrixLinearMapper<Scalar, Index, AlignmentType> LinearMapper;
+
+  EIGEN_ALWAYS_INLINE blas_data_mapper(Scalar* data, Index stride) : m_data(data), m_stride(stride) {}
+
+  EIGEN_ALWAYS_INLINE blas_data_mapper<Scalar, Index, StorageOrder, AlignmentType>
+  getSubMapper(Index i, Index j) const {
+    return blas_data_mapper<Scalar, Index, StorageOrder, AlignmentType>(&operator()(i, j), m_stride);
+  }
+
+  EIGEN_ALWAYS_INLINE LinearMapper getLinearMapper(Index i, Index j) const {
+    return LinearMapper(&operator()(i, j));
+  }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_ALWAYS_INLINE Scalar& operator()(Index i, Index j) const {
+    return m_data[StorageOrder==RowMajor ? j + i*m_stride : i + j*m_stride];
+  }
+
+  EIGEN_ALWAYS_INLINE Packet loadPacket(Index i, Index j) const {
+    return ploadt<Packet, AlignmentType>(&operator()(i, j));
+  }
+
+  EIGEN_ALWAYS_INLINE HalfPacket loadHalfPacket(Index i, Index j) const {
+    return ploadt<HalfPacket, AlignmentType>(&operator()(i, j));
+  }
+
+  template<typename SubPacket>
+  EIGEN_ALWAYS_INLINE void scatterPacket(Index i, Index j, SubPacket p) const {
+    pscatter<Scalar, SubPacket>(&operator()(i, j), p, m_stride);
+  }
+
+  template<typename SubPacket>
+  EIGEN_ALWAYS_INLINE SubPacket gatherPacket(Index i, Index j) const {
+    return pgather<Scalar, SubPacket>(&operator()(i, j), m_stride);
+  }
+
+  protected:
+  Scalar* EIGEN_RESTRICT m_data;
+  const Index m_stride;
 };
 
 // lightweight helper class to access matrix coefficients (const version)
 template<typename Scalar, typename Index, int StorageOrder>
-class const_blas_data_mapper
-{
+class const_blas_data_mapper : public blas_data_mapper<const Scalar, Index, StorageOrder> {
   public:
-    const_blas_data_mapper(const Scalar* data, Index stride) : m_data(data), m_stride(stride) {}
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index i, Index j) const
-    { return m_data[StorageOrder==RowMajor ? j + i*m_stride : i + j*m_stride]; }
-  protected:
-    const Scalar* EIGEN_RESTRICT m_data;
-    Index m_stride;
+  EIGEN_ALWAYS_INLINE const_blas_data_mapper(const Scalar *data, Index stride) : blas_data_mapper<const Scalar, Index, StorageOrder>(data, stride) {}
+
+  EIGEN_ALWAYS_INLINE const_blas_data_mapper<Scalar, Index, StorageOrder> getSubMapper(Index i, Index j) const {
+    return const_blas_data_mapper<Scalar, Index, StorageOrder>(&(this->operator()(i, j)), this->m_stride);
+  }
 };
 
 

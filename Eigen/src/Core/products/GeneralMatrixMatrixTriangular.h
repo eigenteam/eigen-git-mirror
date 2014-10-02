@@ -58,12 +58,16 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* _lhs, Index lhsStride,
-                                      const RhsScalar* _rhs, Index rhsStride, ResScalar* res, Index resStride, const ResScalar& alpha)
+                                      const RhsScalar* _rhs, Index rhsStride, ResScalar* _res, Index resStride, const ResScalar& alpha)
   {
-    const_blas_data_mapper<LhsScalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
-    const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
-
     typedef gebp_traits<LhsScalar,RhsScalar> Traits;
+
+    typedef const_blas_data_mapper<LhsScalar, Index, LhsStorageOrder> LhsMapper;
+    typedef const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> RhsMapper;
+    typedef blas_data_mapper<typename Traits::ResScalar, Index, ColMajor> ResMapper;
+    LhsMapper lhs(_lhs,lhsStride);
+    RhsMapper rhs(_rhs,rhsStride);
+    ResMapper res(_res, resStride);
 
     Index kc = depth; // cache block size along the K direction
     Index mc = size;  // cache block size along the M direction
@@ -75,10 +79,10 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 
     ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, kc*mc, 0);
     ei_declare_aligned_stack_constructed_variable(RhsScalar, blockB, kc*size, 0);
-    
-    gemm_pack_lhs<LhsScalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
-    gemm_pack_rhs<RhsScalar, Index, Traits::nr, RhsStorageOrder> pack_rhs;
-    gebp_kernel <LhsScalar, RhsScalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp;
+
+    gemm_pack_lhs<LhsScalar, Index, LhsMapper, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
+    gemm_pack_rhs<RhsScalar, Index, RhsMapper, Traits::nr, RhsStorageOrder> pack_rhs;
+    gebp_kernel<LhsScalar, RhsScalar, Index, ResMapper, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp;
     tribb_kernel<LhsScalar, RhsScalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs, UpLo> sybb;
 
     for(Index k2=0; k2<depth; k2+=kc)
@@ -86,29 +90,30 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
       const Index actual_kc = (std::min)(k2+kc,depth)-k2;
 
       // note that the actual rhs is the transpose/adjoint of mat
-      pack_rhs(blockB, &rhs(k2,0), rhsStride, actual_kc, size);
+      pack_rhs(blockB, rhs.getSubMapper(k2,0), actual_kc, size);
 
       for(Index i2=0; i2<size; i2+=mc)
       {
         const Index actual_mc = (std::min)(i2+mc,size)-i2;
 
-        pack_lhs(blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
+        pack_lhs(blockA, lhs.getSubMapper(i2, k2), actual_kc, actual_mc);
 
         // the selected actual_mc * size panel of res is split into three different part:
         //  1 - before the diagonal => processed with gebp or skipped
         //  2 - the actual_mc x actual_mc symmetric block => processed with a special kernel
         //  3 - after the diagonal => processed with gebp or skipped
         if (UpLo==Lower)
-          gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, (std::min)(size,i2), alpha,
-               -1, -1, 0, 0);
+          gebp(res.getSubMapper(i2, 0), blockA, blockB, actual_mc, actual_kc,
+               (std::min)(size,i2), alpha, -1, -1, 0, 0);
 
-        sybb(res+resStride*i2 + i2, resStride, blockA, blockB + actual_kc*i2, actual_mc, actual_kc, alpha);
+
+        sybb(_res+resStride*i2 + i2, resStride, blockA, blockB + actual_kc*i2, actual_mc, actual_kc, alpha);
 
         if (UpLo==Upper)
         {
           Index j2 = i2+actual_mc;
-          gebp(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*j2, actual_mc, actual_kc, (std::max)(Index(0), size-j2), alpha,
-               -1, -1, 0, 0);
+          gebp(res.getSubMapper(i2, j2), blockA, blockB+actual_kc*j2, actual_mc,
+               actual_kc, (std::max)(Index(0), size-j2), alpha, -1, -1, 0, 0);
         }
       }
     }
@@ -129,13 +134,16 @@ struct tribb_kernel
 {
   typedef gebp_traits<LhsScalar,RhsScalar,ConjLhs,ConjRhs> Traits;
   typedef typename Traits::ResScalar ResScalar;
-  
+
   enum {
     BlockSize  = EIGEN_PLAIN_ENUM_MAX(mr,nr)
   };
-  void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index size, Index depth, const ResScalar& alpha)
+  void operator()(ResScalar* _res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index size, Index depth, const ResScalar& alpha)
   {
-    gebp_kernel<LhsScalar, RhsScalar, Index, mr, nr, ConjLhs, ConjRhs> gebp_kernel;
+    typedef blas_data_mapper<ResScalar, Index, ColMajor> ResMapper;
+    ResMapper res(_res, resStride);
+    gebp_kernel<LhsScalar, RhsScalar, Index, ResMapper, mr, nr, ConjLhs, ConjRhs> gebp_kernel;
+
     Matrix<ResScalar,BlockSize,BlockSize,ColMajor> buffer;
 
     // let's process the block per panel of actual_mc x BlockSize,
@@ -146,7 +154,7 @@ struct tribb_kernel
       const RhsScalar* actual_b = blockB+j*depth;
 
       if(UpLo==Upper)
-        gebp_kernel(res+j*resStride, resStride, blockA, actual_b, j, depth, actualBlockSize, alpha,
+        gebp_kernel(res.getSubMapper(0, j), blockA, actual_b, j, depth, actualBlockSize, alpha,
                     -1, -1, 0, 0);
 
       // selfadjoint micro block
@@ -154,12 +162,12 @@ struct tribb_kernel
         Index i = j;
         buffer.setZero();
         // 1 - apply the kernel on the temporary buffer
-        gebp_kernel(buffer.data(), BlockSize, blockA+depth*i, actual_b, actualBlockSize, depth, actualBlockSize, alpha,
+        gebp_kernel(ResMapper(buffer.data(), BlockSize), blockA+depth*i, actual_b, actualBlockSize, depth, actualBlockSize, alpha,
                     -1, -1, 0, 0);
         // 2 - triangular accumulation
         for(Index j1=0; j1<actualBlockSize; ++j1)
         {
-          ResScalar* r = res + (j+j1)*resStride + i;
+          ResScalar* r = &res(i, j + j1);
           for(Index i1=UpLo==Lower ? j1 : 0;
               UpLo==Lower ? i1<actualBlockSize : i1<=j1; ++i1)
             r[i1] += buffer(i1,j1);
@@ -169,8 +177,8 @@ struct tribb_kernel
       if(UpLo==Lower)
       {
         Index i = j+actualBlockSize;
-        gebp_kernel(res+j*resStride+i, resStride, blockA+depth*i, actual_b, size-i, depth, actualBlockSize, alpha,
-                    -1, -1, 0, 0);
+        gebp_kernel(res.getSubMapper(i, j), blockA+depth*i, actual_b, size-i, 
+                    depth, actualBlockSize, alpha, -1, -1, 0, 0);
       }
     }
   }
