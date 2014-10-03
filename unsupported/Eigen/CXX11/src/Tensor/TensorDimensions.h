@@ -29,6 +29,13 @@ namespace Eigen {
   * \sa Tensor
   */
 
+// Can't use std::pairs on cuda devices
+template <typename Index> struct IndexPair {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair() : first(0), second(0) { }
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair(Index f, Index s) : first(f), second(s) { }
+  Index first;
+  Index second;
+};
 
 
 // Boiler plate code

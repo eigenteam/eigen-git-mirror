@@ -69,10 +69,12 @@ template<std::size_t I, class T, std::size_t N> constexpr inline T const& array_
 #undef STD_GET_ARR_HACK
 
 template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<std::array<T,N> > {
+  static const size_t value = N;
+};
 template<class T, std::size_t N> struct array_size<const std::array<T,N> > {
   static const size_t value = N;
 };
-
 
 /* Suppose you have a template of the form
  * template<typename T> struct X;
