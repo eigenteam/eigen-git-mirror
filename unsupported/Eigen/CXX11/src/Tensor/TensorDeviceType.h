@@ -104,19 +104,41 @@ struct GpuDevice {
 
   EIGEN_STRONG_INLINE const cudaStream_t& stream() const { return *stream_; }
 
-  /*EIGEN_DEVICE_FUNC*/ EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
+#ifndef __CUDA_ARCH__
     void* result;
-    cudaMalloc(&result, num_bytes);
+    assert(cudaMalloc(&result, num_bytes) == cudaSuccess);
+    assert(result != NULL);
     return result;
+#else
+    assert(false && "The default device should be used instead to generate kernel code");
+    return NULL;
+#endif
   }
-  /*EIGEN_DEVICE_FUNC */EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
-    cudaFree(buffer);
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
+#ifndef __CUDA_ARCH__
+    assert(buffer != NULL);
+    assert(cudaFree(buffer) == cudaSuccess);
+#else
+    assert(false && "The default device should be used instead to generate kernel code");
+#endif
   }
-  EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
-    cudaMemcpyAsync(dst, src, n, cudaMemcpyDeviceToDevice, *stream_);
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
+#ifndef __CUDA_ARCH__
+    assert(cudaMemcpyAsync(dst, src, n, cudaMemcpyDeviceToDevice, *stream_) == cudaSuccess);
+#else
+    assert(false && "The default device should be used instead to generate kernel code");
+#endif
   }
-  EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
-    cudaMemsetAsync(buffer, c, n, *stream_);
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
+#ifndef __CUDA_ARCH__
+    assert(cudaMemsetAsync(buffer, c, n, *stream_) == cudaSuccess);
+#else
+    assert(false && "The default device should be used instead to generate kernel code");
+#endif
   }
 
   EIGEN_STRONG_INLINE size_t numThreads() const {
