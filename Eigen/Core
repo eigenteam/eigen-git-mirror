@@ -178,6 +178,11 @@
   #endif
 #endif
 
+#if defined __CUDACC__
+  #define EIGEN_VECTORIZE_CUDA
+  #include <vector_types.h>
+#endif
+
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
   #define EIGEN_HAS_OPENMP
 #endif
