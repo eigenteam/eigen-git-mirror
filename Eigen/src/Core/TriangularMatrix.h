@@ -247,7 +247,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline const AdjointReturnType adjoint() const
     { return AdjointReturnType(m_matrix.adjoint()); }
 
-    typedef TriangularView<Transpose<MatrixType>,TransposeMode> TransposeReturnType;
+    typedef TriangularView<typename MatrixType::TransposeReturnType,TransposeMode> TransposeReturnType;
      /** \sa MatrixBase::transpose() */
     EIGEN_DEVICE_FUNC
     inline TransposeReturnType transpose()
@@ -255,11 +255,13 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
       return TransposeReturnType(m_matrix.const_cast_derived().transpose());
     }
+    
+    typedef TriangularView<const typename MatrixType::ConstTransposeReturnType,TransposeMode> ConstTransposeReturnType;
     /** \sa MatrixBase::transpose() const */
     EIGEN_DEVICE_FUNC
-    inline const TransposeReturnType transpose() const
+    inline const ConstTransposeReturnType transpose() const
     {
-      return TransposeReturnType(m_matrix.transpose());
+      return ConstTransposeReturnType(m_matrix.transpose());
     }
 
     template<typename Other>

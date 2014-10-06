@@ -194,7 +194,7 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(d3=d1*m2.transpose(), refM3=d1*refM2.transpose());
   }
 
-  // test self adjoint products
+  // test self-adjoint and traingular-view products
   {
     DenseMatrix b = DenseMatrix::Random(rows, rows);
     DenseMatrix x = DenseMatrix::Random(rows, rows);
@@ -202,9 +202,12 @@ template<typename SparseMatrixType> void sparse_product()
     DenseMatrix refUp = DenseMatrix::Zero(rows, rows);
     DenseMatrix refLo = DenseMatrix::Zero(rows, rows);
     DenseMatrix refS = DenseMatrix::Zero(rows, rows);
+    DenseMatrix refA = DenseMatrix::Zero(rows, rows);
     SparseMatrixType mUp(rows, rows);
     SparseMatrixType mLo(rows, rows);
     SparseMatrixType mS(rows, rows);
+    SparseMatrixType mA(rows, rows);
+    initSparse<Scalar>(density, refA, mA);
     do {
       initSparse<Scalar>(density, refUp, mUp, ForceRealDiag|/*ForceNonZeroDiag|*/MakeUpperTriangular);
     } while (refUp.isZero());
@@ -224,19 +227,30 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(mS, refS);
     VERIFY_IS_APPROX(x=mS*b, refX=refS*b);
 
+    // sparse selfadjointView with dense matrices
     VERIFY_IS_APPROX(x=mUp.template selfadjointView<Upper>()*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mLo.template selfadjointView<Lower>()*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mS.template selfadjointView<Upper|Lower>()*b, refX=refS*b);
     
-    // sparse selfadjointView * sparse 
+    // sparse selfadjointView with sparse matrices
     SparseMatrixType mSres(rows,rows);
     VERIFY_IS_APPROX(mSres = mLo.template selfadjointView<Lower>()*mS,
                      refX = refLo.template selfadjointView<Lower>()*refS);
-    // sparse * sparse selfadjointview
     VERIFY_IS_APPROX(mSres = mS * mLo.template selfadjointView<Lower>(),
                      refX = refS * refLo.template selfadjointView<Lower>());
+    
+    // sparse triangularView with dense matrices
+    VERIFY_IS_APPROX(x=mA.template triangularView<Upper>()*b, refX=refA.template triangularView<Upper>()*b);
+    VERIFY_IS_APPROX(x=mA.template triangularView<Lower>()*b, refX=refA.template triangularView<Lower>()*b);
+    VERIFY_IS_APPROX(x=b*mA.template triangularView<Upper>(), refX=b*refA.template triangularView<Upper>());
+    VERIFY_IS_APPROX(x=b*mA.template triangularView<Lower>(), refX=b*refA.template triangularView<Lower>());
+    
+    // sparse triangularView with sparse matrices
+    VERIFY_IS_APPROX(mSres = mA.template triangularView<Lower>()*mS,   refX = refA.template triangularView<Lower>()*refS);
+    VERIFY_IS_APPROX(mSres = mS * mA.template triangularView<Lower>(), refX = refS * refA.template triangularView<Lower>());
+    VERIFY_IS_APPROX(mSres = mA.template triangularView<Upper>()*mS,   refX = refA.template triangularView<Upper>()*refS);
+    VERIFY_IS_APPROX(mSres = mS * mA.template triangularView<Upper>(), refX = refS * refA.template triangularView<Upper>());
   }
-  
 }
 
 // New test for Bug in SparseTimeDenseProduct

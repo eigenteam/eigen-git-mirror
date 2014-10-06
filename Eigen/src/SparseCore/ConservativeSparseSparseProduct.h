@@ -141,6 +141,8 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor,typename ResultType::Index> ColMajorMatrixAux;
     typedef typename sparse_eval<ColMajorMatrixAux,ResultType::RowsAtCompileTime,ResultType::ColsAtCompileTime>::type ColMajorMatrix;
     
+    // If the result is tall and thin (in the extreme case a column vector)
+    // then it is faster to sort the coefficients inplace instead of transposing twice.
     // FIXME, the following heuristic is probably not very good.
     if(lhs.rows()>=rhs.cols())
     {

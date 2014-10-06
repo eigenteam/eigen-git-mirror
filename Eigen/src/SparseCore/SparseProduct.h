@@ -33,6 +33,7 @@ SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other
 
 namespace internal {
 
+// sparse * sparse
 template<typename Lhs, typename Rhs, int ProductType>
 struct generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
 {
@@ -47,6 +48,18 @@ struct generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
                                                           typename remove_all<RhsNested>::type, Dest>::run(lhsNested,rhsNested,dst);
   }
 };
+
+// sparse * sparse-triangular
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Rhs, SparseShape, SparseTriangularShape, ProductType>
+ : public generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
+{};
+
+// sparse-triangular * sparse
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Rhs, SparseTriangularShape, SparseShape, ProductType>
+ : public generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
+{};
 
 template<typename Lhs, typename Rhs, int Options>
 struct evaluator<SparseView<Product<Lhs, Rhs, Options> > > 

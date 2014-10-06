@@ -147,6 +147,11 @@ struct generic_product_impl<Lhs, Rhs, SparseShape, DenseShape, ProductType>
 };
 
 template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Rhs, SparseTriangularShape, DenseShape, ProductType>
+  : generic_product_impl<Lhs, Rhs, SparseShape, DenseShape, ProductType>
+{};
+
+template<typename Lhs, typename Rhs, int ProductType>
 struct generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductType>
 {
   template<typename Dest>
@@ -158,11 +163,16 @@ struct generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductType>
     RhsNested rhsNested(rhs);
     
     dst.setZero();
-    // transpoe everything
+    // transpose everything
     Transpose<Dest> dstT(dst);
     internal::sparse_time_dense_product(rhsNested.transpose(), lhsNested.transpose(), dstT, typename Dest::Scalar(1));
   }
 };
+
+template<typename Lhs, typename Rhs, int ProductType>
+struct generic_product_impl<Lhs, Rhs, DenseShape, SparseTriangularShape, ProductType>
+  : generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductType>
+{};
 
 template<typename LhsT, typename RhsT, bool NeedToTranspose>
 struct sparse_dense_outer_product_evaluator
