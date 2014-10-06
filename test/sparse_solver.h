@@ -67,6 +67,15 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
     VERIFY(oldb.isApprox(db) && "sparse solver testing: the rhs should not be modified!");
     VERIFY(x.isApprox(refX,test_precision<Scalar>()));
   }
+  
+  // test uncompressed inputs
+  {
+    Mat A2 = A;
+    A2.reserve((ArrayXf::Random(A.outerSize())+2).template cast<typename Mat::Index>().eval());
+    solver.compute(A2);
+    Rhs x = solver.solve(b);
+    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+  }
 }
 
 template<typename Solver, typename Rhs>
