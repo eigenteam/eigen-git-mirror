@@ -236,26 +236,29 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
 {
   allocate(matrix.rows(), matrix.cols(), computationOptions);
   using std::abs;
-
-  //**** step 1 Bidiagonalization
-  MatrixType copy;
-  if (m_isTranspose) copy = matrix.adjoint();
-  else               copy = matrix;
   
+  //**** step 0 - Copy the input matrix and apply scaling to reduce over/under-flows
+  RealScalar scale = matrix.cwiseAbs().maxCoeff();
+  if(scale==RealScalar(0)) scale = RealScalar(1);
+  MatrixX copy;
+  if (m_isTranspose) copy = matrix.adjoint()/scale;
+  else               copy = matrix/scale;
+  
+  //**** step 1 - Bidiagonalization
   internal::UpperBidiagonalization<MatrixX> bid(copy);
 
-  //**** step 2 Divide
+  //**** step 2 - Divide & Conquer
   m_naiveU.setZero();
   m_naiveV.setZero();
   m_computed.topRows(m_diagSize) = bid.bidiagonal().toDenseMatrix().transpose();
   m_computed.template bottomRows<1>().setZero();
   divide(0, m_diagSize - 1, 0, 0, 0);
 
-  //**** step 3 copy
+  //**** step 3 - Copy singular values and vectors
   for (int i=0; i<m_diagSize; i++)
   {
     RealScalar a = abs(m_computed.coeff(i, i));
-    m_singularValues.coeffRef(i) = a;
+    m_singularValues.coeffRef(i) = a * scale;
     if (a == 0)
     {
       m_nonzeroSingularValues = i;
@@ -268,11 +271,13 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
       break;
     }
   }
-//   std::cout << "m_naiveU\n" << m_naiveU << "\n\n";
-//   std::cout << "m_naiveV\n" << m_naiveV << "\n\n";
+#ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
+  std::cout << "m_naiveU\n" << m_naiveU << "\n\n";
+  std::cout << "m_naiveV\n" << m_naiveV << "\n\n";
+#endif
   if(m_isTranspose) copyUV(bid.householderV(), bid.householderU(), m_naiveV, m_naiveU);
   else              copyUV(bid.householderU(), bid.householderV(), m_naiveU, m_naiveV);
-//   std::cout << "DONE\n";
+
   m_isInitialized = true;
   return *this;
 }// end compute
@@ -569,13 +574,13 @@ void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, Vec
   computeSingVecs(zhat, diag, singVals, shifts, mus, U, V);
   
 #ifdef  EIGEN_BDCSVD_DEBUG_VERBOSE
-  std::cout << "U^T U: " << (U.transpose() * U - MatrixType(MatrixType::Identity(U.cols(),U.cols()))).norm() << "\n";
-  std::cout << "V^T V: " << (V.transpose() * V - MatrixType(MatrixType::Identity(V.cols(),V.cols()))).norm() << "\n";
+  std::cout << "U^T U: " << (U.transpose() * U - MatrixXr(MatrixXr::Identity(U.cols(),U.cols()))).norm() << "\n";
+  std::cout << "V^T V: " << (V.transpose() * V - MatrixXr(MatrixXr::Identity(V.cols(),V.cols()))).norm() << "\n";
 #endif
   
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS
-  assert((U.transpose() * U - MatrixType(MatrixType::Identity(U.cols(),U.cols()))).norm() < 1e-14 * n);
-  assert((V.transpose() * V - MatrixType(MatrixType::Identity(V.cols(),V.cols()))).norm() < 1e-14 * n);
+  assert((U.transpose() * U - MatrixXr(MatrixXr::Identity(U.cols(),U.cols()))).norm() < 1e-14 * n);
+  assert((V.transpose() * V - MatrixXr(MatrixXr::Identity(V.cols(),V.cols()))).norm() < 1e-14 * n);
   assert(m_naiveU.allFinite());
   assert(m_naiveV.allFinite());
   assert(m_computed.allFinite());

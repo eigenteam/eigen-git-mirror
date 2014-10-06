@@ -301,7 +301,7 @@ void svd_underoverflow()
                  0, 5.60844e-313;
   SVD_DEFAULT(Matrix2d) svd;
   svd.compute(M,ComputeFullU|ComputeFullV);
-  svd_check_full(M,svd);
+  CALL_SUBTEST( svd_check_full(M,svd) );
   
   // Check all 2x2 matrices made with the following coefficients:
   VectorXd value_set(9);
@@ -312,7 +312,7 @@ void svd_underoverflow()
   {
     M << value_set(id(0)), value_set(id(1)), value_set(id(2)), value_set(id(3));
     svd.compute(M,ComputeFullU|ComputeFullV);
-    svd_check_full(M,svd);
+    CALL_SUBTEST( svd_check_full(M,svd) );
     
     id(k)++;
     if(id(k)>=value_set.size())
@@ -336,7 +336,7 @@ void svd_underoverflow()
 
   SVD_DEFAULT(Matrix3d) svd3;
   svd3.compute(M3,ComputeFullU|ComputeFullV); // just check we don't loop indefinitely
-  svd_check_full(M3,svd3);
+  CALL_SUBTEST( svd_check_full(M3,svd3) );
 }
 
 // void jacobisvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
