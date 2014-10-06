@@ -364,30 +364,32 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   
   //TODO  It is possible as in SuperLU to compute row and columns scaling vectors to equilibrate the matrix mat.
   
+  // Firstly, copy the whole input matrix. 
+  m_mat = mat;
+  
+  // Compute fill-in ordering
   OrderingType ord; 
-  ord(mat,m_perm_c);
+  ord(m_mat,m_perm_c);
   
   // Apply the permutation to the column of the input  matrix
-  //First copy the whole input matrix. 
-  m_mat = mat;
-  if (m_perm_c.size()) {
+  if (m_perm_c.size())
+  {
     m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This vector is filled but not subsequently used.  
-    //Then, permute only the column pointers
-    const Index * outerIndexPtr;
-    if (mat.isCompressed()) outerIndexPtr = mat.outerIndexPtr();
-    else
-    {
-      Index *outerIndexPtr_t = new Index[mat.cols()+1];
-      for(Index i = 0; i <= mat.cols(); i++) outerIndexPtr_t[i] = m_mat.outerIndexPtr()[i];
-      outerIndexPtr = outerIndexPtr_t;
-    }
+    // Then, permute only the column pointers
+    ei_declare_aligned_stack_constructed_variable(Index,outerIndexPtr,mat.cols()+1,mat.isCompressed()?const_cast<Index*>(mat.outerIndexPtr()):0);
+    
+    // If the input matrix 'mat' is uncompressed, then the outer-indices do not match the ones of m_mat, and a copy is thus needed.
+    if(!mat.isCompressed()) 
+      IndexVector::Map(outerIndexPtr, mat.cols()+1) = IndexVector::Map(m_mat.outerIndexPtr(),mat.cols()+1);
+    
+    // Apply the permutation and compute the nnz per column.
     for (Index i = 0; i < mat.cols(); i++)
     {
       m_mat.outerIndexPtr()[m_perm_c.indices()(i)] = outerIndexPtr[i];
       m_mat.innerNonZeroPtr()[m_perm_c.indices()(i)] = outerIndexPtr[i+1] - outerIndexPtr[i];
     }
-    if(!mat.isCompressed()) delete[] outerIndexPtr;
   }
+  
   // Compute the column elimination tree of the permuted matrix 
   IndexVector firstRowElt;
   internal::coletree(m_mat, m_etree,firstRowElt); 
