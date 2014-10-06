@@ -129,7 +129,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpos
   Index blockRows = (rows / threads);
   blockRows = (blockRows/Functor::Traits::mr)*Functor::Traits::mr;
   
-  GemmParallelInfo<Index>* info = new GemmParallelInfo<Index>[threads];
+  ei_declare_aligned_stack_constructed_variable(GemmParallelInfo<Index>,info,threads,0);
 
   #pragma omp parallel num_threads(threads)
   {
@@ -146,8 +146,6 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpos
     if(transpose) func(c0, actualBlockCols, 0, rows, info);
     else          func(0, rows, c0, actualBlockCols, info);
   }
-
-  delete[] info;
 #endif
 }
 
