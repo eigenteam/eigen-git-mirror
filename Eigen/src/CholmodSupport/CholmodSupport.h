@@ -105,7 +105,7 @@ const cholmod_sparse viewAsCholmod(const SparseMatrix<_Scalar,_Options,_Index>& 
 /** Returns a view of the Eigen sparse matrix \a mat as Cholmod sparse matrix.
   * The data are not copied but shared. */
 template<typename _Scalar, int _Options, typename _Index, unsigned int UpLo>
-cholmod_sparse viewAsCholmod(const SparseSelfAdjointView<SparseMatrix<_Scalar,_Options,_Index>, UpLo>& mat)
+cholmod_sparse viewAsCholmod(const SparseSelfAdjointView<const SparseMatrix<_Scalar,_Options,_Index>, UpLo>& mat)
 {
   cholmod_sparse res = viewAsCholmod(mat.matrix().const_cast_derived());
   

@@ -38,7 +38,8 @@ struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
   typedef typename MatrixType::PlainObject FullMatrixType;
   enum {
     Mode = UpLo | SelfAdjoint,
-    Flags =  MatrixTypeNestedCleaned::Flags & (HereditaryBits)
+    FlagsLvalueBit = is_lvalue<MatrixType>::value ? LvalueBit : 0,
+    Flags =  MatrixTypeNestedCleaned::Flags & (HereditaryBits|FlagsLvalueBit)
            & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)) // FIXME these flags should be preserved
   };
 };
@@ -95,6 +96,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index row, Index col)
     {
+      EIGEN_STATIC_ASSERT_LVALUE(SelfAdjointView);
       Base::check_coordinates_internal(row, col);
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }

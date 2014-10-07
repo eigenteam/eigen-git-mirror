@@ -297,9 +297,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);
 
     template<int Mode>
-    inline const TriangularView<Derived, Mode> triangularView() const;
+    inline const TriangularView<const Derived, Mode> triangularView() const;
 
-    template<unsigned int UpLo> inline const SparseSelfAdjointView<Derived, UpLo> selfadjointView() const;
+    template<unsigned int UpLo> inline const SparseSelfAdjointView<const Derived, UpLo> selfadjointView() const;
     template<unsigned int UpLo> inline SparseSelfAdjointView<Derived, UpLo> selfadjointView();
 
     template<typename OtherDerived> Scalar dot(const MatrixBase<OtherDerived>& other) const;

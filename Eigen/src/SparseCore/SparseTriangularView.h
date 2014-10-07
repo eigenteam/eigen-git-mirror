@@ -266,10 +266,10 @@ protected:
 
 template<typename Derived>
 template<int Mode>
-inline const TriangularView<Derived, Mode>
+inline const TriangularView<const Derived, Mode>
 SparseMatrixBase<Derived>::triangularView() const
 {
-  return TriangularView<Derived, Mode>(derived());
+  return TriangularView<const Derived, Mode>(derived());
 }
 
 } // end namespace Eigen

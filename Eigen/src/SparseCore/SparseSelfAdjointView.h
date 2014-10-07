@@ -170,9 +170,9 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
 
 template<typename Derived>
 template<unsigned int Mode>
-const SparseSelfAdjointView<Derived, Mode> SparseMatrixBase<Derived>::selfadjointView() const
+const SparseSelfAdjointView<const Derived, Mode> SparseMatrixBase<Derived>::selfadjointView() const
 {
-  return SparseSelfAdjointView<Derived, Mode>(derived());
+  return SparseSelfAdjointView<const Derived, Mode>(derived());
 }
 
 template<typename Derived>
