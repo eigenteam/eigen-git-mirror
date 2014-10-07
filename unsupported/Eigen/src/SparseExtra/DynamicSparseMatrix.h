@@ -331,6 +331,7 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::InnerIterator : public Sparse
 
     inline Index row() const { return IsRowMajor ? m_outer : Base::index(); }
     inline Index col() const { return IsRowMajor ? Base::index() : m_outer; }
+    inline Index outer() const { return m_outer; }
 
   protected:
     const Index m_outer;
@@ -347,6 +348,7 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator : public
 
     inline Index row() const { return IsRowMajor ? m_outer : Base::index(); }
     inline Index col() const { return IsRowMajor ? Base::index() : m_outer; }
+    inline Index outer() const { return m_outer; }
 
   protected:
     const Index m_outer;
