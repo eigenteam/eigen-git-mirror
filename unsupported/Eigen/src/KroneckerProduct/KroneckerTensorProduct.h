@@ -165,8 +165,8 @@ void KroneckerProductSparse<Lhs,Rhs>::evalTo(Dest& dst) const
   const Rhs1 rhs1(m_B);
     
   // 2 - construct respective iterators
-  typedef InnerIterator<Lhs1Cleaned> LhsInnerIterator;
-  typedef InnerIterator<Rhs1Cleaned> RhsInnerIterator;
+  typedef Eigen::InnerIterator<Lhs1Cleaned> LhsInnerIterator;
+  typedef Eigen::InnerIterator<Rhs1Cleaned> RhsInnerIterator;
   
   // compute number of non-zeros per innervectors of dst
   {
