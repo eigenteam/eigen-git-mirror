@@ -12,9 +12,6 @@
 
 namespace Eigen {
 
-template<int InnerStrideAtCompileTime, int OuterStrideAtCompileTime> class Stride;
-
-
 /** \class TensorMap
   * \ingroup CXX11_Tensor_Module
   *
