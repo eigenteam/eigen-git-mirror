@@ -42,6 +42,7 @@ class SolveWithGuess : public internal::generic_xpr_base<SolveWithGuess<Decompos
 {
 public:
   typedef typename RhsType::Index Index;
+  typedef typename internal::traits<SolveWithGuess>::Scalar Scalar;
   typedef typename internal::traits<SolveWithGuess>::PlainObject PlainObject;
   typedef typename internal::generic_xpr_base<SolveWithGuess<Decomposition,RhsType,GuessType>, MatrixXpr, typename internal::traits<RhsType>::StorageKind>::type Base;
   
@@ -60,8 +61,6 @@ protected:
   const Decomposition &m_dec;
   const RhsType       &m_rhs;
   const GuessType     &m_guess;
-  
-  typedef typename internal::traits<SolveWithGuess>::Scalar Scalar;
   
 private:
   Scalar coeff(Index row, Index col) const;
