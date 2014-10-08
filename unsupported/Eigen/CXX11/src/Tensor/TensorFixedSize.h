@@ -18,7 +18,7 @@ namespace Eigen {
   * \brief The fixed sized version of the tensor class.
   *
   * The fixes sized equivalent of 
-  * Eigen::Tensor<float, 4> t(3, 5, 7);
+  * Eigen::Tensor<float, 3> t(3, 5, 7);
   * is
   * Eigen::TensorFixedSize<float, Size<3,5,7>> t;
   */
