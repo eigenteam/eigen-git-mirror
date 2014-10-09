@@ -23,8 +23,8 @@ template<typename Scalar,typename Index> void sparse_vector(int rows, int cols)
   SparseVectorType v1(rows), v2(rows), v3(rows);
   DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
   DenseVector refV1 = DenseVector::Random(rows),
-    refV2 = DenseVector::Random(rows),
-    refV3 = DenseVector::Random(rows);
+              refV2 = DenseVector::Random(rows),
+              refV3 = DenseVector::Random(rows);
 
   std::vector<int> zerocoords, nonzerocoords;
   initSparse<Scalar>(densityVec, refV1, v1, &zerocoords, &nonzerocoords);
@@ -52,6 +52,20 @@ template<typename Scalar,typename Index> void sparse_vector(int rows, int cols)
     }
   }
   VERIFY_IS_APPROX(v1, refV1);
+  
+  // test coeffRef with reallocation
+  {
+    SparseVectorType v1(rows);
+    DenseVector v2 = DenseVector::Zero(rows);
+    for(int k=0; k<rows; ++k)
+    {
+      int i = internal::random<int>(0,rows-1);
+      Scalar v = internal::random<Scalar>();
+      v1.coeffRef(i) += v;
+      v2.coeffRef(i) += v;
+    }
+    VERIFY_IS_APPROX(v1,v2);
+  }
 
   v1.coeffRef(nonzerocoords[0]) = Scalar(5);
   refV1.coeffRef(nonzerocoords[0]) = Scalar(5);

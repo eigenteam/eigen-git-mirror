@@ -172,12 +172,31 @@ class CompressedStorage
       size_t id = searchLowerIndex(0,m_size,key);
       if (id>=m_size || m_indices[id]!=key)
       {
-        resize(m_size+1,1);
-        for (size_t j=m_size-1; j>id; --j)
+        if (m_allocatedSize<m_size+1)
         {
-          m_indices[j] = m_indices[j-1];
-          m_values[j] = m_values[j-1];
+          m_allocatedSize = 2*(m_size+1);
+          internal::scoped_array<Scalar> newValues(m_allocatedSize);
+          internal::scoped_array<Index> newIndices(m_allocatedSize);
+
+          // copy first chunk
+          internal::smart_copy(m_values,  m_values +id, newValues.ptr());
+          internal::smart_copy(m_indices, m_indices+id, newIndices.ptr());
+
+          // copy the rest
+          if(m_size>id)
+          {
+            internal::smart_copy(m_values +id,  m_values +m_size, newValues.ptr() +id+1);
+            internal::smart_copy(m_indices+id,  m_indices+m_size, newIndices.ptr()+id+1);
+          }
+          std::swap(m_values,newValues.ptr());
+          std::swap(m_indices,newIndices.ptr());
         }
+        else if(m_size>id)
+        {
+          internal::smart_memmove(m_values +id, m_values +m_size, m_values +id+1);
+          internal::smart_memmove(m_indices+id, m_indices+m_size, m_indices+id+1);
+        }
+        m_size++;
         m_indices[id] = key;
         m_values[id] = defaultValue;
       }
