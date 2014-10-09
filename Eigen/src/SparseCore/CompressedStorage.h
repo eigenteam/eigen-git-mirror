@@ -108,15 +108,6 @@ class CompressedStorage
     inline Index& index(size_t i) { return m_indices[i]; }
     inline const Index& index(size_t i) const { return m_indices[i]; }
 
-    static CompressedStorage Map(Index* indices, Scalar* values, size_t size)
-    {
-      CompressedStorage res;
-      res.m_indices = indices;
-      res.m_values = values;
-      res.m_allocatedSize = res.m_size = size;
-      return res;
-    }
-
     /** \returns the largest \c k such that for all \c j in [0,k) index[\c j]\<\a key */
     inline Index searchLowerIndex(Index key) const
     {
