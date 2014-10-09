@@ -146,6 +146,7 @@ void svd_min_norm(const MatrixType& m, unsigned int computationOptions)
     m2.setRandom();
   } while(SVD_FOR_MIN_NORM(MatrixType2)(m2).setThreshold(test_precision<Scalar>()).rank()!=rank && (++guard)<10);
   VERIFY(guard<10);
+
   RhsType2 rhs2 = RhsType2::Random(rank);
   // use QR to find a reference minimal norm solution
   HouseholderQR<MatrixType2T> qr(m2.adjoint());
@@ -159,7 +160,7 @@ void svd_min_norm(const MatrixType& m, unsigned int computationOptions)
   VERIFY_IS_APPROX(m2*x21, rhs2);
   VERIFY_IS_APPROX(m2*x22, rhs2);
   VERIFY_IS_APPROX(x21, x22);
-  
+
   // Now check with a rank deficient matrix
   typedef Matrix<Scalar, RowsAtCompileTime3, ColsAtCompileTime> MatrixType3;
   typedef Matrix<Scalar, RowsAtCompileTime3, 1> RhsType3;
@@ -172,7 +173,6 @@ void svd_min_norm(const MatrixType& m, unsigned int computationOptions)
   VERIFY_IS_APPROX(m3*x3, rhs3);
   VERIFY_IS_APPROX(m3*x21, rhs3);
   VERIFY_IS_APPROX(m2*x3, rhs2);
-  
   VERIFY_IS_APPROX(x21, x3);
 }
 
@@ -209,7 +209,7 @@ void svd_test_all_computation_options(const MatrixType& m, bool full_only)
     CALL_SUBTEST(( svd_least_square<SvdType>(m, ComputeFullU | ComputeThinV) ));
     CALL_SUBTEST(( svd_least_square<SvdType>(m, ComputeThinU | ComputeFullV) ));
     CALL_SUBTEST(( svd_least_square<SvdType>(m, ComputeThinU | ComputeThinV) ));
-    
+
     CALL_SUBTEST(( svd_min_norm(m, ComputeFullU | ComputeThinV) ));
     CALL_SUBTEST(( svd_min_norm(m, ComputeThinU | ComputeFullV) ));
     CALL_SUBTEST(( svd_min_norm(m, ComputeThinU | ComputeThinV) ));
