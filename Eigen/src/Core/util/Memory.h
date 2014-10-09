@@ -578,27 +578,27 @@ template<typename T, bool UseMemmove> struct smart_memmove_helper;
 
 template<typename T> void smart_memmove(const T* start, const T* end, T* target)
 {
-    smart_memmove_helper<T,!NumTraits<T>::RequireInitialization>::run(start, end, target);
+  smart_memmove_helper<T,!NumTraits<T>::RequireInitialization>::run(start, end, target);
 }
 
 template<typename T> struct smart_memmove_helper<T,true> {
-    static inline void run(const T* start, const T* end, T* target)
-    { std::memmove(target, start, std::ptrdiff_t(end)-std::ptrdiff_t(start)); }
+  static inline void run(const T* start, const T* end, T* target)
+  { std::memmove(target, start, std::ptrdiff_t(end)-std::ptrdiff_t(start)); }
 };
 
 template<typename T> struct smart_memmove_helper<T,false> {
-    static inline void run(const T* start, const T* end, T* target)
-    { 
-        if (uintptr_t(target) < uintptr_t(start))
-        {
-            std::copy(start, end, target);
-        }
-        else                                 
-        {
-            std::ptrdiff_t count = (std::ptrdiff_t(end)-std::ptrdiff_t(start)) / sizeof(T);
-            std::copy_backward(start, end, target + count); 
-        }
+  static inline void run(const T* start, const T* end, T* target)
+  { 
+    if (uintptr_t(target) < uintptr_t(start))
+    {
+      std::copy(start, end, target);
     }
+    else                                 
+    {
+      std::ptrdiff_t count = (std::ptrdiff_t(end)-std::ptrdiff_t(start)) / sizeof(T);
+      std::copy_backward(start, end, target + count); 
+    }
+  }
 };
 
 
