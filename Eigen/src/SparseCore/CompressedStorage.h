@@ -204,17 +204,14 @@ class CompressedStorage
 
     inline void reallocate(size_t size)
     {
-      Scalar* newValues  = new Scalar[size];
-      Index* newIndices = new Index[size];
+      eigen_internal_assert(size!=m_allocatedSize);
+      internal::scoped_array<Scalar> newValues(size);
+      internal::scoped_array<Index> newIndices(size);
       size_t copySize = (std::min)(size, m_size);
-      // copy
-      internal::smart_copy(m_values, m_values+copySize, newValues);
-      internal::smart_copy(m_indices, m_indices+copySize, newIndices);
-      // delete old stuff
-      delete[] m_values;
-      delete[] m_indices;
-      m_values = newValues;
-      m_indices = newIndices;
+      internal::smart_copy(m_values, m_values+copySize, newValues.ptr());
+      internal::smart_copy(m_indices, m_indices+copySize, newIndices.ptr());
+      std::swap(m_values,newValues.ptr());
+      std::swap(m_indices,newIndices.ptr());
       m_allocatedSize = size;
     }
 
