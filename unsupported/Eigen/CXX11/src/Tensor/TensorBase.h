@@ -39,9 +39,14 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseNullaryOp<internal::scalar_random_op<Scalar>, const Derived>
+    EIGEN_STRONG_INLINE const TensorCwiseNullaryOp<internal::UniformRandomGenerator<Scalar>, const Derived>
     random() const {
-      return TensorCwiseNullaryOp<internal::scalar_random_op<Scalar>, const Derived>(derived());
+      return TensorCwiseNullaryOp<internal::UniformRandomGenerator<Scalar>, const Derived>(derived());
+    }
+    template <typename RandomGenerator> EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseNullaryOp<RandomGenerator, const Derived>
+    random() const {
+      return TensorCwiseNullaryOp<RandomGenerator, const Derived>(derived());
     }
 
     // Coefficient-wise unary operators
