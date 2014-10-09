@@ -618,7 +618,7 @@ template<typename T> struct smart_memmove_helper<T,false> {
 
 // This helper class construct the allocated memory, and takes care of destructing and freeing the handled data
 // at destruction time. In practice this helper class is mainly useful to avoid memory leak in case of exceptions.
-template<typename T> class aligned_stack_memory_handler
+template<typename T> class aligned_stack_memory_handler : noncopyable
 {
   public:
     /* Creates a stack_memory_handler responsible for the buffer \a ptr of size \a size.
@@ -646,6 +646,30 @@ template<typename T> class aligned_stack_memory_handler
     bool m_deallocate;
 };
 
+template<typename T> class scoped_array : noncopyable
+{
+  T* m_ptr;
+public:
+  explicit scoped_array(std::ptrdiff_t size)
+  {
+    m_ptr = new T[size];
+  }
+  ~scoped_array()
+  {
+    delete[] m_ptr;
+  }
+  T& operator[](std::ptrdiff_t i) { return m_ptr[i]; }
+  const T& operator[](std::ptrdiff_t i) const { return m_ptr[i]; }
+  T* &ptr() { return m_ptr; }
+  const T* ptr() const { return m_ptr; }
+  operator const T*() const { return m_ptr; }
+};
+
+template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
+{
+  std::swap(a.ptr(),b.ptr());
+}
+    
 } // end namespace internal
 
 /** \internal
