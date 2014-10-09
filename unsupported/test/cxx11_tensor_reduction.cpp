@@ -139,9 +139,42 @@ static void test_user_defined_reductions()
 }
 
 
+static void test_tensor_maps()
+{
+  int inputs[2*3*5*7];
+  TensorMap<Tensor<int, 4> > tensor_map(inputs, 2,3,5,7);
+  TensorMap<Tensor<const int, 4> > tensor_map_const(inputs, 2,3,5,7);
+  const TensorMap<Tensor<const int, 4> > tensor_map_const_const(inputs, 2,3,5,7);
+
+  tensor_map.setRandom();
+  array<ptrdiff_t, 2> reduction_axis;
+  reduction_axis[0] = 1;
+  reduction_axis[1] = 3;
+
+  Tensor<int, 2> result = tensor_map.sum(reduction_axis);
+  Tensor<int, 2> result2 = tensor_map_const.sum(reduction_axis);
+  Tensor<int, 2> result3 = tensor_map_const_const.sum(reduction_axis);
+
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      int sum = 0;
+      for (int k = 0; k < 3; ++k) {
+        for (int l = 0; l < 7; ++l) {
+          sum += tensor_map(i, k, j, l);
+        }
+      }
+      VERIFY_IS_EQUAL(result(i, j), sum);
+      VERIFY_IS_EQUAL(result2(i, j), sum);
+      VERIFY_IS_EQUAL(result3(i, j), sum);
+    }
+  }
+}
+
+
 void test_cxx11_tensor_reduction()
 {
    CALL_SUBTEST(test_simple_reductions());
    CALL_SUBTEST(test_full_reductions());
    CALL_SUBTEST(test_user_defined_reductions());
+   CALL_SUBTEST(test_tensor_maps());
 }

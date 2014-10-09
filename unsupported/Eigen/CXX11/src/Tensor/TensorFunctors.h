@@ -25,12 +25,12 @@ template <typename T> struct SumReducer
   }
 
  private:
-  T m_sum;
+  typename internal::remove_all<T>::type m_sum;
 };
 
 template <typename T> struct MaxReducer
 {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE MaxReducer() : m_max((std::numeric_limits<T>::min)()) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE MaxReducer() : m_max(-(std::numeric_limits<T>::max)()) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t) {
     if (t > m_max) { m_max = t; }
   }
@@ -39,7 +39,7 @@ template <typename T> struct MaxReducer
   }
 
  private:
-  T m_max;
+  typename internal::remove_all<T>::type m_max;
 };
 
 template <typename T> struct MinReducer
@@ -53,8 +53,72 @@ template <typename T> struct MinReducer
   }
 
  private:
-  T m_min;
+  typename internal::remove_all<T>::type m_min;
 };
+
+
+#if !defined (EIGEN_USE_GPU) || !defined(__CUDACC__) || !defined(__CUDA_ARCH__)
+// We're not compiling a cuda kernel
+template <typename T> struct UniformRandomGenerator {
+  template<typename Index>
+  T operator()(Index, Index = 0) const {
+    return random<T>();
+  }
+  template<typename Index>
+  typename internal::packet_traits<T>::type packetOp(Index, Index = 0) const {
+    const int packetSize = internal::packet_traits<T>::size;
+    EIGEN_ALIGN_DEFAULT T values[packetSize];
+    for (int i = 0; i < packetSize; ++i) {
+      values[i] = random<T>();
+    }
+    return internal::pload<typename internal::packet_traits<T>::type>(values);
+  }
+};
+
+#else
+
+// We're compiling a cuda kernel
+template <typename T> struct UniformRandomGenerator;
+
+template <> struct UniformRandomGenerator<float> {
+  UniformRandomGenerator() {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    curand_init(0, tid, 0, &m_state);
+  }
+
+  template<typename Index>
+  float operator()(Index, Index = 0) const {
+    return curand_uniform(&m_state);
+  }
+  template<typename Index>
+  float4 packetOp(Index, Index = 0) const {
+    return curand_uniform4(&m_state);
+  }
+
+ private:
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
+template <> struct UniformRandomGenerator<double> {
+  UniformRandomGenerator() {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    curand_init(0, tid, 0, &m_state);
+  }
+  template<typename Index>
+  double operator()(Index, Index = 0) const {
+    return curand_uniform_double(&m_state);
+  }
+  template<typename Index>
+  double2 packetOp(Index, Index = 0) const {
+    return curand_uniform2_double(&m_state);
+  }
+
+ private:
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
+#endif
+
 
 } // end namespace internal
 } // end namespace Eigen
