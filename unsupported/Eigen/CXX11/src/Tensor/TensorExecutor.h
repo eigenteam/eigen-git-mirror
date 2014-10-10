@@ -131,7 +131,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       const Index numblocks = size / blocksize;
 
       Index i = 0;
-      vector<std::future<void> > results;
+      std::vector<std::future<void> > results;
       results.reserve(numblocks);
       for (int i = 0; i < numblocks; ++i) {
          results.push_back(std::async(std::launch::async, &EvalRange<Evaluator, Index>::run, &evaluator, i*blocksize, (i+1)*blocksize));

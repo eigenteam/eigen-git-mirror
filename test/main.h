@@ -47,8 +47,8 @@
 // protected by parenthesis against macro expansion, the min()/max() macros
 // are defined here and any not-parenthesized min/max call will cause a
 // compiler error.
-#define min(A,B) please_protect_your_min_with_parentheses
-#define max(A,B) please_protect_your_max_with_parentheses
+//#define min(A,B) please_protect_your_min_with_parentheses
+//#define max(A,B) please_protect_your_max_with_parentheses
 
 #define FORBIDDEN_IDENTIFIER (this_identifier_is_forbidden_to_avoid_clashes) this_identifier_is_forbidden_to_avoid_clashes
 // B0 is defined in POSIX header termios.h

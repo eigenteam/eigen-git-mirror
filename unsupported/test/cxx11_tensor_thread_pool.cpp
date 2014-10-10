@@ -17,9 +17,9 @@ using Eigen::Tensor;
 
 void test_cxx11_tensor_thread_pool()
 {
-  Eigen::Tensor<float, 3> in1(Eigen::array<ptrdiff_t, 3>(2,3,7));
-  Eigen::Tensor<float, 3> in2(Eigen::array<ptrdiff_t, 3>(2,3,7));
-  Eigen::Tensor<float, 3> out(Eigen::array<ptrdiff_t, 3>(2,3,7));
+  Eigen::Tensor<float, 3> in1(2,3,7);
+  Eigen::Tensor<float, 3> in2(2,3,7);
+  Eigen::Tensor<float, 3> out(2,3,7);
 
   in1.setRandom();
   in2.setRandom();
@@ -30,7 +30,7 @@ void test_cxx11_tensor_thread_pool()
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
-        VERIFY_IS_APPROX(out(Eigen::array<ptrdiff_t, 3>(i,j,k)), in1(Eigen::array<ptrdiff_t, 3>(i,j,k)) + in2(Eigen::array<ptrdiff_t, 3>(i,j,k)) * 3.14f);
+        VERIFY_IS_APPROX(out(i,j,k), in1(i,j,k) + in2(i,j,k) * 3.14f);
       }
     }
   }
