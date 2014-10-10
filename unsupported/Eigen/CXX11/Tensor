@@ -47,6 +47,7 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorContractionCuda.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorConvolution.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorBroadcasting.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorChipping.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorMorphing.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorPadding.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorShuffling.h"

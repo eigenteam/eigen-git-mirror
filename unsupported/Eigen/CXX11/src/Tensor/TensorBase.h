@@ -254,6 +254,11 @@ class TensorBase<Derived, ReadOnlyAccessors>
     slice(const StartIndices& startIndices, const Sizes& sizes) const {
       return TensorSlicingOp<const StartIndices, const Sizes, const Derived>(derived(), startIndices, sizes);
     }
+    template <std::size_t DimId> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorChippingOp<DimId, const Derived>
+    chip(const Index offset) const {
+       return TensorChippingOp<DimId, const Derived>(derived(), offset);
+    }
     template <typename PaddingDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorPaddingOp<const PaddingDimensions, const Derived>
     pad(const PaddingDimensions& padding) const {
@@ -327,13 +332,18 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
 
     template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorReshapingOp<const NewDimensions, Derived>
-    reshape(const NewDimensions& newDimensions) {
+    reshape(const NewDimensions& newDimensions) const {
       return TensorReshapingOp<const NewDimensions, Derived>(derived(), newDimensions);
     }
     template <typename StartIndices, typename Sizes> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorSlicingOp<const StartIndices, const Sizes, Derived>
     slice(const StartIndices& startIndices, const Sizes& sizes) const {
       return TensorSlicingOp<const StartIndices, const Sizes, Derived>(derived(), startIndices, sizes);
+    }
+    template <std::size_t DimId> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorChippingOp<DimId, Derived>
+    chip(const Index offset) const {
+       return TensorChippingOp<DimId, Derived>(derived(), offset);
     }
     template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorShufflingOp<const Shuffle, Derived>
