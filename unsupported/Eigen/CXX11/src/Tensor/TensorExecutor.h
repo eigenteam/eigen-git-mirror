@@ -39,7 +39,7 @@ class TensorExecutor
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
-      const Index size = evaluator.dimensions().TotalSize();
+      const Index size = array_prod(evaluator.dimensions());
       for (Index i = 0; i < size; ++i) {
         evaluator.evalScalar(i);
       }
@@ -60,7 +60,7 @@ class TensorExecutor<Expression, DefaultDevice, true>
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
-      const Index size = evaluator.dimensions().TotalSize();
+      const Index size = array_prod(evaluator.dimensions());
       static const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
       const int VectorizedSize = (size / PacketSize) * PacketSize;
 
@@ -122,7 +122,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
-      const Index size = evaluator.dimensions().TotalSize();
+      const Index size = array_prod(evaluator.dimensions());
 
       static const int PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
 
@@ -176,7 +176,7 @@ class TensorExecutor<Expression, GpuDevice, Vectorizable>
       const int num_blocks = getNumCudaMultiProcessors() * maxCudaThreadsPerMultiProcessor() / maxCudaThreadsPerBlock();
       const int block_size = maxCudaThreadsPerBlock();
 
-      const Index size = evaluator.dimensions().TotalSize();
+      const Index size = array_prod(evaluator.dimensions());
       EigenMetaKernel<TensorEvaluator<Expression, GpuDevice> > <<<num_blocks, block_size, 0, device.stream()>>>(evaluator, size);
       assert(cudaGetLastError() == cudaSuccess);
     }

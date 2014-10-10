@@ -179,7 +179,7 @@ static void test_array()
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
-        VERIFY_IS_APPROX(mat3(array<ptrdiff_t, 3>(i,j,k)), powf(val, 3.5f));
+        VERIFY_IS_APPROX(mat3(i,j,k), powf(val, 3.5f));
         val += 1.0;
       }
     }

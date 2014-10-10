@@ -12,6 +12,7 @@
 #include <Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
+using Eigen::array;
 
 static void test_simple_shuffling()
 {
@@ -80,10 +81,10 @@ static void test_expr_shuffling()
 
   Tensor<float, 4> result(5,7,3,2);
 
-  array<int, 4> src_slice_dim(Eigen::array<int, 4>(2,3,1,7));
-  array<int, 4> src_slice_start(Eigen::array<int, 4>(0,0,0,0));
-  array<int, 4> dst_slice_dim(Eigen::array<int, 4>(1,7,3,2));
-  array<int, 4> dst_slice_start(Eigen::array<int, 4>(0,0,0,0));
+  array<int, 4> src_slice_dim{{2,3,1,7}};
+  array<int, 4> src_slice_start{{0,0,0,0}};
+  array<int, 4> dst_slice_dim{{1,7,3,2}};
+  array<int, 4> dst_slice_start{{0,0,0,0}};
 
   for (int i = 0; i < 5; ++i) {
     result.slice(dst_slice_start, dst_slice_dim) =
