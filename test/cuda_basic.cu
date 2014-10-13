@@ -65,7 +65,7 @@ struct redux {
 };
 
 template<typename T1, typename T2>
-struct prod {
+struct prod_test {
   EIGEN_DEVICE_FUNC
   void operator()(int i, const typename T1::Scalar* in, typename T1::Scalar* out) const
   {
@@ -125,8 +125,8 @@ void test_cuda_basic()
   CALL_SUBTEST( run_and_compare_to_cuda(redux<Array4f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_cuda(redux<Matrix3f>(), nthreads, in, out) );
   
-  CALL_SUBTEST( run_and_compare_to_cuda(prod<Matrix3f,Matrix3f>(), nthreads, in, out) );
-  CALL_SUBTEST( run_and_compare_to_cuda(prod<Matrix4f,Vector4f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(prod_test<Matrix3f,Matrix3f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(prod_test<Matrix4f,Vector4f>(), nthreads, in, out) );
   
   CALL_SUBTEST( run_and_compare_to_cuda(diagonal<Matrix3f,Vector3f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_cuda(diagonal<Matrix4f,Vector4f>(), nthreads, in, out) );

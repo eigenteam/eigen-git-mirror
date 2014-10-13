@@ -85,7 +85,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       *
       * \sa innerStride(), outerStride()
       */
-    inline const Scalar* data() const { return m_data; }
+    EIGEN_DEVICE_FUNC inline const Scalar* data() const { return m_data; }
 
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeff(Index rowId, Index colId) const

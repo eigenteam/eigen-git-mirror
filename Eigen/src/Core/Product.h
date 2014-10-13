@@ -68,7 +68,7 @@ struct traits<Product<Lhs, Rhs, Option> >
                                                 typename RhsTraits::StorageKind,
                                                 internal::product_type<Lhs,Rhs>::ret>::ret StorageKind;
   typedef typename promote_index_type<typename LhsTraits::Index,
-                                         typename RhsTraits::Index>::type Index;
+                                      typename RhsTraits::Index>::type Index;
   
   enum {
     RowsAtCompileTime    = LhsTraits::RowsAtCompileTime,
@@ -113,18 +113,18 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
     typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;
     typedef typename internal::remove_all<RhsNested>::type RhsNestedCleaned;
 
-    Product(const Lhs& lhs, const Rhs& rhs) : m_lhs(lhs), m_rhs(rhs)
+    EIGEN_DEVICE_FUNC Product(const Lhs& lhs, const Rhs& rhs) : m_lhs(lhs), m_rhs(rhs)
     {
       eigen_assert(lhs.cols() == rhs.rows()
         && "invalid matrix product"
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
 
-    inline Index rows() const { return m_lhs.rows(); }
-    inline Index cols() const { return m_rhs.cols(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_lhs.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_rhs.cols(); }
 
-    const LhsNestedCleaned& lhs() const { return m_lhs; }
-    const RhsNestedCleaned& rhs() const { return m_rhs; }
+    EIGEN_DEVICE_FUNC const LhsNestedCleaned& lhs() const { return m_lhs; }
+    EIGEN_DEVICE_FUNC const RhsNestedCleaned& rhs() const { return m_rhs; }
 
   protected:
 
@@ -186,7 +186,7 @@ class ProductImpl<Lhs,Rhs,Option,Dense>
     
   public:
   
-    Scalar coeff(Index row, Index col) const
+    EIGEN_DEVICE_FUNC Scalar coeff(Index row, Index col) const
     {
       EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
       eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );
@@ -194,7 +194,7 @@ class ProductImpl<Lhs,Rhs,Option,Dense>
       return typename internal::evaluator<Derived>::type(derived()).coeff(row,col);
     }
 
-    Scalar coeff(Index i) const
+    EIGEN_DEVICE_FUNC Scalar coeff(Index i) const
     {
       EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
       eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );

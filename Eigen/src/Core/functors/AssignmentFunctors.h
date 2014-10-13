@@ -123,7 +123,7 @@ struct functor_traits<div_assign_op<Scalar> > {
 
 
 /** \internal
-  * \brief Template functor for scalar/packet assignment with swaping
+  * \brief Template functor for scalar/packet assignment with swapping
   *
   * It works as follow. For a non-vectorized evaluation loop, we have:
   *   for(i) func(A.coeffRef(i), B.coeff(i));
@@ -142,8 +142,13 @@ template<typename Scalar> struct swap_assign_op {
   EIGEN_EMPTY_STRUCT_CTOR(swap_assign_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Scalar& a, const Scalar& b) const
   {
+#ifdef __CUDACC__
+    // FIXME is there some kind of cuda::swap?
+    Scalar t=b; const_cast<Scalar&>(b)=a; a=t;
+#else
     using std::swap;
     swap(a,const_cast<Scalar&>(b));
+#endif
   }
   
   template<int LhsAlignment, int RhsAlignment, typename Packet>

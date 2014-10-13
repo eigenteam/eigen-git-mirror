@@ -178,7 +178,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     EIGEN_DENSE_PUBLIC_INTERFACE(BlockType)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl_dense)
 
-    class InnerIterator;
+    // class InnerIterator; // FIXME apparently never used
 
     /** Column or Row constructor
       */
