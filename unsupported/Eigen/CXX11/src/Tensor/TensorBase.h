@@ -243,6 +243,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorConcatenationOp<Axis, const Derived, const OtherDerived>(derived(), other.derived(), axis);
     }
 
+    template <typename PatchDims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorPatchOp<const PatchDims, const Derived>
+    extract_patches(const PatchDims& patch_dims) const {
+      return TensorPatchOp<const PatchDims, const Derived>(derived(), patch_dims);
+    }
+
     // Morphing operators.
     template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorReshapingOp<const NewDimensions, const Derived>

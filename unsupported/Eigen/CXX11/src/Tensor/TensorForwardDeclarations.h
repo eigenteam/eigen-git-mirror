@@ -25,6 +25,7 @@ template<typename Op, typename Dims, typename XprType> class TensorReductionOp;
 template<typename Axis, typename LeftXprType, typename RightXprType> class TensorConcatenationOp;
 template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
+template<typename PatchDim, typename XprType> class TensorPatchOp;
 template<typename Broadcast, typename XprType> class TensorBroadcastingOp;
 template<std::size_t DimId, typename XprType> class TensorChippingOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;
