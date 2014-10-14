@@ -17,7 +17,7 @@ namespace Eigen {
   *
   * \brief The fixed sized version of the tensor class.
   *
-  * The fixes sized equivalent of 
+  * The fixed sized equivalent of
   * Eigen::Tensor<float, 3> t(3, 5, 7);
   * is
   * Eigen::TensorFixedSize<float, Size<3,5,7>> t;
@@ -41,7 +41,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
     enum {
       IsAligned = bool(EIGEN_ALIGN),
-      PacketAccess = true,
+      PacketAccess = (internal::packet_traits<Scalar>::size > 1),
     };
 
   typedef Dimensions_ Dimensions;

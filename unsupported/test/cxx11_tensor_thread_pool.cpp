@@ -9,22 +9,23 @@
 
 #define EIGEN_USE_THREADS
 
-
+#include <iostream>
 #include "main.h"
 #include <Eigen/CXX11/Tensor>
 
+
 using Eigen::Tensor;
 
-void test_cxx11_tensor_thread_pool()
+static void test_multithread_elementwise()
 {
-  Eigen::Tensor<float, 3> in1(2,3,7);
-  Eigen::Tensor<float, 3> in2(2,3,7);
-  Eigen::Tensor<float, 3> out(2,3,7);
+  Tensor<float, 3> in1(2,3,7);
+  Tensor<float, 3> in2(2,3,7);
+  Tensor<float, 3> out(2,3,7);
 
   in1.setRandom();
   in2.setRandom();
 
-  Eigen::ThreadPoolDevice thread_pool_device(3);
+  Eigen::ThreadPoolDevice thread_pool_device(internal::random<int>(3, 11));
   out.device(thread_pool_device) = in1 + in2 * 3.14f;
 
   for (int i = 0; i < 2; ++i) {
@@ -34,4 +35,223 @@ void test_cxx11_tensor_thread_pool()
       }
     }
   }
+}
+
+
+static void test_multithread_compound_assignment()
+{
+  Tensor<float, 3> in1(2,3,7);
+  Tensor<float, 3> in2(2,3,7);
+  Tensor<float, 3> out(2,3,7);
+
+  in1.setRandom();
+  in2.setRandom();
+
+  Eigen::ThreadPoolDevice thread_pool_device(internal::random<int>(3, 11));
+  out.device(thread_pool_device) = in1;
+  out.device(thread_pool_device) += in2 * 3.14f;
+
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        VERIFY_IS_APPROX(out(i,j,k), in1(i,j,k) + in2(i,j,k) * 3.14f);
+      }
+    }
+  }
+}
+
+
+static void test_multithread_contraction()
+{
+  Tensor<float, 4> t_left(30, 50, 37, 31);
+  Tensor<float, 5> t_right(37, 31, 70, 2, 10);
+  Tensor<float, 5> t_result(30, 50, 70, 2, 10);
+
+  t_left.setRandom();
+  t_right.setRandom();
+
+  // this contraction should be equivalent to a single matrix multiplication
+  typedef Tensor<float, 1>::DimensionPair DimPair;
+  Eigen::array<DimPair, 2> dims({{DimPair(2, 0), DimPair(3, 1)}});
+
+
+  typedef Map<MatrixXf> MapXf;
+  MapXf m_left(t_left.data(), 1500, 1147);
+  MapXf m_right(t_right.data(), 1147, 1400);
+  MatrixXf m_result(1500, 1400);
+
+  Eigen::ThreadPoolDevice thread_pool_device(4);
+
+  // compute results by separate methods
+  t_result.device(thread_pool_device) = t_left.contract(t_right, dims);
+  m_result = m_left * m_right;
+
+ for (ptrdiff_t i = 0; i < t_result.size(); i++) {
+    VERIFY(&t_result.data()[i] != &m_result.data()[i]);
+    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+      std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
+      assert(false);
+    }
+  }
+}
+
+
+static void test_contraction_corner_cases()
+{
+  Tensor<float, 2> t_left(32, 500);
+  Tensor<float, 2> t_right(32, 28*28);
+  Tensor<float, 2> t_result(500, 28*28);
+
+  t_left = (t_left.constant(-0.5f) + t_left.random()) * 2.0f;
+  t_right = (t_right.constant(-0.6f) + t_right.random()) * 2.0f;
+  t_result = t_result.constant(NAN);
+
+  // this contraction should be equivalent to a single matrix multiplication
+  typedef Tensor<float, 1>::DimensionPair DimPair;
+  Eigen::array<DimPair, 1> dims{{DimPair(0, 0)}};
+
+  typedef Map<MatrixXf> MapXf;
+  MapXf m_left(t_left.data(), 32, 500);
+  MapXf m_right(t_right.data(), 32, 28*28);
+  MatrixXf m_result(500, 28*28);
+
+  Eigen::ThreadPoolDevice thread_pool_device(12);
+
+  // compute results by separate methods
+  t_result.device(thread_pool_device) = t_left.contract(t_right, dims);
+  m_result = m_left.transpose() * m_right;
+
+  for (ptrdiff_t i = 0; i < t_result.size(); i++) {
+    assert(!isnan(t_result.data()[i]));
+    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+      std::cout << "mismatch detected at index " << i << " : " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
+      assert(false);
+    }
+  }
+
+  t_left.resize(32, 1);
+  t_left = (t_left.constant(-0.5f) + t_left.random()) * 2.0f;
+  t_result.resize (1, 28*28);
+  t_result = t_result.constant(NAN);
+  t_result.device(thread_pool_device) = t_left.contract(t_right, dims);
+  new(&m_left) MapXf(t_left.data(), 32, 1);
+  m_result = m_left.transpose() * m_right;
+  for (ptrdiff_t i = 0; i < t_result.size(); i++) {
+    assert(!isnan(t_result.data()[i]));
+    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+      std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
+      assert(false);
+    }
+  }
+
+  t_left.resize(32, 500);
+  t_right.resize(32, 4);
+  t_left = (t_left.constant(-0.5f) + t_left.random()) * 2.0f;
+  t_right = (t_right.constant(-0.6f) + t_right.random()) * 2.0f;
+  t_result.resize (500, 4);
+  t_result = t_result.constant(NAN);
+  t_result.device(thread_pool_device) = t_left.contract(t_right, dims);
+  new(&m_left) MapXf(t_left.data(), 32, 500);
+  new(&m_right) MapXf(t_right.data(), 32, 4);
+  m_result = m_left.transpose() * m_right;
+  for (ptrdiff_t i = 0; i < t_result.size(); i++) {
+    assert(!isnan(t_result.data()[i]));
+    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+      std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
+      assert(false);
+    }
+  }
+
+  t_left.resize(32, 1);
+  t_right.resize(32, 4);
+  t_left = (t_left.constant(-0.5f) + t_left.random()) * 2.0f;
+  t_right = (t_right.constant(-0.6f) + t_right.random()) * 2.0f;
+  t_result.resize (1, 4);
+  t_result = t_result.constant(NAN);
+  t_result.device(thread_pool_device) = t_left.contract(t_right, dims);
+  new(&m_left) MapXf(t_left.data(), 32, 1);
+  new(&m_right) MapXf(t_right.data(), 32, 4);
+  m_result = m_left.transpose() * m_right;
+  for (ptrdiff_t i = 0; i < t_result.size(); i++) {
+    assert(!isnan(t_result.data()[i]));
+    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+      std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
+      assert(false);
+    }
+  }
+}
+
+
+static void test_multithread_contraction_agrees_with_singlethread() {
+  int contract_size = internal::random<int>(1, 5000);
+
+  Tensor<float, 3> left(internal::random<int>(1, 80),
+                        contract_size,
+                        internal::random<int>(1, 100));
+
+  Tensor<float, 4> right(internal::random<int>(1, 25),
+                         internal::random<int>(1, 37),
+                         contract_size,
+                         internal::random<int>(1, 51));
+
+  left.setRandom();
+  right.setRandom();
+
+  // add constants to shift values away from 0 for more precision
+  left += left.constant(1.5f);
+  right += right.constant(1.5f);
+
+  typedef Tensor<float, 1>::DimensionPair DimPair;
+  Eigen::array<DimPair, 1> dims({{DimPair(1, 2)}});
+
+  Eigen::ThreadPoolDevice thread_pool_device(internal::random<int>(2, 11));
+
+  Tensor<float, 5> st_result;
+  st_result = left.contract(right, dims);
+
+  Tensor<float, 5> tp_result(st_result.dimensions());
+  tp_result.device(thread_pool_device) = left.contract(right, dims);
+
+  VERIFY(internal::dimensions_match(st_result.dimensions(), tp_result.dimensions()));
+  for (ptrdiff_t i = 0; i < st_result.size(); i++) {
+    // if both of the values are very small, then do nothing (because the test will fail
+    // due to numerical precision issues when values are small)
+    if (fabs(st_result.data()[i] - tp_result.data()[i]) >= 1e-4) {
+      VERIFY_IS_APPROX(st_result.data()[i], tp_result.data()[i]);
+    }
+  }
+}
+
+
+static void test_memcpy() {
+
+  for (int i = 0; i < 5; ++i) {
+    const int num_threads = internal::random<int>(3, 11);
+    Eigen::ThreadPoolDevice thread_pool_device(num_threads);
+
+    const int size = internal::random<int>(13, 7632);
+    Tensor<float, 1> t1(size);
+    t1.setRandom();
+    std::vector<float> result(size);
+    thread_pool_device.memcpy(&result[0], t1.data(), size*sizeof(float));
+    for (int i = 0; i < size; i++) {
+      VERIFY_IS_EQUAL(t1(i), result[i]);
+    }
+  }
+}
+
+
+void test_cxx11_tensor_thread_pool()
+{
+  CALL_SUBTEST(test_multithread_elementwise());
+  CALL_SUBTEST(test_multithread_compound_assignment());
+
+  CALL_SUBTEST(test_multithread_contraction());
+
+  CALL_SUBTEST(test_multithread_contraction_agrees_with_singlethread());
+
+  // Exercise various cases that have been problematic in the past.
+  CALL_SUBTEST(test_contraction_corner_cases());
+
+  CALL_SUBTEST(test_memcpy());
 }

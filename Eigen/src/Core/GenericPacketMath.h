@@ -359,7 +359,7 @@ pmadd(const Packet&  a,
 /** \internal \returns a packet version of \a *from.
   * If LoadMode equals #Aligned, \a from must be 16 bytes aligned */
 template<typename Packet, int LoadMode>
-inline Packet ploadt(const typename unpacket_traits<Packet>::type* from)
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 {
   if(LoadMode == Aligned)
     return pload<Packet>(from);
@@ -370,12 +370,23 @@ inline Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 /** \internal copy the packet \a from to \a *to.
   * If StoreMode equals #Aligned, \a to must be 16 bytes aligned */
 template<typename Scalar, typename Packet, int LoadMode>
-inline void pstoret(Scalar* to, const Packet& from)
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstoret(Scalar* to, const Packet& from)
 {
   if(LoadMode == Aligned)
     pstore(to, from);
   else
     pstoreu(to, from);
+}
+
+/** \internal \returns a packet version of \a *from.
+  * Unlike ploadt, ploadt_ro takes advantage of the read-only memory path on the
+  * hardware if available to speedup the loading of data that won't be modified
+  * by the current computation.
+  */
+template<typename Packet, int LoadMode>
+inline Packet ploadt_ro(const typename unpacket_traits<Packet>::type* from)
+{
+  return ploadt<Packet, LoadMode>(from);
 }
 
 /** \internal default implementation of palign() allowing partial specialization */

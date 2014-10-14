@@ -30,11 +30,11 @@ namespace Eigen {
   *
   * \sa Tensor
   */
-template<typename T, std::size_t NumIndices_, DenseIndex Size, int Options_, typename Dimensions = void> class TensorStorage;
+template<typename T, DenseIndex NumIndices_, DenseIndex Size, int Options_, typename Dimensions = void> class TensorStorage;
 
 
 // Pure fixed-size storage
-template<typename T, std::size_t NumIndices_, DenseIndex Size, int Options_, typename FixedDimensions>
+template<typename T, DenseIndex NumIndices_, DenseIndex Size, int Options_, typename FixedDimensions>
 class TensorStorage
 {
  private:
@@ -62,7 +62,7 @@ class TensorStorage
 
 
 // pure-dynamic, but without specification of all dimensions explicitly
-template<typename T, std::size_t NumIndices_, int Options_>
+template<typename T, DenseIndex NumIndices_, int Options_>
 class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
   : public TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type>
 {
@@ -79,7 +79,7 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
 };
 
 // pure dynamic
-template<typename T, std::size_t NumIndices_, int Options_>
+template<typename T, DenseIndex NumIndices_, int Options_>
 class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type>
 {
     T *m_data;
@@ -138,6 +138,7 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex size() const { return m_dimensions.TotalSize(); }
 };
+
 
 
 } // end namespace Eigen

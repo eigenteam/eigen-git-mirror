@@ -48,7 +48,8 @@ template <typename T, size_t n> class array {
     values[2] = v3;
   }
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3, const T& v4) {
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3,
+                            const T& v4) {
     EIGEN_STATIC_ASSERT(n==4, YOU_MADE_A_PROGRAMMING_MISTAKE)
     values[0] = v1;
     values[1] = v2;
@@ -56,13 +57,51 @@ template <typename T, size_t n> class array {
     values[3] = v4;
   }
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3, const T& v4, const T& v5) {
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3, const T& v4,
+                            const T& v5) {
     EIGEN_STATIC_ASSERT(n==5, YOU_MADE_A_PROGRAMMING_MISTAKE)
     values[0] = v1;
     values[1] = v2;
     values[2] = v3;
     values[3] = v4;
     values[4] = v5;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3, const T& v4,
+                            const T& v5, const T& v6) {
+    EIGEN_STATIC_ASSERT(n==6, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v1;
+    values[1] = v2;
+    values[2] = v3;
+    values[3] = v4;
+    values[4] = v5;
+    values[5] = v6;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(const T& v1, const T& v2, const T& v3, const T& v4,
+                            const T& v5, const T& v6, const T& v7) {
+    EIGEN_STATIC_ASSERT(n==7, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v1;
+    values[1] = v2;
+    values[2] = v3;
+    values[3] = v4;
+    values[4] = v5;
+    values[5] = v6;
+    values[6] = v7;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(
+      const T& v1, const T& v2, const T& v3, const T& v4,
+      const T& v5, const T& v6, const T& v7, const T& v8) {
+    EIGEN_STATIC_ASSERT(n==8, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    values[0] = v1;
+    values[1] = v2;
+    values[2] = v3;
+    values[3] = v4;
+    values[4] = v5;
+    values[5] = v6;
+    values[6] = v7;
+    values[7] = v8;
   }
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
@@ -93,9 +132,11 @@ template<typename T, typename Tail=empty_list> struct type_list {
 
 struct null_type { };
 
-template<typename T1 = null_type, typename T2 = null_type, typename T3 = null_type, typename T4 = null_type, typename T5 = null_type>
+template<typename T1 = null_type, typename T2 = null_type, typename T3 = null_type,
+         typename T4 = null_type, typename T5 = null_type, typename T6 = null_type,
+         typename T7 = null_type, typename T8 = null_type>
 struct make_type_list {
-  typedef typename make_type_list<T2, T3, T4, T5>::type tailresult;
+  typedef typename make_type_list<T2, T3, T4, T5, T6, T7, T8>::type tailresult;
 
   typedef type_list<T1, tailresult> type;
 };
@@ -150,6 +191,23 @@ template<typename T, T V> struct gen_numeric_list_repeated<T, 5, V> {
   typedef typename make_type_list<type2val<T, V>, type2val<T, V>, type2val<T, V>, type2val<T, V>, type2val<T, V> >::type type;
 };
 
+template<typename T, T V> struct gen_numeric_list_repeated<T, 6, V> {
+  typedef typename make_type_list<type2val<T, V>, type2val<T, V>, type2val<T, V>,
+                                  type2val<T, V>, type2val<T, V>, type2val<T, V> >::type type;
+};
+
+template<typename T, T V> struct gen_numeric_list_repeated<T, 7, V> {
+  typedef typename make_type_list<type2val<T, V>, type2val<T, V>, type2val<T, V>,
+                                  type2val<T, V>, type2val<T, V>, type2val<T, V>,
+                                  type2val<T, V> >::type type;
+};
+
+template<typename T, T V> struct gen_numeric_list_repeated<T, 8, V> {
+  typedef typename make_type_list<type2val<T, V>, type2val<T, V>, type2val<T, V>,
+                                  type2val<T, V>, type2val<T, V>, type2val<T, V>,
+                                  type2val<T, V>, type2val<T, V> >::type type;
+};
+
 
 template <std::size_t index, class NList> struct get;
 
@@ -174,6 +232,7 @@ template <> struct arg_prod<empty_list> {
   static const int value = 1;
 };
 
+
 template<int n, typename t>
 array<t, n> repeat(t v) {
   array<t, n> array;
@@ -190,6 +249,11 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Head::type array_get(const type_l
   return get<I, type_list<Head, Tail> >::value;
 }
 
+template <class NList>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NList::HeadType::type array_prod(const NList& l) {
+  return arg_prod<NList>::value;
+};
+
 template<std::size_t n, typename t>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const array<t, n>& a) {
   t prod = 1;
@@ -201,6 +265,14 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const array<t, 0>& /*a*/) {
   return 0;
 }
 
+template<typename t>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const std::vector<t>& a) {
+  eigen_assert(a.size() > 0);
+  t prod = 1;
+  for (size_t i = 0; i < a.size(); ++i) { prod *= a[i]; }
+  return prod;
+}
+
 template<std::size_t I, class T, std::size_t N>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T& array_get(array<T,N>& a) {
   return a[I];
@@ -210,12 +282,31 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const T& array_get(const array<T,N>& a) {
   return a[I];
 }
 
+template<std::size_t I, class T>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T& array_get(std::vector<T>& a) {
+  return a[I];
+}
+template<std::size_t I, class T>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const T& array_get(const std::vector<T>& a) {
+  return a[I];
+}
 
+template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<array<T,N> > {
+  static const size_t value = N;
+};
+template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<array<T,N>& > {
+  static const size_t value = N;
+};
 template <typename T> struct array_size;
 template<class T, std::size_t N> struct array_size<const array<T,N> > {
   static const size_t value = N;
 };
-
+template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<const array<T,N>& > {
+  static const size_t value = N;
+};
 
 struct sum_op {
   template<typename A, typename B> static inline bool run(A a, B b) { return a + b; }

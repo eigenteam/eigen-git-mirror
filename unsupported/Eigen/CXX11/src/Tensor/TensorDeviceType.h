@@ -37,21 +37,39 @@ struct DefaultDevice {
 // Multiple cpu cores
 // We should really use a thread pool here but first we need to find a portable thread pool library.
 #ifdef EIGEN_USE_THREADS
+
+typedef std::future<void> Future;
+
 struct ThreadPoolDevice {
-  ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : /*pool_(pool), */num_threads_(num_cores) { }
-  size_t numThreads() const { return num_threads_; }
+  ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : num_threads_(num_cores) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     return internal::aligned_malloc(num_bytes);
   }
+
   EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
     internal::aligned_free(buffer);
   }
+
   EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
     ::memcpy(dst, src, n);
   }
+
   EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
     ::memset(buffer, c, n);
+  }
+
+  EIGEN_STRONG_INLINE size_t numThreads() const {
+    return num_threads_;
+  }
+
+  template <class Function, class... Args>
+  EIGEN_STRONG_INLINE Future enqueue(Function&& f, Args&&... args) const {
+    return std::async(std::launch::async, f, args...);
+  }
+  template <class Function, class... Args>
+  EIGEN_STRONG_INLINE void enqueueNoFuture(Function&& f, Args&&... args) const {
+    std::async(std::launch::async, f, args...);
   }
 
  private:
@@ -63,40 +81,33 @@ struct ThreadPoolDevice {
 
 // GPU offloading
 #ifdef EIGEN_USE_GPU
-static int m_numMultiProcessors = 0;
-static int m_maxThreadsPerBlock = 0;
-static int m_maxThreadsPerMultiProcessor = 0;
+static cudaDeviceProp m_deviceProperties;
+static bool m_devicePropInitialized = false;
+
+static void initializeDeviceProp() {
+  if (!m_devicePropInitialized) {
+    assert(cudaGetDeviceProperties(&m_deviceProperties, 0) == cudaSuccess);
+    m_devicePropInitialized = true;
+  }
+}
 
 static inline int getNumCudaMultiProcessors() {
-  if (m_numMultiProcessors == 0) {
-    cudaDeviceProp deviceProp;
-    cudaGetDeviceProperties(&deviceProp, 0);
-    m_maxThreadsPerBlock = deviceProp.maxThreadsPerBlock;
-    m_maxThreadsPerMultiProcessor = deviceProp.maxThreadsPerMultiProcessor;
-    m_numMultiProcessors = deviceProp.multiProcessorCount;
-  }
-  return m_numMultiProcessors;
+  initializeDeviceProp();
+  return m_deviceProperties.multiProcessorCount;
 }
 static inline int maxCudaThreadsPerBlock() {
-  if (m_maxThreadsPerBlock == 0) {
-    cudaDeviceProp deviceProp;
-    cudaGetDeviceProperties(&deviceProp, 0);
-    m_numMultiProcessors = deviceProp.multiProcessorCount;
-    m_maxThreadsPerMultiProcessor = deviceProp.maxThreadsPerMultiProcessor;
-    m_maxThreadsPerBlock = deviceProp.maxThreadsPerBlock;
-  }
-  return m_maxThreadsPerBlock;
+  initializeDeviceProp();
+  return m_deviceProperties.maxThreadsPerBlock;
 }
 static inline int maxCudaThreadsPerMultiProcessor() {
-  if (m_maxThreadsPerBlock == 0) {
-    cudaDeviceProp deviceProp;
-    cudaGetDeviceProperties(&deviceProp, 0);
-    m_numMultiProcessors = deviceProp.multiProcessorCount;
-    m_maxThreadsPerBlock = deviceProp.maxThreadsPerBlock;
-    m_maxThreadsPerMultiProcessor = deviceProp.maxThreadsPerMultiProcessor;
-  }
-  return m_maxThreadsPerMultiProcessor;
+  initializeDeviceProp();
+  return m_deviceProperties.maxThreadsPerMultiProcessor;
 }
+static inline int sharedMemPerBlock() {
+  initializeDeviceProp();
+  return m_deviceProperties.sharedMemPerBlock;
+}
+
 
 struct GpuDevice {
   // The cudastream is not owned: the caller is responsible for its initialization and eventual destruction.
@@ -141,8 +152,8 @@ struct GpuDevice {
 #endif
   }
 
-  EIGEN_STRONG_INLINE size_t numThreads() const {
-    // Fixme:
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t numThreads() const {
+    // FIXME
     return 32;
   }
 

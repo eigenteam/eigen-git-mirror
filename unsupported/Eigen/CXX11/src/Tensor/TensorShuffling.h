@@ -97,7 +97,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
 
   enum {
-    IsAligned = true,
+    IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
   };
 
@@ -194,7 +194,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
 
   enum {
-    IsAligned = true,
+    IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
   };
 

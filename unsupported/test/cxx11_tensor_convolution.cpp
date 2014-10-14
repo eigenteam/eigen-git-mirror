@@ -64,8 +64,78 @@ static void test_expr()
 }
 
 
+static void test_modes() {
+  Tensor<float, 1> input(3);
+  Tensor<float, 1> kernel(3);
+  input(0) = 1.0f;
+  input(1) = 2.0f;
+  input(2) = 3.0f;
+  kernel(0) = 0.5f;
+  kernel(1) = 1.0f;
+  kernel(2) = 0.0f;
+
+  const Eigen::array<ptrdiff_t, 1> dims{{0}};
+  Eigen::array<std::pair<ptrdiff_t, ptrdiff_t>, 1> padding;
+
+  // Emulate VALID mode (as defined in
+  // http://docs.scipy.org/doc/numpy/reference/generated/numpy.convolve.html).
+  padding[0] = std::make_pair(0, 0);
+  Tensor<float, 1> valid(1);
+  valid = input.pad(padding).convolve(kernel, dims);
+  VERIFY_IS_EQUAL(valid.dimension(0), 1);
+  VERIFY_IS_APPROX(valid(0), 2.5f);
+
+  // Emulate SAME mode (as defined in
+  // http://docs.scipy.org/doc/numpy/reference/generated/numpy.convolve.html).
+  padding[0] = std::make_pair(1, 1);
+  Tensor<float, 1> same(3);
+  same = input.pad(padding).convolve(kernel, dims);
+  VERIFY_IS_EQUAL(same.dimension(0), 3);
+  VERIFY_IS_APPROX(same(0), 1.0f);
+  VERIFY_IS_APPROX(same(1), 2.5f);
+  VERIFY_IS_APPROX(same(2), 4.0f);
+
+  // Emulate FULL mode (as defined in
+  // http://docs.scipy.org/doc/numpy/reference/generated/numpy.convolve.html).
+  padding[0] = std::make_pair(2, 2);
+  Tensor<float, 1> full(5);
+  full = input.pad(padding).convolve(kernel, dims);
+  VERIFY_IS_EQUAL(full.dimension(0), 5);
+  VERIFY_IS_APPROX(full(0), 0.0f);
+  VERIFY_IS_APPROX(full(1), 1.0f);
+  VERIFY_IS_APPROX(full(2), 2.5f);
+  VERIFY_IS_APPROX(full(3), 4.0f);
+  VERIFY_IS_APPROX(full(4), 1.5f);
+}
+
+
+static void test_strides() {
+  Tensor<float, 1> input(13);
+  Tensor<float, 1> kernel(3);
+  input.setRandom();
+  kernel.setRandom();
+
+  const Eigen::array<ptrdiff_t, 1> dims{{0}};
+  const Eigen::array<ptrdiff_t, 1> stride_of_3{{3}};
+  const Eigen::array<ptrdiff_t, 1> stride_of_2{{2}};
+
+  Tensor<float, 1> result;
+  result = input.stride(stride_of_3).convolve(kernel, dims).stride(stride_of_2);
+
+  VERIFY_IS_EQUAL(result.dimension(0), 2);
+  VERIFY_IS_APPROX(result(0), (input(0)*kernel(0) + input(3)*kernel(1) +
+                               input(6)*kernel(2)));
+  VERIFY_IS_APPROX(result(1), (input(6)*kernel(0) + input(9)*kernel(1) +
+                               input(12)*kernel(2)));
+}
+
+
+
+
 void test_cxx11_tensor_convolution()
 {
   CALL_SUBTEST(test_evals());
   CALL_SUBTEST(test_expr());
+  CALL_SUBTEST(test_modes());
+  CALL_SUBTEST(test_strides());
 }

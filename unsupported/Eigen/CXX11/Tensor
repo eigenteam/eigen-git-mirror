@@ -30,6 +30,10 @@
 #include <cstring>
 #include <stdint.h>
 
+#ifdef EIGEN_USE_THREADS
+#include <future>
+#endif
+
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 #include <curand_kernel.h>
 #endif

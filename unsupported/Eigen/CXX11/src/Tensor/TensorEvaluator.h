@@ -65,13 +65,13 @@ struct TensorEvaluator
     return m_data[index];
   }
 
-  template<int LoadMode> EIGEN_STRONG_INLINE
+  template<int LoadMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   PacketReturnType packet(Index index) const
   {
     return internal::ploadt<Packet, LoadMode>(m_data + index);
   }
 
-  template <int StoreMode> EIGEN_STRONG_INLINE
+  template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const Packet& x)
   {
     return internal::pstoret<Scalar, Packet, StoreMode>(m_data + index, x);
@@ -113,13 +113,17 @@ struct TensorEvaluator<const Derived, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
     eigen_assert(m_data);
+#ifdef __CUDA_ARCH__
+    return __ldg(m_data+index);
+#else
     return m_data[index];
+#endif
   }
 
-  template<int LoadMode> EIGEN_STRONG_INLINE
+  template<int LoadMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   PacketReturnType packet(Index index) const
   {
-    return internal::ploadt<Packet, LoadMode>(m_data + index);
+    return internal::ploadt_ro<Packet, LoadMode>(m_data + index);
   }
 
   const Scalar* data() const { return m_data; }
@@ -166,7 +170,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   }
 
   template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(index);
   }
@@ -219,7 +223,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   }
 
   template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
   }
@@ -278,7 +282,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
     return m_functor(m_leftImpl.coeff(index), m_rightImpl.coeff(index));
   }
   template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(m_leftImpl.template packet<LoadMode>(index), m_rightImpl.template packet<LoadMode>(index));
   }
@@ -340,7 +344,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
     return m_condImpl.coeff(index) ? m_thenImpl.coeff(index) : m_elseImpl.coeff(index);
   }
   template<int LoadMode>
-  PacketReturnType packet(Index index) const
+  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
   {
     static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     internal::Selector<PacketSize> select;

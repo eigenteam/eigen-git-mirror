@@ -124,6 +124,14 @@ static void test_forced_contextual_eval(Context* context)
 }
 
 template <typename Context>
+static void test_compound_assignment(Context* context)
+{
+  context->out().device(context->device()) = context->in1().constant(2.718f);
+  context->out().device(context->device()) += context->in1() + context->in2() * 3.14f;
+}
+
+
+template <typename Context>
 static void test_contraction(Context* context)
 {
   Eigen::array<std::pair<int, int>, 2> dims;
@@ -193,6 +201,15 @@ static void test_cpu() {
     for (int j = 0; j < 50; ++j) {
       for (int k = 0; k < 70; ++k) {
         VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), (in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k))) * 3.14f + 2.718f);
+      }
+    }
+  }
+
+  test_compound_assignment(&context);
+  for (int i = 0; i < 40; ++i) {
+    for (int j = 0; j < 50; ++j) {
+      for (int k = 0; k < 70; ++k) {
+        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f + 2.718f);
       }
     }
   }
@@ -295,6 +312,16 @@ static void test_gpu() {
     for (int j = 0; j < 50; ++j) {
       for (int k = 0; k < 70; ++k) {
         VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), (in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k))) * 3.14f + 2.718f);
+      }
+    }
+  }
+
+  test_compound_assignment(&context);
+  assert(cudaMemcpy(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost) == cudaSuccess);
+  for (int i = 0; i < 40; ++i) {
+    for (int j = 0; j < 50; ++j) {
+      for (int k = 0; k < 70; ++k) {
+        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * 3.14f + 2.718f);
       }
     }
   }

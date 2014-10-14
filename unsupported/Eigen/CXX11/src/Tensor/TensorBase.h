@@ -30,6 +30,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     typedef Scalar CoeffReturnType;
     typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
 
+    // Dimensions
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Index dimension(std::size_t n) const { return derived().dimensions()[n]; }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Index size() const { return internal::array_prod(derived().dimensions()); }
+
     // Nullary operators
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived>
@@ -187,7 +193,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     // Contractions.
-    typedef std::pair<Index, Index> DimensionPair;
+    typedef Eigen::IndexPair<Index> DimensionPair;
 
     template<typename OtherDerived, typename Dimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorContractionOp<const Dimensions, const Derived, const OtherDerived>

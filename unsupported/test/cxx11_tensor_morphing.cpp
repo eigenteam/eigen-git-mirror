@@ -12,6 +12,7 @@
 #include <Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
+using Eigen::IndexPair;
 
 static void test_simple_reshape()
 {
@@ -52,7 +53,7 @@ static void test_reshape_in_expr() {
   TensorMap<Tensor<float, 5>> tensor2(m2.data(), 3,5,7,11,13);
   Tensor<float, 2>::Dimensions newDims1{{2,3*5*7*11}};
   Tensor<float, 2>::Dimensions newDims2{{3*5*7*11,13}};
-  array<Tensor<float, 1>::DimensionPair, 1> contract_along{{std::make_pair(1, 0)}};
+  Eigen::array<IndexPair<DenseIndex>, 1> contract_along{{IndexPair<DenseIndex>(1, 0)}};
   Tensor<float, 2> tensor3(2,13);
   tensor3 = tensor1.reshape(newDims1).contract(tensor2.reshape(newDims2), contract_along);
 
@@ -125,7 +126,7 @@ static void test_slice_in_expr() {
   TensorMap<Tensor<float, 2>> tensor1(m1.data(), 7, 7);
   TensorMap<Tensor<float, 2>> tensor2(m2.data(), 3, 3);
   Tensor<float, 2> tensor3(3,1);
-  array<Tensor<float, 1>::DimensionPair, 1> contract_along{{std::make_pair(1, 0)}};
+  array<IndexPair<DenseIndex>, 1> contract_along{{IndexPair<DenseIndex>(1, 0)}};
 
   Eigen::DSizes<ptrdiff_t, 2> indices1(1,2);
   Eigen::DSizes<ptrdiff_t, 2> sizes1(3,3);

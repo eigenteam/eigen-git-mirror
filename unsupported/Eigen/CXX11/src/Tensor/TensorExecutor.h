@@ -10,10 +10,6 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_EXECUTOR_H
 #define EIGEN_CXX11_TENSOR_TENSOR_EXECUTOR_H
 
-#ifdef EIGEN_USE_THREADS
-#include <future>
-#endif
-
 namespace Eigen {
 
 /** \class TensorExecutor
@@ -62,7 +58,7 @@ class TensorExecutor<Expression, DefaultDevice, true>
     {
       const Index size = array_prod(evaluator.dimensions());
       static const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
-      const int VectorizedSize = (size / PacketSize) * PacketSize;
+      const Index VectorizedSize = (size / PacketSize) * PacketSize;
 
       for (Index i = 0; i < VectorizedSize; i += PacketSize) {
         evaluator.evalPacket(i);
@@ -131,10 +127,10 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       const Index numblocks = size / blocksize;
 
       Index i = 0;
-      std::vector<std::future<void> > results;
+      std::vector<Future> results;
       results.reserve(numblocks);
       for (int i = 0; i < numblocks; ++i) {
-         results.push_back(std::async(std::launch::async, &EvalRange<Evaluator, Index>::run, &evaluator, i*blocksize, (i+1)*blocksize));
+        results.push_back(device.enqueue(&EvalRange<Evaluator, Index>::run, &evaluator, i*blocksize, (i+1)*blocksize));
       }
 
       for (int i = 0; i < numblocks; ++i) {
@@ -154,11 +150,31 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 // GPU: the evaluation of the expression is offloaded to a GPU.
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <typename Evaluator>
-__global__ void EigenMetaKernel(Evaluator eval, unsigned int size) {
+__global__ void
+__launch_bounds__(1024)
+EigenMetaKernel(Evaluator eval, unsigned int size) {
+
   const int first_index = blockIdx.x * blockDim.x + threadIdx.x;
   const int step_size = blockDim.x * gridDim.x;
-  for (int i = first_index; i < size; i += step_size) {
-    eval.evalScalar(i);
+
+  if (!Evaluator::PacketAccess || !Evaluator::IsAligned) {
+    // Use the scalar path
+    for (int i = first_index; i < size; i += step_size) {
+      eval.evalScalar(i);
+    }
+  }
+  else {
+    // Use the vector path
+    const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
+    const int vectorized_step_size = step_size * PacketSize;
+    const int vectorized_size = (size / PacketSize) * PacketSize;
+    int i = first_index * PacketSize;
+    for ( ; i < vectorized_size; i += vectorized_step_size) {
+      eval.evalPacket(i);
+    }
+    for ( ; i < size; i += step_size) {
+      eval.evalScalar(i);
+    }
   }
 }
 

@@ -872,9 +872,17 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    assert(m_buf);
-    assert(index < m_dimensions.TotalSize());
+    eigen_assert(m_buf);
+    eigen_assert(index < m_dimensions.TotalSize());
     return m_buf[index];
+  }
+
+  template<int LoadMode>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(const Index index) const
+  {
+    eigen_assert(m_buf);
+    eigen_assert(index < m_dimensions.TotalSize());
+    return internal::ploadt<PacketReturnType, LoadMode>(m_buf+index);
   }
 
  private:

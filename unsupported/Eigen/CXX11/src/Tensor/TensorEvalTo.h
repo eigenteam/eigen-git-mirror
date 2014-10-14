@@ -116,7 +116,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalScalar(Index i) {
     m_buffer[i] = m_impl.coeff(i);
   }
-  EIGEN_STRONG_INLINE void evalPacket(Index i) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalPacket(Index i) {
     internal::pstoret<Scalar, Packet, Aligned>(m_buffer + i, m_impl.template packet<TensorEvaluator<ArgType, Device>::IsAligned ? Aligned : Unaligned>(i));
   }
 

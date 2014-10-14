@@ -253,6 +253,39 @@ static void test_auto_resize()
 }
 
 
+static void test_compound_assign()
+{
+  Tensor<int, 1> start_tensor(10);
+  Tensor<int, 1> offset_tensor(10);
+  start_tensor.setRandom();
+  offset_tensor.setRandom();
+
+  Tensor<int, 1> tensor = start_tensor;
+  tensor += offset_tensor;
+  for (int i = 0; i < 10; ++i) {
+    VERIFY_IS_EQUAL(tensor(i), start_tensor(i) + offset_tensor(i));
+  }
+
+  tensor = start_tensor;
+  tensor -= offset_tensor;
+  for (int i = 0; i < 10; ++i) {
+    VERIFY_IS_EQUAL(tensor(i), start_tensor(i) - offset_tensor(i));
+  }
+
+  tensor = start_tensor;
+  tensor *= offset_tensor;
+  for (int i = 0; i < 10; ++i) {
+    VERIFY_IS_EQUAL(tensor(i), start_tensor(i) * offset_tensor(i));
+  }
+
+  tensor = start_tensor;
+  tensor /= offset_tensor;
+  for (int i = 0; i < 10; ++i) {
+    VERIFY_IS_EQUAL(tensor(i), start_tensor(i) / offset_tensor(i));
+  }
+}
+
+
 void test_cxx11_tensor_assign()
 {
   CALL_SUBTEST(test_1d());
@@ -260,5 +293,5 @@ void test_cxx11_tensor_assign()
   CALL_SUBTEST(test_3d());
   CALL_SUBTEST(test_same_type());
   CALL_SUBTEST(test_auto_resize());
-
+  CALL_SUBTEST(test_compound_assign());
 }
