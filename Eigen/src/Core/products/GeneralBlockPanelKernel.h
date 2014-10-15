@@ -26,28 +26,37 @@ inline std::ptrdiff_t manage_caching_sizes_helper(std::ptrdiff_t a, std::ptrdiff
 }
 
 /** \internal */
-inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdiff_t* l2=0)
+inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff_t* l2, std::ptrdiff_t* l3)
 {
-  static std::ptrdiff_t m_l1CacheSize = 0;
-  static std::ptrdiff_t m_l2CacheSize = 0;
-  if(m_l2CacheSize==0)
+  static bool m_cache_sizes_initialized = false;
+  static std::ptrdiff_t m_l1CacheSize = 32*1024;
+  static std::ptrdiff_t m_l2CacheSize = 256*1024;
+  static std::ptrdiff_t m_l3CacheSize = 2*1024*1024;
+
+  if(!m_cache_sizes_initialized)
   {
-    m_l1CacheSize = manage_caching_sizes_helper(queryL1CacheSize(),8 * 1024);
-    m_l2CacheSize = manage_caching_sizes_helper(queryTopLevelCacheSize(),1*1024*1024);
+    int l1CacheSize, l2CacheSize, l3CacheSize;
+    queryCacheSizes(l1CacheSize, l2CacheSize, l3CacheSize);
+    m_l1CacheSize = manage_caching_sizes_helper(l1CacheSize, 8*1024);
+    m_l2CacheSize = manage_caching_sizes_helper(l2CacheSize, 256*1024);
+    m_l3CacheSize = manage_caching_sizes_helper(l3CacheSize, 8*1024*1024);
+    m_cache_sizes_initialized = true;
   }
-  
+
   if(action==SetAction)
   {
     // set the cpu cache size and cache all block sizes from a global cache size in byte
     eigen_internal_assert(l1!=0 && l2!=0);
     m_l1CacheSize = *l1;
     m_l2CacheSize = *l2;
+    m_l3CacheSize = *l3;
   }
   else if(action==GetAction)
   {
     eigen_internal_assert(l1!=0 && l2!=0);
     *l1 = m_l1CacheSize;
     *l2 = m_l2CacheSize;
+    *l3 = m_l3CacheSize;
   }
   else
   {
@@ -70,10 +79,11 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdi
   * - the number of scalars that fit into a packet (when vectorization is enabled).
   *
   * \sa setCpuCacheSizes */
+#define CEIL(a, b) ((a)+(b)-1)/(b)
+
 template<typename LhsScalar, typename RhsScalar, int KcFactor, typename SizeType>
-void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n)
+void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_threads)
 {
-  EIGEN_UNUSED_VARIABLE(n);
   // Explanations:
   // Let's recall the product algorithms form kc x nc horizontal panels B' on the rhs and
   // mc x kc blocks A' on the lhs. A' has to fit into L2 cache. Moreover, B' is processed
@@ -81,43 +91,71 @@ void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n)
   // at the register level. For vectorization purpose, these small vertical panels are unpacked,
   // e.g., each coefficient is replicated to fit a packet. This small vertical panel has to
   // stay in L1 cache.
-  std::ptrdiff_t l1, l2;
+  std::ptrdiff_t l1, l2, l3;
+  manage_caching_sizes(GetAction, &l1, &l2, &l3);
 
-  typedef gebp_traits<LhsScalar,RhsScalar> Traits;
-  enum {
-    kdiv = KcFactor * 2 * Traits::nr
-         * Traits::RhsProgress * sizeof(RhsScalar),
-    mr = gebp_traits<LhsScalar,RhsScalar>::mr,
-    mr_mask = (0xffffffff/mr)*mr
-  };
+  if (num_threads > 1) {
+    typedef gebp_traits<LhsScalar,RhsScalar> Traits;
+    typedef typename Traits::ResScalar ResScalar;
+    enum {
+      kdiv = KcFactor * (Traits::mr * sizeof(LhsScalar) + Traits::nr * sizeof(RhsScalar)),
+      ksub = Traits::mr * Traits::nr * sizeof(ResScalar),
+      k_mask = (0xffffffff/8)*8,
 
-  manage_caching_sizes(GetAction, &l1, &l2);
+      mr = Traits::mr,
+      mr_mask = (0xffffffff/mr)*mr,
 
-//   k = std::min<SizeType>(k, l1/kdiv);
-//   SizeType _m = k>0 ? l2/(4 * sizeof(LhsScalar) * k) : 0;
-//   if(_m<m) m = _m & mr_mask;
-  
-  // In unit tests we do not want to use extra large matrices,
-  // so we reduce the block size to check the blocking strategy is not flawed
+      nr = Traits::nr,
+      nr_mask = (0xffffffff/nr)*nr
+    };
+    SizeType k_cache = (l1-ksub)/kdiv;
+    if (k_cache < k) {
+      k = k_cache & k_mask;
+      eigen_assert(k > 0);
+    }
+
+    SizeType n_cache = (l2-l1) / (nr * sizeof(RhsScalar) * k);
+    SizeType n_per_thread = CEIL(n, num_threads);
+    if (n_cache <= n_per_thread) {
+      // Don't exceed the capacity of the l2 cache.
+      eigen_assert(n_cache >= static_cast<SizeType>(nr));
+      n = n_cache & nr_mask;
+      eigen_assert(n > 0);
+    } else {
+      n = (std::min<SizeType>)(n, (n_per_thread + nr - 1) & nr_mask);
+    }
+
+    if (l3 > l2) {
+      // l3 is shared between all cores, so we'll give each thread its own chunk of l3.
+      SizeType m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
+      SizeType m_per_thread = CEIL(m, num_threads);
+      if(m_cache < m_per_thread && m_cache >= static_cast<SizeType>(mr)) {
+        m = m_cache & mr_mask;
+        eigen_assert(m > 0);
+      } else {
+        m = (std::min<SizeType>)(m, (m_per_thread + mr - 1) & mr_mask);
+      }
+    }
+  }
+  else {
+    // In unit tests we do not want to use extra large matrices,
+    // so we reduce the block size to check the blocking strategy is not flawed
 #ifndef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
-//   k = std::min<SizeType>(k,240);
-//   n = std::min<SizeType>(n,3840/sizeof(RhsScalar));
-//   m = std::min<SizeType>(m,3840/sizeof(RhsScalar));
-  
-  k = std::min<SizeType>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
-  n = std::min<SizeType>(n,3840/sizeof(RhsScalar));
-  m = std::min<SizeType>(m,3840/sizeof(RhsScalar));
+    k = std::min<SizeType>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
+    n = std::min<SizeType>(n,3840/sizeof(RhsScalar));
+    m = std::min<SizeType>(m,3840/sizeof(RhsScalar));
 #else
-  k = std::min<SizeType>(k,24);
-  n = std::min<SizeType>(n,384/sizeof(RhsScalar));
-  m = std::min<SizeType>(m,384/sizeof(RhsScalar));
+    k = std::min<SizeType>(k,24);
+    n = std::min<SizeType>(n,384/sizeof(RhsScalar));
+    m = std::min<SizeType>(m,384/sizeof(RhsScalar));
 #endif
+  }
 }
 
 template<typename LhsScalar, typename RhsScalar, typename SizeType>
-inline void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n)
+inline void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_threads)
 {
-  computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n);
+  computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n, num_threads);
 }
 
 #ifdef EIGEN_HAS_FUSE_CJMADD
@@ -1846,8 +1884,8 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, DataMapper, nr, RowMajor, Co
   * \sa setCpuCacheSize */
 inline std::ptrdiff_t l1CacheSize()
 {
-  std::ptrdiff_t l1, l2;
-  internal::manage_caching_sizes(GetAction, &l1, &l2);
+  std::ptrdiff_t l1, l2, l3;
+  internal::manage_caching_sizes(GetAction, &l1, &l2, &l3);
   return l1;
 }
 
@@ -1855,8 +1893,8 @@ inline std::ptrdiff_t l1CacheSize()
   * \sa setCpuCacheSize */
 inline std::ptrdiff_t l2CacheSize()
 {
-  std::ptrdiff_t l1, l2;
-  internal::manage_caching_sizes(GetAction, &l1, &l2);
+  std::ptrdiff_t l1, l2, l3;
+  internal::manage_caching_sizes(GetAction, &l1, &l2, &l3);
   return l2;
 }
 
@@ -1865,9 +1903,9 @@ inline std::ptrdiff_t l2CacheSize()
   * for the algorithms working per blocks.
   *
   * \sa computeProductBlockingSizes */
-inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2)
+inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2, std::ptrdiff_t l3)
 {
-  internal::manage_caching_sizes(SetAction, &l1, &l2);
+  internal::manage_caching_sizes(SetAction, &l1, &l2, &l3);
 }
 
 } // end namespace Eigen

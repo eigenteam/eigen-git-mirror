@@ -56,7 +56,7 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
     else                matrix(c, *m, *n, *ldc) *= beta;
   }
 
-  internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*m,*n,*k,true);
+  internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*m,*n,*k,1,true);
 
   int code = OP(*opa) | (OP(*opb) << 2);
   func[code](*m, *n, *k, a, *lda, b, *ldb, c, *ldc, alpha, blocking, 0);
@@ -131,12 +131,12 @@ int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m,
   
   if(SIDE(*side)==LEFT)
   {
-    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*m);
+    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*m,1,false);
     func[code](*m, *n, a, *lda, b, *ldb, blocking);
   }
   else
   {
-    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*n);
+    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*n,1,false);
     func[code](*n, *m, a, *lda, b, *ldb, blocking);
   }
 
@@ -222,12 +222,12 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
 
   if(SIDE(*side)==LEFT)
   {
-    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*m);
+    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*m,1,false);
     func[code](*m, *n, *m, a, *lda, tmp.data(), tmp.outerStride(), b, *ldb, alpha, blocking);
   }
   else
   {
-    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*n);
+    internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*n,1,false);
     func[code](*m, *n, *n, tmp.data(), tmp.outerStride(), a, *lda, b, *ldb, alpha, blocking);
   }
   return 1;
@@ -577,7 +577,7 @@ int EIGEN_BLAS_FUNC(her2k)(char *uplo, char *op, int *n, int *k, RealScalar *pal
   else if(*n<0)                                                       info = 3;
   else if(*k<0)                                                       info = 4;
   else if(*lda<std::max(1,(OP(*op)==NOTR)?*n:*k))                     info = 7;
-  else if(*lda<std::max(1,(OP(*op)==NOTR)?*n:*k))                     info = 9;
+  else if(*ldb<std::max(1,(OP(*op)==NOTR)?*n:*k))                     info = 9;
   else if(*ldc<std::max(1,*n))                                        info = 12;
   if(info)
     return xerbla_(SCALAR_SUFFIX_UP"HER2K",&info,6);

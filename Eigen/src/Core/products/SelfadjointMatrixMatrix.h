@@ -343,7 +343,7 @@ EIGEN_DONT_INLINE void product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,t
     Index kc = size;  // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
     Index nc = cols;  // cache block size along the N direction
-    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
+    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc, 1);
     // kc must smaller than mc
     kc = (std::min)(kc,mc);
 
@@ -432,10 +432,10 @@ EIGEN_DONT_INLINE void product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,f
     LhsMapper lhs(_lhs,lhsStride);
     ResMapper res(_res,resStride);
 
-    Index kc = size; // cache block size along the K direction
+    Index kc = size;  // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
     Index nc = cols;  // cache block size along the N direction
-    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
+    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc, 1);
     std::size_t sizeB = kc*cols;
     ei_declare_aligned_stack_constructed_variable(Scalar, blockA, kc*mc, 0);
     ei_declare_aligned_stack_constructed_variable(Scalar, allocatedBlockB, sizeB, 0);

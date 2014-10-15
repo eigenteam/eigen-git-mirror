@@ -766,7 +766,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     typedef typename internal::gemm_blocking_space<ColMajor, LhsScalar, RhsScalar, Dynamic, Dynamic, Dynamic> BlockingType;
 
     // Sizes of the blocks to load in cache. See the Goto paper for details.
-    BlockingType blocking(m, n, k, true);
+    BlockingType blocking(m, n, k, 1, true);
     const Index kc = blocking.kc();
     const Index mc = (std::min)(m, blocking.mc());
     const Index nc = (std::min)(n, blocking.nc());

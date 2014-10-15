@@ -412,7 +412,7 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
     Index stripedDepth = LhsIsTriangular ? ((!IsLower) ? lhs.cols() : (std::min)(lhs.cols(),lhs.rows()))
                                          : ((IsLower)  ? rhs.rows() : (std::min)(rhs.rows(),rhs.cols()));
 
-    BlockingType blocking(stripedRows, stripedCols, stripedDepth);
+    BlockingType blocking(stripedRows, stripedCols, stripedDepth, 1, false);
 
     internal::product_triangular_matrix_matrix<Scalar, Index,
       Mode, LhsIsTriangular,

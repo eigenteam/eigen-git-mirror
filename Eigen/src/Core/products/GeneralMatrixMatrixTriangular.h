@@ -72,7 +72,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
     Index kc = depth; // cache block size along the K direction
     Index mc = size;  // cache block size along the M direction
     Index nc = size;  // cache block size along the N direction
-    computeProductBlockingSizes<LhsScalar,RhsScalar>(kc, mc, nc);
+    computeProductBlockingSizes<LhsScalar,RhsScalar>(kc, mc, nc, 1);
     // !!! mc must be a multiple of nr:
     if(mc > Traits::nr)
       mc = (mc/Traits::nr)*Traits::nr;
