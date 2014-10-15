@@ -38,7 +38,6 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   sigma.diagonal() = svd.singularValues().template cast<Scalar>();
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
-
   VERIFY_IS_APPROX(m, u * sigma * v.adjoint());
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
@@ -90,30 +89,30 @@ void svd_least_square(const MatrixType& m, unsigned int computationOptions)
   
   SolutionType x = svd.solve(rhs);
   
+  // evaluate normal equation which works also for least-squares solutions
+  if(internal::is_same<RealScalar,double>::value || svd.rank()==m.diagonal().size())
+  {
+    // This test is not stable with single precision.
+    // This is probably because squaring m signicantly affects the precision.
+    VERIFY_IS_APPROX(m.adjoint()*(m*x),m.adjoint()*rhs);
+  }
+  
   RealScalar residual = (m*x-rhs).norm();
   // Check that there is no significantly better solution in the neighborhood of x
   if(!test_isMuchSmallerThan(residual,rhs.norm()))
   {
-    // If the residual is very small, then we have an exact solution, so we are already good.
-    for(int k=0;k<x.rows();++k)
+    // ^^^ If the residual is very small, then we have an exact solution, so we are already good.
+    for(Index k=0;k<x.rows();++k)
     {
       SolutionType y(x);
-      y.row(k).array() += 2*NumTraits<RealScalar>::epsilon();
+      y.row(k) = (1.+2*NumTraits<RealScalar>::epsilon())*x.row(k);
       RealScalar residual_y = (m*y-rhs).norm();
       VERIFY( test_isApprox(residual_y,residual) || residual < residual_y );
       
-      y.row(k) = x.row(k).array() - 2*NumTraits<RealScalar>::epsilon();
+      y.row(k) = (1.-2*NumTraits<RealScalar>::epsilon())*x.row(k);
       residual_y = (m*y-rhs).norm();
       VERIFY( test_isApprox(residual_y,residual) || residual < residual_y );
     }
-  }
-  
-  // evaluate normal equation which works also for least-squares solutions
-  if(internal::is_same<RealScalar,double>::value)
-  {
-    // This test is not stable with single precision.
-    // This is probably because squaring m signicantly affects the precision.
-    VERIFY_IS_APPROX(m.adjoint()*m*x,m.adjoint()*rhs);
   }
 }
 
@@ -234,11 +233,49 @@ void svd_fill_random(MatrixType &m)
   Matrix<RealScalar,Dynamic,1> d =  Matrix<RealScalar,Dynamic,1>::Random(diagSize);
   for(Index k=0; k<diagSize; ++k)
     d(k) = d(k)*std::pow(RealScalar(10),internal::random<RealScalar>(-s,s));
-  m = Matrix<Scalar,Dynamic,Dynamic>::Random(m.rows(),diagSize) * d.asDiagonal() * Matrix<Scalar,Dynamic,Dynamic>::Random(diagSize,m.cols());
+
+  bool dup     = internal::random<int>(0,10) < 3;
+  bool unit_uv = internal::random<int>(0,10) < (dup?7:3); // if we duplicate some diagonal entries, then increase the chance to preserve them using unitary U and V factors
+  
+  // duplicate some singular values
+  if(dup)
+  {
+    Index n = internal::random<Index>(0,d.size()-1);
+    for(Index i=0; i<n; ++i)
+      d(internal::random<Index>(0,d.size()-1)) = d(internal::random<Index>(0,d.size()-1));
+  }
+  
+  Matrix<Scalar,Dynamic,Dynamic> U(m.rows(),diagSize);
+  Matrix<Scalar,Dynamic,Dynamic> VT(diagSize,m.cols());
+  if(unit_uv)
+  {
+    // in very rare cases let's try with a pure diagonal matrix
+    if(internal::random<int>(0,10) < 1)
+    {
+      U.setIdentity();
+      VT.setIdentity();
+    }
+    else
+    {
+      createRandomPIMatrixOfRank(diagSize,U.rows(), U.cols(), U);
+      createRandomPIMatrixOfRank(diagSize,VT.rows(), VT.cols(), VT);
+    }
+  }
+  else
+  {
+    U.setRandom();
+    VT.setRandom();
+  }
+  
+  m = U * d.asDiagonal() * VT;
+  
   // cancel some coeffs
-  Index n  = internal::random<Index>(0,m.size()-1);
-  for(Index i=0; i<n; ++i)
-    m(internal::random<Index>(0,m.rows()-1), internal::random<Index>(0,m.cols()-1)) = Scalar(0);
+  if(!(dup && unit_uv))
+  {
+    Index n  = internal::random<Index>(0,m.size()-1);
+    for(Index i=0; i<n; ++i)
+      m(internal::random<Index>(0,m.rows()-1), internal::random<Index>(0,m.cols()-1)) = Scalar(0);
+  }
 }
 
 
