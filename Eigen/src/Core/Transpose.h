@@ -129,8 +129,8 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
                        const Scalar
                      >::type ScalarWithConstIfNotLvalue;
 
-    inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
-    inline const Scalar* data() const { return derived().nestedExpression().data(); }
+    EIGEN_DEVICE_FUNC inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
+    EIGEN_DEVICE_FUNC inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
     // FIXME: shall we keep the const version of coeffRef?
     EIGEN_DEVICE_FUNC

@@ -89,47 +89,47 @@ template<typename MatrixType, int Direction> class Reverse
     typedef internal::reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
   public:
 
-    explicit inline Reverse(const MatrixType& matrix) : m_matrix(matrix) { }
+    EIGEN_DEVICE_FUNC explicit inline Reverse(const MatrixType& matrix) : m_matrix(matrix) { }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Reverse)
 
-    inline Index rows() const { return m_matrix.rows(); }
-    inline Index cols() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.cols(); }
 
-    inline Index innerStride() const
+    EIGEN_DEVICE_FUNC inline Index innerStride() const
     {
       return -m_matrix.innerStride();
     }
 
-    inline Scalar& operator()(Index row, Index col)
+    EIGEN_DEVICE_FUNC inline Scalar& operator()(Index row, Index col)
     {
       eigen_assert(row >= 0 && row < rows() && col >= 0 && col < cols());
       return coeffRef(row, col);
     }
 
-    inline Scalar& coeffRef(Index row, Index col)
+    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived().coeffRef(ReverseRow ? m_matrix.rows() - row - 1 : row,
                                                     ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
-    inline CoeffReturnType coeff(Index row, Index col) const
+    EIGEN_DEVICE_FUNC inline CoeffReturnType coeff(Index row, Index col) const
     {
       return m_matrix.coeff(ReverseRow ? m_matrix.rows() - row - 1 : row,
                             ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
-    inline CoeffReturnType coeff(Index index) const
+    EIGEN_DEVICE_FUNC inline CoeffReturnType coeff(Index index) const
     {
       return m_matrix.coeff(m_matrix.size() - index - 1);
     }
 
-    inline Scalar& coeffRef(Index index)
+    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index index)
     {
       return m_matrix.const_cast_derived().coeffRef(m_matrix.size() - index - 1);
     }
 
-    inline Scalar& operator()(Index index)
+    EIGEN_DEVICE_FUNC inline Scalar& operator()(Index index)
     {
       eigen_assert(index >= 0 && index < m_matrix.size());
       return coeffRef(index);
@@ -164,7 +164,7 @@ template<typename MatrixType, int Direction> class Reverse
       m_matrix.const_cast_derived().template writePacket<LoadMode>(m_matrix.size() - index - PacketSize, internal::preverse(x));
     }
 
-    const typename internal::remove_all<typename MatrixType::Nested>::type& 
+    EIGEN_DEVICE_FUNC const typename internal::remove_all<typename MatrixType::Nested>::type&
     nestedExpression() const 
     {
       return m_matrix;

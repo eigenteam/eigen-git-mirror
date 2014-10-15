@@ -180,7 +180,7 @@ template<typename Derived> class MatrixBase
 #ifdef __CUDACC__
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    const typename LazyProductReturnType<Derived,OtherDerived>::Type
+    const Product<Derived,OtherDerived,LazyProduct>
     operator*(const MatrixBase<OtherDerived> &other) const
     { return this->lazyProduct(other); }
 #else

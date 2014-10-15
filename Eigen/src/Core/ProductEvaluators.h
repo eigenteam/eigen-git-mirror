@@ -35,7 +35,7 @@ struct evaluator<Product<Lhs, Rhs, Options> >
   typedef evaluator type;
   typedef evaluator nestedType;
   
-  explicit evaluator(const XprType& xpr) : Base(xpr) {}
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
  
 // Catch scalar * ( A * B ) and transform it to (A*scalar) * B
@@ -50,7 +50,7 @@ struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Produ
   typedef evaluator type;
   typedef evaluator nestedType;
   
-  explicit evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : Base(xpr.functor().m_other * xpr.nestedExpression().lhs() * xpr.nestedExpression().rhs())
   {}
 };
@@ -66,7 +66,7 @@ struct evaluator<Diagonal<const Product<Lhs, Rhs, DefaultProduct>, DiagIndex> >
   typedef evaluator type;
   typedef evaluator nestedType;
 
-  explicit evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : Base(Diagonal<const Product<Lhs, Rhs, LazyProduct>, DiagIndex>(
         Product<Lhs, Rhs, LazyProduct>(xpr.nestedExpression().lhs(), xpr.nestedExpression().rhs()),
         xpr.index() ))
@@ -104,7 +104,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, LhsShape
 //     CoeffReadCost = 0 // FIXME why is it needed? (this was already the case before the evaluators, see traits<ProductBase>)
   };
 
-  explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
@@ -378,7 +378,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   typedef typename XprType::PacketScalar PacketScalar;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
-  explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
     : m_lhs(xpr.lhs()),
       m_rhs(xpr.rhs()),
       m_lhsImpl(m_lhs),     // FIXME the creation of the evaluator objects should result in a no-op, but check that!
@@ -461,7 +461,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
                         && (InnerSize % packet_traits<Scalar>::size == 0)
   };
   
-  const CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC const CoeffReturnType coeff(Index row, Index col) const
   {
     // TODO check performance regression wrt to Eigen 3.2 which has special handling of this function
     return (m_lhs.row(row).transpose().cwiseProduct( m_rhs.col(col) )).sum();
@@ -471,7 +471,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
    * which is why we don't set the LinearAccessBit.
    * TODO: this seems possible when the result is a vector
    */
-  const CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC const CoeffReturnType coeff(Index index) const
   {
     const Index row = RowsAtCompileTime == 1 ? 0 : index;
     const Index col = RowsAtCompileTime == 1 ? index : 0;
@@ -512,7 +512,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProduc
   enum {
     Flags = Base::Flags | EvalBeforeNestingBit
   };
-  explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
     : Base(BaseProduct(xpr.lhs(),xpr.rhs()))
   {}
 };
@@ -694,7 +694,7 @@ public:
   {
   }
   
-  EIGEN_STRONG_INLINE const Scalar coeff(Index idx) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index idx) const
   {
     return m_diagImpl.coeff(idx) * m_matImpl.coeff(idx);
   }
@@ -743,19 +743,21 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
     StorageOrder = int(Rhs::Flags) & RowMajorBit ? RowMajor : ColMajor
   };
 
-  explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
     : Base(xpr.rhs(), xpr.lhs().diagonal())
   {
   }
   
-  EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
   {
     return m_diagImpl.coeff(row) * m_matImpl.coeff(row, col);
   }
   
+#ifndef __CUDACC__
   template<int LoadMode>
   EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
   {
+    // NVCC complains about template keyword, so we disable this function in CUDA mode
     return this->template packet_impl<LoadMode>(row,col, row,
                                  typename internal::conditional<int(StorageOrder)==RowMajor, internal::true_type, internal::false_type>::type());
   }
@@ -765,7 +767,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   {
     return packet<LoadMode>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
   }
-  
+#endif
 };
 
 // dense * diagonal
@@ -787,16 +789,17 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   
   enum { StorageOrder = int(Lhs::Flags) & RowMajorBit ? RowMajor : ColMajor };
 
-  explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
     : Base(xpr.lhs(), xpr.rhs().diagonal())
   {
   }
   
-  EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
   {
     return m_matImpl.coeff(row, col) * m_diagImpl.coeff(col);
   }
   
+#ifndef __CUDACC__
   template<int LoadMode>
   EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
   {
@@ -809,7 +812,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   {
     return packet<LoadMode>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
   }
-  
+#endif
 };
 
 /***************************************************************************

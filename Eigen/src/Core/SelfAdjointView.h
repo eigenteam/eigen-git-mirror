@@ -228,11 +228,11 @@ public:
   typedef typename Base::AssignmentTraits AssignmentTraits;
   
   
-  triangular_dense_assignment_kernel(DstEvaluatorType &dst, const SrcEvaluatorType &src, const Functor &func, DstXprType& dstExpr)
+  EIGEN_DEVICE_FUNC triangular_dense_assignment_kernel(DstEvaluatorType &dst, const SrcEvaluatorType &src, const Functor &func, DstXprType& dstExpr)
     : Base(dst, src, func, dstExpr)
   {}
   
-  void assignCoeff(Index row, Index col)
+  EIGEN_DEVICE_FUNC void assignCoeff(Index row, Index col)
   {
     eigen_internal_assert(row!=col);
     Scalar tmp = m_src.coeff(row,col);
@@ -240,12 +240,12 @@ public:
     m_functor.assignCoeff(m_dst.coeffRef(col,row), numext::conj(tmp));
   }
   
-  void assignDiagonalCoeff(Index id)
+  EIGEN_DEVICE_FUNC void assignDiagonalCoeff(Index id)
   {
     Base::assignCoeff(id,id);
   }
   
-  void assignOppositeCoeff(Index, Index)
+  EIGEN_DEVICE_FUNC void assignOppositeCoeff(Index, Index)
   { eigen_internal_assert(false && "should never be called"); }
 };
 

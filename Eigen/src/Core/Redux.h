@@ -277,7 +277,7 @@ struct redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
   typedef typename packet_traits<Scalar>::type PacketScalar;
   typedef typename Derived::Index Index;
 
-  static Scalar run(const Derived &mat, const Func& func)
+  EIGEN_DEVICE_FUNC static Scalar run(const Derived &mat, const Func& func)
   {
     eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     const Index innerSize = mat.innerSize();
@@ -319,7 +319,7 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
     Size = Derived::SizeAtCompileTime,
     VectorizedSize = (Size / PacketSize) * PacketSize
   };
-  static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
     eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     if (VectorizedSize > 0) {
@@ -340,7 +340,7 @@ class redux_evaluator
 {
 public:
   typedef _XprType XprType;
-  explicit redux_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
+  EIGEN_DEVICE_FUNC explicit redux_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
   
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
@@ -359,15 +359,17 @@ public:
     CoeffReadCost = evaluator<XprType>::CoeffReadCost
   };
   
-  Index rows() const { return m_xpr.rows(); }
-  Index cols() const { return m_xpr.cols(); }
-  Index size() const { return m_xpr.size(); }
-  Index innerSize() const { return m_xpr.innerSize(); }
-  Index outerSize() const { return m_xpr.outerSize(); }
+  EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
+  EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC Index size() const { return m_xpr.size(); }
+  EIGEN_DEVICE_FUNC Index innerSize() const { return m_xpr.innerSize(); }
+  EIGEN_DEVICE_FUNC Index outerSize() const { return m_xpr.outerSize(); }
 
+  EIGEN_DEVICE_FUNC
   CoeffReturnType coeff(Index row, Index col) const
   { return m_evaluator.coeff(row, col); }
 
+  EIGEN_DEVICE_FUNC
   CoeffReturnType coeff(Index index) const
   { return m_evaluator.coeff(index); }
 
@@ -379,6 +381,7 @@ public:
   PacketReturnType packet(Index index) const
   { return m_evaluator.template packet<LoadMode>(index); }
   
+  EIGEN_DEVICE_FUNC
   CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
   { return m_evaluator.coeff(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
   

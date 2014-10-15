@@ -89,7 +89,7 @@ template<typename T>
 struct evaluator : public unary_evaluator<T>
 {
   typedef unary_evaluator<T> Base;
-  explicit evaluator(const T& xpr) : Base(xpr) {}
+  EIGEN_DEVICE_FUNC explicit evaluator(const T& xpr) : Base(xpr) {}
 };
 
 
@@ -145,18 +145,18 @@ struct evaluator<PlainObjectBase<Derived> >
                                             Derived::Options,Derived::MaxRowsAtCompileTime,Derived::MaxColsAtCompileTime>::ret
   };
   
-  evaluator()
+  EIGEN_DEVICE_FUNC evaluator()
     : m_data(0),
       m_outerStride(IsVectorAtCompileTime  ? 0 
                                            : int(IsRowMajor) ? ColsAtCompileTime 
                                            : RowsAtCompileTime)
   {}
   
-  explicit evaluator(const PlainObjectType& m)
+  EIGEN_DEVICE_FUNC explicit evaluator(const PlainObjectType& m)
     : m_data(m.data()), m_outerStride(IsVectorAtCompileTime ? 0 : m.outerStride()) 
   { }
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     if (IsRowMajor)
       return m_data[row * m_outerStride.value() + col];
@@ -164,12 +164,12 @@ struct evaluator<PlainObjectBase<Derived> >
       return m_data[row + col * m_outerStride.value()];
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_data[index];
   }
 
-  Scalar& coeffRef(Index row, Index col)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index col)
   {
     if (IsRowMajor)
       return const_cast<Scalar*>(m_data)[row * m_outerStride.value() + col];
@@ -177,7 +177,7 @@ struct evaluator<PlainObjectBase<Derived> >
       return const_cast<Scalar*>(m_data)[row + col * m_outerStride.value()];
   }
 
-  Scalar& coeffRef(Index index)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index)
   {
     return const_cast<Scalar*>(m_data)[index];
   }
@@ -231,7 +231,7 @@ struct evaluator<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   
   evaluator() {}
 
-  explicit evaluator(const XprType& m)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
   { }
 };
@@ -244,7 +244,7 @@ struct evaluator<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 
   evaluator() {}
   
-  explicit evaluator(const XprType& m)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
   { }
 };
@@ -262,7 +262,7 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
     Flags = evaluator<ArgType>::Flags ^ RowMajorBit
   };
 
-  explicit unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
@@ -270,22 +270,22 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
   typedef typename XprType::PacketScalar PacketScalar;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_argImpl.coeff(col, row);
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_argImpl.coeff(index);
   }
 
-  Scalar& coeffRef(Index row, Index col)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index col)
   {
     return m_argImpl.coeffRef(col, row);
   }
 
-  typename XprType::Scalar& coeffRef(Index index)
+  EIGEN_DEVICE_FUNC typename XprType::Scalar& coeffRef(Index index)
   {
     return m_argImpl.coeffRef(index);
   }
@@ -339,7 +339,7 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
           | (functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit) // FIXME EvalBeforeNestingBit should be needed anymore
   };
 
-  explicit evaluator(const XprType& n)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& n)
     : m_functor(n.functor()) 
   { }
 
@@ -347,12 +347,12 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_functor(row, col);
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(index);
   }
@@ -389,7 +389,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
             | (functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))
   };
 
-  explicit unary_evaluator(const XprType& op)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& op)
     : m_functor(op.functor()), 
       m_argImpl(op.nestedExpression()) 
   { }
@@ -398,12 +398,12 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_functor(m_argImpl.coeff(row, col));
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(m_argImpl.coeff(index));
   }
@@ -435,7 +435,7 @@ struct evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
   typedef binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > Base;
   
-  explicit evaluator(const XprType& xpr) : Base(xpr) {}
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
@@ -463,7 +463,7 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
     Flags = (Flags0 & ~RowMajorBit) | (LhsFlags & RowMajorBit)
   };
 
-  explicit binary_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit binary_evaluator(const XprType& xpr)
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
@@ -473,12 +473,12 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_functor(m_lhsImpl.coeff(row, col), m_rhsImpl.coeff(row, col));
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_functor(m_lhsImpl.coeff(index), m_rhsImpl.coeff(index));
   }
@@ -517,7 +517,7 @@ struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType>, IndexBased>
     Flags = (evaluator<ArgType>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit))
   };
 
-  explicit unary_evaluator(const XprType& op)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& op)
     : m_unaryOp(op.functor()), 
       m_argImpl(op.nestedExpression()) 
   { }
@@ -526,22 +526,22 @@ struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType>, IndexBased>
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_unaryOp(m_argImpl.coeff(row, col));
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_unaryOp(m_argImpl.coeff(index));
   }
 
-  Scalar& coeffRef(Index row, Index col)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index col)
   {
     return m_unaryOp(m_argImpl.coeffRef(row, col));
   }
 
-  Scalar& coeffRef(Index index)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index)
   {
     return m_unaryOp(m_argImpl.coeffRef(index));
   }
@@ -575,7 +575,7 @@ struct mapbase_evaluator : evaluator_base<Derived>
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
   
-  explicit mapbase_evaluator(const XprType& map)
+  EIGEN_DEVICE_FUNC explicit mapbase_evaluator(const XprType& map)
     : m_data(const_cast<PointerType>(map.data())),  
       m_xpr(map)
   {
@@ -583,22 +583,22 @@ struct mapbase_evaluator : evaluator_base<Derived>
                         PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
   }
  
-  CoeffReturnType coeff(Index row, Index col) const 
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_data[col * m_xpr.colStride() + row * m_xpr.rowStride()];
   }
   
-  CoeffReturnType coeff(Index index) const 
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_data[index * m_xpr.innerStride()];
   }
 
-  Scalar& coeffRef(Index row, Index col) 
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index col)
   {
     return m_data[col * m_xpr.colStride() + row * m_xpr.rowStride()];
   }
   
-  Scalar& coeffRef(Index index) 
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index)
   {
     return m_data[index * m_xpr.innerStride()];
   }
@@ -665,7 +665,7 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     Flags = KeepsPacketAccess ? int(Flags2) : (int(Flags2) & ~PacketAccessBit)
   };
 
-  explicit evaluator(const XprType& map)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& map)
     : mapbase_evaluator<XprType, PlainObjectType>(map) 
   { }
 };
@@ -682,7 +682,7 @@ struct evaluator<Ref<PlainObjectType, RefOptions, StrideType> >
     Flags = evaluator<Map<PlainObjectType, RefOptions, StrideType> >::Flags
   };
 
-  explicit evaluator(const XprType& ref)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& ref)
     : mapbase_evaluator<XprType, PlainObjectType>(ref) 
   { }
 };
@@ -733,7 +733,7 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     Flags = Flags0 | FlagsLinearAccessBit | FlagsRowMajorBit
   };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;
-  explicit evaluator(const XprType& block) : block_evaluator_type(block) {}
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& block) : block_evaluator_type(block) {}
 };
 
 // no direct-access => dispatch to a unary evaluator
@@ -743,7 +743,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAcc
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  explicit block_evaluator(const XprType& block)
+  EIGEN_DEVICE_FUNC explicit block_evaluator(const XprType& block)
     : unary_evaluator<XprType>(block) 
   {}
 };
@@ -754,7 +754,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  explicit unary_evaluator(const XprType& block)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& block)
     : m_argImpl(block.nestedExpression()), 
       m_startRow(block.startRow()), 
       m_startCol(block.startCol()) 
@@ -770,22 +770,22 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
     RowsAtCompileTime = XprType::RowsAtCompileTime
   };
  
-  CoeffReturnType coeff(Index row, Index col) const 
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   { 
     return m_argImpl.coeff(m_startRow.value() + row, m_startCol.value() + col); 
   }
   
-  CoeffReturnType coeff(Index index) const 
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   { 
     return coeff(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
   }
 
-  Scalar& coeffRef(Index row, Index col) 
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index col)
   { 
     return m_argImpl.coeffRef(m_startRow.value() + row, m_startCol.value() + col); 
   }
   
-  Scalar& coeffRef(Index index) 
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index)
   { 
     return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
   }
@@ -833,7 +833,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  explicit block_evaluator(const XprType& block)
+  EIGEN_DEVICE_FUNC explicit block_evaluator(const XprType& block)
     : mapbase_evaluator<XprType, typename XprType::PlainObject>(block) 
   {
     // FIXME this should be an internal assertion
@@ -859,7 +859,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
     Flags = (unsigned int)evaluator<ThenMatrixType>::Flags & evaluator<ElseMatrixType>::Flags & HereditaryBits
   };
 
-  explicit evaluator(const XprType& select)
+  EIGEN_DEVICE_FUNC  explicit evaluator(const XprType& select)
     : m_conditionImpl(select.conditionMatrix()),
       m_thenImpl(select.thenMatrix()),
       m_elseImpl(select.elseMatrix())
@@ -868,7 +868,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     if (m_conditionImpl.coeff(row, col))
       return m_thenImpl.coeff(row, col);
@@ -876,7 +876,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
       return m_elseImpl.coeff(row, col);
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     if (m_conditionImpl.coeff(index))
       return m_thenImpl.coeff(index);
@@ -913,14 +913,14 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
     Flags = (evaluator<ArgTypeNestedCleaned>::Flags & HereditaryBits & ~RowMajorBit) | (traits<XprType>::Flags & RowMajorBit)
   };
 
-  explicit unary_evaluator(const XprType& replicate)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& replicate)
     : m_arg(replicate.nestedExpression()),
       m_argImpl(m_arg),
       m_rows(replicate.nestedExpression().rows()),
       m_cols(replicate.nestedExpression().cols())
   {}
  
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     // try to avoid using modulo; this is a pure optimization strategy
     const Index actual_row = internal::traits<XprType>::RowsAtCompileTime==1 ? 0
@@ -977,19 +977,19 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
     Flags = (traits<XprType>::Flags&RowMajorBit) | (evaluator<ArgType>::Flags&HereditaryBits)
   };
 
-  explicit evaluator(const XprType expr)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType expr)
     : m_expr(expr)
   {}
 
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
  
-  CoeffReturnType coeff(Index row, Index col) const 
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   { 
     return m_expr.coeff(row, col);
   }
   
-  CoeffReturnType coeff(Index index) const 
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   { 
     return m_expr.coeff(index);
   }
@@ -1014,7 +1014,7 @@ struct evaluator_wrapper_base
     Flags = evaluator<ArgType>::Flags
   };
 
-  explicit evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
+  EIGEN_DEVICE_FUNC explicit evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
 
   typedef typename ArgType::Index Index;
   typedef typename ArgType::Scalar Scalar;
@@ -1022,22 +1022,22 @@ struct evaluator_wrapper_base
   typedef typename ArgType::PacketScalar PacketScalar;
   typedef typename ArgType::PacketReturnType PacketReturnType;
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_argImpl.coeff(row, col);
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_argImpl.coeff(index);
   }
 
-  Scalar& coeffRef(Index row, Index col)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index col)
   {
     return m_argImpl.coeffRef(row, col);
   }
 
-  Scalar& coeffRef(Index index)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index)
   {
     return m_argImpl.coeffRef(index);
   }
@@ -1076,7 +1076,7 @@ struct unary_evaluator<MatrixWrapper<TArgType> >
 {
   typedef MatrixWrapper<TArgType> XprType;
 
-  explicit unary_evaluator(const XprType& wrapper)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& wrapper)
     : evaluator_wrapper_base<MatrixWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
@@ -1087,7 +1087,7 @@ struct unary_evaluator<ArrayWrapper<TArgType> >
 {
   typedef ArrayWrapper<TArgType> XprType;
 
-  explicit unary_evaluator(const XprType& wrapper)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& wrapper)
     : evaluator_wrapper_base<ArrayWrapper<TArgType> >(wrapper.nestedExpression())
   { }
 };
@@ -1133,30 +1133,30 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
   };
   typedef internal::reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
 
-  explicit unary_evaluator(const XprType& reverse)
+  EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& reverse)
     : m_argImpl(reverse.nestedExpression()),
       m_rows(ReverseRow ? reverse.nestedExpression().rows() : 0),
       m_cols(ReverseCol ? reverse.nestedExpression().cols() : 0)
   { }
  
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     return m_argImpl.coeff(ReverseRow ? m_rows.value() - row - 1 : row,
                            ReverseCol ? m_cols.value() - col - 1 : col);
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_argImpl.coeff(m_rows.value() * m_cols.value() - index - 1);
   }
 
-  Scalar& coeffRef(Index row, Index col)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index col)
   {
     return m_argImpl.coeffRef(ReverseRow ? m_rows.value() - row - 1 : row,
                               ReverseCol ? m_cols.value() - col - 1 : col);
   }
 
-  Scalar& coeffRef(Index index)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index)
   {
     return m_argImpl.coeffRef(m_rows.value() * m_cols.value() - index - 1);
   }
@@ -1214,7 +1214,7 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
     Flags = (unsigned int)evaluator<ArgType>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit) & ~RowMajorBit
   };
 
-  explicit evaluator(const XprType& diagonal)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& diagonal)
     : m_argImpl(diagonal.nestedExpression()),
       m_index(diagonal.index())
   { }
@@ -1223,22 +1223,22 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
-  CoeffReturnType coeff(Index row, Index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index) const
   {
     return m_argImpl.coeff(row + rowOffset(), row + colOffset());
   }
 
-  CoeffReturnType coeff(Index index) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     return m_argImpl.coeff(index + rowOffset(), index + colOffset());
   }
 
-  Scalar& coeffRef(Index row, Index)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index row, Index)
   {
     return m_argImpl.coeffRef(row + rowOffset(), row + colOffset());
   }
 
-  Scalar& coeffRef(Index index)
+  EIGEN_DEVICE_FUNC Scalar& coeffRef(Index index)
   {
     return m_argImpl.coeffRef(index + rowOffset(), index + colOffset());
   }
@@ -1248,8 +1248,8 @@ protected:
   const internal::variable_if_dynamicindex<Index, XprType::DiagIndex> m_index;
 
 private:
-  EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value() > 0 ? 0 : -m_index.value(); }
-  EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value() > 0 ? m_index.value() : 0; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value() > 0 ? 0 : -m_index.value(); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value() > 0 ? m_index.value() : 0; }
 };
 
 
@@ -1311,7 +1311,7 @@ struct evaluator<EvalToTemp<ArgType> >
   typedef evaluator type;
   typedef evaluator nestedType;
 
-  explicit evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
@@ -1320,7 +1320,7 @@ struct evaluator<EvalToTemp<ArgType> >
   }
 
   // This constructor is used when nesting an EvalTo evaluator in another evaluator
-  evaluator(const ArgType& arg) 
+  EIGEN_DEVICE_FUNC evaluator(const ArgType& arg)
     : m_result(arg.rows(), arg.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);

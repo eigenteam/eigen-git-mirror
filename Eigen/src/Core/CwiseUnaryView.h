@@ -110,15 +110,15 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryViewImpl)
     
-    inline Scalar* data() { return &(this->coeffRef(0)); }
-    inline const Scalar* data() const { return &(this->coeff(0)); }
+    EIGEN_DEVICE_FUNC inline Scalar* data() { return &(this->coeffRef(0)); }
+    EIGEN_DEVICE_FUNC inline const Scalar* data() const { return &(this->coeff(0)); }
 
-    inline Index innerStride() const
+    EIGEN_DEVICE_FUNC inline Index innerStride() const
     {
       return derived().nestedExpression().innerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
 
-    inline Index outerStride() const
+    EIGEN_DEVICE_FUNC inline Index outerStride() const
     {
       return derived().nestedExpression().outerStride() * sizeof(typename internal::traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
