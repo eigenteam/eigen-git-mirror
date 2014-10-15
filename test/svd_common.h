@@ -269,12 +269,14 @@ void svd_fill_random(MatrixType &m)
   
   m = U * d.asDiagonal() * VT;
   
-  // cancel some coeffs
+  // (partly) cancel some coeffs
   if(!(dup && unit_uv))
   {
-    Index n  = internal::random<Index>(0,m.size()-1);
+    Matrix<Scalar,Dynamic,1> samples(7);
+    samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -1./NumTraits<RealScalar>::highest(), 1./NumTraits<RealScalar>::highest();
+    Index n = internal::random<Index>(0,m.size()-1);
     for(Index i=0; i<n; ++i)
-      m(internal::random<Index>(0,m.rows()-1), internal::random<Index>(0,m.cols()-1)) = Scalar(0);
+      m(internal::random<Index>(0,m.rows()-1), internal::random<Index>(0,m.cols()-1)) = samples(internal::random<Index>(0,6));
   }
 }
 
