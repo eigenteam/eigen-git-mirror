@@ -39,6 +39,17 @@ struct DefaultDevice {
 #ifdef EIGEN_USE_THREADS
 
 typedef std::future<void> Future;
+typedef std::promise<void> Promise;
+
+static EIGEN_STRONG_INLINE void wait_until_ready(const Future* f) {
+  f->wait();
+  //   eigen_assert(f->ready());
+}
+
+static EIGEN_STRONG_INLINE void wait_until_ready(Promise* p) {
+  p->get_future().wait();
+  //   eigen_assert(p->get_future().ready());
+}
 
 struct ThreadPoolDevice {
   ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : num_threads_(num_cores) { }
