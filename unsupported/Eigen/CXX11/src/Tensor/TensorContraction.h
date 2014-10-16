@@ -48,7 +48,7 @@ class BaseTensorContractionMapper {
       m_k_strides(k_strides) { }
 
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE void prefetch(int i) { }
+  EIGEN_STRONG_INLINE void prefetch(int /*i*/) { }
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Scalar operator()(Index row) const {
