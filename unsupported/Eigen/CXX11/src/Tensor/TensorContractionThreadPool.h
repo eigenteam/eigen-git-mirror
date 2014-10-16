@@ -198,8 +198,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // this should really be numBlockAs * n_blocks;
     const Index num_kernel_promises = num_threads * n_blocks;
     std::vector<Promise> kernel_promises(num_kernel_promises);
+    std::vector<Future> kernel_futures(num_kernel_promises);
     for (int i = 0; i < kernel_promises.size(); ++i) {
       kernel_promises[i].set_value();
+      kernel_futures[i] = kernel_promises[i].get_future();
     }
 
     for (Index k_block_idx = 0; k_block_idx < k_blocks; k_block_idx++) {
@@ -218,8 +220,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
           int blockAId = (k_block_idx * m_blocks + mt_block_idx) % num_threads;
           for (int i = 0; i < n_blocks; ++i) {
             int future_id = (blockAId * n_blocks + i);
-            wait_until_ready(&kernel_promises[future_id]);
+            wait_until_ready(&kernel_futures[future_id]);
             kernel_promises[future_id] = Promise();
+            kernel_futures[future_id] = kernel_promises[future_id].get_future();
           }
           const packLArg arg = {
             blockAs[blockAId], // blockA
@@ -248,7 +251,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
             for (int i = num_blocks; i < num_threads; ++i) {
               int blockAId = (k_block_idx * m_blocks + i + m_block_idx) % num_threads;
               int future_id = (blockAId * n_blocks + n_block_idx);
-              wait_until_ready(&kernel_promises[future_id]);
+              wait_until_ready(&kernel_futures[future_id]);
             }
           }
 
@@ -281,9 +284,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       }
     }
 
-    // collect the last frame of kernel futures
-    for (int i = 0; i < kernel_promises.size(); ++i) {
-      wait_until_ready(&kernel_promises[i]);
+    // Make sure all the kernels are done.
+    for (int i = 0; i < kernel_futures.size(); ++i) {
+      wait_until_ready(&kernel_futures[i]);
     }
 
     // deallocate all of the memory for both A and B's
