@@ -32,6 +32,22 @@ static void test_additions()
 }
 
 
+static void test_abs()
+{
+  Tensor<std::complex<float>, 1> data1(3);
+  Tensor<std::complex<double>, 1> data2(3);
+  data1.setRandom();
+  data2.setRandom();
+
+  Tensor<float, 1> abs1 = data1.abs();
+  Tensor<double, 1> abs2 = data2.abs();
+  for (int i = 0; i < 3; ++i) {
+    VERIFY_IS_APPROX(abs1(i), std::abs(data1(i)));
+    VERIFY_IS_APPROX(abs2(i), std::abs(data2(i)));
+  }
+}
+
+
 static void test_contractions()
 {
   Tensor<std::complex<float>, 4> t_left(30, 50, 8, 31);
@@ -60,5 +76,6 @@ static void test_contractions()
 void test_cxx11_tensor_of_complex()
 {
   CALL_SUBTEST(test_additions());
+  CALL_SUBTEST(test_abs());
   CALL_SUBTEST(test_contractions());
 }

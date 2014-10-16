@@ -84,9 +84,7 @@ struct traits<TensorCwiseUnaryOp<UnaryOp, XprType> >
   typedef typename result_of<
                      UnaryOp(typename XprType::Scalar)
                    >::type Scalar;
-  typedef typename result_of<
-                     UnaryOp(typename XprType::Packet)
-                   >::type Packet;
+  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
 };
@@ -188,8 +186,7 @@ class TensorCwiseBinaryOp : public TensorBase<TensorCwiseBinaryOp<BinaryOp, LhsX
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::promote_storage_type<typename LhsXprType::CoeffReturnType,
                                                   typename RhsXprType::CoeffReturnType>::ret CoeffReturnType;
-  typedef typename internal::promote_storage_type<typename LhsXprType::PacketReturnType,
-                                                  typename RhsXprType::PacketReturnType>::ret PacketReturnType;
+  typedef typename internal::packet_traits<CoeffReturnType>::type PacketReturnType;
   typedef typename Eigen::internal::nested<TensorCwiseBinaryOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Index Index;

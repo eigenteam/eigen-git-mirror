@@ -155,8 +155,8 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
+  typedef typename internal::traits<XprType>::Packet PacketReturnType;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
@@ -203,8 +203,8 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
+  typedef typename internal::traits<XprType>::Packet PacketReturnType;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
@@ -257,8 +257,8 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
+  typedef typename internal::traits<XprType>::Packet PacketReturnType;
   typedef typename TensorEvaluator<LeftArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
@@ -317,8 +317,8 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
+  typedef typename internal::traits<XprType>::Packet PacketReturnType;
   typedef typename TensorEvaluator<IfArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
