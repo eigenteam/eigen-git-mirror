@@ -130,8 +130,8 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
   Scalar* data() const { return m_impl.data(); }
 
  protected:
-  NewDimensions m_dimensions;
   TensorEvaluator<ArgType, Device> m_impl;
+  NewDimensions m_dimensions;
 };
 
 
@@ -381,13 +381,13 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     return inputIndex;
   }
 
-  Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;
   array<internal::TensorIntDivisor<Index>, NumDims> m_fastOutputStrides;
   array<Index, NumDims> m_inputStrides;
-  const StartIndices m_offsets;
   TensorEvaluator<ArgType, Device> m_impl;
   const Device& m_device;
+  Dimensions m_dimensions;
+  const StartIndices m_offsets;
 };
 
 

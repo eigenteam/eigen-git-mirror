@@ -215,11 +215,11 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     return rslt;
   }
 
-  PaddingDimensions m_padding;
   Dimensions m_dimensions;
   array<Index, NumDims+1> m_outputStrides;
   array<Index, NumDims> m_inputStrides;
   TensorEvaluator<ArgType, Device> m_impl;
+  PaddingDimensions m_padding;
 };
 
 

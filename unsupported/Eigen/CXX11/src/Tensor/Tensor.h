@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
+// Copyright (C) 2014 Benoit Steiner <benoit.steiner.goog@gmail.com>
 // Copyright (C) 2013 Christian Seiler <christian@iwakd.de>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -82,7 +83,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
 
     static const std::size_t NumIndices = NumIndices_;
 
-  typedef DSizes<DenseIndex, NumIndices_> Dimensions;
+    typedef DSizes<DenseIndex, NumIndices_> Dimensions;
 
   protected:
     TensorStorage<Scalar, NumIndices, Dynamic, Options> m_storage;

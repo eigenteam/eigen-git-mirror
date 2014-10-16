@@ -140,7 +140,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   // TODO(phli): Add short-circuit memcpy evaluation if underlying data are linear?
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/)
   {
     m_leftImpl.evalSubExprsIfNeeded(NULL);
     m_rightImpl.evalSubExprsIfNeeded(NULL);
@@ -202,13 +202,13 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   Scalar* data() const { return NULL; }
 
   protected:
-    const Axis m_axis;
     Dimensions m_dimensions;
     array<Index, NumDims> m_outputStrides;
     array<Index, NumDims> m_leftStrides;
     array<Index, NumDims> m_rightStrides;
     TensorEvaluator<LeftArgType, Device> m_leftImpl;
     TensorEvaluator<RightArgType, Device> m_rightImpl;
+    const Axis m_axis;
 };
 
 

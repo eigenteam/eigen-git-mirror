@@ -671,10 +671,10 @@ struct TensorContractionEvaluatorBase
   Index m_j_size;
   Index m_k_size;
 
-  const Device& m_device;
-  Scalar* m_result;
   TensorEvaluator<LeftArgType, Device> m_leftImpl;
   TensorEvaluator<RightArgType, Device> m_rightImpl;
+  const Device& m_device;
+  Scalar* m_result;
 };
 
 

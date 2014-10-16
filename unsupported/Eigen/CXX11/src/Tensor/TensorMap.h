@@ -64,7 +64,8 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     }
 #endif
 
-    inline TensorMap(PointerArgType dataPtr, const array<Index, NumIndices>& dimensions)
+    template <typename Dimensions>
+    inline TensorMap(PointerArgType dataPtr, const Dimensions& dimensions)
       : m_data(dataPtr), m_dimensions(dimensions)
     { }
 

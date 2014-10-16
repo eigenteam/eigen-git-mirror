@@ -152,7 +152,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -217,8 +217,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   array<Index, NumDims> m_preservedStrides;
   array<Index, NumReducedDims> m_reducedStrides;
   array<Index, NumReducedDims> m_reducedDims;
-  Op m_reducer;
   TensorEvaluator<ArgType, Device> m_impl;
+  Op m_reducer;
 };
 
 } // end namespace Eigen
