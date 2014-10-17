@@ -194,7 +194,7 @@ public:
 }; //end class BDCSVD
 
 
-// Methode to allocate ans initialize matrix and attributes
+// Method to allocate and initialize matrix and attributes
 template<typename MatrixType>
 void BDCSVD<MatrixType>::allocate(Index rows, Index cols, unsigned int computationOptions)
 {
@@ -215,24 +215,6 @@ void BDCSVD<MatrixType>::allocate(Index rows, Index cols, unsigned int computati
   if (m_compV) m_naiveV = MatrixXr::Zero(m_diagSize, m_diagSize);
 }// end allocate
 
-// Methode which compute the BDCSVD for the int
-template<>
-BDCSVD<Matrix<int, Dynamic, Dynamic> >& BDCSVD<Matrix<int, Dynamic, Dynamic> >::compute(const MatrixType& matrix, unsigned int computationOptions)
-{
-  allocate(matrix.rows(), matrix.cols(), computationOptions);
-  m_nonzeroSingularValues = 0;
-  m_computed = Matrix<int, Dynamic, Dynamic>::Zero(rows(), cols());
-  
-  m_singularValues.head(m_diagSize).setZero();
-  
-  if (m_computeFullU) m_matrixU.setZero(rows(), rows());
-  if (m_computeFullV) m_matrixV.setZero(cols(), cols()); 
-  m_isInitialized = true;
-  return *this;
-}
-
-
-// Methode which compute the BDCSVD
 template<typename MatrixType>
 BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsigned int computationOptions) 
 {
@@ -612,6 +594,8 @@ void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, Vec
 #endif
   
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS
+  assert(U.allFinite());
+  assert(V.allFinite());
   assert((U.transpose() * U - MatrixXr(MatrixXr::Identity(U.cols(),U.cols()))).norm() < 1e-14 * n);
   assert((V.transpose() * V - MatrixXr(MatrixXr::Identity(V.cols(),V.cols()))).norm() < 1e-14 * n);
   assert(m_naiveU.allFinite());
@@ -836,8 +820,12 @@ void BDCSVD<MatrixType>::perturbCol0
   using std::sqrt;
   Index n = col0.size();
   Index m = perm.size();
-  Index last = perm(m-1);
-  
+  if(m==0)
+  {
+    zhat.setZero();
+    return;
+  }
+  Index last = last = perm(m-1);
   // The offset permits to skip deflated entries while computing zhat
   for (Index k = 0; k < n; ++k)
   {
