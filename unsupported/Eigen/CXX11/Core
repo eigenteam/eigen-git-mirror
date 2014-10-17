@@ -30,6 +30,8 @@
   * \endcode
   */
 
+#include <vector>
+
 // Emulate the cxx11 functionality that we need if the compiler doesn't support it.
 #if __cplusplus <= 199711L
 #include "src/Core/util/EmulateCXX11Meta.h"
