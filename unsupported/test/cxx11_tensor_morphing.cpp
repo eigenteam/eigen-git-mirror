@@ -12,7 +12,6 @@
 #include <Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
-using Eigen::IndexPair;
 
 static void test_simple_reshape()
 {
@@ -53,7 +52,8 @@ static void test_reshape_in_expr() {
   TensorMap<Tensor<float, 5>> tensor2(m2.data(), 3,5,7,11,13);
   Tensor<float, 2>::Dimensions newDims1{{2,3*5*7*11}};
   Tensor<float, 2>::Dimensions newDims2{{3*5*7*11,13}};
-  Eigen::array<IndexPair<DenseIndex>, 1> contract_along{{IndexPair<DenseIndex>(1, 0)}};
+  typedef Tensor<float, 1>::DimensionPair DimPair;
+  array<DimPair, 1> contract_along{{DimPair(1, 0)}};
   Tensor<float, 2> tensor3(2,13);
   tensor3 = tensor1.reshape(newDims1).contract(tensor2.reshape(newDims2), contract_along);
 
@@ -126,7 +126,8 @@ static void test_slice_in_expr() {
   TensorMap<Tensor<float, 2>> tensor1(m1.data(), 7, 7);
   TensorMap<Tensor<float, 2>> tensor2(m2.data(), 3, 3);
   Tensor<float, 2> tensor3(3,1);
-  array<IndexPair<DenseIndex>, 1> contract_along{{IndexPair<DenseIndex>(1, 0)}};
+  typedef Tensor<float, 1>::DimensionPair DimPair;
+  array<DimPair, 1> contract_along{{DimPair(1, 0)}};
 
   Eigen::DSizes<ptrdiff_t, 2> indices1(1,2);
   Eigen::DSizes<ptrdiff_t, 2> sizes1(3,3);
@@ -190,6 +191,62 @@ static void test_slice_as_lvalue()
 }
 
 
+static void test_slice_raw_data()
+{
+  Tensor<float, 4> tensor(3,5,7,11);
+  tensor.setRandom();
+
+  Eigen::DSizes<ptrdiff_t, 4> offsets(1,2,3,4);
+  Eigen::DSizes<ptrdiff_t, 4> extents(1,1,1,1);
+  typedef TensorEvaluator<decltype(tensor.slice(offsets, extents)), DefaultDevice> SliceEvaluator;
+  auto slice1 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
+  VERIFY_IS_EQUAL(slice1.dimensions().TotalSize(), 1ul);
+  VERIFY_IS_EQUAL(slice1.data()[0], tensor(1,2,3,4));
+
+  extents = Eigen::DSizes<ptrdiff_t, 4>(2,1,1,1);
+  auto slice2 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
+  VERIFY_IS_EQUAL(slice2.dimensions().TotalSize(), 2ul);
+  VERIFY_IS_EQUAL(slice2.data()[0], tensor(1,2,3,4));
+  VERIFY_IS_EQUAL(slice2.data()[1], tensor(2,2,3,4));
+
+  extents = Eigen::DSizes<ptrdiff_t, 4>(1,2,1,1);
+  auto slice3 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
+  VERIFY_IS_EQUAL(slice3.dimensions().TotalSize(), 2ul);
+  VERIFY_IS_EQUAL(slice3.data(), static_cast<float*>(0));
+
+  offsets = Eigen::DSizes<ptrdiff_t, 4>(0,2,3,4);
+  extents = Eigen::DSizes<ptrdiff_t, 4>(3,2,1,1);
+  auto slice4 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
+  VERIFY_IS_EQUAL(slice4.dimensions().TotalSize(), 6ul);
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 2; ++j) {
+      VERIFY_IS_EQUAL(slice4.data()[i+3*j], tensor(i,2+j,3,4));
+    }
+  }
+
+  offsets = Eigen::DSizes<ptrdiff_t, 4>(0,0,0,4);
+  extents = Eigen::DSizes<ptrdiff_t, 4>(3,5,7,2);
+  auto slice5 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
+  VERIFY_IS_EQUAL(slice5.dimensions().TotalSize(), 210ul);
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        for (int l = 0; l < 2; ++l) {
+          int slice_index = i + 3 * (j + 5 * (k + 7 * l));
+          VERIFY_IS_EQUAL(slice5.data()[slice_index], tensor(i,j,k,l+4));
+        }
+      }
+    }
+  }
+
+  offsets = Eigen::DSizes<ptrdiff_t, 4>(0,0,0,0);
+  extents = Eigen::DSizes<ptrdiff_t, 4>(3,5,7,11);
+  auto slice6 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
+  VERIFY_IS_EQUAL(slice6.dimensions().TotalSize(), 3ul*5*7*11);
+  VERIFY_IS_EQUAL(slice6.data(), tensor.data());
+}
+
+
 void test_cxx11_tensor_morphing()
 {
   CALL_SUBTEST(test_simple_reshape());
@@ -199,4 +256,5 @@ void test_cxx11_tensor_morphing()
   CALL_SUBTEST(test_simple_slice());
   CALL_SUBTEST(test_slice_in_expr());
   CALL_SUBTEST(test_slice_as_lvalue());
+  CALL_SUBTEST(test_slice_raw_data());
 }

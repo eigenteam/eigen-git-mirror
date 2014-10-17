@@ -157,7 +157,14 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
 
   }*/
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
+    Scalar* result = m_impl.data();
+    if (DimId == NumDims && result) {
+      return result + m_inputOffset;
+    } else {
+      return NULL;
+    }
+  }
 
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const

@@ -236,9 +236,46 @@ static void test_chip_as_lvalue()
 }
 
 
+static void test_chip_raw_data()
+{
+  Tensor<float, 5> tensor(2,3,5,7,11);
+  tensor.setRandom();
+
+  typedef TensorEvaluator<decltype(tensor.chip<4>(3)), DefaultDevice> Evaluator4;
+  auto chip = Evaluator4(tensor.chip<4>(3), DefaultDevice());
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        for (int l = 0; l < 7; ++l) {
+          int chip_index = i + 2 * (j + 3 * (k + 5 * l));
+          VERIFY_IS_EQUAL(chip.data()[chip_index], tensor(i,j,k,l,3));
+        }
+      }
+    }
+  }
+
+  typedef TensorEvaluator<decltype(tensor.chip<0>(0)), DefaultDevice> Evaluator0;
+  auto chip0 = Evaluator0(tensor.chip<0>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip0.data(), static_cast<float*>(0));
+
+  typedef TensorEvaluator<decltype(tensor.chip<1>(0)), DefaultDevice> Evaluator1;
+  auto chip1 = Evaluator1(tensor.chip<1>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip1.data(), static_cast<float*>(0));
+
+  typedef TensorEvaluator<decltype(tensor.chip<2>(0)), DefaultDevice> Evaluator2;
+  auto chip2 = Evaluator2(tensor.chip<2>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip2.data(), static_cast<float*>(0));
+
+  typedef TensorEvaluator<decltype(tensor.chip<3>(0)), DefaultDevice> Evaluator3;
+  auto chip3 = Evaluator3(tensor.chip<3>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip3.data(), static_cast<float*>(0));
+}
+
+
 void test_cxx11_tensor_chipping()
 {
   CALL_SUBTEST(test_simple_chip());
   CALL_SUBTEST(test_chip_in_expr());
   CALL_SUBTEST(test_chip_as_lvalue());
+  CALL_SUBTEST(test_chip_raw_data());
 }

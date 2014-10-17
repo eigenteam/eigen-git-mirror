@@ -366,7 +366,26 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
+    Scalar* result = m_impl.data();
+    if (result) {
+      Index offset = 0;
+      for (int i = 0; i < NumDims; ++i) {
+        if (m_dimensions[i] != m_impl.dimensions()[i]) {
+          offset += m_offsets[i] * m_inputStrides[i];
+          for (int j = i+1; j < NumDims; ++j) {
+            if (m_dimensions[j] > 1) {
+              return NULL;
+            }
+            offset += m_offsets[j] * m_inputStrides[j];
+          }
+          break;
+        }
+      }
+      return result + offset;
+    }
+    return NULL;
+  }
 
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
