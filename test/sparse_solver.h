@@ -15,6 +15,7 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
+  typedef typename Mat::Index Index;
 
   DenseRhs refX = dA.lu().solve(db);
   {
@@ -35,8 +36,8 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
       return;
     }
     VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
-
     VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    
     x.setZero();
     // test the analyze/factorize API
     solver.analyzePattern(A);
@@ -54,8 +55,31 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
       return;
     }
     VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
-
     VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    
+    
+    x.setZero();
+    // test with Map
+    MappedSparseMatrix<Scalar,Mat::Options,Index> Am(A.rows(), A.cols(), A.nonZeros(), const_cast<Index*>(A.outerIndexPtr()), const_cast<Index*>(A.innerIndexPtr()), const_cast<Scalar*>(A.valuePtr()));
+    solver.compute(Am);
+    if (solver.info() != Success)
+    {
+      std::cerr << "sparse solver testing: factorization failed (check_sparse_solving)\n";
+      exit(0);
+      return;
+    }
+    DenseRhs dx(refX);
+    dx.setZero();
+    Map<DenseRhs> xm(dx.data(), dx.rows(), dx.cols());
+    Map<const DenseRhs> bm(db.data(), db.rows(), db.cols());
+    xm = solver.solve(bm);
+    if (solver.info() != Success)
+    {
+      std::cerr << "sparse solver testing: solving failed\n";
+      return;
+    }
+    VERIFY(oldb.isApprox(bm) && "sparse solver testing: the rhs should not be modified!");
+    VERIFY(xm.isApprox(refX,test_precision<Scalar>()));
   }
   
   // test dense Block as the result and rhs:
