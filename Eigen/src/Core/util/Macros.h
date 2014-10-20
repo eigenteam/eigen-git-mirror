@@ -86,6 +86,11 @@
   #define EIGEN_ALIGN 0
 #endif
 
+
+// This macro can be used to prevent from macro expansion, e.g.:
+//   std::max EIGNE_NOT_A_MACRO(a,b)
+#define EIGEN_NOT_A_MACRO
+
 // EIGEN_ALIGN_STATICALLY is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
 // alignment (EIGEN_DONT_ALIGN_STATICALLY) and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT). Henceforth, only EIGEN_ALIGN_STATICALLY should be used.
 #if EIGEN_ARCH_WANTS_STACK_ALIGNMENT && !defined(EIGEN_DONT_ALIGN_STATICALLY)

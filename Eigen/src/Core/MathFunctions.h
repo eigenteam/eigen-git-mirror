@@ -591,6 +591,22 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
 ****************************************************************************/
 
 namespace numext {
+  
+template<typename T>
+EIGEN_DEVICE_FUNC
+inline T mini(const T& x, const T& y)
+{
+  using std::min;
+  return min EIGEN_NOT_A_MACRO (x,y);
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+inline T maxi(const T& x, const T& y)
+{
+  using std::max;
+  return max EIGEN_NOT_A_MACRO (x,y);
+}
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
