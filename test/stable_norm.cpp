@@ -9,26 +9,6 @@
 
 #include "main.h"
 
-template<typename T> bool isNotNaN(const T& x)
-{
-  return x==x;
-}
-
-template<typename T> bool isNaN(const T& x)
-{
-  return x!=x;
-}
-
-template<typename T> bool isInf(const T& x)
-{
-  return x > NumTraits<T>::highest();
-}
-
-template<typename T> bool isMinusInf(const T& x)
-{
-  return x < NumTraits<T>::lowest();
-}
-
 // workaround aggressive optimization in ICC
 template<typename T> EIGEN_DONT_INLINE  T sub(T a, T b) { return a - b; }
 
