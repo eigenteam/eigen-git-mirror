@@ -71,11 +71,11 @@ public:
   inline Scalar& angle() { return m_angle; }
 
   /** \returns the inverse rotation */
-  inline Rotation2D inverse() const { return -m_angle; }
+  inline Rotation2D inverse() const { return Rotation2D(-m_angle); }
 
   /** Concatenates two rotations */
   inline Rotation2D operator*(const Rotation2D& other) const
-  { return m_angle + other.m_angle; }
+  { return Rotation2D(m_angle + other.m_angle); }
 
   /** Concatenates two rotations */
   inline Rotation2D& operator*=(const Rotation2D& other)
@@ -93,7 +93,7 @@ public:
     * parameter \a t. It is in fact equivalent to a linear interpolation.
     */
   inline Rotation2D slerp(const Scalar& t, const Rotation2D& other) const
-  { return m_angle * (1-t) + other.angle() * t; }
+  { return Rotation2D(m_angle * (1-t) + other.angle() * t); }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
