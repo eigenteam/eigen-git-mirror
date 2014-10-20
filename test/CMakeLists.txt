@@ -306,7 +306,7 @@ endif()
 option(EIGEN_TEST_NVCC "Enable NVCC support in unit tests" OFF)
 if(EIGEN_TEST_NVCC)
   
-find_package(CUDA)
+find_package(CUDA 5.0)
 if(CUDA_FOUND)
   
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
