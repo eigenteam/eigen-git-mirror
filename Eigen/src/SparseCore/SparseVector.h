@@ -386,6 +386,11 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
     const internal::CompressedStorage<Scalar,Index>& m_data;
     Index m_id;
     const Index m_end;
+  private:
+    // If you get here, then you're not using the right InnerIterator type, e.g.:
+    //   SparseMatrix<double,RowMajor> A;
+    //   SparseMatrix<double>::InnerIterator it(A,0);
+    template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer=0);
 };
 
 template<typename Scalar, int _Options, typename _Index>
