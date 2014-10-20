@@ -239,6 +239,12 @@ template<typename Scalar> void packetmath_real()
     data2[i] = internal::random<Scalar>(-87,88);
   }
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasExp, std::exp, internal::pexp);
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasExp,Packet> h;
+    h.store(data2, internal::pexp(h.load(data1))); 
+    VERIFY(isNaN(data2[0]));
+  }
 
   for (int i=0; i<size; ++i)
   {

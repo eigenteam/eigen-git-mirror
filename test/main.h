@@ -406,6 +406,26 @@ void randomPermutationVector(PermutationVectorType& v, typename PermutationVecto
   }
 }
 
+template<typename T> bool isNotNaN(const T& x)
+{
+  return x==x;
+}
+
+template<typename T> bool isNaN(const T& x)
+{
+  return x!=x;
+}
+
+template<typename T> bool isInf(const T& x)
+{
+  return x > NumTraits<T>::highest();
+}
+
+template<typename T> bool isMinusInf(const T& x)
+{
+  return x < NumTraits<T>::lowest();
+}
+
 } // end namespace Eigen
 
 template<typename T> struct GetDifferentType;

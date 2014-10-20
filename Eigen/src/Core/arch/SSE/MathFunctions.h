@@ -166,7 +166,7 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
   emm0 = _mm_cvttps_epi32(fx);
   emm0 = _mm_add_epi32(emm0, p4i_0x7f);
   emm0 = _mm_slli_epi32(emm0, 23);
-  return pmul(y, _mm_castsi128_ps(emm0));
+  return pmax(pmul(y, Packet4f(_mm_castsi128_ps(emm0))), _x);
 }
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d pexp<Packet2d>(const Packet2d& _x)
