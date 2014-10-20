@@ -52,7 +52,7 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
 
   Packet4i emm0;
 
-  Packet4f invalid_mask = _mm_cmplt_ps(x, _mm_setzero_ps());
+  Packet4f invalid_mask = _mm_cmpnge_ps(x, _mm_setzero_ps()); // not greater equal is true if x is NaN
   Packet4f iszero_mask = _mm_cmpeq_ps(x, _mm_setzero_ps());
 
   x = pmax(x, p4f_min_norm_pos);  /* cut off denormalized stuff */
@@ -241,7 +241,7 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
   emm0 = _mm_add_epi32(emm0, p4i_1023_0);
   emm0 = _mm_slli_epi32(emm0, 20);
   emm0 = _mm_shuffle_epi32(emm0, _MM_SHUFFLE(1,2,0,3));
-  return pmul(x, Packet2d(_mm_castsi128_pd(emm0)));
+  return pmax(pmul(x, Packet2d(_mm_castsi128_pd(emm0))), _x);
 }
 
 /* evaluation of 4 sines at onces, using SSE2 intrinsics.
