@@ -596,7 +596,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 inline T mini(const T& x, const T& y)
 {
-  using std::min;
+  EIGEN_USING_STD_MATH(min);
   return min EIGEN_NOT_A_MACRO (x,y);
 }
 
@@ -604,7 +604,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 inline T maxi(const T& x, const T& y)
 {
-  using std::max;
+  EIGEN_USING_STD_MATH(max);
   return max EIGEN_NOT_A_MACRO (x,y);
 }
 
