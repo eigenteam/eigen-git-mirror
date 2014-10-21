@@ -231,6 +231,14 @@ if(NOT MSVC)
     message(STATUS "Enabling NEON in tests/examples")
   endif()
 
+  option(EIGEN_TEST_NEON64 "Enable/Disable Neon in tests/examples" OFF)
+  if(EIGEN_TEST_NEON64)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    message(STATUS "Enabling NEON in tests/examples")
+  endif()
+
+
+
   check_cxx_compiler_flag("-fopenmp" COMPILER_SUPPORT_OPENMP)
   if(COMPILER_SUPPORT_OPENMP)
     option(EIGEN_TEST_OPENMP "Enable/Disable OpenMP in tests/examples" OFF)
