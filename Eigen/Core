@@ -162,18 +162,18 @@
         #endif
       #endif
     } // end extern "C"
-  #elif defined __ALTIVEC__
+  #elif defined __VSX__
     #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_ALTIVEC
+    #define EIGEN_VECTORIZE_VSX
     #include <altivec.h>
     // We need to #undef all these ugly tokens defined in <altivec.h>
     // => use __vector instead of vector
     #undef bool
     #undef vector
     #undef pixel
-  #elif defined __VSX__
+  #elif defined __ALTIVEC__
     #define EIGEN_VECTORIZE
-    #define EIGEN_VECTORIZE_VSX
+    #define EIGEN_VECTORIZE_ALTIVEC
     #include <altivec.h>
     // We need to #undef all these ugly tokens defined in <altivec.h>
     // => use __vector instead of vector
