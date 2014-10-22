@@ -115,7 +115,7 @@ struct functor_traits<scalar_conj_product_op<LhsScalar,RhsScalar> > {
   */
 template<typename Scalar> struct scalar_min_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_min_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { EIGEN_USING_STD_MATH(min); return (min)(a, b); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return numext::mini(a, b); }
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::pmin(a,b); }
@@ -138,7 +138,7 @@ struct functor_traits<scalar_min_op<Scalar> > {
   */
 template<typename Scalar> struct scalar_max_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_max_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { EIGEN_USING_STD_MATH(max); return (max)(a, b); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return numext::maxi(a, b); }
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::pmax(a,b); }
@@ -164,8 +164,6 @@ template<typename Scalar> struct scalar_hypot_op {
 //   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& _x, const Scalar& _y) const
   {
-    EIGEN_USING_STD_MATH(max);
-    EIGEN_USING_STD_MATH(min);
     using std::sqrt;
     Scalar p, qp;
     if(_x>_y)

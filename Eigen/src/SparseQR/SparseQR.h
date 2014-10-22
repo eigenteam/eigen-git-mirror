@@ -325,7 +325,6 @@ template <typename MatrixType, typename OrderingType>
 void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
 {
   using std::abs;
-  using std::max;
   
   eigen_assert(m_analysisIsok && "analyzePattern() should be called before this step");
   Index m = mat.rows();
@@ -377,7 +376,9 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   if(m_useDefaultThreshold) 
   {
     RealScalar max2Norm = 0.0;
-    for (int j = 0; j < n; j++) max2Norm = (max)(max2Norm, m_pmat.col(j).norm());
+    for (int j = 0; j < n; j++) max2Norm = numext::maxi(max2Norm, m_pmat.col(j).norm());
+    if(max2Norm==RealScalar(0))
+      max2Norm = RealScalar(1);
     pivotThreshold = 20 * (m + n) * max2Norm * NumTraits<RealScalar>::epsilon();
   }
   
@@ -386,7 +387,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   
   Index nonzeroCol = 0; // Record the number of valid pivots
   m_Q.startVec(0);
-  
+
   // Left looking rank-revealing QR factorization: compute a column of R and Q at a time
   for (Index col = 0; col < n; ++col)
   {
@@ -554,7 +555,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   m_R.finalize();
   m_R.makeCompressed();
   m_isQSorted = false;
-  
+
   m_nonzeropivots = nonzeroCol;
   
   if(nonzeroCol<n)

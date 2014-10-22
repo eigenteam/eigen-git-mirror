@@ -571,7 +571,6 @@ template<class Derived>
 template<typename Derived1, typename Derived2>
 inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b)
 {
-  EIGEN_USING_STD_MATH(max);
   using std::sqrt;
   Vector3 v0 = a.normalized();
   Vector3 v1 = b.normalized();
@@ -587,7 +586,7 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   //    which yields a singular value problem
   if (c < Scalar(-1)+NumTraits<Scalar>::dummy_precision())
   {
-    c = (max)(c,Scalar(-1));
+    c = numext::maxi(c,Scalar(-1));
     Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
     JacobiSVD<Matrix<Scalar,2,3> > svd(m, ComputeFullV);
     Vector3 axis = svd.matrixV().col(2);

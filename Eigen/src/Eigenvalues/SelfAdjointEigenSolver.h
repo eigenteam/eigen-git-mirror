@@ -732,7 +732,6 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
   EIGEN_DEVICE_FUNC
   static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
-    EIGEN_USING_STD_MATH(max)
     EIGEN_USING_STD_MATH(sqrt);
     
     eigen_assert(mat.cols() == 2 && mat.cols() == mat.rows());
@@ -746,7 +745,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
   
     // map the matrix coefficients to [-1:1] to avoid over- and underflow.
     Scalar scale = mat.cwiseAbs().maxCoeff();
-    scale = (max)(scale,Scalar(1));
+    scale = numext::maxi(scale,Scalar(1));
     MatrixType scaledMat = mat / scale;
     
     // Compute the eigenvalues
