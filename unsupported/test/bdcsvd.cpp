@@ -90,8 +90,6 @@ void test_bdcsvd()
     CALL_SUBTEST_10(( compare_bdc_jacobi(MatrixXd(r,c)) ));
     CALL_SUBTEST_8((  bdcsvd(MatrixXcd(r,c)) ));
     CALL_SUBTEST_8((  compare_bdc_jacobi(MatrixXcd(r,c)) ));
-    (void) r;
-    (void) c;
 
     // Test on inf/nan matrix
     CALL_SUBTEST_7(  (svd_inf_nan<BDCSVD<MatrixXf>, MatrixXf>()) );

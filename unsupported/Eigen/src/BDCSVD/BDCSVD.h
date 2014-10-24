@@ -824,7 +824,7 @@ void BDCSVD<MatrixType>::perturbCol0
     zhat.setZero();
     return;
   }
-  Index last = last = perm(m-1);
+  Index last = perm(m-1);
   // The offset permits to skip deflated entries while computing zhat
   for (Index k = 0; k < n; ++k)
   {
