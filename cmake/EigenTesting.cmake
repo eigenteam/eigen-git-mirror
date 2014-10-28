@@ -294,6 +294,12 @@ macro(ei_testing_print_summary)
       message(STATUS "ARM NEON:          Using architecture defaults")
     endif()
 
+    if(EIGEN_TEST_NEON64)
+      message(STATUS "ARMv8 NEON:        ON")
+    else()
+      message(STATUS "ARMv8 NEON:        Using architecture defaults")
+    endif()
+
   endif() # vectorization / alignment options
 
   message(STATUS "\n${EIGEN_TESTING_SUMMARY}")
@@ -423,6 +429,8 @@ macro(ei_get_cxxflags VAR)
   set(${VAR} "")
   ei_is_64bit_env(IS_64BIT_ENV)
   if(EIGEN_TEST_NEON)
+    set(${VAR} NEON)
+  elseif(EIGEN_TEST_NEON64)
     set(${VAR} NEON)
   elseif(EIGEN_TEST_VSX)
     set(${VAR} VSX)
