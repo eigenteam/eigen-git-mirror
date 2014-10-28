@@ -371,7 +371,7 @@ template<typename T, int n, typename PlainObject = typename eval<T>::type> struc
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-T* const_cast_ptr(const T* ptr)
+inline T* const_cast_ptr(const T* ptr)
 {
   return const_cast<T*>(ptr);
 }
