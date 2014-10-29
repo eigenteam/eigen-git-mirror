@@ -84,6 +84,20 @@ struct traits<TensorMap<PlainObjectType, Options_> >
   };
 };
 
+template<typename PlainObjectType>
+struct traits<TensorRef<PlainObjectType> >
+  : public traits<PlainObjectType>
+{
+  typedef traits<PlainObjectType> BaseTraits;
+  typedef typename BaseTraits::Scalar Scalar;
+  typedef typename BaseTraits::StorageKind StorageKind;
+  typedef typename BaseTraits::Index Index;
+  enum {
+    Options = BaseTraits::Options,
+    Flags = ((BaseTraits::Flags | LvalueBit) & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
+  };
+};
+
 
 template<typename _Scalar, std::size_t NumIndices_, int Options>
 struct eval<Tensor<_Scalar, NumIndices_, Options>, Eigen::Dense>
@@ -121,6 +135,19 @@ struct eval<const TensorMap<PlainObjectType, Options>, Eigen::Dense>
   typedef const TensorMap<PlainObjectType, Options>& type;
 };
 
+template<typename PlainObjectType>
+struct eval<TensorRef<PlainObjectType>, Eigen::Dense>
+{
+  typedef const TensorRef<PlainObjectType>& type;
+};
+
+template<typename PlainObjectType>
+struct eval<const TensorRef<PlainObjectType>, Eigen::Dense>
+{
+  typedef const TensorRef<PlainObjectType>& type;
+};
+
+
 template <typename Scalar_, std::size_t NumIndices_, int Options_>
 struct nested<Tensor<Scalar_, NumIndices_, Options_>, 1, typename eval<Tensor<Scalar_, NumIndices_, Options_> >::type>
 {
@@ -145,6 +172,7 @@ struct nested<const TensorFixedSize<Scalar_, Dimensions, Options>, 1, typename e
   typedef const TensorFixedSize<Scalar_, Dimensions, Options>& type;
 };
 
+
 template <typename PlainObjectType, int Options>
 struct nested<TensorMap<PlainObjectType, Options>, 1, typename eval<TensorMap<PlainObjectType, Options> >::type>
 {
@@ -155,6 +183,18 @@ template <typename PlainObjectType, int Options>
 struct nested<const TensorMap<PlainObjectType, Options>, 1, typename eval<TensorMap<PlainObjectType, Options> >::type>
 {
   typedef const TensorMap<PlainObjectType, Options>& type;
+};
+
+template <typename PlainObjectType>
+struct nested<TensorRef<PlainObjectType>, 1, typename eval<TensorRef<PlainObjectType> >::type>
+{
+  typedef const TensorRef<PlainObjectType>& type;
+};
+
+template <typename PlainObjectType>
+struct nested<const TensorRef<PlainObjectType>, 1, typename eval<TensorRef<PlainObjectType> >::type>
+{
+  typedef const TensorRef<PlainObjectType>& type;
 };
 
 }  // end namespace internal

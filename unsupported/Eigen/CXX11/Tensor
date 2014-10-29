@@ -76,6 +76,8 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorFixedSize.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorMap.h"
 
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorRef.h"
+
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorIO.h"
 
 #include "Eigen/src/Core/util/ReenableStupidWarnings.h"
