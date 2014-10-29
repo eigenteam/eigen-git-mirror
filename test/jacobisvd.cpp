@@ -77,8 +77,8 @@ void test_jacobisvd()
   CALL_SUBTEST_7(( jacobisvd_verify_assert(MatrixXf(10,12)) ));
   CALL_SUBTEST_8(( jacobisvd_verify_assert(MatrixXcd(7,5)) ));
   
-  svd_all_trivial_2x2(jacobisvd<Matrix2cd>);
-  svd_all_trivial_2x2(jacobisvd<Matrix2d>);
+  CALL_SUBTEST_11(svd_all_trivial_2x2(jacobisvd<Matrix2cd>));
+  CALL_SUBTEST_12(svd_all_trivial_2x2(jacobisvd<Matrix2d>));
 
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_3(( jacobisvd<Matrix3f>() ));
