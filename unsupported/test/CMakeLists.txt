@@ -92,7 +92,6 @@ ei_add_test(splines)
 ei_add_test(gmres)
 ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
-ei_add_test(bdcsvd)
 ei_add_test(kronecker_product)
 
 option(EIGEN_TEST_CXX11 "Enable testing of C++11 features (e.g. Tensor module)." OFF)

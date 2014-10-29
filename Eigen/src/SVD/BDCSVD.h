@@ -514,6 +514,7 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
 //
 // TODO Opportunities for optimization: better root finding algo, better stopping criterion, better
 // handling of round-off errors, be consistent in ordering
+// For instance, to solve the secular equation using FMM, see http://www.stat.uchicago.edu/~lekheng/courses/302/classics/greengard-rokhlin.pdf
 template <typename MatrixType>
 void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, VectorType& singVals, MatrixXr& V)
 {
@@ -528,7 +529,10 @@ void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, Vec
   U.resize(n+1, n+1);
   if (m_compV) V.resize(n, n);
 
-  if (col0.hasNaN() || diag.hasNaN()) { std::cout << "\n\nHAS NAN\n\n"; return; }
+#ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
+  if (col0.hasNaN() || diag.hasNaN())
+    std::cout << "\n\nHAS NAN\n\n";
+#endif
   
   // Many singular values might have been deflated, the zero ones have been moved to the end,
   // but others are interleaved and we must ignore them at this stage.
@@ -544,7 +548,7 @@ void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, Vec
   
   ArrayXr shifts(n), mus(n), zhat(n);
 
-#ifdef EIGEN_BDCSVD_DEBUG_VERBOSE  
+#ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
   std::cout << "computeSVDofM using:\n";
   std::cout << "  z: " << col0.transpose() << "\n";
   std::cout << "  d: " << diag.transpose() << "\n";
@@ -1149,21 +1153,18 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
 }//end deflation
 
 
-  /** \svd_module
-   *
-   * \return the singular value decomposition of \c *this computed by 
-   *  BDC Algorithm
-   *
-   * \sa class BDCSVD
-   */
-/*
+/** \svd_module
+  *
+  * \return the singular value decomposition of \c *this computed by Divide & Conquer algorithm
+  *
+  * \sa class BDCSVD
+  */
 template<typename Derived>
 BDCSVD<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::bdcSvd(unsigned int computationOptions) const
 {
   return BDCSVD<PlainObject>(*this, computationOptions);
 }
-*/
 
 } // end namespace Eigen
 

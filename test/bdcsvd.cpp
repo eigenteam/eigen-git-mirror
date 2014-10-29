@@ -15,7 +15,7 @@
 #define EIGEN_RUNTIME_NO_MALLOC
 
 #include "main.h"
-#include <unsupported/Eigen/BDCSVD>
+#include <Eigen/SVD>
 #include <iostream>
 #include <Eigen/LU>
 
@@ -35,18 +35,18 @@ void bdcsvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
   CALL_SUBTEST(( svd_test_all_computation_options<BDCSVD<MatrixType> >(m, false)  ));
 }
 
-// template<typename MatrixType>
-// void bdcsvd_method()
-// {
-//   enum { Size = MatrixType::RowsAtCompileTime };
-//   typedef typename MatrixType::RealScalar RealScalar;
-//   typedef Matrix<RealScalar, Size, 1> RealVecType;
-//   MatrixType m = MatrixType::Identity();
-//   VERIFY_IS_APPROX(m.bdcSvd().singularValues(), RealVecType::Ones());
-//   VERIFY_RAISES_ASSERT(m.bdcSvd().matrixU());
-//   VERIFY_RAISES_ASSERT(m.bdcSvd().matrixV());
-//   VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).solve(m), m);
-// }
+template<typename MatrixType>
+void bdcsvd_method()
+{
+  enum { Size = MatrixType::RowsAtCompileTime };
+  typedef typename MatrixType::RealScalar RealScalar;
+  typedef Matrix<RealScalar, Size, 1> RealVecType;
+  MatrixType m = MatrixType::Identity();
+  VERIFY_IS_APPROX(m.bdcSvd().singularValues(), RealVecType::Ones());
+  VERIFY_RAISES_ASSERT(m.bdcSvd().matrixU());
+  VERIFY_RAISES_ASSERT(m.bdcSvd().matrixV());
+  VERIFY_IS_APPROX(m.bdcSvd(ComputeFullU|ComputeFullV).solve(m), m);
+}
 
 // compare the Singular values returned with Jacobi and Bdc
 template<typename MatrixType> 
@@ -97,8 +97,8 @@ void test_bdcsvd()
   }
 
   // test matrixbase method
-//   CALL_SUBTEST_1(( bdcsvd_method<Matrix2cd>() ));
-//   CALL_SUBTEST_3(( bdcsvd_method<Matrix3f>() ));
+  CALL_SUBTEST_1(( bdcsvd_method<Matrix2cd>() ));
+  CALL_SUBTEST_3(( bdcsvd_method<Matrix3f>() ));
 
   // Test problem size constructors
   CALL_SUBTEST_7( BDCSVD<MatrixXf>(10,10) );
