@@ -9,7 +9,6 @@
 
 #include "lapack_common.h"
 #include <Eigen/SVD>
-#include <unsupported/Eigen/BDCSVD>
 
 // computes the singular values/vectors a general M-by-N matrix A using divide-and-conquer
 EIGEN_LAPACK_FUNC(gesdd,(char *jobz, int *m, int* n, Scalar* a, int *lda, RealScalar *s, Scalar *u, int *ldu, Scalar *vt, int *ldvt, Scalar* /*work*/, int* lwork,
