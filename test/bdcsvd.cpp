@@ -22,7 +22,7 @@
 
 #define SVD_DEFAULT(M) BDCSVD<M>
 #define SVD_FOR_MIN_NORM(M) BDCSVD<M>
-#include "../../test/svd_common.h"
+#include "svd_common.h"
 
 // Check all variants of JacobiSVD
 template<typename MatrixType>
