@@ -251,7 +251,7 @@
 #endif
 
 #ifdef EIGEN_NO_DEBUG
-#define EIGEN_ONLY_USED_FOR_DEBUG(x) (void)x
+#define EIGEN_ONLY_USED_FOR_DEBUG(x) EIGEN_UNUSED_VARIABLE(x)
 #else
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
@@ -277,7 +277,7 @@
 // Suppresses 'unused variable' warnings.
 namespace Eigen {
   namespace internal {
-    template<typename T> void ignore_unused_variable(const T&) {}
+    template<typename T> EIGEN_DEVICE_FUNC void ignore_unused_variable(const T&) {}
   }
 }
 #define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
