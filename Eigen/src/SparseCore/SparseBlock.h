@@ -466,10 +466,8 @@ namespace internal {
     inline GenericSparseBlockInnerIteratorImpl& operator++()
     {
       // search next non-zero entry
-      while(m_outerPos<m_end)
+      while(++m_outerPos<m_end)
       {
-        m_outerPos++;
-        if(m_outerPos==m_end) break;
         typename XprType::InnerIterator it(m_block.m_matrix, m_outerPos);
         // search for the key m_innerIndex in the current outer-vector
         while(it && it.index() < m_innerIndex) ++it;
@@ -580,9 +578,8 @@ public:
   inline OuterVectorInnerIterator& operator++()
   {
     // search next non-zero entry
-    while(m_outerPos<m_end)
+    while(++m_outerPos<m_end)
     {
-      m_outerPos++;
       EvalIterator it(m_eval.m_argImpl, m_outerPos);
       // search for the key m_innerIndex in the current outer-vector
       while(it && it.index() < m_innerIndex) ++it;
