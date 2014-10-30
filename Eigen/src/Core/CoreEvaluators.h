@@ -859,7 +859,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
     Flags = (unsigned int)evaluator<ThenMatrixType>::Flags & evaluator<ElseMatrixType>::Flags & HereditaryBits
   };
 
-  EIGEN_DEVICE_FUNC  explicit evaluator(const XprType& select)
+  inline EIGEN_DEVICE_FUNC  explicit evaluator(const XprType& select)
     : m_conditionImpl(select.conditionMatrix()),
       m_thenImpl(select.thenMatrix()),
       m_elseImpl(select.elseMatrix())
@@ -868,7 +868,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
-  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
+  inline EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
     if (m_conditionImpl.coeff(row, col))
       return m_thenImpl.coeff(row, col);
@@ -876,7 +876,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
       return m_elseImpl.coeff(row, col);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
+  inline EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
     if (m_conditionImpl.coeff(index))
       return m_thenImpl.coeff(index);
