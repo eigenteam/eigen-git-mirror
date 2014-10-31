@@ -98,7 +98,6 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     for (int i = 0; i < NumDims; ++i) {
       m_dimensions[i] += m_padding[i].first + m_padding[i].second;
     }
-
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
     m_inputStrides[0] = 1;
     m_outputStrides[0] = 1;
@@ -125,6 +124,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
+    eigen_assert(index < dimensions().TotalSize());
     Index inputIndex = 0;
     for (int i = NumDims - 1; i > 0; --i) {
       const Index idx = index / m_outputStrides[i];
@@ -151,11 +151,11 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     const Index initialIndex = index;
     Index inputIndex = 0;
     for (int i = NumDims - 1; i > 0; --i) {
-      const int first = index;
-      const int last = index + packetSize - 1;
-      const int lastPaddedLeft = m_padding[i].first * m_outputStrides[i];
-      const int firstPaddedRight = (m_dimensions[i] - m_padding[i].second) * m_outputStrides[i];
-      const int lastPaddedRight = m_outputStrides[i+1];
+      const Index first = index;
+      const Index last = index + packetSize - 1;
+      const Index lastPaddedLeft = m_padding[i].first * m_outputStrides[i];
+      const Index firstPaddedRight = (m_dimensions[i] - m_padding[i].second) * m_outputStrides[i];
+      const Index lastPaddedRight = m_outputStrides[i+1];
 
       if (last < lastPaddedLeft) {
         // all the coefficient are in the padding zone.
@@ -179,9 +179,9 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
     const Index last = index + packetSize - 1;
     const Index first = index;
-    const int lastPaddedLeft = m_padding[0].first;
-    const int firstPaddedRight = (m_dimensions[0] - m_padding[0].second);
-    const int lastPaddedRight = m_outputStrides[1];
+    const Index lastPaddedLeft = m_padding[0].first;
+    const Index firstPaddedRight = (m_dimensions[0] - m_padding[0].second);
+    const Index lastPaddedRight = m_outputStrides[1];
 
     if (last < lastPaddedLeft) {
       // all the coefficient are in the padding zone.

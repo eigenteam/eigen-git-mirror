@@ -216,6 +216,21 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<double, double2>(double* to, c
   to[stride*1] = from.y;
 }
 
+template<> EIGEN_DEVICE_FUNC inline float  pfirst<float4>(const float4& a) {
+  return a.x;
+}
+template<> EIGEN_DEVICE_FUNC inline double pfirst<double2>(const double2& a) {
+  return a.x;
+}
+
+template<> EIGEN_DEVICE_FUNC inline float4  pabs<float4>(const float4& a) {
+  return make_float4(fabs(a.x), fabs(a.y), fabs(a.z), fabs(a.w));
+}
+template<> EIGEN_DEVICE_FUNC inline double2 pabs<double2>(const double2& a) {
+  return make_double2(abs(a.x), abs(a.y));
+}
+
+
 template<> EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<float4,4>& kernel) {
   double tmp = kernel.packet[0].y;
