@@ -213,7 +213,7 @@ public:
         {
           if((!SkipFirst) && Base::operator bool())
             Base::operator++();
-          m_returnOne = true;
+          m_returnOne = true; // FIXME check innerSize()>outer();
         }
       }
 
@@ -228,7 +228,7 @@ public:
           {
             if((!SkipFirst) && Base::operator bool())
               Base::operator++();
-            m_returnOne = true;
+            m_returnOne = true; // FIXME check innerSize()>outer();
           }
         }
         return *this;
