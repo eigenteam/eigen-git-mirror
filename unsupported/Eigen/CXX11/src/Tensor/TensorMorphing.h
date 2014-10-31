@@ -459,7 +459,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
       this->m_impl.template writePacket<StoreMode>(inputIndices[0], x);
     }
     else {
-      CoeffReturnType values[packetSize];
+      EIGEN_ALIGN_DEFAULT CoeffReturnType values[packetSize];
       internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
       this->m_impl.coeffRef(inputIndices[0]) = values[0];
       this->m_impl.coeffRef(inputIndices[1]) = values[packetSize-1];
