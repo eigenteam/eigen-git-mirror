@@ -387,7 +387,7 @@ static const size_t value = Sizes<Indices...>::count;
 };
  template <std::size_t n, typename std::size_t... Indices> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_get(const Sizes<Indices...>) {
   return get<n, typename Sizes<Indices...>::Base>::value;
-};
+}
 #else
 template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5> struct array_size<const Sizes<V1,V2,V3,V4,V5> > {
   static const size_t value = Sizes<V1,V2,V3,V4,V5>::count;
