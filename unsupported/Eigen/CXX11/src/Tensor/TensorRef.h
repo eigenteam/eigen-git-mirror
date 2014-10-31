@@ -64,7 +64,7 @@ class TensorLazyEvaluatorReadOnly : public TensorLazyBaseEvaluator<Dimensions, t
   virtual const Scalar coeff(DenseIndex index) const {
     return m_impl.coeff(index);
   }
-  virtual Scalar& coeffRef(DenseIndex index) {
+  virtual Scalar& coeffRef(DenseIndex) {
     eigen_assert(false && "can't reference the coefficient of a rvalue");
     return *reinterpret_cast<Scalar*>(dummy);
   };
