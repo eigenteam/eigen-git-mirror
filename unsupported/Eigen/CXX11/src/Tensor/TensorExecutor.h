@@ -149,26 +149,26 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 
 // GPU: the evaluation of the expression is offloaded to a GPU.
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
-template <typename Evaluator>
+template <typename Evaluator, typename Index>
 __global__ void
 __launch_bounds__(1024)
-EigenMetaKernel(Evaluator eval, unsigned int size) {
+ EigenMetaKernel(Evaluator eval, Index size) {
 
-  const int first_index = blockIdx.x * blockDim.x + threadIdx.x;
-  const int step_size = blockDim.x * gridDim.x;
+  const Index first_index = blockIdx.x * blockDim.x + threadIdx.x;
+  const Index step_size = blockDim.x * gridDim.x;
 
   if (!Evaluator::PacketAccess || !Evaluator::IsAligned) {
     // Use the scalar path
-    for (int i = first_index; i < size; i += step_size) {
+    for (Index i = first_index; i < size; i += step_size) {
       eval.evalScalar(i);
     }
   }
   else {
     // Use the vector path
-    const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
-    const int vectorized_step_size = step_size * PacketSize;
-    const int vectorized_size = (size / PacketSize) * PacketSize;
-    int i = first_index * PacketSize;
+    const Index PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
+    const Index vectorized_step_size = step_size * PacketSize;
+    const Index vectorized_size = (size / PacketSize) * PacketSize;
+    Index i = first_index * PacketSize;
     for ( ; i < vectorized_size; i += vectorized_step_size) {
       eval.evalPacket(i);
     }
@@ -193,7 +193,7 @@ class TensorExecutor<Expression, GpuDevice, Vectorizable>
       const int block_size = maxCudaThreadsPerBlock();
 
       const Index size = array_prod(evaluator.dimensions());
-      EigenMetaKernel<TensorEvaluator<Expression, GpuDevice> > <<<num_blocks, block_size, 0, device.stream()>>>(evaluator, size);
+      EigenMetaKernel<TensorEvaluator<Expression, GpuDevice>, Index><<<num_blocks, block_size, 0, device.stream()>>>(evaluator, size);
       assert(cudaGetLastError() == cudaSuccess);
     }
     evaluator.cleanup();
