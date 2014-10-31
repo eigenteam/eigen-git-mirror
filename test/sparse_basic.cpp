@@ -520,6 +520,32 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 }
 
 
+template<typename SparseMatrixType>
+void big_sparse_triplet(typename SparseMatrixType::Index rows, typename SparseMatrixType::Index cols, double density) {
+typedef typename SparseMatrixType::Index Index;
+typedef typename SparseMatrixType::Scalar Scalar;
+typedef Triplet<Scalar,Index> TripletType;
+std::vector<TripletType> triplets;
+double nelements = density * rows*cols;
+VERIFY(nelements>=0 && nelements <  NumTraits<Index>::highest());
+Index ntriplets = Index(nelements);
+triplets.reserve(ntriplets);
+Scalar sum = Scalar(0);
+for(Index i=0;i<ntriplets;++i)
+{
+  Index r = internal::random<Index>(0,rows-1);
+  Index c = internal::random<Index>(0,cols-1);
+  Scalar v = internal::random<Scalar>();
+  triplets.push_back(TripletType(r,c,v));
+  sum += v;
+}
+SparseMatrixType m(rows,cols);
+m.setFromTriplets(triplets.begin(), triplets.end());
+VERIFY(m.nonZeros() <= ntriplets);
+VERIFY_IS_APPROX(sum, m.sum());
+}
+
+
 void test_sparse_basic()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -539,4 +565,8 @@ void test_sparse_basic()
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,short int>(short(r), short(c))) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,short int>(short(r), short(c))) ));
   }
+
+  // Regression test for bug 900: (manually insert higher values here, if you have enough RAM):
+  CALL_SUBTEST_3((big_sparse_triplet<SparseMatrix<float, RowMajor, int> >(10000, 10000, 0.125)));
+  CALL_SUBTEST_4((big_sparse_triplet<SparseMatrix<double, ColMajor, long int> >(10000, 10000, 0.125)));
 }
