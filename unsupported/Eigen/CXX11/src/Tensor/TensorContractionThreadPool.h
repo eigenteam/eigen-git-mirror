@@ -93,7 +93,17 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       Base(op, device) {}
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  void evalTyped(Scalar* buffer) const {
+  void evalProduct(Scalar* buffer) const {
+    if (this->m_j_size == 1) {
+      this->template evalGemv<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
+      return;
+    }
+
+    evalGemm<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
+  }
+
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
+  void evalGemm(Scalar* buffer) const {
     // columns in left side, rows in right side
     const Index k = this->m_k_size;
 
