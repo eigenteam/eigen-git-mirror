@@ -49,7 +49,7 @@ typedef uint32x4_t  Packet4ui;
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i p4i_##NAME = pset1<Packet4i>(X)
 
-#if defined(__llvm__) && !defined(__clang__)
+#if EIGEN_COMP_LLVM && !EIGEN_COMP_CLANG
   //Special treatment for Apple's llvm-gcc, its NEON packet types are unions
   #define EIGEN_INIT_NEON_PACKET2(X, Y)       {{X, Y}}
   #define EIGEN_INIT_NEON_PACKET4(X, Y, Z, W) {{X, Y, Z, W}}
@@ -62,11 +62,11 @@ typedef uint32x4_t  Packet4ui;
 
 // arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
 // which available on LLVM and GCC (at least)
-#if EIGEN_HAS_BUILTIN(__builtin_prefetch) || defined(__GNUC__)
+#if EIGEN_HAS_BUILTIN(__builtin_prefetch) || EIGEN_COMP_GNUC
   #define EIGEN_ARM_PREFETCH(ADDR) __builtin_prefetch(ADDR);
 #elif defined __pld
   #define EIGEN_ARM_PREFETCH(ADDR) __pld(ADDR)
-#elif !defined(__aarch64__)
+#elif !EIGEN_ARCH_ARM64
   #define EIGEN_ARM_PREFETCH(ADDR) __asm__ __volatile__ ( "   pld [%[addr]]\n" :: [addr] "r" (ADDR) : "cc" );
 #else
   // by default no explicit prefetching
@@ -105,7 +105,7 @@ template<> struct packet_traits<int>    : default_packet_traits
   };
 };
 
-#if EIGEN_GNUC_AT_MOST(4,4) && !defined(__llvm__)
+#if EIGEN_GNUC_AT_MOST(4,4) && !EIGEN_COMP_LLVM
 // workaround gcc 4.2, 4.3 and 4.4 compilatin issue
 EIGEN_STRONG_INLINE float32x4_t vld1q_f32(const float* x) { return ::vld1q_f32((const float32_t*)x); }
 EIGEN_STRONG_INLINE float32x2_t vld1_f32 (const float* x) { return ::vld1_f32 ((const float32_t*)x); }
@@ -148,7 +148,9 @@ template<> EIGEN_STRONG_INLINE Packet4i pmul<Packet4i>(const Packet4i& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
-#ifndef __aarch64__
+#if EIGEN_ARCH_ARM64
+  return vdivq_f32(a,b);
+#else
   Packet4f inv, restep, div;
 
   // NEON does not offer a divide instruction, we have to do a reciprocal approximation
@@ -167,8 +169,6 @@ template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const 
   div = vmulq_f32(a, inv);
 
   return div;
-#else
-  return vdivq_f32(a,b);
 #endif
 }
 
@@ -490,7 +490,7 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
 }
 
 //---------- double ----------
-#ifdef __aarch64__
+#if EIGEN_ARCH_ARM64
 
 typedef float64x2_t Packet2d;
 typedef float64x1_t Packet1d;
@@ -646,7 +646,7 @@ ptranspose(PacketBlock<Packet2d,2>& kernel) {
   kernel.packet[0] = trn1;
   kernel.packet[1] = trn2;
 }
-#endif // __aarch64__ 
+#endif // EIGEN_ARCH_ARM64 
 
 } // end namespace internal
 

@@ -473,7 +473,7 @@ public:
     return internal::transform_transform_product_impl<Transform,Transform>::run(*this,other);
   }
   
-  #ifdef __INTEL_COMPILER
+  #if EIGEN_COMP_ICC
 private:
   // this intermediate structure permits to workaround a bug in ICC 11:
   //   error: template instantiation resulted in unexpected function type of "Eigen::Transform<double, 3, 32, 0>

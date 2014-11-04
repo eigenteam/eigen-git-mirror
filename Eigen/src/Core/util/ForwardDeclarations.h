@@ -55,7 +55,7 @@ class DenseCoeffsBase;
 
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = AutoAlign |
-#if defined(__GNUC__) && __GNUC__==3 && __GNUC_MINOR__==4
+#if EIGEN_GNUC_AT(3,4)
     // workaround a bug in at least gcc 3.4.6
     // the innermost ?: ternary operator is misparsed. We write it slightly
     // differently and this makes gcc 3.4.6 happy, but it's ugly.
@@ -221,7 +221,7 @@ struct IOFormat;
 // Array module
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = AutoAlign |
-#if defined(__GNUC__) && __GNUC__==3 && __GNUC_MINOR__==4
+#if EIGEN_GNUC_AT(3,4)
     // workaround a bug in at least gcc 3.4.6
     // the innermost ?: ternary operator is misparsed. We write it slightly
     // differently and this makes gcc 3.4.6 happy, but it's ugly.

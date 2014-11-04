@@ -247,7 +247,7 @@ template<typename Derived> class MatrixBase
 
     // Note: The "MatrixBase::" prefixes are added to help MSVC9 to match these declarations with the later implementations.
     // On the other hand they confuse MSVC8...
-    #if (defined _MSC_VER) && (_MSC_VER >= 1500) // 2008 or later
+    #if EIGEN_COMP_MSVC >= 1500 // 2008 or later
     typename MatrixBase::template DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
     typename MatrixBase::template ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
     #else

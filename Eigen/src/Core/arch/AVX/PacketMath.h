@@ -135,7 +135,7 @@ template<> EIGEN_STRONG_INLINE Packet8i pdiv<Packet8i>(const Packet8i& /*a*/, co
 
 #ifdef EIGEN_VECTORIZE_FMA
 template<> EIGEN_STRONG_INLINE Packet8f pmadd(const Packet8f& a, const Packet8f& b, const Packet8f& c) {
-#if defined(__clang__) || defined(__GNUC__)
+#if EIGEN_COMP_GNUC || EIGEN_COMP_CLANG
   // clang stupidly generates a vfmadd213ps instruction plus some vmovaps on registers,
   // and gcc stupidly generates a vfmadd132ps instruction,
   // so let's enforce it to generate a vfmadd231ps instruction since the most common use case is to accumulate
@@ -148,7 +148,7 @@ template<> EIGEN_STRONG_INLINE Packet8f pmadd(const Packet8f& a, const Packet8f&
 #endif
 }
 template<> EIGEN_STRONG_INLINE Packet4d pmadd(const Packet4d& a, const Packet4d& b, const Packet4d& c) {
-#if defined(__clang__) || defined(__GNUC__)
+#if EIGEN_COMP_GNUC || EIGEN_COMP_CLANG
   // see above
   Packet4d res = c;
   __asm__("vfmadd231pd %[a], %[b], %[c]" : [c] "+x" (res) : [a] "x" (a), [b] "x" (b));

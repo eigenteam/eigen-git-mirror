@@ -272,7 +272,7 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
 }
 
 //---------- double ----------
-#ifdef __aarch64__
+#if EIGEN_ARCH_ARM64
 
 static uint64x2_t p2ul_CONJ_XOR = EIGEN_INIT_NEON_PACKET2(0x0, 0x8000000000000000);
 
@@ -457,7 +457,7 @@ EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet1cd,2>& kernel)
   kernel.packet[0].v = vcombine_f64(vget_low_f64(kernel.packet[0].v), vget_low_f64(kernel.packet[1].v));
   kernel.packet[1].v = tmp;
 }
-#endif // __aarch64__
+#endif // EIGEN_ARCH_ARM64
 
 } // end namespace internal
 

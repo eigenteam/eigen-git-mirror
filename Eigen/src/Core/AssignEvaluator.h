@@ -339,7 +339,7 @@ struct unaligned_dense_assignment_loop<false>
   // MSVC must not inline this functions. If it does, it fails to optimize the
   // packet access path.
   // FIXME check which version exhibits this issue
-#ifdef _MSC_VER
+#if EIGEN_COMP_MSVC
   template <typename Kernel>
   static EIGEN_DONT_INLINE void run(Kernel &kernel,
                                     typename Kernel::Index start,

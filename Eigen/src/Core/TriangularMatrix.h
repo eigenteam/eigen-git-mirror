@@ -268,7 +268,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     { return Solve<TriangularView, Other>(*this, other.derived()); }
     
   // workaround MSVC ICE
-  #ifdef _MSC_VER
+  #if EIGEN_COMP_MSVC
     template<int Side, typename Other>
     EIGEN_DEVICE_FUNC
     inline const internal::triangular_solve_retval<Side,TriangularView, Other>

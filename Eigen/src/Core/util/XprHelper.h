@@ -14,7 +14,7 @@
 // just a workaround because GCC seems to not really like empty structs
 // FIXME: gcc 4.3 generates bad code when strict-aliasing is enabled
 // so currently we simply disable this optimization for gcc 4.3
-#if (defined __GNUG__) && !((__GNUC__==4) && (__GNUC_MINOR__==3))
+#if EIGEN_COMP_GNUC && !EIGEN_GNUC_AT(4,3)
   #define EIGEN_EMPTY_STRUCT_CTOR(X) \
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE X() {} \
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE X(const X& ) {}

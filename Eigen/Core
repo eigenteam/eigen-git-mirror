@@ -57,7 +57,7 @@
 
 // Disable the ipa-cp-clone optimization flag with MinGW 6.x or newer (enabled by default with -O3)
 // See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=556 for details.
-#if defined(__MINGW32__) && EIGEN_GNUC_AT_LEAST(4,6)
+#if EIGEN_COMP_MINGW && EIGEN_GNUC_AT_LEAST(4,6)
   #pragma GCC optimize ("-fno-ipa-cp-clone")
 #endif
 
@@ -75,18 +75,18 @@
   #endif
 #endif
 
-#ifdef _MSC_VER
+#if EIGEN_COMP_MSVC
   #include <malloc.h> // for _aligned_malloc -- need it regardless of whether vectorization is enabled
-  #if (_MSC_VER >= 1500) // 2008 or later
+  #if (EIGEN_COMP_MSVC >= 1500) // 2008 or later
     // Remember that usage of defined() in a #define is undefined by the standard.
     // a user reported that in 64-bit mode, MSVC doesn't care to define _M_IX86_FP.
-    #if (defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || defined(_M_X64)
+    #if (defined(_M_IX86_FP) && (_M_IX86_FP >= 2)) || EIGEN_ARCH_x86_64
       #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
     #endif
   #endif
 #else
   // Remember that usage of defined() in a #define is undefined by the standard
-  #if (defined __SSE2__) && ( (!defined __GNUC__) || (defined __INTEL_COMPILER) || EIGEN_GNUC_AT_LEAST(4,2) )
+  #if (defined __SSE2__) && ( (!EIGEN_COMP_GNUC) || EIGEN_COMP_ICC || EIGEN_GNUC_AT_LEAST(4,2) )
     #define EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC
   #endif
 #endif
@@ -140,7 +140,7 @@
     extern "C" {
       // In theory we should only include immintrin.h and not the other *mmintrin.h header files directly.
       // Doing so triggers some issues with ICC. However old gcc versions seems to not have this file, thus:
-      #if defined(__INTEL_COMPILER) && __INTEL_COMPILER >= 1110
+      #if EIGEN_COMP_ICC >= 1110
         #include <immintrin.h>
       #else
         #include <emmintrin.h>
@@ -196,7 +196,7 @@
 #endif
 
 // MSVC for windows mobile does not have the errno.h file
-#if !(defined(_MSC_VER) && defined(_WIN32_WCE)) && !defined(__ARMCC_VERSION)
+#if !(EIGEN_COMP_MSVC && EIGEN_OS_WINCE) && !EIGEN_COMP_ARM
 #define EIGEN_HAS_ERRNO
 #endif
 
@@ -222,7 +222,7 @@
 #endif
 
 // required for __cpuid, needs to be included after cmath
-#if defined(_MSC_VER) && (defined(_M_IX86)||defined(_M_X64)) && (!defined(_WIN32_WCE))
+#if EIGEN_COMP_MSVC && EIGEN_ARCH_i386_OR_x86_64 && !EIGEN_OS_WINCE
   #include <intrin.h>
 #endif
 

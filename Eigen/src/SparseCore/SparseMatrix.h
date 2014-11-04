@@ -274,7 +274,7 @@ class SparseMatrix
     }
     template<class SizesType>
     inline void reserve(const SizesType& reserveSizes, const typename SizesType::Scalar& enableif =
-    #if (!defined(_MSC_VER)) || (_MSC_VER>=1500) // MSVC 2005 fails to compile with this typename
+    #if (!EIGEN_COMP_MSVC) || (EIGEN_COMP_MSVC>=1500) // MSVC 2005 fails to compile with this typename
         typename
     #endif
         SizesType::Scalar())

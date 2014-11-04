@@ -28,7 +28,7 @@ namespace internal {
 #endif
 #endif
 
-#if defined EIGEN_VECTORIZE_AVX && defined __GNUC__ && !(defined __clang__ || defined __INTEL_COMPILER)
+#if defined EIGEN_VECTORIZE_AVX && EIGEN_COMP_GNUC_STRICT
 // With GCC's default ABI version, a __m128 or __m256 are the same types and therefore we cannot
 // have overloads for both types without linking error.
 // One solution is to increase ABI version using -fabi-version=4 (or greater).
@@ -143,7 +143,7 @@ template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}
 template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2}; typedef Packet2d half; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; typedef Packet4i half; };
 
-#if defined(_MSC_VER) && (_MSC_VER==1500)
+#if EIGEN_COMP_MSVC==1500
 // Workaround MSVC 9 internal compiler error.
 // TODO: It has been detected with win64 builds (amd64), so let's check whether it also happens in 32bits+SSE mode
 // TODO: let's check whether there does not exist a better fix, like adding a pset0() function. (it crashed on pset1(0)).
@@ -161,7 +161,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { re
 // Using inline assembly is also not an option because then gcc fails to reorder properly the instructions.
 // Therefore, we introduced the pload1 functions to be used in product kernels for which bug 203 does not apply.
 // Also note that with AVX, we want it to generate a vbroadcastss.
-#if (defined __GNUC__) && (!defined __INTEL_COMPILER) && (!defined __clang__) && (!defined __AVX__)
+#if EIGEN_COMP_GNUC_STRICT && (!defined __AVX__)
 template<> EIGEN_STRONG_INLINE Packet4f pload1<Packet4f>(const float *from) {
   return vec4f_swizzle1(_mm_load_ss(from),0,0,0,0);
 }
@@ -278,10 +278,10 @@ template<> EIGEN_STRONG_INLINE Packet4f pload<Packet4f>(const float*   from) { E
 template<> EIGEN_STRONG_INLINE Packet2d pload<Packet2d>(const double*  from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const __m128i*>(from)); }
 
-#if defined(_MSC_VER)
+#if EIGEN_COMP_MSVC
   template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float*  from) {
     EIGEN_DEBUG_UNALIGNED_LOAD
-    #if (_MSC_VER==1600)
+    #if (EIGEN_COMP_MSVC==1600)
     // NOTE Some version of MSVC10 generates bad code when using _mm_loadu_ps
     // (i.e., it does not generate an unaligned load!!
     // TODO On most architectures this version should also be faster than a single _mm_loadu_ps
@@ -303,11 +303,11 @@ template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { E
 // TODO: do the same for MSVC (ICC is compatible)
 // NOTE: with the code below, MSVC's compiler crashes!
 
-#if defined(__GNUC__) && (defined(__i386__) || (defined(__x86_64) && EIGEN_GNUC_AT_LEAST(4, 8)))
+#if EIGEN_COMP_GNUC && (EIGEN_ARCH_i386 || (EIGEN_ARCH_x86_64 && EIGEN_GNUC_AT_LEAST(4, 8)))
   // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 1
   #define EIGEN_AVOID_CUSTOM_UNALIGNED_STORES 1
-#elif defined(__clang__)
+#elif EIGEN_COMP_CLANG
   // bug 201: Segfaults in __mm_loadh_pd with clang 2.8
   #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 1
   #define EIGEN_AVOID_CUSTOM_UNALIGNED_STORES 0
@@ -435,13 +435,13 @@ template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_p
 template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 #endif
 
-#if defined(_MSC_VER) && defined(_WIN64) && !defined(__INTEL_COMPILER)
+#if EIGEN_COMP_MSVC_STRICT && EIGEN_OS_WIN64
 // The temporary variable fixes an internal compilation error in vs <= 2008 and a wrong-result bug in vs 2010
 // Direct of the struct members fixed bug #62.
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { return a.m128_f32[0]; }
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { return a.m128d_f64[0]; }
 template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int x = _mm_cvtsi128_si32(a); return x; }
-#elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+#elif EIGEN_COMP_MSVC_STRICT
 // The temporary variable fixes an internal compilation error in vs <= 2008 and a wrong-result bug in vs 2010
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float x = _mm_cvtss_f32(a); return x; }
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { double x = _mm_cvtsd_f64(a); return x; }
@@ -676,7 +676,7 @@ template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
 #endif // EIGEN_VECTORIZE_SSE4_1
 }
 
-#if (defined __GNUC__)
+#if EIGEN_COMP_GNUC
 // template <> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f&  a, const Packet4f&  b, const Packet4f&  c)
 // {
 //   Packet4f res = b;
