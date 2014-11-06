@@ -40,10 +40,6 @@ template <typename Index> struct IndexPair {
 // Boilerplate code
 namespace internal {
 
-template<std::size_t n, typename Dimension> struct dget {
-  static const std::size_t value = get<n, typename Dimension::Base>::value;
-};
-
 
 template<typename Index, std::size_t NumIndices, std::size_t n, bool RowMajor>
 struct fixed_size_tensor_index_linearization_helper
@@ -53,7 +49,7 @@ struct fixed_size_tensor_index_linearization_helper
                           const Dimensions& dimensions)
   {
     return array_get<RowMajor ? n : (NumIndices - n - 1)>(indices) +
-        dget<RowMajor ? n : (NumIndices - n - 1), Dimensions>::value *
+        get<RowMajor ? n : (NumIndices - n - 1), Dimensions>::value *
         fixed_size_tensor_index_linearization_helper<Index, NumIndices, n - 1, RowMajor>::run(indices, dimensions);
   }
 };
@@ -125,7 +121,7 @@ struct non_zero_size<0> {
   typedef internal::null_type type;
 };
 
-template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0, std::size_t V5=0> struct Sizes {
+template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0, std::size_t V5=0> struct Sizes : typename internal::make_type_list<typename non_zero_size<V1>::type, typename non_zero_size<V2>::type, typename non_zero_size<V3>::type, typename non_zero_size<V4>::type, typename non_zero_size<V5>::type >::type {
   typedef typename internal::make_type_list<typename non_zero_size<V1>::type, typename non_zero_size<V2>::type, typename non_zero_size<V3>::type, typename non_zero_size<V4>::type, typename non_zero_size<V5>::type >::type Base;
   static const size_t count = Base::count;
   static const std::size_t total_size = internal::arg_prod<Base>::value;
@@ -164,11 +160,11 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfColMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *this);
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *static_cast<Base*>(this));
   }
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfRowMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *this);
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *static_cast<Base*>(this));
   }
 };
 
