@@ -41,9 +41,15 @@ template<typename MatrixType> void swap(const MatrixType& m)
   OtherMatrixType m3_copy = m3;
   
   // test swapping 2 matrices of same type
+  Scalar *d1=m1.data(), *d2=m2.data();
   m1.swap(m2);
   VERIFY_IS_APPROX(m1,m2_copy);
   VERIFY_IS_APPROX(m2,m1_copy);
+  if(MatrixType::SizeAtCompileTime==Dynamic)
+  {
+    VERIFY(m1.data()==d2);
+    VERIFY(m2.data()==d1);
+  }
   m1 = m1_copy;
   m2 = m2_copy;
   

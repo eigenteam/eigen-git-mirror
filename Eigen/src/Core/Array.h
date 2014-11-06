@@ -258,13 +258,6 @@ class Array
       *this = other;
     }
 
-    /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
-      * data pointers.
-      */
-    template<typename OtherDerived>
-    void swap(ArrayBase<OtherDerived> const & other)
-    { this->_swap(other.derived()); }
-
     EIGEN_DEVICE_FUNC inline Index innerStride() const { return 1; }
     EIGEN_DEVICE_FUNC inline Index outerStride() const { return this->innerSize(); }
 

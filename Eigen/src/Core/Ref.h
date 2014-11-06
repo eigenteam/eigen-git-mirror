@@ -208,7 +208,7 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
     {
       EIGEN_STATIC_ASSERT(bool(internal::is_lvalue<Derived>::value), THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
       EIGEN_STATIC_ASSERT(bool(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
-      enum { THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY = Derived::ThisConstantIsPrivateInPlainObjectBase};
+      EIGEN_STATIC_ASSERT(!Derived::IsPlainObjectBase,THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
       Base::construct(expr.const_cast_derived());
     }
 

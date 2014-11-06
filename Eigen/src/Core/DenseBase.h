@@ -167,7 +167,7 @@ template<typename Derived> class DenseBase
       OuterStrideAtCompileTime = internal::outer_stride_at_compile_time<Derived>::ret
     };
 
-    enum { ThisConstantIsPrivateInPlainObjectBase };
+    enum { IsPlainObjectBase = 0 };
 
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
@@ -380,9 +380,9 @@ template<typename Derived> class DenseBase
       */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    void swap(const DenseBase<OtherDerived>& other,
-              int = OtherDerived::ThisConstantIsPrivateInPlainObjectBase)
+    void swap(const DenseBase<OtherDerived>& other)
     {
+      EIGEN_STATIC_ASSERT(!OtherDerived::IsPlainObjectBase,THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
       eigen_assert(rows()==other.rows() && cols()==other.cols());
       call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
     }

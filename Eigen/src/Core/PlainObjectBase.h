@@ -795,23 +795,33 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     {
       Base::setConstant(val0);
     }
-
+    
     template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>
     friend struct internal::matrix_swap_impl;
 
-    /** \internal generic implementation of swap for dense storage since for dynamic-sized matrices of same type it is enough to swap the
-      * data pointers.
+  public:
+    
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+    /** \internal
+      * \brief Override DenseBase::swap() since for dynamic-sized matrices
+      * of same type it is enough to swap the data pointers.
       */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    void _swap(DenseBase<OtherDerived> const & other)
+    void swap(DenseBase<OtherDerived> & other)
     {
       enum { SwapPointers = internal::is_same<Derived, OtherDerived>::value && Base::SizeAtCompileTime==Dynamic };
-      internal::matrix_swap_impl<Derived, OtherDerived, bool(SwapPointers)>::run(this->derived(), other.const_cast_derived());
+      internal::matrix_swap_impl<Derived, OtherDerived, bool(SwapPointers)>::run(this->derived(), other.derived());
     }
-
-  public:
-#ifndef EIGEN_PARSED_BY_DOXYGEN
+    
+    /** \internal
+      * \brief const version forwarded to DenseBase::swap
+      */
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    void swap(DenseBase<OtherDerived> const & other)
+    { Base::swap(other.derived()); }
+    
     EIGEN_DEVICE_FUNC 
     static EIGEN_STRONG_INLINE void _check_template_params()
     {
@@ -826,10 +836,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                         && (Options & (DontAlign|RowMajor)) == Options),
         INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }
-#endif
 
-private:
-    enum { ThisConstantIsPrivateInPlainObjectBase };
+    enum { IsPlainObjectBase = 1 };
+#endif
 };
 
 namespace internal {
