@@ -59,6 +59,7 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorContractionThreadPool.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorConvolution.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorPatch.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorImagePatch.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorBroadcasting.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorChipping.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorMorphing.h"

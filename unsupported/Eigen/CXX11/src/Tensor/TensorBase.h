@@ -255,6 +255,19 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorPatchOp<const PatchDims, const Derived>(derived(), patch_dims);
     }
 
+    template <Index Rows, Index Cols> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorImagePatchOp<Rows, Cols, const Derived>
+    extract_image_patches() const {
+      return TensorImagePatchOp<Rows, Cols, const Derived>(derived(), Rows, Cols, 1, 1);
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorImagePatchOp<Dynamic, Dynamic, const Derived>
+    extract_image_patches(const Index patch_rows, const Index patch_cols,
+                          const Index row_stride = 1, const Index col_stride = 1) const {
+      return TensorImagePatchOp<Dynamic, Dynamic, const Derived>(derived(), patch_rows, patch_cols, row_stride, col_stride);
+    }
+
     // Morphing operators.
     template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorReshapingOp<const NewDimensions, const Derived>

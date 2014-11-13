@@ -27,6 +27,7 @@ template<typename Axis, typename LeftXprType, typename RightXprType> class Tenso
 template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename PatchDim, typename XprType> class TensorPatchOp;
+template<DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorImagePatchOp;
 template<typename Broadcast, typename XprType> class TensorBroadcastingOp;
 template<std::size_t DimId, typename XprType> class TensorChippingOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;
