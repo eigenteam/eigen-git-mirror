@@ -110,7 +110,7 @@ struct tuple_coeff<0> {
     update_value(std::get<0>(t), value);
   }
   template <typename... T>
-  static constexpr bool value_known_statically(const DenseIndex i, const std::tuple<T...>& t) {
+  static constexpr bool value_known_statically(const DenseIndex i, const std::tuple<T...>&) {
     //    eigen_assert (i == 0);  // gcc fails to compile assertions in constexpr
     return is_compile_time_constant<typename std::tuple_element<0, std::tuple<T...> >::type>::value & (i == 0);
   }
@@ -190,7 +190,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_eq<IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        IndexList<FirstType, OtherTypes...>()[i] == value;
+        (IndexList<FirstType, OtherTypes...>()[i] == value);
   }
 };
 
@@ -198,7 +198,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_eq<const IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        IndexList<FirstType, OtherTypes...>()[i] == value;
+        (IndexList<FirstType, OtherTypes...>()[i] == value);
   }
 };
 
@@ -213,7 +213,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_ne<IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        IndexList<FirstType, OtherTypes...>()[i] != value;
+        (IndexList<FirstType, OtherTypes...>()[i] != value);
   }
 };
 
@@ -221,7 +221,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_ne<const IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        IndexList<FirstType, OtherTypes...>()[i] != value;
+        (IndexList<FirstType, OtherTypes...>()[i] != value);
   }
 };
 

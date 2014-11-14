@@ -30,7 +30,6 @@ struct traits<TensorBroadcastingOp<Broadcast, XprType> > : public traits<XprType
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
   typedef typename remove_reference<Nested>::type _Nested;
-  static const int NumDimensions = XprTraits::NumDimensions;
 };
 
 template<typename Broadcast, typename XprType>

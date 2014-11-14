@@ -848,8 +848,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     const Index kc = blocking.kc();
     const Index mc = (std::min)(m, blocking.mc());
     const Index nc = (std::min)(n, blocking.nc());
-    int sizeA = mc * kc;
-    int sizeB = kc * nc;
+    const Index sizeA = mc * kc;
+    const Index sizeB = kc * nc;
 
     LhsScalar* blockA = static_cast<LhsScalar *>(this->m_device.allocate(sizeA * sizeof(LhsScalar)));
     RhsScalar* blockB = static_cast<RhsScalar *>(this->m_device.allocate(sizeB * sizeof(RhsScalar)));
