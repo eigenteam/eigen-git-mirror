@@ -168,11 +168,10 @@ __launch_bounds__(1024)
     const Index PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
     const Index vectorized_step_size = step_size * PacketSize;
     const Index vectorized_size = (size / PacketSize) * PacketSize;
-    Index i = first_index * PacketSize;
-    for ( ; i < vectorized_size; i += vectorized_step_size) {
+    for (Index i = first_index * PacketSize; i < vectorized_size; i += vectorized_step_size) {
       eval.evalPacket(i);
     }
-    for ( ; i < size; i += step_size) {
+    for (Index i = vectorized_size + first_index; i < size; i += step_size) {
       eval.evalScalar(i);
     }
   }
