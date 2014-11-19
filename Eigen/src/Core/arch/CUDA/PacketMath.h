@@ -223,6 +223,27 @@ template<> EIGEN_DEVICE_FUNC inline double pfirst<double2>(const double2& a) {
   return a.x;
 }
 
+template<> EIGEN_DEVICE_FUNC inline float  predux<float4>(const float4& a) {
+  return a.x + a.y + a.z + a.w;
+}
+template<> EIGEN_DEVICE_FUNC inline double predux<double2>(const double2& a) {
+  return a.x + a.y;
+}
+
+template<> EIGEN_DEVICE_FUNC inline float  predux_max<float4>(const float4& a) {
+  return fmaxf(fmaxf(a.x, a.y), fmaxf(a.z, a.w));
+}
+template<> EIGEN_DEVICE_FUNC inline double predux_max<double2>(const double2& a) {
+  return fmax(a.x, a.y);
+}
+
+template<> EIGEN_DEVICE_FUNC inline float  predux_min<float4>(const float4& a) {
+  return fminf(fminf(a.x, a.y), fminf(a.z, a.w));
+}
+template<> EIGEN_DEVICE_FUNC inline double predux_min<double2>(const double2& a) {
+  return fmin(a.x, a.y);
+}
+
 template<> EIGEN_DEVICE_FUNC inline float4  pabs<float4>(const float4& a) {
   return make_float4(fabs(a.x), fabs(a.y), fabs(a.z), fabs(a.w));
 }
