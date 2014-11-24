@@ -16,21 +16,31 @@ add_custom_target(blas)
 
 set(EigenBlas_SRCS single.cpp double.cpp complex_single.cpp complex_double.cpp xerbla.cpp)
 
-if(EIGEN_Fortran_COMPILER_WORKS)
-
-set(EigenBlas_SRCS ${EigenBlas_SRCS}
-    complexdots.f
-    srotm.f srotmg.f drotm.f drotmg.f
-    lsame.f  dspmv.f ssbmv.f
-    chbmv.f  sspmv.f
-    zhbmv.f  chpmv.f dsbmv.f
-    zhpmv.f
-    dtbmv.f stbmv.f ctbmv.f ztbmv.f
-)
+if(EIGEN_USE_F2C_BLAS)
+  set(EigenBlas_SRCS ${EigenBlas_SRCS}
+    f2c/complexdots.c
+    f2c/srotm.c f2c/srotmg.c f2c/drotm.c f2c/drotmg.c
+    f2c/lsame.c  f2c/dspmv.c f2c/ssbmv.c
+    f2c/chbmv.c  f2c/sspmv.c
+    f2c/zhbmv.c  f2c/chpmv.c f2c/dsbmv.c
+    f2c/zhpmv.c
+    f2c/dtbmv.c f2c/stbmv.c f2c/ctbmv.c f2c/ztbmv.c
+    f2c/d_cnjg.c f2c/r_cnjg.c
+    )
 else()
-
-message(WARNING " No fortran compiler has been detected, the blas build will be incomplete.")
-
+  if (EIGEN_Fortran_COMPILER_WORKS)
+    set(EigenBlas_SRCS ${EigenBlas_SRCS}
+      fortran/complexdots.f
+      fortran/srotm.f fortran/srotmg.f fortran/drotm.f fortran/drotmg.f
+      fortran/lsame.f  fortran/dspmv.f fortran/ssbmv.f
+      fortran/chbmv.f  fortran/sspmv.f
+      fortran/zhbmv.f  fortran/chpmv.f fortran/dsbmv.f
+      fortran/zhpmv.f
+      fortran/dtbmv.f fortran/stbmv.f fortran/ctbmv.f fortran/ztbmv.f
+      )
+  else()
+    message(WARNING " No Fortran compiler has been detected, the blas build will be incomplete. Define EIGEN_USE_F2C_BLAS to build BLAS without Fortran")
+  endif()
 endif()
 
 add_library(eigen_blas_static ${EigenBlas_SRCS})
