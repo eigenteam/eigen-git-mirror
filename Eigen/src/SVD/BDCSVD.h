@@ -1152,7 +1152,7 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
 #endif
 }//end deflation
 
-
+#ifndef __CUDACC__
 /** \svd_module
   *
   * \return the singular value decomposition of \c *this computed by Divide & Conquer algorithm
@@ -1165,6 +1165,7 @@ MatrixBase<Derived>::bdcSvd(unsigned int computationOptions) const
 {
   return BDCSVD<PlainObject>(*this, computationOptions);
 }
+#endif
 
 } // end namespace Eigen
 
