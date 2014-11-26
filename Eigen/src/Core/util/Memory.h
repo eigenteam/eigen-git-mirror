@@ -614,7 +614,6 @@ template<typename T> class aligned_stack_memory_handler
       void* operator new(size_t size, const std::nothrow_t&) throw() { \
         try { return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); } \
         catch (...) { return 0; } \
-        return 0; \
       }
   #else
     #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
