@@ -185,7 +185,7 @@ class CoeffBasedProduct
     {
       PacketScalar res;
       internal::product_packet_impl<Flags&RowMajorBit ? RowMajor : ColMajor,
-                              Unroll ? InnerSize-1 : Dynamic,
+                              Unroll ? (InnerSize==0 ? 0 : InnerSize-1) : Dynamic,
                               _LhsNested, _RhsNested, PacketScalar, LoadMode>
         ::run(row, col, m_lhs, m_rhs, res);
       return res;
