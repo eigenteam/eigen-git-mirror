@@ -114,6 +114,33 @@ template<typename Scalar> void lines()
   }
 }
 
+template<typename Scalar> void planes()
+{
+  using std::abs;
+  typedef Hyperplane<Scalar, 3> Plane;
+  typedef Matrix<Scalar,3,1> Vector;
+  typedef Matrix<Scalar,4,1> CoeffsType;
+
+  for(int i = 0; i < 10; i++)
+  {
+    Vector v0 = Vector::Random();
+    Vector v1(v0), v2(v0);
+    if(internal::random<double>(0,1)>0.25)
+      v1 += Vector::Random();
+    if(internal::random<double>(0,1)>0.25)
+      v2 += v1 * std::pow(internal::random<Scalar>(0,1),internal::random<int>(1,16));
+    if(internal::random<double>(0,1)>0.25)
+      v2 += Vector::Random() * std::pow(internal::random<Scalar>(0,1),internal::random<int>(1,16));
+
+    Plane p0 = Plane::Through(v0, v1, v2);
+
+    VERIFY_IS_APPROX(p0.normal().norm(), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(p0.absDistance(v0), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(p0.absDistance(v1), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(p0.absDistance(v2), Scalar(1));
+  }
+}
+
 template<typename Scalar> void hyperplane_alignment()
 {
   typedef Hyperplane<Scalar,3,AutoAlign> Plane3a;
@@ -153,5 +180,7 @@ void test_geo_hyperplane()
     CALL_SUBTEST_4( hyperplane(Hyperplane<std::complex<double>,5>()) );
     CALL_SUBTEST_1( lines<float>() );
     CALL_SUBTEST_3( lines<double>() );
+    CALL_SUBTEST_2( planes<float>() );
+    CALL_SUBTEST_5( planes<double>() );
   }
 }
