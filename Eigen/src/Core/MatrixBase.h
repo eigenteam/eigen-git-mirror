@@ -244,19 +244,14 @@ template<typename Derived> class MatrixBase
     template<int Index>
     EIGEN_DEVICE_FUNC
     typename ConstDiagonalIndexReturnType<Index>::Type diagonal() const;
-
-    // Note: The "MatrixBase::" prefixes are added to help MSVC9 to match these declarations with the later implementations.
-    // On the other hand they confuse MSVC8...
-    #if EIGEN_COMP_MSVC >= 1500 // 2008 or later
-    typename MatrixBase::template DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
-    typename MatrixBase::template ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
-    #else
-    EIGEN_DEVICE_FUNC
-    typename DiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index);
     
+    typedef Diagonal<Derived,DynamicIndex> DiagonalDynamicIndexReturnType;
+    typedef const Diagonal<const Derived,DynamicIndex> ConstDiagonalDynamicIndexReturnType;
+
     EIGEN_DEVICE_FUNC
-    typename ConstDiagonalIndexReturnType<DynamicIndex>::Type diagonal(Index index) const;
-    #endif
+    DiagonalDynamicIndexReturnType diagonal(Index index);
+    EIGEN_DEVICE_FUNC
+    ConstDiagonalDynamicIndexReturnType diagonal(Index index) const;
 
     template<unsigned int Mode> struct TriangularViewReturnType { typedef TriangularView<Derived, Mode> Type; };
     template<unsigned int Mode> struct ConstTriangularViewReturnType { typedef const TriangularView<const Derived, Mode> Type; };

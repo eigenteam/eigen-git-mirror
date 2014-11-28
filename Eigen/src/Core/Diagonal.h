@@ -210,7 +210,7 @@ MatrixBase<Derived>::diagonal() const
   *
   * \sa MatrixBase::diagonal(), class Diagonal */
 template<typename Derived>
-inline typename MatrixBase<Derived>::template DiagonalIndexReturnType<DynamicIndex>::Type
+inline typename MatrixBase<Derived>::DiagonalDynamicIndexReturnType
 MatrixBase<Derived>::diagonal(Index index)
 {
   return typename DiagonalIndexReturnType<DynamicIndex>::Type(derived(), index);
@@ -218,7 +218,7 @@ MatrixBase<Derived>::diagonal(Index index)
 
 /** This is the const version of diagonal(Index). */
 template<typename Derived>
-inline typename MatrixBase<Derived>::template ConstDiagonalIndexReturnType<DynamicIndex>::Type
+inline typename MatrixBase<Derived>::ConstDiagonalDynamicIndexReturnType
 MatrixBase<Derived>::diagonal(Index index) const
 {
   return typename ConstDiagonalIndexReturnType<DynamicIndex>::Type(derived(), index);
