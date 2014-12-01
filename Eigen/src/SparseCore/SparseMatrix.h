@@ -633,8 +633,13 @@ class SparseMatrix
       m_data.resize(size);
     }
 
-    /** \returns a const expression of the diagonal coefficients */
+    /** \returns a const expression of the diagonal coefficients. */
     const ConstDiagonalReturnType diagonal() const { return ConstDiagonalReturnType(*this); }
+    
+    /** \returns a read-write expression of the diagonal coefficients.
+      * \warning If the diagonal entries are written, then all diagonal
+      * entries \b must already exist, otherwise an assertion will be raised.
+      */
     DiagonalReturnType diagonal() { return DiagonalReturnType(*this); }
 
     /** Default constructor yielding an empty \c 0 \c x \c 0 matrix */
