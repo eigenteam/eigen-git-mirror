@@ -57,7 +57,7 @@ struct traits<SparseMatrix<_Scalar, _Options, _Index> >
 };
 
 template<typename _Scalar, int _Options, typename _Index, int DiagIndex>
-struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
+struct traits<Diagonal<SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
 {
   typedef SparseMatrix<_Scalar, _Options, _Index> MatrixType;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
@@ -73,6 +73,15 @@ struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex>
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = 1,
+    Flags = LvalueBit
+  };
+};
+
+template<typename _Scalar, int _Options, typename _Index, int DiagIndex>
+struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
+ : public traits<Diagonal<SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
+{
+  enum {
     Flags = 0
   };
 };
@@ -89,7 +98,9 @@ class SparseMatrix
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
-    typedef Diagonal<const SparseMatrix> DiagonalReturnType;
+    typedef Diagonal<SparseMatrix> DiagonalReturnType;
+    typedef Diagonal<const SparseMatrix> ConstDiagonalReturnType;
+    
 
     using Base::IsRowMajor;
     typedef internal::CompressedStorage<Scalar,Index> Storage;
@@ -168,7 +179,7 @@ class SparseMatrix
 
     /** \returns the value of the matrix at position \a i, \a j
       * This function returns Scalar(0) if the element is an explicit \em zero */
-    inline Scalar coeff(Index row, Index col) const
+    inline const Scalar& coeff(Index row, Index col) const
     {
       eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
       
@@ -623,7 +634,8 @@ class SparseMatrix
     }
 
     /** \returns a const expression of the diagonal coefficients */
-    const DiagonalReturnType diagonal() const { return DiagonalReturnType(*this); }
+    const ConstDiagonalReturnType diagonal() const { return ConstDiagonalReturnType(*this); }
+    DiagonalReturnType diagonal() { return DiagonalReturnType(*this); }
 
     /** Default constructor yielding an empty \c 0 \c x \c 0 matrix */
     inline SparseMatrix()
@@ -1279,7 +1291,24 @@ struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
   operator SparseMatrixType&() { return m_matrix->const_cast_derived(); }
   operator const SparseMatrixType&() const { return *m_matrix; }
   
-  Scalar coeff(Index row, Index col) const { return m_matrix->coeff(row,col); }
+  typedef typename DenseCoeffsBase<SparseMatrixType,ReadOnlyAccessors>::CoeffReturnType CoeffReturnType;
+  CoeffReturnType coeff(Index row, Index col) const
+  { return m_matrix->coeff(row,col); }
+  
+  Scalar& coeffRef(Index row, Index col)
+  {
+    eigen_internal_assert(row>=0 && row<m_matrix->rows() && col>=0 && col<m_matrix->cols());
+      
+    const Index outer = SparseMatrixType::IsRowMajor ? row : col;
+    const Index inner = SparseMatrixType::IsRowMajor ? col : row;
+
+    Index start = m_matrix->outerIndexPtr()[outer];
+    Index end = m_matrix->isCompressed() ? m_matrix->outerIndexPtr()[outer+1] : m_matrix->outerIndexPtr()[outer] + m_matrix->innerNonZeroPtr()[outer];
+    eigen_assert(end>start && "you are using a non finalized sparse matrix or written coefficient does not exist");
+    const Index p = m_matrix->data().searchLowerIndex(start,end-1,inner);
+    eigen_assert((p<end) && (m_matrix->data().index(p)==inner) && "written coefficient does not exist");
+    return m_matrix->const_cast_derived().data().value(p);
+  }
 
   const SparseMatrixType *m_matrix;
 };

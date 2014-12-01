@@ -472,6 +472,12 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     SparseMatrixType m2(rows, cols);
     initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.diagonal(), refMat2.diagonal().eval());
+    VERIFY_IS_APPROX(const_cast<const SparseMatrixType&>(m2).diagonal(), refMat2.diagonal().eval());
+    
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag);
+    m2.diagonal()      += refMat2.diagonal();
+    refMat2.diagonal() += refMat2.diagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
   }
   
   // test conservative resize

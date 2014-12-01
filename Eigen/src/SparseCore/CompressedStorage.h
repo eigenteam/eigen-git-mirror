@@ -143,10 +143,10 @@ class CompressedStorage
     }
 
     /** Like at(), but the search is performed in the range [start,end) */
-    inline Scalar atInRange(size_t start, size_t end, Index key, const Scalar& defaultValue = Scalar(0)) const
+    inline const Scalar& atInRange(size_t start, size_t end, Index key, const Scalar& defaultValue = Scalar(0)) const
     {
       if (start>=end)
-        return Scalar(0);
+        return defaultValue;
       else if (end>start && key==m_indices[end-1])
         return m_values[end-1];
       // ^^  optimization: let's first check if it is the last coefficient
