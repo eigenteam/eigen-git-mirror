@@ -55,8 +55,8 @@ struct traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 }
 
 template< typename MatrixType, typename MemberOp, int Direction>
-class PartialReduxExpr : internal::no_assignment_operator,
-  public internal::dense_xpr_base< PartialReduxExpr<MatrixType, MemberOp, Direction> >::type
+class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<MatrixType, MemberOp, Direction> >::type,
+                         internal::no_assignment_operator
 {
   public:
 

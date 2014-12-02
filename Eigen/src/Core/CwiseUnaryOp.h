@@ -53,8 +53,7 @@ template<typename UnaryOp, typename XprType, typename StorageKind>
 class CwiseUnaryOpImpl;
 
 template<typename UnaryOp, typename XprType>
-class CwiseUnaryOp : internal::no_assignment_operator,
-  public CwiseUnaryOpImpl<UnaryOp, XprType, typename internal::traits<XprType>::StorageKind>
+class CwiseUnaryOp : public CwiseUnaryOpImpl<UnaryOp, XprType, typename internal::traits<XprType>::StorageKind>, internal::no_assignment_operator
 {
   public:
 

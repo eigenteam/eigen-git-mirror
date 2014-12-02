@@ -75,12 +75,13 @@ template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageKind>
 class CwiseBinaryOpImpl;
 
 template<typename BinaryOp, typename LhsType, typename RhsType>
-class CwiseBinaryOp : internal::no_assignment_operator,
+class CwiseBinaryOp : 
   public CwiseBinaryOpImpl<
           BinaryOp, LhsType, RhsType,
           typename internal::cwise_promote_storage_type<typename internal::traits<LhsType>::StorageKind,
                                                         typename internal::traits<RhsType>::StorageKind,
-                                                        BinaryOp>::ret>
+                                                        BinaryOp>::ret>,
+  internal::no_assignment_operator
 {
   public:
     

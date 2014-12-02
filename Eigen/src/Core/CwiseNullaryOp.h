@@ -41,8 +41,7 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
 }
 
 template<typename NullaryOp, typename PlainObjectType>
-class CwiseNullaryOp : internal::no_assignment_operator,
-  public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type
+class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type, internal::no_assignment_operator
 {
   public:
 

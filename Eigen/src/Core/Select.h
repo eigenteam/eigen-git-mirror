@@ -49,8 +49,8 @@ struct traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 }
 
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
-class Select : internal::no_assignment_operator,
-  public internal::dense_xpr_base< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::type
+class Select : public internal::dense_xpr_base< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::type,
+               internal::no_assignment_operator
 {
   public:
 
