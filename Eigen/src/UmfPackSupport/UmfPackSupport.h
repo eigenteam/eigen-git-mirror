@@ -196,7 +196,8 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
      *  Note that the matrix should be column-major, and in compressed format for best performance.
      *  \sa SparseMatrix::makeCompressed().
      */
-    void compute(const MatrixType& matrix)
+    template<typename InputMatrixType>
+    void compute(const InputMatrixType& matrix)
     {
       analyzePattern(matrix);
       factorize(matrix);
@@ -208,7 +209,8 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       *
       * \sa factorize(), compute()
       */
-    void analyzePattern(const MatrixType& matrix)
+    template<typename InputMatrixType>
+    void analyzePattern(const InputMatrixType& matrix)
     {
       if(m_symbolic)
         umfpack_free_symbolic(&m_symbolic,Scalar());
@@ -234,7 +236,8 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       *
       * \sa analyzePattern(), compute()
       */
-    void factorize(const MatrixType& matrix)
+    template<typename InputMatrixType>
+    void factorize(const InputMatrixType& matrix)
     {
       eigen_assert(m_analysisIsOk && "UmfPackLU: you must first call analyzePattern()");
       if(m_numeric)
@@ -276,7 +279,8 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       m_extractedDataAreDirty = true;
     }
     
-    void grapInput(const MatrixType& mat)
+    template<typename InputMatrixType>
+    void grapInput(const InputMatrixType& mat)
     {
       m_copyMatrix.resize(mat.rows(), mat.cols());
       if( ((MatrixType::Flags&RowMajorBit)==RowMajorBit) || sizeof(typename MatrixType::Index)!=sizeof(int) || !mat.isCompressed() )
