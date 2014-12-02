@@ -247,6 +247,7 @@ class UmfPackLU : internal::noncopyable
       m_info = errorCode ? InvalidInput : Success;
       m_analysisIsOk = true;
       m_factorizationIsOk = false;
+      m_extractedDataAreDirty = true;
     }
 
     /** Performs a numeric decomposition of \a matrix
@@ -269,6 +270,7 @@ class UmfPackLU : internal::noncopyable
 
       m_info = errorCode ? NumericalIssue : Success;
       m_factorizationIsOk = true;
+      m_extractedDataAreDirty = true;
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -286,13 +288,14 @@ class UmfPackLU : internal::noncopyable
 
     void init()
     {
-      m_info = InvalidInput;
-      m_isInitialized = false;
-      m_numeric = 0;
-      m_symbolic = 0;
-      m_outerIndexPtr = 0;
-      m_innerIndexPtr = 0;
-      m_valuePtr      = 0;
+      m_info                  = InvalidInput;
+      m_isInitialized         = false;
+      m_numeric               = 0;
+      m_symbolic              = 0;
+      m_outerIndexPtr         = 0;
+      m_innerIndexPtr         = 0;
+      m_valuePtr              = 0;
+      m_extractedDataAreDirty = true;
     }
     
     void grapInput(const MatrixType& mat)
