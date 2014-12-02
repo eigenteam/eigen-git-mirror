@@ -213,7 +213,7 @@ template<typename Derived>
 inline typename MatrixBase<Derived>::DiagonalDynamicIndexReturnType
 MatrixBase<Derived>::diagonal(Index index)
 {
-  return typename DiagonalIndexReturnType<DynamicIndex>::Type(derived(), index);
+  return DiagonalDynamicIndexReturnType(derived(), index);
 }
 
 /** This is the const version of diagonal(Index). */
@@ -221,7 +221,7 @@ template<typename Derived>
 inline typename MatrixBase<Derived>::ConstDiagonalDynamicIndexReturnType
 MatrixBase<Derived>::diagonal(Index index) const
 {
-  return typename ConstDiagonalIndexReturnType<DynamicIndex>::Type(derived(), index);
+  return ConstDiagonalDynamicIndexReturnType(derived(), index);
 }
 
 /** \returns an expression of the \a DiagIndex-th sub or super diagonal of the matrix \c *this
