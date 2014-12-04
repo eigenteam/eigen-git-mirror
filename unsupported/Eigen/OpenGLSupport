@@ -51,7 +51,7 @@ namespace internal {                                                            
             typename Scalar = typename XprType::Scalar,                                                             \
             int Rows = XprType::RowsAtCompileTime,                                                                  \
             int Cols = XprType::ColsAtCompileTime,                                                                  \
-            bool IsGLCompatible = bool(XprType::Flags&LinearAccessBit)                                              \
+            bool IsGLCompatible = bool(internal::evaluator<XprType>::Flags&LinearAccessBit)                         \
                               && bool(XprType::Flags&DirectAccessBit)                                               \
                               && (XprType::IsVectorAtCompileTime || (XprType::Flags&RowMajorBit)==0)>               \
   struct EIGEN_CAT(EIGEN_CAT(gl_,FUNC),_impl);                                                                      \
@@ -203,7 +203,7 @@ namespace internal {                                                            
             typename Scalar = typename XprType::Scalar,                                                                         \
             int Rows = XprType::RowsAtCompileTime,                                                                              \
             int Cols = XprType::ColsAtCompileTime,                                                                              \
-            bool IsGLCompatible = bool(XprType::Flags&LinearAccessBit)                                                          \
+            bool IsGLCompatible = bool(internal::evaluator<XprType>::Flags&LinearAccessBit)                                     \
                               && bool(XprType::Flags&DirectAccessBit)                                                           \
                               && (XprType::IsVectorAtCompileTime || (XprType::Flags&RowMajorBit)==0)>                           \
   struct EIGEN_CAT(EIGEN_CAT(gl_,FUNC),_impl);                                                                                  \
