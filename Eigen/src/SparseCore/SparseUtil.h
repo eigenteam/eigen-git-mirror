@@ -43,20 +43,22 @@ EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
+// TODO this is mostly the same as EIGEN_GENERIC_PUBLIC_INTERFACE
 #define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, BaseClass) \
   typedef BaseClass Base; \
   typedef typename Eigen::internal::traits<Derived >::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
   typedef typename Eigen::internal::nested<Derived >::type Nested; \
   typedef typename Eigen::internal::traits<Derived >::StorageKind StorageKind; \
-  typedef typename Eigen::internal::traits<Derived >::Index Index; \
+  typedef typename Eigen::internal::traits<Derived >::StorageIndex StorageIndex; \
   enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::internal::traits<Derived >::ColsAtCompileTime, \
         Flags = Eigen::internal::traits<Derived>::Flags, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
   using Base::derived; \
-  using Base::const_cast_derived;
+  using Base::const_cast_derived; \
+  using Base::convert_index;
   
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived >)
@@ -67,10 +69,10 @@ const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;
 const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRandomAccessPattern;
 
 template<typename Derived> class SparseMatrixBase;
-template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseMatrix;
-template<typename _Scalar, int _Flags = 0, typename _Index = int>  class DynamicSparseMatrix;
-template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseVector;
-template<typename _Scalar, int _Flags = 0, typename _Index = int>  class MappedSparseMatrix;
+template<typename _Scalar, int _Flags = 0, typename _StorageIndex = int>  class SparseMatrix;
+template<typename _Scalar, int _Flags = 0, typename _StorageIndex = int>  class DynamicSparseMatrix;
+template<typename _Scalar, int _Flags = 0, typename _StorageIndex = int>  class SparseVector;
+template<typename _Scalar, int _Flags = 0, typename _StorageIndex = int>  class MappedSparseMatrix;
 
 template<typename MatrixType, unsigned int UpLo>  class SparseSelfAdjointView;
 template<typename Lhs, typename Rhs>              class SparseDiagonalProduct;
@@ -99,24 +101,25 @@ template<typename T> struct eval<T,Sparse>
 
 template<typename T,int Cols> struct sparse_eval<T,1,Cols> {
     typedef typename traits<T>::Scalar _Scalar;
-    typedef typename traits<T>::Index _Index;
+    typedef typename traits<T>::StorageIndex _StorageIndex;
   public:
-    typedef SparseVector<_Scalar, RowMajor, _Index> type;
+    typedef SparseVector<_Scalar, RowMajor, _StorageIndex> type;
 };
 
 template<typename T,int Rows> struct sparse_eval<T,Rows,1> {
     typedef typename traits<T>::Scalar _Scalar;
-    typedef typename traits<T>::Index _Index;
+    typedef typename traits<T>::StorageIndex _StorageIndex;
   public:
-    typedef SparseVector<_Scalar, ColMajor, _Index> type;
+    typedef SparseVector<_Scalar, ColMajor, _StorageIndex> type;
 };
 
+// TODO this seems almost identical to plain_matrix_type<T, Sparse>
 template<typename T,int Rows,int Cols> struct sparse_eval {
     typedef typename traits<T>::Scalar _Scalar;
-    typedef typename traits<T>::Index _Index;
+    typedef typename traits<T>::StorageIndex _StorageIndex;
     enum { _Options = ((traits<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
   public:
-    typedef SparseMatrix<_Scalar, _Options, _Index> type;
+    typedef SparseMatrix<_Scalar, _Options, _StorageIndex> type;
 };
 
 template<typename T> struct sparse_eval<T,1,1> {
@@ -128,10 +131,10 @@ template<typename T> struct sparse_eval<T,1,1> {
 template<typename T> struct plain_matrix_type<T,Sparse>
 {
   typedef typename traits<T>::Scalar _Scalar;
-  typedef typename traits<T>::Index _Index;
+  typedef typename traits<T>::StorageIndex _StorageIndex;
   enum { _Options = ((evaluator<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
   public:
-    typedef SparseMatrix<_Scalar, _Options, _Index> type;
+    typedef SparseMatrix<_Scalar, _Options, _StorageIndex> type;
 };
 
 template<typename Decomposition, typename RhsType>
@@ -162,26 +165,26 @@ template<> struct glue_shapes<SparseShape,TriangularShape > { typedef SparseTria
   *
   * \sa SparseMatrix::setFromTriplets()
   */
-template<typename Scalar, typename Index=typename SparseMatrix<Scalar>::Index >
+template<typename Scalar, typename StorageIndex=typename SparseMatrix<Scalar>::StorageIndex >
 class Triplet
 {
 public:
   Triplet() : m_row(0), m_col(0), m_value(0) {}
 
-  Triplet(const Index& i, const Index& j, const Scalar& v = Scalar(0))
+  Triplet(const StorageIndex& i, const StorageIndex& j, const Scalar& v = Scalar(0))
     : m_row(i), m_col(j), m_value(v)
   {}
 
   /** \returns the row index of the element */
-  const Index& row() const { return m_row; }
+  const StorageIndex& row() const { return m_row; }
 
   /** \returns the column index of the element */
-  const Index& col() const { return m_col; }
+  const StorageIndex& col() const { return m_col; }
 
   /** \returns the value of the element */
   const Scalar& value() const { return m_value; }
 protected:
-  Index m_row, m_col;
+  StorageIndex m_row, m_col;
   Scalar m_value;
 };
 

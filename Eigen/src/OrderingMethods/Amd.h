@@ -42,7 +42,7 @@ template<typename T0, typename T1> inline void amd_mark(const T0* w, const T1& j
 
 /* clear w */
 template<typename Index>
-static int cs_wclear (Index mark, Index lemax, Index *w, Index n)
+static Index cs_wclear (Index mark, Index lemax, Index *w, Index n)
 {
   Index k;
   if(mark < 2 || (mark + lemax < 0))
@@ -59,7 +59,7 @@ static int cs_wclear (Index mark, Index lemax, Index *w, Index n)
 template<typename Index>
 Index cs_tdfs(Index j, Index k, Index *head, const Index *next, Index *post, Index *stack)
 {
-  int i, p, top = 0;
+  Index i, p, top = 0;
   if(!head || !next || !post || !stack) return (-1);    /* check inputs */
   stack[0] = j;                 /* place j on the stack */
   while (top >= 0)                /* while (stack is not empty) */
@@ -92,11 +92,12 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
 {
   using std::sqrt;
   
-  int d, dk, dext, lemax = 0, e, elenk, eln, i, j, k, k1,
-      k2, k3, jlast, ln, dense, nzmax, mindeg = 0, nvi, nvj, nvk, mark, wnvi,
-      ok, nel = 0, p, p1, p2, p3, p4, pj, pk, pk1, pk2, pn, q, t;
-  unsigned int h;
+  Index d, dk, dext, lemax = 0, e, elenk, eln, i, j, k, k1,
+        k2, k3, jlast, ln, dense, nzmax, mindeg = 0, nvi, nvj, nvk, mark, wnvi,
+        ok, nel = 0, p, p1, p2, p3, p4, pj, pk, pk1, pk2, pn, q, t;
   
+  std::size_t h;
+
   Index n = C.cols();
   dense = std::max<Index> (16, Index(10 * sqrt(double(n))));   /* find dense threshold */
   dense = std::min<Index> (n-2, dense);
@@ -330,7 +331,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
         h %= n;                    /* finalize hash of i */
         next[i] = hhead[h];      /* place i in hash bucket */
         hhead[h] = i;
-        last[i] = h;              /* save hash of i in last[i] */
+        last[i] = Index(h);      /* save hash of i in last[i] */
       }
     }                                   /* scan2 is done */
     degree[k] = dk;                   /* finalize |Lk| */

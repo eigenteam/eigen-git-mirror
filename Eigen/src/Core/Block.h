@@ -154,7 +154,7 @@ class BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, Dense>
   : public internal::BlockImpl_dense<XprType, BlockRows, BlockCols, InnerPanel>
 {
     typedef internal::BlockImpl_dense<XprType, BlockRows, BlockCols, InnerPanel> Impl;
-    typedef typename XprType::Index Index;
+    typedef typename XprType::StorageIndex StorageIndex;
   public:
     typedef Impl Base;
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
@@ -306,13 +306,13 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     }
       
     EIGEN_DEVICE_FUNC
-    Index startRow() const
+    StorageIndex startRow() const
     { 
       return m_startRow.value(); 
     }
       
     EIGEN_DEVICE_FUNC
-    Index startCol() const 
+    StorageIndex startCol() const
     { 
       return m_startCol.value(); 
     }
@@ -320,10 +320,10 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
   protected:
 
     const typename XprType::Nested m_xpr;
-    const internal::variable_if_dynamic<Index, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
-    const internal::variable_if_dynamic<Index, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
-    const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_blockRows;
-    const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_blockCols;
+    const internal::variable_if_dynamic<StorageIndex, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
+    const internal::variable_if_dynamic<StorageIndex, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
+    const internal::variable_if_dynamic<StorageIndex, RowsAtCompileTime> m_blockRows;
+    const internal::variable_if_dynamic<StorageIndex, ColsAtCompileTime> m_blockCols;
 };
 
 /** \internal Internal implementation of dense Blocks in the direct access case.*/

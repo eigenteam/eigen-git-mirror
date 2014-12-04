@@ -51,7 +51,7 @@ namespace Eigen {
   * Dynamic : block size known at runtime
   * a numeric number : fixed-size block known at compile time
   */
-template<typename _Scalar, int _BlockAtCompileTime=Dynamic, int _Options=ColMajor, typename _Index=int> class BlockSparseMatrix;
+template<typename _Scalar, int _BlockAtCompileTime=Dynamic, int _Options=ColMajor, typename _StorageIndex=int> class BlockSparseMatrix;
 
 template<typename BlockSparseMatrixT> class BlockSparseMatrixView;
 
@@ -280,14 +280,14 @@ class BlockSparseTimeDenseProduct
     BlockSparseTimeDenseProduct& operator=(const BlockSparseTimeDenseProduct&);
 };
 
-template<typename _Scalar, int _BlockAtCompileTime, int _Options, typename _Index>
-class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_BlockAtCompileTime, _Options,_Index> >
+template<typename _Scalar, int _BlockAtCompileTime, int _Options, typename _StorageIndex>
+class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_BlockAtCompileTime, _Options,_StorageIndex> >
 {
   public:
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef _Index Index;
-    typedef typename internal::nested<BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _Index> >::type Nested;
+    typedef _StorageIndex StorageIndex;
+    typedef typename internal::nested<BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _StorageIndex> >::type Nested;
 
     enum {
       Options = _Options,
@@ -303,7 +303,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     typedef Matrix<Scalar, _BlockAtCompileTime, _BlockAtCompileTime,IsColMajor ? ColMajor : RowMajor> BlockScalar;
     typedef Matrix<RealScalar, _BlockAtCompileTime, _BlockAtCompileTime,IsColMajor ? ColMajor : RowMajor> BlockRealScalar;
     typedef typename internal::conditional<_BlockAtCompileTime==Dynamic, Scalar, BlockScalar>::type BlockScalarReturnType;
-    typedef BlockSparseMatrix<Scalar, BlockSize, IsColMajor ? ColMajor : RowMajor, Index> PlainObject;
+    typedef BlockSparseMatrix<Scalar, BlockSize, IsColMajor ? ColMajor : RowMajor, StorageIndex> PlainObject;
   public:
     // Default constructor
     BlockSparseMatrix()
@@ -412,17 +412,17 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       m_nonzeros = 0;
 
       // First, compute the number of nonzero blocks and their locations
-      for(Index bj = 0; bj < m_outerBSize; ++bj)
+      for(StorageIndex bj = 0; bj < m_outerBSize; ++bj)
       {
         // Browse each outer block and compute the structure
         std::vector<bool> nzblocksFlag(m_innerBSize,false);  // Record the existing blocks
         blockPattern.startVec(bj);
-        for(Index j = blockOuterIndex(bj); j < blockOuterIndex(bj+1); ++j)
+        for(StorageIndex j = blockOuterIndex(bj); j < blockOuterIndex(bj+1); ++j)
         {
           typename MatrixType::InnerIterator it_spmat(spmat, j);
           for(; it_spmat; ++it_spmat)
           {
-            Index bi = innerToBlock(it_spmat.index()); // Index of the current nonzero block
+            StorageIndex bi = innerToBlock(it_spmat.index()); // Index of the current nonzero block
             if(!nzblocksFlag[bi])
             {
               // Save the index of this nonzero block
@@ -439,21 +439,21 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       // Allocate the internal arrays
       setBlockStructure(blockPattern);
 
-      for(Index nz = 0; nz < m_nonzeros; ++nz) m_values[nz] = Scalar(0);
-      for(Index bj = 0; bj < m_outerBSize; ++bj)
+      for(StorageIndex nz = 0; nz < m_nonzeros; ++nz) m_values[nz] = Scalar(0);
+      for(StorageIndex bj = 0; bj < m_outerBSize; ++bj)
       {
         // Now copy the values
-        for(Index j = blockOuterIndex(bj); j < blockOuterIndex(bj+1); ++j)
+        for(StorageIndex j = blockOuterIndex(bj); j < blockOuterIndex(bj+1); ++j)
         {
           // Browse the outer block column by column (for column-major matrices)
           typename MatrixType::InnerIterator it_spmat(spmat, j);
           for(; it_spmat; ++it_spmat)
           {
-            Index idx = 0; // Position of this block in the column block
-            Index bi = innerToBlock(it_spmat.index()); // Index of the current nonzero block
+            StorageIndex idx = 0; // Position of this block in the column block
+            StorageIndex bi = innerToBlock(it_spmat.index()); // Index of the current nonzero block
             // Go to the inner block where this element belongs to
             while(bi > m_indices[m_outerIndex[bj]+idx]) ++idx; // Not expensive for ordered blocks
-            Index idxVal;// Get the right position in the array of values for this element
+            StorageIndex idxVal;// Get the right position in the array of values for this element
             if(m_blockSize == Dynamic)
             {
               // Offset from all blocks before ...
@@ -503,8 +503,8 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       // Browse the block pattern and set up the various pointers
       m_outerIndex[0] = 0;
       if(m_blockSize == Dynamic) m_blockPtr[0] = 0;
-      for(Index nz = 0; nz < m_nonzeros; ++nz) m_values[nz] = Scalar(0);
-      for(Index bj = 0; bj < m_outerBSize; ++bj)
+      for(StorageIndex nz = 0; nz < m_nonzeros; ++nz) m_values[nz] = Scalar(0);
+      for(StorageIndex bj = 0; bj < m_outerBSize; ++bj)
       {
         //Browse each outer block
 
@@ -519,9 +519,9 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
         std::sort(nzBlockIdx.begin(), nzBlockIdx.end());
 
         // Now, fill block indices and (eventually) pointers to blocks
-        for(Index idx = 0; idx < nzBlockIdx.size(); ++idx)
+        for(StorageIndex idx = 0; idx < nzBlockIdx.size(); ++idx)
         {
-          Index offset = m_outerIndex[bj]+idx; // offset in m_indices
+          StorageIndex offset = m_outerIndex[bj]+idx; // offset in m_indices
           m_indices[offset] = nzBlockIdx[idx];
           if(m_blockSize == Dynamic)
             m_blockPtr[offset] = m_blockPtr[offset-1] + blockInnerSize(nzBlockIdx[idx]) * blockOuterSize(bj);
@@ -535,7 +535,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     /**
       * \brief Set the number of rows and columns blocks
       */
-    inline void resize(Index brow, Index bcol)
+    inline void resize(StorageIndex brow, StorageIndex bcol)
     {
       m_innerBSize = IsColMajor ? brow : bcol;
       m_outerBSize = IsColMajor ? bcol : brow;
@@ -546,7 +546,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       *
       * Call this only for fixed-size blocks
       */
-    inline void setBlockSize(Index blockSize)
+    inline void setBlockSize(StorageIndex blockSize)
     {
       m_blockSize = blockSize;
     }
@@ -568,8 +568,8 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       eigen_assert(m_outerBSize == outerBlocks.size() && "CHECK THE NUMBER OF ROW OR COLUMN BLOCKS");
       m_outerBSize = outerBlocks.size();
       //  starting index of blocks... cumulative sums
-      m_innerOffset = new Index[m_innerBSize+1];
-      m_outerOffset = new Index[m_outerBSize+1];
+      m_innerOffset = new StorageIndex[m_innerBSize+1];
+      m_outerOffset = new StorageIndex[m_outerBSize+1];
       m_innerOffset[0] = 0;
       m_outerOffset[0] = 0;
       std::partial_sum(&innerBlocks[0], &innerBlocks[m_innerBSize-1]+1, &m_innerOffset[1]);
@@ -577,8 +577,8 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
 
       // Compute the total number of nonzeros
       m_nonzeros = 0;
-      for(Index bj = 0; bj < m_outerBSize; ++bj)
-        for(Index bi = 0; bi < m_innerBSize; ++bi)
+      for(StorageIndex bj = 0; bj < m_outerBSize; ++bj)
+        for(StorageIndex bi = 0; bi < m_innerBSize; ++bi)
           m_nonzeros += outerBlocks[bj] * innerBlocks[bi];
 
     }
@@ -593,13 +593,13 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       * is computed in setBlockLayout() for variable-size blocks
       * \sa setBlockSize()
       */
-    inline void reserve(const Index nonzerosblocks)
+    inline void reserve(const StorageIndex nonzerosblocks)
     {
       eigen_assert((m_innerBSize != 0 && m_outerBSize != 0) &&
           "TRYING TO RESERVE ZERO-SIZE MATRICES, CALL resize() first");
 
       //FIXME Should free if already allocated
-      m_outerIndex = new Index[m_outerBSize+1];
+      m_outerIndex = new StorageIndex[m_outerBSize+1];
 
       m_nonzerosblocks = nonzerosblocks;
       if(m_blockSize != Dynamic)
@@ -610,9 +610,9 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       else
       {
         // m_nonzeros  is already computed in setBlockLayout()
-        m_blockPtr = new Index[m_nonzerosblocks+1];
+        m_blockPtr = new StorageIndex[m_nonzerosblocks+1];
       }
-      m_indices = new Index[m_nonzerosblocks+1];
+      m_indices = new StorageIndex[m_nonzerosblocks+1];
       m_values = new Scalar[m_nonzeros];
     }
 
@@ -669,7 +669,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       }
       // Allocate member arrays
       if(m_blockSize == Dynamic) setBlockLayout(rowBlocks, colBlocks);
-      Index nzblocks = nzblock_outer.sum();
+      StorageIndex nzblocks = nzblock_outer.sum();
       reserve(nzblocks);
 
        // Temporary markers
@@ -678,7 +678,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       // Setup outer index pointers and markers
       m_outerIndex[0] = 0;
       if (m_blockSize == Dynamic)  m_blockPtr[0] =  0;
-      for(Index bj = 0; bj < m_outerBSize; ++bj)
+      for(StorageIndex bj = 0; bj < m_outerBSize; ++bj)
       {
         m_outerIndex[bj+1] = m_outerIndex[bj] + nzblock_outer(bj);
         block_id(bj) = m_outerIndex[bj];
@@ -691,11 +691,11 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       // Fill the matrix
       for(InputIterator it(begin); it!=end; ++it)
       {
-        Index outer = IsColMajor ? it->col() : it->row();
-        Index inner = IsColMajor ? it->row() : it->col();
+        StorageIndex outer = IsColMajor ? it->col() : it->row();
+        StorageIndex inner = IsColMajor ? it->row() : it->col();
         m_indices[block_id(outer)] = inner;
-        Index block_size = it->value().rows()*it->value().cols();
-        Index nz_marker = blockPtr(block_id[outer]);
+        StorageIndex block_size = it->value().rows()*it->value().cols();
+        StorageIndex nz_marker = blockPtr(block_id[outer]);
         memcpy(&(m_values[nz_marker]), it->value().data(), block_size * sizeof(Scalar));
         if(m_blockSize == Dynamic)
         {
@@ -735,7 +735,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     /**
       * \returns the number of rows
       */
-    inline Index rows() const
+    inline StorageIndex rows() const
     {
 //      return blockRows();
       return (IsColMajor ? innerSize() : outerSize());
@@ -744,58 +744,58 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     /**
       * \returns the number of cols
       */
-    inline Index cols() const
+    inline StorageIndex cols() const
     {
 //      return blockCols();
       return (IsColMajor ? outerSize() : innerSize());
     }
 
-    inline Index innerSize() const
+    inline StorageIndex innerSize() const
     {
       if(m_blockSize == Dynamic) return m_innerOffset[m_innerBSize];
       else return  (m_innerBSize * m_blockSize) ;
     }
 
-    inline Index outerSize() const
+    inline StorageIndex outerSize() const
     {
       if(m_blockSize == Dynamic) return m_outerOffset[m_outerBSize];
       else return  (m_outerBSize * m_blockSize) ;
     }
     /** \returns the number of rows grouped by blocks */
-    inline Index blockRows() const
+    inline StorageIndex blockRows() const
     {
       return (IsColMajor ? m_innerBSize : m_outerBSize);
     }
     /** \returns the number of columns grouped by blocks */
-    inline Index blockCols() const
+    inline StorageIndex blockCols() const
     {
       return (IsColMajor ? m_outerBSize : m_innerBSize);
     }
 
-    inline Index outerBlocks() const { return m_outerBSize; }
-    inline Index innerBlocks() const { return m_innerBSize; }
+    inline StorageIndex outerBlocks() const { return m_outerBSize; }
+    inline StorageIndex innerBlocks() const { return m_innerBSize; }
 
     /** \returns the block index where outer belongs to */
-    inline Index outerToBlock(Index outer) const
+    inline StorageIndex outerToBlock(StorageIndex outer) const
     {
       eigen_assert(outer < outerSize() && "OUTER INDEX OUT OF BOUNDS");
 
       if(m_blockSize != Dynamic)
         return (outer / m_blockSize); // Integer division
 
-      Index b_outer = 0;
+      StorageIndex b_outer = 0;
       while(m_outerOffset[b_outer] <= outer) ++b_outer;
       return b_outer - 1;
     }
     /** \returns  the block index where inner belongs to */
-    inline Index innerToBlock(Index inner) const
+    inline StorageIndex innerToBlock(StorageIndex inner) const
     {
       eigen_assert(inner < innerSize() && "OUTER INDEX OUT OF BOUNDS");
 
       if(m_blockSize != Dynamic)
         return (inner / m_blockSize); // Integer division
 
-      Index b_inner = 0;
+      StorageIndex b_inner = 0;
       while(m_innerOffset[b_inner] <= inner) ++b_inner;
       return b_inner - 1;
     }
@@ -803,16 +803,16 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     /**
       *\returns a reference to the (i,j) block as an Eigen Dense Matrix
       */
-    Ref<BlockScalar> coeffRef(Index brow, Index bcol)
+    Ref<BlockScalar> coeffRef(StorageIndex brow, StorageIndex bcol)
     {
       eigen_assert(brow < blockRows() && "BLOCK ROW INDEX OUT OF BOUNDS");
       eigen_assert(bcol < blockCols() && "BLOCK nzblocksFlagCOLUMN OUT OF BOUNDS");
 
-      Index rsize = IsColMajor ? blockInnerSize(brow): blockOuterSize(bcol);
-      Index csize = IsColMajor ? blockOuterSize(bcol) : blockInnerSize(brow);
-      Index inner = IsColMajor ? brow : bcol;
-      Index outer = IsColMajor ? bcol : brow;
-      Index offset = m_outerIndex[outer];
+      StorageIndex rsize = IsColMajor ? blockInnerSize(brow): blockOuterSize(bcol);
+      StorageIndex csize = IsColMajor ? blockOuterSize(bcol) : blockInnerSize(brow);
+      StorageIndex inner = IsColMajor ? brow : bcol;
+      StorageIndex outer = IsColMajor ? bcol : brow;
+      StorageIndex offset = m_outerIndex[outer];
       while(offset < m_outerIndex[outer+1] && m_indices[offset] != inner)
         offset++;
       if(m_indices[offset] == inner)
@@ -829,16 +829,16 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     /**
       * \returns the value of the (i,j) block as an Eigen Dense Matrix
       */
-    Map<const BlockScalar> coeff(Index brow, Index bcol) const
+    Map<const BlockScalar> coeff(StorageIndex brow, StorageIndex bcol) const
     {
       eigen_assert(brow < blockRows() && "BLOCK ROW INDEX OUT OF BOUNDS");
       eigen_assert(bcol < blockCols() && "BLOCK COLUMN OUT OF BOUNDS");
 
-      Index rsize = IsColMajor ? blockInnerSize(brow): blockOuterSize(bcol);
-      Index csize = IsColMajor ? blockOuterSize(bcol) : blockInnerSize(brow);
-      Index inner = IsColMajor ? brow : bcol;
-      Index outer = IsColMajor ? bcol : brow;
-      Index offset = m_outerIndex[outer];
+      StorageIndex rsize = IsColMajor ? blockInnerSize(brow): blockOuterSize(bcol);
+      StorageIndex csize = IsColMajor ? blockOuterSize(bcol) : blockInnerSize(brow);
+      StorageIndex inner = IsColMajor ? brow : bcol;
+      StorageIndex outer = IsColMajor ? bcol : brow;
+      StorageIndex offset = m_outerIndex[outer];
       while(offset < m_outerIndex[outer+1] && m_indices[offset] != inner) offset++;
       if(m_indices[offset] == inner)
       {
@@ -857,23 +857,23 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     }
 
     /** \returns the number of nonzero blocks */
-    inline Index nonZerosBlocks() const { return m_nonzerosblocks; }
+    inline StorageIndex nonZerosBlocks() const { return m_nonzerosblocks; }
     /** \returns the total number of nonzero elements, including eventual explicit zeros in blocks */
-    inline Index nonZeros() const { return m_nonzeros; }
+    inline StorageIndex nonZeros() const { return m_nonzeros; }
 
     inline BlockScalarReturnType *valuePtr() {return static_cast<BlockScalarReturnType *>(m_values);}
 //    inline Scalar *valuePtr(){ return m_values; }
-    inline Index *innerIndexPtr() {return m_indices; }
-    inline const Index *innerIndexPtr() const {return m_indices; }
-    inline Index *outerIndexPtr() {return m_outerIndex; }
-    inline const Index* outerIndexPtr() const {return m_outerIndex; }
+    inline StorageIndex *innerIndexPtr() {return m_indices; }
+    inline const StorageIndex *innerIndexPtr() const {return m_indices; }
+    inline StorageIndex *outerIndexPtr() {return m_outerIndex; }
+    inline const StorageIndex* outerIndexPtr() const {return m_outerIndex; }
 
     /** \brief for compatibility purposes with the SparseMatrix class */
     inline bool isCompressed() const {return true;}
     /**
       * \returns the starting index of the bi row block
       */
-    inline Index blockRowsIndex(Index bi) const
+    inline StorageIndex blockRowsIndex(StorageIndex bi) const
     {
       return IsColMajor ? blockInnerIndex(bi) : blockOuterIndex(bi);
     }
@@ -881,26 +881,26 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     /**
       * \returns the starting index of the bj col block
       */
-    inline Index blockColsIndex(Index bj) const
+    inline StorageIndex blockColsIndex(Index bj) const
     {
       return IsColMajor ? blockOuterIndex(bj) : blockInnerIndex(bj);
     }
 
-    inline Index blockOuterIndex(Index bj) const
+    inline StorageIndex blockOuterIndex(Index bj) const
     {
       return (m_blockSize == Dynamic) ? m_outerOffset[bj] : (bj * m_blockSize);
     }
-    inline Index blockInnerIndex(Index bi) const
+    inline StorageIndex blockInnerIndex(Index bi) const
     {
       return (m_blockSize == Dynamic) ? m_innerOffset[bi] : (bi * m_blockSize);
     }
 
     // Not needed ???
-    inline Index blockInnerSize(Index bi) const
+    inline StorageIndex blockInnerSize(Index bi) const
     {
       return (m_blockSize == Dynamic) ? (m_innerOffset[bi+1] - m_innerOffset[bi]) : m_blockSize;
     }
-    inline Index blockOuterSize(Index bj) const
+    inline StorageIndex blockOuterSize(Index bj) const
     {
       return (m_blockSize == Dynamic) ? (m_outerOffset[bj+1]- m_outerOffset[bj]) : m_blockSize;
     }
@@ -917,7 +917,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
 
     friend std::ostream & operator << (std::ostream & s, const BlockSparseMatrix& m)
     {
-      for (Index j = 0; j < m.outerBlocks(); ++j)
+      for (StorageIndex j = 0; j < m.outerBlocks(); ++j)
       {
         BlockInnerIterator itb(m, j);
         for(; itb; ++itb)
@@ -933,7 +933,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     /**
       * \returns the starting position of the block <id> in the array of values
       */
-    Index blockPtr(Index id) const
+    StorageIndex blockPtr(Index id) const
     {
       if(m_blockSize == Dynamic) return m_blockPtr[id];
       else return id * m_blockSize * m_blockSize;
@@ -955,21 +955,21 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     // Insert a block at a particular location... need to make a room for that
     Map<BlockScalar> insert(Index brow, Index bcol);
 
-    Index m_innerBSize; // Number of block rows
-    Index m_outerBSize; // Number of block columns
-    Index *m_innerOffset; // Starting index of each inner block (size m_innerBSize+1)
-    Index *m_outerOffset; // Starting index of each outer block (size m_outerBSize+1)
-    Index m_nonzerosblocks; // Total nonzeros blocks (lower than  m_innerBSize x m_outerBSize)
-    Index m_nonzeros; // Total nonzeros elements
+    StorageIndex m_innerBSize; // Number of block rows
+    StorageIndex m_outerBSize; // Number of block columns
+    StorageIndex *m_innerOffset; // Starting index of each inner block (size m_innerBSize+1)
+    StorageIndex *m_outerOffset; // Starting index of each outer block (size m_outerBSize+1)
+    StorageIndex m_nonzerosblocks; // Total nonzeros blocks (lower than  m_innerBSize x m_outerBSize)
+    StorageIndex m_nonzeros; // Total nonzeros elements
     Scalar *m_values; //Values stored block column after block column (size m_nonzeros)
-    Index *m_blockPtr; // Pointer to the beginning of each block in m_values, size m_nonzeroblocks ... null for fixed-size blocks
-    Index *m_indices; //Inner block indices, size m_nonzerosblocks ... OK
-    Index *m_outerIndex; // Starting pointer of each block column in m_indices (size m_outerBSize)... OK
-    Index m_blockSize; // Size of a block for fixed-size blocks, otherwise -1
+    StorageIndex *m_blockPtr; // Pointer to the beginning of each block in m_values, size m_nonzeroblocks ... null for fixed-size blocks
+    StorageIndex *m_indices; //Inner block indices, size m_nonzerosblocks ... OK
+    StorageIndex *m_outerIndex; // Starting pointer of each block column in m_indices (size m_outerBSize)... OK
+    StorageIndex m_blockSize; // Size of a block for fixed-size blocks, otherwise -1
 };
 
-template<typename _Scalar, int _BlockAtCompileTime, int _Options, typename _Index>
-class BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _Index>::BlockInnerIterator
+template<typename _Scalar, int _BlockAtCompileTime, int _Options, typename _StorageIndex>
+class BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _StorageIndex>::BlockInnerIterator
 {
   public:
 
@@ -977,7 +977,7 @@ class BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _Index>::BlockIn
       Flags = _Options
     };
 
-    BlockInnerIterator(const BlockSparseMatrix& mat, const Index outer)
+    BlockInnerIterator(const BlockSparseMatrix& mat, const StorageIndex outer)
     : m_mat(mat),m_outer(outer),
       m_id(mat.m_outerIndex[outer]),
       m_end(mat.m_outerIndex[outer+1])
@@ -997,27 +997,27 @@ class BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _Index>::BlockIn
           rows(),cols());
     }
     // Block inner index
-    inline Index index() const {return m_mat.m_indices[m_id]; }
-    inline Index outer() const { return m_outer; }
+    inline StorageIndex index() const {return m_mat.m_indices[m_id]; }
+    inline StorageIndex outer() const { return m_outer; }
     // block row index
-    inline Index row() const  {return index(); }
+    inline StorageIndex row() const  {return index(); }
     // block column index
-    inline Index col() const {return outer(); }
+    inline StorageIndex col() const {return outer(); }
     // FIXME Number of rows in the current block
-    inline Index rows() const { return (m_mat.m_blockSize==Dynamic) ? (m_mat.m_innerOffset[index()+1] - m_mat.m_innerOffset[index()]) : m_mat.m_blockSize; }
+    inline StorageIndex rows() const { return (m_mat.m_blockSize==Dynamic) ? (m_mat.m_innerOffset[index()+1] - m_mat.m_innerOffset[index()]) : m_mat.m_blockSize; }
     // Number of columns in the current block ...
-    inline Index cols() const { return (m_mat.m_blockSize==Dynamic) ? (m_mat.m_outerOffset[m_outer+1]-m_mat.m_outerOffset[m_outer]) : m_mat.m_blockSize;}
+    inline StorageIndex cols() const { return (m_mat.m_blockSize==Dynamic) ? (m_mat.m_outerOffset[m_outer+1]-m_mat.m_outerOffset[m_outer]) : m_mat.m_blockSize;}
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
-    const BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, Index>& m_mat;
-    const Index m_outer;
-    Index m_id;
-    Index m_end;
+    const BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, StorageIndex>& m_mat;
+    const StorageIndex m_outer;
+    StorageIndex m_id;
+    StorageIndex m_end;
 };
 
-template<typename _Scalar, int _BlockAtCompileTime, int _Options, typename _Index>
-class BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _Index>::InnerIterator
+template<typename _Scalar, int _BlockAtCompileTime, int _Options, typename _StorageIndex>
+class BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _StorageIndex>::InnerIterator
 {
   public:
     InnerIterator(const BlockSparseMatrix& mat, Index outer)
@@ -1055,23 +1055,23 @@ class BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _Index>::InnerIt
     {
       return itb.valueRef().coeff(m_id - m_start, m_offset);
     }
-    inline Index index() const { return m_id; }
-    inline Index outer() const {return m_outer; }
-    inline Index col() const {return outer(); }
-    inline Index row() const { return index();}
+    inline StorageIndex index() const { return m_id; }
+    inline StorageIndex outer() const {return m_outer; }
+    inline StorageIndex col() const {return outer(); }
+    inline StorageIndex row() const { return index();}
     inline operator bool() const
     {
       return itb;
     }
   protected:
     const BlockSparseMatrix& m_mat;
-    const Index m_outer;
-    const Index m_outerB;
+    const StorageIndex m_outer;
+    const StorageIndex m_outerB;
     BlockInnerIterator itb; // Iterator through the blocks
-    const Index m_offset; // Position of this column in the block
-    Index m_start; // starting inner index of this block
-    Index m_id; // current inner index in the block
-    Index m_end; // starting inner index of the next block
+    const StorageIndex m_offset; // Position of this column in the block
+    StorageIndex m_start; // starting inner index of this block
+    StorageIndex m_id; // current inner index in the block
+    StorageIndex m_end; // starting inner index of the next block
 
 };
 } // end namespace Eigen

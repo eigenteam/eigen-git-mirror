@@ -50,7 +50,6 @@ template<typename Derived> class ArrayBase
                 typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator*;
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;

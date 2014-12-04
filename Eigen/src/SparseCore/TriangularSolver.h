@@ -28,7 +28,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
+  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::type LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
@@ -66,7 +66,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
+  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::type LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
@@ -106,7 +106,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
+  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::type LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
@@ -142,7 +142,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename Lhs::Index Index;
+  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::type LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
@@ -212,12 +212,12 @@ template<typename Lhs, typename Rhs, int Mode, int UpLo>
 struct sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename promote_index_type<typename traits<Lhs>::Index,
-                                      typename traits<Rhs>::Index>::type Index;
+  typedef typename promote_index_type<typename traits<Lhs>::StorageIndex,
+                                      typename traits<Rhs>::StorageIndex>::type StorageIndex;
   static void run(const Lhs& lhs, Rhs& other)
   {
     const bool IsLower = (UpLo==Lower);
-    AmbiVector<Scalar,Index> tempVector(other.rows()*2);
+    AmbiVector<Scalar,StorageIndex> tempVector(other.rows()*2);
     tempVector.setBounds(0,other.rows());
 
     Rhs res(other.rows(), other.cols());
@@ -273,7 +273,7 @@ struct sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
 
       Index count = 0;
       // FIXME compute a reference value to filter zeros
-      for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector/*,1e-12*/); it; ++it)
+      for (typename AmbiVector<Scalar,StorageIndex>::Iterator it(tempVector/*,1e-12*/); it; ++it)
       {
         ++ count;
 //         std::cerr << "fill " << it.index() << ", " << col << "\n";

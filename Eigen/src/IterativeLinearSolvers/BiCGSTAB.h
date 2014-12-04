@@ -159,7 +159,6 @@ class BiCGSTAB : public IterativeSolverBase<BiCGSTAB<_MatrixType,_Preconditioner
 public:
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef _Preconditioner Preconditioner;
 

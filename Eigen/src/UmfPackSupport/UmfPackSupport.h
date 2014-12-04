@@ -141,7 +141,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
@@ -164,8 +164,8 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       if(m_numeric)  umfpack_free_numeric(&m_numeric,Scalar());
     }
 
-    inline Index rows() const { return m_copyMatrix.rows(); }
-    inline Index cols() const { return m_copyMatrix.cols(); }
+    inline StorageIndex rows() const { return m_copyMatrix.rows(); }
+    inline StorageIndex cols() const { return m_copyMatrix.cols(); }
 
     /** \brief Reports whether previous computation was successful.
       *
@@ -279,7 +279,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     void grapInput_impl(const InputMatrixType& mat, internal::true_type)
     {
       m_copyMatrix.resize(mat.rows(), mat.cols());
-      if( ((MatrixType::Flags&RowMajorBit)==RowMajorBit) || sizeof(typename MatrixType::Index)!=sizeof(int) || !mat.isCompressed() )
+      if( ((MatrixType::Flags&RowMajorBit)==RowMajorBit) || sizeof(typename MatrixType::StorageIndex)!=sizeof(int) || !mat.isCompressed() )
       {
         // non supported input -> copy
         m_copyMatrix = mat;
@@ -397,7 +397,7 @@ template<typename MatrixType>
 template<typename BDerived,typename XDerived>
 bool UmfPackLU<MatrixType>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBase<XDerived> &x) const
 {
-  const int rhsCols = b.cols();
+  Index rhsCols = b.cols();
   eigen_assert((BDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major rhs yet");
   eigen_assert((XDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major result yet");
   eigen_assert(b.derived().data() != x.derived().data() && " Umfpack does not support inplace solve");

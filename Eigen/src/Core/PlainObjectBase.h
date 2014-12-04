@@ -95,7 +95,6 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     typedef typename internal::dense_xpr_base<Derived>::type Base;
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -846,7 +845,6 @@ namespace internal {
 template <typename Derived, typename OtherDerived, bool IsVector>
 struct conservative_resize_like_impl
 {
-  typedef typename Derived::Index Index;
   static void run(DenseBase<Derived>& _this, Index rows, Index cols)
   {
     if (_this.rows() == rows && _this.cols() == cols) return;
@@ -912,7 +910,6 @@ struct conservative_resize_like_impl<Derived,OtherDerived,true>
 {
   using conservative_resize_like_impl<Derived,OtherDerived,false>::run;
   
-  typedef typename Derived::Index Index;
   static void run(DenseBase<Derived>& _this, Index size)
   {
     const Index new_rows = Derived::RowsAtCompileTime==1 ? 1 : size;

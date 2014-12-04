@@ -67,7 +67,7 @@ class PermutationBase : public EigenBase<Derived>
       MaxColsAtCompileTime = Traits::MaxColsAtCompileTime
     };
     typedef typename Traits::StorageIndexType StorageIndexType;
-    typedef typename Traits::Index Index;
+    typedef typename Traits::StorageIndex StorageIndex;
     typedef Matrix<StorageIndexType,RowsAtCompileTime,ColsAtCompileTime,0,MaxRowsAtCompileTime,MaxColsAtCompileTime>
             DenseMatrixType;
     typedef PermutationMatrix<IndicesType::SizeAtCompileTime,IndicesType::MaxSizeAtCompileTime,StorageIndexType>
@@ -277,7 +277,7 @@ struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _Storag
 {
   typedef PermutationStorage StorageKind;
   typedef Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
-  typedef typename IndicesType::Index Index;
+  typedef typename IndicesType::StorageIndex StorageIndex;
   typedef _StorageIndexType StorageIndexType;
 };
 }
@@ -294,7 +294,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef typename Traits::IndicesType IndicesType;
     typedef typename Traits::StorageIndexType StorageIndexType;
-    typedef typename Traits::Index Index;
+    typedef typename Traits::StorageIndex StorageIndex;
     #endif
 
     inline PermutationMatrix()
@@ -402,7 +402,7 @@ struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _St
 {
   typedef PermutationStorage StorageKind;
   typedef Map<const Matrix<_StorageIndexType, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, _PacketAccess> IndicesType;
-  typedef typename IndicesType::Index Index;
+  typedef typename IndicesType::StorageIndex StorageIndex;
   typedef _StorageIndexType StorageIndexType;
 };
 }
@@ -418,7 +418,7 @@ class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageInd
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar StorageIndexType;
-    typedef typename IndicesType::Index  Index;
+    typedef typename IndicesType::StorageIndex  StorageIndex;
     #endif
 
     inline Map(const StorageIndexType* indicesPtr)
@@ -480,7 +480,7 @@ struct traits<PermutationWrapper<_IndicesType> >
   typedef PermutationStorage StorageKind;
   typedef typename _IndicesType::Scalar Scalar;
   typedef typename _IndicesType::Scalar StorageIndexType;
-  typedef typename _IndicesType::Index Index;
+  typedef typename _IndicesType::StorageIndex StorageIndex;
   typedef _IndicesType IndicesType;
   enum {
     RowsAtCompileTime = _IndicesType::SizeAtCompileTime,
@@ -558,7 +558,7 @@ struct permut_matrix_product_retval
  : public ReturnByValue<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
 {
     typedef typename remove_all<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
-    typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
 
     permut_matrix_product_retval(const PermutationType& perm, const MatrixType& matrix)
       : m_permutation(perm), m_matrix(matrix)
@@ -650,7 +650,7 @@ class Transpose<PermutationBase<Derived> >
       MaxColsAtCompileTime = Traits::MaxColsAtCompileTime
     };
     typedef typename Traits::Scalar Scalar;
-    typedef typename Traits::Index Index;
+    typedef typename Traits::StorageIndex StorageIndex;
     #endif
 
     Transpose(const PermutationType& p) : m_permutation(p) {}

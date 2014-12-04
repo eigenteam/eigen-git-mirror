@@ -22,7 +22,6 @@ template<typename MatrixType> void product(const MatrixType& m)
   /* this test covers the following files:
      Identity.h Product.h
   */
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> RowVectorType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> ColVectorType;

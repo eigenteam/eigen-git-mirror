@@ -60,7 +60,7 @@ template<typename VectorsType, typename CoeffsType, int Side>
 struct traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
   typedef typename VectorsType::Scalar Scalar;
-  typedef typename VectorsType::Index Index;
+  typedef typename VectorsType::StorageIndex StorageIndex;
   typedef typename VectorsType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = Side==OnTheLeft ? traits<VectorsType>::RowsAtCompileTime
@@ -87,7 +87,7 @@ struct hseq_side_dependent_impl
 {
   typedef Block<const VectorsType, Dynamic, 1> EssentialVectorType;
   typedef HouseholderSequence<VectorsType, CoeffsType, OnTheLeft> HouseholderSequenceType;
-  typedef typename VectorsType::Index Index;
+  typedef typename VectorsType::StorageIndex StorageIndex;
   static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, Index k)
   {
     Index start = k+1+h.m_shift;
@@ -100,7 +100,7 @@ struct hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
 {
   typedef Transpose<Block<const VectorsType, 1, Dynamic> > EssentialVectorType;
   typedef HouseholderSequence<VectorsType, CoeffsType, OnTheRight> HouseholderSequenceType;
-  typedef typename VectorsType::Index Index;
+  typedef typename VectorsType::StorageIndex StorageIndex;
   static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, Index k)
   {
     Index start = k+1+h.m_shift;
@@ -131,7 +131,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       MaxColsAtCompileTime = internal::traits<HouseholderSequence>::MaxColsAtCompileTime
     };
     typedef typename internal::traits<HouseholderSequence>::Scalar Scalar;
-    typedef typename VectorsType::Index Index;
+    typedef typename VectorsType::StorageIndex StorageIndex;
 
     typedef HouseholderSequence<
       typename internal::conditional<NumTraits<Scalar>::IsComplex,

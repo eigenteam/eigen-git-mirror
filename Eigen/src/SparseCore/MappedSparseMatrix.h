@@ -22,14 +22,14 @@ namespace Eigen {
   *
   */
 namespace internal {
-template<typename _Scalar, int _Flags, typename _Index>
-struct traits<MappedSparseMatrix<_Scalar, _Flags, _Index> > : traits<SparseMatrix<_Scalar, _Flags, _Index> >
+template<typename _Scalar, int _Flags, typename _StorageIndex>
+struct traits<MappedSparseMatrix<_Scalar, _Flags, _StorageIndex> > : traits<SparseMatrix<_Scalar, _Flags, _StorageIndex> >
 {};
 }
 
-template<typename _Scalar, int _Flags, typename _Index>
+template<typename _Scalar, int _Flags, typename _StorageIndex>
 class MappedSparseMatrix
-  : public SparseMatrixBase<MappedSparseMatrix<_Scalar, _Flags, _Index> >
+  : public SparseMatrixBase<MappedSparseMatrix<_Scalar, _Flags, _StorageIndex> >
 {
   public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(MappedSparseMatrix)
@@ -37,19 +37,19 @@ class MappedSparseMatrix
 
   protected:
 
-    Index   m_outerSize;
-    Index   m_innerSize;
-    Index   m_nnz;
-    Index*  m_outerIndex;
-    Index*  m_innerIndices;
+    StorageIndex   m_outerSize;
+    StorageIndex   m_innerSize;
+    StorageIndex   m_nnz;
+    StorageIndex*  m_outerIndex;
+    StorageIndex*  m_innerIndices;
     Scalar* m_values;
 
   public:
 
-    inline Index rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
-    inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
-    inline Index innerSize() const { return m_innerSize; }
-    inline Index outerSize() const { return m_outerSize; }
+    inline StorageIndex rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
+    inline StorageIndex cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
+    inline StorageIndex innerSize() const { return m_innerSize; }
+    inline StorageIndex outerSize() const { return m_outerSize; }
     
     bool isCompressed() const { return true; }
 
@@ -58,11 +58,11 @@ class MappedSparseMatrix
     inline const Scalar* valuePtr() const { return m_values; }
     inline Scalar* valuePtr() { return m_values; }
 
-    inline const Index* innerIndexPtr() const { return m_innerIndices; }
-    inline Index* innerIndexPtr() { return m_innerIndices; }
+    inline const StorageIndex* innerIndexPtr() const { return m_innerIndices; }
+    inline StorageIndex* innerIndexPtr() { return m_innerIndices; }
 
-    inline const Index* outerIndexPtr() const { return m_outerIndex; }
-    inline Index* outerIndexPtr() { return m_outerIndex; }
+    inline const StorageIndex* outerIndexPtr() const { return m_outerIndex; }
+    inline StorageIndex* outerIndexPtr() { return m_outerIndex; }
     //----------------------------------------
 
     inline Scalar coeff(Index row, Index col) const
@@ -79,7 +79,7 @@ class MappedSparseMatrix
       // ^^  optimization: let's first check if it is the last coefficient
       // (very common in high level algorithms)
 
-      const Index* r = std::lower_bound(&m_innerIndices[start],&m_innerIndices[end-1],inner);
+      const StorageIndex* r = std::lower_bound(&m_innerIndices[start],&m_innerIndices[end-1],inner);
       const Index id = r-&m_innerIndices[0];
       return ((*r==inner) && (id<end)) ? m_values[id] : Scalar(0);
     }
@@ -93,7 +93,7 @@ class MappedSparseMatrix
       Index end = m_outerIndex[outer+1];
       eigen_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
       eigen_assert(end>start && "coeffRef cannot be called on a zero coefficient");
-      Index* r = std::lower_bound(&m_innerIndices[start],&m_innerIndices[end],inner);
+      StorageIndex* r = std::lower_bound(&m_innerIndices[start],&m_innerIndices[end],inner);
       const Index id = r-&m_innerIndices[0];
       eigen_assert((*r==inner) && (id<end) && "coeffRef cannot be called on a zero coefficient");
       return m_values[id];
@@ -103,24 +103,24 @@ class MappedSparseMatrix
     class ReverseInnerIterator;
 
     /** \returns the number of non zero coefficients */
-    inline Index nonZeros() const  { return m_nnz; }
+    inline StorageIndex nonZeros() const  { return m_nnz; }
 
-    inline MappedSparseMatrix(Index rows, Index cols, Index nnz, Index* outerIndexPtr, Index* innerIndexPtr, Scalar* valuePtr)
-      : m_outerSize(IsRowMajor?rows:cols), m_innerSize(IsRowMajor?cols:rows), m_nnz(nnz), m_outerIndex(outerIndexPtr),
-        m_innerIndices(innerIndexPtr), m_values(valuePtr)
+    inline MappedSparseMatrix(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr, StorageIndex* innerIndexPtr, Scalar* valuePtr)
+      : m_outerSize(convert_index(IsRowMajor?rows:cols)), m_innerSize(convert_index(IsRowMajor?cols:rows)), m_nnz(convert_index(nnz)),
+        m_outerIndex(outerIndexPtr), m_innerIndices(innerIndexPtr), m_values(valuePtr)
     {}
 
     /** Empty destructor */
     inline ~MappedSparseMatrix() {}
 };
 
-template<typename Scalar, int _Flags, typename _Index>
-class MappedSparseMatrix<Scalar,_Flags,_Index>::InnerIterator
+template<typename Scalar, int _Flags, typename _StorageIndex>
+class MappedSparseMatrix<Scalar,_Flags,_StorageIndex>::InnerIterator
 {
   public:
     InnerIterator(const MappedSparseMatrix& mat, Index outer)
       : m_matrix(mat),
-        m_outer(outer),
+        m_outer(convert_index(outer)),
         m_id(mat.outerIndexPtr()[outer]),
         m_start(m_id),
         m_end(mat.outerIndexPtr()[outer+1])
@@ -131,22 +131,22 @@ class MappedSparseMatrix<Scalar,_Flags,_Index>::InnerIterator
     inline Scalar value() const { return m_matrix.valuePtr()[m_id]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.valuePtr()[m_id]); }
 
-    inline Index index() const { return m_matrix.innerIndexPtr()[m_id]; }
-    inline Index row() const { return IsRowMajor ? m_outer : index(); }
-    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+    inline StorageIndex index() const { return m_matrix.innerIndexPtr()[m_id]; }
+    inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
+    inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
 
     inline operator bool() const { return (m_id < m_end) && (m_id>=m_start); }
 
   protected:
     const MappedSparseMatrix& m_matrix;
-    const Index m_outer;
-    Index m_id;
-    const Index m_start;
-    const Index m_end;
+    const StorageIndex m_outer;
+    StorageIndex m_id;
+    const StorageIndex m_start;
+    const StorageIndex m_end;
 };
 
-template<typename Scalar, int _Flags, typename _Index>
-class MappedSparseMatrix<Scalar,_Flags,_Index>::ReverseInnerIterator
+template<typename Scalar, int _Flags, typename _StorageIndex>
+class MappedSparseMatrix<Scalar,_Flags,_StorageIndex>::ReverseInnerIterator
 {
   public:
     ReverseInnerIterator(const MappedSparseMatrix& mat, Index outer)
@@ -162,18 +162,18 @@ class MappedSparseMatrix<Scalar,_Flags,_Index>::ReverseInnerIterator
     inline Scalar value() const { return m_matrix.valuePtr()[m_id-1]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.valuePtr()[m_id-1]); }
 
-    inline Index index() const { return m_matrix.innerIndexPtr()[m_id-1]; }
-    inline Index row() const { return IsRowMajor ? m_outer : index(); }
-    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+    inline StorageIndex index() const { return m_matrix.innerIndexPtr()[m_id-1]; }
+    inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
+    inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
 
     inline operator bool() const { return (m_id <= m_end) && (m_id>m_start); }
 
   protected:
     const MappedSparseMatrix& m_matrix;
-    const Index m_outer;
-    Index m_id;
-    const Index m_start;
-    const Index m_end;
+    const StorageIndex m_outer;
+    StorageIndex m_id;
+    const StorageIndex m_start;
+    const StorageIndex m_end;
 };
 
 namespace internal {

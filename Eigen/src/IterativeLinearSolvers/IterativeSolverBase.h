@@ -28,7 +28,7 @@ public:
   typedef typename internal::traits<Derived>::MatrixType MatrixType;
   typedef typename internal::traits<Derived>::Preconditioner Preconditioner;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::StorageIndex StorageIndex;
   typedef typename MatrixType::RealScalar RealScalar;
 
 public:
@@ -115,9 +115,9 @@ public:
   }
 
   /** \internal */
-  Index rows() const { return mp_matrix ? mp_matrix->rows() : 0; }
+  StorageIndex rows() const { return mp_matrix ? mp_matrix->rows() : 0; }
   /** \internal */
-  Index cols() const { return mp_matrix ? mp_matrix->cols() : 0; }
+  StorageIndex cols() const { return mp_matrix ? mp_matrix->cols() : 0; }
 
   /** \returns the tolerance threshold used by the stopping criteria */
   RealScalar tolerance() const { return m_tolerance; }

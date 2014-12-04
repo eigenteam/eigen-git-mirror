@@ -37,7 +37,7 @@ template<typename _Scalar, int _Options, typename _Index>
 struct traits<DynamicSparseMatrix<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
-  typedef _Index Index;
+  typedef _Index StorageIndex;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -70,21 +70,21 @@ template<typename _Scalar, int _Options, typename _Index>
 
   protected:
 
-    typedef DynamicSparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
+    typedef DynamicSparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0), StorageIndex> TransposedSparseMatrix;
 
-    Index m_innerSize;
-    std::vector<internal::CompressedStorage<Scalar,Index> > m_data;
+    StorageIndex m_innerSize;
+    std::vector<internal::CompressedStorage<Scalar,StorageIndex> > m_data;
 
   public:
 
-    inline Index rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
-    inline Index cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
-    inline Index innerSize() const { return m_innerSize; }
-    inline Index outerSize() const { return static_cast<Index>(m_data.size()); }
-    inline Index innerNonZeros(Index j) const { return m_data[j].size(); }
+    inline StorageIndex rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
+    inline StorageIndex cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
+    inline StorageIndex innerSize() const { return m_innerSize; }
+    inline StorageIndex outerSize() const { return convert_index(m_data.size()); }
+    inline StorageIndex innerNonZeros(Index j) const { return m_data[j].size(); }
 
-    std::vector<internal::CompressedStorage<Scalar,Index> >& _data() { return m_data; }
-    const std::vector<internal::CompressedStorage<Scalar,Index> >& _data() const { return m_data; }
+    std::vector<internal::CompressedStorage<Scalar,StorageIndex> >& _data() { return m_data; }
+    const std::vector<internal::CompressedStorage<Scalar,StorageIndex> >& _data() const { return m_data; }
 
     /** \returns the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search.
@@ -117,11 +117,11 @@ template<typename _Scalar, int _Options, typename _Index>
     }
 
     /** \returns the number of non zero coefficients */
-    Index nonZeros() const
+    StorageIndex nonZeros() const
     {
-      Index res = 0;
+      StorageIndex res = 0;
       for (Index j=0; j<outerSize(); ++j)
-        res += static_cast<Index>(m_data[j].size());
+        res += convert_index(m_data[j].size());
       return res;
     }
 
@@ -197,7 +197,7 @@ template<typename _Scalar, int _Options, typename _Index>
     void resize(Index rows, Index cols)
     {
       const Index outerSize = IsRowMajor ? rows : cols;
-      m_innerSize = IsRowMajor ? cols : rows;
+      m_innerSize = convert_index(IsRowMajor ? cols : rows);
       setZero();
       if (Index(m_data.size()) != outerSize)
       {

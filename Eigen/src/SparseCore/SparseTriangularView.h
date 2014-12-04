@@ -64,7 +64,7 @@ template<typename MatrixType, unsigned int Mode>
 class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixTypeNestedCleaned::InnerIterator
 {
     typedef typename MatrixTypeNestedCleaned::InnerIterator Base;
-    typedef typename TriangularViewType::Index Index;
+    typedef typename TriangularViewType::StorageIndex StorageIndex;
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const TriangularViewImpl& view, Index outer)
@@ -102,9 +102,9 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixT
       return *this;
     }
 
-    inline Index row() const { return (MatrixType::Flags&RowMajorBit ? Base::outer() : this->index()); }
-    inline Index col() const { return (MatrixType::Flags&RowMajorBit ? this->index() : Base::outer()); }
-    inline Index index() const
+    inline StorageIndex row() const { return (MatrixType::Flags&RowMajorBit ? Base::outer() : this->index()); }
+    inline StorageIndex col() const { return (MatrixType::Flags&RowMajorBit ? this->index() : Base::outer()); }
+    inline StorageIndex index() const
     {
       if(HasUnitDiag && m_returnOne)  return Base::outer();
       else                            return Base::index();
@@ -134,7 +134,7 @@ template<typename MatrixType, unsigned int Mode>
 class TriangularViewImpl<MatrixType,Mode,Sparse>::ReverseInnerIterator : public MatrixTypeNestedCleaned::ReverseInnerIterator
 {
     typedef typename MatrixTypeNestedCleaned::ReverseInnerIterator Base;
-    typedef typename TriangularViewImpl::Index Index;
+    typedef typename TriangularViewImpl::StorageIndex StorageIndex;
   public:
 
     EIGEN_STRONG_INLINE ReverseInnerIterator(const TriangularViewType& view, Index outer)
@@ -150,8 +150,8 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::ReverseInnerIterator : public 
     EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
     { Base::operator--(); return *this; }
 
-    inline Index row() const { return Base::row(); }
-    inline Index col() const { return Base::col(); }
+    inline StorageIndex row() const { return Base::row(); }
+    inline StorageIndex col() const { return Base::col(); }
 
     EIGEN_STRONG_INLINE operator bool() const
     {
@@ -175,7 +175,7 @@ struct unary_evaluator<TriangularView<ArgType,Mode>, IteratorBased>
 protected:
   
   typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename evaluator<ArgType>::InnerIterator EvalIterator;
   
   enum { SkipFirst = ((Mode&Lower) && !(ArgType::Flags&RowMajorBit))
@@ -246,9 +246,9 @@ public:
         }
       }
 
-//       inline Index row() const { return (ArgType::Flags&RowMajorBit ? Base::outer() : this->index()); }
-//       inline Index col() const { return (ArgType::Flags&RowMajorBit ? this->index() : Base::outer()); }
-      inline Index index() const
+//       inline StorageIndex row() const { return (ArgType::Flags&RowMajorBit ? Base::outer() : this->index()); }
+//       inline StorageIndex col() const { return (ArgType::Flags&RowMajorBit ? this->index() : Base::outer()); }
+      inline StorageIndex index() const
       {
         if(HasUnitDiag && m_returnOne)  return Base::outer();
         else                            return Base::index();

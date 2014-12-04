@@ -373,11 +373,10 @@ bool test_is_equal(const T& actual, const U& expected)
   */
 // Forward declaration to avoid ICC warning
 template<typename MatrixType>
-void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m);
+void createRandomPIMatrixOfRank(Index desired_rank, Index rows, Index cols, MatrixType& m);
 template<typename MatrixType>
-void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m)
+void createRandomPIMatrixOfRank(Index desired_rank, Index rows, Index cols, MatrixType& m)
 {
-  typedef typename internal::traits<MatrixType>::Index Index;
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
 
@@ -414,11 +413,10 @@ void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typenam
 
 // Forward declaration to avoid ICC warning
 template<typename PermutationVectorType>
-void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size);
+void randomPermutationVector(PermutationVectorType& v, Index size);
 template<typename PermutationVectorType>
-void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size)
+void randomPermutationVector(PermutationVectorType& v, Index size)
 {
-  typedef typename PermutationVectorType::Index Index;
   typedef typename PermutationVectorType::Scalar Scalar;
   v.resize(size);
   for(Index i = 0; i < size; ++i) v(i) = Scalar(i);

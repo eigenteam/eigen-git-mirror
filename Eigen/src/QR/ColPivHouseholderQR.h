@@ -58,6 +58,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
     typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
@@ -69,7 +70,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     
   private:
     
-    typedef typename PermutationType::Index PermIndexType;
+    typedef typename PermutationType::StorageIndex PermIndexType;
     
   public:
 

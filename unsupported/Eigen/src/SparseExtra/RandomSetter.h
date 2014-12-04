@@ -154,7 +154,7 @@ template<typename SparseMatrixType,
 class RandomSetter
 {
     typedef typename SparseMatrixType::Scalar Scalar;
-    typedef typename SparseMatrixType::Index Index;
+    typedef typename SparseMatrixType::StorageIndex StorageIndex;
 
     struct ScalarWrapper
     {
@@ -292,10 +292,10 @@ class RandomSetter
     /** \returns a reference to the coefficient at given coordinates \a row, \a col */
     Scalar& operator() (Index row, Index col)
     {
-      const Index outer = SetterRowMajor ? row : col;
-      const Index inner = SetterRowMajor ? col : row;
-      const Index outerMajor = outer >> OuterPacketBits; // index of the packet/map
-      const Index outerMinor = outer & OuterPacketMask;  // index of the inner vector in the packet
+      const StorageIndex outer = internal::convert_index<StorageIndex>(SetterRowMajor ? row : col);
+      const StorageIndex inner = internal::convert_index<StorageIndex>(SetterRowMajor ? col : row);
+      const StorageIndex outerMajor = outer >> OuterPacketBits; // index of the packet/map
+      const StorageIndex outerMinor = outer & OuterPacketMask;  // index of the inner vector in the packet
       const KeyType key = (KeyType(outerMinor)<<m_keyBitsOffset) | inner;
       return m_hashmaps[outerMajor][key].value;
     }

@@ -60,6 +60,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
 
     typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;

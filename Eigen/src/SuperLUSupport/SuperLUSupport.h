@@ -156,10 +156,10 @@ struct SluMatrix : SuperMatrix
     res.setScalarType<typename MatrixType::Scalar>();
     res.Mtype     = SLU_GE;
 
-    res.nrow      = mat.rows();
-    res.ncol      = mat.cols();
+    res.nrow      = internal::convert_index<int>(mat.rows());
+    res.ncol      = internal::convert_index<int>(mat.cols());
 
-    res.storage.lda       = MatrixType::IsVectorAtCompileTime ? mat.size() : mat.outerStride();
+    res.storage.lda       = internal::convert_index<int>(MatrixType::IsVectorAtCompileTime ? mat.size() : mat.outerStride());
     res.storage.values    = (void*)(mat.data());
     return res;
   }
@@ -298,7 +298,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;    
@@ -313,8 +313,8 @@ class SuperLUBase : public SparseSolverBase<Derived>
       clearFactors();
     }
     
-    inline Index rows() const { return m_matrix.rows(); }
-    inline Index cols() const { return m_matrix.cols(); }
+    inline StorageIndex rows() const { return m_matrix.rows(); }
+    inline StorageIndex cols() const { return m_matrix.cols(); }
     
     /** \returns a reference to the Super LU option object to configure the  Super LU algorithms. */
     inline superlu_options_t& options() { return m_sluOptions; }
@@ -457,7 +457,7 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
     typedef _MatrixType MatrixType;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::RealScalar RealScalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     typedef typename Base::IntRowVectorType IntRowVectorType;
     typedef typename Base::IntColVectorType IntColVectorType;    
     typedef typename Base::LUMatrixType LUMatrixType;
@@ -616,8 +616,8 @@ void SuperLU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest>
 {
   eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or analyzePattern()/factorize()");
 
-  const int size = m_matrix.rows();
-  const int rhsCols = b.cols();
+  const StorageIndex size = m_matrix.rows();
+  const Index rhsCols = b.cols();
   eigen_assert(size==b.rows());
 
   m_sluOptions.Trans = NOTRANS;

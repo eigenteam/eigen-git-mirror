@@ -71,7 +71,6 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
 {
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
-  typedef typename DstXprType::Index Index;
   typedef typename DstXprType::Scalar Scalar;
   typedef typename internal::evaluator<DstXprType>::type DstEvaluatorType;
   typedef typename internal::evaluator<SrcXprType>::type SrcEvaluatorType;
@@ -144,7 +143,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    typedef typename SrcXprType::Index Index;
     
     typename internal::evaluator<SrcXprType>::type srcEval(src);
     typename internal::evaluator<DstXprType>::type dstEval(dst);
@@ -161,7 +159,6 @@ struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprTyp
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    typedef typename SrcXprType::Index Index;
     
     dst.setZero();
     typename internal::evaluator<SrcXprType>::type srcEval(src);

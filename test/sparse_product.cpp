@@ -11,7 +11,7 @@
 
 template<typename SparseMatrixType> void sparse_product()
 {
-  typedef typename SparseMatrixType::Index Index;
+  typedef typename SparseMatrixType::StorageIndex Index;
   Index n = 100;
   const Index rows  = internal::random<Index>(1,n);
   const Index cols  = internal::random<Index>(1,n);

@@ -58,10 +58,10 @@ Index etree_find (Index i, IndexVector& pp)
   * \param perm The permutation to apply to the column of \b mat
   */
 template <typename MatrixType, typename IndexVector>
-int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt, typename MatrixType::Index *perm=0)
+int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt, typename MatrixType::StorageIndex *perm=0)
 {
-  typedef typename MatrixType::Index Index;
-  Index nc = mat.cols(); // Number of columns 
+  typedef typename MatrixType::StorageIndex Index;
+  Index nc = mat.cols(); // Number of columns
   Index m = mat.rows();
   Index diagSize = (std::min)(nc,m);
   IndexVector root(nc); // root of subtree of etree 
@@ -70,7 +70,7 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
   pp.setZero(); // Initialize disjoint sets 
   parent.resize(mat.cols());
   //Compute first nonzero column in each row 
-  Index row,col; 
+  Index row,col;
   firstRowElt.resize(m);
   firstRowElt.setConstant(nc);
   firstRowElt.segment(0, diagSize).setLinSpaced(diagSize, 0, diagSize-1);
@@ -89,7 +89,7 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
           except use (firstRowElt[r],c) in place of an edge (r,c) of A.
     Thus each row clique in A'*A is replaced by a star
     centered at its first vertex, which has the same fill. */
-  Index rset, cset, rroot; 
+  Index rset, cset, rroot;
   for (col = 0; col < nc; col++) 
   {
     found_diag = col>=m;

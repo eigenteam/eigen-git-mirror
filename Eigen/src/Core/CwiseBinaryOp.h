@@ -59,8 +59,8 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   typedef typename cwise_promote_storage_type<typename traits<Lhs>::StorageKind,
                                               typename traits<Rhs>::StorageKind,
                                               BinaryOp>::ret StorageKind;
-  typedef typename promote_index_type<typename traits<Lhs>::Index,
-                                         typename traits<Rhs>::Index>::type Index;
+  typedef typename promote_index_type<typename traits<Lhs>::StorageIndex,
+                                      typename traits<Rhs>::StorageIndex>::type StorageIndex;
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
   typedef typename remove_reference<LhsNested>::type _LhsNested;
@@ -111,7 +111,7 @@ class CwiseBinaryOp :
     }
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index rows() const {
+    EIGEN_STRONG_INLINE StorageIndex rows() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::RowsAtCompileTime==Dynamic)
         return m_rhs.rows();
@@ -119,7 +119,7 @@ class CwiseBinaryOp :
         return m_lhs.rows();
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index cols() const {
+    EIGEN_STRONG_INLINE StorageIndex cols() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::ColsAtCompileTime==Dynamic)
         return m_rhs.cols();

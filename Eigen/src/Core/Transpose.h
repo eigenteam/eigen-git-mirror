@@ -29,14 +29,10 @@ namespace Eigen {
 
 namespace internal {
 template<typename MatrixType>
-struct traits<Transpose<MatrixType> >
+struct traits<Transpose<MatrixType> > : public traits<MatrixType>
 {
-  typedef typename traits<MatrixType>::Scalar Scalar;
-  typedef typename traits<MatrixType>::Index Index;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedPlain;
-  typedef typename traits<MatrixType>::StorageKind StorageKind;
-  typedef typename traits<MatrixType>::XprKind XprKind;
   enum {
     RowsAtCompileTime = MatrixType::ColsAtCompileTime,
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -68,8 +64,8 @@ template<typename MatrixType> class Transpose
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
-    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.cols(); }
-    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC inline StorageIndex rows() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC inline StorageIndex cols() const { return m_matrix.rows(); }
 
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC

@@ -48,6 +48,7 @@ struct traits<Solve<Decomposition, RhsType> >
   : traits<typename solve_traits<Decomposition,RhsType,typename internal::traits<RhsType>::StorageKind>::PlainObject>
 {
   typedef typename solve_traits<Decomposition,RhsType,typename internal::traits<RhsType>::StorageKind>::PlainObject PlainObject;
+  typedef typename promote_index_type<typename Decomposition::StorageIndex, typename RhsType::StorageIndex>::type StorageIndex;
   typedef traits<PlainObject> BaseTraits;
   enum {
     Flags = BaseTraits::Flags & RowMajorBit,
@@ -62,15 +63,15 @@ template<typename Decomposition, typename RhsType>
 class Solve : public SolveImpl<Decomposition,RhsType,typename internal::traits<RhsType>::StorageKind>
 {
 public:
-  typedef typename RhsType::Index Index;
   typedef typename internal::traits<Solve>::PlainObject PlainObject;
+  typedef typename internal::traits<Solve>::StorageIndex StorageIndex;
   
   Solve(const Decomposition &dec, const RhsType &rhs)
     : m_dec(dec), m_rhs(rhs)
   {}
   
-  EIGEN_DEVICE_FUNC Index rows() const { return m_dec.cols(); }
-  EIGEN_DEVICE_FUNC Index cols() const { return m_rhs.cols(); }
+  EIGEN_DEVICE_FUNC StorageIndex rows() const { return m_dec.cols(); }
+  EIGEN_DEVICE_FUNC StorageIndex cols() const { return m_rhs.cols(); }
 
   EIGEN_DEVICE_FUNC const Decomposition& dec() const { return m_dec; }
   EIGEN_DEVICE_FUNC const RhsType&       rhs() const { return m_rhs; }

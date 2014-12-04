@@ -18,13 +18,13 @@ namespace internal {
   * Stores a sparse set of values as a list of values and a list of indices.
   *
   */
-template<typename _Scalar,typename _Index>
+template<typename _Scalar,typename _StorageIndex>
 class CompressedStorage
 {
   public:
 
     typedef _Scalar Scalar;
-    typedef _Index Index;
+    typedef _StorageIndex StorageIndex;
 
   protected:
 
@@ -92,10 +92,10 @@ class CompressedStorage
 
     void append(const Scalar& v, Index i)
     {
-      Index id = static_cast<Index>(m_size);
+      Index id = m_size;
       resize(m_size+1, 1);
       m_values[id] = v;
-      m_indices[id] = i;
+      m_indices[id] = internal::convert_index<StorageIndex>(i);
     }
 
     inline size_t size() const { return m_size; }
@@ -105,17 +105,17 @@ class CompressedStorage
     inline Scalar& value(size_t i) { return m_values[i]; }
     inline const Scalar& value(size_t i) const { return m_values[i]; }
 
-    inline Index& index(size_t i) { return m_indices[i]; }
-    inline const Index& index(size_t i) const { return m_indices[i]; }
+    inline StorageIndex& index(size_t i) { return m_indices[i]; }
+    inline const StorageIndex& index(size_t i) const { return m_indices[i]; }
 
     /** \returns the largest \c k such that for all \c j in [0,k) index[\c j]\<\a key */
-    inline Index searchLowerIndex(Index key) const
+    inline StorageIndex searchLowerIndex(Index key) const
     {
       return searchLowerIndex(0, m_size, key);
     }
 
     /** \returns the largest \c k in [start,end) such that for all \c j in [start,k) index[\c j]\<\a key */
-    inline Index searchLowerIndex(size_t start, size_t end, Index key) const
+    inline StorageIndex searchLowerIndex(size_t start, size_t end, Index key) const
     {
       while(end>start)
       {
@@ -125,7 +125,7 @@ class CompressedStorage
         else
           end = mid;
       }
-      return static_cast<Index>(start);
+      return static_cast<StorageIndex>(start);
     }
 
     /** \returns the stored value at index \a key
@@ -167,7 +167,7 @@ class CompressedStorage
         {
           m_allocatedSize = 2*(m_size+1);
           internal::scoped_array<Scalar> newValues(m_allocatedSize);
-          internal::scoped_array<Index> newIndices(m_allocatedSize);
+          internal::scoped_array<StorageIndex> newIndices(m_allocatedSize);
 
           // copy first chunk
           internal::smart_copy(m_values,  m_values +id, newValues.ptr());
@@ -188,7 +188,7 @@ class CompressedStorage
           internal::smart_memmove(m_indices+id, m_indices+m_size, m_indices+id+1);
         }
         m_size++;
-        m_indices[id] = key;
+        m_indices[id] = convert_index<StorageIndex>(key);
         m_values[id] = defaultValue;
       }
       return m_values[id];
@@ -216,7 +216,7 @@ class CompressedStorage
     {
       eigen_internal_assert(size!=m_allocatedSize);
       internal::scoped_array<Scalar> newValues(size);
-      internal::scoped_array<Index> newIndices(size);
+      internal::scoped_array<StorageIndex> newIndices(size);
       size_t copySize = (std::min)(size, m_size);
       internal::smart_copy(m_values, m_values+copySize, newValues.ptr());
       internal::smart_copy(m_indices, m_indices+copySize, newIndices.ptr());
@@ -227,7 +227,7 @@ class CompressedStorage
 
   protected:
     Scalar* m_values;
-    Index* m_indices;
+    StorageIndex* m_indices;
     size_t m_size;
     size_t m_allocatedSize;
 

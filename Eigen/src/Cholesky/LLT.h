@@ -60,6 +60,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
 
     enum {
       PacketSize = internal::packet_traits<Scalar>::size,

@@ -66,7 +66,7 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagonalCoeffType, SDP_A
 protected:
   typedef typename evaluator<SparseXprType>::InnerIterator SparseXprInnerIterator;
   typedef typename SparseXprType::Scalar Scalar;
-  typedef typename SparseXprType::Index Index;
+  typedef typename SparseXprType::StorageIndex StorageIndex;
   
 public:
   class InnerIterator : public SparseXprInnerIterator
@@ -96,7 +96,7 @@ template<typename SparseXprType, typename DiagCoeffType>
 struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwiseProduct> 
 {
   typedef typename SparseXprType::Scalar Scalar;
-  typedef typename SparseXprType::Index Index;
+  typedef typename SparseXprType::StorageIndex StorageIndex;
   
   typedef CwiseBinaryOp<scalar_product_op<Scalar>,
                         const typename SparseXprType::ConstInnerVectorReturnType,
@@ -111,14 +111,14 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
     InnerIterator(const sparse_diagonal_product_evaluator &xprEval, Index outer)
       : m_cwiseEval(xprEval.m_sparseXprNested.innerVector(outer).cwiseProduct(xprEval.m_diagCoeffNested)),
         m_cwiseIter(m_cwiseEval, 0),
-        m_outer(outer)
+        m_outer(convert_index<StorageIndex>(outer))
     {}
     
     inline Scalar value() const  { return m_cwiseIter.value(); }
-    inline Index index() const  { return m_cwiseIter.index(); }
-    inline Index outer() const  { return m_outer; }
-    inline Index col() const    { return SparseXprType::IsRowMajor ? m_cwiseIter.index() : m_outer; }
-    inline Index row() const    { return SparseXprType::IsRowMajor ? m_outer : m_cwiseIter.index(); }
+    inline StorageIndex index() const  { return convert_index<StorageIndex>(m_cwiseIter.index()); }
+    inline StorageIndex outer() const  { return m_outer; }
+    inline StorageIndex col() const    { return SparseXprType::IsRowMajor ? m_cwiseIter.index() : m_outer; }
+    inline StorageIndex row() const    { return SparseXprType::IsRowMajor ? m_outer : m_cwiseIter.index(); }
     
     EIGEN_STRONG_INLINE InnerIterator& operator++()
     { ++m_cwiseIter; return *this; }
@@ -127,7 +127,7 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
   protected:
     CwiseProductEval m_cwiseEval;
     CwiseProductIterator m_cwiseIter;
-    Index m_outer;
+    StorageIndex m_outer;
   };
   
   sparse_diagonal_product_evaluator(const SparseXprType &sparseXpr, const DiagCoeffType &diagCoeff)

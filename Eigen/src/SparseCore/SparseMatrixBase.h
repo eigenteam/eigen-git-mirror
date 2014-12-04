@@ -30,13 +30,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
     typedef typename internal::add_const_on_value_type_if_arithmetic<
                          typename internal::packet_traits<Scalar>::type
                      >::type PacketReturnType;
 
     typedef SparseMatrixBase StorageBaseType;
     typedef EigenBase<Derived> Base;
+    typedef Matrix<StorageIndex,Dynamic,1> IndexVector;
+    typedef Matrix<Scalar,Dynamic,1> ScalarVector;
     
     template<typename OtherDerived>
     Derived& operator=(const EigenBase<OtherDerived> &other);
@@ -99,7 +101,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
 
     // FIXME storage order do not match evaluator storage order
-    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, Index> PlainObject;
+    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, StorageIndex> PlainObject;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -142,15 +144,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
     /** \returns the number of rows. \sa cols() */
-    inline Index rows() const { return derived().rows(); }
+    inline StorageIndex rows() const { return derived().rows(); }
     /** \returns the number of columns. \sa rows() */
-    inline Index cols() const { return derived().cols(); }
+    inline StorageIndex cols() const { return derived().cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(). */
-    inline Index size() const { return rows() * cols(); }
+    inline StorageIndex size() const { return rows() * cols(); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
-    inline Index nonZeros() const { return derived().nonZeros(); }
+    inline StorageIndex nonZeros() const { return derived().nonZeros(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -158,10 +160,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     inline bool isVector() const { return rows()==1 || cols()==1; }
     /** \returns the size of the storage major dimension,
       * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
-    Index outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
+    StorageIndex outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
     /** \returns the size of the inner dimension according to the storage order,
       * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
-    Index innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
+    StorageIndex innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
     bool isRValue() const { return m_isRValue; }
     Derived& markAsRValue() { m_isRValue = true; return derived(); }
@@ -227,8 +229,8 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         }
         else
         {
-          SparseMatrix<Scalar, RowMajorBit, Index> trans = m;
-          s << static_cast<const SparseMatrixBase<SparseMatrix<Scalar, RowMajorBit, Index> >&>(trans);
+          SparseMatrix<Scalar, RowMajorBit, StorageIndex> trans = m;
+          s << static_cast<const SparseMatrixBase<SparseMatrix<Scalar, RowMajorBit, StorageIndex> >&>(trans);
         }
       }
       return s;
@@ -288,7 +290,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     { return Product<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
     
      /** \returns an expression of P H P^-1 where H is the matrix represented by \c *this */
-    SparseSymmetricPermutationProduct<Derived,Upper|Lower> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
+    SparseSymmetricPermutationProduct<Derived,Upper|Lower> twistedBy(const PermutationMatrix<Dynamic,Dynamic,StorageIndex>& perm) const
     {
       return SparseSymmetricPermutationProduct<Derived,Upper|Lower>(derived(), perm);
     }
@@ -352,6 +354,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
   protected:
 
     bool m_isRValue;
+
+    static inline StorageIndex convert_index(const Index idx) {
+      return internal::convert_index<StorageIndex>(idx);
+    }
 };
 
 } // end namespace Eigen

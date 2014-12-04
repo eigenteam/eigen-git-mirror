@@ -57,7 +57,7 @@ void SimplicialCholeskyBase<Derived>::analyzePattern_preordered(const CholMatrix
 
   ei_declare_aligned_stack_constructed_variable(Index, tags, size, 0);
 
-  for(Index k = 0; k < size; ++k)
+  for(StorageIndex k = 0; k < size; ++k)
   {
     /* L(k,:) pattern: all nodes reachable in etree from nz in A(0:k-1,k) */
     m_parent[k] = -1;             /* parent of k is not yet known */
@@ -82,7 +82,7 @@ void SimplicialCholeskyBase<Derived>::analyzePattern_preordered(const CholMatrix
   }
 
   /* construct Lp index array from m_nonZerosPerCol column counts */
-  Index* Lp = m_matrix.outerIndexPtr();
+  StorageIndex* Lp = m_matrix.outerIndexPtr();
   Lp[0] = 0;
   for(Index k = 0; k < size; ++k)
     Lp[k+1] = Lp[k] + m_nonZerosPerCol[k] + (doLDLT ? 0 : 1);
@@ -104,35 +104,35 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
 
   eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
   eigen_assert(ap.rows()==ap.cols());
-  const Index size = ap.rows();
+  const StorageIndex size = ap.rows();
   eigen_assert(m_parent.size()==size);
   eigen_assert(m_nonZerosPerCol.size()==size);
 
-  const Index* Lp = m_matrix.outerIndexPtr();
-  Index* Li = m_matrix.innerIndexPtr();
+  const StorageIndex* Lp = m_matrix.outerIndexPtr();
+  StorageIndex* Li = m_matrix.innerIndexPtr();
   Scalar* Lx = m_matrix.valuePtr();
 
   ei_declare_aligned_stack_constructed_variable(Scalar, y, size, 0);
-  ei_declare_aligned_stack_constructed_variable(Index,  pattern, size, 0);
-  ei_declare_aligned_stack_constructed_variable(Index,  tags, size, 0);
+  ei_declare_aligned_stack_constructed_variable(StorageIndex,  pattern, size, 0);
+  ei_declare_aligned_stack_constructed_variable(StorageIndex,  tags, size, 0);
 
   bool ok = true;
   m_diag.resize(DoLDLT ? size : 0);
 
-  for(Index k = 0; k < size; ++k)
+  for(StorageIndex k = 0; k < size; ++k)
   {
     // compute nonzero pattern of kth row of L, in topological order
     y[k] = 0.0;                     // Y(0:k) is now all zero
-    Index top = size;               // stack for pattern is empty
+    StorageIndex top = size;               // stack for pattern is empty
     tags[k] = k;                    // mark node k as visited
     m_nonZerosPerCol[k] = 0;        // count of nonzeros in column k of L
     for(typename MatrixType::InnerIterator it(ap,k); it; ++it)
     {
-      Index i = it.index();
+      StorageIndex i = it.index();
       if(i <= k)
       {
         y[i] += numext::conj(it.value());            /* scatter A(i,k) into Y (sum duplicates) */
-        Index len;
+        StorageIndex len;
         for(len = 0; tags[i] != k; i = m_parent[i])
         {
           pattern[len++] = i;     /* L(k,i) is nonzero */
@@ -149,7 +149,7 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
     y[k] = 0.0;
     for(; top < size; ++top)
     {
-      Index i = pattern[top];       /* pattern[top:n-1] is pattern of L(:,k) */
+      StorageIndex i = pattern[top];       /* pattern[top:n-1] is pattern of L(:,k) */
       Scalar yi = y[i];             /* get and clear Y(i) */
       y[i] = 0.0;
 
@@ -160,8 +160,8 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
       else
         yi = l_ki = yi / Lx[Lp[i]];
 
-      Index p2 = Lp[i] + m_nonZerosPerCol[i];
-      Index p;
+      StorageIndex p2 = Lp[i] + m_nonZerosPerCol[i];
+      StorageIndex p;
       for(p = Lp[i] + (DoLDLT ? 0 : 1); p < p2; ++p)
         y[Li[p]] -= numext::conj(Lx[p]) * yi;
       d -= numext::real(l_ki * numext::conj(yi));
@@ -180,7 +180,7 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
     }
     else
     {
-      Index p = Lp[k] + m_nonZerosPerCol[k]++;
+      StorageIndex p = Lp[k] + m_nonZerosPerCol[k]++;
       Li[p] = k ;                /* store L(k,k) = sqrt (d) in column k */
       if(d <= RealScalar(0)) {
         ok = false;              /* failure, matrix is not positive definite */

@@ -43,7 +43,7 @@ template<typename _Scalar, int _Options, typename _Index>
 struct traits<SparseMatrix<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
-  typedef _Index Index;
+  typedef _Index StorageIndex;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -65,7 +65,7 @@ struct traits<Diagonal<SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
 
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
-  typedef _Index Index;
+  typedef _Index StorageIndex;
   typedef MatrixXpr XprKind;
 
   enum {
@@ -103,23 +103,24 @@ class SparseMatrix
     
 
     using Base::IsRowMajor;
-    typedef internal::CompressedStorage<Scalar,Index> Storage;
+    typedef internal::CompressedStorage<Scalar,StorageIndex> Storage;
     enum {
       Options = _Options
     };
 
+    typedef typename Base::IndexVector IndexVector;
+    typedef typename Base::ScalarVector ScalarVector;
   protected:
-
     typedef SparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
-    Index m_outerSize;
-    Index m_innerSize;
-    Index* m_outerIndex;
-    Index* m_innerNonZeros;     // optional, if null then the data is compressed
+    StorageIndex m_outerSize;
+    StorageIndex m_innerSize;
+    StorageIndex* m_outerIndex;
+    StorageIndex* m_innerNonZeros;     // optional, if null then the data is compressed
     Storage m_data;
     
-    Eigen::Map<Matrix<Index,Dynamic,1> > innerNonZeros() { return Eigen::Map<Matrix<Index,Dynamic,1> >(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
-    const  Eigen::Map<const Matrix<Index,Dynamic,1> > innerNonZeros() const { return Eigen::Map<const Matrix<Index,Dynamic,1> >(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
+    Eigen::Map<IndexVector> innerNonZeros() { return Eigen::Map<IndexVector>(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
+    const  Eigen::Map<const IndexVector> innerNonZeros() const { return Eigen::Map<const IndexVector>(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
 
   public:
     
@@ -127,14 +128,14 @@ class SparseMatrix
     inline bool isCompressed() const { return m_innerNonZeros==0; }
 
     /** \returns the number of rows of the matrix */
-    inline Index rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
+    inline StorageIndex rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
     /** \returns the number of columns of the matrix */
-    inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
+    inline StorageIndex cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
 
     /** \returns the number of rows (resp. columns) of the matrix if the storage order column major (resp. row major) */
-    inline Index innerSize() const { return m_innerSize; }
+    inline StorageIndex innerSize() const { return m_innerSize; }
     /** \returns the number of columns (resp. rows) of the matrix if the storage order column major (resp. row major) */
-    inline Index outerSize() const { return m_outerSize; }
+    inline StorageIndex outerSize() const { return m_outerSize; }
     
     /** \returns a const pointer to the array of values.
       * This function is aimed at interoperability with other libraries.
@@ -148,29 +149,29 @@ class SparseMatrix
     /** \returns a const pointer to the array of inner indices.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), outerIndexPtr() */
-    inline const Index* innerIndexPtr() const { return &m_data.index(0); }
+    inline const StorageIndex* innerIndexPtr() const { return &m_data.index(0); }
     /** \returns a non-const pointer to the array of inner indices.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), outerIndexPtr() */
-    inline Index* innerIndexPtr() { return &m_data.index(0); }
+    inline StorageIndex* innerIndexPtr() { return &m_data.index(0); }
 
     /** \returns a const pointer to the array of the starting positions of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), innerIndexPtr() */
-    inline const Index* outerIndexPtr() const { return m_outerIndex; }
+    inline const StorageIndex* outerIndexPtr() const { return m_outerIndex; }
     /** \returns a non-const pointer to the array of the starting positions of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), innerIndexPtr() */
-    inline Index* outerIndexPtr() { return m_outerIndex; }
+    inline StorageIndex* outerIndexPtr() { return m_outerIndex; }
 
     /** \returns a const pointer to the array of the number of non zeros of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \warning it returns the null pointer 0 in compressed mode */
-    inline const Index* innerNonZeroPtr() const { return m_innerNonZeros; }
+    inline const StorageIndex* innerNonZeroPtr() const { return m_innerNonZeros; }
     /** \returns a non-const pointer to the array of the number of non zeros of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \warning it returns the null pointer 0 in compressed mode */
-    inline Index* innerNonZeroPtr() { return m_innerNonZeros; }
+    inline StorageIndex* innerNonZeroPtr() { return m_innerNonZeros; }
 
     /** \internal */
     inline Storage& data() { return m_data; }
@@ -234,7 +235,7 @@ class SparseMatrix
       
       if(isCompressed())
       {
-        reserve(Matrix<Index,Dynamic,1>::Constant(outerSize(), 2));
+        reserve(IndexVector::Constant(outerSize(), 2));
       }
       return insertUncompressed(row,col);
     }
@@ -248,17 +249,17 @@ class SparseMatrix
     inline void setZero()
     {
       m_data.clear();
-      memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(Index));
+      memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(StorageIndex));
       if(m_innerNonZeros)
-        memset(m_innerNonZeros, 0, (m_outerSize)*sizeof(Index));
+        memset(m_innerNonZeros, 0, (m_outerSize)*sizeof(StorageIndex));
     }
 
     /** \returns the number of non zero coefficients */
-    inline Index nonZeros() const
+    inline StorageIndex nonZeros() const
     {
       if(m_innerNonZeros)
         return innerNonZeros().sum();
-      return static_cast<Index>(m_data.size());
+      return convert_index(Index(m_data.size()));
     }
 
     /** Preallocates \a reserveSize non zeros.
@@ -302,13 +303,13 @@ class SparseMatrix
       {
         std::size_t totalReserveSize = 0;
         // turn the matrix into non-compressed mode
-        m_innerNonZeros = static_cast<Index*>(std::malloc(m_outerSize * sizeof(Index)));
+        m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
         if (!m_innerNonZeros) internal::throw_std_bad_alloc();
         
         // temporarily use m_innerSizes to hold the new starting points.
-        Index* newOuterIndex = m_innerNonZeros;
+        StorageIndex* newOuterIndex = m_innerNonZeros;
         
-        Index count = 0;
+        StorageIndex count = 0;
         for(Index j=0; j<m_outerSize; ++j)
         {
           newOuterIndex[j] = count;
@@ -316,10 +317,10 @@ class SparseMatrix
           totalReserveSize += reserveSizes[j];
         }
         m_data.reserve(totalReserveSize);
-        Index previousOuterIndex = m_outerIndex[m_outerSize];
+        StorageIndex previousOuterIndex = m_outerIndex[m_outerSize];
         for(Index j=m_outerSize-1; j>=0; --j)
         {
-          Index innerNNZ = previousOuterIndex - m_outerIndex[j];
+          StorageIndex innerNNZ = previousOuterIndex - m_outerIndex[j];
           for(Index i=innerNNZ-1; i>=0; --i)
           {
             m_data.index(newOuterIndex[j]+i) = m_data.index(m_outerIndex[j]+i);
@@ -335,15 +336,15 @@ class SparseMatrix
       }
       else
       {
-        Index* newOuterIndex = static_cast<Index*>(std::malloc((m_outerSize+1)*sizeof(Index)));
+        StorageIndex* newOuterIndex = static_cast<StorageIndex*>(std::malloc((m_outerSize+1)*sizeof(StorageIndex)));
         if (!newOuterIndex) internal::throw_std_bad_alloc();
         
-        Index count = 0;
+        StorageIndex count = 0;
         for(Index j=0; j<m_outerSize; ++j)
         {
           newOuterIndex[j] = count;
-          Index alreadyReserved = (m_outerIndex[j+1]-m_outerIndex[j]) - m_innerNonZeros[j];
-          Index toReserve = std::max<Index>(reserveSizes[j], alreadyReserved);
+          StorageIndex alreadyReserved = (m_outerIndex[j+1]-m_outerIndex[j]) - m_innerNonZeros[j];
+          StorageIndex toReserve = std::max<StorageIndex>(reserveSizes[j], alreadyReserved);
           count += toReserve + m_innerNonZeros[j];
         }
         newOuterIndex[m_outerSize] = count;
@@ -354,7 +355,7 @@ class SparseMatrix
           Index offset = newOuterIndex[j] - m_outerIndex[j];
           if(offset>0)
           {
-            Index innerNNZ = m_innerNonZeros[j];
+            StorageIndex innerNNZ = m_innerNonZeros[j];
             for(Index i=innerNNZ-1; i>=0; --i)
             {
               m_data.index(newOuterIndex[j]+i) = m_data.index(m_outerIndex[j]+i);
@@ -425,7 +426,7 @@ class SparseMatrix
     {
       if(isCompressed())
       {
-        Index size = static_cast<Index>(m_data.size());
+        StorageIndex size = internal::convert_index<StorageIndex>(Index(m_data.size()));
         Index i = m_outerSize;
         // find the last filled column
         while (i>=0 && m_outerIndex[i]==0)
@@ -490,7 +491,7 @@ class SparseMatrix
     {
       if(m_innerNonZeros != 0)
         return; 
-      m_innerNonZeros = static_cast<Index*>(std::malloc(m_outerSize * sizeof(Index)));
+      m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
       for (Index i = 0; i < m_outerSize; i++)
       {
         m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i]; 
@@ -517,7 +518,7 @@ class SparseMatrix
       // TODO also implement a unit test
       makeCompressed();
 
-      Index k = 0;
+      StorageIndex k = 0;
       for(Index j=0; j<m_outerSize; ++j)
       {
         Index previousStart = m_outerIndex[j];
@@ -550,13 +551,13 @@ class SparseMatrix
 
       Index innerChange = IsRowMajor ? cols - this->cols() : rows - this->rows();
       Index outerChange = IsRowMajor ? rows - this->rows() : cols - this->cols();
-      Index newInnerSize = IsRowMajor ? cols : rows;
+      StorageIndex newInnerSize = convert_index(IsRowMajor ? cols : rows);
 
       // Deals with inner non zeros
       if (m_innerNonZeros)
       {
         // Resize m_innerNonZeros
-        Index *newInnerNonZeros = static_cast<Index*>(std::realloc(m_innerNonZeros, (m_outerSize + outerChange) * sizeof(Index)));
+        StorageIndex *newInnerNonZeros = static_cast<StorageIndex*>(std::realloc(m_innerNonZeros, (m_outerSize + outerChange) * sizeof(StorageIndex)));
         if (!newInnerNonZeros) internal::throw_std_bad_alloc();
         m_innerNonZeros = newInnerNonZeros;
         
@@ -566,7 +567,7 @@ class SparseMatrix
       else if (innerChange < 0) 
       {
         // Inner size decreased: allocate a new m_innerNonZeros
-        m_innerNonZeros = static_cast<Index*>(std::malloc((m_outerSize+outerChange+1) * sizeof(Index)));
+        m_innerNonZeros = static_cast<StorageIndex*>(std::malloc((m_outerSize+outerChange+1) * sizeof(StorageIndex)));
         if (!m_innerNonZeros) internal::throw_std_bad_alloc();
         for(Index i = 0; i < m_outerSize; i++)
           m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i];
@@ -577,8 +578,8 @@ class SparseMatrix
       {
         for(Index i = 0; i < m_outerSize + (std::min)(outerChange, Index(0)); i++)
         {
-          Index &n = m_innerNonZeros[i];
-          Index start = m_outerIndex[i];
+          StorageIndex &n = m_innerNonZeros[i];
+          StorageIndex start = m_outerIndex[i];
           while (n > 0 && m_data.index(start+n-1) >= newInnerSize) --n; 
         }
       }
@@ -589,12 +590,12 @@ class SparseMatrix
       if (outerChange == 0)
         return;
           
-      Index *newOuterIndex = static_cast<Index*>(std::realloc(m_outerIndex, (m_outerSize + outerChange + 1) * sizeof(Index)));
+      StorageIndex *newOuterIndex = static_cast<StorageIndex*>(std::realloc(m_outerIndex, (m_outerSize + outerChange + 1) * sizeof(StorageIndex)));
       if (!newOuterIndex) internal::throw_std_bad_alloc();
       m_outerIndex = newOuterIndex;
       if (outerChange > 0)
       {
-        Index last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
+        StorageIndex last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
         for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
           m_outerIndex[i] = last; 
       }
@@ -606,13 +607,13 @@ class SparseMatrix
       */
     void resize(Index rows, Index cols)
     {
-      const Index outerSize = IsRowMajor ? rows : cols;
-      m_innerSize = IsRowMajor ? cols : rows;
+      const StorageIndex outerSize = convert_index(IsRowMajor ? rows : cols);
+      m_innerSize = convert_index(IsRowMajor ? cols : rows);
       m_data.clear();
       if (m_outerSize != outerSize || m_outerSize==0)
       {
         std::free(m_outerIndex);
-        m_outerIndex = static_cast<Index*>(std::malloc((outerSize + 1) * sizeof(Index)));
+        m_outerIndex = static_cast<StorageIndex*>(std::malloc((outerSize + 1) * sizeof(StorageIndex)));
         if (!m_outerIndex) internal::throw_std_bad_alloc();
         
         m_outerSize = outerSize;
@@ -622,7 +623,7 @@ class SparseMatrix
         std::free(m_innerNonZeros);
         m_innerNonZeros = 0;
       }
-      memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(Index));
+      memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(StorageIndex));
     }
 
     /** \internal
@@ -715,9 +716,9 @@ class SparseMatrix
     {
       eigen_assert(rows() == cols() && "ONLY FOR SQUARED MATRICES");
       this->m_data.resize(rows());
-      Eigen::Map<Matrix<Index, Dynamic, 1> >(&this->m_data.index(0), rows()).setLinSpaced(0, rows()-1);
-      Eigen::Map<Matrix<Scalar, Dynamic, 1> >(&this->m_data.value(0), rows()).setOnes();
-      Eigen::Map<Matrix<Index, Dynamic, 1> >(this->m_outerIndex, rows()+1).setLinSpaced(0, rows());
+      Eigen::Map<IndexVector>(&this->m_data.index(0), rows()).setLinSpaced(0, rows()-1);
+      Eigen::Map<ScalarVector>(&this->m_data.value(0), rows()).setOnes();
+      Eigen::Map<IndexVector>(this->m_outerIndex, rows()+1).setLinSpaced(0, rows());
     }
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {
@@ -808,9 +809,7 @@ protected:
     template<typename Other>
     void initAssignment(const Other& other)
     {
-      eigen_assert(     other.rows() == typename Other::Index(Index(other.rows()))
-                    &&  other.cols() == typename Other::Index(Index(other.cols())) );
-      resize(Index(other.rows()), Index(other.cols()));
+      resize(other.rows(), other.cols());
       if(m_innerNonZeros)
       {
         std::free(m_innerNonZeros);
@@ -826,15 +825,15 @@ protected:
       * A vector object that is equal to 0 everywhere but v at the position i */
     class SingletonVector
     {
-        Index m_index;
-        Index m_value;
+        StorageIndex m_index;
+        StorageIndex m_value;
       public:
-        typedef Index value_type;
+        typedef StorageIndex value_type;
         SingletonVector(Index i, Index v)
-          : m_index(i), m_value(v)
+          : m_index(convert_index(i)), m_value(convert_index(v))
         {}
 
-        Index operator[](Index i) const { return i==m_index ? m_value : 0; }
+        StorageIndex operator[](Index i) const { return i==m_index ? m_value : 0; }
     };
 
     /** \internal
@@ -853,14 +852,14 @@ public:
       eigen_assert(m_innerNonZeros[outer]<=(m_outerIndex[outer+1] - m_outerIndex[outer]));
 
       Index p = m_outerIndex[outer] + m_innerNonZeros[outer]++;
-      m_data.index(p) = inner;
+      m_data.index(p) = convert_index(inner);
       return (m_data.value(p) = 0);
     }
 
 private:
   static void check_template_parameters()
   {
-    EIGEN_STATIC_ASSERT(NumTraits<Index>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
+    EIGEN_STATIC_ASSERT(NumTraits<StorageIndex>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
     EIGEN_STATIC_ASSERT((Options&(ColMajor|RowMajor))==Options,INVALID_MATRIX_TEMPLATE_PARAMETERS);
   }
 
@@ -880,7 +879,7 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, Index outer)
-      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_id(mat.m_outerIndex[outer])
+      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(convert_index(outer)), m_id(mat.m_outerIndex[outer])
     {
       if(mat.isCompressed())
         m_end = mat.m_outerIndex[outer+1];
@@ -893,19 +892,19 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
     inline const Scalar& value() const { return m_values[m_id]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id]); }
 
-    inline Index index() const { return m_indices[m_id]; }
-    inline Index outer() const { return m_outer; }
-    inline Index row() const { return IsRowMajor ? m_outer : index(); }
-    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+    inline StorageIndex index() const { return m_indices[m_id]; }
+    inline StorageIndex outer() const { return m_outer; }
+    inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
+    inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
 
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
     const Scalar* m_values;
-    const Index* m_indices;
-    const Index m_outer;
-    Index m_id;
-    Index m_end;
+    const StorageIndex* m_indices;
+    const StorageIndex m_outer;
+    StorageIndex m_id;
+    StorageIndex m_end;
   private:
     // If you get here, then you're not using the right InnerIterator type, e.g.:
     //   SparseMatrix<double,RowMajor> A;
@@ -931,19 +930,19 @@ class SparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator
     inline const Scalar& value() const { return m_values[m_id-1]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id-1]); }
 
-    inline Index index() const { return m_indices[m_id-1]; }
-    inline Index outer() const { return m_outer; }
-    inline Index row() const { return IsRowMajor ? m_outer : index(); }
-    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+    inline StorageIndex index() const { return m_indices[m_id-1]; }
+    inline StorageIndex outer() const { return m_outer; }
+    inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
+    inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
 
     inline operator bool() const { return (m_id > m_start); }
 
   protected:
     const Scalar* m_values;
-    const Index* m_indices;
-    const Index m_outer;
-    Index m_id;
-    const Index m_start;
+    const StorageIndex* m_indices;
+    const StorageIndex m_outer;
+    StorageIndex m_id;
+    const StorageIndex m_start;
 };
 
 namespace internal {
@@ -954,13 +953,13 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   EIGEN_UNUSED_VARIABLE(Options);
   enum { IsRowMajor = SparseMatrixType::IsRowMajor };
   typedef typename SparseMatrixType::Scalar Scalar;
-  typedef typename SparseMatrixType::Index Index;
-  SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor,Index> trMat(mat.rows(),mat.cols());
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
+  SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor,StorageIndex> trMat(mat.rows(),mat.cols());
 
   if(begin!=end)
   {
     // pass 1: count the nnz per inner-vector
-    Matrix<Index,Dynamic,1> wi(trMat.outerSize());
+    typename SparseMatrixType::IndexVector wi(trMat.outerSize());
     wi.setZero();
     for(InputIterator it(begin); it!=end; ++it)
     {
@@ -1034,13 +1033,13 @@ void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
 {
   eigen_assert(!isCompressed());
   // TODO, in practice we should be able to use m_innerNonZeros for that task
-  Matrix<Index,Dynamic,1> wi(innerSize());
+  IndexVector wi(innerSize());
   wi.fill(-1);
-  Index count = 0;
+  StorageIndex count = 0;
   // for each inner-vector, wi[inner_index] will hold the position of first element into the index/value buffers
   for(Index j=0; j<outerSize(); ++j)
   {
-    Index start   = count;
+    StorageIndex start   = count;
     Index oldEnd  = m_outerIndex[j]+m_innerNonZeros[j];
     for(Index k=m_outerIndex[j]; k<oldEnd; ++k)
     {
@@ -1089,7 +1088,7 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
     OtherCopyEval otherCopyEval(otherCopy);
 
     SparseMatrix dest(other.rows(),other.cols());
-    Eigen::Map<Matrix<Index, Dynamic, 1> > (dest.m_outerIndex,dest.outerSize()).setZero();
+    Eigen::Map<IndexVector> (dest.m_outerIndex,dest.outerSize()).setZero();
 
     // pass 1
     // FIXME the above copy could be merged with that pass
@@ -1098,8 +1097,8 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
         ++dest.m_outerIndex[it.index()];
 
     // prefix sum
-    Index count = 0;
-    Matrix<Index,Dynamic,1> positions(dest.outerSize());
+    StorageIndex count = 0;
+    IndexVector positions(dest.outerSize());
     for (Index j=0; j<dest.outerSize(); ++j)
     {
       Index tmp = dest.m_outerIndex[j];
@@ -1111,7 +1110,7 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
     // alloc
     dest.m_data.resize(count);
     // pass 2
-    for (Index j=0; j<otherCopy.outerSize(); ++j)
+    for (StorageIndex j=0; j<otherCopy.outerSize(); ++j)
     {
       for (typename OtherCopyEval::InnerIterator it(otherCopyEval, j); it; ++it)
       {
@@ -1139,15 +1138,15 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& Sparse
 {
   eigen_assert(!isCompressed());
 
-  const Index outer = IsRowMajor ? row : col;
-  const Index inner = IsRowMajor ? col : row;
+  const StorageIndex outer = convert_index(IsRowMajor ? row : col);
+  const StorageIndex inner = convert_index(IsRowMajor ? col : row);
 
   Index room = m_outerIndex[outer+1] - m_outerIndex[outer];
-  Index innerNNZ = m_innerNonZeros[outer];
+  StorageIndex innerNNZ = m_innerNonZeros[outer];
   if(innerNNZ>=room)
   {
     // this inner vector is full, we need to reallocate the whole buffer :(
-    reserve(SingletonVector(outer,std::max<Index>(2,innerNNZ)));
+    reserve(SingletonVector(outer,std::max<StorageIndex>(2,innerNNZ)));
   }
 
   Index startId = m_outerIndex[outer];
@@ -1180,7 +1179,7 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& Sparse
     // we start a new inner vector
     while (previousOuter>=0 && m_outerIndex[previousOuter]==0)
     {
-      m_outerIndex[previousOuter] = static_cast<Index>(m_data.size());
+      m_outerIndex[previousOuter] = convert_index(m_data.size());
       --previousOuter;
     }
     m_outerIndex[outer+1] = m_outerIndex[outer];
@@ -1280,7 +1279,6 @@ struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
   : evaluator_base<SparseMatrix<_Scalar,_Options,_Index> >
 {
   typedef _Scalar Scalar;
-  typedef _Index Index;
   typedef SparseMatrix<_Scalar,_Options,_Index> SparseMatrixType;
   typedef typename SparseMatrixType::InnerIterator InnerIterator;
   typedef typename SparseMatrixType::ReverseInnerIterator ReverseInnerIterator;

@@ -35,8 +35,8 @@ bool equalsIdentity(const MatrixType& A)
 template<typename VectorType>
 void testVectorType(const VectorType& base)
 {
-  typedef typename internal::traits<VectorType>::Index Index;
-  typedef typename internal::traits<VectorType>::Scalar Scalar;
+  typedef typename VectorType::Index Index;
+  typedef typename VectorType::Scalar Scalar;
 
   const Index size = base.size();
   

@@ -111,7 +111,7 @@ struct evaluator_base
   typedef evaluator<ExpressionType> type;
   typedef evaluator<ExpressionType> nestedType;
   
-  typedef typename traits<ExpressionType>::Index Index;
+  typedef typename traits<ExpressionType>::StorageIndex StorageIndex;
   // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.
   typedef traits<ExpressionType> ExpressionTraits;
 };
@@ -128,7 +128,7 @@ struct evaluator<PlainObjectBase<Derived> >
   : evaluator_base<Derived>
 {
   typedef PlainObjectBase<Derived> PlainObjectType;
-  typedef typename PlainObjectType::Index Index;
+  typedef typename PlainObjectType::StorageIndex StorageIndex;
   typedef typename PlainObjectType::Scalar Scalar;
   typedef typename PlainObjectType::CoeffReturnType CoeffReturnType;
   typedef typename PlainObjectType::PacketScalar PacketScalar;
@@ -264,7 +264,7 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
 
   EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& t) : m_argImpl(t.nestedExpression()) {}
 
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
@@ -343,7 +343,7 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
     : m_functor(n.functor()) 
   { }
 
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
 
@@ -394,7 +394,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
       m_argImpl(op.nestedExpression()) 
   { }
 
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
 
@@ -469,7 +469,7 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
       m_rhsImpl(xpr.rhs())  
   { }
 
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
 
@@ -522,7 +522,7 @@ struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType>, IndexBased>
       m_argImpl(op.nestedExpression()) 
   { }
 
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
@@ -563,7 +563,7 @@ struct mapbase_evaluator : evaluator_base<Derived>
 {
   typedef Derived  XprType;
   typedef typename XprType::PointerType PointerType;
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
@@ -760,7 +760,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
       m_startCol(block.startCol()) 
   { }
  
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
@@ -865,7 +865,7 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
       m_elseImpl(select.elseMatrix())
   { }
  
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
   inline EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
@@ -898,7 +898,7 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   : evaluator_base<Replicate<ArgType, RowFactor, ColFactor> >
 {
   typedef Replicate<ArgType, RowFactor, ColFactor> XprType;
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
   enum {
@@ -981,7 +981,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
     : m_expr(expr)
   {}
 
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
  
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
@@ -1016,7 +1016,7 @@ struct evaluator_wrapper_base
 
   EIGEN_DEVICE_FUNC explicit evaluator_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
 
-  typedef typename ArgType::Index Index;
+  typedef typename ArgType::StorageIndex StorageIndex;
   typedef typename ArgType::Scalar Scalar;
   typedef typename ArgType::CoeffReturnType CoeffReturnType;
   typedef typename ArgType::PacketScalar PacketScalar;
@@ -1103,7 +1103,7 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
   : evaluator_base<Reverse<ArgType, Direction> >
 {
   typedef Reverse<ArgType, Direction> XprType;
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
@@ -1219,7 +1219,7 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
       m_index(diagonal.index())
   { }
  
-  typedef typename XprType::Index Index;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 

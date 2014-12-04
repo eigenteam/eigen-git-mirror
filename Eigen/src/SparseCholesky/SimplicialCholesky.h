@@ -44,8 +44,8 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     enum { UpLo = internal::traits<Derived>::UpLo };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-    typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
+    typedef typename MatrixType::StorageIndex StorageIndex;
+    typedef SparseMatrix<Scalar,ColMajor,StorageIndex> CholMatrixType;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
 
   public:
@@ -70,8 +70,8 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     Derived& derived() { return *static_cast<Derived*>(this); }
     const Derived& derived() const { return *static_cast<const Derived*>(this); }
     
-    inline Index cols() const { return m_matrix.cols(); }
-    inline Index rows() const { return m_matrix.rows(); }
+    inline StorageIndex cols() const { return m_matrix.cols(); }
+    inline StorageIndex rows() const { return m_matrix.rows(); }
     
     /** \brief Reports whether previous computation was successful.
       *
@@ -216,16 +216,16 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     VectorType m_diag;                                // the diagonal coefficients (LDLT mode)
     VectorXi m_parent;                                // elimination tree
     VectorXi m_nonZerosPerCol;
-    PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // the permutation
-    PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // the inverse permutation
+    PermutationMatrix<Dynamic,Dynamic,StorageIndex> m_P;     // the permutation
+    PermutationMatrix<Dynamic,Dynamic,StorageIndex> m_Pinv;  // the inverse permutation
 
     RealScalar m_shiftOffset;
     RealScalar m_shiftScale;
 };
 
-template<typename _MatrixType, int _UpLo = Lower, typename _Ordering = AMDOrdering<typename _MatrixType::Index> > class SimplicialLLT;
-template<typename _MatrixType, int _UpLo = Lower, typename _Ordering = AMDOrdering<typename _MatrixType::Index> > class SimplicialLDLT;
-template<typename _MatrixType, int _UpLo = Lower, typename _Ordering = AMDOrdering<typename _MatrixType::Index> > class SimplicialCholesky;
+template<typename _MatrixType, int _UpLo = Lower, typename _Ordering = AMDOrdering<typename _MatrixType::StorageIndex> > class SimplicialLLT;
+template<typename _MatrixType, int _UpLo = Lower, typename _Ordering = AMDOrdering<typename _MatrixType::StorageIndex> > class SimplicialLDLT;
+template<typename _MatrixType, int _UpLo = Lower, typename _Ordering = AMDOrdering<typename _MatrixType::StorageIndex> > class SimplicialCholesky;
 
 namespace internal {
 
@@ -235,8 +235,8 @@ template<typename _MatrixType, int _UpLo, typename _Ordering> struct traits<Simp
   typedef _Ordering OrderingType;
   enum { UpLo = _UpLo };
   typedef typename MatrixType::Scalar                         Scalar;
-  typedef typename MatrixType::Index                          Index;
-  typedef SparseMatrix<Scalar, ColMajor, Index>               CholMatrixType;
+  typedef typename MatrixType::StorageIndex                   StorageIndex;
+  typedef SparseMatrix<Scalar, ColMajor, StorageIndex>        CholMatrixType;
   typedef TriangularView<const CholMatrixType, Eigen::Lower>  MatrixL;
   typedef TriangularView<const typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
@@ -249,8 +249,8 @@ template<typename _MatrixType,int _UpLo, typename _Ordering> struct traits<Simpl
   typedef _Ordering OrderingType;
   enum { UpLo = _UpLo };
   typedef typename MatrixType::Scalar                             Scalar;
-  typedef typename MatrixType::Index                              Index;
-  typedef SparseMatrix<Scalar, ColMajor, Index>                   CholMatrixType;
+  typedef typename MatrixType::StorageIndex                       StorageIndex;
+  typedef SparseMatrix<Scalar, ColMajor, StorageIndex>            CholMatrixType;
   typedef TriangularView<const CholMatrixType, Eigen::UnitLower>  MatrixL;
   typedef TriangularView<const typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
@@ -293,7 +293,7 @@ public:
     typedef SimplicialCholeskyBase<SimplicialLLT> Base;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
     typedef internal::traits<SimplicialLLT> Traits;
@@ -382,8 +382,8 @@ public:
     typedef SimplicialCholeskyBase<SimplicialLDLT> Base;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-    typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
+    typedef typename MatrixType::StorageIndex StorageIndex;
+    typedef SparseMatrix<Scalar,ColMajor,StorageIndex> CholMatrixType;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
     typedef internal::traits<SimplicialLDLT> Traits;
     typedef typename Traits::MatrixL  MatrixL;
@@ -464,8 +464,8 @@ public:
     typedef SimplicialCholeskyBase<SimplicialCholesky> Base;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-    typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
+    typedef typename MatrixType::StorageIndex StorageIndex;
+    typedef SparseMatrix<Scalar,ColMajor,StorageIndex> CholMatrixType;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
     typedef internal::traits<SimplicialCholesky> Traits;
     typedef internal::traits<SimplicialLDLT<MatrixType,UpLo> > LDLTTraits;

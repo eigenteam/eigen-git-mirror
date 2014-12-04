@@ -73,6 +73,7 @@ template<typename _MatrixType> class PartialPivLU
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename internal::traits<MatrixType>::StorageKind StorageKind;
     typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
     typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
     typedef typename MatrixType::PlainObject PlainObject;

@@ -15,7 +15,7 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef typename Mat::Index Index;
+  typedef typename Mat::StorageIndex StorageIndex;
 
   DenseRhs refX = dA.lu().solve(db);
   {
@@ -60,7 +60,7 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
     
     x.setZero();
     // test with Map
-    MappedSparseMatrix<Scalar,Mat::Options,Index> Am(A.rows(), A.cols(), A.nonZeros(), const_cast<Index*>(A.outerIndexPtr()), const_cast<Index*>(A.innerIndexPtr()), const_cast<Scalar*>(A.valuePtr()));
+    MappedSparseMatrix<Scalar,Mat::Options,StorageIndex> Am(A.rows(), A.cols(), A.nonZeros(), const_cast<StorageIndex*>(A.outerIndexPtr()), const_cast<StorageIndex*>(A.innerIndexPtr()), const_cast<Scalar*>(A.valuePtr()));
     solver.compute(Am);
     if (solver.info() != Success)
     {
@@ -95,7 +95,7 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   // test uncompressed inputs
   {
     Mat A2 = A;
-    A2.reserve((ArrayXf::Random(A.outerSize())+2).template cast<typename Mat::Index>().eval());
+    A2.reserve((ArrayXf::Random(A.outerSize())+2).template cast<typename Mat::StorageIndex>().eval());
     solver.compute(A2);
     Rhs x = solver.solve(b);
     VERIFY(x.isApprox(refX,test_precision<Scalar>()));

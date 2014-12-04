@@ -36,7 +36,7 @@ protected:
   typedef internal::inner_iterator_selector<XprType, typename internal::evaluator_traits<XprType>::Kind> IteratorType;
   typedef typename internal::evaluator<XprType>::type EvaluatorType;
   typedef typename internal::traits<XprType>::Scalar Scalar;
-  typedef typename internal::traits<XprType>::Index Index;
+  typedef typename internal::traits<XprType>::StorageIndex StorageIndex;
 public:
   /** Construct an iterator over the \a outerId -th row or column of \a xpr */
   InnerIterator(const XprType &xpr, const Index &outerId)
@@ -50,11 +50,11 @@ public:
     */
   EIGEN_STRONG_INLINE InnerIterator& operator++()   { m_iter.operator++(); return *this; }
   /// \returns the column or row index of the current coefficient.
-  EIGEN_STRONG_INLINE Index index() const           { return m_iter.index(); }
+  EIGEN_STRONG_INLINE StorageIndex index() const           { return m_iter.index(); }
   /// \returns the row index of the current coefficient.
-  EIGEN_STRONG_INLINE Index row() const             { return m_iter.row(); }
+  EIGEN_STRONG_INLINE StorageIndex row() const             { return m_iter.row(); }
   /// \returns the column index of the current coefficient.
-  EIGEN_STRONG_INLINE Index col() const             { return m_iter.col(); }
+  EIGEN_STRONG_INLINE StorageIndex col() const             { return m_iter.col(); }
   /// \returns \c true if the iterator \c *this still references a valid coefficient.
   EIGEN_STRONG_INLINE operator bool() const         { return m_iter; }
   
@@ -77,7 +77,7 @@ class inner_iterator_selector<XprType, IndexBased>
 protected:
   typedef typename evaluator<XprType>::type EvaluatorType;
   typedef typename traits<XprType>::Scalar Scalar;
-  typedef typename traits<XprType>::Index Index;
+  typedef typename traits<XprType>::StorageIndex StorageIndex;
   enum { IsRowMajor = (XprType::Flags&RowMajorBit)==RowMajorBit };
   
 public:
@@ -93,9 +93,9 @@ public:
 
   EIGEN_STRONG_INLINE inner_iterator_selector& operator++() { m_inner++; return *this; }
 
-  EIGEN_STRONG_INLINE Index index() const { return m_inner; }
-  inline Index row() const { return IsRowMajor ? m_outer : index(); }
-  inline Index col() const { return IsRowMajor ? index() : m_outer; }
+  EIGEN_STRONG_INLINE StorageIndex index() const { return m_inner; }
+  inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
+  inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
 
   EIGEN_STRONG_INLINE operator bool() const { return m_inner < m_end && m_inner>=0; }
 
@@ -115,7 +115,7 @@ class inner_iterator_selector<XprType, IteratorBased>
 protected:
   typedef typename evaluator<XprType>::InnerIterator Base;
   typedef typename evaluator<XprType>::type EvaluatorType;
-  typedef typename traits<XprType>::Index Index;
+  typedef typename traits<XprType>::StorageIndex StorageIndex;
   
 public:
   EIGEN_STRONG_INLINE inner_iterator_selector(const EvaluatorType &eval, const Index &outerId, const Index &/*innerSize*/)

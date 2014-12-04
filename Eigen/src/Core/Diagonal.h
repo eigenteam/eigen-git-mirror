@@ -70,28 +70,28 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
     EIGEN_DEVICE_FUNC
-    explicit inline Diagonal(MatrixType& matrix, Index a_index = DiagIndex) : m_matrix(matrix), m_index(a_index) {}
+    explicit inline Diagonal(MatrixType& matrix, Index a_index = DiagIndex) : m_matrix(matrix), m_index(internal::convert_index<StorageIndex>(a_index)) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Diagonal)
 
     EIGEN_DEVICE_FUNC
-    inline Index rows() const
+    inline StorageIndex rows() const
     {
-      return m_index.value()<0 ? numext::mini(Index(m_matrix.cols()),Index(m_matrix.rows()+m_index.value()))
-                               : numext::mini(Index(m_matrix.rows()),Index(m_matrix.cols()-m_index.value()));
+      return m_index.value()<0 ? numext::mini<StorageIndex>(m_matrix.cols(),m_matrix.rows()+m_index.value())
+                               : numext::mini<StorageIndex>(m_matrix.rows(),m_matrix.cols()-m_index.value());
     }
 
     EIGEN_DEVICE_FUNC
-    inline Index cols() const { return 1; }
+    inline StorageIndex cols() const { return 1; }
 
     EIGEN_DEVICE_FUNC
-    inline Index innerStride() const
+    inline StorageIndex innerStride() const
     {
       return m_matrix.outerStride() + 1;
     }
 
     EIGEN_DEVICE_FUNC
-    inline Index outerStride() const
+    inline StorageIndex outerStride() const
     {
       return 0;
     }
@@ -153,23 +153,23 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     }
 
     EIGEN_DEVICE_FUNC
-    inline Index index() const
+    inline StorageIndex index() const
     {
       return m_index.value();
     }
 
   protected:
     typename MatrixType::Nested m_matrix;
-    const internal::variable_if_dynamicindex<Index, DiagIndex> m_index;
+    const internal::variable_if_dynamicindex<StorageIndex, DiagIndex> m_index;
 
   private:
     // some compilers may fail to optimize std::max etc in case of compile-time constants...
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index absDiagIndex() const { return m_index.value()>0 ? m_index.value() : -m_index.value(); }
+    EIGEN_STRONG_INLINE StorageIndex absDiagIndex() const { return m_index.value()>0 ? m_index.value() : -m_index.value(); }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value()>0 ? 0 : -m_index.value(); }
+    EIGEN_STRONG_INLINE StorageIndex rowOffset() const { return m_index.value()>0 ? 0 : -m_index.value(); }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value()>0 ? m_index.value() : 0; }
+    EIGEN_STRONG_INLINE StorageIndex colOffset() const { return m_index.value()>0 ? m_index.value() : 0; }
     // trigger a compile time error is someone try to call packet
     template<int LoadMode> typename MatrixType::PacketReturnType packet(Index) const;
     template<int LoadMode> typename MatrixType::PacketReturnType packet(Index,Index) const;

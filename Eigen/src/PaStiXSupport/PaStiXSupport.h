@@ -139,6 +139,7 @@ class PastixBase : public SparseSolverBase<Derived>
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef SparseMatrix<Scalar, ColMajor> ColSpMatrix;
     

@@ -166,7 +166,6 @@ class ConjugateGradient : public IterativeSolverBase<ConjugateGradient<_MatrixTy
 public:
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef _Preconditioner Preconditioner;
 

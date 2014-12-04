@@ -63,9 +63,9 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
   public:
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef UF_long Index ; 
-    typedef SparseMatrix<Scalar, ColMajor, Index> MatrixType;
-    typedef Map<PermutationMatrix<Dynamic, Dynamic, Index> > PermutationType;
+    typedef UF_long StorageIndex ;
+    typedef SparseMatrix<Scalar, ColMajor, StorageIndex> MatrixType;
+    typedef Map<PermutationMatrix<Dynamic, Dynamic, StorageIndex> > PermutationType;
   public:
     SPQR() 
       : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon())
@@ -150,7 +150,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     {
       eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
       if(!m_isRUpToDate) {
-        m_R = viewAsEigen<Scalar,ColMajor, typename MatrixType::Index>(*m_cR);
+        m_R = viewAsEigen<Scalar,ColMajor, typename MatrixType::StorageIndex>(*m_cR);
         m_isRUpToDate = true;
       }
       return m_R;
@@ -204,11 +204,11 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     RealScalar m_tolerance; // treat columns with 2-norm below this tolerance as zero
     mutable cholmod_sparse *m_cR; // The sparse R factor in cholmod format
     mutable MatrixType m_R; // The sparse matrix R in Eigen format
-    mutable Index *m_E; // The permutation applied to columns
+    mutable StorageIndex *m_E; // The permutation applied to columns
     mutable cholmod_sparse *m_H;  //The householder vectors
-    mutable Index *m_HPinv; // The row permutation of H
+    mutable StorageIndex *m_HPinv; // The row permutation of H
     mutable cholmod_dense *m_HTau; // The Householder coefficients
-    mutable Index m_rank; // The rank of the matrix
+    mutable StorageIndex m_rank; // The rank of the matrix
     mutable cholmod_common m_cc; // Workspace and parameters
     template<typename ,typename > friend struct SPQR_QProduct;
 };
@@ -217,12 +217,12 @@ template <typename SPQRType, typename Derived>
 struct SPQR_QProduct : ReturnByValue<SPQR_QProduct<SPQRType,Derived> >
 {
   typedef typename SPQRType::Scalar Scalar;
-  typedef typename SPQRType::Index Index;
+  typedef typename SPQRType::StorageIndex StorageIndex;
   //Define the constructor to get reference to argument types
   SPQR_QProduct(const SPQRType& spqr, const Derived& other, bool transpose) : m_spqr(spqr),m_other(other),m_transpose(transpose) {}
   
-  inline Index rows() const { return m_transpose ? m_spqr.rows() : m_spqr.cols(); }
-  inline Index cols() const { return m_other.cols(); }
+  inline StorageIndex rows() const { return m_transpose ? m_spqr.rows() : m_spqr.cols(); }
+  inline StorageIndex cols() const { return m_other.cols(); }
   // Assign to a vector
   template<typename ResType>
   void evalTo(ResType& res) const

@@ -21,15 +21,15 @@ struct traits<permut_sparsematrix_product_retval<PermutationType, MatrixType, Si
 {
   typedef typename remove_all<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
   typedef typename MatrixTypeNestedCleaned::Scalar Scalar;
-  typedef typename MatrixTypeNestedCleaned::Index Index;
+  typedef typename MatrixTypeNestedCleaned::StorageIndex StorageIndex;
   enum {
     SrcStorageOrder = MatrixTypeNestedCleaned::Flags&RowMajorBit ? RowMajor : ColMajor,
     MoveOuter = SrcStorageOrder==RowMajor ? Side==OnTheLeft : Side==OnTheRight
   };
 
   typedef typename internal::conditional<MoveOuter,
-        SparseMatrix<Scalar,SrcStorageOrder,Index>,
-        SparseMatrix<Scalar,int(SrcStorageOrder)==RowMajor?ColMajor:RowMajor,Index> >::type ReturnType;
+        SparseMatrix<Scalar,SrcStorageOrder,StorageIndex>,
+        SparseMatrix<Scalar,int(SrcStorageOrder)==RowMajor?ColMajor:RowMajor,StorageIndex> >::type ReturnType;
 };
 
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
@@ -38,7 +38,7 @@ struct permut_sparsematrix_product_retval
 {
     typedef typename remove_all<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
     typedef typename MatrixTypeNestedCleaned::Scalar Scalar;
-    typedef typename MatrixTypeNestedCleaned::Index Index;
+    typedef typename MatrixTypeNestedCleaned::StorageIndex StorageIndex;
 
     enum {
       SrcStorageOrder = MatrixTypeNestedCleaned::Flags&RowMajorBit ? RowMajor : ColMajor,
@@ -56,8 +56,8 @@ struct permut_sparsematrix_product_retval
     {
       if(MoveOuter)
       {
-        SparseMatrix<Scalar,SrcStorageOrder,Index> tmp(m_matrix.rows(), m_matrix.cols());
-        Matrix<Index,Dynamic,1> sizes(m_matrix.outerSize());
+        SparseMatrix<Scalar,SrcStorageOrder,StorageIndex> tmp(m_matrix.rows(), m_matrix.cols());
+        Matrix<StorageIndex,Dynamic,1> sizes(m_matrix.outerSize());
         for(Index j=0; j<m_matrix.outerSize(); ++j)
         {
           Index jp = m_permutation.indices().coeff(j);
@@ -76,10 +76,10 @@ struct permut_sparsematrix_product_retval
       }
       else
       {
-        SparseMatrix<Scalar,int(SrcStorageOrder)==RowMajor?ColMajor:RowMajor,Index> tmp(m_matrix.rows(), m_matrix.cols());
-        Matrix<Index,Dynamic,1> sizes(tmp.outerSize());
+        SparseMatrix<Scalar,int(SrcStorageOrder)==RowMajor?ColMajor:RowMajor,StorageIndex> tmp(m_matrix.rows(), m_matrix.cols());
+        Matrix<StorageIndex,Dynamic,1> sizes(tmp.outerSize());
         sizes.setZero();
-        PermutationMatrix<Dynamic,Dynamic,Index> perm;
+        PermutationMatrix<Dynamic,Dynamic,StorageIndex> perm;
         if((Side==OnTheLeft) ^ Transposed)
           perm = m_permutation;
         else

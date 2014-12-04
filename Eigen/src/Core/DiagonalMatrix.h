@@ -22,7 +22,7 @@ class DiagonalBase : public EigenBase<Derived>
     typedef typename DiagonalVectorType::Scalar Scalar;
     typedef typename DiagonalVectorType::RealScalar RealScalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
 
     enum {
       RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
@@ -108,7 +108,7 @@ struct traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
 {
   typedef Matrix<_Scalar,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1> DiagonalVectorType;
   typedef DiagonalShape StorageKind;
-  typedef DenseIndex Index;
+//  typedef DenseIndex Index;
   enum {
     Flags = LvalueBit | NoPreferredStorageOrderBit
   };
@@ -124,7 +124,7 @@ class DiagonalMatrix
     typedef const DiagonalMatrix& Nested;
     typedef _Scalar Scalar;
     typedef typename internal::traits<DiagonalMatrix>::StorageKind StorageKind;
-    typedef typename internal::traits<DiagonalMatrix>::Index Index;
+    typedef typename internal::traits<DiagonalMatrix>::StorageIndex StorageIndex;
     #endif
 
   protected:
@@ -230,7 +230,7 @@ struct traits<DiagonalWrapper<_DiagonalVectorType> >
 {
   typedef _DiagonalVectorType DiagonalVectorType;
   typedef typename DiagonalVectorType::Scalar Scalar;
-  typedef typename DiagonalVectorType::Index Index;
+  typedef typename DiagonalVectorType::StorageIndex StorageIndex;
   typedef DiagonalShape StorageKind;
   typedef typename traits<DiagonalVectorType>::XprKind XprKind;
   enum {

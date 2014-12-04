@@ -48,8 +48,8 @@ void cholmod_configure_matrix(CholmodType& mat)
 /** Wraps the Eigen sparse matrix \a mat into a Cholmod sparse matrix object.
   * Note that the data are shared.
   */
-template<typename _Scalar, int _Options, typename _Index>
-cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
+template<typename _Scalar, int _Options, typename _StorageIndex>
+cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_StorageIndex>& mat)
 {
   cholmod_sparse res;
   res.nzmax   = mat.nonZeros();
@@ -74,11 +74,11 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   res.dtype   = 0;
   res.stype   = -1;
   
-  if (internal::is_same<_Index,int>::value)
+  if (internal::is_same<_StorageIndex,int>::value)
   {
     res.itype = CHOLMOD_INT;
   }
-  else if (internal::is_same<_Index,UF_long>::value)
+  else if (internal::is_same<_StorageIndex,UF_long>::value)
   {
     res.itype = CHOLMOD_LONG;
   }
@@ -138,12 +138,12 @@ cholmod_dense viewAsCholmod(MatrixBase<Derived>& mat)
 
 /** Returns a view of the Cholmod sparse matrix \a cm as an Eigen sparse matrix.
   * The data are not copied but shared. */
-template<typename Scalar, int Flags, typename Index>
-MappedSparseMatrix<Scalar,Flags,Index> viewAsEigen(cholmod_sparse& cm)
+template<typename Scalar, int Flags, typename StorageIndex>
+MappedSparseMatrix<Scalar,Flags,StorageIndex> viewAsEigen(cholmod_sparse& cm)
 {
-  return MappedSparseMatrix<Scalar,Flags,Index>
-         (cm.nrow, cm.ncol, static_cast<Index*>(cm.p)[cm.ncol],
-          static_cast<Index*>(cm.p), static_cast<Index*>(cm.i),static_cast<Scalar*>(cm.x) );
+  return MappedSparseMatrix<Scalar,Flags,StorageIndex>
+         (cm.nrow, cm.ncol, static_cast<StorageIndex*>(cm.p)[cm.ncol],
+          static_cast<StorageIndex*>(cm.p), static_cast<StorageIndex*>(cm.i),static_cast<Scalar*>(cm.x) );
 }
 
 enum CholmodMode {
@@ -169,7 +169,7 @@ class CholmodBase : public SparseSolverBase<Derived>
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef MatrixType CholMatrixType;
-    typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
 
   public:
 
@@ -195,8 +195,8 @@ class CholmodBase : public SparseSolverBase<Derived>
       cholmod_finish(&m_cholmod);
     }
     
-    inline Index cols() const { return m_cholmodFactor->n; }
-    inline Index rows() const { return m_cholmodFactor->n; }
+    inline StorageIndex cols() const { return internal::convert_index<StorageIndex, Index>(m_cholmodFactor->n); }
+    inline StorageIndex rows() const { return internal::convert_index<StorageIndex, Index>(m_cholmodFactor->n); }
     
     /** \brief Reports whether previous computation was successful.
       *

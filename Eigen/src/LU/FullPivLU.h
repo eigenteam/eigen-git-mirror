@@ -67,6 +67,7 @@ template<typename _MatrixType> class FullPivLU
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename internal::traits<MatrixType>::StorageKind StorageKind;
     typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef typename internal::plain_row_type<MatrixType, Index>::type IntRowVectorType;
     typedef typename internal::plain_col_type<MatrixType, Index>::type IntColVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationQType;

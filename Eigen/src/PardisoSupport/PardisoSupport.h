@@ -110,7 +110,7 @@ class PardisoImpl : public SparseSolveBase<PardisoImpl<Derived>
     typedef typename Traits::MatrixType MatrixType;
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::RealScalar RealScalar;
-    typedef typename Traits::Index Index;
+    typedef typename Traits::StorageIndex StorageIndex;
     typedef SparseMatrix<Scalar,RowMajor,Index> SparseMatrixType;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
     typedef Matrix<Index, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;

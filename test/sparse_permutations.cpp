@@ -11,15 +11,13 @@
 
 template<int OtherStorage, typename SparseMatrixType> void sparse_permutations(const SparseMatrixType& ref)
 {
-  typedef typename SparseMatrixType::Index Index;
-
   const Index rows = ref.rows();
   const Index cols = ref.cols();
   typedef typename SparseMatrixType::Scalar Scalar;
-  typedef typename SparseMatrixType::Index Index;
-  typedef SparseMatrix<Scalar, OtherStorage, Index> OtherSparseMatrixType;
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
+  typedef SparseMatrix<Scalar, OtherStorage, StorageIndex> OtherSparseMatrixType;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
-  typedef Matrix<Index,Dynamic,1> VectorI;
+  typedef Matrix<StorageIndex,Dynamic,1> VectorI;
   
   double density = (std::max)(8./(rows*cols), 0.01);
   

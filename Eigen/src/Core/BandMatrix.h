@@ -32,7 +32,7 @@ class BandMatrixBase : public EigenBase<Derived>
     };
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> DenseMatrixType;
-    typedef typename DenseMatrixType::Index Index;
+    typedef typename DenseMatrixType::StorageIndex StorageIndex;
     typedef typename internal::traits<Derived>::CoefficientsType CoefficientsType;
     typedef EigenBase<Derived> Base;
 
@@ -179,7 +179,7 @@ struct traits<BandMatrix<_Scalar,_Rows,_Cols,_Supers,_Subs,_Options> >
 {
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
-  typedef DenseIndex Index;
+  typedef DenseIndex StorageIndex;
   enum {
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     RowsAtCompileTime = _Rows,
@@ -201,7 +201,7 @@ class BandMatrix : public BandMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Sub
   public:
 
     typedef typename internal::traits<BandMatrix>::Scalar Scalar;
-    typedef typename internal::traits<BandMatrix>::Index Index;
+    typedef typename internal::traits<BandMatrix>::StorageIndex StorageIndex;
     typedef typename internal::traits<BandMatrix>::CoefficientsType CoefficientsType;
 
     explicit inline BandMatrix(Index rows=Rows, Index cols=Cols, Index supers=Supers, Index subs=Subs)
@@ -241,7 +241,7 @@ struct traits<BandMatrixWrapper<_CoefficientsType,_Rows,_Cols,_Supers,_Subs,_Opt
 {
   typedef typename _CoefficientsType::Scalar Scalar;
   typedef typename _CoefficientsType::StorageKind StorageKind;
-  typedef typename _CoefficientsType::Index Index;
+  typedef typename _CoefficientsType::StorageIndex StorageIndex;
   enum {
     CoeffReadCost = internal::traits<_CoefficientsType>::CoeffReadCost,
     RowsAtCompileTime = _Rows,
@@ -264,7 +264,7 @@ class BandMatrixWrapper : public BandMatrixBase<BandMatrixWrapper<_CoefficientsT
 
     typedef typename internal::traits<BandMatrixWrapper>::Scalar Scalar;
     typedef typename internal::traits<BandMatrixWrapper>::CoefficientsType CoefficientsType;
-    typedef typename internal::traits<BandMatrixWrapper>::Index Index;
+    typedef typename internal::traits<BandMatrixWrapper>::StorageIndex StorageIndex;
 
     explicit inline BandMatrixWrapper(const CoefficientsType& coeffs, Index rows=_Rows, Index cols=_Cols, Index supers=_Supers, Index subs=_Subs)
       : m_coeffs(coeffs),
@@ -312,7 +312,7 @@ template<typename Scalar, int Size, int Options>
 class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,Options&SelfAdjoint?0:1,1,Options|RowMajor>
 {
     typedef BandMatrix<Scalar,Size,Size,Options&SelfAdjoint?0:1,1,Options|RowMajor> Base;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
   public:
     explicit TridiagonalMatrix(Index size = Size) : Base(size,size,Options&SelfAdjoint?0:1,1) {}
 
