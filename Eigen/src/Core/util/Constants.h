@@ -449,6 +449,9 @@ enum Action {GetAction, SetAction};
 /** The type used to identify a dense storage. */
 struct Dense {};
 
+/** The type used to identify a general sparse storage. */
+struct Sparse {};
+
 /** The type used to identify a permutation storage. */
 struct PermutationStorage {};
 

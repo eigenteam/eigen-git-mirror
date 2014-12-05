@@ -179,7 +179,7 @@ class SparseMatrix
 
     /** \returns the value of the matrix at position \a i, \a j
       * This function returns Scalar(0) if the element is an explicit \em zero */
-    inline const Scalar& coeff(Index row, Index col) const
+    inline Scalar coeff(Index row, Index col) const
     {
       eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
       
@@ -1297,7 +1297,7 @@ struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
   operator const SparseMatrixType&() const { return *m_matrix; }
   
   typedef typename DenseCoeffsBase<SparseMatrixType,ReadOnlyAccessors>::CoeffReturnType CoeffReturnType;
-  CoeffReturnType coeff(Index row, Index col) const
+  Scalar coeff(Index row, Index col) const
   { return m_matrix->coeff(row,col); }
   
   Scalar& coeffRef(Index row, Index col)
