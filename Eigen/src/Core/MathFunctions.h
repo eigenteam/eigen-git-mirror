@@ -708,44 +708,6 @@ inline int log2(int x)
 
 } // end namespace numext
 
-
-namespace internal {
-
-/****************************************************************************
-* Implementation of atanh2                                                *
-****************************************************************************/
-
-template<typename Scalar>
-struct atanh2_impl
-{
-  static inline Scalar run(const Scalar& x, const Scalar& r)
-  {
-    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-    return numext::log1p(RealScalar(2) * x / (r - x)) / RealScalar(2);
-  }
-};
-
-template<typename Scalar>
-struct atanh2_retval
-{
-  typedef Scalar type;
-};
-
-
-} // end namespace internal
-
-namespace numext {
-
-template<typename Scalar>
-EIGEN_DEVICE_FUNC
-inline EIGEN_MATHFUNC_RETVAL(atanh2, Scalar) atanh2(const Scalar& x, const Scalar& y)
-{
-  return EIGEN_MATHFUNC_IMPL(atanh2, Scalar)::run(x, y);
-}
-
-} // end namespace numext
-
 namespace internal {
 
 /****************************************************************************
