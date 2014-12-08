@@ -607,22 +607,35 @@ void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, CholMatrixTy
 {
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
-  // Note that amd compute the inverse permutation
+  // Note that ordering methods compute the inverse permutation
+  if(!internal::is_same<OrderingType,NaturalOrdering<Index> >::value)
   {
-    CholMatrixType C;
-    C = a.template selfadjointView<UpLo>();
+    {
+      CholMatrixType C;
+      C = a.template selfadjointView<UpLo>();
+      
+      OrderingType ordering;
+      ordering(C,m_Pinv);
+    }
+
+    if(m_Pinv.size()>0) m_P = m_Pinv.inverse();
+    else                m_P.resize(0);
     
-    OrderingType ordering;
-    ordering(C,m_Pinv);
+    ap.resize(size,size);
+    ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
   }
-
-  if(m_Pinv.size()>0)
-    m_P = m_Pinv.inverse();
   else
+  {
+    m_Pinv.resize(0);
     m_P.resize(0);
-
-  ap.resize(size,size);
-  ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
+    if(UpLo==Lower)
+    {
+      ap.resize(size,size);
+      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
+    }
+    else
+      ap = a.template triangularView<Upper>();
+  }  
 }
 
 } // end namespace Eigen
