@@ -464,8 +464,8 @@ template<typename Derived> class DenseBase
     template<int RowFactor, int ColFactor>
     inline const Replicate<Derived,RowFactor,ColFactor> replicate() const;
     
-    typedef const Replicate<Derived,Dynamic,Dynamic> ReplicateReturnType;
-    inline ReplicateReturnType replicate(Index rowFacor,Index colFactor) const;
+    typedef Replicate<Derived,Dynamic,Dynamic> ReplicateReturnType;
+    inline const ReplicateReturnType replicate(Index rowFacor,Index colFactor) const;
 
     typedef Reverse<Derived, BothDirections> ReverseReturnType;
     typedef const Reverse<const Derived, BothDirections> ConstReverseReturnType;

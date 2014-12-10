@@ -150,7 +150,7 @@ DenseBase<Derived>::replicate() const
   * \sa VectorwiseOp::replicate(), DenseBase::replicate<int,int>(), class Replicate
   */
 template<typename Derived>
-typename DenseBase<Derived>::ReplicateReturnType
+const typename DenseBase<Derived>::ReplicateReturnType
 DenseBase<Derived>::replicate(Index rowFactor,Index colFactor) const
 {
   return Replicate<Derived,Dynamic,Dynamic>(derived(),rowFactor,colFactor);
