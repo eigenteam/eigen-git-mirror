@@ -476,7 +476,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
       }
     } // End update current column
     
-    Scalar tau;
+    Scalar tau = 0;
     RealScalar beta = 0;
     
     if(nonzeroCol < diagSize)
@@ -490,7 +490,6 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
       for (Index itq = 1; itq < nzcolQ; ++itq) sqrNorm += numext::abs2(tval(Qidx(itq)));
       if(sqrNorm == RealScalar(0) && numext::imag(c0) == RealScalar(0))
       {
-        tau = RealScalar(0);
         beta = numext::real(c0);
         tval(Qidx(0)) = 1;
       }
