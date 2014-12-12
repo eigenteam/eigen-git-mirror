@@ -29,11 +29,7 @@ ei_add_test(NonLinearOptimization)
 
 ei_add_test(NumericalDiff)
 ei_add_test(autodiff)
-
-if (NOT CMAKE_CXX_COMPILER MATCHES "clang\\+\\+$")
 ei_add_test(BVH)
-endif()
-
 ei_add_test(matrix_exponential)
 ei_add_test(matrix_function)
 ei_add_test(matrix_power)
