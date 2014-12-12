@@ -119,7 +119,6 @@ template<typename Scalar> void planes()
   using std::abs;
   typedef Hyperplane<Scalar, 3> Plane;
   typedef Matrix<Scalar,3,1> Vector;
-  typedef Matrix<Scalar,4,1> CoeffsType;
 
   for(int i = 0; i < 10; i++)
   {
