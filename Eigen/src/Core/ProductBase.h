@@ -88,7 +88,7 @@ class ProductBase : public MatrixBase<Derived>
 #ifndef EIGEN_NO_MALLOC
     typedef typename Base::PlainObject BasePlainObject;
     typedef Matrix<Scalar,RowsAtCompileTime==1?1:Dynamic,ColsAtCompileTime==1?1:Dynamic,BasePlainObject::Options> DynPlainObject;
-    typedef typename internal::conditional<(BasePlainObject::SizeAtCompileTime==Dynamic) || (int(BasePlainObject::SizeAtCompileTime*sizeof(Scalar)) < int(EIGEN_STACK_ALLOCATION_LIMIT)),
+    typedef typename internal::conditional<(BasePlainObject::SizeAtCompileTime==Dynamic) || (BasePlainObject::SizeAtCompileTime*int(sizeof(Scalar)) < int(EIGEN_STACK_ALLOCATION_LIMIT)),
                                            BasePlainObject, DynPlainObject>::type PlainObject;
 #else
     typedef typename Base::PlainObject PlainObject;
