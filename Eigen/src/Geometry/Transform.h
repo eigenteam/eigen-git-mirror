@@ -78,6 +78,8 @@ struct traits<Transform<_Scalar,_Dim,_Mode,_Options> >
   };
 };
 
+template<int Mode> struct transform_make_affine;
+
 } // end namespace internal
 
 /** \geometry_module \ingroup Geometry_Module
@@ -246,8 +248,7 @@ public:
   inline Transform()
   {
     check_template_params();
-    if (int(Mode)==Affine)
-      makeAffine();
+    internal::transform_make_affine<(int(Mode)==Affine) ? Affine : AffineCompact>::run(m_matrix);
   }
 
   inline Transform(const Transform& other)
@@ -610,11 +611,7 @@ public:
     */
   void makeAffine()
   {
-    if(int(Mode)!=int(AffineCompact))
-    {
-      matrix().template block<1,Dim>(Dim,0).setZero();
-      matrix().coeffRef(Dim,Dim) = Scalar(1);
-    }
+    internal::transform_make_affine<int(Mode)>::run(m_matrix);
   }
 
   /** \internal
@@ -1102,6 +1099,24 @@ Transform<Scalar,Dim,Mode,Options>::fromPositionOrientationScale(const MatrixBas
 
 namespace internal {
 
+template<int Mode>
+struct transform_make_affine
+{
+  template<typename MatrixType>
+  static void run(MatrixType &mat)
+  {
+    static const int Dim = MatrixType::ColsAtCompileTime-1;
+    mat.template block<1,Dim>(Dim,0).setZero();
+    mat.coeffRef(Dim,Dim) = typename MatrixType::Scalar(1);
+  }
+};
+
+template<>
+struct transform_make_affine<AffineCompact>
+{
+  template<typename MatrixType> static void run(MatrixType &) { }
+};
+    
 // selector needed to avoid taking the inverse of a 3x4 matrix
 template<typename TransformType, int Mode=TransformType::Mode>
 struct projective_transform_inverse
