@@ -168,6 +168,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
 template<typename Derived> class MapBase<Derived, WriteAccessors>
   : public MapBase<Derived, ReadOnlyAccessors>
 {
+    typedef MapBase<Derived, ReadOnlyAccessors> ReadOnlyMapBase;
   public:
 
     typedef MapBase<Derived, ReadOnlyAccessors> Base;
@@ -230,15 +231,13 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
 
     Derived& operator=(const MapBase& other)
     {
-      Base::Base::operator=(other);
+      ReadOnlyMapBase::Base::operator=(other);
       return derived();
     }
 
-    // In theory MapBase<Derived, ReadOnlyAccessors> should not make a using Base::operator=,
-    // and thus we should directly do: using Base::Base::operator=;
-    // However, this would confuse recent MSVC 2013 (bug 821), and since MapBase<Derived, ReadOnlyAccessors>
-    // has operator= to make ICC 11 happy, we can also make MSVC 2013 happy as follow:
-    using Base::operator=;
+    // In theory we could simply refer to Base:Base::operator=, but MSVC does not like Base::Base,
+    // see bugs 821 and 920.
+    using ReadOnlyMapBase::Base::operator=;
 };
 
 #undef EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS
