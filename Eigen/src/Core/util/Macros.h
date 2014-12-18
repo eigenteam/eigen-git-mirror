@@ -73,7 +73,7 @@
 
 /// \internal EIGEN_COMP_MSVC_STRICT set to 1 if the compiler is really Microsoft Visual C++ and not ,e.g., ICC
 #if EIGEN_COMP_MSVC && !(EIGEN_COMP_ICC)
-  #define EIGEN_COMP_MSVC_STRICT 1
+  #define EIGEN_COMP_MSVC_STRICT _MSC_VER
 #else
   #define EIGEN_COMP_MSVC_STRICT 0
 #endif
@@ -592,7 +592,7 @@ namespace Eigen {
 // just an empty macro !
 #define EIGEN_EMPTY
 
-#if EIGEN_COMP_MSVC_STRICT
+#if EIGEN_COMP_MSVC_STRICT && EIGEN_COMP_MSVC < 1900
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
     using Base::operator =;
 #elif EIGEN_COMP_CLANG // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)
