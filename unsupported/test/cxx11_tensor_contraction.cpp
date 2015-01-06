@@ -352,6 +352,52 @@ static void test_large_contraction()
 }
 
 
+static void test_matrix_vector()
+{
+  Tensor<float, 2> t_left(30, 50);
+  Tensor<float, 1> t_right(50);
+  Tensor<float, 1> t_result(30);
+
+  t_left.setRandom();
+  t_right.setRandom();
+
+  typedef Map<Eigen::Matrix<float, Dynamic, Dynamic>> MapXf;
+  MapXf m_left(t_left.data(), 30, 50);
+  MapXf m_right(t_right.data(), 50, 1);
+  Eigen::Matrix<float, Dynamic, Dynamic> m_result(30, 1);
+
+  // this contraction should be equivalent to a single matrix multiplication
+  Eigen::array<DimPair, 1> dims{{DimPair(1, 0)}};
+
+  // compute results by separate methods
+  t_result = t_left.contract(t_right, dims);
+  m_result = m_left * m_right;
+
+  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+    VERIFY_IS_APPROX(t_result(i), m_result(i, 0));
+  }
+}
+
+
+static void test_tensor_vector()
+{
+  Tensor<float, 3> t_left(7, 13, 17);
+  Tensor<float, 2> t_right(1, 7);
+  typedef typename Tensor<float, 1>::DimensionPair DimensionPair;
+  Eigen::array<DimensionPair, 1> dim_pair01{{{0, 1}}};
+  Tensor<float, 3> t_result = t_left.contract(t_right, dim_pair01);
+
+  typedef Map<Eigen::Matrix<float, Dynamic, Dynamic>> MapXf;
+  MapXf m_left(t_left.data(), 7, 13*17);
+  MapXf m_right(t_right.data(), 1, 7);
+  Eigen::Matrix<float, Dynamic, Dynamic> m_result = m_left.transpose() * m_right.transpose();
+
+  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+    VERIFY_IS_APPROX(t_result(i), m_result(i, 0));
+  }
+}
+
+
 void test_cxx11_tensor_contraction()
 {
   CALL_SUBTEST(test_evals());
@@ -364,4 +410,6 @@ void test_cxx11_tensor_contraction()
   CALL_SUBTEST(test_out_of_order_contraction());
   CALL_SUBTEST(test_consistency());
   CALL_SUBTEST(test_large_contraction());
+  CALL_SUBTEST(test_matrix_vector());
+  CALL_SUBTEST(test_tensor_vector());
 }

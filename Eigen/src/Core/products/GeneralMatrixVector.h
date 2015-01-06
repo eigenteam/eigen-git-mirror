@@ -140,10 +140,11 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,C
   // find how many columns do we have to skip to be aligned with the result (if possible)
   Index skipColumns = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
-  if( (lhsAlignmentOffset < 0) || (size_t(res)%sizeof(ResScalar)) )
+  if( (lhsAlignmentOffset < 0) || (lhsAlignmentOffset == size) || (size_t(res)%sizeof(ResScalar)) )
   {
     alignedSize = 0;
     alignedStart = 0;
+    alignmentPattern = NoneAligned;
   }
   else if(LhsPacketSize > 4)
   {
@@ -412,10 +413,13 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,R
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   Index skipRows = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
-  if( (sizeof(LhsScalar)!=sizeof(RhsScalar)) || (lhsAlignmentOffset < 0) || (rhsAlignmentOffset < 0) )
+  if( (sizeof(LhsScalar)!=sizeof(RhsScalar)) ||
+      (lhsAlignmentOffset < 0) || (lhsAlignmentOffset == depth) ||
+      (rhsAlignmentOffset < 0) || (rhsAlignmentOffset == rows) )
   {
     alignedSize = 0;
     alignedStart = 0;
+    alignmentPattern = NoneAligned;
   }
   else if(LhsPacketSize > 4)
   {
