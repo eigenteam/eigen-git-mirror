@@ -492,7 +492,7 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
 //---------- double ----------
 #if EIGEN_ARCH_ARM64
 
-#if EIGEN_COMP_GNUC_STRICT && __ANDROID__
+#if (EIGEN_COMP_GNUC_STRICT && defined(__ANDROID__)) || defined(__apple_build_version__)
 // Bug 907: workaround missing declarations of the following two functions in the ADK
 __extension__ static __inline uint64x2_t __attribute__ ((__always_inline__))
 vreinterpretq_u64_f64 (float64x2_t __a)
