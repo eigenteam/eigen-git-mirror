@@ -211,24 +211,26 @@ template<typename Dst, typename Lhs, typename Rhs, typename Func>
 EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const false_type&)
 {
   typedef typename Dst::Index Index;
+  typename evaluator<Rhs>::type rhsEval(rhs);
   // FIXME make sure lhs is sequentially stored
   // FIXME not very good if rhs is real and lhs complex while alpha is real too
-  // FIXME we should probably build an evaluator for dst and rhs
+  // FIXME we should probably build an evaluator for dst
   const Index cols = dst.cols();
   for (Index j=0; j<cols; ++j)
-    func(dst.col(j), rhs.coeff(0,j) * lhs);
+    func(dst.col(j), rhsEval.coeff(0,j) * lhs);
 }
 
 // Row major result
 template<typename Dst, typename Lhs, typename Rhs, typename Func>
 EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const true_type&) {
   typedef typename Dst::Index Index;
+  typename evaluator<Lhs>::type lhsEval(lhs);
   // FIXME make sure rhs is sequentially stored
   // FIXME not very good if lhs is real and rhs complex while alpha is real too
-  // FIXME we should probably build an evaluator for dst and lhs
+  // FIXME we should probably build an evaluator for dst
   const Index rows = dst.rows();
   for (Index i=0; i<rows; ++i)
-    func(dst.row(i), lhs.coeff(i,0) * rhs);
+    func(dst.row(i), lhsEval.coeff(i,0) * rhs);
 }
 
 template<typename Lhs, typename Rhs>
