@@ -98,7 +98,8 @@ template<typename Scalar, int Mode, int Options> void transformations()
   Matrix3 matrot1, m;
 
   Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
-  Scalar s0 = internal::random<Scalar>();
+  Scalar s0 = internal::random<Scalar>(),
+         s1 = internal::random<Scalar>();
   
   while(v0.norm() < test_precision<Scalar>()) v0 = Vector3::Random();
   while(v1.norm() < test_precision<Scalar>()) v1 = Vector3::Random();
@@ -413,6 +414,20 @@ template<typename Scalar, int Mode, int Options> void transformations()
   t20 = Translation2(v20) * (Rotation2D<Scalar>(s0) * Eigen::Scaling(s0));
   t21 = Translation2(v20) * Rotation2D<Scalar>(s0) * Eigen::Scaling(s0);
   VERIFY_IS_APPROX(t20,t21);
+  
+  Rotation2D<Scalar> R0(s0), R1(s1);
+  t20 = Translation2(v20) * (R0 * Eigen::Scaling(s0));
+  t21 = Translation2(v20) * R0 * Eigen::Scaling(s0);
+  VERIFY_IS_APPROX(t20,t21);
+  
+  t20 = Translation2(v20) * (R0 * R0.inverse() * Eigen::Scaling(s0));
+  t21 = Translation2(v20) * Eigen::Scaling(s0);
+  VERIFY_IS_APPROX(t20,t21);
+  
+  VERIFY_IS_APPROX(s0, (R0.slerp(0, R1)).angle());
+  VERIFY_IS_APPROX(s1, (R0.slerp(1, R1)).angle());
+  VERIFY_IS_APPROX(s0, (R0.slerp(0.5, R0)).angle());
+  VERIFY_IS_APPROX(Scalar(0), (R0.slerp(0.5, R0.inverse())).angle());
   
   // check basic features
   {
