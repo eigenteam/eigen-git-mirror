@@ -29,7 +29,7 @@ template <typename T, size_t n> class array {
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array() { }
-  EIGEN_DEVICE_FUNC
+  explicit EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array(const T& v) {
     EIGEN_STATIC_ASSERT(n==1, YOU_MADE_A_PROGRAMMING_MISTAKE)
     values[0] = v;
@@ -106,6 +106,7 @@ template <typename T, size_t n> class array {
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
   array(std::initializer_list<T> l) {
+    eigen_assert(l.size() == n);
     std::copy(l.begin(), l.end(), values);
   }
 #endif
@@ -211,6 +212,29 @@ template<typename T, T V> struct gen_numeric_list_repeated<T, 8, V> {
 
 template <std::size_t index, class NList> struct get;
 
+template <std::size_t i>
+struct get<i, empty_list>
+{
+  get() { eigen_assert(false && "index overflow"); }
+  typedef void type;
+  static const char value = '\0';
+};
+
+template <std::size_t i, class Head>
+struct get<i, type_list<Head, empty_list> >
+{
+  get() { eigen_assert(false && "index overflow"); }
+  typedef void type;
+  static const char value = '\0';
+};
+
+template <class Head>
+struct get<0, type_list<Head, empty_list> >
+{
+  typedef typename Head::type type;
+  static const type value = Head::value;
+};
+
 template <class Head, class Tail>
 struct get<0, type_list<Head, Tail> >
 {
@@ -221,9 +245,10 @@ struct get<0, type_list<Head, Tail> >
 template <std::size_t i, class Head, class Tail>
 struct get<i, type_list<Head, Tail> >
 {
-  typedef typename get<i-1, Tail>::type type;
+  typedef typename Tail::HeadType::type type;
   static const type value = get<i-1, Tail>::value;
 };
+
 
 template <class NList> struct arg_prod {
   static const typename NList::HeadType::type value = get<0, NList>::value * arg_prod<typename NList::TailType>::value;
@@ -354,23 +379,51 @@ struct greater_equal_zero_op {
 
 
 template<typename Reducer, typename Op, typename A, std::size_t N>
-inline bool array_apply_and_reduce(const array<A, N>& a) {
-  EIGEN_STATIC_ASSERT(N >= 2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  bool result = Reducer::run(Op::run(a[0]), Op::run(a[1]));
-  for (size_t i = 2; i < N; ++i) {
-    result = Reducer::run(result, Op::run(a[i]));
+struct ArrayApplyAndReduce {
+  static inline bool run(const array<A, N>& a) {
+    EIGEN_STATIC_ASSERT(N >= 2, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    bool result = Reducer::run(Op::run(a[0]), Op::run(a[1]));
+    for (size_t i = 2; i < N; ++i) {
+      result = Reducer::run(result, Op::run(a[i]));
+    }
+    return result;
   }
-  return result;
+};
+
+template<typename Reducer, typename Op, typename A>
+struct ArrayApplyAndReduce<Reducer, Op, A, 1>  {
+  static inline bool run(const array<A, 1>& a) {
+    return Op::run(a[0]);
+  }
+};
+
+template<typename Reducer, typename Op, typename A, std::size_t N>
+inline bool array_apply_and_reduce(const array<A, N>& a) {
+  return ArrayApplyAndReduce<Reducer, Op, A, N>::run(a);
 }
 
 template<typename Reducer, typename Op, typename A, typename B, std::size_t N>
-inline bool array_zip_and_reduce(const array<A, N>& a, const array<B, N>& b) {
-  EIGEN_STATIC_ASSERT(N >= 2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      bool result = Reducer::run(Op::run(a[0], b[0]), Op::run(a[1], b[1]));
-  for (size_t i = 2; i < N; ++i) {
-    result = Reducer::run(result, Op::run(a[i], b[i]));
+struct ArrayZipAndReduce {
+  static inline bool run(const array<A, N>& a, const array<B, N>& b) {
+    EIGEN_STATIC_ASSERT(N >= 2, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    bool result = Reducer::run(Op::run(a[0], b[0]), Op::run(a[1], b[1]));
+    for (size_t i = 2; i < N; ++i) {
+      result = Reducer::run(result, Op::run(a[i], b[i]));
+    }
+    return result;
   }
-  return result;
+};
+
+template<typename Reducer, typename Op, typename A, typename B>
+struct ArrayZipAndReduce<Reducer, Op, A, B, 1> {
+  static inline bool run(const array<A, 1>& a, const array<B, 1>& b) {
+    return Op::run(a[0], b[0]);
+  }
+};
+
+template<typename Reducer, typename Op, typename A, typename B, std::size_t N>
+inline bool array_zip_and_reduce(const array<A, N>& a, const array<B, N>& b) {
+  return ArrayZipAndReduce<Reducer, Op, A, B, N>::run(a, b);
 }
 
 }  // end namespace internal

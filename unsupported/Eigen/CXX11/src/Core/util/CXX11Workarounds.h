@@ -48,15 +48,13 @@ namespace internal {
  *     - libstdc++ from version 4.7 onwards has it nevertheless,
  *                                          so use that
  *     - libstdc++ older versions: use _M_instance directly
- *     - libc++ from version 3.4 onwards has it IF compiled with
- *                                       -std=c++1y
- *     - libc++ older versions or -std=c++11: use __elems_ directly
+ *     - libc++ all versions so far: use __elems_ directly
  *     - all other libs: use std::get to be portable, but
  *                       this may not be constexpr
  */
 #if defined(__GLIBCXX__) && __GLIBCXX__ < 20120322
 #define STD_GET_ARR_HACK             a._M_instance[I]
-#elif defined(_LIBCPP_VERSION) && (!defined(_LIBCPP_STD_VER) || _LIBCPP_STD_VER <= 11)
+#elif defined(_LIBCPP_VERSION)
 #define STD_GET_ARR_HACK             a.__elems_[I]
 #else
 #define STD_GET_ARR_HACK             std::template get<I, T, N>(a)
@@ -70,14 +68,14 @@ template<std::size_t I, class T> constexpr inline T&       array_get(std::vector
 template<std::size_t I, class T> constexpr inline T&&      array_get(std::vector<T>&&      a) { return a[I]; }
 template<std::size_t I, class T> constexpr inline T const& array_get(std::vector<T> const& a) { return a[I]; }
 
-
 #undef STD_GET_ARR_HACK
 
 template <typename T> struct array_size;
-template<class T, std::size_t N> struct array_size<std::array<T,N> > {
+template<class T, std::size_t N> struct array_size<const std::array<T,N> > {
   static const size_t value = N;
 };
-template<class T, std::size_t N> struct array_size<const std::array<T,N> > {
+template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<std::array<T,N> > {
   static const size_t value = N;
 };
 
