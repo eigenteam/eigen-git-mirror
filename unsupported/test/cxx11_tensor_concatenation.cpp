@@ -13,15 +13,16 @@
 
 using Eigen::Tensor;
 
+template<int DataLayout>
 static void test_dimension_failures()
 {
-  Tensor<int, 3> left(2, 3, 1);
-  Tensor<int, 3> right(3, 3, 1);
+  Tensor<int, 3, DataLayout> left(2, 3, 1);
+  Tensor<int, 3, DataLayout> right(3, 3, 1);
   left.setRandom();
   right.setRandom();
 
   // Okay; other dimensions are equal.
-  Tensor<int, 3> concatenation = left.concatenate(right, 0);
+  Tensor<int, 3, DataLayout> concatenation = left.concatenate(right, 0);
 
   // Dimension mismatches.
   VERIFY_RAISES_ASSERT(concatenation = left.concatenate(right, 1));
@@ -32,33 +33,35 @@ static void test_dimension_failures()
   VERIFY_RAISES_ASSERT(concatenation = left.concatenate(right, -1));
 }
 
+template<int DataLayout>
 static void test_static_dimension_failure()
 {
-  Tensor<int, 2> left(2, 3);
-  Tensor<int, 3> right(2, 3, 1);
+  Tensor<int, 2, DataLayout> left(2, 3);
+  Tensor<int, 3, DataLayout> right(2, 3, 1);
 
 #ifdef CXX11_TENSOR_CONCATENATION_STATIC_DIMENSION_FAILURE
   // Technically compatible, but we static assert that the inputs have same
   // NumDims.
-  Tensor<int, 3> concatenation = left.concatenate(right, 0);
+  Tensor<int, 3, DataLayout> concatenation = left.concatenate(right, 0);
 #endif
 
   // This can be worked around in this case.
-  Tensor<int, 3> concatenation = left
+  Tensor<int, 3, DataLayout> concatenation = left
       .reshape(Tensor<int, 3>::Dimensions{{2, 3, 1}})
       .concatenate(right, 0);
-  Tensor<int, 2> alternative = left
+  Tensor<int, 2, DataLayout> alternative = left
       .concatenate(right.reshape(Tensor<int, 2>::Dimensions{{2, 3}}), 0);
 }
 
+template<int DataLayout>
 static void test_simple_concatenation()
 {
-  Tensor<int, 3> left(2, 3, 1);
-  Tensor<int, 3> right(2, 3, 1);
+  Tensor<int, 3, DataLayout> left(2, 3, 1);
+  Tensor<int, 3, DataLayout> right(2, 3, 1);
   left.setRandom();
   right.setRandom();
 
-  Tensor<int, 3> concatenation = left.concatenate(right, 0);
+  Tensor<int, 3, DataLayout> concatenation = left.concatenate(right, 0);
   VERIFY_IS_EQUAL(concatenation.dimension(0), 4);
   VERIFY_IS_EQUAL(concatenation.dimension(1), 3);
   VERIFY_IS_EQUAL(concatenation.dimension(2), 1);
@@ -103,8 +106,11 @@ static void test_simple_concatenation()
 
 void test_cxx11_tensor_concatenation()
 {
-   CALL_SUBTEST(test_dimension_failures());
-   CALL_SUBTEST(test_static_dimension_failure());
-   CALL_SUBTEST(test_simple_concatenation());
+   CALL_SUBTEST(test_dimension_failures<ColMajor>());
+   CALL_SUBTEST(test_dimension_failures<RowMajor>());
+   CALL_SUBTEST(test_static_dimension_failure<ColMajor>());
+   CALL_SUBTEST(test_static_dimension_failure<RowMajor>());
+   CALL_SUBTEST(test_simple_concatenation<ColMajor>());
+   CALL_SUBTEST(test_simple_concatenation<RowMajor>());
    // CALL_SUBTEST(test_vectorized_concatenation());
 }

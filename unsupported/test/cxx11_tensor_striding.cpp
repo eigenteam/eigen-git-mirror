@@ -13,9 +13,10 @@
 
 using Eigen::Tensor;
 
+template<int DataLayout>
 static void test_simple_striding()
 {
-  Tensor<float, 4> tensor(2,3,5,7);
+  Tensor<float, 4, DataLayout> tensor(2,3,5,7);
   tensor.setRandom();
   array<ptrdiff_t, 4> strides;
   strides[0] = 1;
@@ -23,7 +24,7 @@ static void test_simple_striding()
   strides[2] = 1;
   strides[3] = 1;
 
-  Tensor<float, 4> no_stride;
+  Tensor<float, 4, DataLayout> no_stride;
   no_stride = tensor.stride(strides);
 
   VERIFY_IS_EQUAL(no_stride.dimension(0), 2);
@@ -45,7 +46,7 @@ static void test_simple_striding()
   strides[1] = 4;
   strides[2] = 2;
   strides[3] = 3;
-  Tensor<float, 4> stride;
+  Tensor<float, 4, DataLayout> stride;
   stride = tensor.stride(strides);
 
   VERIFY_IS_EQUAL(stride.dimension(0), 1);
@@ -65,7 +66,36 @@ static void test_simple_striding()
 }
 
 
+template<int DataLayout>
+static void test_striding_as_lvalue()
+{
+  Tensor<float, 4, DataLayout> tensor(2,3,5,7);
+  tensor.setRandom();
+  array<ptrdiff_t, 4> strides;
+  strides[0] = 2;
+  strides[1] = 4;
+  strides[2] = 2;
+  strides[3] = 3;
+
+  Tensor<float, 4, DataLayout> result(3, 12, 10, 21);
+  result.stride(strides) = tensor;
+
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        for (int l = 0; l < 7; ++l) {
+          VERIFY_IS_EQUAL(tensor(i,j,k,l), result(2*i,4*j,2*k,3*l));
+        }
+      }
+    }
+  }
+}
+
+
 void test_cxx11_tensor_striding()
 {
-   CALL_SUBTEST(test_simple_striding());
+  CALL_SUBTEST(test_simple_striding<ColMajor>());
+  CALL_SUBTEST(test_simple_striding<RowMajor>());
+  CALL_SUBTEST(test_striding_as_lvalue<ColMajor>());
+  CALL_SUBTEST(test_striding_as_lvalue<RowMajor>());
 }

@@ -285,6 +285,78 @@ static void test_compound_assign()
   }
 }
 
+static void test_std_initializers_tensor() {
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+  Tensor<int, 1> a(3);
+  a.setValues({0, 1, 2});
+  VERIFY_IS_EQUAL(a(0), 0);
+  VERIFY_IS_EQUAL(a(1), 1);
+  VERIFY_IS_EQUAL(a(2), 2);
+
+  // It fills the top-left slice.
+  a.setValues({10, 20});
+  VERIFY_IS_EQUAL(a(0), 10);
+  VERIFY_IS_EQUAL(a(1), 20);
+  VERIFY_IS_EQUAL(a(2), 2);
+
+  // Chaining.
+  Tensor<int, 1> a2(3);
+  a2 = a.setValues({100, 200, 300});
+  VERIFY_IS_EQUAL(a(0), 100);
+  VERIFY_IS_EQUAL(a(1), 200);
+  VERIFY_IS_EQUAL(a(2), 300);
+  VERIFY_IS_EQUAL(a2(0), 100);
+  VERIFY_IS_EQUAL(a2(1), 200);
+  VERIFY_IS_EQUAL(a2(2), 300);
+
+  Tensor<int, 2> b(2, 3);
+  b.setValues({{0, 1, 2}, {3, 4, 5}});
+  VERIFY_IS_EQUAL(b(0, 0), 0);
+  VERIFY_IS_EQUAL(b(0, 1), 1);
+  VERIFY_IS_EQUAL(b(0, 2), 2);
+  VERIFY_IS_EQUAL(b(1, 0), 3);
+  VERIFY_IS_EQUAL(b(1, 1), 4);
+  VERIFY_IS_EQUAL(b(1, 2), 5);
+
+  // It fills the top-left slice.
+  b.setValues({{10, 20}, {30}});
+  VERIFY_IS_EQUAL(b(0, 0), 10);
+  VERIFY_IS_EQUAL(b(0, 1), 20);
+  VERIFY_IS_EQUAL(b(0, 2), 2);
+  VERIFY_IS_EQUAL(b(1, 0), 30);
+  VERIFY_IS_EQUAL(b(1, 1), 4);
+  VERIFY_IS_EQUAL(b(1, 2), 5);
+
+  Eigen::Tensor<int, 3> c(3, 2, 4);
+  c.setValues({{{0, 1, 2, 3}, {4, 5, 6, 7}},
+               {{10, 11, 12, 13}, {14, 15, 16, 17}},
+               {{20, 21, 22, 23}, {24, 25, 26, 27}}});
+  VERIFY_IS_EQUAL(c(0, 0, 0), 0);
+  VERIFY_IS_EQUAL(c(0, 0, 1), 1);
+  VERIFY_IS_EQUAL(c(0, 0, 2), 2);
+  VERIFY_IS_EQUAL(c(0, 0, 3), 3);
+  VERIFY_IS_EQUAL(c(0, 1, 0), 4);
+  VERIFY_IS_EQUAL(c(0, 1, 1), 5);
+  VERIFY_IS_EQUAL(c(0, 1, 2), 6);
+  VERIFY_IS_EQUAL(c(0, 1, 3), 7);
+  VERIFY_IS_EQUAL(c(1, 0, 0), 10);
+  VERIFY_IS_EQUAL(c(1, 0, 1), 11);
+  VERIFY_IS_EQUAL(c(1, 0, 2), 12);
+  VERIFY_IS_EQUAL(c(1, 0, 3), 13);
+  VERIFY_IS_EQUAL(c(1, 1, 0), 14);
+  VERIFY_IS_EQUAL(c(1, 1, 1), 15);
+  VERIFY_IS_EQUAL(c(1, 1, 2), 16);
+  VERIFY_IS_EQUAL(c(1, 1, 3), 17);
+  VERIFY_IS_EQUAL(c(2, 0, 0), 20);
+  VERIFY_IS_EQUAL(c(2, 0, 1), 21);
+  VERIFY_IS_EQUAL(c(2, 0, 2), 22);
+  VERIFY_IS_EQUAL(c(2, 0, 3), 23);
+  VERIFY_IS_EQUAL(c(2, 1, 0), 24);
+  VERIFY_IS_EQUAL(c(2, 1, 1), 25);
+  VERIFY_IS_EQUAL(c(2, 1, 2), 26);
+  VERIFY_IS_EQUAL(c(2, 1, 3), 27);
+#endif  // EIGEN_HAS_VARIADIC_TEMPLATES
+}
 
 void test_cxx11_tensor_assign()
 {
@@ -294,4 +366,5 @@ void test_cxx11_tensor_assign()
   CALL_SUBTEST(test_same_type());
   CALL_SUBTEST(test_auto_resize());
   CALL_SUBTEST(test_compound_assign());
+  CALL_SUBTEST(test_std_initializers_tensor());
 }

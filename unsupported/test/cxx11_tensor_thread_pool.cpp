@@ -9,10 +9,10 @@
 
 #define EIGEN_USE_THREADS
 
-#include <iostream>
-#include "main.h"
-#include <Eigen/CXX11/Tensor>
 
+#include "main.h"
+#include <iostream>
+#include <Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
 
@@ -60,12 +60,12 @@ static void test_multithread_compound_assignment()
   }
 }
 
-
+template<int DataLayout>
 static void test_multithread_contraction()
 {
-  Tensor<float, 4> t_left(30, 50, 37, 31);
-  Tensor<float, 5> t_right(37, 31, 70, 2, 10);
-  Tensor<float, 5> t_result(30, 50, 70, 2, 10);
+  Tensor<float, 4, DataLayout> t_left(30, 50, 37, 31);
+  Tensor<float, 5, DataLayout> t_right(37, 31, 70, 2, 10);
+  Tensor<float, 5, DataLayout> t_result(30, 50, 70, 2, 10);
 
   t_left.setRandom();
   t_right.setRandom();
@@ -74,11 +74,10 @@ static void test_multithread_contraction()
   typedef Tensor<float, 1>::DimensionPair DimPair;
   Eigen::array<DimPair, 2> dims({{DimPair(2, 0), DimPair(3, 1)}});
 
-
-  typedef Map<MatrixXf> MapXf;
+  typedef Map<Matrix<float, Dynamic, Dynamic, DataLayout>> MapXf;
   MapXf m_left(t_left.data(), 1500, 1147);
   MapXf m_right(t_right.data(), 1147, 1400);
-  MatrixXf m_result(1500, 1400);
+  Matrix<float, Dynamic, Dynamic, DataLayout> m_result(1500, 1400);
 
   Eigen::ThreadPoolDevice thread_pool_device(4);
 
@@ -95,12 +94,12 @@ static void test_multithread_contraction()
   }
 }
 
-
+template<int DataLayout>
 static void test_contraction_corner_cases()
 {
-  Tensor<float, 2> t_left(32, 500);
-  Tensor<float, 2> t_right(32, 28*28);
-  Tensor<float, 2> t_result(500, 28*28);
+  Tensor<float, 2, DataLayout> t_left(32, 500);
+  Tensor<float, 2, DataLayout> t_right(32, 28*28);
+  Tensor<float, 2, DataLayout> t_result(500, 28*28);
 
   t_left = (t_left.constant(-0.5f) + t_left.random()) * 2.0f;
   t_right = (t_right.constant(-0.6f) + t_right.random()) * 2.0f;
@@ -110,10 +109,10 @@ static void test_contraction_corner_cases()
   typedef Tensor<float, 1>::DimensionPair DimPair;
   Eigen::array<DimPair, 1> dims{{DimPair(0, 0)}};
 
-  typedef Map<MatrixXf> MapXf;
+  typedef Map<Matrix<float, Dynamic, Dynamic, DataLayout>> MapXf;
   MapXf m_left(t_left.data(), 32, 500);
   MapXf m_right(t_right.data(), 32, 28*28);
-  MatrixXf m_result(500, 28*28);
+  Matrix<float, Dynamic, Dynamic, DataLayout> m_result(500, 28*28);
 
   Eigen::ThreadPoolDevice thread_pool_device(12);
 
@@ -181,18 +180,18 @@ static void test_contraction_corner_cases()
   }
 }
 
-
+template<int DataLayout>
 static void test_multithread_contraction_agrees_with_singlethread() {
   int contract_size = internal::random<int>(1, 5000);
 
-  Tensor<float, 3> left(internal::random<int>(1, 80),
-                        contract_size,
-                        internal::random<int>(1, 100));
+  Tensor<float, 3, DataLayout> left(internal::random<int>(1, 80),
+                                    contract_size,
+                                    internal::random<int>(1, 100));
 
-  Tensor<float, 4> right(internal::random<int>(1, 25),
-                         internal::random<int>(1, 37),
-                         contract_size,
-                         internal::random<int>(1, 51));
+  Tensor<float, 4, DataLayout> right(internal::random<int>(1, 25),
+                                     internal::random<int>(1, 37),
+                                     contract_size,
+                                     internal::random<int>(1, 51));
 
   left.setRandom();
   right.setRandom();
@@ -206,13 +205,13 @@ static void test_multithread_contraction_agrees_with_singlethread() {
 
   Eigen::ThreadPoolDevice thread_pool_device(internal::random<int>(2, 11));
 
-  Tensor<float, 5> st_result;
+  Tensor<float, 5, DataLayout> st_result;
   st_result = left.contract(right, dims);
 
-  Tensor<float, 5> tp_result(st_result.dimensions());
+  Tensor<float, 5, DataLayout> tp_result(st_result.dimensions());
   tp_result.device(thread_pool_device) = left.contract(right, dims);
 
-  VERIFY(internal::dimensions_match(st_result.dimensions(), tp_result.dimensions()));
+  VERIFY(dimensions_match(st_result.dimensions(), tp_result.dimensions()));
   for (ptrdiff_t i = 0; i < st_result.size(); i++) {
     // if both of the values are very small, then do nothing (because the test will fail
     // due to numerical precision issues when values are small)
@@ -241,17 +240,30 @@ static void test_memcpy() {
 }
 
 
+static void test_multithread_random()
+{
+  Eigen::ThreadPoolDevice device(2);
+  Tensor<float, 1> t(1 << 20);
+  t.device(device) = t.random<Eigen::internal::NormalRandomGenerator<float>>();
+}
+
+
 void test_cxx11_tensor_thread_pool()
 {
   CALL_SUBTEST(test_multithread_elementwise());
   CALL_SUBTEST(test_multithread_compound_assignment());
 
-  CALL_SUBTEST(test_multithread_contraction());
+  CALL_SUBTEST(test_multithread_contraction<ColMajor>());
+  CALL_SUBTEST(test_multithread_contraction<RowMajor>());
 
-  CALL_SUBTEST(test_multithread_contraction_agrees_with_singlethread());
+  CALL_SUBTEST(test_multithread_contraction_agrees_with_singlethread<ColMajor>());
+  CALL_SUBTEST(test_multithread_contraction_agrees_with_singlethread<RowMajor>());
 
   // Exercise various cases that have been problematic in the past.
-  CALL_SUBTEST(test_contraction_corner_cases());
+  CALL_SUBTEST(test_contraction_corner_cases<ColMajor>());
+  CALL_SUBTEST(test_contraction_corner_cases<RowMajor>());
 
   CALL_SUBTEST(test_memcpy());
+
+  CALL_SUBTEST(test_multithread_random());
 }

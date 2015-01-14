@@ -29,6 +29,7 @@ static void test_1d()
   vec1(4) = 23; vec2(4) = 4;
   vec1(5) = 42; vec2(5) = 5;
 
+  VERIFY_IS_EQUAL(vec1.rank(), 1);
   VERIFY_IS_EQUAL(vec1.size(), 6);
   VERIFY_IS_EQUAL(vec1.dimension(0), 6);
 
@@ -69,10 +70,12 @@ static void test_2d()
   TensorMap<Tensor<const int, 2>> mat3(mat1.data(), 2, 3);
   TensorMap<Tensor<const int, 2, RowMajor>> mat4(mat2.data(), 2, 3);
 
+  VERIFY_IS_EQUAL(mat3.rank(), 2);
   VERIFY_IS_EQUAL(mat3.size(), 6);
   VERIFY_IS_EQUAL(mat3.dimension(0), 2);
   VERIFY_IS_EQUAL(mat3.dimension(1), 3);
 
+  VERIFY_IS_EQUAL(mat4.rank(), 2);
   VERIFY_IS_EQUAL(mat4.size(), 6);
   VERIFY_IS_EQUAL(mat4.dimension(0), 2);
   VERIFY_IS_EQUAL(mat4.dimension(1), 3);
@@ -109,13 +112,15 @@ static void test_3d()
   }
 
   TensorMap<Tensor<const int, 3>> mat3(mat1.data(), 2, 3, 7);
-  TensorMap<Tensor<const int, 3, RowMajor>> mat4(mat2.data(), 2, 3, 7);
+  TensorMap<Tensor<const int, 3, RowMajor>> mat4(mat2.data(), array<DenseIndex, 3>{{2, 3, 7}});
 
+  VERIFY_IS_EQUAL(mat3.rank(), 3);
   VERIFY_IS_EQUAL(mat3.size(), 2*3*7);
   VERIFY_IS_EQUAL(mat3.dimension(0), 2);
   VERIFY_IS_EQUAL(mat3.dimension(1), 3);
   VERIFY_IS_EQUAL(mat3.dimension(2), 7);
 
+  VERIFY_IS_EQUAL(mat4.rank(), 3);
   VERIFY_IS_EQUAL(mat4.size(), 2*3*7);
   VERIFY_IS_EQUAL(mat4.dimension(0), 2);
   VERIFY_IS_EQUAL(mat4.dimension(1), 3);

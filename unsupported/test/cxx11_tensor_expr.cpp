@@ -125,6 +125,12 @@ static void test_3d()
   mat7 = mat1.cwiseMax(mat5 * 2.0f).exp();
   Tensor<float, 3, RowMajor> mat8(2,3,7);
   mat8 = (-mat2).exp() * 3.14f;
+  Tensor<float, 3, RowMajor> mat9(2,3,7);
+  mat9 = mat2 + 3.14f;
+  Tensor<float, 3, RowMajor> mat10(2,3,7);
+  mat10 = mat2 - 3.14f;
+  Tensor<float, 3, RowMajor> mat11(2,3,7);
+  mat11 = mat2 / 3.14f;
 
   val = 1.0;
   for (int i = 0; i < 2; ++i) {
@@ -136,6 +142,9 @@ static void test_3d()
         VERIFY_IS_APPROX(mat6(i,j,k), sqrtf(val) * 3.14f);
         VERIFY_IS_APPROX(mat7(i,j,k), expf((std::max)(val, mat5(i,j,k) * 2.0f)));
         VERIFY_IS_APPROX(mat8(i,j,k), expf(-val) * 3.14f);
+        VERIFY_IS_APPROX(mat9(i,j,k), val + 3.14f);
+        VERIFY_IS_APPROX(mat10(i,j,k), val - 3.14f);
+        VERIFY_IS_APPROX(mat11(i,j,k), val / 3.14f);
         val += 1.0;
       }
     }
@@ -172,6 +181,36 @@ static void test_constants()
   }
 }
 
+static void test_boolean()
+{
+  Tensor<int, 1> vec(6);
+  std::copy_n(std::begin({0, 1, 2, 3, 4, 5}), 6, vec.data());
+
+  // Test ||.
+  Tensor<bool, 1> bool1 = vec < vec.constant(1) || vec > vec.constant(4);
+  VERIFY_IS_EQUAL(bool1[0], true);
+  VERIFY_IS_EQUAL(bool1[1], false);
+  VERIFY_IS_EQUAL(bool1[2], false);
+  VERIFY_IS_EQUAL(bool1[3], false);
+  VERIFY_IS_EQUAL(bool1[4], false);
+  VERIFY_IS_EQUAL(bool1[5], true);
+
+  // Test &&, including cast of operand vec.
+  Tensor<bool, 1> bool2 = vec.cast<bool>() && vec < vec.constant(4);
+  VERIFY_IS_EQUAL(bool2[0], false);
+  VERIFY_IS_EQUAL(bool2[1], true);
+  VERIFY_IS_EQUAL(bool2[2], true);
+  VERIFY_IS_EQUAL(bool2[3], true);
+  VERIFY_IS_EQUAL(bool2[4], false);
+  VERIFY_IS_EQUAL(bool2[5], false);
+
+  // Compilation tests:
+  // Test Tensor<bool> against results of cast or comparison; verifies that
+  // CoeffReturnType is set to match Op return type of bool for Unary and Binary
+  // Ops.
+  Tensor<bool, 1> bool3 = vec.cast<bool>() && bool2;
+  bool3 = vec < vec.constant(4) && bool2;
+}
 
 static void test_functors()
 {
@@ -258,6 +297,7 @@ void test_cxx11_tensor_expr()
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
   CALL_SUBTEST(test_constants());
+  CALL_SUBTEST(test_boolean());
   CALL_SUBTEST(test_functors());
   CALL_SUBTEST(test_type_casting());
   CALL_SUBTEST(test_select());

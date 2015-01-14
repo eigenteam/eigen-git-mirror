@@ -36,6 +36,23 @@ static void test_simple_patch()
     VERIFY_IS_EQUAL(tensor.data()[i], no_patch.data()[i]);
   }
 
+  patch_dims[0] = 2;
+  patch_dims[1] = 3;
+  patch_dims[2] = 5;
+  patch_dims[3] = 7;
+  Tensor<float, 5> single_patch;
+  single_patch = tensor.extract_patches(patch_dims);
+
+  VERIFY_IS_EQUAL(single_patch.dimension(0), 2);
+  VERIFY_IS_EQUAL(single_patch.dimension(1), 3);
+  VERIFY_IS_EQUAL(single_patch.dimension(2), 5);
+  VERIFY_IS_EQUAL(single_patch.dimension(3), 7);
+  VERIFY_IS_EQUAL(single_patch.dimension(4), 1);
+
+  for (int i = 0; i < tensor.size(); ++i) {
+    VERIFY_IS_EQUAL(tensor.data()[i], single_patch.data()[i]);
+  }
+
   patch_dims[0] = 1;
   patch_dims[1] = 2;
   patch_dims[2] = 2;

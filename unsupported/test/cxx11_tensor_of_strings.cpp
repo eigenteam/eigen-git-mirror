@@ -8,19 +8,18 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "main.h"
-#include <string>
+
 #include <Eigen/CXX11/Tensor>
 
-using std::string;
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
 static void test_assign()
 {
-  string data1[6];
-  TensorMap<Tensor<string, 2>> mat1(data1, 2, 3);
-  string data2[6];
-  const TensorMap<Tensor<const string, 2>> mat2(data2, 2, 3);
+  std::string data1[6];
+  TensorMap<Tensor<std::string, 2>> mat1(data1, 2, 3);
+  std::string data2[6];
+  const TensorMap<Tensor<const std::string, 2>> mat2(data2, 2, 3);
 
   for (int i = 0; i < 6; ++i) {
     std::ostringstream s1;
@@ -31,16 +30,16 @@ static void test_assign()
     data2[i] = s2.str();
   }
 
-  Tensor<string, 2> rslt1;
+  Tensor<std::string, 2> rslt1;
   rslt1 = mat1;
-  Tensor<string, 2> rslt2;
+  Tensor<std::string, 2> rslt2;
   rslt2 = mat2;
 
-  Tensor<string, 2> rslt3 = mat1;
-  Tensor<string, 2> rslt4 = mat2;
+  Tensor<std::string, 2> rslt3 = mat1;
+  Tensor<std::string, 2> rslt4 = mat2;
 
-  Tensor<string, 2> rslt5(mat1);
-  Tensor<string, 2> rslt6(mat2);
+  Tensor<std::string, 2> rslt5(mat1);
+  Tensor<std::string, 2> rslt6(mat2);
 
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
@@ -57,8 +56,8 @@ static void test_assign()
 
 static void test_concat()
 {
-  Tensor<string, 2> t1(2, 3);
-  Tensor<string, 2> t2(2, 3);
+  Tensor<std::string, 2> t1(2, 3);
+  Tensor<std::string, 2> t2(2, 3);
 
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
@@ -71,7 +70,7 @@ static void test_concat()
     }
   }
 
-  Tensor<string, 2> result = t1.concatenate(t2, 1);
+  Tensor<std::string, 2> result = t1.concatenate(t2, 1);
   VERIFY_IS_EQUAL(result.dimension(0), 2);
   VERIFY_IS_EQUAL(result.dimension(1), 6);
 
@@ -86,7 +85,7 @@ static void test_concat()
 
 static void test_slices()
 {
-  Tensor<string, 2> data(2, 6);
+  Tensor<std::string, 2> data(2, 6);
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       std::ostringstream s1;
@@ -99,8 +98,8 @@ static void test_slices()
   const Eigen::DSizes<ptrdiff_t, 2> first_half{{0, 0}};
   const Eigen::DSizes<ptrdiff_t, 2> second_half{{0, 3}};
 
-  Tensor<string, 2> t1 = data.slice(first_half, half_size);
-  Tensor<string, 2> t2 = data.slice(second_half, half_size);
+  Tensor<std::string, 2> t1 = data.slice(first_half, half_size);
+  Tensor<std::string, 2> t2 = data.slice(second_half, half_size);
 
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
@@ -113,8 +112,8 @@ static void test_slices()
 
 static void test_additions()
 {
-  Tensor<string, 1> data1(3);
-  Tensor<string, 1> data2(3);
+  Tensor<std::string, 1> data1(3);
+  Tensor<std::string, 1> data2(3);
   for (int i = 0; i < 3; ++i) {
     data1(i) = "abc";
     std::ostringstream s1;
@@ -122,12 +121,22 @@ static void test_additions()
     data2(i) = s1.str();
   }
 
-  Tensor<string, 1> sum = data1 + data2;
+  Tensor<std::string, 1> sum = data1 + data2;
   for (int i = 0; i < 3; ++i) {
     std::ostringstream concat;
     concat << "abc" << i;
-    string expected = concat.str();
+    std::string expected = concat.str();
     VERIFY_IS_EQUAL(sum(i), expected);
+  }
+}
+
+
+static void test_initialization()
+{
+  Tensor<std::string, 2> a(2, 3);
+  a.setConstant(std::string("foo"));
+  for (int i = 0; i < 2*3; ++i) {
+    VERIFY_IS_EQUAL(a(i), std::string("foo"));
   }
 }
 
@@ -139,4 +148,5 @@ void test_cxx11_tensor_of_strings()
   CALL_SUBTEST(test_concat());
   CALL_SUBTEST(test_slices());
   CALL_SUBTEST(test_additions());
+  CALL_SUBTEST(test_initialization());
 }

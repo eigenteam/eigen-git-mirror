@@ -32,6 +32,7 @@ static void test_1d()
   vec1(5) = 42; vec2(5) = 5; vec3(5) = 0;
   vec4.setZero();
 
+  VERIFY_IS_EQUAL((vec1.rank()), 1);
   VERIFY_IS_EQUAL((vec1.size()), 6);
   VERIFY_IS_EQUAL((vec1.dimensions()[0]), 6);
 
@@ -99,10 +100,12 @@ static void test_2d()
   mat2(1,1) = 4;
   mat2(1,2) = 5;
 
+  VERIFY_IS_EQUAL((mat1.rank()), 2);
   VERIFY_IS_EQUAL((mat1.size()), 6);
   VERIFY_IS_EQUAL((mat1.dimensions()[0]), 2);
   VERIFY_IS_EQUAL((mat1.dimensions()[1]), 3);
 
+  VERIFY_IS_EQUAL((mat2.rank()), 2);
   VERIFY_IS_EQUAL((mat2.size()), 6);
   VERIFY_IS_EQUAL((mat2.dimensions()[0]), 2);
   VERIFY_IS_EQUAL((mat2.dimensions()[1]), 3);

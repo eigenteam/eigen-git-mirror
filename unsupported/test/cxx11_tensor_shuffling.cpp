@@ -14,9 +14,10 @@
 using Eigen::Tensor;
 using Eigen::array;
 
+template <int DataLayout>
 static void test_simple_shuffling()
 {
-  Tensor<float, 4> tensor(2,3,5,7);
+  Tensor<float, 4, DataLayout> tensor(2,3,5,7);
   tensor.setRandom();
   array<ptrdiff_t, 4> shuffles;
   shuffles[0] = 0;
@@ -24,7 +25,7 @@ static void test_simple_shuffling()
   shuffles[2] = 2;
   shuffles[3] = 3;
 
-  Tensor<float, 4> no_shuffle;
+  Tensor<float, 4, DataLayout> no_shuffle;
   no_shuffle = tensor.shuffle(shuffles);
 
   VERIFY_IS_EQUAL(no_shuffle.dimension(0), 2);
@@ -46,7 +47,7 @@ static void test_simple_shuffling()
   shuffles[1] = 3;
   shuffles[2] = 1;
   shuffles[3] = 0;
-  Tensor<float, 4> shuffle;
+  Tensor<float, 4, DataLayout> shuffle;
   shuffle = tensor.shuffle(shuffles);
 
   VERIFY_IS_EQUAL(shuffle.dimension(0), 5);
@@ -66,9 +67,10 @@ static void test_simple_shuffling()
 }
 
 
+template <int DataLayout>
 static void test_expr_shuffling()
 {
-  Tensor<float, 4> tensor(2,3,5,7);
+  Tensor<float, 4, DataLayout> tensor(2,3,5,7);
   tensor.setRandom();
 
   array<ptrdiff_t, 4> shuffles;
@@ -76,10 +78,10 @@ static void test_expr_shuffling()
   shuffles[1] = 3;
   shuffles[2] = 1;
   shuffles[3] = 0;
-  Tensor<float, 4> expected;
+  Tensor<float, 4, DataLayout> expected;
   expected = tensor.shuffle(shuffles);
 
-  Tensor<float, 4> result(5,7,3,2);
+  Tensor<float, 4, DataLayout> result(5,7,3,2);
 
   array<int, 4> src_slice_dim{{2,3,1,7}};
   array<int, 4> src_slice_start{{0,0,0,0}};
@@ -128,16 +130,17 @@ static void test_expr_shuffling()
 }
 
 
+template <int DataLayout>
 static void test_shuffling_as_value()
 {
-  Tensor<float, 4> tensor(2,3,5,7);
+  Tensor<float, 4, DataLayout> tensor(2,3,5,7);
   tensor.setRandom();
   array<ptrdiff_t, 4> shuffles;
   shuffles[2] = 0;
   shuffles[3] = 1;
   shuffles[1] = 2;
   shuffles[0] = 3;
-  Tensor<float, 4> shuffle(5,7,3,2);
+  Tensor<float, 4, DataLayout> shuffle(5,7,3,2);
   shuffle.shuffle(shuffles) = tensor;
 
   VERIFY_IS_EQUAL(shuffle.dimension(0), 5);
@@ -158,7 +161,10 @@ static void test_shuffling_as_value()
 
 void test_cxx11_tensor_shuffling()
 {
-   CALL_SUBTEST(test_simple_shuffling());
-   CALL_SUBTEST(test_expr_shuffling());
-   CALL_SUBTEST(test_shuffling_as_value());
+   CALL_SUBTEST(test_simple_shuffling<ColMajor>());
+   CALL_SUBTEST(test_simple_shuffling<RowMajor>());
+   CALL_SUBTEST(test_expr_shuffling<ColMajor>());
+   CALL_SUBTEST(test_expr_shuffling<RowMajor>());
+   CALL_SUBTEST(test_shuffling_as_value<ColMajor>());
+   CALL_SUBTEST(test_shuffling_as_value<RowMajor>());
 }
