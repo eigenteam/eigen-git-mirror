@@ -13,9 +13,10 @@
 #include <Eigen/CXX11/Tensor>
 
 
+template<int DataLayout>
 static void test_output_1d()
 {
-  Tensor<int, 1> tensor(5);
+  Tensor<int, 1, DataLayout> tensor(5);
   for (int i = 0; i < 5; ++i) {
     tensor(i) = i;
   }
@@ -28,9 +29,10 @@ static void test_output_1d()
 }
 
 
+template<int DataLayout>
 static void test_output_2d()
 {
-  Tensor<int, 2> tensor(5, 3);
+  Tensor<int, 2, DataLayout> tensor(5, 3);
   for (int i = 0; i < 5; ++i) {
     for (int j = 0; j < 3; ++j) {
       tensor(i, j) = i*j;
@@ -45,10 +47,11 @@ static void test_output_2d()
 }
 
 
+template<int DataLayout>
 static void test_output_expr()
 {
-  Tensor<int, 1> tensor1(5);
-  Tensor<int, 1> tensor2(5);
+  Tensor<int, 1, DataLayout> tensor1(5);
+  Tensor<int, 1, DataLayout> tensor2(5);
   for (int i = 0; i < 5; ++i) {
     tensor1(i) = i;
     tensor2(i) = 7;
@@ -62,9 +65,50 @@ static void test_output_expr()
 }
 
 
+template<int DataLayout>
+static void test_output_string()
+{
+  Tensor<std::string, 2, DataLayout> tensor(5, 3);
+  tensor.setConstant(std::string("foo"));
+
+  std::cout << tensor << std::endl;
+
+  std::stringstream os;
+  os << tensor;
+
+  std::string expected("foo  foo  foo\nfoo  foo  foo\nfoo  foo  foo\nfoo  foo  foo\nfoo  foo  foo");
+  VERIFY_IS_EQUAL(std::string(os.str()), expected);
+}
+
+
+template<int DataLayout>
+static void test_output_const()
+{
+  Tensor<int, 1, DataLayout> tensor(5);
+  for (int i = 0; i < 5; ++i) {
+    tensor(i) = i;
+  }
+
+  TensorMap<Tensor<const int, 1, DataLayout> > tensor_map(tensor.data(), 5);
+
+  std::stringstream os;
+  os << tensor_map;
+
+  std::string expected("0\n1\n2\n3\n4");
+  VERIFY_IS_EQUAL(std::string(os.str()), expected);
+}
+
+
 void test_cxx11_tensor_io()
 {
-  CALL_SUBTEST(test_output_1d());
-  CALL_SUBTEST(test_output_2d());
-  CALL_SUBTEST(test_output_expr());
+  CALL_SUBTEST(test_output_1d<ColMajor>());
+  CALL_SUBTEST(test_output_1d<RowMajor>());
+  CALL_SUBTEST(test_output_2d<ColMajor>());
+  CALL_SUBTEST(test_output_2d<RowMajor>());
+  CALL_SUBTEST(test_output_expr<ColMajor>());
+  CALL_SUBTEST(test_output_expr<RowMajor>());
+  CALL_SUBTEST(test_output_string<ColMajor>());
+  CALL_SUBTEST(test_output_string<RowMajor>());
+  CALL_SUBTEST(test_output_const<ColMajor>());
+  CALL_SUBTEST(test_output_const<RowMajor>());
 }

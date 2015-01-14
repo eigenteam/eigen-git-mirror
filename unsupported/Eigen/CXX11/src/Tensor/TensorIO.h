@@ -12,6 +12,14 @@
 
 namespace Eigen {
 
+namespace internal {
+template<>
+struct significant_decimals_impl<std::string>
+    : significant_decimals_default_impl<std::string, true>
+{};
+}
+
+
 template <typename T>
 std::ostream& operator << (std::ostream& os, const TensorBase<T, ReadOnlyAccessors>& expr) {
   // Evaluate the expression if needed
@@ -19,18 +27,19 @@ std::ostream& operator << (std::ostream& os, const TensorBase<T, ReadOnlyAccesso
   TensorEvaluator<const TensorForcedEvalOp<const T>, DefaultDevice> tensor(eval, DefaultDevice());
   tensor.evalSubExprsIfNeeded(NULL);
 
-  typedef typename T::Scalar Scalar;
+  typedef typename internal::remove_const<typename T::Scalar>::type Scalar;
   typedef typename T::Index Index;
   typedef typename TensorEvaluator<const TensorForcedEvalOp<const T>, DefaultDevice>::Dimensions Dimensions;
   const Index total_size = internal::array_prod(tensor.dimensions());
 
   // Print the tensor as a 1d vector or a 2d matrix.
   if (internal::array_size<Dimensions>::value == 1) {
-    Map<Array<Scalar, Dynamic, 1> > array(tensor.data(), total_size);
+    Map<const Array<Scalar, Dynamic, 1> > array(const_cast<Scalar*>(tensor.data()), total_size);
     os << array;
   } else {
     const Index first_dim = tensor.dimensions()[0];
-    Map<Array<Scalar, Dynamic, Dynamic> > matrix(tensor.data(), first_dim, total_size/first_dim);
+    static const int layout = TensorEvaluator<const TensorForcedEvalOp<const T>, DefaultDevice>::Layout;
+    Map<const Array<Scalar, Dynamic, Dynamic, layout> > matrix(const_cast<Scalar*>(tensor.data()), first_dim, total_size/first_dim);
     os << matrix;
   }
 
