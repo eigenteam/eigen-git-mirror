@@ -48,6 +48,8 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     enum {
       IsAligned = ((int(Options_)&Aligned)==Aligned),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+      Layout = PlainObjectType::Layout,
+      CoordAccess = true,
     };
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
@@ -62,13 +64,35 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       // The number of dimensions used to construct a tensor must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT((1 == NumIndices || NumIndices == Dynamic), YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, Index dim1, Index dim2) : m_data(dataPtr), m_dimensions(dim1, dim2) {
+      EIGEN_STATIC_ASSERT(2 == NumIndices || NumIndices == Dynamic, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, Index dim1, Index dim2, Index dim3) : m_data(dataPtr), m_dimensions(dim1, dim2, dim3) {
+      EIGEN_STATIC_ASSERT(3 == NumIndices || NumIndices == Dynamic, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, Index dim1, Index dim2, Index dim3, Index dim4) : m_data(dataPtr), m_dimensions(dim1, dim2, dim3, dim4) {
+      EIGEN_STATIC_ASSERT(4 == NumIndices || NumIndices == Dynamic, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, Index dim1, Index dim2, Index dim3, Index dim4, Index dim5) : m_data(dataPtr), m_dimensions(dim1, dim2, dim3, dim4, dim5) {
+      EIGEN_STATIC_ASSERT(5 == NumIndices || NumIndices == Dynamic, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
 #endif
 
-    template <typename Dimensions>
-    inline TensorMap(PointerArgType dataPtr, const Dimensions& dimensions)
+   inline TensorMap(PointerArgType dataPtr, const array<Index, NumIndices>& dimensions)
       : m_data(dataPtr), m_dimensions(dimensions)
     { }
 
+    template <typename Dimensions>
+    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, const Dimensions& dimensions)
+      : m_data(dataPtr), m_dimensions(dimensions)
+    { }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Index rank() const { return m_dimensions.rank(); }
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index dimension(Index n) const { return m_dimensions[n]; }
     EIGEN_DEVICE_FUNC
