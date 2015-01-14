@@ -32,13 +32,14 @@ static void test_1d()
   vec1(5) = 42.0; vec2(5) = 5.0;
 
   float data3[6];
-  TensorMap<TensorFixedSize<float, Sizes<6> > > vec3(data3, Sizes<6>());
+  TensorMap<TensorFixedSize<float, Sizes<6> > > vec3(data3, 6);
   vec3 = vec1.sqrt();
   float data4[6];
-  TensorMap<TensorFixedSize<float, Sizes<6>, RowMajor> > vec4(data4, Sizes<6>());
+  TensorMap<TensorFixedSize<float, Sizes<6>, RowMajor> > vec4(data4, 6);
   vec4 = vec2.sqrt();
 
   VERIFY_IS_EQUAL((vec3.size()), 6);
+  VERIFY_IS_EQUAL(vec3.rank(), 1);
   //  VERIFY_IS_EQUAL((vec3.dimensions()[0]), 6);
   //  VERIFY_IS_EQUAL((vec3.dimension(0)), 6);
 
@@ -68,11 +69,12 @@ static void test_1d()
 static void test_2d()
 {
   float data1[6];
-  TensorMap<TensorFixedSize<float, Sizes<2, 3> >> mat1(data1, Sizes<2, 3>());
+  TensorMap<TensorFixedSize<float, Sizes<2, 3> >> mat1(data1,2,3);
   float data2[6];
-  TensorMap<TensorFixedSize<float, Sizes<2, 3>, RowMajor>> mat2(data2, Sizes<2, 3>());
+  TensorMap<TensorFixedSize<float, Sizes<2, 3>, RowMajor>> mat2(data2,2,3);
 
   VERIFY_IS_EQUAL((mat1.size()), 2*3);
+  VERIFY_IS_EQUAL(mat1.rank(), 2);
   //  VERIFY_IS_EQUAL((mat1.dimension(0)), 2);
   //  VERIFY_IS_EQUAL((mat1.dimension(1)), 3);
 
@@ -120,6 +122,7 @@ static void test_3d()
   TensorFixedSize<float, Sizes<2, 3, 7>, RowMajor> mat2;
 
   VERIFY_IS_EQUAL((mat1.size()), 2*3*7);
+  VERIFY_IS_EQUAL(mat1.rank(), 3);
   //  VERIFY_IS_EQUAL((mat1.dimension(0)), 2);
   //  VERIFY_IS_EQUAL((mat1.dimension(1)), 3);
   //  VERIFY_IS_EQUAL((mat1.dimension(2)), 7);
@@ -166,7 +169,7 @@ static void test_array()
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
-        mat1(array<ptrdiff_t, 3>{{i,j,k}}) = val;
+        mat1(i,j,k) = val;
         val += 1.0;
       }
     }

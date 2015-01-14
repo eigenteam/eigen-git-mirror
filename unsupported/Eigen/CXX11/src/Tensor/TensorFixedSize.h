@@ -42,7 +42,9 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     enum {
       IsAligned = bool(EIGEN_ALIGN),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
-    };
+      Layout = Options_ & RowMajor ? RowMajor : ColMajor,
+      CoordAccess = true,
+   };
 
   typedef Dimensions_ Dimensions;
   static const std::size_t NumIndices = Dimensions::count;
@@ -51,11 +53,12 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
   TensorStorage<Scalar, NumIndices, Dimensions::total_size, Options, Dimensions> m_storage;
 
   public:
-    EIGEN_STRONG_INLINE Index                    dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
-    EIGEN_STRONG_INLINE const Dimensions&        dimensions()             const { return m_storage.dimensions(); }
-    EIGEN_STRONG_INLINE Index                    size()                   const { return m_storage.size(); }
-    EIGEN_STRONG_INLINE Scalar                   *data()                        { return m_storage.data(); }
-    EIGEN_STRONG_INLINE const Scalar             *data()                  const { return m_storage.data(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                      rank()                   const { return NumIndices; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                    dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions&        dimensions()             const { return m_storage.dimensions(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                    size()                   const { return m_storage.size(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar                   *data()                        { return m_storage.data(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar             *data()                  const { return m_storage.data(); }
 
     // This makes EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     // work, because that uses base().coeffRef() - and we don't yet
@@ -187,6 +190,23 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
     }
 
+#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    inline TensorFixedSize(Self&& other)
+      : m_storage(other.m_storage)
+    {
+    }
+#endif
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorFixedSize& operator=(const TensorFixedSize& other)
+    {
+      // FIXME: check that the dimensions of other match the dimensions of *this.
+      // Unfortunately this isn't possible yet when the rhs is an expression.
+      typedef TensorAssignOp<Self, const TensorFixedSize> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorFixedSize& operator=(const OtherDerived& other)
