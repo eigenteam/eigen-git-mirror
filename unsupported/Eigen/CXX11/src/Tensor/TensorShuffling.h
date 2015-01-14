@@ -24,11 +24,14 @@ template<typename Shuffle, typename XprType>
 struct traits<TensorShufflingOp<Shuffle, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  typedef typename traits<XprType>::StorageKind StorageKind;
-  typedef typename traits<XprType>::Index Index;
+  typedef traits<XprType> XprTraits;
+  typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename XprTraits::StorageKind StorageKind;
+  typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
   typedef typename remove_reference<Nested>::type _Nested;
+  static const int NumDimensions = XprTraits::NumDimensions;
+  static const int Layout = XprTraits::Layout;
 };
 
 template<typename Shuffle, typename XprType>
@@ -99,6 +102,8 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    Layout = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess = false,  // to be implemented
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -112,15 +117,22 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
 
     array<Index, NumDims> inputStrides;
 
-    for (int i = 0; i < NumDims; ++i) {
-      if (i > 0) {
-        inputStrides[i] = inputStrides[i-1] * input_dims[i-1];
-        m_outputStrides[i] = m_outputStrides[i-1] * m_dimensions[i-1];
-      } else {
-        inputStrides[0] = 1;
-        m_outputStrides[0] = 1;
+    if (Layout == ColMajor) {
+      inputStrides[0] = 1;
+      m_outputStrides[0] = 1;
+      for (int i = 1; i < NumDims; ++i) {
+        inputStrides[i] = inputStrides[i - 1] * input_dims[i - 1];
+        m_outputStrides[i] = m_outputStrides[i - 1] * m_dimensions[i - 1];
+      }
+    } else {
+      inputStrides[NumDims - 1] = 1;
+      m_outputStrides[NumDims - 1] = 1;
+      for (int i = NumDims - 2; i >= 0; --i) {
+        inputStrides[i] = inputStrides[i + 1] * input_dims[i + 1];
+        m_outputStrides[i] = m_outputStrides[i + 1] * m_dimensions[i + 1];
       }
     }
+
     for (int i = 0; i < NumDims; ++i) {
       m_inputStrides[i] = inputStrides[shuffle[i]];
     }
@@ -162,15 +174,23 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   Scalar* data() const { return NULL; }
 
  protected:
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
-  {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const {
     Index inputIndex = 0;
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_outputStrides[i];
-      inputIndex += idx * m_inputStrides[i];
-      index -= idx * m_outputStrides[i];
+    if (Layout == ColMajor) {
+      for (int i = NumDims - 1; i > 0; --i) {
+        const Index idx = index / m_outputStrides[i];
+        inputIndex += idx * m_inputStrides[i];
+        index -= idx * m_outputStrides[i];
+      }
+      return inputIndex + index * m_inputStrides[0];
+    } else {
+      for (int i = 0; i < NumDims - 1; ++i) {
+        const Index idx = index / m_outputStrides[i];
+        inputIndex += idx * m_inputStrides[i];
+        index -= idx * m_outputStrides[i];
+      }
+      return inputIndex + index * m_inputStrides[NumDims - 1];
     }
-    return inputIndex + index * m_inputStrides[0];
   }
 
   Dimensions m_dimensions;

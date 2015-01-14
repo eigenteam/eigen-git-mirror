@@ -37,6 +37,8 @@ struct traits<TensorImagePatchOp<Rows, Cols, XprType> > : public traits<XprType>
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
   typedef typename remove_reference<Nested>::type _Nested;
+  static const int NumDimensions = XprTraits::NumDimensions + 1;
+  static const int Layout = XprTraits::Layout;
 };
 
 template<DenseIndex Rows, DenseIndex Cols, typename XprType>
@@ -53,8 +55,6 @@ struct nested<TensorImagePatchOp<Rows, Cols, XprType>, 1, typename eval<TensorIm
 
 }  // end namespace internal
 
-
-
 template<DenseIndex Rows, DenseIndex Cols, typename XprType>
 class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprType>, ReadOnlyAccessors>
 {
@@ -69,9 +69,11 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
   typedef typename Eigen::internal::traits<TensorImagePatchOp>::Index Index;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorImagePatchOp(const XprType& expr, DenseIndex patch_rows, DenseIndex patch_cols,
-                                                           DenseIndex row_strides, DenseIndex col_strides)
+                                                           DenseIndex row_strides, DenseIndex col_strides,
+                                                           PaddingType padding_type)
       : m_xpr(expr), m_patch_rows(patch_rows), m_patch_cols(patch_cols),
-        m_row_strides(row_strides), m_col_strides(col_strides){}
+        m_row_strides(row_strides), m_col_strides(col_strides),
+        m_padding_type(padding_type) {}
 
     EIGEN_DEVICE_FUNC
     DenseIndex patch_rows() const { return m_patch_rows; }
@@ -81,6 +83,8 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
     DenseIndex row_strides() const { return m_row_strides; }
     EIGEN_DEVICE_FUNC
     DenseIndex col_strides() const { return m_col_strides; }
+    EIGEN_DEVICE_FUNC
+    PaddingType padding_type() const { return m_padding_type; }
 
     EIGEN_DEVICE_FUNC
     const typename internal::remove_all<typename XprType::Nested>::type&
@@ -92,6 +96,7 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
     const DenseIndex m_patch_cols;
     const DenseIndex m_row_strides;
     const DenseIndex m_col_strides;
+    const PaddingType m_padding_type;
 };
 
 
@@ -108,41 +113,79 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    Layout = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess = NumDims == 5,
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device)
   {
+   // Only column major tensors are supported for now.
+    EIGEN_STATIC_ASSERT((Layout == ColMajor), YOU_MADE_A_PROGRAMMING_MISTAKE);
+
     EIGEN_STATIC_ASSERT(NumDims >= 4, YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
+
+    // Caches a few variables.
+    m_inputRows = input_dims[1];
+    m_inputCols = input_dims[2];
+
+    m_row_strides = op.row_strides();
+    m_col_strides = op.col_strides();
+
+    // We only support same strides for both dimensions and square patches.
+    eigen_assert(m_row_strides == m_col_strides);
+
+    switch (op.padding_type()) {
+      case PADDING_VALID:
+        m_outputRows = ceil((m_inputRows - op.patch_rows() + 1.f) / static_cast<float>(m_row_strides));
+        m_outputCols = ceil((m_inputCols - op.patch_cols() + 1.f) / static_cast<float>(m_col_strides));
+        // Calculate the padding
+        m_rowPaddingTop = ((m_outputRows - 1) * m_row_strides + op.patch_rows() - m_inputRows) / 2;
+        m_colPaddingLeft = ((m_outputCols - 1) * m_col_strides + op.patch_cols() - m_inputCols) / 2;
+        break;
+      case PADDING_SAME:
+        m_outputRows = ceil(m_inputRows / static_cast<float>(m_row_strides));
+        m_outputCols = ceil(m_inputCols / static_cast<float>(m_col_strides));
+        // Calculate the padding
+        m_rowPaddingTop = ((m_outputRows - 1) * m_row_strides + op.patch_rows() - m_inputRows) / 2;
+        m_colPaddingLeft = ((m_outputCols - 1) * m_col_strides + op.patch_cols() - m_inputCols) / 2;
+        break;
+      default:
+        eigen_assert(false && "unexpected padding");
+      }
+
+    // Dimensions for result of extraction.
+    // 0: depth
+    // 1: patch_rows
+    // 2: patch_cols
+    // 3: number of patches
+    // 4 and beyond: anything else (such as batch).
     m_dimensions[0] = input_dims[0];
     m_dimensions[1] = op.patch_rows();
     m_dimensions[2] = op.patch_cols();
-    m_dimensions[3] = ceilf(static_cast<float>(input_dims[1]) / op.row_strides()) *
-                      ceilf(static_cast<float>(input_dims[2]) / op.col_strides());
+    m_dimensions[3] = m_outputRows * m_outputCols;
     for (int i = 4; i < NumDims; ++i) {
       m_dimensions[i] = input_dims[i-1];
     }
 
+    // Strides for moving the patch in various dimensions.
     m_colStride = m_dimensions[1];
     m_patchStride = m_colStride * m_dimensions[2] * m_dimensions[0];
     m_otherStride = m_patchStride * m_dimensions[3];
 
-    m_inputRows = input_dims[1];
-    m_inputCols = input_dims[2];
-
-    m_rowInputStride = input_dims[0] * op.row_strides();
-    m_colInputStride = input_dims[0] * input_dims[1] * op.col_strides();
+    // Strides for navigating through the input tensor.
+    m_rowInputStride = input_dims[0];
+    m_colInputStride = input_dims[0] * input_dims[1];
     m_patchInputStride = input_dims[0] * input_dims[1] * input_dims[2];
 
-    m_rowPaddingTop = op.patch_rows() / 2;
-    m_colPaddingLeft = op.patch_cols() / 2;
-
+    // Fast representations of different variables.
     m_fastOtherStride = internal::TensorIntDivisor<Index>(m_otherStride);
     m_fastPatchStride = internal::TensorIntDivisor<Index>(m_patchStride);
     m_fastColStride = internal::TensorIntDivisor<Index>(m_colStride);
-    m_fastInputRows = internal::TensorIntDivisor<Index>(m_inputRows);
+    // Number of patches in the width dimension.
+    m_fastOutputRows = internal::TensorIntDivisor<Index>(m_outputRows);
     m_fastDimZero = internal::TensorIntDivisor<Index>(m_dimensions[0]);
   }
 
@@ -162,26 +205,29 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    // Find the location of the first element of the patch.
+    // Patch index corresponding to the passed in index.
     const Index patchIndex = index / m_fastPatchStride;
 
     // Find the offset of the element wrt the location of the first element.
     const Index patchOffset = (index - patchIndex * m_patchStride) / m_fastDimZero;
 
+    // Other ways to index this element.
     const Index otherIndex = (NumDims == 4) ? 0 : index / m_fastOtherStride;
     const Index patch2DIndex = (NumDims == 4) ? patchIndex : (index - otherIndex * m_otherStride) / m_fastPatchStride;
 
-    const Index colIndex = patch2DIndex / m_fastInputRows;
+    const Index colIndex = patch2DIndex / m_fastOutputRows;
     const Index colOffset = patchOffset / m_fastColStride;
 
-    const Index inputCol = colIndex + colOffset - m_colPaddingLeft;
+    // Calculate col index in the input original tensor.
+    const Index inputCol = colIndex * m_col_strides + colOffset - m_colPaddingLeft;
     if (inputCol < 0 || inputCol >= m_inputCols) {
       return Scalar(0);
     }
-    const Index rowIndex = patch2DIndex - colIndex * m_inputRows;  // m_rowStride is always 1
+    const Index rowIndex = patch2DIndex - colIndex * m_outputRows;
     const Index rowOffset = patchOffset - colOffset * m_colStride;
 
-    const Index inputRow = rowIndex + rowOffset - m_rowPaddingTop;
+    // Calculate row index in the original input tensor.
+    const Index inputRow = rowIndex * m_row_strides + rowOffset - m_rowPaddingTop;
     if (inputRow < 0 || inputRow >= m_inputRows) {
       return Scalar(0);
     }
@@ -214,20 +260,24 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     const Index patch2DIndex = (NumDims == 4) ? patchIndex : (indices[0] - otherIndex * m_otherStride) / m_fastPatchStride;
     eigen_assert(patch2DIndex == (indices[1] - otherIndex * m_otherStride) / m_fastPatchStride);
 
-    const Index colIndex = patch2DIndex / m_fastInputRows;
+    const Index colIndex = patch2DIndex / m_fastOutputRows;
     const Index colOffsets[2] = {patchOffsets[0] / m_fastColStride, patchOffsets[1] / m_fastColStride};
 
-    const Index inputCols[2] = {colIndex + colOffsets[0] - m_colPaddingLeft, colIndex + colOffsets[1] - m_colPaddingLeft};
+    // Calculate col indices in the original input tensor.
+    const Index inputCols[2] = {colIndex * m_col_strides + colOffsets[0] -
+      m_colPaddingLeft, colIndex * m_col_strides + colOffsets[1] - m_colPaddingLeft};
     if (inputCols[1] < 0 || inputCols[0] >= m_inputCols) {
       // all zeros
       return internal::pset1<PacketReturnType>(Scalar(0));
     }
 
     if (inputCols[0] == inputCols[1]) {
-      const Index rowIndex = patch2DIndex - colIndex * m_inputRows;
+      const Index rowIndex = patch2DIndex - colIndex * m_outputRows;
       const Index rowOffsets[2] = {patchOffsets[0] - colOffsets[0]*m_colStride, patchOffsets[1] - colOffsets[1]*m_colStride};
       eigen_assert(rowOffsets[0] <= rowOffsets[1]);
-      const Index inputRows[2] = {rowIndex + rowOffsets[0] - m_rowPaddingTop, rowIndex + rowOffsets[1] - m_rowPaddingTop};
+      // Calculate col indices in the original input tensor.
+      const Index inputRows[2] = {rowIndex * m_row_strides + rowOffsets[0] -
+        m_rowPaddingTop, rowIndex * m_row_strides + rowOffsets[1] - m_rowPaddingTop};
 
       if (inputRows[1] < 0 || inputRows[0] >= m_inputRows) {
         // all zeros
@@ -247,6 +297,43 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
   Scalar* data() const { return NULL; }
 
+  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+
+  Index rowPaddingTop() const { return m_rowPaddingTop; }
+  Index colPaddingLeft() const { return m_colPaddingLeft; }
+  Index outputRows() const { return m_outputRows; }
+  Index outputCols() const { return m_outputCols; }
+  Index userRowStride() const { return m_row_strides; }
+  Index userColStride() const { return m_col_strides; }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(const array<Index, NumDims>& coords) const
+  {
+    // Location of the first element of the patch.
+    // 0: d, 1: patch_rows, 2: patch_cols, 3: number of patches, 4: number of batches
+    const Index patchIndex = coords[3];
+
+    array<Index, NumDims-1> inputCoords;
+    inputCoords[0] = coords[0];  // depth
+    inputCoords[1] = patchIndex / m_inputCols  + coords[1] - m_rowPaddingTop;
+    inputCoords[2] = patchIndex - patchIndex / m_inputCols * m_inputCols + coords[2] - m_colPaddingLeft;
+    inputCoords[3] = coords[4];  // batch
+    // If the computed coordinates are outside the original image perimeter, return 0.
+    if (inputCoords[1] < 0 || inputCoords[1] >= m_inputRows ||
+        inputCoords[2] < 0 || inputCoords[2] >= m_inputCols) {
+      return Scalar(0);
+    }
+    if (TensorEvaluator<ArgType, Device>::CoordAccess) {
+      return m_impl.coeff(inputCoords);
+    } else {
+      Index inputIndex =
+          inputCoords[3] * m_patchInputStride +
+          inputCoords[2] * m_colInputStride +
+          inputCoords[1] * m_rowInputStride +
+          inputCoords[0];
+      return m_impl.coeff(inputIndex);
+    }
+  }
+
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetWithPossibleZero(Index index) const
   {
@@ -264,6 +351,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   Index m_otherStride;
   Index m_patchStride;
   Index m_colStride;
+  Index m_row_strides;
+  Index m_col_strides;
   internal::TensorIntDivisor<Index> m_fastOtherStride;
   internal::TensorIntDivisor<Index> m_fastPatchStride;
   internal::TensorIntDivisor<Index> m_fastColStride;
@@ -275,10 +364,13 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   Index m_inputRows;
   Index m_inputCols;
 
+  Index m_outputRows;
+  Index m_outputCols;
+
   Index m_rowPaddingTop;
   Index m_colPaddingLeft;
 
-  internal::TensorIntDivisor<Index> m_fastInputRows;
+  internal::TensorIntDivisor<Index> m_fastOutputRows;
   internal::TensorIntDivisor<Index> m_fastDimZero;
 
   TensorEvaluator<ArgType, Device> m_impl;

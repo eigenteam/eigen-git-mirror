@@ -29,9 +29,11 @@ template<typename Dimensions, typename InputXprType, typename KernelXprType> cla
 template<typename PatchDim, typename XprType> class TensorPatchOp;
 template<DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorImagePatchOp;
 template<typename Broadcast, typename XprType> class TensorBroadcastingOp;
-template<std::size_t DimId, typename XprType> class TensorChippingOp;
+template<DenseIndex DimId, typename XprType> class TensorChippingOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;
+template<typename XprType> class TensorLayoutSwapOp;
 template<typename StartIndices, typename Sizes, typename XprType> class TensorSlicingOp;
+template<typename ReverseDimensions, typename XprType> class TensorReverseOp;
 template<typename PaddingDimensions, typename XprType> class TensorPaddingOp;
 template<typename Shuffle, typename XprType> class TensorShufflingOp;
 template<typename Strides, typename XprType> class TensorStridingOp;

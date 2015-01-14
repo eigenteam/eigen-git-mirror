@@ -33,6 +33,8 @@ struct traits<TensorAssignOp<LhsXprType, RhsXprType> >
   typedef typename RhsXprType::Nested RhsNested;
   typedef typename remove_reference<LhsNested>::type _LhsNested;
   typedef typename remove_reference<RhsNested>::type _RhsNested;
+  static const std::size_t NumDimensions = internal::traits<LhsXprType>::NumDimensions;
+  static const int Layout = internal::traits<LhsXprType>::Layout;
 
   enum {
     Flags = 0,
@@ -94,12 +96,18 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   enum {
     IsAligned = TensorEvaluator<LeftArgType, Device>::IsAligned & TensorEvaluator<RightArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
+    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
       m_leftImpl(op.lhsExpression(), device),
       m_rightImpl(op.rhsExpression(), device)
-  { }
+  {
+    EIGEN_STATIC_ASSERT((TensorEvaluator<LeftArgType, Device>::Layout == TensorEvaluator<RightArgType, Device>::Layout), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    // The dimensions of the lhs and the rhs tensors should be equal to prevent
+    // overflows and ensure the result is fully initialized.
+    eigen_assert(dimensions_match(m_leftImpl.dimensions(), m_leftImpl.dimensions()));
+  }
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
@@ -114,7 +122,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
-    eigen_assert(internal::dimensions_match(m_leftImpl.dimensions(), m_rightImpl.dimensions()));
+    eigen_assert(dimensions_match(m_leftImpl.dimensions(), m_rightImpl.dimensions()));
     m_leftImpl.evalSubExprsIfNeeded(NULL);
     // If the lhs provides raw access to its storage area (i.e. if m_leftImpl.data() returns a non
     // null value), attempt to evaluate the rhs expression in place. Returns true iff in place

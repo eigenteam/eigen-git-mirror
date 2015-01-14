@@ -144,9 +144,9 @@ template<typename Dimensions, typename InputXprType, typename KernelXprType>
 struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
-  typedef typename internal::promote_storage_type<typename InputXprType::Scalar,
-                                                  typename KernelXprType::Scalar>::ret Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
+  typedef typename promote_storage_type<typename InputXprType::Scalar,
+                                        typename KernelXprType::Scalar>::ret Scalar;
+  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<InputXprType>::StorageKind,
                                         typename traits<KernelXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<InputXprType>::Index,
@@ -155,6 +155,8 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   typedef typename KernelXprType::Nested RhsNested;
   typedef typename remove_reference<LhsNested>::type _LhsNested;
   typedef typename remove_reference<RhsNested>::type _RhsNested;
+  static const int NumDimensions = traits<InputXprType>::NumDimensions;
+  static const int Layout = traits<InputXprType>::Layout;
 
   enum {
     Flags = 0,
@@ -227,11 +229,17 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   enum {
     IsAligned = TensorEvaluator<InputArgType, Device>::IsAligned & TensorEvaluator<KernelArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<InputArgType, Device>::PacketAccess & TensorEvaluator<KernelArgType, Device>::PacketAccess,
+    Layout = TensorEvaluator<InputArgType, Device>::Layout,
+    CoordAccess = false,  // to be implemented
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_inputImpl(op.inputExpression(), device), m_kernelImpl(op.kernelExpression(), device), m_kernelArg(op.kernelExpression()), m_kernel(NULL), m_local_kernel(false), m_device(device)
   {
+    EIGEN_STATIC_ASSERT((TensorEvaluator<InputArgType, Device>::Layout == TensorEvaluator<KernelArgType, Device>::Layout), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    // Only column major tensors are supported for now.
+    EIGEN_STATIC_ASSERT((Layout == ColMajor), YOU_MADE_A_PROGRAMMING_MISTAKE);
+
     const typename TensorEvaluator<InputArgType, Device>::Dimensions& input_dims = m_inputImpl.dimensions();
     const typename TensorEvaluator<KernelArgType, Device>::Dimensions& kernel_dims = m_kernelImpl.dimensions();
 
@@ -389,10 +397,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     }
   }
 
-  // No copy, no assignment
-  TensorEvaluator(const TensorEvaluator&);
-  TensorEvaluator& operator = (const TensorEvaluator&);
-
   array<Index, NumDims> m_inputStride;
   array<Index, NumDims> m_outputStride;
 
@@ -421,7 +425,7 @@ struct GetKernelSize {
   }
 };
 template <>
-struct GetKernelSize<Eigen::Dynamic> {
+struct GetKernelSize<Dynamic> {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int operator() (const int kernelSize) const {
     return kernelSize;
   }
@@ -610,11 +614,17 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   enum {
     IsAligned = TensorEvaluator<InputArgType, GpuDevice>::IsAligned & TensorEvaluator<KernelArgType, GpuDevice>::IsAligned,
     PacketAccess = false,
+    Layout = TensorEvaluator<InputArgType, GpuDevice>::Layout,
+    CoordAccess = false,  // to be implemented
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const GpuDevice& device)
       : m_inputImpl(op.inputExpression(), device), m_kernelArg(op.kernelExpression()), m_kernelImpl(op.kernelExpression(), device), m_indices(op.indices()), m_buf(NULL), m_kernel(NULL), m_local_kernel(false), m_device(device)
   {
+    EIGEN_STATIC_ASSERT((TensorEvaluator<InputArgType, GpuDevice>::Layout == TensorEvaluator<KernelArgType, GpuDevice>::Layout), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    // Only column major tensors are supported for now.
+    EIGEN_STATIC_ASSERT((Layout == ColMajor), YOU_MADE_A_PROGRAMMING_MISTAKE);
+
     const typename TensorEvaluator<InputArgType, GpuDevice>::Dimensions& input_dims = m_inputImpl.dimensions();
     const typename TensorEvaluator<KernelArgType, GpuDevice>::Dimensions& kernel_dims = m_kernelImpl.dimensions();
 
@@ -740,19 +750,17 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         internal::IndexMapper<Index, InputDims, 1> indexMapper(m_inputImpl.dimensions(), kernel_dims, indices);
         switch(kernel_size) {
           case 4: {
-            EigenConvolutionKernel1D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 4> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, 4, data);
+            LAUNCH_CUDA_KERNEL((EigenConvolutionKernel1D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 4>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, 4, data);
             break;
           }
           case 7: {
-            EigenConvolutionKernel1D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 7> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, 7, data);
+            LAUNCH_CUDA_KERNEL((EigenConvolutionKernel1D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 7>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, 7, data);
             break;
           }
           default: {
-            EigenConvolutionKernel1D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, Eigen::Dynamic> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, kernel_size, data);
+            LAUNCH_CUDA_KERNEL((EigenConvolutionKernel1D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, Dynamic>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, kernel_size, data);
           }
         }
-        cudaError_t error = cudaGetLastError();
-        assert(error == cudaSuccess);
         break;
       }
 
@@ -797,11 +805,11 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           case 4: {
             switch (kernel_size_y) {
               case 7: {
-                EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 4, 7> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 4, 7, data);
+                LAUNCH_CUDA_KERNEL((EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 4, 7>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 4, 7, data);
                 break;
               }
               default: {
-                EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 4, Eigen::Dynamic> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 4, kernel_size_y, data);
+                LAUNCH_CUDA_KERNEL((EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 4, Dynamic>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 4, kernel_size_y, data);
                 break;
               }
             }
@@ -810,23 +818,21 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           case 7: {
             switch (kernel_size_y) {
               case 4: {
-                EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 7, 4> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 7, 4, data);
+                LAUNCH_CUDA_KERNEL((EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 7, 4>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 7, 4, data);
                 break;
               }
               default: {
-                EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 7, Eigen::Dynamic> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 7, kernel_size_y, data);
+                LAUNCH_CUDA_KERNEL((EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 7, Dynamic>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, 7, kernel_size_y, data);
                 break;
               }
             }
             break;
           }
           default: {
-            EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, Eigen::Dynamic, Eigen::Dynamic> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, kernel_size_x, kernel_size_y, data);
+            LAUNCH_CUDA_KERNEL((EigenConvolutionKernel2D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, Dynamic, Dynamic>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, kernel_size_x, kernel_size_y, data);
             break;
           }
         }
-        cudaError_t error = cudaGetLastError();
-        assert(error == cudaSuccess);
         break;
       }
 
@@ -858,9 +864,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         const array<Index, 3> kernel_dims(m_kernelImpl.dimensions()[0], m_kernelImpl.dimensions()[1], m_kernelImpl.dimensions()[2]);
         internal::IndexMapper<Index, InputDims, 3> indexMapper(m_inputImpl.dimensions(), kernel_dims, indices);
 
-        EigenConvolutionKernel3D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims> <<<num_blocks, block_size, shared_mem, m_device.stream()>>>(m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, numZ, maxZ, kernel_size_x, kernel_size_y, kernel_size_z, data);
-        cudaError_t error = cudaGetLastError();
-        assert(error == cudaSuccess);
+        LAUNCH_CUDA_KERNEL((EigenConvolutionKernel3D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, numZ, maxZ, kernel_size_x, kernel_size_y, kernel_size_z, data);
         break;
       }
 

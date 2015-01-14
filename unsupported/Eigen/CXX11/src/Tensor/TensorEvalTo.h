@@ -25,11 +25,14 @@ struct traits<TensorEvalToOp<XprType> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename XprType::Scalar Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  typedef typename traits<XprType>::StorageKind StorageKind;
-  typedef typename traits<XprType>::Index Index;
+  typedef traits<XprType> XprTraits;
+  typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename XprTraits::StorageKind StorageKind;
+  typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
   typedef typename remove_reference<Nested>::type _Nested;
+  static const int NumDimensions = XprTraits::NumDimensions;
+  static const int Layout = XprTraits::Layout;
 
   enum {
     Flags = 0,
@@ -60,24 +63,24 @@ class TensorEvalToOp : public TensorBase<TensorEvalToOp<XprType> >
   typedef typename Eigen::internal::traits<TensorEvalToOp>::Scalar Scalar;
   typedef typename Eigen::internal::traits<TensorEvalToOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
   typedef typename Eigen::internal::nested<TensorEvalToOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorEvalToOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorEvalToOp>::Index Index;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvalToOp(Scalar* buffer, const XprType& expr)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvalToOp(CoeffReturnType* buffer, const XprType& expr)
       : m_xpr(expr), m_buffer(buffer) {}
 
     EIGEN_DEVICE_FUNC
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
-    EIGEN_DEVICE_FUNC Scalar* buffer() const { return m_buffer; }
+    EIGEN_DEVICE_FUNC CoeffReturnType* buffer() const { return m_buffer; }
 
   protected:
     typename XprType::Nested m_xpr;
-    Scalar* m_buffer;
+    CoeffReturnType* m_buffer;
 };
 
 
@@ -93,6 +96,8 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   enum {
     IsAligned = true,
     PacketAccess = true,
+    Layout = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess = false,  // to be implemented
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -103,12 +108,12 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   }
 
   typedef typename XprType::Index Index;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType*) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
@@ -117,7 +122,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
     m_buffer[i] = m_impl.coeff(i);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalPacket(Index i) {
-    internal::pstoret<Scalar, Packet, Aligned>(m_buffer + i, m_impl.template packet<TensorEvaluator<ArgType, Device>::IsAligned ? Aligned : Unaligned>(i));
+    internal::pstoret<CoeffReturnType, PacketReturnType, Aligned>(m_buffer + i, m_impl.template packet<TensorEvaluator<ArgType, Device>::IsAligned ? Aligned : Unaligned>(i));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
@@ -135,12 +140,12 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
     return internal::ploadt<Packet, LoadMode>(m_buffer + index);
   }
 
-  Scalar* data() const { return NULL; }
+  CoeffReturnType* data() const { return NULL; }
 
  private:
   TensorEvaluator<ArgType, Device> m_impl;
   const Device& m_device;
-  Scalar* m_buffer;
+  CoeffReturnType* m_buffer;
 };
 
 

@@ -50,6 +50,8 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_> >
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
   typedef DenseIndex Index;
+  static const int NumDimensions = NumIndices_;
+  static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
     Options = Options_,
     Flags = compute_tensor_flags<Scalar_, Options_>::ret | LvalueBit,
@@ -63,6 +65,8 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_> >
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
   typedef DenseIndex Index;
+  static const int NumDimensions = array_size<Dimensions>::value;
+  static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
     Options = Options_,
     Flags = compute_tensor_flags<Scalar_, Options_>::ret | LvalueBit,
@@ -78,6 +82,8 @@ struct traits<TensorMap<PlainObjectType, Options_> >
   typedef typename BaseTraits::Scalar Scalar;
   typedef typename BaseTraits::StorageKind StorageKind;
   typedef typename BaseTraits::Index Index;
+  static const int NumDimensions = BaseTraits::NumDimensions;
+  static const int Layout = BaseTraits::Layout;
   enum {
     Options = Options_,
     Flags = ((BaseTraits::Flags | LvalueBit) & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
@@ -92,6 +98,8 @@ struct traits<TensorRef<PlainObjectType> >
   typedef typename BaseTraits::Scalar Scalar;
   typedef typename BaseTraits::StorageKind StorageKind;
   typedef typename BaseTraits::Index Index;
+  static const int NumDimensions = BaseTraits::NumDimensions;
+  static const int Layout = BaseTraits::Layout;
   enum {
     Options = BaseTraits::Options,
     Flags = ((BaseTraits::Flags | LvalueBit) & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
@@ -198,6 +206,51 @@ struct nested<const TensorRef<PlainObjectType>, 1, typename eval<TensorRef<Plain
 };
 
 }  // end namespace internal
+
+// Convolutional layers take in an input tensor of shape (D, R, C, B), or (D, C,
+// R, B), and convolve it with a set of filters, which can also be presented as
+// a tensor (D, K, K, M), where M is the number of filters, K is the filter
+// size, and each 3-dimensional tensor of size (D, K, K) is a filter. For
+// simplicity we assume that we always use square filters (which is usually the
+// case in images), hence the two Ks in the tensor dimension.  It also takes in
+// a few additional parameters:
+// Stride (S): The convolution stride is the offset between locations where we
+//             apply the filters.  A larger stride means that the output will be
+//             spatially smaller.
+// Padding (P): The padding we apply to the input tensor along the R and C
+//              dimensions.  This is usually used to make sure that the spatial
+//              dimensions of the output matches our intention.
+//
+// Two types of padding are often used:
+//   SAME: The pad value is computed so that the output will have size
+//         R/S and C/S.
+//   VALID: no padding is carried out.
+// When we do padding, the padded values at the padded locations are usually
+// zero.
+//
+// The output dimensions for convolution, when given all the parameters above,
+// are as follows:
+// When Padding = SAME: the output size is (B, R', C', M), where
+//   R' = ceil(float(R) / float(S))
+//   C' = ceil(float(C) / float(S))
+// where ceil is the ceiling function.  The input tensor is padded with 0 as
+// needed.  The number of padded rows and columns are computed as:
+//   Pr = ((R' - 1) * S + K - R) / 2
+//   Pc = ((C' - 1) * S + K - C) / 2
+// when the stride is 1, we have the simplified case R'=R, C'=C, Pr=Pc=(K-1)/2.
+// This is where SAME comes from - the output has the same size as the input has.
+// When Padding = VALID: the output size is computed as
+//   R' = ceil(float(R - K + 1) / float(S))
+//   C' = ceil(float(C - K + 1) / float(S))
+// and the number of padded rows and columns are computed in the same way as in
+// the SAME case.
+// When the stride is 1, we have the simplified case R'=R-K+1, C'=C-K+1, Pr=0,
+// Pc=0.
+typedef enum {
+  PADDING_VALID = 1,
+  PADDING_SAME = 2,
+} PaddingType;
+
 }  // end namespace Eigen
 
 #endif // EIGEN_CXX11_TENSOR_TENSOR_TRAITS_H
