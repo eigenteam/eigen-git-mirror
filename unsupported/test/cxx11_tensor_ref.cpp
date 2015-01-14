@@ -181,6 +181,21 @@ static void test_ref_in_expr()
 }
 
 
+static void test_coeff_ref()
+{
+  Tensor<float, 5> tensor(2,3,5,7,11);
+  tensor.setRandom();
+  Tensor<float, 5> original = tensor;
+
+  TensorRef<Tensor<float, 4>> slice = tensor.chip(7, 4);
+  slice.coeffRef(0, 0, 0, 0) = 1.0f;
+  slice.coeffRef(1, 0, 0, 0) += 2.0f;
+
+  VERIFY_IS_EQUAL(tensor(0,0,0,0,7), 1.0f);
+  VERIFY_IS_EQUAL(tensor(1,0,0,0,7), original(1,0,0,0,7) + 2.0f);
+}
+
+
 void test_cxx11_tensor_ref()
 {
   CALL_SUBTEST(test_simple_lvalue_ref());
@@ -189,4 +204,5 @@ void test_cxx11_tensor_ref()
   CALL_SUBTEST(test_slice());
   CALL_SUBTEST(test_ref_of_ref());
   CALL_SUBTEST(test_ref_in_expr());
+  CALL_SUBTEST(test_coeff_ref());
 }
