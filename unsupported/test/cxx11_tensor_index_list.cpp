@@ -44,6 +44,120 @@ static void test_static_index_list()
 }
 
 
+static void test_type2index_list()
+{
+  Tensor<float, 5> tensor(2,3,5,7,11);
+  tensor.setRandom();
+  tensor += tensor.constant(10.0f);
+
+  typedef Eigen::IndexList<Eigen::type2index<0>> Dims0;
+  typedef Eigen::IndexList<Eigen::type2index<0>, Eigen::type2index<1>> Dims1;
+  typedef Eigen::IndexList<Eigen::type2index<0>, Eigen::type2index<1>, Eigen::type2index<2>> Dims2;
+  typedef Eigen::IndexList<Eigen::type2index<0>, Eigen::type2index<1>, Eigen::type2index<2>, Eigen::type2index<3>> Dims3;
+  typedef Eigen::IndexList<Eigen::type2index<0>, Eigen::type2index<1>, Eigen::type2index<2>, Eigen::type2index<3>, Eigen::type2index<4>> Dims4;
+
+#if 0
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims0>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims1>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims2>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims3>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims4>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+#endif
+
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims0, 1, ColMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims1, 2, ColMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims2, 3, ColMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims3, 4, ColMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims4, 5, ColMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims0, 1, RowMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims1, 2, RowMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims2, 3, RowMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims3, 4, RowMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims4, 5, RowMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+
+  const Dims0 reduction_axis0;
+  Tensor<float, 4> result0 = tensor.sum(reduction_axis0);
+  for (int m = 0; m < 11; ++m) {
+    for (int l = 0; l < 7; ++l) {
+      for (int k = 0; k < 5; ++k) {
+        for (int j = 0; j < 3; ++j) {
+          float expected = 0.0f;
+          for (int i = 0; i < 2; ++i) {
+            expected += tensor(i,j,k,l,m);
+          }
+          VERIFY_IS_APPROX(result0(j,k,l,m), expected);
+        }
+      }
+    }
+  }
+
+  const Dims1 reduction_axis1;
+  Tensor<float, 3> result1 = tensor.sum(reduction_axis1);
+  for (int m = 0; m < 11; ++m) {
+    for (int l = 0; l < 7; ++l) {
+      for (int k = 0; k < 5; ++k) {
+        float expected = 0.0f;
+        for (int j = 0; j < 3; ++j) {
+          for (int i = 0; i < 2; ++i) {
+            expected += tensor(i,j,k,l,m);
+          }
+        }
+        VERIFY_IS_APPROX(result1(k,l,m), expected);
+      }
+    }
+  }
+
+  const Dims2 reduction_axis2;
+  Tensor<float, 2> result2 = tensor.sum(reduction_axis2);
+  for (int m = 0; m < 11; ++m) {
+    for (int l = 0; l < 7; ++l) {
+      float expected = 0.0f;
+      for (int k = 0; k < 5; ++k) {
+        for (int j = 0; j < 3; ++j) {
+          for (int i = 0; i < 2; ++i) {
+            expected += tensor(i,j,k,l,m);
+          }
+        }
+      }
+      VERIFY_IS_APPROX(result2(l,m), expected);
+    }
+  }
+
+  const Dims3 reduction_axis3;
+  Tensor<float, 1> result3 = tensor.sum(reduction_axis3);
+  for (int m = 0; m < 11; ++m) {
+    float expected = 0.0f;
+    for (int l = 0; l < 7; ++l) {
+      for (int k = 0; k < 5; ++k) {
+        for (int j = 0; j < 3; ++j) {
+          for (int i = 0; i < 2; ++i) {
+            expected += tensor(i,j,k,l,m);
+          }
+        }
+      }
+    }
+    VERIFY_IS_APPROX(result3(m), expected);
+  }
+
+  const Dims4 reduction_axis4;
+  Tensor<float, 1> result4 = tensor.sum(reduction_axis4);
+  float expected = 0.0f;
+  for (int m = 0; m < 11; ++m) {
+    for (int l = 0; l < 7; ++l) {
+      for (int k = 0; k < 5; ++k) {
+        for (int j = 0; j < 3; ++j) {
+          for (int i = 0; i < 2; ++i) {
+            expected += tensor(i,j,k,l,m);
+          }
+        }
+      }
+    }
+  }
+  VERIFY_IS_APPROX(result4(0), expected);
+}
+
+
 static void test_dynamic_index_list()
 {
   Tensor<float, 4> tensor(2,3,5,7);
@@ -105,10 +219,25 @@ static void test_mixed_index_list()
   EIGEN_STATIC_ASSERT((internal::index_known_statically<ReductionIndices>()(2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
   EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionIndices>()(0, 0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
   EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionIndices>()(2, 2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+#if 0
+  EIGEN_STATIC_ASSERT((internal::all_indices_known_statically<ReductionIndices>()() == false), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<ReductionIndices>()() == false), YOU_MADE_A_PROGRAMMING_MISTAKE);
+#endif
 
+  typedef IndexList<type2index<0>, type2index<1>, type2index<2>, type2index<3>> ReductionList;
+  ReductionList reduction_list;
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(0, 0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(1, 1) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(2, 2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(3, 3) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+#if 0
+  EIGEN_STATIC_ASSERT((internal::all_indices_known_statically<ReductionList>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<ReductionList>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+#endif
 
   Tensor<float, 1> result1 = tensor.sum(reduction_axis);
   Tensor<float, 1> result2 = tensor.sum(reduction_indices);
+  Tensor<float, 1> result3 = tensor.sum(reduction_list);
 
   float expected = 0.0f;
   for (int i = 0; i < 2; ++i) {
@@ -122,12 +251,14 @@ static void test_mixed_index_list()
   }
   VERIFY_IS_APPROX(result1(0), expected);
   VERIFY_IS_APPROX(result2(0), expected);
+  VERIFY_IS_APPROX(result3(0), expected);
 }
 
 
 void test_cxx11_tensor_index_list()
 {
   CALL_SUBTEST(test_static_index_list());
+  CALL_SUBTEST(test_type2index_list());
   CALL_SUBTEST(test_dynamic_index_list());
   CALL_SUBTEST(test_mixed_index_list());
 }

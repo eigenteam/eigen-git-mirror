@@ -95,6 +95,20 @@ struct tuple_coeff {
     return ((i == Idx) & is_compile_time_constant<typename std::tuple_element<Idx, std::tuple<T...> >::type>::value) ||
         tuple_coeff<Idx-1>::value_known_statically(i, t);
   }
+
+  template <typename... T>
+  static constexpr bool values_up_to_known_statically(const std::tuple<T...>& t) {
+    return is_compile_time_constant<typename std::tuple_element<Idx, std::tuple<T...> >::type>::value &&
+        tuple_coeff<Idx-1>::values_up_to_known_statically(t);
+  }
+
+  template <typename... T>
+  static constexpr bool values_up_to_statically_known_to_increase(const std::tuple<T...>& t) {
+    return is_compile_time_constant<typename std::tuple_element<Idx, std::tuple<T...> >::type>::value &&
+           is_compile_time_constant<typename std::tuple_element<Idx-1, std::tuple<T...> >::type>::value &&
+           std::get<Idx>(t) > std::get<Idx-1>(t) &&
+           tuple_coeff<Idx-1>::values_up_to_statically_known_to_increase(t);
+  }
 };
 
 template <>
@@ -110,9 +124,19 @@ struct tuple_coeff<0> {
     update_value(std::get<0>(t), value);
   }
   template <typename... T>
-  static constexpr bool value_known_statically(const DenseIndex i, const std::tuple<T...>&) {
+  static constexpr bool value_known_statically(const DenseIndex i, const std::tuple<T...>& t) {
     //    eigen_assert (i == 0);  // gcc fails to compile assertions in constexpr
     return is_compile_time_constant<typename std::tuple_element<0, std::tuple<T...> >::type>::value & (i == 0);
+  }
+
+  template <typename... T>
+  static constexpr bool values_up_to_known_statically(const std::tuple<T...>& t) {
+    return is_compile_time_constant<typename std::tuple_element<0, std::tuple<T...> >::type>::value;
+  }
+
+  template <typename... T>
+  static constexpr bool values_up_to_statically_known_to_increase(const std::tuple<T...>& t) {
+    return true;
   }
 };
 }  // namespace internal
@@ -133,6 +157,13 @@ struct IndexList : std::tuple<FirstType, OtherTypes...> {
   constexpr bool value_known_statically(const DenseIndex i) const {
     return internal::tuple_coeff<std::tuple_size<std::tuple<FirstType, OtherTypes...> >::value-1>::value_known_statically(i, *this);
   }
+  constexpr bool all_values_known_statically() const {
+    return internal::tuple_coeff<std::tuple_size<std::tuple<FirstType, OtherTypes...> >::value-1>::values_up_to_known_statically(*this);
+  }
+
+  constexpr bool values_statically_known_to_increase() const {
+    return internal::tuple_coeff<std::tuple_size<std::tuple<FirstType, OtherTypes...> >::value-1>::values_up_to_statically_known_to_increase(*this);
+  }
 };
 
 
@@ -143,6 +174,14 @@ constexpr IndexList<FirstType, OtherTypes...> make_index_list(FirstType val1, Ot
 
 
 namespace internal {
+
+template<typename FirstType, typename... OtherTypes> size_t array_prod(const IndexList<FirstType, OtherTypes...>& sizes) {
+  size_t result = 1;
+  for (int i = 0; i < array_size<IndexList<FirstType, OtherTypes...> >::value; ++i) {
+    result *= sizes[i];
+  }
+  return result;
+}
 
 template<typename FirstType, typename... OtherTypes> struct array_size<IndexList<FirstType, OtherTypes...> > {
   static const size_t value = std::tuple_size<std::tuple<FirstType, OtherTypes...> >::value;
@@ -179,6 +218,48 @@ struct index_known_statically<const IndexList<FirstType, OtherTypes...> > {
   }
 };
 
+template <typename T>
+struct all_indices_known_statically {
+  constexpr bool operator() () const {
+    return false;
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct all_indices_known_statically<IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() () const {
+    return IndexList<FirstType, OtherTypes...>().all_values_known_statically();
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct all_indices_known_statically<const IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() () const {
+    return IndexList<FirstType, OtherTypes...>().all_values_known_statically();
+  }
+};
+
+template <typename T>
+struct indices_statically_known_to_increase {
+  constexpr bool operator() () const {
+    return false;
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct indices_statically_known_to_increase<IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() () const {
+    return IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct indices_statically_known_to_increase<const IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() () const {
+    return IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
+  }
+};
+
 template <typename Tx>
 struct index_statically_eq {
   constexpr bool operator() (DenseIndex, DenseIndex) const {
@@ -190,7 +271,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_eq<IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexList<FirstType, OtherTypes...>()[i] == value);
+        IndexList<FirstType, OtherTypes...>()[i] == value;
   }
 };
 
@@ -198,7 +279,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_eq<const IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexList<FirstType, OtherTypes...>()[i] == value);
+        IndexList<FirstType, OtherTypes...>()[i] == value;
   }
 };
 
@@ -213,7 +294,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_ne<IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexList<FirstType, OtherTypes...>()[i] != value);
+        IndexList<FirstType, OtherTypes...>()[i] != value;
   }
 };
 
@@ -221,7 +302,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_statically_ne<const IndexList<FirstType, OtherTypes...> > {
   constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexList<FirstType, OtherTypes...>()[i] != value);
+        IndexList<FirstType, OtherTypes...>()[i] != value;
   }
 };
 
@@ -238,6 +319,20 @@ namespace internal {
 template <typename T>
 struct index_known_statically {
   EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() (DenseIndex) const{
+    return false;
+  }
+};
+
+template <typename T>
+struct all_indices_known_statically {
+  EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() () const {
+    return false;
+  }
+};
+
+template <typename T>
+struct indices_statically_known_to_increase {
+  EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() () const {
     return false;
   }
 };
