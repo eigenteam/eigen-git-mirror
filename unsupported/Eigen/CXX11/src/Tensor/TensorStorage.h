@@ -114,16 +114,12 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions() const {return m_dimensions;}
 
-  void conservativeResize(DenseIndex size, const array<DenseIndex, NumIndices_>& nbDimensions)
-    {
-      m_data = internal::conditional_aligned_realloc_new_auto<T,(Options_&DontAlign)==0>(m_data, size, internal::array_prod(m_dimensions));
-      m_dimensions = nbDimensions;
-    }
     void resize(DenseIndex size, const array<DenseIndex, NumIndices_>& nbDimensions)
     {
-      if(size != internal::array_prod(m_dimensions))
+      const DenseIndex currentSz = internal::array_prod(m_dimensions);
+      if(size != currentSz)
       {
-        internal::conditional_aligned_delete_auto<T,(Options_&DontAlign)==0>(m_data, internal::array_prod(m_dimensions));
+        internal::conditional_aligned_delete_auto<T,(Options_&DontAlign)==0>(m_data, currentSz);
         if (size)
           m_data = internal::conditional_aligned_new_auto<T,(Options_&DontAlign)==0>(size);
         else
@@ -138,8 +134,6 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex size() const { return m_dimensions.TotalSize(); }
 };
-
-
 
 } // end namespace Eigen
 
