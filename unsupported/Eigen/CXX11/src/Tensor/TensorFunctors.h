@@ -16,50 +16,157 @@ namespace internal {
 // Standard reduction functors
 template <typename T> struct SumReducer
 {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE SumReducer() : m_sum(0) { }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t) {
-    m_sum += t;
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
+    (*accum) += t;
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize() const {
-    return m_sum;
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) const {
+    (*accum) = padd<Packet>(*accum, p);
   }
 
- private:
-  typename internal::remove_all<T>::type m_sum;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
+    return static_cast<T>(0);
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
+    return pset1<Packet>(0);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
+    return accum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+    return saccum + predux(vaccum);
+  }
+};
+
+template <typename T> struct MeanReducer
+{
+  static const bool PacketAccess = true;
+  MeanReducer() : count_(0) { }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) {
+    (*accum) += t;
+    count_++;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) {
+    (*accum) = padd<Packet>(*accum, p);
+    count_ += packet_traits<Packet>::size;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
+    return static_cast<T>(0);
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
+    return pset1<Packet>(0);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
+    return accum / count_;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+    return (saccum + predux(vaccum)) / count_;
+  }
+
+  protected:
+    int count_;
 };
 
 template <typename T> struct MaxReducer
 {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE MaxReducer() : m_max(-(std::numeric_limits<T>::max)()) { }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t) {
-    if (t > m_max) { m_max = t; }
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
+    if (t > *accum) { *accum = t; }
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize() const {
-    return m_max;
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) const {
+    (*accum) = pmax<Packet>(*accum, p);
   }
 
- private:
-  typename internal::remove_all<T>::type m_max;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
+    return -(std::numeric_limits<T>::max)();
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
+    return pset1<Packet>(-(std::numeric_limits<T>::max)());
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
+    return accum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+    return (std::max)(saccum, predux_max(vaccum));
+  }
 };
 
 template <typename T> struct MinReducer
 {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE MinReducer() : m_min((std::numeric_limits<T>::max)()) { }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t) {
-    if (t < m_min) { m_min = t; }
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
+    if (t < *accum) { *accum = t; }
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize() const {
-    return m_min;
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) const {
+    (*accum) = pmin<Packet>(*accum, p);
   }
 
- private:
-  typename internal::remove_all<T>::type m_min;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
+    return (std::numeric_limits<T>::max)();
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
+    return pset1<Packet>((std::numeric_limits<T>::max)());
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
+    return accum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+    return (std::min)(saccum, predux_min(vaccum));
+  }
 };
 
+
+template <typename T> struct ProdReducer
+{
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
+    (*accum) *= t;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) const {
+    (*accum) = pmul<Packet>(*accum, p);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
+    return static_cast<T>(1);
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
+    return pset1<Packet>(1);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
+    return accum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+    return saccum * predux_mul(vaccum);
+  }
+};
 
 #if !defined (EIGEN_USE_GPU) || !defined(__CUDACC__) || !defined(__CUDA_ARCH__)
 // We're not compiling a cuda kernel
 template <typename T> struct UniformRandomGenerator {
+
+  static const bool PacketAccess = true;
+
   template<typename Index>
   T operator()(Index, Index = 0) const {
     return random<T>();
@@ -81,16 +188,19 @@ template <typename T> struct UniformRandomGenerator {
 template <typename T> struct UniformRandomGenerator;
 
 template <> struct UniformRandomGenerator<float> {
-  UniformRandomGenerator() {
+
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC UniformRandomGenerator() {
     const int tid = blockIdx.x * blockDim.x + threadIdx.x;
     curand_init(0, tid, 0, &m_state);
   }
 
-  template<typename Index>
+  template<typename Index> EIGEN_DEVICE_FUNC
   float operator()(Index, Index = 0) const {
     return curand_uniform(&m_state);
   }
-  template<typename Index>
+  template<typename Index> EIGEN_DEVICE_FUNC
   float4 packetOp(Index, Index = 0) const {
     return curand_uniform4(&m_state);
   }
@@ -100,17 +210,98 @@ template <> struct UniformRandomGenerator<float> {
 };
 
 template <> struct UniformRandomGenerator<double> {
-  UniformRandomGenerator() {
+
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC UniformRandomGenerator() {
     const int tid = blockIdx.x * blockDim.x + threadIdx.x;
     curand_init(0, tid, 0, &m_state);
   }
-  template<typename Index>
+  template<typename Index> EIGEN_DEVICE_FUNC
   double operator()(Index, Index = 0) const {
     return curand_uniform_double(&m_state);
   }
-  template<typename Index>
+  template<typename Index> EIGEN_DEVICE_FUNC
   double2 packetOp(Index, Index = 0) const {
     return curand_uniform2_double(&m_state);
+  }
+
+ private:
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
+#endif
+
+
+#if (!defined (EIGEN_USE_GPU) || !defined(__CUDACC__) || !defined(__CUDA_ARCH__)) && __cplusplus > 199711
+// We're not compiling a cuda kernel
+template <typename T> struct NormalRandomGenerator {
+
+  static const bool PacketAccess = true;
+
+  NormalRandomGenerator() : m_distribution(0, 1) {}
+  NormalRandomGenerator(const NormalRandomGenerator& other) : m_distribution(other.m_distribution) { }
+
+  template<typename Index>
+  T operator()(Index, Index = 0) const {
+    return m_distribution(m_generator);
+  }
+  template<typename Index>
+  typename internal::packet_traits<T>::type packetOp(Index, Index = 0) const {
+    const int packetSize = internal::packet_traits<T>::size;
+    EIGEN_ALIGN_DEFAULT T values[packetSize];
+    for (int i = 0; i < packetSize; ++i) {
+      values[i] = m_distribution(m_generator);
+    }
+    return internal::pload<typename internal::packet_traits<T>::type>(values);
+  }
+
+  mutable std::normal_distribution<T> m_distribution;
+  mutable std::default_random_engine m_generator;
+};
+
+#elif defined (EIGEN_USE_GPU) && defined(__CUDACC__) && defined(__CUDA_ARCH__)
+
+// We're compiling a cuda kernel
+template <typename T> struct NormalRandomGenerator;
+
+template <> struct NormalRandomGenerator<float> {
+
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC NormalRandomGenerator() {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    curand_init(0, tid, 0, &m_state);
+  }
+
+  template<typename Index> EIGEN_DEVICE_FUNC
+  float operator()(Index, Index = 0) const {
+    return curand_normal(&m_state);
+  }
+  template<typename Index> EIGEN_DEVICE_FUNC
+  float4 packetOp(Index, Index = 0) const {
+    return curand_normal4(&m_state);
+  }
+
+ private:
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
+template <> struct NormalRandomGenerator<double> {
+
+  static const bool PacketAccess = true;
+
+  EIGEN_DEVICE_FUNC NormalRandomGenerator() {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    curand_init(0, tid, 0, &m_state);
+  }
+  template<typename Index> EIGEN_DEVICE_FUNC
+  double operator()(Index, Index = 0) const {
+    return curand_normal_double(&m_state);
+  }
+  template<typename Index> EIGEN_DEVICE_FUNC
+  double2 packetOp(Index, Index = 0) const {
+    return curand_normal2_double(&m_state);
   }
 
  private:

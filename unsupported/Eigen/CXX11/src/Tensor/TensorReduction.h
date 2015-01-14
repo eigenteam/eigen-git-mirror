@@ -43,6 +43,75 @@ struct nested<TensorReductionOp<Op, Dims, XprType>, 1, typename eval<TensorReduc
   typedef TensorReductionOp<Op, Dims, XprType> type;
 };
 
+
+template <typename ReducedDims, int NumTensorDims, int Layout>
+struct are_inner_most_dims {
+  static const bool value = false;
+};
+#if __cplusplus > 199711L
+template <typename ReducedDims, int NumTensorDims>
+struct are_inner_most_dims<ReducedDims, NumTensorDims, ColMajor>{
+  static const bool value = indices_statically_known_to_increase<ReducedDims>()() &&
+                            index_statically_eq<ReducedDims>()(0, 0) &&
+                            index_statically_eq<ReducedDims>()(array_size<ReducedDims>::value-1, array_size<ReducedDims>::value-1);
+};
+template <typename ReducedDims, int NumTensorDims>
+struct are_inner_most_dims<ReducedDims, NumTensorDims, RowMajor>{
+  static const bool value = indices_statically_known_to_increase<ReducedDims>()() &&
+                            index_statically_eq<ReducedDims>()(0, NumTensorDims - array_size<ReducedDims>::value) &&
+                            index_statically_eq<ReducedDims>()(array_size<ReducedDims>::value - 1, NumTensorDims - 1);
+};
+#endif
+
+
+template <int DimIndex, typename Self, typename Op>
+struct GenericDimReducer {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::CoeffReturnType* accum) {
+    EIGEN_STATIC_ASSERT(DimIndex > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    for (int j = 0; j < self.m_reducedDims[DimIndex]; ++j) {
+      const typename Self::Index input = firstIndex + j * self.m_reducedStrides[DimIndex];
+      GenericDimReducer<DimIndex-1, Self, Op>::reduce(self, input, reducer, accum);
+    }
+  }
+};
+template <typename Self, typename Op>
+struct GenericDimReducer<0, Self, Op> {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::CoeffReturnType* accum) {
+    for (int j = 0; j < self.m_reducedDims[0]; ++j) {
+      const typename Self::Index input = firstIndex + j * self.m_reducedStrides[0];
+      reducer.reduce(self.m_impl.coeff(input), accum);
+    }
+  }
+};
+
+template <typename Self, typename Op, bool Vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
+struct InnerMostDimReducer {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType reduce(const Self& self, typename Self::Index firstIndex, typename Self::Index numValuesToReduce, Op& reducer) {
+    typename Self::CoeffReturnType accum = reducer.initialize();
+    for (typename Self::Index j = 0; j < numValuesToReduce; ++j) {
+      reducer.reduce(self.m_impl.coeff(firstIndex + j), &accum);
+    }
+    return reducer.finalize(accum);
+  }
+};
+
+template <typename Self, typename Op>
+struct InnerMostDimReducer<Self, Op, true> {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Self::CoeffReturnType reduce(const Self& self, typename Self::Index firstIndex, typename Self::Index numValuesToReduce, Op& reducer) {
+    const int packetSize = internal::unpacket_traits<typename Self::PacketReturnType>::size;
+    const typename Self::Index VectorizedSize = (numValuesToReduce / packetSize) * packetSize;
+    typename Self::PacketReturnType p = reducer.template initializePacket<typename Self::PacketReturnType>();
+    for (typename Self::Index j = 0; j < VectorizedSize; j += packetSize) {
+      reducer.reducePacket(self.m_impl.template packet<Unaligned>(firstIndex + j), &p);
+    }
+    typename Self::CoeffReturnType accum = reducer.initialize();
+    for (typename Self::Index j = VectorizedSize; j < numValuesToReduce; ++j) {
+      reducer.reduce(self.m_impl.coeff(firstIndex + j), &accum);
+    }
+    return reducer.finalizePacket(accum, p);
+  }
+};
+
 }  // end namespace internal
 
 
@@ -52,8 +121,8 @@ class TensorReductionOp : public TensorBase<TensorReductionOp<Op, Dims, XprType>
     typedef typename Eigen::internal::traits<TensorReductionOp>::Scalar Scalar;
     typedef typename Eigen::internal::traits<TensorReductionOp>::Packet Packet;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-    typedef typename XprType::CoeffReturnType CoeffReturnType;
-    typedef typename XprType::PacketReturnType PacketReturnType;
+    typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+    typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
     typedef typename Eigen::internal::nested<TensorReductionOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorReductionOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorReductionOp>::Index Index;
@@ -85,20 +154,27 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   typedef typename XprType::Index Index;
   static const int NumInputDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   static const int NumReducedDims = internal::array_size<Dims>::value;
-  static const int NumDims = (NumInputDims==NumReducedDims) ? 1 : NumInputDims - NumReducedDims;
-  typedef DSizes<Index, NumDims> Dimensions;
+  static const int NumOutputDims = (NumInputDims==NumReducedDims) ? 1 : NumInputDims - NumReducedDims;
+  typedef DSizes<Index, NumOutputDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
+  typedef TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device> Self;
+  static const bool InputPacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;
 
   enum {
     IsAligned = false,
-    PacketAccess = false,  // The code isn't vectorized properly yet
+    PacketAccess = Self::InputPacketAccess && Op::PacketAccess,
+    Layout = TensorEvaluator<ArgType, Device>::Layout,
+    CoordAccess = false,  // to be implemented
   };
+
+  static const bool ReducingInnerMostDims = internal::are_inner_most_dims<Dims, NumInputDims, Layout>::value;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_reducer(op.reducer())
   {
     EIGEN_STATIC_ASSERT(NumInputDims >= NumReducedDims, YOU_MADE_A_PROGRAMMING_MISTAKE);
 
+    // Bitmap indicating if an input dimension is reduced or not.
     array<bool, NumInputDims> reduced;
     for (int i = 0; i < NumInputDims; ++i) {
       reduced[i] = false;
@@ -122,24 +198,41 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
       }
     }
 
-    m_outputStrides[0] = 1;
-    for (int i = 1; i < NumDims; ++i) {
-      m_outputStrides[i] = m_outputStrides[i-1] * m_dimensions[i-1];
+    // Precompute output strides.
+    if (Layout == ColMajor) {
+      m_outputStrides[0] = 1;
+      for (int i = 1; i < NumOutputDims; ++i) {
+        m_outputStrides[i] = m_outputStrides[i - 1] * m_dimensions[i - 1];
+      }
+    } else {
+      m_outputStrides[NumOutputDims - 1] = 1;
+      for (int i = NumOutputDims - 2; i >= 0; --i) {
+        m_outputStrides[i] = m_outputStrides[i + 1] * m_dimensions[i + 1];
+      }
     }
 
-    array<Index, NumInputDims> strides;
-    strides[0] = 1;
-    for (int i = 1; i < NumInputDims; ++i) {
-      strides[i] = strides[i-1] * input_dims[i-1];
+    // Precompute input strides.
+    array<Index, NumInputDims> input_strides;
+    if (Layout == ColMajor) {
+      input_strides[0] = 1;
+      for (int i = 1; i < NumInputDims; ++i) {
+        input_strides[i] = input_strides[i-1] * input_dims[i-1];
+      }
+    } else {
+      input_strides[NumInputDims - 1] = 1;
+      for (int i = NumInputDims - 2; i >= 0; --i) {
+        input_strides[i] = input_strides[i + 1] * input_dims[i + 1];
+      }
     }
+
     outputIndex = 0;
     reduceIndex = 0;
     for (int i = 0; i < NumInputDims; ++i) {
       if (reduced[i]) {
-        m_reducedStrides[reduceIndex] = strides[i];
+        m_reducedStrides[reduceIndex] = input_strides[i];
         ++reduceIndex;
       } else {
-        m_preservedStrides[outputIndex] = strides[i];
+        m_preservedStrides[outputIndex] = input_strides[i];
         ++outputIndex;
       }
     }
@@ -147,6 +240,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     // Special case for full reductions
     if (NumInputDims == NumReducedDims) {
       m_dimensions[0] = 1;
+      m_preservedStrides[0] = internal::array_prod(input_dims);
     }
   }
 
@@ -161,14 +255,22 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     m_impl.cleanup();
   }
 
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
     Op reducer(m_reducer);
-    reduce(firstInput(index), 0, reducer);
-    return reducer.finalize();
+    if (ReducingInnerMostDims) {
+      const Index num_values_to_reduce =
+          (Layout == ColMajor) ? m_preservedStrides[0] : m_preservedStrides[NumOutputDims - 1];
+      return internal::InnerMostDimReducer<Self, Op>::reduce(*this, firstInput(index),
+                                                             num_values_to_reduce, reducer);
+    } else {
+      typename Self::CoeffReturnType accum = reducer.initialize();
+      internal::GenericDimReducer<NumReducedDims-1, Self, Op>::reduce(*this, firstInput(index), reducer, &accum);
+      return reducer.finalize(accum);
+    }
   }
 
   // TODO(bsteiner): provide a more efficient implementation.
@@ -179,9 +281,20 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index + packetSize - 1 < dimensions().TotalSize());
 
-    EIGEN_ALIGN_DEFAULT CoeffReturnType values[packetSize];
-    for (int i = 0; i < packetSize; ++i) {
-      values[i] = coeff(index+i);
+    EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+    if (ReducingInnerMostDims) {
+      const Index num_values_to_reduce =
+          (Layout == ColMajor) ? m_preservedStrides[0] : m_preservedStrides[NumOutputDims - 1];
+      const Index firstIndex = firstInput(index);
+      for (Index i = 0; i < packetSize; ++i) {
+        Op reducer(m_reducer);
+        values[i] = internal::InnerMostDimReducer<Self, Op>::reduce(*this, firstIndex + i * num_values_to_reduce,
+                                                                    num_values_to_reduce, reducer);
+      }
+    } else {
+      for (int i = 0; i < packetSize; ++i) {
+        values[i] = coeff(index + i);
+      }
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);
     return rslt;
@@ -190,34 +303,59 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   Scalar* data() const { return NULL; }
 
   private:
+  template <int, typename, typename> friend struct internal::GenericDimReducer;
+  template <typename, typename, bool> friend struct internal::InnerMostDimReducer;
+
+  // Returns the Index in the input tensor of the first value that needs to be
+  // used to compute the reduction at output index "index".
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index firstInput(Index index) const {
-    Index startInput = 0;
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_outputStrides[i];
-      startInput += idx * m_preservedStrides[i];
-      index -= idx * m_outputStrides[i];
+    if (ReducingInnerMostDims) {
+      if (Layout == ColMajor) {
+        return index * m_preservedStrides[0];
+      } else {
+        return index * m_preservedStrides[NumOutputDims - 1];
+      }
     }
-    startInput += index * m_preservedStrides[0];
+    Index startInput = 0;
+    if (Layout == ColMajor) {
+      for (int i = NumOutputDims - 1; i > 0; --i) {
+        // This is index_i in the output tensor.
+        const Index idx = index / m_outputStrides[i];
+        startInput += idx * m_preservedStrides[i];
+        index -= idx * m_outputStrides[i];
+      }
+      startInput += index * m_preservedStrides[0];
+    } else {
+      for (int i = 0; i < NumOutputDims - 1; ++i) {
+        // This is index_i in the output tensor.
+        const Index idx = index / m_outputStrides[i];
+        startInput += idx * m_preservedStrides[i];
+        index -= idx * m_outputStrides[i];
+      }
+      startInput += index * m_preservedStrides[NumOutputDims - 1];
+    }
     return startInput;
   }
 
-  EIGEN_DEVICE_FUNC void reduce(Index firstIndex, int DimIndex, Op& reducer) const {
-    for (int j = 0; j < m_reducedDims[DimIndex]; ++j) {
-      const Index input = firstIndex + j * m_reducedStrides[DimIndex];
-      if (DimIndex < NumReducedDims-1) {
-        reduce(input, DimIndex+1, reducer);
-      } else {
-        reducer.reduce(m_impl.coeff(input));
-      }
-    }
-  }
-
+  // Dimensions of the output of the operation.
   Dimensions m_dimensions;
-  array<Index, NumDims> m_outputStrides;
-  array<Index, NumDims> m_preservedStrides;
+  // Precomputed strides for the output tensor.
+  array<Index, NumOutputDims> m_outputStrides;
+  // Subset of strides of the input tensor for the non-reduced dimensions.
+  // Indexed by output dimensions.
+  array<Index, NumOutputDims> m_preservedStrides;
+
+  // Subset of strides of the input tensor for the reduced dimensions.
+  // Indexed by reduced dimensions.
   array<Index, NumReducedDims> m_reducedStrides;
+  // Size of the input dimensions that are reduced.
+  // Indexed by reduced dimensions.
   array<Index, NumReducedDims> m_reducedDims;
+
+  // Evaluator for the input expression.
   TensorEvaluator<ArgType, Device> m_impl;
+
+  // Operation to apply for computing the reduction.
   Op m_reducer;
 };
 
