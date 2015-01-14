@@ -77,18 +77,20 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     enum {
       IsAligned = bool(EIGEN_ALIGN) & !(Options_&DontAlign),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+      Layout = Options_ & RowMajor ? RowMajor : ColMajor,
+      CoordAccess = true,
     };
 
     static const int Options = Options_;
-
     static const std::size_t NumIndices = NumIndices_;
-
-    typedef DSizes<DenseIndex, NumIndices_> Dimensions;
+    typedef DSizes<Index, NumIndices_> Dimensions;
 
   protected:
     TensorStorage<Scalar, NumIndices, Dynamic, Options> m_storage;
 
   public:
+    // Metadata
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                         rank()                   const { return NumIndices; }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                         dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions()    const { return m_storage.dimensions(); }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                         size()                   const { return m_storage.size(); }
@@ -153,6 +155,27 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
       return this->operator()(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
     }
+#else
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1) const
+    {
+      return coeff(array<Index, 2>(i0, i1));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1, Index i2) const
+    {
+      return coeff(array<Index, 3>(i0, i1, i2));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1, Index i2, Index i3) const
+    {
+      return coeff(array<Index, 4>(i0, i1, i2, i3));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1, Index i2, Index i3, Index i4) const
+    {
+      return coeff(array<Index, 5>(i0, i1, i2, i3, i4));
+    }
 #endif
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()(const array<Index, NumIndices>& indices) const
@@ -181,6 +204,27 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
       return operator()(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
+    }
+#else
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Scalar& operator()(Index i0, Index i1)
+    {
+      return coeffRef(array<Index, 2>(i0, i1));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Scalar& operator()(Index i0, Index i1, Index i2)
+    {
+      return coeffRef(array<Index, 3>(i0, i1, i2));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Scalar& operator()(Index i0, Index i1, Index i2, Index i3)
+    {
+      return coeffRef(array<Index, 4>(i0, i1, i2, i3));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Scalar& operator()(Index i0, Index i1, Index i2, Index i3, Index i4)
+    {
+      return coeffRef(array<Index, 5>(i0, i1, i2, i3, i4));
     }
 #endif
 
@@ -223,6 +267,32 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       // The number of dimensions used to construct a tensor must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
+#else
+    inline explicit Tensor(Index dim1)
+      : m_storage(dim1, array<Index, 1>(dim1))
+    {
+      EIGEN_STATIC_ASSERT(1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+    inline explicit Tensor(Index dim1, Index dim2)
+      : m_storage(dim1*dim2, array<Index, 2>(dim1, dim2))
+    {
+      EIGEN_STATIC_ASSERT(2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+    inline explicit Tensor(Index dim1, Index dim2, Index dim3)
+      : m_storage(dim1*dim2*dim3, array<Index, 3>(dim1, dim2, dim3))
+    {
+      EIGEN_STATIC_ASSERT(3 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+    inline explicit Tensor(Index dim1, Index dim2, Index dim3, Index dim4)
+      : m_storage(dim1*dim2*dim3*dim4, array<Index, 4>(dim1, dim2, dim3, dim4))
+    {
+      EIGEN_STATIC_ASSERT(4 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
+    inline explicit Tensor(Index dim1, Index dim2, Index dim3, Index dim4, Index dim5)
+      : m_storage(dim1*dim2*dim3*dim4*dim5, array<Index, 4>(dim1, dim2, dim3, dim4, dim5))
+    {
+      EIGEN_STATIC_ASSERT(5 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    }
 #endif
 
     inline explicit Tensor(const array<Index, NumIndices>& dimensions)
@@ -231,24 +301,24 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
-  template<typename OtherDerived>
+    template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE Tensor(const TensorBase<OtherDerived, ReadOnlyAccessors>& other)
+    EIGEN_STRONG_INLINE Tensor(const TensorBase<OtherDerived, ReadOnlyAccessors>& other)
     {
       typedef TensorAssignOp<Tensor, const OtherDerived> Assign;
       Assign assign(*this, other.derived());
       resize(TensorEvaluator<const Assign, DefaultDevice>(assign, DefaultDevice()).dimensions());
       internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
     }
-  template<typename OtherDerived>
+    template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE Tensor(const TensorBase<OtherDerived, WriteAccessors>& other)
-  {
-    typedef TensorAssignOp<Tensor, const OtherDerived> Assign;
-    Assign assign(*this, other.derived());
-    resize(TensorEvaluator<const Assign, DefaultDevice>(assign, DefaultDevice()).dimensions());
-    internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
-  }
+    EIGEN_STRONG_INLINE Tensor(const TensorBase<OtherDerived, WriteAccessors>& other)
+    {
+      typedef TensorAssignOp<Tensor, const OtherDerived> Assign;
+      Assign assign(*this, other.derived());
+      resize(TensorEvaluator<const Assign, DefaultDevice>(assign, DefaultDevice()).dimensions());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+    }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Tensor& operator=(const Tensor& other)
@@ -297,7 +367,16 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       #endif
     }
 
+    void resize(const DSizes<Index, NumIndices>& dimensions) {
+      array<Index, NumIndices> dims;
+      for (int i = 0; i < NumIndices; ++i) {
+        dims[i] = dimensions[i];
+      }
+      resize(dims);
+    }
+
   protected:
+
     bool checkIndexRange(const array<Index, NumIndices>& indices) const
     {
       using internal::array_apply_and_reduce;
