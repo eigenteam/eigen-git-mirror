@@ -70,24 +70,43 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
-  typedef array<Index, TensorEvaluator<LeftArgType, Device>::Dimensions::count> left_dim_mapper_t;
-  typedef array<Index, TensorEvaluator<RightArgType, Device>::Dimensions::count> right_dim_mapper_t;
+  enum {
+    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+  };
 
-  typedef array<Index, internal::array_size<Indices>::value> contract_t;
-  typedef array<Index, max_n_1<TensorEvaluator<LeftArgType, Device>::Dimensions::count - internal::array_size<Indices>::value>::size> left_nocontract_t;
-  typedef array<Index, max_n_1<TensorEvaluator<RightArgType, Device>::Dimensions::count - internal::array_size<Indices>::value>::size> right_nocontract_t;
+  // Most of the code is assuming that both input tensors are ColMajor. If the
+  // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:
+  // If we want to compute A * B = C, where A is LHS and B is RHS, the code
+  // will pretend B is LHS and A is RHS.
+  typedef typename internal::conditional<
+    Layout == ColMajor, LeftArgType, RightArgType>::type EvalLeftArgType;
+  typedef typename internal::conditional<
+    Layout == ColMajor, RightArgType, LeftArgType>::type EvalRightArgType;
 
-  static const int NumDims = max_n_1<TensorEvaluator<LeftArgType, Device>::Dimensions::count + TensorEvaluator<RightArgType, Device>::Dimensions::count - 2 * internal::array_size<Indices>::value>::size;
+  static const int LDims =
+      internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
+  static const int RDims =
+      internal::array_size<typename TensorEvaluator<EvalRightArgType, Device>::Dimensions>::value;
+  static const int ContractDims = internal::array_size<Indices>::value;
+
+  typedef array<Index, LDims> left_dim_mapper_t;
+  typedef array<Index, RDims> right_dim_mapper_t;
+
+  typedef array<Index, ContractDims> contract_t;
+  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
+  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
+
+  static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
 
   typedef DSizes<Index, NumDims> Dimensions;
 
   // typedefs needed in evalTo
-  typedef typename internal::remove_const<typename LeftArgType::Scalar>::type LhsScalar;
-  typedef typename internal::remove_const<typename RightArgType::Scalar>::type RhsScalar;
+  typedef typename internal::remove_const<typename EvalLeftArgType::Scalar>::type LhsScalar;
+  typedef typename internal::remove_const<typename EvalRightArgType::Scalar>::type RhsScalar;
   typedef typename internal::gebp_traits<LhsScalar, RhsScalar> Traits;
 
-  typedef TensorEvaluator<LeftArgType, Device> LeftEvaluator;
-  typedef TensorEvaluator<RightArgType, Device> RightEvaluator;
+  typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
+  typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
 
   TensorEvaluator(const XprType& op, const Device& device) :
       Base(op, device) {}
