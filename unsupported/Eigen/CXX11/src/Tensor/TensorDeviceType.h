@@ -43,11 +43,14 @@ typedef std::promise<void> Promise;
 
 static EIGEN_STRONG_INLINE void wait_until_ready(const Future* f) {
   f->wait();
-  //   eigen_assert(f->ready());
+}
+static EIGEN_STRONG_INLINE void get_when_ready(Future* f) {
+  f->get();
 }
 
+
 struct ThreadPoolDevice {
-  ThreadPoolDevice(/*ThreadPool* pool, */size_t num_cores) : num_threads_(num_cores) { }
+  ThreadPoolDevice(size_t num_cores) : num_threads_(num_cores) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     return internal::aligned_malloc(num_bytes);
@@ -79,9 +82,9 @@ struct ThreadPoolDevice {
   }
 
  private:
-  // todo: NUMA, ...
   size_t num_threads_;
 };
+
 #endif
 
 
@@ -114,6 +117,10 @@ static inline int sharedMemPerBlock() {
   return m_deviceProperties.sharedMemPerBlock;
 }
 
+static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
+  cudaError_t status = cudaDeviceSetSharedMemConfig(config);
+  assert(status == cudaSuccess);
+}
 
 struct GpuDevice {
   // The cudastream is not owned: the caller is responsible for its initialization and eventual destruction.
@@ -163,10 +170,19 @@ struct GpuDevice {
     return 32;
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void synchronize() const {
+    cudaStreamSynchronize(*stream_);
+  }
+
  private:
   // TODO: multigpu.
   const cudaStream_t* stream_;
 };
+
+#define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)            \
+  (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);  \
+  assert(cudaGetLastError() == cudaSuccess);
+
 #endif
 
 }  // end namespace Eigen
