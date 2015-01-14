@@ -77,17 +77,17 @@ class TensorExecutor<Expression, DefaultDevice, true>
 #ifdef EIGEN_USE_THREADS
 template <typename Evaluator, typename Index, bool Vectorizable = Evaluator::PacketAccess>
 struct EvalRange {
-  static void run(Evaluator* evaluator, const Index first, const Index last) {
+  static void run(Evaluator evaluator, const Index first, const Index last) {
     eigen_assert(last > first);
     for (Index i = first; i < last; ++i) {
-      evaluator->evalScalar(i);
+      evaluator.evalScalar(i);
     }
   }
 };
 
 template <typename Evaluator, typename Index>
 struct EvalRange<Evaluator, Index, true> {
-  static void run(Evaluator* evaluator, const Index first, const Index last) {
+  static void run(Evaluator evaluator, const Index first, const Index last) {
     eigen_assert(last > first);
 
     Index i = first;
@@ -96,12 +96,12 @@ struct EvalRange<Evaluator, Index, true> {
       eigen_assert(first % PacketSize == 0);
       Index lastPacket = last - (last % PacketSize);
       for (; i < lastPacket; i += PacketSize) {
-        evaluator->evalPacket(i);
+        evaluator.evalPacket(i);
       }
     }
 
     for (; i < last; ++i) {
-      evaluator->evalScalar(i);
+      evaluator.evalScalar(i);
     }
   }
 };
@@ -130,16 +130,17 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       std::vector<Future> results;
       results.reserve(numblocks);
       for (int i = 0; i < numblocks; ++i) {
-        results.push_back(device.enqueue(&EvalRange<Evaluator, Index>::run, &evaluator, i*blocksize, (i+1)*blocksize));
-      }
-
-      for (int i = 0; i < numblocks; ++i) {
-        results[i].get();
+        results.push_back(device.enqueue(&EvalRange<Evaluator, Index>::run, evaluator, i*blocksize, (i+1)*blocksize));
       }
 
       if (numblocks * blocksize < size) {
-        EvalRange<Evaluator, Index>::run(&evaluator, numblocks * blocksize, size);
+        EvalRange<Evaluator, Index>::run(evaluator, numblocks * blocksize, size);
       }
+
+      for (int i = 0; i < numblocks; ++i) {
+        get_when_ready(&results[i]);
+      }
+
     }
     evaluator.cleanup();
   }
@@ -168,7 +169,8 @@ __launch_bounds__(1024)
     const Index PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
     const Index vectorized_step_size = step_size * PacketSize;
     const Index vectorized_size = (size / PacketSize) * PacketSize;
-    for (Index i = first_index * PacketSize; i < vectorized_size; i += vectorized_step_size) {
+    for (Index i = first_index * PacketSize; i < vectorized_size;
+         i += vectorized_step_size) {
       eval.evalPacket(i);
     }
     for (Index i = vectorized_size + first_index; i < size; i += step_size) {
@@ -192,8 +194,7 @@ class TensorExecutor<Expression, GpuDevice, Vectorizable>
       const int block_size = maxCudaThreadsPerBlock();
 
       const Index size = array_prod(evaluator.dimensions());
-      EigenMetaKernel<TensorEvaluator<Expression, GpuDevice>, Index><<<num_blocks, block_size, 0, device.stream()>>>(evaluator, size);
-      assert(cudaGetLastError() == cudaSuccess);
+      LAUNCH_CUDA_KERNEL((EigenMetaKernel<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
     }
     evaluator.cleanup();
   }
