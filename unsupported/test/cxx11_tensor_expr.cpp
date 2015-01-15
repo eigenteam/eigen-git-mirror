@@ -32,6 +32,9 @@ static void test_1d()
   float data4[6];
   TensorMap<Tensor<float, 1, RowMajor>> vec4(data4, 6);
   vec4 = vec2.square();
+  float data5[6];
+  TensorMap<Tensor<float, 1, RowMajor>> vec5(data5, 6);
+  vec5 = vec2.cube();
 
   VERIFY_IS_APPROX(vec3(0), sqrtf(4.0));
   VERIFY_IS_APPROX(vec3(1), sqrtf(8.0));
@@ -46,6 +49,13 @@ static void test_1d()
   VERIFY_IS_APPROX(vec4(3), 3.0f * 3.0f);
   VERIFY_IS_APPROX(vec4(4), 4.0f * 4.0f);
   VERIFY_IS_APPROX(vec4(5), 5.0f * 5.0f);
+
+  VERIFY_IS_APPROX(vec5(0), 0.0f);
+  VERIFY_IS_APPROX(vec5(1), 1.0f);
+  VERIFY_IS_APPROX(vec5(2), 2.0f * 2.0f * 2.0f);
+  VERIFY_IS_APPROX(vec5(3), 3.0f * 3.0f * 3.0f);
+  VERIFY_IS_APPROX(vec5(4), 4.0f * 4.0f * 4.0f);
+  VERIFY_IS_APPROX(vec5(5), 5.0f * 5.0f * 5.0f);
 
   vec3 = vec1 + vec2;
   VERIFY_IS_APPROX(vec3(0), 4.0f + 0.0f);

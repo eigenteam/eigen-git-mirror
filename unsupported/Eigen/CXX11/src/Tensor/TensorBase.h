@@ -84,6 +84,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived>
+    cube() const {
+      return unaryExpr(internal::scalar_cube_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived>
     inverse() const {
       return unaryExpr(internal::scalar_inverse_op<Scalar>());
