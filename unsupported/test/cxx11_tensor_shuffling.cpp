@@ -157,6 +157,23 @@ static void test_shuffling_as_value()
       }
     }
   }
+
+  array<ptrdiff_t, 4> no_shuffle;
+  no_shuffle[0] = 0;
+  no_shuffle[1] = 1;
+  no_shuffle[2] = 2;
+  no_shuffle[3] = 3;
+  Tensor<float, 4, DataLayout> shuffle2(5,7,3,2);
+  shuffle2.shuffle(shuffles) = tensor.shuffle(no_shuffle);
+  for (int i = 0; i < 5; ++i) {
+    for (int j = 0; j < 7; ++j) {
+      for (int k = 0; k < 3; ++k) {
+        for (int l = 0; l < 2; ++l) {
+          VERIFY_IS_EQUAL(shuffle2(i,j,k,l), shuffle(i,j,k,l));
+        }
+      }
+    }
+  }
 }
 
 void test_cxx11_tensor_shuffling()

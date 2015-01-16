@@ -73,6 +73,15 @@ class TensorStridingOp : public TensorBase<TensorStridingOp<Strides, XprType> >
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorStridingOp& operator = (const TensorStridingOp& other)
+    {
+      typedef TensorAssignOp<TensorStridingOp, const TensorStridingOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      return *this;
+    }
+
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorStridingOp& operator = (const OtherDerived& other)

@@ -318,7 +318,28 @@ static void test_chip_as_lvalue()
       }
     }
   }
+
+  Tensor<float, 5, DataLayout> input7(2,3,5,7,11);
+  input7.setRandom();
+  tensor = input1;
+  tensor.chip(0, 0) = input7.chip(0, 0);
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        for (int l = 0; l < 7; ++l) {
+          for (int m = 0; m < 11; ++m) {
+            if (i != 0) {
+              VERIFY_IS_EQUAL(tensor(i,j,k,l,m), input1(i,j,k,l,m));
+            } else {
+              VERIFY_IS_EQUAL(tensor(i,j,k,l,m), input7(i,j,k,l,m));
+            }
+          }
+        }
+      }
+    }
+  }
 }
+
 
 template<int DataLayout>
 static void test_chip_raw_data()

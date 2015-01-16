@@ -161,6 +161,8 @@ static void test_slice_as_lvalue()
   tensor3.setRandom();
   Tensor<float, 3, DataLayout> tensor4(4,3,2);
   tensor4.setRandom();
+  Tensor<float, 3, DataLayout> tensor5(10,13,12);
+  tensor5.setRandom();
 
   Tensor<float, 3, DataLayout> result(4,5,7);
   Eigen::DSizes<ptrdiff_t, 3> sizes12(2,2,7);
@@ -192,6 +194,17 @@ static void test_slice_as_lvalue()
       }
       for (int k = 5; k < 7; ++k) {
         VERIFY_IS_EQUAL(result(i,j,k), tensor4(i,j-2,k-5));
+      }
+    }
+  }
+
+  Eigen::DSizes<ptrdiff_t, 3> sizes5(4,5,7);
+  Eigen::DSizes<ptrdiff_t, 3> fifth_slice(0,0,0);
+  result.slice(fifth_slice, sizes5) = tensor5.slice(fifth_slice, sizes5);
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 2; j < 5; ++j) {
+      for (int k = 0; k < 7; ++k) {
+        VERIFY_IS_EQUAL(result(i,j,k), tensor5(i,j,k));
       }
     }
   }

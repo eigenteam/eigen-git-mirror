@@ -73,6 +73,15 @@ class TensorReshapingOp : public TensorBase<TensorReshapingOp<NewDimensions, Xpr
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorReshapingOp& operator = (const TensorReshapingOp& other)
+    {
+      typedef TensorAssignOp<TensorReshapingOp, const TensorReshapingOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      return *this;
+    }
+
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorReshapingOp& operator = (const OtherDerived& other)
@@ -256,6 +265,16 @@ class TensorSlicingOp : public TensorBase<TensorSlicingOp<StartIndices, Sizes, X
       internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
       return *this;
     }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorSlicingOp& operator = (const TensorSlicingOp& other)
+    {
+      typedef TensorAssignOp<TensorSlicingOp, const TensorSlicingOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      return *this;
+    }
+
 
   protected:
     typename XprType::Nested m_xpr;

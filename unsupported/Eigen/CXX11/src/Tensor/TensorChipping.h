@@ -101,6 +101,16 @@ class TensorChippingOp : public TensorBase<TensorChippingOp<DimId, XprType> >
   const typename internal::remove_all<typename XprType::Nested>::type&
   expression() const { return m_xpr; }
 
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE TensorChippingOp& operator = (const TensorChippingOp& other)
+  {
+    typedef TensorAssignOp<TensorChippingOp, const TensorChippingOp> Assign;
+    Assign assign(*this, other);
+    static const bool Vectorize = TensorEvaluator<const Assign, DefaultDevice>::PacketAccess;
+    internal::TensorExecutor<const Assign, DefaultDevice, Vectorize>::run(assign, DefaultDevice());
+    return *this;
+  }
+
   template<typename OtherDerived>
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE TensorChippingOp& operator = (const OtherDerived& other)

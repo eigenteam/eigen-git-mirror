@@ -89,6 +89,24 @@ static void test_striding_as_lvalue()
       }
     }
   }
+
+  array<ptrdiff_t, 4> no_strides;
+  no_strides[0] = 1;
+  no_strides[1] = 1;
+  no_strides[2] = 1;
+  no_strides[3] = 1;
+  Tensor<float, 4, DataLayout> result2(3, 12, 10, 21);
+  result2.stride(strides) = tensor.stride(no_strides);
+
+  for (int i = 0; i < 2; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      for (int k = 0; k < 5; ++k) {
+        for (int l = 0; l < 7; ++l) {
+          VERIFY_IS_EQUAL(tensor(i,j,k,l), result2(2*i,4*j,2*k,3*l));
+        }
+      }
+    }
+  }
 }
 
 

@@ -73,6 +73,15 @@ class TensorShufflingOp : public TensorBase<TensorShufflingOp<Shuffle, XprType> 
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorShufflingOp& operator = (const TensorShufflingOp& other)
+    {
+      typedef TensorAssignOp<TensorShufflingOp, const TensorShufflingOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      return *this;
+    }
+
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorShufflingOp& operator = (const OtherDerived& other)
