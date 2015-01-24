@@ -326,6 +326,12 @@ struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Dense, Scalar>
     dst.setZero();
     dst.diagonal() = src.diagonal();
   }
+  
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar> &/*func*/)
+  { dst.diagonal() += src.diagonal(); }
+  
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar> &/*func*/)
+  { dst.diagonal() -= src.diagonal(); }
 };
 
 } // namespace internal
