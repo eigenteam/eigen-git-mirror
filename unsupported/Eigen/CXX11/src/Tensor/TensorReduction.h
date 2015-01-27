@@ -48,6 +48,11 @@ template <typename ReducedDims, int NumTensorDims, int Layout>
 struct are_inner_most_dims {
   static const bool value = false;
 };
+template <typename ReducedDims, int NumTensorDims, int Layout>
+struct preserve_inner_most_dims {
+  static const bool value = false;
+};
+
 #if __cplusplus > 199711L
 template <typename ReducedDims, int NumTensorDims>
 struct are_inner_most_dims<ReducedDims, NumTensorDims, ColMajor>{
@@ -60,6 +65,16 @@ struct are_inner_most_dims<ReducedDims, NumTensorDims, RowMajor>{
   static const bool value = indices_statically_known_to_increase<ReducedDims>()() &&
                             index_statically_eq<ReducedDims>()(0, NumTensorDims - array_size<ReducedDims>::value) &&
                             index_statically_eq<ReducedDims>()(array_size<ReducedDims>::value - 1, NumTensorDims - 1);
+};
+template <typename ReducedDims, int NumTensorDims>
+struct preserve_inner_most_dims<ReducedDims, NumTensorDims, ColMajor>{
+  static const bool value = indices_statically_known_to_increase<ReducedDims>()() &&
+                            index_statically_gt<ReducedDims>()(0, 0);
+};
+template <typename ReducedDims, int NumTensorDims>
+struct preserve_inner_most_dims<ReducedDims, NumTensorDims, RowMajor>{
+  static const bool value = indices_statically_known_to_increase<ReducedDims>()() &&
+                            index_statically_lt<ReducedDims>()(array_size<ReducedDims>::value - 1, NumTensorDims - 1);
 };
 #endif
 
@@ -108,7 +123,35 @@ struct InnerMostDimReducer<Self, Op, true> {
     for (typename Self::Index j = VectorizedSize; j < numValuesToReduce; ++j) {
       reducer.reduce(self.m_impl.coeff(firstIndex + j), &accum);
     }
-    return reducer.finalizePacket(accum, p);
+    return reducer.finalizeBoth(accum, p);
+  }
+};
+
+template <int DimIndex, typename Self, typename Op, bool vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
+struct InnerMostDimPreserver {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::PacketReturnType* accum) {
+    eigen_assert(false && "should never be called");
+  }
+};
+
+template <int DimIndex, typename Self, typename Op>
+struct InnerMostDimPreserver<DimIndex, Self, Op, true> {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::PacketReturnType* accum) {
+    EIGEN_STATIC_ASSERT(DimIndex > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    for (int j = 0; j < self.m_reducedDims[DimIndex]; ++j) {
+      const typename Self::Index input = firstIndex + j * self.m_reducedStrides[DimIndex];
+      InnerMostDimPreserver<DimIndex-1, Self, Op>::reduce(self, input, reducer, accum);
+    }
+  }
+};
+
+template <typename Self, typename Op>
+struct InnerMostDimPreserver<0, Self, Op, true> {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::PacketReturnType* accum) {
+    for (int j = 0; j < self.m_reducedDims[0]; ++j) {
+      const typename Self::Index input = firstIndex + j * self.m_reducedStrides[0];
+      reducer.reducePacket(self.m_impl.template packet<Unaligned>(input), accum);
+    }
   }
 };
 
@@ -168,11 +211,14 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   };
 
   static const bool ReducingInnerMostDims = internal::are_inner_most_dims<Dims, NumInputDims, Layout>::value;
+  static const bool PreservingInnerMostDims = internal::preserve_inner_most_dims<Dims, NumInputDims, Layout>::value;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_reducer(op.reducer())
   {
     EIGEN_STATIC_ASSERT(NumInputDims >= NumReducedDims, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((!ReducingInnerMostDims | !PreservingInnerMostDims | (NumReducedDims == NumInputDims)),
+                        YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     // Bitmap indicating if an input dimension is reduced or not.
     array<bool, NumInputDims> reduced;
@@ -291,6 +337,20 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
         values[i] = internal::InnerMostDimReducer<Self, Op>::reduce(*this, firstIndex + i * num_values_to_reduce,
                                                                     num_values_to_reduce, reducer);
       }
+    } else if (PreservingInnerMostDims) {
+      const Index firstIndex = firstInput(index);
+      const int innermost_dim = (Layout == ColMajor) ? 0 : NumOutputDims - 1;
+      // TBD: extend this the the n innermost dimensions that we preserve.
+      if (((firstIndex % m_dimensions[innermost_dim]) + packetSize - 1) < m_dimensions[innermost_dim]) {
+        Op reducer(m_reducer);
+        typename Self::PacketReturnType accum = reducer.template initializePacket<typename Self::PacketReturnType>();
+        internal::InnerMostDimPreserver<NumReducedDims-1, Self, Op>::reduce(*this, firstIndex, reducer, &accum);
+        return reducer.finalizePacket(accum);
+      } else {
+        for (int i = 0; i < packetSize; ++i) {
+          values[i] = coeff(index + i);
+        }
+      }
     } else {
       for (int i = 0; i < packetSize; ++i) {
         values[i] = coeff(index + i);
@@ -305,6 +365,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   private:
   template <int, typename, typename> friend struct internal::GenericDimReducer;
   template <typename, typename, bool> friend struct internal::InnerMostDimReducer;
+  template <int, typename, typename, bool> friend struct internal::InnerMostDimPreserver;
 
   // Returns the Index in the input tensor of the first value that needs to be
   // used to compute the reduction at output index "index".
@@ -316,6 +377,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
         return index * m_preservedStrides[NumOutputDims - 1];
       }
     }
+    // TBD: optimize the case where we preserve the innermost dimensions.
     Index startInput = 0;
     if (Layout == ColMajor) {
       for (int i = NumOutputDims - 1; i > 0; --i) {
