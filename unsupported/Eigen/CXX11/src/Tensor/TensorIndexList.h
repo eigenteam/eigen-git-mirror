@@ -181,7 +181,7 @@ template<typename FirstType, typename... OtherTypes> size_t array_prod(const Ind
     result *= sizes[i];
   }
   return result;
-}
+};
 
 template<typename FirstType, typename... OtherTypes> struct array_size<IndexList<FirstType, OtherTypes...> > {
   static const size_t value = std::tuple_size<std::tuple<FirstType, OtherTypes...> >::value;
@@ -307,6 +307,52 @@ struct index_statically_ne<const IndexList<FirstType, OtherTypes...> > {
 };
 
 
+template <typename T>
+struct index_statically_gt {
+  constexpr bool operator() (DenseIndex, DenseIndex) const {
+  return false;
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct index_statically_gt<IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
+    return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
+        IndexList<FirstType, OtherTypes...>()[i] > value;
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct index_statically_gt<const IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
+    return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
+        IndexList<FirstType, OtherTypes...>()[i] > value;
+  }
+};
+
+template <typename T>
+struct index_statically_lt {
+  constexpr bool operator() (DenseIndex, DenseIndex) const {
+  return false;
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct index_statically_lt<IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
+    return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
+        IndexList<FirstType, OtherTypes...>()[i] < value;
+  }
+};
+
+template <typename FirstType, typename... OtherTypes>
+struct index_statically_lt<const IndexList<FirstType, OtherTypes...> > {
+  constexpr bool operator() (const DenseIndex i, const DenseIndex value) const {
+    return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
+        IndexList<FirstType, OtherTypes...>()[i] < value;
+  }
+};
+
 }  // end namespace internal
 }  // end namespace Eigen
 
@@ -346,6 +392,20 @@ struct index_statically_eq {
 
 template <typename T>
 struct index_statically_ne {
+  EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() (DenseIndex, DenseIndex) const{
+    return false;
+  }
+};
+
+template <typename T>
+struct index_statically_gt {
+  EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() (DenseIndex, DenseIndex) const{
+    return false;
+  }
+};
+
+template <typename T>
+struct index_statically_lt {
   EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() (DenseIndex, DenseIndex) const{
     return false;
   }

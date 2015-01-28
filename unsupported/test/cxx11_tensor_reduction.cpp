@@ -369,6 +369,37 @@ static void test_innermost_first_dims() {
   }
 }
 
+template <int DataLayout>
+static void test_reduce_middle_dims() {
+  Tensor<float, 4, DataLayout> in(72, 53, 97, 113);
+  Tensor<float, 2, DataLayout> out(72, 53);
+  in.setRandom();
+
+// Reduce on the innermost dimensions.
+#if __cplusplus <= 199711L
+  array<int, 2> reduction_axis;
+  reduction_axis[0] = 1;
+  reduction_axis[1] = 2;
+#else
+  // This triggers the use of packets for RowMajor.
+  Eigen::IndexList<Eigen::type2index<1>, Eigen::type2index<2>> reduction_axis;
+#endif
+
+  out = in.maximum(reduction_axis);
+
+  for (int i = 0; i < 72; ++i) {
+    for (int j = 0; j < 113; ++j) {
+      float expected = -1e10f;
+      for (int k = 0; k < 53; ++k) {
+        for (int l = 0; l < 97; ++l) {
+          expected = (std::max)(expected, in(i, k, l, j));
+        }
+      }
+      VERIFY_IS_APPROX(out(i, j), expected);
+    }
+  }
+}
+
 void test_cxx11_tensor_reduction() {
   CALL_SUBTEST(test_simple_reductions<ColMajor>());
   CALL_SUBTEST(test_simple_reductions<RowMajor>());
@@ -380,8 +411,10 @@ void test_cxx11_tensor_reduction() {
   CALL_SUBTEST(test_tensor_maps<RowMajor>());
   CALL_SUBTEST(test_static_dims<ColMajor>());
   CALL_SUBTEST(test_static_dims<RowMajor>());
-  CALL_SUBTEST(test_innermost_last_dims<RowMajor>());
   CALL_SUBTEST(test_innermost_last_dims<ColMajor>());
-  CALL_SUBTEST(test_innermost_first_dims<RowMajor>());
+  CALL_SUBTEST(test_innermost_last_dims<RowMajor>());
   CALL_SUBTEST(test_innermost_first_dims<ColMajor>());
+  CALL_SUBTEST(test_innermost_first_dims<RowMajor>());
+  CALL_SUBTEST(test_reduce_middle_dims<ColMajor>());
+  CALL_SUBTEST(test_reduce_middle_dims<RowMajor>());
 }

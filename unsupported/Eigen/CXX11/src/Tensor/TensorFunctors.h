@@ -37,7 +37,11 @@ template <typename T> struct SumReducer
     return accum;
   }
   template <typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet finalizePacket(const Packet& vaccum) const {
+    return vaccum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
     return saccum + predux(vaccum);
   }
 };
@@ -45,16 +49,16 @@ template <typename T> struct SumReducer
 template <typename T> struct MeanReducer
 {
   static const bool PacketAccess = true;
-  MeanReducer() : count_(0) { }
+  MeanReducer() : scalarCount_(0), packetCount_(0) { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) {
     (*accum) += t;
-    count_++;
+    scalarCount_++;
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) {
     (*accum) = padd<Packet>(*accum, p);
-    count_ += packet_traits<Packet>::size;
+    packetCount_++;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
@@ -65,15 +69,20 @@ template <typename T> struct MeanReducer
     return pset1<Packet>(0);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
-    return accum / count_;
+    return accum / scalarCount_;
   }
   template <typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
-    return (saccum + predux(vaccum)) / count_;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet finalizePacket(const Packet& vaccum) const {
+    return pdiv(vaccum, pset1<Packet>(packetCount_));
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
+    return (saccum + predux(vaccum)) / (scalarCount_ + packetCount_ * packet_traits<Packet>::size);
   }
 
   protected:
-    int count_;
+    int scalarCount_;
+    int packetCount_;
 };
 
 template <typename T> struct MaxReducer
@@ -99,7 +108,11 @@ template <typename T> struct MaxReducer
     return accum;
   }
   template <typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet finalizePacket(const Packet& vaccum) const {
+    return vaccum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
     return (std::max)(saccum, predux_max(vaccum));
   }
 };
@@ -127,7 +140,11 @@ template <typename T> struct MinReducer
     return accum;
   }
   template <typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet finalizePacket(const Packet& vaccum) const {
+    return vaccum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
     return (std::min)(saccum, predux_min(vaccum));
   }
 };
@@ -156,7 +173,11 @@ template <typename T> struct ProdReducer
     return accum;
   }
   template <typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizePacket(const T saccum, const Packet& vaccum) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet finalizePacket(const Packet& vaccum) const {
+    return vaccum;
+  }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
     return saccum * predux_mul(vaccum);
   }
 };
