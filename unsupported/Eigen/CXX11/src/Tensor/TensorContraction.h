@@ -423,7 +423,7 @@ struct traits<TensorEvaluator<const TensorContractionOp<Indices_, LeftArgType_, 
 }  // end namespace internal
 
 template<typename Indices, typename LhsXprType, typename RhsXprType>
-class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXprType, RhsXprType> >
+class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXprType, RhsXprType>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorContractionOp>::Scalar Scalar;
