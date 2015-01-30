@@ -309,7 +309,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     // Functions 
     void initperfvalues()
     {
-      m_perfv.panel_size = 1;
+      m_perfv.panel_size = 16;
       m_perfv.relax = 1; 
       m_perfv.maxsuper = 128; 
       m_perfv.rowblk = 16; 
