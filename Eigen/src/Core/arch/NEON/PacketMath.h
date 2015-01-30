@@ -24,8 +24,8 @@ namespace internal {
 #define EIGEN_HAS_FUSED_MADD 1
 #endif
 
-#ifndef EIGEN_HAS_FUSE_CJMADD
-#define EIGEN_HAS_FUSE_CJMADD 1
+#ifndef EIGEN_HAS_FUSED_CJMADD
+#define EIGEN_HAS_FUSED_CJMADD
 #endif
 
 // FIXME NEON has 16 quad registers, but since the current register allocator

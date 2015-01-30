@@ -22,8 +22,8 @@ namespace internal {
 #define EIGEN_HAS_FUSED_MADD 1
 #endif
 
-#ifndef EIGEN_HAS_FUSE_CJMADD
-#define EIGEN_HAS_FUSE_CJMADD 1
+#ifndef EIGEN_HAS_FUSED_CJMADD
+#define EIGEN_HAS_FUSED_CJMADD
 #endif
 
 // NOTE Altivec has 32 registers, but Eigen only accepts a value of 8 or 16

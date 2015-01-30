@@ -120,8 +120,8 @@ inline void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n)
   computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n);
 }
 
-#ifdef EIGEN_HAS_FUSE_CJMADD
-  #define MADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
+#ifdef EIGEN_HAS_FUSED_CJMADD
+  #define CJMADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
 #else
 
   // FIXME (a bit overkill maybe ?)
@@ -146,8 +146,8 @@ inline void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n)
     gebp_madd_selector<CJ,A,B,C,T>::run(cj,a,b,c,t);
   }
 
-  #define MADD(CJ,A,B,C,T)  gebp_madd(CJ,A,B,C,T);
-//   #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = padd(C,T);
+  #define CJMADD(CJ,A,B,C,T)  gebp_madd(CJ,A,B,C,T);
+//   #define CJMADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = padd(C,T);
 #endif
 
 /* Vectorization logic
@@ -1402,13 +1402,13 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
               
               B_0 = blB[0];
               B_1 = blB[1];
-              MADD(cj,A0,B_0,C0,  B_0);
-              MADD(cj,A0,B_1,C1,  B_1);
+              CJMADD(cj,A0,B_0,C0,  B_0);
+              CJMADD(cj,A0,B_1,C1,  B_1);
               
               B_0 = blB[2];
               B_1 = blB[3];
-              MADD(cj,A0,B_0,C2,  B_0);
-              MADD(cj,A0,B_1,C3,  B_1);
+              CJMADD(cj,A0,B_0,C2,  B_0);
+              CJMADD(cj,A0,B_1,C3,  B_1);
               
               blB += 4;
             }
@@ -1434,7 +1434,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           {
             LhsScalar A0 = blA[k];
             RhsScalar B_0 = blB[k];
-            MADD(cj, A0, B_0, C0, B_0);
+            CJMADD(cj, A0, B_0, C0, B_0);
           }
           res[(j2+0)*resStride + i] += alpha*C0;
         }
