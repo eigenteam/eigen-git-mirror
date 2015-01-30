@@ -22,9 +22,9 @@ namespace internal {
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS (2*sizeof(void*))
 #endif
 
-#ifdef EIGEN_VECTORIZE_FMA
+#ifdef __FMA__
 #ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
-#define EIGEN_HAS_SINGLE_INSTRUCTION_MADD 1
+#define EIGEN_HAS_SINGLE_INSTRUCTION_MADD
 #endif
 #endif
 
