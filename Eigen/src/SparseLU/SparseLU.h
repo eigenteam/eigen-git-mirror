@@ -317,7 +317,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     // Functions 
     void initperfvalues()
     {
-      m_perfv.panel_size = 1;
+      m_perfv.panel_size = 16;
       m_perfv.relax = 1; 
       m_perfv.maxsuper = 128; 
       m_perfv.rowblk = 16; 
