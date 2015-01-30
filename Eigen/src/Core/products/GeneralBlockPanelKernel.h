@@ -760,31 +760,36 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            EIGEN_ASM_COMMENT("begin gegp micro kernel 3p x 4");
+            EIGEN_ASM_COMMENT("begin gebp micro kernel 3pX4");
             RhsPacket B_0, T0;
             LhsPacket A2;
 
 #define EIGEN_GEBGP_ONESTEP(K) \
-            internal::prefetch(blA+(3*K+16)*LhsProgress); \
-            traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
-            traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
-            traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
-            traits.loadRhs(&blB[(0+4*K)*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C0, T0); \
-            traits.madd(A1, B_0, C4, T0); \
-            traits.madd(A2, B_0, C8, B_0); \
-            traits.loadRhs(&blB[1+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C1, T0); \
-            traits.madd(A1, B_0, C5, T0); \
-            traits.madd(A2, B_0, C9, B_0); \
-            traits.loadRhs(&blB[2+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C2,  T0); \
-            traits.madd(A1, B_0, C6,  T0); \
-            traits.madd(A2, B_0, C10, B_0); \
-            traits.loadRhs(&blB[3+4*K*RhsProgress], B_0); \
-            traits.madd(A0, B_0, C3 , T0); \
-            traits.madd(A1, B_0, C7,  T0); \
-            traits.madd(A2, B_0, C11, B_0)
+            do { \
+              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 3pX4"); \
+              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
+              internal::prefetch(blA+(3*K+16)*LhsProgress); \
+              traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
+              traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
+              traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
+              traits.loadRhs(&blB[(0+4*K)*RhsProgress], B_0); \
+              traits.madd(A0, B_0, C0, T0); \
+              traits.madd(A1, B_0, C4, T0); \
+              traits.madd(A2, B_0, C8, B_0); \
+              traits.loadRhs(&blB[1+4*K*RhsProgress], B_0); \
+              traits.madd(A0, B_0, C1, T0); \
+              traits.madd(A1, B_0, C5, T0); \
+              traits.madd(A2, B_0, C9, B_0); \
+              traits.loadRhs(&blB[2+4*K*RhsProgress], B_0); \
+              traits.madd(A0, B_0, C2,  T0); \
+              traits.madd(A1, B_0, C6,  T0); \
+              traits.madd(A2, B_0, C10, B_0); \
+              traits.loadRhs(&blB[3+4*K*RhsProgress], B_0); \
+              traits.madd(A0, B_0, C3 , T0); \
+              traits.madd(A1, B_0, C7,  T0); \
+              traits.madd(A2, B_0, C11, B_0); \
+              EIGEN_ASM_COMMENT("end step of gebp micro kernel 3pX4"); \
+            } while(false)
         
             internal::prefetch(blB+(48+0));
             EIGEN_GEBGP_ONESTEP(0);
@@ -799,6 +804,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*4*RhsProgress;
             blA += pk*3*Traits::LhsProgress;
+
+            EIGEN_ASM_COMMENT("end gebp micro kernel 3pX4");
           }
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)
@@ -876,16 +883,21 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
           
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            EIGEN_ASM_COMMENT("begin gegp micro kernel 3p x 1");
+            EIGEN_ASM_COMMENT("begin gebp micro kernel 3pX1");
             RhsPacket B_0;
 #define EIGEN_GEBGP_ONESTEP(K) \
-            traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
-            traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
-            traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
-            traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);   \
-            traits.madd(A0, B_0, C0, B_0); \
-            traits.madd(A1, B_0, C4, B_0); \
-            traits.madd(A2, B_0, C8, B_0)
+            do { \
+              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 3pX1"); \
+              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
+              traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
+              traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
+              traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
+              traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);   \
+              traits.madd(A0, B_0, C0, B_0); \
+              traits.madd(A1, B_0, C4, B_0); \
+              traits.madd(A2, B_0, C8, B_0); \
+              EIGEN_ASM_COMMENT("end step of gebp micro kernel 3pX1"); \
+            } while(false)
         
             EIGEN_GEBGP_ONESTEP(0);
             EIGEN_GEBGP_ONESTEP(1);
@@ -898,6 +910,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*RhsProgress;
             blA += pk*3*Traits::LhsProgress;
+
+            EIGEN_ASM_COMMENT("end gebp micro kernel 3pX1");
           }
 
           // process remaining peeled loop
@@ -963,21 +977,26 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            EIGEN_ASM_COMMENT("begin gegp micro kernel 2pX4");
+            EIGEN_ASM_COMMENT("begin gebp micro kernel 2pX4");
             RhsPacket B_0, B1, B2, B3, T0;
 
    #define EIGEN_GEBGP_ONESTEP(K) \
-            traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);                    \
-            traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);                    \
-            traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
-            traits.madd(A0, B_0, C0, T0);                                     \
-            traits.madd(A1, B_0, C4, B_0);                                    \
-            traits.madd(A0, B1,  C1, T0);                                     \
-            traits.madd(A1, B1,  C5, B1);                                     \
-            traits.madd(A0, B2,  C2, T0);                                     \
-            traits.madd(A1, B2,  C6, B2);                                     \
-            traits.madd(A0, B3,  C3, T0);                                     \
-            traits.madd(A1, B3,  C7, B3)
+            do {                                                                \
+              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 2pX4");        \
+              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
+              traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);                    \
+              traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);                    \
+              traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
+              traits.madd(A0, B_0, C0, T0);                                     \
+              traits.madd(A1, B_0, C4, B_0);                                    \
+              traits.madd(A0, B1,  C1, T0);                                     \
+              traits.madd(A1, B1,  C5, B1);                                     \
+              traits.madd(A0, B2,  C2, T0);                                     \
+              traits.madd(A1, B2,  C6, B2);                                     \
+              traits.madd(A0, B3,  C3, T0);                                     \
+              traits.madd(A1, B3,  C7, B3);                                     \
+              EIGEN_ASM_COMMENT("end step of gebp micro kernel 2pX4");          \
+            } while(false)
             
             internal::prefetch(blB+(48+0));
             EIGEN_GEBGP_ONESTEP(0);
@@ -992,6 +1011,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*4*RhsProgress;
             blA += pk*(2*Traits::LhsProgress);
+
+            EIGEN_ASM_COMMENT("end gebp micro kernel 2pX4");
           }
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)
@@ -1054,15 +1075,20 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            EIGEN_ASM_COMMENT("begin gegp micro kernel 2p x 1");
+            EIGEN_ASM_COMMENT("begin gebp micro kernel 2pX1");
             RhsPacket B_0, B1;
         
 #define EIGEN_GEBGP_ONESTEP(K) \
-            traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);  \
-            traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);  \
-            traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);   \
-            traits.madd(A0, B_0, C0, B1);                   \
-            traits.madd(A1, B_0, C4, B_0)
+            do {                                                                  \
+              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 2pX1");          \
+              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
+              traits.loadLhs(&blA[(0+2*K)*LhsProgress], A0);                      \
+              traits.loadLhs(&blA[(1+2*K)*LhsProgress], A1);                      \
+              traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);                       \
+              traits.madd(A0, B_0, C0, B1);                                       \
+              traits.madd(A1, B_0, C4, B_0);                                      \
+              EIGEN_ASM_COMMENT("end step of gebp micro kernel 2pX1");            \
+            } while(false)
         
             EIGEN_GEBGP_ONESTEP(0);
             EIGEN_GEBGP_ONESTEP(1);
@@ -1075,6 +1101,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*RhsProgress;
             blA += pk*2*Traits::LhsProgress;
+
+            EIGEN_ASM_COMMENT("end gebp micro kernel 2pX1");
           }
 
           // process remaining peeled loop
@@ -1137,16 +1165,21 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            EIGEN_ASM_COMMENT("begin gegp micro kernel 1pX4");
+            EIGEN_ASM_COMMENT("begin gebp micro kernel 1pX4");
             RhsPacket B_0, B1, B2, B3;
                
 #define EIGEN_GEBGP_ONESTEP(K) \
-            traits.loadLhs(&blA[(0+1*K)*LhsProgress], A0);                    \
-            traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
-            traits.madd(A0, B_0, C0, B_0);                                    \
-            traits.madd(A0, B1,  C1, B1);                                     \
-            traits.madd(A0, B2,  C2, B2);                                     \
-            traits.madd(A0, B3,  C3, B3);
+            do {                                                                \
+              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 1pX4");        \
+              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
+              traits.loadLhs(&blA[(0+1*K)*LhsProgress], A0);                    \
+              traits.broadcastRhs(&blB[(0+4*K)*RhsProgress], B_0, B1, B2, B3);  \
+              traits.madd(A0, B_0, C0, B_0);                                    \
+              traits.madd(A0, B1,  C1, B1);                                     \
+              traits.madd(A0, B2,  C2, B2);                                     \
+              traits.madd(A0, B3,  C3, B3);                                     \
+              EIGEN_ASM_COMMENT("end step of gebp micro kernel 1pX4");          \
+            } while(false)
             
             internal::prefetch(blB+(48+0));
             EIGEN_GEBGP_ONESTEP(0);
@@ -1161,6 +1194,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*4*RhsProgress;
             blA += pk*1*LhsProgress;
+
+            EIGEN_ASM_COMMENT("end gebp micro kernel 1pX4");
           }
           // process remaining peeled loop
           for(Index k=peeled_kc; k<depth; k++)
@@ -1209,14 +1244,19 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            EIGEN_ASM_COMMENT("begin gegp micro kernel 2p x 1");
+            EIGEN_ASM_COMMENT("begin gebp micro kernel 2pX1");
             RhsPacket B_0;
         
 #define EIGEN_GEBGP_ONESTEP(K) \
-            traits.loadLhs(&blA[(0+1*K)*LhsProgress], A0);  \
-            traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);   \
-            traits.madd(A0, B_0, C0, B_0); \
-        
+            do {                                                                \
+              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 2pX1");        \
+              EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
+              traits.loadLhs(&blA[(0+1*K)*LhsProgress], A0);                    \
+              traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);                     \
+              traits.madd(A0, B_0, C0, B_0);                                    \
+              EIGEN_ASM_COMMENT("end step of gebp micro kernel 2pX1");          \
+            } while(false);
+
             EIGEN_GEBGP_ONESTEP(0);
             EIGEN_GEBGP_ONESTEP(1);
             EIGEN_GEBGP_ONESTEP(2);
@@ -1228,6 +1268,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,mr,nr,ConjugateLhs,ConjugateRhs>
 
             blB += pk*RhsProgress;
             blA += pk*1*Traits::LhsProgress;
+
+            EIGEN_ASM_COMMENT("end gebp micro kernel 2pX1");
           }
 
           // process remaining peeled loop

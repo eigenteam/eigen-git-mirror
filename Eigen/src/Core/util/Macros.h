@@ -160,6 +160,12 @@
   #define EIGEN_ARCH_ARM64 0
 #endif
 
+#if EIGEN_ARCH_ARM || EIGEN_ARCH_ARM64
+  #define EIGEN_ARCH_ARM_OR_ARM64 1
+#else
+  #define EIGEN_ARCH_ARM_OR_ARM64 0
+#endif
+
 /// \internal EIGEN_ARCH_MIPS set to 1 if the architecture is MIPS
 #if defined(__mips__) || defined(__mips)
   #define EIGEN_ARCH_MIPS 1
@@ -526,7 +532,7 @@ namespace Eigen {
 #define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
 
 #if !defined(EIGEN_ASM_COMMENT)
-  #if EIGEN_COMP_GNUC && EIGEN_ARCH_i386_OR_x86_64
+  #if EIGEN_COMP_GNUC && (EIGEN_ARCH_i386_OR_x86_64 || EIGEN_ARCH_ARM_OR_ARM64)
     #define EIGEN_ASM_COMMENT(X)  __asm__("#" X)
   #else
     #define EIGEN_ASM_COMMENT(X)
