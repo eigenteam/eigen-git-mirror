@@ -177,8 +177,19 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
   return pset1<Packet4i>(0);
 }
 
-// for some weird raisons, it has to be overloaded for packet of integers
+#ifdef __ARM_FEATURE_FMA
+// See bug 936.
+// FMA is available on VFPv4 i.e. when compiling with -mfpu=neon-vfpv4.
+// FMA is a true fused multiply-add i.e. only 1 rounding at the end, no intermediate rounding.
+// MLA is not fused i.e. does 2 roundings.
+// In addition to giving better accuracy, FMA also gives better performance here on a Krait (Nexus 4):
+// MLA: 10 GFlop/s ; FMA: 12 GFlops/s.
+template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vfmaq_f32(c,a,b); }
+#else
 template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vmlaq_f32(c,a,b); }
+#endif
+
+// No FMA instruction for int, so use MLA unconditionally.
 template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return vmlaq_s32(c,a,b); }
 
 template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b) { return vminq_f32(a,b); }
@@ -551,8 +562,12 @@ template<> EIGEN_STRONG_INLINE Packet2d pmul<Packet2d>(const Packet2d& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet2d pdiv<Packet2d>(const Packet2d& a, const Packet2d& b) { return vdivq_f64(a,b); }
 
-// for some weird raisons, it has to be overloaded for packet of integers
+#ifdef __ARM_FEATURE_FMA
+// See bug 936. See above comment about FMA for float.
+template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return vfmaq_f64(c,a,b); }
+#else
 template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return vmlaq_f64(c,a,b); }
+#endif
 
 template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const Packet2d& b) { return vminq_f64(a,b); }
 
