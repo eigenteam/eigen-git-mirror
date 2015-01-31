@@ -369,7 +369,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
 
     void resize(const DSizes<Index, NumIndices>& dimensions) {
       array<Index, NumIndices> dims;
-      for (int i = 0; i < NumIndices; ++i) {
+      for (std::size_t i = 0; i < NumIndices; ++i) {
         dims[i] = dimensions[i];
       }
       resize(dims);

@@ -93,7 +93,7 @@ struct Sizes : internal::numeric_list<std::size_t, Indices...> {
     // todo: add assertion
   }
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  template <typename... DenseIndex> Sizes(DenseIndex... indices) { }
+  template <typename... DenseIndex> Sizes(DenseIndex...) { }
   explicit Sizes(std::initializer_list<std::size_t> /*l*/) {
     // todo: add assertion
   }
@@ -333,7 +333,7 @@ static const size_t value = Sizes<Indices...>::count;
 template <typename std::size_t... Indices> struct array_size<Sizes<Indices...> > {
 static const size_t value = Sizes<Indices...>::count;
 };
-template <std::size_t n, typename std::size_t... Indices> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_get(const Sizes<Indices...>& a) {
+template <std::size_t n, typename std::size_t... Indices> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_get(const Sizes<Indices...>&) {
   return get<n, internal::numeric_list<std::size_t, Indices...> >::value;
 }
 #else
