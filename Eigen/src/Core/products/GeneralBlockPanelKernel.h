@@ -120,7 +120,7 @@ inline void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n)
   computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n);
 }
 
-#ifdef EIGEN_HAS_FUSED_CJMADD
+#ifdef EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
   #define CJMADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
 #else
 
@@ -182,7 +182,7 @@ public:
     nr = 4,
 
     // register block size along the M direction (currently, this one cannot be modified)
-#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
+#if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
     // we assume 16 registers
     mr = 3*LhsPacketSize,
 #else
@@ -248,7 +248,7 @@ public:
     // let gcc allocate the register in which to store the result of the pmul
     // (in the case where there is no FMA) gcc fails to figure out how to avoid
     // spilling register.
-#ifdef EIGEN_HAS_FUSED_MADD
+#ifdef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
     EIGEN_UNUSED_VARIABLE(tmp);
     c = pmadd(a,b,c);
 #else
@@ -290,7 +290,7 @@ public:
     
     NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
     nr = 4,
-#if defined(EIGEN_HAS_FUSED_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
+#if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
     // we assume 16 registers
     mr = 3*LhsPacketSize,
 #else
@@ -353,7 +353,7 @@ public:
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
-#ifdef EIGEN_HAS_FUSED_MADD
+#ifdef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
     EIGEN_UNUSED_VARIABLE(tmp);
     c.v = pmadd(a.v,b,c.v);
 #else
@@ -637,7 +637,7 @@ public:
 
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
-#ifdef EIGEN_HAS_FUSED_MADD
+#ifdef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
     EIGEN_UNUSED_VARIABLE(tmp);
     c.v = pmadd(a,b.v,c.v);
 #else

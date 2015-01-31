@@ -23,8 +23,8 @@ namespace internal {
 #endif
 
 #ifdef EIGEN_VECTORIZE_FMA
-#ifndef EIGEN_HAS_FUSED_MADD
-#define EIGEN_HAS_FUSED_MADD 1
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_MADD 1
 #endif
 #endif
 

@@ -20,12 +20,12 @@ namespace internal {
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
 
-#ifndef EIGEN_HAS_FUSED_MADD
-#define EIGEN_HAS_FUSED_MADD 1
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_MADD 1
 #endif
 
-#ifndef EIGEN_HAS_FUSED_CJMADD
-#define EIGEN_HAS_FUSED_CJMADD
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
 #endif
 
 // FIXME NEON has 16 quad registers, but since the current register allocator
