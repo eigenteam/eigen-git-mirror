@@ -129,7 +129,7 @@ struct InnerMostDimReducer<Self, Op, true> {
 
 template <int DimIndex, typename Self, typename Op, bool vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
 struct InnerMostDimPreserver {
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::PacketReturnType* accum) {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self&, typename Self::Index, Op&, typename Self::PacketReturnType*) {
     eigen_assert(false && "should never be called");
   }
 };

@@ -55,18 +55,6 @@ struct Initializer<Derived, 1> {
   }
 };
 
-template <typename Derived>
-struct Initializer<Derived, Dynamic> {
-  typedef std::initializer_list<typename traits<Derived>::Scalar> InitList;
-
-  static void run(TensorEvaluator<Derived, DefaultDevice>& tensor,
-                  Eigen::array<typename traits<Derived>::Index, traits<Derived>::NumDimensions>* indices,
-                  const InitList& vals) {
-    // Static initialization not implemented for VarDims tensors.
-    eigen_assert(false);
-  }
-};
-
 template <typename Derived, int N>
 void initialize_tensor(TensorEvaluator<Derived, DefaultDevice>& tensor,
                        const typename Initializer<Derived, traits<Derived>::NumDimensions>::InitList& vals) {
