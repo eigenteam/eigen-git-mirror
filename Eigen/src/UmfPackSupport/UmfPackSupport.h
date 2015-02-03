@@ -403,11 +403,22 @@ bool UmfPackLU<MatrixType>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBas
   eigen_assert(b.derived().data() != x.derived().data() && " Umfpack does not support inplace solve");
   
   int errorCode;
+  Scalar* x_ptr = 0;
+  Matrix<Scalar,Dynamic,1> x_tmp;
+  if(x.innerStride()!=1)
+  {
+    x_tmp.resize(x.rows());
+    x_ptr = x_tmp.data();
+  }
   for (int j=0; j<rhsCols; ++j)
   {
+    if(x.innerStride()==1)
+      x_ptr = &x.col(j).coeffRef(0);
     errorCode = umfpack_solve(UMFPACK_A,
         m_outerIndexPtr, m_innerIndexPtr, m_valuePtr,
-        &x.col(j).coeffRef(0), &b.const_cast_derived().col(j).coeffRef(0), m_numeric, 0, 0);
+        x_ptr, &b.const_cast_derived().col(j).coeffRef(0), m_numeric, 0, 0);
+    if(x.innerStride()!=1)
+      x.col(j) = x_tmp;
     if (errorCode!=0)
       return false;
   }
