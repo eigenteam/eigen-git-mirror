@@ -389,7 +389,7 @@ static void test_matrix_vector()
   m_result = m_left * m_right;
 
   for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
-    VERIFY_IS_APPROX(t_result(i), m_result(i, 0));
+    VERIFY(internal::isApprox(t_result(i), m_result(i, 0), 1));
   }
 }
 
@@ -399,6 +399,10 @@ static void test_tensor_vector()
 {
   Tensor<float, 3, DataLayout> t_left(7, 13, 17);
   Tensor<float, 2, DataLayout> t_right(1, 7);
+  
+  t_left.setRandom();
+  t_right.setRandom();
+  
   typedef typename Tensor<float, 1, DataLayout>::DimensionPair DimensionPair;
   Eigen::array<DimensionPair, 1> dim_pair01{{{0, 1}}};
   Tensor<float, 3, DataLayout> t_result = t_left.contract(t_right, dim_pair01);
@@ -409,7 +413,7 @@ static void test_tensor_vector()
   Eigen::Matrix<float, Dynamic, Dynamic, DataLayout> m_result = m_left.transpose() * m_right.transpose();
 
   for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
-    VERIFY_IS_APPROX(t_result(i), m_result(i, 0));
+    VERIFY(internal::isApprox(t_result(i), m_result(i, 0), 1));
   }
 }
 

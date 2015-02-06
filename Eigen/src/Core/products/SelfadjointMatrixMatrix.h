@@ -374,7 +374,7 @@ EIGEN_DONT_INLINE void product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,t
       {
         const Index actual_mc = (std::min)(i2+mc,k2)-i2;
         // transposed packed copy
-        pack_lhs_transposed(blockA, lhs_transpose.getSubMapper(k2, i2), actual_kc, actual_mc);
+        pack_lhs_transposed(blockA, lhs_transpose.getSubMapper(i2, k2), actual_kc, actual_mc);
 
         gebp_kernel(res.getSubMapper(i2, 0), blockA, blockB, actual_mc, actual_kc, cols, alpha);
       }
