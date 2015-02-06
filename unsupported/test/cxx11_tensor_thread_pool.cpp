@@ -15,6 +15,7 @@
 #include <Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
+using std::isnan;
 
 static void test_multithread_elementwise()
 {
