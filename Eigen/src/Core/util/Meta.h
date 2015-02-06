@@ -274,18 +274,6 @@ template<typename T> struct scalar_product_traits<std::complex<T>, T>
 // typedef typename scalar_product_traits<typename remove_all<ArgType0>::type, typename remove_all<ArgType1>::type>::ReturnType type;
 // };
 
-template<typename T> struct is_diagonal
-{ enum { ret = false }; };
-
-template<typename T> struct is_diagonal<DiagonalBase<T> >
-{ enum { ret = true }; };
-
-template<typename T> struct is_diagonal<DiagonalWrapper<T> >
-{ enum { ret = true }; };
-
-template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
-{ enum { ret = true }; };
-
 } // end namespace internal
 
 namespace numext {

@@ -12,7 +12,7 @@
 #define EIGEN_MAPBASE_H
 
 #define EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS(Derived) \
-      EIGEN_STATIC_ASSERT((int(internal::traits<Derived>::Flags) & LinearAccessBit) || Derived::IsVectorAtCompileTime, \
+      EIGEN_STATIC_ASSERT((int(internal::evaluator<Derived>::Flags) & LinearAccessBit) || Derived::IsVectorAtCompileTime, \
                           YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT)
 
 namespace Eigen { 
@@ -85,7 +85,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       *
       * \sa innerStride(), outerStride()
       */
-    inline const Scalar* data() const { return m_data; }
+    EIGEN_DEVICE_FUNC inline const Scalar* data() const { return m_data; }
 
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeff(Index rowId, Index colId) const
@@ -128,7 +128,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
-    inline MapBase(PointerType dataPtr) : m_data(dataPtr), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
+    explicit inline MapBase(PointerType dataPtr) : m_data(dataPtr), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
     {
       EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
       checkSanity();
@@ -161,11 +161,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     EIGEN_DEVICE_FUNC
     void checkSanity() const
     {
-      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(internal::traits<Derived>::Flags&PacketAccessBit,
-                                        internal::inner_stride_at_compile_time<Derived>::ret==1),
-                          PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
-      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::Flags&AlignedBit, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0)
-                   && "data is not aligned");
+      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::IsAligned, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
     }
 
     PointerType m_data;
@@ -176,6 +172,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
 template<typename Derived> class MapBase<Derived, WriteAccessors>
   : public MapBase<Derived, ReadOnlyAccessors>
 {
+    typedef MapBase<Derived, ReadOnlyAccessors> ReadOnlyMapBase;
   public:
 
     typedef MapBase<Derived, ReadOnlyAccessors> Base;
@@ -243,11 +240,13 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
     EIGEN_DEVICE_FUNC
     Derived& operator=(const MapBase& other)
     {
-      Base::Base::operator=(other);
+      ReadOnlyMapBase::Base::operator=(other);
       return derived();
     }
 
-    using Base::Base::operator=;
+    // In theory we could simply refer to Base:Base::operator=, but MSVC does not like Base::Base,
+    // see bugs 821 and 920.
+    using ReadOnlyMapBase::Base::operator=;
 };
 
 #undef EIGEN_STATIC_ASSERT_INDEX_BASED_ACCESS

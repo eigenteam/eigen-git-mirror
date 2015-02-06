@@ -27,8 +27,11 @@ namespace Eigen {
  */
 
 template <typename Scalar, int _UpLo = Lower, typename _OrderingType = NaturalOrdering<int> >
-class IncompleteCholesky : internal::noncopyable
+class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_UpLo,_OrderingType> >
 {
+  protected:
+    typedef SparseSolverBase<IncompleteCholesky<Scalar,_UpLo,_OrderingType> > Base;
+    using Base::m_isInitialized;
   public:
     typedef SparseMatrix<Scalar,ColMajor> MatrixType;
     typedef _OrderingType OrderingType;
@@ -89,7 +92,7 @@ class IncompleteCholesky : internal::noncopyable
     }
     
     template<typename Rhs, typename Dest>
-    void _solve(const Rhs& b, Dest& x) const
+    void _solve_impl(const Rhs& b, Dest& x) const
     {
       eigen_assert(m_factorizationIsOk && "factorize() should be called first");
       if (m_perm.rows() == b.rows())
@@ -103,22 +106,13 @@ class IncompleteCholesky : internal::noncopyable
         x = m_perm * x;
       x = m_scal.asDiagonal() * x;
     }
-    template<typename Rhs> inline const internal::solve_retval<IncompleteCholesky, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_factorizationIsOk && "IncompleteLLT did not succeed");
-      eigen_assert(m_isInitialized && "IncompleteLLT is not initialized.");
-      eigen_assert(cols()==b.rows()
-                && "IncompleteLLT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<IncompleteCholesky, Rhs>(*this, b.derived());
-    }
+
   protected:
     SparseMatrix<Scalar,ColMajor> m_L;  // The lower part stored in CSC
     ScalarType m_scal; // The vector for scaling the matrix 
     Scalar m_shift; //The initial shift parameter
     bool m_analysisIsOk; 
     bool m_factorizationIsOk; 
-    bool m_isInitialized;
     ComputationInfo m_info;
     PermutationType m_perm; 
     
@@ -132,7 +126,6 @@ template<typename _MatrixType>
 void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType& mat)
 {
   using std::sqrt;
-  using std::min;
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
     
   // Dropping strategies : Keep only the p largest elements per column, where p is the number of elements in the column of the original matrix. Other strategies will be added
@@ -166,7 +159,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   for (int j = 0; j < n; j++){
     for (int k = colPtr[j]; k < colPtr[j+1]; k++)
      vals[k] /= (m_scal(j) * m_scal(rowIdx[k]));
-    mindiag = (min)(vals[colPtr[j]], mindiag);
+    mindiag = numext::mini(vals[colPtr[j]], mindiag);
   }
   
   if(mindiag < Scalar(0.)) m_shift = m_shift - mindiag;
@@ -256,22 +249,6 @@ inline void IncompleteCholesky<Scalar,_UpLo, OrderingType>::updateList(const Idx
     listCol[rowIdx(jk)].push_back(col);
   }
 }
-namespace internal {
-
-template<typename _Scalar, int _UpLo, typename OrderingType, typename Rhs>
-struct solve_retval<IncompleteCholesky<_Scalar,  _UpLo, OrderingType>, Rhs>
-  : solve_retval_base<IncompleteCholesky<_Scalar, _UpLo, OrderingType>, Rhs>
-{
-  typedef IncompleteCholesky<_Scalar, _UpLo, OrderingType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen 
 

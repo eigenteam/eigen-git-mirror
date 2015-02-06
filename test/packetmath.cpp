@@ -156,7 +156,7 @@ template<typename Scalar> void packetmath()
   CHECK_CWISE2(REF_ADD,  internal::padd);
   CHECK_CWISE2(REF_SUB,  internal::psub);
   CHECK_CWISE2(REF_MUL,  internal::pmul);
-  #ifndef EIGEN_VECTORIZE_ALTIVEC
+  #if !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
   if (!internal::is_same<Scalar,int>::value)
     CHECK_CWISE2(REF_DIV,  internal::pdiv);
   #endif
@@ -313,6 +313,12 @@ template<typename Scalar> void packetmath_real()
     data2[i] = internal::random<Scalar>(-87,88);
   }
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasExp, std::exp, internal::pexp);
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasExp,Packet> h;
+    h.store(data2, internal::pexp(h.load(data1))); 
+    VERIFY(isNaN(data2[0]));
+  }
 
   for (int i=0; i<size; ++i)
   {
@@ -321,8 +327,22 @@ template<typename Scalar> void packetmath_real()
   }
   if(internal::random<float>(0,1)<0.1)
     data1[internal::random<int>(0, PacketSize)] = 0;
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, std::sqrt, internal::psqrt);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasLog,Packet> h;
+    h.store(data2, internal::plog(h.load(data1)));
+    VERIFY(isNaN(data2[0]));
+    data1[0] = -1.0f;
+    h.store(data2, internal::plog(h.load(data1)));
+    VERIFY(isNaN(data2[0]));
+#if !EIGEN_FAST_MATH
+    h.store(data2, internal::psqrt(h.load(data1)));
+    VERIFY(isNaN(data2[0]));
+    VERIFY(isNaN(data2[1]));
+#endif
+  }
 }
 
 template<typename Scalar> void packetmath_notcomplex()

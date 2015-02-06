@@ -91,7 +91,7 @@ template<typename _MatrixType> class HouseholderQR
       * 
       * \sa compute()
       */
-    HouseholderQR(const MatrixType& matrix)
+    explicit HouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs((std::min)(matrix.rows(),matrix.cols())),
         m_temp(matrix.cols()),
@@ -118,11 +118,11 @@ template<typename _MatrixType> class HouseholderQR
       * Output: \verbinclude HouseholderQR_solve.out
       */
     template<typename Rhs>
-    inline const internal::solve_retval<HouseholderQR, Rhs>
+    inline const Solve<HouseholderQR, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "HouseholderQR is not initialized.");
-      return internal::solve_retval<HouseholderQR, Rhs>(*this, b.derived());
+      return Solve<HouseholderQR, Rhs>(*this, b.derived());
     }
 
     /** This method returns an expression of the unitary matrix Q as a sequence of Householder transformations.
@@ -187,6 +187,12 @@ template<typename _MatrixType> class HouseholderQR
       * For advanced uses only.
       */
     const HCoeffsType& hCoeffs() const { return m_hCoeffs; }
+    
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl(const RhsType &rhs, DstType &dst) const;
+    #endif
 
   protected:
     MatrixType m_qr;
@@ -283,8 +289,8 @@ struct householder_qr_inplace_blocked
     for (k = 0; k < size; k += blockSize)
     {
       Index bs = (std::min)(size-k,blockSize);  // actual size of the block
-      Index tcols = cols - k - bs;            // trailing columns
-      Index brows = rows-k;                   // rows of the block
+      Index tcols = cols - k - bs;              // trailing columns
+      Index brows = rows-k;                     // rows of the block
 
       // partition the matrix:
       //        A00 | A01 | A02
@@ -302,43 +308,38 @@ struct householder_qr_inplace_blocked
       if(tcols)
       {
         BlockType A21_22 = mat.block(k,k+bs,brows,tcols);
-        apply_block_householder_on_the_left(A21_22,A11_21,hCoeffsSegment.adjoint());
+        apply_block_householder_on_the_left(A21_22,A11_21,hCoeffsSegment, false); // false == backward
       }
     }
   }
 };
 
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<HouseholderQR<_MatrixType>, Rhs>
-  : solve_retval_base<HouseholderQR<_MatrixType>, Rhs>
-{
-  EIGEN_MAKE_SOLVE_HELPERS(HouseholderQR<_MatrixType>,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    const Index rows = dec().rows(), cols = dec().cols();
-    const Index rank = (std::min)(rows, cols);
-    eigen_assert(rhs().rows() == rows);
-
-    typename Rhs::PlainObject c(rhs());
-
-    // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
-    c.applyOnTheLeft(householderSequence(
-      dec().matrixQR().leftCols(rank),
-      dec().hCoeffs().head(rank)).transpose()
-    );
-
-    dec().matrixQR()
-       .topLeftCorner(rank, rank)
-       .template triangularView<Upper>()
-       .solveInPlace(c.topRows(rank));
-
-    dst.topRows(rank) = c.topRows(rank);
-    dst.bottomRows(cols-rank).setZero();
-  }
-};
-
 } // end namespace internal
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+template<typename _MatrixType>
+template<typename RhsType, typename DstType>
+void HouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
+{
+  const Index rank = (std::min)(rows(), cols());
+  eigen_assert(rhs.rows() == rows());
+
+  typename RhsType::PlainObject c(rhs);
+
+  // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
+  c.applyOnTheLeft(householderSequence(
+    m_qr.leftCols(rank),
+    m_hCoeffs.head(rank)).transpose()
+  );
+
+  m_qr.topLeftCorner(rank, rank)
+      .template triangularView<Upper>()
+      .solveInPlace(c.topRows(rank));
+
+  dst.topRows(rank) = c.topRows(rank);
+  dst.bottomRows(cols()-rank).setZero();
+}
+#endif
 
 /** Performs the QR factorization of the given matrix \a matrix. The result of
   * the factorization is stored into \c *this, and a reference to \c *this

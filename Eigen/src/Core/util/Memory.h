@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2009 Kenneth Riddile <kfriddile@yahoo.com>
 // Copyright (C) 2010 Hauke Heibel <hauke.heibel@gmail.com>
@@ -42,15 +42,15 @@
 //   See http://svn.freebsd.org/viewvc/base/stable/6/lib/libc/stdlib/malloc.c?view=markup
 // FreeBSD 7 seems to have 16-byte aligned malloc except on ARM and MIPS architectures
 //   See http://svn.freebsd.org/viewvc/base/stable/7/lib/libc/stdlib/malloc.c?view=markup
-#if defined(__FreeBSD__) && !defined(__arm__) && !defined(__mips__) && (EIGEN_ALIGN_BYTES == 16)
+#if defined(__FreeBSD__) && !(EIGEN_ARCH_ARM || EIGEN_ARCH_MIPS) && (EIGEN_ALIGN_BYTES == 16)
   #define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 0
 #endif
 
-#if (defined(__APPLE__) && (EIGEN_ALIGN_BYTES == 16)) \
- || (defined(_WIN64) && (EIGEN_ALIGN_BYTES == 16))   \
- || EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED \
+#if (EIGEN_OS_MAC && (EIGEN_ALIGN_BYTES == 16))     \
+ || (EIGEN_OS_WIN64 && (EIGEN_ALIGN_BYTES == 16))   \
+ || EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED              \
  || EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
@@ -62,9 +62,9 @@
 // See bug 554 (http://eigen.tuxfamily.org/bz/show_bug.cgi?id=554)
 // It seems to be unsafe to check _POSIX_ADVISORY_INFO without including unistd.h first.
 // Currently, let's include it only on unix systems:
-#if defined(__unix__) || defined(__unix)
+#if EIGEN_OS_UNIX
   #include <unistd.h>
-  #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || (defined __PGI) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
+  #if (EIGEN_OS_QNX || (defined _GNU_SOURCE) || EIGEN_COMP_PGI || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
     #define EIGEN_HAS_POSIX_MEMALIGN 1
   #endif
 #endif
@@ -224,7 +224,7 @@ inline void* aligned_malloc(size_t size)
     if(posix_memalign(&result, EIGEN_ALIGN_BYTES, size)) result = 0;
   #elif EIGEN_HAS_MM_MALLOC
     result = _mm_malloc(size, EIGEN_ALIGN_BYTES);
-  #elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
+  #elif EIGEN_OS_WIN_STRICT
     result = _aligned_malloc(size, EIGEN_ALIGN_BYTES);
   #else
     result = handmade_aligned_malloc(size);
@@ -247,7 +247,7 @@ inline void aligned_free(void *ptr)
     std::free(ptr);
   #elif EIGEN_HAS_MM_MALLOC
     _mm_free(ptr);
-  #elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
+  #elif EIGEN_OS_WIN_STRICT
     _aligned_free(ptr);
   #else
     handmade_aligned_free(ptr);
@@ -274,12 +274,12 @@ inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
   // The defined(_mm_free) is just here to verify that this MSVC version
   // implements _mm_malloc/_mm_free based on the corresponding _aligned_
   // functions. This may not always be the case and we just try to be safe.
-  #if defined(_MSC_VER) && (!defined(_WIN32_WCE)) && defined(_mm_free)
+  #if EIGEN_OS_WIN_STRICT && defined(_mm_free)
     result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN_BYTES);
   #else
     result = generic_aligned_realloc(ptr,new_size,old_size);
   #endif
-#elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
+#elif EIGEN_OS_WIN_STRICT
   result = _aligned_realloc(ptr,new_size,EIGEN_ALIGN_BYTES);
 #else
   result = handmade_aligned_realloc(ptr,new_size,old_size);
@@ -454,6 +454,8 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
 
 template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t size)
 {
+  if(size==0)
+    return 0; // short-cut. Also fixes Bug 884
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
   if(NumTraits<T>::RequireInitialization)
@@ -521,9 +523,8 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
 template<typename Scalar, typename Index>
 inline Index first_aligned(const Scalar* array, Index size)
 {
-  enum { PacketSize = packet_traits<Scalar>::size,
-         PacketAlignedMask = PacketSize-1
-  };
+  static const Index PacketSize = packet_traits<Scalar>::size;
+  static const Index PacketAlignedMask = PacketSize-1;
 
   if(PacketSize==1)
   {
@@ -576,27 +577,27 @@ template<typename T, bool UseMemmove> struct smart_memmove_helper;
 
 template<typename T> void smart_memmove(const T* start, const T* end, T* target)
 {
-    smart_memmove_helper<T,!NumTraits<T>::RequireInitialization>::run(start, end, target);
+  smart_memmove_helper<T,!NumTraits<T>::RequireInitialization>::run(start, end, target);
 }
 
 template<typename T> struct smart_memmove_helper<T,true> {
-    static inline void run(const T* start, const T* end, T* target)
-    { std::memmove(target, start, std::ptrdiff_t(end)-std::ptrdiff_t(start)); }
+  static inline void run(const T* start, const T* end, T* target)
+  { std::memmove(target, start, std::ptrdiff_t(end)-std::ptrdiff_t(start)); }
 };
 
 template<typename T> struct smart_memmove_helper<T,false> {
-    static inline void run(const T* start, const T* end, T* target)
-    { 
-        if (uintptr_t(target) < uintptr_t(start))
-        {
-            std::copy(start, end, target);
-        }
-        else                                 
-        {
-            std::ptrdiff_t count = (std::ptrdiff_t(end)-std::ptrdiff_t(start)) / sizeof(T);
-            std::copy_backward(start, end, target + count); 
-        }
+  static inline void run(const T* start, const T* end, T* target)
+  { 
+    if (uintptr_t(target) < uintptr_t(start))
+    {
+      std::copy(start, end, target);
     }
+    else                                 
+    {
+      std::ptrdiff_t count = (std::ptrdiff_t(end)-std::ptrdiff_t(start)) / sizeof(T);
+      std::copy_backward(start, end, target + count); 
+    }
+  }
 };
 
 
@@ -607,16 +608,16 @@ template<typename T> struct smart_memmove_helper<T,false> {
 // you can overwrite Eigen's default behavior regarding alloca by defining EIGEN_ALLOCA
 // to the appropriate stack allocation function
 #ifndef EIGEN_ALLOCA
-  #if (defined __linux__) || (defined __APPLE__) || (defined alloca)
+  #if EIGEN_OS_LINUX || EIGEN_OS_MAC || (defined alloca)
     #define EIGEN_ALLOCA alloca
-  #elif defined(_MSC_VER)
+  #elif EIGEN_COMP_MSVC
     #define EIGEN_ALLOCA _alloca
   #endif
 #endif
 
 // This helper class construct the allocated memory, and takes care of destructing and freeing the handled data
 // at destruction time. In practice this helper class is mainly useful to avoid memory leak in case of exceptions.
-template<typename T> class aligned_stack_memory_handler
+template<typename T> class aligned_stack_memory_handler : noncopyable
 {
   public:
     /* Creates a stack_memory_handler responsible for the buffer \a ptr of size \a size.
@@ -644,6 +645,30 @@ template<typename T> class aligned_stack_memory_handler
     bool m_deallocate;
 };
 
+template<typename T> class scoped_array : noncopyable
+{
+  T* m_ptr;
+public:
+  explicit scoped_array(std::ptrdiff_t size)
+  {
+    m_ptr = new T[size];
+  }
+  ~scoped_array()
+  {
+    delete[] m_ptr;
+  }
+  T& operator[](std::ptrdiff_t i) { return m_ptr[i]; }
+  const T& operator[](std::ptrdiff_t i) const { return m_ptr[i]; }
+  T* &ptr() { return m_ptr; }
+  const T* ptr() const { return m_ptr; }
+  operator const T*() const { return m_ptr; }
+};
+
+template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
+{
+  std::swap(a.ptr(),b.ptr());
+}
+    
 } // end namespace internal
 
 /** \internal
@@ -786,12 +811,12 @@ public:
 //---------- Cache sizes ----------
 
 #if !defined(EIGEN_NO_CPUID)
-#  if defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
-#    if defined(__PIC__) && defined(__i386__)
+#  if EIGEN_COMP_GNUC && EIGEN_ARCH_i386_OR_x86_64
+#    if defined(__PIC__) && EIGEN_ARCH_i386
        // Case for x86 with PIC
 #      define EIGEN_CPUID(abcd,func,id) \
          __asm__ __volatile__ ("xchgl %%ebx, %k1;cpuid; xchgl %%ebx,%k1": "=a" (abcd[0]), "=&r" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
-#    elif defined(__PIC__) && defined(__x86_64__)
+#    elif defined(__PIC__) && EIGEN_ARCH_x86_64
        // Case for x64 with PIC. In theory this is only a problem with recent gcc and with medium or large code model, not with the default small code model.
        // However, we cannot detect which code model is used, and the xchg overhead is negligible anyway.
 #      define EIGEN_CPUID(abcd,func,id) \
@@ -801,8 +826,8 @@ public:
 #      define EIGEN_CPUID(abcd,func,id) \
          __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "0" (func), "2" (id) );
 #    endif
-#  elif defined(_MSC_VER)
-#    if (_MSC_VER > 1500) && ( defined(_M_IX86) || defined(_M_X64) )
+#  elif EIGEN_COMP_MSVC
+#    if (EIGEN_COMP_MSVC > 1500) && EIGEN_ARCH_i386_OR_x86_64
 #      define EIGEN_CPUID(abcd,func,id) __cpuidex((int*)abcd,func,id)
 #    endif
 #  endif

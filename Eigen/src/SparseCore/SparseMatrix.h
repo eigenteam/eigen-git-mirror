@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -52,13 +52,12 @@ struct traits<SparseMatrix<_Scalar, _Options, _Index> >
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
     Flags = _Options | NestByRefBit | LvalueBit,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
 
 template<typename _Scalar, int _Options, typename _Index, int DiagIndex>
-struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
+struct traits<Diagonal<SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
 {
   typedef SparseMatrix<_Scalar, _Options, _Index> MatrixType;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
@@ -74,8 +73,16 @@ struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex>
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = 1,
-    Flags = 0,
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost*10
+    Flags = LvalueBit
+  };
+};
+
+template<typename _Scalar, int _Options, typename _Index, int DiagIndex>
+struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
+ : public traits<Diagonal<SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
+{
+  enum {
+    Flags = 0
   };
 };
 
@@ -91,6 +98,10 @@ class SparseMatrix
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
+    typedef Diagonal<SparseMatrix> DiagonalReturnType;
+    typedef Diagonal<const SparseMatrix> ConstDiagonalReturnType;
+    
+
     using Base::IsRowMajor;
     typedef internal::CompressedStorage<Scalar,Index> Storage;
     enum {
@@ -274,7 +285,7 @@ class SparseMatrix
     }
     template<class SizesType>
     inline void reserve(const SizesType& reserveSizes, const typename SizesType::Scalar& enableif =
-    #if (!defined(_MSC_VER)) || (_MSC_VER>=1500) // MSVC 2005 fails to compile with this typename
+    #if (!EIGEN_COMP_MSVC) || (EIGEN_COMP_MSVC>=1500) // MSVC 2005 fails to compile with this typename
         typename
     #endif
         SizesType::Scalar())
@@ -622,8 +633,14 @@ class SparseMatrix
       m_data.resize(size);
     }
 
-    /** \returns a const expression of the diagonal coefficients */
-    const Diagonal<const SparseMatrix> diagonal() const { return *this; }
+    /** \returns a const expression of the diagonal coefficients. */
+    const ConstDiagonalReturnType diagonal() const { return ConstDiagonalReturnType(*this); }
+    
+    /** \returns a read-write expression of the diagonal coefficients.
+      * \warning If the diagonal entries are written, then all diagonal
+      * entries \b must already exist, otherwise an assertion will be raised.
+      */
+    DiagonalReturnType diagonal() { return DiagonalReturnType(*this); }
 
     /** Default constructor yielding an empty \c 0 \c x \c 0 matrix */
     inline SparseMatrix()
@@ -649,7 +666,9 @@ class SparseMatrix
       EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       check_template_parameters();
-      *this = other.derived();
+      const bool needToTranspose = (Flags & RowMajorBit) != (internal::evaluator<OtherDerived>::Flags & RowMajorBit);
+      if (needToTranspose)  *this = other.derived();
+      else                  internal::call_assignment_no_alias(*this, other.derived());
     }
     
     /** Constructs a sparse matrix from the sparse selfadjoint view \a other */
@@ -658,7 +677,7 @@ class SparseMatrix
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
       check_template_parameters();
-      *this = other;
+      Base::operator=(other);
     }
 
     /** Copy constructor (it performs a deep copy) */
@@ -722,22 +741,11 @@ class SparseMatrix
       return *this;
     }
 
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
-    template<typename Lhs, typename Rhs>
-    inline SparseMatrix& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
-    { return Base::operator=(product); }
-    
-    template<typename OtherDerived>
-    inline SparseMatrix& operator=(const ReturnByValue<OtherDerived>& other)
-    {
-      initAssignment(other);
-      return Base::operator=(other.derived());
-    }
-    
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
     { return Base::operator=(other.derived()); }
-    #endif
+#endif // EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other);
@@ -898,6 +906,11 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
     const Index m_outer;
     Index m_id;
     Index m_end;
+  private:
+    // If you get here, then you're not using the right InnerIterator type, e.g.:
+    //   SparseMatrix<double,RowMajor> A;
+    //   SparseMatrix<double>::InnerIterator it(A,0);
+    template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer);
 };
 
 template<typename Scalar, int _Options, typename _Index>
@@ -1061,17 +1074,19 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
 {
   EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-  
-  const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
+
+  const bool needToTranspose = (Flags & RowMajorBit) != (internal::evaluator<OtherDerived>::Flags & RowMajorBit);
   if (needToTranspose)
   {
     // two passes algorithm:
     //  1 - compute the number of coeffs per dest inner vector
     //  2 - do the actual copy/eval
     // Since each coeff of the rhs has to be evaluated twice, let's evaluate it if needed
-    typedef typename internal::nested<OtherDerived,2>::type OtherCopy;
+    typedef typename internal::nested_eval<OtherDerived,2,typename internal::plain_matrix_type<OtherDerived>::type >::type OtherCopy;
     typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
+    typedef internal::evaluator<_OtherCopy> OtherCopyEval;
     OtherCopy otherCopy(other.derived());
+    OtherCopyEval otherCopyEval(otherCopy);
 
     SparseMatrix dest(other.rows(),other.cols());
     Eigen::Map<Matrix<Index, Dynamic, 1> > (dest.m_outerIndex,dest.outerSize()).setZero();
@@ -1079,7 +1094,7 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
     // pass 1
     // FIXME the above copy could be merged with that pass
     for (Index j=0; j<otherCopy.outerSize(); ++j)
-      for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
+      for (typename OtherCopyEval::InnerIterator it(otherCopyEval, j); it; ++it)
         ++dest.m_outerIndex[it.index()];
 
     // prefix sum
@@ -1098,7 +1113,7 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
     // pass 2
     for (Index j=0; j<otherCopy.outerSize(); ++j)
     {
-      for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
+      for (typename OtherCopyEval::InnerIterator it(otherCopyEval, j); it; ++it)
       {
         Index pos = positions[it.index()]++;
         dest.m_data.index(pos) = j;
@@ -1111,7 +1126,9 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
   else
   {
     if(other.isRValue())
+    {
       initAssignment(other.derived());
+    }
     // there is no special optimization
     return Base::operator=(other.derived());
   }
@@ -1254,6 +1271,53 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& Sparse
 
   m_data.index(p) = inner;
   return (m_data.value(p) = 0);
+}
+
+namespace internal {
+
+template<typename _Scalar, int _Options, typename _Index>
+struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
+  : evaluator_base<SparseMatrix<_Scalar,_Options,_Index> >
+{
+  typedef _Scalar Scalar;
+  typedef _Index Index;
+  typedef SparseMatrix<_Scalar,_Options,_Index> SparseMatrixType;
+  typedef typename SparseMatrixType::InnerIterator InnerIterator;
+  typedef typename SparseMatrixType::ReverseInnerIterator ReverseInnerIterator;
+  
+  enum {
+    CoeffReadCost = NumTraits<_Scalar>::ReadCost,
+    Flags = SparseMatrixType::Flags
+  };
+  
+  evaluator() : m_matrix(0) {}
+  explicit evaluator(const SparseMatrixType &mat) : m_matrix(&mat) {}
+  
+  operator SparseMatrixType&() { return m_matrix->const_cast_derived(); }
+  operator const SparseMatrixType&() const { return *m_matrix; }
+  
+  typedef typename DenseCoeffsBase<SparseMatrixType,ReadOnlyAccessors>::CoeffReturnType CoeffReturnType;
+  Scalar coeff(Index row, Index col) const
+  { return m_matrix->coeff(row,col); }
+  
+  Scalar& coeffRef(Index row, Index col)
+  {
+    eigen_internal_assert(row>=0 && row<m_matrix->rows() && col>=0 && col<m_matrix->cols());
+      
+    const Index outer = SparseMatrixType::IsRowMajor ? row : col;
+    const Index inner = SparseMatrixType::IsRowMajor ? col : row;
+
+    Index start = m_matrix->outerIndexPtr()[outer];
+    Index end = m_matrix->isCompressed() ? m_matrix->outerIndexPtr()[outer+1] : m_matrix->outerIndexPtr()[outer] + m_matrix->innerNonZeroPtr()[outer];
+    eigen_assert(end>start && "you are using a non finalized sparse matrix or written coefficient does not exist");
+    const Index p = m_matrix->data().searchLowerIndex(start,end-1,inner);
+    eigen_assert((p<end) && (m_matrix->data().index(p)==inner) && "written coefficient does not exist");
+    return m_matrix->const_cast_derived().data().value(p);
+  }
+
+  const SparseMatrixType *m_matrix;
+};
+
 }
 
 } // end namespace Eigen

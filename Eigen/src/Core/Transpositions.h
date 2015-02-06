@@ -240,7 +240,7 @@ class Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndexTyp
     typedef typename IndicesType::Scalar StorageIndexType;
     typedef typename IndicesType::Index  Index;
 
-    inline Map(const StorageIndexType* indicesPtr)
+    explicit inline Map(const StorageIndexType* indicesPtr)
       : m_indices(indicesPtr)
     {}
 
@@ -299,7 +299,7 @@ class TranspositionsWrapper
     typedef typename IndicesType::Scalar StorageIndexType;
     typedef typename IndicesType::Index  Index;
 
-    inline TranspositionsWrapper(IndicesType& a_indices)
+    explicit inline TranspositionsWrapper(IndicesType& a_indices)
       : m_indices(a_indices)
     {}
 
@@ -414,7 +414,7 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
     typedef typename TranspositionType::IndicesType IndicesType;
   public:
 
-    Transpose(const TranspositionType& t) : m_transpositions(t) {}
+    explicit Transpose(const TranspositionType& t) : m_transpositions(t) {}
 
     inline int size() const { return m_transpositions.size(); }
 

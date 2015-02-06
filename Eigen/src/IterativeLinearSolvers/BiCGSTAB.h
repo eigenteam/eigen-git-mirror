@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -143,7 +143,7 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * step execution example starting with a random guess and printing the evolution
   * of the estimated error:
   * \include BiCGSTAB_step_by_step.cpp
-  * Note that such a step by step excution is slightly slower.
+  * Note that such a step by step execution is slightly slower.
   * 
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
@@ -178,29 +178,13 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  BiCGSTAB(const MatrixType& A) : Base(A) {}
+  explicit BiCGSTAB(const MatrixType& A) : Base(A) {}
 
   ~BiCGSTAB() {}
-  
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
-    * \a x0 as an initial solution.
-    *
-    * \sa compute()
-    */
-  template<typename Rhs,typename Guess>
-  inline const internal::solve_retval_with_guess<BiCGSTAB, Rhs, Guess>
-  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
-  {
-    eigen_assert(m_isInitialized && "BiCGSTAB is not initialized.");
-    eigen_assert(Base::rows()==b.rows()
-              && "BiCGSTAB::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::solve_retval_with_guess
-            <BiCGSTAB, Rhs, Guess>(*this, b.derived(), x0);
-  }
-  
+
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solveWithGuess(const Rhs& b, Dest& x) const
+  void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {    
     bool failed = false;
     for(int j=0; j<b.cols(); ++j)
@@ -219,35 +203,18 @@ public:
   }
 
   /** \internal */
+  using Base::_solve_impl;
   template<typename Rhs,typename Dest>
-  void _solve(const Rhs& b, Dest& x) const
+  void _solve_impl(const MatrixBase<Rhs>& b, Dest& x) const
   {
-//     x.setZero();
-  x = b;
-    _solveWithGuess(b,x);
+    // x.setZero();
+    x = b;
+    _solve_with_guess_impl(b,x);
   }
 
 protected:
 
 };
-
-
-namespace internal {
-
-  template<typename _MatrixType, typename _Preconditioner, typename Rhs>
-struct solve_retval<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
-  : solve_retval_base<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
-{
-  typedef BiCGSTAB<_MatrixType, _Preconditioner> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 

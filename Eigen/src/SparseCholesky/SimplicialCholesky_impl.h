@@ -126,7 +126,7 @@ void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType&
     Index top = size;               // stack for pattern is empty
     tags[k] = k;                    // mark node k as visited
     m_nonZerosPerCol[k] = 0;        // count of nonzeros in column k of L
-    for(typename MatrixType::InnerIterator it(ap,k); it; ++it)
+    for(typename CholMatrixType::InnerIterator it(ap,k); it; ++it)
     {
       Index i = it.index();
       if(i <= k)

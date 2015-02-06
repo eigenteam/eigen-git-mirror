@@ -21,7 +21,7 @@
 // discard stack allocation as that too bypasses malloc
 #define EIGEN_STACK_ALLOCATION_LIMIT 0
 // any heap allocation will raise an assert
-#define EIGEN_NO_MALLOC
+#define EIGEN_RUNTIME_NO_MALLOC
 
 #include "main.h"
 #include <Eigen/Cholesky>
@@ -165,8 +165,62 @@ void ctms_decompositions()
   Eigen::JacobiSVD<Matrix> jSVD; jSVD.compute(A, ComputeFullU | ComputeFullV);
 }
 
+void test_zerosized() {
+  // default constructors:
+  Eigen::MatrixXd A;
+  Eigen::VectorXd v;
+  // explicit zero-sized:
+  Eigen::ArrayXXd A0(0,0);
+  Eigen::ArrayXd v0(0);
+
+  // assigning empty objects to each other:
+  A=A0;
+  v=v0;
+}
+
+template<typename MatrixType> void test_reference(const MatrixType& m) {
+  typedef typename MatrixType::Scalar Scalar;
+  enum { Flag          =  MatrixType::IsRowMajor ? Eigen::RowMajor : Eigen::ColMajor};
+  enum { TransposeFlag = !MatrixType::IsRowMajor ? Eigen::RowMajor : Eigen::ColMajor};
+  typename MatrixType::Index rows = m.rows(), cols=m.cols();
+  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Flag         > MatrixX;
+  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, TransposeFlag> MatrixXT;
+  // Dynamic reference:
+  typedef Eigen::Ref<const MatrixX  > Ref;
+  typedef Eigen::Ref<const MatrixXT > RefT;
+
+  Ref r1(m);
+  Ref r2(m.block(rows/3, cols/4, rows/2, cols/2));
+  RefT r3(m.transpose());
+  RefT r4(m.topLeftCorner(rows/2, cols/2).transpose());
+
+  VERIFY_RAISES_ASSERT(RefT r5(m));
+  VERIFY_RAISES_ASSERT(Ref r6(m.transpose()));
+  VERIFY_RAISES_ASSERT(Ref r7(Scalar(2) * m));
+
+  // Copy constructors shall also never malloc
+  Ref r8 = r1;
+  RefT r9 = r3;
+
+  // Initializing from a compatible Ref shall also never malloc
+  Eigen::Ref<const MatrixX, Unaligned, Stride<Dynamic, Dynamic> > r10=r8, r11=m;
+
+  // Initializing from an incompatible Ref will malloc:
+  typedef Eigen::Ref<const MatrixX, Aligned> RefAligned;
+  VERIFY_RAISES_ASSERT(RefAligned r12=r10);
+  VERIFY_RAISES_ASSERT(Ref r13=r10); // r10 has more dynamic strides
+
+}
+
 void test_nomalloc()
 {
+  // create some dynamic objects
+  Eigen::MatrixXd M1 = MatrixXd::Random(3,3);
+  Ref<const MatrixXd> R1 = 2.0*M1; // Ref requires temporary
+
+  // from here on prohibit malloc:
+  Eigen::internal::set_is_malloc_allowed(false);
+
   // check that our operator new is indeed called:
   VERIFY_RAISES_ASSERT(MatrixXd dummy(MatrixXd::Random(3,3)));
   CALL_SUBTEST_1(nomalloc(Matrix<float, 1, 1>()) );
@@ -176,4 +230,9 @@ void test_nomalloc()
   // Check decomposition modules with dynamic matrices that have a known compile-time max size (ctms)
   CALL_SUBTEST_4(ctms_decompositions<float>());
 
+  CALL_SUBTEST_5(test_zerosized());
+
+  CALL_SUBTEST_6(test_reference(Matrix<float,32,32>()));
+  CALL_SUBTEST_7(test_reference(R1));
+  CALL_SUBTEST_8(Ref<MatrixXd> R2 = M1.topRows<2>(); test_reference(R2));
 }

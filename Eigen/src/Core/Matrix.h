@@ -115,7 +115,8 @@ struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost,
+    // FIXME, the following flag in only used to define NeedsToAlign in PlainObjectBase
+    EvaluatorFlags = compute_matrix_evaluator_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
     Options = _Options,
     InnerStrideAtCompileTime = 1,
     OuterStrideAtCompileTime = (Options&RowMajor) ? ColsAtCompileTime : RowsAtCompileTime
@@ -213,7 +214,7 @@ class Matrix
 
     // FIXME is it still needed
     EIGEN_DEVICE_FUNC
-    Matrix(internal::constructor_without_unaligned_array_assert)
+    explicit Matrix(internal::constructor_without_unaligned_array_assert)
       : Base(internal::constructor_without_unaligned_array_assert())
     { Base::_check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED }
 
@@ -358,15 +359,6 @@ class Matrix
       //              go for pure _set() implementations, right?
       *this = other;
     }
-
-    /** \internal
-      * \brief Override MatrixBase::swap() since for dynamic-sized matrices
-      * of same type it is enough to swap the data pointers.
-      */
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    void swap(MatrixBase<OtherDerived> const & other)
-    { this->_swap(other.derived()); }
 
     EIGEN_DEVICE_FUNC inline Index innerStride() const { return 1; }
     EIGEN_DEVICE_FUNC inline Index outerStride() const { return this->innerSize(); }

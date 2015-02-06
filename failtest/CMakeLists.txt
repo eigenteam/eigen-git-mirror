@@ -7,6 +7,9 @@ ei_add_failtest("block_nonconst_ctor_on_const_xpr_1")
 ei_add_failtest("block_nonconst_ctor_on_const_xpr_2")
 ei_add_failtest("transpose_nonconst_ctor_on_const_xpr")
 ei_add_failtest("diagonal_nonconst_ctor_on_const_xpr")
+ei_add_failtest("cwiseunaryview_nonconst_ctor_on_const_xpr")
+ei_add_failtest("triangularview_nonconst_ctor_on_const_xpr")
+ei_add_failtest("selfadjointview_nonconst_ctor_on_const_xpr")
 
 ei_add_failtest("const_qualified_block_method_retval_0")
 ei_add_failtest("const_qualified_block_method_retval_1")
@@ -25,6 +28,18 @@ ei_add_failtest("block_on_const_type_actually_const_0")
 ei_add_failtest("block_on_const_type_actually_const_1")
 ei_add_failtest("transpose_on_const_type_actually_const")
 ei_add_failtest("diagonal_on_const_type_actually_const")
+ei_add_failtest("cwiseunaryview_on_const_type_actually_const")
+ei_add_failtest("triangularview_on_const_type_actually_const")
+ei_add_failtest("selfadjointview_on_const_type_actually_const")
+
+ei_add_failtest("ref_1")
+ei_add_failtest("ref_2")
+ei_add_failtest("ref_3")
+ei_add_failtest("ref_4")
+ei_add_failtest("ref_5")
+
+ei_add_failtest("swap_1")
+ei_add_failtest("swap_2")
 
 if (EIGEN_FAILTEST_FAILURE_COUNT)
   message(FATAL_ERROR

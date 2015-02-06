@@ -48,39 +48,39 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
         ExpressionType, const ExpressionType&>::type ExpressionTypeNested;
     typedef typename ExpressionType::InnerIterator InnerIterator;
 
-    inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}
+    explicit inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}
 
-    inline Index rows() const { return m_matrix.rows(); }
-    inline Index cols() const { return m_matrix.cols(); }
-    inline Index outerStride() const { return m_matrix.outerStride(); }
-    inline Index innerStride() const { return m_matrix.innerStride(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC inline Index outerStride() const { return m_matrix.outerStride(); }
+    EIGEN_DEVICE_FUNC inline Index innerStride() const { return m_matrix.innerStride(); }
 
-    inline CoeffReturnType coeff(Index row, Index col) const
+    EIGEN_DEVICE_FUNC inline CoeffReturnType coeff(Index row, Index col) const
     {
       return m_matrix.coeff(row, col);
     }
 
-    inline CoeffReturnType coeff(Index index) const
+    EIGEN_DEVICE_FUNC inline CoeffReturnType coeff(Index index) const
     {
       return m_matrix.coeff(index);
     }
     
-    inline const Scalar& coeffRef(Index row, Index col) const
+    EIGEN_DEVICE_FUNC inline const Scalar& coeffRef(Index row, Index col) const
     {
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
-    inline const Scalar& coeffRef(Index index) const
+    EIGEN_DEVICE_FUNC inline const Scalar& coeffRef(Index index) const
     {
       return m_matrix.const_cast_derived().coeffRef(index);
     }
 
-    inline Scalar& coeffRef(Index row, Index col)
+    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
-    inline Scalar& coeffRef(Index index)
+    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index index)
     {
       return m_matrix.const_cast_derived().coeffRef(index);
     }
@@ -109,13 +109,13 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
       m_matrix.const_cast_derived().template writePacket<LoadMode>(index, x);
     }
 
-    const ExpressionType& _expression() const { return m_matrix; }
+    EIGEN_DEVICE_FUNC const ExpressionType& _expression() const { return m_matrix; }
 
     template<typename OtherDerived>
-    typename ExpressionType::PlainObject solveTriangular(const MatrixBase<OtherDerived>& other) const;
+    EIGEN_DEVICE_FUNC typename ExpressionType::PlainObject solveTriangular(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived>
-    void solveTriangularInPlace(const MatrixBase<OtherDerived>& other) const;
+    EIGEN_DEVICE_FUNC void solveTriangularInPlace(const MatrixBase<OtherDerived>& other) const;
 
   protected:
     ExpressionTypeNested m_matrix;
@@ -132,7 +132,7 @@ template<unsigned int Added,unsigned int Removed>
 inline const Flagged<Derived, Added, Removed>
 DenseBase<Derived>::flagged() const
 {
-  return derived();
+  return Flagged<Derived, Added, Removed>(derived());
 }
 
 } // end namespace Eigen

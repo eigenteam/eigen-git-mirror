@@ -130,6 +130,14 @@ template<typename MatrixType> void block(const MatrixType& m)
 
   VERIFY(numext::real(ones.col(c1).dot(ones.col(c2))) == RealScalar(rows));
   VERIFY(numext::real(ones.row(r1).dot(ones.row(r2))) == RealScalar(cols));
+  
+  // chekc that linear acccessors works on blocks
+  m1 = m1_copy;
+  if((MatrixType::Flags&RowMajorBit)==0)
+    VERIFY_IS_EQUAL(m1.leftCols(c1).coeff(r1+c1*rows), m1(r1,c1));
+  else
+    VERIFY_IS_EQUAL(m1.topRows(r1).coeff(c1+r1*cols), m1(r1,c1));
+  
 
   // now test some block-inside-of-block.
   

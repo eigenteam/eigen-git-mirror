@@ -89,6 +89,9 @@ class TensorLayoutSwapOp : public TensorBase<TensorLayoutSwapOp<XprType>, WriteA
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorLayoutSwapOp& operator = (const OtherDerived& other)
     {
+
+std::cout << "In assignment operator " << std::endl;
+
       typedef TensorAssignOp<TensorLayoutSwapOp, const OtherDerived> Assign;
       Assign assign(*this, other);
       internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());

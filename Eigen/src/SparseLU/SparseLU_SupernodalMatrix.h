@@ -189,8 +189,8 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
         m_idval(mat.colIndexPtr()[outer]),
         m_startidval(m_idval),
         m_endidval(mat.colIndexPtr()[outer+1]),
-        m_idrow(mat.rowIndexPtr()[outer]),
-        m_endidrow(mat.rowIndexPtr()[outer+1])
+        m_idrow(mat.rowIndexPtr()[mat.supToCol()[mat.colToSup()[outer]]]),
+        m_endidrow(mat.rowIndexPtr()[mat.supToCol()[mat.colToSup()[outer]]+1])
     {}
     inline InnerIterator& operator++()
     { 
@@ -233,8 +233,11 @@ template<typename Scalar, typename Index>
 template<typename Dest>
 void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
 {
-    Index n = X.rows(); 
-    Index nrhs = X.cols(); 
+    /* Explicit type conversion as the Index type of MatrixBase<Dest> may be wider than Index */
+    eigen_assert(X.rows() <= NumTraits<Index>::highest());
+    eigen_assert(X.cols() <= NumTraits<Index>::highest());
+    Index n    = Index(X.rows());
+    Index nrhs = Index(X.cols());
     const Scalar * Lval = valuePtr();                 // Nonzero values 
     Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs);     // working vector
     work.setZero();

@@ -157,50 +157,50 @@ struct eval<const TensorRef<PlainObjectType>, Eigen::Dense>
 
 
 template <typename Scalar_, std::size_t NumIndices_, int Options_>
-struct nested<Tensor<Scalar_, NumIndices_, Options_>, 1, typename eval<Tensor<Scalar_, NumIndices_, Options_> >::type>
+struct nested<Tensor<Scalar_, NumIndices_, Options_> >
 {
   typedef const Tensor<Scalar_, NumIndices_, Options_>& type;
 };
 
 template <typename Scalar_, std::size_t NumIndices_, int Options_>
-struct nested<const Tensor<Scalar_, NumIndices_, Options_>, 1, typename eval<const Tensor<Scalar_, NumIndices_, Options_> >::type>
+struct nested<const Tensor<Scalar_, NumIndices_, Options_> >
 {
   typedef const Tensor<Scalar_, NumIndices_, Options_>& type;
 };
 
 template <typename Scalar_, typename Dimensions, int Options>
-struct nested<TensorFixedSize<Scalar_, Dimensions, Options>, 1, typename eval<TensorFixedSize<Scalar_, Dimensions, Options> >::type>
+struct nested<TensorFixedSize<Scalar_, Dimensions, Options> >
 {
   typedef const TensorFixedSize<Scalar_, Dimensions, Options>& type;
 };
 
 template <typename Scalar_, typename Dimensions, int Options>
-struct nested<const TensorFixedSize<Scalar_, Dimensions, Options>, 1, typename eval<const TensorFixedSize<Scalar_, Dimensions, Options> >::type>
+struct nested<const TensorFixedSize<Scalar_, Dimensions, Options> >
 {
   typedef const TensorFixedSize<Scalar_, Dimensions, Options>& type;
 };
 
 
 template <typename PlainObjectType, int Options>
-struct nested<TensorMap<PlainObjectType, Options>, 1, typename eval<TensorMap<PlainObjectType, Options> >::type>
+struct nested<TensorMap<PlainObjectType, Options> >
 {
   typedef const TensorMap<PlainObjectType, Options>& type;
 };
 
 template <typename PlainObjectType, int Options>
-struct nested<const TensorMap<PlainObjectType, Options>, 1, typename eval<TensorMap<PlainObjectType, Options> >::type>
+struct nested<const TensorMap<PlainObjectType, Options> >
 {
   typedef const TensorMap<PlainObjectType, Options>& type;
 };
 
 template <typename PlainObjectType>
-struct nested<TensorRef<PlainObjectType>, 1, typename eval<TensorRef<PlainObjectType> >::type>
+struct nested<TensorRef<PlainObjectType> >
 {
   typedef const TensorRef<PlainObjectType>& type;
 };
 
 template <typename PlainObjectType>
-struct nested<const TensorRef<PlainObjectType>, 1, typename eval<TensorRef<PlainObjectType> >::type>
+struct nested<const TensorRef<PlainObjectType> >
 {
   typedef const TensorRef<PlainObjectType>& type;
 };

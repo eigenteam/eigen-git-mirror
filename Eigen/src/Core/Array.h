@@ -74,6 +74,21 @@ class Array
     {
       return Base::operator=(other);
     }
+    
+    /** Set all the entries to \a value.
+      * \sa DenseBase::setConstant(), DenseBase::fill()
+      */
+    /* This overload is needed because the usage of
+      *   using Base::operator=;
+      * fails on MSVC. Since the code below is working with GCC and MSVC, we skipped
+      * the usage of 'using'. This should be done only for operator=.
+      */
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Array& operator=(const Scalar &value)
+    {
+      Base::setConstant(value);
+      return *this;
+    }
 
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
       *
@@ -99,7 +114,7 @@ class Array
     {
       return Base::_set(other);
     }
-
+    
     /** Default constructor.
       *
       * For fixed-size matrices, does nothing.
@@ -143,7 +158,6 @@ class Array
       return *this;
     }
 #endif
-
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename T>
@@ -243,13 +257,6 @@ class Array
       Base::_resize_to_match(other);
       *this = other;
     }
-
-    /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
-      * data pointers.
-      */
-    template<typename OtherDerived>
-    void swap(ArrayBase<OtherDerived> const & other)
-    { this->_swap(other.derived()); }
 
     EIGEN_DEVICE_FUNC inline Index innerStride() const { return 1; }
     EIGEN_DEVICE_FUNC inline Index outerStride() const { return this->innerSize(); }

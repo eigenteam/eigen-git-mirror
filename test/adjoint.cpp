@@ -64,6 +64,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
+  const Index PacketSize = internal::packet_traits<Scalar>::size;
   
   Index rows = m.rows();
   Index cols = m.cols();
@@ -108,6 +109,17 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(m3,m1.transpose());
   m3.transposeInPlace();
   VERIFY_IS_APPROX(m3,m1);
+  
+  if(PacketSize<m3.rows() && PacketSize<m3.cols())
+  {
+    m3 = m1;
+    Index i = internal::random<Index>(0,m3.rows()-PacketSize);
+    Index j = internal::random<Index>(0,m3.cols()-PacketSize);
+    m3.template block<PacketSize,PacketSize>(i,j).transposeInPlace();
+    VERIFY_IS_APPROX( (m3.template block<PacketSize,PacketSize>(i,j)), (m1.template block<PacketSize,PacketSize>(i,j).transpose()) );
+    m3.template block<PacketSize,PacketSize>(i,j).transposeInPlace();
+    VERIFY_IS_APPROX(m3,m1);
+  }
 
   // check inplace adjoint
   m3 = m1;
@@ -129,9 +141,19 @@ void test_adjoint()
     CALL_SUBTEST_1( adjoint(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( adjoint(Matrix3d()) );
     CALL_SUBTEST_3( adjoint(Matrix4f()) );
+    
     CALL_SUBTEST_4( adjoint(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
     CALL_SUBTEST_5( adjoint(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_6( adjoint(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    
+    // Complement for 128 bits vectorization:
+    CALL_SUBTEST_8( adjoint(Matrix2d()) );
+    CALL_SUBTEST_9( adjoint(Matrix<int,4,4>()) );
+    
+    // 256 bits vectorization:
+    CALL_SUBTEST_10( adjoint(Matrix<float,8,8>()) );
+    CALL_SUBTEST_11( adjoint(Matrix<double,4,4>()) );
+    CALL_SUBTEST_12( adjoint(Matrix<int,8,8>()) );
   }
   // test a large static matrix only once
   CALL_SUBTEST_7( adjoint(Matrix<float, 100, 100>()) );

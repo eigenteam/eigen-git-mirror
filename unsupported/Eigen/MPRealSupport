@@ -159,10 +159,10 @@ int main()
       {
         if(rows==0 || cols==0 || depth==0)
           return;
-        
+
         mpreal  acc1(0,mpfr_get_prec(blockA[0].mpfr_srcptr())),
                 tmp (0,mpfr_get_prec(blockA[0].mpfr_srcptr()));
-        
+
         if(strideA==-1) strideA = depth;
         if(strideB==-1) strideB = depth;
 

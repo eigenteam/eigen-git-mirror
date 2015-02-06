@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2012 Desire Nuentsa <desire.nuentsa_wakam@inria.fr>
+// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -54,29 +55,26 @@ namespace Eigen {
  * 
  */
 template<typename _MatrixType>
-class SPQR
+class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
 {
+  protected:
+    typedef SparseSolverBase<SPQR<_MatrixType> > Base;
+    using Base::m_isInitialized;
   public:
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
     typedef UF_long Index ; 
     typedef SparseMatrix<Scalar, ColMajor, Index> MatrixType;
-    typedef PermutationMatrix<Dynamic, Dynamic> PermutationType;
+    typedef Map<PermutationMatrix<Dynamic, Dynamic, Index> > PermutationType;
   public:
     SPQR() 
-      : m_isInitialized(false),
-      m_ordering(SPQR_ORDERING_DEFAULT),
-      m_allow_tol(SPQR_DEFAULT_TOL),
-      m_tolerance (NumTraits<Scalar>::epsilon())
+      : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)
     { 
       cholmod_l_start(&m_cc);
     }
     
-    SPQR(const _MatrixType& matrix) 
-    : m_isInitialized(false),
-      m_ordering(SPQR_ORDERING_DEFAULT),
-      m_allow_tol(SPQR_DEFAULT_TOL),
-      m_tolerance (NumTraits<Scalar>::epsilon())
+    explicit SPQR(const _MatrixType& matrix)
+    : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)
     {
       cholmod_l_start(&m_cc);
       compute(matrix);
@@ -101,10 +99,25 @@ class SPQR
       if(m_isInitialized) SPQR_free();
 
       MatrixType mat(matrix);
+      
+      /* Compute the default threshold as in MatLab, see:
+       * Tim Davis, "Algorithm 915, SuiteSparseQR: Multifrontal Multithreaded Rank-Revealing
+       * Sparse QR Factorization, ACM Trans. on Math. Soft. 38(1), 2011, Page 8:3 
+       */
+      RealScalar pivotThreshold = m_tolerance;
+      if(m_useDefaultThreshold) 
+      {
+        RealScalar max2Norm = 0.0;
+        for (int j = 0; j < mat.cols(); j++) max2Norm = numext::maxi(max2Norm, mat.col(j).norm());
+        if(max2Norm==RealScalar(0))
+          max2Norm = RealScalar(1);
+        pivotThreshold = 20 * (mat.rows() + mat.cols()) * max2Norm * NumTraits<RealScalar>::epsilon();
+      }
+      
       cholmod_sparse A; 
       A = viewAsCholmod(mat);
       Index col = matrix.cols();
-      m_rank = SuiteSparseQR<Scalar>(m_ordering, m_tolerance, col, &A, 
+      m_rank = SuiteSparseQR<Scalar>(m_ordering, pivotThreshold, col, &A, 
                              &m_cR, &m_E, &m_H, &m_HPinv, &m_HTau, &m_cc);
 
       if (!m_cR)
@@ -120,41 +133,37 @@ class SPQR
     /** 
      * Get the number of rows of the input matrix and the Q matrix
      */
-    inline Index rows() const {return m_H->nrow; }
+    inline Index rows() const {return m_cR->nrow; }
     
     /** 
      * Get the number of columns of the input matrix. 
      */
     inline Index cols() const { return m_cR->ncol; }
-   
-      /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<SPQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
-    {
-      eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
-      eigen_assert(this->rows()==B.rows()
-                    && "SPQR::solve(): invalid number of rows of the right hand side matrix B");
-          return internal::solve_retval<SPQR, Rhs>(*this, B.derived());
-    }
     
     template<typename Rhs, typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
     {
       eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
       eigen_assert(b.cols()==1 && "This method is for vectors only");
-      
+
       //Compute Q^T * b
-      typename Dest::PlainObject y;
+      typename Dest::PlainObject y, y2;
       y = matrixQ().transpose() * b;
-        // Solves with the triangular matrix R
+      
+      // Solves with the triangular matrix R
       Index rk = this->rank();
-      y.topRows(rk) = this->matrixR().topLeftCorner(rk, rk).template triangularView<Upper>().solve(y.topRows(rk));
-      y.bottomRows(cols()-rk).setZero();
+      y2 = y;
+      y.resize((std::max)(cols(),Index(y.rows())),y.cols());
+      y.topRows(rk) = this->matrixR().topLeftCorner(rk, rk).template triangularView<Upper>().solve(y2.topRows(rk));
+
       // Apply the column permutation 
-      dest.topRows(cols()) = colsPermutation() * y.topRows(cols());
+      // colsPermutation() performs a copy of the permutation,
+      // so let's apply it manually:
+      for(Index i = 0; i < rk; ++i) dest.row(m_E[i]) = y.row(i);
+      for(Index i = rk; i < cols(); ++i) dest.row(m_E[i]).setZero();
+      
+//       y.bottomRows(y.rows()-rk).setZero();
+//       dest = colsPermutation() * y.topRows(cols());
       
       m_info = Success;
     }
@@ -179,11 +188,7 @@ class SPQR
     PermutationType colsPermutation() const
     { 
       eigen_assert(m_isInitialized && "Decomposition is not initialized.");
-      Index n = m_cR->ncol;
-      PermutationType colsPerm(n);
-      for(Index j = 0; j <n; j++) colsPerm.indices()(j) = m_E[j];
-      return colsPerm; 
-      
+      return PermutationType(m_E, m_cR->ncol);
     }
     /**
      * Gets the rank of the matrix. 
@@ -197,7 +202,11 @@ class SPQR
     /// Set the fill-reducing ordering method to be used
     void setSPQROrdering(int ord) { m_ordering = ord;}
     /// Set the tolerance tol to treat columns with 2-norm < =tol as zero
-    void setPivotThreshold(const RealScalar& tol) { m_tolerance = tol; }
+    void setPivotThreshold(const RealScalar& tol)
+    {
+      m_useDefaultThreshold = false;
+      m_tolerance = tol;
+    }
     
     /** \returns a pointer to the SPQR workspace */
     cholmod_common *cholmodCommon() const { return &m_cc; }
@@ -214,7 +223,6 @@ class SPQR
       return m_info;
     }
   protected:
-    bool m_isInitialized;
     bool m_analysisIsOk;
     bool m_factorizationIsOk;
     mutable bool m_isRUpToDate;
@@ -230,6 +238,7 @@ class SPQR
     mutable cholmod_dense *m_HTau; // The Householder coefficients
     mutable Index m_rank; // The rank of the matrix
     mutable cholmod_common m_cc; // Workspace and parameters
+    bool m_useDefaultThreshold;     // Use default threshold
     template<typename ,typename > friend struct SPQR_QProduct;
 };
 
@@ -292,23 +301,6 @@ struct SPQRMatrixQTransposeReturnType{
   }
   const SPQRType& m_spqr;
 };
-
-namespace internal {
-  
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<SPQR<_MatrixType>, Rhs>
-  : solve_retval_base<SPQR<_MatrixType>, Rhs>
-{
-  typedef SPQR<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 }// End namespace Eigen
 #endif

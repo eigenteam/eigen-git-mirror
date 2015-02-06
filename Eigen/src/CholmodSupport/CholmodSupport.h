@@ -105,7 +105,7 @@ const cholmod_sparse viewAsCholmod(const SparseMatrix<_Scalar,_Options,_Index>& 
 /** Returns a view of the Eigen sparse matrix \a mat as Cholmod sparse matrix.
   * The data are not copied but shared. */
 template<typename _Scalar, int _Options, typename _Index, unsigned int UpLo>
-cholmod_sparse viewAsCholmod(const SparseSelfAdjointView<SparseMatrix<_Scalar,_Options,_Index>, UpLo>& mat)
+cholmod_sparse viewAsCholmod(const SparseSelfAdjointView<const SparseMatrix<_Scalar,_Options,_Index>, UpLo>& mat)
 {
   cholmod_sparse res = viewAsCholmod(mat.matrix().const_cast_derived());
   
@@ -157,8 +157,12 @@ enum CholmodMode {
   * \sa class CholmodSupernodalLLT, class CholmodSimplicialLDLT, class CholmodSimplicialLLT
   */
 template<typename _MatrixType, int _UpLo, typename Derived>
-class CholmodBase : internal::noncopyable
+class CholmodBase : public SparseSolverBase<Derived>
 {
+  protected:
+    typedef SparseSolverBase<Derived> Base;
+    using Base::derived;
+    using Base::m_isInitialized;
   public:
     typedef _MatrixType MatrixType;
     enum { UpLo = _UpLo };
@@ -170,14 +174,14 @@ class CholmodBase : internal::noncopyable
   public:
 
     CholmodBase()
-      : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
+      : m_cholmodFactor(0), m_info(Success)
     {
       m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);
       cholmod_start(&m_cholmod);
     }
 
-    CholmodBase(const MatrixType& matrix)
-      : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
+    explicit CholmodBase(const MatrixType& matrix)
+      : m_cholmodFactor(0), m_info(Success)
     {
       m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);
       cholmod_start(&m_cholmod);
@@ -193,9 +197,6 @@ class CholmodBase : internal::noncopyable
     
     inline Index cols() const { return m_cholmodFactor->n; }
     inline Index rows() const { return m_cholmodFactor->n; }
-    
-    Derived& derived() { return *static_cast<Derived*>(this); }
-    const Derived& derived() const { return *static_cast<const Derived*>(this); }
     
     /** \brief Reports whether previous computation was successful.
       *
@@ -214,34 +215,6 @@ class CholmodBase : internal::noncopyable
       analyzePattern(matrix);
       factorize(matrix);
       return derived();
-    }
-    
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<CholmodBase, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "LLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "CholmodDecomposition::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<CholmodBase, Rhs>(*this, b.derived());
-    }
-    
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<CholmodBase, Rhs>
-    solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "LLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "CholmodDecomposition::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<CholmodBase, Rhs>(*this, b.derived());
     }
     
     /** Performs a symbolic decomposition on the sparsity pattern of \a matrix.
@@ -290,7 +263,7 @@ class CholmodBase : internal::noncopyable
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     template<typename Rhs,typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
     {
       eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       const Index size = m_cholmodFactor->n;
@@ -312,7 +285,7 @@ class CholmodBase : internal::noncopyable
     
     /** \internal */
     template<typename RhsScalar, int RhsOptions, typename RhsIndex, typename DestScalar, int DestOptions, typename DestIndex>
-    void _solve(const SparseMatrix<RhsScalar,RhsOptions,RhsIndex> &b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+    void _solve_impl(const SparseMatrix<RhsScalar,RhsOptions,RhsIndex> &b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
     {
       eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       const Index size = m_cholmodFactor->n;
@@ -357,7 +330,6 @@ class CholmodBase : internal::noncopyable
     cholmod_factor* m_cholmodFactor;
     RealScalar m_shiftOffset[2];
     mutable ComputationInfo m_info;
-    bool m_isInitialized;
     int m_factorizationIsOk;
     int m_analysisIsOk;
 };
@@ -571,36 +543,6 @@ class CholmodDecomposition : public CholmodBase<_MatrixType, _UpLo, CholmodDecom
       m_cholmod.supernodal = CHOLMOD_AUTO;
     }
 };
-
-namespace internal {
-  
-template<typename _MatrixType, int _UpLo, typename Derived, typename Rhs>
-struct solve_retval<CholmodBase<_MatrixType,_UpLo,Derived>, Rhs>
-  : solve_retval_base<CholmodBase<_MatrixType,_UpLo,Derived>, Rhs>
-{
-  typedef CholmodBase<_MatrixType,_UpLo,Derived> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-template<typename _MatrixType, int _UpLo, typename Derived, typename Rhs>
-struct sparse_solve_retval<CholmodBase<_MatrixType,_UpLo,Derived>, Rhs>
-  : sparse_solve_retval_base<CholmodBase<_MatrixType,_UpLo,Derived>, Rhs>
-{
-  typedef CholmodBase<_MatrixType,_UpLo,Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 

@@ -14,7 +14,7 @@
 #include "details.h"
 
 // Define the explicit instantiation (e.g. necessary for the Intel compiler)
-#if defined(__INTEL_COMPILER) || defined(__GNUC__)
+#if EIGEN_COMP_GNUC || EIGEN_COMP_ICC
   #define EIGEN_EXPLICIT_STL_DEQUE_INSTANTIATION(...) template class std::deque<__VA_ARGS__, EIGEN_ALIGNED_ALLOCATOR<__VA_ARGS__> >;
 #else
   #define EIGEN_EXPLICIT_STL_DEQUE_INSTANTIATION(...)

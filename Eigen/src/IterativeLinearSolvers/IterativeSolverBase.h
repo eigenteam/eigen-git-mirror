@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -18,8 +18,12 @@ namespace Eigen {
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
 template< typename Derived>
-class IterativeSolverBase : internal::noncopyable
+class IterativeSolverBase : public SparseSolverBase<Derived>
 {
+protected:
+  typedef SparseSolverBase<Derived> Base;
+  using Base::m_isInitialized;
+  
 public:
   typedef typename internal::traits<Derived>::MatrixType MatrixType;
   typedef typename internal::traits<Derived>::Preconditioner Preconditioner;
@@ -29,8 +33,7 @@ public:
 
 public:
 
-  Derived& derived() { return *static_cast<Derived*>(this); }
-  const Derived& derived() const { return *static_cast<const Derived*>(this); }
+  using Base::derived;
 
   /** Default constructor. */
   IterativeSolverBase()
@@ -49,7 +52,7 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  IterativeSolverBase(const MatrixType& A)
+  explicit IterativeSolverBase(const MatrixType& A)
   {
     init();
     compute(A);
@@ -57,10 +60,10 @@ public:
 
   ~IterativeSolverBase() {}
   
-  /** Initializes the iterative solver for the sparcity pattern of the matrix \a A for further solving \c Ax=b problems.
+  /** Initializes the iterative solver for the sparsity pattern of the matrix \a A for further solving \c Ax=b problems.
     *
-    * Currently, this function mostly call analyzePattern on the preconditioner. In the future
-    * we might, for instance, implement column reodering for faster matrix vector products.
+    * Currently, this function mostly calls analyzePattern on the preconditioner. In the future
+    * we might, for instance, implement column reordering for faster matrix vector products.
     */
   Derived& analyzePattern(const MatrixType& A)
   {
@@ -73,7 +76,7 @@ public:
   
   /** Initializes the iterative solver with the numerical values of the matrix \a A for further solving \c Ax=b problems.
     *
-    * Currently, this function mostly call factorize on the preconditioner.
+    * Currently, this function mostly calls factorize on the preconditioner.
     *
     * \warning this class stores a reference to the matrix A as well as some
     * precomputed values that depend on it. Therefore, if \a A is changed
@@ -92,8 +95,8 @@ public:
 
   /** Initializes the iterative solver with the matrix \a A for further solving \c Ax=b problems.
     *
-    * Currently, this function mostly initialized/compute the preconditioner. In the future
-    * we might, for instance, implement column reodering for faster matrix vector products.
+    * Currently, this function mostly initializes/computes the preconditioner. In the future
+    * we might, for instance, implement column reordering for faster matrix vector products.
     *
     * \warning this class stores a reference to the matrix A as well as some
     * precomputed values that depend on it. Therefore, if \a A is changed
@@ -159,31 +162,18 @@ public:
     return m_error;
   }
 
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
+  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
+    * and \a x0 as an initial solution.
     *
-    * \sa compute()
+    * \sa solve(), compute()
     */
-  template<typename Rhs> inline const internal::solve_retval<Derived, Rhs>
-  solve(const MatrixBase<Rhs>& b) const
+  template<typename Rhs,typename Guess>
+  inline const SolveWithGuess<Derived, Rhs, Guess>
+  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
   {
-    eigen_assert(m_isInitialized && "IterativeSolverBase is not initialized.");
-    eigen_assert(rows()==b.rows()
-              && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::solve_retval<Derived, Rhs>(derived(), b.derived());
-  }
-  
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-    *
-    * \sa compute()
-    */
-  template<typename Rhs>
-  inline const internal::sparse_solve_retval<IterativeSolverBase, Rhs>
-  solve(const SparseMatrixBase<Rhs>& b) const
-  {
-    eigen_assert(m_isInitialized && "IterativeSolverBase is not initialized.");
-    eigen_assert(rows()==b.rows()
-              && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::sparse_solve_retval<IterativeSolverBase, Rhs>(*this, b.derived());
+    eigen_assert(m_isInitialized && "Solver is not initialized.");
+    eigen_assert(derived().rows()==b.rows() && "solve(): invalid number of rows of the right hand side matrix b");
+    return SolveWithGuess<Derived, Rhs, Guess>(derived(), b.derived(), x0);
   }
 
   /** \returns Success if the iterations converged, and NoConvergence otherwise. */
@@ -195,7 +185,7 @@ public:
   
   /** \internal */
   template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
-  void _solve_sparse(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+  void _solve_impl(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
   {
     eigen_assert(rows()==b.rows());
     
@@ -229,25 +219,8 @@ protected:
   mutable RealScalar m_error;
   mutable int m_iterations;
   mutable ComputationInfo m_info;
-  mutable bool m_isInitialized, m_analysisIsOk, m_factorizationIsOk;
+  mutable bool m_analysisIsOk, m_factorizationIsOk;
 };
-
-namespace internal {
- 
-template<typename Derived, typename Rhs>
-struct sparse_solve_retval<IterativeSolverBase<Derived>, Rhs>
-  : sparse_solve_retval_base<IterativeSolverBase<Derived>, Rhs>
-{
-  typedef IterativeSolverBase<Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec().derived()._solve_sparse(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 

@@ -48,8 +48,7 @@ struct traits<Homogeneous<MatrixType,Direction> >
     TmpFlags = _MatrixTypeNested::Flags & HereditaryBits,
     Flags = ColsAtCompileTime==1 ? (TmpFlags & ~RowMajorBit)
           : RowsAtCompileTime==1 ? (TmpFlags | RowMajorBit)
-          : TmpFlags,
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+          : TmpFlags
   };
 };
 
@@ -59,52 +58,54 @@ template<typename MatrixType,typename Rhs> struct homogeneous_right_product_impl
 } // end namespace internal
 
 template<typename MatrixType,int _Direction> class Homogeneous
-  : internal::no_assignment_operator, public MatrixBase<Homogeneous<MatrixType,_Direction> >
+  : public MatrixBase<Homogeneous<MatrixType,_Direction> >, internal::no_assignment_operator
 {
   public:
 
+    typedef MatrixType NestedExpression;
     enum { Direction = _Direction };
 
     typedef MatrixBase<Homogeneous> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Homogeneous)
 
-    inline Homogeneous(const MatrixType& matrix)
+    explicit inline Homogeneous(const MatrixType& matrix)
       : m_matrix(matrix)
     {}
 
     inline Index rows() const { return m_matrix.rows() + (int(Direction)==Vertical   ? 1 : 0); }
     inline Index cols() const { return m_matrix.cols() + (int(Direction)==Horizontal ? 1 : 0); }
-
-    inline Scalar coeff(Index row, Index col) const
-    {
-      if(  (int(Direction)==Vertical   && row==m_matrix.rows())
-        || (int(Direction)==Horizontal && col==m_matrix.cols()))
-        return 1;
-      return m_matrix.coeff(row, col);
-    }
+    
+    const NestedExpression& nestedExpression() const { return m_matrix; }
 
     template<typename Rhs>
-    inline const internal::homogeneous_right_product_impl<Homogeneous,Rhs>
+    inline const Product<Homogeneous,Rhs>
     operator* (const MatrixBase<Rhs>& rhs) const
     {
       eigen_assert(int(Direction)==Horizontal);
-      return internal::homogeneous_right_product_impl<Homogeneous,Rhs>(m_matrix,rhs.derived());
+      return Product<Homogeneous,Rhs>(*this,rhs.derived());
     }
 
     template<typename Lhs> friend
-    inline const internal::homogeneous_left_product_impl<Homogeneous,Lhs>
+    inline const Product<Lhs,Homogeneous>
     operator* (const MatrixBase<Lhs>& lhs, const Homogeneous& rhs)
     {
       eigen_assert(int(Direction)==Vertical);
-      return internal::homogeneous_left_product_impl<Homogeneous,Lhs>(lhs.derived(),rhs.m_matrix);
+      return Product<Lhs,Homogeneous>(lhs.derived(),rhs);
     }
 
     template<typename Scalar, int Dim, int Mode, int Options> friend
-    inline const internal::homogeneous_left_product_impl<Homogeneous,Transform<Scalar,Dim,Mode,Options> >
+    inline const Product<Transform<Scalar,Dim,Mode,Options>, Homogeneous >
     operator* (const Transform<Scalar,Dim,Mode,Options>& lhs, const Homogeneous& rhs)
     {
       eigen_assert(int(Direction)==Vertical);
-      return internal::homogeneous_left_product_impl<Homogeneous,Transform<Scalar,Dim,Mode,Options> >(lhs,rhs.m_matrix);
+      return Product<Transform<Scalar,Dim,Mode,Options>, Homogeneous>(lhs,rhs);
+    }
+
+    template<typename Func>
+    EIGEN_STRONG_INLINE typename internal::result_of<Func(Scalar)>::type
+    redux(const Func& func) const
+    {
+      return func(m_matrix.redux(func), Scalar(1));
     }
 
   protected:
@@ -127,7 +128,7 @@ inline typename MatrixBase<Derived>::HomogeneousReturnType
 MatrixBase<Derived>::homogeneous() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
-  return derived();
+  return HomogeneousReturnType(derived());
 }
 
 /** \geometry_module
@@ -142,7 +143,7 @@ template<typename ExpressionType, int Direction>
 inline Homogeneous<ExpressionType,Direction>
 VectorwiseOp<ExpressionType,Direction>::homogeneous() const
 {
-  return _expression();
+  return HomogeneousReturnType(_expression());
 }
 
 /** \geometry_module
@@ -298,6 +299,93 @@ struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
 
   typename MatrixType::Nested m_lhs;
   typename Rhs::Nested m_rhs;
+};
+
+template<typename ArgType,int Direction>
+struct evaluator_traits<Homogeneous<ArgType,Direction> >
+{
+  typedef typename storage_kind_to_evaluator_kind<typename ArgType::StorageKind>::Kind Kind;
+  typedef HomogeneousShape Shape;  
+  static const int AssumeAliasing = 0;
+};
+
+template<> struct AssignmentKind<DenseShape,HomogeneousShape> { typedef Dense2Dense Kind; };
+
+
+template<typename ArgType,int Direction>
+struct unary_evaluator<Homogeneous<ArgType,Direction>, IndexBased>
+  : evaluator<typename Homogeneous<ArgType,Direction>::PlainObject >::type
+{
+  typedef Homogeneous<ArgType,Direction> XprType;
+  typedef typename XprType::PlainObject PlainObject;
+  typedef typename evaluator<PlainObject>::type Base;
+  
+  typedef evaluator<XprType> type;
+  typedef evaluator<XprType> nestedType;
+
+  explicit unary_evaluator(const XprType& op)
+    : Base(), m_temp(op)
+  {
+    ::new (static_cast<Base*>(this)) Base(m_temp);
+  }
+
+protected:
+  PlainObject m_temp;
+};
+
+// dense = homogeneous
+template< typename DstXprType, typename ArgType, typename Scalar>
+struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+{
+  typedef Homogeneous<ArgType,Vertical> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  {
+    dst.template topRows<ArgType::RowsAtCompileTime>(src.nestedExpression().rows()) = src.nestedExpression();
+    dst.row(dst.rows()-1).setOnes();
+  }
+};
+
+// dense = homogeneous
+template< typename DstXprType, typename ArgType, typename Scalar>
+struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+{
+  typedef Homogeneous<ArgType,Horizontal> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  {
+    dst.template leftCols<ArgType::ColsAtCompileTime>(src.nestedExpression().cols()) = src.nestedExpression();
+    dst.col(dst.cols()-1).setOnes();
+  }
+};
+
+template<typename LhsArg, typename Rhs, int ProductTag>
+struct generic_product_impl<Homogeneous<LhsArg,Horizontal>, Rhs, HomogeneousShape, DenseShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Homogeneous<LhsArg,Horizontal>& lhs, const Rhs& rhs)
+  {
+    homogeneous_right_product_impl<Homogeneous<LhsArg,Horizontal>, Rhs>(lhs.nestedExpression(), rhs).evalTo(dst);
+  }
+};
+
+template<typename Lhs, typename RhsArg, int ProductTag>
+struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, DenseShape, HomogeneousShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Homogeneous<RhsArg,Vertical>& rhs)
+  {
+    homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, Lhs>(lhs, rhs.nestedExpression()).evalTo(dst);
+  }
+};
+
+template<typename Scalar, int Dim, int Mode,int Options, typename RhsArg, int ProductTag>
+struct generic_product_impl<Transform<Scalar,Dim,Mode,Options>, Homogeneous<RhsArg,Vertical>, DenseShape, HomogeneousShape, ProductTag>
+{
+  typedef Transform<Scalar,Dim,Mode,Options> TransformType;
+  template<typename Dest>
+  static void evalTo(Dest& dst, const TransformType& lhs, const Homogeneous<RhsArg,Vertical>& rhs)
+  {
+    homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, TransformType>(lhs, rhs.nestedExpression()).evalTo(dst);
+  }
 };
 
 } // end namespace internal

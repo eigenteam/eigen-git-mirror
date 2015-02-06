@@ -111,8 +111,17 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
   // test Tridiagonalization's methods
   Tridiagonalization<MatrixType> tridiag(symmC);
-  // FIXME tridiag.matrixQ().adjoint() does not work
+  VERIFY_IS_APPROX(tridiag.diagonal(), tridiag.matrixT().diagonal());
+  VERIFY_IS_APPROX(tridiag.subDiagonal(), tridiag.matrixT().template diagonal<-1>());
+  MatrixType T = tridiag.matrixT();
+  if(rows>1 && cols>1) {
+    // FIXME check that upper and lower part are 0:
+    //VERIFY(T.topRightCorner(rows-2, cols-2).template triangularView<Upper>().isZero());
+  }
+  VERIFY_IS_APPROX(tridiag.diagonal(), T.diagonal().real());
+  VERIFY_IS_APPROX(tridiag.subDiagonal(), T.template diagonal<1>().real());
   VERIFY_IS_APPROX(MatrixType(symmC.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT().eval() * MatrixType(tridiag.matrixQ()).adjoint());
+  VERIFY_IS_APPROX(MatrixType(symmC.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT() * tridiag.matrixQ().adjoint());
   
   // Test computation of eigenvalues from tridiagonal matrix
   if(rows > 1)
@@ -136,11 +145,14 @@ void test_eigensolver_selfadjoint()
 {
   int s = 0;
   for(int i = 0; i < g_repeat; i++) {
+    // trivial test for 1x1 matrices:
+    CALL_SUBTEST_1( selfadjointeigensolver(Matrix<float, 1, 1>()));
+    CALL_SUBTEST_1( selfadjointeigensolver(Matrix<double, 1, 1>()));
     // very important to test 3x3 and 2x2 matrices since we provide special paths for them
-    CALL_SUBTEST_1( selfadjointeigensolver(Matrix2f()) );
-    CALL_SUBTEST_1( selfadjointeigensolver(Matrix2d()) );
-    CALL_SUBTEST_1( selfadjointeigensolver(Matrix3f()) );
-    CALL_SUBTEST_1( selfadjointeigensolver(Matrix3d()) );
+    CALL_SUBTEST_12( selfadjointeigensolver(Matrix2f()) );
+    CALL_SUBTEST_12( selfadjointeigensolver(Matrix2d()) );
+    CALL_SUBTEST_13( selfadjointeigensolver(Matrix3f()) );
+    CALL_SUBTEST_13( selfadjointeigensolver(Matrix3d()) );
     CALL_SUBTEST_2( selfadjointeigensolver(Matrix4d()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
     CALL_SUBTEST_3( selfadjointeigensolver(MatrixXf(s,s)) );

@@ -71,7 +71,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   template<typename Derived>
   inline explicit AlignedBox(const MatrixBase<Derived>& a_p)
   {
-    typename internal::nested<Derived,2>::type p(a_p.derived());
+    typename internal::nested_eval<Derived,2>::type p(a_p.derived());
     m_min = p;
     m_max = p;
   }

@@ -44,6 +44,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     typedef ArrayBase<ArrayWrapper> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
+    typedef typename internal::remove_all<ExpressionType>::type NestedExpression;
 
     typedef typename internal::conditional<
                        internal::is_lvalue<ExpressionType>::value,
@@ -54,7 +55,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
+    explicit EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
     EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_expression.rows(); }
@@ -186,6 +187,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     typedef MatrixBase<MatrixWrapper<ExpressionType> > Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper)
+    typedef typename internal::remove_all<ExpressionType>::type NestedExpression;
 
     typedef typename internal::conditional<
                        internal::is_lvalue<ExpressionType>::value,
@@ -196,7 +198,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
     EIGEN_DEVICE_FUNC
-    inline MatrixWrapper(ExpressionType& a_matrix) : m_expression(a_matrix) {}
+    explicit inline MatrixWrapper(ExpressionType& a_matrix) : m_expression(a_matrix) {}
 
     EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_expression.rows(); }

@@ -113,8 +113,7 @@ template<typename Derived>
 inline const typename MatrixBase<Derived>::PlainObject
 MatrixBase<Derived>::normalized() const
 {
-  typedef typename internal::nested<Derived>::type Nested;
-  typedef typename internal::remove_reference<Nested>::type _Nested;
+  typedef typename internal::nested_eval<Derived,2>::type _Nested;
   _Nested n(derived());
   return n / n.norm();
 }
@@ -206,8 +205,8 @@ template<typename OtherDerived>
 bool MatrixBase<Derived>::isOrthogonal
 (const MatrixBase<OtherDerived>& other, const RealScalar& prec) const
 {
-  typename internal::nested<Derived,2>::type nested(derived());
-  typename internal::nested<OtherDerived,2>::type otherNested(other.derived());
+  typename internal::nested_eval<Derived,2>::type nested(derived());
+  typename internal::nested_eval<OtherDerived,2>::type otherNested(other.derived());
   return numext::abs2(nested.dot(otherNested)) <= prec * prec * nested.squaredNorm() * otherNested.squaredNorm();
 }
 

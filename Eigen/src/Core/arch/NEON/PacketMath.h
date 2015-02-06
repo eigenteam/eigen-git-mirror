@@ -20,14 +20,24 @@ namespace internal {
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
 
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_MADD
+#endif
+
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
+#endif
+
 // FIXME NEON has 16 quad registers, but since the current register allocator
 // is so bad, it is much better to reduce it to 8
 #ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
-#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 8
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16 
 #endif
 
+typedef float32x2_t Packet2f;
 typedef float32x4_t Packet4f;
 typedef int32x4_t   Packet4i;
+typedef int32x2_t   Packet2i;
 typedef uint32x4_t  Packet4ui;
 
 #define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
@@ -39,7 +49,7 @@ typedef uint32x4_t  Packet4ui;
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i p4i_##NAME = pset1<Packet4i>(X)
 
-#if defined(__llvm__) && !defined(__clang__)
+#if EIGEN_COMP_LLVM && !EIGEN_COMP_CLANG
   //Special treatment for Apple's llvm-gcc, its NEON packet types are unions
   #define EIGEN_INIT_NEON_PACKET2(X, Y)       {{X, Y}}
   #define EIGEN_INIT_NEON_PACKET4(X, Y, Z, W) {{X, Y, Z, W}}
@@ -52,11 +62,11 @@ typedef uint32x4_t  Packet4ui;
 
 // arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
 // which available on LLVM and GCC (at least)
-#if EIGEN_HAS_BUILTIN(__builtin_prefetch) || defined(__GNUC__)
+#if EIGEN_HAS_BUILTIN(__builtin_prefetch) || EIGEN_COMP_GNUC
   #define EIGEN_ARM_PREFETCH(ADDR) __builtin_prefetch(ADDR);
 #elif defined __pld
   #define EIGEN_ARM_PREFETCH(ADDR) __pld(ADDR)
-#elif !defined(__aarch64__)
+#elif !EIGEN_ARCH_ARM64
   #define EIGEN_ARM_PREFETCH(ADDR) __asm__ __volatile__ ( "   pld [%[addr]]\n" :: [addr] "r" (ADDR) : "cc" );
 #else
   // by default no explicit prefetching
@@ -66,11 +76,12 @@ typedef uint32x4_t  Packet4ui;
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet4f type;
-  typedef Packet4f half;
+  typedef Packet2f half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 4,
+    HasHalfPacket=1,
    
     HasDiv  = 1,
     // FIXME check the Has*
@@ -84,16 +95,17 @@ template<> struct packet_traits<float>  : default_packet_traits
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
-  typedef Packet4i half;
+  typedef Packet2i half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
-    size=4
+    size=4,
+    HasHalfPacket=1
     // FIXME check the Has*
   };
 };
 
-#if EIGEN_GNUC_AT_MOST(4,4) && !defined(__llvm__)
+#if EIGEN_GNUC_AT_MOST(4,4) && !EIGEN_COMP_LLVM
 // workaround gcc 4.2, 4.3 and 4.4 compilatin issue
 EIGEN_STRONG_INLINE float32x4_t vld1q_f32(const float* x) { return ::vld1q_f32((const float32_t*)x); }
 EIGEN_STRONG_INLINE float32x2_t vld1_f32 (const float* x) { return ::vld1_f32 ((const float32_t*)x); }
@@ -136,6 +148,9 @@ template<> EIGEN_STRONG_INLINE Packet4i pmul<Packet4i>(const Packet4i& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
+#if EIGEN_ARCH_ARM64
+  return vdivq_f32(a,b);
+#else
   Packet4f inv, restep, div;
 
   // NEON does not offer a divide instruction, we have to do a reciprocal approximation
@@ -154,14 +169,27 @@ template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const 
   div = vmulq_f32(a, inv);
 
   return div;
+#endif
 }
+
 template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, const Packet4i& /*b*/)
 { eigen_assert(false && "packet integer division are not supported by NEON");
   return pset1<Packet4i>(0);
 }
 
-// for some weird raisons, it has to be overloaded for packet of integers
+#ifdef __ARM_FEATURE_FMA
+// See bug 936.
+// FMA is available on VFPv4 i.e. when compiling with -mfpu=neon-vfpv4.
+// FMA is a true fused multiply-add i.e. only 1 rounding at the end, no intermediate rounding.
+// MLA is not fused i.e. does 2 roundings.
+// In addition to giving better accuracy, FMA also gives better performance here on a Krait (Nexus 4):
+// MLA: 10 GFlop/s ; FMA: 12 GFlops/s.
+template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vfmaq_f32(c,a,b); }
+#else
 template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vmlaq_f32(c,a,b); }
+#endif
+
+// No FMA instruction for int, so use MLA unconditionally.
 template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return vmlaq_s32(c,a,b); }
 
 template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b) { return vminq_f32(a,b); }
@@ -471,6 +499,193 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
   kernel.packet[2] = vcombine_s32(vget_low_s32(tmp1.val[1]), vget_low_s32(tmp2.val[1]));
   kernel.packet[3] = vcombine_s32(vget_high_s32(tmp1.val[1]), vget_high_s32(tmp2.val[1]));
 }
+
+//---------- double ----------
+#if EIGEN_ARCH_ARM64
+
+#if (EIGEN_COMP_GNUC_STRICT && defined(__ANDROID__)) || defined(__apple_build_version__)
+// Bug 907: workaround missing declarations of the following two functions in the ADK
+__extension__ static __inline uint64x2_t __attribute__ ((__always_inline__))
+vreinterpretq_u64_f64 (float64x2_t __a)
+{
+  return (uint64x2_t) __a;
+}
+
+__extension__ static __inline float64x2_t __attribute__ ((__always_inline__))
+vreinterpretq_f64_u64 (uint64x2_t __a)
+{
+  return (float64x2_t) __a;
+}
+#endif
+
+typedef float64x2_t Packet2d;
+typedef float64x1_t Packet1d;
+
+template<> struct packet_traits<double>  : default_packet_traits
+{
+  typedef Packet2d type;
+  typedef Packet1d half;
+  enum {
+    Vectorizable = 1,
+    AlignedOnScalar = 1,
+    size = 2,
+    HasHalfPacket=1,
+   
+    HasDiv  = 1,
+    // FIXME check the Has*
+    HasSin  = 0,
+    HasCos  = 0,
+    HasLog  = 0,
+    HasExp  = 0,
+    HasSqrt = 0
+  };
+};
+
+template<> struct unpacket_traits<Packet2d> { typedef double  type; enum {size=2}; typedef Packet2d half; };
+
+template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) { return vdupq_n_f64(from); }
+
+template<> EIGEN_STRONG_INLINE Packet2d plset<double>(const double& a)
+{
+  Packet2d countdown = EIGEN_INIT_NEON_PACKET2(0, 1);
+  return vaddq_f64(pset1<Packet2d>(a), countdown);
+}
+template<> EIGEN_STRONG_INLINE Packet2d padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return vaddq_f64(a,b); }
+
+template<> EIGEN_STRONG_INLINE Packet2d psub<Packet2d>(const Packet2d& a, const Packet2d& b) { return vsubq_f64(a,b); }
+
+template<> EIGEN_STRONG_INLINE Packet2d pnegate(const Packet2d& a) { return vnegq_f64(a); }
+
+template<> EIGEN_STRONG_INLINE Packet2d pconj(const Packet2d& a) { return a; }
+
+template<> EIGEN_STRONG_INLINE Packet2d pmul<Packet2d>(const Packet2d& a, const Packet2d& b) { return vmulq_f64(a,b); }
+
+template<> EIGEN_STRONG_INLINE Packet2d pdiv<Packet2d>(const Packet2d& a, const Packet2d& b) { return vdivq_f64(a,b); }
+
+#ifdef __ARM_FEATURE_FMA
+// See bug 936. See above comment about FMA for float.
+template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return vfmaq_f64(c,a,b); }
+#else
+template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return vmlaq_f64(c,a,b); }
+#endif
+
+template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const Packet2d& b) { return vminq_f64(a,b); }
+
+template<> EIGEN_STRONG_INLINE Packet2d pmax<Packet2d>(const Packet2d& a, const Packet2d& b) { return vmaxq_f64(a,b); }
+
+// Logical Operations are not supported for float, so we have to reinterpret casts using NEON intrinsics
+template<> EIGEN_STRONG_INLINE Packet2d pand<Packet2d>(const Packet2d& a, const Packet2d& b)
+{
+  return vreinterpretq_f64_u64(vandq_u64(vreinterpretq_u64_f64(a),vreinterpretq_u64_f64(b)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d por<Packet2d>(const Packet2d& a, const Packet2d& b)
+{
+  return vreinterpretq_f64_u64(vorrq_u64(vreinterpretq_u64_f64(a),vreinterpretq_u64_f64(b)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d pxor<Packet2d>(const Packet2d& a, const Packet2d& b)
+{
+  return vreinterpretq_f64_u64(veorq_u64(vreinterpretq_u64_f64(a),vreinterpretq_u64_f64(b)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d pandnot<Packet2d>(const Packet2d& a, const Packet2d& b)
+{
+  return vreinterpretq_f64_u64(vbicq_u64(vreinterpretq_u64_f64(a),vreinterpretq_u64_f64(b)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d pload<Packet2d>(const double* from) { EIGEN_DEBUG_ALIGNED_LOAD return vld1q_f64(from); }
+
+template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from) { EIGEN_DEBUG_UNALIGNED_LOAD return vld1q_f64(from); }
+
+template<> EIGEN_STRONG_INLINE Packet2d ploaddup<Packet2d>(const double*   from)
+{
+  return vld1q_dup_f64(from);
+}
+template<> EIGEN_STRONG_INLINE void pstore<double>(double*   to, const Packet2d& from) { EIGEN_DEBUG_ALIGNED_STORE vst1q_f64(to, from); }
+
+template<> EIGEN_STRONG_INLINE void pstoreu<double>(double*  to, const Packet2d& from) { EIGEN_DEBUG_UNALIGNED_STORE vst1q_f64(to, from); }
+
+template<> EIGEN_DEVICE_FUNC inline Packet2d pgather<double, Packet2d>(const double* from, DenseIndex stride)
+{
+  Packet2d res;
+  res = vsetq_lane_f64(from[0*stride], res, 0);
+  res = vsetq_lane_f64(from[1*stride], res, 1);
+  return res;
+}
+template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet2d>(double* to, const Packet2d& from, DenseIndex stride)
+{
+  to[stride*0] = vgetq_lane_f64(from, 0);
+  to[stride*1] = vgetq_lane_f64(from, 1);
+}
+template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { EIGEN_ARM_PREFETCH(addr); }
+
+// FIXME only store the 2 first elements ?
+template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { return vgetq_lane_f64(a, 0); }
+
+template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a) { return vcombine_f64(vget_high_f64(a), vget_low_f64(a)); }
+
+template<> EIGEN_STRONG_INLINE Packet2d pabs(const Packet2d& a) { return vabsq_f64(a); }
+
+#if EIGEN_COMP_CLANG && defined(__apple_build_version__)
+// workaround ICE, see bug 907
+template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a) { return (vget_low_f64(a) + vget_high_f64(a))[0]; }
+#else
+template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a) { return vget_lane_f64(vget_low_f64(a) + vget_high_f64(a), 0); }
+#endif
+
+template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
+{
+  float64x2_t trn1, trn2;
+
+  // NEON zip performs interleaving of the supplied vectors.
+  // We perform two interleaves in a row to acquire the transposed vector
+  trn1 = vzip1q_f64(vecs[0], vecs[1]);
+  trn2 = vzip2q_f64(vecs[0], vecs[1]);
+
+  // Do the addition of the resulting vectors
+  return vaddq_f64(trn1, trn2);
+}
+// Other reduction functions:
+// mul
+#if EIGEN_COMP_CLANG && defined(__apple_build_version__)
+template<> EIGEN_STRONG_INLINE double predux_mul<Packet2d>(const Packet2d& a) { return (vget_low_f64(a) * vget_high_f64(a))[0]; }
+#else
+template<> EIGEN_STRONG_INLINE double predux_mul<Packet2d>(const Packet2d& a) { return vget_lane_f64(vget_low_f64(a) * vget_high_f64(a), 0); }
+#endif
+
+// min
+template<> EIGEN_STRONG_INLINE double predux_min<Packet2d>(const Packet2d& a) { return vgetq_lane_f64(vpminq_f64(a, a), 0); }
+
+// max
+template<> EIGEN_STRONG_INLINE double predux_max<Packet2d>(const Packet2d& a) { return vgetq_lane_f64(vpmaxq_f64(a, a), 0); }
+
+// this PALIGN_NEON business is to work around a bug in LLVM Clang 3.0 causing incorrect compilation errors,
+// see bug 347 and this LLVM bug: http://llvm.org/bugs/show_bug.cgi?id=11074
+#define PALIGN_NEON(Offset,Type,Command) \
+template<>\
+struct palign_impl<Offset,Type>\
+{\
+    EIGEN_STRONG_INLINE static void run(Type& first, const Type& second)\
+    {\
+        if (Offset!=0)\
+            first = Command(first, second, Offset);\
+    }\
+};\
+
+PALIGN_NEON(0,Packet2d,vextq_f64)
+PALIGN_NEON(1,Packet2d,vextq_f64)
+#undef PALIGN_NEON
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet2d,2>& kernel) {
+  float64x2_t trn1 = vzip1q_f64(kernel.packet[0], kernel.packet[1]);
+  float64x2_t trn2 = vzip2q_f64(kernel.packet[0], kernel.packet[1]);
+
+  kernel.packet[0] = trn1;
+  kernel.packet[1] = trn2;
+}
+#endif // EIGEN_ARCH_ARM64 
 
 } // end namespace internal
 

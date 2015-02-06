@@ -1,6 +1,6 @@
 project(Eigen)
 
-cmake_minimum_required(VERSION 2.8.2)
+cmake_minimum_required(VERSION 2.8.4)
 
 # guard against in-source builds
 
@@ -219,11 +219,25 @@ if(NOT MSVC)
     message(STATUS "Enabling AltiVec in tests/examples")
   endif()
 
+  option(EIGEN_TEST_VSX "Enable/Disable VSX in tests/examples" OFF)
+  if(EIGEN_TEST_VSX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -mvsx")
+    message(STATUS "Enabling VSX in tests/examples")
+  endif()
+
   option(EIGEN_TEST_NEON "Enable/Disable Neon in tests/examples" OFF)
   if(EIGEN_TEST_NEON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -mcpu=cortex-a8")
     message(STATUS "Enabling NEON in tests/examples")
   endif()
+
+  option(EIGEN_TEST_NEON64 "Enable/Disable Neon in tests/examples" OFF)
+  if(EIGEN_TEST_NEON64)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    message(STATUS "Enabling NEON in tests/examples")
+  endif()
+
+
 
   check_cxx_compiler_flag("-fopenmp" COMPILER_SUPPORT_OPENMP)
   if(COMPILER_SUPPORT_OPENMP)
@@ -434,6 +448,7 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "make check    | Build and run the unit-tests. Read this page:")
   message(STATUS "              |   http://eigen.tuxfamily.org/index.php?title=Tests")
   message(STATUS "make blas     | Build BLAS library (not the same thing as Eigen)")
+  message(STATUS "make uninstall| Removes files installed by make install")
   message(STATUS "--------------+--------------------------------------------------------------")
 else()
   message(STATUS "To build/run the unit tests, read this page:")
@@ -469,3 +484,7 @@ install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
           DESTINATION ${EIGEN_CONFIG_CMAKE_PATH}
         )
+
+# Add uninstall target
+add_custom_target ( uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/EigenUninstall.cmake)

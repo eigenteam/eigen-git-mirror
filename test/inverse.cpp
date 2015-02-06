@@ -68,6 +68,15 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(abs(det-m3.determinant()), RealScalar(1));
   m3.computeInverseWithCheck(m4, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
+  
+  // check with submatrices
+  {
+    Matrix<Scalar, MatrixType::RowsAtCompileTime+1, MatrixType::RowsAtCompileTime+1, MatrixType::Options> m3;
+    m3.setRandom();
+    m3.topLeftCorner(rows,rows) = m1;
+    m2 = m3.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>().inverse();
+    VERIFY_IS_APPROX( (m3.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>()), m2.inverse() );
+  }
 #endif
 
   // check in-place inversion

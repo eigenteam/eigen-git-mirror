@@ -11,7 +11,7 @@
 
 template <typename MatrixType> void run_nesting_ops(const MatrixType& _m)
 {
-  typename MatrixType::Nested m(_m);
+  typename internal::nested_eval<MatrixType,2>::type m(_m);
 
   // Make really sure that we are in debug mode!
   VERIFY_RAISES_ASSERT(eigen_assert(false));

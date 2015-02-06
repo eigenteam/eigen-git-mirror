@@ -133,7 +133,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa compute() for an example
       */
     EIGEN_DEVICE_FUNC
-    SelfAdjointEigenSolver(Index size)
+    explicit SelfAdjointEigenSolver(Index size)
         : m_eivec(size, size),
           m_eivalues(size),
           m_subdiag(size > 1 ? size - 1 : 1),
@@ -156,7 +156,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa compute(const MatrixType&, int)
       */
     EIGEN_DEVICE_FUNC
-    SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
+    explicit SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
         m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
@@ -732,7 +732,6 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
   EIGEN_DEVICE_FUNC
   static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
-    EIGEN_USING_STD_MATH(max)
     EIGEN_USING_STD_MATH(sqrt);
     
     eigen_assert(mat.cols() == 2 && mat.cols() == mat.rows());
@@ -746,7 +745,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
   
     // map the matrix coefficients to [-1:1] to avoid over- and underflow.
     Scalar scale = mat.cwiseAbs().maxCoeff();
-    scale = (max)(scale,Scalar(1));
+    scale = numext::maxi(scale,Scalar(1));
     MatrixType scaledMat = mat / scale;
     
     // Compute the eigenvalues

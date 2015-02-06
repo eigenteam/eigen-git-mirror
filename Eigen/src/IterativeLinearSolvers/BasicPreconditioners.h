@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -43,7 +43,7 @@ class DiagonalPreconditioner
     DiagonalPreconditioner() : m_isInitialized(false) {}
 
     template<typename MatType>
-    DiagonalPreconditioner(const MatType& mat) : m_invdiag(mat.cols())
+    explicit DiagonalPreconditioner(const MatType& mat) : m_invdiag(mat.cols())
     {
       compute(mat);
     }
@@ -80,19 +80,20 @@ class DiagonalPreconditioner
       return factorize(mat);
     }
 
+    /** \internal */
     template<typename Rhs, typename Dest>
-    void _solve(const Rhs& b, Dest& x) const
+    void _solve_impl(const Rhs& b, Dest& x) const
     {
       x = m_invdiag.array() * b.array() ;
     }
 
-    template<typename Rhs> inline const internal::solve_retval<DiagonalPreconditioner, Rhs>
+    template<typename Rhs> inline const Solve<DiagonalPreconditioner, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "DiagonalPreconditioner is not initialized.");
       eigen_assert(m_invdiag.size()==b.rows()
                 && "DiagonalPreconditioner::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<DiagonalPreconditioner, Rhs>(*this, b.derived());
+      return Solve<DiagonalPreconditioner, Rhs>(*this, b.derived());
     }
 
   protected:
@@ -100,22 +101,6 @@ class DiagonalPreconditioner
     bool m_isInitialized;
 };
 
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<DiagonalPreconditioner<_MatrixType>, Rhs>
-  : solve_retval_base<DiagonalPreconditioner<_MatrixType>, Rhs>
-{
-  typedef DiagonalPreconditioner<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-}
 
 /** \ingroup IterativeLinearSolvers_Module
   * \brief A naive preconditioner which approximates any matrix as the identity matrix
@@ -129,7 +114,7 @@ class IdentityPreconditioner
     IdentityPreconditioner() {}
 
     template<typename MatrixType>
-    IdentityPreconditioner(const MatrixType& ) {}
+    explicit IdentityPreconditioner(const MatrixType& ) {}
     
     template<typename MatrixType>
     IdentityPreconditioner& analyzePattern(const MatrixType& ) { return *this; }

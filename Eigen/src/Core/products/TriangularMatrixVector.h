@@ -163,83 +163,67 @@ EIGEN_DONT_INLINE void triangular_matrix_vector_product<Index,Mode,LhsScalar,Con
 * Wrapper to product_triangular_vector
 ***************************************************************************/
 
-template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
-struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,true> >
- : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,true>, Lhs, Rhs> >
-{};
-
-template<int Mode, bool LhsIsTriangular, typename Lhs, typename Rhs>
-struct traits<TriangularProduct<Mode,LhsIsTriangular,Lhs,true,Rhs,false> >
- : traits<ProductBase<TriangularProduct<Mode,LhsIsTriangular,Lhs,true,Rhs,false>, Lhs, Rhs> >
-{};
-
-
-template<int StorageOrder>
+template<int Mode,int StorageOrder>
 struct trmv_selector;
 
 } // end namespace internal
 
+namespace internal {
+
 template<int Mode, typename Lhs, typename Rhs>
-struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
-  : public ProductBase<TriangularProduct<Mode,true,Lhs,false,Rhs,true>, Lhs, Rhs >
+struct triangular_product_impl<Mode,true,Lhs,false,Rhs,true>
 {
-  EIGEN_PRODUCT_PUBLIC_INTERFACE(TriangularProduct)
-
-  TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
-
-  template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
+  template<typename Dest> static void run(Dest& dst, const Lhs &lhs, const Rhs &rhs, const typename Dest::Scalar& alpha)
   {
-    eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
-
-    internal::trmv_selector<(int(internal::traits<Lhs>::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dst, alpha);
+    eigen_assert(dst.rows()==lhs.rows() && dst.cols()==rhs.cols());
+  
+    internal::trmv_selector<Mode,(int(internal::traits<Lhs>::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(lhs, rhs, dst, alpha);
   }
 };
 
 template<int Mode, typename Lhs, typename Rhs>
-struct TriangularProduct<Mode,false,Lhs,true,Rhs,false>
-  : public ProductBase<TriangularProduct<Mode,false,Lhs,true,Rhs,false>, Lhs, Rhs >
+struct triangular_product_impl<Mode,false,Lhs,true,Rhs,false>
 {
-  EIGEN_PRODUCT_PUBLIC_INTERFACE(TriangularProduct)
-
-  TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
-
-  template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
+  template<typename Dest> static void run(Dest& dst, const Lhs &lhs, const Rhs &rhs, const typename Dest::Scalar& alpha)
   {
-    eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+    eigen_assert(dst.rows()==lhs.rows() && dst.cols()==rhs.cols());
 
-    typedef TriangularProduct<(Mode & (UnitDiag|ZeroDiag)) | ((Mode & Lower) ? Upper : Lower),true,Transpose<const Rhs>,false,Transpose<const Lhs>,true> TriangularProductTranspose;
     Transpose<Dest> dstT(dst);
-    internal::trmv_selector<(int(internal::traits<Rhs>::Flags)&RowMajorBit) ? ColMajor : RowMajor>::run(
-      TriangularProductTranspose(m_rhs.transpose(),m_lhs.transpose()), dstT, alpha);
+    internal::trmv_selector<(Mode & (UnitDiag|ZeroDiag)) | ((Mode & Lower) ? Upper : Lower),
+                            (int(internal::traits<Rhs>::Flags)&RowMajorBit) ? ColMajor : RowMajor>
+            ::run(rhs.transpose(),lhs.transpose(), dstT, alpha);
   }
 };
+
+} // end namespace internal
 
 namespace internal {
 
 // TODO: find a way to factorize this piece of code with gemv_selector since the logic is exactly the same.
-
-template<> struct trmv_selector<ColMajor>
+  
+template<int Mode> struct trmv_selector<Mode,ColMajor>
 {
-  template<int Mode, typename Lhs, typename Rhs, typename Dest>
-  static void run(const TriangularProduct<Mode,true,Lhs,false,Rhs,true>& prod, Dest& dest, const typename TriangularProduct<Mode,true,Lhs,false,Rhs,true>::Scalar& alpha)
+  template<typename Lhs, typename Rhs, typename Dest>
+  static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef TriangularProduct<Mode,true,Lhs,false,Rhs,true> ProductType;
-    typedef typename ProductType::Index Index;
-    typedef typename ProductType::LhsScalar   LhsScalar;
-    typedef typename ProductType::RhsScalar   RhsScalar;
-    typedef typename ProductType::Scalar      ResScalar;
-    typedef typename ProductType::RealScalar  RealScalar;
-    typedef typename ProductType::ActualLhsType ActualLhsType;
-    typedef typename ProductType::ActualRhsType ActualRhsType;
-    typedef typename ProductType::LhsBlasTraits LhsBlasTraits;
-    typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
+    typedef typename Dest::Index      Index;
+    typedef typename Lhs::Scalar      LhsScalar;
+    typedef typename Rhs::Scalar      RhsScalar;
+    typedef typename Dest::Scalar     ResScalar;
+    typedef typename Dest::RealScalar RealScalar;
+    
+    typedef internal::blas_traits<Lhs> LhsBlasTraits;
+    typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
+    typedef internal::blas_traits<Rhs> RhsBlasTraits;
+    typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
+    
     typedef Map<Matrix<ResScalar,Dynamic,1>, Aligned> MappedDest;
 
-    typename internal::add_const_on_value_type<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(prod.lhs());
-    typename internal::add_const_on_value_type<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(prod.rhs());
+    typename internal::add_const_on_value_type<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
+    typename internal::add_const_on_value_type<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
 
-    ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
-                                  * RhsBlasTraits::extractScalarFactor(prod.rhs());
+    ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(lhs)
+                                  * RhsBlasTraits::extractScalarFactor(rhs);
 
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
@@ -294,33 +278,33 @@ template<> struct trmv_selector<ColMajor>
   }
 };
 
-template<> struct trmv_selector<RowMajor>
+template<int Mode> struct trmv_selector<Mode,RowMajor>
 {
-  template<int Mode, typename Lhs, typename Rhs, typename Dest>
-  static void run(const TriangularProduct<Mode,true,Lhs,false,Rhs,true>& prod, Dest& dest, const typename TriangularProduct<Mode,true,Lhs,false,Rhs,true>::Scalar& alpha)
+  template<typename Lhs, typename Rhs, typename Dest>
+  static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef TriangularProduct<Mode,true,Lhs,false,Rhs,true> ProductType;
-    typedef typename ProductType::LhsScalar LhsScalar;
-    typedef typename ProductType::RhsScalar RhsScalar;
-    typedef typename ProductType::Scalar    ResScalar;
-    typedef typename ProductType::Index Index;
-    typedef typename ProductType::ActualLhsType ActualLhsType;
-    typedef typename ProductType::ActualRhsType ActualRhsType;
-    typedef typename ProductType::_ActualRhsType _ActualRhsType;
-    typedef typename ProductType::LhsBlasTraits LhsBlasTraits;
-    typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
+    typedef typename Dest::Index      Index;
+    typedef typename Lhs::Scalar      LhsScalar;
+    typedef typename Rhs::Scalar      RhsScalar;
+    typedef typename Dest::Scalar     ResScalar;
+    
+    typedef internal::blas_traits<Lhs> LhsBlasTraits;
+    typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
+    typedef internal::blas_traits<Rhs> RhsBlasTraits;
+    typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
+    typedef typename internal::remove_all<ActualRhsType>::type ActualRhsTypeCleaned;
 
-    typename add_const<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(prod.lhs());
-    typename add_const<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(prod.rhs());
+    typename add_const<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
+    typename add_const<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
 
-    ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
-                                  * RhsBlasTraits::extractScalarFactor(prod.rhs());
+    ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(lhs)
+                                  * RhsBlasTraits::extractScalarFactor(rhs);
 
     enum {
-      DirectlyUseRhs = _ActualRhsType::InnerStrideAtCompileTime==1
+      DirectlyUseRhs = ActualRhsTypeCleaned::InnerStrideAtCompileTime==1
     };
 
-    gemv_static_vector_if<RhsScalar,_ActualRhsType::SizeAtCompileTime,_ActualRhsType::MaxSizeAtCompileTime,!DirectlyUseRhs> static_rhs;
+    gemv_static_vector_if<RhsScalar,ActualRhsTypeCleaned::SizeAtCompileTime,ActualRhsTypeCleaned::MaxSizeAtCompileTime,!DirectlyUseRhs> static_rhs;
 
     ei_declare_aligned_stack_constructed_variable(RhsScalar,actualRhsPtr,actualRhs.size(),
         DirectlyUseRhs ? const_cast<RhsScalar*>(actualRhs.data()) : static_rhs.data());
@@ -331,7 +315,7 @@ template<> struct trmv_selector<RowMajor>
       Index size = actualRhs.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
-      Map<typename _ActualRhsType::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
+      Map<typename ActualRhsTypeCleaned::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
     }
 
     internal::triangular_matrix_vector_product

@@ -62,9 +62,13 @@ namespace internal {
   * 
   */
 template<typename _MatrixType, typename _OrderingType>
-class SparseQR
+class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
 {
+  protected:
+    typedef SparseSolverBase<SparseQR<_MatrixType,_OrderingType> > Base;
+    using Base::m_isInitialized;
   public:
+    using Base::_solve_impl;
     typedef _MatrixType MatrixType;
     typedef _OrderingType OrderingType;
     typedef typename MatrixType::Scalar Scalar;
@@ -75,7 +79,7 @@ class SparseQR
     typedef Matrix<Scalar, Dynamic, 1> ScalarVector;
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
   public:
-    SparseQR () : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
+    SparseQR () :  m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     { }
     
     /** Construct a QR factorization of the matrix \a mat.
@@ -84,7 +88,7 @@ class SparseQR
       * 
       * \sa compute()
       */
-    SparseQR(const MatrixType& mat) : m_isInitialized(false), m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
+    explicit SparseQR(const MatrixType& mat) : m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     {
       compute(mat);
     }
@@ -162,7 +166,7 @@ class SparseQR
     
     /** \internal */
     template<typename Rhs, typename Dest>
-    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &dest) const
+    bool _solve_impl(const MatrixBase<Rhs> &B, MatrixBase<Dest> &dest) const
     {
       eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
       eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
@@ -178,7 +182,7 @@ class SparseQR
       y.resize((std::max)(cols(),Index(y.rows())),y.cols());
       y.topRows(rank) = this->matrixR().topLeftCorner(rank, rank).template triangularView<Upper>().solve(b.topRows(rank));
       y.bottomRows(y.rows()-rank).setZero();
-
+      
       // Apply the column permutation
       if (m_perm_c.size())  dest = colsPermutation() * y.topRows(cols());
       else                  dest = y.topRows(cols());
@@ -186,7 +190,6 @@ class SparseQR
       m_info = Success;
       return true;
     }
-    
 
     /** Sets the threshold that is used to determine linearly dependent columns during the factorization.
       *
@@ -204,18 +207,18 @@ class SparseQR
       * \sa compute()
       */
     template<typename Rhs>
-    inline const internal::solve_retval<SparseQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
+    inline const Solve<SparseQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
     {
       eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
       eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
-      return internal::solve_retval<SparseQR, Rhs>(*this, B.derived());
+      return Solve<SparseQR, Rhs>(*this, B.derived());
     }
     template<typename Rhs>
-    inline const internal::sparse_solve_retval<SparseQR, Rhs> solve(const SparseMatrixBase<Rhs>& B) const
+    inline const Solve<SparseQR, Rhs> solve(const SparseMatrixBase<Rhs>& B) const
     {
           eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
           eigen_assert(this->rows() == B.rows() && "SparseQR::solve() : invalid number of rows in the right hand side matrix");
-          return internal::sparse_solve_retval<SparseQR, Rhs>(*this, B.derived());
+          return Solve<SparseQR, Rhs>(*this, B.derived());
     }
     
     /** \brief Reports whether previous computation was successful.
@@ -244,7 +247,6 @@ class SparseQR
 
     
   protected:
-    bool m_isInitialized;
     bool m_analysisIsok;
     bool m_factorizationIsok;
     mutable ComputationInfo m_info;
@@ -282,9 +284,11 @@ template <typename MatrixType, typename OrderingType>
 void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
 {
   eigen_assert(mat.isCompressed() && "SparseQR requires a sparse matrix in compressed mode. Call .makeCompressed() before passing it to SparseQR");
+  // Copy to a column major matrix if the input is rowmajor
+  typename internal::conditional<MatrixType::IsRowMajor,QRMatrixType,const MatrixType&>::type matCpy(mat);
   // Compute the column fill reducing ordering
   OrderingType ord; 
-  ord(mat, m_perm_c); 
+  ord(matCpy, m_perm_c); 
   Index n = mat.cols();
   Index m = mat.rows();
   Index diagSize = (std::min)(m,n);
@@ -297,7 +301,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
   
   // Compute the column elimination tree of the permuted matrix
   m_outputPerm_c = m_perm_c.inverse();
-  internal::coletree(mat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
+  internal::coletree(matCpy, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
   m_isEtreeOk = true;
   
   m_R.resize(m, n);
@@ -321,7 +325,6 @@ template <typename MatrixType, typename OrderingType>
 void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
 {
   using std::abs;
-  using std::max;
   
   eigen_assert(m_analysisIsok && "analyzePattern() should be called before this step");
   Index m = mat.rows();
@@ -335,21 +338,35 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   
   m_R.setZero();
   m_Q.setZero();
+  m_pmat = mat;
   if(!m_isEtreeOk)
   {
     m_outputPerm_c = m_perm_c.inverse();
-    internal::coletree(mat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
+    internal::coletree(m_pmat, m_etree, m_firstRowElt, m_outputPerm_c.indices().data());
     m_isEtreeOk = true;
   }
-    
-  m_pmat = mat;
+
   m_pmat.uncompress(); // To have the innerNonZeroPtr allocated
+  
   // Apply the fill-in reducing permutation lazily:
-  for (int i = 0; i < n; i++)
   {
-    Index p = m_perm_c.size() ? m_perm_c.indices()(i) : i;
-    m_pmat.outerIndexPtr()[p] = mat.outerIndexPtr()[i]; 
-    m_pmat.innerNonZeroPtr()[p] = mat.outerIndexPtr()[i+1] - mat.outerIndexPtr()[i]; 
+    // If the input is row major, copy the original column indices,
+    // otherwise directly use the input matrix
+    // 
+    IndexVector originalOuterIndicesCpy;
+    const Index *originalOuterIndices = mat.outerIndexPtr();
+    if(MatrixType::IsRowMajor)
+    {
+      originalOuterIndicesCpy = IndexVector::Map(m_pmat.outerIndexPtr(),n+1);
+      originalOuterIndices = originalOuterIndicesCpy.data();
+    }
+    
+    for (int i = 0; i < n; i++)
+    {
+      Index p = m_perm_c.size() ? m_perm_c.indices()(i) : i;
+      m_pmat.outerIndexPtr()[p] = originalOuterIndices[i]; 
+      m_pmat.innerNonZeroPtr()[p] = originalOuterIndices[i+1] - originalOuterIndices[i]; 
+    }
   }
   
   /* Compute the default threshold as in MatLab, see:
@@ -359,7 +376,9 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   if(m_useDefaultThreshold) 
   {
     RealScalar max2Norm = 0.0;
-    for (int j = 0; j < n; j++) max2Norm = (max)(max2Norm, m_pmat.col(j).norm());
+    for (int j = 0; j < n; j++) max2Norm = numext::maxi(max2Norm, m_pmat.col(j).norm());
+    if(max2Norm==RealScalar(0))
+      max2Norm = RealScalar(1);
     pivotThreshold = 20 * (m + n) * max2Norm * NumTraits<RealScalar>::epsilon();
   }
   
@@ -368,7 +387,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   
   Index nonzeroCol = 0; // Record the number of valid pivots
   m_Q.startVec(0);
-  
+
   // Left looking rank-revealing QR factorization: compute a column of R and Q at a time
   for (Index col = 0; col < n; ++col)
   {
@@ -384,7 +403,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
     // all the nodes (with indexes lower than rank) reachable through the column elimination tree (etree) rooted at node k.
     // Note: if the diagonal entry does not exist, then its contribution must be explicitly added,
     // thus the trick with found_diag that permits to do one more iteration on the diagonal element if this one has not been found.
-    for (typename MatrixType::InnerIterator itp(m_pmat, col); itp || !found_diag; ++itp)
+    for (typename QRMatrixType::InnerIterator itp(m_pmat, col); itp || !found_diag; ++itp)
     {
       Index curIdx = nonzeroCol;
       if(itp) curIdx = itp.row();
@@ -536,13 +555,13 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   m_R.finalize();
   m_R.makeCompressed();
   m_isQSorted = false;
-  
+
   m_nonzeropivots = nonzeroCol;
   
   if(nonzeroCol<n)
   {
     // Permute the triangular factor to put the 'dead' columns to the end
-    MatrixType tempR(m_R);
+    QRMatrixType tempR(m_R);
     m_R = tempR * m_pivotperm;
     
     // Update the column permutation
@@ -553,34 +572,6 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   m_factorizationIsok = true;
   m_info = Success;
 }
-
-namespace internal {
-  
-template<typename _MatrixType, typename OrderingType, typename Rhs>
-struct solve_retval<SparseQR<_MatrixType,OrderingType>, Rhs>
-  : solve_retval_base<SparseQR<_MatrixType,OrderingType>, Rhs>
-{
-  typedef SparseQR<_MatrixType,OrderingType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-template<typename _MatrixType, typename OrderingType, typename Rhs>
-struct sparse_solve_retval<SparseQR<_MatrixType, OrderingType>, Rhs>
- : sparse_solve_retval_base<SparseQR<_MatrixType, OrderingType>, Rhs>
-{
-  typedef SparseQR<_MatrixType, OrderingType> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec, Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-} // end namespace internal
 
 template <typename SparseQRType, typename Derived>
 struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived> >
@@ -646,7 +637,7 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
   typedef typename SparseQRType::Index Index;
   typedef typename SparseQRType::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
-  SparseQRMatrixQReturnType(const SparseQRType& qr) : m_qr(qr) {}
+  explicit SparseQRMatrixQReturnType(const SparseQRType& qr) : m_qr(qr) {}
   template<typename Derived>
   SparseQR_QProduct<SparseQRType, Derived> operator*(const MatrixBase<Derived>& other)
   {
@@ -682,7 +673,7 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
 template<typename SparseQRType>
 struct SparseQRMatrixQTransposeReturnType
 {
-  SparseQRMatrixQTransposeReturnType(const SparseQRType& qr) : m_qr(qr) {}
+  explicit SparseQRMatrixQTransposeReturnType(const SparseQRType& qr) : m_qr(qr) {}
   template<typename Derived>
   SparseQR_QProduct<SparseQRType,Derived> operator*(const MatrixBase<Derived>& other)
   {

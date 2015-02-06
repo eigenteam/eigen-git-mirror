@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2012 Giacomo Po <gpo@ucla.edu>
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -217,6 +217,7 @@ namespace Eigen {
         using Base::m_info;
         using Base::m_isInitialized;
     public:
+        using Base::_solve_impl;
         typedef _MatrixType MatrixType;
         typedef typename MatrixType::Scalar Scalar;
         typedef typename MatrixType::Index Index;
@@ -244,26 +245,10 @@ namespace Eigen {
         
         /** Destructor. */
         ~MINRES(){}
-		
-        /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
-         * \a x0 as an initial solution.
-         *
-         * \sa compute()
-         */
-        template<typename Rhs,typename Guess>
-        inline const internal::solve_retval_with_guess<MINRES, Rhs, Guess>
-        solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
-        {
-            eigen_assert(m_isInitialized && "MINRES is not initialized.");
-            eigen_assert(Base::rows()==b.rows()
-                         && "MINRES::solve(): invalid number of rows of the right hand side matrix b");
-            return internal::solve_retval_with_guess
-            <MINRES, Rhs, Guess>(*this, b.derived(), x0);
-        }
-        
+
         /** \internal */
         template<typename Rhs,typename Dest>
-        void _solveWithGuess(const Rhs& b, Dest& x) const
+        void _solve_with_guess_impl(const Rhs& b, Dest& x) const
         {
             m_iterations = Base::maxIterations();
             m_error = Base::m_tolerance;
@@ -284,33 +269,16 @@ namespace Eigen {
         
         /** \internal */
         template<typename Rhs,typename Dest>
-        void _solve(const Rhs& b, Dest& x) const
+        void _solve_impl(const Rhs& b, MatrixBase<Dest> &x) const
         {
             x.setZero();
-            _solveWithGuess(b,x);
+            _solve_with_guess_impl(b,x.derived());
         }
         
     protected:
         
     };
-    
-    namespace internal {
-        
-        template<typename _MatrixType, int _UpLo, typename _Preconditioner, typename Rhs>
-        struct solve_retval<MINRES<_MatrixType,_UpLo,_Preconditioner>, Rhs>
-        : solve_retval_base<MINRES<_MatrixType,_UpLo,_Preconditioner>, Rhs>
-        {
-            typedef MINRES<_MatrixType,_UpLo,_Preconditioner> Dec;
-            EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-            
-            template<typename Dest> void evalTo(Dest& dst) const
-            {
-                dec()._solve(rhs(),dst);
-            }
-        };
-        
-    } // end namespace internal
-    
+
 } // end namespace Eigen
 
 #endif // EIGEN_MINRES_H

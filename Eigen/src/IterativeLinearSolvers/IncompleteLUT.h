@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
+// Copyright (C) 2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -93,8 +94,12 @@ Index QuickSplit(VectorV &row, VectorI &ind, Index ncut)
   *   http://comments.gmane.org/gmane.comp.lib.eigen/3302
   */
 template <typename _Scalar>
-class IncompleteLUT : internal::noncopyable
+class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar> >
 {
+  protected:
+    typedef SparseSolverBase<IncompleteLUT<_Scalar> > Base;
+    using Base::m_isInitialized;
+  public:
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef Matrix<Scalar,Dynamic,1> Vector;
@@ -107,13 +112,13 @@ class IncompleteLUT : internal::noncopyable
     
     IncompleteLUT()
       : m_droptol(NumTraits<Scalar>::dummy_precision()), m_fillfactor(10),
-        m_analysisIsOk(false), m_factorizationIsOk(false), m_isInitialized(false)
+        m_analysisIsOk(false), m_factorizationIsOk(false)
     {}
     
     template<typename MatrixType>
-    IncompleteLUT(const MatrixType& mat, const RealScalar& droptol=NumTraits<Scalar>::dummy_precision(), int fillfactor = 10)
+    explicit IncompleteLUT(const MatrixType& mat, const RealScalar& droptol=NumTraits<Scalar>::dummy_precision(), int fillfactor = 10)
       : m_droptol(droptol),m_fillfactor(fillfactor),
-        m_analysisIsOk(false),m_factorizationIsOk(false),m_isInitialized(false)
+        m_analysisIsOk(false),m_factorizationIsOk(false)
     {
       eigen_assert(fillfactor != 0);
       compute(mat); 
@@ -158,21 +163,12 @@ class IncompleteLUT : internal::noncopyable
     void setFillfactor(int fillfactor); 
     
     template<typename Rhs, typename Dest>
-    void _solve(const Rhs& b, Dest& x) const
+    void _solve_impl(const Rhs& b, Dest& x) const
     {
       x = m_Pinv * b;  
       x = m_lu.template triangularView<UnitLower>().solve(x);
       x = m_lu.template triangularView<Upper>().solve(x);
       x = m_P * x; 
-    }
-
-    template<typename Rhs> inline const internal::solve_retval<IncompleteLUT, Rhs>
-     solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "IncompleteLUT is not initialized.");
-      eigen_assert(cols()==b.rows()
-                && "IncompleteLUT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<IncompleteLUT, Rhs>(*this, b.derived());
     }
 
 protected:
@@ -192,7 +188,6 @@ protected:
     int m_fillfactor;
     bool m_analysisIsOk;
     bool m_factorizationIsOk;
-    bool m_isInitialized;
     ComputationInfo m_info;
     PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // Fill-reducing permutation
     PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // Inverse permutation
@@ -444,23 +439,6 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
   m_factorizationIsOk = true;
   m_info = Success;
 }
-
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<IncompleteLUT<_MatrixType>, Rhs>
-  : solve_retval_base<IncompleteLUT<_MatrixType>, Rhs>
-{
-  typedef IncompleteLUT<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 

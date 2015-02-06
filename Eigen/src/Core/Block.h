@@ -68,6 +68,7 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprTyp
     MaxColsAtCompileTime = BlockCols==0 ? 0
                          : ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime)
                          : int(traits<XprType>::MaxColsAtCompileTime),
+
     XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0,
     IsRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
@@ -80,18 +81,14 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprTyp
     OuterStrideAtCompileTime = HasSameStorageOrderAsXprType
                              ? int(outer_stride_at_compile_time<XprType>::ret)
                              : int(inner_stride_at_compile_time<XprType>::ret),
-    MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % packet_traits<Scalar>::size) == 0)
-                       && (InnerStrideAtCompileTime == 1)
-                        ? PacketAccessBit : 0,
-    MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % EIGEN_ALIGN_BYTES) == 0)) ? AlignedBit : 0,
-    FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (InnerPanel && (traits<XprType>::Flags&LinearAccessBit))) ? LinearAccessBit : 0,
+    // IsAligned is needed by MapBase's assertions
+    // We can sefely set it to false here. Internal alignment errors will be detected by an eigen_internal_assert in the respective evaluator
+    IsAligned = 0,
+    // FIXME, this traits is rather specialized for dense object and it needs to be cleaned further
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
-    Flags0 = traits<XprType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
-                                        DirectAccessBit |
-                                        MaskPacketAccessBit |
-                                        MaskAlignedBit),
-    Flags = Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit
+    Flags = (traits<XprType>::Flags & DirectAccessBit) | FlagsLvalueBit | FlagsRowMajorBit
+    // FIXME DirectAccessBit should not be handled by expressions
   };
 };
 
@@ -111,6 +108,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class 
     typedef Impl Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+    
+    typedef typename internal::remove_all<XprType>::type NestedExpression;
   
     /** Column or Row constructor
       */
@@ -179,7 +178,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     EIGEN_DENSE_PUBLIC_INTERFACE(BlockType)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl_dense)
 
-    class InnerIterator;
+    // class InnerIterator; // FIXME apparently never used
 
     /** Column or Row constructor
       */
@@ -333,6 +332,9 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
   : public MapBase<Block<XprType, BlockRows, BlockCols, InnerPanel> >
 {
     typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
+    enum {
+      XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0
+    };
   public:
 
     typedef MapBase<BlockType> Base;
@@ -343,9 +345,8 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
       */
     EIGEN_DEVICE_FUNC
     inline BlockImpl_dense(XprType& xpr, Index i)
-      : Base(internal::const_cast_ptr(&xpr.coeffRef(
-              (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0,
-              (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0)),
+      : Base(xpr.data() + i * (    ((BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) && (!XprTypeIsRowMajor)) 
+                                || ((BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) && ( XprTypeIsRowMajor)) ? xpr.innerStride() : xpr.outerStride()),
              BlockRows==1 ? 1 : xpr.rows(),
              BlockCols==1 ? 1 : xpr.cols()),
         m_xpr(xpr)
@@ -357,7 +358,8 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
       */
     EIGEN_DEVICE_FUNC
     inline BlockImpl_dense(XprType& xpr, Index startRow, Index startCol)
-      : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol))), m_xpr(xpr)
+      : Base(xpr.data()+xpr.innerStride()*(XprTypeIsRowMajor?startCol:startRow) + xpr.outerStride()*(XprTypeIsRowMajor?startRow:startCol)),
+        m_xpr(xpr)
     {
       init();
     }
@@ -368,7 +370,7 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
     inline BlockImpl_dense(XprType& xpr,
           Index startRow, Index startCol,
           Index blockRows, Index blockCols)
-      : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol)), blockRows, blockCols),
+      : Base(xpr.data()+xpr.innerStride()*(XprTypeIsRowMajor?startCol:startRow) + xpr.outerStride()*(XprTypeIsRowMajor?startRow:startCol), blockRows, blockCols),
         m_xpr(xpr)
     {
       init();

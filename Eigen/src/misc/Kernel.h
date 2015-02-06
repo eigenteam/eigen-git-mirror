@@ -41,7 +41,7 @@ template<typename _DecompositionType> struct kernel_retval_base
   typedef ReturnByValue<kernel_retval_base> Base;
   typedef typename Base::Index Index;
 
-  kernel_retval_base(const DecompositionType& dec)
+  explicit kernel_retval_base(const DecompositionType& dec)
     : m_dec(dec),
       m_rank(dec.rank()),
       m_cols(m_rank==dec.cols() ? 1 : dec.cols() - m_rank)

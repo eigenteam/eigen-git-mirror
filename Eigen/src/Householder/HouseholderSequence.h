@@ -73,6 +73,15 @@ struct traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
   };
 };
 
+struct HouseholderSequenceShape {};
+
+template<typename VectorsType, typename CoeffsType, int Side>
+struct evaluator_traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
+  : public evaluator_traits_base<HouseholderSequence<VectorsType,CoeffsType,Side> >
+{
+  typedef HouseholderSequenceShape Shape;
+};
+
 template<typename VectorsType, typename CoeffsType, int Side>
 struct hseq_side_dependent_impl
 {
@@ -307,12 +316,36 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename Dest, typename Workspace>
     inline void applyThisOnTheLeft(Dest& dst, Workspace& workspace) const
     {
-      workspace.resize(dst.cols());
-      for(Index k = 0; k < m_length; ++k)
+      const Index BlockSize = 48;
+      // if the entries are large enough, then apply the reflectors by block
+      if(m_length>=BlockSize && dst.cols()>1)
       {
-        Index actual_k = m_trans ? k : m_length-k-1;
-        dst.bottomRows(rows()-m_shift-actual_k)
-           .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
+        for(Index i = 0; i < m_length; i+=BlockSize)
+        {
+          Index end = m_trans ? (std::min)(m_length,i+BlockSize) : m_length-i;
+          Index k = m_trans ? i : (std::max)(Index(0),end-BlockSize);
+          Index bs = end-k;
+          Index start = k + m_shift;
+          
+          typedef Block<typename internal::remove_all<VectorsType>::type,Dynamic,Dynamic> SubVectorsType;
+          SubVectorsType sub_vecs1(m_vectors.const_cast_derived(), Side==OnTheRight ? k : start,
+                                                                   Side==OnTheRight ? start : k,
+                                                                   Side==OnTheRight ? bs : m_vectors.rows()-start,
+                                                                   Side==OnTheRight ? m_vectors.cols()-start : bs);
+          typename internal::conditional<Side==OnTheRight, Transpose<SubVectorsType>, SubVectorsType&>::type sub_vecs(sub_vecs1);
+          Block<Dest,Dynamic,Dynamic> sub_dst(dst,dst.rows()-rows()+m_shift+k,0, rows()-m_shift-k,dst.cols());
+          apply_block_householder_on_the_left(sub_dst, sub_vecs, m_coeffs.segment(k, bs), !m_trans);
+        }
+      }
+      else
+      {
+        workspace.resize(dst.cols());
+        for(Index k = 0; k < m_length; ++k)
+        {
+          Index actual_k = m_trans ? k : m_length-k-1;
+          dst.bottomRows(rows()-m_shift-actual_k)
+            .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
+        }
       }
     }
 

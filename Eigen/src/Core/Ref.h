@@ -12,10 +12,6 @@
 
 namespace Eigen { 
 
-template<typename Derived> class RefBase;
-template<typename PlainObjectType, int Options = 0,
-         typename StrideType = typename internal::conditional<PlainObjectType::IsVectorAtCompileTime,InnerStride<1>,OuterStride<> >::type > class Ref;
-
 /** \class Ref
   * \ingroup Core_Module
   *
@@ -131,12 +127,12 @@ public:
   typedef MapBase<Derived> Base;
   EIGEN_DENSE_PUBLIC_INTERFACE(RefBase)
 
-  inline Index innerStride() const
+  EIGEN_DEVICE_FUNC inline Index innerStride() const
   {
     return StrideType::InnerStrideAtCompileTime != 0 ? m_stride.inner() : 1;
   }
 
-  inline Index outerStride() const
+  EIGEN_DEVICE_FUNC inline Index outerStride() const
   {
     return StrideType::OuterStrideAtCompileTime != 0 ? m_stride.outer()
          : IsVectorAtCompileTime ? this->size()
@@ -144,7 +140,7 @@ public:
          : this->rows();
   }
 
-  RefBase()
+  EIGEN_DEVICE_FUNC RefBase()
     : Base(0,RowsAtCompileTime==Dynamic?0:RowsAtCompileTime,ColsAtCompileTime==Dynamic?0:ColsAtCompileTime),
       // Stride<> does not allow default ctor for Dynamic strides, so let' initialize it with dummy values:
       m_stride(StrideType::OuterStrideAtCompileTime==Dynamic?0:StrideType::OuterStrideAtCompileTime,
@@ -158,7 +154,7 @@ protected:
   typedef Stride<StrideType::OuterStrideAtCompileTime,StrideType::InnerStrideAtCompileTime> StrideBase;
 
   template<typename Expression>
-  void construct(Expression& expr)
+  EIGEN_DEVICE_FUNC void construct(Expression& expr)
   {
     if(PlainObjectType::RowsAtCompileTime==1)
     {
@@ -188,6 +184,8 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
   : public RefBase<Ref<PlainObjectType, Options, StrideType> >
 {
     typedef internal::traits<Ref> Traits;
+    template<typename Derived>
+    EIGEN_DEVICE_FUNC inline Ref(const PlainObjectBase<Derived>& expr);
   public:
 
     typedef RefBase<Ref> Base;
@@ -196,20 +194,21 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Derived>
-    inline Ref(PlainObjectBase<Derived>& expr,
-               typename internal::enable_if<bool(Traits::template match<Derived>::MatchAtCompileTime),Derived>::type* = 0)
+    EIGEN_DEVICE_FUNC inline Ref(PlainObjectBase<Derived>& expr)
     {
-      Base::construct(expr);
+      EIGEN_STATIC_ASSERT(bool(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
+      Base::construct(expr.derived());
     }
     template<typename Derived>
-    inline Ref(const DenseBase<Derived>& expr,
-               typename internal::enable_if<bool(internal::is_lvalue<Derived>::value&&bool(Traits::template match<Derived>::MatchAtCompileTime)),Derived>::type* = 0,
-               int = Derived::ThisConstantIsPrivateInPlainObjectBase)
+    EIGEN_DEVICE_FUNC inline Ref(const DenseBase<Derived>& expr)
     #else
     template<typename Derived>
     inline Ref(DenseBase<Derived>& expr)
     #endif
     {
+      EIGEN_STATIC_ASSERT(bool(internal::is_lvalue<Derived>::value), THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
+      EIGEN_STATIC_ASSERT(bool(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
+      EIGEN_STATIC_ASSERT(!Derived::IsPlainObjectBase,THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
       Base::construct(expr.const_cast_derived());
     }
 
@@ -228,7 +227,7 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
     EIGEN_DENSE_PUBLIC_INTERFACE(Ref)
 
     template<typename Derived>
-    inline Ref(const DenseBase<Derived>& expr)
+    EIGEN_DEVICE_FUNC inline Ref(const DenseBase<Derived>& expr)
     {
 //      std::cout << match_helper<Derived>::HasDirectAccess << "," << match_helper<Derived>::OuterStrideMatch << "," << match_helper<Derived>::InnerStrideMatch << "\n";
 //      std::cout << int(StrideType::OuterStrideAtCompileTime) << " - " << int(Derived::OuterStrideAtCompileTime) << "\n";
@@ -236,18 +235,27 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
       construct(expr.derived(), typename Traits::template match<Derived>::type());
     }
 
+    EIGEN_DEVICE_FUNC inline Ref(const Ref& other) : Base(other) {
+      // copy constructor shall not copy the m_object, to avoid unnecessary malloc and copy
+    }
+
+    template<typename OtherRef>
+    EIGEN_DEVICE_FUNC inline Ref(const RefBase<OtherRef>& other) {
+      construct(other.derived(), typename Traits::template match<OtherRef>::type());
+    }
+
   protected:
 
     template<typename Expression>
-    void construct(const Expression& expr,internal::true_type)
+    EIGEN_DEVICE_FUNC void construct(const Expression& expr,internal::true_type)
     {
       Base::construct(expr);
     }
 
     template<typename Expression>
-    void construct(const Expression& expr, internal::false_type)
+    EIGEN_DEVICE_FUNC void construct(const Expression& expr, internal::false_type)
     {
-      m_object.lazyAssign(expr);
+      internal::call_assignment_no_alias(m_object,expr,internal::assign_op<Scalar>());
       Base::construct(m_object);
     }
 

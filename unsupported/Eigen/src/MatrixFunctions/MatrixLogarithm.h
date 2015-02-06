@@ -53,15 +53,20 @@ void matrix_log_compute_2x2(const MatrixType& A, MatrixType& result)
   result(1,0) = Scalar(0);
   result(1,1) = logA11;
 
-  if (A(0,0) == A(1,1)) {
+  Scalar y = A(1,1) - A(0,0);
+  if (y==Scalar(0))
+  {
     result(0,1) = A(0,1) / A(0,0);
-  } else if ((abs(A(0,0)) < 0.5*abs(A(1,1))) || (abs(A(0,0)) > 2*abs(A(1,1)))) {
-    result(0,1) = A(0,1) * (logA11 - logA00) / (A(1,1) - A(0,0));
-  } else {
+  }
+  else if ((abs(A(0,0)) < 0.5*abs(A(1,1))) || (abs(A(0,0)) > 2*abs(A(1,1))))
+  {
+    result(0,1) = A(0,1) * (logA11 - logA00) / y;
+  }
+  else
+  {
     // computation in previous branch is inaccurate if A(1,1) \approx A(0,0)
     int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - M_PI) / (2*M_PI)));
-    Scalar y = A(1,1) - A(0,0), x = A(1,1) + A(0,0);
-    result(0,1) = A(0,1) * (Scalar(2) * numext::atanh2(y,x) + Scalar(0,2*M_PI*unwindingNumber)) / y;
+    result(0,1) = A(0,1) * (numext::log1p(y/A(0,0)) + Scalar(0,2*M_PI*unwindingNumber)) / y;
   }
 }
 
@@ -310,7 +315,7 @@ public:
   typedef typename Derived::Index Index;
 
 protected:
-  typedef typename internal::nested<Derived, 10>::type DerivedNested;
+  typedef typename internal::nested<Derived>::type DerivedNested;
 
 public:
 
@@ -327,17 +332,18 @@ public:
   template <typename ResultType>
   inline void evalTo(ResultType& result) const
   {
-    typedef typename internal::remove_all<DerivedNested>::type DerivedNestedClean;
-    typedef internal::traits<DerivedNestedClean> Traits;
+    typedef typename internal::nested_eval<Derived, 10>::type DerivedEvalType;
+    typedef typename internal::remove_all<DerivedEvalType>::type DerivedEvalTypeClean;
+    typedef internal::traits<DerivedEvalTypeClean> Traits;
     static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
     static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
-    static const int Options = DerivedNestedClean::Options;
+    static const int Options = DerivedEvalTypeClean::Options;
     typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
     typedef Matrix<ComplexScalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
     typedef internal::MatrixLogarithmAtomic<DynMatrixType> AtomicType;
     AtomicType atomic;
     
-    internal::matrix_function_compute<DerivedNestedClean>::run(m_A, atomic, result);
+    internal::matrix_function_compute<DerivedEvalTypeClean>::run(m_A, atomic, result);
   }
 
   Index rows() const { return m_A.rows(); }

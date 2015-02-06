@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -52,13 +52,12 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
   typedef typename Eigen::internal::traits<Derived >::Index Index; \
   enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::internal::traits<Derived >::ColsAtCompileTime, \
-        Flags = Eigen::internal::traits<Derived >::Flags, \
-        CoeffReadCost = Eigen::internal::traits<Derived >::CoeffReadCost, \
+        Flags = Eigen::internal::traits<Derived>::Flags, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
   using Base::derived; \
   using Base::const_cast_derived;
-
+  
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived >)
 
@@ -73,7 +72,6 @@ template<typename _Scalar, int _Flags = 0, typename _Index = int>  class Dynamic
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseVector;
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class MappedSparseMatrix;
 
-template<typename MatrixType, int Mode>           class SparseTriangularView;
 template<typename MatrixType, unsigned int UpLo>  class SparseSelfAdjointView;
 template<typename Lhs, typename Rhs>              class SparseDiagonalProduct;
 template<typename MatrixType> class SparseView;
@@ -131,10 +129,28 @@ template<typename T> struct plain_matrix_type<T,Sparse>
 {
   typedef typename traits<T>::Scalar _Scalar;
   typedef typename traits<T>::Index _Index;
-  enum { _Options = ((traits<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
+  enum { _Options = ((evaluator<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
   public:
     typedef SparseMatrix<_Scalar, _Options, _Index> type;
 };
+
+template<typename Decomposition, typename RhsType>
+struct solve_traits<Decomposition,RhsType,Sparse>
+{
+  typedef typename sparse_eval<RhsType, RhsType::RowsAtCompileTime, RhsType::ColsAtCompileTime>::type PlainObject;
+};
+
+template<typename Derived>
+struct generic_xpr_base<Derived, MatrixXpr, Sparse>
+{
+  typedef SparseMatrixBase<Derived> type;
+};
+
+struct SparseTriangularShape  { static std::string debugName() { return "SparseTriangularShape"; } };
+struct SparseSelfAdjointShape { static std::string debugName() { return "SparseSelfAdjointShape"; } };
+
+template<> struct glue_shapes<SparseShape,SelfAdjointShape> { typedef SparseSelfAdjointShape type;  };
+template<> struct glue_shapes<SparseShape,TriangularShape > { typedef SparseTriangularShape  type;  };
 
 } // end namespace internal
 

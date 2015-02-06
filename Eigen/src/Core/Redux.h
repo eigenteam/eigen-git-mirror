@@ -65,6 +65,25 @@ public:
               ? CompleteUnrolling
               : NoUnrolling
   };
+  
+#ifdef EIGEN_DEBUG_ASSIGN
+  static void debug()
+  {
+    std::cerr << "Xpr: " << typeid(typename Derived::XprType).name() << std::endl;
+    std::cerr.setf(std::ios::hex, std::ios::basefield);
+    EIGEN_DEBUG_VAR(Derived::Flags)
+    std::cerr.unsetf(std::ios::hex);
+    EIGEN_DEBUG_VAR(InnerMaxSize)
+    EIGEN_DEBUG_VAR(PacketSize)
+    EIGEN_DEBUG_VAR(MightVectorize)
+    EIGEN_DEBUG_VAR(MayLinearVectorize)
+    EIGEN_DEBUG_VAR(MaySliceVectorize)
+    EIGEN_DEBUG_VAR(Traversal)
+    EIGEN_DEBUG_VAR(UnrollingLimit)
+    EIGEN_DEBUG_VAR(Unrolling)
+    std::cerr << std::endl;
+  }
+#endif
 };
 
 /***************************************************************************
@@ -174,7 +193,7 @@ struct redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::Index Index;
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Derived& mat, const Func& func)
+  static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
     eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     Scalar res;
@@ -200,10 +219,10 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
   typedef typename packet_traits<Scalar>::type PacketScalar;
   typedef typename Derived::Index Index;
 
-  static Scalar run(const Derived& mat, const Func& func)
+  static Scalar run(const Derived &mat, const Func& func)
   {
     const Index size = mat.size();
-    eigen_assert(size && "you are using an empty matrix");
+    
     const Index packetSize = packet_traits<Scalar>::size;
     const Index alignedStart = internal::first_aligned(mat);
     enum {
@@ -258,7 +277,7 @@ struct redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
   typedef typename packet_traits<Scalar>::type PacketScalar;
   typedef typename Derived::Index Index;
 
-  static Scalar run(const Derived& mat, const Func& func)
+  EIGEN_DEVICE_FUNC static Scalar run(const Derived &mat, const Func& func)
   {
     eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     const Index innerSize = mat.innerSize();
@@ -300,7 +319,7 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
     Size = Derived::SizeAtCompileTime,
     VectorizedSize = (Size / PacketSize) * PacketSize
   };
-  static EIGEN_STRONG_INLINE Scalar run(const Derived& mat, const Func& func)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
     eigen_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     if (VectorizedSize > 0) {
@@ -315,6 +334,66 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
   }
 };
 
+// evaluator adaptor
+template<typename _XprType>
+class redux_evaluator
+{
+public:
+  typedef _XprType XprType;
+  EIGEN_DEVICE_FUNC explicit redux_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
+  
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketScalar PacketScalar;
+  typedef typename XprType::PacketReturnType PacketReturnType;
+  
+  enum {
+    MaxRowsAtCompileTime = XprType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = XprType::MaxColsAtCompileTime,
+    // TODO we should not remove DirectAccessBit and rather find an elegant way to query the alignment offset at runtime from the evaluator
+    Flags = evaluator<XprType>::Flags & ~DirectAccessBit,
+    IsRowMajor = XprType::IsRowMajor,
+    SizeAtCompileTime = XprType::SizeAtCompileTime,
+    InnerSizeAtCompileTime = XprType::InnerSizeAtCompileTime,
+    CoeffReadCost = evaluator<XprType>::CoeffReadCost
+  };
+  
+  EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
+  EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC Index size() const { return m_xpr.size(); }
+  EIGEN_DEVICE_FUNC Index innerSize() const { return m_xpr.innerSize(); }
+  EIGEN_DEVICE_FUNC Index outerSize() const { return m_xpr.outerSize(); }
+
+  EIGEN_DEVICE_FUNC
+  CoeffReturnType coeff(Index row, Index col) const
+  { return m_evaluator.coeff(row, col); }
+
+  EIGEN_DEVICE_FUNC
+  CoeffReturnType coeff(Index index) const
+  { return m_evaluator.coeff(index); }
+
+  template<int LoadMode>
+  PacketReturnType packet(Index row, Index col) const
+  { return m_evaluator.template packet<LoadMode>(row, col); }
+
+  template<int LoadMode>
+  PacketReturnType packet(Index index) const
+  { return m_evaluator.template packet<LoadMode>(index); }
+  
+  EIGEN_DEVICE_FUNC
+  CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
+  { return m_evaluator.coeff(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
+  
+  template<int LoadMode>
+  PacketReturnType packetByOuterInner(Index outer, Index inner) const
+  { return m_evaluator.template packet<LoadMode>(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
+  
+protected:
+  typename internal::evaluator<XprType>::nestedType m_evaluator;
+  const XprType &m_xpr;
+};
+
 } // end namespace internal
 
 /***************************************************************************
@@ -325,7 +404,7 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
 /** \returns the result of a full redux operation on the whole matrix or vector using \a func
   *
   * The template parameter \a BinaryOp is the type of the functor \a func which must be
-  * an associative operator. Both current STL and TR1 functor styles are handled.
+  * an associative operator. Both current C++98 and C++11 functor styles are handled.
   *
   * \sa DenseBase::sum(), DenseBase::minCoeff(), DenseBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
   */
@@ -334,9 +413,22 @@ template<typename Func>
 EIGEN_STRONG_INLINE typename internal::result_of<Func(typename internal::traits<Derived>::Scalar)>::type
 DenseBase<Derived>::redux(const Func& func) const
 {
-  typedef typename internal::remove_all<typename Derived::Nested>::type ThisNested;
-  return internal::redux_impl<Func, ThisNested>
-            ::run(derived(), func);
+  eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
+  
+  // FIXME, eval_nest should be handled by redux_evaluator, however:
+  //  - it is currently difficult to provide the right Flags since they are still handled by the expressions
+  //  - handling it here might reduce the number of template instantiations
+//   typedef typename internal::nested_eval<Derived,1>::type ThisNested;
+//   typedef typename internal::remove_all<ThisNested>::type ThisNestedCleaned;
+//   typedef typename internal::redux_evaluator<ThisNestedCleaned> ThisEvaluator;
+//   
+//   ThisNested thisNested(derived());
+//   ThisEvaluator thisEval(thisNested);
+  
+  typedef typename internal::redux_evaluator<Derived> ThisEvaluator;
+  ThisEvaluator thisEval(derived());
+  
+  return internal::redux_impl<Func, ThisEvaluator>::run(thisEval, func);
 }
 
 /** \returns the minimum of all coefficients of \c *this.
@@ -346,7 +438,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff() const
 {
-  return this->redux(Eigen::internal::scalar_min_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_min_op<Scalar>());
 }
 
 /** \returns the maximum of all coefficients of \c *this.
@@ -356,7 +448,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff() const
 {
-  return this->redux(Eigen::internal::scalar_max_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_max_op<Scalar>());
 }
 
 /** \returns the sum of all coefficients of *this
@@ -369,7 +461,7 @@ DenseBase<Derived>::sum() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
     return Scalar(0);
-  return this->redux(Eigen::internal::scalar_sum_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_sum_op<Scalar>());
 }
 
 /** \returns the mean of all coefficients of *this
@@ -380,7 +472,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::mean() const
 {
-  return Scalar(this->redux(Eigen::internal::scalar_sum_op<Scalar>())) / Scalar(this->size());
+  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar>())) / Scalar(this->size());
 }
 
 /** \returns the product of all coefficients of *this
@@ -396,7 +488,7 @@ DenseBase<Derived>::prod() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
     return Scalar(1);
-  return this->redux(Eigen::internal::scalar_product_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_product_op<Scalar>());
 }
 
 /** \returns the trace of \c *this, i.e. the sum of the coefficients on the main diagonal.

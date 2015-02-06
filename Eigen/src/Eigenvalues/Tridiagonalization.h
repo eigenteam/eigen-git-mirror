@@ -18,8 +18,10 @@ namespace internal {
 template<typename MatrixType> struct TridiagonalizationMatrixTReturnType;
 template<typename MatrixType>
 struct traits<TridiagonalizationMatrixTReturnType<MatrixType> >
+  : public traits<typename MatrixType::PlainObject>
 {
-  typedef typename MatrixType::PlainObject ReturnType;
+  typedef typename MatrixType::PlainObject ReturnType; // FIXME shall it be a BandMatrix?
+  enum { Flags = 0 };
 };
 
 template<typename MatrixType, typename CoeffVectorType>
@@ -89,10 +91,8 @@ template<typename _MatrixType> class Tridiagonalization
             >::type DiagonalReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              typename internal::add_const_on_value_type<typename Diagonal<
-                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >::RealReturnType>::type,
-              const Diagonal<
-                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >
+              typename internal::add_const_on_value_type<typename Diagonal<const MatrixType, -1>::RealReturnType>::type,
+              const Diagonal<const MatrixType, -1>
             >::type SubDiagonalReturnType;
 
     /** \brief Return type of matrixQ() */
@@ -110,7 +110,7 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa compute() for an example.
       */
-    Tridiagonalization(Index size = Size==Dynamic ? 2 : Size)
+    explicit Tridiagonalization(Index size = Size==Dynamic ? 2 : Size)
       : m_matrix(size,size),
         m_hCoeffs(size > 1 ? size-1 : 1),
         m_isInitialized(false)
@@ -126,7 +126,7 @@ template<typename _MatrixType> class Tridiagonalization
       * Example: \include Tridiagonalization_Tridiagonalization_MatrixType.cpp
       * Output: \verbinclude Tridiagonalization_Tridiagonalization_MatrixType.out
       */
-    Tridiagonalization(const MatrixType& matrix)
+    explicit Tridiagonalization(const MatrixType& matrix)
       : m_matrix(matrix),
         m_hCoeffs(matrix.cols() > 1 ? matrix.cols()-1 : 1),
         m_isInitialized(false)
@@ -305,7 +305,7 @@ typename Tridiagonalization<MatrixType>::DiagonalReturnType
 Tridiagonalization<MatrixType>::diagonal() const
 {
   eigen_assert(m_isInitialized && "Tridiagonalization is not initialized.");
-  return m_matrix.diagonal();
+  return m_matrix.diagonal().real();
 }
 
 template<typename MatrixType>
@@ -313,8 +313,7 @@ typename Tridiagonalization<MatrixType>::SubDiagonalReturnType
 Tridiagonalization<MatrixType>::subDiagonal() const
 {
   eigen_assert(m_isInitialized && "Tridiagonalization is not initialized.");
-  Index n = m_matrix.rows();
-  return Block<const MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1).diagonal();
+  return m_matrix.template diagonal<-1>().real();
 }
 
 namespace internal {

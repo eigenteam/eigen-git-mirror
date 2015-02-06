@@ -550,7 +550,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       * according to the specified problem size.
       * \sa JacobiSVD()
       */
-    JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
+    explicit JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
     {
       allocate(rows, cols, computationOptions);
     }
@@ -565,7 +565,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
      * Thin unitaries are only available if your matrix type has a Dynamic number of columns (for example MatrixXf). They also are not
      * available with the (non-default) FullPivHouseholderQR preconditioner.
      */
-    JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
+    explicit JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
     {
       compute(matrix, computationOptions);
     }
@@ -593,27 +593,12 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       return compute(matrix, m_computationOptions);
     }
 
-    /** \returns a (least squares) solution of \f$ A x = b \f$ using the current SVD decomposition of A.
-      *
-      * \param b the right-hand-side of the equation to solve.
-      *
-      * \note Solving requires both U and V to be computed. Thin U and V are enough, there is no need for full U or V.
-      *
-      * \note SVD solving is implicitly least-squares. Thus, this method serves both purposes of exact solving and least-squares solving.
-      * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<JacobiSVD, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "JacobiSVD is not initialized.");
-      eigen_assert(computeU() && computeV() && "JacobiSVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
-      return internal::solve_retval<JacobiSVD, Rhs>(*this, b.derived());
-    }
-    
     using Base::computeU;
     using Base::computeV;
-    
+    using Base::rows;
+    using Base::cols;
+    using Base::rank;
+
   private:
     void allocate(Index rows, Index cols, unsigned int computationOptions);
 
@@ -643,6 +628,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
 
     internal::qr_preconditioner_impl<MatrixType, QRPreconditioner, internal::PreconditionIfMoreColsThanRows> m_qr_precond_morecols;
     internal::qr_preconditioner_impl<MatrixType, QRPreconditioner, internal::PreconditionIfMoreRowsThanCols> m_qr_precond_morerows;
+    MatrixType m_scaledMatrix;
 };
 
 template<typename MatrixType, int QRPreconditioner>
@@ -689,8 +675,9 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
                             : 0);
   m_workMatrix.resize(m_diagSize, m_diagSize);
   
-  if(m_cols>m_rows) m_qr_precond_morecols.allocate(*this);
-  if(m_rows>m_cols) m_qr_precond_morerows.allocate(*this);
+  if(m_cols>m_rows)   m_qr_precond_morecols.allocate(*this);
+  if(m_rows>m_cols)   m_qr_precond_morerows.allocate(*this);
+  if(m_cols!=m_cols)  m_scaledMatrix.resize(rows,cols);
 }
 
 template<typename MatrixType, int QRPreconditioner>
@@ -707,21 +694,26 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   // limit for very small denormal numbers to be considered zero in order to avoid infinite loops (see bug 286)
   const RealScalar considerAsZero = RealScalar(2) * std::numeric_limits<RealScalar>::denorm_min();
 
+  // Scaling factor to reduce over/under-flows
+  RealScalar scale = matrix.cwiseAbs().maxCoeff();
+  if(scale==RealScalar(0)) scale = RealScalar(1);
+  
   /*** step 1. The R-SVD step: we use a QR decomposition to reduce to the case of a square matrix */
 
-  if(!m_qr_precond_morecols.run(*this, matrix) && !m_qr_precond_morerows.run(*this, matrix))
+  if(m_rows!=m_cols)
   {
-    m_workMatrix = matrix.block(0,0,m_diagSize,m_diagSize);
+    m_scaledMatrix = matrix / scale;
+    m_qr_precond_morecols.run(*this, m_scaledMatrix);
+    m_qr_precond_morerows.run(*this, m_scaledMatrix);
+  }
+  else
+  {
+    m_workMatrix = matrix.block(0,0,m_diagSize,m_diagSize) / scale;
     if(m_computeFullU) m_matrixU.setIdentity(m_rows,m_rows);
     if(m_computeThinU) m_matrixU.setIdentity(m_rows,m_diagSize);
     if(m_computeFullV) m_matrixV.setIdentity(m_cols,m_cols);
     if(m_computeThinV) m_matrixV.setIdentity(m_cols, m_diagSize);
   }
-  
-  // Scaling factor to reduce over/under-flows
-  RealScalar scale = m_workMatrix.cwiseAbs().maxCoeff();
-  if(scale==RealScalar(0)) scale = RealScalar(1);
-  m_workMatrix /= scale;
 
   /*** step 2. The main Jacobi SVD iteration. ***/
 
@@ -739,8 +731,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         // if this 2x2 sub-matrix is not diagonal already...
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever. Similarly, small denormal numbers are considered zero.
-        EIGEN_USING_STD_MATH(max);
-        RealScalar threshold = (max)(considerAsZero, precision * (max)(abs(m_workMatrix.coeff(p,p)),
+        RealScalar threshold = numext::maxi(considerAsZero, precision * numext::maxi(abs(m_workMatrix.coeff(p,p)),
                                                                        abs(m_workMatrix.coeff(q,q))));
         // We compare both values to threshold instead of calling max to be robust to NaN (See bug 791)
         if(abs(m_workMatrix.coeff(p,q))>threshold || abs(m_workMatrix.coeff(q,p)) > threshold)
@@ -798,31 +789,6 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   m_isInitialized = true;
   return *this;
 }
-
-namespace internal {
-template<typename _MatrixType, int QRPreconditioner, typename Rhs>
-struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
-  : solve_retval_base<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
-{
-  typedef JacobiSVD<_MatrixType, QRPreconditioner> JacobiSVDType;
-  EIGEN_MAKE_SOLVE_HELPERS(JacobiSVDType,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    eigen_assert(rhs().rows() == dec().rows());
-
-    // A = U S V^*
-    // So A^{-1} = V S^{-1} U^*
-
-    Matrix<Scalar, Dynamic, Rhs::ColsAtCompileTime, 0, _MatrixType::MaxRowsAtCompileTime, Rhs::MaxColsAtCompileTime> tmp;
-    Index rank = dec().rank();
-    
-    tmp.noalias() = dec().matrixU().leftCols(rank).adjoint() * rhs();
-    tmp = dec().singularValues().head(rank).asDiagonal().inverse() * tmp;
-    dst = dec().matrixV().leftCols(rank) * tmp;
-  }
-};
-} // end namespace internal
 
 #ifndef __CUDACC__
 /** \svd_module

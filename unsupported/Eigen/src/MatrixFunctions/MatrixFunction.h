@@ -485,7 +485,7 @@ template<typename Derived> class MatrixFunctionReturnValue
     typedef typename internal::stem_function<Scalar>::type StemFunction;
 
   protected:
-    typedef typename internal::nested<Derived, 10>::type DerivedNested;
+    typedef typename internal::nested<Derived>::type DerivedNested;
 
   public:
 
@@ -503,18 +503,19 @@ template<typename Derived> class MatrixFunctionReturnValue
     template <typename ResultType>
     inline void evalTo(ResultType& result) const
     {
-      typedef typename internal::remove_all<DerivedNested>::type DerivedNestedClean;
-      typedef internal::traits<DerivedNestedClean> Traits;
+      typedef typename internal::nested_eval<Derived, 10>::type NestedEvalType;
+      typedef typename internal::remove_all<NestedEvalType>::type NestedEvalTypeClean;
+      typedef internal::traits<NestedEvalTypeClean> Traits;
       static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
       static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
-      static const int Options = DerivedNestedClean::Options;
+      static const int Options = NestedEvalTypeClean::Options;
       typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
       typedef Matrix<ComplexScalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
 
       typedef internal::MatrixFunctionAtomic<DynMatrixType> AtomicType;
       AtomicType atomic(m_f);
 
-      internal::matrix_function_compute<DerivedNestedClean>::run(m_A, atomic, result);
+      internal::matrix_function_compute<NestedEvalTypeClean>::run(m_A, atomic, result);
     }
 
     Index rows() const { return m_A.rows(); }

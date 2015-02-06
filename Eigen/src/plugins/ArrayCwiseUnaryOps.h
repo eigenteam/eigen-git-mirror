@@ -1,5 +1,22 @@
 
 
+typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnType;
+typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
+typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
+typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> InverseReturnType;
+
+typedef CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived> ExpReturnType;
+typedef CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived> LogReturnType;
+typedef CwiseUnaryOp<internal::scalar_cos_op<Scalar>, const Derived> CosReturnType;
+typedef CwiseUnaryOp<internal::scalar_sin_op<Scalar>, const Derived> SinReturnType;
+typedef CwiseUnaryOp<internal::scalar_acos_op<Scalar>, const Derived> AcosReturnType;
+typedef CwiseUnaryOp<internal::scalar_asin_op<Scalar>, const Derived> AsinReturnType;
+typedef CwiseUnaryOp<internal::scalar_tan_op<Scalar>, const Derived> TanReturnType;
+typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturnType;
+typedef CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived> PowReturnType;
+typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
+typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
+
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   *
   * Example: \include Cwise_abs.cpp
@@ -8,10 +25,10 @@
   * \sa abs2()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived>
+EIGEN_STRONG_INLINE const AbsReturnType
 abs() const
 {
-  return derived();
+  return AbsReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
@@ -22,10 +39,10 @@ abs() const
   * \sa abs(), square()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived>
+EIGEN_STRONG_INLINE const Abs2ReturnType
 abs2() const
 {
-  return derived();
+  return Abs2ReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise exponential of *this.
@@ -39,10 +56,10 @@ abs2() const
   * \sa pow(), log(), sin(), cos()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived>
+inline const ExpReturnType
 exp() const
 {
-  return derived();
+  return ExpReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise logarithm of *this.
@@ -56,10 +73,10 @@ exp() const
   * \sa exp()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived>
+inline const LogReturnType
 log() const
 {
-  return derived();
+  return LogReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise square root of *this.
@@ -73,10 +90,10 @@ log() const
   * \sa pow(), square()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived>
+inline const SqrtReturnType
 sqrt() const
 {
-  return derived();
+  return SqrtReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise cosine of *this.
@@ -90,10 +107,10 @@ sqrt() const
   * \sa sin(), acos()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_cos_op<Scalar>, const Derived>
+inline const CosReturnType
 cos() const
 {
-  return derived();
+  return CosReturnType(derived());
 }
 
 
@@ -108,10 +125,10 @@ cos() const
   * \sa cos(), asin()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_sin_op<Scalar>, const Derived>
+inline const SinReturnType
 sin() const
 {
-  return derived();
+  return SinReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise arc cosine of *this.
@@ -122,10 +139,10 @@ sin() const
   * \sa cos(), asin()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_acos_op<Scalar>, const Derived>
+inline const AcosReturnType
 acos() const
 {
-  return derived();
+  return AcosReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise arc sine of *this.
@@ -136,10 +153,10 @@ acos() const
   * \sa sin(), acos()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_asin_op<Scalar>, const Derived>
+inline const AsinReturnType
 asin() const
 {
-  return derived();
+  return AsinReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise tan of *this.
@@ -150,10 +167,10 @@ asin() const
   * \sa cos(), sin()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_tan_op<Scalar>, Derived>
+inline const TanReturnType
 tan() const
 {
-  return derived();
+  return TanReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise arc tan of *this.
@@ -163,10 +180,10 @@ tan() const
   *
   * \sa cos(), sin(), tan()
   */
-inline const CwiseUnaryOp<internal::scalar_atan_op<Scalar>, Derived>
+inline const AtanReturnType
 atan() const
 {
-  return derived();
+  return AtanReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise power of *this to the given exponent.
@@ -180,11 +197,10 @@ atan() const
   * \sa exp(), log()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived>
+inline const PowReturnType
 pow(const Scalar& exponent) const
 {
-  return CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived>
-          (derived(), internal::scalar_pow_op<Scalar>(exponent));
+  return PowReturnType(derived(), internal::scalar_pow_op<Scalar>(exponent));
 }
 
 
@@ -196,10 +212,10 @@ pow(const Scalar& exponent) const
   * \sa operator/(), operator*()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived>
+inline const InverseReturnType
 inverse() const
 {
-  return derived();
+  return InverseReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise square of *this.
@@ -210,10 +226,10 @@ inverse() const
   * \sa operator/(), operator*(), abs2()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived>
+inline const SquareReturnType
 square() const
 {
-  return derived();
+  return SquareReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise cube of *this.
@@ -224,10 +240,10 @@ square() const
   * \sa square(), pow()
   */
 EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived>
+inline const CubeReturnType
 cube() const
 {
-  return derived();
+  return CubeReturnType(derived());
 }
 
 #define EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(METHOD_NAME,FUNCTOR) \

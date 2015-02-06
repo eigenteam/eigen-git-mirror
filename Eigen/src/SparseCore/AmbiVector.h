@@ -27,7 +27,7 @@ class AmbiVector
     typedef _Index Index;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
-    AmbiVector(Index size)
+    explicit AmbiVector(Index size)
       : m_buffer(0), m_zero(0), m_size(0), m_allocatedSize(0), m_allocatedElements(0), m_mode(-1)
     {
       resize(size);
@@ -69,7 +69,7 @@ class AmbiVector
       delete[] m_buffer;
       if (size<1000)
       {
-        Index allocSize = (size * sizeof(ListEl))/sizeof(Scalar);
+        Index allocSize = (size * sizeof(ListEl) + sizeof(Scalar) - 1)/sizeof(Scalar);
         m_allocatedElements = (allocSize*sizeof(Scalar))/sizeof(ListEl);
         m_buffer = new Scalar[allocSize];
       }
@@ -88,7 +88,7 @@ class AmbiVector
       Index copyElements = m_allocatedElements;
       m_allocatedElements = (std::min)(Index(m_allocatedElements*1.5),m_size);
       Index allocSize = m_allocatedElements * sizeof(ListEl);
-      allocSize = allocSize/sizeof(Scalar) + (allocSize%sizeof(Scalar)>0?1:0);
+      allocSize = (allocSize + sizeof(Scalar) - 1)/sizeof(Scalar);
       Scalar* newBuffer = new Scalar[allocSize];
       memcpy(newBuffer,  m_buffer,  copyElements * sizeof(ListEl));
       delete[] m_buffer;
@@ -288,7 +288,7 @@ class AmbiVector<_Scalar,_Index>::Iterator
       * In practice, all coefficients having a magnitude smaller than \a epsilon
       * are skipped.
       */
-    Iterator(const AmbiVector& vec, const RealScalar& epsilon = 0)
+    explicit Iterator(const AmbiVector& vec, const RealScalar& epsilon = 0)
       : m_vector(vec)
     {
       using std::abs;

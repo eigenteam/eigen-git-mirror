@@ -17,6 +17,27 @@ enum SimplicialCholeskyMode {
   SimplicialCholeskyLDLT
 };
 
+namespace internal {
+  template<typename CholMatrixType, typename InputMatrixType>
+  struct simplicial_cholesky_grab_input {
+    typedef CholMatrixType const * ConstCholMatrixPtr;
+    static void run(const InputMatrixType& input, ConstCholMatrixPtr &pmat, CholMatrixType &tmp)
+    {
+      tmp = input;
+      pmat = &tmp;
+    }
+  };
+  
+  template<typename MatrixType>
+  struct simplicial_cholesky_grab_input<MatrixType,MatrixType> {
+    typedef MatrixType const * ConstMatrixPtr;
+    static void run(const MatrixType& input, ConstMatrixPtr &pmat, MatrixType &/*tmp*/)
+    {
+      pmat = &input;
+    }
+  };
+} // end namespace internal
+
 /** \ingroup SparseCholesky_Module
   * \brief A direct sparse Cholesky factorizations
   *
@@ -33,8 +54,11 @@ enum SimplicialCholeskyMode {
   *
   */
 template<typename Derived>
-class SimplicialCholeskyBase : internal::noncopyable
+class SimplicialCholeskyBase : public SparseSolverBase<Derived>
 {
+    typedef SparseSolverBase<Derived> Base;
+    using Base::m_isInitialized;
+    
   public:
     typedef typename internal::traits<Derived>::MatrixType MatrixType;
     typedef typename internal::traits<Derived>::OrderingType OrderingType;
@@ -43,17 +67,20 @@ class SimplicialCholeskyBase : internal::noncopyable
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
     typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
+    typedef CholMatrixType const * ConstCholMatrixPtr;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
 
   public:
+    
+    using Base::derived;
 
     /** Default constructor */
     SimplicialCholeskyBase()
-      : m_info(Success), m_isInitialized(false), m_shiftOffset(0), m_shiftScale(1)
+      : m_info(Success), m_shiftOffset(0), m_shiftScale(1)
     {}
 
-    SimplicialCholeskyBase(const MatrixType& matrix)
-      : m_info(Success), m_isInitialized(false), m_shiftOffset(0), m_shiftScale(1)
+    explicit SimplicialCholeskyBase(const MatrixType& matrix)
+      : m_info(Success), m_shiftOffset(0), m_shiftScale(1)
     {
       derived().compute(matrix);
     }
@@ -77,34 +104,6 @@ class SimplicialCholeskyBase : internal::noncopyable
     {
       eigen_assert(m_isInitialized && "Decomposition is not initialized.");
       return m_info;
-    }
-    
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<SimplicialCholeskyBase, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Simplicial LLT or LDLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "SimplicialCholeskyBase::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<SimplicialCholeskyBase, Rhs>(*this, b.derived());
-    }
-    
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<SimplicialCholeskyBase, Rhs>
-    solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Simplicial LLT or LDLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "SimplicialCholesky::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<SimplicialCholeskyBase, Rhs>(*this, b.derived());
     }
     
     /** \returns the permutation P
@@ -150,7 +149,7 @@ class SimplicialCholeskyBase : internal::noncopyable
 
     /** \internal */
     template<typename Rhs,typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
     {
       eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       eigen_assert(m_matrix.rows()==b.rows());
@@ -175,6 +174,12 @@ class SimplicialCholeskyBase : internal::noncopyable
       if(m_P.size()>0)
         dest = m_Pinv * dest;
     }
+    
+    template<typename Rhs,typename Dest>
+    void _solve_impl(const SparseMatrixBase<Rhs> &b, SparseMatrixBase<Dest> &dest) const
+    {
+      internal::solve_sparse_through_dense_panels(derived(), b, dest);
+    }
 
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
@@ -186,10 +191,11 @@ class SimplicialCholeskyBase : internal::noncopyable
     {
       eigen_assert(matrix.rows()==matrix.cols());
       Index size = matrix.cols();
-      CholMatrixType ap(size,size);
-      ordering(matrix, ap);
-      analyzePattern_preordered(ap, DoLDLT);
-      factorize_preordered<DoLDLT>(ap);
+      CholMatrixType tmp(size,size);
+      ConstCholMatrixPtr pmat;
+      ordering(matrix, pmat, tmp);
+      analyzePattern_preordered(*pmat, DoLDLT);
+      factorize_preordered<DoLDLT>(*pmat);
     }
     
     template<bool DoLDLT>
@@ -197,9 +203,21 @@ class SimplicialCholeskyBase : internal::noncopyable
     {
       eigen_assert(a.rows()==a.cols());
       int size = a.cols();
-      CholMatrixType ap(size,size);
-      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
-      factorize_preordered<DoLDLT>(ap);
+      CholMatrixType tmp(size,size);
+      ConstCholMatrixPtr pmat;
+      
+      if(m_P.size()==0 && (UpLo&Upper)==Upper)
+      {
+        // If there is no ordering, try to directly use the input matrix without any copy
+        internal::simplicial_cholesky_grab_input<CholMatrixType,MatrixType>::run(a, pmat, tmp);
+      }
+      else
+      {
+        tmp.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
+        pmat = &tmp;
+      }
+      
+      factorize_preordered<DoLDLT>(*pmat);
     }
 
     template<bool DoLDLT>
@@ -209,13 +227,14 @@ class SimplicialCholeskyBase : internal::noncopyable
     {
       eigen_assert(a.rows()==a.cols());
       int size = a.cols();
-      CholMatrixType ap(size,size);
-      ordering(a, ap);
-      analyzePattern_preordered(ap,doLDLT);
+      CholMatrixType tmp(size,size);
+      ConstCholMatrixPtr pmat;
+      ordering(a, pmat, tmp);
+      analyzePattern_preordered(*pmat,doLDLT);
     }
     void analyzePattern_preordered(const CholMatrixType& a, bool doLDLT);
     
-    void ordering(const MatrixType& a, CholMatrixType& ap);
+    void ordering(const MatrixType& a, ConstCholMatrixPtr &pmat, CholMatrixType& ap);
 
     /** keeps off-diagonal entries; drops diagonal entries */
     struct keep_diag {
@@ -226,7 +245,6 @@ class SimplicialCholeskyBase : internal::noncopyable
     };
 
     mutable ComputationInfo m_info;
-    bool m_isInitialized;
     bool m_factorizationIsOk;
     bool m_analysisIsOk;
     
@@ -255,10 +273,10 @@ template<typename _MatrixType, int _UpLo, typename _Ordering> struct traits<Simp
   typedef typename MatrixType::Scalar                         Scalar;
   typedef typename MatrixType::Index                          Index;
   typedef SparseMatrix<Scalar, ColMajor, Index>               CholMatrixType;
-  typedef SparseTriangularView<CholMatrixType, Eigen::Lower>  MatrixL;
-  typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return m; }
-  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  typedef TriangularView<const CholMatrixType, Eigen::Lower>  MatrixL;
+  typedef TriangularView<const typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
+  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
+  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m.adjoint()); }
 };
 
 template<typename _MatrixType,int _UpLo, typename _Ordering> struct traits<SimplicialLDLT<_MatrixType,_UpLo,_Ordering> >
@@ -269,10 +287,10 @@ template<typename _MatrixType,int _UpLo, typename _Ordering> struct traits<Simpl
   typedef typename MatrixType::Scalar                             Scalar;
   typedef typename MatrixType::Index                              Index;
   typedef SparseMatrix<Scalar, ColMajor, Index>                   CholMatrixType;
-  typedef SparseTriangularView<CholMatrixType, Eigen::UnitLower>  MatrixL;
-  typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return m; }
-  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  typedef TriangularView<const CholMatrixType, Eigen::UnitLower>  MatrixL;
+  typedef TriangularView<const typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
+  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
+  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m.adjoint()); }
 };
 
 template<typename _MatrixType, int _UpLo, typename _Ordering> struct traits<SimplicialCholesky<_MatrixType,_UpLo,_Ordering> >
@@ -321,7 +339,7 @@ public:
     /** Default constructor */
     SimplicialLLT() : Base() {}
     /** Constructs and performs the LLT factorization of \a matrix */
-    SimplicialLLT(const MatrixType& matrix)
+    explicit SimplicialLLT(const MatrixType& matrix)
         : Base(matrix) {}
 
     /** \returns an expression of the factor L */
@@ -411,7 +429,7 @@ public:
     SimplicialLDLT() : Base() {}
 
     /** Constructs and performs the LLT factorization of \a matrix */
-    SimplicialLDLT(const MatrixType& matrix)
+    explicit SimplicialLDLT(const MatrixType& matrix)
         : Base(matrix) {}
 
     /** \returns a vector expression of the diagonal D */
@@ -491,7 +509,7 @@ public:
   public:
     SimplicialCholesky() : Base(), m_LDLT(true) {}
 
-    SimplicialCholesky(const MatrixType& matrix)
+    explicit SimplicialCholesky(const MatrixType& matrix)
       : Base(), m_LDLT(true)
     {
       compute(matrix);
@@ -560,7 +578,7 @@ public:
 
     /** \internal */
     template<typename Rhs,typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
     {
       eigen_assert(Base::m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       eigen_assert(Base::m_matrix.rows()==b.rows());
@@ -596,6 +614,13 @@ public:
         dest = Base::m_Pinv * dest;
     }
     
+    /** \internal */
+    template<typename Rhs,typename Dest>
+    void _solve_impl(const SparseMatrixBase<Rhs> &b, SparseMatrixBase<Dest> &dest) const
+    {
+      internal::solve_sparse_through_dense_panels(*this, b, dest);
+    }
+    
     Scalar determinant() const
     {
       if(m_LDLT)
@@ -614,57 +639,42 @@ public:
 };
 
 template<typename Derived>
-void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, CholMatrixType& ap)
+void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, ConstCholMatrixPtr &pmat, CholMatrixType& ap)
 {
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
-  // Note that amd compute the inverse permutation
+  pmat = &ap;
+  // Note that ordering methods compute the inverse permutation
+  if(!internal::is_same<OrderingType,NaturalOrdering<Index> >::value)
   {
-    CholMatrixType C;
-    C = a.template selfadjointView<UpLo>();
+    {
+      CholMatrixType C;
+      C = a.template selfadjointView<UpLo>();
+      
+      OrderingType ordering;
+      ordering(C,m_Pinv);
+    }
+
+    if(m_Pinv.size()>0) m_P = m_Pinv.inverse();
+    else                m_P.resize(0);
     
-    OrderingType ordering;
-    ordering(C,m_Pinv);
+    ap.resize(size,size);
+    ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
   }
-
-  if(m_Pinv.size()>0)
-    m_P = m_Pinv.inverse();
   else
+  {
+    m_Pinv.resize(0);
     m_P.resize(0);
-
-  ap.resize(size,size);
-  ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
+    if(UpLo==Lower || MatrixType::IsRowMajor)
+    {
+      // we have to transpose the lower part to to the upper one
+      ap.resize(size,size);
+      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>();
+    }
+    else
+      internal::simplicial_cholesky_grab_input<CholMatrixType,MatrixType>::run(a, pmat, ap);
+  }  
 }
-
-namespace internal {
-  
-template<typename Derived, typename Rhs>
-struct solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
-  : solve_retval_base<SimplicialCholeskyBase<Derived>, Rhs>
-{
-  typedef SimplicialCholeskyBase<Derived> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec().derived()._solve(rhs(),dst);
-  }
-};
-
-template<typename Derived, typename Rhs>
-struct sparse_solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
-  : sparse_solve_retval_base<SimplicialCholeskyBase<Derived>, Rhs>
-{
-  typedef SimplicialCholeskyBase<Derived> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 

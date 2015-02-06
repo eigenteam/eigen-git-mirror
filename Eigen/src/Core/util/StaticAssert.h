@@ -26,7 +26,7 @@
 
 #ifndef EIGEN_NO_STATIC_ASSERT
 
-  #if defined(__GXX_EXPERIMENTAL_CXX0X__) || (defined(_MSC_VER) && (_MSC_VER >= 1600))
+  #if defined(__GXX_EXPERIMENTAL_CXX0X__) || (EIGEN_COMP_MSVC >= 1600)
 
     // if native static_assert is enabled, let's use it
     #define EIGEN_STATIC_ASSERT(X,MSG) static_assert(X,#MSG);
@@ -84,13 +84,16 @@
         THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY,
         YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT,
         THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS,
+        THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS,
         THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL,
         THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES,
         YOU_PASSED_A_ROW_VECTOR_BUT_A_COLUMN_VECTOR_WAS_EXPECTED,
         YOU_PASSED_A_COLUMN_VECTOR_BUT_A_ROW_VECTOR_WAS_EXPECTED,
         THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE,
         THE_STORAGE_ORDER_OF_BOTH_SIDES_MUST_MATCH,
-        OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG
+        OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG,
+        IMPLICIT_CONVERSION_TO_SCALAR_IS_FOR_INNER_PRODUCT_ONLY,
+        STORAGE_LAYOUT_DOES_NOT_MATCH
       };
     };
 
@@ -101,7 +104,7 @@
     // Specialized implementation for MSVC to avoid "conditional
     // expression is constant" warnings.  This implementation doesn't
     // appear to work under GCC, hence the multiple implementations.
-    #ifdef _MSC_VER
+    #if EIGEN_COMP_MSVC
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
         {Eigen::internal::static_assertion<bool(CONDITION)>::MSG;}
@@ -157,7 +160,7 @@
 
 #define EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
      ( \
-        (int(TYPE0::SizeAtCompileTime)==0 && int(TYPE1::SizeAtCompileTime)==0) \
+        (int(internal::size_of_xpr_at_compile_time<TYPE0>::ret)==0 && int(internal::size_of_xpr_at_compile_time<TYPE1>::ret)==0) \
     || (\
           (int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
         || int(TYPE1::RowsAtCompileTime)==Eigen::Dynamic \

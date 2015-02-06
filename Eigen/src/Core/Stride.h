@@ -86,26 +86,26 @@ class Stride
 
 /** \brief Convenience specialization of Stride to specify only an inner stride
   * See class Map for some examples */
-template<int Value = Dynamic>
+template<int Value>
 class InnerStride : public Stride<0, Value>
 {
     typedef Stride<0, Value> Base;
   public:
     typedef DenseIndex Index;
     EIGEN_DEVICE_FUNC InnerStride() : Base() {}
-    EIGEN_DEVICE_FUNC InnerStride(Index v) : Base(0, v) {}
+    EIGEN_DEVICE_FUNC InnerStride(Index v) : Base(0, v) {} // FIXME making this explicit could break valid code
 };
 
 /** \brief Convenience specialization of Stride to specify only an outer stride
   * See class Map for some examples */
-template<int Value = Dynamic>
+template<int Value>
 class OuterStride : public Stride<Value, 0>
 {
     typedef Stride<Value, 0> Base;
   public:
     typedef DenseIndex Index;
     EIGEN_DEVICE_FUNC OuterStride() : Base() {}
-    EIGEN_DEVICE_FUNC OuterStride(Index v) : Base(v,0) {}
+    EIGEN_DEVICE_FUNC OuterStride(Index v) : Base(v,0) {} // FIXME making this explicit could break valid code
 };
 
 } // end namespace Eigen

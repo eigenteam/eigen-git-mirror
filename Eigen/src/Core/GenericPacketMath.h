@@ -129,12 +129,12 @@ pdiv(const Packet& a,
 /** \internal \returns the min of \a a and \a b  (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pmin(const Packet& a,
-        const Packet& b) { EIGEN_USING_STD_MATH(min); return (min)(a, b); }
+        const Packet& b) { return numext::mini(a, b); }
 
 /** \internal \returns the max of \a a and \a b  (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pmax(const Packet& a,
-        const Packet& b) { EIGEN_USING_STD_MATH(max); return (max)(a, b); }
+        const Packet& b) { return numext::maxi(a, b); }
 
 /** \internal \returns the absolute value of \a a */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -245,8 +245,8 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
 /** \internal tries to do cache prefetching of \a addr */
 template<typename Scalar> inline void prefetch(const Scalar* addr)
 {
-#if !defined(_MSC_VER)
-__builtin_prefetch(addr);
+#if !EIGEN_COMP_MSVC
+  __builtin_prefetch(addr);
 #endif
 }
 

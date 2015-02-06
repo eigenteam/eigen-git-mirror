@@ -281,6 +281,7 @@ private:
   int m_restart;
 
 public:
+  using Base::_solve_impl;
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::Index Index;
@@ -315,25 +316,9 @@ public:
     */
   void set_restart(const int restart) { m_restart=restart; }
 
-  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
-    * \a x0 as an initial solution.
-    *
-    * \sa compute()
-    */
-  template<typename Rhs,typename Guess>
-  inline const internal::solve_retval_with_guess<GMRES, Rhs, Guess>
-  solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
-  {
-    eigen_assert(m_isInitialized && "GMRES is not initialized.");
-    eigen_assert(Base::rows()==b.rows()
-              && "GMRES::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::solve_retval_with_guess
-            <GMRES, Rhs, Guess>(*this, b.derived(), x0);
-  }
-
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solveWithGuess(const Rhs& b, Dest& x) const
+  void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {
     bool failed = false;
     for(int j=0; j<b.cols(); ++j)
@@ -353,34 +338,16 @@ public:
 
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solve(const Rhs& b, Dest& x) const
+  void _solve_impl(const Rhs& b, MatrixBase<Dest> &x) const
   {
     x = b;
     if(x.squaredNorm() == 0) return; // Check Zero right hand side
-    _solveWithGuess(b,x);
+    _solve_with_guess_impl(b,x.derived());
   }
 
 protected:
 
 };
-
-
-namespace internal {
-
-  template<typename _MatrixType, typename _Preconditioner, typename Rhs>
-struct solve_retval<GMRES<_MatrixType, _Preconditioner>, Rhs>
-  : solve_retval_base<GMRES<_MatrixType, _Preconditioner>, Rhs>
-{
-  typedef GMRES<_MatrixType, _Preconditioner> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 

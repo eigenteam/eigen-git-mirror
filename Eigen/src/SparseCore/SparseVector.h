@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -221,7 +221,7 @@ class SparseVector
 
     inline SparseVector() : m_size(0) { check_template_parameters(); resize(0); }
 
-    inline SparseVector(Index size) : m_size(0) { check_template_parameters(); resize(size); }
+    explicit inline SparseVector(Index size) : m_size(0) { check_template_parameters(); resize(size); }
 
     inline SparseVector(Index rows, Index cols) : m_size(0) { check_template_parameters(); resize(rows,cols); }
 
@@ -360,14 +360,14 @@ template<typename Scalar, int _Options, typename _Index>
 class SparseVector<Scalar,_Options,_Index>::InnerIterator
 {
   public:
-    InnerIterator(const SparseVector& vec, Index outer=0)
+	explicit InnerIterator(const SparseVector& vec, Index outer=0)
       : m_data(vec.m_data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {
       EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
-    InnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
+	explicit InnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
       : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {}
 
@@ -386,20 +386,25 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
     const internal::CompressedStorage<Scalar,Index>& m_data;
     Index m_id;
     const Index m_end;
+  private:
+    // If you get here, then you're not using the right InnerIterator type, e.g.:
+    //   SparseMatrix<double,RowMajor> A;
+    //   SparseMatrix<double>::InnerIterator it(A,0);
+    template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer=0);
 };
 
 template<typename Scalar, int _Options, typename _Index>
 class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
 {
   public:
-    ReverseInnerIterator(const SparseVector& vec, Index outer=0)
+	explicit ReverseInnerIterator(const SparseVector& vec, Index outer=0)
       : m_data(vec.m_data), m_id(static_cast<Index>(m_data.size())), m_start(0)
     {
       EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
-    ReverseInnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
+	explicit ReverseInnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
       : m_data(data), m_id(static_cast<Index>(m_data.size())), m_start(0)
     {}
 
@@ -422,11 +427,34 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
 
 namespace internal {
 
+template<typename _Scalar, int _Options, typename _Index>
+struct evaluator<SparseVector<_Scalar,_Options,_Index> >
+  : evaluator_base<SparseVector<_Scalar,_Options,_Index> >
+{
+  typedef SparseVector<_Scalar,_Options,_Index> SparseVectorType;
+  typedef typename SparseVectorType::InnerIterator InnerIterator;
+  typedef typename SparseVectorType::ReverseInnerIterator ReverseInnerIterator;
+  
+  enum {
+    CoeffReadCost = NumTraits<_Scalar>::ReadCost,
+    Flags = SparseVectorType::Flags
+  };
+  
+  explicit evaluator(const SparseVectorType &mat) : m_matrix(mat) {}
+  
+  operator SparseVectorType&() { return m_matrix.const_cast_derived(); }
+  operator const SparseVectorType&() const { return m_matrix; }
+  
+  const SparseVectorType &m_matrix;
+};
+
 template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_Inner> {
   static void run(Dest& dst, const Src& src) {
     eigen_internal_assert(src.innerSize()==src.size());
-    for(typename Src::InnerIterator it(src, 0); it; ++it)
+    typedef typename internal::evaluator<Src>::type SrcEvaluatorType;
+    SrcEvaluatorType srcEval(src);
+    for(typename SrcEvaluatorType::InnerIterator it(srcEval, 0); it; ++it)
       dst.insert(it.index()) = it.value();
   }
 };
@@ -435,9 +463,11 @@ template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
   static void run(Dest& dst, const Src& src) {
     eigen_internal_assert(src.outerSize()==src.size());
+    typedef typename internal::evaluator<Src>::type SrcEvaluatorType;
+    SrcEvaluatorType srcEval(src);
     for(typename Dest::Index i=0; i<src.size(); ++i)
     {
-      typename Src::InnerIterator it(src, i);
+      typename SrcEvaluatorType::InnerIterator it(srcEval, i);
       if(it)
         dst.insert(i) = it.value();
     }

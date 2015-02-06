@@ -83,7 +83,7 @@ namespace Eigen {
        *
        * \sa compute() for an example.
        */
-      RealQZ(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime) : 
+      explicit RealQZ(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime) :
         m_S(size, size),
         m_T(size, size),
         m_Q(size, size),
@@ -101,7 +101,7 @@ namespace Eigen {
        *
        * This constructor calls compute() to compute the QZ decomposition.
        */
-      RealQZ(const MatrixType& A, const MatrixType& B, bool computeQZ = true) :
+      explicit RealQZ(const MatrixType& A, const MatrixType& B, bool computeQZ = true) :
         m_S(A.rows(),A.cols()),
         m_T(A.rows(),A.cols()),
         m_Q(A.rows(),A.cols()),
@@ -313,7 +313,7 @@ namespace Eigen {
       using std::abs;
       using std::sqrt;
       const Index dim=m_S.cols();
-      if (abs(m_S.coeff(i+1,i)==Scalar(0)))
+      if (abs(m_S.coeff(i+1,i))==Scalar(0))
         return;
       Index z = findSmallDiagEntry(i,i+1);
       if (z==i-1)

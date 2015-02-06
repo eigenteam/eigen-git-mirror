@@ -14,49 +14,23 @@ add_dependencies(check buildtests)
 # check whether /bin/bash exists
 find_file(EIGEN_BIN_BASH_EXISTS "/bin/bash" PATHS "/" NO_DEFAULT_PATH)
 
-# CMake/Ctest does not allow us to change the build command,
-# so we have to workaround by directly editing the generated DartConfiguration.tcl file
-# save CMAKE_MAKE_PROGRAM
-set(CMAKE_MAKE_PROGRAM_SAVE ${CMAKE_MAKE_PROGRAM})
-# and set a fake one
-set(CMAKE_MAKE_PROGRAM "@EIGEN_MAKECOMMAND_PLACEHOLDER@")
-
 # This call activates testing and generates the DartConfiguration.tcl
 include(CTest)
 
 set(EIGEN_TEST_BUILD_FLAGS "" CACHE STRING "Options passed to the build command of unit tests")
 
-# overwrite default DartConfiguration.tcl
-# The worarounds are different for each version of the MSVC IDE
-set(EIGEN_TEST_TARGET buildtests)
-if(MSVC_IDE)
-  if(CMAKE_MAKE_PROGRAM_SAVE MATCHES "devenv") # devenv
-    set(EIGEN_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM_SAVE} Eigen.sln /build Release /project ${EIGEN_TEST_TARGET}")
-  else() # msbuild
-    set(EIGEN_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM_SAVE} ${EIGEN_TEST_TARGET}.vcxproj /p:Configuration=\${CTEST_CONFIGURATION_TYPE}")
-  endif()
-
-  # append the build flags if provided
-  if(NOT "${EIGEN_TEST_BUILD_FLAGS}" MATCHES "^[ \t]*$")
-    set(EIGEN_BUILD_COMMAND "${EIGEN_BUILD_COMMAND} ${EIGEN_TEST_BUILD_FLAGS}")
-  endif()
-  
-  # apply the dartconfig hack ...
-  set(EIGEN_MAKECOMMAND_PLACEHOLDER "${EIGEN_BUILD_COMMAND}\n#")
-else()
-  # for make and nmake
-  set(EIGEN_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM_SAVE} ${EIGEN_TEST_TARGET} ${EIGEN_TEST_BUILD_FLAGS}")
-  set(EIGEN_MAKECOMMAND_PLACEHOLDER "${EIGEN_BUILD_COMMAND}")
+# Overwrite default DartConfiguration.tcl such that ctest can build our unit tests.
+# Recall that our unit tests are not in the "all" target, so we have to explicitely ask ctest to build our custom 'buildtests' target.
+# At this stage, we can also add custom flags to the build tool through the user defined EIGEN_TEST_BUILD_FLAGS variable.
+file(READ  "${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl" EIGEN_DART_CONFIG_FILE)
+# try to grab the default flags
+string(REGEX MATCH "MakeCommand:.*-- (.*)\nDefaultCTestConfigurationType" EIGEN_DUMMY ${EIGEN_DART_CONFIG_FILE})
+if(NOT CMAKE_MATCH_1)
+string(REGEX MATCH "MakeCommand:.*[^c]make (.*)\nDefaultCTestConfigurationType" EIGEN_DUMMY ${EIGEN_DART_CONFIG_FILE})
 endif()
-
-configure_file(${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/DartConfiguration.tcl)
-
-# restore default CMAKE_MAKE_PROGRAM
-set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
-
-# un-set temporary variables so that it is like they never existed
-unset(CMAKE_MAKE_PROGRAM_SAVE) 
-unset(EIGEN_MAKECOMMAND_PLACEHOLDER)
+string(REGEX REPLACE "MakeCommand:.*DefaultCTestConfigurationType" "MakeCommand: ${CMAKE_COMMAND} --build . --target buildtests --config \"\${CTEST_CONFIGURATION_TYPE}\" -- ${CMAKE_MATCH_1} ${EIGEN_TEST_BUILD_FLAGS}\nDefaultCTestConfigurationType"
+       EIGEN_DART_CONFIG_FILE2 ${EIGEN_DART_CONFIG_FILE})
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/DartConfiguration.tcl" ${EIGEN_DART_CONFIG_FILE2})
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
 

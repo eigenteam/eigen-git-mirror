@@ -14,7 +14,7 @@ namespace Eigen {
 
 // On WINCE, std::abs is defined for int only, so let's defined our own overloads:
 // This issue has been confirmed with MSVC 2008 only, but the issue might exist for more recent versions too.
-#if defined(_WIN32_WCE) && defined(_MSC_VER) && _MSC_VER<=1500
+#if EIGEN_OS_WINCE && EIGEN_COMP_MSVC && EIGEN_COMP_MSVC<=1500
 long        abs(long        x) { return (labs(x));  }
 double      abs(double      x) { return (fabs(x));  }
 float       abs(float       x) { return (fabsf(x)); }
@@ -360,50 +360,31 @@ inline NewType cast(const OldType& x)
 }
 
 /****************************************************************************
-* Implementation of atanh2                                                *
+* Implementation of logp1                                                *
 ****************************************************************************/
 
 template<typename Scalar>
-struct atanh2_impl
+struct log1p_impl
 {
-  static inline Scalar run(const Scalar& x, const Scalar& r)
+  static inline Scalar run(const Scalar& x)
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
-    #if (__cplusplus >= 201103L) && !defined(__CYGWIN__)
+    // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
+    #if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+        && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
       using std::log1p;
-      return log1p(2 * x / (r - x)) / 2;
+      return log1p(x);
     #else
-      using std::abs;
+      typedef typename NumTraits<Scalar>::Real RealScalar;
       using std::log;
-      using std::sqrt;
-      Scalar z = x / r;
-      if (r == 0 || abs(z) > sqrt(NumTraits<Scalar>::epsilon()))
-        return log((r + x) / (r - x)) / 2;
-      else
-        return z + z*z*z / 3;
+      Scalar x1p = RealScalar(1) + x;
+      return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
     #endif
   }
 };
 
-template<typename RealScalar>
-struct atanh2_impl<std::complex<RealScalar> >
-{
-  typedef std::complex<RealScalar> Scalar;
-  static inline Scalar run(const Scalar& x, const Scalar& r)
-  {
-    using std::log;
-    using std::norm;
-    using std::sqrt;
-    Scalar z = x / r;
-    if (r == Scalar(0) || norm(z) > NumTraits<RealScalar>::epsilon())
-      return RealScalar(0.5) * log((r + x) / (r - x));
-    else
-      return z + z*z*z / RealScalar(3);
-  }
-};
-
 template<typename Scalar>
-struct atanh2_retval
+struct log1p_retval
 {
   typedef Scalar type;
 };
@@ -591,6 +572,22 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
 ****************************************************************************/
 
 namespace numext {
+  
+template<typename T>
+EIGEN_DEVICE_FUNC
+inline T mini(const T& x, const T& y)
+{
+  EIGEN_USING_STD_MATH(min);
+  return min EIGEN_NOT_A_MACRO (x,y);
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+inline T maxi(const T& x, const T& y)
+{
+  EIGEN_USING_STD_MATH(max);
+  return max EIGEN_NOT_A_MACRO (x,y);
+}
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
@@ -664,9 +661,9 @@ inline EIGEN_MATHFUNC_RETVAL(hypot, Scalar) hypot(const Scalar& x, const Scalar&
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
-inline EIGEN_MATHFUNC_RETVAL(atanh2, Scalar) atanh2(const Scalar& x, const Scalar& y)
+inline EIGEN_MATHFUNC_RETVAL(log1p, Scalar) log1p(const Scalar& x)
 {
-  return EIGEN_MATHFUNC_IMPL(atanh2, Scalar)::run(x, y);
+  return EIGEN_MATHFUNC_IMPL(log1p, Scalar)::run(x);
 }
 
 template<typename Scalar>
@@ -692,6 +689,21 @@ bool (isfinite)(const std::complex<T>& x)
   using std::real;
   using std::imag;
   return isfinite(real(x)) && isfinite(imag(x));
+}
+
+// Log base 2 for 32 bits positive integers.
+// Conveniently returns 0 for x==0.
+inline int log2(int x)
+{
+  eigen_assert(x>=0);
+  unsigned int v(x);
+  static const int table[32] = { 0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30, 8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31 };
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  return table[(v * 0x07C4ACDDU) >> 27];
 }
 
 } // end namespace numext

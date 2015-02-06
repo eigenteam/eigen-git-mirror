@@ -20,7 +20,7 @@ namespace internal {
 /**********************************************************************
 * This file implements a general A * B product while
 * evaluating only one triangular part of the product.
-* This is more general version of self adjoint product (C += A A^T)
+* This is a more general version of self adjoint product (C += A A^T)
 * as the level 3 SYRK Blas routine.
 **********************************************************************/
 
@@ -270,14 +270,14 @@ struct general_product_to_triangular_selector<MatrixType,ProductType,UpLo,false>
 };
 
 template<typename MatrixType, unsigned int UpLo>
-template<typename ProductDerived, typename _Lhs, typename _Rhs>
-TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(const ProductBase<ProductDerived, _Lhs,_Rhs>& prod, const Scalar& alpha)
+template<typename ProductType>
+TriangularView<MatrixType,UpLo>& TriangularViewImpl<MatrixType,UpLo,Dense>::_assignProduct(const ProductType& prod, const Scalar& alpha)
 {
-  eigen_assert(m_matrix.rows() == prod.rows() && m_matrix.cols() == prod.cols());
-
-  general_product_to_triangular_selector<MatrixType, ProductDerived, UpLo, (_Lhs::ColsAtCompileTime==1) || (_Rhs::RowsAtCompileTime==1)>::run(m_matrix.const_cast_derived(), prod.derived(), alpha);
+  eigen_assert(derived().nestedExpression().rows() == prod.rows() && derived().cols() == prod.cols());
   
-  return *this;
+  general_product_to_triangular_selector<MatrixType, ProductType, UpLo, internal::traits<ProductType>::InnerSize==1>::run(derived().nestedExpression().const_cast_derived(), prod, alpha);
+  
+  return derived();
 }
 
 } // end namespace Eigen

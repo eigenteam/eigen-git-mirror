@@ -282,10 +282,22 @@ macro(ei_testing_print_summary)
       message(STATUS "Altivec:           Using architecture defaults")
     endif()
 
+    if(EIGEN_TEST_VSX)
+      message(STATUS "VSX:               ON")
+    else()
+      message(STATUS "VSX:               Using architecture defaults")
+    endif()
+
     if(EIGEN_TEST_NEON)
       message(STATUS "ARM NEON:          ON")
     else()
       message(STATUS "ARM NEON:          Using architecture defaults")
+    endif()
+
+    if(EIGEN_TEST_NEON64)
+      message(STATUS "ARMv8 NEON:        ON")
+    else()
+      message(STATUS "ARMv8 NEON:        Using architecture defaults")
     endif()
 
   endif() # vectorization / alignment options
@@ -418,6 +430,10 @@ macro(ei_get_cxxflags VAR)
   ei_is_64bit_env(IS_64BIT_ENV)
   if(EIGEN_TEST_NEON)
     set(${VAR} NEON)
+  elseif(EIGEN_TEST_NEON64)
+    set(${VAR} NEON)
+  elseif(EIGEN_TEST_VSX)
+    set(${VAR} VSX)
   elseif(EIGEN_TEST_ALTIVEC)
     set(${VAR} ALVEC)
   elseif(EIGEN_TEST_FMA)
@@ -481,20 +497,12 @@ macro(ei_set_build_string)
 endmacro(ei_set_build_string)
 
 macro(ei_is_64bit_env VAR)
-
-  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/is64.cpp"
-      "int main() { return (sizeof(int*) == 8 ? 1 : 0); }
-      ")
-  try_run(run_res compile_res
-         ${CMAKE_CURRENT_BINARY_DIR} "${CMAKE_CURRENT_BINARY_DIR}/is64.cpp"
-          RUN_OUTPUT_VARIABLE run_output)
-
-  if(compile_res AND run_res)
-    set(${VAR} ${run_res})
-  elseif(CMAKE_CL_64)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(${VAR} 1)
-  elseif("$ENV{Platform}" STREQUAL "X64") # nmake 64 bit
-    set(${VAR} 1)
+  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(${VAR} 0)
+  else()
+    message(WARNING "Unsupported pointer size. Please contact the authors.")
   endif()
 endmacro(ei_is_64bit_env)
 

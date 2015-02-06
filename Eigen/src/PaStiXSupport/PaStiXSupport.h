@@ -125,9 +125,15 @@ namespace internal
 // This is the base class to interface with PaStiX functions. 
 // Users should not used this class directly. 
 template <class Derived>
-class PastixBase : internal::noncopyable
+class PastixBase : public SparseSolverBase<Derived>
 {
+  protected:
+    typedef SparseSolverBase<Derived> Base;
+    using Base::derived;
+    using Base::m_isInitialized;
   public:
+    using Base::_solve_impl;
+    
     typedef typename internal::pastix_traits<Derived>::MatrixType _MatrixType;
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
@@ -138,7 +144,7 @@ class PastixBase : internal::noncopyable
     
   public:
     
-    PastixBase() : m_initisOk(false), m_analysisIsOk(false), m_factorizationIsOk(false), m_isInitialized(false), m_pastixdata(0), m_size(0)
+    PastixBase() : m_initisOk(false), m_analysisIsOk(false), m_factorizationIsOk(false), m_pastixdata(0), m_size(0)
     {
       init();
     }
@@ -147,33 +153,10 @@ class PastixBase : internal::noncopyable
     {
       clean();
     }
-
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<PastixBase, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Pastix solver is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "PastixBase::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<PastixBase, Rhs>(*this, b.derived());
-    }
     
     template<typename Rhs,typename Dest>
-    bool _solve (const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const;
+    bool _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const;
     
-    Derived& derived()
-    {
-      return *static_cast<Derived*>(this);
-    }
-    const Derived& derived() const
-    {
-      return *static_cast<const Derived*>(this);
-    }
-
     /** Returns a reference to the integer vector IPARM of PaStiX parameters
       * to modify the default parameters. 
       * The statistics related to the different phases of factorization and solve are saved here as well
@@ -228,20 +211,6 @@ class PastixBase : internal::noncopyable
       return m_info;
     }
     
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::sparse_solve_retval<PastixBase, Rhs>
-    solve(const SparseMatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "Pastix LU, LLT or LDLT is not initialized.");
-      eigen_assert(rows()==b.rows()
-                && "PastixBase::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::sparse_solve_retval<PastixBase, Rhs>(*this, b.derived());
-    }
-    
   protected:
 
     // Initialize the Pastix data structure, check the matrix
@@ -268,7 +237,6 @@ class PastixBase : internal::noncopyable
     int m_initisOk; 
     int m_analysisIsOk;
     int m_factorizationIsOk;
-    bool m_isInitialized;
     mutable ComputationInfo m_info; 
     mutable pastix_data_t *m_pastixdata; // Data structure for pastix
     mutable int m_comm; // The MPI communicator identifier
@@ -328,7 +296,6 @@ void PastixBase<Derived>::compute(ColSpMatrix& mat)
   factorize(mat);
   
   m_iparm(IPARM_MATRIX_VERIFICATION) = API_NO;
-  m_isInitialized = m_factorizationIsOk;
 }
 
 
@@ -393,7 +360,7 @@ void PastixBase<Derived>::factorize(ColSpMatrix& mat)
 /* Solve the system */
 template<typename Base>
 template<typename Rhs,typename Dest>
-bool PastixBase<Base>::_solve (const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const
+bool PastixBase<Base>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const
 {
   eigen_assert(m_isInitialized && "The matrix should be factorized first");
   EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
@@ -450,7 +417,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
       init();
     }
     
-    PastixLU(const MatrixType& matrix):Base()
+    explicit PastixLU(const MatrixType& matrix):Base()
     {
       init();
       compute(matrix);
@@ -560,7 +527,7 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
       init();
     }
     
-    PastixLLT(const MatrixType& matrix):Base()
+    explicit PastixLLT(const MatrixType& matrix):Base()
     {
       init();
       compute(matrix);
@@ -641,7 +608,7 @@ class PastixLDLT : public PastixBase< PastixLDLT<_MatrixType, _UpLo> >
       init();
     }
     
-    PastixLDLT(const MatrixType& matrix):Base()
+    explicit PastixLDLT(const MatrixType& matrix):Base()
     {
       init();
       compute(matrix);
@@ -693,36 +660,6 @@ class PastixLDLT : public PastixBase< PastixLDLT<_MatrixType, _UpLo> >
       internal::c_to_fortran_numbering(out);
     }
 };
-
-namespace internal {
-
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<PastixBase<_MatrixType>, Rhs>
-  : solve_retval_base<PastixBase<_MatrixType>, Rhs>
-{
-  typedef PastixBase<_MatrixType> Dec;
-  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    dec()._solve(rhs(),dst);
-  }
-};
-
-template<typename _MatrixType, typename Rhs>
-struct sparse_solve_retval<PastixBase<_MatrixType>, Rhs>
-  : sparse_solve_retval_base<PastixBase<_MatrixType>, Rhs>
-{
-  typedef PastixBase<_MatrixType> Dec;
-  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    this->defaultEvalTo(dst);
-  }
-};
-
-} // end namespace internal
 
 } // end namespace Eigen
 
