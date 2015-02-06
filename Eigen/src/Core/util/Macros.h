@@ -133,6 +133,12 @@
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
 #endif
 
+// Does the compiler support const expressions?
+#if (defined(__plusplus) && __cplusplus >= 201402L) || \
+    EIGEN_GNUC_AT_LEAST(4,9)
+#define EIGEN_HAS_CONSTEXPR 1
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:

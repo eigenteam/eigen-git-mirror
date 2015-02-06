@@ -53,7 +53,7 @@ struct preserve_inner_most_dims {
   static const bool value = false;
 };
 
-#if __cplusplus > 199711L
+#ifdef EIGEN_HAS_CONSTEXPR
 template <typename ReducedDims, int NumTensorDims>
 struct are_inner_most_dims<ReducedDims, NumTensorDims, ColMajor>{
   static const bool value = indices_statically_known_to_increase<ReducedDims>()() &&
