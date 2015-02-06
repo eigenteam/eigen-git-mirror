@@ -114,7 +114,15 @@ static void test_static_broadcasting()
 {
   Tensor<float, 3, DataLayout> tensor(8,3,5);
   tensor.setRandom();
+
+#ifdef EIGEN_HAS_CONSTEXPR
   Eigen::IndexList<Eigen::type2index<2>, Eigen::type2index<3>, Eigen::type2index<4>> broadcasts;
+#else
+  Eigen::array<int, 3> broadcasts;
+  broadcasts[0] = 2;
+  broadcasts[1] = 3;
+  broadcasts[2] = 4;
+#endif
 
   Tensor<float, 3, DataLayout> broadcast;
   broadcast = tensor.broadcast(broadcasts);
