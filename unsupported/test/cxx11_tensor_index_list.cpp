@@ -11,6 +11,7 @@
 
 #include <Eigen/CXX11/Tensor>
 
+#ifdef EIGEN_HAS_CONSTEXPR
 
 static void test_static_index_list()
 {
@@ -254,11 +255,14 @@ static void test_mixed_index_list()
   VERIFY_IS_APPROX(result3(0), expected);
 }
 
+#endif
 
 void test_cxx11_tensor_index_list()
 {
+#ifdef EIGEN_HAS_CONSTEXPR
   CALL_SUBTEST(test_static_index_list());
   CALL_SUBTEST(test_type2index_list());
   CALL_SUBTEST(test_dynamic_index_list());
   CALL_SUBTEST(test_mixed_index_list());
+#endif
 }

@@ -10,7 +10,7 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_INDEX_LIST_H
 #define EIGEN_CXX11_TENSOR_TENSOR_INDEX_LIST_H
 
-#if __cplusplus > 199711L
+#ifdef EIGEN_HAS_CONSTEXPR
 
 namespace Eigen {
 
