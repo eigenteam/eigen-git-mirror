@@ -36,6 +36,7 @@
 #include "src/SparseCore/SparseMap.h"
 #include "src/SparseCore/MappedSparseMatrix.h"
 #include "src/SparseCore/SparseVector.h"
+#include "src/SparseCore/SparseRef.h"
 #include "src/SparseCore/SparseCwiseUnaryOp.h"
 #include "src/SparseCore/SparseCwiseBinaryOp.h"
 #include "src/SparseCore/SparseTranspose.h"
