@@ -33,6 +33,7 @@
 #include "src/SparseCore/AmbiVector.h"
 #include "src/SparseCore/SparseCompressedBase.h"
 #include "src/SparseCore/SparseMatrix.h"
+#include "src/SparseCore/SparseMap.h"
 #include "src/SparseCore/MappedSparseMatrix.h"
 #include "src/SparseCore/SparseVector.h"
 #include "src/SparseCore/SparseCwiseUnaryOp.h"
