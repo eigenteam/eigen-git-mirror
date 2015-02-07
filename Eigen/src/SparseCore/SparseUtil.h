@@ -43,8 +43,7 @@ EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
-#define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, BaseClass) \
-  typedef BaseClass Base; \
+#define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   typedef typename Eigen::internal::traits<Derived >::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
   typedef typename Eigen::internal::nested<Derived >::type Nested; \
@@ -59,7 +58,8 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
   using Base::const_cast_derived;
   
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
-  _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived >)
+  typedef Eigen::SparseMatrixBase<Derived > Base; \
+  _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
 
 const int CoherentAccessPattern     = 0x1;
 const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;

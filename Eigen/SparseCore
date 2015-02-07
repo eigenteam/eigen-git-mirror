@@ -31,6 +31,7 @@
 #include "src/SparseCore/SparseAssign.h"
 #include "src/SparseCore/CompressedStorage.h"
 #include "src/SparseCore/AmbiVector.h"
+#include "src/SparseCore/SparseCompressedBase.h"
 #include "src/SparseCore/SparseMatrix.h"
 #include "src/SparseCore/MappedSparseMatrix.h"
 #include "src/SparseCore/SparseVector.h"

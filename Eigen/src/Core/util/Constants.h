@@ -163,6 +163,19 @@ const unsigned int NestByRefBit = 0x100;
   * \sa \ref RowMajorBit, \ref TopicStorageOrders */
 const unsigned int NoPreferredStorageOrderBit = 0x200;
 
+/** \ingroup flags
+  *
+  * Means that the underlying coefficients can be accessed through pointers to the sparse (un)compressed storage format,
+  * that is, the expression provides:
+  * \code
+    inline const Scalar* valuePtr() const;
+    inline const Index* innerIndexPtr() const;
+    inline const Index* outerIndexPtr() const;
+    inline const Index* innerNonZeroPtr() const;
+    \endcode
+  */
+const unsigned int CompressedAccessBit = 0x400;
+
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
