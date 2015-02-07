@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -12,13 +12,41 @@
 
 namespace Eigen { 
 
+namespace internal {
+  template<typename MatrixType,int CompressedAccess=int(MatrixType::Flags&CompressedAccessBit)>
+  class SparseTransposeImpl
+    : public SparseMatrixBase<Transpose<MatrixType> >
+  {};
+  
+  template<typename MatrixType>
+  class SparseTransposeImpl<MatrixType,CompressedAccessBit>
+    : public SparseCompressedBase<Transpose<MatrixType> >
+  {
+    typedef SparseCompressedBase<Transpose<MatrixType> > Base;
+  public:
+    using Base::derived;
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::Index Index;
+    
+    inline const Scalar* valuePtr() const { return derived().nestedExpression().valuePtr(); }
+    inline const Index* innerIndexPtr() const { return derived().nestedExpression().innerIndexPtr(); }
+    inline const Index* outerIndexPtr() const { return derived().nestedExpression().outerIndexPtr(); }
+    inline const Index* innerNonZeroPtr() const { return derived().nestedExpression().innerNonZeroPtr(); }
+    
+    inline Scalar* valuePtr() { return derived().nestedExpression().valuePtr(); }
+    inline Index* innerIndexPtr() { return derived().nestedExpression().innerIndexPtr(); }
+    inline Index* outerIndexPtr() { return derived().nestedExpression().outerIndexPtr(); }
+    inline Index* innerNonZeroPtr() { return derived().nestedExpression().innerNonZeroPtr(); }
+  };
+}
+  
 // Implement nonZeros() for transpose. I'm not sure that's the best approach for that.
 // Perhaps it should be implemented in Transpose<> itself.
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
-  : public SparseMatrixBase<Transpose<MatrixType> >
+  : public internal::SparseTransposeImpl<MatrixType>
 {
   protected:
-    typedef SparseMatrixBase<Transpose<MatrixType> > Base;
+    typedef internal::SparseTransposeImpl<MatrixType> Base;
   public:
     inline typename MatrixType::Index nonZeros() const { return Base::derived().nestedExpression().nonZeros(); }
 };
