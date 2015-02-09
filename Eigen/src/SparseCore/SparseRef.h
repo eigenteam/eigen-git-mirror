@@ -23,7 +23,7 @@ struct traits<Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, _Options, _Stride
   typedef SparseMatrix<MatScalar,MatOptions,MatIndex> PlainObjectType;
   enum {
     Options = _Options,
-    Flags = traits<MappedSparseMatrix<MatScalar,MatOptions,MatIndex> >::Flags | CompressedAccessBit | NestByRefBit
+    Flags = traits<SparseMatrix<MatScalar,MatOptions,MatIndex> >::Flags | CompressedAccessBit | NestByRefBit
   };
 
   template<typename Derived> struct match {
@@ -41,7 +41,7 @@ struct traits<Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, _Options, _
   : public traits<Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, _Options, _StrideType> >
 {
   enum {
-    Flags = (traits<MappedSparseMatrix<MatScalar,MatOptions,MatIndex> >::Flags | CompressedAccessBit | NestByRefBit) & ~LvalueBit
+    Flags = (traits<SparseMatrix<MatScalar,MatOptions,MatIndex> >::Flags | CompressedAccessBit | NestByRefBit) & ~LvalueBit
   };
 };
   
@@ -49,11 +49,8 @@ template<typename Derived>
 struct traits<SparseRefBase<Derived> > : public traits<Derived> {};
 
 template<typename Derived> class SparseRefBase
-//  : public MappedSparseMatrix<MatScalar,MatOptions,MatIndex>
   : public SparseMapBase<Derived>
 {
-//   typedef typename internal::traits<Derived>::PlainObjectType PlainObjectType;
-
 public:
 
   typedef SparseMapBase<Derived> Base;
@@ -63,8 +60,6 @@ public:
     : Base(RowsAtCompileTime==Dynamic?0:RowsAtCompileTime,ColsAtCompileTime==Dynamic?0:ColsAtCompileTime, 0, 0, 0, 0, 0)
   {}
   
-  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(SparseRefBase)
-
 protected:
 
 
@@ -119,9 +114,6 @@ class Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType >
       EIGEN_STATIC_ASSERT(bool(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
       Base::construct(expr.const_cast_derived());
     }
-
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Ref)
-
 };
 
 // this is the const ref version

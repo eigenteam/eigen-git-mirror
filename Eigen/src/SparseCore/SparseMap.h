@@ -12,6 +12,32 @@
 
 namespace Eigen {
 
+namespace internal {
+
+template<typename MatScalar, int MatOptions, typename MatIndex, int Options, typename StrideType>
+struct traits<Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType> >
+  : public traits<SparseMatrix<MatScalar,MatOptions,MatIndex> >
+{
+  typedef SparseMatrix<MatScalar,MatOptions,MatIndex> PlainObjectType;
+  typedef traits<PlainObjectType> TraitsBase;
+  enum {
+    Flags = TraitsBase::Flags & (~NestByRefBit)
+  };
+};
+
+template<typename MatScalar, int MatOptions, typename MatIndex, int Options, typename StrideType>
+struct traits<Map<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType> >
+  : public traits<SparseMatrix<MatScalar,MatOptions,MatIndex> >
+{
+  typedef SparseMatrix<MatScalar,MatOptions,MatIndex> PlainObjectType;
+  typedef traits<PlainObjectType> TraitsBase;
+  enum {
+    Flags = TraitsBase::Flags & (~ (NestByRefBit | LvalueBit))
+  };
+};
+
+} // end namespace internal
+  
 template<typename Derived,
          int Level = internal::accessors_level<Derived>::has_write_access ? WriteAccessors : ReadOnlyAccessors
 > class SparseMapBase;
@@ -25,7 +51,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
     typedef typename Base::Scalar Scalar;
     typedef typename Base::Index Index;
     enum { IsRowMajor = Base::IsRowMajor };
-
+    using Base::operator=;
   protected:
     
     typedef typename internal::conditional<
@@ -103,6 +129,8 @@ class SparseMapBase<Derived,WriteAccessors>
     typedef typename Base::Scalar Scalar;
     typedef typename Base::Index Index;
     enum { IsRowMajor = Base::IsRowMajor };
+    
+    using Base::operator=;
 
   public:
     
@@ -147,7 +175,7 @@ class Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType>
   : public SparseMapBase<Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType> >
 {
   public:
-    typedef SparseMapBase<Map<MatScalar, MatOptions, MatIndex> > Base;
+    typedef SparseMapBase<Map> Base;
     _EIGEN_SPARSE_PUBLIC_INTERFACE(Map)
     enum { IsRowMajor = Base::IsRowMajor };
 
@@ -167,7 +195,7 @@ class Map<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
   : public SparseMapBase<Map<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType> >
 {
   public:
-    typedef SparseMapBase<Map<MatScalar, MatOptions, MatIndex> > Base;
+    typedef SparseMapBase<Map> Base;
     _EIGEN_SPARSE_PUBLIC_INTERFACE(Map)
     enum { IsRowMajor = Base::IsRowMajor };
 

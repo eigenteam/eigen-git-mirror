@@ -69,8 +69,9 @@ void call_ref()
   VERIFY_EVALUATION_COUNT( call_ref_2(A*A, A*A),  1);
   
   Ref<SparseMatrix<float> > Ar(A);
-  VERIFY_EVALUATION_COUNT( call_ref_1(Ar, Ar),  0);
-  VERIFY_EVALUATION_COUNT( call_ref_2(Ar, Ar),  0);
+  VERIFY_IS_APPROX(Ar+Ar, A+A);
+  VERIFY_EVALUATION_COUNT( call_ref_1(Ar, A),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_2(Ar, A),  0);
   
   Ref<SparseMatrix<float,RowMajor> > Br(B);
   VERIFY_EVALUATION_COUNT( call_ref_1(Br.transpose(), Br.transpose()),  0);
