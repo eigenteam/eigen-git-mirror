@@ -32,7 +32,7 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
     x = solver.solve(b);
     if (solver.info() != Success)
     {
-      std::cerr << "sparse solver testing: solving failed\n";
+      std::cerr << "sparse solver testing: solving failed (" << typeid(Solver).name() << ")\n";
       return;
     }
     VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
@@ -75,7 +75,8 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
     xm = solver.solve(bm);
     if (solver.info() != Success)
     {
-      std::cerr << "sparse solver testing: solving failed\n";
+      std::cerr << "sparse solver testing: solving with a Map failed\n";
+      exit(0);
       return;
     }
     VERIFY(oldb.isApprox(bm) && "sparse solver testing: the rhs should not be modified!");

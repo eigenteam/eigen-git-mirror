@@ -37,7 +37,7 @@ public:
 
   /** Default constructor. */
   IterativeSolverBase()
-    : mp_matrix(0)
+    : m_dummy(0,0), mp_matrix(m_dummy)
   {
     init();
   }
@@ -52,10 +52,11 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  explicit IterativeSolverBase(const MatrixType& A)
+  template<typename SparseMatrixDerived>
+  explicit IterativeSolverBase(const SparseMatrixBase<SparseMatrixDerived>& A)
   {
     init();
-    compute(A);
+    compute(A.derived());
   }
 
   ~IterativeSolverBase() {}
@@ -65,9 +66,11 @@ public:
     * Currently, this function mostly calls analyzePattern on the preconditioner. In the future
     * we might, for instance, implement column reordering for faster matrix vector products.
     */
-  Derived& analyzePattern(const MatrixType& A)
+  template<typename SparseMatrixDerived>
+  Derived& analyzePattern(const SparseMatrixBase<SparseMatrixDerived>& A)
   {
-    m_preconditioner.analyzePattern(A);
+    grab(A);
+    m_preconditioner.analyzePattern(mp_matrix);
     m_isInitialized = true;
     m_analysisIsOk = true;
     m_info = Success;
@@ -83,11 +86,12 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  Derived& factorize(const MatrixType& A)
+  template<typename SparseMatrixDerived>
+  Derived& factorize(const SparseMatrixBase<SparseMatrixDerived>& A)
   {
     eigen_assert(m_analysisIsOk && "You must first call analyzePattern()"); 
-    mp_matrix = &A;
-    m_preconditioner.factorize(A);
+    grab(A);
+    m_preconditioner.factorize(mp_matrix);
     m_factorizationIsOk = true;
     m_info = Success;
     return derived();
@@ -103,10 +107,11 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  Derived& compute(const MatrixType& A)
+  template<typename SparseMatrixDerived>
+  Derived& compute(const SparseMatrixBase<SparseMatrixDerived>& A)
   {
-    mp_matrix = &A;
-    m_preconditioner.compute(A);
+    grab(A);
+    m_preconditioner.compute(mp_matrix);
     m_isInitialized = true;
     m_analysisIsOk = true;
     m_factorizationIsOk = true;
@@ -115,9 +120,9 @@ public:
   }
 
   /** \internal */
-  Index rows() const { return mp_matrix ? mp_matrix->rows() : 0; }
+  Index rows() const { return mp_matrix.rows(); }
   /** \internal */
-  Index cols() const { return mp_matrix ? mp_matrix->cols() : 0; }
+  Index cols() const { return mp_matrix.cols(); }
 
   /** \returns the tolerance threshold used by the stopping criteria */
   RealScalar tolerance() const { return m_tolerance; }
@@ -135,13 +140,18 @@ public:
   /** \returns a read-only reference to the preconditioner. */
   const Preconditioner& preconditioner() const { return m_preconditioner; }
 
-  /** \returns the max number of iterations */
+  /** \returns the max number of iterations.
+    * It is either the value setted by setMaxIterations or, by default,
+    * twice the number of columns of the matrix.
+    */
   int maxIterations() const
   {
-    return (mp_matrix && m_maxIterations<0) ? mp_matrix->cols() : m_maxIterations;
+    return (m_maxIterations<0) ? 2*mp_matrix.cols() : m_maxIterations;
   }
   
-  /** Sets the max number of iterations */
+  /** Sets the max number of iterations.
+    * Default is twice the number of columns of the matrix.
+    */
   Derived& setMaxIterations(int maxIters)
   {
     m_maxIterations = maxIters;
@@ -210,7 +220,16 @@ protected:
     m_maxIterations = -1;
     m_tolerance = NumTraits<Scalar>::epsilon();
   }
-  const MatrixType* mp_matrix;
+  
+  template<typename SparseMatrixDerived>
+  void grab(const SparseMatrixBase<SparseMatrixDerived> &A)
+  {
+    mp_matrix.~Ref<const MatrixType>();
+    ::new (&mp_matrix) Ref<const MatrixType>(A);
+  }
+  
+  MatrixType m_dummy;
+  Ref<const MatrixType> mp_matrix;
   Preconditioner m_preconditioner;
 
   int m_maxIterations;

@@ -206,7 +206,7 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      internal::conjugate_gradient(mp_matrix->template selfadjointView<UpLo>(), b.col(j), xj,
+      internal::conjugate_gradient(mp_matrix.template selfadjointView<UpLo>(), b.col(j), xj,
                                    Base::m_preconditioner, m_iterations, m_error);
     }
 

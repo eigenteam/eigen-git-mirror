@@ -193,7 +193,7 @@ public:
       m_error = Base::m_tolerance;
       
       typename Dest::ColXpr xj(x,j);
-      if(!internal::bicgstab(*mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error))
+      if(!internal::bicgstab(mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error))
         failed = true;
     }
     m_info = failed ? NumericalIssue
