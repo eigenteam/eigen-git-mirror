@@ -51,8 +51,8 @@ void call_ref()
 {
 //   SparseVector<std::complex<float> > ca = VectorXcf::Random(10).sparseView();
 //   SparseVector<float>                a  = VectorXf::Random(10).sparseView();
-  SparseMatrix<float>               A = MatrixXf::Random(10,10).sparseView();
-  SparseMatrix<float,RowMajor>      B = MatrixXf::Random(10,10).sparseView();
+  SparseMatrix<float>               A = MatrixXf::Random(10,10).sparseView(0.5,1);
+  SparseMatrix<float,RowMajor>      B = MatrixXf::Random(10,10).sparseView(0.5,1);
   const SparseMatrix<float>&        Ac(A);
   Block<SparseMatrix<float> >       Ab(A,0,1, 3,3);
   const Block<SparseMatrix<float> > Abc(A,0,1,3,3);
@@ -82,7 +82,9 @@ void call_ref()
 //   VERIFY_EVALUATION_COUNT( call_ref_1(Arc, Arc),  0); // does not compile on purpose
   VERIFY_EVALUATION_COUNT( call_ref_2(Arc, Arc),  0);
   
-  VERIFY_EVALUATION_COUNT( call_ref_2(A.middleCols(1,3), A.middleCols(1,3)),  1); // should be 0
+  VERIFY_EVALUATION_COUNT( call_ref_2(A.middleCols(1,3), A.middleCols(1,3)),  0);
+  
+  VERIFY_EVALUATION_COUNT( call_ref_2(A.col(2), A.col(2)),  0);
   
   VERIFY_EVALUATION_COUNT( call_ref_2(A.block(1,1,3,3), A.block(1,1,3,3)),  1); // should be 0 (allocate starts/nnz only)
 }

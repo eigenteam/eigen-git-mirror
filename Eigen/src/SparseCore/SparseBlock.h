@@ -74,7 +74,7 @@ namespace internal {
 
 template<typename SparseMatrixType, int BlockRows, int BlockCols>
 class sparse_matrix_block_impl
-  : public SparseMatrixBase<Block<SparseMatrixType,BlockRows,BlockCols,true> >
+  : public SparseCompressedBase<Block<SparseMatrixType,BlockRows,BlockCols,true> >
 {
     typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _MatrixTypeNested;
     typedef Block<SparseMatrixType, BlockRows, BlockCols, true> BlockType;
@@ -172,19 +172,24 @@ public:
     }
 
     inline const Scalar* valuePtr() const
-    { return m_matrix.valuePtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
+    { return m_matrix.valuePtr(); }
     inline Scalar* valuePtr()
-    { return m_matrix.const_cast_derived().valuePtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
+    { return m_matrix.const_cast_derived().valuePtr(); }
 
     inline const Index* innerIndexPtr() const
-    { return m_matrix.innerIndexPtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
+    { return m_matrix.innerIndexPtr(); }
     inline Index* innerIndexPtr()
-    { return m_matrix.const_cast_derived().innerIndexPtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
+    { return m_matrix.const_cast_derived().innerIndexPtr(); }
 
     inline const Index* outerIndexPtr() const
     { return m_matrix.outerIndexPtr() + m_outerStart; }
     inline Index* outerIndexPtr()
     { return m_matrix.const_cast_derived().outerIndexPtr() + m_outerStart; }
+    
+    inline const Index* innerNonZeroPtr() const
+    { return isCompressed() ? 0 : m_matrix.innerNonZeroPtr(); }
+    inline Index* innerNonZeroPtr()
+    { return isCompressed() ? 0 : m_matrix.const_cast_derived().innerNonZeroPtr(); }
 
     Index nonZeros() const
     {
@@ -196,6 +201,8 @@ public:
       else
         return Map<const Matrix<Index,OuterSize,1> >(m_matrix.innerNonZeroPtr()+m_outerStart, m_outerSize.value()).sum();
     }
+    
+    bool isCompressed() const { return m_matrix.innerNonZeroPtr()==0; }
 
     const Scalar& lastCoeff() const
     {
