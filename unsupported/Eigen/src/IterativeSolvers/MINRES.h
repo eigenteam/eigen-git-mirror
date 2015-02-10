@@ -189,20 +189,7 @@ namespace Eigen {
      * \endcode
      *
      * By default the iterations start with x=0 as an initial guess of the solution.
-     * One can control the start using the solveWithGuess() method. Here is a step by
-     * step execution example starting with a random guess and printing the evolution
-     * of the estimated error:
-     * * \code
-     * x = VectorXd::Random(n);
-     * mr.setMaxIterations(1);
-     * int i = 0;
-     * do {
-     *   x = mr.solveWithGuess(b,x);
-     *   std::cout << i << " : " << mr.error() << std::endl;
-     *   ++i;
-     * } while (mr.info()!=Success && i<100);
-     * \endcode
-     * Note that such a step by step excution is slightly slower.
+     * One can control the start using the solveWithGuess() method.
      *
      * \sa class ConjugateGradient, BiCGSTAB, SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
      */

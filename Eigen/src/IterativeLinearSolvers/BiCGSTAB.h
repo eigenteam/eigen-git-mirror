@@ -139,11 +139,7 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * \include BiCGSTAB_simple.cpp
   * 
   * By default the iterations start with x=0 as an initial guess of the solution.
-  * One can control the start using the solveWithGuess() method. Here is a step by
-  * step execution example starting with a random guess and printing the evolution
-  * of the estimated error:
-  * \include BiCGSTAB_step_by_step.cpp
-  * Note that such a step by step execution is slightly slower.
+  * One can control the start using the solveWithGuess() method.
   * 
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
