@@ -104,7 +104,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       m_dimensions[i] += m_padding[i].first + m_padding[i].second;
     }
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_inputStrides[0] = 1;
       m_outputStrides[0] = 1;
       for (int i = 1; i < NumDims; ++i) {
@@ -141,7 +141,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   {
     eigen_assert(index < dimensions().TotalSize());
     Index inputIndex = 0;
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
         const Index idx = index / m_outputStrides[i];
         if (idx < m_padding[i].first || idx >= m_dimensions[i] - m_padding[i].second) {
@@ -175,7 +175,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       return packetColMajor(index);
     }
     return packetRowMajor(index);
@@ -184,7 +184,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(const array<Index, NumDims>& coords) const
   {
     Index inputIndex;
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       const Index idx = coords[0];
       if (idx < m_padding[0].first || idx >= m_dimensions[0] - m_padding[0].second) {
         return Scalar(0);
@@ -214,7 +214,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     return m_impl.coeff(inputIndex);
   }
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
  protected:
 

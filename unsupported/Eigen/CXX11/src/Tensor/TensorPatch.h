@@ -100,7 +100,7 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
       : m_impl(op.expression(), device)
   {
    // Only column major tensors are supported for now.
-    EIGEN_STATIC_ASSERT((Layout == ColMajor), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((static_cast<int>(Layout) == static_cast<int>(ColMajor)), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     Index num_patches = 1;
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
@@ -232,7 +232,7 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
     }
   }
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
  protected:
   Dimensions m_dimensions;
