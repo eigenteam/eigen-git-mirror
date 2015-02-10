@@ -150,7 +150,7 @@ class DGMRES : public IterativeSolverBase<DGMRES<_MatrixType,_Preconditioner> >
       m_error = Base::m_tolerance;
       
       typename Dest::ColXpr xj(x,j);
-      dgmres(*mp_matrix, b.col(j), xj, Base::m_preconditioner);
+      dgmres(mp_matrix, b.col(j), xj, Base::m_preconditioner);
     }
     m_info = failed ? NumericalIssue
            : m_error <= Base::m_tolerance ? Success
