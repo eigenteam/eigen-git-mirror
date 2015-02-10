@@ -275,7 +275,7 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
 #endif
 
-  DSizes& operator = (const array<DenseIndex, NumDims>& other) {
+  EIGEN_DEVICE_FUNC DSizes& operator = (const array<DenseIndex, NumDims>& other) {
     *static_cast<Base*>(this) = other;
     return *this;
   }

@@ -112,9 +112,9 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
     void swap(Self_& other)
     { std::swap(m_data,other.m_data); std::swap(m_dimensions,other.m_dimensions); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions() const {return m_dimensions;}
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const DSizes<DenseIndex, NumIndices_>& dimensions() const {return m_dimensions;}
 
-    void resize(DenseIndex size, const array<DenseIndex, NumIndices_>& nbDimensions)
+    EIGEN_DEVICE_FUNC void resize(DenseIndex size, const array<DenseIndex, NumIndices_>& nbDimensions)
     {
       const DenseIndex currentSz = internal::array_prod(m_dimensions);
       if(size != currentSz)

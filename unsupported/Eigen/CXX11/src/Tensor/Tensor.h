@@ -350,7 +350,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     }
 #endif
 
-    void resize(const array<Index, NumIndices>& dimensions)
+    EIGEN_DEVICE_FUNC void resize(const array<Index, NumIndices>& dimensions)
     {
       std::size_t i;
       Index size = Index(1);
@@ -367,7 +367,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
       #endif
     }
 
-    void resize(const DSizes<Index, NumIndices>& dimensions) {
+    EIGEN_DEVICE_FUNC void resize(const DSizes<Index, NumIndices>& dimensions) {
       array<Index, NumIndices> dims;
       for (std::size_t i = 0; i < NumIndices; ++i) {
         dims[i] = dimensions[i];
