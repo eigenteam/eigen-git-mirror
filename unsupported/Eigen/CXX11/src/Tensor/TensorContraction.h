@@ -536,7 +536,7 @@ struct TensorContractionEvaluatorBase
     DSizes<Index, LDims> eval_left_dims;
     DSizes<Index, RDims> eval_right_dims;
     array<IndexPair<Index>, ContractDims> eval_op_indices;
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       // For ColMajor, we keep using the existing dimensions
       for (int i = 0; i < LDims; i++) {
         eval_left_dims[i] = m_leftImpl.dimensions()[i];

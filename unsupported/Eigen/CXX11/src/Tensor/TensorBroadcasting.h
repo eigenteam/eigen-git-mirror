@@ -106,7 +106,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       m_dimensions[i] = input_dims[i] * broadcast[i];
     }
 
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_inputStrides[0] = 1;
       m_outputStrides[0] = 1;
       for (int i = 1; i < NumDims; ++i) {
@@ -139,7 +139,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE CoeffReturnType coeff(Index index) const
   {
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       return coeffColMajor(index);
     } else {
       return coeffRowMajor(index);
@@ -210,7 +210,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketReturnType packet(Index index) const
   {
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       return packetColMajor<LoadMode>(index);
     } else {
       return packetRowMajor<LoadMode>(index);
@@ -326,7 +326,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   }
 
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
  protected:
   Dimensions m_dimensions;

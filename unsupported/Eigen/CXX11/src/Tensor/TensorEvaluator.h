@@ -167,7 +167,7 @@ struct TensorEvaluator<const Derived, Device>
 #endif
   }
 
-  const Scalar* data() const { return m_data; }
+  EIGEN_DEVICE_FUNC const Scalar* data() const { return m_data; }
 
  protected:
   const Scalar* m_data;
@@ -218,7 +218,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
     return m_functor.packetOp(index);
   }
 
-  CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
 
  private:
   const NullaryOp m_functor;
@@ -273,7 +273,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
     return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
   }
 
-  CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
 
  private:
   const UnaryOp m_functor;
@@ -301,7 +301,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
       m_leftImpl(op.lhsExpression(), device),
       m_rightImpl(op.rhsExpression(), device)
   {
-    EIGEN_STATIC_ASSERT((TensorEvaluator<LeftArgType, Device>::Layout == TensorEvaluator<RightArgType, Device>::Layout || internal::traits<XprType>::NumDimensions == 1), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout) || internal::traits<XprType>::NumDimensions == 1), YOU_MADE_A_PROGRAMMING_MISTAKE);
     eigen_assert(dimensions_match(m_leftImpl.dimensions(), m_rightImpl.dimensions()));
   }
 
@@ -337,7 +337,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
     return m_functor.packetOp(m_leftImpl.template packet<LoadMode>(index), m_rightImpl.template packet<LoadMode>(index));
   }
 
-  CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
 
  private:
   const BinaryOp m_functor;
@@ -413,7 +413,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
                             m_elseImpl.template packet<LoadMode>(index));
   }
 
-  CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
 
  private:
   TensorEvaluator<IfArgType, Device> m_condImpl;
