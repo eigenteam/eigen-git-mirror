@@ -133,7 +133,7 @@ template<> EIGEN_STRONG_INLINE Packet8i pdiv<Packet8i>(const Packet8i& /*a*/, co
   return pset1<Packet8i>(0);
 }
 
-#ifdef EIGEN_VECTORIZE_FMA
+#ifdef __FMA__
 template<> EIGEN_STRONG_INLINE Packet8f pmadd(const Packet8f& a, const Packet8f& b, const Packet8f& c) {
 #if EIGEN_COMP_GNUC || EIGEN_COMP_CLANG
   // clang stupidly generates a vfmadd213ps instruction plus some vmovaps on registers,
