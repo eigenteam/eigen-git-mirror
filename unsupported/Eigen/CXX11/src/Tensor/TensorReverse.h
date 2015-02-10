@@ -106,7 +106,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   {
     // Compute strides
     m_dimensions = m_impl.dimensions();
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_strides[0] = 1;
       for (int i = 1; i < NumDims; ++i) {
         m_strides[i] = m_strides[i-1] * m_dimensions[i-1];
@@ -138,7 +138,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   {
     eigen_assert(index < dimensions().TotalSize());
     Index inputIndex = 0;
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
         Index idx = index / m_strides[i];
         index -= idx * m_strides[i];
