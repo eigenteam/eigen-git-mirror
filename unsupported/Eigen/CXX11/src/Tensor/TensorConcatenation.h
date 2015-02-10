@@ -111,7 +111,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : m_leftImpl(op.lhsExpression(), device), m_rightImpl(op.rhsExpression(), device), m_axis(op.axis())
   {
-    EIGEN_STATIC_ASSERT((TensorEvaluator<LeftArgType, Device>::Layout == TensorEvaluator<RightArgType, Device>::Layout || NumDims == 1), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout) || NumDims == 1), YOU_MADE_A_PROGRAMMING_MISTAKE);
     EIGEN_STATIC_ASSERT(NumDims == RightNumDims, YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(0 <= m_axis && m_axis < NumDims);
     const Dimensions& lhs_dims = m_leftImpl.dimensions();
@@ -131,7 +131,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
       m_dimensions[i] = lhs_dims[i];
     }
 
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_leftStrides[0] = 1;
       m_rightStrides[0] = 1;
       m_outputStrides[0] = 1;
@@ -176,7 +176,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   {
     // Collect dimension-wise indices (subs).
     array<Index, NumDims> subs;
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
         subs[i] = index / m_outputStrides[i];
         index -= subs[i] * m_outputStrides[i];
@@ -193,7 +193,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
     const Dimensions& left_dims = m_leftImpl.dimensions();
     if (subs[m_axis] < left_dims[m_axis]) {
       Index left_index;
-      if (Layout == ColMajor) {
+      if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
         left_index = subs[0];
         for (int i = 1; i < NumDims; ++i) {
           left_index += (subs[i] % left_dims[i]) * m_leftStrides[i];
@@ -209,7 +209,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
       subs[m_axis] -= left_dims[m_axis];
       const Dimensions& right_dims = m_rightImpl.dimensions();
       Index right_index;
-      if (Layout == ColMajor) {
+      if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
         right_index = subs[0];
         for (int i = 1; i < NumDims; ++i) {
           right_index += (subs[i] % right_dims[i]) * m_rightStrides[i];

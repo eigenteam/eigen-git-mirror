@@ -123,7 +123,7 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
     }
 
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       m_outputStrides[0] = 1;
       m_inputStrides[0] = 1;
       for (int i = 1; i < NumDims; ++i) {
@@ -172,7 +172,7 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
 
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
         const Index idx0 = indices[0] / m_outputStrides[i];
         const Index idx1 = indices[1] / m_outputStrides[i];
@@ -211,13 +211,13 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
     }
   }
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
   {
     Index inputIndex = 0;
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
         const Index idx = index / m_outputStrides[i];
         inputIndex += idx * m_inputStrides[i];
@@ -281,7 +281,7 @@ struct TensorEvaluator<TensorStridingOp<Strides, ArgType>, Device>
 
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       for (int i = NumDims - 1; i > 0; --i) {
         const Index idx0 = indices[0] / this->m_outputStrides[i];
         const Index idx1 = indices[1] / this->m_outputStrides[i];
