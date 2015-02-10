@@ -165,8 +165,8 @@ namespace Eigen {
      * The vectors x and b can be either dense or sparse.
      *
      * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
-     * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
-     *               or Upper. Default is Lower.
+     * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower,
+     *               Upper, or Lower|Upper in which the full matrix entries will be considered. Default is Lower.
      * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
      *
      * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
