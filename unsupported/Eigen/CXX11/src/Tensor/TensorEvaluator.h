@@ -94,14 +94,14 @@ struct TensorEvaluator
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(const array<DenseIndex, NumCoords>& coords) {
     eigen_assert(m_data);
-    if (Layout == ColMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
       return m_data[m_dims.IndexOfColMajor(coords)];
     } else {
       return m_data[m_dims.IndexOfRowMajor(coords)];
     }
   }
 
-  Scalar* data() const { return m_data; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return m_data; }
 
  protected:
   Scalar* m_data;

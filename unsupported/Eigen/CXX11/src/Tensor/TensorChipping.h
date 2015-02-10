@@ -257,13 +257,13 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
   {
     Index inputIndex;
-    if ((Layout == ColMajor && m_dim.actualDim() == 0) ||
-        (Layout == RowMajor && m_dim.actualDim() == NumInputDims-1)) {
+    if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == 0) ||
+	(static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == NumInputDims-1)) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(m_stride == 1);
       inputIndex = index * m_inputStride + m_inputOffset;
-    } else if ((Layout == ColMajor && m_dim.actualDim() == NumInputDims-1) ||
-               (Layout == RowMajor && m_dim.actualDim() == 0)) {
+    } else if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumInputDims-1) ||
+	       (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) {
       // m_stride is aways greater than index, so let's avoid the integer division.
       eigen_assert(m_stride > index);
       inputIndex = index + m_inputOffset;
@@ -322,8 +322,8 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
     static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
     EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
 
-    if ((this->Layout == ColMajor && this->m_dim.actualDim() == 0) ||
-        (this->Layout == RowMajor && this->m_dim.actualDim() == NumInputDims-1)) {
+    if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == 0) ||
+	(static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == NumInputDims-1)) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(this->m_stride == 1);
       EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
@@ -333,8 +333,8 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
         this->m_impl.coeffRef(inputIndex) = values[i];
         inputIndex += this->m_inputStride;
       }
-    } else if ((this->Layout == ColMajor && this->m_dim.actualDim() == NumInputDims-1) ||
-               (this->Layout == RowMajor && this->m_dim.actualDim() == 0)) {
+    } else if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == NumInputDims-1) ||
+	       (static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == 0)) {
       // m_stride is aways greater than index, so let's avoid the integer division.
       eigen_assert(this->m_stride > index);
       this->m_impl.template writePacket<StoreMode>(index + this->m_inputOffset, x);

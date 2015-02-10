@@ -112,7 +112,7 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
   enum {
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    Layout = (TensorEvaluator<ArgType, Device>::Layout == ColMajor) ? RowMajor : ColMajor,
+    Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false,  // to be implemented
   };
 
@@ -169,7 +169,7 @@ template<typename ArgType, typename Device>
   enum {
     IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
-    Layout = (TensorEvaluator<ArgType, Device>::Layout == ColMajor) ? RowMajor : ColMajor,
+    Layout = (static_cast<int>(TensorEvaluator<ArgType, Device>::Layout) == static_cast<int>(ColMajor)) ? RowMajor : ColMajor,
     CoordAccess = false,  // to be implemented
   };
 

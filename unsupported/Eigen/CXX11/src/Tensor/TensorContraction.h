@@ -499,9 +499,9 @@ struct TensorContractionEvaluatorBase
   // If we want to compute A * B = C, where A is LHS and B is RHS, the code
   // will pretend B is LHS and A is RHS.
   typedef typename internal::conditional<
-    Layout == ColMajor, LeftArgType, RightArgType>::type EvalLeftArgType;
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType>::type EvalLeftArgType;
   typedef typename internal::conditional<
-    Layout == ColMajor, RightArgType, LeftArgType>::type EvalRightArgType;
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType>::type EvalRightArgType;
 
   static const int LDims =
       internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
@@ -520,14 +520,14 @@ struct TensorContractionEvaluatorBase
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   TensorContractionEvaluatorBase(const XprType& op, const Device& device)
-      : m_leftImpl(choose(Cond<Layout == ColMajor>(),
+    : m_leftImpl(choose(Cond<static_cast<int>(Layout) == static_cast<int>(ColMajor)>(),
                           op.lhsExpression(), op.rhsExpression()), device),
-        m_rightImpl(choose(Cond<Layout == ColMajor>(),
+    m_rightImpl(choose(Cond<static_cast<int>(Layout) == static_cast<int>(ColMajor)>(),
                           op.rhsExpression(), op.lhsExpression()), device),
         m_device(device),
         m_result(NULL) {
-    EIGEN_STATIC_ASSERT((TensorEvaluator<LeftArgType, Device>::Layout ==
-                         TensorEvaluator<RightArgType, Device>::Layout),
+    EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) ==
+			   static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)),
                         YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     eigen_assert((internal::array_size<contract_t>::value > 0) && "Must contract on some indices");
@@ -681,7 +681,7 @@ struct TensorContractionEvaluatorBase
     }
 
     // If the layout is RowMajor, we need to reverse the m_dimensions
-    if (Layout == RowMajor) {
+    if (static_cast<int>(Layout) == static_cast<int>(RowMajor)) {
       for (int i = 0, j = NumDims - 1; i < j; i++, j--) {
         std::swap(m_dimensions[i], m_dimensions[j]);
       }
@@ -855,9 +855,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   // If we want to compute A * B = C, where A is LHS and B is RHS, the code
   // will pretend B is LHS and A is RHS.
   typedef typename internal::conditional<
-    Layout == ColMajor, LeftArgType, RightArgType>::type EvalLeftArgType;
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType>::type EvalLeftArgType;
   typedef typename internal::conditional<
-    Layout == ColMajor, RightArgType, LeftArgType>::type EvalRightArgType;
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType>::type EvalRightArgType;
 
   static const int LDims =
       internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
