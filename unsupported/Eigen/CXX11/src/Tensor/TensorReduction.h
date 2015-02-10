@@ -360,7 +360,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     return rslt;
   }
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
   private:
   template <int, typename, typename> friend struct internal::GenericDimReducer;

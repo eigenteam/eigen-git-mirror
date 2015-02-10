@@ -140,7 +140,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
     return internal::ploadt<Packet, LoadMode>(m_buffer + index);
   }
 
-  CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
 
  private:
   TensorEvaluator<ArgType, Device> m_impl;

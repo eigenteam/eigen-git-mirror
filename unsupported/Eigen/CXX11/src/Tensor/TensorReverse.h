@@ -190,7 +190,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
     return rslt;
   }
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
  protected:
   Dimensions m_dimensions;

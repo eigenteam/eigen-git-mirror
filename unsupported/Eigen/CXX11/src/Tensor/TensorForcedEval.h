@@ -136,7 +136,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     return internal::ploadt<Packet, LoadMode>(m_buffer + index);
   }
 
-  Scalar* data() const { return m_buffer; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return m_buffer; }
 
  private:
   TensorEvaluator<ArgType, Device> m_impl;

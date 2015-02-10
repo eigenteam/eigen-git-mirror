@@ -240,7 +240,7 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
     return rslt;
   }
 
-  Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
   protected:
     Dimensions m_dimensions;
