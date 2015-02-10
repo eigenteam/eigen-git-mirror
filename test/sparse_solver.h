@@ -195,7 +195,10 @@ int generate_sparse_spd_problem(Solver& , typename Solver::MatrixType& A, typena
   dA = dM * dM.adjoint();
   
   halfA.resize(size,size);
-  halfA.template selfadjointView<Solver::UpLo>().rankUpdate(M);
+  if(Solver::UpLo==(Lower|Upper))
+    halfA = A;
+  else
+    halfA.template selfadjointView<Solver::UpLo>().rankUpdate(M);
   
   return size;
 }

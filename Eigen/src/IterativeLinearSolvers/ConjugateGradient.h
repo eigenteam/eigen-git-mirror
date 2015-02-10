@@ -113,8 +113,8 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * The matrix A must be selfadjoint. The matrix A and the vectors x and b can be either dense or sparse.
   *
   * \tparam _MatrixType the type of the matrix A, can be a dense or a sparse matrix.
-  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
-  *               or Upper. Default is Lower.
+  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower,
+  *               Upper, or Lower|Upper in which the full matrix entries will be considered. Default is Lower.
   * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
   *
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
@@ -197,6 +197,10 @@ public:
   template<typename Rhs,typename Dest>
   void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {
+    typedef typename internal::conditional<UpLo==(Lower|Upper),
+                                           Ref<const MatrixType>&,
+                                           SparseSelfAdjointView<const Ref<const MatrixType>, UpLo>
+                                          >::type MatrixWrapperType;
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
@@ -206,8 +210,7 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      internal::conjugate_gradient(mp_matrix.template selfadjointView<UpLo>(), b.col(j), xj,
-                                   Base::m_preconditioner, m_iterations, m_error);
+      internal::conjugate_gradient(MatrixWrapperType(mp_matrix), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
     }
 
     m_isInitialized = true;

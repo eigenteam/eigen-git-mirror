@@ -250,6 +250,11 @@ namespace Eigen {
         template<typename Rhs,typename Dest>
         void _solve_with_guess_impl(const Rhs& b, Dest& x) const
         {
+            typedef typename internal::conditional<UpLo==(Lower|Upper),
+                                                   Ref<const MatrixType>&,
+                                                   SparseSelfAdjointView<const Ref<const MatrixType>, UpLo>
+                                                  >::type MatrixWrapperType;
+                                          
             m_iterations = Base::maxIterations();
             m_error = Base::m_tolerance;
             
@@ -259,7 +264,7 @@ namespace Eigen {
                 m_error = Base::m_tolerance;
                 
                 typename Dest::ColXpr xj(x,j);
-                internal::minres(mp_matrix.template selfadjointView<UpLo>(), b.col(j), xj,
+                internal::minres(MatrixWrapperType(mp_matrix), b.col(j), xj,
                                  Base::m_preconditioner, m_iterations, m_error);
             }
             
