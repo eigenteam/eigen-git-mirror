@@ -32,6 +32,7 @@ static void test_1d()
   vec1(5) = 42; vec2(5) = 5; vec3(5) = 0;
   vec4.setZero();
 
+  VERIFY_IS_EQUAL((vec1.rank()), 1);
   VERIFY_IS_EQUAL((vec1.size()), 6);
   VERIFY_IS_EQUAL((vec1.dimensions()[0]), 6);
 
@@ -99,10 +100,12 @@ static void test_2d()
   mat2(1,1) = 4;
   mat2(1,2) = 5;
 
+  VERIFY_IS_EQUAL((mat1.rank()), 2);
   VERIFY_IS_EQUAL((mat1.size()), 6);
   VERIFY_IS_EQUAL((mat1.dimensions()[0]), 2);
   VERIFY_IS_EQUAL((mat1.dimensions()[1]), 3);
 
+  VERIFY_IS_EQUAL((mat2.rank()), 2);
   VERIFY_IS_EQUAL((mat2.size()), 6);
   VERIFY_IS_EQUAL((mat2.dimensions()[0]), 2);
   VERIFY_IS_EQUAL((mat2.dimensions()[1]), 3);
@@ -163,7 +166,7 @@ static void test_3d()
   VERIFY_IS_EQUAL((epsilon(0,2,1)), -1);
   VERIFY_IS_EQUAL((epsilon(1,0,2)), -1);
 
-  std::array<Eigen::DenseIndex, 3> dims{{2,3,4}};
+  array<Eigen::DenseIndex, 3> dims{{2,3,4}};
   Tensor<int, 3> t1(dims);
   Tensor<int, 3, RowMajor> t2(dims);
 
@@ -244,7 +247,7 @@ static void test_simple_assign()
   epsilon(0,1,2) = epsilon(2,0,1) = epsilon(1,2,0) = 1;
   epsilon(2,1,0) = epsilon(0,2,1) = epsilon(1,0,2) = -1;
 
-  Tensor<int, 3> e2(2,3,1);
+  Tensor<int, 3> e2(3,3,3);
   e2.setZero();
   VERIFY_IS_EQUAL((e2(1,2,0)), 0);
 
@@ -257,12 +260,38 @@ static void test_simple_assign()
   VERIFY_IS_EQUAL((e2(1,0,2)), -1);
 }
 
+static void test_resize()
+{
+  Tensor<int, 3> epsilon;
+  epsilon.resize(2,3,7);
+  VERIFY_IS_EQUAL(epsilon.dimension(0), 2);
+  VERIFY_IS_EQUAL(epsilon.dimension(1), 3);
+  VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
+  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 2ul*3*7);
+
+  const int* old_data = epsilon.data();
+  epsilon.resize(3,2,7);
+  VERIFY_IS_EQUAL(epsilon.dimension(0), 3);
+  VERIFY_IS_EQUAL(epsilon.dimension(1), 2);
+  VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
+  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 2ul*3*7);
+  VERIFY_IS_EQUAL(epsilon.data(), old_data);
+
+  epsilon.resize(3,5,7);
+  VERIFY_IS_EQUAL(epsilon.dimension(0), 3);
+  VERIFY_IS_EQUAL(epsilon.dimension(1), 5);
+  VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
+  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 3ul*5*7);
+  VERIFY_IS_NOT_EQUAL(epsilon.data(), old_data);
+}
+
 void test_cxx11_tensor_simple()
 {
   CALL_SUBTEST(test_1d());
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
   CALL_SUBTEST(test_simple_assign());
+  CALL_SUBTEST(test_resize());
 }
 
 /*

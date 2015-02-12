@@ -49,8 +49,8 @@ inline void initParallel()
 {
   int nbt;
   internal::manage_multi_threading(GetAction, &nbt);
-  std::ptrdiff_t l1, l2;
-  internal::manage_caching_sizes(GetAction, &l1, &l2);
+  std::ptrdiff_t l1, l2, l3;
+  internal::manage_caching_sizes(GetAction, &l1, &l2, &l3);
 }
 
 /** \returns the max number of threads reserved for Eigen

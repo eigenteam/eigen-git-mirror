@@ -97,6 +97,7 @@ ENABLE_TESTING()
 
 add_subdirectory(libs/eigen3)
 add_subdirectory(libs/eigen2)
+add_subdirectory(libs/tensors)
 add_subdirectory(libs/BLAS)
 add_subdirectory(libs/ublas)
 add_subdirectory(libs/gmm)

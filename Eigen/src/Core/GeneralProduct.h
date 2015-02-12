@@ -11,7 +11,7 @@
 #ifndef EIGEN_GENERAL_PRODUCT_H
 #define EIGEN_GENERAL_PRODUCT_H
 
-namespace Eigen { 
+namespace Eigen {
 
 enum {
   Large = 2,
@@ -252,12 +252,12 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
 
     bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
     bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
-    
+
     RhsScalar compatibleAlpha = get_factor<ResScalar,RhsScalar>::run(actualAlpha);
 
     ei_declare_aligned_stack_constructed_variable(ResScalar,actualDestPtr,dest.size(),
                                                   evalToDest ? dest.data() : static_dest.data());
-    
+
     if(!evalToDest)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
@@ -273,11 +273,13 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
         MappedDest(actualDestPtr, dest.size()) = dest;
     }
 
+    typedef const_blas_data_mapper<LhsScalar,Index,ColMajor> LhsMapper;
+    typedef const_blas_data_mapper<RhsScalar,Index,RowMajor> RhsMapper;
     general_matrix_vector_product
-      <Index,LhsScalar,ColMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsBlasTraits::NeedToConjugate>::run(
+        <Index,LhsScalar,LhsMapper,ColMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsMapper,RhsBlasTraits::NeedToConjugate>::run(
         actualLhs.rows(), actualLhs.cols(),
-        actualLhs.data(), actualLhs.outerStride(),
-        actualRhs.data(), actualRhs.innerStride(),
+        LhsMapper(actualLhs.data(), actualLhs.outerStride()),
+        RhsMapper(actualRhs.data(), actualRhs.innerStride()),
         actualDestPtr, 1,
         compatibleAlpha);
 
@@ -333,11 +335,13 @@ template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,true>
       Map<typename ActualRhsTypeCleaned::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
     }
 
+    typedef const_blas_data_mapper<LhsScalar,Index,RowMajor> LhsMapper;
+    typedef const_blas_data_mapper<RhsScalar,Index,ColMajor> RhsMapper;
     general_matrix_vector_product
-      <Index,LhsScalar,RowMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsBlasTraits::NeedToConjugate>::run(
+        <Index,LhsScalar,LhsMapper,RowMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsMapper,RhsBlasTraits::NeedToConjugate>::run(
         actualLhs.rows(), actualLhs.cols(),
-        actualLhs.data(), actualLhs.outerStride(),
-        actualRhsPtr, 1,
+        LhsMapper(actualLhs.data(), actualLhs.outerStride()),
+        RhsMapper(actualRhsPtr, 1),
         dest.data(), dest.innerStride(),
         actualAlpha);
   }
@@ -410,7 +414,7 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 #ifdef EIGEN_DEBUG_PRODUCT
   internal::product_type<Derived,OtherDerived>::debug();
 #endif
-  
+
   return Product<Derived, OtherDerived>(derived(), other.derived());
 }
 

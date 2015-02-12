@@ -1,6 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
+// Copyright (C) 2014 Benoit Steiner <benoit.steiner.goog@gmail.com>
 // Copyright (C) 2013 Christian Seiler <christian@iwakd.de>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -10,9 +11,10 @@
 #ifndef EIGEN_CXX11_TENSOR_MODULE
 #define EIGEN_CXX11_TENSOR_MODULE
 
-#include <unsupported/Eigen/CXX11/Core>
+#include "Eigen/src/Core/util/StaticAssert.h"
+#include "unsupported/Eigen/CXX11/Core"
 
-#include <Eigen/src/Core/util/DisableStupidWarnings.h>
+#include "Eigen/src/Core/util/DisableStupidWarnings.h"
 
 /** \defgroup CXX11_Tensor_Module Tensor Module
   *
@@ -26,14 +28,69 @@
 
 #include <cstddef>
 #include <cstring>
+#include <stdint.h>
 
-#include "src/Tensor/TensorStorage.h"
-#include "src/Tensor/Tensor.h"
+#if __cplusplus > 199711
+#include <random>
+#endif
 
-#include <Eigen/src/Core/util/ReenableStupidWarnings.h>
+#ifdef EIGEN_USE_THREADS
+#include <future>
+#endif
+
+#ifdef EIGEN_USE_GPU
+#include <cuda_runtime.h>
+#if defined(__CUDACC__)
+#include <curand_kernel.h>
+#endif
+#endif
+
+#include "Eigen/Core"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorForwardDeclarations.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorDeviceType.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorDimensions.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorIndexList.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorInitializer.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorTraits.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorFunctors.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorIntDiv.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorBase.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorEvaluator.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorExpr.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorReduction.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorConcatenation.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorContraction.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorContractionThreadPool.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorContractionCuda.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorConvolution.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorPatch.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorImagePatch.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorBroadcasting.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorChipping.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorLayoutSwap.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorMorphing.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorPadding.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorReverse.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorShuffling.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorStriding.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorEvalTo.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorForcedEval.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorDevice.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorExecutor.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorStorage.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/Tensor.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorFixedSize.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorMap.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorRef.h"
+
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorIO.h"
+
+#include "Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_CXX11_TENSOR_MODULE
-
-/*
- * kate: space-indent on; indent-width 2; mixedindent off; indent-mode cstyle;
- */
