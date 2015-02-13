@@ -64,8 +64,8 @@ template<typename MatrixType> class Transpose
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
-    EIGEN_DEVICE_FUNC inline StorageIndex rows() const { return m_matrix.cols(); }
-    EIGEN_DEVICE_FUNC inline StorageIndex cols() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.rows(); }
 
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC

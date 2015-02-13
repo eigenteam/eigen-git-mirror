@@ -42,8 +42,8 @@ namespace internal {
  * \param descendants Number of descendants of each node in the etree
  * \param relax_end last column in a supernode
  */
-template <typename Scalar, typename Index>
-void SparseLUImpl<Scalar,Index>::heap_relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end)
+template <typename Scalar, typename StorageIndex>
+void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end)
 {
   
   // The etree may not be postordered, but its heap ordered  
@@ -75,7 +75,7 @@ void SparseLUImpl<Scalar,Index>::heap_relax_snode (const Index n, IndexVector& e
   }
   // Identify the relaxed supernodes by postorder traversal of the etree
   Index snode_start; // beginning of a snode 
-  Index k;
+  StorageIndex k;
   Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
   Index nsuper_et = 0; // Number of relaxed snodes in the original etree 
   Index l; 

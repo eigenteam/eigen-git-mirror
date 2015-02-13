@@ -36,7 +36,7 @@ class CompressedStorage
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {}
 
-    explicit CompressedStorage(size_t size)
+    explicit CompressedStorage(Index size)
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {
       resize(size);
@@ -70,9 +70,9 @@ class CompressedStorage
       delete[] m_indices;
     }
 
-    void reserve(size_t size)
+    void reserve(Index size)
     {
-      size_t newAllocatedSize = m_size + size;
+      Index newAllocatedSize = m_size + size;
       if (newAllocatedSize > m_allocatedSize)
         reallocate(newAllocatedSize);
     }
@@ -83,13 +83,14 @@ class CompressedStorage
         reallocate(m_size);
     }
 
-    void resize(size_t size, double reserveSizeFactor = 0)
+    void resize(Index size, double reserveSizeFactor = 0)
     {
       if (m_allocatedSize<size)
-        reallocate(size + size_t(reserveSizeFactor*double(size)));
+        reallocate(size + Index(reserveSizeFactor*double(size)));
       m_size = size;
     }
 
+    // FIXME i should be a StorageIndex
     void append(const Scalar& v, Index i)
     {
       Index id = m_size;
@@ -98,34 +99,34 @@ class CompressedStorage
       m_indices[id] = internal::convert_index<StorageIndex>(i);
     }
 
-    inline size_t size() const { return m_size; }
-    inline size_t allocatedSize() const { return m_allocatedSize; }
+    inline Index size() const { return m_size; }
+    inline Index allocatedSize() const { return m_allocatedSize; }
     inline void clear() { m_size = 0; }
 
-    inline Scalar& value(size_t i) { return m_values[i]; }
-    inline const Scalar& value(size_t i) const { return m_values[i]; }
+    inline Scalar& value(Index i) { return m_values[i]; }
+    inline const Scalar& value(Index i) const { return m_values[i]; }
 
-    inline StorageIndex& index(size_t i) { return m_indices[i]; }
-    inline const StorageIndex& index(size_t i) const { return m_indices[i]; }
+    inline StorageIndex& index(Index i) { return m_indices[i]; }
+    inline const StorageIndex& index(Index i) const { return m_indices[i]; }
 
     /** \returns the largest \c k such that for all \c j in [0,k) index[\c j]\<\a key */
-    inline StorageIndex searchLowerIndex(Index key) const
+    inline StorageIndex searchLowerIndex(StorageIndex key) const
     {
       return searchLowerIndex(0, m_size, key);
     }
 
     /** \returns the largest \c k in [start,end) such that for all \c j in [start,k) index[\c j]\<\a key */
-    inline StorageIndex searchLowerIndex(size_t start, size_t end, Index key) const
+    inline Index searchLowerIndex(Index start, Index end, StorageIndex key) const
     {
       while(end>start)
       {
-        size_t mid = (end+start)>>1;
+        Index mid = (end+start)>>1;
         if (m_indices[mid]<key)
           start = mid+1;
         else
           end = mid;
       }
-      return static_cast<StorageIndex>(start);
+      return start;
     }
 
     /** \returns the stored value at index \a key
@@ -138,12 +139,12 @@ class CompressedStorage
         return m_values[m_size-1];
       // ^^  optimization: let's first check if it is the last coefficient
       // (very common in high level algorithms)
-      const size_t id = searchLowerIndex(0,m_size-1,key);
+      const Index id = searchLowerIndex(0,m_size-1,key);
       return ((id<m_size) && (m_indices[id]==key)) ? m_values[id] : defaultValue;
     }
 
     /** Like at(), but the search is performed in the range [start,end) */
-    inline Scalar atInRange(size_t start, size_t end, Index key, const Scalar &defaultValue = Scalar(0)) const
+    inline Scalar atInRange(Index start, Index end, Index key, const Scalar &defaultValue = Scalar(0)) const
     {
       if (start>=end)
         return defaultValue;
@@ -151,7 +152,7 @@ class CompressedStorage
         return m_values[end-1];
       // ^^  optimization: let's first check if it is the last coefficient
       // (very common in high level algorithms)
-      const size_t id = searchLowerIndex(start,end-1,key);
+      const Index id = searchLowerIndex(start,end-1,key);
       return ((id<end) && (m_indices[id]==key)) ? m_values[id] : defaultValue;
     }
 
@@ -160,7 +161,7 @@ class CompressedStorage
       * such that the keys are sorted. */
     inline Scalar& atWithInsertion(Index key, const Scalar& defaultValue = Scalar(0))
     {
-      size_t id = searchLowerIndex(0,m_size,key);
+      Index id = searchLowerIndex(0,m_size,key);
       if (id>=m_size || m_indices[id]!=key)
       {
         if (m_allocatedSize<m_size+1)
@@ -196,9 +197,9 @@ class CompressedStorage
 
     void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
-      size_t k = 0;
-      size_t n = size();
-      for (size_t i=0; i<n; ++i)
+      Index k = 0;
+      Index n = size();
+      for (Index i=0; i<n; ++i)
       {
         if (!internal::isMuchSmallerThan(value(i), reference, epsilon))
         {
@@ -212,12 +213,12 @@ class CompressedStorage
 
   protected:
 
-    inline void reallocate(size_t size)
+    inline void reallocate(Index size)
     {
       eigen_internal_assert(size!=m_allocatedSize);
       internal::scoped_array<Scalar> newValues(size);
       internal::scoped_array<StorageIndex> newIndices(size);
-      size_t copySize = (std::min)(size, m_size);
+      Index copySize = (std::min)(size, m_size);
       internal::smart_copy(m_values, m_values+copySize, newValues.ptr());
       internal::smart_copy(m_indices, m_indices+copySize, newIndices.ptr());
       std::swap(m_values,newValues.ptr());
@@ -228,8 +229,8 @@ class CompressedStorage
   protected:
     Scalar* m_values;
     StorageIndex* m_indices;
-    size_t m_size;
-    size_t m_allocatedSize;
+    Index m_size;
+    Index m_allocatedSize;
 
 };
 

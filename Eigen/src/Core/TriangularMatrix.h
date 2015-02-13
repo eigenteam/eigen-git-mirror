@@ -54,9 +54,9 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     inline TriangularBase() { eigen_assert(!((Mode&UnitDiag) && (Mode&ZeroDiag))); }
 
     EIGEN_DEVICE_FUNC
-    inline StorageIndex rows() const { return derived().rows(); }
+    inline Index rows() const { return derived().rows(); }
     EIGEN_DEVICE_FUNC
-    inline StorageIndex cols() const { return derived().cols(); }
+    inline Index cols() const { return derived().cols(); }
     EIGEN_DEVICE_FUNC
     inline Index outerStride() const { return derived().outerStride(); }
     EIGEN_DEVICE_FUNC
@@ -199,7 +199,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
   public:
 
     typedef typename internal::traits<TriangularView>::StorageKind StorageKind;
-    typedef typename internal::traits<TriangularView>::StorageIndex StorageIndex;
     typedef typename internal::traits<TriangularView>::MatrixTypeNestedCleaned NestedExpression;
 
     enum {
@@ -222,9 +221,9 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     { return Base::operator=(other); }
 
     EIGEN_DEVICE_FUNC
-    inline StorageIndex rows() const { return m_matrix.rows(); }
+    inline Index rows() const { return m_matrix.rows(); }
     EIGEN_DEVICE_FUNC
-    inline StorageIndex cols() const { return m_matrix.cols(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
     EIGEN_DEVICE_FUNC
     const NestedExpression& nestedExpression() const { return m_matrix; }
@@ -325,7 +324,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     using Base::derived;
 
     typedef typename internal::traits<TriangularViewType>::StorageKind StorageKind;
-    typedef typename internal::traits<TriangularViewType>::StorageIndex StorageIndex;
 
     enum {
       Mode = _Mode,
@@ -688,7 +686,6 @@ public:
   typedef typename Base::DstEvaluatorType DstEvaluatorType;
   typedef typename Base::SrcEvaluatorType SrcEvaluatorType;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::StorageIndex StorageIndex;
   typedef typename Base::AssignmentTraits AssignmentTraits;
   
   
@@ -831,7 +828,6 @@ struct triangular_assignment_loop<Kernel, Mode, 0, SetOpposite>
 template<typename Kernel, unsigned int Mode, bool SetOpposite>
 struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
 {
-  typedef typename Kernel::StorageIndex StorageIndex;
   typedef typename Kernel::Scalar Scalar;
   EIGEN_DEVICE_FUNC
   static inline void run(Kernel &kernel)

@@ -52,7 +52,6 @@ public:
   typedef typename internal::traits<Derived>::MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::StorageIndex StorageIndex;
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,

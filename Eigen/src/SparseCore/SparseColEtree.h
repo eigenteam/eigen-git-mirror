@@ -60,7 +60,7 @@ Index etree_find (Index i, IndexVector& pp)
 template <typename MatrixType, typename IndexVector>
 int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt, typename MatrixType::StorageIndex *perm=0)
 {
-  typedef typename MatrixType::StorageIndex Index;
+  typedef typename MatrixType::StorageIndex StorageIndex;
   Index nc = mat.cols(); // Number of columns
   Index m = mat.rows();
   Index diagSize = (std::min)(nc,m);
@@ -70,7 +70,7 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
   pp.setZero(); // Initialize disjoint sets 
   parent.resize(mat.cols());
   //Compute first nonzero column in each row 
-  Index row,col;
+  StorageIndex row,col;
   firstRowElt.resize(m);
   firstRowElt.setConstant(nc);
   firstRowElt.segment(0, diagSize).setLinSpaced(diagSize, 0, diagSize-1);
@@ -127,7 +127,7 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
   * Depth-first search from vertex n.  No recursion.
   * This routine was contributed by Cédric Doucet, CEDRAT Group, Meylan, France.
 */
-template <typename Index, typename IndexVector>
+template <typename IndexVector>
 void nr_etdfs (Index n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, Index postnum)
 {
   Index current = n, first, next;
@@ -174,7 +174,7 @@ void nr_etdfs (Index n, IndexVector& parent, IndexVector& first_kid, IndexVector
   * \param parent Input tree
   * \param post postordered tree
   */
-template <typename Index, typename IndexVector>
+template <typename IndexVector>
 void treePostorder(Index n, IndexVector& parent, IndexVector& post)
 {
   IndexVector first_kid, next_kid; // Linked list of children 

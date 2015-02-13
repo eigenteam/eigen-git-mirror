@@ -271,7 +271,6 @@ public:
   using Base::_solve_impl;
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::StorageIndex StorageIndex;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef _Preconditioner Preconditioner;
 

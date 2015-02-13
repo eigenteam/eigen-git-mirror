@@ -29,7 +29,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
@@ -62,7 +61,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, A
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const AlphaType& alpha)
   {
@@ -86,7 +84,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
@@ -106,7 +103,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::StorageIndex StorageIndex;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
@@ -193,7 +189,6 @@ protected:
   typedef typename evaluator<ActualRhs>::type RhsEval;
   typedef typename evaluator<ActualLhs>::InnerIterator LhsIterator;
   typedef typename ProdXprType::Scalar Scalar;
-  typedef typename ProdXprType::StorageIndex StorageIndex;
   
 public:
   enum {
@@ -211,9 +206,9 @@ public:
         m_factor(get(xprEval.m_rhsXprImpl, outer, typename internal::traits<ActualRhs>::StorageKind() ))
     {}
     
-    EIGEN_STRONG_INLINE StorageIndex outer() const { return m_outer; }
-    EIGEN_STRONG_INLINE StorageIndex row()   const { return NeedToTranspose ? m_outer : LhsIterator::index(); }
-    EIGEN_STRONG_INLINE StorageIndex col()   const { return NeedToTranspose ? LhsIterator::index() : m_outer; }
+    EIGEN_STRONG_INLINE Index outer() const { return m_outer; }
+    EIGEN_STRONG_INLINE Index row()   const { return NeedToTranspose ? m_outer : LhsIterator::index(); }
+    EIGEN_STRONG_INLINE Index col()   const { return NeedToTranspose ? LhsIterator::index() : m_outer; }
 
     EIGEN_STRONG_INLINE Scalar value() const { return LhsIterator::value() * m_factor; }
     EIGEN_STRONG_INLINE operator bool() const { return LhsIterator::operator bool() && (!m_empty); }

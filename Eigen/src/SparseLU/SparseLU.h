@@ -122,8 +122,8 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
       factorize(matrix);
     } 
     
-    inline StorageIndex rows() const { return m_mat.rows(); }
-    inline StorageIndex cols() const { return m_mat.cols(); }
+    inline Index rows() const { return m_mat.rows(); }
+    inline Index cols() const { return m_mat.cols(); }
     /** Indicate that the pattern of the input matrix is symmetric */
     void isSymmetric(bool sym)
     {
@@ -334,10 +334,10 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     // SparseLU options 
     bool m_symmetricmode;
     // values for performance 
-    internal::perfvalues<StorageIndex> m_perfv;
+    internal::perfvalues m_perfv;
     RealScalar m_diagpivotthresh; // Specifies the threshold used for a diagonal entry to be an acceptable pivot
-    StorageIndex m_nnzL, m_nnzU; // Nonzeros in L and U factors
-    StorageIndex m_detPermR; // Determinant of the coefficient matrix
+    Index m_nnzL, m_nnzU; // Nonzeros in L and U factors
+    Index m_detPermR; // Determinant of the coefficient matrix
   private:
     // Disable copy constructor 
     SparseLU (const SparseLU& );
@@ -449,7 +449,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
   eigen_assert((matrix.rows() == matrix.cols()) && "Only for squared matrices");
   
-  typedef typename IndexVector::Scalar Index; 
+  typedef typename IndexVector::Scalar StorageIndex; 
   
   m_isInitialized = true;
   
@@ -461,11 +461,11 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   {
     m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers.
     //Then, permute only the column pointers
-    const Index * outerIndexPtr;
+    const StorageIndex * outerIndexPtr;
     if (matrix.isCompressed()) outerIndexPtr = matrix.outerIndexPtr();
     else
     {
-      Index* outerIndexPtr_t = new Index[matrix.cols()+1];
+      StorageIndex* outerIndexPtr_t = new StorageIndex[matrix.cols()+1];
       for(Index i = 0; i <= matrix.cols(); i++) outerIndexPtr_t[i] = m_mat.outerIndexPtr()[i];
       outerIndexPtr = outerIndexPtr_t;
     }
@@ -649,12 +649,11 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
 template<typename MappedSupernodalType>
 struct SparseLUMatrixLReturnType : internal::no_assignment_operator
 {
-  typedef typename MappedSupernodalType::StorageIndex StorageIndex;
   typedef typename MappedSupernodalType::Scalar Scalar;
   explicit SparseLUMatrixLReturnType(const MappedSupernodalType& mapL) : m_mapL(mapL)
   { }
-  StorageIndex rows() { return m_mapL.rows(); }
-  StorageIndex cols() { return m_mapL.cols(); }
+  Index rows() { return m_mapL.rows(); }
+  Index cols() { return m_mapL.cols(); }
   template<typename Dest>
   void solveInPlace( MatrixBase<Dest> &X) const
   {
@@ -666,13 +665,12 @@ struct SparseLUMatrixLReturnType : internal::no_assignment_operator
 template<typename MatrixLType, typename MatrixUType>
 struct SparseLUMatrixUReturnType : internal::no_assignment_operator
 {
-  typedef typename MatrixLType::StorageIndex StorageIndex;
   typedef typename MatrixLType::Scalar Scalar;
   explicit SparseLUMatrixUReturnType(const MatrixLType& mapL, const MatrixUType& mapU)
   : m_mapL(mapL),m_mapU(mapU)
   { }
-  StorageIndex rows() { return m_mapL.rows(); }
-  StorageIndex cols() { return m_mapL.cols(); }
+  Index rows() { return m_mapL.rows(); }
+  Index cols() { return m_mapL.cols(); }
 
   template<typename Dest>   void solveInPlace(MatrixBase<Dest> &X) const
   {

@@ -111,7 +111,7 @@ class CwiseBinaryOp :
     }
 
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE StorageIndex rows() const {
+    EIGEN_STRONG_INLINE Index rows() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::RowsAtCompileTime==Dynamic)
         return m_rhs.rows();
@@ -119,7 +119,7 @@ class CwiseBinaryOp :
         return m_lhs.rows();
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE StorageIndex cols() const {
+    EIGEN_STRONG_INLINE Index cols() const {
       // return the fixed size type if available to enable compile time optimizations
       if (internal::traits<typename internal::remove_all<LhsNested>::type>::ColsAtCompileTime==Dynamic)
         return m_rhs.cols();

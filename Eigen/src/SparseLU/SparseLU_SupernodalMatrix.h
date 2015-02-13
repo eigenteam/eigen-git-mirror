@@ -42,7 +42,7 @@ class MappedSuperNodalMatrix
     {
       
     }
-    MappedSuperNodalMatrix(StorageIndex m, StorageIndex n,  ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind,
+    MappedSuperNodalMatrix(Index m, Index n,  ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind,
              IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       setInfos(m, n, nzval, nzval_colptr, rowind, rowind_colptr, col_to_sup, sup_to_col);
@@ -58,7 +58,7 @@ class MappedSuperNodalMatrix
      * FIXME This class will be modified such that it can be use in the course 
      * of the factorization.
      */
-    void setInfos(StorageIndex m, StorageIndex n, ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind,
+    void setInfos(Index m, Index n, ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind,
              IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       m_row = m;
@@ -75,12 +75,12 @@ class MappedSuperNodalMatrix
     /**
      * Number of rows
      */
-    StorageIndex rows() { return m_row; }
+    Index rows() { return m_row; }
     
     /**
      * Number of columns
      */
-    StorageIndex cols() { return m_col; }
+    Index cols() { return m_col; }
     
     /**
      * Return the array of nonzero values packed by column
@@ -148,7 +148,7 @@ class MappedSuperNodalMatrix
     /**
      * Return the number of supernodes
      */
-    StorageIndex nsuper() const
+    Index nsuper() const
     {
       return m_nsuper; 
     }
@@ -161,9 +161,9 @@ class MappedSuperNodalMatrix
       
     
   protected:
-    StorageIndex m_row; // Number of rows
-    StorageIndex m_col; // Number of columns
-    StorageIndex m_nsuper; // Number of supernodes
+    Index m_row; // Number of rows
+    Index m_col; // Number of columns
+    Index m_nsuper; // Number of supernodes
     Scalar* m_nzval; //array of nonzero values packed by column
     StorageIndex* m_nzval_colptr; //nzval_colptr[j] Stores the location in nzval[] which starts column j
     StorageIndex* m_rowind; // Array of compressed row indices of rectangular supernodes
@@ -184,7 +184,7 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
   public:
      InnerIterator(const MappedSuperNodalMatrix& mat, Eigen::Index outer)
       : m_matrix(mat),
-        m_outer(convert_index<Index>(outer)),
+        m_outer(outer),
         m_supno(mat.colToSup()[outer]),
         m_idval(mat.colIndexPtr()[outer]),
         m_startidval(m_idval),

@@ -120,8 +120,8 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
 
-    EIGEN_DEVICE_FUNC inline StorageIndex rows() const { return m_lhs.rows(); }
-    EIGEN_DEVICE_FUNC inline StorageIndex cols() const { return m_rhs.cols(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_lhs.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_rhs.cols(); }
 
     EIGEN_DEVICE_FUNC const LhsNestedCleaned& lhs() const { return m_lhs; }
     EIGEN_DEVICE_FUNC const RhsNestedCleaned& rhs() const { return m_rhs; }
@@ -149,7 +149,6 @@ class dense_product_base<Lhs, Rhs, Option, InnerProduct>
 public:
   using Base::derived;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::StorageIndex StorageIndex;
   
   operator const Scalar() const
   {

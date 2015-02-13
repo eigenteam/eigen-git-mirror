@@ -28,7 +28,6 @@ protected:
   
 public:
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::StorageIndex StorageIndex;
   typedef typename Base::DstXprType DstXprType;
   typedef swap_assign_op<Scalar> Functor;
   

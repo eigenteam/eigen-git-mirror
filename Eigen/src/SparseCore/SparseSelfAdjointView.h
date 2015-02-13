@@ -58,8 +58,8 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
       eigen_assert(rows()==cols() && "SelfAdjointView is only for squared matrices");
     }
 
-    inline StorageIndex rows() const { return m_matrix.rows(); }
-    inline StorageIndex cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
     /** \internal \returns a reference to the nested matrix */
     const _MatrixTypeNested& matrix() const { return m_matrix; }
@@ -530,8 +530,8 @@ class SparseSymmetricPermutationProduct
       : m_matrix(mat), m_perm(perm)
     {}
     
-    inline StorageIndex rows() const { return m_matrix.rows(); }
-    inline StorageIndex cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
     
     template<typename DestScalar, int Options, typename DstIndex>
     void evalTo(SparseMatrix<DestScalar,Options,DstIndex>& _dest) const

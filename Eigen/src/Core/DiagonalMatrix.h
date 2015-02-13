@@ -108,7 +108,6 @@ struct traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
 {
   typedef Matrix<_Scalar,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1> DiagonalVectorType;
   typedef DiagonalShape StorageKind;
-//  typedef DenseIndex Index;
   enum {
     Flags = LvalueBit | NoPreferredStorageOrderBit
   };

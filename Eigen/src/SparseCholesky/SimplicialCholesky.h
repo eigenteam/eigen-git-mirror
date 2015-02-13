@@ -92,8 +92,8 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     Derived& derived() { return *static_cast<Derived*>(this); }
     const Derived& derived() const { return *static_cast<const Derived*>(this); }
     
-    inline StorageIndex cols() const { return m_matrix.cols(); }
-    inline StorageIndex rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
     
     /** \brief Reports whether previous computation was successful.
       *
@@ -108,12 +108,12 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     
     /** \returns the permutation P
       * \sa permutationPinv() */
-    const PermutationMatrix<Dynamic,Dynamic,Index>& permutationP() const
+    const PermutationMatrix<Dynamic,Dynamic,StorageIndex>& permutationP() const
     { return m_P; }
     
     /** \returns the inverse P^-1 of the permutation P
       * \sa permutationP() */
-    const PermutationMatrix<Dynamic,Dynamic,Index>& permutationPinv() const
+    const PermutationMatrix<Dynamic,Dynamic,StorageIndex>& permutationPinv() const
     { return m_Pinv; }
 
     /** Sets the shift parameters that will be used to adjust the diagonal coefficients during the numerical factorization.

@@ -66,10 +66,10 @@ template<typename _MatrixType> class FullPivLU
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename internal::traits<MatrixType>::StorageKind StorageKind;
-    typedef typename MatrixType::Index Index;
+    // FIXME should be int
     typedef typename MatrixType::StorageIndex StorageIndex;
-    typedef typename internal::plain_row_type<MatrixType, Index>::type IntRowVectorType;
-    typedef typename internal::plain_col_type<MatrixType, Index>::type IntColVectorType;
+    typedef typename internal::plain_row_type<MatrixType, StorageIndex>::type IntRowVectorType;
+    typedef typename internal::plain_col_type<MatrixType, StorageIndex>::type IntColVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationQType;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationPType;
     typedef typename MatrixType::PlainObject PlainObject;

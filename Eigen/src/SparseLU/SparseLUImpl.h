@@ -16,17 +16,17 @@ namespace internal {
   * \class SparseLUImpl
   * Base class for sparseLU
   */
-template <typename Scalar, typename Index>
+template <typename Scalar, typename StorageIndex>
 class SparseLUImpl
 {
   public:
     typedef Matrix<Scalar,Dynamic,1> ScalarVector;
-    typedef Matrix<Index,Dynamic,1> IndexVector; 
+    typedef Matrix<StorageIndex,Dynamic,1> IndexVector; 
     typedef typename ScalarVector::RealScalar RealScalar; 
     typedef Ref<Matrix<Scalar,Dynamic,1> > BlockScalarVector;
-    typedef Ref<Matrix<Index,Dynamic,1> > BlockIndexVector;
+    typedef Ref<Matrix<StorageIndex,Dynamic,1> > BlockIndexVector;
     typedef LU_GlobalLU_t<IndexVector, ScalarVector> GlobalLU_t; 
-    typedef SparseMatrix<Scalar,ColMajor,Index> MatrixType; 
+    typedef SparseMatrix<Scalar,ColMajor,StorageIndex> MatrixType; 
     
   protected:
      template <typename VectorType>

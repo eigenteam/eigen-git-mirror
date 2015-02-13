@@ -25,8 +25,8 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
   typedef typename remove_all<Lhs>::type::StorageIndex StorageIndex;
 
   // make sure to call innerSize/outerSize since we fake the storage order.
-  StorageIndex rows = lhs.innerSize();
-  StorageIndex cols = rhs.outerSize();
+  Index rows = lhs.innerSize();
+  Index cols = rhs.outerSize();
   //Index size = lhs.outerSize();
   eigen_assert(lhs.outerSize() == rhs.innerSize());
 
@@ -39,7 +39,7 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
   // the product of a rhs column with the lhs is X+Y where X is the average number of non zero
   // per column of the lhs.
   // Therefore, we have nnz(lhs*rhs) = nnz(lhs) + nnz(rhs)
-  StorageIndex estimated_nnz_prod = lhs.nonZeros() + rhs.nonZeros();
+  Index estimated_nnz_prod = lhs.nonZeros() + rhs.nonZeros();
 
   // mimics a resizeByInnerOuter:
   if(ResultType::IsRowMajor)

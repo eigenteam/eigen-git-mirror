@@ -115,8 +115,7 @@ class LevenbergMarquardt : internal::no_assignment_operator
     typedef typename FunctorType::JacobianType JacobianType;
     typedef typename JacobianType::Scalar Scalar;
     typedef typename JacobianType::RealScalar RealScalar; 
-    typedef typename JacobianType::Index Index;
-    typedef typename QRSolver::Index PermIndex;
+    typedef typename QRSolver::StorageIndex PermIndex;
     typedef Matrix<Scalar,Dynamic,1> FVectorType;
     typedef PermutationMatrix<Dynamic,Dynamic> PermutationType;
   public:

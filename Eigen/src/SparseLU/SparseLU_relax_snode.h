@@ -43,8 +43,8 @@ namespace internal {
  * \param descendants Number of descendants of each node in the etree
  * \param relax_end last column in a supernode
  */
-template <typename Scalar, typename Index>
-void SparseLUImpl<Scalar,Index>::relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end)
+template <typename Scalar, typename StorageIndex>
+void SparseLUImpl<Scalar,StorageIndex>::relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end)
 {
   
   // compute the number of descendants of each node in the etree

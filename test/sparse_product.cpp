@@ -11,7 +11,7 @@
 
 template<typename SparseMatrixType> void sparse_product()
 {
-  typedef typename SparseMatrixType::StorageIndex Index;
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
   Index n = 100;
   const Index rows  = internal::random<Index>(1,n);
   const Index cols  = internal::random<Index>(1,n);
@@ -23,8 +23,8 @@ template<typename SparseMatrixType> void sparse_product()
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
   typedef Matrix<Scalar,1,Dynamic> RowDenseVector;
-  typedef SparseVector<Scalar,0,Index> ColSpVector;
-  typedef SparseVector<Scalar,RowMajor,Index> RowSpVector;
+  typedef SparseVector<Scalar,0,StorageIndex> ColSpVector;
+  typedef SparseVector<Scalar,RowMajor,StorageIndex> RowSpVector;
 
   Scalar s1 = internal::random<Scalar>();
   Scalar s2 = internal::random<Scalar>();

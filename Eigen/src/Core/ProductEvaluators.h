@@ -373,7 +373,6 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     : evaluator_base<Product<Lhs, Rhs, LazyProduct> >
 {
   typedef Product<Lhs, Rhs, LazyProduct> XprType;
-  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;
@@ -525,7 +524,6 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProduc
 template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, Packet, LoadMode>
 {
-  typedef typename Lhs::StorageIndex StorageIndex;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet &res)
   {
     etor_product_packet_impl<RowMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, innerDim, res);
@@ -536,7 +534,6 @@ struct etor_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, Packet, Load
 template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<ColMajor, UnrollingIndex, Lhs, Rhs, Packet, LoadMode>
 {
-  typedef typename Lhs::StorageIndex StorageIndex;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet &res)
   {
     etor_product_packet_impl<ColMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, innerDim, res);
@@ -547,7 +544,6 @@ struct etor_product_packet_impl<ColMajor, UnrollingIndex, Lhs, Rhs, Packet, Load
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, 0, Lhs, Rhs, Packet, LoadMode>
 {
-  typedef typename Lhs::StorageIndex StorageIndex;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, Packet &res)
   {
     res = pmul(pset1<Packet>(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
@@ -557,7 +553,6 @@ struct etor_product_packet_impl<RowMajor, 0, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<ColMajor, 0, Lhs, Rhs, Packet, LoadMode>
 {
-  typedef typename Lhs::StorageIndex StorageIndex;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, Packet &res)
   {
     res = pmul(lhs.template packet<LoadMode>(row, 0), pset1<Packet>(rhs.coeff(0, col)));
@@ -567,7 +562,6 @@ struct etor_product_packet_impl<ColMajor, 0, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 {
-  typedef typename Lhs::StorageIndex StorageIndex;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet& res)
   {
     eigen_assert(innerDim>0 && "you are using a non initialized matrix");
@@ -580,7 +574,6 @@ struct etor_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 {
-  typedef typename Lhs::StorageIndex StorageIndex;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet& res)
   {
     eigen_assert(innerDim>0 && "you are using a non initialized matrix");
@@ -669,7 +662,6 @@ template<typename MatrixType, typename DiagonalType, typename Derived, int Produ
 struct diagonal_product_evaluator_base
   : evaluator_base<Derived>
 {
-   typedef typename MatrixType::StorageIndex StorageIndex;
    typedef typename scalar_product_traits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
 public:
@@ -734,7 +726,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   using Base::coeff;
   using Base::packet_impl;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::StorageIndex StorageIndex;
   typedef typename Base::PacketScalar PacketScalar;
   
   typedef Product<Lhs, Rhs, ProductKind> XprType;
@@ -782,7 +773,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   using Base::coeff;
   using Base::packet_impl;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::StorageIndex StorageIndex;
   typedef typename Base::PacketScalar PacketScalar;
   
   typedef Product<Lhs, Rhs, ProductKind> XprType;

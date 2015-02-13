@@ -33,11 +33,11 @@ namespace Eigen {
   */
 
 namespace internal {
-template<typename _Scalar, int _Options, typename _Index>
-struct traits<DynamicSparseMatrix<_Scalar, _Options, _Index> >
+template<typename _Scalar, int _Options, typename _StorageIndex>
+struct traits<DynamicSparseMatrix<_Scalar, _Options, _StorageIndex> >
 {
   typedef _Scalar Scalar;
-  typedef _Index StorageIndex;
+  typedef _StorageIndex StorageIndex;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -52,9 +52,9 @@ struct traits<DynamicSparseMatrix<_Scalar, _Options, _Index> >
 };
 }
 
-template<typename _Scalar, int _Options, typename _Index>
+template<typename _Scalar, int _Options, typename _StorageIndex>
  class  DynamicSparseMatrix
-  : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Options, _Index> >
+  : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Options, _StorageIndex> >
 {
   public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(DynamicSparseMatrix)
@@ -72,16 +72,16 @@ template<typename _Scalar, int _Options, typename _Index>
 
     typedef DynamicSparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0), StorageIndex> TransposedSparseMatrix;
 
-    StorageIndex m_innerSize;
+    Index m_innerSize;
     std::vector<internal::CompressedStorage<Scalar,StorageIndex> > m_data;
 
   public:
 
-    inline StorageIndex rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
-    inline StorageIndex cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
-    inline StorageIndex innerSize() const { return m_innerSize; }
-    inline StorageIndex outerSize() const { return convert_index(m_data.size()); }
-    inline StorageIndex innerNonZeros(Index j) const { return m_data[j].size(); }
+    inline Index rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
+    inline Index cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
+    inline Index innerSize() const { return m_innerSize; }
+    inline Index outerSize() const { return convert_index(m_data.size()); }
+    inline Index innerNonZeros(Index j) const { return m_data[j].size(); }
 
     std::vector<internal::CompressedStorage<Scalar,StorageIndex> >& _data() { return m_data; }
     const std::vector<internal::CompressedStorage<Scalar,StorageIndex> >& _data() const { return m_data; }
@@ -117,11 +117,11 @@ template<typename _Scalar, int _Options, typename _Index>
     }
 
     /** \returns the number of non zero coefficients */
-    StorageIndex nonZeros() const
+    Index nonZeros() const
     {
-      StorageIndex res = 0;
+      Index res = 0;
       for (Index j=0; j<outerSize(); ++j)
-        res += convert_index(m_data[j].size());
+        res += m_data[j].size();
       return res;
     }
 
@@ -320,10 +320,10 @@ template<typename _Scalar, int _Options, typename _Index>
 #   endif
  };
 
-template<typename Scalar, int _Options, typename _Index>
-class DynamicSparseMatrix<Scalar,_Options,_Index>::InnerIterator : public SparseVector<Scalar,_Options,_Index>::InnerIterator
+template<typename Scalar, int _Options, typename _StorageIndex>
+class DynamicSparseMatrix<Scalar,_Options,_StorageIndex>::InnerIterator : public SparseVector<Scalar,_Options,_StorageIndex>::InnerIterator
 {
-    typedef typename SparseVector<Scalar,_Options,_Index>::InnerIterator Base;
+    typedef typename SparseVector<Scalar,_Options,_StorageIndex>::InnerIterator Base;
   public:
     InnerIterator(const DynamicSparseMatrix& mat, Index outer)
       : Base(mat.m_data[outer]), m_outer(outer)
@@ -337,10 +337,10 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::InnerIterator : public Sparse
     const Index m_outer;
 };
 
-template<typename Scalar, int _Options, typename _Index>
-class DynamicSparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator : public SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
+template<typename Scalar, int _Options, typename _StorageIndex>
+class DynamicSparseMatrix<Scalar,_Options,_StorageIndex>::ReverseInnerIterator : public SparseVector<Scalar,_Options,_StorageIndex>::ReverseInnerIterator
 {
-    typedef typename SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator Base;
+    typedef typename SparseVector<Scalar,_Options,_StorageIndex>::ReverseInnerIterator Base;
   public:
     ReverseInnerIterator(const DynamicSparseMatrix& mat, Index outer)
       : Base(mat.m_data[outer]), m_outer(outer)
@@ -356,13 +356,13 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator : public
 
 namespace internal {
 
-template<typename _Scalar, int _Options, typename _Index>
-struct evaluator<DynamicSparseMatrix<_Scalar,_Options,_Index> >
-  : evaluator_base<DynamicSparseMatrix<_Scalar,_Options,_Index> >
+template<typename _Scalar, int _Options, typename _StorageIndex>
+struct evaluator<DynamicSparseMatrix<_Scalar,_Options,_StorageIndex> >
+  : evaluator_base<DynamicSparseMatrix<_Scalar,_Options,_StorageIndex> >
 {
   typedef _Scalar Scalar;
-  typedef _Index Index;
-  typedef DynamicSparseMatrix<_Scalar,_Options,_Index> SparseMatrixType;
+  typedef _StorageIndex Index;
+  typedef DynamicSparseMatrix<_Scalar,_Options,_StorageIndex> SparseMatrixType;
   typedef typename SparseMatrixType::InnerIterator InnerIterator;
   typedef typename SparseMatrixType::ReverseInnerIterator ReverseInnerIterator;
   

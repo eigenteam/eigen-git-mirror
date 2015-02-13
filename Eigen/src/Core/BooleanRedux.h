@@ -130,7 +130,7 @@ inline bool DenseBase<Derived>::any() const
   * \sa all(), any()
   */
 template<typename Derived>
-inline typename DenseBase<Derived>::Index DenseBase<Derived>::count() const
+inline Eigen::Index DenseBase<Derived>::count() const
 {
   return derived().template cast<bool>().template cast<Index>().sum();
 }

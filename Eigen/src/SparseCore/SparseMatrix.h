@@ -117,8 +117,8 @@ class SparseMatrix
   protected:
     typedef SparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
-    StorageIndex m_outerSize;
-    StorageIndex m_innerSize;
+    Index m_outerSize;
+    Index m_innerSize;
     StorageIndex* m_outerIndex;
     StorageIndex* m_innerNonZeros;     // optional, if null then the data is compressed
     Storage m_data;
@@ -129,14 +129,14 @@ class SparseMatrix
   public:
     
     /** \returns the number of rows of the matrix */
-    inline StorageIndex rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
+    inline Index rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
     /** \returns the number of columns of the matrix */
-    inline StorageIndex cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
+    inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
 
     /** \returns the number of rows (resp. columns) of the matrix if the storage order column major (resp. row major) */
-    inline StorageIndex innerSize() const { return m_innerSize; }
+    inline Index innerSize() const { return m_innerSize; }
     /** \returns the number of columns (resp. rows) of the matrix if the storage order column major (resp. row major) */
-    inline StorageIndex outerSize() const { return m_outerSize; }
+    inline Index outerSize() const { return m_outerSize; }
     
     /** \returns a const pointer to the array of values.
       * This function is aimed at interoperability with other libraries.
@@ -253,7 +253,7 @@ class SparseMatrix
     }
 
     /** \returns the number of non zero coefficients */
-    inline StorageIndex nonZeros() const
+    inline Index nonZeros() const
     {
       if(m_innerNonZeros)
         return innerNonZeros().sum();
@@ -299,7 +299,7 @@ class SparseMatrix
     {
       if(isCompressed())
       {
-        std::size_t totalReserveSize = 0;
+        Index totalReserveSize = 0;
         // turn the matrix into non-compressed mode
         m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
         if (!m_innerNonZeros) internal::throw_std_bad_alloc();
@@ -424,7 +424,7 @@ class SparseMatrix
     {
       if(isCompressed())
       {
-        StorageIndex size = internal::convert_index<StorageIndex>(Index(m_data.size()));
+        StorageIndex size = internal::convert_index<StorageIndex>(m_data.size());
         Index i = m_outerSize;
         // find the last filled column
         while (i>=0 && m_outerIndex[i]==0)
@@ -605,8 +605,8 @@ class SparseMatrix
       */
     void resize(Index rows, Index cols)
     {
-      const StorageIndex outerSize = convert_index(IsRowMajor ? rows : cols);
-      m_innerSize = convert_index(IsRowMajor ? cols : rows);
+      const Index outerSize = IsRowMajor ? rows : cols;
+      m_innerSize = IsRowMajor ? cols : rows;
       m_data.clear();
       if (m_outerSize != outerSize || m_outerSize==0)
       {
@@ -1069,7 +1069,7 @@ EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& Sparse
 {
   eigen_assert(!isCompressed());
 
-  const StorageIndex outer = convert_index(IsRowMajor ? row : col);
+  const Index outer = IsRowMajor ? row : col;
   const StorageIndex inner = convert_index(IsRowMajor ? col : row);
 
   Index room = m_outerIndex[outer+1] - m_outerIndex[outer];

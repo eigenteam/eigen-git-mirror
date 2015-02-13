@@ -21,7 +21,7 @@ namespace internal {
   *  - lda and ldc must be multiples of the respective packet size
   *  - C must have the same alignment as A
   */
-template<typename Scalar,typename Index>
+template<typename Scalar>
 EIGEN_DONT_INLINE
 void sparselu_gemm(Index m, Index n, Index d, const Scalar* A, Index lda, const Scalar* B, Index ldb, Scalar* C, Index ldc)
 {

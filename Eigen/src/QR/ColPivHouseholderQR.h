@@ -57,7 +57,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
+    // FIXME should be int
     typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
     typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;

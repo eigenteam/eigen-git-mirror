@@ -109,11 +109,11 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     
     /** \returns the number of rows of the represented matrix. 
       */
-    inline StorageIndex rows() const { return m_pmat.rows(); }
+    inline Index rows() const { return m_pmat.rows(); }
     
     /** \returns the number of columns of the represented matrix. 
       */
-    inline StorageIndex cols() const { return m_pmat.cols();}
+    inline Index cols() const { return m_pmat.cols();}
     
     /** \returns a const reference to the \b sparse upper triangular matrix R of the QR factorization.
       */
@@ -123,7 +123,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
       *
       * \sa setPivotThreshold()
       */
-    StorageIndex rank() const
+    Index rank() const
     {
       eigen_assert(m_isInitialized && "The factorization should be called first, use compute()");
       return m_nonzeropivots; 
@@ -260,7 +260,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     PermutationType m_outputPerm_c; // The final column permutation
     RealScalar m_threshold;         // Threshold to determine null Householder reflections
     bool m_useDefaultThreshold;     // Use default threshold
-    StorageIndex m_nonzeropivots;          // Number of non zero pivots found
+    Index m_nonzeropivots;          // Number of non zero pivots found
     IndexVector m_etree;            // Column elimination tree
     IndexVector m_firstRowElt;      // First element in each row
     bool m_isQSorted;               // whether Q is sorted or not
@@ -289,9 +289,9 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
   // Compute the column fill reducing ordering
   OrderingType ord; 
   ord(matCpy, m_perm_c); 
-  StorageIndex n = mat.cols();
-  StorageIndex m = mat.rows();
-  StorageIndex diagSize = (std::min)(m,n);
+  Index n = mat.cols();
+  Index m = mat.rows();
+  Index diagSize = (std::min)(m,n);
   
   if (!m_perm_c.size())
   {
@@ -327,9 +327,9 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   using std::abs;
   
   eigen_assert(m_analysisIsok && "analyzePattern() should be called before this step");
-  Index m = mat.rows();
-  Index n = mat.cols();
-  Index diagSize = (std::min)(m,n);
+  StorageIndex m = mat.rows();
+  StorageIndex n = mat.cols();
+  StorageIndex diagSize = (std::min)(m,n);
   IndexVector mark((std::max)(m,n)); mark.setConstant(-1);  // Record the visited nodes
   IndexVector Ridx(n), Qidx(m);                             // Store temporarily the row indexes for the current column of R and Q
   Index nzcolR, nzcolQ;                                     // Number of nonzero for the current column of R and Q
@@ -578,7 +578,6 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
 {
   typedef typename SparseQRType::QRMatrixType MatrixType;
   typedef typename SparseQRType::Scalar Scalar;
-  typedef typename SparseQRType::StorageIndex StorageIndex;
   // Get the references 
   SparseQR_QProduct(const SparseQRType& qr, const Derived& other, bool transpose) : 
   m_qr(qr),m_other(other),m_transpose(transpose) {}
@@ -634,7 +633,6 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
 template<typename SparseQRType>
 struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<SparseQRType> >
 {  
-  typedef typename SparseQRType::StorageIndex StorageIndex;
   typedef typename SparseQRType::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   explicit SparseQRMatrixQReturnType(const SparseQRType& qr) : m_qr(qr) {}
@@ -647,8 +645,8 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
   {
     return SparseQRMatrixQTransposeReturnType<SparseQRType>(m_qr);
   }
-  inline StorageIndex rows() const { return m_qr.rows(); }
-  inline StorageIndex cols() const { return (std::min)(m_qr.rows(),m_qr.cols()); }
+  inline Index rows() const { return m_qr.rows(); }
+  inline Index cols() const { return (std::min)(m_qr.rows(),m_qr.cols()); }
   // To use for operations with the transpose of Q
   SparseQRMatrixQTransposeReturnType<SparseQRType> transpose() const
   {

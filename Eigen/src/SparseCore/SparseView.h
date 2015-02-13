@@ -40,11 +40,11 @@ public:
              RealScalar m_epsilon = NumTraits<Scalar>::dummy_precision()) : 
     m_matrix(mat), m_reference(m_reference), m_epsilon(m_epsilon) {}
 
-  inline StorageIndex rows() const { return m_matrix.rows(); }
-  inline StorageIndex cols() const { return m_matrix.cols(); }
+  inline Index rows() const { return m_matrix.rows(); }
+  inline Index cols() const { return m_matrix.cols(); }
 
-  inline StorageIndex innerSize() const { return m_matrix.innerSize(); }
-  inline StorageIndex outerSize() const { return m_matrix.outerSize(); }
+  inline Index innerSize() const { return m_matrix.innerSize(); }
+  inline Index outerSize() const { return m_matrix.outerSize(); }
   
   /** \returns the nested expression */
   const typename internal::remove_all<MatrixTypeNested>::type&
@@ -153,17 +153,17 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
                               : m_sve.m_argImpl.coeff(m_inner, m_outer);
         }
 
-        EIGEN_STRONG_INLINE StorageIndex index() const { return m_inner; }
-        inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
-        inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
+        EIGEN_STRONG_INLINE Index index() const { return m_inner; }
+        inline Index row() const { return IsRowMajor ? m_outer : index(); }
+        inline Index col() const { return IsRowMajor ? index() : m_outer; }
 
         EIGEN_STRONG_INLINE operator bool() const { return m_inner < m_end && m_inner>=0; }
 
       protected:
         const unary_evaluator &m_sve;
-        StorageIndex m_inner;
-        const StorageIndex m_outer;
-        const StorageIndex m_end;
+        Index m_inner;
+        const Index m_outer;
+        const Index m_end;
 
       private:
         void incrementToNonZero()

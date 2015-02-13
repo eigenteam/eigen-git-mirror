@@ -36,7 +36,7 @@ class AmbiVector
     void init(double estimatedDensity);
     void init(int mode);
 
-    StorageIndex nonZeros() const;
+    Index nonZeros() const;
 
     /** Specifies a sub-vector to work on */
     void setBounds(Index start, Index end) { m_start = convert_index(start); m_end = convert_index(end); }
@@ -126,7 +126,7 @@ class AmbiVector
 
 /** \returns the number of non zeros in the current sub vector */
 template<typename _Scalar,typename _StorageIndex>
-_StorageIndex AmbiVector<_Scalar,_StorageIndex>::nonZeros() const
+Index AmbiVector<_Scalar,_StorageIndex>::nonZeros() const
 {
   if (m_mode==IsSparse)
     return m_llSize;

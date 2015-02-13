@@ -49,8 +49,9 @@ namespace internal {
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template <typename Scalar, typename Index>
-Index SparseLUImpl<Scalar,Index>::column_bmod(const Index jcol, const Index nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, Index fpanelc, GlobalLU_t& glu)
+template <typename Scalar, typename StorageIndex>
+Index SparseLUImpl<Scalar,StorageIndex>::column_bmod(const Index jcol, const Index nseg, BlockScalarVector dense, ScalarVector& tempv,
+                                                     BlockIndexVector segrep, BlockIndexVector repfnz, Index fpanelc, GlobalLU_t& glu)
 {
   Index  jsupno, k, ksub, krep, ksupno; 
   Index lptr, nrow, isub, irow, nextlu, new_next, ufirst; 

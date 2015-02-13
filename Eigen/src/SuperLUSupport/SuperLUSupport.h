@@ -313,8 +313,8 @@ class SuperLUBase : public SparseSolverBase<Derived>
       clearFactors();
     }
     
-    inline StorageIndex rows() const { return m_matrix.rows(); }
-    inline StorageIndex cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
     
     /** \returns a reference to the Super LU option object to configure the  Super LU algorithms. */
     inline superlu_options_t& options() { return m_sluOptions; }
@@ -616,7 +616,7 @@ void SuperLU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest>
 {
   eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or analyzePattern()/factorize()");
 
-  const StorageIndex size = m_matrix.rows();
+  const Index size = m_matrix.rows();
   const Index rhsCols = b.cols();
   eigen_assert(size==b.rows());
 

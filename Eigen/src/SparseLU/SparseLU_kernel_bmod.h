@@ -30,13 +30,13 @@ namespace internal {
  */
 template <int SegSizeAtCompileTime> struct LU_kernel_bmod
 {
-  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector, typename Index>
+  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
   static EIGEN_DONT_INLINE void run(const Index segsize, BlockScalarVector& dense, ScalarVector& tempv, ScalarVector& lusup, Index& luptr, const Index lda,
                                     const Index nrow, IndexVector& lsub, const Index lptr, const Index no_zeros);
 };
 
 template <int SegSizeAtCompileTime>
-template <typename BlockScalarVector, typename ScalarVector, typename IndexVector, typename Index>
+template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
 EIGEN_DONT_INLINE void LU_kernel_bmod<SegSizeAtCompileTime>::run(const Index segsize, BlockScalarVector& dense, ScalarVector& tempv, ScalarVector& lusup, Index& luptr, const Index lda,
                                                                   const Index nrow, IndexVector& lsub, const Index lptr, const Index no_zeros)
 {
@@ -91,21 +91,22 @@ EIGEN_DONT_INLINE void LU_kernel_bmod<SegSizeAtCompileTime>::run(const Index seg
 
 template <> struct LU_kernel_bmod<1>
 {
-  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector, typename Index>
+  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
   static EIGEN_DONT_INLINE void run(const Index /*segsize*/, BlockScalarVector& dense, ScalarVector& /*tempv*/, ScalarVector& lusup, Index& luptr,
                                     const Index lda, const Index nrow, IndexVector& lsub, const Index lptr, const Index no_zeros);
 };
 
 
-template <typename BlockScalarVector, typename ScalarVector, typename IndexVector, typename Index>
+template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
 EIGEN_DONT_INLINE void LU_kernel_bmod<1>::run(const Index /*segsize*/, BlockScalarVector& dense, ScalarVector& /*tempv*/, ScalarVector& lusup, Index& luptr,
                                               const Index lda, const Index nrow, IndexVector& lsub, const Index lptr, const Index no_zeros)
 {
   typedef typename ScalarVector::Scalar Scalar;
+  typedef typename IndexVector::Scalar StorageIndex;
   Scalar f = dense(lsub(lptr + no_zeros));
   luptr += lda * no_zeros + no_zeros + 1;
   const Scalar* a(lusup.data() + luptr);
-  const /*typename IndexVector::Scalar*/Index*  irow(lsub.data()+lptr + no_zeros + 1);
+  const StorageIndex*  irow(lsub.data()+lptr + no_zeros + 1);
   Index i = 0;
   for (; i+1 < nrow; i+=2)
   {

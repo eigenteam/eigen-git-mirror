@@ -236,7 +236,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     mutable cholmod_sparse *m_H;  //The householder vectors
     mutable StorageIndex *m_HPinv; // The row permutation of H
     mutable cholmod_dense *m_HTau; // The Householder coefficients
-    mutable StorageIndex m_rank; // The rank of the matrix
+    mutable Index m_rank; // The rank of the matrix
     mutable cholmod_common m_cc; // Workspace and parameters
     bool m_useDefaultThreshold;     // Use default threshold
     template<typename ,typename > friend struct SPQR_QProduct;
@@ -250,8 +250,8 @@ struct SPQR_QProduct : ReturnByValue<SPQR_QProduct<SPQRType,Derived> >
   //Define the constructor to get reference to argument types
   SPQR_QProduct(const SPQRType& spqr, const Derived& other, bool transpose) : m_spqr(spqr),m_other(other),m_transpose(transpose) {}
   
-  inline StorageIndex rows() const { return m_transpose ? m_spqr.rows() : m_spqr.cols(); }
-  inline StorageIndex cols() const { return m_other.cols(); }
+  inline Index rows() const { return m_transpose ? m_spqr.rows() : m_spqr.cols(); }
+  inline Index cols() const { return m_other.cols(); }
   // Assign to a vector
   template<typename ResType>
   void evalTo(ResType& res) const

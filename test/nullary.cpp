@@ -12,7 +12,6 @@
 template<typename MatrixType>
 bool equalsIdentity(const MatrixType& A)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   Scalar zero = static_cast<Scalar>(0);
 
@@ -35,7 +34,6 @@ bool equalsIdentity(const MatrixType& A)
 template<typename VectorType>
 void testVectorType(const VectorType& base)
 {
-  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
 
   const Index size = base.size();
@@ -104,7 +102,6 @@ void testVectorType(const VectorType& base)
 template<typename MatrixType>
 void testMatrixType(const MatrixType& m)
 {
-  typedef typename MatrixType::Index Index;
   const Index rows = m.rows();
   const Index cols = m.cols();
 

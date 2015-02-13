@@ -52,8 +52,7 @@ template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef MatrixBase StorageBaseType;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef Eigen::Index Index;
-    typedef Index StorageIndex;
+    typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;

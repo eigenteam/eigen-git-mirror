@@ -56,7 +56,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
 
   public:
     
@@ -97,9 +96,9 @@ public:
 
     EIGEN_STRONG_INLINE Scalar value() const { return m_value; }
 
-    EIGEN_STRONG_INLINE StorageIndex index() const { return m_id; }
-    EIGEN_STRONG_INLINE StorageIndex row() const { return Lhs::IsRowMajor ? m_lhsIter.row() : index(); }
-    EIGEN_STRONG_INLINE StorageIndex col() const { return Lhs::IsRowMajor ? index() : m_lhsIter.col(); }
+    EIGEN_STRONG_INLINE Index index() const { return m_id; }
+    EIGEN_STRONG_INLINE Index row() const { return Lhs::IsRowMajor ? m_lhsIter.row() : index(); }
+    EIGEN_STRONG_INLINE Index col() const { return Lhs::IsRowMajor ? index() : m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_id>=0; }
 
@@ -108,7 +107,7 @@ public:
     RhsIterator m_rhsIter;
     const BinaryOp& m_functor;
     Scalar m_value;
-    StorageIndex m_id;
+    Index m_id;
   };
   
   
@@ -145,7 +144,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
 
   public:
     
@@ -177,9 +175,9 @@ public:
     
     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_lhsIter.value(), m_rhsIter.value()); }
 
-    EIGEN_STRONG_INLINE StorageIndex index() const { return m_lhsIter.index(); }
-    EIGEN_STRONG_INLINE StorageIndex row() const { return m_lhsIter.row(); }
-    EIGEN_STRONG_INLINE StorageIndex col() const { return m_lhsIter.col(); }
+    EIGEN_STRONG_INLINE Index index() const { return m_lhsIter.index(); }
+    EIGEN_STRONG_INLINE Index row() const { return m_lhsIter.row(); }
+    EIGEN_STRONG_INLINE Index col() const { return m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return (m_lhsIter && m_rhsIter); }
 
@@ -223,7 +221,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
     enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
@@ -241,9 +238,9 @@ public:
     EIGEN_STRONG_INLINE Scalar value() const
     { return m_functor(m_lhsEval.coeff(IsRowMajor?m_outer:m_rhsIter.index(),IsRowMajor?m_rhsIter.index():m_outer), m_rhsIter.value()); }
 
-    EIGEN_STRONG_INLINE StorageIndex index() const { return m_rhsIter.index(); }
-    EIGEN_STRONG_INLINE StorageIndex row() const { return m_rhsIter.row(); }
-    EIGEN_STRONG_INLINE StorageIndex col() const { return m_rhsIter.col(); }
+    EIGEN_STRONG_INLINE Index index() const { return m_rhsIter.index(); }
+    EIGEN_STRONG_INLINE Index row() const { return m_rhsIter.row(); }
+    EIGEN_STRONG_INLINE Index col() const { return m_rhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_rhsIter; }
 
@@ -288,7 +285,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
     enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
@@ -307,9 +303,9 @@ public:
     { return m_functor(m_lhsIter.value(),
                        m_rhsEval.coeff(IsRowMajor?m_outer:m_lhsIter.index(),IsRowMajor?m_lhsIter.index():m_outer)); }
 
-    EIGEN_STRONG_INLINE StorageIndex index() const { return m_lhsIter.index(); }
-    EIGEN_STRONG_INLINE StorageIndex row() const { return m_lhsIter.row(); }
-    EIGEN_STRONG_INLINE StorageIndex col() const { return m_lhsIter.col(); }
+    EIGEN_STRONG_INLINE Index index() const { return m_lhsIter.index(); }
+    EIGEN_STRONG_INLINE Index row() const { return m_lhsIter.row(); }
+    EIGEN_STRONG_INLINE Index col() const { return m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_lhsIter; }
 
@@ -317,7 +313,7 @@ public:
     LhsIterator m_lhsIter;
     const RhsEvaluator &m_rhsEval;
     const BinaryOp& m_functor;
-    const StorageIndex m_outer;
+    const Index m_outer;
   };
   
   

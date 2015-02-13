@@ -30,7 +30,7 @@
 #ifndef SPARSELU_COLUMN_DFS_H
 #define SPARSELU_COLUMN_DFS_H
 
-template <typename Scalar, typename Index> class SparseLUImpl;
+template <typename Scalar, typename StorageIndex> class SparseLUImpl;
 namespace Eigen {
 
 namespace internal {
@@ -39,8 +39,8 @@ template<typename IndexVector, typename ScalarVector>
 struct column_dfs_traits : no_assignment_operator
 {
   typedef typename ScalarVector::Scalar Scalar;
-  typedef typename IndexVector::Scalar Index;
-  column_dfs_traits(Index jcol, Index& jsuper, typename SparseLUImpl<Scalar, Index>::GlobalLU_t& glu, SparseLUImpl<Scalar, Index>& luImpl)
+  typedef typename IndexVector::Scalar StorageIndex;
+  column_dfs_traits(Index jcol, Index& jsuper, typename SparseLUImpl<Scalar, StorageIndex>::GlobalLU_t& glu, SparseLUImpl<Scalar, StorageIndex>& luImpl)
    : m_jcol(jcol), m_jsuper_ref(jsuper), m_glu(glu), m_luImpl(luImpl)
  {}
   bool update_segrep(Index /*krep*/, Index /*jj*/)
@@ -57,8 +57,8 @@ struct column_dfs_traits : no_assignment_operator
   
   Index m_jcol;
   Index& m_jsuper_ref;
-  typename SparseLUImpl<Scalar, Index>::GlobalLU_t& m_glu;
-  SparseLUImpl<Scalar, Index>& m_luImpl;
+  typename SparseLUImpl<Scalar, StorageIndex>::GlobalLU_t& m_glu;
+  SparseLUImpl<Scalar, StorageIndex>& m_luImpl;
 };
 
 
@@ -89,8 +89,10 @@ struct column_dfs_traits : no_assignment_operator
  *         > 0 number of bytes allocated when run out of space
  * 
  */
-template <typename Scalar, typename Index>
-Index SparseLUImpl<Scalar,Index>::column_dfs(const Index m, const Index jcol, IndexVector& perm_r, Index maxsuper, Index& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
+template <typename Scalar, typename StorageIndex>
+Index SparseLUImpl<Scalar,StorageIndex>::column_dfs(const Index m, const Index jcol, IndexVector& perm_r, Index maxsuper, Index& nseg,
+                                                    BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune,
+                                                    IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
   
   Index jsuper = glu.supno(jcol); 

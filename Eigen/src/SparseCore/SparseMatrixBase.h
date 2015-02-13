@@ -144,15 +144,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
     /** \returns the number of rows. \sa cols() */
-    inline StorageIndex rows() const { return derived().rows(); }
+    inline Index rows() const { return derived().rows(); }
     /** \returns the number of columns. \sa rows() */
-    inline StorageIndex cols() const { return derived().cols(); }
+    inline Index cols() const { return derived().cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(). */
-    inline StorageIndex size() const { return rows() * cols(); }
+    inline Index size() const { return rows() * cols(); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
-    inline StorageIndex nonZeros() const { return derived().nonZeros(); }
+    inline Index nonZeros() const { return derived().nonZeros(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -160,10 +160,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     inline bool isVector() const { return rows()==1 || cols()==1; }
     /** \returns the size of the storage major dimension,
       * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
-    StorageIndex outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
+    Index outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
     /** \returns the size of the inner dimension according to the storage order,
       * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
-    StorageIndex innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
+    Index innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
     bool isRValue() const { return m_isRValue; }
     Derived& markAsRValue() { m_isRValue = true; return derived(); }

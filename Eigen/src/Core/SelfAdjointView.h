@@ -58,7 +58,6 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
 
     /** \brief The type of coefficients in this matrix */
     typedef typename internal::traits<SelfAdjointView>::Scalar Scalar; 
-
     typedef typename MatrixType::StorageIndex StorageIndex;
 
     enum {
@@ -224,7 +223,6 @@ public:
   typedef typename Base::DstEvaluatorType DstEvaluatorType;
   typedef typename Base::SrcEvaluatorType SrcEvaluatorType;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::StorageIndex StorageIndex;
   typedef typename Base::AssignmentTraits AssignmentTraits;
   
   

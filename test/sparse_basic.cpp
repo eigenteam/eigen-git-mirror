@@ -16,8 +16,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   typedef typename SparseMatrixType::StorageIndex StorageIndex;
   typedef Matrix<StorageIndex,2,1> Vector2;
   
-  const StorageIndex rows = ref.rows();
-  const StorageIndex cols = ref.cols();
+  const Index rows = ref.rows();
+  const Index cols = ref.cols();
   const Index inner = ref.innerSize();
   const Index outer = ref.outerSize();
 

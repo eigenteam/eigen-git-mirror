@@ -31,7 +31,6 @@ class KroneckerProductBase : public ReturnByValue<Derived>
   protected:
     typedef typename Traits::Lhs Lhs;
     typedef typename Traits::Rhs Rhs;
-    typedef typename Traits::StorageIndex StorageIndex;
 
   public:
     /*! \brief Constructor. */
@@ -39,8 +38,8 @@ class KroneckerProductBase : public ReturnByValue<Derived>
       : m_A(A), m_B(B)
     {}
 
-    inline StorageIndex rows() const { return m_A.rows() * m_B.rows(); }
-    inline StorageIndex cols() const { return m_A.cols() * m_B.cols(); }
+    inline Index rows() const { return m_A.rows() * m_B.rows(); }
+    inline Index cols() const { return m_A.cols() * m_B.cols(); }
 
     /*!
      * This overrides ReturnByValue::coeff because this function is

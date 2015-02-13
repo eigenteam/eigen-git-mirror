@@ -164,8 +164,8 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       if(m_numeric)  umfpack_free_numeric(&m_numeric,Scalar());
     }
 
-    inline StorageIndex rows() const { return m_copyMatrix.rows(); }
-    inline StorageIndex cols() const { return m_copyMatrix.cols(); }
+    inline Index rows() const { return m_copyMatrix.rows(); }
+    inline Index cols() const { return m_copyMatrix.cols(); }
 
     /** \brief Reports whether previous computation was successful.
       *

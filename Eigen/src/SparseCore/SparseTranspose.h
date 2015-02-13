@@ -48,7 +48,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
   protected:
     typedef internal::SparseTransposeImpl<MatrixType> Base;
   public:
-    inline typename MatrixType::StorageIndex nonZeros() const { return Base::derived().nestedExpression().nonZeros(); }
+    inline Index nonZeros() const { return Base::derived().nestedExpression().nonZeros(); }
 };
 
 namespace internal {
@@ -61,7 +61,6 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
     typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
   public:
     typedef Transpose<ArgType> XprType;
-    typedef typename XprType::StorageIndex StorageIndex;
 
     class InnerIterator : public EvalIterator
     {
@@ -70,8 +69,8 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
         : EvalIterator(unaryOp.m_argImpl,outer)
       {}
       
-      StorageIndex row() const { return EvalIterator::col(); }
-      StorageIndex col() const { return EvalIterator::row(); }
+      Index row() const { return EvalIterator::col(); }
+      Index col() const { return EvalIterator::row(); }
     };
     
     class ReverseInnerIterator : public EvalReverseIterator
@@ -81,8 +80,8 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
         : EvalReverseIterator(unaryOp.m_argImpl,outer)
       {}
       
-      StorageIndex row() const { return EvalReverseIterator::col(); }
-      StorageIndex col() const { return EvalReverseIterator::row(); }
+      Index row() const { return EvalReverseIterator::col(); }
+      Index col() const { return EvalReverseIterator::row(); }
     };
     
     enum {
