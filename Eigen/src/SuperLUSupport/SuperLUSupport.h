@@ -627,8 +627,12 @@ void SuperLU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest>
 
   m_sluFerr.resize(rhsCols);
   m_sluBerr.resize(rhsCols);
-  m_sluB = SluMatrix::Map(b.const_cast_derived());
-  m_sluX = SluMatrix::Map(x.derived());
+  
+  Ref<const Matrix<typename Rhs::Scalar,Dynamic,Dynamic,ColMajor> > b_ref(b);
+  Ref<const Matrix<typename Dest::Scalar,Dynamic,Dynamic,ColMajor> > x_ref(x);
+  
+  m_sluB = SluMatrix::Map(b_ref.const_cast_derived());
+  m_sluX = SluMatrix::Map(x_ref.const_cast_derived());
   
   typename Rhs::PlainObject b_cpy;
   if(m_sluEqued!='N')
@@ -651,6 +655,10 @@ void SuperLU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest>
                 &m_sluFerr[0], &m_sluBerr[0],
                 &m_sluStat, &info, Scalar());
   StatFree(&m_sluStat);
+  
+  if(&x.coeffRef(0) != x_ref.data())
+    x = x_ref;
+  
   m_info = info==0 ? Success : NumericalIssue;
 }
 
@@ -938,8 +946,12 @@ void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest
 
   m_sluFerr.resize(rhsCols);
   m_sluBerr.resize(rhsCols);
-  m_sluB = SluMatrix::Map(b.const_cast_derived());
-  m_sluX = SluMatrix::Map(x.derived());
+  
+  Ref<const Matrix<typename Rhs::Scalar,Dynamic,Dynamic,ColMajor> > b_ref(b);
+  Ref<const Matrix<typename Dest::Scalar,Dynamic,Dynamic,ColMajor> > x_ref(x);
+  
+  m_sluB = SluMatrix::Map(b_ref.const_cast_derived());
+  m_sluX = SluMatrix::Map(x_ref.const_cast_derived());
 
   typename Rhs::PlainObject b_cpy;
   if(m_sluEqued!='N')
@@ -962,6 +974,9 @@ void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest
                 &recip_pivot_growth, &rcond,
                 &m_sluStat, &info, Scalar());
   StatFree(&m_sluStat);
+  
+  if(&x.coeffRef(0) != x_ref.data())
+    x = x_ref;
 
   m_info = info==0 ? Success : NumericalIssue;
 }

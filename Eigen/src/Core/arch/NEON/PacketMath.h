@@ -20,12 +20,12 @@ namespace internal {
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
 
-#ifndef EIGEN_HAS_FUSED_MADD
-#define EIGEN_HAS_FUSED_MADD 1
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_MADD
 #endif
 
-#ifndef EIGEN_HAS_FUSE_CJMADD
-#define EIGEN_HAS_FUSE_CJMADD 1
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
 #endif
 
 // FIXME NEON has 16 quad registers, but since the current register allocator
@@ -88,7 +88,7 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasSin  = 0,
     HasCos  = 0,
     HasLog  = 0,
-    HasExp  = 0,
+    HasExp  = 1,
     HasSqrt = 0
   };
 };
@@ -177,8 +177,19 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
   return pset1<Packet4i>(0);
 }
 
-// for some weird raisons, it has to be overloaded for packet of integers
+#ifdef __ARM_FEATURE_FMA
+// See bug 936.
+// FMA is available on VFPv4 i.e. when compiling with -mfpu=neon-vfpv4.
+// FMA is a true fused multiply-add i.e. only 1 rounding at the end, no intermediate rounding.
+// MLA is not fused i.e. does 2 roundings.
+// In addition to giving better accuracy, FMA also gives better performance here on a Krait (Nexus 4):
+// MLA: 10 GFlop/s ; FMA: 12 GFlops/s.
+template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vfmaq_f32(c,a,b); }
+#else
 template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vmlaq_f32(c,a,b); }
+#endif
+
+// No FMA instruction for int, so use MLA unconditionally.
 template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return vmlaq_s32(c,a,b); }
 
 template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b) { return vminq_f32(a,b); }
@@ -492,6 +503,21 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
 //---------- double ----------
 #if EIGEN_ARCH_ARM64
 
+#if (EIGEN_COMP_GNUC_STRICT && defined(__ANDROID__)) || defined(__apple_build_version__)
+// Bug 907: workaround missing declarations of the following two functions in the ADK
+__extension__ static __inline uint64x2_t __attribute__ ((__always_inline__))
+vreinterpretq_u64_f64 (float64x2_t __a)
+{
+  return (uint64x2_t) __a;
+}
+
+__extension__ static __inline float64x2_t __attribute__ ((__always_inline__))
+vreinterpretq_f64_u64 (uint64x2_t __a)
+{
+  return (float64x2_t) __a;
+}
+#endif
+
 typedef float64x2_t Packet2d;
 typedef float64x1_t Packet1d;
 
@@ -536,8 +562,12 @@ template<> EIGEN_STRONG_INLINE Packet2d pmul<Packet2d>(const Packet2d& a, const 
 
 template<> EIGEN_STRONG_INLINE Packet2d pdiv<Packet2d>(const Packet2d& a, const Packet2d& b) { return vdivq_f64(a,b); }
 
-// for some weird raisons, it has to be overloaded for packet of integers
+#ifdef __ARM_FEATURE_FMA
+// See bug 936. See above comment about FMA for float.
+template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return vfmaq_f64(c,a,b); }
+#else
 template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return vmlaq_f64(c,a,b); }
+#endif
 
 template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const Packet2d& b) { return vminq_f64(a,b); }
 
@@ -597,7 +627,12 @@ template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a) { return vco
 
 template<> EIGEN_STRONG_INLINE Packet2d pabs(const Packet2d& a) { return vabsq_f64(a); }
 
-template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a) { return vget_low_f64(a) + vget_high_f64(a); }
+#if EIGEN_COMP_CLANG && defined(__apple_build_version__)
+// workaround ICE, see bug 907
+template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a) { return (vget_low_f64(a) + vget_high_f64(a))[0]; }
+#else
+template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a) { return vget_lane_f64(vget_low_f64(a) + vget_high_f64(a), 0); }
+#endif
 
 template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 {
@@ -613,7 +648,11 @@ template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 }
 // Other reduction functions:
 // mul
-template<> EIGEN_STRONG_INLINE double predux_mul<Packet2d>(const Packet2d& a) { return vget_low_f64(a) * vget_high_f64(a); }
+#if EIGEN_COMP_CLANG && defined(__apple_build_version__)
+template<> EIGEN_STRONG_INLINE double predux_mul<Packet2d>(const Packet2d& a) { return (vget_low_f64(a) * vget_high_f64(a))[0]; }
+#else
+template<> EIGEN_STRONG_INLINE double predux_mul<Packet2d>(const Packet2d& a) { return vget_lane_f64(vget_low_f64(a) * vget_high_f64(a), 0); }
+#endif
 
 // min
 template<> EIGEN_STRONG_INLINE double predux_min<Packet2d>(const Packet2d& a) { return vgetq_lane_f64(vpminq_f64(a, a), 0); }

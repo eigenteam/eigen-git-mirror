@@ -125,9 +125,7 @@
       #define EIGEN_VECTORIZE_SSE4_1
       #define EIGEN_VECTORIZE_SSE4_2
     #endif
-    #ifdef __FMA__
-      #define EIGEN_VECTORIZE_FMA
-    #endif
+
     // include files
 
     // This extern "C" works around a MINGW-w64 compilation issue
@@ -185,6 +183,11 @@
     #define EIGEN_VECTORIZE_NEON
     #include <arm_neon.h>
   #endif
+#endif
+
+#if defined __CUDACC__
+  #define EIGEN_VECTORIZE_CUDA
+  #include <vector_types.h>
 #endif
 
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
@@ -302,7 +305,13 @@ using std::ptrdiff_t;
   #include "src/Core/arch/AltiVec/Complex.h"
 #elif defined EIGEN_VECTORIZE_NEON
   #include "src/Core/arch/NEON/PacketMath.h"
+  #include "src/Core/arch/NEON/MathFunctions.h"
   #include "src/Core/arch/NEON/Complex.h"
+#endif
+
+#if defined EIGEN_VECTORIZE_CUDA
+  #include "src/Core/arch/CUDA/PacketMath.h"
+  #include "src/Core/arch/CUDA/MathFunctions.h"
 #endif
 
 #include "src/Core/arch/Default/Settings.h"

@@ -84,6 +84,13 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   
   VERIFY_IS_APPROX(m1 * (rdm1 * s1), (m1 * rdm1) * s1);
   VERIFY_IS_APPROX(m1 * (s1 * rdm1), (m1 * rdm1) * s1);
+  
+  // Diagonal to dense
+  sq_m1.setRandom();
+  sq_m2 = sq_m1;
+  VERIFY_IS_APPROX( (sq_m1 += (s1*v1).asDiagonal()), sq_m2 += (s1*v1).asDiagonal().toDenseMatrix() );
+  VERIFY_IS_APPROX( (sq_m1 -= (s1*v1).asDiagonal()), sq_m2 -= (s1*v1).asDiagonal().toDenseMatrix() );
+  VERIFY_IS_APPROX( (sq_m1 = (s1*v1).asDiagonal()), (s1*v1).asDiagonal().toDenseMatrix() );
 }
 
 void test_diagonalmatrices()

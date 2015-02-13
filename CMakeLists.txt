@@ -1,6 +1,6 @@
 project(Eigen)
 
-cmake_minimum_required(VERSION 2.8.2)
+cmake_minimum_required(VERSION 2.8.4)
 
 # guard against in-source builds
 
@@ -448,6 +448,7 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "make check    | Build and run the unit-tests. Read this page:")
   message(STATUS "              |   http://eigen.tuxfamily.org/index.php?title=Tests")
   message(STATUS "make blas     | Build BLAS library (not the same thing as Eigen)")
+  message(STATUS "make uninstall| Removes files installed by make install")
   message(STATUS "--------------+--------------------------------------------------------------")
 else()
   message(STATUS "To build/run the unit tests, read this page:")
@@ -483,3 +484,7 @@ install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
           DESTINATION ${EIGEN_CONFIG_CMAKE_PATH}
         )
+
+# Add uninstall target
+add_custom_target ( uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/EigenUninstall.cmake)

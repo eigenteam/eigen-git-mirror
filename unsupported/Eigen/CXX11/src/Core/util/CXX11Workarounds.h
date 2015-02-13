@@ -17,9 +17,6 @@
 #error Intel Compiler only supports required C++ features since version 13.1.
 // note that most stuff in principle works with 13.0 but when combining
 // some features, at some point 13.0 will just fail with an internal assertion
-#elif defined(__clang__) && (__clang_major__ < 3 || (__clang_major__ == 3 && __clang_minor__ < 1))
-// note that it _should_ work with 3.1 but it was only tested with 3.2
-#error Clang C++ Compiler (clang++) only supports required C++ features since version 3.1.
 #elif defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 6))
 // G++ < 4.6 by default will continue processing the source files - even if we use #error to make
 // it error out. For this reason, we use the pragma to make sure G++ aborts at the first error
@@ -42,31 +39,45 @@
 
 namespace Eigen {
 
+// Use std::array as Eigen array
+template <typename T, std::size_t N> using array = std::array<T, N>;
+
 namespace internal {
 
 /* std::get is only constexpr in C++14, not yet in C++11
  *     - libstdc++ from version 4.7 onwards has it nevertheless,
  *                                          so use that
  *     - libstdc++ older versions: use _M_instance directly
- *     - libc++ from version 3.4 onwards has it IF compiled with
- *                                       -std=c++1y
- *     - libc++ older versions or -std=c++11: use __elems_ directly
+ *     - libc++ all versions so far: use __elems_ directly
  *     - all other libs: use std::get to be portable, but
  *                       this may not be constexpr
  */
 #if defined(__GLIBCXX__) && __GLIBCXX__ < 20120322
 #define STD_GET_ARR_HACK             a._M_instance[I]
-#elif defined(_LIBCPP_VERSION) && (!defined(_LIBCPP_STD_VER) || _LIBCPP_STD_VER <= 11)
+#elif defined(_LIBCPP_VERSION)
 #define STD_GET_ARR_HACK             a.__elems_[I]
 #else
 #define STD_GET_ARR_HACK             std::template get<I, T, N>(a)
 #endif
 
-template<std::size_t I, class T, std::size_t N> constexpr inline T&       std_array_get(std::array<T,N>&       a) { return (T&)       STD_GET_ARR_HACK; }
-template<std::size_t I, class T, std::size_t N> constexpr inline T&&      std_array_get(std::array<T,N>&&      a) { return (T&&)      STD_GET_ARR_HACK; }
-template<std::size_t I, class T, std::size_t N> constexpr inline T const& std_array_get(std::array<T,N> const& a) { return (T const&) STD_GET_ARR_HACK; }
+template<std::size_t I, class T, std::size_t N> constexpr inline T&       array_get(std::array<T,N>&       a) { return (T&)       STD_GET_ARR_HACK; }
+template<std::size_t I, class T, std::size_t N> constexpr inline T&&      array_get(std::array<T,N>&&      a) { return (T&&)      STD_GET_ARR_HACK; }
+template<std::size_t I, class T, std::size_t N> constexpr inline T const& array_get(std::array<T,N> const& a) { return (T const&) STD_GET_ARR_HACK; }
+
+template<std::size_t I, class T> constexpr inline T&       array_get(std::vector<T>&       a) { return a[I]; }
+template<std::size_t I, class T> constexpr inline T&&      array_get(std::vector<T>&&      a) { return a[I]; }
+template<std::size_t I, class T> constexpr inline T const& array_get(std::vector<T> const& a) { return a[I]; }
 
 #undef STD_GET_ARR_HACK
+
+template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<const std::array<T,N> > {
+  static const size_t value = N;
+};
+template <typename T> struct array_size;
+template<class T, std::size_t N> struct array_size<std::array<T,N> > {
+  static const size_t value = N;
+};
 
 /* Suppose you have a template of the form
  * template<typename T> struct X;

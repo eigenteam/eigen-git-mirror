@@ -73,7 +73,7 @@
 
 /// \internal EIGEN_COMP_MSVC_STRICT set to 1 if the compiler is really Microsoft Visual C++ and not ,e.g., ICC
 #if EIGEN_COMP_MSVC && !(EIGEN_COMP_ICC)
-  #define EIGEN_COMP_MSVC_STRICT 1
+  #define EIGEN_COMP_MSVC_STRICT _MSC_VER
 #else
   #define EIGEN_COMP_MSVC_STRICT 0
 #endif
@@ -158,6 +158,12 @@
   #define EIGEN_ARCH_ARM64 1
 #else
   #define EIGEN_ARCH_ARM64 0
+#endif
+
+#if EIGEN_ARCH_ARM || EIGEN_ARCH_ARM64
+  #define EIGEN_ARCH_ARM_OR_ARM64 1
+#else
+  #define EIGEN_ARCH_ARM_OR_ARM64 0
 #endif
 
 /// \internal EIGEN_ARCH_MIPS set to 1 if the architecture is MIPS
@@ -376,10 +382,21 @@
   #define EIGEN_HAVE_RVALUE_REFERENCES
 #endif
 
+// Does the compiler support variadic templates?
+#if __cplusplus > 199711L
+#define EIGEN_HAS_VARIADIC_TEMPLATES 1
+#endif
+
+// Does the compiler support const expressions?
+#if (defined(__plusplus) && __cplusplus >= 201402L) || \
+    EIGEN_GNUC_AT_LEAST(4,9)
+#define EIGEN_HAS_CONSTEXPR 1
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
-  *   - single precision Cwise::sin() and Cwise::cos() when SSE vectorization is enabled.
+  *   - single precision ArrayBase::sin() and ArrayBase::cos() when SSE vectorization is enabled.
   */
 #ifndef EIGEN_FAST_MATH
 #define EIGEN_FAST_MATH 1
@@ -526,7 +543,7 @@ namespace Eigen {
 #define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
 
 #if !defined(EIGEN_ASM_COMMENT)
-  #if EIGEN_COMP_GNUC && EIGEN_ARCH_i386_OR_x86_64
+  #if EIGEN_COMP_GNUC && (EIGEN_ARCH_i386_OR_x86_64 || EIGEN_ARCH_ARM_OR_ARM64)
     #define EIGEN_ASM_COMMENT(X)  __asm__("#" X)
   #else
     #define EIGEN_ASM_COMMENT(X)
@@ -540,7 +557,9 @@ namespace Eigen {
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
-#if EIGEN_COMP_GNUC || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM
+#if (defined __CUDACC__)
+  #define EIGEN_ALIGN_TO_BOUNDARY(n) __align__(n)
+#elif EIGEN_COMP_GNUC || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif EIGEN_COMP_MSVC
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
@@ -592,7 +611,7 @@ namespace Eigen {
 // just an empty macro !
 #define EIGEN_EMPTY
 
-#if EIGEN_COMP_MSVC_STRICT
+#if EIGEN_COMP_MSVC_STRICT && EIGEN_COMP_MSVC < 1900
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
     using Base::operator =;
 #elif EIGEN_COMP_CLANG // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)

@@ -143,8 +143,8 @@ inline void* handmade_aligned_realloc(void* ptr, std::size_t size, std::size_t =
 *** Implementation of generic aligned realloc (when no realloc can be used)***
 *****************************************************************************/
 
-void* aligned_malloc(std::size_t size);
-void  aligned_free(void *ptr);
+EIGEN_DEVICE_FUNC void* aligned_malloc(std::size_t size);
+EIGEN_DEVICE_FUNC void  aligned_free(void *ptr);
 
 /** \internal
   * \brief Reallocates aligned memory.
@@ -185,33 +185,33 @@ inline void* generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
 *****************************************************************************/
 
 #ifdef EIGEN_NO_MALLOC
-inline void check_that_malloc_is_allowed()
+EIGEN_DEVICE_FUNC inline void check_that_malloc_is_allowed()
 {
   eigen_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
 }
 #elif defined EIGEN_RUNTIME_NO_MALLOC
-inline bool is_malloc_allowed_impl(bool update, bool new_value = false)
+EIGEN_DEVICE_FUNC inline bool is_malloc_allowed_impl(bool update, bool new_value = false)
 {
   static bool value = true;
   if (update == 1)
     value = new_value;
   return value;
 }
-inline bool is_malloc_allowed() { return is_malloc_allowed_impl(false); }
-inline bool set_is_malloc_allowed(bool new_value) { return is_malloc_allowed_impl(true, new_value); }
-inline void check_that_malloc_is_allowed()
+EIGEN_DEVICE_FUNC inline bool is_malloc_allowed() { return is_malloc_allowed_impl(false); }
+EIGEN_DEVICE_FUNC inline bool set_is_malloc_allowed(bool new_value) { return is_malloc_allowed_impl(true, new_value); }
+EIGEN_DEVICE_FUNC inline void check_that_malloc_is_allowed()
 {
   eigen_assert(is_malloc_allowed() && "heap allocation is forbidden (EIGEN_RUNTIME_NO_MALLOC is defined and g_is_malloc_allowed is false)");
 }
 #else 
-inline void check_that_malloc_is_allowed()
+EIGEN_DEVICE_FUNC inline void check_that_malloc_is_allowed()
 {}
 #endif
 
 /** \internal Allocates \a size bytes. The returned pointer is guaranteed to have 16 or 32 bytes alignment depending on the requirements.
   * On allocation error, the returned pointer is null, and std::bad_alloc is thrown.
   */
-inline void* aligned_malloc(size_t size)
+EIGEN_DEVICE_FUNC inline void* aligned_malloc(size_t size)
 {
   check_that_malloc_is_allowed();
 
@@ -237,7 +237,7 @@ inline void* aligned_malloc(size_t size)
 }
 
 /** \internal Frees memory allocated with aligned_malloc. */
-inline void aligned_free(void *ptr)
+EIGEN_DEVICE_FUNC inline void aligned_free(void *ptr)
 {
   #if !EIGEN_ALIGN
     std::free(ptr);
@@ -298,12 +298,12 @@ inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 /** \internal Allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
   * On allocation error, the returned pointer is null, and a std::bad_alloc is thrown.
   */
-template<bool Align> inline void* conditional_aligned_malloc(size_t size)
+template<bool Align> EIGEN_DEVICE_FUNC inline void* conditional_aligned_malloc(size_t size)
 {
   return aligned_malloc(size);
 }
 
-template<> inline void* conditional_aligned_malloc<false>(size_t size)
+template<> EIGEN_DEVICE_FUNC inline void* conditional_aligned_malloc<false>(size_t size)
 {
   check_that_malloc_is_allowed();
 
@@ -314,12 +314,12 @@ template<> inline void* conditional_aligned_malloc<false>(size_t size)
 }
 
 /** \internal Frees memory allocated with conditional_aligned_malloc */
-template<bool Align> inline void conditional_aligned_free(void *ptr)
+template<bool Align> EIGEN_DEVICE_FUNC inline void conditional_aligned_free(void *ptr)
 {
   aligned_free(ptr);
 }
 
-template<> inline void conditional_aligned_free<false>(void *ptr)
+template<> EIGEN_DEVICE_FUNC inline void conditional_aligned_free<false>(void *ptr)
 {
   std::free(ptr);
 }
@@ -341,7 +341,7 @@ template<> inline void* conditional_aligned_realloc<false>(void* ptr, size_t new
 /** \internal Destructs the elements of an array.
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
+template<typename T> EIGEN_DEVICE_FUNC inline void destruct_elements_of_array(T *ptr, size_t size)
 {
   // always destruct an array starting from the end.
   if(ptr)
@@ -351,7 +351,7 @@ template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
 /** \internal Constructs the elements of an array.
   * The \a size parameter tells on how many objects to call the constructor of T.
   */
-template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
+template<typename T> EIGEN_DEVICE_FUNC inline T* construct_elements_of_array(T *ptr, size_t size)
 {
   size_t i;
   EIGEN_TRY
@@ -371,7 +371,7 @@ template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
 *****************************************************************************/
 
 template<typename T>
-EIGEN_ALWAYS_INLINE void check_size_for_overflow(size_t size)
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void check_size_for_overflow(size_t size)
 {
   if(size > size_t(-1) / sizeof(T))
     throw_std_bad_alloc();
@@ -381,7 +381,7 @@ EIGEN_ALWAYS_INLINE void check_size_for_overflow(size_t size)
   * On allocation error, the returned pointer is undefined, but a std::bad_alloc is thrown.
   * The default constructor of T is called.
   */
-template<typename T> inline T* aligned_new(size_t size)
+template<typename T> EIGEN_DEVICE_FUNC inline T* aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(aligned_malloc(sizeof(T)*size));
@@ -396,7 +396,7 @@ template<typename T> inline T* aligned_new(size_t size)
   }
 }
 
-template<typename T, bool Align> inline T* conditional_aligned_new(size_t size)
+template<typename T, bool Align> EIGEN_DEVICE_FUNC inline T* conditional_aligned_new(size_t size)
 {
   check_size_for_overflow<T>(size);
   T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
@@ -414,7 +414,7 @@ template<typename T, bool Align> inline T* conditional_aligned_new(size_t size)
 /** \internal Deletes objects constructed with aligned_new
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T> inline void aligned_delete(T *ptr, size_t size)
+template<typename T> EIGEN_DEVICE_FUNC inline void aligned_delete(T *ptr, size_t size)
 {
   destruct_elements_of_array<T>(ptr, size);
   aligned_free(ptr);
@@ -423,13 +423,13 @@ template<typename T> inline void aligned_delete(T *ptr, size_t size)
 /** \internal Deletes objects constructed with conditional_aligned_new
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T, bool Align> inline void conditional_aligned_delete(T *ptr, size_t size)
+template<typename T, bool Align> EIGEN_DEVICE_FUNC inline void conditional_aligned_delete(T *ptr, size_t size)
 {
   destruct_elements_of_array<T>(ptr, size);
   conditional_aligned_free<Align>(ptr);
 }
 
-template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pts, size_t new_size, size_t old_size)
+template<typename T, bool Align> EIGEN_DEVICE_FUNC inline T* conditional_aligned_realloc_new(T* pts, size_t new_size, size_t old_size)
 {
   check_size_for_overflow<T>(new_size);
   check_size_for_overflow<T>(old_size);
@@ -452,7 +452,7 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
 }
 
 
-template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t size)
+template<typename T, bool Align> EIGEN_DEVICE_FUNC inline T* conditional_aligned_new_auto(size_t size)
 {
   if(size==0)
     return 0; // short-cut. Also fixes Bug 884
@@ -495,7 +495,7 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new_auto(
   return result;
 }
 
-template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *ptr, size_t size)
+template<typename T, bool Align> EIGEN_DEVICE_FUNC inline void conditional_aligned_delete_auto(T *ptr, size_t size)
 {
   if(NumTraits<T>::RequireInitialization)
     destruct_elements_of_array<T>(ptr, size);
@@ -523,9 +523,8 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
 template<typename Scalar, typename Index>
 inline Index first_aligned(const Scalar* array, Index size)
 {
-  enum { PacketSize = packet_traits<Scalar>::size,
-         PacketAlignedMask = PacketSize-1
-  };
+  static const Index PacketSize = packet_traits<Scalar>::size;
+  static const Index PacketAlignedMask = PacketSize-1;
 
   if(PacketSize==1)
   {

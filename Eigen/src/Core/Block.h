@@ -87,7 +87,7 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprTyp
     // FIXME, this traits is rather specialized for dense object and it needs to be cleaned further
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
-    Flags = (traits<XprType>::Flags & DirectAccessBit) | FlagsLvalueBit | FlagsRowMajorBit
+    Flags = (traits<XprType>::Flags & (DirectAccessBit | (InnerPanel?CompressedAccessBit:0))) | FlagsLvalueBit | FlagsRowMajorBit
     // FIXME DirectAccessBit should not be handled by expressions
   };
 };

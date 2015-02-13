@@ -39,15 +39,16 @@ void test_product_large()
     // check the functions to setup blocking sizes compile and do not segfault
     // FIXME check they do what they are supposed to do !!
     std::ptrdiff_t l1 = internal::random<int>(10000,20000);
-    std::ptrdiff_t l2 = internal::random<int>(1000000,2000000);
-    setCpuCacheSizes(l1,l2);
+    std::ptrdiff_t l2 = internal::random<int>(100000,200000);
+    std::ptrdiff_t l3 = internal::random<int>(1000000,2000000);
+    setCpuCacheSizes(l1,l2,l3);
     VERIFY(l1==l1CacheSize());
     VERIFY(l2==l2CacheSize());
     std::ptrdiff_t k1 = internal::random<int>(10,100)*16;
     std::ptrdiff_t m1 = internal::random<int>(10,100)*16;
     std::ptrdiff_t n1 = internal::random<int>(10,100)*16;
     // only makes sure it compiles fine
-    internal::computeProductBlockingSizes<float,float>(k1,m1,n1);
+    internal::computeProductBlockingSizes<float,float>(k1,m1,n1,1);
   }
 
   {

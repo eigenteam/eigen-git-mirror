@@ -165,8 +165,8 @@ namespace Eigen {
      * The vectors x and b can be either dense or sparse.
      *
      * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
-     * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
-     *               or Upper. Default is Lower.
+     * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower,
+     *               Upper, or Lower|Upper in which the full matrix entries will be considered. Default is Lower.
      * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
      *
      * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
@@ -189,20 +189,7 @@ namespace Eigen {
      * \endcode
      *
      * By default the iterations start with x=0 as an initial guess of the solution.
-     * One can control the start using the solveWithGuess() method. Here is a step by
-     * step execution example starting with a random guess and printing the evolution
-     * of the estimated error:
-     * * \code
-     * x = VectorXd::Random(n);
-     * mr.setMaxIterations(1);
-     * int i = 0;
-     * do {
-     *   x = mr.solveWithGuess(b,x);
-     *   std::cout << i << " : " << mr.error() << std::endl;
-     *   ++i;
-     * } while (mr.info()!=Success && i<100);
-     * \endcode
-     * Note that such a step by step excution is slightly slower.
+     * One can control the start using the solveWithGuess() method.
      *
      * \sa class ConjugateGradient, BiCGSTAB, SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
      */
@@ -250,6 +237,11 @@ namespace Eigen {
         template<typename Rhs,typename Dest>
         void _solve_with_guess_impl(const Rhs& b, Dest& x) const
         {
+            typedef typename internal::conditional<UpLo==(Lower|Upper),
+                                                   Ref<const MatrixType>&,
+                                                   SparseSelfAdjointView<const Ref<const MatrixType>, UpLo>
+                                                  >::type MatrixWrapperType;
+                                          
             m_iterations = Base::maxIterations();
             m_error = Base::m_tolerance;
             
@@ -259,7 +251,7 @@ namespace Eigen {
                 m_error = Base::m_tolerance;
                 
                 typename Dest::ColXpr xj(x,j);
-                internal::minres(mp_matrix->template selfadjointView<UpLo>(), b.col(j), xj,
+                internal::minres(MatrixWrapperType(mp_matrix), b.col(j), xj,
                                  Base::m_preconditioner, m_iterations, m_error);
             }
             

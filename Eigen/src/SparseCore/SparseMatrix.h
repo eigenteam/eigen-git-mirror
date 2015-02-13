@@ -51,7 +51,7 @@ struct traits<SparseMatrix<_Scalar, _Options, _Index> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = _Options | NestByRefBit | LvalueBit,
+    Flags = _Options | NestByRefBit | LvalueBit | CompressedAccessBit,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
@@ -90,16 +90,20 @@ struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex>
 
 template<typename _Scalar, int _Options, typename _Index>
 class SparseMatrix
-  : public SparseMatrixBase<SparseMatrix<_Scalar, _Options, _Index> >
+  : public SparseCompressedBase<SparseMatrix<_Scalar, _Options, _Index> >
 {
   public:
-    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
+    typedef SparseCompressedBase<SparseMatrix> Base;
+    using Base::isCompressed;
+    _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     typedef Diagonal<SparseMatrix> DiagonalReturnType;
     typedef Diagonal<const SparseMatrix> ConstDiagonalReturnType;
+    typedef typename Base::InnerIterator InnerIterator;
+    typedef typename Base::ReverseInnerIterator ReverseInnerIterator;
     
 
     using Base::IsRowMajor;
@@ -124,9 +128,6 @@ class SparseMatrix
 
   public:
     
-    /** \returns whether \c *this is in compressed form. */
-    inline bool isCompressed() const { return m_innerNonZeros==0; }
-
     /** \returns the number of rows of the matrix */
     inline StorageIndex rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
     /** \returns the number of columns of the matrix */
@@ -180,7 +181,7 @@ class SparseMatrix
 
     /** \returns the value of the matrix at position \a i, \a j
       * This function returns Scalar(0) if the element is an explicit \em zero */
-    inline const Scalar& coeff(Index row, Index col) const
+    inline Scalar coeff(Index row, Index col) const
     {
       eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
       
@@ -241,9 +242,6 @@ class SparseMatrix
     }
 
   public:
-
-    class InnerIterator;
-    class ReverseInnerIterator;
 
     /** Removes all non zeros but keep allocated memory */
     inline void setZero()
@@ -874,77 +872,6 @@ private:
   };
 };
 
-template<typename Scalar, int _Options, typename _Index>
-class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
-{
-  public:
-    InnerIterator(const SparseMatrix& mat, Index outer)
-      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(convert_index(outer)), m_id(mat.m_outerIndex[outer])
-    {
-      if(mat.isCompressed())
-        m_end = mat.m_outerIndex[outer+1];
-      else
-        m_end = m_id + mat.m_innerNonZeros[outer];
-    }
-
-    inline InnerIterator& operator++() { m_id++; return *this; }
-
-    inline const Scalar& value() const { return m_values[m_id]; }
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id]); }
-
-    inline StorageIndex index() const { return m_indices[m_id]; }
-    inline StorageIndex outer() const { return m_outer; }
-    inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
-    inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
-
-    inline operator bool() const { return (m_id < m_end); }
-
-  protected:
-    const Scalar* m_values;
-    const StorageIndex* m_indices;
-    const StorageIndex m_outer;
-    StorageIndex m_id;
-    StorageIndex m_end;
-  private:
-    // If you get here, then you're not using the right InnerIterator type, e.g.:
-    //   SparseMatrix<double,RowMajor> A;
-    //   SparseMatrix<double>::InnerIterator it(A,0);
-    template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer);
-};
-
-template<typename Scalar, int _Options, typename _Index>
-class SparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator
-{
-  public:
-    ReverseInnerIterator(const SparseMatrix& mat, Index outer)
-      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_start(mat.m_outerIndex[outer])
-    {
-      if(mat.isCompressed())
-        m_id = mat.m_outerIndex[outer+1];
-      else
-        m_id = m_start + mat.m_innerNonZeros[outer];
-    }
-
-    inline ReverseInnerIterator& operator--() { --m_id; return *this; }
-
-    inline const Scalar& value() const { return m_values[m_id-1]; }
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id-1]); }
-
-    inline StorageIndex index() const { return m_indices[m_id-1]; }
-    inline StorageIndex outer() const { return m_outer; }
-    inline StorageIndex row() const { return IsRowMajor ? m_outer : index(); }
-    inline StorageIndex col() const { return IsRowMajor ? index() : m_outer; }
-
-    inline operator bool() const { return (m_id > m_start); }
-
-  protected:
-    const Scalar* m_values;
-    const StorageIndex* m_indices;
-    const StorageIndex m_outer;
-    StorageIndex m_id;
-    const StorageIndex m_start;
-};
-
 namespace internal {
 
 template<typename InputIterator, typename SparseMatrixType>
@@ -1074,6 +1001,10 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
   EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
+  #ifdef EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+    EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+  #endif
+      
   const bool needToTranspose = (Flags & RowMajorBit) != (internal::evaluator<OtherDerived>::Flags & RowMajorBit);
   if (needToTranspose)
   {
@@ -1276,44 +1207,12 @@ namespace internal {
 
 template<typename _Scalar, int _Options, typename _Index>
 struct evaluator<SparseMatrix<_Scalar,_Options,_Index> >
-  : evaluator_base<SparseMatrix<_Scalar,_Options,_Index> >
+  : evaluator<SparseCompressedBase<SparseMatrix<_Scalar,_Options,_Index> > >
 {
-  typedef _Scalar Scalar;
+  typedef evaluator<SparseCompressedBase<SparseMatrix<_Scalar,_Options,_Index> > > Base;
   typedef SparseMatrix<_Scalar,_Options,_Index> SparseMatrixType;
-  typedef typename SparseMatrixType::InnerIterator InnerIterator;
-  typedef typename SparseMatrixType::ReverseInnerIterator ReverseInnerIterator;
-  
-  enum {
-    CoeffReadCost = NumTraits<_Scalar>::ReadCost,
-    Flags = SparseMatrixType::Flags
-  };
-  
-  evaluator() : m_matrix(0) {}
-  explicit evaluator(const SparseMatrixType &mat) : m_matrix(&mat) {}
-  
-  operator SparseMatrixType&() { return m_matrix->const_cast_derived(); }
-  operator const SparseMatrixType&() const { return *m_matrix; }
-  
-  typedef typename DenseCoeffsBase<SparseMatrixType,ReadOnlyAccessors>::CoeffReturnType CoeffReturnType;
-  CoeffReturnType coeff(Index row, Index col) const
-  { return m_matrix->coeff(row,col); }
-  
-  Scalar& coeffRef(Index row, Index col)
-  {
-    eigen_internal_assert(row>=0 && row<m_matrix->rows() && col>=0 && col<m_matrix->cols());
-      
-    const Index outer = SparseMatrixType::IsRowMajor ? row : col;
-    const Index inner = SparseMatrixType::IsRowMajor ? col : row;
-
-    Index start = m_matrix->outerIndexPtr()[outer];
-    Index end = m_matrix->isCompressed() ? m_matrix->outerIndexPtr()[outer+1] : m_matrix->outerIndexPtr()[outer] + m_matrix->innerNonZeroPtr()[outer];
-    eigen_assert(end>start && "you are using a non finalized sparse matrix or written coefficient does not exist");
-    const Index p = m_matrix->data().searchLowerIndex(start,end-1,inner);
-    eigen_assert((p<end) && (m_matrix->data().index(p)==inner) && "written coefficient does not exist");
-    return m_matrix->const_cast_derived().data().value(p);
-  }
-
-  const SparseMatrixType *m_matrix;
+  evaluator() : Base() {}
+  explicit evaluator(const SparseMatrixType &mat) : Base(mat) {}
 };
 
 }

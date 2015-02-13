@@ -10,7 +10,7 @@
 #ifndef EIGEN_TRIANGULARMATRIXVECTOR_H
 #define EIGEN_TRIANGULARMATRIXVECTOR_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
 
@@ -43,13 +43,16 @@ EIGEN_DONT_INLINE void triangular_matrix_vector_product<Index,Mode,LhsScalar,Con
     typedef Map<const Matrix<LhsScalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
     typename conj_expr_if<ConjLhs,LhsMap>::type cjLhs(lhs);
-    
+
     typedef Map<const Matrix<RhsScalar,Dynamic,1>, 0, InnerStride<> > RhsMap;
     const RhsMap rhs(_rhs,cols,InnerStride<>(rhsIncr));
     typename conj_expr_if<ConjRhs,RhsMap>::type cjRhs(rhs);
 
     typedef Map<Matrix<ResScalar,Dynamic,1> > ResMap;
     ResMap res(_res,rows);
+
+    typedef const_blas_data_mapper<LhsScalar,Index,ColMajor> LhsMapper;
+    typedef const_blas_data_mapper<RhsScalar,Index,RowMajor> RhsMapper;
 
     for (Index pi=0; pi<size; pi+=PanelWidth)
     {
@@ -68,19 +71,19 @@ EIGEN_DONT_INLINE void triangular_matrix_vector_product<Index,Mode,LhsScalar,Con
       if (r>0)
       {
         Index s = IsLower ? pi+actualPanelWidth : 0;
-        general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjLhs,RhsScalar,ConjRhs,BuiltIn>::run(
+        general_matrix_vector_product<Index,LhsScalar,LhsMapper,ColMajor,ConjLhs,RhsScalar,RhsMapper,ConjRhs,BuiltIn>::run(
             r, actualPanelWidth,
-            &lhs.coeffRef(s,pi), lhsStride,
-            &rhs.coeffRef(pi), rhsIncr,
+            LhsMapper(&lhs.coeffRef(s,pi), lhsStride),
+            RhsMapper(&rhs.coeffRef(pi), rhsIncr),
             &res.coeffRef(s), resIncr, alpha);
       }
     }
     if((!IsLower) && cols>size)
     {
-      general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjLhs,RhsScalar,ConjRhs>::run(
+      general_matrix_vector_product<Index,LhsScalar,LhsMapper,ColMajor,ConjLhs,RhsScalar,RhsMapper,ConjRhs>::run(
           rows, cols-size,
-          &lhs.coeffRef(0,size), lhsStride,
-          &rhs.coeffRef(size), rhsIncr,
+          LhsMapper(&lhs.coeffRef(0,size), lhsStride),
+          RhsMapper(&rhs.coeffRef(size), rhsIncr),
           _res, resIncr, alpha);
     }
   }
@@ -118,7 +121,10 @@ EIGEN_DONT_INLINE void triangular_matrix_vector_product<Index,Mode,LhsScalar,Con
 
     typedef Map<Matrix<ResScalar,Dynamic,1>, 0, InnerStride<> > ResMap;
     ResMap res(_res,rows,InnerStride<>(resIncr));
-    
+
+    typedef const_blas_data_mapper<LhsScalar,Index,RowMajor> LhsMapper;
+    typedef const_blas_data_mapper<RhsScalar,Index,RowMajor> RhsMapper;
+
     for (Index pi=0; pi<diagSize; pi+=PanelWidth)
     {
       Index actualPanelWidth = (std::min)(PanelWidth, diagSize-pi);
@@ -136,19 +142,19 @@ EIGEN_DONT_INLINE void triangular_matrix_vector_product<Index,Mode,LhsScalar,Con
       if (r>0)
       {
         Index s = IsLower ? 0 : pi + actualPanelWidth;
-        general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjLhs,RhsScalar,ConjRhs,BuiltIn>::run(
+        general_matrix_vector_product<Index,LhsScalar,LhsMapper,RowMajor,ConjLhs,RhsScalar,RhsMapper,ConjRhs,BuiltIn>::run(
             actualPanelWidth, r,
-            &lhs.coeffRef(pi,s), lhsStride,
-            &rhs.coeffRef(s), rhsIncr,
+            LhsMapper(&lhs.coeffRef(pi,s), lhsStride),
+            RhsMapper(&rhs.coeffRef(s), rhsIncr),
             &res.coeffRef(pi), resIncr, alpha);
       }
     }
     if(IsLower && rows>diagSize)
     {
-      general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjLhs,RhsScalar,ConjRhs>::run(
+      general_matrix_vector_product<Index,LhsScalar,LhsMapper,RowMajor,ConjLhs,RhsScalar,RhsMapper,ConjRhs>::run(
             rows-diagSize, cols,
-            &lhs.coeffRef(diagSize,0), lhsStride,
-            &rhs.coeffRef(0), rhsIncr,
+            LhsMapper(&lhs.coeffRef(diagSize,0), lhsStride),
+            RhsMapper(&rhs.coeffRef(0), rhsIncr),
             &res.coeffRef(diagSize), resIncr, alpha);
     }
   }
@@ -231,7 +237,7 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
 
     bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
     bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
-    
+
     RhsScalar compatibleAlpha = get_factor<ResScalar,RhsScalar>::run(actualAlpha);
 
     ei_declare_aligned_stack_constructed_variable(ResScalar,actualDestPtr,dest.size(),
@@ -251,7 +257,7 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
       else
         MappedDest(actualDestPtr, dest.size()) = dest;
     }
-    
+
     internal::triangular_matrix_vector_product
       <Index,Mode,
        LhsScalar, LhsBlasTraits::NeedToConjugate,
@@ -311,7 +317,7 @@ template<int Mode> struct trmv_selector<Mode,RowMajor>
       #endif
       Map<typename ActualRhsTypeCleaned::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
     }
-    
+
     internal::triangular_matrix_vector_product
       <Index,Mode,
        LhsScalar, LhsBlasTraits::NeedToConjugate,

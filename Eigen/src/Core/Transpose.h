@@ -213,18 +213,39 @@ MatrixBase<Derived>::adjoint() const
 namespace internal {
 
 template<typename MatrixType,
-  bool IsSquare = (MatrixType::RowsAtCompileTime == MatrixType::ColsAtCompileTime) && MatrixType::RowsAtCompileTime!=Dynamic>
+  bool IsSquare = (MatrixType::RowsAtCompileTime == MatrixType::ColsAtCompileTime) && MatrixType::RowsAtCompileTime!=Dynamic,
+  bool MatchPacketSize =
+        (int(MatrixType::RowsAtCompileTime) == int(internal::packet_traits<typename MatrixType::Scalar>::size))
+    &&  (internal::evaluator<MatrixType>::Flags&PacketAccessBit) >
 struct inplace_transpose_selector;
 
 template<typename MatrixType>
-struct inplace_transpose_selector<MatrixType,true> { // square matrix
+struct inplace_transpose_selector<MatrixType,true,false> { // square matrix
   static void run(MatrixType& m) {
     m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
   }
 };
 
+// TODO: vectorized path is currently limited to LargestPacketSize x LargestPacketSize cases only.
 template<typename MatrixType>
-struct inplace_transpose_selector<MatrixType,false> { // non square matrix
+struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize x PacketSize
+  static void run(MatrixType& m) {
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename internal::packet_traits<typename MatrixType::Scalar>::type Packet;
+    typedef typename MatrixType::Index Index;
+    const Index PacketSize = internal::packet_traits<Scalar>::size;
+    const Index Alignment = internal::evaluator<MatrixType>::Flags&AlignedBit ? Aligned : Unaligned;
+    PacketBlock<Packet> A;
+    for (Index i=0; i<PacketSize; ++i)
+      A.packet[i] = m.template packetByOuterInner<Alignment>(i,0);
+    internal::ptranspose(A);
+    for (Index i=0; i<PacketSize; ++i)
+      m.template writePacket<Alignment>(m.rowIndexByOuterInner(i,0), m.colIndexByOuterInner(i,0), A.packet[i]);
+  }
+};
+
+template<typename MatrixType,bool MatchPacketSize>
+struct inplace_transpose_selector<MatrixType,false,MatchPacketSize> { // non square matrix
   static void run(MatrixType& m) {
     if (m.rows()==m.cols())
       m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());

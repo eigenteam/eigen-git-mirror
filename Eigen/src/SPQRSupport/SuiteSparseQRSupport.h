@@ -68,13 +68,13 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     typedef Map<PermutationMatrix<Dynamic, Dynamic, StorageIndex> > PermutationType;
   public:
     SPQR() 
-      : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon())
+      : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)
     { 
       cholmod_l_start(&m_cc);
     }
     
     explicit SPQR(const _MatrixType& matrix)
-    : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon())
+    : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)
     {
       cholmod_l_start(&m_cc);
       compute(matrix);
@@ -99,10 +99,25 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
       if(m_isInitialized) SPQR_free();
 
       MatrixType mat(matrix);
+      
+      /* Compute the default threshold as in MatLab, see:
+       * Tim Davis, "Algorithm 915, SuiteSparseQR: Multifrontal Multithreaded Rank-Revealing
+       * Sparse QR Factorization, ACM Trans. on Math. Soft. 38(1), 2011, Page 8:3 
+       */
+      RealScalar pivotThreshold = m_tolerance;
+      if(m_useDefaultThreshold) 
+      {
+        RealScalar max2Norm = 0.0;
+        for (int j = 0; j < mat.cols(); j++) max2Norm = numext::maxi(max2Norm, mat.col(j).norm());
+        if(max2Norm==RealScalar(0))
+          max2Norm = RealScalar(1);
+        pivotThreshold = 20 * (mat.rows() + mat.cols()) * max2Norm * NumTraits<RealScalar>::epsilon();
+      }
+      
       cholmod_sparse A; 
       A = viewAsCholmod(mat);
       Index col = matrix.cols();
-      m_rank = SuiteSparseQR<Scalar>(m_ordering, m_tolerance, col, &A, 
+      m_rank = SuiteSparseQR<Scalar>(m_ordering, pivotThreshold, col, &A, 
                              &m_cR, &m_E, &m_H, &m_HPinv, &m_HTau, &m_cc);
 
       if (!m_cR)
@@ -118,7 +133,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     /** 
      * Get the number of rows of the input matrix and the Q matrix
      */
-    inline Index rows() const {return m_H->nrow; }
+    inline Index rows() const {return m_cR->nrow; }
     
     /** 
      * Get the number of columns of the input matrix. 
@@ -130,16 +145,25 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     {
       eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
       eigen_assert(b.cols()==1 && "This method is for vectors only");
-      
+
       //Compute Q^T * b
-      typename Dest::PlainObject y;
+      typename Dest::PlainObject y, y2;
       y = matrixQ().transpose() * b;
-        // Solves with the triangular matrix R
+      
+      // Solves with the triangular matrix R
       Index rk = this->rank();
-      y.topRows(rk) = this->matrixR().topLeftCorner(rk, rk).template triangularView<Upper>().solve(y.topRows(rk));
-      y.bottomRows(cols()-rk).setZero();
+      y2 = y;
+      y.resize((std::max)(cols(),Index(y.rows())),y.cols());
+      y.topRows(rk) = this->matrixR().topLeftCorner(rk, rk).template triangularView<Upper>().solve(y2.topRows(rk));
+
       // Apply the column permutation 
-      dest.topRows(cols()) = colsPermutation() * y.topRows(cols());
+      // colsPermutation() performs a copy of the permutation,
+      // so let's apply it manually:
+      for(Index i = 0; i < rk; ++i) dest.row(m_E[i]) = y.row(i);
+      for(Index i = rk; i < cols(); ++i) dest.row(m_E[i]).setZero();
+      
+//       y.bottomRows(y.rows()-rk).setZero();
+//       dest = colsPermutation() * y.topRows(cols());
       
       m_info = Success;
     }
@@ -178,7 +202,11 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     /// Set the fill-reducing ordering method to be used
     void setSPQROrdering(int ord) { m_ordering = ord;}
     /// Set the tolerance tol to treat columns with 2-norm < =tol as zero
-    void setPivotThreshold(const RealScalar& tol) { m_tolerance = tol; }
+    void setPivotThreshold(const RealScalar& tol)
+    {
+      m_useDefaultThreshold = false;
+      m_tolerance = tol;
+    }
     
     /** \returns a pointer to the SPQR workspace */
     cholmod_common *cholmodCommon() const { return &m_cc; }
@@ -210,6 +238,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     mutable cholmod_dense *m_HTau; // The Householder coefficients
     mutable StorageIndex m_rank; // The rank of the matrix
     mutable cholmod_common m_cc; // Workspace and parameters
+    bool m_useDefaultThreshold;     // Use default threshold
     template<typename ,typename > friend struct SPQR_QProduct;
 };
 

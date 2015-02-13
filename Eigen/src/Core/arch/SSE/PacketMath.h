@@ -22,9 +22,9 @@ namespace internal {
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS (2*sizeof(void*))
 #endif
 
-#ifdef EIGEN_VECTORIZE_FMA
-#ifndef EIGEN_HAS_FUSED_MADD
-#define EIGEN_HAS_FUSED_MADD 1
+#ifdef __FMA__
+#ifndef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
+#define EIGEN_HAS_SINGLE_INSTRUCTION_MADD 1
 #endif
 #endif
 
@@ -108,7 +108,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasCos  = EIGEN_FAST_MATH,
     HasLog  = 1,
     HasExp  = 1,
-    HasSqrt = 1
+    HasSqrt = 1,
+    HasBlend = 1
   };
 };
 template<> struct packet_traits<double> : default_packet_traits
@@ -123,7 +124,8 @@ template<> struct packet_traits<double> : default_packet_traits
 
     HasDiv  = 1,
     HasExp  = 1,
-    HasSqrt = 1
+    HasSqrt = 1,
+    HasBlend = 1
   };
 };
 #endif
@@ -135,7 +137,9 @@ template<> struct packet_traits<int>    : default_packet_traits
     // FIXME check the Has*
     Vectorizable = 1,
     AlignedOnScalar = 1,
-    size=4
+    size=4,
+
+    HasBlend = 1
   };
 };
 
@@ -227,7 +231,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
 
 // for some weird raisons, it has to be overloaded for packet of integers
 template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return padd(pmul(a,b), c); }
-#ifdef EIGEN_VECTORIZE_FMA
+#ifdef __FMA__
 template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return _mm_fmadd_ps(a,b,c); }
 template<> EIGEN_STRONG_INLINE Packet2d pmadd(const Packet2d& a, const Packet2d& b, const Packet2d& c) { return _mm_fmadd_pd(a,b,c); }
 #endif
@@ -807,6 +811,37 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
   kernel.packet[1] = _mm_unpackhi_epi64(T0, T1);
   kernel.packet[2] = _mm_unpacklo_epi64(T2, T3);
   kernel.packet[3] = _mm_unpackhi_epi64(T2, T3);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4i pblend(const Selector<4>& ifPacket, const Packet4i& thenPacket, const Packet4i& elsePacket) {
+  const __m128i zero = _mm_setzero_si128();
+  const __m128i select = _mm_set_epi32(ifPacket.select[3], ifPacket.select[2], ifPacket.select[1], ifPacket.select[0]);
+  __m128i false_mask = _mm_cmpeq_epi32(select, zero);
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blendv_epi8(thenPacket, elsePacket, false_mask);
+#else
+  return _mm_or_si128(_mm_andnot_si128(false_mask, thenPacket), _mm_and_si128(false_mask, elsePacket));
+#endif
+}
+template<> EIGEN_STRONG_INLINE Packet4f pblend(const Selector<4>& ifPacket, const Packet4f& thenPacket, const Packet4f& elsePacket) {
+  const __m128 zero = _mm_setzero_ps();
+  const __m128 select = _mm_set_ps(ifPacket.select[3], ifPacket.select[2], ifPacket.select[1], ifPacket.select[0]);
+  __m128 false_mask = _mm_cmpeq_ps(select, zero);
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blendv_ps(thenPacket, elsePacket, false_mask);
+#else
+  return _mm_or_ps(_mm_andnot_ps(false_mask, thenPacket), _mm_and_ps(false_mask, elsePacket));
+#endif
+}
+template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, const Packet2d& thenPacket, const Packet2d& elsePacket) {
+  const __m128d zero = _mm_setzero_pd();
+  const __m128d select = _mm_set_pd(ifPacket.select[1], ifPacket.select[0]);
+  __m128d false_mask = _mm_cmpeq_pd(select, zero);
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blendv_pd(thenPacket, elsePacket, false_mask);
+#else
+  return _mm_or_pd(_mm_andnot_pd(false_mask, thenPacket), _mm_and_pd(false_mask, elsePacket));
+#endif
 }
 
 } // end namespace internal

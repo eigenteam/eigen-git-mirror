@@ -43,7 +43,7 @@ namespace internal
     typedef _MatrixType MatrixType;
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef typename _MatrixType::Index Index;
+    typedef typename _MatrixType::StorageIndex StorageIndex;
   };
 
   template<typename _MatrixType, int Options>
@@ -52,7 +52,7 @@ namespace internal
     typedef _MatrixType MatrixType;
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef typename _MatrixType::Index Index;
+    typedef typename _MatrixType::StorageIndex StorageIndex;
   };
 
   template<typename _MatrixType, int Options>
@@ -61,7 +61,7 @@ namespace internal
     typedef _MatrixType MatrixType;
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef typename _MatrixType::Index Index;
+    typedef typename _MatrixType::StorageIndex StorageIndex;
   };
   
   void eigen_pastix(pastix_data_t **pastix_data, int pastix_comm, int n, int *ptr, int *idx, float *vals, int *perm, int * invp, float *x, int nbrhs, int *iparm, double *dparm)
@@ -138,7 +138,6 @@ class PastixBase : public SparseSolverBase<Derived>
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
     typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef SparseMatrix<Scalar, ColMajor> ColSpMatrix;
@@ -163,7 +162,7 @@ class PastixBase : public SparseSolverBase<Derived>
       * The statistics related to the different phases of factorization and solve are saved here as well
       * \sa analyzePattern() factorize()
       */
-    Array<Index,IPARM_SIZE,1>& iparm()
+    Array<StorageIndex,IPARM_SIZE,1>& iparm()
     {
       return m_iparm; 
     }
@@ -243,8 +242,8 @@ class PastixBase : public SparseSolverBase<Derived>
     mutable int m_comm; // The MPI communicator identifier
     mutable Matrix<int,IPARM_SIZE,1> m_iparm; // integer vector for the input parameters
     mutable Matrix<double,DPARM_SIZE,1> m_dparm; // Scalar vector for the input parameters
-    mutable Matrix<Index,Dynamic,1> m_perm;  // Permutation vector
-    mutable Matrix<Index,Dynamic,1> m_invp;  // Inverse permutation vector
+    mutable Matrix<StorageIndex,Dynamic,1> m_perm;  // Permutation vector
+    mutable Matrix<StorageIndex,Dynamic,1> m_invp;  // Inverse permutation vector
     mutable int m_size; // Size of the matrix 
 }; 
 
@@ -410,7 +409,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
     typedef _MatrixType MatrixType;
     typedef PastixBase<PastixLU<MatrixType> > Base;
     typedef typename Base::ColSpMatrix ColSpMatrix;
-    typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     
   public:
     PastixLU() : Base()

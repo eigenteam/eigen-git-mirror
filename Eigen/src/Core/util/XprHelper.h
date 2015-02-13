@@ -463,6 +463,21 @@ template<typename XprType, typename CastType> struct cast_return_type
                               const XprType&,CastType>::type type;
 };
 
+template <typename A, typename B> struct promote_storage_type;
+
+template <typename A> struct promote_storage_type<A,A>
+{
+  typedef A ret;
+};
+template <typename A> struct promote_storage_type<A, const A>
+{
+  typedef A ret;
+};
+template <typename A> struct promote_storage_type<const A, A>
+{
+  typedef A ret;
+};
+
 /** \internal Specify the "storage kind" of applying a coefficient-wise
   * binary operations between two expressions of kinds A and B respectively.
   * The template parameter Functor permits to specialize the resulting storage kind wrt to

@@ -59,21 +59,25 @@ typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScal
 static void run(Index rows, Index cols, Index depth,
   const LhsScalar* _lhs, Index lhsStride,
   const RhsScalar* _rhs, Index rhsStride,
-  ResScalar* res, Index resStride,
+  ResScalar* _res, Index resStride,
   ResScalar alpha,
   level3_blocking<LhsScalar,RhsScalar>& blocking,
   GemmParallelInfo<Index>* info = 0)
 {
-  const_blas_data_mapper<LhsScalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
-  const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
+  typedef const_blas_data_mapper<LhsScalar, Index, LhsStorageOrder> LhsMapper;
+  typedef const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> RhsMapper;
+  typedef blas_data_mapper<typename Traits::ResScalar, Index, ColMajor> ResMapper;
+  LhsMapper lhs(_lhs,lhsStride);
+  RhsMapper rhs(_rhs,rhsStride);
+  ResMapper res(_res, resStride);
 
   Index kc = blocking.kc();                   // cache block size along the K direction
   Index mc = (std::min)(rows,blocking.mc());  // cache block size along the M direction
   Index nc = (std::min)(cols,blocking.nc());  // cache block size along the N direction
 
-  gemm_pack_lhs<LhsScalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
-  gemm_pack_rhs<RhsScalar, Index, Traits::nr, RhsStorageOrder> pack_rhs;
-  gebp_kernel<LhsScalar, RhsScalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp;
+  gemm_pack_lhs<LhsScalar, Index, LhsMapper, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
+  gemm_pack_rhs<RhsScalar, Index, RhsMapper, Traits::nr, RhsStorageOrder> pack_rhs;
+  gebp_kernel<LhsScalar, RhsScalar, Index, ResMapper, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp;
 
 #ifdef EIGEN_HAS_OPENMP
   if(info)
@@ -95,7 +99,7 @@ static void run(Index rows, Index cols, Index depth,
 
       // In order to reduce the chance that a thread has to wait for the other,
       // let's start by packing B'.
-      pack_rhs(blockB, &rhs(k,0), rhsStride, actual_kc, nc);
+      pack_rhs(blockB, rhs.getSubMapper(k,0), actual_kc, nc);
 
       // Pack A_k to A' in a parallel fashion:
       // each thread packs the sub block A_k,i to A'_i where i is the thread id.
@@ -105,8 +109,8 @@ static void run(Index rows, Index cols, Index depth,
       // Then, we set info[tid].users to the number of threads to mark that all other threads are going to use it.
       while(info[tid].users!=0) {}
       info[tid].users += threads;
-      
-      pack_lhs(blockA+info[tid].lhs_start*actual_kc, &lhs(info[tid].lhs_start,k), lhsStride, actual_kc, info[tid].lhs_length);
+
+      pack_lhs(blockA+info[tid].lhs_start*actual_kc, lhs.getSubMapper(info[tid].lhs_start,k), actual_kc, info[tid].lhs_length);
 
       // Notify the other threads that the part A'_i is ready to go.
       info[tid].sync = k;
@@ -119,9 +123,12 @@ static void run(Index rows, Index cols, Index depth,
         // At this point we have to make sure that A'_i has been updated by the thread i,
         // we use testAndSetOrdered to mimic a volatile access.
         // However, no need to wait for the B' part which has been updated by the current thread!
-        if(shift>0)
-          while(info[i].sync!=k) {}
-        gebp(res+info[i].lhs_start, resStride, blockA+info[i].lhs_start*actual_kc, blockB, info[i].lhs_length, actual_kc, nc, alpha);
+        if (shift>0) {
+          while(info[i].sync!=k) {
+          }
+        }
+
+        gebp(res.getSubMapper(info[i].lhs_start, 0), blockA+info[i].lhs_start*actual_kc, blockB, info[i].lhs_length, actual_kc, nc, alpha);
       }
 
       // Then keep going as usual with the remaining B'
@@ -130,10 +137,10 @@ static void run(Index rows, Index cols, Index depth,
         const Index actual_nc = (std::min)(j+nc,cols)-j;
 
         // pack B_k,j to B'
-        pack_rhs(blockB, &rhs(k,j), rhsStride, actual_kc, actual_nc);
+        pack_rhs(blockB, rhs.getSubMapper(k,j), actual_kc, actual_nc);
 
         // C_j += A' * B'
-        gebp(res+j*resStride, resStride, blockA, blockB, rows, actual_kc, actual_nc, alpha);
+        gebp(res.getSubMapper(0, j), blockA, blockB, rows, actual_kc, actual_nc, alpha);
       }
 
       // Release all the sub blocks A'_i of A' for the current thread,
@@ -159,28 +166,33 @@ static void run(Index rows, Index cols, Index depth,
     ei_declare_aligned_stack_constructed_variable(RhsScalar, blockB, sizeB, blocking.blockB());
 
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
-    for(Index k2=0; k2<depth; k2+=kc)
+    for(Index i2=0; i2<rows; i2+=mc)
     {
-      const Index actual_kc = (std::min)(k2+kc,depth)-k2;
+      const Index actual_mc = (std::min)(i2+mc,rows)-i2;
 
-      // OK, here we have selected one horizontal panel of rhs and one vertical panel of lhs.
-      // => Pack lhs's panel into a sequential chunk of memory (L2/L3 caching)
-      // Note that this panel will be read as many times as the number of blocks in the rhs's
-      // horizontal panel which is, in practice, a very low number.
-      pack_lhs(blockA, &lhs(0,k2), lhsStride, actual_kc, rows);
-
-      // For each kc x nc block of the rhs's horizontal panel...
-      for(Index j2=0; j2<cols; j2+=nc)
+      for(Index k2=0; k2<depth; k2+=kc)
       {
-        const Index actual_nc = (std::min)(j2+nc,cols)-j2;
-
-        // We pack the rhs's block into a sequential chunk of memory (L2 caching)
-        // Note that this block will be read a very high number of times, which is equal to the number of
-        // micro horizontal panel of the large rhs's panel (e.g., rows/12 times).
-        pack_rhs(blockB, &rhs(k2,j2), rhsStride, actual_kc, actual_nc);
-
-        // Everything is packed, we can now call the panel * block kernel:
-        gebp(res+j2*resStride, resStride, blockA, blockB, rows, actual_kc, actual_nc, alpha);
+        const Index actual_kc = (std::min)(k2+kc,depth)-k2;
+        
+        // OK, here we have selected one horizontal panel of rhs and one vertical panel of lhs.
+        // => Pack lhs's panel into a sequential chunk of memory (L2/L3 caching)
+        // Note that this panel will be read as many times as the number of blocks in the rhs's
+        // horizontal panel which is, in practice, a very low number.
+        pack_lhs(blockA, lhs.getSubMapper(i2,k2), actual_kc, actual_mc);
+        
+        // For each kc x nc block of the rhs's horizontal panel...
+        for(Index j2=0; j2<cols; j2+=nc)
+        {
+          const Index actual_nc = (std::min)(j2+nc,cols)-j2;
+          
+          // We pack the rhs's block into a sequential chunk of memory (L2 caching)
+          // Note that this block will be read a very high number of times, which is equal to the number of
+          // micro horizontal panel of the large rhs's panel (e.g., rows/12 times).
+          pack_rhs(blockB, rhs.getSubMapper(k2,j2), actual_kc, actual_nc);
+          
+          // Everything is packed, we can now call the panel * block kernel:
+          gebp(res.getSubMapper(i2, j2), blockA, blockB, actual_mc, actual_kc, actual_nc, alpha);
+        }
       }
     }
   }
@@ -287,7 +299,7 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
 
   public:
 
-    gemm_blocking_space(DenseIndex /*rows*/, DenseIndex /*cols*/, DenseIndex /*depth*/, bool /*full_rows*/ = false)
+    gemm_blocking_space(DenseIndex /*rows*/, DenseIndex /*cols*/, DenseIndex /*depth*/, int /*num_threads*/, bool /*full_rows = false*/)
     {
       this->m_mc = ActualRows;
       this->m_nc = ActualCols;
@@ -319,23 +331,23 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
 
   public:
 
-    gemm_blocking_space(DenseIndex rows, DenseIndex cols, DenseIndex depth, bool full_rows = false)
+    gemm_blocking_space(DenseIndex rows, DenseIndex cols, DenseIndex depth, int num_threads, bool l3_blocking)
     {
       this->m_mc = Transpose ? cols : rows;
       this->m_nc = Transpose ? rows : cols;
       this->m_kc = depth;
 
-      if(full_rows)
+      if(l3_blocking)
+      {
+        computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, this->m_mc, this->m_nc, num_threads);
+      }
+      else  // no l3 blocking
       {
         DenseIndex m = this->m_mc;
-        computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, m, this->m_nc);
-      }
-      else // full columns
-      {
         DenseIndex n = this->m_nc;
-        computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, this->m_mc, n);
+        computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, m, n, num_threads);
       }
-      
+
       m_sizeA = this->m_mc * this->m_kc;
       m_sizeB = this->m_kc * this->m_nc;
     }
@@ -445,8 +457,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
         (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>,
       ActualLhsTypeCleaned, ActualRhsTypeCleaned, Dest, BlockingType> GemmFunctor;
 
-    BlockingType blocking(dst.rows(), dst.cols(), lhs.cols(), true);
-
+    BlockingType blocking(dst.rows(), dst.cols(), lhs.cols(), 1, true);
     internal::parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>
                               (GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), a_lhs.rows(), a_rhs.cols(), Dest::Flags&RowMajorBit);
   }

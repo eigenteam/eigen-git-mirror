@@ -41,6 +41,12 @@ ei_add_failtest("ref_5")
 ei_add_failtest("swap_1")
 ei_add_failtest("swap_2")
 
+ei_add_failtest("sparse_ref_1")
+ei_add_failtest("sparse_ref_2")
+ei_add_failtest("sparse_ref_3")
+ei_add_failtest("sparse_ref_4")
+ei_add_failtest("sparse_ref_5")
+
 if (EIGEN_FAILTEST_FAILURE_COUNT)
   message(FATAL_ERROR
           "${EIGEN_FAILTEST_FAILURE_COUNT} out of ${EIGEN_FAILTEST_COUNT} failtests FAILED. "

@@ -17,6 +17,27 @@ enum SimplicialCholeskyMode {
   SimplicialCholeskyLDLT
 };
 
+namespace internal {
+  template<typename CholMatrixType, typename InputMatrixType>
+  struct simplicial_cholesky_grab_input {
+    typedef CholMatrixType const * ConstCholMatrixPtr;
+    static void run(const InputMatrixType& input, ConstCholMatrixPtr &pmat, CholMatrixType &tmp)
+    {
+      tmp = input;
+      pmat = &tmp;
+    }
+  };
+  
+  template<typename MatrixType>
+  struct simplicial_cholesky_grab_input<MatrixType,MatrixType> {
+    typedef MatrixType const * ConstMatrixPtr;
+    static void run(const MatrixType& input, ConstMatrixPtr &pmat, MatrixType &/*tmp*/)
+    {
+      pmat = &input;
+    }
+  };
+} // end namespace internal
+
 /** \ingroup SparseCholesky_Module
   * \brief A direct sparse Cholesky factorizations
   *
@@ -46,6 +67,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::StorageIndex StorageIndex;
     typedef SparseMatrix<Scalar,ColMajor,StorageIndex> CholMatrixType;
+    typedef CholMatrixType const * ConstCholMatrixPtr;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
 
   public:
@@ -169,10 +191,11 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     {
       eigen_assert(matrix.rows()==matrix.cols());
       Index size = matrix.cols();
-      CholMatrixType ap(size,size);
-      ordering(matrix, ap);
-      analyzePattern_preordered(ap, DoLDLT);
-      factorize_preordered<DoLDLT>(ap);
+      CholMatrixType tmp(size,size);
+      ConstCholMatrixPtr pmat;
+      ordering(matrix, pmat, tmp);
+      analyzePattern_preordered(*pmat, DoLDLT);
+      factorize_preordered<DoLDLT>(*pmat);
     }
     
     template<bool DoLDLT>
@@ -180,9 +203,21 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     {
       eigen_assert(a.rows()==a.cols());
       int size = a.cols();
-      CholMatrixType ap(size,size);
-      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
-      factorize_preordered<DoLDLT>(ap);
+      CholMatrixType tmp(size,size);
+      ConstCholMatrixPtr pmat;
+      
+      if(m_P.size()==0 && (UpLo&Upper)==Upper)
+      {
+        // If there is no ordering, try to directly use the input matrix without any copy
+        internal::simplicial_cholesky_grab_input<CholMatrixType,MatrixType>::run(a, pmat, tmp);
+      }
+      else
+      {
+        tmp.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
+        pmat = &tmp;
+      }
+      
+      factorize_preordered<DoLDLT>(*pmat);
     }
 
     template<bool DoLDLT>
@@ -192,13 +227,14 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     {
       eigen_assert(a.rows()==a.cols());
       int size = a.cols();
-      CholMatrixType ap(size,size);
-      ordering(a, ap);
-      analyzePattern_preordered(ap,doLDLT);
+      CholMatrixType tmp(size,size);
+      ConstCholMatrixPtr pmat;
+      ordering(a, pmat, tmp);
+      analyzePattern_preordered(*pmat,doLDLT);
     }
     void analyzePattern_preordered(const CholMatrixType& a, bool doLDLT);
     
-    void ordering(const MatrixType& a, CholMatrixType& ap);
+    void ordering(const MatrixType& a, ConstCholMatrixPtr &pmat, CholMatrixType& ap);
 
     /** keeps off-diagonal entries; drops diagonal entries */
     struct keep_diag {
@@ -603,26 +639,41 @@ public:
 };
 
 template<typename Derived>
-void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, CholMatrixType& ap)
+void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, ConstCholMatrixPtr &pmat, CholMatrixType& ap)
 {
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
-  // Note that amd compute the inverse permutation
+  pmat = &ap;
+  // Note that ordering methods compute the inverse permutation
+  if(!internal::is_same<OrderingType,NaturalOrdering<Index> >::value)
   {
-    CholMatrixType C;
-    C = a.template selfadjointView<UpLo>();
+    {
+      CholMatrixType C;
+      C = a.template selfadjointView<UpLo>();
+      
+      OrderingType ordering;
+      ordering(C,m_Pinv);
+    }
+
+    if(m_Pinv.size()>0) m_P = m_Pinv.inverse();
+    else                m_P.resize(0);
     
-    OrderingType ordering;
-    ordering(C,m_Pinv);
+    ap.resize(size,size);
+    ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
   }
-
-  if(m_Pinv.size()>0)
-    m_P = m_Pinv.inverse();
   else
+  {
+    m_Pinv.resize(0);
     m_P.resize(0);
-
-  ap.resize(size,size);
-  ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
+    if(UpLo==Lower || MatrixType::IsRowMajor)
+    {
+      // we have to transpose the lower part to to the upper one
+      ap.resize(size,size);
+      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>();
+    }
+    else
+      internal::simplicial_cholesky_grab_input<CholMatrixType,MatrixType>::run(a, pmat, ap);
+  }  
 }
 
 } // end namespace Eigen
