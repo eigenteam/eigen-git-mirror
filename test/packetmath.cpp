@@ -261,6 +261,22 @@ template<typename Scalar> void packetmath()
       VERIFY(isApproxAbs(data2[j], data1[i+j*PacketSize], refvalue) && "ptranspose");
     }
   }
+
+  if (internal::packet_traits<Scalar>::HasBlend) {
+    Packet thenPacket = internal::pload<Packet>(data1);
+    Packet elsePacket = internal::pload<Packet>(data2);
+    EIGEN_ALIGN_DEFAULT internal::Selector<PacketSize> selector;
+    for (int i = 0; i < PacketSize; ++i) {
+      selector.select[i] = i;
+    }
+
+    Packet blend = internal::pblend(selector, thenPacket, elsePacket);
+    EIGEN_ALIGN_DEFAULT Scalar result[size];
+    internal::pstore(result, blend);
+    for (int i = 0; i < PacketSize; ++i) {
+      VERIFY(isApproxAbs(result[i], (selector.select[i] ? data1[i] : data2[i]), refvalue));
+    }
+  }
 }
 
 template<typename Scalar> void packetmath_real()

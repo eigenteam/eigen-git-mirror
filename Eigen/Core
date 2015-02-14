@@ -185,6 +185,11 @@
   #endif
 #endif
 
+#if defined __CUDACC__
+  #define EIGEN_VECTORIZE_CUDA
+  #include <vector_types.h>
+#endif
+
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
   #define EIGEN_HAS_OPENMP
 #endif
@@ -303,6 +308,11 @@ using std::ptrdiff_t;
   #include "src/Core/arch/NEON/PacketMath.h"
   #include "src/Core/arch/NEON/MathFunctions.h"
   #include "src/Core/arch/NEON/Complex.h"
+#endif
+
+#if defined EIGEN_VECTORIZE_CUDA
+  #include "src/Core/arch/CUDA/PacketMath.h"
+  #include "src/Core/arch/CUDA/MathFunctions.h"
 #endif
 
 #include "src/Core/arch/Default/Settings.h"

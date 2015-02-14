@@ -44,7 +44,8 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
     HasAbs2   = 0,
     HasMin    = 0,
     HasMax    = 0,
-    HasSetLinear = 0
+    HasSetLinear = 0,
+    HasBlend = 1
   };
 };
 #endif
@@ -470,6 +471,11 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
   __m128 tmp = _mm_castpd_ps(_mm_unpackhi_pd(w1, w2));
   kernel.packet[0].v = _mm_castpd_ps(_mm_unpacklo_pd(w1, w2));
   kernel.packet[1].v = tmp;
+}
+
+template<>  EIGEN_STRONG_INLINE Packet2cf pblend(const Selector<2>& ifPacket, const Packet2cf& thenPacket, const Packet2cf& elsePacket) {
+  __m128d result = pblend(ifPacket, _mm_castps_pd(thenPacket.v), _mm_castps_pd(elsePacket.v));
+  return Packet2cf(_mm_castpd_ps(result));
 }
 
 } // end namespace internal
