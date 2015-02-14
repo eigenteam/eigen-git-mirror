@@ -42,6 +42,12 @@ template<> struct is_arithmetic<__m256d> { enum { value = true }; };
 #define _EIGEN_DECLARE_CONST_Packet4d(NAME,X) \
   const Packet4d p4d_##NAME = pset1<Packet4d>(X)
 
+#define _EIGEN_DECLARE_CONST_Packet8f_FROM_INT(NAME,X) \
+  const Packet8f p8f_##NAME = (__m256)pset1<Packet8i>(X)
+
+#define _EIGEN_DECLARE_CONST_Packet8i(NAME,X) \
+  const Packet8i p8i_##NAME = pset1<Packet8i>(X)
+
 
 template<> struct packet_traits<float>  : default_packet_traits
 {
@@ -54,13 +60,13 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasHalfPacket = 1,
 
     HasDiv  = 1,
-    HasSin  = 0,
+    HasSin  = 1,
     HasCos  = 0,
-    HasLog  = 0,
-    HasExp  = 0,
-    HasSqrt = 0
+    HasLog  = 1,
+    HasExp  = 1,
+    HasSqrt = 1
   };
- };
+};
 template<> struct packet_traits<double> : default_packet_traits
 {
   typedef Packet4d type;
@@ -72,7 +78,8 @@ template<> struct packet_traits<double> : default_packet_traits
     HasHalfPacket = 1,
 
     HasDiv  = 1,
-    HasExp  = 0
+    HasExp  = 0,
+    HasSqrt = 1
   };
 };
 
