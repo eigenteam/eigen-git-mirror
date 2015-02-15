@@ -566,7 +566,7 @@ struct Assignment<DstXprType, Inverse<ColPivHouseholderQR<MatrixType> >, interna
 
 /** \returns the matrix Q as a sequence of householder transformations.
   * You can extract the meaningful part only by using:
-  * \code qr.householderQ().setLength(qr.nonzeroPivots()) */
+  * \code qr.householderQ().setLength(qr.nonzeroPivots()) \endcode*/
 template<typename MatrixType>
 typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHouseholderQR<MatrixType>
   ::householderQ() const
