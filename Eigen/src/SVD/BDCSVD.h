@@ -306,7 +306,7 @@ void BDCSVD<MatrixType>::structured_update(Block<MatrixXr,Dynamic,Dynamic> A, co
   {
     // If the matrices are large enough, let's exploit the sparse structure of A by
     // splitting it in half (wrt n1), and packing the non-zero columns.
-    DenseIndex n2 = n - n1;
+    Index n2 = n - n1;
     MatrixXr A1(n1,n), A2(n2,n), B1(n,n), B2(n,n);
     Index k1=0, k2=0;
     for(Index j=0; j<n; ++j)

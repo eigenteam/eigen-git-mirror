@@ -44,7 +44,7 @@ template<int _OuterStrideAtCompileTime, int _InnerStrideAtCompileTime>
 class Stride
 {
   public:
-    typedef DenseIndex Index;
+    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
     enum {
       InnerStrideAtCompileTime = _InnerStrideAtCompileTime,
       OuterStrideAtCompileTime = _OuterStrideAtCompileTime
@@ -91,7 +91,6 @@ class InnerStride : public Stride<0, Value>
 {
     typedef Stride<0, Value> Base;
   public:
-    typedef DenseIndex Index;
     EIGEN_DEVICE_FUNC InnerStride() : Base() {}
     EIGEN_DEVICE_FUNC InnerStride(Index v) : Base(0, v) {} // FIXME making this explicit could break valid code
 };
@@ -103,7 +102,6 @@ class OuterStride : public Stride<Value, 0>
 {
     typedef Stride<Value, 0> Base;
   public:
-    typedef DenseIndex Index;
     EIGEN_DEVICE_FUNC OuterStride() : Base() {}
     EIGEN_DEVICE_FUNC OuterStride(Index v) : Base(v,0) {} // FIXME making this explicit could break valid code
 };

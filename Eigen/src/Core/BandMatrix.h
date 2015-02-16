@@ -179,7 +179,7 @@ struct traits<BandMatrix<_Scalar,_Rows,_Cols,_Supers,_Subs,_Options> >
 {
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
-  typedef DenseIndex StorageIndex;
+  typedef Eigen::Index StorageIndex;
   enum {
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     RowsAtCompileTime = _Rows,

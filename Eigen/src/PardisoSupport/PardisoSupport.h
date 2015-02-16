@@ -40,13 +40,13 @@ template<typename _MatrixType, int Options=Upper> class PardisoLDLT;
 
 namespace internal
 {
-  template<typename Index>
+  template<typename IndexType>
   struct pardiso_run_selector
   {
-    static Index run( _MKL_DSS_HANDLE_t pt, Index maxfct, Index mnum, Index type, Index phase, Index n, void *a,
-                      Index *ia, Index *ja, Index *perm, Index nrhs, Index *iparm, Index msglvl, void *b, void *x)
+    static IndexType run( _MKL_DSS_HANDLE_t pt, IndexType maxfct, IndexType mnum, IndexType type, IndexType phase, IndexType n, void *a,
+                      IndexType *ia, IndexType *ja, IndexType *perm, IndexType nrhs, IndexType *iparm, IndexType msglvl, void *b, void *x)
     {
-      Index error = 0;
+      IndexType error = 0;
       ::pardiso(pt, &maxfct, &mnum, &type, &phase, &n, a, ia, ja, perm, &nrhs, iparm, &msglvl, b, x, &error);
       return error;
     }
@@ -54,11 +54,11 @@ namespace internal
   template<>
   struct pardiso_run_selector<long long int>
   {
-    typedef long long int Index;
-    static Index run( _MKL_DSS_HANDLE_t pt, Index maxfct, Index mnum, Index type, Index phase, Index n, void *a,
-                      Index *ia, Index *ja, Index *perm, Index nrhs, Index *iparm, Index msglvl, void *b, void *x)
+    typedef long long int IndexTypeType;
+    static IndexType run( _MKL_DSS_HANDLE_t pt, IndexType maxfct, IndexType mnum, IndexType type, IndexType phase, IndexType n, void *a,
+                      IndexType *ia, IndexType *ja, IndexType *perm, IndexType nrhs, IndexType *iparm, IndexType msglvl, void *b, void *x)
     {
-      Index error = 0;
+      IndexType error = 0;
       ::pardiso_64(pt, &maxfct, &mnum, &type, &phase, &n, a, ia, ja, perm, &nrhs, iparm, &msglvl, b, x, &error);
       return error;
     }
@@ -72,7 +72,7 @@ namespace internal
     typedef _MatrixType MatrixType;
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef typename _MatrixType::Index Index;
+    typedef typename _MatrixType::StorageIndex StorageIndex;
   };
 
   template<typename _MatrixType, int Options>
@@ -81,7 +81,7 @@ namespace internal
     typedef _MatrixType MatrixType;
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef typename _MatrixType::Index Index;
+    typedef typename _MatrixType::StorageIndex StorageIndex;
   };
 
   template<typename _MatrixType, int Options>
@@ -90,7 +90,7 @@ namespace internal
     typedef _MatrixType MatrixType;
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef typename _MatrixType::Index Index;    
+    typedef typename _MatrixType::StorageIndex StorageIndex;    
   };
 
 }
@@ -111,18 +111,18 @@ class PardisoImpl : public SparseSolveBase<PardisoImpl<Derived>
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::RealScalar RealScalar;
     typedef typename Traits::StorageIndex StorageIndex;
-    typedef SparseMatrix<Scalar,RowMajor,Index> SparseMatrixType;
+    typedef SparseMatrix<Scalar,RowMajor,StorageIndex> SparseMatrixType;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
-    typedef Matrix<Index, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
-    typedef Matrix<Index, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
-    typedef Array<Index,64,1,DontAlign> ParameterType;
+    typedef Matrix<StorageIndex, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
+    typedef Matrix<StorageIndex, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
+    typedef Array<StorageIndex,64,1,DontAlign> ParameterType;
     enum {
       ScalarIsComplex = NumTraits<Scalar>::IsComplex
     };
 
     PardisoImpl()
     {
-      eigen_assert((sizeof(Index) >= sizeof(_INTEGER_t) && sizeof(Index) <= 8) && "Non-supported index type");
+      eigen_assert((sizeof(StorageIndex) >= sizeof(_INTEGER_t) && sizeof(StorageIndex) <= 8) && "Non-supported index type");
       m_iparm.setZero();
       m_msglvl = 0; // No output
       m_isInitialized = false;
@@ -181,7 +181,7 @@ class PardisoImpl : public SparseSolveBase<PardisoImpl<Derived>
     {
       if(m_isInitialized) // Factorization ran at least once
       {
-        internal::pardiso_run_selector<Index>::run(m_pt, 1, 1, m_type, -1, m_size, 0, 0, 0, m_perm.data(), 0,
+        internal::pardiso_run_selector<StorageIndex>::run(m_pt, 1, 1, m_type, -1, m_size, 0, 0, 0, m_perm.data(), 0,
                                                    m_iparm.data(), m_msglvl, 0, 0);
       }
     }
@@ -261,9 +261,9 @@ Derived& PardisoImpl<Derived>::compute(const MatrixType& a)
   derived().getMatrix(a);
   
   Index error;
-  error = internal::pardiso_run_selector<Index>::run(m_pt, 1, 1, m_type, 12, m_size,
-                                                     m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
-                                                     m_perm.data(), 0, m_iparm.data(), m_msglvl, NULL, NULL);
+  error = internal::pardiso_run_selector<StorageIndex>::run(m_pt, 1, 1, m_type, 12, m_size,
+                                                            m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
+                                                            m_perm.data(), 0, m_iparm.data(), m_msglvl, NULL, NULL);
 
   manageErrorCode(error);
   m_analysisIsOk = true;
@@ -284,9 +284,9 @@ Derived& PardisoImpl<Derived>::analyzePattern(const MatrixType& a)
   derived().getMatrix(a);
   
   Index error;
-  error = internal::pardiso_run_selector<Index>::run(m_pt, 1, 1, m_type, 11, m_size,
-                                                     m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
-                                                     m_perm.data(), 0, m_iparm.data(), m_msglvl, NULL, NULL);
+  error = internal::pardiso_run_selector<StorageIndex>::run(m_pt, 1, 1, m_type, 11, m_size,
+                                                            m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
+                                                            m_perm.data(), 0, m_iparm.data(), m_msglvl, NULL, NULL);
   
   manageErrorCode(error);
   m_analysisIsOk = true;
@@ -304,9 +304,9 @@ Derived& PardisoImpl<Derived>::factorize(const MatrixType& a)
   derived().getMatrix(a);
 
   Index error;  
-  error = internal::pardiso_run_selector<Index>::run(m_pt, 1, 1, m_type, 22, m_size,
-                                                     m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
-                                                     m_perm.data(), 0, m_iparm.data(), m_msglvl, NULL, NULL);
+  error = internal::pardiso_run_selector<StorageIndex>::run(m_pt, 1, 1, m_type, 22, m_size,
+                                                            m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
+                                                            m_perm.data(), 0, m_iparm.data(), m_msglvl, NULL, NULL);
   
   manageErrorCode(error);
   m_factorizationIsOk = true;
@@ -348,10 +348,10 @@ bool PardisoImpl<Base>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBase<XD
   }
   
   Index error;
-  error = internal::pardiso_run_selector<Index>::run(m_pt, 1, 1, m_type, 33, m_size,
-                                                     m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
-                                                     m_perm.data(), nrhs, m_iparm.data(), m_msglvl,
-                                                     rhs_ptr, x.derived().data());
+  error = internal::pardiso_run_selector<StorageIndex>::run(m_pt, 1, 1, m_type, 33, m_size,
+                                                            m_matrix.valuePtr(), m_matrix.outerIndexPtr(), m_matrix.innerIndexPtr(),
+                                                            m_perm.data(), nrhs, m_iparm.data(), m_msglvl,
+                                                            rhs_ptr, x.derived().data());
 
   return error==0;
 }
@@ -424,7 +424,7 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
   protected:
     typedef PardisoImpl< PardisoLLT<MatrixType,_UpLo> > Base;
     typedef typename Base::Scalar Scalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
@@ -454,7 +454,7 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
     void getMatrix(const MatrixType& matrix)
     {
       // PARDISO supports only upper, row-major matrices
-      PermutationMatrix<Dynamic,Dynamic,Index> p_null;
+      PermutationMatrix<Dynamic,Dynamic,StorageIndex> p_null;
       m_matrix.resize(matrix.rows(), matrix.cols());
       m_matrix.template selfadjointView<Upper>() = matrix.template selfadjointView<UpLo>().twistedBy(p_null);
     }
@@ -482,7 +482,7 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
   protected:
     typedef PardisoImpl< PardisoLDLT<MatrixType,Options> > Base;
     typedef typename Base::Scalar Scalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
@@ -510,7 +510,7 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
     void getMatrix(const MatrixType& matrix)
     {
       // PARDISO supports only upper, row-major matrices
-      PermutationMatrix<Dynamic,Dynamic,Index> p_null;
+      PermutationMatrix<Dynamic,Dynamic,StorageIndex> p_null;
       m_matrix.resize(matrix.rows(), matrix.cols());
       m_matrix.template selfadjointView<Upper>() = matrix.template selfadjointView<UpLo>().twistedBy(p_null);
     }

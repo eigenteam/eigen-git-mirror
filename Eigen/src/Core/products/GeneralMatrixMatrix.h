@@ -257,9 +257,9 @@ class level3_blocking
     LhsScalar* m_blockA;
     RhsScalar* m_blockB;
 
-    DenseIndex m_mc;
-    DenseIndex m_nc;
-    DenseIndex m_kc;
+    Index m_mc;
+    Index m_nc;
+    Index m_kc;
 
   public:
 
@@ -267,9 +267,9 @@ class level3_blocking
       : m_blockA(0), m_blockB(0), m_mc(0), m_nc(0), m_kc(0)
     {}
 
-    inline DenseIndex mc() const { return m_mc; }
-    inline DenseIndex nc() const { return m_nc; }
-    inline DenseIndex kc() const { return m_kc; }
+    inline Index mc() const { return m_mc; }
+    inline Index nc() const { return m_nc; }
+    inline Index kc() const { return m_kc; }
 
     inline LhsScalar* blockA() { return m_blockA; }
     inline RhsScalar* blockB() { return m_blockB; }
@@ -299,7 +299,7 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
 
   public:
 
-    gemm_blocking_space(DenseIndex /*rows*/, DenseIndex /*cols*/, DenseIndex /*depth*/, int /*num_threads*/, bool /*full_rows = false*/)
+    gemm_blocking_space(Index /*rows*/, Index /*cols*/, Index /*depth*/, int /*num_threads*/, bool /*full_rows = false*/)
     {
       this->m_mc = ActualRows;
       this->m_nc = ActualCols;
@@ -326,12 +326,12 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
     typedef typename conditional<Transpose,_LhsScalar,_RhsScalar>::type RhsScalar;
     typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
-    DenseIndex m_sizeA;
-    DenseIndex m_sizeB;
+    Index m_sizeA;
+    Index m_sizeB;
 
   public:
 
-    gemm_blocking_space(DenseIndex rows, DenseIndex cols, DenseIndex depth, int num_threads, bool l3_blocking)
+    gemm_blocking_space(Index rows, Index cols, Index depth, int num_threads, bool l3_blocking)
     {
       this->m_mc = Transpose ? cols : rows;
       this->m_nc = Transpose ? rows : cols;
@@ -343,8 +343,8 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
       }
       else  // no l3 blocking
       {
-        DenseIndex m = this->m_mc;
-        DenseIndex n = this->m_nc;
+        Index m = this->m_mc;
+        Index n = this->m_nc;
         computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, m, n, num_threads);
       }
 
