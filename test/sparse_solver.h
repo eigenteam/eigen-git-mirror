@@ -304,7 +304,7 @@ template<typename Solver> void check_sparse_spd_determinant(Solver& solver)
 }
 
 template<typename Solver, typename DenseMat>
-int generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, DenseMat& dA, int maxSize = 300)
+int generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, DenseMat& dA, int maxSize = 300, int options = ForceNonZeroDiag)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
@@ -315,7 +315,7 @@ int generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, Dens
   A.resize(size,size);
   dA.resize(size,size);
 
-  initSparse<Scalar>(density, dA, A, ForceNonZeroDiag);
+  initSparse<Scalar>(density, dA, A, options);
   
   return size;
 }
@@ -376,13 +376,20 @@ template<typename Solver> void check_sparse_square_determinant(Solver& solver)
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
-
-  // generate the problem
-  Mat A;
-  DenseMatrix dA;
-  generate_sparse_square_problem(solver, A, dA, 30);
-  A.makeCompressed();
+  
   for (int i = 0; i < g_repeat; i++) {
+    // generate the problem
+    Mat A;
+    DenseMatrix dA;
+    
+    int size = internal::random<int>(1,30);
+    dA.setRandom(size,size);
+    
+    dA = (dA.array().abs()<0.3).select(0,dA);
+    dA.diagonal() = (dA.diagonal().array()==0).select(1,dA.diagonal());
+    A = dA.sparseView();
+    A.makeCompressed();
+  
     check_sparse_determinant(solver, A, dA);
   }
 }
@@ -393,12 +400,12 @@ template<typename Solver> void check_sparse_square_abs_determinant(Solver& solve
   typedef typename Mat::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
 
-  // generate the problem
-  Mat A;
-  DenseMatrix dA;
-  generate_sparse_square_problem(solver, A, dA, 30);
-  A.makeCompressed();
   for (int i = 0; i < g_repeat; i++) {
+    // generate the problem
+    Mat A;
+    DenseMatrix dA;
+    generate_sparse_square_problem(solver, A, dA, 30);
+    A.makeCompressed();
     check_sparse_abs_determinant(solver, A, dA);
   }
 }
