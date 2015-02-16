@@ -198,7 +198,6 @@ struct general_product_to_triangular_selector<MatrixType,ProductType,UpLo,true>
   static void run(MatrixType& mat, const ProductType& prod, const typename MatrixType::Scalar& alpha)
   {
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
     
     typedef typename internal::remove_all<typename ProductType::LhsNested>::type Lhs;
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
@@ -243,8 +242,6 @@ struct general_product_to_triangular_selector<MatrixType,ProductType,UpLo,false>
 {
   static void run(MatrixType& mat, const ProductType& prod, const typename MatrixType::Scalar& alpha)
   {
-    typedef typename MatrixType::Index Index;
-    
     typedef typename internal::remove_all<typename ProductType::LhsNested>::type Lhs;
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhs;

@@ -37,7 +37,6 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     };
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -179,7 +178,7 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
 
     typedef typename Base::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     typedef typename Base::PointerType PointerType;
 
     using Base::derived;

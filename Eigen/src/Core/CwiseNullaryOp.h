@@ -753,7 +753,6 @@ struct setIdentity_impl
 template<typename Derived>
 struct setIdentity_impl<Derived, true>
 {
-  typedef typename Derived::Index Index;
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Derived& run(Derived& m)
   {

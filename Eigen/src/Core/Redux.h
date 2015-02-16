@@ -191,7 +191,6 @@ template<typename Func, typename Derived>
 struct redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
-  typedef typename Derived::Index Index;
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Derived &mat, const Func& func)
   {
@@ -217,7 +216,6 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename packet_traits<Scalar>::type PacketScalar;
-  typedef typename Derived::Index Index;
 
   static Scalar run(const Derived &mat, const Func& func)
   {
@@ -275,7 +273,6 @@ struct redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename packet_traits<Scalar>::type PacketScalar;
-  typedef typename Derived::Index Index;
 
   EIGEN_DEVICE_FUNC static Scalar run(const Derived &mat, const Func& func)
   {
@@ -342,7 +339,6 @@ public:
   typedef _XprType XprType;
   EIGEN_DEVICE_FUNC explicit redux_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
   
-  typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename XprType::PacketScalar PacketScalar;

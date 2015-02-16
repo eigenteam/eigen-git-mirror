@@ -24,7 +24,6 @@ struct processTriangularMatrix<MatrixType,0>
 {
   static void run(MatrixType& m, MatrixType& T, const MatrixType& U)
   {
-    typedef typename MatrixType::Index Index;
     const Index size = m.cols();
 
     for (Index i=0; i < size; ++i) {

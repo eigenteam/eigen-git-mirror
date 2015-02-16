@@ -67,7 +67,7 @@ namespace Eigen {
       };
       typedef typename MatrixType::Scalar Scalar;
       typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
-      typedef typename MatrixType::Index Index;
+      typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
 
       typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options & ~RowMajor, MaxColsAtCompileTime, 1> EigenvalueType;
       typedef Matrix<Scalar, ColsAtCompileTime, 1, Options & ~RowMajor, MaxColsAtCompileTime, 1> ColumnVectorType;
@@ -276,7 +276,7 @@ namespace Eigen {
 
   /** \internal Look for single small sub-diagonal element S(res, res-1) and return res (or 0) */
   template<typename MatrixType>
-    inline typename MatrixType::Index RealQZ<MatrixType>::findSmallSubdiagEntry(Index iu)
+    inline Index RealQZ<MatrixType>::findSmallSubdiagEntry(Index iu)
     {
       using std::abs;
       Index res = iu;
@@ -294,7 +294,7 @@ namespace Eigen {
 
   /** \internal Look for single small diagonal element T(res, res) for res between f and l, and return res (or f-1)  */
   template<typename MatrixType>
-    inline typename MatrixType::Index RealQZ<MatrixType>::findSmallDiagEntry(Index f, Index l)
+    inline Index RealQZ<MatrixType>::findSmallDiagEntry(Index f, Index l)
     {
       using std::abs;
       Index res = l;

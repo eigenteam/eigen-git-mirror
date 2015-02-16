@@ -474,7 +474,6 @@ template<typename Lhs, int LhsMode, typename Rhs, int RhsMode>
 struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,RhsMode,false>
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
-  typedef typename Product<Lhs,Rhs>::Index  Index;
   
   typedef internal::blas_traits<Lhs> LhsBlasTraits;
   typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;

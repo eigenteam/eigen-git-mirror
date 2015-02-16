@@ -68,7 +68,7 @@ struct triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,1>
     if(!useRhsDirectly)
       MappedRhs(actualRhs,rhs.size()) = rhs;
 
-    triangular_solve_vector<LhsScalar, RhsScalar, typename Lhs::Index, Side, Mode, LhsProductTraits::NeedToConjugate,
+    triangular_solve_vector<LhsScalar, RhsScalar, Index, Side, Mode, LhsProductTraits::NeedToConjugate,
                             (int(Lhs::Flags) & RowMajorBit) ? RowMajor : ColMajor>
       ::run(actualLhs.cols(), actualLhs.data(), actualLhs.outerStride(), actualRhs);
 
@@ -82,7 +82,6 @@ template<typename Lhs, typename Rhs, int Side, int Mode>
 struct triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,Dynamic>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename Rhs::Index Index;
   typedef blas_traits<Lhs> LhsProductTraits;
   typedef typename LhsProductTraits::DirectLinearAccessType ActualLhsType;
 
@@ -232,7 +231,6 @@ template<int Side, typename TriangularType, typename Rhs> struct triangular_solv
 {
   typedef typename remove_all<typename Rhs::Nested>::type RhsNestedCleaned;
   typedef ReturnByValue<triangular_solve_retval> Base;
-  typedef typename Base::Index Index;
 
   triangular_solve_retval(const TriangularType& tri, const Rhs& rhs)
     : m_triangularMatrix(tri), m_rhs(rhs)

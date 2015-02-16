@@ -26,17 +26,17 @@ namespace internal {
   public:
     using Base::derived;
     typedef typename Base::Scalar Scalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     
     inline const Scalar* valuePtr() const { return derived().nestedExpression().valuePtr(); }
-    inline const Index* innerIndexPtr() const { return derived().nestedExpression().innerIndexPtr(); }
-    inline const Index* outerIndexPtr() const { return derived().nestedExpression().outerIndexPtr(); }
-    inline const Index* innerNonZeroPtr() const { return derived().nestedExpression().innerNonZeroPtr(); }
+    inline const StorageIndex* innerIndexPtr() const { return derived().nestedExpression().innerIndexPtr(); }
+    inline const StorageIndex* outerIndexPtr() const { return derived().nestedExpression().outerIndexPtr(); }
+    inline const StorageIndex* innerNonZeroPtr() const { return derived().nestedExpression().innerNonZeroPtr(); }
     
     inline Scalar* valuePtr() { return derived().nestedExpression().valuePtr(); }
-    inline Index* innerIndexPtr() { return derived().nestedExpression().innerIndexPtr(); }
-    inline Index* outerIndexPtr() { return derived().nestedExpression().outerIndexPtr(); }
-    inline Index* innerNonZeroPtr() { return derived().nestedExpression().innerNonZeroPtr(); }
+    inline StorageIndex* innerIndexPtr() { return derived().nestedExpression().innerIndexPtr(); }
+    inline StorageIndex* outerIndexPtr() { return derived().nestedExpression().outerIndexPtr(); }
+    inline StorageIndex* innerNonZeroPtr() { return derived().nestedExpression().innerNonZeroPtr(); }
   };
 }
   
@@ -48,7 +48,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
   protected:
     typedef internal::SparseTransposeImpl<MatrixType> Base;
   public:
-    inline typename MatrixType::Index nonZeros() const { return Base::derived().nestedExpression().nonZeros(); }
+    inline Index nonZeros() const { return Base::derived().nestedExpression().nonZeros(); }
 };
 
 namespace internal {
@@ -61,12 +61,11 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
     typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
   public:
     typedef Transpose<ArgType> XprType;
-    typedef typename XprType::Index Index;
 
     class InnerIterator : public EvalIterator
     {
     public:
-      EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& unaryOp, typename XprType::Index outer)
+      EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& unaryOp, Index outer)
         : EvalIterator(unaryOp.m_argImpl,outer)
       {}
       
@@ -77,7 +76,7 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
     class ReverseInnerIterator : public EvalReverseIterator
     {
     public:
-      EIGEN_STRONG_INLINE ReverseInnerIterator(const unary_evaluator& unaryOp, typename XprType::Index outer)
+      EIGEN_STRONG_INLINE ReverseInnerIterator(const unary_evaluator& unaryOp, Index outer)
         : EvalReverseIterator(unaryOp.m_argImpl,outer)
       {}
       

@@ -62,7 +62,7 @@ template<typename Scalar> class JacobiRotation
     JacobiRotation adjoint() const { using numext::conj; return JacobiRotation(conj(m_c), -m_s); }
 
     template<typename Derived>
-    bool makeJacobi(const MatrixBase<Derived>&, typename Derived::Index p, typename Derived::Index q);
+    bool makeJacobi(const MatrixBase<Derived>&, Index p, Index q);
     bool makeJacobi(const RealScalar& x, const Scalar& y, const RealScalar& z);
 
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* z=0);
@@ -123,7 +123,7 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
   */
 template<typename Scalar>
 template<typename Derived>
-inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, typename Derived::Index p, typename Derived::Index q)
+inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, Index p, Index q)
 {
   return makeJacobi(numext::real(m.coeff(p,p)), m.coeff(p,q), numext::real(m.coeff(q,q)));
 }
@@ -300,7 +300,6 @@ namespace internal {
 template<typename VectorX, typename VectorY, typename OtherScalar>
 void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const JacobiRotation<OtherScalar>& j)
 {
-  typedef typename VectorX::Index Index;
   typedef typename VectorX::Scalar Scalar;
   enum { PacketSize = packet_traits<Scalar>::size };
   typedef typename packet_traits<Scalar>::type Packet;

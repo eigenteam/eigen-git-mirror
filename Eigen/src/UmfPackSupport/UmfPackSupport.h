@@ -141,7 +141,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
+    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
@@ -279,7 +279,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     void grapInput_impl(const InputMatrixType& mat, internal::true_type)
     {
       m_copyMatrix.resize(mat.rows(), mat.cols());
-      if( ((MatrixType::Flags&RowMajorBit)==RowMajorBit) || sizeof(typename MatrixType::Index)!=sizeof(int) || !mat.isCompressed() )
+      if( ((MatrixType::Flags&RowMajorBit)==RowMajorBit) || sizeof(typename MatrixType::StorageIndex)!=sizeof(int) || !mat.isCompressed() )
       {
         // non supported input -> copy
         m_copyMatrix = mat;
@@ -313,8 +313,9 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     void analyzePattern_impl()
     {
       int errorCode = 0;
-      errorCode = umfpack_symbolic(m_copyMatrix.rows(), m_copyMatrix.cols(), m_outerIndexPtr, m_innerIndexPtr, m_valuePtr,
-                                   &m_symbolic, 0, 0);
+      errorCode = umfpack_symbolic(internal::convert_index<int>(m_copyMatrix.rows()),
+                                   internal::convert_index<int>(m_copyMatrix.cols()),
+                                   m_outerIndexPtr, m_innerIndexPtr, m_valuePtr, &m_symbolic, 0, 0);
 
       m_isInitialized = true;
       m_info = errorCode ? InvalidInput : Success;
@@ -397,7 +398,7 @@ template<typename MatrixType>
 template<typename BDerived,typename XDerived>
 bool UmfPackLU<MatrixType>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBase<XDerived> &x) const
 {
-  const int rhsCols = b.cols();
+  Index rhsCols = b.cols();
   eigen_assert((BDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major rhs yet");
   eigen_assert((XDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major result yet");
   eigen_assert(b.derived().data() != x.derived().data() && " Umfpack does not support inplace solve");

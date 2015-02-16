@@ -206,7 +206,6 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef typename Dest::Index      Index;
     typedef typename Lhs::Scalar      LhsScalar;
     typedef typename Rhs::Scalar      RhsScalar;
     typedef typename Dest::Scalar     ResScalar;
@@ -283,7 +282,6 @@ template<int Mode> struct trmv_selector<Mode,RowMajor>
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef typename Dest::Index      Index;
     typedef typename Lhs::Scalar      LhsScalar;
     typedef typename Rhs::Scalar      RhsScalar;
     typedef typename Dest::Scalar     ResScalar;

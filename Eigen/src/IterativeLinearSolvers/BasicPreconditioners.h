@@ -34,9 +34,8 @@ class DiagonalPreconditioner
 {
     typedef _Scalar Scalar;
     typedef Matrix<Scalar,Dynamic,1> Vector;
-    typedef typename Vector::Index Index;
-
   public:
+    typedef typename Vector::StorageIndex StorageIndex;
     // this typedef is only to export the scalar type and compile-time dimensions to solve_retval
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
 

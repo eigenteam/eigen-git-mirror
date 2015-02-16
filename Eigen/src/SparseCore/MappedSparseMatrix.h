@@ -23,23 +23,23 @@ namespace Eigen {
   *
   */
 namespace internal {
-template<typename _Scalar, int _Flags, typename _Index>
-struct traits<MappedSparseMatrix<_Scalar, _Flags, _Index> > : traits<SparseMatrix<_Scalar, _Flags, _Index> >
+template<typename _Scalar, int _Flags, typename _StorageIndex>
+struct traits<MappedSparseMatrix<_Scalar, _Flags, _StorageIndex> > : traits<SparseMatrix<_Scalar, _Flags, _StorageIndex> >
 {};
 } // end namespace internal
 
-template<typename _Scalar, int _Flags, typename _Index>
+template<typename _Scalar, int _Flags, typename _StorageIndex>
 class MappedSparseMatrix
-  : public Map<SparseMatrix<_Scalar, _Flags, _Index> >
+  : public Map<SparseMatrix<_Scalar, _Flags, _StorageIndex> >
 {
-    typedef Map<SparseMatrix<_Scalar, _Flags, _Index> > Base;
+    typedef Map<SparseMatrix<_Scalar, _Flags, _StorageIndex> > Base;
 
   public:
     
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     typedef typename Base::Scalar Scalar;
 
-    inline MappedSparseMatrix(Index rows, Index cols, Index nnz, Index* outerIndexPtr, Index* innerIndexPtr, Scalar* valuePtr, Index* innerNonZeroPtr = 0)
+    inline MappedSparseMatrix(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr, StorageIndex* innerIndexPtr, Scalar* valuePtr, StorageIndex* innerNonZeroPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZeroPtr)
     {}
 
@@ -49,11 +49,11 @@ class MappedSparseMatrix
 
 namespace internal {
 
-template<typename _Scalar, int _Options, typename _Index>
-struct evaluator<MappedSparseMatrix<_Scalar,_Options,_Index> >
-  : evaluator<SparseCompressedBase<MappedSparseMatrix<_Scalar,_Options,_Index> > >
+template<typename _Scalar, int _Options, typename _StorageIndex>
+struct evaluator<MappedSparseMatrix<_Scalar,_Options,_StorageIndex> >
+  : evaluator<SparseCompressedBase<MappedSparseMatrix<_Scalar,_Options,_StorageIndex> > >
 {
-  typedef MappedSparseMatrix<_Scalar,_Options,_Index> XprType;
+  typedef MappedSparseMatrix<_Scalar,_Options,_StorageIndex> XprType;
   typedef evaluator<SparseCompressedBase<XprType> > Base;
   
   evaluator() : Base() {}

@@ -45,7 +45,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     };
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
     typedef typename internal::traits<Derived>::FullMatrixType DenseMatrixType;
     typedef DenseMatrixType DenseType;
     typedef Derived const& Nested;
@@ -199,7 +199,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
   public:
 
     typedef typename internal::traits<TriangularView>::StorageKind StorageKind;
-    typedef typename internal::traits<TriangularView>::Index Index;
     typedef typename internal::traits<TriangularView>::MatrixTypeNestedCleaned NestedExpression;
 
     enum {
@@ -325,7 +324,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     using Base::derived;
 
     typedef typename internal::traits<TriangularViewType>::StorageKind StorageKind;
-    typedef typename internal::traits<TriangularViewType>::Index Index;
 
     enum {
       Mode = _Mode,
@@ -688,7 +686,6 @@ public:
   typedef typename Base::DstEvaluatorType DstEvaluatorType;
   typedef typename Base::SrcEvaluatorType SrcEvaluatorType;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::Index Index;
   typedef typename Base::AssignmentTraits AssignmentTraits;
   
   
@@ -831,7 +828,6 @@ struct triangular_assignment_loop<Kernel, Mode, 0, SetOpposite>
 template<typename Kernel, unsigned int Mode, bool SetOpposite>
 struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
 {
-  typedef typename Kernel::Index Index;
   typedef typename Kernel::Scalar Scalar;
   EIGEN_DEVICE_FUNC
   static inline void run(Kernel &kernel)

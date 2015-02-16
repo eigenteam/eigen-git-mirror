@@ -30,13 +30,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
     typedef typename internal::add_const_on_value_type_if_arithmetic<
                          typename internal::packet_traits<Scalar>::type
                      >::type PacketReturnType;
 
     typedef SparseMatrixBase StorageBaseType;
     typedef EigenBase<Derived> Base;
+    typedef Matrix<StorageIndex,Dynamic,1> IndexVector;
+    typedef Matrix<Scalar,Dynamic,1> ScalarVector;
     
     template<typename OtherDerived>
     Derived& operator=(const EigenBase<OtherDerived> &other);
@@ -99,7 +101,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
 
     // FIXME storage order do not match evaluator storage order
-    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, Index> PlainObject;
+    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor, StorageIndex> PlainObject;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -227,8 +229,8 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         }
         else
         {
-          SparseMatrix<Scalar, RowMajorBit, Index> trans = m;
-          s << static_cast<const SparseMatrixBase<SparseMatrix<Scalar, RowMajorBit, Index> >&>(trans);
+          SparseMatrix<Scalar, RowMajorBit, StorageIndex> trans = m;
+          s << static_cast<const SparseMatrixBase<SparseMatrix<Scalar, RowMajorBit, StorageIndex> >&>(trans);
         }
       }
       return s;
@@ -288,7 +290,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     { return Product<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
     
      /** \returns an expression of P H P^-1 where H is the matrix represented by \c *this */
-    SparseSymmetricPermutationProduct<Derived,Upper|Lower> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
+    SparseSymmetricPermutationProduct<Derived,Upper|Lower> twistedBy(const PermutationMatrix<Dynamic,Dynamic,StorageIndex>& perm) const
     {
       return SparseSymmetricPermutationProduct<Derived,Upper|Lower>(derived(), perm);
     }
@@ -352,6 +354,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
   protected:
 
     bool m_isRValue;
+
+    static inline StorageIndex convert_index(const Index idx) {
+      return internal::convert_index<StorageIndex>(idx);
+    }
 };
 
 } // end namespace Eigen

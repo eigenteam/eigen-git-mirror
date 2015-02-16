@@ -154,7 +154,7 @@ template<typename SparseMatrixType,
 class RandomSetter
 {
     typedef typename SparseMatrixType::Scalar Scalar;
-    typedef typename SparseMatrixType::Index Index;
+    typedef typename SparseMatrixType::StorageIndex StorageIndex;
 
     struct ScalarWrapper
     {

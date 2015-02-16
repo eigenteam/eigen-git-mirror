@@ -21,7 +21,6 @@ namespace internal {
 // template<typename TriangularFactorType,typename VectorsType,typename CoeffsType>
 // void make_block_householder_triangular_factor(TriangularFactorType& triFactor, const VectorsType& vectors, const CoeffsType& hCoeffs)
 // {
-//   typedef typename TriangularFactorType::Index Index;
 //   typedef typename VectorsType::Scalar Scalar;
 //   const Index nbVecs = vectors.cols();
 //   eigen_assert(triFactor.rows() == nbVecs && triFactor.cols() == nbVecs && vectors.rows()>=nbVecs);
@@ -51,7 +50,6 @@ namespace internal {
 template<typename TriangularFactorType,typename VectorsType,typename CoeffsType>
 void make_block_householder_triangular_factor(TriangularFactorType& triFactor, const VectorsType& vectors, const CoeffsType& hCoeffs)
 {
-  typedef typename TriangularFactorType::Index Index;
   const Index nbVecs = vectors.cols();
   eigen_assert(triFactor.rows() == nbVecs && triFactor.cols() == nbVecs && vectors.rows()>=nbVecs);
 
@@ -80,7 +78,6 @@ void make_block_householder_triangular_factor(TriangularFactorType& triFactor, c
 template<typename MatrixType,typename VectorsType,typename CoeffsType>
 void apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& vectors, const CoeffsType& hCoeffs, bool forward)
 {
-  typedef typename MatrixType::Index Index;
   enum { TFactorSize = MatrixType::ColsAtCompileTime };
   Index nbVecs = vectors.cols();
   Matrix<typename MatrixType::Scalar, TFactorSize, TFactorSize, RowMajor> T(nbVecs,nbVecs);

@@ -50,7 +50,6 @@ class GeneralizedSelfAdjointEigenSolver : public SelfAdjointEigenSolver<_MatrixT
     typedef SelfAdjointEigenSolver<_MatrixType> Base;
   public:
 
-    typedef typename Base::Index Index;
     typedef _MatrixType MatrixType;
 
     /** \brief Default constructor for fixed-size matrices.

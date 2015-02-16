@@ -56,7 +56,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::Index Index;
 
   public:
     
@@ -145,7 +144,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::Index Index;
 
   public:
     
@@ -223,7 +221,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::Index Index;
     enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
@@ -288,7 +285,6 @@ public:
   class InnerIterator
   {
     typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::Index Index;
     enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
 
   public:

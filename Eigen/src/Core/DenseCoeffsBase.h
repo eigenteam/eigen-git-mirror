@@ -35,7 +35,6 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
 {
   public:
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
 
@@ -287,7 +286,6 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     typedef DenseCoeffsBase<Derived, ReadOnlyAccessors> Base;
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
-    typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -450,7 +448,6 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
   public:
 
     typedef DenseCoeffsBase<Derived, ReadOnlyAccessors> Base;
-    typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
@@ -525,7 +522,6 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
   public:
 
     typedef DenseCoeffsBase<Derived, WriteAccessors> Base;
-    typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
@@ -587,14 +583,14 @@ namespace internal {
 template<typename Derived, bool JustReturnZero>
 struct first_aligned_impl
 {
-  static inline typename Derived::Index run(const Derived&)
+  static inline Index run(const Derived&)
   { return 0; }
 };
 
 template<typename Derived>
 struct first_aligned_impl<Derived, false>
 {
-  static inline typename Derived::Index run(const Derived& m)
+  static inline Index run(const Derived& m)
   {
     return internal::first_aligned(&m.const_cast_derived().coeffRef(0,0), m.size());
   }
@@ -606,7 +602,7 @@ struct first_aligned_impl<Derived, false>
   * documentation.
   */
 template<typename Derived>
-static inline typename Derived::Index first_aligned(const Derived& m)
+static inline Index first_aligned(const Derived& m)
 {
   return first_aligned_impl
           <Derived, (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>

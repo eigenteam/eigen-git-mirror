@@ -66,7 +66,6 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagonalCoeffType, SDP_A
 protected:
   typedef typename evaluator<SparseXprType>::InnerIterator SparseXprInnerIterator;
   typedef typename SparseXprType::Scalar Scalar;
-  typedef typename SparseXprType::Index Index;
   
 public:
   class InnerIterator : public SparseXprInnerIterator
@@ -96,7 +95,6 @@ template<typename SparseXprType, typename DiagCoeffType>
 struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwiseProduct> 
 {
   typedef typename SparseXprType::Scalar Scalar;
-  typedef typename SparseXprType::Index Index;
   
   typedef CwiseBinaryOp<scalar_product_op<Scalar>,
                         const typename SparseXprType::ConstInnerVectorReturnType,
@@ -114,7 +112,7 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
         m_outer(outer)
     {}
     
-    inline Scalar value() const  { return m_cwiseIter.value(); }
+    inline Scalar value() const { return m_cwiseIter.value(); }
     inline Index index() const  { return m_cwiseIter.index(); }
     inline Index outer() const  { return m_outer; }
     inline Index col() const    { return SparseXprType::IsRowMajor ? m_cwiseIter.index() : m_outer; }

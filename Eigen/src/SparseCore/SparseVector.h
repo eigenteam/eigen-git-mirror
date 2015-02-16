@@ -26,11 +26,11 @@ namespace Eigen {
   */
 
 namespace internal {
-template<typename _Scalar, int _Options, typename _Index>
-struct traits<SparseVector<_Scalar, _Options, _Index> >
+template<typename _Scalar, int _Options, typename _StorageIndex>
+struct traits<SparseVector<_Scalar, _Options, _StorageIndex> >
 {
   typedef _Scalar Scalar;
-  typedef _Index Index;
+  typedef _StorageIndex StorageIndex;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -61,9 +61,9 @@ struct sparse_vector_assign_selector;
 
 }
 
-template<typename _Scalar, int _Options, typename _Index>
+template<typename _Scalar, int _Options, typename _StorageIndex>
 class SparseVector
-  : public SparseMatrixBase<SparseVector<_Scalar, _Options, _Index> >
+  : public SparseMatrixBase<SparseVector<_Scalar, _Options, _StorageIndex> >
 {
     typedef SparseMatrixBase<SparseVector> SparseBase;
     
@@ -72,7 +72,7 @@ class SparseVector
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
     
-    typedef internal::CompressedStorage<Scalar,Index> Storage;
+    typedef internal::CompressedStorage<Scalar,StorageIndex> Storage;
     enum { IsColVector = internal::traits<SparseVector>::IsColVector };
     
     enum {
@@ -87,8 +87,8 @@ class SparseVector
     EIGEN_STRONG_INLINE const Scalar* valuePtr() const { return &m_data.value(0); }
     EIGEN_STRONG_INLINE Scalar* valuePtr() { return &m_data.value(0); }
 
-    EIGEN_STRONG_INLINE const Index* innerIndexPtr() const { return &m_data.index(0); }
-    EIGEN_STRONG_INLINE Index* innerIndexPtr() { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE const StorageIndex* innerIndexPtr() const { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE StorageIndex* innerIndexPtr() { return &m_data.index(0); }
     
     /** \internal */
     inline Storage& data() { return m_data; }
@@ -103,7 +103,7 @@ class SparseVector
     inline Scalar coeff(Index i) const
     {
       eigen_assert(i>=0 && i<m_size);
-      return m_data.at(i);
+      return m_data.at(StorageIndex(i));
     }
 
     inline Scalar& coeffRef(Index row, Index col)
@@ -121,7 +121,7 @@ class SparseVector
     inline Scalar& coeffRef(Index i)
     {
       eigen_assert(i>=0 && i<m_size);
-      return m_data.atWithInsertion(i);
+      return m_data.atWithInsertion(StorageIndex(i));
     }
 
   public:
@@ -132,7 +132,7 @@ class SparseVector
     inline void setZero() { m_data.clear(); }
 
     /** \returns the number of non zero coefficients */
-    inline Index nonZeros() const  { return static_cast<Index>(m_data.size()); }
+    inline Index nonZeros() const  { return m_data.size(); }
 
     inline void startVec(Index outer)
     {
@@ -188,7 +188,7 @@ class SparseVector
         m_data.value(p+1) = m_data.value(p);
         --p;
       }
-      m_data.index(p+1) = i;
+      m_data.index(p+1) = convert_index(i);
       m_data.value(p+1) = 0;
       return m_data.value(p+1);
     }
@@ -207,7 +207,7 @@ class SparseVector
 
     void resize(Index rows, Index cols)
     {
-      eigen_assert(rows==1 || cols==1);
+      eigen_assert((IsColVector ? cols : rows)==1 && "Outer dimension must equal 1");
       resize(IsColVector ? rows : cols);
     }
 
@@ -348,7 +348,7 @@ protected:
   
     static void check_template_parameters()
     {
-      EIGEN_STATIC_ASSERT(NumTraits<Index>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
+      EIGEN_STATIC_ASSERT(NumTraits<StorageIndex>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
       EIGEN_STATIC_ASSERT((_Options&(ColMajor|RowMajor))==Options,INVALID_MATRIX_TEMPLATE_PARAMETERS);
     }
     
@@ -356,19 +356,19 @@ protected:
     Index m_size;
 };
 
-template<typename Scalar, int _Options, typename _Index>
-class SparseVector<Scalar,_Options,_Index>::InnerIterator
+template<typename Scalar, int _Options, typename _StorageIndex>
+class SparseVector<Scalar,_Options,_StorageIndex>::InnerIterator
 {
   public:
 	explicit InnerIterator(const SparseVector& vec, Index outer=0)
-      : m_data(vec.m_data), m_id(0), m_end(static_cast<Index>(m_data.size()))
+      : m_data(vec.m_data), m_id(0), m_end(m_data.size())
     {
       EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
-	explicit InnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
-      : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
+	explicit InnerIterator(const internal::CompressedStorage<Scalar,StorageIndex>& data)
+      : m_data(data), m_id(0), m_end(m_data.size())
     {}
 
     inline InnerIterator& operator++() { m_id++; return *this; }
@@ -383,7 +383,7 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
-    const internal::CompressedStorage<Scalar,Index>& m_data;
+    const internal::CompressedStorage<Scalar,StorageIndex>& m_data;
     Index m_id;
     const Index m_end;
   private:
@@ -393,19 +393,19 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
     template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer=0);
 };
 
-template<typename Scalar, int _Options, typename _Index>
-class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
+template<typename Scalar, int _Options, typename _StorageIndex>
+class SparseVector<Scalar,_Options,_StorageIndex>::ReverseInnerIterator
 {
   public:
 	explicit ReverseInnerIterator(const SparseVector& vec, Index outer=0)
-      : m_data(vec.m_data), m_id(static_cast<Index>(m_data.size())), m_start(0)
+      : m_data(vec.m_data), m_id(m_data.size()), m_start(0)
     {
       EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
-	explicit ReverseInnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
-      : m_data(data), m_id(static_cast<Index>(m_data.size())), m_start(0)
+	explicit ReverseInnerIterator(const internal::CompressedStorage<Scalar,StorageIndex>& data)
+      : m_data(data), m_id(m_data.size()), m_start(0)
     {}
 
     inline ReverseInnerIterator& operator--() { m_id--; return *this; }
@@ -420,7 +420,7 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
     inline operator bool() const { return (m_id > m_start); }
 
   protected:
-    const internal::CompressedStorage<Scalar,Index>& m_data;
+    const internal::CompressedStorage<Scalar,StorageIndex>& m_data;
     Index m_id;
     const Index m_start;
 };
@@ -465,7 +465,7 @@ struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
     eigen_internal_assert(src.outerSize()==src.size());
     typedef typename internal::evaluator<Src>::type SrcEvaluatorType;
     SrcEvaluatorType srcEval(src);
-    for(typename Dest::Index i=0; i<src.size(); ++i)
+    for(Index i=0; i<src.size(); ++i)
     {
       typename SrcEvaluatorType::InnerIterator it(srcEval, i);
       if(it)

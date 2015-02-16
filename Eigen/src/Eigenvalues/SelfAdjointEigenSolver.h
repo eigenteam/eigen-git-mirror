@@ -21,7 +21,7 @@ class GeneralizedSelfAdjointEigenSolver;
 namespace internal {
 template<typename SolverType,int Size,bool IsComplex> struct direct_selfadjoint_eigenvalues;
 template<typename MatrixType, typename DiagType, typename SubDiagType>
-ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const typename MatrixType::Index maxIterations, bool computeEigenvectors, MatrixType& eivec);
+ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const Index maxIterations, bool computeEigenvectors, MatrixType& eivec);
 }
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
@@ -81,7 +81,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     
     /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
+    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
 
     /** \brief Real scalar type for \p _MatrixType.
       *
@@ -456,12 +456,11 @@ namespace internal {
   * \returns \c Success or \c NoConvergence
   */
 template<typename MatrixType, typename DiagType, typename SubDiagType>
-ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const typename MatrixType::Index maxIterations, bool computeEigenvectors, MatrixType& eivec)
+ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag, const Index maxIterations, bool computeEigenvectors, MatrixType& eivec)
 {
   using std::abs;
 
   ComputationInfo info;
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   Index n = diag.size();

@@ -135,54 +135,54 @@ namespace internal {
 /* ========================================================================== */
 
 // == Row and Column structures ==
-template <typename Index>
+template <typename IndexType>
 struct colamd_col
 {
-  Index start ;   /* index for A of first row in this column, or DEAD */
+  IndexType start ;   /* index for A of first row in this column, or DEAD */
   /* if column is dead */
-  Index length ;  /* number of rows in this column */
+  IndexType length ;  /* number of rows in this column */
   union
   {
-    Index thickness ; /* number of original columns represented by this */
+    IndexType thickness ; /* number of original columns represented by this */
     /* col, if the column is alive */
-    Index parent ;  /* parent in parent tree super-column structure, if */
+    IndexType parent ;  /* parent in parent tree super-column structure, if */
     /* the column is dead */
   } shared1 ;
   union
   {
-    Index score ; /* the score used to maintain heap, if col is alive */
-    Index order ; /* pivot ordering of this column, if col is dead */
+    IndexType score ; /* the score used to maintain heap, if col is alive */
+    IndexType order ; /* pivot ordering of this column, if col is dead */
   } shared2 ;
   union
   {
-    Index headhash ;  /* head of a hash bucket, if col is at the head of */
+    IndexType headhash ;  /* head of a hash bucket, if col is at the head of */
     /* a degree list */
-    Index hash ;  /* hash value, if col is not in a degree list */
-    Index prev ;  /* previous column in degree list, if col is in a */
+    IndexType hash ;  /* hash value, if col is not in a degree list */
+    IndexType prev ;  /* previous column in degree list, if col is in a */
     /* degree list (but not at the head of a degree list) */
   } shared3 ;
   union
   {
-    Index degree_next ; /* next column, if col is in a degree list */
-    Index hash_next ;   /* next column, if col is in a hash list */
+    IndexType degree_next ; /* next column, if col is in a degree list */
+    IndexType hash_next ;   /* next column, if col is in a hash list */
   } shared4 ;
   
 };
  
-template <typename Index>
+template <typename IndexType>
 struct Colamd_Row
 {
-  Index start ;   /* index for A of first col in this row */
-  Index length ;  /* number of principal columns in this row */
+  IndexType start ;   /* index for A of first col in this row */
+  IndexType length ;  /* number of principal columns in this row */
   union
   {
-    Index degree ;  /* number of principal & non-principal columns in row */
-    Index p ;   /* used as a row pointer in init_rows_cols () */
+    IndexType degree ;  /* number of principal & non-principal columns in row */
+    IndexType p ;   /* used as a row pointer in init_rows_cols () */
   } shared1 ;
   union
   {
-    Index mark ;  /* for computing set differences and marking dead rows*/
-    Index first_column ;/* first column in row (used in garbage collection) */
+    IndexType mark ;  /* for computing set differences and marking dead rows*/
+    IndexType first_column ;/* first column in row (used in garbage collection) */
   } shared2 ;
   
 };
@@ -202,38 +202,38 @@ struct Colamd_Row
   
   This macro is not needed when using symamd.
   
-  Explicit typecast to Index added Sept. 23, 2002, COLAMD version 2.2, to avoid
+  Explicit typecast to IndexType added Sept. 23, 2002, COLAMD version 2.2, to avoid
   gcc -pedantic warning messages.
 */
-template <typename Index>
-inline Index colamd_c(Index n_col) 
-{ return Index( ((n_col) + 1) * sizeof (colamd_col<Index>) / sizeof (Index) ) ; }
+template <typename IndexType>
+inline IndexType colamd_c(IndexType n_col) 
+{ return IndexType( ((n_col) + 1) * sizeof (colamd_col<IndexType>) / sizeof (IndexType) ) ; }
 
-template <typename Index>
-inline Index  colamd_r(Index n_row)
-{ return Index(((n_row) + 1) * sizeof (Colamd_Row<Index>) / sizeof (Index)); }
+template <typename IndexType>
+inline IndexType  colamd_r(IndexType n_row)
+{ return IndexType(((n_row) + 1) * sizeof (Colamd_Row<IndexType>) / sizeof (IndexType)); }
 
 // Prototypes of non-user callable routines
-template <typename Index>
-static Index init_rows_cols (Index n_row, Index n_col, Colamd_Row<Index> Row [], colamd_col<Index> col [], Index A [], Index p [], Index stats[COLAMD_STATS] ); 
+template <typename IndexType>
+static IndexType init_rows_cols (IndexType n_row, IndexType n_col, Colamd_Row<IndexType> Row [], colamd_col<IndexType> col [], IndexType A [], IndexType p [], IndexType stats[COLAMD_STATS] ); 
 
-template <typename Index>
-static void init_scoring (Index n_row, Index n_col, Colamd_Row<Index> Row [], colamd_col<Index> Col [], Index A [], Index head [], double knobs[COLAMD_KNOBS], Index *p_n_row2, Index *p_n_col2, Index *p_max_deg);
+template <typename IndexType>
+static void init_scoring (IndexType n_row, IndexType n_col, Colamd_Row<IndexType> Row [], colamd_col<IndexType> Col [], IndexType A [], IndexType head [], double knobs[COLAMD_KNOBS], IndexType *p_n_row2, IndexType *p_n_col2, IndexType *p_max_deg);
 
-template <typename Index>
-static Index find_ordering (Index n_row, Index n_col, Index Alen, Colamd_Row<Index> Row [], colamd_col<Index> Col [], Index A [], Index head [], Index n_col2, Index max_deg, Index pfree);
+template <typename IndexType>
+static IndexType find_ordering (IndexType n_row, IndexType n_col, IndexType Alen, Colamd_Row<IndexType> Row [], colamd_col<IndexType> Col [], IndexType A [], IndexType head [], IndexType n_col2, IndexType max_deg, IndexType pfree);
 
-template <typename Index>
-static void order_children (Index n_col, colamd_col<Index> Col [], Index p []);
+template <typename IndexType>
+static void order_children (IndexType n_col, colamd_col<IndexType> Col [], IndexType p []);
 
-template <typename Index>
-static void detect_super_cols (colamd_col<Index> Col [], Index A [], Index head [], Index row_start, Index row_length ) ;
+template <typename IndexType>
+static void detect_super_cols (colamd_col<IndexType> Col [], IndexType A [], IndexType head [], IndexType row_start, IndexType row_length ) ;
 
-template <typename Index>
-static Index garbage_collection (Index n_row, Index n_col, Colamd_Row<Index> Row [], colamd_col<Index> Col [], Index A [], Index *pfree) ;
+template <typename IndexType>
+static IndexType garbage_collection (IndexType n_row, IndexType n_col, Colamd_Row<IndexType> Row [], colamd_col<IndexType> Col [], IndexType A [], IndexType *pfree) ;
 
-template <typename Index>
-static inline  Index clear_mark (Index n_row, Colamd_Row<Index> Row [] ) ;
+template <typename IndexType>
+static inline  IndexType clear_mark (IndexType n_row, Colamd_Row<IndexType> Row [] ) ;
 
 /* === No debugging ========================================================= */
 
@@ -260,8 +260,8 @@ static inline  Index clear_mark (Index n_row, Colamd_Row<Index> Row [] ) ;
  * \param n_col number of columns in A
  * \return recommended value of Alen for use by colamd
  */
-template <typename Index>
-inline Index colamd_recommended ( Index nnz, Index n_row, Index n_col)
+template <typename IndexType>
+inline IndexType colamd_recommended ( IndexType nnz, IndexType n_row, IndexType n_col)
 {
   if ((nnz) < 0 || (n_row) < 0 || (n_col) < 0)
     return (-1);
@@ -325,22 +325,22 @@ static inline void colamd_set_defaults(double knobs[COLAMD_KNOBS])
  * \param knobs parameter settings for colamd
  * \param stats colamd output statistics and error codes
  */
-template <typename Index>
-static bool colamd(Index n_row, Index n_col, Index Alen, Index *A, Index *p, double knobs[COLAMD_KNOBS], Index stats[COLAMD_STATS])
+template <typename IndexType>
+static bool colamd(IndexType n_row, IndexType n_col, IndexType Alen, IndexType *A, IndexType *p, double knobs[COLAMD_KNOBS], IndexType stats[COLAMD_STATS])
 {
   /* === Local variables ================================================== */
   
-  Index i ;     /* loop index */
-  Index nnz ;     /* nonzeros in A */
-  Index Row_size ;    /* size of Row [], in integers */
-  Index Col_size ;    /* size of Col [], in integers */
-  Index need ;      /* minimum required length of A */
-  Colamd_Row<Index> *Row ;   /* pointer into A of Row [0..n_row] array */
-  colamd_col<Index> *Col ;   /* pointer into A of Col [0..n_col] array */
-  Index n_col2 ;    /* number of non-dense, non-empty columns */
-  Index n_row2 ;    /* number of non-dense, non-empty rows */
-  Index ngarbage ;    /* number of garbage collections performed */
-  Index max_deg ;   /* maximum row degree */
+  IndexType i ;     /* loop index */
+  IndexType nnz ;     /* nonzeros in A */
+  IndexType Row_size ;    /* size of Row [], in integers */
+  IndexType Col_size ;    /* size of Col [], in integers */
+  IndexType need ;      /* minimum required length of A */
+  Colamd_Row<IndexType> *Row ;   /* pointer into A of Row [0..n_row] array */
+  colamd_col<IndexType> *Col ;   /* pointer into A of Col [0..n_col] array */
+  IndexType n_col2 ;    /* number of non-dense, non-empty columns */
+  IndexType n_row2 ;    /* number of non-dense, non-empty rows */
+  IndexType ngarbage ;    /* number of garbage collections performed */
+  IndexType max_deg ;   /* maximum row degree */
   double default_knobs [COLAMD_KNOBS] ; /* default knobs array */
   
   
@@ -431,8 +431,8 @@ static bool colamd(Index n_row, Index n_col, Index Alen, Index *A, Index *p, dou
   }
   
   Alen -= Col_size + Row_size ;
-  Col = (colamd_col<Index> *) &A [Alen] ;
-  Row = (Colamd_Row<Index> *) &A [Alen + Col_size] ;
+  Col = (colamd_col<IndexType> *) &A [Alen] ;
+  Row = (Colamd_Row<IndexType> *) &A [Alen + Col_size] ;
 
   /* === Construct the row and column data structures ===================== */
   
@@ -485,29 +485,29 @@ static bool colamd(Index n_row, Index n_col, Index Alen, Index *A, Index *p, dou
   column form of the matrix.  Returns false if the matrix is invalid,
   true otherwise.  Not user-callable.
 */
-template <typename Index>
-static Index init_rows_cols  /* returns true if OK, or false otherwise */
+template <typename IndexType>
+static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
   (
     /* === Parameters ======================================================= */
 
-    Index n_row,      /* number of rows of A */
-    Index n_col,      /* number of columns of A */
-    Colamd_Row<Index> Row [],    /* of size n_row+1 */
-    colamd_col<Index> Col [],    /* of size n_col+1 */
-    Index A [],     /* row indices of A, of size Alen */
-    Index p [],     /* pointers to columns in A, of size n_col+1 */
-    Index stats [COLAMD_STATS]  /* colamd statistics */ 
+    IndexType n_row,      /* number of rows of A */
+    IndexType n_col,      /* number of columns of A */
+    Colamd_Row<IndexType> Row [],    /* of size n_row+1 */
+    colamd_col<IndexType> Col [],    /* of size n_col+1 */
+    IndexType A [],     /* row indices of A, of size Alen */
+    IndexType p [],     /* pointers to columns in A, of size n_col+1 */
+    IndexType stats [COLAMD_STATS]  /* colamd statistics */ 
     )
 {
   /* === Local variables ================================================== */
 
-  Index col ;     /* a column index */
-  Index row ;     /* a row index */
-  Index *cp ;     /* a column pointer */
-  Index *cp_end ;   /* a pointer to the end of a column */
-  Index *rp ;     /* a row pointer */
-  Index *rp_end ;   /* a pointer to the end of a row */
-  Index last_row ;    /* previous row */
+  IndexType col ;     /* a column index */
+  IndexType row ;     /* a row index */
+  IndexType *cp ;     /* a column pointer */
+  IndexType *cp_end ;   /* a pointer to the end of a column */
+  IndexType *rp ;     /* a row pointer */
+  IndexType *rp_end ;   /* a pointer to the end of a row */
+  IndexType last_row ;    /* previous row */
 
   /* === Initialize columns, and check column pointers ==================== */
 
@@ -701,40 +701,40 @@ static Index init_rows_cols  /* returns true if OK, or false otherwise */
   Kills dense or empty columns and rows, calculates an initial score for
   each column, and places all columns in the degree lists.  Not user-callable.
 */
-template <typename Index>
+template <typename IndexType>
 static void init_scoring
   (
     /* === Parameters ======================================================= */
 
-    Index n_row,      /* number of rows of A */
-    Index n_col,      /* number of columns of A */
-    Colamd_Row<Index> Row [],    /* of size n_row+1 */
-    colamd_col<Index> Col [],    /* of size n_col+1 */
-    Index A [],     /* column form and row form of A */
-    Index head [],    /* of size n_col+1 */
+    IndexType n_row,      /* number of rows of A */
+    IndexType n_col,      /* number of columns of A */
+    Colamd_Row<IndexType> Row [],    /* of size n_row+1 */
+    colamd_col<IndexType> Col [],    /* of size n_col+1 */
+    IndexType A [],     /* column form and row form of A */
+    IndexType head [],    /* of size n_col+1 */
     double knobs [COLAMD_KNOBS],/* parameters */
-    Index *p_n_row2,    /* number of non-dense, non-empty rows */
-    Index *p_n_col2,    /* number of non-dense, non-empty columns */
-    Index *p_max_deg    /* maximum row degree */
+    IndexType *p_n_row2,    /* number of non-dense, non-empty rows */
+    IndexType *p_n_col2,    /* number of non-dense, non-empty columns */
+    IndexType *p_max_deg    /* maximum row degree */
     )
 {
   /* === Local variables ================================================== */
 
-  Index c ;     /* a column index */
-  Index r, row ;    /* a row index */
-  Index *cp ;     /* a column pointer */
-  Index deg ;     /* degree of a row or column */
-  Index *cp_end ;   /* a pointer to the end of a column */
-  Index *new_cp ;   /* new column pointer */
-  Index col_length ;    /* length of pruned column */
-  Index score ;     /* current column score */
-  Index n_col2 ;    /* number of non-dense, non-empty columns */
-  Index n_row2 ;    /* number of non-dense, non-empty rows */
-  Index dense_row_count ; /* remove rows with more entries than this */
-  Index dense_col_count ; /* remove cols with more entries than this */
-  Index min_score ;   /* smallest column score */
-  Index max_deg ;   /* maximum row degree */
-  Index next_col ;    /* Used to add to degree list.*/
+  IndexType c ;     /* a column index */
+  IndexType r, row ;    /* a row index */
+  IndexType *cp ;     /* a column pointer */
+  IndexType deg ;     /* degree of a row or column */
+  IndexType *cp_end ;   /* a pointer to the end of a column */
+  IndexType *new_cp ;   /* new column pointer */
+  IndexType col_length ;    /* length of pruned column */
+  IndexType score ;     /* current column score */
+  IndexType n_col2 ;    /* number of non-dense, non-empty columns */
+  IndexType n_row2 ;    /* number of non-dense, non-empty rows */
+  IndexType dense_row_count ; /* remove rows with more entries than this */
+  IndexType dense_col_count ; /* remove cols with more entries than this */
+  IndexType min_score ;   /* smallest column score */
+  IndexType max_deg ;   /* maximum row degree */
+  IndexType next_col ;    /* Used to add to degree list.*/
 
 
   /* === Extract knobs ==================================================== */
@@ -845,7 +845,7 @@ static void init_scoring
       score = COLAMD_MIN (score, n_col) ;
     }
     /* determine pruned column length */
-    col_length = (Index) (new_cp - &A [Col [c].start]) ;
+    col_length = (IndexType) (new_cp - &A [Col [c].start]) ;
     if (col_length == 0)
     {
       /* a newly-made null column (all rows in this col are "dense" */
@@ -938,56 +938,56 @@ static void init_scoring
   (no supercolumns on input).  Uses a minimum approximate column minimum
   degree ordering method.  Not user-callable.
 */
-template <typename Index>
-static Index find_ordering /* return the number of garbage collections */
+template <typename IndexType>
+static IndexType find_ordering /* return the number of garbage collections */
   (
     /* === Parameters ======================================================= */
 
-    Index n_row,      /* number of rows of A */
-    Index n_col,      /* number of columns of A */
-    Index Alen,     /* size of A, 2*nnz + n_col or larger */
-    Colamd_Row<Index> Row [],    /* of size n_row+1 */
-    colamd_col<Index> Col [],    /* of size n_col+1 */
-    Index A [],     /* column form and row form of A */
-    Index head [],    /* of size n_col+1 */
-    Index n_col2,     /* Remaining columns to order */
-    Index max_deg,    /* Maximum row degree */
-    Index pfree     /* index of first free slot (2*nnz on entry) */
+    IndexType n_row,      /* number of rows of A */
+    IndexType n_col,      /* number of columns of A */
+    IndexType Alen,     /* size of A, 2*nnz + n_col or larger */
+    Colamd_Row<IndexType> Row [],    /* of size n_row+1 */
+    colamd_col<IndexType> Col [],    /* of size n_col+1 */
+    IndexType A [],     /* column form and row form of A */
+    IndexType head [],    /* of size n_col+1 */
+    IndexType n_col2,     /* Remaining columns to order */
+    IndexType max_deg,    /* Maximum row degree */
+    IndexType pfree     /* index of first free slot (2*nnz on entry) */
     )
 {
   /* === Local variables ================================================== */
 
-  Index k ;     /* current pivot ordering step */
-  Index pivot_col ;   /* current pivot column */
-  Index *cp ;     /* a column pointer */
-  Index *rp ;     /* a row pointer */
-  Index pivot_row ;   /* current pivot row */
-  Index *new_cp ;   /* modified column pointer */
-  Index *new_rp ;   /* modified row pointer */
-  Index pivot_row_start ; /* pointer to start of pivot row */
-  Index pivot_row_degree ;  /* number of columns in pivot row */
-  Index pivot_row_length ;  /* number of supercolumns in pivot row */
-  Index pivot_col_score ; /* score of pivot column */
-  Index needed_memory ;   /* free space needed for pivot row */
-  Index *cp_end ;   /* pointer to the end of a column */
-  Index *rp_end ;   /* pointer to the end of a row */
-  Index row ;     /* a row index */
-  Index col ;     /* a column index */
-  Index max_score ;   /* maximum possible score */
-  Index cur_score ;   /* score of current column */
+  IndexType k ;     /* current pivot ordering step */
+  IndexType pivot_col ;   /* current pivot column */
+  IndexType *cp ;     /* a column pointer */
+  IndexType *rp ;     /* a row pointer */
+  IndexType pivot_row ;   /* current pivot row */
+  IndexType *new_cp ;   /* modified column pointer */
+  IndexType *new_rp ;   /* modified row pointer */
+  IndexType pivot_row_start ; /* pointer to start of pivot row */
+  IndexType pivot_row_degree ;  /* number of columns in pivot row */
+  IndexType pivot_row_length ;  /* number of supercolumns in pivot row */
+  IndexType pivot_col_score ; /* score of pivot column */
+  IndexType needed_memory ;   /* free space needed for pivot row */
+  IndexType *cp_end ;   /* pointer to the end of a column */
+  IndexType *rp_end ;   /* pointer to the end of a row */
+  IndexType row ;     /* a row index */
+  IndexType col ;     /* a column index */
+  IndexType max_score ;   /* maximum possible score */
+  IndexType cur_score ;   /* score of current column */
   unsigned int hash ;   /* hash value for supernode detection */
-  Index head_column ;   /* head of hash bucket */
-  Index first_col ;   /* first column in hash bucket */
-  Index tag_mark ;    /* marker value for mark array */
-  Index row_mark ;    /* Row [row].shared2.mark */
-  Index set_difference ;  /* set difference size of row with pivot row */
-  Index min_score ;   /* smallest column score */
-  Index col_thickness ;   /* "thickness" (no. of columns in a supercol) */
-  Index max_mark ;    /* maximum value of tag_mark */
-  Index pivot_col_thickness ; /* number of columns represented by pivot col */
-  Index prev_col ;    /* Used by Dlist operations. */
-  Index next_col ;    /* Used by Dlist operations. */
-  Index ngarbage ;    /* number of garbage collections performed */
+  IndexType head_column ;   /* head of hash bucket */
+  IndexType first_col ;   /* first column in hash bucket */
+  IndexType tag_mark ;    /* marker value for mark array */
+  IndexType row_mark ;    /* Row [row].shared2.mark */
+  IndexType set_difference ;  /* set difference size of row with pivot row */
+  IndexType min_score ;   /* smallest column score */
+  IndexType col_thickness ;   /* "thickness" (no. of columns in a supercol) */
+  IndexType max_mark ;    /* maximum value of tag_mark */
+  IndexType pivot_col_thickness ; /* number of columns represented by pivot col */
+  IndexType prev_col ;    /* Used by Dlist operations. */
+  IndexType next_col ;    /* Used by Dlist operations. */
+  IndexType ngarbage ;    /* number of garbage collections performed */
 
 
   /* === Initialization and clear mark ==================================== */
@@ -1277,7 +1277,7 @@ static Index find_ordering /* return the number of garbage collections */
       }
 
       /* recompute the column's length */
-      Col [col].length = (Index) (new_cp - &A [Col [col].start]) ;
+      Col [col].length = (IndexType) (new_cp - &A [Col [col].start]) ;
 
       /* === Further mass elimination ================================= */
 
@@ -1325,7 +1325,7 @@ static Index find_ordering /* return the number of garbage collections */
 	Col [col].shared4.hash_next = first_col ;
 
 	/* save hash function in Col [col].shared3.hash */
-	Col [col].shared3.hash = (Index) hash ;
+	Col [col].shared3.hash = (IndexType) hash ;
 	COLAMD_ASSERT (COL_IS_ALIVE (col)) ;
       }
     }
@@ -1420,7 +1420,7 @@ static Index find_ordering /* return the number of garbage collections */
       /* update pivot row length to reflect any cols that were killed */
       /* during super-col detection and mass elimination */
       Row [pivot_row].start  = pivot_row_start ;
-      Row [pivot_row].length = (Index) (new_rp - &A[pivot_row_start]) ;
+      Row [pivot_row].length = (IndexType) (new_rp - &A[pivot_row_start]) ;
       Row [pivot_row].shared1.degree = pivot_row_degree ;
       Row [pivot_row].shared2.mark = 0 ;
       /* pivot row is no longer dead */
@@ -1449,22 +1449,22 @@ static Index find_ordering /* return the number of garbage collections */
   taken by this routine is O (n_col), that is, linear in the number of
   columns.  Not user-callable.
 */
-template <typename Index>
+template <typename IndexType>
 static inline  void order_children
 (
   /* === Parameters ======================================================= */
 
-  Index n_col,      /* number of columns of A */
-  colamd_col<Index> Col [],    /* of size n_col+1 */
-  Index p []      /* p [0 ... n_col-1] is the column permutation*/
+  IndexType n_col,      /* number of columns of A */
+  colamd_col<IndexType> Col [],    /* of size n_col+1 */
+  IndexType p []      /* p [0 ... n_col-1] is the column permutation*/
   )
 {
   /* === Local variables ================================================== */
 
-  Index i ;     /* loop counter for all columns */
-  Index c ;     /* column index */
-  Index parent ;    /* index of column's parent */
-  Index order ;     /* column's order */
+  IndexType i ;     /* loop counter for all columns */
+  IndexType c ;     /* column index */
+  IndexType parent ;    /* index of column's parent */
+  IndexType order ;     /* column's order */
 
   /* === Order each non-principal column ================================== */
 
@@ -1550,33 +1550,33 @@ static inline  void order_children
   just been computed in the approximate degree computation.
   Not user-callable.
 */
-template <typename Index>
+template <typename IndexType>
 static void detect_super_cols
 (
   /* === Parameters ======================================================= */
   
-  colamd_col<Index> Col [],    /* of size n_col+1 */
-  Index A [],     /* row indices of A */
-  Index head [],    /* head of degree lists and hash buckets */
-  Index row_start,    /* pointer to set of columns to check */
-  Index row_length    /* number of columns to check */
+  colamd_col<IndexType> Col [],    /* of size n_col+1 */
+  IndexType A [],     /* row indices of A */
+  IndexType head [],    /* head of degree lists and hash buckets */
+  IndexType row_start,    /* pointer to set of columns to check */
+  IndexType row_length    /* number of columns to check */
 )
 {
   /* === Local variables ================================================== */
 
-  Index hash ;      /* hash value for a column */
-  Index *rp ;     /* pointer to a row */
-  Index c ;     /* a column index */
-  Index super_c ;   /* column index of the column to absorb into */
-  Index *cp1 ;      /* column pointer for column super_c */
-  Index *cp2 ;      /* column pointer for column c */
-  Index length ;    /* length of column super_c */
-  Index prev_c ;    /* column preceding c in hash bucket */
-  Index i ;     /* loop counter */
-  Index *rp_end ;   /* pointer to the end of the row */
-  Index col ;     /* a column index in the row to check */
-  Index head_column ;   /* first column in hash bucket or degree list */
-  Index first_col ;   /* first column in hash bucket */
+  IndexType hash ;      /* hash value for a column */
+  IndexType *rp ;     /* pointer to a row */
+  IndexType c ;     /* a column index */
+  IndexType super_c ;   /* column index of the column to absorb into */
+  IndexType *cp1 ;      /* column pointer for column super_c */
+  IndexType *cp2 ;      /* column pointer for column c */
+  IndexType length ;    /* length of column super_c */
+  IndexType prev_c ;    /* column preceding c in hash bucket */
+  IndexType i ;     /* loop counter */
+  IndexType *rp_end ;   /* pointer to the end of the row */
+  IndexType col ;     /* a column index in the row to check */
+  IndexType head_column ;   /* first column in hash bucket or degree list */
+  IndexType first_col ;   /* first column in hash bucket */
 
   /* === Consider each column in the row ================================== */
 
@@ -1701,27 +1701,27 @@ static void detect_super_cols
   itself linear in the number of nonzeros in the input matrix.
   Not user-callable.
 */
-template <typename Index>
-static Index garbage_collection  /* returns the new value of pfree */
+template <typename IndexType>
+static IndexType garbage_collection  /* returns the new value of pfree */
   (
     /* === Parameters ======================================================= */
     
-    Index n_row,      /* number of rows */
-    Index n_col,      /* number of columns */
-    Colamd_Row<Index> Row [],    /* row info */
-    colamd_col<Index> Col [],    /* column info */
-    Index A [],     /* A [0 ... Alen-1] holds the matrix */
-    Index *pfree      /* &A [0] ... pfree is in use */
+    IndexType n_row,      /* number of rows */
+    IndexType n_col,      /* number of columns */
+    Colamd_Row<IndexType> Row [],    /* row info */
+    colamd_col<IndexType> Col [],    /* column info */
+    IndexType A [],     /* A [0 ... Alen-1] holds the matrix */
+    IndexType *pfree      /* &A [0] ... pfree is in use */
     )
 {
   /* === Local variables ================================================== */
 
-  Index *psrc ;     /* source pointer */
-  Index *pdest ;    /* destination pointer */
-  Index j ;     /* counter */
-  Index r ;     /* a row index */
-  Index c ;     /* a column index */
-  Index length ;    /* length of a row or column */
+  IndexType *psrc ;     /* source pointer */
+  IndexType *pdest ;    /* destination pointer */
+  IndexType j ;     /* counter */
+  IndexType r ;     /* a row index */
+  IndexType c ;     /* a column index */
+  IndexType length ;    /* length of a row or column */
 
   /* === Defragment the columns =========================================== */
 
@@ -1734,7 +1734,7 @@ static Index garbage_collection  /* returns the new value of pfree */
 
       /* move and compact the column */
       COLAMD_ASSERT (pdest <= psrc) ;
-      Col [c].start = (Index) (pdest - &A [0]) ;
+      Col [c].start = (IndexType) (pdest - &A [0]) ;
       length = Col [c].length ;
       for (j = 0 ; j < length ; j++)
       {
@@ -1744,7 +1744,7 @@ static Index garbage_collection  /* returns the new value of pfree */
 	  *pdest++ = r ;
 	}
       }
-      Col [c].length = (Index) (pdest - &A [Col [c].start]) ;
+      Col [c].length = (IndexType) (pdest - &A [Col [c].start]) ;
     }
   }
 
@@ -1791,7 +1791,7 @@ static Index garbage_collection  /* returns the new value of pfree */
 
       /* move and compact the row */
       COLAMD_ASSERT (pdest <= psrc) ;
-      Row [r].start = (Index) (pdest - &A [0]) ;
+      Row [r].start = (IndexType) (pdest - &A [0]) ;
       length = Row [r].length ;
       for (j = 0 ; j < length ; j++)
       {
@@ -1801,7 +1801,7 @@ static Index garbage_collection  /* returns the new value of pfree */
 	  *pdest++ = c ;
 	}
       }
-      Row [r].length = (Index) (pdest - &A [Row [r].start]) ;
+      Row [r].length = (IndexType) (pdest - &A [Row [r].start]) ;
 
     }
   }
@@ -1810,7 +1810,7 @@ static Index garbage_collection  /* returns the new value of pfree */
 
   /* === Return the new value of pfree ==================================== */
 
-  return ((Index) (pdest - &A [0])) ;
+  return ((IndexType) (pdest - &A [0])) ;
 }
 
 
@@ -1822,18 +1822,18 @@ static Index garbage_collection  /* returns the new value of pfree */
   Clears the Row [].shared2.mark array, and returns the new tag_mark.
   Return value is the new tag_mark.  Not user-callable.
 */
-template <typename Index>
-static inline  Index clear_mark  /* return the new value for tag_mark */
+template <typename IndexType>
+static inline  IndexType clear_mark  /* return the new value for tag_mark */
   (
       /* === Parameters ======================================================= */
 
-    Index n_row,    /* number of rows in A */
-    Colamd_Row<Index> Row [] /* Row [0 ... n_row-1].shared2.mark is set to zero */
+    IndexType n_row,    /* number of rows in A */
+    Colamd_Row<IndexType> Row [] /* Row [0 ... n_row-1].shared2.mark is set to zero */
     )
 {
   /* === Local variables ================================================== */
 
-  Index r ;
+  IndexType r ;
 
   for (r = 0 ; r < n_row ; r++)
   {

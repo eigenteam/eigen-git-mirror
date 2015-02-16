@@ -77,8 +77,8 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     EIGEN_DEVICE_FUNC
     inline Index rows() const
     {
-      return m_index.value()<0 ? numext::mini(Index(m_matrix.cols()),Index(m_matrix.rows()+m_index.value()))
-                               : numext::mini(Index(m_matrix.rows()),Index(m_matrix.cols()-m_index.value()));
+      return m_index.value()<0 ? numext::mini<Index>(m_matrix.cols(),m_matrix.rows()+m_index.value())
+                               : numext::mini<Index>(m_matrix.rows(),m_matrix.cols()-m_index.value());
     }
 
     EIGEN_DEVICE_FUNC

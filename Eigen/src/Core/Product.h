@@ -67,8 +67,8 @@ struct traits<Product<Lhs, Rhs, Option> >
   typedef typename product_promote_storage_type<typename LhsTraits::StorageKind,
                                                 typename RhsTraits::StorageKind,
                                                 internal::product_type<Lhs,Rhs>::ret>::ret StorageKind;
-  typedef typename promote_index_type<typename LhsTraits::Index,
-                                      typename RhsTraits::Index>::type Index;
+  typedef typename promote_index_type<typename LhsTraits::StorageIndex,
+                                      typename RhsTraits::StorageIndex>::type StorageIndex;
   
   enum {
     RowsAtCompileTime    = LhsTraits::RowsAtCompileTime,
@@ -149,7 +149,6 @@ class dense_product_base<Lhs, Rhs, Option, InnerProduct>
 public:
   using Base::derived;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::Index Index;
   
   operator const Scalar() const
   {

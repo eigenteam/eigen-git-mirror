@@ -29,14 +29,10 @@ namespace Eigen {
 
 namespace internal {
 template<typename MatrixType>
-struct traits<Transpose<MatrixType> >
+struct traits<Transpose<MatrixType> > : public traits<MatrixType>
 {
-  typedef typename traits<MatrixType>::Scalar Scalar;
-  typedef typename traits<MatrixType>::Index Index;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedPlain;
-  typedef typename traits<MatrixType>::StorageKind StorageKind;
-  typedef typename traits<MatrixType>::XprKind XprKind;
   enum {
     RowsAtCompileTime = MatrixType::ColsAtCompileTime,
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -236,7 +232,6 @@ struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize x Packet
   static void run(MatrixType& m) {
     typedef typename MatrixType::Scalar Scalar;
     typedef typename internal::packet_traits<typename MatrixType::Scalar>::type Packet;
-    typedef typename MatrixType::Index Index;
     const Index PacketSize = internal::packet_traits<Scalar>::size;
     const Index Alignment = internal::evaluator<MatrixType>::Flags&AlignedBit ? Aligned : Unaligned;
     PacketBlock<Packet> A;

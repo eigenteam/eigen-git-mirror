@@ -164,7 +164,6 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   
   typename Derived::Nested m = _m;
   typedef typename Derived::Scalar Scalar;
-  typedef typename Derived::Index Index;
 
   Index width = 0;
 

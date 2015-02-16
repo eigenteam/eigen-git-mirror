@@ -29,7 +29,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::Index Index;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
@@ -62,7 +61,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, A
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::Index Index;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const AlphaType& alpha)
   {
@@ -86,7 +84,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::Index Index;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
@@ -106,7 +103,6 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<SparseLhsType>::type Lhs;
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
-  typedef typename Lhs::Index Index;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
@@ -193,7 +189,6 @@ protected:
   typedef typename evaluator<ActualRhs>::type RhsEval;
   typedef typename evaluator<ActualLhs>::InnerIterator LhsIterator;
   typedef typename ProdXprType::Scalar Scalar;
-  typedef typename ProdXprType::Index Index;
   
 public:
   enum {

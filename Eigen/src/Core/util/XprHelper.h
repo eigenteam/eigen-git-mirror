@@ -26,7 +26,24 @@ namespace Eigen {
 
 typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE DenseIndex;
 
+/**
+ * \brief The Index type as used for the API.
+ * \details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
+ * \sa \ref TopicPreprocessorDirectives, StorageIndex.
+ */
+
+typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE Index;
+
 namespace internal {
+
+template<typename IndexDest, typename IndexSrc>
+EIGEN_DEVICE_FUNC
+inline IndexDest convert_index(const IndexSrc& idx) {
+  // for sizeof(IndexDest)>=sizeof(IndexSrc) compilers should be able to optimize this away:
+  eigen_internal_assert(idx <= NumTraits<IndexDest>::highest() && "Index value to big for target type");
+  return IndexDest(idx);
+}
+
 
 //classes inheriting no_assignment_operator don't generate a default operator=.
 class no_assignment_operator

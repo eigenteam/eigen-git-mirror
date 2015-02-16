@@ -66,7 +66,7 @@ template<typename _Scalar, int _Dim, int _Mode, int _Options>
 struct traits<Transform<_Scalar,_Dim,_Mode,_Options> >
 {
   typedef _Scalar Scalar;
-  typedef DenseIndex Index;
+  typedef Eigen::Index StorageIndex;
   typedef Dense StorageKind;
   enum {
     Dim1 = _Dim==Dynamic ? _Dim : _Dim + 1,
@@ -204,7 +204,8 @@ public:
   };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
-  typedef DenseIndex Index;
+  typedef Eigen::Index StorageIndex;
+  typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
   /** type of the matrix used to represent the transformation */
   typedef typename internal::make_proper_matrix_type<Scalar,Rows,HDim,Options>::type MatrixType;
   /** constified MatrixType */

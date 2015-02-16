@@ -52,7 +52,6 @@ template<typename MatrixType, int QRPreconditioner, int Case>
 class qr_preconditioner_impl<MatrixType, QRPreconditioner, Case, false>
 {
 public:
-  typedef typename MatrixType::Index Index;
   void allocate(const JacobiSVD<MatrixType, QRPreconditioner>&) {}
   bool run(JacobiSVD<MatrixType, QRPreconditioner>&, const MatrixType&)
   {
@@ -66,7 +65,6 @@ template<typename MatrixType>
 class qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
 {
 public:
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   enum
   {
@@ -107,7 +105,6 @@ template<typename MatrixType>
 class qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
 {
 public:
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   enum
   {
@@ -157,8 +154,6 @@ template<typename MatrixType>
 class qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
 {
 public:
-  typedef typename MatrixType::Index Index;
-
   void allocate(const JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd)
   {
     if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
@@ -198,7 +193,6 @@ template<typename MatrixType>
 class qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
 {
 public:
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   enum
   {
@@ -257,8 +251,6 @@ template<typename MatrixType>
 class qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
 {
 public:
-  typedef typename MatrixType::Index Index;
-
   void allocate(const JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd)
   {
     if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
@@ -297,7 +289,6 @@ template<typename MatrixType>
 class qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
 {
 public:
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   enum
   {
@@ -359,7 +350,6 @@ template<typename MatrixType, int QRPreconditioner>
 struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, false>
 {
   typedef JacobiSVD<MatrixType, QRPreconditioner> SVD;
-  typedef typename SVD::Index Index;
   static void run(typename SVD::WorkMatrixType&, SVD&, Index, Index) {}
 };
 
@@ -369,7 +359,6 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
   typedef JacobiSVD<MatrixType, QRPreconditioner> SVD;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  typedef typename SVD::Index Index;
   static void run(typename SVD::WorkMatrixType& work_matrix, SVD& svd, Index p, Index q)
   {
     using std::sqrt;
@@ -514,7 +503,6 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef typename MatrixType::Index Index;
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,

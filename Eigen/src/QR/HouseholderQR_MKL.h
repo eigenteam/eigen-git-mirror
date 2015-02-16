@@ -46,8 +46,7 @@ namespace internal {
 template<typename MatrixQR, typename HCoeffs> \
 struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, EIGTYPE, true> \
 { \
-  static void run(MatrixQR& mat, HCoeffs& hCoeffs, \
-      typename MatrixQR::Index = 32, \
+  static void run(MatrixQR& mat, HCoeffs& hCoeffs, Index = 32, \
       typename MatrixQR::Scalar* = 0) \
   { \
     lapack_int m = (lapack_int) mat.rows(); \

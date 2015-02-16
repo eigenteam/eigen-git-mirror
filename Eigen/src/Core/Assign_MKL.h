@@ -84,7 +84,6 @@ template<typename Derived1, typename Derived2, typename UnaryOp, int Traversal, 
 struct vml_assign_impl<Derived1, Derived2, UnaryOp, Traversal, Unrolling, InnerVectorizedTraversal>
 {
   typedef typename Derived1::Scalar Scalar;
-  typedef typename Derived1::Index Index;
   static inline void run(Derived1& dst, const CwiseUnaryOp<UnaryOp, Derived2>& src)
   {
     // in case we want to (or have to) skip VML at runtime we can call:

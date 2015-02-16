@@ -47,29 +47,29 @@ class SparseCompressedBase
     /** \returns a const pointer to the array of inner indices.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), outerIndexPtr() */
-    inline const Index* innerIndexPtr() const { return derived().innerIndexPtr(); }
+    inline const StorageIndex* innerIndexPtr() const { return derived().innerIndexPtr(); }
     /** \returns a non-const pointer to the array of inner indices.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), outerIndexPtr() */
-    inline Index* innerIndexPtr() { return derived().innerIndexPtr(); }
+    inline StorageIndex* innerIndexPtr() { return derived().innerIndexPtr(); }
 
     /** \returns a const pointer to the array of the starting positions of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), innerIndexPtr() */
-    inline const Index* outerIndexPtr() const { return derived().outerIndexPtr(); }
+    inline const StorageIndex* outerIndexPtr() const { return derived().outerIndexPtr(); }
     /** \returns a non-const pointer to the array of the starting positions of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), innerIndexPtr() */
-    inline Index* outerIndexPtr() { return derived().outerIndexPtr(); }
+    inline StorageIndex* outerIndexPtr() { return derived().outerIndexPtr(); }
 
     /** \returns a const pointer to the array of the number of non zeros of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \warning it returns the null pointer 0 in compressed mode */
-    inline const Index* innerNonZeroPtr() const { return derived().innerNonZeroPtr(); }
+    inline const StorageIndex* innerNonZeroPtr() const { return derived().innerNonZeroPtr(); }
     /** \returns a non-const pointer to the array of the number of non zeros of the inner vectors.
       * This function is aimed at interoperability with other libraries.
       * \warning it returns the null pointer 0 in compressed mode */
-    inline Index* innerNonZeroPtr() { return derived().innerNonZeroPtr(); }
+    inline StorageIndex* innerNonZeroPtr() { return derived().innerNonZeroPtr(); }
     
     /** \returns whether \c *this is in compressed form. */
     inline bool isCompressed() const { return innerNonZeroPtr()==0; }
@@ -94,7 +94,7 @@ class SparseCompressedBase<Derived>::InnerIterator
     inline const Scalar& value() const { return m_values[m_id]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id]); }
 
-    inline Index index() const { return m_indices[m_id]; }
+    inline StorageIndex index() const { return m_indices[m_id]; }
     inline Index outer() const { return m_outer; }
     inline Index row() const { return IsRowMajor ? m_outer : index(); }
     inline Index col() const { return IsRowMajor ? index() : m_outer; }
@@ -103,7 +103,7 @@ class SparseCompressedBase<Derived>::InnerIterator
 
   protected:
     const Scalar* m_values;
-    const Index* m_indices;
+    const StorageIndex* m_indices;
     const Index m_outer;
     Index m_id;
     Index m_end;
@@ -111,7 +111,7 @@ class SparseCompressedBase<Derived>::InnerIterator
     // If you get here, then you're not using the right InnerIterator type, e.g.:
     //   SparseMatrix<double,RowMajor> A;
     //   SparseMatrix<double>::InnerIterator it(A,0);
-    template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer);
+    template<typename T> InnerIterator(const SparseMatrixBase<T>&, Index outer);
 };
 
 template<typename Derived>
@@ -132,7 +132,7 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
     inline const Scalar& value() const { return m_values[m_id-1]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id-1]); }
 
-    inline Index index() const { return m_indices[m_id-1]; }
+    inline StorageIndex index() const { return m_indices[m_id-1]; }
     inline Index outer() const { return m_outer; }
     inline Index row() const { return IsRowMajor ? m_outer : index(); }
     inline Index col() const { return IsRowMajor ? index() : m_outer; }
@@ -141,7 +141,7 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
 
   protected:
     const Scalar* m_values;
-    const Index* m_indices;
+    const StorageIndex* m_indices;
     const Index m_outer;
     Index m_id;
     const Index m_start;
@@ -154,7 +154,6 @@ struct evaluator<SparseCompressedBase<Derived> >
   : evaluator_base<Derived>
 {
   typedef typename Derived::Scalar Scalar;
-  typedef typename Derived::Index Index;
   typedef typename Derived::InnerIterator InnerIterator;
   typedef typename Derived::ReverseInnerIterator ReverseInnerIterator;
   

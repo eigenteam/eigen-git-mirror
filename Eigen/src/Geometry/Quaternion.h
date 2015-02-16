@@ -724,7 +724,6 @@ template<typename Other>
 struct quaternionbase_assign_impl<Other,3,3>
 {
   typedef typename Other::Scalar Scalar;
-  typedef DenseIndex Index;
   template<class Derived> static inline void run(QuaternionBase<Derived>& q, const Other& mat)
   {
     using std::sqrt;
@@ -742,13 +741,13 @@ struct quaternionbase_assign_impl<Other,3,3>
     }
     else
     {
-      DenseIndex i = 0;
+      Index i = 0;
       if (mat.coeff(1,1) > mat.coeff(0,0))
         i = 1;
       if (mat.coeff(2,2) > mat.coeff(i,i))
         i = 2;
-      DenseIndex j = (i+1)%3;
-      DenseIndex k = (j+1)%3;
+      Index j = (i+1)%3;
+      Index k = (j+1)%3;
 
       t = sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + Scalar(1.0));
       q.coeffs().coeffRef(i) = Scalar(0.5) * t;

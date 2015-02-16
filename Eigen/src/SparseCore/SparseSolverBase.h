@@ -24,16 +24,16 @@ void solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs,
   EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
   typedef typename Dest::Scalar DestScalar;
   // we process the sparse rhs per block of NbColsAtOnce columns temporarily stored into a dense matrix.
-  static const int NbColsAtOnce = 4;
-  int rhsCols = rhs.cols();
-  int size = rhs.rows();
+  static const Index NbColsAtOnce = 4;
+  Index rhsCols = rhs.cols();
+  Index size = rhs.rows();
   // the temporary matrices do not need more columns than NbColsAtOnce:
-  int tmpCols = (std::min)(rhsCols, NbColsAtOnce); 
+  Index tmpCols = (std::min)(rhsCols, NbColsAtOnce); 
   Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmp(size,tmpCols);
   Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmpX(size,tmpCols);
-  for(int k=0; k<rhsCols; k+=NbColsAtOnce)
+  for(Index k=0; k<rhsCols; k+=NbColsAtOnce)
   {
-    int actualCols = std::min<int>(rhsCols-k, NbColsAtOnce);
+    Index actualCols = std::min<Index>(rhsCols-k, NbColsAtOnce);
     tmp.leftCols(actualCols) = rhs.middleCols(k,actualCols);
     tmpX.leftCols(actualCols) = dec.solve(tmp.leftCols(actualCols));
     dest.middleCols(k,actualCols) = tmpX.leftCols(actualCols).sparseView();

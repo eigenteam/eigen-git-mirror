@@ -71,7 +71,7 @@ template<typename _MatrixType> class HessenbergDecomposition
 
     /** \brief Scalar type for matrices of type #MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
+    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
 
     /** \brief Type for vector of Householder coefficients.
       *
@@ -337,7 +337,6 @@ namespace internal {
 template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType
 : public ReturnByValue<HessenbergDecompositionMatrixHReturnType<MatrixType> >
 {
-    typedef typename MatrixType::Index Index;
   public:
     /** \brief Constructor.
       *

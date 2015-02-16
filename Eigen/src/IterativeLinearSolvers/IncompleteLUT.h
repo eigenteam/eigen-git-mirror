@@ -25,7 +25,7 @@ namespace internal {
   * \param ind The array of index for the elements in @p row
   * \param ncut  The number of largest elements to keep
   **/ 
-template <typename VectorV, typename VectorI, typename Index>
+template <typename VectorV, typename VectorI>
 Index QuickSplit(VectorV &row, VectorI &ind, Index ncut)
 {
   typedef typename VectorV::RealScalar RealScalar;
@@ -105,7 +105,7 @@ class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar> >
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef SparseMatrix<Scalar,RowMajor> FactorType;
     typedef SparseMatrix<Scalar,ColMajor> PermutType;
-    typedef typename FactorType::Index Index;
+    typedef typename FactorType::StorageIndex StorageIndex;
 
   public:
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
@@ -189,8 +189,8 @@ protected:
     bool m_analysisIsOk;
     bool m_factorizationIsOk;
     ComputationInfo m_info;
-    PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // Fill-reducing permutation
-    PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // Inverse permutation
+    PermutationMatrix<Dynamic,Dynamic,StorageIndex> m_P;     // Fill-reducing permutation
+    PermutationMatrix<Dynamic,Dynamic,StorageIndex> m_Pinv;  // Inverse permutation
 };
 
 /**
@@ -218,14 +218,14 @@ template<typename _MatrixType>
 void IncompleteLUT<Scalar>::analyzePattern(const _MatrixType& amat)
 {
   // Compute the Fill-reducing permutation
-  SparseMatrix<Scalar,ColMajor, Index> mat1 = amat;
-  SparseMatrix<Scalar,ColMajor, Index> mat2 = amat.transpose();
+  SparseMatrix<Scalar,ColMajor, StorageIndex> mat1 = amat;
+  SparseMatrix<Scalar,ColMajor, StorageIndex> mat2 = amat.transpose();
   // Symmetrize the pattern
   // FIXME for a matrix with nearly symmetric pattern, mat2+mat1 is the appropriate choice.
   //       on the other hand for a really non-symmetric pattern, mat2*mat1 should be prefered...
-  SparseMatrix<Scalar,ColMajor, Index> AtA = mat2 + mat1;
+  SparseMatrix<Scalar,ColMajor, StorageIndex> AtA = mat2 + mat1;
   AtA.prune(keep_diag());
-  internal::minimum_degree_ordering<Scalar, Index>(AtA, m_P);  // Then compute the AMD ordering...
+  internal::minimum_degree_ordering<Scalar, StorageIndex>(AtA, m_P);  // Then compute the AMD ordering...
 
   m_Pinv  = m_P.inverse(); // ... and the inverse permutation
 
@@ -239,6 +239,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
   using std::sqrt;
   using std::swap;
   using std::abs;
+  using internal::convert_index;
 
   eigen_assert((amat.rows() == amat.cols()) && "The factorization should be done on a square matrix");
   Index n = amat.cols();  // Size of the matrix
@@ -250,7 +251,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
 
   // Apply the fill-reducing permutation
   eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
-  SparseMatrix<Scalar,RowMajor, Index> mat;
+  SparseMatrix<Scalar,RowMajor, StorageIndex> mat;
   mat = amat.twistedBy(m_Pinv);
 
   // Initialization
@@ -259,7 +260,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
   u.fill(0);
 
   // number of largest elements to keep in each row:
-  Index fill_in =   static_cast<Index> (amat.nonZeros()*m_fillfactor)/n+1;
+  Index fill_in = (amat.nonZeros()*m_fillfactor)/n + 1;
   if (fill_in > n) fill_in = n;
 
   // number of largest nonzero elements to keep in the L and the U part of the current row:
@@ -274,9 +275,9 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
 
     Index sizeu = 1; // number of nonzero elements in the upper part of the current row
     Index sizel = 0; // number of nonzero elements in the lower part of the current row
-    ju(ii)    = ii;
+    ju(ii)    = convert_index<StorageIndex>(ii);
     u(ii)     = 0;
-    jr(ii)    = ii;
+    jr(ii)    = convert_index<StorageIndex>(ii);
     RealScalar rownorm = 0;
 
     typename FactorType::InnerIterator j_it(mat, ii); // Iterate through the current row ii
@@ -286,9 +287,9 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
       if (k < ii)
       {
         // copy the lower part
-        ju(sizel) = k;
+        ju(sizel) = convert_index<StorageIndex>(k);
         u(sizel) = j_it.value();
-        jr(k) = sizel;
+        jr(k) = convert_index<StorageIndex>(sizel);
         ++sizel;
       }
       else if (k == ii)
@@ -299,9 +300,9 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
       {
         // copy the upper part
         Index jpos = ii + sizeu;
-        ju(jpos) = k;
+        ju(jpos) = convert_index<StorageIndex>(k);
         u(jpos) = j_it.value();
-        jr(k) = jpos;
+        jr(k) = convert_index<StorageIndex>(jpos);
         ++sizeu;
       }
       rownorm += numext::abs2(j_it.value());
@@ -331,7 +332,8 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
         // swap the two locations
         Index j = ju(jj);
         swap(ju(jj), ju(k));
-        jr(minrow) = jj;   jr(j) = k;
+        jr(minrow) = convert_index<StorageIndex>(jj);
+        jr(j) = convert_index<StorageIndex>(k);
         swap(u(jj), u(k));
       }
       // Reset this location
@@ -355,8 +357,8 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
       for (; ki_it; ++ki_it)
       {
         Scalar prod = fact * ki_it.value();
-        Index j       = ki_it.index();
-        Index jpos    = jr(j);
+        Index j     = ki_it.index();
+        Index jpos  = jr(j);
         if (jpos == -1) // fill-in element
         {
           Index newpos;
@@ -372,16 +374,16 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
             sizel++;
             eigen_internal_assert(sizel<=ii);
           }
-          ju(newpos) = j;
+          ju(newpos) = convert_index<StorageIndex>(j);
           u(newpos) = -prod;
-          jr(j) = newpos;
+          jr(j) = convert_index<StorageIndex>(newpos);
         }
         else
           u(jpos) -= prod;
       }
       // store the pivot element
-      u(len) = fact;
-      ju(len) = minrow;
+      u(len)  = fact;
+      ju(len) = convert_index<StorageIndex>(minrow);
       ++len;
 
       jj++;

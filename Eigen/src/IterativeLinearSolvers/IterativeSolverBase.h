@@ -28,7 +28,7 @@ public:
   typedef typename internal::traits<Derived>::MatrixType MatrixType;
   typedef typename internal::traits<Derived>::Preconditioner Preconditioner;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::StorageIndex StorageIndex;
   typedef typename MatrixType::RealScalar RealScalar;
 
 public:
@@ -121,6 +121,7 @@ public:
 
   /** \internal */
   Index rows() const { return mp_matrix.rows(); }
+
   /** \internal */
   Index cols() const { return mp_matrix.cols(); }
 
@@ -144,7 +145,7 @@ public:
     * It is either the value setted by setMaxIterations or, by default,
     * twice the number of columns of the matrix.
     */
-  int maxIterations() const
+  Index maxIterations() const
   {
     return (m_maxIterations<0) ? 2*mp_matrix.cols() : m_maxIterations;
   }
@@ -152,14 +153,14 @@ public:
   /** Sets the max number of iterations.
     * Default is twice the number of columns of the matrix.
     */
-  Derived& setMaxIterations(int maxIters)
+  Derived& setMaxIterations(Index maxIters)
   {
     m_maxIterations = maxIters;
     return derived();
   }
 
   /** \returns the number of iterations performed during the last solve */
-  int iterations() const
+  Index iterations() const
   {
     eigen_assert(m_isInitialized && "ConjugateGradient is not initialized.");
     return m_iterations;
@@ -199,11 +200,11 @@ public:
   {
     eigen_assert(rows()==b.rows());
     
-    int rhsCols = b.cols();
-    int size = b.rows();
+    Index rhsCols = b.cols();
+    Index size = b.rows();
     Eigen::Matrix<DestScalar,Dynamic,1> tb(size);
     Eigen::Matrix<DestScalar,Dynamic,1> tx(size);
-    for(int k=0; k<rhsCols; ++k)
+    for(Index k=0; k<rhsCols; ++k)
     {
       tb = b.col(k);
       tx = derived().solve(tb);
@@ -232,11 +233,11 @@ protected:
   Ref<const MatrixType> mp_matrix;
   Preconditioner m_preconditioner;
 
-  int m_maxIterations;
+  Index m_maxIterations;
   RealScalar m_tolerance;
   
   mutable RealScalar m_error;
-  mutable int m_iterations;
+  mutable Index m_iterations;
   mutable ComputationInfo m_info;
   mutable bool m_analysisIsOk, m_factorizationIsOk;
 };

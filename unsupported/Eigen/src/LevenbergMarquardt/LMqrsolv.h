@@ -28,8 +28,6 @@ void lmqrsolv(
   Matrix<Scalar,Dynamic,1> &x,
   Matrix<Scalar,Dynamic,1> &sdiag)
 {
-    typedef typename Matrix<Scalar,Rows,Cols>::Index Index;
-
     /* Local variables */
     Index i, j, k;
     Scalar temp;

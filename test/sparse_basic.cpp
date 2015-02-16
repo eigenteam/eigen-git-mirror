@@ -13,8 +13,8 @@
 
 template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& ref)
 {
-  typedef typename SparseMatrixType::Index Index;
-  typedef Matrix<Index,2,1> Vector2;
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
+  typedef Matrix<StorageIndex,2,1> Vector2;
   
   const Index rows = ref.rows();
   const Index cols = ref.cols();
@@ -56,27 +56,27 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m, refMat);
 
       // test InnerIterators and Block expressions
-      for (int t=0; t<10; ++t)
+      for (Index t=0; t<10; ++t)
       {
-        int j = internal::random<int>(0,cols-1);
-        int i = internal::random<int>(0,rows-1);
-        int w = internal::random<int>(1,cols-j-1);
-        int h = internal::random<int>(1,rows-i-1);
+        Index j = internal::random<Index>(0,cols-1);
+        Index i = internal::random<Index>(0,rows-1);
+        Index w = internal::random<Index>(1,cols-j-1);
+        Index h = internal::random<Index>(1,rows-i-1);
 
          VERIFY_IS_APPROX(m.block(i,j,h,w), refMat.block(i,j,h,w));
-        for(int c=0; c<w; c++)
+        for(Index c=0; c<w; c++)
         {
           VERIFY_IS_APPROX(m.block(i,j,h,w).col(c), refMat.block(i,j,h,w).col(c));
-          for(int r=0; r<h; r++)
+          for(Index r=0; r<h; r++)
           {
             // FIXME col().coeff() not implemented yet
 //             VERIFY_IS_APPROX(m.block(i,j,h,w).col(c).coeff(r), refMat.block(i,j,h,w).col(c).coeff(r));
           }
         }
-         for(int r=0; r<h; r++)
+         for(Index r=0; r<h; r++)
          {
            VERIFY_IS_APPROX(m.block(i,j,h,w).row(r), refMat.block(i,j,h,w).row(r));
-           for(int c=0; c<w; c++)
+           for(Index c=0; c<w; c++)
            {
              // FIXME row().coeff() not implemented yet
 //             VERIFY_IS_APPROX(m.block(i,j,h,w).row(r).coeff(c), refMat.block(i,j,h,w).row(r).coeff(c));
@@ -84,13 +84,13 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
          }
       }
 
-      for(int c=0; c<cols; c++)
+      for(Index c=0; c<cols; c++)
       {
         VERIFY_IS_APPROX(m.col(c) + m.col(c), (m + m).col(c));
         VERIFY_IS_APPROX(m.col(c) + m.col(c), refMat.col(c) + refMat.col(c));
       }
 
-      for(int r=0; r<rows; r++)
+      for(Index r=0; r<rows; r++)
       {
         VERIFY_IS_APPROX(m.row(r) + m.row(r), (m + m).row(r));
         VERIFY_IS_APPROX(m.row(r) + m.row(r), refMat.row(r) + refMat.row(r));
@@ -153,7 +153,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       SparseMatrixType m2(rows,cols);
       VectorXi r(VectorXi::Constant(m2.outerSize(), ((mode%2)==0) ? int(m2.innerSize()) : std::max<int>(1,int(m2.innerSize())/8)));
       m2.reserve(r);
-      for (int k=0; k<rows*cols; ++k)
+      for (Index k=0; k<rows*cols; ++k)
       {
         Index i = internal::random<Index>(0,rows-1);
         Index j = internal::random<Index>(0,cols-1);
@@ -390,7 +390,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
   // test setFromTriplets
   {
-    typedef Triplet<Scalar,Index> TripletType;
+    typedef Triplet<Scalar,StorageIndex> TripletType;
     std::vector<TripletType> triplets;
     Index ntriplets = rows*cols;
     triplets.reserve(ntriplets);
@@ -398,8 +398,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat.setZero();
     for(Index i=0;i<ntriplets;++i)
     {
-      Index r = internal::random<Index>(0,rows-1);
-      Index c = internal::random<Index>(0,cols-1);
+      StorageIndex r = internal::random<StorageIndex>(0,StorageIndex(rows-1));
+      StorageIndex c = internal::random<StorageIndex>(0,StorageIndex(cols-1));
       Scalar v = internal::random<Scalar>();
       triplets.push_back(TripletType(r,c,v));
       refMat(r,c) += v;
@@ -422,8 +422,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(mapMat2+mapMat3, refMat2+refMat3);
     }
     {
-      MappedSparseMatrix<Scalar,SparseMatrixType::Options,Index> mapMat2(m2.rows(), m2.cols(), m2.nonZeros(), m2.outerIndexPtr(), m2.innerIndexPtr(), m2.valuePtr(), m2.innerNonZeroPtr());
-      MappedSparseMatrix<Scalar,SparseMatrixType::Options,Index> mapMat3(m3.rows(), m3.cols(), m3.nonZeros(), m3.outerIndexPtr(), m3.innerIndexPtr(), m3.valuePtr(), m3.innerNonZeroPtr());
+      MappedSparseMatrix<Scalar,SparseMatrixType::Options,StorageIndex> mapMat2(m2.rows(), m2.cols(), m2.nonZeros(), m2.outerIndexPtr(), m2.innerIndexPtr(), m2.valuePtr(), m2.innerNonZeroPtr());
+      MappedSparseMatrix<Scalar,SparseMatrixType::Options,StorageIndex> mapMat3(m3.rows(), m3.cols(), m3.nonZeros(), m3.outerIndexPtr(), m3.innerIndexPtr(), m3.valuePtr(), m3.innerNonZeroPtr());
       VERIFY_IS_APPROX(mapMat2+mapMat3, refMat2+refMat3);
       VERIFY_IS_APPROX(mapMat2+mapMat3, refMat2+refMat3);
     }
@@ -502,17 +502,17 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   
   // test conservative resize
   {
-      std::vector< std::pair<Index,Index> > inc;
+      std::vector< std::pair<StorageIndex,StorageIndex> > inc;
       if(rows > 3 && cols > 2)
-        inc.push_back(std::pair<Index,Index>(-3,-2));
-      inc.push_back(std::pair<Index,Index>(0,0));
-      inc.push_back(std::pair<Index,Index>(3,2));
-      inc.push_back(std::pair<Index,Index>(3,0));
-      inc.push_back(std::pair<Index,Index>(0,3));
+        inc.push_back(std::pair<StorageIndex,StorageIndex>(-3,-2));
+      inc.push_back(std::pair<StorageIndex,StorageIndex>(0,0));
+      inc.push_back(std::pair<StorageIndex,StorageIndex>(3,2));
+      inc.push_back(std::pair<StorageIndex,StorageIndex>(3,0));
+      inc.push_back(std::pair<StorageIndex,StorageIndex>(0,3));
       
       for(size_t i = 0; i< inc.size(); i++) {
-        Index incRows = inc[i].first;
-        Index incCols = inc[i].second;
+        StorageIndex incRows = inc[i].first;
+        StorageIndex incCols = inc[i].second;
         SparseMatrixType m1(rows, cols);
         DenseMatrix refMat1 = DenseMatrix::Zero(rows, cols);
         initSparse<Scalar>(density, refMat1, m1);
@@ -547,28 +547,28 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
 
 template<typename SparseMatrixType>
-void big_sparse_triplet(typename SparseMatrixType::Index rows, typename SparseMatrixType::Index cols, double density) {
-typedef typename SparseMatrixType::Index Index;
-typedef typename SparseMatrixType::Scalar Scalar;
-typedef Triplet<Scalar,Index> TripletType;
-std::vector<TripletType> triplets;
-double nelements = density * rows*cols;
-VERIFY(nelements>=0 && nelements <  NumTraits<Index>::highest());
-Index ntriplets = Index(nelements);
-triplets.reserve(ntriplets);
-Scalar sum = Scalar(0);
-for(Index i=0;i<ntriplets;++i)
-{
-  Index r = internal::random<Index>(0,rows-1);
-  Index c = internal::random<Index>(0,cols-1);
-  Scalar v = internal::random<Scalar>();
-  triplets.push_back(TripletType(r,c,v));
-  sum += v;
-}
-SparseMatrixType m(rows,cols);
-m.setFromTriplets(triplets.begin(), triplets.end());
-VERIFY(m.nonZeros() <= ntriplets);
-VERIFY_IS_APPROX(sum, m.sum());
+void big_sparse_triplet(Index rows, Index cols, double density) {
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
+  typedef typename SparseMatrixType::Scalar Scalar;
+  typedef Triplet<Scalar,Index> TripletType;
+  std::vector<TripletType> triplets;
+  double nelements = density * rows*cols;
+  VERIFY(nelements>=0 && nelements <  NumTraits<StorageIndex>::highest());
+  Index ntriplets = Index(nelements);
+  triplets.reserve(ntriplets);
+  Scalar sum = Scalar(0);
+  for(Index i=0;i<ntriplets;++i)
+  {
+    Index r = internal::random<Index>(0,rows-1);
+    Index c = internal::random<Index>(0,cols-1);
+    Scalar v = internal::random<Scalar>();
+    triplets.push_back(TripletType(r,c,v));
+    sum += v;
+  }
+  SparseMatrixType m(rows,cols);
+  m.setFromTriplets(triplets.begin(), triplets.end());
+  VERIFY(m.nonZeros() <= ntriplets);
+  VERIFY_IS_APPROX(sum, m.sum());
 }
 
 

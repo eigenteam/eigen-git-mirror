@@ -32,7 +32,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar                                   Scalar;
   typedef NumTraits<Scalar>                         ScalarTraits;
-  typedef DenseIndex                                Index;
+  typedef Eigen::Index                              Index; ///< \deprecated since Eigen 3.3
   typedef typename ScalarTraits::Real               RealScalar;
   typedef typename ScalarTraits::NonInteger      NonInteger;
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1>  VectorType;

@@ -28,7 +28,6 @@ template<typename XprType>
 struct CommaInitializer
 {
   typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::Index Index;
 
   EIGEN_DEVICE_FUNC
   inline CommaInitializer(XprType& xpr, const Scalar& s)

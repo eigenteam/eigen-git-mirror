@@ -49,7 +49,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
   public:
     typedef SparseCompressedBase<Derived> Base;
     typedef typename Base::Scalar Scalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     enum { IsRowMajor = Base::IsRowMajor };
     using Base::operator=;
   protected:
@@ -59,7 +59,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
                          Scalar *, const Scalar *>::type ScalarPointer;
     typedef typename internal::conditional<
                          bool(internal::is_lvalue<Derived>::value),
-                         Index *, const Index *>::type IndexPointer;
+                         StorageIndex *, const StorageIndex *>::type IndexPointer;
 
     Index   m_outerSize;
     Index   m_innerSize;
@@ -81,9 +81,9 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
     //----------------------------------------
     // direct access interface
     inline const Scalar* valuePtr() const { return m_values; }
-    inline const Index* innerIndexPtr() const { return m_innerIndices; }
-    inline const Index* outerIndexPtr() const { return m_outerIndex; }
-    inline const Index* innerNonZeroPtr() const { return m_innerNonZeros; }
+    inline const StorageIndex* innerIndexPtr() const { return m_innerIndices; }
+    inline const StorageIndex* outerIndexPtr() const { return m_outerIndex; }
+    inline const StorageIndex* innerNonZeroPtr() const { return m_innerNonZeros; }
     //----------------------------------------
 
     inline Scalar coeff(Index row, Index col) const
@@ -100,7 +100,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
       // ^^  optimization: let's first check if it is the last coefficient
       // (very common in high level algorithms)
 
-      const Index* r = std::lower_bound(&m_innerIndices[start],&m_innerIndices[end-1],inner);
+      const StorageIndex* r = std::lower_bound(&m_innerIndices[start],&m_innerIndices[end-1],inner);
       const Index id = r-&m_innerIndices[0];
       return ((*r==inner) && (id<end)) ? m_values[id] : Scalar(0);
     }
@@ -127,7 +127,7 @@ class SparseMapBase<Derived,WriteAccessors>
   public:
     typedef SparseMapBase<Derived, ReadOnlyAccessors> Base;
     typedef typename Base::Scalar Scalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     enum { IsRowMajor = Base::IsRowMajor };
     
     using Base::operator=;
@@ -141,9 +141,9 @@ class SparseMapBase<Derived,WriteAccessors>
     using Base::outerIndexPtr;
     using Base::innerNonZeroPtr;
     inline Scalar* valuePtr()       { return Base::m_values; }
-    inline Index* innerIndexPtr()   { return Base::m_innerIndices; }
-    inline Index* outerIndexPtr()   { return Base::m_outerIndex; }
-    inline Index* innerNonZeroPtr() { return Base::m_innerNonZeros; }
+    inline StorageIndex* innerIndexPtr()   { return Base::m_innerIndices; }
+    inline StorageIndex* outerIndexPtr()   { return Base::m_outerIndex; }
+    inline StorageIndex* innerNonZeroPtr() { return Base::m_innerNonZeros; }
     //----------------------------------------
 
     inline Scalar& coeffRef(Index row, Index col)
@@ -161,8 +161,8 @@ class SparseMapBase<Derived,WriteAccessors>
       return const_cast<Scalar*>(Base::m_values)[id];
     }
     
-    inline SparseMapBase(Index rows, Index cols, Index nnz, Index* outerIndexPtr, Index* innerIndexPtr,
-                              Scalar* valuePtr, Index* innerNonZerosPtr = 0)
+    inline SparseMapBase(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr, StorageIndex* innerIndexPtr,
+                              Scalar* valuePtr, StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
     {}
 
@@ -181,8 +181,8 @@ class Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType>
 
   public:
 
-    inline Map(Index rows, Index cols, Index nnz, Index* outerIndexPtr,
-               Index* innerIndexPtr, Scalar* valuePtr, Index* innerNonZerosPtr = 0)
+    inline Map(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr,
+               StorageIndex* innerIndexPtr, Scalar* valuePtr, StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
     {}
 
@@ -201,8 +201,8 @@ class Map<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
 
   public:
 
-    inline Map(Index rows, Index cols, Index nnz, const Index* outerIndexPtr,
-               const Index* innerIndexPtr, const Scalar* valuePtr, const Index* innerNonZerosPtr = 0)
+    inline Map(Index rows, Index cols, Index nnz, const StorageIndex* outerIndexPtr,
+               const StorageIndex* innerIndexPtr, const Scalar* valuePtr, const StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
     {}
 

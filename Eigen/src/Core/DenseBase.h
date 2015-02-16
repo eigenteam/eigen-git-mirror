@@ -58,17 +58,20 @@ template<typename Derived> class DenseBase
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
 
-    /** \brief The type of indices 
-      * \details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
-      * \sa \ref TopicPreprocessorDirectives.
-      */
-    typedef typename internal::traits<Derived>::Index Index; 
+    /**
+      * \brief The type used to store indices
+      * \details This typedef is relevant for types that store multiple indices such as
+      *          PermutationMatrix or Transpositions, otherwise it defaults to Eigen::Index
+      * \sa \ref TopicPreprocessorDirectives, Eigen::Index, SparseMatrixBase.
+     */
+    typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
 
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
-    typedef DenseCoeffsBase<Derived> Base;
+    typedef internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
+                      typename NumTraits<typename internal::traits<Derived>::Scalar>::Real> Base;
     using Base::derived;
     using Base::const_cast_derived;
     using Base::rows;

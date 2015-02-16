@@ -55,7 +55,6 @@ inline typename NumTraits<typename traits<Derived>::Scalar>::Real
 blueNorm_impl(const EigenBase<Derived>& _vec)
 {
   typedef typename Derived::RealScalar RealScalar;  
-  typedef typename Derived::Index Index;
   using std::pow;
   using std::sqrt;
   using std::abs;
