@@ -304,6 +304,8 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
       , m_cols(std::move(other.m_cols))
     {
       other.m_data = nullptr;
+      other.m_rows = 0;
+      other.m_cols = 0;
     }
     DenseStorage& operator=(DenseStorage&& other)
     {
@@ -374,6 +376,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
       , m_cols(std::move(other.m_cols))
     {
       other.m_data = nullptr;
+      other.m_cols = 0;
     }
     DenseStorage& operator=(DenseStorage&& other)
     {
@@ -440,6 +443,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
       , m_rows(std::move(other.m_rows))
     {
       other.m_data = nullptr;
+      other.m_rows = 0;
     }
     DenseStorage& operator=(DenseStorage&& other)
     {
