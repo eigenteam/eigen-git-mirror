@@ -83,6 +83,15 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
     VERIFY(xm.isApprox(refX,test_precision<Scalar>()));
   }
   
+  // test initialization ctor
+  {
+    Rhs x(b.rows(), b.cols());
+    Solver solver2(A);
+    VERIFY(solver2.info() == Success);
+    x = solver2.solve(b);
+    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+  }
+  
   // test dense Block as the result and rhs:
   {
     DenseRhs x(db.rows(), db.cols());

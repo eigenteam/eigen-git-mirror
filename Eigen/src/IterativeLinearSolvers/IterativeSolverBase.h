@@ -54,9 +54,10 @@ public:
     */
   template<typename SparseMatrixDerived>
   explicit IterativeSolverBase(const SparseMatrixBase<SparseMatrixDerived>& A)
+    : mp_matrix(A)
   {
     init();
-    compute(A.derived());
+    compute(mp_matrix);
   }
 
   ~IterativeSolverBase() {}
@@ -69,7 +70,7 @@ public:
   template<typename SparseMatrixDerived>
   Derived& analyzePattern(const SparseMatrixBase<SparseMatrixDerived>& A)
   {
-    grab(A);
+    grab(A.derived());
     m_preconditioner.analyzePattern(mp_matrix);
     m_isInitialized = true;
     m_analysisIsOk = true;
@@ -90,7 +91,7 @@ public:
   Derived& factorize(const SparseMatrixBase<SparseMatrixDerived>& A)
   {
     eigen_assert(m_analysisIsOk && "You must first call analyzePattern()"); 
-    grab(A);
+    grab(A.derived());
     m_preconditioner.factorize(mp_matrix);
     m_factorizationIsOk = true;
     m_info = Success;
@@ -110,7 +111,7 @@ public:
   template<typename SparseMatrixDerived>
   Derived& compute(const SparseMatrixBase<SparseMatrixDerived>& A)
   {
-    grab(A);
+    grab(A.derived());
     m_preconditioner.compute(mp_matrix);
     m_isInitialized = true;
     m_analysisIsOk = true;
@@ -227,6 +228,15 @@ protected:
   {
     mp_matrix.~Ref<const MatrixType>();
     ::new (&mp_matrix) Ref<const MatrixType>(A);
+  }
+  
+  void grab(const Ref<const MatrixType> &A)
+  {
+    if(&(A.derived()) != &mp_matrix)
+    {
+      mp_matrix.~Ref<const MatrixType>();
+      ::new (&mp_matrix) Ref<const MatrixType>(A);
+    }
   }
   
   MatrixType m_dummy;
