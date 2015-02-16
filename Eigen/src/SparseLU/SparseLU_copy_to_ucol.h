@@ -56,7 +56,7 @@ Index SparseLUImpl<Scalar,StorageIndex>::copy_to_ucol(const Index jcol, const In
   
   // For each nonzero supernode segment of U[*,j] in topological order 
   Index k = nseg - 1, i; 
-  Index nextu = glu.xusub(jcol); 
+  StorageIndex nextu = glu.xusub(jcol); 
   Index kfnz, isub, segsize; 
   Index new_next,irow; 
   Index fsupc, mem; 

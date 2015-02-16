@@ -48,10 +48,10 @@ void SparseLUImpl<Scalar,StorageIndex>::relax_snode (const Index n, IndexVector&
 {
   
   // compute the number of descendants of each node in the etree
-  Index j, parent; 
+  Index parent; 
   relax_end.setConstant(emptyIdxLU);
   descendants.setZero();
-  for (j = 0; j < n; j++) 
+  for (Index j = 0; j < n; j++) 
   {
     parent = et(j);
     if (parent != n) // not the dummy root
@@ -59,7 +59,7 @@ void SparseLUImpl<Scalar,StorageIndex>::relax_snode (const Index n, IndexVector&
   }
   // Identify the relaxed supernodes by postorder traversal of the etree
   Index snode_start; // beginning of a snode 
-  for (j = 0; j < n; )
+  for (Index j = 0; j < n; )
   {
     parent = et(j);
     snode_start = j; 
@@ -69,7 +69,7 @@ void SparseLUImpl<Scalar,StorageIndex>::relax_snode (const Index n, IndexVector&
       parent = et(j);
     }
     // Found a supernode in postordered etree, j is the last column 
-    relax_end(snode_start) = j; // Record last column
+    relax_end(snode_start) = StorageIndex(j); // Record last column
     j++;
     // Search for a new leaf
     while (descendants(j) != 0 && j < n) j++;

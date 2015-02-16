@@ -29,7 +29,7 @@ namespace Eigen {
         template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
         EIGEN_DONT_INLINE
         void minres(const MatrixType& mat, const Rhs& rhs, Dest& x,
-                    const Preconditioner& precond, int& iters,
+                    const Preconditioner& precond, Index& iters,
                     typename Dest::RealScalar& tol_error)
         {
             using std::sqrt;
@@ -48,8 +48,8 @@ namespace Eigen {
             }
             
             // initialize
-            const int maxIters(iters);  // initialize maxIters to iters
-            const int N(mat.cols());    // the size of the matrix
+            const Index maxIters(iters);  // initialize maxIters to iters
+            const Index N(mat.cols());    // the size of the matrix
             const RealScalar threshold2(tol_error*tol_error*rhsNorm2); // convergence threshold (compared to residualNorm2)
             
             // Initialize preconditioned Lanczos

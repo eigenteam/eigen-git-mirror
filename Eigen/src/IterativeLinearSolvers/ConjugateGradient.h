@@ -26,7 +26,7 @@ namespace internal {
 template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
 EIGEN_DONT_INLINE
 void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
-                        const Preconditioner& precond, int& iters,
+                        const Preconditioner& precond, Index& iters,
                         typename Dest::RealScalar& tol_error)
 {
   using std::sqrt;
@@ -36,9 +36,9 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   typedef Matrix<Scalar,Dynamic,1> VectorType;
   
   RealScalar tol = tol_error;
-  int maxIters = iters;
+  Index maxIters = iters;
   
-  int n = mat.cols();
+  Index n = mat.cols();
 
   VectorType residual = rhs - mat * x; //initial residual
 
@@ -64,7 +64,7 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
 
   VectorType z(n), tmp(n);
   RealScalar absNew = numext::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
-  int i = 0;
+  Index i = 0;
   while(i < maxIters)
   {
     tmp.noalias() = mat * p;              // the bottleneck of the algorithm
@@ -190,7 +190,7 @@ public:
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
-    for(int j=0; j<b.cols(); ++j)
+    for(Index j=0; j<b.cols(); ++j)
     {
       m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;

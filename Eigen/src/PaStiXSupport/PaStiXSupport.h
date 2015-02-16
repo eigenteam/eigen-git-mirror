@@ -308,7 +308,7 @@ void PastixBase<Derived>::analyzePattern(ColSpMatrix& mat)
   if(m_size>0)
     clean();
   
-  m_size = mat.rows();
+  m_size = internal::convert_index<int>(mat.rows());
   m_perm.resize(m_size);
   m_invp.resize(m_size);
   
@@ -337,7 +337,7 @@ void PastixBase<Derived>::factorize(ColSpMatrix& mat)
   eigen_assert(m_analysisIsOk && "The analysis phase should be called before the factorization phase");
   m_iparm(IPARM_START_TASK) = API_TASK_NUMFACT;
   m_iparm(IPARM_END_TASK) = API_TASK_NUMFACT;
-  m_size = mat.rows();
+  m_size = internal::convert_index<int>(mat.rows());
   
   internal::eigen_pastix(&m_pastixdata, MPI_COMM_WORLD, m_size, mat.outerIndexPtr(), mat.innerIndexPtr(),
                mat.valuePtr(), m_perm.data(), m_invp.data(), 0, 0, m_iparm.data(), m_dparm.data());
@@ -373,7 +373,7 @@ bool PastixBase<Base>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x
     m_iparm[IPARM_START_TASK]          = API_TASK_SOLVE;
     m_iparm[IPARM_END_TASK]            = API_TASK_REFINE;
   
-    internal::eigen_pastix(&m_pastixdata, MPI_COMM_WORLD, x.rows(), 0, 0, 0,
+    internal::eigen_pastix(&m_pastixdata, MPI_COMM_WORLD, internal::convert_index<int>(x.rows()), 0, 0, 0,
                            m_perm.data(), m_invp.data(), &x(0, i), rhs, m_iparm.data(), m_dparm.data());
   }
   

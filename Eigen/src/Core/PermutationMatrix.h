@@ -147,7 +147,8 @@ class PermutationBase : public EigenBase<Derived>
     /** Sets *this to be the identity permutation matrix */
     void setIdentity()
     {
-      for(Index i = 0; i < size(); ++i)
+      StorageIndex n = StorageIndex(size());
+      for(StorageIndex i = 0; i < n; ++i)
         indices().coeffRef(i) = i;
     }
 

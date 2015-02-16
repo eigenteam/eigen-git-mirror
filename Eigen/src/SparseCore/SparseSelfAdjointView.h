@@ -452,7 +452,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
     SrcMode = SrcOrder==RowMajor ? (_SrcMode==Upper ? Lower : Upper) : _SrcMode
   };
   
-  StorageIndex size = mat.rows();
+  Index size = mat.rows();
   VectorI count(size);
   count.setZero();
   dest.resize(size,size);

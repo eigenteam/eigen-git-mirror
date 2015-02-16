@@ -27,7 +27,7 @@ namespace internal {
   */
 template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
 bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
-              const Preconditioner& precond, int& iters,
+              const Preconditioner& precond, Index& iters,
               typename Dest::RealScalar& tol_error)
 {
   using std::sqrt;
@@ -36,9 +36,9 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   typedef typename Dest::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,1> VectorType;
   RealScalar tol = tol_error;
-  int maxIters = iters;
+  Index maxIters = iters;
 
-  int n = mat.cols();
+  Index n = mat.cols();
   VectorType r  = rhs - mat * x;
   VectorType r0 = r;
   
@@ -61,8 +61,8 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
 
   RealScalar tol2 = tol*tol;
   RealScalar eps2 = NumTraits<Scalar>::epsilon()*NumTraits<Scalar>::epsilon();
-  int i = 0;
-  int restarts = 0;
+  Index i = 0;
+  Index restarts = 0;
 
   while ( r.squaredNorm()/rhs_sqnorm > tol2 && i<maxIters )
   {
@@ -182,7 +182,7 @@ public:
   void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {    
     bool failed = false;
-    for(int j=0; j<b.cols(); ++j)
+    for(Index j=0; j<b.cols(); ++j)
     {
       m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;

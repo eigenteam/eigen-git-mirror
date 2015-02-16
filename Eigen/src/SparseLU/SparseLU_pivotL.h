@@ -89,7 +89,7 @@ Index SparseLUImpl<Scalar,StorageIndex>::pivotL(const Index jcol, const RealScal
   // Test for singularity
   if ( pivmax == 0.0 ) {
     pivrow = lsub_ptr[pivptr];
-    perm_r(pivrow) = jcol;
+    perm_r(pivrow) = StorageIndex(jcol);
     return (jcol+1);
   }
   
@@ -110,7 +110,7 @@ Index SparseLUImpl<Scalar,StorageIndex>::pivotL(const Index jcol, const RealScal
   }
   
   // Record pivot row
-  perm_r(pivrow) = jcol; 
+  perm_r(pivrow) = StorageIndex(jcol); 
   // Interchange row subscripts
   if (pivptr != nsupc )
   {

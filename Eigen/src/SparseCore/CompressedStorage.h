@@ -131,7 +131,7 @@ class CompressedStorage
 
     /** \returns the stored value at index \a key
       * If the value does not exist, then the value \a defaultValue is returned without any insertion. */
-    inline Scalar at(Index key, const Scalar& defaultValue = Scalar(0)) const
+    inline Scalar at(StorageIndex key, const Scalar& defaultValue = Scalar(0)) const
     {
       if (m_size==0)
         return defaultValue;
@@ -144,7 +144,7 @@ class CompressedStorage
     }
 
     /** Like at(), but the search is performed in the range [start,end) */
-    inline Scalar atInRange(Index start, Index end, Index key, const Scalar &defaultValue = Scalar(0)) const
+    inline Scalar atInRange(Index start, Index end, StorageIndex key, const Scalar &defaultValue = Scalar(0)) const
     {
       if (start>=end)
         return defaultValue;
@@ -159,7 +159,7 @@ class CompressedStorage
     /** \returns a reference to the value at index \a key
       * If the value does not exist, then the value \a defaultValue is inserted
       * such that the keys are sorted. */
-    inline Scalar& atWithInsertion(Index key, const Scalar& defaultValue = Scalar(0))
+    inline Scalar& atWithInsertion(StorageIndex key, const Scalar& defaultValue = Scalar(0))
     {
       Index id = searchLowerIndex(0,m_size,key);
       if (id>=m_size || m_indices[id]!=key)
@@ -189,7 +189,7 @@ class CompressedStorage
           internal::smart_memmove(m_indices+id, m_indices+m_size, m_indices+id+1);
         }
         m_size++;
-        m_indices[id] = convert_index<StorageIndex>(key);
+        m_indices[id] = key;
         m_values[id] = defaultValue;
       }
       return m_values[id];

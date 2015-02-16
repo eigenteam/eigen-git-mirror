@@ -103,7 +103,7 @@ class SparseVector
     inline Scalar coeff(Index i) const
     {
       eigen_assert(i>=0 && i<m_size);
-      return m_data.at(i);
+      return m_data.at(StorageIndex(i));
     }
 
     inline Scalar& coeffRef(Index row, Index col)
@@ -121,7 +121,7 @@ class SparseVector
     inline Scalar& coeffRef(Index i)
     {
       eigen_assert(i>=0 && i<m_size);
-      return m_data.atWithInsertion(i);
+      return m_data.atWithInsertion(StorageIndex(i));
     }
 
   public:

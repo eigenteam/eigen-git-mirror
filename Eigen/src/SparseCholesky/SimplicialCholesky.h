@@ -202,7 +202,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     void factorize(const MatrixType& a)
     {
       eigen_assert(a.rows()==a.cols());
-      int size = a.cols();
+      Index size = a.cols();
       CholMatrixType tmp(size,size);
       ConstCholMatrixPtr pmat;
       
@@ -226,7 +226,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     void analyzePattern(const MatrixType& a, bool doLDLT)
     {
       eigen_assert(a.rows()==a.cols());
-      int size = a.cols();
+      Index size = a.cols();
       CholMatrixType tmp(size,size);
       ConstCholMatrixPtr pmat;
       ordering(a, pmat, tmp);

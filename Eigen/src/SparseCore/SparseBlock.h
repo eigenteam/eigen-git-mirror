@@ -149,10 +149,10 @@ public:
       // update innerNonZeros
       if(!m_matrix.isCompressed())
         for(Index j=0; j<m_outerSize.value(); ++j)
-          matrix.innerNonZeroPtr()[m_outerStart+j] = tmp.innerVector(j).nonZeros();
+          matrix.innerNonZeroPtr()[m_outerStart+j] = StorageIndex(tmp.innerVector(j).nonZeros());
 
       // update outer index pointers
-      StorageIndex p = start;
+      StorageIndex p = StorageIndex(start);
       for(Index k=0; k<m_outerSize.value(); ++k)
       {
         matrix.outerIndexPtr()[m_outerStart+k] = p;

@@ -138,7 +138,7 @@ Index SparseLUImpl<Scalar,StorageIndex>::column_bmod(const Index jcol, const Ind
     glu.lusup.segment(nextlu,offset).setZero();
     nextlu += offset;
   }
-  glu.xlusup(jcol + 1) = nextlu;  // close L\U(*,jcol); 
+  glu.xlusup(jcol + 1) = StorageIndex(nextlu);  // close L\U(*,jcol); 
   
   /* For more updates within the panel (also within the current supernode),
    * should start from the first column of the panel, or the first column

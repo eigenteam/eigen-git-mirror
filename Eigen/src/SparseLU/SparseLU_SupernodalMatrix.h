@@ -178,11 +178,11 @@ class MappedSuperNodalMatrix
   * \brief InnerIterator class to iterate over nonzero values of the current column in the supernodal matrix L
   * 
   */
-template<typename Scalar, typename Index>
-class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
+template<typename Scalar, typename StorageIndex>
+class MappedSuperNodalMatrix<Scalar,StorageIndex>::InnerIterator
 {
   public:
-     InnerIterator(const MappedSuperNodalMatrix& mat, Eigen::Index outer)
+     InnerIterator(const MappedSuperNodalMatrix& mat, Index outer)
       : m_matrix(mat),
         m_outer(outer),
         m_supno(mat.colToSup()[outer]),

@@ -397,7 +397,7 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   if (!m_symmetricmode) {
     IndexVector post, iwork; 
     // Post order etree
-    internal::treePostorder(m_mat.cols(), m_etree, post); 
+    internal::treePostorder(StorageIndex(m_mat.cols()), m_etree, post); 
       
    
     // Renumber etree in postorder 
@@ -479,7 +479,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   else 
   { //FIXME This should not be needed if the empty permutation is handled transparently
     m_perm_c.resize(matrix.cols());
-    for(Index i = 0; i < matrix.cols(); ++i) m_perm_c.indices()(i) = i;
+    for(StorageIndex i = 0; i < matrix.cols(); ++i) m_perm_c.indices()(i) = i;
   }
   
   Index m = m_mat.rows();

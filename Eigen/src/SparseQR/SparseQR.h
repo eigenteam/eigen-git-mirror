@@ -296,7 +296,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
   if (!m_perm_c.size())
   {
     m_perm_c.resize(n);
-    m_perm_c.indices().setLinSpaced(n, 0,n-1);
+    m_perm_c.indices().setLinSpaced(n, 0,StorageIndex(n-1));
   }
   
   // Compute the column elimination tree of the permuted matrix
@@ -327,8 +327,8 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   using std::abs;
   
   eigen_assert(m_analysisIsok && "analyzePattern() should be called before this step");
-  StorageIndex m = mat.rows();
-  StorageIndex n = mat.cols();
+  StorageIndex m = StorageIndex(mat.rows());
+  StorageIndex n = StorageIndex(mat.cols());
   StorageIndex diagSize = (std::min)(m,n);
   IndexVector mark((std::max)(m,n)); mark.setConstant(-1);  // Record the visited nodes
   IndexVector Ridx(n), Qidx(m);                             // Store temporarily the row indexes for the current column of R and Q
@@ -406,7 +406,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
     for (typename QRMatrixType::InnerIterator itp(m_pmat, col); itp || !found_diag; ++itp)
     {
       StorageIndex curIdx = nonzeroCol;
-      if(itp) curIdx = itp.row();
+      if(itp) curIdx = StorageIndex(itp.row());
       if(curIdx == nonzeroCol) found_diag = true;
       
       // Get the nonzeros indexes of the current column of R
@@ -467,7 +467,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
       {
         for (typename QRMatrixType::InnerIterator itq(m_Q, curIdx); itq; ++itq)
         {
-          StorageIndex iQ = itq.row();
+          StorageIndex iQ = StorageIndex(itq.row());
           if (mark(iQ) != col)
           {
             Qidx(nzcolQ++) = iQ;  // Add this row to the pattern of Q,

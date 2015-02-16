@@ -61,27 +61,26 @@ template <typename MatrixType, typename IndexVector>
 int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt, typename MatrixType::StorageIndex *perm=0)
 {
   typedef typename MatrixType::StorageIndex StorageIndex;
-  Index nc = mat.cols(); // Number of columns
-  Index m = mat.rows();
-  Index diagSize = (std::min)(nc,m);
+  StorageIndex nc = convert_index<StorageIndex>(mat.cols()); // Number of columns
+  StorageIndex m = convert_index<StorageIndex>(mat.rows());
+  StorageIndex diagSize = (std::min)(nc,m);
   IndexVector root(nc); // root of subtree of etree 
   root.setZero();
   IndexVector pp(nc); // disjoint sets 
   pp.setZero(); // Initialize disjoint sets 
   parent.resize(mat.cols());
   //Compute first nonzero column in each row 
-  StorageIndex row,col;
   firstRowElt.resize(m);
   firstRowElt.setConstant(nc);
   firstRowElt.segment(0, diagSize).setLinSpaced(diagSize, 0, diagSize-1);
   bool found_diag;
-  for (col = 0; col < nc; col++)
+  for (StorageIndex col = 0; col < nc; col++)
   {
-    Index pcol = col;
+    StorageIndex pcol = col;
     if(perm) pcol  = perm[col];
     for (typename MatrixType::InnerIterator it(mat, pcol); it; ++it)
     { 
-      row = it.row();
+      Index row = it.row();
       firstRowElt(row) = (std::min)(firstRowElt(row), col);
     }
   }
@@ -89,8 +88,8 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
           except use (firstRowElt[r],c) in place of an edge (r,c) of A.
     Thus each row clique in A'*A is replaced by a star
     centered at its first vertex, which has the same fill. */
-  Index rset, cset, rroot;
-  for (col = 0; col < nc; col++) 
+  StorageIndex rset, cset, rroot;
+  for (StorageIndex col = 0; col < nc; col++) 
   {
     found_diag = col>=m;
     pp(col) = col; 
@@ -99,7 +98,7 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
     parent(col) = nc; 
     /* The diagonal element is treated here even if it does not exist in the matrix
      * hence the loop is executed once more */ 
-    Index pcol = col;
+    StorageIndex pcol = col;
     if(perm) pcol  = perm[col];
     for (typename MatrixType::InnerIterator it(mat, pcol); it||!found_diag; ++it)
     { //  A sequence of interleaved find and union is performed 
@@ -107,7 +106,7 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
       if(it) i = it.index();
       if (i == col) found_diag = true;
       
-      row = firstRowElt(i);
+      StorageIndex row = firstRowElt(i);
       if (row >= col) continue; 
       rset = internal::etree_find(row, pp); // Find the name of the set containing row
       rroot = root(rset);
@@ -128,9 +127,10 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
   * This routine was contributed by Cédric Doucet, CEDRAT Group, Meylan, France.
 */
 template <typename IndexVector>
-void nr_etdfs (Index n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, Index postnum)
+void nr_etdfs (typename IndexVector::Scalar n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, typename IndexVector::Scalar postnum)
 {
-  Index current = n, first, next;
+  typedef typename IndexVector::Scalar StorageIndex;
+  StorageIndex current = n, first, next;
   while (postnum != n) 
   {
     // No kid for the current node
@@ -175,21 +175,21 @@ void nr_etdfs (Index n, IndexVector& parent, IndexVector& first_kid, IndexVector
   * \param post postordered tree
   */
 template <typename IndexVector>
-void treePostorder(Index n, IndexVector& parent, IndexVector& post)
+void treePostorder(typename IndexVector::Scalar n, IndexVector& parent, IndexVector& post)
 {
+  typedef typename IndexVector::Scalar StorageIndex;
   IndexVector first_kid, next_kid; // Linked list of children 
-  Index postnum; 
+  StorageIndex postnum; 
   // Allocate storage for working arrays and results 
   first_kid.resize(n+1); 
   next_kid.setZero(n+1);
   post.setZero(n+1);
   
   // Set up structure describing children
-  Index v, dad; 
   first_kid.setConstant(-1); 
-  for (v = n-1; v >= 0; v--) 
+  for (StorageIndex v = n-1; v >= 0; v--) 
   {
-    dad = parent(v);
+    StorageIndex dad = parent(v);
     next_kid(v) = first_kid(dad); 
     first_kid(dad) = v; 
   }

@@ -54,7 +54,7 @@ namespace internal {
  */
 template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
 bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Preconditioner & precond,
-		int &iters, const int &restart, typename Dest::RealScalar & tol_error) {
+		Index &iters, const Index &restart, typename Dest::RealScalar & tol_error) {
 
 	using std::sqrt;
 	using std::abs;
@@ -65,10 +65,10 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 	typedef Matrix < Scalar, Dynamic, Dynamic > FMatrixType;
 
 	RealScalar tol = tol_error;
-	const int maxIters = iters;
+	const Index maxIters = iters;
 	iters = 0;
 
-	const int m = mat.rows();
+	const Index m = mat.rows();
 
 	// residual and preconditioned residual
 	const VectorType p0 = rhs - mat*x;
@@ -97,14 +97,14 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 	w(0)=(Scalar) beta;
 	H.bottomLeftCorner(m - 1, 1) = e;
 
-	for (int k = 1; k <= restart; ++k) {
+	for (Index k = 1; k <= restart; ++k) {
 
 		++iters;
 
 		VectorType v = VectorType::Unit(m, k - 1), workspace(m);
 
 		// apply Householder reflections H_{1} ... H_{k-1} to v
-		for (int i = k - 1; i >= 0; --i) {
+		for (Index i = k - 1; i >= 0; --i) {
 			v.tail(m - i).applyHouseholderOnTheLeft(H.col(i).tail(m - i - 1), tau.coeffRef(i), workspace.data());
 		}
 
@@ -113,7 +113,7 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 		v=precond.solve(t);
 
 		// apply Householder reflections H_{k-1} ... H_{1} to v
-		for (int i = 0; i < k; ++i) {
+		for (Index i = 0; i < k; ++i) {
 			v.tail(m - i).applyHouseholderOnTheLeft(H.col(i).tail(m - i - 1), tau.coeffRef(i), workspace.data());
 		}
 
@@ -133,7 +133,7 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 		}
 
 		if (k > 1) {
-			for (int i = 0; i < k - 1; ++i) {
+			for (Index i = 0; i < k - 1; ++i) {
 				// apply old Givens rotations to v
 				v.applyOnTheLeft(i, i + 1, G[i].adjoint());
 			}
@@ -166,7 +166,7 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 			// apply Householder reflection H_{k} to x_new
 			x_new.tail(m - k + 1).applyHouseholderOnTheLeft(H.col(k - 1).tail(m - k), tau.coeffRef(k - 1), workspace.data());
 
-			for (int i = k - 2; i >= 0; --i) {
+			for (Index i = k - 2; i >= 0; --i) {
 				x_new += y(i) * VectorType::Unit(m, i);
 				// apply Householder reflection H_{i} to x_new
 				x_new.tail(m - i).applyHouseholderOnTheLeft(H.col(i).tail(m - i - 1), tau.coeffRef(i), workspace.data());
@@ -265,7 +265,7 @@ class GMRES : public IterativeSolverBase<GMRES<_MatrixType,_Preconditioner> >
   using Base::m_isInitialized;
 
 private:
-  int m_restart;
+  Index m_restart;
 
 public:
   using Base::_solve_impl;
@@ -295,19 +295,19 @@ public:
 
   /** Get the number of iterations after that a restart is performed.
     */
-  int get_restart() { return m_restart; }
+  Index get_restart() { return m_restart; }
 
   /** Set the number of iterations after that a restart is performed.
     *  \param restart   number of iterations for a restarti, default is 30.
     */
-  void set_restart(const int restart) { m_restart=restart; }
+  void set_restart(const Index restart) { m_restart=restart; }
 
   /** \internal */
   template<typename Rhs,typename Dest>
   void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {
     bool failed = false;
-    for(int j=0; j<b.cols(); ++j)
+    for(Index j=0; j<b.cols(); ++j)
     {
       m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;

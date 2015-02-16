@@ -188,7 +188,7 @@ class SparseMatrix
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
       Index end = m_innerNonZeros ? m_outerIndex[outer] + m_innerNonZeros[outer] : m_outerIndex[outer+1];
-      return m_data.atInRange(m_outerIndex[outer], end, inner);
+      return m_data.atInRange(m_outerIndex[outer], end, StorageIndex(inner));
     }
 
     /** \returns a non-const reference to the value of the matrix at position \a i, \a j
@@ -211,7 +211,7 @@ class SparseMatrix
       eigen_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
       if(end<=start)
         return insert(row,col);
-      const Index p = m_data.searchLowerIndex(start,end-1,inner);
+      const Index p = m_data.searchLowerIndex(start,end-1,StorageIndex(inner));
       if((p<end) && (m_data.index(p)==inner))
         return m_data.value(p);
       else
@@ -390,7 +390,7 @@ class SparseMatrix
       * \sa insertBack, startVec */
     inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
-      eigen_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
+      eigen_assert(Index(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
       eigen_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
       Index p = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
@@ -714,9 +714,9 @@ class SparseMatrix
     {
       eigen_assert(rows() == cols() && "ONLY FOR SQUARED MATRICES");
       this->m_data.resize(rows());
-      Eigen::Map<IndexVector>(&this->m_data.index(0), rows()).setLinSpaced(0, rows()-1);
+      Eigen::Map<IndexVector>(&this->m_data.index(0), rows()).setLinSpaced(0, StorageIndex(rows()-1));
       Eigen::Map<ScalarVector>(&this->m_data.value(0), rows()).setOnes();
-      Eigen::Map<IndexVector>(this->m_outerIndex, rows()+1).setLinSpaced(0, rows());
+      Eigen::Map<IndexVector>(this->m_outerIndex, rows()+1).setLinSpaced(0, StorageIndex(rows()));
     }
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {

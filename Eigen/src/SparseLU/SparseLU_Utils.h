@@ -53,7 +53,7 @@ void SparseLUImpl<Scalar,StorageIndex>::fixupL(const Index n, const IndexVector&
 {
   Index fsupc, i, j, k, jstart; 
   
-  Index nextl = 0; 
+  StorageIndex nextl = 0; 
   Index nsuper = (glu.supno)(n); 
   
   // For each supernode 

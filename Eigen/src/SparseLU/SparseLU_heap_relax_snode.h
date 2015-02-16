@@ -48,15 +48,14 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
   
   // The etree may not be postordered, but its heap ordered  
   IndexVector post;
-  internal::treePostorder(n, et, post); // Post order etree
+  internal::treePostorder(StorageIndex(n), et, post); // Post order etree
   IndexVector inv_post(n+1); 
-  Index i;
-  for (i = 0; i < n+1; ++i) inv_post(post(i)) = i; // inv_post = post.inverse()???
+  for (StorageIndex i = 0; i < n+1; ++i) inv_post(post(i)) = i; // inv_post = post.inverse()???
   
   // Renumber etree in postorder 
   IndexVector iwork(n);
   IndexVector et_save(n+1);
-  for (i = 0; i < n; ++i)
+  for (Index i = 0; i < n; ++i)
   {
     iwork(post(i)) = post(et(i));
   }
@@ -78,7 +77,7 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
   StorageIndex k;
   Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
   Index nsuper_et = 0; // Number of relaxed snodes in the original etree 
-  Index l; 
+  StorageIndex l; 
   for (j = 0; j < n; )
   {
     parent = et(j);
@@ -90,8 +89,8 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
     }
     // Found a supernode in postordered etree, j is the last column 
     ++nsuper_et_post;
-    k = n;
-    for (i = snode_start; i <= j; ++i)
+    k = StorageIndex(n);
+    for (Index i = snode_start; i <= j; ++i)
       k = (std::min)(k, inv_post(i));
     l = inv_post(j);
     if ( (l - k) == (j - snode_start) )  // Same number of columns in the snode
@@ -102,7 +101,7 @@ void SparseLUImpl<Scalar,StorageIndex>::heap_relax_snode (const Index n, IndexVe
     }
     else 
     {
-      for (i = snode_start; i <= j; ++i) 
+      for (Index i = snode_start; i <= j; ++i) 
       {
         l = inv_post(i);
         if (descendants(i) == 0) 

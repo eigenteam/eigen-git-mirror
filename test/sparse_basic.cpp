@@ -398,8 +398,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat.setZero();
     for(Index i=0;i<ntriplets;++i)
     {
-      StorageIndex r = internal::random<StorageIndex>(0,rows-1);
-      StorageIndex c = internal::random<StorageIndex>(0,cols-1);
+      StorageIndex r = internal::random<StorageIndex>(0,StorageIndex(rows-1));
+      StorageIndex c = internal::random<StorageIndex>(0,StorageIndex(cols-1));
       Scalar v = internal::random<Scalar>();
       triplets.push_back(TripletType(r,c,v));
       refMat(r,c) += v;

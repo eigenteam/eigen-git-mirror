@@ -313,8 +313,9 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     void analyzePattern_impl()
     {
       int errorCode = 0;
-      errorCode = umfpack_symbolic(m_copyMatrix.rows(), m_copyMatrix.cols(), m_outerIndexPtr, m_innerIndexPtr, m_valuePtr,
-                                   &m_symbolic, 0, 0);
+      errorCode = umfpack_symbolic(internal::convert_index<int>(m_copyMatrix.rows()),
+                                   internal::convert_index<int>(m_copyMatrix.cols()),
+                                   m_outerIndexPtr, m_innerIndexPtr, m_valuePtr, &m_symbolic, 0, 0);
 
       m_isInitialized = true;
       m_info = errorCode ? InvalidInput : Success;

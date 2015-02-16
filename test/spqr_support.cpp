@@ -37,7 +37,7 @@ template<typename Scalar> void test_spqr_scalar()
   SPQR<MatrixType> solver; 
   generate_sparse_rectangular_problem(A,dA);
   
-  int m = A.rows();
+  Index m = A.rows();
   b = DenseVector::Random(m);
   solver.compute(A);
   if (solver.info() != Success)
