@@ -8,7 +8,6 @@ namespace Eigen {
       typedef typename nested_eval<ArgType, XprType::ColsAtCompileTime>::type ArgTypeNested;
       typedef typename remove_all<ArgTypeNested>::type ArgTypeNestedCleaned;
       typedef typename XprType::CoeffReturnType CoeffReturnType;
-      typedef typename XprType::Index Index;
 
       enum { 
         CoeffReadCost = evaluator<ArgTypeNestedCleaned>::CoeffReadCost,

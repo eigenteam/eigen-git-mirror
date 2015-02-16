@@ -11,7 +11,7 @@ public:
 
   typedef typename Eigen::internal::ref_selector<Circulant>::type Nested; 
 
-  typedef typename Eigen::internal::traits<Circulant>::Index Index;
+  typedef Eigen::Index Index;
   Index rows() const { return m_arg.rows(); }
   Index cols() const { return m_arg.rows(); }
 
