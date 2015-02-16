@@ -345,7 +345,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
           }
         }
       }
-      return det * (m_detPermR * m_detPermC);
+      return (m_detPermR * m_detPermC) > 0 ? det : -det;
     }
 
   protected:
