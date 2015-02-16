@@ -243,7 +243,13 @@ class SparseMatrix
 
   public:
 
-    /** Removes all non zeros but keep allocated memory */
+    /** Removes all non zeros but keep allocated memory
+      *
+      * This function does not free the currently allocated memory. To release as much as memory as possible,
+      * call \code mat.data().squeeze(); \endcode after resizing it.
+      * 
+      * \sa resize(Index,Index), data()
+      */
     inline void setZero()
     {
       m_data.clear();
@@ -601,6 +607,10 @@ class SparseMatrix
     }
     
     /** Resizes the matrix to a \a rows x \a cols matrix and initializes it to zero.
+      * 
+      * This function does not free the currently allocated memory. To release as much as memory as possible,
+      * call \code mat.data().squeeze(); \endcode after resizing it.
+      * 
       * \sa resizeNonZeros(Index), reserve(), setZero()
       */
     void resize(Index rows, Index cols)
