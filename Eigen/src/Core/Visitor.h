@@ -41,7 +41,6 @@ struct visitor_impl<Visitor, Derived, 1>
 template<typename Visitor, typename Derived>
 struct visitor_impl<Visitor, Derived, Dynamic>
 {
-  typedef typename Derived::Index Index;
   static inline void run(const Derived& mat, Visitor& visitor)
   {
     visitor.init(mat.coeff(0,0), 0, 0);
@@ -60,7 +59,6 @@ class visitor_evaluator
 public:
   explicit visitor_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
   
-  typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   
@@ -124,7 +122,6 @@ namespace internal {
 template <typename Derived>
 struct coeff_visitor
 {
-  typedef typename Derived::Index Index;
   typedef typename Derived::Scalar Scalar;
   Index row, col;
   Scalar res;
@@ -144,7 +141,6 @@ struct coeff_visitor
 template <typename Derived>
 struct min_coeff_visitor : coeff_visitor<Derived>
 {
-  typedef typename Derived::Index Index;
   typedef typename Derived::Scalar Scalar;
   void operator() (const Scalar& value, Index i, Index j)
   {
@@ -172,7 +168,6 @@ struct functor_traits<min_coeff_visitor<Scalar> > {
 template <typename Derived>
 struct max_coeff_visitor : coeff_visitor<Derived>
 {
-  typedef typename Derived::Index Index;
   typedef typename Derived::Scalar Scalar;
   void operator() (const Scalar& value, Index i, Index j)
   {

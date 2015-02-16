@@ -386,7 +386,6 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct> >
 {
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
-  typedef typename Product<Lhs,Rhs>::Index  Index;
   typedef typename Lhs::Scalar LhsScalar;
   typedef typename Rhs::Scalar RhsScalar;
   

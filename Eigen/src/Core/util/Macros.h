@@ -660,7 +660,6 @@ namespace Eigen {
 #define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
   EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
   typedef typename Base::PacketScalar PacketScalar; \
-  typedef Eigen::Index Index; \
   enum { MaxRowsAtCompileTime = Eigen::internal::traits<Derived>::MaxRowsAtCompileTime, \
         MaxColsAtCompileTime = Eigen::internal::traits<Derived>::MaxColsAtCompileTime}; \
   using Base::derived; \

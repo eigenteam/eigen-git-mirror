@@ -388,7 +388,6 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
 {
   template<typename Dest> static void run(Dest& dst, const Lhs &a_lhs, const Rhs &a_rhs, const typename Dest::Scalar& alpha)
   {
-    typedef typename Dest::Index      Index;
     typedef typename Dest::Scalar     Scalar;
     
     typedef internal::blas_traits<Lhs> LhsBlasTraits;

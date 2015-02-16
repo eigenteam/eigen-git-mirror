@@ -205,8 +205,7 @@ public:
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
   typedef Eigen::Index StorageIndex;
-  /** \deprecated */
-  typedef Eigen::Index Index;
+  typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
   /** type of the matrix used to represent the transformation */
   typedef typename internal::make_proper_matrix_type<Scalar,Rows,HDim,Options>::type MatrixType;
   /** constified MatrixType */

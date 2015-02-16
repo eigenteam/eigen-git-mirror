@@ -59,7 +59,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef typename MatrixType::Index Index;
+    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
     typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
 
@@ -252,8 +252,7 @@ template<> struct ldlt_inplace<Lower>
     using std::abs;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-    typedef typename TranspositionType::StorageIndexType IndexType;
+    typedef typename TranspositionType::StorageIndex IndexType;
     eigen_assert(mat.rows()==mat.cols());
     const Index size = mat.rows();
 
@@ -343,7 +342,6 @@ template<> struct ldlt_inplace<Lower>
     using numext::isfinite;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
 
     const Index size = mat.rows();
     eigen_assert(mat.cols() == size && w.size()==size);
@@ -451,7 +449,7 @@ template<typename MatrixType, int _UpLo>
 template<typename Derived>
 LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Derived>& w, const typename NumTraits<typename MatrixType::Scalar>::Real& sigma)
 {
-  typedef typename TranspositionType::StorageIndexType IndexType;
+  typedef typename TranspositionType::StorageIndex IndexType;
   const Index size = w.rows();
   if (m_isInitialized)
   {

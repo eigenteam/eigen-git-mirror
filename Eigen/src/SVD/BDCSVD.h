@@ -65,7 +65,6 @@ public:
   typedef _MatrixType MatrixType;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  typedef typename MatrixType::Index Index;
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime, 
     ColsAtCompileTime = MatrixType::ColsAtCompileTime, 

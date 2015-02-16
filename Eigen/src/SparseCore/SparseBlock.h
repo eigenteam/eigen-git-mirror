@@ -158,7 +158,7 @@ public:
         matrix.outerIndexPtr()[m_outerStart+k] = p;
         p += tmp.innerVector(k).nonZeros();
       }
-      std::ptrdiff_t offset = nnz - block_size;
+      StorageIndex offset = internal::convert_index<StorageIndex>(nnz - block_size);
       for(Index k = m_outerStart + m_outerSize.value(); k<=matrix.outerSize(); ++k)
       {
         matrix.outerIndexPtr()[k] += offset;

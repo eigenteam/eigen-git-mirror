@@ -262,7 +262,6 @@ struct partial_lu_impl
   typedef Block<MapLU, Dynamic, Dynamic> MatrixType;
   typedef Block<MatrixType,Dynamic,Dynamic> BlockType;
   typedef typename MatrixType::RealScalar RealScalar;
-  typedef typename MatrixType::Index Index;
 
   /** \internal performs the LU decomposition in-place of the matrix \a lu
     * using an unblocked algorithm.
@@ -409,13 +408,13 @@ struct partial_lu_impl
 /** \internal performs the LU decomposition with partial pivoting in-place.
   */
 template<typename MatrixType, typename TranspositionType>
-void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, typename TranspositionType::StorageIndexType& nb_transpositions)
+void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, typename TranspositionType::StorageIndex& nb_transpositions)
 {
   eigen_assert(lu.cols() == row_transpositions.size());
   eigen_assert((&row_transpositions.coeffRef(1)-&row_transpositions.coeffRef(0)) == 1);
 
   partial_lu_impl
-    <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor, typename TranspositionType::StorageIndexType>
+    <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor, typename TranspositionType::StorageIndex>
     ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.outerStride(), &row_transpositions.coeffRef(0), nb_transpositions);
 }
 
@@ -434,7 +433,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
 
   m_rowsTranspositions.resize(size);
 
-  typename TranspositionType::StorageIndexType nb_transpositions;
+  typename TranspositionType::StorageIndex nb_transpositions;
   internal::partial_lu_inplace(m_lu, m_rowsTranspositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 

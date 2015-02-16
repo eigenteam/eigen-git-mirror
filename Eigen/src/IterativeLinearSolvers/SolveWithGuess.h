@@ -41,7 +41,6 @@ template<typename Decomposition, typename RhsType, typename GuessType>
 class SolveWithGuess : public internal::generic_xpr_base<SolveWithGuess<Decomposition,RhsType,GuessType>, MatrixXpr, typename internal::traits<RhsType>::StorageKind>::type
 {
 public:
-  typedef typename RhsType::Index Index;
   typedef typename internal::traits<SolveWithGuess>::Scalar Scalar;
   typedef typename internal::traits<SolveWithGuess>::PlainObject PlainObject;
   typedef typename internal::generic_xpr_base<SolveWithGuess<Decomposition,RhsType,GuessType>, MatrixXpr, typename internal::traits<RhsType>::StorageKind>::type Base;

@@ -78,7 +78,7 @@ struct unary_evaluator<SparseView<ArgType>, IteratorBased>
         typedef typename XprType::Scalar Scalar;
       public:
 
-        EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& sve, typename XprType::Index outer)
+        EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& sve, Index outer)
           : EvalIterator(sve.m_argImpl,outer), m_view(sve.m_view)
         {
           incrementToNonZero();
@@ -126,7 +126,6 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
     typedef SparseView<ArgType> XprType;
   protected:
     enum { IsRowMajor = (XprType::Flags&RowMajorBit)==RowMajorBit };
-    typedef typename XprType::StorageIndex StorageIndex;
     typedef typename XprType::Scalar Scalar;
   public:
     

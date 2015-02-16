@@ -238,7 +238,6 @@ struct homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
   typedef typename traits<homogeneous_left_product_impl>::LhsMatrixType LhsMatrixType;
   typedef typename remove_all<LhsMatrixType>::type LhsMatrixTypeCleaned;
   typedef typename remove_all<typename LhsMatrixTypeCleaned::Nested>::type LhsMatrixTypeNested;
-  typedef typename MatrixType::Index Index;
   homogeneous_left_product_impl(const Lhs& lhs, const MatrixType& rhs)
     : m_lhs(take_matrix_for_product<Lhs>::run(lhs)),
       m_rhs(rhs)
@@ -278,7 +277,6 @@ struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   : public ReturnByValue<homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs> >
 {
   typedef typename remove_all<typename Rhs::Nested>::type RhsNested;
-  typedef typename MatrixType::Index Index;
   homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}

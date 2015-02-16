@@ -221,7 +221,6 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
   template<typename Lhs, typename Rhs, typename Dest>
   static inline void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef typename Dest::Index Index;
     typedef typename Lhs::Scalar   LhsScalar;
     typedef typename Rhs::Scalar   RhsScalar;
     typedef typename Dest::Scalar  ResScalar;
@@ -298,7 +297,6 @@ template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,true>
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef typename Dest::Index Index;
     typedef typename Lhs::Scalar   LhsScalar;
     typedef typename Rhs::Scalar   RhsScalar;
     typedef typename Dest::Scalar  ResScalar;
@@ -352,7 +350,6 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,false>
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef typename Dest::Index Index;
     // TODO makes sure dest is sequentially stored in memory, otherwise use a temp
     const Index size = rhs.rows();
     for(Index k=0; k<size; ++k)
@@ -365,7 +362,6 @@ template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,false>
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
-    typedef typename Dest::Index Index;
     // TODO makes sure rhs is sequentially stored in memory, otherwise use a temp
     const Index rows = dest.rows();
     for(Index i=0; i<rows; ++i)

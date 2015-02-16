@@ -808,7 +808,6 @@ class SuperILU : public SuperLUBase<_MatrixType,SuperILU<_MatrixType> >
     typedef _MatrixType MatrixType;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::RealScalar RealScalar;
-    typedef typename Base::Index Index;
 
   public:
     using Base::_solve_impl;

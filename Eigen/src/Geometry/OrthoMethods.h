@@ -133,7 +133,6 @@ struct unitOrthogonal_selector
   typedef typename plain_matrix_type<Derived>::type VectorType;
   typedef typename traits<Derived>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef typename Derived::Index Index;
   typedef Matrix<Scalar,2,1> Vector2;
   EIGEN_DEVICE_FUNC
   static inline VectorType run(const Derived& src)

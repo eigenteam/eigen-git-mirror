@@ -178,7 +178,7 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
 
     typedef typename Base::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
-    typedef typename Base::Index Index;
+    typedef typename Base::StorageIndex StorageIndex;
     typedef typename Base::PointerType PointerType;
 
     using Base::derived;

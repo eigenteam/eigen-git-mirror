@@ -29,7 +29,7 @@ template<typename _MatrixType> class UpperBidiagonalization
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
+    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
     typedef BandMatrix<RealScalar, ColsAtCompileTime, ColsAtCompileTime, 1, 0, RowMajor> BidiagonalType;
@@ -95,7 +95,6 @@ void upperbidiagonalization_inplace_unblocked(MatrixType& mat,
                                               typename MatrixType::RealScalar *upper_diagonal,
                                               typename MatrixType::Scalar* tempData = 0)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   Index rows = mat.rows();
@@ -153,13 +152,12 @@ template<typename MatrixType>
 void upperbidiagonalization_blocked_helper(MatrixType& A,
                                            typename MatrixType::RealScalar *diagonal,
                                            typename MatrixType::RealScalar *upper_diagonal,
-                                           typename MatrixType::Index bs,
+                                           Index bs,
                                            Ref<Matrix<typename MatrixType::Scalar, Dynamic, Dynamic,
                                                       traits<MatrixType>::Flags & RowMajorBit> > X,
                                            Ref<Matrix<typename MatrixType::Scalar, Dynamic, Dynamic,
                                                       traits<MatrixType>::Flags & RowMajorBit> > Y)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   enum { StorageOrder = traits<MatrixType>::Flags & RowMajorBit };
   typedef InnerStride<int(StorageOrder) == int(ColMajor) ? 1 : Dynamic> ColInnerStride;
@@ -282,10 +280,9 @@ void upperbidiagonalization_blocked_helper(MatrixType& A,
   */
 template<typename MatrixType, typename BidiagType>
 void upperbidiagonalization_inplace_blocked(MatrixType& A, BidiagType& bidiagonal,
-                                            typename MatrixType::Index maxBlockSize=32,
+                                            Index maxBlockSize=32,
                                             typename MatrixType::Scalar* /*tempData*/ = 0)
 {
-  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Block<MatrixType,Dynamic,Dynamic> BlockType;
 

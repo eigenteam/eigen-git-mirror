@@ -53,6 +53,7 @@ public:
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   typedef typename MatrixType::StorageIndex StorageIndex;
+  typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,

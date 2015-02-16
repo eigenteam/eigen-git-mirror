@@ -232,7 +232,6 @@ struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize x Packet
   static void run(MatrixType& m) {
     typedef typename MatrixType::Scalar Scalar;
     typedef typename internal::packet_traits<typename MatrixType::Scalar>::type Packet;
-    typedef typename MatrixType::Index Index;
     const Index PacketSize = internal::packet_traits<Scalar>::size;
     const Index Alignment = internal::evaluator<MatrixType>::Flags&AlignedBit ? Aligned : Unaligned;
     PacketBlock<Packet> A;

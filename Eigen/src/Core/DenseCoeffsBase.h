@@ -583,14 +583,14 @@ namespace internal {
 template<typename Derived, bool JustReturnZero>
 struct first_aligned_impl
 {
-  static inline typename Derived::Index run(const Derived&)
+  static inline Index run(const Derived&)
   { return 0; }
 };
 
 template<typename Derived>
 struct first_aligned_impl<Derived, false>
 {
-  static inline typename Derived::Index run(const Derived& m)
+  static inline Index run(const Derived& m)
   {
     return internal::first_aligned(&m.const_cast_derived().coeffRef(0,0), m.size());
   }
@@ -602,7 +602,7 @@ struct first_aligned_impl<Derived, false>
   * documentation.
   */
 template<typename Derived>
-static inline typename Derived::Index first_aligned(const Derived& m)
+static inline Index first_aligned(const Derived& m)
 {
   return first_aligned_impl
           <Derived, (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>

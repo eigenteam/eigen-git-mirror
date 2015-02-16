@@ -70,8 +70,6 @@ struct traits<Map<PlainObjectType, MapOptions, StrideType> >
   : public traits<PlainObjectType>
 {
   typedef traits<PlainObjectType> TraitsBase;
-  typedef typename PlainObjectType::Index Index;
-  typedef typename PlainObjectType::Scalar Scalar;
   enum {
     InnerStrideAtCompileTime = StrideType::InnerStrideAtCompileTime == 0
                              ? int(PlainObjectType::InnerStrideAtCompileTime)

@@ -557,7 +557,6 @@ template<typename MatrixType> struct FullPivHouseholderQRMatrixQReturnType
   : public ReturnByValue<FullPivHouseholderQRMatrixQReturnType<MatrixType> >
 {
 public:
-  typedef typename MatrixType::Index Index;
   typedef typename FullPivHouseholderQR<MatrixType>::IntDiagSizeVectorType IntDiagSizeVectorType;
   typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
   typedef Matrix<typename MatrixType::Scalar, 1, MatrixType::RowsAtCompileTime, RowMajor, 1,

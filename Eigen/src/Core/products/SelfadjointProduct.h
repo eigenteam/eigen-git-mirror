@@ -53,7 +53,6 @@ struct selfadjoint_product_selector<MatrixType,OtherType,UpLo,true>
   static void run(MatrixType& mat, const OtherType& other, const typename MatrixType::Scalar& alpha)
   {
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
     typedef internal::blas_traits<OtherType> OtherBlasTraits;
     typedef typename OtherBlasTraits::DirectLinearAccessType ActualOtherType;
     typedef typename internal::remove_all<ActualOtherType>::type _ActualOtherType;
@@ -86,7 +85,6 @@ struct selfadjoint_product_selector<MatrixType,OtherType,UpLo,false>
   static void run(MatrixType& mat, const OtherType& other, const typename MatrixType::Scalar& alpha)
   {
     typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
     typedef internal::blas_traits<OtherType> OtherBlasTraits;
     typedef typename OtherBlasTraits::DirectLinearAccessType ActualOtherType;
     typedef typename internal::remove_all<ActualOtherType>::type _ActualOtherType;
