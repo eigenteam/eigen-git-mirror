@@ -288,7 +288,7 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(XprType& op, const Device& device)
     : Base(op, device)
   {
-    EIGEN_STATIC_ASSERT((Layout == ColMajor), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((static_cast<int>(Layout) == static_cast<int>(ColMajor)), YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
 
   typedef typename XprType::Index Index;
