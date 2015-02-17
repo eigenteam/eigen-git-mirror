@@ -28,13 +28,12 @@ namespace internal {
 #endif
 #endif
 
-#if defined EIGEN_VECTORIZE_AVX && EIGEN_COMP_GNUC_STRICT
+#if (defined EIGEN_VECTORIZE_AVX) && EIGEN_COMP_GNUC_STRICT && (__GXX_ABI_VERSION < 1004)
 // With GCC's default ABI version, a __m128 or __m256 are the same types and therefore we cannot
 // have overloads for both types without linking error.
 // One solution is to increase ABI version using -fabi-version=4 (or greater).
-// To workaround this inconvenince, we rather wrap 128bit types into the following helper
+// Otherwise, we workaround this inconvenience by wrapping 128bit types into the following helper
 // structure:
-// TODO disable this wrapper if abi-versio>=4, but how to detect that without asking the user to define a macro?
 template<typename T>
 struct eigen_packet_wrapper
 {
