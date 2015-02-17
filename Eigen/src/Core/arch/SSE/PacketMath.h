@@ -34,7 +34,7 @@ namespace internal {
 // One solution is to increase ABI version using -fabi-version=4 (or greater).
 // To workaround this inconvenince, we rather wrap 128bit types into the following helper
 // structure:
-// TODO disable this wrapper if abi-versio>=4, but to detect that without asking the user to define a macro?
+// TODO disable this wrapper if abi-versio>=4, but how to detect that without asking the user to define a macro?
 template<typename T>
 struct eigen_packet_wrapper
 {

@@ -474,7 +474,7 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
 }
 
 template<>  EIGEN_STRONG_INLINE Packet2cf pblend(const Selector<2>& ifPacket, const Packet2cf& thenPacket, const Packet2cf& elsePacket) {
-  __m128d result = pblend(ifPacket, _mm_castps_pd(thenPacket.v), _mm_castps_pd(elsePacket.v));
+  __m128d result = pblend<Packet2d>(ifPacket, _mm_castps_pd(thenPacket.v), _mm_castps_pd(elsePacket.v));
   return Packet2cf(_mm_castpd_ps(result));
 }
 
