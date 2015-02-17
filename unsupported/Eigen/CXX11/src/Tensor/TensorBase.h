@@ -524,6 +524,11 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     swap_layout() const {
       return TensorLayoutSwapOp<Derived>(derived());
     }
+    template <typename Axis, typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorConcatenationOp<const Axis, Derived, OtherDerived>
+    concatenate(const OtherDerived& other, const Axis& axis) const {
+      return TensorConcatenationOp<const Axis, Derived, OtherDerived>(derived(), other.derived(), axis);
+    }
     template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorReshapingOp<const NewDimensions, Derived>
     reshape(const NewDimensions& newDimensions) const {
