@@ -171,19 +171,19 @@ struct SluMatrix : SuperMatrix
     if ((MatrixType::Flags&RowMajorBit)==RowMajorBit)
     {
       res.setStorageType(SLU_NR);
-      res.nrow      = mat.cols();
-      res.ncol      = mat.rows();
+      res.nrow      = internal::convert_index<int>(mat.cols());
+      res.ncol      = internal::convert_index<int>(mat.rows());
     }
     else
     {
       res.setStorageType(SLU_NC);
-      res.nrow      = mat.rows();
-      res.ncol      = mat.cols();
+      res.nrow      = internal::convert_index<int>(mat.rows());
+      res.ncol      = internal::convert_index<int>(mat.cols());
     }
 
     res.Mtype       = SLU_GE;
 
-    res.storage.nnz       = mat.nonZeros();
+    res.storage.nnz       = internal::convert_index<int>(mat.nonZeros());
     res.storage.values    = mat.derived().valuePtr();
     res.storage.innerInd  = mat.derived().innerIndexPtr();
     res.storage.outerInd  = mat.derived().outerIndexPtr();
@@ -361,7 +361,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
     {
       set_default_options(&this->m_sluOptions);
       
-      const int size = a.rows();
+      const Index size = a.rows();
       m_matrix = a;
 
       m_sluA = internal::asSluMatrix(m_matrix);
@@ -380,7 +380,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
       m_sluB.storage.values = 0;
       m_sluB.nrow           = 0;
       m_sluB.ncol           = 0;
-      m_sluB.storage.lda    = size;
+      m_sluB.storage.lda    = internal::convert_index<int>(size);
       m_sluX                = m_sluB;
       
       m_extractedDataAreDirty = true;
@@ -682,7 +682,7 @@ void SuperLUBase<MatrixType,Derived>::extractData() const
     NCformat    *Ustore = static_cast<NCformat*>(m_sluU.Store);
     Scalar      *SNptr;
 
-    const int size = m_matrix.rows();
+    const Index size = m_matrix.rows();
     m_l.resize(size,size);
     m_l.resizeNonZeros(Lstore->nnz);
     m_u.resize(size,size);

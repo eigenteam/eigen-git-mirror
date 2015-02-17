@@ -90,7 +90,6 @@ class CompressedStorage
       m_size = size;
     }
 
-    // FIXME i should be a StorageIndex
     void append(const Scalar& v, Index i)
     {
       Index id = m_size;
@@ -110,13 +109,13 @@ class CompressedStorage
     inline const StorageIndex& index(Index i) const { return m_indices[i]; }
 
     /** \returns the largest \c k such that for all \c j in [0,k) index[\c j]\<\a key */
-    inline StorageIndex searchLowerIndex(StorageIndex key) const
+    inline Index searchLowerIndex(Index key) const
     {
       return searchLowerIndex(0, m_size, key);
     }
 
     /** \returns the largest \c k in [start,end) such that for all \c j in [start,k) index[\c j]\<\a key */
-    inline Index searchLowerIndex(Index start, Index end, StorageIndex key) const
+    inline Index searchLowerIndex(Index start, Index end, Index key) const
     {
       while(end>start)
       {
@@ -131,7 +130,7 @@ class CompressedStorage
 
     /** \returns the stored value at index \a key
       * If the value does not exist, then the value \a defaultValue is returned without any insertion. */
-    inline Scalar at(StorageIndex key, const Scalar& defaultValue = Scalar(0)) const
+    inline Scalar at(Index key, const Scalar& defaultValue = Scalar(0)) const
     {
       if (m_size==0)
         return defaultValue;
@@ -144,7 +143,7 @@ class CompressedStorage
     }
 
     /** Like at(), but the search is performed in the range [start,end) */
-    inline Scalar atInRange(Index start, Index end, StorageIndex key, const Scalar &defaultValue = Scalar(0)) const
+    inline Scalar atInRange(Index start, Index end, Index key, const Scalar &defaultValue = Scalar(0)) const
     {
       if (start>=end)
         return defaultValue;
@@ -159,7 +158,7 @@ class CompressedStorage
     /** \returns a reference to the value at index \a key
       * If the value does not exist, then the value \a defaultValue is inserted
       * such that the keys are sorted. */
-    inline Scalar& atWithInsertion(StorageIndex key, const Scalar& defaultValue = Scalar(0))
+    inline Scalar& atWithInsertion(Index key, const Scalar& defaultValue = Scalar(0))
     {
       Index id = searchLowerIndex(0,m_size,key);
       if (id>=m_size || m_indices[id]!=key)
@@ -189,7 +188,7 @@ class CompressedStorage
           internal::smart_memmove(m_indices+id, m_indices+m_size, m_indices+id+1);
         }
         m_size++;
-        m_indices[id] = key;
+        m_indices[id] = internal::convert_index<StorageIndex>(key);
         m_values[id] = defaultValue;
       }
       return m_values[id];

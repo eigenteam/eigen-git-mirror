@@ -296,7 +296,7 @@ class RandomSetter
       const Index inner = SetterRowMajor ? col : row;
       const Index outerMajor = outer >> OuterPacketBits; // index of the packet/map
       const Index outerMinor = outer & OuterPacketMask;  // index of the inner vector in the packet
-      const KeyType key = (KeyType(outerMinor)<<m_keyBitsOffset) | inner;
+      const KeyType key = internal::convert_index<KeyType>((outerMinor<<m_keyBitsOffset) | inner);
       return m_hashmaps[outerMajor][key].value;
     }
 
