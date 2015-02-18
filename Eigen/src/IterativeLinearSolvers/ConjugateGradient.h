@@ -208,7 +208,7 @@ public:
   template<typename Rhs,typename Dest>
   void _solve_impl(const MatrixBase<Rhs>& b, Dest& x) const
   {
-    x.setOnes();
+    x.setZero();
     _solve_with_guess_impl(b.derived(),x);
   }
 
