@@ -284,6 +284,14 @@ template<typename T> EIGEN_DEVICE_FUNC   void swap(T &a, T &b) { T tmp = b; b = 
 template<typename T> EIGEN_STRONG_INLINE void swap(T &a, T &b) { std::swap(a,b); }
 #endif
 
+// Integer division with rounding up.
+// T is assumed to be an integer type with a>=0, and b>0
+template<typename T>
+T div_ceil(const T &a, const T &b)
+{
+  return (a+b-1) / b;
+}
+
 } // end namespace numext
 
 } // end namespace Eigen

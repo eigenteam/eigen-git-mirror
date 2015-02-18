@@ -79,18 +79,15 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
   * - the number of scalars that fit into a packet (when vectorization is enabled).
   *
   * \sa setCpuCacheSizes */
-#define CEIL(a, b) ((a)+(b)-1)/(b)
 
-template<typename LhsScalar, typename RhsScalar, int KcFactor, typename SizeType>
-void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_threads)
+template<typename LhsScalar, typename RhsScalar, int KcFactor>
+void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   // Explanations:
-  // Let's recall the product algorithms form kc x nc horizontal panels B' on the rhs and
-  // mc x kc blocks A' on the lhs. A' has to fit into L2 cache. Moreover, B' is processed
-  // per kc x nr vertical small panels where nr is the blocking size along the n dimension
-  // at the register level. For vectorization purpose, these small vertical panels are unpacked,
-  // e.g., each coefficient is replicated to fit a packet. This small vertical panel has to
-  // stay in L1 cache.
+  // Let's recall that the product algorithms form mc x kc vertical panels A' on the lhs and
+  // kc x nc blocks B' on the rhs. B' has to fit into L2/L3 cache. Moreover, A' is processed
+  // per mr x kc horizontal small panels where mr is the blocking size along the m dimension
+  // at the register level. This small horizontal panel has to stay within L1 cache.
   std::ptrdiff_t l1, l2, l3;
   manage_caching_sizes(GetAction, &l1, &l2, &l3);
 
@@ -108,32 +105,32 @@ void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_
       nr = Traits::nr,
       nr_mask = (0xffffffff/nr)*nr
     };
-    SizeType k_cache = (l1-ksub)/kdiv;
+    Index k_cache = (l1-ksub)/kdiv;
     if (k_cache < k) {
       k = k_cache & k_mask;
-      eigen_assert(k > 0);
+      eigen_internal_assert(k > 0);
     }
 
-    SizeType n_cache = (l2-l1) / (nr * sizeof(RhsScalar) * k);
-    SizeType n_per_thread = CEIL(n, num_threads);
+    Index n_cache = (l2-l1) / (nr * sizeof(RhsScalar) * k);
+    Index n_per_thread = numext::div_ceil(n, num_threads);
     if (n_cache <= n_per_thread) {
       // Don't exceed the capacity of the l2 cache.
-      eigen_assert(n_cache >= static_cast<SizeType>(nr));
+      eigen_internal_assert(n_cache >= static_cast<Index>(nr));
       n = n_cache & nr_mask;
-      eigen_assert(n > 0);
+      eigen_internal_assert(n > 0);
     } else {
-      n = (std::min<SizeType>)(n, (n_per_thread + nr - 1) & nr_mask);
+      n = (std::min<Index>)(n, (n_per_thread + nr - 1) & nr_mask);
     }
 
     if (l3 > l2) {
       // l3 is shared between all cores, so we'll give each thread its own chunk of l3.
-      SizeType m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
-      SizeType m_per_thread = CEIL(m, num_threads);
-      if(m_cache < m_per_thread && m_cache >= static_cast<SizeType>(mr)) {
+      Index m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
+      Index m_per_thread = numext::div_ceil(m, num_threads);
+      if(m_cache < m_per_thread && m_cache >= static_cast<Index>(mr)) {
         m = m_cache & mr_mask;
-        eigen_assert(m > 0);
+        eigen_internal_assert(m > 0);
       } else {
-        m = (std::min<SizeType>)(m, (m_per_thread + mr - 1) & mr_mask);
+        m = (std::min<Index>)(m, (m_per_thread + mr - 1) & mr_mask);
       }
     }
   }
@@ -141,19 +138,19 @@ void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_
     // In unit tests we do not want to use extra large matrices,
     // so we reduce the block size to check the blocking strategy is not flawed
 #ifndef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
-    k = std::min<SizeType>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
-    n = std::min<SizeType>(n,3840/sizeof(RhsScalar));
-    m = std::min<SizeType>(m,3840/sizeof(RhsScalar));
+    k = std::min<Index>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
+    n = std::min<Index>(n,3840/sizeof(RhsScalar));
+    m = std::min<Index>(m,3840/sizeof(RhsScalar));
 #else
-    k = std::min<SizeType>(k,24);
-    n = std::min<SizeType>(n,384/sizeof(RhsScalar));
-    m = std::min<SizeType>(m,384/sizeof(RhsScalar));
+    k = std::min<Index>(k,24);
+    n = std::min<Index>(n,384/sizeof(RhsScalar));
+    m = std::min<Index>(m,384/sizeof(RhsScalar));
 #endif
   }
 }
 
-template<typename LhsScalar, typename RhsScalar, typename SizeType>
-inline void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_threads)
+template<typename LhsScalar, typename RhsScalar>
+inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n, num_threads);
 }
