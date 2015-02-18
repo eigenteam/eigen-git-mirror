@@ -83,6 +83,22 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
 template<typename LhsScalar, typename RhsScalar, int KcFactor>
 void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
+#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+  EIGEN_UNUSED_VARIABLE(num_threads);
+  typedef gebp_traits<LhsScalar,RhsScalar> Traits;
+  enum {
+    kr = 16,
+    mr = Traits::mr,
+    nr = Traits::nr
+  };
+  k = std::min<SizeType>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
+  if (k > kr) k -= k % kr;
+  m = std::min<SizeType>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
+  if (m > mr) m -= m % mr;
+  n = std::min<SizeType>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
+  if (n > nr) n -= n % nr;
+  return;
+#endif
   // Explanations:
   // Let's recall that the product algorithms form mc x kc vertical panels A' on the lhs and
   // kc x nc blocks B' on the rhs. B' has to fit into L2/L3 cache. Moreover, A' is processed
