@@ -108,6 +108,7 @@ void test_eigensolver_complex()
     CALL_SUBTEST_2( eigensolver(MatrixXcd(s,s)) );
     CALL_SUBTEST_3( eigensolver(Matrix<std::complex<float>, 1, 1>()) );
     CALL_SUBTEST_4( eigensolver(Matrix3f()) );
+    TEST_SET_BUT_UNUSED_VARIABLE(s)
   }
   CALL_SUBTEST_1( eigensolver_verify_assert(Matrix4cf()) );
   s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);

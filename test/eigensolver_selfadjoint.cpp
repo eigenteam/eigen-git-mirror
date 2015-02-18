@@ -154,15 +154,13 @@ void test_eigensolver_selfadjoint()
     CALL_SUBTEST_13( selfadjointeigensolver(Matrix3f()) );
     CALL_SUBTEST_13( selfadjointeigensolver(Matrix3d()) );
     CALL_SUBTEST_2( selfadjointeigensolver(Matrix4d()) );
-    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
-    CALL_SUBTEST_3( selfadjointeigensolver(MatrixXf(s,s)) );
-    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
-    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(s,s)) );
-    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
-    CALL_SUBTEST_5( selfadjointeigensolver(MatrixXcd(s,s)) );
     
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
+    CALL_SUBTEST_3( selfadjointeigensolver(MatrixXf(s,s)) );
+    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(s,s)) );
+    CALL_SUBTEST_5( selfadjointeigensolver(MatrixXcd(s,s)) );
     CALL_SUBTEST_9( selfadjointeigensolver(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(s,s)) );
+    TEST_SET_BUT_UNUSED_VARIABLE(s)
 
     // some trivial but implementation-wise tricky cases
     CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(1,1)) );
