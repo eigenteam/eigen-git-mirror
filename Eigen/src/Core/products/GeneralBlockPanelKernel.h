@@ -1788,14 +1788,14 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, DataMapper, nr, ColMajor, Co
         for(; k<peeled_k; k+=PacketSize) {
           PacketBlock<Packet,(PacketSize%4)==0?4:PacketSize> kernel;
           kernel.packet[0] = dm0.loadPacket(k);
-          kernel.packet[1] = dm1.loadPacket(k);
-          kernel.packet[2] = dm2.loadPacket(k);
-          kernel.packet[3] = dm3.loadPacket(k);
+          kernel.packet[1%PacketSize] = dm1.loadPacket(k);
+          kernel.packet[2%PacketSize] = dm2.loadPacket(k);
+          kernel.packet[3%PacketSize] = dm3.loadPacket(k);
           ptranspose(kernel);
           pstoreu(blockB+count+0*PacketSize, cj.pconj(kernel.packet[0]));
-          pstoreu(blockB+count+1*PacketSize, cj.pconj(kernel.packet[1]));
-          pstoreu(blockB+count+2*PacketSize, cj.pconj(kernel.packet[2]));
-          pstoreu(blockB+count+3*PacketSize, cj.pconj(kernel.packet[3]));
+          pstoreu(blockB+count+1*PacketSize, cj.pconj(kernel.packet[1%PacketSize]));
+          pstoreu(blockB+count+2*PacketSize, cj.pconj(kernel.packet[2%PacketSize]));
+          pstoreu(blockB+count+3*PacketSize, cj.pconj(kernel.packet[3%PacketSize]));
           count+=4*PacketSize;
         }
       }
