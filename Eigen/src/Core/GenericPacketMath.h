@@ -287,6 +287,21 @@ template<typename Packet> EIGEN_DEVICE_FUNC inline typename unpacket_traits<Pack
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet preverse(const Packet& a)
 { return a; }
 
+template<size_t offset, typename Packet>
+struct protate_impl
+{
+  static Packet run(const Packet& a) { return a; }
+};
+
+/** \internal \returns a packet with the coefficients rotated to the right in little-endian convention,
+  * by the given offset, e.g. for offset == 1:
+  *     (packet[3], packet[2], packet[1], packet[0]) becomes (packet[0], packet[3], packet[2], packet[1])
+  */
+template<size_t offset, typename Packet> EIGEN_DEVICE_FUNC inline Packet protate(const Packet& a)
+{
+  EIGEN_STATIC_ASSERT(offset < unpacket_traits<Packet>::size, ROTATION_BY_ILLEGAL_OFFSET);
+  return offset ? protate_impl<offset, Packet>::run(a) : a;
+}
 
 /** \internal \returns \a a with real and imaginary part flipped (for complex type only) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet pcplxflip(const Packet& a)

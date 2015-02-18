@@ -771,7 +771,19 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     const Index peeled_kc  = depth & ~(pk-1);
     const Index prefetch_res_offset = 32/sizeof(ResScalar);    
 //     const Index depth2     = depth & ~1;
-    
+
+#if EIGEN_ARCH_ARM
+    const bool PreferRotatingKernel = true;
+#else
+    const bool PreferRotatingKernel = false;
+#endif
+
+    const bool UseRotatingKernel =
+                 PreferRotatingKernel &&
+                 Traits::LhsPacketSize == 4 &&
+                 Traits::RhsPacketSize == 4 &&
+                 Traits::ResPacketSize == 4;
+
     //---------- Process 3 * LhsProgress rows at once ----------
     // This corresponds to 3*LhsProgress x nr register blocks.
     // Usually, make sense only with FMA
@@ -818,7 +830,21 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             RhsPacket B_0, T0;
             LhsPacket A2;
 
-#define EIGEN_GEBGP_ONESTEP(K) \
+#define EIGEN_GEBP_ONESTEP_LOADRHS(K,N) \
+            do { \
+              if (UseRotatingKernel) { \
+                if (N == 0) { \
+                  B_0 = pload<RhsPacket>(&blB[(0+4*K)*RhsProgress]); \
+                } else { \
+                  EIGEN_ASM_COMMENT("Do not reorder code, we're very tight on registers"); \
+                  B_0 = protate<1>(B_0); \
+                } \
+              } else { \
+                traits.loadRhs(&blB[(N+4*K)*RhsProgress], B_0); \
+              } \
+            } while (false)
+
+#define EIGEN_GEBP_ONESTEP(K) \
             do { \
               EIGEN_ASM_COMMENT("begin step of gebp micro kernel 3pX4"); \
               EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
@@ -827,34 +853,34 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
               traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
               traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
-              traits.loadRhs(&blB[(0+4*K)*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 0); \
               traits.madd(A0, B_0, C0, T0); \
               traits.madd(A1, B_0, C4, T0); \
               traits.madd(A2, B_0, C8, B_0); \
-              traits.loadRhs(&blB[1+4*K*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 1); \
               traits.madd(A0, B_0, C1, T0); \
               traits.madd(A1, B_0, C5, T0); \
               traits.madd(A2, B_0, C9, B_0); \
-              traits.loadRhs(&blB[2+4*K*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 2); \
               traits.madd(A0, B_0, C2,  T0); \
               traits.madd(A1, B_0, C6,  T0); \
               traits.madd(A2, B_0, C10, B_0); \
-              traits.loadRhs(&blB[3+4*K*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 3); \
               traits.madd(A0, B_0, C3 , T0); \
               traits.madd(A1, B_0, C7,  T0); \
               traits.madd(A2, B_0, C11, B_0); \
               EIGEN_ASM_COMMENT("end step of gebp micro kernel 3pX4"); \
             } while(false)
-        
+
             internal::prefetch(blB + 4 * pk * sizeof(RhsScalar)); /* Bug 953 */
-            EIGEN_GEBGP_ONESTEP(0);
-            EIGEN_GEBGP_ONESTEP(1);
-            EIGEN_GEBGP_ONESTEP(2);
-            EIGEN_GEBGP_ONESTEP(3);
-            EIGEN_GEBGP_ONESTEP(4);
-            EIGEN_GEBGP_ONESTEP(5);
-            EIGEN_GEBGP_ONESTEP(6);
-            EIGEN_GEBGP_ONESTEP(7);
+            EIGEN_GEBP_ONESTEP(0);
+            EIGEN_GEBP_ONESTEP(1);
+            EIGEN_GEBP_ONESTEP(2);
+            EIGEN_GEBP_ONESTEP(3);
+            EIGEN_GEBP_ONESTEP(4);
+            EIGEN_GEBP_ONESTEP(5);
+            EIGEN_GEBP_ONESTEP(6);
+            EIGEN_GEBP_ONESTEP(7);
 
             blB += pk*4*RhsProgress;
             blA += pk*3*Traits::LhsProgress;
@@ -866,12 +892,36 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           {
             RhsPacket B_0, T0;
             LhsPacket A2;
-            EIGEN_GEBGP_ONESTEP(0);
+            EIGEN_GEBP_ONESTEP(0);
             blB += 4*RhsProgress;
             blA += 3*Traits::LhsProgress;
           }
-  #undef EIGEN_GEBGP_ONESTEP
-  
+#undef EIGEN_GEBP_ONESTEP
+
+          if (UseRotatingKernel) {
+            #define EIGEN_GEBP_UNROTATE_RESULT(res0, res1, res2, res3) \
+              do { \
+                PacketBlock<ResPacket> resblock; \
+                resblock.packet[0] = res0; \
+                resblock.packet[1] = res1; \
+                resblock.packet[2] = res2; \
+                resblock.packet[3] = res3; \
+                ptranspose(resblock); \
+                resblock.packet[3] = protate<1>(resblock.packet[3]); \
+                resblock.packet[2] = protate<2>(resblock.packet[2]); \
+                resblock.packet[1] = protate<3>(resblock.packet[1]); \
+                ptranspose(resblock); \
+                res0 = resblock.packet[0]; \
+                res1 = resblock.packet[1]; \
+                res2 = resblock.packet[2]; \
+                res3 = resblock.packet[3]; \
+              } while (false)
+            
+            EIGEN_GEBP_UNROTATE_RESULT(C0, C1, C2, C3);
+            EIGEN_GEBP_UNROTATE_RESULT(C4, C5, C6, C7);
+            EIGEN_GEBP_UNROTATE_RESULT(C8, C9, C10, C11);
+          }
+
           ResPacket R0, R1, R2;
           ResPacket alphav = pset1<ResPacket>(alpha);
 
