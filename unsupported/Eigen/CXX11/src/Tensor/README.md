@@ -249,9 +249,10 @@ operation, no computation is performed.
 ### Controlling When Expression are Evaluated
 
 There are several ways to control when expressions are evaluated:
-* Assignment to a Tensor, TensorFixedSize, or TensorMap.
-* Use of the eval() method.
-* Assignment to a TensorRef.
+
+*   Assignment to a Tensor, TensorFixedSize, or TensorMap.
+*   Use of the eval() method.
+*   Assignment to a TensorRef.
 
 #### Assigning to a Tensor, TensorFixedSize, or TensorMap.
 
@@ -553,17 +554,41 @@ template code can wrap the object in a TensorRef and reason about its
 dimensionality while remaining agnostic to the underlying type.
 
 
-## Constructors and Copies
+## Constructors
 
-TODO.
+### Tensor
 
-    Tensor(...)
-    TensorFixedSize(...)
-    TensorMap(PointerArgType dataPtr, Index firstDimension, IndexTypes... otherDimensions)
-    TensorMap(PointerArgType dataPtr, const array<Index, NumIndices>& dimensions)
-    TensorMap(PointerArgType dataPtr, const Dimensions& dimensions)
-    Self& operator=(const Self& other)
-    Self& operator=(const OtherDerived& other)
+Creates a tensor of the specified size. The number of arguments must be equal
+to the rank of the tensor. The content of the tensor is not initialized.
+
+    Eigen::Tensor<float, 2> a(3, 4);
+    cout << "NumRows: " << a.dimension(0) << " NumCols: " << a.dimension(1) << endl;
+    => NumRows: 3 NumCols: 4
+
+### TensorFixedSize
+
+Creates a tensor of the specified size. The number of arguments in the Size<>
+template parameter determines the rank of the tensor. The content of the tensor
+is not initialized.
+
+    Eigen::TensorFixedSize<float, Size<3, 4>> a;
+    cout << "Rank: " << a.rank() << endl;
+    => Rank: 2
+    cout << "NumRows: " << a.dimension(0) << " NumCols: " << a.dimension(1) << endl;
+    => NumRows: 3 NumCols: 4
+
+### TensorMap
+
+Creates a tensor mapping an existing array of data. The data must not be freed
+until the TensorMap is discarded, and the size of the data must be large enough
+to accomodate of the coefficients of the tensor.
+
+    float data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+    Eigen::TensorMap<float, 2> a(data, 3, 4);
+    cout << "NumRows: " << a.dimension(0) << " NumCols: " << a.dimension(1) << endl;
+    => NumRows: 3 NumCols: 4
+    cout << "a(1, 2): " << a(1, 2) << endl;
+    => a(1, 2): 9
 
 
 ## Contents Initialization
@@ -708,17 +733,21 @@ tensor library:
 
 ## Data Access
 
-TODO
+The Tensor, TensorFixedSize, and TensorRef classes provide the following
+accessors to access the tensor coefficients:
 
     const Scalar& operator()(const array<Index, NumIndices>& indices)
     const Scalar& operator()(Index firstIndex, IndexTypes... otherIndices)
     Scalar& operator()(const array<Index, NumIndices>& indices)
     Scalar& operator()(Index firstIndex, IndexTypes... otherIndices)
-    Scalar& operator[](Index index)
-    ??? mention coeff() and coeffRef() ???
 
-### Scalar* data()
-### const Scalar* data() const
+The number of indices must be equal to the rank of the tensor. Moreover, these
+accessors are not available on tensor expressions. In order to access the
+values of a tensor expression, the expression must either be evaluated or
+wrapped in a TensorRef.
+
+
+### Scalar* data() and const Scalar* data() const
 
 Returns a pointer to the storage for the tensor.  The pointer is const if the
 tensor was const.  This allows direct access to the data.  The layout of the
@@ -886,7 +915,8 @@ cubic roots of an int Tensor:
     3 4 5
 
 ### &lt;Operation&gt;  operator * (Scalar scale)
-TODO
+
+Multiplies all the coefficients of the input tensor by the provided scale.
 
 ### &lt;Operation&gt;  cwiseMax(Scalar threshold)
 TODO
@@ -894,7 +924,7 @@ TODO
 ### &lt;Operation&gt;  cwiseMin(Scalar threshold)
 TODO
 
- ### &lt;Operation&gt;  unaryExpr(const CustomUnaryOp& func)
+### &lt;Operation&gt;  unaryExpr(const CustomUnaryOp& func)
 TODO
 
 
@@ -943,19 +973,12 @@ containing the coefficient wise mimimums of the inputs.
 The following logical operators are supported as well:
 
 *   operator&&(const OtherDerived& other)
-
 *   operator||(const OtherDerived& other)
-
 *   operator<(const OtherDerived& other)
-
 *   operator<=(const OtherDerived& other)
-
 *   operator>(const OtherDerived& other)
-
 *   operator>=(const OtherDerived& other)
-
 *   operator==(const OtherDerived& other)
-
 *   operator!=(const OtherDerived& other)
 
 They all return a tensor of boolean values.
@@ -981,11 +1004,24 @@ Each coefficient in the result is equal to the corresponding coefficient in the
 resulting coefficient will come from the 'else' tensor.
 
 
-## Contractions
+## Contraction
 
-TODO
-    contract(const OtherDerived& other, const Dimensions& dims)
+Tensor *contractions* are a generalization of the matrix product to the
+multidimensional case.
 
+    // Create 2 matrices using tensors of rank 2
+    Eigen::Tensor<int, 2> a(2, 3);
+    a.setValues({{1, 2, 3}, {6, 5, 4}});
+    Eigen::Tensor<int, 2> b(3, 2);
+    a.setValues({{1, 2}, {4, 5}, {5, 6}});
+
+    // Compute the traditional matrix product
+    array<IndexPair<int>, 1> product_dims = { IndexPair(1, 0) };
+    Eigen::Tensor<int, 2> AB = a.contract(b, product_dims);
+
+    // Compute the product of the transpose of the matrices
+    array<IndexPair<int>, 1> transpose_product_dims = { IndexPair(0, 1) };
+    Eigen::Tensor<int, 2> AtBt = a.contract(b, transposed_product_dims);
 
 
 ## Reduction Operations
@@ -1018,7 +1054,7 @@ increasing order.
 
 Example: Reduction along one dimension.
 
-    // Create a tensor of 3 dimensions: 2, 3, 4
+    // Create a tensor of 2 dimensions
     Eigen::Tensor<int, 2> a(2, 3);
     a.setValues({{1, 2, 3}, {6, 5, 4}});
     // Reduce it along the second dimension (1)...
@@ -1276,10 +1312,30 @@ It is possible to assign a tensor to a stride:
     output.stride({2, 3, 4}) = input;
 
 
-### &lt;Operation&gt; slice(const StartIndices& startIndices,
-                            const Sizes& sizes)
+### &lt;Operation&gt; slice(const StartIndices& offsets, const Sizes& extents)
 
-TBD
+Returns a sub-tensor of the given tensor. For each dimension i, the slice is
+made of the coefficients stored between offset[i] and offset[i] + extents[i] in
+the input tensor.
+
+    Eigen::Tensor<int, 2> a(4, 3);
+    a.setValues({{0, 100, 200}, {300, 400, 500},
+                 {600, 700, 800}, {900, 1000, 1100}});
+    Eigen::array<int, 2> offsets = {1, 0};
+    Eigen::array<int, 2> extents = {2, 2};
+    Eigen::Tensor<int, 1> slice = a.slice(offsets, extents);
+    cout << "a" << endl << a << endl;
+    =>
+    a
+       0   100   200
+     300   400   500
+     600   700   800
+     900  1000  1100
+    cout << "slice" << endl << slice << endl;
+    =>
+    slice
+     300   400
+     600   700
 
 
 ### &lt;Operation&gt; chip(const Index offset, const Index dim)
@@ -1363,10 +1419,29 @@ of a 2D tensor:
        0   100   200
 
 
-TODO
 ### &lt;Operation&gt; broadcast(const Broadcast& broadcast)
 
-TODO
+Returns a view of the input tensor in which the input is replicated one to many
+times.
+The broadcast argument specifies how many copies of the input tensor need to be
+made in each of the dimensions.
+
+    Eigen::Tensor<int, 2> a(2, 3);
+    a.setValues({{0, 100, 200}, {300, 400, 500}});
+    Eigen::array<int, 2> bcast({3, 2});
+    Eigen::Tensor<int, 2> b = a.broadcast(bcast);
+    cout << "a" << endl << a << endl << "b" << endl << b << endl;
+    =>
+    a
+       0   100   200
+     300   400   500
+    b
+       0   100   200    0   100   200
+     300   400   500  300   400   500
+       0   100   200    0   100   200
+     300   400   500  300   400   500
+       0   100   200    0   100   200
+     300   400   500  300   400   500
 
 ### &lt;Operation&gt; concatenate(const OtherDerived& other, Axis axis)
 
@@ -1374,18 +1449,170 @@ TODO
 
 ### &lt;Operation&gt;  pad(const PaddingDimensions& padding)
 
-TODO
+Returns a view of the input tensor in which the input is padded with zeros.
+
+    Eigen::Tensor<int, 2> a(2, 3);
+    a.setValues({{0, 100, 200}, {300, 400, 500}});
+    Eigen::array<pair<int, int>, 2> paddings;
+    paddings[0] = make_pair(0, 1);
+    paddings[1] = make_pair(2, 3);
+    Eigen::Tensor<int, 2> b = a.pad(paddings);
+    cout << "a" << endl << a << endl << "b" << endl << b << endl;
+    =>
+    a
+       0   100   200
+     300   400   500
+    b
+       0     0     0    0
+       0     0     0    0
+       0   100   200    0
+     300   400   500    0
+       0     0     0    0
+       0     0     0    0
+       0     0     0    0
+
 
 ### &lt;Operation&gt;  extract_patches(const PatchDims& patch_dims)
 
-TODO
+Returns a tensor of coefficient patches extracted from the input tensor, where
+each patch is of dimension specified by 'patch_dims'. The returned tensor has
+one greater dimension than the input tensor, which is used to index each patch.
+The patch index in the output tensor depends on the data layout of the input
+tensor: the patch index is the last dimension ColMajor layout, and the first
+dimension in RowMajor layout.
+
+For example, given the following input tensor:
+
+  Eigen::Tensor<float, 2, DataLayout> tensor(3,4);
+  tensor.setValues({{0.0f, 1.0f, 2.0f, 3.0f},
+                    {4.0f, 5.0f, 6.0f, 7.0f},
+                    {8.0f, 9.0f, 10.0f, 11.0f}});
+
+  cout << "tensor: " << endl << tensor << endl;
+=>
+tensor:
+ 0   1   2   3
+ 4   5   6   7
+ 8   9  10  11
+
+Six 2x2 patches can be extracted and indexed using the following code:
+
+  Eigen::Tensor<float, 3, DataLayout> patch;
+  Eigen::array<ptrdiff_t, 2> patch_dims;
+  patch_dims[0] = 2;
+  patch_dims[1] = 2;
+  patch = tensor.extract_patches(patch_dims);
+  for (int k = 0; k < 6; ++k) {
+    cout << "patch index: " << k << endl;
+    for (int i = 0; i < 2; ++i) {
+      for (int j = 0; j < 2; ++j) {
+        if (DataLayout == ColMajor) {
+          cout << patch(i, j, k) << " ";
+        } else {
+          cout << patch(k, i, j) << " ";
+        }
+      }
+      cout << endl;
+    }
+  }
+
+This code results in the following output when the data layout is ColMajor:
+
+patch index: 0
+0 1
+4 5
+patch index: 1
+4 5
+8 9
+patch index: 2
+1 2
+5 6
+patch index: 3
+5 6
+9 10
+patch index: 4
+2 3
+6 7
+patch index: 5
+6 7
+10 11
+
+This code results in the following output when the data layout is RowMajor:
+(NOTE: the set of patches is the same as in ColMajor, but are indexed differently).
+
+patch index: 0
+0 1
+4 5
+patch index: 1
+1 2
+5 6
+patch index: 2
+2 3
+6 7
+patch index: 3
+4 5
+8 9
+patch index: 4
+5 6
+9 10
+patch index: 5
+6 7
+10 11
 
 ### &lt;Operation&gt;  extract_image_patches(const Index patch_rows, const Index patch_cols,
                           const Index row_stride, const Index col_stride,
                           const PaddingType padding_type)
 
-TODO
+Returns a tensor of coefficient image patches extracted from the input tensor,
+which is expected to have dimensions ordered as follows (depending on the data
+layout of the input tensor, and the number of additional dimensions 'N'):
 
+*) ColMajor
+1st dimension: channels (of size d)
+2nd dimension: rows (of size r)
+3rd dimension: columns (of size c)
+4th-Nth dimension: time (for video) or batch (for bulk processing).
+
+*) RowMajor (reverse order of ColMajor)
+1st-Nth dimension: time (for video) or batch (for bulk processing).
+N+1'th dimension: columns (of size c)
+N+2'th dimension: rows (of size r)
+N+3'th dimension: channels (of size d)
+
+The returned tensor has one greater dimension than the input tensor, which is
+used to index each patch. The patch index in the output tensor depends on the
+data layout of the input tensor: the patch index is the 4'th dimension in
+ColMajor layout, and the 4'th from the last dimension in RowMajor layout.
+
+For example, given the following input tensor with the following dimension
+sizes:
+ *) depth:   2
+ *) rows:    3
+ *) columns: 5
+ *) batch:   7
+
+  Tensor<float, 4> tensor(2,3,5,7);
+  Tensor<float, 4, RowMajor> tensor_row_major = tensor.swap_layout();
+
+2x2 image patches can be extracted and indexed using the following code:
+
+*) 2D patch: ColMajor (patch indexed by second-to-last dimension)
+  Tensor<float, 5> twod_patch;
+  twod_patch = tensor.extract_image_patches<2, 2>();
+  // twod_patch.dimension(0) == 2
+  // twod_patch.dimension(1) == 2
+  // twod_patch.dimension(2) == 2
+  // twod_patch.dimension(3) == 3*5
+  // twod_patch.dimension(4) == 7
+
+*) 2D patch: RowMajor (patch indexed by the second dimension)
+  Tensor<float, 5, RowMajor> twod_patch_row_major;
+  twod_patch_row_major = tensor_row_major.extract_image_patches<2, 2>();
+  // twod_patch_row_major.dimension(0) == 7
+  // twod_patch_row_major.dimension(1) == 3*5
+  // twod_patch_row_major.dimension(2) == 2
+  // twod_patch_row_major.dimension(3) == 2
+  // twod_patch_row_major.dimension(4) == 2
 
 ## Special Operations
 
@@ -1433,14 +1660,13 @@ future these operations might be updated to return 0d tensors instead.
 
 ## Limitations
 
-* The number of tensor dimensions is currently limited to 250 when using a
-  compiler that supports cxx11. It is limited to only 5 for older compilers.
-* The IndexList class requires a cxx11 compliant compiler. You can use an
-  array of indices instead if you don't have access to a modern compiler.
-* TensorVarDims are only partially supported
-* On GPUs only floating point values are properly tested and optimized for.
-* Complex and integer values are known to be broken on GPUs. If you try to use
-  them you'll most likely end up triggering a static assertion failure such as
-  EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+*   The number of tensor dimensions is currently limited to 250 when using a
+    compiler that supports cxx11. It is limited to only 5 for older compilers.
+*   The IndexList class requires a cxx11 compliant compiler. You can use an
+    array of indices instead if you don't have access to a modern compiler.
+*   On GPUs only floating point values are properly tested and optimized for.
+*   Complex and integer values are known to be broken on GPUs. If you try to use
+    them you'll most likely end up triggering a static assertion failure such as
+    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
 
 
