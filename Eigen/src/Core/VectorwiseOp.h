@@ -124,7 +124,7 @@ EIGEN_MEMBER_FUNCTOR(prod, (Size-1)*NumTraits<Scalar>::MulCost);
 template <typename BinaryOp, typename Scalar>
 struct member_redux {
   typedef typename result_of<
-                     BinaryOp(Scalar)
+                     BinaryOp(Scalar,Scalar)
                    >::type  result_type;
   template<typename _Scalar, int Size> struct Cost
   { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };
