@@ -145,7 +145,7 @@ void check_sparse_solving_real_cases(Solver& solver, const typename Solver::Matr
     res_error = (b - A * x).norm()/b.norm();
   }
   if (res_error > test_precision<Scalar>() ){
-    std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) 
+    std::cerr << "Test " << g_test_stack.back() << " failed in " EI_PP_MAKE_STRING(__FILE__) 
     << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" << std::endl << std::endl;
     abort();
   }
