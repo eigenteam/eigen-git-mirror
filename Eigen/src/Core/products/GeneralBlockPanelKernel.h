@@ -79,23 +79,37 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
   * - the number of scalars that fit into a packet (when vectorization is enabled).
   *
   * \sa setCpuCacheSizes */
-#define CEIL(a, b) ((a)+(b)-1)/(b)
 
-template<typename LhsScalar, typename RhsScalar, int KcFactor, typename SizeType>
-void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_threads)
+template<typename LhsScalar, typename RhsScalar, int KcFactor>
+void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
+  typedef gebp_traits<LhsScalar,RhsScalar> Traits;
+
+#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+  EIGEN_UNUSED_VARIABLE(num_threads);
+  enum {
+    kr = 16,
+    mr = Traits::mr,
+    nr = Traits::nr
+  };
+  k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
+  if (k > kr) k -= k % kr;
+  m = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
+  if (m > mr) m -= m % mr;
+  n = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
+  if (n > nr) n -= n % nr;
+  return;
+#endif
+
   // Explanations:
-  // Let's recall the product algorithms form kc x nc horizontal panels B' on the rhs and
-  // mc x kc blocks A' on the lhs. A' has to fit into L2 cache. Moreover, B' is processed
-  // per kc x nr vertical small panels where nr is the blocking size along the n dimension
-  // at the register level. For vectorization purpose, these small vertical panels are unpacked,
-  // e.g., each coefficient is replicated to fit a packet. This small vertical panel has to
-  // stay in L1 cache.
+  // Let's recall that the product algorithms form mc x kc vertical panels A' on the lhs and
+  // kc x nc blocks B' on the rhs. B' has to fit into L2/L3 cache. Moreover, A' is processed
+  // per mr x kc horizontal small panels where mr is the blocking size along the m dimension
+  // at the register level. This small horizontal panel has to stay within L1 cache.
   std::ptrdiff_t l1, l2, l3;
   manage_caching_sizes(GetAction, &l1, &l2, &l3);
 
   if (num_threads > 1) {
-    typedef gebp_traits<LhsScalar,RhsScalar> Traits;
     typedef typename Traits::ResScalar ResScalar;
     enum {
       kdiv = KcFactor * (Traits::mr * sizeof(LhsScalar) + Traits::nr * sizeof(RhsScalar)),
@@ -108,32 +122,32 @@ void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_
       nr = Traits::nr,
       nr_mask = (0xffffffff/nr)*nr
     };
-    SizeType k_cache = (l1-ksub)/kdiv;
+    Index k_cache = (l1-ksub)/kdiv;
     if (k_cache < k) {
       k = k_cache & k_mask;
-      eigen_assert(k > 0);
+      eigen_internal_assert(k > 0);
     }
 
-    SizeType n_cache = (l2-l1) / (nr * sizeof(RhsScalar) * k);
-    SizeType n_per_thread = CEIL(n, num_threads);
+    Index n_cache = (l2-l1) / (nr * sizeof(RhsScalar) * k);
+    Index n_per_thread = numext::div_ceil(n, num_threads);
     if (n_cache <= n_per_thread) {
       // Don't exceed the capacity of the l2 cache.
-      eigen_assert(n_cache >= static_cast<SizeType>(nr));
+      eigen_internal_assert(n_cache >= static_cast<Index>(nr));
       n = n_cache & nr_mask;
-      eigen_assert(n > 0);
+      eigen_internal_assert(n > 0);
     } else {
-      n = (std::min<SizeType>)(n, (n_per_thread + nr - 1) & nr_mask);
+      n = (std::min<Index>)(n, (n_per_thread + nr - 1) & nr_mask);
     }
 
     if (l3 > l2) {
       // l3 is shared between all cores, so we'll give each thread its own chunk of l3.
-      SizeType m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
-      SizeType m_per_thread = CEIL(m, num_threads);
-      if(m_cache < m_per_thread && m_cache >= static_cast<SizeType>(mr)) {
+      Index m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
+      Index m_per_thread = numext::div_ceil(m, num_threads);
+      if(m_cache < m_per_thread && m_cache >= static_cast<Index>(mr)) {
         m = m_cache & mr_mask;
-        eigen_assert(m > 0);
+        eigen_internal_assert(m > 0);
       } else {
-        m = (std::min<SizeType>)(m, (m_per_thread + mr - 1) & mr_mask);
+        m = (std::min<Index>)(m, (m_per_thread + mr - 1) & mr_mask);
       }
     }
   }
@@ -141,19 +155,19 @@ void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_
     // In unit tests we do not want to use extra large matrices,
     // so we reduce the block size to check the blocking strategy is not flawed
 #ifndef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
-    k = std::min<SizeType>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
-    n = std::min<SizeType>(n,3840/sizeof(RhsScalar));
-    m = std::min<SizeType>(m,3840/sizeof(RhsScalar));
+    k = std::min<Index>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
+    n = std::min<Index>(n,3840/sizeof(RhsScalar));
+    m = std::min<Index>(m,3840/sizeof(RhsScalar));
 #else
-    k = std::min<SizeType>(k,24);
-    n = std::min<SizeType>(n,384/sizeof(RhsScalar));
-    m = std::min<SizeType>(m,384/sizeof(RhsScalar));
+    k = std::min<Index>(k,24);
+    n = std::min<Index>(n,384/sizeof(RhsScalar));
+    m = std::min<Index>(m,384/sizeof(RhsScalar));
 #endif
   }
 }
 
-template<typename LhsScalar, typename RhsScalar, typename SizeType>
-inline void computeProductBlockingSizes(SizeType& k, SizeType& m, SizeType& n, int num_threads)
+template<typename LhsScalar, typename RhsScalar>
+inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n, num_threads);
 }
@@ -758,7 +772,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     const Index peeled_kc  = depth & ~(pk-1);
     const Index prefetch_res_offset = 32/sizeof(ResScalar);    
 //     const Index depth2     = depth & ~1;
-    
+
     //---------- Process 3 * LhsProgress rows at once ----------
     // This corresponds to 3*LhsProgress x nr register blocks.
     // Usually, make sense only with FMA
@@ -798,14 +812,45 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
           prefetch(&blB[0]);
           LhsPacket A0, A1;
-          
+
+#define EIGEN_ARCH_PREFERS_ROTATING_KERNEL EIGEN_ARCH_ARM
+
+#if EIGEN_ARCH_PREFERS_ROTATING_KERNEL
+          static const bool UseRotatingKernel =
+            Traits::LhsPacketSize == 4 &&
+            Traits::RhsPacketSize == 4 &&
+            Traits::ResPacketSize == 4;
+#endif
+
           for(Index k=0; k<peeled_kc; k+=pk)
           {
             EIGEN_ASM_COMMENT("begin gebp micro kernel 3pX4");
             RhsPacket B_0, T0;
             LhsPacket A2;
 
-#define EIGEN_GEBGP_ONESTEP(K) \
+#define EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING(K,N) \
+            traits.loadRhs(&blB[(N+4*K)*RhsProgress], B_0);
+
+#if EIGEN_ARCH_PREFERS_ROTATING_KERNEL
+#define EIGEN_GEBP_ONESTEP_LOADRHS(K,N) \
+            do { \
+              if (UseRotatingKernel) { \
+                if (N == 0) { \
+                  B_0 = pload<RhsPacket>(&blB[(0+4*K)*RhsProgress]); \
+                } else { \
+                  EIGEN_ASM_COMMENT("Do not reorder code, we're very tight on registers"); \
+                  B_0 = protate<1>(B_0); \
+                } \
+              } else { \
+                EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING(K,N); \
+              } \
+            } while (false)
+#else
+#define EIGEN_GEBP_ONESTEP_LOADRHS(K,N) \
+            EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING(K,N)
+#endif
+
+#define EIGEN_GEBP_ONESTEP(K) \
             do { \
               EIGEN_ASM_COMMENT("begin step of gebp micro kernel 3pX4"); \
               EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
@@ -814,34 +859,34 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
               traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
               traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
-              traits.loadRhs(&blB[(0+4*K)*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 0); \
               traits.madd(A0, B_0, C0, T0); \
               traits.madd(A1, B_0, C4, T0); \
               traits.madd(A2, B_0, C8, B_0); \
-              traits.loadRhs(&blB[1+4*K*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 1); \
               traits.madd(A0, B_0, C1, T0); \
               traits.madd(A1, B_0, C5, T0); \
               traits.madd(A2, B_0, C9, B_0); \
-              traits.loadRhs(&blB[2+4*K*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 2); \
               traits.madd(A0, B_0, C2,  T0); \
               traits.madd(A1, B_0, C6,  T0); \
               traits.madd(A2, B_0, C10, B_0); \
-              traits.loadRhs(&blB[3+4*K*RhsProgress], B_0); \
+              EIGEN_GEBP_ONESTEP_LOADRHS(K, 3); \
               traits.madd(A0, B_0, C3 , T0); \
               traits.madd(A1, B_0, C7,  T0); \
               traits.madd(A2, B_0, C11, B_0); \
               EIGEN_ASM_COMMENT("end step of gebp micro kernel 3pX4"); \
             } while(false)
-        
+
             internal::prefetch(blB + 4 * pk * sizeof(RhsScalar)); /* Bug 953 */
-            EIGEN_GEBGP_ONESTEP(0);
-            EIGEN_GEBGP_ONESTEP(1);
-            EIGEN_GEBGP_ONESTEP(2);
-            EIGEN_GEBGP_ONESTEP(3);
-            EIGEN_GEBGP_ONESTEP(4);
-            EIGEN_GEBGP_ONESTEP(5);
-            EIGEN_GEBGP_ONESTEP(6);
-            EIGEN_GEBGP_ONESTEP(7);
+            EIGEN_GEBP_ONESTEP(0);
+            EIGEN_GEBP_ONESTEP(1);
+            EIGEN_GEBP_ONESTEP(2);
+            EIGEN_GEBP_ONESTEP(3);
+            EIGEN_GEBP_ONESTEP(4);
+            EIGEN_GEBP_ONESTEP(5);
+            EIGEN_GEBP_ONESTEP(6);
+            EIGEN_GEBP_ONESTEP(7);
 
             blB += pk*4*RhsProgress;
             blA += pk*3*Traits::LhsProgress;
@@ -853,12 +898,41 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           {
             RhsPacket B_0, T0;
             LhsPacket A2;
-            EIGEN_GEBGP_ONESTEP(0);
+            EIGEN_GEBP_ONESTEP(0);
             blB += 4*RhsProgress;
             blA += 3*Traits::LhsProgress;
           }
-  #undef EIGEN_GEBGP_ONESTEP
-  
+
+#undef EIGEN_GEBP_ONESTEP
+#undef EIGEN_GEBP_ONESTEP_LOADRHS
+#undef EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING
+
+#if EIGEN_ARCH_PREFERS_ROTATING_KERNEL
+          if (UseRotatingKernel) {
+            #define EIGEN_GEBP_UNROTATE_RESULT(res0, res1, res2, res3) \
+              do { \
+                PacketBlock<ResPacket> resblock; \
+                resblock.packet[0] = res0; \
+                resblock.packet[1] = res1; \
+                resblock.packet[2] = res2; \
+                resblock.packet[3] = res3; \
+                ptranspose(resblock); \
+                resblock.packet[3] = protate<1>(resblock.packet[3]); \
+                resblock.packet[2] = protate<2>(resblock.packet[2]); \
+                resblock.packet[1] = protate<3>(resblock.packet[1]); \
+                ptranspose(resblock); \
+                res0 = resblock.packet[0]; \
+                res1 = resblock.packet[1]; \
+                res2 = resblock.packet[2]; \
+                res3 = resblock.packet[3]; \
+              } while (false)
+            
+            EIGEN_GEBP_UNROTATE_RESULT(C0, C1, C2, C3);
+            EIGEN_GEBP_UNROTATE_RESULT(C4, C5, C6, C7);
+            EIGEN_GEBP_UNROTATE_RESULT(C8, C9, C10, C11);
+          }
+#endif
+
           ResPacket R0, R1, R2;
           ResPacket alphav = pset1<ResPacket>(alpha);
 
@@ -1788,14 +1862,14 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, DataMapper, nr, ColMajor, Co
         for(; k<peeled_k; k+=PacketSize) {
           PacketBlock<Packet,(PacketSize%4)==0?4:PacketSize> kernel;
           kernel.packet[0] = dm0.loadPacket(k);
-          kernel.packet[1] = dm1.loadPacket(k);
-          kernel.packet[2] = dm2.loadPacket(k);
-          kernel.packet[3] = dm3.loadPacket(k);
+          kernel.packet[1%PacketSize] = dm1.loadPacket(k);
+          kernel.packet[2%PacketSize] = dm2.loadPacket(k);
+          kernel.packet[3%PacketSize] = dm3.loadPacket(k);
           ptranspose(kernel);
           pstoreu(blockB+count+0*PacketSize, cj.pconj(kernel.packet[0]));
-          pstoreu(blockB+count+1*PacketSize, cj.pconj(kernel.packet[1]));
-          pstoreu(blockB+count+2*PacketSize, cj.pconj(kernel.packet[2]));
-          pstoreu(blockB+count+3*PacketSize, cj.pconj(kernel.packet[3]));
+          pstoreu(blockB+count+1*PacketSize, cj.pconj(kernel.packet[1%PacketSize]));
+          pstoreu(blockB+count+2*PacketSize, cj.pconj(kernel.packet[2%PacketSize]));
+          pstoreu(blockB+count+3*PacketSize, cj.pconj(kernel.packet[3%PacketSize]));
           count+=4*PacketSize;
         }
       }

@@ -102,12 +102,16 @@ void test_inverse()
     CALL_SUBTEST_3( inverse(Matrix3f()) );
     CALL_SUBTEST_4( inverse(Matrix4f()) );
     CALL_SUBTEST_4( inverse(Matrix<float,4,4,DontAlign>()) );
+    
     s = internal::random<int>(50,320); 
     CALL_SUBTEST_5( inverse(MatrixXf(s,s)) );
+    TEST_SET_BUT_UNUSED_VARIABLE(s)
+    
     s = internal::random<int>(25,100);
     CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
+    TEST_SET_BUT_UNUSED_VARIABLE(s)
+    
     CALL_SUBTEST_7( inverse(Matrix4d()) );
     CALL_SUBTEST_7( inverse(Matrix<double,4,4,DontAlign>()) );
   }
-  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }

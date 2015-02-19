@@ -166,7 +166,7 @@ class BlasLinearMapper {
     return ploadt<HalfPacket, AlignmentType>(m_data + i);
   }
 
-  EIGEN_ALWAYS_INLINE void storePacket(Index i, Packet p) const {
+  EIGEN_ALWAYS_INLINE void storePacket(Index i, const Packet &p) const {
     pstoret<Scalar, Packet, AlignmentType>(m_data + i, p);
   }
 

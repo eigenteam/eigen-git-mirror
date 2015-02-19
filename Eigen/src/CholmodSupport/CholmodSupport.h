@@ -277,6 +277,7 @@ class CholmodBase : public SparseSolverBase<Derived>
       if(!x_cd)
       {
         this->m_info = NumericalIssue;
+        return;
       }
       // TODO optimize this copy by swapping when possible (be careful with alignment, etc.)
       dest = Matrix<Scalar,Dest::RowsAtCompileTime,Dest::ColsAtCompileTime>::Map(reinterpret_cast<Scalar*>(x_cd->x),b.rows(),b.cols());
@@ -298,6 +299,7 @@ class CholmodBase : public SparseSolverBase<Derived>
       if(!x_cs)
       {
         this->m_info = NumericalIssue;
+        return;
       }
       // TODO optimize this copy by swapping when possible (be careful with alignment, etc.)
       dest = viewAsEigen<DestScalar,DestOptions,DestIndex>(*x_cs);

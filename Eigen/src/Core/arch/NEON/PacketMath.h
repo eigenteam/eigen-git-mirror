@@ -309,6 +309,23 @@ template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a) {
   a_hi = vget_high_s32(a_r64);
   return vcombine_s32(a_hi, a_lo);
 }
+
+template<size_t offset>
+struct protate_impl<offset, Packet4f>
+{
+  static Packet4f run(const Packet4f& a) {
+    return vextq_f32(a, a, offset);
+  }
+};
+
+template<size_t offset>
+struct protate_impl<offset, Packet4i>
+{
+  static Packet4i run(const Packet4i& a) {
+    return vextq_s32(a, a, offset);
+  }
+};
+
 template<> EIGEN_STRONG_INLINE Packet4f pabs(const Packet4f& a) { return vabsq_f32(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a) { return vabsq_s32(a); }
 
@@ -624,6 +641,14 @@ template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { EIGEN
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { return vgetq_lane_f64(a, 0); }
 
 template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a) { return vcombine_f64(vget_high_f64(a), vget_low_f64(a)); }
+
+template<size_t offset>
+struct protate_impl<offset, Packet2d>
+{
+  static Packet2d run(const Packet2d& a) {
+    return vextq_f64(a, a, offset);
+  }
+};
 
 template<> EIGEN_STRONG_INLINE Packet2d pabs(const Packet2d& a) { return vabsq_f64(a); }
 

@@ -120,25 +120,28 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpos
     return func(0,rows, 0,cols);
 
   Eigen::initParallel();
-  func.initParallelSession();
+  func.initParallelSession(threads);
 
   if(transpose)
     std::swap(rows,cols);
-
-  Index blockCols = (cols / threads) & ~Index(0x3);
-  Index blockRows = (rows / threads);
-  blockRows = (blockRows/Functor::Traits::mr)*Functor::Traits::mr;
   
   ei_declare_aligned_stack_constructed_variable(GemmParallelInfo<Index>,info,threads,0);
-
+  
   #pragma omp parallel num_threads(threads)
   {
     Index i = omp_get_thread_num();
+    // Note that the actual number of threads might be lower than the number of request ones.
+    Index actual_threads = omp_get_num_threads();
+    
+    Index blockCols = (cols / actual_threads) & ~Index(0x3);
+    Index blockRows = (rows / actual_threads);
+    blockRows = (blockRows/Functor::Traits::mr)*Functor::Traits::mr;
+  
     Index r0 = i*blockRows;
-    Index actualBlockRows = (i+1==threads) ? rows-r0 : blockRows;
+    Index actualBlockRows = (i+1==actual_threads) ? rows-r0 : blockRows;
 
     Index c0 = i*blockCols;
-    Index actualBlockCols = (i+1==threads) ? cols-c0 : blockCols;
+    Index actualBlockCols = (i+1==actual_threads) ? cols-c0 : blockCols;
 
     info[i].lhs_start = r0;
     info[i].lhs_length = actualBlockRows;

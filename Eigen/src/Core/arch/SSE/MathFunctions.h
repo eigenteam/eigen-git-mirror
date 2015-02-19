@@ -138,7 +138,6 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
 #ifdef EIGEN_VECTORIZE_SSE4_1
   fx = _mm_floor_ps(fx);
 #else
-  tmp = _mm_setzero_ps();
   emm0 = _mm_cvttps_epi32(fx);
   tmp  = _mm_cvtepi32_ps(emm0);
   /* if greater, substract 1 */
@@ -207,7 +206,6 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
 #ifdef EIGEN_VECTORIZE_SSE4_1
   fx = _mm_floor_pd(fx);
 #else
-  tmp = _mm_setzero_pd();
   emm0 = _mm_cvttpd_epi32(fx);
   tmp  = _mm_cvtepi32_pd(emm0);
   /* if greater, substract 1 */

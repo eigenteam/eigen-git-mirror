@@ -292,7 +292,8 @@ const typename SparseMatrixBase<Derived>::ConstInnerVectorReturnType SparseMatri
   * is col-major (resp. row-major).
   */
 template<typename Derived>
-Block<Derived,Dynamic,Dynamic,true> SparseMatrixBase<Derived>::innerVectors(Index outerStart, Index outerSize)
+typename SparseMatrixBase<Derived>::InnerVectorsReturnType
+SparseMatrixBase<Derived>::innerVectors(Index outerStart, Index outerSize)
 {
   return Block<Derived,Dynamic,Dynamic,true>(derived(),
                                              IsRowMajor ? outerStart : 0, IsRowMajor ? 0 : outerStart,
@@ -304,7 +305,8 @@ Block<Derived,Dynamic,Dynamic,true> SparseMatrixBase<Derived>::innerVectors(Inde
   * is col-major (resp. row-major). Read-only.
   */
 template<typename Derived>
-const Block<const Derived,Dynamic,Dynamic,true> SparseMatrixBase<Derived>::innerVectors(Index outerStart, Index outerSize) const
+const typename SparseMatrixBase<Derived>::ConstInnerVectorsReturnType
+SparseMatrixBase<Derived>::innerVectors(Index outerStart, Index outerSize) const
 {
   return Block<const Derived,Dynamic,Dynamic,true>(derived(),
                                                   IsRowMajor ? outerStart : 0, IsRowMajor ? 0 : outerStart,

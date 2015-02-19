@@ -380,10 +380,14 @@ void test_cholesky()
     CALL_SUBTEST_3( cholesky_definiteness(Matrix2d()) );
     CALL_SUBTEST_4( cholesky(Matrix3f()) );
     CALL_SUBTEST_5( cholesky(Matrix4d()) );
-    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
+    
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);    
     CALL_SUBTEST_2( cholesky(MatrixXd(s,s)) );
+    TEST_SET_BUT_UNUSED_VARIABLE(s)
+    
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2);
     CALL_SUBTEST_6( cholesky_cplx(MatrixXcd(s,s)) );
+    TEST_SET_BUT_UNUSED_VARIABLE(s)
   }
 
   CALL_SUBTEST_4( cholesky_verify_assert<Matrix3f>() );
@@ -395,6 +399,5 @@ void test_cholesky()
   CALL_SUBTEST_9( LLT<MatrixXf>(10) );
   CALL_SUBTEST_9( LDLT<MatrixXf>(10) );
   
-  TEST_SET_BUT_UNUSED_VARIABLE(s)
   TEST_SET_BUT_UNUSED_VARIABLE(nb_temporaries)
 }

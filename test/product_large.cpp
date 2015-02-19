@@ -64,8 +64,7 @@ void test_product_large()
 #endif
 
   // Regression test for bug 714:
-#ifdef EIGEN_HAS_OPENMP
-  std::cout << "Testing omp_set_dynamic(1)\n";
+#if defined EIGEN_HAS_OPENMP
   omp_set_dynamic(1);
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_6( product(Matrix<float,Dynamic,Dynamic>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );

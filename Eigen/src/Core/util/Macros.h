@@ -382,6 +382,11 @@
   #define EIGEN_HAVE_RVALUE_REFERENCES
 #endif
 
+// Does the compiler support result_of?
+#if (__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L))
+#define EIGEN_HAS_STD_RESULT_OF 1
+#endif
+
 // Does the compiler support variadic templates?
 #if __cplusplus > 199711L
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1

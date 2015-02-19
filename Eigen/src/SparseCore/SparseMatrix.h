@@ -467,6 +467,8 @@ class SparseMatrix
       if(isCompressed())
         return;
       
+      eigen_internal_assert(m_outerIndex!=0 && m_outerSize>0);
+      
       Index oldStart = m_outerIndex[1];
       m_outerIndex[1] = m_innerNonZeros[0];
       for(Index j=1; j<m_outerSize; ++j)
