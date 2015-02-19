@@ -249,8 +249,8 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
 
     gemv_static_vector_if<ResScalar,Dest::SizeAtCompileTime,Dest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
 
-    bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
-    bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
+    const bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
+    const bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
 
     RhsScalar compatibleAlpha = get_factor<ResScalar,RhsScalar>::run(actualAlpha);
 
