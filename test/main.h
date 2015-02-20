@@ -158,20 +158,20 @@ namespace Eigen
     #define VERIFY_RAISES_ASSERT(a)                                                   \
       {                                                                               \
         Eigen::no_more_assert = false;                                                \
-        Eigen::eigen_assert_list.clear();                                                \
-        Eigen::internal::push_assert = true;                                                 \
+        Eigen::eigen_assert_list.clear();                                             \
+        Eigen::internal::push_assert = true;                                          \
         Eigen::report_on_cerr_on_assert_failure = false;                              \
         try {                                                                         \
           a;                                                                          \
           std::cerr << "One of the following asserts should have been triggered:\n";  \
-          for (uint ai=0 ; ai<eigen_assert_list.size() ; ++ai)                           \
-            std::cerr << "  " << eigen_assert_list[ai] << "\n";                          \
+          for (uint ai=0 ; ai<eigen_assert_list.size() ; ++ai)                        \
+            std::cerr << "  " << eigen_assert_list[ai] << "\n";                       \
           VERIFY(Eigen::should_raise_an_assert && # a);                               \
-        } catch (Eigen::eigen_assert_exception) {                                        \
-          Eigen::internal::push_assert = false; VERIFY(true);                                \
+        } catch (Eigen::eigen_assert_exception) {                                     \
+          Eigen::internal::push_assert = false; VERIFY(true);                         \
         }                                                                             \
         Eigen::report_on_cerr_on_assert_failure = true;                               \
-        Eigen::internal::push_assert = false;                                                \
+        Eigen::internal::push_assert = false;                                         \
       }
     #endif //EIGEN_EXCEPTIONS
 
@@ -194,7 +194,7 @@ namespace Eigen
           a;                                                      \
           VERIFY(Eigen::should_raise_an_assert && # a);           \
         }                                                         \
-        catch (Eigen::eigen_assert_exception&) { VERIFY(true); }     \
+        catch (Eigen::eigen_assert_exception&) { VERIFY(true); }  \
         Eigen::report_on_cerr_on_assert_failure = true;           \
       }
     #endif //EIGEN_EXCEPTIONS
