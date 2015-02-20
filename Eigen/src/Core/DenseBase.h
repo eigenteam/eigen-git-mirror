@@ -429,7 +429,7 @@ template<typename Derived> class DenseBase
 
     template<typename BinaryOp>
     EIGEN_DEVICE_FUNC
-    typename internal::result_of<BinaryOp(typename internal::traits<Derived>::Scalar)>::type
+    typename internal::result_of<BinaryOp(typename internal::traits<Derived>::Scalar,typename internal::traits<Derived>::Scalar)>::type
     redux(const BinaryOp& func) const;
 
     template<typename Visitor>

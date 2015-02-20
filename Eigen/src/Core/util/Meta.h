@@ -160,12 +160,17 @@ protected:
   * upcoming next STL generation (using a templated result member).
   * If none of these members is provided, then the type of the first argument is returned. FIXME, that behavior is a pretty bad hack.
   */
-template<typename T> struct result_of {};
+#ifdef EIGEN_HAS_STD_RESULT_OF
+template<typename T> struct result_of {
+  typedef typename std::result_of<T>::type type1;
+  typedef typename remove_all<type1>::type type;
+};
+#else
+template<typename T> struct result_of { };
 
 struct has_none {int a[1];};
 struct has_std_result_type {int a[2];};
 struct has_tr1_result {int a[3];};
-struct has_cxx_eleven_result {int a[4];};
 
 template<typename Func, typename ArgType, int SizeOf=sizeof(has_none)>
 struct unary_result_of_select {typedef ArgType type;};
@@ -176,21 +181,12 @@ struct unary_result_of_select<Func, ArgType, sizeof(has_std_result_type)> {typed
 template<typename Func, typename ArgType>
 struct unary_result_of_select<Func, ArgType, sizeof(has_tr1_result)> {typedef typename Func::template result<Func(ArgType)>::type type;};
 
-#ifdef EIGEN_HAS_STD_RESULT_OF
-template<typename Func, typename ArgType>
-struct unary_result_of_select<Func, ArgType, sizeof(has_cxx_eleven_result)> {typedef typename std::result_of<Func(ArgType)>::type type;};
-#endif
-
 template<typename Func, typename ArgType>
 struct result_of<Func(ArgType)> {
     template<typename T>
     static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
     template<typename T>
     static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType)>::type const * = 0);
-#ifdef EIGEN_HAS_STD_RESULT_OF
-    template<typename T>
-    static has_cxx_eleven_result  testFunctor(T const *, typename std::result_of<T(ArgType)>::type const * = 0);
-#endif
     static has_none               testFunctor(...);
 
     // note that the following indirection is needed for gcc-3.3
@@ -209,28 +205,19 @@ template<typename Func, typename ArgType0, typename ArgType1>
 struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_tr1_result)>
 {typedef typename Func::template result<Func(ArgType0,ArgType1)>::type type;};
 
-#ifdef EIGEN_HAS_STD_RESULT_OF
-template<typename Func, typename ArgType0, typename ArgType1>
-struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_cxx_eleven_result)>
-{typedef typename std::result_of<Func(ArgType0, ArgType1)>::type type;};
-#endif
-
 template<typename Func, typename ArgType0, typename ArgType1>
 struct result_of<Func(ArgType0,ArgType1)> {
     template<typename T>
     static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
     template<typename T>
     static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1)>::type const * = 0);
-#ifdef EIGEN_HAS_STD_RESULT_OF
-    template<typename T>
-    static has_cxx_eleven_result  testFunctor(T const *, typename std::result_of<T(ArgType0, ArgType1)>::type const * = 0);
-#endif
     static has_none               testFunctor(...);
 
     // note that the following indirection is needed for gcc-3.3
     enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
     typedef typename binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
 };
+#endif
 
 /** \internal In short, it computes int(sqrt(\a Y)) with \a Y an integer.
   * Usage example: \code meta_sqrt<1023>::ret \endcode
