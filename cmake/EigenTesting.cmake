@@ -299,6 +299,12 @@ macro(ei_testing_print_summary)
     else()
       message(STATUS "ARMv8 NEON:        Using architecture defaults")
     endif()
+    
+    if(EIGEN_TEST_CXX11)
+      message(STATUS "C++11:             ON")
+    else()
+      message(STATUS "C++11:             OFF")
+    endif()
 
   endif() # vectorization / alignment options
 

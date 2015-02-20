@@ -95,7 +95,6 @@ ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(kronecker_product)
 
-option(EIGEN_TEST_CXX11 "Enable testing of C++11 features (e.g. Tensor module)." ON)
 if(EIGEN_TEST_CXX11)
   # It should be safe to always run these tests as there is some fallback code for
   # older compiler that don't support cxx11.
