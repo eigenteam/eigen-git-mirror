@@ -48,8 +48,9 @@ namespace Eigen {
   * VectorXf a;
   * foo1(a.head());             // OK
   * foo1(A.col());              // OK
-  * foo1(A.row());              // compilation error because here innerstride!=1
-  * foo2(A.row());              // The row is copied into a contiguous temporary
+  * foo1(A.row());              // Compilation error because here innerstride!=1
+  * foo2(A.row());              // Compilation error because A.row() is a 1xN object while foo2 is expecting a Nx1 object
+  * foo2(A.row().transpose());  // The row is copied into a contiguous temporary
   * foo2(2*a);                  // The expression is evaluated into a temporary
   * foo2(A.col().segment(2,4)); // No temporary
   * \endcode
