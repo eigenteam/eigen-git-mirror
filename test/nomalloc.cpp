@@ -8,19 +8,9 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// this hack is needed to make this file compiles with -pedantic (gcc)
-#ifdef __GNUC__
-#define throw(X)
-#endif
-
-#ifdef __INTEL_COMPILER
-  // disable "warning #76: argument to macro is empty" produced by the above hack
-  #pragma warning disable 76
-#endif
-
 // discard stack allocation as that too bypasses malloc
 #define EIGEN_STACK_ALLOCATION_LIMIT 0
-// any heap allocation will raise an assert
+// heap allocation will raise an assert if enabled at runtime
 #define EIGEN_RUNTIME_NO_MALLOC
 
 #include "main.h"
