@@ -362,26 +362,32 @@ inline NewType cast(const OldType& x)
 /****************************************************************************
 * Implementation of logp1                                                *
 ****************************************************************************/
-
-template<typename Scalar>
+template<typename Scalar, bool isComplex = NumTraits<Scalar>::IsComplex >
 struct log1p_impl
 {
   static inline Scalar run(const Scalar& x)
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
-    // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
-    #if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
-        && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
-      using std::log1p;
-      return log1p(x);
-    #else
-      typedef typename NumTraits<Scalar>::Real RealScalar;
-      using std::log;
-      Scalar x1p = RealScalar(1) + x;
-      return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
-    #endif
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+    using std::log;
+    Scalar x1p = RealScalar(1) + x;
+    return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
   }
 };
+// In C++11 we can specialize log1p_impl for real Scalars
+// Let's be conservative and enable the default C++11 implementation only if we are sure it exists
+#if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+    && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
+template<typename Scalar>
+struct log1p_impl<Scalar, false> {
+  static inline Scalar run(const Scalar& x)
+  {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    using std::log1p;
+    return log1p(x);
+  }
+};
+#endif
 
 template<typename Scalar>
 struct log1p_retval
