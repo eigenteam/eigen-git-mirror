@@ -665,7 +665,7 @@ void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, ConstCholMat
   {
     m_Pinv.resize(0);
     m_P.resize(0);
-    if(UpLo==Lower || MatrixType::IsRowMajor)
+    if(int(UpLo)==int(Lower) || MatrixType::IsRowMajor)
     {
       // we have to transpose the lower part to to the upper one
       ap.resize(size,size);
