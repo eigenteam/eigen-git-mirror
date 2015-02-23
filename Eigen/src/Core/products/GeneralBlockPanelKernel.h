@@ -855,7 +855,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               EIGEN_ASM_COMMENT("begin step of gebp micro kernel 3pX4"); \
               EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
               internal::prefetch(blA+(3*K+16)*LhsProgress); \
-              internal::prefetch(blB+(4*K+16)*RhsProgress); /* Bug 953 */ \
+              if (EIGEN_ARCH_ARM) internal::prefetch(blB+(4*K+16)*RhsProgress); /* Bug 953 */ \
               traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
               traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
               traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
@@ -878,7 +878,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               EIGEN_ASM_COMMENT("end step of gebp micro kernel 3pX4"); \
             } while(false)
 
-            internal::prefetch(blB + 4 * pk * sizeof(RhsScalar)); /* Bug 953 */
+            internal::prefetch(blB + 8 * pk); /* Bug 953 */
             EIGEN_GEBP_ONESTEP(0);
             EIGEN_GEBP_ONESTEP(1);
             EIGEN_GEBP_ONESTEP(2);
