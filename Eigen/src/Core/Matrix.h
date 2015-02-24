@@ -219,6 +219,7 @@ class Matrix
     { Base::_check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED }
 
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    EIGEN_DEVICE_FUNC
     Matrix(Matrix&& other)
       : Base(std::move(other))
     {
@@ -226,6 +227,7 @@ class Matrix
       if (RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic)
         Base::_set_noalias(other);
     }
+    EIGEN_DEVICE_FUNC
     Matrix& operator=(Matrix&& other)
     {
       other.swap(*this);

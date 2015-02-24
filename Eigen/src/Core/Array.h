@@ -145,6 +145,7 @@ class Array
 #endif
 
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    EIGEN_DEVICE_FUNC
     Array(Array&& other)
       : Base(std::move(other))
     {
@@ -152,6 +153,7 @@ class Array
       if (RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic)
         Base::_set_noalias(other);
     }
+    EIGEN_DEVICE_FUNC
     Array& operator=(Array&& other)
     {
       other.swap(*this);

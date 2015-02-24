@@ -298,6 +298,7 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
       return *this;
     }
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    EIGEN_DEVICE_FUNC
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
       , m_rows(std::move(other.m_rows))
@@ -307,6 +308,7 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
       other.m_rows = 0;
       other.m_cols = 0;
     }
+    EIGEN_DEVICE_FUNC
     DenseStorage& operator=(DenseStorage&& other)
     {
       using std::swap;
@@ -371,6 +373,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
       return *this;
     }    
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    EIGEN_DEVICE_FUNC
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
       , m_cols(std::move(other.m_cols))
@@ -378,6 +381,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
       other.m_data = nullptr;
       other.m_cols = 0;
     }
+    EIGEN_DEVICE_FUNC
     DenseStorage& operator=(DenseStorage&& other)
     {
       using std::swap;
@@ -438,6 +442,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
       return *this;
     }    
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
+    EIGEN_DEVICE_FUNC
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
       , m_rows(std::move(other.m_rows))
@@ -445,6 +450,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
       other.m_data = nullptr;
       other.m_rows = 0;
     }
+    EIGEN_DEVICE_FUNC
     DenseStorage& operator=(DenseStorage&& other)
     {
       using std::swap;
