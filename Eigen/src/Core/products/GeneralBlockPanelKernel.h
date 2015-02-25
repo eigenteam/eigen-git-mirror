@@ -878,7 +878,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               EIGEN_ASM_COMMENT("end step of gebp micro kernel 3pX4"); \
             } while(false)
 
-            internal::prefetch(blB + 8 * pk); /* Bug 953 */
+            internal::prefetch(blB);
             EIGEN_GEBP_ONESTEP(0);
             EIGEN_GEBP_ONESTEP(1);
             EIGEN_GEBP_ONESTEP(2);
