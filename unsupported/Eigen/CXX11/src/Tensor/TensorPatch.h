@@ -99,27 +99,43 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device)
   {
-   // Only column major tensors are supported for now.
-    EIGEN_STATIC_ASSERT((static_cast<int>(Layout) == static_cast<int>(ColMajor)), YOU_MADE_A_PROGRAMMING_MISTAKE);
-
     Index num_patches = 1;
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
     const PatchDim& patch_dims = op.patch_dims();
-    for (int i = 0; i < NumDims-1; ++i) {
-      m_dimensions[i] = patch_dims[i];
-      num_patches *= (input_dims[i] - patch_dims[i] + 1);
-    }
-    m_dimensions[NumDims-1] = num_patches;
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = 0; i < NumDims-1; ++i) {
+        m_dimensions[i] = patch_dims[i];
+        num_patches *= (input_dims[i] - patch_dims[i] + 1);
+      }
+      m_dimensions[NumDims-1] = num_patches;
 
-    m_inputStrides[0] = 1;
-    m_patchStrides[0] = 1;
-    for (int i = 1; i < NumDims-1; ++i) {
-      m_inputStrides[i] = m_inputStrides[i-1] * input_dims[i-1];
-      m_patchStrides[i] = m_patchStrides[i-1] * (input_dims[i-1] - patch_dims[i-1] + 1);
-    }
-    m_outputStrides[0] = 1;
-    for (int i = 1; i < NumDims; ++i) {
-      m_outputStrides[i] = m_outputStrides[i-1] * m_dimensions[i-1];
+      m_inputStrides[0] = 1;
+      m_patchStrides[0] = 1;
+      for (int i = 1; i < NumDims-1; ++i) {
+        m_inputStrides[i] = m_inputStrides[i-1] * input_dims[i-1];
+        m_patchStrides[i] = m_patchStrides[i-1] * (input_dims[i-1] - patch_dims[i-1] + 1);
+      }
+      m_outputStrides[0] = 1;
+      for (int i = 1; i < NumDims; ++i) {
+        m_outputStrides[i] = m_outputStrides[i-1] * m_dimensions[i-1];
+      }
+    } else {
+      for (int i = 0; i < NumDims-1; ++i) {
+        m_dimensions[i+1] = patch_dims[i];
+        num_patches *= (input_dims[i] - patch_dims[i] + 1);
+      }
+      m_dimensions[0] = num_patches;
+
+      m_inputStrides[NumDims-2] = 1;
+      m_patchStrides[NumDims-2] = 1;
+      for (int i = NumDims-3; i >= 0; --i) {
+        m_inputStrides[i] = m_inputStrides[i+1] * input_dims[i+1];
+        m_patchStrides[i] = m_patchStrides[i+1] * (input_dims[i+1] - patch_dims[i+1] + 1);
+      }
+      m_outputStrides[NumDims-1] = 1;
+      for (int i = NumDims-2; i >= 0; --i) {
+        m_outputStrides[i] = m_outputStrides[i+1] * m_dimensions[i+1];
+      }
     }
   }
 
@@ -139,18 +155,28 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
+    Index output_stride_index = (static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? NumDims - 1 : 0;
     // Find the location of the first element of the patch.
-    Index patchIndex = index / m_outputStrides[NumDims - 1];
+    Index patchIndex = index / m_outputStrides[output_stride_index];
     // Find the offset of the element wrt the location of the first element.
-    Index patchOffset = index - patchIndex * m_outputStrides[NumDims - 1];
-
+    Index patchOffset = index - patchIndex * m_outputStrides[output_stride_index];
     Index inputIndex = 0;
-    for (int i = NumDims - 2; i > 0; --i) {
-      const Index patchIdx = patchIndex / m_patchStrides[i];
-      patchIndex -= patchIdx * m_patchStrides[i];
-      const Index offsetIdx = patchOffset / m_outputStrides[i];
-      patchOffset -= offsetIdx * m_outputStrides[i];
-      inputIndex += (patchIdx + offsetIdx) * m_inputStrides[i];
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = NumDims - 2; i > 0; --i) {
+        const Index patchIdx = patchIndex / m_patchStrides[i];
+        patchIndex -= patchIdx * m_patchStrides[i];
+        const Index offsetIdx = patchOffset / m_outputStrides[i];
+        patchOffset -= offsetIdx * m_outputStrides[i];
+        inputIndex += (patchIdx + offsetIdx) * m_inputStrides[i];
+      }
+    } else {
+      for (int i = 0; i < NumDims - 2; ++i) {
+        const Index patchIdx = patchIndex / m_patchStrides[i];
+        patchIndex -= patchIdx * m_patchStrides[i];
+        const Index offsetIdx = patchOffset / m_outputStrides[i+1];
+        patchOffset -= offsetIdx * m_outputStrides[i+1];
+        inputIndex += (patchIdx + offsetIdx) * m_inputStrides[i];
+      }
     }
     inputIndex += (patchIndex + patchOffset);
     return m_impl.coeff(inputIndex);
@@ -163,26 +189,44 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
     EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index+packetSize-1 < dimensions().TotalSize());
 
+    Index output_stride_index = (static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? NumDims - 1 : 0;
     Index indices[2] = {index, index + packetSize - 1};
-    Index patchIndices[2] = {indices[0] / m_outputStrides[NumDims - 1],
-                             indices[1] / m_outputStrides[NumDims - 1]};
-    Index patchOffsets[2] = {indices[0] - patchIndices[0] * m_outputStrides[NumDims - 1],
-                             indices[1] - patchIndices[1] * m_outputStrides[NumDims - 1]};
+    Index patchIndices[2] = {indices[0] / m_outputStrides[output_stride_index],
+                             indices[1] / m_outputStrides[output_stride_index]};
+    Index patchOffsets[2] = {indices[0] - patchIndices[0] * m_outputStrides[output_stride_index],
+                             indices[1] - patchIndices[1] * m_outputStrides[output_stride_index]};
 
     Index inputIndices[2] = {0, 0};
-    for (int i = NumDims - 2; i > 0; --i) {
-      const Index patchIdx[2] = {patchIndices[0] / m_patchStrides[i],
-                                 patchIndices[1] / m_patchStrides[i]};
-      patchIndices[0] -= patchIdx[0] * m_patchStrides[i];
-      patchIndices[1] -= patchIdx[1] * m_patchStrides[i];
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = NumDims - 2; i > 0; --i) {
+        const Index patchIdx[2] = {patchIndices[0] / m_patchStrides[i],
+                                   patchIndices[1] / m_patchStrides[i]};
+        patchIndices[0] -= patchIdx[0] * m_patchStrides[i];
+        patchIndices[1] -= patchIdx[1] * m_patchStrides[i];
 
-      const Index offsetIdx[2] = {patchOffsets[0] / m_outputStrides[i],
-                                  patchOffsets[1] / m_outputStrides[i]};
-      patchOffsets[0] -= offsetIdx[0] * m_outputStrides[i];
-      patchOffsets[1] -= offsetIdx[1] * m_outputStrides[i];
+        const Index offsetIdx[2] = {patchOffsets[0] / m_outputStrides[i],
+                                    patchOffsets[1] / m_outputStrides[i]};
+        patchOffsets[0] -= offsetIdx[0] * m_outputStrides[i];
+        patchOffsets[1] -= offsetIdx[1] * m_outputStrides[i];
 
-      inputIndices[0] += (patchIdx[0] + offsetIdx[0]) * m_inputStrides[i];
-      inputIndices[1] += (patchIdx[1] + offsetIdx[1]) * m_inputStrides[i];
+        inputIndices[0] += (patchIdx[0] + offsetIdx[0]) * m_inputStrides[i];
+        inputIndices[1] += (patchIdx[1] + offsetIdx[1]) * m_inputStrides[i];
+      }
+    } else {
+      for (int i = 0; i < NumDims - 2; ++i) {
+        const Index patchIdx[2] = {patchIndices[0] / m_patchStrides[i],
+                                   patchIndices[1] / m_patchStrides[i]};
+        patchIndices[0] -= patchIdx[0] * m_patchStrides[i];
+        patchIndices[1] -= patchIdx[1] * m_patchStrides[i];
+
+        const Index offsetIdx[2] = {patchOffsets[0] / m_outputStrides[i+1],
+                                    patchOffsets[1] / m_outputStrides[i+1]};
+        patchOffsets[0] -= offsetIdx[0] * m_outputStrides[i+1];
+        patchOffsets[1] -= offsetIdx[1] * m_outputStrides[i+1];
+
+        inputIndices[0] += (patchIdx[0] + offsetIdx[0]) * m_inputStrides[i];
+        inputIndices[1] += (patchIdx[1] + offsetIdx[1]) * m_inputStrides[i];
+      }
     }
     inputIndices[0] += (patchIndices[0] + patchOffsets[0]);
     inputIndices[1] += (patchIndices[1] + patchOffsets[1]);
@@ -205,29 +249,50 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(const array<Index, NumDims>& coords) const
   {
+    Index patch_coord_idx = Layout == ColMajor ? NumDims - 1 : 0;
     // Location of the first element of the patch.
-    const Index patchIndex = coords[NumDims - 1];
+    const Index patchIndex = coords[patch_coord_idx];
 
     if (TensorEvaluator<ArgType, Device>::CoordAccess) {
       array<Index, NumDims-1> inputCoords;
-      for (int i = NumDims - 2; i > 0; --i) {
-        const Index patchIdx = patchIndex / m_patchStrides[i];
-        patchIndex -= patchIdx * m_patchStrides[i];
-        const Index offsetIdx = coords[i];
-        inputCoords[i] = coords[i] + patchIdx;
+      if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+        for (int i = NumDims - 2; i > 0; --i) {
+          const Index patchIdx = patchIndex / m_patchStrides[i];
+          patchIndex -= patchIdx * m_patchStrides[i];
+          const Index offsetIdx = coords[i];
+          inputCoords[i] = coords[i] + patchIdx;
+        }
+      } else {
+        for (int i = 0; i < NumDims - 2; ++i) {
+          const Index patchIdx = patchIndex / m_patchStrides[i];
+          patchIndex -= patchIdx * m_patchStrides[i];
+          const Index offsetIdx = coords[i+1];
+          inputCoords[i] = coords[i+1] + patchIdx;
+        }
       }
-      inputCoords[0] = (patchIndex + coords[0]);
+      Index coords_idx = Layout == ColMajor ? 0 : NumDims - 1;
+      inputCoords[0] = (patchIndex + coords[coords_idx]);
       return m_impl.coeff(inputCoords);
     }
     else {
       Index inputIndex = 0;
-      for (int i = NumDims - 2; i > 0; --i) {
-        const Index patchIdx = patchIndex / m_patchStrides[i];
-        patchIndex -= patchIdx * m_patchStrides[i];
-        const Index offsetIdx = coords[i];
-        inputIndex += (patchIdx + offsetIdx) * m_inputStrides[i];
+      if (Layout == ColMajor) {
+        for (int i = NumDims - 2; i > 0; --i) {
+          const Index patchIdx = patchIndex / m_patchStrides[i];
+          patchIndex -= patchIdx * m_patchStrides[i];
+          const Index offsetIdx = coords[i];
+          inputIndex += (patchIdx + offsetIdx) * m_inputStrides[i];
+        }
+      } else {
+        for (int i = 0; i < NumDims - 2; ++i) {
+          const Index patchIdx = patchIndex / m_patchStrides[i];
+          patchIndex -= patchIdx * m_patchStrides[i];
+          const Index offsetIdx = coords[i+1];
+          inputIndex += (patchIdx + offsetIdx) * m_inputStrides[i];
+        }
       }
-      inputIndex += (patchIndex + coords[0]);
+      Index coords_idx = Layout == ColMajor ? 0 : NumDims - 1;
+      inputIndex += (patchIndex + coords[coords_idx]);
       return m_impl.coeff(inputIndex);
     }
   }
