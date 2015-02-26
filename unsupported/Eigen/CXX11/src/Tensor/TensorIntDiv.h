@@ -28,6 +28,21 @@ namespace Eigen {
 
 namespace internal {
 
+namespace {
+  template <typename T>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE int count_leading_zeros(const T val)
+  {
+#ifndef __CUDA_ARCH__
+    if (sizeof(T) == 8) {
+      return __builtin_clzl(val);
+    }
+    return __builtin_clz(val);
+#else
+    return __clz(val);
+#endif
+  }
+};
+
 template <typename T>
 struct TensorIntDivisor {
  public:
@@ -44,11 +59,7 @@ struct TensorIntDivisor {
     eigen_assert(divider <= (1<<(N-1)) - 1);
 
     // fast ln2
-#ifndef __CUDA_ARCH__
-    const int leading_zeros = __builtin_clz(divider);
-#else
-    const int leading_zeros = __clz(divider);
-#endif
+    const int leading_zeros = count_leading_zeros(divider);
     const int log_div = N - (leading_zeros+1);
 
     multiplier = (static_cast<uint64_t>(1) << (N+log_div)) / divider - (static_cast<uint64_t>(1) << N) + 1;
