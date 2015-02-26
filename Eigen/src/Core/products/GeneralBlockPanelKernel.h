@@ -153,8 +153,13 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
   }
   else {
     // In unit tests we do not want to use extra large matrices,
-    // so we reduce the block size to check the blocking strategy is not flawed
-#ifndef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
+    // so we reduce the cache size to check the blocking strategy is not flawed
+#ifdef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
+    l1 = 4*1024;
+    l2 = 32*1024;
+    l3 = 512*1024;
+#endif
+    
     // Early return for small problems because the computation below are time consuming for small problems.
     // Perhaps it would make more sense to consider k*n*m??
     // Note that for very tiny problem, this function should be bypassed anyway
@@ -195,7 +200,13 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
     //      actual_l2 = max(l2, l3/nb_core_sharing_l3)
     // The number below is quite conservative: it is better to underestimate the cache size rather than overestimating it)
     // For instance, it corresponds to 6MB of L3 shared among 4 cores.
+    #ifdef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
+    const Index actual_l2 = l3;
+    #else
     const Index actual_l2 = 1572864; // == 1.5 MB
+    #endif
+    
+    
     
     // Here, nc is chosen such that a block of kc x nc of the rhs fit within half of L2.
     // The second half is implicitly reserved to access the result and lhs coefficients.
@@ -240,11 +251,6 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
       m = (m%mc)==0 ? mc
                     : (mc - Traits::mr * ((mc/*-1*/-(m%mc))/(Traits::mr*(m/mc+1))));
     }
-#else
-    k = std::min<Index>(k,24);
-    n = std::min<Index>(n,384/sizeof(RhsScalar));
-    m = std::min<Index>(m,384/sizeof(RhsScalar));
-#endif
   }
 }
 
