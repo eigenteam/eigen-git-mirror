@@ -94,7 +94,7 @@ static void test_simple_reverse()
 
 
 template <int DataLayout>
-static void test_expr_reverse()
+static void test_expr_reverse(bool LValue)
 {
   Tensor<float, 4, DataLayout> tensor(2,3,5,7);
   tensor.setRandom();
@@ -105,9 +105,12 @@ static void test_expr_reverse()
   dim_rev[2] = false;
   dim_rev[3] = true;
 
-
-  Tensor<float, 4, DataLayout> expected;
-  expected = tensor.reverse(dim_rev);
+  Tensor<float, 4, DataLayout> expected(2, 3, 5, 7);
+  if (LValue) {
+    expected.reverse(dim_rev) = tensor;
+  } else {
+    expected = tensor.reverse(dim_rev);
+  }
 
   Tensor<float, 4, DataLayout> result(2,3,5,7);
 
@@ -117,8 +120,13 @@ static void test_expr_reverse()
   array<ptrdiff_t, 4> dst_slice_start{{0,0,0,0}};
 
   for (int i = 0; i < 5; ++i) {
-    result.slice(dst_slice_start, dst_slice_dim) =
-        tensor.slice(src_slice_start, src_slice_dim).reverse(dim_rev);
+    if (LValue) {
+      result.slice(dst_slice_start, dst_slice_dim).reverse(dim_rev) =
+          tensor.slice(src_slice_start, src_slice_dim);
+    } else {
+      result.slice(dst_slice_start, dst_slice_dim) =
+          tensor.slice(src_slice_start, src_slice_dim).reverse(dim_rev);
+    }
     src_slice_start[2] += 1;
     dst_slice_start[2] += 1;
   }
@@ -141,8 +149,13 @@ static void test_expr_reverse()
   dst_slice_start[2] = 0;
   result.setRandom();
   for (int i = 0; i < 5; ++i) {
-    result.slice(dst_slice_start, dst_slice_dim) =
-        tensor.reverse(dim_rev).slice(dst_slice_start, dst_slice_dim);
+     if (LValue) {
+       result.slice(dst_slice_start, dst_slice_dim).reverse(dim_rev) =
+           tensor.slice(dst_slice_start, dst_slice_dim);
+     } else {
+       result.slice(dst_slice_start, dst_slice_dim) =
+           tensor.reverse(dim_rev).slice(dst_slice_start, dst_slice_dim);
+     }
     dst_slice_start[2] += 1;
   }
 
@@ -162,6 +175,8 @@ void test_cxx11_tensor_reverse()
 {
   CALL_SUBTEST(test_simple_reverse<ColMajor>());
   CALL_SUBTEST(test_simple_reverse<RowMajor>());
-  CALL_SUBTEST(test_expr_reverse<ColMajor>());
-  CALL_SUBTEST(test_expr_reverse<RowMajor>());
+  CALL_SUBTEST(test_expr_reverse<ColMajor>(true));
+  CALL_SUBTEST(test_expr_reverse<RowMajor>(true));
+  CALL_SUBTEST(test_expr_reverse<ColMajor>(false));
+  CALL_SUBTEST(test_expr_reverse<RowMajor>(false));
 }

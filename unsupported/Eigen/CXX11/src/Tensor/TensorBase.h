@@ -549,6 +549,11 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     chip(const Index offset, const Index dim) const {
       return TensorChippingOp<Dynamic, Derived>(derived(), offset, dim);
     }
+    template <typename ReverseDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorReverseOp<const ReverseDimensions, Derived>
+    reverse(const ReverseDimensions& rev) const {
+      return TensorReverseOp<const ReverseDimensions, Derived>(derived(), rev);
+    }
     template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorShufflingOp<const Shuffle, Derived>
     shuffle(const Shuffle& shuffle) const {
