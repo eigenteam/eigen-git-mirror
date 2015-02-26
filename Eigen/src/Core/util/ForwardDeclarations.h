@@ -189,6 +189,7 @@ template<typename Scalar> struct scalar_imag_op;
 template<typename Scalar> struct scalar_abs_op;
 template<typename Scalar> struct scalar_abs2_op;
 template<typename Scalar> struct scalar_sqrt_op;
+template<typename Scalar> struct scalar_rsqrt_op;
 template<typename Scalar> struct scalar_exp_op;
 template<typename Scalar> struct scalar_log_op;
 template<typename Scalar> struct scalar_cos_op;

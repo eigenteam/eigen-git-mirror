@@ -225,6 +225,25 @@ struct functor_traits<scalar_sqrt_op<Scalar> >
 };
 
 /** \internal
+  * \brief Template functor to compute the reciprocal square root of a scalar
+  * \sa class CwiseUnaryOp, Cwise::rsqrt()
+  */
+template<typename Scalar> struct scalar_rsqrt_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_rsqrt_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::sqrt; return Scalar(1)/sqrt(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::prsqrt(a); }
+};
+
+template<typename Scalar>
+struct functor_traits<scalar_rsqrt_op<Scalar> >
+{ enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasRsqrt
+  };
+};
+
+/** \internal
   * \brief Template functor to compute the cosine of a scalar
   * \sa class CwiseUnaryOp, ArrayBase::cos()
   */

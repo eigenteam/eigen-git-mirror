@@ -58,6 +58,7 @@ struct default_packet_traits
 
     HasDiv    = 0,
     HasSqrt   = 0,
+    HasRsqrt  = 0,
     HasExp    = 0,
     HasLog    = 0,
     HasPow    = 0,
@@ -351,6 +352,14 @@ Packet plog(const Packet& a) { using std::log; return log(a); }
 /** \internal \returns the square-root of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet psqrt(const Packet& a) { using std::sqrt; return sqrt(a); }
+
+/** \internal \returns the reciprocal square-root of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet prsqrt(const Packet& a) {
+  using std::sqrt;
+  const Packet one(1);
+  return one/sqrt(a);
+}
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

@@ -300,15 +300,28 @@ psqrt<Packet8f>(const Packet8f& _x) {
   return pmul(_x, x);
 }
 #else
-template <>
-EIGEN_STRONG_INLINE Packet8f psqrt<Packet8f>(const Packet8f& x) {
+template <> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet8f psqrt<Packet8f>(const Packet8f& x) {
   return _mm256_sqrt_ps(x);
 }
 #endif
-template <>
-EIGEN_STRONG_INLINE Packet4d psqrt<Packet4d>(const Packet4d& x) {
+template <> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4d psqrt<Packet4d>(const Packet4d& x) {
   return _mm256_sqrt_pd(x);
 }
+
+template <> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet8f prsqrt<Packet8f>(const Packet8f& x) {
+  _EIGEN_DECLARE_CONST_Packet8f(one, 1.0f);
+  return _mm256_div_ps(p8f_one, _mm256_sqrt_ps(x));
+}
+#endif
+template <> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4d prsqrt<Packet4d>(const Packet4d& x) {
+  _EIGEN_DECLARE_CONST_Packet4d(one, 1.0);
+  return _mm256_div_pd(p4d_one, _mm256_sqrt_pd(x));
+}
+
 
 }  // end namespace internal
 
