@@ -85,6 +85,15 @@ class TensorLayoutSwapOp : public TensorBase<TensorLayoutSwapOp<XprType>, WriteA
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorLayoutSwapOp& operator = (const TensorLayoutSwapOp& other)
+    {
+      typedef TensorAssignOp<TensorLayoutSwapOp, const TensorLayoutSwapOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      return *this;
+    }
+
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorLayoutSwapOp& operator = (const OtherDerived& other)
