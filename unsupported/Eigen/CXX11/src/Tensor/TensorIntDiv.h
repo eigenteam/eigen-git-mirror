@@ -29,14 +29,16 @@ namespace Eigen {
 namespace internal {
 
 namespace {
+  // Note: result is undefined if val == 0
   template <typename T>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE int count_leading_zeros(const T val)
   {
 #ifndef __CUDA_ARCH__
-    if (sizeof(T) == 8) {
-      return __builtin_clzl(val);
-    }
-    return __builtin_clz(val);
+    return __builtin_clz(static_cast<uint32_t>(val));
+#elif EIGEN_COMP_MSVC
+    DWORD leading_zero = 0;
+    _BitScanReverse( &leading_zero, value);
+    return 31 - leading_zero;
 #else
     return __clz(val);
 #endif
