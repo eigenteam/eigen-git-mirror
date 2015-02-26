@@ -20,11 +20,11 @@ class TensorLazyBaseEvaluator {
   TensorLazyBaseEvaluator() : m_refcount(0) { }
   virtual ~TensorLazyBaseEvaluator() { }
 
-  virtual const Dimensions& dimensions() const = 0;
-  virtual const Scalar* data() const = 0;
+  EIGEN_DEVICE_FUNC virtual const Dimensions& dimensions() const = 0;
+  EIGEN_DEVICE_FUNC virtual const Scalar* data() const = 0;
 
-  virtual const Scalar coeff(DenseIndex index) const = 0;
-  virtual Scalar& coeffRef(DenseIndex index) = 0;
+  EIGEN_DEVICE_FUNC virtual const Scalar coeff(DenseIndex index) const = 0;
+  EIGEN_DEVICE_FUNC virtual Scalar& coeffRef(DenseIndex index) = 0;
 
   void incrRefCount() { ++m_refcount; }
   void decrRefCount() { --m_refcount; }
@@ -38,7 +38,6 @@ class TensorLazyBaseEvaluator {
   int m_refcount;
 };
 
-static char dummy[8];
 
 template <typename Dimensions, typename Expr, typename Device>
 class TensorLazyEvaluatorReadOnly : public TensorLazyBaseEvaluator<Dimensions, typename TensorEvaluator<Expr, Device>::Scalar> {
@@ -46,7 +45,7 @@ class TensorLazyEvaluatorReadOnly : public TensorLazyBaseEvaluator<Dimensions, t
   //  typedef typename TensorEvaluator<Expr, Device>::Dimensions Dimensions;
   typedef typename TensorEvaluator<Expr, Device>::Scalar Scalar;
 
-  TensorLazyEvaluatorReadOnly(const Expr& expr, const Device& device) : m_impl(expr, device) {
+  TensorLazyEvaluatorReadOnly(const Expr& expr, const Device& device) : m_impl(expr, device), m_dummy(Scalar(0)) {
     m_dims = m_impl.dimensions();
     m_impl.evalSubExprsIfNeeded(NULL);
   }
@@ -54,24 +53,25 @@ class TensorLazyEvaluatorReadOnly : public TensorLazyBaseEvaluator<Dimensions, t
     m_impl.cleanup();
   }
 
-  virtual const Dimensions& dimensions() const {
+  EIGEN_DEVICE_FUNC virtual const Dimensions& dimensions() const {
     return m_dims;
   }
-  virtual const Scalar* data() const {
+  EIGEN_DEVICE_FUNC virtual const Scalar* data() const {
     return m_impl.data();
   }
 
-  virtual const Scalar coeff(DenseIndex index) const {
+  EIGEN_DEVICE_FUNC virtual const Scalar coeff(DenseIndex index) const {
     return m_impl.coeff(index);
   }
-  virtual Scalar& coeffRef(DenseIndex /*index*/) {
+  EIGEN_DEVICE_FUNC virtual Scalar& coeffRef(DenseIndex /*index*/) {
     eigen_assert(false && "can't reference the coefficient of a rvalue");
-    return *reinterpret_cast<Scalar*>(dummy);
+    return m_dummy;
   };
 
  protected:
   TensorEvaluator<Expr, Device> m_impl;
   Dimensions m_dims;
+  Scalar m_dummy;
 };
 
 template <typename Dimensions, typename Expr, typename Device>
@@ -85,7 +85,7 @@ class TensorLazyEvaluatorWritable : public TensorLazyEvaluatorReadOnly<Dimension
   virtual ~TensorLazyEvaluatorWritable() {
   }
 
-  virtual Scalar& coeffRef(DenseIndex index) {
+  EIGEN_DEVICE_FUNC virtual Scalar& coeffRef(DenseIndex index) {
     return this->m_impl.coeffRef(index);
   }
 };
@@ -389,7 +389,7 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
     return m_ref.coeffRef(index);
   }
 
-  Scalar* data() const { return m_ref.data(); }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return m_ref.data(); }
 
  protected:
   TensorRef<Derived> m_ref;
