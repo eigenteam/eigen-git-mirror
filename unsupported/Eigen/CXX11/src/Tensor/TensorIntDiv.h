@@ -33,17 +33,17 @@ namespace {
   template <typename T>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE int count_leading_zeros(const T val)
   {
-#ifndef __CUDA_ARCH__
-    return __builtin_clz(static_cast<uint32_t>(val));
+#ifdef __CUDA_ARCH__
+    return __clz(val);
 #elif EIGEN_COMP_MSVC
     DWORD leading_zero = 0;
     _BitScanReverse( &leading_zero, value);
     return 31 - leading_zero;
 #else
-    return __clz(val);
+    return __builtin_clz(static_cast<uint32_t>(val));
 #endif
   }
-};
+}
 
 template <typename T>
 struct TensorIntDivisor {
