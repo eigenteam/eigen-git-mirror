@@ -249,7 +249,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       innermostLoc = index;
     } else {
       if (internal::index_statically_eq<InputDimensions>()(0, 1)) {
-        eigen_assert(innermostLoc % m_impl.dimensions()[0] == 0);
+        eigen_assert(index % m_impl.dimensions()[0] == 0);
         innermostLoc = 0;
       } else {
         innermostLoc = index % m_impl.dimensions()[0];
@@ -302,7 +302,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       innermostLoc = index;
     } else {
       if (internal::index_statically_eq<InputDimensions>()(NumDims-1, 1)) {
-        eigen_assert(innermostLoc % m_impl.dimensions()[NumDims-1] == 0);
+        eigen_assert(index % m_impl.dimensions()[NumDims-1] == 0);
         innermostLoc = 0;
       } else {
         innermostLoc = index % m_impl.dimensions()[NumDims-1];

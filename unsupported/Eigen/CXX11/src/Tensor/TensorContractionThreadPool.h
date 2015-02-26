@@ -174,8 +174,6 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     OutputMapper output(buffer, m);
 
-    LhsPacker pack_lhs;
-
     // compute block sizes (which depend on number of threads)
     const Index num_threads = this->m_device.numThreads();
     Index mc = m;
@@ -190,8 +188,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     const Index k_blocks = CEIL_DIV(k, kc);
     const Index n_blocks = CEIL_DIV(n, nc);
     const Index m_blocks = CEIL_DIV(m, mc);
-    const int sizeA = mc * kc;
-    const int sizeB = kc * nc;
+    const Index sizeA = mc * kc;
+    const Index sizeB = kc * nc;
 
     /*    cout << "m: " << m << " n: " << n << " k: " << k << endl;
     cout << "mc: " << mc << " nc: " << nc << " kc: " << kc << endl;
@@ -228,7 +226,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     const Index num_kernel_promises = num_threads * n_blocks;
     std::vector<Promise> kernel_promises(num_kernel_promises);
     std::vector<Future> kernel_futures(num_kernel_promises);
-    for (int i = 0; i < kernel_promises.size(); ++i) {
+    for (std::size_t i = 0; i < kernel_promises.size(); ++i) {
       kernel_promises[i].set_value();
       kernel_futures[i] = kernel_promises[i].get_future();
     }
@@ -239,16 +237,16 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       const Index actual_kc = (std::min)(k_start + kc, k) - k_start;
 
       for (Index m_block_idx = 0; m_block_idx < m_blocks; m_block_idx += numBlockAs) {
-        const int num_blocks = (std::min)(m_blocks-m_block_idx, numBlockAs);
+        const Index num_blocks = (std::min)(m_blocks-m_block_idx, numBlockAs);
 
         for (Index mt_block_idx = m_block_idx; mt_block_idx < m_block_idx+num_blocks; mt_block_idx++) {
           const Index m_start = mt_block_idx * mc;
           const Index actual_mc = (std::min)(m_start + mc, m) - m_start;
           eigen_assert(actual_mc > 0);
 
-          int blockAId = (k_block_idx * m_blocks + mt_block_idx) % num_threads;
+          Index blockAId = (k_block_idx * m_blocks + mt_block_idx) % num_threads;
           for (int i = 0; i < n_blocks; ++i) {
-            int future_id = (blockAId * n_blocks + i);
+            Index future_id = (blockAId * n_blocks + i);
             wait_until_ready(&kernel_futures[future_id]);
             kernel_promises[future_id] = Promise();
             kernel_futures[future_id] = kernel_promises[future_id].get_future();
@@ -277,9 +275,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
           // first make sure the previous kernels are all done before overwriting rhs. Also wait if
           // we're going to start new k. In both cases need_to_pack is true.
           if (need_to_pack) {
-            for (int i = num_blocks; i < num_threads; ++i) {
-              int blockAId = (k_block_idx * m_blocks + i + m_block_idx) % num_threads;
-              int future_id = (blockAId * n_blocks + n_block_idx);
+            for (Index i = num_blocks; i < num_threads; ++i) {
+              Index blockAId = (k_block_idx * m_blocks + i + m_block_idx) % num_threads;
+              Index future_id = (blockAId * n_blocks + n_block_idx);
               wait_until_ready(&kernel_futures[future_id]);
             }
           }
@@ -361,7 +359,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     for (Index mt_block_idx = 0; mt_block_idx < arg.num_blockAs; mt_block_idx++) {
       const Index m_base_start = arg.m + arg.mc*mt_block_idx;
       if (m_base_start < arg.max_m) {
-        int blockAId = (arg.k_block_idx * arg.m_blocks + mt_block_idx + arg.m_block_idx) % arg.num_threads;
+        Index blockAId = (arg.k_block_idx * arg.m_blocks + mt_block_idx + arg.m_block_idx) % arg.num_threads;
 
         wait_until_ready(&(*arg.lhs_futures)[blockAId]);
         const Index actual_mc = (std::min)(m_base_start + arg.mc, arg.max_m) - m_base_start;

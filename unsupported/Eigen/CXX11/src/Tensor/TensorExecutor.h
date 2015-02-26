@@ -131,7 +131,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       const Index blocksize = std::max<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
       const Index numblocks = size / blocksize;
 
-      Index i = 0;
       std::vector<Future> results;
       results.reserve(numblocks);
       for (int i = 0; i < numblocks; ++i) {

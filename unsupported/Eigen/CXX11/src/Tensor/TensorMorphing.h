@@ -302,7 +302,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_device(device), m_dimensions(op.sizes()), m_offsets(op.startIndices())
   {
-    for (int i = 0; i < internal::array_size<Dimensions>::value; ++i) {
+    for (std::size_t i = 0; i < internal::array_size<Dimensions>::value; ++i) {
       eigen_assert(m_impl.dimensions()[i] >= op.sizes()[i] + op.startIndices()[i]);
     }
 
