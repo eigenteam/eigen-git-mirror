@@ -164,6 +164,8 @@ static void run(Index rows, Index cols, Index depth,
 
     ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(RhsScalar, blockB, sizeB, blocking.blockB());
+    
+    const bool pack_rhs_once = mc!=rows && kc==depth && nc==cols;
 
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     for(Index i2=0; i2<rows; i2+=mc)
@@ -188,7 +190,8 @@ static void run(Index rows, Index cols, Index depth,
           // We pack the rhs's block into a sequential chunk of memory (L2 caching)
           // Note that this block will be read a very high number of times, which is equal to the number of
           // micro horizontal panel of the large rhs's panel (e.g., rows/12 times).
-          pack_rhs(blockB, rhs.getSubMapper(k2,j2), actual_kc, actual_nc);
+          if((!pack_rhs_once) || i2==0)
+            pack_rhs(blockB, rhs.getSubMapper(k2,j2), actual_kc, actual_nc);
           
           // Everything is packed, we can now call the panel * block kernel:
           gebp(res.getSubMapper(i2, j2), blockA, blockB, actual_mc, actual_kc, actual_nc, alpha);
