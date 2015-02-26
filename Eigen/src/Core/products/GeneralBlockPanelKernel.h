@@ -155,9 +155,91 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
     // In unit tests we do not want to use extra large matrices,
     // so we reduce the block size to check the blocking strategy is not flawed
 #ifndef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
-    k = std::min<Index>(k,sizeof(LhsScalar)<=4 ? 360 : 240);
-    n = std::min<Index>(n,3840/sizeof(RhsScalar));
-    m = std::min<Index>(m,3840/sizeof(RhsScalar));
+    // Early return for small problems because the computation below are time consuming for small problems.
+    // Perhaps it would make more sense to consider k*n*m??
+    // Note that for very tiny problem, this function should be bypassed anyway
+    // because we use the coefficient-based implementation for them.
+    if(std::max(k,std::max(m,n))<48)
+      return;
+    
+    typedef typename Traits::ResScalar ResScalar;
+    enum {
+      k_peeling = 8,
+      k_div = KcFactor * (Traits::mr * sizeof(LhsScalar) + Traits::nr * sizeof(RhsScalar)),
+      k_sub = Traits::mr * Traits::nr * sizeof(ResScalar)
+    };
+    
+    // ---- 1st level of blocking on L1, yields kc ----
+    
+    // Blocking on the third dimension (i.e., k) is chosen so that an horizontal panel
+    // of size mr x kc of the lhs plus a vertical panel of kc x nr of the rhs both fits within L1 cache.
+    // We also include a register-level block of the result (mx x nr).
+    // (In an ideal world only the lhs panel would stay in L1)
+    // Moreover, kc has to be a multiple of 8 to be compatible with loop peeling, leading to a maximum blocking size of:
+    const Index max_kc = ((l1-k_sub)/k_div) & (~(k_peeling-1));
+    const Index old_k = k;
+    if(k>max_kc)
+    {
+      // We are really blocking on the third dimension:
+      // -> reduce blocking size to make sure the last block is as large as possible
+      //    while keeping the same number of sweeps over the result.
+      k = (k%max_kc)==0 ? max_kc
+                        : max_kc - k_peeling * ((max_kc-1-(k%max_kc))/(k_peeling*(k/max_kc+1)));
+                        
+      eigen_internal_assert(((old_k/k) == (old_k/max_kc)) && "the number of sweeps has to remain the same");
+    }
+    
+    // ---- 2nd level of blocking on max(L2,L3), yields nc ----
+    
+    // TODO find a reliable way to get the actual amount of cache per core to use for 2nd level blocking, that is:
+    //      actual_l2 = max(l2, l3/nb_core_sharing_l3)
+    // The number below is quite conservative: it is better to underestimate the cache size rather than overestimating it)
+    // For instance, it corresponds to 6MB of L3 shared among 4 cores.
+    const Index actual_l2 = 1572864; // == 1.5 MB
+    
+    // Here, nc is chosen such that a block of kc x nc of the rhs fit within half of L2.
+    // The second half is implicitly reserved to access the result and lhs coefficients.
+    // When k<max_kc, then nc can arbitrarily growth. In practice, it seems to be fruitful
+    // to limit this growth: we bound nc to growth by a factor x1.5, leading to:
+    const Index max_nc = (3*actual_l2)/(2*2*max_kc*sizeof(RhsScalar));
+    // WARNING Below, we assume that Traits::nr is a power of two.
+    Index nc = std::min<Index>(actual_l2/(2*k*sizeof(RhsScalar)), max_nc) & (~(Traits::nr-1));
+    if(n>nc)
+    {
+      // We are really blocking over the columns:
+      // -> reduce blocking size to make sure the last block is as large as possible
+      //    while keeping the same number of sweeps over the packed lhs.
+      //    Here we allow one more sweep if this gives us a perfect match, thus the commented "-1"
+      n = (n%nc)==0 ? nc
+                    : (nc - Traits::nr * ((nc/*-1*/-(n%nc))/(Traits::nr*(n/nc+1))));
+    }
+    else if(old_k==k)
+    {
+      // So far, no blocking at all, i.e., kc==k, and nc==n.
+      // In this case, let's perform a blocking over the rows such that the packed lhs data is kept in cache L1/L2
+      Index problem_size = k*n*sizeof(LhsScalar);
+      Index actual_lm = actual_l2;
+      Index max_mc = m;
+      if(problem_size<=1024)
+      {
+        // problem is small enough to keep in L1
+        // Let's choose m such that lhs's block fit in 1/3 of L1
+        actual_lm = l1;
+      }
+      else if(l3!=0 && problem_size<=32768)
+      {
+        // we have both L2 and L3, and problem is small enough to be kept in L2
+        // Let's choose m such that lhs's block fit in 1/3 of L2
+        actual_lm = l2;
+        max_mc = 576;
+      }
+      
+      Index mc = (std::min<Index>)(actual_lm/(3*k*sizeof(LhsScalar)), max_mc);
+      if (mc > Traits::mr) mc -= mc % Traits::mr;
+      
+      m = (m%mc)==0 ? mc
+                    : (mc - Traits::mr * ((mc/*-1*/-(m%mc))/(Traits::mr*(m/mc+1))));
+    }
 #else
     k = std::min<Index>(k,24);
     n = std::min<Index>(n,384/sizeof(RhsScalar));
