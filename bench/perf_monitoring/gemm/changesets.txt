@@ -18,8 +18,22 @@ before-evaluators
 6334:f6a45e5b8b7c
 6639:c9121c60b5c7
 6655:06f163b5221f
-6677:700e023044e7
+6677:700e023044e7   # FMA has been wrongly disabled
 6681:11d31dafb0e3
-6844:039efd86b75c
-6845:7333ed40c6ef
-6911:6192dd812d84
+6699:5e6e8e10aad1   # merge default to tensors
+6726:ff2d2388e7b9   # merge default to tensors
+6742:0cbd6195e829   # merge default to tensors
+6747:853d2bafeb8f   # Generalized the gebp apis
+6765:71584fd55762   # Made the blocking computation aware of the l3 cache; Also optimized the blocking parameters to take into account the number of threads used for a computation
+6781:9cc5a931b2c6   # generalized gemv
+6792:f6e1daab600a   # ensured that contractions that can be reduced to a matrix vector product
+6844:039efd86b75c   # merge tensor
+6845:7333ed40c6ef   # change prefetching in gebp
+6856:b5be5e10eb7f   # merge index conversion
+6893:c3a64aba7c70   # clean blocking size computation
+6898:6fb31ebe6492   # rotating kernel for ARM
+6899:877facace746   # rotating kernel for ARM only
+6904:c250623ae9fa   # result_of
+6921:915f1b1fc158   # fix prefetching change for ARM
+6923:9ff25f6dacc6   # prefetching
+6933:52572e60b5d3   # blocking size strategy

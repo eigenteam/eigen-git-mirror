@@ -1,5 +1,25 @@
 #!/bin/bash
 
+# Examples of environment variables to be set:
+#   PREFIX="haswell-fma-"
+#   CXX_FLAGS="-mfma"
+
+# Options:
+#   -up : enforce the recomputation of existing data, and keep best results as a merging strategy
+
+
+if echo "$*" | grep '\-up' > /dev/null; then
+  update=true
+else
+  update=false
+fi
+
+if [ $update == true ]; then
+ echo "(Re-)Compute all changesets and keep bests"
+else
+ echo "Skip previously computed changesets"
+fi
+
 if [ ! -d "eigen_src" ]; then
   hg clone https://bitbucket.org/eigen/eigen eigen_src
 fi
@@ -8,9 +28,32 @@ if [ ! -z '$CXX' ]; then
   CXX=g++
 fi
 
-rm sgemm.out
-rm dgemm.out
-rm cgemm.out
+function make_backup
+{
+  if [ -f "$1.out" ]; then
+    mv "$1.out" "$1.backup"
+  fi
+}
+
+function merge
+{
+  count1=`echo $1 |  wc -w`
+  count2=`echo $2 |  wc -w`
+  
+  if [ $count1 == $count2 ]; then
+    a=( $1 ); b=( $2 )
+    res=""
+    for (( i=0 ; i<$count1 ; i++ )); do
+      ai=${a[$i]}; bi=${b[$i]}
+      tmp=`echo "if ($ai > $bi) $ai else $bi " | bc -l`
+      res="$res $tmp"
+    done
+    echo $res
+
+  else
+    echo $1
+  fi
+}
 
 function test_current 
 {
@@ -18,16 +61,32 @@ function test_current
   scalar=$2
   name=$3
   
-  if $CXX -O2 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src gemm.cpp -DSCALAR=$scalar -o $name; then
-    res=`./$name`
-    echo $res
-    echo "$rev $res" >> $name.out
+  prev=`grep $rev "$name.backup" | cut -c 14-`
+  res=$prev
+  count_rev=`echo $prev |  wc -w`
+  count_ref=`cat "settings.txt" |  wc -l`
+  if [ $update == true ] || [ $count_rev != $count_ref ]; then
+    if $CXX -O2 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src gemm.cpp -DSCALAR=$scalar -o $name; then
+      curr=`./$name`
+      echo merge $prev
+      echo with  $curr
+      res=`merge "$curr" "$prev"`
+      echo $res
+      echo "$rev $res" >> $name.out
+    else
+      echo "Compilation failed, skip rev $rev"
+    fi
   else
-    echo "Compilation failed, skip rev $rev"
+    echo "Skip existing results for $rev / $name"
+    echo "$rev $res" >> $name.out
   fi
 }
 
-while read rev
+make_backup $PREFIX"sgemm"
+make_backup $PREFIX"dgemm"
+make_backup $PREFIX"cgemm"
+
+cut -f1 -d"#" < changesets.txt | while read rev
 do
   if [ ! -z '$rev' ]; then
     echo "Testing rev $rev"
@@ -36,27 +95,27 @@ do
     actual_rev=`hg identify | cut -f1 -d' '`
     cd ..
     
-    test_current $actual_rev float                  sgemm
-    test_current $actual_rev double                 dgemm
-    test_current $actual_rev "std::complex<double>" cgemm
+    test_current $actual_rev float                  $PREFIX"sgemm"
+    test_current $actual_rev double                 $PREFIX"dgemm"
+    test_current $actual_rev "std::complex<double>" $PREFIX"cgemm"
   fi
   
-done < changesets.txt
+done
 
 echo "Float:"
-cat sgemm.out
+cat $PREFIX"sgemm.out"
 echo ""
 
 echo "Double:"
-cat dgemm.out
+cat $PREFIX"dgemm.out"
 echo ""
 
 echo "Complex:"
-cat cgemm.out
+cat $PREFIX"cgemm.out"
 echo ""
 
-./make_plot.sh sgemm
-./make_plot.sh dgemm
-./make_plot.sh cgemm
+./make_plot.sh $PREFIX"sgemm"
+./make_plot.sh $PREFIX"dgemm"
+./make_plot.sh $PREFIX"cgemm"
 
 

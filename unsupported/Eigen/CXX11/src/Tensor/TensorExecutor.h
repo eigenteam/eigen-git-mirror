@@ -97,7 +97,7 @@ struct EvalRange<Evaluator, Index, true> {
 
     Index i = first;
     static const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
-    if (last - first > PacketSize) {
+    if (last - first >= PacketSize) {
       eigen_assert(first % PacketSize == 0);
       Index lastPacket = last - (last % PacketSize);
       for (; i < lastPacket; i += PacketSize) {
@@ -131,7 +131,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       const Index blocksize = std::max<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
       const Index numblocks = size / blocksize;
 
-      Index i = 0;
       std::vector<Future> results;
       results.reserve(numblocks);
       for (int i = 0; i < numblocks; ++i) {

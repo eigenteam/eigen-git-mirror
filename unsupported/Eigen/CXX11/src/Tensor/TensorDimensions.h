@@ -230,7 +230,7 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
 
   EIGEN_DEVICE_FUNC DSizes() {
-    for (int i = 0 ; i < NumDims; ++i) {
+    for (std::size_t i = 0 ; i < NumDims; ++i) {
       (*this)[i] = 0;
     }
   }
