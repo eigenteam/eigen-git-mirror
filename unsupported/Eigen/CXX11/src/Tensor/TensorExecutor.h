@@ -97,7 +97,7 @@ struct EvalRange<Evaluator, Index, true> {
 
     Index i = first;
     static const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
-    if (last - first > PacketSize) {
+    if (last - first >= PacketSize) {
       eigen_assert(first % PacketSize == 0);
       Index lastPacket = last - (last % PacketSize);
       for (; i < lastPacket; i += PacketSize) {
