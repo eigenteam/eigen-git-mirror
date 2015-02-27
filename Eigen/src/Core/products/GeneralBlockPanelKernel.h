@@ -164,7 +164,7 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
     // Perhaps it would make more sense to consider k*n*m??
     // Note that for very tiny problem, this function should be bypassed anyway
     // because we use the coefficient-based implementation for them.
-    if(std::max(k,std::max(m,n))<48)
+    if((std::max)(k,(std::max)(m,n))<48)
       return;
     
     typedef typename Traits::ResScalar ResScalar;
