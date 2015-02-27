@@ -290,11 +290,8 @@ template<typename Packet> EIGEN_DEVICE_FUNC inline Packet preverse(const Packet&
 template<size_t offset, typename Packet>
 struct protate_impl
 {
-  static Packet run(const Packet& a)
-  {
-    eigen_assert(false && "unimplemented");
-    return a;
-  }
+  // Empty so attempts to use this unimplemented path will fail to compile.
+  // Only specializations of this template should be used.
 };
 
 /** \internal \returns a packet with the coefficients rotated to the right in little-endian convention,

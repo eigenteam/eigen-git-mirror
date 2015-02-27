@@ -800,6 +800,80 @@ protected:
   conj_helper<ResPacket,ResPacket,false,ConjRhs> cj;
 };
 
+// helper for the rotating kernel below
+template <typename GebpKernel, bool UseRotatingKernel = GebpKernel::UseRotatingKernel>
+struct PossiblyRotatingKernelHelper
+{
+  // default implementation, not rotating
+
+  typedef typename GebpKernel::Traits Traits;
+  typedef typename Traits::RhsScalar RhsScalar;
+  typedef typename Traits::RhsPacket RhsPacket;
+  typedef typename Traits::AccPacket AccPacket;
+
+  const Traits& traits;
+  PossiblyRotatingKernelHelper(const Traits& t) : traits(t) {}
+
+
+  template <size_t K, size_t Index>
+  void loadOrRotateRhs(RhsPacket& to, const RhsScalar* from) const
+  {
+    traits.loadRhs(from + (Index+4*K)*Traits::RhsProgress, to);
+  }
+
+  void unrotateResult(AccPacket&,
+                      AccPacket&,
+                      AccPacket&,
+                      AccPacket&)
+  {
+  }
+};
+
+// rotating implementation
+template <typename GebpKernel>
+struct PossiblyRotatingKernelHelper<GebpKernel, true>
+{
+  typedef typename GebpKernel::Traits Traits;
+  typedef typename Traits::RhsScalar RhsScalar;
+  typedef typename Traits::RhsPacket RhsPacket;
+  typedef typename Traits::AccPacket AccPacket;
+
+  const Traits& traits;
+  PossiblyRotatingKernelHelper(const Traits& t) : traits(t) {}
+
+  template <size_t K, size_t Index>
+  void loadOrRotateRhs(RhsPacket& to, const RhsScalar* from) const
+  {
+    if (Index == 0) {
+      to = pload<RhsPacket>(from + 4*K*Traits::RhsProgress);
+    } else {
+      EIGEN_ASM_COMMENT("Do not reorder code, we're very tight on registers");
+      to = protate<1>(to);
+    }
+  }
+
+  void unrotateResult(AccPacket& res0,
+                      AccPacket& res1,
+                      AccPacket& res2,
+                      AccPacket& res3)
+  {
+    PacketBlock<AccPacket> resblock;
+    resblock.packet[0] = res0;
+    resblock.packet[1] = res1;
+    resblock.packet[2] = res2;
+    resblock.packet[3] = res3;
+    ptranspose(resblock);
+    resblock.packet[3] = protate<1>(resblock.packet[3]);
+    resblock.packet[2] = protate<2>(resblock.packet[2]);
+    resblock.packet[1] = protate<3>(resblock.packet[1]);
+    ptranspose(resblock);
+    res0 = resblock.packet[0];
+    res1 = resblock.packet[1];
+    res2 = resblock.packet[2];
+    res3 = resblock.packet[3];
+  }
+};
+
 /* optimized GEneral packed Block * packed Panel product kernel
  *
  * Mixing type logic: C += A * B
@@ -832,6 +906,16 @@ struct gebp_kernel
     RhsProgress   = Traits::RhsProgress,
     ResPacketSize = Traits::ResPacketSize
   };
+
+
+  static const bool UseRotatingKernel =
+    EIGEN_ARCH_ARM &&
+    internal::is_same<LhsScalar, float>::value &&
+    internal::is_same<RhsScalar, float>::value &&
+    internal::is_same<ResScalar, float>::value &&
+    Traits::LhsPacketSize == 4 &&
+    Traits::RhsPacketSize == 4 &&
+    Traits::ResPacketSize == 4;
 
   EIGEN_DONT_INLINE
   void operator()(const DataMapper& res, const LhsScalar* blockA, const RhsScalar* blockB,
@@ -866,6 +950,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     // Usually, make sense only with FMA
     if(mr>=3*Traits::LhsProgress)
     {
+      PossiblyRotatingKernelHelper<gebp_kernel> possiblyRotatingKernelHelper(traits);
+
       // loops on each largest micro horizontal panel of lhs (3*Traits::LhsProgress x depth)
       for(Index i=0; i<peeled_mc3; i+=3*Traits::LhsProgress)
       {
@@ -901,42 +987,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           prefetch(&blB[0]);
           LhsPacket A0, A1;
 
-#define EIGEN_ARCH_PREFERS_ROTATING_KERNEL EIGEN_ARCH_ARM
-
-#if EIGEN_ARCH_PREFERS_ROTATING_KERNEL
-          static const bool UseRotatingKernel =
-            Traits::LhsPacketSize == 4 &&
-            Traits::RhsPacketSize == 4 &&
-            Traits::ResPacketSize == 4;
-#endif
-
           for(Index k=0; k<peeled_kc; k+=pk)
           {
             EIGEN_ASM_COMMENT("begin gebp micro kernel 3pX4");
             RhsPacket B_0, T0;
             LhsPacket A2;
-
-#define EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING(K,N) \
-            traits.loadRhs(&blB[(N+4*K)*RhsProgress], B_0);
-
-#if EIGEN_ARCH_PREFERS_ROTATING_KERNEL
-#define EIGEN_GEBP_ONESTEP_LOADRHS(K,N) \
-            do { \
-              if (UseRotatingKernel) { \
-                if (N == 0) { \
-                  B_0 = pload<RhsPacket>(&blB[(0+4*K)*RhsProgress]); \
-                } else { \
-                  EIGEN_ASM_COMMENT("Do not reorder code, we're very tight on registers"); \
-                  B_0 = protate<1>(B_0); \
-                } \
-              } else { \
-                EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING(K,N); \
-              } \
-            } while (false)
-#else
-#define EIGEN_GEBP_ONESTEP_LOADRHS(K,N) \
-            EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING(K,N)
-#endif
 
 #define EIGEN_GEBP_ONESTEP(K) \
             do { \
@@ -947,19 +1002,19 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
               traits.loadLhs(&blA[(0+3*K)*LhsProgress], A0);  \
               traits.loadLhs(&blA[(1+3*K)*LhsProgress], A1);  \
               traits.loadLhs(&blA[(2+3*K)*LhsProgress], A2);  \
-              EIGEN_GEBP_ONESTEP_LOADRHS(K, 0); \
+              possiblyRotatingKernelHelper.template loadOrRotateRhs<K, 0>(B_0, blB); \
               traits.madd(A0, B_0, C0, T0); \
               traits.madd(A1, B_0, C4, T0); \
               traits.madd(A2, B_0, C8, B_0); \
-              EIGEN_GEBP_ONESTEP_LOADRHS(K, 1); \
+              possiblyRotatingKernelHelper.template loadOrRotateRhs<K, 1>(B_0, blB); \
               traits.madd(A0, B_0, C1, T0); \
               traits.madd(A1, B_0, C5, T0); \
               traits.madd(A2, B_0, C9, B_0); \
-              EIGEN_GEBP_ONESTEP_LOADRHS(K, 2); \
+              possiblyRotatingKernelHelper.template loadOrRotateRhs<K, 2>(B_0, blB); \
               traits.madd(A0, B_0, C2,  T0); \
               traits.madd(A1, B_0, C6,  T0); \
               traits.madd(A2, B_0, C10, B_0); \
-              EIGEN_GEBP_ONESTEP_LOADRHS(K, 3); \
+              possiblyRotatingKernelHelper.template loadOrRotateRhs<K, 3>(B_0, blB); \
               traits.madd(A0, B_0, C3 , T0); \
               traits.madd(A1, B_0, C7,  T0); \
               traits.madd(A2, B_0, C11, B_0); \
@@ -992,34 +1047,10 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           }
 
 #undef EIGEN_GEBP_ONESTEP
-#undef EIGEN_GEBP_ONESTEP_LOADRHS
-#undef EIGEN_GEBP_ONESTEP_LOADRHS_NONROTATING
 
-#if EIGEN_ARCH_PREFERS_ROTATING_KERNEL
-          if (UseRotatingKernel) {
-            #define EIGEN_GEBP_UNROTATE_RESULT(res0, res1, res2, res3) \
-              do { \
-                PacketBlock<ResPacket> resblock; \
-                resblock.packet[0] = res0; \
-                resblock.packet[1] = res1; \
-                resblock.packet[2] = res2; \
-                resblock.packet[3] = res3; \
-                ptranspose(resblock); \
-                resblock.packet[3] = protate<1>(resblock.packet[3]); \
-                resblock.packet[2] = protate<2>(resblock.packet[2]); \
-                resblock.packet[1] = protate<3>(resblock.packet[1]); \
-                ptranspose(resblock); \
-                res0 = resblock.packet[0]; \
-                res1 = resblock.packet[1]; \
-                res2 = resblock.packet[2]; \
-                res3 = resblock.packet[3]; \
-              } while (false)
-            
-            EIGEN_GEBP_UNROTATE_RESULT(C0, C1, C2, C3);
-            EIGEN_GEBP_UNROTATE_RESULT(C4, C5, C6, C7);
-            EIGEN_GEBP_UNROTATE_RESULT(C8, C9, C10, C11);
-          }
-#endif
+          possiblyRotatingKernelHelper.unrotateResult(C0, C1, C2, C3);
+          possiblyRotatingKernelHelper.unrotateResult(C4, C5, C6, C7);
+          possiblyRotatingKernelHelper.unrotateResult(C8, C9, C10, C11);
 
           ResPacket R0, R1, R2;
           ResPacket alphav = pset1<ResPacket>(alpha);
