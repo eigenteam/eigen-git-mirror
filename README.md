@@ -1,1 +1,1 @@
-This repository contains additions, enhancements, and bug fixes for the Eigen C++ template library. These fixes are regularly merged into the Eigen trunk.
+This repository contains additions, enhancements, and bug fixes for the Eigen C++ template library. These changes are regularly merged into the Eigen trunk.
