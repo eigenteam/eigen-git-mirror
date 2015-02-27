@@ -98,6 +98,28 @@ template<typename T> struct packet_traits : default_packet_traits
 
 template<typename T> struct packet_traits<const T> : packet_traits<T> { };
 
+template <typename Src, typename Tgt> struct type_casting_traits {
+  enum {
+    VectorizedCast = 0,
+    SrcCoeffRatio = 1,
+    TgtCoeffRatio = 1
+  };
+};
+
+
+/** \internal \returns static_cast<TgtType>(a) (coeff-wise) */
+template <typename SrcPacket, typename TgtPacket>
+EIGEN_DEVICE_FUNC inline TgtPacket
+pcast(const SrcPacket& a) {
+  return static_cast<TgtPacket>(a);
+}
+template <typename SrcPacket, typename TgtPacket>
+EIGEN_DEVICE_FUNC inline TgtPacket
+pcast(const SrcPacket& a, const SrcPacket& /*b*/) {
+  return static_cast<TgtPacket>(a);
+}
+
+
 /** \internal \returns a + b (coeff-wise) */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 padd(const Packet& a,

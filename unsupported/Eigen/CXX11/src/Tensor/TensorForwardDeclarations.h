@@ -25,6 +25,7 @@ template<typename IfXprType, typename ThenXprType, typename ElseXprType> class T
 template<typename Op, typename Dims, typename XprType> class TensorReductionOp;
 template<typename Axis, typename LeftXprType, typename RightXprType> class TensorConcatenationOp;
 template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
+template<typename TargetType, typename XprType> class TensorConversionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename PatchDim, typename XprType> class TensorPatchOp;
 template<DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorImagePatchOp;

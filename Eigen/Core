@@ -297,10 +297,12 @@ using std::ptrdiff_t;
   #include "src/Core/arch/AVX/PacketMath.h"
   #include "src/Core/arch/AVX/MathFunctions.h"
   #include "src/Core/arch/AVX/Complex.h"
+  #include "src/Core/arch/AVX/TypeCasting.h"
 #elif defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/SSE/Complex.h"
+  #include "src/Core/arch/SSE/TypeCasting.h"
 #elif defined(EIGEN_VECTORIZE_ALTIVEC) || defined(EIGEN_VECTORIZE_VSX)
   #include "src/Core/arch/AltiVec/PacketMath.h"
   #include "src/Core/arch/AltiVec/Complex.h"

@@ -164,9 +164,9 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     template <typename NewType> EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_cast_op<Scalar, NewType>, const Derived>
+    EIGEN_STRONG_INLINE const TensorConversionOp<NewType, const Derived>
     cast() const {
-      return unaryExpr(internal::scalar_cast_op<Scalar, NewType>());
+      return TensorConversionOp<NewType, const Derived>(derived());
     }
 
     // Generic binary operation support.
