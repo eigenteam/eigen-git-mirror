@@ -155,7 +155,7 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
     // In unit tests we do not want to use extra large matrices,
     // so we reduce the cache size to check the blocking strategy is not flawed
 #ifdef EIGEN_DEBUG_SMALL_PRODUCT_BLOCKS
-    l1 = 4*1024;
+    l1 = 9*1024;
     l2 = 32*1024;
     l3 = 512*1024;
 #endif
