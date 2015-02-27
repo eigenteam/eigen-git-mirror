@@ -100,7 +100,7 @@ template<> struct packet_traits<int>    : default_packet_traits
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=4,
-    HasHalfPacket=0, // Packet2i intrinsics not implemented yet
+    HasHalfPacket=0 // Packet2i intrinsics not implemented yet
     // FIXME check the Has*
   };
 };
