@@ -56,6 +56,25 @@ static void test_vectorized_cast()
 }
 
 
+static void test_float_to_int_cast()
+{
+  Tensor<float, 2> ftensor(20,30);
+  ftensor = ftensor.random() * 1000.0f;
+  Tensor<double, 2> dtensor(20,30);
+  dtensor = dtensor.random() * 1000.0;
+
+  Tensor<int, 2> i1tensor = ftensor.cast<int>();
+  Tensor<int, 2> i2tensor = dtensor.cast<int>();
+
+  for (int i = 0; i < 20; ++i) {
+    for (int j = 0; j < 30; ++j) {
+      VERIFY_IS_EQUAL(i1tensor(i,j), static_cast<int>(ftensor(i,j)));
+      VERIFY_IS_EQUAL(i2tensor(i,j), static_cast<int>(dtensor(i,j)));
+    }
+  }
+}
+
+
 static void test_big_to_small_type_cast()
 {
   Tensor<double, 2> dtensor(20, 30);
@@ -90,6 +109,7 @@ void test_cxx11_tensor_casts()
 {
    CALL_SUBTEST(test_simple_cast());
    CALL_SUBTEST(test_vectorized_cast());
+   CALL_SUBTEST(test_float_to_int_cast());
    CALL_SUBTEST(test_big_to_small_type_cast());
    CALL_SUBTEST(test_small_to_big_type_cast());
 }

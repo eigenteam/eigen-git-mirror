@@ -24,7 +24,7 @@ struct type_casting_traits<float, int> {
 };
 
 template<> EIGEN_STRONG_INLINE Packet4i pcast<Packet4f, Packet4i>(const Packet4f& a) {
-  return _mm_cvtps_epi32(a);
+  return _mm_cvttps_epi32(a);
 }
 
 
