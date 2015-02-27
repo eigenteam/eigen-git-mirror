@@ -43,13 +43,24 @@ class compute_tensor_flags
     enum { ret = packet_access_bit | aligned_bit};
 };
 
+template<bool force32bit>
+struct compute_index_type {
+  typedef DenseIndex type;
+};
+
+template<>
+struct compute_index_type<true> {
+  typedef int type;
+};
+
+
 
 template<typename Scalar_, std::size_t NumIndices_, int Options_>
 struct traits<Tensor<Scalar_, NumIndices_, Options_> >
 {
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
-  typedef DenseIndex Index;
+  typedef typename compute_index_type<Options_&Index32Bit>::type Index;
   static const int NumDimensions = NumIndices_;
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
@@ -64,7 +75,7 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_> >
 {
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
-  typedef DenseIndex Index;
+  typedef typename compute_index_type<Options_&Index32Bit>::type Index;
   static const int NumDimensions = array_size<Dimensions>::value;
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
