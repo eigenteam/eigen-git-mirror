@@ -76,12 +76,12 @@ typedef uint32x4_t  Packet4ui;
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet4f type;
-  typedef Packet2f half;
+  typedef Packet4f half; // Packet2f intrinsics not implemented yet
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 4,
-    HasHalfPacket=1,
+    HasHalfPacket=0, // Packet2f intrinsics not implemented yet
    
     HasDiv  = 1,
     // FIXME check the Has*
@@ -95,12 +95,12 @@ template<> struct packet_traits<float>  : default_packet_traits
 template<> struct packet_traits<int>    : default_packet_traits
 {
   typedef Packet4i type;
-  typedef Packet2i half;
+  typedef Packet4i half; // Packet2i intrinsics not implemented yet
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size=4,
-    HasHalfPacket=1
+    HasHalfPacket=0 // Packet2i intrinsics not implemented yet
     // FIXME check the Has*
   };
 };
