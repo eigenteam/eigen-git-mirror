@@ -60,7 +60,7 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_> >
 {
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
-  typedef typename compute_index_type<Options_&Index32Bit>::type Index;
+  typedef typename compute_index_type<static_cast<bool>(Options_&Index32Bit)>::type Index;
   static const int NumDimensions = NumIndices_;
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
@@ -75,7 +75,7 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_> >
 {
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
-  typedef typename compute_index_type<Options_&Index32Bit>::type Index;
+  typedef typename compute_index_type<static_cast<bool>(Options_&Index32Bit)>::type Index;
   static const int NumDimensions = array_size<Dimensions>::value;
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {

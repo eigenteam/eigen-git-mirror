@@ -66,7 +66,7 @@ template<typename T, DenseIndex NumIndices_, int Options_>
 class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
   : public TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type>
 {
-  typedef typename internal::compute_index_type<Options_ & Index32Bit>::type Index;
+  typedef typename internal::compute_index_type<static_cast<bool>(Options_ & Index32Bit)>::type Index;
   typedef DSizes<Index, NumIndices_> Dimensions;
   typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type> Base_;
 
@@ -85,7 +85,7 @@ template<typename T, DenseIndex NumIndices_, int Options_>
 class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type>
 {
   public:
-  typedef typename internal::compute_index_type<Options_&Index32Bit>::type Index;
+  typedef typename internal::compute_index_type<static_cast<bool>(Options_&Index32Bit)>::type Index;
   typedef DSizes<Index, NumIndices_> Dimensions;
 
     typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type> Self_;
