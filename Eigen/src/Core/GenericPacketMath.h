@@ -378,9 +378,7 @@ Packet psqrt(const Packet& a) { using std::sqrt; return sqrt(a); }
 /** \internal \returns the reciprocal square-root of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet prsqrt(const Packet& a) {
-  using std::sqrt;
-  const Packet one(1);
-  return one/sqrt(a);
+  return pdiv(pset1<Packet>(1), psqrt(a));
 }
 
 /***************************************************************************
