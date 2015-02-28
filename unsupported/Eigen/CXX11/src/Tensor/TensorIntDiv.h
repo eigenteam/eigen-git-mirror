@@ -73,7 +73,7 @@ struct TensorIntDivisor {
    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T divide(const T numerator) const {
     const int N = 32;
     eigen_assert(numerator >= 0);
-    eigen_assert(numerator <= static_cast<T>(1ull<<N) - 1);
+    eigen_assert(static_cast<unsigned long long>(numerator) <= (1ull<<N) - 1);
 
     uint32_t t1 = (multiplier * numerator) >> 32;
     uint32_t t = (static_cast<uint32_t>(numerator) - t1) >> shift1;
