@@ -47,10 +47,10 @@ static void test_static_dimension_failure()
 
   // This can be worked around in this case.
   Tensor<int, 3, DataLayout> concatenation = left
-      .reshape(Tensor<int, 3>::Dimensions{{2, 3, 1}})
+      .reshape(Tensor<int, 3>::Dimensions(2, 3, 1))
       .concatenate(right, 0);
   Tensor<int, 2, DataLayout> alternative = left
-      .concatenate(right.reshape(Tensor<int, 2>::Dimensions{{2, 3}}), 0);
+      .concatenate(right.reshape(Tensor<int, 2>::Dimensions{{{2, 3}}}), 0);
 }
 
 template<int DataLayout>
