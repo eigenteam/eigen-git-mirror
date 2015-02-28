@@ -360,7 +360,7 @@ static void test_large_contraction()
   t_result = t_left.contract(t_right, dims);
   m_result = m_left * m_right;
 
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (int i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY(&t_result.data()[i] != &m_result.data()[i]);
     VERIFY_IS_APPROX(t_result.data()[i], m_result.data()[i]);
   }
@@ -388,7 +388,7 @@ static void test_matrix_vector()
   t_result = t_left.contract(t_right, dims);
   m_result = m_left * m_right;
 
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (int i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY(internal::isApprox(t_result(i), m_result(i, 0), 1));
   }
 }
@@ -412,7 +412,7 @@ static void test_tensor_vector()
   MapXf m_right(t_right.data(), 1, 7);
   Eigen::Matrix<float, Dynamic, Dynamic, DataLayout> m_result = m_left.transpose() * m_right.transpose();
 
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (int i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY(internal::isApprox(t_result(i), m_result(i, 0), 1));
   }
 }
@@ -443,7 +443,7 @@ static void test_small_blocking_factors()
   Map<Eigen::Matrix<float, Dynamic, Dynamic, DataLayout>> m_right(t_right.data(), 93, 140);
   Eigen::Matrix<float, Dynamic, Dynamic, DataLayout> m_result = m_left * m_right;
 
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (int i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY_IS_APPROX(t_result.data()[i], m_result.data()[i]);
   }
 }

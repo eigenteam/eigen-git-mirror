@@ -221,33 +221,33 @@ static void test_slice_raw_data()
   Eigen::DSizes<ptrdiff_t, 4> extents(1,1,1,1);
   typedef TensorEvaluator<decltype(tensor.slice(offsets, extents)), DefaultDevice> SliceEvaluator;
   auto slice1 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-  VERIFY_IS_EQUAL(slice1.dimensions().TotalSize(), 1ul);
+  VERIFY_IS_EQUAL(slice1.dimensions().TotalSize(), 1);
   VERIFY_IS_EQUAL(slice1.data()[0], tensor(1,2,3,4));
 
   if (DataLayout == ColMajor) {
     extents = Eigen::DSizes<ptrdiff_t, 4>(2,1,1,1);
     auto slice2 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-    VERIFY_IS_EQUAL(slice2.dimensions().TotalSize(), 2ul);
+    VERIFY_IS_EQUAL(slice2.dimensions().TotalSize(), 2);
     VERIFY_IS_EQUAL(slice2.data()[0], tensor(1,2,3,4));
     VERIFY_IS_EQUAL(slice2.data()[1], tensor(2,2,3,4));
   } else {
     extents = Eigen::DSizes<ptrdiff_t, 4>(1,1,1,2);
     auto slice2 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-    VERIFY_IS_EQUAL(slice2.dimensions().TotalSize(), 2ul);
+    VERIFY_IS_EQUAL(slice2.dimensions().TotalSize(), 2);
     VERIFY_IS_EQUAL(slice2.data()[0], tensor(1,2,3,4));
     VERIFY_IS_EQUAL(slice2.data()[1], tensor(1,2,3,5));
   }
 
   extents = Eigen::DSizes<ptrdiff_t, 4>(1,2,1,1);
   auto slice3 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-  VERIFY_IS_EQUAL(slice3.dimensions().TotalSize(), 2ul);
+  VERIFY_IS_EQUAL(slice3.dimensions().TotalSize(), 2);
   VERIFY_IS_EQUAL(slice3.data(), static_cast<float*>(0));
 
   if (DataLayout == ColMajor) {
     offsets = Eigen::DSizes<ptrdiff_t, 4>(0,2,3,4);
     extents = Eigen::DSizes<ptrdiff_t, 4>(3,2,1,1);
     auto slice4 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-    VERIFY_IS_EQUAL(slice4.dimensions().TotalSize(), 6ul);
+    VERIFY_IS_EQUAL(slice4.dimensions().TotalSize(), 6);
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 2; ++j) {
         VERIFY_IS_EQUAL(slice4.data()[i+3*j], tensor(i,2+j,3,4));
@@ -257,7 +257,7 @@ static void test_slice_raw_data()
     offsets = Eigen::DSizes<ptrdiff_t, 4>(1,2,3,0);
     extents = Eigen::DSizes<ptrdiff_t, 4>(1,1,2,11);
     auto slice4 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-    VERIFY_IS_EQUAL(slice4.dimensions().TotalSize(), 22ul);
+    VERIFY_IS_EQUAL(slice4.dimensions().TotalSize(), 22);
     for (int l = 0; l < 11; ++l) {
       for (int k = 0; k < 2; ++k) {
         VERIFY_IS_EQUAL(slice4.data()[l+11*k], tensor(1,2,3+k,l));
@@ -269,7 +269,7 @@ static void test_slice_raw_data()
     offsets = Eigen::DSizes<ptrdiff_t, 4>(0,0,0,4);
     extents = Eigen::DSizes<ptrdiff_t, 4>(3,5,7,2);
     auto slice5 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-    VERIFY_IS_EQUAL(slice5.dimensions().TotalSize(), 210ul);
+    VERIFY_IS_EQUAL(slice5.dimensions().TotalSize(), 210);
     for (int i = 0; i < 3; ++i) {
       for (int j = 0; j < 5; ++j) {
         for (int k = 0; k < 7; ++k) {
@@ -284,7 +284,7 @@ static void test_slice_raw_data()
     offsets = Eigen::DSizes<ptrdiff_t, 4>(1,0,0,0);
     extents = Eigen::DSizes<ptrdiff_t, 4>(2,5,7,11);
     auto slice5 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-    VERIFY_IS_EQUAL(slice5.dimensions().TotalSize(), 770ul);
+    VERIFY_IS_EQUAL(slice5.dimensions().TotalSize(), 770);
     for (int l = 0; l < 11; ++l) {
       for (int k = 0; k < 7; ++k) {
         for (int j = 0; j < 5; ++j) {
@@ -301,7 +301,7 @@ static void test_slice_raw_data()
   offsets = Eigen::DSizes<ptrdiff_t, 4>(0,0,0,0);
   extents = Eigen::DSizes<ptrdiff_t, 4>(3,5,7,11);
   auto slice6 = SliceEvaluator(tensor.slice(offsets, extents), DefaultDevice());
-  VERIFY_IS_EQUAL(slice6.dimensions().TotalSize(), 3ul*5*7*11);
+  VERIFY_IS_EQUAL(slice6.dimensions().TotalSize(), 3*5*7*11);
   VERIFY_IS_EQUAL(slice6.data(), tensor.data());
 }
 
@@ -315,7 +315,7 @@ static void test_composition()
   Eigen::Tensor<float, 3, DataLayout> tensor =
       matrix.slice(DSizes<ptrdiff_t, 2>(2, 0), DSizes<ptrdiff_t, 2>(1, 11)).reshape(newDims);
 
-  VERIFY_IS_EQUAL(tensor.dimensions().TotalSize(), 11ul);
+  VERIFY_IS_EQUAL(tensor.dimensions().TotalSize(), 11);
   VERIFY_IS_EQUAL(tensor.dimension(0), 1);
   VERIFY_IS_EQUAL(tensor.dimension(1), 1);
   VERIFY_IS_EQUAL(tensor.dimension(2), 11);

@@ -21,7 +21,7 @@ static void test_dynamic_size()
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<0>(dimensions), 2);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<1>(dimensions), 3);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<2>(dimensions), 7);
-  VERIFY_IS_EQUAL(dimensions.TotalSize(), (size_t)2*3*7);
+  VERIFY_IS_EQUAL(dimensions.TotalSize(), 2*3*7);
   VERIFY_IS_EQUAL((int)dimensions[0], 2);
   VERIFY_IS_EQUAL((int)dimensions[1], 3);
   VERIFY_IS_EQUAL((int)dimensions[2], 7);
@@ -34,7 +34,7 @@ static void test_fixed_size()
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<0>(dimensions), 2);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<1>(dimensions), 3);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<2>(dimensions), 7);
-  VERIFY_IS_EQUAL(dimensions.TotalSize(), (size_t)2*3*7);
+  VERIFY_IS_EQUAL(dimensions.TotalSize(), 2*3*7);
 }
 
 

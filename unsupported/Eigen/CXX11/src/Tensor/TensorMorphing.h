@@ -364,7 +364,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
         }
       }
       // Use memcpy if it's going to be faster than using the regular evaluation.
-      if (contiguous_values > 2 * m_device.numThreads()) {
+      if (contiguous_values > static_cast<Index>(2 * m_device.numThreads())) {
         Scalar* src = m_impl.data();
         for (int i = 0; i < internal::array_prod(dimensions()); i += contiguous_values) {
           Index offset = srcCoeff(i);

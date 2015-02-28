@@ -67,7 +67,7 @@ static void test_contractions()
   Eigen::array<DimPair, 2> dims({{DimPair(2, 0), DimPair(3, 1)}});
   t_result = t_left.contract(t_right, dims);
   m_result = m_left * m_right;
-  for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
+  for (int i = 0; i < t_result.dimensions().TotalSize(); i++) {
     VERIFY_IS_APPROX(t_result.data()[i], m_result.data()[i]);
   }
 }

@@ -32,7 +32,7 @@ enum {
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size, bool inner_dim_contiguous>
+         int packet_size, bool inner_dim_contiguous>
 class BaseTensorContractionMapper {
   public:
   EIGEN_DEVICE_FUNC
@@ -162,14 +162,14 @@ class BaseTensorContractionMapper {
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size,
+         int packet_size,
          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment>
 class TensorContractionInputMapper;
 
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size,
+         int packet_size,
          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment>
 class TensorContractionSubMapper {
  public:
@@ -231,7 +231,7 @@ class TensorContractionSubMapper {
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size = (Tensor::PacketAccess ? packet_traits<Scalar>::size : 1),
+         int packet_size = (Tensor::PacketAccess ? packet_traits<Scalar>::size : 1),
          bool inner_dim_contiguous = false, bool inner_dim_reordered = (side != Lhs), int Alignment=Unaligned>
 class TensorContractionInputMapper
     : public BaseTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, contract_t, packet_size, inner_dim_contiguous> {
@@ -591,7 +591,7 @@ struct TensorContractionEvaluatorBase
     // dimensions and right non-contracting dimensions.
     m_lhs_inner_dim_contiguous = true;
     int dim_idx = 0;
-    int nocontract_idx = 0;
+    unsigned int nocontract_idx = 0;
 
     for (int i = 0; i < LDims; i++) {
       // find if we are contracting on index i of left tensor
@@ -651,7 +651,7 @@ struct TensorContractionEvaluatorBase
     // each tensor, we'll only look at the first tensor here.
     m_rhs_inner_dim_contiguous = true;
     m_rhs_inner_dim_reordered = false;
-    for (int i = 0; i < ContractDims; i++) {
+    for (unsigned int i = 0; i < ContractDims; i++) {
       Index left = eval_op_indices[i].first;
       Index right = eval_op_indices[i].second;
 
@@ -751,8 +751,8 @@ struct TensorContractionEvaluatorBase
     typedef typename internal::remove_const<typename EvalRightArgType::Scalar>::type RhsScalar;
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
-    const int lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const int rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const Index lhs_packet_size = internal::packet_traits<LhsScalar>::size;
+    const Index rhs_packet_size = internal::packet_traits<RhsScalar>::size;
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
                                                    LeftEvaluator, left_nocontract_t,
                                                    contract_t, lhs_packet_size,
@@ -916,8 +916,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
 
-    const int lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const int rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const Index lhs_packet_size = internal::packet_traits<LhsScalar>::size;
+    const Index rhs_packet_size = internal::packet_traits<RhsScalar>::size;
 
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
                                                    LeftEvaluator, left_nocontract_t,

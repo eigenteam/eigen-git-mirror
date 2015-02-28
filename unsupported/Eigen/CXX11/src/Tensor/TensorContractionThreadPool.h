@@ -312,15 +312,15 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
 
     // Make sure all the kernels are done.
-    for (int i = 0; i < kernel_futures.size(); ++i) {
+    for (size_t i = 0; i < kernel_futures.size(); ++i) {
       wait_until_ready(&kernel_futures[i]);
     }
 
     // deallocate all of the memory for both A and B's
-    for (int i = 0; i < blockAs.size(); i++) {
+    for (size_t i = 0; i < blockAs.size(); i++) {
       this->m_device.deallocate(blockAs[i]);
     }
-    for (int i = 0; i < blockBs.size(); i++) {
+    for (size_t i = 0; i < blockBs.size(); i++) {
       this->m_device.deallocate(blockBs[i]);
     }
 
