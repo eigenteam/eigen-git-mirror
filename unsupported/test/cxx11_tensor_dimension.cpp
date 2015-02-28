@@ -34,7 +34,7 @@ static void test_fixed_size()
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<0>(dimensions), 2);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<1>(dimensions), 3);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<2>(dimensions), 7);
-  VERIFY_IS_EQUAL(dimensions.TotalSize(), 2*3*7);
+  VERIFY_IS_EQUAL(dimensions.TotalSize(), 2ul*3*7);
 }
 
 

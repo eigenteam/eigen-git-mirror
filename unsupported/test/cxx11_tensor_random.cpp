@@ -44,7 +44,7 @@ struct MyGenerator {
   // location of the entry to set in the tensor, it can typically
   // be ignored.
   int operator()(Eigen::DenseIndex element_location, Eigen::DenseIndex /*unused*/ = 0) const {
-    return 3 * element_location;
+    return static_cast<int>(3 * element_location);
   }
 
   // Same as above but generates several numbers at a time.
@@ -53,7 +53,7 @@ struct MyGenerator {
     const int packetSize = internal::packet_traits<int>::size;
     EIGEN_ALIGN_DEFAULT int values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
-      values[i] = 3 * (packet_location + i);
+      values[i] = static_cast<int>(3 * (packet_location + i));
     }
     return internal::pload<typename internal::packet_traits<int>::type>(values);
   }
