@@ -24,7 +24,7 @@ static void test_evals()
 
   Tensor<float, 2> result(2,3);
   result.setZero();
-  Eigen::array<Tensor<float, 2>::Index, 1> dims3({0});
+  Eigen::array<Tensor<float, 2>::Index, 1> dims3{{0}};
 
   typedef TensorEvaluator<decltype(input.convolve(kernel, dims3)), DefaultDevice> Evaluator;
   Evaluator eval(input.convolve(kernel, dims3), DefaultDevice());
@@ -50,7 +50,7 @@ static void test_expr()
   kernel.setRandom();
 
   Tensor<float, 2> result(2,2);
-  Eigen::array<ptrdiff_t, 2> dims({0, 1});
+  Eigen::array<ptrdiff_t, 2> dims{{0, 1}};
   result = input.convolve(kernel, dims);
 
   VERIFY_IS_APPROX(result(0,0), input(0,0)*kernel(0,0) + input(0,1)*kernel(0,1) +
