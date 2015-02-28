@@ -225,7 +225,7 @@ struct DSizes : array<DenseIndex, NumDims> {
     return NumDims;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t TotalSize() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex TotalSize() const {
     return internal::array_prod(*static_cast<const Base*>(this));
   }
 

@@ -64,31 +64,31 @@ class TensorStorage
 // pure-dynamic, but without specification of all dimensions explicitly
 template<typename T, DenseIndex NumIndices_, int Options_>
 class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
-  : public TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type>
+  : public TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<typename internal::compute_index_type<static_cast<bool>(Options_ & Index32Bit)>::type, NumIndices_, Dynamic>::type>
 {
   typedef typename internal::compute_index_type<static_cast<bool>(Options_ & Index32Bit)>::type Index;
   typedef DSizes<Index, NumIndices_> Dimensions;
-  typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type> Base_;
+  typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<Index, NumIndices_, Dynamic>::type> Base_;
 
   public:
     EIGEN_DEVICE_FUNC TensorStorage() { }
     EIGEN_DEVICE_FUNC TensorStorage(const TensorStorage<T, NumIndices_, Dynamic, Options_, void>& other) : Base_(other) { }
 
     EIGEN_DEVICE_FUNC TensorStorage(internal::constructor_without_unaligned_array_assert) : Base_(internal::constructor_without_unaligned_array_assert()) {}
-    EIGEN_DEVICE_FUNC TensorStorage(DenseIndex size, const array<Index, NumIndices_>& dimensions) : Base_(size, dimensions) {}
+    EIGEN_DEVICE_FUNC TensorStorage(Index size, const array<Index, NumIndices_>& dimensions) : Base_(size, dimensions) {}
 
   //      TensorStorage<T, NumIndices_, Dynamic, Options_, void>& operator=(const TensorStorage<T, NumIndices_, Dynamic, Options_, void>&) = default;
 };
 
 // pure dynamic
 template<typename T, DenseIndex NumIndices_, int Options_>
-class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type>
+class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<typename internal::compute_index_type<static_cast<bool>(Options_ & Index32Bit)>::type, NumIndices_, Dynamic>::type>
 {
   public:
   typedef typename internal::compute_index_type<static_cast<bool>(Options_&Index32Bit)>::type Index;
   typedef DSizes<Index, NumIndices_> Dimensions;
 
-    typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<DenseIndex, NumIndices_, Dynamic>::type> Self_;
+    typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<Index, NumIndices_, Dynamic>::type> Self_;
 
     EIGEN_DEVICE_FUNC TensorStorage() : m_data(0), m_dimensions() {}
     EIGEN_DEVICE_FUNC TensorStorage(internal::constructor_without_unaligned_array_assert)
