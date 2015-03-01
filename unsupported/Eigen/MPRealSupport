@@ -141,20 +141,32 @@ int main()
     public:
       typedef mpfr::mpreal ResScalar;
       enum {
+        Vectorizable = false,
+        LhsPacketSize = 1,
+        RhsPacketSize = 1,
+        ResPacketSize = 1,
+        NumberOfRegisters = 1,
         nr = 1,
         mr = 1,
         LhsProgress = 1,
         RhsProgress = 1
       };
+      typedef ResScalar LhsPacket;
+      typedef ResScalar RhsPacket;
+      typedef ResScalar ResPacket;
+      
     };
 
-    template<typename Index, bool ConjugateLhs, bool ConjugateRhs>
-    struct gebp_kernel<mpfr::mpreal,mpfr::mpreal,Index,1,1,ConjugateLhs,ConjugateRhs>
+
+
+    template<typename Index, typename DataMapper, bool ConjugateLhs, bool ConjugateRhs>
+    struct gebp_kernel<mpfr::mpreal,mpfr::mpreal,Index,DataMapper,1,1,ConjugateLhs,ConjugateRhs>
     {
       typedef mpfr::mpreal mpreal;
 
       EIGEN_DONT_INLINE
-      void operator()(mpreal* res, Index resStride, const mpreal* blockA, const mpreal* blockB, Index rows, Index depth, Index cols, mpreal alpha,
+      void operator()(const DataMapper& res, const mpreal* blockA, const mpreal* blockB, 
+                      Index rows, Index depth, Index cols, const mpreal& alpha,
                       Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0)
       {
         if(rows==0 || cols==0 || depth==0)
@@ -170,8 +182,6 @@ int main()
         {
           for(Index j=0; j<cols; ++j)
           {
-            mpreal *C1 = res + j*resStride;
-            
             const mpreal *A = blockA + i*strideA + offsetA;
             const mpreal *B = blockB + j*strideB + offsetB;
             
@@ -183,7 +193,7 @@ int main()
             }
             
             mpfr_mul(acc1.mpfr_ptr(), acc1.mpfr_srcptr(), alpha.mpfr_srcptr(), mpreal::get_default_rnd());
-            mpfr_add(C1[i].mpfr_ptr(), C1[i].mpfr_srcptr(), acc1.mpfr_srcptr(),  mpreal::get_default_rnd());
+            mpfr_add(res(i,j).mpfr_ptr(), res(i,j).mpfr_srcptr(), acc1.mpfr_srcptr(),  mpreal::get_default_rnd());
           }
         }
       }
