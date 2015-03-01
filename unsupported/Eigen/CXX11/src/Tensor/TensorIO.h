@@ -30,14 +30,14 @@ std::ostream& operator << (std::ostream& os, const TensorBase<T, ReadOnlyAccesso
   typedef typename internal::remove_const<typename T::Scalar>::type Scalar;
   typedef typename T::Index Index;
   typedef typename TensorEvaluator<const TensorForcedEvalOp<const T>, DefaultDevice>::Dimensions Dimensions;
-  const Index total_size = internal::array_prod(tensor.dimensions());
+  const Index total_size = tensor.dimensions().TotalSize();
 
   // Print the tensor as a 1d vector or a 2d matrix.
   if (internal::array_size<Dimensions>::value == 1) {
     Map<const Array<Scalar, Dynamic, 1> > array(const_cast<Scalar*>(tensor.data()), total_size);
     os << array;
   } else {
-    const Index first_dim = tensor.dimensions()[0];
+    const Index first_dim = Eigen::internal::array_get<0>(tensor.dimensions());
     static const int layout = TensorEvaluator<const TensorForcedEvalOp<const T>, DefaultDevice>::Layout;
     Map<const Array<Scalar, Dynamic, Dynamic, layout> > matrix(const_cast<Scalar*>(tensor.data()), first_dim, total_size/first_dim);
     os << matrix;
