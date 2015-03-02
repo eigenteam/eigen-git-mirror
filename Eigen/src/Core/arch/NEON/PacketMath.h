@@ -541,12 +541,12 @@ typedef float64x1_t Packet1d;
 template<> struct packet_traits<double>  : default_packet_traits
 {
   typedef Packet2d type;
-  typedef Packet1d half;
+  typedef Packet2d half;
   enum {
     Vectorizable = 1,
     AlignedOnScalar = 1,
     size = 2,
-    HasHalfPacket=1,
+    HasHalfPacket=0,
    
     HasDiv  = 1,
     // FIXME check the Has*
