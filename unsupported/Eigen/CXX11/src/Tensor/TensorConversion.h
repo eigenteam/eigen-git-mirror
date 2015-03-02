@@ -94,7 +94,8 @@ struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 1, 2> {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TgtPacket packet(Index index) const {
     const int SrcPacketSize = internal::unpacket_traits<SrcPacket>::size;
     if (index + SrcPacketSize < m_maxIndex) {
-      return internal::pcast<SrcPacket, TgtPacket>(m_impl.template packet<LoadMode>(index));
+      // Force unaligned memory loads since we can't ensure alignment anymore
+      return internal::pcast<SrcPacket, TgtPacket>(m_impl.template packet<Unaligned>(index));
     } else {
       const int TgtPacketSize = internal::unpacket_traits<TgtPacket>::size;
       EIGEN_ALIGN_DEFAULT typename internal::unpacket_traits<TgtPacket>::type values[TgtPacketSize];
