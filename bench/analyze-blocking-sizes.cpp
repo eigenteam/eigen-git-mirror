@@ -7,6 +7,10 @@
 #include <string>
 #include <cmath>
 #include <cassert>
+#include <cstring>
+#include <memory>
+
+#include <Eigen/Core>
 
 using namespace std;
 
@@ -87,6 +91,11 @@ struct preprocessed_inputfile_entry_t
 
   float efficiency;
 };
+
+bool lower_efficiency(const preprocessed_inputfile_entry_t& e1, const preprocessed_inputfile_entry_t& e2)
+{
+  return e1.efficiency < e2.efficiency;
+}
 
 struct preprocessed_inputfile_t
 {
@@ -394,17 +403,187 @@ void print_partition(
   cout << endl;
 }
 
+struct action_t
+{
+  virtual const char* invokation_name() const { abort(); return nullptr; }
+  virtual void run(const vector<preprocessed_inputfile_t>& preprocessed_inputfiles) const { abort(); }
+  virtual ~action_t() {}
+};
+
+struct partition_action_t : action_t
+{
+  virtual const char* invokation_name() const { return "partition"; }
+  virtual void run(const vector<preprocessed_inputfile_t>& preprocessed_inputfiles) const
+  {
+    check_all_files_in_same_exact_order(preprocessed_inputfiles);
+
+    float required_efficiency_to_beat = 0.0f;
+    vector<vector<vector<size_t>>> partitions;
+    cerr << "searching for partitions...\r" << flush;
+    while (true)
+    {
+      vector<vector<size_t>> partition;
+      find_partition_with_efficiency_higher_than(
+        preprocessed_inputfiles,
+        required_efficiency_to_beat,
+        partition);
+      float actual_efficiency = efficiency_of_partition(preprocessed_inputfiles, partition);
+      cerr << "partition " << preprocessed_inputfiles.size() << " files into " << partition.size()
+           << " subsets for " << 100.0f * actual_efficiency
+           << " % efficiency"
+           << "                  \r" << flush;
+      partitions.push_back(partition);
+      if (partition.size() == preprocessed_inputfiles.size() || actual_efficiency == 1.0f) {
+        break;
+      }
+      required_efficiency_to_beat = actual_efficiency;
+    }
+    cerr << "                                                                  " << endl;
+    while (true) {
+      bool repeat = false;
+      for (size_t i = 0; i < partitions.size() - 1; i++) {
+        if (partitions[i].size() >= partitions[i+1].size()) {
+          partitions.erase(partitions.begin() + i);
+          repeat = true;
+          break;
+        }
+      }
+      if (!repeat) {
+        break;
+      }
+    }
+    for (auto it = partitions.begin(); it != partitions.end(); ++it) {
+      print_partition(preprocessed_inputfiles, *it);
+    }
+  }
+};
+
+uint8_t log2_pot(size_t x) {
+  size_t l = 0;
+  while (x >>= 1) l++;
+  return l;
+}
+
+uint16_t compact_size_triple(size_t k, size_t m, size_t n)
+{
+  return (log2_pot(k) << 8) | (log2_pot(m) << 4) | log2_pot(n);
+}
+
+// just a helper to store a triple of K,M,N sizes for matrix product
+struct size_triple_t
+{
+  size_t k, m, n;
+  size_triple_t() : k(0), m(0), n(0) {}
+  size_triple_t(size_t _k, size_t _m, size_t _n) : k(_k), m(_m), n(_n) {}
+  size_triple_t(const size_triple_t& o) : k(o.k), m(o.m), n(o.n) {}
+  size_triple_t(uint16_t compact)
+  {
+    k = 1 << ((compact & 0xf00) >> 8);
+    m = 1 << ((compact & 0x0f0) >> 4);
+    n = 1 << ((compact & 0x00f) >> 0);
+  }
+  bool is_cubic() const { return k == m && m == n; }
+};
+
+struct evaluate_defaults_action_t : action_t
+{
+  virtual const char* invokation_name() const { return "evaluate-defaults"; }
+  virtual void run(const vector<preprocessed_inputfile_t>& preprocessed_inputfiles) const
+  {
+    if (preprocessed_inputfiles.size() > 1) {
+      cerr << invokation_name() << " only works with one input file." << endl;
+      exit(1);
+    }
+
+    const preprocessed_inputfile_t& preprocessed_inputfile = preprocessed_inputfiles.front();
+
+    uint16_t product_size = 0;
+    uint16_t default_block_size = 0;
+    vector<preprocessed_inputfile_entry_t> results, cubic_results;
+    for (auto it = preprocessed_inputfile.entries.begin(); it != preprocessed_inputfile.entries.end(); ++it) {
+      if (it->product_size != product_size) {
+        product_size = it->product_size;
+        size_triple_t product_size_triple(product_size);
+        Eigen::Index k = product_size_triple.k,
+                     m = product_size_triple.m,
+                     n = product_size_triple.n;
+        Eigen::internal::computeProductBlockingSizes<float, float>(k, m, n);
+        default_block_size = compact_size_triple(k, m, n);
+      }
+      if (it->block_size == default_block_size) {
+        results.push_back(*it);
+        if (size_triple_t(product_size).is_cubic()) {
+          cubic_results.push_back(*it);
+        }
+      }
+    }
+
+    cerr << "Below are all results - first column is product size tripe, " << endl
+         << "second column is block size triple, in hex kmn form where" << endl
+         << "k, m, n are the log2 of the actual values, i.e. a89 means" << endl
+         << "k=1024, m=256, n=512." << endl << endl;
+    for (auto it = results.begin(); it != results.end(); ++it) {
+      cerr << hex << it->product_size << " " << it->block_size
+           << " efficiency " << std::dec << 100.0f * it->efficiency << " %" << endl;
+    }
+    cerr << endl;
+    sort(results.begin(), results.end(), lower_efficiency);
+    sort(cubic_results.begin(), cubic_results.end(), lower_efficiency);
+    cerr << "Efficiency summary: min = "
+         << 100.0f * results.front().efficiency << " %, max = "
+         << 100.0f * results.back().efficiency << " %, median = "
+         << 100.0f * results[results.size() / 2].efficiency << " %" << endl;
+    cerr << "20% of product sizes have efficiency <= " << 100.0f * results[results.size() * 20 / 100].efficiency << " %" << endl;
+    cerr << "10% of product sizes have efficiency <= " << 100.0f * results[results.size() * 10 / 100].efficiency << " %" << endl;
+    cerr << "5% of product sizes have efficiency <= " << 100.0f * results[results.size() * 5 / 100].efficiency << " %" << endl;
+    cerr << "Cubic sizes efficiency summary: min = "
+         << 100.0f * cubic_results.front().efficiency << " %, max = "
+         << 100.0f * cubic_results.back().efficiency << " %, median = "
+         << 100.0f * cubic_results[cubic_results.size() / 2].efficiency << " %" << endl;
+    
+  }
+};
+
+
+void show_usage_and_exit(int argc, char* argv[],
+                         const vector<unique_ptr<action_t>>& available_actions)
+{
+  cerr << "usage: " << argv[0] << " <action> <input files...>" << endl;
+  cerr << "available actions:" << endl;
+  for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
+    cerr << "  " << (*it)->invokation_name() << endl;
+  } 
+  cerr << "the input files should each contain an output of benchmark-blocking-sizes" << endl;
+  exit(1);
+}
+
 int main(int argc, char* argv[])
 {
-  if (argc == 1) {
-    cerr << "usage: " << argv[0] << " [input files]" << endl;
-    cerr << "the input files should each contain an output of benchmark-blocking-sizes" << endl;
-    exit(1);
-  }
   cout.precision(3);
   cerr.precision(3);
+
+  vector<unique_ptr<action_t>> available_actions;
+  available_actions.emplace_back(new partition_action_t);
+  available_actions.emplace_back(new evaluate_defaults_action_t);
+
+  auto action = available_actions.end();
+
+  if (argc <= 2) {
+    show_usage_and_exit(argc, argv, available_actions);
+  }
+  for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
+    if (!strcmp(argv[1], (*it)->invokation_name())) {
+      action = it;
+      break;
+    }
+  }
+
+  if (action == available_actions.end()) {
+    show_usage_and_exit(argc, argv, available_actions);
+  }
+
   vector<string> inputfilenames;
-  for (int i = 1; i < argc; i++) {
+  for (int i = 2; i < argc; i++) {
   	inputfilenames.emplace_back(argv[i]);
   }
 
@@ -413,44 +592,5 @@ int main(int argc, char* argv[])
     preprocessed_inputfiles.emplace_back(inputfile_t(*it));
   }
 
-  check_all_files_in_same_exact_order(preprocessed_inputfiles);
-
-  float required_efficiency_to_beat = 0.0f;
-  vector<vector<vector<size_t>>> partitions;
-  cerr << "searching for partitions...\r" << flush;
-  while (true)
-  {
-    vector<vector<size_t>> partition;
-    find_partition_with_efficiency_higher_than(
-      preprocessed_inputfiles,
-      required_efficiency_to_beat,
-      partition);
-    float actual_efficiency = efficiency_of_partition(preprocessed_inputfiles, partition);
-    cerr << "partition " << preprocessed_inputfiles.size() << " files into " << partition.size()
-         << " subsets for " << 100.0f * actual_efficiency
-         << " % efficiency"
-         << "                  \r" << flush;
-    partitions.push_back(partition);
-    if (partition.size() == preprocessed_inputfiles.size() || actual_efficiency == 1.0f) {
-      break;
-    }
-    required_efficiency_to_beat = actual_efficiency;
-  }
-  cerr << "                                                                  " << endl;
-  while (true) {
-    bool repeat = false;
-    for (size_t i = 0; i < partitions.size() - 1; i++) {
-      if (partitions[i].size() >= partitions[i+1].size()) {
-        partitions.erase(partitions.begin() + i);
-        repeat = true;
-        break;
-      }
-    }
-    if (!repeat) {
-      break;
-    }
-  }
-  for (auto it = partitions.begin(); it != partitions.end(); ++it) {
-    print_partition(preprocessed_inputfiles, *it);
-  }
+  (*action)->run(preprocessed_inputfiles);
 }
