@@ -93,7 +93,10 @@ struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 1, 2> {
   template<int LoadMode, typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TgtPacket packet(Index index) const {
     const int SrcPacketSize = internal::unpacket_traits<SrcPacket>::size;
-    if (index + SrcPacketSize < m_maxIndex) {
+    // Only call m_impl.packet() when we have direct access to the underlying data. This
+    // ensures that we don't compute the subexpression twice. We may however load some
+    // coefficients twice, but in practice this doesn't negatively impact performance.
+    if (m_impl.data() && (index + SrcPacketSize < m_maxIndex)) {
       // Force unaligned memory loads since we can't ensure alignment anymore
       return internal::pcast<SrcPacket, TgtPacket>(m_impl.template packet<Unaligned>(index));
     } else {
