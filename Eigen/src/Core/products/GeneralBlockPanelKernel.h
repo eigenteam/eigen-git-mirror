@@ -86,19 +86,21 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
 #ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
-  EIGEN_UNUSED_VARIABLE(num_threads);
-  enum {
-    kr = 8,
-    mr = Traits::mr,
-    nr = Traits::nr
-  };
-  k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
-  if (k > kr) k -= k % kr;
-  m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
-  if (m > mr) m -= m % mr;
-  n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
-  if (n > nr) n -= n % nr;
-  return;
+  if (EIGEN_TEST_SPECIFIC_BLOCKING_SIZES) {
+    EIGEN_UNUSED_VARIABLE(num_threads);
+    enum {
+      kr = 8,
+      mr = Traits::mr,
+      nr = Traits::nr
+    };
+    k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
+    if (k > kr) k -= k % kr;
+    m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
+    if (m > mr) m -= m % mr;
+    n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
+    if (n > nr) n -= n % nr;
+    return;
+  }
 #endif
 
   // Explanations:

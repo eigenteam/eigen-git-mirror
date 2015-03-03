@@ -559,8 +559,8 @@ void show_usage_and_exit(int argc, char* argv[],
 
 int main(int argc, char* argv[])
 {
-  cout.precision(3);
-  cerr.precision(3);
+  cout.precision(4);
+  cerr.precision(4);
 
   vector<unique_ptr<action_t>> available_actions;
   available_actions.emplace_back(new partition_action_t);

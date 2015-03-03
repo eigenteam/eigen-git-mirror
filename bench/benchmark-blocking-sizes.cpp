@@ -3,9 +3,11 @@
 #include <cstdlib>
 #include <vector>
 #include <fstream>
+#include <memory>
 
+bool eigen_use_specific_block_size;
 int eigen_block_size_k, eigen_block_size_m, eigen_block_size_n;
-#define EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+#define EIGEN_TEST_SPECIFIC_BLOCKING_SIZES eigen_use_specific_block_size
 #define EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K eigen_block_size_k
 #define EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M eigen_block_size_m
 #define EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N eigen_block_size_n
@@ -82,16 +84,25 @@ struct benchmark_t
 {
   uint16_t compact_product_size;
   uint16_t compact_block_size;
+  bool use_default_block_size;
   float gflops;
   benchmark_t()
     : compact_product_size(0)
     , compact_block_size(0)
     , gflops(0)
+    , use_default_block_size(false)
   {}
   benchmark_t(size_t pk, size_t pm, size_t pn,
               size_t bk, size_t bm, size_t bn)
     : compact_product_size(compact_size_triple(pk, pm, pn))
     , compact_block_size(compact_size_triple(bk, bm, bn))
+    , use_default_block_size(false)
+    , gflops(0)
+  {}
+  benchmark_t(size_t pk, size_t pm, size_t pn)
+    : compact_product_size(compact_size_triple(pk, pm, pn))
+    , compact_block_size(0)
+    , use_default_block_size(true)
     , gflops(0)
   {}
 
@@ -100,10 +111,12 @@ struct benchmark_t
 
 ostream& operator<<(ostream& s, const benchmark_t& b)
 {
-  s << hex;
-  s << b.compact_product_size
-    << " " << b.compact_block_size;
-  s << dec;
+  s << hex << b.compact_product_size << dec;
+  if (b.use_default_block_size) {
+    s << " default";
+  } else {
+    s << " " << hex << b.compact_block_size << dec;
+  }
   s << " " << b.gflops;
   return s;
 }
@@ -121,14 +134,18 @@ bool operator<(const benchmark_t& b1, const benchmark_t& b2)
 
 void benchmark_t::run()
 {
-  // expand our compact benchmark params into proper triples
   size_triple_t productsizes(compact_product_size);
-  size_triple_t blocksizes(compact_block_size);
-  
-  // feed eigen with our custom blocking params
-  eigen_block_size_k = blocksizes.k;
-  eigen_block_size_m = blocksizes.m;
-  eigen_block_size_n = blocksizes.n;
+
+  if (use_default_block_size) {
+    eigen_use_specific_block_size = false;
+  } else {
+    // feed eigen with our custom blocking params
+    eigen_use_specific_block_size = true;
+    size_triple_t blocksizes(compact_block_size);
+    eigen_block_size_k = blocksizes.k;
+    eigen_block_size_m = blocksizes.m;
+    eigen_block_size_n = blocksizes.n;
+  }
 
   // set up the matrix pool
 
@@ -231,9 +248,23 @@ string type_name<double>()
   return "double";
 }
 
-void show_usage_and_exit(const char *progname)
+struct action_t
 {
-  cerr << "usage: " << progname << " [--min-working-set-size=N]" << endl << endl;
+  virtual const char* invokation_name() const { abort(); return nullptr; }
+  virtual void run() const { abort(); }
+  virtual ~action_t() {}
+};
+
+void show_usage_and_exit(int argc, char* argv[],
+                         const vector<unique_ptr<action_t>>& available_actions)
+{
+  cerr << "usage: " << argv[0] << " <action> [options...]" << endl << endl;
+  cerr << "available actions:" << endl << endl;
+  for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
+    cerr << "  " << (*it)->invokation_name() << endl;
+  }
+  cerr << endl;
+  cerr << "options:" << endl << endl;
   cerr << "  --min-working-set-size=N:" << endl;
   cerr << "       Set the minimum working set size to N bytes." << endl;
   cerr << "       This is rounded up as needed to a multiple of matrix size." << endl;
@@ -245,56 +276,8 @@ void show_usage_and_exit(const char *progname)
   exit(1);
 }
 
-int main(int argc, char* argv[])
+void run_benchmarks(vector<benchmark_t>& benchmarks)
 {
-  for (int i = 1; i < argc; i++) {
-    if (argv[i] == strstr(argv[i], "--min-working-set-size=")) {
-      const char* equals_sign = strchr(argv[i], '=');
-      min_working_set_size = strtoul(equals_sign+1, nullptr, 10);
-    } else {
-      cerr << "unrecognized option: " << argv[i] << endl << endl;
-      show_usage_and_exit(argv[0]);
-    }
-  }
-
-  cout.precision(4);
-
-  print_cpuinfo();
-
-  cout << "benchmark parameters:" << endl;
-  cout << "pointer size: " << 8*sizeof(void*) << " bits" << endl;
-  cout << "scalar type: " << type_name<MatrixType::Scalar>() << endl;
-  cout << "packet size: " << internal::packet_traits<MatrixType::Scalar>::size << endl;
-  cout << "minsize = " << minsize << endl;
-  cout << "maxsize = " << maxsize << endl;
-  cout << "measurement_repetitions = " << measurement_repetitions << endl;
-  cout << "min_accurate_time = " << min_accurate_time << endl;
-  cout << "min_working_set_size = " << min_working_set_size;
-  if (min_working_set_size == 0) {
-    cout << " (try to outsize caches)";
-  }
-  cout << endl << endl;
-
-
-  // assemble the array of benchmarks without running them at first
-  vector<benchmark_t> benchmarks;
-  for (int repetition = 0; repetition < measurement_repetitions; repetition++) {
-    for (size_t ksize = minsize; ksize <= maxsize; ksize *= 2) {
-      for (size_t msize = minsize; msize <= maxsize; msize *= 2) {
-        for (size_t nsize = minsize; nsize <= maxsize; nsize *= 2) {
-          for (size_t kblock = minsize; kblock <= ksize; kblock *= 2) {
-            for (size_t mblock = minsize; mblock <= msize; mblock *= 2) {
-              for (size_t nblock = minsize; nblock <= nsize; nblock *= 2) {
-                benchmark_t b(ksize, msize, nsize, kblock, mblock, nblock);
-                benchmarks.push_back(b);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   // randomly shuffling benchmarks allows us to get accurate enough progress info,
   // as now the cheap/expensive benchmarks are randomly mixed so they average out.
   random_shuffle(benchmarks.begin(), benchmarks.end());
@@ -315,14 +298,23 @@ int main(int argc, char* argv[])
 
       if (i > 10) {
         cerr << ", ETA ";
-        float eta = float(time_now - time_start) * (1.0f - ratio_done) / ratio_done;
-        if (eta > 3600)
-          cerr << eta/3600 << " hours";
-        else if (eta > 60)
-          cerr << eta/60 << " minutes";
-        else cerr << eta << " seconds";
+        int eta = int(float(time_now - time_start) * (1.0f - ratio_done) / ratio_done);
+        int eta_remainder = eta;
+        if (eta_remainder > 3600) {
+          int hours = eta_remainder / 3600;
+          cerr << hours << " h ";
+          eta_remainder -= hours * 3600;
+        }
+        if (eta_remainder > 60) {
+          int minutes = eta_remainder / 60;
+          cerr << minutes << " min ";
+          eta_remainder -= minutes * 60;
+        }
+        if (eta < 600 && eta_remainder) {
+          cerr << eta_remainder << " s";
+        }
       }
-      cerr << "                                              \r" << flush;
+      cerr << "                                                \r" << flush;
     }
 
     // This is where we actually run a benchmark!
@@ -348,9 +340,116 @@ int main(int argc, char* argv[])
     }
   }
 
-  // Output data.
-  cout << "BEGIN MEASUREMENTS" << endl;
-  for (auto it = best_benchmarks.begin(); it != best_benchmarks.end(); ++it) {
-    cout << *it << endl;
+  // keep and return only the best benchmarks
+  benchmarks = best_benchmarks;
+}
+
+struct measure_all_pot_sizes_action_t : action_t
+{
+  virtual const char* invokation_name() const { return "measure-all-pot-sizes"; }
+  virtual void run() const
+  {
+    vector<benchmark_t> benchmarks;
+    for (int repetition = 0; repetition < measurement_repetitions; repetition++) {
+      for (size_t ksize = minsize; ksize <= maxsize; ksize *= 2) {
+        for (size_t msize = minsize; msize <= maxsize; msize *= 2) {
+          for (size_t nsize = minsize; nsize <= maxsize; nsize *= 2) {
+            for (size_t kblock = minsize; kblock <= ksize; kblock *= 2) {
+              for (size_t mblock = minsize; mblock <= msize; mblock *= 2) {
+                for (size_t nblock = minsize; nblock <= nsize; nblock *= 2) {
+                  benchmarks.emplace_back(ksize, msize, nsize, kblock, mblock, nblock);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    run_benchmarks(benchmarks);
+
+    cout << "BEGIN MEASUREMENTS ALL POT SIZES" << endl;
+    for (auto it = benchmarks.begin(); it != benchmarks.end(); ++it) {
+      cout << *it << endl;
+    }
   }
+};
+
+struct measure_default_sizes_action_t : action_t
+{
+  virtual const char* invokation_name() const { return "measure-default-sizes"; }
+  virtual void run() const
+  {
+    vector<benchmark_t> benchmarks;
+    for (int repetition = 0; repetition < measurement_repetitions; repetition++) {
+      for (size_t ksize = minsize; ksize <= maxsize; ksize *= 2) {
+        for (size_t msize = minsize; msize <= maxsize; msize *= 2) {
+          for (size_t nsize = minsize; nsize <= maxsize; nsize *= 2) {
+            benchmarks.emplace_back(ksize, msize, nsize);
+          }
+        }
+      }
+    }
+
+    run_benchmarks(benchmarks);
+
+    cout << "BEGIN MEASUREMENTS DEFAULT SIZES" << endl;
+    for (auto it = benchmarks.begin(); it != benchmarks.end(); ++it) {
+      cout << *it << endl;
+    }
+  }
+};
+
+int main(int argc, char* argv[])
+{
+  cout.precision(4);
+  cerr.precision(4);
+
+  vector<unique_ptr<action_t>> available_actions;
+  available_actions.emplace_back(new measure_all_pot_sizes_action_t);
+  available_actions.emplace_back(new measure_default_sizes_action_t);
+
+  auto action = available_actions.end();
+
+  if (argc <= 1) {
+    show_usage_and_exit(argc, argv, available_actions);
+  }
+  for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
+    if (!strcmp(argv[1], (*it)->invokation_name())) {
+      action = it;
+      break;
+    }
+  }
+
+  if (action == available_actions.end()) {
+    show_usage_and_exit(argc, argv, available_actions);
+  }
+
+  for (int i = 2; i < argc; i++) {
+    if (argv[i] == strstr(argv[i], "--min-working-set-size=")) {
+      const char* equals_sign = strchr(argv[i], '=');
+      min_working_set_size = strtoul(equals_sign+1, nullptr, 10);
+    } else {
+      cerr << "unrecognized option: " << argv[i] << endl << endl;
+      show_usage_and_exit(argc, argv, available_actions);
+    }
+  }
+
+  print_cpuinfo();
+
+  cout << "benchmark parameters:" << endl;
+  cout << "pointer size: " << 8*sizeof(void*) << " bits" << endl;
+  cout << "scalar type: " << type_name<MatrixType::Scalar>() << endl;
+  cout << "packet size: " << internal::packet_traits<MatrixType::Scalar>::size << endl;
+  cout << "minsize = " << minsize << endl;
+  cout << "maxsize = " << maxsize << endl;
+  cout << "measurement_repetitions = " << measurement_repetitions << endl;
+  cout << "min_accurate_time = " << min_accurate_time << endl;
+  cout << "min_working_set_size = " << min_working_set_size;
+  if (min_working_set_size == 0) {
+    cout << " (try to outsize caches)";
+  }
+  cout << endl << endl;
+
+  (*action)->run();
 }
