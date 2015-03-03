@@ -518,7 +518,19 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
 }
 
 //---------- double ----------
-#if EIGEN_ARCH_ARM64
+
+// Clang 3.5 in the iOS toolchain has an ICE triggered by NEON intrisics for double.
+// Confirmed at least with __apple_build_version__ = 6000054.
+#ifdef __apple_build_version__
+// Let's hope that by the time __apple_build_version__ hits the 601* range, the bug will be fixed.
+// https://gist.github.com/yamaya/2924292 suggests that the 3 first digits are only updated with
+// major toolchain updates.
+#define EIGEN_APPLE_DOUBLE_NEON_BUG (__apple_build_version__ < 6010000)
+#else
+#define EIGEN_APPLE_DOUBLE_NEON_BUG 0
+#endif
+
+#if EIGEN_ARCH_ARM64 && !EIGEN_APPLE_DOUBLE_NEON_BUG
 
 #if (EIGEN_COMP_GNUC_STRICT && defined(__ANDROID__)) || defined(__apple_build_version__)
 // Bug 907: workaround missing declarations of the following two functions in the ADK
