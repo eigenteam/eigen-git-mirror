@@ -224,7 +224,7 @@ public:
   template<typename Rhs,typename Dest>
   void _solve(const Rhs& b, Dest& x) const
   {
-    x.setOnes();
+    x.setZero();
     _solveWithGuess(b,x);
   }
 
