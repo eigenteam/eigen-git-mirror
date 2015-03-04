@@ -56,6 +56,34 @@ struct functor_traits<scalar_abs_op<Scalar> >
 };
 
 /** \internal
+  * \brief Template functor to compute the score of a scalar, to chose a pivot
+  *
+  * \sa class CwiseUnaryOp
+  */
+template<typename Scalar> struct scalar_score_coeff_op : scalar_abs_op<Scalar>
+{
+  typedef void Score_is_abs;
+};
+template<typename Scalar>
+struct functor_traits<scalar_score_coeff_op<Scalar> > : functor_traits<scalar_abs_op<Scalar> > {};
+
+/* Avoid recomputing abs when we know the score and they are the same. Not a true Eigen functor.  */
+template<typename Scalar, typename=void> struct abs_knowing_score
+{
+  EIGEN_EMPTY_STRUCT_CTOR(abs_knowing_score)
+  typedef typename NumTraits<Scalar>::Real result_type;
+  template<typename Score>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a, const Score&) const { using std::abs; return abs(a); }
+};
+template<typename Scalar> struct abs_knowing_score<Scalar, typename scalar_score_coeff_op<Scalar>::Score_is_abs>
+{
+  EIGEN_EMPTY_STRUCT_CTOR(abs_knowing_score)
+  typedef typename NumTraits<Scalar>::Real result_type;
+  template<typename Scal>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const Scal&, const result_type& a) const { return a; }
+};
+
+/** \internal
   * \brief Template functor to compute the squared absolute value of a scalar
   *
   * \sa class CwiseUnaryOp, Cwise::abs2

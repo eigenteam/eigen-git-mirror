@@ -260,7 +260,7 @@ static void test_type_casting()
   mat1.setRandom();
   mat2.setRandom();
 
-  mat3 = mat1.template cast<double>();
+  mat3 = mat1.cast<double>();
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
@@ -269,7 +269,7 @@ static void test_type_casting()
     }
   }
 
-  mat3 = mat2.template cast<double>();
+  mat3 = mat2.cast<double>();
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {

@@ -86,19 +86,21 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
 #ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
-  EIGEN_UNUSED_VARIABLE(num_threads);
-  enum {
-    kr = 8,
-    mr = Traits::mr,
-    nr = Traits::nr
-  };
-  k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
-  if (k > kr) k -= k % kr;
-  m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
-  if (m > mr) m -= m % mr;
-  n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
-  if (n > nr) n -= n % nr;
-  return;
+  if (EIGEN_TEST_SPECIFIC_BLOCKING_SIZES) {
+    EIGEN_UNUSED_VARIABLE(num_threads);
+    enum {
+      kr = 8,
+      mr = Traits::mr,
+      nr = Traits::nr
+    };
+    k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
+    if (k > kr) k -= k % kr;
+    m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
+    if (m > mr) m -= m % mr;
+    n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
+    if (n > nr) n -= n % nr;
+    return;
+  }
 #endif
 
   // Explanations:
@@ -1479,17 +1481,17 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
 
           for(Index k=0; k<peeled_kc; k+=pk)
           {
-            EIGEN_ASM_COMMENT("begin gebp micro kernel 2pX1");
+            EIGEN_ASM_COMMENT("begin gebp micro kernel 1pX1");
             RhsPacket B_0;
         
 #define EIGEN_GEBGP_ONESTEP(K) \
             do {                                                                \
-              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 2pX1");        \
+              EIGEN_ASM_COMMENT("begin step of gebp micro kernel 1pX1");        \
               EIGEN_ASM_COMMENT("Note: these asm comments work around bug 935!"); \
               traits.loadLhs(&blA[(0+1*K)*LhsProgress], A0);                    \
               traits.loadRhs(&blB[(0+K)*RhsProgress], B_0);                     \
               traits.madd(A0, B_0, C0, B_0);                                    \
-              EIGEN_ASM_COMMENT("end step of gebp micro kernel 2pX1");          \
+              EIGEN_ASM_COMMENT("end step of gebp micro kernel 1pX1");          \
             } while(false);
 
             EIGEN_GEBGP_ONESTEP(0);
@@ -1504,7 +1506,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             blB += pk*RhsProgress;
             blA += pk*1*Traits::LhsProgress;
 
-            EIGEN_ASM_COMMENT("end gebp micro kernel 2pX1");
+            EIGEN_ASM_COMMENT("end gebp micro kernel 1pX1");
           }
 
           // process remaining peeled loop

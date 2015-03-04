@@ -459,14 +459,16 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 
     // biggest coefficient in the remaining bottom-right corner (starting at row k, col k)
     Index row_of_biggest_in_corner, col_of_biggest_in_corner;
-    RealScalar biggest_in_corner;
+    typedef internal::scalar_score_coeff_op<Scalar> Scoring;
+    typedef typename Scoring::result_type Score;
+    Score biggest_in_corner;
     biggest_in_corner = m_lu.bottomRightCorner(rows-k, cols-k)
-                        .cwiseAbs()
+                        .unaryExpr(Scoring())
                         .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
     row_of_biggest_in_corner += k; // correct the values! since they were computed in the corner,
     col_of_biggest_in_corner += k; // need to add k to them.
 
-    if(biggest_in_corner==RealScalar(0))
+    if(biggest_in_corner==Score(0))
     {
       // before exiting, make sure to initialize the still uninitialized transpositions
       // in a sane state without destroying what we already have.
@@ -479,7 +481,8 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
       break;
     }
 
-    if(biggest_in_corner > m_maxpivot) m_maxpivot = biggest_in_corner;
+    RealScalar abs_pivot = internal::abs_knowing_score<Scalar>()(m_lu(row_of_biggest_in_corner, col_of_biggest_in_corner), biggest_in_corner);
+    if(abs_pivot > m_maxpivot) m_maxpivot = abs_pivot;
 
     // Now that we've found the pivot, we need to apply the row/col swaps to
     // bring it to the location (k,k).

@@ -1,3 +1,12 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2015 Benoit Jacob <benoitjacob@google.com>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 #include <iostream>
 #include <cstdint>
 #include <cstdlib>
@@ -559,8 +568,8 @@ void show_usage_and_exit(int argc, char* argv[],
 
 int main(int argc, char* argv[])
 {
-  cout.precision(3);
-  cerr.precision(3);
+  cout.precision(4);
+  cerr.precision(4);
 
   vector<unique_ptr<action_t>> available_actions;
   available_actions.emplace_back(new partition_action_t);
