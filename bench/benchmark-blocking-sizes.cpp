@@ -122,7 +122,10 @@ ostream& operator<<(ostream& s, const benchmark_t& b)
 {
   s << hex << b.compact_product_size << dec;
   if (b.use_default_block_size) {
-    s << " default";
+    size_triple_t t(b.compact_product_size);
+    Index k = t.k, m = t.m, n = t.n;
+    internal::computeProductBlockingSizes<MatrixType::Scalar, MatrixType::Scalar>(k, m, n);
+    s << " default(" << k << ", " << m << ", " << n << ")";
   } else {
     s << " " << hex << b.compact_block_size << dec;
   }
@@ -355,7 +358,7 @@ void run_benchmarks(vector<benchmark_t>& benchmarks)
 
 struct measure_all_pot_sizes_action_t : action_t
 {
-  virtual const char* invokation_name() const { return "measure-all-pot-sizes"; }
+  virtual const char* invokation_name() const { return "all-pot-sizes"; }
   virtual void run() const
   {
     vector<benchmark_t> benchmarks;
@@ -386,7 +389,7 @@ struct measure_all_pot_sizes_action_t : action_t
 
 struct measure_default_sizes_action_t : action_t
 {
-  virtual const char* invokation_name() const { return "measure-default-sizes"; }
+  virtual const char* invokation_name() const { return "default-sizes"; }
   virtual void run() const
   {
     vector<benchmark_t> benchmarks;

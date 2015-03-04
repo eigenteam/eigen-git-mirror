@@ -23,20 +23,63 @@
 
 using namespace std;
 
+const int default_precision = 4;
+
+uint8_t log2_pot(size_t x) {
+  size_t l = 0;
+  while (x >>= 1) l++;
+  return l;
+}
+
+uint16_t compact_size_triple(size_t k, size_t m, size_t n)
+{
+  return (log2_pot(k) << 8) | (log2_pot(m) << 4) | log2_pot(n);
+}
+
+// just a helper to store a triple of K,M,N sizes for matrix product
+struct size_triple_t
+{
+  uint16_t k, m, n;
+  size_triple_t() : k(0), m(0), n(0) {}
+  size_triple_t(size_t _k, size_t _m, size_t _n) : k(_k), m(_m), n(_n) {}
+  size_triple_t(const size_triple_t& o) : k(o.k), m(o.m), n(o.n) {}
+  size_triple_t(uint16_t compact)
+  {
+    k = 1 << ((compact & 0xf00) >> 8);
+    m = 1 << ((compact & 0x0f0) >> 4);
+    n = 1 << ((compact & 0x00f) >> 0);
+  }
+  bool is_cubic() const { return k == m && m == n; }
+};
+
+ostream& operator<<(ostream& s, const size_triple_t& t)
+{
+  return s << "(" << t.k << ", " << t.m << ", " << t.n << ")";
+}
+
 struct inputfile_entry_t
 {
   uint16_t product_size;
-  uint16_t block_size;
+  uint16_t pot_block_size;
+  size_triple_t nonpot_block_size;
   float gflops;
 };
 
 struct inputfile_t
 {
+  enum class type_t {
+    unknown,
+    all_pot_sizes,
+    default_sizes
+  };
+
   string filename;
   vector<inputfile_entry_t> entries;
+  type_t type;
 
   inputfile_t(const string& fname)
     : filename(fname)
+    , type(type_t::unknown)
   {
     ifstream stream(filename);
     if (!stream.is_open()) {
@@ -44,52 +87,96 @@ struct inputfile_t
       exit(1);
     }
     string line;
-    bool is_in_measurements = false;
     while (getline(stream, line)) {
       if (line.empty()) continue;
-      if (line.find("BEGIN MEASUREMENTS") == 0) {
-        is_in_measurements = true;
+      if (line.find("BEGIN MEASUREMENTS ALL POT SIZES") == 0) {
+        if (type != type_t::unknown) {
+          cerr << "Input file " << filename << " contains redundant BEGIN MEASUREMENTS lines";
+          exit(1);
+        }
+        type = type_t::all_pot_sizes;
         continue;
       }
-
-      if (!is_in_measurements) {
+      if (line.find("BEGIN MEASUREMENTS DEFAULT SIZES") == 0) {
+        if (type != type_t::unknown) {
+          cerr << "Input file " << filename << " contains redundant BEGIN MEASUREMENTS lines";
+          exit(1);
+        }
+        type = type_t::default_sizes;
         continue;
       }
+      
 
-      unsigned int product_size, block_size;
-      float gflops;
-      int sscanf_result =
-        sscanf(line.c_str(), "%x %x %f",
-               &product_size,
-               &block_size,
-               &gflops);
-      if (3 != sscanf_result ||
-          !product_size ||
-          product_size > 0xfff ||
-          !block_size ||
-          block_size > 0xfff ||
-          !isfinite(gflops))
-      {
-        cerr << "ill-formed input file: " << filename << endl;
-        cerr << "offending line:" << endl << line << endl;
-        exit(1);
+      if (type == type_t::unknown) {
+        continue;
       }
-      inputfile_entry_t entry;
-      entry.product_size = uint16_t(product_size);
-      entry.block_size = uint16_t(block_size);
-      entry.gflops = gflops;
-      entries.push_back(entry);
+      switch(type) {
+        case type_t::all_pot_sizes: {
+          unsigned int product_size, block_size;
+          float gflops;
+          int sscanf_result =
+            sscanf(line.c_str(), "%x %x %f",
+                   &product_size,
+                   &block_size,
+                   &gflops);
+          if (3 != sscanf_result ||
+              !product_size ||
+              product_size > 0xfff ||
+              !block_size ||
+              block_size > 0xfff ||
+              !isfinite(gflops))
+          {
+            cerr << "ill-formed input file: " << filename << endl;
+            cerr << "offending line:" << endl << line << endl;
+            exit(1);
+          }
+          inputfile_entry_t entry;
+          entry.product_size = uint16_t(product_size);
+          entry.pot_block_size = uint16_t(block_size);
+          entry.gflops = gflops;
+          entries.push_back(entry);
+          break;
+        }
+        case type_t::default_sizes: {
+          unsigned int product_size;
+          float gflops;
+          int bk, bm, bn;
+          int sscanf_result =
+            sscanf(line.c_str(), "%x default(%d, %d, %d) %f",
+                   &product_size,
+                   &bk, &bm, &bn,
+                   &gflops);
+          if (5 != sscanf_result ||
+              !product_size ||
+              product_size > 0xfff ||
+              !isfinite(gflops))
+          {
+            cerr << "ill-formed input file: " << filename << endl;
+            cerr << "offending line:" << endl << line << endl;
+            exit(1);
+          }
+          inputfile_entry_t entry;
+          entry.product_size = uint16_t(product_size);
+          entry.pot_block_size = 0;
+          entry.nonpot_block_size = size_triple_t(bk, bm, bn);
+          entry.gflops = gflops;
+          entries.push_back(entry);
+          break;
+        }
+        
+        default:
+          break;
+      }
     }
     stream.close();
-    if (!is_in_measurements) {
-      cerr << "Input file " << filename << " didn't contain a BEGIN MEASUREMENTS line. Wrong file?" << endl;
+    if (type == type_t::unknown) {
+      cerr << "Unrecognized input file " << filename << endl;
       exit(1);
     }
     if (entries.empty()) {
       cerr << "didn't find any measurements in input file: " << filename << endl;
       exit(1);
     }
-    //cerr << "read " << entries.size() << " measurements from " << filename << endl;
   }
 };
 
@@ -114,6 +201,9 @@ struct preprocessed_inputfile_t
   preprocessed_inputfile_t(const inputfile_t& inputfile)
     : filename(inputfile.filename)
   {
+    if (inputfile.type != inputfile_t::type_t::all_pot_sizes) {
+      abort();
+    }
     auto it = inputfile.entries.begin();
     auto it_first_with_given_product_size = it;
     while (it != inputfile.entries.end()) {
@@ -145,7 +235,7 @@ private:
     for (auto it = begin; it != end; ++it) {
       preprocessed_inputfile_entry_t entry;
       entry.product_size = it->product_size;
-      entry.block_size = it->block_size;
+      entry.block_size = it->pot_block_size;
       entry.efficiency = it->gflops / max_gflops;
       entries.push_back(entry);
     }
@@ -415,15 +505,44 @@ void print_partition(
 struct action_t
 {
   virtual const char* invokation_name() const { abort(); return nullptr; }
-  virtual void run(const vector<preprocessed_inputfile_t>& preprocessed_inputfiles) const { abort(); }
+  virtual void run(int, char*[]) const { abort(); }
   virtual ~action_t() {}
 };
 
 struct partition_action_t : action_t
 {
   virtual const char* invokation_name() const { return "partition"; }
-  virtual void run(const vector<preprocessed_inputfile_t>& preprocessed_inputfiles) const
+  virtual void run(int argc, char *argv[]) const
   {
+    vector<preprocessed_inputfile_t> preprocessed_inputfiles;
+
+    if (!argc) {
+      cerr << "The " << invokation_name() << " action needs a list of input files." << endl;
+      exit(1);
+    }
+
+    vector<string> inputfilenames;
+    for (int i = 0; i < argc; i++) {
+      inputfilenames.emplace_back(argv[i]);
+    }
+
+    for (auto it = inputfilenames.begin(); it != inputfilenames.end(); ++it) {
+      inputfile_t inputfile(*it);
+      switch (inputfile.type) {
+        case inputfile_t::type_t::all_pot_sizes:
+          preprocessed_inputfiles.emplace_back(inputfile);
+          break;
+        case inputfile_t::type_t::default_sizes:
+          cerr << "The " << invokation_name() << " action only uses measurements for all pot sizes, and "
+               << "has no use for " << *it << " which contains measurements for default sizes." << endl;
+          exit(1);
+          break;
+        default:
+          cerr << "Unrecognized input file: " << *it << endl;
+          exit(1);
+      }
+    }
+
     check_all_files_in_same_exact_order(preprocessed_inputfiles);
 
     float required_efficiency_to_beat = 0.0f;
@@ -467,89 +586,132 @@ struct partition_action_t : action_t
   }
 };
 
-uint8_t log2_pot(size_t x) {
-  size_t l = 0;
-  while (x >>= 1) l++;
-  return l;
-}
-
-uint16_t compact_size_triple(size_t k, size_t m, size_t n)
-{
-  return (log2_pot(k) << 8) | (log2_pot(m) << 4) | log2_pot(n);
-}
-
-// just a helper to store a triple of K,M,N sizes for matrix product
-struct size_triple_t
-{
-  size_t k, m, n;
-  size_triple_t() : k(0), m(0), n(0) {}
-  size_triple_t(size_t _k, size_t _m, size_t _n) : k(_k), m(_m), n(_n) {}
-  size_triple_t(const size_triple_t& o) : k(o.k), m(o.m), n(o.n) {}
-  size_triple_t(uint16_t compact)
-  {
-    k = 1 << ((compact & 0xf00) >> 8);
-    m = 1 << ((compact & 0x0f0) >> 4);
-    n = 1 << ((compact & 0x00f) >> 0);
-  }
-  bool is_cubic() const { return k == m && m == n; }
-};
-
 struct evaluate_defaults_action_t : action_t
 {
-  virtual const char* invokation_name() const { return "evaluate-defaults"; }
-  virtual void run(const vector<preprocessed_inputfile_t>& preprocessed_inputfiles) const
+  struct results_entry_t {
+    uint16_t product_size;
+    size_triple_t default_block_size;
+    uint16_t best_pot_block_size;
+    float default_gflops;
+    float best_pot_gflops;
+    float default_efficiency;
+  };
+  friend ostream& operator<<(ostream& s, const results_entry_t& entry)
   {
-    if (preprocessed_inputfiles.size() > 1) {
-      cerr << invokation_name() << " only works with one input file." << endl;
-      exit(1);
+    return s
+      << "Product size " << size_triple_t(entry.product_size)
+      << ": default block size " << entry.default_block_size
+      << " -> " << entry.default_gflops
+      << " GFlop/s = " << entry.default_efficiency * 100.0f << " %"
+      << " of best POT block size " << size_triple_t(entry.best_pot_block_size)
+      << " -> " << entry.best_pot_gflops
+      << " GFlop/s" << dec;
+  }
+  static bool lower_efficiency(const results_entry_t& e1, const results_entry_t& e2) {
+    return e1.default_efficiency < e2.default_efficiency;
+  }
+  virtual const char* invokation_name() const { return "evaluate-defaults"; }
+  void show_usage_and_exit() const
+  {
+    cerr << "usage: " << invokation_name() << " default-sizes-data all-pot-sizes-data" << endl;
+    cerr << "checks how well the performance with default sizes compares to the best "
+         << "performance measured over all POT sizes." << endl;
+    exit(1);
+  }
+  virtual void run(int argc, char *argv[]) const
+  {
+    if (argc != 2) {
+      show_usage_and_exit();
     }
-
-    const preprocessed_inputfile_t& preprocessed_inputfile = preprocessed_inputfiles.front();
-
+    inputfile_t inputfile_default_sizes(argv[0]);
+    inputfile_t inputfile_all_pot_sizes(argv[1]);
+    if (inputfile_default_sizes.type != inputfile_t::type_t::default_sizes) {
+      cerr << inputfile_default_sizes.filename << " is not an input file with default sizes." << endl;
+      show_usage_and_exit();
+    }
+    if (inputfile_all_pot_sizes.type != inputfile_t::type_t::all_pot_sizes) {
+      cerr << inputfile_all_pot_sizes.filename << " is not an input file with all POT sizes." << endl;
+      show_usage_and_exit();
+    }
+    vector<results_entry_t> results;
+    vector<results_entry_t> cubic_results;
+    
     uint16_t product_size = 0;
-    uint16_t default_block_size = 0;
-    vector<preprocessed_inputfile_entry_t> results, cubic_results;
-    for (auto it = preprocessed_inputfile.entries.begin(); it != preprocessed_inputfile.entries.end(); ++it) {
-      if (it->product_size != product_size) {
-        product_size = it->product_size;
-        size_triple_t product_size_triple(product_size);
-        Eigen::Index k = product_size_triple.k,
-                     m = product_size_triple.m,
-                     n = product_size_triple.n;
-        Eigen::internal::computeProductBlockingSizes<float, float>(k, m, n);
-        default_block_size = compact_size_triple(k, m, n);
+    auto it_all_pot_sizes = inputfile_all_pot_sizes.entries.begin();
+    for (auto it_default_sizes = inputfile_default_sizes.entries.begin();
+         it_default_sizes != inputfile_default_sizes.entries.end();
+         ++it_default_sizes)
+    {
+      if (it_default_sizes->product_size == product_size) {
+        continue;
       }
-      if (it->block_size == default_block_size) {
-        results.push_back(*it);
-        if (size_triple_t(product_size).is_cubic()) {
-          cubic_results.push_back(*it);
+      product_size = it_default_sizes->product_size;
+      while (it_all_pot_sizes != inputfile_all_pot_sizes.entries.end() &&
+             it_all_pot_sizes->product_size != product_size)
+      {
+        ++it_all_pot_sizes;
+      }
+      if (it_all_pot_sizes == inputfile_all_pot_sizes.entries.end()) {
+        break;
+      }
+      uint16_t best_pot_block_size = 0;
+      float best_pot_gflops = 0;
+      for (auto it = it_all_pot_sizes;
+           it != inputfile_all_pot_sizes.entries.end() && it->product_size == product_size;
+           ++it)
+      {
+        if (it->gflops > best_pot_gflops) {
+          best_pot_gflops = it->gflops;
+          best_pot_block_size = it->pot_block_size;
         }
       }
+      results_entry_t entry;
+      entry.product_size = product_size;
+      entry.default_block_size = it_default_sizes->nonpot_block_size;
+      entry.best_pot_block_size = best_pot_block_size;
+      entry.default_gflops = it_default_sizes->gflops;
+      entry.best_pot_gflops = best_pot_gflops;
+      entry.default_efficiency = entry.default_gflops / entry.best_pot_gflops;
+      results.push_back(entry);
+
+      size_triple_t t(product_size);
+      if (t.k == t.m && t.m == t.n) {
+        cubic_results.push_back(entry);
+      }
     }
 
-    cerr << "Below are all results - first column is product size tripe, " << endl
-         << "second column is block size triple, in hex kmn form where" << endl
-         << "k, m, n are the log2 of the actual values, i.e. a89 means" << endl
-         << "k=1024, m=256, n=512." << endl << endl;
+    cerr << "All results:" << endl;
     for (auto it = results.begin(); it != results.end(); ++it) {
-      cerr << hex << it->product_size << " " << it->block_size
-           << " efficiency " << std::dec << 100.0f * it->efficiency << " %" << endl;
+      cerr << *it << endl;
     }
     cerr << endl;
+
     sort(results.begin(), results.end(), lower_efficiency);
-    sort(cubic_results.begin(), cubic_results.end(), lower_efficiency);
-    cerr << "Efficiency summary: min = "
-         << 100.0f * results.front().efficiency << " %, max = "
-         << 100.0f * results.back().efficiency << " %, median = "
-         << 100.0f * results[results.size() / 2].efficiency << " %" << endl;
-    cerr << "20% of product sizes have efficiency <= " << 100.0f * results[results.size() * 20 / 100].efficiency << " %" << endl;
-    cerr << "10% of product sizes have efficiency <= " << 100.0f * results[results.size() * 10 / 100].efficiency << " %" << endl;
-    cerr << "5% of product sizes have efficiency <= " << 100.0f * results[results.size() * 5 / 100].efficiency << " %" << endl;
-    cerr << "Cubic sizes efficiency summary: min = "
-         << 100.0f * cubic_results.front().efficiency << " %, max = "
-         << 100.0f * cubic_results.back().efficiency << " %, median = "
-         << 100.0f * cubic_results[cubic_results.size() / 2].efficiency << " %" << endl;
     
+    const size_t n = min<size_t>(20, results.size());
+    cerr << n << " worst results:" << endl;
+    for (size_t i = 0; i < n; i++) {
+      cerr << results[i] << endl;
+    }
+    cerr << endl;
+
+    cerr << "cubic results:" << endl;
+    for (auto it = cubic_results.begin(); it != cubic_results.end(); ++it) {
+      cerr << *it << endl;
+    }
+    cerr << endl;
+
+    sort(cubic_results.begin(), cubic_results.end(), lower_efficiency);
+    
+    cerr.precision(2);
+    vector<float> a = {0.5f, 0.20f, 0.10f, 0.05f, 0.02f, 0.01f};
+    for (auto it = a.begin(); it != a.end(); ++it) {
+      size_t n = min(results.size() - 1, size_t(*it * results.size()));
+      cerr << (100.0f * n / (results.size() - 1))
+           << " % of product sizes have default efficiency <= "
+           << 100.0f * results[n].default_efficiency << " %" << endl;
+    }
+    cerr.precision(default_precision);
   }
 };
 
@@ -568,8 +730,8 @@ void show_usage_and_exit(int argc, char* argv[],
 
 int main(int argc, char* argv[])
 {
-  cout.precision(4);
-  cerr.precision(4);
+  cout.precision(default_precision);
+  cerr.precision(default_precision);
 
   vector<unique_ptr<action_t>> available_actions;
   available_actions.emplace_back(new partition_action_t);
@@ -577,7 +739,7 @@ int main(int argc, char* argv[])
 
   auto action = available_actions.end();
 
-  if (argc <= 2) {
+  if (argc < 2) {
     show_usage_and_exit(argc, argv, available_actions);
   }
   for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
@@ -591,15 +753,5 @@ int main(int argc, char* argv[])
     show_usage_and_exit(argc, argv, available_actions);
   }
 
-  vector<string> inputfilenames;
-  for (int i = 2; i < argc; i++) {
-  	inputfilenames.emplace_back(argv[i]);
-  }
-
-  vector<preprocessed_inputfile_t> preprocessed_inputfiles;
-  for (auto it = inputfilenames.begin(); it != inputfilenames.end(); ++it) {
-    preprocessed_inputfiles.emplace_back(inputfile_t(*it));
-  }
-
-  (*action)->run(preprocessed_inputfiles);
+  (*action)->run(argc - 2, argv + 2);
 }
