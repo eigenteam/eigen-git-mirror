@@ -1,33 +1,33 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_CONJUGATE_GRADIENT_H
-#define EIGEN_CONJUGATE_GRADIENT_H
+#ifndef EIGEN_LEAST_SQUARE_CONJUGATE_GRADIENT_H
+#define EIGEN_LEAST_SQUARE_CONJUGATE_GRADIENT_H
 
 namespace Eigen { 
 
 namespace internal {
 
-/** \internal Low-level conjugate gradient algorithm
+/** \internal Low-level conjugate gradient algorithm for least-square problems
   * \param mat The matrix A
   * \param rhs The right hand side vector b
   * \param x On input and initial solution, on output the computed solution.
   * \param precond A preconditioner being able to efficiently solve for an
-  *                approximation of Ax=b (regardless of b)
+  *                approximation of A'Ax=b (regardless of b)
   * \param iters On input the max number of iteration, on output the number of performed iterations.
   * \param tol_error On input the tolerance error, on output an estimation of the relative error.
   */
 template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
 EIGEN_DONT_INLINE
-void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
-                        const Preconditioner& precond, Index& iters,
-                        typename Dest::RealScalar& tol_error)
+void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
+                                     const Preconditioner& precond, Index& iters,
+                                     typename Dest::RealScalar& tol_error)
 {
   using std::sqrt;
   using std::abs;
@@ -38,11 +38,12 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   RealScalar tol = tol_error;
   Index maxIters = iters;
   
-  Index n = mat.cols();
+  Index m = mat.rows(), n = mat.cols();
 
-  VectorType residual = rhs - mat * x; //initial residual
+  VectorType residual        = rhs - mat * x;
+  VectorType normal_residual = mat.adjoint() * residual;
 
-  RealScalar rhsNorm2 = rhs.squaredNorm();
+  RealScalar rhsNorm2 = (mat.adjoint()*rhs).squaredNorm();
   if(rhsNorm2 == 0) 
   {
     x.setZero();
@@ -51,7 +52,7 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
     return;
   }
   RealScalar threshold = tol*tol*rhsNorm2;
-  RealScalar residualNorm2 = residual.squaredNorm();
+  RealScalar residualNorm2 = normal_residual.squaredNorm();
   if (residualNorm2 < threshold)
   {
     iters = 0;
@@ -60,29 +61,30 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   }
   
   VectorType p(n);
-  p = precond.solve(residual);      // initial search direction
+  p = precond.solve(normal_residual);                         // initial search direction
 
-  VectorType z(n), tmp(n);
-  RealScalar absNew = numext::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
+  VectorType z(n), tmp(m);
+  RealScalar absNew = numext::real(normal_residual.dot(p));  // the square of the absolute value of r scaled by invM
   Index i = 0;
   while(i < maxIters)
   {
-    tmp.noalias() = mat * p;                    // the bottleneck of the algorithm
+    tmp.noalias() = mat * p;
 
-    Scalar alpha = absNew / p.dot(tmp);         // the amount we travel on dir
-    x += alpha * p;                             // update solution
-    residual -= alpha * tmp;                    // update residual
+    Scalar alpha = absNew / tmp.squaredNorm();      // the amount we travel on dir
+    x += alpha * p;                                 // update solution
+    residual -= alpha * tmp;                        // update residual
+    normal_residual = mat.adjoint() * residual;     // update residual of the normal equation
     
-    residualNorm2 = residual.squaredNorm();
+    residualNorm2 = normal_residual.squaredNorm();
     if(residualNorm2 < threshold)
       break;
     
-    z = precond.solve(residual);                // approximately solve for "A z = residual"
+    z = precond.solve(normal_residual);             // approximately solve for "A'A z = normal_residual"
 
     RealScalar absOld = absNew;
-    absNew = numext::real(residual.dot(z));     // update the absolute value of r
-    RealScalar beta = absNew / absOld;          // calculate the Gram-Schmidt value used to create the new search direction
-    p = z + beta * p;                           // update search direction
+    absNew = numext::real(normal_residual.dot(z));  // update the absolute value of r
+    RealScalar beta = absNew / absOld;              // calculate the Gram-Schmidt value used to create the new search direction
+    p = z + beta * p;                               // update search direction
     i++;
   }
   tol_error = sqrt(residualNorm2 / rhsNorm2);
@@ -91,14 +93,14 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
 
 }
 
-template< typename _MatrixType, int _UpLo=Lower,
-          typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar> >
-class ConjugateGradient;
+template< typename _MatrixType,
+          typename _Preconditioner = LeastSquareDiagonalPreconditioner<typename _MatrixType::Scalar> >
+class LSCG;
 
 namespace internal {
 
-template< typename _MatrixType, int _UpLo, typename _Preconditioner>
-struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
+template< typename _MatrixType, typename _Preconditioner>
+struct traits<LSCG<_MatrixType,_Preconditioner> >
 {
   typedef _MatrixType MatrixType;
   typedef _Preconditioner Preconditioner;
@@ -107,15 +109,15 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
 }
 
 /** \ingroup IterativeLinearSolvers_Module
-  * \brief A conjugate gradient solver for sparse (or dense) self-adjoint problems
+  * \brief A conjugate gradient solver for sparse (or dense) least-square problems
   *
-  * This class allows to solve for A.x = b linear problems using an iterative conjugate gradient algorithm.
-  * The matrix A must be selfadjoint. The matrix A and the vectors x and b can be either dense or sparse.
+  * This class allows to solve for A x = b linear problems using an iterative conjugate gradient algorithm.
+  * The matrix A can be non symmetric and rectangular, but the matrix A' A should be positive-definite to guaranty stability.
+  * Otherwise, the SparseLU or SparseQR classes might be preferable.
+  * The matrix A and the vectors x and b can be either dense or sparse.
   *
   * \tparam _MatrixType the type of the matrix A, can be a dense or a sparse matrix.
-  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower,
-  *               Upper, or Lower|Upper in which the full matrix entries will be considered. Default is Lower.
-  * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
+  * \tparam _Preconditioner the type of the preconditioner. Default is LeastSquareDiagonalPreconditioner
   *
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
   * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
@@ -123,28 +125,28 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * 
   * This class can be used as the direct solver classes. Here is a typical usage example:
     \code
-    int n = 10000;
-    VectorXd x(n), b(n);
-    SparseMatrix<double> A(n,n);
+    int m=1000000, n = 10000;
+    VectorXd x(n), b(m);
+    SparseMatrix<double> A(m,n);
     // fill A and b
-    ConjugateGradient<SparseMatrix<double> > cg;
-    cg.compute(A);
-    x = cg.solve(b);
-    std::cout << "#iterations:     " << cg.iterations() << std::endl;
-    std::cout << "estimated error: " << cg.error()      << std::endl;
+    LSCG<SparseMatrix<double> > lscg;
+    lscg.compute(A);
+    x = lscg.solve(b);
+    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
+    std::cout << "estimated error: " << lscg.error()      << std::endl;
     // update b, and solve again
-    x = cg.solve(b);
+    x = lscg.solve(b);
     \endcode
   * 
   * By default the iterations start with x=0 as an initial guess of the solution.
   * One can control the start using the solveWithGuess() method.
   * 
-  * \sa class LSCG, class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
+  * \sa class ConjugateGradient, SparseLU, SparseQR
   */
-template< typename _MatrixType, int _UpLo, typename _Preconditioner>
-class ConjugateGradient : public IterativeSolverBase<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
+template< typename _MatrixType, typename _Preconditioner>
+class LSCG : public IterativeSolverBase<LSCG<_MatrixType,_Preconditioner> >
 {
-  typedef IterativeSolverBase<ConjugateGradient> Base;
+  typedef IterativeSolverBase<LSCG> Base;
   using Base::mp_matrix;
   using Base::m_error;
   using Base::m_iterations;
@@ -156,14 +158,10 @@ public:
   typedef typename MatrixType::RealScalar RealScalar;
   typedef _Preconditioner Preconditioner;
 
-  enum {
-    UpLo = _UpLo
-  };
-
 public:
 
   /** Default constructor. */
-  ConjugateGradient() : Base() {}
+  LSCG() : Base() {}
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
     * 
@@ -175,18 +173,14 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  explicit ConjugateGradient(const MatrixType& A) : Base(A) {}
+  explicit LSCG(const MatrixType& A) : Base(A) {}
 
-  ~ConjugateGradient() {}
+  ~LSCG() {}
 
   /** \internal */
   template<typename Rhs,typename Dest>
   void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {
-    typedef typename internal::conditional<UpLo==(Lower|Upper),
-                                           Ref<const MatrixType>&,
-                                           SparseSelfAdjointView<const Ref<const MatrixType>, UpLo>
-                                          >::type MatrixWrapperType;
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
@@ -196,7 +190,7 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      internal::conjugate_gradient(MatrixWrapperType(mp_matrix), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
+      internal::least_square_conjugate_gradient(mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
     }
 
     m_isInitialized = true;
@@ -208,14 +202,12 @@ public:
   template<typename Rhs,typename Dest>
   void _solve_impl(const MatrixBase<Rhs>& b, Dest& x) const
   {
-    x.setOnes();
+    x.setZero();
     _solve_with_guess_impl(b.derived(),x);
   }
-
-protected:
 
 };
 
 } // end namespace Eigen
 
-#endif // EIGEN_CONJUGATE_GRADIENT_H
+#endif // EIGEN_LEAST_SQUARE_CONJUGATE_GRADIENT_H

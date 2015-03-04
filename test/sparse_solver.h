@@ -17,9 +17,9 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   typedef typename Mat::Scalar Scalar;
   typedef typename Mat::StorageIndex StorageIndex;
 
-  DenseRhs refX = dA.lu().solve(db);
+  DenseRhs refX = dA.householderQr().solve(db);
   {
-    Rhs x(b.rows(), b.cols());
+    Rhs x(A.cols(), b.cols());
     Rhs oldb = b;
 
     solver.compute(A);
@@ -94,7 +94,7 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   
   // test dense Block as the result and rhs:
   {
-    DenseRhs x(db.rows(), db.cols());
+    DenseRhs x(refX.rows(), refX.cols());
     DenseRhs oldb(db);
     x.setZero();
     x.block(0,0,x.rows(),x.cols()) = solver.solve(db.block(0,0,db.rows(),db.cols()));
@@ -119,7 +119,7 @@ void check_sparse_solving_real_cases(Solver& solver, const typename Solver::Matr
   typedef typename Mat::Scalar Scalar;
   typedef typename Mat::RealScalar RealScalar;
   
-  Rhs x(b.rows(), b.cols());
+  Rhs x(A.cols(), b.cols());
   
   solver.compute(A);
   if (solver.info() != Success)
@@ -410,3 +410,53 @@ template<typename Solver> void check_sparse_square_abs_determinant(Solver& solve
   }
 }
 
+template<typename Solver, typename DenseMat>
+void generate_sparse_leastsquare_problem(Solver&, typename Solver::MatrixType& A, DenseMat& dA, int maxSize = 300, int options = ForceNonZeroDiag)
+{
+  typedef typename Solver::MatrixType Mat;
+  typedef typename Mat::Scalar Scalar;
+
+  int rows = internal::random<int>(1,maxSize);
+  int cols = internal::random<int>(1,rows);
+  double density = (std::max)(8./(rows*cols), 0.01);
+  
+  A.resize(rows,cols);
+  dA.resize(rows,cols);
+
+  initSparse<Scalar>(density, dA, A, options);
+}
+
+template<typename Solver> void check_sparse_leastsquare_solving(Solver& solver)
+{
+  typedef typename Solver::MatrixType Mat;
+  typedef typename Mat::Scalar Scalar;
+  typedef SparseMatrix<Scalar,ColMajor> SpMat;
+  typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
+  typedef Matrix<Scalar,Dynamic,1> DenseVector;
+
+  int rhsCols = internal::random<int>(1,16);
+
+  Mat A;
+  DenseMatrix dA;
+  for (int i = 0; i < g_repeat; i++) {
+    generate_sparse_leastsquare_problem(solver, A, dA);
+
+    A.makeCompressed();
+    DenseVector b = DenseVector::Random(A.rows());
+    DenseMatrix dB(A.rows(),rhsCols);
+    SpMat B(A.rows(),rhsCols);
+    double density = (std::max)(8./(A.rows()*rhsCols), 0.1);
+    initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
+    B.makeCompressed();
+    check_sparse_solving(solver, A, b,  dA, b);
+    check_sparse_solving(solver, A, dB, dA, dB);
+    check_sparse_solving(solver, A, B,  dA, dB);
+    
+    // check only once
+    if(i==0)
+    {
+      b = DenseVector::Zero(A.rows());
+      check_sparse_solving(solver, A, b, dA, b);
+    }
+  }
+}
