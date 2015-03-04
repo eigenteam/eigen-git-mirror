@@ -222,24 +222,18 @@ class SparseMatrix
       * The non zero coefficient must \b not already exist.
       *
       * If the matrix \c *this is in compressed mode, then \c *this is turned into uncompressed
-      * mode while reserving room for 2 non zeros per inner vector. It is strongly recommended to first
-      * call reserve(const SizesType &) to reserve a more appropriate number of elements per
-      * inner vector that better match your scenario.
+      * mode while reserving room for 2 x this->innerSize() non zeros if reserve(Index) has not been called earlier.
+      * In this case, the insertion procedure is optimized for a \e sequential insertion mode where elements are assumed to be
+      * inserted by increasing outer-indices.
+      * 
+      * If that's not the case, then it is strongly recommended to either use a triplet-list to assemble the matrix, or to first
+      * call reserve(const SizesType &) to reserve the appropriate number of non-zero elements per inner vector.
       *
-      * This function performs a sorted insertion in O(1) if the elements of each inner vector are
-      * inserted in increasing inner index order, and in O(nnz_j) for a random insertion.
+      * Assuming memory has been appropriately reserved, this function performs a sorted insertion in O(1)
+      * if the elements of each inner vector are inserted in increasing inner index order, and in O(nnz_j) for a random insertion.
       *
       */
-    Scalar& insert(Index row, Index col)
-    {
-      eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
-      
-      if(isCompressed())
-      {
-        reserve(IndexVector::Constant(outerSize(), 2));
-      }
-      return insertUncompressed(row,col);
-    }
+    Scalar& insert(Index row, Index col);
 
   public:
 
@@ -1076,6 +1070,114 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
   }
 }
 
+template<typename _Scalar, int _Options, typename _Index>
+typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& SparseMatrix<_Scalar,_Options,_Index>::insert(Index row, Index col)
+{
+  eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
+  
+  const Index outer = IsRowMajor ? row : col;
+  const Index inner = IsRowMajor ? col : row;
+  
+  if(isCompressed())
+  {
+    if(nonZeros()==0)
+    {
+      // reserve space if not already done
+      if(m_data.allocatedSize()==0)
+        m_data.reserve(2*m_innerSize);
+      
+      // turn the matrix into non-compressed mode
+      m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
+      if(!m_innerNonZeros) internal::throw_std_bad_alloc();
+      
+      memset(m_innerNonZeros, 0, (m_outerSize)*sizeof(StorageIndex));
+      
+      // pack all inner-vectors to the end of the pre-allocated space
+      // and allocate the entire free-space to the first inner-vector
+      StorageIndex end = convert_index(m_data.allocatedSize());
+      for(Index j=1; j<=m_outerSize; ++j)
+        m_outerIndex[j] = end;
+    }
+  }
+  
+  // check whether we can do a fast "push back" insertion
+  Index data_end = m_data.allocatedSize();
+  
+  // First case: we are filling a new inner vector which is packed at the end.
+  // We assume that all remaining inner-vectors are also empty and packed to the end.
+  if(m_outerIndex[outer]==data_end)
+  {
+    eigen_internal_assert(m_innerNonZeros[outer]==0);
+    
+    // pack previous empty inner-vectors to end of the used-space
+    // and allocate the entire free-space to the current inner-vector.
+    StorageIndex p = convert_index(m_data.size());
+    Index j = outer;
+    while(j>=0 && m_innerNonZeros[j]==0)
+      m_outerIndex[j--] = p;
+    
+    // push back the new element
+    ++m_innerNonZeros[outer];
+    m_data.append(Scalar(0), inner);
+    
+    // check for reallocation
+    if(data_end != m_data.allocatedSize())
+    {
+      // m_data has been reallocated
+      //  -> move remaining inner-vectors back to the end of the free-space
+      //     so that the entire free-space is allocated to the current inner-vector.
+      eigen_internal_assert(data_end < m_data.allocatedSize());
+      StorageIndex new_end = convert_index(m_data.allocatedSize());
+      for(Index j=outer+1; j<=m_outerSize; ++j)
+        if(m_outerIndex[j]==data_end)
+          m_outerIndex[j] = new_end;
+    }
+    return m_data.value(p);
+  }
+  
+  // Second case: the next inner-vector is packed to the end
+  // and the current inner-vector end match the used-space.
+  if(m_outerIndex[outer+1]==data_end && m_outerIndex[outer]+m_innerNonZeros[outer]==m_data.size())
+  {
+    eigen_internal_assert(outer+1==m_outerSize || m_innerNonZeros[outer+1]==0);
+    
+    // add space for the new element
+    ++m_innerNonZeros[outer];
+    m_data.resize(m_data.size()+1);
+    
+    // check for reallocation
+    if(data_end != m_data.allocatedSize())
+    {
+      // m_data has been reallocated
+      //  -> move remaining inner-vectors back to the end of the free-space
+      //     so that the entire free-space is allocated to the current inner-vector.
+      eigen_internal_assert(data_end < m_data.allocatedSize());
+      StorageIndex new_end = convert_index(m_data.allocatedSize());
+      for(Index j=outer+1; j<=m_outerSize; ++j)
+        if(m_outerIndex[j]==data_end)
+          m_outerIndex[j] = new_end;
+    }
+    
+    // and insert it at the right position (sorted insertion)
+    Index startId = m_outerIndex[outer];
+    Index p = m_outerIndex[outer]+m_innerNonZeros[outer]-1;
+    while ( (p > startId) && (m_data.index(p-1) > inner) )
+    {
+      m_data.index(p) = m_data.index(p-1);
+      m_data.value(p) = m_data.value(p-1);
+      --p;
+    }
+    
+    m_data.index(p) = convert_index(inner);
+    return (m_data.value(p) = 0);
+  }
+  
+  // make sure the matrix is compatible to random un-compressed insertion:
+  m_data.resize(m_data.allocatedSize());
+  
+  return insertUncompressed(row,col);
+}
+    
 template<typename _Scalar, int _Options, typename _Index>
 EIGEN_DONT_INLINE typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& SparseMatrix<_Scalar,_Options,_Index>::insertUncompressed(Index row, Index col)
 {
