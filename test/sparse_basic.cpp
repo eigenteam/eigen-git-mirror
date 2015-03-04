@@ -9,6 +9,9 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+static long g_realloc_count = 0;
+#define EIGEN_SPARSE_COMPRESSED_STORAGE_REALLOCATE_PLUGIN g_realloc_count++;
+
 #include "sparse.h"
 
 template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& ref)
@@ -107,17 +110,31 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       DenseMatrix m1(rows,cols);
       m1.setZero();
       SparseMatrixType m2(rows,cols);
-      if(internal::random<int>()%2)
-        m2.reserve(VectorXi::Constant(m2.outerSize(), 2));
+      bool call_reserve = internal::random<int>()%2;
+      Index nnz = internal::random<int>(1,int(rows)/2);
+      if(call_reserve)
+      {
+        if(internal::random<int>()%2)
+          m2.reserve(VectorXi::Constant(m2.outerSize(), int(nnz)));
+        else
+          m2.reserve(m2.outerSize() * nnz);
+      }
+      g_realloc_count = 0;
       for (Index j=0; j<cols; ++j)
       {
-        for (Index k=0; k<rows/2; ++k)
+        for (Index k=0; k<nnz; ++k)
         {
           Index i = internal::random<Index>(0,rows-1);
           if (m1.coeff(i,j)==Scalar(0))
             m2.insert(i,j) = m1(i,j) = internal::random<Scalar>();
         }
       }
+      
+      if(call_reserve && !SparseMatrixType::IsRowMajor)
+      {
+        VERIFY(g_realloc_count==0);
+      }
+      
       m2.finalize();
       VERIFY_IS_APPROX(m2,m1);
     }
@@ -575,7 +592,7 @@ void big_sparse_triplet(Index rows, Index cols, double density) {
 void test_sparse_basic()
 {
   for(int i = 0; i < g_repeat; i++) {
-    int r = Eigen::internal::random<int>(1,100), c = Eigen::internal::random<int>(1,100);
+    int r = Eigen::internal::random<int>(1,200), c = Eigen::internal::random<int>(1,200);
     if(Eigen::internal::random<int>(0,4) == 0) {
       r = c; // check square matrices in 25% of tries
     }
@@ -587,6 +604,12 @@ void test_sparse_basic()
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(r, c)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,long int>(r, c)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,long int>(r, c)) ));
+    
+    r = Eigen::internal::random<int>(1,100);
+    c = Eigen::internal::random<int>(1,100);
+    if(Eigen::internal::random<int>(0,4) == 0) {
+      r = c; // check square matrices in 25% of tries
+    }
     
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,short int>(short(r), short(c))) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,short int>(short(r), short(c))) ));

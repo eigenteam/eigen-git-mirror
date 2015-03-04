@@ -214,6 +214,9 @@ class CompressedStorage
 
     inline void reallocate(Index size)
     {
+      #ifdef EIGEN_SPARSE_COMPRESSED_STORAGE_REALLOCATE_PLUGIN
+        EIGEN_SPARSE_COMPRESSED_STORAGE_REALLOCATE_PLUGIN
+      #endif
       eigen_internal_assert(size!=m_allocatedSize);
       internal::scoped_array<Scalar> newValues(size);
       internal::scoped_array<StorageIndex> newIndices(size);
