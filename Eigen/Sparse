@@ -11,9 +11,9 @@
   * - \ref SparseQR_Module
   * - \ref IterativeLinearSolvers_Module
   *
-  * \code
-  * #include <Eigen/Sparse>
-  * \endcode
+    \code
+    #include <Eigen/Sparse>
+    \endcode
   */
 
 #include "SparseCore"
