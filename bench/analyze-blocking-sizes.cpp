@@ -680,38 +680,38 @@ struct evaluate_defaults_action_t : action_t
       }
     }
 
-    cerr << "All results:" << endl;
+    cout << "All results:" << endl;
     for (auto it = results.begin(); it != results.end(); ++it) {
-      cerr << *it << endl;
+      cout << *it << endl;
     }
-    cerr << endl;
+    cout << endl;
 
     sort(results.begin(), results.end(), lower_efficiency);
     
     const size_t n = min<size_t>(20, results.size());
-    cerr << n << " worst results:" << endl;
+    cout << n << " worst results:" << endl;
     for (size_t i = 0; i < n; i++) {
-      cerr << results[i] << endl;
+      cout << results[i] << endl;
     }
-    cerr << endl;
+    cout << endl;
 
-    cerr << "cubic results:" << endl;
+    cout << "cubic results:" << endl;
     for (auto it = cubic_results.begin(); it != cubic_results.end(); ++it) {
-      cerr << *it << endl;
+      cout << *it << endl;
     }
-    cerr << endl;
+    cout << endl;
 
     sort(cubic_results.begin(), cubic_results.end(), lower_efficiency);
     
-    cerr.precision(2);
+    cout.precision(2);
     vector<float> a = {0.5f, 0.20f, 0.10f, 0.05f, 0.02f, 0.01f};
     for (auto it = a.begin(); it != a.end(); ++it) {
       size_t n = min(results.size() - 1, size_t(*it * results.size()));
-      cerr << (100.0f * n / (results.size() - 1))
+      cout << (100.0f * n / (results.size() - 1))
            << " % of product sizes have default efficiency <= "
            << 100.0f * results[n].default_efficiency << " %" << endl;
     }
-    cerr.precision(default_precision);
+    cout.precision(default_precision);
   }
 };
 
