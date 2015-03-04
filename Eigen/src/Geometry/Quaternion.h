@@ -667,12 +667,10 @@ template <class OtherDerived>
 inline typename internal::traits<Derived>::Scalar
 QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& other) const
 {
-  using std::acos;
+  using std::atan2;
   using std::abs;
-  Scalar d = abs(this->dot(other));
-  if (d>=Scalar(1))
-    return Scalar(0);
-  return Scalar(2) * acos(d);
+  Quaternion<Scalar> d = (*this) * other.conjugate();
+  return Scalar(2) * atan2( d.vec().norm(), abs(d.w()) );
 }
 
  
