@@ -102,7 +102,7 @@ class DiagonalPreconditioner
 };
 
 /** \ingroup IterativeLinearSolvers_Module
-  * \brief Jacobi preconditioner for LSCG
+  * \brief Jacobi preconditioner for LeastSquaresConjugateGradient
   *
   * This class allows to approximately solve for A' A x  = A' b problems assuming A' A is a diagonal matrix.
   * In other words, this preconditioner neglects all off diagonal entries and, in Eigen's language, solves for:
@@ -114,7 +114,7 @@ class DiagonalPreconditioner
   *
   * The diagonal entries are pre-inverted and stored into a dense vector.
   * 
-  * \sa class LSCG, class DiagonalPreconditioner
+  * \sa class LeastSquaresConjugateGradient, class DiagonalPreconditioner
   */
 template <typename _Scalar>
 class LeastSquareDiagonalPreconditioner : public DiagonalPreconditioner<_Scalar>

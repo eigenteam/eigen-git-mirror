@@ -12,8 +12,8 @@
 
 template<typename T> void test_lscg_T()
 {
-  LSCG<SparseMatrix<T> > lscg_colmajor_diag;
-  LSCG<SparseMatrix<T>, IdentityPreconditioner> lscg_colmajor_I;
+  LeastSquaresConjugateGradient<SparseMatrix<T> > lscg_colmajor_diag;
+  LeastSquaresConjugateGradient<SparseMatrix<T>, IdentityPreconditioner> lscg_colmajor_I;
 
   CALL_SUBTEST( check_sparse_square_solving(lscg_colmajor_diag)  );
   CALL_SUBTEST( check_sparse_square_solving(lscg_colmajor_I)     );

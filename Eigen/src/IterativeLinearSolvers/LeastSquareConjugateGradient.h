@@ -95,12 +95,12 @@ void least_square_conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest
 
 template< typename _MatrixType,
           typename _Preconditioner = LeastSquareDiagonalPreconditioner<typename _MatrixType::Scalar> >
-class LSCG;
+class LeastSquaresConjugateGradient;
 
 namespace internal {
 
 template< typename _MatrixType, typename _Preconditioner>
-struct traits<LSCG<_MatrixType,_Preconditioner> >
+struct traits<LeastSquaresConjugateGradient<_MatrixType,_Preconditioner> >
 {
   typedef _MatrixType MatrixType;
   typedef _Preconditioner Preconditioner;
@@ -129,7 +129,7 @@ struct traits<LSCG<_MatrixType,_Preconditioner> >
     VectorXd x(n), b(m);
     SparseMatrix<double> A(m,n);
     // fill A and b
-    LSCG<SparseMatrix<double> > lscg;
+    LeastSquaresConjugateGradient<SparseMatrix<double> > lscg;
     lscg.compute(A);
     x = lscg.solve(b);
     std::cout << "#iterations:     " << lscg.iterations() << std::endl;
@@ -144,9 +144,9 @@ struct traits<LSCG<_MatrixType,_Preconditioner> >
   * \sa class ConjugateGradient, SparseLU, SparseQR
   */
 template< typename _MatrixType, typename _Preconditioner>
-class LSCG : public IterativeSolverBase<LSCG<_MatrixType,_Preconditioner> >
+class LeastSquaresConjugateGradient : public IterativeSolverBase<LeastSquaresConjugateGradient<_MatrixType,_Preconditioner> >
 {
-  typedef IterativeSolverBase<LSCG> Base;
+  typedef IterativeSolverBase<LeastSquaresConjugateGradient> Base;
   using Base::mp_matrix;
   using Base::m_error;
   using Base::m_iterations;
@@ -161,7 +161,7 @@ public:
 public:
 
   /** Default constructor. */
-  LSCG() : Base() {}
+  LeastSquaresConjugateGradient() : Base() {}
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
     * 
@@ -173,9 +173,9 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  explicit LSCG(const MatrixType& A) : Base(A) {}
+  explicit LeastSquaresConjugateGradient(const MatrixType& A) : Base(A) {}
 
-  ~LSCG() {}
+  ~LeastSquaresConjugateGradient() {}
 
   /** \internal */
   template<typename Rhs,typename Dest>
