@@ -952,14 +952,28 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     // Usually, make sense only with FMA
     if(mr>=3*Traits::LhsProgress)
     {
+#ifdef EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION
+      const bool swap_loops = EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION;
+#else
+      const bool swap_loops = depth<48;
+#endif
+    
+      Index bound1 =  swap_loops ? packet_cols4 : peeled_mc3;
+      Index bound2 = !swap_loops ? packet_cols4 : peeled_mc3;
+      Index incr1  =  swap_loops ? nr : 3*Traits::LhsProgress;
+      Index incr2  = !swap_loops ? nr : 3*Traits::LhsProgress;
+      
       PossiblyRotatingKernelHelper<gebp_kernel> possiblyRotatingKernelHelper(traits);
-
+          
       // loops on each largest micro horizontal panel of lhs (3*Traits::LhsProgress x depth)
-      for(Index i=0; i<peeled_mc3; i+=3*Traits::LhsProgress)
+      // and on each largest micro vertical panel of rhs (depth * nr)
+      for(Index it1=0; it1<bound1; it1+=incr1)
       {
-        // loops on each largest micro vertical panel of rhs (depth * nr)
-        for(Index j2=0; j2<packet_cols4; j2+=nr)
+        for(Index it2=0; it2<bound2; it2+=incr2)
         {
+          Index i  =  swap_loops ? it2 : it1;
+          Index j2 = !swap_loops ? it2 : it1;
+          
           // We select a 3*Traits::LhsProgress x nr micro block of res which is entirely
           // stored into 3 x nr registers.
           
@@ -1097,8 +1111,12 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           r3.storePacket(1 * Traits::ResPacketSize, R1);
           r3.storePacket(2 * Traits::ResPacketSize, R2);
         }
+      }
 
-        // Deal with remaining columns of the rhs
+      // Deal with remaining columns of the rhs
+      if(packet_cols4<cols)
+      for(Index i=0; i<peeled_mc3; i+=3*Traits::LhsProgress)
+      {
         for(Index j2=packet_cols4; j2<cols; j2++)
         {
           // One column at a time
@@ -1179,12 +1197,25 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     //---------- Process 2 * LhsProgress rows at once ----------
     if(mr>=2*Traits::LhsProgress)
     {
-      // loops on each largest micro horizontal panel of lhs (2*LhsProgress x depth)
-      for(Index i=peeled_mc3; i<peeled_mc2; i+=2*LhsProgress)
+#ifdef EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION
+      const bool swap_loops = (mr<3*Traits::LhsProgress) && (EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION);
+#else
+      const bool swap_loops = (mr<3*Traits::LhsProgress) && (depth<48);
+#endif 
+      Index start1 =  swap_loops ? 0 : peeled_mc3;
+      Index start2 = !swap_loops ? 0 : peeled_mc3;
+      Index bound1 =  swap_loops ? packet_cols4 : peeled_mc2;
+      Index bound2 = !swap_loops ? packet_cols4 : peeled_mc2;
+      Index incr1  =  swap_loops ? nr : 2*Traits::LhsProgress;
+      Index incr2  = !swap_loops ? nr : 2*Traits::LhsProgress;
+      
+      for(Index it1=start1; it1<bound1; it1+=incr1)
       {
-        // loops on each largest micro vertical panel of rhs (depth * nr)
-        for(Index j2=0; j2<packet_cols4; j2+=nr)
+        for(Index it2=start2; it2<bound2; it2+=incr2)
         {
+          Index i  =  swap_loops ? it2 : it1;
+          Index j2 = !swap_loops ? it2 : it1;
+          
           // We select a 2*Traits::LhsProgress x nr micro block of res which is entirely
           // stored into 2 x nr registers.
           
@@ -1290,8 +1321,12 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           r3.storePacket(0 * Traits::ResPacketSize, R2);
           r3.storePacket(1 * Traits::ResPacketSize, R3);
         }
-
-        // Deal with remaining columns of the rhs
+      }
+      
+      // Deal with remaining columns of the rhs
+      if(packet_cols4<cols)
+      for(Index i=peeled_mc3; i<peeled_mc2; i+=2*Traits::LhsProgress)
+      {
         for(Index j2=packet_cols4; j2<cols; j2++)
         {
           // One column at a time
