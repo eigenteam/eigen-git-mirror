@@ -37,16 +37,18 @@ const int measurement_repetitions = 3;
 // Timings below this value are too short to be accurate,
 // we'll repeat measurements with more iterations until
 // we get a timing above that threshold.
-const float min_accurate_time = 1e-2f;
+const float g_min_accurate_time = 1e-2f;
 
 // See --min-working-set-size command line parameter.
-size_t min_working_set_size = 0;
+size_t g_min_working_set_size = 0;
 
 // range of sizes that we will benchmark (in all 3 K,M,N dimensions)
 const size_t maxsize = 2048;
 const size_t minsize = 16;
 
 typedef MatrixXf MatrixType;
+typedef MatrixType::Scalar Scalar;
+typedef internal::packet_traits<Scalar>::type Packet;
 
 static_assert((maxsize & (maxsize - 1)) == 0, "maxsize must be a power of two");
 static_assert((minsize & (minsize - 1)) == 0, "minsize must be a power of two");
@@ -95,24 +97,24 @@ struct benchmark_t
   uint16_t compact_block_size;
   bool use_default_block_size;
   float gflops;
-  benchmark_t()
-    : compact_product_size(0)
-    , compact_block_size(0)
-    , gflops(0)
-    , use_default_block_size(false)
-  {}
+  size_t min_working_set_size;
+  float min_accurate_time;
   benchmark_t(size_t pk, size_t pm, size_t pn,
               size_t bk, size_t bm, size_t bn)
     : compact_product_size(compact_size_triple(pk, pm, pn))
     , compact_block_size(compact_size_triple(bk, bm, bn))
     , use_default_block_size(false)
     , gflops(0)
+    , min_working_set_size(g_min_working_set_size)
+    , min_accurate_time(g_min_accurate_time)
   {}
   benchmark_t(size_t pk, size_t pm, size_t pn)
     : compact_product_size(compact_size_triple(pk, pm, pn))
     , compact_block_size(0)
     , use_default_block_size(true)
     , gflops(0)
+    , min_working_set_size(g_min_working_set_size)
+    , min_accurate_time(g_min_accurate_time)
   {}
 
   void run();
@@ -124,7 +126,7 @@ ostream& operator<<(ostream& s, const benchmark_t& b)
   if (b.use_default_block_size) {
     size_triple_t t(b.compact_product_size);
     Index k = t.k, m = t.m, n = t.n;
-    internal::computeProductBlockingSizes<MatrixType::Scalar, MatrixType::Scalar>(k, m, n);
+    internal::computeProductBlockingSizes<Scalar, Scalar>(k, m, n);
     s << " default(" << k << ", " << m << ", " << n << ")";
   } else {
     s << " " << hex << b.compact_block_size << dec;
@@ -162,7 +164,7 @@ void benchmark_t::run()
   // set up the matrix pool
 
   const size_t combined_three_matrices_sizes =
-    sizeof(MatrixType::Scalar) *
+    sizeof(Scalar) *
       (productsizes.k * productsizes.m +
        productsizes.k * productsizes.n +
        productsizes.m * productsizes.n);
@@ -267,7 +269,7 @@ struct action_t
   virtual ~action_t() {}
 };
 
-void show_usage_and_exit(int argc, char* argv[],
+void show_usage_and_exit(int /*argc*/, char* argv[],
                          const vector<unique_ptr<action_t>>& available_actions)
 {
   cerr << "usage: " << argv[0] << " <action> [options...]" << endl << endl;
@@ -287,54 +289,204 @@ void show_usage_and_exit(int argc, char* argv[],
   cerr << "       avoid warm caches." << endl;
   exit(1);
 }
-
-void run_benchmarks(vector<benchmark_t>& benchmarks)
+     
+float measure_clock_speed()
 {
-  // randomly shuffling benchmarks allows us to get accurate enough progress info,
-  // as now the cheap/expensive benchmarks are randomly mixed so they average out.
-  random_shuffle(benchmarks.begin(), benchmarks.end());
+  cerr << "Measuring clock speed...                              \r" << flush;
+          
+  vector<float> all_gflops;
+  for (int i = 0; i < 8; i++) {
+    // a good measure of clock speed is obtained by benchmarking small matrices that
+    // fit in L1 cache and use warm caches (min_working_set_size = 1).
+    benchmark_t b(128, 128, 128);
+    b.min_working_set_size = 1;
+    b.min_accurate_time = 0.1f; // long-running for better accuracy
+    b.run();
+    all_gflops.push_back(b.gflops);
+  }
 
-  // timings here are only used to display progress info.
-  // Whence the use of real time.
-  double time_start = timer.getRealTime();
-  double time_last_progress_update = time_start;
-  for (size_t i = 0; i < benchmarks.size(); i++) {
-    // Display progress info on stderr
-    double time_now = timer.getRealTime();
-    if (time_now > time_last_progress_update + 1.0f) {
-      time_last_progress_update = time_now;
-      float ratio_done = float(i) / benchmarks.size();
-      cerr.precision(3);
-      cerr << "Measurements... " << 100.0f * ratio_done
-           << " %";
+  sort(all_gflops.begin(), all_gflops.end());
+  float stable_estimate = all_gflops[2] + all_gflops[3] + all_gflops[4] + all_gflops[5];
 
-      if (i > 10) {
-        cerr << ", ETA ";
-        int eta = int(float(time_now - time_start) * (1.0f - ratio_done) / ratio_done);
-        int eta_remainder = eta;
-        if (eta_remainder > 3600) {
-          int hours = eta_remainder / 3600;
-          cerr << hours << " h ";
-          eta_remainder -= hours * 3600;
+  // multiply by an arbitrary constant to discourage trying doing anything with the
+  // returned values besides just comparing them with each other.
+  float result = stable_estimate * 123.456f;
+
+  return result;
+}
+
+struct human_duration_t
+{
+  int seconds;
+  human_duration_t(int s) : seconds(s) {}
+};
+
+ostream& operator<<(ostream& s, const human_duration_t& d)
+{
+  int remainder = d.seconds;
+  if (remainder > 3600) {
+    int hours = remainder / 3600;
+    s << hours << " h ";
+    remainder -= hours * 3600;
+  }
+  if (remainder > 60) {
+    int minutes = remainder / 60;
+    s << minutes << " min ";
+    remainder -= minutes * 60;
+  }
+  if (d.seconds < 600) {
+    s << remainder << " s";
+  }
+  return s;
+}
+
+void try_run_some_benchmarks(
+  vector<benchmark_t>& benchmarks,
+  double time_start,
+  size_t& first_benchmark_to_run,
+  float& max_clock_speed)
+{
+  if (first_benchmark_to_run == benchmarks.size()) {
+    return;
+  }
+
+  double time_last_progress_update = 0;
+  double time_last_clock_speed_measurement = 0;
+  double time_now = 0;
+
+  size_t benchmark_index = first_benchmark_to_run;
+
+  while (true) {
+    float ratio_done = float(benchmark_index) / benchmarks.size();
+    time_now = timer.getRealTime();
+
+    // We check clock speed every minute and at the end.
+    if (benchmark_index == benchmarks.size() ||
+        time_now > time_last_clock_speed_measurement + 60.0f)
+    {
+      time_last_clock_speed_measurement = time_now;
+
+      // Ensure that clock speed is as expected
+      float current_clock_speed = measure_clock_speed();
+
+      // we only allow 1% higher clock speeds, because we want to know the
+      // clock speed with good accuracy, and this should only cause restarts
+      // at the beginning of the benchmarks run.
+      const float tolerance_higher_clock_speed = 1.01f;
+
+      if (current_clock_speed > tolerance_higher_clock_speed * max_clock_speed) {
+        // Clock speed is now higher than we previously measured.
+        // Either our initial measurement was inaccurate, which won't happen
+        // too many times as we are keeping the best clock speed value and
+        // and allowing some tolerance; or something really weird happened,
+        // which invalidates all benchmark results collected so far.
+        // Either way, we better restart all over again now.
+        if (benchmark_index) {
+          cerr << "Restarting at " << 100.0f * ratio_done
+               << " % because clock speed increased.          " << endl;
         }
-        if (eta_remainder > 60) {
-          int minutes = eta_remainder / 60;
-          cerr << minutes << " min ";
-          eta_remainder -= minutes * 60;
-        }
-        if (eta < 600 && eta_remainder) {
-          cerr << eta_remainder << " s";
+        max_clock_speed = current_clock_speed;
+        first_benchmark_to_run = 0;
+        return;
+      }
+
+      // we are a bit more tolerant to lower clock speeds because we don't want
+      // to cause sleeps and reruns all the time.
+      const float tolerance_lower_clock_speed = 0.98f;
+      bool rerun_last_tests = false;
+
+      if (current_clock_speed < tolerance_lower_clock_speed * max_clock_speed) {
+        cerr << "Measurements completed so far: "
+             << 100.0f * ratio_done
+             << " %                             " << endl;
+        cerr << "Clock speed seems to be only "
+             << current_clock_speed/max_clock_speed
+             << " times what it used to be." << endl;
+
+        unsigned int seconds_to_sleep_if_lower_clock_speed = 1;
+
+        while (current_clock_speed < tolerance_lower_clock_speed * max_clock_speed) {
+          if (seconds_to_sleep_if_lower_clock_speed > 300) {
+            cerr << "Sleeping longer probably won't make a difference. Giving up." << endl;
+            cerr << "Things to try:" << endl;
+            cerr << " 1. Check if the device is in some energy-saving state." << endl;
+            cerr << "    On Android, it may help to enable 'Stay Awake' in the dev settings." << endl;
+            cerr << " 2. Check if the device is overheating." << endl;
+            cerr << "    On some devices, system temperature is reported in" << endl;
+            cerr << "    /sys/class/thermal/thermal_zone*/temp" << endl;
+            cerr << " 3. Some system daemon might be playing with clock speeds." << endl;
+            cerr << "    In particular, on Qualcomm devices, disable mpdecision " << endl;
+            cerr << "    by renaming /system/bin/mpdecision and rebooting." << endl;
+            cerr << " 4. CPU frequency scaling might conceivably be the problem." << endl;
+            cerr << "    In particular, Intel Turbo Boost. Try disabling that." << endl;
+            exit(1);
+          }
+          rerun_last_tests = true;
+          cerr << "Sleeping "
+               << seconds_to_sleep_if_lower_clock_speed
+               << " s..." << endl;
+          sleep(seconds_to_sleep_if_lower_clock_speed);
+          current_clock_speed = measure_clock_speed();
+          seconds_to_sleep_if_lower_clock_speed *= 2;
         }
       }
-      cerr << "                                                \r" << flush;
+
+      if (rerun_last_tests) {
+        cerr << "Redoing the last "
+             << 100.0f * float(benchmark_index - first_benchmark_to_run) / benchmarks.size()
+             << " % because clock speed had been low.   " << endl;
+        return;
+      }
+
+      // nothing wrong with the clock speed so far, so there won't be a need to rerun
+      // benchmarks run so far in case we later encounter a lower clock speed.
+      first_benchmark_to_run = benchmark_index;
+    }
+
+    if (benchmark_index == benchmarks.size()) {
+      // We're done!
+      first_benchmark_to_run = benchmarks.size();
+      // Erase progress info
+      cerr << "                                                            " << endl;
+      return;
+    }
+
+    // Display progress info on stderr
+    if (time_now > time_last_progress_update + 1.0f) {
+      time_last_progress_update = time_now;
+      cerr << "Measurements... " << 100.0f * ratio_done
+           << " %, ETA "
+           << human_duration_t(float(time_now - time_start) * (1.0f - ratio_done) / ratio_done)
+           << "                          \r" << flush;
     }
 
     // This is where we actually run a benchmark!
-    benchmarks[i].run();
+    benchmarks[benchmark_index].run();
+    benchmark_index++;
   }
+}
 
-  // Erase progress info
-  cerr << "                                                            " << endl;
+void run_benchmarks(vector<benchmark_t>& benchmarks)
+{
+  // Randomly shuffling benchmarks allows us to get accurate enough progress info,
+  // as now the cheap/expensive benchmarks are randomly mixed so they average out.
+  // It also means that if data is corrupted for some time span, the odds are that
+  // not all repetitions of a given benchmark will be corrupted.
+  random_shuffle(benchmarks.begin(), benchmarks.end());
+
+  float max_clock_speed = 0.0f;
+  for (int i = 0; i < 4; i++) {
+    max_clock_speed = max(max_clock_speed, measure_clock_speed());
+  }
+  
+  double time_start = timer.getRealTime();
+  size_t first_benchmark_to_run = 0;
+  while (first_benchmark_to_run < benchmarks.size()) {
+    try_run_some_benchmarks(benchmarks,
+                            time_start,
+                            first_benchmark_to_run,
+                            max_clock_speed);
+  }
 
   // Sort timings by increasing benchmark parameters, and decreasing gflops.
   // The latter is very important. It means that we can ignore all but the first
@@ -414,6 +566,7 @@ struct measure_default_sizes_action_t : action_t
 
 int main(int argc, char* argv[])
 {
+  double time_start = timer.getRealTime();
   cout.precision(4);
   cerr.precision(4);
 
@@ -440,7 +593,7 @@ int main(int argc, char* argv[])
   for (int i = 2; i < argc; i++) {
     if (argv[i] == strstr(argv[i], "--min-working-set-size=")) {
       const char* equals_sign = strchr(argv[i], '=');
-      min_working_set_size = strtoul(equals_sign+1, nullptr, 10);
+      g_min_working_set_size = strtoul(equals_sign+1, nullptr, 10);
     } else {
       cerr << "unrecognized option: " << argv[i] << endl << endl;
       show_usage_and_exit(argc, argv, available_actions);
@@ -451,17 +604,20 @@ int main(int argc, char* argv[])
 
   cout << "benchmark parameters:" << endl;
   cout << "pointer size: " << 8*sizeof(void*) << " bits" << endl;
-  cout << "scalar type: " << type_name<MatrixType::Scalar>() << endl;
+  cout << "scalar type: " << type_name<Scalar>() << endl;
   cout << "packet size: " << internal::packet_traits<MatrixType::Scalar>::size << endl;
   cout << "minsize = " << minsize << endl;
   cout << "maxsize = " << maxsize << endl;
   cout << "measurement_repetitions = " << measurement_repetitions << endl;
-  cout << "min_accurate_time = " << min_accurate_time << endl;
-  cout << "min_working_set_size = " << min_working_set_size;
-  if (min_working_set_size == 0) {
+  cout << "g_min_accurate_time = " << g_min_accurate_time << endl;
+  cout << "g_min_working_set_size = " << g_min_working_set_size;
+  if (g_min_working_set_size == 0) {
     cout << " (try to outsize caches)";
   }
   cout << endl << endl;
 
   (*action)->run();
+
+  double time_end = timer.getRealTime();
+  cerr << "Finished in " << human_duration_t(time_end - time_start) << endl;
 }
