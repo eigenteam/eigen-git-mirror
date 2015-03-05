@@ -369,12 +369,14 @@ void try_run_some_benchmarks(
       // Ensure that clock speed is as expected
       float current_clock_speed = measure_clock_speed();
 
-      // we only allow 1% higher clock speeds, because we want to know the
-      // clock speed with good accuracy, and this should only cause restarts
-      // at the beginning of the benchmarks run.
-      const float tolerance_higher_clock_speed = 1.01f;
+      // The tolerance needs to be smaller than the relative difference between
+      // clock speeds that a device could operate under.
+      // It seems unlikely that a device would be throttling clock speeds by
+      // amounts smaller than 2%.
+      // With a value of 1%, I was getting within noise on a Sandy Bridge.
+      const float clock_speed_tolerance = 0.02f;
 
-      if (current_clock_speed > tolerance_higher_clock_speed * max_clock_speed) {
+      if (current_clock_speed > (1 + clock_speed_tolerance) * max_clock_speed) {
         // Clock speed is now higher than we previously measured.
         // Either our initial measurement was inaccurate, which won't happen
         // too many times as we are keeping the best clock speed value and
@@ -390,12 +392,9 @@ void try_run_some_benchmarks(
         return;
       }
 
-      // we are a bit more tolerant to lower clock speeds because we don't want
-      // to cause sleeps and reruns all the time.
-      const float tolerance_lower_clock_speed = 0.98f;
       bool rerun_last_tests = false;
 
-      if (current_clock_speed < tolerance_lower_clock_speed * max_clock_speed) {
+      if (current_clock_speed < (1 - clock_speed_tolerance) * max_clock_speed) {
         cerr << "Measurements completed so far: "
              << 100.0f * ratio_done
              << " %                             " << endl;
@@ -405,7 +404,7 @@ void try_run_some_benchmarks(
 
         unsigned int seconds_to_sleep_if_lower_clock_speed = 1;
 
-        while (current_clock_speed < tolerance_lower_clock_speed * max_clock_speed) {
+        while (current_clock_speed < (1 - clock_speed_tolerance) * max_clock_speed) {
           if (seconds_to_sleep_if_lower_clock_speed > 300) {
             cerr << "Sleeping longer probably won't make a difference. Giving up." << endl;
             cerr << "Things to try:" << endl;
@@ -479,9 +478,12 @@ void run_benchmarks(vector<benchmark_t>& benchmarks)
     max_clock_speed = max(max_clock_speed, measure_clock_speed());
   }
   
-  double time_start = timer.getRealTime();
+  double time_start = 0.0;
   size_t first_benchmark_to_run = 0;
   while (first_benchmark_to_run < benchmarks.size()) {
+    if (first_benchmark_to_run == 0) {
+      time_start = timer.getRealTime();
+    }
     try_run_some_benchmarks(benchmarks,
                             time_start,
                             first_benchmark_to_run,
