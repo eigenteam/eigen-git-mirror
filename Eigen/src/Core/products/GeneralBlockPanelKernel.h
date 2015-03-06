@@ -230,6 +230,7 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
     {
       // So far, no blocking at all, i.e., kc==k, and nc==n.
       // In this case, let's perform a blocking over the rows such that the packed lhs data is kept in cache L1/L2
+      // TODO: part of this blocking strategy is now implemented within the kernel itself, so the L1-based heuristic here should be obsolete.
       Index problem_size = k*n*sizeof(LhsScalar);
       Index actual_lm = actual_l2;
       Index max_mc = m;
@@ -951,33 +952,28 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     // This corresponds to 3*LhsProgress x nr register blocks.
     // Usually, make sense only with FMA
     if(mr>=3*Traits::LhsProgress)
-    {
-#ifdef EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION
-      const bool swap_loops = EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION;
-#else
-      const bool swap_loops = depth<48;
-#endif
-    
-      Index bound1 =  swap_loops ? packet_cols4 : peeled_mc3;
-      Index bound2 = !swap_loops ? packet_cols4 : peeled_mc3;
-      Index incr1  =  swap_loops ? nr : 3*Traits::LhsProgress;
-      Index incr2  = !swap_loops ? nr : 3*Traits::LhsProgress;
-      
+    {      
       PossiblyRotatingKernelHelper<gebp_kernel> possiblyRotatingKernelHelper(traits);
-          
-      // loops on each largest micro horizontal panel of lhs (3*Traits::LhsProgress x depth)
-      // and on each largest micro vertical panel of rhs (depth * nr)
-      for(Index it1=0; it1<bound1; it1+=incr1)
+      
+      // Here, the general idea is to loop on each largest micro horizontal panel of the lhs (3*Traits::LhsProgress x depth)
+      // and on each largest micro vertical panel of the rhs (depth * nr).
+      // Blocking sizes, i.e., 'depth' has been computed so that the micro horizontal panel of the lhs fit in L1.
+      // However, if depth is too small, we can extend the number of rows of these horizontal panels.
+      // This actual number of rows is computed as follow:
+      const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
+      const Index actual_panel_rows = (3*LhsProgress) *  ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 3*LhsProgress) );
+      for(Index i1=0; i1<peeled_mc3; i1+=actual_panel_rows)
       {
-        for(Index it2=0; it2<bound2; it2+=incr2)
+        const Index actual_panel_end = (std::min)(i1+actual_panel_rows, peeled_mc3);
+        for(Index j2=0; j2<packet_cols4; j2+=nr)
         {
-          Index i  =  swap_loops ? it2 : it1;
-          Index j2 = !swap_loops ? it2 : it1;
+          for(Index i=i1; i<actual_panel_end; i+=3*LhsProgress)
+          {
           
-          // We select a 3*Traits::LhsProgress x nr micro block of res which is entirely
+          // We selected a 3*Traits::LhsProgress x nr micro block of res which is entirely
           // stored into 3 x nr registers.
           
-          const LhsScalar* blA = &blockA[i*strideA+offsetA*(3*Traits::LhsProgress)];
+          const LhsScalar* blA = &blockA[i*strideA+offsetA*(3*LhsProgress)];
           prefetch(&blA[0]);
 
           // gets res block as register
@@ -1109,16 +1105,15 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           traits.acc(C11, alphav, R2);
           r3.storePacket(0 * Traits::ResPacketSize, R0);
           r3.storePacket(1 * Traits::ResPacketSize, R1);
-          r3.storePacket(2 * Traits::ResPacketSize, R2);
+          r3.storePacket(2 * Traits::ResPacketSize, R2);          
+          }
         }
-      }
 
-      // Deal with remaining columns of the rhs
-      if(packet_cols4<cols)
-      for(Index i=0; i<peeled_mc3; i+=3*Traits::LhsProgress)
-      {
+        // Deal with remaining columns of the rhs
         for(Index j2=packet_cols4; j2<cols; j2++)
         {
+          for(Index i=i1; i<actual_panel_end; i+=3*LhsProgress)
+          {
           // One column at a time
           const LhsScalar* blA = &blockA[i*strideA+offsetA*(3*Traits::LhsProgress)];
           prefetch(&blA[0]);
@@ -1189,7 +1184,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           traits.acc(C8, alphav, R2);
           r0.storePacket(0 * Traits::ResPacketSize, R0);
           r0.storePacket(1 * Traits::ResPacketSize, R1);
-          r0.storePacket(2 * Traits::ResPacketSize, R2);
+          r0.storePacket(2 * Traits::ResPacketSize, R2);          
+          }
         }
       }
     }
@@ -1197,26 +1193,17 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     //---------- Process 2 * LhsProgress rows at once ----------
     if(mr>=2*Traits::LhsProgress)
     {
-#ifdef EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION
-      const bool swap_loops = (mr<3*Traits::LhsProgress) && (EIGEN_TEST_SPECIFIC_LOOP_SWAP_CRITERION);
-#else
-      const bool swap_loops = (mr<3*Traits::LhsProgress) && (depth<48);
-#endif 
-      Index start1 =  swap_loops ? 0 : peeled_mc3;
-      Index start2 = !swap_loops ? 0 : peeled_mc3;
-      Index bound1 =  swap_loops ? packet_cols4 : peeled_mc2;
-      Index bound2 = !swap_loops ? packet_cols4 : peeled_mc2;
-      Index incr1  =  swap_loops ? nr : 2*Traits::LhsProgress;
-      Index incr2  = !swap_loops ? nr : 2*Traits::LhsProgress;
-      
-      for(Index it1=start1; it1<bound1; it1+=incr1)
+      const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
+      Index actual_panel_rows = (2*LhsProgress) * ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) );
+      for(Index i1=peeled_mc3; i1<peeled_mc2; i1+=actual_panel_rows)
       {
-        for(Index it2=start2; it2<bound2; it2+=incr2)
+        Index actual_panel_end = (std::min)(i1+actual_panel_rows, peeled_mc2);
+        for(Index j2=0; j2<packet_cols4; j2+=nr)
         {
-          Index i  =  swap_loops ? it2 : it1;
-          Index j2 = !swap_loops ? it2 : it1;
+          for(Index i=i1; i<actual_panel_end; i+=2*LhsProgress)
+          {
           
-          // We select a 2*Traits::LhsProgress x nr micro block of res which is entirely
+          // We selected a 2*Traits::LhsProgress x nr micro block of res which is entirely
           // stored into 2 x nr registers.
           
           const LhsScalar* blA = &blockA[i*strideA+offsetA*(2*Traits::LhsProgress)];
@@ -1320,15 +1307,14 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           r2.storePacket(1 * Traits::ResPacketSize, R1);
           r3.storePacket(0 * Traits::ResPacketSize, R2);
           r3.storePacket(1 * Traits::ResPacketSize, R3);
+          }
         }
-      }
       
-      // Deal with remaining columns of the rhs
-      if(packet_cols4<cols)
-      for(Index i=peeled_mc3; i<peeled_mc2; i+=2*Traits::LhsProgress)
-      {
+        // Deal with remaining columns of the rhs
         for(Index j2=packet_cols4; j2<cols; j2++)
         {
+          for(Index i=i1; i<actual_panel_end; i+=2*LhsProgress)
+          {
           // One column at a time
           const LhsScalar* blA = &blockA[i*strideA+offsetA*(2*Traits::LhsProgress)];
           prefetch(&blA[0]);
@@ -1395,6 +1381,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           traits.acc(C4, alphav, R1);
           r0.storePacket(0 * Traits::ResPacketSize, R0);
           r0.storePacket(1 * Traits::ResPacketSize, R1);
+          }
         }
       }
     }
