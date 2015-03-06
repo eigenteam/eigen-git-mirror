@@ -975,7 +975,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
       // However, if depth is too small, we can extend the number of rows of these horizontal panels.
       // This actual number of rows is computed as follow:
       const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
-      const Index actual_panel_rows = (3*LhsProgress) *  ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 3*LhsProgress) );
+#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+      const Index actual_panel_rows = (3*LhsProgress) * std::max<Index>(1,( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 3*LhsProgress) ));
+#else
+      const Index actual_panel_rows = (3*LhsProgress) * ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 3*LhsProgress) );
+#endif
       for(Index i1=0; i1<peeled_mc3; i1+=actual_panel_rows)
       {
         const Index actual_panel_end = (std::min)(i1+actual_panel_rows, peeled_mc3);
@@ -1208,7 +1212,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     if(mr>=2*Traits::LhsProgress)
     {
       const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
+#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+      Index actual_panel_rows = (2*LhsProgress) * std::max<Index>(1,( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) ));
+#else
       Index actual_panel_rows = (2*LhsProgress) * ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) );
+#endif
       for(Index i1=peeled_mc3; i1<peeled_mc2; i1+=actual_panel_rows)
       {
         Index actual_panel_end = (std::min)(i1+actual_panel_rows, peeled_mc2);
