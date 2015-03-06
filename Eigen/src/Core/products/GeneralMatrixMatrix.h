@@ -457,6 +457,8 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemmProduct>
   static void scaleAndAddTo(Dest& dst, const Lhs& a_lhs, const Rhs& a_rhs, const Scalar& alpha)
   {
     eigen_assert(dst.rows()==a_lhs.rows() && dst.cols()==a_rhs.cols());
+    if(a_lhs.cols()==0 || a_lhs.rows()==0 || a_rhs.cols()==0)
+      return;
 
     typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);
