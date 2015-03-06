@@ -199,7 +199,7 @@ void benchmark_t::run()
 
     double starttime = timer.getCpuTime();
     for (int i = 0; i < iters_at_a_time; i++) {
-      dst[matrix_index] = lhs[matrix_index] * rhs[matrix_index];
+      dst[matrix_index].noalias() = lhs[matrix_index] * rhs[matrix_index];
       matrix_index++;
       if (matrix_index == matrix_pool_size) {
         matrix_index = 0;

@@ -40,3 +40,4 @@ before-evaluators
 6937:c8c042f286b2   # avoid redundant pack_rhs
 6981:7e5d6f78da59   # dynamic loop swapping
 6984:45f26866c091   # rm dynamic loop swapping, adjust lhs's micro panel height to fully exploit L1 cache
+6986:a675d05b6f8f   # blocking heuristic: block on the rhs in L1 if the lhs fit in L1.
