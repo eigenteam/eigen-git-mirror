@@ -213,8 +213,22 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
     // Here, nc is chosen such that a block of kc x nc of the rhs fit within half of L2.
     // The second half is implicitly reserved to access the result and lhs coefficients.
     // When k<max_kc, then nc can arbitrarily growth. In practice, it seems to be fruitful
-    // to limit this growth: we bound nc to growth by a factor x1.5, leading to:
-    const Index max_nc = (3*actual_l2)/(2*2*max_kc*sizeof(RhsScalar));
+    // to limit this growth: we bound nc to growth by a factor x1.5.
+    // However, if the entire lhs block fit within L1, then we are not going to block on the rows at all,
+    // and it becomes fruitful to keep the packed rhs blocks in L1 if there is enough remaining space.
+    Index max_nc;
+    const Index lhs_bytes = m * k * sizeof(LhsScalar);
+    const Index remaining_l1 = l1- k_sub - lhs_bytes;
+    if(remaining_l1 >= Index(Traits::nr*sizeof(RhsScalar))*k)
+    {
+      // L1 blocking
+      max_nc = remaining_l1 / (k*sizeof(RhsScalar));
+    }
+    else
+    {
+      // L2 blocking
+      max_nc = (3*actual_l2)/(2*2*max_kc*sizeof(RhsScalar));
+    }
     // WARNING Below, we assume that Traits::nr is a power of two.
     Index nc = std::min<Index>(actual_l2/(2*k*sizeof(RhsScalar)), max_nc) & (~(Traits::nr-1));
     if(n>nc)
