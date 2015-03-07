@@ -13,6 +13,7 @@
 #include <vector>
 #include <fstream>
 #include <memory>
+#include <cstdio>
 
 bool eigen_use_specific_block_size;
 int eigen_block_size_k, eigen_block_size_m, eigen_block_size_n;
@@ -37,10 +38,12 @@ const int measurement_repetitions = 3;
 // Timings below this value are too short to be accurate,
 // we'll repeat measurements with more iterations until
 // we get a timing above that threshold.
-const float g_min_accurate_time = 1e-2f;
+const float min_accurate_time = 1e-2f;
 
 // See --min-working-set-size command line parameter.
-size_t g_min_working_set_size = 0;
+size_t min_working_set_size = 0;
+
+float max_clock_speed = 0.0f;
 
 // range of sizes that we will benchmark (in all 3 K,M,N dimensions)
 const size_t maxsize = 2048;
@@ -97,24 +100,25 @@ struct benchmark_t
   uint16_t compact_block_size;
   bool use_default_block_size;
   float gflops;
-  size_t min_working_set_size;
-  float min_accurate_time;
+  benchmark_t()
+    : compact_product_size(0)
+    , compact_block_size(0)
+    , use_default_block_size(false)
+    , gflops(0)
+  {
+  }
   benchmark_t(size_t pk, size_t pm, size_t pn,
               size_t bk, size_t bm, size_t bn)
     : compact_product_size(compact_size_triple(pk, pm, pn))
     , compact_block_size(compact_size_triple(bk, bm, bn))
     , use_default_block_size(false)
     , gflops(0)
-    , min_working_set_size(g_min_working_set_size)
-    , min_accurate_time(g_min_accurate_time)
   {}
   benchmark_t(size_t pk, size_t pm, size_t pn)
     : compact_product_size(compact_size_triple(pk, pm, pn))
     , compact_block_size(0)
     , use_default_block_size(true)
     , gflops(0)
-    , min_working_set_size(g_min_working_set_size)
-    , min_accurate_time(g_min_accurate_time)
   {}
 
   void run();
@@ -296,11 +300,7 @@ float measure_clock_speed()
           
   vector<float> all_gflops;
   for (int i = 0; i < 8; i++) {
-    // a good measure of clock speed is obtained by benchmarking small matrices that
-    // fit in L1 cache and use warm caches (min_working_set_size = 1).
-    benchmark_t b(128, 128, 128);
-    b.min_working_set_size = 1;
-    b.min_accurate_time = 0.1f; // long-running for better accuracy
+    benchmark_t b(1024, 1024, 1024);
     b.run();
     all_gflops.push_back(b.gflops);
   }
@@ -340,11 +340,52 @@ ostream& operator<<(ostream& s, const human_duration_t& d)
   return s;
 }
 
+const char session_filename[] = "/data/local/tmp/benchmark-blocking-sizes-session.data";
+
+void serialize_benchmarks(const char* filename, const vector<benchmark_t>& benchmarks, size_t first_benchmark_to_run)
+{
+  FILE* file = fopen(filename, "w");
+  if (!file) {
+    cerr << "Could not open file " << filename << " for writing." << endl;
+    cerr << "Do you have write permissions on the current working directory?" << endl;
+    exit(1);
+  }
+  size_t benchmarks_vector_size = benchmarks.size();
+  fwrite(&max_clock_speed, sizeof(max_clock_speed), 1, file);
+  fwrite(&benchmarks_vector_size, sizeof(benchmarks_vector_size), 1, file);
+  fwrite(&first_benchmark_to_run, sizeof(first_benchmark_to_run), 1, file);
+  fwrite(benchmarks.data(), sizeof(benchmark_t), benchmarks.size(), file);
+  fclose(file);
+}
+
+bool deserialize_benchmarks(const char* filename, vector<benchmark_t>& benchmarks, size_t& first_benchmark_to_run)
+{
+  FILE* file = fopen(filename, "r");
+  if (!file) {
+    return false;
+  }
+  if (1 != fread(&max_clock_speed, sizeof(max_clock_speed), 1, file)) {
+    return false;
+  }
+  size_t benchmarks_vector_size = 0;
+  if (1 != fread(&benchmarks_vector_size, sizeof(benchmarks_vector_size), 1, file)) {
+    return false;
+  }
+  if (1 != fread(&first_benchmark_to_run, sizeof(first_benchmark_to_run), 1, file)) {
+    return false;
+  }
+  benchmarks.resize(benchmarks_vector_size);
+  if (benchmarks.size() != fread(benchmarks.data(), sizeof(benchmark_t), benchmarks.size(), file)) {
+    return false;
+  }
+  unlink(filename);
+  return true;
+}
+
 void try_run_some_benchmarks(
   vector<benchmark_t>& benchmarks,
   double time_start,
-  size_t& first_benchmark_to_run,
-  float& max_clock_speed)
+  size_t& first_benchmark_to_run)
 {
   if (first_benchmark_to_run == benchmarks.size()) {
     return;
@@ -405,20 +446,12 @@ void try_run_some_benchmarks(
         unsigned int seconds_to_sleep_if_lower_clock_speed = 1;
 
         while (current_clock_speed < (1 - clock_speed_tolerance) * max_clock_speed) {
-          if (seconds_to_sleep_if_lower_clock_speed > 300) {
-            cerr << "Sleeping longer probably won't make a difference. Giving up." << endl;
-            cerr << "Things to try:" << endl;
-            cerr << " 1. Check if the device is in some energy-saving state." << endl;
-            cerr << "    On Android, it may help to enable 'Stay Awake' in the dev settings." << endl;
-            cerr << " 2. Check if the device is overheating." << endl;
-            cerr << "    On some devices, system temperature is reported in" << endl;
-            cerr << "    /sys/class/thermal/thermal_zone*/temp" << endl;
-            cerr << " 3. Some system daemon might be playing with clock speeds." << endl;
-            cerr << "    In particular, on Qualcomm devices, disable mpdecision " << endl;
-            cerr << "    by renaming /system/bin/mpdecision and rebooting." << endl;
-            cerr << " 4. CPU frequency scaling might conceivably be the problem." << endl;
-            cerr << "    In particular, Intel Turbo Boost. Try disabling that." << endl;
-            exit(1);
+          if (seconds_to_sleep_if_lower_clock_speed > 30) {
+            cerr << "Sleeping longer probably won't make a difference." << endl;
+            cerr << "Serializing benchmarks to " << session_filename << endl;
+            serialize_benchmarks(session_filename, benchmarks, first_benchmark_to_run);
+            cerr << "Now restart this benchmark, and it should pick up where we left." << endl;
+            exit(2);
           }
           rerun_last_tests = true;
           cerr << "Sleeping "
@@ -467,27 +500,57 @@ void try_run_some_benchmarks(
 
 void run_benchmarks(vector<benchmark_t>& benchmarks)
 {
-  // Randomly shuffling benchmarks allows us to get accurate enough progress info,
-  // as now the cheap/expensive benchmarks are randomly mixed so they average out.
-  // It also means that if data is corrupted for some time span, the odds are that
-  // not all repetitions of a given benchmark will be corrupted.
-  random_shuffle(benchmarks.begin(), benchmarks.end());
+  size_t first_benchmark_to_run;
+  vector<benchmark_t> deserialized_benchmarks;
+  bool use_deserialized_benchmarks = false;
+  if (deserialize_benchmarks(session_filename, deserialized_benchmarks, first_benchmark_to_run)) {
+    cerr << "Found serialized session with "
+         << 100.0f * first_benchmark_to_run / deserialized_benchmarks.size()
+         << " % already done" << endl;
+    if (deserialized_benchmarks.size() == benchmarks.size() &&
+        first_benchmark_to_run > 0 &&
+        first_benchmark_to_run < benchmarks.size())
+    {
+      bool found_mismatch = false;
+      for (size_t i = 0; i < benchmarks.size(); i++) {
+        if (deserialized_benchmarks[i].compact_product_size != benchmarks[i].compact_product_size ||
+            deserialized_benchmarks[i].compact_block_size != benchmarks[i].compact_block_size ||
+            deserialized_benchmarks[i].use_default_block_size != benchmarks[i].use_default_block_size)
+        {
+          cerr << "Mismatch in serialized session. Ignoring it." << endl;
+          found_mismatch = true;
+          break;
+        }
+      }
+      use_deserialized_benchmarks = !found_mismatch;
+    }
+  }
 
-  float max_clock_speed = 0.0f;
+  if (use_deserialized_benchmarks) {
+    benchmarks = deserialized_benchmarks;
+  } else {
+    // not using deserialized benchmarks, starting from scratch
+    first_benchmark_to_run = 0;
+
+    // Randomly shuffling benchmarks allows us to get accurate enough progress info,
+    // as now the cheap/expensive benchmarks are randomly mixed so they average out.
+    // It also means that if data is corrupted for some time span, the odds are that
+    // not all repetitions of a given benchmark will be corrupted.
+    random_shuffle(benchmarks.begin(), benchmarks.end());
+  }
+
   for (int i = 0; i < 4; i++) {
     max_clock_speed = max(max_clock_speed, measure_clock_speed());
   }
   
   double time_start = 0.0;
-  size_t first_benchmark_to_run = 0;
   while (first_benchmark_to_run < benchmarks.size()) {
     if (first_benchmark_to_run == 0) {
       time_start = timer.getRealTime();
     }
     try_run_some_benchmarks(benchmarks,
                             time_start,
-                            first_benchmark_to_run,
-                            max_clock_speed);
+                            first_benchmark_to_run);
   }
 
   // Sort timings by increasing benchmark parameters, and decreasing gflops.
@@ -595,7 +658,7 @@ int main(int argc, char* argv[])
   for (int i = 2; i < argc; i++) {
     if (argv[i] == strstr(argv[i], "--min-working-set-size=")) {
       const char* equals_sign = strchr(argv[i], '=');
-      g_min_working_set_size = strtoul(equals_sign+1, nullptr, 10);
+      min_working_set_size = strtoul(equals_sign+1, nullptr, 10);
     } else {
       cerr << "unrecognized option: " << argv[i] << endl << endl;
       show_usage_and_exit(argc, argv, available_actions);
@@ -611,9 +674,9 @@ int main(int argc, char* argv[])
   cout << "minsize = " << minsize << endl;
   cout << "maxsize = " << maxsize << endl;
   cout << "measurement_repetitions = " << measurement_repetitions << endl;
-  cout << "g_min_accurate_time = " << g_min_accurate_time << endl;
-  cout << "g_min_working_set_size = " << g_min_working_set_size;
-  if (g_min_working_set_size == 0) {
+  cout << "min_accurate_time = " << min_accurate_time << endl;
+  cout << "min_working_set_size = " << min_working_set_size;
+  if (min_working_set_size == 0) {
     cout << " (try to outsize caches)";
   }
   cout << endl << endl;
