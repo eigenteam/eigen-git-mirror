@@ -511,18 +511,7 @@ void run_benchmarks(vector<benchmark_t>& benchmarks)
         first_benchmark_to_run > 0 &&
         first_benchmark_to_run < benchmarks.size())
     {
-      bool found_mismatch = false;
-      for (size_t i = 0; i < benchmarks.size(); i++) {
-        if (deserialized_benchmarks[i].compact_product_size != benchmarks[i].compact_product_size ||
-            deserialized_benchmarks[i].compact_block_size != benchmarks[i].compact_block_size ||
-            deserialized_benchmarks[i].use_default_block_size != benchmarks[i].use_default_block_size)
-        {
-          cerr << "Mismatch in serialized session. Ignoring it." << endl;
-          found_mismatch = true;
-          break;
-        }
-      }
-      use_deserialized_benchmarks = !found_mismatch;
+      use_deserialized_benchmarks = true;
     }
   }
 
