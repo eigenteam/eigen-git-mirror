@@ -69,6 +69,7 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     typedef SparseMatrix<Scalar,ColMajor,StorageIndex> CholMatrixType;
     typedef CholMatrixType const * ConstCholMatrixPtr;
     typedef Matrix<Scalar,Dynamic,1> VectorType;
+    typedef Matrix<StorageIndex,Dynamic,1> VectorI;
 
   public:
     
@@ -250,8 +251,8 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     
     CholMatrixType m_matrix;
     VectorType m_diag;                                // the diagonal coefficients (LDLT mode)
-    VectorXi m_parent;                                // elimination tree
-    VectorXi m_nonZerosPerCol;
+    VectorI m_parent;                                 // elimination tree
+    VectorI m_nonZerosPerCol;
     PermutationMatrix<Dynamic,Dynamic,StorageIndex> m_P;     // the permutation
     PermutationMatrix<Dynamic,Dynamic,StorageIndex> m_Pinv;  // the inverse permutation
 

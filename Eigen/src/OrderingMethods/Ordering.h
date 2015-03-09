@@ -90,11 +90,11 @@ class AMDOrdering
   * \note Returns an empty permutation matrix
   * \tparam  Index The type of indices of the matrix 
   */
-template <typename Index>
+template <typename StorageIndex>
 class NaturalOrdering
 {
   public:
-    typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
+    typedef PermutationMatrix<Dynamic, Dynamic, StorageIndex> PermutationType;
     
     /** Compute the permutation vector from a column-major sparse matrix */
     template <typename MatrixType>

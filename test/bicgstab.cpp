@@ -26,6 +26,6 @@ template<typename T, typename I> void test_bicgstab_T()
 void test_bicgstab()
 {
   CALL_SUBTEST_1((test_bicgstab_T<double,int>()) );
-  CALL_SUBTEST_1((test_bicgstab_T<double,long int>()));
   CALL_SUBTEST_2((test_bicgstab_T<std::complex<double>, int>()));
+  CALL_SUBTEST_3((test_bicgstab_T<double,long int>()));
 }
