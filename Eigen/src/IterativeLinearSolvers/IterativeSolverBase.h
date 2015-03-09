@@ -52,9 +52,9 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  template<typename SparseMatrixDerived>
-  explicit IterativeSolverBase(const SparseMatrixBase<SparseMatrixDerived>& A)
-    : mp_matrix(A)
+  template<typename MatrixDerived>
+  explicit IterativeSolverBase(const EigenBase<MatrixDerived>& A)
+    : mp_matrix(A.derived())
   {
     init();
     compute(mp_matrix);
@@ -67,8 +67,8 @@ public:
     * Currently, this function mostly calls analyzePattern on the preconditioner. In the future
     * we might, for instance, implement column reordering for faster matrix vector products.
     */
-  template<typename SparseMatrixDerived>
-  Derived& analyzePattern(const SparseMatrixBase<SparseMatrixDerived>& A)
+  template<typename MatrixDerived>
+  Derived& analyzePattern(const EigenBase<MatrixDerived>& A)
   {
     grab(A.derived());
     m_preconditioner.analyzePattern(mp_matrix);
@@ -87,8 +87,8 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  template<typename SparseMatrixDerived>
-  Derived& factorize(const SparseMatrixBase<SparseMatrixDerived>& A)
+  template<typename MatrixDerived>
+  Derived& factorize(const EigenBase<MatrixDerived>& A)
   {
     eigen_assert(m_analysisIsOk && "You must first call analyzePattern()"); 
     grab(A.derived());
@@ -108,8 +108,8 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  template<typename SparseMatrixDerived>
-  Derived& compute(const SparseMatrixBase<SparseMatrixDerived>& A)
+  template<typename MatrixDerived>
+  Derived& compute(const EigenBase<MatrixDerived>& A)
   {
     grab(A.derived());
     m_preconditioner.compute(mp_matrix);
@@ -223,11 +223,11 @@ protected:
     m_tolerance = NumTraits<Scalar>::epsilon();
   }
   
-  template<typename SparseMatrixDerived>
-  void grab(const SparseMatrixBase<SparseMatrixDerived> &A)
+  template<typename MatrixDerived>
+  void grab(const EigenBase<MatrixDerived> &A)
   {
     mp_matrix.~Ref<const MatrixType>();
-    ::new (&mp_matrix) Ref<const MatrixType>(A);
+    ::new (&mp_matrix) Ref<const MatrixType>(A.derived());
   }
   
   void grab(const Ref<const MatrixType> &A)

@@ -185,7 +185,7 @@ public:
   {
     typedef typename internal::conditional<UpLo==(Lower|Upper),
                                            Ref<const MatrixType>&,
-                                           SparseSelfAdjointView<const Ref<const MatrixType>, UpLo>
+                                           typename Ref<const MatrixType>::template ConstSelfAdjointViewReturnType<UpLo>::Type
                                           >::type MatrixWrapperType;
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
