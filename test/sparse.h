@@ -53,15 +53,15 @@ enum {
  * \param zeroCoords and nonzeroCoords allows to get the coordinate lists of the non zero,
  *        and zero coefficients respectively.
  */
-template<typename Scalar,int Opt1,int Opt2,typename Index> void
+template<typename Scalar,int Opt1,int Opt2,typename StorageIndex> void
 initSparse(double density,
            Matrix<Scalar,Dynamic,Dynamic,Opt1>& refMat,
-           SparseMatrix<Scalar,Opt2,Index>& sparseMat,
+           SparseMatrix<Scalar,Opt2,StorageIndex>& sparseMat,
            int flags = 0,
-           std::vector<Matrix<Index,2,1> >* zeroCoords = 0,
-           std::vector<Matrix<Index,2,1> >* nonzeroCoords = 0)
+           std::vector<Matrix<StorageIndex,2,1> >* zeroCoords = 0,
+           std::vector<Matrix<StorageIndex,2,1> >* nonzeroCoords = 0)
 {
-  enum { IsRowMajor = SparseMatrix<Scalar,Opt2,Index>::IsRowMajor };
+  enum { IsRowMajor = SparseMatrix<Scalar,Opt2,StorageIndex>::IsRowMajor };
   sparseMat.setZero();
   //sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
   sparseMat.reserve(VectorXi::Constant(IsRowMajor ? refMat.rows() : refMat.cols(), int((1.5*density)*(IsRowMajor?refMat.cols():refMat.rows()))));
@@ -93,11 +93,11 @@ initSparse(double density,
         //sparseMat.insertBackByOuterInner(j,i) = v;
         sparseMat.insertByOuterInner(j,i) = v;
         if (nonzeroCoords)
-          nonzeroCoords->push_back(Matrix<Index,2,1> (ai,aj));
+          nonzeroCoords->push_back(Matrix<StorageIndex,2,1> (ai,aj));
       }
       else if (zeroCoords)
       {
-        zeroCoords->push_back(Matrix<Index,2,1> (ai,aj));
+        zeroCoords->push_back(Matrix<StorageIndex,2,1> (ai,aj));
       }
       refMat(ai,aj) = v;
     }

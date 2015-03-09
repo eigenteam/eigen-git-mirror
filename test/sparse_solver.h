@@ -230,7 +230,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef SparseMatrix<Scalar,ColMajor> SpMat;
+  typedef SparseMatrix<Scalar,ColMajor, typename Mat::StorageIndex> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -304,12 +304,12 @@ template<typename Solver> void check_sparse_spd_determinant(Solver& solver)
 }
 
 template<typename Solver, typename DenseMat>
-int generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, DenseMat& dA, int maxSize = 300, int options = ForceNonZeroDiag)
+Index generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, DenseMat& dA, int maxSize = 300, int options = ForceNonZeroDiag)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
 
-  int size = internal::random<int>(1,maxSize);
+  Index size = internal::random<int>(1,maxSize);
   double density = (std::max)(8./(size*size), 0.01);
   
   A.resize(size,size);
@@ -324,7 +324,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef SparseMatrix<Scalar,ColMajor> SpMat;
+  typedef SparseMatrix<Scalar,ColMajor, typename Mat::StorageIndex> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -333,7 +333,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
   Mat A;
   DenseMatrix dA;
   for (int i = 0; i < g_repeat; i++) {
-    int size = generate_sparse_square_problem(solver, A, dA);
+    Index size = generate_sparse_square_problem(solver, A, dA);
 
     A.makeCompressed();
     DenseVector b = DenseVector::Random(size);
@@ -430,7 +430,7 @@ template<typename Solver> void check_sparse_leastsquare_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef SparseMatrix<Scalar,ColMajor> SpMat;
+  typedef SparseMatrix<Scalar,ColMajor, typename Mat::StorageIndex> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
