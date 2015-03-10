@@ -209,6 +209,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
   VERIFY_IS_APPROX(m1.isnan(), isnan(m1));
   VERIFY_IS_APPROX(m1.isinf(), isinf(m1));
+  VERIFY_IS_APPROX(m1.square(), square(m1));
 
   VERIFY_IS_APPROX(cos(m1+RealScalar(3)*m2), cos((m1+RealScalar(3)*m2).eval()));
 
@@ -274,6 +275,7 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
   VERIFY_IS_APPROX(m1.isnan(), isnan(m1));
   VERIFY_IS_APPROX(m1.isinf(), isinf(m1));
+  VERIFY_IS_APPROX(m1.square(), square(m1));
 
 }
 

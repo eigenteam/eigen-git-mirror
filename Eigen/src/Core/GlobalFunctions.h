@@ -51,6 +51,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(abs,scalar_abs_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(arg,scalar_arg_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sqrt,scalar_sqrt_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(square,scalar_square_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(round,scalar_round_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(floor,scalar_floor_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(ceil,scalar_ceil_op)
