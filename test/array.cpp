@@ -204,6 +204,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.acos(), acos(m1));
   VERIFY_IS_APPROX(m1.tan(), tan(m1));
   VERIFY_IS_APPROX(m1.atan(), atan(m1));
+  VERIFY_IS_APPROX(m1.log(), log(m1));
+  VERIFY_IS_APPROX(m1.log10(), log10(m1));
+  VERIFY_IS_APPROX(m1.arg(), arg(m1));
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
@@ -269,6 +272,8 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
 
   VERIFY_IS_APPROX(m1.sqrt(), m2);
   VERIFY_IS_APPROX(m1.sqrt(), Eigen::sqrt(m1));
+  VERIFY_IS_APPROX(m1.log(), log(m1));
+  VERIFY_IS_APPROX(m1.log10(), log10(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));

@@ -8,6 +8,7 @@ typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> Inverse
 
 typedef CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived> ExpReturnType;
 typedef CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived> LogReturnType;
+typedef CwiseUnaryOp<internal::scalar_log10_op<Scalar>, const Derived> Log10ReturnType;
 typedef CwiseUnaryOp<internal::scalar_cos_op<Scalar>, const Derived> CosReturnType;
 typedef CwiseUnaryOp<internal::scalar_sin_op<Scalar>, const Derived> SinReturnType;
 typedef CwiseUnaryOp<internal::scalar_acos_op<Scalar>, const Derived> AcosReturnType;
@@ -97,6 +98,22 @@ inline const LogReturnType
 log() const
 {
   return LogReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise base-10 logarithm of *this.
+  *
+  * This function computes the coefficient-wise base-10 logarithm.
+  *
+  * Example: \include Cwise_log10.cpp
+  * Output: \verbinclude Cwise_log10.out
+  *
+  * \sa log()
+  */
+EIGEN_DEVICE_FUNC
+inline const Log10ReturnType
+log10() const
+{
+  return Log10ReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise square root of *this.

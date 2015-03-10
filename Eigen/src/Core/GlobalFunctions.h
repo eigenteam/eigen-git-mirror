@@ -48,6 +48,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(atan,scalar_atan_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(exp,scalar_exp_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log,scalar_log_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log10,scalar_log10_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(abs,scalar_abs_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(arg,scalar_arg_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sqrt,scalar_sqrt_op)

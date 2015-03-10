@@ -61,6 +61,7 @@ struct default_packet_traits
     HasSqrt   = 0,
     HasExp    = 0,
     HasLog    = 0,
+    HasLog10    = 0,
     HasPow    = 0,
 
     HasSin    = 0,
@@ -358,6 +359,10 @@ Packet pexp(const Packet& a) { using std::exp; return exp(a); }
 /** \internal \returns the log of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet plog(const Packet& a) { using std::log; return log(a); }
+
+/** \internal \returns the log10 of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet plog10(const Packet& a) { using std::log10; return log10(a); }
 
 /** \internal \returns the square-root of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
