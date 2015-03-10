@@ -123,6 +123,27 @@ struct functor_traits<scalar_conjugate_op<Scalar> >
 };
 
 /** \internal
+  * \brief Template functor to compute the phase angle of a complex
+  *
+  * \sa class CwiseUnaryOp, Cwise::arg
+  */
+template<typename Scalar> struct scalar_arg_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_arg_op)
+  typedef typename NumTraits<Scalar>::Real result_type;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a) const { using numext::arg; return arg(a); }
+  template<typename Packet>
+  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
+  { return internal::parg(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_arg_op<Scalar> >
+{
+  enum {
+    Cost = NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasArg
+  };
+};
+/** \internal
   * \brief Template functor to cast a scalar to another type
   *
   * \sa class CwiseUnaryOp, MatrixBase::cast()
@@ -416,6 +437,103 @@ template<typename Scalar>
 struct functor_traits<scalar_cube_op<Scalar> >
 { enum { Cost = 2*NumTraits<Scalar>::MulCost, PacketAccess = packet_traits<Scalar>::HasMul }; };
 
+/** \internal
+  * \brief Template functor to compute the rounded value of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::round()
+  */
+template<typename Scalar> struct scalar_round_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_round_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { using numext::round; return round(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::pround(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_round_op<Scalar> >
+{
+  enum {
+    Cost = NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasRound
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the floor of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::floor()
+  */
+template<typename Scalar> struct scalar_floor_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_floor_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::floor(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::pfloor(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_floor_op<Scalar> >
+{
+  enum {
+    Cost = NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasFloor
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the ceil of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::ceil()
+  */
+template<typename Scalar> struct scalar_ceil_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_ceil_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::ceil(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::pceil(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_ceil_op<Scalar> >
+{
+  enum {
+    Cost = NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasCeil
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the isnan of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::isnan()
+  */
+template<typename Scalar> struct scalar_isnan_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_isnan_op)
+  typedef bool result_type;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isnan(a); }
+  template<typename Packet>
+  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
+  { return internal::pisnan(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_isnan_op<Scalar> >
+{
+  enum {
+    Cost = NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasIsnan
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the isinf of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::isinf()
+  */
+template<typename Scalar> struct scalar_isinf_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_isinf_op)
+  typedef bool result_type;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isinf(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::pisinf(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_isinf_op<Scalar> >
+{
+  enum {
+    Cost = NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasIsinf
+  };
+};
 
 } // end namespace internal
 

@@ -134,6 +134,41 @@ struct imag_retval
 };
 
 /****************************************************************************
+* Implementation of arg                                                     *
+****************************************************************************/
+
+template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
+struct arg_default_impl
+{
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
+  static inline RealScalar run(const Scalar& x)
+  {
+    const double pi = std::acos(-1.0);
+    return (x < 0.0) ? pi : 0.0; }
+};
+
+template<typename Scalar>
+struct arg_default_impl<Scalar,true>
+{
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
+  static inline RealScalar run(const Scalar& x)
+  {
+    using std::arg;
+    return arg(x);
+  }
+};
+
+template<typename Scalar> struct arg_impl : arg_default_impl<Scalar> {};
+
+template<typename Scalar>
+struct arg_retval
+{
+  typedef typename NumTraits<Scalar>::Real type;
+};
+
+/****************************************************************************
 * Implementation of real_ref                                             *
 ****************************************************************************/
 
@@ -574,7 +609,7 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
 } // end namespace internal
 
 /****************************************************************************
-* Generic math function                                                    *
+* Generic math functions                                                    *
 ****************************************************************************/
 
 namespace numext {
@@ -621,6 +656,13 @@ EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(imag, Scalar) imag(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(imag, Scalar)::run(x);
+}
+
+template<typename Scalar>
+EIGEN_DEVICE_FUNC
+inline EIGEN_MATHFUNC_RETVAL(arg, Scalar) arg(const Scalar& x)
+{
+  return EIGEN_MATHFUNC_IMPL(arg, Scalar)::run(x);
 }
 
 template<typename Scalar>
@@ -695,6 +737,95 @@ bool (isfinite)(const std::complex<T>& x)
   using std::real;
   using std::imag;
   return isfinite(real(x)) && isfinite(imag(x));
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+bool (isnan)(const T& x)
+{
+  using std::isnan;
+  return isnan(x);
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+bool (isnan)(const std::complex<T>& x)
+{
+  using std::real;
+  using std::imag;
+  using std::isnan;
+  return isnan(real(x)) || isnan(imag(x));
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+bool (isinf)(const T& x)
+{
+  using std::isinf;
+  return isinf(x);
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+bool (isinf)(const std::complex<T>& x)
+{
+  using std::real;
+  using std::imag;
+  using std::isinf;
+  return isinf(real(x)) || isinf(imag(x));
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+T (round)(const T& x)
+{
+  using std::floor;
+  using std::ceil;
+  return (x > 0.0) ? floor(x + 0.5) : ceil(x - 0.5);
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+std::complex<T> (round)(const std::complex<T>& x)
+{
+  using numext::round;
+  return std::complex<T>(round(real(x)), round(imag(x)));
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+T (floor)(const T& x)
+{
+  using std::floor;
+  return floor(x);
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+std::complex<T> (floor)(const std::complex<T>& x)
+{
+  using std::real;
+  using std::imag;
+  using std::floor;
+  return std::complex<T>(floor(real(x)), floor(imag(x)));
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+T (ceil)(const T& x)
+{
+  using std::ceil;
+  return ceil(x);
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+std::complex<T> (ceil)(const std::complex<T>& x)
+{
+  using std::real;
+  using std::imag;
+  using std::ceil;
+  return std::complex<T>(ceil(real(x)), ceil(imag(x)));
 }
 
 // Log base 2 for 32 bits positive integers.

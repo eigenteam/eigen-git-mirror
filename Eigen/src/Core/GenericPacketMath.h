@@ -49,6 +49,7 @@ struct default_packet_traits
     HasMul    = 1,
     HasNegate = 1,
     HasAbs    = 1,
+    HasArg    = 0,
     HasAbs2   = 1,
     HasMin    = 1,
     HasMax    = 1,
@@ -67,7 +68,13 @@ struct default_packet_traits
     HasTan    = 0,
     HasASin   = 0,
     HasACos   = 0,
-    HasATan   = 0
+    HasATan   = 0,
+
+    HasRound  = 0,
+    HasFloor  = 0,
+    HasCeil   = 0,
+    HasIsnan  = 0,
+    HasIsinf  = 0
   };
 };
 
@@ -139,6 +146,10 @@ pmax(const Packet& a,
 /** \internal \returns the absolute value of \a a */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pabs(const Packet& a) { using std::abs; return abs(a); }
+
+/** \internal \returns the phase angle of \a a */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+parg(const Packet& a) { using numext::arg; return arg(a); }
 
 /** \internal \returns the bitwise and of \a a and \a b */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -351,6 +362,26 @@ Packet plog(const Packet& a) { using std::log; return log(a); }
 /** \internal \returns the square-root of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet psqrt(const Packet& a) { using std::sqrt; return sqrt(a); }
+
+/** \internal \returns the rounded value of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pround(const Packet& a) { using numext::round; return round(a); }
+
+/** \internal \returns the floor of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pfloor(const Packet& a) { using numext::floor; return floor(a); }
+
+/** \internal \returns the ceil of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pceil(const Packet& a) { using numext::ceil; return ceil(a); }
+
+/** \internal \returns the isnan of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pisnan(const Packet& a) { using numext::isnan; return isnan(a); }
+
+/** \internal \returns the isinf of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pisinf(const Packet& a) { using numext::isinf; return isinf(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

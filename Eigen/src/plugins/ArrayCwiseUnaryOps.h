@@ -1,6 +1,7 @@
 
 
 typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnType;
+typedef CwiseUnaryOp<internal::scalar_arg_op<Scalar>, const Derived> ArgReturnType;
 typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
 typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> InverseReturnType;
@@ -16,6 +17,11 @@ typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturn
 typedef CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived> PowReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
+typedef CwiseUnaryOp<internal::scalar_round_op<Scalar>, const Derived> RoundReturnType;
+typedef CwiseUnaryOp<internal::scalar_floor_op<Scalar>, const Derived> FloorReturnType;
+typedef CwiseUnaryOp<internal::scalar_ceil_op<Scalar>, const Derived> CeilReturnType;
+typedef CwiseUnaryOp<internal::scalar_isnan_op<Scalar>, const Derived> IsnanReturnType;
+typedef CwiseUnaryOp<internal::scalar_isinf_op<Scalar>, const Derived> IsinfReturnType;
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   *
@@ -29,6 +35,20 @@ EIGEN_STRONG_INLINE const AbsReturnType
 abs() const
 {
   return AbsReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise phase angle of \c *this
+  *
+  * Example: \include Cwise_arg.cpp
+  * Output: \verbinclude Cwise_arg.out
+  *
+  * \sa abs()
+  */
+EIGEN_DEVICE_FUNC
+EIGEN_STRONG_INLINE const ArgReturnType
+arg() const
+{
+  return ArgReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise squared absolute value of \c *this
@@ -244,6 +264,71 @@ inline const CubeReturnType
 cube() const
 {
   return CubeReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise round of *this.
+  *
+  * Example: \include Cwise_round.cpp
+  * Output: \verbinclude Cwise_round.out
+  *
+  * \sa ceil(), floor()
+  */
+inline const RoundReturnType
+round() const
+{
+  return RoundReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise floor of *this.
+  *
+  * Example: \include Cwise_floor.cpp
+  * Output: \verbinclude Cwise_floor.out
+  *
+  * \sa ceil(), round()
+  */
+inline const FloorReturnType
+floor() const
+{
+  return FloorReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise ceil of *this.
+  *
+  * Example: \include Cwise_ceil.cpp
+  * Output: \verbinclude Cwise_ceil.out
+  *
+  * \sa floor(), round()
+  */
+inline const CeilReturnType
+ceil() const
+{
+  return CeilReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise isnan of *this.
+  *
+  * Example: \include Cwise_isnan.cpp
+  * Output: \verbinclude Cwise_isnan.out
+  *
+  * \sa isinf()
+  */
+inline const IsnanReturnType
+isnan() const
+{
+  return IsnanReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise isinf of *this.
+  *
+  * Example: \include Cwise_isinf.cpp
+  * Output: \verbinclude Cwise_isinf.out
+  *
+  * \sa isnan()
+  */
+inline const IsinfReturnType
+isinf() const
+{
+  return IsinfReturnType(derived());
 }
 
 #define EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(METHOD_NAME,FUNCTOR) \
