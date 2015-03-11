@@ -200,10 +200,13 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   // these tests are mostly to check possible compilation issues.
   VERIFY_IS_APPROX(m1.sin(), sin(m1));
   VERIFY_IS_APPROX(m1.cos(), cos(m1));
+  VERIFY_IS_APPROX(m1.tan(), tan(m1));
   VERIFY_IS_APPROX(m1.asin(), asin(m1));
   VERIFY_IS_APPROX(m1.acos(), acos(m1));
-  VERIFY_IS_APPROX(m1.tan(), tan(m1));
   VERIFY_IS_APPROX(m1.atan(), atan(m1));
+  VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
+  VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
+  VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
   VERIFY_IS_APPROX(m1.log(), log(m1));
   VERIFY_IS_APPROX(m1.log10(), log10(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
@@ -281,6 +284,12 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.isnan(), isnan(m1));
   VERIFY_IS_APPROX(m1.isinf(), isinf(m1));
   VERIFY_IS_APPROX(m1.square(), square(m1));
+  VERIFY_IS_APPROX(m1.sin(), sin(m1));
+  VERIFY_IS_APPROX(m1.cos(), cos(m1));
+  VERIFY_IS_APPROX(m1.tan(), tan(m1));
+  VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
+  VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
+  VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
 
 }
 

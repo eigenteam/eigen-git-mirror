@@ -384,7 +384,6 @@ struct functor_traits<scalar_asin_op<Scalar> >
   };
 };
 
-
 /** \internal
   * \brief Template functor to compute the atan of a scalar
   * \sa class CwiseUnaryOp, ArrayBase::atan()
@@ -401,6 +400,63 @@ struct functor_traits<scalar_atan_op<Scalar> >
   enum {
     Cost = 5 * NumTraits<Scalar>::MulCost,
     PacketAccess = packet_traits<Scalar>::HasATan
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the tanh of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::tanh()
+  */
+template<typename Scalar> struct scalar_tanh_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_tanh_op)
+  inline const Scalar operator() (const Scalar& a) const { using std::tanh; return tanh(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::ptanh(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_tanh_op<Scalar> >
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasTanh
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the sinh of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::sinh()
+  */
+template<typename Scalar> struct scalar_sinh_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_sinh_op)
+  inline const Scalar operator() (const Scalar& a) const { using std::sinh; return sinh(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::psinh(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_sinh_op<Scalar> >
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasSinh
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the cosh of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::cosh()
+  */
+template<typename Scalar> struct scalar_cosh_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cosh_op)
+  inline const Scalar operator() (const Scalar& a) const { using std::cosh; return cosh(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::pcosh(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_cosh_op<Scalar> >
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasCosh
   };
 };
 

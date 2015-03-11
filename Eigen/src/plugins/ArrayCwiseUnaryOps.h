@@ -11,10 +11,13 @@ typedef CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived> LogReturnTy
 typedef CwiseUnaryOp<internal::scalar_log10_op<Scalar>, const Derived> Log10ReturnType;
 typedef CwiseUnaryOp<internal::scalar_cos_op<Scalar>, const Derived> CosReturnType;
 typedef CwiseUnaryOp<internal::scalar_sin_op<Scalar>, const Derived> SinReturnType;
+typedef CwiseUnaryOp<internal::scalar_tan_op<Scalar>, const Derived> TanReturnType;
 typedef CwiseUnaryOp<internal::scalar_acos_op<Scalar>, const Derived> AcosReturnType;
 typedef CwiseUnaryOp<internal::scalar_asin_op<Scalar>, const Derived> AsinReturnType;
-typedef CwiseUnaryOp<internal::scalar_tan_op<Scalar>, const Derived> TanReturnType;
 typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturnType;
+typedef CwiseUnaryOp<internal::scalar_tanh_op<Scalar>, const Derived> TanhReturnType;
+typedef CwiseUnaryOp<internal::scalar_sinh_op<Scalar>, const Derived> SinhReturnType;
+typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturnType;
 typedef CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived> PowReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
@@ -168,6 +171,33 @@ sin() const
   return SinReturnType(derived());
 }
 
+/** \returns an expression of the coefficient-wise tan of *this.
+  *
+  * Example: \include Cwise_tan.cpp
+  * Output: \verbinclude Cwise_tan.out
+  *
+  * \sa cos(), sin()
+  */
+EIGEN_DEVICE_FUNC
+inline const TanReturnType
+tan() const
+{
+  return TanReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise arc tan of *this.
+  *
+  * Example: \include Cwise_atan.cpp
+  * Output: \verbinclude Cwise_atan.out
+  *
+  * \sa tan(), asin(), acos()
+  */
+inline const AtanReturnType
+atan() const
+{
+  return AtanReturnType(derived());
+}
+
 /** \returns an expression of the coefficient-wise arc cosine of *this.
   *
   * Example: \include Cwise_acos.cpp
@@ -196,31 +226,43 @@ asin() const
   return AsinReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise tan of *this.
+/** \returns an expression of the coefficient-wise hyperbolic tan of *this.
   *
-  * Example: \include Cwise_tan.cpp
-  * Output: \verbinclude Cwise_tan.out
+  * Example: \include Cwise_tanh.cpp
+  * Output: \verbinclude Cwise_tanh.out
   *
-  * \sa cos(), sin()
+  * \sa tan(), sinh(), cosh()
   */
-EIGEN_DEVICE_FUNC
-inline const TanReturnType
-tan() const
+inline const TanhReturnType
+tanh() const
 {
-  return TanReturnType(derived());
+  return TanhReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise arc tan of *this.
+/** \returns an expression of the coefficient-wise hyperbolic sin of *this.
   *
-  * Example: \include Cwise_atan.cpp
-  * Output: \verbinclude Cwise_atan.out
+  * Example: \include Cwise_sinh.cpp
+  * Output: \verbinclude Cwise_sinh.out
   *
-  * \sa cos(), sin(), tan()
+  * \sa sin(), tanh(), cosh()
   */
-inline const AtanReturnType
-atan() const
+inline const SinhReturnType
+sinh() const
 {
-  return AtanReturnType(derived());
+  return SinhReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise hyperbolic cos of *this.
+  *
+  * Example: \include Cwise_cosh.cpp
+  * Output: \verbinclude Cwise_cosh.out
+  *
+  * \sa tan(), sinh(), cosh()
+  */
+inline const CoshReturnType
+cosh() const
+{
+  return CoshReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise power of *this to the given exponent.
