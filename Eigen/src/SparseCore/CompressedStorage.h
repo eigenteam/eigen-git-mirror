@@ -86,7 +86,12 @@ class CompressedStorage
     void resize(Index size, double reserveSizeFactor = 0)
     {
       if (m_allocatedSize<size)
-        reallocate(size + Index(reserveSizeFactor*double(size)));
+      {
+        Index realloc_size = (std::min<Index>)(NumTraits<StorageIndex>::highest(),  size + Index(reserveSizeFactor*double(size)));
+        if(realloc_size<size)
+          internal::throw_std_bad_alloc();
+        reallocate(realloc_size);
+      }
       m_size = size;
     }
 
