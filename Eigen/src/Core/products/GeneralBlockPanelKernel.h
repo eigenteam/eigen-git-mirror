@@ -25,21 +25,31 @@ inline std::ptrdiff_t manage_caching_sizes_helper(std::ptrdiff_t a, std::ptrdiff
   return a<=0 ? b : a;
 }
 
+#if EIGEN_ARCH_i386_OR_x86_64
+const std::ptrdiff_t defaultL1CacheSize = 32*1024;
+const std::ptrdiff_t defaultL2CacheSize = 256*1024;
+const std::ptrdiff_t defaultL3CacheSize = 2*1024*1024;
+#else
+const std::ptrdiff_t defaultL1CacheSize = 16*1024;
+const std::ptrdiff_t defaultL2CacheSize = 512*1024;
+const std::ptrdiff_t defaultL3CacheSize = 512*1024;
+#endif
+
 /** \internal */
 inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff_t* l2, std::ptrdiff_t* l3)
 {
   static bool m_cache_sizes_initialized = false;
-  static std::ptrdiff_t m_l1CacheSize = 32*1024;
-  static std::ptrdiff_t m_l2CacheSize = 256*1024;
-  static std::ptrdiff_t m_l3CacheSize = 2*1024*1024;
+  static std::ptrdiff_t m_l1CacheSize = 0;
+  static std::ptrdiff_t m_l2CacheSize = 0;
+  static std::ptrdiff_t m_l3CacheSize = 0;
 
   if(!m_cache_sizes_initialized)
   {
     int l1CacheSize, l2CacheSize, l3CacheSize;
     queryCacheSizes(l1CacheSize, l2CacheSize, l3CacheSize);
-    m_l1CacheSize = manage_caching_sizes_helper(l1CacheSize, 8*1024);
-    m_l2CacheSize = manage_caching_sizes_helper(l2CacheSize, 256*1024);
-    m_l3CacheSize = manage_caching_sizes_helper(l3CacheSize, 8*1024*1024);
+    m_l1CacheSize = manage_caching_sizes_helper(l1CacheSize, defaultL1CacheSize);
+    m_l2CacheSize = manage_caching_sizes_helper(l2CacheSize, defaultL2CacheSize);
+    m_l3CacheSize = manage_caching_sizes_helper(l3CacheSize, defaultL3CacheSize);
     m_cache_sizes_initialized = true;
   }
 
@@ -974,7 +984,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
       // Blocking sizes, i.e., 'depth' has been computed so that the micro horizontal panel of the lhs fit in L1.
       // However, if depth is too small, we can extend the number of rows of these horizontal panels.
       // This actual number of rows is computed as follow:
-      const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
+      const Index l1 = defaultL1CacheSize; // in Bytes, TODO, l1 should be passed to this function.
 #ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
       const Index actual_panel_rows = (3*LhsProgress) * std::max<Index>(1,( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 3*LhsProgress) ));
 #else
@@ -1211,7 +1221,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     //---------- Process 2 * LhsProgress rows at once ----------
     if(mr>=2*Traits::LhsProgress)
     {
-      const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
+      const Index l1 = defaultL1CacheSize; // in Bytes, TODO, l1 should be passed to this function.
 #ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
       Index actual_panel_rows = (2*LhsProgress) * std::max<Index>(1,( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) ));
 #else
