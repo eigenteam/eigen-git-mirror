@@ -525,8 +525,25 @@ struct random_default_impl<Scalar, false, true>
   typedef typename NumTraits<Scalar>::NonInteger NonInteger;
 
   static inline Scalar run(const Scalar& x, const Scalar& y)
-  {
-    return x + Scalar((NonInteger(y)-x+1) * std::rand() / (RAND_MAX + NonInteger(1)));
+  { 
+    using std::max;
+    Scalar range = (max)(Scalar(0),Scalar(y-x));
+    Scalar offset = 0;
+    if(range<=RAND_MAX)
+    {
+      // rejection sampling
+      int divisor = RAND_MAX/(range+1);
+
+      do {
+        offset = Scalar(std::rand() / divisor);
+      } while (offset > range);
+    }
+    else
+    {
+      offset = std::rand() * range;
+    }
+    
+    return x + offset;
   }
 
   static inline Scalar run()
