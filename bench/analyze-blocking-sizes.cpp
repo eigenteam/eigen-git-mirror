@@ -28,6 +28,9 @@ const int default_precision = 4;
 // see --only-cubic-sizes
 bool only_cubic_sizes = false;
 
+// see --dump-tables
+bool dump_tables = false;
+
 uint8_t log2_pot(size_t x) {
   size_t l = 0;
   while (x >>= 1) l++;
@@ -318,12 +321,72 @@ float efficiency_of_subset(
         efficiency_this_product_size = max(efficiency_this_product_size, efficiency_this_entry);
       }
       efficiency = min(efficiency, efficiency_this_product_size);
-      first_entry_index_with_this_product_size = entry_index;
-      product_size = first_file.entries[entry_index].product_size;
+      if (entry_index < num_entries) {
+        first_entry_index_with_this_product_size = entry_index;
+        product_size = first_file.entries[entry_index].product_size;
+      }
     }
   }
 
   return efficiency;
+}
+
+void dump_table_for_subset(
+        const vector<preprocessed_inputfile_t>& preprocessed_inputfiles,
+        const vector<size_t>& subset)
+{
+  const preprocessed_inputfile_t& first_file = preprocessed_inputfiles[subset[0]];
+  const size_t num_entries = first_file.entries.size();
+  size_t entry_index = 0;
+  size_t first_entry_index_with_this_product_size = 0;
+  uint16_t product_size = first_file.entries[0].product_size;
+  size_t i = 0;
+  size_triple_t min_product_size(first_file.entries.front().product_size);
+  size_triple_t max_product_size(first_file.entries.back().product_size);
+  if (!min_product_size.is_cubic() || !max_product_size.is_cubic()) {
+    abort();
+  }
+  if (only_cubic_sizes) {
+    cout << "/* Warning: generated with --only-cubic-sizes ! */" << endl;
+  }
+  cout << "struct optimal_block_sizes_table {" << endl;
+  cout << "  static const size_t min_size = " << min_product_size.k << ";" << endl;
+  cout << "  static const size_t max_size = " << max_product_size.k << ";" << endl;
+  cout << "  static const uint16_t* table() {" << endl;
+  cout << "    static const uint16_t data[] = {";
+  while (entry_index < num_entries) {
+    ++entry_index;
+    if (entry_index == num_entries ||
+        first_file.entries[entry_index].product_size != product_size)
+    {
+      float best_efficiency_this_product_size = 0.0f;
+      uint16_t best_block_size_this_product_size = 0;
+      for (size_t e = first_entry_index_with_this_product_size; e < entry_index; e++) {
+        float efficiency_this_entry = 1.0f;
+        for (auto i = subset.begin(); i != subset.end(); ++i) {
+          efficiency_this_entry = min(efficiency_this_entry, preprocessed_inputfiles[*i].entries[e].efficiency);
+        }
+        if (efficiency_this_entry > best_efficiency_this_product_size) {
+          best_efficiency_this_product_size = efficiency_this_entry;
+          best_block_size_this_product_size = first_file.entries[e].block_size;
+        }
+      }
+      if ((i++) % 8) {
+        cout << ", ";
+      } else {
+        cout << endl << "      ";
+      }
+      cout << "0x" << hex << best_block_size_this_product_size << dec;
+      if (entry_index < num_entries) {
+        first_entry_index_with_this_product_size = entry_index;
+        product_size = first_file.entries[entry_index].product_size;
+      }
+    }
+  }
+  cout << endl << "    };" << endl;
+  cout << "    return data;" << endl;
+  cout << "  }" << endl;
+  cout << "};" << endl;
 }
 
 float efficiency_of_partition(
@@ -506,6 +569,10 @@ void print_partition(
          << endl;
     for (auto file = subset->begin(); file != subset->end(); ++file) {
       cout << "    " << preprocessed_inputfiles[*file].filename << endl;
+    }
+    if (dump_tables) {
+      cout << "  Table:" << endl;
+      dump_table_for_subset(preprocessed_inputfiles, *subset);
     }
   }
   cout << endl;
@@ -770,6 +837,10 @@ int main(int argc, char* argv[])
     if (argv[i][0] == '-') {
       if (!strcmp(argv[i], "--only-cubic-sizes")) {
         only_cubic_sizes = true;
+        arg_handled = true;
+      }
+      if (!strcmp(argv[i], "--dump-tables")) {
+        dump_tables = true;
         arg_handled = true;
       }
       if (!arg_handled) {
