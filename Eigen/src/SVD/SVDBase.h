@@ -217,6 +217,12 @@ public:
   #endif
 
 protected:
+  
+  static void check_template_parameters()
+  {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+  }
+  
   // return true if already allocated
   bool allocate(Index rows, Index cols, unsigned int computationOptions) ;
 
@@ -240,7 +246,9 @@ protected:
       m_usePrescribedThreshold(false),
       m_computationOptions(0),
       m_rows(-1), m_cols(-1), m_diagSize(0)
-  {}
+  {
+    check_template_parameters();
+  }
 
 
 };
