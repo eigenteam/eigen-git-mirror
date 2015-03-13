@@ -1172,8 +1172,12 @@ typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& SparseMatrix<_Scalar,_Op
     return (m_data.value(p) = 0);
   }
   
-  // make sure the matrix is compatible to random un-compressed insertion:
-  m_data.resize(m_data.allocatedSize());
+  if(m_data.size() != m_data.allocatedSize())
+  {
+    // make sure the matrix is compatible to random un-compressed insertion:
+    m_data.resize(m_data.allocatedSize());
+    this->reserveInnerVectors(Array<StorageIndex,Dynamic,1>::Constant(2*m_outerSize, convert_index(m_outerSize)));
+  }
   
   return insertUncompressed(row,col);
 }
