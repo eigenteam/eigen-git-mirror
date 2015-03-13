@@ -318,6 +318,9 @@
 // Defined the boundary (in bytes) on which the data needs to be aligned. Note
 // that unless EIGEN_ALIGN is defined and not equal to 0, the data may not be
 // aligned at all regardless of the value of this #define.
+// TODO should be renamed EIGEN_MAXIMAL_ALIGN_BYTES,
+//      for instance with AVX 1 EIGEN_MAXIMAL_ALIGN_BYTES=32 while for 'int' 16 bytes alignment is always enough,
+//      and 16 bytes alignment is also enough for Vector4f.
 #define EIGEN_ALIGN_BYTES 16
 
 #ifdef EIGEN_DONT_ALIGN

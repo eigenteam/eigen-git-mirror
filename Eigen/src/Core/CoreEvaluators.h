@@ -647,11 +647,15 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsAligned = bool(EIGEN_ALIGN) && ((int(MapOptions)&Aligned)==Aligned),
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
+    
+    // TODO: should check for smaller packet types once we can handle multi-sized packet types
+    AlignBytes = int(packet_traits<Scalar>::size) * sizeof(Scalar),
+    
     KeepsPacketAccess = bool(HasNoInnerStride)
                         && ( bool(IsDynamicSize)
                            || HasNoOuterStride
                            || ( OuterStrideAtCompileTime!=Dynamic
-                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime)%EIGEN_ALIGN_BYTES)==0 ) ),
+                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime) % AlignBytes)==0 ) ),
     Flags0 = evaluator<PlainObjectType>::Flags,
     Flags1 = IsAligned ? (int(Flags0) | AlignedBit) : (int(Flags0) & ~AlignedBit),
     Flags2 = (bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime))
@@ -717,7 +721,10 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
     
-    MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % EIGEN_ALIGN_BYTES) == 0)) ? AlignedBit : 0,
+    // TODO: should check for smaller packet types once we can handle multi-sized packet types
+    AlignBytes = int(packet_traits<Scalar>::size) * sizeof(Scalar),
+    
+    MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % AlignBytes) == 0)) ? AlignedBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (InnerPanel && (evaluator<ArgType>::Flags&LinearAccessBit))) ? LinearAccessBit : 0,    
     FlagsRowMajorBit = XprType::Flags&RowMajorBit,
     Flags0 = evaluator<ArgType>::Flags & ( (HereditaryBits & ~RowMajorBit) |
@@ -825,12 +832,15 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
                       typename Block<ArgType, BlockRows, BlockCols, InnerPanel>::PlainObject>
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
+  typedef typename XprType::Scalar Scalar;
 
   EIGEN_DEVICE_FUNC explicit block_evaluator(const XprType& block)
     : mapbase_evaluator<XprType, typename XprType::PlainObject>(block) 
   {
+    // TODO: should check for smaller packet types once we can handle multi-sized packet types
+    const int AlignBytes = int(packet_traits<Scalar>::size) * sizeof(Scalar);
     // FIXME this should be an internal assertion
-    eigen_assert(EIGEN_IMPLIES(evaluator<XprType>::Flags&AlignedBit, (size_t(block.data()) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
+    eigen_assert(EIGEN_IMPLIES(evaluator<XprType>::Flags&AlignedBit, (size_t(block.data()) % AlignBytes) == 0) && "data is not aligned");
   }
 };
 
