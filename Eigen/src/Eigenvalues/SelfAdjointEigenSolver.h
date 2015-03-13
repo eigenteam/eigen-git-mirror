@@ -351,6 +351,11 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     #endif // EIGEN2_SUPPORT
 
   protected:
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
+    
     MatrixType m_eivec;
     RealVectorType m_eivalues;
     typename TridiagonalizationType::SubDiagonalType m_subdiag;
@@ -384,6 +389,8 @@ template<typename MatrixType>
 SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 ::compute(const MatrixType& matrix, int options)
 {
+  check_template_parameters();
+  
   using std::abs;
   eigen_assert(matrix.cols() == matrix.rows());
   eigen_assert((options&~(EigVecMask|GenEigMask))==0
