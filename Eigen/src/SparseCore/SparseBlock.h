@@ -49,6 +49,16 @@ public:
       return nnz;
     }
     
+    inline const Scalar coeff(Index row, Index col) const
+    {
+      return m_matrix.coeff(row + (IsRowMajor ? m_outerStart : 0), col + (IsRowMajor ? 0 :  m_outerStart));
+    }
+    
+    inline const Scalar coeff(Index index) const
+    {
+      return m_matrix.coeff(IsRowMajor ? m_outerStart : index, IsRowMajor ? index :  m_outerStart);
+    }
+    
     inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
     Index startRow() const { return IsRowMajor ? m_outerStart : 0; }
     Index startCol() const { return IsRowMajor ? 0 : m_outerStart; }
@@ -204,6 +214,21 @@ public:
     }
     
     bool isCompressed() const { return m_matrix.innerNonZeroPtr()==0; }
+    
+    inline Scalar& coeffRef(Index row, Index col)
+    {
+      return m_matrix.const_cast_derived().coeffRef(row + (IsRowMajor ? m_outerStart : 0), col + (IsRowMajor ? 0 :  m_outerStart));
+    }
+    
+    inline const Scalar coeff(Index row, Index col) const
+    {
+      return m_matrix.coeff(row + (IsRowMajor ? m_outerStart : 0), col + (IsRowMajor ? 0 :  m_outerStart));
+    }
+    
+    inline const Scalar coeff(Index index) const
+    {
+      return m_matrix.coeff(IsRowMajor ? m_outerStart : index, IsRowMajor ? index :  m_outerStart);
+    }
 
     const Scalar& lastCoeff() const
     {
