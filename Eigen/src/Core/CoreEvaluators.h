@@ -839,6 +839,7 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
   {
     // TODO: should check for smaller packet types once we can handle multi-sized packet types
     const int AlignBytes = int(packet_traits<Scalar>::size) * sizeof(Scalar);
+    EIGEN_ONLY_USED_FOR_DEBUG(AlignBytes)
     // FIXME this should be an internal assertion
     eigen_assert(EIGEN_IMPLIES(evaluator<XprType>::Flags&AlignedBit, (size_t(block.data()) % AlignBytes) == 0) && "data is not aligned");
   }
