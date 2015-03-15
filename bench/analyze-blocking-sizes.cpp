@@ -347,13 +347,16 @@ void dump_table_for_subset(
     abort();
   }
   if (only_cubic_sizes) {
-    cout << "/* Warning: generated with --only-cubic-sizes ! */" << endl;
+    cerr << "Can't generate tables with --only-cubic-sizes." << endl;
+    abort();
   }
-  cout << "struct optimal_block_sizes_table {" << endl;
-  cout << "  static const size_t min_size = " << min_product_size.k << ";" << endl;
-  cout << "  static const size_t max_size = " << max_product_size.k << ";" << endl;
-  cout << "  static const uint16_t* table() {" << endl;
-  cout << "    static const uint16_t data[] = {";
+  cout << "struct LookupTable {" << endl;
+  cout << "  static const size_t BaseSize = " << min_product_size.k << ";" << endl;
+  const size_t NumSizes = log2_pot(max_product_size.k / min_product_size.k) + 1;
+  const size_t TableSize = NumSizes * NumSizes * NumSizes;
+  cout << "  static const size_t NumSizes = " << NumSizes << ";" << endl;
+  cout << "  static const uint16_t* Data() {" << endl;
+  cout << "    static const uint16_t data[" << TableSize << "] = {";
   while (entry_index < num_entries) {
     ++entry_index;
     if (entry_index == num_entries ||
@@ -371,17 +374,22 @@ void dump_table_for_subset(
           best_block_size_this_product_size = first_file.entries[e].block_size;
         }
       }
-      if ((i++) % 8) {
-        cout << ", ";
+      if ((i++) % NumSizes) {
+        cout << " ";
       } else {
         cout << endl << "      ";
       }
       cout << "0x" << hex << best_block_size_this_product_size << dec;
       if (entry_index < num_entries) {
+        cout << ",";
         first_entry_index_with_this_product_size = entry_index;
         product_size = first_file.entries[entry_index].product_size;
       }
     }
+  }
+  if (i != TableSize) {
+    cerr << endl << "Wrote " << i << " table entries, expected " << TableSize << endl;
+    abort();
   }
   cout << endl << "    };" << endl;
   cout << "    return data;" << endl;
@@ -853,6 +861,11 @@ int main(int argc, char* argv[])
     }
     // Step 3. Default to interpreting args as input filenames.
     input_filenames.emplace_back(argv[i]);
+  }
+
+  if (dump_tables && only_cubic_sizes) {
+    cerr << "Incompatible options: --only-cubic-sizes and --dump-tables." << endl;
+    show_usage_and_exit(argc, argv, available_actions);
   }
 
   if (!action) {
