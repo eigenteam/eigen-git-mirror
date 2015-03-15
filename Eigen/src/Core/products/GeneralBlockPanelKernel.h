@@ -74,44 +74,22 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
   }
 }
 
-/** \brief Computes the blocking parameters for a m x k times k x n matrix product
-  *
-  * \param[in,out] k Input: the third dimension of the product. Output: the blocking size along the same dimension.
-  * \param[in,out] m Input: the number of rows of the left hand side. Output: the blocking size along the same dimension.
-  * \param[in,out] n Input: the number of columns of the right hand side. Output: the blocking size along the same dimension.
-  *
-  * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
-  * this function computes the blocking size parameters along the respective dimensions
-  * for matrix products and related algorithms. The blocking sizes depends on various
-  * parameters:
-  * - the L1 and L2 cache sizes,
-  * - the register level blocking sizes defined by gebp_traits,
-  * - the number of scalars that fit into a packet (when vectorization is enabled).
-  *
-  * \sa setCpuCacheSizes */
+/* Helper for computeProductBlockingSizes.
+ *
+ * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+ * this function computes the blocking size parameters along the respective dimensions
+ * for matrix products and related algorithms. The blocking sizes depends on various
+ * parameters:
+ * - the L1 and L2 cache sizes,
+ * - the register level blocking sizes defined by gebp_traits,
+ * - the number of scalars that fit into a packet (when vectorization is enabled).
+ *
+ * \sa setCpuCacheSizes */
 
 template<typename LhsScalar, typename RhsScalar, int KcFactor>
-void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
+void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
-
-#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
-  if (EIGEN_TEST_SPECIFIC_BLOCKING_SIZES) {
-    EIGEN_UNUSED_VARIABLE(num_threads);
-    enum {
-      kr = 8,
-      mr = Traits::mr,
-      nr = Traits::nr
-    };
-    k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
-    if (k > kr) k -= k % kr;
-    m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
-    if (m > mr) m -= m % mr;
-    n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
-    if (n > nr) n -= n % nr;
-    return;
-  }
-#endif
 
   // Explanations:
   // Let's recall that the product algorithms form mc x kc vertical panels A' on the lhs and
@@ -279,6 +257,60 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
                     : (mc - Traits::mr * ((mc/*-1*/-(m%mc))/(Traits::mr*(m/mc+1))));
     }
   }
+}
+
+inline bool useSpecificBlockingSizes(Index& k, Index& m, Index& n)
+{
+#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+  if (EIGEN_TEST_SPECIFIC_BLOCKING_SIZES) {
+    k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
+    m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
+    n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
+    return true;
+  }
+#else
+  EIGEN_UNUSED_VARIABLE(k)
+  EIGEN_UNUSED_VARIABLE(m)
+  EIGEN_UNUSED_VARIABLE(n)
+  return false;
+#endif
+}
+
+/** \brief Computes the blocking parameters for a m x k times k x n matrix product
+  *
+  * \param[in,out] k Input: the third dimension of the product. Output: the blocking size along the same dimension.
+  * \param[in,out] m Input: the number of rows of the left hand side. Output: the blocking size along the same dimension.
+  * \param[in,out] n Input: the number of columns of the right hand side. Output: the blocking size along the same dimension.
+  *
+  * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+  * this function computes the blocking size parameters along the respective dimensions
+  * for matrix products and related algorithms.
+  *
+  * The blocking size parameters may be evaluated:
+  *   - either by a heuristic based on cache sizes;
+  *   - or using a precomputed lookup table;
+  *   - or using fixed prescribed values (for testing purposes).
+  *
+  * \sa setCpuCacheSizes */
+
+template<typename LhsScalar, typename RhsScalar, int KcFactor>
+void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
+{
+  if (!useSpecificBlockingSizes(k, m, n)) {
+    if (!lookupBlockingSizesFromTable<LhsScalar, RhsScalar>(k, m, n, num_threads)) {
+      evaluateProductBlockingSizesHeuristic<LhsScalar, RhsScalar, KcFactor>(k, m, n, num_threads);
+    }
+  }
+
+  typedef gebp_traits<LhsScalar,RhsScalar> Traits;
+  enum {
+    kr = 8,
+    mr = Traits::mr,
+    nr = Traits::nr
+  };
+  if (k > kr) k -= k % kr;
+  if (m > mr) m -= m % mr;
+  if (n > nr) n -= n % nr;
 }
 
 template<typename LhsScalar, typename RhsScalar>

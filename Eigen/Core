@@ -381,6 +381,7 @@ using std::ptrdiff_t;
 #include "src/Core/Inverse.h"
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
+#include "src/Core/products/LookupBlockingSizesTable.h"
 #include "src/Core/products/GeneralBlockPanelKernel.h"
 #include "src/Core/products/Parallelizer.h"
 #include "src/Core/ProductEvaluators.h"
