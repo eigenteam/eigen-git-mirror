@@ -272,8 +272,8 @@ inline bool useSpecificBlockingSizes(Index& k, Index& m, Index& n)
   EIGEN_UNUSED_VARIABLE(k)
   EIGEN_UNUSED_VARIABLE(m)
   EIGEN_UNUSED_VARIABLE(n)
-  return false;
 #endif
+  return false;
 }
 
 /** \brief Computes the blocking parameters for a m x k times k x n matrix product
