@@ -206,7 +206,7 @@ static void test_nested_ops_with_ref()
   paddings[1] = std::make_pair(2, 1);
   paddings[2] = std::make_pair(3, 4);
   paddings[3] = std::make_pair(0, 0);
-  DSizes<Eigen::DenseIndex, 4> shuffle_dims{0, 1, 2, 3};
+  DSizes<Eigen::DenseIndex, 4> shuffle_dims(0, 1, 2, 3);
   TensorRef<Tensor<const float, 4> > ref(m.pad(paddings));
   array<std::pair<ptrdiff_t, ptrdiff_t>, 4> trivial;
   trivial[0] = std::make_pair(0, 0);
