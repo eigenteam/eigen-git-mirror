@@ -26,6 +26,7 @@ typedef CwiseUnaryOp<internal::scalar_floor_op<Scalar>, const Derived> FloorRetu
 typedef CwiseUnaryOp<internal::scalar_ceil_op<Scalar>, const Derived> CeilReturnType;
 typedef CwiseUnaryOp<internal::scalar_isNaN_op<Scalar>, const Derived> IsNaNReturnType;
 typedef CwiseUnaryOp<internal::scalar_isinf_op<Scalar>, const Derived> IsinfReturnType;
+typedef CwiseUnaryOp<internal::scalar_isFinite_op<Scalar>, const Derived> IsFiniteReturnType;
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   *
@@ -369,7 +370,7 @@ ceil() const
   * Example: \include Cwise_isNaN.cpp
   * Output: \verbinclude Cwise_isNaN.out
   *
-  * \sa isinf()
+  * \sa isFinite(), isinf()
   */
 inline const IsNaNReturnType
 isNaN() const
@@ -388,6 +389,19 @@ inline const IsinfReturnType
 isinf() const
 {
   return IsinfReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise isFinite of *this.
+  *
+  * Example: \include Cwise_isFinite.cpp
+  * Output: \verbinclude Cwise_isFinite.out
+  *
+  * \sa isNaN()
+  */
+inline const IsFiniteReturnType
+isFinite() const
+{
+  return IsFiniteReturnType(derived());
 }
 
 #define EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(METHOD_NAME,FUNCTOR) \

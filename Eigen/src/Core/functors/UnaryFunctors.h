@@ -606,6 +606,26 @@ struct functor_traits<scalar_isinf_op<Scalar> >
   };
 };
 
+/** \internal
+  * \brief Template functor to compute the isFinite of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::isFinite()
+  */
+template<typename Scalar> struct scalar_isFinite_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_isFinite_op)
+  typedef bool result_type;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isfinite(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::pisFinite(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_isFinite_op<Scalar> >
+{
+  enum {
+    Cost = NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasIsFinite
+  };
+};
+
 } // end namespace internal
 
 } // end namespace Eigen
