@@ -216,7 +216,10 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.isNaN(), isNaN(m1));
   VERIFY_IS_APPROX(m1.isInf(), isInf(m1));
   VERIFY_IS_APPROX(m1.isFinite(), isFinite(m1));
-  VERIFY_IS_APPROX(m1.square(), square(m1));
+  VERIFY_IS_APPROX(inverse(m1.inverse()), m1);
+  VERIFY_IS_APPROX(abs2(m1.abs2()), pow(abs(m1),2*2));
+  VERIFY_IS_APPROX(m1.square().sqrt(), sqrt(square(m1)));
+  VERIFY_IS_APPROX(cube(m1.cube()), pow((m1),3*3));
 
   VERIFY_IS_APPROX(cos(m1+RealScalar(3)*m2), cos((m1+RealScalar(3)*m2).eval()));
 
@@ -279,13 +282,17 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.log(), log(m1));
   VERIFY_IS_APPROX(m1.log10(), log10(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
+  VERIFY_IS_APPROX(abs2(m1.abs2()), pow(abs(m1),2*2));
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
   VERIFY_IS_APPROX(m1.isNaN(), isNaN(m1));
   VERIFY_IS_APPROX(m1.isInf(), isInf(m1));
   VERIFY_IS_APPROX(m1.isFinite(), isFinite(m1));
-  VERIFY_IS_APPROX(m1.square(), square(m1));
+  VERIFY_IS_APPROX(m1.square().sqrt(), sqrt(square(m1)));
+  VERIFY_IS_APPROX(cube(m1.cube()), pow((m1),3*3));
+  VERIFY_IS_APPROX(conj(m1.conjugate()), m1);
+  VERIFY_IS_APPROX(inverse(m1.inverse()), m1);
   VERIFY_IS_APPROX(m1.sin(), sin(m1));
   VERIFY_IS_APPROX(m1.cos(), cos(m1));
   VERIFY_IS_APPROX(m1.tan(), tan(m1));
