@@ -68,9 +68,9 @@ struct LookupBlockingSizesFromTableImpl<LhsScalar, RhsScalar, true>
     const size_t n_index = ceil_log2(n_clamped / minsize);
     const size_t index = n_index + Table::NumSizes * (m_index + Table::NumSizes * k_index);
     const uint16_t table_entry = Table::Data()[index];
-    k = min(k, 1 << ((table_entry & 0xf00) >> 8));
-    m = min(m, 1 << ((table_entry & 0x0f0) >> 4));
-    n = min(n, 1 << ((table_entry & 0x00f) >> 0));
+    k = min<Index>(k, 1 << ((table_entry & 0xf00) >> 8));
+    m = min<Index>(m, 1 << ((table_entry & 0x0f0) >> 4));
+    n = min<Index>(n, 1 << ((table_entry & 0x00f) >> 0));
     return true;
   }
 };
