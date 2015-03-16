@@ -786,14 +786,6 @@ T (round)(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-std::complex<T> (round)(const std::complex<T>& x)
-{
-  using numext::round;
-  return std::complex<T>(round(real(x)), round(imag(x)));
-}
-
-template<typename T>
-EIGEN_DEVICE_FUNC
 T (floor)(const T& x)
 {
   using std::floor;
@@ -802,30 +794,10 @@ T (floor)(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-std::complex<T> (floor)(const std::complex<T>& x)
-{
-  using std::real;
-  using std::imag;
-  using std::floor;
-  return std::complex<T>(floor(real(x)), floor(imag(x)));
-}
-
-template<typename T>
-EIGEN_DEVICE_FUNC
 T (ceil)(const T& x)
 {
   using std::ceil;
   return ceil(x);
-}
-
-template<typename T>
-EIGEN_DEVICE_FUNC
-std::complex<T> (ceil)(const std::complex<T>& x)
-{
-  using std::real;
-  using std::imag;
-  using std::ceil;
-  return std::complex<T>(ceil(real(x)), ceil(imag(x)));
 }
 
 // Log base 2 for 32 bits positive integers.
