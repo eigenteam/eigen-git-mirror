@@ -587,22 +587,22 @@ struct functor_traits<scalar_isNaN_op<Scalar> >
 };
 
 /** \internal
-  * \brief Template functor to compute the isinf of a scalar
-  * \sa class CwiseUnaryOp, ArrayBase::isinf()
+  * \brief Template functor to compute the isInf of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::isInf()
   */
-template<typename Scalar> struct scalar_isinf_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_isinf_op)
+template<typename Scalar> struct scalar_isInf_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_isInf_op)
   typedef bool result_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isinf(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isInf(a); }
   typedef typename packet_traits<Scalar>::type Packet;
-  inline Packet packetOp(const Packet& a) const { return internal::pisinf(a); }
+  inline Packet packetOp(const Packet& a) const { return internal::pisInf(a); }
 };
 template<typename Scalar>
-struct functor_traits<scalar_isinf_op<Scalar> >
+struct functor_traits<scalar_isInf_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasIsinf
+    PacketAccess = packet_traits<Scalar>::HasIsInf
   };
 };
 

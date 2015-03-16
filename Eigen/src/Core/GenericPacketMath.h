@@ -78,7 +78,7 @@ struct default_packet_traits
     HasFloor  = 0,
     HasCeil   = 0,
     HasIsNaN  = 0,
-    HasIsinf  = 0,
+    HasIsInf  = 0,
     HasIsFinite  = 0
   };
 };
@@ -400,9 +400,9 @@ Packet pceil(const Packet& a) { using numext::ceil; return ceil(a); }
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pisNaN(const Packet& a) { using numext::isNaN; return isNaN(a); }
 
-/** \internal \returns the isinf of \a a (coeff-wise) */
+/** \internal \returns the isInf of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pisinf(const Packet& a) { using numext::isinf; return isinf(a); }
+Packet pisInf(const Packet& a) { using numext::isInf; return isInf(a); }
 
 /** \internal \returns the isFinite of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
