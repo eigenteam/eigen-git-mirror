@@ -139,7 +139,7 @@ template<typename Scalar>
 struct functor_traits<scalar_arg_op<Scalar> >
 {
   enum {
-    Cost = NumTraits<Scalar>::AddCost,
+    Cost = 5 * NumTraits<Scalar>::MulCost + NumTraits<Scalar>::AddCost,
     PacketAccess = packet_traits<Scalar>::HasArg
   };
 };
