@@ -626,6 +626,24 @@ struct functor_traits<scalar_isFinite_op<Scalar> >
   };
 };
 
+/** \internal
+  * \brief Template functor to compute the logical not of a boolean
+  *
+  * \sa class CwiseUnaryOp, ArrayBase::operator!
+  */
+template<typename Scalar> struct scalar_boolean_not_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_boolean_not_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator() (const bool& a) const { return !a; }
+};
+template<typename Scalar>
+struct functor_traits<scalar_boolean_not_op<Scalar> > {
+  enum {
+    Cost = NumTraits<bool>::AddCost,
+    PacketAccess = false
+  };
+};
+
+
 } // end namespace internal
 
 } // end namespace Eigen

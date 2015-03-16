@@ -221,6 +221,8 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.square().sqrt(), sqrt(square(m1)));
   VERIFY_IS_APPROX(cube(m1.cube()), pow((m1),3*3));
 
+  VERIFY(!(m1>m2),(m1<=m2));
+
   VERIFY_IS_APPROX(cos(m1+RealScalar(3)*m2), cos((m1+RealScalar(3)*m2).eval()));
 
   VERIFY_IS_APPROX(m1.abs().sqrt(), sqrt(abs(m1)));

@@ -5,6 +5,7 @@ typedef CwiseUnaryOp<internal::scalar_arg_op<Scalar>, const Derived> ArgReturnTy
 typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
 typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> InverseReturnType;
+typedef CwiseUnaryOp<internal::scalar_boolean_not_op<Scalar>, const Derived> BooleanNotReturnType;
 
 typedef CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived> ExpReturnType;
 typedef CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived> LogReturnType;
@@ -403,6 +404,25 @@ isFinite() const
 {
   return IsFiniteReturnType(derived());
 }
+
+/** \returns an expression of the coefficient-wise ! operator of *this
+  *
+  * \warning this operator is for expression of bool only.
+  *
+  * Example: \include Cwise_boolean_not.cpp
+  * Output: \verbinclude Cwise_boolean_not.out
+  *
+  * \sa operator!=()
+  */
+EIGEN_DEVICE_FUNC
+inline const BooleanNotReturnType
+operator!() const
+{
+  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value),
+                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
+  return BooleanNotReturnType(derived());
+}
+
 
 #define EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(METHOD_NAME,FUNCTOR) \
   EIGEN_DEVICE_FUNC \
