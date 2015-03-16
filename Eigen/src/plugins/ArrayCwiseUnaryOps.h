@@ -24,7 +24,7 @@ typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturn
 typedef CwiseUnaryOp<internal::scalar_round_op<Scalar>, const Derived> RoundReturnType;
 typedef CwiseUnaryOp<internal::scalar_floor_op<Scalar>, const Derived> FloorReturnType;
 typedef CwiseUnaryOp<internal::scalar_ceil_op<Scalar>, const Derived> CeilReturnType;
-typedef CwiseUnaryOp<internal::scalar_isnan_op<Scalar>, const Derived> IsnanReturnType;
+typedef CwiseUnaryOp<internal::scalar_isNaN_op<Scalar>, const Derived> IsNaNReturnType;
 typedef CwiseUnaryOp<internal::scalar_isinf_op<Scalar>, const Derived> IsinfReturnType;
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
@@ -364,17 +364,17 @@ ceil() const
   return CeilReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise isnan of *this.
+/** \returns an expression of the coefficient-wise isNaN of *this.
   *
-  * Example: \include Cwise_isnan.cpp
-  * Output: \verbinclude Cwise_isnan.out
+  * Example: \include Cwise_isNaN.cpp
+  * Output: \verbinclude Cwise_isNaN.out
   *
   * \sa isinf()
   */
-inline const IsnanReturnType
-isnan() const
+inline const IsNaNReturnType
+isNaN() const
 {
-  return IsnanReturnType(derived());
+  return IsNaNReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise isinf of *this.
@@ -382,7 +382,7 @@ isnan() const
   * Example: \include Cwise_isinf.cpp
   * Output: \verbinclude Cwise_isinf.out
   *
-  * \sa isnan()
+  * \sa isNaN()
   */
 inline const IsinfReturnType
 isinf() const

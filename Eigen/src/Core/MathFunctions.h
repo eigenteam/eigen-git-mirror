@@ -741,7 +741,7 @@ bool (isfinite)(const std::complex<T>& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-bool (isnan)(const T& x)
+bool (isNaN)(const T& x)
 {
   using std::isnan;
   return isnan(x);
@@ -749,7 +749,7 @@ bool (isnan)(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-bool (isnan)(const std::complex<T>& x)
+bool (isNaN)(const std::complex<T>& x)
 {
   using std::real;
   using std::imag;

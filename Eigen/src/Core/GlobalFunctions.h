@@ -59,7 +59,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(round,scalar_round_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(floor,scalar_floor_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(ceil,scalar_ceil_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isnan,scalar_isnan_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isNaN,scalar_isNaN_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isinf,scalar_isinf_op)
   
   template<typename Derived>

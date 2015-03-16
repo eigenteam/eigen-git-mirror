@@ -77,7 +77,7 @@ struct default_packet_traits
     HasRound  = 0,
     HasFloor  = 0,
     HasCeil   = 0,
-    HasIsnan  = 0,
+    HasIsNaN  = 0,
     HasIsinf  = 0
   };
 };
@@ -395,9 +395,9 @@ Packet pfloor(const Packet& a) { using numext::floor; return floor(a); }
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pceil(const Packet& a) { using numext::ceil; return ceil(a); }
 
-/** \internal \returns the isnan of \a a (coeff-wise) */
+/** \internal \returns whether \a a is NaN (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pisnan(const Packet& a) { using numext::isnan; return isnan(a); }
+Packet pisNaN(const Packet& a) { using numext::isNaN; return isNaN(a); }
 
 /** \internal \returns the isinf of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
