@@ -573,16 +573,13 @@ template<typename Scalar> struct scalar_isNaN_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isNaN_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isNaN(a); }
-  template<typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
-  { return internal::pisNaN(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_isNaN_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasIsNaN
+    PacketAccess = false
   };
 };
 
@@ -594,15 +591,13 @@ template<typename Scalar> struct scalar_isInf_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isInf_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isInf(a); }
-  typedef typename packet_traits<Scalar>::type Packet;
-  inline Packet packetOp(const Packet& a) const { return internal::pisInf(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_isInf_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasIsInf
+    PacketAccess = false
   };
 };
 
@@ -614,15 +609,13 @@ template<typename Scalar> struct scalar_isFinite_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isFinite_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isfinite(a); }
-  typedef typename packet_traits<Scalar>::type Packet;
-  inline Packet packetOp(const Packet& a) const { return internal::pisFinite(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_isFinite_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasIsFinite
+    PacketAccess = false
   };
 };
 

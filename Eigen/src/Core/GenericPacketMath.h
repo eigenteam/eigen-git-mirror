@@ -76,10 +76,7 @@ struct default_packet_traits
 
     HasRound  = 0,
     HasFloor  = 0,
-    HasCeil   = 0,
-    HasIsNaN  = 0,
-    HasIsInf  = 0,
-    HasIsFinite  = 0
+    HasCeil   = 0
   };
 };
 
@@ -395,18 +392,6 @@ Packet pfloor(const Packet& a) { using numext::floor; return floor(a); }
 /** \internal \returns the ceil of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pceil(const Packet& a) { using numext::ceil; return ceil(a); }
-
-/** \internal \returns whether \a a is NaN (coeff-wise) */
-template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pisNaN(const Packet& a) { using numext::isNaN; return isNaN(a); }
-
-/** \internal \returns the isInf of \a a (coeff-wise) */
-template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pisInf(const Packet& a) { using numext::isInf; return isInf(a); }
-
-/** \internal \returns the isFinite of \a a (coeff-wise) */
-template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pisFinite(const Packet& a) { using numext::isfinite; return isfinite(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types
