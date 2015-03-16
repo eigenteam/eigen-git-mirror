@@ -59,7 +59,7 @@ struct LookupBlockingSizesFromTableImpl<LhsScalar, RhsScalar, true>
     using std::max;
     typedef BlockingSizesLookupTable<LhsScalar, RhsScalar> Table;
     const uint16_t minsize = Table::BaseSize;
-    const uint16_t maxsize = minsize << (Table::NumSizes + 1);
+    const uint16_t maxsize = minsize << (Table::NumSizes - 1);
     const uint16_t k_clamped = max<uint16_t>(minsize, min<Index>(k, maxsize));
     const uint16_t m_clamped = max<uint16_t>(minsize, min<Index>(m, maxsize));
     const uint16_t n_clamped = max<uint16_t>(minsize, min<Index>(n, maxsize));
