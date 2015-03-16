@@ -1253,11 +1253,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     if(mr>=2*Traits::LhsProgress)
     {
       const Index l1 = defaultL1CacheSize; // in Bytes, TODO, l1 should be passed to this function.
-#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+      // The max(1, ...) here is needed because we may be using blocking params larger than what our known l1 cache size
+      // suggests we should be using: either because our known l1 cache size is inaccurate (e.g. on Android, we can only guess),
+      // or because we are testing specific blocking sizes.
       Index actual_panel_rows = (2*LhsProgress) * std::max<Index>(1,( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) ));
-#else
-      Index actual_panel_rows = (2*LhsProgress) * ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) );
-#endif
+
       for(Index i1=peeled_mc3; i1<peeled_mc2; i1+=actual_panel_rows)
       {
         Index actual_panel_end = (std::min)(i1+actual_panel_rows, peeled_mc2);
