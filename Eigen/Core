@@ -61,7 +61,6 @@
   #pragma GCC optimize ("-fno-ipa-cp-clone")
 #endif
 
-#include <stdint.h>
 #include <complex>
 
 // this include file manages BLAS and MKL related macros

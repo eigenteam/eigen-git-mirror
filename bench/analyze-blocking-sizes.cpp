@@ -355,8 +355,8 @@ void dump_table_for_subset(
   const size_t NumSizes = log2_pot(max_product_size.k / min_product_size.k) + 1;
   const size_t TableSize = NumSizes * NumSizes * NumSizes;
   cout << "  static const size_t NumSizes = " << NumSizes << ";" << endl;
-  cout << "  static const uint16_t* Data() {" << endl;
-  cout << "    static const uint16_t data[" << TableSize << "] = {";
+  cout << "  static const unsigned short* Data() {" << endl;
+  cout << "    static const unsigned short data[" << TableSize << "] = {";
   while (entry_index < num_entries) {
     ++entry_index;
     if (entry_index == num_entries ||

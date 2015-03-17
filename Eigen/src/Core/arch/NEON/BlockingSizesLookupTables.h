@@ -32,8 +32,8 @@ template<>
 struct BlockingSizesLookupTable<float, float> {
   static const size_t BaseSize = 16;
   static const size_t NumSizes = 8;
-  static const uint16_t* Data() {
-    static const uint16_t data[512] = {
+  static const unsigned short* Data() {
+    static const unsigned short data[512] = {
       0x444, 0x445, 0x446, 0x447, 0x448, 0x449, 0x447, 0x447,
       0x454, 0x455, 0x456, 0x457, 0x458, 0x459, 0x45a, 0x456,
       0x464, 0x465, 0x466, 0x467, 0x468, 0x469, 0x46a, 0x467,

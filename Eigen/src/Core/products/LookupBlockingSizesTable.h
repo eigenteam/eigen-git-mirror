@@ -25,9 +25,9 @@ struct LookupBlockingSizesFromTableImpl
   }
 };
 
-inline uint8_t floor_log2_helper(uint16_t& x, size_t offset)
+inline size_t floor_log2_helper(unsigned short& x, size_t offset)
 {
-  uint16_t y = x >> offset;
+  unsigned short y = x >> offset;
   if (y) {
     x = y;
     return offset;
@@ -36,7 +36,7 @@ inline uint8_t floor_log2_helper(uint16_t& x, size_t offset)
   }
 }
 
-inline uint8_t floor_log2(uint16_t x)
+inline size_t floor_log2(unsigned short x)
 {
   return floor_log2_helper(x, 8)
        + floor_log2_helper(x, 4)
@@ -44,7 +44,7 @@ inline uint8_t floor_log2(uint16_t x)
        + floor_log2_helper(x, 1);
 }
 
-inline uint8_t ceil_log2(uint16_t x)
+inline size_t ceil_log2(unsigned short x)
 {
   return x > 1 ? floor_log2(x - 1) + 1 : 0;
 }
@@ -58,16 +58,16 @@ struct LookupBlockingSizesFromTableImpl<LhsScalar, RhsScalar, true>
     using std::min;
     using std::max;
     typedef BlockingSizesLookupTable<LhsScalar, RhsScalar> Table;
-    const uint16_t minsize = Table::BaseSize;
-    const uint16_t maxsize = minsize << (Table::NumSizes - 1);
-    const uint16_t k_clamped = max<uint16_t>(minsize, min<Index>(k, maxsize));
-    const uint16_t m_clamped = max<uint16_t>(minsize, min<Index>(m, maxsize));
-    const uint16_t n_clamped = max<uint16_t>(minsize, min<Index>(n, maxsize));
+    const unsigned short minsize = Table::BaseSize;
+    const unsigned short maxsize = minsize << (Table::NumSizes - 1);
+    const unsigned short k_clamped = max<unsigned short>(minsize, min<Index>(k, maxsize));
+    const unsigned short m_clamped = max<unsigned short>(minsize, min<Index>(m, maxsize));
+    const unsigned short n_clamped = max<unsigned short>(minsize, min<Index>(n, maxsize));
     const size_t k_index = ceil_log2(k_clamped / minsize);
     const size_t m_index = ceil_log2(m_clamped / minsize);
     const size_t n_index = ceil_log2(n_clamped / minsize);
     const size_t index = n_index + Table::NumSizes * (m_index + Table::NumSizes * k_index);
-    const uint16_t table_entry = Table::Data()[index];
+    const unsigned short table_entry = Table::Data()[index];
     k = min<Index>(k, 1 << ((table_entry & 0xf00) >> 8));
     m = min<Index>(m, 1 << ((table_entry & 0x0f0) >> 4));
     n = min<Index>(n, 1 << ((table_entry & 0x00f) >> 0));
