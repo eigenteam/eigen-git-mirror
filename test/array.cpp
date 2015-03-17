@@ -197,7 +197,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
   Scalar  s1 = internal::random<Scalar>();
 
-  // these tests are mostly to check possible compilation issues.
+  // these tests are mostly to check possible compilation issues with free-functions.
   VERIFY_IS_APPROX(m1.sin(), sin(m1));
   VERIFY_IS_APPROX(m1.cos(), cos(m1));
   VERIFY_IS_APPROX(m1.tan(), tan(m1));
@@ -207,26 +207,44 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
-  VERIFY_IS_APPROX(m1.log(), log(m1));
-  VERIFY_IS_APPROX(m1.log10(), log10(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
-  VERIFY_IS_APPROX(m1.isNaN(), isNaN(m1));
-  VERIFY_IS_APPROX(m1.isInf(), isInf(m1));
-  VERIFY_IS_APPROX(m1.isFinite(), isFinite(m1));
-  VERIFY_IS_APPROX(inverse(m1.inverse()), m1);
-  VERIFY_IS_APPROX(abs2(m1.abs2()), pow(abs(m1),2*2));
-  VERIFY_IS_APPROX(m1.square().sqrt(), sqrt(square(m1)));
-  VERIFY_IS_APPROX(cube(m1.cube()), pow((m1),3*3));
-
-  VERIFY(!(m1>m2),(m1<=m2));
-
+  VERIFY((m1.isNaN() == isNaN(m1)).all());
+  VERIFY((m1.isInf() == isInf(m1)).all());
+  VERIFY((m1.isFinite() == isFinite(m1)).all());
+  VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
+  VERIFY_IS_APPROX(m1.abs(), abs(m1));
+  VERIFY_IS_APPROX(m1.abs2(), abs2(m1));
+  VERIFY_IS_APPROX(m1.square(), square(m1));
+  VERIFY_IS_APPROX(m1.cube(), cube(m1));
   VERIFY_IS_APPROX(cos(m1+RealScalar(3)*m2), cos((m1+RealScalar(3)*m2).eval()));
 
-  VERIFY_IS_APPROX(m1.abs().sqrt(), sqrt(abs(m1)));
-  VERIFY_IS_APPROX(m1.abs(), sqrt(numext::abs2(m1)));
+
+  // avoid NaNs with abs() so verification doesn't fail
+  m3 = m1.abs();
+  VERIFY_IS_APPROX(m3.sqrt(), sqrt(abs(m1)));
+  VERIFY_IS_APPROX(m3.log(), log(m3));
+  VERIFY_IS_APPROX(m3.log10(), log10(m3));
+
+
+  VERIFY((!(m1>m2) == (m1<=m2)).all());
+
+  VERIFY_IS_APPROX(sin(m1.asin()), m1);
+  VERIFY_IS_APPROX(cos(m1.acos()), m1);
+  VERIFY_IS_APPROX(tan(m1.atan()), m1);
+  VERIFY_IS_APPROX(sinh(m1), 0.5*(exp(m1)-exp(-m1)));
+  VERIFY_IS_APPROX(cosh(m1), 0.5*(exp(m1)+exp(-m1)));
+  VERIFY_IS_APPROX(tanh(m1), (0.5*(exp(m1)-exp(-m1)))/(0.5*(exp(m1)+exp(-m1))));
+  VERIFY_IS_APPROX(arg(m1), ((ArrayType)(m1<0))*std::acos(-1.0));
+  VERIFY((round(m1) <= ceil(m1) && round(m1) >= floor(m1)).all());
+  VERIFY(isNaN(m1*0.0/0.0).all());
+  VERIFY(isInf(m1/0.0).all());
+  VERIFY((isFinite(m1) && !isFinite(m1*0.0/0.0) && !isFinite(m1/0.0)).all());
+  VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
+  VERIFY((abs(m1) == m1 || abs(m1) == -m1).all());
+  VERIFY_IS_APPROX(m3, sqrt(abs2(m1)));
 
   VERIFY_IS_APPROX(numext::abs2(numext::real(m1)) + numext::abs2(numext::imag(m1)), numext::abs2(m1));
   VERIFY_IS_APPROX(numext::abs2(real(m1)) + numext::abs2(imag(m1)), numext::abs2(m1));
@@ -235,7 +253,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
   // shift argument of logarithm so that it is not zero
   Scalar smallNumber = NumTraits<Scalar>::dummy_precision();
-  VERIFY_IS_APPROX((m1.abs() + smallNumber).log() , log(abs(m1) + smallNumber));
+  VERIFY_IS_APPROX((m3 + smallNumber).log() , log(abs(m1) + smallNumber));
 
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));
   VERIFY_IS_APPROX(m1.exp(), exp(m1));
@@ -243,13 +261,15 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
   VERIFY_IS_APPROX(m1.pow(2), m1.square());
   VERIFY_IS_APPROX(pow(m1,2), m1.square());
+  VERIFY_IS_APPROX(m1.pow(3), m1.cube());
+  VERIFY_IS_APPROX(pow(m1,3), m1.cube());
 
   ArrayType exponents = ArrayType::Constant(rows, cols, RealScalar(2));
   VERIFY_IS_APPROX(Eigen::pow(m1,exponents), m1.square());
 
-  m3 = m1.abs();
   VERIFY_IS_APPROX(m3.pow(RealScalar(0.5)), m3.sqrt());
   VERIFY_IS_APPROX(pow(m3,RealScalar(0.5)), m3.sqrt());
+  VERIFY_IS_APPROX(log10(m3), log(m3)/log(10));
 
   // scalar by array division
   const RealScalar tiny = sqrt(std::numeric_limits<RealScalar>::epsilon());
@@ -260,14 +280,16 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   // check inplace transpose
   m3 = m1;
   m3.transposeInPlace();
-  VERIFY_IS_APPROX(m3,m1.transpose());
+  VERIFY_IS_APPROX(m3, m1.transpose());
   m3.transposeInPlace();
-  VERIFY_IS_APPROX(m3,m1);
+  VERIFY_IS_APPROX(m3, m1);
 }
 
 template<typename ArrayType> void array_complex(const ArrayType& m)
 {
   typedef typename ArrayType::Index Index;
+  typedef typename ArrayType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -275,29 +297,72 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   ArrayType m1 = ArrayType::Random(rows, cols),
             m2(rows, cols);
 
+  Array<RealScalar, -1, -1> m3(rows, cols);
+
+  Scalar  s1 = internal::random<Scalar>();
+
   for (Index i = 0; i < m.rows(); ++i)
     for (Index j = 0; j < m.cols(); ++j)
       m2(i,j) = sqrt(m1(i,j));
 
-  VERIFY_IS_APPROX(m1.sqrt(), m2);
-  VERIFY_IS_APPROX(m1.sqrt(), Eigen::sqrt(m1));
-  VERIFY_IS_APPROX(m1.log(), log(m1));
-  VERIFY_IS_APPROX(m1.log10(), log10(m1));
-  VERIFY_IS_APPROX(m1.arg(), arg(m1));
-  VERIFY_IS_APPROX(abs2(m1.abs2()), pow(abs(m1),2*2));
-  VERIFY_IS_APPROX(m1.isNaN(), isNaN(m1));
-  VERIFY_IS_APPROX(m1.isInf(), isInf(m1));
-  VERIFY_IS_APPROX(m1.isFinite(), isFinite(m1));
-  VERIFY_IS_APPROX(m1.square().sqrt(), sqrt(square(m1)));
-  VERIFY_IS_APPROX(cube(m1.cube()), pow((m1),3*3));
-  VERIFY_IS_APPROX(conj(m1.conjugate()), m1);
-  VERIFY_IS_APPROX(inverse(m1.inverse()), m1);
+  // these tests are mostly to check possible compilation issues with free-functions.
   VERIFY_IS_APPROX(m1.sin(), sin(m1));
   VERIFY_IS_APPROX(m1.cos(), cos(m1));
   VERIFY_IS_APPROX(m1.tan(), tan(m1));
   VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
+  VERIFY_IS_APPROX(m1.arg(), arg(m1));
+  VERIFY((m1.isNaN() == isNaN(m1)).all());
+  VERIFY((m1.isInf() == isInf(m1)).all());
+  VERIFY((m1.isFinite() == isFinite(m1)).all());
+  VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
+  VERIFY_IS_APPROX(m1.log(), log(m1));
+  VERIFY_IS_APPROX(m1.log10(), log10(m1));
+  VERIFY_IS_APPROX(m1.abs(), abs(m1));
+  VERIFY_IS_APPROX(m1.abs2(), abs2(m1));
+  VERIFY_IS_APPROX(m1.sqrt(), sqrt(m1));
+  VERIFY_IS_APPROX(m1.square(), square(m1));
+  VERIFY_IS_APPROX(m1.cube(), cube(m1));
+  VERIFY_IS_APPROX(cos(m1+RealScalar(3)*m2), cos((m1+RealScalar(3)*m2).eval()));
+
+
+  VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));
+  VERIFY_IS_APPROX(m1.exp(), exp(m1));
+  VERIFY_IS_APPROX(m1.exp() / m2.exp(),(m1-m2).exp());
+
+  VERIFY_IS_APPROX(sinh(m1), 0.5*(exp(m1)-exp(-m1)));
+  VERIFY_IS_APPROX(cosh(m1), 0.5*(exp(m1)+exp(-m1)));
+  VERIFY_IS_APPROX(tanh(m1), (0.5*(exp(m1)-exp(-m1)))/(0.5*(exp(m1)+exp(-m1))));
+
+  for (Index i = 0; i < m.rows(); ++i)
+    for (Index j = 0; j < m.cols(); ++j)
+      m3(i,j) = std::atan2(imag(m1(i,j)), real(m1(i,j)));
+  VERIFY_IS_APPROX(arg(m1), m3);
+
+  std::complex<RealScalar> zero(0.0,0.0);
+  VERIFY(isNaN(m1*zero/zero).all());
+  VERIFY(isInf(m1/zero).all());
+  VERIFY((isFinite(m1) && !isFinite(m1*zero/zero) && !isFinite(m1/zero)).all());
+
+  VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
+  VERIFY_IS_APPROX(conj(m1.conjugate()), m1);
+  VERIFY_IS_APPROX(abs(m1), sqrt(square(real(m1))+square(imag(m1))));
+  VERIFY_IS_APPROX(abs(m1), sqrt(abs2(m1)));
+  VERIFY_IS_APPROX(log10(m1), log(m1)/log(10));
+
+  // scalar by array division
+  const RealScalar tiny = sqrt(std::numeric_limits<RealScalar>::epsilon());
+  s1 += Scalar(tiny);
+  m1 += ArrayType::Constant(rows,cols,Scalar(tiny));
+  VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
+
+  // check inplace transpose
+  m2 = m1;
+  m2.transposeInPlace();
+  VERIFY_IS_APPROX(m2, m1.transpose());
+  m2.transposeInPlace();
+  VERIFY_IS_APPROX(m2, m1);
 
 }
 
