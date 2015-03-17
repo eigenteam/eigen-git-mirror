@@ -111,33 +111,33 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   {
     v = vrand;
     v(i,j) = std::numeric_limits<RealScalar>::quiet_NaN();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isNaN(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isNaN(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isNaN(v.hypotNorm()));
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(numext::isNaN(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(numext::isNaN(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(numext::isNaN(v.stableNorm()));
+    VERIFY(!isFinite(v.blueNorm()));      VERIFY(numext::isNaN(v.blueNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(numext::isNaN(v.hypotNorm()));
   }
   
   // +inf
   {
     v = vrand;
     v(i,j) = std::numeric_limits<RealScalar>::infinity();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isInf(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isInf(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isInf(v.hypotNorm()));
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
+    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
   
   // -inf
   {
     v = vrand;
     v(i,j) = -std::numeric_limits<RealScalar>::infinity();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isInf(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(isInf(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isInf(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isInf(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isInf(v.hypotNorm()));
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
+    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
   
   // mix
@@ -147,11 +147,11 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     v = vrand;
     v(i,j) = -std::numeric_limits<RealScalar>::infinity();
     v(i2,j2) = std::numeric_limits<RealScalar>::quiet_NaN();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isNaN(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(isNaN(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isNaN(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isNaN(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isNaN(v.hypotNorm()));
+    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(numext::isNaN(v.squaredNorm()));
+    VERIFY(!isFinite(v.norm()));          VERIFY(numext::isNaN(v.norm()));
+    VERIFY(!isFinite(v.stableNorm()));    VERIFY(numext::isNaN(v.stableNorm()));
+    VERIFY(!isFinite(v.blueNorm()));      VERIFY(numext::isNaN(v.blueNorm()));
+    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(numext::isNaN(v.hypotNorm()));
   }
 }
 
