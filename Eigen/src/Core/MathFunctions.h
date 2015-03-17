@@ -134,41 +134,6 @@ struct imag_retval
 };
 
 /****************************************************************************
-* Implementation of arg                                                     *
-****************************************************************************/
-
-template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
-struct arg_default_impl
-{
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  EIGEN_DEVICE_FUNC
-  static inline RealScalar run(const Scalar& x)
-  {
-    const double pi = std::acos(-1.0);
-    return (x < 0.0) ? pi : 0.0; }
-};
-
-template<typename Scalar>
-struct arg_default_impl<Scalar,true>
-{
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  EIGEN_DEVICE_FUNC
-  static inline RealScalar run(const Scalar& x)
-  {
-    using std::arg;
-    return arg(x);
-  }
-};
-
-template<typename Scalar> struct arg_impl : arg_default_impl<Scalar> {};
-
-template<typename Scalar>
-struct arg_retval
-{
-  typedef typename NumTraits<Scalar>::Real type;
-};
-
-/****************************************************************************
 * Implementation of real_ref                                             *
 ****************************************************************************/
 
@@ -429,6 +394,56 @@ template<typename Scalar>
 struct round_retval
 {
   typedef Scalar type;
+};
+
+/****************************************************************************
+* Implementation of arg                                                     *
+****************************************************************************/
+// In C++11 we can specialize arg_impl for all Scalars
+// Let's be conservative and enable the default C++11 implementation only if we are sure it exists
+#if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+    && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
+  template<typename Scalar>
+  struct arg_impl {
+    static inline Scalar run(const Scalar& x)
+    {
+      using std::arg;
+      return arg(x);
+    }
+  };
+
+// No C++11, use our own implementation for real Scalars
+#else
+  template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
+  struct arg_default_impl
+  {
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+    EIGEN_DEVICE_FUNC
+    static inline RealScalar run(const Scalar& x)
+    {
+      const double pi = std::acos(-1.0);
+      return (x < 0.0) ? pi : 0.0; }
+  };
+
+  template<typename Scalar>
+  struct arg_default_impl<Scalar,true>
+  {
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+    EIGEN_DEVICE_FUNC
+    static inline RealScalar run(const Scalar& x)
+    {
+      using std::arg;
+      return arg(x);
+    }
+  };
+
+  template<typename Scalar> struct arg_impl : arg_default_impl<Scalar> {};
+#endif
+
+template<typename Scalar>
+struct arg_retval
+{
+  typedef typename NumTraits<Scalar>::Real type;
 };
 
 /****************************************************************************
