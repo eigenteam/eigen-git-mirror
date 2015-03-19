@@ -522,28 +522,24 @@ struct meta_floor_log2<n, lower, upper, meta_floor_log2_bogus>
 template<typename Scalar>
 struct random_default_impl<Scalar, false, true>
 {
-  typedef typename NumTraits<Scalar>::NonInteger NonInteger;
-
   static inline Scalar run(const Scalar& x, const Scalar& y)
   { 
     using std::max;
-    Scalar range = (max)(Scalar(0),Scalar(y-x));
-    Scalar offset = 0;
-    if(range<=RAND_MAX)
-    {
-      // rejection sampling
-      int divisor = RAND_MAX/(range+1);
+    using std::min;
+    typedef typename conditional<NumTraits<Scalar>::IsSigned,std::ptrdiff_t,std::size_t>::type ScalarX;
+    if(y<x)
+      return x;
+    std::size_t range = ScalarX(y)-ScalarX(x);
+    std::size_t offset = 0;
+    // rejection sampling
+    std::size_t divisor    = (range+RAND_MAX-1)/(range+1);
+    std::size_t multiplier = (range+RAND_MAX-1)/std::size_t(RAND_MAX);
 
-      do {
-        offset = Scalar(std::rand() / divisor);
-      } while (offset > range);
-    }
-    else
-    {
-      offset = std::rand() * range;
-    }
-    
-    return x + offset;
+    do {
+      offset = ( (std::size_t(std::rand()) * multiplier) / divisor );
+    } while (offset > range);
+
+    return Scalar(ScalarX(x) + offset);
   }
 
   static inline Scalar run()
