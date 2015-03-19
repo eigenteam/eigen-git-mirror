@@ -34,6 +34,10 @@ template<typename Scalar> void check_all_in_range(Scalar x, Scalar y)
 
 void test_rand()
 {
+  long long_ref = NumTraits<long>::highest()/10;
+  char char_offset = (std::min)(g_repeat,64);
+  char short_offset = (std::min)(g_repeat,16000);
+  
   for(int i = 0; i < g_repeat*10; i++) {
     CALL_SUBTEST(check_in_range<float>(10,11));
     CALL_SUBTEST(check_in_range<float>(1.24234523,1.24234523));
@@ -45,16 +49,14 @@ void test_rand()
     CALL_SUBTEST(check_in_range<double>(-1,1));
     CALL_SUBTEST(check_in_range<double>(-1432.2352,-1432.2352));
     
-    
     CALL_SUBTEST(check_in_range<int>(0,-1));
     CALL_SUBTEST(check_in_range<short>(0,-1));
     CALL_SUBTEST(check_in_range<long>(0,-1));
     CALL_SUBTEST(check_in_range<int>(-673456,673456));
     CALL_SUBTEST(check_in_range<short>(-24345,24345));
-    CALL_SUBTEST(check_in_range<long>(-6734565664234,6734565664234));
+    CALL_SUBTEST(check_in_range<long>(-long_ref,long_ref));
   }
   
-  char char_offset = (std::min)(g_repeat,64);
   CALL_SUBTEST(check_all_in_range<char>(11,11));
   CALL_SUBTEST(check_all_in_range<char>(11,11+char_offset));
   CALL_SUBTEST(check_all_in_range<char>(-5,5));
@@ -63,7 +65,6 @@ void test_rand()
   CALL_SUBTEST(check_all_in_range<char>(126-char_offset,126));
   CALL_SUBTEST(check_all_in_range<char>(-126,126));
   
-  char short_offset = (std::min)(g_repeat,16000);
   CALL_SUBTEST(check_all_in_range<short>(11,11));
   CALL_SUBTEST(check_all_in_range<short>(11,11+short_offset));
   CALL_SUBTEST(check_all_in_range<short>(-5,5));
@@ -71,7 +72,6 @@ void test_rand()
   CALL_SUBTEST(check_all_in_range<short>(-24345,-24345+short_offset));
   CALL_SUBTEST(check_all_in_range<short>(24345,24345+short_offset));
   
-    
   CALL_SUBTEST(check_all_in_range<int>(11,11));
   CALL_SUBTEST(check_all_in_range<int>(11,11+g_repeat));
   CALL_SUBTEST(check_all_in_range<int>(-5,5));
@@ -83,6 +83,6 @@ void test_rand()
   CALL_SUBTEST(check_all_in_range<long>(11,11+g_repeat));
   CALL_SUBTEST(check_all_in_range<long>(-5,5));
   CALL_SUBTEST(check_all_in_range<long>(-11-g_repeat,-11));
-  CALL_SUBTEST(check_all_in_range<long>(-6734565664234,-6734565664234+g_repeat));
-  CALL_SUBTEST(check_all_in_range<long>(6734565664234,6734565664234+g_repeat));
+  CALL_SUBTEST(check_all_in_range<long>(-long_ref,-long_ref+g_repeat));
+  CALL_SUBTEST(check_all_in_range<long>( long_ref, long_ref+g_repeat));
 }
