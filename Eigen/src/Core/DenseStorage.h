@@ -36,8 +36,8 @@ void check_static_allocation_size()
 
 template<typename T, int Size, typename Packet = typename packet_traits<T>::type,
          bool Match     = bool((Size%unpacket_traits<Packet>::size)==0),
-         bool TryHalf   =  bool(unpacket_traits<Packet>::size > Size)
-                        && bool(unpacket_traits<Packet>::size > unpacket_traits<typename unpacket_traits<Packet>::half>::size) >
+         bool TryHalf   =  bool(int(unpacket_traits<Packet>::size) > Size)
+                        && bool(int(unpacket_traits<Packet>::size) > int(unpacket_traits<typename unpacket_traits<Packet>::half>::size)) >
 struct compute_default_alignment
 {
   enum { value = 0 };
