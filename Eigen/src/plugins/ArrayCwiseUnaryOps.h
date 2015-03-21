@@ -384,7 +384,7 @@ isNaN() const
   * Example: \include Cwise_isInf.cpp
   * Output: \verbinclude Cwise_isInf.out
   *
-  * \sa isNaN()
+  * \sa isNaN(), isFinite()
   */
 inline const IsInfReturnType
 isInf() const
@@ -397,7 +397,7 @@ isInf() const
   * Example: \include Cwise_isFinite.cpp
   * Output: \verbinclude Cwise_isFinite.out
   *
-  * \sa isNaN()
+  * \sa isNaN(), isInf()
   */
 inline const IsFiniteReturnType
 isFinite() const
