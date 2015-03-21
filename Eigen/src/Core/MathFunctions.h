@@ -421,8 +421,7 @@ struct round_retval
     EIGEN_DEVICE_FUNC
     static inline RealScalar run(const Scalar& x)
     {
-      const double pi = std::acos(-1.0);
-      return (x < 0.0) ? pi : 0.0; }
+      return (x < 0.0) ? M_PI : 0.0; }
   };
 
   template<typename Scalar>

@@ -237,7 +237,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(sinh(m1), 0.5*(exp(m1)-exp(-m1)));
   VERIFY_IS_APPROX(cosh(m1), 0.5*(exp(m1)+exp(-m1)));
   VERIFY_IS_APPROX(tanh(m1), (0.5*(exp(m1)-exp(-m1)))/(0.5*(exp(m1)+exp(-m1))));
-  VERIFY_IS_APPROX(arg(m1), ((ArrayType)(m1<0))*std::acos(-1.0));
+  VERIFY_IS_APPROX(arg(m1), ((ArrayType)(m1<0))*M_PI);
   VERIFY((round(m1) <= ceil(m1) && round(m1) >= floor(m1)).all());
   VERIFY(isNaN(m1*0.0/0.0).all());
   VERIFY(isInf(m1/0.0).all());
