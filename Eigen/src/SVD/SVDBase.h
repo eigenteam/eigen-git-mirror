@@ -130,9 +130,10 @@ public:
   inline Index rank() const
   {
     using std::abs;
+    using std::max;
     eigen_assert(m_isInitialized && "JacobiSVD is not initialized.");
     if(m_singularValues.size()==0) return 0;
-    RealScalar premultiplied_threshold = m_singularValues.coeff(0) * threshold();
+    RealScalar premultiplied_threshold = (max)(m_singularValues.coeff(0) * threshold(), (std::numeric_limits<RealScalar>::min)());
     Index i = m_nonzeroSingularValues-1;
     while(i>=0 && m_singularValues.coeff(i) < premultiplied_threshold) --i;
     return i+1;
