@@ -223,6 +223,18 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
   allocate(matrix.rows(), matrix.cols(), computationOptions);
   using std::abs;
   
+  //**** step -1 - If the problem is too small, directly falls back to JacobiSVD and return
+  if(matrix.cols() < m_algoswap)
+  {
+    JacobiSVD<MatrixType> jsvd(matrix,computationOptions);
+    if(computeU()) m_matrixU = jsvd.matrixU();
+    if(computeV()) m_matrixV = jsvd.matrixV();
+    m_singularValues = jsvd.singularValues();
+    m_nonzeroSingularValues = jsvd.nonzeroSingularValues();
+    m_isInitialized = true;
+    return *this;
+  }
+  
   //**** step 0 - Copy the input matrix and apply scaling to reduce over/under-flows
   RealScalar scale = matrix.cwiseAbs().maxCoeff();
   if(scale==RealScalar(0)) scale = RealScalar(1);
@@ -257,6 +269,7 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
       break;
     }
   }
+
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
 //   std::cout << "m_naiveU\n" << m_naiveU << "\n\n";
 //   std::cout << "m_naiveV\n" << m_naiveV << "\n\n";
@@ -438,7 +451,7 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
   } 
   else 
   {
-    RealScalar q1 = (m_naiveU(0, firstCol + k));
+    RealScalar q1 = m_naiveU(0, firstCol + k);
     // we shift Q1 to the right
     for (Index i = firstCol + k - 1; i >= firstCol; i--) 
       m_naiveU(0, i + 1) = m_naiveU(0, i);
