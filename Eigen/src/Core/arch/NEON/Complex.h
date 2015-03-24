@@ -272,7 +272,7 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
 }
 
 //---------- double ----------
-#if EIGEN_ARCH_ARM64
+#if EIGEN_ARCH_ARM64 && !EIGEN_APPLE_DOUBLE_NEON_BUG
 
 static uint64x2_t p2ul_CONJ_XOR = EIGEN_INIT_NEON_PACKET2(0x0, 0x8000000000000000);
 

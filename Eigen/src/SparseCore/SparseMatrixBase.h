@@ -97,7 +97,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
                         Transpose<const Derived>
                      >::type AdjointReturnType;
     typedef Transpose<Derived> TransposeReturnType;
-    template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SelfAdjointView<Derived, UpLo> Type; };
     typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
 
     // FIXME storage order do not match evaluator storage order
@@ -300,9 +299,14 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     template<int Mode>
     inline const TriangularView<const Derived, Mode> triangularView() const;
+    
+    template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SparseSelfAdjointView<Derived, UpLo> Type; };
+    template<unsigned int UpLo> struct ConstSelfAdjointViewReturnType { typedef const SparseSelfAdjointView<const Derived, UpLo> Type; };
 
-    template<unsigned int UpLo> inline const SparseSelfAdjointView<const Derived, UpLo> selfadjointView() const;
-    template<unsigned int UpLo> inline SparseSelfAdjointView<Derived, UpLo> selfadjointView();
+    template<unsigned int UpLo> inline 
+    typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView() const;
+    template<unsigned int UpLo> inline
+    typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView();
 
     template<typename OtherDerived> Scalar dot(const MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;

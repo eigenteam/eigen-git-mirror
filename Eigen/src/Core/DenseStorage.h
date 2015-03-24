@@ -34,14 +34,35 @@ void check_static_allocation_size()
   #endif
 }
 
+template<typename T, int Size, typename Packet = typename packet_traits<T>::type,
+         bool Match     = bool((Size%unpacket_traits<Packet>::size)==0),
+         bool TryHalf   =  bool(int(unpacket_traits<Packet>::size) > Size)
+                        && bool(int(unpacket_traits<Packet>::size) > int(unpacket_traits<typename unpacket_traits<Packet>::half>::size)) >
+struct compute_default_alignment
+{
+  enum { value = 0 };
+};
+
+template<typename T, int Size, typename Packet>
+struct compute_default_alignment<T, Size, Packet, true, false> // Match
+{
+  enum { value = sizeof(T) * unpacket_traits<Packet>::size };
+};
+
+template<typename T, int Size, typename Packet>
+struct compute_default_alignment<T, Size, Packet, false, true>
+{
+  // current packet too large, try with an half-packet
+  enum { value = compute_default_alignment<T, Size, typename unpacket_traits<Packet>::half>::value };
+};
+
 /** \internal
   * Static array. If the MatrixOrArrayOptions require auto-alignment, the array will be automatically aligned:
   * to 16 bytes boundary if the total size is a multiple of 16 bytes.
   */
 template <typename T, int Size, int MatrixOrArrayOptions,
           int Alignment = (MatrixOrArrayOptions&DontAlign) ? 0
-                        : (((Size*sizeof(T))%EIGEN_ALIGN_BYTES)==0) ? EIGEN_ALIGN_BYTES
-                        : 0 >
+                        : compute_default_alignment<T,Size>::value >
 struct plain_array
 {
   T array[Size];
@@ -81,14 +102,71 @@ struct plain_array
 #endif
 
 template <typename T, int Size, int MatrixOrArrayOptions>
-struct plain_array<T, Size, MatrixOrArrayOptions, EIGEN_ALIGN_BYTES>
+struct plain_array<T, Size, MatrixOrArrayOptions, 8>
 {
-  EIGEN_USER_ALIGN_DEFAULT T array[Size];
+  EIGEN_ALIGN_TO_BOUNDARY(8) T array[Size];
 
   EIGEN_DEVICE_FUNC
   plain_array() 
   { 
-    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(EIGEN_ALIGN_BYTES-1);
+    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(7);
+    check_static_allocation_size<T,Size>();
+  }
+
+  EIGEN_DEVICE_FUNC
+  plain_array(constructor_without_unaligned_array_assert) 
+  { 
+    check_static_allocation_size<T,Size>();
+  }
+};
+
+template <typename T, int Size, int MatrixOrArrayOptions>
+struct plain_array<T, Size, MatrixOrArrayOptions, 16>
+{
+  EIGEN_ALIGN_TO_BOUNDARY(16) T array[Size];
+
+  EIGEN_DEVICE_FUNC
+  plain_array() 
+  { 
+    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(15);
+    check_static_allocation_size<T,Size>();
+  }
+
+  EIGEN_DEVICE_FUNC
+  plain_array(constructor_without_unaligned_array_assert) 
+  { 
+    check_static_allocation_size<T,Size>();
+  }
+};
+
+template <typename T, int Size, int MatrixOrArrayOptions>
+struct plain_array<T, Size, MatrixOrArrayOptions, 32>
+{
+  EIGEN_ALIGN_TO_BOUNDARY(32) T array[Size];
+
+  EIGEN_DEVICE_FUNC
+  plain_array() 
+  { 
+    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(31);
+    check_static_allocation_size<T,Size>();
+  }
+
+  EIGEN_DEVICE_FUNC
+  plain_array(constructor_without_unaligned_array_assert) 
+  { 
+    check_static_allocation_size<T,Size>();
+  }
+};
+
+template <typename T, int Size, int MatrixOrArrayOptions>
+struct plain_array<T, Size, MatrixOrArrayOptions, 64>
+{
+  EIGEN_ALIGN_TO_BOUNDARY(64) T array[Size];
+
+  EIGEN_DEVICE_FUNC
+  plain_array() 
+  { 
+    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(63);
     check_static_allocation_size<T,Size>();
   }
 

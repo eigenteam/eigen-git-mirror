@@ -170,6 +170,12 @@ template<typename _MatrixType, int _UpLo> class LLT
     #endif
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
+    
     /** \internal
       * Used to compute and store L
       * The strict upper part is not used and even not initialized.
@@ -377,6 +383,8 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 template<typename MatrixType, int _UpLo>
 LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
+  check_template_parameters();
+  
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
   m_matrix.resize(size, size);

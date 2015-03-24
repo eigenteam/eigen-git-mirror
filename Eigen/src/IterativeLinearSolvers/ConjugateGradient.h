@@ -60,29 +60,29 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   }
   
   VectorType p(n);
-  p = precond.solve(residual);      //initial search direction
+  p = precond.solve(residual);      // initial search direction
 
   VectorType z(n), tmp(n);
   RealScalar absNew = numext::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
   Index i = 0;
   while(i < maxIters)
   {
-    tmp.noalias() = mat * p;              // the bottleneck of the algorithm
+    tmp.noalias() = mat * p;                    // the bottleneck of the algorithm
 
-    Scalar alpha = absNew / p.dot(tmp);   // the amount we travel on dir
-    x += alpha * p;                       // update solution
-    residual -= alpha * tmp;              // update residue
+    Scalar alpha = absNew / p.dot(tmp);         // the amount we travel on dir
+    x += alpha * p;                             // update solution
+    residual -= alpha * tmp;                    // update residual
     
     residualNorm2 = residual.squaredNorm();
     if(residualNorm2 < threshold)
       break;
     
-    z = precond.solve(residual);          // approximately solve for "A z = residual"
+    z = precond.solve(residual);                // approximately solve for "A z = residual"
 
     RealScalar absOld = absNew;
     absNew = numext::real(residual.dot(z));     // update the absolute value of r
-    RealScalar beta = absNew / absOld;            // calculate the Gram-Schmidt value used to create the new search direction
-    p = z + beta * p;                             // update search direction
+    RealScalar beta = absNew / absOld;          // calculate the Gram-Schmidt value used to create the new search direction
+    p = z + beta * p;                           // update search direction
     i++;
   }
   tol_error = sqrt(residualNorm2 / rhsNorm2);
@@ -122,24 +122,24 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * and NumTraits<Scalar>::epsilon() for the tolerance.
   * 
   * This class can be used as the direct solver classes. Here is a typical usage example:
-  * \code
-  * int n = 10000;
-  * VectorXd x(n), b(n);
-  * SparseMatrix<double> A(n,n);
-  * // fill A and b
-  * ConjugateGradient<SparseMatrix<double> > cg;
-  * cg.compute(A);
-  * x = cg.solve(b);
-  * std::cout << "#iterations:     " << cg.iterations() << std::endl;
-  * std::cout << "estimated error: " << cg.error()      << std::endl;
-  * // update b, and solve again
-  * x = cg.solve(b);
-  * \endcode
+    \code
+    int n = 10000;
+    VectorXd x(n), b(n);
+    SparseMatrix<double> A(n,n);
+    // fill A and b
+    ConjugateGradient<SparseMatrix<double> > cg;
+    cg.compute(A);
+    x = cg.solve(b);
+    std::cout << "#iterations:     " << cg.iterations() << std::endl;
+    std::cout << "estimated error: " << cg.error()      << std::endl;
+    // update b, and solve again
+    x = cg.solve(b);
+    \endcode
   * 
   * By default the iterations start with x=0 as an initial guess of the solution.
   * One can control the start using the solveWithGuess() method.
   * 
-  * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
+  * \sa class LeastSquaresConjugateGradient, class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
 template< typename _MatrixType, int _UpLo, typename _Preconditioner>
 class ConjugateGradient : public IterativeSolverBase<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
@@ -185,7 +185,7 @@ public:
   {
     typedef typename internal::conditional<UpLo==(Lower|Upper),
                                            Ref<const MatrixType>&,
-                                           SparseSelfAdjointView<const Ref<const MatrixType>, UpLo>
+                                           typename Ref<const MatrixType>::template ConstSelfAdjointViewReturnType<UpLo>::Type
                                           >::type MatrixWrapperType;
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
@@ -208,7 +208,7 @@ public:
   template<typename Rhs,typename Dest>
   void _solve_impl(const MatrixBase<Rhs>& b, Dest& x) const
   {
-    x.setOnes();
+    x.setZero();
     _solve_with_guess_impl(b.derived(),x);
   }
 

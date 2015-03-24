@@ -65,7 +65,7 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_> >
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
     Options = Options_,
-    Flags = compute_tensor_flags<Scalar_, Options_>::ret | LvalueBit,
+    Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0 : LvalueBit),
   };
 };
 
@@ -80,7 +80,7 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_> >
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
     Options = Options_,
-    Flags = compute_tensor_flags<Scalar_, Options_>::ret | LvalueBit,
+    Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0: LvalueBit),
   };
 };
 
@@ -97,7 +97,7 @@ struct traits<TensorMap<PlainObjectType, Options_> >
   static const int Layout = BaseTraits::Layout;
   enum {
     Options = Options_,
-    Flags = ((BaseTraits::Flags | LvalueBit) & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
+    Flags = (BaseTraits::Flags & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
   };
 };
 
@@ -113,7 +113,7 @@ struct traits<TensorRef<PlainObjectType> >
   static const int Layout = BaseTraits::Layout;
   enum {
     Options = BaseTraits::Options,
-    Flags = ((BaseTraits::Flags | LvalueBit) & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
+    Flags = (BaseTraits::Flags & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
   };
 };
 

@@ -21,6 +21,9 @@ They are summarized in the following table:
 <tr><td>ConjugateGradient</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>Classic iterative CG</td><td>SPD</td><td>Preconditionning</td>
     <td>built-in, MPL2</td>
     <td>Recommended for large symmetric problems (e.g., 3D Poisson eq.)</td></tr>
+<tr><td>LSCG</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>CG for rectangular least-square problem</td><td>Rectangular</td><td>Preconditionning</td>
+    <td>built-in, MPL2</td>
+    <td>Solve for min |A'Ax-b|^2 without forming A'A</td></tr>
 <tr><td>BiCGSTAB</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>Iterative stabilized bi-conjugate gradient</td><td>Square</td><td>Preconditionning</td>
     <td>built-in, MPL2</td>
     <td>To speedup the convergence, try it with the \ref IncompleteLUT preconditioner.</td></tr>

@@ -86,7 +86,12 @@ class CompressedStorage
     void resize(Index size, double reserveSizeFactor = 0)
     {
       if (m_allocatedSize<size)
-        reallocate(size + Index(reserveSizeFactor*double(size)));
+      {
+        Index realloc_size = (std::min<Index>)(NumTraits<StorageIndex>::highest(),  size + Index(reserveSizeFactor*double(size)));
+        if(realloc_size<size)
+          internal::throw_std_bad_alloc();
+        reallocate(realloc_size);
+      }
       m_size = size;
     }
 
@@ -214,6 +219,9 @@ class CompressedStorage
 
     inline void reallocate(Index size)
     {
+      #ifdef EIGEN_SPARSE_COMPRESSED_STORAGE_REALLOCATE_PLUGIN
+        EIGEN_SPARSE_COMPRESSED_STORAGE_REALLOCATE_PLUGIN
+      #endif
       eigen_internal_assert(size!=m_allocatedSize);
       internal::scoped_array<Scalar> newValues(size);
       internal::scoped_array<StorageIndex> newIndices(size);

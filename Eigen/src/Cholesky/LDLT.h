@@ -226,6 +226,11 @@ template<typename _MatrixType, int _UpLo> class LDLT
     #endif
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
 
     /** \internal
       * Used to compute and store the Cholesky decomposition A = L D L^* = U^* D U.
@@ -424,6 +429,8 @@ template<typename MatrixType> struct LDLT_Traits<MatrixType,Upper>
 template<typename MatrixType, int _UpLo>
 LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
+  check_template_parameters();
+  
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
 

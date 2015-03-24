@@ -473,48 +473,48 @@ struct random_default_impl<Scalar, false, false>
 };
 
 enum {
-  floor_log2_terminate,
-  floor_log2_move_up,
-  floor_log2_move_down,
-  floor_log2_bogus
+  meta_floor_log2_terminate,
+  meta_floor_log2_move_up,
+  meta_floor_log2_move_down,
+  meta_floor_log2_bogus
 };
 
-template<unsigned int n, int lower, int upper> struct floor_log2_selector
+template<unsigned int n, int lower, int upper> struct meta_floor_log2_selector
 {
   enum { middle = (lower + upper) / 2,
-         value = (upper <= lower + 1) ? int(floor_log2_terminate)
-               : (n < (1 << middle)) ? int(floor_log2_move_down)
-               : (n==0) ? int(floor_log2_bogus)
-               : int(floor_log2_move_up)
+         value = (upper <= lower + 1) ? int(meta_floor_log2_terminate)
+               : (n < (1 << middle)) ? int(meta_floor_log2_move_down)
+               : (n==0) ? int(meta_floor_log2_bogus)
+               : int(meta_floor_log2_move_up)
   };
 };
 
 template<unsigned int n,
          int lower = 0,
          int upper = sizeof(unsigned int) * CHAR_BIT - 1,
-         int selector = floor_log2_selector<n, lower, upper>::value>
-struct floor_log2 {};
+         int selector = meta_floor_log2_selector<n, lower, upper>::value>
+struct meta_floor_log2 {};
 
 template<unsigned int n, int lower, int upper>
-struct floor_log2<n, lower, upper, floor_log2_move_down>
+struct meta_floor_log2<n, lower, upper, meta_floor_log2_move_down>
 {
-  enum { value = floor_log2<n, lower, floor_log2_selector<n, lower, upper>::middle>::value };
+  enum { value = meta_floor_log2<n, lower, meta_floor_log2_selector<n, lower, upper>::middle>::value };
 };
 
 template<unsigned int n, int lower, int upper>
-struct floor_log2<n, lower, upper, floor_log2_move_up>
+struct meta_floor_log2<n, lower, upper, meta_floor_log2_move_up>
 {
-  enum { value = floor_log2<n, floor_log2_selector<n, lower, upper>::middle, upper>::value };
+  enum { value = meta_floor_log2<n, meta_floor_log2_selector<n, lower, upper>::middle, upper>::value };
 };
 
 template<unsigned int n, int lower, int upper>
-struct floor_log2<n, lower, upper, floor_log2_terminate>
+struct meta_floor_log2<n, lower, upper, meta_floor_log2_terminate>
 {
   enum { value = (n >= ((unsigned int)(1) << (lower+1))) ? lower+1 : lower };
 };
 
 template<unsigned int n, int lower, int upper>
-struct floor_log2<n, lower, upper, floor_log2_bogus>
+struct meta_floor_log2<n, lower, upper, meta_floor_log2_bogus>
 {
   // no value, error at compile time
 };
@@ -522,11 +522,24 @@ struct floor_log2<n, lower, upper, floor_log2_bogus>
 template<typename Scalar>
 struct random_default_impl<Scalar, false, true>
 {
-  typedef typename NumTraits<Scalar>::NonInteger NonInteger;
-
   static inline Scalar run(const Scalar& x, const Scalar& y)
-  {
-    return x + Scalar((NonInteger(y)-x+1) * std::rand() / (RAND_MAX + NonInteger(1)));
+  { 
+    using std::max;
+    using std::min;
+    typedef typename conditional<NumTraits<Scalar>::IsSigned,std::ptrdiff_t,std::size_t>::type ScalarX;
+    if(y<x)
+      return x;
+    std::size_t range = ScalarX(y)-ScalarX(x);
+    std::size_t offset = 0;
+    // rejection sampling
+    std::size_t divisor    = (range+RAND_MAX-1)/(range+1);
+    std::size_t multiplier = (range+RAND_MAX-1)/std::size_t(RAND_MAX);
+
+    do {
+      offset = ( (std::size_t(std::rand()) * multiplier) / divisor );
+    } while (offset > range);
+
+    return Scalar(ScalarX(x) + offset);
   }
 
   static inline Scalar run()
@@ -534,7 +547,7 @@ struct random_default_impl<Scalar, false, true>
 #ifdef EIGEN_MAKING_DOCS
     return run(Scalar(NumTraits<Scalar>::IsSigned ? -10 : 0), Scalar(10));
 #else
-    enum { rand_bits = floor_log2<(unsigned int)(RAND_MAX)+1>::value,
+    enum { rand_bits = meta_floor_log2<(unsigned int)(RAND_MAX)+1>::value,
            scalar_bits = sizeof(Scalar) * CHAR_BIT,
            shift = EIGEN_PLAIN_ENUM_MAX(0, int(rand_bits) - int(scalar_bits)),
            offset = NumTraits<Scalar>::IsSigned ? (1 << (EIGEN_PLAIN_ENUM_MIN(rand_bits,scalar_bits)-1)) : 0

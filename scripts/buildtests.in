@@ -14,9 +14,9 @@ targets_to_make=`echo "$TESTSLIST" | egrep "$1" | xargs echo`
 
 if [ -n "${EIGEN_MAKE_ARGS:+x}" ]
 then
-  make $targets_to_make ${EIGEN_MAKE_ARGS}
+  @CMAKE_MAKE_PROGRAM@ $targets_to_make ${EIGEN_MAKE_ARGS}
 else
-  make $targets_to_make
+  @CMAKE_MAKE_PROGRAM@ $targets_to_make @EIGEN_TEST_BUILD_FLAGS@
 fi
 exit $?
 

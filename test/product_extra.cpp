@@ -109,8 +109,33 @@ void mat_mat_scalar_scalar_product()
   double det = 6.0, wt = 0.5;
   VERIFY_IS_APPROX(dNdxy.transpose()*dNdxy*det*wt, det*wt*dNdxy.transpose()*dNdxy);
 }
+
+template <typename MatrixType> 
+void zero_sized_objects(const MatrixType& m)
+{
+  Index rows = m.rows();
+  Index cols = m.cols();
   
-void zero_sized_objects()
+  {
+    MatrixType res, a(rows,0), b(0,cols);
+    VERIFY_IS_APPROX( (res=a*b), MatrixType::Zero(rows,cols) );
+    VERIFY_IS_APPROX( (res=a*a.transpose()), MatrixType::Zero(rows,rows) );
+    VERIFY_IS_APPROX( (res=b.transpose()*b), MatrixType::Zero(cols,cols) );
+    VERIFY_IS_APPROX( (res=b.transpose()*a.transpose()), MatrixType::Zero(cols,rows) );
+  }
+  
+  {
+    MatrixType res, a(rows,cols), b(cols,0);
+    res = a*b;
+    VERIFY(res.rows()==rows && res.cols()==0);
+    b.resize(0,rows);
+    res = b*a;
+    VERIFY(res.rows()==0 && res.cols()==cols);
+  }
+}
+
+
+void bug_127()
 {
   // Bug 127
   //
@@ -171,7 +196,8 @@ void test_product_extra()
     CALL_SUBTEST_2( mat_mat_scalar_scalar_product() );
     CALL_SUBTEST_3( product_extra(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
     CALL_SUBTEST_4( product_extra(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
+    CALL_SUBTEST_1( zero_sized_objects(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
-  CALL_SUBTEST_5( zero_sized_objects() );
+  CALL_SUBTEST_5( bug_127() );
   CALL_SUBTEST_6( unaligned_objects() );
 }

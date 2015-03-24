@@ -209,6 +209,12 @@ template<typename _MatrixType> class PartialPivLU
     #endif
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
+    
     MatrixType m_lu;
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
@@ -275,6 +281,8 @@ struct partial_lu_impl
     */
   static Index unblocked_lu(MatrixType& lu, PivIndex* row_transpositions, PivIndex& nb_transpositions)
   {
+    typedef scalar_score_coeff_op<Scalar> Scoring;
+    typedef typename Scoring::result_type Score;
     const Index rows = lu.rows();
     const Index cols = lu.cols();
     const Index size = (std::min)(rows,cols);
@@ -286,13 +294,13 @@ struct partial_lu_impl
       Index rcols = cols-k-1;
         
       Index row_of_biggest_in_col;
-      RealScalar biggest_in_corner
-        = lu.col(k).tail(rows-k).cwiseAbs().maxCoeff(&row_of_biggest_in_col);
+      Score biggest_in_corner
+        = lu.col(k).tail(rows-k).unaryExpr(Scoring()).maxCoeff(&row_of_biggest_in_col);
       row_of_biggest_in_col += k;
 
       row_transpositions[k] = PivIndex(row_of_biggest_in_col);
 
-      if(biggest_in_corner != RealScalar(0))
+      if(biggest_in_corner != Score(0))
       {
         if(k != row_of_biggest_in_col)
         {
@@ -423,6 +431,8 @@ void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, t
 template<typename MatrixType>
 PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
+  check_template_parameters();
+  
   // the row permutation is stored as int indices, so just to be sure:
   eigen_assert(matrix.rows()<NumTraits<int>::highest());
   

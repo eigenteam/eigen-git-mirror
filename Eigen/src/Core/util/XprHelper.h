@@ -159,13 +159,16 @@ class compute_matrix_evaluator_flags
     enum {
       row_major_bit = Options&RowMajor ? RowMajorBit : 0,
       is_dynamic_size_storage = MaxRows==Dynamic || MaxCols==Dynamic,
+      
+      // TODO: should check for smaller packet types once we can handle multi-sized packet types
+      align_bytes = int(packet_traits<Scalar>::size) * sizeof(Scalar),
 
       aligned_bit =
       (
             ((Options&DontAlign)==0)
         && (
 #if EIGEN_ALIGN_STATICALLY
-             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % EIGEN_ALIGN_BYTES) == 0))
+             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % align_bytes) == 0))
 #else
              0
 #endif

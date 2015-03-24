@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 
-#if (defined __GNUC__) && (!defined __MINGW32__)
+#if (defined __GNUC__) && (!defined __MINGW32__) && (!defined __CYGWIN__)
 #define EIGEN_WEAK_LINKING __attribute__ ((weak))
 #else
 #define EIGEN_WEAK_LINKING

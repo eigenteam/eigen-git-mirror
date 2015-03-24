@@ -214,7 +214,7 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
             >(DefaultTraversal,CompleteUnrolling)));
 
     VERIFY((test_assign(Matrix11(), Matrix<Scalar,PacketSize,EIGEN_PLAIN_ENUM_MIN(2,PacketSize)>()*Matrix<Scalar,EIGEN_PLAIN_ENUM_MIN(2,PacketSize),PacketSize>(),
-                        PacketSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD?DefaultTraversal:InnerVectorizedTraversal, CompleteUnrolling)));
+                        InnerVectorizedTraversal, CompleteUnrolling)));
     #endif
 
     VERIFY(test_assign(MatrixXX(10,10),MatrixXX(20,20).block(10,10,2,3),

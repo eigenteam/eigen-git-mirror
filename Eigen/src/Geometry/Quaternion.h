@@ -441,7 +441,7 @@ QuaternionBase<Derived>::operator* (const QuaternionBase<OtherDerived>& other) c
    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   return internal::quat_product<Architecture::Target, Derived, OtherDerived,
                          typename internal::traits<Derived>::Scalar,
-                         internal::traits<Derived>::IsAligned && internal::traits<OtherDerived>::IsAligned>::run(*this, other);
+                         (internal::traits<Derived>::IsAligned && internal::traits<OtherDerived>::IsAligned)?Aligned:Unaligned>::run(*this, other);
 }
 
 /** \sa operator*(Quaternion) */
@@ -646,6 +646,16 @@ inline Quaternion<typename internal::traits<Derived>::Scalar> QuaternionBase<Der
   }
 }
 
+// Generic conjugate of a Quaternion
+namespace internal {
+template<int Arch, class Derived, typename Scalar, int _Options> struct quat_conj
+{
+  static EIGEN_STRONG_INLINE Quaternion<Scalar> run(const QuaternionBase<Derived>& q){
+    return Quaternion<Scalar>(q.w(),-q.x(),-q.y(),-q.z());
+  }
+};
+}
+                         
 /** \returns the conjugate of the \c *this which is equal to the multiplicative inverse
   * if the quaternion is normalized.
   * The conjugate of a quaternion represents the opposite rotation.
@@ -656,7 +666,10 @@ template <class Derived>
 inline Quaternion<typename internal::traits<Derived>::Scalar>
 QuaternionBase<Derived>::conjugate() const
 {
-  return Quaternion<Scalar>(this->w(),-this->x(),-this->y(),-this->z());
+  return internal::quat_conj<Architecture::Target, Derived,
+                         typename internal::traits<Derived>::Scalar,
+                         internal::traits<Derived>::IsAligned?Aligned:Unaligned>::run(*this);
+                         
 }
 
 /** \returns the angle (in radian) between two rotations
@@ -667,12 +680,10 @@ template <class OtherDerived>
 inline typename internal::traits<Derived>::Scalar
 QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& other) const
 {
-  using std::acos;
+  using std::atan2;
   using std::abs;
-  Scalar d = abs(this->dot(other));
-  if (d>=Scalar(1))
-    return Scalar(0);
-  return Scalar(2) * acos(d);
+  Quaternion<Scalar> d = (*this) * other.conjugate();
+  return Scalar(2) * atan2( d.vec().norm(), abs(d.w()) );
 }
 
  

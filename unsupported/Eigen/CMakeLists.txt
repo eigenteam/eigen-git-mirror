@@ -9,3 +9,4 @@ install(FILES
   )
 
 add_subdirectory(src)
+add_subdirectory(CXX11)
