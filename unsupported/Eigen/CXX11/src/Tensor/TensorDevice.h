@@ -144,7 +144,7 @@ template <typename ExpressionType> class TensorDevice<ExpressionType, GpuDevice>
 
   protected:
     const GpuDevice& m_device;
-    ExpressionType m_expression;
+    ExpressionType& m_expression;
 };
 #endif
 
