@@ -197,21 +197,21 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Unaligned>(cons
 }
 #endif
 
-template<> EIGEN_DEVICE_FUNC inline float4 pgather<float, float4>(const float* from, int stride) {
+template<> EIGEN_DEVICE_FUNC inline float4 pgather<float, float4>(const float* from, Index stride) {
   return make_float4(from[0*stride], from[1*stride], from[2*stride], from[3*stride]);
 }
 
-template<> EIGEN_DEVICE_FUNC inline double2 pgather<double, double2>(const double* from, int stride) {
+template<> EIGEN_DEVICE_FUNC inline double2 pgather<double, double2>(const double* from, Index stride) {
   return make_double2(from[0*stride], from[1*stride]);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void pscatter<float, float4>(float* to, const float4& from, int stride) {
+template<> EIGEN_DEVICE_FUNC inline void pscatter<float, float4>(float* to, const float4& from, Index stride) {
   to[stride*0] = from.x;
   to[stride*1] = from.y;
   to[stride*2] = from.z;
   to[stride*3] = from.w;
 }
-template<> EIGEN_DEVICE_FUNC inline void pscatter<double, double2>(double* to, const double2& from, int stride) {
+template<> EIGEN_DEVICE_FUNC inline void pscatter<double, double2>(double* to, const double2& from, Index stride) {
   to[stride*0] = from.x;
   to[stride*1] = from.y;
 }
@@ -245,14 +245,14 @@ template<> EIGEN_DEVICE_FUNC inline double predux_min<double2>(const double2& a)
 }
 
 template<> EIGEN_DEVICE_FUNC inline float4  pabs<float4>(const float4& a) {
-  return make_float4(fabs(a.x), fabs(a.y), fabs(a.z), fabs(a.w));
+  return make_float4(fabsf(a.x), fabsf(a.y), fabsf(a.z), fabsf(a.w));
 }
 template<> EIGEN_DEVICE_FUNC inline double2 pabs<double2>(const double2& a) {
-  return make_double2(abs(a.x), abs(a.y));
+  return make_double2(fabs(a.x), fabs(a.y));
 }
 
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<float4,4>& kernel) {
   double tmp = kernel.packet[0].y;
   kernel.packet[0].y = kernel.packet[1].x;
@@ -279,7 +279,7 @@ ptranspose(PacketBlock<float4,4>& kernel) {
   kernel.packet[3].z = tmp;
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<double2,2>& kernel) {
   double tmp = kernel.packet[0].y;
   kernel.packet[0].y = kernel.packet[1].x;

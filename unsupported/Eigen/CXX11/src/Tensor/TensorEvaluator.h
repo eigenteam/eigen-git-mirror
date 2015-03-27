@@ -352,11 +352,12 @@ template<typename IfArgType, typename ThenArgType, typename ElseArgType, typenam
 struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>, Device>
 {
   typedef TensorSelectOp<IfArgType, ThenArgType, ElseArgType> XprType;
+  typedef typename XprType::Scalar Scalar;
 
   enum {
     IsAligned = TensorEvaluator<ThenArgType, Device>::IsAligned & TensorEvaluator<ElseArgType, Device>::IsAligned,
-    PacketAccess = TensorEvaluator<ThenArgType, Device>::PacketAccess & TensorEvaluator<ElseArgType, Device>::PacketAccess/* &
-                                                                                                             TensorEvaluator<IfArgType>::PacketAccess*/,
+    PacketAccess = TensorEvaluator<ThenArgType, Device>::PacketAccess & TensorEvaluator<ElseArgType, Device>::PacketAccess &
+                   internal::packet_traits<Scalar>::HasBlend,
     Layout = TensorEvaluator<IfArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
   };
@@ -373,7 +374,6 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   }
 
   typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename internal::traits<XprType>::Packet PacketReturnType;
   typedef typename TensorEvaluator<IfArgType, Device>::Dimensions Dimensions;
@@ -403,7 +403,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
   {
-    static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     internal::Selector<PacketSize> select;
     for (Index i = 0; i < PacketSize; ++i) {
       select.select[i] = m_condImpl.coeff(index+i);

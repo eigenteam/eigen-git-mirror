@@ -80,8 +80,8 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorForcedEval.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
 
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorDevice.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorExecutor.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorDevice.h"
 
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorStorage.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/Tensor.h"
