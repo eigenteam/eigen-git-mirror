@@ -61,16 +61,16 @@ void svd_compare_to_full(const MatrixType& m,
   
   if(computationOptions & (ComputeFullV|ComputeThinV))
   {
-    VERIFY( (svd.matrixV().transpose()*svd.matrixV()).isIdentity(prec) );
-    VERIFY_IS_APPROX( svd.matrixV().leftCols(diagSize) * svd.singularValues().asDiagonal() * svd.matrixV().leftCols(diagSize).transpose(),
-                      referenceSvd.matrixV().leftCols(diagSize) * referenceSvd.singularValues().asDiagonal() * referenceSvd.matrixV().leftCols(diagSize).transpose());
+    VERIFY( (svd.matrixV().adjoint()*svd.matrixV()).isIdentity(prec) );
+    VERIFY_IS_APPROX( svd.matrixV().leftCols(diagSize) * svd.singularValues().asDiagonal() * svd.matrixV().leftCols(diagSize).adjoint(),
+                      referenceSvd.matrixV().leftCols(diagSize) * referenceSvd.singularValues().asDiagonal() * referenceSvd.matrixV().leftCols(diagSize).adjoint());
   }
   
   if(computationOptions & (ComputeFullU|ComputeThinU))
   {
-    VERIFY( (svd.matrixU().transpose()*svd.matrixU()).isIdentity(prec) );
-    VERIFY_IS_APPROX( svd.matrixU().leftCols(diagSize) * svd.singularValues().cwiseAbs2().asDiagonal() * svd.matrixU().leftCols(diagSize).transpose(),
-                      referenceSvd.matrixU().leftCols(diagSize) * referenceSvd.singularValues().cwiseAbs2().asDiagonal() * referenceSvd.matrixU().leftCols(diagSize).transpose());
+    VERIFY( (svd.matrixU().adjoint()*svd.matrixU()).isIdentity(prec) );
+    VERIFY_IS_APPROX( svd.matrixU().leftCols(diagSize) * svd.singularValues().cwiseAbs2().asDiagonal() * svd.matrixU().leftCols(diagSize).adjoint(),
+                      referenceSvd.matrixU().leftCols(diagSize) * referenceSvd.singularValues().cwiseAbs2().asDiagonal() * referenceSvd.matrixU().leftCols(diagSize).adjoint());
   }
   
   // The following checks are not critical.
