@@ -425,12 +425,13 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
     // If d!=0, then t/d cannot overflow because the magnitude of the
     // entries forming d are not too small compared to the ones forming t.
     RealScalar u = t / d;
-    rot1.s() = RealScalar(1) / sqrt(RealScalar(1) + numext::abs2(u));
-    rot1.c() = rot1.s() * u;
+    RealScalar tmp = sqrt(RealScalar(1) + numext::abs2(u));
+    rot1.s() = RealScalar(1) / tmp;
+    rot1.c() = u / tmp;
   }
   m.applyOnTheLeft(0,1,rot1);
   j_right->makeJacobi(m,0,1);
-  *j_left  = rot1 * j_right->transpose();
+  *j_left = rot1 * j_right->transpose();
 }
 
 template<typename _MatrixType, int QRPreconditioner> 
@@ -680,6 +681,8 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon();
 
   // limit for very small denormal numbers to be considered zero in order to avoid infinite loops (see bug 286)
+  // FIXME What about considerering any denormal numbers as zero, using:
+  // const RealScalar considerAsZero = (std::numeric_limits<RealScalar>::min)();
   const RealScalar considerAsZero = RealScalar(2) * std::numeric_limits<RealScalar>::denorm_min();
 
   // Scaling factor to reduce over/under-flows
