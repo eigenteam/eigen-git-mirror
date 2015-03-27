@@ -328,6 +328,7 @@ struct hypot_impl
       p = _y;
       qp = _x / p;
     }
+    if(p==RealScalar(0)) return RealScalar(0);
     return p * sqrt(RealScalar(1) + qp*qp);
   }
 };
