@@ -595,6 +595,7 @@ public:
     : m_eval(aEval),
       m_outerPos( (IsRowMajor ? aEval.m_block.startCol() : aEval.m_block.startRow()) - 1), // -1 so that operator++ finds the first non-zero entry
       m_innerIndex(IsRowMajor ? aEval.m_block.startRow() : aEval.m_block.startCol()),
+      m_value(0),
       m_end(IsRowMajor ? aEval.m_block.startCol()+aEval.m_block.blockCols() : aEval.m_block.startRow()+aEval.m_block.blockRows())
   {
     EIGEN_UNUSED_VARIABLE(outer);
