@@ -332,3 +332,8 @@ endif(EIGEN_TEST_NVCC)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests)    
 add_test(NAME failtests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests COMMAND ${CMAKE_COMMAND} ${Eigen_SOURCE_DIR} -G "${CMAKE_GENERATOR}" -DEIGEN_FAILTEST=ON)
+
+option(EIGEN_TEST_BUILD_DOCUMENTATION "Test building the doxygen documentation" OFF)
+IF(EIGEN_TEST_BUILD_DOCUMENTATION)
+  add_dependencies(buildtests doc)
+ENDIF()
