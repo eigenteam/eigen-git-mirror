@@ -162,7 +162,7 @@ class QuaternionBase : public RotationBase<Derived, 3>
   { return coeffs().isApprox(other.coeffs(), prec); }
 
 	/** return the result vector of \a v through the rotation*/
-  EIGEN_STRONG_INLINE Vector3 _transformVector(Vector3 v) const;
+  EIGEN_STRONG_INLINE Vector3 _transformVector(const Vector3& v) const;
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
@@ -462,7 +462,7 @@ EIGEN_STRONG_INLINE Derived& QuaternionBase<Derived>::operator*= (const Quaterni
   */
 template <class Derived>
 EIGEN_STRONG_INLINE typename QuaternionBase<Derived>::Vector3
-QuaternionBase<Derived>::_transformVector(Vector3 v) const
+QuaternionBase<Derived>::_transformVector(const Vector3& v) const
 {
     // Note that this algorithm comes from the optimization by hand
     // of the conversion to a Matrix followed by a Matrix/Vector product.
