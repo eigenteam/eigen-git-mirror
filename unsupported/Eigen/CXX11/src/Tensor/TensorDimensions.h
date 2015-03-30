@@ -184,7 +184,7 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
 template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_prod(const Sizes<V1, V2, V3, V4, V5>&) {
   return Sizes<V1, V2, V3, V4, V5>::total_size;
-};
+}
 
 #endif
 
@@ -345,7 +345,7 @@ template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::s
 };
 template <std::size_t n, std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_get(const Sizes<V1,V2,V3,V4,V5>& a) {
   return get<n, typename Sizes<V1,V2,V3,V4,V5>::Base>::value;
-};
+}
 
 #endif
 

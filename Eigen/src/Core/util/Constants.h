@@ -296,11 +296,7 @@ enum {
   /** Align the matrix itself if it is vectorizable fixed-size */
   AutoAlign = 0,
   /** Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be requested to be aligned) */ // FIXME --- clarify the situation
-  DontAlign = 0x2,
- /** Use the DenseIndex type to index the matrix/array/tensor. Unless otherwise specified by defining EIGEN_DEFAULT_DENSE_INDEX_TYPE, DenseIndex is a ptrdiff_t. */
-  IndexDefault = 0,
-  /** Use 32bit signed integers to index the matrix/array/tensor. */
-  Index32Bit = 0x4
+  DontAlign = 0x2
 };
 
 /** \ingroup enums

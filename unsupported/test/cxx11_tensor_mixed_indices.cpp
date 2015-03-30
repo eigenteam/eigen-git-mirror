@@ -11,13 +11,11 @@
 
 #include <Eigen/CXX11/Tensor>
 
-using Eigen::Tensor;
-using Eigen::RowMajor;
 
 static void test_simple()
 {
-  Tensor<float, 1> vec1({6});
-  Tensor<float, 1, Index32Bit> vec2({6});
+  Tensor<float, 1, ColMajor> vec1({6});
+  Tensor<float, 1, ColMajor, int> vec2({6});
 
   vec1(0) = 4.0;  vec2(0) = 0.0;
   vec1(1) = 8.0;  vec2(1) = 1.0;
@@ -27,10 +25,10 @@ static void test_simple()
   vec1(5) = 42.0; vec2(5) = 5.0;
 
   float data3[6];
-  TensorMap<Tensor<float, 1>> vec3(data3, 6);
+  TensorMap<Tensor<float, 1, ColMajor>> vec3(data3, 6);
   vec3 = vec1.sqrt();
   float data4[6];
-  TensorMap<Tensor<float, 1, Index32Bit>> vec4(data4, 6);
+  TensorMap<Tensor<float, 1, ColMajor, int>> vec4(data4, 6);
   vec4 = vec2.square();
 
   VERIFY_IS_APPROX(vec3(0), sqrtf(4.0));

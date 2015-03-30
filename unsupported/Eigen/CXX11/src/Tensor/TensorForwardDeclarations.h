@@ -12,8 +12,8 @@
 
 namespace Eigen {
 
-template<typename Scalar_, std::size_t NumIndices_, int Options_ = 0> class Tensor;
-template<typename Scalar_, typename Dimensions, int Options_ = 0> class TensorFixedSize;
+template<typename Scalar_, std::size_t NumIndices_, int Options_ = 0, typename IndexType = DenseIndex> class Tensor;
+template<typename Scalar_, typename Dimensions, int Options_ = 0, typename IndexType = DenseIndex> class TensorFixedSize;
 template<typename PlainObjectType, int Options_ = Unaligned> class TensorMap;
 template<typename PlainObjectType> class TensorRef;
 template<typename Derived, int AccessLevel = internal::accessors_level<Derived>::value> class TensorBase;

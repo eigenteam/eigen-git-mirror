@@ -59,12 +59,12 @@ namespace Eigen {
   * \ref TopicStorageOrders
   */
 
-template<typename Scalar_, std::size_t NumIndices_, int Options_>
-class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
+template<typename Scalar_, std::size_t NumIndices_, int Options_, typename IndexType_>
+class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
 {
   public:
-    typedef Tensor<Scalar_, NumIndices_, Options_> Self;
-    typedef TensorBase<Tensor<Scalar_, NumIndices_, Options_> > Base;
+    typedef Tensor<Scalar_, NumIndices_, Options_, IndexType_> Self;
+    typedef TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexType_> > Base;
     typedef typename Eigen::internal::nested<Self>::type Nested;
     typedef typename internal::traits<Self>::StorageKind StorageKind;
     typedef typename internal::traits<Self>::Index Index;
@@ -86,7 +86,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_> >
     typedef DSizes<Index, NumIndices_> Dimensions;
 
   protected:
-    TensorStorage<Scalar, NumIndices, Dynamic, Options> m_storage;
+    TensorStorage<Scalar, Dimensions, Options> m_storage;
 
   public:
     // Metadata

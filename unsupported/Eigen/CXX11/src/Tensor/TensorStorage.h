@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2013 Christian Seiler <christian@iwakd.de>
+// Copyright (C) 2014-2015 Benoit Steiner <benoit.steiner.goog@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -30,21 +31,22 @@ namespace Eigen {
   *
   * \sa Tensor
   */
-template<typename T, DenseIndex NumIndices_, DenseIndex Size, int Options_, typename Dimensions = void> class TensorStorage;
+template<typename T, typename Dimensions, int Options_> class TensorStorage;
 
 
 // Pure fixed-size storage
-template<typename T, DenseIndex NumIndices_, DenseIndex Size, int Options_, typename FixedDimensions>
-class TensorStorage
+template<typename T, int Options_, typename FixedDimensions>
+class TensorStorage<T, FixedDimensions, Options_>
 {
  private:
+  static const std::size_t Size = FixedDimensions::total_size;
+
   EIGEN_ALIGN_DEFAULT T m_data[Size];
   FixedDimensions m_dimensions;
 
  public:
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE TensorStorage() {
-    EIGEN_STATIC_ASSERT(Size == FixedDimensions::total_size, YOU_MADE_A_PROGRAMMING_MISTAKE)
   }
 
   EIGEN_DEVICE_FUNC
@@ -60,35 +62,14 @@ class TensorStorage
 };
 
 
-
-// pure-dynamic, but without specification of all dimensions explicitly
-template<typename T, DenseIndex NumIndices_, int Options_>
-class TensorStorage<T, NumIndices_, Dynamic, Options_, void>
-  : public TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<typename internal::compute_index_type<static_cast<bool>(Options_ & Index32Bit)>::type, NumIndices_, Dynamic>::type>
-{
-  typedef typename internal::compute_index_type<static_cast<bool>(Options_ & Index32Bit)>::type Index;
-  typedef DSizes<Index, NumIndices_> Dimensions;
-  typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<Index, NumIndices_, Dynamic>::type> Base_;
-
-  public:
-    EIGEN_DEVICE_FUNC TensorStorage() { }
-    EIGEN_DEVICE_FUNC TensorStorage(const TensorStorage<T, NumIndices_, Dynamic, Options_, void>& other) : Base_(other) { }
-
-    EIGEN_DEVICE_FUNC TensorStorage(internal::constructor_without_unaligned_array_assert) : Base_(internal::constructor_without_unaligned_array_assert()) {}
-    EIGEN_DEVICE_FUNC TensorStorage(Index size, const array<Index, NumIndices_>& dimensions) : Base_(size, dimensions) {}
-
-  //      TensorStorage<T, NumIndices_, Dynamic, Options_, void>& operator=(const TensorStorage<T, NumIndices_, Dynamic, Options_, void>&) = default;
-};
-
 // pure dynamic
-template<typename T, DenseIndex NumIndices_, int Options_>
-class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<typename internal::compute_index_type<static_cast<bool>(Options_ & Index32Bit)>::type, NumIndices_, Dynamic>::type>
+template<typename T, int Options_, typename IndexType, std::size_t NumIndices_>
+class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
 {
   public:
-  typedef typename internal::compute_index_type<static_cast<bool>(Options_&Index32Bit)>::type Index;
-  typedef DSizes<Index, NumIndices_> Dimensions;
-
-    typedef TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_numeric_list_repeated<Index, NumIndices_, Dynamic>::type> Self_;
+    typedef IndexType Index;
+    typedef DSizes<IndexType, NumIndices_> Dimensions;
+    typedef TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_> Self;
 
     EIGEN_DEVICE_FUNC TensorStorage() : m_data(0), m_dimensions() {}
     EIGEN_DEVICE_FUNC TensorStorage(internal::constructor_without_unaligned_array_assert)
@@ -97,23 +78,23 @@ class TensorStorage<T, NumIndices_, Dynamic, Options_, typename internal::gen_nu
         : m_data(internal::conditional_aligned_new_auto<T,(Options_&DontAlign)==0>(size)), m_dimensions(dimensions)
       { EIGEN_INTERNAL_TENSOR_STORAGE_CTOR_PLUGIN }
 
-    EIGEN_DEVICE_FUNC TensorStorage(const Self_& other)
+    EIGEN_DEVICE_FUNC TensorStorage(const Self& other)
       : m_data(internal::conditional_aligned_new_auto<T,(Options_&DontAlign)==0>(internal::array_prod(other.m_dimensions)))
       , m_dimensions(other.m_dimensions)
     {
       internal::smart_copy(other.m_data, other.m_data+internal::array_prod(other.m_dimensions), m_data);
     }
-    EIGEN_DEVICE_FUNC Self_& operator=(const Self_& other)
+    EIGEN_DEVICE_FUNC Self& operator=(const Self& other)
     {
       if (this != &other) {
-        Self_ tmp(other);
+        Self tmp(other);
         this->swap(tmp);
       }
       return *this;
     }
 
     EIGEN_DEVICE_FUNC  ~TensorStorage() { internal::conditional_aligned_delete_auto<T,(Options_&DontAlign)==0>(m_data, internal::array_prod(m_dimensions)); }
-    EIGEN_DEVICE_FUNC  void swap(Self_& other)
+    EIGEN_DEVICE_FUNC  void swap(Self& other)
     { std::swap(m_data,other.m_data); std::swap(m_dimensions,other.m_dimensions); }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const {return m_dimensions;}

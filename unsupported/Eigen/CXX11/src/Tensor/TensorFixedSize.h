@@ -23,12 +23,12 @@ namespace Eigen {
   * Eigen::TensorFixedSize<float, Size<3,5,7>> t;
   */
 
-template<typename Scalar_, typename Dimensions_, int Options_>
-class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, Options_> >
+template<typename Scalar_, typename Dimensions_, int Options_, typename IndexType>
+class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, Options_, IndexType> >
 {
   public:
-    typedef TensorFixedSize<Scalar_, Dimensions_, Options_> Self;
-    typedef TensorBase<TensorFixedSize<Scalar_, Dimensions_, Options_> > Base;
+    typedef TensorFixedSize<Scalar_, Dimensions_, Options_, IndexType> Self;
+    typedef TensorBase<TensorFixedSize<Scalar_, Dimensions_, Options_, IndexType> > Base;
     typedef typename Eigen::internal::nested<Self>::type Nested;
     typedef typename internal::traits<Self>::StorageKind StorageKind;
     typedef typename internal::traits<Self>::Index Index;
@@ -50,7 +50,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
   static const std::size_t NumIndices = Dimensions::count;
 
   protected:
-  TensorStorage<Scalar, NumIndices, Dimensions::total_size, Options, Dimensions> m_storage;
+  TensorStorage<Scalar, Dimensions, Options> m_storage;
 
   public:
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                      rank()                   const { return NumIndices; }
