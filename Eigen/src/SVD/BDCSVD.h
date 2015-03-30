@@ -743,7 +743,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayXr& col0, const ArrayXr& dia
     // rational interpolation: fit a function of the form a / mu + b through the two previous
     // iterates and use its zero to compute the next iterate
     bool useBisection = fPrev*fCur>0;
-    while (fCur!=0 && abs(muCur - muPrev) > 8 * NumTraits<RealScalar>::epsilon() * numext::maxi(abs(muCur), abs(muPrev)) && abs(fCur - fPrev)>NumTraits<RealScalar>::epsilon() && !useBisection)
+    while (fCur!=0 && abs(muCur - muPrev) > 8 * NumTraits<RealScalar>::epsilon() * numext::maxi<RealScalar>(abs(muCur), abs(muPrev)) && abs(fCur - fPrev)>NumTraits<RealScalar>::epsilon() && !useBisection)
     {
       ++m_numIters;
 
@@ -794,7 +794,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayXr& col0, const ArrayXr& dia
 #endif
       eigen_internal_assert(fLeft * fRight < 0);
       
-      while (rightShifted - leftShifted > 2 * NumTraits<RealScalar>::epsilon() * numext::maxi(abs(leftShifted), abs(rightShifted)))
+      while (rightShifted - leftShifted > 2 * NumTraits<RealScalar>::epsilon() * numext::maxi<RealScalar>(abs(leftShifted), abs(rightShifted)))
       {
         RealScalar midShifted = (leftShifted + rightShifted) / 2;
         RealScalar fMid = secularEq(midShifted, col0, diag, perm, diagShifted, shift);
@@ -1004,7 +1004,7 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
   
   RealScalar maxDiag = diag.tail((std::max)(Index(1),length-1)).cwiseAbs().maxCoeff();
   RealScalar epsilon_strict = NumTraits<RealScalar>::epsilon() * maxDiag;
-  RealScalar epsilon_coarse = 8 * NumTraits<RealScalar>::epsilon() * numext::maxi(col0.cwiseAbs().maxCoeff(), maxDiag);
+  RealScalar epsilon_coarse = 8 * NumTraits<RealScalar>::epsilon() * numext::maxi<RealScalar>(col0.cwiseAbs().maxCoeff(), maxDiag);
   
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS
   assert(m_naiveU.allFinite());

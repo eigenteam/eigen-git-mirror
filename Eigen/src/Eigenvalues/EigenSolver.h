@@ -417,7 +417,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
         {
           Scalar t0 = m_matT.coeff(i+1, i);
           Scalar t1 = m_matT.coeff(i, i+1);
-          Scalar maxval = numext::maxi(abs(p),numext::maxi(abs(t0),abs(t1)));
+          Scalar maxval = numext::maxi<Scalar>(abs(p),numext::maxi<Scalar>(abs(t0),abs(t1)));
           t0 /= maxval;
           t1 /= maxval;
           Scalar p0 = p/maxval;
@@ -608,7 +608,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
           }
 
           // Overflow control
-          Scalar t = numext::maxi(abs(m_matT.coeff(i,n-1)),abs(m_matT.coeff(i,n)));
+          Scalar t = numext::maxi<Scalar>(abs(m_matT.coeff(i,n-1)),abs(m_matT.coeff(i,n)));
           if ((eps * t) * t > Scalar(1))
             m_matT.block(i, n-1, size-i, 2) /= t;
 

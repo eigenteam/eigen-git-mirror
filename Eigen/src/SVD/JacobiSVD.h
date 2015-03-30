@@ -722,8 +722,9 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         // if this 2x2 sub-matrix is not diagonal already...
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever. Similarly, small denormal numbers are considered zero.
-        RealScalar threshold = numext::maxi(considerAsZero, precision * numext::maxi(abs(m_workMatrix.coeff(p,p)),
-                                                                       abs(m_workMatrix.coeff(q,q))));
+        RealScalar threshold = numext::maxi<RealScalar>(considerAsZero,
+                   precision * numext::maxi<RealScalar>(abs(m_workMatrix.coeff(p,p)),
+                                                        abs(m_workMatrix.coeff(q,q))));
         // We compare both values to threshold instead of calling max to be robust to NaN (See bug 791)
         if(abs(m_workMatrix.coeff(p,q))>threshold || abs(m_workMatrix.coeff(q,p)) > threshold)
         {
