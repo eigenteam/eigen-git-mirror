@@ -786,9 +786,9 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayXr& col0, const ArrayXr& dia
       }
       
       RealScalar fLeft = secularEq(leftShifted, col0, diag, perm, diagShifted, shift);
-      RealScalar fRight = secularEq(rightShifted, col0, diag, perm, diagShifted, shift);
 
 #ifdef  EIGEN_BDCSVD_DEBUG_VERBOSE
+      RealScalar fRight = secularEq(rightShifted, col0, diag, perm, diagShifted, shift);
       if(!(fLeft * fRight<0))
         std::cout << k << " : " <<  fLeft << " * " << fRight << " == " << fLeft * fRight << "  ;  " << left << " - " << right << " -> " <<  leftShifted << " " << rightShifted << "   shift=" << shift << "\n";
 #endif
@@ -801,7 +801,6 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayXr& col0, const ArrayXr& dia
         if (fLeft * fMid < 0)
         {
           rightShifted = midShifted;
-          fRight = fMid;
         }
         else
         {
