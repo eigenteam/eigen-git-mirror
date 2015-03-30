@@ -27,7 +27,7 @@ template<typename MatrixType> void real_qz(const MatrixType& m)
 
 
   // Regression test for bug 985: Randomly set rows or columns to zero
-  Index k=internal::random<int>(0, dim-1);
+  Index k=internal::random<Index>(0, dim-1);
   switch(internal::random<int>(0,10)) {
   case 0:
     A.row(k).setZero(); break;
