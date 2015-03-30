@@ -277,7 +277,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Head::type array_get(const type_l
 template <class NList>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NList::HeadType::type array_prod(const NList& l) {
   return arg_prod<NList>::value;
-};
+}
 
 template<std::size_t n, typename t>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const array<t, n>& a) {
