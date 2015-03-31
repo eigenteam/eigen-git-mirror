@@ -21,8 +21,8 @@ namespace Eigen {
   */
 namespace internal {
 
-
-template <typename Index, typename InputDims, size_t NumKernelDims> class IndexMapper {
+template <typename Index, typename InputDims, size_t NumKernelDims, int Layout>
+class IndexMapper {
  public:
   IndexMapper(const InputDims& input_dims, const array<Index, NumKernelDims>& kernel_dims,
               const array<Index, NumKernelDims>& indices) {
@@ -38,13 +38,19 @@ template <typename Index, typename InputDims, size_t NumKernelDims> class IndexM
 
     array<Index, NumDims> inputStrides;
     array<Index, NumDims> outputStrides;
-    for (int i = 0; i < NumDims; ++i) {
-      if (i > 0) {
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      inputStrides[0] = 1;
+      outputStrides[0] = 1;
+      for (int i = 1; i < NumDims; ++i) {
         inputStrides[i] = inputStrides[i-1] * input_dims[i-1];
         outputStrides[i] = outputStrides[i-1] * dimensions[i-1];
-      } else {
-        inputStrides[0] = 1;
-        outputStrides[0] = 1;
+      }
+    } else {
+      inputStrides[NumDims - 1] = 1;
+      outputStrides[NumDims - 1] = 1;
+      for (int i = static_cast<int>(NumDims) - 2; i >= 0; --i) {
+        inputStrides[i] = inputStrides[i + 1] * input_dims[i + 1];
+        outputStrides[i] = outputStrides[i + 1] * dimensions[i + 1];
       }
     }
 
@@ -52,13 +58,20 @@ template <typename Index, typename InputDims, size_t NumKernelDims> class IndexM
     array<Index, NumDims> cudaOutputDimensions;
     array<Index, NumDims> tmp = dimensions;
     array<Index, NumDims> ordering;
+    const size_t offset = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                              ? 0
+                              : NumDims - NumKernelDims;
     for (int i = 0; i < NumKernelDims; ++i) {
-      ordering[i] = indices[i];
+      const Index index = i + offset;
+      ordering[index] = indices[i];
       tmp[indices[i]] = -1;
-      cudaInputDimensions[i] = input_dims[ordering[i]];
-      cudaOutputDimensions[i] = dimensions[ordering[i]];
+      cudaInputDimensions[index] = input_dims[indices[i]];
+      cudaOutputDimensions[index] = dimensions[indices[i]];
     }
-    int written = NumKernelDims;
+
+    int written = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                      ? NumKernelDims
+                      : 0;
     for (int i = 0; i < NumDims; ++i) {
       if (tmp[i] >= 0) {
         ordering[written] = i;
@@ -73,61 +86,123 @@ template <typename Index, typename InputDims, size_t NumKernelDims> class IndexM
       m_outputStrides[i] = outputStrides[ordering[i]];
     }
 
-    for (int i = 0; i < NumDims; ++i) {
-      if (i > NumKernelDims) {
-        m_cudaInputStrides[i] = m_cudaInputStrides[i-1] * cudaInputDimensions[i-1];
-        m_cudaOutputStrides[i] = m_cudaOutputStrides[i-1] * cudaOutputDimensions[i-1];
-      } else {
-        m_cudaInputStrides[i] = 1;
-        m_cudaOutputStrides[i] = 1;
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = 0; i < NumDims; ++i) {
+        if (i > NumKernelDims) {
+          m_cudaInputStrides[i] =
+              m_cudaInputStrides[i - 1] * cudaInputDimensions[i - 1];
+          m_cudaOutputStrides[i] =
+              m_cudaOutputStrides[i - 1] * cudaOutputDimensions[i - 1];
+        } else {
+          m_cudaInputStrides[i] = 1;
+          m_cudaOutputStrides[i] = 1;
+        }
+      }
+    } else {
+      for (int i = NumDims - 1; i >= 0; --i) {
+        if (i + 1 < offset) {
+          m_cudaInputStrides[i] =
+              m_cudaInputStrides[i + 1] * cudaInputDimensions[i + 1];
+          m_cudaOutputStrides[i] =
+              m_cudaOutputStrides[i + 1] * cudaOutputDimensions[i + 1];
+        } else {
+          m_cudaInputStrides[i] = 1;
+          m_cudaOutputStrides[i] = 1;
+        }
       }
     }
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaInputPlaneToTensorInputOffset(Index p) const {
     Index inputIndex = 0;
-    for (int d = NumDims - 1; d > NumKernelDims; --d) {
-      const Index idx = p / m_cudaInputStrides[d];
-      inputIndex += idx * m_inputStrides[d];
-      p -= idx * m_cudaInputStrides[d];
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int d = NumDims - 1; d > NumKernelDims; --d) {
+        const Index idx = p / m_cudaInputStrides[d];
+        inputIndex += idx * m_inputStrides[d];
+        p -= idx * m_cudaInputStrides[d];
+      }
+      inputIndex += p * m_inputStrides[NumKernelDims];
+    } else {
+      int limit = 0;
+      if (NumKernelDims < NumDims) {
+        limit = NumDims - NumKernelDims - 1;
+      }
+      for (int d = 0; d < limit; ++d) {
+        const Index idx = p / m_cudaInputStrides[d];
+        inputIndex += idx * m_inputStrides[d];
+        p -= idx * m_cudaInputStrides[d];
+      }
+      inputIndex += p * m_inputStrides[limit];
     }
-    inputIndex += p * m_inputStrides[NumKernelDims];
     return inputIndex;
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaOutputPlaneToTensorOutputOffset(Index p) const {
     Index outputIndex = 0;
-    for (int d = NumDims - 1; d > NumKernelDims; --d) {
-      const Index idx = p / m_cudaOutputStrides[d];
-      outputIndex += idx * m_outputStrides[d];
-      p -= idx * m_cudaOutputStrides[d];
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int d = NumDims - 1; d > NumKernelDims; --d) {
+        const Index idx = p / m_cudaOutputStrides[d];
+        outputIndex += idx * m_outputStrides[d];
+        p -= idx * m_cudaOutputStrides[d];
+      }
+      outputIndex += p * m_outputStrides[NumKernelDims];
+    } else {
+      int limit = 0;
+      if (NumKernelDims < NumDims) {
+        limit = NumDims - NumKernelDims - 1;
+      }
+      for (int d = 0; d < limit; ++d) {
+        const Index idx = p / m_cudaOutputStrides[d];
+        outputIndex += idx * m_outputStrides[d];
+        p -= idx * m_cudaOutputStrides[d];
+      }
+      outputIndex += p * m_outputStrides[limit];
     }
-    outputIndex += p * m_outputStrides[NumKernelDims];
     return outputIndex;
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaInputKernelToTensorInputOffset(Index i) const {
-    return i * m_inputStrides[0];
+    const size_t offset = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                              ? 0
+                              : NumDims - NumKernelDims;
+    return i * m_inputStrides[offset];
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaOutputKernelToTensorOutputOffset(Index i) const {
-    return i * m_outputStrides[0];
+    const size_t offset = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                              ? 0
+                              : NumDims - NumKernelDims;
+    return i * m_outputStrides[offset];
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaInputKernelToTensorInputOffset(Index i, Index j) const {
-    return i * m_inputStrides[0] + j*m_inputStrides[1];
+    const size_t offset = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                              ? 0
+                              : NumDims - NumKernelDims;
+    return i * m_inputStrides[offset] + j * m_inputStrides[offset + 1];
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaOutputKernelToTensorOutputOffset(Index i, Index j) const {
-    return i * m_outputStrides[0] + j * m_outputStrides[1];
+    const size_t offset = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                              ? 0
+                              : NumDims - NumKernelDims;
+    return i * m_outputStrides[offset] + j * m_outputStrides[offset + 1];
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaInputKernelToTensorInputOffset(Index i, Index j, Index k) const {
-    return i * m_inputStrides[0] + j*m_inputStrides[1] + k*m_inputStrides[2];
+    const size_t offset = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                              ? 0
+                              : NumDims - NumKernelDims;
+    return i * m_inputStrides[offset] + j * m_inputStrides[offset + 1] +
+           k * m_inputStrides[offset + 2];
   }
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Index mapCudaOutputKernelToTensorOutputOffset(Index i, Index j, Index k) const {
-    return i * m_outputStrides[0] + j*m_outputStrides[1] + k*m_outputStrides[2];
+    const size_t offset = static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                              ? 0
+                              : NumDims - NumKernelDims;
+    return i * m_outputStrides[offset] + j * m_outputStrides[offset + 1] +
+           k * m_outputStrides[offset + 2];
   }
 
  private:
@@ -237,35 +312,61 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       : m_inputImpl(op.inputExpression(), device), m_kernelImpl(op.kernelExpression(), device), m_kernelArg(op.kernelExpression()), m_kernel(NULL), m_local_kernel(false), m_device(device)
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<InputArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<KernelArgType, Device>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);
-    // Only column major tensors are supported for now.
-    EIGEN_STATIC_ASSERT((static_cast<int>(Layout) == static_cast<int>(ColMajor)), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     const typename TensorEvaluator<InputArgType, Device>::Dimensions& input_dims = m_inputImpl.dimensions();
     const typename TensorEvaluator<KernelArgType, Device>::Dimensions& kernel_dims = m_kernelImpl.dimensions();
 
-    m_inputStride[0] = 1;
-    for (int i = 1; i < NumDims; ++i) {
-      m_inputStride[i] = m_inputStride[i-1] * input_dims[i-1];
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      m_inputStride[0] = 1;
+      for (int i = 1; i < NumDims; ++i) {
+        m_inputStride[i] = m_inputStride[i - 1] * input_dims[i - 1];
+      }
+    } else {
+      m_inputStride[NumDims - 1] = 1;
+      for (int i = NumDims - 2; i >= 0; --i) {
+        m_inputStride[i] = m_inputStride[i + 1] * input_dims[i + 1];
+      }
     }
 
     m_dimensions = m_inputImpl.dimensions();
-    for (int i = 0; i < NumKernelDims; ++i) {
-      const Index index = op.indices()[i];
-      const Index input_dim = input_dims[index];
-      const Index kernel_dim = kernel_dims[i];
-      const Index result_dim = input_dim - kernel_dim + 1;
-      m_dimensions[index] = result_dim;
-      if (i > 0) {
-        m_kernelStride[i] = m_kernelStride[i-1] * kernel_dims[i-1];
-      } else {
-        m_kernelStride[0] = 1;
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = 0; i < NumKernelDims; ++i) {
+        const Index index = op.indices()[i];
+        const Index input_dim = input_dims[index];
+        const Index kernel_dim = kernel_dims[i];
+        const Index result_dim = input_dim - kernel_dim + 1;
+        m_dimensions[index] = result_dim;
+        if (i > 0) {
+          m_kernelStride[i] = m_kernelStride[i - 1] * kernel_dims[i - 1];
+        } else {
+          m_kernelStride[0] = 1;
+        }
+        m_indexStride[i] = m_inputStride[index];
       }
-      m_indexStride[i] = m_inputStride[index];
-    }
 
-    m_outputStride[0] = 1;
-    for (int i = 1; i < NumDims; ++i) {
-      m_outputStride[i] = m_outputStride[i-1] * m_dimensions[i-1];
+      m_outputStride[0] = 1;
+      for (int i = 1; i < NumDims; ++i) {
+        m_outputStride[i] = m_outputStride[i - 1] * m_dimensions[i - 1];
+      }
+    } else {
+      for (int i = NumKernelDims - 1; i >= 0; --i) {
+        const Index index = op.indices()[i];
+        const Index input_dim = input_dims[index];
+        const Index kernel_dim = kernel_dims[i];
+        const Index result_dim = input_dim - kernel_dim + 1;
+        m_dimensions[index] = result_dim;
+        if (i < NumKernelDims - 1) {
+          m_kernelStride[i] = m_kernelStride[i + 1] * kernel_dims[i + 1];
+        } else {
+          m_kernelStride[NumKernelDims - 1] = 1;
+        }
+        m_indexStride[i] = m_inputStride[index];
+      }
+
+      m_outputStride[NumDims - 1] = 1;
+      for (int i = NumDims - 2; i >= 0; --i) {
+        m_outputStride[i] = m_outputStride[i + 1] * m_dimensions[i + 1];
+      }
     }
   }
 
@@ -310,13 +411,24 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     Index indices[2] = {index, index+PacketSize-1};
     Index startInputs[2] = {0, 0};
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx0 = indices[0] / m_outputStride[i];
-      const Index idx1 = indices[1] / m_outputStride[i];
-      startInputs[0] += idx0 * m_inputStride[i];
-      startInputs[1] += idx1 * m_inputStride[i];
-      indices[0] -= idx0 * m_outputStride[i];
-      indices[1] -= idx1 * m_outputStride[i];
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = NumDims - 1; i > 0; --i) {
+        const Index idx0 = indices[0] / m_outputStride[i];
+        const Index idx1 = indices[1] / m_outputStride[i];
+        startInputs[0] += idx0 * m_inputStride[i];
+        startInputs[1] += idx1 * m_inputStride[i];
+        indices[0] -= idx0 * m_outputStride[i];
+        indices[1] -= idx1 * m_outputStride[i];
+      }
+    } else {
+      for (int i = 0; i < NumDims - 1; ++i) {
+        const Index idx0 = indices[0] / m_outputStride[i];
+        const Index idx1 = indices[1] / m_outputStride[i];
+        startInputs[0] += idx0 * m_inputStride[i];
+        startInputs[1] += idx1 * m_inputStride[i];
+        indices[0] -= idx0 * m_outputStride[i];
+        indices[1] -= idx1 * m_outputStride[i];
+      }
     }
     startInputs[0] += indices[0];
     startInputs[1] += indices[1];
@@ -344,10 +456,18 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
  private:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index firstInput(Index index) const {
     Index startInput = 0;
-    for (int i = NumDims - 1; i > 0; --i) {
-      const Index idx = index / m_outputStride[i];
-      startInput += idx * m_inputStride[i];
-      index -= idx * m_outputStride[i];
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = NumDims - 1; i > 0; --i) {
+        const Index idx = index / m_outputStride[i];
+        startInput += idx * m_inputStride[i];
+        index -= idx * m_outputStride[i];
+      }
+    } else {
+      for (int i = 0; i < NumDims - 1; ++i) {
+        const Index idx = index / m_outputStride[i];
+        startInput += idx * m_inputStride[i];
+        index -= idx * m_outputStride[i];
+      }
     }
     startInput += index;
     return startInput;
@@ -378,7 +498,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     }
   }
 
-  EIGEN_STRONG_INLINE void preloadKernel() {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void preloadKernel() {
     // Don't make a local copy of the kernel unless we have to (i.e. it's an
     // expression that needs to be evaluated)
     const Scalar* in_place = m_kernelImpl.data();
@@ -431,11 +551,14 @@ struct GetKernelSize<Dynamic> {
   }
 };
 
-
-
-
-template <typename InputEvaluator, typename Index, typename InputDims, int StaticKernelSize>
-__global__ void EigenConvolutionKernel1D(InputEvaluator eval, const internal::IndexMapper<Index, InputDims, 1> indexMapper, const float* __restrict kernel, const int numPlanes, const int numX, const int maxX, const int kernelSize, float* buffer) {
+template <typename InputEvaluator, typename Index, typename InputDims,
+          int StaticKernelSize>
+__global__ void EigenConvolutionKernel1D(
+    InputEvaluator eval,
+    const internal::IndexMapper<Index, InputDims, 1, InputEvaluator::Layout>
+        indexMapper,
+    const float* __restrict kernel, const int numPlanes, const int numX,
+    const int maxX, const int kernelSize, float* buffer) {
   extern __shared__ float s[];
 
   const int first_x = blockIdx.x * maxX;
@@ -453,7 +576,7 @@ __global__ void EigenConvolutionKernel1D(InputEvaluator eval, const internal::In
     #pragma unroll
     for (int i = threadIdx.x; i < num_x_input; i += blockDim.x) {
       const int tensor_index = plane_input_offset + indexMapper.mapCudaInputKernelToTensorInputOffset(i+first_x);
-      s[i + plane_kernel_offset] =  eval.coeff(tensor_index);
+      s[i + plane_kernel_offset] = eval.coeff(tensor_index);
     }
 
     __syncthreads();
@@ -476,9 +599,15 @@ __global__ void EigenConvolutionKernel1D(InputEvaluator eval, const internal::In
   }
 };
 
-
-template <typename InputEvaluator, typename Index, typename InputDims, int StaticKernelSizeX, int StaticKernelSizeY>
-__global__ void EigenConvolutionKernel2D(InputEvaluator eval, const internal::IndexMapper<Index, InputDims, 2> indexMapper, const float* __restrict kernel, const int numPlanes, const int numX, const int maxX, const int numY, const int maxY, const int kernelSizeX, const int kernelSizeY, float* buffer) {
+template <typename InputEvaluator, typename Index, typename InputDims,
+          int StaticKernelSizeX, int StaticKernelSizeY>
+__global__ void EigenConvolutionKernel2D(
+    InputEvaluator eval,
+    const internal::IndexMapper<Index, InputDims, 2, InputEvaluator::Layout>
+        indexMapper,
+    const float* __restrict kernel, const int numPlanes, const int numX,
+    const int maxX, const int numY, const int maxY, const int kernelSizeX,
+    const int kernelSizeY, float* buffer) {
   extern __shared__ float s[];
 
   const int first_x = blockIdx.x * maxX;
@@ -538,9 +667,15 @@ __global__ void EigenConvolutionKernel2D(InputEvaluator eval, const internal::In
   }
 };
 
-
 template <typename InputEvaluator, typename Index, typename InputDims>
-__global__ void EigenConvolutionKernel3D(InputEvaluator eval, const internal::IndexMapper<Index, InputDims, 3> indexMapper, const float* __restrict kernel, const size_t numPlanes, const size_t numX, const size_t maxX, const size_t numY, const size_t maxY, const size_t numZ, const size_t maxZ, const size_t kernelSizeX, const size_t kernelSizeY, const size_t kernelSizeZ, float* buffer) {
+__global__ void EigenConvolutionKernel3D(
+    InputEvaluator eval,
+    const internal::IndexMapper<Index, InputDims, 3, InputEvaluator::Layout>
+        indexMapper,
+    const float* __restrict kernel, const size_t numPlanes, const size_t numX,
+    const size_t maxX, const size_t numY, const size_t maxY, const size_t numZ,
+    const size_t maxZ, const size_t kernelSizeX, const size_t kernelSizeY,
+    const size_t kernelSizeZ, float* buffer) {
   extern __shared__ float s[];
 
   // Load inputs to shared memory
@@ -622,8 +757,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       : m_inputImpl(op.inputExpression(), device), m_kernelArg(op.kernelExpression()), m_kernelImpl(op.kernelExpression(), device), m_indices(op.indices()), m_buf(NULL), m_kernel(NULL), m_local_kernel(false), m_device(device)
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<InputArgType, GpuDevice>::Layout) == static_cast<int>(TensorEvaluator<KernelArgType, GpuDevice>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);
-    // Only column major tensors are supported for now.
-    EIGEN_STATIC_ASSERT((static_cast<int>(Layout) == static_cast<int>(ColMajor)), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     const typename TensorEvaluator<InputArgType, GpuDevice>::Dimensions& input_dims = m_inputImpl.dimensions();
     const typename TensorEvaluator<KernelArgType, GpuDevice>::Dimensions& kernel_dims = m_kernelImpl.dimensions();
@@ -712,10 +845,14 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
         const int numX = dimensions()[m_indices[0]];
         const int numP = dimensions().TotalSize() / numX;
-
         int maxX;
         dim3 block_size;
-        if (m_indices[0] == 0) {
+
+        const int single_stride_dim =
+            static_cast<int>(Layout) == static_cast<int>(ColMajor)
+                ? 0
+                : m_inputImpl.dimensions().rank() - 1;
+        if (m_indices[0] == single_stride_dim) {
           // Maximum the reuse
           const int inner_dim = ((maxSharedMem / (sizeof(Scalar)) - kernel_size + 1 + 31) / 32) * 32;
           maxX = (std::min<int>)(inner_dim, numX);
@@ -747,7 +884,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
         const array<Index, 1> indices(m_indices[0]);
         const array<Index, 1> kernel_dims(m_kernelImpl.dimensions()[0]);
-        internal::IndexMapper<Index, InputDims, 1> indexMapper(m_inputImpl.dimensions(), kernel_dims, indices);
+        internal::IndexMapper<Index, InputDims, 1, Layout> indexMapper(
+            m_inputImpl.dimensions(), kernel_dims, indices);
         switch(kernel_size) {
           case 4: {
             LAUNCH_CUDA_KERNEL((EigenConvolutionKernel1D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims, 4>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, 4, data);
@@ -765,11 +903,15 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       }
 
       case 2: {
-        const int kernel_size_x = m_kernelImpl.dimensions()[0];
-        const int kernel_size_y = m_kernelImpl.dimensions()[1];
+        const int idxX =
+            static_cast<int>(Layout) == static_cast<int>(ColMajor) ? 0 : 1;
+        const int idxY =
+            static_cast<int>(Layout) == static_cast<int>(ColMajor) ? 1 : 0;
+        const int kernel_size_x = m_kernelImpl.dimensions()[idxX];
+        const int kernel_size_y = m_kernelImpl.dimensions()[idxY];
 
-        const int numX = dimensions()[m_indices[0]];
-        const int numY = dimensions()[m_indices[1]];
+        const int numX = dimensions()[m_indices[idxX]];
+        const int numY = dimensions()[m_indices[idxY]];
         const int numP = dimensions().TotalSize() / (numX*numY);
 
         const float scaling_factor = sqrtf(static_cast<float>(maxSharedMem) / (sizeof(Scalar) * kernel_size_y * kernel_size_x));
@@ -798,9 +940,11 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
         //cout << "launching 2D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z << " maxX: " << maxX << " maxY: " << maxY << " maxP: " << maxP << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
 
-        const array<Index, 2> indices(m_indices[0], m_indices[1]);
-        const array<Index, 2> kernel_dims(m_kernelImpl.dimensions()[0], m_kernelImpl.dimensions()[1]);
-        internal::IndexMapper<Index, InputDims, 2> indexMapper(m_inputImpl.dimensions(), kernel_dims, indices);
+        const array<Index, 2> indices(m_indices[idxX], m_indices[idxY]);
+        const array<Index, 2> kernel_dims(m_kernelImpl.dimensions()[idxX],
+                                          m_kernelImpl.dimensions()[idxY]);
+        internal::IndexMapper<Index, InputDims, 2, Layout> indexMapper(
+            m_inputImpl.dimensions(), kernel_dims, indices);
         switch (kernel_size_x) {
           case 4: {
             switch (kernel_size_y) {
@@ -837,13 +981,20 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       }
 
       case 3: {
-        const int kernel_size_x = m_kernelImpl.dimensions()[0];
-        const int kernel_size_y = m_kernelImpl.dimensions()[1];
-        const int kernel_size_z = m_kernelImpl.dimensions()[2];
+        const int idxX =
+            static_cast<int>(Layout) == static_cast<int>(ColMajor) ? 0 : 2;
+        const int idxY =
+            static_cast<int>(Layout) == static_cast<int>(ColMajor) ? 1 : 1;
+        const int idxZ =
+            static_cast<int>(Layout) == static_cast<int>(ColMajor) ? 2 : 0;
 
-        const int numX = dimensions()[m_indices[0]];
-        const int numY = dimensions()[m_indices[1]];
-        const int numZ = dimensions()[m_indices[2]];
+        const int kernel_size_x = m_kernelImpl.dimensions()[idxX];
+        const int kernel_size_y = m_kernelImpl.dimensions()[idxY];
+        const int kernel_size_z = m_kernelImpl.dimensions()[idxZ];
+
+        const int numX = dimensions()[m_indices[idxX]];
+        const int numY = dimensions()[m_indices[idxY]];
+        const int numZ = dimensions()[m_indices[idxZ]];
         const int numP = dimensions().TotalSize() / (numX*numY*numZ);
 
         const int maxX = (std::min<int>)(128, (std::min<int>)(maxSharedMem / (sizeof(Scalar) * kernel_size_y * kernel_size_z) - kernel_size_x + 1, numX));
@@ -860,16 +1011,20 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         assert(shared_mem <= maxSharedMem);
 
         //cout << "launching 3D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z  << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
-        const array<Index, 3> indices(m_indices[0], m_indices[1], m_indices[2]);
-        const array<Index, 3> kernel_dims(m_kernelImpl.dimensions()[0], m_kernelImpl.dimensions()[1], m_kernelImpl.dimensions()[2]);
-        internal::IndexMapper<Index, InputDims, 3> indexMapper(m_inputImpl.dimensions(), kernel_dims, indices);
+        const array<Index, 3> indices(m_indices[idxX], m_indices[idxY],
+                                      m_indices[idxZ]);
+        const array<Index, 3> kernel_dims(m_kernelImpl.dimensions()[idxX],
+                                          m_kernelImpl.dimensions()[idxY],
+                                          m_kernelImpl.dimensions()[idxZ]);
+        internal::IndexMapper<Index, InputDims, 3, Layout> indexMapper(
+            m_inputImpl.dimensions(), kernel_dims, indices);
 
         LAUNCH_CUDA_KERNEL((EigenConvolutionKernel3D<TensorEvaluator<InputArgType, GpuDevice>, Index, InputDims>), num_blocks, block_size, shared_mem, m_device, m_inputImpl, indexMapper, m_kernel, numP, numX, maxX, numY, maxY, numZ, maxZ, kernel_size_x, kernel_size_y, kernel_size_z, data);
         break;
       }
 
       default: {
-        assert(false && "not supported yet");
+        EIGEN_STATIC_ASSERT((NumKernelDims >= 1 && NumKernelDims <= 3), THIS_METHOD_IS_ONLY_FOR_OBJECTS_OF_A_SPECIFIC_SIZE);
       }
     }
   }
