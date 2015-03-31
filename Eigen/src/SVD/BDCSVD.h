@@ -84,6 +84,8 @@ public:
   typedef Matrix<RealScalar, Dynamic, 1> VectorType;
   typedef Array<RealScalar, Dynamic, 1> ArrayXr;
   typedef Array<Index,1,Dynamic> ArrayXi;
+  typedef Ref<ArrayXr> ArrayRef;
+  typedef Ref<ArrayXi> IndicesRef;
 
   /** \brief Default Constructor.
    *
@@ -159,21 +161,23 @@ private:
   void allocate(Index rows, Index cols, unsigned int computationOptions);
   void divide(Index firstCol, Index lastCol, Index firstRowW, Index firstColW, Index shift);
   void computeSVDofM(Index firstCol, Index n, MatrixXr& U, VectorType& singVals, MatrixXr& V);
-  void computeSingVals(const ArrayXr& col0, const ArrayXr& diag, const ArrayXi& perm, VectorType& singVals, ArrayXr& shifts, ArrayXr& mus);
-  void perturbCol0(const ArrayXr& col0, const ArrayXr& diag, const ArrayXi& perm, const VectorType& singVals, const ArrayXr& shifts, const ArrayXr& mus, ArrayXr& zhat);
-  void computeSingVecs(const ArrayXr& zhat, const ArrayXr& diag, const ArrayXi& perm, const VectorType& singVals, const ArrayXr& shifts, const ArrayXr& mus, MatrixXr& U, MatrixXr& V);
+  void computeSingVals(const ArrayRef& col0, const ArrayRef& diag, const IndicesRef& perm, VectorType& singVals, ArrayRef shifts, ArrayRef mus);
+  void perturbCol0(const ArrayRef& col0, const ArrayRef& diag, const IndicesRef& perm, const VectorType& singVals, const ArrayRef& shifts, const ArrayRef& mus, ArrayRef zhat);
+  void computeSingVecs(const ArrayRef& zhat, const ArrayRef& diag, const IndicesRef& perm, const VectorType& singVals, const ArrayRef& shifts, const ArrayRef& mus, MatrixXr& U, MatrixXr& V);
   void deflation43(Index firstCol, Index shift, Index i, Index size);
   void deflation44(Index firstColu , Index firstColm, Index firstRowW, Index firstColW, Index i, Index j, Index size);
   void deflation(Index firstCol, Index lastCol, Index k, Index firstRowW, Index firstColW, Index shift);
   template<typename HouseholderU, typename HouseholderV, typename NaiveU, typename NaiveV>
   void copyUV(const HouseholderU &householderU, const HouseholderV &householderV, const NaiveU &naiveU, const NaiveV &naivev);
-  static void structured_update(Block<MatrixXr,Dynamic,Dynamic> A, const MatrixXr &B, Index n1);
-  static RealScalar secularEq(RealScalar x, const ArrayXr& col0, const ArrayXr& diag, const ArrayXi &perm, const ArrayXr& diagShifted, RealScalar shift);
+  void structured_update(Block<MatrixXr,Dynamic,Dynamic> A, const MatrixXr &B, Index n1);
+  static RealScalar secularEq(RealScalar x, const ArrayRef& col0, const ArrayRef& diag, const IndicesRef &perm, const ArrayRef& diagShifted, RealScalar shift);
 
 protected:
   MatrixXr m_naiveU, m_naiveV;
   MatrixXr m_computed;
   Index m_nRec;
+  ArrayXr m_workspace;
+  ArrayXi m_workspaceI;
   int m_algoswap;
   bool m_isTranspose, m_compU, m_compV;
   
@@ -212,6 +216,9 @@ void BDCSVD<MatrixType>::allocate(Index rows, Index cols, unsigned int computati
   else         m_naiveU = MatrixXr::Zero(2, m_diagSize + 1 );
   
   if (m_compV) m_naiveV = MatrixXr::Zero(m_diagSize, m_diagSize);
+  
+  m_workspace.resize((m_diagSize+1)*(m_diagSize+1)*3);
+  m_workspaceI.resize(3*m_diagSize);
 }// end allocate
 
 template<typename MatrixType>
@@ -226,6 +233,7 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
   //**** step -1 - If the problem is too small, directly falls back to JacobiSVD and return
   if(matrix.cols() < m_algoswap)
   {
+    // FIXME this line involves temporaries
     JacobiSVD<MatrixType> jsvd(matrix,computationOptions);
     if(computeU()) m_matrixU = jsvd.matrixU();
     if(computeV()) m_matrixV = jsvd.matrixV();
@@ -243,11 +251,13 @@ BDCSVD<MatrixType>& BDCSVD<MatrixType>::compute(const MatrixType& matrix, unsign
   else               copy = matrix/scale;
   
   //**** step 1 - Bidiagonalization
+  // FIXME this line involves temporaries
   internal::UpperBidiagonalization<MatrixX> bid(copy);
 
   //**** step 2 - Divide & Conquer
   m_naiveU.setZero();
   m_naiveV.setZero();
+  // FIXME this line involves a temporary matrix
   m_computed.topRows(m_diagSize) = bid.bidiagonal().toDenseMatrix().transpose();
   m_computed.template bottomRows<1>().setZero();
   divide(0, m_diagSize - 1, 0, 0, 0);
@@ -292,14 +302,14 @@ void BDCSVD<MatrixType>::copyUV(const HouseholderU &householderU, const Househol
     Index Ucols = m_computeThinU ? m_diagSize : householderU.cols();
     m_matrixU = MatrixX::Identity(householderU.cols(), Ucols);
     m_matrixU.topLeftCorner(m_diagSize, m_diagSize) = naiveV.template cast<Scalar>().topLeftCorner(m_diagSize, m_diagSize);
-    householderU.applyThisOnTheLeft(m_matrixU);
+    householderU.applyThisOnTheLeft(m_matrixU); // FIXME this line involves a temporary buffer
   }
   if (computeV())
   {
     Index Vcols = m_computeThinV ? m_diagSize : householderV.cols();
     m_matrixV = MatrixX::Identity(householderV.cols(), Vcols);
     m_matrixV.topLeftCorner(m_diagSize, m_diagSize) = naiveU.template cast<Scalar>().topLeftCorner(m_diagSize, m_diagSize);
-    householderV.applyThisOnTheLeft(m_matrixV);
+    householderV.applyThisOnTheLeft(m_matrixV); // FIXME this line involves a temporary buffer
   }
 }
 
@@ -320,7 +330,10 @@ void BDCSVD<MatrixType>::structured_update(Block<MatrixXr,Dynamic,Dynamic> A, co
     // If the matrices are large enough, let's exploit the sparse structure of A by
     // splitting it in half (wrt n1), and packing the non-zero columns.
     Index n2 = n - n1;
-    MatrixXr A1(n1,n), A2(n2,n), B1(n,n), B2(n,n);
+    Map<MatrixXr> A1(m_workspace.data()      , n1, n);
+    Map<MatrixXr> A2(m_workspace.data()+ n1*n, n2, n);
+    Map<MatrixXr> B1(m_workspace.data()+  n*n, n,  n);
+    Map<MatrixXr> B2(m_workspace.data()+2*n*n, n,  n);
     Index k1=0, k2=0;
     for(Index j=0; j<n; ++j)
     {
@@ -342,7 +355,11 @@ void BDCSVD<MatrixType>::structured_update(Block<MatrixXr,Dynamic,Dynamic> A, co
     A.bottomRows(n2).noalias() = A2.leftCols(k2) * B2.topRows(k2);
   }
   else
-    A *= B;  // FIXME this requires a temporary
+  {
+    Map<MatrixXr,Aligned> tmp(m_workspace.data(),n,n);
+    tmp.noalias() = A*B;
+    A = tmp;
+  }
 }
 
 // The divide algorithm is done "in place", we are always working on subsets of the same matrix. The divide methods takes as argument the 
@@ -373,7 +390,8 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
   // matrices.
   if (n < m_algoswap)
   {
-    JacobiSVD<MatrixXr> b(m_computed.block(firstCol, firstCol, n + 1, n), ComputeFullU | (m_compV ? ComputeFullV : 0)) ;
+    // FIXME this line involves temporaries
+    JacobiSVD<MatrixXr> b(m_computed.block(firstCol, firstCol, n + 1, n), ComputeFullU | (m_compV ? ComputeFullV : 0));
     if (m_compU)
       m_naiveU.block(firstCol, firstCol, n + 1, n + 1).real() = b.matrixU();
     else 
@@ -504,8 +522,14 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
   assert(VofSVD.allFinite());
 #endif
   
-  if (m_compU)  structured_update(m_naiveU.block(firstCol, firstCol, n + 1, n + 1), UofSVD, (n+2)/2);
-  else          m_naiveU.middleCols(firstCol, n + 1) *= UofSVD; // FIXME this requires a temporary, and exploit that there are 2 rows at compile time
+  if (m_compU)
+    structured_update(m_naiveU.block(firstCol, firstCol, n + 1, n + 1), UofSVD, (n+2)/2);
+  else
+  {
+    Map<Matrix<RealScalar,2,Dynamic>,Aligned> tmp(m_workspace.data(),2,n+1);
+    tmp.noalias() = m_naiveU.middleCols(firstCol, n+1) * UofSVD;
+    m_naiveU.middleCols(firstCol, n + 1) = tmp;
+  }
   
   if (m_compV)  structured_update(m_naiveV.block(firstRowW, firstColW, n, n), VofSVD, (n+1)/2);
   
@@ -530,10 +554,9 @@ void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW,
 template <typename MatrixType>
 void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, VectorType& singVals, MatrixXr& V)
 {
-  // TODO Get rid of these copies (?)
-  // FIXME at least preallocate them
-  ArrayXr col0 = m_computed.col(firstCol).segment(firstCol, n);
-  ArrayXr diag = m_computed.block(firstCol, firstCol, n, n).diagonal();
+  ArrayRef col0 = m_computed.col(firstCol).segment(firstCol, n);
+  m_workspace.head(n) =  m_computed.block(firstCol, firstCol, n, n).diagonal();
+  ArrayRef diag = m_workspace.head(n);
   diag(0) = 0;
 
   // Allocate space for singular values and vectors
@@ -552,13 +575,14 @@ void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, Vec
   Index actual_n = n;
   while(actual_n>1 && diag(actual_n-1)==0) --actual_n;
   Index m = 0; // size of the deflated problem
-  ArrayXi perm(actual_n);
   for(Index k=0;k<actual_n;++k)
     if(col0(k)!=0)
-      perm(m++) = k;
-  perm.conservativeResize(m);
+      m_workspaceI(m++) = k;
+  Map<ArrayXi> perm(m_workspaceI.data(),m);
   
-  ArrayXr shifts(n), mus(n), zhat(n);
+  Map<ArrayXr> shifts(m_workspace.data()+1*n, n);
+  Map<ArrayXr> mus(m_workspace.data()+2*n, n);
+  Map<ArrayXr> zhat(m_workspace.data()+3*n, n);
 
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
   std::cout << "computeSVDofM using:\n";
@@ -635,8 +659,8 @@ void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, Vec
   // Reverse order so that singular values in increased order
   // Because of deflation, the zeros singular-values are already at the end
   singVals.head(actual_n).reverseInPlace();
-  U.leftCols(actual_n) = U.leftCols(actual_n).rowwise().reverse().eval();               // FIXME this requires a temporary
-  if (m_compV) V.leftCols(actual_n) = V.leftCols(actual_n).rowwise().reverse().eval();  // FIXME this requires a temporary
+  U.leftCols(actual_n).rowwise().reverseInPlace();
+  if (m_compV) V.leftCols(actual_n).rowwise().reverseInPlace();
   
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
   JacobiSVD<MatrixXr> jsvd(m_computed.block(firstCol, firstCol, n, n) );
@@ -647,7 +671,7 @@ void BDCSVD<MatrixType>::computeSVDofM(Index firstCol, Index n, MatrixXr& U, Vec
 }
 
 template <typename MatrixType>
-typename BDCSVD<MatrixType>::RealScalar BDCSVD<MatrixType>::secularEq(RealScalar mu, const ArrayXr& col0, const ArrayXr& diag, const ArrayXi &perm, const ArrayXr& diagShifted, RealScalar shift)
+typename BDCSVD<MatrixType>::RealScalar BDCSVD<MatrixType>::secularEq(RealScalar mu, const ArrayRef& col0, const ArrayRef& diag, const IndicesRef &perm, const ArrayRef& diagShifted, RealScalar shift)
 {
   Index m = perm.size();
   RealScalar res = 1;
@@ -660,8 +684,8 @@ typename BDCSVD<MatrixType>::RealScalar BDCSVD<MatrixType>::secularEq(RealScalar
 }
 
 template <typename MatrixType>
-void BDCSVD<MatrixType>::computeSingVals(const ArrayXr& col0, const ArrayXr& diag, const ArrayXi &perm,
-                                         VectorType& singVals, ArrayXr& shifts, ArrayXr& mus)
+void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& diag, const IndicesRef &perm,
+                                         VectorType& singVals, ArrayRef shifts, ArrayRef mus)
 {
   using std::abs;
   using std::swap;
@@ -716,7 +740,8 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayXr& col0, const ArrayXr& dia
     RealScalar shift = (k == actual_n-1 || fMid > 0) ? left : right;
     
     // measure everything relative to shift
-    ArrayXr diagShifted = diag - shift;
+    Map<ArrayXr> diagShifted(m_workspace.data()+4*n, n);
+    diagShifted = diag - shift;
     
     // initial guess
     RealScalar muPrev, muCur;
@@ -831,8 +856,8 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayXr& col0, const ArrayXr& dia
 // zhat is perturbation of col0 for which singular vectors can be computed stably (see Section 3.1)
 template <typename MatrixType>
 void BDCSVD<MatrixType>::perturbCol0
-   (const ArrayXr& col0, const ArrayXr& diag, const ArrayXi &perm, const VectorType& singVals,
-    const ArrayXr& shifts, const ArrayXr& mus, ArrayXr& zhat)
+   (const ArrayRef& col0, const ArrayRef& diag, const IndicesRef &perm, const VectorType& singVals,
+    const ArrayRef& shifts, const ArrayRef& mus, ArrayRef zhat)
 {
   using std::sqrt;
   Index n = col0.size();
@@ -880,8 +905,8 @@ void BDCSVD<MatrixType>::perturbCol0
 // compute singular vectors
 template <typename MatrixType>
 void BDCSVD<MatrixType>::computeSingVecs
-   (const ArrayXr& zhat, const ArrayXr& diag, const ArrayXi &perm, const VectorType& singVals,
-    const ArrayXr& shifts, const ArrayXr& mus, MatrixXr& U, MatrixXr& V)
+   (const ArrayRef& zhat, const ArrayRef& diag, const IndicesRef &perm, const VectorType& singVals,
+    const ArrayRef& shifts, const ArrayRef& mus, MatrixXr& U, MatrixXr& V)
 {
   Index n = zhat.size();
   Index m = perm.size();
@@ -1062,7 +1087,7 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
     
     // Sort the diagonal entries, since diag(1:k-1) and diag(k:length) are already sorted, let's do a sorted merge.
     // First, compute the respective permutation.
-    Index *permutation = new Index[length]; // FIXME avoid repeated dynamic memory allocation
+    Index *permutation = m_workspaceI.data();
     {
       permutation[0] = 0;
       Index p = 1;
@@ -1099,8 +1124,8 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
     }
     
     // Current index of each col, and current column of each index
-    Index *realInd = new Index[length];  // FIXME avoid repeated dynamic memory allocation
-    Index *realCol = new Index[length];  // FIXME avoid repeated dynamic memory allocation
+    Index *realInd = m_workspaceI.data()+length;
+    Index *realCol = m_workspaceI.data()+2*length;
     
     for(int pos = 0; pos< length; pos++)
     {
@@ -1130,9 +1155,6 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
       realInd[J] = realI;
       realInd[i] = pi;
     }
-    delete[] permutation;
-    delete[] realInd;
-    delete[] realCol;
   }
 #ifdef EIGEN_BDCSVD_DEBUG_VERBOSE
   std::cout << "sorted: " << diag.transpose().format(bdcsvdfmt) << "\n";
