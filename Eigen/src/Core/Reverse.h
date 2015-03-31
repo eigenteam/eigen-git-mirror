@@ -210,7 +210,26 @@ DenseBase<Derived>::reverse() const
 template<typename Derived>
 inline void DenseBase<Derived>::reverseInPlace()
 {
-  derived() = derived().reverse().eval();
+  if(cols()>rows())
+  {
+    Index half = cols()/2;
+    leftCols(half).swap(rightCols(half).reverse());
+    if((cols()%2)==1)
+    {
+      Index half2 = rows()/2;
+      col(half).head(half2).swap(col(half).tail(half2).reverse());
+    }
+  }
+  else
+  {
+    Index half = rows()/2;
+    topRows(half).swap(bottomRows(half).reverse());
+    if((rows()%2)==1)
+    {
+      Index half2 = cols()/2;
+      row(half).head(half2).swap(row(half).tail(half2).reverse());
+    }
+  }
 }
 
 } // end namespace Eigen
