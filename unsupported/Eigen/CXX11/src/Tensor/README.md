@@ -1157,7 +1157,41 @@ in TensorFunctors.h for information on how to implement a reduction operator.
 
 ## Convolutions
 
-TBD: convolve(const KernelDerived& kernel, const Dimensions& dims)
+### &lt;Operation&gt; convolve(const Kernel& kernel, const Dimensions& dims)
+
+Returns a tensor that is the output of the convolution of the input tensor with the kernel,
+along the specified dimensions of the input tensor. The dimension size for dimensions of the output tensor
+which were part of the convolution will be reduced by the formula:
+output_dim_size = input_dim_size - kernel_dim_size + 1 (requires: input_dim_size >= kernel_dim_size).
+The dimension sizes for dimensions that were not part of the convolution will remain the same.
+Performance of the convolution can depend on the length of the stride(s) of the input tensor dimension(s) along which the
+convolution is computed (the first dimension has the shortest stride for ColMajor, whereas RowMajor's shortest stride is
+for the last dimension).
+
+    // Compute convolution along the second and third dimension.
+    Tensor<float, 4, DataLayout> input(3, 3, 7, 11);
+    Tensor<float, 2, DataLayout> kernel(2, 2);
+    Tensor<float, 4, DataLayout> output(3, 2, 6, 11);
+    input.setRandom();
+    kernel.setRandom();
+
+    Eigen::array<ptrdiff_t, 2> dims({1, 2});  // Specify second and third dimension for convolution.
+    output = input.convolve(kernel, dims);
+
+    for (int i = 0; i < 3; ++i) {
+      for (int j = 0; j < 2; ++j) {
+        for (int k = 0; k < 6; ++k) {
+          for (int l = 0; l < 11; ++l) {
+            const float result = output(i,j,k,l);
+            const float expected = input(i,j+0,k+0,l) * kernel(0,0) +
+                                   input(i,j+1,k+0,l) * kernel(1,0) +
+                                   input(i,j+0,k+1,l) * kernel(0,1) +
+                                   input(i,j+1,k+1,l) * kernel(1,1);
+            VERIFY_IS_APPROX(result, expected);
+          }
+        }
+      }
+    }
 
 
 ## Geometrical Operations
