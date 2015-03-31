@@ -134,7 +134,7 @@ void zero_sized_objects(const MatrixType& m)
   }
 }
 
-
+template<int>
 void bug_127()
 {
   // Bug 127
@@ -159,6 +159,7 @@ void bug_127()
   a*b;
 }
 
+template<int>
 void unaligned_objects()
 {
   // Regression test for the bug reported here:
@@ -188,6 +189,29 @@ void unaligned_objects()
   }
 }
 
+template<typename T>
+EIGEN_DONT_INLINE
+Index test_compute_block_size(Index m, Index n, Index k)
+{
+  Index mc(m), nc(n), kc(k);
+  internal::computeProductBlockingSizes<T,T>(kc, mc, nc);
+  return kc+mc+nc;
+}
+
+template<typename T>
+Index compute_block_size()
+{
+  Index ret = 0;
+  ret += test_compute_block_size<T>(0,1,1);
+  ret += test_compute_block_size<T>(1,0,1);
+  ret += test_compute_block_size<T>(1,1,0);
+  ret += test_compute_block_size<T>(0,0,1);
+  ret += test_compute_block_size<T>(0,1,0);
+  ret += test_compute_block_size<T>(1,0,0);
+  ret += test_compute_block_size<T>(0,0,0);
+  return ret;
+}
+
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -198,6 +222,9 @@ void test_product_extra()
     CALL_SUBTEST_4( product_extra(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
     CALL_SUBTEST_1( zero_sized_objects(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
-  CALL_SUBTEST_5( bug_127() );
-  CALL_SUBTEST_6( unaligned_objects() );
+  CALL_SUBTEST_5( bug_127<0>() );
+  CALL_SUBTEST_6( unaligned_objects<0>() );
+  CALL_SUBTEST_7( compute_block_size<float>() );
+  CALL_SUBTEST_7( compute_block_size<double>() );
+  CALL_SUBTEST_7( compute_block_size<std::complex<double> >() );
 }

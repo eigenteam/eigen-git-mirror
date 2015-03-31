@@ -249,10 +249,9 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
         actual_lm = l2;
         max_mc = 576;
       }
-      
       Index mc = (std::min<Index>)(actual_lm/(3*k*sizeof(LhsScalar)), max_mc);
       if (mc > Traits::mr) mc -= mc % Traits::mr;
-      
+      else if (mc==0) return;
       m = (m%mc)==0 ? mc
                     : (mc - Traits::mr * ((mc/*-1*/-(m%mc))/(Traits::mr*(m/mc+1))));
     }
