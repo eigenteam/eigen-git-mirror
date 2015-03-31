@@ -108,6 +108,14 @@ template<typename MatrixType> void reverse(const MatrixType& m)
   m2 = m1;
   m2.row(0).reverseInPlace();
   VERIFY_IS_APPROX(m2.row(0),m1.row(0).reverse().eval());
+  
+  m2 = m1;
+  m2.rowwise().reverseInPlace();
+  VERIFY_IS_APPROX(m2,m1.rowwise().reverse().eval());
+  
+  m2 = m1;
+  m2.colwise().reverseInPlace();
+  VERIFY_IS_APPROX(m2,m1.colwise().reverse().eval());
 
   /*
   m1.colwise().reverse()(r, c) = x;
