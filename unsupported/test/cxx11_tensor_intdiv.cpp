@@ -12,7 +12,7 @@
 #include <Eigen/CXX11/Tensor>
 
 
-static void test_signed_32bit()
+void test_signed_32bit()
 {
   for (int32_t i = 1; i < 25000; ++i) {
     const Eigen::internal::TensorIntDivisor<int32_t> div(i);
@@ -26,7 +26,7 @@ static void test_signed_32bit()
 }
 
 
-static void test_unsigned_32bit()
+void test_unsigned_32bit()
 {
   for (uint32_t i = 1; i < 25000; ++i) {
     const Eigen::internal::TensorIntDivisor<uint32_t> div(i);
@@ -40,7 +40,7 @@ static void test_unsigned_32bit()
 }
 
 
-static void test_signed_64bit()
+void test_signed_64bit()
 {
   for (int64_t i = 2; i < 25000; ++i) {
     const Eigen::internal::TensorIntDivisor<int64_t> div(i);
@@ -54,7 +54,7 @@ static void test_signed_64bit()
 }
 
 
-static void test_unsigned_64bit()
+void test_unsigned_64bit()
 {
   for (uint64_t i = 2; i < 25000; ++i) {
     const Eigen::internal::TensorIntDivisor<uint64_t> div(i);
@@ -70,8 +70,8 @@ static void test_unsigned_64bit()
 
 void test_cxx11_tensor_intdiv()
 {
-  CALL_SUBTEST(test_signed_32bit());
-  CALL_SUBTEST(test_unsigned_32bit());
-  CALL_SUBTEST(test_signed_64bit());
-  CALL_SUBTEST(test_unsigned_64bit());
+  CALL_SUBTEST_1(test_signed_32bit());
+  CALL_SUBTEST_2(test_unsigned_32bit());
+  CALL_SUBTEST_3(test_signed_64bit());
+  CALL_SUBTEST_4(test_unsigned_64bit());
 }
