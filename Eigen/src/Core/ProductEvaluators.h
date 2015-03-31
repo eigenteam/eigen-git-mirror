@@ -678,8 +678,7 @@ public:
     //_Vectorizable = bool(int(MatrixFlags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagFlags)&PacketAccessBit))),
     _Vectorizable = bool(int(MatrixFlags)&PacketAccessBit) && _SameTypes && (_ScalarAccessOnDiag || (bool(int(DiagFlags)&PacketAccessBit))),
     _LinearAccessMask = (MatrixType::RowsAtCompileTime==1 || MatrixType::ColsAtCompileTime==1) ? LinearAccessBit : 0,
-    Flags = ((HereditaryBits|_LinearAccessMask) & (unsigned int)(MatrixFlags)) | (_Vectorizable ? PacketAccessBit : 0) | AlignedBit
-            //(int(MatrixFlags)&int(DiagFlags)&AlignedBit),
+    Flags = ((HereditaryBits|_LinearAccessMask|AlignedBit) & (unsigned int)(MatrixFlags)) | (_Vectorizable ? PacketAccessBit : 0)
   };
   
   diagonal_product_evaluator_base(const MatrixType &mat, const DiagonalType &diag)
