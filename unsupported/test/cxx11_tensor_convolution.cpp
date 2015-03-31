@@ -14,15 +14,16 @@
 using Eigen::Tensor;
 using Eigen::DefaultDevice;
 
+template <int DataLayout>
 static void test_evals()
 {
-  Tensor<float, 2> input(3, 3);
-  Tensor<float, 1> kernel(2);
+  Tensor<float, 2, DataLayout> input(3, 3);
+  Tensor<float, 1, DataLayout> kernel(2);
 
   input.setRandom();
   kernel.setRandom();
 
-  Tensor<float, 2> result(2,3);
+  Tensor<float, 2, DataLayout> result(2,3);
   result.setZero();
   Eigen::array<Tensor<float, 2>::Index, 1> dims3({0});
 
@@ -41,15 +42,15 @@ static void test_evals()
   VERIFY_IS_APPROX(result(1,2), input(1,2)*kernel(0) + input(2,2)*kernel(1));  // index 5
 }
 
-
+template <int DataLayout>
 static void test_expr()
 {
-  Tensor<float, 2> input(3, 3);
-  Tensor<float, 2> kernel(2, 2);
+  Tensor<float, 2, DataLayout> input(3, 3);
+  Tensor<float, 2, DataLayout> kernel(2, 2);
   input.setRandom();
   kernel.setRandom();
 
-  Tensor<float, 2> result(2,2);
+  Tensor<float, 2, DataLayout> result(2,2);
   Eigen::array<ptrdiff_t, 2> dims({0, 1});
   result = input.convolve(kernel, dims);
 
@@ -63,10 +64,10 @@ static void test_expr()
                                 input(2,1)*kernel(1,0) + input(2,2)*kernel(1,1));
 }
 
-
+template <int DataLayout>
 static void test_modes() {
-  Tensor<float, 1> input(3);
-  Tensor<float, 1> kernel(3);
+  Tensor<float, 1, DataLayout> input(3);
+  Tensor<float, 1, DataLayout> kernel(3);
   input(0) = 1.0f;
   input(1) = 2.0f;
   input(2) = 3.0f;
@@ -74,13 +75,13 @@ static void test_modes() {
   kernel(1) = 1.0f;
   kernel(2) = 0.0f;
 
-  const Eigen::array<ptrdiff_t, 1> dims{{0}};
+  const Eigen::array<ptrdiff_t, 1> dims({0});
   Eigen::array<std::pair<ptrdiff_t, ptrdiff_t>, 1> padding;
 
   // Emulate VALID mode (as defined in
   // http://docs.scipy.org/doc/numpy/reference/generated/numpy.convolve.html).
   padding[0] = std::make_pair(0, 0);
-  Tensor<float, 1> valid(1);
+  Tensor<float, 1, DataLayout> valid(1);
   valid = input.pad(padding).convolve(kernel, dims);
   VERIFY_IS_EQUAL(valid.dimension(0), 1);
   VERIFY_IS_APPROX(valid(0), 2.5f);
@@ -88,7 +89,7 @@ static void test_modes() {
   // Emulate SAME mode (as defined in
   // http://docs.scipy.org/doc/numpy/reference/generated/numpy.convolve.html).
   padding[0] = std::make_pair(1, 1);
-  Tensor<float, 1> same(3);
+  Tensor<float, 1, DataLayout> same(3);
   same = input.pad(padding).convolve(kernel, dims);
   VERIFY_IS_EQUAL(same.dimension(0), 3);
   VERIFY_IS_APPROX(same(0), 1.0f);
@@ -98,7 +99,7 @@ static void test_modes() {
   // Emulate FULL mode (as defined in
   // http://docs.scipy.org/doc/numpy/reference/generated/numpy.convolve.html).
   padding[0] = std::make_pair(2, 2);
-  Tensor<float, 1> full(5);
+  Tensor<float, 1, DataLayout> full(5);
   full = input.pad(padding).convolve(kernel, dims);
   VERIFY_IS_EQUAL(full.dimension(0), 5);
   VERIFY_IS_APPROX(full(0), 0.0f);
@@ -108,18 +109,18 @@ static void test_modes() {
   VERIFY_IS_APPROX(full(4), 1.5f);
 }
 
-
+template <int DataLayout>
 static void test_strides() {
-  Tensor<float, 1> input(13);
-  Tensor<float, 1> kernel(3);
+  Tensor<float, 1, DataLayout> input(13);
+  Tensor<float, 1, DataLayout> kernel(3);
   input.setRandom();
   kernel.setRandom();
 
-  const Eigen::array<ptrdiff_t, 1> dims{{0}};
-  const Eigen::array<ptrdiff_t, 1> stride_of_3{{3}};
-  const Eigen::array<ptrdiff_t, 1> stride_of_2{{2}};
+  const Eigen::array<ptrdiff_t, 1> dims({0});
+  const Eigen::array<ptrdiff_t, 1> stride_of_3({3});
+  const Eigen::array<ptrdiff_t, 1> stride_of_2({2});
 
-  Tensor<float, 1> result;
+  Tensor<float, 1, DataLayout> result;
   result = input.stride(stride_of_3).convolve(kernel, dims).stride(stride_of_2);
 
   VERIFY_IS_EQUAL(result.dimension(0), 2);
@@ -129,13 +130,14 @@ static void test_strides() {
                                input(12)*kernel(2)));
 }
 
-
-
-
 void test_cxx11_tensor_convolution()
 {
-  CALL_SUBTEST(test_evals());
-  CALL_SUBTEST(test_expr());
-  CALL_SUBTEST(test_modes());
-  CALL_SUBTEST(test_strides());
+  CALL_SUBTEST(test_evals<ColMajor>());
+  CALL_SUBTEST(test_evals<RowMajor>());
+  CALL_SUBTEST(test_expr<ColMajor>());
+  CALL_SUBTEST(test_expr<RowMajor>());
+  CALL_SUBTEST(test_modes<ColMajor>());
+  CALL_SUBTEST(test_modes<RowMajor>());
+  CALL_SUBTEST(test_strides<ColMajor>());
+  CALL_SUBTEST(test_strides<RowMajor>());
 }
