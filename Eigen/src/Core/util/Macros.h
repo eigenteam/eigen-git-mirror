@@ -213,7 +213,8 @@
 #endif
 
 /// \internal EIGEN_OS_ANDROID set to 1 if the OS is Android
-#if defined(__ANDROID__)
+// note: ANDROID is defined when using ndk_build, __ANDROID__ is defined when using a standalone toolchain.
+#if defined(__ANDROID__) || defined(ANDROID)
   #define EIGEN_OS_ANDROID 1
 #else
   #define EIGEN_OS_ANDROID 0
