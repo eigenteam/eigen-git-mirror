@@ -90,7 +90,8 @@ class sparse_matrix_block_impl
     typedef Block<SparseMatrixType, BlockRows, BlockCols, true> BlockType;
 public:
     enum { IsRowMajor = internal::traits<BlockType>::IsRowMajor };
-    EIGEN_SPARSE_PUBLIC_INTERFACE(BlockType)
+    typedef SparseCompressedBase<Block<SparseMatrixType,BlockRows,BlockCols,true> > Base;
+    _EIGEN_SPARSE_PUBLIC_INTERFACE(BlockType)
 protected:
     typedef typename Base::IndexVector IndexVector;
     enum { OuterSize = IsRowMajor ? BlockRows : BlockCols };
@@ -198,20 +199,9 @@ public:
     { return m_matrix.const_cast_derived().outerIndexPtr() + m_outerStart; }
     
     inline const StorageIndex* innerNonZeroPtr() const
-    { return isCompressed() ? 0 : m_matrix.innerNonZeroPtr(); }
+    { return isCompressed() ? 0 : (m_matrix.innerNonZeroPtr()+m_outerStart); }
     inline StorageIndex* innerNonZeroPtr()
-    { return isCompressed() ? 0 : m_matrix.const_cast_derived().innerNonZeroPtr(); }
-
-    Index nonZeros() const
-    {
-      if(m_matrix.isCompressed())
-        return  (  (m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()])
-                 - (m_matrix.outerIndexPtr()[m_outerStart]));
-      else if(m_outerSize.value()==0)
-        return 0;
-      else
-        return Map<const IndexVector>(m_matrix.innerNonZeroPtr()+m_outerStart, m_outerSize.value()).sum();
-    }
+    { return isCompressed() ? 0 : (m_matrix.const_cast_derived().innerNonZeroPtr()+m_outerStart); }
     
     bool isCompressed() const { return m_matrix.innerNonZeroPtr()==0; }
     
@@ -233,7 +223,7 @@ public:
     const Scalar& lastCoeff() const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(sparse_matrix_block_impl);
-      eigen_assert(nonZeros()>0);
+      eigen_assert(Base::nonZeros()>0);
       if(m_matrix.isCompressed())
         return m_matrix.valuePtr()[m_matrix.outerIndexPtr()[m_outerStart+1]-1];
       else
@@ -417,6 +407,9 @@ public:
   protected:
     friend class internal::GenericSparseBlockInnerIteratorImpl<XprType,BlockRows,BlockCols,InnerPanel>;
     friend class ReverseInnerIterator;
+    friend struct internal::unary_evaluator<Block<XprType,BlockRows,BlockCols,InnerPanel>, internal::IteratorBased, Scalar >;
+    
+    Index nonZeros() const { return Dynamic; }
     
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
 
@@ -548,9 +541,16 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
     explicit unary_evaluator(const XprType& op)
       : m_argImpl(op.nestedExpression()), m_block(op)
     {}
+    
+    inline Index nonZerosEstimate() const {
+      Index nnz = m_block.nonZeros();
+      if(nnz<0)
+        return m_argImpl.nonZerosEstimate() * m_block.size() / m_block.nestedExpression().size();
+      return nnz;
+    }
 
   protected:
-    typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
+    typedef typename evaluator<ArgType>::InnerIterator EvalIterator;
     
     typename evaluator<ArgType>::nestedType m_argImpl;
     const XprType &m_block;

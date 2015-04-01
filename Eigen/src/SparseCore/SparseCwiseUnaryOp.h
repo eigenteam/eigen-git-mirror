@@ -30,6 +30,10 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>
     };
     
     explicit unary_evaluator(const XprType& op) : m_functor(op.functor()), m_argImpl(op.nestedExpression()) {}
+    
+    inline Index nonZerosEstimate() const {
+      return m_argImpl.nonZerosEstimate();
+    }
 
   protected:
     typedef typename evaluator<ArgType>::InnerIterator        EvalIterator;
