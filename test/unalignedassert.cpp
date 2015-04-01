@@ -9,7 +9,17 @@
 
 #include "main.h"
 
-typedef Matrix<float,8,1> Vector8f;
+typedef Matrix<float,  6,1> Vector6f;
+typedef Matrix<float,  8,1> Vector8f;
+typedef Matrix<float, 12,1> Vector12f;
+
+typedef Matrix<double, 5,1> Vector5d;
+typedef Matrix<double, 6,1> Vector6d;
+typedef Matrix<double, 7,1> Vector7d;
+typedef Matrix<double, 8,1> Vector8d;
+typedef Matrix<double, 9,1> Vector9d;
+typedef Matrix<double,10,1> Vector10d;
+typedef Matrix<double,12,1> Vector12d;
 
 struct TestNew1
 {
@@ -85,6 +95,9 @@ void unalignedassert()
   construct_at_boundary<Vector2f>(4);
   construct_at_boundary<Vector3f>(4);
   construct_at_boundary<Vector4f>(16);
+  construct_at_boundary<Vector6f>(4);
+  construct_at_boundary<Vector8f>(EIGEN_ALIGN_BYTES);
+  construct_at_boundary<Vector12f>(16);
   construct_at_boundary<Matrix2f>(16);
   construct_at_boundary<Matrix3f>(4);
   construct_at_boundary<Matrix4f>(EIGEN_ALIGN_BYTES);
@@ -92,6 +105,13 @@ void unalignedassert()
   construct_at_boundary<Vector2d>(16);
   construct_at_boundary<Vector3d>(4);
   construct_at_boundary<Vector4d>(EIGEN_ALIGN_BYTES);
+  construct_at_boundary<Vector5d>(4);
+  construct_at_boundary<Vector6d>(16);
+  construct_at_boundary<Vector7d>(4);
+  construct_at_boundary<Vector8d>(EIGEN_ALIGN_BYTES);
+  construct_at_boundary<Vector9d>(4);
+  construct_at_boundary<Vector10d>(16);
+  construct_at_boundary<Vector12d>(EIGEN_ALIGN_BYTES);
   construct_at_boundary<Matrix2d>(EIGEN_ALIGN_BYTES);
   construct_at_boundary<Matrix3d>(4);
   construct_at_boundary<Matrix4d>(EIGEN_ALIGN_BYTES);
@@ -115,7 +135,14 @@ void unalignedassert()
   if(EIGEN_ALIGN_BYTES>=16)
   {
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4f>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector8f>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector12f>(8));
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2d>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4d>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector6d>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector8d>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector10d>(8));
+    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector12d>(8));
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cf>(8));
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4i>(8));
   }
