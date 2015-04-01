@@ -113,6 +113,9 @@ void mat_mat_scalar_scalar_product()
 template <typename MatrixType> 
 void zero_sized_objects(const MatrixType& m)
 {
+  typedef typename MatrixType::Scalar Scalar;
+  const int PacketSize  = internal::packet_traits<Scalar>::size;
+  const int PacketSize1 = PacketSize>1 ?  PacketSize-1 : 1;
   Index rows = m.rows();
   Index cols = m.cols();
   
@@ -131,6 +134,38 @@ void zero_sized_objects(const MatrixType& m)
     b.resize(0,rows);
     res = b*a;
     VERIFY(res.rows()==0 && res.cols()==cols);
+  }
+  
+  {
+    Matrix<Scalar,PacketSize,0> a;
+    Matrix<Scalar,0,1> b;
+    Matrix<Scalar,PacketSize,1> res;
+    VERIFY_IS_APPROX( (res=a*b), MatrixType::Zero(PacketSize,1) );
+    VERIFY_IS_APPROX( (res=a.lazyProduct(b)), MatrixType::Zero(PacketSize,1) );
+  }
+  
+  {
+    Matrix<Scalar,PacketSize1,0> a;
+    Matrix<Scalar,0,1> b;
+    Matrix<Scalar,PacketSize1,1> res;
+    VERIFY_IS_APPROX( (res=a*b), MatrixType::Zero(PacketSize1,1) );
+    VERIFY_IS_APPROX( (res=a.lazyProduct(b)), MatrixType::Zero(PacketSize1,1) );
+  }
+  
+  {
+    Matrix<Scalar,PacketSize,Dynamic> a(PacketSize,0);
+    Matrix<Scalar,Dynamic,1> b(0,1);
+    Matrix<Scalar,PacketSize,1> res;
+    VERIFY_IS_APPROX( (res=a*b), MatrixType::Zero(PacketSize,1) );
+    VERIFY_IS_APPROX( (res=a.lazyProduct(b)), MatrixType::Zero(PacketSize,1) );
+  }
+  
+  {
+    Matrix<Scalar,PacketSize1,Dynamic> a(PacketSize1,0);
+    Matrix<Scalar,Dynamic,1> b(0,1);
+    Matrix<Scalar,PacketSize1,1> res;
+    VERIFY_IS_APPROX( (res=a*b), MatrixType::Zero(PacketSize1,1) );
+    VERIFY_IS_APPROX( (res=a.lazyProduct(b)), MatrixType::Zero(PacketSize1,1) );
   }
 }
 
