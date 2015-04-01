@@ -425,8 +425,18 @@ struct product_packet_impl<ColMajor, 1, Lhs, Rhs, Packet, LoadMode>
   }
 };
 
-template<int StorageOrder, typename Lhs, typename Rhs, typename Packet, int LoadMode>
-struct product_packet_impl<StorageOrder, 0, Lhs, Rhs, Packet, LoadMode>
+template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct product_packet_impl<RowMajor, 0, Lhs, Rhs, Packet, LoadMode>
+{
+  typedef typename Lhs::Index Index;
+  static EIGEN_STRONG_INLINE void run(Index /*row*/, Index /*col*/, const Lhs& /*lhs*/, const Rhs& /*rhs*/, Packet &res)
+  {
+    res = pset1<Packet>(0);
+  }
+};
+
+template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct product_packet_impl<ColMajor, 0, Lhs, Rhs, Packet, LoadMode>
 {
   typedef typename Lhs::Index Index;
   static EIGEN_STRONG_INLINE void run(Index /*row*/, Index /*col*/, const Lhs& /*lhs*/, const Rhs& /*rhs*/, Packet &res)
@@ -441,10 +451,9 @@ struct product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
   typedef typename Lhs::Index Index;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet& res)
   {
-    eigen_assert(lhs.cols()>0 && "you are using a non initialized matrix");
-    res = pmul(pset1<Packet>(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
-      for(Index i = 1; i < lhs.cols(); ++i)
-        res =  pmadd(pset1<Packet>(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
+    res = pset1<Packet>(0);
+    for(Index i = 1; i < lhs.cols(); ++i)
+      res =  pmadd(pset1<Packet>(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
   }
 };
 
@@ -454,10 +463,9 @@ struct product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
   typedef typename Lhs::Index Index;
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet& res)
   {
-    eigen_assert(lhs.cols()>0 && "you are using a non initialized matrix");
-    res = pmul(lhs.template packet<LoadMode>(row, 0), pset1<Packet>(rhs.coeff(0, col)));
-      for(Index i = 1; i < lhs.cols(); ++i)
-        res =  pmadd(lhs.template packet<LoadMode>(row, i), pset1<Packet>(rhs.coeff(i, col)), res);
+    res = pset1<Packet>(0);
+    for(Index i = 0; i < lhs.cols(); ++i)
+      res =  pmadd(lhs.template packet<LoadMode>(row, i), pset1<Packet>(rhs.coeff(i, col)), res);
   }
 };
 
