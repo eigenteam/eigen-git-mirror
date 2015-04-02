@@ -95,6 +95,7 @@ class SparseMatrix
   public:
     typedef SparseCompressedBase<SparseMatrix> Base;
     using Base::isCompressed;
+    using Base::nonZeros;
     _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
@@ -122,9 +123,6 @@ class SparseMatrix
     StorageIndex* m_outerIndex;
     StorageIndex* m_innerNonZeros;     // optional, if null then the data is compressed
     Storage m_data;
-    
-    Eigen::Map<IndexVector> innerNonZeros() { return Eigen::Map<IndexVector>(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
-    const  Eigen::Map<const IndexVector> innerNonZeros() const { return Eigen::Map<const IndexVector>(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
 
   public:
     
@@ -250,14 +248,6 @@ class SparseMatrix
       memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(StorageIndex));
       if(m_innerNonZeros)
         memset(m_innerNonZeros, 0, (m_outerSize)*sizeof(StorageIndex));
-    }
-
-    /** \returns the number of non zero coefficients */
-    inline Index nonZeros() const
-    {
-      if(m_innerNonZeros)
-        return innerNonZeros().sum();
-      return convert_index(Index(m_data.size()));
     }
 
     /** Preallocates \a reserveSize non zeros.

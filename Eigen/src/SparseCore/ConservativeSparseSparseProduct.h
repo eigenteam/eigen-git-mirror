@@ -30,16 +30,16 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
   
   std::memset(mask,0,sizeof(bool)*rows);
 
+  typename evaluator<Lhs>::type lhsEval(lhs);
+  typename evaluator<Rhs>::type rhsEval(rhs);
+  
   // estimate the number of non zero entries
   // given a rhs column containing Y non zeros, we assume that the respective Y columns
   // of the lhs differs in average of one non zeros, thus the number of non zeros for
   // the product of a rhs column with the lhs is X+Y where X is the average number of non zero
   // per column of the lhs.
   // Therefore, we have nnz(lhs*rhs) = nnz(lhs) + nnz(rhs)
-  Index estimated_nnz_prod = lhs.nonZeros() + rhs.nonZeros();
-  
-  typename evaluator<Lhs>::type lhsEval(lhs);
-  typename evaluator<Rhs>::type rhsEval(rhs);
+  Index estimated_nnz_prod = lhsEval.nonZerosEstimate() + rhsEval.nonZerosEstimate();
 
   res.setZero();
   res.reserve(Index(estimated_nnz_prod));

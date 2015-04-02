@@ -150,14 +150,6 @@ template<typename Scalar> struct swap_assign_op {
     swap(a,const_cast<Scalar&>(b));
 #endif
   }
-  
-  template<int LhsAlignment, int RhsAlignment, typename Packet>
-  EIGEN_STRONG_INLINE void swapPacket(Scalar* a, Scalar* b) const
-  {
-    Packet tmp = internal::ploadt<Packet,RhsAlignment>(b);
-    internal::pstoret<Scalar,Packet,RhsAlignment>(b, internal::ploadt<Packet,LhsAlignment>(a));
-    internal::pstoret<Scalar,Packet,LhsAlignment>(a, tmp);
-  }
 };
 template<typename Scalar>
 struct functor_traits<swap_assign_op<Scalar> > {

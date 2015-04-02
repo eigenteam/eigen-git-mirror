@@ -302,6 +302,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;    
+    typedef Map<PermutationMatrix<Dynamic,Dynamic,int> > PermutationMap;
     typedef SparseMatrix<Scalar> LUMatrixType;
 
   public:
@@ -459,10 +460,11 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
     typedef typename Base::RealScalar RealScalar;
     typedef typename Base::StorageIndex StorageIndex;
     typedef typename Base::IntRowVectorType IntRowVectorType;
-    typedef typename Base::IntColVectorType IntColVectorType;    
+    typedef typename Base::IntColVectorType IntColVectorType;   
+    typedef typename Base::PermutationMap PermutationMap;
     typedef typename Base::LUMatrixType LUMatrixType;
     typedef TriangularView<LUMatrixType, Lower|UnitDiag>  LMatrixType;
-    typedef TriangularView<LUMatrixType,  Upper>           UMatrixType;
+    typedef TriangularView<LUMatrixType,  Upper>          UMatrixType;
 
   public:
     using Base::_solve_impl;
@@ -774,6 +776,8 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
         det *= m_u.valuePtr()[lastId];
     }
   }
+  if(PermutationMap(m_p.data(),m_p.size()).determinant()*PermutationMap(m_q.data(),m_q.size()).determinant()<0)
+    det = -det;
   if(m_sluEqued!='N')
     return det/m_sluRscale.prod()/m_sluCscale.prod();
   else

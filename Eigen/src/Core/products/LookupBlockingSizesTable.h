@@ -79,6 +79,14 @@ template <typename LhsScalar,
           typename RhsScalar>
 bool lookupBlockingSizesFromTable(Index& k, Index& m, Index& n, Index num_threads)
 {
+  if (num_threads > 1) {
+    // We don't currently have lookup tables recorded for multithread performance,
+    // and we have confirmed experimentally that our single-thread-recorded LUTs are
+    // poor for multithread performance, and our LUTs don't currently contain
+    // any annotation about multithread status (FIXME - we need that).
+    // So for now, we just early-return here.
+    return false;
+  }
   return LookupBlockingSizesFromTableImpl<LhsScalar, RhsScalar>::run(k, m, n, num_threads);
 }
 

@@ -50,13 +50,6 @@ protected:
 
     template<typename OtherDerived> void solveInPlace(MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived> void solveInPlace(SparseMatrixBase<OtherDerived>& other) const;
-
-    inline Index nonZeros() const {
-      // FIXME HACK number of nonZeros is required for product logic
-      // this returns only an upper bound (but should be OK for most purposes)
-      return derived().nestedExpression().nonZeros();
-    }
-
   
 };
 
@@ -190,6 +183,10 @@ public:
   };
     
   explicit unary_evaluator(const XprType &xpr) : m_argImpl(xpr.nestedExpression()) {}
+  
+  inline Index nonZerosEstimate() const {
+    return m_argImpl.nonZerosEstimate();
+  }
   
   class InnerIterator : public EvalIterator
   {

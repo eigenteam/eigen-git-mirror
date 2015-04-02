@@ -562,6 +562,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     void normalize() {
       m_matrix = this->normalized();
     }
+    
+    inline void reverseInPlace();
 
 /////////// Geometry module ///////////
 

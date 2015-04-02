@@ -67,6 +67,9 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(m4 = m2*m3/s1, refMat4 = refMat2*refMat3/s1);
     VERIFY_IS_APPROX(m4 = m2*m3*s1, refMat4 = refMat2*refMat3*s1);
     VERIFY_IS_APPROX(m4 = s2*m2*m3*s1, refMat4 = s2*refMat2*refMat3*s1);
+    VERIFY_IS_APPROX(m4 = (m2+m2)*m3, refMat4 = (refMat2+refMat2)*refMat3);
+    VERIFY_IS_APPROX(m4 = m2*m3.leftCols(cols/2), refMat4 = refMat2*refMat3.leftCols(cols/2));
+    VERIFY_IS_APPROX(m4 = m2*(m3+m3).leftCols(cols/2), refMat4 = refMat2*(refMat3+refMat3).leftCols(cols/2));
 
     VERIFY_IS_APPROX(m4=(m2*m3).pruned(0), refMat4=refMat2*refMat3);
     VERIFY_IS_APPROX(m4=(m2t.transpose()*m3).pruned(0), refMat4=refMat2t.transpose()*refMat3);
@@ -194,7 +197,7 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(d3=d1*m2.transpose(), refM3=d1*refM2.transpose());
   }
 
-  // test self-adjoint and traingular-view products
+  // test self-adjoint and triangular-view products
   {
     DenseMatrix b = DenseMatrix::Random(rows, rows);
     DenseMatrix x = DenseMatrix::Random(rows, rows);

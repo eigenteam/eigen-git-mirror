@@ -40,15 +40,11 @@ namespace internal {
   };
 }
   
-// Implement nonZeros() for transpose. I'm not sure that's the best approach for that.
-// Perhaps it should be implemented in Transpose<> itself.
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
   : public internal::SparseTransposeImpl<MatrixType>
 {
   protected:
     typedef internal::SparseTransposeImpl<MatrixType> Base;
-  public:
-    inline Index nonZeros() const { return Base::derived().nestedExpression().nonZeros(); }
 };
 
 namespace internal {
@@ -61,6 +57,10 @@ struct unary_evaluator<Transpose<ArgType>, IteratorBased>
     typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
   public:
     typedef Transpose<ArgType> XprType;
+    
+    inline Index nonZerosEstimate() const {
+      return m_argImpl.nonZerosEstimate();
+    }
 
     class InnerIterator : public EvalIterator
     {

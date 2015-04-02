@@ -49,18 +49,39 @@ void svd_compare_to_full(const MatrixType& m,
                          unsigned int computationOptions,
                          const SvdType& referenceSvd)
 {
-  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::RealScalar RealScalar;
   Index rows = m.rows();
   Index cols = m.cols();
   Index diagSize = (std::min)(rows, cols);
+  RealScalar prec = test_precision<RealScalar>();
 
   SvdType svd(m, computationOptions);
 
   VERIFY_IS_APPROX(svd.singularValues(), referenceSvd.singularValues());
+  
+  if(computationOptions & (ComputeFullV|ComputeThinV))
+  {
+    VERIFY( (svd.matrixV().adjoint()*svd.matrixV()).isIdentity(prec) );
+    VERIFY_IS_APPROX( svd.matrixV().leftCols(diagSize) * svd.singularValues().asDiagonal() * svd.matrixV().leftCols(diagSize).adjoint(),
+                      referenceSvd.matrixV().leftCols(diagSize) * referenceSvd.singularValues().asDiagonal() * referenceSvd.matrixV().leftCols(diagSize).adjoint());
+  }
+  
+  if(computationOptions & (ComputeFullU|ComputeThinU))
+  {
+    VERIFY( (svd.matrixU().adjoint()*svd.matrixU()).isIdentity(prec) );
+    VERIFY_IS_APPROX( svd.matrixU().leftCols(diagSize) * svd.singularValues().cwiseAbs2().asDiagonal() * svd.matrixU().leftCols(diagSize).adjoint(),
+                      referenceSvd.matrixU().leftCols(diagSize) * referenceSvd.singularValues().cwiseAbs2().asDiagonal() * referenceSvd.matrixU().leftCols(diagSize).adjoint());
+  }
+  
+  // The following checks are not critical.
+  // For instance, with Dived&Conquer SVD, if only the factor 'V' is computedt then different matrix-matrix product implementation will be used
+  // and the resulting 'V' factor might be significantly different when the SVD decomposition is not unique, especially with single precision float.
+  ++g_test_level;
   if(computationOptions & ComputeFullU)  VERIFY_IS_APPROX(svd.matrixU(), referenceSvd.matrixU());
   if(computationOptions & ComputeThinU)  VERIFY_IS_APPROX(svd.matrixU(), referenceSvd.matrixU().leftCols(diagSize));
-  if(computationOptions & ComputeFullV)  VERIFY_IS_APPROX(svd.matrixV(), referenceSvd.matrixV());
+  if(computationOptions & ComputeFullV)  VERIFY_IS_APPROX(svd.matrixV().cwiseAbs(), referenceSvd.matrixV().cwiseAbs());
   if(computationOptions & ComputeThinV)  VERIFY_IS_APPROX(svd.matrixV(), referenceSvd.matrixV().leftCols(diagSize));
+  --g_test_level;
 }
 
 //
@@ -85,33 +106,48 @@ void svd_least_square(const MatrixType& m, unsigned int computationOptions)
   SvdType svd(m, computationOptions);
 
        if(internal::is_same<RealScalar,double>::value) svd.setThreshold(1e-8);
-  else if(internal::is_same<RealScalar,float>::value)  svd.setThreshold(1e-4);
-  
+  else if(internal::is_same<RealScalar,float>::value)  svd.setThreshold(2e-4);
+
   SolutionType x = svd.solve(rhs);
-  
-  // evaluate normal equation which works also for least-squares solutions
-  if(internal::is_same<RealScalar,double>::value || svd.rank()==m.diagonal().size())
-  {
-    // This test is not stable with single precision.
-    // This is probably because squaring m signicantly affects the precision.
-    VERIFY_IS_APPROX(m.adjoint()*(m*x),m.adjoint()*rhs);
-  }
-  
+   
   RealScalar residual = (m*x-rhs).norm();
-  // Check that there is no significantly better solution in the neighborhood of x
+  RealScalar rhs_norm = rhs.norm();
   if(!test_isMuchSmallerThan(residual,rhs.norm()))
   {
     // ^^^ If the residual is very small, then we have an exact solution, so we are already good.
+    
+    // evaluate normal equation which works also for least-squares solutions
+    if(internal::is_same<RealScalar,double>::value || svd.rank()==m.diagonal().size())
+    {
+      using std::sqrt;
+      // This test is not stable with single precision.
+      // This is probably because squaring m signicantly affects the precision.      
+      if(internal::is_same<RealScalar,float>::value) ++g_test_level;
+      
+      VERIFY_IS_APPROX(m.adjoint()*(m*x),m.adjoint()*rhs);
+      
+      if(internal::is_same<RealScalar,float>::value) --g_test_level;
+    }
+    
+    // Check that there is no significantly better solution in the neighborhood of x
     for(Index k=0;k<x.rows();++k)
     {
+      using std::abs;
+      
       SolutionType y(x);
       y.row(k) = (1.+2*NumTraits<RealScalar>::epsilon())*x.row(k);
       RealScalar residual_y = (m*y-rhs).norm();
+      VERIFY( test_isMuchSmallerThan(abs(residual_y-residual), rhs_norm) || residual < residual_y );
+      if(internal::is_same<RealScalar,float>::value) ++g_test_level;
       VERIFY( test_isApprox(residual_y,residual) || residual < residual_y );
+      if(internal::is_same<RealScalar,float>::value) --g_test_level;
       
       y.row(k) = (1.-2*NumTraits<RealScalar>::epsilon())*x.row(k);
       residual_y = (m*y-rhs).norm();
+      VERIFY( test_isMuchSmallerThan(abs(residual_y-residual), rhs_norm) || residual < residual_y );
+      if(internal::is_same<RealScalar,float>::value) ++g_test_level;
       VERIFY( test_isApprox(residual_y,residual) || residual < residual_y );
+      if(internal::is_same<RealScalar,float>::value) --g_test_level;
     }
   }
 }

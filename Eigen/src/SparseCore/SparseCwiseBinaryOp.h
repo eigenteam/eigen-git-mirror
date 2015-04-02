@@ -121,6 +121,10 @@ public:
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
   { }
+  
+  inline Index nonZerosEstimate() const {
+    return m_lhsImpl.nonZerosEstimate() + m_rhsImpl.nonZerosEstimate();
+  }
 
 protected:
   const BinaryOp m_functor;
@@ -198,6 +202,10 @@ public:
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
   { }
+  
+  inline Index nonZerosEstimate() const {
+    return (std::min)(m_lhsImpl.nonZerosEstimate(), m_rhsImpl.nonZerosEstimate());
+  }
 
 protected:
   const BinaryOp m_functor;
@@ -243,7 +251,7 @@ public:
     EIGEN_STRONG_INLINE Index col() const { return m_rhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_rhsIter; }
-
+    
   protected:
     const LhsEvaluator &m_lhsEval;
     RhsIterator m_rhsIter;
@@ -262,6 +270,10 @@ public:
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
   { }
+  
+  inline Index nonZerosEstimate() const {
+    return m_rhsImpl.nonZerosEstimate();
+  }
 
 protected:
   const BinaryOp m_functor;
@@ -308,7 +320,7 @@ public:
     EIGEN_STRONG_INLINE Index col() const { return m_lhsIter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_lhsIter; }
-
+    
   protected:
     LhsIterator m_lhsIter;
     const RhsEvaluator &m_rhsEval;
@@ -327,6 +339,10 @@ public:
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
   { }
+  
+  inline Index nonZerosEstimate() const {
+    return m_lhsImpl.nonZerosEstimate();
+  }
 
 protected:
   const BinaryOp m_functor;
