@@ -145,28 +145,28 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
 
   Sizes() { }
   template <typename DenseIndex>
-  explicit Sizes(const array<DenseIndex, Base::count>& indices) {
+  explicit Sizes(const array<DenseIndex, Base::count>& /*indices*/) {
     // todo: add assertion
   }
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  template <typename... DenseIndex> Sizes(DenseIndex... indices) { }
-  explicit Sizes(std::initializer_list<std::size_t> l) {
+  template <typename... DenseIndex> Sizes(DenseIndex... /*indices*/) { }
+  explicit Sizes(std::initializer_list<std::size_t>) {
     // todo: add assertion
   }
 #else
-  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex i0) {
+  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex) {
   }
-  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex i0, const DenseIndex i1) {
+  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex, const DenseIndex) {
   }
-  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex i0, const DenseIndex i1, const DenseIndex i2) {
+  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex, const DenseIndex, const DenseIndex) {
   }
-  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex i0, const DenseIndex i1, const DenseIndex i2, const DenseIndex i3) {
+  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex, const DenseIndex, const DenseIndex, const DenseIndex) {
   }
-  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex i0, const DenseIndex i1, const DenseIndex i2, const DenseIndex i3, const DenseIndex i4) {
+  EIGEN_DEVICE_FUNC explicit Sizes(const DenseIndex, const DenseIndex, const DenseIndex, const DenseIndex, const DenseIndex) {
   }
 #endif
 
-  template <typename T> Sizes& operator = (const T& other) {
+  template <typename T> Sizes& operator = (const T&) {
     // to do: check the size of other
     return *this;
   }
@@ -343,7 +343,7 @@ template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::s
 template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5> struct array_size<Sizes<V1,V2,V3,V4,V5> > {
   static const size_t value = Sizes<V1,V2,V3,V4,V5>::count;
 };
-template <std::size_t n, std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_get(const Sizes<V1,V2,V3,V4,V5>& a) {
+template <std::size_t n, std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_get(const Sizes<V1,V2,V3,V4,V5>&) {
   return get<n, typename Sizes<V1,V2,V3,V4,V5>::Base>::value;
 };
 
