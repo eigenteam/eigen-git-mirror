@@ -165,8 +165,9 @@ struct SluMatrix : SuperMatrix
   }
 
   template<typename MatrixType>
-  static SluMatrix Map(SparseMatrixBase<MatrixType>& mat)
+  static SluMatrix Map(SparseMatrixBase<MatrixType>& a_mat)
   {
+    MatrixType &mat(a_mat.derived());
     SluMatrix res;
     if ((MatrixType::Flags&RowMajorBit)==RowMajorBit)
     {
@@ -184,9 +185,9 @@ struct SluMatrix : SuperMatrix
     res.Mtype       = SLU_GE;
 
     res.storage.nnz       = internal::convert_index<int>(mat.nonZeros());
-    res.storage.values    = mat.derived().valuePtr();
-    res.storage.innerInd  = mat.derived().innerIndexPtr();
-    res.storage.outerInd  = mat.derived().outerIndexPtr();
+    res.storage.values    = mat.valuePtr();
+    res.storage.innerInd  = mat.innerIndexPtr();
+    res.storage.outerInd  = mat.outerIndexPtr();
 
     res.setScalarType<typename MatrixType::Scalar>();
 
