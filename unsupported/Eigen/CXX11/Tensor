@@ -49,8 +49,8 @@
 
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorForwardDeclarations.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorDeviceType.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorDimensions.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorIndexList.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorDimensions.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorInitializer.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorTraits.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorFunctors.h"
