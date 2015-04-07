@@ -380,11 +380,12 @@ public:
     nr = 4,
 
     // register block size along the M direction (currently, this one cannot be modified)
+    default_mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
 #if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
     // we assume 16 registers
-    mr = 3*LhsPacketSize,
+    mr = Vectorizable ? 3*LhsPacketSize : default_mr,
 #else
-    mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
+    mr = default_mr,
 #endif
     
     LhsProgress = LhsPacketSize,
