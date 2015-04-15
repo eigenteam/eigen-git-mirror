@@ -112,14 +112,18 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
       nr = Traits::nr,
       nr_mask = (0xffffffff/nr)*nr
     };
-    Index k_cache = (l1-ksub)/kdiv;
+    // Increasing k gives us more time to prefetch the content of the "C"
+    // registers. However once the latency is hidden there is no point in
+    // increasing the value of k, so we'll cap it at 320 (value determined
+    // experimentally).
+    const Index k_cache = (std::min<Index>)((l1-ksub)/kdiv, 320);
     if (k_cache < k) {
       k = k_cache & k_mask;
       eigen_internal_assert(k > 0);
     }
 
-    Index n_cache = (l2-l1) / (nr * sizeof(RhsScalar) * k);
-    Index n_per_thread = numext::div_ceil(n, num_threads);
+    const Index n_cache = (l2-l1) / (nr * sizeof(RhsScalar) * k);
+    const Index n_per_thread = numext::div_ceil(n, num_threads);
     if (n_cache <= n_per_thread) {
       // Don't exceed the capacity of the l2 cache.
       eigen_internal_assert(n_cache >= static_cast<Index>(nr));
@@ -131,8 +135,8 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
 
     if (l3 > l2) {
       // l3 is shared between all cores, so we'll give each thread its own chunk of l3.
-      Index m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
-      Index m_per_thread = numext::div_ceil(m, num_threads);
+      const Index m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
+      const Index m_per_thread = numext::div_ceil(m, num_threads);
       if(m_cache < m_per_thread && m_cache >= static_cast<Index>(mr)) {
         m = m_cache & mr_mask;
         eigen_internal_assert(m > 0);
@@ -380,11 +384,14 @@ public:
     nr = 4,
 
     // register block size along the M direction (currently, this one cannot be modified)
+    default_mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
 #if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
     // we assume 16 registers
-    mr = 3*LhsPacketSize,
+    // See bug 992, if the scalar type is not vectorizable but that EIGEN_HAS_SINGLE_INSTRUCTION_MADD is defined,
+    // then using 3*LhsPacketSize triggers non-implemented paths in syrk.
+    mr = Vectorizable ? 3*LhsPacketSize : default_mr,
 #else
-    mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
+    mr = default_mr,
 #endif
     
     LhsProgress = LhsPacketSize,
