@@ -265,8 +265,7 @@ inline bool ComplexSchur<MatrixType>::subdiagonalEntryIsNeglegible(Index i)
 {
   RealScalar d = numext::norm1(m_matT.coeff(i,i)) + numext::norm1(m_matT.coeff(i+1,i+1));
   RealScalar sd = numext::norm1(m_matT.coeff(i+1,i));
-  std::cout << sd << " <<? " << d << " = " << internal::isMuchSmallerThan(sd, d, 2*NumTraits<RealScalar>::epsilon()) << "\n";
-  if (internal::isMuchSmallerThan(sd, d, 2*NumTraits<RealScalar>::epsilon()))
+  if (internal::isMuchSmallerThan(sd, d, NumTraits<RealScalar>::epsilon()))
   {
     m_matT.coeffRef(i+1,i) = ComplexScalar(0);
     return true;
@@ -274,87 +273,36 @@ inline bool ComplexSchur<MatrixType>::subdiagonalEntryIsNeglegible(Index i)
   return false;
 }
 
-template<typename T,typename T1> T add_with_cancellation(const T& a, const T& b, const T1& ref)
-{
-  typedef typename NumTraits<T>::Real Real;
-  T res = a+b;
-  if(internal::isMuchSmallerThan(numext::norm1(res),numext::norm1(ref),8*NumTraits<Real>::epsilon()))
-    res = 0;
-  return res;
-}
-
-template<typename T> T add_with_cancellation(const T& a, const T& b)
-{
-  return add_with_cancellation(a,b,numext::maxi(numext::norm1(a),numext::norm1(b)));
-}
 
 /** Compute the shift in the current QR iteration. */
 template<typename MatrixType>
 typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::computeShift(Index iu, Index iter)
 {
   using std::abs;
-  using std::sqrt;
   if (iter == 10 || iter == 20) 
-  {std::cerr << __LINE__ << "\n";
+  {
     // exceptional shift, taken from http://www.netlib.org/eispack/comqr.f
     return abs(numext::real(m_matT.coeff(iu,iu-1))) + abs(numext::real(m_matT.coeff(iu-1,iu-2)));
   }
+
   // compute the shift as one of the eigenvalues of t, the 2x2
   // diagonal block on the bottom of the active submatrix
   Matrix<ComplexScalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
-  
-//   ComplexScalar u = sqrt( t.coeff(1,0)) * sqrt(t.coeff(0,1));
-//   RealScalar uabs = numext::norm1(u);
-//   if(uabs==RealScalar(0))
-//     return t.coeff(1,1);
-//   
-//   ComplexScalar x = (t.coeff(0,0) - t.coeff(1,1))/RealScalar(2);
-//   RealScalar xabs = numext::norm1(x);
-//   RealScalar s = numext::maxi(uabs,xabs);
-//   ComplexScalar y = s * sqrt( numext::abs2(x/s) + numext::abs2(u/s) );
-//   if( xabs>RealScalar(0) && numext::real(x)/xabs*numext::real(y) + numext::imag(x)/xabs*numext::imag(y) >= RealScalar(0) )
-//     y = -y;
-//   return t.coeff(1,1) - u + (u/(x+y));
-
-//   // compute the shift as one of the eigenvalues of t, the 2x2
-//   // diagonal block on the bottom of the active submatrix
-//   Matrix<ComplexScalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
-  Matrix<ComplexScalar,2,2> T = t;
   RealScalar normt = t.cwiseAbs().sum();
-//   std::cout << "normt = " <<  normt << "\n";
-  std::cout.precision(16);
-  std::cout << "eig({{" << t(0,0) << "," << t(0,1) << "},{" << t(1,0) << "," << t(1,1)  << "}})\n";
   t /= normt;     // the normalization by sf is to avoid under/overflow
 
   ComplexScalar b = t.coeff(0,1) * t.coeff(1,0);
   ComplexScalar c = t.coeff(0,0) - t.coeff(1,1);
-//   ComplexScalar disc = sqrt(c*c + RealScalar(4)*b);
-//   ComplexScalar det = t.coeff(0,0) * t.coeff(1,1) - b;
-//   ComplexScalar trace = t.coeff(0,0) + t.coeff(1,1);
-  
-//   ComplexScalar c     = add_with_cancellation(t.coeff(0,0), -t.coeff(1,1), 1.);
-  ComplexScalar disc  = sqrt(add_with_cancellation(c*c, RealScalar(4)*b));
-  ComplexScalar det   = add_with_cancellation(t.coeff(0,0) * t.coeff(1,1), -b);
-  ComplexScalar trace = add_with_cancellation(t.coeff(0,0),t.coeff(1,1), 1.);
-//   if(internal::isMuchSmallerThan(numext::norm1(trace),numext::maxi(numext::norm1(t.coeff(0,0)),numext::norm1(t.coeff(1,1)))))
-//     trace = 0;
-  if(real(det)==5.241519276683223e-17)
-      det = det*2.;
-  std::cout << trace << "  ;  " << det << " = " <<  t.coeff(0,0) * t.coeff(1,1) << " - " << b << "  ;  " << disc << " = sqrt(" << c*c << " + " << (4.*b) << ")\n"; 
+  ComplexScalar disc = sqrt(c*c + RealScalar(4)*b);
+  ComplexScalar det = t.coeff(0,0) * t.coeff(1,1) - b;
+  ComplexScalar trace = t.coeff(0,0) + t.coeff(1,1);
   ComplexScalar eival1 = (trace + disc) / RealScalar(2);
   ComplexScalar eival2 = (trace - disc) / RealScalar(2);
-  
-  
-  if(trace==ComplexScalar(0) && (det==ComplexScalar(0) || numext::norm1(det)<=1e-18))
-    return 0;
 
   if(numext::norm1(eival1) > numext::norm1(eival2))
     eival2 = det / eival1;
   else
     eival1 = det / eival2;
-  
-  
-  std::cout << "eivals: " << normt*eival1 << " " << normt*eival2 << " ; trace error = " << ((normt*(eival1+eival2)) - T.trace())/T.trace() << "\n\n";
 
   // choose the eigenvalue closest to the bottom entry of the diagonal
   if(numext::norm1(eival1-t.coeff(1,1)) < numext::norm1(eival2-t.coeff(1,1)))
@@ -450,8 +398,6 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
 
   while(true)
   {
-    std::cout.precision(4);
-    std::cout << "T:\n" << m_matT << "\n\n";
     // find iu, the bottom row of the active submatrix
     while(iu > 0)
     {
