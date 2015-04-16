@@ -51,7 +51,9 @@ static void test_expr()
   kernel.setRandom();
 
   Tensor<float, 2, DataLayout> result(2,2);
-  Eigen::array<ptrdiff_t, 2> dims({0, 1});
+  Eigen::array<ptrdiff_t, 2> dims;
+  dims[0] = 0;
+  dims[1] = 1;
   result = input.convolve(kernel, dims);
 
   VERIFY_IS_APPROX(result(0,0), input(0,0)*kernel(0,0) + input(0,1)*kernel(0,1) +
@@ -75,7 +77,8 @@ static void test_modes() {
   kernel(1) = 1.0f;
   kernel(2) = 0.0f;
 
-  const Eigen::array<ptrdiff_t, 1> dims({0});
+  Eigen::array<ptrdiff_t, 1> dims;
+  dims[0] = 0;
   Eigen::array<std::pair<ptrdiff_t, ptrdiff_t>, 1> padding;
 
   // Emulate VALID mode (as defined in
@@ -116,9 +119,12 @@ static void test_strides() {
   input.setRandom();
   kernel.setRandom();
 
-  const Eigen::array<ptrdiff_t, 1> dims({0});
-  const Eigen::array<ptrdiff_t, 1> stride_of_3({3});
-  const Eigen::array<ptrdiff_t, 1> stride_of_2({2});
+  Eigen::array<ptrdiff_t, 1> dims;
+  dims[0] = 0;
+  Eigen::array<ptrdiff_t, 1> stride_of_3;
+  stride_of_3[0] = 3;
+  Eigen::array<ptrdiff_t, 1> stride_of_2;
+  stride_of_2[0] = 2;
 
   Tensor<float, 1, DataLayout> result;
   result = input.stride(stride_of_3).convolve(kernel, dims).stride(stride_of_2);
