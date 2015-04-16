@@ -69,7 +69,7 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct m
 #ifdef EIGEN_PARSED_BY_DOXYGEN
 namespace internal {
 
-// this is a warkaround to doxygen not being able to understand the inheritence logic
+// this is a workaround to doxygen not being able to understand the inheritance logic
 // when it is hidden by the dense_xpr_base helper struct.
 template<typename Derived> struct dense_xpr_base_dispatcher_for_doxygen;// : public MatrixBase<Derived> {};
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
@@ -479,6 +479,10 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
 #endif
 
+    /** Copy constructor */
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE PlainObjectBase(const PlainObjectBase& other)
+      : Base(), m_storage(other.m_storage) { }
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE PlainObjectBase(Index a_size, Index nbRows, Index nbCols)
       : m_storage(a_size, nbRows, nbCols)
@@ -498,15 +502,36 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       return this->derived();
     }
 
-    /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
+    /** \sa PlainObjectBase::operator=(const EigenBase<OtherDerived>&) */
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE PlainObjectBase(const DenseBase<OtherDerived> &other)
+      : m_storage()
+    {
+      _check_template_params();
+      resizeLike(other);
+      _set_noalias(other);
+    }
+
+    /** \sa PlainObjectBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC 
     EIGEN_STRONG_INLINE PlainObjectBase(const EigenBase<OtherDerived> &other)
-      : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
+      : m_storage()
     {
       _check_template_params();
-      internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(other.derived().rows(), other.derived().cols());
-      Base::operator=(other.derived());
+      resizeLike(other);
+      *this = other.derived();
+    }
+    /** \brief Copy constructor with in-place evaluation */
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE PlainObjectBase(const ReturnByValue<OtherDerived>& other)
+    {
+      _check_template_params();
+      // FIXME this does not automatically transpose vectors if necessary
+      resize(other.rows(), other.cols());
+      other.evalTo(this->derived());
     }
 
     /** \name Map

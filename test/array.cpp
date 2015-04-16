@@ -22,6 +22,8 @@ template<typename ArrayType> void array(const ArrayType& m)
   ArrayType m1 = ArrayType::Random(rows, cols),
              m2 = ArrayType::Random(rows, cols),
              m3(rows, cols);
+  ArrayType m4 = m1; // copy constructor
+  VERIFY_IS_APPROX(m1, m4);
 
   ColVectorType cv1 = ColVectorType::Random(rows);
   RowVectorType rv1 = RowVectorType::Random(cols);

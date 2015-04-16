@@ -74,7 +74,7 @@ class Array
     {
       return Base::operator=(other);
     }
-    
+
     /** Set all the entries to \a value.
       * \sa DenseBase::setConstant(), DenseBase::fill()
       */
@@ -101,7 +101,7 @@ class Array
       */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array& operator=(const ArrayBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE Array& operator=(const DenseBase<OtherDerived>& other)
     {
       return Base::_set(other);
     }
@@ -222,43 +222,18 @@ class Array
       m_storage.data()[3] = val3;
     }
 
-    /** Constructor copying the value of the expression \a other */
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const ArrayBase<OtherDerived>& other)
-             : Base(other.rows() * other.cols(), other.rows(), other.cols())
-    {
-      Base::_check_template_params();
-      Base::_set_noalias(other);
-    }
     /** Copy constructor */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const Array& other)
-            : Base(other.rows() * other.cols(), other.rows(), other.cols())
-    {
-      Base::_check_template_params();
-      Base::_set_noalias(other);
-    }
-    /** Copy constructor with in-place evaluation */
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const ReturnByValue<OtherDerived>& other)
-    {
-      Base::_check_template_params();
-      Base::resize(other.rows(), other.cols());
-      other.evalTo(*this);
-    }
+            : Base(other)
+    { }
 
     /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Array(const EigenBase<OtherDerived> &other)
-      : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
-    {
-      Base::_check_template_params();
-      Base::_resize_to_match(other);
-      *this = other;
-    }
+      : Base(other.derived())
+    { }
 
     EIGEN_DEVICE_FUNC inline Index innerStride() const { return 1; }
     EIGEN_DEVICE_FUNC inline Index outerStride() const { return this->innerSize(); }

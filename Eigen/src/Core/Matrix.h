@@ -25,7 +25,7 @@ namespace Eigen {
   *
   * The first three template parameters are required:
   * \tparam _Scalar \anchor matrix_tparam_scalar Numeric type, e.g. float, double, int or std::complex<float>.
-  *                 User defined sclar types are supported as well (see \ref user_defined_scalars "here").
+  *                 User defined scalar types are supported as well (see \ref user_defined_scalars "here").
   * \tparam _Rows Number of rows, or \b Dynamic
   * \tparam _Cols Number of columns, or \b Dynamic
   *
@@ -170,7 +170,7 @@ class Matrix
       */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Matrix& operator=(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE Matrix& operator=(const DenseBase<OtherDerived>& other)
     {
       return Base::_set(other);
     }
@@ -266,8 +266,8 @@ class Matrix
       * 
       * \warning This constructor is disabled for fixed-size \c 1x1 matrices. For instance,
       * calling Matrix<double,1,1>(1) will call the initialization constructor: Matrix(const Scalar&).
-      * For fixed-size \c 1x1 matrices it is thefore recommended to use the default
-      * constructor Matrix() instead, especilly when using one of the non standard
+      * For fixed-size \c 1x1 matrices it is therefore recommended to use the default
+      * constructor Matrix() instead, especially when using one of the non standard
       * \c EIGEN_INITIALIZE_MATRICES_BY_{ZERO,\c NAN} macros (see \ref TopicPreprocessorDirectives).
       */
     EIGEN_STRONG_INLINE explicit Matrix(Index dim);
@@ -281,8 +281,8 @@ class Matrix
       * 
       * \warning This constructor is disabled for fixed-size \c 1x2 and \c 2x1 vectors. For instance,
       * calling Matrix2f(2,1) will call the initialization constructor: Matrix(const Scalar& x, const Scalar& y).
-      * For fixed-size \c 1x2 or \c 2x1 vectors it is thefore recommended to use the default
-      * constructor Matrix() instead, especilly when using one of the non standard
+      * For fixed-size \c 1x2 or \c 2x1 vectors it is therefore recommended to use the default
+      * constructor Matrix() instead, especially when using one of the non standard
       * \c EIGEN_INITIALIZE_MATRICES_BY_{ZERO,\c NAN} macros (see \ref TopicPreprocessorDirectives).
       */
     EIGEN_DEVICE_FUNC
@@ -315,37 +315,10 @@ class Matrix
     }
 
 
-    /** \brief Constructor copying the value of the expression \a other */
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Matrix(const MatrixBase<OtherDerived>& other)
-             : Base(other.rows() * other.cols(), other.rows(), other.cols())
-    {
-      // This test resides here, to bring the error messages closer to the user. Normally, these checks
-      // are performed deeply within the library, thus causing long and scary error traces.
-      EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-
-      Base::_check_template_params();
-      Base::_set_noalias(other);
-    }
     /** \brief Copy constructor */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Matrix(const Matrix& other)
-            : Base(other.rows() * other.cols(), other.rows(), other.cols())
-    {
-      Base::_check_template_params();
-      Base::_set_noalias(other);
-    }
-    /** \brief Copy constructor with in-place evaluation */
-    template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived>& other)
-    {
-      Base::_check_template_params();
-      Base::resize(other.rows(), other.cols());
-      other.evalTo(*this);
-    }
+    EIGEN_STRONG_INLINE Matrix(const Matrix& other) : Base(other)
+    { }
 
     /** \brief Copy constructor for generic expressions.
       * \sa MatrixBase::operator=(const EigenBase<OtherDerived>&)
@@ -353,14 +326,8 @@ class Matrix
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Matrix(const EigenBase<OtherDerived> &other)
-      : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
-    {
-      Base::_check_template_params();
-      Base::_resize_to_match(other);
-      // FIXME/CHECK: isn't *this = other.derived() more efficient. it allows to
-      //              go for pure _set() implementations, right?
-      *this = other;
-    }
+      : Base(other.derived())
+    { }
 
     EIGEN_DEVICE_FUNC inline Index innerStride() const { return 1; }
     EIGEN_DEVICE_FUNC inline Index outerStride() const { return this->innerSize(); }
