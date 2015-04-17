@@ -218,7 +218,13 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
       if (this != &other) m_data = other.m_data;
       return *this; 
     }
-    EIGEN_DEVICE_FUNC DenseStorage(Index,Index,Index) {}
+    EIGEN_DEVICE_FUNC DenseStorage(Index size, Index nbRows, Index nbCols) {
+      EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
+      eigen_internal_assert(size==nbRows*nbCols && nbRows==_Rows && nbCols==_Cols);
+      EIGEN_UNUSED_VARIABLE(size);
+      EIGEN_UNUSED_VARIABLE(nbRows);
+      EIGEN_UNUSED_VARIABLE(nbCols);
+    }
     EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
     EIGEN_DEVICE_FUNC static Index rows(void) {return _Rows;}
     EIGEN_DEVICE_FUNC static Index cols(void) {return _Cols;}
@@ -361,8 +367,6 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
       eigen_internal_assert(size==nbRows*nbCols && nbRows>=0 && nbCols >=0);
-      EIGEN_ONLY_USED_FOR_DEBUG(nbRows);
-      EIGEN_ONLY_USED_FOR_DEBUG(nbCols);
     }
     DenseStorage(const DenseStorage& other)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(other.m_rows*other.m_cols))
@@ -442,7 +446,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
       eigen_internal_assert(size==nbRows*nbCols && nbRows==_Rows && nbCols >=0);
-      EIGEN_ONLY_USED_FOR_DEBUG(nbRows);
+      EIGEN_UNUSED_VARIABLE(nbRows);
     }
     DenseStorage(const DenseStorage& other)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(_Rows*other.m_cols))
@@ -515,7 +519,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
       eigen_internal_assert(size==nbRows*nbCols && nbRows>=0 && nbCols == _Cols);
-      EIGEN_ONLY_USED_FOR_DEBUG(nbCols);
+      EIGEN_UNUSED_VARIABLE(nbCols);
     }
     DenseStorage(const DenseStorage& other)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(other.m_rows*_Cols))
