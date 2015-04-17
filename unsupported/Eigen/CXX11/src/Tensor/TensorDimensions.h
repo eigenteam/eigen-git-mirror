@@ -74,16 +74,16 @@ struct fixed_size_tensor_index_linearization_helper<Index, NumIndices, 0, RowMaj
 
 // Fixed size
 #ifndef EIGEN_EMULATE_CXX11_META_H
-template <typename std::size_t... Indices>
-struct Sizes : internal::numeric_list<std::size_t, Indices...> {
-  typedef internal::numeric_list<std::size_t, Indices...> Base;
-  static const std::size_t total_size = internal::arg_prod(Indices...);
+template <typename std::ptrdiff_t... Indices>
+struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
+  typedef internal::numeric_list<std::ptrdiff_t, Indices...> Base;
+  static const std::ptrdiff_t total_size = internal::arg_prod(Indices...);
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t rank() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t rank() const {
     return Base::count;
   }
 
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t TotalSize() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t TotalSize() {
     return internal::arg_prod(Indices...);
   }
 
@@ -94,7 +94,7 @@ struct Sizes : internal::numeric_list<std::size_t, Indices...> {
   }
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
   template <typename... DenseIndex> Sizes(DenseIndex...) { }
-  explicit Sizes(std::initializer_list<std::size_t> /*l*/) {
+  explicit Sizes(std::initializer_list<std::ptrdiff_t> /*l*/) {
     // todo: add assertion
   }
 #endif
@@ -114,8 +114,8 @@ struct Sizes : internal::numeric_list<std::size_t, Indices...> {
   }
 };
 
-template <typename std::size_t... Indices>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_prod(const Sizes<Indices...>&) {
+template <typename std::ptrdiff_t... Indices>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t array_prod(const Sizes<Indices...>&) {
   return Sizes<Indices...>::total_size;
 }
 
@@ -327,13 +327,13 @@ template <typename DenseIndex, std::size_t NumDims> struct array_size<DSizes<Den
   static const size_t value = NumDims;
 };
 #ifndef EIGEN_EMULATE_CXX11_META_H
-template <typename std::size_t... Indices> struct array_size<const Sizes<Indices...> > {
-static const size_t value = Sizes<Indices...>::count;
+template <typename std::ptrdiff_t... Indices> struct array_size<const Sizes<Indices...> > {
+static const std::ptrdiff_t value = Sizes<Indices...>::count;
 };
-template <typename std::size_t... Indices> struct array_size<Sizes<Indices...> > {
-static const size_t value = Sizes<Indices...>::count;
+template <typename std::ptrdiff_t... Indices> struct array_size<Sizes<Indices...> > {
+static const std::ptrdiff_t value = Sizes<Indices...>::count;
 };
-template <std::size_t n, typename std::size_t... Indices> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_get(const Sizes<Indices...>&) {
+template <std::ptrdiff_t n, typename std::ptrdiff_t... Indices> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t array_get(const Sizes<Indices...>&) {
   return get<n, internal::numeric_list<std::size_t, Indices...> >::value;
 }
 #else
