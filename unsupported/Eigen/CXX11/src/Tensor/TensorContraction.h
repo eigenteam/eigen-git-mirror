@@ -507,7 +507,7 @@ struct TensorContractionEvaluatorBase
       internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
   static const int RDims =
       internal::array_size<typename TensorEvaluator<EvalRightArgType, Device>::Dimensions>::value;
-  static const int ContractDims = internal::array_size<Indices>::value;
+  static const unsigned int ContractDims = internal::array_size<Indices>::value;
   static const int NumDims = internal::max_n_1<LDims + RDims - 2 * ContractDims>::size;
 
   typedef array<Index, LDims> left_dim_mapper_t;
@@ -545,7 +545,7 @@ struct TensorContractionEvaluatorBase
         eval_right_dims[i] = m_rightImpl.dimensions()[i];
       }
       // We keep the pairs of contracting indices.
-      for (int i = 0; i < ContractDims; i++) {
+      for (unsigned int i = 0; i < ContractDims; i++) {
         eval_op_indices[i].first = op.indices()[i].first;
         eval_op_indices[i].second = op.indices()[i].second;
       }
@@ -559,7 +559,7 @@ struct TensorContractionEvaluatorBase
       }
       // We need to flip all the pairs of contracting indices as well as
       // reversing the dimensions.
-      for (int i = 0; i < ContractDims; i++) {
+      for (unsigned int i = 0; i < ContractDims; i++) {
         eval_op_indices[i].first = LDims - 1 - op.indices()[i].second;
         eval_op_indices[i].second = RDims - 1 - op.indices()[i].first;
       }
@@ -596,7 +596,7 @@ struct TensorContractionEvaluatorBase
     for (int i = 0; i < LDims; i++) {
       // find if we are contracting on index i of left tensor
       bool contracting = false;
-      for (int j = 0; j < ContractDims; j++) {
+      for (unsigned int j = 0; j < ContractDims; j++) {
         if (eval_op_indices[j].first == i) {
           contracting = true;
           break;
@@ -624,7 +624,7 @@ struct TensorContractionEvaluatorBase
     for (int i = 0; i < RDims; i++) {
       bool contracting = false;
       // find if we are contracting on index i of right tensor
-      for (int j = 0; j < ContractDims; j++) {
+      for (unsigned int j = 0; j < ContractDims; j++) {
         if (eval_op_indices[j].second == i) {
           contracting = true;
           break;
