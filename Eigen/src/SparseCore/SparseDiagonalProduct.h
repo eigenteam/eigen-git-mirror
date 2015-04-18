@@ -107,7 +107,9 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
   {
   public:
     InnerIterator(const sparse_diagonal_product_evaluator &xprEval, Index outer)
-      : m_cwiseEval(xprEval.m_sparseXprNested.innerVector(outer).cwiseProduct(xprEval.m_diagCoeffNested)),
+      : m_innerVectorXpr(xprEval.m_sparseXprNested.innerVector(outer)),
+        m_cwiseXpr(m_innerVectorXpr.cwiseProduct(xprEval.m_diagCoeffNested)),
+        m_cwiseEval(m_cwiseXpr),
         m_cwiseIter(m_cwiseEval, 0),
         m_outer(outer)
     {}
@@ -123,6 +125,8 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
     inline operator bool() const  { return m_cwiseIter; }
     
   protected:
+    const typename SparseXprType::ConstInnerVectorReturnType m_innerVectorXpr;
+    const CwiseProductType m_cwiseXpr;
     CwiseProductEval m_cwiseEval;
     CwiseProductIterator m_cwiseIter;
     Index m_outer;

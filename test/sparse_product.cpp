@@ -278,11 +278,35 @@ template<typename SparseMatrixType, typename DenseMatrixType> void sparse_produc
   VERIFY_IS_APPROX( m4(0,0), 0.0 );
 }
 
+template<typename Scalar>
+void bug_942()
+{
+  typedef Matrix<Scalar, Dynamic, 1>     Vector;
+  typedef SparseMatrix<Scalar, ColMajor> ColSpMat;
+  typedef SparseMatrix<Scalar, RowMajor> RowSpMat;
+  ColSpMat cmA(1,1);
+  cmA.insert(0,0) = 1;
+
+  RowSpMat rmA(1,1);
+  rmA.insert(0,0) = 1;
+
+  Vector d(1);
+  d[0] = 2;
+  
+  double res = 2;
+  
+  VERIFY_IS_APPROX( ( cmA*d.asDiagonal() ).eval().coeff(0,0), res );
+  VERIFY_IS_APPROX( ( d.asDiagonal()*rmA ).eval().coeff(0,0), res );
+  VERIFY_IS_APPROX( ( rmA*d.asDiagonal() ).eval().coeff(0,0), res );
+  VERIFY_IS_APPROX( ( d.asDiagonal()*cmA ).eval().coeff(0,0), res );
+}
+
 void test_sparse_product()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( (sparse_product<SparseMatrix<double,ColMajor> >()) );
     CALL_SUBTEST_1( (sparse_product<SparseMatrix<double,RowMajor> >()) );
+    CALL_SUBTEST_1( (bug_942<double>()) );
     CALL_SUBTEST_2( (sparse_product<SparseMatrix<std::complex<double>, ColMajor > >()) );
     CALL_SUBTEST_2( (sparse_product<SparseMatrix<std::complex<double>, RowMajor > >()) );
     CALL_SUBTEST_3( (sparse_product<SparseMatrix<float,ColMajor,long int> >()) );
