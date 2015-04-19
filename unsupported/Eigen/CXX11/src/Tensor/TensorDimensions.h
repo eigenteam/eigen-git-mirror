@@ -173,11 +173,11 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfColMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *static_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *reinterpret_cast<const Base*>(this));
   }
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfRowMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *static_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *reinterpret_cast<const Base*>(this));
   }
 };
 
@@ -369,7 +369,7 @@ struct sizes_match_up_to_dim<Dims1, Dims2, 0> {
 
 template <typename Dims1, typename Dims2>
 bool dimensions_match(Dims1& dims1, Dims2& dims2) {
-  if (internal::array_size<Dims1>::value != internal::array_size<Dims2>::value) {
+  if (static_cast<size_t>(internal::array_size<Dims1>::value) != static_cast<size_t>(internal::array_size<Dims2>::value)) {
     return false;
   }
   return internal::sizes_match_up_to_dim<Dims1, Dims2, internal::array_size<Dims1>::value-1>::run(dims1, dims2);
