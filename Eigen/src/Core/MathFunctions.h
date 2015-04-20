@@ -787,13 +787,16 @@ inline EIGEN_MATHFUNC_RETVAL(pow, Scalar) pow(const Scalar& x, const Scalar& y)
   return EIGEN_MATHFUNC_IMPL(pow, Scalar)::run(x, y);
 }
 
-// std::isfinite is non standard, so let's define our own version,
-// even though it is not very efficient.
 template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isfinite)(const T& x)
 {
-  return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
+  #ifdef EIGEN_HAS_C99_MATH
+    using std::isfinite;
+    return isfinite(x);
+  #else
+    return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
+  #endif
 }
 
 template<typename T>
