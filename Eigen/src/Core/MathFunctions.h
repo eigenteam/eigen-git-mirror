@@ -790,14 +790,26 @@ bool (isfinite)(const std::complex<T>& x)
   using std::imag;
   return isfinite(real(x)) && isfinite(imag(x));
 }
-
-template<typename T>
-EIGEN_DEVICE_FUNC
-bool (isNaN)(const T& x)
-{
-  using std::isnan;
-  return isnan(x);
-}
+#import <iostream>
+// Let's be conservative and enable the std::isnan implementation only if we are sure it exists
+#if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+&& (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC) \
+|| defined(EIGEN_HAS_C99_MATH)
+  template<typename T>
+  EIGEN_DEVICE_FUNC
+  bool (isNaN)(const T& x)
+  {
+    using std::isnan;
+    return isnan(x);
+  }
+#else
+  template<typename T>
+  EIGEN_DEVICE_FUNC
+  bool (isNaN)(const T& x)
+  {
+      return x == x;
+  }
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC
@@ -809,13 +821,25 @@ bool (isNaN)(const std::complex<T>& x)
   return isnan(real(x)) || isnan(imag(x));
 }
 
-template<typename T>
-EIGEN_DEVICE_FUNC
-bool (isInf)(const T& x)
-{
-  using std::isinf;
-  return isinf(x);
-}
+// Let's be conservative and enable the std::isinf implementation only if we are sure it exists
+#if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+&& (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC) \
+|| defined(EIGEN_HAS_C99_MATH)
+  template<typename T>
+  EIGEN_DEVICE_FUNC
+  bool (isInf)(const T& x)
+  {
+    using std::isinf;
+    return isinf(x);
+  }
+#else
+  template<typename T>
+  EIGEN_DEVICE_FUNC
+  bool (isInf)(const T& x)
+  {
+    return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
+  }
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC

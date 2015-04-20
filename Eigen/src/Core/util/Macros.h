@@ -398,6 +398,14 @@
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
 
+// Does the compiler support C99 math?
+#if (EIGEN_COMP_GNUC_STRICT || \
+  (EIGEN_COMP_ICC && EIGEN_COMP_GNUC) || \
+  (EIGEN_COMP_CLANG) || \
+  (EIGEN_COMP_MSVC >= 1800))
+#define EIGEN_HAS_C99_MATH 1
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
