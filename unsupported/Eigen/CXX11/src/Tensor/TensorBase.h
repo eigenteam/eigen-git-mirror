@@ -53,8 +53,8 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
     template <typename RandomGenerator> EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseNullaryOp<RandomGenerator, const Derived>
-    random() const {
-      return nullaryExpr(RandomGenerator());
+    random(const RandomGenerator& gen = RandomGenerator()) const {
+      return nullaryExpr(gen);
     }
 
     // Generic unary operation support.
