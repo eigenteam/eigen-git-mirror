@@ -35,6 +35,25 @@ class SparseCompressedBase
     class InnerIterator;
     class ReverseInnerIterator;
     
+  protected:
+    typedef typename Base::IndexVector IndexVector;
+    Eigen::Map<IndexVector> innerNonZeros() { return Eigen::Map<IndexVector>(innerNonZeroPtr(), isCompressed()?0:derived().outerSize()); }
+    const  Eigen::Map<const IndexVector> innerNonZeros() const { return Eigen::Map<const IndexVector>(innerNonZeroPtr(), isCompressed()?0:derived().outerSize()); }
+        
+  public:
+    
+    /** \returns the number of non zero coefficients */
+    inline Index nonZeros() const
+    {
+      if(isCompressed())
+        return outerIndexPtr()[derived().outerSize()]-outerIndexPtr()[0];
+      else if(derived().outerSize()==0)
+        return 0;
+      else
+        return innerNonZeros().sum();
+      
+    }
+    
     /** \returns a const pointer to the array of values.
       * This function is aimed at interoperability with other libraries.
       * \sa innerIndexPtr(), outerIndexPtr() */
@@ -164,6 +183,10 @@ struct evaluator<SparseCompressedBase<Derived> >
   
   evaluator() : m_matrix(0) {}
   explicit evaluator(const Derived &mat) : m_matrix(&mat) {}
+  
+  inline Index nonZerosEstimate() const {
+    return m_matrix->nonZeros();
+  }
   
   operator Derived&() { return m_matrix->const_cast_derived(); }
   operator const Derived&() const { return *m_matrix; }

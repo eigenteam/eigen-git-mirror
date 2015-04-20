@@ -299,6 +299,13 @@ template<typename _MatrixType> class EigenSolver
     void doComputeEigenvectors();
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+      EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL);
+    }
+    
     MatrixType m_eivec;
     EigenvalueType m_eivalues;
     bool m_isInitialized;
@@ -366,6 +373,8 @@ template<typename MatrixType>
 EigenSolver<MatrixType>& 
 EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
+  check_template_parameters();
+  
   using std::sqrt;
   using std::abs;
   using numext::isfinite;
@@ -408,7 +417,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
         {
           Scalar t0 = m_matT.coeff(i+1, i);
           Scalar t1 = m_matT.coeff(i, i+1);
-          Scalar maxval = numext::maxi(abs(p),numext::maxi(abs(t0),abs(t1)));
+          Scalar maxval = numext::maxi<Scalar>(abs(p),numext::maxi<Scalar>(abs(t0),abs(t1)));
           t0 /= maxval;
           t1 /= maxval;
           Scalar p0 = p/maxval;
@@ -599,7 +608,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
           }
 
           // Overflow control
-          Scalar t = numext::maxi(abs(m_matT.coeff(i,n-1)),abs(m_matT.coeff(i,n)));
+          Scalar t = numext::maxi<Scalar>(abs(m_matT.coeff(i,n-1)),abs(m_matT.coeff(i,n)));
           if ((eps * t) * t > Scalar(1))
             m_matT.block(i, n-1, size-i, 2) /= t;
 

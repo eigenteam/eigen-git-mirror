@@ -446,7 +446,7 @@ void try_run_some_benchmarks(
         unsigned int seconds_to_sleep_if_lower_clock_speed = 1;
 
         while (current_clock_speed < (1 - clock_speed_tolerance) * max_clock_speed) {
-          if (seconds_to_sleep_if_lower_clock_speed > 30) {
+          if (seconds_to_sleep_if_lower_clock_speed > 32) {
             cerr << "Sleeping longer probably won't make a difference." << endl;
             cerr << "Serializing benchmarks to " << session_filename << endl;
             serialize_benchmarks(session_filename, benchmarks, first_benchmark_to_run);
@@ -456,7 +456,7 @@ void try_run_some_benchmarks(
           rerun_last_tests = true;
           cerr << "Sleeping "
                << seconds_to_sleep_if_lower_clock_speed
-               << " s..." << endl;
+               << " s...                                   \r" << endl;
           sleep(seconds_to_sleep_if_lower_clock_speed);
           current_clock_speed = measure_clock_speed();
           seconds_to_sleep_if_lower_clock_speed *= 2;

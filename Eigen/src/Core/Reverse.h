@@ -200,17 +200,82 @@ DenseBase<Derived>::reverse() const
   * In most cases it is probably better to simply use the reversed expression
   * of a matrix. However, when reversing the matrix data itself is really needed,
   * then this "in-place" version is probably the right choice because it provides
-  * the following additional features:
+  * the following additional benefits:
   *  - less error prone: doing the same operation with .reverse() requires special care:
   *    \code m = m.reverse().eval(); \endcode
-  *  - this API allows to avoid creating a temporary (the current implementation creates a temporary, but that could be avoided using swap)
+  *  - this API enables reverse operations without the need for a temporary
   *  - it allows future optimizations (cache friendliness, etc.)
   *
-  * \sa reverse() */
+  * \sa VectorwiseOp::reverseInPlace(), reverse() */
 template<typename Derived>
 inline void DenseBase<Derived>::reverseInPlace()
 {
-  derived() = derived().reverse().eval();
+  if(cols()>rows())
+  {
+    Index half = cols()/2;
+    leftCols(half).swap(rightCols(half).reverse());
+    if((cols()%2)==1)
+    {
+      Index half2 = rows()/2;
+      col(half).head(half2).swap(col(half).tail(half2).reverse());
+    }
+  }
+  else
+  {
+    Index half = rows()/2;
+    topRows(half).swap(bottomRows(half).reverse());
+    if((rows()%2)==1)
+    {
+      Index half2 = cols()/2;
+      row(half).head(half2).swap(row(half).tail(half2).reverse());
+    }
+  }
+}
+
+namespace internal {
+  
+template<int Direction>
+struct vectorwise_reverse_inplace_impl;
+
+template<>
+struct vectorwise_reverse_inplace_impl<Vertical>
+{
+  template<typename ExpressionType>
+  static void run(ExpressionType &xpr)
+  {
+    Index half = xpr.rows()/2;
+    xpr.topRows(half).swap(xpr.bottomRows(half).colwise().reverse());
+  }
+};
+
+template<>
+struct vectorwise_reverse_inplace_impl<Horizontal>
+{
+  template<typename ExpressionType>
+  static void run(ExpressionType &xpr)
+  {
+    Index half = xpr.cols()/2;
+    xpr.leftCols(half).swap(xpr.rightCols(half).rowwise().reverse());
+  }
+};
+
+} // end namespace internal
+
+/** This is the "in place" version of VectorwiseOp::reverse: it reverses each column or row of \c *this.
+  *
+  * In most cases it is probably better to simply use the reversed expression
+  * of a matrix. However, when reversing the matrix data itself is really needed,
+  * then this "in-place" version is probably the right choice because it provides
+  * the following additional benefits:
+  *  - less error prone: doing the same operation with .reverse() requires special care:
+  *    \code m = m.reverse().eval(); \endcode
+  *  - this API enables reverse operations without the need for a temporary
+  *
+  * \sa DenseBase::reverseInPlace(), reverse() */
+template<typename ExpressionType, int Direction>
+void VectorwiseOp<ExpressionType,Direction>::reverseInPlace()
+{
+  internal::vectorwise_reverse_inplace_impl<Direction>::run(_expression().const_cast_derived());
 }
 
 } // end namespace Eigen

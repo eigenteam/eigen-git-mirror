@@ -17,7 +17,7 @@
   *
   * These iterative solvers are associated with some preconditioners:
   *  - IdentityPreconditioner - not really useful
-  *  - DiagonalPreconditioner - also called JAcobi preconditioner, work very well on diagonal dominant matrices.
+  *  - DiagonalPreconditioner - also called Jacobi preconditioner, work very well on diagonal dominant matrices.
   *  - IncompleteLUT - incomplete LU factorization with dual thresholding
   *
   * Such problems can also be solved using the direct sparse decomposition modules: SparseCholesky, CholmodSupport, UmfPackSupport, SuperLUSupport.

@@ -520,48 +520,101 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    TensorLayoutSwapOp<Derived>
+    const TensorLayoutSwapOp<const Derived>
     swap_layout() const {
+      return TensorLayoutSwapOp<const Derived>(derived());
+    }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorLayoutSwapOp<Derived>
+    swap_layout() {
       return TensorLayoutSwapOp<Derived>(derived());
+    }
+
+    template <typename Axis, typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorConcatenationOp<const Axis, const Derived, const OtherDerived>
+    concatenate(const OtherDerived& other, const Axis& axis) const {
+      return TensorConcatenationOp<const Axis, const Derived, const OtherDerived>(derived(), other, axis);
     }
     template <typename Axis, typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorConcatenationOp<const Axis, Derived, OtherDerived>
-    concatenate(const OtherDerived& other, const Axis& axis) const {
-      return TensorConcatenationOp<const Axis, Derived, OtherDerived>(derived(), other.derived(), axis);
+    concatenate(const OtherDerived& other, const Axis& axis) {
+      return TensorConcatenationOp<const Axis, Derived, OtherDerived>(derived(), other, axis);
+    }
+
+    template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReshapingOp<const NewDimensions, const Derived>
+    reshape(const NewDimensions& newDimensions) const {
+      return TensorReshapingOp<const NewDimensions, const Derived>(derived(), newDimensions);
     }
     template <typename NewDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorReshapingOp<const NewDimensions, Derived>
-    reshape(const NewDimensions& newDimensions) const {
+    reshape(const NewDimensions& newDimensions) {
       return TensorReshapingOp<const NewDimensions, Derived>(derived(), newDimensions);
+    }
+
+    template <typename StartIndices, typename Sizes> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorSlicingOp<const StartIndices, const Sizes, const Derived>
+    slice(const StartIndices& startIndices, const Sizes& sizes) const {
+      return TensorSlicingOp<const StartIndices, const Sizes, const Derived>(derived(), startIndices, sizes);
     }
     template <typename StartIndices, typename Sizes> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorSlicingOp<const StartIndices, const Sizes, Derived>
-    slice(const StartIndices& startIndices, const Sizes& sizes) const {
+    slice(const StartIndices& startIndices, const Sizes& sizes) {
       return TensorSlicingOp<const StartIndices, const Sizes, Derived>(derived(), startIndices, sizes);
     }
+
     template <DenseIndex DimId> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    TensorChippingOp<DimId, Derived>
+    const TensorChippingOp<DimId, const Derived>
     chip(const Index offset) const {
+      return TensorChippingOp<DimId, const Derived>(derived(), offset, DimId);
+    }
+    template <Index DimId> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorChippingOp<DimId, Derived>
+    chip(const Index offset) {
       return TensorChippingOp<DimId, Derived>(derived(), offset, DimId);
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorChippingOp<Dynamic, const Derived>
+    chip(const Index offset, const Index dim) const {
+      return TensorChippingOp<Dynamic, const Derived>(derived(), offset, dim);
     }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorChippingOp<Dynamic, Derived>
-    chip(const Index offset, const Index dim) const {
+    chip(const Index offset, const Index dim) {
       return TensorChippingOp<Dynamic, Derived>(derived(), offset, dim);
+    }
+
+    template <typename ReverseDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReverseOp<const ReverseDimensions, const Derived>
+    reverse(const ReverseDimensions& rev) const {
+      return TensorReverseOp<const ReverseDimensions, const Derived>(derived(), rev);
     }
     template <typename ReverseDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorReverseOp<const ReverseDimensions, Derived>
-    reverse(const ReverseDimensions& rev) const {
+    reverse(const ReverseDimensions& rev) {
       return TensorReverseOp<const ReverseDimensions, Derived>(derived(), rev);
+    }
+
+    template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorShufflingOp<const Shuffle, const Derived>
+    shuffle(const Shuffle& shuffle) const {
+      return TensorShufflingOp<const Shuffle, const Derived>(derived(), shuffle);
     }
     template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorShufflingOp<const Shuffle, Derived>
-    shuffle(const Shuffle& shuffle) const {
+    shuffle(const Shuffle& shuffle) {
       return TensorShufflingOp<const Shuffle, Derived>(derived(), shuffle);
+    }
+
+    template <typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorStridingOp<const Strides, const Derived>
+    stride(const Strides& strides) const {
+      return TensorStridingOp<const Strides, const Derived>(derived(), strides);
     }
     template <typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     TensorStridingOp<const Strides, Derived>
-    stride(const Strides& strides) const {
+    stride(const Strides& strides) {
       return TensorStridingOp<const Strides, Derived>(derived(), strides);
     }
 

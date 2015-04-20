@@ -33,14 +33,6 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
   // allocate a temporary buffer
   AmbiVector<Scalar,StorageIndex> tempVector(rows);
 
-  // estimate the number of non zero entries
-  // given a rhs column containing Y non zeros, we assume that the respective Y columns
-  // of the lhs differs in average of one non zeros, thus the number of non zeros for
-  // the product of a rhs column with the lhs is X+Y where X is the average number of non zero
-  // per column of the lhs.
-  // Therefore, we have nnz(lhs*rhs) = nnz(lhs) + nnz(rhs)
-  Index estimated_nnz_prod = lhs.nonZeros() + rhs.nonZeros();
-
   // mimics a resizeByInnerOuter:
   if(ResultType::IsRowMajor)
     res.resize(cols, rows);
@@ -49,6 +41,14 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
   
   typename evaluator<Lhs>::type lhsEval(lhs);
   typename evaluator<Rhs>::type rhsEval(rhs);
+  
+  // estimate the number of non zero entries
+  // given a rhs column containing Y non zeros, we assume that the respective Y columns
+  // of the lhs differs in average of one non zeros, thus the number of non zeros for
+  // the product of a rhs column with the lhs is X+Y where X is the average number of non zero
+  // per column of the lhs.
+  // Therefore, we have nnz(lhs*rhs) = nnz(lhs) + nnz(rhs)
+  Index estimated_nnz_prod = lhsEval.nonZerosEstimate() + rhsEval.nonZerosEstimate();
 
   res.reserve(estimated_nnz_prod);
   double ratioColRes = double(estimated_nnz_prod)/double(lhs.rows()*rhs.cols());

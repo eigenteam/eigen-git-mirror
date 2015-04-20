@@ -224,13 +224,13 @@ bool MatrixBase<Derived>::isOrthogonal
 template<typename Derived>
 bool MatrixBase<Derived>::isUnitary(const RealScalar& prec) const
 {
-  typename Derived::Nested nested(derived());
+  typename internal::nested_eval<Derived,1>::type self(derived());
   for(Index i = 0; i < cols(); ++i)
   {
-    if(!internal::isApprox(nested.col(i).squaredNorm(), static_cast<RealScalar>(1), prec))
+    if(!internal::isApprox(self.col(i).squaredNorm(), static_cast<RealScalar>(1), prec))
       return false;
     for(Index j = 0; j < i; ++j)
-      if(!internal::isMuchSmallerThan(nested.col(i).dot(nested.col(j)), static_cast<Scalar>(1), prec))
+      if(!internal::isMuchSmallerThan(self.col(i).dot(self.col(j)), static_cast<Scalar>(1), prec))
         return false;
   }
   return true;

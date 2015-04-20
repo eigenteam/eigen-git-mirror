@@ -157,6 +157,8 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     eigen_assert(NumInputDims > m_dim.actualDim());
 
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
+    eigen_assert(op.offset() < input_dims[m_dim.actualDim()]);
+
     int j = 0;
     for (int i = 0; i < NumInputDims; ++i) {
       if (i != m_dim.actualDim()) {
@@ -246,7 +248,9 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
     Scalar* result = m_impl.data();
-    if (m_dim.actualDim() == NumDims && result) {
+    if (((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumDims) ||
+         (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) &&
+        result) {
       return result + m_inputOffset;
     } else {
       return NULL;

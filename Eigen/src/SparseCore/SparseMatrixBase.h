@@ -149,9 +149,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(). */
     inline Index size() const { return rows() * cols(); }
-    /** \returns the number of nonzero coefficients which is in practice the number
-      * of stored coefficients. */
-    inline Index nonZeros() const { return derived().nonZeros(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode

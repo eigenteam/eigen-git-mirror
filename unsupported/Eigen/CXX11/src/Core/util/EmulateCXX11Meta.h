@@ -266,16 +266,16 @@ array<t, n> repeat(t v) {
 }
 
 template<std::size_t I, class Head, class Tail>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Head::type array_get(type_list<Head, Tail>& a) {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Head::type array_get(type_list<Head, Tail>&) {
   return get<I, type_list<Head, Tail> >::value;
 }
 template<std::size_t I, class Head, class Tail>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Head::type array_get(const type_list<Head, Tail>& a) {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename Head::type array_get(const type_list<Head, Tail>&) {
   return get<I, type_list<Head, Tail> >::value;
 }
 
 template <class NList>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NList::HeadType::type array_prod(const NList& l) {
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NList::HeadType::type array_prod(const NList&) {
   return arg_prod<NList>::value;
 };
 

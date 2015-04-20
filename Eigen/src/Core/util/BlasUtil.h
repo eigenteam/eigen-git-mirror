@@ -214,7 +214,7 @@ class blas_data_mapper {
   }
 
   template<typename SubPacket>
-  EIGEN_ALWAYS_INLINE void scatterPacket(Index i, Index j, SubPacket p) const {
+  EIGEN_ALWAYS_INLINE void scatterPacket(Index i, Index j, const SubPacket &p) const {
     pscatter<Scalar, SubPacket>(&operator()(i, j), p, m_stride);
   }
 

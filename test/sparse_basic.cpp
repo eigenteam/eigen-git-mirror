@@ -58,48 +58,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
     VERIFY_IS_APPROX(m, refMat);
 
-      // test InnerIterators and Block expressions
-      for (Index t=0; t<10; ++t)
-      {
-        Index j = internal::random<Index>(0,cols-1);
-        Index i = internal::random<Index>(0,rows-1);
-        Index w = internal::random<Index>(1,cols-j-1);
-        Index h = internal::random<Index>(1,rows-i-1);
-
-         VERIFY_IS_APPROX(m.block(i,j,h,w), refMat.block(i,j,h,w));
-        for(Index c=0; c<w; c++)
-        {
-          VERIFY_IS_APPROX(m.block(i,j,h,w).col(c), refMat.block(i,j,h,w).col(c));
-          for(Index r=0; r<h; r++)
-          {
-            // FIXME col().coeff() not implemented yet
-//             VERIFY_IS_APPROX(m.block(i,j,h,w).col(c).coeff(r), refMat.block(i,j,h,w).col(c).coeff(r));
-          }
-        }
-         for(Index r=0; r<h; r++)
-         {
-           VERIFY_IS_APPROX(m.block(i,j,h,w).row(r), refMat.block(i,j,h,w).row(r));
-           for(Index c=0; c<w; c++)
-           {
-             // FIXME row().coeff() not implemented yet
-//             VERIFY_IS_APPROX(m.block(i,j,h,w).row(r).coeff(c), refMat.block(i,j,h,w).row(r).coeff(c));
-           }
-         }
-      }
-
-      for(Index c=0; c<cols; c++)
-      {
-        VERIFY_IS_APPROX(m.col(c) + m.col(c), (m + m).col(c));
-        VERIFY_IS_APPROX(m.col(c) + m.col(c), refMat.col(c) + refMat.col(c));
-      }
-
-      for(Index r=0; r<rows; r++)
-      {
-        VERIFY_IS_APPROX(m.row(r) + m.row(r), (m + m).row(r));
-        VERIFY_IS_APPROX(m.row(r) + m.row(r), refMat.row(r) + refMat.row(r));
-      }
-      
-
       // test assertion
       VERIFY_RAISES_ASSERT( m.coeffRef(-1,1) = 0 );
       VERIFY_RAISES_ASSERT( m.coeffRef(0,m.cols()) = 0 );
@@ -184,82 +142,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(m2,m1);
     }
 
-  // test innerVector()
-  {
-    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
-    SparseMatrixType m2(rows, cols);
-    initSparse<Scalar>(density, refMat2, m2);
-    Index j0 = internal::random<Index>(0,outer-1);
-    Index j1 = internal::random<Index>(0,outer-1);
-    if(SparseMatrixType::IsRowMajor)
-      VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.row(j0));
-    else
-      VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.col(j0));
-
-    if(SparseMatrixType::IsRowMajor)
-      VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.row(j0)+refMat2.row(j1));
-    else
-      VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.col(j0)+refMat2.col(j1));
-
-    SparseMatrixType m3(rows,cols);
-    m3.reserve(VectorXi::Constant(outer,int(inner/2)));
-    for(Index j=0; j<outer; ++j)
-      for(Index k=0; k<(std::min)(j,inner); ++k)
-        m3.insertByOuterInner(j,k) = k+1;
-    for(Index j=0; j<(std::min)(outer, inner); ++j)
-    {
-      VERIFY(j==numext::real(m3.innerVector(j).nonZeros()));
-      if(j>0)
-        VERIFY(j==numext::real(m3.innerVector(j).lastCoeff()));
-    }
-    m3.makeCompressed();
-    for(Index j=0; j<(std::min)(outer, inner); ++j)
-    {
-      VERIFY(j==numext::real(m3.innerVector(j).nonZeros()));
-      if(j>0)
-        VERIFY(j==numext::real(m3.innerVector(j).lastCoeff()));
-    }
-
-    VERIFY(m3.innerVector(j0).nonZeros() == m3.transpose().innerVector(j0).nonZeros());
-
-//     m2.innerVector(j0) = 2*m2.innerVector(j1);
-//     refMat2.col(j0) = 2*refMat2.col(j1);
-//     VERIFY_IS_APPROX(m2, refMat2);
-  }
-
-  // test innerVectors()
-  {
-    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
-    SparseMatrixType m2(rows, cols);
-    initSparse<Scalar>(density, refMat2, m2);
-    if(internal::random<float>(0,1)>0.5) m2.makeCompressed();
-    Index j0 = internal::random<Index>(0,outer-2);
-    Index j1 = internal::random<Index>(0,outer-2);
-    Index n0 = internal::random<Index>(1,outer-(std::max)(j0,j1));
-    if(SparseMatrixType::IsRowMajor)
-      VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(j0,0,n0,cols));
-    else
-      VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(0,j0,rows,n0));
-    if(SparseMatrixType::IsRowMajor)
-      VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
-                       refMat2.middleRows(j0,n0)+refMat2.middleRows(j1,n0));
-    else
-      VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
-                      refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
-    
-    VERIFY_IS_APPROX(m2, refMat2);
-    
-    VERIFY(m2.innerVectors(j0,n0).nonZeros() == m2.transpose().innerVectors(j0,n0).nonZeros());
-    
-    m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
-    if(SparseMatrixType::IsRowMajor)
-      refMat2.middleRows(j0,n0) = (refMat2.middleRows(j0,n0) + refMat2.middleRows(j1,n0)).eval();
-    else
-      refMat2.middleCols(j0,n0) = (refMat2.middleCols(j0,n0) + refMat2.middleCols(j1,n0)).eval();
-    
-    VERIFY_IS_APPROX(m2, refMat2);
-  }
-
   // test basic computations
   {
     DenseMatrix refM1 = DenseMatrix::Zero(rows, cols);
@@ -328,40 +210,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     // check isApprox handles opposite storage order
     typename Transpose<SparseMatrixType>::PlainObject m3(m2);
     VERIFY(m2.isApprox(m3));
-  }
-
-  
-  
-  // test generic blocks
-  {
-    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
-    SparseMatrixType m2(rows, cols);
-    initSparse<Scalar>(density, refMat2, m2);
-    Index j0 = internal::random<Index>(0,outer-2);
-    Index j1 = internal::random<Index>(0,outer-2);
-    Index n0 = internal::random<Index>(1,outer-(std::max)(j0,j1));
-    if(SparseMatrixType::IsRowMajor)
-      VERIFY_IS_APPROX(m2.block(j0,0,n0,cols), refMat2.block(j0,0,n0,cols));
-    else
-      VERIFY_IS_APPROX(m2.block(0,j0,rows,n0), refMat2.block(0,j0,rows,n0));
-    
-    if(SparseMatrixType::IsRowMajor)
-      VERIFY_IS_APPROX(m2.block(j0,0,n0,cols)+m2.block(j1,0,n0,cols),
-                      refMat2.block(j0,0,n0,cols)+refMat2.block(j1,0,n0,cols));
-    else
-      VERIFY_IS_APPROX(m2.block(0,j0,rows,n0)+m2.block(0,j1,rows,n0),
-                      refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
-      
-    Index i = internal::random<Index>(0,m2.outerSize()-1);
-    if(SparseMatrixType::IsRowMajor) {
-      m2.innerVector(i) = m2.innerVector(i) * s1;
-      refMat2.row(i) = refMat2.row(i) * s1;
-      VERIFY_IS_APPROX(m2,refMat2);
-    } else {
-      m2.innerVector(i) = m2.innerVector(i) * s1;
-      refMat2.col(i) = refMat2.col(i) * s1;
-      VERIFY_IS_APPROX(m2,refMat2);
-    }
   }
 
   // test prune
@@ -602,8 +450,8 @@ void test_sparse_basic()
     CALL_SUBTEST_2(( sparse_basic(SparseMatrix<std::complex<double>, ColMajor>(r, c)) ));
     CALL_SUBTEST_2(( sparse_basic(SparseMatrix<std::complex<double>, RowMajor>(r, c)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(r, c)) ));
-    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,long int>(r, c)) ));
-    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,long int>(r, c)) ));
+    CALL_SUBTEST_5(( sparse_basic(SparseMatrix<double,ColMajor,long int>(r, c)) ));
+    CALL_SUBTEST_5(( sparse_basic(SparseMatrix<double,RowMajor,long int>(r, c)) ));
     
     r = Eigen::internal::random<int>(1,100);
     c = Eigen::internal::random<int>(1,100);
@@ -611,8 +459,8 @@ void test_sparse_basic()
       r = c; // check square matrices in 25% of tries
     }
     
-    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,short int>(short(r), short(c))) ));
-    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,short int>(short(r), short(c))) ));
+    CALL_SUBTEST_6(( sparse_basic(SparseMatrix<double,ColMajor,short int>(short(r), short(c))) ));
+    CALL_SUBTEST_6(( sparse_basic(SparseMatrix<double,RowMajor,short int>(short(r), short(c))) ));
   }
 
   // Regression test for bug 900: (manually insert higher values here, if you have enough RAM):

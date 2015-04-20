@@ -209,6 +209,12 @@ template<typename _MatrixType> class PartialPivLU
     #endif
 
   protected:
+    
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
+    }
+    
     MatrixType m_lu;
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
@@ -425,6 +431,8 @@ void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, t
 template<typename MatrixType>
 PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
+  check_template_parameters();
+  
   // the row permutation is stored as int indices, so just to be sure:
   eigen_assert(matrix.rows()<NumTraits<int>::highest());
   

@@ -25,21 +25,31 @@ inline std::ptrdiff_t manage_caching_sizes_helper(std::ptrdiff_t a, std::ptrdiff
   return a<=0 ? b : a;
 }
 
+#if EIGEN_ARCH_i386_OR_x86_64
+const std::ptrdiff_t defaultL1CacheSize = 32*1024;
+const std::ptrdiff_t defaultL2CacheSize = 256*1024;
+const std::ptrdiff_t defaultL3CacheSize = 2*1024*1024;
+#else
+const std::ptrdiff_t defaultL1CacheSize = 16*1024;
+const std::ptrdiff_t defaultL2CacheSize = 512*1024;
+const std::ptrdiff_t defaultL3CacheSize = 512*1024;
+#endif
+
 /** \internal */
 inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff_t* l2, std::ptrdiff_t* l3)
 {
   static bool m_cache_sizes_initialized = false;
-  static std::ptrdiff_t m_l1CacheSize = 32*1024;
-  static std::ptrdiff_t m_l2CacheSize = 256*1024;
-  static std::ptrdiff_t m_l3CacheSize = 2*1024*1024;
+  static std::ptrdiff_t m_l1CacheSize = 0;
+  static std::ptrdiff_t m_l2CacheSize = 0;
+  static std::ptrdiff_t m_l3CacheSize = 0;
 
   if(!m_cache_sizes_initialized)
   {
     int l1CacheSize, l2CacheSize, l3CacheSize;
     queryCacheSizes(l1CacheSize, l2CacheSize, l3CacheSize);
-    m_l1CacheSize = manage_caching_sizes_helper(l1CacheSize, 8*1024);
-    m_l2CacheSize = manage_caching_sizes_helper(l2CacheSize, 256*1024);
-    m_l3CacheSize = manage_caching_sizes_helper(l3CacheSize, 8*1024*1024);
+    m_l1CacheSize = manage_caching_sizes_helper(l1CacheSize, defaultL1CacheSize);
+    m_l2CacheSize = manage_caching_sizes_helper(l2CacheSize, defaultL2CacheSize);
+    m_l3CacheSize = manage_caching_sizes_helper(l3CacheSize, defaultL3CacheSize);
     m_cache_sizes_initialized = true;
   }
 
@@ -64,44 +74,22 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
   }
 }
 
-/** \brief Computes the blocking parameters for a m x k times k x n matrix product
-  *
-  * \param[in,out] k Input: the third dimension of the product. Output: the blocking size along the same dimension.
-  * \param[in,out] m Input: the number of rows of the left hand side. Output: the blocking size along the same dimension.
-  * \param[in,out] n Input: the number of columns of the right hand side. Output: the blocking size along the same dimension.
-  *
-  * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
-  * this function computes the blocking size parameters along the respective dimensions
-  * for matrix products and related algorithms. The blocking sizes depends on various
-  * parameters:
-  * - the L1 and L2 cache sizes,
-  * - the register level blocking sizes defined by gebp_traits,
-  * - the number of scalars that fit into a packet (when vectorization is enabled).
-  *
-  * \sa setCpuCacheSizes */
+/* Helper for computeProductBlockingSizes.
+ *
+ * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+ * this function computes the blocking size parameters along the respective dimensions
+ * for matrix products and related algorithms. The blocking sizes depends on various
+ * parameters:
+ * - the L1 and L2 cache sizes,
+ * - the register level blocking sizes defined by gebp_traits,
+ * - the number of scalars that fit into a packet (when vectorization is enabled).
+ *
+ * \sa setCpuCacheSizes */
 
 template<typename LhsScalar, typename RhsScalar, int KcFactor>
-void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
+void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
-
-#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
-  if (EIGEN_TEST_SPECIFIC_BLOCKING_SIZES) {
-    EIGEN_UNUSED_VARIABLE(num_threads);
-    enum {
-      kr = 8,
-      mr = Traits::mr,
-      nr = Traits::nr
-    };
-    k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
-    if (k > kr) k -= k % kr;
-    m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
-    if (m > mr) m -= m % mr;
-    n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
-    if (n > nr) n -= n % nr;
-    return;
-  }
-#endif
 
   // Explanations:
   // Let's recall that the product algorithms form mc x kc vertical panels A' on the lhs and
@@ -261,14 +249,67 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
         actual_lm = l2;
         max_mc = 576;
       }
-      
       Index mc = (std::min<Index>)(actual_lm/(3*k*sizeof(LhsScalar)), max_mc);
       if (mc > Traits::mr) mc -= mc % Traits::mr;
-      
+      else if (mc==0) return;
       m = (m%mc)==0 ? mc
                     : (mc - Traits::mr * ((mc/*-1*/-(m%mc))/(Traits::mr*(m/mc+1))));
     }
   }
+}
+
+inline bool useSpecificBlockingSizes(Index& k, Index& m, Index& n)
+{
+#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+  if (EIGEN_TEST_SPECIFIC_BLOCKING_SIZES) {
+    k = std::min<Index>(k, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_K);
+    m = std::min<Index>(m, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_M);
+    n = std::min<Index>(n, EIGEN_TEST_SPECIFIC_BLOCKING_SIZE_N);
+    return true;
+  }
+#else
+  EIGEN_UNUSED_VARIABLE(k)
+  EIGEN_UNUSED_VARIABLE(m)
+  EIGEN_UNUSED_VARIABLE(n)
+#endif
+  return false;
+}
+
+/** \brief Computes the blocking parameters for a m x k times k x n matrix product
+  *
+  * \param[in,out] k Input: the third dimension of the product. Output: the blocking size along the same dimension.
+  * \param[in,out] m Input: the number of rows of the left hand side. Output: the blocking size along the same dimension.
+  * \param[in,out] n Input: the number of columns of the right hand side. Output: the blocking size along the same dimension.
+  *
+  * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+  * this function computes the blocking size parameters along the respective dimensions
+  * for matrix products and related algorithms.
+  *
+  * The blocking size parameters may be evaluated:
+  *   - either by a heuristic based on cache sizes;
+  *   - or using a precomputed lookup table;
+  *   - or using fixed prescribed values (for testing purposes).
+  *
+  * \sa setCpuCacheSizes */
+
+template<typename LhsScalar, typename RhsScalar, int KcFactor>
+void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
+{
+  if (!useSpecificBlockingSizes(k, m, n)) {
+    if (!lookupBlockingSizesFromTable<LhsScalar, RhsScalar>(k, m, n, num_threads)) {
+      evaluateProductBlockingSizesHeuristic<LhsScalar, RhsScalar, KcFactor>(k, m, n, num_threads);
+    }
+  }
+
+  typedef gebp_traits<LhsScalar,RhsScalar> Traits;
+  enum {
+    kr = 8,
+    mr = Traits::mr,
+    nr = Traits::nr
+  };
+  if (k > kr) k -= k % kr;
+  if (m > mr) m -= m % mr;
+  if (n > nr) n -= n % nr;
 }
 
 template<typename LhsScalar, typename RhsScalar>
@@ -339,11 +380,14 @@ public:
     nr = 4,
 
     // register block size along the M direction (currently, this one cannot be modified)
+    default_mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
 #if defined(EIGEN_HAS_SINGLE_INSTRUCTION_MADD) && !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
     // we assume 16 registers
-    mr = 3*LhsPacketSize,
+    // See bug 992, if the scalar type is not vectorizable but that EIGEN_HAS_SINGLE_INSTRUCTION_MADD is defined,
+    // then using 3*LhsPacketSize triggers non-implemented paths in syrk.
+    mr = Vectorizable ? 3*LhsPacketSize : default_mr,
 #else
-    mr = (EIGEN_PLAIN_ENUM_MIN(16,NumberOfRegisters)/2/nr)*LhsPacketSize,
+    mr = default_mr,
 #endif
     
     LhsProgress = LhsPacketSize,
@@ -974,12 +1018,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
       // Blocking sizes, i.e., 'depth' has been computed so that the micro horizontal panel of the lhs fit in L1.
       // However, if depth is too small, we can extend the number of rows of these horizontal panels.
       // This actual number of rows is computed as follow:
-      const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
-#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+      const Index l1 = defaultL1CacheSize; // in Bytes, TODO, l1 should be passed to this function.
+      // The max(1, ...) here is needed because we may be using blocking params larger than what our known l1 cache size
+      // suggests we should be using: either because our known l1 cache size is inaccurate (e.g. on Android, we can only guess),
+      // or because we are testing specific blocking sizes.
       const Index actual_panel_rows = (3*LhsProgress) * std::max<Index>(1,( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 3*LhsProgress) ));
-#else
-      const Index actual_panel_rows = (3*LhsProgress) * ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 3*LhsProgress) );
-#endif
       for(Index i1=0; i1<peeled_mc3; i1+=actual_panel_rows)
       {
         const Index actual_panel_end = (std::min)(i1+actual_panel_rows, peeled_mc3);
@@ -1211,12 +1254,12 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     //---------- Process 2 * LhsProgress rows at once ----------
     if(mr>=2*Traits::LhsProgress)
     {
-      const Index l1 = 32*1024; // in Bytes, TODO, l1 should be passed to this function.
-#ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
+      const Index l1 = defaultL1CacheSize; // in Bytes, TODO, l1 should be passed to this function.
+      // The max(1, ...) here is needed because we may be using blocking params larger than what our known l1 cache size
+      // suggests we should be using: either because our known l1 cache size is inaccurate (e.g. on Android, we can only guess),
+      // or because we are testing specific blocking sizes.
       Index actual_panel_rows = (2*LhsProgress) * std::max<Index>(1,( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) ));
-#else
-      Index actual_panel_rows = (2*LhsProgress) * ( (l1 - sizeof(ResScalar)*mr*nr - depth*nr*sizeof(RhsScalar)) / (depth * sizeof(LhsScalar) * 2*LhsProgress) );
-#endif
+
       for(Index i1=peeled_mc3; i1<peeled_mc2; i1+=actual_panel_rows)
       {
         Index actual_panel_end = (std::min)(i1+actual_panel_rows, peeled_mc2);

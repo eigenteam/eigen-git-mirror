@@ -38,13 +38,17 @@ public:
   template<int StoreMode, int LoadMode>
   void assignPacket(Index row, Index col)
   {
-    m_functor.template swapPacket<StoreMode,LoadMode,PacketScalar>(&m_dst.coeffRef(row,col), &const_cast<SrcEvaluatorTypeT&>(m_src).coeffRef(row,col));
+    PacketScalar tmp = m_src.template packet<LoadMode>(row,col);
+    const_cast<SrcEvaluatorTypeT&>(m_src).template writePacket<LoadMode>(row,col, m_dst.template packet<StoreMode>(row,col));
+    m_dst.template writePacket<StoreMode>(row,col,tmp);
   }
   
   template<int StoreMode, int LoadMode>
   void assignPacket(Index index)
   {
-    m_functor.template swapPacket<StoreMode,LoadMode,PacketScalar>(&m_dst.coeffRef(index), &const_cast<SrcEvaluatorTypeT&>(m_src).coeffRef(index));
+    PacketScalar tmp = m_src.template packet<LoadMode>(index);
+    const_cast<SrcEvaluatorTypeT&>(m_src).template writePacket<LoadMode>(index, m_dst.template packet<StoreMode>(index));
+    m_dst.template writePacket<StoreMode>(index,tmp);
   }
   
   // TODO find a simple way not to have to copy/paste this function from generic_dense_assignment_kernel, by simple I mean no CRTP (Gael)

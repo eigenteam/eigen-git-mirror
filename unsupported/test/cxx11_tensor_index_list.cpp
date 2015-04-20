@@ -255,6 +255,17 @@ static void test_mixed_index_list()
   VERIFY_IS_APPROX(result3(0), expected);
 }
 
+
+static void test_dim_check()
+{
+  Eigen::IndexList<Eigen::type2index<1>, int> dim1;
+  dim1.set(1, 2);
+  Eigen::IndexList<Eigen::type2index<1>, int> dim2;
+  dim2.set(1, 2);
+  VERIFY(dimensions_match(dim1, dim2));
+}
+
+
 #endif
 
 void test_cxx11_tensor_index_list()
@@ -264,5 +275,6 @@ void test_cxx11_tensor_index_list()
   CALL_SUBTEST(test_type2index_list());
   CALL_SUBTEST(test_dynamic_index_list());
   CALL_SUBTEST(test_mixed_index_list());
+  CALL_SUBTEST(test_dim_check());
 #endif
 }

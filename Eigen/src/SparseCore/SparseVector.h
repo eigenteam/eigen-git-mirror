@@ -442,6 +442,10 @@ struct evaluator<SparseVector<_Scalar,_Options,_Index> >
   
   explicit evaluator(const SparseVectorType &mat) : m_matrix(mat) {}
   
+  inline Index nonZerosEstimate() const {
+    return m_matrix.nonZeros();
+  }
+  
   operator SparseVectorType&() { return m_matrix.const_cast_derived(); }
   operator const SparseVectorType&() const { return m_matrix; }
   

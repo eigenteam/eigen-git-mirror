@@ -95,6 +95,9 @@
 namespace Eigen
 {
   static std::vector<std::string> g_test_stack;
+  // level == 0 <=> abort if test fail
+  // level >= 1 <=> warning message to std::cerr if test fail
+  static int g_test_level = 0;
   static int g_repeat;
   static unsigned int g_seed;
   static bool g_has_set_repeat, g_has_set_seed;
@@ -229,6 +232,8 @@ inline void verify_impl(bool condition, const char *testname, const char *file, 
 {
   if (!condition)
   {
+    if(Eigen::g_test_level>0)
+      std::cerr << "WARNING: ";
     std::cerr << "Test " << testname << " failed in " << file << " (" << line << ")"
       << std::endl << "    " << condition_as_string << std::endl;
     std::cerr << "Stack:\n";
@@ -236,7 +241,8 @@ inline void verify_impl(bool condition, const char *testname, const char *file, 
     for(int i=test_stack_size-1; i>=0; --i)
       std::cerr << "  - " << Eigen::g_test_stack[i] << "\n";
     std::cerr << "\n";
-    abort();
+    if(Eigen::g_test_level==0)
+      abort();
   }
 }
 

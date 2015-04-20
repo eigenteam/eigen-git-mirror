@@ -25,6 +25,12 @@ using namespace std;
 
 const int default_precision = 4;
 
+// see --only-cubic-sizes
+bool only_cubic_sizes = false;
+
+// see --dump-tables
+bool dump_tables = false;
+
 uint8_t log2_pot(size_t x) {
   size_t l = 0;
   while (x >>= 1) l++;
@@ -130,6 +136,9 @@ struct inputfile_t
             cerr << "offending line:" << endl << line << endl;
             exit(1);
           }
+          if (only_cubic_sizes && !size_triple_t(product_size).is_cubic()) {
+            continue;
+          }
           inputfile_entry_t entry;
           entry.product_size = uint16_t(product_size);
           entry.pot_block_size = uint16_t(block_size);
@@ -154,6 +163,9 @@ struct inputfile_t
             cerr << "ill-formed input file: " << filename << endl;
             cerr << "offending line:" << endl << line << endl;
             exit(1);
+          }
+          if (only_cubic_sizes && !size_triple_t(product_size).is_cubic()) {
+            continue;
           }
           inputfile_entry_t entry;
           entry.product_size = uint16_t(product_size);
@@ -309,12 +321,80 @@ float efficiency_of_subset(
         efficiency_this_product_size = max(efficiency_this_product_size, efficiency_this_entry);
       }
       efficiency = min(efficiency, efficiency_this_product_size);
-      first_entry_index_with_this_product_size = entry_index;
-      product_size = first_file.entries[entry_index].product_size;
+      if (entry_index < num_entries) {
+        first_entry_index_with_this_product_size = entry_index;
+        product_size = first_file.entries[entry_index].product_size;
+      }
     }
   }
 
   return efficiency;
+}
+
+void dump_table_for_subset(
+        const vector<preprocessed_inputfile_t>& preprocessed_inputfiles,
+        const vector<size_t>& subset)
+{
+  const preprocessed_inputfile_t& first_file = preprocessed_inputfiles[subset[0]];
+  const size_t num_entries = first_file.entries.size();
+  size_t entry_index = 0;
+  size_t first_entry_index_with_this_product_size = 0;
+  uint16_t product_size = first_file.entries[0].product_size;
+  size_t i = 0;
+  size_triple_t min_product_size(first_file.entries.front().product_size);
+  size_triple_t max_product_size(first_file.entries.back().product_size);
+  if (!min_product_size.is_cubic() || !max_product_size.is_cubic()) {
+    abort();
+  }
+  if (only_cubic_sizes) {
+    cerr << "Can't generate tables with --only-cubic-sizes." << endl;
+    abort();
+  }
+  cout << "struct LookupTable {" << endl;
+  cout << "  static const size_t BaseSize = " << min_product_size.k << ";" << endl;
+  const size_t NumSizes = log2_pot(max_product_size.k / min_product_size.k) + 1;
+  const size_t TableSize = NumSizes * NumSizes * NumSizes;
+  cout << "  static const size_t NumSizes = " << NumSizes << ";" << endl;
+  cout << "  static const unsigned short* Data() {" << endl;
+  cout << "    static const unsigned short data[" << TableSize << "] = {";
+  while (entry_index < num_entries) {
+    ++entry_index;
+    if (entry_index == num_entries ||
+        first_file.entries[entry_index].product_size != product_size)
+    {
+      float best_efficiency_this_product_size = 0.0f;
+      uint16_t best_block_size_this_product_size = 0;
+      for (size_t e = first_entry_index_with_this_product_size; e < entry_index; e++) {
+        float efficiency_this_entry = 1.0f;
+        for (auto i = subset.begin(); i != subset.end(); ++i) {
+          efficiency_this_entry = min(efficiency_this_entry, preprocessed_inputfiles[*i].entries[e].efficiency);
+        }
+        if (efficiency_this_entry > best_efficiency_this_product_size) {
+          best_efficiency_this_product_size = efficiency_this_entry;
+          best_block_size_this_product_size = first_file.entries[e].block_size;
+        }
+      }
+      if ((i++) % NumSizes) {
+        cout << " ";
+      } else {
+        cout << endl << "      ";
+      }
+      cout << "0x" << hex << best_block_size_this_product_size << dec;
+      if (entry_index < num_entries) {
+        cout << ",";
+        first_entry_index_with_this_product_size = entry_index;
+        product_size = first_file.entries[entry_index].product_size;
+      }
+    }
+  }
+  if (i != TableSize) {
+    cerr << endl << "Wrote " << i << " table entries, expected " << TableSize << endl;
+    abort();
+  }
+  cout << endl << "    };" << endl;
+  cout << "    return data;" << endl;
+  cout << "  }" << endl;
+  cout << "};" << endl;
 }
 
 float efficiency_of_partition(
@@ -498,6 +578,10 @@ void print_partition(
     for (auto file = subset->begin(); file != subset->end(); ++file) {
       cout << "    " << preprocessed_inputfiles[*file].filename << endl;
     }
+    if (dump_tables) {
+      cout << "  Table:" << endl;
+      dump_table_for_subset(preprocessed_inputfiles, *subset);
+    }
   }
   cout << endl;
 }
@@ -505,28 +589,23 @@ void print_partition(
 struct action_t
 {
   virtual const char* invokation_name() const { abort(); return nullptr; }
-  virtual void run(int, char*[]) const { abort(); }
+  virtual void run(const vector<string>&) const { abort(); }
   virtual ~action_t() {}
 };
 
 struct partition_action_t : action_t
 {
-  virtual const char* invokation_name() const { return "partition"; }
-  virtual void run(int argc, char *argv[]) const
+  virtual const char* invokation_name() const override { return "partition"; }
+  virtual void run(const vector<string>& input_filenames) const override
   {
     vector<preprocessed_inputfile_t> preprocessed_inputfiles;
 
-    if (!argc) {
+    if (input_filenames.empty()) {
       cerr << "The " << invokation_name() << " action needs a list of input files." << endl;
       exit(1);
     }
 
-    vector<string> inputfilenames;
-    for (int i = 0; i < argc; i++) {
-      inputfilenames.emplace_back(argv[i]);
-    }
-
-    for (auto it = inputfilenames.begin(); it != inputfilenames.end(); ++it) {
+    for (auto it = input_filenames.begin(); it != input_filenames.end(); ++it) {
       inputfile_t inputfile(*it);
       switch (inputfile.type) {
         case inputfile_t::type_t::all_pot_sizes:
@@ -610,7 +689,7 @@ struct evaluate_defaults_action_t : action_t
   static bool lower_efficiency(const results_entry_t& e1, const results_entry_t& e2) {
     return e1.default_efficiency < e2.default_efficiency;
   }
-  virtual const char* invokation_name() const { return "evaluate-defaults"; }
+  virtual const char* invokation_name() const override { return "evaluate-defaults"; }
   void show_usage_and_exit() const
   {
     cerr << "usage: " << invokation_name() << " default-sizes-data all-pot-sizes-data" << endl;
@@ -618,13 +697,13 @@ struct evaluate_defaults_action_t : action_t
          << "performance measured over all POT sizes." << endl;
     exit(1);
   }
-  virtual void run(int argc, char *argv[]) const
+  virtual void run(const vector<string>& input_filenames) const override
   {
-    if (argc != 2) {
+    if (input_filenames.size() != 2) {
       show_usage_and_exit();
     }
-    inputfile_t inputfile_default_sizes(argv[0]);
-    inputfile_t inputfile_all_pot_sizes(argv[1]);
+    inputfile_t inputfile_default_sizes(input_filenames[0]);
+    inputfile_t inputfile_all_pot_sizes(input_filenames[1]);
     if (inputfile_default_sizes.type != inputfile_t::type_t::default_sizes) {
       cerr << inputfile_default_sizes.filename << " is not an input file with default sizes." << endl;
       show_usage_and_exit();
@@ -719,7 +798,7 @@ struct evaluate_defaults_action_t : action_t
 void show_usage_and_exit(int argc, char* argv[],
                          const vector<unique_ptr<action_t>>& available_actions)
 {
-  cerr << "usage: " << argv[0] << " <action> <input files...>" << endl;
+  cerr << "usage: " << argv[0] << " <action> [options...] <input files...>" << endl;
   cerr << "available actions:" << endl;
   for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
     cerr << "  " << (*it)->invokation_name() << endl;
@@ -737,21 +816,61 @@ int main(int argc, char* argv[])
   available_actions.emplace_back(new partition_action_t);
   available_actions.emplace_back(new evaluate_defaults_action_t);
 
-  auto action = available_actions.end();
+  vector<string> input_filenames;
+
+  action_t* action = nullptr;
 
   if (argc < 2) {
     show_usage_and_exit(argc, argv, available_actions);
   }
-  for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
-    if (!strcmp(argv[1], (*it)->invokation_name())) {
-      action = it;
-      break;
+  for (int i = 1; i < argc; i++) {
+    bool arg_handled = false;
+    // Step 1. Try to match action invokation names.
+    for (auto it = available_actions.begin(); it != available_actions.end(); ++it) {
+      if (!strcmp(argv[i], (*it)->invokation_name())) {
+        if (!action) {
+          action = it->get();
+          arg_handled = true;
+          break;
+        } else {
+          cerr << "can't specify more than one action!" << endl;
+          show_usage_and_exit(argc, argv, available_actions);
+        }
+      }
     }
+    if (arg_handled) {
+      continue;
+    }
+    // Step 2. Try to match option names.
+    if (argv[i][0] == '-') {
+      if (!strcmp(argv[i], "--only-cubic-sizes")) {
+        only_cubic_sizes = true;
+        arg_handled = true;
+      }
+      if (!strcmp(argv[i], "--dump-tables")) {
+        dump_tables = true;
+        arg_handled = true;
+      }
+      if (!arg_handled) {
+        cerr << "Unrecognized option: " << argv[i] << endl;
+        show_usage_and_exit(argc, argv, available_actions);
+      }
+    }
+    if (arg_handled) {
+      continue;
+    }
+    // Step 3. Default to interpreting args as input filenames.
+    input_filenames.emplace_back(argv[i]);
   }
 
-  if (action == available_actions.end()) {
+  if (dump_tables && only_cubic_sizes) {
+    cerr << "Incompatible options: --only-cubic-sizes and --dump-tables." << endl;
     show_usage_and_exit(argc, argv, available_actions);
   }
 
-  (*action)->run(argc - 2, argv + 2);
+  if (!action) {
+    show_usage_and_exit(argc, argv, available_actions);
+  }
+
+  action->run(input_filenames);
 }

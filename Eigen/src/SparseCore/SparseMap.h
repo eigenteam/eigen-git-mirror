@@ -105,9 +105,6 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
       return ((*r==inner) && (id<end)) ? m_values[id] : Scalar(0);
     }
 
-    /** \returns the number of non zero coefficients */
-    inline Index nonZeros() const  { return m_nnz; }
-
     inline SparseMapBase(Index rows, Index cols, Index nnz, IndexPointer outerIndexPtr, IndexPointer innerIndexPtr,
                               ScalarPointer valuePtr, IndexPointer innerNonZerosPtr = 0)
       : m_outerSize(IsRowMajor?rows:cols), m_innerSize(IsRowMajor?cols:rows), m_nnz(nnz), m_outerIndex(outerIndexPtr),

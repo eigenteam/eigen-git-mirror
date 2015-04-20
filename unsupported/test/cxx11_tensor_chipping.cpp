@@ -340,11 +340,9 @@ static void test_chip_as_lvalue()
   }
 }
 
-
-template<int DataLayout>
-static void test_chip_raw_data()
+static void test_chip_raw_data_col_major()
 {
-  Tensor<float, 5, DataLayout> tensor(2,3,5,7,11);
+  Tensor<float, 5, ColMajor> tensor(2,3,5,7,11);
   tensor.setRandom();
 
   typedef TensorEvaluator<decltype(tensor.template chip<4>(3)), DefaultDevice> Evaluator4;
@@ -353,12 +351,7 @@ static void test_chip_raw_data()
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 5; ++k) {
         for (int l = 0; l < 7; ++l) {
-          int chip_index;
-          if (DataLayout == ColMajor) {
-            chip_index = i + 2 * (j + 3 * (k + 5 * l));
-          } else {
-            chip_index = 11 * (l + 7 * (k + 5 * (j + 3 * i)));
-          }
+          int chip_index = i + 2 * (j + 3 * (k + 5 * l));
           VERIFY_IS_EQUAL(chip.data()[chip_index], tensor(i,j,k,l,3));
         }
       }
@@ -382,6 +375,41 @@ static void test_chip_raw_data()
   VERIFY_IS_EQUAL(chip3.data(), static_cast<float*>(0));
 }
 
+static void test_chip_raw_data_row_major()
+{
+  Tensor<float, 5, RowMajor> tensor(11,7,5,3,2);
+  tensor.setRandom();
+
+  typedef TensorEvaluator<decltype(tensor.template chip<0>(3)), DefaultDevice> Evaluator0;
+  auto chip = Evaluator0(tensor.template chip<0>(3), DefaultDevice());
+  for (int i = 0; i < 7; ++i) {
+    for (int j = 0; j < 5; ++j) {
+      for (int k = 0; k < 3; ++k) {
+        for (int l = 0; l < 2; ++l) {
+          int chip_index = l + 2 * (k + 3 * (j + 5 * i));
+          VERIFY_IS_EQUAL(chip.data()[chip_index], tensor(3,i,j,k,l));
+        }
+      }
+    }
+  }
+
+  typedef TensorEvaluator<decltype(tensor.template chip<1>(0)), DefaultDevice> Evaluator1;
+  auto chip1 = Evaluator1(tensor.template chip<1>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip1.data(), static_cast<float*>(0));
+
+  typedef TensorEvaluator<decltype(tensor.template chip<2>(0)), DefaultDevice> Evaluator2;
+  auto chip2 = Evaluator2(tensor.template chip<2>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip2.data(), static_cast<float*>(0));
+
+  typedef TensorEvaluator<decltype(tensor.template chip<3>(0)), DefaultDevice> Evaluator3;
+  auto chip3 = Evaluator3(tensor.template chip<3>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip3.data(), static_cast<float*>(0));
+
+  typedef TensorEvaluator<decltype(tensor.template chip<4>(0)), DefaultDevice> Evaluator4;
+  auto chip4 = Evaluator4(tensor.template chip<4>(0), DefaultDevice());
+  VERIFY_IS_EQUAL(chip4.data(), static_cast<float*>(0));
+}
+
 void test_cxx11_tensor_chipping()
 {
   CALL_SUBTEST(test_simple_chip<ColMajor>());
@@ -392,6 +420,6 @@ void test_cxx11_tensor_chipping()
   CALL_SUBTEST(test_chip_in_expr<RowMajor>());
   CALL_SUBTEST(test_chip_as_lvalue<ColMajor>());
   CALL_SUBTEST(test_chip_as_lvalue<RowMajor>());
-  CALL_SUBTEST(test_chip_raw_data<ColMajor>());
-  CALL_SUBTEST(test_chip_raw_data<RowMajor>());
+  CALL_SUBTEST(test_chip_raw_data_col_major());
+  CALL_SUBTEST(test_chip_raw_data_row_major());
 }
