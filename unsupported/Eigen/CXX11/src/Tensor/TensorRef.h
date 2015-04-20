@@ -295,7 +295,7 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
       Index index = 0;
       if (PlainObjectType::Options & RowMajor) {
         index += indices[0];
-        for (int i = 1; i < NumIndices; ++i) {
+        for (size_t i = 1; i < NumIndices; ++i) {
           index = index * dims[i] + indices[i];
         }
       } else {
@@ -313,7 +313,7 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
       Index index = 0;
       if (PlainObjectType::Options & RowMajor) {
         index += indices[0];
-        for (int i = 1; i < NumIndices; ++i) {
+        for (size_t i = 1; i < NumIndices; ++i) {
           index = index * dims[i] + indices[i];
         }
       } else {
