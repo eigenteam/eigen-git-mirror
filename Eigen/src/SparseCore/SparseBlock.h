@@ -285,6 +285,9 @@ public:
   {}
   
   using Base::operator=;
+private:
+  template<typename Derived> BlockImpl(const SparseMatrixBase<Derived>& xpr, Index i);
+  template<typename Derived> BlockImpl(const SparseMatrixBase<Derived>& xpr);
 };
   
 //----------
