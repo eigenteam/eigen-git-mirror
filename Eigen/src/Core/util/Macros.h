@@ -101,7 +101,7 @@
 
 
 /// \internal EIGEN_GNUC_STRICT set to 1 if the compiler is really GCC and not a compatible compiler (e.g., ICC, clang, mingw, etc.)
-#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_CLANG || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM )
+#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM )
   #define EIGEN_COMP_GNUC_STRICT 1
 #else
   #define EIGEN_COMP_GNUC_STRICT 0
