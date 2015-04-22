@@ -197,7 +197,7 @@ int get_random_seed() {
 #else
     timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    return ts.tv_nsec;
+    return static_cast<int>(ts.tv_nsec);
 #endif
 }
 }
@@ -220,7 +220,7 @@ template <typename T> class UniformRandomGenerator {
     return random<T>();
   }
   template<typename Index>
-  typename internal::packet_traits<T>::type packetOp(Index i, Index j = 0) const {
+  typename internal::packet_traits<T>::type packetOp(Index, Index = 0) const {
     const int packetSize = internal::packet_traits<T>::size;
     EIGEN_ALIGN_DEFAULT T values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
@@ -252,8 +252,8 @@ template <> class UniformRandomGenerator<float> {
   typename internal::packet_traits<float>::type packetOp(Index i, Index j = 0) const {
     const int packetSize = internal::packet_traits<float>::size;
     EIGEN_ALIGN_DEFAULT float values[packetSize];
-    for (int i = 0; i < packetSize; ++i) {
-      values[i] = this->operator()(i, j);
+    for (int k = 0; k < packetSize; ++k) {
+      values[k] = this->operator()(i, j);
     }
     return internal::pload<typename internal::packet_traits<float>::type>(values);
   }
@@ -285,8 +285,8 @@ template <> class UniformRandomGenerator<double> {
   typename internal::packet_traits<double>::type packetOp(Index i, Index j = 0) const {
     const int packetSize = internal::packet_traits<double>::size;
     EIGEN_ALIGN_DEFAULT double values[packetSize];
-    for (int i = 0; i < packetSize; ++i) {
-      values[i] = this->operator()(i, j);
+    for (int k = 0; k < packetSize; ++k) {
+      values[k] = this->operator()(i, j);
     }
     return internal::pload<typename internal::packet_traits<double>::type>(values);
   }

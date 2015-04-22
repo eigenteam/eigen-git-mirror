@@ -157,7 +157,11 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 template <typename Evaluator, typename Index>
 __global__ void
 __launch_bounds__(1024)
-EigenMetaKernel_NonVectorizable(Evaluator eval, Index size) {
+EigenMetaKernel_NonVectorizable(Evaluator memcopied_eval, Index size) {
+  // Cuda memcopies the kernel arguments. That's fine for POD, but for more
+  // complex types such as evaluators we should really conform to the C++
+  // standard and call a proper copy constructor.
+  Evaluator eval(memcopied_eval);
 
   const Index first_index = blockIdx.x * blockDim.x + threadIdx.x;
   const Index step_size = blockDim.x * gridDim.x;
@@ -171,7 +175,11 @@ EigenMetaKernel_NonVectorizable(Evaluator eval, Index size) {
 template <typename Evaluator, typename Index>
 __global__ void
 __launch_bounds__(1024)
-EigenMetaKernel_Vectorizable(Evaluator eval, Index size) {
+EigenMetaKernel_Vectorizable(Evaluator memcopied_eval, Index size) {
+  // Cuda memcopies the kernel arguments. That's fine for POD, but for more
+  // complex types such as evaluators we should really conform to the C++
+  // standard and call a proper copy constructor.
+  Evaluator eval(memcopied_eval);
 
   const Index first_index = blockIdx.x * blockDim.x + threadIdx.x;
   const Index step_size = blockDim.x * gridDim.x;
