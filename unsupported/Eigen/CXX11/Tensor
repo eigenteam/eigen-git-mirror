@@ -79,6 +79,7 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorStriding.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorEvalTo.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorForcedEval.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorGenerator.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
 
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorExecutor.h"

@@ -57,6 +57,13 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return nullaryExpr(gen);
     }
 
+    // Tensor generation
+    template <typename Generator> EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorGeneratorOp<Generator, const Derived>
+    generate(const Generator& generator) const {
+      return TensorGeneratorOp<Generator, const Derived>(derived(), generator);
+    }
+
     // Generic unary operation support.
     template <typename CustomUnaryOp> EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<CustomUnaryOp, const Derived>

@@ -496,6 +496,35 @@ template <typename T> class NormalRandomGenerator {
 #endif
 
 
+template <typename T, typename Index, size_t NumDims>
+class GaussianGenerator {
+ public:
+  static const bool PacketAccess = false;
+
+  EIGEN_DEVICE_FUNC GaussianGenerator(const array<T, NumDims>& means,
+                                      const array<T, NumDims>& std_devs)
+      : m_means(means)
+  {
+    for (int i = 0; i < NumDims; ++i) {
+      m_two_sigmas[i] = std_devs[i] * std_devs[i] * 2;
+    }
+  }
+
+  T operator()(const array<Index, NumDims>& coordinates) const {
+    T tmp = T(0);
+    for (int i = 0; i < NumDims; ++i) {
+      T offset = coordinates[i] - m_means[i];
+      tmp += offset * offset / m_two_sigmas[i];
+    }
+    return std::exp(-tmp);
+  }
+
+ private:
+  array<T, NumDims> m_means;
+  array<T, NumDims> m_two_sigmas;
+};
+
+
 } // end namespace internal
 } // end namespace Eigen
 
