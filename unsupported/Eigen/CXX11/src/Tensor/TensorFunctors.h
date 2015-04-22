@@ -200,7 +200,7 @@ int get_random_seed() {
 #else
     timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    return ts.tv_nsec;
+    return static_cast<int>(ts.tv_nsec);
 #endif
 }
 #endif
@@ -505,14 +505,14 @@ class GaussianGenerator {
                                       const array<T, NumDims>& std_devs)
       : m_means(means)
   {
-    for (int i = 0; i < NumDims; ++i) {
+    for (size_t i = 0; i < NumDims; ++i) {
       m_two_sigmas[i] = std_devs[i] * std_devs[i] * 2;
     }
   }
 
   T operator()(const array<Index, NumDims>& coordinates) const {
     T tmp = T(0);
-    for (int i = 0; i < NumDims; ++i) {
+    for (size_t i = 0; i < NumDims; ++i) {
       T offset = coordinates[i] - m_means[i];
       tmp += offset * offset / m_two_sigmas[i];
     }
