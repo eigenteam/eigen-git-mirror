@@ -231,7 +231,7 @@ class Quaternion : public QuaternionBase<Quaternion<_Scalar,_Options> >
 public:
   typedef _Scalar Scalar;
 
-  EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Quaternion)
+  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Quaternion)
   using Base::operator*=;
 
   typedef typename internal::traits<Quaternion>::Coefficients Coefficients;
@@ -341,7 +341,7 @@ class Map<const Quaternion<_Scalar>, _Options >
   public:
     typedef _Scalar Scalar;
     typedef typename internal::traits<Map>::Coefficients Coefficients;
-    EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
     using Base::operator*=;
 
     /** Constructs a Mapped Quaternion object from the pointer \a coeffs
@@ -378,7 +378,7 @@ class Map<Quaternion<_Scalar>, _Options >
   public:
     typedef _Scalar Scalar;
     typedef typename internal::traits<Map>::Coefficients Coefficients;
-    EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
     using Base::operator*=;
 
     /** Constructs a Mapped Quaternion object from the pointer \a coeffs

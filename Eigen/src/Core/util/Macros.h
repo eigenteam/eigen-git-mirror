@@ -313,7 +313,7 @@ namespace Eigen {
 // just an empty macro !
 #define EIGEN_EMPTY
 
-#if defined(_MSC_VER) && (_MSC_VER < 1900) && (!defined(__INTEL_COMPILER))
+#if defined(_MSC_VER) && (_MSC_VER < 1800) && (!defined(__INTEL_COMPILER))
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
   using Base::operator =;
 #elif defined(__clang__) // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)
@@ -332,8 +332,11 @@ namespace Eigen {
   }
 #endif
 
-#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-  EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
+/** \internal
+ * \brief Macro to manually inherit assignment operators.
+ * This is necessary, because the implicitly defined assignment operator gets deleted when a custom operator= is defined.
+ */
+#define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
 
 /**
 * Just a side note. Commenting within defines works only by documenting
