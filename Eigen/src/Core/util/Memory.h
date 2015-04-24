@@ -59,18 +59,20 @@
 
 #endif
 
-// See bug 554 (http://eigen.tuxfamily.org/bz/show_bug.cgi?id=554)
-// It seems to be unsafe to check _POSIX_ADVISORY_INFO without including unistd.h first.
-// Currently, let's include it only on unix systems:
-#if EIGEN_OS_UNIX
-  #include <unistd.h>
-  #if (EIGEN_OS_QNX || (defined _GNU_SOURCE) || EIGEN_COMP_PGI || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
-    #define EIGEN_HAS_POSIX_MEMALIGN 1
-  #endif
-#endif
-
 #ifndef EIGEN_HAS_POSIX_MEMALIGN
-  #define EIGEN_HAS_POSIX_MEMALIGN 0
+  // See bug 554 (http://eigen.tuxfamily.org/bz/show_bug.cgi?id=554)
+  // It seems to be unsafe to check _POSIX_ADVISORY_INFO without including unistd.h first.
+  // Currently, let's include it only on unix systems:
+  #if EIGEN_OS_UNIX && !(EIGEN_OS_SUN || EIGEN_OS_SOLARIS)
+    #include <unistd.h>
+    #if (EIGEN_OS_QNX || (defined _GNU_SOURCE) || EIGEN_COMP_PGI || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
+      #define EIGEN_HAS_POSIX_MEMALIGN 1
+    #endif
+  #endif
+
+  #ifndef EIGEN_HAS_POSIX_MEMALIGN
+    #define EIGEN_HAS_POSIX_MEMALIGN 0
+  #endif
 #endif
 
 #if defined EIGEN_VECTORIZE_SSE || defined EIGEN_VECTORIZE_AVX

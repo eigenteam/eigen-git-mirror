@@ -283,6 +283,19 @@
   #define EIGEN_OS_WIN_STRICT 0
 #endif
 
+/// \internal EIGEN_OS_SUN set to 1 if the OS is SUN
+#if (defined(sun) || defined(__sun)) && !(defined(__SVR4) || defined(__svr4__))
+  #define EIGEN_OS_SUN 1
+#else
+  #define EIGEN_OS_SUN 0
+#endif
+
+/// \internal EIGEN_OS_SOLARIS set to 1 if the OS is Solaris
+#if (defined(sun) || defined(__sun)) && (defined(__SVR4) || defined(__svr4__))
+  #define EIGEN_OS_SOLARIS 1
+#else
+  #define EIGEN_OS_SOLARIS 0
+#endif
 
 
 
