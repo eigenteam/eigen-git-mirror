@@ -30,7 +30,7 @@ namespace internal {
     using std::abs;
     typedef typename QRSolver::MatrixType MatrixType;
     typedef typename QRSolver::Scalar Scalar;
-    typedef typename QRSolver::StorageIndex StorageIndex;
+//    typedef typename QRSolver::StorageIndex StorageIndex;
 
     /* Local variables */
     Index j;
