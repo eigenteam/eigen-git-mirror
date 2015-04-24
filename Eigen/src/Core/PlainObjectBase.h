@@ -96,6 +96,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
     typedef typename internal::traits<Derived>::Scalar Scalar;
+    
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef Derived DenseType;

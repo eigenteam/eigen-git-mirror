@@ -28,6 +28,12 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
   public:
 
     typedef typename internal::traits<Derived>::Scalar Scalar;
+    
+    /** The numeric type of the expression' coefficients, e.g. float, double, int or std::complex<float>, etc.
+      *
+      * It is an alias for the Scalar type */
+    typedef Scalar value_type;
+    
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
     typedef typename internal::traits<Derived>::StorageIndex StorageIndex;

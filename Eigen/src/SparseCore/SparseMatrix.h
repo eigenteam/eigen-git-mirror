@@ -262,22 +262,25 @@ class SparseMatrix
     #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** Preallocates \a reserveSize[\c j] non zeros for each column (resp. row) \c j.
       *
-      * This function turns the matrix in non-compressed mode */
+      * This function turns the matrix in non-compressed mode.
+      * 
+      * The type \c SizesType must expose the following interface:
+        \code
+        typedef value_type;
+        const value_type& operator[](i) const;
+        \endcode
+      * for \c i in the [0,this->outerSize()[ range.
+      * Typical choices include std::vector<int>, Eigen::VectorXi, Eigen::VectorXi::Constant, etc.
+      */
     template<class SizesType>
     inline void reserve(const SizesType& reserveSizes);
     #else
     template<class SizesType>
-    inline void reserve(const SizesType& reserveSizes, const typename SizesType::value_type& enableif = typename SizesType::value_type())
-    {
-      EIGEN_UNUSED_VARIABLE(enableif);
-      reserveInnerVectors(reserveSizes);
-    }
-    template<class SizesType>
-    inline void reserve(const SizesType& reserveSizes, const typename SizesType::Scalar& enableif =
+    inline void reserve(const SizesType& reserveSizes, const typename SizesType::value_type& enableif =
     #if (!EIGEN_COMP_MSVC) || (EIGEN_COMP_MSVC>=1500) // MSVC 2005 fails to compile with this typename
         typename
     #endif
-        SizesType::Scalar())
+        SizesType::value_type())
     {
       EIGEN_UNUSED_VARIABLE(enableif);
       reserveInnerVectors(reserveSizes);
