@@ -22,7 +22,6 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
 
   Index size = m.size();
 
-  // test Map.h
   Scalar* array1 = internal::aligned_new<Scalar>(size);
   Scalar* array2 = internal::aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
@@ -56,23 +55,64 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
 
   Index rows = m.rows(), cols = m.cols(), size = rows*cols;
+  Scalar s1 = internal::random<Scalar>();
 
-  // test Map.h
+  // array1 and array2 -> aligned heap allocation
   Scalar* array1 = internal::aligned_new<Scalar>(size);
   for(int i = 0; i < size; i++) array1[i] = Scalar(1);
   Scalar* array2 = internal::aligned_new<Scalar>(size);
   for(int i = 0; i < size; i++) array2[i] = Scalar(1);
+  // array3unaligned -> unaligned pointer to heap
   Scalar* array3 = new Scalar[size+1];
   for(int i = 0; i < size+1; i++) array3[i] = Scalar(1);
   Scalar* array3unaligned = size_t(array3)%EIGEN_ALIGN_BYTES == 0 ? array3+1 : array3;
-  Map<MatrixType, Aligned>(array1, rows, cols) = MatrixType::Ones(rows,cols);
-  Map<MatrixType>(array2, rows, cols) = Map<MatrixType>(array1, rows, cols);
-  Map<MatrixType>(array3unaligned, rows, cols) = Map<MatrixType>(array1, rows, cols);
-  MatrixType ma1 = Map<MatrixType>(array1, rows, cols);
-  MatrixType ma2 = Map<MatrixType, Aligned>(array2, rows, cols);
+  Scalar array4[256];
+  if(size<=256)
+    for(int i = 0; i < size; i++) array4[i] = Scalar(1);
+  
+  Map<MatrixType> map1(array1, rows, cols);
+  Map<MatrixType, Aligned> map2(array2, rows, cols);
+  Map<MatrixType> map3(array3unaligned, rows, cols);
+  Map<MatrixType> map4(array4, rows, cols);
+  
+  VERIFY_IS_EQUAL(map1, MatrixType::Ones(rows,cols));
+  VERIFY_IS_EQUAL(map2, MatrixType::Ones(rows,cols));
+  VERIFY_IS_EQUAL(map3, MatrixType::Ones(rows,cols));
+  map1 = MatrixType::Random(rows,cols);
+  map2 = map1;
+  map3 = map1;
+  MatrixType ma1 = map1;
+  MatrixType ma2 = map2;
+  MatrixType ma3 = map3;
+  VERIFY_IS_EQUAL(map1, map2);
+  VERIFY_IS_EQUAL(map1, map3);
   VERIFY_IS_EQUAL(ma1, ma2);
-  MatrixType ma3 = Map<MatrixType>(array3unaligned, rows, cols);
   VERIFY_IS_EQUAL(ma1, ma3);
+  VERIFY_IS_EQUAL(ma1, map3);
+  
+  VERIFY_IS_APPROX(s1*map1, s1*map2);
+  VERIFY_IS_APPROX(s1*ma1, s1*ma2);
+  VERIFY_IS_EQUAL(s1*ma1, s1*ma3);
+  VERIFY_IS_APPROX(s1*map1, s1*map3);
+  
+  map2 *= s1;
+  map3 *= s1;
+  VERIFY_IS_APPROX(s1*map1, map2);
+  VERIFY_IS_APPROX(s1*map1, map3);
+  
+  if(size<=256)
+  {
+    VERIFY_IS_EQUAL(map4, MatrixType::Ones(rows,cols));
+    map4 = map1;
+    MatrixType ma4 = map4;
+    VERIFY_IS_EQUAL(map1, map4);
+    VERIFY_IS_EQUAL(ma1, map4);
+    VERIFY_IS_EQUAL(ma1, ma4);
+    VERIFY_IS_APPROX(s1*map1, s1*map4);
+    
+    map4 *= s1;
+    VERIFY_IS_APPROX(s1*map1, map4);
+  }
 
   internal::aligned_delete(array1, size);
   internal::aligned_delete(array2, size);
@@ -86,7 +126,6 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
 
   Index size = m.size();
 
-  // test Map.h
   Scalar* array1 = internal::aligned_new<Scalar>(size);
   Scalar* array2 = internal::aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
