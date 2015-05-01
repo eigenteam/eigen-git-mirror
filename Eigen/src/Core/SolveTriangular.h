@@ -198,8 +198,8 @@ void TriangularViewImpl<MatrixType,Mode,Dense>::solveInPlace(const MatrixBase<Ot
   * diagonal must be non zero). It works as a forward (resp. backward) substitution if \c *this
   * is an upper (resp. lower) triangular matrix.
   *
-  * Example: \include MatrixBase_marked.cpp
-  * Output: \verbinclude MatrixBase_marked.out
+  * Example: \include Triangular_solve.cpp
+  * Output: \verbinclude Triangular_solve.out
   *
   * This function returns an expression of the inverse-multiply and can works in-place if it is assigned
   * to the same matrix or vector \a other.

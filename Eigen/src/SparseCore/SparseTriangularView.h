@@ -11,7 +11,10 @@
 #ifndef EIGEN_SPARSE_TRIANGULARVIEW_H
 #define EIGEN_SPARSE_TRIANGULARVIEW_H
 
-namespace Eigen { 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+// Doxygen gets confused with template specialization:
+// https://bugzilla.gnome.org/show_bug.cgi?id=406027
+namespace Eigen {
 
 template<typename MatrixType, unsigned int Mode> class TriangularViewImpl<MatrixType,Mode,Sparse>
   : public SparseMatrixBase<TriangularView<MatrixType,Mode> >
@@ -274,5 +277,7 @@ SparseMatrixBase<Derived>::triangularView() const
 }
 
 } // end namespace Eigen
+
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #endif // EIGEN_SPARSE_TRIANGULARVIEW_H

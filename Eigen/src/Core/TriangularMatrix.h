@@ -154,7 +154,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
   * \param Mode the kind of triangular matrix expression to construct. Can be #Upper,
   *             #Lower, #UnitUpper, #UnitLower, #StrictlyUpper, or #StrictlyLower.
   *             This is in fact a bit field; it must have either #Upper or #Lower, 
-  *             and additionnaly it may have #UnitDiag or #ZeroDiag or neither.
+  *             and additionally it may have #UnitDiag or #ZeroDiag or neither.
   *
   * This class represents a triangular part of a matrix, not necessarily square. Strictly speaking, for rectangular
   * matrices one should speak of "trapezoid" parts. This class is the return type
@@ -549,8 +549,8 @@ void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
   * The parameter \a Mode can have the following values: \c #Upper, \c #StrictlyUpper, \c #UnitUpper,
   * \c #Lower, \c #StrictlyLower, \c #UnitLower.
   *
-  * Example: \include MatrixBase_extract.cpp
-  * Output: \verbinclude MatrixBase_extract.out
+  * Example: \include MatrixBase_triangularView.cpp
+  * Output: \verbinclude MatrixBase_triangularView.out
   *
   * \sa class TriangularView
   */

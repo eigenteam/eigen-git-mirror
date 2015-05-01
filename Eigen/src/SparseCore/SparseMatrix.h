@@ -792,10 +792,8 @@ class SparseMatrix
       std::free(m_innerNonZeros);
     }
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Overloaded for performance */
     Scalar sum() const;
-#endif
     
 #   ifdef EIGEN_SPARSEMATRIX_PLUGIN
 #     include EIGEN_SPARSEMATRIX_PLUGIN

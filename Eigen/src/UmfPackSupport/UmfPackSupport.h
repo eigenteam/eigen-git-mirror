@@ -251,11 +251,9 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       factorize_impl();
     }
 
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     template<typename BDerived,typename XDerived>
     bool _solve_impl(const MatrixBase<BDerived> &b, MatrixBase<XDerived> &x) const;
-    #endif
 
     Scalar determinant() const;
 

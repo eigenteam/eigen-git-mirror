@@ -503,11 +503,9 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
       */
     void factorize(const MatrixType& matrix);
     
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     template<typename Rhs,typename Dest>
     void _solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const;
-    #endif // EIGEN_PARSED_BY_DOXYGEN
     
     inline const LMatrixType& matrixL() const
     {

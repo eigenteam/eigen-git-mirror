@@ -164,11 +164,9 @@ template<typename Derived> class MatrixBase
     EIGEN_DEVICE_FUNC
     Derived& operator=(const ReturnByValue<OtherDerived>& other);
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
     EIGEN_DEVICE_FUNC
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
-#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC

@@ -15,7 +15,7 @@ Known issues:
  
  - \c nvcc with \c clang does not work (patch welcome)
  
- - \c nvcc 5.5 with gcc-4.7 (or greater) has issues with the standard \c <limits> header file. To workaround this, you can add the following before including any other files:
+ - \c nvcc 5.5 with gcc-4.7 (or greater) has issues with the standard \c \<limits\> header file. To workaround this, you can add the following before including any other files:
    \code
     // workaround issue between gcc >= 4.7 and cuda 5.5
     #if (defined __GNUC__) && (__GNUC__>4 || __GNUC_MINOR__>=7)
