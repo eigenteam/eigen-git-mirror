@@ -14,7 +14,7 @@ You can control the number of thread that will be used using either the OpenMP A
  omp_set_num_threads(n);
  Eigen::setNbThreads(n);
 \endcode
-Unless setNbThreads has been called, Eigen uses the number of threads specified by OpenMP. You can restore this bahavior by calling \code setNbThreads(0); \endcode
+Unless setNbThreads has been called, Eigen uses the number of threads specified by OpenMP. You can restore this behavior by calling \code setNbThreads(0); \endcode
 You can query the number of threads that will be used with:
 \code
 n = Eigen::nbThreads( );
