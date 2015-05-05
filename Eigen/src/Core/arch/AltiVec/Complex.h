@@ -408,7 +408,7 @@ template<> EIGEN_STRONG_INLINE Packet1cd pdiv<Packet1cd>(const Packet1cd& a, con
   // TODO optimize it for AltiVec
   Packet1cd res = conj_helper<Packet1cd,Packet1cd,false,true>().pmul(a,b);
   Packet2d s = vec_madd(b.v, b.v, p2d_ZERO_);
-  return Packet1cd(pdiv(res.v, vec_add(s,vec_perm(s, s, p16uc_COMPLEX32_REV))));
+  return Packet1cd(pdiv(res.v, vec_add(s,vec_perm(s, s, p16uc_REVERSE64))));
 }
 
 EIGEN_STRONG_INLINE Packet1cd pcplxflip/*<Packet1cd>*/(const Packet1cd& x)
