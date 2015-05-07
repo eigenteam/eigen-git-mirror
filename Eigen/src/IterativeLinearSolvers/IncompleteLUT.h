@@ -157,7 +157,6 @@ class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar, _StorageInd
     {
       analyzePattern(amat); 
       factorize(amat);
-      m_isInitialized = m_factorizationIsOk;
       return *this;
     }
 
@@ -232,6 +231,8 @@ void IncompleteLUT<Scalar,StorageIndex>::analyzePattern(const _MatrixType& amat)
   m_Pinv  = m_P.inverse(); // ... and the inverse permutation
 
   m_analysisIsOk = true;
+  m_factorizationIsOk = false;
+  m_isInitialized = false;
 }
 
 template <typename Scalar, typename StorageIndex>
@@ -440,6 +441,7 @@ void IncompleteLUT<Scalar,StorageIndex>::factorize(const _MatrixType& amat)
   m_lu.makeCompressed();
 
   m_factorizationIsOk = true;
+  m_isInitialized = m_factorizationIsOk;
   m_info = Success;
 }
 
