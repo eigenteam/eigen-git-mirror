@@ -492,6 +492,16 @@ struct IndexBased {};
 // evaluator based on iterators to access coefficients. 
 struct IteratorBased {};
 
+/** \internal
+ * Constants for comparison functors
+ */
+enum ComparisonName {
+  cmp_EQ = 0,
+  cmp_LT = 1,
+  cmp_LE = 2,
+  cmp_UNORD = 3,
+  cmp_NEQ = 4
+};
 } // end namespace internal
 
 } // end namespace Eigen
