@@ -739,6 +739,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
   static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
     EIGEN_USING_STD_MATH(sqrt);
+    EIGEN_USING_STD_MATH(abs);
     
     eigen_assert(mat.cols() == 2 && mat.cols() == mat.rows());
     eigen_assert((options&~(EigVecMask|GenEigMask))==0
@@ -760,22 +761,29 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
     // compute the eigen vectors
     if(computeEigenvectors)
     {
-      scaledMat.diagonal().array () -= eivals(1);
-      Scalar a2 = numext::abs2(scaledMat(0,0));
-      Scalar c2 = numext::abs2(scaledMat(1,1));
-      Scalar b2 = numext::abs2(scaledMat(1,0));
-      if(a2>c2)
+      if((eivals(1)-eivals(0))<=abs(eivals(1))*Eigen::NumTraits<Scalar>::epsilon())
       {
-        eivecs.col(1) << -scaledMat(1,0), scaledMat(0,0);
-        eivecs.col(1) /= sqrt(a2+b2);
+        eivecs.setIdentity();
       }
       else
       {
-        eivecs.col(1) << -scaledMat(1,1), scaledMat(1,0);
-        eivecs.col(1) /= sqrt(c2+b2);
-      }
+        scaledMat.diagonal().array () -= eivals(1);
+        Scalar a2 = numext::abs2(scaledMat(0,0));
+        Scalar c2 = numext::abs2(scaledMat(1,1));
+        Scalar b2 = numext::abs2(scaledMat(1,0));
+        if(a2>c2)
+        {
+          eivecs.col(1) << -scaledMat(1,0), scaledMat(0,0);
+          eivecs.col(1) /= sqrt(a2+b2);
+        }
+        else
+        {
+          eivecs.col(1) << -scaledMat(1,1), scaledMat(1,0);
+          eivecs.col(1) /= sqrt(c2+b2);
+        }
 
-      eivecs.col(0) << eivecs.col(1).unitOrthogonal();
+        eivecs.col(0) << eivecs.col(1).unitOrthogonal();
+      }
     }
     
     // Rescale back to the original size.
