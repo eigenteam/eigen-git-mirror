@@ -16,6 +16,8 @@
 #error a macro SVD_FOR_MIN_NORM(MatrixType) must be defined prior to including svd_common.h
 #endif
 
+#include "svd_fill.h"
+
 // Check that the matrix m is properly reconstructed and that the U and V factors are unitary
 // The SVD must have already been computed.
 template<typename SvdType, typename MatrixType>
@@ -254,65 +256,6 @@ void svd_test_all_computation_options(const MatrixType& m, bool full_only)
     Index diagSize = (std::min)(m.rows(), m.cols());
     SvdType svd(m, ComputeThinU | ComputeThinV);
     VERIFY_IS_APPROX(m, svd.matrixU().leftCols(diagSize) * svd.singularValues().asDiagonal() * svd.matrixV().leftCols(diagSize).adjoint());
-  }
-}
-
-template<typename MatrixType>
-void svd_fill_random(MatrixType &m)
-{
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
-  typedef typename MatrixType::Index Index;
-  Index diagSize = (std::min)(m.rows(), m.cols());
-  RealScalar s = std::numeric_limits<RealScalar>::max_exponent10/4;
-  s = internal::random<RealScalar>(1,s);
-  Matrix<RealScalar,Dynamic,1> d =  Matrix<RealScalar,Dynamic,1>::Random(diagSize);
-  for(Index k=0; k<diagSize; ++k)
-    d(k) = d(k)*std::pow(RealScalar(10),internal::random<RealScalar>(-s,s));
-
-  bool dup     = internal::random<int>(0,10) < 3;
-  bool unit_uv = internal::random<int>(0,10) < (dup?7:3); // if we duplicate some diagonal entries, then increase the chance to preserve them using unitary U and V factors
-  
-  // duplicate some singular values
-  if(dup)
-  {
-    Index n = internal::random<Index>(0,d.size()-1);
-    for(Index i=0; i<n; ++i)
-      d(internal::random<Index>(0,d.size()-1)) = d(internal::random<Index>(0,d.size()-1));
-  }
-  
-  Matrix<Scalar,Dynamic,Dynamic> U(m.rows(),diagSize);
-  Matrix<Scalar,Dynamic,Dynamic> VT(diagSize,m.cols());
-  if(unit_uv)
-  {
-    // in very rare cases let's try with a pure diagonal matrix
-    if(internal::random<int>(0,10) < 1)
-    {
-      U.setIdentity();
-      VT.setIdentity();
-    }
-    else
-    {
-      createRandomPIMatrixOfRank(diagSize,U.rows(), U.cols(), U);
-      createRandomPIMatrixOfRank(diagSize,VT.rows(), VT.cols(), VT);
-    }
-  }
-  else
-  {
-    U.setRandom();
-    VT.setRandom();
-  }
-  
-  m = U * d.asDiagonal() * VT;
-  
-  // (partly) cancel some coeffs
-  if(!(dup && unit_uv))
-  {
-    Matrix<Scalar,Dynamic,1> samples(7);
-    samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -1./NumTraits<RealScalar>::highest(), 1./NumTraits<RealScalar>::highest();
-    Index n = internal::random<Index>(0,m.size()-1);
-    for(Index i=0; i<n; ++i)
-      m(internal::random<Index>(0,m.rows()-1), internal::random<Index>(0,m.cols()-1)) = samples(internal::random<Index>(0,6));
   }
 }
 

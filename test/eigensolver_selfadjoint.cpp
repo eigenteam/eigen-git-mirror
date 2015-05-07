@@ -9,8 +9,11 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "main.h"
+#include "svd_fill.h"
 #include <limits>
 #include <Eigen/Eigenvalues>
+
+
 
 template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 {
@@ -31,17 +34,8 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
   MatrixType symmC = symmA;
   
-  // randomly nullify some rows/columns
-  {
-    Index count = 1;//internal::random<Index>(-cols,cols);
-    for(Index k=0; k<count; ++k)
-    {
-      Index i = internal::random<Index>(0,cols-1);
-      symmA.row(i).setZero();
-      symmA.col(i).setZero();
-    }
-  }
-  
+  svd_fill_random(symmA,Symmetric);
+
   symmA.template triangularView<StrictlyUpper>().setZero();
   symmC.template triangularView<StrictlyUpper>().setZero();
 
