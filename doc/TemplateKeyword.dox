@@ -85,11 +85,11 @@ The precise rules are rather complicated, but ignoring some subtleties we can su
 - A <em>dependent name</em> is name that depends (directly or indirectly) on a template parameter. In the
   example, \c dst is a dependent name because it is of type <tt>MatrixBase&lt;Derived1&gt;</tt> which depends
   on the template parameter \c Derived1.
-- If the code contains either one of the contructions <tt>xxx.yyy</tt> or <tt>xxx-&gt;yyy</tt> and \c xxx is a
+- If the code contains either one of the constructs <tt>xxx.yyy</tt> or <tt>xxx-&gt;yyy</tt> and \c xxx is a
   dependent name and \c yyy refers to a member template, then the \c template keyword must be used before 
   \c yyy, leading to <tt>xxx.template yyy</tt> or <tt>xxx-&gt;template yyy</tt>.
-- If the code contains the contruction <tt>xxx::yyy</tt> and \c xxx is a dependent name and \c yyy refers to a
-  member typedef, then the \c typename keyword must be used before the whole construction, leading to
+- If the code contains the construct <tt>xxx::yyy</tt> and \c xxx is a dependent name and \c yyy refers to a
+  member typedef, then the \c typename keyword must be used before the whole construct, leading to
   <tt>typename xxx::yyy</tt>.
 
 As an example where the \c typename keyword is required, consider the following code in \ref TutorialSparse
