@@ -474,11 +474,14 @@ ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag
   Index end = n-1;
   Index start = 0;
   Index iter = 0; // total number of iterations
-
+  
+  typedef typename DiagType::RealScalar RealScalar;
+  const RealScalar considerAsZero = (std::numeric_limits<RealScalar>::min)();
+  
   while (end>0)
   {
     for (Index i = start; i<end; ++i)
-      if (internal::isMuchSmallerThan(abs(subdiag[i]),(abs(diag[i])+abs(diag[i+1]))))
+      if (internal::isMuchSmallerThan(abs(subdiag[i]),(abs(diag[i])+abs(diag[i+1]))) || abs(subdiag[i]) <= considerAsZero)
         subdiag[i] = 0;
 
     // find the largest unreduced block
