@@ -14,6 +14,27 @@
 #include <Eigen/Eigenvalues>
 
 
+template<typename MatrixType> void selfadjointeigensolver_essential_check(const MatrixType& m)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  RealScalar largerEps = 10*test_precision<RealScalar>();
+  
+  SelfAdjointEigenSolver<MatrixType> eiSymm(m);
+  VERIFY_IS_EQUAL(eiSymm.info(), Success);
+  VERIFY((m.template selfadjointView<Lower>() * eiSymm.eigenvectors()).isApprox(
+          eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
+  VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
+  VERIFY_IS_UNITARY(eiSymm.eigenvectors());
+
+  SelfAdjointEigenSolver<MatrixType> eiDirect;
+  eiDirect.computeDirect(m);  
+  VERIFY_IS_EQUAL(eiDirect.info(), Success);
+  VERIFY((m.template selfadjointView<Lower>() * eiDirect.eigenvectors()).isApprox(
+          eiDirect.eigenvectors() * eiDirect.eigenvalues().asDiagonal(), largerEps));
+  VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues(), eiDirect.eigenvalues());
+  VERIFY_IS_UNITARY(eiDirect.eigenvectors());
+}
 
 template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 {
@@ -43,22 +64,12 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   MatrixType b1 = MatrixType::Random(rows,cols);
   MatrixType symmB = b.adjoint() * b + b1.adjoint() * b1;
   symmB.template triangularView<StrictlyUpper>().setZero();
+  
+  CALL_SUBTEST( selfadjointeigensolver_essential_check(symmA) );
 
   SelfAdjointEigenSolver<MatrixType> eiSymm(symmA);
-  SelfAdjointEigenSolver<MatrixType> eiDirect;
-  eiDirect.computeDirect(symmA);
   // generalized eigen pb
   GeneralizedSelfAdjointEigenSolver<MatrixType> eiSymmGen(symmC, symmB);
-
-  VERIFY_IS_EQUAL(eiSymm.info(), Success);
-  VERIFY((symmA.template selfadjointView<Lower>() * eiSymm.eigenvectors()).isApprox(
-          eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
-  VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
-  
-  VERIFY_IS_EQUAL(eiDirect.info(), Success);
-  VERIFY((symmA.template selfadjointView<Lower>() * eiDirect.eigenvectors()).isApprox(
-          eiDirect.eigenvectors() * eiDirect.eigenvalues().asDiagonal(), largerEps));
-  VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiDirect.eigenvalues());
 
   SelfAdjointEigenSolver<MatrixType> eiSymmNoEivecs(symmA, false);
   VERIFY_IS_EQUAL(eiSymmNoEivecs.info(), Success);
@@ -135,6 +146,24 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   }
 }
 
+void bug_854()
+{
+  Matrix3d m;
+  m << 850.961, 51.966, 0,
+       51.966, 254.841, 0,
+            0,       0, 0;
+  selfadjointeigensolver_essential_check(m);
+}
+
+void bug_1014()
+{
+  Matrix3d m;
+  m <<        0.11111111111111114658, 0, 0,
+       0,     0.11111111111111109107, 0,
+       0, 0,  0.11111111111111107719;
+  selfadjointeigensolver_essential_check(m);
+}
+
 void test_eigensolver_selfadjoint()
 {
   int s = 0;
@@ -162,6 +191,9 @@ void test_eigensolver_selfadjoint()
     CALL_SUBTEST_6( selfadjointeigensolver(Matrix<double,1,1>()) );
     CALL_SUBTEST_7( selfadjointeigensolver(Matrix<double,2,2>()) );
   }
+  
+  CALL_SUBTEST_13( bug_854() );
+  CALL_SUBTEST_13( bug_1014() );
 
   // Test problem size constructors
   s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
