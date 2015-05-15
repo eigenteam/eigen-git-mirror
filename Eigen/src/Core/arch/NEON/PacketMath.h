@@ -252,7 +252,7 @@ template<> EIGEN_STRONG_INLINE void pstoreu<int>(int*      to, const Packet4i& f
 
 template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const float* from, Index stride)
 {
-  Packet4f res;
+  Packet4f res = pset1<Packet4f>(0.f);
   res = vsetq_lane_f32(from[0*stride], res, 0);
   res = vsetq_lane_f32(from[1*stride], res, 1);
   res = vsetq_lane_f32(from[2*stride], res, 2);
@@ -637,7 +637,7 @@ template<> EIGEN_STRONG_INLINE void pstoreu<double>(double*  to, const Packet2d&
 
 template<> EIGEN_DEVICE_FUNC inline Packet2d pgather<double, Packet2d>(const double* from, Index stride)
 {
-  Packet2d res;
+  Packet2d res = pset1<Packet2d>(0.0);
   res = vsetq_lane_f64(from[0*stride], res, 0);
   res = vsetq_lane_f64(from[1*stride], res, 1);
   return res;
