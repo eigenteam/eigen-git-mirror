@@ -261,7 +261,7 @@ template<> EIGEN_DEVICE_FUNC inline Packet4f pgather<float, Packet4f>(const floa
 }
 template<> EIGEN_DEVICE_FUNC inline Packet4i pgather<int, Packet4i>(const int* from, Index stride)
 {
-  Packet4i res;
+  Packet4i res = pset1<Packet4i>(0);
   res = vsetq_lane_s32(from[0*stride], res, 0);
   res = vsetq_lane_s32(from[1*stride], res, 1);
   res = vsetq_lane_s32(from[2*stride], res, 2);
