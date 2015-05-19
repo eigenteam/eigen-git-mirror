@@ -310,7 +310,6 @@ using std::ptrdiff_t;
   #include "src/Core/arch/NEON/PacketMath.h"
   #include "src/Core/arch/NEON/MathFunctions.h"
   #include "src/Core/arch/NEON/Complex.h"
-  #include "src/Core/arch/NEON/BlockingSizesLookupTables.h"
 #endif
 
 #if defined EIGEN_VECTORIZE_CUDA
@@ -384,7 +383,6 @@ using std::ptrdiff_t;
 #include "src/Core/Inverse.h"
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
-#include "src/Core/products/LookupBlockingSizesTable.h"
 #include "src/Core/products/GeneralBlockPanelKernel.h"
 #include "src/Core/products/Parallelizer.h"
 #include "src/Core/ProductEvaluators.h"

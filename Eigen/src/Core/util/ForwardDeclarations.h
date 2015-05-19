@@ -288,14 +288,6 @@ struct stem_function
   typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
   typedef ComplexScalar type(ComplexScalar, int);
 };
-
-template <typename LhsScalar,
-          typename RhsScalar>
-struct BlockingSizesLookupTable
-{
-  static const size_t NumSizes = 0;
-};
-
 }
 
 } // end namespace Eigen

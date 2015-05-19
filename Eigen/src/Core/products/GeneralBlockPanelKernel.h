@@ -291,7 +291,6 @@ inline bool useSpecificBlockingSizes(Index& k, Index& m, Index& n)
   *
   * The blocking size parameters may be evaluated:
   *   - either by a heuristic based on cache sizes;
-  *   - or using a precomputed lookup table;
   *   - or using fixed prescribed values (for testing purposes).
   *
   * \sa setCpuCacheSizes */
@@ -300,9 +299,7 @@ template<typename LhsScalar, typename RhsScalar, int KcFactor>
 void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   if (!useSpecificBlockingSizes(k, m, n)) {
-    if (!lookupBlockingSizesFromTable<LhsScalar, RhsScalar>(k, m, n, num_threads)) {
-      evaluateProductBlockingSizesHeuristic<LhsScalar, RhsScalar, KcFactor>(k, m, n, num_threads);
-    }
+    evaluateProductBlockingSizesHeuristic<LhsScalar, RhsScalar, KcFactor>(k, m, n, num_threads);
   }
 
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
