@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2014 Benoit Steiner <benoit.steiner.goog@gmail.com>
+// Copyright (C) 2014-2015 Benoit Steiner <benoit.steiner.goog@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -14,7 +14,7 @@
 
 void test_signed_32bit()
 {
-  for (int32_t i = 1; i < 25000; ++i) {
+  for (int32_t i = 2; i < 25000; ++i) {
     const Eigen::internal::TensorIntDivisor<int32_t> div(i);
 
     for (int32_t j = 0; j < 25000; ++j) {
