@@ -58,8 +58,12 @@ static void test_gaussian()
 {
   int rows = 32;
   int cols = 48;
-  array<float, 2> means = { rows / 2.0f, cols / 2.0f };
-  array<float, 2> std_devs = { 3.14f, 2.7f };
+  array<float, 2> means;
+  means[0] = rows / 2.0f;
+  means[1] = cols / 2.0f;
+  array<float, 2> std_devs;
+  std_devs[0] = 3.14f;
+  std_devs[1] = 2.7f;
   internal::GaussianGenerator<float, Eigen::DenseIndex, 2> gaussian_gen(means, std_devs);
 
   Tensor<float, 2> matrix(rows, cols);
