@@ -26,7 +26,8 @@ static void test_multithread_elementwise()
   in1.setRandom();
   in2.setRandom();
 
-  Eigen::ThreadPoolDevice thread_pool_device(internal::random<int>(3, 11));
+  Eigen::ThreadPool tp(internal::random<int>(3, 11));
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(3, 11));
   out.device(thread_pool_device) = in1 + in2 * 3.14f;
 
   for (int i = 0; i < 2; ++i) {
@@ -48,7 +49,8 @@ static void test_multithread_compound_assignment()
   in1.setRandom();
   in2.setRandom();
 
-  Eigen::ThreadPoolDevice thread_pool_device(internal::random<int>(3, 11));
+  Eigen::ThreadPool tp(internal::random<int>(3, 11));
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(3, 11));
   out.device(thread_pool_device) = in1;
   out.device(thread_pool_device) += in2 * 3.14f;
 
@@ -80,7 +82,8 @@ static void test_multithread_contraction()
   MapXf m_right(t_right.data(), 1147, 1400);
   Matrix<float, Dynamic, Dynamic, DataLayout> m_result(1500, 1400);
 
-  Eigen::ThreadPoolDevice thread_pool_device(4);
+  Eigen::ThreadPool tp(4);
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, 4);
 
   // compute results by separate methods
   t_result.device(thread_pool_device) = t_left.contract(t_right, dims);
@@ -115,7 +118,8 @@ static void test_contraction_corner_cases()
   MapXf m_right(t_right.data(), 32, 28*28);
   Matrix<float, Dynamic, Dynamic, DataLayout> m_result(500, 28*28);
 
-  Eigen::ThreadPoolDevice thread_pool_device(12);
+  Eigen::ThreadPool tp(12);
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, 12);
 
   // compute results by separate methods
   t_result.device(thread_pool_device) = t_left.contract(t_right, dims);
@@ -204,7 +208,8 @@ static void test_multithread_contraction_agrees_with_singlethread() {
   typedef Tensor<float, 1>::DimensionPair DimPair;
   Eigen::array<DimPair, 1> dims({{DimPair(1, 2)}});
 
-  Eigen::ThreadPoolDevice thread_pool_device(internal::random<int>(2, 11));
+  Eigen::ThreadPool tp(internal::random<int>(2, 11));
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(2, 11));
 
   Tensor<float, 5, DataLayout> st_result;
   st_result = left.contract(right, dims);
@@ -227,7 +232,8 @@ static void test_memcpy() {
 
   for (int i = 0; i < 5; ++i) {
     const int num_threads = internal::random<int>(3, 11);
-    Eigen::ThreadPoolDevice thread_pool_device(num_threads);
+    Eigen::ThreadPool tp(num_threads);
+    Eigen::ThreadPoolDevice thread_pool_device(&tp, num_threads);
 
     const int size = internal::random<int>(13, 7632);
     Tensor<float, 1> t1(size);
@@ -243,7 +249,8 @@ static void test_memcpy() {
 
 static void test_multithread_random()
 {
-  Eigen::ThreadPoolDevice device(2);
+  Eigen::ThreadPool tp(2);
+  Eigen::ThreadPoolDevice device(&tp, 2);
   Tensor<float, 1> t(1 << 20);
   t.device(device) = t.random<Eigen::internal::NormalRandomGenerator<float>>();
 }

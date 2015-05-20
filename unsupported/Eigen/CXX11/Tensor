@@ -35,7 +35,10 @@
 #endif
 
 #ifdef EIGEN_USE_THREADS
-#include <future>
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+#include <thread>
 #endif
 
 #ifdef EIGEN_USE_GPU
