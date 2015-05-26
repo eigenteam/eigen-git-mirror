@@ -276,16 +276,20 @@ class TensorSelectOp : public TensorBase<TensorSelectOp<IfXprType, ThenXprType, 
     typedef typename Eigen::internal::traits<TensorSelectOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorSelectOp>::Index Index;
 
+    EIGEN_DEVICE_FUNC
     TensorSelectOp(const IfXprType& a_condition,
                    const ThenXprType& a_then,
                    const ElseXprType& a_else)
       : m_condition(a_condition), m_then(a_then), m_else(a_else)
     { }
 
+    EIGEN_DEVICE_FUNC
     const IfXprType& ifExpression() const { return m_condition; }
 
+    EIGEN_DEVICE_FUNC
     const ThenXprType& thenExpression() const { return m_then; }
 
+    EIGEN_DEVICE_FUNC
     const ElseXprType& elseExpression() const { return m_else; }
 
   protected:
