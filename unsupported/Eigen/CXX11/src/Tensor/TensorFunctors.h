@@ -196,7 +196,7 @@ int get_random_seed() {
     GetSystemTime(&st);
     return st.wSecond + 1000 * st.wMilliseconds;
 #elif defined __APPLE__
-    return mach_absolute_time();
+    return static_cast<int>(mach_absolute_time());
 #else
     timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);

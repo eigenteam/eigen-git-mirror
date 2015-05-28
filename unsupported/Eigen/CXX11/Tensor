@@ -34,6 +34,14 @@
 #include <random>
 #endif
 
+#ifdef _WIN32
+#include <winbase.h>
+#elif defined(__APPLE__)
+#include <mach/mach_time.h>
+#else
+#include <time.h>
+#endif
+
 #ifdef EIGEN_USE_THREADS
 #include <condition_variable>
 #include <deque>
