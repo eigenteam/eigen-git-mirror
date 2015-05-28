@@ -877,7 +877,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         const int blocksPerProcessor = (std::min)(maxBlocksPerProcessor, maxSharedMem / shared_mem);
         const int num_y_blocks = ceil(numMultiProcessors * blocksPerProcessor, num_x_blocks);
 
-        dim3 num_blocks(num_x_blocks, min<int>(num_y_blocks, ceil(numP, block_size.y)));
+        dim3 num_blocks(num_x_blocks, std::min<int>(num_y_blocks, ceil(numP, block_size.y)));
 
 
         //cout << "launching 1D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " maxX: " << maxX << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
@@ -935,7 +935,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         const int blocksPerProcessor = (std::min)(maxBlocksPerProcessor, maxSharedMem / shared_mem);
         const int num_z_blocks = ceil(numMultiProcessors * blocksPerProcessor, num_x_blocks * num_y_blocks);
 
-        dim3 num_blocks(num_x_blocks, num_y_blocks, min<int>(num_z_blocks, ceil(numP, block_size.z)));
+        dim3 num_blocks(num_x_blocks, num_y_blocks, std::min<int>(num_z_blocks, ceil(numP, block_size.z)));
 
 
         //cout << "launching 2D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z << " maxX: " << maxX << " maxY: " << maxY << " maxP: " << maxP << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
