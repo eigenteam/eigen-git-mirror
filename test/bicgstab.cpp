@@ -17,6 +17,9 @@ template<typename T, typename I> void test_bicgstab_T()
   BiCGSTAB<SparseMatrix<T,0,I>, IncompleteLUT<T,I> >              bicgstab_colmajor_ilut;
   //BiCGSTAB<SparseMatrix<T>, SSORPreconditioner<T> >     bicgstab_colmajor_ssor;
 
+  bicgstab_colmajor_diag.setTolerance(NumTraits<T>::epsilon()*4);
+  bicgstab_colmajor_ilut.setTolerance(NumTraits<T>::epsilon()*4);
+  
   CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_diag)  );
 //   CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_I)     );
   CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ilut)     );
