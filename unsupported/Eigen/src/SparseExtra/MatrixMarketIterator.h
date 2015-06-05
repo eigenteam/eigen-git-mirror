@@ -47,15 +47,12 @@ class MatrixMarketIterator
     typedef SparseMatrix<Scalar,ColMajor> MatrixType; 
   
   public:
-    MatrixMarketIterator(const std::string folder):m_sym(0),m_isvalid(false),m_matIsLoaded(false),m_hasRhs(false),m_hasrefX(false),m_folder(folder)
+    MatrixMarketIterator(const std::string &folder)
+      : m_sym(0), m_isvalid(false), m_matIsLoaded(false), m_hasRhs(false), m_hasrefX(false), m_folder(folder)
     {
       m_folder_id = opendir(folder.c_str());
-      if (!m_folder_id){
-        m_isvalid = false;
-        std::cerr << "The provided Matrix folder could not be opened \n\n";
-        abort();
-      }
-      Getnextvalidmatrix();
+      if(m_folder_id)
+        Getnextvalidmatrix();
     }
     
     ~MatrixMarketIterator()
@@ -82,7 +79,7 @@ class MatrixMarketIterator
       std::string matrix_file = m_folder + "/" + m_matname + ".mtx";
       if ( !loadMarket(m_mat, matrix_file)) 
       {
-        std::cerr << "Warning loadMarket failed when loading \"" << matrix_file << "\"\n";
+        std::cerr << "Warning loadMarket failed when loading \"" << matrix_file << "\"" << std::endl;
         m_matIsLoaded = false;
         return m_mat;
       }
@@ -167,8 +164,9 @@ class MatrixMarketIterator
     
     inline int sym() { return m_sym; }
     
-    inline bool hasRhs() {return m_hasRhs; }
-    inline bool hasrefX() {return m_hasrefX; }
+    bool hasRhs() {return m_hasRhs; }
+    bool hasrefX() {return m_hasrefX; }
+    bool isFolderValid() { return bool(m_folder_id); }
     
   protected:
     
