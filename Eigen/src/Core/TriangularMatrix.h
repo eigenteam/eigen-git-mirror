@@ -19,9 +19,7 @@ template<int Side, typename TriangularType, typename Rhs> struct triangular_solv
   
 }
 
-/** \internal
-  *
-  * \class TriangularBase
+/** \class TriangularBase
   * \ingroup Core_Module
   *
   * \brief Base class for triangular part in a matrix
@@ -148,7 +146,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
 /** \class TriangularView
   * \ingroup Core_Module
   *
-  * \brief Base class for triangular part in a matrix
+  * \brief Expression of a triangular part in a matrix
   *
   * \param MatrixType the type of the object in which we are taking the triangular part
   * \param Mode the kind of triangular matrix expression to construct. Can be #Upper,
@@ -158,7 +156,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
   *
   * This class represents a triangular part of a matrix, not necessarily square. Strictly speaking, for rectangular
   * matrices one should speak of "trapezoid" parts. This class is the return type
-  * of MatrixBase::triangularView() and most of the time this is the only way it is used.
+  * of MatrixBase::triangularView() and SparseMatrixBase::triangularView(), and most of the time this is the only way it is used.
   *
   * \sa MatrixBase::triangularView()
   */
@@ -306,6 +304,15 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     MatrixTypeNested m_matrix;
 };
 
+/** \ingroup Core_Module
+  *
+  * \brief Base class for a triangular part in a \b dense matrix
+  *
+  * This class is an abstract base class of class TriangularView, and objects of type TriangularViewImpl cannot be instantiated.
+  * It extends class TriangularView with additional methods which available for dense expressions only.
+  *
+  * \sa class TriangularView, MatrixBase::triangularView()
+  */
 template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_MatrixType,_Mode,Dense>
   : public TriangularBase<TriangularView<_MatrixType, _Mode> >
 {

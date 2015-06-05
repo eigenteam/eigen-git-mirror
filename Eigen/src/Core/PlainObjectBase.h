@@ -71,6 +71,7 @@ namespace internal {
 
 // this is a workaround to doxygen not being able to understand the inheritance logic
 // when it is hidden by the dense_xpr_base helper struct.
+/** This class is just a workaround for Doxygen and it does not not actually exist. */
 template<typename Derived> struct dense_xpr_base_dispatcher_for_doxygen;// : public MatrixBase<Derived> {};
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
