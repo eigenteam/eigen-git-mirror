@@ -198,17 +198,21 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver& compute(const MatrixType& matrix, int options = ComputeEigenvectors);
     
-    /** \brief Computes eigendecomposition of given matrix using a direct algorithm
+    /** \brief Computes eigendecomposition of given matrix using a closed-form algorithm
       *
       * This is a variant of compute(const MatrixType&, int options) which
       * directly solves the underlying polynomial equation.
       * 
-      * Currently only 3x3 matrices for which the sizes are known at compile time are supported (e.g., Matrix3d).
+      * Currently only 2x2 and 3x3 matrices for which the sizes are known at compile time are supported (e.g., Matrix3d).
       * 
-      * This method is usually significantly faster than the QR algorithm
+      * This method is usually significantly faster than the QR iterative algorithm
       * but it might also be less accurate. It is also worth noting that
       * for 3x3 matrices it involves trigonometric operations which are
       * not necessarily available for all scalar types.
+      * 
+      * For the 3x3 case, we observed the following worst case relative error regarding the eigenvalues:
+      *   - double: 1e-8
+      *   - float:  1e-3
       *
       * \sa compute(const MatrixType&, int options)
       */
