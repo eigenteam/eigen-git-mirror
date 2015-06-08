@@ -934,6 +934,16 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
     
     return m_argImpl.coeff(actual_row, actual_col);
   }
+  
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
+  {
+    // try to avoid using modulo; this is a pure optimization strategy
+    const Index actual_index = internal::traits<XprType>::RowsAtCompileTime==1
+                                  ? (ColFactor==1 ?  index : index%m_cols.value())
+                                  : (RowFactor==1 ?  index : index%m_rows.value());
+    
+    return m_argImpl.coeff(actual_index);
+  }
 
   template<int LoadMode>
   PacketReturnType packet(Index row, Index col) const
@@ -946,6 +956,16 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
                            : col % m_cols.value();
 
     return m_argImpl.template packet<LoadMode>(actual_row, actual_col);
+  }
+  
+  template<int LoadMode>
+  PacketReturnType packet(Index index) const
+  {
+    const Index actual_index = internal::traits<XprType>::RowsAtCompileTime==1
+                                  ? (ColFactor==1 ?  index : index%m_cols.value())
+                                  : (RowFactor==1 ?  index : index%m_rows.value());
+
+    return m_argImpl.template packet<LoadMode>(actual_index);
   }
  
 protected:

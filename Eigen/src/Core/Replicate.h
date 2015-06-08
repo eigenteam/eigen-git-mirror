@@ -91,31 +91,6 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     inline Index rows() const { return m_matrix.rows() * m_rowFactor.value(); }
     inline Index cols() const { return m_matrix.cols() * m_colFactor.value(); }
 
-    inline Scalar coeff(Index rowId, Index colId) const
-    {
-      // try to avoid using modulo; this is a pure optimization strategy
-      const Index actual_row  = internal::traits<MatrixType>::RowsAtCompileTime==1 ? 0
-                            : RowFactor==1 ? rowId
-                            : rowId%m_matrix.rows();
-      const Index actual_col  = internal::traits<MatrixType>::ColsAtCompileTime==1 ? 0
-                            : ColFactor==1 ? colId
-                            : colId%m_matrix.cols();
-
-      return m_matrix.coeff(actual_row, actual_col);
-    }
-    template<int LoadMode>
-    inline PacketScalar packet(Index rowId, Index colId) const
-    {
-      const Index actual_row  = internal::traits<MatrixType>::RowsAtCompileTime==1 ? 0
-                            : RowFactor==1 ? rowId
-                            : rowId%m_matrix.rows();
-      const Index actual_col  = internal::traits<MatrixType>::ColsAtCompileTime==1 ? 0
-                            : ColFactor==1 ? colId
-                            : colId%m_matrix.cols();
-
-      return m_matrix.template packet<LoadMode>(actual_row, actual_col);
-    }
-
     const _MatrixTypeNested& nestedExpression() const
     { 
       return m_matrix; 
