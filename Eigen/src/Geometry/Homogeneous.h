@@ -365,6 +365,37 @@ struct generic_product_impl<Homogeneous<LhsArg,Horizontal>, Rhs, HomogeneousShap
   }
 };
 
+template<typename Lhs,typename Rhs>
+struct homogeneous_right_product_refactoring_helper
+{
+  enum {
+    Dim  = Lhs::ColsAtCompileTime,
+    Rows = Lhs::RowsAtCompileTime
+  };
+  typedef typename Rhs::template ConstNRowsBlockXpr<Dim>::Type          LinearBlockConst;
+  typedef typename remove_const<LinearBlockConst>::type                 LinearBlock;
+  typedef typename Rhs::ConstRowXpr                                     ConstantColumn;
+  typedef Replicate<const ConstantColumn,Rows,1>                        ConstantBlock;
+  typedef Product<Lhs,LinearBlock,LazyProduct>                          LinearProduct;
+  typedef CwiseBinaryOp<internal::scalar_sum_op<typename Lhs::Scalar>, const LinearProduct, const ConstantBlock> Xpr;
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, HomogeneousShape, DenseShape>
+ : public evaluator<typename homogeneous_right_product_refactoring_helper<typename Lhs::NestedExpression,Rhs>::Xpr>
+{
+  typedef Product<Lhs, Rhs, LazyProduct> XprType;
+  typedef homogeneous_right_product_refactoring_helper<typename Lhs::NestedExpression,Rhs> helper;
+  typedef typename helper::ConstantBlock ConstantBlock;
+  typedef typename helper::Xpr RefactoredXpr;
+  typedef evaluator<RefactoredXpr> Base;
+  
+  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
+    : Base(  xpr.lhs().nestedExpression() .lazyProduct(  xpr.rhs().template topRows<helper::Dim>(xpr.lhs().nestedExpression().cols()) )
+            + ConstantBlock(xpr.rhs().row(xpr.rhs().rows()-1),xpr.lhs().rows(), 1) )
+  {}
+};
+
 template<typename Lhs, typename RhsArg, int ProductTag>
 struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, DenseShape, HomogeneousShape, ProductTag>
 {
@@ -373,6 +404,37 @@ struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, DenseShape, Homog
   {
     homogeneous_left_product_impl<Homogeneous<RhsArg,Vertical>, Lhs>(lhs, rhs.nestedExpression()).evalTo(dst);
   }
+};
+
+template<typename Lhs,typename Rhs>
+struct homogeneous_left_product_refactoring_helper
+{
+  enum {
+    Dim = Rhs::RowsAtCompileTime,
+    Cols = Rhs::ColsAtCompileTime
+  };
+  typedef typename Lhs::template ConstNColsBlockXpr<Dim>::Type          LinearBlockConst;
+  typedef typename remove_const<LinearBlockConst>::type                 LinearBlock;
+  typedef typename Lhs::ConstColXpr                                     ConstantColumn;
+  typedef Replicate<const ConstantColumn,1,Cols>                        ConstantBlock;
+  typedef Product<LinearBlock,Rhs,LazyProduct>                          LinearProduct;
+  typedef CwiseBinaryOp<internal::scalar_sum_op<typename Lhs::Scalar>, const LinearProduct, const ConstantBlock> Xpr;
+};
+
+template<typename Lhs, typename Rhs, int ProductTag>
+struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape, HomogeneousShape>
+ : public evaluator<typename homogeneous_left_product_refactoring_helper<Lhs,typename Rhs::NestedExpression>::Xpr>
+{
+  typedef Product<Lhs, Rhs, LazyProduct> XprType;
+  typedef homogeneous_left_product_refactoring_helper<Lhs,typename Rhs::NestedExpression> helper;
+  typedef typename helper::ConstantBlock ConstantBlock;
+  typedef typename helper::Xpr RefactoredXpr;
+  typedef evaluator<RefactoredXpr> Base;
+  
+  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
+    : Base(   xpr.lhs().template leftCols<helper::Dim>(xpr.rhs().nestedExpression().rows()) .lazyProduct( xpr.rhs().nestedExpression() )
+            + ConstantBlock(xpr.lhs().col(xpr.lhs().cols()-1),1,xpr.rhs().cols()) )
+  {}
 };
 
 template<typename Scalar, int Dim, int Mode,int Options, typename RhsArg, int ProductTag>

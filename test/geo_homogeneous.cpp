@@ -94,6 +94,21 @@ template<typename Scalar,int Size> void homogeneous(void)
   VERIFY_IS_APPROX((aff  * pts2).colwise().hnormalized(), aff  * pts2.colwise().hnormalized());
   VERIFY_IS_APPROX((caff * pts2).colwise().hnormalized(), caff * pts2.colwise().hnormalized());
   VERIFY_IS_APPROX((proj * pts2).colwise().hnormalized(), (proj * pts2.colwise().hnormalized().colwise().homogeneous()).colwise().hnormalized());
+  
+  // Test combination of homogeneous
+  
+  VERIFY_IS_APPROX( (t2 * v0.homogeneous()).hnormalized(),
+                       (t2.template topLeftCorner<Size,Size>() * v0 + t2.template topRightCorner<Size,1>())
+                     / ((t2.template bottomLeftCorner<1,Size>()*v0).value() + t2(Size,Size)) );
+  
+  VERIFY_IS_APPROX( (t2 * pts.colwise().homogeneous()).colwise().hnormalized(),
+                    (Matrix<Scalar, Size+1, Dynamic>(t2 * pts1).colwise().hnormalized()) );
+  
+  VERIFY_IS_APPROX( (t2 .lazyProduct( v0.homogeneous() )).hnormalized(), (t2 * v0.homogeneous()).hnormalized() );
+  VERIFY_IS_APPROX( (t2 .lazyProduct  ( pts.colwise().homogeneous() )).colwise().hnormalized(), (t2 * pts1).colwise().hnormalized() );
+  
+  VERIFY_IS_APPROX( (v0.transpose().homogeneous() .lazyProduct( t2 )).hnormalized(), (v0.transpose().homogeneous()*t2).hnormalized() );
+  VERIFY_IS_APPROX( (pts.transpose().rowwise().homogeneous() .lazyProduct( t2 )).rowwise().hnormalized(), (pts1.transpose()*t2).rowwise().hnormalized() );
 }
 
 void test_geo_homogeneous()
