@@ -47,6 +47,8 @@ ei_add_failtest("sparse_ref_3")
 ei_add_failtest("sparse_ref_4")
 ei_add_failtest("sparse_ref_5")
 
+ei_add_failtest("sparse_storage_mismatch")
+
 ei_add_failtest("partialpivlu_int")
 ei_add_failtest("fullpivlu_int")
 ei_add_failtest("llt_int")
