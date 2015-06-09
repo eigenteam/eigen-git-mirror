@@ -35,8 +35,8 @@ template<typename T, typename I> void test_simplicial_cholesky_T()
   check_sparse_spd_determinant(ldlt_colmajor_lower_amd);
   check_sparse_spd_determinant(ldlt_colmajor_upper_amd);
   
-  check_sparse_spd_solving(ldlt_colmajor_lower_nat);
-  check_sparse_spd_solving(ldlt_colmajor_upper_nat);
+  check_sparse_spd_solving(ldlt_colmajor_lower_nat, 300, 1000);
+  check_sparse_spd_solving(ldlt_colmajor_upper_nat, 300, 1000);
 }
 
 void test_simplicial_cholesky()

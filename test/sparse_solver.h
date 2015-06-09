@@ -218,7 +218,7 @@ std::string solver_stats(const SparseSolverBase<Derived> &/*solver*/)
 }
 #endif
 
-template<typename Solver> void check_sparse_spd_solving(Solver& solver)
+template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxSize = 300, int maxRealWorldSize = 100000)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
@@ -231,7 +231,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
   Mat A, halfA;
   DenseMatrix dA;
   for (int i = 0; i < g_repeat; i++) {
-    int size = generate_sparse_spd_problem(solver, A, halfA, dA);
+    int size = generate_sparse_spd_problem(solver, A, halfA, dA, maxSize);
 
     // generate the right hand sides
     int rhsCols = internal::random<int>(1,16);
@@ -267,19 +267,28 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
     {
       if (it.sym() == SPD){
         A = it.matrix();
-        DenseVector b = it.rhs();
-        DenseVector refX = it.refX();
-        PermutationMatrix<Dynamic, Dynamic, StorageIndex> pnull;
-        if(Solver::UpLo == (Lower|Upper))
-          halfA = A;
+        if(A.diagonal().size() <= maxRealWorldSize)
+        {
+          DenseVector b = it.rhs();
+          DenseVector refX = it.refX();
+          PermutationMatrix<Dynamic, Dynamic, StorageIndex> pnull;
+          if(Solver::UpLo == (Lower|Upper))
+            halfA = A;
+          else
+            halfA.template selfadjointView<Solver::UpLo>() = A.template triangularView<Eigen::Lower>().twistedBy(pnull);
+          
+          std::cout << "INFO | Testing " << sym_to_string(it.sym()) << "sparse problem " << it.matname()
+                  << " (" << A.rows() << "x" << A.cols() << ") using " << typeid(Solver).name() << "..." << std::endl;
+          CALL_SUBTEST( check_sparse_solving_real_cases(solver, A,     b, A, refX) );
+          std::string stats = solver_stats(solver);
+          if(stats.size()>0)
+            std::cout << "INFO |  " << stats << std::endl;
+          CALL_SUBTEST( check_sparse_solving_real_cases(solver, halfA, b, A, refX) );
+        }
         else
-          halfA.template selfadjointView<Solver::UpLo>() = A.template triangularView<Eigen::Lower>().twistedBy(pnull);
-        
-        std::cout << "INFO | Testing " << sym_to_string(it.sym()) << "sparse problem " << it.matname()
-                << " (" << A.rows() << "x" << A.cols() << ") using " << typeid(Solver).name() << "..." << std::endl;
-        CALL_SUBTEST( check_sparse_solving_real_cases(solver, A,     b, A, refX) );
-        std::cout << "INFO |  " << solver_stats(solver) << std::endl;
-        CALL_SUBTEST( check_sparse_solving_real_cases(solver, halfA, b, A, refX) );
+        {
+          std::cout << "INFO | Skip sparse problem \"" << it.matname() << "\" (too large)" << std::endl;
+        }
       }
     }
   }
@@ -320,7 +329,7 @@ Index generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, De
   return size;
 }
 
-template<typename Solver> void check_sparse_square_solving(Solver& solver)
+template<typename Solver> void check_sparse_square_solving(Solver& solver, int maxSize = 300, int maxRealWorldSize = 100000)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
@@ -333,7 +342,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
   Mat A;
   DenseMatrix dA;
   for (int i = 0; i < g_repeat; i++) {
-    Index size = generate_sparse_square_problem(solver, A, dA);
+    Index size = generate_sparse_square_problem(solver, A, dA, maxSize);
 
     A.makeCompressed();
     DenseVector b = DenseVector::Random(size);
@@ -364,12 +373,21 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
     for (; it; ++it)
     {
       A = it.matrix();
-      DenseVector b = it.rhs();
-      DenseVector refX = it.refX();
-      std::cout << "INFO | Testing " << sym_to_string(it.sym()) << "sparse problem " << it.matname()
-                << " (" << A.rows() << "x" << A.cols() << ") using " << typeid(Solver).name() << "..." << std::endl;
-      CALL_SUBTEST(check_sparse_solving_real_cases(solver, A, b, A, refX));
-      std::cout << "INFO |   " << solver_stats(solver) << std::endl;
+      if(A.diagonal().size() <= maxRealWorldSize)
+      {
+        DenseVector b = it.rhs();
+        DenseVector refX = it.refX();
+        std::cout << "INFO | Testing " << sym_to_string(it.sym()) << "sparse problem " << it.matname()
+                  << " (" << A.rows() << "x" << A.cols() << ") using " << typeid(Solver).name() << "..." << std::endl;
+        CALL_SUBTEST(check_sparse_solving_real_cases(solver, A, b, A, refX));
+        std::string stats = solver_stats(solver);
+        if(stats.size()>0)
+          std::cout << "INFO |  " << stats << std::endl;
+      }
+      else
+      {
+        std::cout << "INFO | SKIP sparse problem \"" << it.matname() << "\" (too large)" << std::endl;
+      }
     }
   }
 #endif
