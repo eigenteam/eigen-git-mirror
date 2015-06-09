@@ -41,7 +41,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
         typename Res::Scalar tmp(0);
         for(LhsInnerIterator it(lhsEval,j); it ;++it)
           tmp += it.value() * rhs.coeff(it.index(),c);
-        res.coeffRef(j,c) = alpha * tmp;
+        res.coeffRef(j,c) += alpha * tmp;
       }
     }
   }
@@ -128,17 +128,18 @@ namespace internal {
 
 template<typename Lhs, typename Rhs, int ProductType>
 struct generic_product_impl<Lhs, Rhs, SparseShape, DenseShape, ProductType>
+ : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,SparseShape,DenseShape,ProductType> >
 {
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
   template<typename Dest>
-  static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
     typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
     typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
     LhsNested lhsNested(lhs);
     RhsNested rhsNested(rhs);
-    
-    dst.setZero();
-    internal::sparse_time_dense_product(lhsNested, rhsNested, dst, typename Dest::Scalar(1));
+    internal::sparse_time_dense_product(lhsNested, rhsNested, dst, alpha);
   }
 };
 
@@ -149,19 +150,21 @@ struct generic_product_impl<Lhs, Rhs, SparseTriangularShape, DenseShape, Product
 
 template<typename Lhs, typename Rhs, int ProductType>
 struct generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductType>
+  : generic_product_impl_base<Lhs,Rhs,generic_product_impl<Lhs,Rhs,DenseShape,SparseShape,ProductType> >
 {
-  template<typename Dest>
-  static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
+  typedef typename Product<Lhs,Rhs>::Scalar Scalar;
+  
+  template<typename Dst>
+  static void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
     typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
     typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
     LhsNested lhsNested(lhs);
     RhsNested rhsNested(rhs);
     
-    dst.setZero();
     // transpose everything
-    Transpose<Dest> dstT(dst);
-    internal::sparse_time_dense_product(rhsNested.transpose(), lhsNested.transpose(), dstT, typename Dest::Scalar(1));
+    Transpose<Dst> dstT(dst);
+    internal::sparse_time_dense_product(rhsNested.transpose(), lhsNested.transpose(), dstT, alpha);
   }
 };
 
