@@ -71,8 +71,9 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 	const Index m = mat.rows();
 
 	// residual and preconditioned residual
-	const VectorType p0 = rhs - mat*x;
+	VectorType p0 = rhs - mat*x;
 	VectorType r0 = precond.solve(p0);
+  VectorType t(m), v(m), workspace(m);
 
 	const RealScalar r0Norm = r0.norm();
 
@@ -91,17 +92,16 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 	std::vector < JacobiRotation < Scalar > > G(restart);
 
 	// generate first Householder vector
-	VectorType e(m-1);
+  Ref<VectorType> H0_tail = H.col(0).tail(m - 1);
 	RealScalar beta;
-	r0.makeHouseholder(e, tau.coeffRef(0), beta);
+	r0.makeHouseholder(H0_tail, tau.coeffRef(0), beta);
 	w(0)=(Scalar) beta;
-	H.bottomLeftCorner(m - 1, 1) = e;
 
 	for (Index k = 1; k <= restart; ++k) {
 
 		++iters;
 
-		VectorType v = VectorType::Unit(m, k - 1), workspace(m);
+		v = VectorType::Unit(m, k - 1);
 
 		// apply Householder reflections H_{1} ... H_{k-1} to v
 		for (Index i = k - 1; i >= 0; --i) {
@@ -109,7 +109,7 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 		}
 
 		// apply matrix M to v:  v = mat * v;
-		VectorType t=mat*v;
+		t=mat*v;
 		v=precond.solve(t);
 
 		// apply Householder reflections H_{k-1} ... H_{1} to v
@@ -121,13 +121,12 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 			if (k <= restart) {
 
 				// generate new Householder vector
-				VectorType e(m - k - 1);
-				RealScalar beta;
-				v.tail(m - k).makeHouseholder(e, tau.coeffRef(k), beta);
-				H.col(k).tail(m - k - 1) = e;
+        Ref<VectorType> Hk_tail = H.col(k).tail(m - k - 1);
+        
+				v.tail(m - k).makeHouseholder(Hk_tail, tau.coeffRef(k), beta);
 
 				// apply Householder reflection H_{k} to v
-				v.tail(m - k).applyHouseholderOnTheLeft(H.col(k).tail(m - k - 1), tau.coeffRef(k), workspace.data());
+				v.tail(m - k).applyHouseholderOnTheLeft(Hk_tail, tau.coeffRef(k), workspace.data());
 
 			}
 		}
@@ -180,7 +179,7 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 				k=0;
 
 				// reset data for restart
-				const VectorType p0 = rhs - mat*x;
+				p0 = rhs - mat*x;
 				r0 = precond.solve(p0);
 
 				// clear Hessenberg matrix and Householder data
@@ -189,10 +188,8 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 				tau = VectorType::Zero(restart + 1);
 
 				// generate first Householder vector
-				RealScalar beta;
-				r0.makeHouseholder(e, tau.coeffRef(0), beta);
+				r0.makeHouseholder(H0_tail, tau.coeffRef(0), beta);
 				w(0)=(Scalar) beta;
-				H.bottomLeftCorner(m - 1, 1) = e;
 
 			}
 
