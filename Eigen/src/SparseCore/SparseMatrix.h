@@ -725,6 +725,9 @@ class SparseMatrix
       }
       else if(this!=&other)
       {
+        #ifdef EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+          EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+        #endif
         initAssignment(other);
         if(other.isCompressed())
         {

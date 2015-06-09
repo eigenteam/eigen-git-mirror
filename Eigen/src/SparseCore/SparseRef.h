@@ -12,6 +12,10 @@
 
 namespace Eigen {
 
+enum {
+  StandardCompressedFormat = 2
+};
+  
 namespace internal {
 
 template<typename Derived> class SparseRefBase;
@@ -72,6 +76,19 @@ protected:
 
 } // namespace internal
 
+
+/** 
+  * \ingroup Sparse_Module
+  *
+  * \brief A sparse matrix expression referencing an existing sparse expression
+  *
+  * \tparam PlainObjectType the equivalent sparse matrix type of the referenced data
+  * \tparam Options specifies whether the a standard compressed format is required \c Options is  \c #StandardCompressedFormat, or \c 0.
+  *                The default is \c 0.
+  * \tparam StrideType Only used for dense Ref
+  *
+  * \sa class Ref
+  */
 template<typename MatScalar, int MatOptions, typename MatIndex, int Options, typename StrideType>
 class Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType >
   : public internal::SparseRefBase<Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType > >
@@ -93,6 +110,7 @@ class Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType >
     inline Ref(SparseMatrix<MatScalar,OtherOptions,MatIndex>& expr)
     {
       EIGEN_STATIC_ASSERT(bool(Traits::template match<SparseMatrix<MatScalar,OtherOptions,MatIndex> >::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
+      eigen_assert( ((Options & int(StandardCompressedFormat))==0) || (expr.isCompressed()) );
       Base::construct(expr.derived());
     }
     
@@ -100,6 +118,7 @@ class Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType >
     inline Ref(MappedSparseMatrix<MatScalar,OtherOptions,MatIndex>& expr)
     {
       EIGEN_STATIC_ASSERT(bool(Traits::template match<SparseMatrix<MatScalar,OtherOptions,MatIndex> >::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
+      eigen_assert( ((Options & int(StandardCompressedFormat))==0) || (expr.isCompressed()) );
       Base::construct(expr.derived());
     }
     
@@ -112,6 +131,7 @@ class Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType >
     {
       EIGEN_STATIC_ASSERT(bool(internal::is_lvalue<Derived>::value), THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
       EIGEN_STATIC_ASSERT(bool(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
+      eigen_assert( ((Options & int(StandardCompressedFormat))==0) || (expr.isCompressed()) );
       Base::construct(expr.const_cast_derived());
     }
 };
@@ -148,7 +168,15 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     template<typename Expression>
     void construct(const Expression& expr,internal::true_type)
     {
-      Base::construct(expr);
+      if((Options & int(StandardCompressedFormat)) && (!expr.isCompressed()))
+      {
+        m_object = expr;
+        Base::construct(m_object);
+      }
+      else
+      {
+        Base::construct(expr);
+      }
     }
 
     template<typename Expression>

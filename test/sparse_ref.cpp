@@ -47,12 +47,20 @@ EIGEN_DONT_INLINE void call_ref_1(Ref<SparseMatrix<float> > a, const B &b) { VER
 template<typename B>
 EIGEN_DONT_INLINE void call_ref_2(const Ref<const SparseMatrix<float> >& a, const B &b) { VERIFY_IS_EQUAL(a.toDense(),b.toDense()); }
 
+template<typename B>
+EIGEN_DONT_INLINE void call_ref_3(const Ref<const SparseMatrix<float>, StandardCompressedFormat>& a, const B &b) {
+  VERIFY(a.isCompressed());
+  VERIFY_IS_EQUAL(a.toDense(),b.toDense());
+}
+
 void call_ref()
 {
 //   SparseVector<std::complex<float> > ca = VectorXcf::Random(10).sparseView();
 //   SparseVector<float>                a  = VectorXf::Random(10).sparseView();
   SparseMatrix<float>               A = MatrixXf::Random(10,10).sparseView(0.5,1);
   SparseMatrix<float,RowMajor>      B = MatrixXf::Random(10,10).sparseView(0.5,1);
+  SparseMatrix<float>               C = MatrixXf::Random(10,10).sparseView(0.5,1);
+  C.reserve(VectorXi::Constant(C.outerSize(), 2));
   const SparseMatrix<float>&        Ac(A);
   Block<SparseMatrix<float> >       Ab(A,0,1, 3,3);
   const Block<SparseMatrix<float> > Abc(A,0,1,3,3);
@@ -61,12 +69,22 @@ void call_ref()
   VERIFY_EVALUATION_COUNT( call_ref_1(A, A),  0);
 //   VERIFY_EVALUATION_COUNT( call_ref_1(Ac, Ac),  0); // does not compile on purpose
   VERIFY_EVALUATION_COUNT( call_ref_2(A, A),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_3(A, A),  0);
   VERIFY_EVALUATION_COUNT( call_ref_2(A.transpose(), A.transpose()),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_3(A.transpose(), A.transpose()),  1);
   VERIFY_EVALUATION_COUNT( call_ref_2(Ac,Ac), 0);
+  VERIFY_EVALUATION_COUNT( call_ref_3(Ac,Ac), 0);
   VERIFY_EVALUATION_COUNT( call_ref_2(A+A,2*Ac), 1);
+  VERIFY_EVALUATION_COUNT( call_ref_3(A+A,2*Ac), 1);
   VERIFY_EVALUATION_COUNT( call_ref_2(B, B),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_3(B, B),  1);
   VERIFY_EVALUATION_COUNT( call_ref_2(B.transpose(), B.transpose()),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_3(B.transpose(), B.transpose()),  0);
   VERIFY_EVALUATION_COUNT( call_ref_2(A*A, A*A),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_3(A*A, A*A),  1);
+  
+  VERIFY(!C.isCompressed());
+  VERIFY_EVALUATION_COUNT( call_ref_3(C, C),  1);
   
   Ref<SparseMatrix<float> > Ar(A);
   VERIFY_IS_APPROX(Ar+Ar, A+A);
