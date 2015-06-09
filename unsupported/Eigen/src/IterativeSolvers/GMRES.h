@@ -73,7 +73,6 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
   // residual and preconditioned residual
   VectorType p0 = rhs - mat*x;
   VectorType r0 = precond.solve(p0);
-  VectorType t(m), v(m), workspace(m);
 
   const RealScalar r0Norm = r0.norm();
 
@@ -91,13 +90,16 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 
   // storage for Jacobi rotations
   std::vector < JacobiRotation < Scalar > > G(restart);
+  
+  // storage for temporaries
+  VectorType t(m), v(m), workspace(m), x_new(m);
 
   // generate first Householder vector
   Ref<VectorType> H0_tail = H.col(0).tail(m - 1);
   RealScalar beta;
   r0.makeHouseholder(H0_tail, tau.coeffRef(0), beta);
   w(0) = Scalar(beta);
-
+  
   for (Index k = 1; k <= restart; ++k)
   {
     ++iters;
@@ -105,15 +107,17 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
     v = VectorType::Unit(m, k - 1);
 
     // apply Householder reflections H_{1} ... H_{k-1} to v
+    // TODO: use a HouseholderSequence
     for (Index i = k - 1; i >= 0; --i) {
       v.tail(m - i).applyHouseholderOnTheLeft(H.col(i).tail(m - i - 1), tau.coeffRef(i), workspace.data());
     }
 
     // apply matrix M to v:  v = mat * v;
-    t=mat*v;
-    v=precond.solve(t);
+    t.noalias() = mat * v;
+    v = precond.solve(t);
 
     // apply Householder reflections H_{k-1} ... H_{1} to v
+    // TODO: use a HouseholderSequence
     for (Index i = 0; i < k; ++i) {
       v.tail(m - i).applyHouseholderOnTheLeft(H.col(i).tail(m - i - 1), tau.coeffRef(i), workspace.data());
     }
@@ -151,32 +155,28 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
     }
 
     // insert coefficients into upper matrix triangle
-    H.col(k - 1).head(k) = v.head(k);
+    H.col(k-1).head(k) = v.head(k);
 
     bool stop = (k==m || abs(w(k)) < tol * r0Norm || iters == maxIters);
 
     if (stop || k == restart)
     {
       // solve upper triangular system
-      VectorType y = w.head(k);
+      Ref<VectorType> y = w.head(k);
       H.topLeftCorner(k, k).template triangularView <Upper>().solveInPlace(y);
 
       // use Horner-like scheme to calculate solution vector
-      VectorType x_new = y(k - 1) * VectorType::Unit(m, k - 1);
-
-      // apply Householder reflection H_{k} to x_new
-      x_new.tail(m - k + 1).applyHouseholderOnTheLeft(H.col(k - 1).tail(m - k), tau.coeffRef(k - 1), workspace.data());
-
-      for (Index i = k - 2; i >= 0; --i)
+      x_new.setZero();
+      for (Index i = k - 1; i >= 0; --i)
       {
-        x_new += y(i) * VectorType::Unit(m, i);
+        x_new(i) += y(i);
         // apply Householder reflection H_{i} to x_new
         x_new.tail(m - i).applyHouseholderOnTheLeft(H.col(i).tail(m - i - 1), tau.coeffRef(i), workspace.data());
       }
 
       x += x_new;
 
-      if (stop)
+      if(stop)
       {
         return true;
       }
@@ -185,17 +185,17 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
         k=0;
 
         // reset data for restart
-        p0 = rhs - mat*x;
+        p0.noalias() = rhs - mat*x;
         r0 = precond.solve(p0);
 
         // clear Hessenberg matrix and Householder data
-        H = FMatrixType::Zero(m, restart + 1);
-        w = VectorType::Zero(restart + 1);
-        tau = VectorType::Zero(restart + 1);
+        H.setZero();
+        w.setZero();
+        tau.setZero();
 
         // generate first Householder vector
         r0.makeHouseholder(H0_tail, tau.coeffRef(0), beta);
-        w(0)=(Scalar) beta;
+        w(0) = Scalar(beta);
       }
     }
   }
