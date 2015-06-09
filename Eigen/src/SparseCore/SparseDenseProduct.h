@@ -177,10 +177,10 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, R
       Index n = lhs.outerSize();
       for(Index j=0; j<n; ++j)
       {
-        typename Res::Scalar tmp(res.coeffRef(j,c));
+        typename Res::Scalar tmp(0);
         for(LhsInnerIterator it(lhs,j); it ;++it)
           tmp += it.value() * rhs.coeff(it.index(),c);
-        res.coeffRef(j,c) = alpha * tmp;
+        res.coeffRef(j,c) += alpha * tmp;
       }
     }
   }
