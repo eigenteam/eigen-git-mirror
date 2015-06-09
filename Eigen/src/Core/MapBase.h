@@ -160,6 +160,8 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     EIGEN_DEVICE_FUNC
     void checkSanity() const
     {
+      eigen_assert(EIGEN_IMPLIES(internal::packet_traits<Scalar>::AlignedOnScalar, (size_t(m_data) % sizeof(Scalar)) == 0)
+                   && "input pointer is not aligned on scalar boundary, e.g., use \"EIGEN_ALIGN8 T ptr[N];\" for double or complex<float>");
       eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::IsAligned, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
     }
 
