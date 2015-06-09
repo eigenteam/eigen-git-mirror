@@ -292,6 +292,8 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxS
       }
     }
   }
+#else
+  EIGEN_UNUSED_VARIABLE(maxRealWorldSize);
 #endif
 }
 
@@ -390,6 +392,8 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver, int m
       }
     }
   }
+#else
+  EIGEN_UNUSED_VARIABLE(maxRealWorldSize);
 #endif
 
 }
