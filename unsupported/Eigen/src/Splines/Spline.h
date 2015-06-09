@@ -471,7 +471,7 @@ namespace Eigen
     r = p;
     for (DenseIndex k=1; k<=static_cast<DenseIndex>(n); ++k)
     {
-      for (DenseIndex j=p; j>=0; --j) N_(k,j) *= r;
+      for (j=p; j>=0; --j) N_(k,j) *= r;
       r *= p-k;
     }
   }

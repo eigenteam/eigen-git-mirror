@@ -351,8 +351,8 @@ int EIGEN_BLAS_FUNC(tbsv)(char *uplo, char *op, char *diag, int *n, int *k, Real
   static bool init = false;
   if(!init)
   {
-    for(int k=0; k<16; ++k)
-      func[k] = 0;
+    for(int i=0; i<16; ++i)
+      func[i] = 0;
 
     func[NOTR  | (UP << 2) | (NUNIT << 3)] = (internal::band_solve_triangular_selector<int,Upper|0,       Scalar,false,Scalar,ColMajor>::run);
     func[TR    | (UP << 2) | (NUNIT << 3)] = (internal::band_solve_triangular_selector<int,Lower|0,       Scalar,false,Scalar,RowMajor>::run);
