@@ -146,12 +146,12 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
-    inline MapBase(PointerType dataPtr, Index nbRows, Index nbCols)
-            : m_data(dataPtr), m_rows(nbRows), m_cols(nbCols)
+    inline MapBase(PointerType dataPtr, Index rows, Index cols)
+            : m_data(dataPtr), m_rows(rows), m_cols(cols)
     {
       eigen_assert( (dataPtr == 0)
-              || (   nbRows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == nbRows)
-                  && nbCols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == nbCols)));
+              || (   rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+                  && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
       checkSanity();
     }
 
@@ -234,7 +234,7 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
 
     EIGEN_DEVICE_FUNC explicit inline MapBase(PointerType dataPtr) : Base(dataPtr) {}
     EIGEN_DEVICE_FUNC inline MapBase(PointerType dataPtr, Index vecSize) : Base(dataPtr, vecSize) {}
-    EIGEN_DEVICE_FUNC inline MapBase(PointerType dataPtr, Index nbRows, Index nbCols) : Base(dataPtr, nbRows, nbCols) {}
+    EIGEN_DEVICE_FUNC inline MapBase(PointerType dataPtr, Index rows, Index cols) : Base(dataPtr, rows, cols) {}
 
     EIGEN_DEVICE_FUNC
     Derived& operator=(const MapBase& other)

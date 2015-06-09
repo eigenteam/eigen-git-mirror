@@ -72,8 +72,8 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     template<typename OriginalMatrixType>
-    inline explicit Replicate(const OriginalMatrixType& a_matrix)
-      : m_matrix(a_matrix), m_rowFactor(RowFactor), m_colFactor(ColFactor)
+    inline explicit Replicate(const OriginalMatrixType& matrix)
+      : m_matrix(matrix), m_rowFactor(RowFactor), m_colFactor(ColFactor)
     {
       EIGEN_STATIC_ASSERT((internal::is_same<typename internal::remove_const<MatrixType>::type,OriginalMatrixType>::value),
                           THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
@@ -81,8 +81,8 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     }
 
     template<typename OriginalMatrixType>
-    inline Replicate(const OriginalMatrixType& a_matrix, Index rowFactor, Index colFactor)
-      : m_matrix(a_matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
+    inline Replicate(const OriginalMatrixType& matrix, Index rowFactor, Index colFactor)
+      : m_matrix(matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
     {
       EIGEN_STATIC_ASSERT((internal::is_same<typename internal::remove_const<MatrixType>::type,OriginalMatrixType>::value),
                           THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)

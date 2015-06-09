@@ -60,7 +60,7 @@ template<typename MatrixType> class Transpose
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     EIGEN_DEVICE_FUNC
-    explicit inline Transpose(MatrixType& a_matrix) : m_matrix(a_matrix) {}
+    explicit inline Transpose(MatrixType& matrix) : m_matrix(matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 

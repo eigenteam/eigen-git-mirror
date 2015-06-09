@@ -124,26 +124,26 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class 
     /** Fixed-size constructor
       */
     EIGEN_DEVICE_FUNC
-    inline Block(XprType& xpr, Index a_startRow, Index a_startCol)
-      : Impl(xpr, a_startRow, a_startCol)
+    inline Block(XprType& xpr, Index startRow, Index startCol)
+      : Impl(xpr, startRow, startCol)
     {
       EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic,THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE)
-      eigen_assert(a_startRow >= 0 && BlockRows >= 1 && a_startRow + BlockRows <= xpr.rows()
-             && a_startCol >= 0 && BlockCols >= 1 && a_startCol + BlockCols <= xpr.cols());
+      eigen_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
+             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= xpr.cols());
     }
 
     /** Dynamic-size constructor
       */
     EIGEN_DEVICE_FUNC
     inline Block(XprType& xpr,
-          Index a_startRow, Index a_startCol,
+          Index startRow, Index startCol,
           Index blockRows, Index blockCols)
-      : Impl(xpr, a_startRow, a_startCol, blockRows, blockCols)
+      : Impl(xpr, startRow, startCol, blockRows, blockCols)
     {
       eigen_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
           && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
-      eigen_assert(a_startRow >= 0 && blockRows >= 0 && a_startRow  <= xpr.rows() - blockRows
-          && a_startCol >= 0 && blockCols >= 0 && a_startCol <= xpr.cols() - blockCols);
+      eigen_assert(startRow >= 0 && blockRows >= 0 && startRow  <= xpr.rows() - blockRows
+          && startCol >= 0 && blockCols >= 0 && startCol <= xpr.cols() - blockCols);
     }
 };
          
@@ -159,10 +159,10 @@ class BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, Dense>
     typedef Impl Base;
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
     EIGEN_DEVICE_FUNC inline BlockImpl(XprType& xpr, Index i) : Impl(xpr,i) {}
-    EIGEN_DEVICE_FUNC inline BlockImpl(XprType& xpr, Index a_startRow, Index a_startCol) : Impl(xpr, a_startRow, a_startCol) {}
+    EIGEN_DEVICE_FUNC inline BlockImpl(XprType& xpr, Index startRow, Index startCol) : Impl(xpr, startRow, startCol) {}
     EIGEN_DEVICE_FUNC
-    inline BlockImpl(XprType& xpr, Index a_startRow, Index a_startCol, Index blockRows, Index blockCols)
-      : Impl(xpr, a_startRow, a_startCol, blockRows, blockCols) {}
+    inline BlockImpl(XprType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
+      : Impl(xpr, startRow, startCol, blockRows, blockCols) {}
 };
 
 namespace internal {
@@ -198,8 +198,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     /** Fixed-size constructor
       */
     EIGEN_DEVICE_FUNC
-    inline BlockImpl_dense(XprType& xpr, Index a_startRow, Index a_startCol)
-      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol),
+    inline BlockImpl_dense(XprType& xpr, Index startRow, Index startCol)
+      : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
                     m_blockRows(BlockRows), m_blockCols(BlockCols)
     {}
 
@@ -207,9 +207,9 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
       */
     EIGEN_DEVICE_FUNC
     inline BlockImpl_dense(XprType& xpr,
-          Index a_startRow, Index a_startCol,
+          Index startRow, Index startCol,
           Index blockRows, Index blockCols)
-      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol),
+      : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
                     m_blockRows(blockRows), m_blockCols(blockCols)
     {}
 

@@ -162,8 +162,8 @@ PlainObjectBase<Derived>::setRandom(Index newSize)
   *
   * \not_reentrant
   * 
-  * \param nbRows the new number of rows
-  * \param nbCols the new number of columns
+  * \param rows the new number of rows
+  * \param cols the new number of columns
   *
   * Example: \include Matrix_setRandom_int_int.cpp
   * Output: \verbinclude Matrix_setRandom_int_int.out
@@ -172,9 +172,9 @@ PlainObjectBase<Derived>::setRandom(Index newSize)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setRandom(Index nbRows, Index nbCols)
+PlainObjectBase<Derived>::setRandom(Index rows, Index cols)
 {
-  resize(nbRows, nbCols);
+  resize(rows, cols);
   return setRandom();
 }
 

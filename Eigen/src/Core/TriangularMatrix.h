@@ -61,11 +61,11 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     inline Index innerStride() const { return derived().innerStride(); }
     
     // dummy resize function
-    void resize(Index nbRows, Index nbCols)
+    void resize(Index rows, Index cols)
     {
-      EIGEN_UNUSED_VARIABLE(nbRows);
-      EIGEN_UNUSED_VARIABLE(nbCols);
-      eigen_assert(nbRows==rows() && nbCols==nbCols);
+      EIGEN_UNUSED_VARIABLE(rows);
+      EIGEN_UNUSED_VARIABLE(cols);
+      eigen_assert(rows==this->rows() && cols==this->cols());
     }
 
     EIGEN_DEVICE_FUNC

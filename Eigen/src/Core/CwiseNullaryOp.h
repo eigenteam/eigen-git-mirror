@@ -49,13 +49,13 @@ class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp
     EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
 
     EIGEN_DEVICE_FUNC
-    CwiseNullaryOp(Index nbRows, Index nbCols, const NullaryOp& func = NullaryOp())
-      : m_rows(nbRows), m_cols(nbCols), m_functor(func)
+    CwiseNullaryOp(Index rows, Index cols, const NullaryOp& func = NullaryOp())
+      : m_rows(rows), m_cols(cols), m_functor(func)
     {
-      eigen_assert(nbRows >= 0
-            && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == nbRows)
-            &&  nbCols >= 0
-            && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == nbCols));
+      eigen_assert(rows >= 0
+            && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+            &&  cols >= 0
+            && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
     }
 
     EIGEN_DEVICE_FUNC
@@ -166,11 +166,11 @@ DenseBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
 
 /** \returns an expression of a constant matrix of value \a value
   *
-  * The parameters \a nbRows and \a nbCols are the number of rows and of columns of
+  * The parameters \a rows and \a cols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this DenseBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a nbRows and \a nbCols as arguments, so Zero() should be used
+  * it is redundant to pass \a rows and \a cols as arguments, so Zero() should be used
   * instead.
   *
   * The template parameter \a CustomNullaryOp is the type of the functor.
@@ -179,9 +179,9 @@ DenseBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::ConstantReturnType
-DenseBase<Derived>::Constant(Index nbRows, Index nbCols, const Scalar& value)
+DenseBase<Derived>::Constant(Index rows, Index cols, const Scalar& value)
 {
-  return DenseBase<Derived>::NullaryExpr(nbRows, nbCols, internal::scalar_constant_op<Scalar>(value));
+  return DenseBase<Derived>::NullaryExpr(rows, cols, internal::scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -357,8 +357,8 @@ PlainObjectBase<Derived>::setConstant(Index size, const Scalar& val)
 
 /** Resizes to the given size, and sets all coefficients in this expression to the given \a value.
   *
-  * \param nbRows the new number of rows
-  * \param nbCols the new number of columns
+  * \param rows the new number of rows
+  * \param cols the new number of columns
   * \param val the value to which all coefficients are set
   *
   * Example: \include Matrix_setConstant_int_int.cpp
@@ -368,9 +368,9 @@ PlainObjectBase<Derived>::setConstant(Index size, const Scalar& val)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setConstant(Index nbRows, Index nbCols, const Scalar& val)
+PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& val)
 {
-  resize(nbRows, nbCols);
+  resize(rows, cols);
   return setConstant(val);
 }
 
@@ -429,9 +429,9 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low,
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::ConstantReturnType
-DenseBase<Derived>::Zero(Index nbRows, Index nbCols)
+DenseBase<Derived>::Zero(Index rows, Index cols)
 {
-  return Constant(nbRows, nbCols, Scalar(0));
+  return Constant(rows, cols, Scalar(0));
 }
 
 /** \returns an expression of a zero vector.
@@ -525,8 +525,8 @@ PlainObjectBase<Derived>::setZero(Index newSize)
 
 /** Resizes to the given size, and sets all coefficients in this expression to zero.
   *
-  * \param nbRows the new number of rows
-  * \param nbCols the new number of columns
+  * \param rows the new number of rows
+  * \param cols the new number of columns
   *
   * Example: \include Matrix_setZero_int_int.cpp
   * Output: \verbinclude Matrix_setZero_int_int.out
@@ -535,9 +535,9 @@ PlainObjectBase<Derived>::setZero(Index newSize)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setZero(Index nbRows, Index nbCols)
+PlainObjectBase<Derived>::setZero(Index rows, Index cols)
 {
-  resize(nbRows, nbCols);
+  resize(rows, cols);
   return setConstant(Scalar(0));
 }
 
@@ -545,7 +545,7 @@ PlainObjectBase<Derived>::setZero(Index nbRows, Index nbCols)
 
 /** \returns an expression of a matrix where all coefficients equal one.
   *
-  * The parameters \a nbRows and \a nbCols are the number of rows and of columns of
+  * The parameters \a rows and \a cols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
@@ -559,9 +559,9 @@ PlainObjectBase<Derived>::setZero(Index nbRows, Index nbCols)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::ConstantReturnType
-DenseBase<Derived>::Ones(Index nbRows, Index nbCols)
+DenseBase<Derived>::Ones(Index rows, Index cols)
 {
-  return Constant(nbRows, nbCols, Scalar(1));
+  return Constant(rows, cols, Scalar(1));
 }
 
 /** \returns an expression of a vector where all coefficients equal one.
@@ -651,8 +651,8 @@ PlainObjectBase<Derived>::setOnes(Index newSize)
 
 /** Resizes to the given size, and sets all coefficients in this expression to one.
   *
-  * \param nbRows the new number of rows
-  * \param nbCols the new number of columns
+  * \param rows the new number of rows
+  * \param cols the new number of columns
   *
   * Example: \include Matrix_setOnes_int_int.cpp
   * Output: \verbinclude Matrix_setOnes_int_int.out
@@ -661,9 +661,9 @@ PlainObjectBase<Derived>::setOnes(Index newSize)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setOnes(Index nbRows, Index nbCols)
+PlainObjectBase<Derived>::setOnes(Index rows, Index cols)
 {
-  resize(nbRows, nbCols);
+  resize(rows, cols);
   return setConstant(Scalar(1));
 }
 
@@ -671,7 +671,7 @@ PlainObjectBase<Derived>::setOnes(Index nbRows, Index nbCols)
 
 /** \returns an expression of the identity matrix (not necessarily square).
   *
-  * The parameters \a nbRows and \a nbCols are the number of rows and of columns of
+  * The parameters \a rows and \a cols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
@@ -685,9 +685,9 @@ PlainObjectBase<Derived>::setOnes(Index nbRows, Index nbCols)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::IdentityReturnType
-MatrixBase<Derived>::Identity(Index nbRows, Index nbCols)
+MatrixBase<Derived>::Identity(Index rows, Index cols)
 {
-  return DenseBase<Derived>::NullaryExpr(nbRows, nbCols, internal::scalar_identity_op<Scalar>());
+  return DenseBase<Derived>::NullaryExpr(rows, cols, internal::scalar_identity_op<Scalar>());
 }
 
 /** \returns an expression of the identity matrix (not necessarily square).
@@ -783,8 +783,8 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
 
 /** \brief Resizes to the given size, and writes the identity expression (not necessarily square) into *this.
   *
-  * \param nbRows the new number of rows
-  * \param nbCols the new number of columns
+  * \param rows the new number of rows
+  * \param cols the new number of columns
   *
   * Example: \include Matrix_setIdentity_int_int.cpp
   * Output: \verbinclude Matrix_setIdentity_int_int.out
@@ -792,9 +792,9 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
   * \sa MatrixBase::setIdentity(), class CwiseNullaryOp, MatrixBase::Identity()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity(Index nbRows, Index nbCols)
+EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity(Index rows, Index cols)
 {
-  derived().resize(nbRows, nbCols);
+  derived().resize(rows, cols);
   return setIdentity();
 }
 

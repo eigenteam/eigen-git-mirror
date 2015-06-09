@@ -149,7 +149,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     /** Forwards the resizing request to the nested expression
       * \sa DenseBase::resize(Index,Index)*/
     EIGEN_DEVICE_FUNC
-    void resize(Index nbRows, Index nbCols) { m_expression.const_cast_derived().resize(nbRows,nbCols); }
+    void resize(Index rows, Index cols) { m_expression.const_cast_derived().resize(rows,cols); }
 
   protected:
     NestedExpressionType m_expression;
@@ -198,7 +198,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
     EIGEN_DEVICE_FUNC
-    explicit inline MatrixWrapper(ExpressionType& a_matrix) : m_expression(a_matrix) {}
+    explicit inline MatrixWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
     EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_expression.rows(); }
@@ -288,7 +288,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     /** Forwards the resizing request to the nested expression
       * \sa DenseBase::resize(Index,Index)*/
     EIGEN_DEVICE_FUNC
-    void resize(Index nbRows, Index nbCols) { m_expression.const_cast_derived().resize(nbRows,nbCols); }
+    void resize(Index rows, Index cols) { m_expression.const_cast_derived().resize(rows,cols); }
 
   protected:
     NestedExpressionType m_expression;

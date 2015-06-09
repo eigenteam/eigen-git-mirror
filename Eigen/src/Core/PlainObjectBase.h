@@ -246,22 +246,22 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * \sa resize(Index) for vectors, resize(NoChange_t, Index), resize(Index, NoChange_t)
       */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void resize(Index nbRows, Index nbCols)
+    EIGEN_STRONG_INLINE void resize(Index rows, Index cols)
     {
-      eigen_assert(   EIGEN_IMPLIES(RowsAtCompileTime!=Dynamic,nbRows==RowsAtCompileTime)
-                   && EIGEN_IMPLIES(ColsAtCompileTime!=Dynamic,nbCols==ColsAtCompileTime)
-                   && EIGEN_IMPLIES(RowsAtCompileTime==Dynamic && MaxRowsAtCompileTime!=Dynamic,nbRows<=MaxRowsAtCompileTime)
-                   && EIGEN_IMPLIES(ColsAtCompileTime==Dynamic && MaxColsAtCompileTime!=Dynamic,nbCols<=MaxColsAtCompileTime)
-                   && nbRows>=0 && nbCols>=0 && "Invalid sizes when resizing a matrix or array.");
-      internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(nbRows, nbCols);
+      eigen_assert(   EIGEN_IMPLIES(RowsAtCompileTime!=Dynamic,rows==RowsAtCompileTime)
+                   && EIGEN_IMPLIES(ColsAtCompileTime!=Dynamic,cols==ColsAtCompileTime)
+                   && EIGEN_IMPLIES(RowsAtCompileTime==Dynamic && MaxRowsAtCompileTime!=Dynamic,rows<=MaxRowsAtCompileTime)
+                   && EIGEN_IMPLIES(ColsAtCompileTime==Dynamic && MaxColsAtCompileTime!=Dynamic,cols<=MaxColsAtCompileTime)
+                   && rows>=0 && cols>=0 && "Invalid sizes when resizing a matrix or array.");
+      internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(rows, cols);
       #ifdef EIGEN_INITIALIZE_COEFFS
-        Index size = nbRows*nbCols;
+        Index size = rows*cols;
         bool size_changed = size != this->size();
-        m_storage.resize(size, nbRows, nbCols);
+        m_storage.resize(size, rows, cols);
         if(size_changed) EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
       #else
-        internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(nbRows, nbCols);
-        m_storage.resize(nbRows*nbCols, nbRows, nbCols);
+        internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(rows, cols);
+        m_storage.resize(rows*cols, rows, cols);
       #endif
     }
 
@@ -302,9 +302,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * \sa resize(Index,Index)
       */
     EIGEN_DEVICE_FUNC
-    inline void resize(NoChange_t, Index nbCols)
+    inline void resize(NoChange_t, Index cols)
     {
-      resize(rows(), nbCols);
+      resize(rows(), cols);
     }
 
     /** Resizes the matrix, changing only the number of rows. For the parameter of type NoChange_t, just pass the special value \c NoChange
@@ -316,9 +316,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * \sa resize(Index,Index)
       */
     EIGEN_DEVICE_FUNC
-    inline void resize(Index nbRows, NoChange_t)
+    inline void resize(Index rows, NoChange_t)
     {
-      resize(nbRows, cols());
+      resize(rows, cols());
     }
 
     /** Resizes \c *this to have the same dimensions as \a other.
@@ -358,9 +358,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * appended to the matrix they will be uninitialized.
       */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void conservativeResize(Index nbRows, Index nbCols)
+    EIGEN_STRONG_INLINE void conservativeResize(Index rows, Index cols)
     {
-      internal::conservative_resize_like_impl<Derived>::run(*this, nbRows, nbCols);
+      internal::conservative_resize_like_impl<Derived>::run(*this, rows, cols);
     }
 
     /** Resizes the matrix to \a rows x \a cols while leaving old values untouched.
@@ -371,10 +371,10 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * In case the matrix is growing, new rows will be uninitialized.
       */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void conservativeResize(Index nbRows, NoChange_t)
+    EIGEN_STRONG_INLINE void conservativeResize(Index rows, NoChange_t)
     {
       // Note: see the comment in conservativeResize(Index,Index)
-      conservativeResize(nbRows, cols());
+      conservativeResize(rows, cols());
     }
 
     /** Resizes the matrix to \a rows x \a cols while leaving old values untouched.
@@ -385,10 +385,10 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * In case the matrix is growing, new columns will be uninitialized.
       */
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, Index nbCols)
+    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, Index cols)
     {
       // Note: see the comment in conservativeResize(Index,Index)
-      conservativeResize(rows(), nbCols);
+      conservativeResize(rows(), cols);
     }
 
     /** Resizes the vector to \a size while retaining old values.
@@ -486,8 +486,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE PlainObjectBase(const PlainObjectBase& other)
       : Base(), m_storage(other.m_storage) { }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE PlainObjectBase(Index a_size, Index nbRows, Index nbCols)
-      : m_storage(a_size, nbRows, nbCols)
+    EIGEN_STRONG_INLINE PlainObjectBase(Index size, Index rows, Index cols)
+      : m_storage(size, rows, cols)
     {
 //       _check_template_params();
 //       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
@@ -695,12 +695,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE void _init2(Index nbRows, Index nbCols, typename internal::enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
+    EIGEN_STRONG_INLINE void _init2(Index rows, Index cols, typename internal::enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
       EIGEN_STATIC_ASSERT(bool(NumTraits<T0>::IsInteger) &&
                           bool(NumTraits<T1>::IsInteger),
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
-      resize(nbRows,nbCols);
+      resize(rows,cols);
     }
     
     template<typename T0, typename T1>

@@ -218,12 +218,12 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
       if (this != &other) m_data = other.m_data;
       return *this; 
     }
-    EIGEN_DEVICE_FUNC DenseStorage(Index size, Index nbRows, Index nbCols) {
+    EIGEN_DEVICE_FUNC DenseStorage(Index size, Index rows, Index cols) {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
-      eigen_internal_assert(size==nbRows*nbCols && nbRows==_Rows && nbCols==_Cols);
+      eigen_internal_assert(size==rows*cols && rows==_Rows && cols==_Cols);
       EIGEN_UNUSED_VARIABLE(size);
-      EIGEN_UNUSED_VARIABLE(nbRows);
-      EIGEN_UNUSED_VARIABLE(nbCols);
+      EIGEN_UNUSED_VARIABLE(rows);
+      EIGEN_UNUSED_VARIABLE(cols);
     }
     EIGEN_DEVICE_FUNC void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
     EIGEN_DEVICE_FUNC static Index rows(void) {return _Rows;}
@@ -283,13 +283,13 @@ template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic
       }
       return *this; 
     }
-    DenseStorage(Index, Index nbRows, Index nbCols) : m_rows(nbRows), m_cols(nbCols) {}
+    DenseStorage(Index, Index rows, Index cols) : m_rows(rows), m_cols(cols) {}
     void swap(DenseStorage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     EIGEN_DEVICE_FUNC Index rows() const {return m_rows;}
     EIGEN_DEVICE_FUNC Index cols() const {return m_cols;}
-    void conservativeResize(Index, Index nbRows, Index nbCols) { m_rows = nbRows; m_cols = nbCols; }
-    void resize(Index, Index nbRows, Index nbCols) { m_rows = nbRows; m_cols = nbCols; }
+    void conservativeResize(Index, Index rows, Index cols) { m_rows = rows; m_cols = cols; }
+    void resize(Index, Index rows, Index cols) { m_rows = rows; m_cols = cols; }
     EIGEN_DEVICE_FUNC const T *data() const { return m_data.array; }
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
@@ -313,12 +313,12 @@ template<typename T, int Size, int _Cols, int _Options> class DenseStorage<T, Si
       }
       return *this; 
     }
-    DenseStorage(Index, Index nbRows, Index) : m_rows(nbRows) {}
+    DenseStorage(Index, Index rows, Index) : m_rows(rows) {}
     void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     EIGEN_DEVICE_FUNC Index rows(void) const {return m_rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return _Cols;}
-    void conservativeResize(Index, Index nbRows, Index) { m_rows = nbRows; }
-    void resize(Index, Index nbRows, Index) { m_rows = nbRows; }
+    void conservativeResize(Index, Index rows, Index) { m_rows = rows; }
+    void resize(Index, Index rows, Index) { m_rows = rows; }
     EIGEN_DEVICE_FUNC const T *data() const { return m_data.array; }
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
@@ -342,12 +342,12 @@ template<typename T, int Size, int _Rows, int _Options> class DenseStorage<T, Si
       }
       return *this;
     }
-    DenseStorage(Index, Index, Index nbCols) : m_cols(nbCols) {}
+    DenseStorage(Index, Index, Index cols) : m_cols(cols) {}
     void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     EIGEN_DEVICE_FUNC Index rows(void) const {return _Rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return m_cols;}
-    void conservativeResize(Index, Index, Index nbCols) { m_cols = nbCols; }
-    void resize(Index, Index, Index nbCols) { m_cols = nbCols; }
+    void conservativeResize(Index, Index, Index cols) { m_cols = cols; }
+    void resize(Index, Index, Index cols) { m_cols = cols; }
     EIGEN_DEVICE_FUNC const T *data() const { return m_data.array; }
     EIGEN_DEVICE_FUNC T *data() { return m_data.array; }
 };
@@ -362,11 +362,11 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     EIGEN_DEVICE_FUNC DenseStorage() : m_data(0), m_rows(0), m_cols(0) {}
     explicit DenseStorage(internal::constructor_without_unaligned_array_assert)
        : m_data(0), m_rows(0), m_cols(0) {}
-    DenseStorage(Index size, Index nbRows, Index nbCols)
-      : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(nbRows), m_cols(nbCols)
+    DenseStorage(Index size, Index rows, Index cols)
+      : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(rows), m_cols(cols)
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
-      eigen_internal_assert(size==nbRows*nbCols && nbRows>=0 && nbCols >=0);
+      eigen_internal_assert(size==rows*cols && rows>=0 && cols >=0);
     }
     DenseStorage(const DenseStorage& other)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(other.m_rows*other.m_cols))
@@ -410,13 +410,13 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     EIGEN_DEVICE_FUNC Index rows(void) const {return m_rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return m_cols;}
-    void conservativeResize(Index size, Index nbRows, Index nbCols)
+    void conservativeResize(Index size, Index rows, Index cols)
     {
       m_data = internal::conditional_aligned_realloc_new_auto<T,(_Options&DontAlign)==0>(m_data, size, m_rows*m_cols);
-      m_rows = nbRows;
-      m_cols = nbCols;
+      m_rows = rows;
+      m_cols = cols;
     }
-    void resize(Index size, Index nbRows, Index nbCols)
+    void resize(Index size, Index rows, Index cols)
     {
       if(size != m_rows*m_cols)
       {
@@ -427,8 +427,8 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
           m_data = 0;
         EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
       }
-      m_rows = nbRows;
-      m_cols = nbCols;
+      m_rows = rows;
+      m_cols = cols;
     }
     EIGEN_DEVICE_FUNC const T *data() const { return m_data; }
     EIGEN_DEVICE_FUNC T *data() { return m_data; }
@@ -442,11 +442,11 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
   public:
     EIGEN_DEVICE_FUNC DenseStorage() : m_data(0), m_cols(0) {}
     explicit DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
-    DenseStorage(Index size, Index nbRows, Index nbCols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_cols(nbCols)
+    DenseStorage(Index size, Index rows, Index cols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_cols(cols)
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
-      eigen_internal_assert(size==nbRows*nbCols && nbRows==_Rows && nbCols >=0);
-      EIGEN_UNUSED_VARIABLE(nbRows);
+      eigen_internal_assert(size==rows*cols && rows==_Rows && cols >=0);
+      EIGEN_UNUSED_VARIABLE(rows);
     }
     DenseStorage(const DenseStorage& other)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(_Rows*other.m_cols))
@@ -485,12 +485,12 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     EIGEN_DEVICE_FUNC static Index rows(void) {return _Rows;}
     EIGEN_DEVICE_FUNC Index cols(void) const {return m_cols;}
-    void conservativeResize(Index size, Index, Index nbCols)
+    void conservativeResize(Index size, Index, Index cols)
     {
       m_data = internal::conditional_aligned_realloc_new_auto<T,(_Options&DontAlign)==0>(m_data, size, _Rows*m_cols);
-      m_cols = nbCols;
+      m_cols = cols;
     }
-    EIGEN_STRONG_INLINE void resize(Index size, Index, Index nbCols)
+    EIGEN_STRONG_INLINE void resize(Index size, Index, Index cols)
     {
       if(size != _Rows*m_cols)
       {
@@ -501,7 +501,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
           m_data = 0;
         EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
       }
-      m_cols = nbCols;
+      m_cols = cols;
     }
     EIGEN_DEVICE_FUNC const T *data() const { return m_data; }
     EIGEN_DEVICE_FUNC T *data() { return m_data; }
@@ -515,11 +515,11 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
   public:
     EIGEN_DEVICE_FUNC DenseStorage() : m_data(0), m_rows(0) {}
     explicit DenseStorage(internal::constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
-    DenseStorage(Index size, Index nbRows, Index nbCols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(nbRows)
+    DenseStorage(Index size, Index rows, Index cols) : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(size)), m_rows(rows)
     {
       EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
-      eigen_internal_assert(size==nbRows*nbCols && nbRows>=0 && nbCols == _Cols);
-      EIGEN_UNUSED_VARIABLE(nbCols);
+      eigen_internal_assert(size==rows*cols && rows>=0 && cols == _Cols);
+      EIGEN_UNUSED_VARIABLE(cols);
     }
     DenseStorage(const DenseStorage& other)
       : m_data(internal::conditional_aligned_new_auto<T,(_Options&DontAlign)==0>(other.m_rows*_Cols))
@@ -558,12 +558,12 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     EIGEN_DEVICE_FUNC Index rows(void) const {return m_rows;}
     EIGEN_DEVICE_FUNC static Index cols(void) {return _Cols;}
-    void conservativeResize(Index size, Index nbRows, Index)
+    void conservativeResize(Index size, Index rows, Index)
     {
       m_data = internal::conditional_aligned_realloc_new_auto<T,(_Options&DontAlign)==0>(m_data, size, m_rows*_Cols);
-      m_rows = nbRows;
+      m_rows = rows;
     }
-    EIGEN_STRONG_INLINE void resize(Index size, Index nbRows, Index)
+    EIGEN_STRONG_INLINE void resize(Index size, Index rows, Index)
     {
       if(size != m_rows*_Cols)
       {
@@ -574,7 +574,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
           m_data = 0;
         EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
       }
-      m_rows = nbRows;
+      m_rows = rows;
     }
     EIGEN_DEVICE_FUNC const T *data() const { return m_data; }
     EIGEN_DEVICE_FUNC T *data() { return m_data; }

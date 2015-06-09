@@ -178,7 +178,7 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
 
     /** Generic constructor from expression of the transposition indices. */
     template<typename Other>
-    explicit inline Transpositions(const MatrixBase<Other>& a_indices) : m_indices(a_indices)
+    explicit inline Transpositions(const MatrixBase<Other>& indices) : m_indices(indices)
     {}
 
     /** Copies the \a other transpositions into \c *this */
@@ -292,8 +292,8 @@ class TranspositionsWrapper
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar StorageIndex;
 
-    explicit inline TranspositionsWrapper(IndicesType& a_indices)
-      : m_indices(a_indices)
+    explicit inline TranspositionsWrapper(IndicesType& indices)
+      : m_indices(indices)
     {}
 
     /** Copies the \a other transpositions into \c *this */

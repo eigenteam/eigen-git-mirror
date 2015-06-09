@@ -375,7 +375,7 @@ void BDCSVD<MatrixType>::structured_update(Block<MatrixXr,Dynamic,Dynamic> A, co
 template<typename MatrixType>
 void BDCSVD<MatrixType>::divide (Index firstCol, Index lastCol, Index firstRowW, Index firstColW, Index shift)
 {
-  // requires nbRows = nbCols + 1;
+  // requires rows = cols + 1;
   using std::pow;
   using std::sqrt;
   using std::abs;
