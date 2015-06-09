@@ -434,26 +434,30 @@ struct palign_impl<Offset,Packet8f>
     if (Offset==1)
     {
       first = _mm256_blend_ps(first, second, 1);
-      Packet8f tmp = _mm256_permute_ps (first, _MM_SHUFFLE(0,3,2,1));
-      first = _mm256_blend_ps(tmp, _mm256_permute2f128_ps (tmp, tmp, 1), 0x88);
+      Packet8f tmp1 = _mm256_permute_ps (first, _MM_SHUFFLE(0,3,2,1));
+      Packet8f tmp2 = _mm256_permute2f128_ps (tmp1, tmp1, 1);
+      first = _mm256_blend_ps(tmp1, tmp2, 0x88);
     }
     else if (Offset==2)
     {
       first = _mm256_blend_ps(first, second, 3);
-      Packet8f tmp = _mm256_permute_ps (first, _MM_SHUFFLE(1,0,3,2));
-      first = _mm256_blend_ps(tmp, _mm256_permute2f128_ps (tmp, tmp, 1), 0xcc);
+      Packet8f tmp1 = _mm256_permute_ps (first, _MM_SHUFFLE(1,0,3,2));
+      Packet8f tmp2 = _mm256_permute2f128_ps (tmp1, tmp1, 1);
+      first = _mm256_blend_ps(tmp1, tmp2, 0xcc);
     }
     else if (Offset==3)
     {
       first = _mm256_blend_ps(first, second, 7);
-      Packet8f tmp = _mm256_permute_ps (first, _MM_SHUFFLE(2,1,0,3));
-      first = _mm256_blend_ps(tmp, _mm256_permute2f128_ps (tmp, tmp, 1), 0xee);
+      Packet8f tmp1 = _mm256_permute_ps (first, _MM_SHUFFLE(2,1,0,3));
+      Packet8f tmp2 = _mm256_permute2f128_ps (tmp1, tmp1, 1);
+      first = _mm256_blend_ps(tmp1, tmp2, 0xee);
     }
     else if (Offset==4)
     {
       first = _mm256_blend_ps(first, second, 15);
-      Packet8f tmp = _mm256_permute_ps (first, _MM_SHUFFLE(3,2,1,0));
-      first = _mm256_permute_ps(_mm256_permute2f128_ps (tmp, tmp, 1), _MM_SHUFFLE(3,2,1,0));
+      Packet8f tmp1 = _mm256_permute_ps (first, _MM_SHUFFLE(3,2,1,0));
+      Packet8f tmp2 = _mm256_permute2f128_ps (tmp1, tmp1, 1);
+      first = _mm256_permute_ps(tmp2, _MM_SHUFFLE(3,2,1,0));
     }
     else if (Offset==5)
     {

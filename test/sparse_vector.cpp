@@ -55,16 +55,16 @@ template<typename Scalar,typename Index> void sparse_vector(int rows, int cols)
   
   // test coeffRef with reallocation
   {
-    SparseVectorType v1(rows);
-    DenseVector v2 = DenseVector::Zero(rows);
+    SparseVectorType v4(rows);
+    DenseVector v5 = DenseVector::Zero(rows);
     for(int k=0; k<rows; ++k)
     {
       int i = internal::random<int>(0,rows-1);
       Scalar v = internal::random<Scalar>();
-      v1.coeffRef(i) += v;
-      v2.coeffRef(i) += v;
+      v4.coeffRef(i) += v;
+      v5.coeffRef(i) += v;
     }
-    VERIFY_IS_APPROX(v1,v2);
+    VERIFY_IS_APPROX(v4,v5);
   }
 
   v1.coeffRef(nonzerocoords[0]) = Scalar(5);

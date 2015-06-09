@@ -71,11 +71,11 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   
   // check with submatrices
   {
-    Matrix<Scalar, MatrixType::RowsAtCompileTime+1, MatrixType::RowsAtCompileTime+1, MatrixType::Options> m3;
-    m3.setRandom();
-    m3.topLeftCorner(rows,rows) = m1;
-    m2 = m3.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>().inverse();
-    VERIFY_IS_APPROX( (m3.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>()), m2.inverse() );
+    Matrix<Scalar, MatrixType::RowsAtCompileTime+1, MatrixType::RowsAtCompileTime+1, MatrixType::Options> m5;
+    m5.setRandom();
+    m5.topLeftCorner(rows,rows) = m1;
+    m2 = m5.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>().inverse();
+    VERIFY_IS_APPROX( (m5.template topLeftCorner<MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime>()), m2.inverse() );
   }
 #endif
 

@@ -825,7 +825,7 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
       while (rightShifted - leftShifted > 2 * NumTraits<RealScalar>::epsilon() * numext::maxi<RealScalar>(abs(leftShifted), abs(rightShifted)))
       {
         RealScalar midShifted = (leftShifted + rightShifted) / 2;
-        RealScalar fMid = secularEq(midShifted, col0, diag, perm, diagShifted, shift);
+        fMid = secularEq(midShifted, col0, diag, perm, diagShifted, shift);
         if (fLeft * fMid < 0)
         {
           rightShifted = midShifted;

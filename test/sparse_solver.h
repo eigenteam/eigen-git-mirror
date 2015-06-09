@@ -267,7 +267,6 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
     {
       if (it.sym() == SPD){
         A = it.matrix();
-        Mat halfA;
         DenseVector b = it.rhs();
         DenseVector refX = it.refX();
         PermutationMatrix<Dynamic, Dynamic, StorageIndex> pnull;

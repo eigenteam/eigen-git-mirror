@@ -387,7 +387,7 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
       if(svd.computeU()) svd.m_matrixU.applyOnTheRight(p,q,rot.adjoint());
       if(work_matrix.coeff(p,q) != Scalar(0))
       {
-        Scalar z = abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
+        z = abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
         work_matrix.col(q) *= z;
         if(svd.computeV()) svd.m_matrixV.col(q) *= z;
       }
