@@ -8,13 +8,14 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// This file is a base class plugin containing matrix specifics coefficient wise functions.
+// This file is included into the body of the base classes supporting matrix specific coefficient-wise functions.
+// This include MatrixBase and SparseMatrixBase.
 
 typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> CwiseAbsReturnType;
 typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> CwiseAbs2ReturnType;
 typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> CwiseSqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> CwiseInverseReturnType;
-typedef CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >, const Derived> CwiseScalarEqualReturnType;
+
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   *
   * Example: \include MatrixBase_cwiseAbs.cpp
@@ -58,19 +59,3 @@ cwiseSqrt() const { return CwiseSqrtReturnType(derived()); }
 EIGEN_DEVICE_FUNC
 inline const CwiseInverseReturnType
 cwiseInverse() const { return CwiseInverseReturnType(derived()); }
-
-/** \returns an expression of the coefficient-wise == operator of \c *this and a scalar \a s
-  *
-  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
-  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
-  * generally a far better idea to use a fuzzy comparison as provided by isApprox() and
-  * isMuchSmallerThan().
-  *
-  * \sa cwiseEqual(const MatrixBase<OtherDerived> &) const
-  */
-EIGEN_DEVICE_FUNC
-inline const CwiseScalarEqualReturnType
-cwiseEqual(const Scalar& s) const
-{
-  return CwiseScalarEqualReturnType(derived(), std::bind1st(std::equal_to<Scalar>(), s));
-}
