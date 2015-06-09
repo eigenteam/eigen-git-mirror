@@ -278,6 +278,7 @@ namespace Eigen {
   #error Please tell me what is the equivalent of __attribute__((aligned(n))) for your compiler
 #endif
 
+#define EIGEN_ALIGN8  EIGEN_ALIGN_TO_BOUNDARY(8)
 #define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
 
 #if EIGEN_ALIGN_STATICALLY
