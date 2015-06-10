@@ -448,12 +448,7 @@ template<typename T> bool isNotNaN(const T& x)
   return x==x;
 }
 
-template<typename T> bool isNaN(const T& x)
-{
-  return x!=x;
-}
-
-template<typename T> bool isInf(const T& x)
+template<typename T> bool isPlusInf(const T& x)
 {
   return x > NumTraits<T>::highest();
 }

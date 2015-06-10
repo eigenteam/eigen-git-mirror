@@ -49,6 +49,7 @@ struct default_packet_traits
     HasMul    = 1,
     HasNegate = 1,
     HasAbs    = 1,
+    HasArg    = 0,
     HasAbs2   = 1,
     HasMin    = 1,
     HasMax    = 1,
@@ -61,6 +62,7 @@ struct default_packet_traits
     HasRsqrt  = 0,
     HasExp    = 0,
     HasLog    = 0,
+    HasLog10    = 0,
     HasPow    = 0,
 
     HasSin    = 0,
@@ -68,7 +70,14 @@ struct default_packet_traits
     HasTan    = 0,
     HasASin   = 0,
     HasACos   = 0,
-    HasATan   = 0
+    HasATan   = 0,
+    HasSinh    = 0,
+    HasCosh    = 0,
+    HasTanh    = 0,
+
+    HasRound  = 0,
+    HasFloor  = 0,
+    HasCeil   = 0
   };
 };
 
@@ -162,6 +171,10 @@ pmax(const Packet& a,
 /** \internal \returns the absolute value of \a a */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
 pabs(const Packet& a) { using std::abs; return abs(a); }
+
+/** \internal \returns the phase angle of \a a */
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+parg(const Packet& a) { using numext::arg; return arg(a); }
 
 /** \internal \returns the bitwise and of \a a and \a b */
 template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
@@ -359,9 +372,21 @@ Packet pasin(const Packet& a) { using std::asin; return asin(a); }
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pacos(const Packet& a) { using std::acos; return acos(a); }
 
-/** \internal \returns the atan of \a a (coeff-wise) */
+/** \internal \returns the arc tangent of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet patan(const Packet& a) { using std::atan; return atan(a); }
+
+/** \internal \returns the hyperbolic sine of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet psinh(const Packet& a) { using std::sinh; return sinh(a); }
+
+/** \internal \returns the hyperbolic cosine of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pcosh(const Packet& a) { using std::cosh; return cosh(a); }
+
+/** \internal \returns the hyperbolic tan of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet ptanh(const Packet& a) { using std::tanh; return tanh(a); }
 
 /** \internal \returns the exp of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
@@ -370,6 +395,10 @@ Packet pexp(const Packet& a) { using std::exp; return exp(a); }
 /** \internal \returns the log of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet plog(const Packet& a) { using std::log; return log(a); }
+
+/** \internal \returns the log10 of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet plog10(const Packet& a) { using std::log10; return log10(a); }
 
 /** \internal \returns the square-root of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
@@ -380,6 +409,18 @@ template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet prsqrt(const Packet& a) {
   return pdiv(pset1<Packet>(1), psqrt(a));
 }
+
+/** \internal \returns the rounded value of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pround(const Packet& a) { using numext::round; return round(a); }
+
+/** \internal \returns the floor of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pfloor(const Packet& a) { using numext::floor; return floor(a); }
+
+/** \internal \returns the ceil of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pceil(const Packet& a) { using numext::ceil; return ceil(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types
