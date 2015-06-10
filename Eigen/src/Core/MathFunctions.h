@@ -363,10 +363,8 @@ inline NewType cast(const OldType& x)
 /****************************************************************************
 * Implementation of round                                                   *
 ****************************************************************************/
-// In C++11 we can specialize round_impl for real Scalars
-// Let's be conservative and enable the default C++11 implementation only if we are sure it exists
-#if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
-    && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
+
+#if EIGEN_HAS_C99_MATH
   template<typename Scalar>
   struct round_impl {
     static inline Scalar run(const Scalar& x)
@@ -376,7 +374,6 @@ inline NewType cast(const OldType& x)
       return round(x);
     }
   };
-// No C++11, use our own implementation
 #else
   template<typename Scalar>
   struct round_impl
@@ -400,10 +397,8 @@ struct round_retval
 /****************************************************************************
 * Implementation of arg                                                     *
 ****************************************************************************/
-// In C++11 we can specialize arg_impl for all Scalars
-// Let's be conservative and enable the default C++11 implementation only if we are sure it exists
-#if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
-    && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
+
+#if EIGEN_HAS_C99_MATH
   template<typename Scalar>
   struct arg_impl {
     static inline Scalar run(const Scalar& x)
@@ -412,8 +407,6 @@ struct round_retval
       return arg(x);
     }
   };
-
-// No C++11, use our own implementation for real Scalars
 #else
   template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex>
   struct arg_default_impl
@@ -462,10 +455,8 @@ struct log1p_impl
     return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
   }
 };
-// In C++11 we can specialize log1p_impl for real Scalars
-// Let's be conservative and enable the default C++11 implementation only if we are sure it exists
-#if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
-    && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
+
+#ifdef EIGEN_HAS_C99_MATH
 template<typename Scalar>
 struct log1p_impl<Scalar, false> {
   static inline Scalar run(const Scalar& x)
