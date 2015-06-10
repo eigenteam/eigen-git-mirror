@@ -606,6 +606,18 @@ template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 template<typename S1, typename S2> struct glue_shapes;
 template<> struct glue_shapes<DenseShape,TriangularShape> { typedef TriangularShape type;  };
 
+template<typename T1, typename T2>
+bool is_same_dense(const T1 &mat1, const T2 &mat2, typename enable_if<has_direct_access<T1>::ret&&has_direct_access<T2>::ret, T1>::type * = 0)
+{
+  return (mat1.data()==mat2.data()) && (mat1.innerStride()==mat2.innerStride()) && (mat1.outerStride()==mat2.outerStride());
+}
+
+template<typename T1, typename T2>
+bool is_same_dense(const T1 &, const T2 &, typename enable_if<!(has_direct_access<T1>::ret&&has_direct_access<T2>::ret), T1>::type * = 0)
+{
+  return false;
+}
+
 } // end namespace internal
 
 // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
