@@ -102,6 +102,30 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   }  
 }
 
+template<typename T>
+void bug890()
+{
+  typedef Matrix<T, Dynamic, Dynamic> MatrixType;
+  typedef Matrix<T, Dynamic, 1> VectorType;
+  typedef Stride<Dynamic,Dynamic> S;
+  typedef Map<MatrixType, Aligned, S> MapType;
+  typedef PermutationMatrix<Dynamic> Perm;
+  
+  VectorType v1(2), v2(2), op(4), rhs(2);
+  v1 << 666,667;
+  op << 1,0,0,1;
+  rhs << 42,42;
+  
+  Perm P(2);
+  P.indices() << 1, 0;
+
+  MapType(v1.data(),2,1,S(1,1)) = P * MapType(rhs.data(),2,1,S(1,1));
+  VERIFY_IS_APPROX(v1, (P * rhs).eval());
+  
+  MapType(v1.data(),2,1,S(1,1)) = P.inverse() * MapType(rhs.data(),2,1,S(1,1));
+  VERIFY_IS_APPROX(v1, (P.inverse() * rhs).eval());
+}
+
 void test_permutationmatrices()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -113,4 +137,5 @@ void test_permutationmatrices()
     CALL_SUBTEST_6( permutationmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(20, 30)) );
     CALL_SUBTEST_7( permutationmatrices(MatrixXcf(15, 10)) );
   }
+  CALL_SUBTEST_5( bug890<double>() );
 }
