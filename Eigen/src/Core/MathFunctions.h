@@ -841,7 +841,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isinf)(const std::complex<T>& x)
 {
-  return numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x));
+  return (numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x))) && (!numext::isnan(x));
 }
 
 template<typename Scalar>
