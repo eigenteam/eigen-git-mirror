@@ -10,6 +10,9 @@
 #ifndef EIGEN_MATHFUNCTIONS_H
 #define EIGEN_MATHFUNCTIONS_H
 
+// source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
+#define EIGEN_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406
+
 namespace Eigen {
 
 // On WINCE, std::abs is defined for int only, so let's defined our own overloads:
@@ -415,8 +418,7 @@ struct round_retval
     EIGEN_DEVICE_FUNC
     static inline RealScalar run(const Scalar& x)
     {
-      const double pi = std::acos(-1.0);
-      return (x < 0.0) ? pi : 0.0; }
+      return (x < 0.0) ? EIGEN_PI : 0.0; }
   };
 
   template<typename Scalar>

@@ -29,7 +29,7 @@ template<typename Scalar, int Mode, int Options> void non_projective_only()
 
   Transform3 t0, t1, t2;
 
-  Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar a = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
 
   Quaternionx q1, q2;
 
@@ -97,14 +97,14 @@ template<typename Scalar, int Mode, int Options> void transformations()
           v1 = Vector3::Random();
   Matrix3 matrot1, m;
 
-  Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar a = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
   Scalar s0 = internal::random<Scalar>(), s1 = internal::random<Scalar>();
   
   while(v0.norm() < test_precision<Scalar>()) v0 = Vector3::Random();
   while(v1.norm() < test_precision<Scalar>()) v1 = Vector3::Random();
 
   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
-  VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(M_PI), v0.unitOrthogonal()) * v0);
+  VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(EIGEN_PI), v0.unitOrthogonal()) * v0);
   if(abs(cos(a)) > test_precision<Scalar>())
   {
     VERIFY_IS_APPROX(cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
@@ -156,7 +156,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
   // TODO complete the tests !
   a = 0;
   while (abs(a)<Scalar(0.1))
-    a = internal::random<Scalar>(-Scalar(0.4)*Scalar(M_PI), Scalar(0.4)*Scalar(M_PI));
+    a = internal::random<Scalar>(-Scalar(0.4)*Scalar(EIGEN_PI), Scalar(0.4)*Scalar(EIGEN_PI));
   q1 = AngleAxisx(a, v0.normalized());
   Transform3 t0, t1, t2;
 
@@ -202,7 +202,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
     tmat4.matrix()(3,3) = Scalar(1);
   VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
 
-  Scalar a3 = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar a3 = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
   Vector3 v3 = Vector3::Random().normalized();
   AngleAxisx aa3(a3, v3);
   Transform3 t3(aa3);
