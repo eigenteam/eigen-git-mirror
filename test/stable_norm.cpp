@@ -9,14 +9,6 @@
 
 #include "main.h"
 
-// workaround aggressive optimization in ICC
-template<typename T> EIGEN_DONT_INLINE  T sub(T a, T b) { return a - b; }
-
-template<typename T> bool isFinite(const T& x)
-{
-  return isNotNaN(sub(x,x));
-}
-
 template<typename T> EIGEN_DONT_INLINE T copy(const T& x)
 {
   return x;
@@ -76,19 +68,19 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
 
   RealScalar size = static_cast<RealScalar>(m.size());
 
-  // test isFinite
-  VERIFY(!isFinite( std::numeric_limits<RealScalar>::infinity()));
-  VERIFY(!isFinite(sqrt(-abs(big))));
+  // test numext::isfinite
+  VERIFY(!numext::isfinite( std::numeric_limits<RealScalar>::infinity()));
+  VERIFY(!numext::isfinite(sqrt(-abs(big))));
 
   // test overflow
-  VERIFY(isFinite(sqrt(size)*abs(big)));
+  VERIFY(numext::isfinite(sqrt(size)*abs(big)));
   VERIFY_IS_NOT_APPROX(sqrt(copy(vbig.squaredNorm())), abs(sqrt(size)*big)); // here the default norm must fail
   VERIFY_IS_APPROX(vbig.stableNorm(), sqrt(size)*abs(big));
   VERIFY_IS_APPROX(vbig.blueNorm(),   sqrt(size)*abs(big));
   VERIFY_IS_APPROX(vbig.hypotNorm(),  sqrt(size)*abs(big));
 
   // test underflow
-  VERIFY(isFinite(sqrt(size)*abs(small)));
+  VERIFY(numext::isfinite(sqrt(size)*abs(small)));
   VERIFY_IS_NOT_APPROX(sqrt(copy(vsmall.squaredNorm())),   abs(sqrt(size)*small)); // here the default norm must fail
   VERIFY_IS_APPROX(vsmall.stableNorm(), sqrt(size)*abs(small));
   VERIFY_IS_APPROX(vsmall.blueNorm(),   sqrt(size)*abs(small));
@@ -111,33 +103,33 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   {
     v = vrand;
     v(i,j) = std::numeric_limits<RealScalar>::quiet_NaN();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(numext::isNaN(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(numext::isNaN(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(numext::isNaN(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(numext::isNaN(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(numext::isNaN(v.hypotNorm()));
+    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(numext::isnan(v.squaredNorm()));
+    VERIFY(!numext::isfinite(v.norm()));          VERIFY(numext::isnan(v.norm()));
+    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(numext::isnan(v.stableNorm()));
+    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(numext::isnan(v.blueNorm()));
+    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(numext::isnan(v.hypotNorm()));
   }
   
   // +inf
   {
     v = vrand;
     v(i,j) = std::numeric_limits<RealScalar>::infinity();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
+    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
+    VERIFY(!numext::isfinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
+    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
+    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
+    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
   
   // -inf
   {
     v = vrand;
     v(i,j) = -std::numeric_limits<RealScalar>::infinity();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
+    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
+    VERIFY(!numext::isfinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
+    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
+    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
+    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
   
   // mix
@@ -147,11 +139,11 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     v = vrand;
     v(i,j) = -std::numeric_limits<RealScalar>::infinity();
     v(i2,j2) = std::numeric_limits<RealScalar>::quiet_NaN();
-    VERIFY(!isFinite(v.squaredNorm()));   VERIFY(numext::isNaN(v.squaredNorm()));
-    VERIFY(!isFinite(v.norm()));          VERIFY(numext::isNaN(v.norm()));
-    VERIFY(!isFinite(v.stableNorm()));    VERIFY(numext::isNaN(v.stableNorm()));
-    VERIFY(!isFinite(v.blueNorm()));      VERIFY(numext::isNaN(v.blueNorm()));
-    VERIFY(!isFinite(v.hypotNorm()));     VERIFY(numext::isNaN(v.hypotNorm()));
+    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(numext::isnan(v.squaredNorm()));
+    VERIFY(!numext::isfinite(v.norm()));          VERIFY(numext::isnan(v.norm()));
+    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(numext::isnan(v.stableNorm()));
+    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(numext::isnan(v.blueNorm()));
+    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(numext::isnan(v.hypotNorm()));
   }
 }
 

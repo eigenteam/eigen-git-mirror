@@ -317,7 +317,7 @@ template<typename Scalar> void packetmath_real()
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     packet_helper<internal::packet_traits<Scalar>::HasExp,Packet> h;
     h.store(data2, internal::pexp(h.load(data1))); 
-    VERIFY(numext::isNaN(data2[0]));
+    VERIFY(numext::isnan(data2[0]));
   }
 
   for (int i=0; i<size; ++i)
@@ -333,14 +333,14 @@ template<typename Scalar> void packetmath_real()
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     packet_helper<internal::packet_traits<Scalar>::HasLog,Packet> h;
     h.store(data2, internal::plog(h.load(data1)));
-    VERIFY(numext::isNaN(data2[0]));
+    VERIFY(numext::isnan(data2[0]));
     data1[0] = -1.0f;
     h.store(data2, internal::plog(h.load(data1)));
-    VERIFY(numext::isNaN(data2[0]));
+    VERIFY(numext::isnan(data2[0]));
 #if !EIGEN_FAST_MATH
     h.store(data2, internal::psqrt(h.load(data1)));
-    VERIFY(numext::isNaN(data2[0]));
-    VERIFY(numext::isNaN(data2[1]));
+    VERIFY(numext::isnan(data2[0]));
+    VERIFY(numext::isnan(data2[1]));
 #endif
   }
 }

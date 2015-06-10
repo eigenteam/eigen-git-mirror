@@ -586,15 +586,15 @@ struct functor_traits<scalar_ceil_op<Scalar> >
 
 /** \internal
   * \brief Template functor to compute whether a scalar is NaN
-  * \sa class CwiseUnaryOp, ArrayBase::isNaN()
+  * \sa class CwiseUnaryOp, ArrayBase::isnan()
   */
-template<typename Scalar> struct scalar_isNaN_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_isNaN_op)
+template<typename Scalar> struct scalar_isnan_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_isnan_op)
   typedef bool result_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isNaN(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isnan(a); }
 };
 template<typename Scalar>
-struct functor_traits<scalar_isNaN_op<Scalar> >
+struct functor_traits<scalar_isnan_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
@@ -603,16 +603,16 @@ struct functor_traits<scalar_isNaN_op<Scalar> >
 };
 
 /** \internal
-  * \brief Template functor to compute the isInf of a scalar
-  * \sa class CwiseUnaryOp, ArrayBase::isInf()
+  * \brief Template functor to check whether a scalar is +/-inf
+  * \sa class CwiseUnaryOp, ArrayBase::isinf()
   */
-template<typename Scalar> struct scalar_isInf_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_isInf_op)
+template<typename Scalar> struct scalar_isinf_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_isinf_op)
   typedef bool result_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isInf(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isinf(a); }
 };
 template<typename Scalar>
-struct functor_traits<scalar_isInf_op<Scalar> >
+struct functor_traits<scalar_isinf_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
@@ -621,16 +621,16 @@ struct functor_traits<scalar_isInf_op<Scalar> >
 };
 
 /** \internal
-  * \brief Template functor to compute the isFinite of a scalar
-  * \sa class CwiseUnaryOp, ArrayBase::isFinite()
+  * \brief Template functor to check whether a scalar has a finite value
+  * \sa class CwiseUnaryOp, ArrayBase::isfinite()
   */
-template<typename Scalar> struct scalar_isFinite_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_isFinite_op)
+template<typename Scalar> struct scalar_isfinite_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_isfinite_op)
   typedef bool result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isfinite(a); }
 };
 template<typename Scalar>
-struct functor_traits<scalar_isFinite_op<Scalar> >
+struct functor_traits<scalar_isfinite_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::MulCost,

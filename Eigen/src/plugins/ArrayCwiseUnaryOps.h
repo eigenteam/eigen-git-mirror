@@ -25,9 +25,9 @@ typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturn
 typedef CwiseUnaryOp<internal::scalar_round_op<Scalar>, const Derived> RoundReturnType;
 typedef CwiseUnaryOp<internal::scalar_floor_op<Scalar>, const Derived> FloorReturnType;
 typedef CwiseUnaryOp<internal::scalar_ceil_op<Scalar>, const Derived> CeilReturnType;
-typedef CwiseUnaryOp<internal::scalar_isNaN_op<Scalar>, const Derived> IsNaNReturnType;
-typedef CwiseUnaryOp<internal::scalar_isInf_op<Scalar>, const Derived> IsInfReturnType;
-typedef CwiseUnaryOp<internal::scalar_isFinite_op<Scalar>, const Derived> IsFiniteReturnType;
+typedef CwiseUnaryOp<internal::scalar_isnan_op<Scalar>, const Derived> IsNaNReturnType;
+typedef CwiseUnaryOp<internal::scalar_isinf_op<Scalar>, const Derived> IsInfReturnType;
+typedef CwiseUnaryOp<internal::scalar_isfinite_op<Scalar>, const Derived> IsFiniteReturnType;
 
 /** \returns an expression of the coefficient-wise absolute value of \c *this
   *
@@ -366,12 +366,12 @@ ceil() const
   return CeilReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise isNaN of *this.
+/** \returns an expression of the coefficient-wise isnan of *this.
   *
   * Example: \include Cwise_isNaN.cpp
   * Output: \verbinclude Cwise_isNaN.out
   *
-  * \sa isFinite(), isInf()
+  * \sa isfinite(), isinf()
   */
 inline const IsNaNReturnType
 isNaN() const
@@ -379,12 +379,12 @@ isNaN() const
   return IsNaNReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise isInf of *this.
+/** \returns an expression of the coefficient-wise isinf of *this.
   *
   * Example: \include Cwise_isInf.cpp
   * Output: \verbinclude Cwise_isInf.out
   *
-  * \sa isNaN(), isFinite()
+  * \sa isnan(), isfinite()
   */
 inline const IsInfReturnType
 isInf() const
@@ -392,12 +392,12 @@ isInf() const
   return IsInfReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise isFinite of *this.
+/** \returns an expression of the coefficient-wise isfinite of *this.
   *
   * Example: \include Cwise_isFinite.cpp
   * Output: \verbinclude Cwise_isFinite.out
   *
-  * \sa isNaN(), isInf()
+  * \sa isnan(), isinf()
   */
 inline const IsFiniteReturnType
 isFinite() const

@@ -803,14 +803,12 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isfinite)(const std::complex<T>& x)
 {
-  using std::real;
-  using std::imag;
-  return isfinite(real(x)) && isfinite(imag(x));
+  return numext::isfinite(numext::real(x)) && numext::isfinite(numext::imag(x));
 }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-bool (isNaN)(const T& x)
+bool (isnan)(const T& x)
 {
   #ifdef EIGEN_HAS_C99_MATH
     using std::isnan;
@@ -822,17 +820,14 @@ bool (isNaN)(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-bool (isNaN)(const std::complex<T>& x)
+bool (isnan)(const std::complex<T>& x)
 {
-  using std::real;
-  using std::imag;
-  using std::isnan;
-  return isnan(real(x)) || isnan(imag(x));
+  return numext::isnan(numext::real(x)) || numext::isnan(numext::imag(x));
 }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-bool (isInf)(const T& x)
+bool (isinf)(const T& x)
 {
   #ifdef EIGEN_HAS_C99_MATH
     using std::isinf;
@@ -844,12 +839,9 @@ bool (isInf)(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-bool (isInf)(const std::complex<T>& x)
+bool (isinf)(const std::complex<T>& x)
 {
-  using std::real;
-  using std::imag;
-  using std::isinf;
-  return isinf(real(x)) || isinf(imag(x));
+  return numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x));
 }
 
 template<typename Scalar>

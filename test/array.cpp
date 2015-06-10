@@ -215,9 +215,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
-  VERIFY((m1.isNaN() == isNaN(m1)).all());
-  VERIFY((m1.isInf() == isInf(m1)).all());
-  VERIFY((m1.isFinite() == isFinite(m1)).all());
+  VERIFY((m1.isNaN() == isnan(m1)).all());
+  VERIFY((m1.isInf() == isinf(m1)).all());
+  VERIFY((m1.isFinite() == isfinite(m1)).all());
   VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
   VERIFY_IS_APPROX(m1.abs(), abs(m1));
   VERIFY_IS_APPROX(m1.abs2(), abs2(m1));
@@ -243,9 +243,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(tanh(m1), (0.5*(exp(m1)-exp(-m1)))/(0.5*(exp(m1)+exp(-m1))));
   VERIFY_IS_APPROX(arg(m1), ((ArrayType)(m1<0))*std::acos(-1.0));
   VERIFY((round(m1) <= ceil(m1) && round(m1) >= floor(m1)).all());
-  VERIFY(isNaN(m1*0.0/0.0).all());
-  VERIFY(isInf(m1/0.0).all());
-  VERIFY((isFinite(m1) && !isFinite(m1*0.0/0.0) && !isFinite(m1/0.0)).all());
+  VERIFY(isnan(m1*0.0/0.0).all());
+  VERIFY(isinf(m1/0.0).all());
+  VERIFY((isfinite(m1) && !isfinite(m1*0.0/0.0) && !isfinite(m1/0.0)).all());
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY((abs(m1) == m1 || abs(m1) == -m1).all());
   VERIFY_IS_APPROX(m3, sqrt(abs2(m1)));
@@ -317,9 +317,9 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
-  VERIFY((m1.isNaN() == isNaN(m1)).all());
-  VERIFY((m1.isInf() == isInf(m1)).all());
-  VERIFY((m1.isFinite() == isFinite(m1)).all());
+  VERIFY((m1.isNaN() == isnan(m1)).all());
+  VERIFY((m1.isInf() == isinf(m1)).all());
+  VERIFY((m1.isFinite() == isfinite(m1)).all());
   VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
   VERIFY_IS_APPROX(m1.log(), log(m1));
   VERIFY_IS_APPROX(m1.log10(), log10(m1));
@@ -345,9 +345,9 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(arg(m1), m3);
 
   std::complex<RealScalar> zero(0.0,0.0);
-  VERIFY(isNaN(m1*zero/zero).all());
-  VERIFY(isInf(m1/zero).all());
-  VERIFY((isFinite(m1) && !isFinite(m1*zero/zero) && !isFinite(m1/zero)).all());
+  VERIFY(isnan(m1*zero/zero).all());
+  VERIFY(isinf(m1/zero).all());
+  VERIFY((isfinite(m1) && !isfinite(m1*zero/zero) && !isfinite(m1/zero)).all());
 
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY_IS_APPROX(conj(m1.conjugate()), m1);
