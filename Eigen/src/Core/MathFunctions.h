@@ -367,7 +367,7 @@ inline NewType cast(const OldType& x)
 * Implementation of round                                                   *
 ****************************************************************************/
 
-#if EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_CXX11_MATH
   template<typename Scalar>
   struct round_impl {
     static inline Scalar run(const Scalar& x)
@@ -401,7 +401,7 @@ struct round_retval
 * Implementation of arg                                                     *
 ****************************************************************************/
 
-#if EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_CXX11_MATH
   template<typename Scalar>
   struct arg_impl {
     static inline Scalar run(const Scalar& x)
@@ -458,7 +458,7 @@ struct log1p_impl
   }
 };
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_CXX11_MATH
 template<typename Scalar>
 struct log1p_impl<Scalar, false> {
   static inline Scalar run(const Scalar& x)
@@ -784,7 +784,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isfinite)(const T& x)
 {
-  #ifdef EIGEN_HAS_C99_MATH
+  #if EIGEN_HAS_CXX11_MATH
     using std::isfinite;
     return isfinite(x);
   #else
@@ -803,7 +803,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isnan)(const T& x)
 {
-  #ifdef EIGEN_HAS_C99_MATH
+  #if EIGEN_HAS_CXX11_MATH
     using std::isnan;
     return isnan(x);
   #else
@@ -822,7 +822,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isinf)(const T& x)
 {
-  #ifdef EIGEN_HAS_C99_MATH
+  #if EIGEN_HAS_CXX11_MATH
     using std::isinf;
     return isinf(x);
   #else
