@@ -156,7 +156,12 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(internal::traits<Derived>::Flags&PacketAccessBit,
                                         internal::inner_stride_at_compile_time<Derived>::ret==1),
                           PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
-      eigen_assert(EIGEN_IMPLIES(bool(internal::traits<Derived>::Flags&PacketAccessBit) && internal::packet_traits<Scalar>::AlignedOnScalar, (size_t(m_data) % sizeof(Scalar)) == 0)
+      enum {
+        MightTryToAlignOnScalar =   internal::packet_traits<Scalar>::AlignedOnScalar
+                                &&  bool(internal::traits<Derived>::Flags&PacketAccessBit)
+                                &&  internal::is_lvalue<Derived>::value
+      };
+      eigen_assert(EIGEN_IMPLIES(bool(MightTryToAlignOnScalar), (size_t(m_data) % sizeof(Scalar)) == 0)
                    && "input pointer is not aligned on scalar boundary, e.g., use \"EIGEN_ALIGN8 T ptr[N];\" for double or complex<float>");
       eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::Flags&AlignedBit, (size_t(m_data) % 16) == 0)
                    && "input pointer is not aligned on a 16 byte boundary");
