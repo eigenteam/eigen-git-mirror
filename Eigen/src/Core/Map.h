@@ -140,6 +140,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       : Base(cast_to_pointer_type(dataPtr)), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
+      checkPointer(dataPtr);
     }
 
     /** Constructor in the dynamic-size vector case.
@@ -152,6 +153,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       : Base(cast_to_pointer_type(dataPtr), a_size), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
+      checkPointer(dataPtr);
     }
 
     /** Constructor in the dynamic-size matrix case.
@@ -165,11 +167,24 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       : Base(cast_to_pointer_type(dataPtr), nbRows, nbCols), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
+      checkPointer(dataPtr);
     }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
 
   protected:
+    
+    static void checkPointer(const Scalar* dataPtr)
+    {
+      enum {
+        MightTryToAlignOnScalar =   internal::packet_traits<Scalar>::AlignedOnScalar
+                                &&  bool(internal::traits<Map>::Flags&PacketAccessBit)
+                                &&  internal::is_lvalue<Map>::value
+      };
+      eigen_assert(EIGEN_IMPLIES(bool(MightTryToAlignOnScalar), (size_t(dataPtr) % sizeof(Scalar)) == 0)
+                   && "input pointer is not aligned on scalar boundary, e.g., use \"EIGEN_ALIGN8 T ptr[N];\" for double or complex<float>");
+    }
+    
     StrideType m_stride;
 };
 
