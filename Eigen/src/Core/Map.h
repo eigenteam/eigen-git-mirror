@@ -174,14 +174,16 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
 
   protected:
     
-    static void checkPointer(const Scalar* dataPtr)
+    void checkPointer(const Scalar* dataPtr)
     {
       enum {
         MightTryToAlignOnScalar =   internal::packet_traits<Scalar>::AlignedOnScalar
                                 &&  bool(internal::traits<Map>::Flags&PacketAccessBit)
-                                &&  internal::is_lvalue<Map>::value
+                                &&  internal::is_lvalue<Map>::value,
+        PacketSize = internal::packet_traits<Scalar>::size
       };
-      eigen_assert(EIGEN_IMPLIES(bool(MightTryToAlignOnScalar), (size_t(dataPtr) % sizeof(Scalar)) == 0)
+      Index linear_size = bool(internal::traits<Map>::Flags&LinearAccessBit) ? this->size() : this->innerSize();
+      eigen_assert(EIGEN_IMPLIES(bool(MightTryToAlignOnScalar) && (linear_size>=PacketSize), (size_t(dataPtr) % sizeof(Scalar)) == 0)
                    && "input pointer is not aligned on scalar boundary, e.g., use \"EIGEN_ALIGN8 T ptr[N];\" for double or complex<float>");
     }
     
