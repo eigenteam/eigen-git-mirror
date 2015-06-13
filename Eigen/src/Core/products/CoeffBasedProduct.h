@@ -452,7 +452,7 @@ struct product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet& res)
   {
     res = pset1<Packet>(0);
-    for(Index i = 1; i < lhs.cols(); ++i)
+    for(Index i = 0; i < lhs.cols(); ++i)
       res =  pmadd(pset1<Packet>(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
   }
 };
