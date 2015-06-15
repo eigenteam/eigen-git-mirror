@@ -250,7 +250,7 @@ inline void verify_impl(bool condition, const char *testname, const char *file, 
 
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
 #define VERIFY_IS_NOT_EQUAL(a, b) VERIFY(!test_is_equal(a, b))
-#define VERIFY_IS_APPROX(a, b) VERIFY(test_isApprox(a, b))
+#define VERIFY_IS_APPROX(a, b) VERIFY(verifyIsApprox(a, b))
 #define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_isApprox(a, b))
 #define VERIFY_IS_MUCH_SMALLER_THAN(a, b) VERIFY(test_isMuchSmallerThan(a, b))
 #define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) VERIFY(!test_isMuchSmallerThan(a, b))
@@ -324,10 +324,117 @@ inline bool test_isApproxOrLessThan(const long double& a, const long double& b)
 { return internal::isApproxOrLessThan(a, b, test_precision<long double>()); }
 #endif // EIGEN_TEST_NO_LONGDOUBLE
 
+
+// test_relative_error returns the relative difference between a and b as a real scalar as used in isApprox.
+template<typename T1,typename T2>
+typename T1::RealScalar test_relative_error(const EigenBase<T1> &a, const EigenBase<T2> &b)
+{
+  typedef typename T1::RealScalar RealScalar;
+  typename internal::nested_eval<T1,2>::type ea(a.derived());
+  typename internal::nested_eval<T2,2>::type eb(b.derived());
+  return RealScalar((ea-eb).cwiseAbs2().sum()) / RealScalar((std::min)(eb.cwiseAbs2().sum(),ea.cwiseAbs2().sum()));
+}
+
+template<typename T1,typename T2>
+typename T1::RealScalar test_relative_error(const T1 &a, const T2 &b, const typename T1::Coefficients* = 0)
+{
+  return test_relative_error(a.coeffs(), b.coeffs());
+}
+
+template<typename T1,typename T2>
+typename T1::Scalar test_relative_error(const T1 &a, const T2 &b, const typename T1::MatrixType* = 0)
+{
+  return test_relative_error(a.matrix(), b.matrix());
+}
+
+template<typename S, int D>
+S test_relative_error(const Translation<S,D> &a, const Translation<S,D> &b)
+{
+  return test_relative_error(a.vector(), b.vector());
+}
+
+template <typename S, int D, int O>
+S test_relative_error(const ParametrizedLine<S,D,O> &a, const ParametrizedLine<S,D,O> &b)
+{
+  return (std::max)(test_relative_error(a.origin(), b.origin()), test_relative_error(a.origin(), b.origin()));
+}
+
+template <typename S, int D>
+S test_relative_error(const AlignedBox<S,D> &a, const AlignedBox<S,D> &b)
+{
+  return (std::max)(test_relative_error((a.min)(), (b.min)()), test_relative_error((a.max)(), (b.max)()));
+}
+
+template<typename Derived> class SparseMatrixBase;
+template<typename T1,typename T2>
+typename T1::RealScalar test_relative_error(const MatrixBase<T1> &a, const SparseMatrixBase<T2> &b)
+{
+  return test_relative_error(a,b.toDense());
+}
+
+template<typename Derived> class SparseMatrixBase;
+template<typename T1,typename T2>
+typename T1::RealScalar test_relative_error(const SparseMatrixBase<T1> &a, const MatrixBase<T2> &b)
+{
+  return test_relative_error(a.toDense(),b);
+}
+
+template<typename Derived> class SparseMatrixBase;
+template<typename T1,typename T2>
+typename T1::RealScalar test_relative_error(const SparseMatrixBase<T1> &a, const SparseMatrixBase<T2> &b)
+{
+  return test_relative_error(a.toDense(),b.toDense());
+}
+
+template<typename T1,typename T2>
+typename NumTraits<T1>::Real test_relative_error(const T1 &a, const T2 &b, typename internal::enable_if<internal::is_arithmetic<typename NumTraits<T1>::Real>::value, T1>::type* = 0)
+{
+  typedef typename NumTraits<T1>::Real RealScalar; 
+  using std::min;
+  return RealScalar(numext::abs2(a-b))/RealScalar((min)(numext::abs2(a),numext::abs2(b)));
+}
+
+template<typename T>
+T test_relative_error(const Rotation2D<T> &a, const Rotation2D<T> &b)
+{
+  return test_relative_error(a.angle(), b.angle());
+}
+
+template<typename T>
+T test_relative_error(const AngleAxis<T> &a, const AngleAxis<T> &b)
+{
+  return (std::max)(test_relative_error(a.angle(), b.angle()), test_relative_error(a.axis(), b.axis()));
+}
+
 template<typename Type1, typename Type2>
 inline bool test_isApprox(const Type1& a, const Type2& b)
 {
   return a.isApprox(b, test_precision<typename Type1::Scalar>());
+}
+
+// get_test_precision is a small wrapper to test_precision allowing to return the scalar precision for either scalars or expressions
+template<typename T>
+typename NumTraits<typename T::Scalar>::Real get_test_precision(const typename T::Scalar* = 0)
+{
+  return test_precision<typename NumTraits<typename T::Scalar>::Real>();
+}
+
+template<typename T>
+typename NumTraits<T>::Real get_test_precision(typename internal::enable_if<internal::is_arithmetic<typename NumTraits<T>::Real>::value, T>::type* = 0)
+{
+  return test_precision<typename NumTraits<T>::Real>();
+}
+
+// verifyIsApprox is a wrapper to test_isApprox that outputs the relative difference magnitude if the test fails.
+template<typename Type1, typename Type2>
+inline bool verifyIsApprox(const Type1& a, const Type2& b)
+{
+  bool ret = test_isApprox(a,b);
+  if(!ret)
+  {
+    std::cerr << "Difference too large wrt tolerance " << get_test_precision<Type1>()  << ", relative error is: " << test_relative_error(a,b) << std::endl;
+  }
+  return ret;
 }
 
 // The idea behind this function is to compare the two scalars a and b where
