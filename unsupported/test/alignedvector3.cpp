@@ -10,6 +10,16 @@
 #include "main.h"
 #include <unsupported/Eigen/AlignedVector3>
 
+namespace Eigen {
+
+template<typename T,typename Derived>
+T test_relative_error(const AlignedVector3<T> &a, const MatrixBase<Derived> &b)
+{
+  return test_relative_error(a.coeffs().template head<3>(), b);
+}
+
+}
+
 template<typename Scalar>
 void alignedvector3()
 {
