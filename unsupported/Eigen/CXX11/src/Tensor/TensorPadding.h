@@ -185,11 +185,13 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   {
     Index inputIndex;
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
-      const Index idx = coords[0];
-      if (idx < m_padding[0].first || idx >= m_dimensions[0] - m_padding[0].second) {
-        return Scalar(0);
+      {
+        const Index idx = coords[0];
+        if (idx < m_padding[0].first || idx >= m_dimensions[0] - m_padding[0].second) {
+          return Scalar(0);
+        }
+        inputIndex = idx - m_padding[0].first;
       }
-      inputIndex = idx - m_padding[0].first;
       for (int i = 1; i < NumDims; ++i) {
         const Index idx = coords[i];
         if (idx < m_padding[i].first || idx >= m_dimensions[i] - m_padding[i].second) {
@@ -198,11 +200,13 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
         inputIndex += (idx - m_padding[i].first) * m_inputStrides[i];
       }
     } else {
-      const Index idx = coords[NumDims-1];
-      if (idx < m_padding[NumDims-1].first || idx >= m_dimensions[NumDims-1] - m_padding[NumDims-1].second) {
-        return Scalar(0);
+      {
+        const Index idx = coords[NumDims-1];
+        if (idx < m_padding[NumDims-1].first || idx >= m_dimensions[NumDims-1] - m_padding[NumDims-1].second) {
+          return Scalar(0);
+        }
+        inputIndex = idx - m_padding[NumDims-1].first;
       }
-      inputIndex = idx - m_padding[NumDims-1].first;
       for (int i = NumDims - 2; i >= 0; --i) {
         const Index idx = coords[i];
         if (idx < m_padding[i].first || idx >= m_dimensions[i] - m_padding[i].second) {

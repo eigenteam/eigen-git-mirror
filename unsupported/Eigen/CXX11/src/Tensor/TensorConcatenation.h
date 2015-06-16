@@ -135,19 +135,21 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
     eigen_assert(0 <= m_axis && m_axis < NumDims);
     const Dimensions& lhs_dims = m_leftImpl.dimensions();
     const Dimensions& rhs_dims = m_rightImpl.dimensions();
-    int i = 0;
-    for (; i < m_axis; ++i) {
-      eigen_assert(lhs_dims[i] > 0);
-      eigen_assert(lhs_dims[i] == rhs_dims[i]);
-      m_dimensions[i] = lhs_dims[i];
-    }
-    eigen_assert(lhs_dims[i] > 0);  // Now i == m_axis.
-    eigen_assert(rhs_dims[i] > 0);
-    m_dimensions[i] = lhs_dims[i] + rhs_dims[i];
-    for (++i; i < NumDims; ++i) {
-      eigen_assert(lhs_dims[i] > 0);
-      eigen_assert(lhs_dims[i] == rhs_dims[i]);
-      m_dimensions[i] = lhs_dims[i];
+    {
+      int i = 0;
+      for (; i < m_axis; ++i) {
+        eigen_assert(lhs_dims[i] > 0);
+        eigen_assert(lhs_dims[i] == rhs_dims[i]);
+        m_dimensions[i] = lhs_dims[i];
+      }
+      eigen_assert(lhs_dims[i] > 0);  // Now i == m_axis.
+      eigen_assert(rhs_dims[i] > 0);
+      m_dimensions[i] = lhs_dims[i] + rhs_dims[i];
+      for (++i; i < NumDims; ++i) {
+        eigen_assert(lhs_dims[i] > 0);
+        eigen_assert(lhs_dims[i] == rhs_dims[i]);
+        m_dimensions[i] = lhs_dims[i];
+      }
     }
 
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {

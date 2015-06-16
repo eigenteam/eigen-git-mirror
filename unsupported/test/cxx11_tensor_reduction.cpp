@@ -17,11 +17,11 @@ template <int DataLayout>
 static void test_simple_reductions() {
   Tensor<float, 4, DataLayout> tensor(2, 3, 5, 7);
   tensor.setRandom();
-  array<ptrdiff_t, 2> reduction_axis;
-  reduction_axis[0] = 1;
-  reduction_axis[1] = 3;
+  array<ptrdiff_t, 2> reduction_axis2;
+  reduction_axis2[0] = 1;
+  reduction_axis2[1] = 3;
 
-  Tensor<float, 2, DataLayout> result = tensor.sum(reduction_axis);
+  Tensor<float, 2, DataLayout> result = tensor.sum(reduction_axis2);
   VERIFY_IS_EQUAL(result.dimension(0), 2);
   VERIFY_IS_EQUAL(result.dimension(1), 5);
   for (int i = 0; i < 2; ++i) {
@@ -40,20 +40,20 @@ static void test_simple_reductions() {
     Tensor<float, 1, DataLayout> sum1 = tensor.sum();
     VERIFY_IS_EQUAL(sum1.dimension(0), 1);
 
-    array<ptrdiff_t, 4> reduction_axis;
-    reduction_axis[0] = 0;
-    reduction_axis[1] = 1;
-    reduction_axis[2] = 2;
-    reduction_axis[3] = 3;
-    Tensor<float, 1, DataLayout> sum2 = tensor.sum(reduction_axis);
+    array<ptrdiff_t, 4> reduction_axis4;
+    reduction_axis4[0] = 0;
+    reduction_axis4[1] = 1;
+    reduction_axis4[2] = 2;
+    reduction_axis4[3] = 3;
+    Tensor<float, 1, DataLayout> sum2 = tensor.sum(reduction_axis4);
     VERIFY_IS_EQUAL(sum2.dimension(0), 1);
 
     VERIFY_IS_APPROX(sum1(0), sum2(0));
   }
 
-  reduction_axis[0] = 0;
-  reduction_axis[1] = 2;
-  result = tensor.prod(reduction_axis);
+  reduction_axis2[0] = 0;
+  reduction_axis2[1] = 2;
+  result = tensor.prod(reduction_axis2);
   VERIFY_IS_EQUAL(result.dimension(0), 3);
   VERIFY_IS_EQUAL(result.dimension(1), 7);
   for (int i = 0; i < 3; ++i) {
@@ -72,20 +72,20 @@ static void test_simple_reductions() {
     Tensor<float, 1, DataLayout> prod1 = tensor.prod();
     VERIFY_IS_EQUAL(prod1.dimension(0), 1);
 
-    array<ptrdiff_t, 4> reduction_axis;
-    reduction_axis[0] = 0;
-    reduction_axis[1] = 1;
-    reduction_axis[2] = 2;
-    reduction_axis[3] = 3;
-    Tensor<float, 1, DataLayout> prod2 = tensor.prod(reduction_axis);
+    array<ptrdiff_t, 4> reduction_axis4;
+    reduction_axis4[0] = 0;
+    reduction_axis4[1] = 1;
+    reduction_axis4[2] = 2;
+    reduction_axis4[3] = 3;
+    Tensor<float, 1, DataLayout> prod2 = tensor.prod(reduction_axis4);
     VERIFY_IS_EQUAL(prod2.dimension(0), 1);
 
     VERIFY_IS_APPROX(prod1(0), prod2(0));
   }
 
-  reduction_axis[0] = 0;
-  reduction_axis[1] = 2;
-  result = tensor.maximum(reduction_axis);
+  reduction_axis2[0] = 0;
+  reduction_axis2[1] = 2;
+  result = tensor.maximum(reduction_axis2);
   VERIFY_IS_EQUAL(result.dimension(0), 3);
   VERIFY_IS_EQUAL(result.dimension(1), 7);
   for (int i = 0; i < 3; ++i) {
@@ -104,20 +104,20 @@ static void test_simple_reductions() {
     Tensor<float, 1, DataLayout> max1 = tensor.maximum();
     VERIFY_IS_EQUAL(max1.dimension(0), 1);
 
-    array<ptrdiff_t, 4> reduction_axis;
-    reduction_axis[0] = 0;
-    reduction_axis[1] = 1;
-    reduction_axis[2] = 2;
-    reduction_axis[3] = 3;
-    Tensor<float, 1, DataLayout> max2 = tensor.maximum(reduction_axis);
+    array<ptrdiff_t, 4> reduction_axis4;
+    reduction_axis4[0] = 0;
+    reduction_axis4[1] = 1;
+    reduction_axis4[2] = 2;
+    reduction_axis4[3] = 3;
+    Tensor<float, 1, DataLayout> max2 = tensor.maximum(reduction_axis4);
     VERIFY_IS_EQUAL(max2.dimension(0), 1);
 
     VERIFY_IS_APPROX(max1(0), max2(0));
   }
 
-  reduction_axis[0] = 0;
-  reduction_axis[1] = 1;
-  result = tensor.minimum(reduction_axis);
+  reduction_axis2[0] = 0;
+  reduction_axis2[1] = 1;
+  result = tensor.minimum(reduction_axis2);
   VERIFY_IS_EQUAL(result.dimension(0), 5);
   VERIFY_IS_EQUAL(result.dimension(1), 7);
   for (int i = 0; i < 5; ++i) {
@@ -136,20 +136,20 @@ static void test_simple_reductions() {
     Tensor<float, 1, DataLayout> min1 = tensor.minimum();
     VERIFY_IS_EQUAL(min1.dimension(0), 1);
 
-    array<ptrdiff_t, 4> reduction_axis;
-    reduction_axis[0] = 0;
-    reduction_axis[1] = 1;
-    reduction_axis[2] = 2;
-    reduction_axis[3] = 3;
-    Tensor<float, 1, DataLayout> min2 = tensor.minimum(reduction_axis);
+    array<ptrdiff_t, 4> reduction_axis4;
+    reduction_axis4[0] = 0;
+    reduction_axis4[1] = 1;
+    reduction_axis4[2] = 2;
+    reduction_axis4[3] = 3;
+    Tensor<float, 1, DataLayout> min2 = tensor.minimum(reduction_axis4);
     VERIFY_IS_EQUAL(min2.dimension(0), 1);
 
     VERIFY_IS_APPROX(min1(0), min2(0));
   }
 
-  reduction_axis[0] = 0;
-  reduction_axis[1] = 1;
-  result = tensor.mean(reduction_axis);
+  reduction_axis2[0] = 0;
+  reduction_axis2[1] = 1;
+  result = tensor.mean(reduction_axis2);
   VERIFY_IS_EQUAL(result.dimension(0), 5);
   VERIFY_IS_EQUAL(result.dimension(1), 7);
   for (int i = 0; i < 5; ++i) {
@@ -170,12 +170,12 @@ static void test_simple_reductions() {
     Tensor<float, 1, DataLayout> mean1 = tensor.mean();
     VERIFY_IS_EQUAL(mean1.dimension(0), 1);
 
-    array<ptrdiff_t, 4> reduction_axis;
-    reduction_axis[0] = 0;
-    reduction_axis[1] = 1;
-    reduction_axis[2] = 2;
-    reduction_axis[3] = 3;
-    Tensor<float, 1, DataLayout> mean2 = tensor.mean(reduction_axis);
+    array<ptrdiff_t, 4> reduction_axis4;
+    reduction_axis4[0] = 0;
+    reduction_axis4[1] = 1;
+    reduction_axis4[2] = 2;
+    reduction_axis4[3] = 3;
+    Tensor<float, 1, DataLayout> mean2 = tensor.mean(reduction_axis4);
     VERIFY_IS_EQUAL(mean2.dimension(0), 1);
 
     VERIFY_IS_APPROX(mean1(0), mean2(0));

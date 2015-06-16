@@ -197,15 +197,15 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
     template<typename... IndexTypes> EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar operator()(Index firstIndex, IndexTypes... otherIndices) const
     {
-      const std::size_t NumIndices = (sizeof...(otherIndices) + 1);
-      const array<Index, NumIndices> indices{{firstIndex, otherIndices...}};
+      const std::size_t num_indices = (sizeof...(otherIndices) + 1);
+      const array<Index, num_indices> indices{{firstIndex, otherIndices...}};
       return coeff(indices);
     }
     template<typename... IndexTypes> EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar& coeffRef(Index firstIndex, IndexTypes... otherIndices)
     {
-      const std::size_t NumIndices = (sizeof...(otherIndices) + 1);
-      const array<Index, NumIndices> indices{{firstIndex, otherIndices...}};
+      const std::size_t num_indices = (sizeof...(otherIndices) + 1);
+      const array<Index, num_indices> indices{{firstIndex, otherIndices...}};
       return coeffRef(indices);
     }
 #else
