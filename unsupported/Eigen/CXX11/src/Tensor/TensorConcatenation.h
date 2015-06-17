@@ -155,20 +155,20 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
       m_rightStrides[0] = 1;
       m_outputStrides[0] = 1;
 
-      for (int i = 1; i < NumDims; ++i) {
-        m_leftStrides[i] = m_leftStrides[i-1] * lhs_dims[i-1];
-        m_rightStrides[i] = m_rightStrides[i-1] * rhs_dims[i-1];
-        m_outputStrides[i] = m_outputStrides[i-1] * m_dimensions[i-1];
+      for (int j = 1; j < NumDims; ++j) {
+        m_leftStrides[j] = m_leftStrides[j-1] * lhs_dims[j-1];
+        m_rightStrides[j] = m_rightStrides[j-1] * rhs_dims[j-1];
+        m_outputStrides[j] = m_outputStrides[j-1] * m_dimensions[j-1];
       }
     } else {
       m_leftStrides[NumDims - 1] = 1;
       m_rightStrides[NumDims - 1] = 1;
       m_outputStrides[NumDims - 1] = 1;
 
-      for (int i = NumDims - 2; i >= 0; --i) {
-        m_leftStrides[i] = m_leftStrides[i+1] * lhs_dims[i+1];
-        m_rightStrides[i] = m_rightStrides[i+1] * rhs_dims[i+1];
-        m_outputStrides[i] = m_outputStrides[i+1] * m_dimensions[i+1];
+      for (int j = NumDims - 2; j >= 0; --j) {
+        m_leftStrides[j] = m_leftStrides[j+1] * lhs_dims[j+1];
+        m_rightStrides[j] = m_rightStrides[j+1] * rhs_dims[j+1];
+        m_outputStrides[j] = m_outputStrides[j+1] * m_dimensions[j+1];
       }
     }
   }
