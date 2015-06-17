@@ -225,7 +225,20 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       ldltlo.compute(A);
       VERIFY_IS_APPROX(A, ldltlo.reconstructedMatrix());
       vecX = ldltlo.solve(vecB);
-      VERIFY_IS_APPROX(A * vecX, vecB);
+
+      if(ldltlo.vectorD().real().cwiseAbs().minCoeff()>RealScalar(0))
+      {
+        VERIFY_IS_APPROX(A * vecX,vecB);
+      }
+      else
+      {
+        RealScalar large_tol =  std::sqrt(test_precision<RealScalar>());
+        VERIFY((A * vecX).isApprox(vecB, large_tol));
+        
+        ++g_test_level;
+        VERIFY_IS_APPROX(A * vecX,vecB);
+        --g_test_level;
+      }
     }
   }
 

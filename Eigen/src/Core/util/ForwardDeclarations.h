@@ -265,6 +265,7 @@ template<typename Derived> class QuaternionBase;
 template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Translation;
+template<typename Scalar,int Dim> class AlignedBox;
 
 template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar,int Dim,int Mode,int _Options=AutoAlign> class Transform;

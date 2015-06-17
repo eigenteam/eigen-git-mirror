@@ -471,18 +471,25 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
 {
   EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
   {
-    typedef packet_traits<typename Kernel::Scalar> PacketTraits;
+    typedef typename Kernel::Scalar Scalar;
+    typedef packet_traits<Scalar> PacketTraits;
     enum {
       packetSize = PacketTraits::size,
       alignable = PacketTraits::AlignedOnScalar,
-      dstAlignment = alignable ? Aligned : int(Kernel::AssignmentTraits::DstIsAligned)
+      dstIsAligned = Kernel::AssignmentTraits::DstIsAligned,
+      dstAlignment = alignable ? Aligned : int(dstIsAligned)
     };
+    const Scalar *dst_ptr = &kernel.dstEvaluator().coeffRef(0,0);
+    if((!bool(dstIsAligned)) && (Index(dst_ptr) % sizeof(Scalar))>0)
+    {
+      // the pointer is not aligend-on scalar, so alignment is not possible
+      return dense_assignment_loop<Kernel,DefaultTraversal,NoUnrolling>::run(kernel);
+    }
     const Index packetAlignedMask = packetSize - 1;
     const Index innerSize = kernel.innerSize();
     const Index outerSize = kernel.outerSize();
     const Index alignedStep = alignable ? (packetSize - kernel.outerStride() % packetSize) & packetAlignedMask : 0;
-    Index alignedStart = ((!alignable) || Kernel::AssignmentTraits::DstIsAligned) ? 0
-                       : internal::first_aligned(&kernel.dstEvaluator().coeffRef(0,0), innerSize);
+    Index alignedStart = ((!alignable) || bool(dstIsAligned)) ? 0 : internal::first_aligned(dst_ptr, innerSize);
 
     for(Index outer = 0; outer < outerSize; ++outer)
     {
