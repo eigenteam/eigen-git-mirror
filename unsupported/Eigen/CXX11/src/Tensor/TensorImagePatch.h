@@ -142,25 +142,15 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
 
     switch (op.padding_type()) {
       case PADDING_VALID:
-<<<<<<< local
-        m_outputRows = std::ceil((m_inputRows - op.patch_rows() + 1.f) / static_cast<float>(m_row_strides));
-        m_outputCols = std::ceil((m_inputCols - op.patch_cols() + 1.f) / static_cast<float>(m_col_strides));
-=======
         m_outputRows = numext::ceil((m_inputRows - op.patch_rows() + 1.f) / static_cast<float>(m_row_strides));
         m_outputCols = numext::ceil((m_inputCols - op.patch_cols() + 1.f) / static_cast<float>(m_col_strides));
->>>>>>> other
         // Calculate the padding
         m_rowPaddingTop = ((m_outputRows - 1) * m_row_strides + op.patch_rows() - m_inputRows) / 2;
         m_colPaddingLeft = ((m_outputCols - 1) * m_col_strides + op.patch_cols() - m_inputCols) / 2;
         break;
       case PADDING_SAME:
-<<<<<<< local
-        m_outputRows = std::ceil(m_inputRows / static_cast<float>(m_row_strides));
-        m_outputCols = std::ceil(m_inputCols / static_cast<float>(m_col_strides));
-=======
         m_outputRows = numext::ceil(m_inputRows / static_cast<float>(m_row_strides));
         m_outputCols = numext::ceil(m_inputCols / static_cast<float>(m_col_strides));
->>>>>>> other
         // Calculate the padding
         m_rowPaddingTop = ((m_outputRows - 1) * m_row_strides + op.patch_rows() - m_inputRows) / 2;
         m_colPaddingLeft = ((m_outputCols - 1) * m_col_strides + op.patch_cols() - m_inputCols) / 2;
