@@ -346,7 +346,18 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
 
   std::complex<RealScalar> zero(0.0,0.0);
   VERIFY(isnan(m1*zero/zero).all());
+#if EIGEN_COMP_CLANG
+  // clang's complex division is notoriously broken
+  if(numext::isinf(m1(0,0)/Scalar(0))) {
+#endif
   VERIFY(isinf(m1/zero).all());
+#if EIGEN_COMP_CLANG
+  }
+  else
+  {
+    VERIFY(isinf(m1.real()/zero.real()).all());
+  }
+#endif
   VERIFY((isfinite(m1) && !isfinite(m1*zero/zero) && !isfinite(m1/zero)).all());
 
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
