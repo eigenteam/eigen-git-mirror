@@ -240,8 +240,8 @@ static void test_memcpy() {
     t1.setRandom();
     std::vector<float> result(size);
     thread_pool_device.memcpy(&result[0], t1.data(), size*sizeof(float));
-    for (int i = 0; i < size; i++) {
-      VERIFY_IS_EQUAL(t1(i), result[i]);
+    for (int j = 0; j < size; j++) {
+      VERIFY_IS_EQUAL(t1(j), result[j]);
     }
   }
 }
