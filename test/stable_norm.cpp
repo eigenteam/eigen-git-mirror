@@ -24,6 +24,8 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  
+  bool complex_real_product_ok = true;
 
   // Check the basic machine-dependent constants.
   {
@@ -36,6 +38,16 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
 
     VERIFY( (!(iemin > 1 - 2*it || 1+it>iemax || (it==2 && ibeta<5) || (it<=4 && ibeta <= 3 ) || it<2))
            && "the stable norm algorithm cannot be guaranteed on this computer");
+    
+    Scalar inf = std::numeric_limits<RealScalar>::infinity();
+    if(NumTraits<Scalar>::IsComplex && numext::isnan(inf*RealScalar(1)) )
+    {
+      complex_real_product_ok = false;
+      static bool first = true;
+      if(first)
+        std::cerr << "WARNING: compiler mess up complex*real product, " << inf << " * " << 1.0 << " = " << inf*RealScalar(1) << std::endl;
+      first = false;
+    }
   }
 
 
@@ -116,7 +128,10 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     v(i,j) = std::numeric_limits<RealScalar>::infinity();
     VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
     VERIFY(!numext::isfinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
-    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
+    VERIFY(!numext::isfinite(v.stableNorm()));
+    if(complex_real_product_ok){
+      VERIFY(isPlusInf(v.stableNorm()));
+    }
     VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
     VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
@@ -127,7 +142,10 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     v(i,j) = -std::numeric_limits<RealScalar>::infinity();
     VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
     VERIFY(!numext::isfinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
-    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(isPlusInf(v.stableNorm()));
+    VERIFY(!numext::isfinite(v.stableNorm()));
+    if(complex_real_product_ok) {
+      VERIFY(isPlusInf(v.stableNorm()));
+    }
     VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
     VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
