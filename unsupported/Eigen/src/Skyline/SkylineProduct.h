@@ -14,8 +14,8 @@ namespace Eigen {
 
 template<typename Lhs, typename Rhs, int ProductMode>
 struct SkylineProductReturnType {
-    typedef const typename internal::nested<Lhs, Rhs::RowsAtCompileTime>::type LhsNested;
-    typedef const typename internal::nested<Rhs, Lhs::RowsAtCompileTime>::type RhsNested;
+    typedef const typename internal::nested_eval<Lhs, Rhs::RowsAtCompileTime>::type LhsNested;
+    typedef const typename internal::nested_eval<Rhs, Lhs::RowsAtCompileTime>::type RhsNested;
 
     typedef SkylineProduct<LhsNested, RhsNested, ProductMode> Type;
 };

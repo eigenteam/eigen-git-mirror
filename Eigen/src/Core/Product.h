@@ -121,8 +121,8 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
                                                         internal::product_type<Lhs,Rhs>::ret>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Product)
 
-    typedef typename internal::nested<Lhs>::type LhsNested;
-    typedef typename internal::nested<Rhs>::type RhsNested;
+    typedef typename internal::ref_selector<Lhs>::type LhsNested;
+    typedef typename internal::ref_selector<Rhs>::type RhsNested;
     typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;
     typedef typename internal::remove_all<RhsNested>::type RhsNestedCleaned;
 

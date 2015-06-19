@@ -95,8 +95,8 @@ class CwiseBinaryOp :
                                                       BinaryOp>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
 
-    typedef typename internal::nested<LhsType>::type LhsNested;
-    typedef typename internal::nested<RhsType>::type RhsNested;
+    typedef typename internal::ref_selector<LhsType>::type LhsNested;
+    typedef typename internal::ref_selector<RhsType>::type RhsNested;
     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
     typedef typename internal::remove_reference<RhsNested>::type _RhsNested;
 

@@ -52,7 +52,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
                        const Scalar
                      >::type ScalarWithConstIfNotLvalue;
 
-    typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
+    typedef typename internal::ref_selector<ExpressionType>::type NestedExpressionType;
 
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
@@ -195,7 +195,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
                        const Scalar
                      >::type ScalarWithConstIfNotLvalue;
 
-    typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
+    typedef typename internal::ref_selector<ExpressionType>::type NestedExpressionType;
 
     EIGEN_DEVICE_FUNC
     explicit inline MatrixWrapper(ExpressionType& matrix) : m_expression(matrix) {}

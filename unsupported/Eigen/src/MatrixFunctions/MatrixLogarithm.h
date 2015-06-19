@@ -315,7 +315,7 @@ public:
   typedef typename Derived::Index Index;
 
 protected:
-  typedef typename internal::nested<Derived>::type DerivedNested;
+  typedef typename internal::ref_selector<Derived>::type DerivedNested;
 
 public:
 

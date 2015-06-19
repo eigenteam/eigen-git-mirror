@@ -47,7 +47,7 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 #define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   typedef typename Eigen::internal::traits<Derived >::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-  typedef typename Eigen::internal::nested<Derived >::type Nested; \
+  typedef typename Eigen::internal::ref_selector<Derived >::type Nested; \
   typedef typename Eigen::internal::traits<Derived >::StorageKind StorageKind; \
   typedef typename Eigen::internal::traits<Derived >::StorageIndex StorageIndex; \
   enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \

@@ -60,7 +60,7 @@ template<typename _Scalar, int _Options, typename _Index, int DiagIndex>
 struct traits<Diagonal<SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
 {
   typedef SparseMatrix<_Scalar, _Options, _Index> MatrixType;
-  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
 
   typedef _Scalar Scalar;

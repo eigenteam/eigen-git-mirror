@@ -84,8 +84,7 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
   protected:
-    // FIXME changed from MatrixType::Nested because of a weird compilation error with sun CC
-    typename internal::nested<MatrixType>::type m_matrix;
+    typename internal::ref_selector<MatrixType>::type m_matrix;
     ViewOp m_functor;
 };
 

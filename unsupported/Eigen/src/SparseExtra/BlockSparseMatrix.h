@@ -287,7 +287,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef _StorageIndex StorageIndex;
-    typedef typename internal::nested<BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _StorageIndex> >::type Nested;
+    typedef typename internal::ref_selector<BlockSparseMatrix<_Scalar, _BlockAtCompileTime, _Options, _StorageIndex> >::type Nested;
 
     enum {
       Options = _Options,

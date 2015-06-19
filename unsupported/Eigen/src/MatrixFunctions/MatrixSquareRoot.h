@@ -320,7 +320,7 @@ template<typename Derived> class MatrixSquareRootReturnValue
 {
   protected:
     typedef typename Derived::Index Index;
-    typedef typename internal::nested<Derived>::type DerivedNested;
+    typedef typename internal::ref_selector<Derived>::type DerivedNested;
 
   public:
     /** \brief Constructor.

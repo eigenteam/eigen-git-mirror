@@ -34,7 +34,7 @@ struct traits<Homogeneous<MatrixType,Direction> >
  : traits<MatrixType>
 {
   typedef typename traits<MatrixType>::StorageKind StorageKind;
-  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsPlusOne = (MatrixType::RowsAtCompileTime != Dynamic) ?

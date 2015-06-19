@@ -37,7 +37,7 @@ template<typename MatrixType, int DiagIndex>
 struct traits<Diagonal<MatrixType,DiagIndex> >
  : traits<MatrixType>
 {
-  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef typename MatrixType::StorageKind StorageKind;
   enum {

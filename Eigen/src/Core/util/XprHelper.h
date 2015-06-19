@@ -312,7 +312,7 @@ template<typename T> struct plain_matrix_type_row_major
           > type;
 };
 
-// we should be able to get rid of this one too
+// TODO we should be able to get rid of this one too
 template<typename T> struct must_nest_by_value { enum { ret = false }; };
 
 /** \internal The reference selector for template expressions. The idea is that we don't
@@ -339,13 +339,6 @@ struct transfer_constness
   >::type type;
 };
 
-
-// When using evaluators, we never evaluate when assembling the expression!!
-// TODO: get rid of this nested class since it's just an alias for ref_selector.
-template<typename T, int n=1, typename PlainObject = void> struct nested
-{
-  typedef typename ref_selector<T>::type type;
-};
 
 // However, we still need a mechanism to detect whether an expression which is evaluated multiple time
 // has to be evaluated into a temporary.

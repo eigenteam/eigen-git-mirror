@@ -400,7 +400,7 @@ template<typename Derived> struct MatrixExponentialReturnValue
     Index cols() const { return m_src.cols(); }
 
   protected:
-    const typename internal::nested<Derived>::type m_src;
+    const typename internal::ref_selector<Derived>::type m_src;
 };
 
 namespace internal {
