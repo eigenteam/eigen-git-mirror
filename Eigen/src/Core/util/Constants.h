@@ -482,6 +482,7 @@ struct BandShape              { static std::string debugName() { return "BandSha
 struct TriangularShape        { static std::string debugName() { return "TriangularShape"; } };
 struct SelfAdjointShape       { static std::string debugName() { return "SelfAdjointShape"; } };
 struct PermutationShape       { static std::string debugName() { return "PermutationShape"; } };
+struct TranspositionsShape    { static std::string debugName() { return "TranspositionsShape"; } };
 struct SparseShape            { static std::string debugName() { return "SparseShape"; } };
 
 namespace internal {

@@ -537,9 +537,6 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesTyp
 };
 
 
-// TODO: Do we need to define these operator* functions? Would it be better to have them inherited
-// from MatrixBase?
-
 /** \returns the matrix with the permutation applied to the columns.
   */
 template<typename MatrixDerived, typename PermutationDerived>

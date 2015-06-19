@@ -929,6 +929,79 @@ struct generic_product_impl<Lhs, Transpose<Rhs>, MatrixShape, PermutationShape, 
   }
 };
 
+
+/***************************************************************************
+* Products with transpositions matrices
+***************************************************************************/
+
+// FIXME could we unify Transpositions and Permutation into a single "shape"??
+
+/** \internal
+  * \class transposition_matrix_product
+  * Internal helper class implementing the product between a permutation matrix and a matrix.
+  */
+template<typename MatrixType, int Side, bool Transposed, typename MatrixShape>
+struct transposition_matrix_product
+{
+    template<typename Dest, typename TranspositionType>
+    static inline void evalTo(Dest& dst, const TranspositionType& tr, const MatrixType& mat)
+    {
+      typedef typename TranspositionType::StorageIndex StorageIndex;
+      const Index size = tr.size();
+      StorageIndex j = 0;
+
+      if(!(is_same<MatrixType,Dest>::value && extract_data(dst) == extract_data(mat)))
+        dst = mat;
+
+      for(Index k=(Transposed?size-1:0) ; Transposed?k>=0:k<size ; Transposed?--k:++k)
+        if(Index(j=tr.coeff(k))!=k)
+        {
+          if(Side==OnTheLeft)        dst.row(k).swap(dst.row(j));
+          else if(Side==OnTheRight)  dst.col(k).swap(dst.col(j));
+        }
+    }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
+struct generic_product_impl<Lhs, Rhs, TranspositionsShape, MatrixShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    transposition_matrix_product<Rhs, OnTheLeft, false, MatrixShape>::run(dst, lhs, rhs);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
+struct generic_product_impl<Lhs, Rhs, MatrixShape, TranspositionsShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
+  {
+    transposition_matrix_product<Lhs, OnTheRight, false, MatrixShape>::run(dst, rhs, lhs);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
+struct generic_product_impl<Transpose<Lhs>, Rhs, TranspositionsShape, MatrixShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
+  {
+    transposition_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedPermutation(), rhs);
+  }
+};
+
+template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
+struct generic_product_impl<Lhs, Transpose<Rhs>, MatrixShape, TranspositionsShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
+  {
+    transposition_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedPermutation(), lhs);
+  }
+};
+
 } // end namespace internal
 
 } // end namespace Eigen
