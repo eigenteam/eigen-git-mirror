@@ -7,6 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define TEST_ENABLE_TEMPORARY_TRACKING
+  
 #include "main.h"
 
 using namespace std;
@@ -33,7 +35,10 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   RightPermutationVectorType rv;
   randomPermutationVector(rv, cols);
   RightPermutationType rp(rv);
-  MatrixType m_permuted = lp * m_original * rp;
+  MatrixType m_permuted = MatrixType::Random(rows,cols);
+  
+  const int one_if_dynamic = MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0;
+  VERIFY_EVALUATION_COUNT(m_permuted = lp * m_original * rp, one_if_dynamic); // 1 temp for sub expression "lp * m_original"
 
   for (int i=0; i<rows; i++)
     for (int j=0; j<cols; j++)
@@ -43,7 +48,11 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   Matrix<Scalar,Cols,Cols> rm(rp);
 
   VERIFY_IS_APPROX(m_permuted, lm*m_original*rm);
-
+  
+  m_permuted = m_original;
+  VERIFY_EVALUATION_COUNT(m_permuted = lp * m_permuted * rp, one_if_dynamic);
+  VERIFY_IS_APPROX(m_permuted, lm*m_original*rm);
+  
   VERIFY_IS_APPROX(lp.inverse()*m_permuted*rp.inverse(), m_original);
   VERIFY_IS_APPROX(lv.asPermutation().inverse()*m_permuted*rv.asPermutation().inverse(), m_original);
   VERIFY_IS_APPROX(MapLeftPerm(lv.data(),lv.size()).inverse()*m_permuted*MapRightPerm(rv.data(),rv.size()).inverse(), m_original);
@@ -63,22 +72,22 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   LeftPermutationType identityp;
   identityp.setIdentity(rows);
   VERIFY_IS_APPROX(m_original, identityp*m_original);
-
+  
   // check inplace permutations
   m_permuted = m_original;
-  m_permuted = lp.inverse() * m_permuted;
+  VERIFY_EVALUATION_COUNT(m_permuted.noalias()= lp.inverse() * m_permuted, one_if_dynamic); // 1 temp to allocate the mask
   VERIFY_IS_APPROX(m_permuted, lp.inverse()*m_original);
-
+  
   m_permuted = m_original;
-  m_permuted = m_permuted * rp.inverse();
+  VERIFY_EVALUATION_COUNT(m_permuted.noalias() = m_permuted * rp.inverse(), one_if_dynamic); // 1 temp to allocate the mask
   VERIFY_IS_APPROX(m_permuted, m_original*rp.inverse());
-
+  
   m_permuted = m_original;
-  m_permuted = lp * m_permuted;
+  VERIFY_EVALUATION_COUNT(m_permuted.noalias() = lp * m_permuted, one_if_dynamic); // 1 temp to allocate the mask
   VERIFY_IS_APPROX(m_permuted, lp*m_original);
-
+  
   m_permuted = m_original;
-  m_permuted = m_permuted * rp;
+  VERIFY_EVALUATION_COUNT(m_permuted.noalias() = m_permuted * rp, one_if_dynamic); // 1 temp to allocate the mask
   VERIFY_IS_APPROX(m_permuted, m_original*rp);
 
   if(rows>1 && cols>1)
