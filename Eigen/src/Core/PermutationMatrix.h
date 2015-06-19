@@ -541,11 +541,11 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesTyp
   */
 template<typename MatrixDerived, typename PermutationDerived>
 EIGEN_DEVICE_FUNC
-const Product<MatrixDerived, PermutationDerived, DefaultProduct>
+const Product<MatrixDerived, PermutationDerived, AliasFreeProduct>
 operator*(const MatrixBase<MatrixDerived> &matrix,
           const PermutationBase<PermutationDerived>& permutation)
 {
-  return Product<MatrixDerived, PermutationDerived, DefaultProduct>
+  return Product<MatrixDerived, PermutationDerived, AliasFreeProduct>
             (matrix.derived(), permutation.derived());
 }
 
@@ -553,11 +553,11 @@ operator*(const MatrixBase<MatrixDerived> &matrix,
   */
 template<typename PermutationDerived, typename MatrixDerived>
 EIGEN_DEVICE_FUNC
-const Product<PermutationDerived, MatrixDerived, DefaultProduct>
+const Product<PermutationDerived, MatrixDerived, AliasFreeProduct>
 operator*(const PermutationBase<PermutationDerived> &permutation,
           const MatrixBase<MatrixDerived>& matrix)
 {
-  return Product<PermutationDerived, MatrixDerived, DefaultProduct>
+  return Product<PermutationDerived, MatrixDerived, AliasFreeProduct>
             (permutation.derived(), matrix.derived());
 }
 
@@ -620,19 +620,19 @@ class Transpose<PermutationBase<Derived> >
     /** \returns the matrix with the inverse permutation applied to the columns.
       */
     template<typename OtherDerived> friend
-    const Product<OtherDerived, Transpose, DefaultProduct>
+    const Product<OtherDerived, Transpose, AliasFreeProduct>
     operator*(const MatrixBase<OtherDerived>& matrix, const Transpose& trPerm)
     {
-      return Product<OtherDerived, Transpose, DefaultProduct>(matrix.derived(), trPerm.derived());
+      return Product<OtherDerived, Transpose, AliasFreeProduct>(matrix.derived(), trPerm.derived());
     }
 
     /** \returns the matrix with the inverse permutation applied to the rows.
       */
     template<typename OtherDerived>
-    const Product<Transpose, OtherDerived, DefaultProduct>
+    const Product<Transpose, OtherDerived, AliasFreeProduct>
     operator*(const MatrixBase<OtherDerived>& matrix) const
     {
-      return Product<Transpose, OtherDerived, DefaultProduct>(*this, matrix.derived());
+      return Product<Transpose, OtherDerived, AliasFreeProduct>(*this, matrix.derived());
     }
 
     const PermutationType& nestedExpression() const { return m_permutation; }

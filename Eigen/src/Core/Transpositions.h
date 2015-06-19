@@ -334,11 +334,11 @@ class TranspositionsWrapper
   */
 template<typename MatrixDerived, typename TranspositionsDerived>
 EIGEN_DEVICE_FUNC
-const Product<MatrixDerived, TranspositionsDerived, DefaultProduct>
+const Product<MatrixDerived, TranspositionsDerived, AliasFreeProduct>
 operator*(const MatrixBase<MatrixDerived> &matrix,
           const TranspositionsBase<TranspositionsDerived>& transpositions)
 {
-  return Product<MatrixDerived, TranspositionsDerived, DefaultProduct>
+  return Product<MatrixDerived, TranspositionsDerived, AliasFreeProduct>
             (matrix.derived(), transpositions.derived());
 }
 
@@ -346,11 +346,11 @@ operator*(const MatrixBase<MatrixDerived> &matrix,
   */
 template<typename TranspositionsDerived, typename MatrixDerived>
 EIGEN_DEVICE_FUNC
-const Product<TranspositionsDerived, MatrixDerived, DefaultProduct>
+const Product<TranspositionsDerived, MatrixDerived, AliasFreeProduct>
 operator*(const TranspositionsBase<TranspositionsDerived> &transpositions,
           const MatrixBase<MatrixDerived>& matrix)
 {
-  return Product<TranspositionsDerived, MatrixDerived, DefaultProduct>
+  return Product<TranspositionsDerived, MatrixDerived, AliasFreeProduct>
             (transpositions.derived(), matrix.derived());
 }
 
@@ -381,19 +381,19 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
     /** \returns the \a matrix with the inverse transpositions applied to the columns.
       */
     template<typename OtherDerived> friend
-    const Product<OtherDerived, Transpose, DefaultProduct>
+    const Product<OtherDerived, Transpose, AliasFreeProduct>
     operator*(const MatrixBase<OtherDerived>& matrix, const Transpose& trt)
     {
-      return Product<OtherDerived, Transpose, DefaultProduct>(matrix.derived(), trt.derived());
+      return Product<OtherDerived, Transpose, AliasFreeProduct>(matrix.derived(), trt.derived());
     }
 
     /** \returns the \a matrix with the inverse transpositions applied to the rows.
       */
     template<typename OtherDerived>
-    const Product<Transpose, OtherDerived, DefaultProduct>
+    const Product<Transpose, OtherDerived, AliasFreeProduct>
     operator*(const MatrixBase<OtherDerived>& matrix) const
     {
-      return Product<Transpose, OtherDerived, DefaultProduct>(*this, matrix.derived());
+      return Product<Transpose, OtherDerived, AliasFreeProduct>(*this, matrix.derived());
     }
     
     const TranspositionType& nestedExpression() const { return m_transpositions; }

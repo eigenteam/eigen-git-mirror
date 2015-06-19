@@ -25,7 +25,7 @@ template<typename Lhs, typename Rhs, int Option, typename StorageKind> class Pro
   * This class represents an expression of the product of two arbitrary matrices.
   * 
   * The other template parameters are:
-  * \tparam Option     can be DefaultProduct or LazyProduct
+  * \tparam Option     can be DefaultProduct, AliasFreeProduct, or LazyProduct
   *
   */
 

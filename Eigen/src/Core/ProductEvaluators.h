@@ -90,13 +90,21 @@ struct evaluator_traits<Product<Lhs, Rhs, DefaultProduct> >
   enum { AssumeAliasing = 1 };
 };
 
+template<typename Lhs, typename Rhs>
+struct evaluator_traits<Product<Lhs, Rhs, AliasFreeProduct> > 
+ : evaluator_traits_base<Product<Lhs, Rhs, AliasFreeProduct> >
+{
+  enum { AssumeAliasing = 0 };
+};
+
 // This is the default evaluator implementation for products:
 // It creates a temporary and call generic_product_impl
-template<typename Lhs, typename Rhs, int ProductTag, typename LhsShape, typename RhsShape>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, LhsShape, RhsShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
-  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+template<typename Lhs, typename Rhs, int Options, int ProductTag, typename LhsShape, typename RhsShape>
+struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsShape, typename traits<Lhs>::Scalar,
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),typename traits<Rhs>::Scalar>::type> 
+  : public evaluator<typename Product<Lhs, Rhs, Options>::PlainObject>::type
 {
-  typedef Product<Lhs, Rhs, DefaultProduct> XprType;
+  typedef Product<Lhs, Rhs, Options> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type Base;
   enum {
@@ -128,10 +136,11 @@ protected:
 };
 
 // Dense = Product
-template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scalar>, Dense2Dense,
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
-  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  typedef Product<Lhs,Rhs,Options> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
@@ -140,10 +149,11 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_
 };
 
 // Dense += Product
-template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_assign_op<Scalar>, Dense2Dense, Scalar>
+template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<Scalar>, Dense2Dense,
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
-  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  typedef Product<Lhs,Rhs,Options> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
@@ -152,10 +162,11 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_ass
 };
 
 // Dense -= Product
-template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_assign_op<Scalar>, Dense2Dense, Scalar>
+template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<Scalar>, Dense2Dense,
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
-  typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+  typedef Product<Lhs,Rhs,Options> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
