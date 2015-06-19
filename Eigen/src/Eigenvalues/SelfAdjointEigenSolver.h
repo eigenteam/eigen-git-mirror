@@ -82,6 +82,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
+    
+    typedef Matrix<Scalar,Size,Size,ColMajor,MaxColsAtCompileTime,MaxColsAtCompileTime> EigenvectorsType;
 
     /** \brief Real scalar type for \p _MatrixType.
       *
@@ -251,7 +253,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa eigenvalues()
       */
     EIGEN_DEVICE_FUNC
-    const MatrixType& eigenvectors() const
+    const EigenvectorsType& eigenvectors() const
     {
       eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
       eigen_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
@@ -356,7 +358,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
     
-    MatrixType m_eivec;
+    EigenvectorsType m_eivec;
     RealVectorType m_eivalues;
     typename TridiagonalizationType::SubDiagonalType m_subdiag;
     ComputationInfo m_info;
@@ -415,7 +417,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   // declare some aliases
   RealVectorType& diag = m_eivalues;
-  MatrixType& mat = m_eivec;
+  EigenvectorsType& mat = m_eivec;
 
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
   mat = matrix.template triangularView<Lower>();
@@ -543,6 +545,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   typedef typename SolverType::MatrixType MatrixType;
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
+  typedef typename SolverType::EigenvectorsType EigenvectorsType;
   
 
   /** \internal
@@ -617,7 +620,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
             && "invalid option parameter");
     bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors;
     
-    MatrixType& eivecs = solver.m_eivec;
+    EigenvectorsType& eivecs = solver.m_eivec;
     VectorType& eivals = solver.m_eivalues;
   
     // Shift the matrix to the mean eigenvalue and map the matrix coefficients to [-1:1] to avoid over- and underflow.
@@ -700,6 +703,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
   typedef typename SolverType::MatrixType MatrixType;
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
+  typedef typename SolverType::EigenvectorsType EigenvectorsType;
   
   EIGEN_DEVICE_FUNC
   static inline void computeRoots(const MatrixType& m, VectorType& roots)
@@ -723,7 +727,7 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
             && "invalid option parameter");
     bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors;
     
-    MatrixType& eivecs = solver.m_eivec;
+    EigenvectorsType& eivecs = solver.m_eivec;
     VectorType& eivals = solver.m_eivalues;
   
     // map the matrix coefficients to [-1:1] to avoid over- and underflow.
