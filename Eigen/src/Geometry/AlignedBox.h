@@ -181,7 +181,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   template<typename Derived>
   inline bool contains(const MatrixBase<Derived>& p) const
   {
-    typename internal::nested<Derived,2>::type p_n(p.derived());
+    typename internal::nested_eval<Derived,2>::type p_n(p.derived());
     return (m_min.array()<=p_n.array()).all() && (p_n.array()<=m_max.array()).all();
   }
 
@@ -199,7 +199,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   template<typename Derived>
   inline AlignedBox& extend(const MatrixBase<Derived>& p)
   {
-    typename internal::nested<Derived,2>::type p_n(p.derived());
+    typename internal::nested_eval<Derived,2>::type p_n(p.derived());
     m_min = m_min.cwiseMin(p_n);
     m_max = m_max.cwiseMax(p_n);
     return *this;
@@ -240,7 +240,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   template<typename Derived>
   inline AlignedBox& translate(const MatrixBase<Derived>& a_t)
   {
-    const typename internal::nested<Derived,2>::type t(a_t.derived());
+    const typename internal::nested_eval<Derived,2>::type t(a_t.derived());
     m_min += t;
     m_max += t;
     return *this;
@@ -313,7 +313,7 @@ template<typename Scalar,int AmbientDim>
 template<typename Derived>
 inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const MatrixBase<Derived>& a_p) const
 {
-  typename internal::nested<Derived,2*AmbientDim>::type p(a_p.derived());
+  typename internal::nested_eval<Derived,2*AmbientDim>::type p(a_p.derived());
   Scalar dist2(0);
   Scalar aux;
   for (Index k=0; k<dim(); ++k)
