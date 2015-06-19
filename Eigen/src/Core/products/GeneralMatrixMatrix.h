@@ -204,14 +204,9 @@ static void run(Index rows, Index cols, Index depth,
 };
 
 /*********************************************************************************
-*  Specialization of GeneralProduct<> for "large" GEMM, i.e.,
+*  Specialization of generic_product_impl for "large" GEMM, i.e.,
 *  implementation of the high level wrapper to general_matrix_matrix_product
 **********************************************************************************/
-
-template<typename Lhs, typename Rhs>
-struct traits<GeneralProduct<Lhs,Rhs,GemmProduct> >
- : traits<ProductBase<GeneralProduct<Lhs,Rhs,GemmProduct>, Lhs, Rhs> >
-{};
 
 template<typename Scalar, typename Index, typename Gemm, typename Lhs, typename Rhs, typename Dest, typename BlockingType>
 struct gemm_functor

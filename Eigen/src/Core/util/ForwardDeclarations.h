@@ -91,8 +91,6 @@ template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename ViewOp,    typename MatrixType>         class CwiseUnaryView;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
-template<typename BinOp,     typename Lhs, typename Rhs>  class SelfCwiseBinaryOp;      // TODO deprecated
-template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;            // TODO deprecated
 template<typename Decomposition, typename Rhstype>        class Solve;
 template<typename XprType>                                class Inverse;
 
@@ -102,9 +100,6 @@ namespace internal {
 
 template<typename Lhs, typename Rhs, int Option = DefaultProduct> class Product;
          
-template<typename Lhs, typename Rhs, int Mode>            class GeneralProduct;         // TODO deprecated
-template<typename Lhs, typename Rhs, int NestingFlags>    class CoeffBasedProduct;      // TODO deprecated
-
 template<typename Derived> class DiagonalBase;
 template<typename _DiagonalVectorType> class DiagonalWrapper;
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeAtCompileTime> class DiagonalMatrix;

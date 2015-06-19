@@ -109,7 +109,6 @@ struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsSh
   typedef typename evaluator<PlainObject>::type Base;
   enum {
     Flags = Base::Flags | EvalBeforeNestingBit
-//     CoeffReadCost = 0 // FIXME why is it needed? (this was already the case before the evaluators, see traits<ProductBase>)
   };
 
   EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
@@ -117,7 +116,8 @@ struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsSh
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
     
-// FIXME shall we handle nested_eval here?
+// FIXME shall we handle nested_eval here?,
+// if so, then we must take care at removing the call to nested_eval in the specializations (e.g., in permutation_matrix_product, transposition_matrix_product, etc.)
 //     typedef typename internal::nested_eval<Lhs,Rhs::ColsAtCompileTime>::type LhsNested;
 //     typedef typename internal::nested_eval<Rhs,Lhs::RowsAtCompileTime>::type RhsNested;
 //     typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;

@@ -452,7 +452,7 @@ namespace Architecture
 }
 
 /** \internal \ingroup enums
-  * Enum used as template parameter in GeneralProduct. */
+  * Enum used as template parameter in Product and product evalautors. */
 enum { DefaultProduct=0, LazyProduct, AliasFreeProduct, CoeffBasedProductMode, LazyCoeffBasedProductMode, OuterProduct, InnerProduct, GemvProduct, GemmProduct };
 
 /** \internal \ingroup enums

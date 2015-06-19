@@ -317,14 +317,6 @@ inline void MatrixBase<Derived>::adjointInPlace()
 
 namespace internal {
 
-template<typename BinOp,typename NestedXpr,typename Rhs>
-struct blas_traits<SelfCwiseBinaryOp<BinOp,NestedXpr,Rhs> >
- : blas_traits<NestedXpr>
-{
-  typedef SelfCwiseBinaryOp<BinOp,NestedXpr,Rhs> XprType;
-  static inline const XprType extract(const XprType& x) { return x; }
-};
-
 template<bool DestIsTransposed, typename OtherDerived>
 struct check_transpose_aliasing_compile_time_selector
 {

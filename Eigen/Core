@@ -377,7 +377,6 @@ using std::ptrdiff_t;
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
-#include "src/Core/ProductBase.h"
 #include "src/Core/GeneralProduct.h"
 #include "src/Core/Solve.h"
 #include "src/Core/Inverse.h"
