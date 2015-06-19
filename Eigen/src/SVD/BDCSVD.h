@@ -79,8 +79,8 @@ public:
   typedef typename Base::MatrixVType MatrixVType;
   typedef typename Base::SingularValuesType SingularValuesType;
   
-  typedef Matrix<Scalar, Dynamic, Dynamic> MatrixX;
-  typedef Matrix<RealScalar, Dynamic, Dynamic> MatrixXr;
+  typedef Matrix<Scalar, Dynamic, Dynamic, ColMajor> MatrixX;
+  typedef Matrix<RealScalar, Dynamic, Dynamic, ColMajor> MatrixXr;
   typedef Matrix<RealScalar, Dynamic, 1> VectorType;
   typedef Array<RealScalar, Dynamic, 1> ArrayXr;
   typedef Array<Index,1,Dynamic> ArrayXi;
