@@ -397,12 +397,12 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Other>
     PermutationMatrix(const Transpose<PermutationBase<Other> >& other)
-      : m_indices(other.nestedPermutation().size())
+      : m_indices(other.nestedExpression().size())
     {
       eigen_internal_assert(m_indices.size() <= NumTraits<StorageIndex>::highest());
       StorageIndex end = StorageIndex(m_indices.size());
       for (StorageIndex i=0; i<end;++i)
-        m_indices.coeffRef(other.nestedPermutation().indices().coeff(i)) = i;
+        m_indices.coeffRef(other.nestedExpression().indices().coeff(i)) = i;
     }
     template<typename Lhs,typename Rhs>
     PermutationMatrix(internal::PermPermProduct_t, const Lhs& lhs, const Rhs& rhs)
@@ -635,7 +635,7 @@ class Transpose<PermutationBase<Derived> >
       return Product<Transpose, OtherDerived, DefaultProduct>(*this, matrix.derived());
     }
 
-    const PermutationType& nestedPermutation() const { return m_permutation; }
+    const PermutationType& nestedExpression() const { return m_permutation; }
 
   protected:
     const PermutationType& m_permutation;

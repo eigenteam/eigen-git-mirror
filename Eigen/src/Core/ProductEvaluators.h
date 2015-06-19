@@ -915,7 +915,7 @@ struct generic_product_impl<Transpose<Lhs>, Rhs, PermutationShape, MatrixShape, 
   template<typename Dest>
   static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
   {
-    permutation_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedPermutation(), rhs);
+    permutation_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedExpression(), rhs);
   }
 };
 
@@ -925,7 +925,7 @@ struct generic_product_impl<Lhs, Transpose<Rhs>, MatrixShape, PermutationShape, 
   template<typename Dest>
   static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
   {
-    permutation_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedPermutation(), lhs);
+    permutation_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedExpression(), lhs);
   }
 };
 
@@ -944,7 +944,7 @@ template<typename MatrixType, int Side, bool Transposed, typename MatrixShape>
 struct transposition_matrix_product
 {
     template<typename Dest, typename TranspositionType>
-    static inline void evalTo(Dest& dst, const TranspositionType& tr, const MatrixType& mat)
+    static inline void run(Dest& dst, const TranspositionType& tr, const MatrixType& mat)
     {
       typedef typename TranspositionType::StorageIndex StorageIndex;
       const Index size = tr.size();
@@ -982,13 +982,14 @@ struct generic_product_impl<Lhs, Rhs, MatrixShape, TranspositionsShape, ProductT
   }
 };
 
+
 template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Transpose<Lhs>, Rhs, TranspositionsShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
   static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
   {
-    transposition_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedPermutation(), rhs);
+    transposition_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedExpression(), rhs);
   }
 };
 
@@ -998,7 +999,7 @@ struct generic_product_impl<Lhs, Transpose<Rhs>, MatrixShape, TranspositionsShap
   template<typename Dest>
   static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
   {
-    transposition_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedPermutation(), lhs);
+    transposition_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedExpression(), lhs);
   }
 };
 

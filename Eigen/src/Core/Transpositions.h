@@ -62,7 +62,7 @@ class TranspositionsBase
       indices() = other.indices();
       return derived();
     }
-
+    
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
@@ -75,7 +75,11 @@ class TranspositionsBase
     #endif
 
     /** \returns the number of transpositions */
-    inline Index size() const { return indices().size(); }
+    Index size() const { return indices().size(); }
+    /** \returns the number of rows of the equivalent permutation matrix */
+    Index rows() const { return indices().size(); }
+    /** \returns the number of columns of the equivalent permutation matrix */
+    Index cols() const { return indices().size(); }
 
     /** Direct access to the underlying index vector */
     inline const StorageIndex& coeff(Index i) const { return indices().coeff(i); }
@@ -143,9 +147,10 @@ class TranspositionsBase
 namespace internal {
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex>
 struct traits<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndex> >
+ : traits<PermutationMatrix<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndex> >
 {
   typedef Matrix<_StorageIndex, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
-  typedef _StorageIndex StorageIndex;
+  typedef TranspositionsStorage StorageKind;
 };
 }
 
@@ -214,9 +219,11 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
 namespace internal {
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex, int _PacketAccess>
 struct traits<Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndex>,_PacketAccess> >
+ : traits<PermutationMatrix<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndex> >
 {
   typedef Map<const Matrix<_StorageIndex,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1>, _PacketAccess> IndicesType;
   typedef _StorageIndex StorageIndex;
+  typedef TranspositionsStorage StorageKind;
 };
 }
 
@@ -271,9 +278,9 @@ class Map<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndex>,P
 namespace internal {
 template<typename _IndicesType>
 struct traits<TranspositionsWrapper<_IndicesType> >
+ : traits<PermutationWrapper<_IndicesType> >
 {
-  typedef typename _IndicesType::Scalar StorageIndex;
-  typedef _IndicesType IndicesType;
+  typedef TranspositionsStorage StorageKind;
 };
 }
 
@@ -347,8 +354,16 @@ operator*(const TranspositionsBase<TranspositionsDerived> &transpositions,
             (transpositions.derived(), matrix.derived());
 }
 
+// Template partial specialization for transposed/inverse transpositions
 
-/* Template partial specialization for transposed/inverse transpositions */
+namespace internal {
+
+template<typename Derived>
+struct traits<Transpose<TranspositionsBase<Derived> > >
+ : traits<Derived>
+{};
+
+} // end namespace internal
 
 template<typename TranspositionsDerived>
 class Transpose<TranspositionsBase<TranspositionsDerived> >
@@ -359,7 +374,9 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
 
     explicit Transpose(const TranspositionType& t) : m_transpositions(t) {}
 
-    inline int size() const { return m_transpositions.size(); }
+    Index size() const { return m_transpositions.size(); }
+    Index rows() const { return m_transpositions.size(); }
+    Index cols() const { return m_transpositions.size(); }
 
     /** \returns the \a matrix with the inverse transpositions applied to the columns.
       */
@@ -378,6 +395,8 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
     {
       return Product<Transpose, OtherDerived, DefaultProduct>(*this, matrix.derived());
     }
+    
+    const TranspositionType& nestedExpression() const { return m_transpositions; }
 
   protected:
     const TranspositionType& m_transpositions;

@@ -468,6 +468,9 @@ struct Sparse {};
 /** The type used to identify a permutation storage. */
 struct PermutationStorage {};
 
+/** The type used to identify a permutation storage. */
+struct TranspositionsStorage {};
+
 /** The type used to identify a matrix expression */
 struct MatrixXpr {};
 

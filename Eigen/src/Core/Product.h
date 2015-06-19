@@ -53,6 +53,18 @@ template<typename Lhs, typename Rhs, typename LhsShape>
   typedef typename Lhs::Scalar Scalar;
 };
 
+template<typename Lhs, typename Rhs, typename RhsShape>
+struct product_result_scalar<Lhs, Rhs, TranspositionsShape, RhsShape>
+{
+  typedef typename Rhs::Scalar Scalar;
+};
+
+template<typename Lhs, typename Rhs, typename LhsShape>
+  struct product_result_scalar<Lhs, Rhs, LhsShape, TranspositionsShape>
+{
+  typedef typename Lhs::Scalar Scalar;
+};
+
 template<typename Lhs, typename Rhs, int Option>
 struct traits<Product<Lhs, Rhs, Option> >
 {
