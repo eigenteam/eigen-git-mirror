@@ -80,10 +80,11 @@ struct traits<Product<Lhs, Rhs, Option> >
     InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(LhsTraits::ColsAtCompileTime, RhsTraits::RowsAtCompileTime),
     
     // The storage order is somewhat arbitrary here. The correct one will be determined through the evaluator.
-    Flags = (   (MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1)
-             || ((LhsTraits::Flags&NoPreferredStorageOrderBit) && (RhsTraits::Flags&RowMajorBit))
-             || ((RhsTraits::Flags&NoPreferredStorageOrderBit) && (LhsTraits::Flags&RowMajorBit)) )
-          ? RowMajorBit : (MaxColsAtCompileTime==1 ? 0 : NoPreferredStorageOrderBit)
+    Flags = (MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1) ? RowMajorBit
+          : (MaxColsAtCompileTime==1 && MaxRowsAtCompileTime!=1) ? 0
+          : (   ((LhsTraits::Flags&NoPreferredStorageOrderBit) && (RhsTraits::Flags&RowMajorBit))
+             || ((RhsTraits::Flags&NoPreferredStorageOrderBit) && (LhsTraits::Flags&RowMajorBit)) ) ? RowMajorBit
+          : NoPreferredStorageOrderBit
   };
 };
 
