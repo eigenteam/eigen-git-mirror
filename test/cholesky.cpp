@@ -11,20 +11,11 @@
 #define EIGEN_NO_ASSERTION_CHECKING
 #endif
 
-static int nb_temporaries;
-
-#define EIGEN_DENSE_STORAGE_CTOR_PLUGIN { if(size!=0) nb_temporaries++; }
+#define TEST_ENABLE_TEMPORARY_TRACKING
 
 #include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/QR>
-
-#define VERIFY_EVALUATION_COUNT(XPR,N) {\
-    nb_temporaries = 0; \
-    XPR; \
-    if(nb_temporaries!=N) std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; \
-    VERIFY( (#XPR) && nb_temporaries==N ); \
-  }
 
 template<typename MatrixType,template <typename,int> class CholType> void test_chol_update(const MatrixType& symm)
 {

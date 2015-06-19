@@ -7,23 +7,9 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-static long int nb_temporaries;
-
-inline void on_temporary_creation(long int size) {
-  // here's a great place to set a breakpoint when debugging failures in this test!
-  if(size!=0) nb_temporaries++;
-}
-
-#define EIGEN_DENSE_STORAGE_CTOR_PLUGIN { on_temporary_creation(size); }
+#define TEST_ENABLE_TEMPORARY_TRACKING
 
 #include "main.h"
-
-#define VERIFY_EVALUATION_COUNT(XPR,N) {\
-    nb_temporaries = 0; \
-    XPR; \
-    if(nb_temporaries!=N) std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; \
-    VERIFY( (#XPR) && nb_temporaries==N ); \
-  }
 
 template<typename MatrixType> void product_notemporary(const MatrixType& m)
 {
