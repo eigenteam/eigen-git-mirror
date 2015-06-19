@@ -58,7 +58,7 @@ struct TensorIntDivisor {
    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorIntDivisor(const T divider) {
     const int N = 32;
     eigen_assert(divider > 0);
-    eigen_assert(divider <= (1<<(N-1)) - 1);
+    eigen_assert(divider <= (1U<<(N-1)) - 1);
 
     // fast ln2
     const int leading_zeros = count_leading_zeros(divider);
