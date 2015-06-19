@@ -42,10 +42,6 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false>
-struct permut_matrix_product_retval;
-template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false>
-struct permut_sparsematrix_product_retval;
 enum PermPermProduct_t {PermPermProduct};
 
 } // end namespace internal
@@ -569,80 +565,6 @@ operator*(const PermutationBase<PermutationDerived> &permutation,
 }
 
 namespace internal {
-
-template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
-struct traits<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
-  : traits<typename MatrixType::PlainObject>
-{
-  typedef typename MatrixType::PlainObject ReturnType;
-};
-
-template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
-struct permut_matrix_product_retval
- : public ReturnByValue<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
-{
-    typedef typename remove_all<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
-    typedef typename MatrixType::StorageIndex StorageIndex;
-
-    permut_matrix_product_retval(const PermutationType& perm, const MatrixType& matrix)
-      : m_permutation(perm), m_matrix(matrix)
-    {}
-
-    inline Index rows() const { return m_matrix.rows(); }
-    inline Index cols() const { return m_matrix.cols(); }
-
-    template<typename Dest> inline void evalTo(Dest& dst) const
-    {
-      const Index n = Side==OnTheLeft ? rows() : cols();
-      // FIXME we need an is_same for expression that is not sensitive to constness. For instance
-      // is_same_xpr<Block<const Matrix>, Block<Matrix> >::value should be true.
-      //if(is_same<MatrixTypeNestedCleaned,Dest>::value && extract_data(dst) == extract_data(m_matrix))
-      if(is_same_dense(dst, m_matrix))
-      {
-        // apply the permutation inplace
-        Matrix<bool,PermutationType::RowsAtCompileTime,1,0,PermutationType::MaxRowsAtCompileTime> mask(m_permutation.size());
-        mask.fill(false);
-        Index r = 0;
-        while(r < m_permutation.size())
-        {
-          // search for the next seed
-          while(r<m_permutation.size() && mask[r]) r++;
-          if(r>=m_permutation.size())
-            break;
-          // we got one, let's follow it until we are back to the seed
-          Index k0 = r++;
-          Index kPrev = k0;
-          mask.coeffRef(k0) = true;
-          for(Index k=m_permutation.indices().coeff(k0); k!=k0; k=m_permutation.indices().coeff(k))
-          {
-                  Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>(dst, k)
-            .swap(Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>
-                       (dst,((Side==OnTheLeft) ^ Transposed) ? k0 : kPrev));
-
-            mask.coeffRef(k) = true;
-            kPrev = k;
-          }
-        }
-      }
-      else
-      {
-        for(Index i = 0; i < n; ++i)
-        {
-          Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>
-               (dst, ((Side==OnTheLeft) ^ Transposed) ? m_permutation.indices().coeff(i) : i)
-
-          =
-
-          Block<const MatrixTypeNestedCleaned,Side==OnTheLeft ? 1 : MatrixType::RowsAtCompileTime,Side==OnTheRight ? 1 : MatrixType::ColsAtCompileTime>
-               (m_matrix, ((Side==OnTheRight) ^ Transposed) ? m_permutation.indices().coeff(i) : i);
-        }
-      }
-    }
-
-  protected:
-    const PermutationType& m_permutation;
-    typename MatrixType::Nested m_matrix;
-};
 
 /* Template partial specialization for transposed/inverse permutations */
 
