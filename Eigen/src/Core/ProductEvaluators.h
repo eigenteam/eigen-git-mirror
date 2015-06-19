@@ -100,8 +100,8 @@ struct evaluator_traits<Product<Lhs, Rhs, AliasFreeProduct> >
 // This is the default evaluator implementation for products:
 // It creates a temporary and call generic_product_impl
 template<typename Lhs, typename Rhs, int Options, int ProductTag, typename LhsShape, typename RhsShape>
-struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsShape, typename traits<Lhs>::Scalar,
-  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),typename traits<Rhs>::Scalar>::type> 
+struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar,
+  EnableIf<(Options==DefaultProduct || Options==AliasFreeProduct)> >
   : public evaluator<typename Product<Lhs, Rhs, Options>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs, Options> XprType;

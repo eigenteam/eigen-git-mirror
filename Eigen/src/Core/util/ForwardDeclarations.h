@@ -147,6 +147,9 @@ template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynami
 
 namespace internal {
 template<typename Lhs, typename Rhs> struct product_type;
+
+template<bool> struct EnableIf;
+
 /** \internal
   * \class product_evaluator
   * Products need their own evaluator with more template arguments allowing for
@@ -157,7 +160,8 @@ template< typename T,
           typename LhsShape = typename evaluator_traits<typename T::Lhs>::Shape,
           typename RhsShape = typename evaluator_traits<typename T::Rhs>::Shape,
           typename LhsScalar = typename traits<typename T::Lhs>::Scalar,
-          typename RhsScalar = typename traits<typename T::Rhs>::Scalar
+          typename RhsScalar = typename traits<typename T::Rhs>::Scalar,
+          typename = EnableIf<true> // extra template parameter for SFINAE-based specialization
         > struct product_evaluator;
 }
 
