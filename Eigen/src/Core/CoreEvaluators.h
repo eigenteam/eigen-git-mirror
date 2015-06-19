@@ -28,13 +28,9 @@ struct storage_kind_to_evaluator_kind {
 // It can be Dense, Sparse, Triangular, Diagonal, SelfAdjoint, Band, etc.
 template<typename StorageKind> struct storage_kind_to_shape;
 
-
-template<> struct storage_kind_to_shape<Dense> { typedef DenseShape Shape; };
-
-
-// FIXME Is this necessary? And why was it not before refactoring???
-template<> struct storage_kind_to_shape<PermutationStorage> { typedef PermutationShape Shape; };
-
+template<> struct storage_kind_to_shape<Dense>                  { typedef DenseShape Shape;           };
+template<> struct storage_kind_to_shape<PermutationStorage>     { typedef PermutationShape Shape;     };
+template<> struct storage_kind_to_shape<TranspositionsStorage>  { typedef TranspositionsShape Shape;  };
 
 // Evaluators have to be specialized with respect to various criteria such as:
 //  - storage/structure/shape

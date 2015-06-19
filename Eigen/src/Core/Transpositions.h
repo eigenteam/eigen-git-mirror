@@ -402,36 +402,6 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
     const TranspositionType& m_transpositions;
 };
 
-namespace internal {
-  
-// TODO currently a Transpositions expression has the form Transpositions or TranspositionsWrapper
-//      or their transpose; in the future shape should be defined by the expression traits
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename IndexType>
-struct evaluator_traits<Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType> >
-{
-  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
-  typedef TranspositionsShape Shape;
-  static const int AssumeAliasing = 0;
-};
-
-template<typename IndicesType>
-struct evaluator_traits<TranspositionsWrapper<IndicesType> >
-{
-  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
-  typedef TranspositionsShape Shape;
-  static const int AssumeAliasing = 0;
-};
-
-template<typename Derived>
-struct evaluator_traits<Transpose<TranspositionsBase<Derived> > >
-{
-  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
-  typedef TranspositionsShape Shape;
-  static const int AssumeAliasing = 0;
-};
-
-} // end namespace internal
-
 } // end namespace Eigen
 
 #endif // EIGEN_TRANSPOSITIONS_H

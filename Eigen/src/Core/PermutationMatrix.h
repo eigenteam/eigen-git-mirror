@@ -648,32 +648,6 @@ const PermutationWrapper<const Derived> MatrixBase<Derived>::asPermutation() con
 }
 
 namespace internal {
-  
-// TODO currently a permutation matrix expression has the form PermutationMatrix or PermutationWrapper
-//      or their transpose; in the future shape should be defined by the expression traits
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename IndexType>
-struct evaluator_traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType> >
-{
-  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
-  typedef PermutationShape Shape;
-  static const int AssumeAliasing = 0;
-};
-
-template<typename IndicesType>
-struct evaluator_traits<PermutationWrapper<IndicesType> >
-{
-  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
-  typedef PermutationShape Shape;
-  static const int AssumeAliasing = 0;
-};
-
-template<typename Derived>
-struct evaluator_traits<Transpose<PermutationBase<Derived> > >
-{
-  typedef typename storage_kind_to_evaluator_kind<Dense>::Kind Kind;
-  typedef PermutationShape Shape;
-  static const int AssumeAliasing = 0;
-};
 
 template<> struct AssignmentKind<DenseShape,PermutationShape> { typedef EigenBase2EigenBase Kind; };
 
