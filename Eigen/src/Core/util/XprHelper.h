@@ -312,9 +312,6 @@ template<typename T> struct plain_matrix_type_row_major
           > type;
 };
 
-// TODO we should be able to get rid of this one too
-template<typename T> struct must_nest_by_value { enum { ret = false }; };
-
 /** \internal The reference selector for template expressions. The idea is that we don't
   * need to use references for expressions since they are light weight proxy
   * objects which should generate no copying overhead. */
@@ -326,6 +323,12 @@ struct ref_selector
     T const&,
     const T
   >::type type;
+  
+  typedef typename conditional<
+    bool(traits<T>::Flags & NestByRefBit),
+    T &,
+    T
+  >::type non_const_type;
 };
 
 /** \internal Adds the const qualifier on the value-type of T2 if and only if T1 is a const type */
