@@ -367,7 +367,7 @@ macro(ei_get_compilerver VAR)
     # on all other system we rely on ${CMAKE_CXX_COMPILER}
     # supporting a "--version" or "/version" flag
     
-    if(WIN32 AND NOT CYGWIN)
+    if(WIN32 AND NOT CYGWIN AND NOT MINGW)
       set(EIGEN_CXX_FLAG_VERSION "/version")
     else()
       set(EIGEN_CXX_FLAG_VERSION "--version")
