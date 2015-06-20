@@ -229,8 +229,10 @@ class CompressedStorage
       internal::scoped_array<Scalar> newValues(size);
       internal::scoped_array<StorageIndex> newIndices(size);
       Index copySize = (std::min)(size, m_size);
-      internal::smart_copy(m_values, m_values+copySize, newValues.ptr());
-      internal::smart_copy(m_indices, m_indices+copySize, newIndices.ptr());
+      if (copySize>0) {
+        internal::smart_copy(m_values, m_values+copySize, newValues.ptr());
+        internal::smart_copy(m_indices, m_indices+copySize, newIndices.ptr());
+      }
       std::swap(m_values,newValues.ptr());
       std::swap(m_indices,newIndices.ptr());
       m_allocatedSize = size;
