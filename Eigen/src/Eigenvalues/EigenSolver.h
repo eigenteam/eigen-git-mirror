@@ -484,7 +484,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
   }
   
   // Backsubstitute to find vectors of upper triangular form
-  if (norm == 0.0)
+  if (norm == Scalar(0))
   {
     return;
   }
@@ -506,7 +506,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
         Scalar w = m_matT.coeff(i,i) - p;
         Scalar r = m_matT.row(i).segment(l,n-l+1).dot(m_matT.col(n).segment(l, n-l+1));
 
-        if (m_eivalues.coeff(i).imag() < 0.0)
+        if (m_eivalues.coeff(i).imag() < Scalar(0))
         {
           lastw = w;
           lastr = r;
@@ -514,9 +514,9 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
         else
         {
           l = i;
-          if (m_eivalues.coeff(i).imag() == 0.0)
+          if (m_eivalues.coeff(i).imag() == Scalar(0))
           {
-            if (w != 0.0)
+            if (w != Scalar(0))
               m_matT.coeffRef(i,n) = -r / w;
             else
               m_matT.coeffRef(i,n) = -r / (eps * norm);
@@ -554,19 +554,19 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
       }
       else
       {
-        std::complex<Scalar> cc = cdiv<Scalar>(0.0,-m_matT.coeff(n-1,n),m_matT.coeff(n-1,n-1)-p,q);
+        std::complex<Scalar> cc = cdiv<Scalar>(Scalar(0),-m_matT.coeff(n-1,n),m_matT.coeff(n-1,n-1)-p,q);
         m_matT.coeffRef(n-1,n-1) = numext::real(cc);
         m_matT.coeffRef(n-1,n) = numext::imag(cc);
       }
-      m_matT.coeffRef(n,n-1) = 0.0;
-      m_matT.coeffRef(n,n) = 1.0;
+      m_matT.coeffRef(n,n-1) = Scalar(0);
+      m_matT.coeffRef(n,n) = Scalar(0);
       for (Index i = n-2; i >= 0; i--)
       {
         Scalar ra = m_matT.row(i).segment(l, n-l+1).dot(m_matT.col(n-1).segment(l, n-l+1));
         Scalar sa = m_matT.row(i).segment(l, n-l+1).dot(m_matT.col(n).segment(l, n-l+1));
         Scalar w = m_matT.coeff(i,i) - p;
 
-        if (m_eivalues.coeff(i).imag() < 0.0)
+        if (m_eivalues.coeff(i).imag() < Scalar(0))
         {
           lastw = w;
           lastra = ra;
@@ -588,7 +588,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
             Scalar y = m_matT.coeff(i+1,i);
             Scalar vr = (m_eivalues.coeff(i).real() - p) * (m_eivalues.coeff(i).real() - p) + m_eivalues.coeff(i).imag() * m_eivalues.coeff(i).imag() - q * q;
             Scalar vi = (m_eivalues.coeff(i).real() - p) * Scalar(2) * q;
-            if ((vr == 0.0) && (vi == 0.0))
+            if ((vr == Scalar(0)) && (vi == Scalar(0)))
               vr = eps * norm * (abs(w) + abs(q) + abs(x) + abs(y) + abs(lastw));
 
             std::complex<Scalar> cc = cdiv(x*lastra-lastw*ra+q*sa,x*lastsa-lastw*sa-q*ra,vr,vi);
