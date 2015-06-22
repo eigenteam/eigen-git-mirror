@@ -124,8 +124,11 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
         c = internal::random<Index>(0, cols-1);
 
   ArrayType m1 = ArrayType::Random(rows, cols),
-             m2 = ArrayType::Random(rows, cols),
-             m3(rows, cols);            
+            m2 = ArrayType::Random(rows, cols),
+            m3(rows, cols),
+            m4 = m1;
+  
+  m4 = (m4.abs()==Scalar(0)).select(1,m4);
 
   VERIFY(((m1 + Scalar(1)) > m1).all());
   VERIFY(((m1 - Scalar(1)) < m1).all());
@@ -197,7 +200,10 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
   ArrayType m1 = ArrayType::Random(rows, cols),
             m2 = ArrayType::Random(rows, cols),
-            m3(rows, cols);
+            m3(rows, cols),
+            m4 = m1;
+  
+  m4 = (m4.abs()==Scalar(0)).select(1,m4);
 
   Scalar  s1 = internal::random<Scalar>();
 
@@ -243,9 +249,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(tanh(m1), (0.5*(exp(m1)-exp(-m1)))/(0.5*(exp(m1)+exp(-m1))));
   VERIFY_IS_APPROX(arg(m1), ((ArrayType)(m1<0))*std::acos(-1.0));
   VERIFY((round(m1) <= ceil(m1) && round(m1) >= floor(m1)).all());
-  VERIFY(isnan(m1*0.0/0.0).all());
-  VERIFY(isinf(m1/0.0).all());
-  VERIFY((isfinite(m1) && !isfinite(m1*0.0/0.0) && !isfinite(m1/0.0)).all());
+  VERIFY(isnan((m1*0.0)/0.0).all());
+  VERIFY(isinf(m4/0.0).all());
+  VERIFY((isfinite(m1) && !isfinite(m1*0.0/0.0) && !isfinite(m4/0.0)).all());
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY((abs(m1) == m1 || abs(m1) == -m1).all());
   VERIFY_IS_APPROX(m3, sqrt(abs2(m1)));
@@ -299,7 +305,11 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   Index cols = m.cols();
 
   ArrayType m1 = ArrayType::Random(rows, cols),
-            m2(rows, cols);
+            m2(rows, cols),
+            m4 = m1;
+  
+  m4.real() = (m4.real().abs()==RealScalar(0)).select(RealScalar(1),m4.real());
+  m4.imag() = (m4.imag().abs()==RealScalar(0)).select(RealScalar(1),m4.imag());
 
   Array<RealScalar, -1, -1> m3(rows, cols);
 
@@ -348,14 +358,14 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY(isnan(m1*zero/zero).all());
 #if EIGEN_COMP_CLANG
   // clang's complex division is notoriously broken
-  if(numext::isinf(m1(0,0)/Scalar(0))) {
+  if(numext::isinf(m4(0,0)/Scalar(0))) {
 #endif
-  VERIFY(isinf(m1/zero).all());
+  VERIFY(isinf(m4/zero).all());
 #if EIGEN_COMP_CLANG
   }
   else
   {
-    VERIFY(isinf(m1.real()/zero.real()).all());
+    VERIFY(isinf(m4.real()/zero.real()).all());
   }
 #endif
   VERIFY((isfinite(m1) && !isfinite(m1*zero/zero) && !isfinite(m1/zero)).all());
