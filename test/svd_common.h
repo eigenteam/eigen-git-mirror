@@ -307,6 +307,7 @@ void svd_inf_nan()
 
 // Regression test for bug 286: JacobiSVD loops indefinitely with some
 // matrices containing denormal numbers.
+template<typename>
 void svd_underoverflow()
 {
 #if defined __INTEL_COMPILER
@@ -384,6 +385,7 @@ void svd_all_trivial_2x2( void (*cb)(const MatrixType&,bool) )
   } while((id<int(value_set.size())).all());
 }
 
+template<typename>
 void svd_preallocate()
 {
   Vector3f v(3.f, 2.f, 1.f);
