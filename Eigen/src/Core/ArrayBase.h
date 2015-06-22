@@ -83,22 +83,10 @@ template<typename Derived> class ArrayBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
-      * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
-      * reference to a matrix, not a matrix! It is however guaranteed that the return type of eval() is either
-      * PlainObject or const PlainObject&.
-      */
-    typedef Array<typename internal::traits<Derived>::Scalar,
-                internal::traits<Derived>::RowsAtCompileTime,
-                internal::traits<Derived>::ColsAtCompileTime,
-                AutoAlign | (internal::traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
-                internal::traits<Derived>::MaxRowsAtCompileTime,
-                internal::traits<Derived>::MaxColsAtCompileTime
-          > PlainObject;
-
+    typedef typename Base::PlainObject PlainObject;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
-    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::ArrayBase

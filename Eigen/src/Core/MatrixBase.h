@@ -101,23 +101,11 @@ template<typename Derived> class MatrixBase
     EIGEN_DEVICE_FUNC
     inline Index diagonalSize() const { return (std::min)(rows(),cols()); }
 
-    /** \brief The plain matrix type corresponding to this expression.
-      *
-      * This is not necessarily exactly the return type of eval(). In the case of plain matrices,
-      * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed
-      * that the return type of eval() is either PlainObject or const PlainObject&.
-      */
-    typedef Matrix<typename internal::traits<Derived>::Scalar,
-                internal::traits<Derived>::RowsAtCompileTime,
-                internal::traits<Derived>::ColsAtCompileTime,
-                AutoAlign | (internal::traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
-                internal::traits<Derived>::MaxRowsAtCompileTime,
-                internal::traits<Derived>::MaxColsAtCompileTime
-          > PlainObject;
+    typedef typename Base::PlainObject PlainObject;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal Represents a matrix with all coefficients equal to one another*/
-    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, ConstTransposeReturnType>,
@@ -126,7 +114,7 @@ template<typename Derived> class MatrixBase
     /** \internal Return type of eigenvalues() */
     typedef Matrix<std::complex<RealScalar>, internal::traits<Derived>::ColsAtCompileTime, 1, ColMajor> EigenvaluesReturnType;
     /** \internal the return type of identity */
-    typedef CwiseNullaryOp<internal::scalar_identity_op<Scalar>,Derived> IdentityReturnType;
+    typedef CwiseNullaryOp<internal::scalar_identity_op<Scalar>,PlainObject> IdentityReturnType;
     /** \internal the return type of unit vectors */
     typedef Block<const CwiseNullaryOp<internal::scalar_identity_op<Scalar>, SquareMatrixType>,
                   internal::traits<Derived>::RowsAtCompileTime,

@@ -178,6 +178,35 @@ template<typename Derived> class DenseBase
     };
 
     enum { IsPlainObjectBase = 0 };
+    
+    /** The plain matrix type corresponding to this expression.
+      * \sa PlainObject */
+    typedef Matrix<typename internal::traits<Derived>::Scalar,
+                internal::traits<Derived>::RowsAtCompileTime,
+                internal::traits<Derived>::ColsAtCompileTime,
+                AutoAlign | (internal::traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                internal::traits<Derived>::MaxRowsAtCompileTime,
+                internal::traits<Derived>::MaxColsAtCompileTime
+          > PlainMatrix;
+    
+    /** The plain array type corresponding to this expression.
+      * \sa PlainObject */
+    typedef Array<typename internal::traits<Derived>::Scalar,
+                internal::traits<Derived>::RowsAtCompileTime,
+                internal::traits<Derived>::ColsAtCompileTime,
+                AutoAlign | (internal::traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                internal::traits<Derived>::MaxRowsAtCompileTime,
+                internal::traits<Derived>::MaxColsAtCompileTime
+          > PlainArray;
+
+    /** \brief The plain matrix or array type corresponding to this expression.
+      *
+      * This is not necessarily exactly the return type of eval(). In the case of plain matrices,
+      * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed
+      * that the return type of eval() is either PlainObject or const PlainObject&.
+      */
+    typedef typename internal::conditional<internal::is_same<typename internal::traits<Derived>::XprKind,MatrixXpr >::value,
+                                 PlainMatrix, PlainArray>::type PlainObject;
 
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
@@ -237,13 +266,12 @@ template<typename Derived> class DenseBase
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-
     /** \internal Represents a matrix with all coefficients equal to one another*/
-    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows sequential access only. */
-    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,false>,Derived> SequentialLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,false>,PlainObject> SequentialLinSpacedReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
-    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,true>,Derived> RandomAccessLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,true>,PlainObject> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename internal::traits<Derived>::Scalar>::Real, internal::traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
 
@@ -322,13 +350,13 @@ template<typename Derived> class DenseBase
     LinSpaced(const Scalar& low, const Scalar& high);
 
     template<typename CustomNullaryOp> EIGEN_DEVICE_FUNC
-    static const CwiseNullaryOp<CustomNullaryOp, Derived>
+    static const CwiseNullaryOp<CustomNullaryOp, PlainObject>
     NullaryExpr(Index rows, Index cols, const CustomNullaryOp& func);
     template<typename CustomNullaryOp> EIGEN_DEVICE_FUNC
-    static const CwiseNullaryOp<CustomNullaryOp, Derived>
+    static const CwiseNullaryOp<CustomNullaryOp, PlainObject>
     NullaryExpr(Index size, const CustomNullaryOp& func);
     template<typename CustomNullaryOp> EIGEN_DEVICE_FUNC
-    static const CwiseNullaryOp<CustomNullaryOp, Derived>
+    static const CwiseNullaryOp<CustomNullaryOp, PlainObject>
     NullaryExpr(const CustomNullaryOp& func);
 
     EIGEN_DEVICE_FUNC static const ConstantReturnType Zero(Index rows, Index cols);
@@ -466,9 +494,10 @@ template<typename Derived> class DenseBase
     ConstColwiseReturnType colwise() const;
     ColwiseReturnType colwise();
 
-    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(Index rows, Index cols);
-    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(Index size);
-    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random();
+    typedef CwiseNullaryOp<internal::scalar_random_op<Scalar>,PlainObject> RandomReturnType;
+    static const RandomReturnType Random(Index rows, Index cols);
+    static const RandomReturnType Random(Index size);
+    static const RandomReturnType Random();
 
     template<typename ThenDerived,typename ElseDerived>
     const Select<Derived,ThenDerived,ElseDerived>
