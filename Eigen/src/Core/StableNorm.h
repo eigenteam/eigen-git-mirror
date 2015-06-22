@@ -164,12 +164,14 @@ MatrixBase<Derived>::stableNorm() const
   enum {
     Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? 1 : 0
   };
+  typedef typename internal::conditional<Alignment, Ref<const Matrix<Scalar,Dynamic,1,0,blockSize,1>, Aligned>,
+                                                    typename Base::ConstSegmentReturnType>::type SegmentWrapper;
   Index n = size();
   Index bi = internal::first_aligned(derived());
   if (bi>0)
     internal::stable_norm_kernel(this->head(bi), ssq, scale, invScale);
   for (; bi<n; bi+=blockSize)
-    internal::stable_norm_kernel(this->segment(bi,numext::mini(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
+    internal::stable_norm_kernel(SegmentWrapper(this->segment(bi,numext::mini(blockSize, n - bi))), ssq, scale, invScale);
   return scale * sqrt(ssq);
 }
 
