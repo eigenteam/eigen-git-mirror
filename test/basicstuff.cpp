@@ -223,7 +223,7 @@ void fixedSizeMatrixConstruction()
     for(int k=0; k<2; ++k) VERIFY(m2(k) == DenseIndex(raw[k]));
     for(int k=0; k<2; ++k) VERIFY(a2(k) == DenseIndex(raw[k]));
     for(int k=0; k<2; ++k) VERIFY(m3(k) == int(raw[k]));
-    for(int k=0; k<2; ++k) VERIFY(m4(k) == float(raw[k]));
+    for(int k=0; k<2; ++k) VERIFY((m4(k)) == Scalar(float(raw[k])));
   }
   {
     Matrix<Scalar,1,1> m(raw), m1(raw[0]), m2( (DenseIndex(raw[0])) ), m3( (int(raw[0])) );
