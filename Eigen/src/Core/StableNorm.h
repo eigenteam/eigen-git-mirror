@@ -157,6 +157,7 @@ inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::stableNorm() const
 {
   using std::sqrt;
+  using std::abs;
   const Index blockSize = 4096;
   RealScalar scale(0);
   RealScalar invScale(1);
@@ -167,6 +168,10 @@ MatrixBase<Derived>::stableNorm() const
   typedef typename internal::conditional<Alignment, Ref<const Matrix<Scalar,Dynamic,1,0,blockSize,1>, Aligned>,
                                                     typename Base::ConstSegmentReturnType>::type SegmentWrapper;
   Index n = size();
+  
+  if(n==1)
+    return abs(this->coeff(0));
+  
   Index bi = internal::first_aligned(derived());
   if (bi>0)
     internal::stable_norm_kernel(this->head(bi), ssq, scale, invScale);
