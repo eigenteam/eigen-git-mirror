@@ -224,6 +224,7 @@ class blas_data_mapper {
   }
 
   const Index stride() const { return m_stride; }
+  const Scalar* data() const { return m_data; }
 
   Index firstAligned(Index size) const {
     if (size_t(m_data)%sizeof(Scalar)) {

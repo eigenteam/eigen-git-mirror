@@ -46,38 +46,37 @@ namespace internal {
 
 // gemv specialization
 
-template<typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
-struct general_matrix_vector_product_gemv :
-  general_matrix_vector_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,ConjugateRhs,BuiltIn> {};
+template<typename Index, typename LhsScalar, int StorageOrder, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
+struct general_matrix_vector_product_gemv;
 
 #define EIGEN_MKL_GEMV_SPECIALIZE(Scalar) \
 template<typename Index, bool ConjugateLhs, bool ConjugateRhs> \
-struct general_matrix_vector_product<Index,Scalar,ColMajor,ConjugateLhs,Scalar,ConjugateRhs,Specialized> { \
+struct general_matrix_vector_product<Index,Scalar,const_blas_data_mapper<Scalar,Index,ColMajor>,ColMajor,ConjugateLhs,Scalar,const_blas_data_mapper<Scalar,Index,RowMajor>,ConjugateRhs,Specialized> { \
 static void run( \
   Index rows, Index cols, \
-  const Scalar* lhs, Index lhsStride, \
-  const Scalar* rhs, Index rhsIncr, \
+  const const_blas_data_mapper<Scalar,Index,ColMajor> &lhs, \
+  const const_blas_data_mapper<Scalar,Index,RowMajor> &rhs, \
   Scalar* res, Index resIncr, Scalar alpha) \
 { \
   if (ConjugateLhs) { \
-    general_matrix_vector_product<Index,Scalar,ColMajor,ConjugateLhs,Scalar,ConjugateRhs,BuiltIn>::run( \
-      rows, cols, lhs, lhsStride, rhs, rhsIncr, res, resIncr, alpha); \
+    general_matrix_vector_product<Index,Scalar,const_blas_data_mapper<Scalar,Index,ColMajor>,ColMajor,ConjugateLhs,Scalar,const_blas_data_mapper<Scalar,Index,RowMajor>,ConjugateRhs,BuiltIn>::run( \
+      rows, cols, lhs, rhs, res, resIncr, alpha); \
   } else { \
     general_matrix_vector_product_gemv<Index,Scalar,ColMajor,ConjugateLhs,Scalar,ConjugateRhs>::run( \
-      rows, cols, lhs, lhsStride, rhs, rhsIncr, res, resIncr, alpha); \
+      rows, cols, lhs.data(), lhs.stride(), rhs.data(), rhs.stride(), res, resIncr, alpha); \
   } \
 } \
 }; \
 template<typename Index, bool ConjugateLhs, bool ConjugateRhs> \
-struct general_matrix_vector_product<Index,Scalar,RowMajor,ConjugateLhs,Scalar,ConjugateRhs,Specialized> { \
+struct general_matrix_vector_product<Index,Scalar,const_blas_data_mapper<Scalar,Index,RowMajor>,RowMajor,ConjugateLhs,Scalar,const_blas_data_mapper<Scalar,Index,ColMajor>,ConjugateRhs,Specialized> { \
 static void run( \
   Index rows, Index cols, \
-  const Scalar* lhs, Index lhsStride, \
-  const Scalar* rhs, Index rhsIncr, \
+  const const_blas_data_mapper<Scalar,Index,RowMajor> &lhs, \
+  const const_blas_data_mapper<Scalar,Index,ColMajor> &rhs, \
   Scalar* res, Index resIncr, Scalar alpha) \
 { \
     general_matrix_vector_product_gemv<Index,Scalar,RowMajor,ConjugateLhs,Scalar,ConjugateRhs>::run( \
-      rows, cols, lhs, lhsStride, rhs, rhsIncr, res, resIncr, alpha); \
+      rows, cols, lhs.data(), lhs.stride(), rhs.data(), rhs.stride(), res, resIncr, alpha); \
 } \
 }; \
 
