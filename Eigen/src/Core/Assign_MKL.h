@@ -137,8 +137,6 @@ EIGEN_MKL_VML_DECLARE_UNARY_CALLS_REAL(round, Round,  _)
 EIGEN_MKL_VML_DECLARE_UNARY_CALLS_REAL(floor, Floor,  _)
 EIGEN_MKL_VML_DECLARE_UNARY_CALLS_REAL(ceil,  Ceil,   _)
 
-#ifndef _WIN32
-
 #define EIGEN_MKL_VML_DECLARE_POW_CALL(EIGENOP, VMLOP, EIGENTYPE, VMLTYPE, VMLMODE)                                           \
   template< typename DstXprType, typename SrcXprNested>                                                                       \
   struct Assignment<DstXprType, CwiseUnaryOp<scalar_##EIGENOP##_op<EIGENTYPE>, SrcXprNested>, assign_op<EIGENTYPE>,           \
@@ -168,7 +166,6 @@ EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmsPowx, float,    float,         LA)
 EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmdPowx, double,   double,        LA)
 EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmcPowx, scomplex, MKL_Complex8,  LA)
 EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmzPowx, dcomplex, MKL_Complex16, LA)
-#endif
 
 } // end namespace internal
 
