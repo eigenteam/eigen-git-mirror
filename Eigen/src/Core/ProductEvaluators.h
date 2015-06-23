@@ -751,7 +751,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   using Base::m_diagImpl;
   using Base::m_matImpl;
   using Base::coeff;
-  using Base::packet_impl;
   typedef typename Base::Scalar Scalar;
   typedef typename Base::PacketScalar PacketScalar;
   
@@ -776,7 +775,8 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   template<int LoadMode>
   EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
   {
-    // NVCC complains about template keyword, so we disable this function in CUDA mode
+    // FIXME: NVCC used to complain about the template keyword, but we have to check whether this is still the case.
+    // See also similar calls below.
     return this->template packet_impl<LoadMode>(row,col, row,
                                  typename internal::conditional<int(StorageOrder)==RowMajor, internal::true_type, internal::false_type>::type());
   }
@@ -798,7 +798,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   using Base::m_diagImpl;
   using Base::m_matImpl;
   using Base::coeff;
-  using Base::packet_impl;
   typedef typename Base::Scalar Scalar;
   typedef typename Base::PacketScalar PacketScalar;
   
