@@ -33,6 +33,7 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   };
 
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixUType;
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixVType;
 
@@ -40,7 +41,10 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   sigma.diagonal() = svd.singularValues().template cast<Scalar>();
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
-  VERIFY_IS_APPROX(m, u * sigma * v.adjoint());
+  RealScalar scaling = m.cwiseAbs().maxCoeff();
+  if(scaling<=(std::numeric_limits<RealScalar>::min)())
+    scaling = RealScalar(1);
+  VERIFY_IS_APPROX(m/scaling, u * (sigma/scaling) * v.adjoint());
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
 }
