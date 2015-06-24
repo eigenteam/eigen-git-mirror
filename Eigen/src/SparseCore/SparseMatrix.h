@@ -695,6 +695,15 @@ class SparseMatrix
       initAssignment(other);
       other.evalTo(*this);
     }
+    
+    /** \brief Copy constructor with in-place evaluation */
+    template<typename OtherDerived>
+    explicit SparseMatrix(const DiagonalBase<OtherDerived>& other)
+      : Base(), m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
+    {
+      check_template_parameters();
+      *this = other.derived();
+    }
 
     /** Swaps the content of two sparse matrices of the same type.
       * This is a fast operation that simply swaps the underlying pointers and parameters. */

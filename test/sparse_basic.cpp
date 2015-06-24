@@ -372,6 +372,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     SparseMatrixType m2(rows, rows);
     m2 = d.asDiagonal();
     VERIFY_IS_APPROX(m2, refMat2);
+    SparseMatrixType m3(d.asDiagonal());
+    VERIFY_IS_APPROX(m3, refMat2);
     refMat2 += d.asDiagonal();
     m2 += d.asDiagonal();
     VERIFY_IS_APPROX(m2, refMat2);
