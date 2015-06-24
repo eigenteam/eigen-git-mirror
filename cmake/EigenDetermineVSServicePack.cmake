@@ -26,6 +26,8 @@ function(EigenDetermineVSServicePack _pack)
                         set(_sp "vc110sp2")
                     elseif(${_cl_version} VERSION_EQUAL "17.00.60610.1")
                         set(_sp "vc110sp3")
+                    else()
+                        set(_sp ${CMAKE_CXX_COMPILER_VERSION})
                     endif()
                 endif()
                 
