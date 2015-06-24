@@ -136,8 +136,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
 };
 
 // Sparse to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor>
-struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
@@ -152,8 +152,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
   }
 };
 
-template< typename DstXprType, typename SrcXprType>
-struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense>
+template< typename DstXprType, typename SrcXprType, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense, Scalar>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &)
   {
@@ -172,7 +172,7 @@ struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprTyp
 // Specialization for "dst = dec.solve(rhs)"
 // NOTE we need to specialize it for Sparse2Sparse to avoid ambiguous specialization error
 template<typename DstXprType, typename DecType, typename RhsType, typename Scalar>
-struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar>, Sparse2Sparse>
+struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar>, Sparse2Sparse, Scalar>
 {
   typedef Solve<DecType,RhsType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
