@@ -97,8 +97,8 @@ class SparseMatrix
     using Base::isCompressed;
     using Base::nonZeros;
     _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
-    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
-    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
+    using Base::operator+=;
+    using Base::operator-=;
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     typedef Diagonal<SparseMatrix> DiagonalReturnType;
