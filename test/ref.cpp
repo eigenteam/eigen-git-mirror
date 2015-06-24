@@ -221,6 +221,12 @@ int test_ref_overload_fun1(Ref<MatrixXf> )       { return 3; }
 int test_ref_overload_fun2(Ref<const MatrixXd> ) { return 4; }
 int test_ref_overload_fun2(Ref<const MatrixXf> ) { return 5; }
 
+void test_ref_ambiguous(const Ref<const ArrayXd> &A, Ref<ArrayXd> B)
+{
+  B = A;
+  B = A - A;
+}
+
 // See also bug 969
 void test_ref_overloads()
 {
@@ -233,6 +239,9 @@ void test_ref_overloads()
   VERIFY( test_ref_overload_fun2(Ad)==4 );
   VERIFY( test_ref_overload_fun2(Ad+Bd)==4 );
   VERIFY( test_ref_overload_fun2(Af+Bf)==5 );
+  
+  ArrayXd A, B;
+  test_ref_ambiguous(A, B);
 }
 
 void test_ref()
