@@ -318,7 +318,7 @@ template<typename Scalar> void packetmath_real()
     data1[1] = std::numeric_limits<Scalar>::epsilon();
     packet_helper<internal::packet_traits<Scalar>::HasExp,Packet> h;
     h.store(data2, internal::pexp(h.load(data1)));
-    VERIFY(std::isnan(data2[0]));
+    VERIFY(numext::isnan(data2[0]));
     VERIFY_IS_EQUAL(std::exp(std::numeric_limits<Scalar>::epsilon()), data2[1]);
 
     data1[0] = -std::numeric_limits<Scalar>::epsilon();
