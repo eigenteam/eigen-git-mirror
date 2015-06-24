@@ -756,6 +756,26 @@ EIGEN_DEVICE_FUNC void call_assignment_no_alias(Dst& dst, const Src& src)
   call_assignment_no_alias(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
 
+template<typename Dst, typename Src, typename Func>
+EIGEN_DEVICE_FUNC void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src, const Func& func)
+{
+  Index dstRows = src.rows();
+  Index dstCols = src.cols();
+  if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+    dst.resize(dstRows, dstCols);
+  
+  // TODO check whether this is the right place to perform these checks:
+  EIGEN_STATIC_ASSERT_LVALUE(Dst)
+  EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Dst,Src)
+  
+  Assignment<Dst,Src,Func>::run(dst, src, func);
+}
+template<typename Dst, typename Src>
+EIGEN_DEVICE_FUNC void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src)
+{
+  call_assignment_no_alias_no_transpose(dst, src, internal::assign_op<typename Dst::Scalar>());
+}
+
 // forward declaration
 template<typename Dst, typename Src> void check_for_aliasing(const Dst &dst, const Src &src);
 
@@ -783,7 +803,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Scalar>
   EIGEN_DEVICE_FUNC static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    
     src.evalTo(dst);
   }
 };
