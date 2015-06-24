@@ -365,6 +365,18 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m2, refMat2);
   }
   
+  // test diagonal to sparse
+  {
+    DenseVector d = DenseVector::Random(rows);
+    DenseMatrix refMat2 = d.asDiagonal();
+    SparseMatrixType m2(rows, rows);
+    m2 = d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+    refMat2 += d.asDiagonal();
+    m2 += d.asDiagonal();
+    VERIFY_IS_APPROX(m2, refMat2);
+  }
+  
   // test conservative resize
   {
       std::vector< std::pair<StorageIndex,StorageIndex> > inc;

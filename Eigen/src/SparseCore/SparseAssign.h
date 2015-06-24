@@ -181,6 +181,39 @@ struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar
   }
 };
 
+struct Diagonal2Sparse {};
+
+template<> struct AssignmentKind<SparseShape,DiagonalShape> { typedef Diagonal2Sparse Kind; };
+
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Sparse, Scalar>
+{
+  typedef typename DstXprType::StorageIndex StorageIndex;
+  typedef Array<StorageIndex,Dynamic,1> ArrayXI;
+  typedef Array<Scalar,Dynamic,1> ArrayXS;
+  template<int Options>
+  static void run(SparseMatrix<Scalar,Options,StorageIndex> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  {
+    Index size = src.diagonal().size();
+    dst.makeCompressed();
+    dst.resizeNonZeros(size);
+    Map<ArrayXI>(dst.innerIndexPtr(), size).setLinSpaced(0,StorageIndex(size)-1);
+    Map<ArrayXI>(dst.outerIndexPtr(), size+1).setLinSpaced(0,StorageIndex(size));
+    Map<ArrayXS>(dst.valuePtr(), size) = src.diagonal();
+  }
+  
+  template<typename DstDerived>
+  static void run(SparseMatrixBase<DstDerived> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  {
+    dst.diagonal() = src.diagonal();
+  }
+  
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar> &/*func*/)
+  { dst.diagonal() += src.diagonal(); }
+  
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar> &/*func*/)
+  { dst.diagonal() -= src.diagonal(); }
+};
 } // end namespace internal
 
 } // end namespace Eigen
