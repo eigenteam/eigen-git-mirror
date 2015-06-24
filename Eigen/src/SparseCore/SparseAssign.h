@@ -16,8 +16,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& SparseMatrixBase<Derived>::operator=(const EigenBase<OtherDerived> &other)
 {
-  // TODO use the evaluator mechanism
-  other.derived().evalTo(derived());
+  internal::call_assignment_no_alias(derived(), other.derived());
   return derived();
 }
 
@@ -137,8 +136,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
 };
 
 // Sparse to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
@@ -153,8 +152,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
   }
 };
 
-template< typename DstXprType, typename SrcXprType, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense, Scalar>
+template< typename DstXprType, typename SrcXprType>
+struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &)
   {
@@ -173,7 +172,7 @@ struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprTyp
 // Specialization for "dst = dec.solve(rhs)"
 // NOTE we need to specialize it for Sparse2Sparse to avoid ambiguous specialization error
 template<typename DstXprType, typename DecType, typename RhsType, typename Scalar>
-struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar>, Sparse2Sparse, Scalar>
+struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar>, Sparse2Sparse>
 {
   typedef Solve<DecType,RhsType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
