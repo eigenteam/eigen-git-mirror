@@ -185,10 +185,13 @@ public:
   template<typename Rhs,typename Dest>
   void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {
+    typedef Ref<const MatrixType> MatRef;
+    typedef typename internal::conditional<UpLo==(Lower|Upper) && (!MatrixType::IsRowMajor) && (!NumTraits<Scalar>::IsComplex),
+                                           Transpose<const MatRef>, MatRef const&>::type RowMajorWrapper;
     typedef typename internal::conditional<UpLo==(Lower|Upper),
-                                           Ref<const MatrixType>&,
-                                           typename Ref<const MatrixType>::template ConstSelfAdjointViewReturnType<UpLo>::Type
-                                          >::type MatrixWrapperType;
+                                           RowMajorWrapper,
+                                           typename MatRef::template ConstSelfAdjointViewReturnType<UpLo>::Type
+                                          >::type SelfAdjointWrapper;
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
 
@@ -198,7 +201,8 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      internal::conjugate_gradient(MatrixWrapperType(mp_matrix), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
+      RowMajorWrapper row_mat(mp_matrix);
+      internal::conjugate_gradient(SelfAdjointWrapper(row_mat), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
     }
 
     m_isInitialized = true;
