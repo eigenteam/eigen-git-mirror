@@ -249,9 +249,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(tanh(m1), (0.5*(exp(m1)-exp(-m1)))/(0.5*(exp(m1)+exp(-m1))));
   VERIFY_IS_APPROX(arg(m1), ((ArrayType)(m1<0))*std::acos(-1.0));
   VERIFY((round(m1) <= ceil(m1) && round(m1) >= floor(m1)).all());
-  VERIFY(isnan((m1*0.0)/0.0).all());
-  VERIFY(isinf(m4/0.0).all());
-  VERIFY((isfinite(m1) && !isfinite(m1*0.0/0.0) && !isfinite(m4/0.0)).all());
+  VERIFY(Eigen::isnan((m1*0.0)/0.0).all());
+  VERIFY(Eigen::isinf(m4/0.0).all());
+  VERIFY((isfinite(m1) && !Eigen::isfinite(m1*0.0/0.0) && !Eigen::isfinite(m4/0.0)).all());
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY((abs(m1) == m1 || abs(m1) == -m1).all());
   VERIFY_IS_APPROX(m3, sqrt(abs2(m1)));
@@ -355,12 +355,12 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(arg(m1), m3);
 
   std::complex<RealScalar> zero(0.0,0.0);
-  VERIFY(isnan(m1*zero/zero).all());
+  VERIFY(Eigen::isnan(m1*zero/zero).all());
 #if EIGEN_COMP_CLANG
   // clang's complex division is notoriously broken
   if(numext::isinf(m4(0,0)/Scalar(0))) {
 #endif
-  VERIFY(isinf(m4/zero).all());
+  VERIFY(Eigen::isinf(m4/zero).all());
 #if EIGEN_COMP_CLANG
   }
   else
@@ -368,7 +368,7 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
     VERIFY(isinf(m4.real()/zero.real()).all());
   }
 #endif
-  VERIFY((isfinite(m1) && !isfinite(m1*zero/zero) && !isfinite(m1/zero)).all());
+  VERIFY((isfinite(m1) && !Eigen::isfinite(m1*zero/zero) && !Eigen::isfinite(m1/zero)).all());
 
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY_IS_APPROX(conj(m1.conjugate()), m1);
