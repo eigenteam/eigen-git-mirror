@@ -136,6 +136,8 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
   * and NumTraits<Scalar>::epsilon() for the tolerance.
   * 
+  * The tolerance is the relative residual error: |Ax-b|/|b|
+  * 
   * This class can be used as the direct solver classes. Here is a typical usage example:
   * \include BiCGSTAB_simple.cpp
   * 
