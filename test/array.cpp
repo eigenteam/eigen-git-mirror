@@ -221,9 +221,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
-  VERIFY((m1.isNaN() == isnan(m1)).all());
-  VERIFY((m1.isInf() == isinf(m1)).all());
-  VERIFY((m1.isFinite() == isfinite(m1)).all());
+  VERIFY((m1.isNaN() == Eigen::isnan(m1)).all());
+  VERIFY((m1.isInf() == Eigen::isinf(m1)).all());
+  VERIFY((m1.isFinite() == Eigen::isfinite(m1)).all());
   VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
   VERIFY_IS_APPROX(m1.abs(), abs(m1));
   VERIFY_IS_APPROX(m1.abs2(), abs2(m1));
@@ -327,9 +327,9 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
-  VERIFY((m1.isNaN() == isnan(m1)).all());
-  VERIFY((m1.isInf() == isinf(m1)).all());
-  VERIFY((m1.isFinite() == isfinite(m1)).all());
+  VERIFY((m1.isNaN() == Eigen::isnan(m1)).all());
+  VERIFY((m1.isInf() == Eigen::isinf(m1)).all());
+  VERIFY((m1.isFinite() == Eigen::isfinite(m1)).all());
   VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
   VERIFY_IS_APPROX(m1.log(), log(m1));
   VERIFY_IS_APPROX(m1.log10(), log10(m1));
@@ -365,7 +365,7 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   }
   else
   {
-    VERIFY(isinf(m4.real()/zero.real()).all());
+    VERIFY(Eigen::isinf(m4.real()/zero.real()).all());
   }
 #endif
   VERIFY((Eigen::isfinite(m1) && (!Eigen::isfinite(m1*zero/zero)) && (!Eigen::isfinite(m1/zero))).all());
