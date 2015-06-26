@@ -69,8 +69,8 @@ void test_bdcsvd()
   CALL_SUBTEST_7(( svd_verify_assert<BDCSVD<MatrixXf>  >(MatrixXf(10,12)) ));
   CALL_SUBTEST_8(( svd_verify_assert<BDCSVD<MatrixXcd> >(MatrixXcd(7,5)) ));
   
-  CALL_SUBTEST_1(( svd_all_trivial_2x2(bdcsvd<Matrix2cd>) ));
-  CALL_SUBTEST_1(( svd_all_trivial_2x2(bdcsvd<Matrix2d>) ));
+  CALL_SUBTEST_101(( svd_all_trivial_2x2(bdcsvd<Matrix2cd>) ));
+  CALL_SUBTEST_102(( svd_all_trivial_2x2(bdcsvd<Matrix2d>) ));
 
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_3(( bdcsvd<Matrix3f>() ));
