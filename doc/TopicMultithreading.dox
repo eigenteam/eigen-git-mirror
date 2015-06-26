@@ -22,8 +22,12 @@ n = Eigen::nbThreads( );
 You can disable Eigen's multi threading at compile time by defining the EIGEN_DONT_PARALLELIZE preprocessor token.
 
 Currently, the following algorithms can make use of multi-threading:
- * general matrix - matrix products
- * PartialPivLU
+ - general dense matrix - matrix products
+ - PartialPivLU
+ - row-major-sparse * dense vector/matrix products
+ - ConjugateGradient with \c Lower|Upper as the \c UpLo template parameter.
+ - BiCGSTAB with a row-major sparse matrix format.
+ - LeastSquaresConjugateGradient
 
 \section TopicMultiThreading_UsingEigenWithMT Using Eigen in a multi-threaded application
 

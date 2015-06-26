@@ -114,14 +114,20 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   *
   * \tparam _MatrixType the type of the matrix A, can be a dense or a sparse matrix.
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower,
-  *               Upper, or Lower|Upper in which the full matrix entries will be considered. Default is Lower.
+  *               \c Upper, or \c Lower|Upper in which the full matrix entries will be considered.
+  *               Default is \c Lower, best performance is \c Lower|Upper.
   * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
   *
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
   * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
   * and NumTraits<Scalar>::epsilon() for the tolerance.
   * 
-  * The tolerance is the relative residual error: |Ax-b|/|b|
+  * The tolerance corresponds to the relative residual error: |Ax-b|/|b|
+  * 
+  * \b Performance: Even though the default value of \c _UpLo is \c Lower, significantly higher performance is
+  * achieved when using a complete matrix and \b Lower|Upper as the \a _UpLo template parameter. Moreover, in this
+  * case multi-threading can be exploited if the user code is compiled with OpenMP enabled.
+  * See \ref TopicMultiThreading for details.
   * 
   * This class can be used as the direct solver classes. Here is a typical usage example:
     \code
@@ -129,7 +135,7 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
     VectorXd x(n), b(n);
     SparseMatrix<double> A(n,n);
     // fill A and b
-    ConjugateGradient<SparseMatrix<double> > cg;
+    ConjugateGradient<SparseMatrix<double>, Lower|Upper> cg;
     cg.compute(A);
     x = cg.solve(b);
     std::cout << "#iterations:     " << cg.iterations() << std::endl;

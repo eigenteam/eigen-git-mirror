@@ -136,7 +136,11 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
   * and NumTraits<Scalar>::epsilon() for the tolerance.
   * 
-  * The tolerance is the relative residual error: |Ax-b|/|b|
+  * The tolerance corresponds to the relative residual error: |Ax-b|/|b|
+  * 
+  * \b Performance: when using sparse matrices, best performance is achied for a row-major sparse matrix format.
+  * Moreover, in this case multi-threading can be exploited if the user code is compiled with OpenMP enabled.
+  * See \ref TopicMultiThreading for details.
   * 
   * This class can be used as the direct solver classes. Here is a typical usage example:
   * \include BiCGSTAB_simple.cpp
