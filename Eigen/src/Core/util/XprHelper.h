@@ -427,7 +427,9 @@ struct special_scalar_op_base : public DenseCoeffsBase<Derived>
 {
   // dummy operator* so that the
   // "using special_scalar_op_base::operator*" compiles
-  void operator*() const;
+  struct dummy {};
+  void operator*(dummy) const;
+  void operator/(dummy) const;
 };
 
 template<typename Derived,typename Scalar,typename OtherScalar>
@@ -450,6 +452,16 @@ struct special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public DenseCo
     EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
 #endif
     return static_cast<const special_scalar_op_base&>(matrix).operator*(scalar);
+  }
+  
+  const CwiseUnaryOp<scalar_quotient2_op<Scalar,OtherScalar>, Derived>
+  operator/(const OtherScalar& scalar) const
+  {
+#ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
+    EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
+#endif
+    return CwiseUnaryOp<scalar_quotient2_op<Scalar,OtherScalar>, Derived>
+      (*static_cast<const Derived*>(this), scalar_quotient2_op<Scalar,OtherScalar>(scalar));
   }
 };
 

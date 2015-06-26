@@ -49,6 +49,8 @@ template<typename Derived> class DenseBase
   public:
     using internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
                 typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator*;
+    using internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
+                typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator/;
 
 
     /** Inner iterator type to iterate over the coefficients of a row or column.
