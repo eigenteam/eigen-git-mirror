@@ -351,12 +351,33 @@ template<typename Scalar> void packetmath_real()
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    data1[1] = std::numeric_limits<Scalar>::epsilon();
     packet_helper<internal::packet_traits<Scalar>::HasLog,Packet> h;
     h.store(data2, internal::plog(h.load(data1)));
-    VERIFY(numext::isnan(data2[0]));
+    VERIFY(std::isnan(data2[0]));
+    //    VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::epsilon()), data2[1]);
+
+    data1[0] = -std::numeric_limits<Scalar>::epsilon();
+    data1[1] = 0;
+    h.store(data2, internal::plog(h.load(data1)));
+    VERIFY(std::isnan(data2[0]));
+    //    VERIFY_IS_EQUAL(std::log(0), data2[1]);
+
+    data1[0] = (std::numeric_limits<Scalar>::min)();
+    data1[1] = -(std::numeric_limits<Scalar>::min)();
+    h.store(data2, internal::plog(h.load(data1)));
+    VERIFY_IS_EQUAL(std::log((std::numeric_limits<Scalar>::min)()), data2[0]);
+    //    VERIFY(std::isnan(data2[1]));
+
+    data1[0] = std::numeric_limits<Scalar>::denorm_min();
+    data1[1] = -std::numeric_limits<Scalar>::denorm_min();
+    h.store(data2, internal::plog(h.load(data1)));
+    //    VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::denorm_min()), data2[0]);
+    //    VERIFY(std::isnan(data2[1]));
+
     data1[0] = -1.0f;
     h.store(data2, internal::plog(h.load(data1)));
-    VERIFY(numext::isnan(data2[0]));
+    VERIFY(std::isnan(data2[0]));
 #if !EIGEN_FAST_MATH
     h.store(data2, internal::psqrt(h.load(data1)));
     VERIFY(numext::isnan(data2[0]));

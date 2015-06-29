@@ -364,14 +364,6 @@ class TensorContractionInputMapper<Scalar, Index, side, Tensor, nocontract_t, co
 };
 
 
-template <size_t n> struct max_n_1 {
-  static const size_t size = n;
-};
-template <> struct max_n_1<0> {
-  static const size_t size = 1;
-};
-
-
 template<typename Dimensions, typename LhsXprType, typename RhsXprType>
 struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
 {
@@ -459,19 +451,6 @@ class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXp
 };
 
 
-template<bool cond> struct Cond {};
-
-template<typename T1, typename T2> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-const T1& choose(Cond<true>, const T1& first, const T2&) {
-  return first;
-}
-
-template<typename T1, typename T2> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-const T2& choose(Cond<false>, const T1&, const T2& second) {
-  return second;
-}
-
-
 template<typename Derived>
 struct TensorContractionEvaluatorBase
 {
@@ -508,13 +487,13 @@ struct TensorContractionEvaluatorBase
   static const int RDims =
       internal::array_size<typename TensorEvaluator<EvalRightArgType, Device>::Dimensions>::value;
   static const unsigned int ContractDims = internal::array_size<Indices>::value;
-  static const int NumDims = internal::max_n_1<LDims + RDims - 2 * ContractDims>::size;
+  static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
 
   typedef array<Index, LDims> left_dim_mapper_t;
   typedef array<Index, RDims> right_dim_mapper_t;
   typedef array<Index, ContractDims> contract_t;
-  typedef array<Index, internal::max_n_1<LDims - ContractDims>::size> left_nocontract_t;
-  typedef array<Index, internal::max_n_1<RDims - ContractDims>::size> right_nocontract_t;
+  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
+  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
 
   typedef DSizes<Index, NumDims> Dimensions;
 
@@ -869,10 +848,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef array<Index, RDims> right_dim_mapper_t;
 
   typedef array<Index, ContractDims> contract_t;
-  typedef array<Index, internal::max_n_1<LDims - ContractDims>::size> left_nocontract_t;
-  typedef array<Index, internal::max_n_1<RDims - ContractDims>::size> right_nocontract_t;
+  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
+  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
 
-  static const int NumDims = internal::max_n_1<LDims + RDims - 2 * ContractDims>::size;
+  static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
 
   // Could we use NumDimensions here?
   typedef DSizes<Index, NumDims> Dimensions;
