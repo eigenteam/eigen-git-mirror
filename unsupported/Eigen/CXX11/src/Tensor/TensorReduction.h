@@ -66,8 +66,8 @@ template <typename OutputDims> struct DimInitializer {
 
 template <> struct DimInitializer<Sizes<1> > {
   template <typename InputDims, typename Index, size_t Rank> EIGEN_DEVICE_FUNC
-  static void run(const InputDims& input_dims, const array<bool, Rank>& reduced,
-                  Sizes<1>* output_dims,  array<Index, Rank>* reduced_dims) {
+  static void run(const InputDims& input_dims, const array<bool, Rank>&,
+                  Sizes<1>*,  array<Index, Rank>* reduced_dims) {
     const int NumInputDims = internal::array_size<InputDims>::value;
     for (int i = 0; i < NumInputDims; ++i) {
       (*reduced_dims)[i] = input_dims[i];
