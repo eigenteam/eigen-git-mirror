@@ -69,6 +69,31 @@ struct fixed_size_tensor_index_linearization_helper<Index, NumIndices, 0, RowMaj
   }
 };
 
+template<typename Index, std::size_t n>
+struct fixed_size_tensor_index_extraction_helper
+{
+  template <typename Dimensions> EIGEN_DEVICE_FUNC
+  static inline Index run(const Index index,
+                          const Dimensions& dimensions)
+  {
+    const Index mult = (index == n) ? 1 : 0;
+    return array_get<n>(dimensions) * mult +
+        fixed_size_tensor_index_extraction_helper<Index, n - 1>::run(index, dimensions);
+  }
+};
+
+template<typename Index>
+struct fixed_size_tensor_index_extraction_helper<Index, 0>
+{
+  template <typename Dimensions> EIGEN_DEVICE_FUNC
+  static inline Index run(const Index index,
+                          const Dimensions& dimensions)
+  {
+    const Index mult = (index == 0) ? 1 : 0;
+    return array_get<0>(dimensions) * mult;
+  }
+};
+
 }  // end namespace internal
 
 
@@ -99,6 +124,10 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
   }
 #endif
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const int index) const {
+    return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count - 1>::run(index, *this);
+  }
+
   template <typename T> Sizes& operator = (const T& /*other*/) {
     // add assertion failure if the size of other is different
     return *this;
@@ -114,9 +143,11 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
   }
 };
 
+namespace internal {
 template <typename std::ptrdiff_t... Indices>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t array_prod(const Sizes<Indices...>&) {
   return Sizes<Indices...>::total_size;
+}
 }
 
 #else
@@ -166,6 +197,24 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
   }
 #endif
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex operator[] (const int index) const {
+    switch (index) {
+      case 0:
+        return internal::get<0, Base>::value;
+      case 1:
+        return internal::get<1, Base>::value;
+      case 2:
+        return internal::get<2, Base>::value;
+      case 3:
+        return internal::get<3, Base>::value;
+      case 4:
+        return internal::get<4, Base>::value;
+      default:
+        eigen_assert(false && "index overflow");
+        return static_cast<std::size_t>(-1);
+    }
+  }
+
   template <typename T> Sizes& operator = (const T&) {
     // to do: check the size of other
     return *this;
@@ -181,9 +230,11 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
   }
 };
 
+namespace internal {
 template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::size_t array_prod(const Sizes<V1, V2, V3, V4, V5>&) {
   return Sizes<V1, V2, V3, V4, V5>::total_size;
+}
 }
 
 #endif

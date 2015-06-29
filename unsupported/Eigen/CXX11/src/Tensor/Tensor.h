@@ -375,6 +375,28 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       resize(dims);
     }
 
+#ifndef EIGEN_EMULATE_CXX11_META_H
+    template <typename std::ptrdiff_t... Indices>
+    EIGEN_DEVICE_FUNC
+    void resize(const Sizes<Indices...>& dimensions) {
+      array<Index, NumIndices> dims;
+      for (int i = 0; i < NumIndices; ++i) {
+        dims[i] = dimensions[i];
+      }
+      resize(dims);
+    }
+#else
+    template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5>
+    EIGEN_DEVICE_FUNC
+    void resize(const Sizes<V1, V2, V3, V4, V5>& dimensions) {
+      array<Index, NumIndices> dims;
+      for (int i = 0; i < NumIndices; ++i) {
+        dims[i] = dimensions[i];
+      }
+      resize(dims);
+    }
+#endif
+
   protected:
 
     bool checkIndexRange(const array<Index, NumIndices>& indices) const
