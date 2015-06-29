@@ -28,8 +28,25 @@ struct DefaultDevice {
     ::memset(buffer, c, n);
   }
 
-  EIGEN_STRONG_INLINE size_t numThreads() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t numThreads() const {
+#ifndef __CUDA_ARCH__
+    // Running on the host CPU
     return 1;
+#else
+    // Running on a CUDA device
+    return 32;
+#endif
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+#ifndef __CUDA_ARCH__
+    // Running single threaded on the host CPU
+    // Should return an enum that encodes the ISA supported by the CPU
+    return 1;
+#else
+    // Running on a CUDA device
+    return __CUDA_ARCH__ / 100;
+#endif
   }
 };
 
@@ -204,6 +221,11 @@ struct ThreadPoolDevice {
     return num_threads_;
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+    // Should return an enum that encodes the ISA supported by the CPU
+    return 1;
+  }
+
   template <class Function, class... Args>
   EIGEN_STRONG_INLINE Notification* enqueue(Function&& f, Args&&... args) const {
     Notification* n = new Notification();
@@ -307,6 +329,8 @@ struct GpuDevice {
     // FIXME
     return 32;
   }
+
+ inline int majorDeviceVersion() const { return m_deviceProperties.major; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void synchronize() const {
     cudaStreamSynchronize(*stream_);
