@@ -17,6 +17,7 @@ namespace internal {
 template <typename T> struct SumReducer
 {
   static const bool PacketAccess = true;
+  static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
     (*accum) += t;
@@ -49,6 +50,8 @@ template <typename T> struct SumReducer
 template <typename T> struct MeanReducer
 {
   static const bool PacketAccess = true;
+  static const bool IsStateful = true;
+
   MeanReducer() : scalarCount_(0), packetCount_(0) { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) {
@@ -88,6 +91,7 @@ template <typename T> struct MeanReducer
 template <typename T> struct MaxReducer
 {
   static const bool PacketAccess = true;
+  static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
     if (t > *accum) { *accum = t; }
@@ -120,6 +124,7 @@ template <typename T> struct MaxReducer
 template <typename T> struct MinReducer
 {
   static const bool PacketAccess = true;
+  static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
     if (t < *accum) { *accum = t; }
@@ -153,6 +158,7 @@ template <typename T> struct MinReducer
 template <typename T> struct ProdReducer
 {
   static const bool PacketAccess = true;
+  static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
     (*accum) *= t;
