@@ -381,7 +381,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     void resize(const Sizes<Indices...>& dimensions) {
       array<Index, NumIndices> dims;
       for (std::size_t i = 0; i < NumIndices; ++i) {
-        dims[i] = dimensions[i];
+        dims[i] = static_cast<Index>(dimensions[i]);
       }
       resize(dims);
     }
@@ -391,7 +391,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     void resize(const Sizes<V1, V2, V3, V4, V5>& dimensions) {
       array<Index, NumIndices> dims;
       for (std::size_t i = 0; i < NumIndices; ++i) {
-        dims[i] = dimensions[i];
+        dims[i] = static_cast<Index>(dimensions[i]);
       }
       resize(dims);
     }
