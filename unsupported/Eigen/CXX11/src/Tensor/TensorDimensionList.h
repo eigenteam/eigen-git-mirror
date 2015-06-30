@@ -38,7 +38,7 @@ template<typename Index, std::size_t Rank> struct array_size<const DimensionList
 template<DenseIndex n, typename Index, std::size_t Rank> const Index array_get(DimensionList<Index, Rank>&) {
   return n;
 }
-template<DenseIndex n, typename Index, std::size_t Rank> const Index array_get(const DimensionList<Index, Rank>&a) {
+template<DenseIndex n, typename Index, std::size_t Rank> const Index array_get(const DimensionList<Index, Rank>&) {
   return n;
 }
 
