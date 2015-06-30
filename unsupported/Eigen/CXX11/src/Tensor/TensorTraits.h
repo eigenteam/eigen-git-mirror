@@ -156,9 +156,9 @@ struct eval<const TensorRef<PlainObjectType>, Eigen::Dense>
 };
 
 // TODO nested<> does not exist anymore in Eigen/Core, and it thus has to be removed in favor of ref_selector.
-template<typename T, int n=1, typename PlainObject = void> struct nested    
-{   
-  typedef typename ref_selector<T>::type type;    
+template<typename T, int n=1, typename PlainObject = void> struct nested
+{
+  typedef typename ref_selector<T>::type type;
 };
 
 template <typename Scalar_, std::size_t NumIndices_, int Options_, typename IndexType_>

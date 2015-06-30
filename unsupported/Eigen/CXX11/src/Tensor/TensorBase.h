@@ -481,6 +481,18 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorStridingOp<const Strides, const Derived>(derived(), strides);
     }
 
+    // Added support for custom unary and binary operations
+    template <typename CustomUnaryFunc>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCustomUnaryOp<const CustomUnaryFunc, const Derived> customOp(const CustomUnaryFunc& op) const {
+      return TensorCustomUnaryOp<const CustomUnaryFunc, const Derived>(derived(), op);
+    }
+    template <typename OtherDerived, typename CustomBinaryFunc>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCustomBinaryOp<const CustomBinaryFunc, const Derived, const OtherDerived> customOp(const OtherDerived& other, const CustomBinaryFunc& op) const {
+      return TensorCustomBinaryOp<const CustomBinaryFunc, const Derived, const OtherDerived>(derived(), other, op);
+    }
+
     // Force the evaluation of the expression.
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorForcedEvalOp<const Derived> eval() const {

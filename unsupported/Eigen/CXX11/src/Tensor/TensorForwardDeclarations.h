@@ -42,6 +42,9 @@ template<typename Strides, typename XprType> class TensorStridingOp;
 template<typename Generator, typename XprType> class TensorGeneratorOp;
 template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
 
+template<typename CustomUnaryFunc, typename XprType> class TensorCustomUnaryOp;
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType> class TensorCustomBinaryOp;
+
 template<typename XprType> class TensorEvalToOp;
 template<typename XprType> class TensorForcedEvalOp;
 
