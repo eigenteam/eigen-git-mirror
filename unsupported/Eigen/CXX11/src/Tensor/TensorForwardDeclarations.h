@@ -29,6 +29,7 @@ template<typename TargetType, typename XprType> class TensorConversionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename PatchDim, typename XprType> class TensorPatchOp;
 template<DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorImagePatchOp;
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorVolumePatchOp;
 template<typename Broadcast, typename XprType> class TensorBroadcastingOp;
 template<DenseIndex DimId, typename XprType> class TensorChippingOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;

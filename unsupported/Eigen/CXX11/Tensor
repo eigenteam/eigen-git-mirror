@@ -82,6 +82,7 @@
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorConvolution.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorPatch.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorImagePatch.h"
+#include "unsupported/Eigen/CXX11/src/Tensor/TensorVolumePatch.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorBroadcasting.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorChipping.h"
 #include "unsupported/Eigen/CXX11/src/Tensor/TensorLayoutSwap.h"
