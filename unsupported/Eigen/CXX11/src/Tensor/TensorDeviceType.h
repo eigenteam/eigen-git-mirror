@@ -55,10 +55,19 @@ struct DefaultDevice {
 // We should really use a thread pool here but first we need to find a portable thread pool library.
 #ifdef EIGEN_USE_THREADS
 
+// This defines an interface that ThreadPoolDevice can take to use
+// custom thread pools underneath.
+class ThreadPoolInterface {
+ public:
+  virtual void Schedule(std::function<void()> fn) = 0;
+
+  virtual ~ThreadPoolInterface() {}
+};
+
 // The implementation of the ThreadPool type ensures that the Schedule method
 // runs the functions it is provided in FIFO order when the scheduling is done
 // by a single thread.
-class ThreadPool {
+class ThreadPool : public ThreadPoolInterface {
  public:
   // Construct a pool that contains "num_threads" threads.
   explicit ThreadPool(int num_threads) {
@@ -199,7 +208,7 @@ static EIGEN_STRONG_INLINE void wait_until_ready(Notification* n) {
 
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
-  ThreadPoolDevice(ThreadPool* pool, size_t num_cores) : pool_(pool), num_threads_(num_cores) { }
+  ThreadPoolDevice(ThreadPoolInterface* pool, size_t num_cores) : pool_(pool), num_threads_(num_cores) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     return internal::aligned_malloc(num_bytes);
@@ -241,7 +250,7 @@ struct ThreadPoolDevice {
   }
 
  private:
-  ThreadPool* pool_;
+  ThreadPoolInterface* pool_;
   size_t num_threads_;
 };
 
