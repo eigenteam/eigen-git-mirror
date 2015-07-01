@@ -78,7 +78,7 @@ class TensorReshapingOp : public TensorBase<TensorReshapingOp<NewDimensions, Xpr
     {
       typedef TensorAssignOp<TensorReshapingOp, const TensorReshapingOp> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -88,7 +88,7 @@ class TensorReshapingOp : public TensorBase<TensorReshapingOp<NewDimensions, Xpr
     {
       typedef TensorAssignOp<TensorReshapingOp, const OtherDerived> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -262,7 +262,7 @@ class TensorSlicingOp : public TensorBase<TensorSlicingOp<StartIndices, Sizes, X
     {
       typedef TensorAssignOp<TensorSlicingOp, const OtherDerived> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -271,7 +271,7 @@ class TensorSlicingOp : public TensorBase<TensorSlicingOp<StartIndices, Sizes, X
     {
       typedef TensorAssignOp<TensorSlicingOp, const TensorSlicingOp> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -411,7 +411,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   {
     const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
     EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    eigen_assert(index+packetSize-1 < array_prod(dimensions()));
 
     Index inputIndices[] = {0, 0};
     Index indices[] = {index, index + packetSize - 1};

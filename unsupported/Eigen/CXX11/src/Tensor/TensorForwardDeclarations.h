@@ -51,8 +51,27 @@ template<typename XprType> class TensorForcedEvalOp;
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
 
+class DefaultDevice;
+class ThreadPoolDevice;
+class GpuDevice;
+
 namespace internal {
-template<typename Expression, typename Device, bool Vectorizable> class TensorExecutor;
+
+template <typename Device, typename Expression>
+struct IsVectorizable {
+  static const bool value = TensorEvaluator<Expression, Device>::PacketAccess;
+};
+
+template <typename Expression>
+struct IsVectorizable<GpuDevice, Expression> {
+  static const bool value = TensorEvaluator<Expression, GpuDevice>::PacketAccess &&
+                            TensorEvaluator<Expression, GpuDevice>::IsAligned;
+};
+
+template <typename Expression, typename Device,
+          bool Vectorizable = IsVectorizable<Device, Expression>::value>
+class TensorExecutor;
+
 }  // end namespace internal
 
 }  // end namespace Eigen

@@ -106,8 +106,7 @@ class TensorChippingOp : public TensorBase<TensorChippingOp<DimId, XprType> >
   {
     typedef TensorAssignOp<TensorChippingOp, const TensorChippingOp> Assign;
     Assign assign(*this, other);
-    static const bool Vectorize = TensorEvaluator<const Assign, DefaultDevice>::PacketAccess;
-    internal::TensorExecutor<const Assign, DefaultDevice, Vectorize>::run(assign, DefaultDevice());
+    internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
     return *this;
   }
 
@@ -117,8 +116,7 @@ class TensorChippingOp : public TensorBase<TensorChippingOp<DimId, XprType> >
   {
     typedef TensorAssignOp<TensorChippingOp, const OtherDerived> Assign;
     Assign assign(*this, other);
-    static const bool Vectorize = TensorEvaluator<const Assign, DefaultDevice>::PacketAccess;
-    internal::TensorExecutor<const Assign, DefaultDevice, Vectorize>::run(assign, DefaultDevice());
+    internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
     return *this;
   }
 
