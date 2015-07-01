@@ -116,7 +116,8 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     }
     typedef TensorEvalToOp<const ArgType> EvalTo;
     EvalTo evalToTmp(m_buffer, m_op);
-    internal::TensorExecutor<const EvalTo, Device>::run(evalToTmp, m_device);
+    static const bool PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;
+    internal::TensorExecutor<const EvalTo, Device, PacketAccess>::run(evalToTmp, m_device);
     m_impl.cleanup();
     return true;
   }
