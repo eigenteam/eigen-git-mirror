@@ -510,7 +510,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       Scalar* local = (Scalar*)m_device.allocate(kernel_sz);
       typedef TensorEvalToOp<const KernelArgType> EvalTo;
       EvalTo evalToTmp(local, m_kernelArg);
-      internal::TensorExecutor<const EvalTo, Device>::run(evalToTmp, m_device);
+      const bool PacketAccess = internal::IsVectorizable<Device, KernelArgType>::value;
+      internal::TensorExecutor<const EvalTo, Device, PacketAccess>::run(evalToTmp, m_device);
 
       m_kernel = local;
       m_local_kernel = true;
@@ -815,7 +816,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       Scalar* local = (Scalar*)m_device.allocate(kernel_sz);
       typedef TensorEvalToOp<const KernelArgType> EvalTo;
       EvalTo evalToTmp(local, m_kernelArg);
-      internal::TensorExecutor<const EvalTo, GpuDevice>::run(evalToTmp, m_device);
+      const bool PacketAccess = internal::IsVectorizable<GpuDevice, KernelArgType>::value;
+      internal::TensorExecutor<const EvalTo, GpuDevice, PacketAccess>::run(evalToTmp, m_device);
 
       m_kernel = local;
       m_local_kernel = true;
