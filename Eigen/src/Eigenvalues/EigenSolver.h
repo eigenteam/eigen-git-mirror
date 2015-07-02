@@ -559,7 +559,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
         m_matT.coeffRef(n-1,n) = numext::imag(cc);
       }
       m_matT.coeffRef(n,n-1) = Scalar(0);
-      m_matT.coeffRef(n,n) = Scalar(0);
+      m_matT.coeffRef(n,n) = Scalar(1);
       for (Index i = n-2; i >= 0; i--)
       {
         Scalar ra = m_matT.row(i).segment(l, n-l+1).dot(m_matT.col(n-1).segment(l, n-l+1));
