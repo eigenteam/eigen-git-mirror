@@ -113,10 +113,10 @@ class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp
   */
 template<typename Derived>
 template<typename CustomNullaryOp>
-EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, Derived>
+EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
 DenseBase<Derived>::NullaryExpr(Index rows, Index cols, const CustomNullaryOp& func)
 {
-  return CwiseNullaryOp<CustomNullaryOp, Derived>(rows, cols, func);
+  return CwiseNullaryOp<CustomNullaryOp, PlainObject>(rows, cols, func);
 }
 
 /** \returns an expression of a matrix defined by a custom functor \a func
@@ -139,12 +139,12 @@ DenseBase<Derived>::NullaryExpr(Index rows, Index cols, const CustomNullaryOp& f
   */
 template<typename Derived>
 template<typename CustomNullaryOp>
-EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, Derived>
+EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
 DenseBase<Derived>::NullaryExpr(Index size, const CustomNullaryOp& func)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  if(RowsAtCompileTime == 1) return CwiseNullaryOp<CustomNullaryOp, Derived>(1, size, func);
-  else return CwiseNullaryOp<CustomNullaryOp, Derived>(size, 1, func);
+  if(RowsAtCompileTime == 1) return CwiseNullaryOp<CustomNullaryOp, PlainObject>(1, size, func);
+  else return CwiseNullaryOp<CustomNullaryOp, PlainObject>(size, 1, func);
 }
 
 /** \returns an expression of a matrix defined by a custom functor \a func
@@ -158,10 +158,10 @@ DenseBase<Derived>::NullaryExpr(Index size, const CustomNullaryOp& func)
   */
 template<typename Derived>
 template<typename CustomNullaryOp>
-EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, Derived>
+EIGEN_STRONG_INLINE const CwiseNullaryOp<CustomNullaryOp, typename DenseBase<Derived>::PlainObject>
 DenseBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
 {
-  return CwiseNullaryOp<CustomNullaryOp, Derived>(RowsAtCompileTime, ColsAtCompileTime, func);
+  return CwiseNullaryOp<CustomNullaryOp, PlainObject>(RowsAtCompileTime, ColsAtCompileTime, func);
 }
 
 /** \returns an expression of a constant matrix of value \a value

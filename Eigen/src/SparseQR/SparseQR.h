@@ -23,6 +23,10 @@ namespace internal {
     typedef typename SparseQRType::MatrixType ReturnType;
     typedef typename ReturnType::StorageIndex StorageIndex;
     typedef typename ReturnType::StorageKind StorageKind;
+    enum {
+      RowsAtCompileTime = Dynamic,
+      ColsAtCompileTime = Dynamic
+    };
   };
   template <typename SparseQRType> struct traits<SparseQRMatrixQTransposeReturnType<SparseQRType> >
   {
@@ -235,8 +239,9 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
       return m_info;
     }
 
-  protected:
-    inline void sort_matrix_Q()
+
+    /** \internal */
+    inline void _sort_matrix_Q()
     {
       if(this->m_isQSorted) return;
       // The matrix Q is sorted during the transposition
@@ -267,7 +272,6 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     bool m_isEtreeOk;               // whether the elimination tree match the initial input matrix
     
     template <typename, typename > friend struct SparseQR_QProduct;
-    template <typename > friend struct SparseQRMatrixQReturnType;
     
 };
 
@@ -635,6 +639,10 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
 {  
   typedef typename SparseQRType::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
+  enum {
+    RowsAtCompileTime = Dynamic,
+    ColsAtCompileTime = Dynamic
+  };
   explicit SparseQRMatrixQReturnType(const SparseQRType& qr) : m_qr(qr) {}
   template<typename Derived>
   SparseQR_QProduct<SparseQRType, Derived> operator*(const MatrixBase<Derived>& other)
@@ -652,19 +660,6 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
   {
     return SparseQRMatrixQTransposeReturnType<SparseQRType>(m_qr);
   }
-  template<typename Dest> void evalTo(MatrixBase<Dest>& dest) const
-  {
-    dest.derived() = m_qr.matrixQ() * Dest::Identity(m_qr.rows(), m_qr.rows());
-  }
-  template<typename Dest> void evalTo(SparseMatrixBase<Dest>& dest) const
-  {
-    Dest idMat(m_qr.rows(), m_qr.rows());
-    idMat.setIdentity();
-    // Sort the sparse householder reflectors if needed
-    const_cast<SparseQRType *>(&m_qr)->sort_matrix_Q();
-    dest.derived() = SparseQR_QProduct<SparseQRType, Dest>(m_qr, idMat, false);
-  }
-
   const SparseQRType& m_qr;
 };
 
@@ -679,6 +674,47 @@ struct SparseQRMatrixQTransposeReturnType
   }
   const SparseQRType& m_qr;
 };
+
+namespace internal {
+  
+template<typename SparseQRType>
+struct evaluator_traits<SparseQRMatrixQReturnType<SparseQRType> >
+{
+  typedef typename SparseQRType::MatrixType MatrixType;
+  typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
+  typedef SparseShape Shape;
+  static const int AssumeAliasing = 0;
+};
+
+template< typename DstXprType, typename SparseQRType>
+struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar>, Sparse2Sparse>
+{
+  typedef SparseQRMatrixQReturnType<SparseQRType> SrcXprType;
+  typedef typename DstXprType::Scalar Scalar;
+  typedef typename DstXprType::StorageIndex StorageIndex;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &/*func*/)
+  {
+    typename DstXprType::PlainObject idMat(src.m_qr.rows(), src.m_qr.rows());
+    idMat.setIdentity();
+    // Sort the sparse householder reflectors if needed
+    const_cast<SparseQRType *>(&src.m_qr)->_sort_matrix_Q();
+    dst = SparseQR_QProduct<SparseQRType, DstXprType>(src.m_qr, idMat, false);
+  }
+};
+
+template< typename DstXprType, typename SparseQRType>
+struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense>
+{
+  typedef SparseQRMatrixQReturnType<SparseQRType> SrcXprType;
+  typedef typename DstXprType::Scalar Scalar;
+  typedef typename DstXprType::StorageIndex StorageIndex;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &/*func*/)
+  {
+    dst = src.m_qr.matrixQ() * DstXprType::Identity(src.m_qr.rows(), src.m_qr.rows());
+  }
+};
+
+} // end namespace internal
 
 } // end namespace Eigen
 

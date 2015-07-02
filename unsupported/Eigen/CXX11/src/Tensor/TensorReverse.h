@@ -80,7 +80,7 @@ class TensorReverseOp : public TensorBase<TensorReverseOp<ReverseDimensions,
     {
       typedef TensorAssignOp<TensorReverseOp, const TensorReverseOp> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -90,7 +90,7 @@ class TensorReverseOp : public TensorBase<TensorReverseOp<ReverseDimensions,
     {
       typedef TensorAssignOp<TensorReverseOp, const OtherDerived> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 

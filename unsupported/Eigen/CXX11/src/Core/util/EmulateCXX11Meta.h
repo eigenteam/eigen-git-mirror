@@ -23,7 +23,7 @@ template <typename T, size_t n> class array {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { return values[index]; }
 
-  static const std::size_t size = n;
+  static const std::size_t size() { return n; }
 
   T values[n];
 

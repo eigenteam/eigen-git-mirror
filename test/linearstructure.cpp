@@ -88,6 +88,10 @@ template<typename MatrixType> void real_complex(DenseIndex rows = MatrixType::Ro
   g_called = false;
   VERIFY_IS_APPROX(m1*s, m1*Scalar(s));
   VERIFY(g_called && "matrix<complex> * real not properly optimized");
+  
+  g_called = false;
+  VERIFY_IS_APPROX(m1/s, m1/Scalar(s));
+  VERIFY(g_called && "matrix<complex> / real not properly optimized");
 }
 
 void test_linearstructure()

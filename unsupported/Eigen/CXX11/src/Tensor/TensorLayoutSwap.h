@@ -90,7 +90,7 @@ class TensorLayoutSwapOp : public TensorBase<TensorLayoutSwapOp<XprType>, WriteA
     {
       typedef TensorAssignOp<TensorLayoutSwapOp, const TensorLayoutSwapOp> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -100,7 +100,7 @@ class TensorLayoutSwapOp : public TensorBase<TensorLayoutSwapOp<XprType>, WriteA
     {
       typedef TensorAssignOp<TensorLayoutSwapOp, const OtherDerived> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 

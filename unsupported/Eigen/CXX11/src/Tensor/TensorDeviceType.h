@@ -28,8 +28,25 @@ struct DefaultDevice {
     ::memset(buffer, c, n);
   }
 
-  EIGEN_STRONG_INLINE size_t numThreads() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t numThreads() const {
+#ifndef __CUDA_ARCH__
+    // Running on the host CPU
     return 1;
+#else
+    // Running on a CUDA device
+    return 32;
+#endif
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+#ifndef __CUDA_ARCH__
+    // Running single threaded on the host CPU
+    // Should return an enum that encodes the ISA supported by the CPU
+    return 1;
+#else
+    // Running on a CUDA device
+    return __CUDA_ARCH__ / 100;
+#endif
   }
 };
 
@@ -38,10 +55,19 @@ struct DefaultDevice {
 // We should really use a thread pool here but first we need to find a portable thread pool library.
 #ifdef EIGEN_USE_THREADS
 
+// This defines an interface that ThreadPoolDevice can take to use
+// custom thread pools underneath.
+class ThreadPoolInterface {
+ public:
+  virtual void Schedule(std::function<void()> fn) = 0;
+
+  virtual ~ThreadPoolInterface() {}
+};
+
 // The implementation of the ThreadPool type ensures that the Schedule method
 // runs the functions it is provided in FIFO order when the scheduling is done
 // by a single thread.
-class ThreadPool {
+class ThreadPool : public ThreadPoolInterface {
  public:
   // Construct a pool that contains "num_threads" threads.
   explicit ThreadPool(int num_threads) {
@@ -182,7 +208,7 @@ static EIGEN_STRONG_INLINE void wait_until_ready(Notification* n) {
 
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
-  ThreadPoolDevice(ThreadPool* pool, size_t num_cores) : pool_(pool), num_threads_(num_cores) { }
+  ThreadPoolDevice(ThreadPoolInterface* pool, size_t num_cores) : pool_(pool), num_threads_(num_cores) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     return internal::aligned_malloc(num_bytes);
@@ -204,6 +230,11 @@ struct ThreadPoolDevice {
     return num_threads_;
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+    // Should return an enum that encodes the ISA supported by the CPU
+    return 1;
+  }
+
   template <class Function, class... Args>
   EIGEN_STRONG_INLINE Notification* enqueue(Function&& f, Args&&... args) const {
     Notification* n = new Notification();
@@ -219,7 +250,7 @@ struct ThreadPoolDevice {
   }
 
  private:
-  ThreadPool* pool_;
+  ThreadPoolInterface* pool_;
   size_t num_threads_;
 };
 
@@ -260,9 +291,12 @@ static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
   assert(status == cudaSuccess);
 }
 
+// Cuda stream to use when no stream is specified explicitely.
+static const cudaStream_t default_stream = cudaStreamDefault;
+
 struct GpuDevice {
   // The cudastream is not owned: the caller is responsible for its initialization and eventual destruction.
-  GpuDevice(const cudaStream_t* stream) : stream_(stream) { eigen_assert(stream); }
+  GpuDevice(const cudaStream_t* stream = &default_stream) : stream_(stream) { eigen_assert(stream); }
 
   EIGEN_STRONG_INLINE const cudaStream_t& stream() const { return *stream_; }
 
@@ -307,6 +341,8 @@ struct GpuDevice {
     // FIXME
     return 32;
   }
+
+ inline int majorDeviceVersion() const { return m_deviceProperties.major; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void synchronize() const {
     cudaStreamSynchronize(*stream_);

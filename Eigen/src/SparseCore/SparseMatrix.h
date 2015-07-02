@@ -97,8 +97,8 @@ class SparseMatrix
     using Base::isCompressed;
     using Base::nonZeros;
     _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
-    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
-    EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
+    using Base::operator+=;
+    using Base::operator-=;
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     typedef Diagonal<SparseMatrix> DiagonalReturnType;
@@ -694,6 +694,15 @@ class SparseMatrix
       check_template_parameters();
       initAssignment(other);
       other.evalTo(*this);
+    }
+    
+    /** \brief Copy constructor with in-place evaluation */
+    template<typename OtherDerived>
+    explicit SparseMatrix(const DiagonalBase<OtherDerived>& other)
+      : Base(), m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
+    {
+      check_template_parameters();
+      *this = other.derived();
     }
 
     /** Swaps the content of two sparse matrices of the same type.

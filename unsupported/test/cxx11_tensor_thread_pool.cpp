@@ -228,6 +228,29 @@ static void test_multithread_contraction_agrees_with_singlethread() {
 }
 
 
+template<int DataLayout>
+static void test_multithreaded_reductions() {
+  const int num_threads = internal::random<int>(3, 11);
+  ThreadPool thread_pool(num_threads);
+  Eigen::ThreadPoolDevice thread_pool_device(&thread_pool, num_threads);
+
+  const int num_rows = internal::random<int>(13, 732);
+  const int num_cols = internal::random<int>(13, 732);
+  Tensor<float, 2, DataLayout> t1(num_rows, num_cols);
+  t1.setRandom();
+
+  Tensor<float, 1, DataLayout> full_redux(1);
+  full_redux = t1.sum();
+
+  Tensor<float, 1, DataLayout> full_redux_tp(1);
+  full_redux_tp.device(thread_pool_device) = t1.sum();
+
+  // Check that the single threaded and the multi threaded reductions return
+  // the same result.
+  VERIFY_IS_APPROX(full_redux(0), full_redux_tp(0));
+}
+
+
 static void test_memcpy() {
 
   for (int i = 0; i < 5; ++i) {
@@ -270,6 +293,9 @@ void test_cxx11_tensor_thread_pool()
   // Exercise various cases that have been problematic in the past.
   CALL_SUBTEST(test_contraction_corner_cases<ColMajor>());
   CALL_SUBTEST(test_contraction_corner_cases<RowMajor>());
+
+  CALL_SUBTEST(test_multithreaded_reductions<ColMajor>());
+  CALL_SUBTEST(test_multithreaded_reductions<RowMajor>());
 
   CALL_SUBTEST(test_memcpy());
 

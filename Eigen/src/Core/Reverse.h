@@ -70,10 +70,6 @@ template<typename MatrixType, int Direction> class Reverse
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
     using Base::IsRowMajor;
 
-    // next line is necessary because otherwise const version of operator()
-    // is hidden by non-const version defined in this file
-    using Base::operator(); 
-
   protected:
     enum {
       PacketSize = internal::packet_traits<Scalar>::size,
@@ -99,69 +95,6 @@ template<typename MatrixType, int Direction> class Reverse
     EIGEN_DEVICE_FUNC inline Index innerStride() const
     {
       return -m_matrix.innerStride();
-    }
-
-    EIGEN_DEVICE_FUNC inline Scalar& operator()(Index row, Index col)
-    {
-      eigen_assert(row >= 0 && row < rows() && col >= 0 && col < cols());
-      return coeffRef(row, col);
-    }
-
-    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index row, Index col)
-    {
-      return m_matrix.const_cast_derived().coeffRef(ReverseRow ? m_matrix.rows() - row - 1 : row,
-                                                    ReverseCol ? m_matrix.cols() - col - 1 : col);
-    }
-
-    EIGEN_DEVICE_FUNC inline CoeffReturnType coeff(Index row, Index col) const
-    {
-      return m_matrix.coeff(ReverseRow ? m_matrix.rows() - row - 1 : row,
-                            ReverseCol ? m_matrix.cols() - col - 1 : col);
-    }
-
-    EIGEN_DEVICE_FUNC inline CoeffReturnType coeff(Index index) const
-    {
-      return m_matrix.coeff(m_matrix.size() - index - 1);
-    }
-
-    EIGEN_DEVICE_FUNC inline Scalar& coeffRef(Index index)
-    {
-      return m_matrix.const_cast_derived().coeffRef(m_matrix.size() - index - 1);
-    }
-
-    EIGEN_DEVICE_FUNC inline Scalar& operator()(Index index)
-    {
-      eigen_assert(index >= 0 && index < m_matrix.size());
-      return coeffRef(index);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index row, Index col) const
-    {
-      return reverse_packet::run(m_matrix.template packet<LoadMode>(
-                                    ReverseRow ? m_matrix.rows() - row - OffsetRow : row,
-                                    ReverseCol ? m_matrix.cols() - col - OffsetCol : col));
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index row, Index col, const PacketScalar& x)
-    {
-      m_matrix.const_cast_derived().template writePacket<LoadMode>(
-                                      ReverseRow ? m_matrix.rows() - row - OffsetRow : row,
-                                      ReverseCol ? m_matrix.cols() - col - OffsetCol : col,
-                                      reverse_packet::run(x));
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index index) const
-    {
-      return internal::preverse(m_matrix.template packet<LoadMode>( m_matrix.size() - index - PacketSize ));
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index index, const PacketScalar& x)
-    {
-      m_matrix.const_cast_derived().template writePacket<LoadMode>(m_matrix.size() - index - PacketSize, internal::preverse(x));
     }
 
     EIGEN_DEVICE_FUNC const typename internal::remove_all<typename MatrixType::Nested>::type&

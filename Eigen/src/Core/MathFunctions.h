@@ -349,6 +349,7 @@ struct hypot_retval
 template<typename OldType, typename NewType>
 struct cast_impl
 {
+  EIGEN_DEVICE_FUNC
   static inline NewType run(const OldType& x)
   {
     return static_cast<NewType>(x);
@@ -360,6 +361,7 @@ struct cast_impl
 template<typename OldType, typename NewType>
 inline NewType cast(const OldType& x)
 {
+  EIGEN_DEVICE_FUNC
   return cast_impl<OldType, NewType>::run(x);
 }
 

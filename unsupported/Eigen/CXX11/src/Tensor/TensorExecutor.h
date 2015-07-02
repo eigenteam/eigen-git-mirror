@@ -22,13 +22,8 @@ namespace Eigen {
   */
 namespace internal {
 
-template <typename Device, typename Expression>
-struct IsVectorizable {
-  static const bool value = TensorEvaluator<Expression, Device>::PacketAccess;
-};
-
 // Default strategy: the expression is evaluated with a single cpu thread.
-template<typename Expression, typename Device = DefaultDevice, bool Vectorizable = IsVectorizable<Device, Expression>::value>
+template<typename Expression, typename Device, bool Vectorizable>
 class TensorExecutor
 {
  public:
@@ -198,10 +193,6 @@ EigenMetaKernel_Vectorizable(Evaluator memcopied_eval, Index size) {
   }
 }
 
-template <typename Expression>
-struct IsVectorizable<GpuDevice, Expression> {
-  static const bool value = TensorEvaluator<Expression, GpuDevice>::PacketAccess && TensorEvaluator<Expression, GpuDevice>::IsAligned;
-};
 
 template<typename Expression>
 class TensorExecutor<Expression, GpuDevice, false>

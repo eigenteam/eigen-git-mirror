@@ -109,6 +109,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_tanh_op<Scalar>, const Derived>
+    tanh() const {
+      return unaryExpr(internal::scalar_tanh_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived>
     exp() const {
       return unaryExpr(internal::scalar_exp_op<Scalar>());
@@ -295,11 +301,10 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<internal::SumReducer<CoeffReturnType>, const Dims, const Derived>(derived(), dims, internal::SumReducer<CoeffReturnType>());
     }
 
-    const TensorReductionOp<internal::SumReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>
+    const TensorReductionOp<internal::SumReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>
     sum() const {
-      array<Index, NumDimensions> in_dims;
-      for (int i = 0; i < NumDimensions; ++i) in_dims[i] = i;
-      return TensorReductionOp<internal::SumReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::SumReducer<CoeffReturnType>());
+      DimensionList<Index, NumDimensions> in_dims;
+      return TensorReductionOp<internal::SumReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::SumReducer<CoeffReturnType>());
     }
 
     template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -308,11 +313,10 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<internal::MeanReducer<CoeffReturnType>, const Dims, const Derived>(derived(), dims, internal::MeanReducer<CoeffReturnType>());
     }
 
-    const TensorReductionOp<internal::MeanReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>
+    const TensorReductionOp<internal::MeanReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>
     mean() const {
-      array<Index, NumDimensions> in_dims;
-      for (int i = 0; i < NumDimensions; ++i) in_dims[i] = i;
-      return TensorReductionOp<internal::MeanReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MeanReducer<CoeffReturnType>());
+      DimensionList<Index, NumDimensions> in_dims;
+      return TensorReductionOp<internal::MeanReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MeanReducer<CoeffReturnType>());
     }
 
     template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -321,11 +325,10 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<internal::ProdReducer<CoeffReturnType>, const Dims, const Derived>(derived(), dims, internal::ProdReducer<CoeffReturnType>());
     }
 
-    const TensorReductionOp<internal::ProdReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>
+    const TensorReductionOp<internal::ProdReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>
     prod() const {
-      array<Index, NumDimensions> in_dims;
-      for (int i = 0; i < NumDimensions; ++i) in_dims[i] = i;
-      return TensorReductionOp<internal::ProdReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::ProdReducer<CoeffReturnType>());
+      DimensionList<Index, NumDimensions> in_dims;
+      return TensorReductionOp<internal::ProdReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::ProdReducer<CoeffReturnType>());
     }
 
     template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -334,11 +337,10 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<internal::MaxReducer<CoeffReturnType>, const Dims, const Derived>(derived(), dims, internal::MaxReducer<CoeffReturnType>());
     }
 
-    const TensorReductionOp<internal::MaxReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>
+    const TensorReductionOp<internal::MaxReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>
     maximum() const {
-      array<Index, NumDimensions> in_dims;
-      for (int i = 0; i < NumDimensions; ++i) in_dims[i] = i;
-      return TensorReductionOp<internal::MaxReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MaxReducer<CoeffReturnType>());
+      DimensionList<Index, NumDimensions> in_dims;
+      return TensorReductionOp<internal::MaxReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MaxReducer<CoeffReturnType>());
     }
 
     template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -347,11 +349,10 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<internal::MinReducer<CoeffReturnType>, const Dims, const Derived>(derived(), dims, internal::MinReducer<CoeffReturnType>());
     }
 
-    const TensorReductionOp<internal::MinReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>
+    const TensorReductionOp<internal::MinReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>
     minimum() const {
-      array<Index, NumDimensions> in_dims;
-      for (int i = 0; i < NumDimensions; ++i) in_dims[i] = i;
-      return TensorReductionOp<internal::MinReducer<CoeffReturnType>, const array<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MinReducer<CoeffReturnType>());
+      DimensionList<Index, NumDimensions> in_dims;
+      return TensorReductionOp<internal::MinReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MinReducer<CoeffReturnType>());
     }
 
     template <typename Reducer, typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -413,6 +414,26 @@ class TensorBase<Derived, ReadOnlyAccessors>
                                                                  padding_type);
     }
 
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>
+    extract_volume_patches(const Index patch_planes, const Index patch_rows, const Index patch_cols,
+                           const Index plane_stride = 1, const Index row_stride = 1, const Index col_stride = 1,
+                           const PaddingType padding_type = PADDING_SAME, const Scalar padding_value = 0) const {
+      return TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
+    }
+
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>
+    extract_volume_patches(const Index patch_planes, const Index patch_rows, const Index patch_cols,
+                           const Index plane_stride, const Index row_stride, const Index col_stride,
+                           const Index plane_inflate_stride, const Index row_inflate_stride, const Index col_inflate_stride,
+                           const Index padding_top_z, const Index padding_bottom_z,
+                           const Index padding_top, const Index padding_bottom,
+                           const Index padding_left, const Index padding_right, const Scalar padding_value = 0) const {
+      return TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, plane_inflate_stride, row_inflate_stride, col_inflate_stride, padding_top_z, padding_bottom_z, padding_top, padding_bottom, padding_left, padding_right, padding_value);
+    }
+
     // Morphing operators.
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorLayoutSwapOp<const Derived>
@@ -458,6 +479,18 @@ class TensorBase<Derived, ReadOnlyAccessors>
     const TensorStridingOp<const Strides, const Derived>
     stride(const Strides& strides) const {
       return TensorStridingOp<const Strides, const Derived>(derived(), strides);
+    }
+
+    // Added support for custom unary and binary operations
+    template <typename CustomUnaryFunc>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCustomUnaryOp<const CustomUnaryFunc, const Derived> customOp(const CustomUnaryFunc& op) const {
+      return TensorCustomUnaryOp<const CustomUnaryFunc, const Derived>(derived(), op);
+    }
+    template <typename OtherDerived, typename CustomBinaryFunc>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCustomBinaryOp<const CustomBinaryFunc, const Derived, const OtherDerived> customOp(const OtherDerived& other, const CustomBinaryFunc& op) const {
+      return TensorCustomBinaryOp<const CustomBinaryFunc, const Derived, const OtherDerived>(derived(), other, op);
     }
 
     // Force the evaluation of the expression.

@@ -23,8 +23,8 @@ template<typename MatrixType> void qr()
   MatrixType m1;
   createRandomPIMatrixOfRank(rank,rows,cols,m1);
   FullPivHouseholderQR<MatrixType> qr(m1);
-  VERIFY(rank == qr.rank());
-  VERIFY(cols - qr.rank() == qr.dimensionOfKernel());
+  VERIFY_IS_EQUAL(rank, qr.rank());
+  VERIFY_IS_EQUAL(cols - qr.rank(), qr.dimensionOfKernel());
   VERIFY(!qr.isInjective());
   VERIFY(!qr.isInvertible());
   VERIFY(!qr.isSurjective());

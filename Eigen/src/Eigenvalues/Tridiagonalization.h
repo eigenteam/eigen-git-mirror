@@ -464,9 +464,10 @@ struct tridiagonalization_inplace_selector<MatrixType,3,false>
   static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
   {
     using std::sqrt;
+    const RealScalar tol = (std::numeric_limits<RealScalar>::min)();
     diag[0] = mat(0,0);
     RealScalar v1norm2 = numext::abs2(mat(2,0));
-    if(v1norm2 == RealScalar(0))
+    if(v1norm2 <= tol)
     {
       diag[1] = mat(1,1);
       diag[2] = mat(2,2);

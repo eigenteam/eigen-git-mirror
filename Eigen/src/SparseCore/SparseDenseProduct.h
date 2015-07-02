@@ -30,23 +30,48 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
+  typedef typename evaluator<Lhs>::type LhsEval;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
-    typename evaluator<Lhs>::type lhsEval(lhs);
+    LhsEval lhsEval(lhs);
+    
+    Index n = lhs.outerSize();
+#ifdef EIGEN_HAS_OPENMP
+    Eigen::initParallel();
+    Index threads = Eigen::nbThreads();
+#endif
+    
     for(Index c=0; c<rhs.cols(); ++c)
     {
-      Index n = lhs.outerSize();
-      for(Index j=0; j<n; ++j)
+#ifdef EIGEN_HAS_OPENMP
+      // This 20000 threshold has been found experimentally on 2D and 3D Poisson problems.
+      // It basically represents the minimal amount of work to be done to be worth it.
+      if(threads>1 && lhs.nonZeros() > 20000)
       {
-        typename Res::Scalar tmp(0);
-        for(LhsInnerIterator it(lhsEval,j); it ;++it)
-          tmp += it.value() * rhs.coeff(it.index(),c);
-        res.coeffRef(j,c) += alpha * tmp;
+        #pragma omp parallel for schedule(static) num_threads(threads)
+        for(Index i=0; i<n; ++i)
+          processRow(lhsEval,rhs,res,alpha,i,c);
+      }
+      else
+#endif
+      {
+        for(Index i=0; i<n; ++i)
+          processRow(lhsEval,rhs,res,alpha,i,c);
       }
     }
   }
+  
+  static void processRow(const LhsEval& lhsEval, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha, Index i, Index col)
+  {
+    typename Res::Scalar tmp(0);
+    for(LhsInnerIterator it(lhsEval,i); it ;++it)
+      tmp += it.value() * rhs.coeff(it.index(),col);
+    res.coeffRef(i,col) += alpha * tmp;
+  }
+  
 };
 
+// FIXME: what is the purpose of the following specialization? Is it for the BlockedSparse format?
 template<typename T1, typename T2/*, int _Options, typename _StrideType*/>
 struct scalar_product_traits<T1, Ref<T2/*, _Options, _StrideType*/> >
 {

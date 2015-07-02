@@ -486,10 +486,11 @@ ComputationInfo computeFromTridiagonal_impl(DiagType& diag, SubDiagType& subdiag
   
   while (end>0)
   {
+    EIGEN_ASM_COMMENT("beginabs");
     for (Index i = start; i<end; ++i)
       if (internal::isMuchSmallerThan(abs(subdiag[i]),(abs(diag[i])+abs(diag[i+1]))) || abs(subdiag[i]) <= considerAsZero)
         subdiag[i] = 0;
-
+    EIGEN_ASM_COMMENT("endabs");
     // find the largest unreduced block
     while (end>0 && subdiag[end-1]==0)
     {

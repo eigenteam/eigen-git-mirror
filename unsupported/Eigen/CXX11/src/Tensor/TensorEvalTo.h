@@ -113,9 +113,9 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType*) {
-    m_impl.evalSubExprsIfNeeded(NULL);
-    return true;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType* scalar) {
+    eigen_assert(scalar == NULL);
+    return m_impl.evalSubExprsIfNeeded(m_buffer);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalScalar(Index i) {

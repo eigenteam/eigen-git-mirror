@@ -89,6 +89,11 @@ template<typename Scalar> void test_sparseqr_scalar()
   QtQ = Q * Q.adjoint();
   idM.resize(Q.rows(), Q.rows()); idM.setIdentity();
   VERIFY(idM.isApprox(QtQ));
+  
+  // Q to dense
+  DenseMat dQ;
+  dQ = solver.matrixQ();
+  VERIFY_IS_APPROX(Q, dQ);
 }
 void test_sparseqr()
 {

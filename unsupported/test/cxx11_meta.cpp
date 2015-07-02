@@ -354,7 +354,3 @@ void test_cxx11_meta()
   CALL_SUBTEST(test_array_zip_and_apply());
   CALL_SUBTEST(test_array_misc());
 }
-
-/*
- * kate: space-indent on; indent-width 2; mixedindent off; indent-mode cstyle;
- */

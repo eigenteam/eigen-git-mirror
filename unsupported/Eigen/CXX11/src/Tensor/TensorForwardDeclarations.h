@@ -29,6 +29,7 @@ template<typename TargetType, typename XprType> class TensorConversionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
 template<typename PatchDim, typename XprType> class TensorPatchOp;
 template<DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorImagePatchOp;
+template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorVolumePatchOp;
 template<typename Broadcast, typename XprType> class TensorBroadcastingOp;
 template<DenseIndex DimId, typename XprType> class TensorChippingOp;
 template<typename NewDimensions, typename XprType> class TensorReshapingOp;
@@ -41,14 +42,36 @@ template<typename Strides, typename XprType> class TensorStridingOp;
 template<typename Generator, typename XprType> class TensorGeneratorOp;
 template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
 
+template<typename CustomUnaryFunc, typename XprType> class TensorCustomUnaryOp;
+template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType> class TensorCustomBinaryOp;
+
 template<typename XprType> class TensorEvalToOp;
 template<typename XprType> class TensorForcedEvalOp;
 
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
 
+class DefaultDevice;
+class ThreadPoolDevice;
+class GpuDevice;
+
 namespace internal {
-template<typename Expression, typename Device, bool Vectorizable> class TensorExecutor;
+
+template <typename Device, typename Expression>
+struct IsVectorizable {
+  static const bool value = TensorEvaluator<Expression, Device>::PacketAccess;
+};
+
+template <typename Expression>
+struct IsVectorizable<GpuDevice, Expression> {
+  static const bool value = TensorEvaluator<Expression, GpuDevice>::PacketAccess &&
+                            TensorEvaluator<Expression, GpuDevice>::IsAligned;
+};
+
+template <typename Expression, typename Device,
+          bool Vectorizable = IsVectorizable<Device, Expression>::value>
+class TensorExecutor;
+
 }  // end namespace internal
 
 }  // end namespace Eigen

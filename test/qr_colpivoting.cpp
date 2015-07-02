@@ -23,8 +23,8 @@ template<typename MatrixType> void qr()
   MatrixType m1;
   createRandomPIMatrixOfRank(rank,rows,cols,m1);
   ColPivHouseholderQR<MatrixType> qr(m1);
-  VERIFY(rank == qr.rank());
-  VERIFY(cols - qr.rank() == qr.dimensionOfKernel());
+  VERIFY_IS_EQUAL(rank, qr.rank());
+  VERIFY_IS_EQUAL(cols - qr.rank(), qr.dimensionOfKernel());
   VERIFY(!qr.isInjective());
   VERIFY(!qr.isInvertible());
   VERIFY(!qr.isSurjective());
@@ -51,11 +51,11 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   Matrix<Scalar,Rows,Cols> m1;
   createRandomPIMatrixOfRank(rank,Rows,Cols,m1);
   ColPivHouseholderQR<Matrix<Scalar,Rows,Cols> > qr(m1);
-  VERIFY(rank == qr.rank());
-  VERIFY(Cols - qr.rank() == qr.dimensionOfKernel());
-  VERIFY(qr.isInjective() == (rank == Rows));
-  VERIFY(qr.isSurjective() == (rank == Cols));
-  VERIFY(qr.isInvertible() == (qr.isInjective() && qr.isSurjective()));
+  VERIFY_IS_EQUAL(rank, qr.rank());
+  VERIFY_IS_EQUAL(Cols - qr.rank(), qr.dimensionOfKernel());
+  VERIFY_IS_EQUAL(qr.isInjective(), (rank == Rows));
+  VERIFY_IS_EQUAL(qr.isSurjective(), (rank == Cols));
+  VERIFY_IS_EQUAL(qr.isInvertible(), (qr.isInjective() && qr.isSurjective()));
 
   Matrix<Scalar,Rows,Cols> r = qr.matrixQR().template triangularView<Upper>();
   Matrix<Scalar,Rows,Cols> c = qr.householderQ() * r * qr.colsPermutation().inverse();

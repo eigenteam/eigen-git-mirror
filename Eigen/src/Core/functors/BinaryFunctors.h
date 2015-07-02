@@ -392,6 +392,18 @@ template<typename Scalar>
 struct functor_traits<scalar_quotient1_op<Scalar> >
 { enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = packet_traits<Scalar>::HasDiv }; };
 
+template<typename Scalar1, typename Scalar2>
+struct scalar_quotient2_op {
+  typedef typename scalar_product_traits<Scalar1,Scalar2>::ReturnType result_type;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient2_op(const scalar_quotient2_op& other) : m_other(other.m_other) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient2_op(const Scalar2& other) : m_other(other) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a / m_other; }
+  typename add_const_on_value_type<typename NumTraits<Scalar2>::Nested>::type m_other;
+};
+template<typename Scalar1,typename Scalar2>
+struct functor_traits<scalar_quotient2_op<Scalar1,Scalar2> >
+{ enum { Cost = 2 * NumTraits<Scalar1>::MulCost, PacketAccess = false }; };
+
 // In Eigen, any binary op (Product, CwiseBinaryOp) require the Lhs and Rhs to have the same scalar type, except for multiplication
 // where the mixing of different types is handled by scalar_product_traits
 // In particular, real * complex<real> is allowed.

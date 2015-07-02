@@ -18,6 +18,10 @@ namespace Eigen {
   * \returns the cross product of \c *this and \a other
   *
   * Here is a very good explanation of cross-product: http://xkcd.com/199/
+  * 
+  * With complex numbers, the cross product is implemented as
+  * \f$ (\mathbf{a}+i\mathbf{b}) \times (\mathbf{c}+i\mathbf{d}) = (\mathbf{a} \times \mathbf{c} - \mathbf{b} \times \mathbf{d}) - i(\mathbf{a} \times \mathbf{d} - \mathbf{b} \times \mathbf{c})\f$
+  * 
   * \sa MatrixBase::cross3()
   */
 template<typename Derived>

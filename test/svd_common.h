@@ -33,6 +33,7 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   };
 
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixUType;
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixVType;
 
@@ -40,7 +41,10 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   sigma.diagonal() = svd.singularValues().template cast<Scalar>();
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
-  VERIFY_IS_APPROX(m, u * sigma * v.adjoint());
+  RealScalar scaling = m.cwiseAbs().maxCoeff();
+  if(scaling<=(std::numeric_limits<RealScalar>::min)())
+    scaling = RealScalar(1);
+  VERIFY_IS_APPROX(m/scaling, u * (sigma/scaling) * v.adjoint());
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
 }
@@ -307,6 +311,7 @@ void svd_inf_nan()
 
 // Regression test for bug 286: JacobiSVD loops indefinitely with some
 // matrices containing denormal numbers.
+template<typename>
 void svd_underoverflow()
 {
 #if defined __INTEL_COMPILER
@@ -384,6 +389,7 @@ void svd_all_trivial_2x2( void (*cb)(const MatrixType&,bool) )
   } while((id<int(value_set.size())).all());
 }
 
+template<typename>
 void svd_preallocate()
 {
   Vector3f v(3.f, 2.f, 1.f);

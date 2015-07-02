@@ -272,6 +272,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxS
           DenseVector b = it.rhs();
           DenseVector refX = it.refX();
           PermutationMatrix<Dynamic, Dynamic, StorageIndex> pnull;
+          halfA.resize(A.rows(), A.cols());
           if(Solver::UpLo == (Lower|Upper))
             halfA = A;
           else

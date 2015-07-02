@@ -126,10 +126,16 @@ public:
   /** \internal */
   Index cols() const { return mp_matrix.cols(); }
 
-  /** \returns the tolerance threshold used by the stopping criteria */
+  /** \returns the tolerance threshold used by the stopping criteria.
+    * \sa setTolerance()
+    */
   RealScalar tolerance() const { return m_tolerance; }
   
-  /** Sets the tolerance threshold used by the stopping criteria */
+  /** Sets the tolerance threshold used by the stopping criteria.
+    *
+    * This value is used as an upper bound to the relative residual error: |Ax-b|/|b|.
+    * The default value is the machine precision given by NumTraits<Scalar>::epsilon()
+    */
   Derived& setTolerance(const RealScalar& tolerance)
   {
     m_tolerance = tolerance;
@@ -167,7 +173,9 @@ public:
     return m_iterations;
   }
 
-  /** \returns the tolerance error reached during the last solve */
+  /** \returns the tolerance error reached during the last solve.
+    * It is a close approximation of the true relative residual error |Ax-b|/|b|.
+    */
   RealScalar error() const
   {
     eigen_assert(m_isInitialized && "ConjugateGradient is not initialized.");

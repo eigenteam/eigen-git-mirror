@@ -116,7 +116,8 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     }
     typedef TensorEvalToOp<const ArgType> EvalTo;
     EvalTo evalToTmp(m_buffer, m_op);
-    internal::TensorExecutor<const EvalTo, Device, TensorEvaluator<ArgType, Device>::PacketAccess>::run(evalToTmp, m_device);
+    const bool PacketAccess = internal::IsVectorizable<Device, ArgType>::value;
+    internal::TensorExecutor<const EvalTo, Device, PacketAccess>::run(evalToTmp, m_device);
     m_impl.cleanup();
     return true;
   }

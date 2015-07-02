@@ -213,6 +213,7 @@ template<typename Scalar> struct scalar_identity_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_quotient_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_quotient2_op;
 
 } // end namespace internal
 

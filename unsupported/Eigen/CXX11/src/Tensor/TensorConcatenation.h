@@ -88,7 +88,7 @@ class TensorConcatenationOp : public TensorBase<TensorConcatenationOp<Axis, LhsX
     {
       typedef TensorAssignOp<TensorConcatenationOp, const TensorConcatenationOp> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -98,7 +98,7 @@ class TensorConcatenationOp : public TensorBase<TensorConcatenationOp<Axis, LhsX
     {
       typedef TensorAssignOp<TensorConcatenationOp, const OtherDerived> Assign;
       Assign assign(*this, other);
-      internal::TensorExecutor<const Assign, DefaultDevice, false>::run(assign, DefaultDevice());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
       return *this;
     }
 
@@ -334,7 +334,7 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
     eigen_assert(index + packetSize - 1 < this->dimensions().TotalSize());
 
     EIGEN_ALIGN_DEFAULT CoeffReturnType values[packetSize];
-    PacketReturnType rslt = internal::pstore<PacketReturnType>(values, x);
+    internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
     for (int i = 0; i < packetSize; ++i) {
       coeffRef(index+i) = values[i];
     }

@@ -242,6 +242,11 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Derived& operator+=(const SparseMatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator-=(const SparseMatrixBase<OtherDerived>& other);
+    
+    template<typename OtherDerived>
+    Derived& operator+=(const DiagonalBase<OtherDerived>& other);
+    template<typename OtherDerived>
+    Derived& operator-=(const DiagonalBase<OtherDerived>& other);
 
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
@@ -367,6 +372,8 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     static inline StorageIndex convert_index(const Index idx) {
       return internal::convert_index<StorageIndex>(idx);
     }
+  private:
+    template<typename Dest> void evalTo(Dest &) const;
 };
 
 } // end namespace Eigen
