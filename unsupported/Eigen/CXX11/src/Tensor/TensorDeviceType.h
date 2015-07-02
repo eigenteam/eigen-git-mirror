@@ -291,9 +291,12 @@ static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
   assert(status == cudaSuccess);
 }
 
+// Cuda stream to use when no stream is specified explicitely.
+static const cudaStream_t default_stream = cudaStreamDefault;
+
 struct GpuDevice {
   // The cudastream is not owned: the caller is responsible for its initialization and eventual destruction.
-  GpuDevice(const cudaStream_t* stream) : stream_(stream) { eigen_assert(stream); }
+  GpuDevice(const cudaStream_t* stream = &default_stream) : stream_(stream) { eigen_assert(stream); }
 
   EIGEN_STRONG_INLINE const cudaStream_t& stream() const { return *stream_; }
 
