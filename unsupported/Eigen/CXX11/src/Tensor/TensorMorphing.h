@@ -334,8 +334,8 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
         m_inputStrides[i] = m_inputStrides[i-1] * input_dims[i-1];
       }
 
+     // Don't initialize m_fastOutputStrides[0] since it won't ever be accessed.
       m_outputStrides[0] = 1;
-      m_fastOutputStrides[0] = 1;
       for (int i = 1; i < NumDims; ++i) {
         m_outputStrides[i] = m_outputStrides[i-1] * output_dims[i-1];
         m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(m_outputStrides[i]);
@@ -346,8 +346,8 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
         m_inputStrides[i] = m_inputStrides[i+1] * input_dims[i+1];
       }
 
+     // Don't initialize m_fastOutputStrides[NumDims-1] since it won't ever be accessed.
       m_outputStrides[NumDims-1] = 1;
-      m_fastOutputStrides[NumDims-1] = 1;
       for (int i = NumDims - 2; i >= 0; --i) {
         m_outputStrides[i] = m_outputStrides[i+1] * output_dims[i+1];
         m_fastOutputStrides[i] = internal::TensorIntDivisor<Index>(m_outputStrides[i]);
@@ -386,7 +386,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       // Use memcpy if it's going to be faster than using the regular evaluation.
       const MemcpyTriggerForSlicing<Index, Device> trigger(m_device);
       if (trigger(contiguous_values)) {
-        Scalar* src = m_impl.data();
+        Scalar* src = (Scalar*)m_impl.data();
         for (int i = 0; i < internal::array_prod(dimensions()); i += contiguous_values) {
           Index offset = srcCoeff(i);
           m_device.memcpy((void*)(data+i), src+offset, contiguous_values * sizeof(Scalar));
@@ -464,7 +464,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const {
-    Scalar* result = m_impl.data();
+    CoeffReturnType* result = m_impl.data();
     if (result) {
       Index offset = 0;
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
