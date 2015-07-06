@@ -279,7 +279,7 @@ struct norm1_default_impl
   EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
-    using std::abs;
+    EIGEN_USING_STD_MATH(abs);
     return abs(real(x)) + abs(imag(x));
   }
 };
@@ -290,7 +290,7 @@ struct norm1_default_impl<Scalar, false>
   EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
   {
-    using std::abs;
+    EIGEN_USING_STD_MATH(abs);
     return abs(x);
   }
 };
@@ -316,8 +316,8 @@ struct hypot_impl
   {
     EIGEN_USING_STD_MATH(max);
     EIGEN_USING_STD_MATH(min);
-    using std::abs;
-    using std::sqrt;
+    EIGEN_USING_STD_MATH(abs);
+    EIGEN_USING_STD_MATH(sqrt);
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
     Scalar p, qp;
@@ -386,8 +386,8 @@ inline NewType cast(const OldType& x)
     static inline Scalar run(const Scalar& x)
     {
       EIGEN_STATIC_ASSERT((!NumTraits<Scalar>::IsComplex), NUMERIC_TYPE_MUST_BE_REAL)
-      using std::floor;
-      using std::ceil;
+      EIGEN_USING_STD_MATH(floor);
+      EIGEN_USING_STD_MATH(ceil);
       return (x > 0.0) ? floor(x + 0.5) : ceil(x - 0.5);
     }
   };
@@ -408,7 +408,7 @@ struct round_retval
   struct arg_impl {
     static inline Scalar run(const Scalar& x)
     {
-      using std::arg;
+      EIGEN_USING_STD_MATH(arg);
       return arg(x);
     }
   };
@@ -430,7 +430,7 @@ struct round_retval
     EIGEN_DEVICE_FUNC
     static inline RealScalar run(const Scalar& x)
     {
-      using std::arg;
+      EIGEN_USING_STD_MATH(arg);
       return arg(x);
     }
   };
@@ -454,7 +454,7 @@ struct log1p_impl
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    using std::log;
+    EIGEN_USING_STD_MATH(log);
     Scalar x1p = RealScalar(1) + x;
     return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
   }
@@ -488,7 +488,7 @@ struct pow_default_impl
   typedef Scalar retval;
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
-    using std::pow;
+    EIGEN_USING_STD_MATH(pow);
     return pow(x, y);
   }
 };
@@ -794,12 +794,25 @@ bool (isfinite)(const T& x)
   #endif
 }
 
+#ifndef __CUDACC__
 template<typename T>
-EIGEN_DEVICE_FUNC
 bool (isfinite)(const std::complex<T>& x)
 {
   return numext::isfinite(numext::real(x)) && numext::isfinite(numext::imag(x));
 }
+
+template<typename T>
+bool (isnan)(const std::complex<T>& x)
+{
+  return numext::isnan(numext::real(x)) || numext::isnan(numext::imag(x));
+}
+
+template<typename T>
+bool (isinf)(const std::complex<T>& x)
+{
+  return (numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x))) && (!numext::isnan(x));
+}
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC
@@ -815,13 +828,6 @@ bool (isnan)(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-bool (isnan)(const std::complex<T>& x)
-{
-  return numext::isnan(numext::real(x)) || numext::isnan(numext::imag(x));
-}
-
-template<typename T>
-EIGEN_DEVICE_FUNC
 bool (isinf)(const T& x)
 {
   #if EIGEN_HAS_CXX11_MATH
@@ -830,13 +836,6 @@ bool (isinf)(const T& x)
   #else
     return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
   #endif
-}
-
-template<typename T>
-EIGEN_DEVICE_FUNC
-bool (isinf)(const std::complex<T>& x)
-{
-  return (numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x))) && (!numext::isnan(x));
 }
 
 template<typename Scalar>
@@ -850,7 +849,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 T (floor)(const T& x)
 {
-  using std::floor;
+  EIGEN_USING_STD_MATH(floor);
   return floor(x);
 }
 
@@ -858,7 +857,7 @@ template<typename T>
 EIGEN_DEVICE_FUNC
 T (ceil)(const T& x)
 {
-  using std::ceil;
+  EIGEN_USING_STD_MATH(ceil);
   return ceil(x);
 }
 
@@ -897,14 +896,14 @@ struct scalar_fuzzy_default_impl<Scalar, false, false>
   template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y, const RealScalar& prec)
   {
-    using std::abs;
+    EIGEN_USING_STD_MATH(abs);
     return abs(x) <= abs(y) * prec;
   }
   EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     EIGEN_USING_STD_MATH(min);
-    using std::abs;
+    EIGEN_USING_STD_MATH(abs);
     return abs(x - y) <= (min)(abs(x), abs(y)) * prec;
   }
   EIGEN_DEVICE_FUNC

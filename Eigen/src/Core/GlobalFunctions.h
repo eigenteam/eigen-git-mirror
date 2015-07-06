@@ -62,9 +62,11 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(round,scalar_round_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(floor,scalar_floor_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(ceil,scalar_ceil_op)
+#ifndef __CUDACC__
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isnan,scalar_isnan_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isinf,scalar_isinf_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isfinite,scalar_isfinite_op)
+#endif
   
   template<typename Derived>
   inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar>, const Derived>

@@ -533,7 +533,11 @@ struct functor_traits<scalar_cube_op<Scalar> >
   */
 template<typename Scalar> struct scalar_round_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_round_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { using numext::round; return round(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const
+  {
+    EIGEN_USING_NUMEXT_MATH(round);
+    return round(a);
+  }
   typedef typename packet_traits<Scalar>::type Packet;
   inline Packet packetOp(const Packet& a) const { return internal::pround(a); }
 };
@@ -552,7 +556,11 @@ struct functor_traits<scalar_round_op<Scalar> >
   */
 template<typename Scalar> struct scalar_floor_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_floor_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::floor(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const
+  {
+    EIGEN_USING_NUMEXT_MATH(floor);
+    return floor(a);
+  }
   typedef typename packet_traits<Scalar>::type Packet;
   inline Packet packetOp(const Packet& a) const { return internal::pfloor(a); }
 };
@@ -571,7 +579,11 @@ struct functor_traits<scalar_floor_op<Scalar> >
   */
 template<typename Scalar> struct scalar_ceil_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_ceil_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::ceil(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const
+  {
+    EIGEN_USING_NUMEXT_MATH(ceil);
+    return ceil(a);
+  }
   typedef typename packet_traits<Scalar>::type Packet;
   inline Packet packetOp(const Packet& a) const { return internal::pceil(a); }
 };
@@ -591,7 +603,11 @@ struct functor_traits<scalar_ceil_op<Scalar> >
 template<typename Scalar> struct scalar_isnan_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isnan_op)
   typedef bool result_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isnan(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const
+  {
+    EIGEN_USING_NUMEXT_MATH(isnan);
+    return isnan(a);
+  }
 };
 template<typename Scalar>
 struct functor_traits<scalar_isnan_op<Scalar> >
@@ -609,7 +625,11 @@ struct functor_traits<scalar_isnan_op<Scalar> >
 template<typename Scalar> struct scalar_isinf_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isinf_op)
   typedef bool result_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isinf(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const
+  {
+    EIGEN_USING_NUMEXT_MATH(isinf);
+    return isinf(a);
+  }
 };
 template<typename Scalar>
 struct functor_traits<scalar_isinf_op<Scalar> >
@@ -627,7 +647,11 @@ struct functor_traits<scalar_isinf_op<Scalar> >
 template<typename Scalar> struct scalar_isfinite_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_isfinite_op)
   typedef bool result_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return numext::isfinite(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const
+  {
+    EIGEN_USING_NUMEXT_MATH(isfinite);
+    return isfinite(a);
+  }
 };
 template<typename Scalar>
 struct functor_traits<scalar_isfinite_op<Scalar> >
