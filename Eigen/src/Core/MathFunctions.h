@@ -359,9 +359,9 @@ struct cast_impl
 // here, for once, we're plainly returning NewType: we don't want cast to do weird things.
 
 template<typename OldType, typename NewType>
+EIGEN_DEVICE_FUNC
 inline NewType cast(const OldType& x)
 {
-  EIGEN_DEVICE_FUNC
   return cast_impl<OldType, NewType>::run(x);
 }
 
