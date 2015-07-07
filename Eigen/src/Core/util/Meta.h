@@ -67,6 +67,7 @@ template<> struct is_arithmetic<signed int>    { enum { value = true }; };
 template<> struct is_arithmetic<unsigned int>  { enum { value = true }; };
 template<> struct is_arithmetic<signed long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long> { enum { value = true }; };
+template<typename T> struct is_arithmetic<std::complex<T> > { enum { value = true }; };
 
 template <typename T> struct add_const { typedef const T type; };
 template <typename T> struct add_const<T&> { typedef T& type; };
