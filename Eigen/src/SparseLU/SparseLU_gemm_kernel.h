@@ -165,7 +165,7 @@ void sparselu_gemm(Index m, Index n, Index d, const Scalar* A, Index lda, const 
         Bc1 += RK;
       } // peeled loop on k
     } // peeled loop on the columns j
-    // process the last column (we now perform a matrux-vector product)
+    // process the last column (we now perform a matrix-vector product)
     if((n-n_end)>0)
     {
       const Scalar* Bc0 = B+(n-1)*ldb;
