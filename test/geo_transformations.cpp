@@ -408,7 +408,24 @@ template<typename Scalar, int Mode, int Options> void transformations()
   VERIFY_IS_APPROX(r2d1f.template cast<Scalar>(),r2d1);
   Rotation2D<double> r2d1d = r2d1.template cast<double>();
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
+  
+  for(int k=0; k<100; ++k)
+  {
+    Scalar angle = internal::random<Scalar>(-100,100);
+    Rotation2D<Scalar> rot2(angle);
+    VERIFY( rot2.smallestPositiveAngle() >= 0 );
+    VERIFY( rot2.smallestPositiveAngle() < Scalar(2)*Scalar(EIGEN_PI) );
+    VERIFY_IS_APPROX( std::cos(rot2.smallestPositiveAngle()), std::cos(rot2.angle()) );
+    VERIFY_IS_APPROX( std::sin(rot2.smallestPositiveAngle()), std::sin(rot2.angle()) );
+    
+    VERIFY( rot2.smallestAngle() >= -Scalar(EIGEN_PI) );
+    VERIFY( rot2.smallestAngle() <=  Scalar(EIGEN_PI) );
+    VERIFY_IS_APPROX( std::cos(rot2.smallestAngle()), std::cos(rot2.angle()) );
+    VERIFY_IS_APPROX( std::sin(rot2.smallestAngle()), std::sin(rot2.angle()) );
+  }
 
+  s0 = internal::random<Scalar>(-100,100);
+  s1 = internal::random<Scalar>(-100,100);
   Rotation2D<Scalar> R0(s0), R1(s1);
   
   t20 = Translation2(v20) * (R0 * Eigen::Scaling(s0));
@@ -420,9 +437,23 @@ template<typename Scalar, int Mode, int Options> void transformations()
   VERIFY_IS_APPROX(t20,t21);
   
   VERIFY_IS_APPROX(s0, (R0.slerp(0, R1)).angle());
-  VERIFY_IS_APPROX(s1, (R0.slerp(1, R1)).angle());
-  VERIFY_IS_APPROX(s0, (R0.slerp(0.5, R0)).angle());
-  VERIFY_IS_APPROX(Scalar(0), (R0.slerp(0.5, R0.inverse())).angle());
+  VERIFY_IS_APPROX(R1.smallestPositiveAngle(), (R0.slerp(1, R1)).smallestPositiveAngle());
+  VERIFY_IS_APPROX(R0.smallestPositiveAngle(), (R0.slerp(0.5, R0)).smallestPositiveAngle());
+
+  if(std::cos(s0)>0)
+    VERIFY_IS_MUCH_SMALLER_THAN((R0.slerp(0.5, R0.inverse())).smallestAngle(), Scalar(1));
+  else
+    VERIFY_IS_APPROX(Scalar(EIGEN_PI), (R0.slerp(0.5, R0.inverse())).smallestPositiveAngle());
+  
+  // Check path length
+  Scalar l = 0;
+  for(int k=0; k<100; ++k)
+  {
+    Scalar a1 = R0.slerp(Scalar(k)/Scalar(100), R1).angle();
+    Scalar a2 = R0.slerp(Scalar(k+1)/Scalar(100), R1).angle();
+    l += std::abs(a2-a1);
+  }
+  VERIFY(l<=EIGEN_PI);
   
   // check basic features
   {
