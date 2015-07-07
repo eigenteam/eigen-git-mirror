@@ -157,7 +157,7 @@ struct TensorEvaluator<const Derived, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dims; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType* data) {
-    if (internal::is_arithmetic<typename internal::remove_const<Scalar>::type>::value && data) {
+    if (!NumTraits<typename internal::remove_const<Scalar>::type>::RequireInitialization && data) {
       m_device.memcpy((void*)data, m_data, m_dims.TotalSize() * sizeof(Scalar));
       return false;
     }
