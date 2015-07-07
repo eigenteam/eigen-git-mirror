@@ -75,7 +75,7 @@ struct TensorIntDivisor {
     eigen_assert(numerator >= 0);
     eigen_assert(static_cast<unsigned long long>(numerator) <= (1ull<<N) - 1);
 
-    uint32_t t1 = (multiplier * numerator) >> 32;
+    uint32_t t1 = (multiplier * numerator) >> N;
     uint32_t t = (static_cast<uint32_t>(numerator) - t1) >> shift1;
     return (t1 + t) >> shift2;
   }

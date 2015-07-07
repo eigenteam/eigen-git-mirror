@@ -10,6 +10,8 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_BASE_H
 #define EIGEN_CXX11_TENSOR_TENSOR_BASE_H
 
+// clang-format off
+
 namespace Eigen {
 
 /** \class TensorBase
@@ -379,39 +381,28 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorPatchOp<const PatchDims, const Derived>(derived(), patch_dims);
     }
 
-    template <Index Rows, Index Cols> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorImagePatchOp<Rows, Cols, const Derived>
-    extract_image_patches() const {
-      return TensorImagePatchOp<Rows, Cols, const Derived>(derived(), Rows, Cols, 1, 1, PADDING_SAME);
-    }
-
-    template <Index Rows, Index Cols> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorImagePatchOp<Rows, Cols, const Derived>
-    extract_image_patches(const PaddingType padding_type) const {
-      return TensorImagePatchOp<Rows, Cols, const Derived>(derived(), Rows, Cols, 1, 1, padding_type);
-    }
-
-    template <Index Rows, Index Cols> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorImagePatchOp<Rows, Cols, const Derived>
-    extract_image_patches(const Index stride, const PaddingType padding_type) const {
-      return TensorImagePatchOp<Rows, Cols, const Derived>(derived(), Rows, Cols, stride, stride, padding_type);
-    }
-
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorImagePatchOp<Dynamic, Dynamic, const Derived>
-    extract_image_patches(const Index patch_rows, const Index patch_cols,
-                          const Index row_stride = 1, const Index col_stride = 1) const {
+    extract_image_patches(const Index patch_rows = 1, const Index patch_cols = 1,
+                          const Index row_stride = 1, const Index col_stride = 1,
+                          const Index in_row_stride = 1, const Index in_col_stride = 1,
+                          const PaddingType padding_type = PADDING_SAME, const Scalar padding_value = Scalar(0)) const {
       return TensorImagePatchOp<Dynamic, Dynamic, const Derived>(derived(), patch_rows, patch_cols, row_stride, col_stride,
-                                                                 PADDING_SAME);
+                                                                 in_row_stride, in_col_stride, 1, 1, padding_type, padding_value);
     }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorImagePatchOp<Dynamic, Dynamic, const Derived>
     extract_image_patches(const Index patch_rows, const Index patch_cols,
                           const Index row_stride, const Index col_stride,
-                          const PaddingType padding_type) const {
+                          const Index in_row_stride, const Index in_col_stride,
+                          const Index row_inflate_stride, const Index col_inflate_stride,
+                          const Index padding_top, const Index padding_bottom,
+                          const Index padding_left,const Index padding_right,
+                          const Scalar padding_value) const {
       return TensorImagePatchOp<Dynamic, Dynamic, const Derived>(derived(), patch_rows, patch_cols, row_stride, col_stride,
-                                                                 padding_type);
+                                                                 in_row_stride, in_col_stride, row_inflate_stride, col_inflate_stride,
+                                                                 padding_top, padding_bottom, padding_left, padding_right, padding_value);
     }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -481,7 +472,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorStridingOp<const Strides, const Derived>(derived(), strides);
     }
 
-    // Added support for custom unary and binary operations
+    // Support for custom unary and binary operations
     template <typename CustomUnaryFunc>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCustomUnaryOp<const CustomUnaryFunc, const Derived> customOp(const CustomUnaryFunc& op) const {
