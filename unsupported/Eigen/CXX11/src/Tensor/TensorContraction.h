@@ -662,7 +662,7 @@ struct TensorContractionEvaluatorBase
     // If the layout is RowMajor, we need to reverse the m_dimensions
     if (static_cast<int>(Layout) == static_cast<int>(RowMajor)) {
       for (int i = 0, j = NumDims - 1; i < j; i++, j--) {
-        std::swap(m_dimensions[i], m_dimensions[j]);
+        numext::swap(m_dimensions[i], m_dimensions[j]);
       }
     }
   }
