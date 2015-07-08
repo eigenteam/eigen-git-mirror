@@ -387,6 +387,58 @@ template <> class UniformRandomGenerator<double> {
   mutable curandStatePhilox4_32_10_t m_state;
 };
 
+template <> class UniformRandomGenerator<std::complex<float> > {
+ public:
+  static const bool PacketAccess = false;
+
+  __device__ UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  __device__ UniformRandomGenerator(const UniformRandomGenerator& other) {
+    m_deterministic = other.m_deterministic;
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = m_deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  template<typename Index>
+  __device__ std::complex<float> operator()(Index, Index = 0) const {
+    float4 vals = curand_uniform4(&m_state);
+    return std::complex<float>(vals.x, vals.y);
+  }
+
+ private:
+  bool m_deterministic;
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
+template <> class UniformRandomGenerator<std::complex<double> > {
+ public:
+  static const bool PacketAccess = false;
+
+  __device__ UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  __device__ UniformRandomGenerator(const UniformRandomGenerator& other) {
+    m_deterministic = other.m_deterministic;
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = m_deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  template<typename Index>
+  __device__ std::complex<double> operator()(Index, Index = 0) const {
+    double2 vals = curand_uniform2_double(&m_state);
+    return std::complex<double>(vals.x, vals.y);
+  }
+
+ private:
+  bool m_deterministic;
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
 #endif
 
 
@@ -482,6 +534,58 @@ template <> class NormalRandomGenerator<double> {
   template<typename Index>
   __device__ double2 packetOp(Index, Index = 0) const {
     return curand_normal2_double(&m_state);
+  }
+
+ private:
+  bool m_deterministic;
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
+template <> class NormalRandomGenerator<std::complex<float> > {
+ public:
+  static const bool PacketAccess = false;
+
+  __device__ NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  __device__ NormalRandomGenerator(const NormalRandomGenerator& other) {
+    m_deterministic = other.m_deterministic;
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = m_deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  template<typename Index>
+  __device__ std::complex<float> operator()(Index, Index = 0) const {
+    float4 vals = curand_normal4(&m_state);
+    return std::complex<float>(vals.x, vals.y);
+  }
+
+ private:
+  bool m_deterministic;
+  mutable curandStatePhilox4_32_10_t m_state;
+};
+
+template <> class NormalRandomGenerator<std::complex<double> > {
+ public:
+  static const bool PacketAccess = false;
+
+  __device__ NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  __device__ NormalRandomGenerator(const NormalRandomGenerator& other) {
+    m_deterministic = other.m_deterministic;
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int seed = m_deterministic ? 0 : get_random_seed();
+    curand_init(seed, tid, 0, &m_state);
+  }
+  template<typename Index>
+  __device__ std::complex<double> operator()(Index, Index = 0) const {
+    double2 vals = curand_normal2_double(&m_state);
+    return std::complex<double>(vals.x, vals.y);
   }
 
  private:

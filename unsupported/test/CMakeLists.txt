@@ -144,5 +144,6 @@ if(EIGEN_TEST_CXX11)
 #  ei_add_test(cxx11_tensor_cuda "-std=c++0x")
 #  ei_add_test(cxx11_tensor_contract_cuda "-std=c++0x")
 #  ei_add_test(cxx11_tensor_reduction_cuda "-std=c++0x")
+#  ei_add_test(cxx11_tensor_random_cuda "-std=c++0x")
 
 endif()
