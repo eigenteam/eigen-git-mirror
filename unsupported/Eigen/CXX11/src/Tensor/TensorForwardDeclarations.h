@@ -51,9 +51,9 @@ template<typename XprType> class TensorForcedEvalOp;
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
 
-class DefaultDevice;
-class ThreadPoolDevice;
-class GpuDevice;
+struct DefaultDevice;
+struct ThreadPoolDevice;
+struct GpuDevice;
 
 namespace internal {
 

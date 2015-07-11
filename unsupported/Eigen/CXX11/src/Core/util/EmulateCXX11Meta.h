@@ -107,7 +107,7 @@ template <typename T, size_t n> class array {
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
   array(std::initializer_list<T> l) {
     eigen_assert(l.size() == n);
-    std::copy(l.begin(), l.end(), values);
+    internal::smart_copy(l.begin(), l.end(), values);
   }
 #endif
 };

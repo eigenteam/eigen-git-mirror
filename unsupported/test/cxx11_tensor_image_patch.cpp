@@ -25,7 +25,7 @@ static void test_simple_patch()
 
   // Single pixel patch: ColMajor
   Tensor<float, 5> single_pixel_patch;
-  single_pixel_patch = tensor.extract_image_patches<1, 1>();
+  single_pixel_patch = tensor.extract_image_patches(1, 1);
   VERIFY_IS_EQUAL(single_pixel_patch.dimension(0), 2);
   VERIFY_IS_EQUAL(single_pixel_patch.dimension(1), 1);
   VERIFY_IS_EQUAL(single_pixel_patch.dimension(2), 1);
@@ -34,7 +34,7 @@ static void test_simple_patch()
 
   // Single pixel patch: RowMajor
   Tensor<float, 5, RowMajor> single_pixel_patch_row_major;
-  single_pixel_patch_row_major = tensor_row_major.extract_image_patches<1, 1>();
+  single_pixel_patch_row_major = tensor_row_major.extract_image_patches(1, 1);
   VERIFY_IS_EQUAL(single_pixel_patch_row_major.dimension(0), 7);
   VERIFY_IS_EQUAL(single_pixel_patch_row_major.dimension(1), 3*5);
   VERIFY_IS_EQUAL(single_pixel_patch_row_major.dimension(2), 1);
@@ -64,7 +64,7 @@ static void test_simple_patch()
 
   // Entire image patch: ColMajor
   Tensor<float, 5> entire_image_patch;
-  entire_image_patch = tensor.extract_image_patches<3, 5>();
+  entire_image_patch = tensor.extract_image_patches(3, 5);
   VERIFY_IS_EQUAL(entire_image_patch.dimension(0), 2);
   VERIFY_IS_EQUAL(entire_image_patch.dimension(1), 3);
   VERIFY_IS_EQUAL(entire_image_patch.dimension(2), 5);
@@ -73,7 +73,7 @@ static void test_simple_patch()
 
   // Entire image patch: RowMajor
   Tensor<float, 5, RowMajor> entire_image_patch_row_major;
-  entire_image_patch_row_major = tensor_row_major.extract_image_patches<3, 5>();
+  entire_image_patch_row_major = tensor_row_major.extract_image_patches(3, 5);
   VERIFY_IS_EQUAL(entire_image_patch_row_major.dimension(0), 7);
   VERIFY_IS_EQUAL(entire_image_patch_row_major.dimension(1), 3*5);
   VERIFY_IS_EQUAL(entire_image_patch_row_major.dimension(2), 5);
@@ -118,7 +118,7 @@ static void test_simple_patch()
 
   // 2D patch: ColMajor
   Tensor<float, 5> twod_patch;
-  twod_patch = tensor.extract_image_patches<2, 2>();
+  twod_patch = tensor.extract_image_patches(2, 2);
   VERIFY_IS_EQUAL(twod_patch.dimension(0), 2);
   VERIFY_IS_EQUAL(twod_patch.dimension(1), 2);
   VERIFY_IS_EQUAL(twod_patch.dimension(2), 2);
@@ -127,7 +127,7 @@ static void test_simple_patch()
 
   // 2D patch: RowMajor
   Tensor<float, 5, RowMajor> twod_patch_row_major;
-  twod_patch_row_major = tensor_row_major.extract_image_patches<2, 2>();
+  twod_patch_row_major = tensor_row_major.extract_image_patches(2, 2);
   VERIFY_IS_EQUAL(twod_patch_row_major.dimension(0), 7);
   VERIFY_IS_EQUAL(twod_patch_row_major.dimension(1), 3*5);
   VERIFY_IS_EQUAL(twod_patch_row_major.dimension(2), 2);
@@ -194,7 +194,7 @@ static void test_patch_padding_valid()
     tensor.data()[i] = i + 1;
   }
   // ColMajor
-  Tensor<float, 5> result = tensor.extract_image_patches(ksize, ksize, stride, stride, PADDING_VALID);
+  Tensor<float, 5> result = tensor.extract_image_patches(ksize, ksize, stride, stride, 1, 1, PADDING_VALID);
 
   VERIFY_IS_EQUAL(result.dimension(0), input_depth);  // depth
   VERIFY_IS_EQUAL(result.dimension(1), ksize);  // kernel rows
@@ -209,7 +209,7 @@ static void test_patch_padding_valid()
   VERIFY_IS_EQUAL(tensor.dimension(2), tensor_row_major.dimension(1));
   VERIFY_IS_EQUAL(tensor.dimension(3), tensor_row_major.dimension(0));
 
-  Tensor<float, 5, RowMajor> result_row_major = tensor_row_major.extract_image_patches(ksize, ksize, stride, stride, PADDING_VALID);
+  Tensor<float, 5, RowMajor> result_row_major = tensor_row_major.extract_image_patches(ksize, ksize, stride, stride, 1, 1, PADDING_VALID);
   VERIFY_IS_EQUAL(result.dimension(0), result_row_major.dimension(4));
   VERIFY_IS_EQUAL(result.dimension(1), result_row_major.dimension(3));
   VERIFY_IS_EQUAL(result.dimension(2), result_row_major.dimension(2));
@@ -267,7 +267,7 @@ static void test_patch_padding_valid_same_value()
   // ColMajor
   Tensor<float, 4> tensor(input_depth, input_rows, input_cols, input_batches);
   tensor = tensor.constant(11.0f);
-  Tensor<float, 5> result = tensor.extract_image_patches(ksize, ksize, stride, stride, PADDING_VALID);
+  Tensor<float, 5> result = tensor.extract_image_patches(ksize, ksize, stride, stride, 1, 1, PADDING_VALID);
 
   VERIFY_IS_EQUAL(result.dimension(0), input_depth);  // depth
   VERIFY_IS_EQUAL(result.dimension(1), ksize);  // kernel rows
@@ -282,7 +282,7 @@ static void test_patch_padding_valid_same_value()
   VERIFY_IS_EQUAL(tensor.dimension(2), tensor_row_major.dimension(1));
   VERIFY_IS_EQUAL(tensor.dimension(3), tensor_row_major.dimension(0));
 
-  Tensor<float, 5, RowMajor> result_row_major = tensor_row_major.extract_image_patches(ksize, ksize, stride, stride, PADDING_VALID);
+  Tensor<float, 5, RowMajor> result_row_major = tensor_row_major.extract_image_patches(ksize, ksize, stride, stride, 1, 1, PADDING_VALID);
   VERIFY_IS_EQUAL(result.dimension(0), result_row_major.dimension(4));
   VERIFY_IS_EQUAL(result.dimension(1), result_row_major.dimension(3));
   VERIFY_IS_EQUAL(result.dimension(2), result_row_major.dimension(2));
@@ -416,7 +416,7 @@ static void test_patch_no_extra_dim()
 
   // Single pixel patch: ColMajor
   Tensor<float, 4> single_pixel_patch;
-  single_pixel_patch = tensor.extract_image_patches<1, 1>();
+  single_pixel_patch = tensor.extract_image_patches(1, 1);
   VERIFY_IS_EQUAL(single_pixel_patch.dimension(0), 2);
   VERIFY_IS_EQUAL(single_pixel_patch.dimension(1), 1);
   VERIFY_IS_EQUAL(single_pixel_patch.dimension(2), 1);
@@ -424,7 +424,7 @@ static void test_patch_no_extra_dim()
 
   // Single pixel patch: RowMajor
   Tensor<float, 4, RowMajor> single_pixel_patch_row_major;
-  single_pixel_patch_row_major = tensor_row_major.extract_image_patches<1, 1>();
+  single_pixel_patch_row_major = tensor_row_major.extract_image_patches(1, 1);
   VERIFY_IS_EQUAL(single_pixel_patch_row_major.dimension(0), 3*5);
   VERIFY_IS_EQUAL(single_pixel_patch_row_major.dimension(1), 1);
   VERIFY_IS_EQUAL(single_pixel_patch_row_major.dimension(2), 1);
@@ -451,7 +451,7 @@ static void test_patch_no_extra_dim()
 
   // Entire image patch: ColMajor
   Tensor<float, 4> entire_image_patch;
-  entire_image_patch = tensor.extract_image_patches<3, 5>();
+  entire_image_patch = tensor.extract_image_patches(3, 5);
   VERIFY_IS_EQUAL(entire_image_patch.dimension(0), 2);
   VERIFY_IS_EQUAL(entire_image_patch.dimension(1), 3);
   VERIFY_IS_EQUAL(entire_image_patch.dimension(2), 5);
@@ -459,7 +459,7 @@ static void test_patch_no_extra_dim()
 
   // Entire image patch: RowMajor
   Tensor<float, 4, RowMajor> entire_image_patch_row_major;
-  entire_image_patch_row_major = tensor_row_major.extract_image_patches<3, 5>();
+  entire_image_patch_row_major = tensor_row_major.extract_image_patches(3, 5);
   VERIFY_IS_EQUAL(entire_image_patch_row_major.dimension(0), 3*5);
   VERIFY_IS_EQUAL(entire_image_patch_row_major.dimension(1), 5);
   VERIFY_IS_EQUAL(entire_image_patch_row_major.dimension(2), 3);
@@ -499,7 +499,7 @@ static void test_patch_no_extra_dim()
 
   // 2D patch: ColMajor
   Tensor<float, 4> twod_patch;
-  twod_patch = tensor.extract_image_patches<2, 2>();
+  twod_patch = tensor.extract_image_patches(2, 2);
   VERIFY_IS_EQUAL(twod_patch.dimension(0), 2);
   VERIFY_IS_EQUAL(twod_patch.dimension(1), 2);
   VERIFY_IS_EQUAL(twod_patch.dimension(2), 2);
@@ -507,7 +507,7 @@ static void test_patch_no_extra_dim()
 
   // 2D patch: RowMajor
   Tensor<float, 4, RowMajor> twod_patch_row_major;
-  twod_patch_row_major = tensor_row_major.extract_image_patches<2, 2>();
+  twod_patch_row_major = tensor_row_major.extract_image_patches(2, 2);
   VERIFY_IS_EQUAL(twod_patch_row_major.dimension(0), 3*5);
   VERIFY_IS_EQUAL(twod_patch_row_major.dimension(1), 2);
   VERIFY_IS_EQUAL(twod_patch_row_major.dimension(2), 2);

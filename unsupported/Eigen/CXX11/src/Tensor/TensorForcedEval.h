@@ -109,7 +109,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     const Index numValues = m_impl.dimensions().TotalSize();
     m_buffer = (CoeffReturnType*)m_device.allocate(numValues * sizeof(CoeffReturnType));
     // Should initialize the memory in case we're dealing with non POD types.
-    if (!internal::is_arithmetic<CoeffReturnType>::value) {
+    if (NumTraits<CoeffReturnType>::RequireInitialization) {
       for (Index i = 0; i < numValues; ++i) {
         new(m_buffer+i) CoeffReturnType();
       }

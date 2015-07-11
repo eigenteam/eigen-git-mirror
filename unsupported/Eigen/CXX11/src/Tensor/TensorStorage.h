@@ -95,7 +95,7 @@ class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
 
     EIGEN_DEVICE_FUNC  ~TensorStorage() { internal::conditional_aligned_delete_auto<T,(Options_&DontAlign)==0>(m_data, internal::array_prod(m_dimensions)); }
     EIGEN_DEVICE_FUNC  void swap(Self& other)
-    { std::swap(m_data,other.m_data); std::swap(m_dimensions,other.m_dimensions); }
+    { numext::swap(m_data,other.m_data); numext::swap(m_dimensions,other.m_dimensions); }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const {return m_dimensions;}
 

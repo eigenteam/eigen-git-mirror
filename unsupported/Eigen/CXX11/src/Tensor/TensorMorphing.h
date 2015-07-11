@@ -366,7 +366,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType* data) {
     m_impl.evalSubExprsIfNeeded(NULL);
-    if (internal::is_arithmetic<typename internal::remove_const<Scalar>::type>::value && data && m_impl.data()) {
+    if (!NumTraits<typename internal::remove_const<Scalar>::type>::RequireInitialization && data && m_impl.data()) {
       Index contiguous_values = 1;
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
         for (int i = 0; i < NumDims; ++i) {
