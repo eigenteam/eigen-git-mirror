@@ -99,7 +99,7 @@ EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scala
 template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
 {
-  using std::sqrt;
+  EIGEN_USING_STD_MATH(sqrt)
   return sqrt(squaredNorm());
 }
 
@@ -141,7 +141,7 @@ struct lpNorm_selector
   EIGEN_DEVICE_FUNC
   static inline RealScalar run(const MatrixBase<Derived>& m)
   {
-    using std::pow;
+    EIGEN_USING_STD_MATH(pow)
     return pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
   }
 };
