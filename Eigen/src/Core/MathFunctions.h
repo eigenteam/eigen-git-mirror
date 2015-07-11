@@ -388,7 +388,7 @@ inline NewType cast(const OldType& x)
       EIGEN_STATIC_ASSERT((!NumTraits<Scalar>::IsComplex), NUMERIC_TYPE_MUST_BE_REAL)
       EIGEN_USING_STD_MATH(floor);
       EIGEN_USING_STD_MATH(ceil);
-      return (x > 0.0) ? floor(x + 0.5) : ceil(x - 0.5);
+      return (x > Scalar(0)) ? floor(x + Scalar(0.5)) : ceil(x - Scalar(0.5));
     }
   };
 #endif
@@ -420,7 +420,7 @@ struct round_retval
     EIGEN_DEVICE_FUNC
     static inline RealScalar run(const Scalar& x)
     {
-      return (x < 0.0) ? EIGEN_PI : 0.0; }
+      return (x < Scalar(0)) ? Scalar(EIGEN_PI) : Scalar(0); }
   };
 
   template<typename Scalar>
