@@ -50,11 +50,17 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
   if(info)
     return xerbla_(SCALAR_SUFFIX_UP"GEMM ",&info,6);
 
+  if (*m == 0 || *n == 0)
+    return 0;
+
   if(beta!=Scalar(1))
   {
     if(beta==Scalar(0)) matrix(c, *m, *n, *ldc).setZero();
     else                matrix(c, *m, *n, *ldc) *= beta;
   }
+
+  if(*k == 0)
+    return 0;
 
   internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*m,*n,*k,1,true);
 
