@@ -197,6 +197,23 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     }
 #endif
 
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorFixedSize(const TensorBase<OtherDerived, ReadOnlyAccessors>& other)
+    {
+      typedef TensorAssignOp<TensorFixedSize, const OtherDerived> Assign;
+      Assign assign(*this, other.derived());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+    }
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorFixedSize(const TensorBase<OtherDerived, WriteAccessors>& other)
+    {
+      typedef TensorAssignOp<TensorFixedSize, const OtherDerived> Assign;
+      Assign assign(*this, other.derived());
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+    }
+
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE TensorFixedSize& operator=(const TensorFixedSize& other)
     {
