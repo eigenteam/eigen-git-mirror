@@ -59,6 +59,11 @@ void alignedvector3()
   f2.normalize();
   r2.normalize();
   VERIFY_IS_APPROX(f2,r2);
+  
+  std::stringstream ss1, ss2;
+  ss1 << f1;
+  ss2 << r1;
+  VERIFY(ss1.str()==ss2.str());
 }
 
 void test_alignedvector3()

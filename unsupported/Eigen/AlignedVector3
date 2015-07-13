@@ -193,6 +193,12 @@ template<typename _Scalar> class AlignedVector3
 
 namespace internal {
 
+template<typename _Scalar>
+struct eval<AlignedVector3<_Scalar>, Dense>
+{
+ typedef const AlignedVector3<_Scalar>& type;
+};
+
 template<typename Scalar>
 struct evaluator<AlignedVector3<Scalar> >
   : evaluator<Matrix<Scalar,4,1> >::type
