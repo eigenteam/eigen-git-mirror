@@ -77,14 +77,11 @@ struct GPUContext {
     assert(cudaMalloc((void**)(&kernel_3d_), 8*sizeof(float)) == cudaSuccess);
     float kernel_3d_val[] = {3.14f, -1.0f, 2.7f, -0.3f, 0.2f, -0.7f, 7.0f, -0.5f};
     assert(cudaMemcpy(kernel_3d_, kernel_3d_val, 8*sizeof(float), cudaMemcpyHostToDevice) == cudaSuccess);
-
-    assert(cudaStreamCreate(&stream_) == cudaSuccess);
   }
   ~GPUContext() {
     assert(cudaFree(kernel_1d_) == cudaSuccess);
     assert(cudaFree(kernel_2d_) == cudaSuccess);
     assert(cudaFree(kernel_3d_) == cudaSuccess);
-    assert(cudaStreamDestroy(stream_) == cudaSuccess);
   }
 
   const Eigen::GpuDevice& device() const { return gpu_device_; }
@@ -105,7 +102,7 @@ struct GPUContext {
   float* kernel_2d_;
   float* kernel_3d_;
 
-  cudaStream_t stream_;
+  Eigen::CudaStreamDevice stream_;
   Eigen::GpuDevice gpu_device_;
 };
 

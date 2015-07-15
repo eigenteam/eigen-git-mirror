@@ -19,7 +19,8 @@
 template<int DataLayout>
 static void test_full_reductions() {
 
-  Eigen::GpuDevice gpu_device;
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
 
   const int num_rows = internal::random<int>(1024, 5*1024);
   const int num_cols = internal::random<int>(1024, 5*1024);
