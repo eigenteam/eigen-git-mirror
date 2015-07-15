@@ -205,8 +205,8 @@ class TensorExecutor<Expression, GpuDevice, false>
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
-      const int num_blocks = getNumCudaMultiProcessors() * maxCudaThreadsPerMultiProcessor() / maxCudaThreadsPerBlock();
-      const int block_size = maxCudaThreadsPerBlock();
+      const int num_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / device.maxCudaThreadsPerBlock();
+      const int block_size = device.maxCudaThreadsPerBlock();
       const Index size = array_prod(evaluator.dimensions());
       LAUNCH_CUDA_KERNEL((EigenMetaKernel_NonVectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
     }
@@ -225,8 +225,8 @@ class TensorExecutor<Expression, GpuDevice, true>
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
-      const int num_blocks = getNumCudaMultiProcessors() * maxCudaThreadsPerMultiProcessor() / maxCudaThreadsPerBlock();
-      const int block_size = maxCudaThreadsPerBlock();
+      const int num_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / device.maxCudaThreadsPerBlock();
+      const int block_size = device.maxCudaThreadsPerBlock();
       const Index size = array_prod(evaluator.dimensions());
       LAUNCH_CUDA_KERNEL((EigenMetaKernel_Vectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
     }

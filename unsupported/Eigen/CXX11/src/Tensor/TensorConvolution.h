@@ -835,10 +835,10 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   void executeEval(Scalar* data) const {
     typedef typename TensorEvaluator<InputArgType, GpuDevice>::Dimensions InputDims;
 
-    const int maxSharedMem = sharedMemPerBlock();
-    const int maxThreadsPerBlock = maxCudaThreadsPerBlock();
-    const int maxBlocksPerProcessor = maxCudaThreadsPerMultiProcessor() / maxThreadsPerBlock;
-    const int numMultiProcessors = getNumCudaMultiProcessors();
+    const int maxSharedMem = m_device.sharedMemPerBlock();
+    const int maxThreadsPerBlock = m_device.maxCudaThreadsPerBlock();
+    const int maxBlocksPerProcessor = m_device.maxCudaThreadsPerMultiProcessor() / maxThreadsPerBlock;
+    const int numMultiProcessors = m_device.getNumCudaMultiProcessors();
     const int warpSize = 32;
 
     switch (NumKernelDims) {
