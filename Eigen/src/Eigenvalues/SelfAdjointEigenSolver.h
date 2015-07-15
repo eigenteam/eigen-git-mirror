@@ -654,7 +654,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
         Index k(0), l(2);
         if(d0 > d1)
         {
-          std::swap(k,l);
+          numext::swap(k,l);
           d0 = d1;
         }
 

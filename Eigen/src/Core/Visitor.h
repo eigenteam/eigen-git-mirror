@@ -22,6 +22,7 @@ struct visitor_impl
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
+  EIGEN_DEVICE_FUNC
   static inline void run(const Derived &mat, Visitor& visitor)
   {
     visitor_impl<Visitor, Derived, UnrollCount-1>::run(mat, visitor);
@@ -32,6 +33,7 @@ struct visitor_impl
 template<typename Visitor, typename Derived>
 struct visitor_impl<Visitor, Derived, 1>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(const Derived &mat, Visitor& visitor)
   {
     return visitor.init(mat.coeff(0, 0), 0, 0);
@@ -41,6 +43,7 @@ struct visitor_impl<Visitor, Derived, 1>
 template<typename Visitor, typename Derived>
 struct visitor_impl<Visitor, Derived, Dynamic>
 {
+  EIGEN_DEVICE_FUNC
   static inline void run(const Derived& mat, Visitor& visitor)
   {
     visitor.init(mat.coeff(0,0), 0, 0);
@@ -57,6 +60,7 @@ template<typename XprType>
 class visitor_evaluator
 {
 public:
+  EIGEN_DEVICE_FUNC
   explicit visitor_evaluator(const XprType &xpr) : m_evaluator(xpr), m_xpr(xpr) {}
   
   typedef typename XprType::Scalar Scalar;
@@ -67,11 +71,11 @@ public:
     CoeffReadCost = internal::evaluator<XprType>::CoeffReadCost
   };
   
-  Index rows() const { return m_xpr.rows(); }
-  Index cols() const { return m_xpr.cols(); }
-  Index size() const { return m_xpr.size(); }
+  EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
+  EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.cols(); }
+  EIGEN_DEVICE_FUNC Index size() const { return m_xpr.size(); }
 
-  CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   { return m_evaluator.coeff(row, col); }
   
 protected:

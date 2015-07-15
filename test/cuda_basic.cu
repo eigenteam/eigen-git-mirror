@@ -53,14 +53,17 @@ struct redux {
   void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
   {
     using namespace Eigen;
-    int N = 6;
+    int N = 10;
     T x1(in+i);
     out[i*N+0] = x1.minCoeff();
     out[i*N+1] = x1.maxCoeff();
     out[i*N+2] = x1.sum();
     out[i*N+3] = x1.prod();
-//     out[i*N+4] = x1.colwise().sum().maxCoeff();
-//     out[i*N+5] = x1.rowwise().maxCoeff().sum();
+    out[i*N+4] = x1.matrix().squaredNorm();
+    out[i*N+5] = x1.matrix().norm();
+    out[i*N+6] = x1.colwise().sum().maxCoeff();
+    out[i*N+7] = x1.rowwise().maxCoeff().sum();
+    out[i*N+8] = x1.matrix().colwise().squaredNorm().sum();
   }
 };
 

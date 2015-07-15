@@ -491,10 +491,10 @@ template<typename Derived> class DenseBase
     typedef VectorwiseOp<Derived, Vertical> ColwiseReturnType;
     typedef const VectorwiseOp<const Derived, Vertical> ConstColwiseReturnType;
 
-    ConstRowwiseReturnType rowwise() const;
-    RowwiseReturnType rowwise();
-    ConstColwiseReturnType colwise() const;
-    ColwiseReturnType colwise();
+    EIGEN_DEVICE_FUNC ConstRowwiseReturnType rowwise() const;
+    EIGEN_DEVICE_FUNC RowwiseReturnType rowwise();
+    EIGEN_DEVICE_FUNC ConstColwiseReturnType colwise() const;
+    EIGEN_DEVICE_FUNC ColwiseReturnType colwise();
 
     typedef CwiseNullaryOp<internal::scalar_random_op<Scalar>,PlainObject> RandomReturnType;
     static const RandomReturnType Random(Index rows, Index cols);

@@ -312,7 +312,7 @@ template<typename Derived> class MatrixBase
     template<bool Enable> inline const Derived& forceAlignedAccessIf() const { return derived(); }
     template<bool Enable> inline Derived& forceAlignedAccessIf() { return derived(); }
 
-    Scalar trace() const;
+    EIGEN_DEVICE_FUNC Scalar trace() const;
 
     template<int p> EIGEN_DEVICE_FUNC RealScalar lpNorm() const;
 

@@ -794,7 +794,6 @@ bool (isfinite)(const T& x)
   #endif
 }
 
-#ifndef __CUDACC__
 template<typename T>
 bool (isfinite)(const std::complex<T>& x)
 {
@@ -812,7 +811,6 @@ bool (isinf)(const std::complex<T>& x)
 {
   return (numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x))) && (!numext::isnan(x));
 }
-#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC
