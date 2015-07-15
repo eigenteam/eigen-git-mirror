@@ -68,10 +68,23 @@ void test_unsigned_64bit()
 }
 
 
+void test_specific()
+{
+  // A particular combination that exposed a bug in the past.
+  int64_t div = 209715200;
+  int64_t num = 3238002688;
+  Eigen::internal::TensorIntDivisor<int64_t> divider =
+      Eigen::internal::TensorIntDivisor<int64_t>(div);
+  int64_t result = num/div;
+  int64_t result_op = divider.divide(num);
+  VERIFY_IS_EQUAL(result, result_op);
+}
+
 void test_cxx11_tensor_intdiv()
 {
   CALL_SUBTEST_1(test_signed_32bit());
   CALL_SUBTEST_2(test_unsigned_32bit());
   CALL_SUBTEST_3(test_signed_64bit());
   CALL_SUBTEST_4(test_unsigned_64bit());
+  CALL_SUBTEST_5(test_specific());
 }

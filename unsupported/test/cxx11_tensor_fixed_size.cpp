@@ -31,12 +31,20 @@ static void test_1d()
   vec1(4) = 23.0; vec2(4) = 4.0;
   vec1(5) = 42.0; vec2(5) = 5.0;
 
-  float data3[6];
-  TensorMap<TensorFixedSize<float, Sizes<6> > > vec3(data3, 6);
-  vec3 = vec1.sqrt();
-  float data4[6];
-  TensorMap<TensorFixedSize<float, Sizes<6>, RowMajor> > vec4(data4, 6);
-  vec4 = vec2.sqrt();
+  // Test against shallow copy.
+  TensorFixedSize<float, Sizes<6> > copy = vec1;
+  VERIFY_IS_NOT_EQUAL(vec1.data(), copy.data());
+  for (int i = 0; i < 6; ++i) {
+    VERIFY_IS_APPROX(vec1(i), copy(i));
+  }
+  copy = vec1;
+  VERIFY_IS_NOT_EQUAL(vec1.data(), copy.data());
+  for (int i = 0; i < 6; ++i) {
+    VERIFY_IS_APPROX(vec1(i), copy(i));
+  }
+
+  TensorFixedSize<float, Sizes<6> > vec3 = vec1.sqrt();
+  TensorFixedSize<float, Sizes<6>, RowMajor> vec4 = vec2.sqrt();
 
   VERIFY_IS_EQUAL((vec3.size()), 6);
   VERIFY_IS_EQUAL(vec3.rank(), 1);
@@ -64,6 +72,30 @@ static void test_1d()
   VERIFY_IS_APPROX(vec3(3), 16.0f + 3.0f);
   VERIFY_IS_APPROX(vec3(4), 23.0f + 4.0f);
   VERIFY_IS_APPROX(vec3(5), 42.0f + 5.0f);
+}
+
+static void test_tensor_map()
+{
+  TensorFixedSize<float, Sizes<6> > vec1;
+  TensorFixedSize<float, Sizes<6>, RowMajor> vec2;
+
+  vec1(0) = 4.0;  vec2(0) = 0.0;
+  vec1(1) = 8.0;  vec2(1) = 1.0;
+  vec1(2) = 15.0; vec2(2) = 2.0;
+  vec1(3) = 16.0; vec2(3) = 3.0;
+  vec1(4) = 23.0; vec2(4) = 4.0;
+  vec1(5) = 42.0; vec2(5) = 5.0;
+
+  float data3[6];
+  TensorMap<TensorFixedSize<float, Sizes<6> > > vec3(data3, 6);
+  vec3 = vec1.sqrt() + vec2;
+
+  VERIFY_IS_APPROX(vec3(0), sqrtf(4.0));
+  VERIFY_IS_APPROX(vec3(1), sqrtf(8.0) + 1.0f);
+  VERIFY_IS_APPROX(vec3(2), sqrtf(15.0) + 2.0f);
+  VERIFY_IS_APPROX(vec3(3), sqrtf(16.0) + 3.0f);
+  VERIFY_IS_APPROX(vec3(4), sqrtf(23.0) + 4.0f);
+  VERIFY_IS_APPROX(vec3(5), sqrtf(42.0) + 5.0f);
 }
 
 static void test_2d()
@@ -192,6 +224,7 @@ static void test_array()
 void test_cxx11_tensor_fixed_size()
 {
   CALL_SUBTEST(test_1d());
+  CALL_SUBTEST(test_tensor_map());
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
   CALL_SUBTEST(test_array());

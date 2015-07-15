@@ -62,8 +62,11 @@ struct TensorIntDivisor {
 
     // fast ln2
     const int leading_zeros = count_leading_zeros(divider);
-    const int log_div = N - (leading_zeros+1);
-
+    int log_div = N - leading_zeros;
+    // If divider is a power of two then log_div is 1 more than it should be.
+    if ((1ull << (log_div-1)) == divider) {
+      log_div--;
+    }
     multiplier = (static_cast<uint64_t>(1) << (N+log_div)) / divider - (static_cast<uint64_t>(1) << N) + 1;
     shift1 = log_div > 1 ? 1 : log_div;
     shift2 = log_div > 1 ? log_div-1 : 0;
