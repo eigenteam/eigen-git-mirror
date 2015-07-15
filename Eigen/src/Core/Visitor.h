@@ -99,6 +99,7 @@ protected:
   */
 template<typename Derived>
 template<typename Visitor>
+EIGEN_DEVICE_FUNC
 void DenseBase<Derived>::visit(Visitor& visitor) const
 {
   typedef typename internal::visitor_evaluator<Derived> ThisEvaluator;
@@ -125,6 +126,7 @@ struct coeff_visitor
   typedef typename Derived::Scalar Scalar;
   Index row, col;
   Scalar res;
+  EIGEN_DEVICE_FUNC
   inline void init(const Scalar& value, Index i, Index j)
   {
     res = value;
@@ -142,6 +144,7 @@ template <typename Derived>
 struct min_coeff_visitor : coeff_visitor<Derived>
 {
   typedef typename Derived::Scalar Scalar;
+  EIGEN_DEVICE_FUNC
   void operator() (const Scalar& value, Index i, Index j)
   {
     if(value < this->res)
@@ -168,7 +171,8 @@ struct functor_traits<min_coeff_visitor<Scalar> > {
 template <typename Derived>
 struct max_coeff_visitor : coeff_visitor<Derived>
 {
-  typedef typename Derived::Scalar Scalar;
+  typedef typename Derived::Scalar Scalar; 
+  EIGEN_DEVICE_FUNC
   void operator() (const Scalar& value, Index i, Index j)
   {
     if(value > this->res)
@@ -196,6 +200,7 @@ struct functor_traits<max_coeff_visitor<Scalar> > {
   */
 template<typename Derived>
 template<typename IndexType>
+EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff(IndexType* rowId, IndexType* colId) const
 {
@@ -213,6 +218,7 @@ DenseBase<Derived>::minCoeff(IndexType* rowId, IndexType* colId) const
   */
 template<typename Derived>
 template<typename IndexType>
+EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff(IndexType* index) const
 {
@@ -230,6 +236,7 @@ DenseBase<Derived>::minCoeff(IndexType* index) const
   */
 template<typename Derived>
 template<typename IndexType>
+EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff(IndexType* rowPtr, IndexType* colPtr) const
 {
@@ -247,6 +254,7 @@ DenseBase<Derived>::maxCoeff(IndexType* rowPtr, IndexType* colPtr) const
   */
 template<typename Derived>
 template<typename IndexType>
+EIGEN_DEVICE_FUNC
 typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff(IndexType* index) const
 {

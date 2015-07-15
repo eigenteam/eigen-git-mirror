@@ -65,13 +65,16 @@ class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<Matri
     typedef typename internal::traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
 
+    EIGEN_DEVICE_FUNC
     explicit PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
       : m_matrix(mat), m_functor(func) {}
 
+    EIGEN_DEVICE_FUNC
     Index rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
+    EIGEN_DEVICE_FUNC
     Index cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
-    EIGEN_STRONG_INLINE const Scalar coeff(Index i, Index j) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index i, Index j) const
     {
       if (Direction==Vertical)
         return m_functor(m_matrix.col(j));
@@ -100,7 +103,8 @@ class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<Matri
     template<typename Scalar, int Size> struct Cost                     \
     { enum { value = COST }; };                                         \
     template<typename XprType>                                          \
-    EIGEN_STRONG_INLINE ResultType operator()(const XprType& mat) const \
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE                               \
+    ResultType operator()(const XprType& mat) const                     \
     { return mat.MEMBER(); } \
   }
 
@@ -128,9 +132,9 @@ struct member_redux {
                    >::type  result_type;
   template<typename _Scalar, int Size> struct Cost
   { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };
-  explicit member_redux(const BinaryOp func) : m_functor(func) {}
+  EIGEN_DEVICE_FUNC explicit member_redux(const BinaryOp func) : m_functor(func) {}
   template<typename Derived>
-  inline result_type operator()(const DenseBase<Derived>& mat) const
+  EIGEN_DEVICE_FUNC inline result_type operator()(const DenseBase<Derived>& mat) const
   { return mat.redux(m_functor); }
   const BinaryOp m_functor;
 };
@@ -192,6 +196,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef typename internal::conditional<Direction==Vertical,
                                typename ExpressionType::ColXpr,
                                typename ExpressionType::RowXpr>::type SubVector;
+    EIGEN_DEVICE_FUNC
     SubVector subVector(Index i)
     {
       return SubVector(m_matrix.derived(),i);
@@ -199,6 +204,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \internal
       * \returns the number of subvectors in the direction \c Direction */
+    EIGEN_DEVICE_FUNC
     Index subVectors() const
     { return Direction==Vertical?m_matrix.cols():m_matrix.rows(); }
 
@@ -211,6 +217,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** \internal
       * Replicates a vector to match the size of \c *this */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     typename ExtendedType<OtherDerived>::Type
     extendedTo(const DenseBase<OtherDerived>& other) const
     {
@@ -233,6 +240,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** \internal
       * Replicates a vector in the opposite direction to match the size of \c *this */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     typename OppositeExtendedType<OtherDerived>::Type
     extendedToOpposite(const DenseBase<OtherDerived>& other) const
     {
@@ -248,9 +256,11 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
   public:
 
+    EIGEN_DEVICE_FUNC
     explicit inline VectorwiseOp(ExpressionType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
+    EIGEN_DEVICE_FUNC
     inline const ExpressionType& _expression() const { return m_matrix; }
 
     /** \returns a row or column vector expression of \c *this reduxed by \a func
@@ -262,6 +272,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       */
     template<typename BinaryOp>
     const typename ReduxReturnType<BinaryOp>::Type
+    EIGEN_DEVICE_FUNC
     redux(const BinaryOp& func = BinaryOp()) const
     { return typename ReduxReturnType<BinaryOp>::Type(_expression(), internal::member_redux<BinaryOp,Scalar>(func)); }
 
@@ -289,6 +300,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_minCoeff.out
       *
       * \sa DenseBase::minCoeff() */
+    EIGEN_DEVICE_FUNC
     const MinCoeffReturnType minCoeff() const
     { return MinCoeffReturnType(_expression()); }
 
@@ -301,6 +313,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_maxCoeff.out
       *
       * \sa DenseBase::maxCoeff() */
+    EIGEN_DEVICE_FUNC
     const MaxCoeffReturnType maxCoeff() const
     { return MaxCoeffReturnType(_expression()); }
 
@@ -312,6 +325,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_squaredNorm.out
       *
       * \sa DenseBase::squaredNorm() */
+    EIGEN_DEVICE_FUNC
     const SquaredNormReturnType squaredNorm() const
     { return SquaredNormReturnType(_expression()); }
 
@@ -323,6 +337,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_norm.out
       *
       * \sa DenseBase::norm() */
+    EIGEN_DEVICE_FUNC
     const NormReturnType norm() const
     { return NormReturnType(_expression()); }
 
@@ -333,6 +348,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::blueNorm() */
+    EIGEN_DEVICE_FUNC
     const BlueNormReturnType blueNorm() const
     { return BlueNormReturnType(_expression()); }
 
@@ -343,6 +359,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::stableNorm() */
+    EIGEN_DEVICE_FUNC
     const StableNormReturnType stableNorm() const
     { return StableNormReturnType(_expression()); }
 
@@ -353,6 +370,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::hypotNorm() */
+    EIGEN_DEVICE_FUNC
     const HypotNormReturnType hypotNorm() const
     { return HypotNormReturnType(_expression()); }
 
@@ -363,6 +381,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_sum.out
       *
       * \sa DenseBase::sum() */
+    EIGEN_DEVICE_FUNC
     const SumReturnType sum() const
     { return SumReturnType(_expression()); }
 
@@ -370,6 +389,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     * of each column (or row) of the referenced expression.
     *
     * \sa DenseBase::mean() */
+    EIGEN_DEVICE_FUNC
     const MeanReturnType mean() const
     { return MeanReturnType(_expression()); }
 
@@ -378,6 +398,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This expression can be assigned to a vector with entries of type \c bool.
       *
       * \sa DenseBase::all() */
+    EIGEN_DEVICE_FUNC
     const AllReturnType all() const
     { return AllReturnType(_expression()); }
 
@@ -386,6 +407,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * This expression can be assigned to a vector with entries of type \c bool.
       *
       * \sa DenseBase::any() */
+    EIGEN_DEVICE_FUNC
     const AnyReturnType any() const
     { return Any(_expression()); }
 
@@ -398,6 +420,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_count.out
       *
       * \sa DenseBase::count() */
+    EIGEN_DEVICE_FUNC
     const CountReturnType count() const
     { return CountReturnType(_expression()); }
 
@@ -408,6 +431,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_prod.out
       *
       * \sa DenseBase::prod() */
+    EIGEN_DEVICE_FUNC
     const ProdReturnType prod() const
     { return ProdReturnType(_expression()); }
 
@@ -419,10 +443,12 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude Vectorwise_reverse.out
       *
       * \sa DenseBase::reverse() */
+    EIGEN_DEVICE_FUNC
     const ReverseReturnType reverse() const
     { return ReverseReturnType( _expression() ); }
 
     typedef Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1> ReplicateReturnType;
+    EIGEN_DEVICE_FUNC
     const ReplicateReturnType replicate(Index factor) const;
 
     /**
@@ -445,6 +471,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Copies the vector \a other to each subvector of \c *this */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     ExpressionType& operator=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
@@ -455,6 +482,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Adds the vector \a other to each subvector of \c *this */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     ExpressionType& operator+=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
@@ -464,6 +492,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Substracts the vector \a other to each subvector of \c *this */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     ExpressionType& operator-=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
@@ -473,6 +502,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Multiples each subvector of \c *this by the vector \a other */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     ExpressionType& operator*=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
@@ -484,6 +514,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Divides each subvector of \c *this by the vector \a other */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     ExpressionType& operator/=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
@@ -494,7 +525,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     }
 
     /** Returns the expression of the sum of the vector \a other to each subvector of \c *this */
-    template<typename OtherDerived> EIGEN_STRONG_INLINE
+    template<typename OtherDerived> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
     CwiseBinaryOp<internal::scalar_sum_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename ExtendedType<OtherDerived>::Type>
@@ -507,6 +538,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Returns the expression of the difference between each subvector of \c *this and the vector \a other */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     CwiseBinaryOp<internal::scalar_difference_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename ExtendedType<OtherDerived>::Type>
@@ -519,7 +551,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Returns the expression where each subvector is the product of the vector \a other
       * by the corresponding subvector of \c *this */
-    template<typename OtherDerived> EIGEN_STRONG_INLINE
+    template<typename OtherDerived> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
     CwiseBinaryOp<internal::scalar_product_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename ExtendedType<OtherDerived>::Type>
@@ -534,6 +566,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** Returns the expression where each subvector is the quotient of the corresponding
       * subvector of \c *this by the vector \a other */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     CwiseBinaryOp<internal::scalar_quotient_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename ExtendedType<OtherDerived>::Type>
@@ -549,6 +582,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * The referenced matrix is \b not modified.
       * \sa MatrixBase::normalized(), normalize()
       */
+    EIGEN_DEVICE_FUNC
     CwiseBinaryOp<internal::scalar_quotient_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename OppositeExtendedType<typename ReturnType<internal::member_norm,RealScalar>::Type>::Type>
@@ -558,11 +592,11 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** Normalize in-place each row or columns of the referenced matrix.
       * \sa MatrixBase::normalize(), normalized()
       */
-    void normalize() {
+    EIGEN_DEVICE_FUNC void normalize() {
       m_matrix = this->normalized();
     }
-    
-    inline void reverseInPlace();
+
+    EIGEN_DEVICE_FUNC inline void reverseInPlace();
 
 /////////// Geometry module ///////////
 
@@ -571,6 +605,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     typedef typename ExpressionType::PlainObject CrossReturnType;
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     const CrossReturnType cross(const MatrixBase<OtherDerived>& other) const;
 
     enum {
@@ -609,6 +644,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
   * \sa rowwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline const typename DenseBase<Derived>::ConstColwiseReturnType
 DenseBase<Derived>::colwise() const
 {
@@ -620,6 +656,7 @@ DenseBase<Derived>::colwise() const
   * \sa rowwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline typename DenseBase<Derived>::ColwiseReturnType
 DenseBase<Derived>::colwise()
 {
@@ -634,6 +671,7 @@ DenseBase<Derived>::colwise()
   * \sa colwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline const typename DenseBase<Derived>::ConstRowwiseReturnType
 DenseBase<Derived>::rowwise() const
 {
@@ -645,6 +683,7 @@ DenseBase<Derived>::rowwise() const
   * \sa colwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline typename DenseBase<Derived>::RowwiseReturnType
 DenseBase<Derived>::rowwise()
 {
