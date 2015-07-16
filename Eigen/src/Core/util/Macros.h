@@ -410,7 +410,7 @@
 #endif
 
 // Does the compiler support const expressions?
-#if (defined(__plusplus) && __cplusplus >= 201402L) || \
+#if (defined(__cplusplus) && __cplusplus >= 201402L) || \
     EIGEN_GNUC_AT_LEAST(4,9)
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
