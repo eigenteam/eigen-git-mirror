@@ -42,8 +42,7 @@ void test_cuda_elementwise_small() {
   cudaMemcpy(d_in1, in1.data(), in1_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_in2, in2.data(), in2_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_in1(
@@ -94,8 +93,7 @@ void test_cuda_elementwise()
   cudaMemcpy(d_in2, in2.data(), in2_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_in3, in3.data(), in3_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_in1(d_in1, Eigen::array<int, 3>(72,53,97));
