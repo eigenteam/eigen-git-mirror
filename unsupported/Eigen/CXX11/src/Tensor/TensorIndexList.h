@@ -12,6 +12,8 @@
 
 #if defined(EIGEN_HAS_CONSTEXPR) && defined(EIGEN_HAS_VARIADIC_TEMPLATES)
 
+#define EIGEN_HAS_INDEX_LIST
+
 namespace Eigen {
 
 /** \internal
