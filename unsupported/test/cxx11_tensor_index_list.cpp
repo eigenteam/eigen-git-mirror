@@ -11,7 +11,7 @@
 
 #include <Eigen/CXX11/Tensor>
 
-#ifdef EIGEN_HAS_CONSTEXPR
+#ifdef EIGEN_HAS_INDEX_LIST
 
 static void test_static_index_list()
 {
@@ -270,7 +270,7 @@ static void test_dim_check()
 
 void test_cxx11_tensor_index_list()
 {
-#ifdef EIGEN_HAS_CONSTEXPR
+#ifdef EIGEN_HAS_INDEX_LIST
   CALL_SUBTEST(test_static_index_list());
   CALL_SUBTEST(test_type2index_list());
   CALL_SUBTEST(test_dynamic_index_list());
