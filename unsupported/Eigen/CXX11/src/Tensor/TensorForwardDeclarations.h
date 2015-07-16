@@ -39,6 +39,7 @@ template<typename ReverseDimensions, typename XprType> class TensorReverseOp;
 template<typename PaddingDimensions, typename XprType> class TensorPaddingOp;
 template<typename Shuffle, typename XprType> class TensorShufflingOp;
 template<typename Strides, typename XprType> class TensorStridingOp;
+template<typename Strides, typename XprType> class TensorInflationOp;
 template<typename Generator, typename XprType> class TensorGeneratorOp;
 template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
 

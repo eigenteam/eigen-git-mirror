@@ -471,6 +471,11 @@ class TensorBase<Derived, ReadOnlyAccessors>
     stride(const Strides& strides) const {
       return TensorStridingOp<const Strides, const Derived>(derived(), strides);
     }
+    template <typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorInflationOp<const Strides, const Derived>
+    inflate(const Strides& strides) const {
+      return TensorInflationOp<const Strides, const Derived>(derived(), strides);
+    }
 
     // Support for custom unary and binary operations
     template <typename CustomUnaryFunc>
