@@ -124,13 +124,13 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
   }
 #endif
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const int index) const {
-    return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count - 1>::run(index, *this);
-  }
-
   template <typename T> Sizes& operator = (const T& /*other*/) {
     // add assertion failure if the size of other is different
     return *this;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const int index) const {
+    return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count - 1>::run(index, *this);
   }
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -179,6 +179,11 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
   explicit Sizes(const array<DenseIndex, Base::count>& /*indices*/) {
     // todo: add assertion
   }
+  template <typename T> Sizes& operator = (const T& /*other*/) {
+    // add assertion failure if the size of other is different
+    return *this;
+  }
+
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
   template <typename... DenseIndex> Sizes(DenseIndex... /*indices*/) { }
   explicit Sizes(std::initializer_list<std::size_t>) {
@@ -213,11 +218,6 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
         eigen_assert(false && "index overflow");
         return static_cast<std::size_t>(-1);
     }
-  }
-
-  template <typename T> Sizes& operator = (const T&) {
-    // to do: check the size of other
-    return *this;
   }
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
