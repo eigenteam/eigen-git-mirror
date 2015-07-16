@@ -75,7 +75,7 @@ class TensorExecutor<Expression, DefaultDevice, true>
 
 // Multicore strategy: the index space is partitioned and each partition is executed on a single core
 #ifdef EIGEN_USE_THREADS
-template <typename Evaluator, typename Index, bool Vectorizable = Evaluator::PacketAccess>
+template <typename Evaluator, typename Index, bool Vectorizable>
 struct EvalRange {
   static void run(Evaluator evaluator, const Index first, const Index last) {
     eigen_assert(last > first);
@@ -129,11 +129,11 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       std::vector<Notification*> results;
       results.reserve(numblocks);
       for (int i = 0; i < numblocks; ++i) {
-        results.push_back(device.enqueue(&EvalRange<Evaluator, Index>::run, evaluator, i*blocksize, (i+1)*blocksize));
+        results.push_back(device.enqueue(&EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize));
       }
 
       if (numblocks * blocksize < size) {
-        EvalRange<Evaluator, Index>::run(evaluator, numblocks * blocksize, size);
+        EvalRange<Evaluator, Index, Vectorizable>::run(evaluator, numblocks * blocksize, size);
       }
 
       for (int i = 0; i < numblocks; ++i) {
