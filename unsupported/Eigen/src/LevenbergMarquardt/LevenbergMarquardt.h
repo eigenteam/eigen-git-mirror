@@ -175,6 +175,24 @@ class LevenbergMarquardt : internal::no_assignment_operator
     /** Use an external Scaling. If set to true, pass a nonzero diagonal to diag() */
     void setExternalScaling(bool value) {m_useExternalScaling  = value; }
     
+    /** \returns the tolerance for the norm of the solution vector */
+    RealScalar xtol() const {return m_xtol; }
+    
+    /** \returns the tolerance for the norm of the vector function */
+    RealScalar ftol() const {return m_ftol; }
+    
+    /** \returns the tolerance for the norm of the gradient of the error vector */
+    RealScalar gtol() const {return m_gtol; }
+    
+    /** \returns the step bound for the diagonal shift */
+    RealScalar factor() const {return m_factor; }
+    
+    /** \returns the error precision */
+    RealScalar epsilon() const {return m_epsfcn; }
+    
+    /** \returns the maximum number of function evaluation */
+    Index maxfev() const {return m_maxfev; }
+    
     /** \returns a reference to the diagonal of the jacobian */
     FVectorType& diag() {return m_diag; }
     
