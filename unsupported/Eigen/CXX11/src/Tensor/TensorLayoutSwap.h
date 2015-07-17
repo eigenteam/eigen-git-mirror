@@ -157,7 +157,7 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
     return m_impl.template packet<LoadMode>(index);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_impl.data(); }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return m_impl.data(); }
 
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
