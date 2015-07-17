@@ -281,7 +281,15 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
 /** \internal tries to do cache prefetching of \a addr */
 template<typename Scalar> inline void prefetch(const Scalar* addr)
 {
-#if !EIGEN_COMP_MSVC
+#ifdef __CUDA_ARCH__
+#if defined(__LP64__)
+  // 64-bit pointer operand constraint for inlined asm
+  asm(" prefetch.L1 [ %1 ];" : "=l"(addr) : "l"(addr));
+#else
+  // 32-bit pointer operand constraint for inlined asm
+  asm(" prefetch.L1 [ %1 ];" : "=r"(addr) : "r"(addr));
+#endif
+#elif !EIGEN_COMP_MSVC
   __builtin_prefetch(addr);
 #endif
 }
