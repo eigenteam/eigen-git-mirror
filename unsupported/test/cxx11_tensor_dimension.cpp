@@ -46,7 +46,7 @@ static void test_match()
 
   Eigen::DSizes<int, 3> dyn1(2,3,7);
   Eigen::DSizes<int, 2> dyn2(2,3);
-  VERIFY_IS_EQUAL(Eigen::dimensions_match(dyn, stat), false);
+  VERIFY_IS_EQUAL(Eigen::dimensions_match(dyn1, dyn2), false);
 }
 
 
