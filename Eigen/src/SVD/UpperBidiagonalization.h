@@ -380,6 +380,7 @@ UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::comput
 {
   Index rows = matrix.rows();
   Index cols = matrix.cols();
+  EIGEN_ONLY_USED_FOR_DEBUG(rows);
   EIGEN_ONLY_USED_FOR_DEBUG(cols);
 
   eigen_assert(rows >= cols && "UpperBidiagonalization is only for Arices satisfying rows>=cols.");
