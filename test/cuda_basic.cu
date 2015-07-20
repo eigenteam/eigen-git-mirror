@@ -48,6 +48,23 @@ struct coeff_wise {
 };
 
 template<typename T>
+struct replicate {
+  EIGEN_DEVICE_FUNC
+  void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
+  {
+    using namespace Eigen;
+    T x1(in+i);
+    int step   = x1.size() * 4;
+    int stride = 3 * step;
+    
+    typedef Map<Array<typename T::Scalar,Dynamic,Dynamic> > MapType;
+    MapType(out+i*stride+0*step, x1.rows()*2, x1.cols()*2) = x1.replicate(2,2);
+    MapType(out+i*stride+1*step, x1.rows()*3, x1.cols()) = in[i] * x1.colwise().replicate(3);
+    MapType(out+i*stride+2*step, x1.rows(), x1.cols()*3) = in[i] * x1.rowwise().replicate(3);
+  }
+};
+
+template<typename T>
 struct redux {
   EIGEN_DEVICE_FUNC
   void operator()(int i, const typename T::Scalar* in, typename T::Scalar* out) const
@@ -117,13 +134,16 @@ void test_cuda_basic()
   Eigen::VectorXf in, out;
   
   #ifndef __CUDA_ARCH__
-  int data_size = nthreads * 16;
+  int data_size = nthreads * 512;
   in.setRandom(data_size);
   out.setRandom(data_size);
   #endif
   
   CALL_SUBTEST( run_and_compare_to_cuda(coeff_wise<Vector3f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_cuda(coeff_wise<Array44f>(), nthreads, in, out) );
+  
+  CALL_SUBTEST( run_and_compare_to_cuda(replicate<Array4f>(), nthreads, in, out) );
+  CALL_SUBTEST( run_and_compare_to_cuda(replicate<Array33f>(), nthreads, in, out) );
   
   CALL_SUBTEST( run_and_compare_to_cuda(redux<Array4f>(), nthreads, in, out) );
   CALL_SUBTEST( run_and_compare_to_cuda(redux<Matrix3f>(), nthreads, in, out) );

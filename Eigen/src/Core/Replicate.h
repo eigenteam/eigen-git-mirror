@@ -69,6 +69,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     template<typename OriginalMatrixType>
+    EIGEN_DEVICE_FUNC
     inline explicit Replicate(const OriginalMatrixType& matrix)
       : m_matrix(matrix), m_rowFactor(RowFactor), m_colFactor(ColFactor)
     {
@@ -78,6 +79,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     }
 
     template<typename OriginalMatrixType>
+    EIGEN_DEVICE_FUNC
     inline Replicate(const OriginalMatrixType& matrix, Index rowFactor, Index colFactor)
       : m_matrix(matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
     {
@@ -85,9 +87,12 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
                           THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
     }
 
+    EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_matrix.rows() * m_rowFactor.value(); }
+    EIGEN_DEVICE_FUNC
     inline Index cols() const { return m_matrix.cols() * m_colFactor.value(); }
 
+    EIGEN_DEVICE_FUNC
     const _MatrixTypeNested& nestedExpression() const
     { 
       return m_matrix; 

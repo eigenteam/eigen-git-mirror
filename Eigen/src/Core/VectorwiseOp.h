@@ -461,6 +461,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       */
     // NOTE implemented here because of sunstudio's compilation errors
     template<int Factor> const Replicate<ExpressionType,(IsVertical?Factor:1),(IsHorizontal?Factor:1)>
+    EIGEN_DEVICE_FUNC
     replicate(Index factor = Factor) const
     {
       return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
