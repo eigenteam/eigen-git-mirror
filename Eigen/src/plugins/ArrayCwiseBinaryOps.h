@@ -74,6 +74,24 @@ max
   return (max)(Derived::PlainObject::Constant(rows(), cols(), other));
 }
 
+/** \returns an expression of the coefficient-wise power of \c *this to the given array of \a exponents.
+  *
+  * This function computes the coefficient-wise power.
+  *
+  * Example: \include Cwise_array_power_array.cpp
+  * Output: \verbinclude Cwise_array_power_array.out
+  */
+template<typename ExponentDerived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+const CwiseBinaryOp<internal::scalar_binary_pow_op<Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>
+pow(const ArrayBase<ExponentDerived>& exponents) const
+{
+  return CwiseBinaryOp<internal::scalar_binary_pow_op<Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>(
+    this->derived(),
+    exponents.derived()
+  );
+}
+
 // TODO code generating macros could be moved to Macros.h and could include generation of documentation
 #define EIGEN_MAKE_CWISE_COMP_OP(OP, COMPARATOR) \
 template<typename OtherDerived> \

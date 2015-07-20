@@ -71,12 +71,42 @@ namespace Eigen
     return x.derived().pow(exponent);
   }
 
-  template<typename Derived>
-  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const Derived, const Derived>
-  pow(const Eigen::ArrayBase<Derived>& x, const Eigen::ArrayBase<Derived>& exponents) 
+  /** \returns an expression of the coefficient-wise power of \a x to the given array of \a exponents.
+    *
+    * This function computes the coefficient-wise power.
+    *
+    * Example: \include Cwise_array_power_array.cpp
+    * Output: \verbinclude Cwise_array_power_array.out
+    * 
+    * \sa ArrayBase::pow()
+    */
+  template<typename Derived,typename ExponentDerived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>
+  pow(const Eigen::ArrayBase<Derived>& x, const Eigen::ArrayBase<ExponentDerived>& exponents) 
   {
-    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const Derived, const Derived>(
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>(
       x.derived(),
+      exponents.derived()
+    );
+  }
+  
+  /** \returns an expression of the coefficient-wise power of the scalar \a x to the given array of \a exponents.
+    *
+    * This function computes the coefficient-wise power between a scalar and an array of exponents.
+    * Beaware that the scalar type of the input scalar \a x and the exponents \a exponents must be the same.
+    *
+    * Example: \include Cwise_scalar_power_array.cpp
+    * Output: \verbinclude Cwise_scalar_power_array.out
+    * 
+    * \sa ArrayBase::pow()
+    */
+  template<typename Derived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const typename Derived::ConstantReturnType, const Derived>
+  pow(const typename Derived::Scalar& x, const Eigen::ArrayBase<Derived>& exponents) 
+  {
+    typename Derived::ConstantReturnType constant_x(exponents.rows(), exponents.cols(), x);
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const typename Derived::ConstantReturnType, const Derived>(
+      constant_x,
       exponents.derived()
     );
   }
