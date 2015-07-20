@@ -13,20 +13,60 @@
 #include <Eigen/Eigenvalues>
 #include <Eigen/LU>
 
-/* Check that two column vectors are approximately equal upto permutations,
-   by checking that the k-th power sums are equal for k = 1, ..., vec1.rows() */
+template<typename MatrixType> bool find_pivot(typename MatrixType::Scalar tol, MatrixType &diffs, Index col=0)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  bool match = diffs.diagonal().sum() <= tol;
+  if(match || col==diffs.cols())
+  {
+    return match;
+  }
+  else
+  {
+    Index n = diffs.cols();
+    std::vector<std::pair<Index,Index> > transpositions;
+    for(Index i=col; i<n; ++i)
+    {
+      Index best_index(0);
+      if(diffs.col(col).segment(col,n-i).minCoeff(&best_index) > tol)
+        break;
+      
+      best_index += col;
+      
+      diffs.row(col).swap(diffs.row(best_index));
+      if(find_pivot(tol,diffs,col+1)) return true;
+      diffs.row(col).swap(diffs.row(best_index));
+      
+      // move current pivot to the end
+      diffs.row(n-(i-col)-1).swap(diffs.row(best_index));
+      transpositions.push_back(std::pair<Index,Index>(n-(i-col)-1,best_index));
+    }
+    // restore
+    for(Index k=transpositions.size()-1; k>=0; --k)
+      diffs.row(transpositions[k].first).swap(diffs.row(transpositions[k].second));
+  }
+  return false;
+}
+
+/* Check that two column vectors are approximately equal upto permutations.
+ * Initially, this method checked that the k-th power sums are equal for all k = 1, ..., vec1.rows(),
+ * however this strategy is numerically inacurate because of numerical cancellation issues.
+ */
 template<typename VectorType>
 void verify_is_approx_upto_permutation(const VectorType& vec1, const VectorType& vec2)
 {
-  typedef typename NumTraits<typename VectorType::Scalar>::Real RealScalar;
+  typedef typename VectorType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
 
   VERIFY(vec1.cols() == 1);
   VERIFY(vec2.cols() == 1);
   VERIFY(vec1.rows() == vec2.rows());
-  for (int k = 1; k <= vec1.rows(); ++k)
-  {
-    VERIFY_IS_APPROX(vec1.array().pow(RealScalar(k)).sum(), vec2.array().pow(RealScalar(k)).sum());
-  }
+  
+  Index n = vec1.rows();
+  RealScalar tol = test_precision<RealScalar>()*test_precision<RealScalar>()*numext::maxi(vec1.squaredNorm(),vec2.squaredNorm());
+  Matrix<RealScalar,Dynamic,Dynamic> diffs = (vec1.rowwise().replicate(n) - vec2.rowwise().replicate(n).transpose()).cwiseAbs2();
+  
+  VERIFY( find_pivot(tol, diffs) );
 }
 
 
