@@ -795,24 +795,6 @@ bool (isfinite)(const T& x)
 }
 
 template<typename T>
-bool (isfinite)(const std::complex<T>& x)
-{
-  return numext::isfinite(numext::real(x)) && numext::isfinite(numext::imag(x));
-}
-
-template<typename T>
-bool (isnan)(const std::complex<T>& x)
-{
-  return numext::isnan(numext::real(x)) || numext::isnan(numext::imag(x));
-}
-
-template<typename T>
-bool (isinf)(const std::complex<T>& x)
-{
-  return (numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x))) && (!numext::isnan(x));
-}
-
-template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isnan)(const T& x)
 {
@@ -834,6 +816,24 @@ bool (isinf)(const T& x)
   #else
     return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
   #endif
+}
+
+template<typename T>
+bool (isfinite)(const std::complex<T>& x)
+{
+  return numext::isfinite(numext::real(x)) && numext::isfinite(numext::imag(x));
+}
+
+template<typename T>
+bool (isnan)(const std::complex<T>& x)
+{
+  return numext::isnan(numext::real(x)) || numext::isnan(numext::imag(x));
+}
+
+template<typename T>
+bool (isinf)(const std::complex<T>& x)
+{
+  return (numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x))) && (!numext::isnan(x));
 }
 
 template<typename Scalar>
