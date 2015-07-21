@@ -291,9 +291,10 @@ namespace Eigen {
 template<typename T> inline typename NumTraits<T>::Real test_precision() { return NumTraits<T>::dummy_precision(); }
 template<> inline float test_precision<float>() { return 1e-3f; }
 template<> inline double test_precision<double>() { return 1e-6; }
+template<> inline long double test_precision<long double>() { return 1e-6; }
 template<> inline float test_precision<std::complex<float> >() { return test_precision<float>(); }
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
-template<> inline long double test_precision<long double>() { return 1e-6; }
+template<> inline long double test_precision<std::complex<long double> >() { return test_precision<long double>(); }
 
 inline bool test_isApprox(const int& a, const int& b)
 { return internal::isApprox(a, b, test_precision<int>()); }
@@ -326,6 +327,11 @@ inline bool test_isApprox(const std::complex<double>& a, const std::complex<doub
 { return internal::isApprox(a, b, test_precision<std::complex<double> >()); }
 inline bool test_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
 { return internal::isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
+
+inline bool test_isApprox(const std::complex<long double>& a, const std::complex<long double>& b)
+{ return internal::isApprox(a, b, test_precision<std::complex<long double> >()); }
+inline bool test_isMuchSmallerThan(const std::complex<long double>& a, const std::complex<long double>& b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<std::complex<long double> >()); }
 #endif
 
 #ifndef EIGEN_TEST_NO_LONGDOUBLE
@@ -349,10 +355,11 @@ inline bool test_isApproxOrLessThan(const long double& a, const long double& b)
 template<typename T1,typename T2>
 typename T1::RealScalar test_relative_error(const EigenBase<T1> &a, const EigenBase<T2> &b)
 {
+  using std::sqrt;
   typedef typename T1::RealScalar RealScalar;
   typename internal::nested_eval<T1,2>::type ea(a.derived());
   typename internal::nested_eval<T2,2>::type eb(b.derived());
-  return RealScalar((ea-eb).cwiseAbs2().sum()) / RealScalar((std::min)(eb.cwiseAbs2().sum(),ea.cwiseAbs2().sum()));
+  return sqrt(RealScalar((ea-eb).cwiseAbs2().sum()) / RealScalar((std::min)(eb.cwiseAbs2().sum(),ea.cwiseAbs2().sum())));
 }
 
 template<typename T1,typename T2>
@@ -411,7 +418,8 @@ typename NumTraits<T1>::Real test_relative_error(const T1 &a, const T2 &b, typen
 {
   typedef typename NumTraits<T1>::Real RealScalar; 
   using std::min;
-  return RealScalar(numext::abs2(a-b))/RealScalar((min)(numext::abs2(a),numext::abs2(b)));
+  using std::sqrt;
+  return sqrt(RealScalar(numext::abs2(a-b))/RealScalar((min)(numext::abs2(a),numext::abs2(b))));
 }
 
 template<typename T>
@@ -596,13 +604,15 @@ template<typename T> struct GetDifferentType<std::complex<T> >
 
 // Forward declaration to avoid ICC warning
 template<typename T> std::string type_name();
-template<typename T> std::string type_name()              { return "other"; }
-template<> std::string type_name<float>()                 { return "float"; }
-template<> std::string type_name<double>()                { return "double"; }
-template<> std::string type_name<int>()                   { return "int"; }
-template<> std::string type_name<std::complex<float> >()  { return "complex<float>"; }
-template<> std::string type_name<std::complex<double> >() { return "complex<double>"; }
-template<> std::string type_name<std::complex<int> >()    { return "complex<int>"; }
+template<typename T> std::string type_name()                    { return "other"; }
+template<> std::string type_name<float>()                       { return "float"; }
+template<> std::string type_name<double>()                      { return "double"; }
+template<> std::string type_name<long double>()                 { return "long double"; }
+template<> std::string type_name<int>()                         { return "int"; }
+template<> std::string type_name<std::complex<float> >()        { return "complex<float>"; }
+template<> std::string type_name<std::complex<double> >()       { return "complex<double>"; }
+template<> std::string type_name<std::complex<long double> >()  { return "complex<long double>"; }
+template<> std::string type_name<std::complex<int> >()          { return "complex<int>"; }
 
 // forward declaration of the main test function
 void EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
