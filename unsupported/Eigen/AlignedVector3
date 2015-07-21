@@ -105,7 +105,7 @@ template<typename _Scalar> class AlignedVector3
     };
 
     template<typename Derived>
-    inline explicit AlignedVector3(const MatrixBase<Derived>& other)
+    inline AlignedVector3(const MatrixBase<Derived>& other)
     {
       generic_assign_selector<Derived>::run(*this,other.derived());
     }
@@ -113,6 +113,12 @@ template<typename _Scalar> class AlignedVector3
     inline AlignedVector3& operator=(const AlignedVector3& other)
     { m_coeffs = other.m_coeffs; return *this; }
 
+    template <typename Derived>
+    inline AlignedVector3& operator=(const MatrixBase<Derived>& other)
+    {
+      generic_assign_selector<Derived>::run(*this,other.derived());
+      return *this;
+    }
 
     inline AlignedVector3 operator+(const AlignedVector3& other) const
     { return AlignedVector3(m_coeffs + other.m_coeffs); }
@@ -153,7 +159,7 @@ template<typename _Scalar> class AlignedVector3
       m_coeffs /= norm();
     }
 
-    inline AlignedVector3 normalized()
+    inline AlignedVector3 normalized() const
     {
       return AlignedVector3(m_coeffs / norm());
     }
