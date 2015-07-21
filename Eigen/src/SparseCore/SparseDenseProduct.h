@@ -46,7 +46,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
 #ifdef EIGEN_HAS_OPENMP
       // This 20000 threshold has been found experimentally on 2D and 3D Poisson problems.
       // It basically represents the minimal amount of work to be done to be worth it.
-      if(threads>1 && lhs.nonZeros() > 20000)
+      if(threads>1 && lhsEval.nonZerosEstimate() > 20000)
       {
         #pragma omp parallel for schedule(static) num_threads(threads)
         for(Index i=0; i<n; ++i)
