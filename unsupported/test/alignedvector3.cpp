@@ -60,6 +60,16 @@ void alignedvector3()
   r2.normalize();
   VERIFY_IS_APPROX(f2,r2);
   
+  {
+    FastType f6 = RefType::Zero();
+    FastType f7 = FastType::Zero();
+    VERIFY_IS_APPROX(f6,f7);
+    f6 = r4+r1;
+    VERIFY_IS_APPROX(f6,r4+r1);
+    f6 -= Scalar(2)*r4;
+    VERIFY_IS_APPROX(f6,r1-r4);
+  }
+  
   std::stringstream ss1, ss2;
   ss1 << f1;
   ss2 << r1;
