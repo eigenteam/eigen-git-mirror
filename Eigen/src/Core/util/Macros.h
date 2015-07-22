@@ -410,7 +410,9 @@
 #endif
 
 // Does the compiler support const expressions?
-#if (defined(__cplusplus) && __cplusplus >= 201402L) || \
+#ifdef __CUDACC__
+  // Const expressions are not supported regardless of what host compiler is used 
+#elif (defined(__cplusplus) && __cplusplus >= 201402L) || \
     EIGEN_GNUC_AT_LEAST(4,9)
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
