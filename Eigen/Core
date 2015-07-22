@@ -24,9 +24,15 @@
   #ifdef EIGEN_INTERNAL_DEBUGGING
   #undef EIGEN_INTERNAL_DEBUGGING
   #endif
-  
+
   // Do not try to vectorize on CUDA!
+  #ifndef EIGEN_DONT_VECTORIZE
   #define EIGEN_DONT_VECTORIZE
+  #endif
+
+  #ifdef EIGEN_EXCEPTIONS
+  #undef EIGEN_EXCEPTIONS
+  #endif
   
   // All functions callable from CUDA code must be qualified with __device__
   #define EIGEN_DEVICE_FUNC __host__ __device__

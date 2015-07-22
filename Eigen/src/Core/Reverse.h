@@ -120,13 +120,8 @@ DenseBase<Derived>::reverse()
   return ReverseReturnType(derived());
 }
 
-/** This is the const version of reverse(). */
-template<typename Derived>
-inline const typename DenseBase<Derived>::ConstReverseReturnType
-DenseBase<Derived>::reverse() const
-{
-  return ConstReverseReturnType(derived());
-}
+
+//reverse const overload moved DenseBase.h due to a CUDA compiler bug
 
 /** This is the "in place" version of reverse: it reverses \c *this.
   *

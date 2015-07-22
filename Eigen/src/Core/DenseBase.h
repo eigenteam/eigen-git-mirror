@@ -491,9 +491,29 @@ template<typename Derived> class DenseBase
     typedef VectorwiseOp<Derived, Vertical> ColwiseReturnType;
     typedef const VectorwiseOp<const Derived, Vertical> ConstColwiseReturnType;
 
-    EIGEN_DEVICE_FUNC ConstRowwiseReturnType rowwise() const;
+    /** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
+    *
+    * Example: \include MatrixBase_rowwise.cpp
+    * Output: \verbinclude MatrixBase_rowwise.out
+    *
+    * \sa colwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
+    */
+    //Code moved here due to a CUDA compiler bug
+    EIGEN_DEVICE_FUNC inline ConstRowwiseReturnType rowwise() const {
+      return ConstRowwiseReturnType(derived());
+    }
     EIGEN_DEVICE_FUNC RowwiseReturnType rowwise();
-    EIGEN_DEVICE_FUNC ConstColwiseReturnType colwise() const;
+
+    /** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
+    *
+    * Example: \include MatrixBase_colwise.cpp
+    * Output: \verbinclude MatrixBase_colwise.out
+    *
+    * \sa rowwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
+    */
+    EIGEN_DEVICE_FUNC inline ConstColwiseReturnType colwise() const {
+      return ConstColwiseReturnType(derived());
+    }
     EIGEN_DEVICE_FUNC ColwiseReturnType colwise();
 
     typedef CwiseNullaryOp<internal::scalar_random_op<Scalar>,PlainObject> RandomReturnType;
@@ -519,14 +539,31 @@ template<typename Derived> class DenseBase
     template<int RowFactor, int ColFactor>
     EIGEN_DEVICE_FUNC
     const Replicate<Derived,RowFactor,ColFactor> replicate() const;
+    /**
+    * \return an expression of the replication of \c *this
+    *
+    * Example: \include MatrixBase_replicate_int_int.cpp
+    * Output: \verbinclude MatrixBase_replicate_int_int.out
+    *
+    * \sa VectorwiseOp::replicate(), DenseBase::replicate<int,int>(), class Replicate
+    */
+    //Code moved here due to a CUDA compiler bug
     EIGEN_DEVICE_FUNC
-    const Replicate<Derived,Dynamic,Dynamic> replicate(Index rowFacor,Index colFactor) const;
+    const Replicate<Derived, Dynamic, Dynamic> replicate(Index rowFactor, Index colFactor) const
+    {
+      return Replicate<Derived, Dynamic, Dynamic>(derived(), rowFactor, colFactor);
+    }
 
     typedef Reverse<Derived, BothDirections> ReverseReturnType;
     typedef const Reverse<const Derived, BothDirections> ConstReverseReturnType;
-    ReverseReturnType reverse();
-    ConstReverseReturnType reverse() const;
-    void reverseInPlace();
+    EIGEN_DEVICE_FUNC ReverseReturnType reverse();
+    /** This is the const version of reverse(). */
+    //Code moved here due to a CUDA compiler bug
+    EIGEN_DEVICE_FUNC ConstReverseReturnType reverse() const
+    {
+      return ConstReverseReturnType(derived());
+    }
+    EIGEN_DEVICE_FUNC void reverseInPlace();
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
 #   include "../plugins/BlockMethods.h"

@@ -82,7 +82,7 @@ class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<Matri
         return m_functor(m_matrix.row(i));
     }
 
-    const Scalar coeff(Index index) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
     {
       if (Direction==Vertical)
         return m_functor(m_matrix.col(index));
@@ -185,15 +185,15 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     };
 
     enum {
-      IsVertical   = (Direction==Vertical) ? 1 : 0,
-      IsHorizontal = (Direction==Horizontal) ? 1 : 0
+      isVertical   = (Direction==Vertical) ? 1 : 0,
+      isHorizontal = (Direction==Horizontal) ? 1 : 0
     };
 
   protected:
 
     /** \internal
       * \returns the i-th subvector according to the \c Direction */
-    typedef typename internal::conditional<Direction==Vertical,
+    typedef typename internal::conditional<isVertical,
                                typename ExpressionType::ColXpr,
                                typename ExpressionType::RowXpr>::type SubVector;
     EIGEN_DEVICE_FUNC
@@ -206,12 +206,12 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * \returns the number of subvectors in the direction \c Direction */
     EIGEN_DEVICE_FUNC
     Index subVectors() const
-    { return Direction==Vertical?m_matrix.cols():m_matrix.rows(); }
+    { return isVertical?m_matrix.cols():m_matrix.rows(); }
 
     template<typename OtherDerived> struct ExtendedType {
       typedef Replicate<OtherDerived,
-                        Direction==Vertical   ? 1 : ExpressionType::RowsAtCompileTime,
-                        Direction==Horizontal ? 1 : ExpressionType::ColsAtCompileTime> Type;
+                        isVertical   ? 1 : ExpressionType::RowsAtCompileTime,
+                        isHorizontal ? 1 : ExpressionType::ColsAtCompileTime> Type;
     };
 
     /** \internal
@@ -221,20 +221,20 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typename ExtendedType<OtherDerived>::Type
     extendedTo(const DenseBase<OtherDerived>& other) const
     {
-      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(Direction==Vertical, OtherDerived::MaxColsAtCompileTime==1),
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(isVertical, OtherDerived::MaxColsAtCompileTime==1),
                           YOU_PASSED_A_ROW_VECTOR_BUT_A_COLUMN_VECTOR_WAS_EXPECTED)
-      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(Direction==Horizontal, OtherDerived::MaxRowsAtCompileTime==1),
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(isHorizontal, OtherDerived::MaxRowsAtCompileTime==1),
                           YOU_PASSED_A_COLUMN_VECTOR_BUT_A_ROW_VECTOR_WAS_EXPECTED)
       return typename ExtendedType<OtherDerived>::Type
                       (other.derived(),
-                       Direction==Vertical   ? 1 : m_matrix.rows(),
-                       Direction==Horizontal ? 1 : m_matrix.cols());
+                       isVertical   ? 1 : m_matrix.rows(),
+                       isHorizontal ? 1 : m_matrix.cols());
     }
     
     template<typename OtherDerived> struct OppositeExtendedType {
       typedef Replicate<OtherDerived,
-                        Direction==Horizontal ? 1 : ExpressionType::RowsAtCompileTime,
-                        Direction==Vertical   ? 1 : ExpressionType::ColsAtCompileTime> Type;
+                        isHorizontal ? 1 : ExpressionType::RowsAtCompileTime,
+                        isVertical   ? 1 : ExpressionType::ColsAtCompileTime> Type;
     };
 
     /** \internal
@@ -244,18 +244,17 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typename OppositeExtendedType<OtherDerived>::Type
     extendedToOpposite(const DenseBase<OtherDerived>& other) const
     {
-      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(Direction==Horizontal, OtherDerived::MaxColsAtCompileTime==1),
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(isHorizontal, OtherDerived::MaxColsAtCompileTime==1),
                           YOU_PASSED_A_ROW_VECTOR_BUT_A_COLUMN_VECTOR_WAS_EXPECTED)
-      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(Direction==Vertical, OtherDerived::MaxRowsAtCompileTime==1),
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(isVertical, OtherDerived::MaxRowsAtCompileTime==1),
                           YOU_PASSED_A_COLUMN_VECTOR_BUT_A_ROW_VECTOR_WAS_EXPECTED)
       return typename OppositeExtendedType<OtherDerived>::Type
                       (other.derived(),
-                       Direction==Horizontal  ? 1 : m_matrix.rows(),
-                       Direction==Vertical    ? 1 : m_matrix.cols());
+                       isHorizontal  ? 1 : m_matrix.rows(),
+                       isVertical    ? 1 : m_matrix.cols());
     }
 
   public:
-
     EIGEN_DEVICE_FUNC
     explicit inline VectorwiseOp(ExpressionType& matrix) : m_matrix(matrix) {}
 
@@ -271,8 +270,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * \sa class VectorwiseOp, DenseBase::colwise(), DenseBase::rowwise()
       */
     template<typename BinaryOp>
-    const typename ReduxReturnType<BinaryOp>::Type
     EIGEN_DEVICE_FUNC
+    const typename ReduxReturnType<BinaryOp>::Type
     redux(const BinaryOp& func = BinaryOp()) const
     { return typename ReduxReturnType<BinaryOp>::Type(_expression(), internal::member_redux<BinaryOp,Scalar>(func)); }
 
@@ -447,7 +446,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     const ReverseReturnType reverse() const
     { return ReverseReturnType( _expression() ); }
 
-    typedef Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1> ReplicateReturnType;
+    typedef Replicate<ExpressionType,(isVertical?Dynamic:1),(isHorizontal?Dynamic:1)> ReplicateReturnType;
     EIGEN_DEVICE_FUNC
     const ReplicateReturnType replicate(Index factor) const;
 
@@ -460,12 +459,13 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * \sa VectorwiseOp::replicate(Index), DenseBase::replicate(), class Replicate
       */
     // NOTE implemented here because of sunstudio's compilation errors
-    template<int Factor> const Replicate<ExpressionType,(IsVertical?Factor:1),(IsHorizontal?Factor:1)>
+    // isVertical*Factor+isHorizontal instead of (isVertical?Factor:1) to handle CUDA bug with ternary operator
+    template<int Factor> const Replicate<ExpressionType,isVertical*Factor+isHorizontal,isHorizontal*Factor+isVertical>
     EIGEN_DEVICE_FUNC
     replicate(Index factor = Factor) const
     {
-      return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
-          (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
+      return Replicate<ExpressionType,(isVertical?Factor:1),(isHorizontal?Factor:1)>
+          (_expression(),isVertical?factor:1,isHorizontal?factor:1);
     }
 
 /////////// Artithmetic operators ///////////
@@ -556,6 +556,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     CwiseBinaryOp<internal::scalar_product_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename ExtendedType<OtherDerived>::Type>
+    EIGEN_DEVICE_FUNC
     operator*(const DenseBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
@@ -637,19 +638,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionTypeNested m_matrix;
 };
 
-/** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
-  *
-  * Example: \include MatrixBase_colwise.cpp
-  * Output: \verbinclude MatrixBase_colwise.out
-  *
-  * \sa rowwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
-  */
-template<typename Derived>
-inline const typename DenseBase<Derived>::ConstColwiseReturnType
-DenseBase<Derived>::colwise() const
-{
-  return ConstColwiseReturnType(derived());
-}
+//const colwise moved to DenseBase.h due to CUDA compiler bug
+
 
 /** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
@@ -662,19 +652,8 @@ DenseBase<Derived>::colwise()
   return ColwiseReturnType(derived());
 }
 
-/** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
-  *
-  * Example: \include MatrixBase_rowwise.cpp
-  * Output: \verbinclude MatrixBase_rowwise.out
-  *
-  * \sa colwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
-  */
-template<typename Derived>
-inline const typename DenseBase<Derived>::ConstRowwiseReturnType
-DenseBase<Derived>::rowwise() const
-{
-  return ConstRowwiseReturnType(derived());
-}
+//const rowwise moved to DenseBase.h due to CUDA compiler bug
+
 
 /** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
   *

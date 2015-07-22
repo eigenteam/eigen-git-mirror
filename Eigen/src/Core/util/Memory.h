@@ -559,18 +559,18 @@ inline Index first_multiple(Index size, Index base)
 // use memcpy on trivial types, i.e., on types that does not require an initialization ctor.
 template<typename T, bool UseMemcpy> struct smart_copy_helper;
 
-template<typename T> void smart_copy(const T* start, const T* end, T* target)
+template<typename T> EIGEN_DEVICE_FUNC void smart_copy(const T* start, const T* end, T* target)
 {
   smart_copy_helper<T,!NumTraits<T>::RequireInitialization>::run(start, end, target);
 }
 
 template<typename T> struct smart_copy_helper<T,true> {
-  static inline void run(const T* start, const T* end, T* target)
+  EIGEN_DEVICE_FUNC static inline void run(const T* start, const T* end, T* target)
   { memcpy(target, start, std::ptrdiff_t(end)-std::ptrdiff_t(start)); }
 };
 
 template<typename T> struct smart_copy_helper<T,false> {
-  static inline void run(const T* start, const T* end, T* target)
+  EIGEN_DEVICE_FUNC static inline void run(const T* start, const T* end, T* target)
   { std::copy(start, end, target); }
 };
 
