@@ -295,11 +295,11 @@ static void initializeDeviceProp() {
     if (!m_devicePropInitialized) {
       int num_devices;
       cudaError_t status = cudaGetDeviceCount(&num_devices);
-      eigen_check(status == cudaSuccess);
+      assert(status == cudaSuccess);
       m_deviceProperties = new cudaDeviceProp[num_devices];
       for (int i = 0; i < num_devices; ++i) {
         status = cudaGetDeviceProperties(&m_deviceProperties[i], i);
-        eigen_check(status == cudaSuccess);
+        assert(status == cudaSuccess);
       }
       m_devicePropInitialized = true;
     }
@@ -330,8 +330,8 @@ class CudaStreamDevice : public StreamInterface {
     } else {
       int num_devices;
       cudaError_t err = cudaGetDeviceCount(&num_devices);
-      eigen_check(err == cudaSuccess);
-      eigen_check(device < num_devices);
+      assert(err == cudaSuccess);
+      assert(device < num_devices);
       device_ = device;
     }
     initializeDeviceProp();
@@ -343,16 +343,16 @@ class CudaStreamDevice : public StreamInterface {
   }
   virtual void* allocate(size_t num_bytes) const {
     cudaError_t err = cudaSetDevice(device_);
-    eigen_check(err == cudaSuccess);
+    assert(err == cudaSuccess);
     void* result;
     err = cudaMalloc(&result, num_bytes);
-    eigen_check(err == cudaSuccess);
-    eigen_check(result != NULL);
+    assert(err == cudaSuccess);
+    assert(result != NULL);
     return result;
   }
   virtual void deallocate(void* buffer) const {
     cudaError_t err = cudaSetDevice(device_);
-    eigen_check(err == cudaSuccess);
+    assert(err == cudaSuccess);
     assert(buffer != NULL);
     err = cudaFree(buffer);
     assert(err == cudaSuccess);
@@ -495,7 +495,7 @@ struct GpuDevice {
 // FIXME: Should be device and kernel specific.
 static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
   cudaError_t status = cudaDeviceSetSharedMemConfig(config);
-  eigen_check(status == cudaSuccess);
+  assert(status == cudaSuccess);
 }
 
 #endif
