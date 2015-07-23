@@ -131,6 +131,12 @@
       #define EIGEN_VECTORIZE_SSE4_1
       #define EIGEN_VECTORIZE_SSE4_2
     #endif
+    #ifdef __AVX2__
+      #define EIGEN_VECTORIZE_AVX2
+    #endif
+    #ifdef __FMA__
+      #define EIGEN_VECTORIZE_FMA
+    #endif
 
     // include files
 
