@@ -117,6 +117,10 @@ template<typename T> struct enable_if<true,T>
 { typedef T type; };
 
 #if defined(__CUDA_ARCH__)
+#if !defined(__FLT_EPSILON__)
+#define __FLT_EPSILON__ FLT_EPSILON
+#define __DBL_EPSILON__ DBL_EPSILON
+#endif
 
 namespace device {
 

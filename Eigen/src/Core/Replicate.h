@@ -114,25 +114,10 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   */
 template<typename Derived>
 template<int RowFactor, int ColFactor>
-inline const Replicate<Derived,RowFactor,ColFactor>
+const Replicate<Derived,RowFactor,ColFactor>
 DenseBase<Derived>::replicate() const
 {
   return Replicate<Derived,RowFactor,ColFactor>(derived());
-}
-
-/**
-  * \return an expression of the replication of \c *this
-  *
-  * Example: \include MatrixBase_replicate_int_int.cpp
-  * Output: \verbinclude MatrixBase_replicate_int_int.out
-  *
-  * \sa VectorwiseOp::replicate(), DenseBase::replicate<int,int>(), class Replicate
-  */
-template<typename Derived>
-inline const Replicate<Derived,Dynamic,Dynamic>
-DenseBase<Derived>::replicate(Index rowFactor,Index colFactor) const
-{
-  return Replicate<Derived,Dynamic,Dynamic>(derived(),rowFactor,colFactor);
 }
 
 /**
