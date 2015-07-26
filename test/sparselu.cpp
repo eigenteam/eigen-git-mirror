@@ -43,7 +43,7 @@ template<typename T> void test_sparselu_T()
   
   check_sparse_square_solving(sparselu_colamd); 
   check_sparse_square_solving(sparselu_amd);
-  check_sparse_square_solving(sparselu_natural);
+  check_sparse_square_solving(sparselu_natural, true);
   
   check_sparse_square_abs_determinant(sparselu_colamd);
   check_sparse_square_abs_determinant(sparselu_amd);

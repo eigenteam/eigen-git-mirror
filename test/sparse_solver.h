@@ -277,7 +277,17 @@ int generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, Dens
   return size;
 }
 
-template<typename Solver> void check_sparse_square_solving(Solver& solver)
+
+struct prune_column {
+  int m_col;
+  prune_column(int col) : m_col(col) {}
+  template<class Scalar>
+  bool operator()(int, int col, const Scalar&) const {
+    return col != m_col;
+  }
+};
+
+template<typename Solver> void check_sparse_square_solving(Solver& solver, bool checkDeficient = false)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
@@ -308,6 +318,13 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
     {
       b = DenseVector::Zero(size);
       check_sparse_solving(solver, A, b, dA, b);
+    }
+    // regression test for Bug 792 (structurally rank deficient matrices):
+    if(checkDeficient && size>1) {
+      int col = internal::random<int>(0,size-1);
+      A.prune(prune_column(col));
+      solver.compute(A);
+      VERIFY_IS_EQUAL(solver.info(), NumericalIssue);
     }
   }
   
