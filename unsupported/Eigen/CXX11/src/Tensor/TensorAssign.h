@@ -104,9 +104,6 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
       m_rightImpl(op.rhsExpression(), device)
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);
-    // The dimensions of the lhs and the rhs tensors should be equal to prevent
-    // overflows and ensure the result is fully initialized.
-    eigen_assert(dimensions_match(m_leftImpl.dimensions(), m_rightImpl.dimensions()));
   }
 
   typedef typename XprType::Index Index;
@@ -117,6 +114,8 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
   {
+    // The dimensions of the lhs and the rhs tensors should be equal to prevent
+    // overflows and ensure the result is fully initialized.
     // TODO: use left impl instead if right impl dimensions are known at compile time.
     return m_rightImpl.dimensions();
   }
