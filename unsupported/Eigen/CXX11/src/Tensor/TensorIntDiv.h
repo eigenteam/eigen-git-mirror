@@ -57,32 +57,13 @@ namespace {
   template <typename T>
   struct DividerTraits {
 #if defined(__SIZEOF_INT128__) && !defined(__CUDACC__)
-    typedef T type;
+    typedef typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type type;
     static const int N = sizeof(T) * 8;
 #else
     typedef uint32_t type;
     static const int N = 32;
 #endif
   };
-  template <>
-  struct DividerTraits<int32_t> {
-    typedef uint32_t type;
-    static const int N = 32;
-  };
-  template <>
-  struct DividerTraits<int64_t> {
-#if defined(__SIZEOF_INT128__) && !defined(__CUDACC__)
-    typedef uint64_t type;
-    static const int N = 64;
-#else
-    typedef uint32_t type;
-    static const int N = 32;
-#endif
-  };
-  // In C++, long is not int32_t nor int64_t, so we need a specialization for it:
-  template <>
-  struct DividerTraits<long> : internal::conditional<sizeof(long)==4,DividerTraits<int32_t>,DividerTraits<int64_t> >::type
-  {};
 
   template <typename T>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE uint32_t muluh(const uint32_t a, const T b) {
