@@ -77,7 +77,7 @@ struct traits<Map<PlainObjectType, MapOptions, StrideType> >
     OuterStrideAtCompileTime = StrideType::OuterStrideAtCompileTime == 0
                              ? int(PlainObjectType::OuterStrideAtCompileTime)
                              : int(StrideType::OuterStrideAtCompileTime),
-    IsAligned = bool(EIGEN_ALIGN) && ((int(MapOptions)&Aligned)==Aligned),
+    IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0) && ((int(MapOptions)&Aligned)==Aligned),
     Flags0 = TraitsBase::Flags & (~NestByRefBit),
     Flags = is_lvalue<PlainObjectType>::value ? int(Flags0) : (int(Flags0) & ~LvalueBit)
   };

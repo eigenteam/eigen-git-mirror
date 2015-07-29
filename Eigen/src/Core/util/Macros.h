@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -306,67 +306,9 @@
   #define EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO 1
 #endif
 
-// 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable
-// 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
-// enable alignment, but it can be a cause of problems on some platforms, so we just disable it in
-// certain common platform (compiler+architecture combinations) to avoid these problems.
-// Only static alignment is really problematic (relies on nonstandard compiler extensions that don't
-// work everywhere, for example don't work on GCC/ARM), try to keep heap alignment even
-// when we have to disable static alignment.
-#if EIGEN_COMP_GNUC && !(EIGEN_ARCH_i386_OR_x86_64 || EIGEN_ARCH_PPC || EIGEN_ARCH_IA64)
-#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 1
-#else
-#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 0
-#endif
-
-// static alignment is completely disabled with GCC 3, Sun Studio, and QCC/QNX
-#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT \
- && !EIGEN_GCC3_OR_OLDER \
- && !EIGEN_COMP_SUNCC \
- && !EIGEN_OS_QNX
-  #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 1
-#else
-  #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
-#endif
-
-// Defined the boundary (in bytes) on which the data needs to be aligned. Note
-// that unless EIGEN_ALIGN is defined and not equal to 0, the data may not be
-// aligned at all regardless of the value of this #define.
-// TODO should be renamed EIGEN_MAXIMAL_ALIGN_BYTES,
-//      for instance with AVX 1 EIGEN_MAXIMAL_ALIGN_BYTES=32 while for 'int' 16 bytes alignment is always enough,
-//      and 16 bytes alignment is also enough for Vector4f.
-#define EIGEN_ALIGN_BYTES 16
-
-#ifdef EIGEN_DONT_ALIGN
-  #ifndef EIGEN_DONT_ALIGN_STATICALLY
-    #define EIGEN_DONT_ALIGN_STATICALLY
-  #endif
-  #define EIGEN_ALIGN 0
-#elif !defined(EIGEN_DONT_VECTORIZE)
-  #if defined(__AVX__)
-    #undef EIGEN_ALIGN_BYTES
-    #define EIGEN_ALIGN_BYTES 32
-  #endif
-  #define EIGEN_ALIGN 1
-#else
-  #define EIGEN_ALIGN 0
-#endif
-
-
 // This macro can be used to prevent from macro expansion, e.g.:
 //   std::max EIGEN_NOT_A_MACRO(a,b)
 #define EIGEN_NOT_A_MACRO
-
-// EIGEN_ALIGN_STATICALLY is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
-// alignment (EIGEN_DONT_ALIGN_STATICALLY) and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT). Henceforth, only EIGEN_ALIGN_STATICALLY should be used.
-#if EIGEN_ARCH_WANTS_STACK_ALIGNMENT && !defined(EIGEN_DONT_ALIGN_STATICALLY)
-  #define EIGEN_ALIGN_STATICALLY 1
-#else
-  #define EIGEN_ALIGN_STATICALLY 0
-  #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
-    #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
-  #endif
-#endif
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::RowMajor
@@ -585,6 +527,20 @@ namespace Eigen {
   #endif
 #endif
 
+
+//------------------------------------------------------------------------------------------
+// Static and dynamic alignment control
+// 
+// The main purpose of this section is to define EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES
+// as the maximal boundary in bytes on which dynamically and statically allocated data may be alignment respectively.
+// The values of EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES can be specified by the user. If not,
+// a default value is automatically computed based on architecture, compiler, and OS.
+// 
+// This section also defines macros EIGEN_ALIGN_TO_BOUNDARY(N) and the shortcuts EIGEN_ALIGN{8,16,32,_MAX}
+// to be used to declare statically aligned buffers.
+//------------------------------------------------------------------------------------------
+
+
 /* EIGEN_ALIGN_TO_BOUNDARY(n) forces data to be n-byte aligned. This is used to satisfy SIMD requirements.
  * However, we do that EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
  * so that vectorization doesn't affect binary compatibility.
@@ -605,22 +561,115 @@ namespace Eigen {
   #error Please tell me what is the equivalent of __attribute__((aligned(n))) for your compiler
 #endif
 
+// If the user explicitly disable vectorization, then we also disable alignment
+#if defined(EIGEN_DONT_VECTORIZE)
+  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
+#elif defined(__AVX__)
+  // 32 bytes static alignmeent is preferred only if really required
+  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 32
+#else
+  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 16
+#endif
+
+
+// EIGEN_MIN_ALIGN_BYTES defines the minimal value for which the notion of explicit alignment makes sense
+#define EIGEN_MIN_ALIGN_BYTES 16
+
+// Defined the boundary (in bytes) on which the data needs to be aligned. Note
+// that unless EIGEN_ALIGN is defined and not equal to 0, the data may not be
+// aligned at all regardless of the value of this #define.
+
+#if (defined(EIGEN_DONT_ALIGN_STATICALLY) || defined(EIGEN_DONT_ALIGN))  && defined(EIGEN_MAX_STATIC_ALIGN_BYTES) && EIGEN_MAX_STATIC_ALIGN_BYTES>0
+#error EIGEN_MAX_STATIC_ALIGN_BYTES and EIGEN_DONT_ALIGN[_STATICALLY] are both defined with EIGEN_MAX_STATIC_ALIGN_BYTES!=0. Use EIGEN_MAX_STATIC_ALIGN_BYTES=0 as a synonym of EIGEN_DONT_ALIGN_STATICALLY.
+#endif
+
+// EIGEN_DONT_ALIGN_STATICALLY and EIGEN_DONT_ALIGN are deprectated
+// They imply EIGEN_MAX_STATIC_ALIGN_BYTES=0
+#if defined(EIGEN_DONT_ALIGN_STATICALLY) || defined(EIGEN_DONT_ALIGN)
+  #ifdef EIGEN_MAX_STATIC_ALIGN_BYTES
+    #undef EIGEN_MAX_STATIC_ALIGN_BYTES
+  #endif
+  #define EIGEN_MAX_STATIC_ALIGN_BYTES 0
+#endif
+
+#ifndef EIGEN_MAX_STATIC_ALIGN_BYTES
+
+  // Try to automatically guess what is the best default value for EIGEN_MAX_STATIC_ALIGN_BYTES
+  
+  // 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable
+  // 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
+  // enable alignment, but it can be a cause of problems on some platforms, so we just disable it in
+  // certain common platform (compiler+architecture combinations) to avoid these problems.
+  // Only static alignment is really problematic (relies on nonstandard compiler extensions that don't
+  // work everywhere, for example don't work on GCC/ARM), try to keep heap alignment even
+  // when we have to disable static alignment.
+  #if EIGEN_COMP_GNUC && !(EIGEN_ARCH_i386_OR_x86_64 || EIGEN_ARCH_PPC || EIGEN_ARCH_IA64)
+  #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 1
+  #else
+  #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 0
+  #endif
+
+  // static alignment is completely disabled with GCC 3, Sun Studio, and QCC/QNX
+  #if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT \
+  && !EIGEN_GCC3_OR_OLDER \
+  && !EIGEN_COMP_SUNCC \
+  && !EIGEN_OS_QNX
+    #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 1
+  #else
+    #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
+  #endif
+  
+  #if EIGEN_ARCH_WANTS_STACK_ALIGNMENT
+    #define EIGEN_MAX_STATIC_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
+  #endif
+  
+#endif
+
+// If EIGEN_MAX_ALIGN_BYTES is defined, then it is considered as an upper bound for EIGEN_MAX_ALIGN_BYTES
+#if defined(EIGEN_MAX_ALIGN_BYTES) && EIGEN_MAX_ALIGN_BYTES<EIGEN_MAX_STATIC_ALIGN_BYTES
+#undef EIGEN_MAX_STATIC_ALIGN_BYTES
+#define EIGEN_MAX_STATIC_ALIGN_BYTES EIGEN_MAX_ALIGN_BYTES
+#endif
+
+#if EIGEN_MAX_STATIC_ALIGN_BYTES==0 && !defined(EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT)
+  #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
+#endif
+
+// At this stage, EIGEN_MAX_STATIC_ALIGN_BYTES>0 is the true test whether we want to align arrays on the stack or not.
+// It takes into account both the user choice to explicitly enable/disable alignment (by settting EIGEN_MAX_STATIC_ALIGN_BYTES)
+// and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT).
+// Henceforth, only EIGEN_MAX_STATIC_ALIGN_BYTES should be used.
+
+
+// Shortcuts to EIGEN_ALIGN_TO_BOUNDARY
 #define EIGEN_ALIGN8  EIGEN_ALIGN_TO_BOUNDARY(8)
 #define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
 #define EIGEN_ALIGN32 EIGEN_ALIGN_TO_BOUNDARY(32)
-#define EIGEN_ALIGN_DEFAULT EIGEN_ALIGN_TO_BOUNDARY(EIGEN_ALIGN_BYTES)
-
-#if EIGEN_ALIGN_STATICALLY
-#define EIGEN_USER_ALIGN_TO_BOUNDARY(n) EIGEN_ALIGN_TO_BOUNDARY(n)
-#define EIGEN_USER_ALIGN16 EIGEN_ALIGN16
-#define EIGEN_USER_ALIGN32 EIGEN_ALIGN32
-#define EIGEN_USER_ALIGN_DEFAULT EIGEN_ALIGN_DEFAULT
+#define EIGEN_ALIGN64 EIGEN_ALIGN_TO_BOUNDARY(64)
+#if EIGEN_MAX_STATIC_ALIGN_BYTES>0
+#define EIGEN_ALIGN_MAX EIGEN_ALIGN_TO_BOUNDARY(EIGEN_MAX_STATIC_ALIGN_BYTES)
 #else
-#define EIGEN_USER_ALIGN_TO_BOUNDARY(n)
-#define EIGEN_USER_ALIGN16
-#define EIGEN_USER_ALIGN32
-#define EIGEN_USER_ALIGN_DEFAULT
+#define EIGEN_ALIGN_MAX
 #endif
+
+
+// Dynamic alignment control
+
+#if defined(EIGEN_DONT_ALIGN) && defined(EIGEN_MAX_ALIGN_BYTES) && EIGEN_MAX_ALIGN_BYTES>0
+#error EIGEN_MAX_ALIGN_BYTES and EIGEN_DONT_ALIGN are both defined with EIGEN_MAX_ALIGN_BYTES!=0. Use EIGEN_MAX_ALIGN_BYTES=0 as a synonym of EIGEN_DONT_ALIGN.
+#endif
+
+#ifdef EIGEN_DONT_ALIGN
+  #ifdef EIGEN_MAX_ALIGN_BYTES
+    #undef EIGEN_MAX_ALIGN_BYTES
+  #endif
+  #define EIGEN_MAX_ALIGN_BYTES 0
+#elif !defined(EIGEN_MAX_ALIGN_BYTES)
+  #define EIGEN_MAX_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
+#endif
+
+//----------------------------------------------------------------------
+
 
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD
   #define EIGEN_RESTRICT

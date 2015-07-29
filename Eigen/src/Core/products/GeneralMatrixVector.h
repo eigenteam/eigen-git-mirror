@@ -463,7 +463,8 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,R
   Index rowBound = ((rows-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (Index i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
-    EIGEN_ALIGN_DEFAULT ResScalar tmp0 = ResScalar(0);
+    // FIXME: what is the purpose of this EIGEN_ALIGN_DEFAULT ??
+    EIGEN_ALIGN_MAX ResScalar tmp0 = ResScalar(0);
     ResScalar tmp1 = ResScalar(0), tmp2 = ResScalar(0), tmp3 = ResScalar(0);
 
     // this helps the compiler generating good binary code
@@ -572,7 +573,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,R
   {
     for (Index i=start; i<end; ++i)
     {
-      EIGEN_ALIGN_DEFAULT ResScalar tmp0 = ResScalar(0);
+      EIGEN_ALIGN_MAX ResScalar tmp0 = ResScalar(0);
       ResPacket ptmp0 = pset1<ResPacket>(tmp0);
       const LhsScalars lhs0 = lhs.getVectorMapper(i, 0);
       // process first unaligned result's coeffs

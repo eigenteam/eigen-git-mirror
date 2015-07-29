@@ -167,7 +167,7 @@ class compute_matrix_evaluator_flags
       (
             ((Options&DontAlign)==0)
         && (
-#if EIGEN_ALIGN_STATICALLY
+#if EIGEN_MAX_STATIC_ALIGN_BYTES!=0
              ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % align_bytes) == 0))
 #else
              0
@@ -175,7 +175,7 @@ class compute_matrix_evaluator_flags
 
           ||
 
-#if EIGEN_ALIGN
+#if EIGEN_MAX_ALIGN_BYTES!=0
              is_dynamic_size_storage
 #else
              0

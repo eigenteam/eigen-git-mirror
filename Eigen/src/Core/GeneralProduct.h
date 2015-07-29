@@ -183,7 +183,7 @@ struct gemv_static_vector_if<Scalar,Size,Dynamic,true>
 template<typename Scalar,int Size,int MaxSize>
 struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
 {
-  #if EIGEN_ALIGN_STATICALLY
+  #if EIGEN_MAX_STATIC_ALIGN_BYTES!=0
   internal::plain_array<Scalar,EIGEN_SIZE_MIN_PREFER_FIXED(Size,MaxSize),0> m_data;
   EIGEN_STRONG_INLINE Scalar* data() { return m_data.array; }
   #else
@@ -196,7 +196,7 @@ struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
   internal::plain_array<Scalar,EIGEN_SIZE_MIN_PREFER_FIXED(Size,MaxSize)+(ForceAlignment?PacketSize:0),0> m_data;
   EIGEN_STRONG_INLINE Scalar* data() {
     return ForceAlignment
-            ? reinterpret_cast<Scalar*>((reinterpret_cast<size_t>(m_data.array) & ~(size_t(EIGEN_ALIGN_BYTES-1))) + EIGEN_ALIGN_BYTES)
+            ? reinterpret_cast<Scalar*>((reinterpret_cast<size_t>(m_data.array) & ~(size_t(EIGEN_MAX_ALIGN_BYTES-1))) + EIGEN_MAX_ALIGN_BYTES)
             : m_data.array;
   }
   #endif

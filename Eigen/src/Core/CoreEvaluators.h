@@ -641,7 +641,7 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     HasNoInnerStride = InnerStrideAtCompileTime == 1,
     HasNoOuterStride = StrideType::OuterStrideAtCompileTime == 0,
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
-    IsAligned = bool(EIGEN_ALIGN) && ((int(MapOptions)&Aligned)==Aligned),
+    IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0) && ((int(MapOptions)&Aligned)==Aligned),
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     
     // TODO: should check for smaller packet types once we can handle multi-sized packet types

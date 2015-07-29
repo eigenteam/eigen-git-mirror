@@ -73,9 +73,9 @@
 // and inclusion of their respective header files
 #include "src/Core/util/MKL_support.h"
 
-// if alignment is disabled, then disable vectorization. Note: EIGEN_ALIGN is the proper check, it takes into
-// account both the user's will (EIGEN_DONT_ALIGN) and our own platform checks
-#if !EIGEN_ALIGN
+// if alignment is disabled, then disable vectorization. Note: EIGEN_MAX_ALIGN_BYTES is the proper check, it takes into
+// account both the user's will (EIGEN_MAX_ALIGN_BYTES,EIGEN_DONT_ALIGN) and our own platform checks
+#if EIGEN_MAX_ALIGN_BYTES==0
   #ifndef EIGEN_DONT_VECTORIZE
     #define EIGEN_DONT_VECTORIZE
   #endif

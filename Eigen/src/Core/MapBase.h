@@ -160,7 +160,10 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     EIGEN_DEVICE_FUNC
     void checkSanity() const
     {
-      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::IsAligned, (size_t(m_data) % EIGEN_ALIGN_BYTES) == 0) && "data is not aligned");
+      // TODO "IsAligned" should be replaced to handle arbitrary alignment
+#if EIGEN_MAX_ALIGN_BYTES>0
+      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::IsAligned, (size_t(m_data) % EIGEN_MAX_ALIGN_BYTES) == 0) && "data is not aligned");
+#endif
     }
 
     PointerType m_data;

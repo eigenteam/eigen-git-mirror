@@ -34,26 +34,25 @@ void check_static_allocation_size()
   #endif
 }
 
-template<typename T, int Size, typename Packet = typename packet_traits<T>::type,
-         bool Match     =  bool((Size%unpacket_traits<Packet>::size)==0),
-         bool TryHalf   =  bool(int(unpacket_traits<Packet>::size) > 1)
-                        && bool(int(unpacket_traits<Packet>::size) > int(unpacket_traits<typename unpacket_traits<Packet>::half>::size)) >
+template<int ArrayBytes, int AlignmentBytes,
+         bool Match     =  bool((ArrayBytes%AlignmentBytes)==0),
+         bool TryHalf   =  bool(AlignmentBytes>EIGEN_MIN_ALIGN_BYTES) >
 struct compute_default_alignment
 {
   enum { value = 0 };
 };
 
-template<typename T, int Size, typename Packet, bool TryHalf>
-struct compute_default_alignment<T, Size, Packet, true, TryHalf> // Match
+template<int ArrayBytes, int AlignmentBytes, bool TryHalf>
+struct compute_default_alignment<ArrayBytes, AlignmentBytes, true, TryHalf> // Match
 {
-  enum { value = sizeof(T) * unpacket_traits<Packet>::size };
+  enum { value = AlignmentBytes };
 };
 
-template<typename T, int Size, typename Packet>
-struct compute_default_alignment<T, Size, Packet, false, true> // Try-half
+template<int ArrayBytes, int AlignmentBytes>
+struct compute_default_alignment<ArrayBytes, AlignmentBytes, false, true> // Try-half
 {
   // current packet too large, try with an half-packet
-  enum { value = compute_default_alignment<T, Size, typename unpacket_traits<Packet>::half>::value };
+  enum { value = compute_default_alignment<ArrayBytes, AlignmentBytes/2>::value };
 };
 
 /** \internal
@@ -62,7 +61,7 @@ struct compute_default_alignment<T, Size, Packet, false, true> // Try-half
   */
 template <typename T, int Size, int MatrixOrArrayOptions,
           int Alignment = (MatrixOrArrayOptions&DontAlign) ? 0
-                        : compute_default_alignment<T,Size>::value >
+                        : compute_default_alignment<Size*sizeof(T), EIGEN_PLAIN_ENUM_MAX(packet_traits<T>::size*sizeof(T), EIGEN_MAX_STATIC_ALIGN_BYTES) >::value >
 struct plain_array
 {
   T array[Size];
@@ -180,7 +179,7 @@ struct plain_array<T, Size, MatrixOrArrayOptions, 64>
 template <typename T, int MatrixOrArrayOptions, int Alignment>
 struct plain_array<T, 0, MatrixOrArrayOptions, Alignment>
 {
-  EIGEN_USER_ALIGN_DEFAULT T array[1];
+  T array[1];
   EIGEN_DEVICE_FUNC plain_array() {}
   EIGEN_DEVICE_FUNC plain_array(constructor_without_unaligned_array_assert) {}
 };

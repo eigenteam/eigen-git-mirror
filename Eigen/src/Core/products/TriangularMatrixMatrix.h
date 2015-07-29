@@ -274,7 +274,7 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     Index mc = (std::min)(rows,blocking.mc());  // cache block size along the M direction
 
     std::size_t sizeA = kc*mc;
-    std::size_t sizeB = kc*cols+EIGEN_ALIGN_BYTES/sizeof(Scalar);
+    std::size_t sizeB = kc*cols+EIGEN_MAX_ALIGN_BYTES/sizeof(Scalar);
 
     ei_declare_aligned_stack_constructed_variable(Scalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(Scalar, blockB, sizeB, blocking.blockB());
@@ -311,7 +311,7 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       Index ts = (IsLower && actual_k2>=cols) ? 0 : actual_kc;
 
       Scalar* geb = blockB+ts*ts;
-      geb = geb + internal::first_aligned(geb,EIGEN_ALIGN_BYTES/sizeof(Scalar));
+      geb = geb + internal::first_aligned(geb,EIGEN_MAX_ALIGN_BYTES/sizeof(Scalar));
 
       pack_rhs(geb, rhs.getSubMapper(actual_k2,IsLower ? 0 : k2), actual_kc, rs);
 
