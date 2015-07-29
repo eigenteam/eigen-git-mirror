@@ -101,7 +101,7 @@ namespace {
   struct DividerHelper {
     static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE uint32_t computeMultiplier (const int log_div, const T divider) {
       EIGEN_STATIC_ASSERT(N == 32, YOU_MADE_A_PROGRAMMING_MISTAKE);
-      return (static_cast<uint64_t>(1) << (N+log_div)) / divider - (static_cast<uint64_t>(1) << N) + 1;
+      return static_cast<uint32_t>((static_cast<uint64_t>(1) << (N+log_div)) / divider - (static_cast<uint64_t>(1) << N) + 1);
     }
   };
 
@@ -109,7 +109,7 @@ namespace {
   template <typename T>
   struct DividerHelper<64, T> {
     static EIGEN_ALWAYS_INLINE uint64_t computeMultiplier(const int log_div, const T divider) {
-      return ((static_cast<__uint128_t>(1) << (64+log_div)) / static_cast<__uint128_t>(divider) - (static_cast<__uint128_t>(1) << 64) + 1);
+      return static_cast<uint64_t>((static_cast<__uint128_t>(1) << (64+log_div)) / static_cast<__uint128_t>(divider) - (static_cast<__uint128_t>(1) << 64) + 1);
     }
   };
 #endif
