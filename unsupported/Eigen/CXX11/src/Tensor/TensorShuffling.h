@@ -67,7 +67,7 @@ class TensorShufflingOp : public TensorBase<TensorShufflingOp<Shuffle, XprType> 
       : m_xpr(expr), m_shuffle(shuffle) {}
 
     EIGEN_DEVICE_FUNC
-    const Shuffle& shuffle() const { return m_shuffle; }
+    const Shuffle& shufflePermutation() const { return m_shuffle; }
 
     EIGEN_DEVICE_FUNC
     const typename internal::remove_all<typename XprType::Nested>::type&
@@ -119,7 +119,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
       : m_impl(op.expression(), device)
   {
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
-    const Shuffle& shuffle = op.shuffle();
+    const Shuffle& shuffle = op.shufflePermutation();
     for (int i = 0; i < NumDims; ++i) {
       m_dimensions[i] = input_dims[shuffle[i]];
     }
