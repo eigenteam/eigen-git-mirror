@@ -79,6 +79,10 @@ namespace {
     static const int N = 32;
 #endif
   };
+  // In C++, long is not int32_t nor int64_t, so we need a specialization for it:
+  template <>
+  struct DividerTraits<long> : internal::conditional<sizeof(long)==4,DividerTraits<int32_t>,DividerTraits<int64_t> >::type
+  {};
 
   template <typename T>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE uint32_t muluh(const uint32_t a, const T b) {
