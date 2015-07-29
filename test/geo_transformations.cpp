@@ -470,9 +470,9 @@ template<typename Scalar> void transform_alignment()
   typedef Transform<Scalar,3,Projective,AutoAlign> Projective3a;
   typedef Transform<Scalar,3,Projective,DontAlign> Projective3u;
 
-  EIGEN_ALIGN_DEFAULT Scalar array1[16];
-  EIGEN_ALIGN_DEFAULT Scalar array2[16];
-  EIGEN_ALIGN_DEFAULT Scalar array3[16+1];
+  EIGEN_ALIGN_MAX Scalar array1[16];
+  EIGEN_ALIGN_MAX Scalar array2[16];
+  EIGEN_ALIGN_MAX Scalar array3[16+1];
   Scalar* array3u = array3+1;
 
   Projective3a *p1 = ::new(reinterpret_cast<void*>(array1)) Projective3a;
@@ -488,7 +488,7 @@ template<typename Scalar> void transform_alignment()
   
   VERIFY_IS_APPROX( (*p1) * (*p1), (*p2)*(*p3));
   
-  #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
+  #if defined(EIGEN_VECTORIZE) && EIGEN_MAX_STATIC_ALIGN_BYTES>0
   if(internal::packet_traits<Scalar>::Vectorizable)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Projective3a));
   #endif

@@ -51,7 +51,7 @@ struct MyGenerator {
   typename internal::packet_traits<int>::type packetOp(
       Eigen::DenseIndex packet_location, Eigen::DenseIndex /*unused*/ = 0) const {
     const int packetSize = internal::packet_traits<int>::size;
-    EIGEN_ALIGN_DEFAULT int values[packetSize];
+    EIGEN_ALIGN_MAX int values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
       values[i] = static_cast<int>(3 * (packet_location + i));
     }

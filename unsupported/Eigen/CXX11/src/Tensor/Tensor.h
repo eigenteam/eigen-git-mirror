@@ -75,7 +75,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     typedef typename Base::PacketReturnType PacketReturnType;
 
     enum {
-      IsAligned = bool(EIGEN_ALIGN) & !(Options_&DontAlign),
+      IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0) & !(Options_&DontAlign),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = Options_ & RowMajor ? RowMajor : ColMajor,
       CoordAccess = true,

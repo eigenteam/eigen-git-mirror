@@ -172,7 +172,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index+packetSize-1 < dimensions().TotalSize());
 
-    EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
       values[i] = coeff(index+i);
     }
@@ -245,7 +245,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
     static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
     EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
 
-    EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
     internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
     for (int i = 0; i < packetSize; ++i) {
       this->coeffRef(index+i) = values[i];

@@ -213,7 +213,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(m_stride == 1);
       Index inputIndex = index * m_inputStride + m_inputOffset;
-      EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
       for (int i = 0; i < packetSize; ++i) {
         values[i] = m_impl.coeff(inputIndex);
         inputIndex += m_inputStride;
@@ -233,7 +233,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
         return m_impl.template packet<LoadMode>(inputIndex);
       } else {
         // Cross the stride boundary. Fallback to slow path.
-        EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+        EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
         for (int i = 0; i < packetSize; ++i) {
           values[i] = coeff(index);
           ++index;
@@ -328,7 +328,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
 	(static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == NumInputDims-1)) {
       // m_stride is equal to 1, so let's avoid the integer division.
       eigen_assert(this->m_stride == 1);
-      EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
       internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
       Index inputIndex = index * this->m_inputStride + this->m_inputOffset;
       for (int i = 0; i < packetSize; ++i) {
@@ -348,7 +348,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
         this->m_impl.template writePacket<StoreMode>(inputIndex, x);
       } else {
         // Cross stride boundary. Fallback to slow path.
-        EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+        EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
         internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
         for (int i = 0; i < packetSize; ++i) {
           this->coeffRef(index) = values[i];

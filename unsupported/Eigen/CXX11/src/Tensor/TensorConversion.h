@@ -101,7 +101,7 @@ struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 1, 2> {
       return internal::pcast<SrcPacket, TgtPacket>(m_impl.template packet<Unaligned>(index));
     } else {
       const int TgtPacketSize = internal::unpacket_traits<TgtPacket>::size;
-      EIGEN_ALIGN_DEFAULT typename internal::unpacket_traits<TgtPacket>::type values[TgtPacketSize];
+      EIGEN_ALIGN_MAX typename internal::unpacket_traits<TgtPacket>::type values[TgtPacketSize];
       for (int i = 0; i < TgtPacketSize; ++i) {
         values[i] = m_impl.coeff(index+i);
       }

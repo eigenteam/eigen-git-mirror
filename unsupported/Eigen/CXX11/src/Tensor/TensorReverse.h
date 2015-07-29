@@ -200,7 +200,7 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
 
     // TODO(ndjaitly): write a better packing routine that uses
     // local structure.
-    EIGEN_ALIGN_DEFAULT typename internal::remove_const<CoeffReturnType>::type
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type
                                                             values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
       values[i] = coeff(index+i);
@@ -259,7 +259,7 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
     eigen_assert(index+packetSize-1 < dimensions().TotalSize());
 
     // This code is pilfered from TensorMorphing.h
-    EIGEN_ALIGN_DEFAULT CoeffReturnType values[packetSize];
+    EIGEN_ALIGN_MAX CoeffReturnType values[packetSize];
     internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
     for (int i = 0; i < packetSize; ++i) {
       this->coeffRef(index+i) = values[i];

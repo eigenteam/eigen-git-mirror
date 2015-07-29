@@ -9,8 +9,8 @@
 
 #include "main.h"
 
-#if EIGEN_ALIGN
-#define ALIGNMENT EIGEN_ALIGN_BYTES
+#if EIGEN_MAX_ALIGN_BYTES>0
+#define ALIGNMENT EIGEN_MAX_ALIGN_BYTES
 #else
 #define ALIGNMENT 1
 #endif
@@ -106,7 +106,7 @@ template<typename T> void check_custom_new_delete()
     delete[] t;
   }
   
-#ifdef EIGEN_ALIGN
+#if EIGEN_MAX_ALIGN_BYTES>0
   {
     T* t = static_cast<T *>((T::operator new)(sizeof(T)));
     (T::operator delete)(t, sizeof(T));
@@ -143,7 +143,7 @@ void test_dynalloc()
   }
   
   // check static allocation, who knows ?
-  #if EIGEN_ALIGN_STATICALLY
+  #if EIGEN_MAX_STATIC_ALIGN_BYTES
   {
     MyStruct foo0;  VERIFY(size_t(foo0.avec.data())%ALIGNMENT==0);
     MyClassA fooA;  VERIFY(size_t(fooA.avec.data())%ALIGNMENT==0);

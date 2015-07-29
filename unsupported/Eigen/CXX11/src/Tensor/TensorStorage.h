@@ -41,7 +41,7 @@ class TensorStorage<T, FixedDimensions, Options_>
  private:
   static const std::size_t Size = FixedDimensions::total_size;
 
-  EIGEN_ALIGN_DEFAULT T m_data[Size];
+  EIGEN_ALIGN_MAX T m_data[Size];
   FixedDimensions m_dimensions;
 
  public:

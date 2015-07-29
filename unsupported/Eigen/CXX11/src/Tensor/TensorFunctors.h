@@ -265,7 +265,7 @@ template <typename T> class UniformRandomGenerator {
   template<typename Index>
   typename internal::packet_traits<T>::type packetOp(Index, Index = 0) const {
     const int packetSize = internal::packet_traits<T>::size;
-    EIGEN_ALIGN_DEFAULT T values[packetSize];
+    EIGEN_ALIGN_MAX T values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
       values[i] = random<T>();
     }
@@ -298,7 +298,7 @@ template <> class UniformRandomGenerator<float> {
   template<typename Index>
   typename internal::packet_traits<float>::type packetOp(Index i, Index j = 0) const {
     const int packetSize = internal::packet_traits<float>::size;
-    EIGEN_ALIGN_DEFAULT float values[packetSize];
+    EIGEN_ALIGN_MAX float values[packetSize];
     for (int k = 0; k < packetSize; ++k) {
       values[k] = this->operator()(i, j);
     }
@@ -335,7 +335,7 @@ template <> class UniformRandomGenerator<double> {
   template<typename Index>
   typename internal::packet_traits<double>::type packetOp(Index i, Index j = 0) const {
     const int packetSize = internal::packet_traits<double>::size;
-    EIGEN_ALIGN_DEFAULT double values[packetSize];
+    EIGEN_ALIGN_MAX double values[packetSize];
     for (int k = 0; k < packetSize; ++k) {
       values[k] = this->operator()(i, j);
     }
@@ -495,7 +495,7 @@ template <typename T> class NormalRandomGenerator {
   template<typename Index>
   typename internal::packet_traits<T>::type packetOp(Index, Index = 0) const {
     const int packetSize = internal::packet_traits<T>::size;
-    EIGEN_ALIGN_DEFAULT T values[packetSize];
+    EIGEN_ALIGN_MAX T values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
       values[i] = m_distribution(m_generator);
     }

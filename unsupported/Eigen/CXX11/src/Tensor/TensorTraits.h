@@ -23,13 +23,13 @@ class compute_tensor_flags
     aligned_bit =
     (
         ((Options&DontAlign)==0) && (
-#if EIGEN_ALIGN_STATICALLY
+#if EIGEN_MAX_STATIC_ALIGN_BYTES>0
             (!is_dynamic_size_storage)
 #else
             0
 #endif
             ||
-#if EIGEN_ALIGN
+#if EIGEN_MAX_ALIGN_BYTES>0
             is_dynamic_size_storage
 #else
             0

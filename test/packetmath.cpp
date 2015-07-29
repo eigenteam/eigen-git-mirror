@@ -106,10 +106,10 @@ template<typename Scalar> void packetmath()
 
   const int max_size = PacketSize > 4 ? PacketSize : 4;
   const int size = PacketSize*max_size;
-  EIGEN_ALIGN_DEFAULT Scalar data1[size];
-  EIGEN_ALIGN_DEFAULT Scalar data2[size];
-  EIGEN_ALIGN_DEFAULT Packet packets[PacketSize*2];
-  EIGEN_ALIGN_DEFAULT Scalar ref[size];
+  EIGEN_ALIGN_MAX Scalar data1[size];
+  EIGEN_ALIGN_MAX Scalar data2[size];
+  EIGEN_ALIGN_MAX Packet packets[PacketSize*2];
+  EIGEN_ALIGN_MAX Scalar ref[size];
   RealScalar refvalue = 0;
   for (int i=0; i<size; ++i)
   {
@@ -265,13 +265,13 @@ template<typename Scalar> void packetmath()
   if (internal::packet_traits<Scalar>::HasBlend) {
     Packet thenPacket = internal::pload<Packet>(data1);
     Packet elsePacket = internal::pload<Packet>(data2);
-    EIGEN_ALIGN_DEFAULT internal::Selector<PacketSize> selector;
+    EIGEN_ALIGN_MAX internal::Selector<PacketSize> selector;
     for (int i = 0; i < PacketSize; ++i) {
       selector.select[i] = i;
     }
 
     Packet blend = internal::pblend(selector, thenPacket, elsePacket);
-    EIGEN_ALIGN_DEFAULT Scalar result[size];
+    EIGEN_ALIGN_MAX Scalar result[size];
     internal::pstore(result, blend);
     for (int i = 0; i < PacketSize; ++i) {
       VERIFY(isApproxAbs(result[i], (selector.select[i] ? data1[i] : data2[i]), refvalue));
@@ -286,9 +286,9 @@ template<typename Scalar> void packetmath_real()
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN_DEFAULT Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_DEFAULT Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_DEFAULT Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar ref[internal::packet_traits<Scalar>::size*4];
 
   for (int i=0; i<size; ++i)
   {
@@ -392,9 +392,9 @@ template<typename Scalar> void packetmath_notcomplex()
   typedef typename internal::packet_traits<Scalar>::type Packet;
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
-  EIGEN_ALIGN_DEFAULT Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_DEFAULT Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_DEFAULT Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar ref[internal::packet_traits<Scalar>::size*4];
   
   Array<Scalar,Dynamic,1>::Map(data1, internal::packet_traits<Scalar>::size*4).setRandom();
 
@@ -452,10 +452,10 @@ template<typename Scalar> void packetmath_complex()
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN_DEFAULT Scalar data1[PacketSize*4];
-  EIGEN_ALIGN_DEFAULT Scalar data2[PacketSize*4];
-  EIGEN_ALIGN_DEFAULT Scalar ref[PacketSize*4];
-  EIGEN_ALIGN_DEFAULT Scalar pval[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar data1[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar data2[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar ref[PacketSize*4];
+  EIGEN_ALIGN_MAX Scalar pval[PacketSize*4];
 
   for (int i=0; i<size; ++i)
   {
@@ -480,7 +480,7 @@ template<typename Scalar> void packetmath_scatter_gather() {
   typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   const int PacketSize = internal::packet_traits<Scalar>::size;
-  EIGEN_ALIGN_DEFAULT Scalar data1[PacketSize];
+  EIGEN_ALIGN_MAX Scalar data1[PacketSize];
   RealScalar refvalue = 0;
   for (int i=0; i<PacketSize; ++i) {
     data1[i] = internal::random<Scalar>()/RealScalar(PacketSize);
@@ -488,7 +488,7 @@ template<typename Scalar> void packetmath_scatter_gather() {
   
   int stride = internal::random<int>(1,20);
   
-  EIGEN_ALIGN_DEFAULT Scalar buffer[PacketSize*20];
+  EIGEN_ALIGN_MAX Scalar buffer[PacketSize*20];
   memset(buffer, 0, 20*sizeof(Packet));
   Packet packet = internal::pload<Packet>(data1);
   internal::pscatter<Scalar, Packet>(buffer, packet, stride);

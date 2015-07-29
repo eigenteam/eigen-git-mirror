@@ -438,7 +438,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       convolvePacket(startInputs[0], 0, NumKernelDims-1, result);
       return result;
     } else {
-      EIGEN_ALIGN_DEFAULT Scalar data[PacketSize];
+      EIGEN_ALIGN_MAX Scalar data[PacketSize];
       data[0] = Scalar(0);
       convolve(startInputs[0], 0, NumKernelDims-1, data[0]);
       for (int i = 1; i < PacketSize-1; ++i) {
