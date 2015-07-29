@@ -104,7 +104,7 @@ namespace Eigen {
   * <tr><th>Matrix type</th><th>Equivalent C structure</th></tr>
   * <tr><td>\code Matrix<T,Dynamic,Dynamic> \endcode</td><td>\code
   * struct {
-  *   T *data;                  // with (size_t(data)%EIGEN_MAX_ALIGN)==0
+  *   T *data;                  // with (size_t(data)%EIGEN_MAX_ALIGN_BYTES)==0
   *   Eigen::Index rows, cols;
   *  };
   * \endcode</td></tr>
@@ -112,7 +112,7 @@ namespace Eigen {
   * Matrix<T,Dynamic,1>
   * Matrix<T,1,Dynamic> \endcode</td><td>\code
   * struct {
-  *   T *data;                  // with (size_t(data)%EIGEN_MAX_ALIGN)==0
+  *   T *data;                  // with (size_t(data)%EIGEN_MAX_ALIGN_BYTES)==0
   *   Eigen::Index size;
   *  };
   * \endcode</td></tr>
@@ -129,7 +129,7 @@ namespace Eigen {
   * \endcode</td></tr>
   * </table>
   * Note that in this table Rows, Cols, MaxRows and MaxCols are all positive integers. A(S) is defined to the largest possible power-of-two
-  * smaller to EIGEN_MAX_STATIC_ALIGN.
+  * smaller to EIGEN_MAX_STATIC_ALIGN_BYTES.
   * 
   * \see MatrixBase for the majority of the API methods for matrices, \ref TopicClassHierarchy, 
   * \ref TopicStorageOrders 
