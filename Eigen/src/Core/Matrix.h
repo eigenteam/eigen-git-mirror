@@ -24,13 +24,13 @@ namespace Eigen {
   * The %Matrix class encompasses \em both fixed-size and dynamic-size objects (\ref fixedsize "note").
   *
   * The first three template parameters are required:
-  * \tparam _Scalar \anchor matrix_tparam_scalar Numeric type, e.g. float, double, int or std::complex<float>.
+  * \tparam _Scalar Numeric type, e.g. float, double, int or std::complex<float>.
   *                 User defined scalar types are supported as well (see \ref user_defined_scalars "here").
   * \tparam _Rows Number of rows, or \b Dynamic
   * \tparam _Cols Number of columns, or \b Dynamic
   *
   * The remaining template parameters are optional -- in most cases you don't have to worry about them.
-  * \tparam _Options \anchor matrix_tparam_options A combination of either \b #RowMajor or \b #ColMajor, and of either
+  * \tparam _Options A combination of either \b #RowMajor or \b #ColMajor, and of either
   *                 \b #AutoAlign or \b #DontAlign.
   *                 The former controls \ref TopicStorageOrders "storage order", and defaults to column-major. The latter controls alignment, which is required
   *                 for vectorization. It defaults to aligning matrices except for fixed sizes that aren't a multiple of the packet size.
@@ -97,6 +97,40 @@ namespace Eigen {
   * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.</dd>
   * </dl>
   *
+  * <i><b>ABI and storage layout</b></i>
+  * 
+  * The table below summarizes the ABI of some possible Matrix instances which is fixed thorough the lifetime of Eigen 3.
+  * <table  class="manual">
+  * <tr><th>Matrix type</th><th>Equivalent C structure</th></tr>
+  * <tr><td>\code Matrix<T,Dynamic,Dynamic> \endcode</td><td>\code
+  * struct {
+  *   T *data;                  // with (size_t(data)%EIGEN_MAX_ALIGN)==0
+  *   Eigen::Index rows, cols;
+  *  };
+  * \endcode</td></tr>
+  * <tr class="alt"><td>\code
+  * Matrix<T,Dynamic,1>
+  * Matrix<T,1,Dynamic> \endcode</td><td>\code
+  * struct {
+  *   T *data;                  // with (size_t(data)%EIGEN_MAX_ALIGN)==0
+  *   Eigen::Index size;
+  *  };
+  * \endcode</td></tr>
+  * <tr><td>\code Matrix<T,Rows,Cols> \endcode</td><td>\code
+  * struct {
+  *   T data[Rows*Cols];        // with (size_t(data)%A(Rows*Cols*sizeof(T)))==0
+  *  };
+  * \endcode</td></tr>
+  * <tr class="alt"><td>\code Matrix<T,Dynamic,Dynamic,0,MaxRows,MaxCols> \endcode</td><td>\code
+  * struct {
+  *   T data[MaxRows*MaxCols];  // with (size_t(data)%A(MaxRows*MaxCols*sizeof(T)))==0
+  *   Eigen::Index rows, cols;
+  *  };
+  * \endcode</td></tr>
+  * </table>
+  * Note that in this table Rows, Cols, MaxRows and MaxCols are all positive integers. A(S) is defined to the largest possible power-of-two
+  * smaller to EIGEN_MAX_STATIC_ALIGN.
+  * 
   * \see MatrixBase for the majority of the API methods for matrices, \ref TopicClassHierarchy, 
   * \ref TopicStorageOrders 
   */

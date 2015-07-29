@@ -24,6 +24,9 @@ namespace Eigen {
   * API for the %Matrix class provides easy access to linear-algebra
   * operations.
   *
+  * See documentation of class Matrix for detailed information on the template parameters
+  * storage layout.
+  * 
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_ARRAY_PLUGIN.
   *
