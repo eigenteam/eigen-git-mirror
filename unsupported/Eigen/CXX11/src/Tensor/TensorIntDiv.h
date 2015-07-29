@@ -55,9 +55,14 @@ namespace {
   }
 
   template <typename T>
+  struct UnsignedTraits {
+    typedef typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type type;
+  };
+
+  template <typename T>
   struct DividerTraits {
 #if defined(__SIZEOF_INT128__) && !defined(__CUDACC__)
-    typedef typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type type;
+    typedef typename UnsignedTraits<T>::type type;
     static const int N = sizeof(T) * 8;
 #else
     typedef uint32_t type;
@@ -125,14 +130,14 @@ struct TensorIntDivisor {
   // the __uint128_t type.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorIntDivisor(const T divider) {
     const int N = DividerTraits<T>::N;
-    eigen_assert(divider < NumTraits<UnsignedType>::highest()/2);
+    eigen_assert(static_cast<typename UnsignedTraits<T>::type>(divider) < NumTraits<UnsignedType>::highest()/2);
     eigen_assert(divider > 0);
 
     // fast ln2
     const int leading_zeros = count_leading_zeros(static_cast<UnsignedType>(divider));
     int log_div = N - leading_zeros;
     // if divider is a power of two then log_div is 1 more than it should be.
-    if ((1ull << (log_div-1)) == divider)
+    if ((static_cast<typename UnsignedTraits<T>::type>(1) << (log_div-1)) == static_cast<typename UnsignedTraits<T>::type>(divider))
       log_div--;
 
     multiplier = DividerHelper<N, T>::computeMultiplier(log_div, divider);
@@ -143,7 +148,7 @@ struct TensorIntDivisor {
   // Must have 0 <= numerator. On platforms that dont support the __uint128_t
   // type numerator should also be less than 2^32-1.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T divide(const T numerator) const {
-    eigen_assert(numerator < NumTraits<UnsignedType>::highest()/2);
+    eigen_assert(static_cast<typename UnsignedTraits<T>::type>(numerator) < NumTraits<UnsignedType>::highest()/2);
     eigen_assert(numerator >= 0);
 
     UnsignedType t1 = muluh(multiplier, numerator);

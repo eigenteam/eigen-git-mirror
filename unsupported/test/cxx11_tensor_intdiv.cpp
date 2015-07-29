@@ -69,13 +69,13 @@ void test_unsigned_64bit()
 
 void test_powers_32bit() {
   for (int expon = 1; expon < 31; expon++) {
-    int32_t div = (1ull << expon);
+    int32_t div = (1 << expon);
     for (int num_expon = 0; num_expon < 32; num_expon++) {
-      int32_t start_num = (1ull << num_expon) - 100;
-      int32_t end_num = (1ull << num_expon) + 100;
+      int32_t start_num = (1 << num_expon) - 100;
+      int32_t end_num = (1 << num_expon) + 100;
       if (start_num < 0)
         start_num = 0;
-      for (int64_t num = start_num; num < end_num; num++) {
+      for (int32_t num = start_num; num < end_num; num++) {
         Eigen::internal::TensorIntDivisor<int32_t> divider =
           Eigen::internal::TensorIntDivisor<int32_t>(div);
         int32_t result = num/div;
