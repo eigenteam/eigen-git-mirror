@@ -318,6 +318,7 @@ using std::ptrdiff_t;
   #include "src/Core/arch/SSE/TypeCasting.h"
 #elif defined(EIGEN_VECTORIZE_ALTIVEC) || defined(EIGEN_VECTORIZE_VSX)
   #include "src/Core/arch/AltiVec/PacketMath.h"
+  #include "src/Core/arch/AltiVec/MathFunctions.h"
   #include "src/Core/arch/AltiVec/Complex.h"
 #elif defined EIGEN_VECTORIZE_NEON
   #include "src/Core/arch/NEON/PacketMath.h"

@@ -59,6 +59,9 @@ typedef __vector unsigned char  Packet16uc;
 #define _EIGEN_DECLARE_CONST_Packet2l(NAME,X) \
   Packet2l p2l_##NAME = pset1<Packet2l>(X)
 
+#define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
+  const Packet4f p4f_##NAME = reinterpret_cast<Packet4f>(pset1<Packet4i>(X))
+
 #define DST_CHAN 1
 #define DST_CTRL(size, count, stride) (((size) << 24) | ((count) << 16) | (stride))
 
@@ -66,10 +69,12 @@ typedef __vector unsigned char  Packet16uc;
 // These constants are endian-agnostic
 static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0); //{ 0.0, 0.0, 0.0, 0.0}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
+#ifndef __VSX__
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1); //{ 1, 1, 1, 1}
+static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0); //{ 1.0, 1.0, 1.0, 1.0}
+#endif
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16); //{ -16, -16, -16, -16}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
-static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0); //{ 1.0, 1.0, 1.0, 1.0}
 static Packet4f p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1); //{ 0x80000000, 0x80000000, 0x80000000, 0x80000000}
 
 static Packet4f p4f_COUNTDOWN = { 0.0, 1.0, 2.0, 3.0 };
@@ -130,8 +135,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasDiv  = 1,
     HasSin  = 0,
     HasCos  = 0,
-    HasLog  = 0,
-    HasExp  = 0,
+    HasLog  = 1,
+    HasExp  = 1,
     HasSqrt = 0
   };
 };
@@ -751,7 +756,7 @@ template<> struct packet_traits<double> : default_packet_traits
     HasHalfPacket = 0,
 
     HasDiv  = 1,
-    HasExp  = 0,
+    HasExp  = 1,
     HasSqrt = 0
   };
 };
