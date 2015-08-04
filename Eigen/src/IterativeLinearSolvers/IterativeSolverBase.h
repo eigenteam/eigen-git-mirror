@@ -74,7 +74,7 @@ public:
     m_preconditioner.analyzePattern(mp_matrix);
     m_isInitialized = true;
     m_analysisIsOk = true;
-    m_info = Success;
+    m_info = m_preconditioner.info();
     return derived();
   }
   
@@ -94,7 +94,7 @@ public:
     grab(A.derived());
     m_preconditioner.factorize(mp_matrix);
     m_factorizationIsOk = true;
-    m_info = Success;
+    m_info = m_preconditioner.info();
     return derived();
   }
 
@@ -116,7 +116,7 @@ public:
     m_isInitialized = true;
     m_analysisIsOk = true;
     m_factorizationIsOk = true;
-    m_info = Success;
+    m_info = m_preconditioner.info();
     return derived();
   }
 

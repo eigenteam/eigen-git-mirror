@@ -232,7 +232,7 @@ void IncompleteLUT<Scalar,StorageIndex>::analyzePattern(const _MatrixType& amat)
 
   m_analysisIsOk = true;
   m_factorizationIsOk = false;
-  m_isInitialized = false;
+  m_isInitialized = true;
 }
 
 template <typename Scalar, typename StorageIndex>
@@ -441,7 +441,6 @@ void IncompleteLUT<Scalar,StorageIndex>::factorize(const _MatrixType& amat)
   m_lu.makeCompressed();
 
   m_factorizationIsOk = true;
-  m_isInitialized = m_factorizationIsOk;
   m_info = Success;
 }
 

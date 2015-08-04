@@ -95,6 +95,8 @@ class DiagonalPreconditioner
                 && "DiagonalPreconditioner::solve(): invalid number of rows of the right hand side matrix b");
       return Solve<DiagonalPreconditioner, Rhs>(*this, b.derived());
     }
+    
+    ComputationInfo info() { return Success; }
 
   protected:
     Vector m_invdiag;
@@ -161,6 +163,8 @@ class LeastSquareDiagonalPreconditioner : public DiagonalPreconditioner<_Scalar>
     {
       return factorize(mat);
     }
+    
+    ComputationInfo info() { return Success; }
 
   protected:
 };
@@ -190,6 +194,8 @@ class IdentityPreconditioner
     
     template<typename Rhs>
     inline const Rhs& solve(const Rhs& b) const { return b; }
+    
+    ComputationInfo info() { return Success; }
 };
 
 } // end namespace Eigen
