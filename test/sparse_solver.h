@@ -377,7 +377,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver, int m
     }
     // regression test for Bug 792 (structurally rank deficient matrices):
     if(checkDeficient && size>1) {
-      Index col = internal::random<int>(0,size-1);
+      Index col = internal::random<int>(0,int(size-1));
       A.prune(prune_column(col));
       solver.compute(A);
       VERIFY_IS_EQUAL(solver.info(), NumericalIssue);
