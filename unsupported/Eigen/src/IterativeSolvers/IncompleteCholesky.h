@@ -72,7 +72,7 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     /** 
      * \brief Set the initial shift parameter
      */
-    void setShift( Scalar shift) { m_initialShift = shift; }
+    void setInitialShift(RealScalar shift) { m_initialShift = shift; }
     
     /**
     * \brief Computes the fill reducing permutation vector. 
@@ -114,9 +114,9 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     }
 
   protected:
-    FactorType m_L;             // The lower part stored in CSC
+    FactorType m_L;              // The lower part stored in CSC
     VectorRx m_scale;            // The vector for scaling the matrix 
-    Scalar m_initialShift;      // The initial shift parameter
+    RealScalar m_initialShift;   // The initial shift parameter
     bool m_analysisIsOk; 
     bool m_factorizationIsOk; 
     ComputationInfo m_info;
@@ -157,8 +157,11 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   Map<VectorIx> colPtr( m_L.outerIndexPtr(), n+1); // Pointer to the beginning of each row
   VectorIx firstElt(n-1); // for each j, points to the next entry in vals that will be used in the factorization
   VectorList listCol(n);  // listCol(j) is a linked list of columns to update column j
-  VectorSx curCol(n);     // Store a  nonzero values in each column
-  VectorIx irow(n);       // Row indices of nonzero elements in each column
+  VectorSx col_vals(n);   // Store a  nonzero values in each column
+  VectorIx col_irow(n);   // Row indices of nonzero elements in each column
+  VectorIx col_pattern(n);
+  col_pattern.fill(-1);
+  StorageIndex col_nnz;
   
   
   // Computes the scaling factors 
@@ -196,59 +199,77 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   for (Index j=0; j < n; ++j)
   {  
     // Left-looking factorization of the j-th column
-    // First, load the j-th column into curCol 
+    // First, load the j-th column into col_vals 
     Scalar diag = vals[colPtr[j]];  // It is assumed that only the lower part is stored
-    curCol.setZero();
-    irow.setLinSpaced(n,0,internal::convert_index<StorageIndex,Index>(n-1)); 
+    col_nnz = 0;
     for (Index i = colPtr[j] + 1; i < colPtr[j+1]; i++)
     {
-      curCol(rowIdx[i]) = vals[i]; 
-      irow(rowIdx[i]) = rowIdx[i]; 
+      StorageIndex l = rowIdx[i];
+      col_vals(col_nnz) = vals[i];
+      col_irow(col_nnz) = l;
+      col_pattern(l) = col_nnz;
+      col_nnz++;
     }
-    typename std::list<StorageIndex>::iterator k; 
-    // Browse all previous columns that will update column j
-    for(k = listCol[j].begin(); k != listCol[j].end(); k++) 
     {
-      Index jk = firstElt(*k); // First element to use in the column 
-      eigen_internal_assert(rowIdx[jk]==j);
-      Scalar v_j_jk = numext::conj(vals[jk]);
-      
-      jk += 1; 
-      for (Index i = jk; i < colPtr[*k+1]; i++)
-        curCol(rowIdx[i]) -= vals[i] * v_j_jk;
-      updateList(colPtr,rowIdx,vals, *k, jk, firstElt, listCol);
+      typename std::list<StorageIndex>::iterator k; 
+      // Browse all previous columns that will update column j
+      for(k = listCol[j].begin(); k != listCol[j].end(); k++) 
+      {
+        Index jk = firstElt(*k); // First element to use in the column 
+        eigen_internal_assert(rowIdx[jk]==j);
+        Scalar v_j_jk = numext::conj(vals[jk]);
+        
+        jk += 1; 
+        for (Index i = jk; i < colPtr[*k+1]; i++)
+        {
+          StorageIndex l = rowIdx[i];
+          if(col_pattern[l]<0)
+          {
+            col_vals(col_nnz) = vals[i] * v_j_jk;
+            col_irow[col_nnz] = l;
+            col_pattern(l) = col_nnz;
+            col_nnz++;
+          }
+          else
+            col_vals(col_pattern[l]) -= vals[i] * v_j_jk;
+        }
+        updateList(colPtr,rowIdx,vals, *k, jk, firstElt, listCol);
+      }
     }
     
     // Scale the current column
     if(numext::real(diag) <= 0) 
     {
-      //std::cerr << "\nNegative diagonal during Incomplete factorization at position " << j << " (value = " << diag << ")\n";
+      std::cerr << "\nNegative diagonal during Incomplete factorization at position " << j << " (value = " << diag << ")\n";
       m_info = NumericalIssue; 
       return; 
     }
     
     RealScalar rdiag = sqrt(numext::real(diag));
     vals[colPtr[j]] = rdiag;
-    // TODO, the following should iterate on the structurally non-zeros only
-    for (Index i = j+1; i < n; i++)
+    for (Index k = 0; k<col_nnz; ++k)
     {
-      //Scale 
-      curCol(i) /= rdiag;
-      //Update the remaining diagonals with curCol
-      vals[colPtr[i]] -= numext::abs2(curCol(i));
+      Index i = col_irow[k];
+      //Scale
+      col_vals(k) /= rdiag;
+      //Update the remaining diagonals with col_vals
+      vals[colPtr[i]] -= numext::abs2(col_vals(k));
     }
     // Select the largest p elements
     // p is the original number of elements in the column (without the diagonal)
-    // TODO, QuickSplit should operate on the structurally non zeros only.
     Index p = colPtr[j+1] - colPtr[j] - 1 ; 
-    internal::QuickSplit(curCol, irow, p); 
+    Ref<VectorSx> cvals = col_vals.head(col_nnz);
+    Ref<VectorIx> cirow = col_irow.head(col_nnz);
+    internal::QuickSplit(cvals,cirow, p); 
     // Insert the largest p elements in the matrix
     Index cpt = 0; 
     for (Index i = colPtr[j]+1; i < colPtr[j+1]; i++)
     {
-      vals[i] = curCol(cpt); 
-      rowIdx[i] = irow(cpt); 
-      cpt ++; 
+      vals[i] = col_vals(cpt); 
+      rowIdx[i] = col_irow(cpt);
+      // restore col_pattern:
+      col_pattern(col_irow(cpt)) = -1;
+      cpt++; 
     }
     // Get the first smallest row index and put it after the diagonal element
     Index jk = colPtr(j)+1;
