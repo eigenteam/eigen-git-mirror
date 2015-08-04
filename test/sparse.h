@@ -77,8 +77,11 @@ initSparse(double density,
       Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
       if ((flags&ForceNonZeroDiag) && (i==j))
       {
+        // FIXME: the following is too conservative
         v = internal::random<Scalar>()*Scalar(3.);
-        v = v*v + Scalar(5.);
+        v = v*v;
+        if(numext::real(v)>0) v += Scalar(5);
+        else                  v -= Scalar(5);
       }
       if ((flags & MakeLowerTriangular) && aj>ai)
         v = Scalar(0);
