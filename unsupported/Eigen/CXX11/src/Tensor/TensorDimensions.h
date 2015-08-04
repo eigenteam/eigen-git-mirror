@@ -129,7 +129,7 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
     return *this;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const int index) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const std::size_t index) const {
     return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count - 1>::run(index, *this);
   }
 
