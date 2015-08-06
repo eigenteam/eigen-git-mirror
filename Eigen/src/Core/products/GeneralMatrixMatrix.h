@@ -293,8 +293,13 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
       SizeB = ActualCols * MaxDepth
     };
 
+#if EIGEN_MAX_STATIC_ALIGN_BYTES >= EIGEN_DEFAULT_ALIGN_BYTES
     EIGEN_ALIGN_MAX LhsScalar m_staticA[SizeA];
     EIGEN_ALIGN_MAX RhsScalar m_staticB[SizeB];
+#else
+    EIGEN_ALIGN_MAX char m_staticA[SizeA * sizeof(LhsScalar) + EIGEN_DEFAULT_ALIGN_BYTES-1];
+    EIGEN_ALIGN_MAX char m_staticB[SizeB * sizeof(RhsScalar) + EIGEN_DEFAULT_ALIGN_BYTES-1];
+#endif
 
   public:
 
@@ -303,8 +308,13 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
       this->m_mc = ActualRows;
       this->m_nc = ActualCols;
       this->m_kc = MaxDepth;
+#if EIGEN_MAX_STATIC_ALIGN_BYTES >= EIGEN_DEFAULT_ALIGN_BYTES
       this->m_blockA = m_staticA;
       this->m_blockB = m_staticB;
+#else
+      this->m_blockA = reinterpret_cast<LhsScalar*>((std::size_t(m_staticA) + (EIGEN_DEFAULT_ALIGN_BYTES-1)) & ~std::size_t(EIGEN_DEFAULT_ALIGN_BYTES-1));
+      this->m_blockB = reinterpret_cast<RhsScalar*>((std::size_t(m_staticB) + (EIGEN_DEFAULT_ALIGN_BYTES-1)) & ~std::size_t(EIGEN_DEFAULT_ALIGN_BYTES-1));
+#endif
     }
     
     void initParallel(Index, Index, Index, Index)

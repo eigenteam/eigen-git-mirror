@@ -2066,7 +2066,7 @@ EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, DataMapper, nr, ColMajor, Co
       const LinearMapper dm3 = rhs.getLinearMapper(0, j2 + 3);
 
       Index k=0;
-      if((PacketSize%4)==0) // TODO enbale vectorized transposition for PacketSize==2 ??
+      if((PacketSize%4)==0) // TODO enable vectorized transposition for PacketSize==2 ??
       {
         for(; k<peeled_k; k+=PacketSize) {
           PacketBlock<Packet,(PacketSize%4)==0?4:PacketSize> kernel;
