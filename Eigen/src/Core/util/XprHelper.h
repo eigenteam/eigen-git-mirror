@@ -122,6 +122,45 @@ template<typename T> struct unpacket_traits
   enum {size=1};
 };
 
+#if EIGEN_MAX_STATIC_ALIGN_BYTES>0
+template<int ArrayBytes, int AlignmentBytes,
+         bool Match     =  bool((ArrayBytes%AlignmentBytes)==0),
+         bool TryHalf   =  bool(AlignmentBytes>EIGEN_MIN_ALIGN_BYTES) >
+struct compute_default_alignment_helper
+{
+  enum { value = 0 };
+};
+
+template<int ArrayBytes, int AlignmentBytes, bool TryHalf>
+struct compute_default_alignment_helper<ArrayBytes, AlignmentBytes, true, TryHalf> // Match
+{
+  enum { value = AlignmentBytes };
+};
+
+template<int ArrayBytes, int AlignmentBytes>
+struct compute_default_alignment_helper<ArrayBytes, AlignmentBytes, false, true> // Try-half
+{
+  // current packet too large, try with an half-packet
+  enum { value = compute_default_alignment_helper<ArrayBytes, AlignmentBytes/2>::value };
+};
+#else
+// If static alignment is disabled, no need to bother.
+// This also avoids a division by zero in "bool Match =  bool((ArrayBytes%AlignmentBytes)==0)"
+template<int ArrayBytes, int AlignmentBytes>
+struct compute_default_alignment_helper
+{
+  enum { value = 0 };
+};
+#endif
+
+template<typename T, int Size> struct compute_default_alignment {
+  enum { value = compute_default_alignment_helper<Size*sizeof(T),EIGEN_MAX_STATIC_ALIGN_BYTES>::value };
+};
+
+template<typename T> struct compute_default_alignment<T,Dynamic> {
+  enum { value = EIGEN_MAX_ALIGN_BYTES };
+};
+
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = AutoAlign |
                           ( (_Rows==1 && _Cols!=1) ? RowMajor

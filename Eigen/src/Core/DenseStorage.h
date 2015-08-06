@@ -34,34 +34,13 @@ void check_static_allocation_size()
   #endif
 }
 
-template<int ArrayBytes, int AlignmentBytes,
-         bool Match     =  bool((ArrayBytes%AlignmentBytes)==0),
-         bool TryHalf   =  bool(AlignmentBytes>EIGEN_MIN_ALIGN_BYTES) >
-struct compute_default_alignment
-{
-  enum { value = 0 };
-};
-
-template<int ArrayBytes, int AlignmentBytes, bool TryHalf>
-struct compute_default_alignment<ArrayBytes, AlignmentBytes, true, TryHalf> // Match
-{
-  enum { value = AlignmentBytes };
-};
-
-template<int ArrayBytes, int AlignmentBytes>
-struct compute_default_alignment<ArrayBytes, AlignmentBytes, false, true> // Try-half
-{
-  // current packet too large, try with an half-packet
-  enum { value = compute_default_alignment<ArrayBytes, AlignmentBytes/2>::value };
-};
-
 /** \internal
   * Static array. If the MatrixOrArrayOptions require auto-alignment, the array will be automatically aligned:
   * to 16 bytes boundary if the total size is a multiple of 16 bytes.
   */
 template <typename T, int Size, int MatrixOrArrayOptions,
           int Alignment = (MatrixOrArrayOptions&DontAlign) ? 0
-                        : compute_default_alignment<Size*sizeof(T), EIGEN_PLAIN_ENUM_MAX(packet_traits<T>::size*sizeof(T), EIGEN_MAX_STATIC_ALIGN_BYTES) >::value >
+                        : compute_default_alignment<T,Size>::value >
 struct plain_array
 {
   T array[Size];
@@ -107,7 +86,7 @@ struct plain_array<T, Size, MatrixOrArrayOptions, 8>
 
   EIGEN_DEVICE_FUNC
   plain_array() 
-  { 
+  {
     EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(7);
     check_static_allocation_size<T,Size>();
   }
@@ -145,7 +124,7 @@ struct plain_array<T, Size, MatrixOrArrayOptions, 32>
 
   EIGEN_DEVICE_FUNC
   plain_array() 
-  { 
+  {
     EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(31);
     check_static_allocation_size<T,Size>();
   }
