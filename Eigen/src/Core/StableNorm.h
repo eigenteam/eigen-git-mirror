@@ -178,7 +178,7 @@ MatrixBase<Derived>::stableNorm() const
   if(n==1)
     return abs(this->coeff(0));
   
-  Index bi = internal::first_aligned(copy);
+  Index bi = internal::first_default_aligned(copy);
   if (bi>0)
     internal::stable_norm_kernel(copy.head(bi), ssq, scale, invScale);
   for (; bi<n; bi+=blockSize)

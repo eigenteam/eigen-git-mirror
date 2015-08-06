@@ -145,7 +145,7 @@ void SparseLUImpl<Scalar,StorageIndex>::panel_bmod(const Index m, const Index w,
       eigen_assert(tempv.size()>w*ldu + nrow*w + 1);
       
       Index ldl = internal::first_multiple<Index>(nrow, PacketSize);
-      Index offset = (PacketSize-internal::first_aligned(B.data(), PacketSize)) % PacketSize;
+      Index offset = (PacketSize-internal::first_default_aligned(B.data(), PacketSize)) % PacketSize;
       Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > L(tempv.data()+w*ldu+offset, nrow, u_cols, OuterStride<>(ldl));
       
       L.setZero();

@@ -39,9 +39,9 @@ void sparselu_gemm(Index m, Index n, Index d, const Scalar* A, Index lda, const 
   };
   Index d_end = (d/RK)*RK;    // number of columns of A (rows of B) suitable for full register blocking
   Index n_end = (n/RN)*RN;    // number of columns of B-C suitable for processing RN columns at once
-  Index i0 = internal::first_aligned(A,m);
+  Index i0 = internal::first_default_aligned(A,m);
   
-  eigen_internal_assert(((lda%PacketSize)==0) && ((ldc%PacketSize)==0) && (i0==internal::first_aligned(C,m)));
+  eigen_internal_assert(((lda%PacketSize)==0) && ((ldc%PacketSize)==0) && (i0==internal::first_default_aligned(C,m)));
   
   // handle the non aligned rows of A and C without any optimization:
   for(Index i=0; i<i0; ++i)

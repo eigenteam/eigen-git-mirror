@@ -580,33 +580,41 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
 
 namespace internal {
 
-template<typename Derived, bool JustReturnZero>
+template<int Alignment, typename Derived, bool JustReturnZero>
 struct first_aligned_impl
 {
   static inline Index run(const Derived&)
   { return 0; }
 };
 
-template<typename Derived>
-struct first_aligned_impl<Derived, false>
+template<int Alignment, typename Derived>
+struct first_aligned_impl<Alignment, Derived, false>
 {
   static inline Index run(const Derived& m)
   {
-    return internal::first_aligned(&m.const_cast_derived().coeffRef(0,0), m.size());
+    return internal::first_aligned<Alignment>(&m.const_cast_derived().coeffRef(0,0), m.size());
   }
 };
 
-/** \internal \returns the index of the first element of the array that is well aligned for vectorization.
+/** \internal \returns the index of the first element of the array stored by \a m that is properly aligned with respect to \a Alignment for vectorization.
+  *
+  * \tparam Alignment requested alignment in Bytes.
   *
   * There is also the variant first_aligned(const Scalar*, Integer) defined in Memory.h. See it for more
   * documentation.
   */
-template<typename Derived>
+template<int Alignment, typename Derived>
 static inline Index first_aligned(const DenseBase<Derived>& m)
 {
-  return first_aligned_impl
-          <Derived, (evaluator<Derived>::Alignment > 0 ) || !(Derived::Flags & DirectAccessBit)> // FIXME Alignment!
-          ::run(m.derived());
+  enum { ReturnZero = (int(evaluator<Derived>::Alignment) >= Alignment) || !(Derived::Flags & DirectAccessBit) };
+  return first_aligned_impl<Alignment, Derived, ReturnZero>::run(m.derived());
+}
+
+template<typename Derived>
+static inline Index first_default_aligned(const DenseBase<Derived>& m)
+{
+  typedef typename Derived::Scalar Scalar;
+  return first_aligned<packet_traits<Scalar>::size*sizeof(Scalar)>(m);
 }
 
 template<typename Derived, bool HasDirectAccess = has_direct_access<Derived>::ret>

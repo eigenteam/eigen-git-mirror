@@ -125,7 +125,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,C
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type.
-  Index alignedStart = internal::first_aligned(res,size);
+  Index alignedStart = internal::first_default_aligned(res,size);
   Index alignedSize = ResPacketSize>1 ? alignedStart + ((size-alignedStart) & ~ResPacketAlignedMask) : 0;
   const Index peeledSize = alignedSize - RhsPacketSize*peels - RhsPacketSize + 1;
 

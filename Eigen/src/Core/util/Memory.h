@@ -506,45 +506,54 @@ template<typename T, bool Align> EIGEN_DEVICE_FUNC inline void conditional_align
 
 /****************************************************************************/
 
-/** \internal Returns the index of the first element of the array that is well aligned for vectorization.
+/** \internal Returns the index of the first element of the array that is well aligned with respect to the requested \a Alignment.
   *
+  * \tparam Alignment requested alignment in Bytes.
   * \param array the address of the start of the array
   * \param size the size of the array
   *
-  * \note If no element of the array is well aligned, the size of the array is returned. Typically,
-  * for example with SSE, "well aligned" means 16-byte-aligned. If vectorization is disabled or if the
+  * \note If no element of the array is well aligned or the requested alignment is not a multiple of a scalar,
+  * the size of the array is returned. For example with SSE, the requested alignment is typically 16-bytes. If
   * packet size for the given scalar type is 1, then everything is considered well-aligned.
   *
-  * \note If the scalar type is vectorizable, we rely on the following assumptions: sizeof(Scalar) is a
-  * power of 2, the packet size in bytes is also a power of 2, and is a multiple of sizeof(Scalar). On the
-  * other hand, we do not assume that the array address is a multiple of sizeof(Scalar), as that fails for
+  * \note Otherwise, if the Alignment is larger that the scalar size, we rely on the assumptions that sizeof(Scalar) is a
+  * power of 2. On the other hand, we do not assume that the array address is a multiple of sizeof(Scalar), as that fails for
   * example with Scalar=double on certain 32-bit platforms, see bug #79.
   *
   * There is also the variant first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
+  * \sa first_default_aligned()
   */
-template<typename Scalar, typename Index>
+template<int Alignment, typename Scalar, typename Index>
 inline Index first_aligned(const Scalar* array, Index size)
 {
-  static const Index PacketSize = packet_traits<Scalar>::size;
-  static const Index PacketAlignedMask = PacketSize-1;
+  static const Index ScalarSize = sizeof(Scalar);
+  static const Index AlignmentSize = Alignment / ScalarSize;
+  static const Index AlignmentMask = AlignmentSize-1;
 
-  if(PacketSize==1)
+  if(AlignmentSize<=1)
   {
-    // Either there is no vectorization, or a packet consists of exactly 1 scalar so that all elements
-    // of the array have the same alignment.
+    // Either the requested alignment if smaller than a scalar, or it exactly match a 1 scalar
+    // so that all elements of the array have the same alignment.
     return 0;
   }
-  else if(size_t(array) & (sizeof(Scalar)-1))
+  else if( (std::size_t(array) & (sizeof(Scalar)-1)) || (Alignment%ScalarSize)!=0)
   {
-    // There is vectorization for this scalar type, but the array is not aligned to the size of a single scalar.
+    // The array is not aligned to the size of a single scalar, or the requested alignment is not a multiple of the scalar size.
     // Consequently, no element of the array is well aligned.
     return size;
   }
   else
   {
-    return std::min<Index>( (PacketSize - (Index((size_t(array)/sizeof(Scalar))) & PacketAlignedMask))
-                           & PacketAlignedMask, size);
+    return std::min<Index>( (AlignmentSize - (Index((std::size_t(array)/sizeof(Scalar))) & AlignmentMask)) & AlignmentMask, size);
   }
+}
+
+/** \internal Returns the index of the first element of the array that is well aligned with respect the largest packet requirement.
+   * \sa first_aligned(Scalar*,Index) and first_default_aligned(DenseBase<Derived>) */
+template<typename Scalar, typename Index>
+inline Index first_default_aligned(const Scalar* array, Index size)
+{
+  return first_aligned<packet_traits<Scalar>::size*sizeof(Scalar)>(array, size);
 }
 
 /** \internal Returns the smallest integer multiple of \a base and greater or equal to \a size

@@ -230,7 +230,7 @@ class blas_data_mapper {
     if (size_t(m_data)%sizeof(Scalar)) {
       return -1;
     }
-    return internal::first_aligned(m_data, size);
+    return internal::first_default_aligned(m_data, size);
   }
 
   protected:

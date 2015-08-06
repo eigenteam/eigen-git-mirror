@@ -325,7 +325,7 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x
     // both vectors are sequentially stored in memory => vectorization
     enum { Peeling = 2 };
 
-    Index alignedStart = internal::first_aligned(y, size);
+    Index alignedStart = internal::first_default_aligned(y, size);
     Index alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
 
     const Packet pc = pset1<Packet>(c);
@@ -343,7 +343,7 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x
     Scalar* EIGEN_RESTRICT px = x + alignedStart;
     Scalar* EIGEN_RESTRICT py = y + alignedStart;
 
-    if(internal::first_aligned(x, size)==alignedStart)
+    if(internal::first_default_aligned(x, size)==alignedStart)
     {
       for(Index i=alignedStart; i<alignedEnd; i+=PacketSize)
       {

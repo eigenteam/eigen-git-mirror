@@ -257,6 +257,7 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     Scalar* _res,        Index resStride,
     const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
+    const Index PacketBytes = packet_traits<Scalar>::size*sizeof(Scalar);
     // strip zeros
     Index diagSize  = (std::min)(_cols,_depth);
     Index rows      = _rows;
@@ -311,7 +312,7 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       Index ts = (IsLower && actual_k2>=cols) ? 0 : actual_kc;
 
       Scalar* geb = blockB+ts*ts;
-      geb = geb + internal::first_aligned(geb,EIGEN_MAX_ALIGN_BYTES/sizeof(Scalar));
+      geb = geb + internal::first_aligned<PacketBytes>(geb,PacketBytes/sizeof(Scalar));
 
       pack_rhs(geb, rhs.getSubMapper(actual_k2,IsLower ? 0 : k2), actual_kc, rs);
 

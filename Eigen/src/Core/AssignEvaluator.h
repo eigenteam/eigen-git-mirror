@@ -365,13 +365,14 @@ struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, NoUnrolling>
     typedef typename Kernel::Scalar Scalar;
     typedef packet_traits<Scalar> PacketTraits;
     enum {
+      requestedAlignment = Kernel::AssignmentTraits::RequiredAlignment,
       packetSize = PacketTraits::size,
-      dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(Kernel::AssignmentTraits::RequiredAlignment),
-      dstAlignment = PacketTraits::AlignedOnScalar ? int(Kernel::AssignmentTraits::RequiredAlignment)
+      dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(requestedAlignment),
+      dstAlignment = PacketTraits::AlignedOnScalar ? int(requestedAlignment)
                                                    : int(Kernel::AssignmentTraits::DstAlignment),
       srcAlignment = Kernel::AssignmentTraits::JointAlignment
     };
-    const Index alignedStart = dstIsAligned ? 0 : internal::first_aligned(&kernel.dstEvaluator().coeffRef(0), size);
+    const Index alignedStart = dstIsAligned ? 0 : internal::first_aligned<requestedAlignment>(&kernel.dstEvaluator().coeffRef(0), size);
     const Index alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
     unaligned_dense_assignment_loop<dstIsAligned!=0>::run(kernel, 0, alignedStart);
@@ -479,9 +480,10 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
     typedef packet_traits<Scalar> PacketTraits;
     enum {
       packetSize = PacketTraits::size,
+      requestedAlignment = int(Kernel::AssignmentTraits::RequiredAlignment),
       alignable = PacketTraits::AlignedOnScalar || int(Kernel::AssignmentTraits::DstAlignment)>=sizeof(Scalar),
-      dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(Kernel::AssignmentTraits::RequiredAlignment),
-      dstAlignment = alignable ? int(Kernel::AssignmentTraits::RequiredAlignment)
+      dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(requestedAlignment),
+      dstAlignment = alignable ? int(requestedAlignment)
                                : int(Kernel::AssignmentTraits::DstAlignment)
     };
     const Scalar *dst_ptr = &kernel.dstEvaluator().coeffRef(0,0);
@@ -494,7 +496,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
     const Index innerSize = kernel.innerSize();
     const Index outerSize = kernel.outerSize();
     const Index alignedStep = alignable ? (packetSize - kernel.outerStride() % packetSize) & packetAlignedMask : 0;
-    Index alignedStart = ((!alignable) || bool(dstIsAligned)) ? 0 : internal::first_aligned(dst_ptr, innerSize);
+    Index alignedStart = ((!alignable) || bool(dstIsAligned)) ? 0 : internal::first_aligned<requestedAlignment>(dst_ptr, innerSize);
 
     for(Index outer = 0; outer < outerSize; ++outer)
     {

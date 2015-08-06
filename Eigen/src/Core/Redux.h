@@ -221,12 +221,13 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
   {
     const Index size = mat.size();
     
-    const Index packetSize = packet_traits<Scalar>::size;
-    const Index alignedStart = internal::first_aligned(mat.nestedExpression());
+    const Index packetSize  = packet_traits<Scalar>::size;
+    const int packetBytes = int(packetSize*sizeof(Scalar));
     enum {
-      alignment0 = (bool(Derived::Flags & DirectAccessBit) && bool(packet_traits<Scalar>::AlignedOnScalar)) ? int(sizeof(Scalar)*packetSize) : int(Unaligned), // FIXME take into account alignment requirement
+      alignment0 = (bool(Derived::Flags & DirectAccessBit) && bool(packet_traits<Scalar>::AlignedOnScalar)) ? int(packetBytes) : int(Unaligned), // FIXME take into account alignment requirement
       alignment = EIGEN_PLAIN_ENUM_MAX(alignment0, Derived::Alignment)
     };
+    const Index alignedStart = internal::first_default_aligned(mat.nestedExpression());
     const Index alignedSize2 = ((size-alignedStart)/(2*packetSize))*(2*packetSize);
     const Index alignedSize = ((size-alignedStart)/(packetSize))*(packetSize);
     const Index alignedEnd2 = alignedStart + alignedSize2;
