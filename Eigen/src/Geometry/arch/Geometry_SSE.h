@@ -16,14 +16,14 @@ namespace Eigen {
 namespace internal {
 
 template<class Derived, class OtherDerived>
-struct quat_product<Architecture::SSE, Derived, OtherDerived, float, Aligned>
+struct quat_product<Architecture::SSE, Derived, OtherDerived, float, Aligned16>
 {
   static inline Quaternion<float> run(const QuaternionBase<Derived>& _a, const QuaternionBase<OtherDerived>& _b)
   {
     Quaternion<float> res;
     const __m128 mask = _mm_setr_ps(0.f,0.f,0.f,-0.f);
-    __m128 a = _a.coeffs().template packet<Aligned>(0);
-    __m128 b = _b.coeffs().template packet<Aligned>(0);
+    __m128 a = _a.coeffs().template packet<Aligned16>(0);
+    __m128 b = _b.coeffs().template packet<Aligned16>(0);
     __m128 s1 = _mm_mul_ps(vec4f_swizzle1(a,1,2,0,2),vec4f_swizzle1(b,2,0,1,2));
     __m128 s2 = _mm_mul_ps(vec4f_swizzle1(a,3,3,3,1),vec4f_swizzle1(b,0,1,2,1));
     pstore(&res.x(),
@@ -55,8 +55,8 @@ struct cross3_impl<Architecture::SSE,VectorLhs,VectorRhs,float,true>
   static inline typename plain_matrix_type<VectorLhs>::type
   run(const VectorLhs& lhs, const VectorRhs& rhs)
   {
-    __m128 a = lhs.template packet<VectorLhs::Flags&AlignedBit ? Aligned : Unaligned>(0);
-    __m128 b = rhs.template packet<VectorRhs::Flags&AlignedBit ? Aligned : Unaligned>(0);
+    __m128 a = lhs.template packet<traits<VectorLhs>::Alignment>(0);
+    __m128 b = rhs.template packet<traits<VectorRhs>::Alignment>(0);
     __m128 mul1=_mm_mul_ps(vec4f_swizzle1(a,1,2,0,3),vec4f_swizzle1(b,2,0,1,3));
     __m128 mul2=_mm_mul_ps(vec4f_swizzle1(a,2,0,1,3),vec4f_swizzle1(b,1,2,0,3));
     typename plain_matrix_type<VectorLhs>::type res;

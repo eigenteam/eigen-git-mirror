@@ -165,7 +165,7 @@ struct redux_vec_unroller<Func, Derived, Start, 1>
     index = Start * packet_traits<typename Derived::Scalar>::size,
     outer = index / int(Derived::InnerSizeAtCompileTime),
     inner = index % int(Derived::InnerSizeAtCompileTime),
-    alignment = (Derived::Flags & AlignedBit) ? Aligned : Unaligned
+    alignment = Derived::Alignment
   };
 
   typedef typename Derived::Scalar Scalar;
@@ -222,10 +222,10 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
     const Index size = mat.size();
     
     const Index packetSize = packet_traits<Scalar>::size;
-    const Index alignedStart = internal::first_aligned(mat);
+    const Index alignedStart = internal::first_aligned(mat.nestedExpression());
     enum {
-      alignment = (bool(Derived::Flags & DirectAccessBit) && bool(packet_traits<Scalar>::AlignedOnScalar)) || bool(Derived::Flags & AlignedBit)
-                ? Aligned : Unaligned
+      alignment0 = (bool(Derived::Flags & DirectAccessBit) && bool(packet_traits<Scalar>::AlignedOnScalar)) ? int(sizeof(Scalar)*packetSize) : int(Unaligned), // FIXME take into account alignment requirement
+      alignment = EIGEN_PLAIN_ENUM_MAX(alignment0, Derived::Alignment)
     };
     const Index alignedSize2 = ((size-alignedStart)/(2*packetSize))*(2*packetSize);
     const Index alignedSize = ((size-alignedStart)/(packetSize))*(packetSize);
@@ -352,7 +352,8 @@ public:
     IsRowMajor = XprType::IsRowMajor,
     SizeAtCompileTime = XprType::SizeAtCompileTime,
     InnerSizeAtCompileTime = XprType::InnerSizeAtCompileTime,
-    CoeffReadCost = evaluator<XprType>::CoeffReadCost
+    CoeffReadCost = evaluator<XprType>::CoeffReadCost,
+    Alignment = evaluator<XprType>::Alignment
   };
   
   EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
@@ -384,6 +385,8 @@ public:
   template<int LoadMode>
   PacketReturnType packetByOuterInner(Index outer, Index inner) const
   { return m_evaluator.template packet<LoadMode>(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
+  
+  const XprType & nestedExpression() const { return m_xpr; }
   
 protected:
   typename internal::evaluator<XprType>::nestedType m_evaluator;

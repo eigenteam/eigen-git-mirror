@@ -35,8 +35,8 @@ template<typename MatrixType, typename ResultType>
 struct compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType>
 {
   enum {
-    MatrixAlignment     = bool(MatrixType::Flags&AlignedBit),
-    ResultAlignment     = bool(ResultType::Flags&AlignedBit),
+    MatrixAlignment     = traits<MatrixType>::Alignment,
+    ResultAlignment     = traits<ResultType>::Alignment,
     StorageOrdersMatch  = (MatrixType::Flags&RowMajorBit) == (ResultType::Flags&RowMajorBit)
   };
   typedef typename conditional<(MatrixType::Flags&LinearAccessBit),MatrixType const &,typename MatrixType::PlainObject>::type ActualMatrixType;
@@ -165,8 +165,8 @@ template<typename MatrixType, typename ResultType>
 struct compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultType>
 {
   enum {
-    MatrixAlignment = bool(MatrixType::Flags&AlignedBit),
-    ResultAlignment = bool(ResultType::Flags&AlignedBit),
+    MatrixAlignment     = traits<MatrixType>::Alignment,
+    ResultAlignment     = traits<ResultType>::Alignment,
     StorageOrdersMatch  = (MatrixType::Flags&RowMajorBit) == (ResultType::Flags&RowMajorBit)
   };
   typedef typename conditional<(MatrixType::Flags&LinearAccessBit),MatrixType const &,typename MatrixType::PlainObject>::type ActualMatrixType;

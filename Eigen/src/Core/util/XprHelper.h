@@ -192,43 +192,6 @@ class compute_matrix_flags
     enum { ret = DirectAccessBit | LvalueBit | NestByRefBit | row_major_bit };
 };
 
-template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-class compute_matrix_evaluator_flags
-{
-    enum {
-      row_major_bit = Options&RowMajor ? RowMajorBit : 0,
-      is_dynamic_size_storage = MaxRows==Dynamic || MaxCols==Dynamic,
-      
-      // TODO: should check for smaller packet types once we can handle multi-sized packet types
-      align_bytes = int(packet_traits<Scalar>::size) * sizeof(Scalar),
-
-      aligned_bit =
-      (
-            ((Options&DontAlign)==0)
-        && (
-#if EIGEN_MAX_STATIC_ALIGN_BYTES!=0
-             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % align_bytes) == 0))
-#else
-             0
-#endif
-
-          ||
-
-#if EIGEN_MAX_ALIGN_BYTES!=0
-             is_dynamic_size_storage
-#else
-             0
-#endif
-
-          )
-      ) ? AlignedBit : 0,
-      packet_access_bit = packet_traits<Scalar>::Vectorizable && aligned_bit ? PacketAccessBit : 0
-    };
-
-  public:
-    enum { ret = LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit };
-};
-
 template<int _Rows, int _Cols> struct size_at_compile_time
 {
   enum { ret = (_Rows==Dynamic || _Cols==Dynamic) ? Dynamic : _Rows * _Cols };

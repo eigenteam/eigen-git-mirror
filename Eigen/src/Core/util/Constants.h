@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -140,7 +140,7 @@ const unsigned int LvalueBit = 0x20;
   */
 const unsigned int DirectAccessBit = 0x40;
 
-/** \ingroup flags
+/* \ingroup flags
   *
   * means the first coefficient packet is guaranteed to be aligned.
   * An expression cannot has the AlignedBit without the PacketAccessBit flag.
@@ -215,12 +215,31 @@ enum {
 };
 
 /** \ingroup enums
-  * Enum for indicating whether an object is aligned or not. */
+  * Enum for indicating whether a buffer is aligned or not. */
 enum { 
-  /** Object is not correctly aligned for vectorization. */
-  Unaligned=0, 
-  /** Object is aligned for vectorization. */
-  Aligned=1 
+  Unaligned=0,        /**< Data pointer has no specific alignment. */
+  Aligned8=8,         /**< Data pointer is aligned on a 8 bytes boundary. */
+  Aligned16=16,       /**< Data pointer is aligned on a 16 bytes boundary. */
+  Aligned32=32,       /**< Data pointer is aligned on a 32 bytes boundary. */
+  Aligned64=64,       /**< Data pointer is aligned on a 64 bytes boundary. */
+  Aligned128=128,     /**< Data pointer is aligned on a 128 bytes boundary. */
+  AlignedMask=255,
+  Aligned=16,         /**< \deprecated Synonym for Aligned16. */
+#if EIGEN_MAX_ALIGN_BYTES==128
+  AlignedMax = Aligned128
+#elif EIGEN_MAX_ALIGN_BYTES==64
+  AlignedMax = Aligned64
+#elif EIGEN_MAX_ALIGN_BYTES==32
+  AlignedMax = Aligned32
+#elif EIGEN_MAX_ALIGN_BYTES==16
+  AlignedMax = Aligned16
+#elif EIGEN_MAX_ALIGN_BYTES==8
+  AlignedMax = Aligned8
+#elif EIGEN_MAX_ALIGN_BYTES==0
+  AlignedMax = Unaligned
+#else
+#error Invalid value for EIGEN_MAX_ALIGN_BYTES
+#endif
 };
 
 /** \ingroup enums

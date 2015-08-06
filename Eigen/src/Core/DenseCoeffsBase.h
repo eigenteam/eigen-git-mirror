@@ -602,11 +602,11 @@ struct first_aligned_impl<Derived, false>
   * documentation.
   */
 template<typename Derived>
-static inline Index first_aligned(const Derived& m)
+static inline Index first_aligned(const DenseBase<Derived>& m)
 {
   return first_aligned_impl
-          <Derived, (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>
-          ::run(m);
+          <Derived, (evaluator<Derived>::Alignment > 0 ) || !(Derived::Flags & DirectAccessBit)> // FIXME Alignment!
+          ::run(m.derived());
 }
 
 template<typename Derived, bool HasDirectAccess = has_direct_access<Derived>::ret>

@@ -139,6 +139,18 @@ namespace internal {
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
+private:
+  enum {
+      row_major_bit = _Options&RowMajor ? RowMajorBit : 0,
+      is_dynamic_size_storage = _MaxRows==Dynamic || _MaxCols==Dynamic,
+      max_size = is_dynamic_size_storage ? Dynamic : _MaxRows*_MaxCols,
+      default_alignment = compute_default_alignment<_Scalar,max_size>::value,
+      actual_alignment = ((_Options&DontAlign)==0) ? default_alignment : 0,
+      required_alignment = packet_traits<_Scalar>::size * sizeof(_Scalar), // FIXME ask packet_traits for the true required alignment
+      packet_access_bit = packet_traits<_Scalar>::Vectorizable && (actual_alignment>=required_alignment) ? PacketAccessBit : 0
+    };
+    
+public:
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
   typedef Eigen::Index StorageIndex;
@@ -149,11 +161,13 @@ struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
-    // FIXME, the following flag in only used to define NeedsToAlign in PlainObjectBase
-    EvaluatorFlags = compute_matrix_evaluator_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
     Options = _Options,
     InnerStrideAtCompileTime = 1,
-    OuterStrideAtCompileTime = (Options&RowMajor) ? ColsAtCompileTime : RowsAtCompileTime
+    OuterStrideAtCompileTime = (Options&RowMajor) ? ColsAtCompileTime : RowsAtCompileTime,
+    
+    // FIXME, the following flag in only used to define NeedsToAlign in PlainObjectBase
+    EvaluatorFlags = LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit,
+    Alignment = actual_alignment
   };
 };
 }

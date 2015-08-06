@@ -430,24 +430,22 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     LhsFlags = LhsEtorType::Flags,
     RhsFlags = RhsEtorType::Flags,
     
+    LhsAlignment = LhsEtorType::Alignment,
+    RhsAlignment = RhsEtorType::Alignment,
+    
+    LhsIsAligned = int(LhsAlignment) >= int(sizeof(Scalar)*PacketSize), // FIXME compare to required alignment
+    RhsIsAligned = int(RhsAlignment) >= int(sizeof(Scalar)*PacketSize),
+    
     LhsRowMajor = LhsFlags & RowMajorBit,
     RhsRowMajor = RhsFlags & RowMajorBit,
       
     SameType = is_same<typename LhsNestedCleaned::Scalar,typename RhsNestedCleaned::Scalar>::value,
 
     CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
-                    && (ColsAtCompileTime == Dynamic
-                        || ( (ColsAtCompileTime % packet_traits<Scalar>::size) == 0
-                            && (RhsFlags&AlignedBit)
-                            )
-                        ),
+                    && (ColsAtCompileTime == Dynamic || ( (ColsAtCompileTime % PacketSize) == 0 && RhsIsAligned ) ),
 
     CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
-                    && (RowsAtCompileTime == Dynamic
-                        || ( (RowsAtCompileTime % packet_traits<Scalar>::size) == 0
-                            && (LhsFlags&AlignedBit)
-                            )
-                        ),
+                    && (RowsAtCompileTime == Dynamic || ( (RowsAtCompileTime % PacketSize) == 0 && LhsIsAligned ) ),
 
     EvalToRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                     : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
@@ -455,10 +453,12 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
 
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & ~RowMajorBit)
           | (EvalToRowMajor ? RowMajorBit : 0)
-          | (CanVectorizeLhs ? (LhsFlags & AlignedBit) : 0)
-          | (CanVectorizeRhs ? (RhsFlags & AlignedBit) : 0)
           // TODO enable vectorization for mixed types
           | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0),
+          
+    Alignment = CanVectorizeLhs ? LhsAlignment
+              : CanVectorizeRhs ? RhsAlignment
+              : 0,
           
     /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
     * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
@@ -469,7 +469,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
                         && LhsRowMajor
                         && (!RhsRowMajor)
                         && (LhsFlags & RhsFlags & ActualPacketAccessBit)
-                        && (LhsFlags & RhsFlags & AlignedBit)
+                        && (LhsIsAligned && RhsIsAligned)
                         && (InnerSize % packet_traits<Scalar>::size == 0)
   };
   
@@ -706,7 +706,8 @@ public:
     //_Vectorizable = bool(int(MatrixFlags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagFlags)&PacketAccessBit))),
     _Vectorizable = bool(int(MatrixFlags)&PacketAccessBit) && _SameTypes && (_ScalarAccessOnDiag || (bool(int(DiagFlags)&PacketAccessBit))),
     _LinearAccessMask = (MatrixType::RowsAtCompileTime==1 || MatrixType::ColsAtCompileTime==1) ? LinearAccessBit : 0,
-    Flags = ((HereditaryBits|_LinearAccessMask|AlignedBit) & (unsigned int)(MatrixFlags)) | (_Vectorizable ? PacketAccessBit : 0)
+    Flags = ((HereditaryBits|_LinearAccessMask) & (unsigned int)(MatrixFlags)) | (_Vectorizable ? PacketAccessBit : 0),
+    Alignment = evaluator<MatrixType>::Alignment
   };
   
   diagonal_product_evaluator_base(const MatrixType &mat, const DiagonalType &diag)
@@ -732,7 +733,7 @@ protected:
   {
     enum {
       InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,
-      DiagonalPacketLoadMode = (LoadMode == Aligned && (((InnerSize%16) == 0) || (int(DiagFlags)&AlignedBit)==AlignedBit) ? Aligned : Unaligned)
+      DiagonalPacketLoadMode = EIGEN_PLAIN_ENUM_MIN(LoadMode,((InnerSize%16) == 0) ? int(Aligned16) : int(evaluator<DiagonalType>::Alignment)) // FIXME hardcoded 16!!
     };
     return internal::pmul(m_matImpl.template packet<LoadMode>(row, col),
                           m_diagImpl.template packet<DiagonalPacketLoadMode>(id));

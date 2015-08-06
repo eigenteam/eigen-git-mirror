@@ -18,7 +18,7 @@ namespace Eigen {
   * \brief A matrix or vector expression mapping an existing expression
   *
   * \tparam PlainObjectType the equivalent matrix type of the mapped data
-  * \tparam Options specifies whether the pointer is \c #Aligned, or \c #Unaligned.
+  * \tparam MapOptions specifies the pointer alignment in bytes. It can be: \c #Aligned128, , \c #Aligned64, \c #Aligned32, \c #Aligned16, \c #Aligned8 or \c #Unaligned.
   *                The default is \c #Unaligned.
   * \tparam StrideType optionally specifies strides. By default, Ref implies a contiguous storage along the inner dimension (inner stride==1),
   *                   but accepts a variable outer stride (leading dimension).
@@ -92,7 +92,8 @@ struct traits<Ref<_PlainObjectType, _Options, _StrideType> >
   typedef _StrideType StrideType;
   enum {
     Options = _Options,
-    Flags = traits<Map<_PlainObjectType, _Options, _StrideType> >::Flags | NestByRefBit
+    Flags = traits<Map<_PlainObjectType, _Options, _StrideType> >::Flags | NestByRefBit,
+    Alignment = traits<Map<_PlainObjectType, _Options, _StrideType> >::Alignment
   };
 
   template<typename Derived> struct match {
@@ -104,7 +105,7 @@ struct traits<Ref<_PlainObjectType, _Options, _StrideType> >
                       || (int(StrideType::InnerStrideAtCompileTime)==0 && int(Derived::InnerStrideAtCompileTime)==1),
       OuterStrideMatch = Derived::IsVectorAtCompileTime
                       || int(StrideType::OuterStrideAtCompileTime)==int(Dynamic) || int(StrideType::OuterStrideAtCompileTime)==int(Derived::OuterStrideAtCompileTime),
-      AlignmentMatch = (_Options!=Aligned) || ((PlainObjectType::Flags&AlignedBit)==0) || ((traits<Derived>::Flags&AlignedBit)==AlignedBit),
+      AlignmentMatch = (int(traits<PlainObjectType>::Alignment)==int(Unaligned)) || (int(evaluator<Derived>::Alignment) >= int(Alignment)), // FIXME the first condition is not very clear, it should be replaced by the required alignment
       ScalarTypeMatch = internal::is_same<typename PlainObjectType::Scalar, typename Derived::Scalar>::value,
       MatchAtCompileTime = HasDirectAccess && StorageOrderMatch && InnerStrideMatch && OuterStrideMatch && AlignmentMatch && ScalarTypeMatch
     };

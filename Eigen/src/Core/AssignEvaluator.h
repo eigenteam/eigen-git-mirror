@@ -28,18 +28,19 @@ template <typename DstEvaluator, typename SrcEvaluator, typename AssignFunc>
 struct copy_using_evaluator_traits
 {
   typedef typename DstEvaluator::XprType Dst;
-  
+  typedef typename Dst::Scalar DstScalar;
   enum {
     DstFlags = DstEvaluator::Flags,
-    SrcFlags = SrcEvaluator::Flags
+    SrcFlags = SrcEvaluator::Flags,
+    RequiredAlignment = packet_traits<DstScalar>::size*sizeof(DstScalar) // FIXME ask packet_traits for the true alignment requirement
   };
   
 public:
   enum {
-    DstIsAligned = DstFlags & AlignedBit,
+    DstAlignment = DstEvaluator::Alignment,
+    SrcAlignment = SrcEvaluator::Alignment,
     DstHasDirectAccess = DstFlags & DirectAccessBit,
-    SrcIsAligned = SrcFlags & AlignedBit,
-    JointAlignment = bool(DstIsAligned) && bool(SrcIsAligned) ? Aligned : Unaligned
+    JointAlignment = EIGEN_PLAIN_ENUM_MIN(DstAlignment,SrcAlignment)
   };
 
 private:
@@ -51,7 +52,7 @@ private:
               : int(DstFlags)&RowMajorBit ? int(Dst::MaxColsAtCompileTime)
               : int(Dst::MaxRowsAtCompileTime),
     MaxSizeAtCompileTime = Dst::SizeAtCompileTime,
-    PacketSize = packet_traits<typename Dst::Scalar>::size
+    PacketSize = packet_traits<DstScalar>::size
   };
 
   enum {
@@ -62,10 +63,10 @@ private:
                   && (int(DstFlags) & int(SrcFlags) & ActualPacketAccessBit)
                   && (functor_traits<AssignFunc>::PacketAccess),
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
-                       && int(DstIsAligned) && int(SrcIsAligned),
+                       && int(JointAlignment)>=int(RequiredAlignment),
     MayLinearize = StorageOrdersAgree && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
     MayLinearVectorize = MightVectorize && MayLinearize && DstHasDirectAccess
-                       && (DstIsAligned || MaxSizeAtCompileTime == Dynamic),
+                       && ((int(DstAlignment)>=int(RequiredAlignment)) || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
          so it's only good for large enough sizes. */
     MaySliceVectorize  = MightVectorize && DstHasDirectAccess
@@ -107,8 +108,8 @@ public:
                                              : int(NoUnrolling)
                   )
               : int(Traversal) == int(LinearVectorizedTraversal)
-                ? ( bool(MayUnrollCompletely) && bool(DstIsAligned) ? int(CompleteUnrolling) 
-                                                                    : int(NoUnrolling) )
+                ? ( bool(MayUnrollCompletely) && (int(DstAlignment)>=int(RequiredAlignment)) ? int(CompleteUnrolling)
+                                                                                             : int(NoUnrolling) )
               : int(Traversal) == int(LinearTraversal)
                 ? ( bool(MayUnrollCompletely) ? int(CompleteUnrolling) 
                                               : int(NoUnrolling) )
@@ -124,8 +125,9 @@ public:
     EIGEN_DEBUG_VAR(DstFlags)
     EIGEN_DEBUG_VAR(SrcFlags)
     std::cerr.unsetf(std::ios::hex);
-    EIGEN_DEBUG_VAR(DstIsAligned)
-    EIGEN_DEBUG_VAR(SrcIsAligned)
+    EIGEN_DEBUG_VAR(DstAlignment)
+    EIGEN_DEBUG_VAR(SrcAlignment)
+    EIGEN_DEBUG_VAR(RequiredAlignment)
     EIGEN_DEBUG_VAR(JointAlignment)
     EIGEN_DEBUG_VAR(InnerSize)
     EIGEN_DEBUG_VAR(InnerMaxSize)
@@ -360,11 +362,13 @@ struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, NoUnrolling>
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     const Index size = kernel.size();
-    typedef packet_traits<typename Kernel::Scalar> PacketTraits;
+    typedef typename Kernel::Scalar Scalar;
+    typedef packet_traits<Scalar> PacketTraits;
     enum {
       packetSize = PacketTraits::size,
-      dstIsAligned = int(Kernel::AssignmentTraits::DstIsAligned),
-      dstAlignment = PacketTraits::AlignedOnScalar ? Aligned : dstIsAligned,
+      dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(Kernel::AssignmentTraits::RequiredAlignment),
+      dstAlignment = PacketTraits::AlignedOnScalar ? int(Kernel::AssignmentTraits::RequiredAlignment)
+                                                   : int(Kernel::AssignmentTraits::DstAlignment),
       srcAlignment = Kernel::AssignmentTraits::JointAlignment
     };
     const Index alignedStart = dstIsAligned ? 0 : internal::first_aligned(&kernel.dstEvaluator().coeffRef(0), size);
@@ -475,9 +479,10 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
     typedef packet_traits<Scalar> PacketTraits;
     enum {
       packetSize = PacketTraits::size,
-      alignable = PacketTraits::AlignedOnScalar,
-      dstIsAligned = Kernel::AssignmentTraits::DstIsAligned,
-      dstAlignment = alignable ? Aligned : int(dstIsAligned)
+      alignable = PacketTraits::AlignedOnScalar || int(Kernel::AssignmentTraits::DstAlignment)>=sizeof(Scalar),
+      dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(Kernel::AssignmentTraits::RequiredAlignment),
+      dstAlignment = alignable ? int(Kernel::AssignmentTraits::RequiredAlignment)
+                               : int(Kernel::AssignmentTraits::DstAlignment)
     };
     const Scalar *dst_ptr = &kernel.dstEvaluator().coeffRef(0,0);
     if((!bool(dstIsAligned)) && (size_t(dst_ptr) % sizeof(Scalar))>0)

@@ -162,12 +162,12 @@ void unalignedassert()
   }
   for(int b=8; b<EIGEN_MAX_ALIGN_BYTES; b+=8)
   {
-    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector8f>(b));
-    VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4f>(b));
-    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4d>(b));
-    VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix2d>(b));
-    VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4d>(b));
-    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cd>(b));
+    if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector8f>(b));
+    if(b<64)  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4f>(b));
+    if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4d>(b));
+    if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix2d>(b));
+    if(b<128) VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4d>(b));
+    if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cd>(b));
   }
 #endif
 }

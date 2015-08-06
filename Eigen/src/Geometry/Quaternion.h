@@ -217,8 +217,8 @@ struct traits<Quaternion<_Scalar,_Options> >
   typedef _Scalar Scalar;
   typedef Matrix<_Scalar,4,1,_Options> Coefficients;
   enum{
-    IsAligned = (internal::traits<Coefficients>::EvaluatorFlags & AlignedBit) != 0,
-    Flags = IsAligned ? (AlignedBit | LvalueBit) : LvalueBit
+    Alignment = internal::traits<Coefficients>::Alignment,
+    Flags = LvalueBit
   };
 };
 }
@@ -228,7 +228,7 @@ class Quaternion : public QuaternionBase<Quaternion<_Scalar,_Options> >
 {
 public:
   typedef QuaternionBase<Quaternion<_Scalar,_Options> > Base;
-  enum { IsAligned = internal::traits<Quaternion>::IsAligned };
+  enum { NeedsAlignment = internal::traits<Quaternion>::Alignment>0 };
 
   typedef _Scalar Scalar;
 
@@ -277,7 +277,7 @@ public:
   inline Coefficients& coeffs() { return m_coeffs;}
   inline const Coefficients& coeffs() const { return m_coeffs;}
 
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(IsAligned)
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsAlignment)
 
 protected:
   Coefficients m_coeffs;
@@ -441,7 +441,7 @@ QuaternionBase<Derived>::operator* (const QuaternionBase<OtherDerived>& other) c
    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   return internal::quat_product<Architecture::Target, Derived, OtherDerived,
                          typename internal::traits<Derived>::Scalar,
-                         (internal::traits<Derived>::IsAligned && internal::traits<OtherDerived>::IsAligned)?Aligned:Unaligned>::run(*this, other);
+                         EIGEN_PLAIN_ENUM_MIN(internal::traits<Derived>::Alignment, internal::traits<OtherDerived>::Alignment)>::run(*this, other);
 }
 
 /** \sa operator*(Quaternion) */
@@ -668,7 +668,7 @@ QuaternionBase<Derived>::conjugate() const
 {
   return internal::quat_conj<Architecture::Target, Derived,
                          typename internal::traits<Derived>::Scalar,
-                         internal::traits<Derived>::IsAligned?Aligned:Unaligned>::run(*this);
+                         internal::traits<Derived>::Alignment>::run(*this);
                          
 }
 

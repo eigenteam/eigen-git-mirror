@@ -19,7 +19,7 @@ namespace Eigen {
   * \brief A matrix or vector expression mapping an existing array of data.
   *
   * \tparam PlainObjectType the equivalent matrix type of the mapped data
-  * \tparam MapOptions specifies whether the pointer is \c #Aligned, or \c #Unaligned.
+  * \tparam MapOptions specifies the pointer alignment in bytes. It can be: \c #Aligned128, , \c #Aligned64, \c #Aligned32, \c #Aligned16, \c #Aligned8 or \c #Unaligned.
   *                The default is \c #Unaligned.
   * \tparam StrideType optionally specifies strides. By default, Map assumes the memory layout
   *                   of an ordinary, contiguous array. This can be overridden by specifying strides.
@@ -77,7 +77,7 @@ struct traits<Map<PlainObjectType, MapOptions, StrideType> >
     OuterStrideAtCompileTime = StrideType::OuterStrideAtCompileTime == 0
                              ? int(PlainObjectType::OuterStrideAtCompileTime)
                              : int(StrideType::OuterStrideAtCompileTime),
-    IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0) && ((int(MapOptions)&Aligned)==Aligned),
+    Alignment = int(MapOptions)&int(AlignedMask),
     Flags0 = TraitsBase::Flags & (~NestByRefBit),
     Flags = is_lvalue<PlainObjectType>::value ? int(Flags0) : (int(Flags0) & ~LvalueBit)
   };

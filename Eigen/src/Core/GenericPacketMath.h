@@ -450,22 +450,22 @@ pmadd(const Packet&  a,
 { return padd(pmul(a, b),c); }
 
 /** \internal \returns a packet version of \a *from.
-  * If LoadMode equals #Aligned, \a from must be 16 bytes aligned */
-template<typename Packet, int LoadMode>
+  * The pointer \a from must be aligned on a \a Alignment bytes boundary. */
+template<typename Packet, int Alignment>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 {
-  if(LoadMode == Aligned)
+  if(Alignment >= unpacket_traits<Packet>::size*sizeof(typename unpacket_traits<Packet>::type))
     return pload<Packet>(from);
   else
     return ploadu<Packet>(from);
 }
 
 /** \internal copy the packet \a from to \a *to.
-  * If StoreMode equals #Aligned, \a to must be 16 bytes aligned */
-template<typename Scalar, typename Packet, int LoadMode>
+  * The pointer \a from must be aligned on a \a Alignment bytes boundary. */
+template<typename Scalar, typename Packet, int Alignment>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstoret(Scalar* to, const Packet& from)
 {
-  if(LoadMode == Aligned)
+  if(Alignment >= unpacket_traits<Packet>::size*sizeof(typename unpacket_traits<Packet>::type))
     pstore(to, from);
   else
     pstoreu(to, from);

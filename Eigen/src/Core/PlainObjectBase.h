@@ -116,20 +116,20 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     typedef Eigen::Map<Derived, Unaligned>  MapType;
     friend  class Eigen::Map<const Derived, Unaligned>;
     typedef const Eigen::Map<const Derived, Unaligned> ConstMapType;
-    friend  class Eigen::Map<Derived, Aligned>;
-    typedef Eigen::Map<Derived, Aligned> AlignedMapType;
-    friend  class Eigen::Map<const Derived, Aligned>;
-    typedef const Eigen::Map<const Derived, Aligned> ConstAlignedMapType;
+    friend  class Eigen::Map<Derived, AlignedMax>;
+    typedef Eigen::Map<Derived, AlignedMax> AlignedMapType;
+    friend  class Eigen::Map<const Derived, AlignedMax>;
+    typedef const Eigen::Map<const Derived, AlignedMax> ConstAlignedMapType;
     template<typename StrideType> struct StridedMapType { typedef Eigen::Map<Derived, Unaligned, StrideType> type; };
     template<typename StrideType> struct StridedConstMapType { typedef Eigen::Map<const Derived, Unaligned, StrideType> type; };
-    template<typename StrideType> struct StridedAlignedMapType { typedef Eigen::Map<Derived, Aligned, StrideType> type; };
-    template<typename StrideType> struct StridedConstAlignedMapType { typedef Eigen::Map<const Derived, Aligned, StrideType> type; };
+    template<typename StrideType> struct StridedAlignedMapType { typedef Eigen::Map<Derived, AlignedMax, StrideType> type; };
+    template<typename StrideType> struct StridedConstAlignedMapType { typedef Eigen::Map<const Derived, AlignedMax, StrideType> type; };
 
   protected:
     DenseStorage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
 
   public:
-    enum { NeedsToAlign = SizeAtCompileTime != Dynamic && (internal::traits<Derived>::EvaluatorFlags & AlignedBit) != 0 };
+    enum { NeedsToAlign = (SizeAtCompileTime != Dynamic) && (internal::traits<Derived>::Alignment>0) };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     EIGEN_DEVICE_FUNC

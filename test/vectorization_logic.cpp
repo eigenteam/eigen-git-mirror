@@ -35,7 +35,6 @@ std::string demangle_flags(int f)
   if(f&LinearAccessBit)             res += " | Linear";
   if(f&LvalueBit)                   res += " | Lvalue";
   if(f&DirectAccessBit)             res += " | Direct";
-  if(f&AlignedBit)                  res += " | Aligned";
   if(f&NestByRefBit)                res += " | NestByRef";
   if(f&NoPreferredStorageOrderBit)  res += " | NoPreferredStorageOrderBit";
   
@@ -204,12 +203,12 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
       LinearVectorizedTraversal,CompleteUnrolling));
 
     VERIFY((test_assign<
-            Map<Matrix22, Aligned, OuterStride<3*PacketSize> >,
+            Map<Matrix22, AlignedMax, OuterStride<3*PacketSize> >,
             Matrix22
             >(InnerVectorizedTraversal,CompleteUnrolling)));
 
     VERIFY((test_assign<
-            Map<Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>, Aligned, InnerStride<3*PacketSize> >,
+            Map<Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>, AlignedMax, InnerStride<3*PacketSize> >,
             Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>
             >(DefaultTraversal,CompleteUnrolling)));
 
