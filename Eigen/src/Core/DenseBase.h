@@ -76,7 +76,6 @@ template<typename Derived> class DenseBase
       * It is an alias for the Scalar type */
     typedef Scalar value_type;
     
-    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     typedef internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
@@ -178,6 +177,8 @@ template<typename Derived> class DenseBase
       InnerStrideAtCompileTime = internal::inner_stride_at_compile_time<Derived>::ret,
       OuterStrideAtCompileTime = internal::outer_stride_at_compile_time<Derived>::ret
     };
+    
+    typedef typename internal::find_best_packet<Scalar,SizeAtCompileTime>::type PacketScalar;
 
     enum { IsPlainObjectBase = 0 };
     

@@ -126,6 +126,28 @@ template<typename T> struct unpacket_traits
   };
 };
 
+template<int Size, typename PacketType,
+         bool Stop = (Size%unpacket_traits<PacketType>::size)==0 || is_same<PacketType,typename unpacket_traits<PacketType>::half>::value>
+struct find_best_packet_helper;
+
+template< int Size, typename PacketType>
+struct find_best_packet_helper<Size,PacketType,true>
+{
+  typedef PacketType type;
+};
+
+template<int Size, typename PacketType>
+struct find_best_packet_helper<Size,PacketType,false>
+{
+  typedef typename find_best_packet_helper<Size,typename unpacket_traits<PacketType>::half>::type type;
+};
+
+template<typename T, int Size>
+struct find_best_packet
+{
+  typedef typename find_best_packet_helper<Size,typename packet_traits<T>::type>::type type;
+};
+
 #if EIGEN_MAX_STATIC_ALIGN_BYTES>0
 template<int ArrayBytes, int AlignmentBytes,
          bool Match     =  bool((ArrayBytes%AlignmentBytes)==0),

@@ -29,8 +29,8 @@ struct copy_using_evaluator_traits
 {
   typedef typename DstEvaluator::XprType Dst;
   typedef typename Dst::Scalar DstScalar;
-  // TODO recursively find best packet size
-  typedef typename packet_traits<DstScalar>::type PacketType;
+  // TODO distinguish between linear traversal and inner-traversals
+  typedef typename find_best_packet<DstScalar,Dst::SizeAtCompileTime>::type PacketType; 
   
   enum {
     DstFlags = DstEvaluator::Flags,
@@ -55,7 +55,7 @@ private:
               : int(DstFlags)&RowMajorBit ? int(Dst::MaxColsAtCompileTime)
               : int(Dst::MaxRowsAtCompileTime),
     MaxSizeAtCompileTime = Dst::SizeAtCompileTime,
-    PacketSize = packet_traits<DstScalar>::size
+    PacketSize = unpacket_traits<PacketType>::size
   };
 
   enum {

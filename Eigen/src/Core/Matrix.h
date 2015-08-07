@@ -141,7 +141,8 @@ struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
 private:
   // TODO find ideal packet size
-  typedef typename packet_traits<_Scalar>::type PacketScalar;
+  enum { size = internal::size_at_compile_time<_Rows,_Cols>::ret };
+  typedef typename find_best_packet<_Scalar,size>::type PacketScalar;
   enum {
       row_major_bit = _Options&RowMajor ? RowMajorBit : 0,
       is_dynamic_size_storage = _MaxRows==Dynamic || _MaxCols==Dynamic,
