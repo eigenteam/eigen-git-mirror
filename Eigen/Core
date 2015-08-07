@@ -306,6 +306,7 @@ using std::ptrdiff_t;
   // Use AVX for floats and doubles, SSE for integers
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/Complex.h"
+  #include "src/Core/arch/SSE/MathFunctions.h"
   #include "src/Core/arch/AVX/PacketMath.h"
   #include "src/Core/arch/AVX/MathFunctions.h"
   #include "src/Core/arch/AVX/Complex.h"
