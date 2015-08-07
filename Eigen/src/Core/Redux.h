@@ -173,7 +173,7 @@ struct redux_vec_unroller<Func, Derived, Start, 1>
 
   static EIGEN_STRONG_INLINE PacketScalar run(const Derived &mat, const Func&)
   {
-    return mat.template packetByOuterInner<alignment>(outer, inner);
+    return mat.template packetByOuterInner<alignment,PacketScalar>(outer, inner);
   }
 };
 
@@ -235,19 +235,19 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
     Scalar res;
     if(alignedSize)
     {
-      PacketScalar packet_res0 = mat.template packet<alignment>(alignedStart);
+      PacketScalar packet_res0 = mat.template packet<alignment,PacketScalar>(alignedStart);
       if(alignedSize>packetSize) // we have at least two packets to partly unroll the loop
       {
-        PacketScalar packet_res1 = mat.template packet<alignment>(alignedStart+packetSize);
+        PacketScalar packet_res1 = mat.template packet<alignment,PacketScalar>(alignedStart+packetSize);
         for(Index index = alignedStart + 2*packetSize; index < alignedEnd2; index += 2*packetSize)
         {
-          packet_res0 = func.packetOp(packet_res0, mat.template packet<alignment>(index));
-          packet_res1 = func.packetOp(packet_res1, mat.template packet<alignment>(index+packetSize));
+          packet_res0 = func.packetOp(packet_res0, mat.template packet<alignment,PacketScalar>(index));
+          packet_res1 = func.packetOp(packet_res1, mat.template packet<alignment,PacketScalar>(index+packetSize));
         }
 
         packet_res0 = func.packetOp(packet_res0,packet_res1);
         if(alignedEnd>alignedEnd2)
-          packet_res0 = func.packetOp(packet_res0, mat.template packet<alignment>(alignedEnd2));
+          packet_res0 = func.packetOp(packet_res0, mat.template packet<alignment,PacketScalar>(alignedEnd2));
       }
       res = func.predux(packet_res0);
 
@@ -273,7 +273,7 @@ template<typename Func, typename Derived>
 struct redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
-  typedef typename packet_traits<Scalar>::type PacketScalar;
+  typedef typename packet_traits<Scalar>::type PacketType;
 
   EIGEN_DEVICE_FUNC static Scalar run(const Derived &mat, const Func& func)
   {
@@ -287,10 +287,10 @@ struct redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
     Scalar res;
     if(packetedInnerSize)
     {
-      PacketScalar packet_res = mat.template packet<Unaligned>(0,0);
+      PacketType packet_res = mat.template packet<Unaligned,PacketType>(0,0);
       for(Index j=0; j<outerSize; ++j)
         for(Index i=(j==0?packetSize:0); i<packetedInnerSize; i+=Index(packetSize))
-          packet_res = func.packetOp(packet_res, mat.template packetByOuterInner<Unaligned>(j,i));
+          packet_res = func.packetOp(packet_res, mat.template packetByOuterInner<Unaligned,PacketType>(j,i));
 
       res = func.predux(packet_res);
       for(Index j=0; j<outerSize; ++j)
@@ -371,21 +371,21 @@ public:
   CoeffReturnType coeff(Index index) const
   { return m_evaluator.coeff(index); }
 
-  template<int LoadMode>
+  template<int LoadMode, typename PacketType>
   PacketReturnType packet(Index row, Index col) const
-  { return m_evaluator.template packet<LoadMode>(row, col); }
+  { return m_evaluator.template packet<LoadMode,PacketType>(row, col); }
 
-  template<int LoadMode>
+  template<int LoadMode, typename PacketType>
   PacketReturnType packet(Index index) const
-  { return m_evaluator.template packet<LoadMode>(index); }
+  { return m_evaluator.template packet<LoadMode,PacketType>(index); }
   
   EIGEN_DEVICE_FUNC
   CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
   { return m_evaluator.coeff(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
   
-  template<int LoadMode>
+  template<int LoadMode, typename PacketType>
   PacketReturnType packetByOuterInner(Index outer, Index inner) const
-  { return m_evaluator.template packet<LoadMode>(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
+  { return m_evaluator.template packet<LoadMode,PacketType>(IsRowMajor ? outer : inner, IsRowMajor ? inner : outer); }
   
   const XprType & nestedExpression() const { return m_xpr; }
   

@@ -30,12 +30,12 @@ struct copy_using_evaluator_traits
   typedef typename DstEvaluator::XprType Dst;
   typedef typename Dst::Scalar DstScalar;
   // TODO recursively find best packet size
-  typedef typename packet_traits<DstScalar>::type DstPacket;
+  typedef typename packet_traits<DstScalar>::type PacketType;
   
   enum {
     DstFlags = DstEvaluator::Flags,
     SrcFlags = SrcEvaluator::Flags,
-    RequiredAlignment = unpacket_traits<DstPacket>::alignment
+    RequiredAlignment = unpacket_traits<PacketType>::alignment
   };
   
 public:
@@ -230,6 +230,7 @@ struct copy_using_evaluator_innervec_CompleteUnrolling
   // FIXME: this is not very clean, perhaps this information should be provided by the kernel?
   typedef typename Kernel::DstEvaluatorType DstEvaluatorType;
   typedef typename DstEvaluatorType::XprType DstXprType;
+  typedef typename Kernel::PacketType PacketType;
   
   enum {
     outer = Index / DstXprType::InnerSizeAtCompileTime,
@@ -239,8 +240,8 @@ struct copy_using_evaluator_innervec_CompleteUnrolling
 
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
-    kernel.template assignPacketByOuterInner<Aligned, JointAlignment>(outer, inner);
-    enum { NextIndex = Index + packet_traits<typename DstXprType::Scalar>::size };
+    kernel.template assignPacketByOuterInner<Aligned, JointAlignment, PacketType>(outer, inner);
+    enum { NextIndex = Index + unpacket_traits<PacketType>::size };
     copy_using_evaluator_innervec_CompleteUnrolling<Kernel, NextIndex, Stop>::run(kernel);
   }
 };
@@ -254,10 +255,11 @@ struct copy_using_evaluator_innervec_CompleteUnrolling<Kernel, Stop, Stop>
 template<typename Kernel, int Index_, int Stop>
 struct copy_using_evaluator_innervec_InnerUnrolling
 {
+  typedef typename Kernel::PacketType PacketType;
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel, Index outer)
   {
-    kernel.template assignPacketByOuterInner<Aligned, Aligned>(outer, Index_);
-    enum { NextIndex = Index_ + packet_traits<typename Kernel::Scalar>::size };
+    kernel.template assignPacketByOuterInner<Aligned, Aligned, PacketType>(outer, Index_);
+    enum { NextIndex = Index_ + unpacket_traits<PacketType>::size };
     copy_using_evaluator_innervec_InnerUnrolling<Kernel, NextIndex, Stop>::run(kernel, outer);
   }
 };
@@ -366,13 +368,13 @@ struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, NoUnrolling>
   {
     const Index size = kernel.size();
     typedef typename Kernel::Scalar Scalar;
-    typedef packet_traits<Scalar> PacketTraits;
+    typedef typename Kernel::PacketType PacketType;
     enum {
       requestedAlignment = Kernel::AssignmentTraits::RequiredAlignment,
-      packetSize = PacketTraits::size,
+      packetSize = unpacket_traits<PacketType>::size,
       dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(requestedAlignment),
-      dstAlignment = PacketTraits::AlignedOnScalar ? int(requestedAlignment)
-                                                   : int(Kernel::AssignmentTraits::DstAlignment),
+      dstAlignment = packet_traits<Scalar>::AlignedOnScalar ? int(requestedAlignment)
+                                                            : int(Kernel::AssignmentTraits::DstAlignment),
       srcAlignment = Kernel::AssignmentTraits::JointAlignment
     };
     const Index alignedStart = dstIsAligned ? 0 : internal::first_aligned<requestedAlignment>(&kernel.dstEvaluator().coeffRef(0), size);
@@ -381,7 +383,7 @@ struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, NoUnrolling>
     unaligned_dense_assignment_loop<dstIsAligned!=0>::run(kernel, 0, alignedStart);
 
     for(Index index = alignedStart; index < alignedEnd; index += packetSize)
-      kernel.template assignPacket<dstAlignment, srcAlignment>(index);
+      kernel.template assignPacket<dstAlignment, srcAlignment, PacketType>(index);
 
     unaligned_dense_assignment_loop<>::run(kernel, alignedEnd, size);
   }
@@ -411,14 +413,15 @@ struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, CompleteUnrollin
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, InnerVectorizedTraversal, NoUnrolling>
 {
+  typedef typename Kernel::PacketType PacketType;
   EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
   {
     const Index innerSize = kernel.innerSize();
     const Index outerSize = kernel.outerSize();
-    const Index packetSize = packet_traits<typename Kernel::Scalar>::size;
+    const Index packetSize = unpacket_traits<PacketType>::size;
     for(Index outer = 0; outer < outerSize; ++outer)
       for(Index inner = 0; inner < innerSize; inner+=packetSize)
-        kernel.template assignPacketByOuterInner<Aligned, Aligned>(outer, inner);
+        kernel.template assignPacketByOuterInner<Aligned, Aligned, PacketType>(outer, inner);
   }
 };
 
@@ -480,11 +483,11 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
   EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
   {
     typedef typename Kernel::Scalar Scalar;
-    typedef packet_traits<Scalar> PacketTraits;
+    typedef typename Kernel::PacketType PacketType;
     enum {
-      packetSize = PacketTraits::size,
+      packetSize = unpacket_traits<PacketType>::size,
       requestedAlignment = int(Kernel::AssignmentTraits::RequiredAlignment),
-      alignable = PacketTraits::AlignedOnScalar || int(Kernel::AssignmentTraits::DstAlignment)>=sizeof(Scalar),
+      alignable = packet_traits<Scalar>::AlignedOnScalar || int(Kernel::AssignmentTraits::DstAlignment)>=sizeof(Scalar),
       dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(requestedAlignment),
       dstAlignment = alignable ? int(requestedAlignment)
                                : int(Kernel::AssignmentTraits::DstAlignment)
@@ -510,7 +513,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
 
       // do the vectorizable part of the assignment
       for(Index inner = alignedStart; inner<alignedEnd; inner+=packetSize)
-        kernel.template assignPacketByOuterInner<dstAlignment, Unaligned>(outer, inner);
+        kernel.template assignPacketByOuterInner<dstAlignment, Unaligned, PacketType>(outer, inner);
 
       // do the non-vectorizable part of the assignment
       for(Index inner = alignedEnd; inner<innerSize ; ++inner)
@@ -544,6 +547,7 @@ public:
   typedef typename DstEvaluatorType::Scalar Scalar;
   typedef typename DstEvaluatorType::StorageIndex StorageIndex;
   typedef copy_using_evaluator_traits<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor> AssignmentTraits;
+  typedef typename AssignmentTraits::PacketType PacketType;
   
   
   EIGEN_DEVICE_FUNC generic_dense_assignment_kernel(DstEvaluatorType &dst, const SrcEvaluatorType &src, const Functor &func, DstXprType& dstExpr)
@@ -588,24 +592,24 @@ public:
   }
   
   
-  template<int StoreMode, int LoadMode>
+  template<int StoreMode, int LoadMode, typename PacketType>
   EIGEN_DEVICE_FUNC void assignPacket(Index row, Index col)
   {
-    m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(row,col), m_src.template packet<LoadMode>(row,col));
+    m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(row,col), m_src.template packet<LoadMode,PacketType>(row,col));
   }
   
-  template<int StoreMode, int LoadMode>
+  template<int StoreMode, int LoadMode, typename PacketType>
   EIGEN_DEVICE_FUNC void assignPacket(Index index)
   {
-    m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(index), m_src.template packet<LoadMode>(index));
+    m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(index), m_src.template packet<LoadMode,PacketType>(index));
   }
   
-  template<int StoreMode, int LoadMode>
+  template<int StoreMode, int LoadMode, typename PacketType>
   EIGEN_DEVICE_FUNC void assignPacketByOuterInner(Index outer, Index inner)
   {
     Index row = rowIndexByOuterInner(outer, inner); 
     Index col = colIndexByOuterInner(outer, inner);
-    assignPacket<StoreMode,LoadMode>(row, col);
+    assignPacket<StoreMode,LoadMode,PacketType>(row, col);
   }
   
   EIGEN_DEVICE_FUNC static Index rowIndexByOuterInner(Index outer, Index inner)

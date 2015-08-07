@@ -170,7 +170,7 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value()>0 ? 0 : -m_index.value(); }
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value()>0 ? m_index.value() : 0; }
-    // trigger a compile time error is someone try to call packet
+    // trigger a compile-time error if someone try to call packet
     template<int LoadMode> typename MatrixType::PacketReturnType packet(Index) const;
     template<int LoadMode> typename MatrixType::PacketReturnType packet(Index,Index) const;
 };

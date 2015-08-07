@@ -131,8 +131,6 @@ struct evaluator<PlainObjectBase<Derived> >
   typedef PlainObjectBase<Derived> PlainObjectType;
   typedef typename PlainObjectType::Scalar Scalar;
   typedef typename PlainObjectType::CoeffReturnType CoeffReturnType;
-  typedef typename PlainObjectType::PacketScalar PacketScalar;
-  typedef typename PlainObjectType::PacketReturnType PacketReturnType;
 
   enum {
     IsRowMajor = PlainObjectType::IsRowMajor,
@@ -182,36 +180,36 @@ struct evaluator<PlainObjectBase<Derived> >
     return const_cast<Scalar*>(m_data)[index];
   }
 
-  template<int LoadMode> 
-  PacketReturnType packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index row, Index col) const
   {
     if (IsRowMajor)
-      return ploadt<PacketScalar, LoadMode>(m_data + row * m_outerStride.value() + col);
+      return ploadt<PacketType, LoadMode>(m_data + row * m_outerStride.value() + col);
     else
-      return ploadt<PacketScalar, LoadMode>(m_data + row + col * m_outerStride.value());
+      return ploadt<PacketType, LoadMode>(m_data + row + col * m_outerStride.value());
   }
 
-  template<int LoadMode> 
-  PacketReturnType packet(Index index) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index index) const
   {
-    return ploadt<PacketScalar, LoadMode>(m_data + index);
+    return ploadt<PacketType, LoadMode>(m_data + index);
   }
 
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x)
+  template<int StoreMode,typename PacketType>
+  void writePacket(Index row, Index col, const PacketType& x)
   {
     if (IsRowMajor)
-      return pstoret<Scalar, PacketScalar, StoreMode>
+      return pstoret<Scalar, PacketType, StoreMode>
 	            (const_cast<Scalar*>(m_data) + row * m_outerStride.value() + col, x);
     else
-      return pstoret<Scalar, PacketScalar, StoreMode>
+      return pstoret<Scalar, PacketType, StoreMode>
                     (const_cast<Scalar*>(m_data) + row + col * m_outerStride.value(), x);
   }
 
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x)
+  template<int StoreMode, typename PacketType>
+  void writePacket(Index index, const PacketType& x)
   {
-    return pstoret<Scalar, PacketScalar, StoreMode>(const_cast<Scalar*>(m_data) + index, x);
+    return pstoret<Scalar, PacketType, StoreMode>(const_cast<Scalar*>(m_data) + index, x);
   }
 
 protected:
@@ -267,8 +265,6 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
@@ -290,28 +286,28 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
     return m_argImpl.coeffRef(index);
   }
 
-  template<int LoadMode>
-  PacketReturnType packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index row, Index col) const
   {
-    return m_argImpl.template packet<LoadMode>(col, row);
+    return m_argImpl.template packet<LoadMode,PacketType>(col, row);
   }
 
-  template<int LoadMode>
-  PacketReturnType packet(Index index) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index index) const
   {
-    return m_argImpl.template packet<LoadMode>(index);
+    return m_argImpl.template packet<LoadMode,PacketType>(index);
   }
 
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x)
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index row, Index col, const PacketType& x)
   {
-    m_argImpl.template writePacket<StoreMode>(col, row, x);
+    m_argImpl.template writePacket<StoreMode,PacketType>(col, row, x);
   }
 
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x)
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index index, const PacketType& x)
   {
-    m_argImpl.template writePacket<StoreMode>(index, x);
+    m_argImpl.template writePacket<StoreMode,PacketType>(index, x);
   }
 
 protected:
@@ -345,7 +341,6 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
   { }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
@@ -357,16 +352,16 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
     return m_functor(index);
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index row, Index col) const
   {
-    return m_functor.packetOp(row, col);
+    return m_functor.template packetOp<Index,PacketType>(row, col);
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index index) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index index) const
   {
-    return m_functor.packetOp(index);
+    return m_functor.template packetOp<Index,PacketType>(index);
   }
 
 protected:
@@ -395,7 +390,6 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
   { }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
@@ -407,16 +401,16 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
     return m_functor(m_argImpl.coeff(index));
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index row, Index col) const
   {
-    return m_functor.packetOp(m_argImpl.template packet<LoadMode>(row, col));
+    return m_functor.packetOp(m_argImpl.template packet<LoadMode, PacketType>(row, col));
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index index) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index index) const
   {
-    return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
+    return m_functor.packetOp(m_argImpl.template packet<LoadMode, PacketType>(index));
   }
 
 protected:
@@ -469,7 +463,6 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
   { }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
@@ -481,18 +474,18 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
     return m_functor(m_lhsImpl.coeff(index), m_rhsImpl.coeff(index));
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index row, Index col) const
   {
-    return m_functor.packetOp(m_lhsImpl.template packet<LoadMode>(row, col),
-                              m_rhsImpl.template packet<LoadMode>(row, col));
+    return m_functor.packetOp(m_lhsImpl.template packet<LoadMode,PacketType>(row, col),
+                              m_rhsImpl.template packet<LoadMode,PacketType>(row, col));
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index index) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index index) const
   {
-    return m_functor.packetOp(m_lhsImpl.template packet<LoadMode>(index),
-                              m_rhsImpl.template packet<LoadMode>(index));
+    return m_functor.packetOp(m_lhsImpl.template packet<LoadMode,PacketType>(index),
+                              m_rhsImpl.template packet<LoadMode,PacketType>(index));
   }
 
 protected:
@@ -564,8 +557,6 @@ struct mapbase_evaluator : evaluator_base<Derived>
   typedef typename XprType::PointerType PointerType;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   
   enum {
     IsRowMajor = XprType::RowsAtCompileTime,
@@ -601,30 +592,30 @@ struct mapbase_evaluator : evaluator_base<Derived>
     return m_data[index * m_xpr.innerStride()];
   }
  
-  template<int LoadMode> 
-  PacketReturnType packet(Index row, Index col) const 
+  template<int LoadMode, typename PacketType> 
+  PacketType packet(Index row, Index col) const 
   {
     PointerType ptr = m_data + row * m_xpr.rowStride() + col * m_xpr.colStride();
-    return internal::ploadt<PacketScalar, LoadMode>(ptr);
+    return internal::ploadt<PacketType, LoadMode>(ptr);
   }
 
-  template<int LoadMode> 
-  PacketReturnType packet(Index index) const 
+  template<int LoadMode, typename PacketType> 
+  PacketType packet(Index index) const 
   {
-    return internal::ploadt<PacketScalar, LoadMode>(m_data + index * m_xpr.innerStride());
+    return internal::ploadt<PacketType, LoadMode>(m_data + index * m_xpr.innerStride());
   }
   
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x) 
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index row, Index col, const PacketType& x) 
   {
     PointerType ptr = m_data + row * m_xpr.rowStride() + col * m_xpr.colStride();
-    return internal::pstoret<Scalar, PacketScalar, StoreMode>(ptr, x);
+    return internal::pstoret<Scalar, PacketType, StoreMode>(ptr, x);
   }
   
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x) 
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index index, const PacketType& x) 
   {
-    internal::pstoret<Scalar, PacketScalar, StoreMode>(m_data + index * m_xpr.innerStride(), x);
+    internal::pstoret<Scalar, PacketType, StoreMode>(m_data + index * m_xpr.innerStride(), x);
   }
  
 protected:
@@ -770,8 +761,6 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
  
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
 
   enum {
     RowsAtCompileTime = XprType::RowsAtCompileTime
@@ -797,31 +786,31 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
     return coeffRef(RowsAtCompileTime == 1 ? 0 : index, RowsAtCompileTime == 1 ? index : 0);
   }
  
-  template<int LoadMode> 
-  PacketReturnType packet(Index row, Index col) const 
+  template<int LoadMode, typename PacketType> 
+  PacketType packet(Index row, Index col) const 
   { 
-    return m_argImpl.template packet<LoadMode>(m_startRow.value() + row, m_startCol.value() + col); 
+    return m_argImpl.template packet<LoadMode,PacketType>(m_startRow.value() + row, m_startCol.value() + col); 
   }
 
-  template<int LoadMode> 
-  PacketReturnType packet(Index index) const 
+  template<int LoadMode, typename PacketType> 
+  PacketType packet(Index index) const 
   { 
-    return packet<LoadMode>(RowsAtCompileTime == 1 ? 0 : index,
-                            RowsAtCompileTime == 1 ? index : 0);
+    return packet<LoadMode,PacketType>(RowsAtCompileTime == 1 ? 0 : index,
+                                       RowsAtCompileTime == 1 ? index : 0);
   }
   
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x) 
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index row, Index col, const PacketType& x) 
   { 
-    return m_argImpl.template writePacket<StoreMode>(m_startRow.value() + row, m_startCol.value() + col, x); 
+    return m_argImpl.template writePacket<StoreMode,PacketType>(m_startRow.value() + row, m_startCol.value() + col, x); 
   }
   
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x) 
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index index, const PacketType& x) 
   { 
-    return writePacket<StoreMode>(RowsAtCompileTime == 1 ? 0 : index,
-                                  RowsAtCompileTime == 1 ? index : 0,
-                                  x);
+    return writePacket<StoreMode,PacketType>(RowsAtCompileTime == 1 ? 0 : index,
+                                             RowsAtCompileTime == 1 ? index : 0,
+                                             x);
   }
  
 protected:
@@ -908,7 +897,6 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
 {
   typedef Replicate<ArgType, RowFactor, ColFactor> XprType;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   enum {
     Factor = (RowFactor==Dynamic || ColFactor==Dynamic) ? Dynamic : RowFactor*ColFactor
   };
@@ -953,8 +941,8 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
     return m_argImpl.coeff(actual_index);
   }
 
-  template<int LoadMode>
-  PacketReturnType packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index row, Index col) const
   {
     const Index actual_row = internal::traits<XprType>::RowsAtCompileTime==1 ? 0
                            : RowFactor==1 ? row
@@ -963,17 +951,17 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
                            : ColFactor==1 ? col
                            : col % m_cols.value();
 
-    return m_argImpl.template packet<LoadMode>(actual_row, actual_col);
+    return m_argImpl.template packet<LoadMode,PacketType>(actual_row, actual_col);
   }
   
-  template<int LoadMode>
-  PacketReturnType packet(Index index) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index index) const
   {
     const Index actual_index = internal::traits<XprType>::RowsAtCompileTime==1
                                   ? (ColFactor==1 ?  index : index%m_cols.value())
                                   : (RowFactor==1 ?  index : index%m_rows.value());
 
-    return m_argImpl.template packet<LoadMode>(actual_index);
+    return m_argImpl.template packet<LoadMode,PacketType>(actual_index);
   }
  
 protected:
@@ -1050,8 +1038,6 @@ struct evaluator_wrapper_base
 
   typedef typename ArgType::Scalar Scalar;
   typedef typename ArgType::CoeffReturnType CoeffReturnType;
-  typedef typename ArgType::PacketScalar PacketScalar;
-  typedef typename ArgType::PacketReturnType PacketReturnType;
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
@@ -1073,26 +1059,26 @@ struct evaluator_wrapper_base
     return m_argImpl.coeffRef(index);
   }
 
-  template<int LoadMode> 
-  PacketReturnType packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType> 
+  PacketType packet(Index row, Index col) const
   {
-    return m_argImpl.template packet<LoadMode>(row, col);
+    return m_argImpl.template packet<LoadMode,PacketType>(row, col);
   }
 
-  template<int LoadMode> 
-  PacketReturnType packet(Index index) const
+  template<int LoadMode, typename PacketType> 
+  PacketType packet(Index index) const
   {
-    return m_argImpl.template packet<LoadMode>(index);
+    return m_argImpl.template packet<LoadMode,PacketType>(index);
   }
 
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x)
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index row, Index col, const PacketType& x)
   {
     m_argImpl.template writePacket<StoreMode>(row, col, x);
   }
 
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x)
+  template<int StoreMode, typename PacketType> 
+  void writePacket(Index index, const PacketType& x)
   {
     m_argImpl.template writePacket<StoreMode>(index, x);
   }
@@ -1127,7 +1113,7 @@ struct unary_evaluator<ArrayWrapper<TArgType> >
 // -------------------- Reverse --------------------
 
 // defined in Reverse.h:
-template<typename PacketScalar, bool ReversePacket> struct reverse_packet_cond;
+template<typename PacketType, bool ReversePacket> struct reverse_packet_cond;
 
 template<typename ArgType, int Direction>
 struct unary_evaluator<Reverse<ArgType, Direction> >
@@ -1136,17 +1122,12 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
   typedef Reverse<ArgType, Direction> XprType;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
 
   enum {
-    PacketSize = internal::packet_traits<Scalar>::size,
     IsRowMajor = XprType::IsRowMajor,
     IsColMajor = !IsRowMajor,
     ReverseRow = (Direction == Vertical)   || (Direction == BothDirections),
     ReverseCol = (Direction == Horizontal) || (Direction == BothDirections),
-    OffsetRow  = ReverseRow && IsColMajor ? PacketSize : 1,
-    OffsetCol  = ReverseCol && IsRowMajor ? PacketSize : 1,
     ReversePacket = (Direction == BothDirections)
                     || ((Direction == Vertical)   && IsColMajor)
                     || ((Direction == Horizontal) && IsRowMajor),
@@ -1163,7 +1144,6 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
     
     Alignment = 0 // FIXME in some rare cases, Alignment could be preserved, like a Vector4f.
   };
-  typedef internal::reverse_packet_cond<PacketScalar,ReversePacket> reverse_packet;
 
   EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& reverse)
     : m_argImpl(reverse.nestedExpression()),
@@ -1193,32 +1173,47 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
     return m_argImpl.coeffRef(m_rows.value() * m_cols.value() - index - 1);
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index row, Index col) const
   {
-    return reverse_packet::run(m_argImpl.template packet<LoadMode>(
+    enum {
+      PacketSize = unpacket_traits<PacketType>::size,
+      OffsetRow  = ReverseRow && IsColMajor ? PacketSize : 1,
+      OffsetCol  = ReverseCol && IsRowMajor ? PacketSize : 1
+    };
+    typedef internal::reverse_packet_cond<PacketType,ReversePacket> reverse_packet;
+    return reverse_packet::run(m_argImpl.template packet<LoadMode,PacketType>(
                                   ReverseRow ? m_rows.value() - row - OffsetRow : row,
                                   ReverseCol ? m_cols.value() - col - OffsetCol : col));
   }
 
-  template<int LoadMode>
-  PacketScalar packet(Index index) const
+  template<int LoadMode, typename PacketType>
+  PacketType packet(Index index) const
   {
-    return preverse(m_argImpl.template packet<LoadMode>(m_rows.value() * m_cols.value() - index - PacketSize));
+    enum { PacketSize = unpacket_traits<PacketType>::size };
+    return preverse(m_argImpl.template packet<LoadMode,PacketType>(m_rows.value() * m_cols.value() - index - PacketSize));
   }
 
-  template<int LoadMode>
-  void writePacket(Index row, Index col, const PacketScalar& x)
+  template<int LoadMode, typename PacketType>
+  void writePacket(Index row, Index col, const PacketType& x)
   {
+    // FIXME we could factorize some code with packet(i,j)
+    enum {
+      PacketSize = unpacket_traits<PacketType>::size,
+      OffsetRow  = ReverseRow && IsColMajor ? PacketSize : 1,
+      OffsetCol  = ReverseCol && IsRowMajor ? PacketSize : 1
+    };
+    typedef internal::reverse_packet_cond<PacketType,ReversePacket> reverse_packet;
     m_argImpl.template writePacket<LoadMode>(
                                   ReverseRow ? m_rows.value() - row - OffsetRow : row,
                                   ReverseCol ? m_cols.value() - col - OffsetCol : col,
                                   reverse_packet::run(x));
   }
 
-  template<int LoadMode>
-  void writePacket(Index index, const PacketScalar& x)
+  template<int LoadMode, typename PacketType>
+  void writePacket(Index index, const PacketType& x)
   {
+    enum { PacketSize = unpacket_traits<PacketType>::size };
     m_argImpl.template writePacket<LoadMode>
       (m_rows.value() * m_cols.value() - index - PacketSize, preverse(x));
   }

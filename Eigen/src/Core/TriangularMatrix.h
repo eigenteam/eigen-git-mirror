@@ -36,10 +36,14 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
       MaxColsAtCompileTime = internal::traits<Derived>::MaxColsAtCompileTime,
       
       SizeAtCompileTime = (internal::size_at_compile_time<internal::traits<Derived>::RowsAtCompileTime,
-                                                   internal::traits<Derived>::ColsAtCompileTime>::ret)
-        /**< This is equal to the number of coefficients, i.e. the number of
+                                                   internal::traits<Derived>::ColsAtCompileTime>::ret),
+      /**< This is equal to the number of coefficients, i.e. the number of
           * rows times the number of columns, or to \a Dynamic if this is not
           * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
+      
+      MaxSizeAtCompileTime = (internal::size_at_compile_time<internal::traits<Derived>::MaxRowsAtCompileTime,
+                                                   internal::traits<Derived>::MaxColsAtCompileTime>::ret)
+        
     };
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;

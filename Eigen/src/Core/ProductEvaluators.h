@@ -491,13 +491,13 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     return (m_lhs.row(row).transpose().cwiseProduct( m_rhs.col(col) )).sum();
   }
 
-  template<int LoadMode>
-  const PacketReturnType packet(Index row, Index col) const
+  template<int LoadMode, typename PacketType>
+  const PacketType packet(Index row, Index col) const
   {
-    PacketScalar res;
+    PacketType res;
     typedef etor_product_packet_impl<Flags&RowMajorBit ? RowMajor : ColMajor,
                                      Unroll ? InnerSize : Dynamic,
-                                     LhsEtorType, RhsEtorType, PacketScalar, LoadMode> PacketImpl;
+                                     LhsEtorType, RhsEtorType, PacketType, LoadMode> PacketImpl;
 
     PacketImpl::run(row, col, m_lhsImpl, m_rhsImpl, m_innerDim, res);
     return res;
@@ -539,7 +539,7 @@ struct etor_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, Packet, Load
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet &res)
   {
     etor_product_packet_impl<RowMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, innerDim, res);
-    res =  pmadd(pset1<Packet>(lhs.coeff(row, UnrollingIndex-1)), rhs.template packet<LoadMode>(UnrollingIndex-1, col), res);
+    res =  pmadd(pset1<Packet>(lhs.coeff(row, UnrollingIndex-1)), rhs.template packet<LoadMode,Packet>(UnrollingIndex-1, col), res);
   }
 };
 
@@ -549,7 +549,7 @@ struct etor_product_packet_impl<ColMajor, UnrollingIndex, Lhs, Rhs, Packet, Load
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet &res)
   {
     etor_product_packet_impl<ColMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, innerDim, res);
-    res =  pmadd(lhs.template packet<LoadMode>(row, UnrollingIndex-1), pset1<Packet>(rhs.coeff(UnrollingIndex-1, col)), res);
+    res =  pmadd(lhs.template packet<LoadMode,Packet>(row, UnrollingIndex-1), pset1<Packet>(rhs.coeff(UnrollingIndex-1, col)), res);
   }
 };
 
@@ -558,7 +558,7 @@ struct etor_product_packet_impl<RowMajor, 1, Lhs, Rhs, Packet, LoadMode>
 {
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, Packet &res)
   {
-    res = pmul(pset1<Packet>(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
+    res = pmul(pset1<Packet>(lhs.coeff(row, 0)),rhs.template packet<LoadMode,Packet>(0, col));
   }
 };
 
@@ -567,7 +567,7 @@ struct etor_product_packet_impl<ColMajor, 1, Lhs, Rhs, Packet, LoadMode>
 {
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, Packet &res)
   {
-    res = pmul(lhs.template packet<LoadMode>(row, 0), pset1<Packet>(rhs.coeff(0, col)));
+    res = pmul(lhs.template packet<LoadMode,Packet>(row, 0), pset1<Packet>(rhs.coeff(0, col)));
   }
 };
 
@@ -596,7 +596,7 @@ struct etor_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
   {
     res = pset1<Packet>(0);
     for(Index i = 0; i < innerDim; ++i)
-      res =  pmadd(pset1<Packet>(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
+      res =  pmadd(pset1<Packet>(lhs.coeff(row, i)), rhs.template packet<LoadMode,Packet>(i, col), res);
   }
 };
 
@@ -607,7 +607,7 @@ struct etor_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
   {
     res = pset1<Packet>(0);
     for(Index i = 0; i < innerDim; ++i)
-      res =  pmadd(lhs.template packet<LoadMode>(row, i), pset1<Packet>(rhs.coeff(i, col)), res);
+      res =  pmadd(lhs.template packet<LoadMode,Packet>(row, i), pset1<Packet>(rhs.coeff(i, col)), res);
   }
 };
 
@@ -691,7 +691,6 @@ struct diagonal_product_evaluator_base
   : evaluator_base<Derived>
 {
    typedef typename scalar_product_traits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
-   typedef typename internal::packet_traits<Scalar>::type PacketScalar;
 public:
   enum {
     CoeffReadCost = NumTraits<Scalar>::MulCost + evaluator<MatrixType>::CoeffReadCost + evaluator<DiagonalType>::CoeffReadCost,
@@ -721,22 +720,22 @@ public:
   }
   
 protected:
-  template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, internal::true_type) const
+  template<int LoadMode,typename PacketType>
+  EIGEN_STRONG_INLINE PacketType packet_impl(Index row, Index col, Index id, internal::true_type) const
   {
-    return internal::pmul(m_matImpl.template packet<LoadMode>(row, col),
-                          internal::pset1<PacketScalar>(m_diagImpl.coeff(id)));
+    return internal::pmul(m_matImpl.template packet<LoadMode,PacketType>(row, col),
+                          internal::pset1<PacketType>(m_diagImpl.coeff(id)));
   }
   
-  template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, internal::false_type) const
+  template<int LoadMode,typename PacketType>
+  EIGEN_STRONG_INLINE PacketType packet_impl(Index row, Index col, Index id, internal::false_type) const
   {
     enum {
       InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,
       DiagonalPacketLoadMode = EIGEN_PLAIN_ENUM_MIN(LoadMode,((InnerSize%16) == 0) ? int(Aligned16) : int(evaluator<DiagonalType>::Alignment)) // FIXME hardcoded 16!!
     };
-    return internal::pmul(m_matImpl.template packet<LoadMode>(row, col),
-                          m_diagImpl.template packet<DiagonalPacketLoadMode>(id));
+    return internal::pmul(m_matImpl.template packet<LoadMode,PacketType>(row, col),
+                          m_diagImpl.template packet<DiagonalPacketLoadMode,PacketType>(id));
   }
   
   typename evaluator<DiagonalType>::nestedType m_diagImpl;
@@ -753,7 +752,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   using Base::m_matImpl;
   using Base::coeff;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::PacketScalar PacketScalar;
   
   typedef Product<Lhs, Rhs, ProductKind> XprType;
   typedef typename XprType::PlainObject PlainObject;
@@ -773,19 +771,19 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   }
   
 #ifndef __CUDACC__
-  template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
+  template<int LoadMode,typename PacketType>
+  EIGEN_STRONG_INLINE PacketType packet(Index row, Index col) const
   {
     // FIXME: NVCC used to complain about the template keyword, but we have to check whether this is still the case.
     // See also similar calls below.
-    return this->template packet_impl<LoadMode>(row,col, row,
+    return this->template packet_impl<LoadMode,PacketType>(row,col, row,
                                  typename internal::conditional<int(StorageOrder)==RowMajor, internal::true_type, internal::false_type>::type());
   }
   
-  template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketScalar packet(Index idx) const
+  template<int LoadMode,typename PacketType>
+  EIGEN_STRONG_INLINE PacketType packet(Index idx) const
   {
-    return packet<LoadMode>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
+    return packet<LoadMode,PacketType>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
   }
 #endif
 };
@@ -800,7 +798,6 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   using Base::m_matImpl;
   using Base::coeff;
   typedef typename Base::Scalar Scalar;
-  typedef typename Base::PacketScalar PacketScalar;
   
   typedef Product<Lhs, Rhs, ProductKind> XprType;
   typedef typename XprType::PlainObject PlainObject;
@@ -818,17 +815,17 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   }
   
 #ifndef __CUDACC__
-  template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
+  template<int LoadMode,typename PacketType>
+  EIGEN_STRONG_INLINE PacketType packet(Index row, Index col) const
   {
-    return this->template packet_impl<LoadMode>(row,col, col,
+    return this->template packet_impl<LoadMode,PacketType>(row,col, col,
                                  typename internal::conditional<int(StorageOrder)==ColMajor, internal::true_type, internal::false_type>::type());
   }
   
-  template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketScalar packet(Index idx) const
+  template<int LoadMode,typename PacketType>
+  EIGEN_STRONG_INLINE PacketType packet(Index idx) const
   {
-    return packet<LoadMode>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
+    return packet<LoadMode,PacketType>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
   }
 #endif
 };

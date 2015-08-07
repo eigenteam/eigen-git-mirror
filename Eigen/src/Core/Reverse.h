@@ -48,14 +48,14 @@ struct traits<Reverse<MatrixType, Direction> >
   };
 };
 
-template<typename PacketScalar, bool ReversePacket> struct reverse_packet_cond
+template<typename PacketType, bool ReversePacket> struct reverse_packet_cond
 {
-  static inline PacketScalar run(const PacketScalar& x) { return preverse(x); }
+  static inline PacketType run(const PacketType& x) { return preverse(x); }
 };
 
-template<typename PacketScalar> struct reverse_packet_cond<PacketScalar,false>
+template<typename PacketType> struct reverse_packet_cond<PacketType,false>
 {
-  static inline PacketScalar run(const PacketScalar& x) { return x; }
+  static inline PacketType run(const PacketType& x) { return x; }
 };
 
 } // end namespace internal 

@@ -16,13 +16,12 @@ namespace internal {
 
 template<typename Scalar>
 struct scalar_constant_op {
-  typedef typename packet_traits<Scalar>::type Packet;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_constant_op(const scalar_constant_op& other) : m_other(other.m_other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_constant_op(const Scalar& other) : m_other(other) { }
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index, Index = 0) const { return m_other; }
-  template<typename Index>
-  EIGEN_STRONG_INLINE const Packet packetOp(Index, Index = 0) const { return internal::pset1<Packet>(m_other); }
+  template<typename Index, typename PacketType>
+  EIGEN_STRONG_INLINE const PacketType packetOp(Index, Index = 0) const { return internal::pset1<PacketType>(m_other); }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -39,7 +38,7 @@ template<typename Scalar>
 struct functor_traits<scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
 
-template <typename Scalar, bool RandomAccess> struct linspaced_op_impl;
+template <typename Scalar, typename Packet, bool RandomAccess> struct linspaced_op_impl;
 
 // linear access for packet ops:
 // 1) initialization
@@ -49,11 +48,9 @@ template <typename Scalar, bool RandomAccess> struct linspaced_op_impl;
 //
 // TODO: Perhaps it's better to initialize lazily (so not in the constructor but in packetOp)
 //       in order to avoid the padd() in operator() ?
-template <typename Scalar>
-struct linspaced_op_impl<Scalar,false>
+template <typename Scalar, typename Packet>
+struct linspaced_op_impl<Scalar,Packet,false>
 {
-  typedef typename packet_traits<Scalar>::type Packet;
-
   linspaced_op_impl(const Scalar& low, const Scalar& step) :
   m_low(low), m_step(step),
   m_packetStep(pset1<Packet>(packet_traits<Scalar>::size*step)),
@@ -78,11 +75,9 @@ struct linspaced_op_impl<Scalar,false>
 // random access for packet ops:
 // 1) each step
 //   [low, ..., low] + ( [step, ..., step] * ( [i, ..., i] + [0, ..., size] ) )
-template <typename Scalar>
-struct linspaced_op_impl<Scalar,true>
+template <typename Scalar, typename Packet>
+struct linspaced_op_impl<Scalar,Packet,true>
 {
-  typedef typename packet_traits<Scalar>::type Packet;
-
   linspaced_op_impl(const Scalar& low, const Scalar& step) :
   m_low(low), m_step(step),
   m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Scalar>(0)) {}
@@ -111,7 +106,6 @@ template <typename Scalar, bool RandomAccess> struct functor_traits< linspaced_o
 { enum { Cost = 1, PacketAccess = packet_traits<Scalar>::HasSetLinear, IsRepeatable = true }; };
 template <typename Scalar, bool RandomAccess> struct linspaced_op
 {
-  typedef typename packet_traits<Scalar>::type Packet;
   linspaced_op(const Scalar& low, const Scalar& high, Index num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1))) {}
 
   template<typename Index>
@@ -126,12 +120,12 @@ template <typename Scalar, bool RandomAccess> struct linspaced_op
     return impl(col + row);
   }
 
-  template<typename Index>
+  template<typename Index, typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(Index i) const { return impl.packetOp(i); }
 
   // We need this function when assigning e.g. a RowVectorXd to a MatrixXd since
   // there row==0 and col is used for the actual iteration.
-  template<typename Index>
+  template<typename Index, typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(Index row, Index col) const
   {
     eigen_assert(col==0 || row==0);
@@ -141,7 +135,8 @@ template <typename Scalar, bool RandomAccess> struct linspaced_op
   // This proxy object handles the actual required temporaries, the different
   // implementations (random vs. sequential access) as well as the
   // correct piping to size 2/4 packet operations.
-  const linspaced_op_impl<Scalar,RandomAccess> impl;
+  // TODO find a way to make the packet type configurable
+  const linspaced_op_impl<Scalar,typename packet_traits<Scalar>::type,RandomAccess> impl;
 };
 
 // all functors allow linear access, except scalar_identity_op. So we fix here a quick meta

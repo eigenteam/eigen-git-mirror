@@ -216,8 +216,9 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketReturnType packet(Index row, Index col) const
     {
+      typedef typename internal::packet_traits<Scalar>::type DefaultPacketType;
       eigen_internal_assert(row >= 0 && row < rows() && col >= 0 && col < cols());
-      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode>(row,col);
+      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode,DefaultPacketType>(row,col);
     }
 
 
@@ -242,8 +243,9 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
     {
+      typedef typename internal::packet_traits<Scalar>::type DefaultPacketType;
       eigen_internal_assert(index >= 0 && index < size());
-      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode>(index);
+      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode,DefaultPacketType>(index);
     }
 
   protected:
