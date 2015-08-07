@@ -140,7 +140,7 @@ const unsigned int LvalueBit = 0x20;
   */
 const unsigned int DirectAccessBit = 0x40;
 
-/* \ingroup flags
+/** \deprecated \ingroup flags
   *
   * means the first coefficient packet is guaranteed to be aligned.
   * An expression cannot has the AlignedBit without the PacketAccessBit flag.
