@@ -140,13 +140,15 @@ template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int
 struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
 private:
+  // TODO find ideal packet size
+  typedef typename packet_traits<_Scalar>::type PacketScalar;
   enum {
       row_major_bit = _Options&RowMajor ? RowMajorBit : 0,
       is_dynamic_size_storage = _MaxRows==Dynamic || _MaxCols==Dynamic,
       max_size = is_dynamic_size_storage ? Dynamic : _MaxRows*_MaxCols,
       default_alignment = compute_default_alignment<_Scalar,max_size>::value,
       actual_alignment = ((_Options&DontAlign)==0) ? default_alignment : 0,
-      required_alignment = packet_traits<_Scalar>::size * sizeof(_Scalar), // FIXME ask packet_traits for the true required alignment
+      required_alignment = unpacket_traits<PacketScalar>::alignment,
       packet_access_bit = packet_traits<_Scalar>::Vectorizable && (actual_alignment>=required_alignment) ? PacketAccessBit : 0
     };
     

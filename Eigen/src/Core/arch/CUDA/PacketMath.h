@@ -65,8 +65,8 @@ template<> struct packet_traits<double> : default_packet_traits
 };
 
 
-template<> struct unpacket_traits<float4> { typedef float  type; enum {size=4}; typedef float4 half; };
-template<> struct unpacket_traits<double2> { typedef double type; enum {size=2}; typedef double2 half; };
+template<> struct unpacket_traits<float4>  { typedef float  type; enum {size=4, alignment=Aligned16}; typedef float4 half; };
+template<> struct unpacket_traits<double2> { typedef double type; enum {size=2, alignment=Aligned16}; typedef double2 half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pset1<float4>(const float&  from) {
   return make_float4(from, from, from, from);

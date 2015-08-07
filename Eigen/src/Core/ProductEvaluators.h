@@ -433,8 +433,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     LhsAlignment = LhsEtorType::Alignment,
     RhsAlignment = RhsEtorType::Alignment,
     
-    LhsIsAligned = int(LhsAlignment) >= int(sizeof(Scalar)*PacketSize), // FIXME compare to required alignment
-    RhsIsAligned = int(RhsAlignment) >= int(sizeof(Scalar)*PacketSize),
+    LhsIsAligned = int(LhsAlignment) >= int(unpacket_traits<PacketScalar>::alignment),
+    RhsIsAligned = int(RhsAlignment) >= int(unpacket_traits<PacketScalar>::alignment),
     
     LhsRowMajor = LhsFlags & RowMajorBit,
     RhsRowMajor = RhsFlags & RowMajorBit,

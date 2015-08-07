@@ -553,7 +553,8 @@ inline Index first_aligned(const Scalar* array, Index size)
 template<typename Scalar, typename Index>
 inline Index first_default_aligned(const Scalar* array, Index size)
 {
-  return first_aligned<packet_traits<Scalar>::size*sizeof(Scalar)>(array, size);
+  typedef typename packet_traits<Scalar>::type DefaultPacketType;
+  return first_aligned<unpacket_traits<DefaultPacketType>::alignment>(array, size);
 }
 
 /** \internal Returns the smallest integer multiple of \a base and greater or equal to \a size

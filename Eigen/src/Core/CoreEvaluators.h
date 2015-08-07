@@ -638,6 +638,8 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
 {
   typedef Map<PlainObjectType, MapOptions, StrideType> XprType;
   typedef typename XprType::Scalar Scalar;
+  // TODO: should check for smaller packet types once we can handle multi-sized packet types
+  typedef typename packet_traits<Scalar>::type PacketScalar;
   
   enum {
     InnerStrideAtCompileTime = StrideType::InnerStrideAtCompileTime == 0
@@ -651,21 +653,18 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     
-    // TODO: should check for smaller packet types once we can handle multi-sized packet types
-    AlignBytes = int(packet_traits<Scalar>::size) * sizeof(Scalar),
+    PacketAlignment = unpacket_traits<PacketScalar>::alignment,
     
     KeepsPacketAccess = bool(HasNoInnerStride)
                         && ( bool(IsDynamicSize)
                            || HasNoOuterStride
                            || ( OuterStrideAtCompileTime!=Dynamic
-                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime) % AlignBytes)==0 ) ),
+                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime) % PacketAlignment)==0 ) ),
     Flags0 = evaluator<PlainObjectType>::Flags,
-    //Flags1 = IsAligned ? (int(Flags0) | AlignedBit) : (int(Flags0) & ~AlignedBit),
     Flags1 = (bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime))
            ? int(Flags0) : int(Flags0 & ~LinearAccessBit),
     Flags = KeepsPacketAccess ? int(Flags1) : (int(Flags1) & ~PacketAccessBit),
     
-    //IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0) && ((int(MapOptions)&int(AlignedMask))>0),
     Alignment = int(MapOptions)&int(AlignedMask)
   };
 
@@ -702,7 +701,9 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
   : block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel>
 {
   typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
-  typedef typename XprType::Scalar Scalar; 
+  typedef typename XprType::Scalar Scalar;
+  // TODO: should check for smaller packet types once we can handle multi-sized packet types
+  typedef typename packet_traits<Scalar>::type PacketScalar;
   
   enum {
     CoeffReadCost = evaluator<ArgType>::CoeffReadCost,
@@ -735,9 +736,8 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
                                            MaskPacketAccessBit),
     Flags = Flags0 | FlagsLinearAccessBit | FlagsRowMajorBit,
     
-    // TODO: should check for smaller packet types once we can handle multi-sized packet types
-    AlignBytes = int(packet_traits<Scalar>::size) * sizeof(Scalar),
-    Alignment0 = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % AlignBytes) == 0)) ? AlignBytes : 0,
+    PacketAlignment = unpacket_traits<PacketScalar>::alignment,
+    Alignment0 = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && (((OuterStrideAtCompileTime * int(sizeof(Scalar))) % int(PacketAlignment)) == 0)) ? int(PacketAlignment) : 0,
     Alignment = EIGEN_PLAIN_ENUM_MIN(evaluator<ArgType>::Alignment, Alignment0)
   };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;

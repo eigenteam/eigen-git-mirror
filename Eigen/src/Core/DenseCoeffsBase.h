@@ -614,7 +614,8 @@ template<typename Derived>
 static inline Index first_default_aligned(const DenseBase<Derived>& m)
 {
   typedef typename Derived::Scalar Scalar;
-  return first_aligned<packet_traits<Scalar>::size*sizeof(Scalar)>(m);
+  typedef typename packet_traits<Scalar>::type DefaultPacketType;
+  return first_aligned<unpacket_traits<DefaultPacketType>::alignment>(m);
 }
 
 template<typename Derived, bool HasDirectAccess = has_direct_access<Derived>::ret>

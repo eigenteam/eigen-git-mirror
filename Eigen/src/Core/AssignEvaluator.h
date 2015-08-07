@@ -29,10 +29,13 @@ struct copy_using_evaluator_traits
 {
   typedef typename DstEvaluator::XprType Dst;
   typedef typename Dst::Scalar DstScalar;
+  // TODO recursively find best packet size
+  typedef typename packet_traits<DstScalar>::type DstPacket;
+  
   enum {
     DstFlags = DstEvaluator::Flags,
     SrcFlags = SrcEvaluator::Flags,
-    RequiredAlignment = packet_traits<DstScalar>::size*sizeof(DstScalar) // FIXME ask packet_traits for the true alignment requirement
+    RequiredAlignment = unpacket_traits<DstPacket>::alignment
   };
   
 public:

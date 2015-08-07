@@ -119,7 +119,11 @@ template<typename T> struct unpacket_traits
 {
   typedef T type;
   typedef T half;
-  enum {size=1};
+  enum
+  {
+    size = 1,
+    alignment = 1
+  };
 };
 
 #if EIGEN_MAX_STATIC_ALIGN_BYTES>0

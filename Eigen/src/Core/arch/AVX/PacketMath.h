@@ -100,9 +100,9 @@ template<> struct packet_traits<int>    : default_packet_traits
 };
 */
 
-template<> struct unpacket_traits<Packet8f> { typedef float  type; typedef Packet4f half; enum {size=8}; };
-template<> struct unpacket_traits<Packet4d> { typedef double type; typedef Packet2d half; enum {size=4}; };
-template<> struct unpacket_traits<Packet8i> { typedef int    type; typedef Packet4i half; enum {size=8}; };
+template<> struct unpacket_traits<Packet8f> { typedef float  type; typedef Packet4f half; enum {size=8, alignment=Aligned32}; };
+template<> struct unpacket_traits<Packet4d> { typedef double type; typedef Packet2d half; enum {size=4, alignment=Aligned32}; };
+template<> struct unpacket_traits<Packet8i> { typedef int    type; typedef Packet4i half; enum {size=8, alignment=Aligned32}; };
 
 template<> EIGEN_STRONG_INLINE Packet8f pset1<Packet8f>(const float&  from) { return _mm256_set1_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet4d pset1<Packet4d>(const double& from) { return _mm256_set1_pd(from); }

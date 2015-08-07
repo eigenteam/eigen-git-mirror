@@ -454,7 +454,7 @@ pmadd(const Packet&  a,
 template<typename Packet, int Alignment>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 {
-  if(Alignment >= unpacket_traits<Packet>::size*sizeof(typename unpacket_traits<Packet>::type))
+  if(Alignment >= unpacket_traits<Packet>::alignment)
     return pload<Packet>(from);
   else
     return ploadu<Packet>(from);
@@ -465,7 +465,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet ploadt(const typename unpacket_trai
 template<typename Scalar, typename Packet, int Alignment>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstoret(Scalar* to, const Packet& from)
 {
-  if(Alignment >= unpacket_traits<Packet>::size*sizeof(typename unpacket_traits<Packet>::type))
+  if(Alignment >= unpacket_traits<Packet>::alignment)
     pstore(to, from);
   else
     pstoreu(to, from);
