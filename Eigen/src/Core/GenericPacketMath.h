@@ -261,8 +261,8 @@ inline void pbroadcast2(const typename unpacket_traits<Packet>::type *a,
 }
 
 /** \internal \brief Returns a packet with coefficients (a,a+1,...,a+packet_size-1). */
-template<typename Scalar> inline typename packet_traits<Scalar>::type
-plset(const Scalar& a) { return a; }
+template<typename Packet> inline Packet
+plset(const typename unpacket_traits<Packet>::type& a) { return a; }
 
 /** \internal copy the packet \a from to \a *to, \a to must be 16 bytes aligned */
 template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstore(Scalar* to, const Packet& from)

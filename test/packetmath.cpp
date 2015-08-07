@@ -414,7 +414,7 @@ template<typename Scalar> void packetmath_notcomplex()
   
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[0]+Scalar(i);
-  internal::pstore(data2, internal::plset(data1[0]));
+  internal::pstore(data2, internal::plset<Packet>(data1[0]));
   VERIFY(areApprox(ref, data2, PacketSize) && "internal::plset");
 }
 

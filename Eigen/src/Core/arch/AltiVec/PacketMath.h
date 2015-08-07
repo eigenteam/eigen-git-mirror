@@ -289,8 +289,8 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const 
   to[3*stride] = ai[3];
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return vec_add(pset1<Packet4f>(a), p4f_COUNTDOWN); }
-template<> EIGEN_STRONG_INLINE Packet4i plset<int>(const int& a)     { return vec_add(pset1<Packet4i>(a), p4i_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a) { return vec_add(pset1<Packet4f>(a), p4f_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet4i plset<Packet4i>(const int& a)   { return vec_add(pset1<Packet4i>(a), p4i_COUNTDOWN); }
 
 template<> EIGEN_STRONG_INLINE Packet4f padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_add(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i padd<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_add(a,b); }
@@ -807,7 +807,7 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet2d>(double* to, 
   to[0*stride] = af[0];
   to[1*stride] = af[1];
 }
-template<> EIGEN_STRONG_INLINE Packet2d plset<double>(const double& a) { return vec_add(pset1<Packet2d>(a), p2d_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet2d plset<Packet2d>(const double& a) { return vec_add(pset1<Packet2d>(a), p2d_COUNTDOWN); }
 
 template<> EIGEN_STRONG_INLINE Packet2d padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_add(a,b); }
 

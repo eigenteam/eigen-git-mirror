@@ -271,9 +271,9 @@ template<typename Derived> class DenseBase
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows sequential access only. */
-    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,false>,PlainObject> SequentialLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,PacketScalar,false>,PlainObject> SequentialLinSpacedReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
-    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,true>,PlainObject> RandomAccessLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,PacketScalar,true>,PlainObject> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename internal::traits<Derived>::Scalar>::Real, internal::traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
 

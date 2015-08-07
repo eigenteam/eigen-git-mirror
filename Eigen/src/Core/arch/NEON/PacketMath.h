@@ -120,12 +120,12 @@ template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4,
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return vdupq_n_f32(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   { return vdupq_n_s32(from); }
 
-template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a)
+template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a)
 {
   Packet4f countdown = EIGEN_INIT_NEON_PACKET4(0, 1, 2, 3);
   return vaddq_f32(pset1<Packet4f>(a), countdown);
 }
-template<> EIGEN_STRONG_INLINE Packet4i plset<int>(const int& a)
+template<> EIGEN_STRONG_INLINE Packet4i plset<Packet4i>(const int& a)
 {
   Packet4i countdown = EIGEN_INIT_NEON_PACKET4(0, 1, 2, 3);
   return vaddq_s32(pset1<Packet4i>(a), countdown);
@@ -574,7 +574,7 @@ template<> struct unpacket_traits<Packet2d> { typedef double  type; enum {size=2
 
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) { return vdupq_n_f64(from); }
 
-template<> EIGEN_STRONG_INLINE Packet2d plset<double>(const double& a)
+template<> EIGEN_STRONG_INLINE Packet2d plset<Packet2d>(const double& a)
 {
   Packet2d countdown = EIGEN_INIT_NEON_PACKET2(0, 1);
   return vaddq_f64(pset1<Packet2d>(a), countdown);

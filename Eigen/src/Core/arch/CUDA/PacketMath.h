@@ -76,10 +76,10 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 pset1<double2>(const do
 }
 
 
-template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 plset<float>(const float& a) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 plset<float4>(const float& a) {
   return make_float4(a, a+1, a+2, a+3);
 }
-template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 plset<double>(const double& a) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 plset<double2>(const double& a) {
   return make_double2(a, a+1);
 }
 

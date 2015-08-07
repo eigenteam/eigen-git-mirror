@@ -245,7 +245,7 @@ EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturn
 DenseBase<Derived>::LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,false>(low,high,size));
+  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,PacketScalar,false>(low,high,size));
 }
 
 /**
@@ -258,7 +258,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,false>(low,high,Derived::SizeAtCompileTime));
+  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,PacketScalar,false>(low,high,Derived::SizeAtCompileTime));
 }
 
 /**
@@ -279,7 +279,7 @@ EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedRetu
 DenseBase<Derived>::LinSpaced(Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,true>(low,high,size));
+  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,PacketScalar,true>(low,high,size));
 }
 
 /**
@@ -292,7 +292,7 @@ DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,true>(low,high,Derived::SizeAtCompileTime));
+  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,PacketScalar,true>(low,high,Derived::SizeAtCompileTime));
 }
 
 /** \returns true if all coefficients in this matrix are approximately equal to \a val, to within precision \a prec */
@@ -391,7 +391,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index newSize, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return derived() = Derived::NullaryExpr(newSize, internal::linspaced_op<Scalar,false>(low,high,newSize));
+  return derived() = Derived::NullaryExpr(newSize, internal::linspaced_op<Scalar,PacketScalar,false>(low,high,newSize));
 }
 
 /**

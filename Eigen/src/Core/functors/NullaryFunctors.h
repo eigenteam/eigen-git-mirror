@@ -53,8 +53,8 @@ struct linspaced_op_impl<Scalar,Packet,false>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& step) :
   m_low(low), m_step(step),
-  m_packetStep(pset1<Packet>(packet_traits<Scalar>::size*step)),
-  m_base(padd(pset1<Packet>(low), pmul(pset1<Packet>(step),plset<Scalar>(-packet_traits<Scalar>::size)))) {}
+  m_packetStep(pset1<Packet>(unpacket_traits<Packet>::size*step)),
+  m_base(padd(pset1<Packet>(low), pmul(pset1<Packet>(step),plset<Packet>(-unpacket_traits<Packet>::size)))) {}
 
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const 
@@ -80,7 +80,7 @@ struct linspaced_op_impl<Scalar,Packet,true>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& step) :
   m_low(low), m_step(step),
-  m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Scalar>(0)) {}
+  m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Packet>(0)) {}
 
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return m_low+i*m_step; }
@@ -101,10 +101,10 @@ struct linspaced_op_impl<Scalar,Packet,true>
 // Forward declaration (we default to random access which does not really give
 // us a speed gain when using packet access but it allows to use the functor in
 // nested expressions).
-template <typename Scalar, bool RandomAccess = true> struct linspaced_op;
-template <typename Scalar, bool RandomAccess> struct functor_traits< linspaced_op<Scalar,RandomAccess> >
+template <typename Scalar, typename PacketType, bool RandomAccess = true> struct linspaced_op;
+template <typename Scalar, typename PacketType, bool RandomAccess> struct functor_traits< linspaced_op<Scalar,PacketType,RandomAccess> >
 { enum { Cost = 1, PacketAccess = packet_traits<Scalar>::HasSetLinear, IsRepeatable = true }; };
-template <typename Scalar, bool RandomAccess> struct linspaced_op
+template <typename Scalar, typename PacketType, bool RandomAccess> struct linspaced_op
 {
   linspaced_op(const Scalar& low, const Scalar& high, Index num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1))) {}
 
@@ -136,7 +136,7 @@ template <typename Scalar, bool RandomAccess> struct linspaced_op
   // implementations (random vs. sequential access) as well as the
   // correct piping to size 2/4 packet operations.
   // TODO find a way to make the packet type configurable
-  const linspaced_op_impl<Scalar,typename packet_traits<Scalar>::type,RandomAccess> impl;
+  const linspaced_op_impl<Scalar,PacketType,RandomAccess> impl;
 };
 
 // all functors allow linear access, except scalar_identity_op. So we fix here a quick meta
