@@ -341,7 +341,6 @@ template<> struct functor_traits<scalar_boolean_or_op> {
  */
 template<typename Scalar>
 struct scalar_multiple_op {
-  typedef typename packet_traits<Scalar>::type Packet;
   // FIXME default copy constructors seems bugged with std::complex<>
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE scalar_multiple_op(const scalar_multiple_op& other) : m_other(other.m_other) { }
@@ -349,6 +348,7 @@ struct scalar_multiple_op {
   EIGEN_STRONG_INLINE scalar_multiple_op(const Scalar& other) : m_other(other) { }
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a * m_other; }
+  template <typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pmul(a, pset1<Packet>(m_other)); }
   typename add_const_on_value_type<typename NumTraits<Scalar>::Nested>::type m_other;
@@ -379,11 +379,11 @@ struct functor_traits<scalar_multiple2_op<Scalar1,Scalar2> >
   */
 template<typename Scalar>
 struct scalar_quotient1_op {
-  typedef typename packet_traits<Scalar>::type Packet;
   // FIXME default copy constructors seems bugged with std::complex<>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient1_op(const scalar_quotient1_op& other) : m_other(other.m_other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient1_op(const Scalar& other) : m_other(other) {}
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a / m_other; }
+  template <typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pdiv(a, pset1<Packet>(m_other)); }
   typename add_const_on_value_type<typename NumTraits<Scalar>::Nested>::type m_other;
@@ -421,11 +421,11 @@ template<typename LhsScalar,typename RhsScalar> struct functor_is_product_like<s
 /* If you wonder why doing the pset1() in packetOp() is an optimization check scalar_multiple_op */
 template<typename Scalar>
 struct scalar_add_op {
-  typedef typename packet_traits<Scalar>::type Packet;
   // FIXME default copy constructors seems bugged with std::complex<>
   EIGEN_DEVICE_FUNC inline scalar_add_op(const scalar_add_op& other) : m_other(other.m_other) { }
   EIGEN_DEVICE_FUNC inline scalar_add_op(const Scalar& other) : m_other(other) { }
   EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return a + m_other; }
+  template <typename Packet>
   inline const Packet packetOp(const Packet& a) const
   { return internal::padd(a, pset1<Packet>(m_other)); }
   const Scalar m_other;
@@ -440,10 +440,10 @@ struct functor_traits<scalar_add_op<Scalar> >
   */
 template<typename Scalar>
 struct scalar_sub_op {
-  typedef typename packet_traits<Scalar>::type Packet;
   inline scalar_sub_op(const scalar_sub_op& other) : m_other(other.m_other) { }
   inline scalar_sub_op(const Scalar& other) : m_other(other) { }
   inline Scalar operator() (const Scalar& a) const { return a - m_other; }
+  template <typename Packet>
   inline const Packet packetOp(const Packet& a) const
   { return internal::psub(a, pset1<Packet>(m_other)); }
   const Scalar m_other;
@@ -458,10 +458,10 @@ struct functor_traits<scalar_sub_op<Scalar> >
   */
 template<typename Scalar>
 struct scalar_rsub_op {
-  typedef typename packet_traits<Scalar>::type Packet;
   inline scalar_rsub_op(const scalar_rsub_op& other) : m_other(other.m_other) { }
   inline scalar_rsub_op(const Scalar& other) : m_other(other) { }
   inline Scalar operator() (const Scalar& a) const { return m_other - a; }
+  template <typename Packet>
   inline const Packet packetOp(const Packet& a) const
   { return internal::psub(pset1<Packet>(m_other), a); }
   const Scalar m_other;
