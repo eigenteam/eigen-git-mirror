@@ -233,7 +233,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    return m_functor.packetOp(index);
+    return m_functor.template packetOp<Index,PacketReturnType>(index);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
