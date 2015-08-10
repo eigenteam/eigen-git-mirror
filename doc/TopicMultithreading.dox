@@ -8,7 +8,7 @@ Some Eigen's algorithms can exploit the multiple cores present in your hardware.
  * GCC: \c -fopenmp
  * ICC: \c -openmp
  * MSVC: check the respective option in the build properties.
-You can control the number of thread that will be used using either the OpenMP API or Eiegn's API using the following priority:
+You can control the number of thread that will be used using either the OpenMP API or Eigen's API using the following priority:
 \code
  OMP_NUM_THREADS=n ./my_program
  omp_set_num_threads(n);
