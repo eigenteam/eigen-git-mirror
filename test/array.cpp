@@ -221,9 +221,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));
   VERIFY_IS_APPROX(m1.ceil(), ceil(m1));
-  VERIFY((m1.isNaN() == Eigen::isnan(m1)).all());
-  VERIFY((m1.isInf() == Eigen::isinf(m1)).all());
-  VERIFY((m1.isFinite() == Eigen::isfinite(m1)).all());
+  VERIFY((m1.isNaN() == (Eigen::isnan)(m1)).all());
+  VERIFY((m1.isInf() == (Eigen::isinf)(m1)).all());
+  VERIFY((m1.isFinite() == (Eigen::isfinite)(m1)).all());
   VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
   VERIFY_IS_APPROX(m1.abs(), abs(m1));
   VERIFY_IS_APPROX(m1.abs2(), abs2(m1));
@@ -249,9 +249,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(tanh(m1), (0.5*(exp(m1)-exp(-m1)))/(0.5*(exp(m1)+exp(-m1))));
   VERIFY_IS_APPROX(arg(m1), ((ArrayType)(m1<0))*std::acos(-1.0));
   VERIFY((round(m1) <= ceil(m1) && round(m1) >= floor(m1)).all());
-  VERIFY(Eigen::isnan((m1*0.0)/0.0).all());
-  VERIFY(Eigen::isinf(m4/0.0).all());
-  VERIFY((Eigen::isfinite(m1) && (!Eigen::isfinite(m1*0.0/0.0)) && (!Eigen::isfinite(m4/0.0))).all());
+  VERIFY((Eigen::isnan)((m1*0.0)/0.0).all());
+  VERIFY((Eigen::isinf)(m4/0.0).all());
+  VERIFY(((Eigen::isfinite)(m1) && (!(Eigen::isfinite)(m1*0.0/0.0)) && (!(Eigen::isfinite)(m4/0.0))).all());
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY((abs(m1) == m1 || abs(m1) == -m1).all());
   VERIFY_IS_APPROX(m3, sqrt(abs2(m1)));
@@ -336,9 +336,9 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
-  VERIFY((m1.isNaN() == Eigen::isnan(m1)).all());
-  VERIFY((m1.isInf() == Eigen::isinf(m1)).all());
-  VERIFY((m1.isFinite() == Eigen::isfinite(m1)).all());
+  VERIFY((m1.isNaN() == (Eigen::isnan)(m1)).all());
+  VERIFY((m1.isInf() == (Eigen::isinf)(m1)).all());
+  VERIFY((m1.isFinite() == (Eigen::isfinite)(m1)).all());
   VERIFY_IS_APPROX(m1.inverse(), inverse(m1));
   VERIFY_IS_APPROX(m1.log(), log(m1));
   VERIFY_IS_APPROX(m1.log10(), log10(m1));
@@ -364,20 +364,20 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(arg(m1), m3);
 
   std::complex<RealScalar> zero(0.0,0.0);
-  VERIFY(Eigen::isnan(m1*zero/zero).all());
+  VERIFY((Eigen::isnan)(m1*zero/zero).all());
 #if EIGEN_COMP_CLANG
   // clang's complex division is notoriously broken
-  if(numext::isinf(m4(0,0)/RealScalar(0))) {
+  if((numext::isinf)(m4(0,0)/RealScalar(0))) {
 #endif
-  VERIFY(Eigen::isinf(m4/zero).all());
+  VERIFY((Eigen::isinf)(m4/zero).all());
 #if EIGEN_COMP_CLANG
   }
   else
   {
-    VERIFY(Eigen::isinf(m4.real()/zero.real()).all());
+    VERIFY((Eigen::isinf)(m4.real()/zero.real()).all());
   }
 #endif
-  VERIFY((Eigen::isfinite(m1) && (!Eigen::isfinite(m1*zero/zero)) && (!Eigen::isfinite(m1/zero))).all());
+  VERIFY(((Eigen::isfinite)(m1) && (!(Eigen::isfinite)(m1*zero/zero)) && (!(Eigen::isfinite)(m1/zero))).all());
 
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY_IS_APPROX(conj(m1.conjugate()), m1);
