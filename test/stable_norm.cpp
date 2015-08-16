@@ -40,7 +40,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
            && "the stable norm algorithm cannot be guaranteed on this computer");
     
     Scalar inf = std::numeric_limits<RealScalar>::infinity();
-    if(NumTraits<Scalar>::IsComplex && numext::isnan(inf*RealScalar(1)) )
+    if(NumTraits<Scalar>::IsComplex && (numext::isnan)(inf*RealScalar(1)) )
     {
       complex_real_product_ok = false;
       static bool first = true;
@@ -81,18 +81,18 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   RealScalar size = static_cast<RealScalar>(m.size());
 
   // test numext::isfinite
-  VERIFY(!numext::isfinite( std::numeric_limits<RealScalar>::infinity()));
-  VERIFY(!numext::isfinite(sqrt(-abs(big))));
+  VERIFY(!(numext::isfinite)( std::numeric_limits<RealScalar>::infinity()));
+  VERIFY(!(numext::isfinite)(sqrt(-abs(big))));
 
   // test overflow
-  VERIFY(numext::isfinite(sqrt(size)*abs(big)));
+  VERIFY((numext::isfinite)(sqrt(size)*abs(big)));
   VERIFY_IS_NOT_APPROX(sqrt(copy(vbig.squaredNorm())), abs(sqrt(size)*big)); // here the default norm must fail
   VERIFY_IS_APPROX(vbig.stableNorm(), sqrt(size)*abs(big));
   VERIFY_IS_APPROX(vbig.blueNorm(),   sqrt(size)*abs(big));
   VERIFY_IS_APPROX(vbig.hypotNorm(),  sqrt(size)*abs(big));
 
   // test underflow
-  VERIFY(numext::isfinite(sqrt(size)*abs(small)));
+  VERIFY((numext::isfinite)(sqrt(size)*abs(small)));
   VERIFY_IS_NOT_APPROX(sqrt(copy(vsmall.squaredNorm())),   abs(sqrt(size)*small)); // here the default norm must fail
   VERIFY_IS_APPROX(vsmall.stableNorm(), sqrt(size)*abs(small));
   VERIFY_IS_APPROX(vsmall.blueNorm(),   sqrt(size)*abs(small));
@@ -115,39 +115,39 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   {
     v = vrand;
     v(i,j) = std::numeric_limits<RealScalar>::quiet_NaN();
-    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(numext::isnan(v.squaredNorm()));
-    VERIFY(!numext::isfinite(v.norm()));          VERIFY(numext::isnan(v.norm()));
-    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(numext::isnan(v.stableNorm()));
-    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(numext::isnan(v.blueNorm()));
-    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(numext::isnan(v.hypotNorm()));
+    VERIFY(!(numext::isfinite)(v.squaredNorm()));   VERIFY((numext::isnan)(v.squaredNorm()));
+    VERIFY(!(numext::isfinite)(v.norm()));          VERIFY((numext::isnan)(v.norm()));
+    VERIFY(!(numext::isfinite)(v.stableNorm()));    VERIFY((numext::isnan)(v.stableNorm()));
+    VERIFY(!(numext::isfinite)(v.blueNorm()));      VERIFY((numext::isnan)(v.blueNorm()));
+    VERIFY(!(numext::isfinite)(v.hypotNorm()));     VERIFY((numext::isnan)(v.hypotNorm()));
   }
   
   // +inf
   {
     v = vrand;
     v(i,j) = std::numeric_limits<RealScalar>::infinity();
-    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
-    VERIFY(!numext::isfinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
-    VERIFY(!numext::isfinite(v.stableNorm()));
+    VERIFY(!(numext::isfinite)(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
+    VERIFY(!(numext::isfinite)(v.norm()));          VERIFY(isPlusInf(v.norm()));
+    VERIFY(!(numext::isfinite)(v.stableNorm()));
     if(complex_real_product_ok){
       VERIFY(isPlusInf(v.stableNorm()));
     }
-    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
-    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
+    VERIFY(!(numext::isfinite)(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
+    VERIFY(!(numext::isfinite)(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
   
   // -inf
   {
     v = vrand;
     v(i,j) = -std::numeric_limits<RealScalar>::infinity();
-    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
-    VERIFY(!numext::isfinite(v.norm()));          VERIFY(isPlusInf(v.norm()));
-    VERIFY(!numext::isfinite(v.stableNorm()));
+    VERIFY(!(numext::isfinite)(v.squaredNorm()));   VERIFY(isPlusInf(v.squaredNorm()));
+    VERIFY(!(numext::isfinite)(v.norm()));          VERIFY(isPlusInf(v.norm()));
+    VERIFY(!(numext::isfinite)(v.stableNorm()));
     if(complex_real_product_ok) {
       VERIFY(isPlusInf(v.stableNorm()));
     }
-    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
-    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
+    VERIFY(!(numext::isfinite)(v.blueNorm()));      VERIFY(isPlusInf(v.blueNorm()));
+    VERIFY(!(numext::isfinite)(v.hypotNorm()));     VERIFY(isPlusInf(v.hypotNorm()));
   }
   
   // mix
@@ -157,11 +157,11 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     v = vrand;
     v(i,j) = -std::numeric_limits<RealScalar>::infinity();
     v(i2,j2) = std::numeric_limits<RealScalar>::quiet_NaN();
-    VERIFY(!numext::isfinite(v.squaredNorm()));   VERIFY(numext::isnan(v.squaredNorm()));
-    VERIFY(!numext::isfinite(v.norm()));          VERIFY(numext::isnan(v.norm()));
-    VERIFY(!numext::isfinite(v.stableNorm()));    VERIFY(numext::isnan(v.stableNorm()));
-    VERIFY(!numext::isfinite(v.blueNorm()));      VERIFY(numext::isnan(v.blueNorm()));
-    VERIFY(!numext::isfinite(v.hypotNorm()));     VERIFY(numext::isnan(v.hypotNorm()));
+    VERIFY(!(numext::isfinite)(v.squaredNorm()));   VERIFY((numext::isnan)(v.squaredNorm()));
+    VERIFY(!(numext::isfinite)(v.norm()));          VERIFY((numext::isnan)(v.norm()));
+    VERIFY(!(numext::isfinite)(v.stableNorm()));    VERIFY((numext::isnan)(v.stableNorm()));
+    VERIFY(!(numext::isfinite)(v.blueNorm()));      VERIFY((numext::isnan)(v.blueNorm()));
+    VERIFY(!(numext::isfinite)(v.hypotNorm()));     VERIFY((numext::isnan)(v.hypotNorm()));
   }
 }
 

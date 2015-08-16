@@ -367,23 +367,15 @@ macro(ei_get_compilerver VAR)
     # on all other system we rely on ${CMAKE_CXX_COMPILER}
     # supporting a "--version" or "/version" flag
     
-    if(WIN32 AND NOT CYGWIN AND NOT MINGW)
+    if(WIN32 AND ${CMAKE_CXX_COMPILER_ID} EQUAL "Intel")
       set(EIGEN_CXX_FLAG_VERSION "/version")
     else()
       set(EIGEN_CXX_FLAG_VERSION "--version")
     endif()
     
-    # check whether the head command exists
-    find_program(HEAD_EXE head NO_CMAKE_ENVIRONMENT_PATH NO_CMAKE_PATH NO_CMAKE_SYSTEM_PATH)
-    if(HEAD_EXE)
-      execute_process(COMMAND ${CMAKE_CXX_COMPILER} ${EIGEN_CXX_FLAG_VERSION}
-                      COMMAND head -n 1
-                      OUTPUT_VARIABLE eigen_cxx_compiler_version_string OUTPUT_STRIP_TRAILING_WHITESPACE)
-    else()
-      execute_process(COMMAND ${CMAKE_CXX_COMPILER}  ${EIGEN_CXX_FLAG_VERSION}
-                      OUTPUT_VARIABLE eigen_cxx_compiler_version_string OUTPUT_STRIP_TRAILING_WHITESPACE)
-      string(REGEX REPLACE "[\n\r].*"  ""  eigen_cxx_compiler_version_string  ${eigen_cxx_compiler_version_string})
-    endif()
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} ${EIGEN_CXX_FLAG_VERSION}
+                    OUTPUT_VARIABLE eigen_cxx_compiler_version_string OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(REGEX REPLACE "[\n\r].*"  ""  eigen_cxx_compiler_version_string  ${eigen_cxx_compiler_version_string})
     
     ei_get_compilerver_from_cxx_version_string("${eigen_cxx_compiler_version_string}" CNAME CVER)
     set(${VAR} "${CNAME}-${CVER}")

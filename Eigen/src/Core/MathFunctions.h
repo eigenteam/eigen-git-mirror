@@ -788,7 +788,7 @@ bool (isfinite)(const T& x)
 {
   #if EIGEN_HAS_CXX11_MATH
     using std::isfinite;
-    return isfinite(x);
+    return isfinite EIGEN_NOT_A_MACRO (x);
   #else
     return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
   #endif
@@ -800,7 +800,7 @@ bool (isnan)(const T& x)
 {
   #if EIGEN_HAS_CXX11_MATH
     using std::isnan;
-    return isnan(x);
+    return isnan EIGEN_NOT_A_MACRO (x);
   #else
     return x != x;
   #endif
@@ -812,7 +812,7 @@ bool (isinf)(const T& x)
 {
   #if EIGEN_HAS_CXX11_MATH
     using std::isinf;
-    return isinf(x);
+    return isinf EIGEN_NOT_A_MACRO (x);
   #else
     return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
   #endif
@@ -821,19 +821,19 @@ bool (isinf)(const T& x)
 template<typename T>
 bool (isfinite)(const std::complex<T>& x)
 {
-  return numext::isfinite(numext::real(x)) && numext::isfinite(numext::imag(x));
+  return (numext::isfinite)(numext::real(x)) && (numext::isfinite)(numext::imag(x));
 }
 
 template<typename T>
 bool (isnan)(const std::complex<T>& x)
 {
-  return numext::isnan(numext::real(x)) || numext::isnan(numext::imag(x));
+  return (numext::isnan)(numext::real(x)) || (numext::isnan)(numext::imag(x));
 }
 
 template<typename T>
 bool (isinf)(const std::complex<T>& x)
 {
-  return (numext::isinf(numext::real(x)) || numext::isinf(numext::imag(x))) && (!numext::isnan(x));
+  return ((numext::isinf)(numext::real(x)) || (numext::isinf)(numext::imag(x))) && (!(numext::isnan)(x));
 }
 
 template<typename Scalar>

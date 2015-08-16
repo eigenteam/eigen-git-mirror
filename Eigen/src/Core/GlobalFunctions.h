@@ -14,7 +14,7 @@
 #define EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(NAME,FUNCTOR) \
   template<typename Derived> \
   inline const Eigen::CwiseUnaryOp<Eigen::internal::FUNCTOR<typename Derived::Scalar>, const Derived> \
-  NAME(const Eigen::ArrayBase<Derived>& x) { \
+  (NAME)(const Eigen::ArrayBase<Derived>& x) { \
     return Eigen::CwiseUnaryOp<Eigen::internal::FUNCTOR<typename Derived::Scalar>, const Derived>(x.derived()); \
   }
 

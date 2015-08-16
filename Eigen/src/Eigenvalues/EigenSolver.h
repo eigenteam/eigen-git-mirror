@@ -399,7 +399,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
       if (i == matrix.cols() - 1 || m_matT.coeff(i+1, i) == Scalar(0)) 
       {
         m_eivalues.coeffRef(i) = m_matT.coeff(i, i);
-        if(!isfinite(m_eivalues.coeffRef(i)))
+        if(!(isfinite)(m_eivalues.coeffRef(i)))
         {
           m_isInitialized = true;
           m_eigenvectorsOk = false;
@@ -426,7 +426,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
         
         m_eivalues.coeffRef(i)   = ComplexScalar(m_matT.coeff(i+1, i+1) + p, z);
         m_eivalues.coeffRef(i+1) = ComplexScalar(m_matT.coeff(i+1, i+1) + p, -z);
-        if(!(isfinite(m_eivalues.coeffRef(i)) && isfinite(m_eivalues.coeffRef(i+1))))
+        if(!((isfinite)(m_eivalues.coeffRef(i)) && (isfinite)(m_eivalues.coeffRef(i+1))))
         {
           m_isInitialized = true;
           m_eigenvectorsOk = false;

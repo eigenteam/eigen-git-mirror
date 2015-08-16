@@ -370,6 +370,15 @@
   #endif
 #endif
 
+// Does the compiler support proper C++11 containers?
+#ifndef EIGEN_HAS_CXX11_CONTAINERS
+  #if ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG)) || EIGEN_COMP_MSVC >= 1900
+    #define EIGEN_HAS_CXX11_CONTAINERS 1
+  #else
+    #define EIGEN_HAS_CXX11_CONTAINERS 0
+  #endif
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
