@@ -72,13 +72,13 @@
 
 // Detect compiler using signatures from http://predef.sourceforge.net/
 #if defined(__GNUC__) && defined(__INTEL_COMPILER)
-    #define IsInf(x) isinf(x)                   // Intel ICC compiler on Linux 
+    #define IsInf(x) (isinf)(x)                   // Intel ICC compiler on Linux 
 
 #elif defined(_MSC_VER)                         // Microsoft Visual C++ 
     #define IsInf(x) (!_finite(x))                           
 
 #else
-    #define IsInf(x) std::isinf(x)              // GNU C/C++ (and/or other compilers), just hope for C99 conformance
+    #define IsInf(x) (std::isinf)(x)              // GNU C/C++ (and/or other compilers), just hope for C99 conformance
 #endif
 
 // A Clang feature extension to determine compiler features.
@@ -530,9 +530,9 @@ public:
 #endif
 
     // Instance Checkers
-    friend bool isnan    (const mpreal& v);
-    friend bool isinf    (const mpreal& v);
-    friend bool isfinite (const mpreal& v);
+    friend bool (isnan)    (const mpreal& v);
+    friend bool (isinf)    (const mpreal& v);
+    friend bool (isfinite) (const mpreal& v);
 
     friend bool isnum    (const mpreal& v);
     friend bool iszero   (const mpreal& v);
@@ -1687,9 +1687,9 @@ inline bool operator == (const mpreal& a, const long double b       ){    return
 inline bool operator == (const mpreal& a, const double b            ){    return (mpfr_cmp_d (a.mpfr_srcptr(),b) == 0 );    }
 
 
-inline bool isnan    (const mpreal& op){    return (mpfr_nan_p    (op.mpfr_srcptr()) != 0 );    }
-inline bool isinf    (const mpreal& op){    return (mpfr_inf_p    (op.mpfr_srcptr()) != 0 );    }
-inline bool isfinite (const mpreal& op){    return (mpfr_number_p (op.mpfr_srcptr()) != 0 );    }
+inline bool (isnan)    (const mpreal& op){    return (mpfr_nan_p    (op.mpfr_srcptr()) != 0 );    }
+inline bool (isinf)    (const mpreal& op){    return (mpfr_inf_p    (op.mpfr_srcptr()) != 0 );    }
+inline bool (isfinite) (const mpreal& op){    return (mpfr_number_p (op.mpfr_srcptr()) != 0 );    }
 inline bool iszero   (const mpreal& op){    return (mpfr_zero_p   (op.mpfr_srcptr()) != 0 );    }
 inline bool isint    (const mpreal& op){    return (mpfr_integer_p(op.mpfr_srcptr()) != 0 );    }
 
