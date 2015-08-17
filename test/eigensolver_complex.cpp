@@ -15,7 +15,6 @@
 
 template<typename MatrixType> bool find_pivot(typename MatrixType::Scalar tol, MatrixType &diffs, Index col=0)
 {
-  typedef typename MatrixType::Scalar Scalar;
   bool match = diffs.diagonal().sum() <= tol;
   if(match || col==diffs.cols())
   {

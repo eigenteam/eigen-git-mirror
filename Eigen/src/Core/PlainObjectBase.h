@@ -116,9 +116,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     typedef Eigen::Map<Derived, Unaligned>  MapType;
     friend  class Eigen::Map<const Derived, Unaligned>;
     typedef const Eigen::Map<const Derived, Unaligned> ConstMapType;
+#if EIGEN_MAX_ALIGN_BYTES>0
+    // for EIGEN_MAX_ALIGN_BYTES==0, AlignedMax==Unaligned, and many compilers generate warnings for friend-ing a class twice.
     friend  class Eigen::Map<Derived, AlignedMax>;
-    typedef Eigen::Map<Derived, AlignedMax> AlignedMapType;
     friend  class Eigen::Map<const Derived, AlignedMax>;
+#endif
+    typedef Eigen::Map<Derived, AlignedMax> AlignedMapType;
     typedef const Eigen::Map<const Derived, AlignedMax> ConstAlignedMapType;
     template<typename StrideType> struct StridedMapType { typedef Eigen::Map<Derived, Unaligned, StrideType> type; };
     template<typename StrideType> struct StridedConstMapType { typedef Eigen::Map<const Derived, Unaligned, StrideType> type; };
