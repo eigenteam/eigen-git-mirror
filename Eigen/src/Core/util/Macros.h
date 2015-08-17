@@ -630,6 +630,8 @@ namespace Eigen {
   
   #if EIGEN_ARCH_WANTS_STACK_ALIGNMENT
     #define EIGEN_MAX_STATIC_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
+  #else
+    #define EIGEN_MAX_STATIC_ALIGN_BYTES 0
   #endif
   
 #endif
