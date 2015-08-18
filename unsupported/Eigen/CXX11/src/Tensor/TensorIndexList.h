@@ -183,7 +183,7 @@ template<typename FirstType, typename... OtherTypes> size_t array_prod(const Ind
     result *= sizes[i];
   }
   return result;
-};
+}
 
 template<typename FirstType, typename... OtherTypes> struct array_size<IndexList<FirstType, OtherTypes...> > {
   static const size_t value = std::tuple_size<std::tuple<FirstType, OtherTypes...> >::value;

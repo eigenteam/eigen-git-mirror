@@ -11,10 +11,10 @@
 #ifndef EIGEN_CXX11_TENSOR_MODULE
 #define EIGEN_CXX11_TENSOR_MODULE
 
-#include "Eigen/src/Core/util/StaticAssert.h"
-#include "unsupported/Eigen/CXX11/Core"
+#include "Core"
 
-#include "Eigen/src/Core/util/DisableStupidWarnings.h"
+#include <Eigen/src/Core/util/DisableStupidWarnings.h>
+
 
 /** \defgroup CXX11_Tensor_Module Tensor Module
   *
@@ -56,59 +56,58 @@
 #endif
 #endif
 
-#include "Eigen/Core"
 
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorForwardDeclarations.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorMeta.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorDeviceType.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorIndexList.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorDimensionList.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorDimensions.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorInitializer.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorTraits.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorFunctors.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorIntDiv.h"
+#include "src/Tensor/TensorForwardDeclarations.h"
+#include "src/Tensor/TensorMeta.h"
+#include "src/Tensor/TensorDeviceType.h"
+#include "src/Tensor/TensorIndexList.h"
+#include "src/Tensor/TensorDimensionList.h"
+#include "src/Tensor/TensorDimensions.h"
+#include "src/Tensor/TensorInitializer.h"
+#include "src/Tensor/TensorTraits.h"
+#include "src/Tensor/TensorFunctors.h"
+#include "src/Tensor/TensorIntDiv.h"
 
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorBase.h"
+#include "src/Tensor/TensorBase.h"
 
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorEvaluator.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorExpr.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorReduction.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorConcatenation.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorContraction.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorContractionThreadPool.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorContractionCuda.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorConversion.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorConvolution.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorPatch.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorImagePatch.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorVolumePatch.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorBroadcasting.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorChipping.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorInflation.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorLayoutSwap.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorMorphing.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorPadding.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorReverse.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorShuffling.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorStriding.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorCustomOp.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorEvalTo.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorForcedEval.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorGenerator.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorAssign.h"
+#include "src/Tensor/TensorEvaluator.h"
+#include "src/Tensor/TensorExpr.h"
+#include "src/Tensor/TensorReduction.h"
+#include "src/Tensor/TensorConcatenation.h"
+#include "src/Tensor/TensorContraction.h"
+#include "src/Tensor/TensorContractionThreadPool.h"
+#include "src/Tensor/TensorContractionCuda.h"
+#include "src/Tensor/TensorConversion.h"
+#include "src/Tensor/TensorConvolution.h"
+#include "src/Tensor/TensorPatch.h"
+#include "src/Tensor/TensorImagePatch.h"
+#include "src/Tensor/TensorVolumePatch.h"
+#include "src/Tensor/TensorBroadcasting.h"
+#include "src/Tensor/TensorChipping.h"
+#include "src/Tensor/TensorInflation.h"
+#include "src/Tensor/TensorLayoutSwap.h"
+#include "src/Tensor/TensorMorphing.h"
+#include "src/Tensor/TensorPadding.h"
+#include "src/Tensor/TensorReverse.h"
+#include "src/Tensor/TensorShuffling.h"
+#include "src/Tensor/TensorStriding.h"
+#include "src/Tensor/TensorCustomOp.h"
+#include "src/Tensor/TensorEvalTo.h"
+#include "src/Tensor/TensorForcedEval.h"
+#include "src/Tensor/TensorGenerator.h"
+#include "src/Tensor/TensorAssign.h"
 
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorExecutor.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorDevice.h"
+#include "src/Tensor/TensorExecutor.h"
+#include "src/Tensor/TensorDevice.h"
 
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorStorage.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/Tensor.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorFixedSize.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorMap.h"
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorRef.h"
+#include "src/Tensor/TensorStorage.h"
+#include "src/Tensor/Tensor.h"
+#include "src/Tensor/TensorFixedSize.h"
+#include "src/Tensor/TensorMap.h"
+#include "src/Tensor/TensorRef.h"
 
-#include "unsupported/Eigen/CXX11/src/Tensor/TensorIO.h"
+#include "src/Tensor/TensorIO.h"
 
-#include "Eigen/src/Core/util/ReenableStupidWarnings.h"
+#include <Eigen/src/Core/util/ReenableStupidWarnings.h>
 
 #endif // EIGEN_CXX11_TENSOR_MODULE
