@@ -104,13 +104,13 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     enum {
       kdiv = KcFactor * (Traits::mr * sizeof(LhsScalar) + Traits::nr * sizeof(RhsScalar)),
       ksub = Traits::mr * Traits::nr * sizeof(ResScalar),
-      k_mask = (0xffffffff/8)*8,
+      k_mask = -8,
 
       mr = Traits::mr,
-      mr_mask = (0xffffffff/mr)*mr,
+      mr_mask = -mr,
 
       nr = Traits::nr,
-      nr_mask = (0xffffffff/nr)*nr
+      nr_mask = -nr
     };
     // Increasing k gives us more time to prefetch the content of the "C"
     // registers. However once the latency is hidden there is no point in
