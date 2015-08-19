@@ -29,8 +29,8 @@ void alignedvector3()
   typedef Matrix<Scalar,3,3> Mat33;
   typedef AlignedVector3<Scalar> FastType;
   RefType  r1(RefType::Random()), r2(RefType::Random()), r3(RefType::Random()),
-           r4(RefType::Random()), r5(RefType::Random()), r6(RefType::Random());
-  FastType f1(r1), f2(r2), f3(r3), f4(r4), f5(r5), f6(r6);
+           r4(RefType::Random()), r5(RefType::Random());
+  FastType f1(r1), f2(r2), f3(r3), f4(r4), f5(r5);
   Mat33 m1(Mat33::Random());
   
   VERIFY_IS_APPROX(f1,r1);

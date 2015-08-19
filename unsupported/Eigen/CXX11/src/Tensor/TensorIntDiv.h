@@ -149,7 +149,7 @@ struct TensorIntDivisor {
   // type numerator should also be less than 2^32-1.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T divide(const T numerator) const {
     eigen_assert(static_cast<typename UnsignedTraits<T>::type>(numerator) < NumTraits<UnsignedType>::highest()/2);
-    eigen_assert(numerator >= 0);
+    //eigen_assert(numerator >= 0); // this is implicitly asserted by the line above
 
     UnsignedType t1 = muluh(multiplier, numerator);
     UnsignedType t = (static_cast<UnsignedType>(numerator) - t1) >> shift1;

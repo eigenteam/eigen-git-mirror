@@ -334,10 +334,10 @@ public:
 
 #if defined (MPREAL_HAVE_EXPLICIT_CONVERTERS)
     explicit operator bool               () const { return toBool();       }
-    explicit operator int                () const { return toLong();       }
+    explicit operator int                () const { return int(toLong());  }
     explicit operator long               () const { return toLong();       }
     explicit operator long long          () const { return toLong();       }
-    explicit operator unsigned           () const { return toULong();      }
+    explicit operator unsigned           () const { return unsigned(toULong()); }
     explicit operator unsigned long      () const { return toULong();      }
     explicit operator unsigned long long () const { return toULong();      }
     explicit operator float              () const { return toFloat();      }
