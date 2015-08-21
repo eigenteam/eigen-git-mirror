@@ -83,8 +83,24 @@ template<typename T> struct GenericNumTraits
     // make sure to override this for floating-point types
     return Real(0);
   }
-  static inline T highest() { return (std::numeric_limits<T>::max)(); }
-  static inline T lowest()  { return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)()); }
+
+
+  EIGEN_DEVICE_FUNC
+  static inline T highest() {
+#if defined(__CUDA_ARCH__)
+    return internal::device::numeric_limits<T>::max();
+#else
+    return (std::numeric_limits<T>::max)();
+#endif
+  }
+
+  EIGEN_DEVICE_FUNC
+  static inline T lowest()  {
+#if defined(__CUDA_ARCH__)
+    return IsInteger ? (internal::device::numeric_limits<T>::min)() : (-(internal::device::numeric_limits<T>::max)());
+#else
+    return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)());
+#endif
 };
 
 template<typename T> struct NumTraits : GenericNumTraits<T>
