@@ -88,7 +88,7 @@ template<typename T> struct GenericNumTraits
   EIGEN_DEVICE_FUNC
   static inline T highest() {
 #if defined(__CUDA_ARCH__)
-    return internal::device::numeric_limits<T>::max();
+    return (internal::device::numeric_limits<T>::max)();
 #else
     return (std::numeric_limits<T>::max)();
 #endif
@@ -101,6 +101,7 @@ template<typename T> struct GenericNumTraits
 #else
     return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)());
 #endif
+  }
 };
 
 template<typename T> struct NumTraits : GenericNumTraits<T>

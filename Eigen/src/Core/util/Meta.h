@@ -128,53 +128,53 @@ template<typename T> struct numeric_limits
 {
   EIGEN_DEVICE_FUNC
   static T epsilon() { return 0; }
-  static T max() { assert(false && "Highest not suppoted for this type"); }
-  static T min() { assert(false && "Lowest not suppoted for this type"); }
+  static T (max)() { assert(false && "Highest not supported for this type"); }
+  static T (min)() { assert(false && "Lowest not supported for this type"); }
 };
 template<> struct numeric_limits<float>
 {
   EIGEN_DEVICE_FUNC
   static float epsilon() { return __FLT_EPSILON__; }
   EIGEN_DEVICE_FUNC
-  static float max() { return CUDART_MAX_NORMAL_F; }
+  static float (max)() { return CUDART_MAX_NORMAL_F; }
   EIGEN_DEVICE_FUNC
-  static float min() { return __FLT_EPSILON__; }
+  static float (min)() { return __FLT_EPSILON__; }
 };
 template<> struct numeric_limits<double>
 {
   EIGEN_DEVICE_FUNC
   static double epsilon() { return __DBL_EPSILON__; }
   EIGEN_DEVICE_FUNC
-  static double max() { return CUDART_INF; }
+  static double (max)() { return CUDART_INF; }
   EIGEN_DEVICE_FUNC
-  static double min() { return __DBL_EPSILON__; }
+  static double (min)() { return __DBL_EPSILON__; }
 };
 template<> struct numeric_limits<int>
 {
   EIGEN_DEVICE_FUNC
   static int epsilon() { return 0; }
   EIGEN_DEVICE_FUNC
-  static int max() { return INT_MAX; }
+  static int (max)() { return INT_MAX; }
   EIGEN_DEVICE_FUNC
-  static int min() { return INT_MIN; }
+  static int (min)() { return INT_MIN; }
 };
 template<> struct numeric_limits<long>
 {
   EIGEN_DEVICE_FUNC
   static long epsilon() { return 0; }
   EIGEN_DEVICE_FUNC
-  static long max() { return LONG_MAX; }
+  static long (max)() { return LONG_MAX; }
   EIGEN_DEVICE_FUNC
-  static long min() { return LONG_MIN; }
+  static long (min)() { return LONG_MIN; }
 };
 template<> struct numeric_limits<long long>
 {
   EIGEN_DEVICE_FUNC
   static long long epsilon() { return 0; }
   EIGEN_DEVICE_FUNC
-  static long long max() { return LLONG_MAX; }
+  static long long (max)() { return LLONG_MAX; }
   EIGEN_DEVICE_FUNC
-  static long long min() { return LLONG_MIN; }
+  static long long (min)() { return LLONG_MIN; }
 };
 
 }
