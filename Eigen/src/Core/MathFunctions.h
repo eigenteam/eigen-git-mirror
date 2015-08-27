@@ -674,10 +674,11 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
 ****************************************************************************/
 
 namespace numext {
-  
+
+#ifndef __CUDA_ARCH__
 template<typename T>
 EIGEN_DEVICE_FUNC
-inline T mini(const T& x, const T& y)
+EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
 {
   EIGEN_USING_STD_MATH(min);
   return min EIGEN_NOT_A_MACRO (x,y);
@@ -685,11 +686,38 @@ inline T mini(const T& x, const T& y)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-inline T maxi(const T& x, const T& y)
+EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
 {
   EIGEN_USING_STD_MATH(max);
   return max EIGEN_NOT_A_MACRO (x,y);
 }
+#else
+template<typename T>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
+{
+  return y < x ? y : x;
+}
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
+{
+  return fmin(x, y);
+}
+template<typename T>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
+{
+  return x < y ? y : x;
+}
+template<>
+EIGEN_DEVICE_FUNC
+EIGEN_ALWAYS_INLINE float maxi(const float& x, const float& y)
+{
+  return fmax(x, y);
+}
+#endif
+
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
