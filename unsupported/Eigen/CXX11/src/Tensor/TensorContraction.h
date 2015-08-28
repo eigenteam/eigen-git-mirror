@@ -934,8 +934,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // Sizes of the blocks to load in cache. See the Goto paper for details.
     BlockingType blocking(m, n, k, 1, true);
     const Index kc = blocking.kc();
-    const Index mc = (std::min)(m, blocking.mc());
-    const Index nc = (std::min)(n, blocking.nc());
+    const Index mc = numext::mini(m, blocking.mc());
+    const Index nc = numext::mini(n, blocking.nc());
     const Index sizeA = mc * kc;
     const Index sizeB = kc * nc;
 
@@ -944,16 +944,16 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     for(Index i2=0; i2<m; i2+=mc)
     {
-      const Index actual_mc = (std::min)(i2+mc,m)-i2;
+      const Index actual_mc = numext::mini(i2+mc,m)-i2;
       for (Index k2 = 0; k2 < k; k2 += kc) {
         // make sure we don't overshoot right edge of left matrix, then pack vertical panel
-        const Index actual_kc = (std::min)(k2 + kc, k) - k2;
+        const Index actual_kc = numext::mini(k2 + kc, k) - k2;
         pack_lhs(blockA, lhs.getSubMapper(i2, k2), actual_kc, actual_mc, 0, 0);
 
         // series of horizontal blocks
         for (Index j2 = 0; j2 < n; j2 += nc) {
           // make sure we don't overshoot right edge of right matrix, then pack block
-          const Index actual_nc = (std::min)(j2 + nc, n) - j2;
+          const Index actual_nc = numext::mini(j2 + nc, n) - j2;
           pack_rhs(blockB, rhs.getSubMapper(k2, j2), actual_kc, actual_nc, 0, 0);
 
           // call gebp (matrix kernel)

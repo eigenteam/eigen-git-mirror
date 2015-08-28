@@ -857,29 +857,29 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         if (m_indices[0] == single_stride_dim) {
           // Maximum the reuse
           const int inner_dim = ((maxSharedMem / (sizeof(Scalar)) - kernel_size + 1 + 31) / 32) * 32;
-          maxX = (std::min<int>)(inner_dim, numX);
-          const int maxP = (std::min<int>)(maxSharedMem / ((kernel_size - 1 + maxX) * sizeof(Scalar)), numP);
-          block_size.x = (std::min)(maxThreadsPerBlock, maxX);
-          block_size.y = (std::min<int>)(maxThreadsPerBlock / block_size.x, maxP);
+          maxX = numext::mini<int>(inner_dim, numX);
+          const int maxP = numext::mini<int>(maxSharedMem / ((kernel_size - 1 + maxX) * sizeof(Scalar)), numP);
+          block_size.x = numext::mini(maxThreadsPerBlock, maxX);
+          block_size.y = numext::mini<int>(maxThreadsPerBlock / block_size.x, maxP);
         }
         else {
           // Read as much as possible alongside the inner most dimension, that is the plane
           const int inner_dim = maxSharedMem / ((warpSize + kernel_size) * sizeof(Scalar));
-          const int maxP = (std::min<int>)(inner_dim, numP);
-          maxX = (std::min<int>)(maxSharedMem / (inner_dim * sizeof(Scalar)) - kernel_size + 1, numX);
+          const int maxP = numext::mini<int>(inner_dim, numP);
+          maxX = numext::mini<int>(maxSharedMem / (inner_dim * sizeof(Scalar)) - kernel_size + 1, numX);
 
-          block_size.x = (std::min)(warpSize, maxX);
-          block_size.y = (std::min<int>)(maxThreadsPerBlock/block_size.x, maxP);
+          block_size.x = numext::mini(warpSize, maxX);
+          block_size.y = numext::mini<int>(maxThreadsPerBlock/block_size.x, maxP);
         }
 
         const int shared_mem = block_size.y * (maxX + kernel_size - 1) * sizeof(Scalar);
         assert(shared_mem <= maxSharedMem);
 
         const int num_x_blocks = ceil(numX, maxX);
-        const int blocksPerProcessor = (std::min)(maxBlocksPerProcessor, maxSharedMem / shared_mem);
+        const int blocksPerProcessor = numext::mini(maxBlocksPerProcessor, maxSharedMem / shared_mem);
         const int num_y_blocks = ceil(numMultiProcessors * blocksPerProcessor, num_x_blocks);
 
-        dim3 num_blocks(num_x_blocks, std::min<int>(num_y_blocks, ceil(numP, block_size.y)));
+        dim3 num_blocks(num_x_blocks, numext::mini<int>(num_y_blocks, ceil(numP, block_size.y)));
 
 
         //cout << "launching 1D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " maxX: " << maxX << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
@@ -920,24 +920,24 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
         // Snap maxX to warp size
         int inner_dim = ((static_cast<int>(scaling_factor * kernel_size_x) - kernel_size_x + 1 + 32) / 32) * 32;
-        const int maxX = (std::min<int>)(inner_dim, numX);
-        const int maxY = (std::min<int>)(maxSharedMem / (sizeof(Scalar) * (maxX + kernel_size_x - 1)) - kernel_size_y + 1, numY);
-        const int maxP = (std::min<int>)(maxSharedMem / ((kernel_size_x - 1 + maxX) * (kernel_size_y - 1 + maxY) * sizeof(Scalar)), numP);
+        const int maxX = numext::mini<int>(inner_dim, numX);
+        const int maxY = numext::mini<int>(maxSharedMem / (sizeof(Scalar) * (maxX + kernel_size_x - 1)) - kernel_size_y + 1, numY);
+        const int maxP = numext::mini<int>(maxSharedMem / ((kernel_size_x - 1 + maxX) * (kernel_size_y - 1 + maxY) * sizeof(Scalar)), numP);
 
         dim3 block_size;
-        block_size.x = (std::min)(1024, maxX);
-        block_size.y = (std::min<int>)(1024/block_size.x, maxY);
-        block_size.z = (std::min<int>)(1024/(block_size.x*block_size.y), maxP);
+        block_size.x = numext::mini(1024, maxX);
+        block_size.y = numext::mini<int>(1024/block_size.x, maxY);
+        block_size.z = numext::mini<int>(1024/(block_size.x*block_size.y), maxP);
 
         const int shared_mem = block_size.z * (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1) * sizeof(Scalar);
         assert(shared_mem <= maxSharedMem);
 
         const int num_x_blocks = ceil(numX, maxX);
         const int num_y_blocks = ceil(numY, maxY);
-        const int blocksPerProcessor = (std::min)(maxBlocksPerProcessor, maxSharedMem / shared_mem);
+        const int blocksPerProcessor = numext::mini(maxBlocksPerProcessor, maxSharedMem / shared_mem);
         const int num_z_blocks = ceil(numMultiProcessors * blocksPerProcessor, num_x_blocks * num_y_blocks);
 
-        dim3 num_blocks(num_x_blocks, num_y_blocks, std::min<int>(num_z_blocks, ceil(numP, block_size.z)));
+        dim3 num_blocks(num_x_blocks, num_y_blocks, numext::mini<int>(num_z_blocks, ceil(numP, block_size.z)));
 
 
         //cout << "launching 2D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z << " maxX: " << maxX << " maxY: " << maxY << " maxP: " << maxP << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
@@ -999,14 +999,14 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         const int numZ = dimensions()[m_indices[idxZ]];
         const int numP = dimensions().TotalSize() / (numX*numY*numZ);
 
-        const int maxX = (std::min<int>)(128, (std::min<int>)(maxSharedMem / (sizeof(Scalar) * kernel_size_y * kernel_size_z) - kernel_size_x + 1, numX));
-        const int maxY = (std::min<int>)(128, (std::min<int>)(maxSharedMem / (sizeof(Scalar) * (maxX + kernel_size_x - 1) * kernel_size_z) - kernel_size_y + 1, numY));
-        const int maxZ = (std::min<int>)(128, (std::min<int>)(maxSharedMem / (sizeof(Scalar) * (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1)) - kernel_size_z + 1, numZ));
+        const int maxX = numext::mini<int>(128, numext::mini<int>(maxSharedMem / (sizeof(Scalar) * kernel_size_y * kernel_size_z) - kernel_size_x + 1, numX));
+        const int maxY = numext::mini<int>(128, numext::mini<int>(maxSharedMem / (sizeof(Scalar) * (maxX + kernel_size_x - 1) * kernel_size_z) - kernel_size_y + 1, numY));
+        const int maxZ = numext::mini<int>(128, numext::mini<int>(maxSharedMem / (sizeof(Scalar) * (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1)) - kernel_size_z + 1, numZ));
 
         dim3 block_size;
-        block_size.x = (std::min)(32, maxX);
-        block_size.y = (std::min)(32, maxY);
-        block_size.z = (std::min<int>)(1024/(block_size.x*block_size.y), maxZ);
+        block_size.x = numext::mini(32, maxX);
+        block_size.y = numext::mini(32, maxY);
+        block_size.z = numext::mini<int>(1024/(block_size.x*block_size.y), maxZ);
         dim3 num_blocks(ceil(numX, maxX), ceil(numY, maxY), ceil(numZ, maxZ));
 
         const int shared_mem = (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1) * (maxZ + kernel_size_z - 1) * sizeof(Scalar);

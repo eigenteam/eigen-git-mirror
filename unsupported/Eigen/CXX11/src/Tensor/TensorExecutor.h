@@ -123,7 +123,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       static const int PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
 
       int blocksz = std::ceil<int>(static_cast<float>(size)/device.numThreads()) + PacketSize - 1;
-      const Index blocksize = std::max<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
+      const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
       const Index numblocks = size / blocksize;
 
       std::vector<Notification*> results;

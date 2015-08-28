@@ -202,7 +202,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // note: You can get away with allocating just a single blockA and offsets and meet the
     //       the alignment requirements with the assumption that
     //       (Traits::mr * sizeof(ResScalar)) % 16 == 0
-    const Index numBlockAs = (std::min)(num_threads, m_blocks);
+    const Index numBlockAs = numext::mini(num_threads, m_blocks);
     std::vector<LhsScalar *> blockAs;
     blockAs.reserve(num_threads);
     for (int i = 0; i < num_threads; i++) {
@@ -230,14 +230,14 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     for (Index k_block_idx = 0; k_block_idx < k_blocks; k_block_idx++) {
       const Index k_start = k_block_idx * kc;
       // make sure we don't overshoot right edge of left matrix
-      const Index actual_kc = (std::min)(k_start + kc, k) - k_start;
+      const Index actual_kc = numext::mini(k_start + kc, k) - k_start;
 
       for (Index m_block_idx = 0; m_block_idx < m_blocks; m_block_idx += numBlockAs) {
-        const Index num_blocks = (std::min)(m_blocks-m_block_idx, numBlockAs);
+        const Index num_blocks = numext::mini(m_blocks-m_block_idx, numBlockAs);
 
         for (Index mt_block_idx = m_block_idx; mt_block_idx < m_block_idx+num_blocks; mt_block_idx++) {
           const Index m_start = mt_block_idx * mc;
-          const Index actual_mc = (std::min)(m_start + mc, m) - m_start;
+          const Index actual_mc = numext::mini(m_start + mc, m) - m_start;
           eigen_assert(actual_mc > 0);
 
           Index blockAId = (k_block_idx * m_blocks + mt_block_idx) % num_threads;
@@ -275,7 +275,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
         for (Index n_block_idx = 0; n_block_idx < n_blocks; n_block_idx++) {
           const Index n_start = n_block_idx * nc;
-          const Index actual_nc = (std::min)(n_start + nc, n) - n_start;
+          const Index actual_nc = numext::mini(n_start + nc, n) - n_start;
 
           // first make sure the previous kernels are all done before overwriting rhs. Also wait if
           // we're going to start new k. In both cases need_to_pack is true.
@@ -376,7 +376,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       if (m_base_start < arg.max_m) {
         Index blockAId = (arg.k_block_idx * arg.m_blocks + mt_block_idx + arg.m_block_idx) % arg.num_threads;
         wait_until_ready((*arg.lhs_notifications)[blockAId]);
-        const Index actual_mc = (std::min)(m_base_start + arg.mc, arg.max_m) - m_base_start;
+        const Index actual_mc = numext::mini(m_base_start + arg.mc, arg.max_m) - m_base_start;
         gebp(arg.output.getSubMapper(m_base_start, arg.n),
              (*arg.blockAs)[blockAId], arg.blockB,
              actual_mc, arg.kc, arg.nc, 1.0, -1, -1, 0, 0);

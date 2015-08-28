@@ -147,7 +147,7 @@ template <typename T> struct MaxReducer
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
-    return (std::max)(saccum, predux_max(vaccum));
+    return numext::maxi(saccum, predux_max(vaccum));
   }
 };
 
@@ -180,7 +180,7 @@ template <typename T> struct MinReducer
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
-    return (std::min)(saccum, predux_min(vaccum));
+    return numext::mini(saccum, predux_min(vaccum));
   }
 };
 
