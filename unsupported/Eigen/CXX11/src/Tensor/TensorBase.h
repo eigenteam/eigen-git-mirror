@@ -363,6 +363,58 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<internal::MinReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MinReducer<CoeffReturnType>());
     }
 
+   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorTupleReducerOp<
+      internal::ArgMaxTupleReducer<Tuple<Index, CoeffReturnType> >,
+      const array<Index, NumDimensions>, const Derived>
+    argmax() const {
+      array<Index, NumDimensions> in_dims;
+      for (int d = 0; d < NumDimensions; ++d) in_dims[d] = d;
+      return TensorTupleReducerOp<
+        internal::ArgMaxTupleReducer<Tuple<Index, CoeffReturnType> >,
+        const array<Index, NumDimensions>,
+        const Derived>(derived(), internal::ArgMaxTupleReducer<Tuple<Index, CoeffReturnType> >(), -1, in_dims);
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorTupleReducerOp<
+      internal::ArgMinTupleReducer<Tuple<Index, CoeffReturnType> >,
+      const array<Index, NumDimensions>, const Derived>
+    argmin() const {
+      array<Index, NumDimensions> in_dims;
+      for (int d = 0; d < NumDimensions; ++d) in_dims[d] = d;
+      return TensorTupleReducerOp<
+        internal::ArgMinTupleReducer<Tuple<Index, CoeffReturnType> >,
+        const array<Index, NumDimensions>,
+        const Derived>(derived(), internal::ArgMinTupleReducer<Tuple<Index, CoeffReturnType> >(), -1, in_dims);
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorTupleReducerOp<
+      internal::ArgMaxTupleReducer<Tuple<Index, CoeffReturnType> >,
+      const array<Index, 1>, const Derived>
+    argmax(const int return_dim) const {
+      array<Index, 1> in_dims;
+      in_dims[0] = return_dim;
+      return TensorTupleReducerOp<
+        internal::ArgMaxTupleReducer<Tuple<Index, CoeffReturnType> >,
+        const array<Index, 1>,
+        const Derived>(derived(), internal::ArgMaxTupleReducer<Tuple<Index, CoeffReturnType> >(), return_dim, in_dims);
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorTupleReducerOp<
+      internal::ArgMinTupleReducer<Tuple<Index, CoeffReturnType> >,
+      const array<Index, 1>, const Derived>
+    argmin(const int return_dim) const {
+      array<Index, 1> in_dims;
+      in_dims[0] = return_dim;
+      return TensorTupleReducerOp<
+        internal::ArgMinTupleReducer<Tuple<Index, CoeffReturnType> >,
+        const array<Index, 1>,
+        const Derived>(derived(), internal::ArgMinTupleReducer<Tuple<Index, CoeffReturnType> >(), return_dim, in_dims);
+    }
+
     template <typename Reducer, typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorReductionOp<Reducer, const Dims, const Derived>
     reduce(const Dims& dims, const Reducer& reducer) const {
@@ -481,6 +533,13 @@ class TensorBase<Derived, ReadOnlyAccessors>
     const TensorInflationOp<const Strides, const Derived>
     inflate(const Strides& strides) const {
       return TensorInflationOp<const Strides, const Derived>(derived(), strides);
+    }
+
+    // Returns a tensor containing index/value tuples
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorIndexTupleOp<const Derived>
+    index_tuples() const {
+      return TensorIndexTupleOp<const Derived>(derived());
     }
 
     // Support for custom unary and binary operations

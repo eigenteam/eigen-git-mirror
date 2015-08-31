@@ -219,6 +219,40 @@ template <typename T> struct ProdReducer
 };
 
 
+// Argmin/Argmax reducers
+template <typename T> struct ArgMaxTupleReducer
+{
+  static const bool PacketAccess = false;
+  static const bool IsStateful = false;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
+    if (t.second > accum->second) { *accum = t; }
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
+    return T(0, NumTraits<typename T::second_type>::lowest());
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T& accum) const {
+    return accum;
+  }
+};
+
+template <typename T> struct ArgMinTupleReducer
+{
+  static const bool PacketAccess = false;
+  static const bool IsStateful = false;
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T& t, T* accum) const {
+    if (t.second < accum->second) { *accum = t; }
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
+    return T(0, NumTraits<typename T::second_type>::highest());
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T& accum) const {
+    return accum;
+  }
+};
+
+
 // Random number generation
 namespace {
 #ifdef __CUDA_ARCH__
