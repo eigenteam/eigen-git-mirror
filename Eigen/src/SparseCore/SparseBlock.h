@@ -535,6 +535,24 @@ public:
   inline operator bool() const { return m_outerPos < m_end; }
 };
 
+template<typename _Scalar, int _Options, typename _StorageIndex, int BlockRows, int BlockCols>
+struct unary_evaluator<Block<SparseMatrix<_Scalar, _Options, _StorageIndex>,BlockRows,BlockCols,true>, IteratorBased>
+  : evaluator<SparseCompressedBase<Block<SparseMatrix<_Scalar, _Options, _StorageIndex>,BlockRows,BlockCols,true> > >
+{
+  typedef Block<SparseMatrix<_Scalar, _Options, _StorageIndex>,BlockRows,BlockCols,true> XprType;
+  typedef evaluator<SparseCompressedBase<XprType> > Base;
+  explicit unary_evaluator(const XprType &xpr) : Base(xpr) {}
+};
+
+template<typename _Scalar, int _Options, typename _StorageIndex, int BlockRows, int BlockCols>
+struct unary_evaluator<Block<const SparseMatrix<_Scalar, _Options, _StorageIndex>,BlockRows,BlockCols,true>, IteratorBased>
+  : evaluator<SparseCompressedBase<Block<const SparseMatrix<_Scalar, _Options, _StorageIndex>,BlockRows,BlockCols,true> > >
+{
+  typedef Block<const SparseMatrix<_Scalar, _Options, _StorageIndex>,BlockRows,BlockCols,true> XprType;
+  typedef evaluator<SparseCompressedBase<XprType> > Base;
+  explicit unary_evaluator(const XprType &xpr) : Base(xpr) {}
+};
+
 } // end namespace internal
 
 
