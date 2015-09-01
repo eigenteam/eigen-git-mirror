@@ -33,8 +33,9 @@ template<typename Derived>
 template<typename OtherDerived>
 inline Derived& SparseMatrixBase<Derived>::operator=(const SparseMatrixBase<OtherDerived>& other)
 {
-  // FIXME, by default sparse evaluation do not alias, so we should be able to bypass the generic call_assignment
-  internal::call_assignment/*_no_alias*/(derived(), other.derived());
+  // by default sparse evaluation do not alias, so we can safely bypass the generic call_assignment routine
+  internal::Assignment<Derived,OtherDerived,internal::assign_op<Scalar> >
+          ::run(derived(), other.derived(), internal::assign_op<Scalar>());
   return derived();
 }
 
@@ -68,8 +69,6 @@ template<> struct AssignmentKind<DenseShape,  SparseShape>           { typedef S
 template<typename DstXprType, typename SrcXprType>
 void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
 {
-  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-  
   typedef typename DstXprType::Scalar Scalar;
   typedef typename internal::evaluator<DstXprType>::type DstEvaluatorType;
   typedef typename internal::evaluator<SrcXprType>::type SrcEvaluatorType;
@@ -129,8 +128,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
   {
-    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    
     assign_sparse_to_sparse(dst.derived(), src.derived());
   }
 };
