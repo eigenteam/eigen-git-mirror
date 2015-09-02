@@ -317,7 +317,6 @@ struct unary_evaluator<Homogeneous<ArgType,Direction>, IndexBased>
   typedef Homogeneous<ArgType,Direction> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef evaluator<PlainObject> Base;
-  typedef evaluator<XprType> nestedType;
 
   explicit unary_evaluator(const XprType& op)
     : Base(), m_temp(op)
@@ -388,8 +387,6 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, Homogeneous
   typedef typename helper::Xpr RefactoredXpr;
   typedef evaluator<RefactoredXpr> Base;
   
-  typedef evaluator<XprType> nestedType;
-  
   EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
     : Base(  xpr.lhs().nestedExpression() .lazyProduct(  xpr.rhs().template topRows<helper::Dim>(xpr.lhs().nestedExpression().cols()) )
             + ConstantBlock(xpr.rhs().row(xpr.rhs().rows()-1),xpr.lhs().rows(), 1) )
@@ -430,8 +427,6 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   typedef typename helper::ConstantBlock ConstantBlock;
   typedef typename helper::Xpr RefactoredXpr;
   typedef evaluator<RefactoredXpr> Base;
-  
-  typedef evaluator<XprType> nestedType;
   
   EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
     : Base(   xpr.lhs().template leftCols<helper::Dim>(xpr.rhs().nestedExpression().rows()) .lazyProduct( xpr.rhs().nestedExpression() )

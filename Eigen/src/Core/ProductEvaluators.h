@@ -32,8 +32,6 @@ struct evaluator<Product<Lhs, Rhs, Options> >
   typedef Product<Lhs, Rhs, Options> XprType;
   typedef product_evaluator<XprType> Base;
   
-  typedef evaluator nestedType;
-  
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
  
@@ -45,8 +43,6 @@ struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Produ
 {
   typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Product<Lhs, Rhs, DefaultProduct> > XprType;
   typedef evaluator<Product<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,const Lhs>, Rhs, DefaultProduct> > Base;
-  
-  typedef evaluator nestedType;
   
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : Base(xpr.functor().m_other * xpr.nestedExpression().lhs() * xpr.nestedExpression().rhs())
@@ -61,8 +57,6 @@ struct evaluator<Diagonal<const Product<Lhs, Rhs, DefaultProduct>, DiagIndex> >
   typedef Diagonal<const Product<Lhs, Rhs, DefaultProduct>, DiagIndex> XprType;
   typedef evaluator<Diagonal<const Product<Lhs, Rhs, LazyProduct>, DiagIndex> > Base;
   
-  typedef evaluator nestedType;
-
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : Base(Diagonal<const Product<Lhs, Rhs, LazyProduct>, DiagIndex>(
         Product<Lhs, Rhs, LazyProduct>(xpr.nestedExpression().lhs(), xpr.nestedExpression().rhs()),
@@ -735,8 +729,8 @@ protected:
                           m_diagImpl.template packet<DiagonalPacketLoadMode,PacketType>(id));
   }
   
-  typename evaluator<DiagonalType>::nestedType m_diagImpl;
-  typename evaluator<MatrixType>::nestedType   m_matImpl;
+  evaluator<DiagonalType> m_diagImpl;
+  evaluator<MatrixType>   m_matImpl;
 };
 
 // diagonal * dense

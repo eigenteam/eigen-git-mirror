@@ -76,8 +76,6 @@ struct evaluator<SolveWithGuess<Decomposition,RhsType, GuessType> >
   typedef SolveWithGuess<Decomposition,RhsType,GuessType> SolveType;
   typedef typename SolveType::PlainObject PlainObject;
   typedef evaluator<PlainObject> Base;
-  
-  typedef evaluator nestedType;
 
   evaluator(const SolveType& solve)
     : m_result(solve.rows(), solve.cols())

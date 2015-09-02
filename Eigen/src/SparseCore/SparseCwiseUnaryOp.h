@@ -40,7 +40,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>
 //     typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
     
     const UnaryOp m_functor;
-    typename evaluator<ArgType>::nestedType m_argImpl;
+    evaluator<ArgType> m_argImpl;
 };
 
 template<typename UnaryOp, typename ArgType>
@@ -115,7 +115,7 @@ struct unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>
 //     typedef typename evaluator<ArgType>::ReverseInnerIterator EvalReverseIterator;
     
     const ViewOp m_functor;
-    typename evaluator<ArgType>::nestedType m_argImpl;
+    evaluator<ArgType> m_argImpl;
 };
 
 template<typename ViewOp, typename ArgType>

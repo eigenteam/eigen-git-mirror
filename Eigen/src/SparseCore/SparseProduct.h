@@ -69,8 +69,6 @@ struct evaluator<SparseView<Product<Lhs, Rhs, Options> > >
   typedef typename XprType::PlainObject PlainObject;
   typedef evaluator<PlainObject> Base;
   
-  typedef evaluator nestedType;
-  
   explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {

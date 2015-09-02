@@ -114,7 +114,7 @@ struct unary_evaluator<SparseView<ArgType>, IteratorBased>
     explicit unary_evaluator(const XprType& xpr) : m_argImpl(xpr.nestedExpression()), m_view(xpr) {}
 
   protected:
-    typename evaluator<ArgType>::nestedType m_argImpl;
+    evaluator<ArgType> m_argImpl;
     const XprType &m_view;
 };
 
@@ -182,7 +182,7 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
     explicit unary_evaluator(const XprType& xpr) : m_argImpl(xpr.nestedExpression()), m_view(xpr) {}
 
   protected:
-    typename evaluator<ArgType>::nestedType m_argImpl;
+    evaluator<ArgType> m_argImpl;
     const XprType &m_view;
 };
 

@@ -456,7 +456,7 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
   protected:
     typedef typename evaluator<ArgType>::InnerIterator EvalIterator;
     
-    typename evaluator<ArgType>::nestedType m_argImpl;
+    evaluator<ArgType> m_argImpl;
     const XprType &m_block;
 };
 

@@ -79,7 +79,7 @@ public:
   { return m_evaluator.coeff(row, col); }
   
 protected:
-  typename internal::evaluator<XprType>::nestedType m_evaluator;
+  internal::evaluator<XprType> m_evaluator;
   const XprType &m_xpr;
 };
 } // end namespace internal

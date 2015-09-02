@@ -119,8 +119,6 @@ struct evaluator<Solve<Decomposition,RhsType> >
   typedef typename SolveType::PlainObject PlainObject;
   typedef evaluator<PlainObject> Base;
   
-  typedef evaluator nestedType;
-
   EIGEN_DEVICE_FUNC explicit evaluator(const SolveType& solve)
     : m_result(solve.rows(), solve.cols())
   {

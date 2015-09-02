@@ -390,7 +390,7 @@ public:
   const XprType & nestedExpression() const { return m_xpr; }
   
 protected:
-  typename internal::evaluator<XprType>::nestedType m_evaluator;
+  internal::evaluator<XprType> m_evaluator;
   const XprType &m_xpr;
 };
 

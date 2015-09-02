@@ -272,8 +272,8 @@ public:
     
 protected:
   const LhsArg m_lhs;
-  typename evaluator<ActualLhs>::nestedType m_lhsXprImpl;
-  typename evaluator<ActualRhs>::nestedType m_rhsXprImpl;
+  evaluator<ActualLhs> m_lhsXprImpl;
+  evaluator<ActualRhs> m_rhsXprImpl;
 };
 
 // sparse * dense outer product

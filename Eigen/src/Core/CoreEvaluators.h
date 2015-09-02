@@ -89,7 +89,6 @@ template<typename T>
 struct evaluator<const T>
   : evaluator<T>
 {
-  typedef evaluator<const T> nestedType;
   explicit evaluator(const T& xpr) : evaluator<T>(xpr) {}
 };
 
@@ -98,10 +97,6 @@ struct evaluator<const T>
 template<typename ExpressionType>
 struct evaluator_base : public noncopyable
 {
-  // TODO Check whether nestedType is really needed:
-  //      As long as evaluator are non-copyable, there is no reason to make it different.
-  typedef evaluator<ExpressionType> nestedType;
-  
   // FIXME is it really usefull?
   typedef typename traits<ExpressionType>::StorageIndex StorageIndex;
   
@@ -307,7 +302,7 @@ struct unary_evaluator<Transpose<ArgType>, IndexBased>
   }
 
 protected:
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  evaluator<ArgType> m_argImpl;
 };
 
 // -------------------- CwiseNullaryOp --------------------
@@ -411,7 +406,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
 
 protected:
   const UnaryOp m_functor;
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  evaluator<ArgType> m_argImpl;
 };
 
 // -------------------- CwiseBinaryOp --------------------
@@ -486,8 +481,8 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
 
 protected:
   const BinaryOp m_functor;
-  typename evaluator<Lhs>::nestedType m_lhsImpl;
-  typename evaluator<Rhs>::nestedType m_rhsImpl;
+  evaluator<Lhs> m_lhsImpl;
+  evaluator<Rhs> m_rhsImpl;
 };
 
 // -------------------- CwiseUnaryView --------------------
@@ -536,7 +531,7 @@ struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType>, IndexBased>
 
 protected:
   const UnaryOp m_unaryOp;
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  evaluator<ArgType> m_argImpl;
 };
 
 // -------------------- Map --------------------
@@ -810,7 +805,7 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   }
  
 protected:
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  evaluator<ArgType> m_argImpl;
   const variable_if_dynamic<Index, ArgType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
   const variable_if_dynamic<Index, ArgType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
 };
@@ -879,9 +874,9 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
   }
  
 protected:
-  typename evaluator<ConditionMatrixType>::nestedType m_conditionImpl;
-  typename evaluator<ThenMatrixType>::nestedType m_thenImpl;
-  typename evaluator<ElseMatrixType>::nestedType m_elseImpl;
+  evaluator<ConditionMatrixType> m_conditionImpl;
+  evaluator<ThenMatrixType> m_thenImpl;
+  evaluator<ElseMatrixType> m_elseImpl;
 };
 
 
@@ -962,7 +957,7 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
  
 protected:
   const ArgTypeNested m_arg; // FIXME is it OK to store both the argument and its evaluator?? (we have the same situation in evaluator_product)
-  typename evaluator<ArgTypeNestedCleaned>::nestedType m_argImpl;
+  evaluator<ArgTypeNestedCleaned> m_argImpl;
   const variable_if_dynamic<Index, ArgType::RowsAtCompileTime> m_rows;
   const variable_if_dynamic<Index, ArgType::ColsAtCompileTime> m_cols;
 };
@@ -1080,7 +1075,7 @@ struct evaluator_wrapper_base
   }
 
 protected:
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  evaluator<ArgType> m_argImpl;
 };
 
 template<typename TArgType>
@@ -1215,7 +1210,7 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
   }
  
 protected:
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  evaluator<ArgType> m_argImpl;
 
   // If we do not reverse rows, then we do not need to know the number of rows; same for columns
   const variable_if_dynamic<Index, ReverseRow ? ArgType::RowsAtCompileTime : 0> m_rows;
@@ -1270,7 +1265,7 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
   }
 
 protected:
-  typename evaluator<ArgType>::nestedType m_argImpl;
+  evaluator<ArgType> m_argImpl;
   const internal::variable_if_dynamicindex<Index, XprType::DiagIndex> m_index;
 
 private:
@@ -1334,8 +1329,6 @@ struct evaluator<EvalToTemp<ArgType> >
   typedef typename ArgType::PlainObject         PlainObject;
   typedef evaluator<PlainObject> Base;
   
-  typedef evaluator nestedType;
-
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {

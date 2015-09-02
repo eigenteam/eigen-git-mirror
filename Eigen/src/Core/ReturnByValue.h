@@ -100,8 +100,6 @@ struct evaluator<ReturnByValue<Derived> >
   typedef typename internal::traits<Derived>::ReturnType PlainObject;
   typedef evaluator<PlainObject> Base;
   
-  typedef evaluator nestedType;
-
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {

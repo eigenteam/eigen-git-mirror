@@ -146,8 +146,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  typename evaluator<Lhs>::nestedType m_lhsImpl;
-  typename evaluator<Rhs>::nestedType m_rhsImpl;
+  evaluator<Lhs> m_lhsImpl;
+  evaluator<Rhs> m_rhsImpl;
 };
 
 // "sparse .* sparse"
@@ -227,8 +227,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  typename evaluator<Lhs>::nestedType m_lhsImpl;
-  typename evaluator<Rhs>::nestedType m_rhsImpl;
+  evaluator<Lhs> m_lhsImpl;
+  evaluator<Rhs> m_rhsImpl;
 };
 
 // "dense .* sparse"
@@ -295,8 +295,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  typename evaluator<Lhs>::nestedType m_lhsImpl;
-  typename evaluator<Rhs>::nestedType m_rhsImpl;
+  evaluator<Lhs> m_lhsImpl;
+  evaluator<Rhs> m_rhsImpl;
 };
 
 // "sparse .* dense"
@@ -364,8 +364,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  typename evaluator<Lhs>::nestedType m_lhsImpl;
-  typename evaluator<Rhs>::nestedType m_rhsImpl;
+  evaluator<Lhs> m_lhsImpl;
+  evaluator<Rhs> m_rhsImpl;
 };
 
 }

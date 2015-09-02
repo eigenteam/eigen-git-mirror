@@ -106,8 +106,6 @@ struct unary_evaluator<Inverse<ArgType> >
   typedef typename InverseType::PlainObject PlainObject;
   typedef evaluator<PlainObject> Base;
   
-  typedef evaluator<InverseType> nestedType;
-  
   enum { Flags = Base::Flags | EvalBeforeNestingBit };
 
   unary_evaluator(const InverseType& inv_xpr)
