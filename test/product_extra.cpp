@@ -194,6 +194,15 @@ void bug_127()
   a*b;
 }
 
+template<int> void bug_817()
+{
+  ArrayXXf B = ArrayXXf::Random(10,10), C;
+  VectorXf x = VectorXf::Random(10);
+  C = (x.transpose()*B.matrix());
+  B = (x.transpose()*B.matrix());
+  VERIFY_IS_APPROX(B,C);
+}
+
 template<int>
 void unaligned_objects()
 {
@@ -258,6 +267,7 @@ void test_product_extra()
     CALL_SUBTEST_1( zero_sized_objects(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   CALL_SUBTEST_5( bug_127<0>() );
+  CALL_SUBTEST_5( bug_817<0>() );
   CALL_SUBTEST_6( unaligned_objects<0>() );
   CALL_SUBTEST_7( compute_block_size<float>() );
   CALL_SUBTEST_7( compute_block_size<double>() );
