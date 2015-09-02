@@ -1,0 +1,22 @@
+namespace Eigen {
+
+/** \page TopicPitfalls Common pitfalls
+
+\section TopicPitfalls_template_keyword Compilation error with template methods
+
+See this \link TopicTemplateKeyword page \endlink.
+
+\section TopicPitfalls_auto_keyword C++11 and the auto keyword
+
+In short: do not use the auto keywords with Eigen's expressions, unless you are 100% sure about what you are doing. In particular, do not use the auto keyword as a replacement for a Matrix<> type. Here is an example:
+
+\code
+MatrixXd A, B;
+auto C = A*B;
+for(...) { ... w = C * v;  ...}
+\endcode
+
+In this example, the type of C is not a MatrixXd but an abstract expression representing a matrix product and storing references to A and B. Therefore, the product of A*B will be carried out multiple times, once per iteration of the for loop. Moreover, if the coefficients of A or B change during the iteration, then C will evaluate to different values.
+
+*/
+}
