@@ -207,14 +207,11 @@ struct eval<AlignedVector3<_Scalar>, Dense>
 
 template<typename Scalar>
 struct evaluator<AlignedVector3<Scalar> >
-  : evaluator<Matrix<Scalar,4,1> >::type
+  : evaluator<Matrix<Scalar,4,1> >
 {
   typedef AlignedVector3<Scalar> XprType;
-  typedef typename evaluator<Matrix<Scalar,4,1> >::type Base;
+  typedef evaluator<Matrix<Scalar,4,1> > Base;
   
-  typedef evaluator type;
-  typedef evaluator nestedType;
-
   evaluator(const XprType &m) : Base(m.coeffs()) {}  
 };
 
