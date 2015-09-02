@@ -313,6 +313,7 @@ template<typename Scalar> void packetmath_real()
     data2[i] = internal::random<Scalar>(-87,88);
   }
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasExp, std::exp, internal::pexp);
+  if(internal::packet_traits<Scalar>::HasExp && internal::packet_traits<Scalar>::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     data1[1] = std::numeric_limits<Scalar>::epsilon();
@@ -349,31 +350,32 @@ template<typename Scalar> void packetmath_real()
     data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
+  if(internal::packet_traits<Scalar>::HasLog && internal::packet_traits<Scalar>::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     data1[1] = std::numeric_limits<Scalar>::epsilon();
     packet_helper<internal::packet_traits<Scalar>::HasLog,Packet> h;
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
-    //    VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::epsilon()), data2[1]);
+    VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::epsilon()), data2[1]);
 
     data1[0] = -std::numeric_limits<Scalar>::epsilon();
     data1[1] = 0;
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
-    //    VERIFY_IS_EQUAL(std::log(0), data2[1]);
+    VERIFY_IS_EQUAL(std::log(0), data2[1]);
 
     data1[0] = (std::numeric_limits<Scalar>::min)();
     data1[1] = -(std::numeric_limits<Scalar>::min)();
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY_IS_EQUAL(std::log((std::numeric_limits<Scalar>::min)()), data2[0]);
-    //    VERIFY((numext::isnan)(data2[1]));
+    VERIFY((numext::isnan)(data2[1]));
 
     data1[0] = std::numeric_limits<Scalar>::denorm_min();
     data1[1] = -std::numeric_limits<Scalar>::denorm_min();
     h.store(data2, internal::plog(h.load(data1)));
-    //    VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::denorm_min()), data2[0]);
-    //    VERIFY((numext::isnan)(data2[1]));
+    // VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::denorm_min()), data2[0]);
+    VERIFY((numext::isnan)(data2[1]));
 
     data1[0] = -1.0f;
     h.store(data2, internal::plog(h.load(data1)));
