@@ -63,13 +63,12 @@ struct generic_product_impl<Lhs, Rhs, SparseTriangularShape, SparseShape, Produc
 
 template<typename Lhs, typename Rhs, int Options>
 struct evaluator<SparseView<Product<Lhs, Rhs, Options> > > 
- : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>::type
+ : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>
 {
   typedef SparseView<Product<Lhs, Rhs, Options> > XprType;
   typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
   
   explicit evaluator(const XprType& xpr)

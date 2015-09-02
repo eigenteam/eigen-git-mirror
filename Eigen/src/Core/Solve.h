@@ -113,13 +113,12 @@ namespace internal {
 // Evaluator of Solve -> eval into a temporary
 template<typename Decomposition, typename RhsType>
 struct evaluator<Solve<Decomposition,RhsType> >
-  : public evaluator<typename Solve<Decomposition,RhsType>::PlainObject>::type
+  : public evaluator<typename Solve<Decomposition,RhsType>::PlainObject>
 {
   typedef Solve<Decomposition,RhsType> SolveType;
   typedef typename SolveType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
 
   EIGEN_DEVICE_FUNC explicit evaluator(const SolveType& solve)

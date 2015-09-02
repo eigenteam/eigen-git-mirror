@@ -34,7 +34,7 @@ class InnerIterator
 {
 protected:
   typedef internal::inner_iterator_selector<XprType, typename internal::evaluator_traits<XprType>::Kind> IteratorType;
-  typedef typename internal::evaluator<XprType>::type EvaluatorType;
+  typedef internal::evaluator<XprType> EvaluatorType;
   typedef typename internal::traits<XprType>::Scalar Scalar;
 public:
   /** Construct an iterator over the \a outerId -th row or column of \a xpr */
@@ -74,7 +74,7 @@ template<typename XprType>
 class inner_iterator_selector<XprType, IndexBased>
 {
 protected:
-  typedef typename evaluator<XprType>::type EvaluatorType;
+  typedef evaluator<XprType> EvaluatorType;
   typedef typename traits<XprType>::Scalar Scalar;
   enum { IsRowMajor = (XprType::Flags&RowMajorBit)==RowMajorBit };
   
@@ -112,7 +112,7 @@ class inner_iterator_selector<XprType, IteratorBased>
 {
 protected:
   typedef typename evaluator<XprType>::InnerIterator Base;
-  typedef typename evaluator<XprType>::type EvaluatorType;
+  typedef evaluator<XprType> EvaluatorType;
   
 public:
   EIGEN_STRONG_INLINE inner_iterator_selector(const EvaluatorType &eval, const Index &outerId, const Index &/*innerSize*/)

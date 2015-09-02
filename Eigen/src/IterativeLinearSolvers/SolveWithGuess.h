@@ -71,13 +71,12 @@ namespace internal {
 // Evaluator of SolveWithGuess -> eval into a temporary
 template<typename Decomposition, typename RhsType, typename GuessType>
 struct evaluator<SolveWithGuess<Decomposition,RhsType, GuessType> >
-  : public evaluator<typename SolveWithGuess<Decomposition,RhsType,GuessType>::PlainObject>::type
+  : public evaluator<typename SolveWithGuess<Decomposition,RhsType,GuessType>::PlainObject>
 {
   typedef SolveWithGuess<Decomposition,RhsType,GuessType> SolveType;
   typedef typename SolveType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
 
   evaluator(const SolveType& solve)

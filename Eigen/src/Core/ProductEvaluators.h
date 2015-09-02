@@ -32,7 +32,6 @@ struct evaluator<Product<Lhs, Rhs, Options> >
   typedef Product<Lhs, Rhs, Options> XprType;
   typedef product_evaluator<XprType> Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
   
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr) : Base(xpr) {}
@@ -47,7 +46,6 @@ struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Produ
   typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Product<Lhs, Rhs, DefaultProduct> > XprType;
   typedef evaluator<Product<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,const Lhs>, Rhs, DefaultProduct> > Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
   
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
@@ -63,7 +61,6 @@ struct evaluator<Diagonal<const Product<Lhs, Rhs, DefaultProduct>, DiagIndex> >
   typedef Diagonal<const Product<Lhs, Rhs, DefaultProduct>, DiagIndex> XprType;
   typedef evaluator<Diagonal<const Product<Lhs, Rhs, LazyProduct>, DiagIndex> > Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
 
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
@@ -102,11 +99,11 @@ struct evaluator_traits<Product<Lhs, Rhs, AliasFreeProduct> >
 template<typename Lhs, typename Rhs, int Options, int ProductTag, typename LhsShape, typename RhsShape>
 struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar,
   EnableIf<(Options==DefaultProduct || Options==AliasFreeProduct)> >
-  : public evaluator<typename Product<Lhs, Rhs, Options>::PlainObject>::type
+  : public evaluator<typename Product<Lhs, Rhs, Options>::PlainObject>
 {
   typedef Product<Lhs, Rhs, Options> XprType;
   typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
   enum {
     Flags = Base::Flags | EvalBeforeNestingBit
   };
@@ -221,7 +218,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,InnerProduct>
 template<typename Dst, typename Lhs, typename Rhs, typename Func>
 EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const false_type&)
 {
-  typename evaluator<Rhs>::type rhsEval(rhs);
+  evaluator<Rhs> rhsEval(rhs);
   // FIXME make sure lhs is sequentially stored
   // FIXME not very good if rhs is real and lhs complex while alpha is real too
   // FIXME we should probably build an evaluator for dst
@@ -234,7 +231,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, cons
 template<typename Dst, typename Lhs, typename Rhs, typename Func>
 EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const true_type&)
 {
-  typename evaluator<Lhs>::type lhsEval(lhs);
+  evaluator<Lhs> lhsEval(lhs);
   // FIXME make sure rhs is sequentially stored
   // FIXME not very good if lhs is real and rhs complex while alpha is real too
   // FIXME we should probably build an evaluator for dst
@@ -406,8 +403,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   typedef typename internal::remove_all<LhsNested>::type LhsNestedCleaned;
   typedef typename internal::remove_all<RhsNested>::type RhsNestedCleaned;
 
-  typedef typename evaluator<LhsNestedCleaned>::type LhsEtorType;
-  typedef typename evaluator<RhsNestedCleaned>::type RhsEtorType;
+  typedef evaluator<LhsNestedCleaned> LhsEtorType;
+  typedef evaluator<RhsNestedCleaned> RhsEtorType;
   
   enum {
     RowsAtCompileTime = LhsNestedCleaned::RowsAtCompileTime,

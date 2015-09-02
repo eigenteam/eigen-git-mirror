@@ -100,13 +100,12 @@ namespace internal {
   */
 template<typename ArgType>
 struct unary_evaluator<Inverse<ArgType> >
-  : public evaluator<typename Inverse<ArgType>::PlainObject>::type
+  : public evaluator<typename Inverse<ArgType>::PlainObject>
 {
   typedef Inverse<ArgType> InverseType;
   typedef typename InverseType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
   
-  typedef evaluator<InverseType> type;
   typedef evaluator<InverseType> nestedType;
   
   enum { Flags = Base::Flags | EvalBeforeNestingBit };

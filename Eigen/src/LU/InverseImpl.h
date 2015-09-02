@@ -43,7 +43,7 @@ struct compute_inverse<MatrixType, ResultType, 1>
   static inline void run(const MatrixType& matrix, ResultType& result)
   {
     typedef typename MatrixType::Scalar Scalar;
-    typename internal::evaluator<MatrixType>::type matrixEval(matrix);
+    internal::evaluator<MatrixType> matrixEval(matrix);
     result.coeffRef(0,0) = Scalar(1) / matrixEval.coeff(0,0);
   }
 };

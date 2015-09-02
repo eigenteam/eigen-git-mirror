@@ -165,7 +165,7 @@ public:
   
   operator const Scalar() const
   {
-    return typename internal::evaluator<ProductXpr>::type(derived()).coeff(0,0);
+    return internal::evaluator<ProductXpr>(derived()).coeff(0,0);
   }
 };
 
@@ -203,7 +203,7 @@ class ProductImpl<Lhs,Rhs,Option,Dense>
       EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
       eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );
       
-      return typename internal::evaluator<Derived>::type(derived()).coeff(row,col);
+      return internal::evaluator<Derived>(derived()).coeff(row,col);
     }
 
     EIGEN_DEVICE_FUNC Scalar coeff(Index i) const
@@ -211,7 +211,7 @@ class ProductImpl<Lhs,Rhs,Option,Dense>
       EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
       eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );
       
-      return typename internal::evaluator<Derived>::type(derived()).coeff(i);
+      return internal::evaluator<Derived>(derived()).coeff(i);
     }
     
   

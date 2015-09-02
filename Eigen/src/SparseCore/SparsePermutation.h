@@ -91,11 +91,11 @@ template <int ProductTag> struct product_promote_storage_type<PermutationStorage
 
 template<typename Lhs, typename Rhs, int ProductTag>
 struct product_evaluator<Product<Lhs, Rhs, AliasFreeProduct>, ProductTag, PermutationShape, SparseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
-  : public evaluator<typename permutation_matrix_product<Rhs,OnTheRight,false,SparseShape>::ReturnType>::type
+  : public evaluator<typename permutation_matrix_product<Rhs,OnTheRight,false,SparseShape>::ReturnType>
 {
   typedef Product<Lhs, Rhs, AliasFreeProduct> XprType;
   typedef typename permutation_matrix_product<Rhs,OnTheRight,false,SparseShape>::ReturnType PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
 
   explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
@@ -110,11 +110,11 @@ protected:
 
 template<typename Lhs, typename Rhs, int ProductTag>
 struct product_evaluator<Product<Lhs, Rhs, AliasFreeProduct>, ProductTag, SparseShape, PermutationShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
-  : public evaluator<typename permutation_matrix_product<Lhs,OnTheRight,false,SparseShape>::ReturnType>::type
+  : public evaluator<typename permutation_matrix_product<Lhs,OnTheRight,false,SparseShape>::ReturnType>
 {
   typedef Product<Lhs, Rhs, AliasFreeProduct> XprType;
   typedef typename permutation_matrix_product<Lhs,OnTheRight,false,SparseShape>::ReturnType PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
 
   explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())

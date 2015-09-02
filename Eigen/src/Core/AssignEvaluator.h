@@ -647,8 +647,8 @@ EIGEN_DEVICE_FUNC void call_dense_assignment_loop(const DstXprType& dst, const S
 {
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+  typedef evaluator<DstXprType> DstEvaluatorType;
+  typedef evaluator<SrcXprType> SrcEvaluatorType;
 
   DstEvaluatorType dstEvaluator(dst);
   SrcEvaluatorType srcEvaluator(src);

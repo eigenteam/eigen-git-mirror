@@ -59,11 +59,6 @@ template< typename T,
 template<typename T>
 struct evaluator_traits_base
 {
-  // TODO check whether these two indirections are really needed.
-  // Basically, if nobody overwrite type and nestedType, then, they can be dropped
-//   typedef evaluator<T> type;
-//   typedef evaluator<T> nestedType;
-  
   // by default, get evaluator kind and shape from storage
   typedef typename storage_kind_to_evaluator_kind<typename traits<T>::StorageKind>::Kind Kind;
   typedef typename storage_kind_to_shape<typename traits<T>::StorageKind>::Shape Shape;
@@ -90,25 +85,26 @@ struct evaluator : public unary_evaluator<T>
 
 
 // TODO: Think about const-correctness
-
 template<typename T>
 struct evaluator<const T>
   : evaluator<T>
-{ };
+{
+  typedef evaluator<const T> nestedType;
+  explicit evaluator(const T& xpr) : evaluator<T>(xpr) {}
+};
 
-// ---------- base class for all writable evaluators ----------
+// ---------- base class for all evaluators ----------
 
-// TODO this class does not seem to be necessary anymore
 template<typename ExpressionType>
 struct evaluator_base
 {
-//   typedef typename evaluator_traits<ExpressionType>::type type;
-//   typedef typename evaluator_traits<ExpressionType>::nestedType nestedType;
-  typedef evaluator<ExpressionType> type;
+  // TODO Check whether nestedType is really needed:
+  //      As long as evaluator are non-copyable, there is no reason to make it different.
   typedef evaluator<ExpressionType> nestedType;
   
   // FIXME is it really usefull?
   typedef typename traits<ExpressionType>::StorageIndex StorageIndex;
+  
   // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.
   typedef traits<ExpressionType> ExpressionTraits;
   
@@ -1332,13 +1328,12 @@ class EvalToTemp
  
 template<typename ArgType>
 struct evaluator<EvalToTemp<ArgType> >
-  : public evaluator<typename ArgType::PlainObject>::type
+  : public evaluator<typename ArgType::PlainObject>
 {
   typedef EvalToTemp<ArgType>                   XprType;
   typedef typename ArgType::PlainObject         PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
 
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)

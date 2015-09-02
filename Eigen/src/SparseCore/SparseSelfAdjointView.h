@@ -255,7 +255,7 @@ inline void sparse_selfadjoint_time_dense_product(const SparseLhsType& lhs, cons
   // TODO use alpha
   eigen_assert(alpha==AlphaType(1) && "alpha != 1 is not implemented yet, sorry");
   
-  typedef typename evaluator<SparseLhsType>::type LhsEval;
+  typedef evaluator<SparseLhsType> LhsEval;
   typedef typename evaluator<SparseLhsType>::InnerIterator LhsIterator;
   typedef typename SparseLhsType::Scalar LhsScalar;
   
@@ -337,11 +337,11 @@ struct generic_product_impl<Lhs, RhsView, DenseShape, SparseSelfAdjointShape, Pr
 
 template<typename LhsView, typename Rhs, int ProductTag>
 struct product_evaluator<Product<LhsView, Rhs, DefaultProduct>, ProductTag, SparseSelfAdjointShape, SparseShape, typename traits<LhsView>::Scalar, typename traits<Rhs>::Scalar>
-  : public evaluator<typename Product<typename Rhs::PlainObject, Rhs, DefaultProduct>::PlainObject>::type
+  : public evaluator<typename Product<typename Rhs::PlainObject, Rhs, DefaultProduct>::PlainObject>
 {
   typedef Product<LhsView, Rhs, DefaultProduct> XprType;
   typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
 
   product_evaluator(const XprType& xpr)
     : m_lhs(xpr.lhs()), m_result(xpr.rows(), xpr.cols())
@@ -357,11 +357,11 @@ protected:
 
 template<typename Lhs, typename RhsView, int ProductTag>
 struct product_evaluator<Product<Lhs, RhsView, DefaultProduct>, ProductTag, SparseShape, SparseSelfAdjointShape, typename traits<Lhs>::Scalar, typename traits<RhsView>::Scalar>
-  : public evaluator<typename Product<Lhs, typename Lhs::PlainObject, DefaultProduct>::PlainObject>::type
+  : public evaluator<typename Product<Lhs, typename Lhs::PlainObject, DefaultProduct>::PlainObject>
 {
   typedef Product<Lhs, RhsView, DefaultProduct> XprType;
   typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
 
   product_evaluator(const XprType& xpr)
     : m_rhs(xpr.rhs()), m_result(xpr.rows(), xpr.cols())

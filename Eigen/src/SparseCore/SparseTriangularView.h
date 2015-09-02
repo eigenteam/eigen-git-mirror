@@ -269,7 +269,7 @@ public:
   };
   
 protected:
-  typename evaluator<ArgType>::type m_argImpl;
+  evaluator<ArgType> m_argImpl;
 };
 
 } // end namespace internal

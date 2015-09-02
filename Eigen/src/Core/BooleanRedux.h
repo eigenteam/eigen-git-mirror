@@ -80,7 +80,7 @@ struct any_unroller<Derived, Dynamic>
 template<typename Derived>
 inline bool DenseBase<Derived>::all() const
 {
-  typedef typename internal::evaluator<Derived>::type Evaluator;
+  typedef internal::evaluator<Derived> Evaluator;
   enum {
     unroll = SizeAtCompileTime != Dynamic
           && Evaluator::CoeffReadCost != Dynamic
@@ -106,7 +106,7 @@ inline bool DenseBase<Derived>::all() const
 template<typename Derived>
 inline bool DenseBase<Derived>::any() const
 {
-  typedef typename internal::evaluator<Derived>::type Evaluator;
+  typedef internal::evaluator<Derived> Evaluator;
   enum {
     unroll = SizeAtCompileTime != Dynamic
           && Evaluator::CoeffReadCost != Dynamic

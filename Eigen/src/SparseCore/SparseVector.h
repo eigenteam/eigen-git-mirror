@@ -457,7 +457,7 @@ template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_Inner> {
   static void run(Dest& dst, const Src& src) {
     eigen_internal_assert(src.innerSize()==src.size());
-    typedef typename internal::evaluator<Src>::type SrcEvaluatorType;
+    typedef internal::evaluator<Src> SrcEvaluatorType;
     SrcEvaluatorType srcEval(src);
     for(typename SrcEvaluatorType::InnerIterator it(srcEval, 0); it; ++it)
       dst.insert(it.index()) = it.value();
@@ -468,7 +468,7 @@ template< typename Dest, typename Src>
 struct sparse_vector_assign_selector<Dest,Src,SVA_Outer> {
   static void run(Dest& dst, const Src& src) {
     eigen_internal_assert(src.outerSize()==src.size());
-    typedef typename internal::evaluator<Src>::type SrcEvaluatorType;
+    typedef internal::evaluator<Src> SrcEvaluatorType;
     SrcEvaluatorType srcEval(src);
     for(Index i=0; i<src.size(); ++i)
     {

@@ -30,8 +30,8 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
   
   std::memset(mask,0,sizeof(bool)*rows);
 
-  typename evaluator<Lhs>::type lhsEval(lhs);
-  typename evaluator<Rhs>::type rhsEval(rhs);
+  evaluator<Lhs> lhsEval(lhs);
+  evaluator<Rhs> rhsEval(rhs);
   
   // estimate the number of non zero entries
   // given a rhs column containing Y non zeros, we assume that the respective Y columns

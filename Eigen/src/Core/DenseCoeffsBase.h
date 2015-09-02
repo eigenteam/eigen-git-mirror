@@ -97,7 +97,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     {
       eigen_internal_assert(row >= 0 && row < rows()
                          && col >= 0 && col < cols());
-      return typename internal::evaluator<Derived>::type(derived()).coeff(row,col);
+      return internal::evaluator<Derived>(derived()).coeff(row,col);
     }
 
     EIGEN_DEVICE_FUNC
@@ -139,7 +139,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     coeff(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
-      return typename internal::evaluator<Derived>::type(derived()).coeff(index);
+      return internal::evaluator<Derived>(derived()).coeff(index);
     }
 
 
@@ -218,7 +218,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     {
       typedef typename internal::packet_traits<Scalar>::type DefaultPacketType;
       eigen_internal_assert(row >= 0 && row < rows() && col >= 0 && col < cols());
-      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode,DefaultPacketType>(row,col);
+      return internal::evaluator<Derived>(derived()).template packet<LoadMode,DefaultPacketType>(row,col);
     }
 
 
@@ -245,7 +245,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     {
       typedef typename internal::packet_traits<Scalar>::type DefaultPacketType;
       eigen_internal_assert(index >= 0 && index < size());
-      return typename internal::evaluator<Derived>::type(derived()).template packet<LoadMode,DefaultPacketType>(index);
+      return internal::evaluator<Derived>(derived()).template packet<LoadMode,DefaultPacketType>(index);
     }
 
   protected:
@@ -325,7 +325,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     {
       eigen_internal_assert(row >= 0 && row < rows()
                          && col >= 0 && col < cols());
-      return typename internal::evaluator<Derived>::type(derived()).coeffRef(row,col);
+      return internal::evaluator<Derived>(derived()).coeffRef(row,col);
     }
 
     EIGEN_DEVICE_FUNC
@@ -371,7 +371,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     coeffRef(Index index)
     {
       eigen_internal_assert(index >= 0 && index < size());
-      return typename internal::evaluator<Derived>::type(derived()).coeffRef(index);
+      return internal::evaluator<Derived>(derived()).coeffRef(index);
     }
 
     /** \returns a reference to the coefficient at given index.

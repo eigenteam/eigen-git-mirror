@@ -28,7 +28,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename evaluator<Lhs>::type LhsEval;
+  typedef evaluator<Lhs> LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
   {
@@ -65,7 +65,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename evaluator<Lhs>::type LhsEval;
+  typedef evaluator<Lhs> LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
   {
@@ -104,7 +104,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename evaluator<Lhs>::type LhsEval;
+  typedef evaluator<Lhs> LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
   {
@@ -139,7 +139,7 @@ template<typename Lhs, typename Rhs, int Mode>
 struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
-  typedef typename evaluator<Lhs>::type LhsEval;
+  typedef evaluator<Lhs> LhsEval;
   typedef typename evaluator<Lhs>::InnerIterator LhsIterator;
   static void run(const Lhs& lhs, Rhs& other)
   {

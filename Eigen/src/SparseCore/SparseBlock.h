@@ -39,7 +39,7 @@ public:
     
     Index nonZeros() const
     {
-      typedef typename internal::evaluator<XprType>::type EvaluatorType;
+      typedef internal::evaluator<XprType> EvaluatorType;
       EvaluatorType matEval(m_matrix);
       Index nnz = 0;
       Index end = m_outerStart + m_outerSize.value();

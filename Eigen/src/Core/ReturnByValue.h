@@ -94,13 +94,12 @@ namespace internal {
   
 template<typename Derived>
 struct evaluator<ReturnByValue<Derived> >
-  : public evaluator<typename internal::traits<Derived>::ReturnType>::type
+  : public evaluator<typename internal::traits<Derived>::ReturnType>
 {
   typedef ReturnByValue<Derived> XprType;
   typedef typename internal::traits<Derived>::ReturnType PlainObject;
-  typedef typename evaluator<PlainObject>::type Base;
+  typedef evaluator<PlainObject> Base;
   
-  typedef evaluator type;
   typedef evaluator nestedType;
 
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)

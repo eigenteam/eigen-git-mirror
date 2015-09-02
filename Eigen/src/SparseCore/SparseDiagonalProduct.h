@@ -39,7 +39,6 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, Diagonal
   : public sparse_diagonal_product_evaluator<Rhs, typename Lhs::DiagonalVectorType, Rhs::Flags&RowMajorBit?SDP_AsScalarProduct:SDP_AsCwiseProduct>
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef evaluator<XprType> type;
   typedef evaluator<XprType> nestedType;
   enum { CoeffReadCost = Dynamic, Flags = Rhs::Flags&RowMajorBit, Alignment = 0 }; // FIXME CoeffReadCost & Flags
   
@@ -52,7 +51,6 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, ProductTag, SparseSh
   : public sparse_diagonal_product_evaluator<Lhs, Transpose<const typename Rhs::DiagonalVectorType>, Lhs::Flags&RowMajorBit?SDP_AsCwiseProduct:SDP_AsScalarProduct>
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
-  typedef evaluator<XprType> type;
   typedef evaluator<XprType> nestedType;
   enum { CoeffReadCost = Dynamic, Flags = Lhs::Flags&RowMajorBit, Alignment = 0 }; // FIXME CoeffReadCost & Flags
   
@@ -126,7 +124,7 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
   {}
     
 protected:
-  typename evaluator<SparseXprType>::type m_sparseXprEval;
+  evaluator<SparseXprType> m_sparseXprEval;
   DiagCoeffNested m_diagCoeffNested;
 };
 

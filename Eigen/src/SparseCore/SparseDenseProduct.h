@@ -30,7 +30,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename internal::remove_all<DenseRhsType>::type Rhs;
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
-  typedef typename evaluator<Lhs>::type LhsEval;
+  typedef evaluator<Lhs> LhsEval;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
     LhsEval lhsEval(lhs);
@@ -89,7 +89,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, A
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const AlphaType& alpha)
   {
-    typename evaluator<Lhs>::type lhsEval(lhs);
+    evaluator<Lhs> lhsEval(lhs);
     for(Index c=0; c<rhs.cols(); ++c)
     {
       for(Index j=0; j<lhs.outerSize(); ++j)
@@ -112,7 +112,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
-    typename evaluator<Lhs>::type lhsEval(lhs);
+    evaluator<Lhs> lhsEval(lhs);
     for(Index j=0; j<lhs.outerSize(); ++j)
     {
       typename Res::RowXpr res_j(res.row(j));
@@ -131,7 +131,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
   typedef typename evaluator<Lhs>::InnerIterator LhsInnerIterator;
   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
-    typename evaluator<Lhs>::type lhsEval(lhs);
+    evaluator<Lhs> lhsEval(lhs);
     for(Index j=0; j<lhs.outerSize(); ++j)
     {
       typename Rhs::ConstRowXpr rhs_j(rhs.row(j));
@@ -213,8 +213,8 @@ protected:
   typedef typename conditional<is_same<typename internal::traits<Lhs1>::StorageKind,Sparse>::value,
             Lhs1 const&, SparseView<Lhs1> >::type LhsArg;
             
-  typedef typename evaluator<ActualLhs>::type LhsEval;
-  typedef typename evaluator<ActualRhs>::type RhsEval;
+  typedef evaluator<ActualLhs> LhsEval;
+  typedef evaluator<ActualRhs> RhsEval;
   typedef typename evaluator<ActualLhs>::InnerIterator LhsIterator;
   typedef typename ProdXprType::Scalar Scalar;
   

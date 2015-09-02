@@ -664,7 +664,6 @@ struct unary_evaluator<TriangularView<MatrixType,Mode>, IndexBased>
 {
   typedef TriangularView<MatrixType,Mode> XprType;
   typedef evaluator<typename internal::remove_all<MatrixType>::type> Base;
-  typedef evaluator<XprType> type;
   unary_evaluator(const XprType &xpr) : Base(xpr.nestedExpression()) {}
 };
 
@@ -734,8 +733,8 @@ EIGEN_DEVICE_FUNC void call_triangular_assignment_loop(const DstXprType& dst, co
 {
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+  typedef evaluator<DstXprType> DstEvaluatorType;
+  typedef evaluator<SrcXprType> SrcEvaluatorType;
 
   DstEvaluatorType dstEvaluator(dst);
   SrcEvaluatorType srcEvaluator(src);

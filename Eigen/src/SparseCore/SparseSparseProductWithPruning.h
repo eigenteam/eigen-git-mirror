@@ -39,8 +39,8 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
   else
     res.resize(rows, cols);
   
-  typename evaluator<Lhs>::type lhsEval(lhs);
-  typename evaluator<Rhs>::type rhsEval(rhs);
+  evaluator<Lhs> lhsEval(lhs);
+  evaluator<Rhs> rhsEval(rhs);
   
   // estimate the number of non zero entries
   // given a rhs column containing Y non zeros, we assume that the respective Y columns

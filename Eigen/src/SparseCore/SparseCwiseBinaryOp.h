@@ -238,7 +238,7 @@ struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs>, IndexBase
 {
 protected:
   typedef scalar_product_op<T> BinaryOp;
-  typedef typename evaluator<Lhs>::type  LhsEvaluator;
+  typedef evaluator<Lhs>  LhsEvaluator;
   typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
 public:
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
@@ -307,7 +307,7 @@ struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs>, IteratorB
 protected:
   typedef scalar_product_op<T> BinaryOp;
   typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
-  typedef typename evaluator<Rhs>::type  RhsEvaluator;
+  typedef evaluator<Rhs>  RhsEvaluator;
 public:
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
 
@@ -341,7 +341,7 @@ public:
     
   protected:
     LhsIterator m_lhsIter;
-    const RhsEvaluator &m_rhsEval;
+    const evaluator<Rhs> &m_rhsEval;
     const BinaryOp& m_functor;
     const Index m_outer;
   };
