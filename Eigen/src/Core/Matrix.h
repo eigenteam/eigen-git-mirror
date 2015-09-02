@@ -140,7 +140,6 @@ template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int
 struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
 private:
-  // TODO find ideal packet size
   enum { size = internal::size_at_compile_time<_Rows,_Cols>::ret };
   typedef typename find_best_packet<_Scalar,size>::type PacketScalar;
   enum {

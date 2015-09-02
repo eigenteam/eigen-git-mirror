@@ -317,7 +317,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     CommaInitializer<Derived> operator<< (const Scalar& s);
 
-    // TODO flagged is temporarly disabled. It seems useless now
+    /** \deprecated it now returns \c *this */
     template<unsigned int Added,unsigned int Removed>
     EIGEN_DEPRECATED
     const Derived& flagged() const
