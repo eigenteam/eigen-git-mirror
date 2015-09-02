@@ -96,7 +96,7 @@ struct evaluator<const T>
 // ---------- base class for all evaluators ----------
 
 template<typename ExpressionType>
-struct evaluator_base
+struct evaluator_base : public noncopyable
 {
   // TODO Check whether nestedType is really needed:
   //      As long as evaluator are non-copyable, there is no reason to make it different.
