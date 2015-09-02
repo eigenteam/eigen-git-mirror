@@ -177,7 +177,7 @@ template<typename _MatrixType> class FullPivLU
     }
 
     /** \returns the image of the matrix, also called its column-space. The columns of the returned matrix
-      * will form a basis of the kernel.
+      * will form a basis of the image (column-space).
       *
       * \param originalMatrix the original matrix, of which *this is the LU decomposition.
       *                       The reason why it is needed to pass it here, is that this allows
