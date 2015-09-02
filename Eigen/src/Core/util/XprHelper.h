@@ -127,7 +127,7 @@ template<typename T> struct unpacket_traits
 };
 
 template<int Size, typename PacketType,
-         bool Stop = (Size%unpacket_traits<PacketType>::size)==0 || is_same<PacketType,typename unpacket_traits<PacketType>::half>::value>
+         bool Stop = Size==Dynamic || (Size%unpacket_traits<PacketType>::size)==0 || is_same<PacketType,typename unpacket_traits<PacketType>::half>::value>
 struct find_best_packet_helper;
 
 template< int Size, typename PacketType>

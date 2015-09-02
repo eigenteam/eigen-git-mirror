@@ -5,6 +5,7 @@ add_custom_target(BuildUnsupported)
 include_directories(../../test ../../unsupported ../../Eigen 
                     ${CMAKE_CURRENT_BINARY_DIR}/../../test)
 
+find_package (Threads)
                     
 find_package(GoogleHash)
 if(GOOGLEHASH_FOUND)
@@ -133,7 +134,7 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_argmax "-std=c++0x")
   ei_add_test(cxx11_tensor_shuffling "-std=c++0x")
   ei_add_test(cxx11_tensor_striding "-std=c++0x")
-  ei_add_test(cxx11_tensor_thread_pool "-std=c++0x")
+  ei_add_test(cxx11_tensor_thread_pool "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_tensor_ref "-std=c++0x")
   ei_add_test(cxx11_tensor_random "-std=c++0x")
   ei_add_test(cxx11_tensor_casts "-std=c++0x")
