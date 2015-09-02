@@ -212,13 +212,17 @@ public:
     Index rhsCols = b.cols();
     Index size = b.rows();
     Eigen::Matrix<DestScalar,Dynamic,1> tb(size);
-    Eigen::Matrix<DestScalar,Dynamic,1> tx(size);
+    Eigen::Matrix<DestScalar,Dynamic,1> tx(cols());
+    // We do not directly fill dest because sparse expressions have to be free of aliasing issue.
+    // For non square least-square problems, b and dest might not have the same size whereas they might alias each-other.
+    SparseMatrix<DestScalar,DestOptions,DestIndex> tmp(cols(),rhsCols);
     for(Index k=0; k<rhsCols; ++k)
     {
       tb = b.col(k);
       tx = derived().solve(tb);
-      dest.col(k) = tx.sparseView(0);
+      tmp.col(k) = tx.sparseView(0);
     }
+    tmp.swap(dest);
   }
 
 protected:
