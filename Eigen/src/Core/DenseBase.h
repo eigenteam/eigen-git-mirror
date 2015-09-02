@@ -405,6 +405,8 @@ template<typename Derived> class DenseBase
       *
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
       * a const reference, in order to avoid a useless copy.
+      * 
+      * \warning Be carefull with eval() and the auto C++ keyword, as detailed in this \link TopicPitfalls_auto_keyword page \endlink.
       */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE EvalReturnType eval() const
