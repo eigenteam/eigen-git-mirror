@@ -11,6 +11,7 @@
 #define EIGEN_TEST_FUNC cuda_basic
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 
+#include <math_constants.h>
 #include "main.h"
 #include "cuda_common.h"
 
