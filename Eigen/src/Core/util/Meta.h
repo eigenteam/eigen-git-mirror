@@ -186,11 +186,11 @@ template<> struct numeric_limits<long long>
   */
 class noncopyable
 {
-  noncopyable(const noncopyable&);
-  const noncopyable& operator=(const noncopyable&);
+  EIGEN_DEVICE_FUNC noncopyable(const noncopyable&);
+  EIGEN_DEVICE_FUNC const noncopyable& operator=(const noncopyable&);
 protected:
-  noncopyable() {}
-  ~noncopyable() {}
+  EIGEN_DEVICE_FUNC noncopyable() {}
+  EIGEN_DEVICE_FUNC ~noncopyable() {}
 };
 
 

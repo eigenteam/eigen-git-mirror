@@ -89,6 +89,7 @@ template<typename T>
 struct evaluator<const T>
   : evaluator<T>
 {
+  EIGEN_DEVICE_FUNC
   explicit evaluator(const T& xpr) : evaluator<T>(xpr) {}
 };
 
@@ -218,7 +219,7 @@ struct evaluator<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {
   typedef Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> XprType;
   
-  evaluator() {}
+  EIGEN_DEVICE_FUNC evaluator() {}
 
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
@@ -231,7 +232,7 @@ struct evaluator<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 {
   typedef Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> XprType;
 
-  evaluator() {}
+  EIGEN_DEVICE_FUNC evaluator() {}
   
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& m)
     : evaluator<PlainObjectBase<XprType> >(m) 
