@@ -127,6 +127,7 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
   protected:
     enum { IsRowMajor = (XprType::Flags&RowMajorBit)==RowMajorBit };
     typedef typename XprType::Scalar Scalar;
+    typedef typename XprType::StorageIndex StorageIndex;
   public:
     
     class InnerIterator
@@ -152,7 +153,7 @@ struct unary_evaluator<SparseView<ArgType>, IndexBased>
                               : m_sve.m_argImpl.coeff(m_inner, m_outer);
         }
 
-        EIGEN_STRONG_INLINE Index index() const { return m_inner; }
+        EIGEN_STRONG_INLINE StorageIndex index() const { return m_inner; }
         inline Index row() const { return IsRowMajor ? m_outer : index(); }
         inline Index col() const { return IsRowMajor ? index() : m_outer; }
 

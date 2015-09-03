@@ -377,7 +377,7 @@ class SparseVector<Scalar,_Options,_StorageIndex>::InnerIterator
     inline Scalar value() const { return m_data.value(m_id); }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_data.value(m_id)); }
 
-    inline Index index() const { return m_data.index(m_id); }
+    inline StorageIndex index() const { return m_data.index(m_id); }
     inline Index row() const { return IsColVector ? index() : 0; }
     inline Index col() const { return IsColVector ? 0 : index(); }
 
@@ -414,7 +414,7 @@ class SparseVector<Scalar,_Options,_StorageIndex>::ReverseInnerIterator
     inline Scalar value() const { return m_data.value(m_id-1); }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_data.value(m_id-1)); }
 
-    inline Index index() const { return m_data.index(m_id-1); }
+    inline StorageIndex index() const { return m_data.index(m_id-1); }
     inline Index row() const { return IsColVector ? index() : 0; }
     inline Index col() const { return IsColVector ? 0 : index(); }
 

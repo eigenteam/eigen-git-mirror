@@ -105,7 +105,7 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixT
 
     inline Index row() const { return (MatrixType::Flags&RowMajorBit ? Base::outer() : this->index()); }
     inline Index col() const { return (MatrixType::Flags&RowMajorBit ? this->index() : Base::outer()); }
-    inline Index index() const
+    inline StorageIndex index() const
     {
       if(HasUnitDiag && m_returnOne)  return Base::outer();
       else                            return Base::index();
@@ -175,6 +175,7 @@ struct unary_evaluator<TriangularView<ArgType,Mode>, IteratorBased>
 protected:
   
   typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::StorageIndex StorageIndex;
   typedef typename evaluator<ArgType>::InnerIterator EvalIterator;
   
   enum { SkipFirst = ((Mode&Lower) && !(ArgType::Flags&RowMajorBit))
@@ -251,9 +252,9 @@ public:
 
 //       inline Index row() const { return (ArgType::Flags&RowMajorBit ? Base::outer() : this->index()); }
 //       inline Index col() const { return (ArgType::Flags&RowMajorBit ? this->index() : Base::outer()); }
-      inline Index index() const
+      inline StorageIndex index() const
       {
-        if(HasUnitDiag && m_returnOne)  return Base::outer();
+        if(HasUnitDiag && m_returnOne)  return internal::convert_index<StorageIndex>(Base::outer());
         else                            return Base::index();
       }
       inline Scalar value() const

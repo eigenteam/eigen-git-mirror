@@ -91,6 +91,7 @@ template<typename SparseXprType, typename DiagCoeffType>
 struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwiseProduct>
 {
   typedef typename SparseXprType::Scalar Scalar;
+  typedef typename SparseXprType::StorageIndex StorageIndex;
   
   typedef typename nested_eval<DiagCoeffType,SparseXprType::IsRowMajor ? SparseXprType::RowsAtCompileTime
                                                                        : SparseXprType::ColsAtCompileTime>::type DiagCoeffNested;
@@ -104,7 +105,7 @@ struct sparse_diagonal_product_evaluator<SparseXprType, DiagCoeffType, SDP_AsCwi
     {}
     
     inline Scalar value() const { return m_sparseIter.value() * m_diagCoeffNested.coeff(index()); }
-    inline Index index() const  { return m_sparseIter.index(); }
+    inline StorageIndex index() const  { return m_sparseIter.index(); }
     inline Index outer() const  { return m_sparseIter.outer(); }
     inline Index col() const    { return SparseXprType::IsRowMajor ? m_sparseIter.index() : m_sparseIter.outer(); }
     inline Index row() const    { return SparseXprType::IsRowMajor ? m_sparseIter.outer() : m_sparseIter.index(); }
