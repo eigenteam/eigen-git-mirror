@@ -150,7 +150,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
       }
    
     d = degree[i];
-    if(d == 1)                      /* node i is empty */
+    if(d == 1 && has_diag)           /* node i is empty */
     {
       elen[i] = -2;                 /* element i is dead */
       nel++;
