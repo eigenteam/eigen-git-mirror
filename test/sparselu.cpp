@@ -41,15 +41,9 @@ template<typename T> void test_sparselu_T()
   SparseLU<SparseMatrix<T, ColMajor>, AMDOrdering<int> > sparselu_amd; 
   SparseLU<SparseMatrix<T, ColMajor, long int>, NaturalOrdering<long int> > sparselu_natural;
   
-<<<<<<< local
-  check_sparse_square_solving(sparselu_colamd); 
-  check_sparse_square_solving(sparselu_amd);
-  check_sparse_square_solving(sparselu_natural, true);
-=======
   check_sparse_square_solving(sparselu_colamd,  300, 100000, true); 
   check_sparse_square_solving(sparselu_amd,     300,  10000, true);
   check_sparse_square_solving(sparselu_natural, 300,   2000, true);
->>>>>>> other
   
   check_sparse_square_abs_determinant(sparselu_colamd);
   check_sparse_square_abs_determinant(sparselu_amd);
