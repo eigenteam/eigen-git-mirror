@@ -25,7 +25,7 @@ namespace Eigen {
         return m_argImpl.coeff(index);
       }
 
-      typename evaluator<ArgTypeNestedCleaned>::nestedType m_argImpl;
+      evaluator<ArgTypeNestedCleaned> m_argImpl;
       const Index m_rows;
     };
   }
