@@ -276,12 +276,12 @@ EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        4,4,Matrix
 
 #ifdef GL_VERSION_2_1
 
-static void glUniformMatrix2x3fv_ei(GLint loc, const float* v)         { glUniformMatrix2x3fv(loc,1,false,v); }
-static void glUniformMatrix3x2fv_ei(GLint loc, const float* v)         { glUniformMatrix3x2fv(loc,1,false,v); }
-static void glUniformMatrix2x4fv_ei(GLint loc, const float* v)         { glUniformMatrix2x4fv(loc,1,false,v); }
-static void glUniformMatrix4x2fv_ei(GLint loc, const float* v)         { glUniformMatrix4x2fv(loc,1,false,v); }
-static void glUniformMatrix3x4fv_ei(GLint loc, const float* v)         { glUniformMatrix3x4fv(loc,1,false,v); }
-static void glUniformMatrix4x3fv_ei(GLint loc, const float* v)         { glUniformMatrix4x3fv(loc,1,false,v); }
+inline void glUniformMatrix2x3fv_ei(GLint loc, const float* v)         { glUniformMatrix2x3fv(loc,1,false,v); }
+inline void glUniformMatrix3x2fv_ei(GLint loc, const float* v)         { glUniformMatrix3x2fv(loc,1,false,v); }
+inline void glUniformMatrix2x4fv_ei(GLint loc, const float* v)         { glUniformMatrix2x4fv(loc,1,false,v); }
+inline void glUniformMatrix4x2fv_ei(GLint loc, const float* v)         { glUniformMatrix4x2fv(loc,1,false,v); }
+inline void glUniformMatrix3x4fv_ei(GLint loc, const float* v)         { glUniformMatrix3x4fv(loc,1,false,v); }
+inline void glUniformMatrix4x3fv_ei(GLint loc, const float* v)         { glUniformMatrix4x3fv(loc,1,false,v); }
 
 EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        2,3,Matrix2x3fv_ei)
 EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        3,2,Matrix3x2fv_ei)
