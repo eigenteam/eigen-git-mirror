@@ -477,7 +477,7 @@ public:
       EvalIterator::operator++();
   }
   
-  inline Index index()  const { return EvalIterator::index() - (IsRowMajor ? m_block.startCol() : m_block.startRow()); }
+  inline StorageIndex index() const { return EvalIterator::index() - convert_index<StorageIndex>(IsRowMajor ? m_block.startCol() : m_block.startRow()); }
   inline Index outer()  const { return EvalIterator::outer() - (IsRowMajor ? m_block.startRow() : m_block.startCol()); }
   inline Index row()    const { return EvalIterator::row()   - m_block.startRow(); }
   inline Index col()    const { return EvalIterator::col()   - m_block.startCol(); }
@@ -508,7 +508,7 @@ public:
     ++(*this);
   }
   
-  inline Index index()  const { return m_outerPos - (IsRowMajor ? m_eval.m_block.startCol() : m_eval.m_block.startRow()); }
+  inline StorageIndex index() const { return convert_index<StorageIndex>(m_outerPos - (IsRowMajor ? m_eval.m_block.startCol() : m_eval.m_block.startRow())); }
   inline Index outer()  const { return 0; }
   inline Index row()    const { return IsRowMajor ? 0 : index(); }
   inline Index col()    const { return IsRowMajor ? index() : 0; }
