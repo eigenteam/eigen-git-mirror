@@ -67,15 +67,14 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IteratorBased, Iterat
 protected:
   typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
   typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
-public:
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef typename traits<XprType>::Scalar Scalar;
+  typedef typename XprType::StorageIndex StorageIndex;
+public:
 
   class ReverseInnerIterator;
   class InnerIterator
   {
-    typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
-
   public:
     
     EIGEN_STRONG_INLINE InnerIterator(const binary_evaluator& aEval, Index outer)
@@ -160,15 +159,14 @@ protected:
   typedef scalar_product_op<T> BinaryOp;
   typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
   typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
-public:
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef typename XprType::StorageIndex StorageIndex;
+  typedef typename traits<XprType>::Scalar Scalar;
+public:
 
   class ReverseInnerIterator;
   class InnerIterator
   {
-    typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
-
   public:
     
     EIGEN_STRONG_INLINE InnerIterator(const binary_evaluator& aEval, Index outer)
@@ -242,15 +240,14 @@ protected:
   typedef scalar_product_op<T> BinaryOp;
   typedef evaluator<Lhs>  LhsEvaluator;
   typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
-public:
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef typename XprType::StorageIndex StorageIndex;
+  typedef typename traits<XprType>::Scalar Scalar;
+public:
 
   class ReverseInnerIterator;
   class InnerIterator
   {
-    typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
-    
     enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
@@ -312,14 +309,14 @@ protected:
   typedef scalar_product_op<T> BinaryOp;
   typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
   typedef evaluator<Rhs>  RhsEvaluator;
-public:
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
+  typedef typename XprType::StorageIndex StorageIndex;
+  typedef typename traits<XprType>::Scalar Scalar;
+public:
 
   class ReverseInnerIterator;
   class InnerIterator
   {
-    typedef typename traits<XprType>::Scalar Scalar;
-    typedef typename XprType::StorageIndex StorageIndex;
     enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
