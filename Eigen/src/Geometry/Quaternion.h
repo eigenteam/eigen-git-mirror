@@ -278,6 +278,10 @@ public:
   inline const Coefficients& coeffs() const { return m_coeffs;}
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsAlignment)
+  
+#ifdef EIGEN_QUATERNION_PLUGIN
+# include EIGEN_QUATERNION_PLUGIN
+#endif
 
 protected:
   Coefficients m_coeffs;
