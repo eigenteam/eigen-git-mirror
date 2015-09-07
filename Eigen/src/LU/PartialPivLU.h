@@ -102,9 +102,11 @@ template<typename _MatrixType> class PartialPivLU
       * \warning The matrix should have full rank (e.g. if it's square, it should be invertible).
       * If you need to deal with non-full rank, use class FullPivLU instead.
       */
-    explicit PartialPivLU(const MatrixType& matrix);
+    template<typename InputType>
+    explicit PartialPivLU(const EigenBase<InputType>& matrix);
 
-    PartialPivLU& compute(const MatrixType& matrix);
+    template<typename InputType>
+    PartialPivLU& compute(const EigenBase<InputType>& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -243,14 +245,15 @@ PartialPivLU<MatrixType>::PartialPivLU(Index size)
 }
 
 template<typename MatrixType>
-PartialPivLU<MatrixType>::PartialPivLU(const MatrixType& matrix)
+template<typename InputType>
+PartialPivLU<MatrixType>::PartialPivLU(const EigenBase<InputType>& matrix)
   : m_lu(matrix.rows(), matrix.rows()),
     m_p(matrix.rows()),
     m_rowsTranspositions(matrix.rows()),
     m_det_p(0),
     m_isInitialized(false)
 {
-  compute(matrix);
+  compute(matrix.derived());
 }
 
 namespace internal {
@@ -429,14 +432,15 @@ void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, t
 } // end namespace internal
 
 template<typename MatrixType>
-PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& matrix)
+template<typename InputType>
+PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const EigenBase<InputType>& matrix)
 {
   check_template_parameters();
   
   // the row permutation is stored as int indices, so just to be sure:
   eigen_assert(matrix.rows()<NumTraits<int>::highest());
   
-  m_lu = matrix;
+  m_lu = matrix.derived();
 
   eigen_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
   const Index size = matrix.rows();

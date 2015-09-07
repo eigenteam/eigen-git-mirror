@@ -158,13 +158,14 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa compute(const MatrixType&, int)
       */
     EIGEN_DEVICE_FUNC
-    explicit SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
+    template<typename InputType>
+    explicit SelfAdjointEigenSolver(const EigenBase<InputType>& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
         m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
         m_isInitialized(false)
     {
-      compute(matrix, options);
+      compute(matrix.derived(), options);
     }
 
     /** \brief Computes eigendecomposition of given matrix.
@@ -198,7 +199,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa SelfAdjointEigenSolver(const MatrixType&, int)
       */
     EIGEN_DEVICE_FUNC
-    SelfAdjointEigenSolver& compute(const MatrixType& matrix, int options = ComputeEigenvectors);
+    template<typename InputType>
+    SelfAdjointEigenSolver& compute(const EigenBase<InputType>& matrix, int options = ComputeEigenvectors);
     
     /** \brief Computes eigendecomposition of given matrix using a closed-form algorithm
       *
@@ -389,11 +391,14 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
 }
 
 template<typename MatrixType>
+template<typename InputType>
 EIGEN_DEVICE_FUNC
 SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
-::compute(const MatrixType& matrix, int options)
+::compute(const EigenBase<InputType>& a_matrix, int options)
 {
   check_template_parameters();
+  
+  const InputType &matrix(a_matrix);
   
   using std::abs;
   eigen_assert(matrix.cols() == matrix.rows());

@@ -95,7 +95,8 @@ template<typename _MatrixType> class FullPivLU
       * \param matrix the matrix of which to compute the LU decomposition.
       *               It is required to be nonzero.
       */
-    explicit FullPivLU(const MatrixType& matrix);
+    template<typename InputType>
+    explicit FullPivLU(const EigenBase<InputType>& matrix);
 
     /** Computes the LU decomposition of the given matrix.
       *
@@ -104,7 +105,8 @@ template<typename _MatrixType> class FullPivLU
       *
       * \returns a reference to *this
       */
-    FullPivLU& compute(const MatrixType& matrix);
+    template<typename InputType>
+    FullPivLU& compute(const EigenBase<InputType>& matrix);
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -396,6 +398,8 @@ template<typename _MatrixType> class FullPivLU
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
     
+    void computeInPlace();
+    
     MatrixType m_lu;
     PermutationPType m_p;
     PermutationQType m_q;
@@ -425,7 +429,8 @@ FullPivLU<MatrixType>::FullPivLU(Index rows, Index cols)
 }
 
 template<typename MatrixType>
-FullPivLU<MatrixType>::FullPivLU(const MatrixType& matrix)
+template<typename InputType>
+FullPivLU<MatrixType>::FullPivLU(const EigenBase<InputType>& matrix)
   : m_lu(matrix.rows(), matrix.cols()),
     m_p(matrix.rows()),
     m_q(matrix.cols()),
@@ -434,11 +439,12 @@ FullPivLU<MatrixType>::FullPivLU(const MatrixType& matrix)
     m_isInitialized(false),
     m_usePrescribedThreshold(false)
 {
-  compute(matrix);
+  compute(matrix.derived());
 }
 
 template<typename MatrixType>
-FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
+template<typename InputType>
+FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const EigenBase<InputType>& matrix)
 {
   check_template_parameters();
   
@@ -446,16 +452,24 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
   eigen_assert(matrix.rows()<=NumTraits<int>::highest() && matrix.cols()<=NumTraits<int>::highest());
   
   m_isInitialized = true;
-  m_lu = matrix;
+  m_lu = matrix.derived();
+  
+  computeInPlace();
+  
+  return *this;
+}
 
-  const Index size = matrix.diagonalSize();
-  const Index rows = matrix.rows();
-  const Index cols = matrix.cols();
+template<typename MatrixType>
+void FullPivLU<MatrixType>::computeInPlace()
+{
+  const Index size = m_lu.diagonalSize();
+  const Index rows = m_lu.rows();
+  const Index cols = m_lu.cols();
 
   // will store the transpositions, before we accumulate them at the end.
   // can't accumulate on-the-fly because that will be done in reverse order for the rows.
-  m_rowsTranspositions.resize(matrix.rows());
-  m_colsTranspositions.resize(matrix.cols());
+  m_rowsTranspositions.resize(m_lu.rows());
+  m_colsTranspositions.resize(m_lu.cols());
   Index number_of_transpositions = 0; // number of NONTRIVIAL transpositions, i.e. m_rowsTranspositions[i]!=i
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
@@ -527,7 +541,6 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     m_q.applyTranspositionOnTheRight(k, m_colsTranspositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
-  return *this;
 }
 
 template<typename MatrixType>
