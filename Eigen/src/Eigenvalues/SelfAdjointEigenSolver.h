@@ -398,7 +398,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 {
   check_template_parameters();
   
-  const InputType &matrix(a_matrix);
+  const InputType &matrix(a_matrix.derived());
   
   using std::abs;
   eigen_assert(matrix.cols() == matrix.rows());
