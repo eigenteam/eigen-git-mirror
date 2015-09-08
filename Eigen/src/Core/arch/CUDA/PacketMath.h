@@ -244,6 +244,13 @@ template<> EIGEN_DEVICE_FUNC inline double predux_min<double2>(const double2& a)
   return fmin(a.x, a.y);
 }
 
+template<> EIGEN_DEVICE_FUNC inline float  predux_mul<float4>(const float4& a) {
+  return a.x * a.y * a.z * a.w;
+}
+template<> EIGEN_DEVICE_FUNC inline double predux_mul<double2>(const double2& a) {
+  return a.x * a.y;
+}
+
 template<> EIGEN_DEVICE_FUNC inline float4  pabs<float4>(const float4& a) {
   return make_float4(fabsf(a.x), fabsf(a.y), fabsf(a.z), fabsf(a.w));
 }
