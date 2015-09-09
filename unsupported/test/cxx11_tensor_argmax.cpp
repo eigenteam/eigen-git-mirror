@@ -186,7 +186,7 @@ static void test_argmax_dim()
 
     VERIFY_IS_EQUAL(tensor_argmax.dimensions().TotalSize(),
                     size_t(2*3*5*7 / tensor.dimension(dim)));
-    for (size_t n = 0; n < tensor_argmax.dimensions().TotalSize(); ++n) {
+    for (ptrdiff_t n = 0; n < tensor_argmax.size(); ++n) {
       // Expect max to be in the first index of the reduced dimension
       VERIFY_IS_EQUAL(tensor_argmax.data()[n], 0);
     }
@@ -206,8 +206,8 @@ static void test_argmax_dim()
 
     tensor_argmax = tensor.argmax(dim);
 
-    VERIFY_IS_EQUAL(tensor_argmax.dimensions().TotalSize(),
-                    size_t(2*3*5*7 / tensor.dimension(dim)));
+    VERIFY_IS_EQUAL(tensor_argmax.size(),
+                    ptrdiff_t(2*3*5*7 / tensor.dimension(dim)));
     for (size_t n = 0; n < tensor_argmax.dimensions().TotalSize(); ++n) {
       // Expect max to be in the last index of the reduced dimension
       VERIFY_IS_EQUAL(tensor_argmax.data()[n], tensor.dimension(dim) - 1);
