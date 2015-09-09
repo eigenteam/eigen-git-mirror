@@ -126,6 +126,20 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   for(typename MatrixType::Index i=0;i<rows;++i)
     sm2.col(i).noalias() -= sm1.row(i);
   VERIFY_IS_APPROX(sm2,-sm1.transpose());
+  
+  // check ternary usage
+  {
+    bool b = internal::random<int>(0,10)>5;
+    m3 = b ? m1 : m2;
+    if(b) VERIFY_IS_APPROX(m3,m1);
+    else  VERIFY_IS_APPROX(m3,m2);
+    m3 = b ? -m1 : m2;
+    if(b) VERIFY_IS_APPROX(m3,-m1);
+    else  VERIFY_IS_APPROX(m3,m2);
+    m3 = b ? m1 : -m2;
+    if(b) VERIFY_IS_APPROX(m3,m1);
+    else  VERIFY_IS_APPROX(m3,-m2);
+  }
 }
 
 template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
