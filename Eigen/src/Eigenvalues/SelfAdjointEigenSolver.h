@@ -157,8 +157,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa compute(const MatrixType&, int)
       */
-    EIGEN_DEVICE_FUNC
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     explicit SelfAdjointEigenSolver(const EigenBase<InputType>& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
@@ -198,8 +198,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa SelfAdjointEigenSolver(const MatrixType&, int)
       */
-    EIGEN_DEVICE_FUNC
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     SelfAdjointEigenSolver& compute(const EigenBase<InputType>& matrix, int options = ComputeEigenvectors);
     
     /** \brief Computes eigendecomposition of given matrix using a closed-form algorithm
