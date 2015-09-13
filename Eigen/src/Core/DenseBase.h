@@ -215,10 +215,6 @@ template<typename Derived> class DenseBase
       * of stored coefficients. */
     EIGEN_DEVICE_FUNC
     inline Index nonZeros() const { return size(); }
-    /** \returns true if either the number of rows or the number of columns is equal to 1.
-      * In other words, this function returns
-      * \code rows()==1 || cols()==1 \endcode
-      * \sa rows(), cols(), IsVectorAtCompileTime. */
 
     /** \returns the outer size.
       *
