@@ -183,10 +183,6 @@ template<typename Derived> class DenseBase
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
     inline Index nonZeros() const { return size(); }
-    /** \returns true if either the number of rows or the number of columns is equal to 1.
-      * In other words, this function returns
-      * \code rows()==1 || cols()==1 \endcode
-      * \sa rows(), cols(), IsVectorAtCompileTime. */
 
     /** \returns the outer size.
       *
