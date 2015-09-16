@@ -11,7 +11,7 @@
 #ifndef EIGEN_PARTIAL_REDUX_H
 #define EIGEN_PARTIAL_REDUX_H
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \class PartialReduxExpr
   * \ingroup Core_Module
@@ -230,7 +230,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                        isVertical   ? 1 : m_matrix.rows(),
                        isHorizontal ? 1 : m_matrix.cols());
     }
-    
+
     template<typename OtherDerived> struct OppositeExtendedType {
       typedef Replicate<OtherDerived,
                         isHorizontal ? 1 : ExpressionType::RowsAtCompileTime,
@@ -292,7 +292,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the smallest coefficient
       * of each column (or row) of the referenced expression.
-      * 
+      *
       * \warning the result is undefined if \c *this contains NaN.
       *
       * Example: \include PartialRedux_minCoeff.cpp
@@ -305,7 +305,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the largest coefficient
       * of each column (or row) of the referenced expression.
-      * 
+      *
       * \warning the result is undefined if \c *this contains NaN.
       *
       * Example: \include PartialRedux_maxCoeff.cpp
@@ -343,7 +343,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the norm
       * of each column (or row) of the referenced expression, using
-      * Blue's algorithm. 
+      * Blue's algorithm.
       * This is a vector with real entries, even if the original matrix has complex entries.
       *
       * \sa DenseBase::blueNorm() */
@@ -408,7 +408,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * \sa DenseBase::any() */
     EIGEN_DEVICE_FUNC
     const AnyReturnType any() const
-    { return Any(_expression()); }
+    { return AnyReturnType(_expression()); }
 
     /** \returns a row (or column) vector expression representing
       * the number of \c true coefficients of each respective column (or row).
@@ -579,7 +579,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       return m_matrix / extendedTo(other.derived());
     }
-    
+
     /** \returns an expression where each column of row of the referenced matrix are normalized.
       * The referenced matrix is \b not modified.
       * \sa MatrixBase::normalized(), normalize()
@@ -589,8 +589,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   const ExpressionTypeNestedCleaned,
                   const typename OppositeExtendedType<typename ReturnType<internal::member_norm,RealScalar>::Type>::Type>
     normalized() const { return m_matrix.cwiseQuotient(extendedToOpposite(this->norm())); }
-    
-    
+
+
     /** Normalize in-place each row or columns of the referenced matrix.
       * \sa MatrixBase::normalize(), normalized()
       */

@@ -101,7 +101,7 @@ template<typename ArrayType> void vectorwiseop_array(const ArrayType& m)
 
   VERIFY_RAISES_ASSERT(m2.rowwise() /= rowvec.transpose());
   VERIFY_RAISES_ASSERT(m1.rowwise() / rowvec.transpose());
-  
+
   m2 = m1;
   // yes, there might be an aliasing issue there but ".rowwise() /="
   // is supposed to evaluate " m2.colwise().sum()" into a temporary to avoid
@@ -111,6 +111,18 @@ template<typename ArrayType> void vectorwiseop_array(const ArrayType& m)
     m2.rowwise() /= m2.colwise().sum();
     VERIFY_IS_APPROX(m2, m1.rowwise() / m1.colwise().sum());
   }
+
+  // all/any
+  Array<bool,Dynamic,Dynamic> mb(rows,cols);
+  mb = (m1.real()<=0.7).colwise().all();
+  VERIFY( (mb.col(c) == (m1.real().col(c)<=0.7).all()).all() );
+  mb = (m1.real()<=0.7).rowwise().all();
+  VERIFY( (mb.row(r) == (m1.real().row(r)<=0.7).all()).all() );
+
+  mb = (m1.real()>=0.7).colwise().any();
+  VERIFY( (mb.col(c) == (m1.real().col(c)>=0.7).any()).all() );
+  mb = (m1.real()>=0.7).rowwise().any();
+  VERIFY( (mb.row(r) == (m1.real().row(r)>=0.7).any()).all() );
 }
 
 template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
@@ -172,19 +184,19 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
 
   VERIFY_RAISES_ASSERT(m2.rowwise() -= rowvec.transpose());
   VERIFY_RAISES_ASSERT(m1.rowwise() - rowvec.transpose());
-  
+
   // test norm
   rrres = m1.colwise().norm();
   VERIFY_IS_APPROX(rrres(c), m1.col(c).norm());
   rcres = m1.rowwise().norm();
   VERIFY_IS_APPROX(rcres(r), m1.row(r).norm());
-  
+
   // test normalized
   m2 = m1.colwise().normalized();
   VERIFY_IS_APPROX(m2.col(c), m1.col(c).normalized());
   m2 = m1.rowwise().normalized();
   VERIFY_IS_APPROX(m2.row(r), m1.row(r).normalized());
-  
+
   // test normalize
   m2 = m1;
   m2.colwise().normalize();
