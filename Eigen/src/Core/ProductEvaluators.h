@@ -237,7 +237,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, cons
 template<typename Lhs, typename Rhs>
 struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,OuterProduct>
 {
-  template<typename T> struct IsRowMajor : internal::conditional<(int(T::Flags)&RowMajorBit), internal::true_type, internal::false_type>::type {};
+  template<typename T> struct is_row_major : internal::conditional<(int(T::Flags)&RowMajorBit), internal::true_type, internal::false_type>::type {};
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
   // TODO it would be nice to be able to exploit our *_assign_op functors for that purpose
@@ -255,25 +255,25 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,OuterProduct>
   template<typename Dst>
   static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    internal::outer_product_selector_run(dst, lhs, rhs, set(), IsRowMajor<Dst>());
+    internal::outer_product_selector_run(dst, lhs, rhs, set(), is_row_major<Dst>());
   }
   
   template<typename Dst>
   static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    internal::outer_product_selector_run(dst, lhs, rhs, add(), IsRowMajor<Dst>());
+    internal::outer_product_selector_run(dst, lhs, rhs, add(), is_row_major<Dst>());
   }
   
   template<typename Dst>
   static inline void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    internal::outer_product_selector_run(dst, lhs, rhs, sub(), IsRowMajor<Dst>());
+    internal::outer_product_selector_run(dst, lhs, rhs, sub(), is_row_major<Dst>());
   }
   
   template<typename Dst>
   static inline void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    internal::outer_product_selector_run(dst, lhs, rhs, adds(alpha), IsRowMajor<Dst>());
+    internal::outer_product_selector_run(dst, lhs, rhs, adds(alpha), is_row_major<Dst>());
   }
   
 };
