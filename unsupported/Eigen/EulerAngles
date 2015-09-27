@@ -1,0 +1,32 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2015 Tal Hadad <tal_hd@hotmail.com>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#ifndef EIGEN_EULERANGLES_MODULE_H
+#define EIGEN_EULERANGLES_MODULE_H
+
+
+#include "Eigen/Core"
+#include "Eigen/Geometry"
+
+#include "Eigen/src/Core/util/DisableStupidWarnings.h"
+
+/**
+ *  \defgroup EulerAngles_Module EulerAngles module
+ *
+ *
+ *
+ *
+ */
+
+#include "src/EulerAngles/EulerSystem.h"
+#include "src/EulerAngles/EulerAngles.h"
+
+#include "Eigen/src/Core/util/ReenableStupidWarnings.h"
+
+#endif // EIGEN_EULERANGLES_MODULE_H
