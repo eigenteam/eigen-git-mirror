@@ -32,7 +32,7 @@ Eigen also provides the \link MatrixBase::norm() norm() \endlink method, which r
 
 These operations can also operate on matrices; in that case, a n-by-p matrix is seen as a vector of size (n*p), so for example the \link MatrixBase::norm() norm() \endlink method returns the "Frobenius" or "Hilbert-Schmidt" norm. We refrain from speaking of the \f$\ell^2\f$ norm of a matrix because that can mean different things.
 
-If you want other \f$\ell^p\f$ norms, use the \link MatrixBase::lpNorm() lpNorm<p>() \endlink method. The template parameter \a p can take the special value \a Infinity if you want the \f$\ell^\infty\f$ norm, which is the maximum of the absolute values of the coefficients.
+If you want other coefficient-wise \f$\ell^p\f$ norms, use the \link MatrixBase::lpNorm() lpNorm<p>() \endlink method. The template parameter \a p can take the special value \a Infinity if you want the \f$\ell^\infty\f$ norm, which is the maximum of the absolute values of the coefficients.
 
 The following example demonstrates these methods.
 
@@ -44,6 +44,17 @@ The following example demonstrates these methods.
 <td>
 \verbinclude Tutorial_ReductionsVisitorsBroadcasting_reductions_norm.out
 </td></tr></table>
+
+\b Operator \b norm: The 1-norm and \f$\infty\f$-norm <a href="https://en.wikipedia.org/wiki/Operator_norm">matrix operator norms</a> can easily be computed as follows:
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_reductions_operatornorm.cpp
+</td>
+<td>
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_reductions_operatornorm.out
+</td></tr></table>
+See below for more explanations on the syntax of these expressions.
 
 \subsection TutorialReductionsVisitorsBroadcastingReductionsBool Boolean reductions
 
