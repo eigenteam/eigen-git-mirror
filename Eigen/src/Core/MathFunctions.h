@@ -314,8 +314,6 @@ struct hypot_impl
   typedef typename NumTraits<Scalar>::Real RealScalar;
   static inline RealScalar run(const Scalar& x, const Scalar& y)
   {
-    EIGEN_USING_STD_MATH(max);
-    EIGEN_USING_STD_MATH(min);
     EIGEN_USING_STD_MATH(abs);
     EIGEN_USING_STD_MATH(sqrt);
     RealScalar _x = abs(x);
@@ -607,8 +605,6 @@ struct random_default_impl<Scalar, false, true>
 {
   static inline Scalar run(const Scalar& x, const Scalar& y)
   { 
-    using std::max;
-    using std::min;
     typedef typename conditional<NumTraits<Scalar>::IsSigned,std::ptrdiff_t,std::size_t>::type ScalarX;
     if(y<x)
       return x;
@@ -928,9 +924,8 @@ struct scalar_fuzzy_default_impl<Scalar, false, false>
   EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    EIGEN_USING_STD_MATH(min);
     EIGEN_USING_STD_MATH(abs);
-    return abs(x - y) <= (min)(abs(x), abs(y)) * prec;
+    return abs(x - y) <= numext::mini(abs(x), abs(y)) * prec;
   }
   EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar& prec)
@@ -971,8 +966,7 @@ struct scalar_fuzzy_default_impl<Scalar, true, false>
   }
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    EIGEN_USING_STD_MATH(min);
-    return numext::abs2(x - y) <= (min)(numext::abs2(x), numext::abs2(y)) * prec * prec;
+    return numext::abs2(x - y) <= numext::mini(numext::abs2(x), numext::abs2(y)) * prec * prec;
   }
 };
 
