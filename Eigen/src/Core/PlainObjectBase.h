@@ -437,6 +437,22 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
 #endif
 
+    /** Copy constructor */
+    EIGEN_STRONG_INLINE PlainObjectBase(const PlainObjectBase& other)
+      : m_storage()
+    {
+      _check_template_params();
+      lazyAssign(other);
+    }
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE PlainObjectBase(const DenseBase<OtherDerived> &other)
+      : m_storage()
+    {
+      _check_template_params();
+      lazyAssign(other);
+    }
+
     EIGEN_STRONG_INLINE PlainObjectBase(Index a_size, Index nbRows, Index nbCols)
       : m_storage(a_size, nbRows, nbCols)
     {
