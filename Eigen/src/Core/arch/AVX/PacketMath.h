@@ -43,7 +43,7 @@ template<> struct is_arithmetic<__m256d> { enum { value = true }; };
   const Packet4d p4d_##NAME = pset1<Packet4d>(X)
 
 #define _EIGEN_DECLARE_CONST_Packet8f_FROM_INT(NAME,X) \
-  const Packet8f p8f_##NAME = (__m256)pset1<Packet8i>(X)
+  const Packet8f p8f_##NAME = _mm256_castsi256_ps(pset1<Packet8i>(X))
 
 #define _EIGEN_DECLARE_CONST_Packet8i(NAME,X) \
   const Packet8i p8i_##NAME = pset1<Packet8i>(X)
