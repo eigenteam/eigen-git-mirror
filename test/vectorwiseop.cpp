@@ -191,6 +191,11 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   rcres = m1.rowwise().norm();
   VERIFY_IS_APPROX(rcres(r), m1.row(r).norm());
 
+  VERIFY_IS_APPROX(m1.cwiseAbs().colwise().sum(), m1.colwise().template lpNorm<1>());
+  VERIFY_IS_APPROX(m1.cwiseAbs().rowwise().sum(), m1.rowwise().template lpNorm<1>());
+  VERIFY_IS_APPROX(m1.cwiseAbs().colwise().maxCoeff(), m1.colwise().template lpNorm<Infinity>());
+  VERIFY_IS_APPROX(m1.cwiseAbs().rowwise().maxCoeff(), m1.rowwise().template lpNorm<Infinity>());
+
   // test normalized
   m2 = m1.colwise().normalized();
   VERIFY_IS_APPROX(m2.col(c), m1.col(c).normalized());

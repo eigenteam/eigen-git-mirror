@@ -124,6 +124,16 @@ EIGEN_MEMBER_FUNCTOR(any, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(count, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(prod, (Size-1)*NumTraits<Scalar>::MulCost);
 
+template <int p, typename ResultType>
+struct member_lpnorm {
+  typedef ResultType result_type;
+  template<typename Scalar, int Size> struct Cost
+  { enum { value = (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost }; };
+  EIGEN_DEVICE_FUNC explicit member_lpnorm() {}
+  template<typename XprType>
+  EIGEN_DEVICE_FUNC inline ResultType operator()(const XprType& mat) const
+  { return mat.template lpNorm<p>(); }
+};
 
 template <typename BinaryOp, typename Scalar>
 struct member_redux {
@@ -290,6 +300,10 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef typename ReturnType<internal::member_prod>::Type ProdReturnType;
     typedef Reverse<ExpressionType, Direction> ReverseReturnType;
 
+    template<int p> struct LpNormReturnType {
+      typedef PartialReduxExpr<ExpressionType, internal::member_lpnorm<p,RealScalar>,Direction> Type;
+    };
+
     /** \returns a row (or column) vector expression of the smallest coefficient
       * of each column (or row) of the referenced expression.
       *
@@ -339,6 +353,19 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     EIGEN_DEVICE_FUNC
     const NormReturnType norm() const
     { return NormReturnType(_expression()); }
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression.
+      * This is a vector with real entries, even if the original matrix has complex entries.
+      *
+      * Example: \include PartialRedux_norm.cpp
+      * Output: \verbinclude PartialRedux_norm.out
+      *
+      * \sa DenseBase::norm() */
+    EIGEN_DEVICE_FUNC
+    template<int p>
+    const typename LpNormReturnType<p>::Type lpNorm() const
+    { return typename LpNormReturnType<p>::Type(_expression()); }
 
 
     /** \returns a row (or column) vector expression of the norm
