@@ -160,8 +160,8 @@ struct generic_product_impl<Lhs, Rhs, SparseShape, DenseShape, ProductType>
   template<typename Dest>
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
-    typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
+    typedef typename nested_eval<Lhs,((Rhs::Flags&RowMajorBit)==0) ? 1 : Rhs::ColsAtCompileTime>::type LhsNested;
+    typedef typename nested_eval<Rhs,((Lhs::Flags&RowMajorBit)==0) ? 1 : Dynamic>::type RhsNested;
     LhsNested lhsNested(lhs);
     RhsNested rhsNested(rhs);
     internal::sparse_time_dense_product(lhsNested, rhsNested, dst, alpha);
@@ -182,8 +182,8 @@ struct generic_product_impl<Lhs, Rhs, DenseShape, SparseShape, ProductType>
   template<typename Dst>
   static void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
-    typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
-    typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
+    typedef typename nested_eval<Lhs,((Rhs::Flags&RowMajorBit)==0) ? Dynamic : 1>::type LhsNested;
+    typedef typename nested_eval<Rhs,((Lhs::Flags&RowMajorBit)==RowMajorBit) ? 1 : Lhs::RowsAtCompileTime>::type RhsNested;
     LhsNested lhsNested(lhs);
     RhsNested rhsNested(rhs);
     
