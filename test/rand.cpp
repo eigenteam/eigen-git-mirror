@@ -35,8 +35,8 @@ template<typename Scalar> void check_all_in_range(Scalar x, Scalar y)
 void test_rand()
 {
   long long_ref = NumTraits<long>::highest()/10;
-  char char_offset = (std::min)(g_repeat,64);
-  char short_offset = (std::min)(g_repeat,16000);
+  signed char char_offset = (std::min)(g_repeat,64);
+  signed char short_offset = (std::min)(g_repeat,16000);
   
   for(int i = 0; i < g_repeat*10; i++) {
     CALL_SUBTEST(check_in_range<float>(10,11));
@@ -57,13 +57,13 @@ void test_rand()
     CALL_SUBTEST(check_in_range<long>(-long_ref,long_ref));
   }
   
-  CALL_SUBTEST(check_all_in_range<char>(11,11));
-  CALL_SUBTEST(check_all_in_range<char>(11,11+char_offset));
-  CALL_SUBTEST(check_all_in_range<char>(-5,5));
-  CALL_SUBTEST(check_all_in_range<char>(-11-char_offset,-11));
-  CALL_SUBTEST(check_all_in_range<char>(-126,-126+char_offset));
-  CALL_SUBTEST(check_all_in_range<char>(126-char_offset,126));
-  CALL_SUBTEST(check_all_in_range<char>(-126,126));
+  CALL_SUBTEST(check_all_in_range<signed char>(11,11));
+  CALL_SUBTEST(check_all_in_range<signed char>(11,11+char_offset));
+  CALL_SUBTEST(check_all_in_range<signed char>(-5,5));
+  CALL_SUBTEST(check_all_in_range<signed char>(-11-char_offset,-11));
+  CALL_SUBTEST(check_all_in_range<signed char>(-126,-126+char_offset));
+  CALL_SUBTEST(check_all_in_range<signed char>(126-char_offset,126));
+  CALL_SUBTEST(check_all_in_range<signed char>(-126,126));
   
   CALL_SUBTEST(check_all_in_range<short>(11,11));
   CALL_SUBTEST(check_all_in_range<short>(11,11+short_offset));
