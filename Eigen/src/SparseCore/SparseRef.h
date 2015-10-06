@@ -182,8 +182,9 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     {
       if((Options & int(StandardCompressedFormat)) && (!expr.isCompressed()))
       {
-        m_object = expr;
-        Base::construct(m_object);
+        TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
+        ::new (obj) TPlainObjectType(expr);
+        Base::construct(*obj);
       }
       else
       {
@@ -194,12 +195,13 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     template<typename Expression>
     void construct(const Expression& expr, internal::false_type)
     {
-      m_object = expr;
-      Base::construct(m_object);
+      TPlainObjectType* obj = reinterpret_cast<TPlainObjectType*>(m_object_bytes);
+      ::new (obj) TPlainObjectType(expr);
+      Base::construct(*obj);
     }
 
   protected:
-    TPlainObjectType m_object;
+    char m_object_bytes[sizeof(TPlainObjectType)];
 };
 
 

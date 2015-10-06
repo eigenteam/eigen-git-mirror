@@ -120,6 +120,9 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
 
     /** Empty destructor */
     inline ~SparseMapBase() {}
+
+  protected:
+    inline SparseMapBase() {}
 };
 
 template<typename Derived>
@@ -172,6 +175,9 @@ class SparseMapBase<Derived,WriteAccessors>
 
     /** Empty destructor */
     inline ~SparseMapBase() {}
+
+  protected:
+    inline SparseMapBase() {}
 };
 
 template<typename MatScalar, int MatOptions, typename MatIndex, int Options, typename StrideType>
