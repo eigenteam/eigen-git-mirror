@@ -26,7 +26,7 @@ inline void on_temporary_creation() {
 
 #define VERIFY_EVALUATION_COUNT(XPR,N) {\
     nb_temporaries = 0; \
-    XPR; \
+    CALL_SUBTEST( XPR ); \
     if(nb_temporaries!=N) std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; \
     VERIFY( (#XPR) && nb_temporaries==N ); \
   }
@@ -64,6 +64,8 @@ void call_ref()
   const SparseMatrix<float>&        Ac(A);
   Block<SparseMatrix<float> >       Ab(A,0,1, 3,3);
   const Block<SparseMatrix<float> > Abc(A,0,1,3,3);
+  SparseVector<float>               vc =  VectorXf::Random(10).sparseView(0.5,1);
+  SparseVector<float,RowMajor>      vr =  VectorXf::Random(10).sparseView(0.5,1);
   SparseMatrix<float> AA = A*A;
   
 
@@ -104,6 +106,9 @@ void call_ref()
   VERIFY_EVALUATION_COUNT( call_ref_2(A.middleCols(1,3), A.middleCols(1,3)),  0);
   
   VERIFY_EVALUATION_COUNT( call_ref_2(A.col(2), A.col(2)),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_2(vc, vc),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_2(vr.transpose(), vr.transpose()),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_2(vr, vr.transpose()),  0);
   
   VERIFY_EVALUATION_COUNT( call_ref_2(A.block(1,1,3,3), A.block(1,1,3,3)),  1); // should be 0 (allocate starts/nnz only)
 }
