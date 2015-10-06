@@ -654,6 +654,11 @@ bool is_same_dense(const T1 &, const T2 &, typename enable_if<!(has_direct_acces
   return false;
 }
 
+template<typename T, typename U> struct is_same_or_void { enum { value = is_same<T,U>::value }; };
+template<typename T> struct is_same_or_void<void,T>     { enum { value = 1 }; };
+template<typename T> struct is_same_or_void<T,void>     { enum { value = 1 }; };
+template<>           struct is_same_or_void<void,void>  { enum { value = 1 }; };
+
 } // end namespace internal
 
 // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
@@ -666,7 +671,7 @@ bool is_same_dense(const T1 &, const T2 &, typename enable_if<!(has_direct_acces
 #define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
   EIGEN_STATIC_ASSERT((internal::functor_is_product_like<BINOP>::ret \
                         ? int(internal::scalar_product_traits<LHS, RHS>::Defined) \
-                        : int(internal::is_same<LHS, RHS>::value)), \
+                        : int(internal::is_same_or_void<LHS, RHS>::value)), \
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     
 } // end namespace Eigen

@@ -69,6 +69,7 @@ class PermutationBase : public EigenBase<Derived>
             PlainPermutationType;
     using Base::derived;
     typedef Transpose<PermutationBase> TransposeReturnType;
+    typedef void Scalar;
     #endif
 
     /** Copies the other permutation into *this */
@@ -303,6 +304,7 @@ struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _Storag
   typedef PermutationStorage StorageKind;
   typedef Matrix<_StorageIndex, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
   typedef _StorageIndex StorageIndex;
+  typedef void Scalar;
 };
 }
 
@@ -426,6 +428,7 @@ struct traits<Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _St
   typedef PermutationStorage StorageKind;
   typedef Map<const Matrix<_StorageIndex, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1>, _PacketAccess> IndicesType;
   typedef _StorageIndex StorageIndex;
+  typedef void Scalar;
 };
 }
 
@@ -499,7 +502,7 @@ template<typename _IndicesType>
 struct traits<PermutationWrapper<_IndicesType> >
 {
   typedef PermutationStorage StorageKind;
-  typedef typename _IndicesType::Scalar Scalar;
+  typedef void Scalar;
   typedef typename _IndicesType::Scalar StorageIndex;
   typedef _IndicesType IndicesType;
   enum {
