@@ -665,8 +665,15 @@ class SparseMatrix
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       check_template_parameters();
       const bool needToTranspose = (Flags & RowMajorBit) != (internal::evaluator<OtherDerived>::Flags & RowMajorBit);
-      if (needToTranspose)  *this = other.derived();
-      else                  internal::call_assignment_no_alias(*this, other.derived());
+      if (needToTranspose)
+        *this = other.derived();
+      else
+      {
+        #ifdef EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+          EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+        #endif
+        internal::call_assignment_no_alias(*this, other.derived());
+      }
     }
     
     /** Constructs a sparse matrix from the sparse selfadjoint view \a other */

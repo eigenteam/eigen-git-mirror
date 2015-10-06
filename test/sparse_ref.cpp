@@ -64,6 +64,7 @@ void call_ref()
   const SparseMatrix<float>&        Ac(A);
   Block<SparseMatrix<float> >       Ab(A,0,1, 3,3);
   const Block<SparseMatrix<float> > Abc(A,0,1,3,3);
+  SparseMatrix<float> AA = A*A;
   
 
   VERIFY_EVALUATION_COUNT( call_ref_1(A, A),  0);
@@ -80,8 +81,8 @@ void call_ref()
   VERIFY_EVALUATION_COUNT( call_ref_3(B, B),  1);
   VERIFY_EVALUATION_COUNT( call_ref_2(B.transpose(), B.transpose()),  0);
   VERIFY_EVALUATION_COUNT( call_ref_3(B.transpose(), B.transpose()),  0);
-  VERIFY_EVALUATION_COUNT( call_ref_2(A*A, A*A),  1);
-  VERIFY_EVALUATION_COUNT( call_ref_3(A*A, A*A),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_2(A*A, AA),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_3(A*A, AA),  1);
   
   VERIFY(!C.isCompressed());
   VERIFY_EVALUATION_COUNT( call_ref_3(C, C),  1);
