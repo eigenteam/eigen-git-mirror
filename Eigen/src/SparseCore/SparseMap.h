@@ -114,7 +114,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
 
     // for vectors
     inline SparseMapBase(Index size, Index nnz, IndexPointer innerIndexPtr, ScalarPointer valuePtr)
-      : m_outerSize(1), m_innerSize(size), m_zero_nnz(0,nnz), m_outerIndex(m_zero_nnz.data()),
+      : m_outerSize(1), m_innerSize(size), m_zero_nnz(0,internal::convert_index<StorageIndex>(nnz)), m_outerIndex(m_zero_nnz.data()),
         m_innerIndices(innerIndexPtr), m_values(valuePtr), m_innerNonZeros(0)
     {}
 
@@ -171,6 +171,11 @@ class SparseMapBase<Derived,WriteAccessors>
     inline SparseMapBase(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr, StorageIndex* innerIndexPtr,
                               Scalar* valuePtr, StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
+    {}
+
+    // for vectors
+    inline SparseMapBase(Index size, Index nnz, StorageIndex* innerIndexPtr, Scalar* valuePtr)
+      : Base(size, nnz, innerIndexPtr, valuePtr)
     {}
 
     /** Empty destructor */

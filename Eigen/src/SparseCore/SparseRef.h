@@ -66,23 +66,13 @@ public:
   
 protected:
 
-
   template<typename Expression>
   void construct(Expression& expr)
   {
-    ::new (static_cast<Base*>(this)) Base(expr.rows(), expr.cols(), expr.nonZeros(), expr.outerIndexPtr(), expr.innerIndexPtr(), expr.valuePtr(), expr.innerNonZeroPtr());
-  }
-
-  template<int ExprOptions>
-  void construct(const SparseVector<Scalar,ExprOptions,StorageIndex>& expr)
-  {
-    ::new (static_cast<Base*>(this)) Base(expr.size(), expr.nonZeros(), expr.innerIndexPtr(), expr.valuePtr());
-  }
-
-  template<int ExprOptions>
-  void construct(SparseVector<Scalar,ExprOptions,StorageIndex>& expr)
-  {
-    ::new (static_cast<Base*>(this)) Base(expr.size(), expr.nonZeros(), expr.innerIndexPtr(), expr.valuePtr());
+    if(expr.outerIndexPtr()==0)
+      ::new (static_cast<Base*>(this)) Base(expr.size(), expr.nonZeros(), expr.innerIndexPtr(), expr.valuePtr());
+    else
+      ::new (static_cast<Base*>(this)) Base(expr.rows(), expr.cols(), expr.nonZeros(), expr.outerIndexPtr(), expr.innerIndexPtr(), expr.valuePtr(), expr.innerNonZeroPtr());
   }
 };
 
