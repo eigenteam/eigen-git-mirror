@@ -24,6 +24,11 @@ namespace Eigen {
  *                     matrix. It is advised to give  a row-oriented sparse matrix 
  * \tparam _UpLo The triangular part of the matrix to reference. 
  * \tparam _OrderingType 
+ *
+ * It performs the following incomplete factorization: \f$ S P A P' S \approx L L' \f$
+ * where L is a lower triangular factor, S if a diagonal scaling matrix, and P is a
+ * fill-in reducing permutation as computed of the ordering method.
+ *
  */
 
 template <typename Scalar, int _UpLo = Lower, typename _OrderingType = AMDOrdering<int> >
@@ -86,6 +91,7 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
       if(pinv.size()>0) m_perm = pinv.inverse();
       else              m_perm.resize(0);
       m_analysisIsOk = true; 
+      m_isInitialized = true;
     }
     
     template<typename MatrixType>
@@ -110,8 +116,16 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
       x = m_scale.asDiagonal() * x;
       if (m_perm.rows() == b.rows())
         x = m_perm.inverse() * x;
-      
     }
+
+    /** \returns the sparse lower triangular factor L */
+    const FactorType& matrixL() const { return m_L; }
+
+    /** \returns a vector representing the scaling factor S */
+    const VectorRx& scalingS() const { return m_scale; }
+
+    /** \returns the fill-in reducing permutation P (can be empty for a natural ordering) */
+    const PermutationType permutationP() const { return m_perm; }
 
   protected:
     FactorType m_L;              // The lower part stored in CSC
@@ -121,7 +135,7 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     bool m_factorizationIsOk; 
     ComputationInfo m_info;
     PermutationType m_perm; 
-    
+
   private:
     inline void updateList(Ref<const VectorIx> colPtr, Ref<VectorIx> rowIdx, Ref<VectorSx> vals, const Index& col, const Index& jk, VectorIx& firstElt, VectorList& listCol); 
 }; 
@@ -176,13 +190,21 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
     }
   
   m_scale = m_scale.cwiseSqrt().cwiseSqrt();
+
+  for (Index j = 0; j < n; ++j)
+    if(m_scale(j)>(std::numeric_limits<RealScalar>::min)())
+      m_scale(j) = RealScalar(1)/m_scale(j);
+    else
+      m_scale(j) = 1;
+
+  // FIXME disable scaling if not needed, i.e., if it is roughtly uniform? (this will make solve() faster)
   
   // Scale and compute the shift for the matrix 
   RealScalar mindiag = NumTraits<RealScalar>::highest();
   for (Index j = 0; j < n; j++)
   {
     for (Index k = colPtr[j]; k < colPtr[j+1]; k++)
-      vals[k] /= (m_scale(j)*m_scale(rowIdx[k]));
+      vals[k] *= (m_scale(j)*m_scale(rowIdx[k]));
     eigen_internal_assert(rowIdx[colPtr[j]]==j && "IncompleteCholesky: only the lower triangular part must be stored");
     mindiag = numext::mini(numext::real(vals[colPtr[j]]), mindiag);
   }
@@ -240,7 +262,6 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
     // Scale the current column
     if(numext::real(diag) <= 0) 
     {
-      std::cerr << "\nNegative diagonal during Incomplete factorization at position " << j << " (value = " << diag << ")\n";
       m_info = NumericalIssue; 
       return; 
     }
@@ -276,7 +297,6 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
     updateList(colPtr,rowIdx,vals,j,jk,firstElt,listCol); 
   }
   m_factorizationIsOk = true; 
-  m_isInitialized = true;
   m_info = Success; 
 }
 
