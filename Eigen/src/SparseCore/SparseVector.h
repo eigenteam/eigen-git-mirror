@@ -40,7 +40,7 @@ struct traits<SparseVector<_Scalar, _Options, _StorageIndex> >
     ColsAtCompileTime = IsColVector ? 1 : Dynamic,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = _Options | NestByRefBit | LvalueBit | (IsColVector ? 0 : RowMajorBit),
+    Flags = _Options | NestByRefBit | LvalueBit | (IsColVector ? 0 : RowMajorBit) | CompressedAccessBit,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
@@ -63,12 +63,12 @@ struct sparse_vector_assign_selector;
 
 template<typename _Scalar, int _Options, typename _StorageIndex>
 class SparseVector
-  : public SparseMatrixBase<SparseVector<_Scalar, _Options, _StorageIndex> >
+  : public SparseCompressedBase<SparseVector<_Scalar, _Options, _StorageIndex> >
 {
-    typedef SparseMatrixBase<SparseVector> SparseBase;
+    typedef SparseCompressedBase<SparseVector> Base;
     
   public:
-    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
+    _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
     
@@ -89,6 +89,11 @@ class SparseVector
 
     EIGEN_STRONG_INLINE const StorageIndex* innerIndexPtr() const { return &m_data.index(0); }
     EIGEN_STRONG_INLINE StorageIndex* innerIndexPtr() { return &m_data.index(0); }
+
+    inline const StorageIndex* outerIndexPtr() const { return 0; }
+    inline StorageIndex* outerIndexPtr() { return 0; }
+    inline const StorageIndex* innerNonZeroPtr() const { return 0; }
+    inline StorageIndex* innerNonZeroPtr() { return 0; }
     
     /** \internal */
     inline Storage& data() { return m_data; }
@@ -126,8 +131,8 @@ class SparseVector
 
   public:
 
-    class InnerIterator;
-    class ReverseInnerIterator;
+    typedef typename Base::InnerIterator InnerIterator;
+    typedef typename Base::ReverseInnerIterator ReverseInnerIterator;
 
     inline void setZero() { m_data.clear(); }
 
@@ -235,7 +240,7 @@ class SparseVector
     }
 
     inline SparseVector(const SparseVector& other)
-      : SparseBase(other), m_size(0)
+      : Base(other), m_size(0)
     {
       check_template_parameters();
       *this = other.derived();
@@ -355,75 +360,6 @@ protected:
     
     Storage m_data;
     Index m_size;
-};
-
-template<typename Scalar, int _Options, typename _StorageIndex>
-class SparseVector<Scalar,_Options,_StorageIndex>::InnerIterator
-{
-  public:
-	explicit InnerIterator(const SparseVector& vec, Index outer=0)
-      : m_data(vec.m_data), m_id(0), m_end(m_data.size())
-    {
-      EIGEN_UNUSED_VARIABLE(outer);
-      eigen_assert(outer==0);
-    }
-
-	explicit InnerIterator(const internal::CompressedStorage<Scalar,StorageIndex>& data)
-      : m_data(data), m_id(0), m_end(m_data.size())
-    {}
-
-    inline InnerIterator& operator++() { m_id++; return *this; }
-
-    inline Scalar value() const { return m_data.value(m_id); }
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_data.value(m_id)); }
-
-    inline StorageIndex index() const { return m_data.index(m_id); }
-    inline Index row() const { return IsColVector ? index() : 0; }
-    inline Index col() const { return IsColVector ? 0 : index(); }
-
-    inline operator bool() const { return (m_id < m_end); }
-
-  protected:
-    const internal::CompressedStorage<Scalar,StorageIndex>& m_data;
-    Index m_id;
-    const Index m_end;
-  private:
-    // If you get here, then you're not using the right InnerIterator type, e.g.:
-    //   SparseMatrix<double,RowMajor> A;
-    //   SparseMatrix<double>::InnerIterator it(A,0);
-    template<typename T> InnerIterator(const SparseMatrixBase<T>&,Index outer=0);
-};
-
-template<typename Scalar, int _Options, typename _StorageIndex>
-class SparseVector<Scalar,_Options,_StorageIndex>::ReverseInnerIterator
-{
-  public:
-	explicit ReverseInnerIterator(const SparseVector& vec, Index outer=0)
-      : m_data(vec.m_data), m_id(m_data.size()), m_start(0)
-    {
-      EIGEN_UNUSED_VARIABLE(outer);
-      eigen_assert(outer==0);
-    }
-
-	explicit ReverseInnerIterator(const internal::CompressedStorage<Scalar,StorageIndex>& data)
-      : m_data(data), m_id(m_data.size()), m_start(0)
-    {}
-
-    inline ReverseInnerIterator& operator--() { m_id--; return *this; }
-
-    inline Scalar value() const { return m_data.value(m_id-1); }
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_data.value(m_id-1)); }
-
-    inline StorageIndex index() const { return m_data.index(m_id-1); }
-    inline Index row() const { return IsColVector ? index() : 0; }
-    inline Index col() const { return IsColVector ? 0 : index(); }
-
-    inline operator bool() const { return (m_id > m_start); }
-
-  protected:
-    const internal::CompressedStorage<Scalar,StorageIndex>& m_data;
-    Index m_id;
-    const Index m_start;
 };
 
 namespace internal {

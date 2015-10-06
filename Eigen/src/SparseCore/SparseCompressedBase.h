@@ -45,13 +45,14 @@ class SparseCompressedBase
     /** \returns the number of non zero coefficients */
     inline Index nonZeros() const
     {
-      if(isCompressed())
+      if(Derived::IsVectorAtCompileTime && outerIndexPtr()==0)
+        return derived().nonZeros();
+      else if(isCompressed())
         return outerIndexPtr()[derived().outerSize()]-outerIndexPtr()[0];
       else if(derived().outerSize()==0)
         return 0;
       else
         return innerNonZeros().sum();
-      
     }
     
     /** \returns a const pointer to the array of values.
@@ -74,10 +75,12 @@ class SparseCompressedBase
 
     /** \returns a const pointer to the array of the starting positions of the inner vectors.
       * This function is aimed at interoperability with other libraries.
+      * \warning it returns the null pointer 0 for SparseVector
       * \sa valuePtr(), innerIndexPtr() */
     inline const StorageIndex* outerIndexPtr() const { return derived().outerIndexPtr(); }
     /** \returns a non-const pointer to the array of the starting positions of the inner vectors.
       * This function is aimed at interoperability with other libraries.
+      * \warning it returns the null pointer 0 for SparseVector
       * \sa valuePtr(), innerIndexPtr() */
     inline StorageIndex* outerIndexPtr() { return derived().outerIndexPtr(); }
 
@@ -100,12 +103,27 @@ class SparseCompressedBase<Derived>::InnerIterator
 {
   public:
     InnerIterator(const SparseCompressedBase& mat, Index outer)
-      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_id(mat.outerIndexPtr()[outer])
+      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer)
     {
-      if(mat.isCompressed())
-        m_end = mat.outerIndexPtr()[outer+1];
+      if(Derived::IsVectorAtCompileTime && mat.outerIndexPtr()==0)
+      {
+        m_id = 0;
+        m_end = mat.nonZeros();
+      }
       else
-        m_end = m_id + mat.innerNonZeroPtr()[outer];
+      {
+        m_id = mat.outerIndexPtr()[outer];
+        if(mat.isCompressed())
+          m_end = mat.outerIndexPtr()[outer+1];
+        else
+          m_end = m_id + mat.innerNonZeroPtr()[outer];
+      }
+    }
+
+    InnerIterator(const SparseCompressedBase& mat)
+      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(0), m_id(0), m_end(mat.nonZeros())
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
     }
 
     inline InnerIterator& operator++() { m_id++; return *this; }
@@ -114,16 +132,16 @@ class SparseCompressedBase<Derived>::InnerIterator
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id]); }
 
     inline StorageIndex index() const { return m_indices[m_id]; }
-    inline Index outer() const { return m_outer; }
-    inline Index row() const { return IsRowMajor ? m_outer : index(); }
-    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+    inline Index outer() const { return m_outer.value(); }
+    inline Index row() const { return IsRowMajor ? m_outer.value() : index(); }
+    inline Index col() const { return IsRowMajor ? index() : m_outer.value(); }
 
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
     const Scalar* m_values;
     const StorageIndex* m_indices;
-    const Index m_outer;
+    const internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> m_outer;
     Index m_id;
     Index m_end;
   private:
@@ -138,13 +156,26 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
 {
   public:
     ReverseInnerIterator(const SparseCompressedBase& mat, Index outer)
-      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_start(mat.outerIndexPtr()[outer])
+      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer)
     {
-      if(mat.isCompressed())
-        m_id = mat.outerIndexPtr()[outer+1];
+      if(Derived::IsVectorAtCompileTime && mat.outerIndexPtr()==0)
+      {
+        m_start = 0;
+        m_id = mat.nonZeros();
+      }
       else
-        m_id = m_start + mat.innerNonZeroPtr()[outer];
+      {
+        m_start.value() = mat.outerIndexPtr()[outer];
+        if(mat.isCompressed())
+          m_id = mat.outerIndexPtr()[outer+1];
+        else
+          m_id = m_start.value() + mat.innerNonZeroPtr()[outer];
+      }
     }
+
+    ReverseInnerIterator(const SparseCompressedBase& mat)
+      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(0), m_start(0), m_id(mat.nonZeros())
+    {}
 
     inline ReverseInnerIterator& operator--() { --m_id; return *this; }
 
@@ -152,18 +183,18 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id-1]); }
 
     inline StorageIndex index() const { return m_indices[m_id-1]; }
-    inline Index outer() const { return m_outer; }
-    inline Index row() const { return IsRowMajor ? m_outer : index(); }
-    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+    inline Index outer() const { return m_outer.value(); }
+    inline Index row() const { return IsRowMajor ? m_outer.value() : index(); }
+    inline Index col() const { return IsRowMajor ? index() : m_outer.value(); }
 
-    inline operator bool() const { return (m_id > m_start); }
+    inline operator bool() const { return (m_id > m_start.value()); }
 
   protected:
     const Scalar* m_values;
     const StorageIndex* m_indices;
-    const Index m_outer;
+    const internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> m_outer;
     Index m_id;
-    const Index m_start;
+    const internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> m_start;
 };
 
 namespace internal {
