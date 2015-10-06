@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -15,9 +15,13 @@
 #define EIGEN_NO_STATIC_ASSERT // turn static asserts into runtime asserts in order to check them
 #endif
 
-// #ifndef EIGEN_DONT_VECTORIZE
-// #define EIGEN_DONT_VECTORIZE // SSE intrinsics aren't designed to allow mixing types
-// #endif
+#if defined(EIGEN_TEST_PART_1) || defined(EIGEN_TEST_PART_2) || defined(EIGEN_TEST_PART_3)
+
+#ifndef EIGEN_DONT_VECTORIZE
+#define EIGEN_DONT_VECTORIZE
+#endif
+
+#endif
 
 #include "main.h"
 
@@ -56,10 +60,12 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   // this one does not even compile with C++11
   VERIFY_RAISES_ASSERT(mf+mcf);
 #endif
-  // the following do not even compile since the introduction of evaluators
-//   VERIFY_RAISES_ASSERT(vf=vd);
-//   VERIFY_RAISES_ASSERT(vf+=vd);
-//   VERIFY_RAISES_ASSERT(mcd=md);
+
+#ifdef EIGEN_DONT_VECTORIZE
+  VERIFY_RAISES_ASSERT(vf=vd);
+  VERIFY_RAISES_ASSERT(vf+=vd);
+  VERIFY_RAISES_ASSERT(mcd=md);
+#endif
   
   // check scalar products
   VERIFY_IS_APPROX(vcf * sf , vcf * complex<float>(sf));
@@ -79,6 +85,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX(vcd.asDiagonal() * md, vcd.asDiagonal() * md.template cast<complex<double> >());
   VERIFY_IS_APPROX(mcf * vf.asDiagonal(), mcf * vf.template cast<complex<float> >().asDiagonal());
   VERIFY_IS_APPROX(md * vcd.asDiagonal(), md.template cast<complex<double> >() * vcd.asDiagonal());
+
 //   vd.asDiagonal() * mf;    // does not even compile
 //   vcd.asDiagonal() * mf;   // does not even compile
 
@@ -148,5 +155,9 @@ void test_mixingtypes()
     CALL_SUBTEST_1(mixingtypes<3>());
     CALL_SUBTEST_2(mixingtypes<4>());
     CALL_SUBTEST_3(mixingtypes<Dynamic>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE)));
+
+    CALL_SUBTEST_4(mixingtypes<3>());
+    CALL_SUBTEST_5(mixingtypes<4>());
+    CALL_SUBTEST_6(mixingtypes<Dynamic>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE)));
   }
 }
