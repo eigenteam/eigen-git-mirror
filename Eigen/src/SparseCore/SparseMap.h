@@ -63,7 +63,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
 
     Index   m_outerSize;
     Index   m_innerSize;
-    Index   m_nnz;
+    Array<StorageIndex,2,1>  m_zero_nnz;
     IndexPointer  m_outerIndex;
     IndexPointer  m_innerIndices;
     ScalarPointer m_values;
@@ -75,6 +75,7 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
     inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
     inline Index innerSize() const { return m_innerSize; }
     inline Index outerSize() const { return m_outerSize; }
+    inline Index nonZeros() const { return m_zero_nnz[1]; }
     
     bool isCompressed() const { return m_innerNonZeros==0; }
 
@@ -107,8 +108,14 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
 
     inline SparseMapBase(Index rows, Index cols, Index nnz, IndexPointer outerIndexPtr, IndexPointer innerIndexPtr,
                               ScalarPointer valuePtr, IndexPointer innerNonZerosPtr = 0)
-      : m_outerSize(IsRowMajor?rows:cols), m_innerSize(IsRowMajor?cols:rows), m_nnz(nnz), m_outerIndex(outerIndexPtr),
+      : m_outerSize(IsRowMajor?rows:cols), m_innerSize(IsRowMajor?cols:rows), m_zero_nnz(0,internal::convert_index<StorageIndex>(nnz)), m_outerIndex(outerIndexPtr),
         m_innerIndices(innerIndexPtr), m_values(valuePtr), m_innerNonZeros(innerNonZerosPtr)
+    {}
+
+    // for vectors
+    inline SparseMapBase(Index size, Index nnz, IndexPointer innerIndexPtr, ScalarPointer valuePtr)
+      : m_outerSize(1), m_innerSize(size), m_zero_nnz(0,nnz), m_outerIndex(m_zero_nnz.data()),
+        m_innerIndices(innerIndexPtr), m_values(valuePtr), m_innerNonZeros(0)
     {}
 
     /** Empty destructor */
