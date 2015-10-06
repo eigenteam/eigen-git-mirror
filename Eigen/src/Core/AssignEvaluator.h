@@ -565,9 +565,6 @@ public:
   EIGEN_DEVICE_FUNC Index cols() const        { return m_dstExpr.cols(); }
   EIGEN_DEVICE_FUNC Index outerStride() const { return m_dstExpr.outerStride(); }
   
-  // TODO get rid of this one:
-  EIGEN_DEVICE_FUNC DstXprType& dstExpression() const { return m_dstExpr; }
-  
   EIGEN_DEVICE_FUNC DstEvaluatorType& dstEvaluator() { return m_dst; }
   EIGEN_DEVICE_FUNC const SrcEvaluatorType& srcEvaluator() const { return m_src; }
   
@@ -737,11 +734,9 @@ template<typename Dst, typename Src, typename Func>
 EIGEN_DEVICE_FUNC void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
 {
   enum {
-    NeedToTranspose = (  (int(Dst::RowsAtCompileTime) == 1 && int(Src::ColsAtCompileTime) == 1)
-                        |   // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
-                                // revert to || as soon as not needed anymore.
-                         (int(Dst::ColsAtCompileTime) == 1 && int(Src::RowsAtCompileTime) == 1))
-                     && int(Dst::SizeAtCompileTime) != 1
+    NeedToTranspose = (    (int(Dst::RowsAtCompileTime) == 1 && int(Src::ColsAtCompileTime) == 1)
+                        || (int(Dst::ColsAtCompileTime) == 1 && int(Src::RowsAtCompileTime) == 1)
+                      ) && int(Dst::SizeAtCompileTime) != 1
   };
 
   Index dstRows = NeedToTranspose ? src.cols() : src.rows();
