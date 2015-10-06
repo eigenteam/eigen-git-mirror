@@ -137,14 +137,14 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
 
     SparseSelfAdjointView& operator=(const SparseSelfAdjointView& src)
     {
-      PermutationMatrix<Dynamic> pnull;
+      PermutationMatrix<Dynamic,Dynamic,StorageIndex> pnull;
       return *this = src.twistedBy(pnull);
     }
 
     template<typename SrcMatrixType,unsigned int SrcMode>
     SparseSelfAdjointView& operator=(const SparseSelfAdjointView<SrcMatrixType,SrcMode>& src)
     {
-      PermutationMatrix<Dynamic> pnull;
+      PermutationMatrix<Dynamic,Dynamic,StorageIndex> pnull;
       return *this = src.twistedBy(pnull);
     }
     
