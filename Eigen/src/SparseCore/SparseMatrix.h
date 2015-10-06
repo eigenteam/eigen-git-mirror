@@ -437,6 +437,10 @@ class SparseMatrix
     template<typename InputIterators>
     void setFromTriplets(const InputIterators& begin, const InputIterators& end);
 
+    template<typename DupFunctor, typename InputIterators>
+    void setFromTriplets(const InputIterators& begin, const InputIterators& end);
+
+    template<typename DupFunctor>
     void sumupDuplicates();
 
     //---
@@ -889,7 +893,7 @@ private:
 
 namespace internal {
 
-template<typename InputIterator, typename SparseMatrixType>
+template<typename InputIterator, typename SparseMatrixType, typename DupFunctor>
 void set_from_triplets(const InputIterator& begin, const InputIterator& end, SparseMatrixType& mat, int Options = 0)
 {
   EIGEN_UNUSED_VARIABLE(Options);
@@ -915,7 +919,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
       trMat.insertBackUncompressed(it->row(),it->col()) = it->value();
 
     // pass 3:
-    trMat.sumupDuplicates();
+    trMat.template sumupDuplicates<DupFunctor>();
   }
 
   // pass 4: transposed copy -> implicit sorting
@@ -966,11 +970,24 @@ template<typename Scalar, int _Options, typename _Index>
 template<typename InputIterators>
 void SparseMatrix<Scalar,_Options,_Index>::setFromTriplets(const InputIterators& begin, const InputIterators& end)
 {
-  internal::set_from_triplets(begin, end, *this);
+  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index>, internal::scalar_sum_op<Scalar> >(begin, end, *this);
+}
+
+/** The same as setFromTriplets but when duplicates are met the functor \a DupFunctor is applied:
+  * \code
+  * value = DupFunctor()(OldValue, NewValue)
+  * \endcode 
+ */
+template<typename Scalar, int _Options, typename _Index>
+template<typename DupFunctor, typename InputIterators>
+void SparseMatrix<Scalar,_Options,_Index>::setFromTriplets(const InputIterators& begin, const InputIterators& end)
+{
+  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index>, DupFunctor>(begin, end, *this);
 }
 
 /** \internal */
 template<typename Scalar, int _Options, typename _Index>
+template<typename DupFunctor>
 void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
 {
   eigen_assert(!isCompressed());
@@ -989,7 +1006,7 @@ void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
       if(wi(i)>=start)
       {
         // we already meet this entry => accumulate it
-        m_data.value(wi(i)) += m_data.value(k);
+        m_data.value(wi(i)) = DupFunctor()(m_data.value(wi(i)), m_data.value(k));
       }
       else
       {
