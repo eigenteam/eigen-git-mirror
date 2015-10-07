@@ -130,13 +130,13 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   Tridiagonalization<MatrixType> tridiag(symmC);
   VERIFY_IS_APPROX(tridiag.diagonal(), tridiag.matrixT().diagonal());
   VERIFY_IS_APPROX(tridiag.subDiagonal(), tridiag.matrixT().template diagonal<-1>());
-  MatrixType T = tridiag.matrixT();
+  Matrix<RealScalar,Dynamic,Dynamic> T = tridiag.matrixT();
   if(rows>1 && cols>1) {
     // FIXME check that upper and lower part are 0:
     //VERIFY(T.topRightCorner(rows-2, cols-2).template triangularView<Upper>().isZero());
   }
-  VERIFY_IS_APPROX(tridiag.diagonal(), T.diagonal().real());
-  VERIFY_IS_APPROX(tridiag.subDiagonal(), T.template diagonal<1>().real());
+  VERIFY_IS_APPROX(tridiag.diagonal(), T.diagonal());
+  VERIFY_IS_APPROX(tridiag.subDiagonal(), T.template diagonal<1>());
   VERIFY_IS_APPROX(MatrixType(symmC.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT().eval() * MatrixType(tridiag.matrixQ()).adjoint());
   VERIFY_IS_APPROX(MatrixType(symmC.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT() * tridiag.matrixQ().adjoint());
   
