@@ -532,10 +532,6 @@ template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 {
   return _mm_hadd_pd(vecs[0], vecs[1]);
 }
-template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
-{
-  return _mm_hadd_epi32(_mm_hadd_epi32(vecs[0], vecs[1]),_mm_hadd_epi32(vecs[2], vecs[3]));
-}
 
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {
@@ -544,12 +540,6 @@ template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 }
 
 template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a) { return pfirst<Packet2d>(_mm_hadd_pd(a, a)); }
-
-template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
-{
-  Packet4i tmp0 = _mm_hadd_epi32(a,a);
-  return pfirst(_mm_hadd_epi32(tmp0,tmp0));
-}
 #else
 // SSE2 versions
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
@@ -580,7 +570,20 @@ template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 {
   return _mm_add_pd(_mm_unpacklo_pd(vecs[0], vecs[1]), _mm_unpackhi_pd(vecs[0], vecs[1]));
 }
+#endif  // SSE3
 
+
+#ifdef EIGEN_VECTORIZE_SSSE3
+template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
+{
+  return _mm_hadd_epi32(_mm_hadd_epi32(vecs[0], vecs[1]),_mm_hadd_epi32(vecs[2], vecs[3]));
+}
+template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
+{
+  Packet4i tmp0 = _mm_hadd_epi32(a,a);
+  return pfirst(_mm_hadd_epi32(tmp0,tmp0));
+}
+#else
 template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
 {
   Packet4i tmp = _mm_add_epi32(a, _mm_unpackhi_epi64(a,a));
@@ -600,8 +603,7 @@ template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
   tmp0 = _mm_unpackhi_epi64(tmp0, tmp1);
   return _mm_add_epi32(tmp0, tmp2);
 }
-#endif  // SSE3
-
+#endif
 // Other reduction functions:
 
 // mul
