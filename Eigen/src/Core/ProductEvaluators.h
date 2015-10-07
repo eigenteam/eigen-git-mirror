@@ -463,9 +463,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
                         && (InnerSize % packet_traits<Scalar>::size == 0)
   };
   
-  EIGEN_DEVICE_FUNC const CoeffReturnType coeff(Index row, Index col) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CoeffReturnType coeff(Index row, Index col) const
   {
-    // TODO check performance regression wrt to Eigen 3.2 which has special handling of this function
     return (m_lhs.row(row).transpose().cwiseProduct( m_rhs.col(col) )).sum();
   }
 
@@ -477,7 +476,6 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   {
     const Index row = RowsAtCompileTime == 1 ? 0 : index;
     const Index col = RowsAtCompileTime == 1 ? index : 0;
-    // TODO check performance regression wrt to Eigen 3.2 which has special handling of this function
     return (m_lhs.row(row).transpose().cwiseProduct( m_rhs.col(col) )).sum();
   }
 

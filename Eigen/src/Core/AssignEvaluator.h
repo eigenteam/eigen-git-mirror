@@ -288,7 +288,7 @@ struct dense_assignment_loop;
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, DefaultTraversal, NoUnrolling>
 {
-  EIGEN_DEVICE_FUNC static void run(Kernel &kernel)
+  EIGEN_DEVICE_FUNC static void EIGEN_STRONG_INLINE run(Kernel &kernel)
   {
     for(Index outer = 0; outer < kernel.outerSize(); ++outer) {
       for(Index inner = 0; inner < kernel.innerSize(); ++inner) {
@@ -414,7 +414,7 @@ template<typename Kernel>
 struct dense_assignment_loop<Kernel, InnerVectorizedTraversal, NoUnrolling>
 {
   typedef typename Kernel::PacketType PacketType;
-  EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     const Index innerSize = kernel.innerSize();
     const Index outerSize = kernel.outerSize();
@@ -455,7 +455,7 @@ struct dense_assignment_loop<Kernel, InnerVectorizedTraversal, InnerUnrolling>
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, LinearTraversal, NoUnrolling>
 {
-  EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     const Index size = kernel.size();
     for(Index i = 0; i < size; ++i)
@@ -569,19 +569,19 @@ public:
   EIGEN_DEVICE_FUNC const SrcEvaluatorType& srcEvaluator() const { return m_src; }
   
   /// Assign src(row,col) to dst(row,col) through the assignment functor.
-  EIGEN_DEVICE_FUNC void assignCoeff(Index row, Index col)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Index row, Index col)
   {
     m_functor.assignCoeff(m_dst.coeffRef(row,col), m_src.coeff(row,col));
   }
   
   /// \sa assignCoeff(Index,Index)
-  EIGEN_DEVICE_FUNC void assignCoeff(Index index)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Index index)
   {
     m_functor.assignCoeff(m_dst.coeffRef(index), m_src.coeff(index));
   }
   
   /// \sa assignCoeff(Index,Index)
-  EIGEN_DEVICE_FUNC void assignCoeffByOuterInner(Index outer, Index inner)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeffByOuterInner(Index outer, Index inner)
   {
     Index row = rowIndexByOuterInner(outer, inner); 
     Index col = colIndexByOuterInner(outer, inner); 
@@ -590,26 +590,26 @@ public:
   
   
   template<int StoreMode, int LoadMode, typename PacketType>
-  EIGEN_DEVICE_FUNC void assignPacket(Index row, Index col)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignPacket(Index row, Index col)
   {
     m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(row,col), m_src.template packet<LoadMode,PacketType>(row,col));
   }
   
   template<int StoreMode, int LoadMode, typename PacketType>
-  EIGEN_DEVICE_FUNC void assignPacket(Index index)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignPacket(Index index)
   {
     m_functor.template assignPacket<StoreMode>(&m_dst.coeffRef(index), m_src.template packet<LoadMode,PacketType>(index));
   }
   
   template<int StoreMode, int LoadMode, typename PacketType>
-  EIGEN_DEVICE_FUNC void assignPacketByOuterInner(Index outer, Index inner)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignPacketByOuterInner(Index outer, Index inner)
   {
     Index row = rowIndexByOuterInner(outer, inner); 
     Index col = colIndexByOuterInner(outer, inner);
     assignPacket<StoreMode,LoadMode,PacketType>(row, col);
   }
   
-  EIGEN_DEVICE_FUNC static Index rowIndexByOuterInner(Index outer, Index inner)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static Index rowIndexByOuterInner(Index outer, Index inner)
   {
     typedef typename DstEvaluatorType::ExpressionTraits Traits;
     return int(Traits::RowsAtCompileTime) == 1 ? 0
@@ -618,7 +618,7 @@ public:
       : inner;
   }
 
-  EIGEN_DEVICE_FUNC static Index colIndexByOuterInner(Index outer, Index inner)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static Index colIndexByOuterInner(Index outer, Index inner)
   {
     typedef typename DstEvaluatorType::ExpressionTraits Traits;
     return int(Traits::ColsAtCompileTime) == 1 ? 0
