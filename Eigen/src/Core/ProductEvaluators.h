@@ -177,8 +177,7 @@ struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBi
                        const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
   {
-    // TODO use operator* instead of prod() once we have made enough progress
-    call_assignment(dst.noalias(), prod(src.functor().m_other * src.nestedExpression().lhs(), src.nestedExpression().rhs()), func);
+    call_assignment_no_alias(dst, (src.functor().m_other * src.nestedExpression().lhs())*src.nestedExpression().rhs(), func);
   }
 };
 
@@ -329,28 +328,28 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   template<typename Dst>
   static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    // TODO: use the following instead of calling call_assignment, same for the other methods
-    // dst = lazyprod(lhs,rhs);
-    call_assignment(dst, lazyprod(lhs,rhs), internal::assign_op<Scalar>());
+    // Same as: dst.noalias() = lhs.lazyProduct(rhs);
+    // but easier on the compiler side
+    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::assign_op<Scalar>());
   }
   
   template<typename Dst>
   static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    // dst += lazyprod(lhs,rhs);
-    call_assignment(dst, lazyprod(lhs,rhs), internal::add_assign_op<Scalar>());
+    // dst.noalias() += lhs.lazyProduct(rhs);
+    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::add_assign_op<Scalar>());
   }
   
   template<typename Dst>
   static inline void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
-    // dst -= lazyprod(lhs,rhs);
-    call_assignment(dst, lazyprod(lhs,rhs), internal::sub_assign_op<Scalar>());
+    // dst.noalias() -= lhs.lazyProduct(rhs);
+    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::sub_assign_op<Scalar>());
   }
   
 //   template<typename Dst>
 //   static inline void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
-//   { dst += alpha * lazyprod(lhs,rhs); }
+//   { dst.noalias() += alpha * lhs.lazyProduct(rhs); }
 };
 
 // This specialization enforces the use of a coefficient-based evaluation strategy

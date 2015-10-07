@@ -716,13 +716,7 @@ EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& fun
 }
 
 // by-pass AssumeAliasing
-// FIXME the const version should probably not be needed
 // When there is no aliasing, we require that 'dst' has been properly resized
-template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment(const NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
-{
-  call_assignment_no_alias(dst.expression(), src, func);
-}
 template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
 EIGEN_DEVICE_FUNC void call_assignment(NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
 {

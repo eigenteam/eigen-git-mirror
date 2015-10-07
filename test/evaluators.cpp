@@ -2,6 +2,20 @@
 #include "main.h"
 
 namespace Eigen {
+
+  template<typename Lhs,typename Rhs>
+  const Product<Lhs,Rhs>
+  prod(const Lhs& lhs, const Rhs& rhs)
+  {
+    return Product<Lhs,Rhs>(lhs,rhs);
+  }
+
+  template<typename Lhs,typename Rhs>
+  const Product<Lhs,Rhs,LazyProduct>
+  lazyprod(const Lhs& lhs, const Rhs& rhs)
+  {
+    return Product<Lhs,Rhs,LazyProduct>(lhs,rhs);
+  }
   
   template<typename DstXprType, typename SrcXprType>
   EIGEN_STRONG_INLINE
@@ -68,6 +82,14 @@ namespace Eigen {
   {
     typedef typename DstXprType::Scalar Scalar;
     call_assignment(dst.const_cast_derived(), src.const_cast_derived(), internal::swap_assign_op<Scalar>());
+  }
+
+  namespace internal {
+    template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
+    EIGEN_DEVICE_FUNC void call_assignment(const NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
+    {
+      call_assignment_no_alias(dst.expression(), src, func);
+    }
   }
   
 }
