@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 {
   std::vector<double> results;
   
-  std::ifstream settings("settings.txt");
+  std::ifstream settings("lazy_gemm_settings.txt");
   long m, n, k, t;
   while(settings >> m >> n >> k >> t)
   {

@@ -42,4 +42,6 @@ before-evaluators
 6984:45f26866c091   # rm dynamic loop swapping, adjust lhs's micro panel height to fully exploit L1 cache
 6986:a675d05b6f8f   # blocking heuristic: block on the rhs in L1 if the lhs fit in L1.
 7013:f875e75f07e5   # organize a little our default cache sizes, and use a saner default L1 outside of x86 (10% faster on Nexus 5)
+7591:09a8e2186610   # 3.3-alpha1
+7650:b0f3c8f43025   # help clang inlining
 
