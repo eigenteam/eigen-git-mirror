@@ -125,7 +125,7 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     const VectorRx& scalingS() const { return m_scale; }
 
     /** \returns the fill-in reducing permutation P (can be empty for a natural ordering) */
-    const PermutationType permutationP() const { return m_perm; }
+    const PermutationType& permutationP() const { return m_perm; }
 
   protected:
     FactorType m_L;              // The lower part stored in CSC
