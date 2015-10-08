@@ -1337,20 +1337,16 @@ struct evaluator<EvalToTemp<ArgType> >
   typedef evaluator<PlainObject> Base;
   
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
-    : m_result(xpr.rows(), xpr.cols())
+    : m_result(xpr.arg())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
-    // TODO we should simply do m_result(xpr.arg());
-    call_dense_assignment_loop(m_result, xpr.arg());
   }
 
   // This constructor is used when nesting an EvalTo evaluator in another evaluator
   EIGEN_DEVICE_FUNC evaluator(const ArgType& arg)
-    : m_result(arg.rows(), arg.cols())
+    : m_result(arg)
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
-    // TODO we should simply do m_result(xpr.arg());
-    call_dense_assignment_loop(m_result, arg);
   }
 
 protected:
