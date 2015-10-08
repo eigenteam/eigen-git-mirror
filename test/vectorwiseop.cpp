@@ -2,11 +2,13 @@
 // for linear algebra.
 //
 // Copyright (C) 2011 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define TEST_ENABLE_TEMPORARY_TRACKING
 #define EIGEN_NO_STATIC_ASSERT
 
 #include "main.h"
@@ -209,14 +211,20 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   m2 = m1;
   m2.rowwise().normalize();
   VERIFY_IS_APPROX(m2.row(r), m1.row(r).normalized());
+
+  // test with partial reduction of products
+  Matrix<Scalar,MatrixType::RowsAtCompileTime,MatrixType::RowsAtCompileTime> m1m1 = m1 * m1.transpose();
+  VERIFY_IS_APPROX( (m1 * m1.transpose()).colwise().sum(), m1m1.colwise().sum());
+  Matrix<Scalar,1,MatrixType::RowsAtCompileTime> tmp(rows);
+  VERIFY_EVALUATION_COUNT( tmp = (m1 * m1.transpose()).colwise().sum(), (MatrixType::RowsAtCompileTime==Dynamic ? 1 : 0));
 }
 
 void test_vectorwiseop()
 {
-  CALL_SUBTEST_1(vectorwiseop_array(Array22cd()));
-  CALL_SUBTEST_2(vectorwiseop_array(Array<double, 3, 2>()));
-  CALL_SUBTEST_3(vectorwiseop_array(ArrayXXf(3, 4)));
-  CALL_SUBTEST_4(vectorwiseop_matrix(Matrix4cf()));
-  CALL_SUBTEST_5(vectorwiseop_matrix(Matrix<float,4,5>()));
-  CALL_SUBTEST_6(vectorwiseop_matrix(MatrixXd(7,2)));
+  CALL_SUBTEST_1( vectorwiseop_array(Array22cd()) );
+  CALL_SUBTEST_2( vectorwiseop_array(Array<double, 3, 2>()) );
+  CALL_SUBTEST_3( vectorwiseop_array(ArrayXXf(3, 4)) );
+  CALL_SUBTEST_4( vectorwiseop_matrix(Matrix4cf()) );
+  CALL_SUBTEST_5( vectorwiseop_matrix(Matrix<float,4,5>()) );
+  CALL_SUBTEST_6( vectorwiseop_matrix(MatrixXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
 }

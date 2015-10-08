@@ -965,17 +965,16 @@ protected:
 
 
 // -------------------- PartialReduxExpr --------------------
-//
-// This is a wrapper around the expression object. 
-// TODO: Find out how to write a proper evaluator without duplicating
-//       the row() and col() member functions.
 
 template< typename ArgType, typename MemberOp, int Direction>
 struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
   : evaluator_base<PartialReduxExpr<ArgType, MemberOp, Direction> >
 {
   typedef PartialReduxExpr<ArgType, MemberOp, Direction> XprType;
-  typedef typename XprType::Scalar InputScalar;
+  typedef typename internal::nested_eval<ArgType,1>::type ArgTypeNested;
+  typedef typename internal::remove_all<ArgTypeNested>::type ArgTypeNestedCleaned;
+  typedef typename ArgType::Scalar InputScalar;
+  typedef typename XprType::Scalar Scalar;
   enum {
     TraversalSize = Direction==int(Vertical) ? int(ArgType::RowsAtCompileTime) :  int(XprType::ColsAtCompileTime)
   };
@@ -986,27 +985,34 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
     
     Flags = (traits<XprType>::Flags&RowMajorBit) | (evaluator<ArgType>::Flags&HereditaryBits),
     
-    Alignment = 0 // FIXME this could be improved
+    Alignment = 0 // FIXME this will need to be improved once PartialReduxExpr is vectorized
   };
 
-  EIGEN_DEVICE_FUNC explicit evaluator(const XprType expr)
-    : m_expr(expr)
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType xpr)
+    : m_arg(xpr.nestedExpression()), m_functor(xpr.functor())
   {}
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
- 
-  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
-  { 
-    return m_expr.coeff(row, col);
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index i, Index j) const
+  {
+    if (Direction==Vertical)
+      return m_functor(m_arg.col(j));
+    else
+      return m_functor(m_arg.row(i));
   }
-  
-  EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
-  { 
-    return m_expr.coeff(index);
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
+  {
+    if (Direction==Vertical)
+      return m_functor(m_arg.col(index));
+    else
+      return m_functor(m_arg.row(index));
   }
 
 protected:
-  const XprType m_expr;
+  const ArgTypeNested m_arg;
+  const MemberOp m_functor;
 };
 
 

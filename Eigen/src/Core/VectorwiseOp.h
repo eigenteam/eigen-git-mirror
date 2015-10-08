@@ -41,8 +41,6 @@ struct traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
   typedef typename traits<MatrixType>::StorageKind StorageKind;
   typedef typename traits<MatrixType>::XprKind XprKind;
   typedef typename MatrixType::Scalar InputScalar;
-  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
-  typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
@@ -62,8 +60,6 @@ class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<Matri
 
     typedef typename internal::dense_xpr_base<PartialReduxExpr>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(PartialReduxExpr)
-    typedef typename internal::traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
-    typedef typename internal::traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
 
     EIGEN_DEVICE_FUNC
     explicit PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
@@ -74,24 +70,11 @@ class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<Matri
     EIGEN_DEVICE_FUNC
     Index cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index i, Index j) const
-    {
-      if (Direction==Vertical)
-        return m_functor(m_matrix.col(j));
-      else
-        return m_functor(m_matrix.row(i));
-    }
-
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
-    {
-      if (Direction==Vertical)
-        return m_functor(m_matrix.col(index));
-      else
-        return m_functor(m_matrix.row(index));
-    }
+    typename MatrixType::Nested nestedExpression() const { return m_matrix; }
+    const MemberOp& functor() const { return m_functor; }
 
   protected:
-    MatrixTypeNested m_matrix;
+    typename MatrixType::Nested m_matrix;
     const MemberOp m_functor;
 };
 
