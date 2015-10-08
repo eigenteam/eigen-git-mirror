@@ -26,7 +26,6 @@ struct scalar_constant_op {
 };
 template<typename Scalar>
 struct functor_traits<scalar_constant_op<Scalar> >
-// FIXME replace this packet test by a safe one
 { enum { Cost = 1, PacketAccess = packet_traits<Scalar>::Vectorizable, IsRepeatable = true }; };
 
 template<typename Scalar> struct scalar_identity_op {
@@ -135,14 +134,12 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct linspa
   // This proxy object handles the actual required temporaries, the different
   // implementations (random vs. sequential access) as well as the
   // correct piping to size 2/4 packet operations.
-  // TODO find a way to make the packet type configurable
   const linspaced_op_impl<Scalar,PacketType,RandomAccess> impl;
 };
 
 // all functors allow linear access, except scalar_identity_op. So we fix here a quick meta
 // to indicate whether a functor allows linear access, just always answering 'yes' except for
 // scalar_identity_op.
-// FIXME move this to functor_traits adding a functor_default
 template<typename Functor> struct functor_has_linear_access { enum { ret = 1 }; };
 template<typename Scalar> struct functor_has_linear_access<scalar_identity_op<Scalar> > { enum { ret = 0 }; };
 

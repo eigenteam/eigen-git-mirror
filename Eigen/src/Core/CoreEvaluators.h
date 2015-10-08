@@ -321,8 +321,8 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
           &  (  HereditaryBits
               | (functor_has_linear_access<NullaryOp>::ret  ? LinearAccessBit : 0)
               | (functor_traits<NullaryOp>::PacketAccess    ? PacketAccessBit : 0)))
-          | (functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit), // FIXME EvalBeforeNestingBit should be needed anymore
-    Alignment = 0 // FIXME alignment should not matter here, perhaps we could set it to AlignMax??
+          | (functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit),
+    Alignment = AlignedMax
   };
 
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& n)

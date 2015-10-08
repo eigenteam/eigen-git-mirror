@@ -12,8 +12,6 @@
 
 namespace Eigen { 
 
-// TODO move the general declaration in Core, and rename this file DenseInverseImpl.h, or something like this...
-
 template<typename XprType,typename StorageKind> class InverseImpl;
 
 namespace internal {

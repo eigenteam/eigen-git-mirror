@@ -160,7 +160,7 @@ template<>              struct product_type_selector<Large,Large,Small>  { enum 
 namespace internal {
 
 template<int Side, int StorageOrder, bool BlasCompatible>
-struct gemv_dense_sense_selector;
+struct gemv_dense_selector;
 
 } // end namespace internal
 
@@ -204,19 +204,19 @@ struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
 
 // The vector is on the left => transposition
 template<int StorageOrder, bool BlasCompatible>
-struct gemv_dense_sense_selector<OnTheLeft,StorageOrder,BlasCompatible>
+struct gemv_dense_selector<OnTheLeft,StorageOrder,BlasCompatible>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
     Transpose<Dest> destT(dest);
     enum { OtherStorageOrder = StorageOrder == RowMajor ? ColMajor : RowMajor };
-    gemv_dense_sense_selector<OnTheRight,OtherStorageOrder,BlasCompatible>
+    gemv_dense_selector<OnTheRight,OtherStorageOrder,BlasCompatible>
       ::run(rhs.transpose(), lhs.transpose(), destT, alpha);
   }
 };
 
-template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
+template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static inline void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
@@ -292,7 +292,7 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,true>
   }
 };
 
-template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,true>
+template<> struct gemv_dense_selector<OnTheRight,RowMajor,true>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
@@ -345,7 +345,7 @@ template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,true>
   }
 };
 
-template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,false>
+template<> struct gemv_dense_selector<OnTheRight,ColMajor,false>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
@@ -357,7 +357,7 @@ template<> struct gemv_dense_sense_selector<OnTheRight,ColMajor,false>
   }
 };
 
-template<> struct gemv_dense_sense_selector<OnTheRight,RowMajor,false>
+template<> struct gemv_dense_selector<OnTheRight,RowMajor,false>
 {
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)

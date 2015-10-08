@@ -123,6 +123,8 @@ void test_nullary()
     CALL_SUBTEST_6( testVectorType(Vector3d()) );
     CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,300))) );
     CALL_SUBTEST_8( testVectorType(Vector3f()) );
+    CALL_SUBTEST_8( testVectorType(Vector4f()) );
+    CALL_SUBTEST_8( testVectorType(Matrix<float,8,1>()) );
     CALL_SUBTEST_8( testVectorType(Matrix<float,1,1>()) );
   }
 }
