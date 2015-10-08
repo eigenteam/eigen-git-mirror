@@ -908,20 +908,20 @@ struct generic_product_impl<Lhs, Rhs, MatrixShape, PermutationShape, ProductTag>
 };
 
 template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
-struct generic_product_impl<Transpose<Lhs>, Rhs, PermutationShape, MatrixShape, ProductTag>
+struct generic_product_impl<Inverse<Lhs>, Rhs, PermutationShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
-  static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
+  static void evalTo(Dest& dst, const Inverse<Lhs>& lhs, const Rhs& rhs)
   {
     permutation_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedExpression(), rhs);
   }
 };
 
 template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
-struct generic_product_impl<Lhs, Transpose<Rhs>, MatrixShape, PermutationShape, ProductTag>
+struct generic_product_impl<Lhs, Inverse<Rhs>, MatrixShape, PermutationShape, ProductTag>
 {
   template<typename Dest>
-  static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
+  static void evalTo(Dest& dst, const Lhs& lhs, const Inverse<Rhs>& rhs)
   {
     permutation_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedExpression(), lhs);
   }

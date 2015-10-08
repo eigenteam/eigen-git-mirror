@@ -47,11 +47,12 @@ public:
   typedef typename XprType::PlainObject                       PlainObject;
   typedef typename internal::ref_selector<XprType>::type      XprTypeNested;
   typedef typename internal::remove_all<XprTypeNested>::type  XprTypeNestedCleaned;
+  typedef typename internal::ref_selector<Inverse>::type Nested;
   
   explicit Inverse(const XprType &xpr)
     : m_xpr(xpr)
   {}
-  
+
   EIGEN_DEVICE_FUNC Index rows() const { return m_xpr.rows(); }
   EIGEN_DEVICE_FUNC Index cols() const { return m_xpr.cols(); }
 

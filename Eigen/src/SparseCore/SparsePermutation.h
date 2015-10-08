@@ -144,23 +144,22 @@ operator*( const PermutationBase<PermDerived>& perm, const SparseMatrixBase<Spar
 { return  Product<PermDerived, SparseDerived>(perm.derived(), matrix.derived()); }
 
 
-// TODO, the following specializations should not be needed as Transpose<Permutation*> should be a PermutationBase.
 /** \returns the matrix with the inverse permutation applied to the columns.
   */
-template<typename SparseDerived, typename PermDerived>
-inline const Product<SparseDerived, Transpose<PermutationBase<PermDerived> > >
-operator*(const SparseMatrixBase<SparseDerived>& matrix, const Transpose<PermutationBase<PermDerived> >& tperm)
+template<typename SparseDerived, typename PermutationType>
+inline const Product<SparseDerived, Inverse<PermutationType > >
+operator*(const SparseMatrixBase<SparseDerived>& matrix, const InverseImpl<PermutationType, PermutationStorage>& tperm)
 {
-  return Product<SparseDerived, Transpose<PermutationBase<PermDerived> > >(matrix.derived(), tperm);
+  return Product<SparseDerived, Inverse<PermutationType> >(matrix.derived(), tperm.derived());
 }
 
 /** \returns the matrix with the inverse permutation applied to the rows.
   */
-template<typename SparseDerived, typename PermDerived>
-inline const Product<Transpose<PermutationBase<PermDerived> >, SparseDerived>
-operator*(const Transpose<PermutationBase<PermDerived> >& tperm, const SparseMatrixBase<SparseDerived>& matrix)
+template<typename SparseDerived, typename PermutationType>
+inline const Product<Inverse<PermutationType>, SparseDerived>
+operator*(const InverseImpl<PermutationType,PermutationStorage>& tperm, const SparseMatrixBase<SparseDerived>& matrix)
 {
-  return Product<Transpose<PermutationBase<PermDerived> >, SparseDerived>(tperm, matrix.derived());
+  return Product<Inverse<PermutationType>, SparseDerived>(tperm.derived(), matrix.derived());
 }
 
 } // end namespace Eigen
