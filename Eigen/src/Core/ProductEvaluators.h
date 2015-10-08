@@ -38,6 +38,12 @@ struct evaluator<Product<Lhs, Rhs, Options> >
 // Catch scalar * ( A * B ) and transform it to (A*scalar) * B
 // TODO we should apply that rule only if that's really helpful
 template<typename Lhs, typename Rhs, typename Scalar>
+struct evaluator_traits<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > >
+ : evaluator_traits_base<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > >
+{
+  enum { AssumeAliasing = 1 };
+};
+template<typename Lhs, typename Rhs, typename Scalar>
 struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > > 
  : public evaluator<Product<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,const Lhs>, Rhs, DefaultProduct> >
 {
