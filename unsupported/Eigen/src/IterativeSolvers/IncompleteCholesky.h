@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
+// Copyright (C) 2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -15,22 +16,28 @@
 
 namespace Eigen {  
 /** 
- * \brief Modified Incomplete Cholesky with dual threshold
- * 
- * References : C-J. Lin and J. J. Moré, Incomplete Cholesky Factorizations with
- *              Limited memory, SIAM J. Sci. Comput.  21(1), pp. 24-45, 1999
- * 
- * \tparam _MatrixType The type of the sparse matrix. It should be a symmetric 
- *                     matrix. It is advised to give  a row-oriented sparse matrix 
- * \tparam _UpLo The triangular part of the matrix to reference. 
- * \tparam _OrderingType 
- *
- * It performs the following incomplete factorization: \f$ S P A P' S \approx L L' \f$
- * where L is a lower triangular factor, S if a diagonal scaling matrix, and P is a
- * fill-in reducing permutation as computed of the ordering method.
- *
- */
-
+  * \brief Modified Incomplete Cholesky with dual threshold
+  *
+  * References : C-J. Lin and J. J. Moré, Incomplete Cholesky Factorizations with
+  *              Limited memory, SIAM J. Sci. Comput.  21(1), pp. 24-45, 1999
+  *
+  * \tparam _MatrixType The type of the sparse matrix. It is advised to give a row-oriented sparse matrix
+  * \tparam _UpLo The triangular part that will be used for the computations. It can be Lower
+    *               or Upper. Default is Lower.
+  * \tparam _OrderingType The ordering method to use, either AMDOrdering<> or NaturalOrdering<>. Default is AMDOrdering<>
+  *
+  * \implsparsesolverconcept
+  *
+  * It performs the following incomplete factorization: \f$ S P A P' S \approx L L' \f$
+  * where L is a lower triangular factor, S is a diagonal scaling matrix, and P is a
+  * fill-in reducing permutation as computed by the ordering method.
+  *
+  * \b Shifting \b strategy: Let \f$ B = S P A P' S \f$  be the scaled matrix on which the factorization is carried out,
+  * and \f$ \beta \f$ be the minimum value of the diagonal. If \f$ \beta > 0 \f$ then, the factorization is directly performed
+  * on the matrix B. Otherwise, the factorization is performed on the shifted matrix \f$ B + (\sigma+|\beta| I \f$ where
+  * \f$ \sigma \f$ is the initial shift value as returned and set by setInitialShift() method. The default value is \f$ \sigma = 10^{-3} \f$.
+  *
+  */
 template <typename Scalar, int _UpLo = Lower, typename _OrderingType = AMDOrdering<int> >
 class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_UpLo,_OrderingType> >
 {
@@ -50,38 +57,50 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     typedef std::vector<std::list<StorageIndex> > VectorList; 
     enum { UpLo = _UpLo };
   public:
+
+    /** Default constructor leaving the object in a partly non-initialized stage.
+      *
+      * You must call compute() or the pair analyzePattern()/factorize() to make it valid.
+      *
+      * \sa IncompleteCholesky(const MatrixType&)
+      */
     IncompleteCholesky() : m_initialShift(1e-3),m_factorizationIsOk(false) {}
     
+    /** Constructor computing the incomplete factorization for the given matrix \a matrix.
+      */
     template<typename MatrixType>
     IncompleteCholesky(const MatrixType& matrix) : m_initialShift(1e-3),m_factorizationIsOk(false)
     {
       compute(matrix);
     }
     
+    /** \returns number of rows of the factored matrix */
     Index rows() const { return m_L.rows(); }
     
+    /** \returns number of columns of the factored matrix */
     Index cols() const { return m_L.cols(); }
     
 
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * It triggers an assertion if \c *this has not been initialized through the respective constructor,
+      * or a call to compute() or analyzePattern().
+      *
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix appears to be negative.
       */
     ComputationInfo info() const
     {
-      eigen_assert(m_isInitialized && "IncompleteLLT is not initialized.");
+      eigen_assert(m_isInitialized && "IncompleteCholesky is not initialized.");
       return m_info;
     }
     
-    /** 
-     * \brief Set the initial shift parameter
-     */
+    /** \brief Set the initial shift parameter \f$ \sigma \f$.
+      */
     void setInitialShift(RealScalar shift) { m_initialShift = shift; }
     
-    /**
-    * \brief Computes the fill reducing permutation vector. 
-    */
+    /** \brief Computes the fill reducing permutation vector using the sparsity pattern of \a mat
+      */
     template<typename MatrixType>
     void analyzePattern(const MatrixType& mat)
     {
@@ -90,20 +109,36 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
       ord(mat.template selfadjointView<UpLo>(), pinv); 
       if(pinv.size()>0) m_perm = pinv.inverse();
       else              m_perm.resize(0);
-      m_analysisIsOk = true; 
+      m_L.resize(mat.rows(), mat.cols());
+      m_analysisIsOk = true;
       m_isInitialized = true;
+      m_info = Success;
     }
     
+    /** \brief Performs the numerical factorization of the input matrix \a mat
+      *
+      * The method analyzePattern() or compute() must have been called beforehand
+      * with a matrix having the same pattern.
+      *
+      * \sa compute(), analyzePattern()
+      */
     template<typename MatrixType>
-    void factorize(const MatrixType& amat);
+    void factorize(const MatrixType& mat);
     
+    /** Computes or re-computes the incomplete Cholesky factorization of the input matrix \a mat
+      *
+      * It is a shortcut for a sequential call to the analyzePattern() and factorize() methods.
+      *
+      * \sa analyzePattern(), factorize()
+      */
     template<typename MatrixType>
-    void compute(const MatrixType& matrix)
+    void compute(const MatrixType& mat)
     {
-      analyzePattern(matrix); 
-      factorize(matrix);
+      analyzePattern(mat);
+      factorize(mat);
     }
     
+    // internal
     template<typename Rhs, typename Dest>
     void _solve_impl(const Rhs& b, Dest& x) const
     {
@@ -119,13 +154,13 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     }
 
     /** \returns the sparse lower triangular factor L */
-    const FactorType& matrixL() const { return m_L; }
+    const FactorType& matrixL() const { eigen_assert("m_factorizationIsOk"); return m_L; }
 
     /** \returns a vector representing the scaling factor S */
-    const VectorRx& scalingS() const { return m_scale; }
+    const VectorRx& scalingS() const { eigen_assert("m_factorizationIsOk"); return m_scale; }
 
     /** \returns the fill-in reducing permutation P (can be empty for a natural ordering) */
-    const PermutationType& permutationP() const { return m_perm; }
+    const PermutationType& permutationP() const { eigen_assert("m_analysisIsOk"); return m_perm; }
 
   protected:
     FactorType m_L;              // The lower part stored in CSC
@@ -148,8 +183,6 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
     
   // Dropping strategy : Keep only the p largest elements per column, where p is the number of elements in the column of the original matrix. Other strategies will be added
-  
-  m_L.resize(mat.rows(), mat.cols());
   
   // Apply the fill-reducing permutation computed in analyzePattern()
   if (m_perm.rows() == mat.rows() ) // To detect the null permutation
@@ -197,7 +230,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
     else
       m_scale(j) = 1;
 
-  // FIXME disable scaling if not needed, i.e., if it is roughtly uniform? (this will make solve() faster)
+  // FIXME disable scaling if not needed, i.e., if it is roughly uniform? (this will make solve() faster)
   
   // Scale and compute the shift for the matrix 
   RealScalar mindiag = NumTraits<RealScalar>::highest();
@@ -297,7 +330,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
     updateList(colPtr,rowIdx,vals,j,jk,firstElt,listCol); 
   }
   m_factorizationIsOk = true; 
-  m_info = Success; 
+  m_info = Success;
 }
 
 template<typename Scalar, int _UpLo, typename OrderingType>
