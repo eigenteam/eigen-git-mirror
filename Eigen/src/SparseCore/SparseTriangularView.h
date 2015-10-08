@@ -34,10 +34,11 @@ template<typename MatrixType, unsigned int Mode> class TriangularViewImpl<Matrix
     
     typedef TriangularView<MatrixType,Mode> TriangularViewType;
     
-protected:
+  protected:
     // dummy solve function to make TriangularView happy.
     void solve() const;
 
+    typedef SparseMatrixBase<TriangularViewType> Base;
   public:
     
     EIGEN_SPARSE_PUBLIC_INTERFACE(TriangularViewType)

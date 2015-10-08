@@ -28,7 +28,7 @@ class SparseCompressedBase
 {
   public:
     typedef SparseMatrixBase<Derived> Base;
-    _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseCompressedBase)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseCompressedBase)
     using Base::operator=;
     using Base::IsRowMajor;
     

@@ -35,6 +35,7 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
 {
   public:
     typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
+    typedef SparseMatrixBase<Derived> Base;
     EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
     CwiseBinaryOpImpl()
     {

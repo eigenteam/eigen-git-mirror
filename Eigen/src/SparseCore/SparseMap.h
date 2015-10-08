@@ -191,7 +191,7 @@ class Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType>
 {
   public:
     typedef SparseMapBase<Map> Base;
-    _EIGEN_SPARSE_PUBLIC_INTERFACE(Map)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(Map)
     enum { IsRowMajor = Base::IsRowMajor };
 
   public:
@@ -211,7 +211,7 @@ class Map<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
 {
   public:
     typedef SparseMapBase<Map> Base;
-    _EIGEN_SPARSE_PUBLIC_INTERFACE(Map)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(Map)
     enum { IsRowMajor = Base::IsRowMajor };
 
   public:

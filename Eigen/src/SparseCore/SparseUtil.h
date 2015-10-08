@@ -39,26 +39,11 @@ EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
 #define EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
 EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, =)
 
-// TODO this is mostly the same as EIGEN_GENERIC_PUBLIC_INTERFACE
-#define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
-  typedef typename Eigen::internal::traits<Derived >::Scalar Scalar; \
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-  typedef typename Eigen::internal::ref_selector<Derived >::type Nested; \
-  typedef typename Eigen::internal::traits<Derived >::StorageKind StorageKind; \
-  typedef typename Eigen::internal::traits<Derived >::StorageIndex StorageIndex; \
-  enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \
-        ColsAtCompileTime = Eigen::internal::traits<Derived >::ColsAtCompileTime, \
-        Flags = Eigen::internal::traits<Derived>::Flags, \
-        SizeAtCompileTime = Base::SizeAtCompileTime, \
-        IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
-  using Base::derived; \
-  using Base::const_cast_derived; \
-  using Base::convert_index;
-  
-#define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
-  typedef Eigen::SparseMatrixBase<Derived > Base; \
-  _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
 
+#define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
+  EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)
+
+  
 const int CoherentAccessPattern     = 0x1;
 const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
 const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;

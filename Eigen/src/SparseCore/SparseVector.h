@@ -66,9 +66,9 @@ class SparseVector
   : public SparseCompressedBase<SparseVector<_Scalar, _Options, _StorageIndex> >
 {
     typedef SparseCompressedBase<SparseVector> Base;
-    
+    using Base::convert_index;
   public:
-    _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
     

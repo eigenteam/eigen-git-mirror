@@ -58,7 +58,7 @@ template<typename Derived> class SparseRefBase
 public:
 
   typedef SparseMapBase<Derived> Base;
-  _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseRefBase)
+  EIGEN_SPARSE_PUBLIC_INTERFACE(SparseRefBase)
 
   SparseRefBase()
     : Base(RowsAtCompileTime==Dynamic?0:RowsAtCompileTime,ColsAtCompileTime==Dynamic?0:ColsAtCompileTime, 0, 0, 0, 0, 0)
@@ -104,7 +104,7 @@ class Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType >
   public:
 
     typedef internal::SparseRefBase<Ref> Base;
-    _EIGEN_SPARSE_PUBLIC_INTERFACE(Ref)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(Ref)
 
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -148,7 +148,7 @@ class Ref<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
   public:
 
     typedef internal::SparseRefBase<Ref> Base;
-    _EIGEN_SPARSE_PUBLIC_INTERFACE(Ref)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(Ref)
 
     template<typename Derived>
     inline Ref(const SparseMatrixBase<Derived>& expr)

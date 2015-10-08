@@ -92,11 +92,12 @@ template<typename _Scalar, int _Options, typename _Index>
 class SparseMatrix
   : public SparseCompressedBase<SparseMatrix<_Scalar, _Options, _Index> >
 {
-  public:
     typedef SparseCompressedBase<SparseMatrix> Base;
+    using Base::convert_index;
+  public:
     using Base::isCompressed;
     using Base::nonZeros;
-    _EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
     using Base::operator+=;
     using Base::operator-=;
 
