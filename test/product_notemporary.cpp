@@ -107,6 +107,11 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( cvres.noalias() -= m1 * m2.col(0), 0 );
   VERIFY_EVALUATION_COUNT( cvres.noalias() -= m1 * rv1.adjoint(), 0 );
   VERIFY_EVALUATION_COUNT( cvres.noalias() -= m1 * m2.row(0).transpose(), 0 );
+
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (m1+m1) * cv1, 0 );
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (rm3+rm3) * cv1, 0 );
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (m1+m1) * (m1*cv1), 1 );
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (rm3+rm3) * (m1*cv1), 1 );
 }
 
 void test_product_notemporary()
