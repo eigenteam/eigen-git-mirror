@@ -10,8 +10,8 @@
 
 #ifndef EIGEN_INCOMPLETE_CHOlESKY_H
 #define EIGEN_INCOMPLETE_CHOlESKY_H
-#include "Eigen/src/IterativeLinearSolvers/IncompleteLUT.h" 
-#include <Eigen/OrderingMethods>
+
+#include <vector>
 #include <list>
 
 namespace Eigen {  
