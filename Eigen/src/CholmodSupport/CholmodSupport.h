@@ -350,6 +350,8 @@ class CholmodBase : public SparseSolverBase<Derived>
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
   *
+  * \implsparsesolverconcept
+  *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
   * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLLT
@@ -397,6 +399,8 @@ class CholmodSimplicialLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimpl
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
   *
+  * \implsparsesolverconcept
+  *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
   * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLDLT
@@ -441,6 +445,8 @@ class CholmodSimplicialLDLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimp
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
+  *
+  * \implsparsesolverconcept
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
@@ -488,6 +494,8 @@ class CholmodSupernodalLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSuper
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
+  *
+  * \implsparsesolverconcept
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *

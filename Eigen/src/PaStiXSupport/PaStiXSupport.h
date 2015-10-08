@@ -398,7 +398,9 @@ bool PastixBase<Base>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x
   * NOTE : Note that if the analysis and factorization phase are called separately, 
   * the input matrix will be symmetrized at each call, hence it is advised to 
   * symmetrize the matrix in a end-user program and set \p IsStrSym to true
-  * 
+  *
+  * \implsparsesolverconcept
+  *
   * \sa \ref TutorialSparseDirectSolvers
   * 
   */
@@ -509,7 +511,9 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
   * 
   * \tparam MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam UpLo The part of the matrix to use : Lower or Upper. The default is Lower as required by PaStiX
-  * 
+  *
+  * \implsparsesolverconcept
+  *
   * \sa \ref TutorialSparseDirectSolvers
   */
 template<typename _MatrixType, int _UpLo>
@@ -590,7 +594,9 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
   * 
   * \tparam MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam UpLo The part of the matrix to use : Lower or Upper. The default is Lower as required by PaStiX
-  * 
+  *
+  * \implsparsesolverconcept
+  *
   * \sa \ref TutorialSparseDirectSolvers
   */
 template<typename _MatrixType, int _UpLo>

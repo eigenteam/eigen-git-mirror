@@ -449,6 +449,8 @@ class SuperLUBase : public SparseSolverBase<Derived>
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *
+  * \implsparsesolverconcept
+  *
   * \sa \ref TutorialSparseDirectSolvers
   */
 template<typename _MatrixType>
@@ -799,6 +801,8 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
   * \warning This class requires SuperLU 4 or later.
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  *
+  * \implsparsesolverconcept
   *
   * \sa \ref TutorialSparseDirectSolvers, class ConjugateGradient, class BiCGSTAB
   */

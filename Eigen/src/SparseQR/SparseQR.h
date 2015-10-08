@@ -62,6 +62,8 @@ namespace internal {
   * \tparam _OrderingType The fill-reducing ordering method. See the \link OrderingMethods_Module 
   *  OrderingMethods \endlink module for the list of built-in and external ordering methods.
   * 
+  * \implsparsesolverconcept
+  *
   * \warning The input sparse matrix A must be in compressed mode (see SparseMatrix::makeCompressed()).
   * 
   */

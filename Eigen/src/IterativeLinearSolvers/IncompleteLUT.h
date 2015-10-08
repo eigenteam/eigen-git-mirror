@@ -67,6 +67,8 @@ Index QuickSplit(VectorV &row, VectorI &ind, Index ncut)
   * \class IncompleteLUT
   * \brief Incomplete LU factorization with dual-threshold strategy
   *
+  * \implsparsesolverconcept
+  *
   * During the numerical factorization, two dropping rules are used :
   *  1) any element whose magnitude is less than some tolerance is dropped.
   *    This tolerance is obtained by multiplying the input tolerance @p droptol 

@@ -118,6 +118,8 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   *               Default is \c Lower, best performance is \c Lower|Upper.
   * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
   *
+  * \implsparsesolverconcept
+  *
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
   * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
   * and NumTraits<Scalar>::epsilon() for the tolerance.

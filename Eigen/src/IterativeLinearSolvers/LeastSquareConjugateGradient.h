@@ -119,6 +119,8 @@ struct traits<LeastSquaresConjugateGradient<_MatrixType,_Preconditioner> >
   * \tparam _MatrixType the type of the matrix A, can be a dense or a sparse matrix.
   * \tparam _Preconditioner the type of the preconditioner. Default is LeastSquareDiagonalPreconditioner
   *
+  * \implsparsesolverconcept
+  * 
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
   * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
   * and NumTraits<Scalar>::epsilon() for the tolerance.

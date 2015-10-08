@@ -4,7 +4,7 @@ In Eigen, there are several methods available to solve linear systems when the c
 
 \eigenAutoToc
 
-\section TutorialSparseDirectSolvers Sparse solvers
+\section TutorialSparseSolverList List of sparse solvers
 
 %Eigen currently provides a limited set of built-in solvers, as well as wrappers to external solver libraries.
 They are summarized in the following table:
@@ -52,6 +52,8 @@ They are summarized in the following table:
 </table>
 
 Here \c SPD means symmetric positive definite.
+
+\section TutorialSparseSolverConcept Sparse solver concept
 
 All these solvers follow the same general concept.
 Here is a typical and general example:
