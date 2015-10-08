@@ -98,9 +98,6 @@ struct evaluator<const T>
 template<typename ExpressionType>
 struct evaluator_base : public noncopyable
 {
-  // FIXME is it really usefull?
-  typedef typename traits<ExpressionType>::StorageIndex StorageIndex;
-  
   // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.
   typedef traits<ExpressionType> ExpressionTraits;
   
@@ -636,13 +633,16 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     
-    PacketAlignment = unpacket_traits<PacketScalar>::alignment,
-    
-    KeepsPacketAccess = bool(HasNoInnerStride)
-                        && ( bool(IsDynamicSize)
-                           || HasNoOuterStride
-                           || ( OuterStrideAtCompileTime!=Dynamic
-                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime) % PacketAlignment)==0 ) ),
+    // FIXME  I don't get the code below, in particular why outer-stride-at-compile-time should have any effect on PacketAccessBit...
+    //        Let's remove the code below for 3.4 if no issue occur
+//     PacketAlignment = unpacket_traits<PacketScalar>::alignment,
+//     KeepsPacketAccess = bool(HasNoInnerStride)
+//                         && (  bool(IsDynamicSize)
+//                            || HasNoOuterStride
+//                            || (    OuterStrideAtCompileTime!=Dynamic
+//                                 && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime) % PacketAlignment)==0 ) ),
+    KeepsPacketAccess = bool(HasNoInnerStride),
+
     Flags0 = evaluator<PlainObjectType>::Flags,
     Flags1 = (bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime))
            ? int(Flags0) : int(Flags0 & ~LinearAccessBit),
@@ -825,14 +825,14 @@ struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAc
   EIGEN_DEVICE_FUNC explicit block_evaluator(const XprType& block)
     : mapbase_evaluator<XprType, typename XprType::PlainObject>(block) 
   {
-    // FIXME this should be an internal assertion
+    // TODO: for the 3.3 release, this should be turned to an internal assertion, but let's keep it as is for the beta lifetime
     eigen_assert(((size_t(block.data()) % EIGEN_PLAIN_ENUM_MAX(1,evaluator<XprType>::Alignment)) == 0) && "data is not aligned");
   }
 };
 
 
 // -------------------- Select --------------------
-// TODO shall we introduce a ternary_evaluator?
+// NOTE shall we introduce a ternary_evaluator?
 
 // TODO enable vectorization for Select
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
@@ -957,7 +957,7 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   }
  
 protected:
-  const ArgTypeNested m_arg; // FIXME is it OK to store both the argument and its evaluator?? (we have the same situation in evaluator_product)
+  const ArgTypeNested m_arg;
   evaluator<ArgTypeNestedCleaned> m_argImpl;
   const variable_if_dynamic<Index, ArgType::RowsAtCompileTime> m_rows;
   const variable_if_dynamic<Index, ArgType::ColsAtCompileTime> m_cols;

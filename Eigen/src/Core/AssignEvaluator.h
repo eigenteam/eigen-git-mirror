@@ -311,7 +311,6 @@ struct dense_assignment_loop<Kernel, DefaultTraversal, CompleteUnrolling>
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, DefaultTraversal, InnerUnrolling>
 {
-  typedef typename Kernel::StorageIndex StorageIndex;
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     typedef typename Kernel::DstEvaluatorType::XprType DstXprType;
@@ -392,7 +391,6 @@ struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, NoUnrolling>
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, CompleteUnrolling>
 {
-  typedef typename Kernel::StorageIndex StorageIndex;
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     typedef typename Kernel::DstEvaluatorType::XprType DstXprType;
@@ -438,7 +436,6 @@ struct dense_assignment_loop<Kernel, InnerVectorizedTraversal, CompleteUnrolling
 template<typename Kernel>
 struct dense_assignment_loop<Kernel, InnerVectorizedTraversal, InnerUnrolling>
 {
-  typedef typename Kernel::StorageIndex StorageIndex;
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
     typedef typename Kernel::DstEvaluatorType::XprType DstXprType;
@@ -545,7 +542,6 @@ public:
   typedef DstEvaluatorTypeT DstEvaluatorType;
   typedef SrcEvaluatorTypeT SrcEvaluatorType;
   typedef typename DstEvaluatorType::Scalar Scalar;
-  typedef typename DstEvaluatorType::StorageIndex StorageIndex;
   typedef copy_using_evaluator_traits<DstEvaluatorTypeT, SrcEvaluatorTypeT, Functor> AssignmentTraits;
   typedef typename AssignmentTraits::PacketType PacketType;
   
