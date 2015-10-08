@@ -70,7 +70,10 @@ class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<Matri
     EIGEN_DEVICE_FUNC
     Index cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
+    EIGEN_DEVICE_FUNC
     typename MatrixType::Nested nestedExpression() const { return m_matrix; }
+
+    EIGEN_DEVICE_FUNC
     const MemberOp& functor() const { return m_functor; }
 
   protected:
@@ -345,8 +348,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_norm.out
       *
       * \sa DenseBase::norm() */
-    EIGEN_DEVICE_FUNC
     template<int p>
+    EIGEN_DEVICE_FUNC
     const typename LpNormReturnType<p>::Type lpNorm() const
     { return typename LpNormReturnType<p>::Type(_expression()); }
 
