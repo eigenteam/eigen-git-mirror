@@ -16,7 +16,7 @@
 using namespace std;
 
 template<typename T> EIGEN_DONT_INLINE
-void kill_extra_precision(T& x) { eigen_assert(&x != 0); }
+void kill_extra_precision(T& x) { eigen_assert((void*)(&x) != (void*)0); }
 
 
 template<typename BoxType> void alignedbox(const BoxType& _box)
