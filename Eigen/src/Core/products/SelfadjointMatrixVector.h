@@ -44,6 +44,7 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
   Scalar alpha)
 {
   typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum {
@@ -54,7 +55,7 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
 
   conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> cj0;
   conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> cj1;
-  conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex, ConjugateRhs> cjd;
+  conj_helper<RealScalar,Scalar,false, ConjugateRhs> cjd;
 
   conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> pcj0;
   conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> pcj1;
@@ -97,7 +98,6 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
     size_t alignedStart = (starti) + internal::first_default_aligned(&res[starti], endi-starti);
     size_t alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
-    // TODO make sure this product is a real * complex and that the rhs is properly conjugated if needed
     res[j]   += cjd.pmul(numext::real(A0[j]), t0);
     res[j+1] += cjd.pmul(numext::real(A1[j+1]), t1);
     if(FirstTriangular)
@@ -151,7 +151,6 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
 
     Scalar t1 = cjAlpha * rhs[j];
     Scalar t2(0);
-    // TODO make sure this product is a real * complex and that the rhs is properly conjugated if needed
     res[j] += cjd.pmul(numext::real(A0[j]), t1);
     for (Index i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++)
     {
