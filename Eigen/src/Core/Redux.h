@@ -414,17 +414,7 @@ typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::redux(const Func& func) const
 {
   eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");
-  
-  // FIXME, eval_nest should be handled by redux_evaluator, however:
-  //  - it is currently difficult to provide the right Flags since they are still handled by the expressions
-  //  - handling it here might reduce the number of template instantiations
-//   typedef typename internal::nested_eval<Derived,1>::type ThisNested;
-//   typedef typename internal::remove_all<ThisNested>::type ThisNestedCleaned;
-//   typedef typename internal::redux_evaluator<ThisNestedCleaned> ThisEvaluator;
-//   
-//   ThisNested thisNested(derived());
-//   ThisEvaluator thisEval(thisNested);
-  
+
   typedef typename internal::redux_evaluator<Derived> ThisEvaluator;
   ThisEvaluator thisEval(derived());
   
