@@ -93,15 +93,15 @@ namespace internal{
 
   template<typename IndexType, Index... Is>
   EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  array<Index,sizeof...(Is)> customIndex2Array(const IndexType & idx, numeric_list<Index,Is...>) {
+  array<Index,sizeof...(Is)> customIndices2Array(const IndexType & idx, numeric_list<Index,Is...>) {
     return { idx(Is)... };
   }
 
   /** Make an array (for index/dimensions) out of a custom index */
   template<typename Index, int NumIndices, typename IndexType>
   EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  array<Index,NumIndices> customIndex2Array(const IndexType & idx) {
-    return customIndex2Array(idx, typename gen_numeric_list<Index,NumIndices>::type{});
+  array<Index,NumIndices> customIndices2Array(const IndexType & idx) {
+    return customIndices2Array(idx, typename gen_numeric_list<Index,NumIndices>::type{});
   }
 
 
