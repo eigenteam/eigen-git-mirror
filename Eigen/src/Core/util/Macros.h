@@ -747,8 +747,6 @@ namespace Eigen {
 * documentation in a single line.
 **/
 
-// TODO The EIGEN_DENSE_PUBLIC_INTERFACE should not exists anymore
-  
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
   typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
@@ -766,11 +764,10 @@ namespace Eigen {
   using Base::const_cast_derived;
 
 
+// FIXME Maybe the EIGEN_DENSE_PUBLIC_INTERFACE could be removed as importing PacketScalar is rarely needed
 #define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
   EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-  typedef typename Base::PacketScalar PacketScalar; \
-  enum { MaxRowsAtCompileTime = Eigen::internal::traits<Derived>::MaxRowsAtCompileTime, \
-        MaxColsAtCompileTime = Eigen::internal::traits<Derived>::MaxColsAtCompileTime};
+  typedef typename Base::PacketScalar PacketScalar;
 
 
 #define EIGEN_PLAIN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
