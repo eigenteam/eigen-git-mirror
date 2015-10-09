@@ -460,6 +460,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_DEVICE_FUNC
     void swap(TriangularBase<OtherDerived> const & other)
     {
+      EIGEN_STATIC_ASSERT_LVALUE(OtherDerived);
       call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
     }
 
@@ -468,6 +469,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     EIGEN_DEVICE_FUNC
     void swap(MatrixBase<OtherDerived> const & other)
     {
+      EIGEN_STATIC_ASSERT_LVALUE(OtherDerived);
       call_assignment(derived(), other.const_cast_derived(), internal::swap_assign_op<Scalar>());
     }
 
@@ -503,7 +505,7 @@ template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
 void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
-  internal::call_assignment(derived().noalias(), other.template triangularView<Mode>());
+  internal::call_assignment_no_alias(derived(), other.template triangularView<Mode>());
 }
 
 
@@ -523,7 +525,7 @@ template<typename OtherDerived>
 void TriangularViewImpl<MatrixType, Mode, Dense>::lazyAssign(const TriangularBase<OtherDerived>& other)
 {
   eigen_assert(Mode == int(OtherDerived::Mode));
-  internal::call_assignment(derived().noalias(), other.derived());
+  internal::call_assignment_no_alias(derived(), other.derived());
 }
 
 /***************************************************************************
