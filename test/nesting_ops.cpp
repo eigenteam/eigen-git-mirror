@@ -54,25 +54,8 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
 
   if((MatrixType::SizeAtCompileTime==Dynamic))
   {
-
-    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1), 0 );
-    if(!NumTraits<Scalar>::IsComplex)
-    {
-      VERIFY_EVALUATION_COUNT( use_n_times<3>(2*m1), 0 );
-      VERIFY_EVALUATION_COUNT( use_n_times<4>(2*m1), 1 );
-    }
-    else
-    {
-      VERIFY_EVALUATION_COUNT( use_n_times<1>(2*m1), 0 );
-      VERIFY_EVALUATION_COUNT( use_n_times<2>(2*m1), 1 );
-    }
-    VERIFY_EVALUATION_COUNT( use_n_times<2>(m1+m1), 0 );
-    VERIFY_EVALUATION_COUNT( use_n_times<3>(m1+m1), 1 );
-    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1*m1.transpose()), 1 );
-    VERIFY_EVALUATION_COUNT( use_n_times<2>(m1*m1.transpose()), 1 );
-
-    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1 + m1*m1), 2 ); // FIXME should already be 1 thanks the already existing rule
-    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1 + m1*m1), 2 );
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1 + m1*m1), 1 );
+    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1 + m1*m1), 1 );
 
     VERIFY_EVALUATION_COUNT( use_n_times<1>(m1.template triangularView<Lower>().solve(m1.col(0))), 1 );
     VERIFY_EVALUATION_COUNT( use_n_times<10>(m1.template triangularView<Lower>().solve(m1.col(0))), 1 );

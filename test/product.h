@@ -111,6 +111,15 @@ template<typename MatrixType> void product(const MatrixType& m)
   vcres.noalias() -= m1.transpose() * v1;
   VERIFY_IS_APPROX(vcres, vc2 - m1.transpose() * v1);
 
+  // test d ?= a+b*c rules
+  res.noalias() = square + m1 * m2.transpose();
+  VERIFY_IS_APPROX(res, square + m1 * m2.transpose());
+  res.noalias() += square + m1 * m2.transpose();
+  VERIFY_IS_APPROX(res, 2*(square + m1 * m2.transpose()));
+  res.noalias() -= square + m1 * m2.transpose();
+  VERIFY_IS_APPROX(res, square + m1 * m2.transpose());
+
+
   tm1 = m1;
   VERIFY_IS_APPROX(tm1.transpose() * v1, m1.transpose() * v1);
   VERIFY_IS_APPROX(v1.transpose() * tm1, v1.transpose() * m1);

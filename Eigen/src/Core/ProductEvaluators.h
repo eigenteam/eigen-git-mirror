@@ -187,6 +187,37 @@ struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBi
   }
 };
 
+//----------------------------------------
+// Catch "Dense ?= xpr + Product<>" expression to save one temporary
+// FIXME we could probably enable these rules for any product, i.e., not only Dense and DefaultProduct
+
+template<typename DstXprType, typename OtherXpr, typename ProductType, typename Scalar, typename Func1, typename Func2>
+struct assignment_from_xpr_plus_product
+{
+  typedef CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr, const ProductType> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const Func1& func)
+  {
+    call_assignment_no_alias(dst, src.lhs(), func);
+    call_assignment_no_alias(dst, src.rhs(), Func2());
+  }
+};
+
+template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr,
+                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::assign_op<Scalar>, Dense2Dense>
+  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, Scalar, internal::assign_op<Scalar>, internal::add_assign_op<Scalar> >
+{};
+template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr,
+                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::add_assign_op<Scalar>, Dense2Dense>
+  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, Scalar, internal::add_assign_op<Scalar>, internal::add_assign_op<Scalar> >
+{};
+template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename Scalar>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr,
+                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::sub_assign_op<Scalar>, Dense2Dense>
+  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, Scalar, internal::sub_assign_op<Scalar>, internal::sub_assign_op<Scalar> >
+{};
+//----------------------------------------
 
 template<typename Lhs, typename Rhs>
 struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,InnerProduct>
