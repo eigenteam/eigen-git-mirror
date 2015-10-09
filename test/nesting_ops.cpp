@@ -47,6 +47,7 @@ template <typename MatrixType> void run_nesting_ops_1(const MatrixType& _m)
 
 template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
 {
+  typedef typename MatrixType::Scalar Scalar;
   Index rows = _m.rows();
   Index cols = _m.cols();
   MatrixType m1 = MatrixType::Random(rows,cols);
@@ -55,7 +56,7 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
   {
 
     VERIFY_EVALUATION_COUNT( use_n_times<10>(m1), 0 );
-    if(!NumTraits<typename MatrixType::Scalar>::IsComplex)
+    if(!NumTraits<Scalar>::IsComplex)
     {
       VERIFY_EVALUATION_COUNT( use_n_times<3>(2*m1), 0 );
       VERIFY_EVALUATION_COUNT( use_n_times<4>(2*m1), 1 );
@@ -69,11 +70,21 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
     VERIFY_EVALUATION_COUNT( use_n_times<3>(m1+m1), 1 );
     VERIFY_EVALUATION_COUNT( use_n_times<1>(m1*m1.transpose()), 1 );
     VERIFY_EVALUATION_COUNT( use_n_times<2>(m1*m1.transpose()), 1 );
+
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1 + m1*m1), 2 ); // FIXME should already be 1 thanks the already existing rule
+    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1 + m1*m1), 2 );
+
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1.template triangularView<Lower>().solve(m1.col(0))), 1 );
+    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1.template triangularView<Lower>().solve(m1.col(0))), 1 );
+
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(Scalar(2)*m1.template triangularView<Lower>().solve(m1.col(0))), 2 ); // FIXME could be one by applying the scaling in-place on the solve result
+    VERIFY_EVALUATION_COUNT( use_n_times<1>(m1.col(0)+m1.template triangularView<Lower>().solve(m1.col(0))), 2 ); // FIXME could be one by adding m1.col() inplace
+    VERIFY_EVALUATION_COUNT( use_n_times<10>(m1.col(0)+m1.template triangularView<Lower>().solve(m1.col(0))), 2 );
   }
 
   {
     VERIFY( verify_eval_type<10>(m1, m1) );
-    if(!NumTraits<typename MatrixType::Scalar>::IsComplex)
+    if(!NumTraits<Scalar>::IsComplex)
     {
       VERIFY( verify_eval_type<3>(2*m1, 2*m1) );
       VERIFY( verify_eval_type<4>(2*m1, m1) );
@@ -88,6 +99,10 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
     VERIFY( verify_eval_type<1>(m1*m1.transpose(), m1) );
     VERIFY( verify_eval_type<1>(m1*(m1+m1).transpose(), m1) );
     VERIFY( verify_eval_type<2>(m1*m1.transpose(), m1) );
+    VERIFY( verify_eval_type<1>(m1+m1*m1, m1) );
+
+    VERIFY( verify_eval_type<1>(m1.template triangularView<Lower>().solve(m1), m1) );
+    VERIFY( verify_eval_type<1>(m1+m1.template triangularView<Lower>().solve(m1), m1) );
   }
 }
 
@@ -99,9 +114,10 @@ void test_nesting_ops()
   CALL_SUBTEST_3(run_nesting_ops_1(Matrix4f::Random()));
   CALL_SUBTEST_4(run_nesting_ops_1(Matrix2d::Random()));
 
-  CALL_SUBTEST_1( run_nesting_ops_2(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
-  CALL_SUBTEST_2( run_nesting_ops_2(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+  Index s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
+  CALL_SUBTEST_1( run_nesting_ops_2(MatrixXf(s,s)) );
+  CALL_SUBTEST_2( run_nesting_ops_2(MatrixXcd(s,s)) );
   CALL_SUBTEST_3( run_nesting_ops_2(Matrix4f()) );
   CALL_SUBTEST_4( run_nesting_ops_2(Matrix2d()) );
-
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }
