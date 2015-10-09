@@ -161,13 +161,6 @@ struct triangular_solver_selector<Lhs,Rhs,OnTheRight,Mode,CompleteUnrolling,1> {
 * TriangularView methods
 ***************************************************************************/
 
-/** "in-place" version of TriangularView::solve() where the result is written in \a other
-  *
-  * \warning The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
-  * This function will const_cast it, so constness isn't honored here.
-  *
-  * See TriangularView:solve() for the details.
-  */
 template<typename MatrixType, unsigned int Mode>
 template<int Side, typename OtherDerived>
 void TriangularViewImpl<MatrixType,Mode,Dense>::solveInPlace(const MatrixBase<OtherDerived>& _other) const
@@ -188,27 +181,6 @@ void TriangularViewImpl<MatrixType,Mode,Dense>::solveInPlace(const MatrixBase<Ot
     other = otherCopy;
 }
 
-/** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
-  *
-  * This function computes the inverse-matrix matrix product inverse(\c *this) * \a other if
-  * \a Side==OnTheLeft (the default), or the right-inverse-multiply  \a other * inverse(\c *this) if
-  * \a Side==OnTheRight.
-  *
-  * The matrix \c *this must be triangular and invertible (i.e., all the coefficients of the
-  * diagonal must be non zero). It works as a forward (resp. backward) substitution if \c *this
-  * is an upper (resp. lower) triangular matrix.
-  *
-  * Example: \include Triangular_solve.cpp
-  * Output: \verbinclude Triangular_solve.out
-  *
-  * This function returns an expression of the inverse-multiply and can works in-place if it is assigned
-  * to the same matrix or vector \a other.
-  *
-  * For users coming from BLAS, this function (and more specifically solveInPlace()) offer
-  * all the operations supported by the \c *TRSV and \c *TRSM BLAS routines.
-  *
-  * \sa TriangularView::solveInPlace()
-  */
 template<typename Derived, unsigned int Mode>
 template<int Side, typename Other>
 const internal::triangular_solve_retval<Side,TriangularView<Derived,Mode>,Other>

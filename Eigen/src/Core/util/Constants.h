@@ -189,8 +189,8 @@ const unsigned int HereditaryBits = RowMajorBit
   */
 
 /** \ingroup enums
-  * Enum containing possible values for the \p Mode parameter of 
-  * MatrixBase::selfadjointView() and MatrixBase::triangularView(). */
+  * Enum containing possible values for the \c Mode or \c UpLo parameter of
+  * MatrixBase::selfadjointView() and MatrixBase::triangularView(), and selfadjoint solvers. */
 enum {
   /** View matrix as a lower triangular matrix. */
   Lower=0x1,                      
