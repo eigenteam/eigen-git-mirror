@@ -94,6 +94,7 @@ namespace Eigen {
   
 }
 
+template<typename XprType> long get_cost(const XprType& ) { return Eigen::internal::evaluator<XprType>::CoeffReadCost; }
 
 using namespace std;
 
@@ -470,7 +471,6 @@ void test_evaluators()
     VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.triangularView<Upper>(),A), MatrixXd(A.triangularView<Upper>()*A));
     
     VERIFY_IS_APPROX_EVALUATOR2(B, prod(A.selfadjointView<Upper>(),A), MatrixXd(A.selfadjointView<Upper>()*A));
-    
   }
 
   {
@@ -481,6 +481,19 @@ void test_evaluators()
     
     VERIFY_IS_APPROX_EVALUATOR2(B, lazyprod(d.asDiagonal(),A), MatrixXd(d.asDiagonal()*A));
     VERIFY_IS_APPROX_EVALUATOR2(B, lazyprod(A,d.asDiagonal()), MatrixXd(A*d.asDiagonal()));
-    
+  }
+
+  {
+    // test CoeffReadCost
+    Matrix4d a, b;
+    VERIFY_IS_EQUAL( get_cost(a), 1 );
+    VERIFY_IS_EQUAL( get_cost(a+b), 3);
+    VERIFY_IS_EQUAL( get_cost(2*a+b), 4);
+    VERIFY_IS_EQUAL( get_cost(a*b), 1);
+    VERIFY_IS_EQUAL( get_cost(a.lazyProduct(b)), 15);
+    VERIFY_IS_EQUAL( get_cost(a*(a*b)), 1);
+    VERIFY_IS_EQUAL( get_cost(a.lazyProduct(a*b)), 15);
+    VERIFY_IS_EQUAL( get_cost(a*(a+b)), 1);
+    VERIFY_IS_EQUAL( get_cost(a.lazyProduct(a+b)), 15);
   }
 }
