@@ -34,6 +34,9 @@ template <> struct max_n_1<0> {
 
 
 
+
+
+
 #if defined(EIGEN_HAS_CONSTEXPR)
 #define EIGEN_CONSTEXPR constexpr
 #else
@@ -82,6 +85,54 @@ EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 bool operator!=(const Tuple<U, V>& x, const Tuple<U, V>& y) {
   return !(x == y);
 }
+
+
+
+
+namespace internal{
+
+  template<typename IndexType, Index... Is>
+  EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array<Index,sizeof...(Is)> customIndex2Array(const IndexType & idx, numeric_list<Index,Is...>) {
+    return { idx(Is)... };
+  }
+
+  /** Make an array (for index/dimensions) out of a custom index */
+  template<typename Index, int NumIndices, typename IndexType>
+  EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array<Index,NumIndices> customIndex2Array(const IndexType & idx) {
+    return customIndex2Array(idx, typename gen_numeric_list<Index,NumIndices>::type{});
+  }
+
+
+  template <typename B, typename D>
+  struct is_base_of
+  {
+
+    typedef char (&yes)[1];
+    typedef char (&no)[2];
+
+    template <typename BB, typename DD>
+    struct Host
+    {
+      operator BB*() const;
+      operator DD*();
+    };
+
+    template<typename T>
+    static yes check(D*, T);
+    static no check(B*, int);
+
+    static const bool value = sizeof(check(Host<B,D>(), int())) == sizeof(yes);
+  };
+
+}
+
+
+
+
+
+
 
 #undef EIGEN_CONSTEXPR
 
