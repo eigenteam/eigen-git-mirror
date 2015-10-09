@@ -30,7 +30,7 @@ struct selfadjoint_matrix_vector_product
 static EIGEN_DONT_INLINE void run(
   Index size,
   const Scalar*  lhs, Index lhsStride,
-  const Scalar* _rhs, Index rhsIncr,
+  const Scalar*  rhs,
   Scalar* res,
   Scalar alpha);
 };
@@ -39,7 +39,7 @@ template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool Conju
 EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,Version>::run(
   Index size,
   const Scalar*  lhs, Index lhsStride,
-  const Scalar* _rhs, Index rhsIncr,
+  const Scalar*  rhs,
   Scalar* res,
   Scalar alpha)
 {
@@ -62,16 +62,6 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
 
   Scalar cjAlpha = ConjugateRhs ? numext::conj(alpha) : alpha;
 
-  // FIXME this copy is now handled outside product_selfadjoint_vector, so it could probably be removed.
-  // if the rhs is not sequentially stored in memory we copy it to a temporary buffer,
-  // this is because we need to extract packets
-  ei_declare_aligned_stack_constructed_variable(Scalar,rhs,size,rhsIncr==1 ? const_cast<Scalar*>(_rhs) : 0);  
-  if (rhsIncr!=1)
-  {
-    const Scalar* it = _rhs;
-    for (Index i=0; i<size; ++i, it+=rhsIncr)
-      rhs[i] = *it;
-  }
 
   Index bound = (std::max)(Index(0),size-8) & 0xfffffffe;
   if (FirstTriangular)
@@ -237,7 +227,7 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,0,true>
       (
         lhs.rows(),                             // size
         &lhs.coeffRef(0,0),  lhs.outerStride(), // lhs info
-        actualRhsPtr, 1,                        // rhs info
+        actualRhsPtr,                           // rhs info
         actualDestPtr,                          // result info
         actualAlpha                             // scale factor
       );
