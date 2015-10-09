@@ -7,6 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define TEST_ENABLE_TEMPORARY_TRACKING
+
 #include "main.h"
 
 template<typename MatrixType> void matrixRedux(const MatrixType& m)
@@ -57,6 +59,11 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   // test empty objects
   VERIFY_IS_APPROX(m1.block(r0,c0,0,0).sum(),   Scalar(0));
   VERIFY_IS_APPROX(m1.block(r0,c0,0,0).prod(),  Scalar(1));
+
+  // test nesting complex expression
+  VERIFY_EVALUATION_COUNT( (m1.matrix()*m1.matrix().transpose()).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
+  VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())*Scalar(2)).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
+
 }
 
 template<typename VectorType> void vectorRedux(const VectorType& w)
