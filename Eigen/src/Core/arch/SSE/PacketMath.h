@@ -545,11 +545,11 @@ template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a) { retu
 template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {
   Packet4f tmp = _mm_add_ps(a, _mm_movehl_ps(a,a));
-  return pfirst(_mm_add_ss(tmp, _mm_shuffle_ps(tmp,tmp, 1)));
+  return pfirst<Packet4f>(_mm_add_ss(tmp, _mm_shuffle_ps(tmp,tmp, 1)));
 }
 template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a)
 {
-  return pfirst(_mm_add_sd(a, _mm_unpackhi_pd(a,a)));
+  return pfirst<Packet2d>(_mm_add_sd(a, _mm_unpackhi_pd(a,a)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f preduxp<Packet4f>(const Packet4f* vecs)
@@ -581,7 +581,7 @@ template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
 template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
 {
   Packet4i tmp0 = _mm_hadd_epi32(a,a);
-  return pfirst(_mm_hadd_epi32(tmp0,tmp0));
+  return pfirst<Packet4i>(_mm_hadd_epi32(tmp0,tmp0));
 }
 #else
 template<> EIGEN_STRONG_INLINE int predux<Packet4i>(const Packet4i& a)
