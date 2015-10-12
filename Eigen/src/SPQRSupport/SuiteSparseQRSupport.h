@@ -48,7 +48,7 @@ namespace Eigen {
   * You can then apply it to a vector.
   *
   * R is the sparse triangular factor. Use matrixQR() to get it as SparseMatrix.
-  * NOTE : The Index type of R is always UF_long. You can get it with SPQR::Index
+  * NOTE : The Index type of R is always SuiteSparse_long. You can get it with SPQR::Index
   *
   * \tparam _MatrixType The type of the sparse matrix A, must be a column-major SparseMatrix<>
   *
@@ -65,7 +65,7 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
   public:
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
-    typedef UF_long StorageIndex ;
+    typedef SuiteSparse_long StorageIndex ;
     typedef SparseMatrix<Scalar, ColMajor, StorageIndex> MatrixType;
     typedef Map<PermutationMatrix<Dynamic, Dynamic, StorageIndex> > PermutationType;
   public:
