@@ -32,6 +32,7 @@ namespace Eigen {
   } // End namespace internal
   
 /**
+<<<<<<< local
  * \ingroup SPQRSupport_Module
  * \class SPQR
  * \brief Sparse QR factorization based on SuiteSparseQR library
@@ -53,15 +54,46 @@ namespace Eigen {
  * NOTE 
  * 
  */
+=======
+  * \ingroup SPQRSupport_Module
+  * \class SPQR
+  * \brief Sparse QR factorization based on SuiteSparseQR library
+  *
+  * This class is used to perform a multithreaded and multifrontal rank-revealing QR decomposition
+  * of sparse matrices. The result is then used to solve linear leasts_square systems.
+  * Clearly, a QR factorization is returned such that A*P = Q*R where :
+  *
+  * P is the column permutation. Use colsPermutation() to get it.
+  *
+  * Q is the orthogonal matrix represented as Householder reflectors.
+  * Use matrixQ() to get an expression and matrixQ().transpose() to get the transpose.
+  * You can then apply it to a vector.
+  *
+  * R is the sparse triangular factor. Use matrixQR() to get it as SparseMatrix.
+  * NOTE : The Index type of R is always SuiteSparse_long. You can get it with SPQR::Index
+  *
+  * \tparam _MatrixType The type of the sparse matrix A, must be a column-major SparseMatrix<>
+  *
+  * \implsparsesolverconcept
+  *
+  *
+  */
+>>>>>>> other
 template<typename _MatrixType>
 class SPQR
 {
   public:
     typedef typename _MatrixType::Scalar Scalar;
     typedef typename _MatrixType::RealScalar RealScalar;
+<<<<<<< local
     typedef UF_long Index ; 
     typedef SparseMatrix<Scalar, ColMajor, Index> MatrixType;
     typedef PermutationMatrix<Dynamic, Dynamic> PermutationType;
+=======
+    typedef SuiteSparse_long StorageIndex ;
+    typedef SparseMatrix<Scalar, ColMajor, StorageIndex> MatrixType;
+    typedef Map<PermutationMatrix<Dynamic, Dynamic, StorageIndex> > PermutationType;
+>>>>>>> other
   public:
     SPQR() 
       : m_isInitialized(false), m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)
