@@ -78,11 +78,7 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   {
     res.itype = CHOLMOD_INT;
   }
-<<<<<<< local
-  else if (internal::is_same<_Index,UF_long>::value)
-=======
-  else if (internal::is_same<_StorageIndex,SuiteSparse_long>::value)
->>>>>>> other
+  else if (internal::is_same<_Index,SuiteSparse_long>::value)
   {
     res.itype = CHOLMOD_LONG;
   }
