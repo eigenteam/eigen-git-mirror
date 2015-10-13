@@ -532,7 +532,7 @@ class SparseMatrix
     }
 
     /** Resizes the matrix to a \a rows x \a cols matrix leaving old values untouched.
-      * \sa resizeNonZeros(Index), reserve(), setZero()
+      * \sa reserve(), setZero()
       */
     void conservativeResize(Index rows, Index cols) 
     {
@@ -600,7 +600,7 @@ class SparseMatrix
       * This function does not free the currently allocated memory. To release as much as memory as possible,
       * call \code mat.data().squeeze(); \endcode after resizing it.
       * 
-      * \sa resizeNonZeros(Index), reserve(), setZero()
+      * \sa reserve(), setZero()
       */
     void resize(Index rows, Index cols)
     {
@@ -627,7 +627,6 @@ class SparseMatrix
       * Resize the nonzero vector to \a size */
     void resizeNonZeros(Index size)
     {
-      // TODO remove this function
       m_data.resize(size);
     }
 
