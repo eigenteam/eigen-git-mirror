@@ -219,10 +219,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refM2.setZero();
     int countFalseNonZero = 0;
     int countTrueNonZero = 0;
-    for (Index j=0; j<m2.outerSize(); ++j)
+    m2.reserve(VectorXi::Constant(m2.outerSize(), int(m2.innerSize())));
+    for (Index j=0; j<m2.cols(); ++j)
     {
-      m2.startVec(j);
-      for (Index i=0; i<m2.innerSize(); ++i)
+      for (Index i=0; i<m2.rows(); ++i)
       {
         float x = internal::random<float>(0,1);
         if (x<0.1)
@@ -232,22 +232,21 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         else if (x<0.5)
         {
           countFalseNonZero++;
-          m2.insertBackByOuterInner(j,i) = Scalar(0);
+          m2.insert(i,j) = Scalar(0);
         }
         else
         {
           countTrueNonZero++;
-          m2.insertBackByOuterInner(j,i) = Scalar(1);
-          if(SparseMatrixType::IsRowMajor)
-            refM2(j,i) = Scalar(1);
-          else
-            refM2(i,j) = Scalar(1);
+          m2.insert(i,j) = Scalar(1);
+          refM2(i,j) = Scalar(1);
         }
       }
     }
-    m2.finalize();
+    if(internal::random<bool>())
+      m2.makeCompressed();
     VERIFY(countFalseNonZero+countTrueNonZero == m2.nonZeros());
-    VERIFY_IS_APPROX(m2, refM2);
+    if(countTrueNonZero>0)
+      VERIFY_IS_APPROX(m2, refM2);
     m2.prune(Scalar(1));
     VERIFY(countTrueNonZero==m2.nonZeros());
     VERIFY_IS_APPROX(m2, refM2);

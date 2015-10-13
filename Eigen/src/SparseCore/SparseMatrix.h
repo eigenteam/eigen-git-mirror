@@ -509,7 +509,6 @@ class SparseMatrix
     void prune(const KeepFunc& keep = KeepFunc())
     {
       // TODO optimize the uncompressed mode to avoid moving and allocating the data twice
-      // TODO also implement a unit test
       makeCompressed();
 
       StorageIndex k = 0;
