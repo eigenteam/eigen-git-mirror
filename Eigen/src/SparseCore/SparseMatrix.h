@@ -437,11 +437,13 @@ class SparseMatrix
     template<typename InputIterators>
     void setFromTriplets(const InputIterators& begin, const InputIterators& end);
 
-    template<typename DupFunctor, typename InputIterators>
-    void setFromTriplets(const InputIterators& begin, const InputIterators& end);
+    template<typename InputIterators,typename DupFunctor>
+    void setFromTriplets(const InputIterators& begin, const InputIterators& end, DupFunctor dup_func);
+
+    void sumupDuplicates() { collapseDuplicates(internal::scalar_sum_op<Scalar>()); }
 
     template<typename DupFunctor>
-    void sumupDuplicates();
+    void collapseDuplicates(DupFunctor dup_func = DupFunctor());
 
     //---
     
@@ -894,9 +896,8 @@ private:
 namespace internal {
 
 template<typename InputIterator, typename SparseMatrixType, typename DupFunctor>
-void set_from_triplets(const InputIterator& begin, const InputIterator& end, SparseMatrixType& mat, int Options = 0)
+void set_from_triplets(const InputIterator& begin, const InputIterator& end, SparseMatrixType& mat, DupFunctor dup_func)
 {
-  EIGEN_UNUSED_VARIABLE(Options);
   enum { IsRowMajor = SparseMatrixType::IsRowMajor };
   typedef typename SparseMatrixType::Scalar Scalar;
   typedef typename SparseMatrixType::StorageIndex StorageIndex;
@@ -919,7 +920,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
       trMat.insertBackUncompressed(it->row(),it->col()) = it->value();
 
     // pass 3:
-    trMat.template sumupDuplicates<DupFunctor>();
+    trMat.collapseDuplicates(dup_func);
   }
 
   // pass 4: transposed copy -> implicit sorting
@@ -970,25 +971,29 @@ template<typename Scalar, int _Options, typename _Index>
 template<typename InputIterators>
 void SparseMatrix<Scalar,_Options,_Index>::setFromTriplets(const InputIterators& begin, const InputIterators& end)
 {
-  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index>, internal::scalar_sum_op<Scalar> >(begin, end, *this);
+  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index> >(begin, end, *this, internal::scalar_sum_op<Scalar>());
 }
 
-/** The same as setFromTriplets but when duplicates are met the functor \a DupFunctor is applied:
+/** The same as setFromTriplets but when duplicates are met the functor \a dup_func is applied:
   * \code
-  * value = DupFunctor()(OldValue, NewValue)
+  * value = dup_func(OldValue, NewValue)
   * \endcode 
- */
+  * Here is a C++11 example keeping the latest entry only:
+  * \code
+  * mat.setFromTriplets(triplets.begin(), triplets.end(), [] (const Scalar&,const Scalar &b) { return b; });
+  * \endcode
+  */
 template<typename Scalar, int _Options, typename _Index>
-template<typename DupFunctor, typename InputIterators>
-void SparseMatrix<Scalar,_Options,_Index>::setFromTriplets(const InputIterators& begin, const InputIterators& end)
+template<typename InputIterators,typename DupFunctor>
+void SparseMatrix<Scalar,_Options,_Index>::setFromTriplets(const InputIterators& begin, const InputIterators& end, DupFunctor dup_func)
 {
-  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index>, DupFunctor>(begin, end, *this);
+  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index>, DupFunctor>(begin, end, *this, dup_func);
 }
 
 /** \internal */
 template<typename Scalar, int _Options, typename _Index>
 template<typename DupFunctor>
-void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
+void SparseMatrix<Scalar,_Options,_Index>::collapseDuplicates(DupFunctor dup_func)
 {
   eigen_assert(!isCompressed());
   // TODO, in practice we should be able to use m_innerNonZeros for that task
@@ -1006,7 +1011,7 @@ void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
       if(wi(i)>=start)
       {
         // we already meet this entry => accumulate it
-        m_data.value(wi(i)) = DupFunctor()(m_data.value(wi(i)), m_data.value(k));
+        m_data.value(wi(i)) = dup_func(m_data.value(wi(i)), m_data.value(k));
       }
       else
       {

@@ -258,19 +258,33 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     std::vector<TripletType> triplets;
     Index ntriplets = rows*cols;
     triplets.reserve(ntriplets);
-    DenseMatrix refMat(rows,cols);
-    refMat.setZero();
+    DenseMatrix refMat_sum  = DenseMatrix::Zero(rows,cols);
+    DenseMatrix refMat_prod = DenseMatrix::Zero(rows,cols);
+    DenseMatrix refMat_last = DenseMatrix::Zero(rows,cols);
+
     for(Index i=0;i<ntriplets;++i)
     {
       StorageIndex r = internal::random<StorageIndex>(0,StorageIndex(rows-1));
       StorageIndex c = internal::random<StorageIndex>(0,StorageIndex(cols-1));
       Scalar v = internal::random<Scalar>();
       triplets.push_back(TripletType(r,c,v));
-      refMat(r,c) += v;
+      refMat_sum(r,c) += v;
+      if(std::abs(refMat_prod(r,c))==0)
+        refMat_prod(r,c) = v;
+      else
+        refMat_prod(r,c) *= v;
+      refMat_last(r,c) = v;
     }
     SparseMatrixType m(rows,cols);
     m.setFromTriplets(triplets.begin(), triplets.end());
-    VERIFY_IS_APPROX(m, refMat);
+    VERIFY_IS_APPROX(m, refMat_sum);
+
+    m.setFromTriplets(triplets.begin(), triplets.end(), std::multiplies<Scalar>());
+    VERIFY_IS_APPROX(m, refMat_prod);
+#if (defined(__cplusplus) && __cplusplus >= 201103L)
+    m.setFromTriplets(triplets.begin(), triplets.end(), [] (Scalar,Scalar b) { return b; });
+    VERIFY_IS_APPROX(m, refMat_last);
+#endif
   }
   
   // test Map
