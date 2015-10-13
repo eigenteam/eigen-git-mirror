@@ -49,14 +49,6 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
   return true;
 }
 
-
-#define CHECK_CWISE2(REFOP, POP) { \
-  for (int i=0; i<PacketSize; ++i) \
-    ref[i] = REFOP(data1[i], data1[i+PacketSize]); \
-  internal::pstore(data2, POP(internal::pload<Packet>(data1), internal::pload<Packet>(data1+PacketSize))); \
-  VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
-}
-
 #define CHECK_CWISE1(REFOP, POP) { \
   for (int i=0; i<PacketSize; ++i) \
     ref[i] = REFOP(data1[i]); \
@@ -92,6 +84,14 @@ struct packet_helper<false,Packet>
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
+#define CHECK_CWISE2_IF(COND, REFOP, POP) if(COND) { \
+  packet_helper<COND,Packet> h; \
+  for (int i=0; i<PacketSize; ++i) \
+    ref[i] = REFOP(data1[i], data1[i+PacketSize]); \
+  h.store(data2, POP(h.load(data1),h.load(data1+PacketSize))); \
+  VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
+}
+
 #define REF_ADD(a,b) ((a)+(b))
 #define REF_SUB(a,b) ((a)-(b))
 #define REF_MUL(a,b) ((a)*(b))
@@ -100,8 +100,9 @@ struct packet_helper<false,Packet>
 template<typename Scalar> void packetmath()
 {
   using std::abs;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  const int PacketSize = internal::packet_traits<Scalar>::size;
+  typedef internal::packet_traits<Scalar> PacketTraits;
+  typedef typename PacketTraits::type Packet;
+  const int PacketSize = PacketTraits::size;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
   const int max_size = PacketSize > 4 ? PacketSize : 4;
@@ -153,13 +154,17 @@ template<typename Scalar> void packetmath()
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::palign");
   }
 
-  CHECK_CWISE2(REF_ADD,  internal::padd);
-  CHECK_CWISE2(REF_SUB,  internal::psub);
-  CHECK_CWISE2(REF_MUL,  internal::pmul);
-  #if !defined(EIGEN_VECTORIZE_ALTIVEC) && !defined(EIGEN_VECTORIZE_VSX)
-  if (!internal::is_same<Scalar,int>::value)
-    CHECK_CWISE2(REF_DIV,  internal::pdiv);
-  #endif
+  VERIFY((!PacketTraits::Vectorizable) || PacketTraits::HasAdd);
+  VERIFY((!PacketTraits::Vectorizable) || PacketTraits::HasSub);
+  VERIFY((!PacketTraits::Vectorizable) || PacketTraits::HasMul);
+  VERIFY((!PacketTraits::Vectorizable) || PacketTraits::HasNegate);
+  VERIFY((internal::is_same<Scalar,int>::value) || (!PacketTraits::Vectorizable) || PacketTraits::HasDiv);
+
+  CHECK_CWISE2_IF(PacketTraits::HasAdd, REF_ADD,  internal::padd);
+  CHECK_CWISE2_IF(PacketTraits::HasSub, REF_SUB,  internal::psub);
+  CHECK_CWISE2_IF(PacketTraits::HasMul, REF_MUL,  internal::pmul);
+  CHECK_CWISE2_IF(PacketTraits::HasDiv, REF_DIV, internal::pdiv);
+
   CHECK_CWISE1(internal::negate, internal::pnegate);
   CHECK_CWISE1(numext::conj, internal::pconj);
 
@@ -262,7 +267,7 @@ template<typename Scalar> void packetmath()
     }
   }
 
-  if (internal::packet_traits<Scalar>::HasBlend) {
+  if (PacketTraits::HasBlend) {
     Packet thenPacket = internal::pload<Packet>(data1);
     Packet elsePacket = internal::pload<Packet>(data2);
     EIGEN_ALIGN_MAX internal::Selector<PacketSize> selector;
@@ -282,42 +287,43 @@ template<typename Scalar> void packetmath()
 template<typename Scalar> void packetmath_real()
 {
   using std::abs;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  const int PacketSize = internal::packet_traits<Scalar>::size;
+  typedef internal::packet_traits<Scalar> PacketTraits;
+  typedef typename PacketTraits::type Packet;
+  const int PacketSize = PacketTraits::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN_MAX Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_MAX Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_MAX Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar data1[PacketTraits::size*4];
+  EIGEN_ALIGN_MAX Scalar data2[PacketTraits::size*4];
+  EIGEN_ALIGN_MAX Scalar ref[PacketTraits::size*4];
 
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-3,3));
     data2[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-3,3));
   }
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSin, std::sin, internal::psin);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasCos, std::cos, internal::pcos);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasTan, std::tan, internal::ptan);
+  CHECK_CWISE1_IF(PacketTraits::HasSin, std::sin, internal::psin);
+  CHECK_CWISE1_IF(PacketTraits::HasCos, std::cos, internal::pcos);
+  CHECK_CWISE1_IF(PacketTraits::HasTan, std::tan, internal::ptan);
   
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(-1,1);
     data2[i] = internal::random<Scalar>(-1,1);
   }
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasASin, std::asin, internal::pasin);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasACos, std::acos, internal::pacos);
+  CHECK_CWISE1_IF(PacketTraits::HasASin, std::asin, internal::pasin);
+  CHECK_CWISE1_IF(PacketTraits::HasACos, std::acos, internal::pacos);
 
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(-87,88);
     data2[i] = internal::random<Scalar>(-87,88);
   }
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasExp, std::exp, internal::pexp);
-  if(internal::packet_traits<Scalar>::HasExp && internal::packet_traits<Scalar>::size>=2)
+  CHECK_CWISE1_IF(PacketTraits::HasExp, std::exp, internal::pexp);
+  if(PacketTraits::HasExp && PacketTraits::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     data1[1] = std::numeric_limits<Scalar>::epsilon();
-    packet_helper<internal::packet_traits<Scalar>::HasExp,Packet> h;
+    packet_helper<PacketTraits::HasExp,Packet> h;
     h.store(data2, internal::pexp(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
     VERIFY_IS_EQUAL(std::exp(std::numeric_limits<Scalar>::epsilon()), data2[1]);
@@ -348,13 +354,13 @@ template<typename Scalar> void packetmath_real()
   }
   if(internal::random<float>(0,1)<0.1)
     data1[internal::random<int>(0, PacketSize)] = 0;
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, std::sqrt, internal::psqrt);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
-  if(internal::packet_traits<Scalar>::HasLog && internal::packet_traits<Scalar>::size>=2)
+  CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
+  CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
+  if(PacketTraits::HasLog && PacketTraits::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     data1[1] = std::numeric_limits<Scalar>::epsilon();
-    packet_helper<internal::packet_traits<Scalar>::HasLog,Packet> h;
+    packet_helper<PacketTraits::HasLog,Packet> h;
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
     VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::epsilon()), data2[1]);
@@ -391,22 +397,26 @@ template<typename Scalar> void packetmath_real()
 template<typename Scalar> void packetmath_notcomplex()
 {
   using std::abs;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  const int PacketSize = internal::packet_traits<Scalar>::size;
+  typedef internal::packet_traits<Scalar> PacketTraits;
+  typedef typename PacketTraits::type Packet;
+  const int PacketSize = PacketTraits::size;
 
-  EIGEN_ALIGN_MAX Scalar data1[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_MAX Scalar data2[internal::packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN_MAX Scalar ref[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN_MAX Scalar data1[PacketTraits::size*4];
+  EIGEN_ALIGN_MAX Scalar data2[PacketTraits::size*4];
+  EIGEN_ALIGN_MAX Scalar ref[PacketTraits::size*4];
   
-  Array<Scalar,Dynamic,1>::Map(data1, internal::packet_traits<Scalar>::size*4).setRandom();
+  Array<Scalar,Dynamic,1>::Map(data1, PacketTraits::size*4).setRandom();
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
     ref[0] = (std::min)(ref[0],data1[i]);
   VERIFY(internal::isApprox(ref[0], internal::predux_min(internal::pload<Packet>(data1))) && "internal::predux_min");
 
-  CHECK_CWISE2((std::min), internal::pmin);
-  CHECK_CWISE2((std::max), internal::pmax);
+  VERIFY((!PacketTraits::Vectorizable) || PacketTraits::HasMin);
+  VERIFY((!PacketTraits::Vectorizable) || PacketTraits::HasMax);
+
+  CHECK_CWISE2_IF(PacketTraits::HasMin, (std::min), internal::pmin);
+  CHECK_CWISE2_IF(PacketTraits::HasMax, (std::max), internal::pmax);
   CHECK_CWISE1(abs, internal::pabs);
 
   ref[0] = data1[0];
@@ -422,8 +432,9 @@ template<typename Scalar> void packetmath_notcomplex()
 
 template<typename Scalar,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar* data1, Scalar* data2, Scalar* ref, Scalar* pval)
 {
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  const int PacketSize = internal::packet_traits<Scalar>::size;
+  typedef internal::packet_traits<Scalar> PacketTraits;
+  typedef typename PacketTraits::type Packet;
+  const int PacketSize = PacketTraits::size;
   
   internal::conj_if<ConjLhs> cj0;
   internal::conj_if<ConjRhs> cj1;
@@ -450,8 +461,9 @@ template<typename Scalar,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar
 
 template<typename Scalar> void packetmath_complex()
 {
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  const int PacketSize = internal::packet_traits<Scalar>::size;
+  typedef internal::packet_traits<Scalar> PacketTraits;
+  typedef typename PacketTraits::type Packet;
+  const int PacketSize = PacketTraits::size;
 
   const int size = PacketSize*4;
   EIGEN_ALIGN_MAX Scalar data1[PacketSize*4];
@@ -478,10 +490,12 @@ template<typename Scalar> void packetmath_complex()
   }
 }
 
-template<typename Scalar> void packetmath_scatter_gather() {
-  typedef typename internal::packet_traits<Scalar>::type Packet;
+template<typename Scalar> void packetmath_scatter_gather()
+{
+  typedef internal::packet_traits<Scalar> PacketTraits;
+  typedef typename PacketTraits::type Packet;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  const int PacketSize = internal::packet_traits<Scalar>::size;
+  const int PacketSize = PacketTraits::size;
   EIGEN_ALIGN_MAX Scalar data1[PacketSize];
   RealScalar refvalue = 0;
   for (int i=0; i<PacketSize; ++i) {
