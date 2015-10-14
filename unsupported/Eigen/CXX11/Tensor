@@ -57,9 +57,9 @@
 #endif
 
 
+#include "src/Tensor/TensorMacros.h"
 #include "src/Tensor/TensorForwardDeclarations.h"
 #include "src/Tensor/TensorMeta.h"
-#include "src/Tensor/TensorMetaMacros.h"
 #include "src/Tensor/TensorDeviceType.h"
 #include "src/Tensor/TensorIndexList.h"
 #include "src/Tensor/TensorDimensionList.h"

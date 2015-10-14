@@ -32,17 +32,6 @@ template <> struct max_n_1<0> {
 };
 
 
-
-
-
-
-
-#if defined(EIGEN_HAS_CONSTEXPR)
-#define EIGEN_CONSTEXPR constexpr
-#else
-#define EIGEN_CONSTEXPR
-#endif
-
 // Tuple mimics std::pair but works on e.g. nvcc.
 template <typename U, typename V> struct Tuple {
  public:
@@ -88,7 +77,7 @@ bool operator!=(const Tuple<U, V>& x, const Tuple<U, V>& y) {
 
 
 
-
+#ifdef EIGEN_HAS_SFINAE
 namespace internal{
 
   template<typename IndexType, Index... Is>
@@ -127,14 +116,9 @@ namespace internal{
   };
 
 }
+#endif
 
 
-
-
-
-
-
-#undef EIGEN_CONSTEXPR
 
 }  // namespace Eigen
 

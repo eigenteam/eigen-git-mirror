@@ -26,8 +26,19 @@
  *   void foo(){}
  */
 
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#define EIGEN_HAS_SFINAE
+#endif
+
 #define EIGEN_SFINAE_ENABLE_IF( __condition__ ) \
     typename internal::enable_if< ( __condition__ ) , int >::type = 0
+
+
+#if defined(EIGEN_HAS_CONSTEXPR)
+#define EIGEN_CONSTEXPR constexpr
+#else
+#define EIGEN_CONSTEXPR
+#endif
 
 
 #endif
