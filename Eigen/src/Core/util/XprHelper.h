@@ -233,33 +233,33 @@ template<typename XprType> struct size_of_xpr_at_compile_time
  */
 
 template<typename T, typename StorageKind = typename traits<T>::StorageKind> struct plain_matrix_type;
-template<typename T, typename BaseClassType> struct plain_matrix_type_dense;
+template<typename T, typename BaseClassType, int Flags> struct plain_matrix_type_dense;
 template<typename T> struct plain_matrix_type<T,Dense>
 {
-  typedef typename plain_matrix_type_dense<T,typename traits<T>::XprKind>::type type;
+  typedef typename plain_matrix_type_dense<T,typename traits<T>::XprKind, traits<T>::Flags>::type type;
 };
 template<typename T> struct plain_matrix_type<T,DiagonalShape>
 {
   typedef typename T::PlainObject type;
 };
 
-template<typename T> struct plain_matrix_type_dense<T,MatrixXpr>
+template<typename T, int Flags> struct plain_matrix_type_dense<T,MatrixXpr,Flags>
 {
   typedef Matrix<typename traits<T>::Scalar,
                 traits<T>::RowsAtCompileTime,
                 traits<T>::ColsAtCompileTime,
-                AutoAlign | (traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                AutoAlign | (Flags&RowMajorBit ? RowMajor : ColMajor),
                 traits<T>::MaxRowsAtCompileTime,
                 traits<T>::MaxColsAtCompileTime
           > type;
 };
 
-template<typename T> struct plain_matrix_type_dense<T,ArrayXpr>
+template<typename T, int Flags> struct plain_matrix_type_dense<T,ArrayXpr,Flags>
 {
   typedef Array<typename traits<T>::Scalar,
                 traits<T>::RowsAtCompileTime,
                 traits<T>::ColsAtCompileTime,
-                AutoAlign | (traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                AutoAlign | (Flags&RowMajorBit ? RowMajor : ColMajor),
                 traits<T>::MaxRowsAtCompileTime,
                 traits<T>::MaxColsAtCompileTime
           > type;
@@ -302,6 +302,15 @@ struct eval<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Dense>
   typedef const Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& type;
 };
 
+
+/* similar to plain_matrix_type, but using the evaluator's Flags */
+template<typename T, typename StorageKind = typename traits<T>::StorageKind> struct plain_object_eval;
+
+template<typename T>
+struct plain_object_eval<T,Dense>
+{
+  typedef typename plain_matrix_type_dense<T,typename traits<T>::XprKind, evaluator<T>::Flags>::type type;
+};
 
 
 /* plain_matrix_type_column_major : same as plain_matrix_type but guaranteed to be column-major
@@ -385,7 +394,7 @@ struct transfer_constness
   * \param n the number of coefficient accesses in the nested expression for each coefficient access in the bigger expression.
   * \param PlainObject the type of the temporary if needed.
   */
-template<typename T, int n, typename PlainObject = typename eval<T>::type> struct nested_eval
+template<typename T, int n, typename PlainObject = typename plain_object_eval<T>::type> struct nested_eval
 {
   enum {
     // For the purpose of this test, to keep it reasonably simple, we arbitrarily choose a value of Dynamic values.

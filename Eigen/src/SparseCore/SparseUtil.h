@@ -74,20 +74,20 @@ template<typename MatrixType,int UpLo> class SparseSymmetricPermutationProduct;
 
 namespace internal {
 
-template<typename T,int Rows,int Cols> struct sparse_eval;
+template<typename T,int Rows,int Cols,int Flags> struct sparse_eval;
 
 template<typename T> struct eval<T,Sparse>
-  : public sparse_eval<T, traits<T>::RowsAtCompileTime,traits<T>::ColsAtCompileTime>
+  : sparse_eval<T, traits<T>::RowsAtCompileTime,traits<T>::ColsAtCompileTime,traits<T>::Flags>
 {};
 
-template<typename T,int Cols> struct sparse_eval<T,1,Cols> {
+template<typename T,int Cols,int Flags> struct sparse_eval<T,1,Cols,Flags> {
     typedef typename traits<T>::Scalar _Scalar;
     typedef typename traits<T>::StorageIndex _StorageIndex;
   public:
     typedef SparseVector<_Scalar, RowMajor, _StorageIndex> type;
 };
 
-template<typename T,int Rows> struct sparse_eval<T,Rows,1> {
+template<typename T,int Rows,int Flags> struct sparse_eval<T,Rows,1,Flags> {
     typedef typename traits<T>::Scalar _Scalar;
     typedef typename traits<T>::StorageIndex _StorageIndex;
   public:
@@ -95,15 +95,15 @@ template<typename T,int Rows> struct sparse_eval<T,Rows,1> {
 };
 
 // TODO this seems almost identical to plain_matrix_type<T, Sparse>
-template<typename T,int Rows,int Cols> struct sparse_eval {
+template<typename T,int Rows,int Cols,int Flags> struct sparse_eval {
     typedef typename traits<T>::Scalar _Scalar;
     typedef typename traits<T>::StorageIndex _StorageIndex;
-    enum { _Options = ((traits<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
+    enum { _Options = ((Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
   public:
     typedef SparseMatrix<_Scalar, _Options, _StorageIndex> type;
 };
 
-template<typename T> struct sparse_eval<T,1,1> {
+template<typename T,int Flags> struct sparse_eval<T,1,1,Flags> {
     typedef typename traits<T>::Scalar _Scalar;
   public:
     typedef Matrix<_Scalar, 1, 1> type;
@@ -118,10 +118,15 @@ template<typename T> struct plain_matrix_type<T,Sparse>
     typedef SparseMatrix<_Scalar, _Options, _StorageIndex> type;
 };
 
+template<typename T>
+struct plain_object_eval<T,Sparse>
+  : sparse_eval<T, traits<T>::RowsAtCompileTime,traits<T>::ColsAtCompileTime, evaluator<T>::Flags>
+{};
+
 template<typename Decomposition, typename RhsType>
 struct solve_traits<Decomposition,RhsType,Sparse>
 {
-  typedef typename sparse_eval<RhsType, RhsType::RowsAtCompileTime, RhsType::ColsAtCompileTime>::type PlainObject;
+  typedef typename sparse_eval<RhsType, RhsType::RowsAtCompileTime, RhsType::ColsAtCompileTime,traits<RhsType>::Flags>::type PlainObject;
 };
 
 template<typename Derived>
