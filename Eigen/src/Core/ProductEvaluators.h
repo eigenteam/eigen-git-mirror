@@ -97,8 +97,7 @@ struct evaluator_traits<Product<Lhs, Rhs, AliasFreeProduct> >
 // This is the default evaluator implementation for products:
 // It creates a temporary and call generic_product_impl
 template<typename Lhs, typename Rhs, int Options, int ProductTag, typename LhsShape, typename RhsShape>
-struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar,
-  EnableIf<(Options==DefaultProduct || Options==AliasFreeProduct)> >
+struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsShape>
   : public evaluator<typename Product<Lhs, Rhs, Options>::PlainObject>
 {
   typedef Product<Lhs, Rhs, Options> XprType;
@@ -407,7 +406,7 @@ template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typen
 struct etor_product_packet_impl;
 
 template<typename Lhs, typename Rhs, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar > 
+struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape, DenseShape>
     : evaluator_base<Product<Lhs, Rhs, LazyProduct> >
 {
   typedef Product<Lhs, Rhs, LazyProduct> XprType;
@@ -540,12 +539,12 @@ protected:
 };
 
 template<typename Lhs, typename Rhs>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProductMode, DenseShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar > 
-  : product_evaluator<Product<Lhs, Rhs, LazyProduct>, CoeffBasedProductMode, DenseShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar >
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProductMode, DenseShape, DenseShape>
+  : product_evaluator<Product<Lhs, Rhs, LazyProduct>, CoeffBasedProductMode, DenseShape, DenseShape>
 {
   typedef Product<Lhs, Rhs, DefaultProduct> XprType;
   typedef Product<Lhs, Rhs, LazyProduct> BaseProduct;
-  typedef product_evaluator<BaseProduct, CoeffBasedProductMode, DenseShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar > Base;
+  typedef product_evaluator<BaseProduct, CoeffBasedProductMode, DenseShape, DenseShape> Base;
   enum {
     Flags = Base::Flags | EvalBeforeNestingBit
   };
@@ -769,7 +768,7 @@ protected:
 
 // diagonal * dense
 template<typename Lhs, typename Rhs, int ProductKind, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalShape, DenseShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalShape, DenseShape>
   : diagonal_product_evaluator_base<Rhs, typename Lhs::DiagonalVectorType, Product<Lhs, Rhs, LazyProduct>, OnTheLeft>
 {
   typedef diagonal_product_evaluator_base<Rhs, typename Lhs::DiagonalVectorType, Product<Lhs, Rhs, LazyProduct>, OnTheLeft> Base;
@@ -815,7 +814,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
 
 // dense * diagonal
 template<typename Lhs, typename Rhs, int ProductKind, int ProductTag>
-struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape, DiagonalShape, typename Lhs::Scalar, typename Rhs::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape, DiagonalShape>
   : diagonal_product_evaluator_base<Lhs, typename Rhs::DiagonalVectorType, Product<Lhs, Rhs, LazyProduct>, OnTheRight>
 {
   typedef diagonal_product_evaluator_base<Lhs, typename Rhs::DiagonalVectorType, Product<Lhs, Rhs, LazyProduct>, OnTheRight> Base;

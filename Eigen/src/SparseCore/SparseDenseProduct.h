@@ -278,7 +278,7 @@ protected:
 
 // sparse * dense outer product
 template<typename Lhs, typename Rhs>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, SparseShape, DenseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, SparseShape, DenseShape>
   : sparse_dense_outer_product_evaluator<Lhs,Rhs, Lhs::IsRowMajor>
 {
   typedef sparse_dense_outer_product_evaluator<Lhs,Rhs, Lhs::IsRowMajor> Base;
@@ -293,7 +293,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, Sparse
 };
 
 template<typename Lhs, typename Rhs>
-struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, DenseShape, SparseShape, typename traits<Lhs>::Scalar, typename traits<Rhs>::Scalar> 
+struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, OuterProduct, DenseShape, SparseShape>
   : sparse_dense_outer_product_evaluator<Lhs,Rhs, Rhs::IsRowMajor>
 {
   typedef sparse_dense_outer_product_evaluator<Lhs,Rhs, Rhs::IsRowMajor> Base;

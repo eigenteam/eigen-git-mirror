@@ -160,8 +160,7 @@ template< typename T,
           typename LhsShape = typename evaluator_traits<typename T::Lhs>::Shape,
           typename RhsShape = typename evaluator_traits<typename T::Rhs>::Shape,
           typename LhsScalar = typename traits<typename T::Lhs>::Scalar,
-          typename RhsScalar = typename traits<typename T::Rhs>::Scalar,
-          typename = EnableIf<true> // extra template parameter for SFINAE-based specialization
+          typename RhsScalar = typename traits<typename T::Rhs>::Scalar
         > struct product_evaluator;
 }
 
