@@ -1045,6 +1045,9 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
   const bool needToTranspose = (Flags & RowMajorBit) != (internal::evaluator<OtherDerived>::Flags & RowMajorBit);
   if (needToTranspose)
   {
+    #ifdef EIGEN_SPARSE_TRANSPOSED_COPY_PLUGIN
+      EIGEN_SPARSE_TRANSPOSED_COPY_PLUGIN
+    #endif
     // two passes algorithm:
     //  1 - compute the number of coeffs per dest inner vector
     //  2 - do the actual copy/eval
