@@ -293,7 +293,3 @@ void test_cxx11_tensor_simple()
   CALL_SUBTEST(test_simple_assign());
   CALL_SUBTEST(test_resize());
 }
-
-/*
- * kate: space-indent on; indent-width 2; mixedindent off; indent-mode cstyle;
- */
