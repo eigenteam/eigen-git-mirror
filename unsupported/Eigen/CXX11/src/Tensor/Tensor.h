@@ -88,6 +88,15 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
   protected:
     TensorStorage<Scalar, Dimensions, Options> m_storage;
 
+#ifdef EIGEN_HAS_SFINAE
+    template<typename CustomIndices>
+    struct isOfNormalIndex{
+      static const bool is_array = internal::is_base_of<array<Index, NumIndices>, CustomIndices>::value;
+      static const bool is_int = NumTraits<CustomIndices>::IsInteger;
+      static const bool value = is_array | is_int;
+    };
+#endif
+
   public:
     // Metadata
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                         rank()                   const { return NumIndices; }
@@ -113,11 +122,23 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 #endif
 
+    // normal indices
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(const array<Index, NumIndices>& indices) const
     {
       eigen_internal_assert(checkIndexRange(indices));
       return m_storage.data()[linearizedIndex(indices)];
     }
+
+    // custom indices
+#ifdef EIGEN_HAS_SFINAE
+    template<typename CustomIndices,
+             EIGEN_SFINAE_ENABLE_IF( !(isOfNormalIndex<CustomIndices>::value) )
+    >
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(CustomIndices& indices) const
+    {
+        return coeff(internal::customIndices2Array<Index,NumIndices>(indices));
+    }
+#endif
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(Index index) const
     {
@@ -135,11 +156,23 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 #endif
 
+    // normal indices
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(const array<Index, NumIndices>& indices)
     {
       eigen_internal_assert(checkIndexRange(indices));
       return m_storage.data()[linearizedIndex(indices)];
     }
+
+    // custom indices
+#ifdef EIGEN_HAS_SFINAE
+    template<typename CustomIndices,
+             EIGEN_SFINAE_ENABLE_IF( !(isOfNormalIndex<CustomIndices>::value) )
+             >
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(CustomIndices& indices)
+    {
+        return coeffRef(internal::customIndices2Array<Index,NumIndices>(indices));
+    }
+#endif
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
     {
@@ -178,9 +211,20 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 #endif
 
+    // custom indices
+#ifdef EIGEN_HAS_SFINAE
+    template<typename CustomIndices,
+             EIGEN_SFINAE_ENABLE_IF( !(isOfNormalIndex<CustomIndices>::value) )
+    >
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()(CustomIndices& indices) const
+    {
+        return coeff(internal::customIndices2Array<Index,NumIndices>(indices));
+    }
+#endif
+
+    // normal indices
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()(const array<Index, NumIndices>& indices) const
     {
-      eigen_assert(checkIndexRange(indices));
       return coeff(indices);
     }
 
@@ -228,11 +272,22 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 #endif
 
+    // normal indices
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()(const array<Index, NumIndices>& indices)
     {
-      eigen_assert(checkIndexRange(indices));
       return coeffRef(indices);
     }
+
+    // custom indices
+#ifdef EIGEN_HAS_SFINAE
+    template<typename CustomIndices,
+             EIGEN_SFINAE_ENABLE_IF( !(isOfNormalIndex<CustomIndices>::value) )
+    >
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()(CustomIndices& indices)
+    {
+      return coeffRef(internal::customIndices2Array<Index,NumIndices>(indices));
+    }
+#endif
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()(Index index)
     {
@@ -295,6 +350,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 #endif
 
+    /** Normal Dimension */
     inline explicit Tensor(const array<Index, NumIndices>& dimensions)
         : m_storage(internal::array_prod(dimensions), dimensions)
     {
@@ -341,7 +397,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-    template<typename... IndexTypes> EIGEN_DEVICE_FUNC 
+    template<typename... IndexTypes> EIGEN_DEVICE_FUNC
     void resize(Index firstDimension, IndexTypes... otherDimensions)
     {
       // The number of dimensions used to resize a tensor must be equal to the rank of the tensor.
@@ -350,6 +406,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 #endif
 
+    /** Normal Dimension */
     EIGEN_DEVICE_FUNC void resize(const array<Index, NumIndices>& dimensions)
     {
       std::size_t i;
@@ -367,6 +424,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       #endif
     }
 
+    // Why this overload, DSizes is derived from array ??? //
     EIGEN_DEVICE_FUNC void resize(const DSizes<Index, NumIndices>& dimensions) {
       array<Index, NumIndices> dims;
       for (std::size_t i = 0; i < NumIndices; ++i) {
@@ -374,6 +432,17 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       }
       resize(dims);
     }
+
+    /** Custom Dimension */
+#ifdef EIGEN_HAS_SFINAE
+    template<typename CustomDimension,
+             EIGEN_SFINAE_ENABLE_IF( !(isOfNormalIndex<CustomDimension>::value) )
+    >
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void resize(CustomDimension& dimensions)
+    {
+      resize(internal::customIndices2Array<Index,NumIndices>(dimensions));
+    }
+#endif
 
 #ifndef EIGEN_EMULATE_CXX11_META_H
     template <typename std::ptrdiff_t... Indices>
