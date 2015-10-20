@@ -124,8 +124,8 @@ class TensorConversionOp : public TensorBase<TensorConversionOp<TargetType, XprT
     typedef typename internal::traits<TensorConversionOp>::StorageKind StorageKind;
     typedef typename internal::traits<TensorConversionOp>::Index Index;
     typedef typename internal::nested<TensorConversionOp>::type Nested;
-    typedef typename XprType::CoeffReturnType CoeffReturnType;
-    typedef typename XprType::PacketReturnType PacketReturnType;
+    typedef Scalar CoeffReturnType;
+    typedef Packet PacketReturnType;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorConversionOp(const XprType& xpr)
@@ -164,6 +164,8 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : m_impl(op.expression(), device)
   {
+
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, bool>::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_impl.dimensions(); }
