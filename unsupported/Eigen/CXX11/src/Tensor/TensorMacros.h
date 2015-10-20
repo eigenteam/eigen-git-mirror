@@ -26,8 +26,17 @@
  *   void foo(){}
  */
 
+// SFINAE requires variadic templates
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-#define EIGEN_HAS_SFINAE
+  // SFINAE doesn't work for gcc <= 4.7
+  #ifdef EIGEN_COMP_GNUC
+    #if EIGEN_GNUC_AT_LEAST(4,8)
+      #define EIGEN_HAS_SFINAE
+    #endif
+  #else
+    #define EIGEN_HAS_SFINAE
+  #endif
+
 #endif
 
 #define EIGEN_SFINAE_ENABLE_IF( __condition__ ) \
