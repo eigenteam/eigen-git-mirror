@@ -164,8 +164,6 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : m_impl(op.expression(), device)
   {
-
-    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, bool>::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_impl.dimensions(); }
