@@ -235,6 +235,9 @@ class SparseVector
     inline SparseVector(const SparseMatrixBase<OtherDerived>& other)
       : m_size(0)
     {
+      #ifdef EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+        EIGEN_SPARSE_CREATE_TEMPORARY_PLUGIN
+      #endif
       check_template_parameters();
       *this = other.derived();
     }
