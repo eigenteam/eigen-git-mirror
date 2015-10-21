@@ -279,6 +279,38 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return binaryExpr(other.derived(), std::not_equal_to<Scalar>());
     }
 
+    // comparisons and tests for Scalars
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::less<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    operator<(Scalar threshold) const {
+      return operator<(constant(threshold));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::less_equal<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    operator<=(Scalar threshold) const {
+      return operator<=(constant(threshold));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::greater<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    operator>(Scalar threshold) const {
+      return operator>(constant(threshold));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::greater_equal<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    operator>=(Scalar threshold) const {
+      return operator>=(constant(threshold));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::equal_to<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    operator==(Scalar threshold) const {
+      return operator==(constant(threshold));
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::not_equal_to<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    operator!=(Scalar threshold) const {
+      return operator!=(constant(threshold));
+    }
+
     // Coefficient-wise ternary operators.
     template<typename ThenDerived, typename ElseDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>
