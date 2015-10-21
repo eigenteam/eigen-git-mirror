@@ -124,8 +124,8 @@ class TensorConversionOp : public TensorBase<TensorConversionOp<TargetType, XprT
     typedef typename internal::traits<TensorConversionOp>::StorageKind StorageKind;
     typedef typename internal::traits<TensorConversionOp>::Index Index;
     typedef typename internal::nested<TensorConversionOp>::type Nested;
-    typedef typename XprType::CoeffReturnType CoeffReturnType;
-    typedef typename XprType::PacketReturnType PacketReturnType;
+    typedef Scalar CoeffReturnType;
+    typedef Packet PacketReturnType;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorConversionOp(const XprType& xpr)

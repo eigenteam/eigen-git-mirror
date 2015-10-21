@@ -180,6 +180,23 @@ static void test_simple_reductions() {
 
     VERIFY_IS_APPROX(mean1(0), mean2(0));
   }
+
+  {
+    Tensor<int, 1> ints(10);
+    std::iota(ints.data(), ints.data() + ints.dimension(0), 0);
+
+    TensorFixedSize<bool, Sizes<1> > all;
+    all = ints.all();
+    VERIFY(!all(0));
+    all = (ints >= ints.constant(0)).all();
+    VERIFY(all(0));
+
+    TensorFixedSize<bool, Sizes<1> > any;
+    any = (ints > ints.constant(10)).any();
+    VERIFY(!any(0));
+    any = (ints < ints.constant(1)).any();
+    VERIFY(any(0));
+  }
 }
 
 template <int DataLayout>

@@ -363,6 +363,32 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorReductionOp<internal::MinReducer<CoeffReturnType>, const DimensionList<Index, NumDimensions>, const Derived>(derived(), in_dims, internal::MinReducer<CoeffReturnType>());
     }
 
+    template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<internal::AndReducer, const Dims, const TensorConversionOp<bool, const Derived> >
+    all(const Dims& dims) const {
+      return cast<bool>().reduce(dims, internal::AndReducer());
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<internal::AndReducer, const DimensionList<Index, NumDimensions>, const TensorConversionOp<bool, const Derived> >
+    all() const {
+      DimensionList<Index, NumDimensions> in_dims;
+      return cast<bool>().reduce(in_dims, internal::AndReducer());
+    }
+
+    template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<internal::OrReducer, const Dims, const TensorConversionOp<bool, const Derived> >
+    any(const Dims& dims) const {
+      return cast<bool>().reduce(dims, internal::OrReducer());
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorReductionOp<internal::OrReducer, const DimensionList<Index, NumDimensions>, const TensorConversionOp<bool, const Derived> >
+    any() const {
+      DimensionList<Index, NumDimensions> in_dims;
+      return cast<bool>().reduce(in_dims, internal::OrReducer());
+    }
+
    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorTupleReducerOp<
       internal::ArgMaxTupleReducer<Tuple<Index, CoeffReturnType> >,
