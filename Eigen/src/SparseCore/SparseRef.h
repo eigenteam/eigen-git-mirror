@@ -318,6 +318,8 @@ class Ref<const SparseVector<MatScalar,MatOptions,MatIndex>, Options, StrideType
 
 namespace internal {
 
+// FIXME shall we introduce a general evaluatior_ref that we can specialize for any sparse object once, and thus remove this copy-pasta thing...
+
 template<typename MatScalar, int MatOptions, typename MatIndex, int Options, typename StrideType>
 struct evaluator<Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType> >
   : evaluator<SparseCompressedBase<Ref<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType> > >
