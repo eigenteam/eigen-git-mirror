@@ -82,13 +82,17 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     }
 #endif
 
-   inline TensorMap(PointerArgType dataPtr, const array<Index, NumIndices>& dimensions)
+   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, const array<Index, NumIndices>& dimensions)
       : m_data(dataPtr), m_dimensions(dimensions)
     { }
 
     template <typename Dimensions>
-    EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, const Dimensions& dimensions)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorMap(PointerArgType dataPtr, const Dimensions& dimensions)
       : m_data(dataPtr), m_dimensions(dimensions)
+    { }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorMap(PlainObjectType& tensor)
+      : m_data(tensor.data()), m_dimensions(tensor.dimensions())
     { }
 
     EIGEN_DEVICE_FUNC
