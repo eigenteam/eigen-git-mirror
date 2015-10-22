@@ -29,6 +29,7 @@ template<typename Axis, typename LeftXprType, typename RightXprType> class Tenso
 template<typename Dimensions, typename LeftXprType, typename RightXprType> class TensorContractionOp;
 template<typename TargetType, typename XprType> class TensorConversionOp;
 template<typename Dimensions, typename InputXprType, typename KernelXprType> class TensorConvolutionOp;
+template<typename FFT, typename XprType, int FFTDataType, int FFTDirection> class TensorFFTOp;
 template<typename PatchDim, typename XprType> class TensorPatchOp;
 template<DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorImagePatchOp;
 template<DenseIndex Planes, DenseIndex Rows, DenseIndex Cols, typename XprType> class TensorVolumePatchOp;
@@ -57,6 +58,18 @@ template<typename Derived, typename Device> struct TensorEvaluator;
 struct DefaultDevice;
 struct ThreadPoolDevice;
 struct GpuDevice;
+
+enum FFTResultType {
+  RealPart = 0,
+  ImagPart = 1,
+  BothParts = 2
+};
+
+enum FFTDirection {
+    FFT_FORWARD = 0,
+    FFT_REVERSE = 1
+};
+
 
 namespace internal {
 

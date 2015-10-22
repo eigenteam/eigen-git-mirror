@@ -334,6 +334,13 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorConvolutionOp<const Dimensions, const Derived, const KernelDerived>(derived(), kernel.derived(), dims);
     }
 
+    // Fourier transforms
+    template <int FFTDataType, int FFTDirection, typename FFT> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorFFTOp<const FFT, const Derived, FFTDataType, FFTDirection>
+    fft(const FFT& fft) const {
+      return TensorFFTOp<const FFT, const Derived, FFTDataType, FFTDirection>(derived(), fft);
+    }
+
     // Reductions.
     template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorReductionOp<internal::SumReducer<CoeffReturnType>, const Dims, const Derived>

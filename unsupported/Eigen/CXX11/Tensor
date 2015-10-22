@@ -81,6 +81,7 @@
 #include "src/Tensor/TensorContractionCuda.h"
 #include "src/Tensor/TensorConversion.h"
 #include "src/Tensor/TensorConvolution.h"
+#include "src/Tensor/TensorFFT.h"
 #include "src/Tensor/TensorPatch.h"
 #include "src/Tensor/TensorImagePatch.h"
 #include "src/Tensor/TensorVolumePatch.h"
