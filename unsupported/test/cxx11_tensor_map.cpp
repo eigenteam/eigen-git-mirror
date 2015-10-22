@@ -237,7 +237,7 @@ static void test_casting()
   int sum2 = f(tensor);
 
   VERIFY_IS_EQUAL(sum1, sum2);
-  VERIFY_IS_EQUAL(sum1, 41);
+  VERIFY_IS_EQUAL(sum1, 861);
 }
 
 void test_cxx11_tensor_map()
