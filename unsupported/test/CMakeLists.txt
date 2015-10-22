@@ -144,6 +144,8 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_custom_op "-std=c++0x")
   ei_add_test(cxx11_tensor_custom_index "-std=c++0x")
   ei_add_test(cxx11_tensor_sugar "-std=c++0x")
+  ei_add_test(cxx11_tensor_fft "-std=c++0x")
+  ei_add_test(cxx11_tensor_ifft "-std=c++0x")
 
   # These tests needs nvcc
 #  ei_add_test(cxx11_tensor_device "-std=c++0x")
