@@ -32,6 +32,29 @@ template <> struct max_n_1<0> {
 };
 
 
+// Default packet types
+template <typename Scalar, typename Device>
+struct PacketType {
+  typedef typename internal::packet_traits<Scalar>::type type;
+  static const int size = internal::unpacket_traits<type>::size;
+};
+
+// For CUDA packet types when using a GpuDevice
+#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+template <>
+struct PacketType<float, GpuDevice> {
+  typedef float4 type;
+  static const int size = 4;
+};
+template <>
+struct PacketType<double, GpuDevice> {
+  typedef double2 type;
+  static const int size = 2;
+};
+#endif
+
+
+
 // Tuple mimics std::pair but works on e.g. nvcc.
 template <typename U, typename V> struct Tuple {
  public:
