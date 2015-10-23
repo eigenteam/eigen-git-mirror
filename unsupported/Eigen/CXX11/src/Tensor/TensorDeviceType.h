@@ -287,6 +287,7 @@ class StreamInterface {
   virtual void deallocate(void* buffer) const = 0;
 };
 
+#if defined(__CUDACC__)
 static cudaDeviceProp* m_deviceProperties;
 static bool m_devicePropInitialized = false;
 
@@ -362,7 +363,7 @@ class CudaStreamDevice : public StreamInterface {
   const cudaStream_t* stream_;
   int device_;
 };
-
+#endif  // __CUDACC__
 
 struct GpuDevice {
   // The StreamInterface is not owned: the caller is
@@ -450,7 +451,7 @@ struct GpuDevice {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void synchronize() const {
-#ifndef __CUDA_ARCH__
+#if defined(__CUDACC__) && !defined(__CUDA_ARCH__)
     cudaError_t err = cudaStreamSynchronize(stream_->stream());
     assert(err == cudaSuccess);
 #else
@@ -477,8 +478,12 @@ struct GpuDevice {
   // This function checks if the CUDA runtime recorded an error for the
   // underlying stream device.
   inline bool ok() const {
+#ifdef __CUDACC__
     cudaError_t error = cudaStreamQuery(stream_->stream());
     return (error == cudaSuccess) || (error == cudaErrorNotReady);
+#else
+    return false;
+#endif
   }
 
  private:
@@ -493,10 +498,12 @@ struct GpuDevice {
 
 
 // FIXME: Should be device and kernel specific.
+#ifdef __CUDACC__
 static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
   cudaError_t status = cudaDeviceSetSharedMemConfig(config);
   assert(status == cudaSuccess);
 }
+#endif
 
 #endif
 

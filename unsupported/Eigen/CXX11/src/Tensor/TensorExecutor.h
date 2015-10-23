@@ -149,7 +149,24 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 
 
 // GPU: the evaluation of the expression is offloaded to a GPU.
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+#if defined(EIGEN_USE_GPU)
+
+template <typename Expression>
+class TensorExecutor<Expression, GpuDevice, false> {
+ public:
+  typedef typename Expression::Index Index;
+  static void run(const Expression& expr, const GpuDevice& device);
+};
+
+template <typename Expression>
+class TensorExecutor<Expression, GpuDevice, true> {
+ public:
+  typedef typename Expression::Index Index;
+  static void run(const Expression& expr, const GpuDevice& device);
+};
+
+#if defined(__CUDACC__)
+
 template <typename Evaluator, typename Index>
 __global__ void
 __launch_bounds__(1024)
@@ -193,48 +210,41 @@ EigenMetaKernel_Vectorizable(Evaluator memcopied_eval, Index size) {
   }
 }
 
-
-template<typename Expression>
-class TensorExecutor<Expression, GpuDevice, false>
+/*static*/
+template <typename Expression>
+inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
 {
- public:
-  typedef typename Expression::Index Index;
-  static inline void run(const Expression& expr, const GpuDevice& device)
+  TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
+  const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
+  if (needs_assign)
   {
-    TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
-    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
-    if (needs_assign)
-    {
-      const int num_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / device.maxCudaThreadsPerBlock();
-      const int block_size = device.maxCudaThreadsPerBlock();
-      const Index size = array_prod(evaluator.dimensions());
-      LAUNCH_CUDA_KERNEL((EigenMetaKernel_NonVectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
-    }
-    evaluator.cleanup();
+    const int num_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / device.maxCudaThreadsPerBlock();
+    const int block_size = device.maxCudaThreadsPerBlock();
+    const Index size = array_prod(evaluator.dimensions());
+    LAUNCH_CUDA_KERNEL((EigenMetaKernel_NonVectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
   }
-};
+  evaluator.cleanup();
+}
 
+
+/*static*/
 template<typename Expression>
-class TensorExecutor<Expression, GpuDevice, true>
+inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
 {
- public:
-  typedef typename Expression::Index Index;
-  static inline void run(const Expression& expr, const GpuDevice& device)
+  TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
+  const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
+  if (needs_assign)
   {
-    TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
-    const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
-    if (needs_assign)
-    {
-      const int num_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / device.maxCudaThreadsPerBlock();
-      const int block_size = device.maxCudaThreadsPerBlock();
-      const Index size = array_prod(evaluator.dimensions());
-      LAUNCH_CUDA_KERNEL((EigenMetaKernel_Vectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
-    }
-    evaluator.cleanup();
+    const int num_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / device.maxCudaThreadsPerBlock();
+    const int block_size = device.maxCudaThreadsPerBlock();
+    const Index size = array_prod(evaluator.dimensions());
+    LAUNCH_CUDA_KERNEL((EigenMetaKernel_Vectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
   }
-};
+  evaluator.cleanup();
+}
 
-#endif
+#endif  // __CUDACC__
+#endif  // EIGEN_USE_GPU
 
 } // end namespace internal
 
