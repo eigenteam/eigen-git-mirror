@@ -112,7 +112,7 @@ template<typename a, typename... as>                      struct get<0, type_lis
 template<int n EIGEN_TPL_PP_SPEC_HACK_DEFC(typename, as)> struct get<n, type_list<EIGEN_TPL_PP_SPEC_HACK_USE(as)>> { static_assert((n - n) < 0, "meta-template get: The element to extract from a list must be smaller than the size of the list."); };
 
 template<typename T, int n, T a, T... as>                        struct get<n, numeric_list<T, a, as...>>   : get<n-1, numeric_list<T, as...>> {};
-template<typename T, T a, T... as>                               struct get<0, numeric_list<T, a, as...>>   { constexpr static int value = a; };
+template<typename T, T a, T... as>                               struct get<0, numeric_list<T, a, as...>>   { constexpr static T value = a; };
 template<typename T, int n EIGEN_TPL_PP_SPEC_HACK_DEFC(T, as)>   struct get<n, numeric_list<T EIGEN_TPL_PP_SPEC_HACK_USEC(as)>> { static_assert((n - n) < 0, "meta-template get: The element to extract from a list must be smaller than the size of the list."); };
 
 /* always get type, regardless of dummy; good for parameter pack expansion */
@@ -326,6 +326,7 @@ constexpr inline std::array<T, N> array_reverse(std::array<T, N> arr)
   return h_array_reverse(arr, typename gen_numeric_list<int, N>::type());
 }
 
+
 /* generic array reductions */
 
 // can't reuse standard reduce() interface above because Intel's Compiler
@@ -335,39 +336,48 @@ constexpr inline std::array<T, N> array_reverse(std::array<T, N> arr)
 // an infinite loop)
 template<typename Reducer, typename T, std::size_t N, std::size_t n = N - 1>
 struct h_array_reduce {
-  constexpr static inline auto run(std::array<T, N> arr) -> decltype(Reducer::run(h_array_reduce<Reducer, T, N, n - 1>::run(arr), array_get<n>(arr)))
+  constexpr static inline auto run(std::array<T, N> arr, T identity) -> decltype(Reducer::run(h_array_reduce<Reducer, T, N, n - 1>::run(arr, identity), array_get<n>(arr)))
   {
-    return Reducer::run(h_array_reduce<Reducer, T, N, n - 1>::run(arr), array_get<n>(arr));
+    return Reducer::run(h_array_reduce<Reducer, T, N, n - 1>::run(arr, identity), array_get<n>(arr));
   }
 };
 
 template<typename Reducer, typename T, std::size_t N>
 struct h_array_reduce<Reducer, T, N, 0>
 {
-  constexpr static inline T run(std::array<T, N> arr)
+  constexpr static inline T run(const std::array<T, N>& arr, T identity)
   {
     return array_get<0>(arr);
   }
 };
 
-template<typename Reducer, typename T, std::size_t N>
-constexpr inline auto array_reduce(std::array<T, N> arr) -> decltype(h_array_reduce<Reducer, T, N>::run(arr))
+template<typename Reducer, typename T>
+struct h_array_reduce<Reducer, T, 0>
 {
-  return h_array_reduce<Reducer, T, N>::run(arr);
+  constexpr static inline T run(const std::array<T, 0>& arr, T identity)
+  {
+    return identity;
+  }
+};
+
+template<typename Reducer, typename T, std::size_t N>
+constexpr inline auto array_reduce(const std::array<T, N>& arr, T identity) -> decltype(h_array_reduce<Reducer, T, N>::run(arr, identity))
+{
+  return h_array_reduce<Reducer, T, N>::run(arr, identity);
 }
 
 /* standard array reductions */
 
 template<typename T, std::size_t N>
-constexpr inline auto array_sum(std::array<T, N> arr) -> decltype(array_reduce<sum_op, T, N>(arr))
+constexpr inline auto array_sum(const std::array<T, N>& arr) -> decltype(array_reduce<sum_op, T, N>(arr, static_cast<T>(0)))
 {
-  return array_reduce<sum_op, T, N>(arr);
+  return array_reduce<sum_op, T, N>(arr, static_cast<T>(0));
 }
 
 template<typename T, std::size_t N>
-constexpr inline auto array_prod(std::array<T, N> arr) -> decltype(array_reduce<product_op, T, N>(arr))
+constexpr inline auto array_prod(const std::array<T, N>& arr) -> decltype(array_reduce<product_op, T, N>(arr, static_cast<T>(1)))
 {
-  return array_reduce<product_op, T, N>(arr);
+  return array_reduce<product_op, T, N>(arr, static_cast<T>(1));
 }
 
 template<typename t>

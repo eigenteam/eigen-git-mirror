@@ -113,6 +113,35 @@ template <typename T, size_t n> class array {
 };
 
 
+// Specialize array for zero size
+template <typename T> class array<T, 0> {
+ public:
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& operator[] (size_t) {
+    eigen_assert(false && "Can't index a zero size array");
+    return *static_cast<T*>(NULL);
+  }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& operator[] (size_t) const {
+    eigen_assert(false && "Can't index a zero size array");
+    return *static_cast<const T*>(NULL);
+  }
+
+  static EIGEN_ALWAYS_INLINE std::size_t size() { return 0; }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array() { }
+
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+  array(std::initializer_list<T> l) {
+    eigen_assert(l.size() == 0);
+  }
+#endif
+};
+
+
+
 namespace internal {
 
 /** \internal
@@ -279,7 +308,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE typename NList::HeadType::type array_prod(
   return arg_prod<NList>::value;
 }
 
-template<std::size_t n, typename t>
+template<typename t, std::size_t n>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const array<t, n>& a) {
   t prod = 1;
   for (size_t i = 0; i < n; ++i) { prod *= a[i]; }
