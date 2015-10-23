@@ -56,7 +56,6 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
-#include <cstdint>
 #include <complex>
 #include <algorithm>
 
@@ -108,7 +107,7 @@
     #define MPREAL_HAVE_EXPLICIT_CONVERTERS
 #endif
 
-#define MPFR_USE_INTMAX_T   // Enable 64-bit integer types - should be defined before mpfr.h
+//#define MPFR_USE_INTMAX_T   // Enable 64-bit integer types - should be defined before mpfr.h
 
 #if defined(MPREAL_HAVE_MSVC_DEBUGVIEW) && defined(_MSC_VER) && defined(_DEBUG)
     #define MPREAL_MSVC_DEBUGVIEW_CODE     DebugView = toString();
