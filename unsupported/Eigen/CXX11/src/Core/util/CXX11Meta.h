@@ -345,7 +345,7 @@ struct h_array_reduce {
 template<typename Reducer, typename T, std::size_t N>
 struct h_array_reduce<Reducer, T, N, 0>
 {
-  constexpr static inline T run(const std::array<T, N>& arr, T identity)
+  constexpr static inline T run(const std::array<T, N>& arr, T)
   {
     return array_get<0>(arr);
   }
