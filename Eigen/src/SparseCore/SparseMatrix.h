@@ -1132,6 +1132,14 @@ typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& SparseMatrix<_Scalar,_Op
       for(Index j=1; j<=m_outerSize; ++j)
         m_outerIndex[j] = end;
     }
+    else
+    {
+      // turn the matrix into non-compressed mode
+      m_innerNonZeros = static_cast<StorageIndex*>(std::malloc(m_outerSize * sizeof(StorageIndex)));
+      if(!m_innerNonZeros) internal::throw_std_bad_alloc();
+      for(Index j=0; j<m_outerSize; ++j)
+        m_innerNonZeros[j] = m_outerIndex[j+1]-m_outerIndex[j];
+    }
   }
   
   // check whether we can do a fast "push back" insertion
