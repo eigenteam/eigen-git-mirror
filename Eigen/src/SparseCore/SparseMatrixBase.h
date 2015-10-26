@@ -281,7 +281,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     
     // sparse * sparse
     template<typename OtherDerived>
-    const Product<Derived,OtherDerived>
+    const Product<Derived,OtherDerived,AliasFreeProduct>
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
     
     // sparse * dense
