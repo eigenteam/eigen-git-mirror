@@ -402,7 +402,7 @@ template <std::size_t n, std::size_t V1, std::size_t V2, std::size_t V3, std::si
 
 template <typename Dims1, typename Dims2, size_t n, size_t m>
 struct sizes_match_below_dim {
-  static inline bool run(Dims1& dims1, Dims2& dims2) {
+  static inline bool run(Dims1&, Dims2&) {
     return false;
   }
 };
