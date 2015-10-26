@@ -67,14 +67,14 @@ static void test_fft_complex_input_golden() {
   array<int, 1> fft;
   fft[0] = 0;
 
-  Tensor<std::complex<float>, 1, ColMajor, long> forward_output_both_parts = input.template fft<BothParts, FFT_FORWARD>(fft);
-  Tensor<std::complex<float>, 1, ColMajor, long> reverse_output_both_parts = input.template fft<BothParts, FFT_REVERSE>(fft);
+  Tensor<std::complex<float>, 1, ColMajor, long> forward_output_both_parts = input.fft<BothParts, FFT_FORWARD>(fft);
+  Tensor<std::complex<float>, 1, ColMajor, long> reverse_output_both_parts = input.fft<BothParts, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_real_part = input.template fft<RealPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_real_part = input.template fft<RealPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor, long> forward_output_real_part = input.fft<RealPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor, long> reverse_output_real_part = input.fft<RealPart, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_imag_part = input.template fft<ImagPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_imag_part = input.template fft<ImagPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor, long> forward_output_imag_part = input.fft<ImagPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor, long> reverse_output_imag_part = input.fft<ImagPart, FFT_REVERSE>(fft);
 
   VERIFY_IS_EQUAL(forward_output_both_parts.dimension(0), input.dimension(0));
   VERIFY_IS_EQUAL(reverse_output_both_parts.dimension(0), input.dimension(0));
@@ -124,14 +124,14 @@ static void test_fft_real_input_golden() {
   array<int, 1> fft;
   fft[0] = 0;
 
-  Tensor<std::complex<float>, 1, ColMajor, long> forward_output_both_parts = input.template fft<BothParts, FFT_FORWARD>(fft);
-  Tensor<std::complex<float>, 1, ColMajor, long> reverse_output_both_parts = input.template fft<BothParts, FFT_REVERSE>(fft);
+  Tensor<std::complex<float>, 1, ColMajor, long> forward_output_both_parts = input.fft<BothParts, FFT_FORWARD>(fft);
+  Tensor<std::complex<float>, 1, ColMajor, long> reverse_output_both_parts = input.fft<BothParts, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_real_part = input.template fft<RealPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_real_part = input.template fft<RealPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor, long> forward_output_real_part = input.fft<RealPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor, long> reverse_output_real_part = input.fft<RealPart, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_imag_part = input.template fft<ImagPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_imag_part = input.template fft<ImagPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor, long> forward_output_imag_part = input.fft<ImagPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor, long> reverse_output_imag_part = input.fft<ImagPart, FFT_REVERSE>(fft);
 
   VERIFY_IS_EQUAL(forward_output_both_parts.dimension(0), input.dimension(0));
   VERIFY_IS_EQUAL(reverse_output_both_parts.dimension(0), input.dimension(0));
