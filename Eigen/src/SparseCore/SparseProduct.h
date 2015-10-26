@@ -25,10 +25,10 @@ namespace Eigen {
   * */
 template<typename Derived>
 template<typename OtherDerived>
-inline const Product<Derived,OtherDerived>
+inline const Product<Derived,OtherDerived,AliasFreeProduct>
 SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other) const
 {
-  return Product<Derived,OtherDerived>(derived(), other.derived());
+  return Product<Derived,OtherDerived,AliasFreeProduct>(derived(), other.derived());
 }
 
 namespace internal {
@@ -60,6 +60,36 @@ template<typename Lhs, typename Rhs, int ProductType>
 struct generic_product_impl<Lhs, Rhs, SparseTriangularShape, SparseShape, ProductType>
  : public generic_product_impl<Lhs, Rhs, SparseShape, SparseShape, ProductType>
 {};
+
+// Dense = sparse * sparse
+template< typename DstXprType, typename Lhs, typename Rhs, int Options/*, typename Scalar*/>
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense/*,
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type*/>
+{
+  typedef Product<Lhs,Rhs,Options> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &)
+  {
+    dst.setZero();
+    dst += src;
+  }
+};
+
+// Dense += sparse * sparse
+template< typename DstXprType, typename Lhs, typename Rhs, int Options>
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<typename DstXprType::Scalar>, Sparse2Dense/*,
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type*/>
+{
+  typedef Product<Lhs,Rhs,Options> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar> &)
+  {
+    typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
+    typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
+    LhsNested lhsNested(src.lhs());
+    RhsNested rhsNested(src.rhs());
+    internal::sparse_sparse_to_dense_product_selector<typename remove_all<LhsNested>::type,
+                                                      typename remove_all<RhsNested>::type, DstXprType>::run(lhsNested,rhsNested,dst);
+  }
+};
 
 template<typename Lhs, typename Rhs, int Options>
 struct evaluator<SparseView<Product<Lhs, Rhs, Options> > > 
