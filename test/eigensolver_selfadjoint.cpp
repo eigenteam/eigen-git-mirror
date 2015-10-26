@@ -156,6 +156,12 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
     SelfAdjointEigenSolver<MatrixType> eiSymmNaN(symmC);
     VERIFY_IS_EQUAL(eiSymmNaN.info(), NoConvergence);
   }
+
+  // regression test for bug 1098
+  {
+    SelfAdjointEigenSolver<MatrixType> eig(a.adjoint() * a);
+    eig.compute(a.adjoint() * a);
+  }
 }
 
 void bug_854()

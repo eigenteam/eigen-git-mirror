@@ -125,6 +125,12 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
     ComplexEigenSolver<MatrixType> eiNaN(a);
     VERIFY_IS_EQUAL(eiNaN.info(), NoConvergence);
   }
+
+  // regression test for bug 1098
+  {
+    ComplexEigenSolver<MatrixType> eig(a.adjoint() * a);
+    eig.compute(a.adjoint() * a);
+  }
 }
 
 template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m)
