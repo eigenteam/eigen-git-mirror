@@ -204,7 +204,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
       buf[i] = MakeComplex<internal::is_same<InputScalar, RealScalar>::value>()(m_impl.coeff(i));
     }
 
-    for (int i = 0; i < m_fft.size(); ++i) {
+    for (size_t i = 0; i < m_fft.size(); ++i) {
       int dim = m_fft[i];
       eigen_assert(dim >= 0 && dim < NumDims);
       Index line_len = m_dimensions[dim];
