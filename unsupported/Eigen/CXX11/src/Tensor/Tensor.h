@@ -140,6 +140,12 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     }
 #endif
 
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff() const
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return m_storage.data()[0];
+    }
+
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
@@ -173,6 +179,12 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
         return coeffRef(internal::customIndices2Array<Index,NumIndices>(indices));
     }
 #endif
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef()
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return m_storage.data()[0];
+    }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
     {
@@ -234,6 +246,12 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       return coeff(index);
     }
 
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()() const
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return coeff();
+    }
+
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator[](Index index) const
     {
       // The bracket operator is only for vectors, use the parenthesis operator instead.
@@ -293,6 +311,12 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
       eigen_assert(index >= 0 && index < size());
       return coeffRef(index);
+    }
+
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()()
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return coeffRef();
     }
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator[](Index index)
@@ -431,6 +455,13 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
         dims[i] = dimensions[i];
       }
       resize(dims);
+    }
+
+    EIGEN_DEVICE_FUNC
+    void resize()
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      // Nothing to do: rank 0 tensors have fixed size
     }
 
     /** Custom Dimension */
