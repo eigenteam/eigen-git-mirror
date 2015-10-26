@@ -175,7 +175,8 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  explicit LeastSquaresConjugateGradient(const MatrixType& A) : Base(A) {}
+  template<typename MatrixDerived>
+  explicit LeastSquaresConjugateGradient(const EigenBase<MatrixDerived>& A) : Base(A.derived()) {}
 
   ~LeastSquaresConjugateGradient() {}
 

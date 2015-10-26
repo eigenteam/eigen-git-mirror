@@ -63,32 +63,47 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
     VERIFY(xm.isApprox(refX,test_precision<Scalar>()));
   }
   
-  // test initialization ctor
+  // if not too large, do some extra check:
+  if(A.rows()<2000)
   {
-    Rhs x(b.rows(), b.cols());
-    Solver solver2(A);
-    VERIFY(solver2.info() == Success);
-    x = solver2.solve(b);
-    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
-  }
-  
-  // test dense Block as the result and rhs:
-  {
-    DenseRhs x(refX.rows(), refX.cols());
-    DenseRhs oldb(db);
-    x.setZero();
-    x.block(0,0,x.rows(),x.cols()) = solver.solve(db.block(0,0,db.rows(),db.cols()));
-    VERIFY(oldb.isApprox(db) && "sparse solver testing: the rhs should not be modified!");
-    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
-  }
-  
-  // test uncompressed inputs
-  {
-    Mat A2 = A;
-    A2.reserve((ArrayXf::Random(A.outerSize())+2).template cast<typename Mat::StorageIndex>().eval());
-    solver.compute(A2);
-    Rhs x = solver.solve(b);
-    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    // test initialization ctor
+    {
+      Rhs x(b.rows(), b.cols());
+      Solver solver2(A);
+      VERIFY(solver2.info() == Success);
+      x = solver2.solve(b);
+      VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    }
+
+    // test dense Block as the result and rhs:
+    {
+      DenseRhs x(refX.rows(), refX.cols());
+      DenseRhs oldb(db);
+      x.setZero();
+      x.block(0,0,x.rows(),x.cols()) = solver.solve(db.block(0,0,db.rows(),db.cols()));
+      VERIFY(oldb.isApprox(db) && "sparse solver testing: the rhs should not be modified!");
+      VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    }
+
+    // test uncompressed inputs
+    {
+      Mat A2 = A;
+      A2.reserve((ArrayXf::Random(A.outerSize())+2).template cast<typename Mat::StorageIndex>().eval());
+      solver.compute(A2);
+      Rhs x = solver.solve(b);
+      VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    }
+
+    // test expression as input
+    {
+      solver.compute(0.5*(A+A));
+      Rhs x = solver.solve(b);
+      VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+
+      Solver solver2(0.5*(A+A));
+      Rhs x2 = solver2.solve(b);
+      VERIFY(x2.isApprox(refX,test_precision<Scalar>()));
+    }
   }
 }
 
