@@ -255,6 +255,7 @@ ei_add_test(special_numbers)
 ei_add_test(rvalue_types)
 ei_add_test(dense_storage)
 ei_add_test(ctorleak)
+ei_add_test(mpl2only)
 
 # # ei_add_test(denseLM)
 

@@ -24,7 +24,8 @@ namespace Eigen {
   * \tparam _MatrixType The type of the sparse matrix. It is advised to give a row-oriented sparse matrix
   * \tparam _UpLo The triangular part that will be used for the computations. It can be Lower
     *               or Upper. Default is Lower.
-  * \tparam _OrderingType The ordering method to use, either AMDOrdering<> or NaturalOrdering<>. Default is AMDOrdering<>
+  * \tparam _OrderingType The ordering method to use, either AMDOrdering<> or NaturalOrdering<>. Default is AMDOrdering<int>,
+  *                       unless EIGEN_MPL2_ONLY is defined, in which case the default is NaturalOrdering<int>.
   *
   * \implsparsesolverconcept
   *
@@ -38,7 +39,13 @@ namespace Eigen {
   * \f$ \sigma \f$ is the initial shift value as returned and set by setInitialShift() method. The default value is \f$ \sigma = 10^{-3} \f$.
   *
   */
-template <typename Scalar, int _UpLo = Lower, typename _OrderingType = AMDOrdering<int> >
+template <typename Scalar, int _UpLo = Lower, typename _OrderingType =
+#ifndef EIGEN_MPL2_ONLY
+AMDOrdering<int>
+#else
+NaturalOrdering<int>
+#endif
+>
 class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_UpLo,_OrderingType> >
 {
   protected:
