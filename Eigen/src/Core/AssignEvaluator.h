@@ -125,8 +125,8 @@ public:
     std::cerr << "DstXpr: " << typeid(typename DstEvaluator::XprType).name() << std::endl;
     std::cerr << "SrcXpr: " << typeid(typename SrcEvaluator::XprType).name() << std::endl;
     std::cerr.setf(std::ios::hex, std::ios::basefield);
-    EIGEN_DEBUG_VAR(DstFlags)
-    EIGEN_DEBUG_VAR(SrcFlags)
+    std::cerr << "DstFlags" << " = " << DstFlags << " (" << demangle_flags(DstFlags) << " )" << std::endl;
+    std::cerr << "SrcFlags" << " = " << SrcFlags << " (" << demangle_flags(SrcFlags) << " )" << std::endl;
     std::cerr.unsetf(std::ios::hex);
     EIGEN_DEBUG_VAR(DstAlignment)
     EIGEN_DEBUG_VAR(SrcAlignment)
@@ -141,11 +141,11 @@ public:
     EIGEN_DEBUG_VAR(MayInnerVectorize)
     EIGEN_DEBUG_VAR(MayLinearVectorize)
     EIGEN_DEBUG_VAR(MaySliceVectorize)
-    EIGEN_DEBUG_VAR(Traversal)
+    std::cerr << "Traversal" << " = " << Traversal << " (" << demangle_traversal(Traversal) << ")" << std::endl;
     EIGEN_DEBUG_VAR(UnrollingLimit)
     EIGEN_DEBUG_VAR(MayUnrollCompletely)
     EIGEN_DEBUG_VAR(MayUnrollInner)
-    EIGEN_DEBUG_VAR(Unrolling)
+    std::cerr << "Unrolling" << " = " << Unrolling << " (" << demangle_unrolling(Unrolling) << ")" << std::endl;
     std::cerr << std::endl;
   }
 #endif

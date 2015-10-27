@@ -670,6 +670,38 @@ template<typename T> struct is_same_or_void<void,T>     { enum { value = 1 }; };
 template<typename T> struct is_same_or_void<T,void>     { enum { value = 1 }; };
 template<>           struct is_same_or_void<void,void>  { enum { value = 1 }; };
 
+#ifdef EIGEN_DEBUG_ASSIGN
+std::string demangle_traversal(int t)
+{
+  if(t==DefaultTraversal) return "DefaultTraversal";
+  if(t==LinearTraversal) return "LinearTraversal";
+  if(t==InnerVectorizedTraversal) return "InnerVectorizedTraversal";
+  if(t==LinearVectorizedTraversal) return "LinearVectorizedTraversal";
+  if(t==SliceVectorizedTraversal) return "SliceVectorizedTraversal";
+  return "?";
+}
+std::string demangle_unrolling(int t)
+{
+  if(t==NoUnrolling) return "NoUnrolling";
+  if(t==InnerUnrolling) return "InnerUnrolling";
+  if(t==CompleteUnrolling) return "CompleteUnrolling";
+  return "?";
+}
+std::string demangle_flags(int f)
+{
+  std::string res;
+  if(f&RowMajorBit)                 res += " | RowMajor";
+  if(f&PacketAccessBit)             res += " | Packet";
+  if(f&LinearAccessBit)             res += " | Linear";
+  if(f&LvalueBit)                   res += " | Lvalue";
+  if(f&DirectAccessBit)             res += " | Direct";
+  if(f&NestByRefBit)                res += " | NestByRef";
+  if(f&NoPreferredStorageOrderBit)  res += " | NoPreferredStorageOrderBit";
+  
+  return res;
+}
+#endif
+
 } // end namespace internal
 
 // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
