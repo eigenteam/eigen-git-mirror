@@ -438,7 +438,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     {
       Index i = internal::random<Index>(0,rows-1);
       Index j = internal::random<Index>(0,rows-1);
-      Index v = internal::random<Scalar>();
+      Scalar v = internal::random<Scalar>();
       m1.coeffRef(i,j) = v;
       refMat1.coeffRef(i,j) = v;
       VERIFY_IS_APPROX(m1, refMat1);
