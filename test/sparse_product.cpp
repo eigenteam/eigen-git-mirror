@@ -79,12 +79,16 @@ template<typename SparseMatrixType> void sparse_product()
     // dense ?= sparse * sparse
     VERIFY_IS_APPROX(dm4 =m2*m3, refMat4 =refMat2*refMat3);
     VERIFY_IS_APPROX(dm4+=m2*m3, refMat4+=refMat2*refMat3);
+    VERIFY_IS_APPROX(dm4-=m2*m3, refMat4-=refMat2*refMat3);
     VERIFY_IS_APPROX(dm4 =m2t.transpose()*m3, refMat4 =refMat2t.transpose()*refMat3);
     VERIFY_IS_APPROX(dm4+=m2t.transpose()*m3, refMat4+=refMat2t.transpose()*refMat3);
+    VERIFY_IS_APPROX(dm4-=m2t.transpose()*m3, refMat4-=refMat2t.transpose()*refMat3);
     VERIFY_IS_APPROX(dm4 =m2t.transpose()*m3t.transpose(), refMat4 =refMat2t.transpose()*refMat3t.transpose());
     VERIFY_IS_APPROX(dm4+=m2t.transpose()*m3t.transpose(), refMat4+=refMat2t.transpose()*refMat3t.transpose());
+    VERIFY_IS_APPROX(dm4-=m2t.transpose()*m3t.transpose(), refMat4-=refMat2t.transpose()*refMat3t.transpose());
     VERIFY_IS_APPROX(dm4 =m2*m3t.transpose(), refMat4 =refMat2*refMat3t.transpose());
     VERIFY_IS_APPROX(dm4+=m2*m3t.transpose(), refMat4+=refMat2*refMat3t.transpose());
+    VERIFY_IS_APPROX(dm4-=m2*m3t.transpose(), refMat4-=refMat2*refMat3t.transpose());
     VERIFY_IS_APPROX(dm4 = m2*m3*s1, refMat4 = refMat2*refMat3*s1);
 
     // test aliasing
