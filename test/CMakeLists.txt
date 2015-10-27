@@ -257,6 +257,18 @@ ei_add_test(dense_storage)
 ei_add_test(ctorleak)
 ei_add_test(mpl2only)
 
+check_cxx_compiler_flag("-ffast-math" COMPILER_SUPPORT_FASTMATH)
+if(COMPILER_SUPPORT_FASTMATH)
+  set(EIGEN_FASTMATH_FLAGS "-ffast-math")
+else()
+  check_cxx_compiler_flag("/fp:fast" COMPILER_SUPPORT_FPFAST)
+  if(COMPILER_SUPPORT_FPFAST)
+    set(EIGEN_FASTMATH_FLAGS "/fp:fast")
+  endif()
+endif()
+
+ei_add_test(fastmath " ${EIGEN_FASTMATH_FLAGS} ")
+
 # # ei_add_test(denseLM)
 
 if(QT4_FOUND)
