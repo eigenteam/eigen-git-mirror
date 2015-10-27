@@ -54,6 +54,7 @@ private:
     InnerMaxSize = int(Dst::IsVectorAtCompileTime) ? int(Dst::MaxSizeAtCompileTime)
               : int(DstFlags)&RowMajorBit ? int(Dst::MaxColsAtCompileTime)
               : int(Dst::MaxRowsAtCompileTime),
+    OuterStride = int(outer_stride_at_compile_time<Dst>::ret),
     MaxSizeAtCompileTime = Dst::SizeAtCompileTime,
     PacketSize = unpacket_traits<PacketType>::size
   };
@@ -65,7 +66,9 @@ private:
     MightVectorize = StorageOrdersAgree
                   && (int(DstFlags) & int(SrcFlags) & ActualPacketAccessBit)
                   && (functor_traits<AssignFunc>::PacketAccess),
-    MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
+    MayInnerVectorize  = MightVectorize
+                       && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
+                       && int(OuterStride)!=Dynamic && int(OuterStride)%int(PacketSize)==0
                        && int(JointAlignment)>=int(RequiredAlignment),
     MayLinearize = StorageOrdersAgree && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
     MayLinearVectorize = MightVectorize && MayLinearize && DstHasDirectAccess
