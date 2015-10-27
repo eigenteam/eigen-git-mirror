@@ -633,20 +633,9 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     
-    // FIXME  I don't get the code below, in particular why outer-stride-at-compile-time should have any effect on PacketAccessBit...
-    //        Let's remove the code below for 3.4 if no issue occur
-//     PacketAlignment = unpacket_traits<PacketScalar>::alignment,
-//     KeepsPacketAccess = bool(HasNoInnerStride)
-//                         && (  bool(IsDynamicSize)
-//                            || HasNoOuterStride
-//                            || (    OuterStrideAtCompileTime!=Dynamic
-//                                 && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime) % PacketAlignment)==0 ) ),
-    KeepsPacketAccess = bool(HasNoInnerStride),
-
-    Flags0 = evaluator<PlainObjectType>::Flags,
-    Flags1 = (bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime))
-           ? int(Flags0) : int(Flags0 & ~LinearAccessBit),
-    Flags = KeepsPacketAccess ? int(Flags1) : (int(Flags1) & ~PacketAccessBit),
+    PacketAccessMask = bool(HasNoInnerStride) ? ~int(0) : ~int(PacketAccessBit),
+    LinearAccessMask = bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime) ? ~int(0) : ~int(LinearAccessBit),
+    Flags = int( evaluator<PlainObjectType>::Flags) & (LinearAccessMask&PacketAccessMask),
     
     Alignment = int(MapOptions)&int(AlignedMask)
   };
