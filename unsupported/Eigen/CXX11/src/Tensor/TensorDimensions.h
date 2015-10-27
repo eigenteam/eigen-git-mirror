@@ -52,8 +52,8 @@ struct fixed_size_tensor_index_linearization_helper
   static inline Index run(array<Index, NumIndices> const& indices,
                           const Dimensions& dimensions)
   {
-    return array_get<RowMajor ? n : (NumIndices - n - 1)>(indices) +
-        dget<RowMajor ? n : (NumIndices - n - 1), Dimensions>::value *
+    return array_get<RowMajor ? n - 1 : (NumIndices - n)>(indices) +
+        dget<RowMajor ? n - 1 : (NumIndices - n), Dimensions>::value *
         fixed_size_tensor_index_linearization_helper<Index, NumIndices, n - 1, RowMajor>::run(indices, dimensions);
   }
 };
@@ -62,10 +62,9 @@ template<typename Index, std::size_t NumIndices, bool RowMajor>
 struct fixed_size_tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
 {
   template <typename Dimensions> EIGEN_DEVICE_FUNC
-  static inline Index run(array<Index, NumIndices> const& indices,
-                          const Dimensions&)
+  static inline Index run(array<Index, NumIndices> const&, const Dimensions&)
   {
-    return array_get<RowMajor ? 0 : NumIndices - 1>(indices);
+    return 0;
   }
 };
 
@@ -135,11 +134,11 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfColMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *static_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, false>::run(indices, *static_cast<const Base*>(this));
   }
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfRowMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *static_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, true>::run(indices, *static_cast<const Base*>(this));
   }
 };
 
@@ -222,11 +221,11 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfColMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, false>::run(indices, *reinterpret_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, false>::run(indices, *reinterpret_cast<const Base*>(this));
   }
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfRowMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count - 1, true>::run(indices, *reinterpret_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, true>::run(indices, *reinterpret_cast<const Base*>(this));
   }
 };
 
@@ -402,22 +401,22 @@ template <std::size_t n, std::size_t V1, std::size_t V2, std::size_t V3, std::si
 
 
 template <typename Dims1, typename Dims2, size_t n, size_t m>
-struct sizes_match_up_to_dim {
-  static inline bool run(Dims1&, Dims2&) {
+struct sizes_match_below_dim {
+  static inline bool run(Dims1& dims1, Dims2& dims2) {
     return false;
   }
 };
 template <typename Dims1, typename Dims2, size_t n>
-struct sizes_match_up_to_dim<Dims1, Dims2, n, n> {
+struct sizes_match_below_dim<Dims1, Dims2, n, n> {
   static inline bool run(Dims1& dims1, Dims2& dims2) {
-    return (array_get<n>(dims1) == array_get<n>(dims2)) &
-        sizes_match_up_to_dim<Dims1, Dims2, n-1, n-1>::run(dims1, dims2);
+    return (array_get<n-1>(dims1) == array_get<n-1>(dims2)) &
+        sizes_match_below_dim<Dims1, Dims2, n-1, n-1>::run(dims1, dims2);
   }
 };
 template <typename Dims1, typename Dims2>
-struct sizes_match_up_to_dim<Dims1, Dims2, 0, 0> {
-  static inline bool run(Dims1& dims1, Dims2& dims2) {
-    return (array_get<0>(dims1) == array_get<0>(dims2));
+struct sizes_match_below_dim<Dims1, Dims2, 0, 0> {
+  static inline bool run(Dims1&, Dims2&) {
+    return true;
   }
 };
 
@@ -426,7 +425,7 @@ struct sizes_match_up_to_dim<Dims1, Dims2, 0, 0> {
 
 template <typename Dims1, typename Dims2>
 bool dimensions_match(Dims1& dims1, Dims2& dims2) {
-  return internal::sizes_match_up_to_dim<Dims1, Dims2, internal::array_size<Dims1>::value-1, internal::array_size<Dims2>::value-1>::run(dims1, dims2);
+  return internal::sizes_match_below_dim<Dims1, Dims2, internal::array_size<Dims1>::value, internal::array_size<Dims2>::value>::run(dims1, dims2);
 }
 
 } // end namespace Eigen
