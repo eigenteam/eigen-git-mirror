@@ -142,7 +142,11 @@ inline Eigen::Index DenseBase<Derived>::count() const
 template<typename Derived>
 inline bool DenseBase<Derived>::hasNaN() const
 {
+#if EIGEN_COMP_MSVC || (defined __FAST_MATH__)
+  return derived().array().isNaN().any();
+#else
   return !((derived().array()==derived().array()).all());
+#endif
 }
 
 /** \returns true if \c *this contains only finite numbers, i.e., no NaN and no +/-INF values.
@@ -152,7 +156,11 @@ inline bool DenseBase<Derived>::hasNaN() const
 template<typename Derived>
 inline bool DenseBase<Derived>::allFinite() const
 {
+#if EIGEN_COMP_MSVC || (defined __FAST_MATH__)
+  return derived().array().isFinite().all();
+#else
   return !((derived()-derived()).hasNaN());
+#endif
 }
     
 } // end namespace Eigen

@@ -818,11 +818,18 @@ inline EIGEN_MATHFUNC_RETVAL(pow, Scalar) pow(const Scalar& x, const Scalar& y)
   return EIGEN_MATHFUNC_IMPL(pow, Scalar)::run(x, y);
 }
 
+// std::is* do not work with fast-math and gcc
+#if EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && defined __FAST_MATH__)
+#define EIGEN_USE_STD_FPCLASSIFY 1
+#else
+#define EIGEN_USE_STD_FPCLASSIFY 0
+#endif
+
 template<typename T>
 EIGEN_DEVICE_FUNC
 bool (isfinite)(const T& x)
 {
-  #if EIGEN_HAS_CXX11_MATH
+  #if EIGEN_USE_STD_FPCLASSIFY
     using std::isfinite;
     return isfinite EIGEN_NOT_A_MACRO (x);
   #else
@@ -832,9 +839,21 @@ bool (isfinite)(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
+bool (isinf)(const T& x)
+{
+  #if EIGEN_USE_STD_FPCLASSIFY
+    using std::isinf;
+    return isinf EIGEN_NOT_A_MACRO (x);
+  #else
+    return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
+  #endif
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
 bool (isnan)(const T& x)
 {
-  #if EIGEN_HAS_CXX11_MATH
+  #if EIGEN_USE_STD_FPCLASSIFY
     using std::isnan;
     return isnan EIGEN_NOT_A_MACRO (x);
   #else
@@ -842,17 +861,47 @@ bool (isnan)(const T& x)
   #endif
 }
 
+#if (!EIGEN_USE_STD_FPCLASSIFY)
+
+#if EIGEN_COMP_MSVC
+
+//MSVC defines a _isnan builtin function, but for double only
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return _isnan(double(x)); }
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return _isnan(double(x)); }
+
+#elif defined __FAST_MATH__
+
+#if EIGEN_COMP_CLANG
+#define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optnone))
+#elif EIGEN_COMP_GNUC
+#define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optimize("no-fast-math")))
+#else
+#define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC
+#endif
+
 template<typename T>
-EIGEN_DEVICE_FUNC
-bool (isinf)(const T& x)
+EIGEN_TMP_NOOPT_ATTRIB
+bool isinf_helper(const T& x)
 {
-  #if EIGEN_HAS_CXX11_MATH
-    using std::isinf;
-    return isinf EIGEN_NOT_A_MACRO (x);
-  #else
-    return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
-  #endif
+  return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
 }
+
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const long double& x) { return !(x <= std::numeric_limits<long double>::infinity()); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const double& x)      { return x!=x; }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const float& x)       { return x!=x; }
+
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const double& x)      { return isinf_helper(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const float& x)       { return isinf_helper(x); }
+#if EIGEN_COMP_CLANG
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const long double& x) { return isinf(double(x)); }
+#endif
+
+#undef EIGEN_TMP_NOOPT_ATTRIB
+
+#endif
+
+#endif
 
 template<typename T>
 bool (isfinite)(const std::complex<T>& x)
