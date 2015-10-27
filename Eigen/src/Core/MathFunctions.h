@@ -819,7 +819,7 @@ inline EIGEN_MATHFUNC_RETVAL(pow, Scalar) pow(const Scalar& x, const Scalar& y)
 }
 
 // std::is* do not work with fast-math and gcc
-#if EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && defined __FAST_MATH__)
+#if EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && __FINITE_MATH_ONLY__)
 #define EIGEN_USE_STD_FPCLASSIFY 1
 #else
 #define EIGEN_USE_STD_FPCLASSIFY 0
@@ -870,14 +870,18 @@ template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return _isnan(
 template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return _isnan(x); }
 template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return _isnan(double(x)); }
 
-#elif defined __FAST_MATH__
+#elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__)
 
 #if EIGEN_COMP_CLANG
-#define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optnone))
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optnone))
 #elif EIGEN_COMP_GNUC
-#define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optimize("no-fast-math")))
+  #if EIGEN_GNUC_AT_LEAST(5,0)
+    #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optimize("no-finite-math-only")))
+  #else
+    #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((noinline,optimize("no-finite-math-only")))
+  #endif
 #else
-#define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC
 #endif
 
 template<typename T>
@@ -887,14 +891,13 @@ bool isinf_helper(const T& x)
   return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
 }
 
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const long double& x) { return !(x <= std::numeric_limits<long double>::infinity()); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const double& x)      { return x!=x; }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const float& x)       { return x!=x; }
-
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const double& x)      { return isinf_helper(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const float& x)       { return isinf_helper(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const long double& x) { return __builtin_isnan(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const double& x)      { return __builtin_isnan(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const float& x)       { return __builtin_isnan(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const double& x)      { return __builtin_isinf(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const float& x)       { return __builtin_isinf(x); }
 #if EIGEN_COMP_CLANG
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const long double& x) { return isinf(double(x)); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const long double& x) { return __builtin_isinf(double(x)); }
 #endif
 
 #undef EIGEN_TMP_NOOPT_ATTRIB
