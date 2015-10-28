@@ -18,6 +18,14 @@ void check(bool b, bool ref)
     std::cout << " BAD ";
 }
 
+#if EIGEN_COMP_MSVC < 1800
+namespace std {
+  template<typename T> bool (isfinite)(T x) { return _finite(x); }
+  template<typename T> bool (isnan)(T x) { return _isnan(x); }
+  template<typename T> bool (isinf)(T x) { return _fpclass(x)==_FPCLASS_NINF || _fpclass(x)==_FPCLASS_PINF; }
+}
+#endif
+
 template<typename T>
 void check_inf_nan(bool dryrun) {
   Matrix<T,Dynamic,1> m(10);

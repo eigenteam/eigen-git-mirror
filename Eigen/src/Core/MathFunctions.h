@@ -818,8 +818,8 @@ inline EIGEN_MATHFUNC_RETVAL(pow, Scalar) pow(const Scalar& x, const Scalar& y)
   return EIGEN_MATHFUNC_IMPL(pow, Scalar)::run(x, y);
 }
 
-// std::is* do not work with fast-math and gcc
-#if EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && __FINITE_MATH_ONLY__)
+// std::is* do not work with fast-math and gcc, std::is* are available on MSVC 2013 and newer, as well as in clang.
+#if (EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && __FINITE_MATH_ONLY__)) || (EIGEN_COMP_MSVC>=1800) || (EIGEN_COMP_CLANG)
 #define EIGEN_USE_STD_FPCLASSIFY 1
 #else
 #define EIGEN_USE_STD_FPCLASSIFY 0
@@ -865,40 +865,34 @@ bool (isnan)(const T& x)
 
 #if EIGEN_COMP_MSVC
 
-//MSVC defines a _isnan builtin function, but for double only
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return _isnan(double(x)); }
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return _isnan(x); }
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return _isnan(double(x)); }
-
-#elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__)
-
-#if EIGEN_COMP_CLANG
-  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optnone))
-#elif EIGEN_COMP_GNUC
-  #if EIGEN_GNUC_AT_LEAST(5,0)
-    #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optimize("no-finite-math-only")))
-  #else
-    #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((noinline,optimize("no-finite-math-only")))
-  #endif
-#else
-  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC
-#endif
-
-template<typename T>
-EIGEN_TMP_NOOPT_ATTRIB
-bool isinf_helper(const T& x)
+template<typename T> EIGEN_DEVICE_FUNC bool isinf_msvc_helper(T x)
 {
-  return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
+  return _fpclass(x)==_FPCLASS_NINF || _fpclass(x)==_FPCLASS_PINF;
 }
+
+//MSVC defines a _isnan builtin function, but for double only
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return _isnan(x); }
+
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return isinf_msvc_helper(x); }
+
+#elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
+
+#if EIGEN_GNUC_AT_LEAST(5,0)
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optimize("no-finite-math-only")))
+#else
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((noinline,optimize("no-finite-math-only")))
+#endif
 
 template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const long double& x) { return __builtin_isnan(x); }
 template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const double& x)      { return __builtin_isnan(x); }
 template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const float& x)       { return __builtin_isnan(x); }
 template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const double& x)      { return __builtin_isinf(x); }
 template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const float& x)       { return __builtin_isinf(x); }
-#if EIGEN_COMP_CLANG
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const long double& x) { return __builtin_isinf(double(x)); }
-#endif
+template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const long double& x) { return __builtin_isinf(x); }
 
 #undef EIGEN_TMP_NOOPT_ATTRIB
 
