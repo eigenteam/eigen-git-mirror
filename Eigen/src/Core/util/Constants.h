@@ -36,7 +36,7 @@ const int Infinity = -1;
   * This value has to be positive to (1) simplify cost computation, and (2) allow to distinguish between a very expensive and very very expensive expressions.
   * It thus must also be large enough to make sure unrolling won't happen and that sub expressions will be evaluated, but not too large to avoid overflow.
   */
-const int HugeCost = 1000;
+const int HugeCost = 10000;
 
 /** \defgroup flags Flags
   * \ingroup Core_Module

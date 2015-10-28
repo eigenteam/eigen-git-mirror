@@ -83,8 +83,6 @@ inline bool DenseBase<Derived>::all() const
   typedef internal::evaluator<Derived> Evaluator;
   enum {
     unroll = SizeAtCompileTime != Dynamic
-          && Evaluator::CoeffReadCost < HugeCost
-          && NumTraits<Scalar>::AddCost < HugeCost
           && SizeAtCompileTime * (Evaluator::CoeffReadCost + NumTraits<Scalar>::AddCost) <= EIGEN_UNROLLING_LIMIT
   };
   Evaluator evaluator(derived());
@@ -109,8 +107,6 @@ inline bool DenseBase<Derived>::any() const
   typedef internal::evaluator<Derived> Evaluator;
   enum {
     unroll = SizeAtCompileTime != Dynamic
-          && Evaluator::CoeffReadCost < HugeCost
-          && NumTraits<Scalar>::AddCost < HugeCost
           && SizeAtCompileTime * (Evaluator::CoeffReadCost + NumTraits<Scalar>::AddCost) <= EIGEN_UNROLLING_LIMIT
   };
   Evaluator evaluator(derived());

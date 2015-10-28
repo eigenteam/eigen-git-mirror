@@ -455,7 +455,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
                   : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
                     + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
 
-    Unroll = CoeffReadCost < HugeCost && CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
+    Unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
     
     LhsFlags = LhsEtorType::Flags,
     RhsFlags = RhsEtorType::Flags,

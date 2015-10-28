@@ -204,6 +204,6 @@
 // Check that a cost value is positive, and that is stay within a reasonable range
 // TODO this check could be enabled for internal debugging only
 #define EIGEN_INTERNAL_CHECK_COST_VALUE(C) \
-      EIGEN_STATIC_ASSERT((C)>=0 && (C)<2*HugeCost*HugeCost, EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT__INVALID_COST_VALUE);
+      EIGEN_STATIC_ASSERT((C)>=0 && (C)<=HugeCost*HugeCost, EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT__INVALID_COST_VALUE);
 
 #endif // EIGEN_STATIC_ASSERT_H
