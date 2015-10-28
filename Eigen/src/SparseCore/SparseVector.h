@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -41,7 +41,6 @@ struct traits<SparseVector<_Scalar, _Options, _StorageIndex> >
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
     Flags = _Options | NestByRefBit | LvalueBit | (IsColVector ? 0 : RowMajorBit) | CompressedAccessBit,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
@@ -380,7 +379,10 @@ struct evaluator<SparseVector<_Scalar,_Options,_Index> >
     Flags = SparseVectorType::Flags
   };
   
-  explicit evaluator(const SparseVectorType &mat) : m_matrix(mat) {}
+  explicit evaluator(const SparseVectorType &mat) : m_matrix(mat)
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
   
   inline Index nonZerosEstimate() const {
     return m_matrix.nonZeros();

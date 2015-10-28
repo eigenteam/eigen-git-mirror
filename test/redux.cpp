@@ -74,7 +74,6 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> m2(rows,rows);
   m2.setRandom();
   VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())+m2).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
-
 }
 
 template<typename VectorType> void vectorRedux(const VectorType& w)

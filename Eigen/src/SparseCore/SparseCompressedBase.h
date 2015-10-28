@@ -226,8 +226,14 @@ struct evaluator<SparseCompressedBase<Derived> >
     Flags = Derived::Flags
   };
   
-  evaluator() : m_matrix(0) {}
-  explicit evaluator(const Derived &mat) : m_matrix(&mat) {}
+  evaluator() : m_matrix(0)
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
+  explicit evaluator(const Derived &mat) : m_matrix(&mat)
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
   
   inline Index nonZerosEstimate() const {
     return m_matrix->nonZeros();

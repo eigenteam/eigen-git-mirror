@@ -110,8 +110,8 @@ void DenseBase<Derived>::visit(Visitor& visitor) const
   ThisEvaluator thisEval(derived());
   
   enum { unroll =   SizeAtCompileTime != Dynamic
-                &&  ThisEvaluator::CoeffReadCost != Dynamic
-                &&  (SizeAtCompileTime == 1 || internal::functor_traits<Visitor>::Cost != Dynamic)
+                &&  ThisEvaluator::CoeffReadCost < HugeCost
+                &&  (SizeAtCompileTime == 1 || internal::functor_traits<Visitor>::Cost < HugeCost)
                 &&  SizeAtCompileTime * ThisEvaluator::CoeffReadCost + (SizeAtCompileTime-1) * internal::functor_traits<Visitor>::Cost
                 <= EIGEN_UNROLLING_LIMIT };
   return internal::visitor_impl<Visitor, ThisEvaluator,

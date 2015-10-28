@@ -98,10 +98,10 @@ private:
   enum {
     UnrollingLimit      = EIGEN_UNROLLING_LIMIT * (Vectorized ? int(PacketSize) : 1),
     MayUnrollCompletely = int(Dst::SizeAtCompileTime) != Dynamic
-                       && int(SrcEvaluator::CoeffReadCost) != Dynamic
+                       && int(SrcEvaluator::CoeffReadCost) < HugeCost
                        && int(Dst::SizeAtCompileTime) * int(SrcEvaluator::CoeffReadCost) <= int(UnrollingLimit),
     MayUnrollInner      = int(InnerSize) != Dynamic
-                       && int(SrcEvaluator::CoeffReadCost) != Dynamic
+                       && int(SrcEvaluator::CoeffReadCost) < HugeCost
                        && int(InnerSize) * int(SrcEvaluator::CoeffReadCost) <= int(UnrollingLimit)
   };
 

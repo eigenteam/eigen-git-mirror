@@ -397,28 +397,20 @@ struct transfer_constness
 template<typename T, int n, typename PlainObject = typename plain_object_eval<T>::type> struct nested_eval
 {
   enum {
-    // For the purpose of this test, to keep it reasonably simple, we arbitrarily choose a value of Dynamic values.
-    // the choice of 10000 makes it larger than any practical fixed value and even most dynamic values.
-    // in extreme cases where these assumptions would be wrong, we would still at worst suffer performance issues
-    // (poor choice of temporaries).
-    // It's important that this value can still be squared without integer overflowing.
-    DynamicAsInteger = 10000,
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
     CoeffReadCost = evaluator<T>::CoeffReadCost,  // NOTE What if an evaluator evaluate itself into a tempory?
                                                   //      Then CoeffReadCost will be small (e.g., 1) but we still have to evaluate, especially if n>1.
                                                   //      This situation is already taken care by the EvalBeforeNestingBit flag, which is turned ON
                                                   //      for all evaluator creating a temporary. This flag is then propagated by the parent evaluators.
                                                   //      Another solution could be to count the number of temps?
-    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
-    NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
-    CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
-    CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger
+    NAsInteger = n == Dynamic ? HugeCost : n,
+    CostEval   = (NAsInteger+1) * ScalarReadCost + CoeffReadCost,
+    CostNoEval = NAsInteger * CoeffReadCost
   };
 
   typedef typename conditional<
         ( (int(evaluator<T>::Flags) & EvalBeforeNestingBit) ||
-          (int(CostEvalAsInteger) < int(CostNoEvalAsInteger)) ),
+          (int(CostEval) < int(CostNoEval)) ),
         PlainObject,
         typename ref_selector<T>::type
   >::type type;

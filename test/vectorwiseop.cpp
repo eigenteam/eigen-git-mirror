@@ -217,6 +217,11 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   VERIFY_IS_APPROX( (m1 * m1.transpose()).colwise().sum(), m1m1.colwise().sum());
   Matrix<Scalar,1,MatrixType::RowsAtCompileTime> tmp(rows);
   VERIFY_EVALUATION_COUNT( tmp = (m1 * m1.transpose()).colwise().sum(), (MatrixType::RowsAtCompileTime==Dynamic ? 1 : 0));
+
+  m2 = m1.rowwise() - (m1.colwise().sum()/m1.rows()).eval();
+  m1 = m1.rowwise() - (m1.colwise().sum()/m1.rows());
+  VERIFY_IS_APPROX( m1, m2 );
+  VERIFY_EVALUATION_COUNT( m2 = (m1.rowwise() - m1.colwise().sum()/m1.rows()), (MatrixType::RowsAtCompileTime==Dynamic ? 1 : 0) );
 }
 
 void test_vectorwiseop()
