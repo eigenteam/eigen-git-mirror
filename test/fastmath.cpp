@@ -18,7 +18,7 @@ void check(bool b, bool ref)
     std::cout << " BAD ";
 }
 
-#if EIGEN_COMP_MSVC < 1800
+#if EIGEN_COMP_MSVC && EIGEN_COMP_MSVC < 1800
 namespace std {
   template<typename T> bool (isfinite)(T x) { return _finite(x); }
   template<typename T> bool (isnan)(T x) { return _isnan(x); }
