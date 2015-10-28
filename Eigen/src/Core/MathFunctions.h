@@ -875,9 +875,9 @@ template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return _isnan(
 template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return _isnan(x); }
 template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return _isnan(x); }
 
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC bool (isinf)(const long double& x) { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC bool (isinf)(const double& x)      { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC bool (isinf)(const float& x)       { return isinf_msvc_helper(x); }
 
 #elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
 
