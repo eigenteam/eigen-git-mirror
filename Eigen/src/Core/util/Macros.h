@@ -423,6 +423,8 @@ namespace Eigen {
 #define EIGEN_SIZE_MAX(a,b) (((int)a == Dynamic || (int)b == Dynamic) ? Dynamic \
                            : ((int)a >= (int)b) ? (int)a : (int)b)
 
+#define EIGEN_ADD_COST(a,b) int(a)==Dynamic || int(b)==Dynamic ? Dynamic : int(a)+int(b)
+
 #define EIGEN_LOGICAL_XOR(a,b) (((a) || (b)) && !((a) && (b)))
 
 #define EIGEN_IMPLIES(a,b) (!(a) || (b))
