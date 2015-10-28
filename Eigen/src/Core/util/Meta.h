@@ -11,6 +11,10 @@
 #ifndef EIGEN_META_H
 #define EIGEN_META_H
 
+#if defined(__CUDA_ARCH__)
+#include <cfloat>
+#endif
+
 namespace Eigen {
 
 namespace internal {
@@ -138,16 +142,16 @@ template<> struct numeric_limits<float>
   EIGEN_DEVICE_FUNC
   static float (max)() { return CUDART_MAX_NORMAL_F; }
   EIGEN_DEVICE_FUNC
-  static float (min)() { return __FLT_EPSILON__; }
+  static float (min)() { return FLT_MIN; }
 };
 template<> struct numeric_limits<double>
 {
   EIGEN_DEVICE_FUNC
   static double epsilon() { return __DBL_EPSILON__; }
   EIGEN_DEVICE_FUNC
-  static double (max)() { return CUDART_INF; }
+  static double (max)() { return DBL_MAX; }
   EIGEN_DEVICE_FUNC
-  static double (min)() { return __DBL_EPSILON__; }
+  static double (min)() { return DBL_MIN; }
 };
 template<> struct numeric_limits<int>
 {
