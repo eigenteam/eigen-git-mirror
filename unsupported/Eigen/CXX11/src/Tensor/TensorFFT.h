@@ -200,7 +200,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     const bool write_to_out = internal::is_same<OutputScalar, ComplexScalar>::value;
     ComplexScalar* buf = write_to_out ? (ComplexScalar*)data : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * m_size);
 
-    for (int i = 0; i < m_size; ++i) {
+    for (Index i = 0; i < m_size; ++i) {
       buf[i] = MakeComplex<internal::is_same<InputScalar, RealScalar>::value>()(m_impl.coeff(i));
     }
 
@@ -211,15 +211,15 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
       eigen_assert(line_len >= 1);
       ComplexScalar* line_buf = (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * line_len);
       const bool is_power_of_two = isPowerOfTwo(line_len);
-      const int good_composite = is_power_of_two ? 0 : findGoodComposite(line_len);
-      const int log_len = is_power_of_two ? getLog2(line_len) : getLog2(good_composite);
+      const Index good_composite = is_power_of_two ? 0 : findGoodComposite(line_len);
+      const Index log_len = is_power_of_two ? getLog2(line_len) : getLog2(good_composite);
 
       ComplexScalar* a = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * good_composite);
       ComplexScalar* b = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * good_composite);
       ComplexScalar* pos_j_base_powered = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * (line_len + 1));
       if (!is_power_of_two) {
         ComplexScalar pos_j_base = ComplexScalar(std::cos(M_PI/line_len), std::sin(M_PI/line_len));
-        for (int j = 0; j < line_len + 1; ++j) {
+        for (Index j = 0; j < line_len + 1; ++j) {
           pos_j_base_powered[j] = std::pow(pos_j_base, j * j);
         }
       }
@@ -228,7 +228,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         Index base_offset = getBaseOffsetFromIndex(partial_index, dim);
 
         // get data into line_buf
-        for (int j = 0; j < line_len; ++j) {
+        for (Index j = 0; j < line_len; ++j) {
           Index offset = getIndexFromOffset(base_offset, dim, j);
           line_buf[j] = buf[offset];
         }
@@ -242,7 +242,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         }
 
         // write back
-        for (int j = 0; j < line_len; ++j) {
+        for (Index j = 0; j < line_len; ++j) {
           const ComplexScalar div_factor = (FFTDir == FFT_FORWARD) ? ComplexScalar(1, 0) : ComplexScalar(line_len, 0);
           Index offset = getIndexFromOffset(base_offset, dim, j);
           buf[offset] =  line_buf[j] / div_factor;
@@ -257,45 +257,45 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     }
 
     if(!write_to_out) {
-      for (int i = 0; i < m_size; ++i) {
+      for (Index i = 0; i < m_size; ++i) {
         data[i] = PartOf<FFTResultType>()(buf[i]);
       }
       m_device.deallocate(buf);
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static bool isPowerOfTwo(int x) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static bool isPowerOfTwo(Index x) {
     eigen_assert(x > 0);
     return !(x & (x - 1));
   }
 
   // The composite number for padding, used in Bluestein's FFT algorithm
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int findGoodComposite(int n) {
-    int i = 2;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static Index findGoodComposite(Index n) {
+    Index i = 2;
     while (i < 2 * n - 1) i *= 2;
     return i;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int getLog2(int m) {
-    int log2m = 0;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static Index getLog2(Index m) {
+    Index log2m = 0;
     while (m >>= 1) log2m++;
     return log2m;
   }
 
   // Call Cooley Tukey algorithm directly, data length must be power of 2
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void processDataLineCooleyTukey(ComplexScalar* line_buf, int line_len, int log_len) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void processDataLineCooleyTukey(ComplexScalar* line_buf, Index line_len, Index log_len) {
     eigen_assert(isPowerOfTwo(line_len));
     scramble_FFT(line_buf, line_len);
     compute_1D_Butterfly<FFTDir>(line_buf, line_len, log_len);
   }
 
   // Call Bluestein's FFT algorithm, m is a good composite number greater than (2 * n - 1), used as the padding length
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void processDataLineBluestein(ComplexScalar* line_buf, int line_len, int good_composite, int log_len, ComplexScalar* a, ComplexScalar* b, const ComplexScalar* pos_j_base_powered) {
-    int n = line_len;
-    int m = good_composite;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void processDataLineBluestein(ComplexScalar* line_buf, Index line_len, Index good_composite, Index log_len, ComplexScalar* a, ComplexScalar* b, const ComplexScalar* pos_j_base_powered) {
+    Index n = line_len;
+    Index m = good_composite;
     ComplexScalar* data = line_buf;
 
-    for (int i = 0; i < n; ++i) {
+    for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
         a[i] = data[i] * std::conj(pos_j_base_powered[i]);
       }
@@ -303,11 +303,11 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         a[i] = data[i] * pos_j_base_powered[i];
       }
     }
-    for (int i = n; i < m; ++i) {
+    for (Index i = n; i < m; ++i) {
       a[i] = ComplexScalar(0, 0);
     }
 
-    for (int i = 0; i < n; ++i) {
+    for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
         b[i] = pos_j_base_powered[i];
       }
@@ -315,10 +315,10 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         b[i] = std::conj(pos_j_base_powered[i]);
       }
     }
-    for (int i = n; i < m - n; ++i) {
+    for (Index i = n; i < m - n; ++i) {
       b[i] = ComplexScalar(0, 0);
     }
-    for (int i = m - n; i < m; ++i) {
+    for (Index i = m - n; i < m; ++i) {
       if(FFTDir == FFT_FORWARD) {
         b[i] = pos_j_base_powered[m-i];
       }
@@ -333,7 +333,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     scramble_FFT(b, m);
     compute_1D_Butterfly<FFT_FORWARD>(b, m, log_len);
 
-    for (int i = 0; i < m; ++i) {
+    for (Index i = 0; i < m; ++i) {
       a[i] *= b[i];
     }
 
@@ -341,11 +341,11 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     compute_1D_Butterfly<FFT_REVERSE>(a, m, log_len);
 
     //Do the scaling after ifft
-    for (int i = 0; i < m; ++i) {
+    for (Index i = 0; i < m; ++i) {
       a[i] /= m;
     }
 
-    for (int i = 0; i < n; ++i) {
+    for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
         data[i] = a[i] * std::conj(pos_j_base_powered[i]);
       }
@@ -355,14 +355,14 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static void scramble_FFT(ComplexScalar* data, int n) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static void scramble_FFT(ComplexScalar* data, Index n) {
     eigen_assert(isPowerOfTwo(n));
-    int j = 1;
-    for (int i = 1; i < n; ++i){
+    Index j = 1;
+    for (Index i = 1; i < n; ++i){
       if (j > i) {
         std::swap(data[j-1], data[i-1]);
       }
-      int m = n >> 1;
+      Index m = n >> 1;
       while (m >= 2 && j > m) {
         j -= m;
         m >>= 1;
@@ -372,7 +372,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   }
 
   template<int Dir>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void compute_1D_Butterfly(ComplexScalar* data, int n, int n_power_of_2) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void compute_1D_Butterfly(ComplexScalar* data, Index n, Index n_power_of_2) {
     eigen_assert(isPowerOfTwo(n));
     if (n == 1) {
       return;
@@ -467,7 +467,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
       const ComplexScalar wp(wtemp, wpi);
       ComplexScalar w(1.0, 0.0);
-      for(int i = 0; i < n/2; i++) {
+      for(Index i = 0; i < n/2; i++) {
         ComplexScalar temp(data[i + n/2] * w);
         data[i + n/2] = data[i] - temp;
         data[i] += temp;
@@ -490,7 +490,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
       result += index;
     }
     else {
-      for (int i = 0; i < omitted_dim; ++i) {
+      for (Index i = 0; i < omitted_dim; ++i) {
         const Index partial_m_stride = m_strides[i] / m_dimensions[omitted_dim];
         const Index idx = index / partial_m_stride;
         index -= idx * partial_m_stride;
@@ -508,7 +508,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   }
 
  protected:
-  int m_size;
+  Index m_size;
   const FFT& m_fft;
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;
