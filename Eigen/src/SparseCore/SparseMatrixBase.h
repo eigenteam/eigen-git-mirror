@@ -23,7 +23,14 @@ namespace Eigen {
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_SPARSEMATRIXBASE_PLUGIN.
   */
-template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
+template<typename Derived> class SparseMatrixBase
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  : public internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
+                                            typename NumTraits<typename internal::traits<Derived>::Scalar>::Real,
+                                            EigenBase<Derived> >
+#else
+  : public EigenBase<Derived>
+#endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
 
@@ -42,7 +49,12 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
                      >::type PacketReturnType;
 
     typedef SparseMatrixBase StorageBaseType;
-    typedef EigenBase<Derived> Base;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef internal::special_scalar_op_base<Derived, Scalar, RealScalar, EigenBase<Derived> > Base;
+
+    using Base::operator*;
+    using Base::operator/;
+
     typedef Matrix<StorageIndex,Dynamic,1> IndexVector;
     typedef Matrix<Scalar,Dynamic,1> ScalarVector;
     
