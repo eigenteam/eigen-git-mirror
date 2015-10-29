@@ -263,7 +263,6 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
         m_storage.resize(size, rows, cols);
         if(size_changed) EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
       #else
-        internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(rows, cols);
         m_storage.resize(rows*cols, rows, cols);
       #endif
     }
