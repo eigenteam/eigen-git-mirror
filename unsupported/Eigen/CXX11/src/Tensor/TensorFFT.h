@@ -219,8 +219,8 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
       ComplexScalar* pos_j_base_powered = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * (line_len + 1));
       if (!is_power_of_two) {
         ComplexScalar pos_j_base = ComplexScalar(std::cos(M_PI/line_len), std::sin(M_PI/line_len));
-        for (int i = 0; i < line_len + 1; ++i) {
-          pos_j_base_powered[i] = std::pow(pos_j_base, i * i);
+        for (int j = 0; j < line_len + 1; ++j) {
+          pos_j_base_powered[j] = std::pow(pos_j_base, j * j);
         }
       }
 
