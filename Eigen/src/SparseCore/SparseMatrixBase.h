@@ -49,11 +49,6 @@ template<typename Derived> class SparseMatrixBase
                      >::type PacketReturnType;
 
     typedef SparseMatrixBase StorageBaseType;
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef internal::special_scalar_op_base<Derived, Scalar, RealScalar, EigenBase<Derived> > Base;
-
-    using Base::operator*;
-    using Base::operator/;
 
     typedef Matrix<StorageIndex,Dynamic,1> IndexVector;
     typedef Matrix<Scalar,Dynamic,1> ScalarVector;
@@ -146,6 +141,10 @@ template<typename Derived> class SparseMatrixBase
     inline Derived& derived() { return *static_cast<Derived*>(this); }
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<SparseMatrixBase*>(this)); }
+
+    typedef internal::special_scalar_op_base<Derived, Scalar, RealScalar, EigenBase<Derived> > Base;
+    using Base::operator*;
+    using Base::operator/;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
