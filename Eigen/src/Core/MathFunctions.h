@@ -871,20 +871,22 @@ template<typename T> EIGEN_DEVICE_FUNC bool isinf_msvc_helper(T x)
 }
 
 //MSVC defines a _isnan builtin function, but for double only
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const long double& x) { return _isnan(x); }
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const double& x)      { return _isnan(x); }
-template<> EIGEN_DEVICE_FUNC bool (isnan)(const float& x)       { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC inline bool (isnan)(const long double& x) { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC inline bool (isnan)(const double& x)      { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC inline bool (isnan)(const float& x)       { return _isnan(x); }
 
-template<> EIGEN_DEVICE_FUNC bool (isinf)(const long double& x) { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC bool (isinf)(const double& x)      { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC bool (isinf)(const float& x)       { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const long double& x) { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const double& x)      { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC inline bool (isinf./)(const float& x)       { return isinf_msvc_helper(x); }
 
 #elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
 
 #if EIGEN_GNUC_AT_LEAST(5,0)
-  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((optimize("no-finite-math-only")))
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((optimize("no-finite-math-only")))
 #else
-  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC __attribute__((noinline,optimize("no-finite-math-only")))
+  // NOTE the inline qualifier and noinline attribute are both needed: the former is to avoid linking issue (duplicate symbol),
+  //      while the second prevent too aggressive optimizations in fast-math mode
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((noinline,optimize("no-finite-math-only")))
 #endif
 
 template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const long double& x) { return __builtin_isnan(x); }
