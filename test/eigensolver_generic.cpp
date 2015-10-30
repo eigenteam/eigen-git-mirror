@@ -63,7 +63,7 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
 
-  if (rows > 2)
+  if (rows > 2 && rows < 20)
   {
     // Test matrix with NaN
     a(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
