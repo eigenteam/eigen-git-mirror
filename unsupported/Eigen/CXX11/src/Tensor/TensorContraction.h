@@ -163,7 +163,7 @@ class SimpleTensorContractionMapper {
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size, bool inner_dim_contiguous,
+         int packet_size, bool inner_dim_contiguous,
          bool inner_dim_reordered, int Alignment>
   class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, contract_t, packet_size, inner_dim_contiguous>
 {
@@ -275,14 +275,14 @@ class BaseTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, con
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size,
+         int packet_size,
          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment>
 class TensorContractionInputMapper;
 
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size,
+         int packet_size,
          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment>
 class TensorContractionSubMapper {
  public:
@@ -344,7 +344,7 @@ class TensorContractionSubMapper {
 template<typename Scalar, typename Index, int side,
          typename Tensor,
          typename nocontract_t, typename contract_t,
-         size_t packet_size,
+         int packet_size,
          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment>
 class TensorContractionInputMapper
   : public BaseTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, contract_t, packet_size, inner_dim_contiguous, inner_dim_reordered, Alignment> {
