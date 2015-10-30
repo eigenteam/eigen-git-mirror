@@ -14,6 +14,24 @@
 using Eigen::Tensor;
 using Eigen::RowMajor;
 
+static void test_0d()
+{
+  Tensor<int, 0> scalar1;
+  Tensor<int, 0, RowMajor> scalar2;
+
+  TensorMap<Tensor<const int, 0>> scalar3(scalar1.data());
+  TensorMap<Tensor<const int, 0, RowMajor>> scalar4(scalar2.data());
+
+  scalar1() = 7;
+  scalar2() = 13;
+
+  VERIFY_IS_EQUAL(scalar1.rank(), 0);
+  VERIFY_IS_EQUAL(scalar1.size(), 1);
+
+  VERIFY_IS_EQUAL(scalar3(), 7);
+  VERIFY_IS_EQUAL(scalar4(), 13);
+}
+
 static void test_1d()
 {
   Tensor<int, 1> vec1(6);
@@ -242,6 +260,7 @@ static void test_casting()
 
 void test_cxx11_tensor_map()
 {
+  CALL_SUBTEST(test_0d());
   CALL_SUBTEST(test_1d());
   CALL_SUBTEST(test_2d());
   CALL_SUBTEST(test_3d());
