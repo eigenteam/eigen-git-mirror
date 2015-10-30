@@ -137,11 +137,15 @@ struct evaluator<PlainObjectBase<Derived> >
       m_outerStride(IsVectorAtCompileTime  ? 0 
                                            : int(IsRowMajor) ? ColsAtCompileTime 
                                            : RowsAtCompileTime)
-  {}
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
   
   EIGEN_DEVICE_FUNC explicit evaluator(const PlainObjectType& m)
     : m_data(m.data()), m_outerStride(IsVectorAtCompileTime ? 0 : m.outerStride()) 
-  { }
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
   {
@@ -327,7 +331,9 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
 
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& n)
     : m_functor(n.functor()) 
-  { }
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
@@ -376,7 +382,10 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp, ArgType>, IndexBased >
   EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& op)
     : m_functor(op.functor()), 
       m_argImpl(op.nestedExpression()) 
-  { }
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(functor_traits<UnaryOp>::Cost);
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
@@ -449,7 +458,10 @@ struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IndexBased, IndexBase
     : m_functor(xpr.functor()),
       m_lhsImpl(xpr.lhs()), 
       m_rhsImpl(xpr.rhs())  
-  { }
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(functor_traits<BinaryOp>::Cost);
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
@@ -502,7 +514,10 @@ struct unary_evaluator<CwiseUnaryView<UnaryOp, ArgType>, IndexBased>
   EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& op)
     : m_unaryOp(op.functor()), 
       m_argImpl(op.nestedExpression()) 
-  { }
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(functor_traits<UnaryOp>::Cost);
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
@@ -559,6 +574,7 @@ struct mapbase_evaluator : evaluator_base<Derived>
   {
     EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(evaluator<Derived>::Flags&PacketAccessBit, internal::inner_stride_at_compile_time<Derived>::ret==1),
                         PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
  
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
@@ -633,20 +649,9 @@ struct evaluator<Map<PlainObjectType, MapOptions, StrideType> >
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     
-    // FIXME  I don't get the code below, in particular why outer-stride-at-compile-time should have any effect on PacketAccessBit...
-    //        Let's remove the code below for 3.4 if no issue occur
-//     PacketAlignment = unpacket_traits<PacketScalar>::alignment,
-//     KeepsPacketAccess = bool(HasNoInnerStride)
-//                         && (  bool(IsDynamicSize)
-//                            || HasNoOuterStride
-//                            || (    OuterStrideAtCompileTime!=Dynamic
-//                                 && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime) % PacketAlignment)==0 ) ),
-    KeepsPacketAccess = bool(HasNoInnerStride),
-
-    Flags0 = evaluator<PlainObjectType>::Flags,
-    Flags1 = (bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime))
-           ? int(Flags0) : int(Flags0 & ~LinearAccessBit),
-    Flags = KeepsPacketAccess ? int(Flags1) : (int(Flags1) & ~PacketAccessBit),
+    PacketAccessMask = bool(HasNoInnerStride) ? ~int(0) : ~int(PacketAccessBit),
+    LinearAccessMask = bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime) ? ~int(0) : ~int(LinearAccessBit),
+    Flags = int( evaluator<PlainObjectType>::Flags) & (LinearAccessMask&PacketAccessMask),
     
     Alignment = int(MapOptions)&int(AlignedMask)
   };
@@ -724,7 +729,10 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     Alignment = EIGEN_PLAIN_ENUM_MIN(evaluator<ArgType>::Alignment, Alignment0)
   };
   typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;
-  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& block) : block_evaluator_type(block) {}
+  EIGEN_DEVICE_FUNC explicit evaluator(const XprType& block) : block_evaluator_type(block)
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 };
 
 // no direct-access => dispatch to a unary evaluator
@@ -842,8 +850,8 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
   typedef Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> XprType;
   enum {
     CoeffReadCost = evaluator<ConditionMatrixType>::CoeffReadCost
-                  + EIGEN_SIZE_MAX(evaluator<ThenMatrixType>::CoeffReadCost,
-                                   evaluator<ElseMatrixType>::CoeffReadCost),
+                  + EIGEN_PLAIN_ENUM_MAX(evaluator<ThenMatrixType>::CoeffReadCost,
+                                         evaluator<ElseMatrixType>::CoeffReadCost),
 
     Flags = (unsigned int)evaluator<ThenMatrixType>::Flags & evaluator<ElseMatrixType>::Flags & HereditaryBits,
     
@@ -854,7 +862,9 @@ struct evaluator<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
     : m_conditionImpl(select.conditionMatrix()),
       m_thenImpl(select.thenMatrix()),
       m_elseImpl(select.elseMatrix())
-  { }
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
  
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
@@ -976,11 +986,11 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
   typedef typename ArgType::Scalar InputScalar;
   typedef typename XprType::Scalar Scalar;
   enum {
-    TraversalSize = Direction==int(Vertical) ? int(ArgType::RowsAtCompileTime) :  int(XprType::ColsAtCompileTime)
+    TraversalSize = Direction==int(Vertical) ? int(ArgType::RowsAtCompileTime) :  int(ArgType::ColsAtCompileTime)
   };
   typedef typename MemberOp::template Cost<InputScalar,int(TraversalSize)> CostOpType;
   enum {
-    CoeffReadCost = TraversalSize==Dynamic ? Dynamic
+    CoeffReadCost = TraversalSize==Dynamic ? HugeCost
                   : TraversalSize * evaluator<ArgType>::CoeffReadCost + int(CostOpType::value),
     
     Flags = (traits<XprType>::Flags&RowMajorBit) | (evaluator<ArgType>::Flags&HereditaryBits),
@@ -990,7 +1000,10 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
 
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType xpr)
     : m_arg(xpr.nestedExpression()), m_functor(xpr.functor())
-  {}
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(TraversalSize==Dynamic ? HugeCost : int(CostOpType::value));
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 

@@ -56,5 +56,16 @@ void test_product_small()
     VERIFY_IS_APPROX(B * A.inverse(), B * A.inverse()[0]);
     VERIFY_IS_APPROX(A.inverse() * C, A.inverse()[0] * C);
   }
+
+  {
+    Eigen::Matrix<double, 100, 100> A, B, C;
+    A.setRandom();
+    C = A;
+    for(int k=0; k<79; ++k)
+      C = C * A;
+    B.noalias() = (((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)) * ((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)))
+                * (((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)) * ((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)));
+    VERIFY_IS_APPROX(B,C);
+  }
 #endif
 }

@@ -136,9 +136,13 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
 template< typename DstXprType, typename SrcXprType, typename Functor>
 struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
 {
+  typedef typename DstXprType::Scalar Scalar;
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
+
+    if(internal::is_same<Functor,internal::assign_op<Scalar> >::value)
+      dst.setZero();
     
     internal::evaluator<SrcXprType> srcEval(src);
     internal::evaluator<DstXprType> dstEval(dst);
@@ -146,23 +150,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
     for (Index j=0; j<outerEvaluationSize; ++j)
       for (typename internal::evaluator<SrcXprType>::InnerIterator i(srcEval,j); i; ++i)
         func.assignCoeff(dstEval.coeffRef(i.row(),i.col()), i.value());
-  }
-};
-
-template< typename DstXprType, typename SrcXprType>
-struct Assignment<DstXprType, SrcXprType, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense>
-{
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &)
-  {
-    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    
-    dst.setZero();
-    internal::evaluator<SrcXprType> srcEval(src);
-    internal::evaluator<DstXprType> dstEval(dst);
-    const Index outerEvaluationSize = (internal::evaluator<SrcXprType>::Flags&RowMajorBit) ? src.rows() : src.cols();
-    for (Index j=0; j<outerEvaluationSize; ++j)
-      for (typename internal::evaluator<SrcXprType>::InnerIterator i(srcEval,j); i; ++i)
-        dstEval.coeffRef(i.row(),i.col()) = i.value();
   }
 };
 

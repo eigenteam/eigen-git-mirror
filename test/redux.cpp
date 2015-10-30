@@ -24,7 +24,7 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   MatrixType m1 = MatrixType::Random(rows, cols);
 
   // The entries of m1 are uniformly distributed in [0,1], so m1.prod() is very small. This may lead to test
-  // failures if we underflow into denormals. Thus, we scale so that entires are close to 1.
+  // failures if we underflow into denormals. Thus, we scale so that entries are close to 1.
   MatrixType m1_for_prod = MatrixType::Ones(rows, cols) + RealScalar(0.2) * m1;
 
   VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::Zero(rows, cols).sum(), Scalar(1));
@@ -71,8 +71,9 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
 
   // test nesting complex expression
   VERIFY_EVALUATION_COUNT( (m1.matrix()*m1.matrix().transpose()).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
-  VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())*Scalar(2)).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
-
+  Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> m2(rows,rows);
+  m2.setRandom();
+  VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())+m2).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
 }
 
 template<typename VectorType> void vectorRedux(const VectorType& w)

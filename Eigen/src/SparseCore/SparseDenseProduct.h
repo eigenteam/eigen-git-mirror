@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -221,7 +221,7 @@ protected:
 public:
   enum {
     Flags = NeedToTranspose ? RowMajorBit : 0,
-    CoeffReadCost = Dynamic
+    CoeffReadCost = HugeCost
   };
   
   class InnerIterator : public LhsIterator
@@ -263,12 +263,16 @@ public:
   
   sparse_dense_outer_product_evaluator(const Lhs1 &lhs, const ActualRhs &rhs)
      : m_lhs(lhs), m_lhsXprImpl(m_lhs), m_rhsXprImpl(rhs)
-  {}
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
   
   // transpose case
   sparse_dense_outer_product_evaluator(const ActualRhs &rhs, const Lhs1 &lhs)
      : m_lhs(lhs), m_lhsXprImpl(m_lhs), m_rhsXprImpl(rhs)
-  {}
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
     
 protected:
   const LhsArg m_lhs;

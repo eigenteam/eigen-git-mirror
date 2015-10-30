@@ -11,35 +11,9 @@
 #include "main.h"
 #include <typeinfo>
 
-std::string demangle_traversal(int t)
-{
-  if(t==DefaultTraversal) return "DefaultTraversal";
-  if(t==LinearTraversal) return "LinearTraversal";
-  if(t==InnerVectorizedTraversal) return "InnerVectorizedTraversal";
-  if(t==LinearVectorizedTraversal) return "LinearVectorizedTraversal";
-  if(t==SliceVectorizedTraversal) return "SliceVectorizedTraversal";
-  return "?";
-}
-std::string demangle_unrolling(int t)
-{
-  if(t==NoUnrolling) return "NoUnrolling";
-  if(t==InnerUnrolling) return "InnerUnrolling";
-  if(t==CompleteUnrolling) return "CompleteUnrolling";
-  return "?";
-}
-std::string demangle_flags(int f)
-{
-  std::string res;
-  if(f&RowMajorBit)                 res += " | RowMajor";
-  if(f&PacketAccessBit)             res += " | Packet";
-  if(f&LinearAccessBit)             res += " | Linear";
-  if(f&LvalueBit)                   res += " | Lvalue";
-  if(f&DirectAccessBit)             res += " | Direct";
-  if(f&NestByRefBit)                res += " | NestByRef";
-  if(f&NoPreferredStorageOrderBit)  res += " | NoPreferredStorageOrderBit";
-  
-  return res;
-}
+using internal::demangle_flags;
+using internal::demangle_traversal;
+using internal::demangle_unrolling;
 
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)

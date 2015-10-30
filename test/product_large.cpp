@@ -61,6 +61,17 @@ void test_product_large()
     MatrixXf r2 = mat1.row(2)*mat2;
     VERIFY_IS_APPROX(r2, (mat1.row(2)*mat2).eval());
   }
+
+  {
+    Eigen::MatrixXd A(10,10), B, C;
+    A.setRandom();
+    C = A;
+    for(int k=0; k<79; ++k)
+      C = C * A;
+    B.noalias() = (((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)) * ((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)))
+                * (((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)) * ((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)));
+    VERIFY_IS_APPROX(B,C);
+  }
 #endif
 
   // Regression test for bug 714:

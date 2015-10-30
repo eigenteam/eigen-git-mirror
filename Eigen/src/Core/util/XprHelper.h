@@ -397,28 +397,20 @@ struct transfer_constness
 template<typename T, int n, typename PlainObject = typename plain_object_eval<T>::type> struct nested_eval
 {
   enum {
-    // For the purpose of this test, to keep it reasonably simple, we arbitrarily choose a value of Dynamic values.
-    // the choice of 10000 makes it larger than any practical fixed value and even most dynamic values.
-    // in extreme cases where these assumptions would be wrong, we would still at worst suffer performance issues
-    // (poor choice of temporaries).
-    // It's important that this value can still be squared without integer overflowing.
-    DynamicAsInteger = 10000,
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
     CoeffReadCost = evaluator<T>::CoeffReadCost,  // NOTE What if an evaluator evaluate itself into a tempory?
                                                   //      Then CoeffReadCost will be small (e.g., 1) but we still have to evaluate, especially if n>1.
                                                   //      This situation is already taken care by the EvalBeforeNestingBit flag, which is turned ON
                                                   //      for all evaluator creating a temporary. This flag is then propagated by the parent evaluators.
                                                   //      Another solution could be to count the number of temps?
-    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
-    NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
-    CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
-    CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger
+    NAsInteger = n == Dynamic ? HugeCost : n,
+    CostEval   = (NAsInteger+1) * ScalarReadCost + CoeffReadCost,
+    CostNoEval = NAsInteger * CoeffReadCost
   };
 
   typedef typename conditional<
         ( (int(evaluator<T>::Flags) & EvalBeforeNestingBit) ||
-          (int(CostEvalAsInteger) < int(CostNoEvalAsInteger)) ),
+          (int(CostEval) < int(CostNoEval)) ),
         PlainObject,
         typename ref_selector<T>::type
   >::type type;
@@ -460,9 +452,9 @@ struct generic_xpr_base<Derived, XprKind, Dense>
 
 /** \internal Helper base class to add a scalar multiple operator
   * overloads for complex types */
-template<typename Derived,typename Scalar,typename OtherScalar,
+template<typename Derived, typename Scalar, typename OtherScalar, typename BaseType,
          bool EnableIt = !is_same<Scalar,OtherScalar>::value >
-struct special_scalar_op_base : public DenseCoeffsBase<Derived>
+struct special_scalar_op_base : public BaseType
 {
   // dummy operator* so that the
   // "using special_scalar_op_base::operator*" compiles
@@ -471,8 +463,8 @@ struct special_scalar_op_base : public DenseCoeffsBase<Derived>
   void operator/(dummy) const;
 };
 
-template<typename Derived,typename Scalar,typename OtherScalar>
-struct special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public DenseCoeffsBase<Derived>
+template<typename Derived,typename Scalar,typename OtherScalar, typename BaseType>
+struct special_scalar_op_base<Derived,Scalar,OtherScalar,BaseType,true>  : public BaseType
 {
   const CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar) const
@@ -669,6 +661,38 @@ template<typename T, typename U> struct is_same_or_void { enum { value = is_same
 template<typename T> struct is_same_or_void<void,T>     { enum { value = 1 }; };
 template<typename T> struct is_same_or_void<T,void>     { enum { value = 1 }; };
 template<>           struct is_same_or_void<void,void>  { enum { value = 1 }; };
+
+#ifdef EIGEN_DEBUG_ASSIGN
+std::string demangle_traversal(int t)
+{
+  if(t==DefaultTraversal) return "DefaultTraversal";
+  if(t==LinearTraversal) return "LinearTraversal";
+  if(t==InnerVectorizedTraversal) return "InnerVectorizedTraversal";
+  if(t==LinearVectorizedTraversal) return "LinearVectorizedTraversal";
+  if(t==SliceVectorizedTraversal) return "SliceVectorizedTraversal";
+  return "?";
+}
+std::string demangle_unrolling(int t)
+{
+  if(t==NoUnrolling) return "NoUnrolling";
+  if(t==InnerUnrolling) return "InnerUnrolling";
+  if(t==CompleteUnrolling) return "CompleteUnrolling";
+  return "?";
+}
+std::string demangle_flags(int f)
+{
+  std::string res;
+  if(f&RowMajorBit)                 res += " | RowMajor";
+  if(f&PacketAccessBit)             res += " | Packet";
+  if(f&LinearAccessBit)             res += " | Linear";
+  if(f&LvalueBit)                   res += " | Lvalue";
+  if(f&DirectAccessBit)             res += " | Direct";
+  if(f&NestByRefBit)                res += " | NestByRef";
+  if(f&NoPreferredStorageOrderBit)  res += " | NoPreferredStorageOrderBit";
+  
+  return res;
+}
+#endif
 
 } // end namespace internal
 

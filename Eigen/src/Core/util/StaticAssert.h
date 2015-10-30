@@ -93,7 +93,8 @@
         THE_STORAGE_ORDER_OF_BOTH_SIDES_MUST_MATCH,
         OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG,
         IMPLICIT_CONVERSION_TO_SCALAR_IS_FOR_INNER_PRODUCT_ONLY,
-        STORAGE_LAYOUT_DOES_NOT_MATCH
+        STORAGE_LAYOUT_DOES_NOT_MATCH,
+        EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT__INVALID_COST_VALUE
       };
     };
 
@@ -200,5 +201,9 @@
                                             >::value), \
                           YOU_CANNOT_MIX_ARRAYS_AND_MATRICES)
 
+// Check that a cost value is positive, and that is stay within a reasonable range
+// TODO this check could be enabled for internal debugging only
+#define EIGEN_INTERNAL_CHECK_COST_VALUE(C) \
+      EIGEN_STATIC_ASSERT((C)>=0 && (C)<=HugeCost*HugeCost, EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT__INVALID_COST_VALUE);
 
 #endif // EIGEN_STATIC_ASSERT_H

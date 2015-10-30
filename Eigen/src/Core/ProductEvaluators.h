@@ -422,7 +422,11 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
       m_rhsImpl(m_rhs),     //       Moreover, they are only useful for the packet path, so we could completely disable them when not needed,
                             //       or perhaps declare them on the fly on the packet method... We have experiment to check what's best.
       m_innerDim(xpr.lhs().cols())
-  { }
+  {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(NumTraits<Scalar>::MulCost);
+    EIGEN_INTERNAL_CHECK_COST_VALUE(NumTraits<Scalar>::AddCost);
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+  }
 
   // Everything below here is taken from CoeffBasedProduct.h
 
@@ -447,11 +451,11 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     LhsCoeffReadCost = LhsEtorType::CoeffReadCost,
     RhsCoeffReadCost = RhsEtorType::CoeffReadCost,
     CoeffReadCost = InnerSize==0 ? NumTraits<Scalar>::ReadCost
-                  : (InnerSize == Dynamic || LhsCoeffReadCost==Dynamic || RhsCoeffReadCost==Dynamic || NumTraits<Scalar>::AddCost==Dynamic || NumTraits<Scalar>::MulCost==Dynamic) ? Dynamic
+                  : InnerSize == Dynamic ? HugeCost
                   : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
                     + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
 
-    Unroll = CoeffReadCost != Dynamic && CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
+    Unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
     
     LhsFlags = LhsEtorType::Flags,
     RhsFlags = RhsEtorType::Flags,
@@ -736,6 +740,8 @@ public:
   diagonal_product_evaluator_base(const MatrixType &mat, const DiagonalType &diag)
     : m_diagImpl(diag), m_matImpl(mat)
   {
+    EIGEN_INTERNAL_CHECK_COST_VALUE(NumTraits<Scalar>::MulCost);
+    EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
   
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar coeff(Index idx) const
