@@ -136,7 +136,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
 template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
 struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
 {
-  typedef typename DstXprType::Scalar Scalar;
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
