@@ -149,7 +149,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
     VERIFY_IS_APPROX(tridiag.matrixT(), eiSymmTridiag.eigenvectors().real() * eiSymmTridiag.eigenvalues().asDiagonal() * eiSymmTridiag.eigenvectors().real().transpose());
   }
 
-  if (rows > 1)
+  if (rows > 1 && rows < 20)
   {
     // Test matrix with NaN
     symmC(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
