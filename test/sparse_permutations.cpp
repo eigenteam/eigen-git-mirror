@@ -76,34 +76,34 @@ template<int OtherStorage, typename SparseMatrixType> void sparse_permutations(c
   randomPermutationVector(pi, cols);
   p.indices() = pi;
 
-  VERIFY( is_sorted( eval(mat*p) ));
+  VERIFY( is_sorted( ::eval(mat*p) ));
   VERIFY( is_sorted( res = mat*p ));
-  VERIFY_TRANSPOSITION_COUNT( eval(mat*p), 0);
+  VERIFY_TRANSPOSITION_COUNT( ::eval(mat*p), 0);
   //VERIFY_TRANSPOSITION_COUNT( res = mat*p, IsRowMajor ? 1 : 0 );
   res_d = mat_d*p;
   VERIFY(res.isApprox(res_d) && "mat*p");
 
-  VERIFY( is_sorted( eval(p*mat) ));
+  VERIFY( is_sorted( ::eval(p*mat) ));
   VERIFY( is_sorted( res = p*mat ));
-  VERIFY_TRANSPOSITION_COUNT( eval(p*mat), 0);
+  VERIFY_TRANSPOSITION_COUNT( ::eval(p*mat), 0);
   res_d = p*mat_d;
   VERIFY(res.isApprox(res_d) && "p*mat");
 
   VERIFY( is_sorted( (mat*p).eval() ));
   VERIFY( is_sorted( res = mat*p.inverse() ));
-  VERIFY_TRANSPOSITION_COUNT( eval(mat*p.inverse()), 0);
+  VERIFY_TRANSPOSITION_COUNT( ::eval(mat*p.inverse()), 0);
   res_d = mat*p.inverse();
   VERIFY(res.isApprox(res_d) && "mat*inv(p)");
 
   VERIFY( is_sorted( (p*mat+p*mat).eval() ));
   VERIFY( is_sorted( res = p.inverse()*mat ));
-  VERIFY_TRANSPOSITION_COUNT( eval(p.inverse()*mat), 0);
+  VERIFY_TRANSPOSITION_COUNT( ::eval(p.inverse()*mat), 0);
   res_d = p.inverse()*mat_d;
   VERIFY(res.isApprox(res_d) && "inv(p)*mat");
 
   VERIFY( is_sorted( (p * mat * p.inverse()).eval() ));
   VERIFY( is_sorted( res = mat.twistedBy(p) ));
-  VERIFY_TRANSPOSITION_COUNT( eval(p * mat * p.inverse()), 0);
+  VERIFY_TRANSPOSITION_COUNT( ::eval(p * mat * p.inverse()), 0);
   res_d = (p * mat_d) * p.inverse();
   VERIFY(res.isApprox(res_d) && "p*mat*inv(p)");
 
