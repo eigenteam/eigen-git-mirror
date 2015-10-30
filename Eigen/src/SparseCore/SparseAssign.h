@@ -132,9 +132,9 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
   }
 };
 
-// Sparse to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor>
-struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
+// Generic Sparse to Dense assignment
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
+struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
 {
   typedef typename DstXprType::Scalar Scalar;
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
