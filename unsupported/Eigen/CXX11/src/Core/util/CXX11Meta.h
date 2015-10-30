@@ -253,6 +253,13 @@ template<
 > struct reduce;
 
 template<
+  typename Reducer
+> struct reduce<Reducer>
+{
+  constexpr static inline int run() { return Reducer::Identity; }
+};
+
+template<
   typename Reducer,
   typename A,
   typename... Ts
@@ -275,8 +282,14 @@ template<
 
 /* generic binary operations */
 
-struct sum_op           { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a + b)   { return a + b;   } };
-struct product_op       { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a * b)   { return a * b;   } };
+struct sum_op           {
+  template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a + b)   { return a + b;   }
+  static constexpr int Identity = 0;
+};
+struct product_op       {
+  template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a * b)   { return a * b;   }
+  static constexpr int Identity = 1;
+};
 
 struct logical_and_op   { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a && b)  { return a && b;  } };
 struct logical_or_op    { template<typename A, typename B> constexpr static inline auto run(A a, B b) -> decltype(a || b)  { return a || b;  } };
