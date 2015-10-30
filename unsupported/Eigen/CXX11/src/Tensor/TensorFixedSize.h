@@ -90,6 +90,14 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
       return m_storage.data()[index];
     }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Scalar& coeff() const
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return m_storage.data()[0];
+    }
+
+
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     inline Scalar& coeffRef(Index firstIndex, IndexTypes... otherIndices)
@@ -114,6 +122,14 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
       return m_storage.data()[index];
     }
 
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Scalar& coeffRef()
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return m_storage.data()[0];
+    }
+
+
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     inline const Scalar& operator()(Index firstIndex, IndexTypes... otherIndices) const
@@ -136,6 +152,13 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
       eigen_internal_assert(index >= 0 && index < size());
       return coeff(index);
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Scalar& operator()() const
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return coeff();
     }
 
     EIGEN_DEVICE_FUNC
@@ -168,6 +191,13 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
       eigen_assert(index >= 0 && index < size());
       return coeffRef(index);
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Scalar& operator()()
+    {
+      EIGEN_STATIC_ASSERT(NumIndices == 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+      return coeffRef();
     }
 
     EIGEN_DEVICE_FUNC
