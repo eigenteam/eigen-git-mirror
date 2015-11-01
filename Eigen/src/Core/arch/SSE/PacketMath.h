@@ -109,7 +109,13 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
-    HasBlend = 1
+    HasBlend = 1,
+
+#ifdef EIGEN_VECTORIZE_SSE4_1
+    HasRound = 1,
+    HasFloor = 1,
+    HasCeil = 1
+#endif
   };
 };
 template<> struct packet_traits<double> : default_packet_traits
@@ -126,7 +132,13 @@ template<> struct packet_traits<double> : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
-    HasBlend = 1
+    HasBlend = 1,
+
+#ifdef EIGEN_VECTORIZE_SSE4_1
+    HasRound = 1,
+    HasFloor = 1,
+    HasCeil = 1
+#endif
   };
 };
 #endif
@@ -255,6 +267,17 @@ template<> EIGEN_STRONG_INLINE Packet4i pmax<Packet4i>(const Packet4i& a, const 
   return _mm_or_si128(_mm_and_si128(mask,a),_mm_andnot_si128(mask,b));
 #endif
 }
+
+#ifdef EIGEN_VECTORIZE_SSE4_1
+template<> EIGEN_STRONG_INLINE Packet4f pround<Packet4f>(const Packet4f& a) { return _mm_round_ps(a, 0); }
+template<> EIGEN_STRONG_INLINE Packet2d pround<Packet2d>(const Packet2d& a) { return _mm_round_pd(a, 0); }
+
+template<> EIGEN_STRONG_INLINE Packet4f pceil<Packet4f>(const Packet4f& a) { return _mm_ceil_ps(a); }
+template<> EIGEN_STRONG_INLINE Packet2d pceil<Packet2d>(const Packet2d& a) { return _mm_ceil_pd(a); }
+
+template<> EIGEN_STRONG_INLINE Packet4f pfloor<Packet4f>(const Packet4f& a) { return _mm_floor_ps(a); }
+template<> EIGEN_STRONG_INLINE Packet2d pfloor<Packet2d>(const Packet2d& a) { return _mm_floor_pd(a); }
+#endif
 
 template<> EIGEN_STRONG_INLINE Packet4f pand<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_and_ps(a,b); }
 template<> EIGEN_STRONG_INLINE Packet2d pand<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_and_pd(a,b); }
