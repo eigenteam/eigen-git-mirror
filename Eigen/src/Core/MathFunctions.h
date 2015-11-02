@@ -877,7 +877,7 @@ template<> EIGEN_DEVICE_FUNC inline bool (isnan)(const float& x)       { return 
 
 template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const long double& x) { return isinf_msvc_helper(x); }
 template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const double& x)      { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC inline bool (isinf./)(const float& x)       { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const float& x)       { return isinf_msvc_helper(x); }
 
 #elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
 
@@ -885,7 +885,7 @@ template<> EIGEN_DEVICE_FUNC inline bool (isinf./)(const float& x)       { retur
   #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((optimize("no-finite-math-only")))
 #else
   // NOTE the inline qualifier and noinline attribute are both needed: the former is to avoid linking issue (duplicate symbol),
-  //      while the second prevent too aggressive optimizations in fast-math mode
+  //      while the second prevent too aggressive optimizations in fast-math mode:
   #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((noinline,optimize("no-finite-math-only")))
 #endif
 
