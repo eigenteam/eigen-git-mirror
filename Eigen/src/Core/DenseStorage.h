@@ -126,7 +126,11 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
     DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()) {}
     DenseStorage(const DenseStorage& other) : m_data(other.m_data) {}
-    DenseStorage& operator=(DenseStorage other) { other.swap(*this); return *this; }
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other) m_data = other.m_data;
+      return *this;
+    }
     DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
     void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
     static DenseIndex rows(void) {return _Rows;}
@@ -176,7 +180,16 @@ template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic
     DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()), m_rows(0), m_cols(0) {}
     DenseStorage(const DenseStorage& other) : m_data(other.m_data), m_rows(other.m_rows), m_cols(other.m_cols) {}
-    DenseStorage& operator=(DenseStorage other) { other.swap(*this); return *this; }
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        m_data = other.m_data;
+        m_rows = other.m_rows;
+        m_cols = other.m_cols;
+      }
+      return *this;
+    }
     DenseStorage(DenseIndex, DenseIndex nbRows, DenseIndex nbCols) : m_rows(nbRows), m_cols(nbCols) {}
     void swap(DenseStorage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
@@ -198,7 +211,15 @@ template<typename T, int Size, int _Cols, int _Options> class DenseStorage<T, Si
     DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()), m_rows(0) {}
     DenseStorage(const DenseStorage& other) : m_data(other.m_data), m_rows(other.m_rows) {}
-    DenseStorage& operator=(DenseStorage other) { other.swap(*this); return *this; }
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        m_data = other.m_data;
+        m_rows = other.m_rows;
+      }
+      return *this;
+    }
     DenseStorage(DenseIndex, DenseIndex nbRows, DenseIndex) : m_rows(nbRows) {}
     void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     DenseIndex rows(void) const {return m_rows;}
@@ -219,7 +240,15 @@ template<typename T, int Size, int _Rows, int _Options> class DenseStorage<T, Si
     DenseStorage(internal::constructor_without_unaligned_array_assert)
       : m_data(internal::constructor_without_unaligned_array_assert()), m_cols(0) {}
     DenseStorage(const DenseStorage& other) : m_data(other.m_data), m_cols(other.m_cols) {}
-    DenseStorage& operator=(DenseStorage other) { other.swap(*this); return *this; }
+    DenseStorage& operator=(const DenseStorage& other)
+    {
+      if (this != &other)
+      {
+        m_data = other.m_data;
+        m_cols = other.m_cols;
+      }
+      return *this;
+    }
     DenseStorage(DenseIndex, DenseIndex, DenseIndex nbCols) : m_cols(nbCols) {}
     void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     DenseIndex rows(void) const {return _Rows;}
