@@ -296,6 +296,10 @@ template<typename Scalar> void packetmath_real()
   EIGEN_ALIGN_MAX Scalar data2[PacketTraits::size*4];
   EIGEN_ALIGN_MAX Scalar ref[PacketTraits::size*4];
 
+  CHECK_CWISE1_IF(PacketTraits::HasRound, std::round, internal::pround);
+  CHECK_CWISE1_IF(PacketTraits::HasCeil, std::ceil, internal::pceil);
+  CHECK_CWISE1_IF(PacketTraits::HasFloor, std::floor, internal::pfloor);
+
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-3,3));
