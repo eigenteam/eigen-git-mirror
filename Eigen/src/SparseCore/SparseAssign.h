@@ -64,6 +64,7 @@ struct Sparse2Dense  {};
 template<> struct AssignmentKind<SparseShape, SparseShape>           { typedef Sparse2Sparse Kind; };
 template<> struct AssignmentKind<SparseShape, SparseTriangularShape> { typedef Sparse2Sparse Kind; };
 template<> struct AssignmentKind<DenseShape,  SparseShape>           { typedef Sparse2Dense  Kind; };
+template<> struct AssignmentKind<DenseShape,  SparseTriangularShape> { typedef Sparse2Dense  Kind; };
 
 
 template<typename DstXprType, typename SrcXprType>

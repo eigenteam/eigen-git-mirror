@@ -338,6 +338,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat3 = refMat2.template triangularView<StrictlyLower>();
     m3 = m2.template triangularView<StrictlyLower>();
     VERIFY_IS_APPROX(m3, refMat3);
+
+    // check sparse-traingular to dense
+    refMat3 = m2.template triangularView<StrictlyUpper>();
+    VERIFY_IS_APPROX(refMat3, DenseMatrix(refMat2.template triangularView<StrictlyUpper>()));
   }
   
   // test selfadjointView
