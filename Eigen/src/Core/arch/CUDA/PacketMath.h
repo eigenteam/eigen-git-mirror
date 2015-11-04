@@ -177,7 +177,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<double>(double* to
   to[1] = from.y;
 }
 
-#ifdef __CUDA_ARCH__
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Aligned>(const float* from) {
   return __ldg((const float4*)from);
