@@ -317,20 +317,18 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
-    #define EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE \
-      CwiseBinaryOp< \
-        internal::scalar_product_op< \
-          typename internal::scalar_product_traits< \
-            typename internal::traits<Derived>::Scalar, \
-            typename internal::traits<OtherDerived>::Scalar \
-          >::ReturnType \
-        >, \
-        const Derived, \
-        const OtherDerived \
-      >
+    template<typename OtherDerived> struct CwiseProductDenseReturnType {
+      typedef CwiseBinaryOp<internal::scalar_product_op<typename internal::scalar_product_traits<
+                                                          typename internal::traits<Derived>::Scalar,
+                                                          typename internal::traits<OtherDerived>::Scalar
+                                                        >::ReturnType>,
+                            const Derived,
+                            const OtherDerived
+                          > Type;
+    };
 
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+    EIGEN_STRONG_INLINE const typename CwiseProductDenseReturnType<OtherDerived>::Type
     cwiseProduct(const MatrixBase<OtherDerived> &other) const;
 
     // sparse * sparse
