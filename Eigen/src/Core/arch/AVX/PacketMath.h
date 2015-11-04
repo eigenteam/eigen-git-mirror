@@ -182,14 +182,14 @@ template<> EIGEN_STRONG_INLINE Packet4d pmin<Packet4d>(const Packet4d& a, const 
 template<> EIGEN_STRONG_INLINE Packet8f pmax<Packet8f>(const Packet8f& a, const Packet8f& b) { return _mm256_max_ps(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4d pmax<Packet4d>(const Packet4d& a, const Packet4d& b) { return _mm256_max_pd(a,b); }
 
-template<> EIGEN_STRONG_INLINE Packet4f pround<Packet8f>(const Packet8f& a) { return _mm256_round_ps(a, 0); }
-template<> EIGEN_STRONG_INLINE Packet2d pround<Packet4d>(const Packet4d& a) { return _mm256_round_pd(a, 0); }
+template<> EIGEN_STRONG_INLINE Packet8f pround<Packet8f>(const Packet8f& a) { return _mm256_round_ps(a, _MM_FROUND_CUR_DIRECTION); }
+template<> EIGEN_STRONG_INLINE Packet4d pround<Packet4d>(const Packet4d& a) { return _mm256_round_pd(a, _MM_FROUND_CUR_DIRECTION); }
 
-template<> EIGEN_STRONG_INLINE Packet4f pceil<Packet8f>(const Packet8f& a) { return _mm256_ceil_ps(a); }
-template<> EIGEN_STRONG_INLINE Packet2d pceil<Packet4d>(const Packet4d& a) { return _mm256_ceil_pd(a); }
+template<> EIGEN_STRONG_INLINE Packet8f pceil<Packet8f>(const Packet8f& a) { return _mm256_ceil_ps(a); }
+template<> EIGEN_STRONG_INLINE Packet4d pceil<Packet4d>(const Packet4d& a) { return _mm256_ceil_pd(a); }
 
-template<> EIGEN_STRONG_INLINE Packet4f pfloor<Packet8f>(const Packet8f& a) { return _mm256_floor_ps(a); }
-template<> EIGEN_STRONG_INLINE Packet2d pfloor<Packet4d>(const Packet4d& a) { return _mm256_floor_pd(a); }
+template<> EIGEN_STRONG_INLINE Packet8f pfloor<Packet8f>(const Packet8f& a) { return _mm256_floor_ps(a); }
+template<> EIGEN_STRONG_INLINE Packet4d pfloor<Packet4d>(const Packet4d& a) { return _mm256_floor_pd(a); }
 
 template<> EIGEN_STRONG_INLINE Packet8f pand<Packet8f>(const Packet8f& a, const Packet8f& b) { return _mm256_and_ps(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4d pand<Packet4d>(const Packet4d& a, const Packet4d& b) { return _mm256_and_pd(a,b); }
