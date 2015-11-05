@@ -109,9 +109,10 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
-    HasBlend = 1,
+    HasBlend = 1
 
 #ifdef EIGEN_VECTORIZE_SSE4_1
+    ,
     HasRound = 1,
     HasFloor = 1,
     HasCeil = 1
@@ -132,9 +133,10 @@ template<> struct packet_traits<double> : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
-    HasBlend = 1,
+    HasBlend = 1
 
 #ifdef EIGEN_VECTORIZE_SSE4_1
+    ,
     HasRound = 1,
     HasFloor = 1,
     HasCeil = 1

@@ -629,7 +629,7 @@ template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
   typedef AutoDiffScalar<Matrix<typename NumTraits<typename DerType::Scalar>::Real,DerType::RowsAtCompileTime,DerType::ColsAtCompileTime,
                                 DerType::Options, DerType::MaxRowsAtCompileTime, DerType::MaxColsAtCompileTime> > Real;
   typedef AutoDiffScalar<DerType> NonInteger;
-  typedef AutoDiffScalar<DerType>& Nested;
+  typedef AutoDiffScalar<DerType> Nested;
   enum{
     RequireInitialization = 1
   };

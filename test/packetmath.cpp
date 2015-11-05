@@ -29,7 +29,7 @@ template<typename Scalar> bool areApproxAbs(const Scalar* a, const Scalar* b, in
   {
     if (!isApproxAbs(a[i],b[i],refvalue))
     {
-      std::cout << "[" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != " << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "\n";
+      std::cout << "ref: [" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != vec: [" << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "]\n";
       return false;
     }
   }
@@ -42,7 +42,7 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
   {
     if (a[i]!=b[i] && !internal::isApprox(a[i],b[i]))
     {
-      std::cout << "[" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != " << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "\n";
+      std::cout << "ref: [" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != vec: [" << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "]\n";
       return false;
     }
   }
@@ -296,10 +296,6 @@ template<typename Scalar> void packetmath_real()
   EIGEN_ALIGN_MAX Scalar data2[PacketTraits::size*4];
   EIGEN_ALIGN_MAX Scalar ref[PacketTraits::size*4];
 
-  CHECK_CWISE1_IF(PacketTraits::HasRound, std::round, internal::pround);
-  CHECK_CWISE1_IF(PacketTraits::HasCeil, std::ceil, internal::pceil);
-  CHECK_CWISE1_IF(PacketTraits::HasFloor, std::floor, internal::pfloor);
-
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-3,3));
@@ -308,6 +304,10 @@ template<typename Scalar> void packetmath_real()
   CHECK_CWISE1_IF(PacketTraits::HasSin, std::sin, internal::psin);
   CHECK_CWISE1_IF(PacketTraits::HasCos, std::cos, internal::pcos);
   CHECK_CWISE1_IF(PacketTraits::HasTan, std::tan, internal::ptan);
+
+  CHECK_CWISE1_IF(PacketTraits::HasRound, numext::round, internal::pround);
+  CHECK_CWISE1_IF(PacketTraits::HasCeil, numext::ceil, internal::pceil);
+  CHECK_CWISE1_IF(PacketTraits::HasFloor, numext::floor, internal::pfloor);
   
   for (int i=0; i<size; ++i)
   {
