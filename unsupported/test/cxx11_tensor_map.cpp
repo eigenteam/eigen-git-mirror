@@ -232,8 +232,11 @@ static void test_from_tensor()
 
 
 static int f(const TensorMap<Tensor<int, 3> >& tensor) {
-  Tensor<int, 1> result = tensor.sum();
-  return result(0);
+  //  Size<0> empty;
+  EIGEN_STATIC_ASSERT((internal::array_size<Sizes<>>::value == 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::array_size<DSizes<int, 0>>::value == 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  Tensor<int, 0> result = tensor.sum();
+  return result();
 }
 
 static void test_casting()

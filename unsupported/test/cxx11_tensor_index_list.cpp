@@ -142,7 +142,7 @@ static void test_type2index_list()
   }
 
   const Dims4 reduction_axis4;
-  Tensor<float, 1> result4 = tensor.sum(reduction_axis4);
+  Tensor<float, 0> result4 = tensor.sum(reduction_axis4);
   float expected = 0.0f;
   for (int m = 0; m < 11; ++m) {
     for (int l = 0; l < 7; ++l) {
@@ -155,7 +155,7 @@ static void test_type2index_list()
       }
     }
   }
-  VERIFY_IS_APPROX(result4(0), expected);
+  VERIFY_IS_APPROX(result4(), expected);
 }
 
 
@@ -236,9 +236,9 @@ static void test_mixed_index_list()
   EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<ReductionList>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
 #endif
 
-  Tensor<float, 1> result1 = tensor.sum(reduction_axis);
-  Tensor<float, 1> result2 = tensor.sum(reduction_indices);
-  Tensor<float, 1> result3 = tensor.sum(reduction_list);
+  Tensor<float, 0> result1 = tensor.sum(reduction_axis);
+  Tensor<float, 0> result2 = tensor.sum(reduction_indices);
+  Tensor<float, 0> result3 = tensor.sum(reduction_list);
 
   float expected = 0.0f;
   for (int i = 0; i < 2; ++i) {
@@ -250,9 +250,9 @@ static void test_mixed_index_list()
       }
     }
   }
-  VERIFY_IS_APPROX(result1(0), expected);
-  VERIFY_IS_APPROX(result2(0), expected);
-  VERIFY_IS_APPROX(result3(0), expected);
+  VERIFY_IS_APPROX(result1(), expected);
+  VERIFY_IS_APPROX(result2(), expected);
+  VERIFY_IS_APPROX(result3(), expected);
 }
 
 

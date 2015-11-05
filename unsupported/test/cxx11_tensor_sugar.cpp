@@ -14,7 +14,7 @@ static void test_comparison_sugar() {
   // make sure we have at least one value == 0
   t(0,0,0) = 0;
 
-  Tensor<bool,1> b;
+  Tensor<bool,0> b;
 
 #define TEST_TENSOR_EQUAL(e1, e2) \
   b = ((e1) == (e2)).all();       \
