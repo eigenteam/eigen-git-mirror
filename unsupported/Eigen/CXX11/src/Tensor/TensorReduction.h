@@ -64,10 +64,10 @@ template <typename OutputDims> struct DimInitializer {
   }
 };
 
-template <> struct DimInitializer<Sizes<0> > {
+template <> struct DimInitializer<Sizes<> > {
   template <typename InputDims, typename Index, size_t Rank> EIGEN_DEVICE_FUNC
   static void run(const InputDims& input_dims, const array<bool, Rank>&,
-                  Sizes<0>*, array<Index, Rank>* reduced_dims) {
+                  Sizes<>*, array<Index, Rank>* reduced_dims) {
     const int NumInputDims = internal::array_size<InputDims>::value;
     for (int i = 0; i < NumInputDims; ++i) {
       (*reduced_dims)[i] = input_dims[i];
@@ -138,8 +138,8 @@ struct GenericDimReducer<0, Self, Op> {
 };
 template <typename Self, typename Op>
 struct GenericDimReducer<-1, Self, Op> {
-  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self&, typename Self::Index, Op&, typename Self::CoeffReturnType*) {
-    eigen_assert(false && "should never be called");
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index index, Op& reducer, typename Self::CoeffReturnType* accum) {
+    reducer.reduce(self.m_impl.coeff(index), accum);
   }
 };
 
@@ -563,7 +563,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   static const int NumInputDims = internal::array_size<InputDimensions>::value;
   static const int NumReducedDims = internal::array_size<Dims>::value;
   static const int NumOutputDims = NumInputDims - NumReducedDims;
-  typedef typename internal::conditional<NumOutputDims==0, Sizes<0>, DSizes<Index, NumOutputDims> >::type Dimensions;
+  typedef typename internal::conditional<NumOutputDims==0, Sizes<>, DSizes<Index, NumOutputDims> >::type Dimensions;
   typedef typename XprType::Scalar Scalar;
   typedef TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device> Self;
   static const bool InputPacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;
