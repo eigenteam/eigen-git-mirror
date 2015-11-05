@@ -75,8 +75,8 @@ struct fixed_size_tensor_index_extraction_helper
   static inline Index run(const Index index,
                           const Dimensions& dimensions)
   {
-    const Index mult = (index == n) ? 1 : 0;
-    return array_get<n>(dimensions) * mult +
+    const Index mult = (index == n-1) ? 1 : 0;
+    return array_get<n-1>(dimensions) * mult +
         fixed_size_tensor_index_extraction_helper<Index, n - 1>::run(index, dimensions);
   }
 };
@@ -85,13 +85,12 @@ template<typename Index>
 struct fixed_size_tensor_index_extraction_helper<Index, 0>
 {
   template <typename Dimensions> EIGEN_DEVICE_FUNC
-  static inline Index run(const Index index,
-                          const Dimensions& dimensions)
+  static inline Index run(const Index,
+                          const Dimensions&)
   {
-    const Index mult = (index == 0) ? 1 : 0;
-    return array_get<0>(dimensions) * mult;
+    return 0;
   }
-};
+  };
 
 }  // end namespace internal
 
@@ -129,7 +128,7 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const std::size_t index) const {
-    return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count - 1>::run(index, *this);
+    return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count>::run(index, *this);
   }
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -385,6 +384,10 @@ static const std::ptrdiff_t value = Sizes<Indices...>::count;
 };
 template <std::ptrdiff_t n, typename std::ptrdiff_t... Indices> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t array_get(const Sizes<Indices...>&) {
   return get<n, internal::numeric_list<std::size_t, Indices...> >::value;
+}
+template <std::ptrdiff_t n> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t array_get(const Sizes<>&) {
+  eigen_assert(false && "should never be called");
+  return -1;
 }
 #else
 template <std::size_t V1, std::size_t V2, std::size_t V3, std::size_t V4, std::size_t V5> struct array_size<const Sizes<V1,V2,V3,V4,V5> > {
