@@ -58,7 +58,7 @@ void test_product_small()
   }
 
   {
-    Eigen::Matrix<double, 100, 100> A, B, C;
+    Eigen::Matrix<double, 10, 10> A, B, C;
     A.setRandom();
     C = A;
     for(int k=0; k<79; ++k)
