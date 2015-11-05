@@ -11,16 +11,17 @@
 
 #include <Eigen/Core>
 
-template <typename MatrixType>
-void rvalue_copyassign(const MatrixType& )
-{  
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
+template <typename MatrixType>
+void rvalue_copyassign(const MatrixType& m)
+{
+
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
-  
+
   // create a temporary which we are about to destroy by moving
   MatrixType tmp = m;
   long src_address = reinterpret_cast<long>(tmp.data());
-  
+
   // move the temporary to n
   MatrixType n = std::move(tmp);
   long dst_address = reinterpret_cast<long>(n.data());
@@ -34,8 +35,11 @@ void rvalue_copyassign(const MatrixType& )
   // verify that the content did not change
   Scalar abs_diff = (m-n).array().abs().sum();
   VERIFY_IS_EQUAL(abs_diff, Scalar(0));
-#endif
 }
+#else
+template <typename MatrixType>
+void rvalue_copyassign(const MatrixType&) {}
+#endif
 
 void test_rvalue_types()
 {
@@ -47,7 +51,7 @@ void test_rvalue_types()
 
   CALL_SUBTEST_1(rvalue_copyassign( Matrix<float,Dynamic,1>::Random(50).eval() ));
   CALL_SUBTEST_1(rvalue_copyassign( Array<float,Dynamic,1>::Random(50).eval() ));
-  
+
   CALL_SUBTEST_2(rvalue_copyassign( Array<float,2,1>::Random().eval() ));
   CALL_SUBTEST_2(rvalue_copyassign( Array<float,3,1>::Random().eval() ));
   CALL_SUBTEST_2(rvalue_copyassign( Array<float,4,1>::Random().eval() ));
