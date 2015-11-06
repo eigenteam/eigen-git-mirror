@@ -15,6 +15,20 @@ namespace internal {
 
 
 /** \internal
+ * \brief Template functor to compute the modulo between an array and a scalar.
+ */
+template <typename Scalar>
+struct scalar_mod_op {
+  EIGEN_DEVICE_FUNC scalar_mod_op(const Scalar& divisor) : m_divisor(divisor) {}
+  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return a % m_divisor; }
+  const Scalar m_divisor;
+};
+template <typename Scalar>
+struct functor_traits<scalar_mod_op<Scalar> >
+{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+
+
+/** \internal
   * \brief Template functor to compute the sigmoid of a scalar
   * \sa class CwiseUnaryOp, ArrayBase::sigmoid()
   */

@@ -173,6 +173,13 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_mod_op<Scalar>, const Derived>
+    operator% (Scalar rhs) const {
+      EIGEN_STATIC_ASSERT(std::numeric_limits<Scalar>::is_integer, YOU_MADE_A_PROGRAMMING_MISTAKE_TRY_MOD);
+      return unaryExpr(internal::scalar_mod_op<Scalar>(rhs));
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_max_op<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     cwiseMax(Scalar threshold) const {
       return cwiseMax(constant(threshold));
