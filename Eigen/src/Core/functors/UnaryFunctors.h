@@ -23,7 +23,7 @@ template<typename Scalar> struct scalar_opposite_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_opposite_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return -a; }
   template<typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pnegate(a); }
 };
 template<typename Scalar>
@@ -43,7 +43,7 @@ template<typename Scalar> struct scalar_abs_op {
   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a) const { using std::abs; return abs(a); }
   template<typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pabs(a); }
 };
 template<typename Scalar>
@@ -94,7 +94,7 @@ template<typename Scalar> struct scalar_abs2_op {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a) const { return numext::abs2(a); }
   template<typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pmul(a,a); }
 };
 template<typename Scalar>
@@ -111,7 +111,7 @@ template<typename Scalar> struct scalar_conjugate_op {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { using numext::conj; return conj(a); }
   template<typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const { return internal::pconj(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const { return internal::pconj(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_conjugate_op<Scalar> >
@@ -132,7 +132,7 @@ template<typename Scalar> struct scalar_arg_op {
   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a) const { using numext::arg; return arg(a); }
   template<typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::parg(a); }
 };
 template<typename Scalar>
@@ -232,7 +232,7 @@ template<typename Scalar> struct scalar_exp_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_exp_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::exp; return exp(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::pexp(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pexp(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_exp_op<Scalar> >
@@ -248,7 +248,7 @@ template<typename Scalar> struct scalar_log_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_log_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::log; return log(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::plog(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::plog(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_log_op<Scalar> >
@@ -264,7 +264,7 @@ template<typename Scalar> struct scalar_log10_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_log10_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::log10; return log10(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::plog10(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::plog10(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_log10_op<Scalar> >
@@ -278,7 +278,7 @@ template<typename Scalar> struct scalar_sqrt_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sqrt_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::sqrt; return sqrt(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::psqrt(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psqrt(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_sqrt_op<Scalar> >
@@ -296,7 +296,7 @@ template<typename Scalar> struct scalar_rsqrt_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_rsqrt_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::sqrt; return Scalar(1)/sqrt(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::prsqrt(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::prsqrt(a); }
 };
 
 template<typename Scalar>
@@ -315,7 +315,7 @@ template<typename Scalar> struct scalar_cos_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cos_op)
   EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { using std::cos; return cos(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::pcos(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pcos(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_cos_op<Scalar> >
@@ -334,7 +334,7 @@ template<typename Scalar> struct scalar_sin_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sin_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::sin; return sin(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::psin(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psin(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_sin_op<Scalar> >
@@ -354,7 +354,7 @@ template<typename Scalar> struct scalar_tan_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_tan_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::tan; return tan(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::ptan(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::ptan(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_tan_op<Scalar> >
@@ -373,7 +373,7 @@ template<typename Scalar> struct scalar_acos_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_acos_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::acos; return acos(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::pacos(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pacos(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_acos_op<Scalar> >
@@ -392,7 +392,7 @@ template<typename Scalar> struct scalar_asin_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_asin_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::asin; return asin(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::pasin(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pasin(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_asin_op<Scalar> >
@@ -411,7 +411,7 @@ template<typename Scalar> struct scalar_atan_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_atan_op)
   inline const Scalar operator() (const Scalar& a) const { using std::atan; return atan(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::patan(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::patan(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_atan_op<Scalar> >
@@ -430,7 +430,7 @@ template<typename Scalar> struct scalar_tanh_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_tanh_op)
   inline const Scalar operator() (const Scalar& a) const { using std::tanh; return tanh(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::ptanh(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::ptanh(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_tanh_op<Scalar> >
@@ -449,7 +449,7 @@ template<typename Scalar> struct scalar_sinh_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sinh_op)
   inline const Scalar operator() (const Scalar& a) const { using std::sinh; return sinh(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::psinh(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psinh(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_sinh_op<Scalar> >
@@ -468,7 +468,7 @@ template<typename Scalar> struct scalar_cosh_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cosh_op)
   inline const Scalar operator() (const Scalar& a) const { using std::cosh; return cosh(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::pcosh(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pcosh(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_cosh_op<Scalar> >
@@ -488,7 +488,7 @@ struct scalar_inverse_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_inverse_op)
   EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return Scalar(1)/a; }
   template<typename Packet>
-  inline const Packet packetOp(const Packet& a) const
+  EIGEN_DEVICE_FUNC inline const Packet packetOp(const Packet& a) const
   { return internal::pdiv(pset1<Packet>(Scalar(1)),a); }
 };
 template<typename Scalar>
@@ -504,7 +504,7 @@ struct scalar_square_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_square_op)
   EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return a*a; }
   template<typename Packet>
-  inline const Packet packetOp(const Packet& a) const
+  EIGEN_DEVICE_FUNC inline const Packet packetOp(const Packet& a) const
   { return internal::pmul(a,a); }
 };
 template<typename Scalar>
@@ -520,7 +520,7 @@ struct scalar_cube_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cube_op)
   EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return a*a*a; }
   template<typename Packet>
-  inline const Packet packetOp(const Packet& a) const
+  EIGEN_DEVICE_FUNC inline const Packet packetOp(const Packet& a) const
   { return internal::pmul(a,pmul(a,a)); }
 };
 template<typename Scalar>
@@ -535,7 +535,7 @@ template<typename Scalar> struct scalar_round_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_round_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::round(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::pround(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pround(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_round_op<Scalar> >
@@ -554,7 +554,7 @@ template<typename Scalar> struct scalar_floor_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_floor_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::floor(a); }
   template <typename Packet>
-  inline Packet packetOp(const Packet& a) const { return internal::pfloor(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pfloor(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_floor_op<Scalar> >
@@ -573,7 +573,7 @@ template<typename Scalar> struct scalar_ceil_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_ceil_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::ceil(a); }
   typedef typename packet_traits<Scalar>::type Packet;
-  inline Packet packetOp(const Packet& a) const { return internal::pceil(a); }
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pceil(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_ceil_op<Scalar> >
