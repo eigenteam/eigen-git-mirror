@@ -99,6 +99,10 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : m_impl(op.expression(), device)
   {
+    // The broadcasting op doesn't change the rank of the tensor. One can't broadcast a scalar
+    // and store the result in a scalar. Instead one should reshape the scalar into a a N-D
+    // tensor with N >= 1 of 1 element first and then broadcast.
+    EIGEN_STATIC_ASSERT(NumDims > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
     const Broadcast& broadcast = op.broadcast();
     for (int i = 0; i < NumDims; ++i) {
