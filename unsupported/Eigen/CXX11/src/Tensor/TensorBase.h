@@ -255,65 +255,65 @@ class TensorBase<Derived, ReadOnlyAccessors>
 
     // Comparisons and tests.
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorCwiseBinaryOp<std::less<Scalar>, const Derived, const OtherDerived>
+    const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_LT>, const Derived, const OtherDerived>
     operator<(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_LT>());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorCwiseBinaryOp<std::less_equal<Scalar>, const Derived, const OtherDerived>
+    const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_LE>, const Derived, const OtherDerived>
     operator<=(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_LE>());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorCwiseBinaryOp<std::greater<Scalar>, const Derived, const OtherDerived>
+    const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_GT>, const Derived, const OtherDerived>
     operator>(const OtherDerived& other) const {
-      return binaryExpr(other.derived(), std::greater<Scalar>());
+      return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_GT>());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorCwiseBinaryOp<std::greater_equal<Scalar>, const Derived, const OtherDerived>
+    const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_GE>, const Derived, const OtherDerived>
     operator>=(const OtherDerived& other) const {
-      return binaryExpr(other.derived(), std::greater_equal<Scalar>());
+      return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_GE>());
     }
 
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorCwiseBinaryOp<std::equal_to<Scalar>, const Derived, const OtherDerived>
+    const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_EQ>, const Derived, const OtherDerived>
     operator==(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_EQ>());
     }
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    const TensorCwiseBinaryOp<std::not_equal_to<Scalar>, const Derived, const OtherDerived>
+    const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_NEQ>, const Derived, const OtherDerived>
     operator!=(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_NEQ>());
     }
 
     // comparisons and tests for Scalars
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::less<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_LT>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     operator<(Scalar threshold) const {
       return operator<(constant(threshold));
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::less_equal<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_LE>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     operator<=(Scalar threshold) const {
       return operator<=(constant(threshold));
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::greater<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_GT>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     operator>(Scalar threshold) const {
       return operator>(constant(threshold));
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::greater_equal<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_GE>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     operator>=(Scalar threshold) const {
       return operator>=(constant(threshold));
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::equal_to<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_EQ>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     operator==(Scalar threshold) const {
       return operator==(constant(threshold));
     }
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<std::not_equal_to<Scalar>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
+    EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_NEQ>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     operator!=(Scalar threshold) const {
       return operator!=(constant(threshold));
     }
