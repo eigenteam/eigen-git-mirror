@@ -186,6 +186,14 @@ template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_LE> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a<=b;}
 };
+template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_GT> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a>b;}
+};
+template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_GE> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a>=b;}
+};
 template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_UNORD> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return !(a<=b || b<=a);}

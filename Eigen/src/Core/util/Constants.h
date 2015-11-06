@@ -531,7 +531,9 @@ enum ComparisonName {
   cmp_LT = 1,
   cmp_LE = 2,
   cmp_UNORD = 3,
-  cmp_NEQ = 4
+  cmp_NEQ = 4,
+  cmp_GT = 5,
+  cmp_GE = 6
 };
 } // end namespace internal
 
