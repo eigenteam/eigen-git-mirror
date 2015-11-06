@@ -23,6 +23,7 @@ namespace Eigen {
   */
 
 template <typename Index, std::size_t Rank> struct DimensionList {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   const Index operator[] (const Index i) const { return i; }
 };
 

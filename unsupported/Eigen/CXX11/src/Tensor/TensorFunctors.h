@@ -96,6 +96,7 @@ template <typename T> struct MeanReducer
   static const bool PacketAccess = true;
   static const bool IsStateful = true;
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   MeanReducer() : scalarCount_(0), packetCount_(0) { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) {
