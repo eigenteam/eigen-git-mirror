@@ -1221,7 +1221,7 @@ typename SparseMatrix<_Scalar,_Options,_Index>::Scalar& SparseMatrix<_Scalar,_Op
   {
     // make sure the matrix is compatible to random un-compressed insertion:
     m_data.resize(m_data.allocatedSize());
-    this->reserveInnerVectors(Array<StorageIndex,Dynamic,1>::Constant(2*m_outerSize, convert_index(m_outerSize)));
+    this->reserveInnerVectors(Array<StorageIndex,Dynamic,1>::Constant(m_outerSize, 2));
   }
   
   return insertUncompressed(row,col);
