@@ -74,6 +74,7 @@
 #include "src/Tensor/TensorEvaluator.h"
 #include "src/Tensor/TensorExpr.h"
 #include "src/Tensor/TensorReduction.h"
+#include "src/Tensor/TensorReductionCuda.h"
 #include "src/Tensor/TensorArgMax.h"
 #include "src/Tensor/TensorConcatenation.h"
 #include "src/Tensor/TensorContraction.h"
