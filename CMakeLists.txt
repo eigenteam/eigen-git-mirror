@@ -1,6 +1,6 @@
 project(Eigen)
 
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 2.8.5)
 
 # guard against in-source builds
 
@@ -55,6 +55,7 @@ endif(EIGEN_HG_CHANGESET)
 
 
 include(CheckCXXCompilerFlag)
+include(GNUInstallDirs)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -337,23 +338,23 @@ option(EIGEN_TEST_CXX11 "Enable testing with C++11 and C++11 features (e.g. Tens
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-# the user modifiable install path for header files
-set(EIGEN_INCLUDE_INSTALL_DIR ${EIGEN_INCLUDE_INSTALL_DIR} CACHE PATH "The directory where we install the header files (optional)")
+set(INCLUDE_INSTALL_DIR
+    "${CMAKE_INSTALL_INCLUDEDIR}/eigen3"
+    CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where Eigen header files are installed"
+    )
+set(CMAKEPACKAGE_INSTALL_DIR
+    "${CMAKE_INSTALL_LIBDIR}/cmake/eigen3"
+    CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where Eigen3Config.cmake is installed"
+    )
+set(PKGCONFIG_INSTALL_DIR
+    "${CMAKE_INSTALL_DATADIR}/pkgconfig"
+    CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where eigen3.pc is installed"
+    )
 
-# set the internal install path for header files which depends on wether the user modifiable
-# EIGEN_INCLUDE_INSTALL_DIR has been set by the user or not.
-if(EIGEN_INCLUDE_INSTALL_DIR)
-  set(INCLUDE_INSTALL_DIR
-    ${EIGEN_INCLUDE_INSTALL_DIR}
-    CACHE INTERNAL
-    "The directory where we install the header files (internal)"
-  )
-else()
-  set(INCLUDE_INSTALL_DIR
-    "include/eigen3"
-    CACHE INTERNAL
-    "The directory where we install the header files (internal)"
-  )
+# Backward compatibility support for EIGEN_INCLUDE_INSTALL_DIR
+if(DEFINED EIGEN_INCLUDE_INSTALL_DIR)
+  message(WARNING "EIGEN_INCLUDE_INSTALL_DIR is deprecated. Use INCLUDE_INSTALL_DIR instead.")
+  set(INCLUDE_INSTALL_DIR ${EIGEN_INCLUDE_INSTALL_DIR} CACHE PATH "" FORCE)
 endif()
 
 # similar to set_target_properties but append the property instead of overwriting it
@@ -373,21 +374,9 @@ install(FILES
   )
 
 if(EIGEN_BUILD_PKGCONFIG)
-    SET(path_separator ":")
-    STRING(REPLACE ${path_separator} ";" pkg_config_libdir_search "$ENV{PKG_CONFIG_LIBDIR}")
-    message(STATUS "searching for 'pkgconfig' directory in PKG_CONFIG_LIBDIR ( $ENV{PKG_CONFIG_LIBDIR} ), ${CMAKE_INSTALL_PREFIX}/share, and ${CMAKE_INSTALL_PREFIX}/lib")
-    FIND_PATH(pkg_config_libdir pkgconfig ${pkg_config_libdir_search} ${CMAKE_INSTALL_PREFIX}/share ${CMAKE_INSTALL_PREFIX}/lib ${pkg_config_libdir_search})
-    if(pkg_config_libdir)
-        SET(pkg_config_install_dir ${pkg_config_libdir})
-        message(STATUS "found ${pkg_config_libdir}/pkgconfig" )
-    else(pkg_config_libdir)
-        SET(pkg_config_install_dir ${CMAKE_INSTALL_PREFIX}/share)
-        message(STATUS "pkgconfig not found; installing in ${pkg_config_install_dir}" )
-    endif(pkg_config_libdir)
-
-    configure_file(eigen3.pc.in eigen3.pc)
+    configure_file(eigen3.pc.in eigen3.pc @ONLY)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen3.pc
-        DESTINATION ${pkg_config_install_dir}/pkgconfig
+        DESTINATION ${PKGCONFIG_INSTALL_DIR}
         )
 endif(EIGEN_BUILD_PKGCONFIG)
 
@@ -450,12 +439,15 @@ if(cmake_generator_tolower MATCHES "makefile")
   message(STATUS "--------------+--------------------------------------------------------------")
   message(STATUS "Command       |   Description")
   message(STATUS "--------------+--------------------------------------------------------------")
-  message(STATUS "make install  | Install to ${CMAKE_INSTALL_PREFIX}. To change that:")
-  message(STATUS "              |     cmake . -DCMAKE_INSTALL_PREFIX=yourpath")
-  message(STATUS "              |   Eigen headers will then be installed to:")
-  message(STATUS "              |     ${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}")
-  message(STATUS "              |   To install Eigen headers to a separate location, do:")
-  message(STATUS "              |     cmake . -DEIGEN_INCLUDE_INSTALL_DIR=yourpath")
+  message(STATUS "make install  | Install Eigen. Headers will be installed to:")
+  message(STATUS "              |     <CMAKE_INSTALL_PREFIX>/<INCLUDE_INSTALL_DIR>")
+  message(STATUS "              |   Using the following values:")
+  message(STATUS "              |     CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
+  message(STATUS "              |     INCLUDE_INSTALL_DIR:  ${INCLUDE_INSTALL_DIR}")
+  message(STATUS "              |   Change the install location of Eigen headers using:")
+  message(STATUS "              |     cmake . -DCMAKE_INSTALL_PREFIX=yourprefix")
+  message(STATUS "              |   Or:")
+  message(STATUS "              |     cmake . -DINCLUDE_INSTALL_DIR=yourdir")
   message(STATUS "make doc      | Generate the API documentation, requires Doxygen & LaTeX")
   message(STATUS "make check    | Build and run the unit-tests. Read this page:")
   message(STATUS "              |   http://eigen.tuxfamily.org/index.php?title=Tests")
@@ -469,21 +461,13 @@ endif()
 
 message(STATUS "")
 
-set ( EIGEN_CONFIG_CMAKE_PATH
-      lib${LIB_SUFFIX}/cmake/eigen3
-      CACHE PATH "The directory where the CMake files are installed"
-    )
-if ( NOT IS_ABSOLUTE EIGEN_CONFIG_CMAKE_PATH )
-  set ( EIGEN_CONFIG_CMAKE_PATH ${CMAKE_INSTALL_PREFIX}/${EIGEN_CONFIG_CMAKE_PATH} )
-endif ()
 
-set ( EIGEN_USE_FILE ${EIGEN_CONFIG_CMAKE_PATH}/UseEigen3.cmake )
 set ( EIGEN_VERSION_STRING ${EIGEN_VERSION_NUMBER} )
 set ( EIGEN_VERSION_MAJOR  ${EIGEN_WORLD_VERSION} )
 set ( EIGEN_VERSION_MINOR  ${EIGEN_MAJOR_VERSION} )
 set ( EIGEN_VERSION_PATCH  ${EIGEN_MINOR_VERSION} )
 set ( EIGEN_DEFINITIONS "")
-set ( EIGEN_INCLUDE_DIR ${INCLUDE_INSTALL_DIR} )
+set ( EIGEN_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}" )
 set ( EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} )
 set ( EIGEN_ROOT_DIR ${CMAKE_INSTALL_PREFIX} )
 
@@ -494,7 +478,7 @@ configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
 
 install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-          DESTINATION ${EIGEN_CONFIG_CMAKE_PATH}
+          DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
         )
 
 # Add uninstall target
