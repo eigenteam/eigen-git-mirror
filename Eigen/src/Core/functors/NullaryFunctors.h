@@ -21,7 +21,7 @@ struct scalar_constant_op {
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index, Index = 0) const { return m_other; }
   template<typename Index, typename PacketType>
-  EIGEN_STRONG_INLINE const PacketType packetOp(Index, Index = 0) const { return internal::pset1<PacketType>(m_other); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PacketType packetOp(Index, Index = 0) const { return internal::pset1<PacketType>(m_other); }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -63,7 +63,7 @@ struct linspaced_op_impl<Scalar,Packet,false>
   }
 
   template<typename Index>
-  EIGEN_STRONG_INLINE const Packet packetOp(Index) const { return m_base = padd(m_base,m_packetStep); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index) const { return m_base = padd(m_base,m_packetStep); }
 
   const Scalar m_low;
   const Scalar m_step;
@@ -85,7 +85,7 @@ struct linspaced_op_impl<Scalar,Packet,true>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return m_low+i*m_step; }
 
   template<typename Index>
-  EIGEN_STRONG_INLINE const Packet packetOp(Index i) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index i) const
   { return internal::padd(m_lowPacket, pmul(m_stepPacket, padd(pset1<Packet>(Scalar(i)),m_interPacket))); }
 
   const Scalar m_low;
@@ -120,12 +120,12 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct linspa
   }
 
   template<typename Index, typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(Index i) const { return impl.packetOp(i); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index i) const { return impl.packetOp(i); }
 
   // We need this function when assigning e.g. a RowVectorXd to a MatrixXd since
   // there row==0 and col is used for the actual iteration.
   template<typename Index, typename Packet>
-  EIGEN_STRONG_INLINE const Packet packetOp(Index row, Index col) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index row, Index col) const
   {
     eigen_assert(col==0 || row==0);
     return impl.packetOp(col + row);
