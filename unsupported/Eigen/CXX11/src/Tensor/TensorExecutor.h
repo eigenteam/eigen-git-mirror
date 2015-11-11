@@ -50,6 +50,7 @@ class TensorExecutor<Expression, DefaultDevice, true>
 {
  public:
   typedef typename Expression::Index Index;
+  EIGEN_DEVICE_FUNC
   static inline void run(const Expression& expr, const DefaultDevice& device = DefaultDevice())
   {
     TensorEvaluator<Expression, DefaultDevice> evaluator(expr, device);
@@ -57,7 +58,7 @@ class TensorExecutor<Expression, DefaultDevice, true>
     if (needs_assign)
     {
       const Index size = array_prod(evaluator.dimensions());
-      static const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
+      const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
       const Index VectorizedSize = (size / PacketSize) * PacketSize;
 
       for (Index i = 0; i < VectorizedSize; i += PacketSize) {
