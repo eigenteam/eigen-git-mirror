@@ -364,6 +364,8 @@ public:
 
   protected:
 
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
+
     typename SparseMatrixType::Nested m_matrix;
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, OuterSize> m_outerSize;
