@@ -23,7 +23,8 @@ template <typename T, size_t n> class array {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { return values[index]; }
 
-  static const std::size_t size() { return n; }
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  static std::size_t size() { return n; }
 
   T values[n];
 
@@ -105,7 +106,8 @@ template <typename T, size_t n> class array {
   }
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  array(std::initializer_list<T> l) {
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE array(std::initializer_list<T> l) {
     eigen_assert(l.size() == n);
     internal::smart_copy(l.begin(), l.end(), values);
   }
