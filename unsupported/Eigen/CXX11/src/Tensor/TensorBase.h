@@ -155,7 +155,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_sub_op<Scalar>, const Derived>
     operator- (Scalar rhs) const {
-      EIGEN_STATIC_ASSERT((std::numeric_limits<Scalar>::is_signed || internal::is_same<Scalar, const std::complex<float> >::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
+      EIGEN_STATIC_ASSERT((NumTraits<Scalar>::IsSigned || internal::is_same<Scalar, const std::complex<float> >::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
       return unaryExpr(internal::scalar_sub_op<Scalar>(rhs));
     }
 
@@ -168,14 +168,13 @@ class TensorBase<Derived, ReadOnlyAccessors>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, const Derived>
     operator/ (Scalar rhs) const {
-      // EIGEN_STATIC_ASSERT(!std::numeric_limits<Scalar>::is_integer, YOU_MADE_A_PROGRAMMING_MISTAKE);
       return unaryExpr(internal::scalar_quotient1_op<Scalar>(rhs));
     }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_mod_op<Scalar>, const Derived>
     operator% (Scalar rhs) const {
-      EIGEN_STATIC_ASSERT(std::numeric_limits<Scalar>::is_integer, YOU_MADE_A_PROGRAMMING_MISTAKE_TRY_MOD);
+      EIGEN_STATIC_ASSERT(NumTraits<Scalar>::IsInteger, YOU_MADE_A_PROGRAMMING_MISTAKE_TRY_MOD);
       return unaryExpr(internal::scalar_mod_op<Scalar>(rhs));
     }
 
