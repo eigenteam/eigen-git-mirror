@@ -336,6 +336,12 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
 };
 #endif
 
+
+#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+template <int B, int N, typename S, typename R, typename I>
+__global__ void FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
+#endif
+
 }  // end namespace internal
 
 

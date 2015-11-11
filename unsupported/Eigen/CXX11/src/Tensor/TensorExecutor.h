@@ -229,7 +229,7 @@ inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& 
 
 /*static*/
 template<typename Expression>
-inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
+inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
 {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
