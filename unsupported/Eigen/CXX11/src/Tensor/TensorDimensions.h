@@ -214,7 +214,7 @@ template <std::size_t V1=0, std::size_t V2=0, std::size_t V3=0, std::size_t V4=0
         return internal::get<4, Base>::value;
       default:
         eigen_assert(false && "index overflow");
-        return static_cast<std::size_t>(-1);
+        return static_cast<DenseIndex>(-1);
     }
   }
 
