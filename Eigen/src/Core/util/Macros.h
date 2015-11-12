@@ -382,7 +382,7 @@
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
-  *   - single precision ArrayBase::sin() and ArrayBase::cos() when SSE vectorization is enabled.
+  *   - single precision ArrayBase::sin() and ArrayBase::cos() for SSE and AVX vectorization.
   */
 #ifndef EIGEN_FAST_MATH
 #define EIGEN_FAST_MATH 1
