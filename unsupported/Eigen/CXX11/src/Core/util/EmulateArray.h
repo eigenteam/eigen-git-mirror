@@ -11,13 +11,13 @@
 #define EIGEN_EMULATE_ARRAY_H
 
 
-namespace Eigen {
 
 // The array class is only available starting with cxx11. Emulate our own here
 // if needed.
 // Moreover, CUDA doesn't support the STL containers, so we use our own instead.
 #if __cplusplus <= 199711L || defined(__CUDACC__)
 
+namespace Eigen {
 template <typename T, size_t n> class array {
  public:
   EIGEN_DEVICE_FUNC
@@ -171,11 +171,15 @@ template<class T, std::size_t N> struct array_size<const array<T,N>& > {
   static const size_t value = N;
 };
 
-}
+}  // end namespace internal
+}  // end namespace Eigen
 
 #else
-#include <array>
+
 // The compiler supports c++11, and we're not targetting cuda: use std::array as Eigen array
+#include <array>
+namespace Eigen {
+
 template <typename T, std::size_t N> using array = std::array<T, N>;
 
 namespace internal {
@@ -209,12 +213,12 @@ template <typename T> struct array_size;
 template<class T, std::size_t N> struct array_size<std::array<T,N> > {
   static const size_t value = N;
 };
-}
+}  // end namespace internal
+}  // end namespace Eigen
 
 #endif
 
 
-}  // end namespace Eigen
 
 
 
