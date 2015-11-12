@@ -804,7 +804,7 @@ EIGEN_DEVICE_FUNC void call_triangular_assignment_loop(const DstXprType& dst, co
   
   enum {
       unroll = DstXprType::SizeAtCompileTime != Dynamic
-            && SrcEvaluatorType::CoeffReadCost != Dynamic
+            && SrcEvaluatorType::CoeffReadCost < HugeCost
             && DstXprType::SizeAtCompileTime * SrcEvaluatorType::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT
     };
   

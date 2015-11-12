@@ -52,7 +52,7 @@ struct traits<Solve<Decomposition, RhsType> >
   typedef traits<PlainObject> BaseTraits;
   enum {
     Flags = BaseTraits::Flags & RowMajorBit,
-    CoeffReadCost = Dynamic
+    CoeffReadCost = HugeCost
   };
 };
 
