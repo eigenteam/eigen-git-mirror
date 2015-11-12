@@ -369,7 +369,6 @@ public:
     typename SparseMatrixType::Nested m_matrix;
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, OuterSize> m_outerSize;
-
 };
 
 //----------
@@ -530,7 +529,8 @@ public:
     const internal::variable_if_dynamic<Index, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_blockRows;
     const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_blockCols;
-
+  private:
+    Index nonZeros() const;
 };
 
 } // end namespace Eigen
