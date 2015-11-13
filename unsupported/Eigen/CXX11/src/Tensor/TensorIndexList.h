@@ -314,10 +314,6 @@ struct index_known_statically_impl<const IndexList<FirstType, OtherTypes...> > {
   }
 };
 
-template <typename T>
-static constexpr bool index_known_statically(const DenseIndex i) {
-  return index_known_statically_impl<T>::run(i);
-}
 
 template <typename T>
 struct all_indices_known_statically_impl {
@@ -340,10 +336,6 @@ struct all_indices_known_statically_impl<const IndexList<FirstType, OtherTypes..
   }
 };
 
-template <typename T>
-static constexpr bool all_indices_known_statically() {
-  return all_indices_known_statically_impl<T>::run();
-}
 
 template <typename T>
 struct indices_statically_known_to_increase_impl {
@@ -366,22 +358,17 @@ template <typename FirstType, typename... OtherTypes>
   }
 };
 
-template <typename T>
-static constexpr bool indices_statically_known_to_increase() {
-  return indices_statically_known_to_increase_impl<T>::run();
-}
-
 
 template <typename Tx>
 struct index_statically_eq_impl {
-  static constexpr bool run(DenseIndex, DenseIndex) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(DenseIndex, DenseIndex) {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_eq_impl<IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) == value);
   }
@@ -389,28 +376,23 @@ struct index_statically_eq_impl<IndexList<FirstType, OtherTypes...> > {
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_eq_impl<const IndexList<FirstType, OtherTypes...> > {
-static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) == value);
   }
 };
 
-template <typename T>
-static constexpr bool index_statically_eq(DenseIndex i, DenseIndex value) {
-  return index_statically_eq_impl<T>::run(i, value);
-}
-
 
 template <typename T>
 struct index_statically_ne_impl {
-  static constexpr bool run(DenseIndex, DenseIndex) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(DenseIndex, DenseIndex) {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_ne_impl<IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) != value);
   }
@@ -418,29 +400,23 @@ struct index_statically_ne_impl<IndexList<FirstType, OtherTypes...> > {
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_ne_impl<const IndexList<FirstType, OtherTypes...> > {
-static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) != value);
   }
 };
 
-template <typename T>
-static constexpr bool index_statically_ne(DenseIndex i, DenseIndex value) {
-  return index_statically_ne_impl<T>::run(i, value);
-}
-
-
 
 template <typename T>
 struct index_statically_gt_impl {
-  static constexpr bool run(DenseIndex, DenseIndex) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(DenseIndex, DenseIndex) {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_gt_impl<IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) > value);
   }
@@ -448,30 +424,24 @@ struct index_statically_gt_impl<IndexList<FirstType, OtherTypes...> > {
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_gt_impl<const IndexList<FirstType, OtherTypes...> > {
-static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) > value);
   }
 };
 
-template <typename T>
-static constexpr bool index_statically_gt(DenseIndex i, DenseIndex value) {
-  return index_statically_gt_impl<T>::run(i, value);
-}
-
-
 
 
 template <typename T>
 struct index_statically_lt_impl {
-  static constexpr bool run(DenseIndex, DenseIndex) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(DenseIndex, DenseIndex) {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_lt_impl<IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) < value);
   }
@@ -479,17 +449,11 @@ struct index_statically_lt_impl<IndexList<FirstType, OtherTypes...> > {
 
 template <typename FirstType, typename... OtherTypes>
 struct index_statically_lt_impl<const IndexList<FirstType, OtherTypes...> > {
-static constexpr bool run(const DenseIndex i, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i) &
         (IndexList<FirstType, OtherTypes...>().get(i) < value);
   }
 };
-
-template <typename T>
-static constexpr bool index_statically_lt(DenseIndex i, DenseIndex value) {
-  return index_statically_lt_impl<T>::run(i, value);
-}
-
 
 }  // end namespace internal
 }  // end namespace Eigen
@@ -499,45 +463,100 @@ static constexpr bool index_statically_lt(DenseIndex i, DenseIndex value) {
 namespace Eigen {
 namespace internal {
 
-// No C++11 support
 template <typename T>
-static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool index_known_statically(DenseIndex) {
-  return false;
-}
+struct index_known_statically_impl {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static bool run(const DenseIndex) {
+    return false;
+  }
+};
 
 template <typename T>
-static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool all_indices_known_statically() {
-  return false;
-}
+struct all_indices_known_statically_impl {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static bool run() {
+    return false;
+  }
+};
 
 template <typename T>
-static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool indices_statically_known_to_increase() {
-  return false;
-}
+struct indices_statically_known_to_increase_impl {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static bool run() {
+    return false;
+  }
+};
 
 template <typename T>
-static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool indices_statically_eq(DenseIndex, DenseIndex) {
-  return false;
-}
+struct index_statically_eq_impl {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static bool run(DenseIndex, DenseIndex) {
+    return false;
+  }
+};
 
 template <typename T>
-static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool indices_statically_ne(DenseIndex, DenseIndex) {
-  return false;
-}
+struct index_statically_ne_impl {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static bool run(DenseIndex, DenseIndex) {
+    return false;
+  }
+};
 
 template <typename T>
-static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool indices_statically_gt(DenseIndex, DenseIndex) {
-  return false;
-}
+struct index_statically_gt_impl {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static bool run(DenseIndex, DenseIndex) {
+    return false;
+  }
+};
 
 template <typename T>
-static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool indices_statically_lt(DenseIndex, DenseIndex) {
-  return false;
-}
+struct index_statically_lt_impl {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static bool run(DenseIndex, DenseIndex) {
+    return false;
+  }
+};
 
 }  // end namespace internal
 }  // end namespace Eigen
 
 #endif
+
+
+namespace Eigen {
+namespace internal {
+template <typename T>
+static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR bool index_known_statically(DenseIndex i) {
+  return index_known_statically_impl<T>::run(i);
+}
+
+template <typename T>
+static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR bool all_indices_known_statically() {
+  return all_indices_known_statically_impl<T>::run();
+}
+
+template <typename T>
+static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR bool indices_statically_known_to_increase() {
+  return indices_statically_known_to_increase_impl<T>::run();
+}
+
+template <typename T>
+static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR bool index_statically_eq(DenseIndex i, DenseIndex value) {
+  return index_statically_eq_impl<T>::run(i, value);
+}
+
+template <typename T>
+static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR bool index_statically_ne(DenseIndex i, DenseIndex value) {
+  return index_statically_ne_impl<T>::run(i, value);
+}
+
+template <typename T>
+static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR bool index_statically_gt(DenseIndex i, DenseIndex value) {
+  return index_statically_gt_impl<T>::run(i, value);
+}
+
+template <typename T>
+static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR bool index_statically_lt(DenseIndex i, DenseIndex value) {
+  return index_statically_lt_impl<T>::run(i, value);
+}
+
+}  // end namespace internal
+}  // end namespace Eigen
+
 
 #endif // EIGEN_CXX11_TENSOR_TENSOR_INDEX_LIST_H
