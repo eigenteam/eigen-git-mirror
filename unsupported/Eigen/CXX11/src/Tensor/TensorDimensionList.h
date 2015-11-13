@@ -152,13 +152,13 @@ struct index_known_statically_impl<const DimensionList<Index, Rank> > {
 
 template <typename Index, std::size_t Rank>
 struct all_indices_known_statically_impl<DimensionList<Index, Rank> > {
-  EIGEN_ALWAYS_INLINE bool operator() () const {
+  static EIGEN_ALWAYS_INLINE bool run() {
     return true;
   }
 };
 template <typename Index, std::size_t Rank>
 struct all_indices_known_statically_impl<const DimensionList<Index, Rank> > {
-  EIGEN_ALWAYS_INLINE bool operator() () const {
+  static EIGEN_ALWAYS_INLINE bool run() {
     return true;
   }
 };
