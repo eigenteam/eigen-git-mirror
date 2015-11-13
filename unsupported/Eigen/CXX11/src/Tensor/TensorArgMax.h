@@ -216,9 +216,10 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
       : m_orig_impl(op.expression(), device),
         m_impl(op.expression().index_tuples().reduce(op.reduce_dims(), op.reduce_op()), device),
         m_return_dim(op.return_dim()),
-        m_strides(gen_strides(m_orig_impl.dimensions())),
         m_stride_mod(gen_stride_mod(m_orig_impl.dimensions())),
-        m_stride_div(gen_stride_div()) { }
+        m_stride_div(gen_stride_div()) {
+    gen_strides(m_orig_impl.dimensions(), m_strides);
+  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const {
     return m_impl.dimensions();
@@ -240,9 +241,10 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
  private:
-  EIGEN_DEVICE_FUNC StrideDims gen_strides(const InputDimensions& dims) {
-    StrideDims strides;
-    if (m_return_dim < 0) return strides;  // Won't be using these.
+  EIGEN_DEVICE_FUNC void gen_strides(const InputDimensions& dims, StrideDims& strides) {
+    if (m_return_dim < 0) {
+      return;  // Won't be using the strides.
+    }
     eigen_assert(m_return_dim < NumDims &&
                  "Asking to convert index to a dimension outside of the rank");
 
@@ -259,7 +261,6 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
         strides[i] = strides[i+1] * dims[i+1];
       }
     }
-    return strides;
   }
 
   EIGEN_DEVICE_FUNC Index gen_stride_mod(const InputDimensions& dims) {
@@ -278,7 +279,7 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device> m_orig_impl;
   TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexTupleOp<ArgType> >, Device> m_impl;
   const int m_return_dim;
-  const StrideDims m_strides;
+  StrideDims m_strides;
   const Index m_stride_mod;
   const Index m_stride_div;
 };
