@@ -46,27 +46,27 @@ template<DenseIndex n, typename Index, std::size_t Rank> const Index array_get(c
 
 #if defined(EIGEN_HAS_CONSTEXPR)
 template <typename Index, std::size_t Rank>
-struct index_known_statically<DimensionList<Index, Rank> > {
-  constexpr bool operator() (const DenseIndex) const {
+struct index_known_statically_impl<DimensionList<Index, Rank> > {
+  static constexpr bool run(const DenseIndex) {
     return true;
   }
 };
 template <typename Index, std::size_t Rank>
-struct index_known_statically<const DimensionList<Index, Rank> > {
-  constexpr bool operator() (const DenseIndex) const {
+struct index_known_statically_impl<const DimensionList<Index, Rank> > {
+  static constexpr bool run(const DenseIndex) {
     return true;
   }
 };
 
 template <typename Index, std::size_t Rank>
-struct all_indices_known_statically<DimensionList<Index, Rank> > {
-  constexpr bool operator() () const {
+struct all_indices_known_statically_impl<DimensionList<Index, Rank> > {
+  static constexpr bool run() {
     return true;
   }
 };
 template <typename Index, std::size_t Rank>
-struct all_indices_known_statically<const DimensionList<Index, Rank> > {
-  constexpr bool operator() () const {
+struct all_indices_known_statically_impl<const DimensionList<Index, Rank> > {
+  static constexpr bool run() {
     return true;
   }
 };

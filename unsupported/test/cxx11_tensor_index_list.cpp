@@ -58,11 +58,11 @@ static void test_type2index_list()
   typedef Eigen::IndexList<Eigen::type2index<0>, Eigen::type2index<1>, Eigen::type2index<2>, Eigen::type2index<3>, Eigen::type2index<4>> Dims4;
 
 #if 0
-  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims0>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims1>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims2>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims3>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims4>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims0>() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims1>() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims2>() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims3>() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<Dims4>() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
 #endif
 
   EIGEN_STATIC_ASSERT((internal::are_inner_most_dims<Dims0, 1, ColMajor>::value == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
@@ -216,24 +216,24 @@ static void test_mixed_index_list()
   reduction_indices.set(3, 3);
   EIGEN_STATIC_ASSERT((internal::array_get<0>(reduction_indices) == 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
   EIGEN_STATIC_ASSERT((internal::array_get<2>(reduction_indices) == 2), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::index_known_statically<ReductionIndices>()(0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::index_known_statically<ReductionIndices>()(2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionIndices>()(0, 0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionIndices>()(2, 2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_known_statically<ReductionIndices>(0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_known_statically<ReductionIndices>(2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionIndices>(0, 0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionIndices>(2, 2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
 #if 0
-  EIGEN_STATIC_ASSERT((internal::all_indices_known_statically<ReductionIndices>()() == false), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<ReductionIndices>()() == false), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::all_indices_known_statically<ReductionIndices>() == false), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<ReductionIndices>() == false), YOU_MADE_A_PROGRAMMING_MISTAKE);
 #endif
 
   typedef IndexList<type2index<0>, type2index<1>, type2index<2>, type2index<3>> ReductionList;
   ReductionList reduction_list;
-  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(0, 0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(1, 1) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(2, 2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>()(3, 3) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>(0, 0) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>(1, 1) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>(2, 2) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::index_statically_eq<ReductionList>(3, 3) == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
 #if 0
-  EIGEN_STATIC_ASSERT((internal::all_indices_known_statically<ReductionList>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<ReductionList>()() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::all_indices_known_statically<ReductionList>() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::indices_statically_known_to_increase<ReductionList>() == true), YOU_MADE_A_PROGRAMMING_MISTAKE);
 #endif
 
   Tensor<float, 0> result1 = tensor.sum(reduction_axis);

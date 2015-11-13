@@ -294,46 +294,56 @@ template<DenseIndex N, typename FirstType, typename... OtherTypes> constexpr Den
 }
 
 template <typename T>
-struct index_known_statically {
-  constexpr bool operator() (DenseIndex) const {
+struct index_known_statically_impl {
+  static constexpr bool run(const DenseIndex) {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
-struct index_known_statically<IndexList<FirstType, OtherTypes...> > {
-  constexpr bool operator() (const DenseIndex i) const {
+struct index_known_statically_impl<IndexList<FirstType, OtherTypes...> > {
+  static constexpr bool run(const DenseIndex i) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i);
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
-struct index_known_statically<const IndexList<FirstType, OtherTypes...> > {
-  constexpr bool operator() (const DenseIndex i) const {
+struct index_known_statically_impl<const IndexList<FirstType, OtherTypes...> > {
+  static constexpr bool run(const DenseIndex i) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i);
   }
 };
 
 template <typename T>
-struct all_indices_known_statically {
-  constexpr bool operator() () const {
+static constexpr bool index_known_statically(const DenseIndex i) {
+  return index_known_statically_impl<T>::run(i);
+}
+
+template <typename T>
+struct all_indices_known_statically_impl {
+  static constexpr bool run() {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
-struct all_indices_known_statically<IndexList<FirstType, OtherTypes...> > {
-  constexpr bool operator() () const {
+struct all_indices_known_statically_impl<IndexList<FirstType, OtherTypes...> > {
+  static constexpr bool run() {
     return IndexList<FirstType, OtherTypes...>().all_values_known_statically();
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
-struct all_indices_known_statically<const IndexList<FirstType, OtherTypes...> > {
-  constexpr bool operator() () const {
+struct all_indices_known_statically_impl<const IndexList<FirstType, OtherTypes...> > {
+  static constexpr bool run() {
     return IndexList<FirstType, OtherTypes...>().all_values_known_statically();
   }
 };
+
+template <typename T>
+static constexpr bool all_indices_known_statically() {
+  return all_indices_known_statically_impl<T>::run();
+}
 
 template <typename T>
 struct indices_statically_known_to_increase_impl {
@@ -491,18 +501,14 @@ namespace internal {
 
 // No C++11 support
 template <typename T>
-struct index_known_statically {
-  EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() (DenseIndex) const{
-    return false;
-  }
-};
+static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool index_known_statically(DenseIndex) {
+  return false;
+}
 
 template <typename T>
-struct all_indices_known_statically {
-  EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() () const {
-    return false;
-  }
-};
+static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool all_indices_known_statically() {
+  return false;
+}
 
 template <typename T>
 static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool indices_statically_known_to_increase() {
