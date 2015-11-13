@@ -336,25 +336,31 @@ struct all_indices_known_statically<const IndexList<FirstType, OtherTypes...> > 
 };
 
 template <typename T>
-struct indices_statically_known_to_increase {
-  constexpr bool operator() () const {
+struct indices_statically_known_to_increase_impl {
+  static constexpr bool run() {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
-struct indices_statically_known_to_increase<IndexList<FirstType, OtherTypes...> > {
-  constexpr bool operator() () const {
-    return IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
+  struct indices_statically_known_to_increase_impl<IndexList<FirstType, OtherTypes...> > {
+  static constexpr bool run() {
+    return Eigen::IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
-struct indices_statically_known_to_increase<const IndexList<FirstType, OtherTypes...> > {
-  constexpr bool operator() () const {
-    return IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
+  struct indices_statically_known_to_increase_impl<const IndexList<FirstType, OtherTypes...> > {
+  static constexpr bool run() {
+    return Eigen::IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
   }
 };
+
+template <typename T>
+static constexpr bool indices_statically_known_to_increase() {
+  return indices_statically_known_to_increase_impl<T>::run();
+}
+
 
 template <typename Tx>
 struct index_statically_eq {
@@ -473,11 +479,9 @@ struct all_indices_known_statically {
 };
 
 template <typename T>
-struct indices_statically_known_to_increase {
-  EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool operator() () const {
-    return false;
-  }
-};
+static EIGEN_ALWAYS_INLINE EIGEN_DEVICE_FUNC bool indices_statically_known_to_increase() {
+  return false;
+}
 
 template <typename T>
 struct index_statically_eq {

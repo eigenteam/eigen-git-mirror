@@ -72,14 +72,14 @@ struct all_indices_known_statically<const DimensionList<Index, Rank> > {
 };
 
 template <typename Index, std::size_t Rank>
-struct indices_statically_known_to_increase<DimensionList<Index, Rank> > {
-  constexpr bool operator() () const {
+struct indices_statically_known_to_increase_impl<DimensionList<Index, Rank> > {
+  static constexpr bool run() {
     return true;
   }
 };
 template <typename Index, std::size_t Rank>
-struct indices_statically_known_to_increase<const DimensionList<Index, Rank> > {
-  constexpr bool operator() () const {
+struct indices_statically_known_to_increase_impl<const DimensionList<Index, Rank> > {
+  static constexpr bool run() {
     return true;
   }
 };
@@ -164,14 +164,14 @@ struct all_indices_known_statically<const DimensionList<Index, Rank> > {
 };
 
 template <typename Index, std::size_t Rank>
-struct indices_statically_known_to_increase<DimensionList<Index, Rank> > {
-  EIGEN_ALWAYS_INLINE bool operator() () const {
+struct indices_statically_known_to_increase_impl<DimensionList<Index, Rank> > {
+  static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE bool run() {
     return true;
   }
 };
 template <typename Index, std::size_t Rank>
-struct indices_statically_known_to_increase<const DimensionList<Index, Rank> > {
-  EIGEN_ALWAYS_INLINE bool operator() () const {
+struct indices_statically_known_to_increase_impl<const DimensionList<Index, Rank> > {
+  static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE bool run() {
     return true;
   }
 };
