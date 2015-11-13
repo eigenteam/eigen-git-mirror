@@ -353,8 +353,8 @@
 
 // Does the compiler support const expressions?
 #ifdef __CUDACC__
-// Const expressions are supported provided that c++11 is enabled
-#if __cplusplus > 199711L
+// Const expressions are supported provided that c++11 is enabled and we're using nvcc 7.5 or above
+#if defined(__CUDACC_VER__) &&  __CUDACC_VER__ >= 70500 && __cplusplus > 199711L
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
 #elif (defined(__cplusplus) && __cplusplus >= 201402L) || \
