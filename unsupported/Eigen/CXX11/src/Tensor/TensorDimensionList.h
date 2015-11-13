@@ -138,26 +138,26 @@ struct index_statically_lt_impl<const DimensionList<Index, Rank> > {
 
 #else
 template <typename Index, std::size_t Rank>
-struct index_known_statically<DimensionList<Index, Rank> > {
-  EIGEN_ALWAYS_INLINE bool operator() (const DenseIndex) const {
+struct index_known_statically_impl<DimensionList<Index, Rank> > {
+  static EIGEN_ALWAYS_INLINE bool run(const DenseIndex) {
     return true;
   }
 };
 template <typename Index, std::size_t Rank>
-struct index_known_statically<const DimensionList<Index, Rank> > {
-  EIGEN_ALWAYS_INLINE bool operator() (const DenseIndex) const {
+struct index_known_statically_impl<const DimensionList<Index, Rank> > {
+  static EIGEN_ALWAYS_INLINE bool run(const DenseIndex) {
     return true;
   }
 };
 
 template <typename Index, std::size_t Rank>
-struct all_indices_known_statically<DimensionList<Index, Rank> > {
+struct all_indices_known_statically_impl<DimensionList<Index, Rank> > {
   EIGEN_ALWAYS_INLINE bool operator() () const {
     return true;
   }
 };
 template <typename Index, std::size_t Rank>
-struct all_indices_known_statically<const DimensionList<Index, Rank> > {
+struct all_indices_known_statically_impl<const DimensionList<Index, Rank> > {
   EIGEN_ALWAYS_INLINE bool operator() () const {
     return true;
   }
