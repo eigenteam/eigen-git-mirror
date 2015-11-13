@@ -353,8 +353,10 @@
 
 // Does the compiler support const expressions?
 #ifdef __CUDACC__
-#define EIGEN_HAS_CONSTEXPR 1
-  // Const expressions are not supported regardless of what host compiler is used 
+// Const expressions are supported provided that c++11 is enabled
+#if __cplusplus > 199711L
+  #define EIGEN_HAS_CONSTEXPR 1
+#endif
 #elif (defined(__cplusplus) && __cplusplus >= 201402L) || \
     EIGEN_GNUC_AT_LEAST(4,8)
 #define EIGEN_HAS_CONSTEXPR 1
