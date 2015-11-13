@@ -89,29 +89,29 @@ struct preserve_inner_most_dims {
 template <typename ReducedDims, int NumTensorDims>
 struct are_inner_most_dims<ReducedDims, NumTensorDims, ColMajor>{
   static const bool tmp1 = indices_statically_known_to_increase<ReducedDims>();
-  static const bool tmp2 = index_statically_eq<ReducedDims>()(0, 0);
-  static const bool tmp3 = index_statically_eq<ReducedDims>()(array_size<ReducedDims>::value-1, array_size<ReducedDims>::value-1);
+  static const bool tmp2 = index_statically_eq<ReducedDims>(0, 0);
+  static const bool tmp3 = index_statically_eq<ReducedDims>(array_size<ReducedDims>::value-1, array_size<ReducedDims>::value-1);
   static const bool value = tmp1 & tmp2 & tmp3;
 };
 template <typename ReducedDims, int NumTensorDims>
 struct are_inner_most_dims<ReducedDims, NumTensorDims, RowMajor>{
   static const bool tmp1 = indices_statically_known_to_increase<ReducedDims>();
-  static const bool tmp2 = index_statically_eq<ReducedDims>()(0, NumTensorDims - array_size<ReducedDims>::value);
-  static const bool tmp3 = index_statically_eq<ReducedDims>()(array_size<ReducedDims>::value - 1, NumTensorDims - 1);
+  static const bool tmp2 = index_statically_eq<ReducedDims>(0, NumTensorDims - array_size<ReducedDims>::value);
+  static const bool tmp3 = index_statically_eq<ReducedDims>(array_size<ReducedDims>::value - 1, NumTensorDims - 1);
   static const bool value = tmp1 & tmp2 & tmp3;
 
 };
 template <typename ReducedDims, int NumTensorDims>
 struct preserve_inner_most_dims<ReducedDims, NumTensorDims, ColMajor>{
   static const bool tmp1 = indices_statically_known_to_increase<ReducedDims>();
-  static const bool tmp2 = index_statically_gt<ReducedDims>()(0, 0);
+  static const bool tmp2 = index_statically_gt<ReducedDims>(0, 0);
   static const bool value = tmp1 & tmp2;
 
 };
 template <typename ReducedDims, int NumTensorDims>
 struct preserve_inner_most_dims<ReducedDims, NumTensorDims, RowMajor>{
   static const bool tmp1 = indices_statically_known_to_increase<ReducedDims>();
-  static const bool tmp2 = index_statically_lt<ReducedDims>()(array_size<ReducedDims>::value - 1, NumTensorDims - 1);
+  static const bool tmp2 = index_statically_lt<ReducedDims>(array_size<ReducedDims>::value - 1, NumTensorDims - 1);
   static const bool value = tmp1 & tmp2;
 };
 #endif
