@@ -409,7 +409,7 @@ struct functor_traits<scalar_asin_op<Scalar> >
   */
 template<typename Scalar> struct scalar_atan_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_atan_op)
-  inline const Scalar operator() (const Scalar& a) const { using std::atan; return atan(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::atan; return atan(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::patan(a); }
 };
@@ -428,7 +428,7 @@ struct functor_traits<scalar_atan_op<Scalar> >
   */
 template<typename Scalar> struct scalar_tanh_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_tanh_op)
-  inline const Scalar operator() (const Scalar& a) const { using std::tanh; return tanh(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::tanh; return tanh(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::ptanh(a); }
 };
@@ -447,7 +447,7 @@ struct functor_traits<scalar_tanh_op<Scalar> >
   */
 template<typename Scalar> struct scalar_sinh_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sinh_op)
-  inline const Scalar operator() (const Scalar& a) const { using std::sinh; return sinh(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::sinh; return sinh(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psinh(a); }
 };
@@ -466,7 +466,7 @@ struct functor_traits<scalar_sinh_op<Scalar> >
   */
 template<typename Scalar> struct scalar_cosh_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cosh_op)
-  inline const Scalar operator() (const Scalar& a) const { using std::cosh; return cosh(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::cosh; return cosh(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pcosh(a); }
 };
