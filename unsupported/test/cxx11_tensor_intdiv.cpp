@@ -14,8 +14,29 @@
 
 void test_signed_32bit()
 {
+  // Divide by one
+  const Eigen::internal::TensorIntDivisor<int32_t, false> div(1);
+
+  for (int32_t j = 0; j < 25000; ++j) {
+    const int32_t fast_div = j / div;
+    const int32_t slow_div = j / 1;
+    VERIFY_IS_EQUAL(fast_div, slow_div);
+  }
+
+  // Standard divide by 2 or more
   for (int32_t i = 2; i < 25000; ++i) {
-    const Eigen::internal::TensorIntDivisor<int32_t> div(i);
+    const Eigen::internal::TensorIntDivisor<int32_t, false> div(i);
+
+    for (int32_t j = 0; j < 25000; ++j) {
+      const int32_t fast_div = j / div;
+      const int32_t slow_div = j / i;
+      VERIFY_IS_EQUAL(fast_div, slow_div);
+    }
+  }
+
+  // Optimized divide by 2 or more
+  for (int32_t i = 2; i < 25000; ++i) {
+    const Eigen::internal::TensorIntDivisor<int32_t, true> div(i);
 
     for (int32_t j = 0; j < 25000; ++j) {
       const int32_t fast_div = j / div;
@@ -42,7 +63,7 @@ void test_unsigned_32bit()
 
 void test_signed_64bit()
 {
-  for (int64_t i = 2; i < 25000; ++i) {
+  for (int64_t i = 1; i < 25000; ++i) {
     const Eigen::internal::TensorIntDivisor<int64_t> div(i);
 
     for (int64_t j = 0; j < 25000; ++j) {
@@ -56,7 +77,7 @@ void test_signed_64bit()
 
 void test_unsigned_64bit()
 {
-  for (uint64_t i = 2; i < 25000; ++i) {
+  for (uint64_t i = 1; i < 25000; ++i) {
     const Eigen::internal::TensorIntDivisor<uint64_t> div(i);
 
     for (uint64_t j = 0; j < 25000; ++j) {

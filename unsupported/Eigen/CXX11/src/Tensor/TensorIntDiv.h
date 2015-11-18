@@ -116,7 +116,7 @@ namespace {
 }
 
 
-template <typename T>
+template <typename T, bool div_gt_one = false>
 struct TensorIntDivisor {
  public:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorIntDivisor() {
@@ -166,8 +166,9 @@ struct TensorIntDivisor {
 
 // Optimized version for signed 32 bit integers.
 // Derived from Hacker's Delight.
+// Only works for divisors strictly greater than one
 template <>
-class TensorIntDivisor<int32_t> {
+class TensorIntDivisor<int32_t, true> {
  public:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorIntDivisor() {
     magic = 0;
@@ -226,8 +227,8 @@ private:
 };
 
 
-template <typename T>
-static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator / (const T& numerator, const TensorIntDivisor<T>& divisor) {
+template <typename T, bool div_gt_one>
+static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator / (const T& numerator, const TensorIntDivisor<T, div_gt_one>& divisor) {
   return divisor.divide(numerator);
 }
 
