@@ -163,6 +163,15 @@ template<> struct numeric_limits<int>
   EIGEN_DEVICE_FUNC
   static int (min)() { return INT_MIN; }
 };
+template<> struct numeric_limits<unsigned int>
+{
+  EIGEN_DEVICE_FUNC
+  static unsigned int epsilon() { return 0; }
+  EIGEN_DEVICE_FUNC
+  static unsigned int (max)() { return UINT_MAX; }
+  EIGEN_DEVICE_FUNC
+  static unsigned int (min)() { return 0; }
+};
 template<> struct numeric_limits<long>
 {
   EIGEN_DEVICE_FUNC
@@ -172,6 +181,15 @@ template<> struct numeric_limits<long>
   EIGEN_DEVICE_FUNC
   static long (min)() { return LONG_MIN; }
 };
+template<> struct numeric_limits<unsigned long>
+{
+  EIGEN_DEVICE_FUNC
+  static unsigned long epsilon() { return 0; }
+  EIGEN_DEVICE_FUNC
+  static unsigned long (max)() { return ULONG_MAX; }
+  EIGEN_DEVICE_FUNC
+  static unsigned long (min)() { return 0; }
+};
 template<> struct numeric_limits<long long>
 {
   EIGEN_DEVICE_FUNC
@@ -180,6 +198,15 @@ template<> struct numeric_limits<long long>
   static long long (max)() { return LLONG_MAX; }
   EIGEN_DEVICE_FUNC
   static long long (min)() { return LLONG_MIN; }
+};
+template<> struct numeric_limits<unsigned long long>
+{
+  EIGEN_DEVICE_FUNC
+  static unsigned long long epsilon() { return 0; }
+  EIGEN_DEVICE_FUNC
+  static unsigned long long (max)() { return ULLONG_MAX; }
+  EIGEN_DEVICE_FUNC
+  static unsigned long long (min)() { return 0; }
 };
 
 }
