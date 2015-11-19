@@ -116,8 +116,7 @@ void test_powers_64bit() {
       if (start_num < 0)
         start_num = 0;
       for (int64_t num = start_num; num < end_num; num++) {
-        Eigen::internal::TensorIntDivisor<int64_t> divider =
-          Eigen::internal::TensorIntDivisor<int64_t>(div);
+        Eigen::internal::TensorIntDivisor<int64_t> divider(div);
         int64_t result = num/div;
         int64_t result_op = divider.divide(num);
         VERIFY_IS_EQUAL(result_op, result);
@@ -130,8 +129,7 @@ void test_specific() {
   // A particular combination that was previously failing
   int64_t div = 209715200;
   int64_t num = 3238002688;
-  Eigen::internal::TensorIntDivisor<int64_t> divider =
-      Eigen::internal::TensorIntDivisor<int64_t>(div);
+  Eigen::internal::TensorIntDivisor<int64_t> divider(div);
   int64_t result = num/div;
   int64_t result_op = divider.divide(num);
   VERIFY_IS_EQUAL(result, result_op);
