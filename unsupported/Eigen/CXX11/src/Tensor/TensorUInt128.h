@@ -130,8 +130,8 @@ static TensorUInt128<uint64_t, uint64_t> operator * (const TensorUInt128<HL, LL>
   //           de
   // The result is stored in 2 64bit integers, high and low.
 
-  static const uint64_t LOW = 0x00000000FFFFFFFFLL;
-  static const uint64_t HIGH = 0xFFFFFFFF00000000LL;
+  const uint64_t LOW = 0x00000000FFFFFFFFLL;
+  const uint64_t HIGH = 0xFFFFFFFF00000000LL;
 
   uint64_t d = lhs.low & LOW;
   uint64_t c = (lhs.low & HIGH) >> 32LL;
