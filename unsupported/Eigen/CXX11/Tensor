@@ -67,6 +67,7 @@
 #include "src/Tensor/TensorInitializer.h"
 #include "src/Tensor/TensorTraits.h"
 #include "src/Tensor/TensorFunctors.h"
+#include "src/Tensor/TensorUInt128.h"
 #include "src/Tensor/TensorIntDiv.h"
 
 #include "src/Tensor/TensorBase.h"
