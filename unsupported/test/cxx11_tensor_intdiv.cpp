@@ -15,10 +15,10 @@
 void test_signed_32bit()
 {
   // Divide by one
-  const Eigen::internal::TensorIntDivisor<int32_t, false> div(1);
+  const Eigen::internal::TensorIntDivisor<int32_t, false> div_by_one(1);
 
   for (int32_t j = 0; j < 25000; ++j) {
-    const int32_t fast_div = j / div;
+    const int32_t fast_div = j / div_by_one;
     const int32_t slow_div = j / 1;
     VERIFY_IS_EQUAL(fast_div, slow_div);
   }
