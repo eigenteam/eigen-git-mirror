@@ -135,10 +135,10 @@ static void test_misc2() {
 
 void test_cxx11_tensor_uint128()
 {
-  CALL_SUBTEST(test_add());
-  CALL_SUBTEST(test_sub());
-  CALL_SUBTEST(test_mul());
-  CALL_SUBTEST(test_div());
-  CALL_SUBTEST(test_misc1());
-  CALL_SUBTEST(test_misc2());
+  CALL_SUBTEST_1(test_add());
+  CALL_SUBTEST_2(test_sub());
+  CALL_SUBTEST_3(test_mul());
+  CALL_SUBTEST_4(test_div());
+  CALL_SUBTEST_5(test_misc1());
+  CALL_SUBTEST_6(test_misc2());
 }
