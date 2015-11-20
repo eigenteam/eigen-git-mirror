@@ -675,6 +675,128 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
   return EIGEN_MATHFUNC_IMPL(random, Scalar)::run();
 }
 
+// Implementatin of is* functions
+
+// std::is* do not work with fast-math and gcc, std::is* are available on MSVC 2013 and newer, as well as in clang.
+#if (EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && __FINITE_MATH_ONLY__)) || (EIGEN_COMP_MSVC>=1800) || (EIGEN_COMP_CLANG)
+#define EIGEN_USE_STD_FPCLASSIFY 1
+#else
+#define EIGEN_USE_STD_FPCLASSIFY 0
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+typename internal::enable_if<internal::is_integral<T>::value,bool>::type
+isnan_impl(const T &x) { return false; }
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+typename internal::enable_if<internal::is_integral<T>::value,bool>::type
+isinf_impl(const T &x) { return false; }
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+typename internal::enable_if<internal::is_integral<T>::value,bool>::type
+isfinite_impl(const T &x) { return true; }
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+typename internal::enable_if<!internal::is_integral<T>::value,bool>::type
+isfinite_impl(const T& x)
+{
+  #if EIGEN_USE_STD_FPCLASSIFY
+    using std::isfinite;
+    return isfinite EIGEN_NOT_A_MACRO (x);
+  #else
+    return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
+  #endif
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+typename internal::enable_if<!internal::is_integral<T>::value,bool>::type
+isinf_impl(const T& x)
+{
+  #if EIGEN_USE_STD_FPCLASSIFY
+    using std::isinf;
+    return isinf EIGEN_NOT_A_MACRO (x);
+  #else
+    return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
+  #endif
+}
+
+template<typename T>
+EIGEN_DEVICE_FUNC
+typename internal::enable_if<!internal::is_integral<T>::value,bool>::type
+isnan_impl(const T& x)
+{
+  #if EIGEN_USE_STD_FPCLASSIFY
+    using std::isnan;
+    return isnan EIGEN_NOT_A_MACRO (x);
+  #else
+    return x != x;
+  #endif
+}
+
+#if (!EIGEN_USE_STD_FPCLASSIFY)
+
+#if EIGEN_COMP_MSVC
+
+template<typename T> EIGEN_DEVICE_FUNC bool isinf_msvc_helper(T x)
+{
+  return _fpclass(x)==_FPCLASS_NINF || _fpclass(x)==_FPCLASS_PINF;
+}
+
+//MSVC defines a _isnan builtin function, but for double only
+template<> EIGEN_DEVICE_FUNC inline bool isnan_impl(const long double& x) { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC inline bool isnan_impl(const double& x)      { return _isnan(x); }
+template<> EIGEN_DEVICE_FUNC inline bool isnan_impl(const float& x)       { return _isnan(x); }
+
+template<> EIGEN_DEVICE_FUNC inline bool isinf_impl(const long double& x) { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC inline bool isinf_impl(const double& x)      { return isinf_msvc_helper(x); }
+template<> EIGEN_DEVICE_FUNC inline bool isinf_impl(const float& x)       { return isinf_msvc_helper(x); }
+
+#elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
+
+#if EIGEN_GNUC_AT_LEAST(5,0)
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((optimize("no-finite-math-only")))
+#else
+  // NOTE the inline qualifier and noinline attribute are both needed: the former is to avoid linking issue (duplicate symbol),
+  //      while the second prevent too aggressive optimizations in fast-math mode:
+  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((noinline,optimize("no-finite-math-only")))
+#endif
+
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const long double& x) { return __builtin_isnan(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const double& x)      { return __builtin_isnan(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const float& x)       { return __builtin_isnan(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const double& x)      { return __builtin_isinf(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const float& x)       { return __builtin_isinf(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const long double& x) { return __builtin_isinf(x); }
+
+#undef EIGEN_TMP_NOOPT_ATTRIB
+
+#endif
+
+#endif
+
+template<typename T>
+bool isfinite_impl(const std::complex<T>& x)
+{
+  return (numext::isfinite)(numext::real(x)) && (numext::isfinite)(numext::imag(x));
+}
+
+template<typename T>
+bool isnan_impl(const std::complex<T>& x)
+{
+  return (numext::isnan)(numext::real(x)) || (numext::isnan)(numext::imag(x));
+}
+
+template<typename T>
+bool isinf_impl(const std::complex<T>& x)
+{
+  return ((numext::isinf)(numext::real(x)) || (numext::isinf)(numext::imag(x))) && (!(numext::isnan)(x));
+}
+
 } // end namespace internal
 
 /****************************************************************************
@@ -818,107 +940,9 @@ inline EIGEN_MATHFUNC_RETVAL(pow, Scalar) pow(const Scalar& x, const Scalar& y)
   return EIGEN_MATHFUNC_IMPL(pow, Scalar)::run(x, y);
 }
 
-// std::is* do not work with fast-math and gcc, std::is* are available on MSVC 2013 and newer, as well as in clang.
-#if (EIGEN_HAS_CXX11_MATH && !(EIGEN_COMP_GNUC_STRICT && __FINITE_MATH_ONLY__)) || (EIGEN_COMP_MSVC>=1800) || (EIGEN_COMP_CLANG)
-#define EIGEN_USE_STD_FPCLASSIFY 1
-#else
-#define EIGEN_USE_STD_FPCLASSIFY 0
-#endif
-
-template<typename T>
-EIGEN_DEVICE_FUNC
-bool (isfinite)(const T& x)
-{
-  #if EIGEN_USE_STD_FPCLASSIFY
-    using std::isfinite;
-    return isfinite EIGEN_NOT_A_MACRO (x);
-  #else
-    return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
-  #endif
-}
-
-template<typename T>
-EIGEN_DEVICE_FUNC
-bool (isinf)(const T& x)
-{
-  #if EIGEN_USE_STD_FPCLASSIFY
-    using std::isinf;
-    return isinf EIGEN_NOT_A_MACRO (x);
-  #else
-    return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
-  #endif
-}
-
-template<typename T>
-EIGEN_DEVICE_FUNC
-bool (isnan)(const T& x)
-{
-  #if EIGEN_USE_STD_FPCLASSIFY
-    using std::isnan;
-    return isnan EIGEN_NOT_A_MACRO (x);
-  #else
-    return x != x;
-  #endif
-}
-
-#if (!EIGEN_USE_STD_FPCLASSIFY)
-
-#if EIGEN_COMP_MSVC
-
-template<typename T> EIGEN_DEVICE_FUNC bool isinf_msvc_helper(T x)
-{
-  return _fpclass(x)==_FPCLASS_NINF || _fpclass(x)==_FPCLASS_PINF;
-}
-
-//MSVC defines a _isnan builtin function, but for double only
-template<> EIGEN_DEVICE_FUNC inline bool (isnan)(const long double& x) { return _isnan(x); }
-template<> EIGEN_DEVICE_FUNC inline bool (isnan)(const double& x)      { return _isnan(x); }
-template<> EIGEN_DEVICE_FUNC inline bool (isnan)(const float& x)       { return _isnan(x); }
-
-template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const long double& x) { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const double& x)      { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC inline bool (isinf)(const float& x)       { return isinf_msvc_helper(x); }
-
-#elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
-
-#if EIGEN_GNUC_AT_LEAST(5,0)
-  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((optimize("no-finite-math-only")))
-#else
-  // NOTE the inline qualifier and noinline attribute are both needed: the former is to avoid linking issue (duplicate symbol),
-  //      while the second prevent too aggressive optimizations in fast-math mode:
-  #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((noinline,optimize("no-finite-math-only")))
-#endif
-
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const long double& x) { return __builtin_isnan(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const double& x)      { return __builtin_isnan(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isnan)(const float& x)       { return __builtin_isnan(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const double& x)      { return __builtin_isinf(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const float& x)       { return __builtin_isinf(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool (isinf)(const long double& x) { return __builtin_isinf(x); }
-
-#undef EIGEN_TMP_NOOPT_ATTRIB
-
-#endif
-
-#endif
-
-template<typename T>
-bool (isfinite)(const std::complex<T>& x)
-{
-  return (numext::isfinite)(numext::real(x)) && (numext::isfinite)(numext::imag(x));
-}
-
-template<typename T>
-bool (isnan)(const std::complex<T>& x)
-{
-  return (numext::isnan)(numext::real(x)) || (numext::isnan)(numext::imag(x));
-}
-
-template<typename T>
-bool (isinf)(const std::complex<T>& x)
-{
-  return ((numext::isinf)(numext::real(x)) || (numext::isinf)(numext::imag(x))) && (!(numext::isnan)(x));
-}
+template<typename T> EIGEN_DEVICE_FUNC bool (isnan)   (const T &x) { return internal::isnan_impl(x); }
+template<typename T> EIGEN_DEVICE_FUNC bool (isinf)   (const T &x) { return internal::isinf_impl(x); }
+template<typename T> EIGEN_DEVICE_FUNC bool (isfinite)(const T &x) { return internal::isfinite_impl(x); }
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
