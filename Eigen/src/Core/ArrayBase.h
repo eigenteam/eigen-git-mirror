@@ -53,6 +53,7 @@ template<typename Derived> class ArrayBase
 
     typedef DenseBase<Derived> Base;
     using Base::operator*;
+    using Base::operator/;
     using Base::RowsAtCompileTime;
     using Base::ColsAtCompileTime;
     using Base::SizeAtCompileTime;
