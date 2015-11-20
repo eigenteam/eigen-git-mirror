@@ -687,21 +687,21 @@ inline EIGEN_MATHFUNC_RETVAL(random, Scalar) random()
 template<typename T>
 EIGEN_DEVICE_FUNC
 typename internal::enable_if<internal::is_integral<T>::value,bool>::type
-isnan_impl(const T &x) { return false; }
+isnan_impl(const T&) { return false; }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
 typename internal::enable_if<internal::is_integral<T>::value,bool>::type
-isinf_impl(const T &x) { return false; }
+isinf_impl(const T&) { return false; }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
 typename internal::enable_if<internal::is_integral<T>::value,bool>::type
-isfinite_impl(const T &x) { return true; }
+isfinite_impl(const T&) { return true; }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<!internal::is_integral<T>::value,bool>::type
+typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isfinite_impl(const T& x)
 {
   #if EIGEN_USE_STD_FPCLASSIFY
@@ -714,7 +714,7 @@ isfinite_impl(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<!internal::is_integral<T>::value,bool>::type
+typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isinf_impl(const T& x)
 {
   #if EIGEN_USE_STD_FPCLASSIFY
@@ -727,7 +727,7 @@ isinf_impl(const T& x)
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-typename internal::enable_if<!internal::is_integral<T>::value,bool>::type
+typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isnan_impl(const T& x)
 {
   #if EIGEN_USE_STD_FPCLASSIFY
@@ -779,23 +779,10 @@ template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const long double& x) { return
 
 #endif
 
-template<typename T>
-bool isfinite_impl(const std::complex<T>& x)
-{
-  return (numext::isfinite)(numext::real(x)) && (numext::isfinite)(numext::imag(x));
-}
-
-template<typename T>
-bool isnan_impl(const std::complex<T>& x)
-{
-  return (numext::isnan)(numext::real(x)) || (numext::isnan)(numext::imag(x));
-}
-
-template<typename T>
-bool isinf_impl(const std::complex<T>& x)
-{
-  return ((numext::isinf)(numext::real(x)) || (numext::isinf)(numext::imag(x))) && (!(numext::isnan)(x));
-}
+// The following overload are defined at the end of this file
+template<typename T> bool isfinite_impl(const std::complex<T>& x);
+template<typename T> bool isnan_impl(const std::complex<T>& x);
+template<typename T> bool isinf_impl(const std::complex<T>& x);
 
 } // end namespace internal
 
@@ -985,6 +972,24 @@ inline int log2(int x)
 } // end namespace numext
 
 namespace internal {
+
+template<typename T>
+bool isfinite_impl(const std::complex<T>& x)
+{
+  return (numext::isfinite)(numext::real(x)) && (numext::isfinite)(numext::imag(x));
+}
+
+template<typename T>
+bool isnan_impl(const std::complex<T>& x)
+{
+  return (numext::isnan)(numext::real(x)) || (numext::isnan)(numext::imag(x));
+}
+
+template<typename T>
+bool isinf_impl(const std::complex<T>& x)
+{
+  return ((numext::isinf)(numext::real(x)) || (numext::isinf)(numext::imag(x))) && (!(numext::isnan)(x));
+}
 
 /****************************************************************************
 * Implementation of fuzzy comparisons                                       *
