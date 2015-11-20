@@ -365,11 +365,15 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
 
   std::complex<RealScalar> zero(0.0,0.0);
   VERIFY((Eigen::isnan)(m1*zero/zero).all());
+#if EIGEN_COMP_MSVC
+  // msvc complex division is not robust
+  VERIFY((Eigen::isinf)(m4/RealScalar(0)).all());
+#else
 #if EIGEN_COMP_CLANG
-  // clang's complex division is notoriously broken
+  // clang's complex division is notoriously broken too
   if((numext::isinf)(m4(0,0)/RealScalar(0))) {
 #endif
-  VERIFY((Eigen::isinf)(m4/zero).all());
+    VERIFY((Eigen::isinf)(m4/zero).all());
 #if EIGEN_COMP_CLANG
   }
   else
@@ -377,6 +381,8 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
     VERIFY((Eigen::isinf)(m4.real()/zero.real()).all());
   }
 #endif
+#endif // MSVC
+
   VERIFY(((Eigen::isfinite)(m1) && (!(Eigen::isfinite)(m1*zero/zero)) && (!(Eigen::isfinite)(m1/zero))).all());
 
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);

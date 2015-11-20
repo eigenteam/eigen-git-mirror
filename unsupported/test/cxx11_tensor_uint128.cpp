@@ -14,7 +14,7 @@
 using Eigen::internal::TensorUInt128;
 using Eigen::internal::static_val;
 
-static void VERIFY_EQUAL(TensorUInt128<uint64_t, uint64_t> actual, __uint128_t expected) {
+void VERIFY_EQUAL(TensorUInt128<uint64_t, uint64_t> actual, __uint128_t expected) {
   bool matchl = actual.lower() == static_cast<uint64_t>(expected);
   bool matchh = actual.upper() == static_cast<uint64_t>(expected >> 64);
   if (!matchl || !matchh) {
@@ -27,7 +27,7 @@ static void VERIFY_EQUAL(TensorUInt128<uint64_t, uint64_t> actual, __uint128_t e
 }
 
 
-static void test_add() {
+void test_add() {
   uint64_t incr = internal::random<uint64_t>(1, 9999999999);
   for (uint64_t i1 = 0; i1 < 100; ++i1) {
     for (uint64_t i2 = 1; i2 < 100 * incr; i2 += incr) {
@@ -46,7 +46,7 @@ static void test_add() {
   }
 }
 
-static void test_sub() {
+void test_sub() {
   uint64_t incr = internal::random<uint64_t>(1, 9999999999);
   for (uint64_t i1 = 0; i1 < 100; ++i1) {
     for (uint64_t i2 = 1; i2 < 100 * incr; i2 += incr) {
@@ -65,7 +65,7 @@ static void test_sub() {
   }
 }
 
-static void test_mul() {
+void test_mul() {
   uint64_t incr = internal::random<uint64_t>(1, 9999999999);
   for (uint64_t i1 = 0; i1 < 100; ++i1) {
     for (uint64_t i2 = 1; i2 < 100 * incr; i2 += incr) {
@@ -84,7 +84,7 @@ static void test_mul() {
   }
 }
 
-static void test_div() {
+void test_div() {
   uint64_t incr = internal::random<uint64_t>(1, 9999999999);
   for (uint64_t i1 = 0; i1 < 100; ++i1) {
     for (uint64_t i2 = 1; i2 < 100 * incr; i2 += incr) {
@@ -103,7 +103,7 @@ static void test_div() {
   }
 }
 
-static void test_misc1() {
+void test_misc1() {
   uint64_t incr = internal::random<uint64_t>(1, 9999999999);
   for (uint64_t i2 = 1; i2 < 100 * incr; i2 += incr) {
     TensorUInt128<static_val<0>, uint64_t> i(0, i2);
@@ -118,7 +118,7 @@ static void test_misc1() {
   }
 }
 
-static void test_misc2() {
+void test_misc2() {
   int64_t incr = internal::random<int64_t>(1, 100);
   for (int64_t log_div = 0; log_div < 63; ++log_div) {
     for (int64_t divider = 1; divider <= 1000000 * incr; divider += incr) {
