@@ -15,7 +15,7 @@
 // The array class is only available starting with cxx11. Emulate our own here
 // if needed.
 // Moreover, CUDA doesn't support the STL containers, so we use our own instead.
-#if __cplusplus <= 199711L || defined(__CUDACC__)
+#if __cplusplus <= 199711L || defined(__CUDACC__) || defined(EIGEN_AVOID_STL_ARRAY)
 
 namespace Eigen {
 template <typename T, size_t n> class array {
