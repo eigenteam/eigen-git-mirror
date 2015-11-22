@@ -748,13 +748,13 @@ template<typename T> EIGEN_DEVICE_FUNC bool isinf_msvc_helper(T x)
 }
 
 //MSVC defines a _isnan builtin function, but for double only
-template<> EIGEN_DEVICE_FUNC inline bool isnan_impl(const long double& x) { return _isnan(x); }
-template<> EIGEN_DEVICE_FUNC inline bool isnan_impl(const double& x)      { return _isnan(x); }
-template<> EIGEN_DEVICE_FUNC inline bool isnan_impl(const float& x)       { return _isnan(x); }
+EIGEN_DEVICE_FUNC inline bool isnan_impl(const long double& x) { return _isnan(x); }
+EIGEN_DEVICE_FUNC inline bool isnan_impl(const double& x)      { return _isnan(x); }
+EIGEN_DEVICE_FUNC inline bool isnan_impl(const float& x)       { return _isnan(x); }
 
-template<> EIGEN_DEVICE_FUNC inline bool isinf_impl(const long double& x) { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC inline bool isinf_impl(const double& x)      { return isinf_msvc_helper(x); }
-template<> EIGEN_DEVICE_FUNC inline bool isinf_impl(const float& x)       { return isinf_msvc_helper(x); }
+EIGEN_DEVICE_FUNC inline bool isinf_impl(const long double& x) { return isinf_msvc_helper(x); }
+EIGEN_DEVICE_FUNC inline bool isinf_impl(const double& x)      { return isinf_msvc_helper(x); }
+EIGEN_DEVICE_FUNC inline bool isinf_impl(const float& x)       { return isinf_msvc_helper(x); }
 
 #elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
 
