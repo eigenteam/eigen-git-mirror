@@ -12,6 +12,12 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
+template<typename T>
+Matrix<T,2,1> angleToVec(T a)
+{
+  return Matrix<T,2,1>(std::cos(a), std::sin(a));
+}
+
 template<typename Scalar, int Mode, int Options> void non_projective_only()
 {
     /* this test covers the following files:
@@ -130,14 +136,16 @@ template<typename Scalar, int Mode, int Options> void transformations()
   AngleAxisx aa = AngleAxisx(q1);
   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
   
-  if(abs(aa.angle()) > NumTraits<Scalar>::dummy_precision())
+  // The following test is stable only if 2*angle != angle and v1 is not colinear with axis
+  if( (abs(aa.angle()) > test_precision<Scalar>()) && (abs(aa.axis().dot(v1.normalized()))<(Scalar(1)-Scalar(4)*test_precision<Scalar>())) )
   {
     VERIFY( !(q1 * v1).isApprox(Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1) );
   }
 
   aa.fromRotationMatrix(aa.toRotationMatrix());
   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
-  if(abs(aa.angle()) > NumTraits<Scalar>::dummy_precision())
+  // The following test is stable only if 2*angle != angle and v1 is not colinear with axis
+  if( (abs(aa.angle()) > test_precision<Scalar>()) && (abs(aa.axis().dot(v1.normalized()))<(Scalar(1)-Scalar(4)*test_precision<Scalar>())) )
   {
     VERIFY( !(q1 * v1).isApprox(Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1) );
   }
@@ -214,7 +222,9 @@ template<typename Scalar, int Mode, int Options> void transformations()
   t4 *= aa3;
   VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
 
-  v3 = Vector3::Random();
+  do {
+    v3 = Vector3::Random();
+  } while (v3.cwiseAbs().minCoeff()<NumTraits<Scalar>::epsilon());
   Translation3 tv3(v3);
   Transform3 t5(tv3);
   t4 = tv3;
@@ -414,14 +424,12 @@ template<typename Scalar, int Mode, int Options> void transformations()
     Scalar angle = internal::random<Scalar>(-100,100);
     Rotation2D<Scalar> rot2(angle);
     VERIFY( rot2.smallestPositiveAngle() >= 0 );
-    VERIFY( rot2.smallestPositiveAngle() < Scalar(2)*Scalar(EIGEN_PI) );
-    VERIFY_IS_APPROX( std::cos(rot2.smallestPositiveAngle()), std::cos(rot2.angle()) );
-    VERIFY_IS_APPROX( std::sin(rot2.smallestPositiveAngle()), std::sin(rot2.angle()) );
+    VERIFY( rot2.smallestPositiveAngle() <= Scalar(2)*Scalar(EIGEN_PI) );
+    VERIFY_IS_APPROX( angleToVec(rot2.smallestPositiveAngle()), angleToVec(rot2.angle()) );
     
     VERIFY( rot2.smallestAngle() >= -Scalar(EIGEN_PI) );
     VERIFY( rot2.smallestAngle() <=  Scalar(EIGEN_PI) );
-    VERIFY_IS_APPROX( std::cos(rot2.smallestAngle()), std::cos(rot2.angle()) );
-    VERIFY_IS_APPROX( std::sin(rot2.smallestAngle()), std::sin(rot2.angle()) );
+    VERIFY_IS_APPROX( angleToVec(rot2.smallestAngle()), angleToVec(rot2.angle()) );
   }
 
   s0 = internal::random<Scalar>(-100,100);
@@ -437,7 +445,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
   VERIFY_IS_APPROX(t20,t21);
   
   VERIFY_IS_APPROX(s0, (R0.slerp(0, R1)).angle());
-  VERIFY_IS_APPROX(R1.smallestPositiveAngle(), (R0.slerp(1, R1)).smallestPositiveAngle());
+  VERIFY_IS_APPROX( angleToVec(R1.smallestPositiveAngle()), angleToVec((R0.slerp(1, R1)).smallestPositiveAngle()) );
   VERIFY_IS_APPROX(R0.smallestPositiveAngle(), (R0.slerp(0.5, R0)).smallestPositiveAngle());
 
   if(std::cos(s0)>0)
@@ -447,13 +455,14 @@ template<typename Scalar, int Mode, int Options> void transformations()
   
   // Check path length
   Scalar l = 0;
-  for(int k=0; k<100; ++k)
+  int path_steps = 100;
+  for(int k=0; k<path_steps; ++k)
   {
-    Scalar a1 = R0.slerp(Scalar(k)/Scalar(100), R1).angle();
-    Scalar a2 = R0.slerp(Scalar(k+1)/Scalar(100), R1).angle();
+    Scalar a1 = R0.slerp(Scalar(k)/Scalar(path_steps), R1).angle();
+    Scalar a2 = R0.slerp(Scalar(k+1)/Scalar(path_steps), R1).angle();
     l += std::abs(a2-a1);
   }
-  VERIFY(l<=EIGEN_PI);
+  VERIFY(l<=EIGEN_PI*(Scalar(1)+NumTraits<Scalar>::epsilon()*Scalar(path_steps/2)));
   
   // check basic features
   {

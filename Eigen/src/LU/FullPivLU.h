@@ -720,7 +720,7 @@ void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
 
   const Index rows = this->rows(),
               cols = this->cols(),
-              nonzero_pivots = this->nonzeroPivots();
+              nonzero_pivots = this->rank();
   eigen_assert(rhs.rows() == rows);
   const Index smalldim = (std::min)(rows, cols);
 
