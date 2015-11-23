@@ -34,10 +34,7 @@ namespace {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE int count_leading_zeros(const T val)
   {
 #ifdef __CUDA_ARCH__
-    if (sizeof(T) == 8) {
-      return __clzll(val);
-    }
-    return __clz(val);
+    return (sizeof(T) == 8) ? __clzll(val) : __clz(val);
 #elif EIGEN_COMP_MSVC
     DWORD leading_zeros = 0;
     if (sizeof(T) == 8) {
@@ -46,11 +43,11 @@ namespace {
     else {
       _BitScanReverse(&leading_zero, val);
     }
+    return leading_zeros;
 #else
-    if (sizeof(T) == 8) {
-      return __builtin_clzl(static_cast<uint64_t>(val));
-    }
-    return __builtin_clz(static_cast<uint32_t>(val));
+    return (sizeof(T) == 8) ?
+      __builtin_clzl(static_cast<uint64_t>(val)) :
+      __builtin_clz(static_cast<uint32_t>(val));
 #endif
   }
 
