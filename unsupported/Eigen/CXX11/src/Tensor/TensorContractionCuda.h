@@ -1147,7 +1147,6 @@ EigenFloatContractionKernel(const LhsMapper lhs, const RhsMapper rhs,
 
   bool check_rhs = (base_n + 63) >= n_size;
   bool check_lhs128 = (base_m + 127) >= m_size;
-  bool check_lhs64 = (base_m + 63) >= m_size;
 
   if (!check_rhs) {
     if (!check_lhs128) {
