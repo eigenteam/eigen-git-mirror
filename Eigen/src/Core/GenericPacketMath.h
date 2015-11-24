@@ -77,7 +77,9 @@ struct default_packet_traits
 
     HasRound  = 0,
     HasFloor  = 0,
-    HasCeil   = 0
+    HasCeil   = 0,
+
+    HasSign   = 0
   };
 };
 

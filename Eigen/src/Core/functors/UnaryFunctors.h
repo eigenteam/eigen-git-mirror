@@ -655,6 +655,44 @@ struct functor_traits<scalar_boolean_not_op<Scalar> > {
   };
 };
 
+/** \internal
+  * \brief Template functor to compute the signum of a scalar
+  * \sa class CwiseUnaryOp, Cwise::sign()
+  */
+template<typename Scalar,bool iscpx=(NumTraits<Scalar>::IsComplex!=0) > struct scalar_sign_op;
+template<typename Scalar> 
+struct scalar_sign_op<Scalar,false> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_sign_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const 
+  {
+      return Scalar( (a>Scalar(0)) - (a<Scalar(0)) );
+  }
+  //TODO
+  //template <typename Packet>
+  //EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psign(a); }
+};
+template<typename Scalar> 
+struct scalar_sign_op<Scalar,true> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_sign_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const 
+  {
+      typename NumTraits<Scalar>::Real aa = std::abs(a);
+      return (aa==0) ?  Scalar(0) : (a/aa); 
+  }
+  //TODO
+  //template <typename Packet>
+  //EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psign(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_sign_op<Scalar> >
+{ enum {
+    Cost = 
+        NumTraits<Scalar>::IsComplex
+        ? ( 8*NumTraits<Scalar>::MulCost  ) // roughly
+        : ( 3*NumTraits<Scalar>::AddCost),
+    PacketAccess = packet_traits<Scalar>::HasSign
+  };
+};
 
 } // end namespace internal
 

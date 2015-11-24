@@ -4,6 +4,7 @@ typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnTy
 typedef CwiseUnaryOp<internal::scalar_arg_op<Scalar>, const Derived> ArgReturnType;
 typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
 typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
+typedef CwiseUnaryOp<internal::scalar_sign_op<Scalar>, const Derived> SignReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> InverseReturnType;
 typedef CwiseUnaryOp<internal::scalar_boolean_not_op<Scalar>, const Derived> BooleanNotReturnType;
 
@@ -137,6 +138,24 @@ sqrt() const
 {
   return SqrtReturnType(derived());
 }
+
+/** \returns an expression of the coefficient-wise signum of *this.
+  *
+  * This function computes the coefficient-wise signum. The function MatrixBase::sign() in the
+  * unsupported module MatrixFunctions computes the matrix square root.
+  *
+  * Example: \include Cwise_sign.cpp
+  * Output: \verbinclude Cwise_sign.out
+  *
+  * \sa pow(), square()
+  */
+EIGEN_DEVICE_FUNC
+inline const SignReturnType
+sign() const
+{
+  return SignReturnType(derived());
+}
+
 
 /** \returns an expression of the coefficient-wise cosine of *this.
   *

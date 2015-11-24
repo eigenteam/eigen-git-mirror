@@ -64,6 +64,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isnan,scalar_isnan_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isinf,scalar_isinf_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isfinite,scalar_isfinite_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sign,scalar_sign_op)
   
   template<typename Derived>
   inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar>, const Derived>

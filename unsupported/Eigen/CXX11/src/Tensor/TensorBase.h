@@ -87,6 +87,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_sign_op<Scalar>, const Derived>
+    sign() const {
+      return unaryExpr(internal::scalar_sign_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_rsqrt_op<Scalar>, const Derived>
     rsqrt() const {
       return unaryExpr(internal::scalar_rsqrt_op<Scalar>());
