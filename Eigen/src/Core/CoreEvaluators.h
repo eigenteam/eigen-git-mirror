@@ -907,8 +907,8 @@ struct unary_evaluator<Replicate<ArgType, RowFactor, ColFactor> >
   
   enum {
     CoeffReadCost = evaluator<ArgTypeNestedCleaned>::CoeffReadCost,
-    
-    Flags = (evaluator<ArgTypeNestedCleaned>::Flags & HereditaryBits & ~RowMajorBit) | (traits<XprType>::Flags & RowMajorBit),
+    LinearAccessMask = XprType::IsVectorAtCompileTime ? LinearAccessBit : 0,
+    Flags = (evaluator<ArgTypeNestedCleaned>::Flags & (HereditaryBits|LinearAccessMask) & ~RowMajorBit) | (traits<XprType>::Flags & RowMajorBit),
     
     Alignment = evaluator<ArgTypeNestedCleaned>::Alignment
   };
@@ -1149,6 +1149,7 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
     // FIXME enable DirectAccess with negative strides?
     Flags0 = evaluator<ArgType>::Flags,
     LinearAccess = ( (Direction==BothDirections) && (int(Flags0)&PacketAccessBit) )
+                  || ((ReverseRow && XprType::ColsAtCompileTime==1) || (ReverseCol && XprType::RowsAtCompileTime==1))
                  ? LinearAccessBit : 0,
 
     Flags = int(Flags0) & (HereditaryBits | PacketAccessBit | LinearAccess),
@@ -1158,8 +1159,8 @@ struct unary_evaluator<Reverse<ArgType, Direction> >
 
   EIGEN_DEVICE_FUNC explicit unary_evaluator(const XprType& reverse)
     : m_argImpl(reverse.nestedExpression()),
-      m_rows(ReverseRow ? reverse.nestedExpression().rows() : 0),
-      m_cols(ReverseCol ? reverse.nestedExpression().cols() : 0)
+      m_rows(ReverseRow ? reverse.nestedExpression().rows() : 1),
+      m_cols(ReverseCol ? reverse.nestedExpression().cols() : 1)
   { }
  
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index row, Index col) const
@@ -1233,8 +1234,9 @@ protected:
   evaluator<ArgType> m_argImpl;
 
   // If we do not reverse rows, then we do not need to know the number of rows; same for columns
-  const variable_if_dynamic<Index, ReverseRow ? ArgType::RowsAtCompileTime : 0> m_rows;
-  const variable_if_dynamic<Index, ReverseCol ? ArgType::ColsAtCompileTime : 0> m_cols;
+  // Nonetheless, in this case it is important to set to 1 such that the coeff(index) method works fine for vectors.
+  const variable_if_dynamic<Index, ReverseRow ? ArgType::RowsAtCompileTime : 1> m_rows;
+  const variable_if_dynamic<Index, ReverseCol ? ArgType::ColsAtCompileTime : 1> m_cols;
 };
 
 

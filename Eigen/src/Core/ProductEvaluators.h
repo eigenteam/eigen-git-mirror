@@ -484,7 +484,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & ~RowMajorBit)
           | (EvalToRowMajor ? RowMajorBit : 0)
           // TODO enable vectorization for mixed types
-          | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0),
+          | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0)
+          | (XprType::IsVectorAtCompileTime ? LinearAccessBit : 0),
           
     Alignment = CanVectorizeLhs ? LhsAlignment
               : CanVectorizeRhs ? RhsAlignment
@@ -529,6 +530,14 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
 
     PacketImpl::run(row, col, m_lhsImpl, m_rhsImpl, m_innerDim, res);
     return res;
+  }
+
+  template<int LoadMode, typename PacketType>
+  const PacketType packet(Index index) const
+  {
+    const Index row = RowsAtCompileTime == 1 ? 0 : index;
+    const Index col = RowsAtCompileTime == 1 ? index : 0;
+    return packet<LoadMode,PacketType>(row,col);
   }
 
 protected:
