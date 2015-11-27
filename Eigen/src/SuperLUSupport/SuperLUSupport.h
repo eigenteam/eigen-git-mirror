@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -14,12 +14,11 @@ namespace Eigen {
 
 #define DECL_GSSVX(PREFIX,FLOATTYPE,KEYTYPE)		\
     extern "C" {                                                                                          \
-      typedef struct { FLOATTYPE for_lu; FLOATTYPE total_needed; int expansions; } PREFIX##mem_usage_t;   \
       extern void PREFIX##gssvx(superlu_options_t *, SuperMatrix *, int *, int *, int *,                  \
                                 char *, FLOATTYPE *, FLOATTYPE *, SuperMatrix *, SuperMatrix *,           \
                                 void *, int, SuperMatrix *, SuperMatrix *,                                \
                                 FLOATTYPE *, FLOATTYPE *, FLOATTYPE *, FLOATTYPE *,                       \
-                                PREFIX##mem_usage_t *, SuperLUStat_t *, int *);                           \
+                                mem_usage_t *, SuperLUStat_t *, int *);                           \
     }                                                                                                     \
     inline float SuperLU_gssvx(superlu_options_t *options, SuperMatrix *A,                                \
          int *perm_c, int *perm_r, int *etree, char *equed,                                               \
@@ -29,7 +28,7 @@ namespace Eigen {
          FLOATTYPE *recip_pivot_growth,                                                                   \
          FLOATTYPE *rcond, FLOATTYPE *ferr, FLOATTYPE *berr,                                              \
          SuperLUStat_t *stats, int *info, KEYTYPE) {                                                      \
-    PREFIX##mem_usage_t mem_usage;                                                                        \
+    mem_usage_t mem_usage;                                                                        \
     PREFIX##gssvx(options, A, perm_c, perm_r, etree, equed, R, C, L,                                      \
          U, work, lwork, B, X, recip_pivot_growth, rcond,                                                 \
          ferr, berr, &mem_usage, stats, info);                                                            \
@@ -53,7 +52,7 @@ DECL_GSSVX(z,double,std::complex<double>)
       extern void PREFIX##gsisx(superlu_options_t *, SuperMatrix *, int *, int *, int *,        \
                          char *, FLOATTYPE *, FLOATTYPE *, SuperMatrix *, SuperMatrix *,        \
                          void *, int, SuperMatrix *, SuperMatrix *, FLOATTYPE *, FLOATTYPE *,   \
-                         PREFIX##mem_usage_t *, SuperLUStat_t *, int *);                        \
+                         mem_usage_t *, SuperLUStat_t *, int *);                        \
     }                                                                                           \
     inline float SuperLU_gsisx(superlu_options_t *options, SuperMatrix *A,                      \
          int *perm_c, int *perm_r, int *etree, char *equed,                                     \
@@ -63,7 +62,7 @@ DECL_GSSVX(z,double,std::complex<double>)
          FLOATTYPE *recip_pivot_growth,                                                         \
          FLOATTYPE *rcond,                                                                      \
          SuperLUStat_t *stats, int *info, KEYTYPE) {                                            \
-    PREFIX##mem_usage_t mem_usage;                                                              \
+    mem_usage_t mem_usage;                                                              \
     PREFIX##gsisx(options, A, perm_c, perm_r, etree, equed, R, C, L,                            \
          U, work, lwork, B, X, recip_pivot_growth, rcond,                                       \
          &mem_usage, stats, info);                                                              \
