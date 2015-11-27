@@ -157,7 +157,8 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       init();
     }
 
-    explicit UmfPackLU(const MatrixType& matrix)
+    template<typename InputMatrixType>
+    explicit UmfPackLU(const InputMatrixType& matrix)
       : mp_matrix(matrix)
     {
       init();
