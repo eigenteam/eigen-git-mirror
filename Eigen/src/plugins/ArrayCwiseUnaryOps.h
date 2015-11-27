@@ -141,8 +141,7 @@ sqrt() const
 
 /** \returns an expression of the coefficient-wise signum of *this.
   *
-  * This function computes the coefficient-wise signum. The function MatrixBase::sign() in the
-  * unsupported module MatrixFunctions computes the matrix square root.
+  * This function computes the coefficient-wise signum.
   *
   * Example: \include Cwise_sign.cpp
   * Output: \verbinclude Cwise_sign.out

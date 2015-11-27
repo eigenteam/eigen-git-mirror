@@ -230,6 +230,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.square(), square(m1));
   VERIFY_IS_APPROX(m1.cube(), cube(m1));
   VERIFY_IS_APPROX(cos(m1+RealScalar(3)*m2), cos((m1+RealScalar(3)*m2).eval()));
+  VERIFY_IS_APPROX(m1.sign(), sign(m1));
 
 
   // avoid NaNs with abs() so verification doesn't fail
@@ -255,6 +256,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(inverse(inverse(m1)),m1);
   VERIFY((abs(m1) == m1 || abs(m1) == -m1).all());
   VERIFY_IS_APPROX(m3, sqrt(abs2(m1)));
+  VERIFY_IS_APPROX( m1.sign(), -(-m1).sign() );
+  VERIFY_IS_APPROX( m1*m1.sign(),m1.abs());
+  VERIFY_IS_APPROX(m1.sign() * m1.abs(), m1);
 
   VERIFY_IS_APPROX(numext::abs2(numext::real(m1)) + numext::abs2(numext::imag(m1)), numext::abs2(m1));
   VERIFY_IS_APPROX(numext::abs2(real(m1)) + numext::abs2(imag(m1)), numext::abs2(m1));
@@ -348,6 +352,7 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.square(), square(m1));
   VERIFY_IS_APPROX(m1.cube(), cube(m1));
   VERIFY_IS_APPROX(cos(m1+RealScalar(3)*m2), cos((m1+RealScalar(3)*m2).eval()));
+  VERIFY_IS_APPROX(m1.sign(), sign(m1));
 
 
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));
@@ -390,6 +395,9 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(abs(m1), sqrt(square(real(m1))+square(imag(m1))));
   VERIFY_IS_APPROX(abs(m1), sqrt(abs2(m1)));
   VERIFY_IS_APPROX(log10(m1), log(m1)/log(10));
+
+  VERIFY_IS_APPROX( m1.sign(), -(-m1).sign() );
+  VERIFY_IS_APPROX( m1.sign() * m1.abs(), m1);
 
   // scalar by array division
   const RealScalar tiny = sqrt(std::numeric_limits<RealScalar>::epsilon());
