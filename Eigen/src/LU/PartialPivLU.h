@@ -11,7 +11,7 @@
 #ifndef EIGEN_PARTIALLU_H
 #define EIGEN_PARTIALLU_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
 template<typename _MatrixType> struct traits<PartialPivLU<_MatrixType> >
@@ -185,7 +185,7 @@ template<typename _MatrixType> class PartialPivLU
 
     inline Index rows() const { return m_lu.rows(); }
     inline Index cols() const { return m_lu.cols(); }
-    
+
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
@@ -206,17 +206,44 @@ template<typename _MatrixType> class PartialPivLU
       m_lu.template triangularView<UnitLower>().solveInPlace(dst);
 
       // Step 3
-      m_lu.template triangularView<Upper>().solveInPlace(dst); 
+      m_lu.template triangularView<Upper>().solveInPlace(dst);
+    }
+
+    template<bool Conjugate, typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const {
+     /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
+      * So we proceed as follows:
+      * Step 1: compute c = Pb.
+      * Step 2: replace c by the solution x to Lx = c.
+      * Step 3: replace c by the solution x to Ux = c.
+      */
+
+      eigen_assert(rhs.rows() == m_lu.cols());
+
+      if (Conjugate) {
+        // Step 1
+        dst = m_lu.template triangularView<Upper>().adjoint().solve(rhs);
+        // Step 2
+        m_lu.template triangularView<UnitLower>().adjoint().solveInPlace(dst);
+      } else {
+        // Step 1
+        dst = m_lu.template triangularView<Upper>().transpose().solve(rhs);
+        // Step 2
+        m_lu.template triangularView<UnitLower>().transpose().solveInPlace(dst);
+      }
+      // Step 3
+      dst = permutationP().transpose() * dst;
     }
     #endif
 
   protected:
-    
+
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
-    
+
     MatrixType m_lu;
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
@@ -295,7 +322,7 @@ struct partial_lu_impl
     {
       Index rrows = rows-k-1;
       Index rcols = cols-k-1;
-        
+
       Index row_of_biggest_in_col;
       Score biggest_in_corner
         = lu.col(k).tail(rows-k).unaryExpr(Scoring()).maxCoeff(&row_of_biggest_in_col);
@@ -436,10 +463,10 @@ template<typename InputType>
 PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const EigenBase<InputType>& matrix)
 {
   check_template_parameters();
-  
+
   // the row permutation is stored as int indices, so just to be sure:
   eigen_assert(matrix.rows()<NumTraits<int>::highest());
-  
+
   m_lu = matrix.derived();
 
   eigen_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
@@ -492,7 +519,7 @@ struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assi
   typedef PartialPivLU<MatrixType> LuType;
   typedef Inverse<LuType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
-  {    
+  {
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.cols()));
   }
 };
