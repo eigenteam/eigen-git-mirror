@@ -68,7 +68,7 @@ else()
   ei_add_property(EIGEN_MISSING_BACKENDS "UmfPack, ")
 endif()
 
-find_package(SuperLU)
+find_package(SuperLU 4.0)
 if(SUPERLU_FOUND)
   add_definitions("-DEIGEN_SUPERLU_SUPPORT")
   include_directories(${SUPERLU_INCLUDES})

@@ -29,7 +29,7 @@ if(UMFPACK_FOUND AND BLAS_FOUND)
   set(UMFPACK_ALL_LIBS ${UMFPACK_LIBRARIES} ${BLAS_LIBRARIES})
 endif()
 
-find_package(SuperLU)
+find_package(SuperLU 4.0)
 if(SUPERLU_FOUND AND BLAS_FOUND)
   add_definitions("-DEIGEN_SUPERLU_SUPPORT")
   include_directories(${SUPERLU_INCLUDES})
