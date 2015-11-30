@@ -118,11 +118,7 @@ endmacro(ei_add_cxx_compiler_flag)
 
 if(NOT MSVC)
   # We assume that other compilers are partly compatible with GNUCC
-  
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
-  set(CMAKE_CXX_FLAGS_DEBUG "-g3")
-  set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O2")
-  
+
   # clang outputs some warnings for unknwon flags that are not caught by check_cxx_compiler_flag
   # adding -Werror turns such warnings into errors
   check_cxx_compiler_flag("-Werror" COMPILER_SUPPORT_WERROR)
