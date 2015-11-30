@@ -129,13 +129,6 @@ void test_dynalloc()
 
   for (int i=0; i<g_repeat*100; ++i)
   {
-    CALL_SUBTEST(check_dynaligned<Vector4f>() );
-    CALL_SUBTEST(check_dynaligned<Vector2d>() );
-    CALL_SUBTEST(check_dynaligned<Matrix4f>() );
-    CALL_SUBTEST(check_dynaligned<Vector4d>() );
-    CALL_SUBTEST(check_dynaligned<Vector4i>() );
-    CALL_SUBTEST(check_dynaligned<Vector8f>() );
-    
     CALL_SUBTEST( check_custom_new_delete<Vector4f>() );
     CALL_SUBTEST( check_custom_new_delete<Vector2f>() );
     CALL_SUBTEST( check_custom_new_delete<Matrix4f>() );
@@ -144,6 +137,16 @@ void test_dynalloc()
   
   // check static allocation, who knows ?
   #if EIGEN_MAX_STATIC_ALIGN_BYTES
+  for (int i=0; i<g_repeat*100; ++i)
+  {
+    CALL_SUBTEST(check_dynaligned<Vector4f>() );
+    CALL_SUBTEST(check_dynaligned<Vector2d>() );
+    CALL_SUBTEST(check_dynaligned<Matrix4f>() );
+    CALL_SUBTEST(check_dynaligned<Vector4d>() );
+    CALL_SUBTEST(check_dynaligned<Vector4i>() );
+    CALL_SUBTEST(check_dynaligned<Vector8f>() );
+  }
+
   {
     MyStruct foo0;  VERIFY(size_t(foo0.avec.data())%ALIGNMENT==0);
     MyClassA fooA;  VERIFY(size_t(fooA.avec.data())%ALIGNMENT==0);
