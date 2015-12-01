@@ -146,6 +146,10 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     typedef SparseMatrix<Scalar> LUMatrixType;
     typedef SparseMatrix<Scalar,ColMajor,int> UmfpackMatrixType;
     typedef Ref<const UmfpackMatrixType, StandardCompressedFormat> UmfpackMatrixRef;
+    enum {
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
 
   public:
 

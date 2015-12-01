@@ -68,6 +68,10 @@ class SPQR : public SparseSolverBase<SPQR<_MatrixType> >
     typedef SuiteSparse_long StorageIndex ;
     typedef SparseMatrix<Scalar, ColMajor, StorageIndex> MatrixType;
     typedef Map<PermutationMatrix<Dynamic, Dynamic, StorageIndex> > PermutationType;
+    enum {
+      ColsAtCompileTime = Dynamic,
+      MaxColsAtCompileTime = Dynamic
+    };
   public:
     SPQR() 
       : m_ordering(SPQR_ORDERING_DEFAULT), m_allow_tol(SPQR_DEFAULT_TOL), m_tolerance (NumTraits<Scalar>::epsilon()), m_useDefaultThreshold(true)

@@ -99,12 +99,18 @@ template<typename MatrixType> void lu_non_invertible()
   m3 = MatrixType::Random(rows,cols2);
   lu.template _solve_impl_transposed<false>(m2, m3);
   VERIFY_IS_APPROX(m2, m1.transpose()*m3);
+  m3 = MatrixType::Random(rows,cols2);
+  m3 = lu.transpose().solve(m2);
+  VERIFY_IS_APPROX(m2, m1.transpose()*m3);
 
   // test solve with conjugate transposed
   m3 = MatrixType::Random(rows,cols2);
   m2 = m1.adjoint()*m3;
   m3 = MatrixType::Random(rows,cols2);
   lu.template _solve_impl_transposed<true>(m2, m3);
+  VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
+  m3 = MatrixType::Random(rows,cols2);
+  m3 = lu.adjoint().solve(m2);
   VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
 }
 
@@ -138,12 +144,20 @@ template<typename MatrixType> void lu_invertible()
   m2 = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   VERIFY_IS_APPROX(m2, lu.inverse()*m3);
+
   // test solve with transposed
   lu.template _solve_impl_transposed<false>(m3, m2);
   VERIFY_IS_APPROX(m3, m1.transpose()*m2);
+  m3 = MatrixType::Random(size,size);
+  m3 = lu.transpose().solve(m2);
+  VERIFY_IS_APPROX(m2, m1.transpose()*m3);
+
   // test solve with conjugate transposed
   lu.template _solve_impl_transposed<true>(m3, m2);
   VERIFY_IS_APPROX(m3, m1.adjoint()*m2);
+  m3 = MatrixType::Random(size,size);
+  m3 = lu.adjoint().solve(m2);
+  VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
 
   // Regression test for Bug 302
   MatrixType m4 = MatrixType::Random(size,size);
@@ -168,12 +182,20 @@ template<typename MatrixType> void lu_partial_piv()
   m2 = plu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   VERIFY_IS_APPROX(m2, plu.inverse()*m3);
+
   // test solve with transposed
   plu.template _solve_impl_transposed<false>(m3, m2);
   VERIFY_IS_APPROX(m3, m1.transpose()*m2);
+  m3 = MatrixType::Random(size,size);
+  m3 = plu.transpose().solve(m2);
+  VERIFY_IS_APPROX(m2, m1.transpose()*m3);
+
   // test solve with conjugate transposed
   plu.template _solve_impl_transposed<true>(m3, m2);
   VERIFY_IS_APPROX(m3, m1.adjoint()*m2);
+  m3 = MatrixType::Random(size,size);
+  m3 = plu.adjoint().solve(m2);
+  VERIFY_IS_APPROX(m2, m1.adjoint()*m3);
 }
 
 template<typename MatrixType> void lu_verify_assert()

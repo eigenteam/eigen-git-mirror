@@ -48,6 +48,7 @@ public:
   typedef typename internal::ref_selector<XprType>::type      XprTypeNested;
   typedef typename internal::remove_all<XprTypeNested>::type  XprTypeNestedCleaned;
   typedef typename internal::ref_selector<Inverse>::type Nested;
+  typedef typename internal::remove_all<XprType>::type NestedExpression;
   
   explicit Inverse(const XprType &xpr)
     : m_xpr(xpr)
@@ -62,25 +63,16 @@ protected:
   XprTypeNested m_xpr;
 };
 
-/** \internal
-  * Specialization of the Inverse expression for dense expressions.
-  * Direct access to the coefficients are discared.
-  * FIXME this intermediate class is probably not needed anymore.
-  */
-template<typename XprType>
-class InverseImpl<XprType,Dense>
-  : public MatrixBase<Inverse<XprType> >
+// Generic API dispatcher
+template<typename XprType, typename StorageKind>
+class InverseImpl
+  : public internal::generic_xpr_base<Inverse<XprType> >::type
 {
-  typedef Inverse<XprType> Derived;
-  
 public:
-  
-  typedef MatrixBase<Derived> Base;
-  EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
-  typedef typename internal::remove_all<XprType>::type NestedExpression;
-
+  typedef typename internal::generic_xpr_base<Inverse<XprType> >::type Base;
+  typedef typename XprType::Scalar Scalar;
 private:
-  
+
   Scalar coeff(Index row, Index col) const;
   Scalar coeff(Index i) const;
 };

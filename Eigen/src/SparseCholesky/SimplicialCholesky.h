@@ -71,6 +71,11 @@ class SimplicialCholeskyBase : public SparseSolverBase<Derived>
     typedef Matrix<Scalar,Dynamic,1> VectorType;
     typedef Matrix<StorageIndex,Dynamic,1> VectorI;
 
+    enum {
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
+
   public:
     
     using Base::derived;

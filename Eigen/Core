@@ -391,6 +391,7 @@ using std::ptrdiff_t;
 #include "src/Core/GeneralProduct.h"
 #include "src/Core/Solve.h"
 #include "src/Core/Inverse.h"
+#include "src/Core/SolverBase.h"
 #include "src/Core/PermutationMatrix.h"
 #include "src/Core/Transpositions.h"
 #include "src/Core/TriangularMatrix.h"

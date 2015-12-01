@@ -170,6 +170,10 @@ class CholmodBase : public SparseSolverBase<Derived>
     typedef typename MatrixType::RealScalar RealScalar;
     typedef MatrixType CholMatrixType;
     typedef typename MatrixType::StorageIndex StorageIndex;
+    enum {
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
 
   public:
 

@@ -31,6 +31,11 @@ public:
   typedef typename MatrixType::StorageIndex StorageIndex;
   typedef typename MatrixType::RealScalar RealScalar;
 
+  enum {
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+  };
+
 public:
 
   using Base::derived;

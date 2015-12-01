@@ -16,6 +16,8 @@ namespace internal {
 template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
  : traits<_MatrixType>
 {
+  typedef MatrixXpr XprKind;
+  typedef SolverStorage StorageKind;
   enum { Flags = 0 };
 };
 
@@ -53,21 +55,18 @@ template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
   * \sa MatrixBase::fullPivLu(), MatrixBase::determinant(), MatrixBase::inverse()
   */
 template<typename _MatrixType> class FullPivLU
+  : public SolverBase<FullPivLU<_MatrixType> >
 {
   public:
     typedef _MatrixType MatrixType;
+    typedef SolverBase<FullPivLU> Base;
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(FullPivLU)
+    // FIXME StorageIndex defined in EIGEN_GENERIC_PUBLIC_INTERFACE should be int
     enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef typename internal::traits<MatrixType>::StorageKind StorageKind;
-    // FIXME should be int
-    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef typename internal::plain_row_type<MatrixType, StorageIndex>::type IntRowVectorType;
     typedef typename internal::plain_col_type<MatrixType, StorageIndex>::type IntColVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationQType;
@@ -223,6 +222,7 @@ template<typename _MatrixType> class FullPivLU
       *
       * \sa TriangularView::solve(), kernel(), inverse()
       */
+    // FIXME this is a copy-paste of the base-class member to add the isInitialized assertion.
     template<typename Rhs>
     inline const Solve<FullPivLU, Rhs>
     solve(const MatrixBase<Rhs>& b) const

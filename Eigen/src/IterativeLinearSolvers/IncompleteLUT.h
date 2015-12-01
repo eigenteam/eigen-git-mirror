@@ -109,10 +109,12 @@ class IncompleteLUT : public SparseSolverBase<IncompleteLUT<_Scalar, _StorageInd
     typedef Matrix<StorageIndex,Dynamic,1> VectorI;
     typedef SparseMatrix<Scalar,RowMajor,StorageIndex> FactorType;
 
+    enum {
+      ColsAtCompileTime = Dynamic,
+      MaxColsAtCompileTime = Dynamic
+    };
+
   public:
-    
-    // this typedef is only to export the scalar type and compile-time dimensions to solve_retval
-    typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
     
     IncompleteLUT()
       : m_droptol(NumTraits<Scalar>::dummy_precision()), m_fillfactor(10),

@@ -304,6 +304,10 @@ class SuperLUBase : public SparseSolverBase<Derived>
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;    
     typedef Map<PermutationMatrix<Dynamic,Dynamic,int> > PermutationMap;
     typedef SparseMatrix<Scalar> LUMatrixType;
+    enum {
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
 
   public:
 

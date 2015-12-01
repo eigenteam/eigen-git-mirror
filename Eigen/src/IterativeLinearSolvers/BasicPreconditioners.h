@@ -39,8 +39,10 @@ class DiagonalPreconditioner
     typedef Matrix<Scalar,Dynamic,1> Vector;
   public:
     typedef typename Vector::StorageIndex StorageIndex;
-    // this typedef is only to export the scalar type and compile-time dimensions to solve_retval
-    typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
+    enum {
+      ColsAtCompileTime = Dynamic,
+      MaxColsAtCompileTime = Dynamic
+    };
 
     DiagonalPreconditioner() : m_isInitialized(false) {}
 

@@ -84,6 +84,12 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     typedef Matrix<StorageIndex, Dynamic, 1> IndexVector;
     typedef Matrix<Scalar, Dynamic, 1> ScalarVector;
     typedef PermutationMatrix<Dynamic, Dynamic, StorageIndex> PermutationType;
+
+    enum {
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
+    
   public:
     SparseQR () :  m_analysisIsok(false), m_lastError(""), m_useDefaultThreshold(true),m_isQSorted(false),m_isEtreeOk(false)
     { }

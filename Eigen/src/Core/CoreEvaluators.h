@@ -29,6 +29,7 @@ struct storage_kind_to_evaluator_kind {
 template<typename StorageKind> struct storage_kind_to_shape;
 
 template<> struct storage_kind_to_shape<Dense>                  { typedef DenseShape Shape;           };
+template<> struct storage_kind_to_shape<SolverStorage>          { typedef SolverShape Shape;           };
 template<> struct storage_kind_to_shape<PermutationStorage>     { typedef PermutationShape Shape;     };
 template<> struct storage_kind_to_shape<TranspositionsStorage>  { typedef TranspositionsShape Shape;  };
 

@@ -492,6 +492,9 @@ struct Dense {};
 /** The type used to identify a general sparse storage. */
 struct Sparse {};
 
+/** The type used to identify a general solver (foctored) storage. */
+struct SolverStorage {};
+
 /** The type used to identify a permutation storage. */
 struct PermutationStorage {};
 
@@ -506,6 +509,7 @@ struct ArrayXpr {};
 
 // An evaluator must define its shape. By default, it can be one of the following:
 struct DenseShape             { static std::string debugName() { return "DenseShape"; } };
+struct SolverShape            { static std::string debugName() { return "SolverShape"; } };
 struct HomogeneousShape       { static std::string debugName() { return "HomogeneousShape"; } };
 struct DiagonalShape          { static std::string debugName() { return "DiagonalShape"; } };
 struct BandShape              { static std::string debugName() { return "BandShape"; } };

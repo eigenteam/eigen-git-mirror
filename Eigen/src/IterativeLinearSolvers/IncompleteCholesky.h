@@ -57,12 +57,15 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     typedef typename OrderingType::PermutationType PermutationType;
     typedef typename PermutationType::StorageIndex StorageIndex; 
     typedef SparseMatrix<Scalar,ColMajor,StorageIndex> FactorType;
-    typedef FactorType MatrixType;
     typedef Matrix<Scalar,Dynamic,1> VectorSx;
     typedef Matrix<RealScalar,Dynamic,1> VectorRx;
     typedef Matrix<StorageIndex,Dynamic, 1> VectorIx;
     typedef std::vector<std::list<StorageIndex> > VectorList; 
     enum { UpLo = _UpLo };
+    enum {
+      ColsAtCompileTime = Dynamic,
+      MaxColsAtCompileTime = Dynamic
+    };
   public:
 
     /** Default constructor leaving the object in a partly non-initialized stage.
