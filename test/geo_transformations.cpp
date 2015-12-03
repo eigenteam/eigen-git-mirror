@@ -430,6 +430,10 @@ template<typename Scalar, int Mode, int Options> void transformations()
     VERIFY( rot2.smallestAngle() >= -Scalar(EIGEN_PI) );
     VERIFY( rot2.smallestAngle() <=  Scalar(EIGEN_PI) );
     VERIFY_IS_APPROX( angleToVec(rot2.smallestAngle()), angleToVec(rot2.angle()) );
+
+    Matrix<Scalar,2,2> rot2_as_mat(rot2);
+    Rotation2D<Scalar> rot3(rot2_as_mat);
+    VERIFY_IS_APPROX( angleToVec(rot2.smallestAngle()),  angleToVec(rot3.angle()) );
   }
 
   s0 = internal::random<Scalar>(-100,100);
