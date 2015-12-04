@@ -59,7 +59,7 @@ namespace Eigen {
   * \ref TopicStorageOrders
   */
 
-template<typename Scalar_, std::size_t NumIndices_, int Options_, typename IndexType_>
+template<typename Scalar_, int NumIndices_, int Options_, typename IndexType_>
 class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
 {
   public:
@@ -82,7 +82,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     };
 
     static const int Options = Options_;
-    static const std::size_t NumIndices = NumIndices_;
+    static const int NumIndices = NumIndices_;
     typedef DSizes<Index, NumIndices_> Dimensions;
 
   protected:
@@ -433,7 +433,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     /** Normal Dimension */
     EIGEN_DEVICE_FUNC void resize(const array<Index, NumIndices>& dimensions)
     {
-      std::size_t i;
+      int i;
       Index size = Index(1);
       for (i = 0; i < NumIndices; i++) {
         internal::check_rows_cols_for_overflow<Dynamic>::run(size, dimensions[i]);
@@ -451,7 +451,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     // Why this overload, DSizes is derived from array ??? //
     EIGEN_DEVICE_FUNC void resize(const DSizes<Index, NumIndices>& dimensions) {
       array<Index, NumIndices> dims;
-      for (std::size_t i = 0; i < NumIndices; ++i) {
+      for (int i = 0; i < NumIndices; ++i) {
         dims[i] = dimensions[i];
       }
       resize(dims);
@@ -480,7 +480,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     EIGEN_DEVICE_FUNC
     void resize(const Sizes<Indices...>& dimensions) {
       array<Index, NumIndices> dims;
-      for (std::size_t i = 0; i < NumIndices; ++i) {
+      for (int i = 0; i < NumIndices; ++i) {
         dims[i] = static_cast<Index>(dimensions[i]);
       }
       resize(dims);
@@ -490,7 +490,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     EIGEN_DEVICE_FUNC
     void resize(const Sizes<V1, V2, V3, V4, V5>& dimensions) {
       array<Index, NumIndices> dims;
-      for (std::size_t i = 0; i < NumIndices; ++i) {
+      for (int i = 0; i < NumIndices; ++i) {
         dims[i] = static_cast<Index>(dimensions[i]);
       }
       resize(dims);
