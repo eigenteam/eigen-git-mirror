@@ -4,6 +4,7 @@ typedef CwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived> AbsReturnTy
 typedef CwiseUnaryOp<internal::scalar_arg_op<Scalar>, const Derived> ArgReturnType;
 typedef CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, const Derived> Abs2ReturnType;
 typedef CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, const Derived> SqrtReturnType;
+typedef CwiseUnaryOp<internal::scalar_rsqrt_op<Scalar>, const Derived> RsqrtReturnType;
 typedef CwiseUnaryOp<internal::scalar_sign_op<Scalar>, const Derived> SignReturnType;
 typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> InverseReturnType;
 typedef CwiseUnaryOp<internal::scalar_boolean_not_op<Scalar>, const Derived> BooleanNotReturnType;
@@ -137,6 +138,22 @@ inline const SqrtReturnType
 sqrt() const
 {
   return SqrtReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise inverse square root of *this.
+  *
+  * This function computes the coefficient-wise inverse square root.
+  *
+  * Example: \include Cwise_sqrt.cpp
+  * Output: \verbinclude Cwise_sqrt.out
+  *
+  * \sa pow(), square()
+  */
+EIGEN_DEVICE_FUNC
+inline const RsqrtReturnType
+rsqrt() const
+{
+  return RsqrtReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise signum of *this.

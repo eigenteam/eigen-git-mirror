@@ -236,6 +236,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   // avoid NaNs with abs() so verification doesn't fail
   m3 = m1.abs();
   VERIFY_IS_APPROX(m3.sqrt(), sqrt(abs(m1)));
+  VERIFY_IS_APPROX(m3.rsqrt(), Scalar(1)/sqrt(abs(m1)));
   VERIFY_IS_APPROX(m3.log(), log(m3));
   VERIFY_IS_APPROX(m3.log10(), log10(m3));
 
@@ -292,6 +293,10 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
   VERIFY_IS_APPROX(m3.pow(RealScalar(0.5)), m3.sqrt());
   VERIFY_IS_APPROX(pow(m3,RealScalar(0.5)), m3.sqrt());
+
+  VERIFY_IS_APPROX(m3.pow(RealScalar(-0.5)), m3.rsqrt());
+  VERIFY_IS_APPROX(pow(m3,RealScalar(-0.5)), m3.rsqrt());
+
   VERIFY_IS_APPROX(log10(m3), log(m3)/log(10));
 
   // scalar by array division
