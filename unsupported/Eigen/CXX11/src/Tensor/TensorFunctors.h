@@ -40,8 +40,8 @@ struct scalar_sigmoid_op {
     return one / (one + std::exp(-x));
   }
 
-  template <typename Packet>
-  inline Packet packetOp(const Packet& x) const {
+  template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Packet packetOp(const Packet& x) const {
     const Packet one = pset1<Packet>(1);
     return pdiv(one, padd(one, pexp(pnegate(x))));
   }
