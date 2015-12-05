@@ -63,7 +63,7 @@ class TensorStorage<T, FixedDimensions, Options_>
 
 
 // pure dynamic
-template<typename T, int Options_, typename IndexType, std::size_t NumIndices_>
+template<typename T, int Options_, typename IndexType, int NumIndices_>
 class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
 {
   public:

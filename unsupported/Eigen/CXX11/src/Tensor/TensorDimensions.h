@@ -265,10 +265,10 @@ struct tensor_index_linearization_helper<Index, NumIndices, 0, RowMajor>
 
 
 // Dynamic size
-template <typename DenseIndex, std::size_t NumDims>
+template <typename DenseIndex, int NumDims>
 struct DSizes : array<DenseIndex, NumDims> {
   typedef array<DenseIndex, NumDims> Base;
-  static const std::size_t count = NumDims;
+  static const int count = NumDims;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t rank() const {
     return NumDims;
@@ -278,8 +278,8 @@ struct DSizes : array<DenseIndex, NumDims> {
     return internal::array_prod(*static_cast<const Base*>(this));
   }
 
-  EIGEN_DEVICE_FUNC DSizes() {
-    for (std::size_t i = 0 ; i < NumDims; ++i) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DSizes() {
+    for (int i = 0 ; i < NumDims; ++i) {
       (*this)[i] = 0;
     }
   }
@@ -369,10 +369,10 @@ struct tensor_vsize_index_linearization_helper<Index, NumIndices, 0, RowMajor>
 
 namespace internal {
 
-template <typename DenseIndex, std::size_t NumDims> struct array_size<const DSizes<DenseIndex, NumDims> > {
+template <typename DenseIndex, int NumDims> struct array_size<const DSizes<DenseIndex, NumDims> > {
   static const size_t value = NumDims;
 };
-template <typename DenseIndex, std::size_t NumDims> struct array_size<DSizes<DenseIndex, NumDims> > {
+template <typename DenseIndex, int NumDims> struct array_size<DSizes<DenseIndex, NumDims> > {
   static const size_t value = NumDims;
 };
 #ifndef EIGEN_EMULATE_CXX11_META_H

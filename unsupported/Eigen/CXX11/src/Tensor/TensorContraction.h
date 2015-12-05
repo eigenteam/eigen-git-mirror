@@ -495,7 +495,7 @@ struct TensorContractionEvaluatorBase
       internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
   static const int RDims =
       internal::array_size<typename TensorEvaluator<EvalRightArgType, Device>::Dimensions>::value;
-  static const unsigned int ContractDims = internal::array_size<Indices>::value;
+  static const int ContractDims = internal::array_size<Indices>::value;
   static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
 
   typedef array<Index, LDims> left_dim_mapper_t;
