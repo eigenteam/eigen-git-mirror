@@ -83,6 +83,8 @@ void sortWithPermutation (VectorType& vec, IndexType& perm, typename IndexType::
  * x = solver.solve(b);
  * \endcode
  * 
+ * DGMRES can also be used in a matrix-free context, see the following \link MatrixfreeSolverExample example \endlink.
+ *
  * References :
  * [1] D. NUENTSA WAKAM and F. PACULL, Memory Efficient Hybrid
  *  Algebraic Solvers for Linear Systems Arising from Compressible

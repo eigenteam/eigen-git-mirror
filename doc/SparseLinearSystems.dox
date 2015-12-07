@@ -133,8 +133,10 @@ x2 = solver.solve(b2);
 \endcode
 The compute() method is equivalent to calling both analyzePattern() and factorize().
 
-Finally, each solver provides some specific features, such as determinant, access to the factors, controls of the iterations, and so on.
+Each solver provides some specific features, such as determinant, access to the factors, controls of the iterations, and so on.
 More details are available in the documentations of the respective classes.
+
+Finally, most of the iterative solvers, can also be used in a \b matrix-free context, see the following \link MatrixfreeSolverExample example \endlink.
 
 \section TheSparseCompute The Compute Step
 In the compute() function, the matrix is generally factorized: LLT for self-adjoint matrices, LDLT for general hermitian matrices, LU for non hermitian matrices and QR for rectangular matrices. These are the results of using direct solvers. For this class of solvers precisely, the compute step is further subdivided into analyzePattern() and factorize(). 

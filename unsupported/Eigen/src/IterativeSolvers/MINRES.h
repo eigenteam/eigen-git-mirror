@@ -191,6 +191,8 @@ namespace Eigen {
      * By default the iterations start with x=0 as an initial guess of the solution.
      * One can control the start using the solveWithGuess() method.
      *
+     * MINRES can also be used in a matrix-free context, see the following \link MatrixfreeSolverExample example \endlink.
+     *
      * \sa class ConjugateGradient, BiCGSTAB, SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
      */
     template< typename _MatrixType, int _UpLo, typename _Preconditioner>
