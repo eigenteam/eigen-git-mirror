@@ -39,6 +39,9 @@ template<> struct packet_traits<float> : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
+    HasLGamma = 1,
+    HasErf = 1,
+    HasErfc = 1,
 
     HasBlend = 0,
   };
@@ -59,6 +62,9 @@ template<> struct packet_traits<double> : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
+    HasLGamma = 1,
+    HasErf = 1,
+    HasErfc = 1,
 
     HasBlend = 0,
   };

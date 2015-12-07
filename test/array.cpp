@@ -217,6 +217,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
+  VERIFY_IS_APPROX(m1.lgamma(), lgamma(m1));
+  VERIFY_IS_APPROX(m1.erf(), erf(m1));
+  VERIFY_IS_APPROX(m1.erfc(), erfc(m1));
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));

@@ -21,6 +21,9 @@ typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturn
 typedef CwiseUnaryOp<internal::scalar_tanh_op<Scalar>, const Derived> TanhReturnType;
 typedef CwiseUnaryOp<internal::scalar_sinh_op<Scalar>, const Derived> SinhReturnType;
 typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturnType;
+typedef CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived> LgammaReturnType;
+typedef CwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived> ErfReturnType;
+typedef CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived> ErfcReturnType;
 typedef CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived> PowReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
@@ -300,6 +303,47 @@ inline const CoshReturnType
 cosh() const
 {
   return CoshReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise ln(|gamma(*this)|).
+ *
+ * Example: \include Cwise_lgamma.cpp
+ * Output: \verbinclude Cwise_lgamma.out
+ *
+ * \sa cos(), sin(), tan()
+ */
+inline const CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, Derived>
+lgamma() const
+{
+  return LgammaReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise Gauss error
+ * function of *this.
+ *
+ * Example: \include Cwise_erf.cpp
+ * Output: \verbinclude Cwise_erf.out
+ *
+ * \sa cos(), sin(), tan()
+ */
+inline const CwiseUnaryOp<internal::scalar_erf_op<Scalar>, Derived>
+erf() const
+{
+  return ErfReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise Complementary error
+ * function of *this.
+ *
+ * Example: \include Cwise_erfc.cpp
+ * Output: \verbinclude Cwise_erfc.out
+ *
+ * \sa cos(), sin(), tan()
+ */
+inline const CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, Derived>
+erfc() const
+{
+  return ErfcReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise power of *this to the given exponent.

@@ -294,6 +294,12 @@ struct stem_function
 };
 }
 
+// SpecialFunctions forward declarations
+namespace internal {
+template <typename Scalar> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Scalar __lgamma(Scalar x);
+template <typename Scalar> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Scalar __erf(Scalar x);
+template <typename Scalar> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Scalar __erfc(Scalar x);
+
 } // end namespace Eigen
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

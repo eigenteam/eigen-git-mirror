@@ -351,6 +351,25 @@ template<typename Scalar> void packetmath_real()
     VERIFY_IS_EQUAL(std::exp(-std::numeric_limits<Scalar>::denorm_min()), data2[1]);
   }
 
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasLGamma,Packet> h;
+    h.store(data2, internal::plgamma(h.load(data1)));
+    VERIFY(std::isnan(data2[0]));
+  }
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasErf,Packet> h;
+    h.store(data2, internal::perf(h.load(data1)));
+    VERIFY(std::isnan(data2[0]));
+  }
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasErfc,Packet> h;
+    h.store(data2, internal::perfc(h.load(data1)));
+    VERIFY(std::isnan(data2[0]));
+  }
+
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(0,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
@@ -360,6 +379,10 @@ template<typename Scalar> void packetmath_real()
     data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErf, std::erf, internal::perf);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErfc, std::erfc, internal::perfc);
+
   if(PacketTraits::HasLog && PacketTraits::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
