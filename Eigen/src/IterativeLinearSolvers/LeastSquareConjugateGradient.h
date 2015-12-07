@@ -149,7 +149,7 @@ template< typename _MatrixType, typename _Preconditioner>
 class LeastSquaresConjugateGradient : public IterativeSolverBase<LeastSquaresConjugateGradient<_MatrixType,_Preconditioner> >
 {
   typedef IterativeSolverBase<LeastSquaresConjugateGradient> Base;
-  using Base::mp_matrix;
+  using Base::matrix;
   using Base::m_error;
   using Base::m_iterations;
   using Base::m_info;
@@ -193,7 +193,7 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      internal::least_square_conjugate_gradient(mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
+      internal::least_square_conjugate_gradient(matrix(), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
     }
 
     m_isInitialized = true;

@@ -149,13 +149,15 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * By default the iterations start with x=0 as an initial guess of the solution.
   * One can control the start using the solveWithGuess() method.
   * 
+  * ConjugateGradient can also be used in a matrix-free context, see the following \link MatrixfreeSolverExample example \endlink.
+  *
   * \sa class LeastSquaresConjugateGradient, class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
 template< typename _MatrixType, int _UpLo, typename _Preconditioner>
 class ConjugateGradient : public IterativeSolverBase<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
 {
   typedef IterativeSolverBase<ConjugateGradient> Base;
-  using Base::mp_matrix;
+  using Base::matrix;
   using Base::m_error;
   using Base::m_iterations;
   using Base::m_info;
@@ -194,12 +196,19 @@ public:
   template<typename Rhs,typename Dest>
   void _solve_with_guess_impl(const Rhs& b, Dest& x) const
   {
-    typedef Ref<const MatrixType> MatRef;
-    typedef typename internal::conditional<UpLo==(Lower|Upper) && (!MatrixType::IsRowMajor) && (!NumTraits<Scalar>::IsComplex),
-                                           Transpose<const MatRef>, MatRef const&>::type RowMajorWrapper;
+    typedef typename Base::MatrixWrapper MatrixWrapper;
+    typedef typename Base::ActualMatrixType ActualMatrixType;
+    enum {
+      TransposeInput  =   (!MatrixWrapper::MatrixFree)
+                      &&  (UpLo==(Lower|Upper))
+                      &&  (!MatrixType::IsRowMajor)
+                      &&  (!NumTraits<Scalar>::IsComplex)
+    };
+    typedef typename internal::conditional<TransposeInput,Transpose<const ActualMatrixType>, ActualMatrixType const&>::type RowMajorWrapper;
+    EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(MatrixWrapper::MatrixFree,UpLo==(Lower|Upper)),MATRIX_FREE_CONJUGATE_GRADIENT_IS_COMPATIBLE_WITH_UPPER_UNION_LOWER_MODE_ONLY);
     typedef typename internal::conditional<UpLo==(Lower|Upper),
                                            RowMajorWrapper,
-                                           typename MatRef::template ConstSelfAdjointViewReturnType<UpLo>::Type
+                                           typename MatrixWrapper::template ConstSelfAdjointViewReturnType<UpLo>::Type
                                           >::type SelfAdjointWrapper;
     m_iterations = Base::maxIterations();
     m_error = Base::m_tolerance;
@@ -210,7 +219,7 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      RowMajorWrapper row_mat(mp_matrix);
+      RowMajorWrapper row_mat(matrix());
       internal::conjugate_gradient(SelfAdjointWrapper(row_mat), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
     }
 

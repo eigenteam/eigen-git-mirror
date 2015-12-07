@@ -156,7 +156,7 @@ template< typename _MatrixType, typename _Preconditioner>
 class BiCGSTAB : public IterativeSolverBase<BiCGSTAB<_MatrixType,_Preconditioner> >
 {
   typedef IterativeSolverBase<BiCGSTAB> Base;
-  using Base::mp_matrix;
+  using Base::matrix;
   using Base::m_error;
   using Base::m_iterations;
   using Base::m_info;
@@ -198,7 +198,7 @@ public:
       m_error = Base::m_tolerance;
       
       typename Dest::ColXpr xj(x,j);
-      if(!internal::bicgstab(mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error))
+      if(!internal::bicgstab(matrix(), b.col(j), xj, Base::m_preconditioner, m_iterations, m_error))
         failed = true;
     }
     m_info = failed ? NumericalIssue

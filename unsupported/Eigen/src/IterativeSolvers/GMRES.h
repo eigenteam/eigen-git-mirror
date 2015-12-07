@@ -257,7 +257,7 @@ template< typename _MatrixType, typename _Preconditioner>
 class GMRES : public IterativeSolverBase<GMRES<_MatrixType,_Preconditioner> >
 {
   typedef IterativeSolverBase<GMRES> Base;
-  using Base::mp_matrix;
+  using Base::matrix;
   using Base::m_error;
   using Base::m_iterations;
   using Base::m_info;
@@ -313,7 +313,7 @@ public:
       m_error = Base::m_tolerance;
 
       typename Dest::ColXpr xj(x,j);
-      if(!internal::gmres(mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_restart, m_error))
+      if(!internal::gmres(matrix(), b.col(j), xj, Base::m_preconditioner, m_iterations, m_restart, m_error))
         failed = true;
     }
     m_info = failed ? NumericalIssue

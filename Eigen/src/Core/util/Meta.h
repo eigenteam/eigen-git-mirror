@@ -237,7 +237,6 @@ protected:
   EIGEN_DEVICE_FUNC ~noncopyable() {}
 };
 
-
 /** \internal
   * Convenient struct to get the result type of a unary or binary functor.
   *
