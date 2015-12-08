@@ -647,7 +647,7 @@ struct TensorContractionEvaluatorBase
       eigen_assert(size == eval_right_dims[right] &&
                    "Contraction axes must be same size");
 
-      if (i+1 < internal::array_size<contract_t>::value) {
+      if (i+1 < static_cast<int>(internal::array_size<contract_t>::value)) {
         m_k_strides[i+1] = m_k_strides[i] * size;
       } else {
         m_k_size = m_k_strides[i] * size;
