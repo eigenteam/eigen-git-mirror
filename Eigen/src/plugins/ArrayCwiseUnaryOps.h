@@ -312,7 +312,7 @@ cosh() const
  *
  * \sa cos(), sin(), tan()
  */
-inline const CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, Derived>
+inline const LgammaReturnType
 lgamma() const
 {
   return LgammaReturnType(derived());
@@ -326,7 +326,7 @@ lgamma() const
  *
  * \sa cos(), sin(), tan()
  */
-inline const CwiseUnaryOp<internal::scalar_erf_op<Scalar>, Derived>
+inline const ErfReturnType
 erf() const
 {
   return ErfReturnType(derived());
@@ -340,7 +340,7 @@ erf() const
  *
  * \sa cos(), sin(), tan()
  */
-inline const CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, Derived>
+inline const ErfcReturnType
 erfc() const
 {
   return ErfcReturnType(derived());
