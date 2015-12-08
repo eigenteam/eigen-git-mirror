@@ -1,7 +1,6 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2015 Eugene Brevdo <ebrevdo@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -45,14 +44,13 @@ template <> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double __erfc<double>(double x
 }  // end namespace internal
 
 /****************************************************************************
- * Implementations                                                           *
+ * Implementations                                                          *
  ****************************************************************************/
 
 namespace internal {
 
 /****************************************************************************
- * Implementation of
- * lgamma                                                  *
+ * Implementation of lgamma                                                 *
  ****************************************************************************/
 
 template<typename Scalar>
@@ -72,8 +70,7 @@ struct lgamma_retval
 };
 
 /****************************************************************************
- * Implementation of
- * erf                                                  *
+ * Implementation of erf                                                    *
  ****************************************************************************/
 
 template<typename Scalar>
@@ -92,8 +89,8 @@ struct erf_retval
   typedef Scalar type;
 };
 
-/****************************************************************************
-* Implementation of erfc                                                  *
+/***************************************************************************
+* Implementation of erfc                                                   *
 ****************************************************************************/
 
 template<typename Scalar>

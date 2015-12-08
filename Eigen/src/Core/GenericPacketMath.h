@@ -43,7 +43,7 @@ struct default_packet_traits
 {
   enum {
     HasHalfPacket = 0,
-    
+
     HasAdd    = 1,
     HasSub    = 1,
     HasMul    = 1,
@@ -76,7 +76,7 @@ struct default_packet_traits
     HasTanh    = 0,
     HasLGamma = 0,
     HasErf = 0,
-    HasErfc = 0
+    HasErfc = 0,
 
     HasRound  = 0,
     HasFloor  = 0,
