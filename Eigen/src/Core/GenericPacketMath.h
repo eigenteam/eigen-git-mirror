@@ -437,15 +437,15 @@ Packet pceil(const Packet& a) { using numext::ceil; return ceil(a); }
 
 /** \internal \returns the ln(|gamma(\a a)|) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet plgamma(const Packet& a) { return numext::lgamma(a); }
+Packet plgamma(const Packet& a) { using numext::lgamma; return lgamma(a); }
 
 /** \internal \returns the erf(\a a) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet perf(const Packet& a) { return numext::erf(a); }
+Packet perf(const Packet& a) { using numext::erf; return erf(a); }
 
 /** \internal \returns the erfc(\a a) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet perfc(const Packet& a) { return numext::erfc(a); }
+Packet perfc(const Packet& a) { using numext::erfc; return erfc(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types
