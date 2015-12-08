@@ -11,42 +11,6 @@
 #define EIGEN_SPECIAL_FUNCTIONS_H
 
 namespace Eigen {
-
-namespace internal {
-
-template <typename Scalar>
-EIGEN_STRONG_INLINE Scalar __lgamma(Scalar x) {
-  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
-                      THIS_TYPE_IS_NOT_SUPPORTED);
-}
-
-template <> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float __lgamma<float>(float x) { return lgammaf(x); }
-template <> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double __lgamma<double>(double x) { return lgamma(x); }
-
-template <typename Scalar>
-EIGEN_STRONG_INLINE Scalar __erf(Scalar x) {
-  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
-                      THIS_TYPE_IS_NOT_SUPPORTED);
-}
-
-template <> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float __erf<float>(float x) { return erff(x); }
-template <> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double __erf<double>(double x) { return erf(x); }
-
-template <typename Scalar>
-EIGEN_STRONG_INLINE Scalar __erfc(Scalar x) {
-  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
-                      THIS_TYPE_IS_NOT_SUPPORTED);
-}
-
-template <> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float __erfc<float>(float x) { return erfcf(x); }
-template <> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double __erfc<double>(double x) { return erfc(x); }
-
-}  // end namespace internal
-
-/****************************************************************************
- * Implementations                                                          *
- ****************************************************************************/
-
 namespace internal {
 
 /****************************************************************************
@@ -59,8 +23,23 @@ struct lgamma_impl
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar& x)
   {
-    return __lgamma<Scalar>(x);
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
   }
+};
+
+template<>
+struct lgamma_impl<float>
+{
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double run(const float& x) { return ::lgammaf(x); }
+};
+
+template<>
+struct lgamma_impl<double>
+{
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double run(const double& x) { return ::lgamma(x); }
 };
 
 template<typename Scalar>
@@ -79,8 +58,23 @@ struct erf_impl
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar& x)
   {
-    return __erf<Scalar>(x);
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
   }
+};
+
+template<>
+struct erf_impl<float>
+{
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE float run(const float& x) { return ::erff(x); }
+};
+
+template<>
+struct erf_impl<double>
+{
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double run(const double& x) { return ::erf(x); }
 };
 
 template<typename Scalar>
@@ -99,8 +93,23 @@ struct erfc_impl
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Scalar run(const Scalar& x)
   {
-    return __erfc<Scalar>(x);
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
   }
+};
+
+template<>
+struct erfc_impl<float>
+{
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE float run(const float x) { return ::erfcf(x); }
+};
+
+template<>
+struct erfc_impl<double>
+{
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double run(const double x) { return ::erfc(x); }
 };
 
 template<typename Scalar>
