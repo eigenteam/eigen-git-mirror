@@ -447,7 +447,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     MaxColsAtCompileTime = RhsNestedCleaned::MaxColsAtCompileTime,
       
     PacketSize = packet_traits<Scalar>::size,
-    
+
     LhsCoeffReadCost = LhsEtorType::CoeffReadCost,
     RhsCoeffReadCost = RhsEtorType::CoeffReadCost,
     CoeffReadCost = InnerSize==0 ? NumTraits<Scalar>::ReadCost
@@ -463,19 +463,16 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     LhsAlignment = LhsEtorType::Alignment,
     RhsAlignment = RhsEtorType::Alignment,
     
-    LhsIsAligned = int(LhsAlignment) >= int(unpacket_traits<PacketScalar>::alignment),
-    RhsIsAligned = int(RhsAlignment) >= int(unpacket_traits<PacketScalar>::alignment),
-    
     LhsRowMajor = LhsFlags & RowMajorBit,
     RhsRowMajor = RhsFlags & RowMajorBit,
       
     SameType = is_same<typename LhsNestedCleaned::Scalar,typename RhsNestedCleaned::Scalar>::value,
 
     CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
-                    && (ColsAtCompileTime == Dynamic || ( (ColsAtCompileTime % PacketSize) == 0 && RhsIsAligned ) ),
+                    && (ColsAtCompileTime == Dynamic || ((ColsAtCompileTime % PacketSize) == 0) ),
 
     CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
-                    && (RowsAtCompileTime == Dynamic || ( (RowsAtCompileTime % PacketSize) == 0 && LhsIsAligned ) ),
+                    && (RowsAtCompileTime == Dynamic || ((RowsAtCompileTime % PacketSize) == 0) ),
 
     EvalToRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                     : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
@@ -487,10 +484,13 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
           | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0)
           | (XprType::IsVectorAtCompileTime ? LinearAccessBit : 0),
           
-    Alignment = CanVectorizeLhs ? LhsAlignment
-              : CanVectorizeRhs ? RhsAlignment
+    LhsOuterStrideBytes = LhsNestedCleaned::OuterStrideAtCompileTime * sizeof(typename LhsNestedCleaned::Scalar),
+    RhsOuterStrideBytes = RhsNestedCleaned::OuterStrideAtCompileTime * sizeof(typename RhsNestedCleaned::Scalar),
+
+    Alignment = CanVectorizeLhs ? (LhsOuterStrideBytes<0 || (int(LhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,LhsAlignment))!=0 ? 0 : LhsAlignment)
+              : CanVectorizeRhs ? (RhsOuterStrideBytes<0 || (int(RhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,RhsAlignment))!=0 ? 0 : RhsAlignment)
               : 0,
-          
+
     /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
     * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
     * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect
@@ -500,7 +500,6 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
                         && LhsRowMajor
                         && (!RhsRowMajor)
                         && (LhsFlags & RhsFlags & ActualPacketAccessBit)
-                        && (LhsIsAligned && RhsIsAligned)
                         && (InnerSize % packet_traits<Scalar>::size == 0)
   };
   
@@ -524,10 +523,9 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   const PacketType packet(Index row, Index col) const
   {
     PacketType res;
-    typedef etor_product_packet_impl<Flags&RowMajorBit ? RowMajor : ColMajor,
-                                     Unroll ? InnerSize : Dynamic,
+    typedef etor_product_packet_impl<bool(int(Flags)&RowMajorBit) ? RowMajor : ColMajor,
+                                     Unroll ? int(InnerSize) : Dynamic,
                                      LhsEtorType, RhsEtorType, PacketType, LoadMode> PacketImpl;
-
     PacketImpl::run(row, col, m_lhsImpl, m_rhsImpl, m_innerDim, res);
     return res;
   }
