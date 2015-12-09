@@ -95,7 +95,12 @@ class SparseCompressedBase
     
     /** \returns whether \c *this is in compressed form. */
     inline bool isCompressed() const { return innerNonZeroPtr()==0; }
-  
+
+  protected:
+    /** Default constructor. Do nothing. */
+    SparseCompressedBase() {}
+  private:
+    template<typename OtherDerived> explicit SparseCompressedBase(const SparseCompressedBase<OtherDerived>&);
 };
 
 template<typename Derived>
