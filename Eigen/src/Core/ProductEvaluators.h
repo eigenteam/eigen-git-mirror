@@ -484,8 +484,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
           | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0)
           | (XprType::IsVectorAtCompileTime ? LinearAccessBit : 0),
           
-    LhsOuterStrideBytes = LhsNestedCleaned::OuterStrideAtCompileTime * sizeof(typename LhsNestedCleaned::Scalar),
-    RhsOuterStrideBytes = RhsNestedCleaned::OuterStrideAtCompileTime * sizeof(typename RhsNestedCleaned::Scalar),
+    LhsOuterStrideBytes = int(LhsNestedCleaned::OuterStrideAtCompileTime) * int(sizeof(typename LhsNestedCleaned::Scalar)),
+    RhsOuterStrideBytes = int(RhsNestedCleaned::OuterStrideAtCompileTime) * int(sizeof(typename RhsNestedCleaned::Scalar)),
 
     Alignment = CanVectorizeLhs ? (LhsOuterStrideBytes<0 || (int(LhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,LhsAlignment))!=0 ? 0 : LhsAlignment)
               : CanVectorizeRhs ? (RhsOuterStrideBytes<0 || (int(RhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,RhsAlignment))!=0 ? 0 : RhsAlignment)
