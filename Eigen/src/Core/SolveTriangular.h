@@ -107,32 +107,32 @@ struct triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,Dynamic>
 * meta-unrolling implementation
 ***************************************************************************/
 
-template<typename Lhs, typename Rhs, int Mode, int Index, int Size,
-         bool Stop = Index==Size>
+template<typename Lhs, typename Rhs, int Mode, int LoopIndex, int Size,
+         bool Stop = LoopIndex==Size>
 struct triangular_solver_unroller;
 
-template<typename Lhs, typename Rhs, int Mode, int Index, int Size>
-struct triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,false> {
+template<typename Lhs, typename Rhs, int Mode, int LoopIndex, int Size>
+struct triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex,Size,false> {
   enum {
     IsLower = ((Mode&Lower)==Lower),
-    RowIndex = IsLower ? Index : Size - Index - 1,
+    RowIndex = IsLower ? LoopIndex : Size - LoopIndex - 1,
     S = IsLower ? 0     : RowIndex+1
   };
   static void run(const Lhs& lhs, Rhs& rhs)
   {
-    if (Index>0)
-      rhs.coeffRef(RowIndex) -= lhs.row(RowIndex).template segment<Index>(S).transpose()
-                         .cwiseProduct(rhs.template segment<Index>(S)).sum();
+    if (LoopIndex>0)
+      rhs.coeffRef(RowIndex) -= lhs.row(RowIndex).template segment<LoopIndex>(S).transpose()
+                         .cwiseProduct(rhs.template segment<LoopIndex>(S)).sum();
 
     if(!(Mode & UnitDiag))
       rhs.coeffRef(RowIndex) /= lhs.coeff(RowIndex,RowIndex);
 
-    triangular_solver_unroller<Lhs,Rhs,Mode,Index+1,Size>::run(lhs,rhs);
+    triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex+1,Size>::run(lhs,rhs);
   }
 };
 
-template<typename Lhs, typename Rhs, int Mode, int Index, int Size>
-struct triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,true> {
+template<typename Lhs, typename Rhs, int Mode, int LoopIndex, int Size>
+struct triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex,Size,true> {
   static void run(const Lhs&, Rhs&) {}
 };
 
