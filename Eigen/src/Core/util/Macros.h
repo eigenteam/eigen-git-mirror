@@ -365,7 +365,7 @@
 // Does the compiler support C++11 math?
 // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
 #ifndef EIGEN_HAS_CXX11_MATH
-  #if (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+  #if (__cplusplus > 201103L) || (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
       && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
     #define EIGEN_HAS_CXX11_MATH 1
   #else
@@ -375,10 +375,23 @@
 
 // Does the compiler support proper C++11 containers?
 #ifndef EIGEN_HAS_CXX11_CONTAINERS
-  #if ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG)) || EIGEN_COMP_MSVC >= 1900
+  #if    (__cplusplus > 201103L) \
+      || ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_ICC>=1400)) \
+      || EIGEN_COMP_MSVC >= 1900
     #define EIGEN_HAS_CXX11_CONTAINERS 1
   #else
     #define EIGEN_HAS_CXX11_CONTAINERS 0
+  #endif
+#endif
+
+// Does the compiler support C++11 noexcept?
+#ifndef EIGEN_HAS_CXX11_NOEXCEPT
+  #if    (__cplusplus > 201103L) \
+      || ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_ICC>=1400)) \
+      || EIGEN_COMP_MSVC >= 1900
+    #define EIGEN_HAS_CXX11_NOEXCEPT 1
+  #else
+    #define EIGEN_HAS_CXX11_NOEXCEPT 0
   #endif
 #endif
 
@@ -840,6 +853,14 @@ namespace Eigen {
 #  endif
 #  define EIGEN_TRY if (true)
 #  define EIGEN_CATCH(X) else
+#endif
+
+#if EIGEN_HAS_CXX11_NOEXCEPT
+#   define EIGEN_NO_THROW noexcept(true)
+#   define EIGEN_EXCEPTION_SPEC(X) noexcept(false)
+#else
+#   define EIGEN_NO_THROW throw()
+#   define EIGEN_EXCEPTION_SPEC(X) throw(X)
 #endif
 
 #endif // EIGEN_MACROS_H
