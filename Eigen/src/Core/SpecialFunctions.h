@@ -28,6 +28,13 @@ struct lgamma_impl
   }
 };
 
+template<typename Scalar>
+struct lgamma_retval
+{
+  typedef Scalar type;
+};
+
+#ifdef EIGEN_HAS_C99_MATH
 template<>
 struct lgamma_impl<float>
 {
@@ -41,12 +48,7 @@ struct lgamma_impl<double>
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(const double& x) { return ::lgamma(x); }
 };
-
-template<typename Scalar>
-struct lgamma_retval
-{
-  typedef Scalar type;
-};
+#endif
 
 /****************************************************************************
  * Implementation of erf                                                    *
@@ -63,6 +65,13 @@ struct erf_impl
   }
 };
 
+template<typename Scalar>
+struct erf_retval
+{
+  typedef Scalar type;
+};
+
+#ifdef EIGEN_HAS_C99_MATH
 template<>
 struct erf_impl<float>
 {
@@ -76,12 +85,7 @@ struct erf_impl<double>
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(const double& x) { return ::erf(x); }
 };
-
-template<typename Scalar>
-struct erf_retval
-{
-  typedef Scalar type;
-};
+#endif  // EIGEN_HAS_C99_MATH
 
 /***************************************************************************
 * Implementation of erfc                                                   *
@@ -98,6 +102,13 @@ struct erfc_impl
   }
 };
 
+template<typename Scalar>
+struct erfc_retval
+{
+  typedef Scalar type;
+};
+
+#ifdef EIGEN_HAS_C99_MATH
 template<>
 struct erfc_impl<float>
 {
@@ -111,14 +122,10 @@ struct erfc_impl<double>
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(const double x) { return ::erfc(x); }
 };
-
-template<typename Scalar>
-struct erfc_retval
-{
-  typedef Scalar type;
-};
+#endif  // EIGEN_HAS_C99_MATH
 
 }  // end namespace internal
+
 
 namespace numext {
 
