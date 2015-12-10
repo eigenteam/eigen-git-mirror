@@ -115,17 +115,17 @@ template<typename Lhs, typename Rhs, int Mode, int LoopIndex, int Size>
 struct triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex,Size,false> {
   enum {
     IsLower = ((Mode&Lower)==Lower),
-    RowIndex = IsLower ? LoopIndex : Size - LoopIndex - 1,
-    S = IsLower ? 0     : RowIndex+1
+    DiagIndex  = IsLower ? LoopIndex : Size - LoopIndex - 1,
+    StartIndex = IsLower ? 0         : DiagIndex+1
   };
   static void run(const Lhs& lhs, Rhs& rhs)
   {
     if (LoopIndex>0)
-      rhs.coeffRef(RowIndex) -= lhs.row(RowIndex).template segment<LoopIndex>(S).transpose()
-                         .cwiseProduct(rhs.template segment<LoopIndex>(S)).sum();
+      rhs.coeffRef(DiagIndex) -= lhs.row(DiagIndex).template segment<LoopIndex>(StartIndex).transpose()
+                                .cwiseProduct(rhs.template segment<LoopIndex>(StartIndex)).sum();
 
     if(!(Mode & UnitDiag))
-      rhs.coeffRef(RowIndex) /= lhs.coeff(RowIndex,RowIndex);
+      rhs.coeffRef(DiagIndex) /= lhs.coeff(DiagIndex,DiagIndex);
 
     triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex+1,Size>::run(lhs,rhs);
   }
