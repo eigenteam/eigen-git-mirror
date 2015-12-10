@@ -25,6 +25,7 @@ struct lgamma_impl
   {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
   }
 };
 
@@ -62,6 +63,7 @@ struct erf_impl
   {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
   }
 };
 
@@ -99,6 +101,7 @@ struct erfc_impl
   {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
   }
 };
 
