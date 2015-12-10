@@ -338,10 +338,20 @@ option(EIGEN_TEST_CXX11 "Enable testing with C++11 and C++11 features (e.g. Tens
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-set(INCLUDE_INSTALL_DIR
-    "${CMAKE_INSTALL_INCLUDEDIR}/eigen3"
-    CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where Eigen header files are installed"
-    )
+# Backward compatibility support for EIGEN_INCLUDE_INSTALL_DIR
+if(EIGEN_INCLUDE_INSTALL_DIR)
+  message(WARNING "EIGEN_INCLUDE_INSTALL_DIR is deprecated. Use INCLUDE_INSTALL_DIR instead.")
+endif()
+
+if(EIGEN_INCLUDE_INSTALL_DIR AND NOT INCLUDE_INSTALL_DIR)
+  set(INCLUDE_INSTALL_DIR ${EIGEN_INCLUDE_INSTALL_DIR}
+      CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where Eigen header files are installed")
+else()
+  set(INCLUDE_INSTALL_DIR
+      "${CMAKE_INSTALL_INCLUDEDIR}/eigen3"
+      CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where Eigen header files are installed"
+      )
+endif()
 set(CMAKEPACKAGE_INSTALL_DIR
     "${CMAKE_INSTALL_LIBDIR}/cmake/eigen3"
     CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where Eigen3Config.cmake is installed"
@@ -351,11 +361,6 @@ set(PKGCONFIG_INSTALL_DIR
     CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where eigen3.pc is installed"
     )
 
-# Backward compatibility support for EIGEN_INCLUDE_INSTALL_DIR
-if(DEFINED EIGEN_INCLUDE_INSTALL_DIR)
-  message(WARNING "EIGEN_INCLUDE_INSTALL_DIR is deprecated. Use INCLUDE_INSTALL_DIR instead.")
-  set(INCLUDE_INSTALL_DIR ${EIGEN_INCLUDE_INSTALL_DIR} CACHE PATH "" FORCE)
-endif()
 
 # similar to set_target_properties but append the property instead of overwriting it
 macro(ei_add_target_property target prop value)
