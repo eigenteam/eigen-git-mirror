@@ -539,7 +539,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       * according to the specified problem size.
       * \sa JacobiSVD()
       */
-    explicit JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
+    JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
     {
       allocate(rows, cols, computationOptions);
     }

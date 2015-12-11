@@ -606,7 +606,7 @@ public:
     assignPacket<StoreMode,LoadMode,PacketType>(row, col);
   }
   
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static Index rowIndexByOuterInner(Index outer, Index inner)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Index rowIndexByOuterInner(Index outer, Index inner)
   {
     typedef typename DstEvaluatorType::ExpressionTraits Traits;
     return int(Traits::RowsAtCompileTime) == 1 ? 0
@@ -615,7 +615,7 @@ public:
       : inner;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static Index colIndexByOuterInner(Index outer, Index inner)
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Index colIndexByOuterInner(Index outer, Index inner)
   {
     typedef typename DstEvaluatorType::ExpressionTraits Traits;
     return int(Traits::ColsAtCompileTime) == 1 ? 0

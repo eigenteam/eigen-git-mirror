@@ -115,7 +115,7 @@ struct member_lpnorm {
   typedef ResultType result_type;
   template<typename Scalar, int Size> struct Cost
   { enum { value = (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost }; };
-  EIGEN_DEVICE_FUNC explicit member_lpnorm() {}
+  EIGEN_DEVICE_FUNC member_lpnorm() {}
   template<typename XprType>
   EIGEN_DEVICE_FUNC inline ResultType operator()(const XprType& mat) const
   { return mat.template lpNorm<p>(); }
