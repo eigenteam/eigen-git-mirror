@@ -53,7 +53,7 @@ ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Eigen
   m_matUisUptodate = false; \
   if(matrix.cols() == 1) \
   { \
-    m_matT = matrix.template cast<ComplexScalar>(); \
+    m_matT = matrix.derived().template cast<ComplexScalar>(); \
     if(computeU)  m_matU = ComplexMatrixType::Identity(1,1); \
       m_info = Success; \
       m_isInitialized = true; \
