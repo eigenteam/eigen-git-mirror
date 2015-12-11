@@ -676,8 +676,13 @@ struct scalar_sign_op<Scalar,true> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sign_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const 
   {
-      typename NumTraits<Scalar>::Real aa = std::abs(a);
-      return (aa==0) ?  Scalar(0) : (a/aa); 
+    using std::abs;
+    typedef typename NumTraits<Scalar>::Real real_type;
+    real_type aa = abs(a);
+    if (aa==0)
+      return Scalar(0); 
+    aa = 1./aa; 
+    return Scalar(real(a)*aa, imag(a)*aa );
   }
   //TODO
   //template <typename Packet>

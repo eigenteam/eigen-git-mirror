@@ -49,7 +49,7 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       IsAligned = ((int(Options_)&Aligned)==Aligned),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = PlainObjectType::Layout,
-      CoordAccess = true,
+      CoordAccess = true
     };
 
     EIGEN_DEVICE_FUNC
@@ -158,7 +158,7 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1) const
     {
       if (PlainObjectType::Options&RowMajor) {
-        const Index index = i1 + i0 * m_dimensions[0];
+        const Index index = i1 + i0 * m_dimensions[1];
         return m_data[index];
       } else {
         const Index index = i0 + i1 * m_dimensions[0];
@@ -169,7 +169,7 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1, Index i2) const
     {
       if (PlainObjectType::Options&RowMajor) {
-         const Index index = i2 + m_dimensions[1] * (i1 + m_dimensions[0] * i0);
+         const Index index = i2 + m_dimensions[2] * (i1 + m_dimensions[1] * i0);
          return m_data[index];
       } else {
          const Index index = i0 + m_dimensions[0] * (i1 + m_dimensions[1] * i2);
@@ -245,7 +245,7 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     EIGEN_STRONG_INLINE Scalar& operator()(Index i0, Index i1)
     {
        if (PlainObjectType::Options&RowMajor) {
-         const Index index = i1 + i0 * m_dimensions[0];
+         const Index index = i1 + i0 * m_dimensions[1];
         return m_data[index];
       } else {
         const Index index = i0 + i1 * m_dimensions[0];
@@ -256,7 +256,7 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     EIGEN_STRONG_INLINE Scalar& operator()(Index i0, Index i1, Index i2)
     {
        if (PlainObjectType::Options&RowMajor) {
-         const Index index = i2 + m_dimensions[1] * (i1 + m_dimensions[0] * i0);
+         const Index index = i2 + m_dimensions[2] * (i1 + m_dimensions[1] * i0);
         return m_data[index];
       } else {
          const Index index = i0 + m_dimensions[0] * (i1 + m_dimensions[1] * i2);
