@@ -403,6 +403,77 @@ struct functor_traits<scalar_asin_op<Scalar> >
   };
 };
 
+
+/** \internal
+ * \brief Template functor to compute the natural log of the absolute
+ * value of Gamma of a scalar
+ * \sa class CwiseUnaryOp, Cwise::lgamma()
+ */
+template<typename Scalar> struct scalar_lgamma_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_lgamma_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const {
+    using numext::lgamma; return lgamma(a);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::plgamma(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_lgamma_op<Scalar> >
+{
+  enum {
+    // Guesstimate
+    Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasLGamma
+  };
+};
+
+/** \internal
+ * \brief Template functor to compute the Gauss error function of a
+ * scalar
+ * \sa class CwiseUnaryOp, Cwise::erf()
+ */
+template<typename Scalar> struct scalar_erf_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_erf_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const {
+    using numext::erf; return erf(a);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::perf(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_erf_op<Scalar> >
+{
+  enum {
+    // Guesstimate
+    Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasErf
+  };
+};
+
+/** \internal
+ * \brief Template functor to compute the Complementary Error Function
+ * of a scalar
+ * \sa class CwiseUnaryOp, Cwise::erfc()
+ */
+template<typename Scalar> struct scalar_erfc_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_erfc_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const {
+    using numext::erfc; return erfc(a);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::perfc(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_erfc_op<Scalar> >
+{
+  enum {
+    // Guesstimate
+    Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasErfc
+  };
+};
+
+
 /** \internal
   * \brief Template functor to compute the atan of a scalar
   * \sa class CwiseUnaryOp, ArrayBase::atan()
@@ -421,6 +492,7 @@ struct functor_traits<scalar_atan_op<Scalar> >
     PacketAccess = packet_traits<Scalar>::HasATan
   };
 };
+
 
 /** \internal
   * \brief Template functor to compute the tanh of a scalar

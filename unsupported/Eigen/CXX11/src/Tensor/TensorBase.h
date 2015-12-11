@@ -123,6 +123,24 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived>
+    lgamma() const {
+      return unaryExpr(internal::scalar_lgamma_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived>
+    erf() const {
+      return unaryExpr(internal::scalar_erf_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived>
+    erfc() const {
+      return unaryExpr(internal::scalar_erfc_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_sigmoid_op<Scalar>, const Derived>
     sigmoid() const {
       return unaryExpr(internal::scalar_sigmoid_op<Scalar>());
