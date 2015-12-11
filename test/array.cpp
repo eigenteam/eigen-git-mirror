@@ -202,7 +202,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
             m2 = ArrayType::Random(rows, cols),
             m3(rows, cols),
             m4 = m1;
-  
+
   m4 = (m4.abs()==Scalar(0)).select(1,m4);
 
   Scalar  s1 = internal::random<Scalar>();
@@ -217,6 +217,11 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
+#ifdef EIGEN_HAS_C99_MATH
+  VERIFY_IS_APPROX(m1.lgamma(), lgamma(m1));
+  VERIFY_IS_APPROX(m1.erf(), erf(m1));
+  VERIFY_IS_APPROX(m1.erfc(), erfc(m1));
+#endif  // EIGEN_HAS_C99_MATH
   VERIFY_IS_APPROX(m1.arg(), arg(m1));
   VERIFY_IS_APPROX(m1.round(), round(m1));
   VERIFY_IS_APPROX(m1.floor(), floor(m1));

@@ -338,7 +338,7 @@ template<typename Scalar> void packetmath_real()
     data1[1] = 0;
     h.store(data2, internal::pexp(h.load(data1)));
     VERIFY_IS_EQUAL(std::exp(-std::numeric_limits<Scalar>::epsilon()), data2[0]);
-    VERIFY_IS_EQUAL(std::exp(0), data2[1]);
+    VERIFY_IS_EQUAL(std::exp(Scalar(0)), data2[1]);
 
     data1[0] = (std::numeric_limits<Scalar>::min)();
     data1[1] = -(std::numeric_limits<Scalar>::min)();
@@ -353,15 +353,43 @@ template<typename Scalar> void packetmath_real()
     VERIFY_IS_EQUAL(std::exp(-std::numeric_limits<Scalar>::denorm_min()), data2[1]);
   }
 
+#ifdef EIGEN_HAS_C99_MATH
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasLGamma,Packet> h;
+    h.store(data2, internal::plgamma(h.load(data1)));
+    VERIFY((numext::isnan)(data2[0]));
+  }
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasErf,Packet> h;
+    h.store(data2, internal::perf(h.load(data1)));
+    VERIFY((numext::isnan)(data2[0]));
+  }
+  {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasErfc,Packet> h;
+    h.store(data2, internal::perfc(h.load(data1)));
+    VERIFY((numext::isnan)(data2[0]));
+  }
+#endif  // EIGEN_HAS_C99_MATH
+
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(0,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
     data2[i] = internal::random<Scalar>(0,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
   }
+
   if(internal::random<float>(0,1)<0.1)
     data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
+#if defined(EIGEN_HAS_C99_MATH) && (__cplusplus > 199711L)
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErf, std::erf, internal::perf);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErfc, std::erfc, internal::perfc);
+#endif
+
   if(PacketTraits::HasLog && PacketTraits::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
@@ -375,7 +403,7 @@ template<typename Scalar> void packetmath_real()
     data1[1] = 0;
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
-    VERIFY_IS_EQUAL(std::log(0), data2[1]);
+    VERIFY_IS_EQUAL(std::log(Scalar(0)), data2[1]);
 
     data1[0] = (std::numeric_limits<Scalar>::min)();
     data1[1] = -(std::numeric_limits<Scalar>::min)();

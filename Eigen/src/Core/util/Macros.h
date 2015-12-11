@@ -341,6 +341,13 @@
   #define EIGEN_HAVE_RVALUE_REFERENCES
 #endif
 
+// Does the compiler support C99?
+#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
+  || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
+  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER))
+#define EIGEN_HAS_C99_MATH 1
+#endif
+
 // Does the compiler support result_of?
 #if (__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L))
 #define EIGEN_HAS_STD_RESULT_OF 1
