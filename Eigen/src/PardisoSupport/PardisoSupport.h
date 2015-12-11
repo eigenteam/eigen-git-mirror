@@ -117,7 +117,9 @@ class PardisoImpl : public SparseSolverBase<Derived>
     typedef Matrix<StorageIndex, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
     typedef Array<StorageIndex,64,1,DontAlign> ParameterType;
     enum {
-      ScalarIsComplex = NumTraits<Scalar>::IsComplex
+      ScalarIsComplex = NumTraits<Scalar>::IsComplex,
+      ColsAtCompileTime = Dynamic,
+      MaxColsAtCompileTime = Dynamic
     };
 
     PardisoImpl()

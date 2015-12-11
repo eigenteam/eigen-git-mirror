@@ -14,8 +14,6 @@
 
 #include <mkl_pardiso.h>
 
-#include <unsupported/Eigen/SparseExtra>
-
 /** \ingroup Support_modules
   * \defgroup PardisoSupport_Module PardisoSupport module
   *
