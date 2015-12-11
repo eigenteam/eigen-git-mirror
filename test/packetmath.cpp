@@ -336,7 +336,7 @@ template<typename Scalar> void packetmath_real()
     data1[1] = 0;
     h.store(data2, internal::pexp(h.load(data1)));
     VERIFY_IS_EQUAL(std::exp(-std::numeric_limits<Scalar>::epsilon()), data2[0]);
-    VERIFY_IS_EQUAL(std::exp(0), data2[1]);
+    VERIFY_IS_EQUAL(std::exp(Scalar(0)), data2[1]);
 
     data1[0] = (std::numeric_limits<Scalar>::min)();
     data1[1] = -(std::numeric_limits<Scalar>::min)();
@@ -401,7 +401,7 @@ template<typename Scalar> void packetmath_real()
     data1[1] = 0;
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
-    VERIFY_IS_EQUAL(std::log(0), data2[1]);
+    VERIFY_IS_EQUAL(std::log(Scalar(0)), data2[1]);
 
     data1[0] = (std::numeric_limits<Scalar>::min)();
     data1[1] = -(std::numeric_limits<Scalar>::min)();
