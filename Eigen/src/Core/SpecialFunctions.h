@@ -21,7 +21,7 @@ template<typename Scalar>
 struct lgamma_impl
 {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar& x)
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar&)
   {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
@@ -59,7 +59,7 @@ template<typename Scalar>
 struct erf_impl
 {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar& x)
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar&)
   {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
@@ -97,7 +97,7 @@ template<typename Scalar>
 struct erfc_impl
 {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(const Scalar& x)
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar&)
   {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
