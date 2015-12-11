@@ -52,9 +52,9 @@ ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynami
   typedef MatrixType::RealScalar RealScalar; \
   Index rows = matrix.rows();\
   Index cols = matrix.cols();\
-  Index size = matrix.diagonalSize();\
 \
   m_qr = matrix;\
+  Index size = m_qr.diagonalSize();\
   m_hCoeffs.resize(size);\
 \
   m_colsTranspositions.resize(cols);\
