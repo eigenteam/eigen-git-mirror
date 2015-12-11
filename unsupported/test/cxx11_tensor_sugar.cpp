@@ -18,7 +18,7 @@ static void test_comparison_sugar() {
 
 #define TEST_TENSOR_EQUAL(e1, e2) \
   b = ((e1) == (e2)).all();       \
-  VERIFY(b(0))
+  VERIFY(b())
 
 #define TEST_OP(op) TEST_TENSOR_EQUAL(t op 0, t op t.constant(0))
 

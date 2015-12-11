@@ -78,7 +78,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0) & !(Options_&DontAlign),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = Options_ & RowMajor ? RowMajor : ColMajor,
-      CoordAccess = true,
+      CoordAccess = true
     };
 
     static const int Options = Options_;
@@ -368,7 +368,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       EIGEN_STATIC_ASSERT(4 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
     inline explicit Tensor(Index dim1, Index dim2, Index dim3, Index dim4, Index dim5)
-      : m_storage(dim1*dim2*dim3*dim4*dim5, array<Index, 4>(dim1, dim2, dim3, dim4, dim5))
+      : m_storage(dim1*dim2*dim3*dim4*dim5, array<Index, 5>(dim1, dim2, dim3, dim4, dim5))
     {
       EIGEN_STATIC_ASSERT(5 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
