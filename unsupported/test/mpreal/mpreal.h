@@ -72,14 +72,12 @@
 #define MPREAL_VERSION_STRING "3.6.2"
 
 // Detect compiler using signatures from http://predef.sourceforge.net/
-#if defined(__GNUC__) && defined(__INTEL_COMPILER)
-    #define IsInf(x) isinf(x)                   // Intel ICC compiler on Linux
-
+#if defined(__GNUC__)
+    #define IsInf(x) (isinf)(x)                 // GNU C++/Intel ICC compiler on Linux
 #elif defined(_MSC_VER)                         // Microsoft Visual C++
     #define IsInf(x) (!_finite(x))
-
 #else
-    #define IsInf(x) std::isinf EIGEN_NOT_A_MACRO (x)              // GNU C/C++ (and/or other compilers), just hope for C99 conformance
+    #define IsInf(x) (std::isinf)(x)              // GNU C/C++ (and/or other compilers), just hope for C99 conformance
 #endif
 
 // A Clang feature extension to determine compiler features.
