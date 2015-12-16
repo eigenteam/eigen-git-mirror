@@ -43,6 +43,8 @@ namespace Eigen { struct SluMatrix; }
   * - class SuperLU: a supernodal sequential LU factorization.
   * - class SuperILU: a supernodal sequential incomplete LU factorization (to be used as a preconditioner for iterative methods).
   *
+  * \warning This wrapper is only for the 4.x versions of SuperLU. The 3.x and 5.x versions are not supported.
+  *
   * \warning When including this module, you have to use SUPERLU_EMPTY instead of EMPTY which is no longer defined because it is too polluting.
   *
   * \code
