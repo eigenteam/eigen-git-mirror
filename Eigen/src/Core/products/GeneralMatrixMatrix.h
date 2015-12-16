@@ -401,6 +401,8 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
     template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
     {
       eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+      if(a_lhs.cols()==0 || a_lhs.rows()==0 || a_rhs.cols()==0)
+        return;
 
       typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(m_lhs);
       typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(m_rhs);
