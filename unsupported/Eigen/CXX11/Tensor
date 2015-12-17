@@ -28,14 +28,22 @@
 
 #include <cstddef>
 #include <cstring>
+
+#ifdef _WIN32
+typedef __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
+#else
 #include <stdint.h>
+#endif
 
 #if __cplusplus > 199711
 #include <random>
 #endif
 
 #ifdef _WIN32
-#include <winbase.h>
+#include <windows.h>
 #elif defined(__APPLE__)
 #include <mach/mach_time.h>
 #else
