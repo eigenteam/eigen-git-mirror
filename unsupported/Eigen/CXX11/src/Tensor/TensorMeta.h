@@ -101,12 +101,17 @@ bool operator!=(const Tuple<U, V>& x, const Tuple<U, V>& y) {
 
 
 #ifdef EIGEN_HAS_SFINAE
-namespace internal{
+namespace internal {
 
   template<typename IndexType, Index... Is>
   EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array<Index, sizeof...(Is)> customIndices2Array(IndexType& idx, numeric_list<Index, Is...>) {
     return { idx[Is]... };
+  }
+  template<typename IndexType>
+  EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  array<Index, 0> customIndices2Array(IndexType&, numeric_list<Index>) {
+    return array<Index, 0>();
   }
 
   /** Make an array (for index/dimensions) out of a custom index */
