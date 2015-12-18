@@ -87,15 +87,15 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
   }
 
   typename Self::CoeffReturnType accum = reducer.initialize();
-  for (Index i = 0; i < NumPerThread; ++i) {
-    const Index index = first_index + i * BlockSize;
-    if (index >= num_coeffs) {
-      break;
-    }
+  Index max_iter = numext::mini<Index>(num_coeffs - first_index, NumPerThread*BlockSize);
+  for (Index i = 0; i < max_iter; i+=BlockSize) {
+    const Index index = first_index + i;
+    eigen_assert(index < num_coeffs);
     typename Self::CoeffReturnType val = input.m_impl.coeff(index);
     reducer.reduce(val, &accum);
   }
 
+#pragma unroll
   for (int offset = warpSize/2; offset > 0; offset /= 2) {
     reducer.reduce(__shfl_down(accum, offset), &accum);
   }
