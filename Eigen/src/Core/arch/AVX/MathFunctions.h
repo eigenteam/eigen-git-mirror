@@ -10,11 +10,6 @@
 #ifndef EIGEN_MATH_FUNCTIONS_AVX_H
 #define EIGEN_MATH_FUNCTIONS_AVX_H
 
-// For some reason, this function didn't make it into the avxintirn.h
-// used by the compiler, so we'll just wrap it.
-#define _mm256_setr_m128(lo, hi) \
-  _mm256_insertf128_si256(_mm256_castsi128_si256(lo), (hi), 1)
-
 /* The sin, cos, exp, and log functions of this file are loosely derived from
  * Julien Pommier's sse math library: http://gruntthepeon.free.fr/ssemath/
  */
@@ -63,7 +58,7 @@ psin<Packet8f>(const Packet8f& _x) {
       _mm_slli_epi32(_mm256_extractf128_si256(shift_isodd, 0), 31);
   __m128i hi =
       _mm_slli_epi32(_mm256_extractf128_si256(shift_isodd, 1), 31);
-  Packet8i sign_flip_mask = _mm256_setr_m128(lo, hi);
+  Packet8i sign_flip_mask = _mm256_setr_m128(hi, lo);
 #endif
 
   // Create a mask for which interpolant to use, i.e. if z > 1, then the mask
@@ -149,7 +144,7 @@ plog<Packet8f>(const Packet8f& _x) {
 #else
   __m128i lo = _mm_srli_epi32(_mm256_extractf128_si256(_mm256_castps_si256(x), 0), 23);
   __m128i hi = _mm_srli_epi32(_mm256_extractf128_si256(_mm256_castps_si256(x), 1), 23);
-  Packet8f emm0 = _mm256_cvtepi32_ps(_mm256_setr_m128(lo, hi));
+  Packet8f emm0 = _mm256_cvtepi32_ps(_mm256_set_m128(hi,lo));
 #endif
   Packet8f e = _mm256_sub_ps(emm0, p8f_126f);
 
@@ -264,7 +259,7 @@ pexp<Packet8f>(const Packet8f& _x) {
 #else
   __m128i lo = _mm_slli_epi32(_mm256_extractf128_si256(emm0, 0), 23);
   __m128i hi = _mm_slli_epi32(_mm256_extractf128_si256(emm0, 1), 23);
-  emm0 = _mm256_setr_m128(lo, hi);
+  emm0 = _mm256_set_m128(hi,lo);
 #endif
 
   // Return 2^m * exp(r).
