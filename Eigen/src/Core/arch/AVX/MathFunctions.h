@@ -58,7 +58,7 @@ psin<Packet8f>(const Packet8f& _x) {
       _mm_slli_epi32(_mm256_extractf128_si256(shift_isodd, 0), 31);
   __m128i hi =
       _mm_slli_epi32(_mm256_extractf128_si256(shift_isodd, 1), 31);
-  Packet8i sign_flip_mask = _mm256_setr_m128(hi, lo);
+  Packet8i sign_flip_mask = _mm256_set_m128(hi, lo);
 #endif
 
   // Create a mask for which interpolant to use, i.e. if z > 1, then the mask
