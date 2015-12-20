@@ -194,8 +194,6 @@ namespace Eigen
     }
 
     public:
-
-    // TODO: Support headingAxisVector(), ..
     
     template<typename Scalar>
     static void eulerAngles(EulerAngles<Scalar, EulerSystem>& res, const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat)
