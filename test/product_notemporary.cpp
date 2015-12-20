@@ -47,6 +47,10 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
 
   VERIFY_EVALUATION_COUNT( m3.noalias() = s1 * (m1 * m2.transpose()), 0);
 
+  VERIFY_EVALUATION_COUNT( m3.noalias() = m3 + m1 * m2.transpose(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() += m3 + m1 * m2.transpose(), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() -= m3 + m1 * m2.transpose(), 0);
+
   VERIFY_EVALUATION_COUNT( m3.noalias() = s1 * m1 * s2 * m2.adjoint(), 0);
   VERIFY_EVALUATION_COUNT( m3.noalias() = s1 * m1 * s2 * (m1*s3+m2*s2).adjoint(), 1);
   VERIFY_EVALUATION_COUNT( m3.noalias() = (s1 * m1).adjoint() * s2 * m2, 0);
@@ -62,7 +66,7 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m3.noalias() -= (s1 * m1).template triangularView<Lower>() * m2, 0);
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template triangularView<Upper>() * (m2+m2), 1);
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template triangularView<UnitUpper>() * m2.adjoint(), 0);
-  
+
   VERIFY_EVALUATION_COUNT( m3.template triangularView<Upper>() = (m1 * m2.adjoint()), 0);
   VERIFY_EVALUATION_COUNT( m3.template triangularView<Upper>() -= (m1 * m2.adjoint()), 0);
 
@@ -107,6 +111,22 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( cvres.noalias() -= m1 * m2.col(0), 0 );
   VERIFY_EVALUATION_COUNT( cvres.noalias() -= m1 * rv1.adjoint(), 0 );
   VERIFY_EVALUATION_COUNT( cvres.noalias() -= m1 * m2.row(0).transpose(), 0 );
+
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (m1+m1) * cv1, 0 );
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (rm3+rm3) * cv1, 0 );
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (m1+m1) * (m1*cv1), 1 );
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = (rm3+rm3) * (m1*cv1), 1 );
+
+  // Check outer products
+  m3 = cv1 * rv1;
+  VERIFY_EVALUATION_COUNT( m3.noalias() = cv1 * rv1, 0 );
+  VERIFY_EVALUATION_COUNT( m3.noalias() = (cv1+cv1) * (rv1+rv1), 1 );
+  VERIFY_EVALUATION_COUNT( m3.noalias() = (m1*cv1) * (rv1), 1 );
+  VERIFY_EVALUATION_COUNT( m3.noalias() += (m1*cv1) * (rv1), 1 );
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = (cv1) * (rv1 * m1), 1 );
+  VERIFY_EVALUATION_COUNT( rm3.noalias() -= (cv1) * (rv1 * m1), 1 );
+  VERIFY_EVALUATION_COUNT( rm3.noalias() = (m1*cv1) * (rv1 * m1), 2 );
+  VERIFY_EVALUATION_COUNT( rm3.noalias() += (m1*cv1) * (rv1 * m1), 2 );
 }
 
 void test_product_notemporary()

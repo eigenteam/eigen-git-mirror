@@ -157,7 +157,9 @@ void unalignedassert()
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector8d>(8));
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector10d>(8));
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector12d>(8));
-    VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cf>(8));
+    // Complexes are disabled because the compiler might aggressively vectorize
+    // the initialization of complex coeffs to 0 before we can check for alignedness
+    //VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cf>(8));
     VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4i>(8));
   }
   for(int b=8; b<EIGEN_MAX_ALIGN_BYTES; b+=8)
@@ -167,7 +169,7 @@ void unalignedassert()
     if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4d>(b));
     if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix2d>(b));
     if(b<128) VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4d>(b));
-    if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cd>(b));
+    //if(b<32)  VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2cd>(b));
   }
 #endif
 }

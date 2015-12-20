@@ -40,18 +40,14 @@ static inline void check_DenseIndex_is_signed() {
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
-                                     typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>
+  : public internal::special_scalar_op_base<Derived, typename internal::traits<Derived>::Scalar,
+                                            typename NumTraits<typename internal::traits<Derived>::Scalar>::Real,
+                                            DenseCoeffsBase<Derived> >
 #else
   : public DenseCoeffsBase<Derived>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
-    using internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
-                typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator*;
-    using internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
-                typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator/;
-
 
     /** Inner iterator type to iterate over the coefficients of a row or column.
       * \sa class InnerIterator
@@ -77,9 +73,10 @@ template<typename Derived> class DenseBase
     typedef Scalar value_type;
     
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef internal::special_scalar_op_base<Derived,Scalar,RealScalar, DenseCoeffsBase<Derived> > Base;
 
-    typedef internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
-                      typename NumTraits<typename internal::traits<Derived>::Scalar>::Real> Base;
+    using Base::operator*;
+    using Base::operator/;
     using Base::derived;
     using Base::const_cast_derived;
     using Base::rows;

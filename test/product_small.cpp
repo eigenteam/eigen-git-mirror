@@ -29,6 +29,153 @@ void product1x1()
                     matAdynamic.cwiseProduct(matBdynamic.transpose()).sum() );
 }
 
+template<typename TC, typename TA, typename TB>
+const TC& ref_prod(TC &C, const TA &A, const TB &B)
+{
+  for(Index i=0;i<C.rows();++i)
+    for(Index j=0;j<C.cols();++j)
+      for(Index k=0;k<A.cols();++k)
+        C.coeffRef(i,j) += A.coeff(i,k) * B.coeff(k,j);
+  return C;
+}
+
+template<typename T, int Rows, int Cols, int Depth, int OC, int OA, int OB>
+typename internal::enable_if<! ( (Rows ==1&&Depth!=1&&OA==ColMajor)
+                              || (Depth==1&&Rows !=1&&OA==RowMajor)
+                              || (Cols ==1&&Depth!=1&&OB==RowMajor)
+                              || (Depth==1&&Cols !=1&&OB==ColMajor)
+                              || (Rows ==1&&Cols !=1&&OC==ColMajor)
+                              || (Cols ==1&&Rows !=1&&OC==RowMajor)),void>::type
+test_lazy_single(int rows, int cols, int depth)
+{
+  Matrix<T,Rows,Depth,OA> A(rows,depth); A.setRandom();
+  Matrix<T,Depth,Cols,OB> B(depth,cols); B.setRandom();
+  Matrix<T,Rows,Cols,OC>  C(rows,cols);  C.setRandom();
+  Matrix<T,Rows,Cols,OC>  D(C);
+  VERIFY_IS_APPROX(C+=A.lazyProduct(B), ref_prod(D,A,B));
+}
+
+template<typename T, int Rows, int Cols, int Depth, int OC, int OA, int OB>
+typename internal::enable_if<  ( (Rows ==1&&Depth!=1&&OA==ColMajor)
+                              || (Depth==1&&Rows !=1&&OA==RowMajor)
+                              || (Cols ==1&&Depth!=1&&OB==RowMajor)
+                              || (Depth==1&&Cols !=1&&OB==ColMajor)
+                              || (Rows ==1&&Cols !=1&&OC==ColMajor)
+                              || (Cols ==1&&Rows !=1&&OC==RowMajor)),void>::type
+test_lazy_single(int, int, int)
+{
+}
+
+template<typename T, int Rows, int Cols, int Depth>
+void test_lazy_all_layout(int rows=Rows, int cols=Cols, int depth=Depth)
+{
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,ColMajor,ColMajor,ColMajor>(rows,cols,depth) ));
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,RowMajor,ColMajor,ColMajor>(rows,cols,depth) ));
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,ColMajor,RowMajor,ColMajor>(rows,cols,depth) ));
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,RowMajor,RowMajor,ColMajor>(rows,cols,depth) ));
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,ColMajor,ColMajor,RowMajor>(rows,cols,depth) ));
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,RowMajor,ColMajor,RowMajor>(rows,cols,depth) ));
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,ColMajor,RowMajor,RowMajor>(rows,cols,depth) ));
+  CALL_SUBTEST(( test_lazy_single<T,Rows,Cols,Depth,RowMajor,RowMajor,RowMajor>(rows,cols,depth) ));
+}
+
+template<typename T>
+void test_lazy_l1()
+{
+  int rows = internal::random<int>(1,12);
+  int cols = internal::random<int>(1,12);
+  int depth = internal::random<int>(1,12);
+
+  // Inner
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,1,1>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,1,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,1,3>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,1,8>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,1,9>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,1,-1>(1,1,depth) ));
+
+  // Outer
+  CALL_SUBTEST(( test_lazy_all_layout<T,2,1,1>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,2,1>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,2,2,1>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,3,3,1>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,4,1>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,8,1>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,-1,1>(4,cols) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,7,-1,1>(7,cols) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,-1,8,1>(rows) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,-1,3,1>(rows) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,-1,-1,1>(rows,cols) ));
+}
+
+template<typename T>
+void test_lazy_l2()
+{
+  int rows = internal::random<int>(1,12);
+  int cols = internal::random<int>(1,12);
+  int depth = internal::random<int>(1,12);
+
+  // mat-vec
+  CALL_SUBTEST(( test_lazy_all_layout<T,2,1,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,2,1,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,1,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,1,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,5,1,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,1,5>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,1,6>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,6,1,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,8,1,8>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,-1,1,4>(rows) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,1,-1>(4,1,depth) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,-1,1,-1>(rows,1,depth) ));
+
+  // vec-mat
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,2,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,2,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,4,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,4,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,5,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,4,5>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,4,6>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,6,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,8,8>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,-1, 4>(1,cols) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1, 4,-1>(1,4,depth) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,1,-1,-1>(1,cols,depth) ));
+}
+
+template<typename T>
+void test_lazy_l3()
+{
+  int rows = internal::random<int>(1,12);
+  int cols = internal::random<int>(1,12);
+  int depth = internal::random<int>(1,12);
+  // mat-mat
+  CALL_SUBTEST(( test_lazy_all_layout<T,2,4,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,2,6,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,3,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,8,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,5,6,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,2,5>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,7,6>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,6,8,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,8,3,8>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,-1,6,4>(rows) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,3,-1>(4,3,depth) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,-1,6,-1>(rows,6,depth) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,8,2,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,5,2,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,4,2>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,8,4,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,6,5,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,4,5>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,3,4,6>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,2,6,4>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,7,8,8>() ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,8,-1, 4>(8,cols) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,3, 4,-1>(3,4,depth) ));
+  CALL_SUBTEST(( test_lazy_all_layout<T,4,-1,-1>(4,cols,depth) ));
+}
 
 void test_product_small()
 {
@@ -39,6 +186,22 @@ void test_product_small()
     CALL_SUBTEST_4( product(Matrix4d()) );
     CALL_SUBTEST_5( product(Matrix4f()) );
     CALL_SUBTEST_6( product1x1() );
+
+    CALL_SUBTEST_11( test_lazy_l1<float>() );
+    CALL_SUBTEST_12( test_lazy_l2<float>() );
+    CALL_SUBTEST_13( test_lazy_l3<float>() );
+
+    CALL_SUBTEST_21( test_lazy_l1<double>() );
+    CALL_SUBTEST_22( test_lazy_l2<double>() );
+    CALL_SUBTEST_23( test_lazy_l3<double>() );
+
+    CALL_SUBTEST_31( test_lazy_l1<std::complex<float> >() );
+    CALL_SUBTEST_32( test_lazy_l2<std::complex<float> >() );
+    CALL_SUBTEST_33( test_lazy_l3<std::complex<float> >() );
+
+    CALL_SUBTEST_41( test_lazy_l1<std::complex<double> >() );
+    CALL_SUBTEST_42( test_lazy_l2<std::complex<double> >() );
+    CALL_SUBTEST_43( test_lazy_l3<std::complex<double> >() );
   }
 
 #ifdef EIGEN_TEST_PART_6
@@ -55,6 +218,17 @@ void test_product_small()
     Eigen::Matrix<double, 1, 18> C; C.setRandom();
     VERIFY_IS_APPROX(B * A.inverse(), B * A.inverse()[0]);
     VERIFY_IS_APPROX(A.inverse() * C, A.inverse()[0] * C);
+  }
+
+  {
+    Eigen::Matrix<double, 10, 10> A, B, C;
+    A.setRandom();
+    C = A;
+    for(int k=0; k<79; ++k)
+      C = C * A;
+    B.noalias() = (((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)) * ((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)))
+                * (((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)) * ((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A))*((A*A)*(A*A)));
+    VERIFY_IS_APPROX(B,C);
   }
 #endif
 }

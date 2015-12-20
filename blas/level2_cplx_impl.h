@@ -18,7 +18,7 @@
   */
 int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
 {
-  typedef void (*functype)(int, const Scalar*, int, const Scalar*, int, Scalar*, Scalar);
+  typedef void (*functype)(int, const Scalar*, int, const Scalar*, Scalar*, Scalar);
   static functype func[2];
 
   static bool init = false;
@@ -67,7 +67,7 @@ int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
     if(code>=2 || func[code]==0)
       return 0;
 
-    func[code](*n, a, *lda, actual_x, 1, actual_y, alpha);
+    func[code](*n, a, *lda, actual_x, actual_y, alpha);
   }
 
   if(actual_x!=x) delete[] actual_x;

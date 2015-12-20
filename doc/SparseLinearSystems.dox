@@ -4,36 +4,63 @@ In Eigen, there are several methods available to solve linear systems when the c
 
 \eigenAutoToc
 
-\section TutorialSparseDirectSolvers Sparse solvers
+\section TutorialSparseSolverList List of sparse solvers
 
-%Eigen currently provides a limited set of built-in solvers, as well as wrappers to external solver libraries.
-They are summarized in the following table:
+%Eigen currently provides a wide set of built-in solvers, as well as wrappers to external solver libraries.
+They are summarized in the following tables:
+
+\subsection TutorialSparseSolverList_Direct Built-in direct solvers
+
+<table class="manual">
+<tr><th>Class</th><th>Solver kind</th><th>Matrix kind</th><th>Features related to performance</th>
+    <th>License</th><th class="width20em"><p>Notes</p></th></tr>
+
+<tr><td>SimplicialLLT \n <tt>#include<Eigen/\link SparseCholesky_Module SparseCholesky\endlink></tt></td><td>Direct LLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
+    <td>LGPL</td>
+    <td>SimplicialLDLT is often preferable</td></tr>
+
+<tr><td>SimplicialLDLT \n <tt>#include<Eigen/\link SparseCholesky_Module SparseCholesky\endlink></tt></td><td>Direct LDLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
+    <td>LGPL</td>
+    <td>Recommended for very sparse and not too large problems (e.g., 2D Poisson eq.)</td></tr>
+
+<tr><td>SparseLU \n <tt>#include<Eigen/\link SparseLU_Module SparseLU\endlink></tt></td> <td>LU factorization </td>
+    <td>Square </td><td>Fill-in reducing, Leverage fast dense algebra</td>
+    <td>MPL2</td>
+    <td>optimized for small and large problems with irregular patterns </td></tr>
+
+<tr><td>SparseQR \n <tt>#include<Eigen/\link SparseQR_Module SparseQR\endlink></tt></td> <td> QR factorization</td>
+    <td>Any, rectangular</td><td> Fill-in reducing</td>
+    <td>MPL2</td>
+    <td>recommended for least-square problems, has a basic rank-revealing feature</td></tr>
+ </table>
+
+\subsection TutorialSparseSolverList_Iterative Built-in iterative solvers
+
+<table class="manual">
+<tr><th>Class</th><th>Solver kind</th><th>Matrix kind</th><th>Supported preconditioners, [default]</th>
+    <th>License</th><th class="width20em"><p>Notes</p></th></tr>
+
+<tr><td>ConjugateGradient \n <tt>#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td> <td>Classic iterative CG</td><td>SPD</td>
+    <td>IdentityPreconditioner, [DiagonalPreconditioner], IncompleteCholesky</td>
+    <td>MPL2</td>
+    <td>Recommended for large symmetric problems (e.g., 3D Poisson eq.)</td></tr>
+
+<tr><td>LeastSquaresConjugateGradient \n <tt>#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td><td>CG for rectangular least-square problem</td><td>Rectangular</td>
+    <td>IdentityPreconditioner, [LeastSquareDiagonalPreconditioner]</td>
+    <td>MPL2</td>
+    <td>Solve for min |A'Ax-b|^2 without forming A'A</td></tr>
+
+<tr><td>BiCGSTAB \n <tt>#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td><td>Iterative stabilized bi-conjugate gradient</td><td>Square</td>
+    <td>IdentityPreconditioner, [DiagonalPreconditioner], IncompleteLUT</td>
+    <td>MPL2</td>
+    <td>To speedup the convergence, try it with the \ref IncompleteLUT preconditioner.</td></tr>
+</table>
+
+\subsection TutorialSparseSolverList_Wrapper Wrappers to external solvers
 
 <table class="manual">
 <tr><th>Class</th><th>Module</th><th>Solver kind</th><th>Matrix kind</th><th>Features related to performance</th>
     <th>Dependencies,License</th><th class="width20em"><p>Notes</p></th></tr>
-<tr><td>SimplicialLLT    </td><td>\link SparseCholesky_Module SparseCholesky \endlink</td><td>Direct LLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
-    <td>built-in, LGPL</td>
-    <td>SimplicialLDLT is often preferable</td></tr>
-<tr><td>SimplicialLDLT   </td><td>\link SparseCholesky_Module SparseCholesky \endlink</td><td>Direct LDLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
-    <td>built-in, LGPL</td>
-    <td>Recommended for very sparse and not too large problems (e.g., 2D Poisson eq.)</td></tr>
-<tr><td>ConjugateGradient</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>Classic iterative CG</td><td>SPD</td><td>Preconditionning</td>
-    <td>built-in, MPL2</td>
-    <td>Recommended for large symmetric problems (e.g., 3D Poisson eq.)</td></tr>
-<tr><td>LeastSquaresConjugateGradient</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>CG for rectangular least-square problem</td><td>Rectangular</td><td>Preconditionning</td>
-    <td>built-in, MPL2</td>
-    <td>Solve for min |A'Ax-b|^2 without forming A'A</td></tr>
-<tr><td>BiCGSTAB</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>Iterative stabilized bi-conjugate gradient</td><td>Square</td><td>Preconditionning</td>
-    <td>built-in, MPL2</td>
-    <td>To speedup the convergence, try it with the \ref IncompleteLUT preconditioner.</td></tr>
-<tr><td>SparseLU</td> <td>\link SparseLU_Module SparseLU \endlink </td> <td>LU factorization </td>
-    <td>Square </td><td>Fill-in reducing, Leverage fast dense algebra</td>
-    <td> built-in, MPL2</td> <td>optimized for small and large problems with irregular patterns </td></tr>
-<tr><td>SparseQR</td> <td>\link SparseQR_Module SparseQR \endlink</td> <td> QR factorization</td>
-    <td>Any, rectangular</td><td> Fill-in reducing</td>
-    <td>built-in, MPL2</td><td>recommended for least-square problems, has a basic rank-revealing feature</td></tr>
-<tr> <th colspan="7"> Wrappers to external solvers </th></tr>
 <tr><td>PastixLLT \n PastixLDLT \n PastixLU</td><td>\link PaStiXSupport_Module PaStiXSupport \endlink</td><td>Direct LLt, LDLt, LU factorizations</td><td>SPD \n SPD \n Square</td><td>Fill-in reducing, Leverage fast dense algebra, Multithreading</td>
     <td>Requires the <a href="http://pastix.gforge.inria.fr">PaStiX</a> package, \b CeCILL-C </td>
     <td>optimized for tough problems and symmetric patterns</td></tr>
@@ -52,6 +79,8 @@ They are summarized in the following table:
 </table>
 
 Here \c SPD means symmetric positive definite.
+
+\section TutorialSparseSolverConcept Sparse solver concept
 
 All these solvers follow the same general concept.
 Here is a typical and general example:
@@ -104,8 +133,10 @@ x2 = solver.solve(b2);
 \endcode
 The compute() method is equivalent to calling both analyzePattern() and factorize().
 
-Finally, each solver provides some specific features, such as determinant, access to the factors, controls of the iterations, and so on.
+Each solver provides some specific features, such as determinant, access to the factors, controls of the iterations, and so on.
 More details are available in the documentations of the respective classes.
+
+Finally, most of the iterative solvers, can also be used in a \b matrix-free context, see the following \link MatrixfreeSolverExample example \endlink.
 
 \section TheSparseCompute The Compute Step
 In the compute() function, the matrix is generally factorized: LLT for self-adjoint matrices, LDLT for general hermitian matrices, LU for non hermitian matrices and QR for rectangular matrices. These are the results of using direct solvers. For this class of solvers precisely, the compute step is further subdivided into analyzePattern() and factorize(). 

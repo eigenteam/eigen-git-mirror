@@ -16,7 +16,7 @@
 using namespace std;
 
 template<typename T> EIGEN_DONT_INLINE
-void kill_extra_precision(T& x) { eigen_assert(&x != 0); }
+void kill_extra_precision(T& x) { eigen_assert((void*)(&x) != (void*)0); }
 
 
 template<typename BoxType> void alignedbox(const BoxType& _box)
@@ -179,6 +179,8 @@ void test_geo_alignedbox()
     CALL_SUBTEST_9( alignedbox(AlignedBox1i()) );
     CALL_SUBTEST_10( alignedbox(AlignedBox2i()) );
     CALL_SUBTEST_11( alignedbox(AlignedBox3i()) );
+
+    CALL_SUBTEST_14( alignedbox(AlignedBox<double,Dynamic>(4)) );
   }
   CALL_SUBTEST_12( specificTest1() );
   CALL_SUBTEST_13( specificTest2() );

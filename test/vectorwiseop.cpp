@@ -2,11 +2,13 @@
 // for linear algebra.
 //
 // Copyright (C) 2011 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define TEST_ENABLE_TEMPORARY_TRACKING
 #define EIGEN_NO_STATIC_ASSERT
 
 #include "main.h"
@@ -156,16 +158,22 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   VERIFY_IS_APPROX(m2, m1.colwise() + colvec);
   VERIFY_IS_APPROX(m2.col(c), m1.col(c) + colvec);
 
-  VERIFY_RAISES_ASSERT(m2.colwise() += colvec.transpose());
-  VERIFY_RAISES_ASSERT(m1.colwise() + colvec.transpose());
+  if(rows>1)
+  {
+    VERIFY_RAISES_ASSERT(m2.colwise() += colvec.transpose());
+    VERIFY_RAISES_ASSERT(m1.colwise() + colvec.transpose());
+  }
 
   m2 = m1;
   m2.rowwise() += rowvec;
   VERIFY_IS_APPROX(m2, m1.rowwise() + rowvec);
   VERIFY_IS_APPROX(m2.row(r), m1.row(r) + rowvec);
 
-  VERIFY_RAISES_ASSERT(m2.rowwise() += rowvec.transpose());
-  VERIFY_RAISES_ASSERT(m1.rowwise() + rowvec.transpose());
+  if(cols>1)
+  {
+    VERIFY_RAISES_ASSERT(m2.rowwise() += rowvec.transpose());
+    VERIFY_RAISES_ASSERT(m1.rowwise() + rowvec.transpose());
+  }
 
   // test substraction
 
@@ -174,22 +182,33 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   VERIFY_IS_APPROX(m2, m1.colwise() - colvec);
   VERIFY_IS_APPROX(m2.col(c), m1.col(c) - colvec);
 
-  VERIFY_RAISES_ASSERT(m2.colwise() -= colvec.transpose());
-  VERIFY_RAISES_ASSERT(m1.colwise() - colvec.transpose());
+  if(rows>1)
+  {
+    VERIFY_RAISES_ASSERT(m2.colwise() -= colvec.transpose());
+    VERIFY_RAISES_ASSERT(m1.colwise() - colvec.transpose());
+  }
 
   m2 = m1;
   m2.rowwise() -= rowvec;
   VERIFY_IS_APPROX(m2, m1.rowwise() - rowvec);
   VERIFY_IS_APPROX(m2.row(r), m1.row(r) - rowvec);
 
-  VERIFY_RAISES_ASSERT(m2.rowwise() -= rowvec.transpose());
-  VERIFY_RAISES_ASSERT(m1.rowwise() - rowvec.transpose());
+  if(cols>1)
+  {
+    VERIFY_RAISES_ASSERT(m2.rowwise() -= rowvec.transpose());
+    VERIFY_RAISES_ASSERT(m1.rowwise() - rowvec.transpose());
+  }
 
   // test norm
   rrres = m1.colwise().norm();
   VERIFY_IS_APPROX(rrres(c), m1.col(c).norm());
   rcres = m1.rowwise().norm();
   VERIFY_IS_APPROX(rcres(r), m1.row(r).norm());
+
+  VERIFY_IS_APPROX(m1.cwiseAbs().colwise().sum(), m1.colwise().template lpNorm<1>());
+  VERIFY_IS_APPROX(m1.cwiseAbs().rowwise().sum(), m1.rowwise().template lpNorm<1>());
+  VERIFY_IS_APPROX(m1.cwiseAbs().colwise().maxCoeff(), m1.colwise().template lpNorm<Infinity>());
+  VERIFY_IS_APPROX(m1.cwiseAbs().rowwise().maxCoeff(), m1.rowwise().template lpNorm<Infinity>());
 
   // test normalized
   m2 = m1.colwise().normalized();
@@ -204,14 +223,27 @@ template<typename MatrixType> void vectorwiseop_matrix(const MatrixType& m)
   m2 = m1;
   m2.rowwise().normalize();
   VERIFY_IS_APPROX(m2.row(r), m1.row(r).normalized());
+
+  // test with partial reduction of products
+  Matrix<Scalar,MatrixType::RowsAtCompileTime,MatrixType::RowsAtCompileTime> m1m1 = m1 * m1.transpose();
+  VERIFY_IS_APPROX( (m1 * m1.transpose()).colwise().sum(), m1m1.colwise().sum());
+  Matrix<Scalar,1,MatrixType::RowsAtCompileTime> tmp(rows);
+  VERIFY_EVALUATION_COUNT( tmp = (m1 * m1.transpose()).colwise().sum(), (MatrixType::RowsAtCompileTime==Dynamic ? 1 : 0));
+
+  m2 = m1.rowwise() - (m1.colwise().sum()/m1.rows()).eval();
+  m1 = m1.rowwise() - (m1.colwise().sum()/m1.rows());
+  VERIFY_IS_APPROX( m1, m2 );
+  VERIFY_EVALUATION_COUNT( m2 = (m1.rowwise() - m1.colwise().sum()/m1.rows()), (MatrixType::RowsAtCompileTime==Dynamic && MatrixType::ColsAtCompileTime!=1 ? 1 : 0) );
 }
 
 void test_vectorwiseop()
 {
-  CALL_SUBTEST_1(vectorwiseop_array(Array22cd()));
-  CALL_SUBTEST_2(vectorwiseop_array(Array<double, 3, 2>()));
-  CALL_SUBTEST_3(vectorwiseop_array(ArrayXXf(3, 4)));
-  CALL_SUBTEST_4(vectorwiseop_matrix(Matrix4cf()));
-  CALL_SUBTEST_5(vectorwiseop_matrix(Matrix<float,4,5>()));
-  CALL_SUBTEST_6(vectorwiseop_matrix(MatrixXd(7,2)));
+  CALL_SUBTEST_1( vectorwiseop_array(Array22cd()) );
+  CALL_SUBTEST_2( vectorwiseop_array(Array<double, 3, 2>()) );
+  CALL_SUBTEST_3( vectorwiseop_array(ArrayXXf(3, 4)) );
+  CALL_SUBTEST_4( vectorwiseop_matrix(Matrix4cf()) );
+  CALL_SUBTEST_5( vectorwiseop_matrix(Matrix<float,4,5>()) );
+  CALL_SUBTEST_6( vectorwiseop_matrix(MatrixXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+  CALL_SUBTEST_7( vectorwiseop_matrix(VectorXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+  CALL_SUBTEST_7( vectorwiseop_matrix(RowVectorXd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
 }

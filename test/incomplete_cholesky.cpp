@@ -18,7 +18,7 @@ template<typename T, typename I> void test_incomplete_cholesky_T()
   ConjugateGradient<SparseMatrixType, Lower, IncompleteCholesky<T, Lower, AMDOrdering<I> > >     cg_illt_lower_amd;
   ConjugateGradient<SparseMatrixType, Lower, IncompleteCholesky<T, Lower, NaturalOrdering<I> > > cg_illt_lower_nat;
   ConjugateGradient<SparseMatrixType, Upper, IncompleteCholesky<T, Upper, AMDOrdering<I> > >     cg_illt_upper_amd;
-  ConjugateGradient<SparseMatrixType, Upper, IncompleteCholesky<T, Upper, AMDOrdering<I> > >     cg_illt_upper_nat;
+  ConjugateGradient<SparseMatrixType, Upper, IncompleteCholesky<T, Upper, NaturalOrdering<I> > >     cg_illt_upper_nat;
   
 
   CALL_SUBTEST( check_sparse_spd_solving(cg_illt_lower_amd) );

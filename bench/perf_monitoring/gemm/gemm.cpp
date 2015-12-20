@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 {
   std::vector<double> results;
   
-  std::ifstream settings("settings.txt");
+  std::ifstream settings("gemm_settings.txt");
   long m, n, k;
   while(settings >> m >> n >> k)
   {

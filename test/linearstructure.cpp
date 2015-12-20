@@ -108,9 +108,11 @@ void test_linearstructure()
     CALL_SUBTEST_7( linearStructure(MatrixXi (internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_8( linearStructure(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
     CALL_SUBTEST_9( linearStructure(ArrayXXf (internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_10( linearStructure(ArrayXXcf (internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     
-    CALL_SUBTEST_10( real_complex<Matrix4cd>() );
-    CALL_SUBTEST_10( real_complex<MatrixXcf>(10,10) );
+    CALL_SUBTEST_11( real_complex<Matrix4cd>() );
+    CALL_SUBTEST_11( real_complex<MatrixXcf>(10,10) );
+    CALL_SUBTEST_11( real_complex<ArrayXXcf>(10,10) );
   }
   
 #ifdef EIGEN_TEST_PART_4

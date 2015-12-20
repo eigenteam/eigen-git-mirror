@@ -39,6 +39,14 @@ template<typename MatrixType> void generalized_eigensolver_real(const MatrixType
   VectorType realEigenvalues = eig.eigenvalues().real();
   std::sort(realEigenvalues.data(), realEigenvalues.data()+realEigenvalues.size());
   VERIFY_IS_APPROX(realEigenvalues, symmEig.eigenvalues());
+
+  // regression test for bug 1098
+  {
+    GeneralizedSelfAdjointEigenSolver<MatrixType> eig1(a.adjoint() * a,b.adjoint() * b);
+    eig1.compute(a.adjoint() * a,b.adjoint() * b);
+    GeneralizedEigenSolver<MatrixType> eig2(a.adjoint() * a,b.adjoint() * b);
+    eig2.compute(a.adjoint() * a,b.adjoint() * b);
+  }
 }
 
 void test_eigensolver_generalized_real()

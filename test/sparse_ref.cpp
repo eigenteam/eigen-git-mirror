@@ -26,7 +26,7 @@ inline void on_temporary_creation() {
 
 #define VERIFY_EVALUATION_COUNT(XPR,N) {\
     nb_temporaries = 0; \
-    XPR; \
+    CALL_SUBTEST( XPR ); \
     if(nb_temporaries!=N) std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; \
     VERIFY( (#XPR) && nb_temporaries==N ); \
   }
@@ -53,10 +53,14 @@ EIGEN_DONT_INLINE void call_ref_3(const Ref<const SparseMatrix<float>, StandardC
   VERIFY_IS_EQUAL(a.toDense(),b.toDense());
 }
 
+template<typename B>
+EIGEN_DONT_INLINE void call_ref_4(Ref<SparseVector<float> > a, const B &b) { VERIFY_IS_EQUAL(a.toDense(),b.toDense()); }
+
+template<typename B>
+EIGEN_DONT_INLINE void call_ref_5(const Ref<const SparseVector<float> >& a, const B &b) { VERIFY_IS_EQUAL(a.toDense(),b.toDense()); }
+
 void call_ref()
 {
-//   SparseVector<std::complex<float> > ca = VectorXcf::Random(10).sparseView();
-//   SparseVector<float>                a  = VectorXf::Random(10).sparseView();
   SparseMatrix<float>               A = MatrixXf::Random(10,10).sparseView(0.5,1);
   SparseMatrix<float,RowMajor>      B = MatrixXf::Random(10,10).sparseView(0.5,1);
   SparseMatrix<float>               C = MatrixXf::Random(10,10).sparseView(0.5,1);
@@ -64,6 +68,9 @@ void call_ref()
   const SparseMatrix<float>&        Ac(A);
   Block<SparseMatrix<float> >       Ab(A,0,1, 3,3);
   const Block<SparseMatrix<float> > Abc(A,0,1,3,3);
+  SparseVector<float>               vc =  VectorXf::Random(10).sparseView(0.5,1);
+  SparseVector<float,RowMajor>      vr =  VectorXf::Random(10).sparseView(0.5,1);
+  SparseMatrix<float> AA = A*A;
   
 
   VERIFY_EVALUATION_COUNT( call_ref_1(A, A),  0);
@@ -80,8 +87,8 @@ void call_ref()
   VERIFY_EVALUATION_COUNT( call_ref_3(B, B),  1);
   VERIFY_EVALUATION_COUNT( call_ref_2(B.transpose(), B.transpose()),  0);
   VERIFY_EVALUATION_COUNT( call_ref_3(B.transpose(), B.transpose()),  0);
-  VERIFY_EVALUATION_COUNT( call_ref_2(A*A, A*A),  1);
-  VERIFY_EVALUATION_COUNT( call_ref_3(A*A, A*A),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_2(A*A, AA),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_3(A*A, AA),  1);
   
   VERIFY(!C.isCompressed());
   VERIFY_EVALUATION_COUNT( call_ref_3(C, C),  1);
@@ -103,8 +110,20 @@ void call_ref()
   VERIFY_EVALUATION_COUNT( call_ref_2(A.middleCols(1,3), A.middleCols(1,3)),  0);
   
   VERIFY_EVALUATION_COUNT( call_ref_2(A.col(2), A.col(2)),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_2(vc, vc),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_2(vr.transpose(), vr.transpose()),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_2(vr, vr.transpose()),  0);
   
   VERIFY_EVALUATION_COUNT( call_ref_2(A.block(1,1,3,3), A.block(1,1,3,3)),  1); // should be 0 (allocate starts/nnz only)
+
+  VERIFY_EVALUATION_COUNT( call_ref_4(vc, vc),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_4(vr, vr.transpose()),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_5(vc, vc),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_5(vr, vr.transpose()),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_4(A.col(2), A.col(2)),  0);
+  VERIFY_EVALUATION_COUNT( call_ref_5(A.col(2), A.col(2)),  0);
+  // VERIFY_EVALUATION_COUNT( call_ref_4(A.row(2), A.row(2).transpose()),  1); // does not compile on purpose
+  VERIFY_EVALUATION_COUNT( call_ref_5(A.row(2), A.row(2).transpose()),  1);
 }
 
 void test_sparse_ref()
@@ -113,5 +132,8 @@ void test_sparse_ref()
     CALL_SUBTEST_1( check_const_correctness(SparseMatrix<float>()) );
     CALL_SUBTEST_1( check_const_correctness(SparseMatrix<double,RowMajor>()) );
     CALL_SUBTEST_2( call_ref() );
+
+    CALL_SUBTEST_3( check_const_correctness(SparseVector<float>()) );
+    CALL_SUBTEST_3( check_const_correctness(SparseVector<double,RowMajor>()) );
   }
 }

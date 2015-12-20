@@ -130,13 +130,13 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   Tridiagonalization<MatrixType> tridiag(symmC);
   VERIFY_IS_APPROX(tridiag.diagonal(), tridiag.matrixT().diagonal());
   VERIFY_IS_APPROX(tridiag.subDiagonal(), tridiag.matrixT().template diagonal<-1>());
-  MatrixType T = tridiag.matrixT();
+  Matrix<RealScalar,Dynamic,Dynamic> T = tridiag.matrixT();
   if(rows>1 && cols>1) {
     // FIXME check that upper and lower part are 0:
     //VERIFY(T.topRightCorner(rows-2, cols-2).template triangularView<Upper>().isZero());
   }
-  VERIFY_IS_APPROX(tridiag.diagonal(), T.diagonal().real());
-  VERIFY_IS_APPROX(tridiag.subDiagonal(), T.template diagonal<1>().real());
+  VERIFY_IS_APPROX(tridiag.diagonal(), T.diagonal());
+  VERIFY_IS_APPROX(tridiag.subDiagonal(), T.template diagonal<1>());
   VERIFY_IS_APPROX(MatrixType(symmC.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT().eval() * MatrixType(tridiag.matrixQ()).adjoint());
   VERIFY_IS_APPROX(MatrixType(symmC.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT() * tridiag.matrixQ().adjoint());
   
@@ -149,12 +149,18 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
     VERIFY_IS_APPROX(tridiag.matrixT(), eiSymmTridiag.eigenvectors().real() * eiSymmTridiag.eigenvalues().asDiagonal() * eiSymmTridiag.eigenvectors().real().transpose());
   }
 
-  if (rows > 1)
+  if (rows > 1 && rows < 20)
   {
     // Test matrix with NaN
     symmC(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
     SelfAdjointEigenSolver<MatrixType> eiSymmNaN(symmC);
     VERIFY_IS_EQUAL(eiSymmNaN.info(), NoConvergence);
+  }
+
+  // regression test for bug 1098
+  {
+    SelfAdjointEigenSolver<MatrixType> eig(a.adjoint() * a);
+    eig.compute(a.adjoint() * a);
   }
 }
 

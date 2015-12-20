@@ -49,6 +49,7 @@ template<typename Scalar, int Options> void quaternion(void)
   */
   using std::abs;
   typedef Matrix<Scalar,3,1> Vector3;
+  typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar,Options> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
@@ -100,6 +101,11 @@ template<typename Scalar, int Options> void quaternion(void)
 
   q2 = q1.toRotationMatrix();
   VERIFY_IS_APPROX(q1*v1,q2*v1);
+
+  Matrix3 rot1(q1);
+  VERIFY_IS_APPROX(q1*v1,rot1*v1);
+  Quaternionx q3(rot1.transpose()*rot1);
+  VERIFY_IS_APPROX(q3*v1,v1);
 
 
   // angle-axis conversion

@@ -2,10 +2,13 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#define TEST_ENABLE_TEMPORARY_TRACKING
 
 #include "main.h"
 
@@ -21,7 +24,7 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   MatrixType m1 = MatrixType::Random(rows, cols);
 
   // The entries of m1 are uniformly distributed in [0,1], so m1.prod() is very small. This may lead to test
-  // failures if we underflow into denormals. Thus, we scale so that entires are close to 1.
+  // failures if we underflow into denormals. Thus, we scale so that entries are close to 1.
   MatrixType m1_for_prod = MatrixType::Ones(rows, cols) + RealScalar(0.2) * m1;
 
   VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::Zero(rows, cols).sum(), Scalar(1));
@@ -53,10 +56,24 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   VERIFY_IS_APPROX(m1_for_prod.block(r0,c0,r1,c1).prod(), m1_for_prod.block(r0,c0,r1,c1).eval().prod());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).real().minCoeff(), m1.block(r0,c0,r1,c1).real().eval().minCoeff());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).real().maxCoeff(), m1.block(r0,c0,r1,c1).real().eval().maxCoeff());
+
+  // regression for bug 1090
+  const int R1 = MatrixType::RowsAtCompileTime>=2 ? MatrixType::RowsAtCompileTime/2 : 6;
+  const int C1 = MatrixType::ColsAtCompileTime>=2 ? MatrixType::ColsAtCompileTime/2 : 6;
+  if(R1<=rows-r0 && C1<=cols-c0)
+  {
+    VERIFY_IS_APPROX( (m1.template block<R1,C1>(r0,c0).sum()), m1.block(r0,c0,R1,C1).sum() );
+  }
   
   // test empty objects
   VERIFY_IS_APPROX(m1.block(r0,c0,0,0).sum(),   Scalar(0));
   VERIFY_IS_APPROX(m1.block(r0,c0,0,0).prod(),  Scalar(1));
+
+  // test nesting complex expression
+  VERIFY_EVALUATION_COUNT( (m1.matrix()*m1.matrix().transpose()).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
+  Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> m2(rows,rows);
+  m2.setRandom();
+  VERIFY_EVALUATION_COUNT( ((m1.matrix()*m1.matrix().transpose())+m2).sum(), (MatrixType::SizeAtCompileTime==Dynamic ? 1 : 0) );
 }
 
 template<typename VectorType> void vectorRedux(const VectorType& w)

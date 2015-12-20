@@ -15,7 +15,7 @@
 #  EIGEN3_VERSION_PATCH      - The patch version of Eigen
 
 set ( EIGEN3_FOUND 1 )
-set ( EIGEN3_USE_FILE     "@EIGEN_USE_FILE@" )
+set ( EIGEN3_USE_FILE     "${CMAKE_CURRENT_LIST_DIR}/UseEigen3.cmake" )
 
 set ( EIGEN3_DEFINITIONS  "@EIGEN_DEFINITIONS@" )
 set ( EIGEN3_INCLUDE_DIR  "@EIGEN_INCLUDE_DIR@" )

@@ -50,7 +50,7 @@ struct nested<TensorChippingOp<DimId, XprType>, 1, typename eval<TensorChippingO
 template <DenseIndex DimId>
 struct DimensionId
 {
-  DimensionId(DenseIndex dim) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DimensionId(DenseIndex dim) {
     eigen_assert(dim == DimId);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex actualDim() const {
@@ -60,7 +60,7 @@ struct DimensionId
 template <>
 struct DimensionId<Dynamic>
 {
-  DimensionId(DenseIndex dim) : actual_dim(dim) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DimensionId(DenseIndex dim) : actual_dim(dim) {
     eigen_assert(dim >= 0);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex actualDim() const {

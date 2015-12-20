@@ -118,12 +118,18 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
 
-  if (rows > 1)
+  if (rows > 1 && rows < 20)
   {
     // Test matrix with NaN
     a(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
     ComplexEigenSolver<MatrixType> eiNaN(a);
     VERIFY_IS_EQUAL(eiNaN.info(), NoConvergence);
+  }
+
+  // regression test for bug 1098
+  {
+    ComplexEigenSolver<MatrixType> eig(a.adjoint() * a);
+    eig.compute(a.adjoint() * a);
   }
 }
 

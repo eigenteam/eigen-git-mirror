@@ -4,6 +4,7 @@
 # it reads $1.out
 # and generates $1.pdf
 WHAT=$1
+bench=$2
 
 header="rev "
 while read line
@@ -11,7 +12,7 @@ do
   if [ ! -z '$line' ]; then
     header="$header  \"$line\""
   fi
-done < settings.txt
+done < $bench"_settings.txt"
 
 echo $header > $WHAT.out.header
 cat $WHAT.out >> $WHAT.out.header

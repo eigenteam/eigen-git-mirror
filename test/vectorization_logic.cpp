@@ -1,45 +1,22 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+#undef EIGEN_DEFAULT_TO_ROW_MAJOR
+#endif
 #define EIGEN_DEBUG_ASSIGN
 #include "main.h"
 #include <typeinfo>
 
-std::string demangle_traversal(int t)
-{
-  if(t==DefaultTraversal) return "DefaultTraversal";
-  if(t==LinearTraversal) return "LinearTraversal";
-  if(t==InnerVectorizedTraversal) return "InnerVectorizedTraversal";
-  if(t==LinearVectorizedTraversal) return "LinearVectorizedTraversal";
-  if(t==SliceVectorizedTraversal) return "SliceVectorizedTraversal";
-  return "?";
-}
-std::string demangle_unrolling(int t)
-{
-  if(t==NoUnrolling) return "NoUnrolling";
-  if(t==InnerUnrolling) return "InnerUnrolling";
-  if(t==CompleteUnrolling) return "CompleteUnrolling";
-  return "?";
-}
-std::string demangle_flags(int f)
-{
-  std::string res;
-  if(f&RowMajorBit)                 res += " | RowMajor";
-  if(f&PacketAccessBit)             res += " | Packet";
-  if(f&LinearAccessBit)             res += " | Linear";
-  if(f&LvalueBit)                   res += " | Lvalue";
-  if(f&DirectAccessBit)             res += " | Direct";
-  if(f&NestByRefBit)                res += " | NestByRef";
-  if(f&NoPreferredStorageOrderBit)  res += " | NoPreferredStorageOrderBit";
-  
-  return res;
-}
+using internal::demangle_flags;
+using internal::demangle_traversal;
+using internal::demangle_unrolling;
 
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)

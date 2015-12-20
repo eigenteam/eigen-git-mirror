@@ -28,6 +28,14 @@
 # include <unistd.h>
 #endif
 
+static void escape(void *p) {
+  asm volatile("" : : "g"(p) : "memory");
+}
+
+static void clobber() {
+  asm volatile("" : : : "memory");
+}
+
 #include <Eigen/Core>
 
 namespace Eigen
@@ -168,6 +176,7 @@ public:
         CODE; \
       } \
       TIMER.stop(); \
+      clobber(); \
     } \
   }
 

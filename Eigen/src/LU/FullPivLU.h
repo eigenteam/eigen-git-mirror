@@ -10,12 +10,14 @@
 #ifndef EIGEN_LU_H
 #define EIGEN_LU_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
 template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
  : traits<_MatrixType>
 {
+  typedef MatrixXpr XprKind;
+  typedef SolverStorage StorageKind;
   enum { Flags = 0 };
 };
 
@@ -53,21 +55,18 @@ template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
   * \sa MatrixBase::fullPivLu(), MatrixBase::determinant(), MatrixBase::inverse()
   */
 template<typename _MatrixType> class FullPivLU
+  : public SolverBase<FullPivLU<_MatrixType> >
 {
   public:
     typedef _MatrixType MatrixType;
+    typedef SolverBase<FullPivLU> Base;
+
+    EIGEN_GENERIC_PUBLIC_INTERFACE(FullPivLU)
+    // FIXME StorageIndex defined in EIGEN_GENERIC_PUBLIC_INTERFACE should be int
     enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef typename internal::traits<MatrixType>::StorageKind StorageKind;
-    // FIXME should be int
-    typedef typename MatrixType::StorageIndex StorageIndex;
     typedef typename internal::plain_row_type<MatrixType, StorageIndex>::type IntRowVectorType;
     typedef typename internal::plain_col_type<MatrixType, StorageIndex>::type IntColVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationQType;
@@ -223,6 +222,7 @@ template<typename _MatrixType> class FullPivLU
       *
       * \sa TriangularView::solve(), kernel(), inverse()
       */
+    // FIXME this is a copy-paste of the base-class member to add the isInitialized assertion.
     template<typename Rhs>
     inline const Solve<FullPivLU, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -384,22 +384,26 @@ template<typename _MatrixType> class FullPivLU
 
     inline Index rows() const { return m_lu.rows(); }
     inline Index cols() const { return m_lu.cols(); }
-    
+
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
+
+    template<bool Conjugate, typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
+    void _solve_impl_transposed(const RhsType &rhs, DstType &dst) const;
     #endif
 
   protected:
-    
+
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
-    
+
     void computeInPlace();
-    
+
     MatrixType m_lu;
     PermutationPType m_p;
     PermutationQType m_q;
@@ -447,15 +451,15 @@ template<typename InputType>
 FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const EigenBase<InputType>& matrix)
 {
   check_template_parameters();
-  
+
   // the permutations are stored as int indices, so just to be sure:
   eigen_assert(matrix.rows()<=NumTraits<int>::highest() && matrix.cols()<=NumTraits<int>::highest());
-  
+
   m_isInitialized = true;
   m_lu = matrix.derived();
-  
+
   computeInPlace();
-  
+
   return *this;
 }
 
@@ -709,7 +713,7 @@ struct image_retval<FullPivLU<_MatrixType> >
 template<typename _MatrixType>
 template<typename RhsType, typename DstType>
 void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
-{  
+{
   /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
   * So we proceed as follows:
   * Step 1: compute c = P * rhs.
@@ -720,7 +724,7 @@ void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
 
   const Index rows = this->rows(),
               cols = this->cols(),
-              nonzero_pivots = this->nonzeroPivots();
+              nonzero_pivots = this->rank();
   eigen_assert(rhs.rows() == rows);
   const Index smalldim = (std::min)(rows, cols);
 
@@ -753,6 +757,70 @@ void FullPivLU<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
   for(Index i = nonzero_pivots; i < m_lu.cols(); ++i)
     dst.row(permutationQ().indices().coeff(i)).setZero();
 }
+
+template<typename _MatrixType>
+template<bool Conjugate, typename RhsType, typename DstType>
+void FullPivLU<_MatrixType>::_solve_impl_transposed(const RhsType &rhs, DstType &dst) const
+{
+  /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1},
+   * and since permutations are real and unitary, we can write this
+   * as   A^T = Q U^T L^T P,
+   * So we proceed as follows:
+   * Step 1: compute c = Q^T rhs.
+   * Step 2: replace c by the solution x to U^T x = c. May or may not exist.
+   * Step 3: replace c by the solution x to L^T x = c.
+   * Step 4: result = P^T c.
+   * If Conjugate is true, replace "^T" by "^*" above.
+   */
+
+  const Index rows = this->rows(), cols = this->cols(),
+    nonzero_pivots = this->rank();
+   eigen_assert(rhs.rows() == cols);
+  const Index smalldim = (std::min)(rows, cols);
+
+  if(nonzero_pivots == 0)
+  {
+    dst.setZero();
+    return;
+  }
+
+  typename RhsType::PlainObject c(rhs.rows(), rhs.cols());
+
+  // Step 1
+  c = permutationQ().inverse() * rhs;
+
+  if (Conjugate) {
+    // Step 2
+    m_lu.topLeftCorner(nonzero_pivots, nonzero_pivots)
+        .template triangularView<Upper>()
+        .adjoint()
+        .solveInPlace(c.topRows(nonzero_pivots));
+    // Step 3
+    m_lu.topLeftCorner(smalldim, smalldim)
+        .template triangularView<UnitLower>()
+        .adjoint()
+        .solveInPlace(c.topRows(smalldim));
+  } else {
+    // Step 2
+    m_lu.topLeftCorner(nonzero_pivots, nonzero_pivots)
+        .template triangularView<Upper>()
+        .transpose()
+        .solveInPlace(c.topRows(nonzero_pivots));
+    // Step 3
+    m_lu.topLeftCorner(smalldim, smalldim)
+        .template triangularView<UnitLower>()
+        .transpose()
+        .solveInPlace(c.topRows(smalldim));
+  }
+
+  // Step 4
+  PermutationPType invp = permutationP().inverse().eval();
+  for(Index i = 0; i < smalldim; ++i)
+    dst.row(invp.indices().coeff(i)) = c.row(i);
+  for(Index i = smalldim; i < rows; ++i)
+    dst.row(invp.indices().coeff(i)).setZero();
+}
+
 #endif
 
 namespace internal {
@@ -765,7 +833,7 @@ struct Assignment<DstXprType, Inverse<FullPivLU<MatrixType> >, internal::assign_
   typedef FullPivLU<MatrixType> LuType;
   typedef Inverse<LuType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
-  {    
+  {
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.cols()));
   }
 };

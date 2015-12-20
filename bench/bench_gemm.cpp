@@ -203,9 +203,10 @@ int main(int argc, char ** argv)
     return 1;
   }
 
- if(cache_size1>0)
-   setCpuCacheSizes(cache_size1,cache_size2,cache_size3);
-
+#if EIGEN_VERSION_AT_LEAST(3,2,90)
+  if(cache_size1>0)
+    setCpuCacheSizes(cache_size1,cache_size2,cache_size3);
+#endif
   
   A a(m,p); a.setRandom();
   B b(p,n); b.setRandom();

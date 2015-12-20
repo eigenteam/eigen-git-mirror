@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# ./run.sh gemm
+# ./run.sh lazy_gemm
+
 # Examples of environment variables to be set:
 #   PREFIX="haswell-fma-"
 #   CXX_FLAGS="-mfma"
@@ -8,6 +11,7 @@
 #   -up : enforce the recomputation of existing data, and keep best results as a merging strategy
 #   -s  : recompute selected changesets only and keep bests
 
+bench=$1
 
 if echo "$*" | grep '\-up' > /dev/null; then
   update=true
@@ -84,7 +88,7 @@ function test_current
   fi
   res=$prev
   count_rev=`echo $prev |  wc -w`
-  count_ref=`cat "settings.txt" |  wc -l`
+  count_ref=`cat $bench"_settings.txt" |  wc -l`
   if echo "$global_args" | grep "$rev" > /dev/null; then
     rev_found=true
   else
@@ -93,7 +97,7 @@ function test_current
 #  echo $update et $selected et $rev_found because $rev et "$global_args"
 #  echo $count_rev et $count_ref
   if [ $update == true ] || [ $count_rev != $count_ref ] || ([ $selected == true ] &&  [ $rev_found == true ]); then
-    if $CXX -O2 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src gemm.cpp -DSCALAR=$scalar -o $name; then
+    if $CXX -O2 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name; then
       curr=`./$name`
       if [ $count_rev == $count_ref ]; then
         echo "merge previous $prev"
@@ -113,9 +117,9 @@ function test_current
   fi
 }
 
-make_backup $PREFIX"sgemm"
-make_backup $PREFIX"dgemm"
-make_backup $PREFIX"cgemm"
+make_backup $PREFIX"s"$bench
+make_backup $PREFIX"d"$bench
+make_backup $PREFIX"c"$bench
 
 cut -f1 -d"#" < changesets.txt | grep -E '[[:alnum:]]' | while read rev
 do
@@ -126,27 +130,27 @@ do
     actual_rev=`hg identify | cut -f1 -d' '`
     cd ..
     
-    test_current $actual_rev float                  $PREFIX"sgemm"
-    test_current $actual_rev double                 $PREFIX"dgemm"
-    test_current $actual_rev "std::complex<double>" $PREFIX"cgemm"
+    test_current $actual_rev float                  $PREFIX"s"$bench
+    test_current $actual_rev double                 $PREFIX"d"$bench
+    test_current $actual_rev "std::complex<double>" $PREFIX"c"$bench
   fi
   
 done
 
 echo "Float:"
-cat $PREFIX"sgemm.out"
+cat $PREFIX"s"$bench.out"
 echo ""
 
 echo "Double:"
-cat $PREFIX"dgemm.out"
+cat $PREFIX"d"$bench.out"
 echo ""
 
 echo "Complex:"
-cat $PREFIX"cgemm.out"
+cat $PREFIX"c"$bench.out"
 echo ""
 
-./make_plot.sh $PREFIX"sgemm"
-./make_plot.sh $PREFIX"dgemm"
-./make_plot.sh $PREFIX"cgemm"
+./make_plot.sh $PREFIX"s"$bench $bench
+./make_plot.sh $PREFIX"d"$bench $bench
+./make_plot.sh $PREFIX"c"$bench $bench
 
 
