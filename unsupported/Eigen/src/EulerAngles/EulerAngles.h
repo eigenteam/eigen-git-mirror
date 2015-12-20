@@ -84,15 +84,11 @@ namespace Eigen
         fromRotation(rot, positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
       }
 
-      // TODO: Support assignment from euler to euler
-
       Scalar angle(int i) const { return m_angles.coeff(i); }
       Scalar& angle(int i) { return m_angles.coeffRef(i); }
 
       const Vector3& coeffs() const { return m_angles; }
       Vector3& coeffs() { return m_angles; }
-
-      // TODO: Add set/get functions
 
       Scalar h() const { return m_angles[0]; }
       Scalar& h() { return m_angles[0]; }
@@ -201,7 +197,7 @@ namespace Eigen
         return fromRotation(mat);
       }
 
-      // TODO: Assign and construct from another EulerAngle (with different system)
+      // TODO: Assign and construct from another EulerAngles (with different system)
       
       /** Set \c *this from a rotation.
         */
