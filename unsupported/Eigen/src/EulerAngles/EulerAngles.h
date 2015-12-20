@@ -57,10 +57,32 @@ namespace Eigen
 
       EulerAngles() {}
       inline EulerAngles(Scalar a0, Scalar a1, Scalar a2) : m_angles(a0, a1, a2) {}
-      inline EulerAngles(const QuaternionType& q) { *this = q; }
-      inline EulerAngles(const AngleAxisType& aa) { *this = aa; }
+      
       template<typename Derived>
       inline EulerAngles(const MatrixBase<Derived>& m) { *this = m; }
+      
+      template<typename Derived>
+      inline EulerAngles(
+        const MatrixBase<Derived>& m,
+        bool positiveRangeHeading,
+        bool positiveRangePitch,
+        bool positiveRangeRoll) {
+        
+        fromRotation(m, positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
+      }
+      
+      template<typename Derived>
+      inline EulerAngles(const RotationBase<Derived, 3>& rot) { *this = rot; }
+      
+      template<typename Derived>
+      inline EulerAngles(
+        const RotationBase<Derived, 3>& rot,
+        bool positiveRangeHeading,
+        bool positiveRangePitch,
+        bool positiveRangeRoll) {
+        
+        fromRotation(rot, positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
+      }
 
       // TODO: Support assignment from euler to euler
 
@@ -104,65 +126,108 @@ namespace Eigen
       /** Constructs and \returns an equivalent 3x3 rotation matrix.
         */
       template<typename Derived>
-      // TODO: Add booleans which let the user control desired output angles range( (-PI, PI) or [0, 2*PI) )
-      EulerAngles& fromRotationMatrix(const MatrixBase<Derived>& m)
+      EulerAngles& fromRotation(const MatrixBase<Derived>& m)
       {
         System::eulerAngles(*this, m);
         return *this;
       }
       
-      /** Set \c *this from a rotation matrix(i.e. pure orthogonal matrix with determinent of +1).
-        */
-      template<typename Derived>
-      EulerAngles& operator=(const MatrixBase<Derived>& mat){
-        return fromRotationMatrix(mat);
+      template<
+        bool PositiveRangeHeading,
+        bool PositiveRangePitch,
+        bool PositiveRangeRoll,
+        typename Derived>
+      EulerAngles& fromRotation(const MatrixBase<Derived>& m)
+      {
+        System::eulerAngles<PositiveRangeHeading, PositiveRangePitch, PositiveRangeRoll>(*this, m);
+        return *this;
       }
-
-      // TODO: Assign and construct from another EulerAngle (with different system)
       
-      /** Set \c *this from a quaternion.
-        * The axis is normalized.
-        */
-      EulerAngles& operator=(const QuaternionType& q){
-        // TODO: Implement it in a better way
+      template<typename Derived>
+      EulerAngles& fromRotation(
+        const MatrixBase<Derived>& m,
+        bool positiveRangeHeading,
+        bool positiveRangePitch,
+        bool positiveRangeRoll)
+      {
+        System::eulerAngles(*this, m, positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
+        return *this;
+      }
+      
+      template<typename Derived>
+      EulerAngles& fromRotation(const RotationBase<Derived, 3>& rot)
+      {
+        return fromRotation(rot.toRotationMatrix());
+      }
+      
+      template<
+        bool PositiveRangeHeading,
+        bool PositiveRangePitch,
+        bool PositiveRangeRoll,
+        typename Derived>
+      EulerAngles& fromRotation(const RotationBase<Derived, 3>& rot)
+      {
+        return fromRotation<PositiveRangeHeading, PositiveRangePitch, PositiveRangeRoll>(rot.toRotationMatrix());
+      }
+      
+      template<typename Derived>
+      EulerAngles& fromRotation(
+        const RotationBase<Derived, 3>& rot,
+        bool positiveRangeHeading,
+        bool positiveRangePitch,
+        bool positiveRangeRoll)
+      {
+        return fromRotation(rot.toRotationMatrix(), positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
+      }
+      
+      /*EulerAngles& fromQuaternion(const QuaternionType& q)
+      {
+        // TODO: Implement it in a faster way for quaternions
         // According to http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
         //  we can compute only the needed matrix cells and then convert to euler angles. (see ZYX example below)
         // Currently we compute all matrix cells from quaternion.
 
-        fromRotationMatrix(q.toRotationMatrix());
-
         // Special case only for ZYX
-        /*Scalar y2 = q.y() * q.y();
-        m_angles[0] = std::atan2(2*(q.w()*q.z() + q.x()*q.y()), (1 - 2*(y2 + q.z()*q.z())));
-        m_angles[1] = std::asin( 2*(q.w()*q.y() - q.z()*q.x()));
-        m_angles[2] = std::atan2(2*(q.w()*q.x() + q.y()*q.z()), (1 - 2*(q.x()*q.x() + y2)));
+        //Scalar y2 = q.y() * q.y();
+        //m_angles[0] = std::atan2(2*(q.w()*q.z() + q.x()*q.y()), (1 - 2*(y2 + q.z()*q.z())));
+        //m_angles[1] = std::asin( 2*(q.w()*q.y() - q.z()*q.x()));
+        //m_angles[2] = std::atan2(2*(q.w()*q.x() + q.y()*q.z()), (1 - 2*(q.x()*q.x() + y2)));
+      }*/
+      
+      /** Set \c *this from a rotation matrix(i.e. pure orthogonal matrix with determinent of +1).
         */
-        
-        return *this;
+      template<typename Derived>
+      EulerAngles& operator=(const MatrixBase<Derived>& mat) {
+        return fromRotation(mat);
+      }
+
+      // TODO: Assign and construct from another EulerAngle (with different system)
+      
+      /** Set \c *this from a rotation.
+        */
+      template<typename Derived>
+      EulerAngles& operator=(const RotationBase<Derived, 3>& rot) {
+        return fromRotation(rot.toRotationMatrix());
       }
       
       // TODO: Support isApprox function
-      
-      /** Set \c *this from AngleAxis \a ea.
-       */
-      EulerAngles& operator=(const AngleAxisType& ea)
-      {
-        // TODO: Implement it in a better way
-        return *this = ea.toRotationMatrix();
-      }
 
-      // TODO: Fix this function, and make it generic
-      Matrix3 toRotationMatrix(void) const
+      Matrix3 toRotationMatrix() const
       {
         return static_cast<QuaternionType>(*this).toRotationMatrix();
+      }
+
+      QuaternionType toQuaternion() const
+      {
+        return
+          AngleAxisType(h(), HeadingAxisVector()) *
+          AngleAxisType(p(), PitchAxisVector()) *
+          AngleAxisType(r(), RollAxisVector());
       }
     
       operator QuaternionType() const
       {
-        return
-          AngleAxisType((System::IsHeadingOpposite ? -1 : 1) * h(), Vector3::Unit(System::HeadingAxisAbs - 1)) *
-          AngleAxisType((System::IsPitchOpposite ? -1 : 1) * p(), Vector3::Unit(System::PitchAxisAbs - 1)) *
-          AngleAxisType((System::IsRollOpposite ? -1 : 1) * r(), Vector3::Unit(System::RollAxisAbs - 1));
+        return toQuaternion();
       }
   };
 

@@ -19,7 +19,7 @@ namespace Eigen
   namespace internal
   {
     // TODO: Check if already exists on the rest API
-    template <int Num, bool IsPossitive = (Num > 0)>
+    template <int Num, bool IsPositive = (Num > 0)>
     struct Abs
     {
       enum { value = Num };
@@ -73,6 +73,26 @@ namespace Eigen
   
     template <bool Cond1, bool Cond2>
     struct NegateIfXor : NegateIf<Cond1 != Cond2> {};
+    
+    template <typename Type, Type value, bool Cond>
+    struct AddConstIf
+    {
+      template <typename T>
+      static void run(T& t)
+      {
+        t += T(value);
+      }
+    };
+  
+    template <typename Type, Type value>
+    struct AddConstIf<Type, value, false>
+    {
+      template <typename T>
+      static void run(T&)
+      {
+        // no op
+      }
+    };
 
     template <int Axis>
     struct IsValidAxis
@@ -196,17 +216,50 @@ namespace Eigen
     public:
     
     template<typename Scalar>
-    static void eulerAngles(EulerAngles<Scalar, EulerSystem>& res, const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat)
+    static void eulerAngles(
+      EulerAngles<Scalar, EulerSystem>& res,
+      const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat)
+    {
+      eulerAngles(res, mat, false, false, false);
+    }
+    
+    template<
+      typename Scalar,
+      bool PositiveRangeHeading,
+      bool PositiveRangePitch,
+      bool PositiveRangeRoll>
+    static void eulerAngles(
+      EulerAngles<Scalar, EulerSystem>& res,
+      const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat)
+    {
+      eulerAngles(res, mat, PositiveRangeHeading, PositiveRangePitch, PositiveRangeRoll);
+    }
+    
+    template<typename Scalar>
+    static void eulerAngles(
+      EulerAngles<Scalar, EulerSystem>& res,
+      const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat,
+      bool positiveRangeHeading,
+      bool positiveRangePitch,
+      bool positiveRangeRoll)
     {
       eulerAngles_imp(
         res.coeffs(), mat,
         typename internal::conditional<IsTaitBryan, internal::true_type, internal::false_type>::type());
 
       internal::NegateIfXor<IsHeadingOpposite, IsEven>::run(res.h());
-
       internal::NegateIfXor<IsPitchOpposite, IsEven>::run(res.p());
-
       internal::NegateIfXor<IsRollOpposite, IsEven>::run(res.r());
+      
+      // Saturate results to the requested range
+      if (positiveRangeHeading && (res.h() < 0))
+        res.h() += Scalar(2 * EIGEN_PI);
+      
+      if (positiveRangePitch && (res.p() < 0))
+        res.p() += Scalar(2 * EIGEN_PI);
+      
+      if (positiveRangeRoll && (res.r() < 0))
+        res.r() += Scalar(2 * EIGEN_PI);
     }
   };
 

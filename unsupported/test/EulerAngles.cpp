@@ -14,13 +14,52 @@
 using namespace Eigen;
 
 template<typename EulerSystem, typename Scalar>
-void verify_euler(const Matrix<Scalar,3,1>& ea)
+void verify_euler_ranged(const Matrix<Scalar,3,1>& ea,
+  bool positiveRangeHeading, bool positiveRangePitch, bool positiveRangeRoll)
 {
   typedef EulerAngles<Scalar, EulerSystem> EulerAnglesType;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
-  typedef AngleAxis<Scalar> AngleAxisx;
+  typedef Quaternion<Scalar> QuaternionType;
+  typedef AngleAxis<Scalar> AngleAxisType;
   using std::abs;
+  
+  Scalar headingRangeStart, headingRangeEnd;
+  Scalar pitchRangeStart, pitchRangeEnd;
+  Scalar rollRangeStart, rollRangeEnd;
+  
+  if (positiveRangeHeading)
+  {
+    headingRangeStart = Scalar(0);
+    headingRangeEnd = Scalar(2 * EIGEN_PI);
+  }
+  else
+  {
+    headingRangeStart = -Scalar(EIGEN_PI);
+    headingRangeEnd = Scalar(EIGEN_PI);
+  }
+  
+  if (positiveRangePitch)
+  {
+    pitchRangeStart = Scalar(0);
+    pitchRangeEnd = Scalar(2 * EIGEN_PI);
+  }
+  else
+  {
+    pitchRangeStart = -Scalar(EIGEN_PI);
+    pitchRangeEnd = Scalar(EIGEN_PI);
+  }
+  
+  if (positiveRangeRoll)
+  {
+    rollRangeStart = Scalar(0);
+    rollRangeEnd = Scalar(2 * EIGEN_PI);
+  }
+  else
+  {
+    rollRangeStart = -Scalar(EIGEN_PI);
+    rollRangeEnd = Scalar(EIGEN_PI);
+  }
   
   const int i = EulerSystem::HeadingAxisAbs - 1;
   const int j = EulerSystem::PitchAxisAbs - 1;
@@ -37,46 +76,80 @@ void verify_euler(const Matrix<Scalar,3,1>& ea)
   EulerAnglesType e(ea[0], ea[1], ea[2]);
   
   Matrix3 m(e);
-  Vector3 eabis = EulerAnglesType(m).coeffs();
+  Vector3 eabis = EulerAnglesType(m, positiveRangeHeading, positiveRangePitch, positiveRangeRoll).coeffs();
+  
+  // Check that eabis in range
+  VERIFY(headingRangeStart <= eabis[0] && eabis[0] <= headingRangeEnd);
+  VERIFY(pitchRangeStart <= eabis[1] && eabis[1] <= pitchRangeEnd);
+  VERIFY(rollRangeStart <= eabis[2] && eabis[2] <= rollRangeEnd);
+  
   Vector3 eabis2 = m.eulerAngles(i, j, k);
+  
+  // Invert the relevant axes
   eabis2[0] *= iFactor;
   eabis2[1] *= jFactor;
   eabis2[2] *= kFactor;
   
+  // Saturate the angles to the correct range
+  if (positiveRangeHeading && (eabis2[0] < 0))
+    eabis2[0] += Scalar(2 * EIGEN_PI);
+  if (positiveRangePitch && (eabis2[1] < 0))
+    eabis2[1] += Scalar(2 * EIGEN_PI);
+  if (positiveRangeRoll && (eabis2[2] < 0))
+    eabis2[2] += Scalar(2 * EIGEN_PI);
+  
   VERIFY_IS_APPROX(eabis, eabis2);// Verify that our estimation is the same as m.eulerAngles() is
   
-  Matrix3 mbis(AngleAxisx(eabis[0], I) * AngleAxisx(eabis[1], J) * AngleAxisx(eabis[2], K));
+  Matrix3 mbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
   VERIFY_IS_APPROX(m,  mbis);
-  /* If I==K, and ea[1]==0, then there no unique solution. */ 
-  /* The remark apply in the case where I!=K, and |ea[1]| is close to pi/2. */ 
-  if( (i!=k || ea[1]!=0) && (i==k || !internal::isApprox(abs(ea[1]),Scalar(EIGEN_PI/2),test_precision<Scalar>())) ) 
-    VERIFY((ea-eabis).norm() <= test_precision<Scalar>());
   
-  // approx_or_less_than does not work for 0
-  VERIFY(0 < eabis[0] || test_isMuchSmallerThan(eabis[0], Scalar(1)));
-  VERIFY_IS_APPROX_OR_LESS_THAN(eabis[0], Scalar(EIGEN_PI));
-  VERIFY_IS_APPROX_OR_LESS_THAN(-Scalar(EIGEN_PI), eabis[1]);
-  VERIFY_IS_APPROX_OR_LESS_THAN(eabis[1], Scalar(EIGEN_PI));
-  VERIFY_IS_APPROX_OR_LESS_THAN(-Scalar(EIGEN_PI), eabis[2]);
-  VERIFY_IS_APPROX_OR_LESS_THAN(eabis[2], Scalar(EIGEN_PI));
+  // Tests that are only relevant for no possitive range
+  if (!(positiveRangeHeading || positiveRangePitch || positiveRangeRoll))
+  {
+    /* If I==K, and ea[1]==0, then there no unique solution. */ 
+    /* The remark apply in the case where I!=K, and |ea[1]| is close to pi/2. */ 
+    if( (i!=k || ea[1]!=0) && (i==k || !internal::isApprox(abs(ea[1]),Scalar(EIGEN_PI/2),test_precision<Scalar>())) ) 
+      VERIFY((ea-eabis).norm() <= test_precision<Scalar>());
+    
+    // approx_or_less_than does not work for 0
+    VERIFY(0 < eabis[0] || test_isMuchSmallerThan(eabis[0], Scalar(1)));
+  }
+  
+  // Quaternions
+  QuaternionType q(e);
+  eabis = EulerAnglesType(q, positiveRangeHeading, positiveRangePitch, positiveRangeRoll).coeffs();
+  VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
+}
+
+template<typename EulerSystem, typename Scalar>
+void verify_euler(const Matrix<Scalar,3,1>& ea)
+{
+  verify_euler_ranged<EulerSystem>(ea, false, false, false);
+  verify_euler_ranged<EulerSystem>(ea, false, false, true);
+  verify_euler_ranged<EulerSystem>(ea, false, true, false);
+  verify_euler_ranged<EulerSystem>(ea, false, true, true);
+  verify_euler_ranged<EulerSystem>(ea, true, false, false);
+  verify_euler_ranged<EulerSystem>(ea, true, false, true);
+  verify_euler_ranged<EulerSystem>(ea, true, true, false);
+  verify_euler_ranged<EulerSystem>(ea, true, true, true);
 }
 
 template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
 {
-  verify_euler<EulerSystemXYZ, Scalar>(ea);
-  verify_euler<EulerSystemXYX, Scalar>(ea);
-  verify_euler<EulerSystemXZY, Scalar>(ea);
-  verify_euler<EulerSystemXZX, Scalar>(ea);
+  verify_euler<EulerSystemXYZ>(ea);
+  verify_euler<EulerSystemXYX>(ea);
+  verify_euler<EulerSystemXZY>(ea);
+  verify_euler<EulerSystemXZX>(ea);
   
-  verify_euler<EulerSystemYZX, Scalar>(ea);
-  verify_euler<EulerSystemYZY, Scalar>(ea);
-  verify_euler<EulerSystemYXZ, Scalar>(ea);
-  verify_euler<EulerSystemYXY, Scalar>(ea);
+  verify_euler<EulerSystemYZX>(ea);
+  verify_euler<EulerSystemYZY>(ea);
+  verify_euler<EulerSystemYXZ>(ea);
+  verify_euler<EulerSystemYXY>(ea);
   
-  verify_euler<EulerSystemZXY, Scalar>(ea);
-  verify_euler<EulerSystemZXZ, Scalar>(ea);
-  verify_euler<EulerSystemZYX, Scalar>(ea);
-  verify_euler<EulerSystemZYZ, Scalar>(ea);
+  verify_euler<EulerSystemZXY>(ea);
+  verify_euler<EulerSystemZXZ>(ea);
+  verify_euler<EulerSystemZYX>(ea);
+  verify_euler<EulerSystemZYZ>(ea);
 }
 
 template<typename Scalar> void eulerangles()
@@ -85,11 +158,11 @@ template<typename Scalar> void eulerangles()
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Array<Scalar,3,1> Array3;
   typedef Quaternion<Scalar> Quaternionx;
-  typedef AngleAxis<Scalar> AngleAxisx;
+  typedef AngleAxis<Scalar> AngleAxisType;
 
   Scalar a = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
   Quaternionx q1;
-  q1 = AngleAxisx(a, Vector3::Random().normalized());
+  q1 = AngleAxisType(a, Vector3::Random().normalized());
   Matrix3 m;
   m = q1;
   
