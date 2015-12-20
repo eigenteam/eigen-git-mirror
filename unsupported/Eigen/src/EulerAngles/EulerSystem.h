@@ -32,6 +32,26 @@ namespace Eigen
     };
   
     template <bool Cond>
+    struct NegativeIf
+    {
+      template <typename T>
+      static T run(const T& t)
+      {
+        return -t;
+      }
+    };
+  
+    template <>
+    struct NegativeIf<false>
+    {
+      template <typename T>
+      static T run(const T& t)
+      {
+        return t;
+      }
+    };
+  
+    template <bool Cond>
     struct NegateIf
     {
       template <typename T>
@@ -45,7 +65,7 @@ namespace Eigen
     struct NegateIf<false>
     {
       template <typename T>
-      static void run(T& t)
+      static void run(T&)
       {
         // no op
       }
@@ -113,7 +133,7 @@ namespace Eigen
     };
     
     template <typename Derived>
-    static void eulerAngles_imp(Matrix<typename MatrixBase<Derived>::Scalar, 3, 1>& res, const MatrixBase<Derived>& mat, internal::true_type isTaitBryan)
+    static void eulerAngles_imp(Matrix<typename MatrixBase<Derived>::Scalar, 3, 1>& res, const MatrixBase<Derived>& mat, internal::true_type /*isTaitBryan*/)
     {
       using std::atan2;
       using std::sin;
@@ -136,7 +156,7 @@ namespace Eigen
     }
 
     template <typename Derived>
-    static void eulerAngles_imp(Matrix<typename MatrixBase<Derived>::Scalar,3,1>& res, const MatrixBase<Derived>& mat, internal::false_type isTaitBryan)
+    static void eulerAngles_imp(Matrix<typename MatrixBase<Derived>::Scalar,3,1>& res, const MatrixBase<Derived>& mat, internal::false_type /*isTaitBryan*/)
     {
       using std::atan2;
       using std::sin;

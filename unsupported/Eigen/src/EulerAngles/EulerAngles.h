@@ -37,16 +37,26 @@ namespace Eigen
       typedef Matrix<Scalar,3,1> Vector3;
       typedef Quaternion<Scalar> QuaternionType;
       typedef AngleAxis<Scalar> AngleAxisType;
+      
+      static Vector3 HeadingAxisVector() {
+        return internal::NegativeIf<System::IsHeadingOpposite>::run(Vector3::Unit(System::HeadingAxisAbs - 1));
+      }
+      
+      static Vector3 PitchAxisVector() {
+        return internal::NegativeIf<System::IsPitchOpposite>::run(Vector3::Unit(System::PitchAxisAbs - 1));
+      }
+      
+      static Vector3 RollAxisVector() {
+        return internal::NegativeIf<System::IsRollOpposite>::run(Vector3::Unit(System::RollAxisAbs - 1));
+      }
 
-    protected:
-
+    private:
       Vector3 m_angles;
 
     public:
 
       EulerAngles() {}
       inline EulerAngles(Scalar a0, Scalar a1, Scalar a2) : m_angles(a0, a1, a2) {}
-      inline EulerAngles(Vector3 angles) : m_angles(angles) {}
       inline EulerAngles(const QuaternionType& q) { *this = q; }
       inline EulerAngles(const AngleAxisType& aa) { *this = aa; }
       template<typename Derived>
@@ -116,7 +126,7 @@ namespace Eigen
       EulerAngles& operator=(const QuaternionType& q){
         // TODO: Implement it in a better way
         // According to http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
-        //  we can compute only the needed matrix cells and then convert to euler angles.
+        //  we can compute only the needed matrix cells and then convert to euler angles. (see ZYX example below)
         // Currently we compute all matrix cells from quaternion.
 
         fromRotationMatrix(q.toRotationMatrix());
@@ -130,6 +140,8 @@ namespace Eigen
         
         return *this;
       }
+      
+      // TODO: Support isApprox function
       
       /** Set \c *this from AngleAxis \a ea.
        */
