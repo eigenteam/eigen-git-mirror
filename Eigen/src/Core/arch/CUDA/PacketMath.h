@@ -196,7 +196,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Aligned>(const 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
   return __ldg((const double2*)from);
 #else
-  return make_float2(from[0], from[1]);
+  return make_double2(from[0], from[1]);
 #endif
 }
 
@@ -213,7 +213,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Unaligned>(cons
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
   return make_double2(__ldg(from+0), __ldg(from+1));
 #else
-  return make_float2(from[0], from[1]);
+  return make_double2(from[0], from[1]);
 #endif
 }
 
