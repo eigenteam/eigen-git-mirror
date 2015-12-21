@@ -75,7 +75,7 @@
   #endif
 #endif
 
-#if defined EIGEN_VECTORIZE_SSE || defined EIGEN_VECTORIZE_AVX
+#if defined EIGEN_VECTORIZE_SSE || defined EIGEN_VECTORIZE_AVX || defined EIGEN_VECTORIZE_AVX512
   #define EIGEN_HAS_MM_MALLOC 1
 #else
   #define EIGEN_HAS_MM_MALLOC 0
