@@ -48,7 +48,9 @@ template<> struct is_arithmetic<__m256d> { enum { value = true }; };
 #define _EIGEN_DECLARE_CONST_Packet8i(NAME,X) \
   const Packet8i p8i_##NAME = pset1<Packet8i>(X)
 
-
+// Use the packet_traits defined in AVX512/PacketMath.h instead if we're going
+// to leverage AVX512 instructions.
+#ifndef EIGEN_VECTORIZE_AVX512
 template<> struct packet_traits<float>  : default_packet_traits
 {
   typedef Packet8f type;
@@ -92,6 +94,7 @@ template<> struct packet_traits<double> : default_packet_traits
     HasCeil = 1
   };
 };
+#endif
 
 /* Proper support for integers is only provided by AVX2. In the meantime, we'll
    use SSE instructions and packets to deal with integers.
@@ -117,8 +120,10 @@ template<> EIGEN_STRONG_INLINE Packet8i pset1<Packet8i>(const int&    from) { re
 template<> EIGEN_STRONG_INLINE Packet8f pload1<Packet8f>(const float*  from) { return _mm256_broadcast_ss(from); }
 template<> EIGEN_STRONG_INLINE Packet4d pload1<Packet4d>(const double* from) { return _mm256_broadcast_sd(from); }
 
+#ifndef EIGEN_VECTORIZE_AVX512
 template<> EIGEN_STRONG_INLINE Packet8f plset<Packet8f>(const float& a) { return _mm256_add_ps(_mm256_set1_ps(a), _mm256_set_ps(7.0,6.0,5.0,4.0,3.0,2.0,1.0,0.0)); }
 template<> EIGEN_STRONG_INLINE Packet4d plset<Packet4d>(const double& a) { return _mm256_add_pd(_mm256_set1_pd(a), _mm256_set_pd(3.0,2.0,1.0,0.0)); }
+#endif
 
 template<> EIGEN_STRONG_INLINE Packet8f padd<Packet8f>(const Packet8f& a, const Packet8f& b) { return _mm256_add_ps(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4d padd<Packet4d>(const Packet4d& a, const Packet4d& b) { return _mm256_add_pd(a,b); }
@@ -300,9 +305,11 @@ template<> EIGEN_STRONG_INLINE void pstore1<Packet8i>(int* to, const int& a)
   pstore(to, pa);
 }
 
+#ifndef EIGEN_VECTORIZE_AVX512
 template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
+#endif
 
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet8f>(const Packet8f& a) {
   return _mm_cvtss_f32(_mm256_castps256_ps128(a));

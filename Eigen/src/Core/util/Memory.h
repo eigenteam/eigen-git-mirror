@@ -246,7 +246,7 @@ EIGEN_DEVICE_FUNC inline void aligned_free(void *ptr)
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
     std::free(ptr);
   #elif EIGEN_HAS_POSIX_MEMALIGN
-    std::free(ptr);
+    free(ptr);
   #elif EIGEN_HAS_MM_MALLOC
     _mm_free(ptr);
   #elif EIGEN_OS_WIN_STRICT
