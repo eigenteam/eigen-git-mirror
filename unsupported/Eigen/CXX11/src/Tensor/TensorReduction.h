@@ -337,9 +337,23 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
 #endif
 
 
+// Default outer reducer
+template <typename Self, typename Op, typename Device>
+struct OuterReducer {
+  static const bool HasOptimizedImplementation = false;
+
+  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+    assert(false && "Not implemented");
+  }
+};
+
+
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <int B, int N, typename S, typename R, typename I>
 __global__ void FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
+
+template <int NPT, typename S, typename R, typename I>
+__global__ void OuterReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 #endif
 
 }  // end namespace internal
@@ -439,7 +453,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 	}
       }
     }
-    
+
     // Precompute input strides.
     if (NumInputDims > 0) {
       array<Index, NumInputDims> input_strides;
@@ -498,6 +512,28 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
       internal::FullReducer<Self, Op, Device>::run(*this, reducer, m_device, data);
       return need_assign;
     }
+
+    // Attempt to use an optimized reduction.
+#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+    else if (RunningOnGPU && data && (m_device.majorDeviceVersion() >= 3)) {
+      bool preserving_inner_dims = true;
+      for (int i = 0; i < NumReducedDims; ++i) {
+        if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+          preserving_inner_dims &= m_reducedDims[NumInputDims - 1 - i];
+        } else {
+          preserving_inner_dims &= m_reducedDims[i];
+        }
+      }
+      if (internal::OuterReducer<Self, Op, GpuDevice>::HasOptimizedImplementation &&
+          preserving_inner_dims) {
+        const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
+        const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
+        Op reducer(m_reducer);
+        internal::OuterReducer<Self, Op, GpuDevice>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+        return false;
+      }
+    }
+#endif
     return true;
   }
 
@@ -579,6 +615,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 #endif
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
   template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
+  template <int NPT, typename S, typename R, typename I> friend void internal::OuterReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 #endif
 
   // Returns the Index in the input tensor of the first value that needs to be
