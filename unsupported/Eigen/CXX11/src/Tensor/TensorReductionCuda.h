@@ -179,7 +179,10 @@ struct OuterReducer<Self, Op, GpuDevice> {
     const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
     const int block_size = 256;
     const int num_per_thread = 16;
-    const int num_blocks = std::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
+    const int dyn_blocks = std::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
+    const int max_blocks = device.getNumCudaMultiProcessors() *
+                           device.maxCudaThreadsPerMultiProcessor() / block_size;
+    const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
 
     LAUNCH_CUDA_KERNEL((OuterReductionKernel<num_per_thread>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
