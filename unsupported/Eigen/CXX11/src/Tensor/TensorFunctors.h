@@ -93,7 +93,7 @@ template <typename T> struct SumReducer
 
 template <typename T> struct MeanReducer
 {
-  static const bool PacketAccess = true;
+  static const bool PacketAccess = !NumTraits<T>::IsInteger;
   static const bool IsStateful = true;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
