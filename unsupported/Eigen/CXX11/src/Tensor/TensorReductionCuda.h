@@ -131,6 +131,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
   }
 };
 
+#define DIVUP(x, y) (((x) + (y)-1) / (y))
 
 template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
@@ -184,6 +185,8 @@ struct OuterReducer<Self, Op, GpuDevice> {
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
   }
 };
+
+#undef DIVUP
 
 #endif
 
