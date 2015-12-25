@@ -312,6 +312,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
 
   // check special functions (comparing against numpy implementation)
+#ifdef EIGEN_HAS_C99_MATH
   if (!NumTraits<Scalar>::IsComplex) {
     VERIFY_IS_APPROX(numext::digamma(Scalar(1)), RealScalar(-0.5772156649015329));
     VERIFY_IS_APPROX(numext::digamma(Scalar(1.5)), RealScalar(0.03648997397857645));
@@ -323,6 +324,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
     VERIFY_IS_EQUAL(numext::digamma(Scalar(-1)),
                     std::numeric_limits<RealScalar>::infinity());
   }
+#endif  // EIGEN_HAS_C99_MATH
 
   // check inplace transpose
   m3 = m1;
