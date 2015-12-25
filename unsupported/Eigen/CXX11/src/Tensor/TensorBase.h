@@ -129,6 +129,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_digamma_op<Scalar>, const Derived>
+    digamma() const {
+      return unaryExpr(internal::scalar_digamma_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived>
     erf() const {
       return unaryExpr(internal::scalar_erf_op<Scalar>());

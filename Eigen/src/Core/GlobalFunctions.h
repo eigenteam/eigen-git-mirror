@@ -50,6 +50,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cosh,scalar_cosh_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tanh,scalar_tanh_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(lgamma,scalar_lgamma_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(digamma,scalar_digamma_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erf,scalar_erf_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erfc,scalar_erfc_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(exp,scalar_exp_op)
