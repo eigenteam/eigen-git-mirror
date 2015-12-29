@@ -189,8 +189,8 @@ struct digamma_impl<float> {
     bool negative;
 
     // Some necessary constants
-    const float M_PIF = 3.141592653589793238;
-    const float MAXNUMF = std::numeric_limits<float>::infinity();
+    const float m_pif = 3.141592653589793238;
+    const float maxnumf = std::numeric_limits<float>::infinity();
 
     const float A[] = {
       -4.16666666666666666667E-3,
@@ -207,7 +207,7 @@ struct digamma_impl<float> {
       q = x;
       p = ::floor(q);
       if (p == q) {
-        return (MAXNUMF);
+        return (maxnumf);
       }
       nz = q - p;
       if (nz != 0.5f) {
@@ -215,7 +215,7 @@ struct digamma_impl<float> {
           p += 1.0f;
           nz = q - p;
         }
-        nz = M_PIF / ::tan(M_PIF * nz);
+        nz = m_pif / ::tan(m_pif * nz);
       } else {
         nz = 0.0f;
       }
@@ -314,8 +314,8 @@ struct digamma_impl<double> {
       8.33333333333333333333E-2
     };
 
-    const double MAXNUM = std::numeric_limits<double>::infinity();
-    const double M_PI = 3.14159265358979323846;
+    const double maxnum = std::numeric_limits<double>::infinity();
+    const double m_pi = 3.14159265358979323846;
 
     negative = 0;
     nz = 0.0;
@@ -325,9 +325,9 @@ struct digamma_impl<double> {
       q = x;
       p = ::floor(q);
       if (p == q) {
-        return MAXNUM;
+        return maxnum;
       }
-      /* Remove the zeros of tan(M_PI x)
+      /* Remove the zeros of tan(m_pi x)
        * by subtracting the nearest integer from x
        */
       nz = q - p;
@@ -336,7 +336,7 @@ struct digamma_impl<double> {
           p += 1.0;
           nz = q - p;
         }
-        nz = M_PI / ::tan(M_PI * nz);
+        nz = m_pi / ::tan(m_pi * nz);
       }
       else {
         nz = 0.0;
