@@ -189,7 +189,7 @@ struct digamma_impl<float> {
     bool negative;
 
     // Some necessary constants
-    const float PIF = 3.141592653589793238;
+    const float M_PIF = 3.141592653589793238;
     const float MAXNUMF = std::numeric_limits<float>::infinity();
 
     const float A[] = {
@@ -215,7 +215,7 @@ struct digamma_impl<float> {
           p += 1.0f;
           nz = q - p;
         }
-        nz = PIF / ::tan(PIF * nz);
+        nz = M_PIF / ::tan(M_PIF * nz);
       } else {
         nz = 0.0f;
       }
@@ -315,7 +315,7 @@ struct digamma_impl<double> {
     };
 
     const double MAXNUM = std::numeric_limits<double>::infinity();
-    const double PI = 3.14159265358979323846;
+    const double M_PI = 3.14159265358979323846;
 
     negative = 0;
     nz = 0.0;
@@ -327,7 +327,7 @@ struct digamma_impl<double> {
       if (p == q) {
         return MAXNUM;
       }
-      /* Remove the zeros of tan(PI x)
+      /* Remove the zeros of tan(M_PI x)
        * by subtracting the nearest integer from x
        */
       nz = q - p;
@@ -336,7 +336,7 @@ struct digamma_impl<double> {
           p += 1.0;
           nz = q - p;
         }
-        nz = PI / ::tan(PI * nz);
+        nz = M_PI / ::tan(M_PI * nz);
       }
       else {
         nz = 0.0;
