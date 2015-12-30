@@ -595,14 +595,7 @@ template<typename Derived>
 template<typename DenseDerived>
 void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
 {
-  if(internal::traits<Derived>::Flags & EvalBeforeAssigningBit)
-  {
-    typename internal::plain_matrix_type<Derived>::type other_evaluated(rows(), cols());
-    evalToLazy(other_evaluated);
-    other.derived().swap(other_evaluated);
-  }
-  else
-    evalToLazy(other.derived());
+  evalToLazy(other.derived());
 }
 
 /***************************************************************************

@@ -67,6 +67,7 @@ const unsigned int EvalBeforeNestingBit = 0x2;
 /** \ingroup flags
   * \deprecated
   * means the expression should be evaluated before any assignment */
+EIGEN_DEPRECATED
 const unsigned int EvalBeforeAssigningBit = 0x4; // FIXME deprecated
 
 /** \ingroup flags
@@ -158,7 +159,7 @@ const unsigned int DirectAccessBit = 0x40;
   * expression.packet<Aligned>(0);
   * \endcode
   */
-const unsigned int AlignedBit = 0x80;
+EIGEN_DEPRECATED const unsigned int AlignedBit = 0x80;
 
 const unsigned int NestByRefBit = 0x100;
 
@@ -187,8 +188,7 @@ const unsigned int CompressedAccessBit = 0x400;
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
-                                  | EvalBeforeNestingBit
-                                  | EvalBeforeAssigningBit;
+                                  | EvalBeforeNestingBit;
 
 /** \defgroup enums Enumerations
   * \ingroup Core_Module
