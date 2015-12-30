@@ -405,7 +405,7 @@ bool PastixBase<Base>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SparseLU
   * 
   */
 template<typename _MatrixType, bool IsStrSym>
@@ -518,7 +518,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SimplicialLLT
   */
 template<typename _MatrixType, int _UpLo>
 class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
@@ -601,7 +601,7 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SimplicialLDLT
   */
 template<typename _MatrixType, int _UpLo>
 class PastixLDLT : public PastixBase< PastixLDLT<_MatrixType, _UpLo> >

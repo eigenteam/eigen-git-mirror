@@ -82,7 +82,7 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   * In both cases, it consists in the sum of the square of all the matrix entries.
   * For vectors, this is also equals to the dot product of \c *this with itself.
   *
-  * \sa dot(), norm()
+  * \sa dot(), norm(), lpNorm()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
@@ -94,7 +94,7 @@ EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scala
   * In both cases, it consists in the square root of the sum of the square of all the matrix entries.
   * For vectors, this is also equals to the square root of the dot product of \c *this with itself.
   *
-  * \sa dot(), squaredNorm()
+  * \sa lpNorm(), dot(), squaredNorm()
   */
 template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
@@ -188,7 +188,11 @@ struct lpNorm_selector<Derived, Infinity>
   */
 template<typename Derived>
 template<int p>
+#ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
+#else
+MatrixBase<Derived>::RealScalar
+#endif
 MatrixBase<Derived>::lpNorm() const
 {
   return internal::lpNorm_selector<Derived, p>::run(*this);

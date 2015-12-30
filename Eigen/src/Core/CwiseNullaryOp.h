@@ -328,7 +328,7 @@ EIGEN_STRONG_INLINE void DenseBase<Derived>::fill(const Scalar& val)
   setConstant(val);
 }
 
-/** Sets all coefficients in this expression to \a value.
+/** Sets all coefficients in this expression to value \a val.
   *
   * \sa fill(), setConstant(Index,const Scalar&), setConstant(Index,Index,const Scalar&), setZero(), setOnes(), Constant(), class CwiseNullaryOp, setZero(), setOnes()
   */
@@ -338,7 +338,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setConstant(const Scalar& val)
   return derived() = Constant(rows(), cols(), val);
 }
 
-/** Resizes to the given \a size, and sets all coefficients in this expression to the given \a value.
+/** Resizes to the given \a size, and sets all coefficients in this expression to the given value \a val.
   *
   * \only_for_vectors
   *
@@ -355,7 +355,7 @@ PlainObjectBase<Derived>::setConstant(Index size, const Scalar& val)
   return setConstant(val);
 }
 
-/** Resizes to the given size, and sets all coefficients in this expression to the given \a value.
+/** Resizes to the given size, and sets all coefficients in this expression to the given value \a val.
   *
   * \param rows the new number of rows
   * \param cols the new number of columns

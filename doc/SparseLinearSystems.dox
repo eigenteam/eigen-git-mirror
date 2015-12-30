@@ -15,20 +15,20 @@ They are summarized in the following tables:
 <tr><th>Class</th><th>Solver kind</th><th>Matrix kind</th><th>Features related to performance</th>
     <th>License</th><th class="width20em"><p>Notes</p></th></tr>
 
-<tr><td>SimplicialLLT \n <tt>#include<Eigen/\link SparseCholesky_Module SparseCholesky\endlink></tt></td><td>Direct LLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
+<tr><td>SimplicialLLT \n <tt>\#include<Eigen/\link SparseCholesky_Module SparseCholesky\endlink></tt></td><td>Direct LLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
     <td>LGPL</td>
     <td>SimplicialLDLT is often preferable</td></tr>
 
-<tr><td>SimplicialLDLT \n <tt>#include<Eigen/\link SparseCholesky_Module SparseCholesky\endlink></tt></td><td>Direct LDLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
+<tr><td>SimplicialLDLT \n <tt>\#include<Eigen/\link SparseCholesky_Module SparseCholesky\endlink></tt></td><td>Direct LDLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
     <td>LGPL</td>
     <td>Recommended for very sparse and not too large problems (e.g., 2D Poisson eq.)</td></tr>
 
-<tr><td>SparseLU \n <tt>#include<Eigen/\link SparseLU_Module SparseLU\endlink></tt></td> <td>LU factorization </td>
+<tr><td>SparseLU \n <tt>\#include<Eigen/\link SparseLU_Module SparseLU\endlink></tt></td> <td>LU factorization </td>
     <td>Square </td><td>Fill-in reducing, Leverage fast dense algebra</td>
     <td>MPL2</td>
     <td>optimized for small and large problems with irregular patterns </td></tr>
 
-<tr><td>SparseQR \n <tt>#include<Eigen/\link SparseQR_Module SparseQR\endlink></tt></td> <td> QR factorization</td>
+<tr><td>SparseQR \n <tt>\#include<Eigen/\link SparseQR_Module SparseQR\endlink></tt></td> <td> QR factorization</td>
     <td>Any, rectangular</td><td> Fill-in reducing</td>
     <td>MPL2</td>
     <td>recommended for least-square problems, has a basic rank-revealing feature</td></tr>
@@ -40,17 +40,17 @@ They are summarized in the following tables:
 <tr><th>Class</th><th>Solver kind</th><th>Matrix kind</th><th>Supported preconditioners, [default]</th>
     <th>License</th><th class="width20em"><p>Notes</p></th></tr>
 
-<tr><td>ConjugateGradient \n <tt>#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td> <td>Classic iterative CG</td><td>SPD</td>
+<tr><td>ConjugateGradient \n <tt>\#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td> <td>Classic iterative CG</td><td>SPD</td>
     <td>IdentityPreconditioner, [DiagonalPreconditioner], IncompleteCholesky</td>
     <td>MPL2</td>
     <td>Recommended for large symmetric problems (e.g., 3D Poisson eq.)</td></tr>
 
-<tr><td>LeastSquaresConjugateGradient \n <tt>#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td><td>CG for rectangular least-square problem</td><td>Rectangular</td>
+<tr><td>LeastSquaresConjugateGradient \n <tt>\#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td><td>CG for rectangular least-square problem</td><td>Rectangular</td>
     <td>IdentityPreconditioner, [LeastSquareDiagonalPreconditioner]</td>
     <td>MPL2</td>
     <td>Solve for min |A'Ax-b|^2 without forming A'A</td></tr>
 
-<tr><td>BiCGSTAB \n <tt>#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td><td>Iterative stabilized bi-conjugate gradient</td><td>Square</td>
+<tr><td>BiCGSTAB \n <tt>\#include<Eigen/\link IterativeLinearSolvers_Module IterativeLinearSolvers\endlink></tt></td><td>Iterative stabilized bi-conjugate gradient</td><td>Square</td>
     <td>IdentityPreconditioner, [DiagonalPreconditioner], IncompleteLUT</td>
     <td>MPL2</td>
     <td>To speedup the convergence, try it with the \ref IncompleteLUT preconditioner.</td></tr>

@@ -67,7 +67,7 @@ template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixURetu
   *
   * \implsparsesolverconcept
   * 
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept
   * \sa \ref OrderingMethods_Module
   */
 template <typename _MatrixType, typename _OrderingType>

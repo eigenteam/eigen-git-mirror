@@ -13,7 +13,7 @@
 namespace Eigen {
 
 enum {
-  StandardCompressedFormat = 2
+  StandardCompressedFormat = 2 /**< used by Ref<SparseMatrix> to specify whether the input storage must be in standard compressed form */
 };
   
 namespace internal {

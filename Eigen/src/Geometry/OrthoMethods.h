@@ -13,7 +13,7 @@
 
 namespace Eigen { 
 
-/** \geometry_module
+/** \geometry_module \ingroup Geometry_Module
   *
   * \returns the cross product of \c *this and \a other
   *
@@ -26,7 +26,11 @@ namespace Eigen {
   */
 template<typename Derived>
 template<typename OtherDerived>
+#ifndef EIGEN_PARSED_BY_DOXYGEN
 inline typename MatrixBase<Derived>::template cross_product_return_type<OtherDerived>::type
+#else
+inline typename MatrixBase<Derived>::PlainObject
+#endif
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3)
@@ -63,7 +67,7 @@ struct cross3_impl {
 
 }
 
-/** \geometry_module
+/** \geometry_module \ingroup Geometry_Module
   *
   * \returns the cross product of \c *this and \a other using only the x, y, and z coefficients
   *
@@ -90,13 +94,13 @@ MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
                         typename internal::remove_all<OtherDerivedNested>::type>::run(lhs,rhs);
 }
 
-/** \returns a matrix expression of the cross product of each column or row
+/** \geometry_module \ingroup Geometry_Module
+  *
+  * \returns a matrix expression of the cross product of each column or row
   * of the referenced expression with the \a other vector.
   *
   * The referenced matrix must have one dimension equal to 3.
   * The result matrix has the same dimensions than the referenced one.
-  *
-  * \geometry_module
   *
   * \sa MatrixBase::cross() */
 template<typename ExpressionType, int Direction>
@@ -207,7 +211,9 @@ struct unitOrthogonal_selector<Derived,2>
 
 } // end namespace internal
 
-/** \returns a unit vector which is orthogonal to \c *this
+/** \geometry_module \ingroup Geometry_Module
+  *
+  * \returns a unit vector which is orthogonal to \c *this
   *
   * The size of \c *this must be at least 2. If the size is exactly 2,
   * then the returned vector is a counter clock wise rotation of \c *this, i.e., (-y,x).normalized().

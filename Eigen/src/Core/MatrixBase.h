@@ -386,7 +386,11 @@ template<typename Derived> class MatrixBase
     #endif // EIGEN_PARSED_BY_DOXYGEN
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     inline typename cross_product_return_type<OtherDerived>::type
+#else
+    inline PlainObject
+#endif
     cross(const MatrixBase<OtherDerived>& other) const;
     
     template<typename OtherDerived>

@@ -228,6 +228,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \param[in] diag The vector containing the diagonal of the matrix.
       * \param[in] subdiag The subdiagonal of the matrix.
+      * \param[in] options Can be #ComputeEigenvectors (default) or #EigenvaluesOnly.
       * \returns Reference to \c *this
       *
       * This function assumes that the matrix has been reduced to tridiagonal form.
@@ -299,8 +300,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Example: \include SelfAdjointEigenSolver_operatorSqrt.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_operatorSqrt.out
       *
-      * \sa operatorInverseSqrt(),
-      *     \ref MatrixFunctions_Module "MatrixFunctions Module"
+      * \sa operatorInverseSqrt(), <a href="unsupported/group__MatrixFunctions__Module.html">MatrixFunctions Module</a>
       */
     EIGEN_DEVICE_FUNC
     MatrixType operatorSqrt() const
@@ -325,8 +325,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Example: \include SelfAdjointEigenSolver_operatorInverseSqrt.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_operatorInverseSqrt.out
       *
-      * \sa operatorSqrt(), MatrixBase::inverse(),
-      *     \ref MatrixFunctions_Module "MatrixFunctions Module"
+      * \sa operatorSqrt(), MatrixBase::inverse(), <a href="unsupported/group__MatrixFunctions__Module.html">MatrixFunctions Module</a>
       */
     EIGEN_DEVICE_FUNC
     MatrixType operatorInverseSqrt() const

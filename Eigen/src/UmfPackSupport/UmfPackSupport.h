@@ -126,7 +126,9 @@ inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *N
   * Otherwise an expensive copy will be made. You can call the inexpensive makeCompressed() to get a compressed matrix.
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \implsparsesolverconcept
+  *
+  * \sa \ref TutorialSparseSolverConcept, class SparseLU
   */
 template<typename _MatrixType>
 class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >

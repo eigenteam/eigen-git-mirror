@@ -224,7 +224,7 @@ enum {
 
 /** \ingroup enums
   * Enum for indicating whether a buffer is aligned or not. */
-enum { 
+enum Foo {
   Unaligned=0,        /**< Data pointer has no specific alignment. */
   Aligned8=8,         /**< Data pointer is aligned on a 8 bytes boundary. */
   Aligned16=16,       /**< Data pointer is aligned on a 16 bytes boundary. */

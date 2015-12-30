@@ -456,7 +456,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SparseLU
   */
 template<typename _MatrixType>
 class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
@@ -809,7 +809,7 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers, class ConjugateGradient, class BiCGSTAB
+  * \sa \ref TutorialSparseSolverConcept, class IncompleteLUT, class ConjugateGradient, class BiCGSTAB
   */
 
 template<typename _MatrixType>

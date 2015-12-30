@@ -104,6 +104,9 @@ public:
 
 };
 
+/** \addtogroup Geometry_Module */
+//@{
+
 /** Concatenates a linear transformation matrix and a uniform scaling */
 // NOTE this operator is defiend in MatrixBase and not as a friend function
 // of UniformScaling to fix an internal crash of Intel's ICC
@@ -136,8 +139,6 @@ template<typename Derived>
 static inline const DiagonalWrapper<const Derived> Scaling(const MatrixBase<Derived>& coeffs)
 { return coeffs.asDiagonal(); }
 
-/** \addtogroup Geometry_Module */
-//@{
 /** \deprecated */
 typedef DiagonalMatrix<float, 2> AlignedScaling2f;
 /** \deprecated */

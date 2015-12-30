@@ -358,7 +358,7 @@ class CholmodBase : public SparseSolverBase<Derived>
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLLT
+  * \sa \ref TutorialSparseSolverConcept, class CholmodSupernodalLLT, class SimplicialLLT
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodSimplicialLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimplicialLLT<_MatrixType, _UpLo> >
@@ -407,7 +407,7 @@ class CholmodSimplicialLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimpl
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLDLT
+  * \sa \ref TutorialSparseSolverConcept, class CholmodSupernodalLLT, class SimplicialLDLT
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodSimplicialLDLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimplicialLDLT<_MatrixType, _UpLo> >
@@ -454,7 +454,7 @@ class CholmodSimplicialLDLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimp
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodSupernodalLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSupernodalLLT<_MatrixType, _UpLo> >
@@ -503,7 +503,7 @@ class CholmodSupernodalLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSuper
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodDecomposition : public CholmodBase<_MatrixType, _UpLo, CholmodDecomposition<_MatrixType, _UpLo> >
