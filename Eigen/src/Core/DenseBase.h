@@ -36,7 +36,7 @@ static inline void check_DenseIndex_is_signed() {
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_DENSEBASE_PLUGIN.
   *
-  * \sa \ref TopicClassHierarchy
+  * \sa \blank \ref TopicClassHierarchy
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -60,7 +60,7 @@ template<typename Derived> class DenseBase
       * \brief The type used to store indices
       * \details This typedef is relevant for types that store multiple indices such as
       *          PermutationMatrix or Transpositions, otherwise it defaults to Eigen::Index
-      * \sa \ref TopicPreprocessorDirectives, Eigen::Index, SparseMatrixBase.
+      * \sa \blank \ref TopicPreprocessorDirectives, Eigen::Index, SparseMatrixBase.
      */
     typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
 

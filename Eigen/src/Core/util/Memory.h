@@ -784,7 +784,7 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 * std::map< int, Vector3f > my_map_vec3;
 * \endcode
 *
-* \sa \ref TopicStlContainers.
+* \sa \blank \ref TopicStlContainers.
 */
 template<class T>
 class aligned_allocator : public std::allocator<T>

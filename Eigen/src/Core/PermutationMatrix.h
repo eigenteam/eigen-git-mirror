@@ -192,13 +192,13 @@ class PermutationBase : public EigenBase<Derived>
 
     /** \returns the inverse permutation matrix.
       *
-      * \note \note_try_to_help_rvo
+      * \note \blank \note_try_to_help_rvo
       */
     inline InverseReturnType inverse() const
     { return InverseReturnType(derived()); }
     /** \returns the tranpose permutation matrix.
       *
-      * \note \note_try_to_help_rvo
+      * \note \blank \note_try_to_help_rvo
       */
     inline InverseReturnType transpose() const
     { return InverseReturnType(derived()); }
@@ -225,7 +225,7 @@ class PermutationBase : public EigenBase<Derived>
 
     /** \returns the product permutation matrix.
       *
-      * \note \note_try_to_help_rvo
+      * \note \blank \note_try_to_help_rvo
       */
     template<typename Other>
     inline PlainPermutationType operator*(const PermutationBase<Other>& other) const
@@ -233,7 +233,7 @@ class PermutationBase : public EigenBase<Derived>
 
     /** \returns the product of a permutation with another inverse permutation.
       *
-      * \note \note_try_to_help_rvo
+      * \note \blank \note_try_to_help_rvo
       */
     template<typename Other>
     inline PlainPermutationType operator*(const InverseImpl<Other,PermutationStorage>& other) const
@@ -241,7 +241,7 @@ class PermutationBase : public EigenBase<Derived>
 
     /** \returns the product of an inverse permutation with another permutation.
       *
-      * \note \note_try_to_help_rvo
+      * \note \blank \note_try_to_help_rvo
       */
     template<typename Other> friend
     inline PlainPermutationType operator*(const InverseImpl<Other, PermutationStorage>& other, const PermutationBase& perm)

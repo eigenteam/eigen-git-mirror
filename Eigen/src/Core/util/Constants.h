@@ -56,8 +56,8 @@ const int HugeCost = 10000;
   * for a matrix, this means that the storage order is row-major.
   * If this bit is not set, the storage order is column-major.
   * For an expression, this determines the storage order of
-  * the matrix created by evaluation of that expression. 
-  * \sa \ref TopicStorageOrders */
+  * the matrix created by evaluation of that expression.
+  * \sa \blank  \ref TopicStorageOrders */
 const unsigned int RowMajorBit = 0x1;
 
 /** \ingroup flags
@@ -168,7 +168,7 @@ const unsigned int NestByRefBit = 0x100;
   * can be either row-major or column-major.
   * The precise choice will be decided at evaluation time or when
   * combined with other expressions.
-  * \sa \ref RowMajorBit, \ref TopicStorageOrders */
+  * \sa \blank  \ref RowMajorBit, \ref TopicStorageOrders */
 const unsigned int NoPreferredStorageOrderBit = 0x200;
 
 /** \ingroup flags

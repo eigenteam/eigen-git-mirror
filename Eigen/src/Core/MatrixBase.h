@@ -43,7 +43,7 @@ namespace Eigen {
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_MATRIXBASE_PLUGIN.
   *
-  * \sa \ref TopicClassHierarchy
+  * \sa \blank \ref TopicClassHierarchy
   */
 template<typename Derived> class MatrixBase
   : public DenseBase<Derived>
