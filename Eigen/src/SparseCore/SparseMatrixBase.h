@@ -18,7 +18,7 @@ namespace Eigen {
   *
   * \brief Base class of any sparse matrices or sparse expressions
   *
-  * \tparam Derived
+  * \tparam Derived is the derived type, e.g. a sparse matrix type, or an expression, etc.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_SPARSEMATRIXBASE_PLUGIN.
