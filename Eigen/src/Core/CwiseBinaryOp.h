@@ -13,26 +13,6 @@
 
 namespace Eigen {
 
-/** \class CwiseBinaryOp
-  * \ingroup Core_Module
-  *
-  * \brief Generic expression where a coefficient-wise binary operator is applied to two expressions
-  *
-  * \param BinaryOp template functor implementing the operator
-  * \param Lhs the type of the left-hand side
-  * \param Rhs the type of the right-hand side
-  *
-  * This class represents an expression  where a coefficient-wise binary operator is applied to two expressions.
-  * It is the return type of binary operators, by which we mean only those binary operators where
-  * both the left-hand side and the right-hand side are Eigen expressions.
-  * For example, the return type of matrix1+matrix2 is a CwiseBinaryOp.
-  *
-  * Most of the time, this is the only way that it is used, so you typically don't have to name
-  * CwiseBinaryOp types explicitly.
-  *
-  * \sa MatrixBase::binaryExpr(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
-  */
-
 namespace internal {
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
@@ -74,6 +54,25 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageKind>
 class CwiseBinaryOpImpl;
 
+/** \class CwiseBinaryOp
+  * \ingroup Core_Module
+  *
+  * \brief Generic expression where a coefficient-wise binary operator is applied to two expressions
+  *
+  * \tparam BinaryOp template functor implementing the operator
+  * \tparam LhsType the type of the left-hand side
+  * \tparam RhsType the type of the right-hand side
+  *
+  * This class represents an expression  where a coefficient-wise binary operator is applied to two expressions.
+  * It is the return type of binary operators, by which we mean only those binary operators where
+  * both the left-hand side and the right-hand side are Eigen expressions.
+  * For example, the return type of matrix1+matrix2 is a CwiseBinaryOp.
+  *
+  * Most of the time, this is the only way that it is used, so you typically don't have to name
+  * CwiseBinaryOp types explicitly.
+  *
+  * \sa MatrixBase::binaryExpr(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
+  */
 template<typename BinaryOp, typename LhsType, typename RhsType>
 class CwiseBinaryOp : 
   public CwiseBinaryOpImpl<

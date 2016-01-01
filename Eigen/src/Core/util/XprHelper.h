@@ -390,9 +390,9 @@ struct transfer_constness
   * a*d. Evaluating can be beneficial for example if every coefficient access in the resulting expression causes
   * many coefficient accesses in the nested expressions -- as is the case with matrix product for example.
   *
-  * \param T the type of the expression being nested.
-  * \param n the number of coefficient accesses in the nested expression for each coefficient access in the bigger expression.
-  * \param PlainObject the type of the temporary if needed.
+  * \tparam T the type of the expression being nested.
+  * \tparam n the number of coefficient accesses in the nested expression for each coefficient access in the bigger expression.
+  * \tparam PlainObject the type of the temporary if needed.
   */
 template<typename T, int n, typename PlainObject = typename plain_object_eval<T>::type> struct nested_eval
 {
@@ -575,7 +575,7 @@ template <int ProductTag>             struct product_promote_storage_type<Dense,
 template <int ProductTag>             struct product_promote_storage_type<PermutationStorage, Dense,              ProductTag> { typedef Dense ret; };
 
 /** \internal gives the plain matrix or array type to store a row/column/diagonal of a matrix type.
-  * \param Scalar optional parameter allowing to pass a different scalar type than the one of the MatrixType.
+  * \tparam Scalar optional parameter allowing to pass a different scalar type than the one of the MatrixType.
   */
 template<typename ExpressionType, typename Scalar = typename ExpressionType::Scalar>
 struct plain_row_type

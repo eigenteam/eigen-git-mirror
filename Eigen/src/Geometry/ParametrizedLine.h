@@ -23,8 +23,8 @@ namespace Eigen {
   * direction vector \f$ \mathbf{d} \f$ such that the line corresponds to
   * the set \f$ l(t) = \mathbf{o} + t \mathbf{d} \f$, \f$ t \in \mathbf{R} \f$.
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
-  * \param _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients
+  * \tparam _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
   */
 template <typename _Scalar, int _AmbientDim, int _Options>
 class ParametrizedLine

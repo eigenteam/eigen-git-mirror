@@ -18,7 +18,7 @@ namespace Eigen {
   *
   * \brief Represents a rotation/orientation in a 2 dimensional space.
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients
   *
   * This class is equivalent to a single scalar representing a counter clock wise rotation
   * as a single angle in radian. It provides some additional features such as the automatic

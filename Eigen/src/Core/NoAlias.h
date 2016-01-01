@@ -17,7 +17,7 @@ namespace Eigen {
   *
   * \brief Pseudo expression providing an operator = assuming no aliasing
   *
-  * \param ExpressionType the type of the object on which to do the lazy assignment
+  * \tparam ExpressionType the type of the object on which to do the lazy assignment
   *
   * This class represents an expression with special assignment operators
   * assuming no aliasing between the target expression and the source expression.

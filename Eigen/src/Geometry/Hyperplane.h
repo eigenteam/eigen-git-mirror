@@ -22,8 +22,8 @@ namespace Eigen {
   * A hyperplane is an affine subspace of dimension n-1 in a space of dimension n.
   * For example, a hyperplane in a plane is a line; a hyperplane in 3-space is a plane.
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
-  * \param _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients
+  * \tparam _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
   *             Notice that the dimension of the hyperplane is _AmbientDim-1.
   *
   * This class represents an hyperplane as the zero set of the implicit equation

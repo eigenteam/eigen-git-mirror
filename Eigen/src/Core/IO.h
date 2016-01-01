@@ -80,7 +80,7 @@ struct IOFormat
   *
   * \brief Pseudo expression providing matrix output with given format
   *
-  * \param ExpressionType the type of the object on which IO stream operations are performed
+  * \tparam ExpressionType the type of the object on which IO stream operations are performed
   *
   * This class represents an expression with stream operators controlled by a given IOFormat.
   * It is the return type of DenseBase::format()

@@ -12,21 +12,6 @@
 
 namespace Eigen { 
 
-/**
-  * \class Replicate
-  * \ingroup Core_Module
-  *
-  * \brief Expression of the multiple replication of a matrix or vector
-  *
-  * \param MatrixType the type of the object we are replicating
-  *
-  * This class represents an expression of the multiple replication of a matrix or vector.
-  * It is the return type of DenseBase::replicate() and most of the time
-  * this is the only way it is used.
-  *
-  * \sa DenseBase::replicate()
-  */
-
 namespace internal {
 template<typename MatrixType,int RowFactor,int ColFactor>
 struct traits<Replicate<MatrixType,RowFactor,ColFactor> >
@@ -57,6 +42,22 @@ struct traits<Replicate<MatrixType,RowFactor,ColFactor> >
 };
 }
 
+/**
+  * \class Replicate
+  * \ingroup Core_Module
+  *
+  * \brief Expression of the multiple replication of a matrix or vector
+  *
+  * \tparam MatrixType the type of the object we are replicating
+  * \tparam RowFactor number of repetitions at compile time along the vertical direction, can be Dynamic.
+  * \tparam ColFactor number of repetitions at compile time along the horizontal direction, can be Dynamic.
+  *
+  * This class represents an expression of the multiple replication of a matrix or vector.
+  * It is the return type of DenseBase::replicate() and most of the time
+  * this is the only way it is used.
+  *
+  * \sa DenseBase::replicate()
+  */
 template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   : public internal::dense_xpr_base< Replicate<MatrixType,RowFactor,ColFactor> >::type
 {

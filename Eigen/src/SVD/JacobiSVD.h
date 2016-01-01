@@ -449,8 +449,8 @@ struct traits<JacobiSVD<_MatrixType,QRPreconditioner> >
   *
   * \brief Two-sided Jacobi SVD decomposition of a rectangular matrix
   *
-  * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
-  * \param QRPreconditioner this optional parameter allows to specify the type of QR decomposition that will be used internally
+  * \tparam _MatrixType the type of the matrix of which we are computing the SVD decomposition
+  * \tparam QRPreconditioner this optional parameter allows to specify the type of QR decomposition that will be used internally
   *                        for the R-SVD step for non-square matrices. See discussion of possible values below.
   *
   * SVD decomposition consists in decomposing any n-by-p matrix \a A as a product

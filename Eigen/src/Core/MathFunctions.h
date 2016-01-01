@@ -26,7 +26,7 @@ long double abs(long double x) { return (fabsl(x)); }
   
 namespace internal {
 
-/** \internal \struct global_math_functions_filtering_base
+/** \internal \class global_math_functions_filtering_base
   *
   * What it does:
   * Defines a typedef 'type' as follows:

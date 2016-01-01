@@ -17,7 +17,7 @@ namespace Eigen {
   *
   * \brief Holds information about the various numeric (i.e. scalar) types allowed by Eigen.
   *
-  * \param T the numeric type at hand
+  * \tparam T the numeric type at hand
   *
   * This class stores enums, typedefs and static methods giving information about a numeric type.
   *

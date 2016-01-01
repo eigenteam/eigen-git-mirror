@@ -18,7 +18,7 @@ namespace Eigen {
   *
   * \brief Represents a generic uniform scaling transformation
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients.
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients.
   *
   * This class represent a uniform scaling transformation. It is the return
   * type of Scaling(Scalar), and most of the time this is the only way it

@@ -14,22 +14,6 @@ namespace Eigen {
 
 template<typename Lhs, typename Rhs, int Option, typename StorageKind> class ProductImpl;
 
-/** \class Product
-  * \ingroup Core_Module
-  *
-  * \brief Expression of the product of two arbitrary matrices or vectors
-  *
-  * \param Lhs the type of the left-hand side expression
-  * \param Rhs the type of the right-hand side expression
-  *
-  * This class represents an expression of the product of two arbitrary matrices.
-  * 
-  * The other template parameters are:
-  * \tparam Option     can be DefaultProduct, AliasFreeProduct, or LazyProduct
-  *
-  */
-
-
 namespace internal {
 
 // Determine the scalar of Product<Lhs, Rhs>. This is normally the same as Lhs::Scalar times
@@ -102,7 +86,20 @@ struct traits<Product<Lhs, Rhs, Option> >
 
 } // end namespace internal
 
-
+/** \class Product
+  * \ingroup Core_Module
+  *
+  * \brief Expression of the product of two arbitrary matrices or vectors
+  *
+  * \tparam _Lhs the type of the left-hand side expression
+  * \tparam _Rhs the type of the right-hand side expression
+  *
+  * This class represents an expression of the product of two arbitrary matrices.
+  *
+  * The other template parameters are:
+  * \tparam Option     can be DefaultProduct, AliasFreeProduct, or LazyProduct
+  *
+  */
 template<typename _Lhs, typename _Rhs, int Option>
 class Product : public ProductImpl<_Lhs,_Rhs,Option,
                                    typename internal::product_promote_storage_type<typename internal::traits<_Lhs>::StorageKind,

@@ -21,7 +21,7 @@ namespace Eigen {
   *
   * \brief Householder QR decomposition of a matrix
   *
-  * \param MatrixType the type of the matrix of which we are computing the QR decomposition
+  * \tparam _MatrixType the type of the matrix of which we are computing the QR decomposition
   *
   * This class performs a QR decomposition of a matrix \b A into matrices \b Q and \b R
   * such that 
