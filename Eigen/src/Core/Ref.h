@@ -207,6 +207,7 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
     EIGEN_DEVICE_FUNC inline Ref(const DenseBase<Derived>& expr,
                                  typename internal::enable_if<bool(Traits::template match<Derived>::MatchAtCompileTime),Derived>::type* = 0)
     #else
+    /** Implicit constructor from any dense expression */
     template<typename Derived>
     inline Ref(DenseBase<Derived>& expr)
     #endif

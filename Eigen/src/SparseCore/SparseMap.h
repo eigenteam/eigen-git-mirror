@@ -37,11 +37,15 @@ struct traits<Map<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, St
 };
 
 } // end namespace internal
-  
+
 template<typename Derived,
          int Level = internal::accessors_level<Derived>::has_write_access ? WriteAccessors : ReadOnlyAccessors
 > class SparseMapBase;
 
+/** \ingroup SparseCore_Module
+  * class SparseMapBase
+  * \brief Common base class for Map and Ref instance of sparse matrix and vector.
+  */
 template<typename Derived>
 class SparseMapBase<Derived,ReadOnlyAccessors>
   : public SparseCompressedBase<Derived>
@@ -71,22 +75,33 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
 
   public:
 
+    /** \copydoc SparseMatrixBase::rows() */
     inline Index rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
+    /** \copydoc SparseMatrixBase::cols() */
     inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
+    /** \copydoc SparseMatrixBase::innerSize() */
     inline Index innerSize() const { return m_innerSize; }
+    /** \copydoc SparseMatrixBase::outerSize() */
     inline Index outerSize() const { return m_outerSize; }
+    /** \copydoc SparseCompressedBase::nonZeros */
     inline Index nonZeros() const { return m_zero_nnz[1]; }
     
+    /** \copydoc SparseCompressedBase::isCompressed */
     bool isCompressed() const { return m_innerNonZeros==0; }
 
     //----------------------------------------
     // direct access interface
+    /** \copydoc SparseMatrix::valuePtr */
     inline const Scalar* valuePtr() const { return m_values; }
+    /** \copydoc SparseMatrix::innerIndexPtr */
     inline const StorageIndex* innerIndexPtr() const { return m_innerIndices; }
+    /** \copydoc SparseMatrix::outerIndexPtr */
     inline const StorageIndex* outerIndexPtr() const { return m_outerIndex; }
+    /** \copydoc SparseMatrix::innerNonZeroPtr */
     inline const StorageIndex* innerNonZeroPtr() const { return m_innerNonZeros; }
     //----------------------------------------
 
+    /** \copydoc SparseMatrix::coeff */
     inline Scalar coeff(Index row, Index col) const
     {
       const Index outer = IsRowMajor ? row : col;
@@ -125,6 +140,10 @@ class SparseMapBase<Derived,ReadOnlyAccessors>
     inline SparseMapBase() {}
 };
 
+/** \ingroup SparseCore_Module
+  * class SparseMapBase
+  * \brief Common base class for writable Map and Ref instance of sparse matrix and vector.
+  */
 template<typename Derived>
 class SparseMapBase<Derived,WriteAccessors>
   : public SparseMapBase<Derived,ReadOnlyAccessors>
@@ -185,9 +204,23 @@ class SparseMapBase<Derived,WriteAccessors>
     inline SparseMapBase() {}
 };
 
+/** \ingroup SparseCore_Module
+  *
+  * \brief Specialization of class Map for SparseMatrix-like storage.
+  *
+  * \tparam SparseMatrixType the equivalent sparse matrix type of the referenced data, it must be a template instance of class SparseMatrix.
+  *
+  * \sa class Map, class SparseMatrix, class Ref<SparseMatrixType,Options>
+  */
+#ifndef EIGEN_PARSED_BY_DOXYGEN
 template<typename MatScalar, int MatOptions, typename MatIndex, int Options, typename StrideType>
 class Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType>
   : public SparseMapBase<Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType> >
+#else
+template<typename SparseMatrixType>
+class Map<SparseMatrixType>
+  : public SparseMapBase<Derived,WriteAccessors>
+#endif
 {
   public:
     typedef SparseMapBase<Map> Base;
@@ -196,6 +229,12 @@ class Map<SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType>
 
   public:
 
+    /** Constructs a read-write Map to a sparse matrix of size \a rows x \a cols, containing \a nnz non-zero coefficients,
+      * stored as a sparse format as defined by the pointers \a outerIndexPtr, \a innerIndexPtr, and \a valuePtr.
+      * If the optional parameter \a innerNonZerosPtr is the null pointer, then a standard compressed format is assumed.
+      *
+      * More details on the expected storage schemes are given in the \ref TutorialSparse "manual pages".
+      */
     inline Map(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr,
                StorageIndex* innerIndexPtr, Scalar* valuePtr, StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
