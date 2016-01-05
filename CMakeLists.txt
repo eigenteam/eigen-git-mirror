@@ -221,6 +221,12 @@ if(NOT MSVC)
     message(STATUS "Enabling FMA in tests/examples")
   endif()
 
+  option(EIGEN_TEST_AVX512 "Enable/Disable AVX512 in tests/examples" OFF)
+  if(EIGEN_TEST_AVX512)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f")
+    message(STATUS "Enabling AVX512 in tests/examples")
+  endif()
+
   option(EIGEN_TEST_ALTIVEC "Enable/Disable AltiVec in tests/examples" OFF)
   if(EIGEN_TEST_ALTIVEC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maltivec -mabi=altivec")

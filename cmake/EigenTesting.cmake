@@ -276,6 +276,12 @@ macro(ei_testing_print_summary)
       message(STATUS "FMA:               Using architecture defaults")
     endif()
 
+   if(EIGEN_TEST_AVX512)
+      message(STATUS "AVX512:            ON")
+    else()
+      message(STATUS "AVX512:            Using architecture defaults")
+    endif()
+
     if(EIGEN_TEST_ALTIVEC)
       message(STATUS "Altivec:           ON")
     else()
