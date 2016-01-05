@@ -131,7 +131,102 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
   }
 };
 
-#define DIVUP(x, y) (((x) + (y)-1) / (y))
+
+extern __shared__ float temp[];
+
+template <int NumPerThread, typename Self,
+          typename Reducer, typename Index>
+__global__ void InnerReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
+                                         typename Self::CoeffReturnType* output) {
+  eigen_assert(blockDim.y == 1);
+  eigen_assert(blockDim.z == 1);
+  eigen_assert(gridDim.y == 1);
+  eigen_assert(gridDim.z == 1);
+
+  const int unroll_times = 16;
+  eigen_assert(NumPerThread % unroll_times == 0);
+
+  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.x * NumPerThread);
+  const Index num_input_blocks = input_col_blocks * num_preserved_coeffs;
+
+  const Index num_threads = blockDim.x * gridDim.x;
+  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+
+  for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
+    output[i] = reducer.initialize();
+  }
+
+  for (Index i = blockIdx.x; i < num_input_blocks; i += gridDim.x) {
+    const Index row = i / input_col_blocks;
+
+    if (row < num_preserved_coeffs) {
+      const Index col_block = i % input_col_blocks;
+      const Index col_begin = col_block * blockDim.x * NumPerThread + threadIdx.x;
+
+      float reduced_val = reducer.initialize();
+
+      for (Index j = 0; j < NumPerThread; j += unroll_times) {
+        const Index last_col = col_begin + blockDim.x * (j + unroll_times - 1);
+        if (last_col >= num_coeffs_to_reduce) {
+          for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col +=blockDim.x) {
+            const float val = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
+            reducer.reduce(val, &reduced_val);
+          }
+          break;
+        } else {
+          // Faster version of the loop with no branches after unrolling.
+#pragma unroll
+          for (int k = 0; k < unroll_times; ++k) {
+            const Index col = col_begin + blockDim.x * (j + k);
+            reducer.reduce(input.m_impl.coeff(row * num_coeffs_to_reduce + col), &reduced_val);
+          }
+        }
+      }
+
+      temp[threadIdx.x] = reduced_val;
+
+      __syncthreads();
+      const int warp_id = threadIdx.x & 31;
+      if (warp_id < 16) reducer.reduce(temp[threadIdx.x + 16], &temp[threadIdx.x]);
+      if (warp_id < 8) reducer.reduce(temp[threadIdx.x + 8], &temp[threadIdx.x]);
+      if (warp_id < 4) reducer.reduce(temp[threadIdx.x + 4], &temp[threadIdx.x]);
+      if (warp_id < 2) reducer.reduce(temp[threadIdx.x + 2], &temp[threadIdx.x]);
+      if (warp_id < 1) {
+        reducer.reduce(temp[threadIdx.x + 1], &temp[threadIdx.x]);
+        atomicReduce(&(output[row]), temp[threadIdx.x], reducer);
+      }
+    }
+
+    __syncthreads();
+  }
+}
+
+template <typename Self, typename Op>
+struct InnerReducer<Self, Op, GpuDevice> {
+  // Unfortunately nvidia doesn't support well exotic types such as complex,
+  // so reduce the scope of the optimized version of the code to the simple case
+  // of floats.
+  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+                                                 internal::is_same<typename Self::CoeffReturnType, float>::value;
+
+  template <typename Device, typename OutputType>
+  static void run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
+    assert(false && "Should only be called to reduce floats on a gpu device");
+  }
+
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+    typedef typename Self::Index Index;
+
+    const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
+    const int block_size = 256;
+    const int num_per_thread = 128;
+    const int num_blocks = 32;
+
+    LAUNCH_CUDA_KERNEL((InnerReductionKernel<num_per_thread>),
+                       num_blocks, block_size, block_size*sizeof(float), device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
+  }
+};
+
 
 template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
@@ -145,7 +240,7 @@ __global__ void OuterReductionKernel(Reducer reducer, const Self input, Index nu
   }
 
   // Do the reduction.
-  const Index max_iter = DIVUP(num_coeffs_to_reduce, NumPerThread) * num_preserved_coeffs;
+  const Index max_iter = divup<Index>(num_coeffs_to_reduce, NumPerThread) * num_preserved_coeffs;
   for (Index i = thread_id; i < max_iter; i += num_threads) {
     const Index input_col = i % num_preserved_coeffs;
     const Index input_row = (i / num_preserved_coeffs) * NumPerThread;
@@ -188,8 +283,6 @@ struct OuterReducer<Self, Op, GpuDevice> {
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
   }
 };
-
-#undef DIVUP
 
 #endif
 
