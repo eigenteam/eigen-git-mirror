@@ -234,7 +234,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketReturnType packet(Index index) const
   {
     if (internal::is_input_scalar<typename internal::remove_all<InputDimensions>::type>::value) {
-      return m_impl.coeff(0);
+      return internal::pset1<PacketReturnType>(m_impl.coeff(0));
     }
 
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
