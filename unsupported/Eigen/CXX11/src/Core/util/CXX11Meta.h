@@ -109,11 +109,9 @@ template<int n, typename x> struct get;
 
 template<int n, typename a, typename... as>               struct get<n, type_list<a, as...>>   : get<n-1, type_list<as...>> {};
 template<typename a, typename... as>                      struct get<0, type_list<a, as...>>   { typedef a type; };
-template<int n EIGEN_TPL_PP_SPEC_HACK_DEFC(typename, as)> struct get<n, type_list<EIGEN_TPL_PP_SPEC_HACK_USE(as)>> { static_assert((n - n) < 0, "meta-template get: The element to extract from a list must be smaller than the size of the list."); };
 
 template<typename T, int n, T a, T... as>                        struct get<n, numeric_list<T, a, as...>>   : get<n-1, numeric_list<T, as...>> {};
 template<typename T, T a, T... as>                               struct get<0, numeric_list<T, a, as...>>   { constexpr static T value = a; };
-template<typename T, int n EIGEN_TPL_PP_SPEC_HACK_DEFC(T, as)>   struct get<n, numeric_list<T EIGEN_TPL_PP_SPEC_HACK_USEC(as)>> { static_assert((n - n) < 0, "meta-template get: The element to extract from a list must be smaller than the size of the list."); };
 
 /* always get type, regardless of dummy; good for parameter pack expansion */
 
