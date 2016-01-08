@@ -115,11 +115,11 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename OutputType>
-  EIGEN_DEVICE_FUNC static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
     assert(false && "Should only be called on floats");
   }
 
-  EIGEN_DEVICE_FUNC static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
     typedef typename Self::Index Index;
 
     const Index num_coeffs = array_prod(self.m_impl.dimensions());

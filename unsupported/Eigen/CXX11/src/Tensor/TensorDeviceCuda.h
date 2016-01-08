@@ -238,14 +238,10 @@ struct GpuDevice {
 
 };
 
-#ifndef __CUDA_ARCH__
 #define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)            \
   (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);  \
   assert(cudaGetLastError() == cudaSuccess);
-#else
-#define LAUNCH_CUDA_KERNEL(...)  \
-   eigen_assert(false && "Cannot launch a kernel from another kernel");
-#endif
+
 
 // FIXME: Should be device and kernel specific.
 #ifdef __CUDACC__

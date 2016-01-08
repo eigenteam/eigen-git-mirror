@@ -156,14 +156,14 @@ template <typename Expression>
 class TensorExecutor<Expression, GpuDevice, false> {
  public:
   typedef typename Expression::Index Index;
-  EIGEN_DEVICE_FUNC static void run(const Expression& expr, const GpuDevice& device);
+  static void run(const Expression& expr, const GpuDevice& device);
 };
 
 template <typename Expression>
 class TensorExecutor<Expression, GpuDevice, true> {
  public:
   typedef typename Expression::Index Index;
-  EIGEN_DEVICE_FUNC static void run(const Expression& expr, const GpuDevice& device);
+  static void run(const Expression& expr, const GpuDevice& device);
 };
 
 #if defined(__CUDACC__)
@@ -213,9 +213,8 @@ EigenMetaKernel_Vectorizable(Evaluator memcopied_eval, Index size) {
 
 /*static*/
 template <typename Expression>
-EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
+inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
 {
-#ifndef __CUDA_ARCH__
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
   if (needs_assign)
@@ -228,17 +227,13 @@ EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, false>::run(
     LAUNCH_CUDA_KERNEL((EigenMetaKernel_NonVectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
   }
   evaluator.cleanup();
-#else
-   eigen_assert(false && "Cannot launch a kernel from another kernel");
-#endif
 }
 
 
 /*static*/
 template<typename Expression>
-EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
+inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
 {
-#ifndef __CUDA_ARCH__
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
   if (needs_assign)
@@ -251,9 +246,6 @@ EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, true>::run(c
     LAUNCH_CUDA_KERNEL((EigenMetaKernel_Vectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
   }
   evaluator.cleanup();
-#else
-   eigen_assert(false && "Cannot launch a kernel from another kernel");
-#endif
 }
 
 #endif  // __CUDACC__
