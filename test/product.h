@@ -137,8 +137,10 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(res.col(r).noalias() = square * square.col(r), (square * square.col(r)).eval());
 
   // inner product
-  Scalar x = square2.row(c) * square2.col(c2);
-  VERIFY_IS_APPROX(x, square2.row(c).transpose().cwiseProduct(square2.col(c2)).sum());
+  {
+    Scalar x = square2.row(c) * square2.col(c2);
+    VERIFY_IS_APPROX(x, square2.row(c).transpose().cwiseProduct(square2.col(c2)).sum());
+  }
   
   // outer product
   VERIFY_IS_APPROX(m1.col(c) * m1.row(r), m1.block(0,c,rows,1) * m1.block(r,0,1,cols));
@@ -146,5 +148,18 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(m1.block(0,c,rows,1) * m1.row(r), m1.block(0,c,rows,1) * m1.block(r,0,1,cols));
   VERIFY_IS_APPROX(m1.col(c) * m1.block(r,0,1,cols), m1.block(0,c,rows,1) * m1.block(r,0,1,cols));
   VERIFY_IS_APPROX(m1.leftCols(1) * m1.row(r), m1.block(0,0,rows,1) * m1.block(r,0,1,cols));
-  VERIFY_IS_APPROX(m1.col(c) * m1.topRows(1), m1.block(0,c,rows,1) * m1.block(0,0,1,cols));  
+  VERIFY_IS_APPROX(m1.col(c) * m1.topRows(1), m1.block(0,c,rows,1) * m1.block(0,0,1,cols));
+
+  // Aliasing
+  {
+    ColVectorType x(cols); x.setRandom();
+    ColVectorType z(x);
+    ColVectorType y(cols); y.setZero();
+    ColSquareMatrixType A(cols,cols); A.setRandom();
+    // CwiseBinaryOp
+    VERIFY_IS_APPROX(x = y + A*x, A*z);
+    x = z;
+    // CwiseUnaryOp
+    VERIFY_IS_APPROX(x = Scalar(1.)*(A*x), A*z);
+  }
 }
