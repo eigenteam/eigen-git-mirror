@@ -211,8 +211,6 @@ struct evaluator_traits<SparseSelfAdjointView<MatrixType,Mode> >
 {
   typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
   typedef SparseSelfAdjointShape Shape;
-  
-  static const int AssumeAliasing = 0;
 };
 
 struct SparseSelfAdjoint2Sparse {};

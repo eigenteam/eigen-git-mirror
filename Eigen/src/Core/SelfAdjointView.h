@@ -203,8 +203,6 @@ struct evaluator_traits<SelfAdjointView<MatrixType,Mode> >
 {
   typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
   typedef SelfAdjointShape Shape;
-  
-  static const int AssumeAliasing = 0;
 };
 
 template<int UpLo, int SetOpposite, typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor, int Version>

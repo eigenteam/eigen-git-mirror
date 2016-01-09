@@ -682,9 +682,9 @@ template< typename DstXprType, typename SrcXprType, typename Functor,
 struct Assignment;
 
 
-// The only purpose of this call_assignment() function is to deal with noalias() / AssumeAliasing and automatic transposition.
-// Indeed, I (Gael) think that this concept of AssumeAliasing was a mistake, and it makes thing quite complicated.
-// So this intermediate function removes everything related to AssumeAliasing such that Assignment
+// The only purpose of this call_assignment() function is to deal with noalias() / "assume-aliasing" and automatic transposition.
+// Indeed, I (Gael) think that this concept of "assume-aliasing" was a mistake, and it makes thing quite complicated.
+// So this intermediate function removes everything related to "assume-aliasing" such that Assignment
 // does not has to bother about these annoying details.
 
 template<typename Dst, typename Src>
@@ -698,21 +698,21 @@ EIGEN_DEVICE_FUNC void call_assignment(const Dst& dst, const Src& src)
   call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
                      
-// Deal with AssumeAliasing
+// Deal with "assume-aliasing"
 template<typename Dst, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==1, void*>::type = 0)
+EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if< evaluator_assume_aliasing<Src>::value, void*>::type = 0)
 {
   typename plain_matrix_type<Src>::type tmp(src);
   call_assignment_no_alias(dst, tmp, func);
 }
 
 template<typename Dst, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<evaluator_traits<Src>::AssumeAliasing==0, void*>::type = 0)
+EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<!evaluator_assume_aliasing<Src>::value, void*>::type = 0)
 {
   call_assignment_no_alias(dst, src, func);
 }
 
-// by-pass AssumeAliasing
+// by-pass "assume-aliasing"
 // When there is no aliasing, we require that 'dst' has been properly resized
 template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
 EIGEN_DEVICE_FUNC void call_assignment(NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)

@@ -704,10 +704,6 @@ struct evaluator_traits<TriangularView<MatrixType,Mode> >
 {
   typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
   typedef typename glue_shapes<typename evaluator_traits<MatrixType>::Shape, TriangularShape>::type Shape;
-  
-  // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
-  // temporary; 0 if not.
-  static const int AssumeAliasing = 0;
 };
 
 template<typename MatrixType, unsigned int Mode>

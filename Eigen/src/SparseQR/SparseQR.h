@@ -691,7 +691,6 @@ struct evaluator_traits<SparseQRMatrixQReturnType<SparseQRType> >
   typedef typename SparseQRType::MatrixType MatrixType;
   typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
   typedef SparseShape Shape;
-  static const int AssumeAliasing = 0;
 };
 
 template< typename DstXprType, typename SparseQRType>
