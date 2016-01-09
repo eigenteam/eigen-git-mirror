@@ -342,7 +342,7 @@ template <typename Self, typename Op, typename Device>
 struct InnerReducer {
   static const bool HasOptimizedImplementation = false;
 
-  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+  static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
     assert(false && "Not implemented");
   }
 };
@@ -352,7 +352,7 @@ template <typename Self, typename Op, typename Device>
 struct OuterReducer {
   static const bool HasOptimizedImplementation = false;
 
-  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+  static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
     assert(false && "Not implemented");
   }
 };
@@ -527,6 +527,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     }
 
     // Attempt to use an optimized reduction.
+#if 0
     else if (RunningOnGPU && data && (m_device.majorDeviceVersion() >= 3)) {
       bool reducing_inner_dims = true;
       for (int i = 0; i < NumReducedDims; ++i) {
@@ -562,6 +563,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
         return false;
       }
     }
+#endif
     return true;
   }
 
