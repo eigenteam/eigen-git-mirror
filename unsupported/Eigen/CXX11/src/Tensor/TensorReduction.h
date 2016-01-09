@@ -506,7 +506,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType* data) {
+  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType* data) {
     m_impl.evalSubExprsIfNeeded(NULL);
 
     // Use the FullReducer if possible.
@@ -527,7 +527,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     }
 
     // Attempt to use an optimized reduction.
-#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
     else if (RunningOnGPU && data && (m_device.majorDeviceVersion() >= 3)) {
       bool reducing_inner_dims = true;
       for (int i = 0; i < NumReducedDims; ++i) {
@@ -537,12 +536,12 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
           reducing_inner_dims &= m_reducedDims[NumInputDims - 1 - i];
         }
       }
-      if (internal::InnerReducer<Self, Op, GpuDevice>::HasOptimizedImplementation &&
+      if (internal::InnerReducer<Self, Op, Device>::HasOptimizedImplementation &&
           (reducing_inner_dims || ReducingInnerMostDims)) {
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         Op reducer(m_reducer);
-        internal::InnerReducer<Self, Op, GpuDevice>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+        internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
         return false;
       }
 
@@ -554,16 +553,15 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
           preserving_inner_dims &= m_reducedDims[i];
         }
       }
-      if (internal::OuterReducer<Self, Op, GpuDevice>::HasOptimizedImplementation &&
+      if (internal::OuterReducer<Self, Op, Device>::HasOptimizedImplementation &&
           preserving_inner_dims) {
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         Op reducer(m_reducer);
-        internal::OuterReducer<Self, Op, GpuDevice>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+        internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
         return false;
       }
     }
-#endif
     return true;
   }
 
