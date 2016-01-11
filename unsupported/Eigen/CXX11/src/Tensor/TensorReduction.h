@@ -527,7 +527,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     }
 
     // Attempt to use an optimized reduction.
-#if 0
     else if (RunningOnGPU && data && (m_device.majorDeviceVersion() >= 3)) {
       bool reducing_inner_dims = true;
       for (int i = 0; i < NumReducedDims; ++i) {
@@ -563,7 +562,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
         return false;
       }
     }
-#endif
     return true;
   }
 
