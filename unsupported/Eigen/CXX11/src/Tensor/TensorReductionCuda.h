@@ -119,7 +119,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
     assert(false && "Should only be called on floats");
   }
 
-  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
+  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
     typedef typename Self::Index Index;
 
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
