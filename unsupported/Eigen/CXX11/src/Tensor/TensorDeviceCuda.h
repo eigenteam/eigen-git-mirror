@@ -10,7 +10,6 @@
 #if defined(EIGEN_USE_GPU) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_CUDA_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_CUDA_H
 
-
 namespace Eigen {
 
 // This defines an interface that GPUDevice can take to use
@@ -206,20 +205,45 @@ struct GpuDevice {
 #endif
   }
 
-  inline int getNumCudaMultiProcessors() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int getNumCudaMultiProcessors() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().multiProcessorCount;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int maxCudaThreadsPerBlock() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxCudaThreadsPerBlock() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().maxThreadsPerBlock;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int maxCudaThreadsPerMultiProcessor() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxCudaThreadsPerMultiProcessor() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().maxThreadsPerMultiProcessor;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int sharedMemPerBlock() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int sharedMemPerBlock() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().sharedMemPerBlock;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int majorDeviceVersion() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().major;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
 
   // This function checks if the CUDA runtime recorded an error for the
@@ -239,13 +263,13 @@ struct GpuDevice {
 };
 
 #ifndef __CUDA_ARCH__
-#define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)            \
-    (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__); \
+#define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)             \
+  (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);   \
   assert(cudaGetLastError() == cudaSuccess);
 #else
-#define LAUNCH_CUDA_KERNEL(kernel, ...)                                  \
-    { static const auto __attribute__((__unused__)) __makeTheKernelInstantiate = &(kernel); } \
-   eigen_assert(false && "Cannot launch a kernel from another kernel" __CUDA_ARCH__);
+#define LAUNCH_CUDA_KERNEL(kernel, ...)                                                     \
+  { const auto __attribute__((__unused__)) __makeTheKernelInstantiate = &(kernel); }        \
+  eigen_assert(false && "Cannot launch a kernel from another kernel" __CUDA_ARCH__);
 #endif
 
 
@@ -260,4 +284,4 @@ static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
 
 }  // end namespace Eigen
 
-#endif // EIGEN_CXX11_TENSOR_TENSOR_DEVICE_TYPE_H
+#endif  // EIGEN_CXX11_TENSOR_TENSOR_DEVICE_CUDA_H

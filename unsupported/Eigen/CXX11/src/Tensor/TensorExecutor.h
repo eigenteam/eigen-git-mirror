@@ -156,14 +156,14 @@ template <typename Expression>
 class TensorExecutor<Expression, GpuDevice, false> {
  public:
   typedef typename Expression::Index Index;
-  static void run(const Expression& expr, const GpuDevice& device);
+  static EIGEN_DEVICE_FUNC void run(const Expression& expr, const GpuDevice& device);
 };
 
 template <typename Expression>
 class TensorExecutor<Expression, GpuDevice, true> {
  public:
   typedef typename Expression::Index Index;
-  static void run(const Expression& expr, const GpuDevice& device);
+  static EIGEN_DEVICE_FUNC void run(const Expression& expr, const GpuDevice& device);
 };
 
 #if defined(__CUDACC__)
@@ -213,7 +213,7 @@ EigenMetaKernel_Vectorizable(Evaluator memcopied_eval, Index size) {
 
 /*static*/
 template <typename Expression>
-inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
+EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
 {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
@@ -232,7 +232,7 @@ inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& 
 
 /*static*/
 template<typename Expression>
-inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
+EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
 {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
