@@ -238,10 +238,6 @@ struct GpuDevice {
 
 };
 
-#define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)            \
-  (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);  \
-  assert(cudaGetLastError() == cudaSuccess);
-
 #ifndef __CUDA_ARCH__
 #define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)            \
     (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__); \
