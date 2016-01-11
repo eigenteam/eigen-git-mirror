@@ -116,7 +116,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
 
   template <typename OutputType>
   static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
-    assert(false && "Should only be called on floats");
+    eigen_assert(false && "Should only be called on floats");
   }
 
   static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
@@ -126,7 +126,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
     const int block_size = 256;
     const int num_per_thread = 128;
     const int num_blocks = std::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
-    LAUNCH_CUDA_KERNEL((FullReductionKernel<block_size, num_per_thread>),
+    LAUNCH_CUDA_KERNEL((FullReductionKernel<block_size, num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs, output);
   }
 };

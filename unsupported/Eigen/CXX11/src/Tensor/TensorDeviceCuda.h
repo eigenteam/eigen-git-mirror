@@ -242,6 +242,16 @@ struct GpuDevice {
   (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);  \
   assert(cudaGetLastError() == cudaSuccess);
 
+#ifndef __CUDA_ARCH__
+#define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)            \
+    (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__); \
+  assert(cudaGetLastError() == cudaSuccess);
+#else
+#define LAUNCH_CUDA_KERNEL(kernel, ...)                                  \
+    { static const auto __attribute__((__unused__)) __makeTheKernelInstantiate = &(kernel); } \
+   eigen_assert(false && "Cannot launch a kernel from another kernel" __CUDA_ARCH__);
+#endif
+
 
 // FIXME: Should be device and kernel specific.
 #ifdef __CUDACC__
