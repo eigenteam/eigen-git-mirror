@@ -145,7 +145,10 @@ class SimpleTensorContractionMapper {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index firstAligned(Index size) const {
-    return (Alignment == Aligned) ? 0 : size;
+    // Only claim alignment when we can compute the actual stride (ie when we're
+    // dealing with the lhs with inner_dim_contiguous. This is because the
+    // matrix-vector product relies on the stride when dealing with aligned inputs.
+    return (Alignment == Aligned) && (side == Lhs) && inner_dim_contiguous ? 0 : size;
   }
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index stride() const {
     return ((side == Lhs) && inner_dim_contiguous) ? m_contract_strides[0] : 1;
