@@ -110,14 +110,14 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
     return internal::arg_prod(Indices...);
   }
 
-  Sizes() { }
+  EIGEN_DEVICE_FUNC Sizes() { }
   template <typename DenseIndex>
-  explicit Sizes(const array<DenseIndex, Base::count>& /*indices*/) {
+  explicit EIGEN_DEVICE_FUNC Sizes(const array<DenseIndex, Base::count>& /*indices*/) {
     // todo: add assertion
   }
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  template <typename... DenseIndex> Sizes(DenseIndex...) { }
-  explicit Sizes(std::initializer_list<std::ptrdiff_t> /*l*/) {
+  template <typename... DenseIndex> EIGEN_DEVICE_FUNC Sizes(DenseIndex...) { }
+  explicit EIGEN_DEVICE_FUNC Sizes(std::initializer_list<std::ptrdiff_t> /*l*/) {
     // todo: add assertion
   }
 #endif
