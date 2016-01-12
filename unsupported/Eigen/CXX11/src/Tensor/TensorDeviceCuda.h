@@ -275,10 +275,14 @@ struct GpuDevice {
 
 // FIXME: Should be device and kernel specific.
 #ifdef __CUDACC__
-static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
+static EIGEN_DEVICE_FUNC inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
+#ifndef __CUDA_ARCH__
   cudaError_t status = cudaDeviceSetSharedMemConfig(config);
   EIGEN_UNUSED_VARIABLE(status)
   assert(status == cudaSuccess);
+#else
+  EIGEN_UNUSED_VARIABLE(config)
+#endif
 }
 #endif
 

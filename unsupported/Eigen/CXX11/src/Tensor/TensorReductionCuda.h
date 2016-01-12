@@ -220,6 +220,8 @@ struct InnerReducer<Self, Op, GpuDevice> {
     const int block_size = 256;
     const int num_per_thread = 128;
     const int num_blocks = 32;
+    EIGEN_UNUSED_VARIABLE(block_size)
+    EIGEN_UNUSED_VARIABLE(num_blocks)
 
     LAUNCH_CUDA_KERNEL((InnerReductionKernel<num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, block_size*sizeof(float), device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);

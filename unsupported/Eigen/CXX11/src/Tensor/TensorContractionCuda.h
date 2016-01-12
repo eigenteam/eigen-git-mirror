@@ -1261,7 +1261,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       Base(op, device) {}
 
   // We need to redefine this method to make nvcc happy
-  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
     this->m_leftImpl.evalSubExprsIfNeeded(NULL);
     this->m_rightImpl.evalSubExprsIfNeeded(NULL);
     if (data) {
@@ -1274,7 +1274,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
   }
 
-  void evalTo(Scalar* buffer) const {
+  EIGEN_DEVICE_FUNC void evalTo(Scalar* buffer) const {
     if (this->m_lhs_inner_dim_contiguous) {
       if (this->m_rhs_inner_dim_contiguous) {
         if (this->m_rhs_inner_dim_reordered) {
@@ -1313,10 +1313,11 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
   }
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment> EIGEN_DEVICE_FUNC
   void evalTyped(Scalar* buffer) const {
     // columns in left side, rows in right side
     const Index k = this->m_k_size;
+    EIGEN_UNUSED_VARIABLE(k)
 
     // rows in left side
     const Index m = this->m_i_size;
