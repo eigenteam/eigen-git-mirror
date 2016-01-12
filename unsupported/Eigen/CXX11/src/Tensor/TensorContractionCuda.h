@@ -1274,7 +1274,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
   }
 
-  EIGEN_DEVICE_FUNC void evalTo(Scalar* buffer) const {
+  void evalTo(Scalar* buffer) const {
     if (this->m_lhs_inner_dim_contiguous) {
       if (this->m_rhs_inner_dim_contiguous) {
         if (this->m_rhs_inner_dim_reordered) {
@@ -1313,7 +1313,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
   }
 
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment> EIGEN_DEVICE_FUNC
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
   void evalTyped(Scalar* buffer) const {
     // columns in left side, rows in right side
     const Index k = this->m_k_size;
@@ -1362,7 +1362,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         const dim3 block_size(16, 16, 1);
         LAUNCH_CUDA_KERNEL((EigenFloatContractionKernel16x16<Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, this->m_device, lhs, rhs, output, m, n, k);
       } else {
-       const Index m_blocks = (m + 127) / 128;
+        const Index m_blocks = (m + 127) / 128;
         const Index n_blocks = (n + 63) / 64;
         const dim3 num_blocks(m_blocks, n_blocks, 1);
         const dim3 block_size(8, 32, 1);
