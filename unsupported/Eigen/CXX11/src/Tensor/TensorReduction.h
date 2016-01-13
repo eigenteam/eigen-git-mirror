@@ -24,11 +24,14 @@ template<typename Op, typename Dims, typename XprType>
 struct traits<TensorReductionOp<Op, Dims, XprType> >
  : traits<XprType>
 {
-  typedef typename traits<XprType>::Scalar Scalar;
+  typedef traits<XprType> XprTraits;
+  typedef typename XprTraits::Scalar Scalar;
   typedef typename internal::packet_traits<Scalar>::type Packet;
-  typedef typename traits<XprType>::StorageKind StorageKind;
-  typedef typename traits<XprType>::Index Index;
+  typedef typename XprTraits::StorageKind StorageKind;
+  typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
+  static const int NumDimensions = XprTraits::NumDimensions - array_size<Dims>::value;
+  static const int Layout = XprTraits::Layout;
 };
 
 template<typename Op, typename Dims, typename XprType>
