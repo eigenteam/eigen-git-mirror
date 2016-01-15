@@ -803,7 +803,6 @@ struct palign_impl<Offset, Packet8d> {
 #define PACK_OUTPUT(OUTPUT, INPUT, INDEX, STRIDE) \
   EIGEN_INSERT_8f_INTO_16f(OUTPUT[INDEX], INPUT[INDEX], INPUT[INDEX + STRIDE]);
 
-template <>
 EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet16f, 16>& kernel) {
   __m512 T0 = _mm512_unpacklo_ps(kernel.packet[0], kernel.packet[1]);
   __m512 T1 = _mm512_unpackhi_ps(kernel.packet[0], kernel.packet[1]);
@@ -919,7 +918,6 @@ EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet16f, 16>& kernel) {
   EIGEN_INSERT_8f_INTO_16f(OUTPUT[INDEX], INPUT[2 * INDEX], \
                            INPUT[2 * INDEX + STRIDE]);
 
-template <>
 EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet16f, 4>& kernel) {
   __m512 T0 = _mm512_unpacklo_ps(kernel.packet[0], kernel.packet[1]);
   __m512 T1 = _mm512_unpackhi_ps(kernel.packet[0], kernel.packet[1]);
@@ -963,7 +961,6 @@ EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet16f, 4>& kernel) {
   OUTPUT[INDEX] =                                                           \
       _mm512_insertf64x4(OUTPUT[INDEX], INPUT[(2 * INDEX) + STRIDE], 1);
 
-template <>
 EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet8d, 4>& kernel) {
   __m512d T0 = _mm512_shuffle_pd(kernel.packet[0], kernel.packet[1], 0);
   __m512d T1 = _mm512_shuffle_pd(kernel.packet[0], kernel.packet[1], 0xff);
@@ -995,7 +992,7 @@ EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet8d, 4>& kernel) {
   PACK_OUTPUT_D(kernel.packet, tmp.packet, 2, 1);
   PACK_OUTPUT_D(kernel.packet, tmp.packet, 3, 1);
 }
-template <>
+
 EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet8d, 8>& kernel) {
   __m512d T0 = _mm512_unpacklo_pd(kernel.packet[0], kernel.packet[1]);
   __m512d T1 = _mm512_unpackhi_pd(kernel.packet[0], kernel.packet[1]);
