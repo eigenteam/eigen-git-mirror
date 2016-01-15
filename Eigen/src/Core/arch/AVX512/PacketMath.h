@@ -550,7 +550,7 @@ EIGEN_STRONG_INLINE void pstoreu<int>(int* to, const Packet16i& from) {
 
 template <>
 EIGEN_DEVICE_FUNC inline Packet16f pgather<float, Packet16f>(const float* from,
-                                                             int stride) {
+                                                             Index stride) {
   Packet16i stride_vector = _mm512_set1_epi32(stride);
   Packet16i stride_multiplier =
       _mm512_set_epi32(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
@@ -560,7 +560,7 @@ EIGEN_DEVICE_FUNC inline Packet16f pgather<float, Packet16f>(const float* from,
 }
 template <>
 EIGEN_DEVICE_FUNC inline Packet8d pgather<double, Packet8d>(const double* from,
-                                                            int stride) {
+                                                            Index stride) {
   Packet8i stride_vector = _mm256_set1_epi32(stride);
   Packet8i stride_multiplier = _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
   Packet8i indices = _mm256_mullo_epi32(stride_vector, stride_multiplier);
@@ -571,7 +571,7 @@ EIGEN_DEVICE_FUNC inline Packet8d pgather<double, Packet8d>(const double* from,
 template <>
 EIGEN_DEVICE_FUNC inline void pscatter<float, Packet16f>(float* to,
                                                          const Packet16f& from,
-                                                         int stride) {
+                                                         Index stride) {
   Packet16i stride_vector = _mm512_set1_epi32(stride);
   Packet16i stride_multiplier =
       _mm512_set_epi32(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
@@ -581,7 +581,7 @@ EIGEN_DEVICE_FUNC inline void pscatter<float, Packet16f>(float* to,
 template <>
 EIGEN_DEVICE_FUNC inline void pscatter<double, Packet8d>(double* to,
                                                          const Packet8d& from,
-                                                         int stride) {
+                                                         Index stride) {
   Packet8i stride_vector = _mm256_set1_epi32(stride);
   Packet8i stride_multiplier = _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
   Packet8i indices = _mm256_mullo_epi32(stride_vector, stride_multiplier);
