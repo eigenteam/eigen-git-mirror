@@ -98,19 +98,19 @@ template <>
 struct unpacket_traits<Packet16f> {
   typedef float type;
   typedef Packet8f half;
-  enum { size = 16 };
+  enum { size = 16, alignment=Aligned64 };
 };
 template <>
 struct unpacket_traits<Packet8d> {
   typedef double type;
   typedef Packet4d half;
-  enum { size = 8 };
+  enum { size = 8, alignment=Aligned64 };
 };
 template <>
 struct unpacket_traits<Packet16i> {
   typedef int type;
   typedef Packet8i half;
-  enum { size = 16 };
+  enum { size = 16, alignment=Aligned64 };
 };
 
 template <>
