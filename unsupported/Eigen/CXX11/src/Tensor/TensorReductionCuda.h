@@ -132,8 +132,6 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
 };
 
 
-extern __shared__ float temp[];
-
 template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
@@ -183,17 +181,13 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
         }
       }
 
-      temp[threadIdx.x] = reduced_val;
+#pragma unroll
+      for (int offset = warpSize/2; offset > 0; offset /= 2) {
+        reducer.reduce(__shfl_down(reduced_val, offset), &reduced_val);
+      }
 
-      __syncthreads();
-      const int warp_id = threadIdx.x & 31;
-      if (warp_id < 16) reducer.reduce(temp[threadIdx.x + 16], &temp[threadIdx.x]);
-      if (warp_id < 8) reducer.reduce(temp[threadIdx.x + 8], &temp[threadIdx.x]);
-      if (warp_id < 4) reducer.reduce(temp[threadIdx.x + 4], &temp[threadIdx.x]);
-      if (warp_id < 2) reducer.reduce(temp[threadIdx.x + 2], &temp[threadIdx.x]);
-      if (warp_id < 1) {
-        reducer.reduce(temp[threadIdx.x + 1], &temp[threadIdx.x]);
-        atomicReduce(&(output[row]), temp[threadIdx.x], reducer);
+      if ((threadIdx.x & (warpSize - 1)) == 0) {
+        atomicReduce(&(output[row]), reduced_val, reducer);
       }
     }
 
@@ -224,7 +218,7 @@ struct InnerReducer<Self, Op, GpuDevice> {
     EIGEN_UNUSED_VARIABLE(num_blocks)
 
     LAUNCH_CUDA_KERNEL((InnerReductionKernel<num_per_thread, Self, Op, Index>),
-                       num_blocks, block_size, block_size*sizeof(float), device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
+                       num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
   }
 };
 
