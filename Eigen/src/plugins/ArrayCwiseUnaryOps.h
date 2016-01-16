@@ -321,9 +321,6 @@ lgamma() const
 
 /** \returns an expression of the coefficient-wise digamma (psi, derivative of lgamma).
  *
- * Example: \include Cwise_digamma.cpp
- * Output: \verbinclude Cwise_digamma.out
- *
  * \sa cos(), sin(), tan()
  */
 inline const DigammaReturnType

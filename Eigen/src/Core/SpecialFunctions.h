@@ -13,6 +13,29 @@
 namespace Eigen {
 namespace internal {
 
+//  Parts of this code are based on the Cephes Math Library.
+//
+//  Cephes Math Library Release 2.8:  June, 2000
+//  Copyright 1984, 1987, 1992, 2000 by Stephen L. Moshier
+//
+//  Permission has been kindly provided by the original author
+//  to incorporate the Cephes software into the Eigen codebase:
+//
+//    From: Stephen Moshier
+//    To: Eugene Brevdo
+//    Subject: Re: Permission to wrap several cephes functions in Eigen
+//
+//    Hello Eugene,
+//
+//    Thank you for writing.
+//
+//    If your licensing is similar to BSD, the formal way that has been
+//    handled is simply to add a statement to the effect that you are incorporating
+//    the Cephes software by permission of the author.
+//
+//    Good luck with your project,
+//    Steve
+
 namespace cephes {
 
 /* polevl (modified for Eigen)
@@ -178,11 +201,6 @@ struct digamma_impl<float> {
    *     message         condition      value returned
    * psi singularity    x integer <=0      INFINITY
    */
-  /*
-    Cephes Math Library Release 2.2:  June, 1992
-    Copyright 1984, 1987, 1992 by Stephen L. Moshier
-    Direct inquiries to 30 Frost Street, Cambridge, MA 02140
-  */
   EIGEN_DEVICE_FUNC
   static float run(float xx) {
     float p, q, nz, x, s, w, y, z;
@@ -297,10 +315,6 @@ struct digamma_impl<double> {
      * psi singularity    x integer <=0      INFINITY
      */
 
-    /*
-     * Cephes Math Library Release 2.8:  June, 2000
-     * Copyright 1984, 1987, 1992, 2000 by Stephen L. Moshier
-     */
     double p, q, nz, s, w, y, z;
     bool negative;
 
