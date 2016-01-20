@@ -581,6 +581,7 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
     
     void grabMatrix(const MatrixType& matrix, ColSpMatrix& out)
     {
+      out.resize(matrix.rows(), matrix.cols());
       // Pastix supports only lower, column-major matrices 
       out.template selfadjointView<Lower>() = matrix.template selfadjointView<UpLo>();
       internal::c_to_fortran_numbering(out);
@@ -666,6 +667,7 @@ class PastixLDLT : public PastixBase< PastixLDLT<_MatrixType, _UpLo> >
     void grabMatrix(const MatrixType& matrix, ColSpMatrix& out)
     {
       // Pastix supports only lower, column-major matrices 
+      out.resize(matrix.rows(), matrix.cols());
       out.template selfadjointView<Lower>() = matrix.template selfadjointView<UpLo>();
       internal::c_to_fortran_numbering(out);
     }
