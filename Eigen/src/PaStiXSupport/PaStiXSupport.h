@@ -184,7 +184,7 @@ class PastixBase : public SparseSolverBase<Derived>
       * The statistics related to the different phases of factorization and solve are saved here as well
       * \sa analyzePattern() factorize()
       */
-    Array<RealScalar,IPARM_SIZE,1>& dparm()
+    Array<double,DPARM_SIZE,1>& dparm()
     {
       return m_dparm; 
     }
@@ -244,8 +244,8 @@ class PastixBase : public SparseSolverBase<Derived>
     mutable ComputationInfo m_info; 
     mutable pastix_data_t *m_pastixdata; // Data structure for pastix
     mutable int m_comm; // The MPI communicator identifier
-    mutable Matrix<int,IPARM_SIZE,1> m_iparm; // integer vector for the input parameters
-    mutable Matrix<double,DPARM_SIZE,1> m_dparm; // Scalar vector for the input parameters
+    mutable Array<int,IPARM_SIZE,1> m_iparm; // integer vector for the input parameters
+    mutable Array<double,DPARM_SIZE,1> m_dparm; // Scalar vector for the input parameters
     mutable Matrix<StorageIndex,Dynamic,1> m_perm;  // Permutation vector
     mutable Matrix<StorageIndex,Dynamic,1> m_invp;  // Inverse permutation vector
     mutable int m_size; // Size of the matrix 
