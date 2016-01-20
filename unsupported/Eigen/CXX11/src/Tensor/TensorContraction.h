@@ -128,6 +128,7 @@ struct TensorContractionEvaluatorBase
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = true
   };
 
   // Most of the code is assuming that both input tensors are ColMajor. If the
@@ -434,11 +435,11 @@ struct TensorContractionEvaluatorBase
   }
 
   template<int LoadMode>
-  EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const {
     return internal::ploadt<Packet, LoadMode>(m_result + index);
   }
 
-  EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return m_result; }
 
   protected:
   // Prevent assignment
