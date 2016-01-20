@@ -92,6 +92,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     IsAligned = true,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
     Layout = TensorEvaluator<ArgType, Device>::Layout,
+    RawAccess = true
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)

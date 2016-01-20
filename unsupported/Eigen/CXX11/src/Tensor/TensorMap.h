@@ -49,7 +49,8 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       IsAligned = ((int(Options_)&Aligned)==Aligned),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = PlainObjectType::Layout,
-      CoordAccess = true
+      CoordAccess = true,
+      RawAccess = true
     };
 
     EIGEN_DEVICE_FUNC

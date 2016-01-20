@@ -91,7 +91,8 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
-  };
+    RawAccess = false
+ };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_strides(op.strides())

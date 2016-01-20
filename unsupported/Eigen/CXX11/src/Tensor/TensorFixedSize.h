@@ -44,7 +44,8 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = Options_ & RowMajor ? RowMajor : ColMajor,
       CoordAccess = true,
-   };
+      RawAccess = true
+    };
 
   typedef Dimensions_ Dimensions;
   static const std::size_t NumIndices = Dimensions::count;

@@ -98,6 +98,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
     PacketAccess = true,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = true
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -140,7 +141,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
     return internal::ploadt<Packet, LoadMode>(m_buffer + index);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_buffer; }
 
  private:
   TensorEvaluator<ArgType, Device> m_impl;
