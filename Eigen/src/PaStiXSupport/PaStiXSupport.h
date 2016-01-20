@@ -268,7 +268,7 @@ void PastixBase<Derived>::init()
          0, 0, 0, 1, m_iparm.data(), m_dparm.data());
   
   m_iparm[IPARM_MATRIX_VERIFICATION] = API_NO;
-  m_iparm[IPARM_VERBOSE]             = 2;
+  m_iparm[IPARM_VERBOSE]             = API_VERBOSE_NOT;
   m_iparm[IPARM_ORDERING]            = API_ORDER_SCOTCH;
   m_iparm[IPARM_INCOMPLETE]          = API_NO;
   m_iparm[IPARM_OOC_LIMIT]           = 2000;
