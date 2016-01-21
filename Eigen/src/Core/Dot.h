@@ -102,7 +102,10 @@ inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real Matr
   return numext::sqrt(squaredNorm());
 }
 
-/** \returns an expression of the quotient of *this by its own norm.
+/** \returns an expression of the quotient of \c *this by its own norm.
+  *
+  * \warning If the input vector is too small (i.e., this->norm()==0),
+  *          then this function returns a copy of the input.
   *
   * \only_for_vectors
   *
@@ -114,19 +117,29 @@ MatrixBase<Derived>::normalized() const
 {
   typedef typename internal::nested_eval<Derived,2>::type _Nested;
   _Nested n(derived());
-  return n / n.norm();
+  RealScalar z = n.squaredNorm();
+  // NOTE: after extensive benchmarking, this conditional does not impact performance, at least on recent x86 CPU
+  if(z>RealScalar(0))
+    return n / numext::sqrt(z);
+  else
+    return n;
 }
 
 /** Normalizes the vector, i.e. divides it by its own norm.
   *
   * \only_for_vectors
   *
+  * \warning If the input vector is too small (i.e., this->norm()==0), then \c *this is left unchanged.
+  *
   * \sa norm(), normalized()
   */
 template<typename Derived>
 inline void MatrixBase<Derived>::normalize()
 {
-  *this /= norm();
+  RealScalar z = squaredNorm();
+  // NOTE: after extensive benchmarking, this conditional does not impact performance, at least on recent x86 CPU
+  if(z>RealScalar(0))
+    derived() /= numext::sqrt(z);
 }
 
 //---------- implementation of other norms ----------
