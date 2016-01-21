@@ -524,7 +524,7 @@ template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float sqrt(const float &x)
 {
-  return internal::pfirst(_mm_sqrt_ss(_mm_set_ss(x)));
+  return internal::pfirst(internal::Packet4f(_mm_sqrt_ss(_mm_set_ss(x))));
 }
 
 template<>
@@ -532,9 +532,9 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double sqrt(const double &x)
 {
 #if EIGEN_COMP_GNUC
-  return internal::pfirst(__builtin_ia32_sqrtsd(_mm_set_sd(x)));
+  return internal::pfirst(internal::Packet2d(__builtin_ia32_sqrtsd(_mm_set_sd(x))));
 #else
-  return internal::pfirst(_mm_sqrt_pd(_mm_set_sd(x)));
+  return internal::pfirst(internal::Packet2d(_mm_sqrt_pd(_mm_set_sd(x))));
 #endif
 }
 
