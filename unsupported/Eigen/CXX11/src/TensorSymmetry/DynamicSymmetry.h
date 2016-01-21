@@ -55,7 +55,7 @@ class DynamicSGroup
     inline internal::tensor_symmetry_value_setter<Tensor_, DynamicSGroup> operator()(Tensor_& tensor, typename Tensor_::Index firstIndex, IndexTypes... otherIndices) const
     {
       static_assert(sizeof...(otherIndices) + 1 == Tensor_::NumIndices, "Number of indices used to access a tensor coefficient must be equal to the rank of the tensor.");
-      return operator()(tensor, std::array<typename Tensor_::Index, Tensor_::NumIndices>{{firstIndex, otherIndices...}});
+      return operator()(tensor, std::array<typename Tensor_::Index, Tensor_::NumIndices>{firstIndex, otherIndices...});
     }
 
     template<typename Tensor_>
@@ -90,7 +90,7 @@ class DynamicSGroup
     template<typename Index, std::size_t N, int... n>
     inline std::array<Index, N> h_permute(std::size_t which, const std::array<Index, N>& idx, internal::numeric_list<int, n...>) const
     {
-      return std::array<Index, N>{{ idx[n >= m_numIndices ? n : m_elements[which].representation[n]]... }};
+      return std::array<Index, N>{ idx[n >= m_numIndices ? n : m_elements[which].representation[n]]... };
     }
 
     template<typename Index>

@@ -119,7 +119,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return coeff(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
+      return coeff(array<Index, NumIndices>{firstIndex, secondIndex, otherIndices...});
     }
 #endif
 
@@ -159,7 +159,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return coeffRef(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
+      return coeffRef(array<Index, NumIndices>{firstIndex, secondIndex, otherIndices...});
     }
 #endif
 
@@ -199,7 +199,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return this->operator()(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
+      return this->operator()(array<Index, NumIndices>{firstIndex, secondIndex, otherIndices...});
     }
 #else
     EIGEN_DEVICE_FUNC
@@ -266,7 +266,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return operator()(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
+      return operator()(array<Index, NumIndices>{firstIndex, secondIndex, otherIndices...});
     }
 #else
     EIGEN_DEVICE_FUNC
@@ -342,7 +342,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Tensor(Index firstDimension, IndexTypes... otherDimensions)
-        : m_storage(internal::array_prod(array<Index, NumIndices>{{firstDimension, otherDimensions...}}), array<Index, NumIndices>{{firstDimension, otherDimensions...}})
+        : m_storage(internal::array_prod(array<Index, NumIndices>{firstDimension, otherDimensions...}), array<Index, NumIndices>{firstDimension, otherDimensions...})
     {
       // The number of dimensions used to construct a tensor must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -427,7 +427,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
       // The number of dimensions used to resize a tensor must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      resize(array<Index, NumIndices>{{firstDimension, otherDimensions...}});
+      resize(array<Index, NumIndices>{firstDimension, otherDimensions...});
     }
 #endif
 

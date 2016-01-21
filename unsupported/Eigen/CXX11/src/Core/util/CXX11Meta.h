@@ -404,7 +404,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const std::vector<t>& a) {
 template<typename Op, typename A, typename B, std::size_t N, int... n>
 constexpr inline array<decltype(Op::run(A(), B())),N> h_array_zip(array<A, N> a, array<B, N> b, numeric_list<int, n...>)
 {
-  return array<decltype(Op::run(A(), B())),N>{{ Op::run(array_get<n>(a), array_get<n>(b))... }};
+  return array<decltype(Op::run(A(), B())),N>{ Op::run(array_get<n>(a), array_get<n>(b))... };
 }
 
 template<typename Op, typename A, typename B, std::size_t N>
@@ -432,7 +432,7 @@ constexpr inline auto array_zip_and_reduce(array<A, N> a, array<B, N> b) -> decl
 template<typename Op, typename A, std::size_t N, int... n>
 constexpr inline array<decltype(Op::run(A())),N> h_array_apply(array<A, N> a, numeric_list<int, n...>)
 {
-  return array<decltype(Op::run(A())),N>{{ Op::run(array_get<n>(a))... }};
+  return array<decltype(Op::run(A())),N>{ Op::run(array_get<n>(a))... };
 }
 
 template<typename Op, typename A, std::size_t N>

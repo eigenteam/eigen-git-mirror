@@ -167,13 +167,13 @@ static void test_fixed_size_broadcasting()
   TensorFixedSize<float, Sizes<1>, DataLayout> t2;
   t2 = t2.constant(20.0f);
 
-  Tensor<float, 1, DataLayout> t3 = t1 + t2.broadcast(Eigen::array<int, 1>{{10}});
+  Tensor<float, 1, DataLayout> t3 = t1 + t2.broadcast(Eigen::array<int, 1>{10});
   for (int i = 0; i < 10; ++i) {
     VERIFY_IS_APPROX(t3(i), t1(i) + t2(0));
   }
 
-  TensorMap<TensorFixedSize<float, Sizes<1>, DataLayout> > t4(t2.data(), {{1}});
-  Tensor<float, 1, DataLayout> t5 = t1 + t4.broadcast(Eigen::array<int, 1>{{10}});
+  TensorMap<TensorFixedSize<float, Sizes<1>, DataLayout> > t4(t2.data(), {1});
+  Tensor<float, 1, DataLayout> t5 = t1 + t4.broadcast(Eigen::array<int, 1>{10});
   for (int i = 0; i < 10; ++i) {
     VERIFY_IS_APPROX(t5(i), t1(i) + t2(0));
   }
