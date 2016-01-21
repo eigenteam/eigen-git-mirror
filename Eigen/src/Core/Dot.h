@@ -99,8 +99,7 @@ EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scala
 template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real MatrixBase<Derived>::norm() const
 {
-  EIGEN_USING_STD_MATH(sqrt)
-  return sqrt(squaredNorm());
+  return numext::sqrt(squaredNorm());
 }
 
 /** \returns an expression of the quotient of *this by its own norm.

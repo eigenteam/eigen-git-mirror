@@ -518,6 +518,28 @@ Packet2d prsqrt<Packet2d>(const Packet2d& x) {
 
 } // end namespace internal
 
+namespace numext {
+
+template<>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float sqrt(const float &x)
+{
+  return internal::pfirst(_mm_sqrt_ss(_mm_set_ss(x)));
+}
+
+template<>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double sqrt(const double &x)
+{
+#if EIGEN_COMP_GNUC
+  return internal::pfirst(__builtin_ia32_sqrtsd(_mm_set_sd(x)));
+#else
+  return internal::pfirst(_mm_sqrt_pd(_mm_set_sd(x)));
+#endif
+}
+
+} // end namespace numex
+
 } // end namespace Eigen
 
 #endif // EIGEN_MATH_FUNCTIONS_SSE_H
