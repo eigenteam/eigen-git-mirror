@@ -289,7 +289,7 @@ struct DSizes : array<DenseIndex, NumDims> {
   template<typename... IndexTypes> EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE explicit DSizes(DenseIndex firstDimension, IndexTypes... otherDimensions) {
     EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumDims, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    (*this) = array<DenseIndex, NumDims>{firstDimension, otherDimensions...};
+    (*this) = array<DenseIndex, NumDims>{{firstDimension, otherDimensions...}};
   }
 #else
   EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0) {

@@ -73,7 +73,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return coeff(array<Index, NumIndices>{firstIndex, otherIndices...});
+      return coeff(array<Index, NumIndices>{{firstIndex, otherIndices...}});
     }
 #endif
 
@@ -105,7 +105,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return coeffRef(array<Index, NumIndices>{firstIndex, otherIndices...});
+      return coeffRef(array<Index, NumIndices>{{firstIndex, otherIndices...}});
     }
 #endif
 
@@ -137,7 +137,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return this->operator()(array<Index, NumIndices>{firstIndex, otherIndices...});
+      return this->operator()(array<Index, NumIndices>{{firstIndex, otherIndices...}});
     }
 #endif
 
@@ -176,7 +176,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      return operator()(array<Index, NumIndices>{firstIndex, otherIndices...});
+      return operator()(array<Index, NumIndices>{{firstIndex, otherIndices...}});
     }
 #endif
 

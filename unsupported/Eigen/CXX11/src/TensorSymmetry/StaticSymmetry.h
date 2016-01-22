@@ -217,7 +217,7 @@ class StaticSGroup
     inline internal::tensor_symmetry_value_setter<Tensor_, StaticSGroup<Gen...>> operator()(Tensor_& tensor, typename Tensor_::Index firstIndex, IndexTypes... otherIndices) const
     {
       static_assert(sizeof...(otherIndices) + 1 == Tensor_::NumIndices, "Number of indices used to access a tensor coefficient must be equal to the rank of the tensor.");
-      return operator()(tensor, std::array<typename Tensor_::Index, Tensor_::NumIndices>{firstIndex, otherIndices...});
+      return operator()(tensor, std::array<typename Tensor_::Index, Tensor_::NumIndices>{{firstIndex, otherIndices...}});
     }
 
     template<typename Tensor_>

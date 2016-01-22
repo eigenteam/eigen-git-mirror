@@ -130,7 +130,7 @@ static void test_3d()
   }
 
   TensorMap<Tensor<const int, 3>> mat3(mat1.data(), 2, 3, 7);
-  TensorMap<Tensor<const int, 3, RowMajor>> mat4(mat2.data(), array<DenseIndex, 3>{2, 3, 7});
+  TensorMap<Tensor<const int, 3, RowMajor>> mat4(mat2.data(), array<DenseIndex, 3>{{2, 3, 7}});
 
   VERIFY_IS_EQUAL(mat3.rank(), 3);
   VERIFY_IS_EQUAL(mat3.size(), 2*3*7);
