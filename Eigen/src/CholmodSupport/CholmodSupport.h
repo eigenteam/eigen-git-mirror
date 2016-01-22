@@ -78,7 +78,7 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_StorageIndex>& mat)
   {
     res.itype = CHOLMOD_INT;
   }
-  else if (internal::is_same<_StorageIndex,SuiteSparse_long>::value)
+  else if (internal::is_same<_StorageIndex,long>::value)
   {
     res.itype = CHOLMOD_LONG;
   }
@@ -327,6 +327,57 @@ class CholmodBase : public SparseSolverBase<Derived>
       return derived();
     }
     
+    /** \returns the determinant of the underlying matrix from the current factorization */
+    Scalar determinant() const
+    {
+      using std::exp;
+      return exp(logDeterminant());
+    }
+
+    /** \returns the log determinant of the underlying matrix from the current factorization */
+    Scalar logDeterminant() const
+    {
+      using std::log;
+      using numext::real;
+      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
+
+      RealScalar logDet = 0;
+      Scalar *x = static_cast<Scalar*>(m_cholmodFactor->x);
+      if (m_cholmodFactor->is_super)
+      {
+        // Supernodal factorization stored as a packed list of dense column-major blocs,
+        // as described by the following structure:
+
+        // super[k] == index of the first column of the j-th super node
+        StorageIndex *super = static_cast<StorageIndex*>(m_cholmodFactor->super);
+        // pi[k] == offset to the description of row indices
+        StorageIndex *pi = static_cast<StorageIndex*>(m_cholmodFactor->pi);
+        // px[k] == offset to the respective dense block
+        StorageIndex *px = static_cast<StorageIndex*>(m_cholmodFactor->px);
+
+        Index nb_super_nodes = m_cholmodFactor->nsuper;
+        for (Index k=0; k < nb_super_nodes; ++k)
+        {
+          StorageIndex ncols = super[k + 1] - super[k];
+          StorageIndex nrows = pi[k + 1] - pi[k];
+
+          Map<const Array<Scalar,1,Dynamic>, 0, InnerStride<> > sk(x + px[k], ncols, InnerStride<>(nrows+1));
+          logDet += sk.real().log().sum();
+        }
+      }
+      else
+      {
+        // Simplicial factorization stored as standard CSC matrix.
+        StorageIndex *p = static_cast<StorageIndex*>(m_cholmodFactor->p);
+        Index size = m_cholmodFactor->n;
+        for (Index k=0; k<size; ++k)
+          logDet += log(real( x[p[k]] ));
+      }
+      if (m_cholmodFactor->is_ll)
+        logDet *= 2.0;
+      return logDet;
+    };
+
     template<typename Stream>
     void dumpMemory(Stream& /*s*/)
     {}
