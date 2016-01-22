@@ -954,8 +954,8 @@ T (ceil)(const T& x)
   return ceil(x);
 }
 
-// Log base 2 for 32 bits positive integers.
-// Conveniently returns 0 for x==0.
+/** Log base 2 for 32 bits positive integers.
+  * Conveniently returns 0 for x==0. */
 inline int log2(int x)
 {
   eigen_assert(x>=0);
@@ -967,6 +967,22 @@ inline int log2(int x)
   v |= v >> 8;
   v |= v >> 16;
   return table[(v * 0x07C4ACDDU) >> 27];
+}
+
+/** \returns the square root of \a x.
+  *
+  * It is essentially equivalent to \code using std::sqrt; return sqrt(x); \endcode,
+  * but slightly faster for float/double and some compilers (e.g., gcc), thanks to
+  * specializations when SSE is enabled.
+  *
+  * It's usage is justified in performance critical functions, like norm/normalize.
+  */
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T sqrt(const T &x)
+{
+  EIGEN_USING_STD_MATH(sqrt);
+  return sqrt(x);
 }
 
 } // end namespace numext
