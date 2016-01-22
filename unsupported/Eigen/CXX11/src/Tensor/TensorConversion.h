@@ -162,6 +162,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess && internal::type_casting_traits<SrcType, TargetType>::VectorizedCast,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)

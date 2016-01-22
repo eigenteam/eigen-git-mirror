@@ -28,8 +28,8 @@ namespace internal {
   *
   * \brief Robust Cholesky decomposition of a matrix with pivoting
   *
-  * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
-  * \param UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
+  * \tparam _MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
+  * \tparam _UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
   *             The other triangular part won't be read.
   *
   * Perform a robust Cholesky decomposition of a positive semidefinite or negative semidefinite

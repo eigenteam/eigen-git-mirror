@@ -516,7 +516,7 @@ static IndexType init_rows_cols  /* returns true if OK, or false otherwise */
     Col [col].start = p [col] ;
     Col [col].length = p [col+1] - p [col] ;
 
-    if (Col [col].length < 0)
+    if ((Col [col].length) < 0) // extra parentheses to work-around gcc bug 10200
     {
       /* column pointers must be non-decreasing */
       stats [COLAMD_STATUS] = COLAMD_ERROR_col_length_negative ;

@@ -95,10 +95,10 @@ template<typename Scalar> struct GoogleSparseHashMapTraits
   *
   * \brief The RandomSetter is a wrapper object allowing to set/update a sparse matrix with random access
   *
-  * \param SparseMatrixType the type of the sparse matrix we are updating
-  * \param MapTraits a traits class representing the map implementation used for the temporary sparse storage.
+  * \tparam SparseMatrixType the type of the sparse matrix we are updating
+  * \tparam MapTraits a traits class representing the map implementation used for the temporary sparse storage.
   *                  Its default value depends on the system.
-  * \param OuterPacketBits defines the number of rows (or columns) manage by a single map object
+  * \tparam OuterPacketBits defines the number of rows (or columns) manage by a single map object
   *                        as a power of two exponent.
   *
   * This class temporarily represents a sparse matrix object using a generic map implementation allowing for

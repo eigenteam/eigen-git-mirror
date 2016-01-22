@@ -145,12 +145,9 @@ static void run(Index rows, Index cols, Index depth,
 
       // Release all the sub blocks A'_i of A' for the current thread,
       // i.e., we simply decrement the number of users by 1
-      #pragma omp critical
-      {
       for(Index i=0; i<threads; ++i)
         #pragma omp atomic
         info[i].users -= 1;
-      }
     }
   }
   else

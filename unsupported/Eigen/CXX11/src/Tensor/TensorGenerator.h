@@ -95,6 +95,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)

@@ -47,9 +47,8 @@ struct traits<BDCSVD<_MatrixType> >
  *
  * \brief class Bidiagonal Divide and Conquer SVD
  *
- * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
- * We plan to have a very similar interface to JacobiSVD on this class.
- * It should be used to speed up the calcul of SVD for big matrices. 
+ * \tparam _MatrixType the type of the matrix of which we are computing the SVD decomposition
+ *
  */
 template<typename _MatrixType> 
 class BDCSVD : public SVDBase<BDCSVD<_MatrixType> >

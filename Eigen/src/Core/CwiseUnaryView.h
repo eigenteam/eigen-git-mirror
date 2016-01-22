@@ -12,20 +12,6 @@
 
 namespace Eigen {
 
-/** \class CwiseUnaryView
-  * \ingroup Core_Module
-  *
-  * \brief Generic lvalue expression of a coefficient-wise unary operator of a matrix or a vector
-  *
-  * \param ViewOp template functor implementing the view
-  * \param MatrixType the type of the matrix we are applying the unary operator
-  *
-  * This class represents a lvalue expression of a generic unary view operator of a matrix or a vector.
-  * It is the return type of real() and imag(), and most of the time this is the only way it is used.
-  *
-  * \sa MatrixBase::unaryViewExpr(const CustomUnaryOp &) const, class CwiseUnaryOp
-  */
-
 namespace internal {
 template<typename ViewOp, typename MatrixType>
 struct traits<CwiseUnaryView<ViewOp, MatrixType> >
@@ -55,6 +41,19 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
 template<typename ViewOp, typename MatrixType, typename StorageKind>
 class CwiseUnaryViewImpl;
 
+/** \class CwiseUnaryView
+  * \ingroup Core_Module
+  *
+  * \brief Generic lvalue expression of a coefficient-wise unary operator of a matrix or a vector
+  *
+  * \tparam ViewOp template functor implementing the view
+  * \tparam MatrixType the type of the matrix we are applying the unary operator
+  *
+  * This class represents a lvalue expression of a generic unary view operator of a matrix or a vector.
+  * It is the return type of real() and imag(), and most of the time this is the only way it is used.
+  *
+  * \sa MatrixBase::unaryViewExpr(const CustomUnaryOp &) const, class CwiseUnaryOp
+  */
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename internal::traits<MatrixType>::StorageKind>
 {

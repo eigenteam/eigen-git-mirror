@@ -1261,7 +1261,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       Base(op, device) {}
 
   // We need to redefine this method to make nvcc happy
-  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
     this->m_leftImpl.evalSubExprsIfNeeded(NULL);
     this->m_rightImpl.evalSubExprsIfNeeded(NULL);
     if (data) {
@@ -1317,6 +1317,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   void evalTyped(Scalar* buffer) const {
     // columns in left side, rows in right side
     const Index k = this->m_k_size;
+    EIGEN_UNUSED_VARIABLE(k)
 
     // rows in left side
     const Index m = this->m_i_size;
@@ -1361,7 +1362,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         const dim3 block_size(16, 16, 1);
         LAUNCH_CUDA_KERNEL((EigenFloatContractionKernel16x16<Index, LhsMapper, RhsMapper, OutputMapper>), num_blocks, block_size, 0, this->m_device, lhs, rhs, output, m, n, k);
       } else {
-       const Index m_blocks = (m + 127) / 128;
+        const Index m_blocks = (m + 127) / 128;
         const Index n_blocks = (n + 63) / 64;
         const dim3 num_blocks(m_blocks, n_blocks, 1);
         const dim3 block_size(8, 32, 1);

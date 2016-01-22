@@ -18,8 +18,8 @@ namespace Eigen {
   *
   * \brief Represents a translation transformation
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients.
-  * \param _Dim the  dimension of the space, can be a compile time value or Dynamic
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients.
+  * \tparam _Dim the  dimension of the space, can be a compile time value or Dynamic
   *
   * \note This class is not aimed to be used to store a translation transformation,
   * but rather to make easier the constructions and updates of Transform objects.

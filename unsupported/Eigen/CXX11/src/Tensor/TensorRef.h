@@ -139,6 +139,7 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
       PacketAccess = false,
       Layout = PlainObjectType::Layout,
       CoordAccess = false,  // to be implemented
+      RawAccess = false
     };
 
     EIGEN_STRONG_INLINE TensorRef() : m_evaluator(NULL) {
@@ -367,6 +368,7 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
     PacketAccess = false,
     Layout = TensorRef<Derived>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const TensorRef<Derived>& m, const Device&)
@@ -412,6 +414,7 @@ struct TensorEvaluator<TensorRef<Derived>, Device> : public TensorEvaluator<cons
   enum {
     IsAligned = false,
     PacketAccess = false,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(TensorRef<Derived>& m, const Device& d) : Base(m, d)

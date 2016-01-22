@@ -109,11 +109,9 @@ template<int n, typename x> struct get;
 
 template<int n, typename a, typename... as>               struct get<n, type_list<a, as...>>   : get<n-1, type_list<as...>> {};
 template<typename a, typename... as>                      struct get<0, type_list<a, as...>>   { typedef a type; };
-template<int n EIGEN_TPL_PP_SPEC_HACK_DEFC(typename, as)> struct get<n, type_list<EIGEN_TPL_PP_SPEC_HACK_USE(as)>> { static_assert((n - n) < 0, "meta-template get: The element to extract from a list must be smaller than the size of the list."); };
 
 template<typename T, int n, T a, T... as>                        struct get<n, numeric_list<T, a, as...>>   : get<n-1, numeric_list<T, as...>> {};
 template<typename T, T a, T... as>                               struct get<0, numeric_list<T, a, as...>>   { constexpr static T value = a; };
-template<typename T, int n EIGEN_TPL_PP_SPEC_HACK_DEFC(T, as)>   struct get<n, numeric_list<T EIGEN_TPL_PP_SPEC_HACK_USEC(as)>> { static_assert((n - n) < 0, "meta-template get: The element to extract from a list must be smaller than the size of the list."); };
 
 /* always get type, regardless of dummy; good for parameter pack expansion */
 
@@ -406,7 +404,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE t array_prod(const std::vector<t>& a) {
 template<typename Op, typename A, typename B, std::size_t N, int... n>
 constexpr inline array<decltype(Op::run(A(), B())),N> h_array_zip(array<A, N> a, array<B, N> b, numeric_list<int, n...>)
 {
-  return array<decltype(Op::run(A(), B())),N>{{ Op::run(array_get<n>(a), array_get<n>(b))... }};
+  return array<decltype(Op::run(A(), B())),N>{ Op::run(array_get<n>(a), array_get<n>(b))... };
 }
 
 template<typename Op, typename A, typename B, std::size_t N>
@@ -434,7 +432,7 @@ constexpr inline auto array_zip_and_reduce(array<A, N> a, array<B, N> b) -> decl
 template<typename Op, typename A, std::size_t N, int... n>
 constexpr inline array<decltype(Op::run(A())),N> h_array_apply(array<A, N> a, numeric_list<int, n...>)
 {
-  return array<decltype(Op::run(A())),N>{{ Op::run(array_get<n>(a))... }};
+  return array<decltype(Op::run(A())),N>{ Op::run(array_get<n>(a))... };
 }
 
 template<typename Op, typename A, std::size_t N>

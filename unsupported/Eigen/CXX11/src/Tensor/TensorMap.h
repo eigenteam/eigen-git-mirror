@@ -49,7 +49,8 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       IsAligned = ((int(Options_)&Aligned)==Aligned),
       PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = PlainObjectType::Layout,
-      CoordAccess = true
+      CoordAccess = true,
+      RawAccess = true
     };
 
     EIGEN_DEVICE_FUNC
@@ -140,10 +141,10 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     {
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
       if (PlainObjectType::Options&RowMajor) {
-        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumIndices>{{firstIndex, otherIndices...}});
+        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumIndices>{firstIndex, otherIndices...});
         return m_data[index];
       } else {
-        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumIndices>{{firstIndex, otherIndices...}});
+        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumIndices>{firstIndex, otherIndices...});
         return m_data[index];
       }
     }
@@ -227,10 +228,10 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       static_assert(sizeof...(otherIndices) + 1 == NumIndices || NumIndices == Dynamic, "Number of indices used to access a tensor coefficient must be equal to the rank of the tensor.");
       const std::size_t NumDims = sizeof...(otherIndices) + 1;
       if (PlainObjectType::Options&RowMajor) {
-        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumDims>{{firstIndex, otherIndices...}});
+        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumDims>{firstIndex, otherIndices...});
         return m_data[index];
       } else {
-        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumDims>{{firstIndex, otherIndices...}});
+        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumDims>{firstIndex, otherIndices...});
         return m_data[index];
       }
     }

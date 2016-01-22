@@ -13,41 +13,6 @@
 
 namespace Eigen { 
 
-/** \class Block
-  * \ingroup Core_Module
-  *
-  * \brief Expression of a fixed-size or dynamic-size block
-  *
-  * \param XprType the type of the expression in which we are taking a block
-  * \param BlockRows the number of rows of the block we are taking at compile time (optional)
-  * \param BlockCols the number of columns of the block we are taking at compile time (optional)
-  * \param InnerPanel is true, if the block maps to a set of rows of a row major matrix or
-  *        to set of columns of a column major matrix (optional). The parameter allows to determine
-  *        at compile time whether aligned access is possible on the block expression.
-  *
-  * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
-  * type of DenseBase::block(Index,Index,Index,Index) and DenseBase::block<int,int>(Index,Index) and
-  * most of the time this is the only way it is used.
-  *
-  * However, if you want to directly maniputate block expressions,
-  * for instance if you want to write a function returning such an expression, you
-  * will need to use this class.
-  *
-  * Here is an example illustrating the dynamic case:
-  * \include class_Block.cpp
-  * Output: \verbinclude class_Block.out
-  *
-  * \note Even though this expression has dynamic size, in the case where \a XprType
-  * has fixed size, this expression inherits a fixed maximal size which means that evaluating
-  * it does not cause a dynamic memory allocation.
-  *
-  * Here is an example illustrating the fixed-size case:
-  * \include class_FixedBlock.cpp
-  * Output: \verbinclude class_FixedBlock.out
-  *
-  * \sa DenseBase::block(Index,Index,Index,Index), DenseBase::block(Index,Index), class VectorBlock
-  */
-
 namespace internal {
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
 struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprType>
@@ -101,6 +66,40 @@ template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool In
 
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename StorageKind> class BlockImpl;
 
+/** \class Block
+  * \ingroup Core_Module
+  *
+  * \brief Expression of a fixed-size or dynamic-size block
+  *
+  * \tparam XprType the type of the expression in which we are taking a block
+  * \tparam BlockRows the number of rows of the block we are taking at compile time (optional)
+  * \tparam BlockCols the number of columns of the block we are taking at compile time (optional)
+  * \tparam InnerPanel is true, if the block maps to a set of rows of a row major matrix or
+  *         to set of columns of a column major matrix (optional). The parameter allows to determine
+  *         at compile time whether aligned access is possible on the block expression.
+  *
+  * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
+  * type of DenseBase::block(Index,Index,Index,Index) and DenseBase::block<int,int>(Index,Index) and
+  * most of the time this is the only way it is used.
+  *
+  * However, if you want to directly maniputate block expressions,
+  * for instance if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * Here is an example illustrating the dynamic case:
+  * \include class_Block.cpp
+  * Output: \verbinclude class_Block.out
+  *
+  * \note Even though this expression has dynamic size, in the case where \a XprType
+  * has fixed size, this expression inherits a fixed maximal size which means that evaluating
+  * it does not cause a dynamic memory allocation.
+  *
+  * Here is an example illustrating the fixed-size case:
+  * \include class_FixedBlock.cpp
+  * Output: \verbinclude class_FixedBlock.out
+  *
+  * \sa DenseBase::block(Index,Index,Index,Index), DenseBase::block(Index,Index), class VectorBlock
+  */
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class Block
   : public BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, typename internal::traits<XprType>::StorageKind>
 {

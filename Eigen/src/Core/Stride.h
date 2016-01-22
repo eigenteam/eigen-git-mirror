@@ -31,8 +31,8 @@ namespace Eigen {
   * arguments to the constructor.
   *
   * Indeed, this class takes two template parameters:
-  *  \param _OuterStrideAtCompileTime the outer stride, or Dynamic if you want to specify it at runtime.
-  *  \param _InnerStrideAtCompileTime the inner stride, or Dynamic if you want to specify it at runtime.
+  *  \tparam _OuterStrideAtCompileTime the outer stride, or Dynamic if you want to specify it at runtime.
+  *  \tparam _InnerStrideAtCompileTime the inner stride, or Dynamic if you want to specify it at runtime.
   *
   * Here is an example:
   * \include Map_general_stride.cpp

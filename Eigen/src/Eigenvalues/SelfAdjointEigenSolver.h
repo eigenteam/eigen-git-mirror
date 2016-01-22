@@ -375,8 +375,12 @@ namespace internal {
   * Performs a QR step on a tridiagonal symmetric matrix represented as a
   * pair of two vectors \a diag and \a subdiag.
   *
-  * \param matA the input selfadjoint matrix
-  * \param hCoeffs returned Householder coefficients
+  * \param diag the diagonal part of the input selfadjoint tridiagonal matrix
+  * \param subdiag the sub-diagonal part of the input selfadjoint tridiagonal matrix
+  * \param start starting index of the submatrix to work on
+  * \param end last+1 index of the submatrix to work on
+  * \param matrixQ pointer to the column-major matrix holding the eigenvectors, can be 0
+  * \param n size of the input matrix
   *
   * For compilation efficiency reasons, this procedure does not use eigen expression
   * for its arguments.
@@ -467,9 +471,10 @@ namespace internal {
   * \brief Compute the eigendecomposition from a tridiagonal matrix
   *
   * \param[in,out] diag : On input, the diagonal of the matrix, on output the eigenvalues
-  * \param[in] subdiag : The subdiagonal part of the matrix.
-  * \param[in,out] : On input, the maximum number of iterations, on output, the effective number of iterations.
-  * \param[out] eivec : The matrix to store the eigenvectors... if needed. allocated on input
+  * \param[in,out] subdiag : The subdiagonal part of the matrix (entries are modified during the decomposition)
+  * \param[in] maxIterations : the maximum number of iterations
+  * \param[in] computeEigenvectors : whether the eigenvectors have to be computed or not
+  * \param[out] eivec : The matrix to store the eigenvectors if computeEigenvectors==true. Must be allocated on input.
   * \returns \c Success or \c NoConvergence
   */
 template<typename MatrixType, typename DiagType, typename SubDiagType>

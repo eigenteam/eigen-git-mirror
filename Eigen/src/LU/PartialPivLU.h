@@ -34,7 +34,7 @@ template<typename _MatrixType> struct traits<PartialPivLU<_MatrixType> >
   *
   * \brief LU decomposition of a matrix with partial pivoting, and related features
   *
-  * \param MatrixType the type of the matrix of which we are computing the LU decomposition
+  * \tparam _MatrixType the type of the matrix of which we are computing the LU decomposition
   *
   * This class represents a LU decomposition of a \b square \b invertible matrix, with partial pivoting: the matrix A
   * is decomposed as A = PLU where L is unit-lower-triangular, U is upper-triangular, and P

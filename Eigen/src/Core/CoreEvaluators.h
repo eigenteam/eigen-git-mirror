@@ -63,10 +63,6 @@ struct evaluator_traits_base
   // by default, get evaluator kind and shape from storage
   typedef typename storage_kind_to_evaluator_kind<typename traits<T>::StorageKind>::Kind Kind;
   typedef typename storage_kind_to_shape<typename traits<T>::StorageKind>::Shape Shape;
-  
-  // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
-  // temporary; 0 if not.
-  static const int AssumeAliasing = 0;
 };
 
 // Default evaluator traits
@@ -75,6 +71,10 @@ struct evaluator_traits : public evaluator_traits_base<T>
 {
 };
 
+template<typename T, typename Shape = typename evaluator_traits<T>::Shape >
+struct evaluator_assume_aliasing {
+  static const bool value = false;
+};
 
 // By default, we assume a unary expression:
 template<typename T>

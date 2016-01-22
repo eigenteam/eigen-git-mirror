@@ -21,7 +21,7 @@ namespace Eigen {
   * References : C-J. Lin and J. J. Moré, Incomplete Cholesky Factorizations with
   *              Limited memory, SIAM J. Sci. Comput.  21(1), pp. 24-45, 1999
   *
-  * \tparam _MatrixType The type of the sparse matrix. It is advised to give a row-oriented sparse matrix
+  * \tparam Scalar the scalar type of the input matrices
   * \tparam _UpLo The triangular part that will be used for the computations. It can be Lower
     *               or Upper. Default is Lower.
   * \tparam _OrderingType The ordering method to use, either AMDOrdering<> or NaturalOrdering<>. Default is AMDOrdering<int>,

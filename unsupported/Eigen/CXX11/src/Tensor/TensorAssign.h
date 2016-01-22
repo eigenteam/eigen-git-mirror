@@ -97,6 +97,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
     IsAligned = TensorEvaluator<LeftArgType, Device>::IsAligned & TensorEvaluator<RightArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+    RawAccess = TensorEvaluator<LeftArgType, Device>::RawAccess,
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
@@ -151,6 +152,8 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   {
     return m_leftImpl.template packet<LoadMode>(index);
   }
+
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_leftImpl.data(); }
 
  private:
   TensorEvaluator<LeftArgType, Device> m_leftImpl;

@@ -76,13 +76,24 @@ __device__ inline void atomicReduce(T* output, T accum, SumReducer<T>&) {
 #endif
 }
 
+
+template <typename CoeffType, typename Index>
+__global__ void ReductionInitKernel(const CoeffType val, Index num_preserved_coeffs, CoeffType* output) {
+  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+  const Index num_threads = blockDim.x * gridDim.x;
+  for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
+    output[i] = val;
+  }
+}
+
 template <int BlockSize, int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num_coeffs,
                                     typename Self::CoeffReturnType* output) {
   const Index first_index = blockIdx.x * BlockSize * NumPerThread + threadIdx.x;
 
-  if (first_index == 0) {
+  // Initialize the output value if it wasn't initialized by the ReductionInitKernel
+  if (gridDim.x == 1 && first_index == 0) {
     *output = reducer.initialize();
   }
 
@@ -115,23 +126,138 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename OutputType>
-  EIGEN_DEVICE_FUNC static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
+  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
     assert(false && "Should only be called on floats");
   }
 
-  EIGEN_DEVICE_FUNC static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
+  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
     typedef typename Self::Index Index;
 
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
     const int block_size = 256;
     const int num_per_thread = 128;
     const int num_blocks = std::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
-    LAUNCH_CUDA_KERNEL((FullReductionKernel<block_size, num_per_thread>),
+
+    if (num_blocks > 1) {
+      // We initialize the outputs outside the reduction kernel when we can't be sure that there
+      // won't be a race conditions between multiple thread blocks.
+      LAUNCH_CUDA_KERNEL((ReductionInitKernel<float, Index>),
+                         1, 32, 0, device, reducer.initialize(), 1, output);
+    }
+
+    LAUNCH_CUDA_KERNEL((FullReductionKernel<block_size, num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs, output);
   }
 };
 
-#define DIVUP(x, y) (((x) + (y)-1) / (y))
+
+template <int NumPerThread, typename Self,
+          typename Reducer, typename Index>
+__global__ void InnerReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
+                                         typename Self::CoeffReturnType* output) {
+  eigen_assert(blockDim.y == 1);
+  eigen_assert(blockDim.z == 1);
+  eigen_assert(gridDim.y == 1);
+  eigen_assert(gridDim.z == 1);
+
+  const int unroll_times = 16;
+  eigen_assert(NumPerThread % unroll_times == 0);
+
+  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.x * NumPerThread);
+  const Index num_input_blocks = input_col_blocks * num_preserved_coeffs;
+
+  const Index num_threads = blockDim.x * gridDim.x;
+  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+
+  // Initialize the output values if they weren't initialized by the ReductionInitKernel
+  if (gridDim.x == 1) {
+    for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
+      output[i] = reducer.initialize();
+    }
+  }
+
+  for (Index i = blockIdx.x; i < num_input_blocks; i += gridDim.x) {
+    const Index row = i / input_col_blocks;
+
+    if (row < num_preserved_coeffs) {
+      const Index col_block = i % input_col_blocks;
+      const Index col_begin = col_block * blockDim.x * NumPerThread + threadIdx.x;
+
+      float reduced_val = reducer.initialize();
+
+      for (Index j = 0; j < NumPerThread; j += unroll_times) {
+        const Index last_col = col_begin + blockDim.x * (j + unroll_times - 1);
+        if (last_col >= num_coeffs_to_reduce) {
+          for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col +=blockDim.x) {
+            const float val = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
+            reducer.reduce(val, &reduced_val);
+          }
+          break;
+        } else {
+          // Faster version of the loop with no branches after unrolling.
+#pragma unroll
+          for (int k = 0; k < unroll_times; ++k) {
+            const Index col = col_begin + blockDim.x * (j + k);
+            reducer.reduce(input.m_impl.coeff(row * num_coeffs_to_reduce + col), &reduced_val);
+          }
+        }
+      }
+
+#pragma unroll
+      for (int offset = warpSize/2; offset > 0; offset /= 2) {
+        reducer.reduce(__shfl_down(reduced_val, offset), &reduced_val);
+      }
+
+      if ((threadIdx.x & (warpSize - 1)) == 0) {
+        atomicReduce(&(output[row]), reduced_val, reducer);
+      }
+    }
+
+    __syncthreads();
+  }
+}
+
+template <typename Self, typename Op>
+struct InnerReducer<Self, Op, GpuDevice> {
+  // Unfortunately nvidia doesn't support well exotic types such as complex,
+  // so reduce the scope of the optimized version of the code to the simple case
+  // of floats.
+  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+                                                 internal::is_same<typename Self::CoeffReturnType, float>::value;
+
+  template <typename Device, typename OutputType>
+  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
+    assert(false && "Should only be called to reduce floats on a gpu device");
+  }
+
+  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+    typedef typename Self::Index Index;
+
+    const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
+    const int block_size = 256;
+    const int num_per_thread = 128;
+    const int dyn_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
+    const int max_blocks = device.getNumCudaMultiProcessors() *
+                           device.maxCudaThreadsPerMultiProcessor() / block_size;
+    const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
+
+    if (num_blocks > 1) {
+      // We initialize the outputs outside the reduction kernel when we can't be sure that there
+      // won't be a race conditions between multiple thread blocks.
+      const int dyn_blocks = divup<int>(num_preserved_vals, 1024);
+      const int max_blocks = device.getNumCudaMultiProcessors() *
+                           device.maxCudaThreadsPerMultiProcessor() / 1024;
+      const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
+      LAUNCH_CUDA_KERNEL((ReductionInitKernel<float, Index>),
+                         num_blocks, 1024, 0, device, reducer.initialize(),
+                         num_preserved_vals, output);
+    }
+
+    LAUNCH_CUDA_KERNEL((InnerReductionKernel<num_per_thread, Self, Op, Index>),
+                       num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
+  }
+};
+
 
 template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
@@ -139,13 +265,15 @@ __global__ void OuterReductionKernel(Reducer reducer, const Self input, Index nu
                                      typename Self::CoeffReturnType* output) {
   const Index num_threads = blockDim.x * gridDim.x;
   const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
-  // Initialize the output values
-  for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
-    output[i] = reducer.initialize();
+  // Initialize the output values if they weren't initialized by the ReductionInitKernel
+  if (gridDim.x == 1) {
+    for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
+      output[i] = reducer.initialize();
+    }
   }
 
   // Do the reduction.
-  const Index max_iter = DIVUP(num_coeffs_to_reduce, NumPerThread) * num_preserved_coeffs;
+  const Index max_iter = num_preserved_coeffs * numext::maxi<Index>(1, (num_coeffs_to_reduce - NumPerThread + 1));
   for (Index i = thread_id; i < max_iter; i += num_threads) {
     const Index input_col = i % num_preserved_coeffs;
     const Index input_row = (i / num_preserved_coeffs) * NumPerThread;
@@ -169,27 +297,37 @@ struct OuterReducer<Self, Op, GpuDevice> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename Device, typename OutputType>
-  static void run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
+  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
     assert(false && "Should only be called to reduce floats on a gpu device");
   }
 
-  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
 
-    const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
+     const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
     const int block_size = 256;
     const int num_per_thread = 16;
-    const int dyn_blocks = std::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
+    const int dyn_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
     const int max_blocks = device.getNumCudaMultiProcessors() *
                            device.maxCudaThreadsPerMultiProcessor() / block_size;
     const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
 
-    LAUNCH_CUDA_KERNEL((OuterReductionKernel<num_per_thread>),
+    if (num_blocks > 1) {
+      // We initialize the outputs in the reduction kernel itself when we don't have to worry
+      // about race conditions between multiple thread blocks.
+      const int dyn_blocks = divup<int>(num_preserved_vals, 1024);
+      const int max_blocks = device.getNumCudaMultiProcessors() *
+                             device.maxCudaThreadsPerMultiProcessor() / 1024;
+      const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
+      LAUNCH_CUDA_KERNEL((ReductionInitKernel<float, Index>),
+                         num_blocks, 1024, 0, device, reducer.initialize(),
+                         num_preserved_vals, output);
+    }
+
+    LAUNCH_CUDA_KERNEL((OuterReductionKernel<num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
   }
 };
-
-#undef DIVUP
 
 #endif
 

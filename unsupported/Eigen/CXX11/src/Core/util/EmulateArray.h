@@ -132,13 +132,13 @@ template <typename T> class array<T, 0> {
     return *static_cast<const T*>(NULL);
   }
 
-  static EIGEN_ALWAYS_INLINE std::size_t size() { return 0; }
+  static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE std::size_t size() { return 0; }
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array() { }
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  array(std::initializer_list<T> l) {
+  EIGEN_DEVICE_FUNC array(std::initializer_list<T> l) {
     eigen_assert(l.size() == 0);
   }
 #endif

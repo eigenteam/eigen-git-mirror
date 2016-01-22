@@ -24,6 +24,11 @@ const T2& choose(Cond<false>, const T1&, const T2& second) {
   return second;
 }
 
+template <typename T> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T divup(const T x, const T y) {
+  return (x + y - 1) / y;
+}
+
 template <size_t n> struct max_n_1 {
   static const size_t size = n;
 };

@@ -13,20 +13,6 @@
 
 namespace Eigen { 
 
-/** \class Transpose
-  * \ingroup Core_Module
-  *
-  * \brief Expression of the transpose of a matrix
-  *
-  * \param MatrixType the type of the object of which we are taking the transpose
-  *
-  * This class represents an expression of the transpose of a matrix.
-  * It is the return type of MatrixBase::transpose() and MatrixBase::adjoint()
-  * and most of the time this is the only way it is used.
-  *
-  * \sa MatrixBase::transpose(), MatrixBase::adjoint()
-  */
-
 namespace internal {
 template<typename MatrixType>
 struct traits<Transpose<MatrixType> > : public traits<MatrixType>
@@ -50,6 +36,19 @@ struct traits<Transpose<MatrixType> > : public traits<MatrixType>
 
 template<typename MatrixType, typename StorageKind> class TransposeImpl;
 
+/** \class Transpose
+  * \ingroup Core_Module
+  *
+  * \brief Expression of the transpose of a matrix
+  *
+  * \tparam MatrixType the type of the object of which we are taking the transpose
+  *
+  * This class represents an expression of the transpose of a matrix.
+  * It is the return type of MatrixBase::transpose() and MatrixBase::adjoint()
+  * and most of the time this is the only way it is used.
+  *
+  * \sa MatrixBase::transpose(), MatrixBase::adjoint()
+  */
 template<typename MatrixType> class Transpose
   : public TransposeImpl<MatrixType,typename internal::traits<MatrixType>::StorageKind>
 {

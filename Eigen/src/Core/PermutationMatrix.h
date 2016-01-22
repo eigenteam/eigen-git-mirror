@@ -13,12 +13,18 @@
 
 namespace Eigen { 
 
+namespace internal {
+
+enum PermPermProduct_t {PermPermProduct};
+
+} // end namespace internal
+
 /** \class PermutationBase
   * \ingroup Core_Module
   *
   * \brief Base class for permutations
   *
-  * \param Derived the derived class
+  * \tparam Derived the derived class
   *
   * This class is the base class for all expressions representing a permutation matrix,
   * internally stored as a vector of integers.
@@ -36,13 +42,6 @@ namespace Eigen {
   *
   * \sa class PermutationMatrix, class PermutationWrapper
   */
-
-namespace internal {
-
-enum PermPermProduct_t {PermPermProduct};
-
-} // end namespace internal
-
 template<typename Derived>
 class PermutationBase : public EigenBase<Derived>
 {
@@ -280,20 +279,6 @@ class PermutationBase : public EigenBase<Derived>
 
 };
 
-/** \class PermutationMatrix
-  * \ingroup Core_Module
-  *
-  * \brief Permutation matrix
-  *
-  * \param SizeAtCompileTime the number of rows/cols, or Dynamic
-  * \param MaxSizeAtCompileTime the maximum number of rows/cols, or Dynamic. This optional parameter defaults to SizeAtCompileTime. Most of the time, you should not have to specify it.
-  * \param StorageIndex the integer type of the indices
-  *
-  * This class represents a permutation matrix, internally stored as a vector of integers.
-  *
-  * \sa class PermutationBase, class PermutationWrapper, class DiagonalMatrix
-  */
-
 namespace internal {
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex>
 struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndex> >
@@ -306,6 +291,19 @@ struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _Storag
 };
 }
 
+/** \class PermutationMatrix
+  * \ingroup Core_Module
+  *
+  * \brief Permutation matrix
+  *
+  * \tparam SizeAtCompileTime the number of rows/cols, or Dynamic
+  * \tparam MaxSizeAtCompileTime the maximum number of rows/cols, or Dynamic. This optional parameter defaults to SizeAtCompileTime. Most of the time, you should not have to specify it.
+  * \tparam _StorageIndex the integer type of the indices
+  *
+  * This class represents a permutation matrix, internally stored as a vector of integers.
+  *
+  * \sa class PermutationBase, class PermutationWrapper, class DiagonalMatrix
+  */
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex>
 class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageIndex> >
 {
@@ -482,18 +480,6 @@ class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, _StorageInd
     IndicesType m_indices;
 };
 
-/** \class PermutationWrapper
-  * \ingroup Core_Module
-  *
-  * \brief Class to view a vector of integers as a permutation matrix
-  *
-  * \param _IndicesType the type of the vector of integer (can be any compatible expression)
-  *
-  * This class allows to view any vector expression of integers as a permutation matrix.
-  *
-  * \sa class PermutationBase, class PermutationMatrix
-  */
-
 template<typename _IndicesType> class TranspositionsWrapper;
 namespace internal {
 template<typename _IndicesType>
@@ -513,6 +499,17 @@ struct traits<PermutationWrapper<_IndicesType> >
 };
 }
 
+/** \class PermutationWrapper
+  * \ingroup Core_Module
+  *
+  * \brief Class to view a vector of integers as a permutation matrix
+  *
+  * \tparam _IndicesType the type of the vector of integer (can be any compatible expression)
+  *
+  * This class allows to view any vector expression of integers as a permutation matrix.
+  *
+  * \sa class PermutationBase, class PermutationMatrix
+  */
 template<typename _IndicesType>
 class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesType> >
 {

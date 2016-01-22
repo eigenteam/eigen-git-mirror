@@ -304,7 +304,6 @@ struct evaluator_traits<Homogeneous<ArgType,Direction> >
 {
   typedef typename storage_kind_to_evaluator_kind<typename ArgType::StorageKind>::Kind Kind;
   typedef HomogeneousShape Shape;  
-  static const int AssumeAliasing = 0;
 };
 
 template<> struct AssignmentKind<DenseShape,HomogeneousShape> { typedef Dense2Dense Kind; };

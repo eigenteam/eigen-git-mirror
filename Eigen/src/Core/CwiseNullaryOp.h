@@ -12,24 +12,6 @@
 
 namespace Eigen {
 
-/** \class CwiseNullaryOp
-  * \ingroup Core_Module
-  *
-  * \brief Generic expression of a matrix where all coefficients are defined by a functor
-  *
-  * \param NullaryOp template functor implementing the operator
-  * \param PlainObjectType the underlying plain matrix/array type
-  *
-  * This class represents an expression of a generic nullary operator.
-  * It is the return type of the Ones(), Zero(), Constant(), Identity() and Random() methods,
-  * and most of the time this is the only way it is used.
-  *
-  * However, if you want to write a function returning such an expression, you
-  * will need to use this class.
-  *
-  * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr()
-  */
-
 namespace internal {
 template<typename NullaryOp, typename PlainObjectType>
 struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectType>
@@ -40,6 +22,23 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
 };
 }
 
+/** \class CwiseNullaryOp
+  * \ingroup Core_Module
+  *
+  * \brief Generic expression of a matrix where all coefficients are defined by a functor
+  *
+  * \tparam NullaryOp template functor implementing the operator
+  * \tparam PlainObjectType the underlying plain matrix/array type
+  *
+  * This class represents an expression of a generic nullary operator.
+  * It is the return type of the Ones(), Zero(), Constant(), Identity() and Random() methods,
+  * and most of the time this is the only way it is used.
+  *
+  * However, if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr()
+  */
 template<typename NullaryOp, typename PlainObjectType>
 class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type, internal::no_assignment_operator
 {

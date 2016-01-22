@@ -524,7 +524,7 @@ template<typename T, bool Align> EIGEN_DEVICE_FUNC inline void conditional_align
   * \sa first_default_aligned()
   */
 template<int Alignment, typename Scalar, typename Index>
-inline Index first_aligned(const Scalar* array, Index size)
+EIGEN_DEVICE_FUNC inline Index first_aligned(const Scalar* array, Index size)
 {
   static const Index ScalarSize = sizeof(Scalar);
   static const Index AlignmentSize = Alignment / ScalarSize;
@@ -544,14 +544,15 @@ inline Index first_aligned(const Scalar* array, Index size)
   }
   else
   {
-    return std::min<Index>( (AlignmentSize - (Index((std::size_t(array)/sizeof(Scalar))) & AlignmentMask)) & AlignmentMask, size);
+    Index first = (AlignmentSize - (Index((std::size_t(array)/sizeof(Scalar))) & AlignmentMask)) & AlignmentMask;
+    return (first < size) ? first : size;
   }
 }
 
 /** \internal Returns the index of the first element of the array that is well aligned with respect the largest packet requirement.
    * \sa first_aligned(Scalar*,Index) and first_default_aligned(DenseBase<Derived>) */
 template<typename Scalar, typename Index>
-inline Index first_default_aligned(const Scalar* array, Index size)
+EIGEN_DEVICE_FUNC inline Index first_default_aligned(const Scalar* array, Index size)
 {
   typedef typename packet_traits<Scalar>::type DefaultPacketType;
   return first_aligned<unpacket_traits<DefaultPacketType>::alignment>(array, size);

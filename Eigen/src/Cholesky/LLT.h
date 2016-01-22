@@ -22,8 +22,8 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   *
   * \brief Standard Cholesky decomposition (LL^T) of a matrix and associated features
   *
-  * \param MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
-  * \param UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
+  * \tparam _MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
+  * \tparam _UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
   *             The other triangular part won't be read.
   *
   * This class performs a LL^T Cholesky decomposition of a symmetric, positive definite
@@ -436,10 +436,7 @@ void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
   *
   * \param bAndX represents both the right-hand side matrix b and result x.
   *
-  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
-  *
-  * This version avoids a copy when the right hand side matrix b is not
-  * needed anymore.
+  * This version avoids a copy when the right hand side matrix b is not needed anymore.
   *
   * \sa LLT::solve(), MatrixBase::llt()
   */
