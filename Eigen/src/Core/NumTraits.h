@@ -71,11 +71,7 @@ template<typename T> struct GenericNumTraits
   EIGEN_DEVICE_FUNC
   static inline Real epsilon()
   {
-    #if defined(__CUDA_ARCH__)
-    return internal::device::numeric_limits<T>::epsilon();
-    #else
-    return std::numeric_limits<T>::epsilon();
-    #endif
+    return numext::numeric_limits<T>::epsilon();
   }
   EIGEN_DEVICE_FUNC
   static inline Real dummy_precision()
@@ -87,20 +83,12 @@ template<typename T> struct GenericNumTraits
 
   EIGEN_DEVICE_FUNC
   static inline T highest() {
-#if defined(__CUDA_ARCH__)
-    return (internal::device::numeric_limits<T>::max)();
-#else
-    return (std::numeric_limits<T>::max)();
-#endif
+    return (numext::numeric_limits<T>::max)();
   }
 
   EIGEN_DEVICE_FUNC
   static inline T lowest()  {
-#if defined(__CUDA_ARCH__)
-    return IsInteger ? (internal::device::numeric_limits<T>::min)() : (-(internal::device::numeric_limits<T>::max)());
-#else
-    return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)());
-#endif
+    return IsInteger ? (numext::numeric_limits<T>::min)() : (-(numext::numeric_limits<T>::max)());
   }
 };
 

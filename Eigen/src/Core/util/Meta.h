@@ -375,6 +375,12 @@ template<typename T> EIGEN_DEVICE_FUNC   void swap(T &a, T &b) { T tmp = b; b = 
 template<typename T> EIGEN_STRONG_INLINE void swap(T &a, T &b) { std::swap(a,b); }
 #endif
 
+#if defined(__CUDA_ARCH__)
+using internal::device::numeric_limits;
+#else
+using std::numeric_limits;
+#endif
+
 // Integer division with rounding up.
 // T is assumed to be an integer type with a>=0, and b>0
 template<typename T>
