@@ -163,6 +163,20 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     VERIFY(!(numext::isfinite)(v.blueNorm()));      VERIFY((numext::isnan)(v.blueNorm()));
     VERIFY(!(numext::isfinite)(v.hypotNorm()));     VERIFY((numext::isnan)(v.hypotNorm()));
   }
+
+  // stableNormalize[d]
+  {
+    VERIFY_IS_APPROX(vrand.stableNormalized(), vrand.normalized());
+    MatrixType vcopy(vrand);
+    vcopy.stableNormalize();
+    VERIFY_IS_APPROX(vcopy, vrand.normalized());
+    VERIFY_IS_APPROX((vrand.stableNormalized()).norm(), RealScalar(1));
+    VERIFY_IS_APPROX(vcopy.norm(), RealScalar(1));
+    VERIFY_IS_APPROX((vbig.stableNormalized()).norm(), RealScalar(1));
+    VERIFY_IS_APPROX((vsmall.stableNormalized()).norm(), RealScalar(1));
+    VERIFY_IS_APPROX(vbig, vbig.stableNorm() * vbig.stableNormalized());
+    VERIFY_IS_APPROX(vsmall, vsmall.stableNorm() * vsmall.stableNormalized());
+  }
 }
 
 void test_stable_norm()

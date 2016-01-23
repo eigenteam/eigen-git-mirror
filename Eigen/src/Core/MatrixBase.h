@@ -204,7 +204,9 @@ template<typename Derived> class MatrixBase
     RealScalar blueNorm() const;
     RealScalar hypotNorm() const;
     EIGEN_DEVICE_FUNC const PlainObject normalized() const;
+    EIGEN_DEVICE_FUNC const PlainObject stableNormalized() const;
     EIGEN_DEVICE_FUNC void normalize();
+    EIGEN_DEVICE_FUNC void stableNormalize();
 
     EIGEN_DEVICE_FUNC const AdjointReturnType adjoint() const;
     EIGEN_DEVICE_FUNC void adjointInPlace();
