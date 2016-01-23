@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2015 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2015-2016 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -34,4 +34,32 @@ void test_incomplete_cholesky()
   CALL_SUBTEST_1(( test_incomplete_cholesky_T<double,int>() ));
   CALL_SUBTEST_2(( test_incomplete_cholesky_T<std::complex<double>, int>() ));
   CALL_SUBTEST_3(( test_incomplete_cholesky_T<double,long int>() ));
+
+#ifdef EIGEN_TEST_PART_1
+    // regression for bug 1150
+  for(int N = 1; N<20; ++N)
+  {
+    Eigen::MatrixXd b( N, N );
+    b.setOnes();
+
+    Eigen::SparseMatrix<double> m( N, N );
+    m.reserve(Eigen::VectorXi::Constant(N,4));
+    for( int i = 0; i < N; ++i )
+    {
+        m.insert( i, i ) = 1;
+        m.coeffRef( i, i / 2 ) = 2;
+        m.coeffRef( i, i / 3 ) = 2;
+        m.coeffRef( i, i / 4 ) = 2;
+    }
+
+    Eigen::SparseMatrix<double> A;
+    A = m * m.transpose();
+
+    Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,
+        Eigen::Lower | Eigen::Upper,
+        Eigen::IncompleteCholesky<double> > solver( A );
+    VERIFY(solver.preconditioner().info() == Eigen::Success);
+    VERIFY(solver.info() == Eigen::Success);
+  }
+#endif
 }
