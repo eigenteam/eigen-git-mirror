@@ -176,10 +176,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     // compute block sizes (which depend on number of threads)
     const Index num_threads = this->m_device.numThreads();
-    Index mc = m;
-    Index nc = n;
-    Index kc = k;
-    internal::computeProductBlockingSizes<LhsScalar,RhsScalar,1>(kc, mc, nc, num_threads);
+    internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index, internal::ShardByCol> blocking(k, m, n, num_threads);
+    Index mc = blocking.mc();
+    Index nc = blocking.nc();
+    Index kc = blocking.kc();
     eigen_assert(mc <= m);
     eigen_assert(nc <= n);
     eigen_assert(kc <= k);
