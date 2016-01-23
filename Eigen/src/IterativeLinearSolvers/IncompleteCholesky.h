@@ -185,6 +185,10 @@ class IncompleteCholesky : public SparseSolverBase<IncompleteCholesky<Scalar,_Up
     inline void updateList(Ref<const VectorIx> colPtr, Ref<VectorIx> rowIdx, Ref<VectorSx> vals, const Index& col, const Index& jk, VectorIx& firstElt, VectorList& listCol); 
 }; 
 
+// Based on the following paper:
+//   C-J. Lin and J. J. Moré, Incomplete Cholesky Factorizations with
+//   Limited memory, SIAM J. Sci. Comput.  21(1), pp. 24-45, 1999
+//   http://ftp.mcs.anl.gov/pub/tech_reports/reports/P682.pdf
 template<typename Scalar, int _UpLo, typename OrderingType>
 template<typename _MatrixType>
 void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType& mat)
@@ -316,7 +320,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
       {
         if(++iter>=10)
           return;
-        
+
         // increase shift
         shift = numext::maxi(m_initialShift,RealScalar(2)*shift);
         // restore m_L, col_pattern, and listCol
