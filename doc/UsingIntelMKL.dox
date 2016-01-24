@@ -52,7 +52,7 @@ When doing so, a number of Eigen's algorithms are silently substituted with call
 These substitutions apply only for \b Dynamic \b or \b large enough objects with one of the following four standard scalar types: \c float, \c double, \c complex<float>, and \c complex<double>.
 Operations on other scalar types or mixing reals and complexes will continue to use the built-in algorithms.
 
-In addition you can coarsely select choose which parts will be substituted by defining one or multiple of the following macros:
+In addition you can choose which parts will be substituted by defining one or multiple of the following macros:
 
 <table class="manual">
 <tr><td>\c EIGEN_USE_BLAS </td><td>Enables the use of external BLAS level 2 and 3 routines (currently works with Intel MKL only)</td></tr>
