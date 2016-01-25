@@ -167,7 +167,7 @@ namespace Eigen
                derivativeKnots.data(), derivativeKnots.data() + derivativeKnots.size(),
                temporaryKnots.data());
 
-    // Number of control points (one for each point and derivative) plus spline order.
+    // Number of knots (one for each point and derivative) plus spline order.
     DenseIndex numKnots = numParameters + numDerivatives + degree + 1;
     knots.resize(numKnots);
 
