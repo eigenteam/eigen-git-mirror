@@ -106,7 +106,6 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType*) {
-    m_impl.evalSubExprsIfNeeded(NULL);
     const Index numValues = m_impl.dimensions().TotalSize();
     m_buffer = (CoeffReturnType*)m_device.allocate(numValues * sizeof(CoeffReturnType));
     // Should initialize the memory in case we're dealing with non POD types.
@@ -119,7 +118,6 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     EvalTo evalToTmp(m_buffer, m_op);
     const bool PacketAccess = internal::IsVectorizable<Device, const ArgType>::value;
     internal::TensorExecutor<const EvalTo, Device, PacketAccess>::run(evalToTmp, m_device);
-    m_impl.cleanup();
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
