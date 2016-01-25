@@ -275,9 +275,9 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
     return 1;
   }
 
+  int size = (SIDE(*side)==LEFT) ? (*m) : (*n);
   #if ISCOMPLEX
   // FIXME add support for symmetric complex matrix
-  int size = (SIDE(*side)==LEFT) ? (*m) : (*n);
   Matrix<Scalar,Dynamic,Dynamic,ColMajor> matA(size,size);
   if(UPLO(*uplo)==UP)
   {
@@ -294,13 +294,15 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
   else if(SIDE(*side)==RIGHT)
     matrix(c, *m, *n, *ldc) += alpha * matrix(b, *m, *n, *ldb) * matA;
   #else
+  internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*m,*n,size,1,false);
+
   if(SIDE(*side)==LEFT)
-    if(UPLO(*uplo)==UP)       internal::product_selfadjoint_matrix<Scalar, DenseIndex, RowMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)  internal::product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    if(UPLO(*uplo)==UP)       internal::product_selfadjoint_matrix<Scalar, DenseIndex, RowMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha, blocking);
+    else if(UPLO(*uplo)==LO)  internal::product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha, blocking);
     else                      return 0;
   else if(SIDE(*side)==RIGHT)
-    if(UPLO(*uplo)==UP)       internal::product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,false,false, RowMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)  internal::product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    if(UPLO(*uplo)==UP)       internal::product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,false,false, RowMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha, blocking);
+    else if(UPLO(*uplo)==LO)  internal::product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha, blocking);
     else                      return 0;
   else
     return 0;
@@ -488,20 +490,23 @@ int EIGEN_BLAS_FUNC(hemm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
     return 1;
   }
 
+  int size = (SIDE(*side)==LEFT) ? (*m) : (*n);
+  internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*m,*n,size,1,false);
+
   if(SIDE(*side)==LEFT)
   {
     if(UPLO(*uplo)==UP)       internal::product_selfadjoint_matrix<Scalar,DenseIndex,RowMajor,true,Conj,  ColMajor,false,false, ColMajor>
-                                ::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+                                ::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha, blocking);
     else if(UPLO(*uplo)==LO)  internal::product_selfadjoint_matrix<Scalar,DenseIndex,ColMajor,true,false, ColMajor,false,false, ColMajor>
-                                ::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+                                ::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha, blocking);
     else                      return 0;
   }
   else if(SIDE(*side)==RIGHT)
   {
     if(UPLO(*uplo)==UP)       matrix(c,*m,*n,*ldc) += alpha * matrix(b,*m,*n,*ldb) * matrix(a,*n,*n,*lda).selfadjointView<Upper>();/*internal::product_selfadjoint_matrix<Scalar,DenseIndex,ColMajor,false,false, RowMajor,true,Conj,  ColMajor>
-                                ::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);*/
+                                ::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha, blocking);*/
     else if(UPLO(*uplo)==LO)  internal::product_selfadjoint_matrix<Scalar,DenseIndex,ColMajor,false,false, ColMajor,true,false, ColMajor>
-                                ::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+                                ::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha, blocking);
     else                      return 0;
   }
   else

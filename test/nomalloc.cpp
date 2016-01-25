@@ -85,7 +85,7 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   m2.template selfadjointView<Lower>().rankUpdate(m1);
   m2 += m2.template triangularView<Upper>() * m1;
   m2.template triangularView<Upper>() = m2 * m2;
-//   m1 += m1.template selfadjointView<Lower>() * m2;
+  m1 += m1.template selfadjointView<Lower>() * m2;
   VERIFY_IS_APPROX(m2,m2);
 }
 
