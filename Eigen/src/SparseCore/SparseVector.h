@@ -222,6 +222,24 @@ class SparseVector
       m_data.clear();
     }
 
+    /** Resizes the sparse vector to \a newSize, while leaving old values untouched.
+      *
+      * If the size of the vector is decreased, then the storage of the out-of bounds coefficients is kept and reserved.
+      * Call .data().squeeze() to free extra memory.
+      *
+      * \sa reserve(), setZero()
+      */
+    void conservativeResize(Index newSize)
+    {
+      if (newSize < m_size)
+      {
+        Index i = 0;
+        while (i<m_data.size() && m_data.index(i)<newSize) ++i;
+        m_data.resize(i);
+      }
+      m_size = newSize;
+    }
+
     void resizeNonZeros(Index size) { m_data.resize(size); }
 
     inline SparseVector() : m_size(0) { check_template_parameters(); resize(0); }
