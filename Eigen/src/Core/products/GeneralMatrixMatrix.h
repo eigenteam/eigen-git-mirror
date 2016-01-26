@@ -352,9 +352,8 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
       }
       else  // no l3 blocking
       {
-        Index m = this->m_mc;
         Index n = this->m_nc;
-        computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, m, n, num_threads);
+        computeProductBlockingSizes<LhsScalar,RhsScalar,KcFactor>(this->m_kc, this->m_mc, n, num_threads);
       }
 
       m_sizeA = this->m_mc * this->m_kc;
