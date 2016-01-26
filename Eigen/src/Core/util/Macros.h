@@ -367,7 +367,7 @@
 
 // Do we support r-value references?
 #if (__has_feature(cxx_rvalue_references) || \
-     defined(__GXX_EXPERIMENTAL_CXX0X__) || \
+     (defined(__cplusplus) && __cplusplus >= 201103L) || \
      (defined(_MSC_VER) && _MSC_VER >= 1600))
   #define EIGEN_HAVE_RVALUE_REFERENCES
 #endif
