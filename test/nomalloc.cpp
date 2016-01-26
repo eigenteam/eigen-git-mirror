@@ -81,7 +81,6 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   m2.template selfadjointView<Lower>().rankUpdate(m1.row(0),-1);
 
   // The following fancy matrix-matrix products are not safe yet regarding static allocation
-//   m1.col(1) += m1.template triangularView<Upper>() * m2.col(0);
   m2.template selfadjointView<Lower>().rankUpdate(m1);
   m2 += m2.template triangularView<Upper>() * m1;
   m2.template triangularView<Upper>() = m2 * m2;
