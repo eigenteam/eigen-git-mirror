@@ -44,7 +44,7 @@ C.setRandom(rows,cols)                      // C = rand(rows,cols)*2-1
 VectorXd::LinSpaced(size,low,high)          // linspace(low,high,size)'
 v.setLinSpaced(size,low,high)               // v = linspace(low,high,size)'
 VectorXi::LinSpaced(((hi-low)/step)+1,      // low:step:hi
-                    low,low+step*(size-1))
+                    low,low+step*(size-1))  //
 
 
 // Matrix slicing and blocks. All expressions listed here are read/write.
@@ -94,6 +94,8 @@ R.transpose()                      // R.' or conj(R')       // Read-write
 R.diagonal()                       // diag(R)               // Read-write
 x.asDiagonal()                     // diag(x)
 R.transpose().colwise().reverse()  // rot90(R)              // Read-write
+R.rowwise().reverse()              // fliplr(R)
+R.colwise().reverse()              // flipud(R)
 R.replicate(i,j)                   // repmat(P,i,j)
 
 
@@ -139,6 +141,7 @@ R.cwiseAbs2()                  // abs(P.^2)
 R.array().abs2()               // abs(P.^2)
 (R.array() < s).select(P,Q );  // (R < s ? P : Q)
 R = (Q.array()==0).select(P,A) // R(Q==0) = P(Q==0)
+R = P.unaryExpr(ptr_fun(func)) // R = arrayfun(func, P)   // with: scalar func(const scalar &x);
 
 
 // Reductions.
