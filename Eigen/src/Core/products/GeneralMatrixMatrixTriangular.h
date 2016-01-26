@@ -71,14 +71,8 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
     RhsMapper rhs(_rhs,rhsStride);
     ResMapper res(_res, resStride);
 
-    Index kc = depth; // cache block size along the K direction
-    Index mc = size;  // cache block size along the M direction
-    Index nc = size;  // cache block size along the N direction
-    computeProductBlockingSizes<LhsScalar,RhsScalar>(kc, mc, nc, 1);
-
-    kc = blocking.kc();
-    mc = (std::min)(size,blocking.mc());
-    nc = (std::min)(size,blocking.nc());
+    Index kc = blocking.kc();
+    Index mc = (std::min)(size,blocking.mc());
 
     // !!! mc must be a multiple of nr:
     if(mc > Traits::nr)
