@@ -13,24 +13,29 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
 {
 //   std::cerr << "in gemm " << *opa << " " << *opb << " " << *m << " " << *n << " " << *k << " " << *lda << " " << *ldb << " " << *ldc << " " << *palpha << " " << *pbeta << "\n";
   typedef void (*functype)(DenseIndex, DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar, internal::level3_blocking<Scalar,Scalar>&, Eigen::internal::GemmParallelInfo<DenseIndex>*);
-  static functype func[12];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int i=0; i<12; ++i)
-      func[i] = 0;
-    func[NOTR  | (NOTR << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,ColMajor,false,ColMajor>::run);
-    func[TR    | (NOTR << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (NOTR << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor>::run);
-    func[NOTR  | (TR   << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,false,ColMajor>::run);
-    func[TR    | (TR   << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (TR   << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,RowMajor,false,ColMajor>::run);
-    func[NOTR  | (ADJ  << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor>::run);
-    func[TR    | (ADJ  << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,RowMajor,Conj, ColMajor>::run);
-    func[ADJ   | (ADJ  << 2)] = (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,RowMajor,Conj, ColMajor>::run);
-    init = true;
-  }
+  static const functype func[12] = {
+    // array index: NOTR  | (NOTR << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (NOTR << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,false,ColMajor>::run),
+    // array index: ADJ   | (NOTR << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor>::run),
+    0,
+    // array index: NOTR  | (TR   << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,false,ColMajor>::run),
+    // array index: TR    | (TR   << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,RowMajor,false,ColMajor>::run),
+    // array index: ADJ   | (TR   << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,RowMajor,false,ColMajor>::run),
+    0,
+    // array index: NOTR  | (ADJ  << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor>::run),
+    // array index: TR    | (ADJ  << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,RowMajor,Conj, ColMajor>::run),
+    // array index: ADJ   | (ADJ  << 2)
+    (internal::general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,RowMajor,Conj, ColMajor>::run),
+    0
+  };
 
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* b = reinterpret_cast<Scalar*>(pb);
@@ -73,49 +78,64 @@ int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m,
 {
 //   std::cerr << "in trsm " << *side << " " << *uplo << " " << *opa << " " << *diag << " " << *m << "," << *n << " " << *palpha << " " << *lda << " " << *ldb<< "\n";
   typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, internal::level3_blocking<Scalar,Scalar>&);
-  static functype func[32];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int i=0; i<32; ++i)
-      func[i] = 0;
-
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          Conj, RowMajor,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          Conj, RowMajor,ColMajor>::run);
-
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          Conj, RowMajor,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          Conj, RowMajor,ColMajor>::run);
-
-
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,Conj, RowMajor,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,Conj, RowMajor,ColMajor>::run);
-
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,Conj, RowMajor,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,Conj, RowMajor,ColMajor>::run);
-
-    init = true;
-  }
+  static const functype func[32] = {
+    // array index: NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          false,ColMajor,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          Conj, RowMajor,ColMajor>::run),\
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          false,ColMajor,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          Conj, RowMajor,ColMajor>::run),
+    0,
+    // array index: NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          false,ColMajor,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          Conj, RowMajor,ColMajor>::run),
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          false,ColMajor,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          Conj, RowMajor,ColMajor>::run),
+    0,
+    // array index: NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,false,ColMajor,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,Conj, RowMajor,ColMajor>::run),
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,false,ColMajor,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,Conj, RowMajor,ColMajor>::run),
+    0,
+    // array index: NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,false,ColMajor,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,Conj, RowMajor,ColMajor>::run),
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,false,ColMajor,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,false,RowMajor,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,Conj, RowMajor,ColMajor>::run),
+    0
+  };
 
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* b = reinterpret_cast<Scalar*>(pb);
@@ -162,47 +182,64 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
 {
 //   std::cerr << "in trmm " << *side << " " << *uplo << " " << *opa << " " << *diag << " " << *m << " " << *n << " " << *lda << " " << *ldb << " " << *palpha << "\n";
   typedef void (*functype)(DenseIndex, DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
-  static functype func[32];
-  static bool init = false;
-  if(!init)
-  {
-    for(int k=0; k<32; ++k)
-      func[k] = 0;
-
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
-
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
-
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
-
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
-
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
-
-    init = true;
-  }
+  static const functype func[32] = {
+    // array index: NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run),
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run),
+    0,
+    // array index: NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run),
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run),
+    0,
+    // array index: NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run),
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run),
+    0,
+    // array index: NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run),
+    0,
+    // array index: NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run),
+    // array index: TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run),
+    // array index: ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)
+    (internal::product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run),
+    0
+  };
 
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* b = reinterpret_cast<Scalar*>(pb);
@@ -318,24 +355,22 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
 //   std::cerr << "in syrk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
   #if !ISCOMPLEX
   typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
-  static functype func[8];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int i=0; i<8; ++i)
-      func[i] = 0;
-
-    func[NOTR  | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Upper>::run);
-    func[TR    | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Upper>::run);
-    func[ADJ   | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Upper>::run);
-
-    func[NOTR  | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Lower>::run);
-    func[TR    | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Lower>::run);
-    func[ADJ   | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Lower>::run);
-
-    init = true;
-  }
+  static const functype func[8] = {
+    // array index: NOTR  | (UP << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Upper>::run),
+    // array index: TR    | (UP << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Upper>::run),
+    // array index: ADJ   | (UP << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Upper>::run),
+    0,
+    // array index: NOTR  | (LO << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Lower>::run),
+    // array index: TR    | (LO << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Lower>::run),
+    // array index: ADJ   | (LO << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Lower>::run),
+    0
+  };
   #endif
 
   Scalar* a = reinterpret_cast<Scalar*>(pa);
@@ -524,22 +559,20 @@ int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
 //   std::cerr << "in herk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
 
   typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
-  static functype func[8];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int i=0; i<8; ++i)
-      func[i] = 0;
-
-    func[NOTR  | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Upper>::run);
-    func[ADJ   | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Upper>::run);
-
-    func[NOTR  | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Lower>::run);
-    func[ADJ   | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Lower>::run);
-
-    init = true;
-  }
+  static const functype func[8] = {
+    // array index: NOTR  | (UP << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Upper>::run),
+    0,
+    // array index: ADJ   | (UP << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Upper>::run),
+    0,
+    // array index: NOTR  | (LO << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Lower>::run),
+    0,
+    // array index: ADJ   | (LO << 2)
+    (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Lower>::run),
+    0
+  };
 
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* c = reinterpret_cast<Scalar*>(pc);

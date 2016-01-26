@@ -13,19 +13,12 @@
 int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
 {
   typedef void (*functype)(int, const Scalar*, int, const Scalar*, Scalar*, Scalar);
-  static functype func[2];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int k=0; k<2; ++k)
-      func[k] = 0;
-
-    func[UP] = (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Upper,false,false>::run);
-    func[LO] = (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Lower,false,false>::run);
-
-    init = true;
-  }
+  static const functype func[2] = {
+    // array index: UP
+    (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Upper,false,false>::run),
+    // array index: LO
+    (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Lower,false,false>::run),
+  };
 
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* x = reinterpret_cast<Scalar*>(px);
@@ -71,34 +64,13 @@ int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *p
 int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pc, int *ldc)
 {
 
-//   typedef void (*functype)(int, const Scalar *, int, Scalar *, int, Scalar);
-//   static functype func[2];
-
-//   static bool init = false;
-//   if(!init)
-//   {
-//     for(int k=0; k<2; ++k)
-//       func[k] = 0;
-//
-//     func[UP] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,UpperTriangular>::run);
-//     func[LO] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,LowerTriangular>::run);
-
-//     init = true;
-//   }
   typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, const Scalar&);
-  static functype func[2];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int k=0; k<2; ++k)
-      func[k] = 0;
-
-    func[UP] = (selfadjoint_rank1_update<Scalar,int,ColMajor,Upper,false,Conj>::run);
-    func[LO] = (selfadjoint_rank1_update<Scalar,int,ColMajor,Lower,false,Conj>::run);
-
-    init = true;
-  }
+  static const functype func[2] = {
+    // array index: UP
+    (selfadjoint_rank1_update<Scalar,int,ColMajor,Upper,false,Conj>::run),
+    // array index: LO
+    (selfadjoint_rank1_update<Scalar,int,ColMajor,Lower,false,Conj>::run),
+  };
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
@@ -131,34 +103,13 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
 // C := alpha*x*y' + alpha*y*x' + C
 int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pc, int *ldc)
 {
-//   typedef void (*functype)(int, const Scalar *, int, const Scalar *, int, Scalar *, int, Scalar);
-//   static functype func[2];
-//
-//   static bool init = false;
-//   if(!init)
-//   {
-//     for(int k=0; k<2; ++k)
-//       func[k] = 0;
-//
-//     func[UP] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,UpperTriangular>::run);
-//     func[LO] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,LowerTriangular>::run);
-//
-//     init = true;
-//   }
   typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, Scalar);
-  static functype func[2];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int k=0; k<2; ++k)
-      func[k] = 0;
-
-    func[UP] = (internal::rank2_update_selector<Scalar,int,Upper>::run);
-    func[LO] = (internal::rank2_update_selector<Scalar,int,Lower>::run);
-
-    init = true;
-  }
+  static const functype func[2] = {
+    // array index: UP
+    (internal::rank2_update_selector<Scalar,int,Upper>::run),
+    // array index: LO
+    (internal::rank2_update_selector<Scalar,int,Lower>::run),
+  };
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
@@ -234,19 +185,12 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
 int EIGEN_BLAS_FUNC(spr)(char *uplo, int *n, Scalar *palpha, Scalar *px, int *incx, Scalar *pap)
 {
   typedef void (*functype)(int, Scalar*, const Scalar*, Scalar);
-  static functype func[2];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int k=0; k<2; ++k)
-      func[k] = 0;
-
-    func[UP] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Upper,false,false>::run);
-    func[LO] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Lower,false,false>::run);
-
-    init = true;
-  }
+  static const functype func[2] = {
+    // array index: UP
+    (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Upper,false,false>::run),
+    // array index: LO
+    (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Lower,false,false>::run),
+  };
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* ap = reinterpret_cast<Scalar*>(pap);
@@ -285,19 +229,12 @@ int EIGEN_BLAS_FUNC(spr)(char *uplo, int *n, Scalar *palpha, Scalar *px, int *in
 int EIGEN_BLAS_FUNC(spr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pap)
 {
   typedef void (*functype)(int, Scalar*, const Scalar*, const Scalar*, Scalar);
-  static functype func[2];
-
-  static bool init = false;
-  if(!init)
-  {
-    for(int k=0; k<2; ++k)
-      func[k] = 0;
-
-    func[UP] = (internal::packed_rank2_update_selector<Scalar,int,Upper>::run);
-    func[LO] = (internal::packed_rank2_update_selector<Scalar,int,Lower>::run);
-
-    init = true;
-  }
+  static const functype func[2] = {
+    // array index: UP
+    (internal::packed_rank2_update_selector<Scalar,int,Upper>::run),
+    // array index: LO
+    (internal::packed_rank2_update_selector<Scalar,int,Lower>::run),
+  };
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
