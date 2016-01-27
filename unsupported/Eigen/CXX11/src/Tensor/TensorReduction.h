@@ -346,7 +346,7 @@ struct InnerReducer {
   static const bool HasOptimizedImplementation = false;
 
   static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
-    assert(false && "Not implemented");
+    eigen_assert(false && "Not implemented");
   }
 };
 
@@ -356,7 +356,7 @@ struct OuterReducer {
   static const bool HasOptimizedImplementation = false;
 
   static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
-    assert(false && "Not implemented");
+    eigen_assert(false && "Not implemented");
   }
 };
 
