@@ -140,7 +140,7 @@ struct tribb_kernel
   typedef typename Traits::ResScalar ResScalar;
 
   enum {
-    BlockSize  = EIGEN_PLAIN_ENUM_MAX(mr,nr)
+    BlockSize  = meta_least_common_multiple<EIGEN_PLAIN_ENUM_MAX(mr,nr),EIGEN_PLAIN_ENUM_MIN(mr,nr)>::ret
   };
   void operator()(ResScalar* _res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index size, Index depth, const ResScalar& alpha)
   {

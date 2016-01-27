@@ -44,6 +44,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   Mat_d md    = mf.template cast<double>();
   Mat_cf mcf  = Mat_cf::Random(size,size);
   Mat_cd mcd  = mcf.template cast<complex<double> >();
+  Mat_cd rcd = mcd;
   Vec_f vf    = Vec_f::Random(size,1);
   Vec_d vd    = vf.template cast<double>();
   Vec_cf vcf  = Vec_cf::Random(size,1);
@@ -103,7 +104,6 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX(mcd.array() *= md.array(), mcd2.array() *= md.array().template cast<std::complex<double> >());
   
   // check matrix-matrix products
-
   VERIFY_IS_APPROX(sd*md*mcd, (sd*md).template cast<CD>().eval()*mcd);
   VERIFY_IS_APPROX(sd*mcd*md, sd*mcd*md.template cast<CD>());
   VERIFY_IS_APPROX(scd*md*mcd, scd*md.template cast<CD>().eval()*mcd);
@@ -147,6 +147,16 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX(scd*vcd.adjoint()*md, scd*vcd.adjoint()*md.template cast<CD>().eval());
   VERIFY_IS_APPROX(sd*vd.adjoint()*mcd,  sd*vd.adjoint().template cast<CD>().eval()*mcd);
   VERIFY_IS_APPROX(scd*vd.adjoint()*mcd, scd*vd.adjoint().template cast<CD>().eval()*mcd);
+
+  rcd.setZero();
+  VERIFY_IS_APPROX(Mat_cd(rcd.template triangularView<Upper>() = sd * mcd * md),
+                   Mat_cd((sd * mcd * md.template cast<CD>().eval()).template triangularView<Upper>()));
+  VERIFY_IS_APPROX(Mat_cd(rcd.template triangularView<Upper>() = sd * md * mcd),
+                   Mat_cd((sd * md.template cast<CD>().eval() * mcd).template triangularView<Upper>()));
+  VERIFY_IS_APPROX(Mat_cd(rcd.template triangularView<Upper>() = scd * mcd * md),
+                   Mat_cd((scd * mcd * md.template cast<CD>().eval()).template triangularView<Upper>()));
+  VERIFY_IS_APPROX(Mat_cd(rcd.template triangularView<Upper>() = scd * md * mcd),
+                   Mat_cd((scd * md.template cast<CD>().eval() * mcd).template triangularView<Upper>()));
 }
 
 void test_mixingtypes()
