@@ -148,12 +148,24 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_fft "-std=c++0x")
   ei_add_test(cxx11_tensor_ifft "-std=c++0x")
 
-  # These tests needs nvcc
-#  ei_add_test(cxx11_tensor_device "-std=c++0x")
-#  ei_add_test(cxx11_tensor_cuda "-std=c++0x")
-#  ei_add_test(cxx11_tensor_contract_cuda "-std=c++0x")
-#  ei_add_test(cxx11_tensor_reduction_cuda "-std=c++0x")
-#  ei_add_test(cxx11_tensor_random_cuda "-std=c++0x")
-#  ei_add_test(cxx11_tensor_argmax_cuda "-std=c++0x")
-
 endif()
+
+# These tests needs nvcc
+find_package(CUDA 7)
+if(CUDA_FOUND)
+  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
+  endif()
+  cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
+  set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
+
+  ei_add_test(cxx11_tensor_device "-std=c++11")
+  ei_add_test(cxx11_tensor_cuda "-std=c++11")
+  ei_add_test(cxx11_tensor_contract_cuda "-std=c++11")
+  ei_add_test(cxx11_tensor_reduction_cuda "-std=c++11")
+  ei_add_test(cxx11_tensor_random_cuda "-std=c++11")
+  ei_add_test(cxx11_tensor_argmax_cuda "-std=c++11 -I/opt-cuda-7.0/include")
+
+  unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+endif(CUDA_FOUND)
