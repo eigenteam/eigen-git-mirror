@@ -1080,21 +1080,21 @@ struct scalar_fuzzy_impl : scalar_fuzzy_default_impl<Scalar, NumTraits<Scalar>::
 
 template<typename Scalar, typename OtherScalar> EIGEN_DEVICE_FUNC
 inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y,
-                                   typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
+                              const typename NumTraits<Scalar>::Real &precision = NumTraits<Scalar>::dummy_precision())
 {
   return scalar_fuzzy_impl<Scalar>::template isMuchSmallerThan<OtherScalar>(x, y, precision);
 }
 
 template<typename Scalar> EIGEN_DEVICE_FUNC
 inline bool isApprox(const Scalar& x, const Scalar& y,
-                          typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
+                     const typename NumTraits<Scalar>::Real &precision = NumTraits<Scalar>::dummy_precision())
 {
   return scalar_fuzzy_impl<Scalar>::isApprox(x, y, precision);
 }
 
 template<typename Scalar> EIGEN_DEVICE_FUNC
 inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y,
-                                    typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
+                               const typename NumTraits<Scalar>::Real &precision = NumTraits<Scalar>::dummy_precision())
 {
   return scalar_fuzzy_impl<Scalar>::isApproxOrLessThan(x, y, precision);
 }
