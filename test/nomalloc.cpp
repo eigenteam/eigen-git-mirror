@@ -78,7 +78,8 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   VERIFY_IS_APPROX(m2,m2);
   
   m2.template selfadjointView<Lower>().rankUpdate(m1.col(0),-1);
-  m2.template selfadjointView<Lower>().rankUpdate(m1.row(0),-1);
+  m2.template selfadjointView<Upper>().rankUpdate(m1.row(0),-1);
+  m2.template selfadjointView<Lower>().rankUpdate(m1.col(0), m1.col(0)); // rank-2
 
   // The following fancy matrix-matrix products are not safe yet regarding static allocation
   m2.template selfadjointView<Lower>().rankUpdate(m1);
