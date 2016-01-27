@@ -24,7 +24,7 @@ typedef Tensor<float, 1>::DimensionPair DimPair;
 template<int DataLayout>
 static void test_cuda_contraction(int m_size, int k_size, int n_size)
 {
-  cout<<"Calling with ("<<m_size<<","<<k_size<<","<<n_size<<")"<<std::endl;
+  std::cout<<"Calling with ("<<m_size<<","<<k_size<<","<<n_size<<")"<<std::endl;
   // with these dimensions, the output has 300 * 140 elements, which is
   // more than 30 * 1024, which is the number of threads in blocks on
   // a 15 SM GK110 GPU
@@ -69,8 +69,8 @@ static void test_cuda_contraction(int m_size, int k_size, int n_size)
   cudaMemcpy(t_result_gpu.data(), d_t_result, t_result_bytes, cudaMemcpyDeviceToHost);
   for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
     if (fabs(t_result.data()[i] - t_result_gpu.data()[i]) >= 1e-4) {
-      cout << "mismatch detected at index " << i << ": " << t_result.data()[i]
-           << " vs " <<  t_result_gpu.data()[i] << endl;
+      std::cout << "mismatch detected at index " << i << ": " << t_result.data()[i]
+           << " vs " <<  t_result_gpu.data()[i] << std::endl;
       assert(false);
     }
   }
@@ -83,7 +83,7 @@ static void test_cuda_contraction(int m_size, int k_size, int n_size)
 
 void test_cxx11_tensor_cuda()
 {
-  cout<<"Calling contraction tests"<<std::endl;
+  std::cout<<"Calling contraction tests"<<std::endl;
   CALL_SUBTEST(test_cuda_contraction<ColMajor>(128, 128, 128));
   CALL_SUBTEST(test_cuda_contraction<RowMajor>(128, 128, 128));
   for (int k = 32; k < 256; k++) {
