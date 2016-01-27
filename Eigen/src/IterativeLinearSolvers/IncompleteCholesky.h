@@ -37,6 +37,8 @@ namespace Eigen {
   * and \f$ \beta \f$ be the minimum value of the diagonal. If \f$ \beta > 0 \f$ then, the factorization is directly performed
   * on the matrix B. Otherwise, the factorization is performed on the shifted matrix \f$ B + (\sigma+|\beta| I \f$ where
   * \f$ \sigma \f$ is the initial shift value as returned and set by setInitialShift() method. The default value is \f$ \sigma = 10^{-3} \f$.
+  * If the factorization fails, then the shift in doubled until it succeed or a maximum of ten attempts. If it still fails, as returned by
+  * the info() method, then you can either increase the initial shift, or better use another preconditioning technique.
   *
   */
 template <typename Scalar, int _UpLo = Lower, typename _OrderingType =
