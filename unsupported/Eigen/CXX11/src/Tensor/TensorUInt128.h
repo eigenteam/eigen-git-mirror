@@ -40,6 +40,12 @@ struct TensorUInt128
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   TensorUInt128(unsigned int x) : high(0), low(x) { }
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  TensorUInt128(long x) : high(0), low(x) {
+    eigen_assert(x >= 0);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  TensorUInt128(unsigned long x) : high(0), low(x) { }
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   TensorUInt128(int64_t x) : high(0), low(x) {
     eigen_assert(x >= 0);
   }
