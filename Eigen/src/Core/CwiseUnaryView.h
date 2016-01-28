@@ -18,7 +18,7 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
  : traits<MatrixType>
 {
   typedef typename result_of<
-                     ViewOp(typename traits<MatrixType>::Scalar)
+                     ViewOp(const typename traits<MatrixType>::Scalar&)
                    >::type Scalar;
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;

@@ -19,7 +19,7 @@ struct traits<CwiseUnaryOp<UnaryOp, XprType> >
  : traits<XprType>
 {
   typedef typename result_of<
-                     UnaryOp(typename XprType::Scalar)
+                     UnaryOp(const typename XprType::Scalar&)
                    >::type Scalar;
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;

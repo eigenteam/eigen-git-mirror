@@ -124,7 +124,7 @@ struct member_lpnorm {
 template <typename BinaryOp, typename Scalar>
 struct member_redux {
   typedef typename result_of<
-                     BinaryOp(Scalar,Scalar)
+                     BinaryOp(const Scalar&,const Scalar&)
                    >::type  result_type;
   template<typename _Scalar, int Size> struct Cost
   { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };

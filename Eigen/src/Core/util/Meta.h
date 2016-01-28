@@ -257,7 +257,7 @@ struct has_std_result_type {int a[2];};
 struct has_tr1_result {int a[3];};
 
 template<typename Func, typename ArgType, int SizeOf=sizeof(has_none)>
-struct unary_result_of_select {typedef ArgType type;};
+struct unary_result_of_select {typedef typename internal::remove_all<ArgType>::type type;};
 
 template<typename Func, typename ArgType>
 struct unary_result_of_select<Func, ArgType, sizeof(has_std_result_type)> {typedef typename Func::result_type type;};
@@ -279,7 +279,7 @@ struct result_of<Func(ArgType)> {
 };
 
 template<typename Func, typename ArgType0, typename ArgType1, int SizeOf=sizeof(has_none)>
-struct binary_result_of_select {typedef ArgType0 type;};
+struct binary_result_of_select {typedef typename internal::remove_all<ArgType0>::type type;};
 
 template<typename Func, typename ArgType0, typename ArgType1>
 struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_std_result_type)>
