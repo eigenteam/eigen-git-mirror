@@ -19,6 +19,7 @@ template<typename MatrixType> void qr()
   Index rank = internal::random<Index>(1, (std::min)(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   MatrixType m1;
   createRandomPIMatrixOfRank(rank,rows,cols,m1);
@@ -36,6 +37,24 @@ template<typename MatrixType> void qr()
   MatrixType c = q * r * qr.colsPermutation().inverse();
   VERIFY_IS_APPROX(m1, c);
 
+  // Verify that the absolute value of the diagonal elements in R are
+  // non-increasing until they reach the singularity threshold.
+  RealScalar threshold =
+      std::sqrt(RealScalar(rows)) * (std::abs)(r(0, 0)) * NumTraits<Scalar>::epsilon();
+  for (Index i = 0; i < (std::min)(rows, cols) - 1; ++i) {
+    RealScalar x = (std::abs)(r(i, i));
+    RealScalar y = (std::abs)(r(i + 1, i + 1));
+    if (x < threshold && y < threshold) continue;
+    if (test_isApproxOrLessThan(x, y)) {
+      for (Index j = 0; j < (std::min)(rows, cols); ++j) {
+        std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
+      }
+      std::cout << "Failure at i=" << i << ", rank=" << rank
+                << ", threshold=" << threshold << std::endl;
+    }
+    VERIFY_IS_APPROX_OR_LESS_THAN(y, x);
+  }
+
   MatrixType m2 = MatrixType::Random(cols,cols2);
   MatrixType m3 = m1*m2;
   m2 = MatrixType::Random(cols,cols2);
@@ -47,6 +66,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
 {
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   int rank = internal::random<int>(1, (std::min)(int(Rows), int(Cols))-1);
   Matrix<Scalar,Rows,Cols> m1;
   createRandomPIMatrixOfRank(rank,Rows,Cols,m1);
@@ -66,6 +86,67 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
   m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
+  // Verify that the absolute value of the diagonal elements in R are
+  // non-increasing until they reache the singularity threshold.
+  RealScalar threshold =
+      std::sqrt(RealScalar(Rows)) * (std::abs)(r(0, 0)) * NumTraits<Scalar>::epsilon();
+  for (Index i = 0; i < (std::min)(int(Rows), int(Cols)) - 1; ++i) {
+    RealScalar x = (std::abs)(r(i, i));
+    RealScalar y = (std::abs)(r(i + 1, i + 1));
+    if (x < threshold && y < threshold) continue;
+    if (test_isApproxOrLessThan(x, y)) {
+      for (Index j = 0; j < (std::min)(int(Rows), int(Cols)); ++j) {
+        std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
+      }
+      std::cout << "Failure at i=" << i << ", rank=" << rank
+                << ", threshold=" << threshold << std::endl;
+    }
+    VERIFY_IS_APPROX_OR_LESS_THAN(y, x);
+  }
+}
+
+// This test is meant to verify that pivots are chosen such that
+// even for a graded matrix, the diagonal of R falls of roughly
+// monotonically until it reaches the threshold for singularity.
+// We use the so-called Kahan matrix, which is a famous counter-example
+// for rank-revealing QR. See
+// http://www.netlib.org/lapack/lawnspdf/lawn176.pdf
+// page 3 for more detail.
+template<typename MatrixType> void qr_kahan_matrix()
+{
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+
+  Index rows = 300, cols = rows;
+
+  MatrixType m1;
+  m1.setZero(rows,cols);
+  RealScalar s = std::pow(NumTraits<RealScalar>::epsilon(), 1.0 / rows);
+  RealScalar c = std::sqrt(1 - s*s);
+  for (Index i = 0; i < rows; ++i) {
+    m1(i, i) = pow(s, i);
+    m1.row(i).tail(rows - i - 1) = -pow(s, i) * c * MatrixType::Ones(1, rows - i - 1);
+  }
+  m1 = (m1 + m1.transpose()).eval();
+  ColPivHouseholderQR<MatrixType> qr(m1);
+  MatrixType r = qr.matrixQR().template triangularView<Upper>();
+
+  RealScalar threshold =
+      std::sqrt(RealScalar(rows)) * (std::abs)(r(0, 0)) * NumTraits<Scalar>::epsilon();
+  for (Index i = 0; i < (std::min)(rows, cols) - 1; ++i) {
+    RealScalar x = (std::abs)(r(i, i));
+    RealScalar y = (std::abs)(r(i + 1, i + 1));
+    if (x < threshold && y < threshold) continue;
+    if (test_isApproxOrLessThan(x, y)) {
+      for (Index j = 0; j < (std::min)(rows, cols); ++j) {
+        std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
+      }
+      std::cout << "Failure at i=" << i << ", rank=" << qr.rank()
+                << ", threshold=" << threshold << std::endl;
+    }
+    VERIFY_IS_APPROX_OR_LESS_THAN(y, x);
+  }
 }
 
 template<typename MatrixType> void qr_invertible()
@@ -129,6 +210,11 @@ void test_qr_colpivoting()
     CALL_SUBTEST_4(( qr_fixedsize<Matrix<float,3,5>, 4 >() ));
     CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,6,2>, 3 >() ));
     CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,1,1>, 1 >() ));
+  }
+
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1( qr_kahan_matrix<MatrixXf>() );
+    CALL_SUBTEST_2( qr_kahan_matrix<MatrixXd>() );
   }
 
   for(int i = 0; i < g_repeat; i++) {
