@@ -3,10 +3,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <iostream>
-#include "strings/strcat.h"
-#include "third_party/eigen3/tensor_benchmarks.h"
 
-
+#include "tensor_benchmarks.h"
 
 // Simple functions
 #define BM_FuncGPU(FUNC)                                                       \
