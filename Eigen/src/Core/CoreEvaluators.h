@@ -994,7 +994,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
     CoeffReadCost = TraversalSize==Dynamic ? HugeCost
                   : TraversalSize * evaluator<ArgType>::CoeffReadCost + int(CostOpType::value),
     
-    Flags = (traits<XprType>::Flags&RowMajorBit) | (evaluator<ArgType>::Flags&(HereditaryBits&(~RowMajorBit))),
+    Flags = (traits<XprType>::Flags&RowMajorBit) | (evaluator<ArgType>::Flags&(HereditaryBits&(~RowMajorBit))) | LinearAccessBit,
     
     Alignment = 0 // FIXME this will need to be improved once PartialReduxExpr is vectorized
   };
