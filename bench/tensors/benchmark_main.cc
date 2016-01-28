@@ -17,6 +17,7 @@
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <inttypes.h>
 #include <time.h>
@@ -27,8 +28,14 @@ static int64_t g_benchmark_total_time_ns;
 static int64_t g_benchmark_start_time_ns;
 typedef std::map<std::string, ::testing::Benchmark*> BenchmarkMap;
 typedef BenchmarkMap::iterator BenchmarkMapIt;
-static BenchmarkMap g_benchmarks;
+
+BenchmarkMap& gBenchmarks() {
+  static BenchmarkMap g_benchmarks;
+  return g_benchmarks;
+}
+
 static int g_name_column_width = 20;
+
 static int Round(int n) {
   int base = 1;
   while (base*10 < n) {
@@ -101,7 +108,7 @@ void Benchmark::Register(const char* name, void (*fn)(int), void (*fn_range)(int
     fprintf(stderr, "%s: missing function\n", name_);
     exit(EXIT_FAILURE);
   }
-  g_benchmarks.insert(std::make_pair(name, this));
+  gBenchmarks().insert(std::make_pair(name, this));
 }
 void Benchmark::Run() {
   if (fn_ != NULL) {
@@ -183,16 +190,16 @@ void StartBenchmarkTiming() {
   }
 }
 int main(int argc, char* argv[]) {
-  if (g_benchmarks.empty()) {
+  if (gBenchmarks().empty()) {
     fprintf(stderr, "No benchmarks registered!\n");
     exit(EXIT_FAILURE);
   }
-  for (BenchmarkMapIt it = g_benchmarks.begin(); it != g_benchmarks.end(); ++it) {
+  for (BenchmarkMapIt it = gBenchmarks().begin(); it != gBenchmarks().end(); ++it) {
     int name_width = static_cast<int>(strlen(it->second->Name()));
     g_name_column_width = std::max(g_name_column_width, name_width);
   }
   bool need_header = true;
-  for (BenchmarkMapIt it = g_benchmarks.begin(); it != g_benchmarks.end(); ++it) {
+  for (BenchmarkMapIt it = gBenchmarks().begin(); it != gBenchmarks().end(); ++it) {
     ::testing::Benchmark* b = it->second;
     if (b->ShouldRun(argc, argv)) {
       if (need_header) {
@@ -206,7 +213,7 @@ int main(int argc, char* argv[]) {
   if (need_header) {
     fprintf(stderr, "No matching benchmarks!\n");
     fprintf(stderr, "Available benchmarks:\n");
-    for (BenchmarkMapIt it = g_benchmarks.begin(); it != g_benchmarks.end(); ++it) {
+    for (BenchmarkMapIt it = gBenchmarks().begin(); it != gBenchmarks().end(); ++it) {
       fprintf(stderr, "  %s\n", it->second->Name());
     }
     exit(EXIT_FAILURE);

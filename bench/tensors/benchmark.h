@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stddef.h>
 #include <stdint.h>
 #include <vector>
 
@@ -46,3 +47,4 @@ void StartBenchmarkTiming();
 #define BENCHMARK(f) \
     static ::testing::Benchmark* _benchmark_##f __attribute__((unused)) = \
         (new ::testing::Benchmark(#f, f))
+

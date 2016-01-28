@@ -10,13 +10,11 @@
 #define BM_FuncGPU(FUNC)                                                       \
   static void BM_##FUNC(int iters, int N) {                                    \
     StopBenchmarkTiming();                                                     \
-    cudaStream_t stream;                                                       \
-    cudaStreamCreate(&stream);                                                 \
+    Eigen::CudaStreamDevice stream;                                            \
     Eigen::GpuDevice device(&stream);                                          \
     BenchmarkSuite<Eigen::GpuDevice> suite(device, N);                         \
     cudaDeviceSynchronize();                                                   \
     suite.FUNC(iters);                                                         \
-    cudaStreamDestroy(stream);                                                 \
   }                                                                            \
   BENCHMARK_RANGE(BM_##FUNC, 10, 5000);
 
@@ -35,13 +33,11 @@ BM_FuncGPU(reduction);
 #define BM_FuncWithInputDimsGPU(FUNC, D1, D2, D3)                              \
   static void BM_##FUNC##_##D1##x##D2##x##D3(int iters, int N) {               \
     StopBenchmarkTiming();                                                     \
-    cudaStream_t stream;                                                       \
-    cudaStreamCreate(&stream);                                                 \
+    Eigen::CudaStreamDevice stream;                                            \
     Eigen::GpuDevice device(&stream);                                          \
     BenchmarkSuite<Eigen::GpuDevice> suite(device, D1, D2, D3);                \
     cudaDeviceSynchronize();                                                   \
     suite.FUNC(iters);                                                         \
-    cudaStreamDestroy(stream);                                                 \
   }                                                                            \
   BENCHMARK_RANGE(BM_##FUNC##_##D1##x##D2##x##D3, 10, 5000);
 
@@ -55,13 +51,11 @@ BM_FuncWithInputDimsGPU(contraction, N, 64, N);
 #define BM_FuncWithKernelDimsGPU(FUNC, DIM1, DIM2)                             \
   static void BM_##FUNC##_##DIM1##x##DIM2(int iters, int N) {                  \
     StopBenchmarkTiming();                                                     \
-    cudaStream_t stream;                                                       \
-    cudaStreamCreate(&stream);                                                 \
+    Eigen::CudaStreamDevice stream;                                            \
     Eigen::GpuDevice device(&stream);                                          \
     BenchmarkSuite<Eigen::GpuDevice> suite(device, N);                         \
     cudaDeviceSynchronize();                                                   \
     suite.FUNC(iters, DIM1, DIM2);                                             \
-    cudaStreamDestroy(stream);                                                 \
   }                                                                            \
   BENCHMARK_RANGE(BM_##FUNC##_##DIM1##x##DIM2, 128, 5000);
 

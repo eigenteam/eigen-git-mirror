@@ -10,13 +10,6 @@ typedef int TensorIndex;
 #define BENCHMARK_RANGE(bench, lo, hi) \
   BENCHMARK(bench)->Range(lo, hi)
 
-template <typename... Args>
-std::string StrCat(const Args... args) {
-  std::stringstream ss;
-  StrCatRecursive(ss, args...);
-  return ss.str();
-}
-
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
@@ -305,9 +298,9 @@ template <typename Device> class BenchmarkSuite {
   }
 
 
-  size_t m_;
-  size_t k_;
-  size_t n_;
+  TensorIndex m_;
+  TensorIndex k_;
+  TensorIndex n_;
   float* a_;
   float* b_;
   float* c_;
