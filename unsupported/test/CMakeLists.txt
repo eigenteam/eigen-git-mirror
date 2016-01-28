@@ -152,7 +152,7 @@ if(EIGEN_TEST_CXX11)
 endif()
 
 # These tests needs nvcc
-find_package(CUDA 7)
+find_package(CUDA 7.0)
 if(CUDA_FOUND)
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -170,4 +170,4 @@ if(CUDA_FOUND)
   ei_add_test(cxx11_tensor_argmax_cuda)
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
-endif(CUDA_FOUND)
+endif()
