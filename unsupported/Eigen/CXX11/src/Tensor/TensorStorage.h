@@ -105,7 +105,6 @@ class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
 
     EIGEN_DEVICE_FUNC void resize(Index size, const array<Index, NumIndices_>& nbDimensions)
     {
-      eigen_assert(size >= 1);
       const Index currentSz = internal::array_prod(m_dimensions);
       if(size != currentSz)
       {

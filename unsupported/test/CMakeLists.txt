@@ -147,6 +147,7 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_sugar "-std=c++0x")
   ei_add_test(cxx11_tensor_fft "-std=c++0x")
   ei_add_test(cxx11_tensor_ifft "-std=c++0x")
+  ei_add_test(cxx11_tensor_empty "-std=c++0x")
 
 endif()
 
