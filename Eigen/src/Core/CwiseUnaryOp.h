@@ -58,6 +58,7 @@ class CwiseUnaryOp : public CwiseUnaryOpImpl<UnaryOp, XprType, typename internal
 
     typedef typename CwiseUnaryOpImpl<UnaryOp, XprType,typename internal::traits<XprType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
+    typedef typename internal::ref_selector<XprType>::type XprTypeNested;
     typedef typename internal::remove_all<XprType>::type NestedExpression;
 
     EIGEN_DEVICE_FUNC
@@ -75,16 +76,16 @@ class CwiseUnaryOp : public CwiseUnaryOpImpl<UnaryOp, XprType, typename internal
 
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename XprType::Nested>::type&
+    const typename internal::remove_all<XprTypeNested>::type&
     nestedExpression() const { return m_xpr; }
 
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC
-    typename internal::remove_all<typename XprType::Nested>::type&
-    nestedExpression() { return m_xpr.const_cast_derived(); }
+    typename internal::remove_all<XprTypeNested>::type&
+    nestedExpression() { return m_xpr; }
 
   protected:
-    typename XprType::Nested m_xpr;
+    XprTypeNested m_xpr;
     const UnaryOp m_functor;
 };
 

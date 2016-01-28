@@ -168,7 +168,7 @@ namespace internal {
 template<typename MatrixType, unsigned int _Mode>
 struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
 {
-  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
+  typedef typename ref_selector<MatrixType>::non_const_type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
   typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   typedef typename MatrixType::PlainObject FullMatrixType;
@@ -213,7 +213,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       IsVectorAtCompileTime = false
     };
 
-    // FIXME This, combined with const_cast_derived in transpose() leads to a const-correctness loophole
     EIGEN_DEVICE_FUNC
     explicit inline TriangularView(MatrixType& matrix) : m_matrix(matrix)
     {}
@@ -235,7 +234,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     /** \returns a reference to the nested expression */
     EIGEN_DEVICE_FUNC
-    NestedExpression& nestedExpression() { return *const_cast<NestedExpression*>(&m_matrix); }
+    NestedExpression& nestedExpression() { return m_matrix; }
     
     typedef TriangularView<const MatrixConjugateReturnType,Mode> ConjugateReturnType;
     /** \sa MatrixBase::conjugate() const */
@@ -255,7 +254,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline TransposeReturnType transpose()
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      typename MatrixType::TransposeReturnType tmp(m_matrix.const_cast_derived());
+      typename MatrixType::TransposeReturnType tmp(m_matrix);
       return TransposeReturnType(tmp);
     }
     
@@ -418,7 +417,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     {
       EIGEN_STATIC_ASSERT_LVALUE(TriangularViewType);
       Base::check_coordinates_internal(row, col);
-      return derived().nestedExpression().const_cast_derived().coeffRef(row, col);
+      return derived().nestedExpression().coeffRef(row, col);
     }
 
     /** Assigns a triangular matrix to a triangular part of a dense matrix */
