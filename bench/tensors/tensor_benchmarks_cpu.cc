@@ -1,19 +1,12 @@
 #define EIGEN_USE_THREADS
 
-#include "base/sysinfo.h"
-#include "strings/strcat.h"
-#include "third_party/eigen3/tensor_benchmarks.h"
-#include "thread/threadpool.h"
+#include <string>
 
-#ifdef __ANDROID__
+#include "tensor_benchmarks.h"
+
 #define CREATE_THREAD_POOL(threads)             \
-Eigen::ThreadPoolDevice device(threads);
-#else
-#define CREATE_THREAD_POOL(threads)             \
-ThreadPool tp(threads);                         \
-tp.StartWorkers();                              \
-Eigen::ThreadPoolDevice device(&tp, threads);
-#endif
+Eigen::ThreadPool pool(threads);                \
+Eigen::ThreadPoolDevice device(&pool, threads);
 
 // Simple functions
 #define BM_FuncCPU(FUNC, THREADS)                                \
@@ -22,7 +15,6 @@ Eigen::ThreadPoolDevice device(&tp, threads);
     CREATE_THREAD_POOL(THREADS);                                 \
     BenchmarkSuite<Eigen::ThreadPoolDevice> suite(device, N);    \
     suite.FUNC(iters);                                           \
-    SetBenchmarkLabel(StrCat("using ", THREADS, " threads"));    \
   }                                                              \
   BENCHMARK_RANGE(BM_##FUNC##_##THREADS##T, 10, 5000);
 
@@ -84,7 +76,6 @@ BM_FuncCPU(reduction, 12);
       BenchmarkSuite<Eigen::ThreadPoolDevice> suite(device, D1, D2, D3);       \
       suite.FUNC(iters);                                                       \
     }                                                                          \
-    SetBenchmarkLabel(StrCat("using ", THREADS, " threads"));                  \
   }                                                                            \
   BENCHMARK_RANGE(BM_##FUNC##_##D1##x##D2##x##D3##_##THREADS##T, 10, 5000);
 
@@ -127,7 +118,6 @@ BM_FuncWithInputDimsCPU(contraction, N, N, 1, 16);
     CREATE_THREAD_POOL(THREADS);                                               \
     BenchmarkSuite<Eigen::ThreadPoolDevice> suite(device, N);                  \
     suite.FUNC(iters, DIM1, DIM2);                                             \
-    SetBenchmarkLabel(StrCat("using ", THREADS, " threads"));                  \
   }                                                                            \
   BENCHMARK_RANGE(BM_##FUNC##_##DIM1##x##DIM2##_##THREADS##T, 128, 5000);
 
