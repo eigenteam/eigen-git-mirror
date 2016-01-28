@@ -81,7 +81,7 @@ template <typename Scalar, int N>
 struct polevl {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   static Scalar run(const Scalar x, const Scalar coef[]) {
-    EIGEN_STATIC_ASSERT(N > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((N > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     return polevl<Scalar, N - 1>::run(x, coef) * x + coef[N];
   }
