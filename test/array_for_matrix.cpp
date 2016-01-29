@@ -68,6 +68,16 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   const Scalar& ref_a2 = m.array().matrix().coeffRef(0,0);
   VERIFY(&ref_a1 == &ref_m1);
   VERIFY(&ref_a2 == &ref_m2);
+
+  // Check write accessors:
+  m1.array().coeffRef(0,0) = 1;
+  VERIFY_IS_APPROX(m1(0,0),Scalar(1));
+  m1.array()(0,0) = 2;
+  VERIFY_IS_APPROX(m1(0,0),Scalar(2));
+  m1.array().matrix().coeffRef(0,0) = 3;
+  VERIFY_IS_APPROX(m1(0,0),Scalar(3));
+  m1.array().matrix()(0,0) = 4;
+  VERIFY_IS_APPROX(m1(0,0),Scalar(4));
 }
 
 template<typename MatrixType> void comparisons(const MatrixType& m)

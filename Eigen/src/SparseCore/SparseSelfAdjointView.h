@@ -55,10 +55,10 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::StorageIndex StorageIndex;
     typedef Matrix<StorageIndex,Dynamic,1> VectorI;
-    typedef typename MatrixType::Nested MatrixTypeNested;
+    typedef typename internal::ref_selector<MatrixType>::non_const_type MatrixTypeNested;
     typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
     
-    explicit inline SparseSelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
+    explicit inline SparseSelfAdjointView(MatrixType& matrix) : m_matrix(matrix)
     {
       eigen_assert(rows()==cols() && "SelfAdjointView is only for squared matrices");
     }
@@ -68,7 +68,7 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
 
     /** \internal \returns a reference to the nested matrix */
     const _MatrixTypeNested& matrix() const { return m_matrix; }
-    _MatrixTypeNested& matrix() { return m_matrix.const_cast_derived(); }
+    typename internal::remove_reference<MatrixTypeNested>::type& matrix() { return m_matrix; }
 
     /** \returns an expression of the matrix product between a sparse self-adjoint matrix \c *this and a sparse matrix \a rhs.
       *
@@ -158,7 +158,7 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
     
   protected:
 
-    typename MatrixType::Nested m_matrix;
+    MatrixTypeNested m_matrix;
     //mutable VectorI m_countPerRow;
     //mutable VectorI m_countPerCol;
   private:
@@ -194,9 +194,9 @@ SparseSelfAdjointView<MatrixType,Mode>::rankUpdate(const SparseMatrixBase<Derive
 {
   SparseMatrix<Scalar,(MatrixType::Flags&RowMajorBit)?RowMajor:ColMajor> tmp = u * u.adjoint();
   if(alpha==Scalar(0))
-    m_matrix.const_cast_derived() = tmp.template triangularView<Mode>();
+    m_matrix = tmp.template triangularView<Mode>();
   else
-    m_matrix.const_cast_derived() += alpha * tmp.template triangularView<Mode>();
+    m_matrix += alpha * tmp.template triangularView<Mode>();
 
   return *this;
 }

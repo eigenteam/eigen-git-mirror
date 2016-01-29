@@ -32,7 +32,7 @@ namespace internal {
 template<typename MatrixType, unsigned int UpLo>
 struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
 {
-  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
+  typedef typename ref_selector<MatrixType>::non_const_type MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   typedef MatrixType ExpressionType;
   typedef typename MatrixType::PlainObject FullMatrixType;
@@ -97,7 +97,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     {
       EIGEN_STATIC_ASSERT_LVALUE(SelfAdjointView);
       Base::check_coordinates_internal(row, col);
-      return m_matrix.const_cast_derived().coeffRef(row, col);
+      return m_matrix.coeffRef(row, col);
     }
 
     /** \internal */
@@ -107,7 +107,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     EIGEN_DEVICE_FUNC
     const MatrixTypeNestedCleaned& nestedExpression() const { return m_matrix; }
     EIGEN_DEVICE_FUNC
-    MatrixTypeNestedCleaned& nestedExpression() { return *const_cast<MatrixTypeNestedCleaned*>(&m_matrix); }
+    MatrixTypeNestedCleaned& nestedExpression() { return m_matrix; }
 
     /** Efficient triangular matrix times vector/matrix product */
     template<typename OtherDerived>

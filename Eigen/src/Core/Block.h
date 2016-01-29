@@ -221,15 +221,13 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     inline Scalar& coeffRef(Index rowId, Index colId)
     {
       EIGEN_STATIC_ASSERT_LVALUE(XprType)
-      return m_xpr.const_cast_derived()
-               .coeffRef(rowId + m_startRow.value(), colId + m_startCol.value());
+      return m_xpr.coeffRef(rowId + m_startRow.value(), colId + m_startCol.value());
     }
 
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
-      return m_xpr.derived()
-               .coeffRef(rowId + m_startRow.value(), colId + m_startCol.value());
+      return m_xpr.derived().coeffRef(rowId + m_startRow.value(), colId + m_startCol.value());
     }
 
     EIGEN_DEVICE_FUNC
@@ -242,39 +240,34 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     inline Scalar& coeffRef(Index index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(XprType)
-      return m_xpr.const_cast_derived()
-             .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
-                       m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
+      return m_xpr.coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+                            m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
-      return m_xpr.const_cast_derived()
-             .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
-                       m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
+      return m_xpr.coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+                            m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
     EIGEN_DEVICE_FUNC
     inline const CoeffReturnType coeff(Index index) const
     {
-      return m_xpr
-             .coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
-                    m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
+      return m_xpr.coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
+                         m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
     template<int LoadMode>
     inline PacketScalar packet(Index rowId, Index colId) const
     {
-      return m_xpr.template packet<Unaligned>
-              (rowId + m_startRow.value(), colId + m_startCol.value());
+      return m_xpr.template packet<Unaligned>(rowId + m_startRow.value(), colId + m_startCol.value());
     }
 
     template<int LoadMode>
     inline void writePacket(Index rowId, Index colId, const PacketScalar& val)
     {
-      m_xpr.const_cast_derived().template writePacket<Unaligned>
-              (rowId + m_startRow.value(), colId + m_startCol.value(), val);
+      m_xpr.template writePacket<Unaligned>(rowId + m_startRow.value(), colId + m_startCol.value(), val);
     }
 
     template<int LoadMode>
@@ -288,7 +281,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     template<int LoadMode>
     inline void writePacket(Index index, const PacketScalar& val)
     {
-      m_xpr.const_cast_derived().template writePacket<Unaligned>
+      m_xpr.template writePacket<Unaligned>
          (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
           m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0), val);
     }
@@ -320,7 +313,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
 
   protected:
 
-    const typename XprType::Nested m_xpr;
+    typename XprType::Nested m_xpr;
     const internal::variable_if_dynamic<StorageIndex, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
     const internal::variable_if_dynamic<StorageIndex, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     const internal::variable_if_dynamic<StorageIndex, RowsAtCompileTime> m_blockRows;

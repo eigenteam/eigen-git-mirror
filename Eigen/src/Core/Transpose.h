@@ -54,6 +54,8 @@ template<typename MatrixType> class Transpose
 {
   public:
 
+    typedef typename internal::ref_selector<MatrixType>::non_const_type MatrixTypeNested;
+
     typedef typename TransposeImpl<MatrixType,typename internal::traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
@@ -68,16 +70,16 @@ template<typename MatrixType> class Transpose
 
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename MatrixType::Nested>::type&
+    const typename internal::remove_all<MatrixTypeNested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
     EIGEN_DEVICE_FUNC
-    typename internal::remove_all<typename MatrixType::Nested>::type&
-    nestedExpression() { return m_matrix.const_cast_derived(); }
+    typename internal::remove_reference<MatrixTypeNested>::type&
+    nestedExpression() { return m_matrix; }
 
   protected:
-    typename MatrixType::Nested m_matrix;
+    typename internal::ref_selector<MatrixType>::non_const_type m_matrix;
 };
 
 namespace internal {

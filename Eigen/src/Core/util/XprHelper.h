@@ -466,17 +466,17 @@ struct special_scalar_op_base : public BaseType
 template<typename Derived,typename Scalar,typename OtherScalar, typename BaseType>
 struct special_scalar_op_base<Derived,Scalar,OtherScalar,BaseType,true>  : public BaseType
 {
-  const CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, Derived>
+  const CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, const Derived>
   operator*(const OtherScalar& scalar) const
   {
 #ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
     EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
 #endif
-    return CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, Derived>
+    return CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, const Derived>
       (*static_cast<const Derived*>(this), scalar_multiple2_op<Scalar,OtherScalar>(scalar));
   }
 
-  inline friend const CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, Derived>
+  inline friend const CwiseUnaryOp<scalar_multiple2_op<Scalar,OtherScalar>, const Derived>
   operator*(const OtherScalar& scalar, const Derived& matrix)
   {
 #ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
@@ -485,13 +485,13 @@ struct special_scalar_op_base<Derived,Scalar,OtherScalar,BaseType,true>  : publi
     return static_cast<const special_scalar_op_base&>(matrix).operator*(scalar);
   }
   
-  const CwiseUnaryOp<scalar_quotient2_op<Scalar,OtherScalar>, Derived>
+  const CwiseUnaryOp<scalar_quotient2_op<Scalar,OtherScalar>, const Derived>
   operator/(const OtherScalar& scalar) const
   {
 #ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
     EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
 #endif
-    return CwiseUnaryOp<scalar_quotient2_op<Scalar,OtherScalar>, Derived>
+    return CwiseUnaryOp<scalar_quotient2_op<Scalar,OtherScalar>, const Derived>
       (*static_cast<const Derived*>(this), scalar_quotient2_op<Scalar,OtherScalar>(scalar));
   }
 };
