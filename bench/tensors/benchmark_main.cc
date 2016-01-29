@@ -23,7 +23,7 @@
 #include <time.h>
 #include <map>
 
-static int64_t g_bytes_processed;
+static int64_t g_flops_processed;
 static int64_t g_benchmark_total_time_ns;
 static int64_t g_benchmark_start_time_ns;
 typedef std::map<std::string, ::testing::Benchmark*> BenchmarkMap;
@@ -124,7 +124,7 @@ void Benchmark::Run() {
   }
 }
 void Benchmark::RunRepeatedlyWithArg(int iterations, int arg) {
-  g_bytes_processed = 0;
+  g_flops_processed = 0;
   g_benchmark_total_time_ns = 0;
   g_benchmark_start_time_ns = NanoTime();
   if (fn_ != NULL) {
@@ -153,10 +153,10 @@ void Benchmark::RunWithArg(int arg) {
   }
   char throughput[100];
   throughput[0] = '\0';
-  if (g_benchmark_total_time_ns > 0 && g_bytes_processed > 0) {
-    double mib_processed = static_cast<double>(g_bytes_processed)/1e6;
+  if (g_benchmark_total_time_ns > 0 && g_flops_processed > 0) {
+    double mflops_processed = static_cast<double>(g_flops_processed)/1e6;
     double seconds = static_cast<double>(g_benchmark_total_time_ns)/1e9;
-    snprintf(throughput, sizeof(throughput), " %8.2f MiB/s", mib_processed/seconds);
+    snprintf(throughput, sizeof(throughput), " %8.2f MFlops/s", mflops_processed/seconds);
   }
   char full_name[100];
   if (fn_range_ != NULL) {
@@ -175,8 +175,8 @@ void Benchmark::RunWithArg(int arg) {
   fflush(stdout);
 }
 }  // namespace testing
-void SetBenchmarkBytesProcessed(int64_t x) {
-  g_bytes_processed = x;
+void SetBenchmarkFlopsProcessed(int64_t x) {
+  g_flops_processed = x;
 }
 void StopBenchmarkTiming() {
   if (g_benchmark_start_time_ns != 0) {

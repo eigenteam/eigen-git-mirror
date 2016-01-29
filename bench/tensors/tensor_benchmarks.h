@@ -367,7 +367,7 @@ template <typename Device> class BenchmarkSuite {
     }
 #endif
     StopBenchmarkTiming();
-    SetBenchmarkBytesProcessed(num_items);
+    SetBenchmarkFlopsProcessed(num_items);
   }
 
 
