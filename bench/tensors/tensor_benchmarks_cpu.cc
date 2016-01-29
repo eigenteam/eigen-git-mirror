@@ -22,6 +22,10 @@ BM_FuncCPU(memcpy, 4);
 BM_FuncCPU(memcpy, 8);
 BM_FuncCPU(memcpy, 12);
 
+BM_FuncCPU(typeCasting, 4);
+BM_FuncCPU(typeCasting, 8);
+BM_FuncCPU(typeCasting, 12);
+
 BM_FuncCPU(random, 4);
 BM_FuncCPU(random, 8);
 BM_FuncCPU(random, 12);
@@ -29,6 +33,14 @@ BM_FuncCPU(random, 12);
 BM_FuncCPU(slicing, 4);
 BM_FuncCPU(slicing, 8);
 BM_FuncCPU(slicing, 12);
+
+BM_FuncCPU(rowChip, 4);
+BM_FuncCPU(rowChip, 8);
+BM_FuncCPU(rowChip, 12);
+
+BM_FuncCPU(colChip, 4);
+BM_FuncCPU(colChip, 8);
+BM_FuncCPU(colChip, 12);
 
 BM_FuncCPU(shuffling, 4);
 BM_FuncCPU(shuffling, 8);
@@ -58,9 +70,13 @@ BM_FuncCPU(transcendentalFunc, 4);
 BM_FuncCPU(transcendentalFunc, 8);
 BM_FuncCPU(transcendentalFunc, 12);
 
-BM_FuncCPU(reduction, 4);
-BM_FuncCPU(reduction, 8);
-BM_FuncCPU(reduction, 12);
+BM_FuncCPU(rowReduction, 4);
+BM_FuncCPU(rowReduction, 8);
+BM_FuncCPU(rowReduction, 12);
+
+BM_FuncCPU(colReduction, 4);
+BM_FuncCPU(colReduction, 8);
+BM_FuncCPU(colReduction, 12);
 
 
 // Contractions
@@ -97,6 +113,12 @@ BM_FuncWithInputDimsCPU(contraction, N, 64, N, 4);
 BM_FuncWithInputDimsCPU(contraction, N, 64, N, 8);
 BM_FuncWithInputDimsCPU(contraction, N, 64, N, 12);
 BM_FuncWithInputDimsCPU(contraction, N, 64, N, 16);
+
+BM_FuncWithInputDimsCPU(contraction, N, N, 64, 1);
+BM_FuncWithInputDimsCPU(contraction, N, N, 64, 4);
+BM_FuncWithInputDimsCPU(contraction, N, N, 64, 8);
+BM_FuncWithInputDimsCPU(contraction, N, N, 64, 12);
+BM_FuncWithInputDimsCPU(contraction, N, N, 64, 16);
 
 BM_FuncWithInputDimsCPU(contraction, 1, N, N, 1);
 BM_FuncWithInputDimsCPU(contraction, 1, N, N, 4);

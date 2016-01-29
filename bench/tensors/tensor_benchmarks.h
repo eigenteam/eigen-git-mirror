@@ -45,6 +45,20 @@ template <typename Device> class BenchmarkSuite {
     finalizeBenchmark(m_ * m_ * num_iters);
   }
 
+  void typeCasting(int num_iters) {
+    eigen_assert(m_ == n_);
+    const Eigen::array<TensorIndex, 2> sizes = {{m_, k_}};
+    const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> A(a_, sizes);
+    TensorMap<Tensor<int, 2, 0, TensorIndex>, Eigen::Aligned> B((int*)b_, sizes);
+
+    StartBenchmarkTiming();
+    for (int iter = 0; iter < num_iters; ++iter) {
+      B.device(device_) = A.cast<int>();
+    }
+    // Record the number of values copied per second
+    finalizeBenchmark(m_ * k_ * num_iters);
+  }
+
   void random(int num_iters) {
     eigen_assert(m_ == k_ && k_ == n_);
     const Eigen::array<TensorIndex, 2> sizes = {{m_, m_}};
@@ -85,6 +99,34 @@ template <typename Device> class BenchmarkSuite {
     // Record the number of values copied from the rhs slice to the lhs slice
     // each second
     finalizeBenchmark(m_ * m_ * num_iters);
+  }
+
+  void rowChip(int num_iters) {
+    const Eigen::array<TensorIndex, 2> input_size = {{k_, n_}};
+    const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, input_size);
+    const Eigen::array<TensorIndex, 1> output_size = {{n_}};
+    TensorMap<Tensor<float, 1, 0, TensorIndex>, Eigen::Aligned> C(c_, output_size);
+
+    StartBenchmarkTiming();
+    for (int iter = 0; iter < num_iters; ++iter) {
+      C.device(device_) = B.chip(iter % k_, 0);
+    }
+    // Record the number of values copied from the rhs chip to the lhs.
+    finalizeBenchmark(n_ * num_iters);
+  }
+
+  void colChip(int num_iters) {
+    const Eigen::array<TensorIndex, 2> input_size= {{k_, n_}};
+    const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, input_size);
+    const Eigen::array<TensorIndex, 1> output_size = {{n_}};
+    TensorMap<Tensor<float, 1, 0, TensorIndex>, Eigen::Aligned> C(c_, output_size);
+
+    StartBenchmarkTiming();
+    for (int iter = 0; iter < num_iters; ++iter) {
+      C.device(device_) = B.chip(iter % n_, 1);
+    }
+    // Record the number of values copied from the rhs chip to the lhs.
+    finalizeBenchmark(n_ * num_iters);
   }
 
   void shuffling(int num_iters) {
@@ -147,7 +189,6 @@ template <typename Device> class BenchmarkSuite {
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, size_c);
 
 #ifndef EIGEN_HAS_INDEX_LIST
-    // nvcc doesn't support cxx11
     const Eigen::array<int, 2> broadcast = {{1, n_}};
 #else
     // Take advantage of cxx11 to give the compiler information it can use to
@@ -212,14 +253,20 @@ template <typename Device> class BenchmarkSuite {
     finalizeBenchmark(m_ * m_ * num_iters);
   }
 
-  // Simple reduction
-  void reduction(int num_iters) {
+ // Row reduction
+  void rowReduction(int num_iters) {
     const Eigen::array<TensorIndex, 2> input_size = {{k_, n_}};
-    const TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, input_size);
+    const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, input_size);
     const Eigen::array<TensorIndex, 1> output_size = {{n_}};
-    TensorMap<Tensor<float, 1>, Eigen::Aligned> C(c_, output_size);
+    TensorMap<Tensor<float, 1, 0, TensorIndex>, Eigen::Aligned> C(c_, output_size);
 
-    const Eigen::array<TensorIndex, 1> sum_along_dim = {{0}};
+#ifndef EIGEN_HAS_INDEX_LIST
+    const Eigen::array<TensorIndex, 1> sum_along_dim(0);
+#else
+    // Take advantage of cxx11 to give the compiler information it can use to
+    // optimize the code.
+    Eigen::IndexList<Eigen::type2index<0>> sum_along_dim;
+#endif
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
@@ -227,7 +274,33 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (assuming one operation
     // per value)
-    finalizeBenchmark(m_ * m_ * num_iters);
+    finalizeBenchmark(k_ * n_ * num_iters);
+  }
+
+  // Column reduction
+  void colReduction(int num_iters) {
+    const Eigen::array<TensorIndex, 2> input_size = {{k_, n_}};
+    const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(
+        b_, input_size);
+    const Eigen::array<TensorIndex, 1> output_size = {{k_}};
+    TensorMap<Tensor<float, 1, 0, TensorIndex>, Eigen::Aligned> C(
+        c_, output_size);
+
+#ifndef EIGEN_HAS_INDEX_LIST
+    const Eigen::array<TensorIndex, 1> sum_along_dim = {{1}};
+#else
+    // Take advantage of cxx11 to give the compiler information it can use to
+    // optimize the code.
+    Eigen::IndexList<Eigen::type2index<1>> sum_along_dim;
+#endif
+
+    StartBenchmarkTiming();
+    for (int iter = 0; iter < num_iters; ++iter) {
+      C.device(device_) = B.sum(sum_along_dim);
+    }
+    // Record the number of FLOP executed per second (assuming one operation
+    // per value)
+    finalizeBenchmark(k_ * n_ * num_iters);
   }
 
   // do a contraction which is equivalent to a matrix multiplication
