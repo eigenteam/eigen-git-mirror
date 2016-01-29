@@ -49,12 +49,27 @@ static int Round(int n) {
   }
   return 10*base;
 }
+
+#ifdef __APPLE__
+  #include <mach/mach_time.h>
+  static mach_timebase_info_data_t g_time_info;
+  static void __attribute__((constructor)) init_info() {
+    mach_timebase_info(&g_time_info);
+  }
+#endif
+
 static int64_t NanoTime() {
+#if defined(__APPLE__)
+  uint64_t t = mach_absolute_time();
+  return t * g_time_info.numer / g_time_info.denom;
+#else
   struct timespec t;
   t.tv_sec = t.tv_nsec = 0;
   clock_gettime(CLOCK_MONOTONIC, &t);
   return static_cast<int64_t>(t.tv_sec) * 1000000000LL + t.tv_nsec;
+#endif
 }
+
 namespace testing {
 Benchmark* Benchmark::Arg(int arg) {
   args_.push_back(arg);
