@@ -56,7 +56,6 @@ template<typename _Scalar, int _Flags = 0, typename _StorageIndex = int>  class 
 
 template<typename MatrixType, unsigned int UpLo>  class SparseSelfAdjointView;
 template<typename Lhs, typename Rhs>              class SparseDiagonalProduct;
-template<typename MatrixType> class SparseView;
 
 template<typename Lhs, typename Rhs>        class SparseSparseProduct;
 template<typename Lhs, typename Rhs>        class SparseTimeDenseProduct;
