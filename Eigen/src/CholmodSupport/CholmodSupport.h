@@ -273,9 +273,10 @@ class CholmodBase : public SparseSolverBase<Derived>
       const Index size = m_cholmodFactor->n;
       EIGEN_UNUSED_VARIABLE(size);
       eigen_assert(size==b.rows());
+      
+      // Cholmod needs column-major stoarge without inner-stride, which corresponds to the default behavior of Ref.
+      Ref<const Matrix<typename Rhs::Scalar,Dynamic,Dynamic,ColMajor> > b_ref(b.derived());
 
-      // note: cd stands for Cholmod Dense
-      Rhs& b_ref(b.const_cast_derived());
       cholmod_dense b_cd = viewAsCholmod(b_ref);
       cholmod_dense* x_cd = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &b_cd, &m_cholmod);
       if(!x_cd)
