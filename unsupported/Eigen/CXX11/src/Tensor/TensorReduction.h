@@ -345,7 +345,7 @@ template <typename Self, typename Op, typename Device>
 struct InnerReducer {
   static const bool HasOptimizedImplementation = false;
 
-  static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+  EIGEN_DEVICE_FUNC static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
     eigen_assert(false && "Not implemented");
   }
 };
@@ -355,7 +355,7 @@ template <typename Self, typename Op, typename Device>
 struct OuterReducer {
   static const bool HasOptimizedImplementation = false;
 
-  static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+  EIGEN_DEVICE_FUNC static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
     eigen_assert(false && "Not implemented");
   }
 };
