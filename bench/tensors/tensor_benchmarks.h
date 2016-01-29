@@ -13,8 +13,6 @@ typedef int TensorIndex;
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
-typedef int64_t int64;
-
 // TODO(bsteiner): also templatize on the input type since we have users
 // for int8 as well as floats.
 template <typename Device> class BenchmarkSuite {
@@ -42,7 +40,7 @@ template <typename Device> class BenchmarkSuite {
       device_.memcpy(c_, a_, m_ * m_ * sizeof(float));
     }
     // Record the number of values copied per second
-    finalizeBenchmark(m_ * m_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * m_ * num_iters);
   }
 
   void typeCasting(int num_iters) {
@@ -56,7 +54,7 @@ template <typename Device> class BenchmarkSuite {
       B.device(device_) = A.cast<int>();
     }
     // Record the number of values copied per second
-    finalizeBenchmark(m_ * k_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * k_ * num_iters);
   }
 
   void random(int num_iters) {
@@ -69,7 +67,7 @@ template <typename Device> class BenchmarkSuite {
       C.device(device_) = C.random();
     }
     // Record the number of random numbers generated per second
-    finalizeBenchmark(m_ * m_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * m_ * num_iters);
   }
 
   void slicing(int num_iters) {
@@ -98,7 +96,7 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of values copied from the rhs slice to the lhs slice
     // each second
-    finalizeBenchmark(m_ * m_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * m_ * num_iters);
   }
 
   void rowChip(int num_iters) {
@@ -112,7 +110,7 @@ template <typename Device> class BenchmarkSuite {
       C.device(device_) = B.chip(iter % k_, 0);
     }
     // Record the number of values copied from the rhs chip to the lhs.
-    finalizeBenchmark(n_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(n_) * num_iters);
   }
 
   void colChip(int num_iters) {
@@ -126,7 +124,7 @@ template <typename Device> class BenchmarkSuite {
       C.device(device_) = B.chip(iter % n_, 1);
     }
     // Record the number of values copied from the rhs chip to the lhs.
-    finalizeBenchmark(n_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(n_) * num_iters);
   }
 
   void shuffling(int num_iters) {
@@ -143,7 +141,7 @@ template <typename Device> class BenchmarkSuite {
       B.device(device_) = A.shuffle(shuffle);
     }
     // Record the number of values shuffled from A and copied to B each second
-    finalizeBenchmark(m_ * k_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * k_ * num_iters);
   }
 
  void padding(int num_iters) {
@@ -162,7 +160,7 @@ template <typename Device> class BenchmarkSuite {
       B.device(device_) = A.pad(paddings);
     }
     // Record the number of values copied from the padded tensor A each second
-    finalizeBenchmark(m_ * k_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * k_ * num_iters);
   }
 
  void striding(int num_iters) {
@@ -179,7 +177,7 @@ template <typename Device> class BenchmarkSuite {
       B.device(device_) = A.stride(strides);
     }
     // Record the number of values copied from the padded tensor A each second
-    finalizeBenchmark(m_ * k_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * k_ * num_iters);
   }
 
   void broadcasting(int num_iters) {
@@ -202,7 +200,7 @@ template <typename Device> class BenchmarkSuite {
       C.device(device_) = A.broadcast(broadcast);
     }
     // Record the number of values broadcasted from A and copied to C each second
-    finalizeBenchmark(m_ * n_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * n_ * num_iters);
   }
 
   void coeffWiseOp(int num_iters) {
@@ -218,7 +216,7 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (2 multiplications and
     // 1 addition per value)
-    finalizeBenchmark(3 * m_ * m_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(3) * m_ * m_ * num_iters);
   }
 
   void algebraicFunc(int num_iters) {
@@ -234,7 +232,7 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (assuming one operation
     // per value)
-    finalizeBenchmark(m_ * m_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * m_ * num_iters);
   }
 
   void transcendentalFunc(int num_iters) {
@@ -250,7 +248,7 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (assuming one operation
     // per value)
-    finalizeBenchmark(m_ * m_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(m_) * m_ * num_iters);
   }
 
  // Row reduction
@@ -274,7 +272,7 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (assuming one operation
     // per value)
-    finalizeBenchmark(k_ * n_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(k_) * n_ * num_iters);
   }
 
   // Column reduction
@@ -300,7 +298,7 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (assuming one operation
     // per value)
-    finalizeBenchmark(k_ * n_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(k_) * n_ * num_iters);
   }
 
   // do a contraction which is equivalent to a matrix multiplication
@@ -322,7 +320,7 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (size_ multiplications and
     // additions for each value in the resulting tensor)
-    finalizeBenchmark(static_cast<int64>(2) * m_ * n_ * k_ * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(2) * m_ * n_ * k_ * num_iters);
   }
 
   void convolution(int num_iters, int kernel_x, int kernel_y) {
@@ -341,8 +339,8 @@ template <typename Device> class BenchmarkSuite {
     }
     // Record the number of FLOP executed per second (kernel_size
     // multiplications and additions for each value in the resulting tensor)
-    finalizeBenchmark(
-        (m_ - kernel_x + 1) * (n_ - kernel_y + 1) * kernel_x * kernel_y * 2 * num_iters);
+    finalizeBenchmark(static_cast<int64_t>(2) *
+        (m_ - kernel_x + 1) * (n_ - kernel_y + 1) * kernel_x * kernel_y * num_iters);
   }
 
  private:
@@ -360,7 +358,7 @@ template <typename Device> class BenchmarkSuite {
     //BenchmarkUseRealTime();
   }
 
-  inline void finalizeBenchmark(int64 num_items) {
+  inline void finalizeBenchmark(int64_t num_items) {
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
     if (Eigen::internal::is_same<Device, Eigen::GpuDevice>::value) {
       device_.synchronize();
