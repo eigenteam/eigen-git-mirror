@@ -60,6 +60,8 @@ namespace internal {
 
   
 // Generic "sparse OP sparse"
+template<typename XprType> struct binary_sparse_evaluator;
+
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct binary_evaluator<CwiseBinaryOp<BinaryOp, Lhs, Rhs>, IteratorBased, IteratorBased>
   : evaluator_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
@@ -426,6 +428,34 @@ EIGEN_STRONG_INLINE const typename SparseMatrixBase<Derived>::template CwiseProd
 SparseMatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
 {
   return typename CwiseProductDenseReturnType<OtherDerived>::Type(derived(), other.derived());
+}
+
+template<typename SparseDerived, typename DenseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar>, const SparseDerived, const SparseView<DenseDerived,true> >
+operator+(const SparseMatrixBase<SparseDerived> &a, const MatrixBase<DenseDerived> &b)
+{
+  return a.derived() + SparseView<DenseDerived,true>(b.derived());
+}
+
+template<typename DenseDerived, typename SparseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar>, const SparseView<DenseDerived,true>, const SparseDerived>
+operator+(const MatrixBase<DenseDerived> &a, const SparseMatrixBase<SparseDerived> &b)
+{
+  return SparseView<DenseDerived,true>(a.derived()) + b.derived();
+}
+
+template<typename SparseDerived, typename DenseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar>, const SparseDerived, const SparseView<DenseDerived,true> >
+operator-(const SparseMatrixBase<SparseDerived> &a, const MatrixBase<DenseDerived> &b)
+{
+  return a.derived() - SparseView<DenseDerived,true>(b.derived());
+}
+
+template<typename DenseDerived, typename SparseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar>, const SparseView<DenseDerived,true>, const SparseDerived>
+operator-(const MatrixBase<DenseDerived> &a, const SparseMatrixBase<SparseDerived> &b)
+{
+  return SparseView<DenseDerived,true>(a.derived()) - b.derived();
 }
 
 } // end namespace Eigen
