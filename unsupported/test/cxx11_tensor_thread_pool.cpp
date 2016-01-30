@@ -239,15 +239,15 @@ void test_multithreaded_reductions() {
   Tensor<float, 2, DataLayout> t1(num_rows, num_cols);
   t1.setRandom();
 
-  Tensor<float, 1, DataLayout> full_redux(1);
+  Tensor<float, 0, DataLayout> full_redux;
   full_redux = t1.sum();
 
-  Tensor<float, 1, DataLayout> full_redux_tp(1);
+  Tensor<float, 0, DataLayout> full_redux_tp;
   full_redux_tp.device(thread_pool_device) = t1.sum();
 
   // Check that the single threaded and the multi threaded reductions return
   // the same result.
-  VERIFY_IS_APPROX(full_redux(0), full_redux_tp(0));
+  VERIFY_IS_APPROX(full_redux(), full_redux_tp());
 }
 
 
