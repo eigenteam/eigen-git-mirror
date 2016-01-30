@@ -22,6 +22,8 @@ BM_FuncGPU(memcpy);
 BM_FuncGPU(typeCasting);
 BM_FuncGPU(random);
 BM_FuncGPU(slicing);
+BM_FuncGPU(rowChip);
+BM_FuncGPU(colChip);
 BM_FuncGPU(shuffling);
 BM_FuncGPU(padding);
 BM_FuncGPU(striding);
