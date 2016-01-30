@@ -91,10 +91,15 @@ void test_multithread_contraction()
 
  for (ptrdiff_t i = 0; i < t_result.size(); i++) {
     VERIFY(&t_result.data()[i] != &m_result.data()[i]);
-    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
-      std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
-      assert(false);
+    if (fabs(t_result(i) - m_result(i)) < 1e-4) {
+      continue;
     }
+    if (Eigen::internal::isApprox(t_result(i), m_result(i), 1e-4f)) {
+      continue;
+    }
+    std::cout << "mismatch detected at index " << i << ": " << t_result(i)
+              << " vs " <<  m_result(i) << std::endl;
+    assert(false);
   }
 }
 
