@@ -174,7 +174,8 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
     VERIFY_IS_APPROX(vcopy.norm(), RealScalar(1));
     VERIFY_IS_APPROX((vbig.stableNormalized()).norm(), RealScalar(1));
     VERIFY_IS_APPROX((vsmall.stableNormalized()).norm(), RealScalar(1));
-    VERIFY_IS_APPROX(vbig, vbig.stableNorm() * vbig.stableNormalized());
+    RealScalar big_scaling = ((std::numeric_limits<RealScalar>::max)() * RealScalar(1e-4));
+    VERIFY_IS_APPROX(vbig/big_scaling, (vbig.stableNorm() * vbig.stableNormalized()).eval()/big_scaling);
     VERIFY_IS_APPROX(vsmall, vsmall.stableNorm() * vsmall.stableNormalized());
   }
 }
