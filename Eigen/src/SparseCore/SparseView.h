@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2011-2014 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Daniel Lowengrub <lowdanie@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -15,8 +15,8 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename MatrixType, bool KeepZeros>
-struct traits<SparseView<MatrixType,KeepZeros> > : traits<MatrixType>
+template<typename MatrixType>
+struct traits<SparseView<MatrixType> > : traits<MatrixType>
 {
   typedef typename MatrixType::StorageIndex StorageIndex;
   typedef Sparse StorageKind;
@@ -27,8 +27,8 @@ struct traits<SparseView<MatrixType,KeepZeros> > : traits<MatrixType>
 
 } // end namespace internal
 
-template<typename MatrixType, bool KeepZeros>
-class SparseView : public SparseMatrixBase<SparseView<MatrixType,KeepZeros> >
+template<typename MatrixType>
+class SparseView : public SparseMatrixBase<SparseView<MatrixType> >
 {
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
@@ -66,13 +66,13 @@ namespace internal {
 // This is tricky because implementing an inner iterator on top of an IndexBased evaluator is
 // not easy because the evaluators do not expose the sizes of the underlying expression.
   
-template<typename ArgType,bool KeepZeros>
-struct unary_evaluator<SparseView<ArgType,KeepZeros>, IteratorBased>
-  : public evaluator_base<SparseView<ArgType,KeepZeros> >
+template<typename ArgType>
+struct unary_evaluator<SparseView<ArgType>, IteratorBased>
+  : public evaluator_base<SparseView<ArgType> >
 {
     typedef typename evaluator<ArgType>::InnerIterator EvalIterator;
   public:
-    typedef SparseView<ArgType,KeepZeros> XprType;
+    typedef SparseView<ArgType> XprType;
     
     class InnerIterator : public EvalIterator
     {
@@ -88,7 +88,7 @@ struct unary_evaluator<SparseView<ArgType,KeepZeros>, IteratorBased>
         EIGEN_STRONG_INLINE InnerIterator& operator++()
         {
           EvalIterator::operator++();
-          if(!KeepZeros) incrementToNonZero();
+          incrementToNonZero();
           return *this;
         }
 
@@ -119,12 +119,12 @@ struct unary_evaluator<SparseView<ArgType,KeepZeros>, IteratorBased>
     const XprType &m_view;
 };
 
-template<typename ArgType,bool KeepZeros>
-struct unary_evaluator<SparseView<ArgType,KeepZeros>, IndexBased>
-  : public evaluator_base<SparseView<ArgType,KeepZeros> >
+template<typename ArgType>
+struct unary_evaluator<SparseView<ArgType>, IndexBased>
+  : public evaluator_base<SparseView<ArgType> >
 {
   public:
-    typedef SparseView<ArgType,KeepZeros> XprType;
+    typedef SparseView<ArgType> XprType;
   protected:
     enum { IsRowMajor = (XprType::Flags&RowMajorBit)==RowMajorBit };
     typedef typename XprType::Scalar Scalar;
@@ -144,7 +144,7 @@ struct unary_evaluator<SparseView<ArgType,KeepZeros>, IndexBased>
         EIGEN_STRONG_INLINE InnerIterator& operator++()
         {
           m_inner++;
-          if(!KeepZeros) incrementToNonZero();
+          incrementToNonZero();
           return *this;
         }
 

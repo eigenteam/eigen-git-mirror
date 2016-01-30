@@ -126,7 +126,7 @@ template<typename PlainObjectType, int Options = 0,
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
 template<typename MatrixType, unsigned int Mode> class SelfAdjointView;
-template<typename MatrixType,bool KeepZeros=false> class SparseView;
+template<typename MatrixType> class SparseView;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;
