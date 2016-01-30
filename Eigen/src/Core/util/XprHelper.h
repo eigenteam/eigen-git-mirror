@@ -526,22 +526,21 @@ template <typename A> struct promote_storage_type<const A, A>
   * the functor.
   * The default rules are as follows:
   * \code
-  * A     op A      -> A
-  * A     op dense  -> dense
-  * dense op B      -> dense
-  * A     *  dense  -> A
-  * dense *  B      -> B
+  * A      op A      -> A
+  * A      op dense  -> dense
+  * dense  op B      -> dense
+  * sparse op dense  -> sparse
+  * dense  op sparse -> sparse
   * \endcode
   */
 template <typename A, typename B, typename Functor> struct cwise_promote_storage_type;
 
-template <typename A, typename Functor>                   struct cwise_promote_storage_type<A,A,Functor>                                      { typedef A     ret; };
-template <typename Functor>                               struct cwise_promote_storage_type<Dense,Dense,Functor>                              { typedef Dense ret; };
-template <typename ScalarA, typename ScalarB>             struct cwise_promote_storage_type<Dense,Dense,scalar_product_op<ScalarA,ScalarB> >  { typedef Dense ret; };
-template <typename A, typename Functor>                   struct cwise_promote_storage_type<A,Dense,Functor>                                  { typedef Dense ret; };
-template <typename B, typename Functor>                   struct cwise_promote_storage_type<Dense,B,Functor>                                  { typedef Dense ret; };
-template <typename A, typename ScalarA, typename ScalarB> struct cwise_promote_storage_type<A,Dense,scalar_product_op<ScalarA,ScalarB> >      { typedef A     ret; };
-template <typename B, typename ScalarA, typename ScalarB> struct cwise_promote_storage_type<Dense,B,scalar_product_op<ScalarA,ScalarB> >      { typedef B     ret; };
+template <typename A, typename Functor>                   struct cwise_promote_storage_type<A,A,Functor>                                      { typedef A      ret; };
+template <typename Functor>                               struct cwise_promote_storage_type<Dense,Dense,Functor>                              { typedef Dense  ret; };
+template <typename A, typename Functor>                   struct cwise_promote_storage_type<A,Dense,Functor>                                  { typedef Dense  ret; };
+template <typename B, typename Functor>                   struct cwise_promote_storage_type<Dense,B,Functor>                                  { typedef Dense  ret; };
+template <typename Functor>                               struct cwise_promote_storage_type<Sparse,Dense,Functor>                             { typedef Sparse ret; };
+template <typename Functor>                               struct cwise_promote_storage_type<Dense,Sparse,Functor>                             { typedef Sparse ret; };
 
 /** \internal Specify the "storage kind" of multiplying an expression of kind A with kind B.
   * The template parameter ProductTag permits to specialize the resulting storage kind wrt to
