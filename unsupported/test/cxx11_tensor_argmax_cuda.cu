@@ -56,6 +56,10 @@ void test_cuda_simple_argmax()
 
   VERIFY_IS_EQUAL(out_max(Eigen::array<DenseIndex, 1>(0)), 72*53*97 - 1);
   VERIFY_IS_EQUAL(out_min(Eigen::array<DenseIndex, 1>(0)), 0);
+
+  cudaFree(d_in);
+  cudaFree(d_out_max);
+  cudaFree(d_out_min);
 }
 
 template <int DataLayout>
@@ -141,6 +145,9 @@ void test_cuda_argmax_dim()
       // Expect max to be in the last index of the reduced dimension
       VERIFY_IS_EQUAL(tensor_arg.data()[n], tensor.dimension(dim) - 1);
     }
+
+    cudaFree(d_in);
+    cudaFree(d_out);
   }
 }
 
@@ -227,6 +234,9 @@ void test_cuda_argmin_dim()
       // Expect max to be in the last index of the reduced dimension
       VERIFY_IS_EQUAL(tensor_arg.data()[n], tensor.dimension(dim) - 1);
     }
+
+    cudaFree(d_in);
+    cudaFree(d_out);
   }
 }
 
