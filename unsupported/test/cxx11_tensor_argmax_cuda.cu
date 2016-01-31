@@ -242,10 +242,10 @@ void test_cuda_argmin_dim()
 
 void test_cxx11_tensor_cuda()
 {
-  CALL_SUBTEST(test_cuda_simple_argmax<RowMajor>());
-  CALL_SUBTEST(test_cuda_simple_argmax<ColMajor>());
-  CALL_SUBTEST(test_cuda_argmax_dim<RowMajor>());
-  CALL_SUBTEST(test_cuda_argmax_dim<ColMajor>());
-  CALL_SUBTEST(test_cuda_argmin_dim<RowMajor>());
-  CALL_SUBTEST(test_cuda_argmin_dim<ColMajor>());
+  CALL_SUBTEST_1(test_cuda_simple_argmax<RowMajor>());
+  CALL_SUBTEST_1(test_cuda_simple_argmax<ColMajor>());
+  CALL_SUBTEST_2(test_cuda_argmax_dim<RowMajor>());
+  CALL_SUBTEST_2(test_cuda_argmax_dim<ColMajor>());
+  CALL_SUBTEST_3(test_cuda_argmin_dim<RowMajor>());
+  CALL_SUBTEST_3(test_cuda_argmin_dim<ColMajor>());
 }
