@@ -389,9 +389,9 @@ template<typename Derived> class DenseBase
     inline bool allFinite() const;
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    inline Derived& operator*=(const Scalar& other);
+    Derived& operator*=(const Scalar& other);
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-    inline Derived& operator/=(const Scalar& other);
+    Derived& operator/=(const Scalar& other);
 
     typedef typename internal::add_const_on_value_type<typename internal::eval<Derived>::type>::type EvalReturnType;
     /** \returns the matrix or vector obtained by evaluating this expression.
