@@ -460,6 +460,33 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat1.setIdentity();
     VERIFY_IS_APPROX(m1, refMat1);
   }
+
+  // test array/vector of InnerIterator
+  {
+    typedef typename SparseMatrixType::InnerIterator IteratorType;
+
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
+    SparseMatrixType m2(rows, cols);
+    initSparse<Scalar>(density, refMat2, m2);
+    IteratorType static_array[2];
+    static_array[0] = IteratorType(m2,0);
+    static_array[1] = IteratorType(m2,m2.outerSize()-1);
+    VERIFY( static_array[0] || m2.innerVector(static_array[0].outer()).nonZeros() == 0 );
+    VERIFY( static_array[1] || m2.innerVector(static_array[1].outer()).nonZeros() == 0 );
+    if(static_array[0] && static_array[1])
+    {
+      ++(static_array[1]);
+      static_array[1] = IteratorType(m2,0);
+      VERIFY( static_array[1] );
+      VERIFY( static_array[1].index() == static_array[0].index() );
+      VERIFY( static_array[1].outer() == static_array[0].outer() );
+      VERIFY( static_array[1].value() == static_array[0].value() );
+    }
+
+    std::vector<IteratorType> iters(2);
+    iters[0] = IteratorType(m2,0);
+    iters[1] = IteratorType(m2,m2.outerSize()-1);
+  }
 }
 
 
