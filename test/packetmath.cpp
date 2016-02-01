@@ -233,8 +233,8 @@ template<typename Scalar> void packetmath()
       ref[i] = 0;
     for (int i=0; i<PacketSize; ++i)
       ref[i%4] += data1[i];
-    internal::pstore(data2, internal::predux4(internal::pload<Packet>(data1)));
-    VERIFY(areApprox(ref, data2, PacketSize>4?PacketSize/2:PacketSize) && "internal::predux4");
+    internal::pstore(data2, internal::predux_half(internal::pload<Packet>(data1)));
+    VERIFY(areApprox(ref, data2, PacketSize>4?PacketSize/2:PacketSize) && "internal::predux_half");
   }
 
   ref[0] = 1;
