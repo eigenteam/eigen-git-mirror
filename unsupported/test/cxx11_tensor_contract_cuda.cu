@@ -24,14 +24,14 @@ typedef Tensor<float, 1>::DimensionPair DimPair;
 template<int DataLayout>
 void test_cuda_contraction(int m_size, int k_size, int n_size)
 {
-  std::cout << "Calling with (" << m_size << "," << k_size << "," << n_size << ")" << std::endl;
+  std::cout << "Testing for (" << m_size << "," << k_size << "," << n_size << ")" << std::endl;
   // with these dimensions, the output has 300 * 140 elements, which is
   // more than 30 * 1024, which is the number of threads in blocks on
   // a 15 SM GK110 GPU
-  Tensor<float, 2, DataLayout> t_left(Eigen::array<int, 2>(m_size, k_size));
-  Tensor<float, 2, DataLayout> t_right(Eigen::array<int, 2>(k_size, n_size));
-  Tensor<float, 2, DataLayout> t_result(Eigen::array<int, 2>(m_size, n_size));
-  Tensor<float, 2, DataLayout> t_result_gpu(Eigen::array<int, 2>(m_size, n_size));
+  Tensor<float, 2, DataLayout> t_left(m_size, k_size);
+  Tensor<float, 2, DataLayout> t_right(k_size, n_size);
+  Tensor<float, 2, DataLayout> t_result(m_size, n_size);
+  Tensor<float, 2, DataLayout> t_result_gpu(m_size, n_size);
   Eigen::array<DimPair, 1> dims(DimPair(1, 0));
 
   t_left.setRandom();
@@ -84,43 +84,69 @@ void test_cuda_contraction(int m_size, int k_size, int n_size)
   cudaFree((void*)d_t_result);
 }
 
-
-void test_cxx11_tensor_cuda()
-{
-  std::cout << "Calling contraction tests" << std::endl;
-  CALL_SUBTEST_1(test_cuda_contraction<ColMajor>(128, 128, 128));
-  CALL_SUBTEST_1(test_cuda_contraction<RowMajor>(128, 128, 128));
+template<int DataLayout>
+void test_cuda_contraction_m() {
   for (int k = 32; k < 256; k++) {
-    CALL_SUBTEST_2(test_cuda_contraction<ColMajor>(128, k, 128));
-    CALL_SUBTEST_3(test_cuda_contraction<RowMajor>(128, k, 128));
+    test_cuda_contraction<ColMajor>(k, 128, 128);
+    test_cuda_contraction<RowMajor>(k, 128, 128);
   }
+}
+
+template<int DataLayout>
+void test_cuda_contraction_k() {
   for (int k = 32; k < 256; k++) {
-    CALL_SUBTEST_4(test_cuda_contraction<ColMajor>(128, 128, k));
-    CALL_SUBTEST_5(test_cuda_contraction<RowMajor>(128, 128, k));
+    test_cuda_contraction<ColMajor>(128, k, 128);
+    test_cuda_contraction<RowMajor>(128, k, 128);
   }
+}
+
+template<int DataLayout>
+void test_cuda_contraction_n() {
   for (int k = 32; k < 256; k++) {
-    CALL_SUBTEST_6(test_cuda_contraction<ColMajor>(k, 128, 128));
-    CALL_SUBTEST_7(test_cuda_contraction<RowMajor>(k, 128, 128));
+    test_cuda_contraction<ColMajor>(128, 128, k);
+    test_cuda_contraction<RowMajor>(128, 128, k);
   }
+}
 
-  static const int m_sizes[] = {31,   39,   63,   64,  65,
-                                127, 129,  255,  257, 511,
-                                512, 513, 1023, 1024, 1025};
-  static const int n_sizes[] = {31,   39,   63,   64,  65,
-                                127, 129,  255,  257, 511,
-                                512, 513, 1023, 1024, 1025};
 
-  static const int k_sizes[] = {31,  39,  63, 64,    65,
-                                95,  96, 127, 129,  255,
-                                257, 511, 512, 513, 1023,
-                                1024, 1025};
+template<int DataLayout>
+void test_cuda_contraction_sizes() {
+  int m_sizes[] = { 31,  39,   63,   64,   65,
+                   127, 129,  255,  257 , 511,
+                   512, 513, 1023, 1024, 1025};
 
-  for (int i = 0; i <15; i++) {
+  int n_sizes[] = { 31,  39,   63,   64,   65,
+                   127, 129,  255,  257,  511,
+                   512, 513, 1023, 1024, 1025};
+
+  int k_sizes[] = {  31,   39,  63,  64,   65,
+                     95,   96, 127, 129,  255,
+                    257,  511, 512, 513, 1023,
+                   1024, 1025};
+
+  for (int i = 0; i < 15; i++) {
     for (int j = 0; j < 15; j++) {
       for (int k = 0; k < 17; k++) {
-        CALL_SUBTEST_8(test_cuda_contraction<ColMajor>(m_sizes[i], n_sizes[j], k_sizes[k]));
-        CALL_SUBTEST_9(test_cuda_contraction<RowMajor>(m_sizes[i], n_sizes[j], k_sizes[k]));
+        test_cuda_contraction<DataLayout>(m_sizes[i], n_sizes[j], k_sizes[k]);
       }
     }
   }
+}
+
+void test_cxx11_tensor_cuda()
+{
+  CALL_SUBTEST_1(test_cuda_contraction<ColMajor>(128, 128, 128));
+  CALL_SUBTEST_1(test_cuda_contraction<RowMajor>(128, 128, 128));
+
+  CALL_SUBTEST_2(test_cuda_contraction_m<ColMajor>());
+  CALL_SUBTEST_3(test_cuda_contraction_m<RowMajor>());
+
+  CALL_SUBTEST_4(test_cuda_contraction_k<ColMajor>());
+  CALL_SUBTEST_5(test_cuda_contraction_k<RowMajor>());
+
+  CALL_SUBTEST_6(test_cuda_contraction_n<ColMajor>());
+  CALL_SUBTEST_7(test_cuda_contraction_n<RowMajor>());
+
+  CALL_SUBTEST_8(test_cuda_contraction_sizes<ColMajor>());
+  CALL_SUBTEST_9(test_cuda_contraction_sizes<RowMajor>());
 }
