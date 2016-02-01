@@ -25,6 +25,16 @@ template <typename T, size_t n> class array {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { return values[index]; }
 
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& front() { return values[0]; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& front() const { return values[0]; }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& back() { return values[n-1]; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& back() const { return values[n-1]; }
+
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   static std::size_t size() { return n; }
 
@@ -123,13 +133,33 @@ template <typename T> class array<T, 0> {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE T& operator[] (size_t) {
     eigen_assert(false && "Can't index a zero size array");
-    return *static_cast<T*>(NULL);
+    return dummy;
   }
-
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& operator[] (size_t) const {
     eigen_assert(false && "Can't index a zero size array");
-    return *static_cast<const T*>(NULL);
+    return dummy;
+  }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& front() {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& front() const {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& back() {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& back() const {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
   }
 
   static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE std::size_t size() { return 0; }
@@ -142,6 +172,9 @@ template <typename T> class array<T, 0> {
     eigen_assert(l.size() == 0);
   }
 #endif
+
+ private:
+  T dummy;
 };
 
 namespace internal {
