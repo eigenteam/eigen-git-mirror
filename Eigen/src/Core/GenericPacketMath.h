@@ -314,7 +314,7 @@ template<typename Packet> EIGEN_DEVICE_FUNC inline typename unpacket_traits<Pack
   */
 template<typename Packet> EIGEN_DEVICE_FUNC inline
 typename conditional<(unpacket_traits<Packet>::size%8)==0,typename unpacket_traits<Packet>::half,Packet>::type
-predux4(const Packet& a)
+predux_half(const Packet& a)
 { return a; }
 
 /** \internal \returns the product of the elements of \a a*/
