@@ -637,7 +637,7 @@ protected:
 ***************************************************************************/
 
 template<typename DstXprType, typename SrcXprType, typename Functor>
-EIGEN_DEVICE_FUNC void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
@@ -654,7 +654,7 @@ EIGEN_DEVICE_FUNC void call_dense_assignment_loop(const DstXprType& dst, const S
 }
 
 template<typename DstXprType, typename SrcXprType>
-EIGEN_DEVICE_FUNC void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src)
 {
   call_dense_assignment_loop(dst, src, internal::assign_op<typename DstXprType::Scalar>());
 }
@@ -688,26 +688,30 @@ struct Assignment;
 // does not has to bother about these annoying details.
 
 template<typename Dst, typename Src>
-EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment(Dst& dst, const Src& src)
 {
   call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
 template<typename Dst, typename Src>
-EIGEN_DEVICE_FUNC void call_assignment(const Dst& dst, const Src& src)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment(const Dst& dst, const Src& src)
 {
   call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
                      
 // Deal with "assume-aliasing"
 template<typename Dst, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if< evaluator_assume_aliasing<Src>::value, void*>::type = 0)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if< evaluator_assume_aliasing<Src>::value, void*>::type = 0)
 {
   typename plain_matrix_type<Src>::type tmp(src);
   call_assignment_no_alias(dst, tmp, func);
 }
 
 template<typename Dst, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<!evaluator_assume_aliasing<Src>::value, void*>::type = 0)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment(Dst& dst, const Src& src, const Func& func, typename enable_if<!evaluator_assume_aliasing<Src>::value, void*>::type = 0)
 {
   call_assignment_no_alias(dst, src, func);
 }
@@ -715,14 +719,16 @@ EIGEN_DEVICE_FUNC void call_assignment(Dst& dst, const Src& src, const Func& fun
 // by-pass "assume-aliasing"
 // When there is no aliasing, we require that 'dst' has been properly resized
 template<typename Dst, template <typename> class StorageBase, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment(NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment(NoAlias<Dst,StorageBase>& dst, const Src& src, const Func& func)
 {
   call_assignment_no_alias(dst.expression(), src, func);
 }
 
 
 template<typename Dst, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
 {
   enum {
     NeedToTranspose = (    (int(Dst::RowsAtCompileTime) == 1 && int(Src::ColsAtCompileTime) == 1)
@@ -747,13 +753,15 @@ EIGEN_DEVICE_FUNC void call_assignment_no_alias(Dst& dst, const Src& src, const 
   Assignment<ActualDstTypeCleaned,Src,Func>::run(actualDst, src, func);
 }
 template<typename Dst, typename Src>
-EIGEN_DEVICE_FUNC void call_assignment_no_alias(Dst& dst, const Src& src)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment_no_alias(Dst& dst, const Src& src)
 {
   call_assignment_no_alias(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
 
 template<typename Dst, typename Src, typename Func>
-EIGEN_DEVICE_FUNC void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src, const Func& func)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src, const Func& func)
 {
   Index dstRows = src.rows();
   Index dstCols = src.cols();
@@ -767,7 +775,8 @@ EIGEN_DEVICE_FUNC void call_assignment_no_alias_no_transpose(Dst& dst, const Src
   Assignment<Dst,Src,Func>::run(dst, src, func);
 }
 template<typename Dst, typename Src>
-EIGEN_DEVICE_FUNC void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src)
 {
   call_assignment_no_alias_no_transpose(dst, src, internal::assign_op<typename Dst::Scalar>());
 }
@@ -779,7 +788,8 @@ template<typename Dst, typename Src> void check_for_aliasing(const Dst &dst, con
 template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
 struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
 {
-  EIGEN_DEVICE_FUNC static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     

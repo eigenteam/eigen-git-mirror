@@ -129,8 +129,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class 
       : Impl(xpr, startRow, startCol)
     {
       EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic,THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE)
-      eigen_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
-             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= xpr.cols());
+      eigen_assert(startRow >= 0 && BlockRows >= 0 && startRow + BlockRows <= xpr.rows()
+             && startCol >= 0 && BlockCols >= 0 && startCol + BlockCols <= xpr.cols());
     }
 
     /** Dynamic-size constructor

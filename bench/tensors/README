@@ -1,0 +1,8 @@
+Each benchmark comes in 2 flavors: one that runs on CPU, and one that runs on GPU.
+
+To compile the CPU benchmarks, simply call:
+g++ tensor_benchmarks_cpu.cc benchmark_main.cc -I ../../ -std=c++11 -O3 -DNDEBUG -pthread -mavx -o benchmarks_cpu
+
+To compile the GPU benchmarks, simply call:
+nvcc tensor_benchmarks_gpu.cu benchmark_main.cc -I ../../ -std=c++11 -O2 -DNDEBUG -arch compute_35 -o benchmarks_gpu
+

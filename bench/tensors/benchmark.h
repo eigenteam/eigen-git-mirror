@@ -41,10 +41,9 @@ class Benchmark {
   void RunWithArg(int arg);
 };
 }  // namespace testing
-void SetBenchmarkBytesProcessed(int64_t);
+void SetBenchmarkFlopsProcessed(int64_t);
 void StopBenchmarkTiming();
 void StartBenchmarkTiming();
 #define BENCHMARK(f) \
     static ::testing::Benchmark* _benchmark_##f __attribute__((unused)) = \
         (new ::testing::Benchmark(#f, f))
-

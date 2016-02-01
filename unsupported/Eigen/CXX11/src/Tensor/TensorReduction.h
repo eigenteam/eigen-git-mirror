@@ -345,7 +345,7 @@ template <typename Self, typename Op, typename Device>
 struct InnerReducer {
   static const bool HasOptimizedImplementation = false;
 
-  static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+  EIGEN_DEVICE_FUNC static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
     eigen_assert(false && "Not implemented");
   }
 };
@@ -355,7 +355,7 @@ template <typename Self, typename Op, typename Device>
 struct OuterReducer {
   static const bool HasOptimizedImplementation = false;
 
-  static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+  EIGEN_DEVICE_FUNC static void run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
     eigen_assert(false && "Not implemented");
   }
 };
@@ -463,7 +463,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 	  m_outputStrides[i] = m_outputStrides[i - 1] * m_dimensions[i - 1];
 	}
       } else {
-	m_outputStrides[NumOutputDims - 1] = 1;
+	m_outputStrides.back() = 1;
 	for (int i = NumOutputDims - 2; i >= 0; --i) {
 	  m_outputStrides[i] = m_outputStrides[i + 1] * m_dimensions[i + 1];
 	}
@@ -479,7 +479,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 	  input_strides[i] = input_strides[i-1] * input_dims[i-1];
 	}
       } else {
-	input_strides[NumInputDims - 1] = 1;
+	input_strides.back() = 1;
 	for (int i = NumInputDims - 2; i >= 0; --i) {
 	  input_strides[i] = input_strides[i + 1] * input_dims[i + 1];
 	}

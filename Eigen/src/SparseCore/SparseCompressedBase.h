@@ -117,6 +117,24 @@ template<typename Derived>
 class SparseCompressedBase<Derived>::InnerIterator
 {
   public:
+    InnerIterator()
+      : m_values(0), m_indices(0), m_outer(0), m_id(0), m_end(0)
+    {}
+
+    InnerIterator(const InnerIterator& other)
+      : m_values(other.m_values), m_indices(other.m_indices), m_outer(other.m_outer), m_id(other.m_id), m_end(other.m_end)
+    {}
+
+    InnerIterator& operator=(const InnerIterator& other)
+    {
+      m_values = other.m_values;
+      m_indices = other.m_indices;
+      const_cast<OuterType&>(m_outer).setValue(other.m_outer.value());
+      m_id = other.m_id;
+      m_end = other.m_end;
+      return *this;
+    }
+
     InnerIterator(const SparseCompressedBase& mat, Index outer)
       : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer)
     {
@@ -162,7 +180,8 @@ class SparseCompressedBase<Derived>::InnerIterator
   protected:
     const Scalar* m_values;
     const StorageIndex* m_indices;
-    const internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> m_outer;
+    typedef internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> OuterType;
+    const OuterType m_outer;
     Index m_id;
     Index m_end;
   private:

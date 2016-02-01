@@ -16,16 +16,20 @@ static void test_empty_tensor()
 {
   Tensor<float, 2> source;
   Tensor<float, 2> tgt1 = source;
-  Tensor<float, 2> tgt2;
-  tgt2 = source;
+  Tensor<float, 2> tgt2(source);
+  Tensor<float, 2> tgt3;
+  tgt3 = tgt1;
+  tgt3 = tgt2;
 }
 
 static void test_empty_fixed_size_tensor()
 {
   TensorFixedSize<float, Sizes<0>> source;
   TensorFixedSize<float, Sizes<0>> tgt1 = source;
-  TensorFixedSize<float, Sizes<0>> tgt2;
-  tgt2 = source;
+  TensorFixedSize<float, Sizes<0>> tgt2(source);
+  TensorFixedSize<float, Sizes<0>> tgt3;
+  tgt3 = tgt1;
+  tgt3 = tgt2;
 }
 
 
