@@ -130,6 +130,7 @@ void test_nullary()
     CALL_SUBTEST_8( testVectorType(Matrix<float,1,1>()) );
 
     CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(1,300))) );
+    CALL_SUBTEST_9( testVectorType(Matrix<int,1,1>()) );
   }
 
 #ifdef EIGEN_TEST_PART_6
