@@ -41,7 +41,10 @@ class TensorStorage<T, FixedDimensions, Options_>
  private:
   static const std::size_t Size = FixedDimensions::total_size;
 
-  EIGEN_ALIGN_MAX T m_data[Size];
+  // Allocate an array of size at least one to prevent compiler warnings.
+  static const std::size_t MinSize = max_n_1<Size>::size;
+  EIGEN_ALIGN_MAX T m_data[MinSize];
+
   FixedDimensions m_dimensions;
 
  public:
