@@ -48,30 +48,32 @@ void testVectorType(const VectorType& base)
   VectorType m(base);
   m.setLinSpaced(size,low,high);
 
+  if(!NumTraits<Scalar>::IsInteger)
+  {
+    VectorType n(size);
+    for (int i=0; i<size; ++i)
+      n(i) = low+i*step;
+    VERIFY_IS_APPROX(m,n);
+  }
+
   VectorType n(size);
   for (int i=0; i<size; ++i)
-    n(i) = low+i*step;
-
+    n(i) = size==1 ? low : (low + ((high-low)*Scalar(i))/(size-1));
   VERIFY_IS_APPROX(m,n);
 
   // random access version
   m = VectorType::LinSpaced(size,low,high);
   VERIFY_IS_APPROX(m,n);
 
-  // Assignment of a RowVectorXd to a MatrixXd (regression test for bug #79).
-  VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<Scalar>::epsilon() );
-
-  // These guys sometimes fail! This is not good. Any ideas how to fix them!?
-  //VERIFY( m(m.size()-1) == high );
-  //VERIFY( m(0) == low );
+  VERIFY( internal::isApprox(m(m.size()-1),high) );
+  VERIFY( size==1 || internal::isApprox(m(0),low) );
 
   // sequential access version
   m = VectorType::LinSpaced(Sequential,size,low,high);
   VERIFY_IS_APPROX(m,n);
 
-  // These guys sometimes fail! This is not good. Any ideas how to fix them!?
-  //VERIFY( m(m.size()-1) == high );
-  //VERIFY( m(0) == low );
+  VERIFY( internal::isApprox(m(m.size()-1),high) );
+  VERIFY( size==1 || internal::isApprox(m(0),low) );
 
   // check whether everything works with row and col major vectors
   Matrix<Scalar,Dynamic,1> row_vector(size);
@@ -126,5 +128,12 @@ void test_nullary()
     CALL_SUBTEST_8( testVectorType(Vector4f()) );
     CALL_SUBTEST_8( testVectorType(Matrix<float,8,1>()) );
     CALL_SUBTEST_8( testVectorType(Matrix<float,1,1>()) );
+
+    CALL_SUBTEST_9( testVectorType(VectorXi(internal::random<int>(1,300))) );
   }
+
+#ifdef EIGEN_TEST_PART_6
+  // Assignment of a RowVectorXd to a MatrixXd (regression test for bug #79).
+  VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<double>::epsilon() );
+#endif
 }
