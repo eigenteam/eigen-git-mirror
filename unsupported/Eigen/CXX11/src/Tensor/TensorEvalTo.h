@@ -136,7 +136,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   }
 
   template<int LoadMode>
-  EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return internal::ploadt<Packet, LoadMode>(m_buffer + index);
   }

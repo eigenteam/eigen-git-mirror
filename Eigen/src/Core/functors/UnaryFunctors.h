@@ -428,6 +428,28 @@ struct functor_traits<scalar_lgamma_op<Scalar> >
 };
 
 /** \internal
+ * \brief Template functor to compute psi, the derivative of lgamma of a scalar.
+ * \sa class CwiseUnaryOp, Cwise::digamma()
+ */
+template<typename Scalar> struct scalar_digamma_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_digamma_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const {
+    using numext::digamma; return digamma(a);
+  }
+  typedef typename packet_traits<Scalar>::type Packet;
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pdigamma(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_digamma_op<Scalar> >
+{
+  enum {
+    // Guesstimate
+    Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+    PacketAccess = packet_traits<Scalar>::HasDiGamma
+  };
+};
+
+/** \internal
  * \brief Template functor to compute the Gauss error function of a
  * scalar
  * \sa class CwiseUnaryOp, Cwise::erf()
@@ -644,7 +666,7 @@ struct functor_traits<scalar_floor_op<Scalar> >
 template<typename Scalar> struct scalar_ceil_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_ceil_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return numext::ceil(a); }
-  typedef typename packet_traits<Scalar>::type Packet;
+  template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pceil(a); }
 };
 template<typename Scalar>

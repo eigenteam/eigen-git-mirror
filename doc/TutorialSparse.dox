@@ -257,7 +257,14 @@ Binary coefficient wise operators can also mix sparse and dense expressions:
 \code
 sm2 = sm1.cwiseProduct(dm1);
 dm2 = sm1 + dm1;
+dm2 = dm1 - sm1;
 \endcode
+Performance-wise, the adding/subtracting sparse and dense matrices is better performed in two steps. For instance, instead of doing <tt>dm2 = sm1 + dm1</tt>, better write:
+\code
+dm2 = dm1;
+dm2 += sm1;
+\endcode
+This version has the advantage to fully exploit the higher performance of dense storage (no indirection, SIMD, etc.), and to pay the cost of slow sparse evaluation on the few non-zeros of the sparse matrix only.
 
 
 %Sparse expressions also support transposition:

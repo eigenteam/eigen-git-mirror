@@ -41,7 +41,10 @@ class TensorStorage<T, FixedDimensions, Options_>
  private:
   static const std::size_t Size = FixedDimensions::total_size;
 
-  EIGEN_ALIGN_MAX T m_data[Size];
+  // Allocate an array of size at least one to prevent compiler warnings.
+  static const std::size_t MinSize = max_n_1<Size>::size;
+  EIGEN_ALIGN_MAX T m_data[MinSize];
+
   FixedDimensions m_dimensions;
 
  public:
@@ -105,7 +108,6 @@ class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
 
     EIGEN_DEVICE_FUNC void resize(Index size, const array<Index, NumIndices_>& nbDimensions)
     {
-      eigen_assert(size >= 1);
       const Index currentSz = internal::array_prod(m_dimensions);
       if(size != currentSz)
       {

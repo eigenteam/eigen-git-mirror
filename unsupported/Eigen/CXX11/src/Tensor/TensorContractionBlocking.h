@@ -28,7 +28,7 @@ class TensorContractionBlocking {
   typedef typename LhsMapper::Scalar LhsScalar;
   typedef typename RhsMapper::Scalar RhsScalar;
 
-  TensorContractionBlocking(Index k, Index m, Index n, Index num_threads = 1) :
+  EIGEN_DEVICE_FUNC TensorContractionBlocking(Index k, Index m, Index n, Index num_threads = 1) :
       kc_(k), mc_(m), nc_(n)
   {
     if (ShardingType == ShardByCol) {
@@ -41,9 +41,9 @@ class TensorContractionBlocking {
     }
   }
 
-  EIGEN_ALWAYS_INLINE Index kc() const { return kc_; }
-  EIGEN_ALWAYS_INLINE Index mc() const { return mc_; }
-  EIGEN_ALWAYS_INLINE Index nc() const { return nc_; }
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index kc() const { return kc_; }
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index mc() const { return mc_; }
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index nc() const { return nc_; }
 
  private:
   Index kc_;

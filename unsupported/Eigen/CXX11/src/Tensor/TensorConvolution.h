@@ -21,7 +21,7 @@ namespace Eigen {
   */
 namespace internal {
 
-template <typename Index, typename InputDims, size_t NumKernelDims, int Layout>
+template <typename Index, typename InputDims, int NumKernelDims, int Layout>
 class IndexMapper {
  public:
   IndexMapper(const InputDims& input_dims, const array<Index, NumKernelDims>& kernel_dims,
@@ -123,7 +123,7 @@ class IndexMapper {
       }
       inputIndex += p * m_inputStrides[NumKernelDims];
     } else {
-      int limit = 0;
+      std::ptrdiff_t limit = 0;
       if (NumKernelDims < NumDims) {
         limit = NumDims - NumKernelDims - 1;
       }
@@ -147,7 +147,7 @@ class IndexMapper {
       }
       outputIndex += p * m_outputStrides[NumKernelDims];
     } else {
-      int limit = 0;
+      std::ptrdiff_t limit = 0;
       if (NumKernelDims < NumDims) {
         limit = NumDims - NumKernelDims - 1;
       }
@@ -206,7 +206,7 @@ class IndexMapper {
   }
 
  private:
-  static const size_t NumDims = internal::array_size<InputDims>::value;
+  static const int NumDims = internal::array_size<InputDims>::value;
   array<Index, NumDims> m_inputStrides;
   array<Index, NumDims> m_outputStrides;
   array<Index, NumDims> m_cudaInputStrides;

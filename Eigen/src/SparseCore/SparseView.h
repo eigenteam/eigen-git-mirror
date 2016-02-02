@@ -38,7 +38,7 @@ public:
   typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
   explicit SparseView(const MatrixType& mat, const Scalar& reference = Scalar(0),
-                      RealScalar epsilon = NumTraits<Scalar>::dummy_precision())
+                      const RealScalar &epsilon = NumTraits<Scalar>::dummy_precision())
     : m_matrix(mat), m_reference(reference), m_epsilon(epsilon) {}
 
   inline Index rows() const { return m_matrix.rows(); }

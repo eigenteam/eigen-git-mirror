@@ -75,6 +75,7 @@ struct default_packet_traits
     HasCosh    = 0,
     HasTanh    = 0,
     HasLGamma = 0,
+    HasDiGamma = 0,
     HasErf = 0,
     HasErfc = 0,
 
@@ -284,7 +285,7 @@ template<typename Scalar, typename Packet> EIGEN_DEVICE_FUNC inline void pstoreu
  { pstore(to, from); }
 
 /** \internal tries to do cache prefetching of \a addr */
-template<typename Scalar> inline void prefetch(const Scalar* addr)
+template<typename Scalar> EIGEN_DEVICE_FUNC inline void prefetch(const Scalar* addr)
 {
 #ifdef __CUDA_ARCH__
 #if defined(__LP64__)
@@ -438,6 +439,10 @@ Packet pceil(const Packet& a) { using numext::ceil; return ceil(a); }
 /** \internal \returns the ln(|gamma(\a a)|) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet plgamma(const Packet& a) { using numext::lgamma; return lgamma(a); }
+
+/** \internal \returns the derivative of lgamma, psi(\a a) (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pdigamma(const Packet& a) { using numext::digamma; return digamma(a); }
 
 /** \internal \returns the erf(\a a) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS

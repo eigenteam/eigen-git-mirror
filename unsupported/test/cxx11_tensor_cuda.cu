@@ -63,6 +63,10 @@ void test_cuda_elementwise_small() {
         out(Eigen::array<int, 1>(i)),
         in1(Eigen::array<int, 1>(i)) + in2(Eigen::array<int, 1>(i)));
   }
+
+  cudaFree(d_in1);
+  cudaFree(d_in2);
+  cudaFree(d_out);
 }
 
 void test_cuda_elementwise()
@@ -113,6 +117,11 @@ void test_cuda_elementwise()
       }
     }
   }
+
+  cudaFree(d_in1);
+  cudaFree(d_in2);
+  cudaFree(d_in3);
+  cudaFree(d_out);
 }
 
 void test_cuda_reduction()
@@ -131,8 +140,7 @@ void test_cuda_reduction()
 
   cudaMemcpy(d_in1, in1.data(), in1_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 4> > gpu_in1(d_in1, 72,53,97,113);
@@ -159,10 +167,13 @@ void test_cuda_reduction()
       VERIFY_IS_APPROX(out(i,j), expected);
     }
   }
+
+  cudaFree(d_in1);
+  cudaFree(d_out);
 }
 
 template<int DataLayout>
-static void test_cuda_contraction()
+void test_cuda_contraction()
 {
   // with these dimensions, the output has 300 * 140 elements, which is
   // more than 30 * 1024, which is the number of threads in blocks on
@@ -189,8 +200,7 @@ static void test_cuda_contraction()
   cudaMemcpy(d_t_left, t_left.data(), t_left_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_t_right, t_right.data(), t_right_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 4, DataLayout> > gpu_t_left(d_t_left, 6, 50, 3, 31);
@@ -214,14 +224,18 @@ static void test_cuda_contraction()
 
   for (size_t i = 0; i < t_result.dimensions().TotalSize(); i++) {
     if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
-      cout << "mismatch detected at index " << i << ": " << t_result.data()[i] << " vs " <<  m_result.data()[i] << endl;
+      std::cout << "mismatch detected at index " << i << ": " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
       assert(false);
     }
   }
+
+  cudaFree(d_t_left);
+  cudaFree(d_t_right);
+  cudaFree(d_t_result);
 }
 
 template<int DataLayout>
-static void test_cuda_convolution_1d()
+void test_cuda_convolution_1d()
 {
   Tensor<float, 4, DataLayout> input(74,37,11,137);
   Tensor<float, 1, DataLayout> kernel(4);
@@ -243,8 +257,7 @@ static void test_cuda_convolution_1d()
   cudaMemcpy(d_input, input.data(), input_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_kernel, kernel.data(), kernel_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 4, DataLayout> > gpu_input(d_input, 74,37,11,137);
@@ -269,9 +282,13 @@ static void test_cuda_convolution_1d()
       }
     }
   }
+
+  cudaFree(d_input);
+  cudaFree(d_kernel);
+  cudaFree(d_out);
 }
 
-static void test_cuda_convolution_inner_dim_col_major_1d()
+void test_cuda_convolution_inner_dim_col_major_1d()
 {
   Tensor<float, 4, ColMajor> input(74,9,11,7);
   Tensor<float, 1, ColMajor> kernel(4);
@@ -293,8 +310,7 @@ static void test_cuda_convolution_inner_dim_col_major_1d()
   cudaMemcpy(d_input, input.data(), input_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_kernel, kernel.data(), kernel_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 4, ColMajor> > gpu_input(d_input,74,9,11,7);
@@ -319,9 +335,13 @@ static void test_cuda_convolution_inner_dim_col_major_1d()
       }
     }
   }
+
+  cudaFree(d_input);
+  cudaFree(d_kernel);
+  cudaFree(d_out);
 }
 
-static void test_cuda_convolution_inner_dim_row_major_1d()
+void test_cuda_convolution_inner_dim_row_major_1d()
 {
   Tensor<float, 4, RowMajor> input(7,9,11,74);
   Tensor<float, 1, RowMajor> kernel(4);
@@ -343,8 +363,7 @@ static void test_cuda_convolution_inner_dim_row_major_1d()
   cudaMemcpy(d_input, input.data(), input_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_kernel, kernel.data(), kernel_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 4, RowMajor> > gpu_input(d_input, 7,9,11,74);
@@ -369,10 +388,14 @@ static void test_cuda_convolution_inner_dim_row_major_1d()
       }
     }
   }
+
+  cudaFree(d_input);
+  cudaFree(d_kernel);
+  cudaFree(d_out);
 }
 
 template<int DataLayout>
-static void test_cuda_convolution_2d()
+void test_cuda_convolution_2d()
 {
   Tensor<float, 4, DataLayout> input(74,37,11,137);
   Tensor<float, 2, DataLayout> kernel(3,4);
@@ -394,8 +417,7 @@ static void test_cuda_convolution_2d()
   cudaMemcpy(d_input, input.data(), input_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_kernel, kernel.data(), kernel_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 4, DataLayout> > gpu_input(d_input,74,37,11,137);
@@ -430,10 +452,14 @@ static void test_cuda_convolution_2d()
       }
     }
   }
+
+  cudaFree(d_input);
+  cudaFree(d_kernel);
+  cudaFree(d_out);
 }
 
 template<int DataLayout>
-static void test_cuda_convolution_3d()
+void test_cuda_convolution_3d()
 {
   Tensor<float, 5, DataLayout> input(Eigen::array<int, 5>(74,37,11,137,17));
   Tensor<float, 3, DataLayout> kernel(3,4,2);
@@ -455,8 +481,7 @@ static void test_cuda_convolution_3d()
   cudaMemcpy(d_input, input.data(), input_bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_kernel, kernel.data(), kernel_bytes, cudaMemcpyHostToDevice);
 
-  cudaStream_t stream;
-  assert(cudaStreamCreate(&stream) == cudaSuccess);
+  Eigen::CudaStreamDevice stream;    
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 5, DataLayout> > gpu_input(d_input,74,37,11,137,17);
@@ -505,6 +530,10 @@ static void test_cuda_convolution_3d()
       }
     }
   }
+
+  cudaFree(d_input);
+  cudaFree(d_kernel);
+  cudaFree(d_out);
 }
 
 
@@ -542,6 +571,9 @@ void test_cuda_lgamma(const Scalar stddev)
       VERIFY_IS_APPROX(out(i,j), (std::lgamma)(in(i,j)));
     }
   }
+
+  cudaFree(d_in);
+  cudaFree(d_out);
 }
 
 template <typename Scalar>
@@ -578,6 +610,9 @@ void test_cuda_erf(const Scalar stddev)
       VERIFY_IS_APPROX(out(i,j), (std::erf)(in(i,j)));
     }
   }
+
+  cudaFree(d_in);
+  cudaFree(d_out);
 }
 
 template <typename Scalar>
@@ -614,51 +649,50 @@ void test_cuda_erfc(const Scalar stddev)
       VERIFY_IS_APPROX(out(i,j), (std::erfc)(in(i,j)));
     }
   }
+
+  cudaFree(d_in);
+  cudaFree(d_out);
 }
 
 void test_cxx11_tensor_cuda()
 {
-  CALL_SUBTEST(test_cuda_elementwise_small());
-  CALL_SUBTEST(test_cuda_elementwise());
-  CALL_SUBTEST(test_cuda_reduction());
-  CALL_SUBTEST(test_cuda_contraction<ColMajor>());
-  CALL_SUBTEST(test_cuda_contraction<RowMajor>());
-  CALL_SUBTEST(test_cuda_convolution_1d<ColMajor>());
-  CALL_SUBTEST(test_cuda_convolution_1d<RowMajor>());
-  CALL_SUBTEST(test_cuda_convolution_inner_dim_col_major_1d());
-  CALL_SUBTEST(test_cuda_convolution_inner_dim_row_major_1d());
-  CALL_SUBTEST(test_cuda_convolution_2d<ColMajor>());
-  CALL_SUBTEST(test_cuda_convolution_2d<RowMajor>());
-  CALL_SUBTEST(test_cuda_convolution_3d<ColMajor>());
-  CALL_SUBTEST(test_cuda_convolution_3d<RowMajor>());
-  CALL_SUBTEST(test_cuda_lgamma<float>(1.0f));
-  CALL_SUBTEST(test_cuda_lgamma<float>(100.0f));
-  CALL_SUBTEST(test_cuda_lgamma<float>(0.01f));
-  CALL_SUBTEST(test_cuda_lgamma<float>(0.001f));
-  CALL_SUBTEST(test_cuda_erf<float>(1.0f));
-  CALL_SUBTEST(test_cuda_erf<float>(100.0f));
-  CALL_SUBTEST(test_cuda_erf<float>(0.01f));
-  CALL_SUBTEST(test_cuda_erf<float>(0.001f));
-  CALL_SUBTEST(test_cuda_erfc<float>(1.0f));
+  CALL_SUBTEST_1(test_cuda_elementwise_small());
+  CALL_SUBTEST_1(test_cuda_elementwise());
+  CALL_SUBTEST_1(test_cuda_reduction());
+  CALL_SUBTEST_2(test_cuda_contraction<ColMajor>());
+  CALL_SUBTEST_2(test_cuda_contraction<RowMajor>());
+  CALL_SUBTEST_3(test_cuda_convolution_1d<ColMajor>());
+  CALL_SUBTEST_3(test_cuda_convolution_1d<RowMajor>());
+  CALL_SUBTEST_3(test_cuda_convolution_inner_dim_col_major_1d());
+  CALL_SUBTEST_3(test_cuda_convolution_inner_dim_row_major_1d());
+  CALL_SUBTEST_3(test_cuda_convolution_2d<ColMajor>());
+  CALL_SUBTEST_3(test_cuda_convolution_2d<RowMajor>());
+  CALL_SUBTEST_3(test_cuda_convolution_3d<ColMajor>());
+  CALL_SUBTEST_3(test_cuda_convolution_3d<RowMajor>());
+  CALL_SUBTEST_4(test_cuda_lgamma<float>(1.0f));
+  CALL_SUBTEST_4(test_cuda_lgamma<float>(100.0f));
+  CALL_SUBTEST_4(test_cuda_lgamma<float>(0.01f));
+  CALL_SUBTEST_4(test_cuda_lgamma<float>(0.001f));
+  CALL_SUBTEST_4(test_cuda_erf<float>(1.0f));
+  CALL_SUBTEST_4(test_cuda_erf<float>(100.0f));
+  CALL_SUBTEST_4(test_cuda_erf<float>(0.01f));
+  CALL_SUBTEST_4(test_cuda_erf<float>(0.001f));
+  CALL_SUBTEST_4(test_cuda_erfc<float>(1.0f));
   // CALL_SUBTEST(test_cuda_erfc<float>(100.0f));
-  CALL_SUBTEST(test_cuda_erfc<float>(5.0f)); // CUDA erfc lacks precision for large inputs
-  CALL_SUBTEST(test_cuda_erfc<float>(0.01f));
-  CALL_SUBTEST(test_cuda_erfc<float>(0.001f));
-  CALL_SUBTEST(test_cuda_tanh<double>(1.0));
-  CALL_SUBTEST(test_cuda_tanh<double>(100.0));
-  CALL_SUBTEST(test_cuda_tanh<double>(0.01));
-  CALL_SUBTEST(test_cuda_tanh<double>(0.001));
-  CALL_SUBTEST(test_cuda_lgamma<double>(1.0));
-  CALL_SUBTEST(test_cuda_lgamma<double>(100.0));
-  CALL_SUBTEST(test_cuda_lgamma<double>(0.01));
-  CALL_SUBTEST(test_cuda_lgamma<double>(0.001));
-  CALL_SUBTEST(test_cuda_erf<double>(1.0));
-  CALL_SUBTEST(test_cuda_erf<double>(100.0));
-  CALL_SUBTEST(test_cuda_erf<double>(0.01));
-  CALL_SUBTEST(test_cuda_erf<double>(0.001));
-  CALL_SUBTEST(test_cuda_erfc<double>(1.0));
+  CALL_SUBTEST_4(test_cuda_erfc<float>(5.0f)); // CUDA erfc lacks precision for large inputs
+  CALL_SUBTEST_4(test_cuda_erfc<float>(0.01f));
+  CALL_SUBTEST_4(test_cuda_erfc<float>(0.001f));
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(1.0));
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(100.0));
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(0.01));
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(0.001));
+  CALL_SUBTEST_4(test_cuda_erf<double>(1.0));
+  CALL_SUBTEST_4(test_cuda_erf<double>(100.0));
+  CALL_SUBTEST_4(test_cuda_erf<double>(0.01));
+  CALL_SUBTEST_4(test_cuda_erf<double>(0.001));
+  CALL_SUBTEST_4(test_cuda_erfc<double>(1.0));
   // CALL_SUBTEST(test_cuda_erfc<double>(100.0));
-  CALL_SUBTEST(test_cuda_erfc<double>(5.0)); // CUDA erfc lacks precision for large inputs
-  CALL_SUBTEST(test_cuda_erfc<double>(0.01));
-  CALL_SUBTEST(test_cuda_erfc<double>(0.001));
+  CALL_SUBTEST_4(test_cuda_erfc<double>(5.0)); // CUDA erfc lacks precision for large inputs
+  CALL_SUBTEST_4(test_cuda_erfc<double>(0.01));
+  CALL_SUBTEST_4(test_cuda_erfc<double>(0.001));
 }

@@ -526,9 +526,9 @@ template<typename T, bool Align> EIGEN_DEVICE_FUNC inline void conditional_align
 template<int Alignment, typename Scalar, typename Index>
 EIGEN_DEVICE_FUNC inline Index first_aligned(const Scalar* array, Index size)
 {
-  static const Index ScalarSize = sizeof(Scalar);
-  static const Index AlignmentSize = Alignment / ScalarSize;
-  static const Index AlignmentMask = AlignmentSize-1;
+  const Index ScalarSize = sizeof(Scalar);
+  const Index AlignmentSize = Alignment / ScalarSize;
+  const Index AlignmentMask = AlignmentSize-1;
 
   if(AlignmentSize<=1)
   {

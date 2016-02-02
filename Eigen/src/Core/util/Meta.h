@@ -257,7 +257,7 @@ struct has_std_result_type {int a[2];};
 struct has_tr1_result {int a[3];};
 
 template<typename Func, typename ArgType, int SizeOf=sizeof(has_none)>
-struct unary_result_of_select {typedef ArgType type;};
+struct unary_result_of_select {typedef typename internal::remove_all<ArgType>::type type;};
 
 template<typename Func, typename ArgType>
 struct unary_result_of_select<Func, ArgType, sizeof(has_std_result_type)> {typedef typename Func::result_type type;};
@@ -279,7 +279,7 @@ struct result_of<Func(ArgType)> {
 };
 
 template<typename Func, typename ArgType0, typename ArgType1, int SizeOf=sizeof(has_none)>
-struct binary_result_of_select {typedef ArgType0 type;};
+struct binary_result_of_select {typedef typename internal::remove_all<ArgType0>::type type;};
 
 template<typename Func, typename ArgType0, typename ArgType1>
 struct binary_result_of_select<Func, ArgType0, ArgType1, sizeof(has_std_result_type)>
@@ -325,6 +325,22 @@ class meta_sqrt
 
 template<int Y, int InfX, int SupX>
 class meta_sqrt<Y, InfX, SupX, true> { public:  enum { ret = (SupX*SupX <= Y) ? SupX : InfX }; };
+
+
+/** \internal Computes the least common multiple of two positive integer A and B
+  * at compile-time. It implements a naive algorithm testing all multiples of A.
+  * It thus works better if A>=B.
+  */
+template<int A, int B, int K=1, bool Done = ((A*K)%B)==0>
+struct meta_least_common_multiple
+{
+  enum { ret = meta_least_common_multiple<A,B,K+1>::ret };
+};
+template<int A, int B, int K>
+struct meta_least_common_multiple<A,B,K,true>
+{
+  enum { ret = A*K };
+};
 
 /** \internal determines whether the product of two numeric types is allowed and what the return type is */
 template<typename T, typename U> struct scalar_product_traits

@@ -79,6 +79,20 @@ double2 plgamma<double2>(const double2& a)
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pdigamma<float4>(const float4& a)
+{
+  using numext::digamma;
+  return make_float4(digamma(a.x), digamma(a.y), digamma(a.z), digamma(a.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pdigamma<double2>(const double2& a)
+{
+  using numext::digamma;
+  return make_double2(digamma(a.x), digamma(a.y));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 perf<float4>(const float4& a)
 {
   return make_float4(erf(a.x), erf(a.y), erf(a.z), erf(a.w));

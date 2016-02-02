@@ -37,7 +37,7 @@ template<typename Scalar>
 struct functor_traits<scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
 
-template <typename Scalar, typename Packet, bool RandomAccess> struct linspaced_op_impl;
+template <typename Scalar, typename Packet, bool RandomAccess, bool IsInteger> struct linspaced_op_impl;
 
 // linear access for packet ops:
 // 1) initialization
@@ -48,12 +48,12 @@ template <typename Scalar, typename Packet, bool RandomAccess> struct linspaced_
 // TODO: Perhaps it's better to initialize lazily (so not in the constructor but in packetOp)
 //       in order to avoid the padd() in operator() ?
 template <typename Scalar, typename Packet>
-struct linspaced_op_impl<Scalar,Packet,false>
+struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/false,/*IsInteger*/false>
 {
-  linspaced_op_impl(const Scalar& low, const Scalar& step) :
-  m_low(low), m_step(step),
-  m_packetStep(pset1<Packet>(unpacket_traits<Packet>::size*step)),
-  m_base(padd(pset1<Packet>(low), pmul(pset1<Packet>(step),plset<Packet>(-unpacket_traits<Packet>::size)))) {}
+  linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
+    m_low(low), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
+    m_packetStep(pset1<Packet>(unpacket_traits<Packet>::size*m_step)),
+    m_base(padd(pset1<Packet>(low), pmul(pset1<Packet>(m_step),plset<Packet>(-unpacket_traits<Packet>::size)))) {}
 
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const 
@@ -75,11 +75,11 @@ struct linspaced_op_impl<Scalar,Packet,false>
 // 1) each step
 //   [low, ..., low] + ( [step, ..., step] * ( [i, ..., i] + [0, ..., size] ) )
 template <typename Scalar, typename Packet>
-struct linspaced_op_impl<Scalar,Packet,true>
+struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/false>
 {
-  linspaced_op_impl(const Scalar& low, const Scalar& step) :
-  m_low(low), m_step(step),
-  m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Packet>(0)) {}
+  linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
+    m_low(low), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
+    m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Packet>(0)) {}
 
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return m_low+i*m_step; }
@@ -95,6 +95,31 @@ struct linspaced_op_impl<Scalar,Packet,true>
   const Packet m_interPacket;
 };
 
+template <typename Scalar, typename Packet>
+struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/true>
+{
+  linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
+    m_low(low), m_length(high-low), m_divisor(num_steps==1?1:num_steps-1), m_interPacket(plset<Packet>(0))
+  {}
+
+  template<typename Index>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  const Scalar operator() (Index i) const {
+    return m_low + (m_length*Scalar(i))/m_divisor;
+  }
+
+  template<typename Index>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  const Packet packetOp(Index i) const {
+    return internal::padd(pset1<Packet>(m_low), pdiv(pmul(pset1<Packet>(m_length), padd(pset1<Packet>(Scalar(i)),m_interPacket)),
+                                                     pset1<Packet>(m_divisor))); }
+
+  const Scalar m_low;
+  const Scalar m_length;
+  const Index  m_divisor;
+  const Packet m_interPacket;
+};
+
 // ----- Linspace functor ----------------------------------------------------------------
 
 // Forward declaration (we default to random access which does not really give
@@ -102,10 +127,20 @@ struct linspaced_op_impl<Scalar,Packet,true>
 // nested expressions).
 template <typename Scalar, typename PacketType, bool RandomAccess = true> struct linspaced_op;
 template <typename Scalar, typename PacketType, bool RandomAccess> struct functor_traits< linspaced_op<Scalar,PacketType,RandomAccess> >
-{ enum { Cost = 1, PacketAccess = packet_traits<Scalar>::HasSetLinear, IsRepeatable = true }; };
+{
+  enum
+  {
+    Cost = 1,
+    PacketAccess =   packet_traits<Scalar>::HasSetLinear
+                  && ((!NumTraits<Scalar>::IsInteger) || packet_traits<Scalar>::HasDiv),
+    IsRepeatable = true
+  };
+};
 template <typename Scalar, typename PacketType, bool RandomAccess> struct linspaced_op
 {
-  linspaced_op(const Scalar& low, const Scalar& high, Index num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1))) {}
+  linspaced_op(const Scalar& low, const Scalar& high, Index num_steps)
+    : impl((num_steps==1 ? high : low),high,num_steps)
+  {}
 
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return impl(i); }
@@ -134,7 +169,9 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct linspa
   // This proxy object handles the actual required temporaries, the different
   // implementations (random vs. sequential access) as well as the
   // correct piping to size 2/4 packet operations.
-  const linspaced_op_impl<Scalar,PacketType,RandomAccess> impl;
+  // As long as we don't have a Bresenham-like implementation for linear-access and integer types,
+  // we have to by-pass RandomAccess for integer types. See bug 698.
+  const linspaced_op_impl<Scalar,PacketType,(NumTraits<Scalar>::IsInteger?true:RandomAccess),NumTraits<Scalar>::IsInteger> impl;
 };
 
 // all functors allow linear access, except scalar_identity_op. So we fix here a quick meta

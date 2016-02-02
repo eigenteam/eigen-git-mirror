@@ -109,19 +109,19 @@ struct GPUContext {
 
 // The actual expression to evaluate
 template <typename Context>
-static void test_contextual_eval(Context* context)
+void test_contextual_eval(Context* context)
 {
   context->out().device(context->device()) = context->in1() + context->in2() * 3.14f + context->in1().constant(2.718f);
 }
 
 template <typename Context>
-static void test_forced_contextual_eval(Context* context)
+void test_forced_contextual_eval(Context* context)
 {
   context->out().device(context->device()) = (context->in1() + context->in2()).eval() * 3.14f + context->in1().constant(2.718f);
 }
 
 template <typename Context>
-static void test_compound_assignment(Context* context)
+void test_compound_assignment(Context* context)
 {
   context->out().device(context->device()) = context->in1().constant(2.718f);
   context->out().device(context->device()) += context->in1() + context->in2() * 3.14f;
@@ -129,7 +129,7 @@ static void test_compound_assignment(Context* context)
 
 
 template <typename Context>
-static void test_contraction(Context* context)
+void test_contraction(Context* context)
 {
   Eigen::array<std::pair<int, int>, 2> dims;
   dims[0] = std::make_pair(1, 1);
@@ -145,7 +145,7 @@ static void test_contraction(Context* context)
 
 
 template <typename Context>
-static void test_1d_convolution(Context* context)
+void test_1d_convolution(Context* context)
 {
   Eigen::DSizes<int, 3> indices(0,0,0);
   Eigen::DSizes<int, 3> sizes(40,49,70);
@@ -155,7 +155,7 @@ static void test_1d_convolution(Context* context)
 }
 
 template <typename Context>
-static void test_2d_convolution(Context* context)
+void test_2d_convolution(Context* context)
 {
   Eigen::DSizes<int, 3> indices(0,0,0);
   Eigen::DSizes<int, 3> sizes(40,49,69);
@@ -165,7 +165,7 @@ static void test_2d_convolution(Context* context)
 }
 
 template <typename Context>
-static void test_3d_convolution(Context* context)
+void test_3d_convolution(Context* context)
 {
   Eigen::DSizes<int, 3> indices(0,0,0);
   Eigen::DSizes<int, 3> sizes(39,49,69);
@@ -175,7 +175,7 @@ static void test_3d_convolution(Context* context)
 }
 
 
-static void test_cpu() {
+void test_cpu() {
   Eigen::Tensor<float, 3> in1(40,50,70);
   Eigen::Tensor<float, 3> in2(40,50,70);
   Eigen::Tensor<float, 3> out(40,50,70);
@@ -267,7 +267,7 @@ static void test_cpu() {
   }
 }
 
-static void test_gpu() {
+void test_gpu() {
   Eigen::Tensor<float, 3> in1(40,50,70);
   Eigen::Tensor<float, 3> in2(40,50,70);
   Eigen::Tensor<float, 3> out(40,50,70);
@@ -383,6 +383,6 @@ static void test_gpu() {
 
 void test_cxx11_tensor_device()
 {
-  CALL_SUBTEST(test_cpu());
-  CALL_SUBTEST(test_gpu());
+  CALL_SUBTEST_1(test_cpu());
+  CALL_SUBTEST_2(test_gpu());
 }

@@ -538,7 +538,12 @@ class SparseMatrix
     }
 
     /** Resizes the matrix to a \a rows x \a cols matrix leaving old values untouched.
-      * \sa reserve(), setZero()
+      *
+      * If the sizes of the matrix are decreased, then the matrix is turned to \b uncompressed-mode
+      * and the storage of the out of bounds coefficients is kept and reserved.
+      * Call makeCompressed() to pack the entries and squeeze extra memory.
+      *
+      * \sa reserve(), setZero(), makeCompressed()
       */
     void conservativeResize(Index rows, Index cols) 
     {

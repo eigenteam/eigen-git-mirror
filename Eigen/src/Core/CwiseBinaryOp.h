@@ -32,8 +32,8 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   // we still want to handle the case when the result type is different.
   typedef typename result_of<
                      BinaryOp(
-                       typename Lhs::Scalar,
-                       typename Rhs::Scalar
+                       const typename Lhs::Scalar&,
+                       const typename Rhs::Scalar&
                      )
                    >::type Scalar;
   typedef typename cwise_promote_storage_type<typename traits<Lhs>::StorageKind,

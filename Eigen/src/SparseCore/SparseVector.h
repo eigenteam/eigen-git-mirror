@@ -205,21 +205,52 @@ class SparseVector
 
     inline void finalize() {}
 
+    /** \copydoc SparseMatrix::prune(const Scalar&,const RealScalar&) */
     void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       m_data.prune(reference,epsilon);
     }
 
+    /** Resizes the sparse vector to \a rows x \a cols
+      *
+      * This method is provided for compatibility with matrices.
+      * For a column vector, \a cols must be equal to 1.
+      * For a row vector, \a rows must be equal to 1.
+      *
+      * \sa resize(Index)
+      */
     void resize(Index rows, Index cols)
     {
       eigen_assert((IsColVector ? cols : rows)==1 && "Outer dimension must equal 1");
       resize(IsColVector ? rows : cols);
     }
 
+    /** Resizes the sparse vector to \a newSize
+      * This method deletes all entries, thus leaving an empty sparse vector
+      *
+      * \sa  conservativeResize(), setZero() */
     void resize(Index newSize)
     {
       m_size = newSize;
       m_data.clear();
+    }
+
+    /** Resizes the sparse vector to \a newSize, while leaving old values untouched.
+      *
+      * If the size of the vector is decreased, then the storage of the out-of bounds coefficients is kept and reserved.
+      * Call .data().squeeze() to free extra memory.
+      *
+      * \sa reserve(), setZero()
+      */
+    void conservativeResize(Index newSize)
+    {
+      if (newSize < m_size)
+      {
+        Index i = 0;
+        while (i<m_data.size() && m_data.index(i)<newSize) ++i;
+        m_data.resize(i);
+      }
+      m_size = newSize;
     }
 
     void resizeNonZeros(Index size) { m_data.resize(size); }

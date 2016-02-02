@@ -325,7 +325,7 @@ class TranspositionsWrapper
 
   protected:
 
-    const typename IndicesType::Nested m_indices;
+    typename IndicesType::Nested m_indices;
 };
 
 
