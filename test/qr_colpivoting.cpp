@@ -213,11 +213,6 @@ void test_qr_colpivoting()
   }
 
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( qr_kahan_matrix<MatrixXf>() );
-    CALL_SUBTEST_2( qr_kahan_matrix<MatrixXd>() );
-  }
-
-  for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( qr_invertible<MatrixXf>() );
     CALL_SUBTEST_2( qr_invertible<MatrixXd>() );
     CALL_SUBTEST_6( qr_invertible<MatrixXcf>() );
@@ -233,4 +228,7 @@ void test_qr_colpivoting()
 
   // Test problem size constructors
   CALL_SUBTEST_9(ColPivHouseholderQR<MatrixXf>(10, 20));
+
+  CALL_SUBTEST_1( qr_kahan_matrix<MatrixXf>() );
+  CALL_SUBTEST_2( qr_kahan_matrix<MatrixXd>() );
 }

@@ -511,8 +511,7 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
     if(k != biggest_col_index) {
       m_qr.col(k).swap(m_qr.col(biggest_col_index));
       std::swap(m_colNormsUpdated.coeffRef(k), m_colNormsUpdated.coeffRef(biggest_col_index));
-      std::swap(m_colNormsDirect.coeffRef(k),
-                m_colNormsDirect.coeffRef(biggest_col_index));
+      std::swap(m_colNormsDirect.coeffRef(k), m_colNormsDirect.coeffRef(biggest_col_index));
       ++number_of_transpositions;
     }
 
