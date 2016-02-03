@@ -158,7 +158,7 @@ if(CUDA_FOUND)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
   endif()
-  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_30 -Xcudafe \"--diag_suppress 2651 --diag_suppress 2653\"")
+  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_30 -Xcudafe \"--display_error_number\"")
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 

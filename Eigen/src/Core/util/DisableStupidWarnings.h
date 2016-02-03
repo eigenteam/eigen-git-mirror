@@ -44,6 +44,10 @@
 
 #elif defined __NVCC__
   #pragma diag_suppress code_is_unreachable
+  #pragma diag_suppress initialization_not_reachable
+  #pragma diag_suppress 2651
+  #pragma diag_suppress 2653
+
 #endif
 
 #endif // not EIGEN_WARNINGS_DISABLED
