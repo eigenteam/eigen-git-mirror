@@ -86,7 +86,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
         m_colsPermutation(),
         m_colsTranspositions(),
         m_temp(),
-        m_colNorms(),
+        m_colNormsUpdated(),
+        m_colNormsDirect(),
         m_isInitialized(false),
         m_usePrescribedThreshold(false) {}
 
@@ -102,7 +103,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
         m_colsPermutation(PermIndexType(cols)),
         m_colsTranspositions(cols),
         m_temp(cols),
-        m_colNorms(cols),
+        m_colNormsUpdated(cols),
+        m_colNormsDirect(cols),
         m_isInitialized(false),
         m_usePrescribedThreshold(false) {}
 
@@ -125,7 +127,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
         m_colsPermutation(PermIndexType(matrix.cols())),
         m_colsTranspositions(matrix.cols()),
         m_temp(matrix.cols()),
-        m_colNorms(matrix.cols()),
+        m_colNormsUpdated(matrix.cols()),
+        m_colNormsDirect(matrix.cols()),
         m_isInitialized(false),
         m_usePrescribedThreshold(false)
     {
@@ -413,7 +416,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
     PermutationType m_colsPermutation;
     IntRowVectorType m_colsTranspositions;
     RowVectorType m_temp;
-    RealRowVectorType m_colNorms;
+    RealRowVectorType m_colNormsUpdated;
+    RealRowVectorType m_colNormsDirect;
     bool m_isInitialized, m_usePrescribedThreshold;
     RealScalar m_prescribedThreshold, m_maxpivot;
     Index m_nonzero_pivots;
@@ -475,12 +479,16 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
   m_colsTranspositions.resize(m_qr.cols());
   Index number_of_transpositions = 0;
 
-  m_colNorms.resize(cols);
-  for (Index k = 0; k < cols; ++k)
-    m_colNorms.coeffRef(k) = m_qr.col(k).norm();
-  RealRowVectorType colNormsMostRecentDirect(m_colNorms);
+  m_colNormsUpdated.resize(cols);
+  m_colNormsDirect.resize(cols);
+  for (Index k = 0; k < cols; ++k) {
+    // colNormsDirect(k) caches the most recent directly computed norm of
+    // column k.
+    m_colNormsDirect.coeffRef(k) = m_qr.col(k).norm();
+    m_colNormsUpdated.coeffRef(k) = m_colNormsDirect.coeffRef(k);
+  }
 
-  RealScalar threshold_helper =  numext::abs2(m_colNorms.maxCoeff() * NumTraits<Scalar>::epsilon()) / RealScalar(rows);
+  RealScalar threshold_helper =  numext::abs2(m_colNormsUpdated.maxCoeff() * NumTraits<Scalar>::epsilon()) / RealScalar(rows);
   RealScalar norm_downdate_threshold = numext::sqrt(NumTraits<Scalar>::epsilon());
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
@@ -488,9 +496,9 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
 
   for(Index k = 0; k < size; ++k)
   {
-    // first, we look up in our table m_colNorms which column has the biggest norm
+    // first, we look up in our table m_colNormsUpdated which column has the biggest norm
     Index biggest_col_index;
-    RealScalar biggest_col_sq_norm = numext::abs2(m_colNorms.tail(cols-k).maxCoeff(&biggest_col_index));
+    RealScalar biggest_col_sq_norm = numext::abs2(m_colNormsUpdated.tail(cols-k).maxCoeff(&biggest_col_index));
     biggest_col_index += k;
 
     // Track the number of meaningful pivots but do not stop the decomposition to make
@@ -502,9 +510,9 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
     m_colsTranspositions.coeffRef(k) = biggest_col_index;
     if(k != biggest_col_index) {
       m_qr.col(k).swap(m_qr.col(biggest_col_index));
-      std::swap(m_colNorms.coeffRef(k), m_colNorms.coeffRef(biggest_col_index));
-      std::swap(colNormsMostRecentDirect.coeffRef(k),
-                colNormsMostRecentDirect.coeffRef(biggest_col_index));
+      std::swap(m_colNormsUpdated.coeffRef(k), m_colNormsUpdated.coeffRef(biggest_col_index));
+      std::swap(m_colNormsDirect.coeffRef(k),
+                m_colNormsDirect.coeffRef(biggest_col_index));
       ++number_of_transpositions;
     }
 
@@ -528,20 +536,19 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
       // http://www.netlib.org/lapack/lawnspdf/lawn176.pdf
       // and used in LAPACK routines xGEQPF and xGEQP3.
       // See lines 278-297 in http://www.netlib.org/lapack/explore-html/dc/df4/sgeqpf_8f_source.html
-      if (m_colNorms.coeffRef(j) != 0) {
-        RealScalar temp = abs(m_qr.coeffRef(k, j)) / m_colNorms.coeffRef(j);
+      if (m_colNormsUpdated.coeffRef(j) != 0) {
+        RealScalar temp = abs(m_qr.coeffRef(k, j)) / m_colNormsUpdated.coeffRef(j);
         temp = (RealScalar(1) + temp) * (RealScalar(1) - temp);
         temp = temp < 0 ? 0 : temp;
-        RealScalar temp2 =
-            temp * numext::abs2(m_colNorms.coeffRef(j) /
-                                colNormsMostRecentDirect.coeffRef(j));
+        RealScalar temp2 = temp * numext::abs2(m_colNormsUpdated.coeffRef(j) /
+                                               m_colNormsDirect.coeffRef(j));
         if (temp2 <= norm_downdate_threshold) {
-          // The updated norm has become to inaccurate so re-compute the column
+          // The updated norm has become too inaccurate so re-compute the column
           // norm directly.
-          m_colNorms.coeffRef(j) = m_qr.col(j).tail(rows - k - 1).norm();
-          colNormsMostRecentDirect.coeffRef(j) = m_colNorms.coeffRef(j);
+          m_colNormsDirect.coeffRef(j) = m_qr.col(j).tail(rows - k - 1).norm();
+          m_colNormsUpdated.coeffRef(j) = m_colNormsDirect.coeffRef(j);
         } else {
-          m_colNorms.coeffRef(j) *= numext::sqrt(temp);
+          m_colNormsUpdated.coeffRef(j) *= numext::sqrt(temp);
         }
       }
     }
