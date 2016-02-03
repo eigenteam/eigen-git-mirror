@@ -43,8 +43,11 @@
   #pragma clang diagnostic ignored "-Wconstant-logical-operand"
 
 #elif defined __NVCC__
+  // Disable the "statement is unreachable" message
   #pragma diag_suppress code_is_unreachable
+  // Disable the "dynamic initialization in unreachable code" message
   #pragma diag_suppress initialization_not_reachable
+  // Disable the "calling a __host__ function from a __host__ __device__ function is not allowed" messages
   #pragma diag_suppress 2651
   #pragma diag_suppress 2653
 
