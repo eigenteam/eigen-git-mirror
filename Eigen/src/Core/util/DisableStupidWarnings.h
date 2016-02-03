@@ -20,6 +20,7 @@
     #pragma warning( push )
   #endif
   #pragma warning( disable : 4100 4101 4127 4181 4211 4244 4273 4324 4503 4512 4522 4700 4717 4800)
+
 #elif defined __INTEL_COMPILER
   // 2196 - routine is both "inline" and "noinline" ("noinline" assumed)
   //        ICC 12 generates this warning even without any inline keyword, when defining class methods 'inline' i.e. inside of class body
@@ -32,6 +33,7 @@
     #pragma warning push
   #endif
   #pragma warning disable 2196 279 1684 2259
+
 #elif defined __clang__
   // -Wconstant-logical-operand - warning: use of logical && with constant operand; switch to bitwise & or remove constant
   //     this is really a stupid warning as it warns on compile-time expressions involving enums
@@ -39,6 +41,9 @@
     #pragma clang diagnostic push
   #endif
   #pragma clang diagnostic ignored "-Wconstant-logical-operand"
+
+#elif defined __NVCC__
+  #pragma diag_suppress code_is_unreachable
 #endif
 
 #endif // not EIGEN_WARNINGS_DISABLED
