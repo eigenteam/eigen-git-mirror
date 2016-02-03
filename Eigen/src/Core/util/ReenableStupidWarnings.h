@@ -9,8 +9,8 @@
   #elif defined __clang__
     #pragma clang diagnostic pop
   #elif defined __NVCC__
-    #pragma diag_warning code_is_unreachable
-    #pragma diag_warning initialization_not_reachable
+    #pragma diag_default code_is_unreachable
+    #pragma diag_default initialization_not_reachable
   #endif
 #endif
 
