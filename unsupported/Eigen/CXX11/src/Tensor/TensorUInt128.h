@@ -33,18 +33,19 @@ struct TensorUInt128
   HIGH high;
   LOW low;
 
+  template<typename OTHER_HIGH, typename OTHER_LOW>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(int32_t x) : high(0), low(x) {
+  TensorUInt128(const TensorUInt128<OTHER_HIGH, OTHER_LOW>& other) : high(other.high), low(other.low) {
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_HIGH) <= sizeof(HIGH), "high too wide");
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_LOW) <= sizeof(LOW), "low too wide");
+  }
+
+  template<typename T>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  explicit TensorUInt128(const T& x) : high(0), low(x) {
     eigen_assert(x >= 0);
   }
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(uint32_t x) : high(0), low(x) { }
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(int64_t x) : high(0), low(x) {
-    eigen_assert(x >= 0);
-  }
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(uint64_t x) : high(0), low(x) { }
+
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   TensorUInt128(uint64_t y, uint64_t x) : high(y), low(x) { }
 

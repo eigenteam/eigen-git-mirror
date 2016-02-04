@@ -73,8 +73,15 @@ public:
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, OuterSize> m_outerSize;
   
-  public:
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
+  protected:
+    // Disable assignment with clear error message.
+    // Note that simply removing operator= yields compilation errors with ICC+MSVC
+    template<typename T>
+    BlockImpl& operator=(const T&)
+    {
+      EIGEN_STATIC_ASSERT(sizeof(T)==0, THIS_SPARSE_BLOCK_SUBEXPRESSION_IS_READ_ONLY);
+      return *this;
+    }
 };
 
 
@@ -424,14 +431,22 @@ public:
     friend struct internal::unary_evaluator<Block<XprType,BlockRows,BlockCols,InnerPanel>, internal::IteratorBased, Scalar >;
     
     Index nonZeros() const { return Dynamic; }
-    
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
 
     typename internal::ref_selector<XprType>::non_const_type m_matrix;
     const internal::variable_if_dynamic<Index, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
     const internal::variable_if_dynamic<Index, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_blockRows;
     const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_blockCols;
+
+  protected:
+    // Disable assignment with clear error message.
+    // Note that simply removing operator= yields compilation errors with ICC+MSVC
+    template<typename T>
+    BlockImpl& operator=(const T&)
+    {
+      EIGEN_STATIC_ASSERT(sizeof(T)==0, THIS_SPARSE_BLOCK_SUBEXPRESSION_IS_READ_ONLY);
+      return *this;
+    }
 
 };
 

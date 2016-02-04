@@ -165,10 +165,10 @@ template <typename T> class array<T, 0> {
   static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE std::size_t size() { return 0; }
 
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE array() { }
+  EIGEN_STRONG_INLINE array() : dummy() { }
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  EIGEN_DEVICE_FUNC array(std::initializer_list<T> l) {
+  EIGEN_DEVICE_FUNC array(std::initializer_list<T> l) : dummy() {
     eigen_assert(l.size() == 0);
   }
 #endif

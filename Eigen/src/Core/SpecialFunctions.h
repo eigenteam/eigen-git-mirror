@@ -134,7 +134,24 @@ struct lgamma_impl<double> {
  * Implementation of digamma (psi)                                          *
  ****************************************************************************/
 
-#ifdef EIGEN_HAS_C99_MATH
+template <typename Scalar>
+struct digamma_retval {
+  typedef Scalar type;
+};
+
+#ifndef EIGEN_HAS_C99_MATH
+
+template <typename Scalar>
+struct digamma_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar x) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+#else
 
 /*
  *
@@ -202,14 +219,6 @@ struct digamma_impl_maybe_poly<double> {
   }
 };
 
-#endif  // EIGEN_HAS_C99_MATH
-
-template <typename Scalar>
-struct digamma_retval {
-  typedef Scalar type;
-};
-
-#ifdef EIGEN_HAS_C99_MATH
 template <typename Scalar>
 struct digamma_impl {
   EIGEN_DEVICE_FUNC

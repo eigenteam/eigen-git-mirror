@@ -127,7 +127,7 @@ void test_misc2() {
 
       TensorUInt128<uint64_t, uint64_t> result = (TensorUInt128<uint64_t, static_val<0> >(shift, 0) / TensorUInt128<static_val<0>, uint64_t>(divider) - TensorUInt128<static_val<1>, static_val<0> >(1, 0) + TensorUInt128<static_val<0>, static_val<1> >(1));
       uint64_t actual = static_cast<uint64_t>(result);
-      VERIFY_EQUAL(actual, expected);
+      VERIFY_IS_EQUAL(actual, expected);
     }
   }
 }

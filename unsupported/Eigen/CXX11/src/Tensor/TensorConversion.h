@@ -86,6 +86,26 @@ struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 2, 1> {
   const TensorEvaluator& m_impl;
 };
 
+template <typename TensorEvaluator, typename SrcPacket, typename TgtPacket>
+struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 4, 1> {
+  PacketConverter(const TensorEvaluator& impl)
+      : m_impl(impl) {}
+
+  template<int LoadMode, typename Index>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TgtPacket packet(Index index) const {
+    const int SrcPacketSize = internal::unpacket_traits<SrcPacket>::size;
+
+    SrcPacket src1 = m_impl.template packet<LoadMode>(index);
+    SrcPacket src2 = m_impl.template packet<LoadMode>(index + SrcPacketSize);
+    SrcPacket src3 = m_impl.template packet<LoadMode>(index + 2 * SrcPacketSize);
+    SrcPacket src4 = m_impl.template packet<LoadMode>(index + 3 * SrcPacketSize);
+    TgtPacket result = internal::pcast<SrcPacket, TgtPacket>(src1, src2, src3, src4);
+    return result;
+  }
+
+ private:
+  const TensorEvaluator& m_impl;
+};
 
 template <typename TensorEvaluator, typename SrcPacket, typename TgtPacket>
 struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 1, 2> {

@@ -109,10 +109,12 @@ class CudaStreamDevice : public StreamInterface {
 struct GpuDevice {
   // The StreamInterface is not owned: the caller is
   // responsible for its initialization and eventual destruction.
-  explicit GpuDevice(const StreamInterface* stream) : stream_(stream) {
+  explicit GpuDevice(const StreamInterface* stream) : stream_(stream), max_blocks_(INT_MAX) {
     eigen_assert(stream);
   }
-
+  explicit GpuDevice(const StreamInterface* stream, int num_blocks) : stream_(stream), max_blocks_(num_blocks) {
+    eigen_assert(stream);
+  }
   // TODO(bsteiner): This is an internal API, we should not expose it.
   EIGEN_STRONG_INLINE const cudaStream_t& stream() const {
     return stream_->stream();
@@ -246,6 +248,10 @@ struct GpuDevice {
 #endif
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxBlocks() const {
+    return max_blocks_;
+  }
+
   // This function checks if the CUDA runtime recorded an error for the
   // underlying stream device.
   inline bool ok() const {
@@ -259,7 +265,7 @@ struct GpuDevice {
 
  private:
   const StreamInterface* stream_;
-
+  int max_blocks_;
 };
 
 #ifndef __CUDA_ARCH__

@@ -344,7 +344,7 @@ class TensorContractionSubMapper {
   enum {
     // We can use direct offsets iff the parent mapper supports then and we can compute the strides.
     // TODO: we should also enable direct offsets for the Rhs case.
-    UseDirectOffsets = (side == Lhs) && inner_dim_contiguous && ParentMapper::DirectOffsets
+    UseDirectOffsets = ParentMapper::DirectOffsets && (side == Lhs) && inner_dim_contiguous && (array_size<contract_t>::value > 0)
   };
 
   EIGEN_DEVICE_FUNC TensorContractionSubMapper(const ParentMapper& base_mapper, Index vert_offset, Index horiz_offset)
