@@ -19,21 +19,21 @@ macro(ei_add_blas_test testname)
   
 endmacro(ei_add_blas_test)
 
-ei_add_blas_test(sblat1)
-ei_add_blas_test(sblat2)
-ei_add_blas_test(sblat3)
+#ei_add_blas_test(sblat1)
+#ei_add_blas_test(sblat2)
+#ei_add_blas_test(sblat3)
+#
+#ei_add_blas_test(dblat1)
+#ei_add_blas_test(dblat2)
+#ei_add_blas_test(dblat3)
 
-ei_add_blas_test(dblat1)
-ei_add_blas_test(dblat2)
-ei_add_blas_test(dblat3)
+#ei_add_blas_test(cblat1)
+#ei_add_blas_test(cblat2)
+#ei_add_blas_test(cblat3)
 
-ei_add_blas_test(cblat1)
-ei_add_blas_test(cblat2)
-ei_add_blas_test(cblat3)
-
-ei_add_blas_test(zblat1)
-ei_add_blas_test(zblat2)
-ei_add_blas_test(zblat3)
+#ei_add_blas_test(zblat1)
+#ei_add_blas_test(zblat2)
+#ei_add_blas_test(zblat3)
 
 # add_custom_target(level1)
 # add_dependencies(level1 sblat1)

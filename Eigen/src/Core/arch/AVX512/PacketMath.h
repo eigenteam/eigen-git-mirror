@@ -54,11 +54,12 @@ template<> struct packet_traits<float>  : default_packet_traits
     AlignedOnScalar = 1,
     size = 16,
     HasHalfPacket = 1,
-    HasExp = 0,
+    HasLog = 1,
+    HasExp = 1,
     HasDiv = 1,
     HasBlend = 1,
-    HasSqrt = 0,
-    HasRsqrt = 0,
+    HasSqrt = 1,
+    HasRsqrt = 1,
     HasSelect = 1,
     HasEq = 1
   };
@@ -72,11 +73,11 @@ template<> struct packet_traits<double> : default_packet_traits
     AlignedOnScalar = 1,
     size = 8,
     HasHalfPacket = 1,
-    HasExp = 0,
+    HasExp = 1,
     HasDiv = 1,
     HasBlend = 1,
-    HasSqrt = 0,
-    HasRsqrt = 0,
+    HasSqrt = 1,
+    HasRsqrt = EIGEN_FAST_MATH,
     HasSelect = 1,
     HasEq = 1
   };
