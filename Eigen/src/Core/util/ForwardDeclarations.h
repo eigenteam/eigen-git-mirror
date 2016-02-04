@@ -94,10 +94,6 @@ template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
 template<typename Decomposition, typename Rhstype>        class Solve;
 template<typename XprType>                                class Inverse;
 
-namespace internal {
-  template<typename Lhs, typename Rhs> struct product_tag;
-}
-
 template<typename Lhs, typename Rhs, int Option = DefaultProduct> class Product;
          
 template<typename Derived> class DiagonalBase;
