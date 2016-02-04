@@ -125,8 +125,8 @@ template<>              struct product_type_selector<Small,Small,Large>  { enum 
 template<>              struct product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
 template<>              struct product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
 template<>              struct product_type_selector<Large,Large,Large>  { enum { ret = GemmProduct }; };
-template<>              struct product_type_selector<Large,Small,Small>  { enum { ret = GemmProduct }; };
-template<>              struct product_type_selector<Small,Large,Small>  { enum { ret = GemmProduct }; };
+template<>              struct product_type_selector<Large,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct product_type_selector<Small,Large,Small>  { enum { ret = CoeffBasedProductMode }; };
 template<>              struct product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
 
 } // end namespace internal
