@@ -45,7 +45,7 @@ template<typename MatrixType> void qr()
     RealScalar x = (std::abs)(r(i, i));
     RealScalar y = (std::abs)(r(i + 1, i + 1));
     if (x < threshold && y < threshold) continue;
-    if (test_isApproxOrLessThan(x, y)) {
+    if (!test_isApproxOrLessThan(y, x)) {
       for (Index j = 0; j < (std::min)(rows, cols); ++j) {
         std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
       }
@@ -94,7 +94,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
     RealScalar x = (std::abs)(r(i, i));
     RealScalar y = (std::abs)(r(i + 1, i + 1));
     if (x < threshold && y < threshold) continue;
-    if (test_isApproxOrLessThan(x, y)) {
+    if (!test_isApproxOrLessThan(y, x)) {
       for (Index j = 0; j < (std::min)(int(Rows), int(Cols)); ++j) {
         std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
       }
@@ -138,7 +138,7 @@ template<typename MatrixType> void qr_kahan_matrix()
     RealScalar x = (std::abs)(r(i, i));
     RealScalar y = (std::abs)(r(i + 1, i + 1));
     if (x < threshold && y < threshold) continue;
-    if (test_isApproxOrLessThan(x, y)) {
+    if (!test_isApproxOrLessThan(y, x)) {
       for (Index j = 0; j < (std::min)(rows, cols); ++j) {
         std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
       }
