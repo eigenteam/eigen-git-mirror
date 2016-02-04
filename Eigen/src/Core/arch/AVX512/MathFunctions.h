@@ -173,7 +173,7 @@ pexp<Packet16f>(const Packet16f& _x) {
   return pmax(pmul(y, _mm512_castsi512_ps(emm0)), _x);
 }
 
-template <>
+/*template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8d
 pexp<Packet8d>(const Packet8d& _x) {
   Packet8d x = _x;
@@ -240,7 +240,7 @@ pexp<Packet8d>(const Packet8d& _x) {
   // Construct the result 2^n * exp(g) = e * x. The max is used to catch
   // non-finite values in the input.
   return pmax(pmul(x, e), _x);
-}
+  }*/
 
 // Functions for sqrt.
 // The EIGEN_FAST_MATH version uses the _mm_rsqrt_ps approximation and one step
