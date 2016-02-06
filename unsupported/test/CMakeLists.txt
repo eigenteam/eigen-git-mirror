@@ -117,7 +117,6 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_of_const_values "-std=c++0x")
   ei_add_test(cxx11_tensor_of_complex "-std=c++0x")
   ei_add_test(cxx11_tensor_of_strings "-std=c++0x")
-  ei_add_test(cxx11_tensor_uint128 "-std=c++0x")
   ei_add_test(cxx11_tensor_intdiv "-std=c++0x")
   ei_add_test(cxx11_tensor_lvalue "-std=c++0x")
   ei_add_test(cxx11_tensor_map "-std=c++0x")
@@ -148,6 +147,11 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_fft "-std=c++0x")
   ei_add_test(cxx11_tensor_ifft "-std=c++0x")
   ei_add_test(cxx11_tensor_empty "-std=c++0x")
+
+  if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+    # This test requires __uint128_t which is only available on 64bit systems 
+    ei_add_test(cxx11_tensor_uint128 "-std=c++0x")
+  endif() 
 
 endif()
 
