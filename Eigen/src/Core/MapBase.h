@@ -130,7 +130,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     explicit inline MapBase(PointerType dataPtr) : m_data(dataPtr), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
     {
       EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-      checkSanity();
+      checkSanity<Derived>();
     }
 
     EIGEN_DEVICE_FUNC
@@ -142,7 +142,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
       eigen_assert(vecSize >= 0);
       eigen_assert(dataPtr == 0 || SizeAtCompileTime == Dynamic || SizeAtCompileTime == vecSize);
-      checkSanity();
+      checkSanity<Derived>();
     }
 
     EIGEN_DEVICE_FUNC
@@ -152,7 +152,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       eigen_assert( (dataPtr == 0)
               || (   rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
                   && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
-      checkSanity();
+      checkSanity<Derived>();
     }
 
     #ifdef EIGEN_MAPBASE_PLUGIN
@@ -161,14 +161,20 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
 
   protected:
 
+    template<typename T>
     EIGEN_DEVICE_FUNC
-    void checkSanity() const
+    void checkSanity(typename internal::enable_if<(internal::traits<T>::Alignment>0),void*>::type = 0) const
     {
 #if EIGEN_MAX_ALIGN_BYTES>0
-      eigen_assert((   ((size_t(m_data) % EIGEN_PLAIN_ENUM_MAX(1,internal::traits<Derived>::Alignment)) == 0)
+      eigen_assert((   ((size_t(m_data) % internal::traits<Derived>::Alignment) == 0)
                     || (cols() * rows() * innerStride() * sizeof(Scalar)) < internal::traits<Derived>::Alignment ) && "data is not aligned");
 #endif
     }
+
+    template<typename T>
+    EIGEN_DEVICE_FUNC
+    void checkSanity(typename internal::enable_if<internal::traits<T>::Alignment==0,void*>::type = 0) const
+    {}
 
     PointerType m_data;
     const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
