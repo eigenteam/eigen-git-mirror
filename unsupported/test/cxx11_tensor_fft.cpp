@@ -192,7 +192,7 @@ static void test_fft_real_input_energy() {
   input.resize(arr);
   input.setRandom();
 
-  array<int, TensorRank> fft;
+  array<ptrdiff_t, TensorRank> fft;
   for (int i = 0; i < TensorRank; ++i) {
     fft[i] = i;
   }
