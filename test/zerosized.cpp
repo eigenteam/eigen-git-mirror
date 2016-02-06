@@ -49,8 +49,8 @@ template<typename MatrixType> void zeroSizedMatrix()
 
   if(MatrixType::MaxColsAtCompileTime!=0 && MatrixType::MaxRowsAtCompileTime!=0)
   {
-    Index rows = MatrixType::RowsAtCompileTime==Dynamic ? internal::random<Index>(1,10) : MatrixType::RowsAtCompileTime;
-    Index cols = MatrixType::ColsAtCompileTime==Dynamic ? internal::random<Index>(1,10) : MatrixType::ColsAtCompileTime;
+    Index rows = MatrixType::RowsAtCompileTime==Dynamic ? internal::random<Index>(1,10) : Index(MatrixType::RowsAtCompileTime);
+    Index cols = MatrixType::ColsAtCompileTime==Dynamic ? internal::random<Index>(1,10) : Index(MatrixType::ColsAtCompileTime);
     MatrixType m(rows,cols);
     zeroReduction(m.template block<0,MatrixType::ColsAtCompileTime>(0,0,0,cols));
     zeroReduction(m.template block<MatrixType::RowsAtCompileTime,0>(0,0,rows,0));
