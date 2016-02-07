@@ -404,6 +404,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
 
   protected:
 
+    friend class CompleteOrthogonalDecomposition<MatrixType>;
+
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
