@@ -206,7 +206,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     }
 
     for (size_t i = 0; i < m_fft.size(); ++i) {
-      int dim = m_fft[i];
+      Index dim = m_fft[i];
       eigen_assert(dim >= 0 && dim < NumDims);
       Index line_len = m_dimensions[dim];
       eigen_assert(line_len >= 1);

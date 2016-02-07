@@ -59,28 +59,6 @@
 
 #endif
 
-#ifndef EIGEN_HAS_POSIX_MEMALIGN
-  // See bug 554 (http://eigen.tuxfamily.org/bz/show_bug.cgi?id=554)
-  // It seems to be unsafe to check _POSIX_ADVISORY_INFO without including unistd.h first.
-  // Currently, let's include it only on unix systems:
-  #if EIGEN_OS_UNIX && !(EIGEN_OS_SUN || EIGEN_OS_SOLARIS)
-    #include <unistd.h>
-    #if (EIGEN_OS_QNX || (defined _GNU_SOURCE) || EIGEN_COMP_PGI || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
-      #define EIGEN_HAS_POSIX_MEMALIGN 1
-    #endif
-  #endif
-
-  #ifndef EIGEN_HAS_POSIX_MEMALIGN
-    #define EIGEN_HAS_POSIX_MEMALIGN 0
-  #endif
-#endif
-
-#if defined EIGEN_VECTORIZE_SSE || defined EIGEN_VECTORIZE_AVX
-  #define EIGEN_HAS_MM_MALLOC 1
-#else
-  #define EIGEN_HAS_MM_MALLOC 0
-#endif
-
 namespace Eigen {
 
 namespace internal {
@@ -122,7 +100,7 @@ inline void handmade_aligned_free(void *ptr)
 
 /** \internal
   * \brief Reallocates aligned memory.
-  * Since we know that our handmade version is based on std::realloc
+  * Since we know that our handmade version is based on std::malloc
   * we can use std::realloc to implement efficient reallocation.
   */
 inline void* handmade_aligned_realloc(void* ptr, std::size_t size, std::size_t = 0)
@@ -139,47 +117,6 @@ inline void* handmade_aligned_realloc(void* ptr, std::size_t size, std::size_t =
   
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
-}
-
-/*****************************************************************************
-*** Implementation of generic aligned realloc (when no realloc can be used)***
-*****************************************************************************/
-
-EIGEN_DEVICE_FUNC void* aligned_malloc(std::size_t size);
-EIGEN_DEVICE_FUNC void  aligned_free(void *ptr);
-
-/** \internal
-  * \brief Reallocates aligned memory.
-  * Allows reallocation with aligned ptr types. This implementation will
-  * always create a new memory chunk and copy the old data.
-  */
-inline void* generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
-{
-  if (ptr==0)
-    return aligned_malloc(size);
-
-  if (size==0)
-  {
-    aligned_free(ptr);
-    return 0;
-  }
-
-  void* newptr = aligned_malloc(size);
-  if (newptr == 0)
-  {
-    #ifdef EIGEN_HAS_ERRNO
-    errno = ENOMEM; // according to the standard
-    #endif
-    return 0;
-  }
-
-  if (ptr != 0)
-  {
-    std::memcpy(newptr, ptr, (std::min)(size,old_size));
-    aligned_free(ptr);
-  }
-
-  return newptr;
 }
 
 /*****************************************************************************
@@ -218,16 +155,11 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(size_t size)
   check_that_malloc_is_allowed();
 
   void *result;
-  #if EIGEN_DEFAULT_ALIGN_BYTES==0
+  #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
     result = std::malloc(size);
-  #elif EIGEN_MALLOC_ALREADY_ALIGNED
-    result = std::malloc(size);
-  #elif EIGEN_HAS_POSIX_MEMALIGN
-    if(posix_memalign(&result, EIGEN_DEFAULT_ALIGN_BYTES, size)) result = 0;
-  #elif EIGEN_HAS_MM_MALLOC
-    result = _mm_malloc(size, EIGEN_DEFAULT_ALIGN_BYTES);
-  #elif EIGEN_OS_WIN_STRICT
-    result = _aligned_malloc(size, EIGEN_DEFAULT_ALIGN_BYTES);
+    #if EIGEN_DEFAULT_ALIGN_BYTES==16
+    eigen_assert((size<16 || (std::size_t(result)%16)==0) && "System's malloc returned an unaligned pointer. Compile with EIGEN_MALLOC_ALREADY_ALIGNED=0 to fallback to handmade alignd memory allocator.");
+    #endif
   #else
     result = handmade_aligned_malloc(size);
   #endif
@@ -241,48 +173,25 @@ EIGEN_DEVICE_FUNC inline void* aligned_malloc(size_t size)
 /** \internal Frees memory allocated with aligned_malloc. */
 EIGEN_DEVICE_FUNC inline void aligned_free(void *ptr)
 {
-  #if EIGEN_DEFAULT_ALIGN_BYTES==0
+  #if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
     std::free(ptr);
-  #elif EIGEN_MALLOC_ALREADY_ALIGNED
-    std::free(ptr);
-  #elif EIGEN_HAS_POSIX_MEMALIGN
-    std::free(ptr);
-  #elif EIGEN_HAS_MM_MALLOC
-    _mm_free(ptr);
-  #elif EIGEN_OS_WIN_STRICT
-    _aligned_free(ptr);
   #else
     handmade_aligned_free(ptr);
   #endif
 }
 
 /**
-* \internal
-* \brief Reallocates an aligned block of memory.
-* \throws std::bad_alloc on allocation failure
-**/
+  * \internal
+  * \brief Reallocates an aligned block of memory.
+  * \throws std::bad_alloc on allocation failure
+  */
 inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 {
   EIGEN_UNUSED_VARIABLE(old_size);
 
   void *result;
-#if EIGEN_DEFAULT_ALIGN_BYTES==0
+#if (EIGEN_DEFAULT_ALIGN_BYTES==0) || EIGEN_MALLOC_ALREADY_ALIGNED
   result = std::realloc(ptr,new_size);
-#elif EIGEN_MALLOC_ALREADY_ALIGNED
-  result = std::realloc(ptr,new_size);
-#elif EIGEN_HAS_POSIX_MEMALIGN
-  result = generic_aligned_realloc(ptr,new_size,old_size);
-#elif EIGEN_HAS_MM_MALLOC
-  // The defined(_mm_free) is just here to verify that this MSVC version
-  // implements _mm_malloc/_mm_free based on the corresponding _aligned_
-  // functions. This may not always be the case and we just try to be safe.
-  #if EIGEN_OS_WIN_STRICT && defined(_mm_free)
-    result = _aligned_realloc(ptr,new_size,EIGEN_DEFAULT_ALIGN_BYTES);
-  #else
-    result = generic_aligned_realloc(ptr,new_size,old_size);
-  #endif
-#elif EIGEN_OS_WIN_STRICT
-  result = _aligned_realloc(ptr,new_size,EIGEN_DEFAULT_ALIGN_BYTES);
 #else
   result = handmade_aligned_realloc(ptr,new_size,old_size);
 #endif

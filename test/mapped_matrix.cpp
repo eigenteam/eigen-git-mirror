@@ -40,7 +40,7 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   VERIFY_IS_EQUAL(ma1, ma3);
   VERIFY_IS_EQUAL(ma1, ma4);
   #ifdef EIGEN_VECTORIZE
-  if(internal::packet_traits<Scalar>::Vectorizable)
+  if(internal::packet_traits<Scalar>::Vectorizable && size>=AlignedMax)
     VERIFY_RAISES_ASSERT((Map<VectorType,AlignedMax>(array3unaligned, size)))
   #endif
 
