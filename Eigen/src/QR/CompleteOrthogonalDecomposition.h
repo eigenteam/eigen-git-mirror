@@ -137,11 +137,6 @@ class CompleteOrthogonalDecomposition {
   HouseholderSequenceType householderQ(void) const;
   HouseholderSequenceType matrixQ(void) const { return m_cpqr.householderQ(); }
 
-  /** Overwrites \b rhs with \f$ \mathbf{Z}^* * \mathbf{rhs} \f$.
-   */
-  template <typename Rhs>
-  void applyZAdjointOnTheLeftInPlace(Rhs& rhs) const;
-
   /** \returns the matrix \b Z.
    */
   MatrixType matrixZ() const {
@@ -333,10 +328,9 @@ class CompleteOrthogonalDecomposition {
   RealScalar threshold() const { return m_cpqr.threshold(); }
 
   /** \returns the number of nonzero pivots in the complete orthogonal
-   * decomposition.
-   * Here nonzero is meant in the exact sense, not in a fuzzy sense.
-   * So that notion isn't really intrinsically interesting, but it is
-   * still useful when implementing algorithms.
+   * decomposition. Here nonzero is meant in the exact sense, not in a
+   * fuzzy sense. So that notion isn't really intrinsically interesting,
+   * but it is still useful when implementing algorithms.
    *
    * \sa rank()
    */
@@ -369,6 +363,11 @@ class CompleteOrthogonalDecomposition {
   static void check_template_parameters() {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
   }
+
+  /** Overwrites \b rhs with \f$ \mathbf{Z}^* * \mathbf{rhs} \f$.
+   */
+  template <typename Rhs>
+  void applyZAdjointOnTheLeftInPlace(Rhs& rhs) const;
 
   ColPivHouseholderQR<MatrixType> m_cpqr;
   HCoeffsType m_zCoeffs;
