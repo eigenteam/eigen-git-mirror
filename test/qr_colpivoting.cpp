@@ -290,6 +290,15 @@ void test_qr_colpivoting()
   }
 
   for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1( cod<MatrixXf>() );
+    CALL_SUBTEST_2( cod<MatrixXd>() );
+    CALL_SUBTEST_3( cod<MatrixXcd>() );
+    CALL_SUBTEST_4(( cod_fixedsize<Matrix<float,3,5>, 4 >() ));
+    CALL_SUBTEST_5(( cod_fixedsize<Matrix<double,6,2>, 3 >() ));
+    CALL_SUBTEST_5(( cod_fixedsize<Matrix<double,1,1>, 1 >() ));
+  }
+
+  for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( qr_invertible<MatrixXf>() );
     CALL_SUBTEST_2( qr_invertible<MatrixXd>() );
     CALL_SUBTEST_6( qr_invertible<MatrixXcf>() );

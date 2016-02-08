@@ -480,7 +480,7 @@ template <typename _MatrixType>
 template <typename RhsType, typename DstType>
 void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
     const RhsType& rhs, DstType& dst) const {
-  eigen_assert(rhs().rows() == this->rows());
+  eigen_assert(rhs.rows() == this->rows());
 
   const Index rank = this->rank();
   if (rank == 0) {
@@ -491,7 +491,7 @@ void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
   // Compute c = Q^* * rhs
   // Note that the matrix Q = H_0^* H_1^*... so its inverse is
   // Q^* = (H_0 H_1 ...)^T
-  typename RhsType::PlainObject c(rhs());
+  typename RhsType::PlainObject c(rhs);
   c.applyOnTheLeft(
       householderSequence(matrixQTZ(), hCoeffs()).setLength(rank).transpose());
 
