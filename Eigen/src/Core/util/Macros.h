@@ -354,7 +354,11 @@
 
 // Does the compiler support variadic templates?
 #if __cplusplus > 199711L
+// Disable the use of variadic templates when compiling with nvcc on ARM devices:
+// this prevents nvcc from crashing when compiling Eigen on Tegra X1
+#if !defined(__NVCC__) || !defined(EIGEN_ARCH_ARM_OR_ARM64)
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
+#endif
 #endif
 
 // Does the compiler support const expressions?
