@@ -45,8 +45,9 @@ namespace {
     }
     return leading_zeros;
 #else
+    EIGEN_STATIC_ASSERT(sizeof(unsigned long long) == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
     return (sizeof(T) == 8) ?
-      __builtin_clzl(static_cast<uint64_t>(val)) :
+      __builtin_clzll(static_cast<uint64_t>(val)) :
       __builtin_clz(static_cast<uint32_t>(val));
 #endif
   }
