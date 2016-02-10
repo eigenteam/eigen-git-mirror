@@ -58,7 +58,7 @@ void cod() {
   MatrixType svd_solution = svd.solve(rhs);
   VERIFY_IS_APPROX(cod_solution, svd_solution);
 
-  MatrixType pinv = cod.inverse();
+  MatrixType pinv = cod.pseudoInverse();
   VERIFY_IS_APPROX(cod_solution, pinv * rhs);
 }
 

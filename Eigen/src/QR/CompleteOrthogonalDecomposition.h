@@ -249,10 +249,10 @@ class CompleteOrthogonalDecomposition {
 
   /** \returns the pseudo-inverse of the matrix of which *this is the complete
    * orthogonal decomposition.
-   * \warning: Do not compute \c this->inverse()*rhs to solve a linear systems.
+   * \warning: Do not compute \c this->pseudoInverse()*rhs to solve a linear systems.
    * It is more efficient and numerically stable to call \c this->solve(rhs).
    */
-  inline const Inverse<CompleteOrthogonalDecomposition> inverse() const
+  inline const Inverse<CompleteOrthogonalDecomposition> pseudoInverse() const
   {
     return Inverse<CompleteOrthogonalDecomposition>(*this);
   }
