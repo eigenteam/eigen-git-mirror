@@ -135,26 +135,27 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       return m_data[0];
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-    template<typename... IndexTypes> EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar& operator()(Index firstIndex, IndexTypes... otherIndices) const
-    {
-      EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
-      if (PlainObjectType::Options&RowMajor) {
-        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumIndices>{{firstIndex, otherIndices...}});
-        return m_data[index];
-      } else {
-        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumIndices>{{firstIndex, otherIndices...}});
-        return m_data[index];
-      }
-    }
-#else
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar& operator()(Index index) const
     {
       eigen_internal_assert(index >= 0 && index < size());
       return m_data[index];
     }
+
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+    template<typename... IndexTypes> EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const Scalar& operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
+    {
+      EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
+      if (PlainObjectType::Options&RowMajor) {
+        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
+        return m_data[index];
+      } else {
+        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumIndices>{{firstIndex, secondIndex, otherIndices...}});
+        return m_data[index];
+      }
+    }
+#else
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar& operator()(Index i0, Index i1) const
     {
@@ -221,27 +222,28 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
       return m_data[0];
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-    template<typename... IndexTypes> EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Scalar& operator()(Index firstIndex, IndexTypes... otherIndices)
-    {
-      static_assert(sizeof...(otherIndices) + 1 == NumIndices || NumIndices == Dynamic, "Number of indices used to access a tensor coefficient must be equal to the rank of the tensor.");
-      const std::size_t NumDims = sizeof...(otherIndices) + 1;
-      if (PlainObjectType::Options&RowMajor) {
-        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumDims>{{firstIndex, otherIndices...}});
-        return m_data[index];
-      } else {
-        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumDims>{{firstIndex, otherIndices...}});
-        return m_data[index];
-      }
-    }
-#else
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar& operator()(Index index)
     {
       eigen_internal_assert(index >= 0 && index < size());
       return m_data[index];
     }
+
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+    template<typename... IndexTypes> EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE Scalar& operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices)
+    {
+      static_assert(sizeof...(otherIndices) + 2 == NumIndices || NumIndices == Dynamic, "Number of indices used to access a tensor coefficient must be equal to the rank of the tensor.");
+      const std::size_t NumDims = sizeof...(otherIndices) + 2;
+      if (PlainObjectType::Options&RowMajor) {
+        const Index index = m_dimensions.IndexOfRowMajor(array<Index, NumDims>{{firstIndex, secondIndex, otherIndices...}});
+        return m_data[index];
+      } else {
+        const Index index = m_dimensions.IndexOfColMajor(array<Index, NumDims>{{firstIndex, secondIndex, otherIndices...}});
+        return m_data[index];
+      }
+    }
+#else
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar& operator()(Index i0, Index i1)
     {
