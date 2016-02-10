@@ -8,7 +8,9 @@
     #pragma warning pop
   #elif defined __clang__
     #pragma clang diagnostic pop
-  #elif defined __NVCC__
+  #endif
+
+  #if defined __NVCC__
 //    Don't reenable the diagnostic messages, as it turns out these messages need
 //    to be disabled at the point of the template instantiation (i.e the user code)
 //    otherwise they'll be triggeredby nvcc.
