@@ -531,7 +531,7 @@ template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double sqrt(const double &x)
 {
-#if EIGEN_COMP_GNUC
+#if EIGEN_COMP_GNUC && !defined(EMSCRIPTEN)
   return internal::pfirst(internal::Packet2d(__builtin_ia32_sqrtsd(_mm_set_sd(x))));
 #else
   return internal::pfirst(internal::Packet2d(_mm_sqrt_pd(_mm_set_sd(x))));
