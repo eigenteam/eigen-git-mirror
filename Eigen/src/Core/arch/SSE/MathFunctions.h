@@ -531,7 +531,9 @@ template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double sqrt(const double &x)
 {
-#if EIGEN_COMP_GNUC && !defined(EMSCRIPTEN)
+#if EIGEN_COMP_GNUC_STRICT
+  // This works around a GCC bug generating poor code for _mm_sqrt_pd
+  // See https://bitbucket.org/eigen/eigen/commits/14f468dba4d350d7c19c9b93072e19f7b3df563b
   return internal::pfirst(internal::Packet2d(__builtin_ia32_sqrtsd(_mm_set_sd(x))));
 #else
   return internal::pfirst(internal::Packet2d(_mm_sqrt_pd(_mm_set_sd(x))));
