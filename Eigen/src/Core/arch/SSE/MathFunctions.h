@@ -516,6 +516,54 @@ Packet2d prsqrt<Packet2d>(const Packet2d& x) {
   return _mm_div_pd(pset1<Packet2d>(1.0), _mm_sqrt_pd(x));
 }
 
+// Hyperbolic Tangent function.
+// Doesn't do anything fancy, just a 13/6-degree rational interpolant which
+// is accurate up to a couple of ulp in the range [-8, 8], outside of which the
+// fl(tanh(x)) = +/-1.
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4f
+ptanh<Packet4f>(const Packet4f& _x) {
+  // Map the range [-8, 8] to [-1, 1], we will clamp bad coefficients later.
+  const Packet4f x =
+      pmax(pset1<Packet4f>(-1.0f),
+           pmin(pset1<Packet4f>(1.0f), pmul(_x, pset1<Packet4f>(0.125f))));
+
+  // The monomial coefficients of the numerator polynomial (odd).
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_1, -2.47030171958948e-03);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_3, -2.06804010015822e-02);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_5, -3.13693994587418e-02);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_7, -7.19851201683627e-03);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_9, 8.31561269687160e-04);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_11, -1.37626659546502e-04);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_13, 1.39116714700458e-05);
+
+  // The monomial coefficients of the denominator polynomial (even).
+  _EIGEN_DECLARE_CONST_Packet4f(beta_0, -3.08787724141615e-04);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_2, -9.17251911622436e-03);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_4, -3.09625062090444e-02);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_6, -2.05669680763032e-02);
+
+  // Since the polynomials are odd/even, we need x^2.
+  const Packet4f x2 = pmul(x, x);
+
+  // Evaluate the numerator polynomial p.
+  Packet4f p = pmadd(x2, p4f_alpha_13, p4f_alpha_11);
+  p = pmadd(x2, p, p4f_alpha_9);
+  p = pmadd(x2, p, p4f_alpha_7);
+  p = pmadd(x2, p, p4f_alpha_5);
+  p = pmadd(x2, p, p4f_alpha_3);
+  p = pmadd(x2, p, p4f_alpha_1);
+  p = pmul(x, p);
+
+  // Evaluate the denominator polynomial p.
+  Packet4f q = pmadd(x2, p4f_beta_6, p4f_beta_4);
+  q = pmadd(x2, q, p4f_beta_2);
+  q = pmadd(x2, q, p4f_beta_0);
+
+  // Divide the numerator by the denominator.
+  return pdiv(p, q);
+}
+
 } // end namespace internal
 
 namespace numext {

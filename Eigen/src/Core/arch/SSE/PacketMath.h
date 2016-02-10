@@ -109,6 +109,7 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
+    HasTanh  = EIGEN_FAST_MATH,
     HasBlend = 1
 
 #ifdef EIGEN_VECTORIZE_SSE4_1
