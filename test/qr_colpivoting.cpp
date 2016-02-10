@@ -57,6 +57,9 @@ void cod() {
   JacobiSVD<MatrixType> svd(matrix, ComputeThinU | ComputeThinV);
   MatrixType svd_solution = svd.solve(rhs);
   VERIFY_IS_APPROX(cod_solution, svd_solution);
+
+  MatrixType pinv = cod.inverse();
+  VERIFY_IS_APPROX(cod_solution, pinv * rhs);
 }
 
 template <typename MatrixType, int Cols2>

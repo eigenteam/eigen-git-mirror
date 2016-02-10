@@ -70,6 +70,7 @@ class CompleteOrthogonalDecomposition {
       MatrixType, typename internal::remove_all<
                       typename HCoeffsType::ConjugateReturnType>::type>
       HouseholderSequenceType;
+  typedef typename MatrixType::PlainObject PlainObject;
 
  private:
   typedef typename PermutationType::Index PermIndexType;
@@ -246,26 +247,15 @@ class CompleteOrthogonalDecomposition {
    */
   inline bool isInvertible() const { return m_cpqr.isInvertible(); }
 
-  /** \returns the inverse of the matrix of which *this is the complete
+  /** \returns the pseudo-inverse of the matrix of which *this is the complete
    * orthogonal decomposition.
-   *
-   * \note If this matrix is not invertible, the returned matrix has undefined
-   * coefficients. Use isInvertible() to first determine whether this matrix is
-   * invertible.
+   * \warning: Do not compute \c this->inverse()*rhs to solve a linear systems.
+   * It is more efficient and numerically stable to call \c this->solve(rhs).
    */
-
-  // TODO(rmlarsen): Add method for pseudo-inverse.
-  // inline const
-  // internal::solve_retval<CompleteOrthogonalDecomposition, typename
-  // MatrixType::IdentityReturnType>
-  // inverse() const
-  // {
-  //   eigen_assert(m_isInitialized && "CompleteOrthogonalDecomposition is not
-  //   initialized.");
-  //   return internal::solve_retval<CompleteOrthogonalDecomposition,typename
-  //   MatrixType::IdentityReturnType>
-  //            (*this, MatrixType::Identity(m_cpqr.rows(), m_cpqr.cols()));
-  // }
+  inline const Inverse<CompleteOrthogonalDecomposition> inverse() const
+  {
+    return Inverse<CompleteOrthogonalDecomposition>(*this);
+  }
 
   inline Index rows() const { return m_cpqr.rows(); }
   inline Index cols() const { return m_cpqr.cols(); }
@@ -512,6 +502,21 @@ void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
   dst = colsPermutation() * dst;
 }
 #endif
+
+namespace internal {
+
+template<typename DstXprType, typename MatrixType, typename Scalar>
+struct Assignment<DstXprType, Inverse<CompleteOrthogonalDecomposition<MatrixType> >, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+{
+  typedef CompleteOrthogonalDecomposition<MatrixType> CodType;
+  typedef Inverse<CodType> SrcXprType;
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  {
+    dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.rows()));
+  }
+};
+
+} // end namespace internal
 
 /** \returns the matrix Q as a sequence of householder transformations */
 template <typename MatrixType>
