@@ -265,6 +265,59 @@ pexp<Packet8f>(const Packet8f& _x) {
   return pmax(pmul(y, _mm256_castsi256_ps(emm0)), _x);
 }
 
+// Hyperbolic Tangent function.
+// Doesn't do anything fancy, just a 13/6-degree rational interpolant which
+// is accurate up to a couple of ulp in the range [-8, 8], outside of which the
+// fl(tanh(x)) = +/-1.
+template <>
+EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
+ptanh<Packet8f>(const Packet8f& _x) {
+  // Map the range [-8, 8] to [-1, 1], we will clamp bad coefficients later.
+  const Packet8f x = _mm256_mul_ps(_x, _mm256_set1_ps(0.125f));
+
+  // The monomial coefficients of the numerator polynomial (odd).
+  _EIGEN_DECLARE_CONST_Packet8f(alpha_1, -2.47030171958948e-03);
+  _EIGEN_DECLARE_CONST_Packet8f(alpha_3, -2.06804010015822e-02);
+  _EIGEN_DECLARE_CONST_Packet8f(alpha_5, -3.13693994587418e-02);
+  _EIGEN_DECLARE_CONST_Packet8f(alpha_7, -7.19851201683627e-03);
+  _EIGEN_DECLARE_CONST_Packet8f(alpha_9, 8.31561269687160e-04);
+  _EIGEN_DECLARE_CONST_Packet8f(alpha_11, -1.37626659546502e-04);
+  _EIGEN_DECLARE_CONST_Packet8f(alpha_13, 1.39116714700458e-05);
+
+  // The monomial coefficients of the denominator polynomial (even).
+  _EIGEN_DECLARE_CONST_Packet8f(beta_0, -3.08787724141615e-04);
+  _EIGEN_DECLARE_CONST_Packet8f(beta_2, -9.17251911622436e-03);
+  _EIGEN_DECLARE_CONST_Packet8f(beta_4, -3.09625062090444e-02);
+  _EIGEN_DECLARE_CONST_Packet8f(beta_6, -2.05669680763032e-02);
+
+  // Since the polynomials are odd/even, we need x^2.
+  const Packet8f x2 = _mm256_mul_ps(x, x);
+
+  // Evaluate the numerator polynomial p.
+  Packet8f p = pmadd(x2, p8f_alpha_13, p8f_alpha_11);
+  p = pmadd(x2, p, p8f_alpha_9);
+  p = pmadd(x2, p, p8f_alpha_7);
+  p = pmadd(x2, p, p8f_alpha_5);
+  p = pmadd(x2, p, p8f_alpha_3);
+  p = pmadd(x2, p, p8f_alpha_1);
+  p = pmul(x, p);
+
+  // Evaluate the denominator polynomial p.
+  Packet8f q = pmadd(x2, p8f_beta_6, p8f_beta_4);
+  q = pmadd(x2, q, p8f_beta_2);
+  q = pmadd(x2, q, p8f_beta_0);
+
+  // Divide the numerator by the denominator.
+  const Packet8f res = pdiv(p, q);
+
+  // Mask-out values outside of [-8, 8].
+  _EIGEN_DECLARE_CONST_Packet8f(one, 1.0f);
+  _EIGEN_DECLARE_CONST_Packet8f(minus_one, -1.0f);
+  return _mm256_blendv_ps(
+      _mm256_blendv_ps(res, p8f_one, _mm256_cmp_ps(x, p8f_one, _CMP_GT_OQ)),
+      p8f_minus_one, _mm256_cmp_ps(x, p8f_minus_one, _CMP_LT_OQ));
+}
+
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4d
 pexp<Packet4d>(const Packet4d& _x) {

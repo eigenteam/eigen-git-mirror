@@ -66,6 +66,7 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
+    HasTanh  = EIGEN_FAST_MATH,
     HasBlend = 1,
     HasRound = 1,
     HasFloor = 1,
