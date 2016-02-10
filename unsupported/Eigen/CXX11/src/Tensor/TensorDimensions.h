@@ -285,17 +285,17 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
   EIGEN_DEVICE_FUNC explicit DSizes(const array<DenseIndex, NumDims>& a) : Base(a) { }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  template<typename... IndexTypes> EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE explicit DSizes(DenseIndex firstDimension, IndexTypes... otherDimensions) {
-    EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumDims, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    (*this) = array<DenseIndex, NumDims>{{firstDimension, otherDimensions...}};
-  }
-#else
   EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0) {
     eigen_assert(NumDims == 1);
     (*this)[0] = i0;
   }
+
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+  template<typename... IndexTypes> EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE explicit DSizes(DenseIndex firstDimension, DenseIndex secondDimension, IndexTypes... otherDimensions) : Base({{firstDimension, secondDimension, otherDimensions...}}) {
+    EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 2 == NumDims, YOU_MADE_A_PROGRAMMING_MISTAKE)
+  }
+#else
   EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0, const DenseIndex i1) {
     eigen_assert(NumDims == 2);
     (*this)[0] = i0;
