@@ -100,7 +100,7 @@
 #endif
 
 /// \internal EIGEN_COMP_ARM set to 1 if the compiler is ARM Compiler
-#if defined(EMSCRIPTEN)
+#if defined(__EMSCRIPTEN__)
   #define EIGEN_COMP_EMSCRIPTEN 1
 #else
   #define EIGEN_COMP_EMSCRIPTEN 0
