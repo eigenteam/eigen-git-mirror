@@ -223,7 +223,7 @@ DenseBase<Derived>::Constant(const Scalar& value)
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
   * This particular version of LinSpaced() uses sequential access, i.e. vector access is
@@ -261,7 +261,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
@@ -374,7 +374,7 @@ PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& val)
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
@@ -394,7 +394,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index newSize, con
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function fill *this with equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
