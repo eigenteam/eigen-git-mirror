@@ -496,7 +496,7 @@ template<typename Scalar, bool IsInteger>
 struct pow_default_impl
 {
   typedef Scalar retval;
-  static inline Scalar run(const Scalar& x, const Scalar& y)
+  static EIGEN_DEVICE_FUNC inline Scalar run(const Scalar& x, const Scalar& y)
   {
     EIGEN_USING_STD_MATH(pow);
     return pow(x, y);
@@ -506,7 +506,7 @@ struct pow_default_impl
 template<typename Scalar>
 struct pow_default_impl<Scalar, true>
 {
-  static inline Scalar run(Scalar x, Scalar y)
+  static EIGEN_DEVICE_FUNC inline Scalar run(Scalar x, Scalar y)
   {
     Scalar res(1);
     eigen_assert(!NumTraits<Scalar>::IsSigned || y >= 0);
