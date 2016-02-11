@@ -529,19 +529,19 @@ ptanh<Packet4f>(const Packet4f& _x) {
            pmin(pset1<Packet4f>(1.0f), pmul(_x, pset1<Packet4f>(0.125f))));
 
   // The monomial coefficients of the numerator polynomial (odd).
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_1, -2.47030171958948e-03);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_3, -2.06804010015822e-02);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_5, -3.13693994587418e-02);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_7, -7.19851201683627e-03);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_9, 8.31561269687160e-04);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_11, -1.37626659546502e-04);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_13, 1.39116714700458e-05);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_1, -2.47030171958948e-03f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_3, -2.06804010015822e-02f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_5, -3.13693994587418e-02f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_7, -7.19851201683627e-03f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_9, 8.31561269687160e-04f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_11, -1.37626659546502e-04f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_13, 1.39116714700458e-05f);
 
   // The monomial coefficients of the denominator polynomial (even).
-  _EIGEN_DECLARE_CONST_Packet4f(beta_0, -3.08787724141615e-04);
-  _EIGEN_DECLARE_CONST_Packet4f(beta_2, -9.17251911622436e-03);
-  _EIGEN_DECLARE_CONST_Packet4f(beta_4, -3.09625062090444e-02);
-  _EIGEN_DECLARE_CONST_Packet4f(beta_6, -2.05669680763032e-02);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_0, -3.08787724141615e-04f);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_2, -9.17251911622436e-03f);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_4, -3.09625062090444e-02f);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_6, -2.05669680763032e-02f);
 
   // Since the polynomials are odd/even, we need x^2.
   const Packet4f x2 = pmul(x, x);
