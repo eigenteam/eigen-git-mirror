@@ -10,6 +10,86 @@
 
 #include "main.h"
 #include <Eigen/QR>
+#include <Eigen/SVD>
+
+template <typename MatrixType>
+void cod() {
+  typedef typename MatrixType::Index Index;
+
+  Index rows = internal::random<Index>(2, EIGEN_TEST_MAX_SIZE);
+  Index cols = internal::random<Index>(2, EIGEN_TEST_MAX_SIZE);
+  Index cols2 = internal::random<Index>(2, EIGEN_TEST_MAX_SIZE);
+  Index rank = internal::random<Index>(1, (std::min)(rows, cols) - 1);
+
+  typedef typename MatrixType::Scalar Scalar;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime,
+                 MatrixType::RowsAtCompileTime>
+      MatrixQType;
+  MatrixType matrix;
+  createRandomPIMatrixOfRank(rank, rows, cols, matrix);
+  CompleteOrthogonalDecomposition<MatrixType> cod(matrix);
+  VERIFY(rank == cod.rank());
+  VERIFY(cols - cod.rank() == cod.dimensionOfKernel());
+  VERIFY(!cod.isInjective());
+  VERIFY(!cod.isInvertible());
+  VERIFY(!cod.isSurjective());
+
+  MatrixQType q = cod.householderQ();
+  VERIFY_IS_UNITARY(q);
+
+  MatrixType z = cod.matrixZ();
+  VERIFY_IS_UNITARY(z);
+
+  MatrixType t;
+  t.setZero(rows, cols);
+  t.topLeftCorner(rank, rank) =
+      cod.matrixT().topLeftCorner(rank, rank).template triangularView<Upper>();
+
+  MatrixType c = q * t * z * cod.colsPermutation().inverse();
+  VERIFY_IS_APPROX(matrix, c);
+
+  MatrixType exact_solution = MatrixType::Random(cols, cols2);
+  MatrixType rhs = matrix * exact_solution;
+  MatrixType cod_solution = cod.solve(rhs);
+  VERIFY_IS_APPROX(rhs, matrix * cod_solution);
+
+  // Verify that we get the same minimum-norm solution as the SVD.
+  JacobiSVD<MatrixType> svd(matrix, ComputeThinU | ComputeThinV);
+  MatrixType svd_solution = svd.solve(rhs);
+  VERIFY_IS_APPROX(cod_solution, svd_solution);
+
+  MatrixType pinv = cod.pseudoInverse();
+  VERIFY_IS_APPROX(cod_solution, pinv * rhs);
+}
+
+template <typename MatrixType, int Cols2>
+void cod_fixedsize() {
+  enum {
+    Rows = MatrixType::RowsAtCompileTime,
+    Cols = MatrixType::ColsAtCompileTime
+  };
+  typedef typename MatrixType::Scalar Scalar;
+  int rank = internal::random<int>(1, (std::min)(int(Rows), int(Cols)) - 1);
+  Matrix<Scalar, Rows, Cols> matrix;
+  createRandomPIMatrixOfRank(rank, Rows, Cols, matrix);
+  CompleteOrthogonalDecomposition<Matrix<Scalar, Rows, Cols> > cod(matrix);
+  VERIFY(rank == cod.rank());
+  VERIFY(Cols - cod.rank() == cod.dimensionOfKernel());
+  VERIFY(cod.isInjective() == (rank == Rows));
+  VERIFY(cod.isSurjective() == (rank == Cols));
+  VERIFY(cod.isInvertible() == (cod.isInjective() && cod.isSurjective()));
+
+  Matrix<Scalar, Cols, Cols2> exact_solution;
+  exact_solution.setRandom(Cols, Cols2);
+  Matrix<Scalar, Rows, Cols2> rhs = matrix * exact_solution;
+  Matrix<Scalar, Cols, Cols2> cod_solution = cod.solve(rhs);
+  VERIFY_IS_APPROX(rhs, matrix * cod_solution);
+
+  // Verify that we get the same minimum-norm solution as the SVD.
+  JacobiSVD<MatrixType> svd(matrix, ComputeFullU | ComputeFullV);
+  Matrix<Scalar, Cols, Cols2> svd_solution = svd.solve(rhs);
+  VERIFY_IS_APPROX(cod_solution, svd_solution);
+}
 
 template<typename MatrixType> void qr()
 {
@@ -210,6 +290,15 @@ void test_qr_colpivoting()
     CALL_SUBTEST_4(( qr_fixedsize<Matrix<float,3,5>, 4 >() ));
     CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,6,2>, 3 >() ));
     CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,1,1>, 1 >() ));
+  }
+
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1( cod<MatrixXf>() );
+    CALL_SUBTEST_2( cod<MatrixXd>() );
+    CALL_SUBTEST_3( cod<MatrixXcd>() );
+    CALL_SUBTEST_4(( cod_fixedsize<Matrix<float,3,5>, 4 >() ));
+    CALL_SUBTEST_5(( cod_fixedsize<Matrix<double,6,2>, 3 >() ));
+    CALL_SUBTEST_5(( cod_fixedsize<Matrix<double,1,1>, 1 >() ));
   }
 
   for(int i = 0; i < g_repeat; i++) {

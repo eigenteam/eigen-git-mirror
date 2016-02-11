@@ -66,7 +66,7 @@ template<typename Derived> class MatrixBase
     using Base::MaxSizeAtCompileTime;
     using Base::IsVectorAtCompileTime;
     using Base::Flags;
-    
+
     using Base::derived;
     using Base::const_cast_derived;
     using Base::rows;
@@ -175,7 +175,7 @@ template<typename Derived> class MatrixBase
 #endif
 
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC 
+    EIGEN_DEVICE_FUNC
     const Product<Derived,OtherDerived,LazyProduct>
     lazyProduct(const MatrixBase<OtherDerived> &other) const;
 
@@ -214,7 +214,7 @@ template<typename Derived> class MatrixBase
     typedef Diagonal<Derived> DiagonalReturnType;
     EIGEN_DEVICE_FUNC
     DiagonalReturnType diagonal();
-    
+
     typedef typename internal::add_const<Diagonal<const Derived> >::type ConstDiagonalReturnType;
     EIGEN_DEVICE_FUNC
     ConstDiagonalReturnType diagonal() const;
@@ -222,14 +222,14 @@ template<typename Derived> class MatrixBase
     template<int Index> struct DiagonalIndexReturnType { typedef Diagonal<Derived,Index> Type; };
     template<int Index> struct ConstDiagonalIndexReturnType { typedef const Diagonal<const Derived,Index> Type; };
 
-    template<int Index> 
+    template<int Index>
     EIGEN_DEVICE_FUNC
     typename DiagonalIndexReturnType<Index>::Type diagonal();
 
     template<int Index>
     EIGEN_DEVICE_FUNC
     typename ConstDiagonalIndexReturnType<Index>::Type diagonal() const;
-    
+
     typedef Diagonal<Derived,DynamicIndex> DiagonalDynamicIndexReturnType;
     typedef typename internal::add_const<Diagonal<const Derived,DynamicIndex> >::type ConstDiagonalDynamicIndexReturnType;
 
@@ -251,7 +251,7 @@ template<typename Derived> class MatrixBase
     template<unsigned int UpLo> struct SelfAdjointViewReturnType { typedef SelfAdjointView<Derived, UpLo> Type; };
     template<unsigned int UpLo> struct ConstSelfAdjointViewReturnType { typedef const SelfAdjointView<const Derived, UpLo> Type; };
 
-    template<unsigned int UpLo> 
+    template<unsigned int UpLo>
     EIGEN_DEVICE_FUNC
     typename SelfAdjointViewReturnType<UpLo>::Type selfadjointView();
     template<unsigned int UpLo>
@@ -340,7 +340,7 @@ template<typename Derived> class MatrixBase
 
     EIGEN_DEVICE_FUNC
     inline const Inverse<Derived> inverse() const;
-    
+
     template<typename ResultType>
     inline void computeInverseAndDetWithCheck(
       ResultType& inverse,
@@ -366,6 +366,7 @@ template<typename Derived> class MatrixBase
     inline const HouseholderQR<PlainObject> householderQr() const;
     inline const ColPivHouseholderQR<PlainObject> colPivHouseholderQr() const;
     inline const FullPivHouseholderQR<PlainObject> fullPivHouseholderQr() const;
+    inline const CompleteOrthogonalDecomposition<PlainObject> completeOrthogonalDecomposition() const;
 
 /////////// Eigenvalues module ///////////
 
@@ -394,23 +395,23 @@ template<typename Derived> class MatrixBase
     inline PlainObject
 #endif
     cross(const MatrixBase<OtherDerived>& other) const;
-    
+
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
     inline PlainObject cross3(const MatrixBase<OtherDerived>& other) const;
-    
+
     EIGEN_DEVICE_FUNC
     inline PlainObject unitOrthogonal(void) const;
-    
+
     inline Matrix<Scalar,3,1> eulerAngles(Index a0, Index a1, Index a2) const;
-    
+
     inline ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
     // put this as separate enum value to work around possible GCC 4.3 bug (?)
     enum { HomogeneousReturnTypeDirection = ColsAtCompileTime==1&&RowsAtCompileTime==1 ? ((internal::traits<Derived>::Flags&RowMajorBit)==RowMajorBit ? Horizontal : Vertical)
                                           : ColsAtCompileTime==1 ? Vertical : Horizontal };
     typedef Homogeneous<Derived, HomogeneousReturnTypeDirection> HomogeneousReturnType;
     inline HomogeneousReturnType homogeneous() const;
-    
+
     enum {
       SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
     };
