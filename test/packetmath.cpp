@@ -325,6 +325,12 @@ template<typename Scalar> void packetmath_real()
     data2[i] = internal::random<Scalar>(-87,88);
   }
   CHECK_CWISE1_IF(PacketTraits::HasExp, std::exp, internal::pexp);
+  for (int i=0; i<size; ++i)
+  {
+    data1[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
+    data2[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
+  }
+  CHECK_CWISE1_IF(PacketTraits::HasTanh, std::tanh, internal::ptanh);
   if(PacketTraits::HasExp && PacketTraits::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
