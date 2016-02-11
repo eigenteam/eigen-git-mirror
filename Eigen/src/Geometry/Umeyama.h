@@ -135,22 +135,11 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
 
   // Eq. (39)
   VectorType S = VectorType::Ones(m);
-  if (sigma.determinant()<Scalar(0)) S(m-1) = Scalar(-1);
 
-  // Eq. (40) and (43)
-  const VectorType& d = svd.singularValues();
-  Index rank = 0; for (Index i=0; i<m; ++i) if (!internal::isMuchSmallerThan(d.coeff(i),d.coeff(0))) ++rank;
-  if (rank == m-1) {
-    if ( svd.matrixU().determinant() * svd.matrixV().determinant() > Scalar(0) ) {
-      Rt.block(0,0,m,m).noalias() = svd.matrixU()*svd.matrixV().transpose();
-    } else {
-      const Scalar s = S(m-1); S(m-1) = Scalar(-1);
-      Rt.block(0,0,m,m).noalias() = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
-      S(m-1) = s;
-    }
-  } else {
-    Rt.block(0,0,m,m).noalias() = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
-  }
+  if  ( svd.matrixU().determinant() * svd.matrixV().determinant() < 0 )
+    S(m-1) = -1;
+
+  Rt.block(0,0,m,m).noalias() = svd.matrixU() * S.asDiagonal() * svd.matrixV().transpose();
 
   if (with_scaling)
   {
