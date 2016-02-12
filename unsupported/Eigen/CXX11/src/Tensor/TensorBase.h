@@ -171,6 +171,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Derived>
+    conjugate() const {
+      return unaryExpr(internal::scalar_conjugate_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived>
     pow(Scalar exponent) const {
       return unaryExpr(internal::scalar_pow_op<Scalar>(exponent));
