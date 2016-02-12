@@ -70,20 +70,20 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixT
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const TriangularViewImpl& view, Index outer)
-      : Base(view.derived().nestedExpression(), outer), m_returnOne(false)
+      : Base(view.derived().nestedExpression(), outer), m_returnOne(false), m_containsDiag(Base::outer()<view.innerSize())
     {
       if(SkipFirst)
       {
         while((*this) && ((HasUnitDiag||SkipDiag)  ? this->index()<=outer : this->index()<outer))
           Base::operator++();
         if(HasUnitDiag)
-          m_returnOne = true;
+          m_returnOne = m_containsDiag;
       }
       else if(HasUnitDiag && ((!Base::operator bool()) || Base::index()>=Base::outer()))
       {
         if((!SkipFirst) && Base::operator bool())
           Base::operator++();
-        m_returnOne = true;
+        m_returnOne = m_containsDiag;
       }
     }
 
@@ -98,7 +98,7 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixT
         {
           if((!SkipFirst) && Base::operator bool())
             Base::operator++();
-          m_returnOne = true;
+          m_returnOne = m_containsDiag;
         }
       }
       return *this;
@@ -130,6 +130,7 @@ class TriangularViewImpl<MatrixType,Mode,Sparse>::InnerIterator : public MatrixT
     }
   protected:
     bool m_returnOne;
+    bool m_containsDiag;
 };
 
 template<typename MatrixType, unsigned int Mode>
@@ -193,7 +194,7 @@ public:
     Flags = XprType::Flags
   };
     
-  explicit unary_evaluator(const XprType &xpr) : m_argImpl(xpr.nestedExpression()) {}
+  explicit unary_evaluator(const XprType &xpr) : m_argImpl(xpr.nestedExpression()), m_arg(xpr.nestedExpression()) {}
   
   inline Index nonZerosEstimate() const {
     return m_argImpl.nonZerosEstimate();
@@ -205,20 +206,20 @@ public:
     public:
 
       EIGEN_STRONG_INLINE InnerIterator(const unary_evaluator& xprEval, Index outer)
-        : Base(xprEval.m_argImpl,outer), m_returnOne(false)
+        : Base(xprEval.m_argImpl,outer), m_returnOne(false), m_containsDiag(Base::outer()<xprEval.m_arg.innerSize())
       {
         if(SkipFirst)
         {
           while((*this) && ((HasUnitDiag||SkipDiag)  ? this->index()<=outer : this->index()<outer))
             Base::operator++();
           if(HasUnitDiag)
-            m_returnOne = true;
+            m_returnOne = m_containsDiag;
         }
         else if(HasUnitDiag && ((!Base::operator bool()) || Base::index()>=Base::outer()))
         {
           if((!SkipFirst) && Base::operator bool())
             Base::operator++();
-          m_returnOne = true; // FIXME check innerSize()>outer();
+          m_returnOne = m_containsDiag;
         }
       }
 
@@ -233,7 +234,7 @@ public:
           {
             if((!SkipFirst) && Base::operator bool())
               Base::operator++();
-            m_returnOne = true; // FIXME check innerSize()>outer();
+            m_returnOne = m_containsDiag;
           }
         }
         return *this;
@@ -266,12 +267,14 @@ public:
 
     protected:
       bool m_returnOne;
+      bool m_containsDiag;
     private:
       Scalar& valueRef();
   };
   
 protected:
   evaluator<ArgType> m_argImpl;
+  const ArgType& m_arg;
 };
 
 } // end namespace internal

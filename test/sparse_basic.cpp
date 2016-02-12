@@ -21,8 +21,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   
   const Index rows = ref.rows();
   const Index cols = ref.cols();
-  const Index inner = ref.innerSize();
-  const Index outer = ref.outerSize();
+  //const Index inner = ref.innerSize();
+  //const Index outer = ref.outerSize();
 
   typedef typename SparseMatrixType::Scalar Scalar;
   enum { Flags = SparseMatrixType::Flags };
@@ -327,7 +327,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m3 = m2.template triangularView<Upper>();
     VERIFY_IS_APPROX(m3, refMat3);
 
-    if(inner>=outer) // FIXME this should be implemented for outer>inner as well
     {
       refMat3 = refMat2.template triangularView<UnitUpper>();
       m3 = m2.template triangularView<UnitUpper>();
