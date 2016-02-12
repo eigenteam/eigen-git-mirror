@@ -109,7 +109,10 @@ Two possibilities:
       128-bit alignment code and thus preserves ABI compatibility, but completely disables vectorization.</li>
 </ul>
 
-For more information, see <a href="http://eigen.tuxfamily.org/index.php?title=FAQ#I_disabled_vectorization.2C_but_I.27m_still_getting_annoyed_about_alignment_issues.21">this FAQ</a>.
+If you want to know why defining EIGEN_DONT_VECTORIZE does not by itself disable 128-bit alignment and the assertion, here's the explanation:
+
+It doesn't disable the assertion, because otherwise code that runs fine without vectorization would suddenly crash when enabling vectorization.
+It doesn't disable 128bit alignment, because that would mean that vectorized and non-vectorized code are not mutually ABI-compatible. This ABI compatibility is very important, even for people who develop only an in-house application, as for instance one may want to have in the same application a vectorized path and a non-vectorized path.
 
 */
 
