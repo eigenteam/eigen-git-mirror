@@ -387,7 +387,10 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
   typedef typename MatrixType::Scalar Scalar;
   typedef SparseMatrix<Scalar,DestOrder,StorageIndex> Dest;
   typedef Matrix<StorageIndex,Dynamic,1> VectorI;
+  typedef evaluator<MatrixType> MatEval;
+  typedef typename evaluator<MatrixType>::InnerIterator MatIterator;
   
+  MatEval matEval(mat);
   Dest& dest(_dest.derived());
   enum {
     StorageOrderMatch = int(Dest::IsRowMajor) == int(MatrixType::IsRowMajor)
@@ -401,7 +404,7 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
   for(Index j = 0; j<size; ++j)
   {
     Index jp = perm ? perm[j] : j;
-    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    for(MatIterator it(matEval,j); it; ++it)
     {
       Index i = it.index();
       Index r = it.row();
@@ -431,7 +434,7 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
   // copy data
   for(StorageIndex j = 0; j<size; ++j)
   {
-    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    for(MatIterator it(matEval,j); it; ++it)
     {
       StorageIndex i = internal::convert_index<StorageIndex>(it.index());
       Index r = it.row();
@@ -474,12 +477,17 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
   typedef typename MatrixType::Scalar Scalar;
   SparseMatrix<Scalar,DstOrder,StorageIndex>& dest(_dest.derived());
   typedef Matrix<StorageIndex,Dynamic,1> VectorI;
+  typedef evaluator<MatrixType> MatEval;
+  typedef typename evaluator<MatrixType>::InnerIterator MatIterator;
+
   enum {
     SrcOrder = MatrixType::IsRowMajor ? RowMajor : ColMajor,
     StorageOrderMatch = int(SrcOrder) == int(DstOrder),
     DstMode = DstOrder==RowMajor ? (_DstMode==Upper ? Lower : Upper) : _DstMode,
     SrcMode = SrcOrder==RowMajor ? (_SrcMode==Upper ? Lower : Upper) : _SrcMode
   };
+
+  MatEval matEval(mat);
   
   Index size = mat.rows();
   VectorI count(size);
@@ -488,7 +496,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
   for(StorageIndex j = 0; j<size; ++j)
   {
     StorageIndex jp = perm ? perm[j] : j;
-    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    for(MatIterator it(matEval,j); it; ++it)
     {
       StorageIndex i = it.index();
       if((int(SrcMode)==int(Lower) && i<j) || (int(SrcMode)==int(Upper) && i>j))
@@ -508,7 +516,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
   for(StorageIndex j = 0; j<size; ++j)
   {
     
-    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    for(MatIterator it(matEval,j); it; ++it)
     {
       StorageIndex i = it.index();
       if((int(SrcMode)==int(Lower) && i<j) || (int(SrcMode)==int(Upper) && i>j))
