@@ -136,6 +136,22 @@ template<typename MatrixType> void product(const MatrixType& m)
   VERIFY_IS_APPROX(res.col(r).noalias() = square.adjoint() * square.col(r), (square.adjoint() * square.col(r)).eval());
   VERIFY_IS_APPROX(res.col(r).noalias() = square * square.col(r), (square * square.col(r)).eval());
 
+  // vector at runtime (see bug 1166)
+  {
+    RowSquareMatrixType ref(square);
+    ColSquareMatrixType ref2(square2);
+    ref = res = square;
+    VERIFY_IS_APPROX(res.block(0,0,1,rows).noalias() = m1.col(0).transpose() * square.transpose(),            (ref.row(0) = m1.col(0).transpose() * square.transpose()));
+    VERIFY_IS_APPROX(res.block(0,0,1,rows).noalias() = m1.block(0,0,rows,1).transpose() * square.transpose(), (ref.row(0) = m1.col(0).transpose() * square.transpose()));
+    VERIFY_IS_APPROX(res.block(0,0,1,rows).noalias() = m1.col(0).transpose() * square,                        (ref.row(0) = m1.col(0).transpose() * square));
+    VERIFY_IS_APPROX(res.block(0,0,1,rows).noalias() = m1.block(0,0,rows,1).transpose() * square,             (ref.row(0) = m1.col(0).transpose() * square));
+    ref2 = res2 = square2;
+    VERIFY_IS_APPROX(res2.block(0,0,1,cols).noalias() = m1.row(0) * square2.transpose(),                      (ref2.row(0) = m1.row(0) * square2.transpose()));
+    VERIFY_IS_APPROX(res2.block(0,0,1,cols).noalias() = m1.block(0,0,1,cols) * square2.transpose(),           (ref2.row(0) = m1.row(0) * square2.transpose()));
+    VERIFY_IS_APPROX(res2.block(0,0,1,cols).noalias() = m1.row(0) * square2,                                  (ref2.row(0) = m1.row(0) * square2));
+    VERIFY_IS_APPROX(res2.block(0,0,1,cols).noalias() = m1.block(0,0,1,cols) * square2,                       (ref2.row(0) = m1.row(0) * square2));
+  }
+
   // inner product
   {
     Scalar x = square2.row(c) * square2.col(c2);
