@@ -48,7 +48,6 @@ void check_stddeque_matrix(const MatrixType& m)
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
-  VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(MatrixType));
 
   // do a lot of push_back such that the deque gets internally resized
   // (with memory reallocation)
