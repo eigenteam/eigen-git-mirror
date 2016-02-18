@@ -518,30 +518,31 @@ Packet2d prsqrt<Packet2d>(const Packet2d& x) {
 
 // Hyperbolic Tangent function.
 // Doesn't do anything fancy, just a 13/6-degree rational interpolant which
-// is accurate up to a couple of ulp in the range [-8, 8], outside of which the
+// is accurate up to a couple of ulp in the range [-9, 9], outside of which the
 // fl(tanh(x)) = +/-1.
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet4f
 ptanh<Packet4f>(const Packet4f& _x) {
-  // Map the range [-8, 8] to [-1, 1], we will clamp bad coefficients later.
-  const Packet4f x =
-      pmax(pset1<Packet4f>(-1.0f),
-           pmin(pset1<Packet4f>(1.0f), pmul(_x, pset1<Packet4f>(0.125f))));
+  // Clamp the inputs to the range [-9, 9] since anything outside
+  // this range is +/-1.0f in single-precision.
+  _EIGEN_DECLARE_CONST_Packet4f(plus_9, 9.0f);
+  _EIGEN_DECLARE_CONST_Packet4f(minus_9, -9.0f);
+  const Packet4f x = pmax(p4f_minus_9, pmin(p4f_plus_9, _x));
 
   // The monomial coefficients of the numerator polynomial (odd).
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_1, -2.47030171958948e-03f);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_3, -2.06804010015822e-02f);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_5, -3.13693994587418e-02f);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_7, -7.19851201683627e-03f);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_9, 8.31561269687160e-04f);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_11, -1.37626659546502e-04f);
-  _EIGEN_DECLARE_CONST_Packet4f(alpha_13, 1.39116714700458e-05f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_1, 4.89352455891786e-03f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_3, 6.37261928875436e-04f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_5, 1.48572235717979e-05f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_7, 5.12229709037114e-08f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_9, -8.60467152213735e-11f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_11, 2.00018790482477e-13f);
+  _EIGEN_DECLARE_CONST_Packet4f(alpha_13, -2.76076847742355e-16f);
 
   // The monomial coefficients of the denominator polynomial (even).
-  _EIGEN_DECLARE_CONST_Packet4f(beta_0, -3.08787724141615e-04f);
-  _EIGEN_DECLARE_CONST_Packet4f(beta_2, -9.17251911622436e-03f);
-  _EIGEN_DECLARE_CONST_Packet4f(beta_4, -3.09625062090444e-02f);
-  _EIGEN_DECLARE_CONST_Packet4f(beta_6, -2.05669680763032e-02f);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_0, 4.89352518554385e-03f);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_2, 2.26843463243900e-03f);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_4, 1.18534705686654e-04f);
+  _EIGEN_DECLARE_CONST_Packet4f(beta_6, 1.19825839466702e-06f);
 
   // Since the polynomials are odd/even, we need x^2.
   const Packet4f x2 = pmul(x, x);
