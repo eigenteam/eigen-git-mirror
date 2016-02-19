@@ -39,6 +39,22 @@ __device__ half operator / (const half& a, const half& b) {
 __device__ half operator - (const half& a) {
   return __hneg(a);
 }
+__device__ half operator += (half& a, const half& b) {
+   a = __hadd(a, b);
+   return a;
+}
+__device__ half operator *= (half& a, const half& b) {
+  a = __hmul(a, b);
+  return a;
+}
+__device__ half operator -= (half& a, const half& b) {
+  a = __hsub(a, b);
+  return a;
+}
+__device__ half operator /= (half& a, const half& b) {
+  assert(false && "tbd");
+  return a;
+}
 
 
 template<> struct is_arithmetic<half2> { enum { value = true }; };
