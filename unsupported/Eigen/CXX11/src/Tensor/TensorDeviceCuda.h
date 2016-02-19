@@ -247,6 +247,14 @@ struct GpuDevice {
     return 0;
 #endif
   }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int minorDeviceVersion() const {
+#ifndef __CUDA_ARCH__
+    return stream_->deviceProperties().minor;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
+  }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxBlocks() const {
     return max_blocks_;
