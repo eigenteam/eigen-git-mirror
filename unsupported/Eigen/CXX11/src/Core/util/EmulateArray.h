@@ -42,7 +42,7 @@ template <typename T, size_t n> class array {
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array() { }
-  explicit EIGEN_DEVICE_FUNC
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array(const T& v) {
     EIGEN_STATIC_ASSERT(n==1, YOU_MADE_A_PROGRAMMING_MISTAKE)
     values[0] = v;
