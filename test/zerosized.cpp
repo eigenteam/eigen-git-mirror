@@ -38,7 +38,7 @@ template<typename MatrixType> void zeroSizedMatrix()
     if (MatrixType::RowsAtCompileTime == Dynamic && MatrixType::ColsAtCompileTime == Dynamic)
     {
 
-      MatrixType t2(0, 0);
+      MatrixType t2(0, 0), t3(t1);
       VERIFY(t2.rows() == 0);
       VERIFY(t2.cols() == 0);
 
