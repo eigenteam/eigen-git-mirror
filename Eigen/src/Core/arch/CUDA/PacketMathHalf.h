@@ -33,8 +33,9 @@ __device__ half operator - (const half& a, const half& b) {
   return __hsub(a, b);
 }
 __device__ half operator / (const half& a, const half& b) {
-  assert(false && "tbd");
-  return half();
+  float num = __half2float(a);
+  float denom = __half2float(b);
+  return __float2half(num / denom);
 }
 __device__ half operator - (const half& a) {
   return __hneg(a);
@@ -52,7 +53,7 @@ __device__ half operator -= (half& a, const half& b) {
   return a;
 }
 __device__ half operator /= (half& a, const half& b) {
-  assert(false && "tbd");
+  a = a / b;
   return a;
 }
 
