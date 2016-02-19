@@ -34,12 +34,23 @@ static void initializeDeviceProp() {
     if (!m_devicePropInitialized) {
       int num_devices;
       cudaError_t status = cudaGetDeviceCount(&num_devices);
-      EIGEN_UNUSED_VARIABLE(status)
-      assert(status == cudaSuccess);
+      if (status != cudaSuccess) {
+        std::cerr << "Failed to get the number of CUDA devices: "
+                  << cudaGetErrorString(status)
+                  << std::endl;
+        assert(status == cudaSuccess);
+      }
       m_deviceProperties = new cudaDeviceProp[num_devices];
       for (int i = 0; i < num_devices; ++i) {
         status = cudaGetDeviceProperties(&m_deviceProperties[i], i);
-        assert(status == cudaSuccess);
+        if (status != cudaSuccess) {
+          std::cerr << "Failed to initialize CUDA device #"
+                    << i
+                    << ": "
+                    << cudaGetErrorString(status)
+                    << std::endl;
+          assert(status == cudaSuccess);
+        }
       }
       m_devicePropInitialized = true;
     }
