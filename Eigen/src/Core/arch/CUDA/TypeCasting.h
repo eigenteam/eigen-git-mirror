@@ -34,6 +34,26 @@ template<>
 struct functor_traits<scalar_cast_op<float, half> >
 { enum { Cost = NumTraits<float>::AddCost, PacketAccess = false }; };
 
+
+template<>
+struct scalar_cast_op<int, half> {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
+  typedef half result_type;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half operator() (const int& a) const {
+    #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+      return __float2half(static_cast<float>(a));
+    #else
+      assert(false && "tbd");
+      return half();
+    #endif
+  }
+};
+
+template<>
+struct functor_traits<scalar_cast_op<int, half> >
+{ enum { Cost = NumTraits<float>::AddCost, PacketAccess = false }; };
+
+
 template<>
 struct scalar_cast_op<half, float> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)

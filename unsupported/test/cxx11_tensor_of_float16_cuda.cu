@@ -93,7 +93,6 @@ void test_cuda_elementwise() {
   gpu_device.deallocate(d_res_half);
   gpu_device.deallocate(d_res_float);
 }
-
 /*
 void test_cuda_contractions() {
   Eigen::CudaStreamDevice stream;
@@ -139,7 +138,7 @@ void test_cuda_contractions() {
   gpu_device.deallocate(d_float2);
   gpu_device.deallocate(d_res_half);
   gpu_device.deallocate(d_res_float);
-}
+}*/
 
 
 void test_cuda_reductions() {
@@ -183,7 +182,7 @@ void test_cuda_reductions() {
   gpu_device.deallocate(d_res_half);
   gpu_device.deallocate(d_res_float);
 }
-*/
+
 
 #endif
 
@@ -191,9 +190,19 @@ void test_cuda_reductions() {
 void test_cxx11_tensor_of_float16_cuda()
 {
 #ifdef EIGEN_HAS_CUDA_FP16
-  CALL_SUBTEST_1(test_cuda_conversion());
-  CALL_SUBTEST_1(test_cuda_elementwise());
-//  CALL_SUBTEST_2(test_cuda_contractions());
-//  CALL_SUBTEST_3(test_cuda_reductions());
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice device(&stream);
+  if (device.majorDeviceVersion() > 5 ||
+      (device.majorDeviceVersion() == 5 && device.minorDeviceVersion() >= 3)) {
+    CALL_SUBTEST_1(test_cuda_conversion());
+    CALL_SUBTEST_1(test_cuda_elementwise());
+//    CALL_SUBTEST_2(test_cuda_contractions());
+    CALL_SUBTEST_3(test_cuda_reductions());
+  }
+  else {
+   std::cout << "Half floats require compute capability of at least 5.3. This device only supports " << device.majorDeviceVersion() << "." << device.minorDeviceVersion() << ". Skipping the test" << std::endl;
+  }
+#else
+  std::cout << "Half floats are not supported by this version of cuda: skipping the test" << std::endl;
 #endif
 }

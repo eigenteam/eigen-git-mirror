@@ -72,11 +72,12 @@ template <typename T> struct SumReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return static_cast<T>(0);
+    internal::scalar_cast_op<int, T> conv;
+    return conv(0);
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(0);
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
@@ -110,11 +111,12 @@ template <typename T> struct MeanReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return static_cast<T>(0);
+    internal::scalar_cast_op<int, T> conv;
+    return conv(0);
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(0);
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum / scalarCount_;
@@ -214,11 +216,12 @@ template <typename T> struct ProdReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return static_cast<T>(1);
+    internal::scalar_cast_op<int, T> conv;
+    return conv(1);
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(1);
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
