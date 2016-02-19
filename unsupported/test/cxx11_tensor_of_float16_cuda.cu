@@ -19,6 +19,7 @@
 
 using Eigen::Tensor;
 
+#ifdef EIGEN_HAS_CUDA_FP16
 void test_cuda_conversion() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -52,9 +53,11 @@ void test_cuda_conversion() {
   gpu_device.deallocate(d_half);
   gpu_device.deallocate(d_conv);
 }
-
+#endif
 
 void test_cxx11_tensor_of_float16_cuda()
 {
+#ifdef EIGEN_HAS_CUDA_FP16
   CALL_SUBTEST_1(test_cuda_conversion());
+#endif
 }

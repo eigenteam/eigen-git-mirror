@@ -14,6 +14,8 @@ namespace Eigen {
 
 namespace internal {
 
+#if defined(EIGEN_HAS_CUDA_FP16)
+
 template<>
 struct scalar_cast_op<float, half> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
@@ -92,6 +94,7 @@ template<> EIGEN_STRONG_INLINE half2 pcast<float4, half2>(const float4& a) {
 #endif
 }
 
+#endif
 
 } // end namespace internal
 
