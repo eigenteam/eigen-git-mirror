@@ -37,9 +37,9 @@ if (NOT CMAKE_CXX_COMPILER MATCHES "clang\\+\\+$")
 ei_add_test(BVH)
 endif()
 
-ei_add_test(matrix_exponential)
+#ei_add_test(matrix_exponential)
 ei_add_test(matrix_function)
-ei_add_test(matrix_power)
+#ei_add_test(matrix_power)
 ei_add_test(matrix_square_root)
 ei_add_test(alignedvector3)
 
@@ -172,6 +172,10 @@ if(CUDA_FOUND)
   ei_add_test(cxx11_tensor_reduction_cuda)
   ei_add_test(cxx11_tensor_random_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
+
+  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_53 -Xcudafe \"--display_error_number\"")
+  ei_add_test(cxx11_tensor_of_float16_cuda)
+
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()

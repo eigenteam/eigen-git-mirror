@@ -200,6 +200,7 @@
 #if defined __CUDACC__
   #define EIGEN_VECTORIZE_CUDA
   #include <vector_types.h>
+  #include <cuda_fp16.h>
 #endif
 
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
@@ -329,7 +330,9 @@ using std::ptrdiff_t;
 
 #if defined EIGEN_VECTORIZE_CUDA
   #include "src/Core/arch/CUDA/PacketMath.h"
+  #include "src/Core/arch/CUDA/PacketMathHalf.h"
   #include "src/Core/arch/CUDA/MathFunctions.h"
+  #include "src/Core/arch/CUDA/TypeCasting.h"
 #endif
 
 #include "src/Core/arch/Default/Settings.h"

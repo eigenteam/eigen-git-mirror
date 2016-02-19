@@ -21,7 +21,6 @@ namespace internal {
 template<> struct is_arithmetic<float4>  { enum { value = true }; };
 template<> struct is_arithmetic<double2> { enum { value = true }; };
 
-
 template<> struct packet_traits<float> : default_packet_traits
 {
   typedef float4 type;
