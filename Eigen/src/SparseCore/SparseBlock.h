@@ -28,11 +28,11 @@ protected:
 public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(BlockType)
 
-    inline BlockImpl(const XprType& xpr, Index i)
+    inline BlockImpl(XprType& xpr, Index i)
       : m_matrix(xpr), m_outerStart(convert_index(i)), m_outerSize(OuterSize)
     {}
 
-    inline BlockImpl(const XprType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
+    inline BlockImpl(XprType& xpr, Index startRow, Index startCol, Index blockRows, Index blockCols)
       : m_matrix(xpr), m_outerStart(convert_index(IsRowMajor ? startRow : startCol)), m_outerSize(convert_index(IsRowMajor ? blockRows : blockCols))
     {}
 
@@ -61,7 +61,8 @@ public:
       return m_matrix.coeff(IsRowMajor ? m_outerStart : index, IsRowMajor ? index :  m_outerStart);
     }
     
-    inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
+    inline const XprType& nestedExpression() const { return m_matrix; }
+    inline XprType& nestedExpression() { return m_matrix; }
     Index startRow() const { return IsRowMajor ? m_outerStart : 0; }
     Index startCol() const { return IsRowMajor ? 0 : m_outerStart; }
     Index blockRows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
@@ -69,7 +70,7 @@ public:
 
   protected:
 
-    typename XprType::Nested m_matrix;
+    typename internal::ref_selector<XprType>::non_const_type m_matrix;
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, OuterSize> m_outerSize;
   
@@ -263,7 +264,8 @@ public:
     EIGEN_STRONG_INLINE Index rows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
     EIGEN_STRONG_INLINE Index cols() const { return IsRowMajor ? m_matrix.cols() : m_outerSize.value(); }
     
-    inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
+    inline const SparseMatrixType& nestedExpression() const { return m_matrix; }
+    inline SparseMatrixType& nestedExpression() { return m_matrix; }
     Index startRow() const { return IsRowMajor ? m_outerStart : 0; }
     Index startCol() const { return IsRowMajor ? 0 : m_outerStart; }
     Index blockRows() const { return IsRowMajor ? m_outerSize.value() : m_matrix.rows(); }
@@ -419,7 +421,8 @@ public:
                             m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
     
-    inline const _MatrixTypeNested& nestedExpression() const { return m_matrix; }
+    inline const XprType& nestedExpression() const { return m_matrix; }
+    inline XprType& nestedExpression() { return m_matrix; }
     Index startRow() const { return m_startRow.value(); }
     Index startCol() const { return m_startCol.value(); }
     Index blockRows() const { return m_blockRows.value(); }
