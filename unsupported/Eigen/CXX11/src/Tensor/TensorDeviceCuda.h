@@ -34,12 +34,23 @@ static void initializeDeviceProp() {
     if (!m_devicePropInitialized) {
       int num_devices;
       cudaError_t status = cudaGetDeviceCount(&num_devices);
-      EIGEN_UNUSED_VARIABLE(status)
-      assert(status == cudaSuccess);
+      if (status != cudaSuccess) {
+        std::cerr << "Failed to get the number of CUDA devices: "
+                  << cudaGetErrorString(status)
+                  << std::endl;
+        assert(status == cudaSuccess);
+      }
       m_deviceProperties = new cudaDeviceProp[num_devices];
       for (int i = 0; i < num_devices; ++i) {
         status = cudaGetDeviceProperties(&m_deviceProperties[i], i);
-        assert(status == cudaSuccess);
+        if (status != cudaSuccess) {
+          std::cerr << "Failed to initialize CUDA device #"
+                    << i
+                    << ": "
+                    << cudaGetErrorString(status)
+                    << std::endl;
+          assert(status == cudaSuccess);
+        }
       }
       m_devicePropInitialized = true;
     }
@@ -242,6 +253,14 @@ struct GpuDevice {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
 #ifndef __CUDA_ARCH__
     return stream_->deviceProperties().major;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int minorDeviceVersion() const {
+#ifndef __CUDA_ARCH__
+    return stream_->deviceProperties().minor;
 #else
     eigen_assert(false && "The default device should be used instead to generate kernel code");
     return 0;

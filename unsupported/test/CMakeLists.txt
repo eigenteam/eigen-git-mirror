@@ -173,5 +173,9 @@ if(CUDA_FOUND)
   ei_add_test(cxx11_tensor_random_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
 
+  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_53 -Xcudafe \"--display_error_number\"")
+  ei_add_test(cxx11_tensor_of_float16_cuda)
+
+
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()

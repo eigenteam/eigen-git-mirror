@@ -182,10 +182,10 @@ struct digamma_impl_maybe_poly<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(const float s) {
     const float A[] = {
-      -4.16666666666666666667E-3,
-      3.96825396825396825397E-3,
-      -8.33333333333333333333E-3,
-      8.33333333333333333333E-2
+      -4.16666666666666666667E-3f,
+      3.96825396825396825397E-3f,
+      -8.33333333333333333333E-3f,
+      8.33333333333333333333E-2f
     };
 
     float z;
