@@ -10,10 +10,6 @@
 #ifndef EIGEN_PACKET_MATH_HALF_CUDA_H
 #define EIGEN_PACKET_MATH_HALF_CUDA_H
 
-namespace Eigen {
-
-namespace internal {
-
 #if defined(EIGEN_HAS_CUDA_FP16)
 
 // Make sure this is only available when targeting a GPU: we don't want to
@@ -41,22 +37,28 @@ __device__ half operator - (const half& a) {
   return __hneg(a);
 }
 __device__ half operator += (half& a, const half& b) {
-   a = __hadd(a, b);
+   a = a + b;
    return a;
 }
 __device__ half operator *= (half& a, const half& b) {
-  a = __hmul(a, b);
+  a = a * b;
   return a;
 }
 __device__ half operator -= (half& a, const half& b) {
-  a = __hsub(a, b);
+  a = a - b;
   return a;
 }
 __device__ half operator /= (half& a, const half& b) {
   a = a / b;
   return a;
 }
+__device__ half __shfl_xor(half a, int) {
+  assert(false && "tbd");
+  return a;
+}
 
+namespace Eigen {
+namespace internal {
 
 template<> struct is_arithmetic<half2> { enum { value = true }; };
 
@@ -225,13 +227,11 @@ ptranspose(PacketBlock<half2,2>& kernel) {
   //  kernel.packet[1].x = tmp;
 }
 
-#endif
-#endif
-#endif
-
 } // end namespace internal
 
 } // end namespace Eigen
 
-
+#endif
+#endif
+#endif
 #endif // EIGEN_PACKET_MATH_HALF_CUDA_H
