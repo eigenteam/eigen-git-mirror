@@ -237,24 +237,6 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
             }
           }
         }
-        // Compute twiddle factors
-        //   t_n = exp(sqrt(-1) * pi * n^2 / line_len)
-        // for n = 0, 1,..., line_len-1.
-        // For n > 2 we use the recurrence t_n = t_{n-1}^2 / t_{n-2} * t_1^2
-        pos_j_base_powered[0] = ComplexScalar(1, 0);
-        if (line_len > 1) {
-          const ComplexScalar pos_j_base = ComplexScalar(
-              std::cos(M_PI / line_len), std::sin(M_PI / line_len));
-          pos_j_base_powered[1] = pos_j_base;
-          if (line_len > 2) {
-            const ComplexScalar pos_j_base_sq = pos_j_base * pos_j_base;
-            for (int i = 2; i < line_len + 1; ++i) {
-              pos_j_base_powered[i] = pos_j_base_powered[i - 1] *
-                                      pos_j_base_powered[i - 1] /
-                                      pos_j_base_powered[i - 2] * pos_j_base_sq;
-            }
-          }
-        }
       }
 
       for (Index partial_index = 0; partial_index < m_size / line_len; ++partial_index) {
