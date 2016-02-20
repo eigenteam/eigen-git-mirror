@@ -219,19 +219,56 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
       ComplexScalar* b = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * good_composite);
       ComplexScalar* pos_j_base_powered = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * (line_len + 1));
       if (!is_power_of_two) {
-        ComplexScalar pos_j_base = ComplexScalar(std::cos(M_PI/line_len), std::sin(M_PI/line_len));
-        for (Index j = 0; j < line_len + 1; ++j) {
-          pos_j_base_powered[j] = std::pow(pos_j_base, j * j);
+        // Compute twiddle factors
+        //   t_n = exp(sqrt(-1) * pi * n^2 / line_len)
+        // for n = 0, 1,..., line_len-1.
+        // For n > 2 we use the recurrence t_n = t_{n-1}^2 / t_{n-2} * t_1^2
+        pos_j_base_powered[0] = ComplexScalar(1, 0);
+        if (line_len > 1) {
+          const ComplexScalar pos_j_base = ComplexScalar(
+              std::cos(M_PI / line_len), std::sin(M_PI / line_len));
+          pos_j_base_powered[1] = pos_j_base;
+          if (line_len > 2) {
+            const ComplexScalar pos_j_base_sq = pos_j_base * pos_j_base;
+            for (int i = 2; i < line_len + 1; ++i) {
+              pos_j_base_powered[i] = pos_j_base_powered[i - 1] *
+                                      pos_j_base_powered[i - 1] /
+                                      pos_j_base_powered[i - 2] * pos_j_base_sq;
+            }
+          }
+        }
+        // Compute twiddle factors
+        //   t_n = exp(sqrt(-1) * pi * n^2 / line_len)
+        // for n = 0, 1,..., line_len-1.
+        // For n > 2 we use the recurrence t_n = t_{n-1}^2 / t_{n-2} * t_1^2
+        pos_j_base_powered[0] = ComplexScalar(1, 0);
+        if (line_len > 1) {
+          const ComplexScalar pos_j_base = ComplexScalar(
+              std::cos(M_PI / line_len), std::sin(M_PI / line_len));
+          pos_j_base_powered[1] = pos_j_base;
+          if (line_len > 2) {
+            const ComplexScalar pos_j_base_sq = pos_j_base * pos_j_base;
+            for (int i = 2; i < line_len + 1; ++i) {
+              pos_j_base_powered[i] = pos_j_base_powered[i - 1] *
+                                      pos_j_base_powered[i - 1] /
+                                      pos_j_base_powered[i - 2] * pos_j_base_sq;
+            }
+          }
         }
       }
 
       for (Index partial_index = 0; partial_index < m_size / line_len; ++partial_index) {
-        Index base_offset = getBaseOffsetFromIndex(partial_index, dim);
+        const Index base_offset = getBaseOffsetFromIndex(partial_index, dim);
 
         // get data into line_buf
-        for (Index j = 0; j < line_len; ++j) {
-          Index offset = getIndexFromOffset(base_offset, dim, j);
-          line_buf[j] = buf[offset];
+        const Index stride = m_strides[dim];
+        if (stride == 1) {
+          memcpy(line_buf, &buf[base_offset], line_len*sizeof(ComplexScalar));
+        } else {
+          Index offset = base_offset;
+          for (int j = 0; j < line_len; ++j, offset += stride) {
+            line_buf[j] = buf[offset];
+          }
         }
 
         // processs the line
@@ -243,14 +280,18 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         }
 
         // write back
-        for (Index j = 0; j < line_len; ++j) {
-          const ComplexScalar div_factor = (FFTDir == FFT_FORWARD) ? ComplexScalar(1, 0) : ComplexScalar(line_len, 0);
-          Index offset = getIndexFromOffset(base_offset, dim, j);
-          buf[offset] =  line_buf[j] / div_factor;
+        if (FFTDir == FFT_FORWARD && stride == 1) {
+          memcpy(&buf[base_offset], line_buf, line_len*sizeof(ComplexScalar));
+        } else {
+          Index offset = base_offset;
+          const ComplexScalar div_factor =  ComplexScalar(1.0 / line_len, 0);
+          for (int j = 0; j < line_len; ++j, offset += stride) {
+             buf[offset] = (FFTDir == FFT_FORWARD) ? line_buf[j] : line_buf[j] * div_factor;
+          }
         }
       }
       m_device.deallocate(line_buf);
-      if (!pos_j_base_powered) {
+      if (!is_power_of_two) {
         m_device.deallocate(a);
         m_device.deallocate(b);
         m_device.deallocate(pos_j_base_powered);
@@ -372,109 +413,130 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     }
   }
 
-  template<int Dir>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void compute_1D_Butterfly(ComplexScalar* data, Index n, Index n_power_of_2) {
+  template <int Dir>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void butterfly_2(ComplexScalar* data) {
+    ComplexScalar tmp = data[1];
+    data[1] = data[0] - data[1];
+    data[0] += tmp;
+  }
+
+  template <int Dir>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void butterfly_4(ComplexScalar* data) {
+    ComplexScalar tmp[4];
+    tmp[0] = data[0] + data[1];
+    tmp[1] = data[0] - data[1];
+    tmp[2] = data[2] + data[3];
+    if (Dir == FFT_FORWARD) {
+      tmp[3] = ComplexScalar(0.0, -1.0) * (data[2] - data[3]);
+    } else {
+      tmp[3] = ComplexScalar(0.0, 1.0) * (data[2] - data[3]);
+    }
+    data[0] = tmp[0] + tmp[2];
+    data[1] = tmp[1] + tmp[3];
+    data[2] = tmp[0] - tmp[2];
+    data[3] = tmp[1] - tmp[3];
+  }
+
+  template <int Dir>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void butterfly_8(ComplexScalar* data) {
+    ComplexScalar tmp_1[8];
+    ComplexScalar tmp_2[8];
+
+    tmp_1[0] = data[0] + data[1];
+    tmp_1[1] = data[0] - data[1];
+    tmp_1[2] = data[2] + data[3];
+    if (Dir == FFT_FORWARD) {
+      tmp_1[3] = (data[2] - data[3]) * ComplexScalar(0, -1);
+    } else {
+      tmp_1[3] = (data[2] - data[3]) * ComplexScalar(0, 1);
+    }
+    tmp_1[4] = data[4] + data[5];
+    tmp_1[5] = data[4] - data[5];
+    tmp_1[6] = data[6] + data[7];
+    if (Dir == FFT_FORWARD) {
+      tmp_1[7] = (data[6] - data[7]) * ComplexScalar(0, -1);
+    } else {
+      tmp_1[7] = (data[6] - data[7]) * ComplexScalar(0, 1);
+    }
+    tmp_2[0] = tmp_1[0] + tmp_1[2];
+    tmp_2[1] = tmp_1[1] + tmp_1[3];
+    tmp_2[2] = tmp_1[0] - tmp_1[2];
+    tmp_2[3] = tmp_1[1] - tmp_1[3];
+    tmp_2[4] = tmp_1[4] + tmp_1[6];
+// SQRT2DIV2 = sqrt(2)/2
+#define SQRT2DIV2 0.7071067811865476
+    if (Dir == FFT_FORWARD) {
+      tmp_2[5] = (tmp_1[5] + tmp_1[7]) * ComplexScalar(SQRT2DIV2, -SQRT2DIV2);
+      tmp_2[6] = (tmp_1[4] - tmp_1[6]) * ComplexScalar(0, -1);
+      tmp_2[7] = (tmp_1[5] - tmp_1[7]) * ComplexScalar(-SQRT2DIV2, -SQRT2DIV2);
+    } else {
+      tmp_2[5] = (tmp_1[5] + tmp_1[7]) * ComplexScalar(SQRT2DIV2, SQRT2DIV2);
+      tmp_2[6] = (tmp_1[4] - tmp_1[6]) * ComplexScalar(0, 1);
+      tmp_2[7] = (tmp_1[5] - tmp_1[7]) * ComplexScalar(-SQRT2DIV2, SQRT2DIV2);
+    }
+    data[0] = tmp_2[0] + tmp_2[4];
+    data[1] = tmp_2[1] + tmp_2[5];
+    data[2] = tmp_2[2] + tmp_2[6];
+    data[3] = tmp_2[3] + tmp_2[7];
+    data[4] = tmp_2[0] - tmp_2[4];
+    data[5] = tmp_2[1] - tmp_2[5];
+    data[6] = tmp_2[2] - tmp_2[6];
+    data[7] = tmp_2[3] - tmp_2[7];
+  }
+
+  template <int Dir>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void butterfly_1D_merge(
+      ComplexScalar* data, int n, int n_power_of_2) {
+    // Original code:
+    // RealScalar wtemp = std::sin(M_PI/n);
+    // RealScalar wpi =  -std::sin(2 * M_PI/n);
+    const RealScalar wtemp = m_sin_PI_div_n_LUT[n_power_of_2];
+    const RealScalar wpi = (Dir == FFT_FORWARD)
+                               ? m_minus_sin_2_PI_div_n_LUT[n_power_of_2]
+                               : -m_minus_sin_2_PI_div_n_LUT[n_power_of_2];
+
+    const ComplexScalar wp(wtemp, wpi);
+    const ComplexScalar wp_one = wp + ComplexScalar(1, 0);
+    const ComplexScalar wp_one_2 = wp_one * wp_one;
+    const ComplexScalar wp_one_3 = wp_one_2 * wp_one;
+    const ComplexScalar wp_one_4 = wp_one_3 * wp_one;
+    const int n2 = n / 2;
+    ComplexScalar w(1.0, 0.0);
+    for (int i = 0; i < n2; i += 4) {
+       ComplexScalar temp0(data[i + n2] * w);
+       ComplexScalar temp1(data[i + 1 + n2] * w * wp_one);
+       ComplexScalar temp2(data[i + 2 + n2] * w * wp_one_2);
+       ComplexScalar temp3(data[i + 3 + n2] * w * wp_one_3);
+       w = w * wp_one_4;
+
+       data[i + n2] = data[i] - temp0;
+       data[i] += temp0;
+
+       data[i + 1 + n2] = data[i + 1] - temp1;
+       data[i + 1] += temp1;
+
+       data[i + 2 + n2] = data[i + 2] - temp2;
+       data[i + 2] += temp2;
+
+       data[i + 3 + n2] = data[i + 3] - temp3;
+       data[i + 3] += temp3;
+    }
+  }
+
+ template <int Dir>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void compute_1D_Butterfly(
+      ComplexScalar* data, int n, int n_power_of_2) {
     eigen_assert(isPowerOfTwo(n));
-    if (n == 1) {
-      return;
-    }
-    else if (n == 2) {
-      ComplexScalar tmp = data[1];
-      data[1] = data[0] - data[1];
-      data[0] += tmp;
-      return;
-    }
-    else if (n == 4) {
-      ComplexScalar tmp[4];
-      tmp[0] = data[0] + data[1];
-      tmp[1] = data[0] - data[1];
-      tmp[2] = data[2] + data[3];
-      if(Dir == FFT_FORWARD) {
-        tmp[3] = ComplexScalar(0.0, -1.0) * (data[2] - data[3]);
-      }
-      else {
-        tmp[3] = ComplexScalar(0.0, 1.0) * (data[2] - data[3]);
-      }
-      data[0] = tmp[0] + tmp[2];
-      data[1] = tmp[1] + tmp[3];
-      data[2] = tmp[0] - tmp[2];
-      data[3] = tmp[1] - tmp[3];
-      return;
-    }
-    else if (n == 8) {
-      ComplexScalar tmp_1[8];
-      ComplexScalar tmp_2[8];
-
-      tmp_1[0] = data[0] + data[1];
-      tmp_1[1] = data[0] - data[1];
-      tmp_1[2] = data[2] + data[3];
-      if (Dir == FFT_FORWARD) {
-        tmp_1[3] = (data[2] - data[3]) * ComplexScalar(0, -1);
-      }
-      else {
-        tmp_1[3] = (data[2] - data[3]) * ComplexScalar(0, 1);
-      }
-      tmp_1[4] = data[4] + data[5];
-      tmp_1[5] = data[4] - data[5];
-      tmp_1[6] = data[6] + data[7];
-      if (Dir == FFT_FORWARD) {
-        tmp_1[7] = (data[6] - data[7]) * ComplexScalar(0, -1);
-      }
-      else {
-        tmp_1[7] = (data[6] - data[7]) * ComplexScalar(0, 1);
-      }
-      tmp_2[0] = tmp_1[0] + tmp_1[2];
-      tmp_2[1] = tmp_1[1] + tmp_1[3];
-      tmp_2[2] = tmp_1[0] - tmp_1[2];
-      tmp_2[3] = tmp_1[1] - tmp_1[3];
-      tmp_2[4] = tmp_1[4] + tmp_1[6];
-      // SQRT2DIV2 = sqrt(2)/2
-      #define SQRT2DIV2 0.7071067811865476
-      if (Dir == FFT_FORWARD) {
-        tmp_2[5] = (tmp_1[5] + tmp_1[7]) * ComplexScalar(SQRT2DIV2, -SQRT2DIV2);
-        tmp_2[6] = (tmp_1[4] - tmp_1[6]) * ComplexScalar(0, -1);
-        tmp_2[7] = (tmp_1[5] - tmp_1[7]) * ComplexScalar(-SQRT2DIV2, -SQRT2DIV2);
-      }
-      else {
-        tmp_2[5] = (tmp_1[5] + tmp_1[7]) * ComplexScalar(SQRT2DIV2, SQRT2DIV2);
-        tmp_2[6] = (tmp_1[4] - tmp_1[6]) * ComplexScalar(0, 1);
-        tmp_2[7] = (tmp_1[5] - tmp_1[7]) * ComplexScalar(-SQRT2DIV2, SQRT2DIV2);
-      }
-      data[0] = tmp_2[0] + tmp_2[4];
-      data[1] = tmp_2[1] + tmp_2[5];
-      data[2] = tmp_2[2] + tmp_2[6];
-      data[3] = tmp_2[3] + tmp_2[7];
-      data[4] = tmp_2[0] - tmp_2[4];
-      data[5] = tmp_2[1] - tmp_2[5];
-      data[6] = tmp_2[2] - tmp_2[6];
-      data[7] = tmp_2[3] - tmp_2[7];
-
-      return;
-    }
-    else {
-      compute_1D_Butterfly<Dir>(data, n/2, n_power_of_2 - 1);
-      compute_1D_Butterfly<Dir>(data + n/2, n/2, n_power_of_2 - 1);
-      //Original code:
-      //RealScalar wtemp = std::sin(M_PI/n);
-      //RealScalar wpi =  -std::sin(2 * M_PI/n);
-      RealScalar wtemp = m_sin_PI_div_n_LUT[n_power_of_2];
-      RealScalar wpi;
-      if (Dir == FFT_FORWARD) {
-        wpi =  m_minus_sin_2_PI_div_n_LUT[n_power_of_2];
-      }
-      else {
-        wpi = 0 - m_minus_sin_2_PI_div_n_LUT[n_power_of_2];
-      }
-
-      const ComplexScalar wp(wtemp, wpi);
-      ComplexScalar w(1.0, 0.0);
-      for(Index i = 0; i < n/2; i++) {
-        ComplexScalar temp(data[i + n/2] * w);
-        data[i + n/2] = data[i] - temp;
-        data[i] += temp;
-        w += w * wp;
-      }
-      return;
+    if (n > 8) {
+      compute_1D_Butterfly<Dir>(data, n / 2, n_power_of_2 - 1);
+      compute_1D_Butterfly<Dir>(data + n / 2, n / 2, n_power_of_2 - 1);
+      butterfly_1D_merge<Dir>(data, n, n_power_of_2);
+    } else if (n == 8) {
+      butterfly_8<Dir>(data);
+    } else if (n == 4) {
+      butterfly_4<Dir>(data);
+    } else if (n == 2) {
+      butterfly_2<Dir>(data);
     }
   }
 
