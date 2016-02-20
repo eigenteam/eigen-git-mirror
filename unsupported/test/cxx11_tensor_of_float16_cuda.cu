@@ -83,8 +83,10 @@ void test_cuda_elementwise() {
   Tensor<float, 1> full_prec(num_elem);
   gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, num_elem*sizeof(float));
   gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, num_elem*sizeof(float));
+  gpu_device.synchronize();
 
   for (int i = 0; i < num_elem; ++i) {
+    std::cout << "Checking elemwise " << i << std::endl;
     VERIFY_IS_APPROX(full_prec(i), half_prec(i));
   }
 
@@ -93,12 +95,13 @@ void test_cuda_elementwise() {
   gpu_device.deallocate(d_res_half);
   gpu_device.deallocate(d_res_float);
 }
+
 /*
 void test_cuda_contractions() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
-  int rows = 101;
-  int cols = 101;
+  int rows = 23;
+  int cols = 23;
   int num_elem = rows*cols;
 
   float* d_float1 = (float*)gpu_device.allocate(num_elem * sizeof(float));
@@ -115,8 +118,8 @@ void test_cuda_contractions() {
   Eigen::TensorMap<Eigen::Tensor<float, 2>, Eigen::Aligned> gpu_res_float(
       d_res_float, rows, cols);
 
-  gpu_float1.device(gpu_device) = gpu_float1.random();
-  gpu_float2.device(gpu_device) = gpu_float2.random();
+  gpu_float1.device(gpu_device) = gpu_float1.random() - gpu_float1.constant(0.5f);
+  gpu_float2.device(gpu_device) = gpu_float2.random() - gpu_float1.constant(0.5f);
 
   typedef Tensor<float, 2>::DimensionPair DimPair;
   Eigen::array<DimPair, 1> dims(DimPair(1, 0));
@@ -127,9 +130,11 @@ void test_cuda_contractions() {
   Tensor<float, 2> full_prec(rows, cols);
   gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, num_elem*sizeof(float));
   gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, num_elem*sizeof(float));
+  gpu_device.synchronize();
 
   for (int i = 0; i < rows; ++i) {
     for (int j = 0; j < cols; ++j) {
+      std::cout << "Checking contract " << i << " " << j << std::endl;
       VERIFY_IS_APPROX(full_prec(i, j), half_prec(i, j));
     }
   }
@@ -144,7 +149,7 @@ void test_cuda_contractions() {
 void test_cuda_reductions() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
-  int size = 101;
+  int size = 13;
   int num_elem = size*size;
 
   float* d_float1 = (float*)gpu_device.allocate(num_elem * sizeof(float));
@@ -170,10 +175,12 @@ void test_cuda_reductions() {
 
   Tensor<float, 1> half_prec(size);
   Tensor<float, 1> full_prec(size);
-  gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, num_elem*sizeof(float));
-  gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, size*sizeof(float));
+  gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, size*sizeof(float));
+  gpu_device.synchronize();
 
   for (int i = 0; i < size; ++i) {
+    std::cout << "Checking redux " << i << std::endl;
     VERIFY_IS_APPROX(full_prec(i), half_prec(i));
   }
 
