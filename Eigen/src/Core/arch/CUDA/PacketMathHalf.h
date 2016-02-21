@@ -52,9 +52,13 @@ __device__ half operator /= (half& a, const half& b) {
   a = a / b;
   return a;
 }
-__device__ half __shfl_xor(half a, int) {
-  assert(false && "tbd");
-  return a;
+
+namespace std {
+__device__ half abs(const half& a) {
+  half result;
+  result.x = a.x & 0x7FFF;
+  return result;
+}
 }
 
 namespace Eigen {
@@ -214,8 +218,9 @@ template<> EIGEN_DEVICE_FUNC inline half predux_mul<half2>(const half2& a) {
 }
 
 template<> EIGEN_DEVICE_FUNC inline half2 pabs<half2>(const half2& a) {
-  assert(false && "tbd");
-  return half2();
+  half2 result;
+  result.x = a.x & 0x7FFF7FFF; 
+  return result;
 }
 
 
