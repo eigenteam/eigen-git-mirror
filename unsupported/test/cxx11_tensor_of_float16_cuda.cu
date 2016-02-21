@@ -239,6 +239,8 @@ void test_cxx11_tensor_of_float16_cuda()
   Eigen::GpuDevice device(&stream);
   if (device.majorDeviceVersion() > 5 ||
       (device.majorDeviceVersion() == 5 && device.minorDeviceVersion() >= 3)) {
+    std::cout << "Running test on device with capability " << device.majorDeviceVersion() << "." << device.minorDeviceVersion() << std::endl;
+
     CALL_SUBTEST_1(test_cuda_conversion());
     CALL_SUBTEST_1(test_cuda_unary());
     CALL_SUBTEST_1(test_cuda_elementwise());
