@@ -64,6 +64,7 @@ __device__ half abs(const half& a) {
 namespace Eigen {
 namespace internal {
 
+template<> struct is_arithmetic<half> { enum { value = true }; };
 template<> struct is_arithmetic<half2> { enum { value = true }; };
 
 template<> struct packet_traits<half> : default_packet_traits
