@@ -52,14 +52,19 @@ __device__ half operator /= (half& a, const half& b) {
   a = a / b;
   return a;
 }
-__device__ half __shfl_xor(half a, int) {
-  assert(false && "tbd");
-  return a;
+
+namespace std {
+__device__ half abs(const half& a) {
+  half result;
+  result.x = a.x & 0x7FFF;
+  return result;
+}
 }
 
 namespace Eigen {
 namespace internal {
 
+template<> struct is_arithmetic<half> { enum { value = true }; };
 template<> struct is_arithmetic<half2> { enum { value = true }; };
 
 template<> struct packet_traits<half> : default_packet_traits
@@ -214,17 +219,20 @@ template<> EIGEN_DEVICE_FUNC inline half predux_mul<half2>(const half2& a) {
 }
 
 template<> EIGEN_DEVICE_FUNC inline half2 pabs<half2>(const half2& a) {
-  assert(false && "tbd");
-  return half2();
+  half2 result;
+  result.x = a.x & 0x7FFF7FFF; 
+  return result;
 }
 
 
 EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<half2,2>& kernel) {
-  assert(false && "tbd");
-  //  half tmp = kernel.packet[0].y;
-  //  kernel.packet[0].y = kernel.packet[1].x;
-  //  kernel.packet[1].x = tmp;
+  half a1 = __low2half(kernel.packet[0]);
+  half a2 = __high2half(kernel.packet[0]);
+  half b1 = __low2half(kernel.packet[1]);
+  half b2 = __high2half(kernel.packet[1]);
+  kernel.packet[0] = __halves2half2(a1, b1);
+  kernel.packet[1] = __halves2half2(a2, b2);
 }
 
 } // end namespace internal

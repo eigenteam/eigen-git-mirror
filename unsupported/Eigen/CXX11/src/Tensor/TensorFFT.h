@@ -230,10 +230,10 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
           pos_j_base_powered[1] = pos_j_base;
           if (line_len > 2) {
             const ComplexScalar pos_j_base_sq = pos_j_base * pos_j_base;
-            for (int i = 2; i < line_len + 1; ++i) {
-              pos_j_base_powered[i] = pos_j_base_powered[i - 1] *
-                                      pos_j_base_powered[i - 1] /
-                                      pos_j_base_powered[i - 2] * pos_j_base_sq;
+            for (int j = 2; j < line_len + 1; ++j) {
+              pos_j_base_powered[j] = pos_j_base_powered[j - 1] *
+                                      pos_j_base_powered[j - 1] /
+                                      pos_j_base_powered[j - 2] * pos_j_base_sq;
             }
           }
         }
@@ -468,7 +468,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
   template <int Dir>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void butterfly_1D_merge(
-      ComplexScalar* data, int n, int n_power_of_2) {
+      ComplexScalar* data, Index n, Index n_power_of_2) {
     // Original code:
     // RealScalar wtemp = std::sin(M_PI/n);
     // RealScalar wpi =  -std::sin(2 * M_PI/n);
@@ -482,9 +482,9 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     const ComplexScalar wp_one_2 = wp_one * wp_one;
     const ComplexScalar wp_one_3 = wp_one_2 * wp_one;
     const ComplexScalar wp_one_4 = wp_one_3 * wp_one;
-    const int n2 = n / 2;
+    const Index n2 = n / 2;
     ComplexScalar w(1.0, 0.0);
-    for (int i = 0; i < n2; i += 4) {
+    for (Index i = 0; i < n2; i += 4) {
        ComplexScalar temp0(data[i + n2] * w);
        ComplexScalar temp1(data[i + 1 + n2] * w * wp_one);
        ComplexScalar temp2(data[i + 2 + n2] * w * wp_one_2);
@@ -507,7 +507,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
  template <int Dir>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void compute_1D_Butterfly(
-      ComplexScalar* data, int n, int n_power_of_2) {
+      ComplexScalar* data, Index n, Index n_power_of_2) {
     eigen_assert(isPowerOfTwo(n));
     if (n > 8) {
       compute_1D_Butterfly<Dir>(data, n / 2, n_power_of_2 - 1);

@@ -318,7 +318,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
+    CoordAccess = false,
     RawAccess = false
   };
 
@@ -457,15 +457,6 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(const array<Index, NumDims>& coords)
-  {
-    array<Index, NumDims> inputCoords;
-    for (int i = 0; i < NumDims; ++i) {
-      inputCoords = coords[i] + this->m_offsets[i];
-    }
-    return m_impl.coeff(inputCoords);
-  }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
     Scalar* result = m_impl.data();
     if (result) {
@@ -547,7 +538,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
+    CoordAccess = false,
     RawAccess = false
   };
 
@@ -607,15 +598,6 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
         this->coeffRef(index+i) = values[i];
       }
     }
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(const array<Index, NumDims>& coords)
-  {
-    array<Index, NumDims> inputCoords;
-    for (int i = 0; i < NumDims; ++i) {
-      inputCoords = coords[i] + this->m_offsets[i];
-    }
-    return this->m_impl.coeffRef(inputCoords);
   }
 };
 

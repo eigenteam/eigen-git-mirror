@@ -165,6 +165,18 @@ class TensorConversionOp : public TensorBase<TensorConversionOp<TargetType, XprT
     typename XprType::Nested m_xpr;
 };
 
+template <bool SameType, typename Eval, typename Scalar> struct ConversionSubExprEval {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static bool run(Eval& impl, Scalar*) {
+    impl.evalSubExprsIfNeeded(NULL);
+    return true;
+  }
+};
+
+template <typename Eval, typename Scalar> struct ConversionSubExprEval<true, Eval, Scalar> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static bool run(Eval& impl, Scalar* data) {
+    return impl.evalSubExprsIfNeeded(data);
+  }
+};
 
 
 
@@ -195,10 +207,9 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data)
   {
-    m_impl.evalSubExprsIfNeeded(NULL);
-    return true;
+    return ConversionSubExprEval<internal::is_same<TargetType, SrcType>::value, TensorEvaluator<ArgType, Device>, Scalar>::run(m_impl, data);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup()
