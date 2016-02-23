@@ -151,27 +151,27 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       for (int i = NumDims - 1; i > 0; --i) {
         const Index idx = index / m_outputStrides[i];
         if (idx < m_padding[i].first || idx >= m_dimensions[i] - m_padding[i].second) {
-          return Scalar(0);
+          return internal::scalar_cast_op<int, Scalar>()(0);
         }
         inputIndex += (idx - m_padding[i].first) * m_inputStrides[i];
         index -= idx * m_outputStrides[i];
       }
       if (index < m_padding[0].first || index >= m_dimensions[0] - m_padding[0].second) {
-        return Scalar(0);
+        return internal::scalar_cast_op<int, Scalar>()(0);
       }
       inputIndex += (index - m_padding[0].first);
     } else {
       for (int i = 0; i < NumDims - 1; ++i) {
         const Index idx = index / m_outputStrides[i+1];
         if (idx < m_padding[i].first || idx >= m_dimensions[i] - m_padding[i].second) {
-          return Scalar(0);
+          return internal::scalar_cast_op<int, Scalar>()(0);
         }
         inputIndex += (idx - m_padding[i].first) * m_inputStrides[i];
         index -= idx * m_outputStrides[i+1];
       }
       if (index < m_padding[NumDims-1].first ||
           index >= m_dimensions[NumDims-1] - m_padding[NumDims-1].second) {
-        return Scalar(0);
+        return internal::scalar_cast_op<int, Scalar>()(0);
       }
       inputIndex += (index - m_padding[NumDims-1].first);
     }
@@ -194,14 +194,14 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       {
         const Index idx = coords[0];
         if (idx < m_padding[0].first || idx >= m_dimensions[0] - m_padding[0].second) {
-          return Scalar(0);
+          return internal::scalar_cast_op<int, Scalar>()(0);
         }
         inputIndex = idx - m_padding[0].first;
       }
       for (int i = 1; i < NumDims; ++i) {
         const Index idx = coords[i];
         if (idx < m_padding[i].first || idx >= m_dimensions[i] - m_padding[i].second) {
-          return Scalar(0);
+          return internal::scalar_cast_op<int, Scalar>()(0);
         }
         inputIndex += (idx - m_padding[i].first) * m_inputStrides[i];
       }
@@ -209,14 +209,14 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       {
         const Index idx = coords[NumDims-1];
         if (idx < m_padding[NumDims-1].first || idx >= m_dimensions[NumDims-1] - m_padding[NumDims-1].second) {
-          return Scalar(0);
+          return internal::scalar_cast_op<int, Scalar>()(0);
         }
         inputIndex = idx - m_padding[NumDims-1].first;
       }
       for (int i = NumDims - 2; i >= 0; --i) {
         const Index idx = coords[i];
         if (idx < m_padding[i].first || idx >= m_dimensions[i] - m_padding[i].second) {
-          return Scalar(0);
+          return internal::scalar_cast_op<int, Scalar>()(0);
         }
         inputIndex += (idx - m_padding[i].first) * m_inputStrides[i];
       }
@@ -245,11 +245,11 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
       if (last < lastPaddedLeft) {
         // all the coefficient are in the padding zone.
-        return internal::pset1<PacketReturnType>(Scalar(0));
+        return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
       }
       else if (first >= firstPaddedRight && last < lastPaddedRight) {
         // all the coefficient are in the padding zone.
-        return internal::pset1<PacketReturnType>(Scalar(0));
+        return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
       }
       else if (first >= lastPaddedLeft && last < firstPaddedRight) {
         // all the coefficient are between the 2 padding zones.
@@ -271,11 +271,11 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
     if (last < lastPaddedLeft) {
       // all the coefficient are in the padding zone.
-      return internal::pset1<PacketReturnType>(Scalar(0));
+      return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
     }
     else if (first >= firstPaddedRight && last < lastPaddedRight) {
       // all the coefficient are in the padding zone.
-      return internal::pset1<PacketReturnType>(Scalar(0));
+      return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
     }
     else if (first >= lastPaddedLeft && last < firstPaddedRight) {
       // all the coefficient are between the 2 padding zones.
@@ -304,11 +304,11 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
       if (last < lastPaddedLeft) {
         // all the coefficient are in the padding zone.
-        return internal::pset1<PacketReturnType>(Scalar(0));
+        return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
       }
       else if (first >= firstPaddedRight && last < lastPaddedRight) {
         // all the coefficient are in the padding zone.
-        return internal::pset1<PacketReturnType>(Scalar(0));
+        return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
       }
       else if (first >= lastPaddedLeft && last < firstPaddedRight) {
         // all the coefficient are between the 2 padding zones.
@@ -330,11 +330,11 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
     if (last < lastPaddedLeft) {
       // all the coefficient are in the padding zone.
-      return internal::pset1<PacketReturnType>(Scalar(0));
+      return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
     }
     else if (first >= firstPaddedRight && last < lastPaddedRight) {
       // all the coefficient are in the padding zone.
-      return internal::pset1<PacketReturnType>(Scalar(0));
+      return internal::pset1<PacketReturnType>(internal::scalar_cast_op<int, Scalar>()(0));
     }
     else if (first >= lastPaddedLeft && last < firstPaddedRight) {
       // all the coefficient are between the 2 padding zones.
