@@ -45,7 +45,9 @@ template <typename Device> class BenchmarkSuite {
 
   void typeCasting(int num_iters) {
     eigen_assert(m_ == n_);
-    const Eigen::array<TensorIndex, 2> sizes = {{m_, k_}};
+    Eigen::array<TensorIndex, 2> sizes;
+    sizes[0] = m_;
+    sizes[1] = k_;
     const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> A(a_, sizes);
     TensorMap<Tensor<int, 2, 0, TensorIndex>, Eigen::Aligned> B((int*)b_, sizes);
 
@@ -59,7 +61,9 @@ template <typename Device> class BenchmarkSuite {
 
   void random(int num_iters) {
     eigen_assert(m_ == k_ && k_ == n_);
-    const Eigen::array<TensorIndex, 2> sizes = {{m_, m_}};
+    Eigen::array<TensorIndex, 2> sizes;
+    sizes[0] = m_;
+    sizes[1] = m_;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, sizes);
 
     StartBenchmarkTiming();
@@ -72,7 +76,9 @@ template <typename Device> class BenchmarkSuite {
 
   void slicing(int num_iters) {
     eigen_assert(m_ == k_ && k_ == n_);
-    const Eigen::array<TensorIndex, 2> sizes = {{m_, m_}};
+    Eigen::array<TensorIndex, 2> sizes;
+    sizes[0] = m_;
+    sizes[1] = m_;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, sizes);
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, sizes);
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, sizes);
@@ -100,9 +106,12 @@ template <typename Device> class BenchmarkSuite {
   }
 
   void rowChip(int num_iters) {
-    const Eigen::array<TensorIndex, 2> input_size = {{k_, n_}};
+    Eigen::array<TensorIndex, 2> input_size;
+    input_size[0] = k_;
+    input_size[1] = n_;
     const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, input_size);
-    const Eigen::array<TensorIndex, 1> output_size = {{n_}};
+    Eigen::array<TensorIndex, 1> output_size;
+    output_size[0] = n_;
     TensorMap<Tensor<float, 1, 0, TensorIndex>, Eigen::Aligned> C(c_, output_size);
 
     StartBenchmarkTiming();
@@ -114,9 +123,12 @@ template <typename Device> class BenchmarkSuite {
   }
 
   void colChip(int num_iters) {
-    const Eigen::array<TensorIndex, 2> input_size= {{k_, n_}};
+    Eigen::array<TensorIndex, 2> input_size;
+    input_size[0] = k_;
+    input_size[1] = n_;
     const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, input_size);
-    const Eigen::array<TensorIndex, 1> output_size = {{n_}};
+    Eigen::array<TensorIndex, 1> output_size;
+    output_size[0] = n_;
     TensorMap<Tensor<float, 1, 0, TensorIndex>, Eigen::Aligned> C(c_, output_size);
 
     StartBenchmarkTiming();
@@ -129,12 +141,18 @@ template <typename Device> class BenchmarkSuite {
 
   void shuffling(int num_iters) {
     eigen_assert(m_ == n_);
-    const Eigen::array<TensorIndex, 2> size_a = {{m_, k_}};
+    Eigen::array<TensorIndex, 2> size_a;
+    size_a[0] = m_;
+    size_a[1] = k_;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, size_a);
-    const Eigen::array<TensorIndex, 2> size_b = {{k_, m_}};
+    Eigen::array<TensorIndex, 2> size_b;
+    size_b[0] = k_;
+    size_b[1] = m_;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, size_b);
 
-    const Eigen::array<int, 2> shuffle = {{1, 0}};
+    Eigen::array<int, 2> shuffle;
+    shuffle[0] = 1;
+    shuffle[1] = 0;
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
@@ -146,9 +164,13 @@ template <typename Device> class BenchmarkSuite {
 
  void padding(int num_iters) {
     eigen_assert(m_ == k_);
-    const Eigen::array<TensorIndex, 2> size_a = {{m_, k_-3}};
+    Eigen::array<TensorIndex, 2> size_a;
+    size_a[0] = m_;
+    size_a[1] = k_-3;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, size_a);
-    const Eigen::array<TensorIndex, 2> size_b = {{k_, m_}};
+    Eigen::array<TensorIndex, 2> size_b;
+    size_b[0] = k_;
+    size_b[1] = m_;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, size_b);
 
     Eigen::array<Eigen::IndexPair<TensorIndex>, 2> paddings;
@@ -165,12 +187,18 @@ template <typename Device> class BenchmarkSuite {
 
  void striding(int num_iters) {
     eigen_assert(m_ == k_);
-    const Eigen::array<TensorIndex, 2> size_a = {{m_, k_}};
+    Eigen::array<TensorIndex, 2> size_a;
+    size_a[0] = m_;
+    size_a[1] = k_;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, size_a);
-    const Eigen::array<TensorIndex, 2> size_b = {{m_, k_ / 2}};
+    Eigen::array<TensorIndex, 2> size_b;
+    size_b[0] = m_;
+    size_b[1] = k_/2;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, size_b);
 
-    const Eigen::array<TensorIndex, 2> strides = {{1, 2}};
+    Eigen::array<TensorIndex, 2> strides;
+    strides[0] = 1;
+    strides[1] = 2;
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
@@ -181,13 +209,19 @@ template <typename Device> class BenchmarkSuite {
   }
 
   void broadcasting(int num_iters) {
-    const Eigen::array<TensorIndex, 2> size_a = {{m_, 1}};
+    Eigen::array<TensorIndex, 2> size_a;
+    size_a[0] = m_;
+    size_a[1] = 1;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, size_a);
-    const Eigen::array<TensorIndex, 2> size_c = {{m_, n_}};
+    Eigen::array<TensorIndex, 2> size_c;
+    size_c[0] = m_;
+    size_c[1] = n_;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, size_c);
 
 #ifndef EIGEN_HAS_INDEX_LIST
-    const Eigen::array<int, 2> broadcast = {{1, n_}};
+    Eigen::array<int, 2> broadcast;
+    broadcast[0] = 1;
+    broadcast[1] = n_;
 #else
     // Take advantage of cxx11 to give the compiler information it can use to
     // optimize the code.
@@ -205,7 +239,9 @@ template <typename Device> class BenchmarkSuite {
 
   void coeffWiseOp(int num_iters) {
     eigen_assert(m_ == k_ && k_ == n_);
-    const Eigen::array<TensorIndex, 2> sizes = {{m_, m_}};
+    Eigen::array<TensorIndex, 2> sizes;
+    sizes[0] = m_;
+    sizes[1] = m_;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, sizes);
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, sizes);
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, sizes);
@@ -221,7 +257,9 @@ template <typename Device> class BenchmarkSuite {
 
   void algebraicFunc(int num_iters) {
     eigen_assert(m_ == k_ && k_ == n_);
-    const Eigen::array<TensorIndex, 2> sizes = {{m_, m_}};
+    Eigen::array<TensorIndex, 2> sizes;
+    sizes[0] = m_;
+    sizes[1] = m_;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, sizes);
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, sizes);
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, sizes);
@@ -237,7 +275,9 @@ template <typename Device> class BenchmarkSuite {
 
   void transcendentalFunc(int num_iters) {
     eigen_assert(m_ == k_ && k_ == n_);
-    const Eigen::array<TensorIndex, 2> sizes = {{m_, m_}};
+    Eigen::array<TensorIndex, 2> sizes;
+    sizes[0] = m_;
+    sizes[1] = m_;
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, sizes);
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, sizes);
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, sizes);
@@ -253,13 +293,16 @@ template <typename Device> class BenchmarkSuite {
 
  // Row reduction
   void rowReduction(int num_iters) {
-    const Eigen::array<TensorIndex, 2> input_size = {{k_, n_}};
+    Eigen::array<TensorIndex, 2> input_size;
+    input_size[0] = k_;
+    input_size[1] = n_;
     const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, input_size);
     const Eigen::array<TensorIndex, 1> output_size = {{n_}};
     TensorMap<Tensor<float, 1, 0, TensorIndex>, Eigen::Aligned> C(c_, output_size);
 
 #ifndef EIGEN_HAS_INDEX_LIST
-    const Eigen::array<TensorIndex, 1> sum_along_dim = {{0}};
+    Eigen::array<TensorIndex, 1> sum_along_dim;
+    sum_along_dim[0] = 0;
 #else
     // Take advantage of cxx11 to give the compiler information it can use to
     // optimize the code.
@@ -277,7 +320,9 @@ template <typename Device> class BenchmarkSuite {
 
   // Column reduction
   void colReduction(int num_iters) {
-    const Eigen::array<TensorIndex, 2> input_size = {{k_, n_}};
+    Eigen::array<TensorIndex, 2> input_size;
+    input_size[0] = k_;
+    input_size[1] = n_;
     const TensorMap<Tensor<float, 2, 0, TensorIndex>, Eigen::Aligned> B(
         b_, input_size);
     const Eigen::array<TensorIndex, 1> output_size = {{k_}};
@@ -285,7 +330,8 @@ template <typename Device> class BenchmarkSuite {
         c_, output_size);
 
 #ifndef EIGEN_HAS_INDEX_LIST
-    const Eigen::array<TensorIndex, 1> sum_along_dim = {{1}};
+    Eigen::array<TensorIndex, 1> sum_along_dim;
+    sum_along_dim = 1;
 #else
     // Take advantage of cxx11 to give the compiler information it can use to
     // optimize the code.
@@ -303,16 +349,23 @@ template <typename Device> class BenchmarkSuite {
 
   // do a contraction which is equivalent to a matrix multiplication
   void contraction(int num_iters) {
-    const Eigen::array<TensorIndex, 2> sizeA = {{m_, k_}};
-    const Eigen::array<TensorIndex, 2> sizeB = {{k_, n_}};
-    const Eigen::array<TensorIndex, 2> sizeC = {{m_, n_}};
+    Eigen::array<TensorIndex, 2> sizeA;
+    sizeA[0] = m_;
+    sizeA[1] = k_;
+    Eigen::array<TensorIndex, 2> sizeB;
+    sizeB[0] = k_;
+    sizeB[1] = n_;
+    Eigen::array<TensorIndex, 2> sizeC;
+    sizeC[0] = m_;
+    sizeC[1] = n_;
 
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, sizeA);
     const TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, sizeB);
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, sizeC);
 
     typedef typename Tensor<float, 2>::DimensionPair DimPair;
-    const Eigen::array<DimPair, 1> dims = {{DimPair(1, 0)}};
+    Eigen::array<DimPair, 1> dims;
+    dims[0] = DimPair(1, 0);
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
@@ -324,14 +377,21 @@ template <typename Device> class BenchmarkSuite {
   }
 
   void convolution(int num_iters, int kernel_x, int kernel_y) {
-    const Eigen::array<TensorIndex, 2> input_sizes = {{m_, n_}};
+    Eigen::array<TensorIndex, 2> input_sizes;
+    input_sizes[0] = m_;
+    input_sizes[1] = n_;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> A(a_, input_sizes);
-    const Eigen::array<TensorIndex, 2> kernel_sizes = {{kernel_x, kernel_y}};
+    Eigen::array<TensorIndex, 2> kernel_sizes;
+    kernel_sizes[0] = kernel_x;
+    kernel_sizes[1] = kernel_y;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> B(b_, kernel_sizes);
-    const Eigen::array<TensorIndex, 2> result_sizes =
-        {{m_ - kernel_x + 1, n_ - kernel_y + 1}};
+    Eigen::array<TensorIndex, 2> result_sizes;
+    result_sizes[0] = m_ - kernel_x + 1;
+    result_sizes[1] = n_ - kernel_y + 1;
     TensorMap<Tensor<float, 2>, Eigen::Aligned> C(c_, result_sizes);
-    Eigen::array<Tensor<float, 2>::Index, 2> dims = {{0, 1}};
+    Eigen::array<Tensor<float, 2>::Index, 2> dims;
+    dims[0] = 0;
+    dims[1] = 1;
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
