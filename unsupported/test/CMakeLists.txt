@@ -162,7 +162,7 @@ if(CUDA_FOUND)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
   endif()
-  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_30 -Xcudafe \"--display_error_number\"")
+  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\"")
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 
@@ -173,9 +173,10 @@ if(CUDA_FOUND)
   ei_add_test(cxx11_tensor_random_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
 
-  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_53 -Xcudafe \"--display_error_number\"")
-  ei_add_test(cxx11_tensor_of_float16_cuda)
-
+  # Half floats are only supported starting with arch 5.3
+  if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 52)
+    ei_add_test(cxx11_tensor_of_float16_cuda)
+  endif()
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()
