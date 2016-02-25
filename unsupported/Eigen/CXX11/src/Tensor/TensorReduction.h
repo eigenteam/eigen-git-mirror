@@ -515,7 +515,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     // Use the FullReducer if possible.
     if (RunningFullReduction && internal::FullReducer<Self, Op, Device>::HasOptimizedImplementation &&
         ((RunningOnGPU && (m_device.majorDeviceVersion() >= 3)) ||
-         (internal::array_prod(m_impl.dimensions()) > 1024 * 1024))) {
+         (!RunningOnGPU && (internal::array_prod(m_impl.dimensions()) > 1024 * 1024)))) {
 
       bool need_assign = false;
       if (!data) {
