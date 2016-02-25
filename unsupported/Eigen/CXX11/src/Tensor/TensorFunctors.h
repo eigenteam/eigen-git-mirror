@@ -240,6 +240,8 @@ template <typename T> struct ProdReducer
 struct AndReducer
 {
   static const bool PacketAccess = false;
+  static const bool IsStateful = false;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(bool t, bool* accum) const {
     *accum = *accum && t;
   }
@@ -253,6 +255,8 @@ struct AndReducer
 
 struct OrReducer {
   static const bool PacketAccess = false;
+  static const bool IsStateful = false;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(bool t, bool* accum) const {
     *accum = *accum || t;
   }
