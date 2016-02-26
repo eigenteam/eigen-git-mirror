@@ -19,7 +19,7 @@
   BENCHMARK_RANGE(BM_##FUNC, 10, 5000);
 
 BM_FuncGPU(memcpy);
-//BM_FuncGPU(typeCasting);
+BM_FuncGPU(typeCasting);
 //BM_FuncGPU(random);
 BM_FuncGPU(slicing);
 BM_FuncGPU(rowChip);

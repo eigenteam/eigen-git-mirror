@@ -48,12 +48,12 @@ template <typename Device, typename T> class BenchmarkSuite {
     Eigen::array<TensorIndex, 2> sizes;
     sizes[0] = m_;
     sizes[1] = k_;
-    const TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> A(a_, sizes);
-    TensorMap<Tensor<int, 2, 0, TensorIndex>, Eigen::Aligned> B((int*)b_, sizes);
+    const TensorMap<Tensor<int, 2, 0, TensorIndex>, Eigen::Aligned> A((int*)a_, sizes);
+    TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, sizes);
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
-      B.device(device_) = A.template cast<int>();
+      B.device(device_) = A.template cast<T>();
     }
     // Record the number of values copied per second
     finalizeBenchmark(static_cast<int64_t>(m_) * k_ * num_iters);
