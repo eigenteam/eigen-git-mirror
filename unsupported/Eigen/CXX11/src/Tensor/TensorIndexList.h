@@ -39,19 +39,19 @@ namespace Eigen {
 template <DenseIndex n>
 struct type2index {
   static const DenseIndex value = n;
-  constexpr operator DenseIndex() const { return n; }
-  void set(DenseIndex val) {
+  EIGEN_DEVICE_FUNC constexpr operator DenseIndex() const { return n; }
+  EIGEN_DEVICE_FUNC void set(DenseIndex val) {
     eigen_assert(val == n);
   }
 };
 
 namespace internal {
 template <typename T>
-void update_value(T& val, DenseIndex new_val) {
+EIGEN_DEVICE_FUNC void update_value(T& val, DenseIndex new_val) {
   val = new_val;
 }
 template <DenseIndex n>
-void update_value(type2index<n>& val, DenseIndex new_val) {
+EIGEN_DEVICE_FUNC void update_value(type2index<n>& val, DenseIndex new_val) {
   val.set(new_val);
 }
 
@@ -85,8 +85,8 @@ struct IndexTuple;
 
 template<typename T, typename... O>
 struct IndexTuple<T, O...> {
-  constexpr IndexTuple() : head(), others() { }
-  constexpr IndexTuple(const T& v, const O... o) : head(v), others(o...) { }
+  EIGEN_DEVICE_FUNC constexpr IndexTuple() : head(), others() { }
+  EIGEN_DEVICE_FUNC constexpr IndexTuple(const T& v, const O... o) : head(v), others(o...) { }
 
   constexpr static int count = 1 + sizeof...(O);
   T head;
@@ -97,8 +97,8 @@ struct IndexTuple<T, O...> {
 
 template<typename T>
   struct IndexTuple<T> {
-  constexpr IndexTuple() : head() { }
-  constexpr IndexTuple(const T& v) : head(v) { }
+  EIGEN_DEVICE_FUNC constexpr IndexTuple() : head() { }
+  EIGEN_DEVICE_FUNC constexpr IndexTuple(const T& v) : head(v) { }
 
   constexpr static int count = 1;
   T head;
@@ -114,33 +114,33 @@ struct IndexTupleExtractor<N, T, O...> {
 
   typedef typename IndexTupleExtractor<N-1, O...>::ValType ValType;
 
-  static constexpr ValType& get_val(IndexTuple<T, O...>& val) {
+  EIGEN_DEVICE_FUNC static constexpr ValType& get_val(IndexTuple<T, O...>& val) {
     return IndexTupleExtractor<N-1, O...>::get_val(val.others);
   }
 
-  static constexpr const ValType& get_val(const IndexTuple<T, O...>& val) {
+  EIGEN_DEVICE_FUNC static constexpr const ValType& get_val(const IndexTuple<T, O...>& val) {
     return IndexTupleExtractor<N-1, O...>::get_val(val.others);
   }
   template <typename V>
-  static void set_val(IndexTuple<T, O...>& val, V& new_val) {
+  EIGEN_DEVICE_FUNC static void set_val(IndexTuple<T, O...>& val, V& new_val) {
     IndexTupleExtractor<N-1, O...>::set_val(val.others, new_val);
   }
 
 };
 
- template<typename T, typename... O>
-   struct IndexTupleExtractor<0, T, O...> {
+template<typename T, typename... O>
+  struct IndexTupleExtractor<0, T, O...> {
 
-   typedef T ValType;
+  typedef T ValType;
 
-   static constexpr ValType& get_val(IndexTuple<T, O...>& val) {
+  EIGEN_DEVICE_FUNC static constexpr ValType& get_val(IndexTuple<T, O...>& val) {
     return val.head;
   }
-   static constexpr const ValType& get_val(const IndexTuple<T, O...>& val) {
+  EIGEN_DEVICE_FUNC static constexpr const ValType& get_val(const IndexTuple<T, O...>& val) {
     return val.head;
   }
   template <typename V>
-  static void set_val(IndexTuple<T, O...>& val, V& new_val) {
+  EIGEN_DEVICE_FUNC static void set_val(IndexTuple<T, O...>& val, V& new_val) {
     val.head = new_val;
   }
 };
@@ -148,11 +148,11 @@ struct IndexTupleExtractor<N, T, O...> {
 
 
 template <int N, typename T, typename... O>
-constexpr typename IndexTupleExtractor<N, T, O...>::ValType& array_get(IndexTuple<T, O...>& tuple) {
+EIGEN_DEVICE_FUNC constexpr typename IndexTupleExtractor<N, T, O...>::ValType& array_get(IndexTuple<T, O...>& tuple) {
   return IndexTupleExtractor<N, T, O...>::get_val(tuple);
 }
 template <int N, typename T, typename... O>
-constexpr const typename IndexTupleExtractor<N, T, O...>::ValType& array_get(const IndexTuple<T, O...>& tuple) {
+EIGEN_DEVICE_FUNC constexpr const typename IndexTupleExtractor<N, T, O...>::ValType& array_get(const IndexTuple<T, O...>& tuple) {
   return IndexTupleExtractor<N, T, O...>::get_val(tuple);
 }
 template <typename T, typename... O>
@@ -170,11 +170,11 @@ template <typename T, typename... O>
 template <DenseIndex Idx>
 struct tuple_coeff {
   template <typename... T>
-  static constexpr DenseIndex get(const DenseIndex i, const IndexTuple<T...>& t) {
+  EIGEN_DEVICE_FUNC static constexpr DenseIndex get(const DenseIndex i, const IndexTuple<T...>& t) {
     return array_get<Idx>(t) * (i == Idx) + tuple_coeff<Idx-1>::get(i, t) * (i != Idx);
   }
   template <typename... T>
-  static void set(const DenseIndex i, IndexTuple<T...>& t, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static void set(const DenseIndex i, IndexTuple<T...>& t, const DenseIndex value) {
     if (i == Idx) {
       update_value(array_get<Idx>(t), value);
     } else {
@@ -183,19 +183,19 @@ struct tuple_coeff {
   }
 
   template <typename... T>
-  static constexpr bool value_known_statically(const DenseIndex i, const IndexTuple<T...>& t) {
+  EIGEN_DEVICE_FUNC static constexpr bool value_known_statically(const DenseIndex i, const IndexTuple<T...>& t) {
     return ((i == Idx) & is_compile_time_constant<typename IndexTupleExtractor<Idx, T...>::ValType>::value) ||
         tuple_coeff<Idx-1>::value_known_statically(i, t);
   }
 
   template <typename... T>
-  static constexpr bool values_up_to_known_statically(const IndexTuple<T...>& t) {
+  EIGEN_DEVICE_FUNC static constexpr bool values_up_to_known_statically(const IndexTuple<T...>& t) {
     return is_compile_time_constant<typename IndexTupleExtractor<Idx, T...>::ValType>::value &&
         tuple_coeff<Idx-1>::values_up_to_known_statically(t);
   }
 
   template <typename... T>
-  static constexpr bool values_up_to_statically_known_to_increase(const IndexTuple<T...>& t) {
+  EIGEN_DEVICE_FUNC static constexpr bool values_up_to_statically_known_to_increase(const IndexTuple<T...>& t) {
     return is_compile_time_constant<typename IndexTupleExtractor<Idx, T...>::ValType>::value &&
            is_compile_time_constant<typename IndexTupleExtractor<Idx, T...>::ValType>::value &&
            array_get<Idx>(t) > array_get<Idx-1>(t) &&
@@ -206,27 +206,27 @@ struct tuple_coeff {
 template <>
 struct tuple_coeff<0> {
   template <typename... T>
-  static constexpr DenseIndex get(const DenseIndex i, const IndexTuple<T...>& t) {
+  EIGEN_DEVICE_FUNC static constexpr DenseIndex get(const DenseIndex i, const IndexTuple<T...>& t) {
     //  eigen_assert (i == 0);  // gcc fails to compile assertions in constexpr
     return array_get<0>(t) * (i == 0);
   }
   template <typename... T>
-  static void set(const DenseIndex i, IndexTuple<T...>& t, const DenseIndex value) {
+  EIGEN_DEVICE_FUNC static void set(const DenseIndex i, IndexTuple<T...>& t, const DenseIndex value) {
     eigen_assert (i == 0);
     update_value(array_get<0>(t), value);
   }
   template <typename... T>
-  static constexpr bool value_known_statically(const DenseIndex i, const IndexTuple<T...>&) {
+  EIGEN_DEVICE_FUNC static constexpr bool value_known_statically(const DenseIndex i, const IndexTuple<T...>&) {
     return is_compile_time_constant<typename IndexTupleExtractor<0, T...>::ValType>::value & (i == 0);
   }
 
   template <typename... T>
-  static constexpr bool values_up_to_known_statically(const IndexTuple<T...>&) {
+  EIGEN_DEVICE_FUNC static constexpr bool values_up_to_known_statically(const IndexTuple<T...>&) {
     return is_compile_time_constant<typename IndexTupleExtractor<0, T...>::ValType>::value;
   }
 
   template <typename... T>
-  static constexpr bool values_up_to_statically_known_to_increase(const IndexTuple<T...>&) {
+  EIGEN_DEVICE_FUNC static constexpr bool values_up_to_statically_known_to_increase(const IndexTuple<T...>&) {
     return true;
   }
 };
@@ -235,7 +235,7 @@ struct tuple_coeff<0> {
 
 
 template<typename FirstType, typename... OtherTypes>
-  struct IndexList : internal::IndexTuple<FirstType, OtherTypes...> {
+struct IndexList : internal::IndexTuple<FirstType, OtherTypes...> {
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC constexpr DenseIndex operator[] (const DenseIndex i) const {
     return internal::tuple_coeff<internal::array_size<internal::IndexTuple<FirstType, OtherTypes...> >::value-1>::get(i, *this);
   }
@@ -246,18 +246,18 @@ template<typename FirstType, typename... OtherTypes>
     return internal::tuple_coeff<internal::array_size<internal::IndexTuple<FirstType, OtherTypes...> >::value-1>::set(i, *this, value);
   }
 
-  constexpr IndexList(const internal::IndexTuple<FirstType, OtherTypes...>& other) : internal::IndexTuple<FirstType, OtherTypes...>(other) { }
-  constexpr IndexList(FirstType& first, OtherTypes... other) : internal::IndexTuple<FirstType, OtherTypes...>(first, other...) { }
-  constexpr IndexList() : internal::IndexTuple<FirstType, OtherTypes...>() { }
+  EIGEN_DEVICE_FUNC constexpr IndexList(const internal::IndexTuple<FirstType, OtherTypes...>& other) : internal::IndexTuple<FirstType, OtherTypes...>(other) { }
+  EIGEN_DEVICE_FUNC constexpr IndexList(FirstType& first, OtherTypes... other) : internal::IndexTuple<FirstType, OtherTypes...>(first, other...) { }
+  EIGEN_DEVICE_FUNC constexpr IndexList() : internal::IndexTuple<FirstType, OtherTypes...>() { }
 
-  constexpr bool value_known_statically(const DenseIndex i) const {
+  EIGEN_DEVICE_FUNC constexpr bool value_known_statically(const DenseIndex i) const {
     return internal::tuple_coeff<internal::array_size<internal::IndexTuple<FirstType, OtherTypes...> >::value-1>::value_known_statically(i, *this);
   }
-  constexpr bool all_values_known_statically() const {
+  EIGEN_DEVICE_FUNC constexpr bool all_values_known_statically() const {
     return internal::tuple_coeff<internal::array_size<internal::IndexTuple<FirstType, OtherTypes...> >::value-1>::values_up_to_known_statically(*this);
   }
 
-  constexpr bool values_statically_known_to_increase() const {
+  EIGEN_DEVICE_FUNC constexpr bool values_statically_known_to_increase() const {
     return internal::tuple_coeff<internal::array_size<internal::IndexTuple<FirstType, OtherTypes...> >::value-1>::values_up_to_statically_known_to_increase(*this);
   }
 };
@@ -286,30 +286,30 @@ template<typename FirstType, typename... OtherTypes> struct array_size<const Ind
   static const size_t value = array_size<IndexTuple<FirstType, OtherTypes...> >::value;
 };
 
-template<DenseIndex N, typename FirstType, typename... OtherTypes> constexpr DenseIndex array_get(IndexList<FirstType, OtherTypes...>& a) {
+template<DenseIndex N, typename FirstType, typename... OtherTypes> EIGEN_DEVICE_FUNC constexpr DenseIndex array_get(IndexList<FirstType, OtherTypes...>& a) {
   return IndexTupleExtractor<N, FirstType, OtherTypes...>::get_val(a);
 }
-template<DenseIndex N, typename FirstType, typename... OtherTypes> constexpr DenseIndex array_get(const IndexList<FirstType, OtherTypes...>& a) {
+template<DenseIndex N, typename FirstType, typename... OtherTypes> EIGEN_DEVICE_FUNC constexpr DenseIndex array_get(const IndexList<FirstType, OtherTypes...>& a) {
   return IndexTupleExtractor<N, FirstType, OtherTypes...>::get_val(a);
 }
 
 template <typename T>
 struct index_known_statically_impl {
-  static constexpr bool run(const DenseIndex) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex) {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
 struct index_known_statically_impl<IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run(const DenseIndex i) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i);
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
 struct index_known_statically_impl<const IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run(const DenseIndex i) {
+  EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i) {
     return IndexList<FirstType, OtherTypes...>().value_known_statically(i);
   }
 };
@@ -324,14 +324,14 @@ struct all_indices_known_statically_impl {
 
 template <typename FirstType, typename... OtherTypes>
 struct all_indices_known_statically_impl<IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run() {
+  EIGEN_DEVICE_FUNC static constexpr bool run() {
     return IndexList<FirstType, OtherTypes...>().all_values_known_statically();
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
 struct all_indices_known_statically_impl<const IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run() {
+  EIGEN_DEVICE_FUNC static constexpr bool run() {
     return IndexList<FirstType, OtherTypes...>().all_values_known_statically();
   }
 };
@@ -339,21 +339,21 @@ struct all_indices_known_statically_impl<const IndexList<FirstType, OtherTypes..
 
 template <typename T>
 struct indices_statically_known_to_increase_impl {
-  static constexpr bool run() {
+  EIGEN_DEVICE_FUNC static constexpr bool run() {
     return false;
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
   struct indices_statically_known_to_increase_impl<IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run() {
+  EIGEN_DEVICE_FUNC static constexpr bool run() {
     return Eigen::IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
   }
 };
 
 template <typename FirstType, typename... OtherTypes>
   struct indices_statically_known_to_increase_impl<const IndexList<FirstType, OtherTypes...> > {
-  static constexpr bool run() {
+  EIGEN_DEVICE_FUNC static constexpr bool run() {
     return Eigen::IndexList<FirstType, OtherTypes...>().values_statically_known_to_increase();
   }
 };
