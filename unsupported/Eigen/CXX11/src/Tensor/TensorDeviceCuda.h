@@ -211,8 +211,12 @@ struct GpuDevice {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void synchronize() const {
 #if defined(__CUDACC__) && !defined(__CUDA_ARCH__)
     cudaError_t err = cudaStreamSynchronize(stream_->stream());
-    EIGEN_UNUSED_VARIABLE(err)
-    assert(err == cudaSuccess);
+    if (err != cudaSuccess) {
+      std::cerr << "Error detected in CUDA stream: "
+                << cudaGetErrorString(err)
+                << std::endl;
+      assert(err == cudaSuccess);
+    }
 #else
     assert(false && "The default device should be used instead to generate kernel code");
 #endif
