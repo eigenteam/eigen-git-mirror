@@ -145,14 +145,14 @@ public:
         // realloc manually to reduce copies
         typename SparseMatrixType::Storage newdata(m_matrix.data().allocatedSize() - block_size + nnz);
 
-        internal::smart_copy(&m_matrix.data().value(0),  &m_matrix.data().value(0) + start, &newdata.value(0));
-        internal::smart_copy(&m_matrix.data().index(0),  &m_matrix.data().index(0) + start, &newdata.index(0));
+        internal::smart_copy(m_matrix.valuePtr(),       m_matrix.valuePtr() + start,      newdata.valuePtr());
+        internal::smart_copy(m_matrix.innerIndexPtr(),  m_matrix.innerIndexPtr() + start, newdata.indexPtr());
 
-        internal::smart_copy(tmp.valuePtr(), tmp.valuePtr() + nnz, &newdata.value(start));
-        internal::smart_copy(tmp.innerIndexPtr(), tmp.innerIndexPtr() + nnz, &newdata.index(start));
+        internal::smart_copy(tmp.valuePtr(),      tmp.valuePtr() + nnz,       newdata.valuePtr() + start);
+        internal::smart_copy(tmp.innerIndexPtr(), tmp.innerIndexPtr() + nnz,  newdata.indexPtr() + start);
 
-        internal::smart_copy(&matrix.data().value(end),  &matrix.data().value(end) + tail_size, &newdata.value(start+nnz));
-        internal::smart_copy(&matrix.data().index(end),  &matrix.data().index(end) + tail_size, &newdata.index(start+nnz));
+        internal::smart_copy(matrix.valuePtr()+end,       matrix.valuePtr()+end + tail_size,      newdata.valuePtr()+start+nnz);
+        internal::smart_copy(matrix.innerIndexPtr()+end,  matrix.innerIndexPtr()+end + tail_size, newdata.indexPtr()+start+nnz);
         
         newdata.resize(m_matrix.outerIndexPtr()[m_matrix.outerSize()] - block_size + nnz);
 
@@ -167,14 +167,14 @@ public:
           // no need to realloc, simply copy the tail at its respective position and insert tmp
           matrix.data().resize(start + nnz + tail_size);
 
-          internal::smart_memmove(&matrix.data().value(end),  &matrix.data().value(end) + tail_size, &matrix.data().value(start + nnz));
-          internal::smart_memmove(&matrix.data().index(end),  &matrix.data().index(end) + tail_size, &matrix.data().index(start + nnz));
+          internal::smart_memmove(matrix.valuePtr()+end,      matrix.valuePtr() + end+tail_size,      matrix.valuePtr() + start+nnz);
+          internal::smart_memmove(matrix.innerIndexPtr()+end, matrix.innerIndexPtr() + end+tail_size, matrix.innerIndexPtr() + start+nnz);
 
           update_trailing_pointers = true;
         }
 
-        internal::smart_copy(tmp.valuePtr(),  tmp.valuePtr() + nnz, &matrix.data().value(start));
-        internal::smart_copy(tmp.innerIndexPtr(),  tmp.innerIndexPtr() + nnz, &matrix.data().index(start));
+        internal::smart_copy(tmp.valuePtr(),      tmp.valuePtr() + nnz,       matrix.valuePtr() + start);
+        internal::smart_copy(tmp.innerIndexPtr(), tmp.innerIndexPtr() + nnz,  matrix.innerIndexPtr() + start);
       }
 
       // update outer index pointers and innerNonZeros

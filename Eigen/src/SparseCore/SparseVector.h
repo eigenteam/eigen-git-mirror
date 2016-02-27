@@ -83,11 +83,11 @@ class SparseVector
     EIGEN_STRONG_INLINE Index innerSize() const { return m_size; }
     EIGEN_STRONG_INLINE Index outerSize() const { return 1; }
 
-    EIGEN_STRONG_INLINE const Scalar* valuePtr() const { return &m_data.value(0); }
-    EIGEN_STRONG_INLINE Scalar* valuePtr() { return &m_data.value(0); }
+    EIGEN_STRONG_INLINE const Scalar* valuePtr() const { return m_data.valuePtr(); }
+    EIGEN_STRONG_INLINE Scalar* valuePtr() { return m_data.valuePtr(); }
 
-    EIGEN_STRONG_INLINE const StorageIndex* innerIndexPtr() const { return &m_data.index(0); }
-    EIGEN_STRONG_INLINE StorageIndex* innerIndexPtr() { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE const StorageIndex* innerIndexPtr() const { return m_data.indexPtr(); }
+    EIGEN_STRONG_INLINE StorageIndex* innerIndexPtr() { return m_data.indexPtr(); }
 
     inline const StorageIndex* outerIndexPtr() const { return 0; }
     inline StorageIndex* outerIndexPtr() { return 0; }
@@ -125,6 +125,7 @@ class SparseVector
     inline Scalar& coeffRef(Index i)
     {
       eigen_assert(i>=0 && i<m_size);
+
       return m_data.atWithInsertion(StorageIndex(i));
     }
 

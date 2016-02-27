@@ -110,11 +110,16 @@ class CompressedStorage
     inline Index allocatedSize() const { return m_allocatedSize; }
     inline void clear() { m_size = 0; }
 
-    inline Scalar& value(Index i) { return m_values[i]; }
-    inline const Scalar& value(Index i) const { return m_values[i]; }
+    const Scalar* valuePtr() const { return m_values; }
+    Scalar* valuePtr() { return m_values; }
+    const StorageIndex* indexPtr() const { return m_indices; }
+    StorageIndex* indexPtr() { return m_indices; }
 
-    inline StorageIndex& index(Index i) { return m_indices[i]; }
-    inline const StorageIndex& index(Index i) const { return m_indices[i]; }
+    inline Scalar& value(Index i) { eigen_internal_assert(m_values!=0); return m_values[i]; }
+    inline const Scalar& value(Index i) const { eigen_internal_assert(m_values!=0); return m_values[i]; }
+
+    inline StorageIndex& index(Index i) { eigen_internal_assert(m_indices!=0); return m_indices[i]; }
+    inline const StorageIndex& index(Index i) const { eigen_internal_assert(m_indices!=0); return m_indices[i]; }
 
     /** \returns the largest \c k such that for all \c j in [0,k) index[\c j]\<\a key */
     inline Index searchLowerIndex(Index key) const

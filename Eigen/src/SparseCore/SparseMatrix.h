@@ -140,20 +140,20 @@ class SparseMatrix
     /** \returns a const pointer to the array of values.
       * This function is aimed at interoperability with other libraries.
       * \sa innerIndexPtr(), outerIndexPtr() */
-    inline const Scalar* valuePtr() const { return &m_data.value(0); }
+    inline const Scalar* valuePtr() const { return m_data.valuePtr(); }
     /** \returns a non-const pointer to the array of values.
       * This function is aimed at interoperability with other libraries.
       * \sa innerIndexPtr(), outerIndexPtr() */
-    inline Scalar* valuePtr() { return &m_data.value(0); }
+    inline Scalar* valuePtr() { return m_data.valuePtr(); }
 
     /** \returns a const pointer to the array of inner indices.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), outerIndexPtr() */
-    inline const StorageIndex* innerIndexPtr() const { return &m_data.index(0); }
+    inline const StorageIndex* innerIndexPtr() const { return m_data.indexPtr(); }
     /** \returns a non-const pointer to the array of inner indices.
       * This function is aimed at interoperability with other libraries.
       * \sa valuePtr(), outerIndexPtr() */
-    inline StorageIndex* innerIndexPtr() { return &m_data.index(0); }
+    inline StorageIndex* innerIndexPtr() { return m_data.indexPtr(); }
 
     /** \returns a const pointer to the array of the starting positions of the inner vectors.
       * This function is aimed at interoperability with other libraries.
@@ -740,8 +740,8 @@ class SparseMatrix
     {
       eigen_assert(rows() == cols() && "ONLY FOR SQUARED MATRICES");
       this->m_data.resize(rows());
-      Eigen::Map<IndexVector>(&this->m_data.index(0), rows()).setLinSpaced(0, StorageIndex(rows()-1));
-      Eigen::Map<ScalarVector>(&this->m_data.value(0), rows()).setOnes();
+      Eigen::Map<IndexVector>(this->m_data.indexPtr(), rows()).setLinSpaced(0, StorageIndex(rows()-1));
+      Eigen::Map<ScalarVector>(this->m_data.valuePtr(), rows()).setOnes();
       Eigen::Map<IndexVector>(this->m_outerIndex, rows()+1).setLinSpaced(0, StorageIndex(rows()));
       std::free(m_innerNonZeros);
       m_innerNonZeros = 0;
