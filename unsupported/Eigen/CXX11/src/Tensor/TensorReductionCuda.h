@@ -230,8 +230,13 @@ struct InnerReducer<Self, Op, GpuDevice> {
     assert(false && "Should only be called to reduce floats on a gpu device");
   }
 
-  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+  static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
+
+    // It's faster to use the usual code.
+    if (num_coeffs_to_reduce <= 32) {
+      return true;
+    }
 
     const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
     const int block_size = 256;
@@ -255,6 +260,8 @@ struct InnerReducer<Self, Op, GpuDevice> {
 
     LAUNCH_CUDA_KERNEL((InnerReductionKernel<num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
+
+    return false;
   }
 };
 
@@ -301,8 +308,13 @@ struct OuterReducer<Self, Op, GpuDevice> {
     assert(false && "Should only be called to reduce floats on a gpu device");
   }
 
-  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+  static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
+
+    // It's faster to use the usual code.
+    if (num_coeffs_to_reduce <= 32) {
+      return true;
+    }
 
      const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
     const int block_size = 256;
@@ -326,6 +338,8 @@ struct OuterReducer<Self, Op, GpuDevice> {
 
     LAUNCH_CUDA_KERNEL((OuterReductionKernel<num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
+
+    return false;
   }
 };
 

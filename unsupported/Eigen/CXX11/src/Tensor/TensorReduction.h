@@ -544,8 +544,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         Op reducer(m_reducer);
-        internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
-        return false;
+        return internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
       }
 
       bool preserving_inner_dims = true;
@@ -561,8 +560,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
         Op reducer(m_reducer);
-        internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
-        return false;
+        return internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
       }
     }
     return true;
