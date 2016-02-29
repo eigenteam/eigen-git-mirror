@@ -226,8 +226,9 @@ struct InnerReducer<Self, Op, GpuDevice> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename Device, typename OutputType>
-  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
+  static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
     assert(false && "Should only be called to reduce floats on a gpu device");
+    return true;
   }
 
   static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
@@ -304,8 +305,9 @@ struct OuterReducer<Self, Op, GpuDevice> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename Device, typename OutputType>
-  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
+  static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
     assert(false && "Should only be called to reduce floats on a gpu device");
+    return true;
   }
 
   static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
