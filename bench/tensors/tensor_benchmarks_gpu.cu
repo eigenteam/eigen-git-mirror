@@ -33,6 +33,7 @@ BM_FuncGPU(algebraicFunc);
 BM_FuncGPU(transcendentalFunc);
 BM_FuncGPU(rowReduction);
 BM_FuncGPU(colReduction);
+BM_FuncGPU(fullReduction);
 
 
 // Contractions

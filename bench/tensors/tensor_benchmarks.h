@@ -297,7 +297,8 @@ template <typename Device, typename T> class BenchmarkSuite {
     input_size[0] = k_;
     input_size[1] = n_;
     const TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, input_size);
-    const Eigen::array<TensorIndex, 1> output_size = {{n_}};
+    Eigen::array<TensorIndex, 1> output_size;
+    output_size[0] = n_;
     TensorMap<Tensor<T, 1, 0, TensorIndex>, Eigen::Aligned> C(c_, output_size);
 
 #ifndef EIGEN_HAS_INDEX_LIST
@@ -325,7 +326,8 @@ template <typename Device, typename T> class BenchmarkSuite {
     input_size[1] = n_;
     const TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(
         b_, input_size);
-    const Eigen::array<TensorIndex, 1> output_size = {{k_}};
+    Eigen::array<TensorIndex, 1> output_size;
+    output_size[0] = k_;
     TensorMap<Tensor<T, 1, 0, TensorIndex>, Eigen::Aligned> C(
         c_, output_size);
 
@@ -341,6 +343,26 @@ template <typename Device, typename T> class BenchmarkSuite {
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
       C.device(device_) = B.sum(sum_along_dim);
+    }
+    // Record the number of FLOP executed per second (assuming one operation
+    // per value)
+    finalizeBenchmark(static_cast<int64_t>(k_) * n_ * num_iters);
+  }
+
+  // Full reduction
+  void fullReduction(int num_iters) {
+    Eigen::array<TensorIndex, 2> input_size;
+    input_size[0] = k_;
+    input_size[1] = n_;
+    const TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(
+        b_, input_size);
+    const Eigen::array<TensorIndex, 0> output_size;
+    TensorMap<Tensor<float, 0, 0, TensorIndex>, Eigen::Aligned> C(
+        c_, output_size);
+
+    StartBenchmarkTiming();
+    for (int iter = 0; iter < num_iters; ++iter) {
+      C.device(device_) = B.sum();
     }
     // Record the number of FLOP executed per second (assuming one operation
     // per value)
