@@ -318,8 +318,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
   protected:
 
     XprTypeNested m_xpr;
-    const internal::variable_if_dynamic<StorageIndex, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
-    const internal::variable_if_dynamic<StorageIndex, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
+    const internal::variable_if_dynamic<StorageIndex, (XprType::RowsAtCompileTime == 1 && BlockRows==1) ? 0 : Dynamic> m_startRow;
+    const internal::variable_if_dynamic<StorageIndex, (XprType::ColsAtCompileTime == 1 && BlockCols==1) ? 0 : Dynamic> m_startCol;
     const internal::variable_if_dynamic<StorageIndex, RowsAtCompileTime> m_blockRows;
     const internal::variable_if_dynamic<StorageIndex, ColsAtCompileTime> m_blockCols;
 };
@@ -440,8 +440,8 @@ class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
     }
 
     XprTypeNested m_xpr;
-    const internal::variable_if_dynamic<StorageIndex, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
-    const internal::variable_if_dynamic<StorageIndex, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
+    const internal::variable_if_dynamic<StorageIndex, (XprType::RowsAtCompileTime == 1 && BlockRows==1) ? 0 : Dynamic> m_startRow;
+    const internal::variable_if_dynamic<StorageIndex, (XprType::ColsAtCompileTime == 1 && BlockCols==1) ? 0 : Dynamic> m_startCol;
     Index m_outerStride;
 };
 
