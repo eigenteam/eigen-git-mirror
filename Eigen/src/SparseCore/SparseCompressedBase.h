@@ -220,7 +220,7 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
     }
 
     explicit ReverseInnerIterator(const internal::CompressedStorage<Scalar,StorageIndex>& data)
-      : m_values(&data.valuePtr()), m_indices(&data.indexPtr()), m_outer(0), m_start(0), m_id(data.size())
+      : m_values(data.valuePtr()), m_indices(data.indexPtr()), m_outer(0), m_start(0), m_id(data.size())
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
     }
