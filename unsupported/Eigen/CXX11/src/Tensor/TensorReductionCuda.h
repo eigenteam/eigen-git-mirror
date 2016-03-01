@@ -281,7 +281,7 @@ __global__ void OuterReductionKernel(Reducer reducer, const Self input, Index nu
   }
 
   // Do the reduction.
-  const Index max_iter = num_preserved_coeffs * numext::maxi<Index>(1, (num_coeffs_to_reduce - NumPerThread + 1));
+  const Index max_iter = num_preserved_coeffs * divup<Index>(num_coeffs_to_reduce, NumPerThread);
   for (Index i = thread_id; i < max_iter; i += num_threads) {
     const Index input_col = i % num_preserved_coeffs;
     const Index input_row = (i / num_preserved_coeffs) * NumPerThread;
