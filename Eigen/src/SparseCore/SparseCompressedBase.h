@@ -160,7 +160,7 @@ class SparseCompressedBase<Derived>::InnerIterator
     }
 
     explicit InnerIterator(const internal::CompressedStorage<Scalar,StorageIndex>& data)
-      : m_values(&data.valuePtr()), m_indices(&data.indexPtr()), m_outer(0), m_id(0), m_end(data.size())
+      : m_values(data.valuePtr()), m_indices(data.indexPtr()), m_outer(0), m_id(0), m_end(data.size())
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
     }
