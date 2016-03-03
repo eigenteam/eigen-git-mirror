@@ -21,7 +21,7 @@ struct scalar_cast_op<float, half> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
   typedef half result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half operator() (const float& a) const {
-    #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+    #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
       return __float2half(a);
     #else
       assert(false && "tbd");
@@ -40,7 +40,7 @@ struct scalar_cast_op<int, half> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
   typedef half result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half operator() (const int& a) const {
-    #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+    #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
       return __float2half(static_cast<float>(a));
     #else
       assert(false && "tbd");
@@ -59,7 +59,7 @@ struct scalar_cast_op<half, float> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cast_op)
   typedef float result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float operator() (const half& a) const {
-    #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+    #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
       return __half2float(a);
     #else
       assert(false && "tbd");
@@ -85,7 +85,7 @@ struct type_casting_traits<half, float> {
 };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pcast<half2, float4>(const half2& a, const half2& b) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   float2 r1 = __half22float2(a);
   float2 r2 = __half22float2(b);
   return make_float4(r1.x, r1.y, r2.x, r2.y);
@@ -106,7 +106,7 @@ struct type_casting_traits<float, half> {
 
 template<> EIGEN_STRONG_INLINE half2 pcast<float4, half2>(const float4& a) {
   // Simply discard the second half of the input
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __float22half2_rn(make_float2(a.x, a.y));
 #else
   assert(false && "tbd");
