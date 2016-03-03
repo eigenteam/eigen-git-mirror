@@ -170,10 +170,15 @@ if(CUDA_FOUND)
   ei_add_test(cxx11_tensor_cuda)
   ei_add_test(cxx11_tensor_contract_cuda)
   ei_add_test(cxx11_tensor_reduction_cuda)
-  ei_add_test(cxx11_tensor_random_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
+  ei_add_test(cxx11_tensor_cast_float16_cuda)
 
-  # Half floats are only supported starting with arch 5.3
+  # The random number generation code requires arch 3.5 or greater.
+  if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 34)
+    ei_add_test(cxx11_tensor_random_cuda)
+  endif()
+
+  # Operations other that casting of half floats are only supported starting with arch 5.3
   if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 52)
     ei_add_test(cxx11_tensor_of_float16_cuda)
   endif()
