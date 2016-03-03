@@ -169,7 +169,7 @@ template<> struct numeric_limits<double>
   EIGEN_DEVICE_FUNC
   static double (min)() { return DBL_MIN; }
   EIGEN_DEVICE_FUNC
-  static float infinity() { return CUDART_INF; }
+  static double infinity() { return CUDART_INF; }
 };
 template<> struct numeric_limits<int>
 {
