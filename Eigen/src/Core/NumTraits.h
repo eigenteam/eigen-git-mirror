@@ -90,6 +90,11 @@ template<typename T> struct GenericNumTraits
   static inline T lowest()  {
     return IsInteger ? (numext::numeric_limits<T>::min)() : (-(numext::numeric_limits<T>::max)());
   }
+
+  EIGEN_DEVICE_FUNC
+  static inline T infinity() {
+    return numext::numeric_limits<T>::infinity();
+  }
 };
 
 template<typename T> struct NumTraits : GenericNumTraits<T>

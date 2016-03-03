@@ -147,6 +147,7 @@ template<typename T> struct numeric_limits
   static T epsilon() { return 0; }
   static T (max)() { assert(false && "Highest not supported for this type"); }
   static T (min)() { assert(false && "Lowest not supported for this type"); }
+  static T infinity() { assert(false && "Infinity not supported for this type"); }
 };
 template<> struct numeric_limits<float>
 {
@@ -156,6 +157,8 @@ template<> struct numeric_limits<float>
   static float (max)() { return CUDART_MAX_NORMAL_F; }
   EIGEN_DEVICE_FUNC
   static float (min)() { return FLT_MIN; }
+  EIGEN_DEVICE_FUNC
+  static float infinity() { return CUDART_INF_F; }
 };
 template<> struct numeric_limits<double>
 {
@@ -165,6 +168,8 @@ template<> struct numeric_limits<double>
   static double (max)() { return DBL_MAX; }
   EIGEN_DEVICE_FUNC
   static double (min)() { return DBL_MIN; }
+  EIGEN_DEVICE_FUNC
+  static float infinity() { return CUDART_INF; }
 };
 template<> struct numeric_limits<int>
 {

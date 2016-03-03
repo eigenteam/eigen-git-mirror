@@ -283,7 +283,7 @@ struct digamma_impl {
     Scalar p, q, nz, s, w, y;
     bool negative;
 
-    const Scalar maxnum = std::numeric_limits<Scalar>::infinity();
+    const Scalar maxnum = numext::numeric_limits<Scalar>::infinity();
     const Scalar m_pi = 3.14159265358979323846;
 
     negative = 0;
