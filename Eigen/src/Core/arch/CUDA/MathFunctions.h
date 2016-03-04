@@ -116,6 +116,24 @@ double2 perfc<double2>(const double2& a)
   return make_double2(erfc(a.x), erfc(a.y));
 }
 
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pigamma<float4>(const float4& a, const float4& x)
+{
+  using numext::pigamma;
+  return make_float4(
+    pigamma(a.x, x.x),
+    pigamma(a.y, x.y),
+    pigamma(a.z, x.z),
+    pigamma(a.w, x.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pigammac<double2>(const double2& a, const double& x)
+{
+  using numext::pigammac;
+  return make_double2(pigammac(a.x, x.x), pigammac(a.y, x.y));
+}
+
 
 #endif
 

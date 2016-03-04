@@ -43,6 +43,8 @@ template<> struct packet_traits<float> : default_packet_traits
     HasDiGamma = 1,
     HasErf = 1,
     HasErfc = 1,
+    HasIgamma = 1,
+    HasIGammac = 1,
 
     HasBlend = 0,
   };
@@ -67,6 +69,8 @@ template<> struct packet_traits<double> : default_packet_traits
     HasDiGamma = 1,
     HasErf = 1,
     HasErfc = 1,
+    HasIGamma = 1,
+    HasIGammac = 1,
 
     HasBlend = 0,
   };

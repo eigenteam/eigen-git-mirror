@@ -283,7 +283,7 @@ struct digamma_impl {
     Scalar p, q, nz, s, w, y;
     bool negative;
 
-    const Scalar maxnum = numext::numeric_limits<Scalar>::infinity();
+    const Scalar maxnum = NumTraits<Scalar>::infinity();
     const Scalar m_pi = 3.14159265358979323846;
 
     negative = 0;
@@ -401,6 +401,282 @@ struct erfc_impl<double> {
 };
 #endif  // EIGEN_HAS_C99_MATH
 
+/****************************************************************************
+ * Implementation of igammac (complemented incomplete gamma integral)       *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct igammac_retval {
+  typedef Scalar type;
+};
+
+#ifndef EIGEN_HAS_C99_MATH
+
+template <typename Scalar>
+struct igammac_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+#else
+
+template <typename Scalar> struct igamma_impl;  // predeclare igamma_impl
+
+template <typename Scalar>
+struct igammac_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    /*							igamc()
+     *
+     *	Incomplete gamma integral (modified for Eigen)
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * double a, x, y, igamc();
+     *
+     * y = igamc( a, x );
+     *
+     * DESCRIPTION:
+     *
+     * The function is defined by
+     *
+     *
+     *  igamc(a,x)   =   1 - igam(a,x)
+     *
+     *                            inf.
+     *                              -
+     *                     1       | |  -t  a-1
+     *               =   -----     |   e   t   dt.
+     *                    -      | |
+     *                   | (a)    -
+     *                             x
+     *
+     *
+     * In this implementation both arguments must be positive.
+     * The integral is evaluated by either a power series or
+     * continued fraction expansion, depending on the relative
+     * values of a and x.
+     *
+     * ACCURACY (float):
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30        30000       7.8e-6      5.9e-7
+     *
+     *
+     * ACCURACY (double):
+     *
+     * Tested at random a, x.
+     *                a         x                      Relative error:
+     * arithmetic   domain   domain     # trials      peak         rms
+     *    IEEE     0.5,100   0,100      200000       1.9e-14     1.7e-15
+     *    IEEE     0.01,0.5  0,100      200000       1.4e-13     1.6e-15
+     *
+     */
+    /*
+      Cephes Math Library Release 2.2: June, 1992
+      Copyright 1985, 1987, 1992 by Stephen L. Moshier
+      Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+    */
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar two = 2;
+    const Scalar machep = NumTraits<Scalar>::epsilon();
+    const Scalar maxlog = ::log(NumTraits<Scalar>::highest());
+    const Scalar big = one / machep;
+
+    Scalar ans, ax, c, yc, r, t, y, z;
+    Scalar pk, pkm1, pkm2, qk, qkm1, qkm2;
+
+    if ((x <= zero) || ( a <= zero)) {
+      return one;
+    }
+
+    if ((x < one) || (x < a)) {
+      return (one - igamma_impl<Scalar>::run(a, x));
+    }
+
+    ax = a * ::log(x) - x - lgamma_impl<Scalar>::run(a);
+    if( ax < -maxlog ) {  // underflow
+      return zero;
+    }
+    ax = ::exp(ax);
+
+    // continued fraction
+    y = one - a;
+    z = x + y + one;
+    c = zero;
+    pkm2 = one;
+    qkm2 = x;
+    pkm1 = x + one;
+    qkm1 = z * x;
+    ans = pkm1/qkm1;
+
+    do {
+      c += one;
+      y += one;
+      z += two;
+      yc = y * c;
+      pk = pkm1 * z  -  pkm2 * yc;
+      qk = qkm1 * z  -  qkm2 * yc;
+      if( qk != zero ) {
+        r = pk/qk;
+        t = ::abs( (ans - r)/r );
+        ans = r;
+      } else  {
+        t = one;
+      }
+      pkm2 = pkm1;
+      pkm1 = pk;
+      qkm2 = qkm1;
+      qkm1 = qk;
+      if (::abs(pk) > big) {
+        pkm2 *= machep;
+        pkm1 *= machep;
+        qkm2 *= machep;
+        qkm1 *= machep;
+      }
+    } while( t > machep );
+
+    return ( ans * ax );
+  }
+};
+
+#endif  // EIGEN_HAS_C99_MATH
+
+/****************************************************************************
+ * Implementation of igamma (incomplete gamma integral)                     *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct igamma_retval {
+  typedef Scalar type;
+};
+
+#ifndef EIGEN_HAS_C99_MATH
+
+template <typename Scalar>
+struct igamma_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+#else
+
+template <typename Scalar>
+struct igamma_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    /*							igam()
+     *	Incomplete gamma integral
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * double a, x, y, igam();
+     *
+     * y = igam( a, x );
+     *
+     * DESCRIPTION:
+     *
+     * The function is defined by
+     *
+     *                           x
+     *                            -
+     *                   1       | |  -t  a-1
+     *  igam(a,x)  =   -----     |   e   t   dt.
+     *                  -      | |
+     *                 | (a)    -
+     *                           0
+     *
+     *
+     * In this implementation both arguments must be positive.
+     * The integral is evaluated by either a power series or
+     * continued fraction expansion, depending on the relative
+     * values of a and x.
+     *
+     * ACCURACY (double):
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30       200000       3.6e-14     2.9e-15
+     *    IEEE      0,100      300000       9.9e-14     1.5e-14
+     *
+     *
+     * ACCURACY (float):
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30        20000       7.8e-6      5.9e-7
+     *
+     */
+    /*
+      Cephes Math Library Release 2.2: June, 1992
+      Copyright 1985, 1987, 1992 by Stephen L. Moshier
+      Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+    */
+
+
+    /* left tail of incomplete gamma function:
+     *
+     *          inf.      k
+     *   a  -x   -       x
+     *  x  e     >   ----------
+     *           -     -
+     *          k=0   | (a+k+1)
+     *
+     */
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar machep = NumTraits<Scalar>::epsilon();
+    const Scalar maxlog = ::log(NumTraits<Scalar>::highest());
+
+    double ans, ax, c, r;
+
+    if( (x <= zero) || ( a <= zero) ) {
+      return zero;
+    }
+
+    if( (x > one) && (x > a ) ) {
+      return (one - igammac_impl<Scalar>::run(a,x));
+    }
+
+    /* Compute  x**a * exp(-x) / gamma(a)  */
+    ax = a * ::log(x) - x - lgamma_impl<Scalar>::run(a);
+    if( ax < -maxlog ) {
+      // underflow
+      return zero;
+    }
+    ax = ::exp(ax);
+
+    /* power series */
+    r = a;
+    c = one;
+    ans = one;
+
+    do {
+      r += one;
+      c *= x/r;
+      ans += c;
+    } while( c/ans > machep );
+
+    return( ans * ax/a );
+  }
+};
+
+#endif  // EIGEN_HAS_C99_MATH
+
 }  // end namespace internal
 
 namespace numext {
@@ -429,7 +705,20 @@ EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(erfc, Scalar)
   return EIGEN_MATHFUNC_IMPL(erfc, Scalar)::run(x);
 }
 
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(igamma, Scalar)
+    igamma(const Scalar& a, const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(igamma, Scalar)::run(a, x);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(igammac, Scalar)
+    igammac(const Scalar& a, const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(igammac, Scalar)::run(a, x);
+}
+
 }  // end namespace numext
+
 
 }  // end namespace Eigen
 

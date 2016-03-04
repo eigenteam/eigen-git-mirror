@@ -78,6 +78,8 @@ struct default_packet_traits
     HasDiGamma = 0,
     HasErf = 0,
     HasErfc = 0,
+    HasIGamma = 0,
+    HasIGammac = 0,
 
     HasRound  = 0,
     HasFloor  = 0,
@@ -456,6 +458,14 @@ Packet perf(const Packet& a) { using numext::erf; return erf(a); }
 /** \internal \returns the erfc(\a a) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet perfc(const Packet& a) { using numext::erfc; return erfc(a); }
+
+/** \internal \returns the incomplete gamma function igamma(\a a, \a x) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pigamma(const Packet& a, const Packet& x) { using numext::igamma; return igamma(a, x); }
+
+/** \internal \returns the complementary incomplete gamma function igammac(\a a, \a x) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pigammac(const Packet& a, const Packet& x) { using numext::igammac; return igammac(a, x); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types
