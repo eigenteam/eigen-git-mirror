@@ -48,7 +48,7 @@ struct MyGenerator {
   }
 
   // Same as above but generates several numbers at a time.
-  typename internal::packet_traits<int>::type packetOp(
+  internal::packet_traits<int>::type packetOp(
       Eigen::DenseIndex packet_location, Eigen::DenseIndex /*unused*/ = 0) const {
     const int packetSize = internal::packet_traits<int>::size;
     EIGEN_ALIGN_MAX int values[packetSize];
