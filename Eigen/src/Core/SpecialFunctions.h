@@ -296,7 +296,8 @@ struct digamma_impl {
     if (x <= zero) {
       negative = one;
       q = x;
-      p = ::floor(q);
+      using std::floor;
+      p = floor(q);
       if (p == q) {
         return maxnum;
       }
@@ -309,7 +310,8 @@ struct digamma_impl {
           p += one;
           nz = q - p;
         }
-        nz = m_pi / ::tan(m_pi * nz);
+        using std::tan;
+        nz = m_pi / tan(m_pi * nz);
       }
       else {
         nz = zero;
@@ -327,7 +329,8 @@ struct digamma_impl {
 
     y = digamma_impl_maybe_poly<Scalar>::run(s);
 
-    y = ::log(s) - (half / s) - y - w;
+    using std::log;
+    y = log(s) - (half / s) - y - w;
 
     return (negative) ? y - nz : y;
   }
@@ -427,6 +430,39 @@ struct igammac_impl {
 template <typename Scalar> struct igamma_impl;  // predeclare igamma_impl
 
 template <typename Scalar>
+struct igamma_helper {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static Scalar machep() { assert(false && "machep not supported for this type"); return 0.0; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static Scalar big() { assert(false && "big not supported for this type"); return 0.0; }
+};
+
+template <>
+struct igamma_helper<float> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static float machep() {
+    return NumTraits<float>::epsilon() / 2;  // 1.0 - machep == 1.0
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static float big() {
+    // use epsneg (1.0 - epsneg == 1.0)
+    return 1.0 / (NumTraits<float>::epsilon() / 2);
+  }
+};
+
+template <>
+struct igamma_helper<double> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static double machep() {
+    return NumTraits<double>::epsilon() / 2;  // 1.0 - machep == 1.0
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static double big() {
+    return 1.0 / NumTraits<double>::epsilon();
+  }
+};
+
+template <typename Scalar>
 struct igammac_impl {
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
@@ -487,26 +523,35 @@ struct igammac_impl {
     const Scalar zero = 0;
     const Scalar one = 1;
     const Scalar two = 2;
-    const Scalar machep = NumTraits<Scalar>::epsilon();
+    const Scalar machep = igamma_helper<Scalar>::machep();
     const Scalar maxlog = ::log(NumTraits<Scalar>::highest());
-    const Scalar big = one / machep;
+    const Scalar big = igamma_helper<Scalar>::big();
+    const Scalar biginv = 1 / big;
+    const Scalar nan = NumTraits<Scalar>::quiet_NaN();
 
     Scalar ans, ax, c, yc, r, t, y, z;
     Scalar pk, pkm1, pkm2, qk, qkm1, qkm2;
 
-    if ((x <= zero) || ( a <= zero)) {
-      return one;
+    if ((x < zero) || ( a <= zero)) {
+      // domain error
+      return nan;
     }
 
     if ((x < one) || (x < a)) {
       return (one - igamma_impl<Scalar>::run(a, x));
     }
 
-    ax = a * ::log(x) - x - lgamma_impl<Scalar>::run(a);
-    if( ax < -maxlog ) {  // underflow
+    using std::isinf;
+    if ((isinf)(x)) return zero;
+
+    /* Compute  x**a * exp(-x) / gamma(a)  */
+    using std::log;
+    ax = a * log(x) - x - lgamma_impl<Scalar>::run(a);
+    if (ax < -maxlog) {  // underflow
       return zero;
     }
-    ax = ::exp(ax);
+    using std::exp;
+    ax = exp(ax);
 
     // continued fraction
     y = one - a;
@@ -516,35 +561,36 @@ struct igammac_impl {
     qkm2 = x;
     pkm1 = x + one;
     qkm1 = z * x;
-    ans = pkm1/qkm1;
+    ans = pkm1 / qkm1;
 
+    using std::abs;
     do {
       c += one;
       y += one;
       z += two;
       yc = y * c;
-      pk = pkm1 * z  -  pkm2 * yc;
-      qk = qkm1 * z  -  qkm2 * yc;
-      if( qk != zero ) {
-        r = pk/qk;
-        t = ::abs( (ans - r)/r );
+      pk = pkm1 * z - pkm2 * yc;
+      qk = qkm1 * z - qkm2 * yc;
+      if (qk != zero) {
+        r = pk / qk;
+        t = abs((ans - r) / r);
         ans = r;
-      } else  {
+      } else {
         t = one;
       }
       pkm2 = pkm1;
       pkm1 = pk;
       qkm2 = qkm1;
       qkm1 = qk;
-      if (::abs(pk) > big) {
-        pkm2 *= machep;
-        pkm1 *= machep;
-        qkm2 *= machep;
-        qkm1 *= machep;
+      if (abs(pk) > big) {
+        pkm2 *= biginv;
+        pkm1 *= biginv;
+        qkm2 *= biginv;
+        qkm1 *= biginv;
       }
-    } while( t > machep );
+    } while (t > machep);
 
-    return ( ans * ax );
+    return (ans * ax);
   }
 };
 
@@ -639,26 +685,31 @@ struct igamma_impl {
      */
     const Scalar zero = 0;
     const Scalar one = 1;
-    const Scalar machep = NumTraits<Scalar>::epsilon();
+    const Scalar machep = igamma_helper<Scalar>::machep();
     const Scalar maxlog = ::log(NumTraits<Scalar>::highest());
+    const Scalar nan = NumTraits<Scalar>::quiet_NaN();
 
     double ans, ax, c, r;
 
-    if( (x <= zero) || ( a <= zero) ) {
-      return zero;
+    if (x == zero) return zero;
+
+    if ((x < zero) || ( a <= zero)) {  // domain error
+      return nan;
     }
 
-    if( (x > one) && (x > a ) ) {
-      return (one - igammac_impl<Scalar>::run(a,x));
+    if ((x > one) && (x > a)) {
+      return (one - igammac_impl<Scalar>::run(a, x));
     }
 
     /* Compute  x**a * exp(-x) / gamma(a)  */
-    ax = a * ::log(x) - x - lgamma_impl<Scalar>::run(a);
-    if( ax < -maxlog ) {
+    using std::log;
+    ax = a * log(x) - x - lgamma_impl<Scalar>::run(a);
+    if (ax < -maxlog) {
       // underflow
       return zero;
     }
-    ax = ::exp(ax);
+    using std::exp;
+    ax = exp(ax);
 
     /* power series */
     r = a;
@@ -669,9 +720,9 @@ struct igamma_impl {
       r += one;
       c *= x/r;
       ans += c;
-    } while( c/ans > machep );
+    } while (c/ans > machep);
 
-    return( ans * ax/a );
+    return (ans * ax / a);
   }
 };
 
