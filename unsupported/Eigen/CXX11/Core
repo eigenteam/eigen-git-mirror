@@ -35,11 +35,13 @@
 #include "src/Core/util/EmulateArray.h"
 
 // Emulate the cxx11 functionality that we need if the compiler doesn't support it.
-#if __cplusplus <= 199711L
-#include "src/Core/util/EmulateCXX11Meta.h"
-#else
+// Visual studio 2015 doesn't advertise itself as cxx11 compliant, although it
+// supports enough of the standard for our needs
+#if __cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900
 #include "src/Core/util/CXX11Workarounds.h"
 #include "src/Core/util/CXX11Meta.h"
+#else
+#include "src/Core/util/EmulateCXX11Meta.h"
 #endif
 
 #include <Eigen/src/Core/util/ReenableStupidWarnings.h>

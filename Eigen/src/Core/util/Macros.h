@@ -360,7 +360,7 @@
 #endif
 
 // Does the compiler support variadic templates?
-#if __cplusplus > 199711L
+#if __cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900
 // Disable the use of variadic templates when compiling with nvcc on ARM devices:
 // this prevents nvcc from crashing when compiling Eigen on Tegra X1
 #if !defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64
