@@ -36,14 +36,7 @@ namespace {
 #ifdef __CUDA_ARCH__
     return (sizeof(T) == 8) ? __clzll(val) : __clz(val);
 #elif EIGEN_COMP_MSVC
-    DWORD leading_zeros = 0;
-    if (sizeof(T) == 8) {
-      _BitScanReverse64(&leading_zeros, val);
-    }
-    else {
-      _BitScanReverse(&leading_zeros, val);
-    }
-    return leading_zeros;
+    return (sizeof(T) == 8) ? __lzcnt64(val) : __lzcnt(val);
 #else
     EIGEN_STATIC_ASSERT(sizeof(unsigned long long) == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
     return (sizeof(T) == 8) ?
