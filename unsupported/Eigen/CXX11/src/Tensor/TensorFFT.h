@@ -225,9 +225,9 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         // For n > 2 we use the recurrence t_n = t_{n-1}^2 / t_{n-2} * t_1^2
         pos_j_base_powered[0] = ComplexScalar(1, 0);
         if (line_len > 1) {
-          const RealScalar PI(3.14159265358979323846);
+          const RealScalar pi_over_len(EIGEN_PI / line_len);
           const ComplexScalar pos_j_base = ComplexScalar(
-              std::cos(PI / line_len), std::sin(PI / line_len));
+	       std::cos(pi_over_len), std::sin(pi_over_len));
           pos_j_base_powered[1] = pos_j_base;
           if (line_len > 2) {
             const ComplexScalar pos_j_base_sq = pos_j_base * pos_j_base;
