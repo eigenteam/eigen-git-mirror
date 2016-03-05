@@ -11,11 +11,7 @@
 
 #include <Eigen/CXX11/Tensor>
 
-#if EIGEN_COMP_MSVC
-typedef __uint128 uint128_t;
-#else
 typedef __uint128_t uint128_t;
-#endif
 
 
 using Eigen::internal::TensorUInt128;
@@ -142,10 +138,15 @@ void test_misc2() {
 
 void test_cxx11_tensor_uint128()
 {
+#if EIGEN_COMP_MSVC
+  // Skip the test on compilers that don't support 128bit integers natively 
+  return;
+#else
   CALL_SUBTEST_1(test_add());
   CALL_SUBTEST_2(test_sub());
   CALL_SUBTEST_3(test_mul());
   CALL_SUBTEST_4(test_div());
   CALL_SUBTEST_5(test_misc1());
   CALL_SUBTEST_6(test_misc2());
+#endif
 }
