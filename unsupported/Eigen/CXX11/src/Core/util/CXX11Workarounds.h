@@ -29,8 +29,10 @@
 
 /* Check that the compiler at least claims to support C++11. It might not be sufficient
  * because the compiler may not implement it correctly, but at least we'll know.
+ * On the other hand, visual studio still doesn't claim to support C++11 although it's
+ * compliant enugh for our purpose.
  */
-#if __cplusplus <= 199711L
+#if (__cplusplus <= 199711L) && (EIGEN_COMP_MSVC < 1900)
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #pragma GCC diagnostic error "-Wfatal-errors"
 #endif
