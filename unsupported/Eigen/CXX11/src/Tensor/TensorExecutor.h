@@ -220,7 +220,7 @@ EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, false>::run(
   if (needs_assign)
   {
     const int block_size = device.maxCudaThreadsPerBlock();
-    const int max_blocks = numext::maxi<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
+    const int max_blocks = numext::mini<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
     const Index size = array_prod(evaluator.dimensions());
     // Create a least one block to ensure we won't crash if we're called with tensors of size 0.
     const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, (size + block_size - 1) / block_size), 1);
@@ -239,7 +239,7 @@ EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, true>::run(c
   if (needs_assign)
   {
     const int block_size = device.maxCudaThreadsPerBlock();
-    const int max_blocks = numext::maxi<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
+    const int max_blocks = numext::mini<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
     const Index size = array_prod(evaluator.dimensions());
     // Create a least one block to ensure we won't crash if we're called with tensors of size 0.
     const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, (size + block_size - 1) / block_size), 1);
