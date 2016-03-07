@@ -520,14 +520,16 @@ struct igammac_impl {
       Copyright 1985, 1987, 1992 by Stephen L. Moshier
       Direct inquiries to 30 Frost Street, Cambridge, MA 02140
     */
+    using std::log;
     const Scalar zero = 0;
     const Scalar one = 1;
     const Scalar two = 2;
     const Scalar machep = igamma_helper<Scalar>::machep();
-    const Scalar maxlog = ::log(NumTraits<Scalar>::highest());
+    const Scalar maxlog = log(NumTraits<Scalar>::highest());
     const Scalar big = igamma_helper<Scalar>::big();
     const Scalar biginv = 1 / big;
     const Scalar nan = NumTraits<Scalar>::quiet_NaN();
+    const Scalar inf = NumTraits<Scalar>::infinity();
 
     Scalar ans, ax, c, yc, r, t, y, z;
     Scalar pk, pkm1, pkm2, qk, qkm1, qkm2;
@@ -541,11 +543,9 @@ struct igammac_impl {
       return (one - igamma_impl<Scalar>::run(a, x));
     }
 
-    using std::isinf;
-    if ((isinf)(x)) return zero;
+    if (x == inf) return zero;  // std::isinf crashes on CUDA
 
     /* Compute  x**a * exp(-x) / gamma(a)  */
-    using std::log;
     ax = a * log(x) - x - lgamma_impl<Scalar>::run(a);
     if (ax < -maxlog) {  // underflow
       return zero;
@@ -564,7 +564,7 @@ struct igammac_impl {
     ans = pkm1 / qkm1;
 
     using std::abs;
-    do {
+    while (true) {
       c += one;
       y += one;
       z += two;
@@ -588,7 +588,8 @@ struct igammac_impl {
         qkm2 *= biginv;
         qkm1 *= biginv;
       }
-    } while (t > machep);
+      if (t <= machep) break;
+    }
 
     return (ans * ax);
   }
@@ -683,10 +684,11 @@ struct igamma_impl {
      *          k=0   | (a+k+1)
      *
      */
+    using std::log;
     const Scalar zero = 0;
     const Scalar one = 1;
     const Scalar machep = igamma_helper<Scalar>::machep();
-    const Scalar maxlog = ::log(NumTraits<Scalar>::highest());
+    const Scalar maxlog = log(NumTraits<Scalar>::highest());
     const Scalar nan = NumTraits<Scalar>::quiet_NaN();
 
     double ans, ax, c, r;
@@ -702,7 +704,6 @@ struct igamma_impl {
     }
 
     /* Compute  x**a * exp(-x) / gamma(a)  */
-    using std::log;
     ax = a * log(x) - x - lgamma_impl<Scalar>::run(a);
     if (ax < -maxlog) {
       // underflow
@@ -716,11 +717,12 @@ struct igamma_impl {
     c = one;
     ans = one;
 
-    do {
+    while (true) {
       r += one;
       c *= x/r;
       ans += c;
-    } while (c/ans > machep);
+      if (c/ans <= machep) break;
+    }
 
     return (ans * ax / a);
   }

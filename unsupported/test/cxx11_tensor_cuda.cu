@@ -632,7 +632,6 @@ void test_cuda_igamma()
   Tensor<Scalar, 2> a(6, 6);
   Tensor<Scalar, 2> x(6, 6);
   Tensor<Scalar, 2> out(6, 6);
-  Tensor<Scalar, 2> expected_out(6, 6);
   out.setZero();
 
   Scalar a_s[] = {Scalar(0), Scalar(1), Scalar(1.5), Scalar(4), Scalar(0.0001), Scalar(1000.5)};
@@ -641,7 +640,7 @@ void test_cuda_igamma()
   for (int i = 0; i < 6; ++i) {
     for (int j = 0; j < 6; ++j) {
       a(i, j) = a_s[i];
-      x(i, j) = x_s[i];
+      x(i, j) = x_s[j];
     }
   }
 
@@ -686,8 +685,7 @@ void test_cuda_igamma()
   for (int i = 0; i < 6; ++i) {
     for (int j = 0; j < 6; ++j) {
       if ((std::isnan)(igamma_s[i][j])) {
-        printf("got: %g\n", out(i, j));
-        //VERIFY((std::isnan)(out(i, j)));
+        VERIFY((std::isnan)(out(i, j)));
       } else {
         VERIFY_IS_APPROX(out(i, j), igamma_s[i][j]);
       }
@@ -701,7 +699,6 @@ void test_cuda_igammac()
   Tensor<Scalar, 2> a(6, 6);
   Tensor<Scalar, 2> x(6, 6);
   Tensor<Scalar, 2> out(6, 6);
-  Tensor<Scalar, 2> expected_out(6, 6);
   out.setZero();
 
   Scalar a_s[] = {Scalar(0), Scalar(1), Scalar(1.5), Scalar(4), Scalar(0.0001), Scalar(1000.5)};
@@ -710,7 +707,7 @@ void test_cuda_igammac()
   for (int i = 0; i < 6; ++i) {
     for (int j = 0; j < 6; ++j) {
       a(i, j) = a_s[i];
-      x(i, j) = x_s[i];
+      x(i, j) = x_s[j];
     }
   }
 
@@ -754,8 +751,7 @@ void test_cuda_igammac()
   for (int i = 0; i < 6; ++i) {
     for (int j = 0; j < 6; ++j) {
       if ((std::isnan)(igammac_s[i][j])) {
-        printf("got: %g\n", out(i, j));
-        //VERIFY((std::isnan)(out(i, j)));
+        VERIFY((std::isnan)(out(i, j)));
       } else {
         VERIFY_IS_APPROX(out(i, j), igammac_s[i][j]);
       }
