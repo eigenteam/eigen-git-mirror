@@ -315,10 +315,25 @@ class TensorBase<Derived, ReadOnlyAccessors>
     operator==(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_EQ>());
     }
+
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_NEQ>, const Derived, const OtherDerived>
     operator!=(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_NEQ>());
+    }
+
+    // igamma(a = this, x = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_igamma_op<Scalar>, const Derived, const OtherDerived>
+    igamma(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_igamma_op<Scalar>());
+    }
+
+    // igammac(a = this, x = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_igammac_op<Scalar>, const Derived, const OtherDerived>
+    igammac(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_igammac_op<Scalar>());
     }
 
     // comparisons and tests for Scalars
