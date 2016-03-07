@@ -643,7 +643,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     template <typename PaddingDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorPaddingOp<const PaddingDimensions, const Derived>
     pad(const PaddingDimensions& padding) const {
-      return TensorPaddingOp<const PaddingDimensions, const Derived>(derived(), padding);
+      return TensorPaddingOp<const PaddingDimensions, const Derived>(derived(), padding, internal::scalar_cast_op<int, Scalar>()(0));
+    }
+    template <typename PaddingDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorPaddingOp<const PaddingDimensions, const Derived>
+    pad(const PaddingDimensions& padding, const Scalar padding_value) const {
+      return TensorPaddingOp<const PaddingDimensions, const Derived>(derived(), padding, padding_value);
     }
     template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorShufflingOp<const Shuffle, const Derived>
