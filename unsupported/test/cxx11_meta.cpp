@@ -9,6 +9,7 @@
 
 #include "main.h"
 
+#include <array>
 #include <Eigen/CXX11/Core>
 
 using Eigen::internal::is_same;
