@@ -230,8 +230,8 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
                               const contract_t& k_strides) :
   ParentMapper(tensor, nocontract_strides, ij_strides, contract_strides, k_strides) { }
 
-  typedef typename packet_traits<Scalar>::type Packet;
-  typedef typename packet_traits<Scalar>::half HalfPacket;
+  typedef typename Tensor::PacketReturnType Packet;
+  typedef typename unpacket_traits<Packet>::half HalfPacket;
 
   template <int AlignmentType = Alignment>
   EIGEN_DEVICE_FUNC

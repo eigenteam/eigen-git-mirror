@@ -32,7 +32,6 @@ struct traits<TensorImagePatchOp<Rows, Cols, XprType> > : public traits<XprType>
 {
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -60,10 +59,8 @@ class TensorImagePatchOp : public TensorBase<TensorImagePatchOp<Rows, Cols, XprT
 {
   public:
   typedef typename Eigen::internal::traits<TensorImagePatchOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorImagePatchOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorImagePatchOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorImagePatchOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorImagePatchOp>::Index Index;
@@ -311,7 +308,7 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 

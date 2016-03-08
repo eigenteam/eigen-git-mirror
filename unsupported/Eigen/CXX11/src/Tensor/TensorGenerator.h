@@ -25,7 +25,6 @@ struct traits<TensorGeneratorOp<Generator, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -55,10 +54,8 @@ class TensorGeneratorOp : public TensorBase<TensorGeneratorOp<Generator, XprType
 {
   public:
   typedef typename Eigen::internal::traits<TensorGeneratorOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorGeneratorOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorGeneratorOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorGeneratorOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorGeneratorOp>::Index Index;
@@ -118,7 +115,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 

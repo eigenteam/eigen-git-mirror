@@ -25,7 +25,6 @@ struct traits<TensorConversionOp<TargetType, XprType> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef TargetType Scalar;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename traits<XprType>::StorageKind StorageKind;
   typedef typename traits<XprType>::Index Index;
   typedef typename XprType::Nested Nested;
@@ -146,12 +145,10 @@ class TensorConversionOp : public TensorBase<TensorConversionOp<TargetType, XprT
 {
   public:
     typedef typename internal::traits<TensorConversionOp>::Scalar Scalar;
-    typedef typename internal::traits<TensorConversionOp>::Packet Packet;
     typedef typename internal::traits<TensorConversionOp>::StorageKind StorageKind;
     typedef typename internal::traits<TensorConversionOp>::Index Index;
     typedef typename internal::nested<TensorConversionOp>::type Nested;
     typedef Scalar CoeffReturnType;
-    typedef Packet PacketReturnType;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorConversionOp(const XprType& xpr)
@@ -190,8 +187,8 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   typedef TargetType Scalar;
   typedef TargetType CoeffReturnType;
   typedef typename internal::remove_all<typename internal::traits<ArgType>::Scalar>::type SrcType;
-  typedef typename internal::traits<XprType>::Packet PacketReturnType;
-  typedef typename internal::packet_traits<SrcType>::type PacketSourceType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef typename PacketType<SrcType, Device>::type PacketSourceType;
 
   enum {
     IsAligned = false,

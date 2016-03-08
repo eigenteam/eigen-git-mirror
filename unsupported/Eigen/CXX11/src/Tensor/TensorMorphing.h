@@ -25,7 +25,6 @@ struct traits<TensorReshapingOp<NewDimensions, XprType> > : public traits<XprTyp
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -55,10 +54,8 @@ class TensorReshapingOp : public TensorBase<TensorReshapingOp<NewDimensions, Xpr
 {
   public:
   typedef typename Eigen::internal::traits<TensorReshapingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorReshapingOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
   typedef typename Eigen::internal::nested<TensorReshapingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorReshapingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorReshapingOp>::Index Index;
@@ -124,7 +121,7 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -181,7 +178,7 @@ template<typename NewDimensions, typename ArgType, typename Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
@@ -208,7 +205,6 @@ struct traits<TensorSlicingOp<StartIndices, Sizes, XprType> > : public traits<Xp
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -238,10 +234,8 @@ class TensorSlicingOp : public TensorBase<TensorSlicingOp<StartIndices, Sizes, X
 {
   public:
   typedef typename Eigen::internal::traits<TensorSlicingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorSlicingOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorSlicingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorSlicingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorSlicingOp>::Index Index;
@@ -361,7 +355,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef Sizes Dimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -549,7 +543,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef Sizes Dimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)

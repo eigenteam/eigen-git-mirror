@@ -26,7 +26,6 @@ struct traits<TensorReductionOp<Op, Dims, XprType> >
 {
   typedef traits<XprType> XprTraits;
   typedef typename XprTraits::Scalar Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -381,10 +380,8 @@ template <typename Op, typename Dims, typename XprType>
 class TensorReductionOp : public TensorBase<TensorReductionOp<Op, Dims, XprType>, ReadOnlyAccessors> {
   public:
     typedef typename Eigen::internal::traits<TensorReductionOp>::Scalar Scalar;
-    typedef typename Eigen::internal::traits<TensorReductionOp>::Packet Packet;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
     typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-    typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
     typedef typename Eigen::internal::nested<TensorReductionOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorReductionOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorReductionOp>::Index Index;
@@ -509,7 +506,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool evalSubExprsIfNeeded(CoeffReturnType* data) {
     m_impl.evalSubExprsIfNeeded(NULL);

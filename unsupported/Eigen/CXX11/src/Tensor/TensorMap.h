@@ -28,7 +28,6 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
     typedef typename internal::traits<PlainObjectType>::StorageKind StorageKind;
     typedef typename internal::traits<PlainObjectType>::Index Index;
     typedef typename internal::traits<PlainObjectType>::Scalar Scalar;
-    typedef typename internal::packet_traits<Scalar>::type Packet;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
 
@@ -47,7 +46,6 @@ template<typename PlainObjectType, int Options_> class TensorMap : public Tensor
 
     enum {
       IsAligned = ((int(Options_)&Aligned)==Aligned),
-      PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = PlainObjectType::Layout,
       CoordAccess = true,
       RawAccess = true

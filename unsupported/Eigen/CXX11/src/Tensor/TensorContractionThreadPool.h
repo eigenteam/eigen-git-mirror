@@ -65,10 +65,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
-  typedef typename XprType::Packet Packet;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   enum {
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
