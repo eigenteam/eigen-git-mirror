@@ -135,8 +135,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
 
 
-    const int lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const int rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const int lhs_packet_size = internal::unpacket_traits<typename LeftEvaluator::PacketReturnType>::size;
+    const int rhs_packet_size = internal::unpacket_traits<typename RightEvaluator::PacketReturnType>::size;
 
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
                                                    LeftEvaluator, left_nocontract_t,

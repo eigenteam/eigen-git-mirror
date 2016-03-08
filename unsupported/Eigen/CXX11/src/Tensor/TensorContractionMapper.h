@@ -313,12 +313,12 @@ class BaseTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, con
                               const contract_t& k_strides) :
   ParentMapper(tensor, nocontract_strides, ij_strides, contract_strides, k_strides) { }
 
-  typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename Tensor::PacketReturnType Packet;
   template <int> EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Packet loadPacket(Index i, Index j) const {
     EIGEN_ALIGN_MAX Scalar data[1];
     data[0] = this->m_tensor.coeff(this->computeIndex(i, j));
-    return pload<typename packet_traits<Scalar>::type>(data);
+    return pload<typename Tensor::PacketReturntype>(data);
   }
   template <int> EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Packet loadHalfPacket(Index i, Index j) const {
@@ -334,8 +334,8 @@ template<typename Scalar, typename Index, int side,
          bool inner_dim_contiguous, bool inner_dim_reordered, int Alignment>
 class TensorContractionSubMapper {
  public:
-  typedef typename packet_traits<Scalar>::type Packet;
-  typedef typename packet_traits<Scalar>::half HalfPacket;
+  typedef typename Tensor::PacketReturnType Packet;
+  typedef typename unpacket_traits<Packet>::half HalfPacket;
 
   typedef BaseTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, contract_t, packet_size, inner_dim_contiguous, inner_dim_reordered, Alignment> ParentMapper;
   typedef TensorContractionSubMapper<Scalar, Index, side, Tensor, nocontract_t, contract_t, packet_size, inner_dim_contiguous, inner_dim_reordered, Alignment> Self;

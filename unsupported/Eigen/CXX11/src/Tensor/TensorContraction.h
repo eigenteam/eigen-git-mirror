@@ -120,7 +120,7 @@ struct TensorContractionEvaluatorBase
 
   enum {
     IsAligned = true,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = true
@@ -381,8 +381,8 @@ struct TensorContractionEvaluatorBase
     typedef typename internal::remove_const<typename EvalRightArgType::Scalar>::type RhsScalar;
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
-    const Index lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const Index rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const Index lhs_packet_size = internal::unpacket_traits<typename LeftEvaluator::PacketReturnType>::size;
+    const Index rhs_packet_size = internal::unpacket_traits<typename RightEvaluator::PacketReturnType>::size;
     const int lhs_alignment = LeftEvaluator::IsAligned ? Aligned : Unaligned;
     const int rhs_alignment = RightEvaluator::IsAligned ? Aligned : Unaligned;
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
@@ -544,8 +544,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
 
-    const Index lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const Index rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const Index lhs_packet_size = internal::unpacket_traits<typename LeftEvaluator::PacketReturnType>::size;
+    const Index rhs_packet_size = internal::unpacket_traits<typename RightEvaluator::PacketReturnType>::size;
 
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
                                                    LeftEvaluator, left_nocontract_t,
