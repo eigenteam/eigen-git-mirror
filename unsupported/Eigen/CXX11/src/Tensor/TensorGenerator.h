@@ -85,10 +85,11 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
   static const int NumDims = internal::array_size<Dimensions>::value;
   typedef typename XprType::Scalar Scalar;
-
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   enum {
     IsAligned = false,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
@@ -113,9 +114,6 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
       }
     }
   }
-
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
