@@ -284,7 +284,7 @@ struct digamma_impl {
     bool negative;
 
     const Scalar maxnum = NumTraits<Scalar>::infinity();
-    const Scalar m_pi = 3.14159265358979323846;
+    const Scalar m_pi = EIGEN_PI;
 
     negative = 0;
     nz = 0.0;

@@ -946,12 +946,13 @@ T (floor)(const T& x)
   return floor(x);
 }
 
+#ifdef EIGEN_HAS_C99_MATH
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float floor(const float &x) { return ::floorf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double floor(const double &x) { return ::floor(x); }
-
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC
@@ -999,12 +1000,13 @@ T log(const T &x) {
   return log(x);
 }
 
+#ifdef EIGEN_HAS_C99_MATH
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float log(const float &x) { return ::logf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double log(const double &x) { return ::log(x); }
-
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
@@ -1013,12 +1015,13 @@ T tan(const T &x) {
   return tan(x);
 }
 
+#ifdef EIGEN_HAS_C99_MATH
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float tan(const float &x) { return ::tanf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double tan(const double &x) { return ::tan(x); }
-
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
@@ -1027,12 +1030,13 @@ T abs(const T &x) {
   return abs(x);
 }
 
+#ifdef EIGEN_HAS_C99_MATH
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float abs(const float &x) { return ::fabsf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double abs(const double &x) { return ::fabs(x); }
-
+#endif
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
@@ -1041,11 +1045,13 @@ T exp(const T &x) {
   return exp(x);
 }
 
+#ifdef EIGEN_HAS_C99_MATH
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float exp(const float &x) { return ::expf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double exp(const double &x) { return ::exp(x); }
+#endif
 
 } // end namespace numext
 
