@@ -36,8 +36,8 @@ struct TensorUInt128
   template<typename OTHER_HIGH, typename OTHER_LOW>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   TensorUInt128(const TensorUInt128<OTHER_HIGH, OTHER_LOW>& other) : high(other.high), low(other.low) {
-    EIGEN_STATIC_ASSERT(sizeof(OTHER_HIGH) <= sizeof(HIGH), "high too wide");
-    EIGEN_STATIC_ASSERT(sizeof(OTHER_LOW) <= sizeof(LOW), "low too wide");
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_HIGH) <= sizeof(HIGH), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_LOW) <= sizeof(LOW), YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
 
   template<typename T>
