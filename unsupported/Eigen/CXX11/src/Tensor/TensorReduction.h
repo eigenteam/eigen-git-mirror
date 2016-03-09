@@ -256,9 +256,8 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
       const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
       eigen_assert(num_coeffs >= numblocks * blocksize);
 
-      std::vector<Notification*> results;
-      results.reserve(numblocks);
-      std::vector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
+      MaxSizeVector<Notification*> results(numblocks);
+      MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
       for (Index i = 0; i < numblocks; ++i) {
         results.push_back(
             device.enqueue(&FullReducerShard<Self, Op, false>::run, self,
@@ -308,9 +307,8 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
     const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
     eigen_assert(num_coeffs >= numblocks * blocksize);
 
-    std::vector<Notification*> results;
-    results.reserve(numblocks);
-    std::vector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
+    MaxSizeVector<Notification*> results(numblocks);
+    MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
     for (Index i = 0; i < numblocks; ++i) {
       results.push_back(device.enqueue(&FullReducerShard<Self, Op, true>::run,
                                        self, i * blocksize, blocksize, reducer,
