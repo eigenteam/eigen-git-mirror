@@ -359,7 +359,7 @@ template <typename T> class UniformRandomGenerator {
   bool m_deterministic;
 };
 
-#if __cplusplus > 199711
+#if __cplusplus > 199711 || EIGEN_COMP_MSVC >= 1900
 template <> class UniformRandomGenerator<float> {
  public:
   static const bool PacketAccess = true;
@@ -565,7 +565,7 @@ struct functor_traits<UniformRandomGenerator<Scalar> > {
 
 
 
-#if (!defined (EIGEN_USE_GPU) || !defined(__CUDACC__) || !defined(__CUDA_ARCH__)) && __cplusplus > 199711
+#if (!defined (EIGEN_USE_GPU) || !defined(__CUDACC__) || !defined(__CUDA_ARCH__)) && (__cplusplus > 199711 || EIGEN_COMP_MSVC >= 1900)
 // We're not compiling a cuda kernel
 template <typename T> class NormalRandomGenerator {
  public:
