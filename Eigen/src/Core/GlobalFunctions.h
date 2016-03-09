@@ -129,6 +129,36 @@ namespace Eigen
     );
   }
 
+  /** \returns an expression of the coefficient-wise igamma(\a a, \a x) to the given arrays.
+    *
+    * This function computes the coefficient-wise incomplete gamma function.
+    *
+    */
+  template<typename Derived,typename ExponentDerived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_igamma_op<typename Derived::Scalar>, const Derived, const ExponentDerived>
+  igamma(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDerived>& x) 
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_igamma_op<typename Derived::Scalar>, const Derived, const ExponentDerived>(
+      a.derived(),
+      x.derived()
+    );
+  }
+
+  /** \returns an expression of the coefficient-wise igammac(\a a, \a x) to the given arrays.
+    *
+    * This function computes the coefficient-wise complementary incomplete gamma function.
+    *
+    */
+  template<typename Derived,typename ExponentDerived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_igammac_op<typename Derived::Scalar>, const Derived, const ExponentDerived>
+  igammac(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDerived>& x) 
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_igammac_op<typename Derived::Scalar>, const Derived, const ExponentDerived>(
+      a.derived(),
+      x.derived()
+    );
+  }
+
   namespace internal
   {
     EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(real,scalar_real_op)

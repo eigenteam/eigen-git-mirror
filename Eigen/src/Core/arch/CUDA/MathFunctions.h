@@ -117,6 +117,42 @@ double2 perfc<double2>(const double2& a)
 }
 
 
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pigamma<float4>(const float4& a, const float4& x)
+{
+  using numext::igamma;
+  return make_float4(
+      igamma(a.x, x.x),
+      igamma(a.y, x.y),
+      igamma(a.z, x.z),
+      igamma(a.w, x.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pigamma<double2>(const double2& a, const double2& x)
+{
+  using numext::igamma;
+  return make_double2(igamma(a.x, x.x), igamma(a.y, x.y));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pigammac<float4>(const float4& a, const float4& x)
+{
+  using numext::igammac;
+  return make_float4(
+      igammac(a.x, x.x),
+      igammac(a.y, x.y),
+      igammac(a.z, x.z),
+      igammac(a.w, x.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pigammac<double2>(const double2& a, const double2& x)
+{
+  using numext::igammac;
+  return make_double2(igammac(a.x, x.x), igammac(a.y, x.y));
+}
+
 #endif
 
 } // end namespace internal

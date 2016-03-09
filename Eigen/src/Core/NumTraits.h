@@ -95,6 +95,11 @@ template<typename T> struct GenericNumTraits
   static inline T infinity() {
     return numext::numeric_limits<T>::infinity();
   }
+
+  EIGEN_DEVICE_FUNC
+  static inline T quiet_NaN() {
+    return numext::numeric_limits<T>::quiet_NaN();
+  }
 };
 
 template<typename T> struct NumTraits : GenericNumTraits<T>

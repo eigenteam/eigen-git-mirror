@@ -148,6 +148,7 @@ template<typename T> struct numeric_limits
   static T (max)() { assert(false && "Highest not supported for this type"); }
   static T (min)() { assert(false && "Lowest not supported for this type"); }
   static T infinity() { assert(false && "Infinity not supported for this type"); }
+  static T quiet_NaN() { assert(false && "quiet_NaN not supported for this type"); }
 };
 template<> struct numeric_limits<float>
 {
@@ -159,6 +160,8 @@ template<> struct numeric_limits<float>
   static float (min)() { return FLT_MIN; }
   EIGEN_DEVICE_FUNC
   static float infinity() { return CUDART_INF_F; }
+  EIGEN_DEVICE_FUNC
+  static float quiet_NaN() { return CUDART_NAN_F; }
 };
 template<> struct numeric_limits<double>
 {
@@ -170,6 +173,8 @@ template<> struct numeric_limits<double>
   static double (min)() { return DBL_MIN; }
   EIGEN_DEVICE_FUNC
   static double infinity() { return CUDART_INF; }
+  EIGEN_DEVICE_FUNC
+  static double quiet_NaN() { return CUDART_NAN; }
 };
 template<> struct numeric_limits<int>
 {
