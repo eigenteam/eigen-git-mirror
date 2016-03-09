@@ -946,6 +946,13 @@ T (floor)(const T& x)
   return floor(x);
 }
 
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float floor(const float &x) { return ::floorf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double floor(const double &x) { return ::floor(x); }
+
+
 template<typename T>
 EIGEN_DEVICE_FUNC
 T (ceil)(const T& x)
@@ -984,6 +991,61 @@ T sqrt(const T &x)
   EIGEN_USING_STD_MATH(sqrt);
   return sqrt(x);
 }
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T log(const T &x) {
+  EIGEN_USING_STD_MATH(log);
+  return log(x);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float log(const float &x) { return ::logf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double log(const double &x) { return ::log(x); }
+
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T tan(const T &x) {
+  EIGEN_USING_STD_MATH(tan);
+  return tan(x);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float tan(const float &x) { return ::tanf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double tan(const double &x) { return ::tan(x); }
+
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T abs(const T &x) {
+  EIGEN_USING_STD_MATH(abs);
+  return abs(x);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float abs(const float &x) { return ::fabsf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double abs(const double &x) { return ::fabs(x); }
+
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T exp(const T &x) {
+  EIGEN_USING_STD_MATH(exp);
+  return exp(x);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float exp(const float &x) { return ::expf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double exp(const double &x) { return ::exp(x); }
 
 } // end namespace numext
 

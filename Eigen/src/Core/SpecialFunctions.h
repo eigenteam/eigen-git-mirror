@@ -283,7 +283,7 @@ struct digamma_impl {
     Scalar p, q, nz, s, w, y;
     bool negative;
 
-    const Scalar maxnum = numext::numeric_limits<Scalar>::infinity();
+    const Scalar maxnum = NumTraits<Scalar>::infinity();
     const Scalar m_pi = 3.14159265358979323846;
 
     negative = 0;
@@ -296,7 +296,7 @@ struct digamma_impl {
     if (x <= zero) {
       negative = one;
       q = x;
-      p = ::floor(q);
+      p = numext::floor(q);
       if (p == q) {
         return maxnum;
       }
@@ -309,7 +309,7 @@ struct digamma_impl {
           p += one;
           nz = q - p;
         }
-        nz = m_pi / ::tan(m_pi * nz);
+        nz = m_pi / numext::tan(m_pi * nz);
       }
       else {
         nz = zero;
@@ -327,7 +327,7 @@ struct digamma_impl {
 
     y = digamma_impl_maybe_poly<Scalar>::run(s);
 
-    y = ::log(s) - (half / s) - y - w;
+    y = numext::log(s) - (half / s) - y - w;
 
     return (negative) ? y - nz : y;
   }
@@ -401,6 +401,327 @@ struct erfc_impl<double> {
 };
 #endif  // EIGEN_HAS_C99_MATH
 
+/****************************************************************************
+ * Implementation of igammac (complemented incomplete gamma integral)       *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct igammac_retval {
+  typedef Scalar type;
+};
+
+#ifndef EIGEN_HAS_C99_MATH
+
+template <typename Scalar>
+struct igammac_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+#else
+
+template <typename Scalar> struct igamma_impl;  // predeclare igamma_impl
+
+template <typename Scalar>
+struct igamma_helper {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static Scalar machep() { assert(false && "machep not supported for this type"); return 0.0; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static Scalar big() { assert(false && "big not supported for this type"); return 0.0; }
+};
+
+template <>
+struct igamma_helper<float> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static float machep() {
+    return NumTraits<float>::epsilon() / 2;  // 1.0 - machep == 1.0
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static float big() {
+    // use epsneg (1.0 - epsneg == 1.0)
+    return 1.0 / (NumTraits<float>::epsilon() / 2);
+  }
+};
+
+template <>
+struct igamma_helper<double> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static double machep() {
+    return NumTraits<double>::epsilon() / 2;  // 1.0 - machep == 1.0
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static double big() {
+    return 1.0 / NumTraits<double>::epsilon();
+  }
+};
+
+template <typename Scalar>
+struct igammac_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    /*							igamc()
+     *
+     *	Incomplete gamma integral (modified for Eigen)
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * double a, x, y, igamc();
+     *
+     * y = igamc( a, x );
+     *
+     * DESCRIPTION:
+     *
+     * The function is defined by
+     *
+     *
+     *  igamc(a,x)   =   1 - igam(a,x)
+     *
+     *                            inf.
+     *                              -
+     *                     1       | |  -t  a-1
+     *               =   -----     |   e   t   dt.
+     *                    -      | |
+     *                   | (a)    -
+     *                             x
+     *
+     *
+     * In this implementation both arguments must be positive.
+     * The integral is evaluated by either a power series or
+     * continued fraction expansion, depending on the relative
+     * values of a and x.
+     *
+     * ACCURACY (float):
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30        30000       7.8e-6      5.9e-7
+     *
+     *
+     * ACCURACY (double):
+     *
+     * Tested at random a, x.
+     *                a         x                      Relative error:
+     * arithmetic   domain   domain     # trials      peak         rms
+     *    IEEE     0.5,100   0,100      200000       1.9e-14     1.7e-15
+     *    IEEE     0.01,0.5  0,100      200000       1.4e-13     1.6e-15
+     *
+     */
+    /*
+      Cephes Math Library Release 2.2: June, 1992
+      Copyright 1985, 1987, 1992 by Stephen L. Moshier
+      Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+    */
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar two = 2;
+    const Scalar machep = igamma_helper<Scalar>::machep();
+    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
+    const Scalar big = igamma_helper<Scalar>::big();
+    const Scalar biginv = 1 / big;
+    const Scalar nan = NumTraits<Scalar>::quiet_NaN();
+    const Scalar inf = NumTraits<Scalar>::infinity();
+
+    Scalar ans, ax, c, yc, r, t, y, z;
+    Scalar pk, pkm1, pkm2, qk, qkm1, qkm2;
+
+    if ((x < zero) || ( a <= zero)) {
+      // domain error
+      return nan;
+    }
+
+    if ((x < one) || (x < a)) {
+      return (one - igamma_impl<Scalar>::run(a, x));
+    }
+
+    if (x == inf) return zero;  // std::isinf crashes on CUDA
+
+    /* Compute  x**a * exp(-x) / gamma(a)  */
+    ax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);
+    if (ax < -maxlog) {  // underflow
+      return zero;
+    }
+    ax = numext::exp(ax);
+
+    // continued fraction
+    y = one - a;
+    z = x + y + one;
+    c = zero;
+    pkm2 = one;
+    qkm2 = x;
+    pkm1 = x + one;
+    qkm1 = z * x;
+    ans = pkm1 / qkm1;
+
+    while (true) {
+      c += one;
+      y += one;
+      z += two;
+      yc = y * c;
+      pk = pkm1 * z - pkm2 * yc;
+      qk = qkm1 * z - qkm2 * yc;
+      if (qk != zero) {
+        r = pk / qk;
+        t = numext::abs((ans - r) / r);
+        ans = r;
+      } else {
+        t = one;
+      }
+      pkm2 = pkm1;
+      pkm1 = pk;
+      qkm2 = qkm1;
+      qkm1 = qk;
+      if (abs(pk) > big) {
+        pkm2 *= biginv;
+        pkm1 *= biginv;
+        qkm2 *= biginv;
+        qkm1 *= biginv;
+      }
+      if (t <= machep) break;
+    }
+
+    return (ans * ax);
+  }
+};
+
+#endif  // EIGEN_HAS_C99_MATH
+
+/****************************************************************************
+ * Implementation of igamma (incomplete gamma integral)                     *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct igamma_retval {
+  typedef Scalar type;
+};
+
+#ifndef EIGEN_HAS_C99_MATH
+
+template <typename Scalar>
+struct igamma_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+#else
+
+template <typename Scalar>
+struct igamma_impl {
+  EIGEN_DEVICE_FUNC
+  static Scalar run(Scalar a, Scalar x) {
+    /*							igam()
+     *	Incomplete gamma integral
+     *
+     *
+     *
+     * SYNOPSIS:
+     *
+     * double a, x, y, igam();
+     *
+     * y = igam( a, x );
+     *
+     * DESCRIPTION:
+     *
+     * The function is defined by
+     *
+     *                           x
+     *                            -
+     *                   1       | |  -t  a-1
+     *  igam(a,x)  =   -----     |   e   t   dt.
+     *                  -      | |
+     *                 | (a)    -
+     *                           0
+     *
+     *
+     * In this implementation both arguments must be positive.
+     * The integral is evaluated by either a power series or
+     * continued fraction expansion, depending on the relative
+     * values of a and x.
+     *
+     * ACCURACY (double):
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30       200000       3.6e-14     2.9e-15
+     *    IEEE      0,100      300000       9.9e-14     1.5e-14
+     *
+     *
+     * ACCURACY (float):
+     *
+     *                      Relative error:
+     * arithmetic   domain     # trials      peak         rms
+     *    IEEE      0,30        20000       7.8e-6      5.9e-7
+     *
+     */
+    /*
+      Cephes Math Library Release 2.2: June, 1992
+      Copyright 1985, 1987, 1992 by Stephen L. Moshier
+      Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+    */
+
+
+    /* left tail of incomplete gamma function:
+     *
+     *          inf.      k
+     *   a  -x   -       x
+     *  x  e     >   ----------
+     *           -     -
+     *          k=0   | (a+k+1)
+     *
+     */
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar machep = igamma_helper<Scalar>::machep();
+    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
+    const Scalar nan = NumTraits<Scalar>::quiet_NaN();
+
+    double ans, ax, c, r;
+
+    if (x == zero) return zero;
+
+    if ((x < zero) || ( a <= zero)) {  // domain error
+      return nan;
+    }
+
+    if ((x > one) && (x > a)) {
+      return (one - igammac_impl<Scalar>::run(a, x));
+    }
+
+    /* Compute  x**a * exp(-x) / gamma(a)  */
+    ax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);
+    if (ax < -maxlog) {
+      // underflow
+      return zero;
+    }
+    ax = numext::exp(ax);
+
+    /* power series */
+    r = a;
+    c = one;
+    ans = one;
+
+    while (true) {
+      r += one;
+      c *= x/r;
+      ans += c;
+      if (c/ans <= machep) break;
+    }
+
+    return (ans * ax / a);
+  }
+};
+
+#endif  // EIGEN_HAS_C99_MATH
+
 }  // end namespace internal
 
 namespace numext {
@@ -429,7 +750,20 @@ EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(erfc, Scalar)
   return EIGEN_MATHFUNC_IMPL(erfc, Scalar)::run(x);
 }
 
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(igamma, Scalar)
+    igamma(const Scalar& a, const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(igamma, Scalar)::run(a, x);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(igammac, Scalar)
+    igammac(const Scalar& a, const Scalar& x) {
+  return EIGEN_MATHFUNC_IMPL(igammac, Scalar)::run(a, x);
+}
+
 }  // end namespace numext
+
 
 }  // end namespace Eigen
 
