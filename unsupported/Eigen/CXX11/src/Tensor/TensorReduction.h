@@ -247,7 +247,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
       *output = reducer.finalize(reducer.initialize());
       return;
     }
-    const int num_threads = device.numThreads();
+    const std::size_t num_threads = device.numThreads();
     if (num_threads == 1) {
       *output = InnerMostDimReducer<Self, Op, false>::reduce(self, 0, num_coeffs, reducer);
       return;
