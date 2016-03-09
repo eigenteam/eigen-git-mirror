@@ -149,11 +149,11 @@ template <typename T> struct MaxReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return -(std::numeric_limits<T>::max)();
+    return Eigen::NumTraits<T>::lowest();
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(-(std::numeric_limits<T>::max)());
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
@@ -182,11 +182,11 @@ template <typename T> struct MinReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return (std::numeric_limits<T>::max)();
+    return Eigen::NumTraits<T>::highest();
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>((std::numeric_limits<T>::max)());
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
@@ -722,6 +722,7 @@ template <> class NormalRandomGenerator<std::complex<double> > {
 
 template <typename T> class NormalRandomGenerator {
  public:
+  static const bool PacketAccess = false;
   NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {}
 
  private:

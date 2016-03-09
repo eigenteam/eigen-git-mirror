@@ -127,8 +127,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
       const Index numblocks = size / blocksize;
 
-      std::vector<Notification*> results;
-      results.reserve(numblocks);
+      MaxSizeVector<Notification*> results(numblocks);
       for (int i = 0; i < numblocks; ++i) {
         results.push_back(device.enqueue(&EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize));
       }

@@ -27,7 +27,6 @@ struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename internal::promote_storage_type<typename LhsXprType::Scalar,
                                                   typename RhsXprType::Scalar>::ret Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<LhsXprType>::StorageKind,
                                         typename traits<RhsXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<LhsXprType>::Index,
@@ -76,11 +75,8 @@ class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXp
 {
   public:
   typedef typename Eigen::internal::traits<TensorContractionOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorContractionOp>::Packet Packet;
   typedef typename internal::promote_storage_type<typename LhsXprType::CoeffReturnType,
                                                   typename RhsXprType::CoeffReturnType>::ret CoeffReturnType;
-  typedef typename internal::promote_storage_type<typename LhsXprType::PacketReturnType,
-                                                  typename RhsXprType::PacketReturnType>::ret PacketReturnType;
   typedef typename Eigen::internal::nested<TensorContractionOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorContractionOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorContractionOp>::Index Index;
@@ -118,14 +114,13 @@ struct TensorContractionEvaluatorBase
 
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
-  typedef typename XprType::Packet Packet;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   enum {
     IsAligned = true,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = true
@@ -386,8 +381,8 @@ struct TensorContractionEvaluatorBase
     typedef typename internal::remove_const<typename EvalRightArgType::Scalar>::type RhsScalar;
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
-    const Index lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const Index rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const Index lhs_packet_size = internal::unpacket_traits<typename LeftEvaluator::PacketReturnType>::size;
+    const Index rhs_packet_size = internal::unpacket_traits<typename RightEvaluator::PacketReturnType>::size;
     const int lhs_alignment = LeftEvaluator::IsAligned ? Aligned : Unaligned;
     const int rhs_alignment = RightEvaluator::IsAligned ? Aligned : Unaligned;
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
@@ -434,7 +429,7 @@ struct TensorContractionEvaluatorBase
 
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const {
-    return internal::ploadt<Packet, LoadMode>(m_result + index);
+    return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return m_result; }
@@ -478,10 +473,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
-  typedef typename XprType::Packet Packet;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   enum {
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
@@ -550,8 +544,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     typedef TensorEvaluator<EvalLeftArgType, Device> LeftEvaluator;
     typedef TensorEvaluator<EvalRightArgType, Device> RightEvaluator;
 
-    const Index lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const Index rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const Index lhs_packet_size = internal::unpacket_traits<typename LeftEvaluator::PacketReturnType>::size;
+    const Index rhs_packet_size = internal::unpacket_traits<typename RightEvaluator::PacketReturnType>::size;
 
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
                                                    LeftEvaluator, left_nocontract_t,

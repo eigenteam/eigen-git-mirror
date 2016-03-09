@@ -25,7 +25,6 @@ template<typename LhsXprType, typename RhsXprType>
 struct traits<TensorAssignOp<LhsXprType, RhsXprType> >
 {
   typedef typename LhsXprType::Scalar Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename traits<LhsXprType>::StorageKind StorageKind;
   typedef typename promote_index_type<typename traits<LhsXprType>::Index,
                                       typename traits<RhsXprType>::Index>::type Index;
@@ -62,10 +61,8 @@ class TensorAssignOp : public TensorBase<TensorAssignOp<LhsXprType, RhsXprType> 
 {
   public:
   typedef typename Eigen::internal::traits<TensorAssignOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorAssignOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename LhsXprType::CoeffReturnType CoeffReturnType;
-  typedef typename LhsXprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorAssignOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorAssignOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorAssignOp>::Index Index;
@@ -110,7 +107,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename TensorEvaluator<RightArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const

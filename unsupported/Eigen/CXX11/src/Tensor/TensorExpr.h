@@ -32,7 +32,6 @@ template<typename NullaryOp, typename XprType>
 struct traits<TensorCwiseNullaryOp<NullaryOp, XprType> >
     : traits<XprType>
 {
-  typedef typename XprType::Packet Packet;
   typedef traits<XprType> XprTraits;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::Nested XprTypeNested;
@@ -54,10 +53,8 @@ class TensorCwiseNullaryOp : public TensorBase<TensorCwiseNullaryOp<NullaryOp, X
 {
   public:
     typedef typename Eigen::internal::traits<TensorCwiseNullaryOp>::Scalar Scalar;
-    typedef typename Eigen::internal::traits<TensorCwiseNullaryOp>::Packet Packet;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
     typedef typename XprType::CoeffReturnType CoeffReturnType;
-    typedef typename XprType::PacketReturnType PacketReturnType;
     typedef TensorCwiseNullaryOp<NullaryOp, XprType> Nested;
     typedef typename Eigen::internal::traits<TensorCwiseNullaryOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorCwiseNullaryOp>::Index Index;
@@ -88,7 +85,6 @@ struct traits<TensorCwiseUnaryOp<UnaryOp, XprType> >
   // current Scalar/Packet to see if the intent is Input or Output.
   typedef typename result_of<UnaryOp(typename XprType::Scalar)>::type Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename XprType::Nested XprTypeNested;
   typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
   static const int NumDimensions = XprTraits::NumDimensions;
@@ -118,10 +114,8 @@ class TensorCwiseUnaryOp : public TensorBase<TensorCwiseUnaryOp<UnaryOp, XprType
     // TODO(phli): Add InputScalar, InputPacket.  Check references to
     // current Scalar/Packet to see if the intent is Input or Output.
     typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Scalar Scalar;
-    typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Packet Packet;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
     typedef Scalar CoeffReturnType;
-    typedef typename internal::packet_traits<CoeffReturnType>::type PacketReturnType;
     typedef typename Eigen::internal::nested<TensorCwiseUnaryOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorCwiseUnaryOp>::Index Index;
@@ -155,7 +149,6 @@ struct traits<TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType> >
       BinaryOp(typename LhsXprType::Scalar,
                typename RhsXprType::Scalar)>::type Scalar;
   typedef traits<LhsXprType> XprTraits;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<
       typename traits<LhsXprType>::StorageKind,
       typename traits<RhsXprType>::StorageKind>::ret StorageKind;
@@ -197,10 +190,8 @@ class TensorCwiseBinaryOp : public TensorBase<TensorCwiseBinaryOp<BinaryOp, LhsX
     // TODO(phli): Add Lhs/RhsScalar, Lhs/RhsPacket.  Check references to
     // current Scalar/Packet to see if the intent is Inputs or Output.
     typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Scalar Scalar;
-    typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Packet Packet;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
     typedef Scalar CoeffReturnType;
-    typedef typename internal::packet_traits<CoeffReturnType>::type PacketReturnType;
     typedef typename Eigen::internal::nested<TensorCwiseBinaryOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorCwiseBinaryOp>::Index Index;
@@ -234,7 +225,6 @@ struct traits<TensorSelectOp<IfXprType, ThenXprType, ElseXprType> >
 {
   typedef typename traits<ThenXprType>::Scalar Scalar;
   typedef traits<ThenXprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<ThenXprType>::StorageKind,
                                         typename traits<ElseXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<ElseXprType>::Index,
@@ -266,12 +256,9 @@ class TensorSelectOp : public TensorBase<TensorSelectOp<IfXprType, ThenXprType, 
 {
   public:
     typedef typename Eigen::internal::traits<TensorSelectOp>::Scalar Scalar;
-    typedef typename Eigen::internal::traits<TensorSelectOp>::Packet Packet;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
     typedef typename internal::promote_storage_type<typename ThenXprType::CoeffReturnType,
                                                     typename ElseXprType::CoeffReturnType>::ret CoeffReturnType;
-    typedef typename internal::promote_storage_type<typename ThenXprType::PacketReturnType,
-                                                    typename ElseXprType::PacketReturnType>::ret PacketReturnType;
     typedef typename Eigen::internal::nested<TensorSelectOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorSelectOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorSelectOp>::Index Index;

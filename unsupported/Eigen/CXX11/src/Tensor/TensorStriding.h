@@ -25,7 +25,6 @@ struct traits<TensorStridingOp<Strides, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -55,10 +54,8 @@ class TensorStridingOp : public TensorBase<TensorStridingOp<Strides, XprType> >
 {
   public:
   typedef typename Eigen::internal::traits<TensorStridingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorStridingOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorStridingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorStridingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorStridingOp>::Index Index;
@@ -147,7 +144,7 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -267,7 +264,8 @@ struct TensorEvaluator<TensorStridingOp<Strides, ArgType>, Device>
 
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
   {

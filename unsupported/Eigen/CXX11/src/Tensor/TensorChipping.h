@@ -26,7 +26,6 @@ struct traits<TensorChippingOp<DimId, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -80,10 +79,8 @@ class TensorChippingOp : public TensorBase<TensorChippingOp<DimId, XprType> >
 {
   public:
   typedef typename Eigen::internal::traits<TensorChippingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorChippingOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorChippingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorChippingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorChippingOp>::Index Index;
@@ -184,7 +181,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -313,7 +310,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
     { }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {

@@ -221,7 +221,6 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename promote_storage_type<typename InputXprType::Scalar,
                                         typename KernelXprType::Scalar>::ret Scalar;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<InputXprType>::StorageKind,
                                         typename traits<KernelXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<InputXprType>::Index,
@@ -259,12 +258,9 @@ class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, Input
 {
   public:
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorConvolutionOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::promote_storage_type<typename InputXprType::CoeffReturnType,
                                                   typename KernelXprType::CoeffReturnType>::ret CoeffReturnType;
-  typedef typename internal::promote_storage_type<typename InputXprType::PacketReturnType,
-                                                  typename KernelXprType::PacketReturnType>::ret PacketReturnType;
   typedef typename Eigen::internal::nested<TensorConvolutionOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::Index Index;
@@ -373,7 +369,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -775,7 +771,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, GpuDevice>::type PacketReturnType;
   typedef typename InputArgType::Scalar Scalar;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_dimensions; }

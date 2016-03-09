@@ -31,7 +31,6 @@ class TensorBase<Derived, ReadOnlyAccessors>
     typedef typename DerivedTraits::Scalar Scalar;
     typedef typename DerivedTraits::Index Index;
     typedef typename internal::remove_const<Scalar>::type CoeffReturnType;
-    typedef typename internal::packet_traits<CoeffReturnType>::type PacketReturnType;
     static const int NumDimensions = DerivedTraits::NumDimensions;
 
     // Generic nullary operation support.
@@ -706,7 +705,6 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     typedef typename DerivedTraits::Scalar Scalar;
     typedef typename DerivedTraits::Index Index;
     typedef Scalar CoeffReturnType;
-    typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
     static const int NumDimensions = DerivedTraits::NumDimensions;
 
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;

@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "src/Core/util/EmulateArray.h"
+#include "src/Core/util/MaxSizeVector.h"
 
 // Emulate the cxx11 functionality that we need if the compiler doesn't support it.
 // Visual studio 2015 doesn't advertise itself as cxx11 compliant, although it
