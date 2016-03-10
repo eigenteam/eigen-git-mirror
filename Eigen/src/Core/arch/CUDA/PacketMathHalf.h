@@ -38,19 +38,19 @@ __device__ half operator / (const half& a, const half& b) {
 __device__ half operator - (const half& a) {
   return __hneg(a);
 }
-__device__ half operator += (half& a, const half& b) {
+__device__ half& operator += (half& a, const half& b) {
    a = a + b;
    return a;
 }
-__device__ half operator *= (half& a, const half& b) {
+__device__ half& operator *= (half& a, const half& b) {
   a = a * b;
   return a;
 }
-__device__ half operator -= (half& a, const half& b) {
+__device__ half& operator -= (half& a, const half& b) {
   a = a - b;
   return a;
 }
-__device__ half operator /= (half& a, const half& b) {
+__device__ half& operator /= (half& a, const half& b) {
   a = a / b;
   return a;
 }
