@@ -318,7 +318,7 @@ class BaseTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, con
   EIGEN_STRONG_INLINE Packet loadPacket(Index i, Index j) const {
     EIGEN_ALIGN_MAX Scalar data[1];
     data[0] = this->m_tensor.coeff(this->computeIndex(i, j));
-    return pload<typename Tensor::PacketReturntype>(data);
+    return pload<typename Tensor::PacketReturnType>(data);
   }
   template <int> EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Packet loadHalfPacket(Index i, Index j) const {
