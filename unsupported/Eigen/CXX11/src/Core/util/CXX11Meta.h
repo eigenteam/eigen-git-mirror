@@ -259,22 +259,20 @@ template<
 
 template<
   typename Reducer,
-  typename A,
-  typename... Ts
-> struct reduce<Reducer, A, Ts...>
+  typename A
+> struct reduce<Reducer, A>
 {
-  constexpr static inline A run(A a, Ts...) { return a; }
+  constexpr static inline A run(A a) { return a; }
 };
 
 template<
   typename Reducer,
   typename A,
-  typename B,
   typename... Ts
-> struct reduce<Reducer, A, B, Ts...>
+> struct reduce<Reducer, A, Ts...>
 {
-  constexpr static inline auto run(A a, B b, Ts... ts) -> decltype(Reducer::run(a, reduce<Reducer, B, Ts...>::run(b, ts...))) {
-    return Reducer::run(a, reduce<Reducer, B, Ts...>::run(b, ts...));
+  constexpr static inline auto run(A a, Ts... ts) -> decltype(Reducer::run(a, reduce<Reducer, Ts...>::run(ts...))) {
+    return Reducer::run(a, reduce<Reducer, Ts...>::run(ts...));
   }
 };
 
