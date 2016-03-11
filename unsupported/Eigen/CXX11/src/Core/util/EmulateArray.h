@@ -15,7 +15,7 @@
 // The array class is only available starting with cxx11. Emulate our own here
 // if needed.
 // Moreover, CUDA doesn't support the STL containers, so we use our own instead.
-#if __cplusplus <= 199711L || defined(__CUDACC__) || defined(EIGEN_AVOID_STL_ARRAY)
+#if (__cplusplus <= 199711L && EIGEN_COMP_MSVC < 1900) || defined(__CUDACC__) || defined(EIGEN_AVOID_STL_ARRAY)
 
 namespace Eigen {
 template <typename T, size_t n> class array {
@@ -176,6 +176,19 @@ template <typename T> class array<T, 0> {
  private:
   T dummy;
 };
+
+// Comparison operator
+// Todo: implement !=, <, <=, >,  and >=
+template<class T, std::size_t N>
+bool operator==(const array<T,N>& lhs, const array<T,N>& rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    if (lhs[i] != rhs[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 
 namespace internal {
 template<std::size_t I, class T, std::size_t N>
