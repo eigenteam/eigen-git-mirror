@@ -69,10 +69,10 @@ struct half : public __half {
   EIGEN_DEVICE_FUNC half(const volatile half& h)
       : __half(internal::raw_uint16_to_half(h.x)) {}
 
-  EIGEN_DEVICE_FUNC explicit operator float() const {
+  EIGEN_DEVICE_FUNC operator float() const {
     return internal::half_to_float(*this);
   }
-  EIGEN_DEVICE_FUNC explicit operator double() const {
+  EIGEN_DEVICE_FUNC operator double() const {
     return internal::half_to_float(*this);
   }
 
