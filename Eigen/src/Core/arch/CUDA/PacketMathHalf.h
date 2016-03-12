@@ -19,55 +19,9 @@
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
 
-// The following operations require arch >= 5.3
-#if  __CUDA_ARCH__ >= 530
-__device__ half operator + (const half& a, const half& b) {
-  return __hadd(a, b);
-}
-__device__ half operator * (const half& a, const half& b) {
-  return __hmul(a, b);
-}
-__device__ half operator - (const half& a, const half& b) {
-  return __hsub(a, b);
-}
-__device__ half operator / (const half& a, const half& b) {
-  float num = __half2float(a);
-  float denom = __half2float(b);
-  return __float2half(num / denom);
-}
-__device__ half operator - (const half& a) {
-  return __hneg(a);
-}
-__device__ half& operator += (half& a, const half& b) {
-   a = a + b;
-   return a;
-}
-__device__ half& operator *= (half& a, const half& b) {
-  a = a * b;
-  return a;
-}
-__device__ half& operator -= (half& a, const half& b) {
-  a = a - b;
-  return a;
-}
-__device__ half& operator /= (half& a, const half& b) {
-  a = a / b;
-  return a;
-}
-
-namespace std {
-__device__ half abs(const half& a) {
-  half result;
-  result.x = a.x & 0x7FFF;
-  return result;
-}
-}
-#endif
-
 namespace Eigen {
 namespace internal {
 
-template<> struct is_arithmetic<half> { enum { value = true }; };
 template<> struct is_arithmetic<half2> { enum { value = true }; };
 
 template<> struct packet_traits<half> : default_packet_traits
