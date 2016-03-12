@@ -210,7 +210,7 @@ static inline EIGEN_DEVICE_FUNC __half raw_uint16_to_half(unsigned short x) {
 }
 
 union FP32 {
-  uint32_t u;
+  unsigned int u;
   float f;
 };
 
@@ -223,10 +223,10 @@ static inline EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
   const FP32 f32infty = { 255 << 23 };
   const FP32 f16max = { (127 + 16) << 23 };
   const FP32 denorm_magic = { ((127 - 15) + (23 - 10) + 1) << 23 };
-  uint32_t sign_mask = 0x80000000u;
+  unsigned int sign_mask = 0x80000000u;
   __half o = { 0 };
 
-  uint32_t sign = f.u & sign_mask;
+  unsigned int sign = f.u & sign_mask;
   f.u ^= sign;
 
   // NOTE all the integer compares in this function can be safely
@@ -246,10 +246,10 @@ static inline EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
       // and one integer subtract of the bias later, we have our final float!
       o.x = f.u - denorm_magic.u;
     } else {
-      uint32_t mant_odd = (f.u >> 13) & 1; // resulting mantissa is odd
+      unsigned int mant_odd = (f.u >> 13) & 1; // resulting mantissa is odd
 
       // update exponent, rounding bias part 1
-      f.u += ((uint32_t)(15 - 127) << 23) + 0xfff;
+      f.u += ((unsigned int)(15 - 127) << 23) + 0xfff;
       // rounding bias part 2
       f.u += mant_odd;
       // take the bits!
@@ -267,17 +267,17 @@ static inline EIGEN_DEVICE_FUNC float half_to_float(__half h) {
   return __half2float(h);
 #else
   const FP32 magic = { 113 << 23 };
-  const uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
+  const unsigned int shifted_exp = 0x7c00 << 13; // exponent mask after shift
   FP32 o;
 
-  o.u = (h.x & 0x7fff) << 13;         // exponent/mantissa bits
-  uint32_t exp = shifted_exp & o.u;   // just the exponent
-  o.u += (127 - 15) << 23;            // exponent adjust
+  o.u = (h.x & 0x7fff) << 13;             // exponent/mantissa bits
+  unsigned int exp = shifted_exp & o.u;   // just the exponent
+  o.u += (127 - 15) << 23;                // exponent adjust
 
   // handle exponent special cases
-  if (exp == shifted_exp) {  // Inf/NaN?
+  if (exp == shifted_exp) {     // Inf/NaN?
     o.u += (128 - 16) << 23;    // extra exp adjust
-  } else if (exp == 0) {  // Zero/Denormal?
+  } else if (exp == 0) {        // Zero/Denormal?
     o.u += 1 << 23;             // extra exp adjust
     o.f -= magic.f;             // renormalize
   }
