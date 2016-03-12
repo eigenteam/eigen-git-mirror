@@ -48,7 +48,7 @@ namespace Eigen {
 
 namespace internal {
 
-static inline EIGEN_DEVICE_FUNC __half raw_uint16_to_half(uint16_t x);
+static inline EIGEN_DEVICE_FUNC __half raw_uint16_to_half(unsigned short x);
 static inline EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff);
 static inline EIGEN_DEVICE_FUNC float half_to_float(__half h);
 
@@ -203,7 +203,7 @@ static inline EIGEN_DEVICE_FUNC bool operator > (const half& a, const half& b) {
 
 namespace internal {
 
-static inline EIGEN_DEVICE_FUNC __half raw_uint16_to_half(uint16_t x) {
+static inline EIGEN_DEVICE_FUNC __half raw_uint16_to_half(unsigned short x) {
   __half h;
   h.x = x;
   return h;
