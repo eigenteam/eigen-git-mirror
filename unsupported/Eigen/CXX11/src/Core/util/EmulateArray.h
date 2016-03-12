@@ -180,7 +180,7 @@ template <typename T> class array<T, 0> {
 // Comparison operator
 // Todo: implement !=, <, <=, >,  and >=
 template<class T, std::size_t N>
-bool operator==(const array<T,N>& lhs, const array<T,N>& rhs) {
+EIGEN_DEVICE_FUNC bool operator==(const array<T,N>& lhs, const array<T,N>& rhs) {
   for (std::size_t i = 0; i < N; ++i) {
     if (lhs[i] != rhs[i]) {
       return false;
