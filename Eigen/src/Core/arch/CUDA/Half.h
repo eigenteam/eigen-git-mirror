@@ -39,7 +39,7 @@
 
 // Make our own __half definition that is similar to CUDA's.
 struct __half {
-  uint16_t x;
+  unsigned short x;
 };
 
 #endif
