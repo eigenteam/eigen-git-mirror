@@ -215,7 +215,7 @@ union FP32 {
 };
 
 static inline EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
-#if defined(__CUDA_ARCH__) && defined(EIGEN_HAS_CUDA_FP16)
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __float2half(ff);
 #else
   FP32 f; f.f = ff;
@@ -263,7 +263,7 @@ static inline EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
 }
 
 static inline EIGEN_DEVICE_FUNC float half_to_float(__half h) {
-#if defined(__CUDA_ARCH__) && defined(EIGEN_HAS_CUDA_FP16)
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __half2float(h);
 #else
   const FP32 magic = { 113 << 23 };
@@ -305,7 +305,7 @@ static inline EIGEN_DEVICE_FUNC bool (isinf)(const Eigen::half& a) {
   return (a.x & 0x7fff) == 0x7c00;
 }
 static inline EIGEN_HALF_CUDA_H bool (isnan)(const Eigen::half& a) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
   return __hisnan(x);
 #else
   return (a.x & 0x7fff) > 0x7c00;
