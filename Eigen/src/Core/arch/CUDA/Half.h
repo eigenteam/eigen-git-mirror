@@ -90,7 +90,7 @@ struct half : public __half {
   }
 };
 
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
 
 // Intrinsics for native fp16 support. Note that on current hardware,
 // these are no faster than fp32 arithmetic (you need to use the half2
@@ -143,7 +143,7 @@ __device__ bool operator > (const half& a, const half& b) {
   return __hgt(a, b);
 }
 
-#else  // Not CUDA 530
+#else  // Emulate support for half floats
 
 // Definitions for CPUs and older CUDA, mostly working through conversion
 // to/from fp32.
@@ -194,7 +194,7 @@ static inline EIGEN_DEVICE_FUNC bool operator > (const half& a, const half& b) {
   return float(a) > float(b);
 }
 
-#endif // Not CUDA 530
+#endif  // Emulate support for half floats
 
 // Conversion routines, including fallbacks for the host or older CUDA.
 // Note that newer Intel CPUs (Haswell or newer) have vectorized versions of
