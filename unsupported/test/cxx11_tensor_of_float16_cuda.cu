@@ -27,18 +27,18 @@ void test_cuda_conversion() {
   int num_elem = 101;
   
   float* d_float = (float*)gpu_device.allocate(num_elem * sizeof(float));
-  half* d_half = (half*)gpu_device.allocate(num_elem * sizeof(half));
+  Eigen::half* d_half = (Eigen::half*)gpu_device.allocate(num_elem * sizeof(Eigen::half));
   float* d_conv = (float*)gpu_device.allocate(num_elem * sizeof(float));
 
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_float(
       d_float, num_elem);
-  Eigen::TensorMap<Eigen::Tensor<half, 1>, Eigen::Aligned> gpu_half(
+  Eigen::TensorMap<Eigen::Tensor<Eigen::half, 1>, Eigen::Aligned> gpu_half(
       d_half, num_elem);
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_conv(
       d_conv, num_elem);
 
   gpu_float.device(gpu_device) = gpu_float.random();
-  gpu_half.device(gpu_device) = gpu_float.cast<half>();
+  gpu_half.device(gpu_device) = gpu_float.cast<Eigen::half>();
   gpu_conv.device(gpu_device) = gpu_half.cast<float>();
 
   Tensor<float, 1> initial(num_elem);
@@ -72,9 +72,9 @@ void test_cuda_unary() {
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res_float(
       d_res_float, num_elem);
 
-  gpu_float.device(gpu_device) = gpu_float.random();
+  gpu_float.device(gpu_device) = gpu_float.random() - gpu_float.constant(0.5f);
   gpu_res_float.device(gpu_device) = gpu_float.abs();
-  gpu_res_half.device(gpu_device) = gpu_float.cast<half>().abs().cast<float>();
+  gpu_res_half.device(gpu_device) = gpu_float.cast<Eigen::half>().abs().cast<float>();
 
   Tensor<float, 1> half_prec(num_elem);
   Tensor<float, 1> full_prec(num_elem);
@@ -115,7 +115,7 @@ void test_cuda_elementwise() {
   gpu_float1.device(gpu_device) = gpu_float1.random();
   gpu_float2.device(gpu_device) = gpu_float2.random();
   gpu_res_float.device(gpu_device) = (gpu_float1 + gpu_float2) * gpu_float1;
-  gpu_res_half.device(gpu_device) = ((gpu_float1.cast<half>() + gpu_float2.cast<half>()) * gpu_float1.cast<half>()).cast<float>();
+  gpu_res_half.device(gpu_device) = ((gpu_float1.cast<Eigen::half>() + gpu_float2.cast<Eigen::half>()) * gpu_float1.cast<Eigen::half>()).cast<float>();
 
   Tensor<float, 1> half_prec(num_elem);
   Tensor<float, 1> full_prec(num_elem);
@@ -162,7 +162,7 @@ void test_cuda_contractions() {
   typedef Tensor<float, 2>::DimensionPair DimPair;
   Eigen::array<DimPair, 1> dims(DimPair(1, 0));
   gpu_res_float.device(gpu_device) = gpu_float1.contract(gpu_float2, dims);
-  gpu_res_half.device(gpu_device) = gpu_float1.cast<half>().contract(gpu_float2.cast<half>(), dims).cast<float>();
+  gpu_res_half.device(gpu_device) = gpu_float1.cast<Eigen::half>().contract(gpu_float2.cast<Eigen::half>(), dims).cast<float>();
 
   Tensor<float, 2> half_prec(rows, cols);
   Tensor<float, 2> full_prec(rows, cols);
@@ -209,7 +209,7 @@ void test_cuda_reductions() {
 
   Eigen::array<int, 1> redux_dim = {{0}};
   gpu_res_float.device(gpu_device) = gpu_float1.sum(redux_dim);
-  gpu_res_half.device(gpu_device) = gpu_float1.cast<half>().sum(redux_dim).cast<float>();
+  gpu_res_half.device(gpu_device) = gpu_float1.cast<Eigen::half>().sum(redux_dim).cast<float>();
 
   Tensor<float, 1> half_prec(size);
   Tensor<float, 1> full_prec(size);
