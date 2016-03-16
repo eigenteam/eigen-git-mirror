@@ -304,22 +304,14 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
   VERIFY_IS_APPROX(log10(m3), log(m3)/log(10));
 
-  // Smoke test to check any compilation issues
-  ArrayType m1_abs_p1 = m1.abs() + 1;
-  ArrayType m2_abs_p1 = m2.abs() + 1;
-  VERIFY_IS_APPROX(Eigen::igamma(m1_abs_p1, m2_abs_p1), Eigen::igamma(m1_abs_p1, m2_abs_p1));
-  VERIFY_IS_APPROX(Eigen::igammac(m1_abs_p1, m2_abs_p1), Eigen::igammac(m1_abs_p1, m2_abs_p1));
-  VERIFY_IS_APPROX(Eigen::igamma(m2_abs_p1, m1_abs_p1), Eigen::igamma(m2_abs_p1, m1_abs_p1));
-  VERIFY_IS_APPROX(Eigen::igammac(m2_abs_p1, m1_abs_p1), Eigen::igammac(m2_abs_p1, m1_abs_p1));
-
   // scalar by array division
   const RealScalar tiny = sqrt(std::numeric_limits<RealScalar>::epsilon());
   s1 += Scalar(tiny);
   m1 += ArrayType::Constant(rows,cols,Scalar(tiny));
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
 
-  // check special functions (comparing against numpy implementation)
 #ifdef EIGEN_HAS_C99_MATH
+  // check special functions (comparing against numpy implementation)
   if (!NumTraits<Scalar>::IsComplex) {
     VERIFY_IS_APPROX(numext::digamma(Scalar(1)), RealScalar(-0.5772156649015329));
     VERIFY_IS_APPROX(numext::digamma(Scalar(1.5)), RealScalar(0.03648997397857645));
@@ -331,6 +323,37 @@ template<typename ArrayType> void array_real(const ArrayType& m)
     VERIFY_IS_EQUAL(numext::digamma(Scalar(-1)),
                     std::numeric_limits<RealScalar>::infinity());
 
+    {
+      // Test various propreties of igamma & igammac.  These are normalized
+      // gamma integrals where
+      //   igammac(a, x) = Gamma(a, x) / Gamma(a)
+      //   igamma(a, x) = gamma(a, x) / Gamma(a)
+      // where Gamma and gamma are considered the standard unnormalized
+      // upper and lower incomplete gamma functions, respectively.
+      ArrayType a = m1.abs() + 2;
+      ArrayType x = m2.abs() + 2;
+      ArrayType zero = ArrayType::Zero(rows, cols);
+      ArrayType one = ArrayType::Constant(rows, cols, Scalar(1.0));
+      ArrayType a_m1 = a - one;
+      ArrayType Gamma_a_x = Eigen::igammac(a, x) * a.lgamma().exp();
+      ArrayType Gamma_a_m1_x = Eigen::igammac(a_m1, x) * a_m1.lgamma().exp();
+      ArrayType gamma_a_x = Eigen::igamma(a, x) * a.lgamma().exp();
+      ArrayType gamma_a_m1_x = Eigen::igamma(a_m1, x) * a_m1.lgamma().exp();
+
+      // Gamma(a, 0) == Gamma(a)
+      VERIFY_IS_APPROX(Eigen::igammac(a, zero), one);
+
+      // Gamma(a, x) + gamma(a, x) == Gamma(a)
+      VERIFY_IS_APPROX(Gamma_a_x + gamma_a_x, a.lgamma().exp());
+
+      // Gamma(a, x) == (a - 1) * Gamma(a-1, x) + x^(a-1) * exp(-x)
+      VERIFY_IS_APPROX(Gamma_a_x, (a - 1) * Gamma_a_m1_x + x.pow(a-1) * (-x).exp());
+
+      // gamma(a, x) == (a - 1) * gamma(a-1, x) - x^(a-1) * exp(-x)
+      VERIFY_IS_APPROX(gamma_a_x, (a - 1) * gamma_a_m1_x - x.pow(a-1) * (-x).exp());
+    }
+
+    // Check exact values of igamma and igammac against a third party calculation.
     Scalar a_s[] = {Scalar(0), Scalar(1), Scalar(1.5), Scalar(4), Scalar(0.0001), Scalar(1000.5)};
     Scalar x_s[] = {Scalar(0), Scalar(1), Scalar(1.5), Scalar(4), Scalar(0.0001), Scalar(1000.5)};
 
