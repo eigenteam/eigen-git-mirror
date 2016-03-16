@@ -295,7 +295,6 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(Eigen::pow(m1,2*exponents), m1.square().square());
   VERIFY_IS_APPROX(m1.pow(2*exponents), m1.square().square());
   VERIFY_IS_APPROX(pow(m1(0,0), exponents), ArrayType::Constant(rows,cols,m1(0,0)*m1(0,0)));
-  
 
   VERIFY_IS_APPROX(m3.pow(RealScalar(0.5)), m3.sqrt());
   VERIFY_IS_APPROX(pow(m3,RealScalar(0.5)), m3.sqrt());
@@ -311,8 +310,8 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   m1 += ArrayType::Constant(rows,cols,Scalar(tiny));
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
 
-  // check special functions (comparing against numpy implementation)
 #ifdef EIGEN_HAS_C99_MATH
+  // check special functions (comparing against numpy implementation)
   if (!NumTraits<Scalar>::IsComplex) {
     VERIFY_IS_APPROX(numext::digamma(Scalar(1)), RealScalar(-0.5772156649015329));
     VERIFY_IS_APPROX(numext::digamma(Scalar(1.5)), RealScalar(0.03648997397857645));
@@ -323,6 +322,79 @@ template<typename ArrayType> void array_real(const ArrayType& m)
                     std::numeric_limits<RealScalar>::infinity());
     VERIFY_IS_EQUAL(numext::digamma(Scalar(-1)),
                     std::numeric_limits<RealScalar>::infinity());
+
+    {
+      // Test various propreties of igamma & igammac.  These are normalized
+      // gamma integrals where
+      //   igammac(a, x) = Gamma(a, x) / Gamma(a)
+      //   igamma(a, x) = gamma(a, x) / Gamma(a)
+      // where Gamma and gamma are considered the standard unnormalized
+      // upper and lower incomplete gamma functions, respectively.
+      ArrayType a = m1.abs() + 2;
+      ArrayType x = m2.abs() + 2;
+      ArrayType zero = ArrayType::Zero(rows, cols);
+      ArrayType one = ArrayType::Constant(rows, cols, Scalar(1.0));
+      ArrayType a_m1 = a - one;
+      ArrayType Gamma_a_x = Eigen::igammac(a, x) * a.lgamma().exp();
+      ArrayType Gamma_a_m1_x = Eigen::igammac(a_m1, x) * a_m1.lgamma().exp();
+      ArrayType gamma_a_x = Eigen::igamma(a, x) * a.lgamma().exp();
+      ArrayType gamma_a_m1_x = Eigen::igamma(a_m1, x) * a_m1.lgamma().exp();
+
+      // Gamma(a, 0) == Gamma(a)
+      VERIFY_IS_APPROX(Eigen::igammac(a, zero), one);
+
+      // Gamma(a, x) + gamma(a, x) == Gamma(a)
+      VERIFY_IS_APPROX(Gamma_a_x + gamma_a_x, a.lgamma().exp());
+
+      // Gamma(a, x) == (a - 1) * Gamma(a-1, x) + x^(a-1) * exp(-x)
+      VERIFY_IS_APPROX(Gamma_a_x, (a - 1) * Gamma_a_m1_x + x.pow(a-1) * (-x).exp());
+
+      // gamma(a, x) == (a - 1) * gamma(a-1, x) - x^(a-1) * exp(-x)
+      VERIFY_IS_APPROX(gamma_a_x, (a - 1) * gamma_a_m1_x - x.pow(a-1) * (-x).exp());
+    }
+
+    // Check exact values of igamma and igammac against a third party calculation.
+    Scalar a_s[] = {Scalar(0), Scalar(1), Scalar(1.5), Scalar(4), Scalar(0.0001), Scalar(1000.5)};
+    Scalar x_s[] = {Scalar(0), Scalar(1), Scalar(1.5), Scalar(4), Scalar(0.0001), Scalar(1000.5)};
+
+    // location i*6+j corresponds to a_s[i], x_s[j].
+    Scalar nan = std::numeric_limits<Scalar>::quiet_NaN();
+    Scalar igamma_s[][6] = {{0.0, nan, nan, nan, nan, nan},
+                            {0.0, 0.6321205588285578, 0.7768698398515702,
+                             0.9816843611112658, 9.999500016666262e-05, 1.0},
+                            {0.0, 0.4275932955291202, 0.608374823728911,
+                             0.9539882943107686, 7.522076445089201e-07, 1.0},
+                            {0.0, 0.01898815687615381, 0.06564245437845008,
+                             0.5665298796332909, 4.166333347221828e-18, 1.0},
+                            {0.0, 0.9999780593618628, 0.9999899967080838,
+                             0.9999996219837988, 0.9991370418689945, 1.0},
+                            {0.0, 0.0, 0.0, 0.0, 0.0, 0.5042041932513908}};
+    Scalar igammac_s[][6] = {{nan, nan, nan, nan, nan, nan},
+                             {1.0, 0.36787944117144233, 0.22313016014842982,
+                              0.018315638888734182, 0.9999000049998333, 0.0},
+                             {1.0, 0.5724067044708798, 0.3916251762710878,
+                              0.04601170568923136, 0.9999992477923555, 0.0},
+                             {1.0, 0.9810118431238462, 0.9343575456215499,
+                              0.4334701203667089, 1.0, 0.0},
+                             {1.0, 2.1940638138146658e-05, 1.0003291916285e-05,
+                              3.7801620118431334e-07, 0.0008629581310054535,
+                              0.0},
+                             {1.0, 1.0, 1.0, 1.0, 1.0, 0.49579580674813944}};
+    for (int i = 0; i < 6; ++i) {
+      for (int j = 0; j < 6; ++j) {
+        if ((std::isnan)(igamma_s[i][j])) {
+          VERIFY((std::isnan)(numext::igamma(a_s[i], x_s[j])));
+        } else {
+          VERIFY_IS_APPROX(numext::igamma(a_s[i], x_s[j]), igamma_s[i][j]);
+        }
+
+        if ((std::isnan)(igammac_s[i][j])) {
+          VERIFY((std::isnan)(numext::igammac(a_s[i], x_s[j])));
+        } else {
+          VERIFY_IS_APPROX(numext::igammac(a_s[i], x_s[j]), igammac_s[i][j]);
+        }
+      }
+    }
   }
 #endif  // EIGEN_HAS_C99_MATH
 

@@ -42,6 +42,8 @@ template<> struct packet_traits<float> : default_packet_traits
     HasDiGamma = 1,
     HasErf = 1,
     HasErfc = 1,
+    HasIgamma = 1,
+    HasIGammac = 1,
 
     HasBlend = 0,
   };
@@ -66,6 +68,8 @@ template<> struct packet_traits<double> : default_packet_traits
     HasDiGamma = 1,
     HasErf = 1,
     HasErfc = 1,
+    HasIGamma = 1,
+    HasIGammac = 1,
 
     HasBlend = 0,
   };
@@ -307,7 +311,6 @@ template<> EIGEN_DEVICE_FUNC inline float4  pabs<float4>(const float4& a) {
 template<> EIGEN_DEVICE_FUNC inline double2 pabs<double2>(const double2& a) {
   return make_double2(fabs(a.x), fabs(a.y));
 }
-
 
 EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<float4,4>& kernel) {
