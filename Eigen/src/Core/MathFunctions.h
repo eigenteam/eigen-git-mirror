@@ -946,7 +946,7 @@ T (floor)(const T& x)
   return floor(x);
 }
 
-#ifdef EIGEN_HAS_C99_MATH
+#ifdef __CUDACC__
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float floor(const float &x) { return ::floorf(x); }
 
@@ -1000,7 +1000,7 @@ T log(const T &x) {
   return log(x);
 }
 
-#ifdef EIGEN_HAS_C99_MATH
+#ifdef __CUDACC__
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float log(const float &x) { return ::logf(x); }
 
@@ -1015,7 +1015,7 @@ T tan(const T &x) {
   return tan(x);
 }
 
-#ifdef EIGEN_HAS_C99_MATH
+#ifdef __CUDACC__
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float tan(const float &x) { return ::tanf(x); }
 
@@ -1030,7 +1030,7 @@ T abs(const T &x) {
   return abs(x);
 }
 
-#ifdef EIGEN_HAS_C99_MATH
+#ifdef __CUDACC__
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float abs(const float &x) { return ::fabsf(x); }
 
@@ -1045,7 +1045,7 @@ T exp(const T &x) {
   return exp(x);
 }
 
-#ifdef EIGEN_HAS_C99_MATH
+#ifdef __CUDACC__
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float exp(const float &x) { return ::expf(x); }
 
