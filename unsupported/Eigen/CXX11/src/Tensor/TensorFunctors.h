@@ -364,19 +364,23 @@ template <> class UniformRandomGenerator<float> {
  public:
   static const bool PacketAccess = true;
 
-  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_generator(new std::mt19937()) {
     if (!deterministic) {
-      m_generator.seed(get_random_seed());
+      m_generator->seed(get_random_seed());
     }
   }
   UniformRandomGenerator(const UniformRandomGenerator<float>& other) {
-    m_generator.seed(other(0) * UINT_MAX);
+    m_generator = new std::mt19937();
+    m_generator->seed(other(0) * UINT_MAX);
     m_deterministic = other.m_deterministic;
+  }
+  ~UniformRandomGenerator() {
+    delete m_generator;
   }
 
   template<typename Index>
   float operator()(Index) const {
-    return m_distribution(m_generator);
+    return m_distribution(*m_generator);
   }
   template<typename Index, typename PacketType>
   PacketType packetOp(Index i) const {
@@ -393,7 +397,7 @@ template <> class UniformRandomGenerator<float> {
   // Make sure m_deterministic comes first to match the layout of the cpu
   // version of the code.
   bool m_deterministic;
-  mutable std::mt19937 m_generator;
+  mutable std::mt19937* m_generator;
   mutable std::uniform_real_distribution<float> m_distribution;
 };
 
@@ -401,19 +405,23 @@ template <> class UniformRandomGenerator<double> {
  public:
   static const bool PacketAccess = true;
 
-  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_generator(new std::mt19937()) {
     if (!deterministic) {
-      m_generator.seed(get_random_seed());
+      m_generator->seed(get_random_seed());
     }
   }
   UniformRandomGenerator(const UniformRandomGenerator<double>& other) {
-    m_generator.seed(other(0) * UINT_MAX);
+    m_generator = new std::mt19937();
+    m_generator->seed(other(0) * UINT_MAX);
     m_deterministic = other.m_deterministic;
+  }
+  ~UniformRandomGenerator() {
+    delete m_generator;
   }
 
   template<typename Index>
   double operator()(Index) const {
-    return m_distribution(m_generator);
+    return m_distribution(*m_generator);
   }
   template<typename Index, typename PacketType>
   PacketType packetOp(Index i) const {
@@ -430,7 +438,7 @@ template <> class UniformRandomGenerator<double> {
   // Make sure m_deterministic comes first to match the layout of the cpu
   // version of the code.
   bool m_deterministic;
-  mutable std::mt19937 m_generator;
+  mutable std::mt19937* m_generator;
   mutable std::uniform_real_distribution<double> m_distribution;
 };
 #endif
@@ -571,34 +579,39 @@ template <typename T> class NormalRandomGenerator {
  public:
   static const bool PacketAccess = true;
 
-  NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_distribution(0, 1) {
+  NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_distribution(0, 1), m_generator(new std::mt19937()) {
     if (!deterministic) {
-      m_generator.seed(get_random_seed());
+      m_generator->seed(get_random_seed());
     }
   }
   NormalRandomGenerator(const NormalRandomGenerator& other)
-      : m_deterministic(other.m_deterministic), m_distribution(other.m_distribution) {
-    m_generator.seed(other(0) * UINT_MAX);
+      : m_deterministic(other.m_deterministic), m_distribution(other.m_distribution), m_generator(new std::mt19937()) {
+    m_generator->seed(other(0) * UINT_MAX);
   }
-
+  ~NormalRandomGenerator() {
+    delete m_generator;
+  }
   template<typename Index>
   T operator()(Index) const {
-    return m_distribution(m_generator);
+    return m_distribution(*m_generator);
   }
   template<typename Index, typename PacketType>
   PacketType packetOp(Index) const {
     const int packetSize = internal::unpacket_traits<PacketType>::size;
     EIGEN_ALIGN_MAX T values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
-      values[i] = m_distribution(m_generator);
+      values[i] = m_distribution(*m_generator);
     }
     return internal::pload<PacketType>(values);
   }
 
  private:
+  // No assignment
+  NormalRandomGenerator& operator = (const NormalRandomGenerator&);
+
   bool m_deterministic;
   mutable std::normal_distribution<T> m_distribution;
-  mutable std::mt19937 m_generator;
+  mutable std::mt19937* m_generator;
 };
 
 #elif defined (EIGEN_USE_GPU) && defined(__CUDACC__) && defined(__CUDA_ARCH__)
