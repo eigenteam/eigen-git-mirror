@@ -193,6 +193,19 @@ struct TensorContractionEvaluatorBase
       }
     }
 
+    // Check for duplicate axes and make sure the first index in eval_op_indices
+    // is increasing. Using O(n^2) sorting is OK since ContractDims is small
+    for (int i = 0; i < ContractDims; i++) {
+      for (int j = i + 1; j < ContractDims; j++) {
+        eigen_assert(eval_op_indices[j].first != eval_op_indices[i].first &&
+                     eval_op_indices[j].second != eval_op_indices[i].second &&
+                     "contraction axes should be unique");
+        if (eval_op_indices[j].first < eval_op_indices[i].first) {
+          numext::swap(eval_op_indices[j], eval_op_indices[i]);
+        }
+      }
+    }
+
     array<Index, LDims> lhs_strides;
     lhs_strides[0] = 1;
     for (int i = 0; i < LDims-1; ++i) {
