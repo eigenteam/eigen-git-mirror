@@ -174,7 +174,7 @@ endif()
 
 # These tests needs nvcc
 find_package(CUDA 7.0)
-if(CUDA_FOUND)
+if(CUDA_FOUND AND EIGEN_TEST_NVCC)
   # Mke sure to compile without the -pedantic and -Wundef flags since they trigger thousands of compilation warnings in the CUDA runtime
   string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")

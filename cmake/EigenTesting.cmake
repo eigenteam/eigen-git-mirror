@@ -309,6 +309,12 @@ macro(ei_testing_print_summary)
       message(STATUS "C++11:             OFF")
     endif()
 
+    if(EIGEN_TEST_NVCC)
+      message(STATUS "CUDA:              ON")
+    else()
+      message(STATUS "CUDA:              OFF")
+    endif()
+
   endif() # vectorization / alignment options
 
   message(STATUS "\n${EIGEN_TESTING_SUMMARY}")
