@@ -242,8 +242,8 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
-    Scalar* result = m_impl.data();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const {
+    CoeffReturnType* result = const_cast<CoeffReturnType*>(m_impl.data());
     if (((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumDims) ||
          (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) &&
         result) {
