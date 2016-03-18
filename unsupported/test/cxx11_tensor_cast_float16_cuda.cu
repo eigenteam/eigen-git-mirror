@@ -65,7 +65,7 @@ void test_fallback_conversion() {
   floats.setRandom();
 
   Eigen::Tensor<Eigen::half, 1> halfs = floats.cast<Eigen::half>();
-  Eigen::Tensor<float, 1> conv = half.cast<float>();
+  Eigen::Tensor<float, 1> conv = halfs.cast<float>();
 
   for (int i = 0; i < num_elem; ++i) {
     VERIFY_IS_APPROX(floats(i), conv(i));
