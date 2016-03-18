@@ -294,8 +294,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     m_fastOtherStride = internal::TensorIntDivisor<Index>(m_otherStride);
     m_fastPatchStride = internal::TensorIntDivisor<Index>(m_patchStride);
     m_fastColStride = internal::TensorIntDivisor<Index>(m_colStride);
-    m_fastInputRowStride = internal::TensorIntDivisor<Index>(m_row_inflate_strides);
-    m_fastInputColStride = internal::TensorIntDivisor<Index>(m_col_inflate_strides);
+    m_fastInflateRowStride = internal::TensorIntDivisor<Index>(m_row_inflate_strides);
+    m_fastInflateColStride = internal::TensorIntDivisor<Index>(m_col_inflate_strides);
     m_fastInputColsEff = internal::TensorIntDivisor<Index>(m_input_cols_eff);
 
     // Number of patches in the width dimension.
@@ -336,7 +336,7 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     const Index colIndex = patch2DIndex / m_fastOutputRows;
     const Index colOffset = patchOffset / m_fastColStride;
     const Index inputCol = colIndex * m_col_strides + colOffset * m_in_col_strides - m_colPaddingLeft;
-    const Index origInputCol = (m_col_inflate_strides == 1) ? inputCol : ((inputCol >= 0) ? (inputCol / m_fastInputColStride) : 0);
+    const Index origInputCol = (m_col_inflate_strides == 1) ? inputCol : ((inputCol >= 0) ? (inputCol / m_fastInflateColStride) : 0);
     if (inputCol < 0 || inputCol >= m_input_cols_eff ||
         ((m_col_inflate_strides != 1) && (inputCol != origInputCol * m_col_inflate_strides))) {
       return Scalar(m_paddingValue);
@@ -346,7 +346,7 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     const Index rowIndex = patch2DIndex - colIndex * m_outputRows;
     const Index rowOffset = patchOffset - colOffset * m_colStride;
     const Index inputRow = rowIndex * m_row_strides + rowOffset * m_in_row_strides - m_rowPaddingTop;
-    const Index origInputRow = (m_row_inflate_strides == 1) ? inputRow : ((inputRow >= 0) ? (inputRow / m_fastInputRowStride) : 0);
+    const Index origInputRow = (m_row_inflate_strides == 1) ? inputRow : ((inputRow >= 0) ? (inputRow / m_fastInflateRowStride) : 0);
     if (inputRow < 0 || inputRow >= m_input_rows_eff ||
         ((m_row_inflate_strides != 1) && (inputRow != origInputRow * m_row_inflate_strides))) {
       return Scalar(m_paddingValue);
@@ -467,8 +467,8 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
   internal::TensorIntDivisor<Index> m_fastOtherStride;
   internal::TensorIntDivisor<Index> m_fastPatchStride;
   internal::TensorIntDivisor<Index> m_fastColStride;
-  internal::TensorIntDivisor<Index> m_fastInputRowStride;
-  internal::TensorIntDivisor<Index> m_fastInputColStride;
+  internal::TensorIntDivisor<Index> m_fastInflateRowStride;
+  internal::TensorIntDivisor<Index> m_fastInflateColStride;
   internal::TensorIntDivisor<Index> m_fastInputColsEff;
 
   Index m_rowInputStride;
