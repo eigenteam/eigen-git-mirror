@@ -397,7 +397,7 @@ template <> class UniformRandomGenerator<float> {
   // Make sure m_deterministic comes first to match the layout of the cpu
   // version of the code.
   bool m_deterministic;
-  mutable std::mt19937* m_generator;
+  std::mt19937* m_generator;
   mutable std::uniform_real_distribution<float> m_distribution;
 };
 
@@ -438,7 +438,7 @@ template <> class UniformRandomGenerator<double> {
   // Make sure m_deterministic comes first to match the layout of the cpu
   // version of the code.
   bool m_deterministic;
-  mutable std::mt19937* m_generator;
+  std::mt19937* m_generator;
   mutable std::uniform_real_distribution<double> m_distribution;
 };
 #endif
@@ -611,7 +611,7 @@ template <typename T> class NormalRandomGenerator {
 
   bool m_deterministic;
   mutable std::normal_distribution<T> m_distribution;
-  mutable std::mt19937* m_generator;
+  std::mt19937* m_generator;
 };
 
 #elif defined (EIGEN_USE_GPU) && defined(__CUDACC__) && defined(__CUDA_ARCH__)
