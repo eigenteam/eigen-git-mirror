@@ -59,7 +59,22 @@ void test_cuda_conversion() {
 }
 
 
+void test_fallback_conversion() {
+  int num_elem = 101;
+  Tensor<float, 1> floats(num_elem);
+  floats.setRandom();
+
+  Eigen::Tensor<Eigen::half, 1> halfs = floats.cast<Eigen::half>();
+  Eigen::Tensor<float, 1> conv = half.cast<float>();
+
+  for (int i = 0; i < num_elem; ++i) {
+    VERIFY_IS_APPROX(floats(i), conv(i));
+  }
+}
+
+
 void test_cxx11_tensor_cast_float16_cuda()
 {
   CALL_SUBTEST(test_cuda_conversion());
+  CALL_SUBTEST(test_fallback_conversion());
 }
