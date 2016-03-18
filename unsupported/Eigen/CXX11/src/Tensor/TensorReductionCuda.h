@@ -126,7 +126,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename OutputType>
-  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
+  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const GpuDevice&, OutputType*) {
     assert(false && "Should only be called on floats");
   }
 
