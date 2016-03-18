@@ -24,8 +24,7 @@ struct scalar_cast_op<float, half> {
     #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
       return __float2half(a);
     #else
-      assert(false && "tbd");
-      return half();
+      return half(a);
     #endif
   }
 };
@@ -43,8 +42,7 @@ struct scalar_cast_op<int, half> {
     #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
       return __float2half(static_cast<float>(a));
     #else
-      assert(false && "tbd");
-      return half();
+      return half(static_cast<float>(a));
     #endif
   }
 };
@@ -62,8 +60,7 @@ struct scalar_cast_op<half, float> {
     #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
       return __half2float(a);
     #else
-      assert(false && "tbd");
-      return 0.0f;
+      return static_cast<float>(a);
     #endif
   }
 };
