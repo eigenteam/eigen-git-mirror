@@ -87,8 +87,16 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pcast<half2, float4>(con
   float2 r2 = __half22float2(b);
   return make_float4(r1.x, r1.y, r2.x, r2.y);
 #else
-  assert(false && "tbd");
-  return float4();
+  half r1;
+  r1.x = a.x & 0xFFFF;
+  half r2;
+  r2.x = (a.x & 0xFFFF0000) >> 16;
+  half r3;
+  r3.x = b.x & 0xFFFF;
+  half r4;
+  r4.x = (b.x & 0xFFFF0000) >> 16;
+  return make_float4(static_cast<float>(r1), static_cast<float>(r2),
+                     static_cast<float>(r3), static_cast<float>(r4));
 #endif
 }
 
@@ -106,8 +114,13 @@ template<> EIGEN_STRONG_INLINE half2 pcast<float4, half2>(const float4& a) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __float22half2_rn(make_float2(a.x, a.y));
 #else
-  assert(false && "tbd");
-  return half2();
+  half r1 = a.x;
+  half r2 = a.y;
+  half2 r;
+  r.x = 0;
+  r.x |= r1.x;
+  r.x |= (static_cast<unsigned int>(r2.x) << 16);
+  return r;
 #endif
 }
 
