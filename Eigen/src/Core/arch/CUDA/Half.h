@@ -35,6 +35,13 @@
 #ifndef EIGEN_HALF_CUDA_H
 #define EIGEN_HALF_CUDA_H
 
+#if __cplusplus > 199711L
+#define EIGEN_EXPLICIT_CAST(tgt_type) explicit operator tgt_type()
+#else
+#define EIGEN_EXPLICIT_CAST(tgt_type) operator tgt_type()
+#endif
+
+
 #if !defined(EIGEN_HAS_CUDA_FP16)
 
 // Make our own __half definition that is similar to CUDA's.
@@ -60,8 +67,8 @@ struct half : public __half {
 
   // TODO(sesse): Should these conversions be marked as explicit?
   EIGEN_DEVICE_FUNC half(float f) : __half(internal::float_to_half_rtne(f)) {}
-  EIGEN_DEVICE_FUNC half(int i) : __half(internal::float_to_half_rtne(i)) {}
-  EIGEN_DEVICE_FUNC half(double d) : __half(internal::float_to_half_rtne(d)) {}
+  EIGEN_DEVICE_FUNC half(int i) : __half(internal::float_to_half_rtne(static_cast<float>(i))) {}
+  EIGEN_DEVICE_FUNC half(double d) : __half(internal::float_to_half_rtne(static_cast<float>(d))) {}
   EIGEN_DEVICE_FUNC half(bool b)
       : __half(internal::raw_uint16_to_half(b ? 0x3c00 : 0)) {}
   EIGEN_DEVICE_FUNC half(const __half& h) : __half(h) {}
@@ -69,10 +76,10 @@ struct half : public __half {
   EIGEN_DEVICE_FUNC half(const volatile half& h)
       : __half(internal::raw_uint16_to_half(h.x)) {}
 
-  EIGEN_DEVICE_FUNC operator float() const {
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(float) const {
     return internal::half_to_float(*this);
   }
-  EIGEN_DEVICE_FUNC operator double() const {
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(double) const {
     return internal::half_to_float(*this);
   }
 
@@ -244,7 +251,7 @@ static inline EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
       f.f += denorm_magic.f;
 
       // and one integer subtract of the bias later, we have our final float!
-      o.x = f.u - denorm_magic.u;
+      o.x = static_cast<unsigned short>(f.u - denorm_magic.u);
     } else {
       unsigned int mant_odd = (f.u >> 13) & 1; // resulting mantissa is odd
 
@@ -253,11 +260,11 @@ static inline EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
       // rounding bias part 2
       f.u += mant_odd;
       // take the bits!
-      o.x = f.u >> 13;
+      o.x = static_cast<unsigned short>(f.u >> 13);
     }
   }
 
-  o.x |= sign >> 16;
+  o.x |= static_cast<unsigned short>(sign >> 16);
   return o;
 #endif
 }
@@ -326,10 +333,10 @@ static inline EIGEN_DEVICE_FUNC Eigen::half abs(const Eigen::half& a) {
   return result;
 }
 static inline EIGEN_DEVICE_FUNC Eigen::half exp(const Eigen::half& a) {
-  return Eigen::half(expf(float(a)));
+  return Eigen::half(::expf(float(a)));
 }
 static inline EIGEN_DEVICE_FUNC Eigen::half log(const Eigen::half& a) {
-  return Eigen::half(logf(float(a)));
+  return Eigen::half(::logf(float(a)));
 }
 
 } // end namespace std
