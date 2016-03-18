@@ -175,7 +175,11 @@ endif()
 # These tests needs nvcc
 find_package(CUDA 7.0)
 if(CUDA_FOUND)
-#  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  # Mke sure to compile without the -pedantic and -Wundef flags since they trigger thousands of compilation warnings in the CUDA runtime
+  string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  message(STATUS "Flags used to compile cuda code: " ${CMAKE_CXX_FLAGS})
+
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
   endif()
