@@ -218,8 +218,8 @@ struct conj_retval
 * Implementation of abs2                                                 *
 ****************************************************************************/
 
-template<typename Scalar>
-struct abs2_impl
+template<typename Scalar,bool IsComplex>
+struct abs2_impl_default
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
   static inline RealScalar run(const Scalar& x)
@@ -228,12 +228,23 @@ struct abs2_impl
   }
 };
 
-template<typename RealScalar>
-struct abs2_impl<std::complex<RealScalar> >
+template<typename Scalar>
+struct abs2_impl_default<Scalar, true> // IsComplex
 {
-  static inline RealScalar run(const std::complex<RealScalar>& x)
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  static inline RealScalar run(const Scalar& x)
   {
     return real(x)*real(x) + imag(x)*imag(x);
+  }
+};
+
+template<typename Scalar>
+struct abs2_impl
+{
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  static inline RealScalar run(const Scalar& x)
+  {
+    return abs2_impl_default<Scalar,NumTraits<Scalar>::IsComplex>::run(x);
   }
 };
 
