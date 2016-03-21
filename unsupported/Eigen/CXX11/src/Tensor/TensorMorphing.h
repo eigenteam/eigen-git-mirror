@@ -54,7 +54,6 @@ class TensorReshapingOp : public TensorBase<TensorReshapingOp<NewDimensions, Xpr
 {
   public:
   typedef typename Eigen::internal::traits<TensorReshapingOp>::Scalar Scalar;
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
   typedef typename Eigen::internal::nested<TensorReshapingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorReshapingOp>::StorageKind StorageKind;
@@ -234,7 +233,6 @@ class TensorSlicingOp : public TensorBase<TensorSlicingOp<StartIndices, Sizes, X
 {
   public:
   typedef typename Eigen::internal::traits<TensorSlicingOp>::Scalar Scalar;
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename Eigen::internal::nested<TensorSlicingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorSlicingOp>::StorageKind StorageKind;
