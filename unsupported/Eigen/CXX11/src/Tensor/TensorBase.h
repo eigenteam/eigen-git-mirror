@@ -607,7 +607,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
     const TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>
     extract_volume_patches(const Index patch_planes, const Index patch_rows, const Index patch_cols,
                            const Index plane_stride = 1, const Index row_stride = 1, const Index col_stride = 1,
-                           const PaddingType padding_type = PADDING_SAME, const Scalar padding_value = 0) const {
+                           const PaddingType padding_type = PADDING_SAME, const Scalar padding_value = Scalar(0)) const {
       return TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
     }
 
@@ -619,7 +619,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
                            const Index plane_inflate_stride, const Index row_inflate_stride, const Index col_inflate_stride,
                            const Index padding_top_z, const Index padding_bottom_z,
                            const Index padding_top, const Index padding_bottom,
-                           const Index padding_left, const Index padding_right, const Scalar padding_value = 0) const {
+                           const Index padding_left, const Index padding_right, const Scalar padding_value = Scalar(0)) const {
       return TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, plane_inflate_stride, row_inflate_stride, col_inflate_stride, padding_top_z, padding_bottom_z, padding_top, padding_bottom, padding_left, padding_right, padding_value);
     }
 
