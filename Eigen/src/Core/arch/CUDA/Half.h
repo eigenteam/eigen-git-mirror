@@ -73,8 +73,6 @@ struct half : public __half {
       : __half(internal::raw_uint16_to_half(b ? 0x3c00 : 0)) {}
   EIGEN_DEVICE_FUNC half(const __half& h) : __half(h) {}
   EIGEN_DEVICE_FUNC half(const half& h) : __half(h) {}
-  EIGEN_DEVICE_FUNC half(const volatile half& h)
-      : __half(internal::raw_uint16_to_half(h.x)) {}
 
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(float) const {
     return internal::half_to_float(*this);
@@ -84,14 +82,6 @@ struct half : public __half {
   }
 
   EIGEN_DEVICE_FUNC half& operator=(const half& other) {
-    x = other.x;
-    return *this;
-  }
-  EIGEN_DEVICE_FUNC half& operator=(const volatile half& other) {
-    x = other.x;
-    return *this;
-  }
-  EIGEN_DEVICE_FUNC volatile half& operator=(const half& other) volatile {
     x = other.x;
     return *this;
   }
@@ -340,5 +330,15 @@ static inline EIGEN_DEVICE_FUNC Eigen::half log(const Eigen::half& a) {
 }
 
 } // end namespace std
+
+
+// Add the missing shfl_xor intrinsic
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
+__device__ inline Eigen::half __shfl_xor(Eigen::half var, int laneMask, int width=warpSize) {
+  return static_cast<Eigen::half>(__shfl_xor(static_cast<float>(var), laneMask, width));
+}
+
+#endif
+
 
 #endif // EIGEN_HALF_CUDA_H
