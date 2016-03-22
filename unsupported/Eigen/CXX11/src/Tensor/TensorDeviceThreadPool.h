@@ -27,7 +27,7 @@ class ThreadPoolInterface {
 class ThreadPool : public ThreadPoolInterface {
  public:
   // Construct a pool that contains "num_threads" threads.
-  explicit ThreadPool(int num_threads) : threads_(num_threads, NULL), waiting_(num_threads, NULL) {
+  explicit ThreadPool(int num_threads) : threads_(num_threads), waiters_(num_threads) {
     for (int i = 0; i < num_threads; i++) {
       threads_.push_back(new std::thread([this]() { WorkerLoop(); }));
     }
