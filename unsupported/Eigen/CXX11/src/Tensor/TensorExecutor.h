@@ -127,20 +127,16 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
       const Index numblocks = size / blocksize;
 
-      MaxSizeVector<Notification*> results(numblocks);
+      Barrier barrier(numblocks);
       for (int i = 0; i < numblocks; ++i) {
-        results.push_back(device.enqueue(&EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize));
+        device.enqueue_with_barrier(&barrier, &EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize);
       }
 
       if (numblocks * blocksize < size) {
         EvalRange<Evaluator, Index, Vectorizable>::run(evaluator, numblocks * blocksize, size);
       }
 
-      for (int i = 0; i < numblocks; ++i) {
-        wait_until_ready(results[i]);
-        delete results[i];
-      }
-
+      barrier.Wait();
     }
     evaluator.cleanup();
   }
