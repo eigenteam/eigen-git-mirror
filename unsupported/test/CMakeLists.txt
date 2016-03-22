@@ -175,9 +175,14 @@ endif()
 # These tests needs nvcc
 find_package(CUDA 7.0)
 if(CUDA_FOUND AND EIGEN_TEST_NVCC)
-  # Mke sure to compile without the -pedantic and -Wundef flags since they trigger thousands of compilation warnings in the CUDA runtime
+  # Make sure to compile without the -pedantic, -Wundef, -Wnon-virtual-dtor
+  # and -fno-check-new flags since they trigger thousands of compilation warnings
+  # in the CUDA runtime
   string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-Wnon-virtual-dtor" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-fno-check-new" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
   message(STATUS "Flags used to compile cuda code: " ${CMAKE_CXX_FLAGS})
 
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
