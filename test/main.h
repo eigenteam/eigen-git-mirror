@@ -331,10 +331,12 @@ inline bool test_isApprox(const std::complex<double>& a, const std::complex<doub
 inline bool test_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
 { return internal::isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
 
+#ifndef EIGEN_TEST_NO_LONGDOUBLE
 inline bool test_isApprox(const std::complex<long double>& a, const std::complex<long double>& b)
 { return internal::isApprox(a, b, test_precision<std::complex<long double> >()); }
 inline bool test_isMuchSmallerThan(const std::complex<long double>& a, const std::complex<long double>& b)
 { return internal::isMuchSmallerThan(a, b, test_precision<std::complex<long double> >()); }
+#endif
 #endif
 
 #ifndef EIGEN_TEST_NO_LONGDOUBLE
