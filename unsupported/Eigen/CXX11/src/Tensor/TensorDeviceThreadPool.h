@@ -27,7 +27,7 @@ class ThreadPoolInterface {
 class ThreadPool : public ThreadPoolInterface {
  public:
   // Construct a pool that contains "num_threads" threads.
-  explicit ThreadPool(int num_threads) {
+  explicit ThreadPool(int num_threads) : threads_(num_threads), waiting_(num_threads) {
     for (int i = 0; i < num_threads; i++) {
       threads_.push_back(new std::thread([this]() { WorkerLoop(); }));
     }
@@ -110,8 +110,8 @@ class ThreadPool : public ThreadPoolInterface {
   };
 
   std::mutex mu_;
-  std::vector<std::thread*> threads_;               // All threads
-  std::vector<Waiter*> waiters_;                    // Stack of waiting threads.
+  MaxSizeVector<std::thread*> threads_;             // All threads
+  MaxSizeVector<Waiter*> waiters_;                  // Stack of waiting threads.
   std::deque<std::function<void()>> pending_;       // Queue of pending work
   std::condition_variable empty_;                   // Signaled on pending_.empty()
   bool exiting_ = false;
