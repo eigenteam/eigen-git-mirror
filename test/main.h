@@ -58,6 +58,10 @@
 #define isnan(X) please_protect_your_isnan_with_parentheses
 #define isinf(X) please_protect_your_isinf_with_parentheses
 #define isfinite(X) please_protect_your_isfinite_with_parentheses
+#ifdef M_PI
+#undef M_PI
+#endif
+#define M_PI please_use_EIGEN_PI_instead_of_M_PI
 
 #define FORBIDDEN_IDENTIFIER (this_identifier_is_forbidden_to_avoid_clashes) this_identifier_is_forbidden_to_avoid_clashes
 // B0 is defined in POSIX header termios.h
