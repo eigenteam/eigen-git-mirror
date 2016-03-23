@@ -253,7 +253,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
       return;
     } else {
       const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
-      const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
+      const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
       eigen_assert(num_coeffs >= numblocks * blocksize);
 
       Barrier barrier(numblocks);
@@ -300,7 +300,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
       return;
     }
     const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
-    const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
+    const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
     eigen_assert(num_coeffs >= numblocks * blocksize);
 
     Barrier barrier(numblocks);

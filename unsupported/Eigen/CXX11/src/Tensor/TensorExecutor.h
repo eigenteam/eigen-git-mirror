@@ -125,7 +125,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 
       int blocksz = std::ceil<int>(static_cast<float>(size)/device.numThreads()) + PacketSize - 1;
       const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
-      const Index numblocks = size / blocksize;
+      const unsigned int numblocks = static_cast<unsigned int>(size / blocksize);
 
       Barrier barrier(numblocks);
       for (int i = 0; i < numblocks; ++i) {
