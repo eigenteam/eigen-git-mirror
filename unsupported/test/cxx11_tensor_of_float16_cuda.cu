@@ -134,7 +134,7 @@ void test_cuda_elementwise() {
   gpu_device.deallocate(d_res_float);
 }
 
-/*
+
 void test_cuda_contractions() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -181,7 +181,7 @@ void test_cuda_contractions() {
   gpu_device.deallocate(d_float2);
   gpu_device.deallocate(d_res_half);
   gpu_device.deallocate(d_res_float);
-}*/
+}
 
 
 void test_cuda_reductions() {
@@ -244,7 +244,7 @@ void test_cxx11_tensor_of_float16_cuda()
     CALL_SUBTEST_1(test_cuda_conversion());
     CALL_SUBTEST_1(test_cuda_unary());
     CALL_SUBTEST_1(test_cuda_elementwise());
-//    CALL_SUBTEST_2(test_cuda_contractions());
+    CALL_SUBTEST_2(test_cuda_contractions());
     CALL_SUBTEST_3(test_cuda_reductions());
   }
   else {

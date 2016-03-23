@@ -63,7 +63,7 @@ static inline EIGEN_DEVICE_FUNC float half_to_float(__half h);
 
 // Class definition.
 struct half : public __half {
-  EIGEN_DEVICE_FUNC half() : __half(internal::raw_uint16_to_half(0)) {}
+  EIGEN_DEVICE_FUNC half() {}
 
   EIGEN_DEVICE_FUNC half(const __half& h) : __half(h) {}
   EIGEN_DEVICE_FUNC half(const half& h) : __half(h) {}
