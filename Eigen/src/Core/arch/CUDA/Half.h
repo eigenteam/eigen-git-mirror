@@ -234,6 +234,12 @@ static inline EIGEN_DEVICE_FUNC bool operator > (const half& a, const half& b) {
 
 #endif  // Emulate support for half floats
 
+// Division by an index. Do it in full float precision to avoid accuracy
+// issues in converting the denominator to half.
+static inline EIGEN_DEVICE_FUNC half operator / (const half& a, Index b) {
+  return Eigen::half(static_cast<float>(a) / static_cast<float>(b));
+}
+
 // Conversion routines, including fallbacks for the host or older CUDA.
 // Note that newer Intel CPUs (Haswell or newer) have vectorized versions of
 // these in hardware. If we need more performance on older/other CPUs, they are
