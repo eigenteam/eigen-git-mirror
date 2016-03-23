@@ -10,7 +10,7 @@
 #define EIGEN_USE_THREADS
 
 #include <unistd.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "main.h"
 #include <Eigen/CXX11/Tensor>
 
