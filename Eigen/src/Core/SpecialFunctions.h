@@ -576,7 +576,7 @@ struct igammac_impl {
       pkm1 = pk;
       qkm2 = qkm1;
       qkm1 = qk;
-      if (abs(pk) > big) {
+      if (numext::abs(pk) > big) {
         pkm2 *= biginv;
         pkm1 *= biginv;
         qkm2 *= biginv;
