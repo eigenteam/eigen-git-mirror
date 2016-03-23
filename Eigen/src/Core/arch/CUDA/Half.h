@@ -65,20 +65,61 @@ static inline EIGEN_DEVICE_FUNC float half_to_float(__half h);
 struct half : public __half {
   EIGEN_DEVICE_FUNC half() : __half(internal::raw_uint16_to_half(0)) {}
 
-  // TODO(sesse): Should these conversions be marked as explicit?
-  EIGEN_DEVICE_FUNC half(float f) : __half(internal::float_to_half_rtne(f)) {}
-  EIGEN_DEVICE_FUNC half(int i) : __half(internal::float_to_half_rtne(static_cast<float>(i))) {}
-  EIGEN_DEVICE_FUNC half(double d) : __half(internal::float_to_half_rtne(static_cast<float>(d))) {}
-  EIGEN_DEVICE_FUNC half(bool b)
-      : __half(internal::raw_uint16_to_half(b ? 0x3c00 : 0)) {}
   EIGEN_DEVICE_FUNC half(const __half& h) : __half(h) {}
   EIGEN_DEVICE_FUNC half(const half& h) : __half(h) {}
 
+  explicit EIGEN_DEVICE_FUNC half(bool b)
+      : __half(internal::raw_uint16_to_half(b ? 0x3c00 : 0)) {}
+  explicit EIGEN_DEVICE_FUNC half(int i)
+      : __half(internal::float_to_half_rtne(static_cast<float>(i))) {}
+  explicit EIGEN_DEVICE_FUNC half(long l)
+      : __half(internal::float_to_half_rtne(static_cast<float>(l))) {}
+  explicit EIGEN_DEVICE_FUNC half(long long ll)
+      : __half(internal::float_to_half_rtne(static_cast<float>(ll))) {}
+  explicit EIGEN_DEVICE_FUNC half(float f)
+      : __half(internal::float_to_half_rtne(f)) {}
+  explicit EIGEN_DEVICE_FUNC half(double d)
+      : __half(internal::float_to_half_rtne(static_cast<float>(d))) {}
+
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(bool) const {
+    // +0.0 and -0.0 become false, everything else becomes true.
+    return static_cast<bool>(x & 0x7fff);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(signed char) const {
+    return static_cast<signed char>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(unsigned char) const {
+    return static_cast<unsigned char>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(short) const {
+    return static_cast<short>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(unsigned short) const {
+    return static_cast<unsigned short>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(int) const {
+    return static_cast<int>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(unsigned int) const {
+    return static_cast<unsigned int>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(long) const {
+    return static_cast<long>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(unsigned long) const {
+    return static_cast<unsigned long>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(long long) const {
+    return static_cast<long long>(internal::half_to_float(*this));
+  }
+  EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(unsigned long long) const {
+    return static_cast<unsigned long long>(internal::half_to_float(*this));
+  }
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(float) const {
     return internal::half_to_float(*this);
   }
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(double) const {
-    return internal::half_to_float(*this);
+    return static_cast<double>(internal::half_to_float(*this));
   }
 
   EIGEN_DEVICE_FUNC half& operator=(const half& other) {
