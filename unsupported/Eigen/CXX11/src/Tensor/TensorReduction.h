@@ -258,7 +258,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
 
       Barrier barrier(numblocks);
       MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
-      for (Index i = 0; i < numblocks; ++i) {
+      for (unsigned int i = 0; i < numblocks; ++i) {
         device.enqueue_with_barrier(&barrier, &FullReducerShard<Self, Op, false>::run, self,
                                     i * blocksize, blocksize, reducer, &shards[i]);
       }
@@ -271,7 +271,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
         finalShard = reducer.initialize();
       }
       barrier.Wait();
-      for (Index i = 0; i < numblocks; ++i) {
+      for (unsigned int i = 0; i < numblocks; ++i) {
         reducer.reduce(shards[i], &finalShard);
       }
       *output = reducer.finalize(finalShard);
@@ -305,7 +305,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
 
     Barrier barrier(numblocks);
     MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
-    for (Index i = 0; i < numblocks; ++i) {
+    for (unsigned int i = 0; i < numblocks; ++i) {
       device.enqueue_with_barrier(&barrier, &FullReducerShard<Self, Op, true>::run,
                                   self, i * blocksize, blocksize, reducer,
                                   &shards[i]);
@@ -319,7 +319,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
     }
 
     barrier.Wait();
-    for (Index i = 0; i < numblocks; ++i) {
+    for (unsigned int i = 0; i < numblocks; ++i) {
       reducer.reduce(shards[i], &finalShard);
     }
     *output = reducer.finalize(finalShard);

@@ -128,7 +128,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
       const unsigned int numblocks = static_cast<unsigned int>(size / blocksize);
 
       Barrier barrier(numblocks);
-      for (int i = 0; i < numblocks; ++i) {
+      for (unsigned int i = 0; i < numblocks; ++i) {
         device.enqueue_with_barrier(&barrier, &EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize);
       }
 
