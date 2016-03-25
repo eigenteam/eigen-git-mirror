@@ -303,9 +303,10 @@ template<typename LhsScalar,typename RhsScalar> struct scalar_quotient_op {
 };
 template<typename LhsScalar,typename RhsScalar>
 struct functor_traits<scalar_quotient_op<LhsScalar,RhsScalar> > {
+  typedef typename scalar_quotient_op<LhsScalar,RhsScalar>::result_type result_type;
   enum {
-    Cost = (NumTraits<LhsScalar>::MulCost + NumTraits<RhsScalar>::MulCost), // rough estimate!
-    PacketAccess = scalar_quotient_op<LhsScalar,RhsScalar>::Vectorizable
+    PacketAccess = scalar_quotient_op<LhsScalar,RhsScalar>::Vectorizable,
+    Cost = NumTraits<result_type>::template Div<PacketAccess>::Cost
   };
 };
 
