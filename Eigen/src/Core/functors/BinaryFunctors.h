@@ -238,7 +238,13 @@ template<typename Scalar> struct scalar_hypot_op {
 };
 template<typename Scalar>
 struct functor_traits<scalar_hypot_op<Scalar> > {
-  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess=0 };
+  enum
+  {
+    Cost = 3 * NumTraits<Scalar>::AddCost +
+           2 * NumTraits<Scalar>::MulCost +
+           2 * NumTraits<Scalar>::template Div<false>::Cost,
+    PacketAccess = false
+  };
 };
 
 /** \internal
@@ -564,6 +570,10 @@ struct scalar_inverse_mult_op {
   { return internal::pdiv(pset1<Packet>(m_other),a); }
   Scalar m_other;
 };
+template<typename Scalar>
+struct functor_traits<scalar_inverse_mult_op<Scalar> >
+{ enum { PacketAccess = packet_traits<Scalar>::HasDiv, Cost = NumTraits<Scalar>::template Div<PacketAccess>::Cost }; };
+
 
 } // end namespace internal
 
