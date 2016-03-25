@@ -9,10 +9,19 @@
 
 #define EIGEN_USE_THREADS
 
-#include <unistd.h>
 #include <stdlib.h>
 #include "main.h"
 #include <Eigen/CXX11/Tensor>
+
+#if EIGEN_OS_WIN || EIGEN_OS_WIN64
+#include <windows.h>
+void sleep(int seconds) {
+  Sleep(seconds*1000);
+}
+#else
+#include <unistd.h>
+#endif
+
 
 namespace {
 
