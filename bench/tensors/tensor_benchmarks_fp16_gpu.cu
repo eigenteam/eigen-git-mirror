@@ -12,7 +12,7 @@
     StopBenchmarkTiming();                                                     \
     Eigen::CudaStreamDevice stream;                                            \
     Eigen::GpuDevice device(&stream);                                          \
-    BenchmarkSuite<Eigen::GpuDevice, half> suite(device, N);                   \
+    BenchmarkSuite<Eigen::GpuDevice, Eigen::half> suite(device, N);            \
     cudaDeviceSynchronize();                                                   \
     suite.FUNC(iters);                                                         \
   }                                                                            \
@@ -41,7 +41,7 @@ BM_FuncGPU(colReduction);
     StopBenchmarkTiming();                                                     \
     Eigen::CudaStreamDevice stream;                                            \
     Eigen::GpuDevice device(&stream);                                          \
-    BenchmarkSuite<Eigen::GpuDevice, half> suite(device, D1, D2, D3);          \
+    BenchmarkSuite<Eigen::GpuDevice, Eigen::half> suite(device, D1, D2, D3);   \
     cudaDeviceSynchronize();                                                   \
     suite.FUNC(iters);                                                         \
   }                                                                            \
@@ -60,7 +60,7 @@ BM_FuncWithInputDimsGPU(contraction, N, N, 64);
     StopBenchmarkTiming();                                                     \
     Eigen::CudaStreamDevice stream;                                            \
     Eigen::GpuDevice device(&stream);                                          \
-    BenchmarkSuite<Eigen::GpuDevice, half> suite(device, N);                   \
+    BenchmarkSuite<Eigen::GpuDevice, Eigen::half> suite(device, N);            \
     cudaDeviceSynchronize();                                                   \
     suite.FUNC(iters, DIM1, DIM2);                                             \
   }                                                                            \
