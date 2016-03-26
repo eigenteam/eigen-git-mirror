@@ -25,7 +25,20 @@ struct scalar_mod_op {
 };
 template <typename Scalar>
 struct functor_traits<scalar_mod_op<Scalar> >
-{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
+
+
+/** \internal
+ * \brief Template functor to compute the modulo between 2 arrays.
+ */
+template <typename Scalar>
+struct scalar_mod2_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_mod2_op);
+  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a, const Scalar& b) const { return a % b; }
+};
+template <typename Scalar>
+struct functor_traits<scalar_mod2_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
 
 
 /** \internal
