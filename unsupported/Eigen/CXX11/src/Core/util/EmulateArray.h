@@ -13,7 +13,7 @@
 
 
 // The array class is only available starting with cxx11. Emulate our own here
-// if needed.
+// if needed. Beware, msvc still doesn't advertise itself as a c++11 compiler!
 // Moreover, CUDA doesn't support the STL containers, so we use our own instead.
 #if (__cplusplus <= 199711L && EIGEN_COMP_MSVC < 1900) || defined(__CUDACC__) || defined(EIGEN_AVOID_STL_ARRAY)
 

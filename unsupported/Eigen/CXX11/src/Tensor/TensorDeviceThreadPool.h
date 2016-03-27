@@ -27,7 +27,7 @@ class ThreadPoolInterface {
 class ThreadPool : public ThreadPoolInterface {
  public:
   // Construct a pool that contains "num_threads" threads.
-  explicit ThreadPool(int num_threads) {
+  explicit ThreadPool(int num_threads) : threads_(num_threads), waiters_(num_threads) {
     for (int i = 0; i < num_threads; i++) {
       threads_.push_back(new std::thread([this]() { WorkerLoop(); }));
     }
@@ -110,55 +110,90 @@ class ThreadPool : public ThreadPoolInterface {
   };
 
   std::mutex mu_;
-  std::vector<std::thread*> threads_;               // All threads
-  std::vector<Waiter*> waiters_;                    // Stack of waiting threads.
+  MaxSizeVector<std::thread*> threads_;             // All threads
+  MaxSizeVector<Waiter*> waiters_;                  // Stack of waiting threads.
   std::deque<std::function<void()>> pending_;       // Queue of pending work
   std::condition_variable empty_;                   // Signaled on pending_.empty()
   bool exiting_ = false;
 };
 
 
-// Notification is an object that allows a user to to wait for another
-// thread to signal a notification that an event has occurred.
-//
-// Multiple threads can wait on the same Notification object.
-// but only one caller must call Notify() on the object.
-class Notification {
+// Barrier is an object that allows one or more threads to wait until
+// Notify has been called a specified number of times.
+class Barrier {
  public:
-  Notification() : notified_(false) {}
-  ~Notification() {}
+  Barrier(unsigned int count) : state_(count << 1), notified_(false) {
+    eigen_assert(((count << 1) >> 1) == count);
+  }
+  ~Barrier() {
+    eigen_assert((state_>>1) == 0);
+  }
 
   void Notify() {
+    unsigned int v = state_.fetch_sub(2, std::memory_order_acq_rel) - 2;
+    if (v != 1) {
+      eigen_assert(((v + 2) & ~1) != 0);
+      return;  // either count has not dropped to 0, or waiter is not waiting
+    }
     std::unique_lock<std::mutex> l(mu_);
     eigen_assert(!notified_);
     notified_ = true;
     cv_.notify_all();
   }
 
-  void WaitForNotification() {
+  void Wait() {
+    unsigned int v = state_.fetch_or(1, std::memory_order_acq_rel);
+    if ((v >> 1) == 0) return;
     std::unique_lock<std::mutex> l(mu_);
-    cv_.wait(l, [this]() { return notified_; } );
+    while (!notified_) {
+      cv_.wait(l);
+    }
   }
 
  private:
   std::mutex mu_;
   std::condition_variable cv_;
+  std::atomic<unsigned int> state_;  // low bit is waiter flag
   bool notified_;
 };
 
+
+// Notification is an object that allows a user to to wait for another
+// thread to signal a notification that an event has occurred.
+//
+// Multiple threads can wait on the same Notification object,
+// but only one caller must call Notify() on the object.
+struct Notification : Barrier {
+  Notification() : Barrier(1) {};
+};
+
+
 // Runs an arbitrary function and then calls Notify() on the passed in
 // Notification.
-template <typename Function, typename... Args> struct FunctionWrapper
+template <typename Function, typename... Args> struct FunctionWrapperWithNotification
 {
   static void run(Notification* n, Function f, Args... args) {
     f(args...);
-    n->Notify();
+    if (n) {
+      n->Notify();
+    }
   }
 };
 
-static EIGEN_STRONG_INLINE void wait_until_ready(Notification* n) {
+template <typename Function, typename... Args> struct FunctionWrapperWithBarrier
+{
+  static void run(Barrier* b, Function f, Args... args) {
+    f(args...);
+    if (b) {
+      b->Notify();
+    }
+  }
+};
+
+template <typename SyncType>
+static EIGEN_STRONG_INLINE void wait_until_ready(SyncType* n) {
   if (n) {
-    n->WaitForNotification();
+    n->Wait();
   }
 }
 
@@ -203,10 +238,20 @@ struct ThreadPoolDevice {
   EIGEN_STRONG_INLINE Notification* enqueue(Function&& f, Args&&... args) const {
     Notification* n = new Notification();
     std::function<void()> func =
-      std::bind(&FunctionWrapper<Function, Args...>::run, n, f, args...);
+      std::bind(&FunctionWrapperWithNotification<Function, Args...>::run, n, f, args...);
     pool_->Schedule(func);
     return n;
   }
+
+  template <class Function, class... Args>
+  EIGEN_STRONG_INLINE void enqueue_with_barrier(Barrier* b,
+                                                Function&& f,
+                                                Args&&... args) const {
+    std::function<void()> func = std::bind(
+        &FunctionWrapperWithBarrier<Function, Args...>::run, b, f, args...);
+    pool_->Schedule(func);
+  }
+
   template <class Function, class... Args>
   EIGEN_STRONG_INLINE void enqueueNoNotification(Function&& f, Args&&... args) const {
     std::function<void()> func = std::bind(f, args...);

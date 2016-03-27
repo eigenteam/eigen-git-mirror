@@ -149,6 +149,7 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_argmax)
   ei_add_test(cxx11_tensor_shuffling)
   ei_add_test(cxx11_tensor_striding)
+  ei_add_test(cxx11_tensor_notification "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_tensor_thread_pool "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_tensor_ref)
   ei_add_test(cxx11_tensor_random)
@@ -175,9 +176,14 @@ endif()
 # These tests needs nvcc
 find_package(CUDA 7.0)
 if(CUDA_FOUND AND EIGEN_TEST_NVCC)
-  # Mke sure to compile without the -pedantic and -Wundef flags since they trigger thousands of compilation warnings in the CUDA runtime
+  # Make sure to compile without the -pedantic, -Wundef, -Wnon-virtual-dtor
+  # and -fno-check-new flags since they trigger thousands of compilation warnings
+  # in the CUDA runtime
   string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-Wnon-virtual-dtor" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-fno-check-new" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
   message(STATUS "Flags used to compile cuda code: " ${CMAKE_CXX_FLAGS})
 
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")

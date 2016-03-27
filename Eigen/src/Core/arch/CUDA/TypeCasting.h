@@ -114,8 +114,8 @@ template<> EIGEN_STRONG_INLINE half2 pcast<float4, half2>(const float4& a) {
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __float22half2_rn(make_float2(a.x, a.y));
 #else
-  half r1 = a.x;
-  half r2 = a.y;
+  half r1 = static_cast<half>(a.x);
+  half r2 = static_cast<half>(a.y);
   half2 r;
   r.x = 0;
   r.x |= r1.x;

@@ -11,10 +11,6 @@
 #ifndef EIGEN_MATRIX_LOGARITHM
 #define EIGEN_MATRIX_LOGARITHM
 
-#ifndef M_PI
-#define M_PI 3.141592653589793238462643383279503L
-#endif
-
 namespace Eigen { 
 
 namespace internal { 
@@ -65,8 +61,8 @@ void matrix_log_compute_2x2(const MatrixType& A, MatrixType& result)
   else
   {
     // computation in previous branch is inaccurate if A(1,1) \approx A(0,0)
-    int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - M_PI) / (2*M_PI)));
-    result(0,1) = A(0,1) * (numext::log1p(y/A(0,0)) + Scalar(0,2*M_PI*unwindingNumber)) / y;
+    int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - EIGEN_PI) / (2*EIGEN_PI)));
+    result(0,1) = A(0,1) * (numext::log1p(y/A(0,0)) + Scalar(0,2*EIGEN_PI*unwindingNumber)) / y;
   }
 }
 

@@ -253,15 +253,14 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
       return;
     } else {
       const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
-      const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
+      const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
       eigen_assert(num_coeffs >= numblocks * blocksize);
 
-      MaxSizeVector<Notification*> results(numblocks);
+      Barrier barrier(numblocks);
       MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
-      for (Index i = 0; i < numblocks; ++i) {
-        results.push_back(
-            device.enqueue(&FullReducerShard<Self, Op, false>::run, self,
-                           i * blocksize, blocksize, reducer, &shards[i]));
+      for (unsigned int i = 0; i < numblocks; ++i) {
+        device.enqueue_with_barrier(&barrier, &FullReducerShard<Self, Op, false>::run, self,
+                                    i * blocksize, blocksize, reducer, &shards[i]);
       }
 
       typename Self::CoeffReturnType finalShard;
@@ -271,11 +270,8 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
       } else {
         finalShard = reducer.initialize();
       }
-      for (Index i = 0; i < numblocks; ++i) {
-        wait_until_ready(results[i]);
-        delete results[i];
-      }
-      for (Index i = 0; i < numblocks; ++i) {
+      barrier.Wait();
+      for (unsigned int i = 0; i < numblocks; ++i) {
         reducer.reduce(shards[i], &finalShard);
       }
       *output = reducer.finalize(finalShard);
@@ -304,15 +300,15 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
       return;
     }
     const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
-    const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
+    const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
     eigen_assert(num_coeffs >= numblocks * blocksize);
 
-    MaxSizeVector<Notification*> results(numblocks);
+    Barrier barrier(numblocks);
     MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
-    for (Index i = 0; i < numblocks; ++i) {
-      results.push_back(device.enqueue(&FullReducerShard<Self, Op, true>::run,
-                                       self, i * blocksize, blocksize, reducer,
-                                       &shards[i]));
+    for (unsigned int i = 0; i < numblocks; ++i) {
+      device.enqueue_with_barrier(&barrier, &FullReducerShard<Self, Op, true>::run,
+                                  self, i * blocksize, blocksize, reducer,
+                                  &shards[i]);
     }
     typename Self::CoeffReturnType finalShard;
     if (numblocks * blocksize < num_coeffs) {
@@ -322,11 +318,8 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
       finalShard = reducer.initialize();
     }
 
-    for (Index i = 0; i < numblocks; ++i) {
-      wait_until_ready(results[i]);
-      delete results[i];
-    }
-    for (Index i = 0; i < numblocks; ++i) {
+    barrier.Wait();
+    for (unsigned int i = 0; i < numblocks; ++i) {
       reducer.reduce(shards[i], &finalShard);
     }
     *output = reducer.finalize(finalShard);

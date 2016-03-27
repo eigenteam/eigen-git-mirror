@@ -333,7 +333,7 @@ template <typename Device, typename T> class BenchmarkSuite {
 
 #ifndef EIGEN_HAS_INDEX_LIST
     Eigen::array<TensorIndex, 1> sum_along_dim;
-    sum_along_dim = 1;
+    sum_along_dim[0] = 1;
 #else
     // Take advantage of cxx11 to give the compiler information it can use to
     // optimize the code.
@@ -356,7 +356,7 @@ template <typename Device, typename T> class BenchmarkSuite {
     input_size[1] = n_;
     const TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(
         b_, input_size);
-    const Eigen::array<TensorIndex, 0> output_size;
+    Eigen::array<TensorIndex, 0> output_size;
     TensorMap<Tensor<float, 0, 0, TensorIndex>, Eigen::Aligned> C(
         c_, output_size);
 

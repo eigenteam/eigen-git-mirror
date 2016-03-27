@@ -7,8 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// TODO(mdevin): Free the cuda memory.
 
+#define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_FUNC cxx11_tensor_cuda
 #define EIGEN_USE_GPU
 

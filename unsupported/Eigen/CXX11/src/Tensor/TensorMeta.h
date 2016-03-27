@@ -41,7 +41,7 @@ template <> struct max_n_1<0> {
 template <typename Scalar, typename Device>
 struct PacketType {
   typedef typename internal::packet_traits<Scalar>::type type;
-  static const int size = internal::unpacket_traits<type>::size;
+  enum { size = internal::unpacket_traits<type>::size };
 };
 
 // For CUDA packet types when using a GpuDevice
