@@ -194,6 +194,10 @@
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_NEON
     #include <arm_neon.h>
+  #elif (defined __s390x__ && defined __VEC__)
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_ZVECTOR
+    #include <vecintrin.h>
   #endif
 #endif
 
@@ -267,6 +271,8 @@ inline static const char *SimdInstructionSetsInUse(void) {
   return "VSX";
 #elif defined(EIGEN_VECTORIZE_NEON)
   return "ARM NEON";
+#elif defined(EIGEN_VECTORIZE_ZVECTOR)
+  return "S390X ZVECTOR";
 #else
   return "None";
 #endif
@@ -329,6 +335,10 @@ using std::ptrdiff_t;
   #include "src/Core/arch/NEON/PacketMath.h"
   #include "src/Core/arch/NEON/MathFunctions.h"
   #include "src/Core/arch/NEON/Complex.h"
+#elif defined EIGEN_VECTORIZE_ZVECTOR
+  #include "src/Core/arch/ZVector/PacketMath.h"
+//  #include "src/Core/arch/ZVector/MathFunctions.h"
+//  #include "src/Core/arch/ZVector/Complex.h"
 #endif
 
 #include "src/Core/arch/CUDA/Half.h"
