@@ -170,14 +170,14 @@ template<typename Scalar> void packetmath()
   CHECK_CWISE1(internal::negate, internal::pnegate);
   CHECK_CWISE1(numext::conj, internal::pconj);
 
-/*  for(int offset=0;offset<3;++offset)
+  for(int offset=0;offset<3;++offset)
   {
     for (int i=0; i<PacketSize; ++i)
       ref[i] = data1[offset];
     internal::pstore(data2, internal::pset1<Packet>(data1[offset]));
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
-  }*/
-/*
+  }
+
   {
     for (int i=0; i<PacketSize*4; ++i)
       ref[i] = data1[i/PacketSize];
@@ -199,7 +199,7 @@ template<typename Scalar> void packetmath()
     internal::pstore(data2+1*PacketSize, A1);
     VERIFY(areApprox(ref, data2, 2*PacketSize) && "internal::pbroadcast2");
   }
- */ 
+ 
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
  
   if(PacketSize>1)
@@ -223,12 +223,12 @@ template<typename Scalar> void packetmath()
       VERIFY(areApprox(ref, data2, PacketSize) && "ploadquad");
     }
   }
-/*
+
   ref[0] = 0;
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
   VERIFY(isApproxAbs(ref[0], internal::predux(internal::pload<Packet>(data1)), refvalue) && "internal::predux");
-  
+
   {
     for (int i=0; i<4; ++i)
       ref[i] = 0;
@@ -284,9 +284,9 @@ template<typename Scalar> void packetmath()
     for (int i = 0; i < PacketSize; ++i) {
       VERIFY(isApproxAbs(result[i], (selector.select[i] ? data1[i] : data2[i]), refvalue));
     }
-  }*/
+  }
 }
-/*
+
 template<typename Scalar> void packetmath_real()
 {
   using std::abs;
@@ -471,7 +471,7 @@ template<typename Scalar> void packetmath_notcomplex()
   internal::pstore(data2, internal::plset<Packet>(data1[0]));
   VERIFY(areApprox(ref, data2, PacketSize) && "internal::plset");
 }
-
+/*
 template<typename Scalar,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar* data1, Scalar* data2, Scalar* ref, Scalar* pval)
 {
   typedef internal::packet_traits<Scalar> PacketTraits;
@@ -577,15 +577,15 @@ void test_packetmath()
     CALL_SUBTEST_3( packetmath<int>() );
 /*    CALL_SUBTEST_4( packetmath<std::complex<float> >() );
     CALL_SUBTEST_5( packetmath<std::complex<double> >() );*/
-/*
+
     CALL_SUBTEST_1( packetmath_notcomplex<float>() );
     CALL_SUBTEST_2( packetmath_notcomplex<double>() );
     CALL_SUBTEST_3( packetmath_notcomplex<int>() );
     
-    CALL_SUBTEST_1( packetmath_real<float>() );
-    CALL_SUBTEST_2( packetmath_real<double>() );
+/*    CALL_SUBTEST_1( packetmath_real<float>() );
+    CALL_SUBTEST_2( packetmath_real<double>() );*/
 
-    CALL_SUBTEST_4( packetmath_complex<std::complex<float> >() );
+/*    CALL_SUBTEST_4( packetmath_complex<std::complex<float> >() );
     CALL_SUBTEST_5( packetmath_complex<std::complex<double> >() );*/
 
     CALL_SUBTEST_1( packetmath_scatter_gather<float>() );
