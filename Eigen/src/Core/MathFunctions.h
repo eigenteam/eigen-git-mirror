@@ -1053,6 +1053,28 @@ template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double exp(const double &x) { return ::exp(x); }
 #endif
 
+
+template <typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T fmod(const T& a, const T& b) {
+  EIGEN_USING_STD_MATH(floor);
+  return fmod(a, b);
+}
+
+#ifdef __CUDACC__
+template <>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float fmod(const float& a, const float& b) {
+  return ::fmodf(a, b);
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double fmod(const double& a, const double& b) {
+  return ::fmod(a, b);
+}
+#endif
+
 } // end namespace numext
 
 namespace internal {

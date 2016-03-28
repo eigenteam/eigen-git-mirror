@@ -40,6 +40,20 @@ template <typename Scalar>
 struct functor_traits<scalar_mod2_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
 
+template <typename Scalar>
+struct scalar_fmod_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_fmod_op);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
+  operator()(const Scalar& a, const Scalar& b) const {
+    return numext::fmod(a, b);
+  }
+};
+template <typename Scalar>
+struct functor_traits<scalar_fmod_op<Scalar> > {
+  enum { Cost = 13,  // Reciprocal throughput of FPREM on Haswell.
+         PacketAccess = false };
+};
+
 
 /** \internal
   * \brief Template functor to compute the sigmoid of a scalar
