@@ -254,7 +254,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
     } else {
       const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
       const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
-      eigen_assert(num_coeffs >= numblocks * blocksize);
+      eigen_assert(num_coeffs >= static_cast<Index>(numblocks) * blocksize);
 
       Barrier barrier(numblocks);
       MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
@@ -264,7 +264,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, false> {
       }
 
       typename Self::CoeffReturnType finalShard;
-      if (numblocks * blocksize < num_coeffs) {
+      if (static_cast<Index>(numblocks) * blocksize < num_coeffs) {
         finalShard = InnerMostDimReducer<Self, Op, false>::reduce(
             self, numblocks * blocksize, num_coeffs - numblocks * blocksize, reducer);
       } else {
@@ -301,7 +301,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
     }
     const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
     const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
-    eigen_assert(num_coeffs >= numblocks * blocksize);
+    eigen_assert(num_coeffs >= static_cast<Index>(numblocks) * blocksize);
 
     Barrier barrier(numblocks);
     MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
@@ -311,7 +311,7 @@ struct FullReducer<Self, Op, ThreadPoolDevice, true> {
                                   &shards[i]);
     }
     typename Self::CoeffReturnType finalShard;
-    if (numblocks * blocksize < num_coeffs) {
+    if (static_cast<Index>(numblocks) * blocksize < num_coeffs) {
       finalShard = InnerMostDimReducer<Self, Op, true>::reduce(
           self, numblocks * blocksize, num_coeffs - numblocks * blocksize, reducer);
     } else {
