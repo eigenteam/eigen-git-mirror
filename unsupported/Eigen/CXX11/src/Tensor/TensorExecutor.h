@@ -132,7 +132,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
         device.enqueue_with_barrier(&barrier, &EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize);
       }
 
-      if (numblocks * blocksize < size) {
+      if (static_cast<Index>(numblocks) * blocksize < size) {
         EvalRange<Evaluator, Index, Vectorizable>::run(evaluator, numblocks * blocksize, size);
       }
 
