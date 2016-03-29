@@ -11,7 +11,7 @@ You can manipulate a tensor with one of the following classes.  They all are in
 the namespace ```::Eigen.```
 
 
-### Class Tensor&lt;data_type, rank&gt;
+### Class Tensor<data_type, rank>;
 
 This is the class to use to create a tensor and allocate memory for it.  The
 class is templatized with the tensor datatype, such as float or int, and the
