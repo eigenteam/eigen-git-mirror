@@ -962,6 +962,15 @@ T (ceil)(const T& x)
   return ceil(x);
 }
 
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float ceil(const float &x) { return ::ceilf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double ceil(const double &x) { return ::ceil(x); }
+#endif
+
+
 /** Log base 2 for 32 bits positive integers.
   * Conveniently returns 0 for x==0. */
 inline int log2(int x)
