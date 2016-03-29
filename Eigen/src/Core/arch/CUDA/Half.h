@@ -361,9 +361,6 @@ static inline EIGEN_HALF_CUDA_H bool (isnan)(const Eigen::half& a) {
 } // end namespace Eigen
 
 // Standard mathematical functions and trancendentals.
-
-namespace std {
-
 static inline EIGEN_DEVICE_FUNC Eigen::half abs(const Eigen::half& a) {
   Eigen::half result;
   result.x = a.x & 0x7FFF;
@@ -375,6 +372,36 @@ static inline EIGEN_DEVICE_FUNC Eigen::half exp(const Eigen::half& a) {
 static inline EIGEN_DEVICE_FUNC Eigen::half log(const Eigen::half& a) {
   return Eigen::half(::logf(float(a)));
 }
+static inline EIGEN_DEVICE_FUNC Eigen::half sqrt(const Eigen::half& a) {
+  return Eigen::half(::sqrtf(float(a)));
+}
+static inline EIGEN_DEVICE_FUNC Eigen::half floor(const Eigen::half& a) {
+  return Eigen::half(::floorf(float(a)));
+}
+static inline EIGEN_DEVICE_FUNC Eigen::half ceil(const Eigen::half& a) {
+  return Eigen::half(::ceilf(float(a)));
+}
+static inline EIGEN_DEVICE_FUNC bool (isnan)(const Eigen::half& a) {
+  return (Eigen::numext::isnan)(a);
+}
+static inline EIGEN_DEVICE_FUNC bool (isinf)(const Eigen::half& a) {
+  return (Eigen::numext::isinf)(a);
+}
+static inline EIGEN_DEVICE_FUNC bool (isfinite)(const Eigen::half& a) {
+  return !(Eigen::numext::isinf)(a) && !(Eigen::numext::isnan)(a);
+}
+
+
+namespace std {
+
+// Import the standard mathematical functions and trancendentals into the
+// into the std namespace.
+using ::abs;
+using ::exp;
+using ::log;
+using ::sqrt;
+using ::floor;
+using ::ceil;
 
 } // end namespace std
 
