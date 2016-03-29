@@ -250,8 +250,8 @@ static void test_is_same_gf()
 {
   VERIFY((!is_same_gf<dummy_a, dummy_b>::value));
   VERIFY((!!is_same_gf<dummy_a, dummy_a>::value));
-  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_b>::global_flags), 0);
-  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_a>::global_flags), 0);
+  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_b>::global_flags), false);
+  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_a>::global_flags), false);
 }
 
 static void test_apply_op()
