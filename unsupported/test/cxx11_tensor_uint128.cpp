@@ -147,7 +147,7 @@ void test_misc2() {
 void test_cxx11_tensor_uint128()
 {
 #ifdef EIGEN_NO_INT128
-  // Skip the test on compilers that don't support 128bit integers natively 
+  // Skip the test on compilers that don't support 128bit integers natively
   return;
 #else
   CALL_SUBTEST_1(test_add());
