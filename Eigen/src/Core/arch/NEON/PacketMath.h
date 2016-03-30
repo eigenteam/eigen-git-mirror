@@ -532,20 +532,21 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
 
 #if EIGEN_ARCH_ARM64 && !EIGEN_APPLE_DOUBLE_NEON_BUG
 
-#if (EIGEN_COMP_GNUC_STRICT && defined(__ANDROID__)) || defined(__apple_build_version__)
 // Bug 907: workaround missing declarations of the following two functions in the ADK
-__extension__ static __inline uint64x2_t __attribute__ ((__always_inline__))
-vreinterpretq_u64_f64 (float64x2_t __a)
+// Defining these functions as templates ensures that if these intrinsics are
+// already defined in arm_neon.h, then our workaround doesn't cause a conflict
+// and has lower priority in overload resolution.
+template <typename T>
+uint64x2_t vreinterpretq_u64_f64(T a)
 {
-  return (uint64x2_t) __a;
+  return (uint64x2_t) a;
 }
 
-__extension__ static __inline float64x2_t __attribute__ ((__always_inline__))
-vreinterpretq_f64_u64 (uint64x2_t __a)
+template <typename T>
+float64x2_t vreinterpretq_f64_u64(T a)
 {
-  return (float64x2_t) __a;
+  return (float64x2_t) a;
 }
-#endif
 
 typedef float64x2_t Packet2d;
 typedef float64x1_t Packet1d;
