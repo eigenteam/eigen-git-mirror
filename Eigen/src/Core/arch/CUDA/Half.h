@@ -423,7 +423,14 @@ using ::ceil;
 __device__ inline Eigen::half __shfl_xor(Eigen::half var, int laneMask, int width=warpSize) {
   return static_cast<Eigen::half>(__shfl_xor(static_cast<float>(var), laneMask, width));
 }
+#endif
 
+// ldg() has an overload for __half, but we also need one for Eigen::half.
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 320
+static inline EIGEN_DEVICE_FUNC Eigen::half __ldg(const Eigen::half* ptr) {
+  return Eigen::internal::raw_uint16_to_half(
+      __ldg(reinterpret_cast<const unsigned short*>(ptr)));
+}
 #endif
 
 
