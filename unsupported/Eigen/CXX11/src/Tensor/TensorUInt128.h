@@ -55,7 +55,7 @@ struct TensorUInt128
   explicit TensorUInt128(const T& x) : high(0), low(x) {
     typedef typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type UnsignedT;
     typedef typename conditional<sizeof(LOW) == 8, uint64_t, uint32_t>::type UnsignedLow;
-    eigen_assert(static_cast<UnsignedT>(x) < static_cast<UnsignedLow>(NumTraits<LOW>::highest()));
+    eigen_assert(static_cast<UnsignedT>(x) <= static_cast<UnsignedLow>(NumTraits<LOW>::highest()));
     eigen_assert(x >= 0);
   }
 
