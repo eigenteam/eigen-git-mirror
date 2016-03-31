@@ -10,8 +10,9 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_FFT_H
 #define EIGEN_CXX11_TENSOR_TENSOR_FFT_H
 
-// NVCC fails to compile this code
-#if !defined(__CUDACC__)
+// This code requires the ability to initialize arrays of constant
+// values directly inside a class.
+#ifdef EIGEN_HAS_CONSTEXPR
 
 namespace Eigen {
 
@@ -638,7 +639,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
 }  // end namespace Eigen
 
-#endif  // __CUDACC__
+#endif  // EIGEN_HAS_CONSTEXPR
 
 
 #endif  // EIGEN_CXX11_TENSOR_TENSOR_FFT_H
