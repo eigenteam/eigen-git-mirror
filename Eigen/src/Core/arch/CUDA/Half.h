@@ -341,6 +341,18 @@ template<> struct is_arithmetic<half> { enum { value = true }; };
 
 } // end namespace internal
 
+template<> struct NumTraits<Eigen::half>
+    : GenericNumTraits<Eigen::half>
+{
+  EIGEN_DEVICE_FUNC static inline float dummy_precision() { return 1e-3f; }
+  EIGEN_DEVICE_FUNC static inline Eigen::half highest() {
+    return internal::raw_uint16_to_half(0x7bff);
+  }
+  EIGEN_DEVICE_FUNC static inline Eigen::half lowest() {
+    return internal::raw_uint16_to_half(0xfbff);
+  }
+};
+
 // Infinity/NaN checks.
 
 namespace numext {
