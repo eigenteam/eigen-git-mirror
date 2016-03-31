@@ -153,7 +153,9 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
     MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
   };
 
+  EIGEN_DEVICE_FUNC
   static inline Real epsilon() { return NumTraits<Real>::epsilon(); }
+  EIGEN_DEVICE_FUNC
   static inline Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
 };
 
@@ -166,7 +168,7 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   typedef typename NumTraits<Scalar>::NonInteger NonIntegerScalar;
   typedef Array<NonIntegerScalar, Rows, Cols, Options, MaxRows, MaxCols> NonInteger;
   typedef ArrayType & Nested;
-  
+
   enum {
     IsComplex = NumTraits<Scalar>::IsComplex,
     IsInteger = NumTraits<Scalar>::IsInteger,
@@ -176,8 +178,10 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
     AddCost  = ArrayType::SizeAtCompileTime==Dynamic ? HugeCost : ArrayType::SizeAtCompileTime * NumTraits<Scalar>::AddCost,
     MulCost  = ArrayType::SizeAtCompileTime==Dynamic ? HugeCost : ArrayType::SizeAtCompileTime * NumTraits<Scalar>::MulCost
   };
-  
+
+  EIGEN_DEVICE_FUNC
   static inline RealScalar epsilon() { return NumTraits<RealScalar>::epsilon(); }
+  EIGEN_DEVICE_FUNC
   static inline RealScalar dummy_precision() { return NumTraits<RealScalar>::dummy_precision(); }
 };
 
