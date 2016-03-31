@@ -42,7 +42,10 @@
   
 #endif
 
-#if defined(__CUDA_ARCH__)
+// When compiling CUDA device code with NVCC, pull in math functions from the
+// global namespace.  In host mode, and when device doee with clang, use the
+// std versions.
+#if defined(__CUDA_ARCH__) && defined(__NVCC__)
   #define EIGEN_USING_STD_MATH(FUNC) using ::FUNC;
 #else
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
