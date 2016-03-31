@@ -45,6 +45,23 @@ struct type2index {
   }
 };
 
+template<DenseIndex n> struct NumTraits<type2index<n> >
+{
+  typedef DenseIndex Real;
+  enum {
+    IsComplex = 0,
+    RequireInitialization = false,
+    ReadCost = 1,
+    AddCost = 1,
+    MulCost = 1
+  };
+
+  EIGEN_DEVICE_FUNC static inline Real epsilon() { return 0; }
+  EIGEN_DEVICE_FUNC static inline Real dummy_precision() { return 0; }
+  EIGEN_DEVICE_FUNC static inline Real highest() { return n; }
+  EIGEN_DEVICE_FUNC static inline Real lowest() { return n; }
+};
+
 namespace internal {
 template <typename T>
 EIGEN_DEVICE_FUNC void update_value(T& val, DenseIndex new_val) {
