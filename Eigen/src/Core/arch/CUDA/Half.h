@@ -415,12 +415,14 @@ using ::sqrt;
 using ::floor;
 using ::ceil;
 
+#if __cplusplus > 199711L
 template <>
 struct hash<Eigen::half> {
   size_t operator()(const Eigen::half& a) const {
     return std::hash<unsigned short>()(a.x);
   }
 };
+#endif
 
 } // end namespace std
 
