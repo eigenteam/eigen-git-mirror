@@ -348,7 +348,7 @@ namespace numext {
 static inline EIGEN_DEVICE_FUNC bool (isinf)(const Eigen::half& a) {
   return (a.x & 0x7fff) == 0x7c00;
 }
-static inline EIGEN_HALF_CUDA_H bool (isnan)(const Eigen::half& a) {
+static inline EIGEN_DEVICE_FUNC bool (isnan)(const Eigen::half& a) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
   return __hisnan(a);
 #else
