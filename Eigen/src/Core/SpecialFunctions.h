@@ -722,6 +722,189 @@ struct igamma_impl {
 
 #endif  // EIGEN_HAS_C99_MATH
 
+/****************************************************************************
+ * Implementation of Riemann zeta function of two arguments                 *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct zeta_retval {
+    typedef Scalar type;
+};
+    
+#ifndef EIGEN_HAS_C99_MATH
+    
+template <typename Scalar>
+struct zeta_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar x) {
+        EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                            THIS_TYPE_IS_NOT_SUPPORTED);
+        return Scalar(0);
+    }
+};
+    
+#else
+    
+template <typename Scalar>
+struct zeta_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar x, Scalar q) {
+        /*							zeta.c
+         *
+         *	Riemann zeta function of two arguments
+         *
+         *
+         *
+         * SYNOPSIS:
+         *
+         * double x, q, y, zeta();
+         *
+         * y = zeta( x, q );
+         *
+         *
+         *
+         * DESCRIPTION:
+         *
+         *
+         *
+         *                 inf.
+         *                  -        -x
+         *   zeta(x,q)  =   >   (k+q)
+         *                  -
+         *                 k=0
+         *
+         * where x > 1 and q is not a negative integer or zero.
+         * The Euler-Maclaurin summation formula is used to obtain
+         * the expansion
+         *
+         *                n
+         *                -       -x
+         * zeta(x,q)  =   >  (k+q)
+         *                -
+         *               k=1
+         *
+         *           1-x                 inf.  B   x(x+1)...(x+2j)
+         *      (n+q)           1         -     2j
+         *  +  ---------  -  -------  +   >    --------------------
+         *        x-1              x      -                   x+2j+1
+         *                   2(n+q)      j=1       (2j)! (n+q)
+         *
+         * where the B2j are Bernoulli numbers.  Note that (see zetac.c)
+         * zeta(x,1) = zetac(x) + 1.
+         *
+         *
+         *
+         * ACCURACY:
+         *
+         *
+         *
+         * REFERENCE:
+         *
+         * Gradshteyn, I. S., and I. M. Ryzhik, Tables of Integrals,
+         * Series, and Products, p. 1073; Academic Press, 1980.
+         *
+         */
+        
+        int i;
+        /*double a, b, k, s, t, w;*/
+        Scalar p, r, a, b, k, s, t, w;
+        
+        const double A[] = {
+            12.0,
+            -720.0,
+            30240.0,
+            -1209600.0,
+            47900160.0,
+            -1.8924375803183791606e9, /*1.307674368e12/691*/
+            7.47242496e10,
+            -2.950130727918164224e12, /*1.067062284288e16/3617*/
+            1.1646782814350067249e14, /*5.109094217170944e18/43867*/
+            -4.5979787224074726105e15, /*8.028576626982912e20/174611*/
+            1.8152105401943546773e17, /*1.5511210043330985984e23/854513*/
+            -7.1661652561756670113e18 /*1.6938241367317436694528e27/236364091*/
+            };
+            
+        const Scalar maxnum = NumTraits<Scalar>::infinity();
+        const Scalar zero = 0.0, half = 0.5, one = 1.0;
+        const Scalar machep = igamma_helper<Scalar>::machep();
+        
+        if( x == one )
+            return maxnum; //goto retinf;
+        
+        if( x < one )
+        {
+        // domerr:
+            // mtherr( "zeta", DOMAIN );
+            return zero;
+        }
+        
+        if( q <= zero )
+        {
+            if(q == numext::floor(q))
+            {
+            //    mtherr( "zeta", SING );
+            // retinf:
+                return maxnum;
+            }
+            p = x;
+            r = numext::floor(p);
+            // if( x != floor(x) )
+            //    goto domerr; /* because q^-x not defined */
+            if (p != r)
+                return zero;
+        }
+        
+        /* Euler-Maclaurin summation formula */
+        /*
+         if( x < 25.0 )
+         */
+        {
+            /* Permit negative q but continue sum until n+q > +9 .
+             * This case should be handled by a reflection formula.
+             * If q<0 and x is an integer, there is a relation to
+             * the polygamma function.
+             */
+            s = numext::pow( q, -x );
+            a = q;
+            i = 0;
+            b = zero;
+            while( (i < 9) || (a <= Scalar(9.0)) )
+            {
+                i += 1;
+                a += one;
+                b = numext::pow( a, -x );
+                s += b;
+                if( numext::abs(b/s) < machep )
+                    return s; // goto done;
+            }
+            
+            w = a;
+            s += b*w/(x-one);
+            s -= half * b;
+            a = one;
+            k = zero;
+            for( i=0; i<12; i++ )
+            {
+                a *= x + k;
+                b /= w;
+                t = a*b/A[i];
+                s = s + t;
+                t = numext::abs(t/s);
+                if( t < machep )
+                    return s; // goto done;
+                k += one;
+                a *= x + k;
+                b /= w;
+                k += one;
+            }
+        // done:
+            return(s);
+    }
+  }
+};
+    
+#endif  // EIGEN_HAS_C99_MATH
+
 }  // end namespace internal
 
 namespace numext {
@@ -736,6 +919,12 @@ template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(digamma, Scalar)
     digamma(const Scalar& x) {
   return EIGEN_MATHFUNC_IMPL(digamma, Scalar)::run(x);
+}
+    
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(zeta, Scalar)
+zeta(const Scalar& x, const Scalar& q) {
+    return EIGEN_MATHFUNC_IMPL(zeta, Scalar)::run(x, q);
 }
 
 template <typename Scalar>

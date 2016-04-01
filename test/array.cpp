@@ -322,6 +322,15 @@ template<typename ArrayType> void array_real(const ArrayType& m)
                     std::numeric_limits<RealScalar>::infinity());
     VERIFY_IS_EQUAL(numext::digamma(Scalar(-1)),
                     std::numeric_limits<RealScalar>::infinity());
+    
+    // Check the zeta function against scipy.special.zeta
+    VERIFY_IS_APPROX(numext::zeta(Scalar(1.5), Scalar(2)), RealScalar(1.61237534869));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(4), Scalar(1.5)), RealScalar(0.234848505667));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(10.5), Scalar(3)), RealScalar(1.03086757337e-5));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(10000.5), Scalar(1.0001)), RealScalar(0.367879440865));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(3), Scalar(-2.5)), RealScalar(0.054102025820864097));
+    VERIFY_IS_EQUAL(numext::zeta(Scalar(1), Scalar(1.2345)), // The second scalar does not matter
+                    std::numeric_limits<RealScalar>::infinity());
 
     {
       // Test various propreties of igamma & igammac.  These are normalized
