@@ -806,10 +806,9 @@ struct zeta_impl {
          */
         
         int i;
-        /*double a, b, k, s, t, w;*/
         Scalar p, r, a, b, k, s, t, w;
         
-        const double A[] = {
+        const Scalar A[] = {
             12.0,
             -720.0,
             30240.0,
@@ -829,12 +828,10 @@ struct zeta_impl {
         const Scalar machep = igamma_helper<Scalar>::machep();
         
         if( x == one )
-            return maxnum; //goto retinf;
+            return maxnum;
         
         if( x < one )
         {
-        // domerr:
-            // mtherr( "zeta", DOMAIN );
             return zero;
         }
         
@@ -842,64 +839,53 @@ struct zeta_impl {
         {
             if(q == numext::floor(q))
             {
-            //    mtherr( "zeta", SING );
-            // retinf:
                 return maxnum;
             }
             p = x;
             r = numext::floor(p);
-            // if( x != floor(x) )
-            //    goto domerr; /* because q^-x not defined */
             if (p != r)
                 return zero;
         }
         
-        /* Euler-Maclaurin summation formula */
-        /*
-         if( x < 25.0 )
+        /* Permit negative q but continue sum until n+q > +9 .
+         * This case should be handled by a reflection formula.
+         * If q<0 and x is an integer, there is a relation to
+         * the polygamma function.
          */
+        s = numext::pow( q, -x );
+        a = q;
+        i = 0;
+        b = zero;
+        while( (i < 9) || (a <= Scalar(9)) )
         {
-            /* Permit negative q but continue sum until n+q > +9 .
-             * This case should be handled by a reflection formula.
-             * If q<0 and x is an integer, there is a relation to
-             * the polygamma function.
-             */
-            s = numext::pow( q, -x );
-            a = q;
-            i = 0;
-            b = zero;
-            while( (i < 9) || (a <= Scalar(9.0)) )
-            {
-                i += 1;
-                a += one;
-                b = numext::pow( a, -x );
-                s += b;
-                if( numext::abs(b/s) < machep )
-                    return s; // goto done;
-            }
-            
-            w = a;
-            s += b*w/(x-one);
-            s -= half * b;
-            a = one;
-            k = zero;
-            for( i=0; i<12; i++ )
-            {
-                a *= x + k;
-                b /= w;
-                t = a*b/A[i];
-                s = s + t;
-                t = numext::abs(t/s);
-                if( t < machep )
-                    return s; // goto done;
-                k += one;
-                a *= x + k;
-                b /= w;
-                k += one;
-            }
-        // done:
-            return(s);
-    }
+            i += 1;
+            a += one;
+            b = numext::pow( a, -x );
+            s += b;
+            if( numext::abs(b/s) < machep )
+                return s;
+        }
+        
+        w = a;
+        s += b*w/(x-one);
+        s -= half * b;
+        a = one;
+        k = zero;
+        for( i=0; i<12; i++ )
+        {
+            a *= x + k;
+            b /= w;
+            t = a*b/A[i];
+            s = s + t;
+            t = numext::abs(t/s);
+            if( t < machep )
+                return s;
+            k += one;
+            a *= x + k;
+            b /= w;
+            k += one;
+        }
+        return s;
   }
 };
     
