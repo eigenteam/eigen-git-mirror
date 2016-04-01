@@ -24,6 +24,7 @@ typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturn
 typedef CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived> LgammaReturnType;
 typedef CwiseUnaryOp<internal::scalar_digamma_op<Scalar>, const Derived> DigammaReturnType;
 typedef CwiseUnaryOp<internal::scalar_zeta_op<Scalar>, const Derived> ZetaReturnType;
+typedef CwiseUnaryOp<internal::scalar_polygamma_op<Scalar>, const Derived> PolygammaReturnType;
 typedef CwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived> ErfReturnType;
 typedef CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived> ErfcReturnType;
 typedef CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived> PowReturnType;
@@ -336,6 +337,14 @@ inline const ZetaReturnType
 zeta() const
 {
     return ZetaReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise polygamma function.
+ */
+inline const PolygammaReturnType
+polygamma() const
+{
+    return PolygammaReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise Gauss error

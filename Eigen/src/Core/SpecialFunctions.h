@@ -736,7 +736,7 @@ struct zeta_retval {
 template <typename Scalar>
 struct zeta_impl {
     EIGEN_DEVICE_FUNC
-    static Scalar run(Scalar x) {
+    static Scalar run(Scalar x, Scalar q) {
         EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                             THIS_TYPE_IS_NOT_SUPPORTED);
         return Scalar(0);
@@ -905,6 +905,50 @@ struct zeta_impl {
     
 #endif  // EIGEN_HAS_C99_MATH
 
+/****************************************************************************
+ * Implementation of polygamma function                                     *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct polygamma_retval {
+    typedef Scalar type;
+};
+    
+#ifndef EIGEN_HAS_C99_MATH
+    
+template <typename Scalar>
+struct polygamma_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar n, Scalar x) {
+        EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                            THIS_TYPE_IS_NOT_SUPPORTED);
+        return Scalar(0);
+    }
+};
+    
+#else
+    
+template <typename Scalar>
+struct polygamma_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar n, Scalar x) {
+        Scalar zero = 0.0, one = 1.0;
+        Scalar nplus = n + one;
+        
+        // Just return the digamma function for n = 1
+        if (n == zero) {
+            return digamma_impl<Scalar>::run(x);
+        }
+        // Use the same implementation as scipy
+        else {
+            Scalar factorial = numext::exp(lgamma_impl<Scalar>::run(nplus));
+            return numext::pow(-one, nplus) * factorial * zeta_impl<Scalar>::run(nplus, x);
+        }
+  }
+};
+    
+#endif  // EIGEN_HAS_C99_MATH
+
 }  // end namespace internal
 
 namespace numext {
@@ -925,6 +969,12 @@ template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(zeta, Scalar)
 zeta(const Scalar& x, const Scalar& q) {
     return EIGEN_MATHFUNC_IMPL(zeta, Scalar)::run(x, q);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(polygamma, Scalar)
+polygamma(const Scalar& n, const Scalar& x) {
+    return EIGEN_MATHFUNC_IMPL(polygamma, Scalar)::run(n, x);
 }
 
 template <typename Scalar>

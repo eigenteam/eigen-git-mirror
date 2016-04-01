@@ -472,6 +472,28 @@ struct functor_traits<scalar_zeta_op<Scalar> >
 };
 
 /** \internal
+ * \brief Template functor to compute the polygamma function.
+ * \sa class CwiseUnaryOp, Cwise::polygamma()
+ */
+template<typename Scalar> struct scalar_polygamma_op {
+    EIGEN_EMPTY_STRUCT_CTOR(scalar_polygamma_op)
+    EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& n, const Scalar& x) const {
+        using numext::polygamma; return polygamma(n, x);
+    }
+    typedef typename packet_traits<Scalar>::type Packet;
+    EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& n, const Packet& x) const { return internal::ppolygamma(n, x); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_polygamma_op<Scalar> >
+{
+    enum {
+        // Guesstimate
+        Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+        PacketAccess = packet_traits<Scalar>::HasPolygamma
+    };
+};
+
+/** \internal
  * \brief Template functor to compute the Gauss error function of a
  * scalar
  * \sa class CwiseUnaryOp, Cwise::erf()

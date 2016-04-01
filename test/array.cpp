@@ -331,6 +331,11 @@ template<typename ArrayType> void array_real(const ArrayType& m)
     VERIFY_IS_APPROX(numext::zeta(Scalar(3), Scalar(-2.5)), RealScalar(0.054102025820864097));
     VERIFY_IS_EQUAL(numext::zeta(Scalar(1), Scalar(1.2345)), // The second scalar does not matter
                     std::numeric_limits<RealScalar>::infinity());
+    
+    // Check the polygamma against scipy.special.polygamma
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(1), Scalar(2)), RealScalar(0.644934066848));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(1), Scalar(3)), RealScalar(0.394934066848));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(1), Scalar(25.5)), RealScalar(0.0399946696496));
 
     {
       // Test various propreties of igamma & igammac.  These are normalized

@@ -138,6 +138,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     zeta() const {
         return unaryExpr(internal::scalar_zeta_op<Scalar>());
     }
+    
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_polygamma_op<Scalar>, const Derived>
+    polygamma() const {
+        return unaryExpr(internal::scalar_polygamma_op<Scalar>());
+    }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived>
