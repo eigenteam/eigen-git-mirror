@@ -109,7 +109,7 @@ class ConditionEstimator {
    * ||matrix||_1 = sup ||matrix * v||_1 / ||v||_1, which is equal to
    * the greatest absolute column sum.
    */
-  inline static Scalar MatrixL1Norm(const MatrixType& matrix) {
+  static inline Scalar MatrixL1Norm(const MatrixType& matrix) {
     return matrix.cwiseAbs().colwise().sum().maxCoeff();
   }
 };
@@ -124,7 +124,7 @@ struct EstimateInverseMatrixL1NormImpl<Decomposition, 0> {
   typedef typename internal::plain_col_type<MatrixType>::type Vector;
 
   // Shorthand for vector L1 norm in Eigen.
-  inline static Scalar VectorL1Norm(const Vector& v) {
+  static inline Scalar VectorL1Norm(const Vector& v) {
     return v.template lpNorm<1>();
   }
 
@@ -210,7 +210,7 @@ struct EstimateInverseMatrixL1NormImpl<Decomposition, 1> {
       RealVector;
 
   // Shorthand for vector L1 norm in Eigen.
-  inline static RealScalar VectorL1Norm(const Vector& v) {
+  static inline RealScalar VectorL1Norm(const Vector& v) {
     return v.template lpNorm<1>();
   }
 
