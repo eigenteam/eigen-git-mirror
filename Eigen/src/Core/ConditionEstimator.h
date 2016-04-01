@@ -13,11 +13,11 @@
 namespace Eigen {
 
 namespace internal {
-template <typename Decomposition, bool IsComplex>
+template <typename Decomposition, bool IsSelfAdjoint, bool IsComplex>
 struct EstimateInverseMatrixL1NormImpl {};
 }  // namespace internal
 
-template <typename Decomposition>
+template <typename Decomposition, bool IsSelfAdjoint = false>
 class ConditionEstimator {
  public:
   typedef typename Decomposition::MatrixType MatrixType;
@@ -101,7 +101,8 @@ class ConditionEstimator {
       return 0;
     }
     return internal::EstimateInverseMatrixL1NormImpl<
-        Decomposition, NumTraits<Scalar>::IsComplex>::compute(dec);
+        Decomposition, IsSelfAdjoint,
+        NumTraits<Scalar>::IsComplex != 0>::compute(dec);
   }
 
   /**
@@ -116,9 +117,27 @@ class ConditionEstimator {
 
 namespace internal {
 
+template <typename Decomposition, typename Vector, bool IsSelfAdjoint = false>
+struct solve_helper {
+  static inline Vector solve_adjoint(const Decomposition& dec,
+                                     const Vector& v) {
+    return dec.adjoint().solve(v);
+  }
+};
+
+// Partial specialization for self_adjoint matrices.
+template <typename Decomposition, typename Vector>
+struct solve_helper<Decomposition, Vector, true> {
+  static inline Vector solve_adjoint(const Decomposition& dec,
+                                     const Vector& v) {
+    return dec.solve(v);
+  }
+};
+
+
 // Partial specialization for real matrices.
-template <typename Decomposition>
-struct EstimateInverseMatrixL1NormImpl<Decomposition, 0> {
+template <typename Decomposition, bool IsSelfAdjoint>
+struct EstimateInverseMatrixL1NormImpl<Decomposition, IsSelfAdjoint, false> {
   typedef typename Decomposition::MatrixType MatrixType;
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
   typedef typename internal::plain_col_type<MatrixType>::type Vector;
@@ -152,7 +171,7 @@ struct EstimateInverseMatrixL1NormImpl<Decomposition, 0> {
     int old_v_max_abs_index = v_max_abs_index;
     for (int k = 0; k < 4; ++k) {
       // argmax |inv(matrix)^T * sign_vector|
-      v = dec.adjoint().solve(sign_vector);
+      v = solve_helper<Decomposition, Vector, IsSelfAdjoint>::solve_adjoint(dec, sign_vector);
       v.cwiseAbs().maxCoeff(&v_max_abs_index);
       if (v_max_abs_index == old_v_max_abs_index) {
         // Break if the solution stagnated.
@@ -200,8 +219,8 @@ struct EstimateInverseMatrixL1NormImpl<Decomposition, 0> {
 };
 
 // Partial specialization for complex matrices.
-template <typename Decomposition>
-struct EstimateInverseMatrixL1NormImpl<Decomposition, 1> {
+template <typename Decomposition, bool IsSelfAdjoint>
+struct EstimateInverseMatrixL1NormImpl<Decomposition, IsSelfAdjoint, true> {
   typedef typename Decomposition::MatrixType MatrixType;
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -238,7 +257,7 @@ struct EstimateInverseMatrixL1NormImpl<Decomposition, 1> {
       RealVector abs_v = v.cwiseAbs();
       const Vector psi =
           (abs_v.array() == 0).select(v.cwiseQuotient(abs_v), ones);
-      v = dec.adjoint().solve(psi);
+      v = solve_helper<Decomposition, Vector, IsSelfAdjoint>::solve_adjoint(dec, psi);
       const RealVector z = v.real();
       z.cwiseAbs().maxCoeff(&v_max_abs_index);
       if (v_max_abs_index == old_v_max_abs_index) {

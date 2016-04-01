@@ -151,10 +151,11 @@ template<typename MatrixType> void lu_invertible()
   MatrixType m1_inverse = lu.inverse();
   VERIFY_IS_APPROX(m2, m1_inverse*m3);
 
-  // Test condition number estimation.
+  // Verify that the estimated condition number is within a factor of 10 of the
+  // truth.
   RealScalar rcond = (RealScalar(1) / matrix_l1_norm(m1)) / matrix_l1_norm(m1_inverse);
-  // Verify that the estimate is within a factor of 10 of the truth.
-  VERIFY(lu.rcond() > rcond / 10 && lu.rcond() < rcond * 10);
+  const RealScalar rcond_est = lu.rcond();
+  VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
   // test solve with transposed
   lu.template _solve_impl_transposed<false>(m3, m2);
@@ -199,7 +200,8 @@ template<typename MatrixType> void lu_partial_piv()
   // Test condition number estimation.
   RealScalar rcond = (RealScalar(1) / matrix_l1_norm(m1)) / matrix_l1_norm(m1_inverse);
   // Verify that the estimate is within a factor of 10 of the truth.
-  VERIFY(plu.rcond() > rcond / 10 && plu.rcond() < rcond * 10);
+  const RealScalar rcond_est = plu.rcond();
+  VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
   // test solve with transposed
   plu.template _solve_impl_transposed<false>(m3, m2);
