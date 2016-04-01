@@ -76,7 +76,6 @@ template<typename _MatrixType> class PartialPivLU
     typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
     typedef typename MatrixType::PlainObject PlainObject;
 
-
     /**
       * \brief Default Constructor.
       *
@@ -152,6 +151,15 @@ template<typename _MatrixType> class PartialPivLU
       return Solve<PartialPivLU, Rhs>(*this, b.derived());
     }
 
+    /** \returns an estimate of the reciprocal condition number of the matrix of which *this is
+        the LU decomposition.
+      */
+    inline RealScalar rcond() const
+    {
+      eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
+      return ConditionEstimator<PartialPivLU<_MatrixType> >::rcond(m_l1_norm, *this);
+    }
+
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
       *
       * \warning The matrix being decomposed here is assumed to be invertible. If you need to check for
@@ -178,7 +186,7 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::determinant()
       */
-    typename internal::traits<MatrixType>::Scalar determinant() const;
+    Scalar determinant() const;
 
     MatrixType reconstructedMatrix() const;
 
@@ -247,6 +255,7 @@ template<typename _MatrixType> class PartialPivLU
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
     Index m_det_p;
+    RealScalar m_l1_norm;
     bool m_isInitialized;
 };
 
@@ -256,6 +265,7 @@ PartialPivLU<MatrixType>::PartialPivLU()
     m_p(),
     m_rowsTranspositions(),
     m_det_p(0),
+    m_l1_norm(0),
     m_isInitialized(false)
 {
 }
@@ -266,6 +276,7 @@ PartialPivLU<MatrixType>::PartialPivLU(Index size)
     m_p(size),
     m_rowsTranspositions(size),
     m_det_p(0),
+    m_l1_norm(0),
     m_isInitialized(false)
 {
 }
@@ -277,6 +288,7 @@ PartialPivLU<MatrixType>::PartialPivLU(const EigenBase<InputType>& matrix)
     m_p(matrix.rows()),
     m_rowsTranspositions(matrix.rows()),
     m_det_p(0),
+    m_l1_norm(0),
     m_isInitialized(false)
 {
   compute(matrix.derived());
@@ -467,6 +479,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const EigenBase<Inpu
   eigen_assert(matrix.rows()<NumTraits<int>::highest());
 
   m_lu = matrix.derived();
+  m_l1_norm = m_lu.cwiseAbs().colwise().sum().maxCoeff();
 
   eigen_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
   const Index size = matrix.rows();
@@ -484,7 +497,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const EigenBase<Inpu
 }
 
 template<typename MatrixType>
-typename internal::traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() const
+typename PartialPivLU<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() const
 {
   eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
   return Scalar(m_det_p) * m_lu.diagonal().prod();
