@@ -13,7 +13,7 @@
 #ifndef EIGEN_LDLT_H
 #define EIGEN_LDLT_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
   template<typename MatrixType, int UpLo> struct LDLT_Traits;
@@ -73,11 +73,11 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via LDLT::compute(const MatrixType&).
       */
-    LDLT() 
-      : m_matrix(), 
-        m_transpositions(), 
+    LDLT()
+      : m_matrix(),
+        m_transpositions(),
         m_sign(internal::ZeroSign),
-        m_isInitialized(false) 
+        m_isInitialized(false)
     {}
 
     /** \brief Default Constructor with memory preallocation
@@ -168,7 +168,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * \note_about_checking_solutions
       *
       * More precisely, this method solves \f$ A x = b \f$ using the decomposition \f$ A = P^T L D L^* P \f$
-      * by solving the systems \f$ P^T y_1 = b \f$, \f$ L y_2 = y_1 \f$, \f$ D y_3 = y_2 \f$, 
+      * by solving the systems \f$ P^T y_1 = b \f$, \f$ L y_2 = y_1 \f$, \f$ D y_3 = y_2 \f$,
       * \f$ L^* y_4 = y_3 \f$ and \f$ P x = y_4 \f$ in succession. If the matrix \f$ A \f$ is singular, then
       * \f$ D \f$ will also be singular (all the other matrices are invertible). In that case, the
       * least-square solution of \f$ D y_3 = y_2 \f$ is computed. This does not mean that this function
@@ -191,6 +191,15 @@ template<typename _MatrixType, int _UpLo> class LDLT
 
     template<typename InputType>
     LDLT& compute(const EigenBase<InputType>& matrix);
+
+    /** \returns an estimate of the reciprocal condition number of the matrix of
+     *  which *this is the LDLT decomposition.
+     */
+    RealScalar rcond() const
+    {
+      eigen_assert(m_isInitialized && "LDLT is not initialized.");
+      return ConditionEstimator<LDLT<MatrixType, UpLo>, true >::rcond(m_l1_norm, *this);
+    }
 
     template <typename Derived>
     LDLT& rankUpdate(const MatrixBase<Derived>& w, const RealScalar& alpha=1);
@@ -220,7 +229,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return Success;
     }
-    
+
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
@@ -228,7 +237,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     #endif
 
   protected:
-    
+
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
@@ -241,6 +250,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * is not stored), and the diagonal entries correspond to D.
       */
     MatrixType m_matrix;
+    RealScalar m_l1_norm;
     TranspositionType m_transpositions;
     TmpMatrixType m_temporary;
     internal::SignMatrix m_sign;
@@ -314,7 +324,7 @@ template<> struct ldlt_inplace<Lower>
         if(rs>0)
           A21.noalias() -= A20 * temp.head(k);
       }
-      
+
       // In some previous versions of Eigen (e.g., 3.2.1), the scaling was omitted if the pivot
       // was smaller than the cutoff value. However, since LDLT is not rank-revealing
       // we should only make sure that we do not introduce INF or NaN values.
@@ -433,11 +443,31 @@ template<typename InputType>
 LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>& a)
 {
   check_template_parameters();
-  
+
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
 
   m_matrix = a.derived();
+
+  // Compute matrix L1 norm = max abs column sum.
+  m_l1_norm = RealScalar(0);
+  if (_UpLo == Lower) {
+    for (int col = 0; col < size; ++col) {
+      const RealScalar abs_col_sum = m_matrix.col(col).tail(size - col).cwiseAbs().sum() +
+          m_matrix.row(col).tail(col).cwiseAbs().sum();
+      if (abs_col_sum > m_l1_norm) {
+        m_l1_norm = abs_col_sum;
+      }
+    }
+  } else {
+    for (int col = 0; col < a.cols(); ++col) {
+      const RealScalar abs_col_sum = m_matrix.col(col).tail(col).cwiseAbs().sum() +
+          m_matrix.row(col).tail(size - col).cwiseAbs().sum();
+      if (abs_col_sum > m_l1_norm) {
+        m_l1_norm = abs_col_sum;
+      }
+    }
+  }
 
   m_transpositions.resize(size);
   m_isInitialized = false;
@@ -466,7 +496,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Deri
     eigen_assert(m_matrix.rows()==size);
   }
   else
-  {    
+  {
     m_matrix.resize(size,size);
     m_matrix.setZero();
     m_transpositions.resize(size);
@@ -505,7 +535,7 @@ void LDLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) cons
   // diagonal element is not well justified and leads to numerical issues in some cases.
   // Moreover, Lapack's xSYTRS routines use 0 for the tolerance.
   RealScalar tolerance = RealScalar(1) / NumTraits<RealScalar>::highest();
-  
+
   for (Index i = 0; i < vecD.size(); ++i)
   {
     if(abs(vecD(i)) > tolerance)

@@ -160,12 +160,29 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     matX = ldltlo.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
 
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
+    const MatrixType symmLo_inverse = ldltlo.solve(MatrixType::Identity(rows,cols));
+    RealScalar rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Lower>(symmLo)) /
+                             matrix_l1_norm<MatrixType, Lower>(symmLo_inverse);
+    RealScalar rcond_est = ldltlo.rcond();
+    VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
+
+
     LDLT<SquareMatrixType,Upper> ldltup(symmUp);
     VERIFY_IS_APPROX(symm, ldltup.reconstructedMatrix());
     vecX = ldltup.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     matX = ldltup.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
+
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
+    const MatrixType symmUp_inverse = ldltup.solve(MatrixType::Identity(rows,cols));
+    rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Upper>(symmUp)) /
+                             matrix_l1_norm<MatrixType, Upper>(symmUp_inverse);
+    rcond_est = ldltup.rcond();
+    VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
     VERIFY_IS_APPROX(MatrixType(ldltlo.matrixL().transpose().conjugate()), MatrixType(ldltlo.matrixU()));
     VERIFY_IS_APPROX(MatrixType(ldltlo.matrixU().transpose().conjugate()), MatrixType(ldltlo.matrixL()));
