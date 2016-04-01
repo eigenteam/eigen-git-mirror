@@ -341,6 +341,18 @@ template<> struct is_arithmetic<half> { enum { value = true }; };
 
 } // end namespace internal
 
+template<> struct NumTraits<Eigen::half>
+    : GenericNumTraits<Eigen::half>
+{
+  EIGEN_DEVICE_FUNC static inline float dummy_precision() { return 1e-3f; }
+  EIGEN_DEVICE_FUNC static inline Eigen::half highest() {
+    return internal::raw_uint16_to_half(0x7bff);
+  }
+  EIGEN_DEVICE_FUNC static inline Eigen::half lowest() {
+    return internal::raw_uint16_to_half(0xfbff);
+  }
+};
+
 // Infinity/NaN checks.
 
 namespace numext {
@@ -348,7 +360,7 @@ namespace numext {
 static inline EIGEN_DEVICE_FUNC bool (isinf)(const Eigen::half& a) {
   return (a.x & 0x7fff) == 0x7c00;
 }
-static inline EIGEN_HALF_CUDA_H bool (isnan)(const Eigen::half& a) {
+static inline EIGEN_DEVICE_FUNC bool (isnan)(const Eigen::half& a) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
   return __hisnan(a);
 #else
@@ -403,6 +415,15 @@ using ::sqrt;
 using ::floor;
 using ::ceil;
 
+#if __cplusplus > 199711L
+template <>
+struct hash<Eigen::half> {
+  size_t operator()(const Eigen::half& a) const {
+    return std::hash<unsigned short>()(a.x);
+  }
+};
+#endif
+
 } // end namespace std
 
 
@@ -411,7 +432,14 @@ using ::ceil;
 __device__ inline Eigen::half __shfl_xor(Eigen::half var, int laneMask, int width=warpSize) {
   return static_cast<Eigen::half>(__shfl_xor(static_cast<float>(var), laneMask, width));
 }
+#endif
 
+// ldg() has an overload for __half, but we also need one for Eigen::half.
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 320
+static inline EIGEN_DEVICE_FUNC Eigen::half __ldg(const Eigen::half* ptr) {
+  return Eigen::internal::raw_uint16_to_half(
+      __ldg(reinterpret_cast<const unsigned short*>(ptr)));
+}
 #endif
 
 
