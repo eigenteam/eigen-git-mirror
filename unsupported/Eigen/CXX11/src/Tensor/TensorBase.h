@@ -132,18 +132,6 @@ class TensorBase<Derived, ReadOnlyAccessors>
     digamma() const {
       return unaryExpr(internal::scalar_digamma_op<Scalar>());
     }
-    
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_zeta_op<Scalar>, const Derived>
-    zeta() const {
-        return unaryExpr(internal::scalar_zeta_op<Scalar>());
-    }
-    
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_polygamma_op<Scalar>, const Derived>
-    polygamma() const {
-        return unaryExpr(internal::scalar_polygamma_op<Scalar>());
-    }
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived>
@@ -362,6 +350,20 @@ class TensorBase<Derived, ReadOnlyAccessors>
     // igammac(a = this, x = other)
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_igammac_op<Scalar>, const Derived, const OtherDerived>
+    igammac(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_igammac_op<Scalar>());
+    }
+    
+    // zeta(x = this, q = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_zeta_op<Scalar>, const Derived, const OtherDerived>
+    igammac(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_igammac_op<Scalar>());
+    }
+    
+    // polygamma(n = this, x = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_polygamma_op<Scalar>, const Derived, const OtherDerived>
     igammac(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_igammac_op<Scalar>());
     }
