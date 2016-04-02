@@ -10,8 +10,9 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_FFT_H
 #define EIGEN_CXX11_TENSOR_TENSOR_FFT_H
 
-// NVCC fails to compile this code
-#if !defined(__CUDACC__)
+// This code requires the ability to initialize arrays of constant
+// values directly inside a class.
+#if __cplusplus >= 201103L || EIGEN_COMP_MSVC >= 1900
 
 namespace Eigen {
 
@@ -564,7 +565,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
   // This will support a maximum FFT size of 2^32 for each dimension
   // m_sin_PI_div_n_LUT[i] = (-2) * std::sin(M_PI / std::pow(2,i)) ^ 2;
-  RealScalar m_sin_PI_div_n_LUT[32] = {
+  const RealScalar m_sin_PI_div_n_LUT[32] = {
     RealScalar(0.0),
     RealScalar(-2),
     RealScalar(-0.999999999999999),
@@ -600,7 +601,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   };
 
   // m_minus_sin_2_PI_div_n_LUT[i] = -std::sin(2 * M_PI / std::pow(2,i));
-  RealScalar m_minus_sin_2_PI_div_n_LUT[32] = {
+  const RealScalar m_minus_sin_2_PI_div_n_LUT[32] = {
     RealScalar(0.0),
     RealScalar(0.0),
     RealScalar(-1.00000000000000e+00),
@@ -638,7 +639,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
 }  // end namespace Eigen
 
-#endif  // __CUDACC__
+#endif  // EIGEN_HAS_CONSTEXPR
 
 
 #endif  // EIGEN_CXX11_TENSOR_TENSOR_FFT_H
