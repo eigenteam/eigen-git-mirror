@@ -177,7 +177,9 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
   return pset1<Packet4i>(0);
 }
 
-#ifdef __ARM_FEATURE_FMA
+// Clang/ARM wrongly advertises __ARM_FEATURE_FMA even when it's not available,
+// then implements a slow software scalar fallback calling fmaf()!
+#if (defined __ARM_FEATURE_FMA) && !(EIGEN_COMP_CLANG && EIGEN_ARCH_ARM)
 // See bug 936.
 // FMA is available on VFPv4 i.e. when compiling with -mfpu=neon-vfpv4.
 // FMA is a true fused multiply-add i.e. only 1 rounding at the end, no intermediate rounding.
