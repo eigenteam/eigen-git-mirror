@@ -186,7 +186,25 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
 // MLA: 10 GFlop/s ; FMA: 12 GFlops/s.
 template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vfmaq_f32(c,a,b); }
 #else
-template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vmlaq_f32(c,a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) {
+#if EIGEN_COMP_CLANG && EIGEN_ARCH_ARM
+  // Clang/ARM will replace VMLA by VMUL+VADD at least for some values of -mcpu,
+  // at least -mcpu=cortex-a8 and -mcpu=cortex-a7. Since the former is the default on
+  // -march=armv7-a, that is a very common case.
+  // See e.g. this thread:
+  //     http://lists.llvm.org/pipermail/llvm-dev/2013-December/068806.html
+  Packet4f r = c;
+  asm volatile(
+    "vmla.f32 %q[r], %q[a], %q[b]"
+    : [r] "+w" (r)
+    : [a] "w" (a),
+      [b] "w" (b)
+    : );
+  return r;
+#else
+  return vmlaq_f32(c,a,b);
+#endif
+}
 #endif
 
 // No FMA instruction for int, so use MLA unconditionally.
