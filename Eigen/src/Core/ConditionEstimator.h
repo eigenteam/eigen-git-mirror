@@ -53,9 +53,9 @@ struct SignOrUnity<Vector, Vector, false> {
     * \returns an estimate of the reciprocal condition number
     * (1 / (||matrix||_1 * ||inv(matrix)||_1)) of matrix, given the matrix and
     * its decomposition. Supports the following decompositions: FullPivLU,
-    * PartialPivLU.
+    * PartialPivLU, LDLT, and LLT.
     *
-    * \sa FullPivLU, PartialPivLU.
+    * \sa FullPivLU, PartialPivLU, LDLT, LLT.
     */
 template <typename Decomposition>
 typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
@@ -82,9 +82,9 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
  * \returns an estimate of the reciprocal condition number
  * (1 / (||matrix||_1 * ||inv(matrix)||_1)) of matrix, given ||matrix||_1 and
  * its decomposition. Supports the following decompositions: FullPivLU,
- * PartialPivLU.
+ * PartialPivLU, LDLT, and LLT.
  *
- * \sa FullPivLU, PartialPivLU.
+ * \sa FullPivLU, PartialPivLU, LDLT, LLT.
  */
 template <typename Decomposition>
 typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
@@ -114,6 +114,10 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
  * The most common usage is in estimating the condition number
  * ||matrix||_1 * ||inv(matrix)||_1. The first term ||matrix||_1 can be
  * computed directly in O(n^2) operations.
+ *
+ * Supports the following decompositions: FullPivLU, PartialPivLU, LDLT, and LLT.
+ *
+ * \sa FullPivLU, PartialPivLU, LDLT, LLT.
  */
 template <typename Decomposition>
 typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
