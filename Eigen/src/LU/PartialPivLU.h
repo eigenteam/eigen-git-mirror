@@ -157,7 +157,7 @@ template<typename _MatrixType> class PartialPivLU
     inline RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return ConditionEstimator<PartialPivLU<_MatrixType> >::rcond(m_l1_norm, *this);
+      return ReciprocalConditionNumberEstimate(m_l1_norm, *this);
     }
 
     /** \returns the inverse of the matrix of which *this is the LU decomposition.

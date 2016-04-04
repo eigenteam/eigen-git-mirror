@@ -91,12 +91,12 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     matX = chollo.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
 
-    // Verify that the estimated condition number is within a factor of 10 of the
-    // truth.
     const MatrixType symmLo_inverse = chollo.solve(MatrixType::Identity(rows,cols));
     RealScalar rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Lower>(symmLo)) /
                              matrix_l1_norm<MatrixType, Lower>(symmLo_inverse);
     RealScalar rcond_est = chollo.rcond();
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
     VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
     // test the upper mode
@@ -160,12 +160,12 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     matX = ldltlo.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
 
-    // Verify that the estimated condition number is within a factor of 10 of the
-    // truth.
     const MatrixType symmLo_inverse = ldltlo.solve(MatrixType::Identity(rows,cols));
     RealScalar rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Lower>(symmLo)) /
                              matrix_l1_norm<MatrixType, Lower>(symmLo_inverse);
     RealScalar rcond_est = ldltlo.rcond();
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
     VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
 

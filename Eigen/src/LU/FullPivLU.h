@@ -237,7 +237,7 @@ template<typename _MatrixType> class FullPivLU
     inline RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return ConditionEstimator<FullPivLU<_MatrixType> >::rcond(m_l1_norm, *this);
+      return ReciprocalConditionNumberEstimate(m_l1_norm, *this);
     }
 
     /** \returns the determinant of the matrix of which

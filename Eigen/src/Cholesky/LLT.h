@@ -142,7 +142,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
       eigen_assert(m_info == Success && "LLT failed because matrix appears to be negative");
-      return ConditionEstimator<LLT<MatrixType, UpLo>, true >::rcond(m_l1_norm, *this);
+      return ReciprocalConditionNumberEstimate(m_l1_norm, *this);
     }
 
     /** \returns the LLT decomposition matrix
@@ -168,6 +168,12 @@ template<typename _MatrixType, int _UpLo> class LLT
       eigen_assert(m_isInitialized && "LLT is not initialized.");
       return m_info;
     }
+
+    /** \returns the decomposition itself to allow generic code to do
+     *  llt.transpose().solve(rhs).
+     */
+    const LLT<MatrixType, UpLo>& transpose() const { return *this; };
+    const LLT<MatrixType, UpLo>& adjoint() const { return *this; };
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -409,14 +415,14 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
   if (_UpLo == Lower) {
     for (int col = 0; col < size; ++col) {
       const RealScalar abs_col_sum = m_matrix.col(col).tail(size - col).cwiseAbs().sum() +
-          m_matrix.row(col).tail(col).cwiseAbs().sum();
+          m_matrix.row(col).head(col).cwiseAbs().sum();
       if (abs_col_sum > m_l1_norm) {
         m_l1_norm = abs_col_sum;
       }
     }
   } else {
     for (int col = 0; col < a.cols(); ++col) {
-      const RealScalar abs_col_sum = m_matrix.col(col).tail(col).cwiseAbs().sum() +
+      const RealScalar abs_col_sum = m_matrix.col(col).head(col).cwiseAbs().sum() +
           m_matrix.row(col).tail(size - col).cwiseAbs().sum();
       if (abs_col_sum > m_l1_norm) {
         m_l1_norm = abs_col_sum;

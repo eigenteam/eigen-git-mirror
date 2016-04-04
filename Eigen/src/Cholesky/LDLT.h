@@ -198,7 +198,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
-      return ConditionEstimator<LDLT<MatrixType, UpLo>, true >::rcond(m_l1_norm, *this);
+      return ReciprocalConditionNumberEstimate(m_l1_norm, *this);
     }
 
     template <typename Derived>
@@ -215,6 +215,12 @@ template<typename _MatrixType, int _UpLo> class LDLT
     }
 
     MatrixType reconstructedMatrix() const;
+
+    /** \returns the decomposition itself to allow generic code to do
+     *  ldlt.transpose().solve(rhs).
+     */
+    const LDLT<MatrixType, UpLo>& transpose() const { return *this; };
+    const LDLT<MatrixType, UpLo>& adjoint() const { return *this; };
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -454,14 +460,14 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const EigenBase<InputTyp
   if (_UpLo == Lower) {
     for (int col = 0; col < size; ++col) {
       const RealScalar abs_col_sum = m_matrix.col(col).tail(size - col).cwiseAbs().sum() +
-          m_matrix.row(col).tail(col).cwiseAbs().sum();
+          m_matrix.row(col).head(col).cwiseAbs().sum();
       if (abs_col_sum > m_l1_norm) {
         m_l1_norm = abs_col_sum;
       }
     }
   } else {
     for (int col = 0; col < a.cols(); ++col) {
-      const RealScalar abs_col_sum = m_matrix.col(col).tail(col).cwiseAbs().sum() +
+      const RealScalar abs_col_sum = m_matrix.col(col).head(col).cwiseAbs().sum() +
           m_matrix.row(col).tail(size - col).cwiseAbs().sum();
       if (abs_col_sum > m_l1_norm) {
         m_l1_norm = abs_col_sum;
