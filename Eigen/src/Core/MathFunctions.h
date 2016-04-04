@@ -1034,7 +1034,7 @@ double tan(const double &x) { return ::tan(x); }
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-T abs(const T &x) {
+typename NumTraits<T>::Real abs(const T &x) {
   EIGEN_USING_STD_MATH(abs);
   return abs(x);
 }
