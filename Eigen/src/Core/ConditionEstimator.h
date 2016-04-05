@@ -134,8 +134,7 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   if (n == 0) {
     return 0;
   }
-  Vector v = Vector::Ones(n) / n;
-  v = dec.solve(v);
+  Vector v = dec.solve(Vector::Ones(n) / n);
 
   // lower_bound is a lower bound on
   //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
@@ -155,11 +154,9 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   int old_v_max_abs_index = v_max_abs_index;
   for (int k = 0; k < 4; ++k) {
     sign_vector = internal::SignOrUnity<Vector, RealVector, is_complex>::run(v);
-    if (k > 0 && !is_complex) {
-      if (sign_vector == old_sign_vector) {
-        // Break if the solution stagnated.
-        break;
-      }
+    if (k > 0 && !is_complex && sign_vector == old_sign_vector) {
+      // Break if the solution stagnated.
+      break;
     }
     // v_max_abs_index = argmax |real( inv(matrix)^T * sign_vector )|
     v = dec.adjoint().solve(sign_vector);
@@ -193,8 +190,9 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   // Hager's algorithm to vastly underestimate ||matrix||_1.
   Scalar alternating_sign = 1;
   for (int i = 0; i < n; ++i) {
-    v[i] = alternating_sign * static_cast<RealScalar>(1) +
-           (static_cast<RealScalar>(i) / (static_cast<RealScalar>(n - 1)));
+    v[i] = alternating_sign *
+           (static_cast<RealScalar>(1) +
+            (static_cast<RealScalar>(i) / (static_cast<RealScalar>(n - 1))));
     alternating_sign = -alternating_sign;
   }
   v = dec.solve(v);
