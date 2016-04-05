@@ -177,7 +177,7 @@ template<typename Scalar> void packetmath()
     internal::pstore(data2, internal::pset1<Packet>(data1[offset]));
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
   }
-  
+
   {
     for (int i=0; i<PacketSize*4; ++i)
       ref[i] = data1[i/PacketSize];
@@ -199,9 +199,9 @@ template<typename Scalar> void packetmath()
     internal::pstore(data2+1*PacketSize, A1);
     VERIFY(areApprox(ref, data2, 2*PacketSize) && "internal::pbroadcast2");
   }
-  
+ 
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
-  
+ 
   if(PacketSize>1)
   {
     for(int offset=0;offset<4;++offset)
@@ -212,6 +212,7 @@ template<typename Scalar> void packetmath()
       VERIFY(areApprox(ref, data2, PacketSize) && "ploaddup");
     }
   }
+
   if(PacketSize>2)
   {
     for(int offset=0;offset<4;++offset)
@@ -227,7 +228,7 @@ template<typename Scalar> void packetmath()
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
   VERIFY(isApproxAbs(ref[0], internal::predux(internal::pload<Packet>(data1)), refvalue) && "internal::predux");
-  
+
   {
     for (int i=0; i<4; ++i)
       ref[i] = 0;
@@ -431,6 +432,7 @@ template<typename Scalar> void packetmath_real()
     VERIFY((numext::isnan)(data2[0]));
     VERIFY((numext::isnan)(data2[1]));
 #endif
+
   }
 }
 
