@@ -589,23 +589,24 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(log,
   return ReturnType(log(x.value()),x.derivatives() * (Scalar(1)/x.value()));)
 
 template<typename DerType>
-inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<DerType>::Scalar>, const DerType> >
-pow(const Eigen::AutoDiffScalar<DerType>& x, typename Eigen::internal::traits<DerType>::Scalar y)
+inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar>, const typename internal::remove_all<DerType>::type> >
+pow(const Eigen::AutoDiffScalar<DerType>& x, typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar y)
 {
   using namespace Eigen;
-  typedef typename Eigen::internal::traits<DerType>::Scalar Scalar;
-  return AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const DerType> >(
+  typedef typename internal::remove_all<DerType>::type DerTypeCleaned;
+  typedef typename Eigen::internal::traits<DerTypeCleaned>::Scalar Scalar;
+  return AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const DerTypeCleaned> >(
     std::pow(x.value(),y),
     x.derivatives() * (y * std::pow(x.value(),y-1)));
 }
 
 
 template<typename DerTypeA,typename DerTypeB>
-inline const AutoDiffScalar<Matrix<typename internal::traits<DerTypeA>::Scalar,Dynamic,1> >
+inline const AutoDiffScalar<Matrix<typename internal::traits<typename internal::remove_all<DerTypeA>::type>::Scalar,Dynamic,1> >
 atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
 {
   using std::atan2;
-  typedef typename internal::traits<DerTypeA>::Scalar Scalar;
+  typedef typename internal::traits<typename internal::remove_all<DerTypeA>::type>::Scalar Scalar;
   typedef AutoDiffScalar<Matrix<Scalar,Dynamic,1> > PlainADS;
   PlainADS ret;
   ret.value() = atan2(a.value(), b.value());

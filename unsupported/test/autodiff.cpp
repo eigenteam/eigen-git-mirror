@@ -16,7 +16,7 @@ EIGEN_DONT_INLINE Scalar foo(const Scalar& x, const Scalar& y)
   using namespace std;
 //   return x+std::sin(y);
   EIGEN_ASM_COMMENT("mybegin");
-  return static_cast<Scalar>(x*2 - pow(x,2) + 2*sqrt(y*y) - 4 * sin(x) + 2 * cos(y) - exp(-0.5*x*x));
+  return static_cast<Scalar>(x*2 - 1 + pow(1+x,2) + 2*sqrt(y*y+0) - 4 * sin(0+x) + 2 * cos(y+0) - exp(-0.5*x*x+0));
   //return x+2*y*x;//x*2 -std::pow(x,2);//(2*y/x);// - y*2;
   EIGEN_ASM_COMMENT("myend");
 }
