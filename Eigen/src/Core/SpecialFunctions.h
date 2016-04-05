@@ -846,7 +846,12 @@ struct zeta_impl {
          *
          * ACCURACY:
          *
+         * Relative error for single precision:
+         * arithmetic   domain     # trials      peak         rms
+         *    IEEE      0,25        10000       6.9e-7      1.0e-7
          *
+         * Large arguments may produce underflow in powf(), in which
+         * case the results are inaccurate.
          *
          * REFERENCE:
          *
