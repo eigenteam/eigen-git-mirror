@@ -175,10 +175,16 @@ __device__ bool operator != (const half& a, const half& b) {
   return __hne(a, b);
 }
 __device__ bool operator < (const half& a, const half& b) {
+  return __hlt(a, b);
+}
+__device__ bool operator <= (const half& a, const half& b) {
   return __hle(a, b);
 }
 __device__ bool operator > (const half& a, const half& b) {
   return __hgt(a, b);
+}
+__device__ bool operator >= (const half& a, const half& b) {
+  return __hge(a, b);
 }
 
 #else  // Emulate support for half floats
@@ -228,8 +234,14 @@ static inline EIGEN_DEVICE_FUNC bool operator != (const half& a, const half& b) 
 static inline EIGEN_DEVICE_FUNC bool operator < (const half& a, const half& b) {
   return float(a) < float(b);
 }
+static inline EIGEN_DEVICE_FUNC bool operator <= (const half& a, const half& b) {
+  return float(a) <= float(b);
+}
 static inline EIGEN_DEVICE_FUNC bool operator > (const half& a, const half& b) {
   return float(a) > float(b);
+}
+static inline EIGEN_DEVICE_FUNC bool operator >= (const half& a, const half& b) {
+  return float(a) >= float(b);
 }
 
 #endif  // Emulate support for half floats
