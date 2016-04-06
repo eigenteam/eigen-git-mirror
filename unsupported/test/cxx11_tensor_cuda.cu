@@ -658,7 +658,8 @@ void test_cuda_zeta()
 
   std::size_t bytes = in_x.size() * sizeof(Scalar);
 
-  Scalar* d_in_x, d_in_q;
+  Scalar* d_in_x;
+  Scalar* d_in_q;
   Scalar* d_out;
   cudaMalloc((void**)(&d_in_x), bytes);
   cudaMalloc((void**)(&d_in_q), bytes);
@@ -721,7 +722,8 @@ void test_cuda_polygamma()
 
   std::size_t bytes = in_x.size() * sizeof(Scalar);
 
-  Scalar* d_in_x, d_in_n;
+  Scalar* d_in_x;
+  Scalar* d_in_n;
   Scalar* d_out;
   cudaMalloc((void**)(&d_in_x), bytes);
   cudaMalloc((void**)(&d_in_n), bytes);
@@ -983,8 +985,10 @@ void test_cxx11_tensor_cuda()
   CALL_SUBTEST_4(test_cuda_lgamma<float>(0.01f));
   CALL_SUBTEST_4(test_cuda_lgamma<float>(0.001f));
 
-  CALL_SUBTEST_4(test_cuda_digamma<float>());
-
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(1.0));
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(100.0));
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(0.01));
+  CALL_SUBTEST_4(test_cuda_lgamma<double>(0.001));
 
   CALL_SUBTEST_4(test_cuda_erf<float>(1.0f));
   CALL_SUBTEST_4(test_cuda_erf<float>(100.0f));
@@ -997,13 +1001,6 @@ void test_cxx11_tensor_cuda()
   CALL_SUBTEST_4(test_cuda_erfc<float>(0.01f));
   CALL_SUBTEST_4(test_cuda_erfc<float>(0.001f));
 
-  CALL_SUBTEST_4(test_cuda_lgamma<double>(1.0));
-  CALL_SUBTEST_4(test_cuda_lgamma<double>(100.0));
-  CALL_SUBTEST_4(test_cuda_lgamma<double>(0.01));
-  CALL_SUBTEST_4(test_cuda_lgamma<double>(0.001));
-
-  CALL_SUBTEST_4(test_cuda_digamma<double>());
-
   CALL_SUBTEST_4(test_cuda_erf<double>(1.0));
   CALL_SUBTEST_4(test_cuda_erf<double>(100.0));
   CALL_SUBTEST_4(test_cuda_erf<double>(0.01));
@@ -1014,6 +1011,15 @@ void test_cxx11_tensor_cuda()
   CALL_SUBTEST_4(test_cuda_erfc<double>(5.0)); // CUDA erfc lacks precision for large inputs
   CALL_SUBTEST_4(test_cuda_erfc<double>(0.01));
   CALL_SUBTEST_4(test_cuda_erfc<double>(0.001));
+
+  CALL_SUBTEST_5(test_cuda_digamma<float>());
+  CALL_SUBTEST_5(test_cuda_digamma<double>());
+
+  CALL_SUBTEST_5(test_cuda_polygamma<float>());
+  CALL_SUBTEST_5(test_cuda_polygamma<double>());
+
+  CALL_SUBTEST_5(test_cuda_zeta<float>());
+  CALL_SUBTEST_5(test_cuda_zeta<double>());
 
   CALL_SUBTEST_5(test_cuda_igamma<float>());
   CALL_SUBTEST_5(test_cuda_igammac<float>());
