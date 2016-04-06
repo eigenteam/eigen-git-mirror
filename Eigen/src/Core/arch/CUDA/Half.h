@@ -414,6 +414,7 @@ using ::log;
 using ::sqrt;
 using ::floor;
 using ::ceil;
+using ::isfinite;
 
 #if __cplusplus > 199711L
 template <>
