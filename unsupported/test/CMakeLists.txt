@@ -175,7 +175,7 @@ endif()
 
 # These tests needs nvcc
 find_package(CUDA 7.0)
-if(CUDA_FOUND AND EIGEN_TEST_NVCC)
+if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   # Make sure to compile without the -pedantic, -Wundef, -Wnon-virtual-dtor
   # and -fno-check-new flags since they trigger thousands of compilation warnings
   # in the CUDA runtime

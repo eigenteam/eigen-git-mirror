@@ -325,9 +325,9 @@ if(EIGEN_TEST_EIGEN2)
 endif()
 
 
-# NVCC unit tests
-option(EIGEN_TEST_NVCC "Enable NVCC support in unit tests" OFF)
-if(EIGEN_TEST_NVCC)
+# CUDA unit tests
+option(EIGEN_TEST_CUDA "Enable CUDA support in unit tests" OFF)
+if(EIGEN_TEST_CUDA)
   
 find_package(CUDA 5.0)
 if(CUDA_FOUND)
@@ -345,7 +345,7 @@ if(CUDA_FOUND)
 
 endif(CUDA_FOUND)
 
-endif(EIGEN_TEST_NVCC)
+endif(EIGEN_TEST_CUDA)
 
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests)    

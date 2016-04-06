@@ -315,7 +315,7 @@ macro(ei_testing_print_summary)
       message(STATUS "C++11:             OFF")
     endif()
 
-    if(EIGEN_TEST_NVCC)
+    if(EIGEN_TEST_CUDA)
       message(STATUS "CUDA:              ON")
     else()
       message(STATUS "CUDA:              OFF")
