@@ -40,6 +40,8 @@ template<> struct packet_traits<float> : default_packet_traits
     HasRsqrt = 1,
     HasLGamma = 1,
     HasDiGamma = 1,
+    HasZeta = 1,
+    HasPolygamma = 1,
     HasErf = 1,
     HasErfc = 1,
     HasIgamma = 1,

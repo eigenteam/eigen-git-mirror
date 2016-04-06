@@ -448,6 +448,50 @@ struct functor_traits<scalar_digamma_op<Scalar> >
     PacketAccess = packet_traits<Scalar>::HasDiGamma
   };
 };
+    
+/** \internal
+ * \brief Template functor to compute the Riemann Zeta function of two arguments.
+ * \sa class CwiseUnaryOp, Cwise::zeta()
+ */
+template<typename Scalar> struct scalar_zeta_op {
+    EIGEN_EMPTY_STRUCT_CTOR(scalar_zeta_op)
+    EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& x, const Scalar& q) const {
+        using numext::zeta; return zeta(x, q);
+    }
+    typedef typename packet_traits<Scalar>::type Packet;
+    EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& x, const Packet& q) const { return internal::pzeta(x, q); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_zeta_op<Scalar> >
+{
+    enum {
+        // Guesstimate
+        Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+        PacketAccess = packet_traits<Scalar>::HasZeta
+    };
+};
+
+/** \internal
+ * \brief Template functor to compute the polygamma function.
+ * \sa class CwiseUnaryOp, Cwise::polygamma()
+ */
+template<typename Scalar> struct scalar_polygamma_op {
+    EIGEN_EMPTY_STRUCT_CTOR(scalar_polygamma_op)
+    EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& n, const Scalar& x) const {
+        using numext::polygamma; return polygamma(n, x);
+    }
+    typedef typename packet_traits<Scalar>::type Packet;
+    EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& n, const Packet& x) const { return internal::ppolygamma(n, x); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_polygamma_op<Scalar> >
+{
+    enum {
+        // Guesstimate
+        Cost = 10 * NumTraits<Scalar>::MulCost + 5 * NumTraits<Scalar>::AddCost,
+        PacketAccess = packet_traits<Scalar>::HasPolygamma
+    };
+};
 
 /** \internal
  * \brief Template functor to compute the Gauss error function of a

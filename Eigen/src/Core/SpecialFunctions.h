@@ -722,6 +722,268 @@ struct igamma_impl {
 
 #endif  // EIGEN_HAS_C99_MATH
 
+/****************************************************************************
+ * Implementation of Riemann zeta function of two arguments                 *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct zeta_retval {
+    typedef Scalar type;
+};
+    
+#ifndef EIGEN_HAS_C99_MATH
+    
+template <typename Scalar>
+struct zeta_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar x, Scalar q) {
+        EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                            THIS_TYPE_IS_NOT_SUPPORTED);
+        return Scalar(0);
+    }
+};
+    
+#else
+
+template <typename Scalar>
+struct zeta_impl_series {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar) {
+    EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                        THIS_TYPE_IS_NOT_SUPPORTED);
+    return Scalar(0);
+  }
+};
+
+template <>
+struct zeta_impl_series<float> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static bool run(float& a, float& b, float& s, const float x, const float machep) {
+    int i = 0;  
+    while(i < 9)
+    {
+        i += 1;
+        a += 1.0f;
+        b = numext::pow( a, -x );
+        s += b;
+        if( numext::abs(b/s) < machep )
+            return true;
+    }
+    
+    //Return whether we are done
+    return false;
+  }
+};
+
+template <>
+struct zeta_impl_series<double> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  static bool run(double& a, double& b, double& s, const double x, const double machep) {
+    int i = 0;  
+    while( (i < 9) || (a <= 9.0) )
+    {
+        i += 1;
+        a += 1.0;
+        b = numext::pow( a, -x );
+        s += b;
+        if( numext::abs(b/s) < machep )
+            return true;
+    }
+    
+    //Return whether we are done
+    return false;
+  }
+};
+    
+template <typename Scalar>
+struct zeta_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar x, Scalar q) {
+        /*							zeta.c
+         *
+         *	Riemann zeta function of two arguments
+         *
+         *
+         *
+         * SYNOPSIS:
+         *
+         * double x, q, y, zeta();
+         *
+         * y = zeta( x, q );
+         *
+         *
+         *
+         * DESCRIPTION:
+         *
+         *
+         *
+         *                 inf.
+         *                  -        -x
+         *   zeta(x,q)  =   >   (k+q)
+         *                  -
+         *                 k=0
+         *
+         * where x > 1 and q is not a negative integer or zero.
+         * The Euler-Maclaurin summation formula is used to obtain
+         * the expansion
+         *
+         *                n
+         *                -       -x
+         * zeta(x,q)  =   >  (k+q)
+         *                -
+         *               k=1
+         *
+         *           1-x                 inf.  B   x(x+1)...(x+2j)
+         *      (n+q)           1         -     2j
+         *  +  ---------  -  -------  +   >    --------------------
+         *        x-1              x      -                   x+2j+1
+         *                   2(n+q)      j=1       (2j)! (n+q)
+         *
+         * where the B2j are Bernoulli numbers.  Note that (see zetac.c)
+         * zeta(x,1) = zetac(x) + 1.
+         *
+         *
+         *
+         * ACCURACY:
+         *
+         * Relative error for single precision:
+         * arithmetic   domain     # trials      peak         rms
+         *    IEEE      0,25        10000       6.9e-7      1.0e-7
+         *
+         * Large arguments may produce underflow in powf(), in which
+         * case the results are inaccurate.
+         *
+         * REFERENCE:
+         *
+         * Gradshteyn, I. S., and I. M. Ryzhik, Tables of Integrals,
+         * Series, and Products, p. 1073; Academic Press, 1980.
+         *
+         */
+        
+        int i;
+        Scalar p, r, a, b, k, s, t, w;
+        
+        const Scalar A[] = {
+            Scalar(12.0),
+            Scalar(-720.0),
+            Scalar(30240.0),
+            Scalar(-1209600.0),
+            Scalar(47900160.0),
+            Scalar(-1.8924375803183791606e9), /*1.307674368e12/691*/
+            Scalar(7.47242496e10),
+            Scalar(-2.950130727918164224e12), /*1.067062284288e16/3617*/
+            Scalar(1.1646782814350067249e14), /*5.109094217170944e18/43867*/
+            Scalar(-4.5979787224074726105e15), /*8.028576626982912e20/174611*/
+            Scalar(1.8152105401943546773e17), /*1.5511210043330985984e23/854513*/
+            Scalar(-7.1661652561756670113e18) /*1.6938241367317436694528e27/236364091*/
+            };
+            
+        const Scalar maxnum = NumTraits<Scalar>::infinity();
+        const Scalar zero = 0.0, half = 0.5, one = 1.0;
+        const Scalar machep = igamma_helper<Scalar>::machep();
+        
+        if( x == one )
+            return maxnum;
+        
+        if( x < one )
+        {
+            return zero;
+        }
+        
+        if( q <= zero )
+        {
+            if(q == numext::floor(q))
+            {
+                return maxnum;
+            }
+            p = x;
+            r = numext::floor(p);
+            if (p != r)
+                return zero;
+        }
+        
+        /* Permit negative q but continue sum until n+q > +9 .
+         * This case should be handled by a reflection formula.
+         * If q<0 and x is an integer, there is a relation to
+         * the polygamma function.
+         */
+        s = numext::pow( q, -x );
+        a = q;
+        b = zero;
+        // Run the summation in a helper function that is specific to the floating precision
+        if (zeta_impl_series<Scalar>::run(a, b, s, x, machep)) {
+            return s;
+        }
+        
+        w = a;
+        s += b*w/(x-one);
+        s -= half * b;
+        a = one;
+        k = zero;
+        for( i=0; i<12; i++ )
+        {
+            a *= x + k;
+            b /= w;
+            t = a*b/A[i];
+            s = s + t;
+            t = numext::abs(t/s);
+            if( t < machep )
+                return s;
+            k += one;
+            a *= x + k;
+            b /= w;
+            k += one;
+        }
+        return s;
+  }
+};
+    
+#endif  // EIGEN_HAS_C99_MATH
+
+/****************************************************************************
+ * Implementation of polygamma function                                     *
+ ****************************************************************************/
+
+template <typename Scalar>
+struct polygamma_retval {
+    typedef Scalar type;
+};
+    
+#ifndef EIGEN_HAS_C99_MATH
+    
+template <typename Scalar>
+struct polygamma_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar n, Scalar x) {
+        EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
+                            THIS_TYPE_IS_NOT_SUPPORTED);
+        return Scalar(0);
+    }
+};
+    
+#else
+    
+template <typename Scalar>
+struct polygamma_impl {
+    EIGEN_DEVICE_FUNC
+    static Scalar run(Scalar n, Scalar x) {
+        Scalar zero = 0.0, one = 1.0;
+        Scalar nplus = n + one;
+        
+        // Just return the digamma function for n = 1
+        if (n == zero) {
+            return digamma_impl<Scalar>::run(x);
+        }
+        // Use the same implementation as scipy
+        else {
+            Scalar factorial = numext::exp(lgamma_impl<Scalar>::run(nplus));
+            return numext::pow(-one, nplus) * factorial * zeta_impl<Scalar>::run(nplus, x);
+        }
+  }
+};
+    
+#endif  // EIGEN_HAS_C99_MATH
+
 }  // end namespace internal
 
 namespace numext {
@@ -736,6 +998,18 @@ template <typename Scalar>
 EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(digamma, Scalar)
     digamma(const Scalar& x) {
   return EIGEN_MATHFUNC_IMPL(digamma, Scalar)::run(x);
+}
+    
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(zeta, Scalar)
+zeta(const Scalar& x, const Scalar& q) {
+    return EIGEN_MATHFUNC_IMPL(zeta, Scalar)::run(x, q);
+}
+
+template <typename Scalar>
+EIGEN_DEVICE_FUNC inline EIGEN_MATHFUNC_RETVAL(polygamma, Scalar)
+polygamma(const Scalar& n, const Scalar& x) {
+    return EIGEN_MATHFUNC_IMPL(polygamma, Scalar)::run(n, x);
 }
 
 template <typename Scalar>
