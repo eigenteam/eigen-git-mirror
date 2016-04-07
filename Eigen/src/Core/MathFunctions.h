@@ -23,7 +23,7 @@ double      abs(double      x) { return (fabs(x));  }
 float       abs(float       x) { return (fabsf(x)); }
 long double abs(long double x) { return (fabsl(x)); }
 #endif
-  
+
 namespace internal {
 
 /** \internal \class global_math_functions_filtering_base
@@ -704,7 +704,9 @@ EIGEN_DEVICE_FUNC
 typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isfinite_impl(const T& x)
 {
-  #if EIGEN_USE_STD_FPCLASSIFY
+  #ifdef __CUDA_ARCH__
+    return (isfinite)(x);
+  #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isfinite;
     return isfinite EIGEN_NOT_A_MACRO (x);
   #else
@@ -717,7 +719,9 @@ EIGEN_DEVICE_FUNC
 typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isinf_impl(const T& x)
 {
-  #if EIGEN_USE_STD_FPCLASSIFY
+  #ifdef __CUDA_ARCH__
+    return (isinf)(x);
+  #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isinf;
     return isinf EIGEN_NOT_A_MACRO (x);
   #else
@@ -730,7 +734,9 @@ EIGEN_DEVICE_FUNC
 typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>::IsComplex),bool>::type
 isnan_impl(const T& x)
 {
-  #if EIGEN_USE_STD_FPCLASSIFY
+  #ifdef __CUDA_ARCH__
+    return (isnan)(x);
+  #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isnan;
     return isnan EIGEN_NOT_A_MACRO (x);
   #else
@@ -780,9 +786,9 @@ template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const long double& x) { return
 #endif
 
 // The following overload are defined at the end of this file
-template<typename T> bool isfinite_impl(const std::complex<T>& x);
-template<typename T> bool isnan_impl(const std::complex<T>& x);
-template<typename T> bool isinf_impl(const std::complex<T>& x);
+template<typename T> EIGEN_DEVICE_FUNC bool isfinite_impl(const std::complex<T>& x);
+template<typename T> EIGEN_DEVICE_FUNC bool isnan_impl(const std::complex<T>& x);
+template<typename T> EIGEN_DEVICE_FUNC bool isinf_impl(const std::complex<T>& x);
 
 } // end namespace internal
 
@@ -1089,19 +1095,19 @@ double fmod(const double& a, const double& b) {
 namespace internal {
 
 template<typename T>
-bool isfinite_impl(const std::complex<T>& x)
+EIGEN_DEVICE_FUNC bool isfinite_impl(const std::complex<T>& x)
 {
   return (numext::isfinite)(numext::real(x)) && (numext::isfinite)(numext::imag(x));
 }
 
 template<typename T>
-bool isnan_impl(const std::complex<T>& x)
+EIGEN_DEVICE_FUNC bool isnan_impl(const std::complex<T>& x)
 {
   return (numext::isnan)(numext::real(x)) || (numext::isnan)(numext::imag(x));
 }
 
 template<typename T>
-bool isinf_impl(const std::complex<T>& x)
+EIGEN_DEVICE_FUNC bool isinf_impl(const std::complex<T>& x)
 {
   return ((numext::isinf)(numext::real(x)) || (numext::isinf)(numext::imag(x))) && (!(numext::isnan)(x));
 }
