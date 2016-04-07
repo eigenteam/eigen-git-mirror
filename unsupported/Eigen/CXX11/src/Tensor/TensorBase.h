@@ -400,6 +400,23 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return operator!=(constant(threshold));
     }
 
+    // Checks
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_isnan_op<Scalar>, const Derived>
+    (isnan)() const {
+      return unaryExpr(internal::scalar_isnan_op<Scalar>());
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_isinf_op<Scalar>, const Derived>
+    (isinf)() const {
+      return unaryExpr(internal::scalar_isinf_op<Scalar>());
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_isfinite_op<Scalar>, const Derived>
+    (isfinite)() const {
+      return unaryExpr(internal::scalar_isfinite_op<Scalar>());
+    }
+
     // Coefficient-wise ternary operators.
     template<typename ThenDerived, typename ElseDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorSelectOp<const Derived, const ThenDerived, const ElseDerived>

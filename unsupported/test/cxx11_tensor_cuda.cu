@@ -122,6 +122,43 @@ void test_cuda_elementwise()
   cudaFree(d_out);
 }
 
+void test_cuda_props() {
+  Tensor<float, 1> in1(200);
+  Tensor<bool, 1> out(200);
+  in1.setRandom();
+
+  std::size_t in1_bytes = in1.size() * sizeof(float);
+  std::size_t out_bytes = out.size() * sizeof(bool);
+
+  float* d_in1;
+  bool* d_out;
+  cudaMalloc((void**)(&d_in1), in1_bytes);
+  cudaMalloc((void**)(&d_out), out_bytes);
+
+  cudaMemcpy(d_in1, in1.data(), in1_bytes, cudaMemcpyHostToDevice);
+
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_in1(
+      d_in1, 200);
+  Eigen::TensorMap<Eigen::Tensor<bool, 1>, Eigen::Aligned> gpu_out(
+      d_out, 200);
+
+  gpu_out.device(gpu_device) = (gpu_in1.isnan)();
+
+  assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost,
+                         gpu_device.stream()) == cudaSuccess);
+  assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
+
+  for (int i = 0; i < 200; ++i) {
+    VERIFY_IS_EQUAL(out(i), (std::isinf)(in1(i)));
+  }
+
+  cudaFree(d_in1);
+  cudaFree(d_out);
+}
+
 void test_cuda_reduction()
 {
   Tensor<float, 4> in1(72,53,97,113);
@@ -964,6 +1001,7 @@ void test_cxx11_tensor_cuda()
 {
   CALL_SUBTEST_1(test_cuda_elementwise_small());
   CALL_SUBTEST_1(test_cuda_elementwise());
+  CALL_SUBTEST_1(test_cuda_props());
   CALL_SUBTEST_1(test_cuda_reduction());
   CALL_SUBTEST_2(test_cuda_contraction<ColMajor>());
   CALL_SUBTEST_2(test_cuda_contraction<RowMajor>());
