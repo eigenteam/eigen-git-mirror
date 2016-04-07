@@ -66,7 +66,7 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
   eigen_assert(matrix.rows() == dec.rows());
   eigen_assert(matrix.cols() == dec.cols());
   eigen_assert(matrix.rows() == matrix.cols());
-  if (dec.rows() == 0) {
+  if (dec.rows() <= 1) {
     return static_cast<typename Decomposition::RealScalar>(1);
   }
   return ReciprocalConditionNumberEstimate(MatrixL1Norm(matrix), dec);
@@ -93,7 +93,7 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
     typename Decomposition::RealScalar matrix_norm, const Decomposition& dec) {
   typedef typename Decomposition::RealScalar RealScalar;
   eigen_assert(dec.rows() == dec.cols());
-  if (dec.rows() == 0) {
+  if (dec.rows() <= 1) {
     return static_cast<RealScalar>(1);
   }
   if (matrix_norm == static_cast<RealScalar>(0)) {
