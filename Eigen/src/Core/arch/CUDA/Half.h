@@ -389,6 +389,29 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isnan)(const Eigen::half& a) 
   return (a.x & 0x7fff) > 0x7c00;
 #endif
 }
+static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isfinite)(const Eigen::half& a) {
+  return !(Eigen::numext::isinf)(a) && !(Eigen::numext::isnan)(a);
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half abs(const Eigen::half& a) {
+  Eigen::half result;
+  result.x = a.x & 0x7FFF;
+  return result;
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half exp(const Eigen::half& a) {
+  return Eigen::half(::expf(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half log(const Eigen::half& a) {
+  return Eigen::half(::logf(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrt(const Eigen::half& a) {
+  return Eigen::half(::sqrtf(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floor(const Eigen::half& a) {
+  return Eigen::half(::floorf(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ceil(const Eigen::half& a) {
+  return Eigen::half(::ceilf(float(a)));
+}
 
 } // end namespace numext
 
@@ -427,36 +450,6 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isfinite)(const Eigen::half& a
 
 
 namespace std {
-
-// Import the standard mathematical functions and trancendentals into the
-// into the std namespace.
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half abs(const Eigen::half& a) {
-  return ::fabsh(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half exp(const Eigen::half& a) {
-  return ::exph(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half log(const Eigen::half& a) {
-  return ::logh(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrt(const Eigen::half& a) {
-  return ::sqrth(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floor(const Eigen::half& a) {
-  return ::floorh(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ceil(const Eigen::half& a) {
-  return ::ceilh(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isnan)(const Eigen::half& a) {
-  return (Eigen::numext::isnan)(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isinf)(const Eigen::half& a) {
-  return (Eigen::numext::isinf)(a);
-}
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isfinite)(const Eigen::half& a) {
-  return !(Eigen::numext::isinf)(a) && !(Eigen::numext::isnan)(a);
-}
 
 #if __cplusplus > 199711L
 template <>
