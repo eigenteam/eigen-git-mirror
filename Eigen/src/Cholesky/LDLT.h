@@ -459,16 +459,16 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const EigenBase<InputTyp
   m_l1_norm = RealScalar(0);
   if (_UpLo == Lower) {
     for (int col = 0; col < size; ++col) {
-      const RealScalar abs_col_sum = m_matrix.col(col).tail(size - col).cwiseAbs().sum() +
-          m_matrix.row(col).head(col).cwiseAbs().sum();
+      const RealScalar abs_col_sum = m_matrix.col(col).tail(size - col).template lpNorm<1>() +
+          m_matrix.row(col).head(col).template lpNorm<1>();
       if (abs_col_sum > m_l1_norm) {
         m_l1_norm = abs_col_sum;
       }
     }
   } else {
     for (int col = 0; col < a.cols(); ++col) {
-      const RealScalar abs_col_sum = m_matrix.col(col).head(col).cwiseAbs().sum() +
-          m_matrix.row(col).tail(size - col).cwiseAbs().sum();
+      const RealScalar abs_col_sum = m_matrix.col(col).head(col).template lpNorm<1>() +
+          m_matrix.row(col).tail(size - col).template lpNorm<1>();
       if (abs_col_sum > m_l1_norm) {
         m_l1_norm = abs_col_sum;
       }
