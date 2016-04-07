@@ -776,7 +776,7 @@ void test_cuda_polygamma()
   Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in_n(d_in_n, 7);
   Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_out(d_out, 7);
 
-  gpu_out.device(gpu_device) = gpu_in_n.zeta(gpu_in_x);
+  gpu_out.device(gpu_device) = gpu_in_n.polygamma(gpu_in_x);
 
   assert(cudaMemcpyAsync(out.data(), d_out, bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
   assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
