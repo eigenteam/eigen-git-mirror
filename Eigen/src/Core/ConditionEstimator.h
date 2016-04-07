@@ -139,11 +139,11 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   const bool is_complex = (NumTraits<Scalar>::IsComplex != 0);
 
   eigen_assert(dec.rows() == dec.cols());
-  const int n = dec.rows();
+  const Index n = dec.rows();
   if (n == 0) {
     return 0;
   }
-  Vector v = dec.solve(Vector::Ones(n) / n);
+  Vector v = dec.solve(Vector::Ones(n) / static_cast<Scalar>(n));
 
   // lower_bound is a lower bound on
   //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
@@ -159,8 +159,8 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   RealScalar old_lower_bound = lower_bound;
   Vector sign_vector(n);
   Vector old_sign_vector;
-  int v_max_abs_index = -1;
-  int old_v_max_abs_index = v_max_abs_index;
+  Index v_max_abs_index = -1;
+  Index old_v_max_abs_index = v_max_abs_index;
   for (int k = 0; k < 4; ++k) {
     sign_vector = internal::SignOrUnity<Vector, RealVector, is_complex>::run(v);
     if (k > 0 && !is_complex && sign_vector == old_sign_vector) {
@@ -198,7 +198,7 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   // sequence of backsubstitutions and permutations), which could cause
   // Hager's algorithm to vastly underestimate ||matrix||_1.
   Scalar alternating_sign(static_cast<RealScalar>(1));
-  for (int i = 0; i < n; ++i) {
+  for (Index i = 0; i < n; ++i) {
     v[i] = alternating_sign *
            (static_cast<RealScalar>(1) +
             (static_cast<RealScalar>(i) / (static_cast<RealScalar>(n - 1))));
