@@ -152,7 +152,7 @@ void test_cuda_props() {
   assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
 
   for (int i = 0; i < 200; ++i) {
-    VERIFY_IS_EQUAL(out(i), (std::isinf)(in1(i)));
+    VERIFY_IS_EQUAL(out(i), (std::isnan)(in1(i)));
   }
 
   cudaFree(d_in1);
