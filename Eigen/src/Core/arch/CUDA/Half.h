@@ -273,6 +273,12 @@ union FP32 {
 static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __float2half(ff);
+
+#elif defined(EIGEN_HAS_FP16_C)
+  __half h;
+  h.x = _cvtss_sh(ff, 0);
+  return h;
+
 #else
   FP32 f; f.f = ff;
 
@@ -321,6 +327,10 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff)
 static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half h) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __half2float(h);
+
+#elif defined(EIGEN_HAS_FP16_C)
+  return _cvtsh_ss(h.x);
+
 #else
   const FP32 magic = { 113 << 23 };
   const unsigned int shifted_exp = 0x7c00 << 13; // exponent mask after shift

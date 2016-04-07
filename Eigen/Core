@@ -204,6 +204,11 @@
   #endif
 #endif
 
+#if defined(__F16C__)
+  // We can use the optimized fp16 to float and float to fp16 conversion routines
+  #define EIGEN_HAS_FP16_C
+#endif
+
 #if defined __CUDACC__
   #define EIGEN_VECTORIZE_CUDA
   #include <vector_types.h>
