@@ -83,7 +83,7 @@ struct half : public __half {
 
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(bool) const {
     // +0.0 and -0.0 become false, everything else becomes true.
-    return static_cast<bool>(x & 0x7fff);
+    return (x & 0x7fff) != 0;
   }
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(signed char) const {
     return static_cast<signed char>(internal::half_to_float(*this));
