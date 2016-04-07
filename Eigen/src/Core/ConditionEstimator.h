@@ -27,7 +27,8 @@ template <typename Vector, typename RealVector, bool IsComplex>
 struct SignOrUnity {
   static inline Vector run(const Vector& v) {
     const RealVector v_abs = v.cwiseAbs();
-    return (v_abs.array() == 0).select(Vector::Ones(v.size()), v.cwiseQuotient(v_abs));
+    return (v_abs.array() == static_cast<typename Vector::RealScalar>(0))
+        .select(Vector::Ones(v.size()), v.cwiseQuotient(v_abs));
   }
 };
 
@@ -35,7 +36,8 @@ struct SignOrUnity {
 template <typename Vector>
 struct SignOrUnity<Vector, Vector, false> {
   static inline Vector run(const Vector& v) {
-    return (v.array() < 0).select(-Vector::Ones(v.size()), Vector::Ones(v.size()));
+    return (v.array() < static_cast<typename Vector::RealScalar>(0))
+        .select(-Vector::Ones(v.size()), Vector::Ones(v.size()));
   }
 };
 
@@ -65,7 +67,7 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
   eigen_assert(matrix.cols() == dec.cols());
   eigen_assert(matrix.rows() == matrix.cols());
   if (dec.rows() == 0) {
-    return Decomposition::RealScalar(1);
+    return static_cast<typename Decomposition::RealScalar>(1);
   }
   return ReciprocalConditionNumberEstimate(MatrixL1Norm(matrix), dec);
 }
@@ -89,15 +91,20 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
 template <typename Decomposition>
 typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
     typename Decomposition::RealScalar matrix_norm, const Decomposition& dec) {
+  typedef typename Decomposition::RealScalar RealScalar;
   eigen_assert(dec.rows() == dec.cols());
   if (dec.rows() == 0) {
-    return 1;
+    return static_cast<RealScalar>(1);
   }
-  if (matrix_norm == 0) {
-    return 0;
+  if (matrix_norm == static_cast<RealScalar>(0)) {
+    return static_cast<RealScalar>(0);
   }
-  const typename Decomposition::RealScalar inverse_matrix_norm = InverseMatrixL1NormEstimate(dec);
-  return inverse_matrix_norm == 0 ? 0 : (1 / inverse_matrix_norm) / matrix_norm;
+  const typename Decomposition::RealScalar inverse_matrix_norm =
+      InverseMatrixL1NormEstimate(dec);
+  return (inverse_matrix_norm == static_cast<RealScalar>(0)
+              ? static_cast<RealScalar>(0)
+              : (static_cast<RealScalar>(1) / inverse_matrix_norm) /
+                    matrix_norm);
 }
 
 /**
@@ -115,7 +122,8 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
  * ||matrix||_1 * ||inv(matrix)||_1. The first term ||matrix||_1 can be
  * computed directly in O(n^2) operations.
  *
- * Supports the following decompositions: FullPivLU, PartialPivLU, LDLT, and LLT.
+ * Supports the following decompositions: FullPivLU, PartialPivLU, LDLT, and
+ * LLT.
  *
  * \sa FullPivLU, PartialPivLU, LDLT, LLT.
  */
@@ -126,7 +134,8 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   typedef typename Decomposition::Scalar Scalar;
   typedef typename Decomposition::RealScalar RealScalar;
   typedef typename internal::plain_col_type<MatrixType>::type Vector;
-  typedef typename internal::plain_col_type<MatrixType, RealScalar>::type RealVector;
+  typedef typename internal::plain_col_type<MatrixType, RealScalar>::type
+      RealVector;
   const bool is_complex = (NumTraits<Scalar>::IsComplex != 0);
 
   eigen_assert(dec.rows() == dec.cols());
@@ -188,7 +197,7 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   // exact cancellation (especially when op and op_adjoint correspond to a
   // sequence of backsubstitutions and permutations), which could cause
   // Hager's algorithm to vastly underestimate ||matrix||_1.
-  Scalar alternating_sign = 1;
+  Scalar alternating_sign(static_cast<RealScalar>(1));
   for (int i = 0; i < n; ++i) {
     v[i] = alternating_sign *
            (static_cast<RealScalar>(1) +

@@ -170,9 +170,8 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 
     /** \returns the decomposition itself to allow generic code to do
-     *  llt.transpose().solve(rhs).
+     *  llt.adjoint().solve(rhs).
      */
-    const LLT<MatrixType, UpLo>& transpose() const { return *this; };
     const LLT<MatrixType, UpLo>& adjoint() const { return *this; };
 
     inline Index rows() const { return m_matrix.rows(); }

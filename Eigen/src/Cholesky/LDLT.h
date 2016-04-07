@@ -217,9 +217,8 @@ template<typename _MatrixType, int _UpLo> class LDLT
     MatrixType reconstructedMatrix() const;
 
     /** \returns the decomposition itself to allow generic code to do
-     *  ldlt.transpose().solve(rhs).
+     *  ldlt.adjoint().solve(rhs).
      */
-    const LDLT<MatrixType, UpLo>& transpose() const { return *this; };
     const LDLT<MatrixType, UpLo>& adjoint() const { return *this; };
 
     inline Index rows() const { return m_matrix.rows(); }
