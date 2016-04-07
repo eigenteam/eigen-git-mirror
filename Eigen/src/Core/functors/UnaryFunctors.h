@@ -73,7 +73,7 @@ template<typename Scalar, typename=void> struct abs_knowing_score
   EIGEN_EMPTY_STRUCT_CTOR(abs_knowing_score)
   typedef typename NumTraits<Scalar>::Real result_type;
   template<typename Score>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a, const Score&) const { using std::abs; return abs(a); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const Scalar& a, const Score&) const { return numext::abs(a); }
 };
 template<typename Scalar> struct abs_knowing_score<Scalar, typename scalar_score_coeff_op<Scalar>::Score_is_abs>
 {
@@ -230,7 +230,7 @@ struct functor_traits<scalar_imag_ref_op<Scalar> >
   */
 template<typename Scalar> struct scalar_exp_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_exp_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::exp; return exp(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { return numext::exp(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pexp(a); }
 };
@@ -246,7 +246,7 @@ struct functor_traits<scalar_exp_op<Scalar> >
   */
 template<typename Scalar> struct scalar_log_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_log_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::log; return log(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { return numext::log(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::plog(a); }
 };
@@ -276,7 +276,7 @@ struct functor_traits<scalar_log10_op<Scalar> >
   */
 template<typename Scalar> struct scalar_sqrt_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sqrt_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::sqrt; return sqrt(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { return numext::sqrt(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psqrt(a); }
 };
@@ -294,7 +294,7 @@ struct functor_traits<scalar_sqrt_op<Scalar> >
   */
 template<typename Scalar> struct scalar_rsqrt_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_rsqrt_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::sqrt; return Scalar(1)/sqrt(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { return Scalar(1)/numext::sqrt(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::prsqrt(a); }
 };
@@ -814,9 +814,8 @@ struct scalar_sign_op<Scalar,true> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sign_op)
   EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const
   {
-    using std::abs;
     typedef typename NumTraits<Scalar>::Real real_type;
-    real_type aa = abs(a);
+    real_type aa = numext::abs(a);
     if (aa==0)
       return Scalar(0);
     aa = 1./aa;
