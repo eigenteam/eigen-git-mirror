@@ -28,7 +28,7 @@ BM_FuncGPU(shuffling);
 BM_FuncGPU(padding);
 BM_FuncGPU(striding);
 BM_FuncGPU(broadcasting);
-//BM_FuncGPU(coeffWiseOp);
+BM_FuncGPU(coeffWiseOp);
 //BM_FuncGPU(algebraicFunc);
 //BM_FuncGPU(transcendentalFunc);
 BM_FuncGPU(rowReduction);
