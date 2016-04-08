@@ -210,10 +210,7 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
     ei_add_test(cxx11_tensor_random_cuda)
   endif()
 
-  # Operations other that casting of half floats are only supported starting with arch 5.3
-  if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 52)
-    ei_add_test(cxx11_tensor_of_float16_cuda)
-  endif()
+  ei_add_test(cxx11_tensor_of_float16_cuda)
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()
