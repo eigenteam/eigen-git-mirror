@@ -705,7 +705,7 @@ typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>:
 isfinite_impl(const T& x)
 {
   #ifdef __CUDA_ARCH__
-    return (isfinite)(x);
+    return (::isfinite)(x);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isfinite;
     return isfinite EIGEN_NOT_A_MACRO (x);
@@ -720,7 +720,7 @@ typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>:
 isinf_impl(const T& x)
 {
   #ifdef __CUDA_ARCH__
-    return (isinf)(x);
+    return (::isinf)(x);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isinf;
     return isinf EIGEN_NOT_A_MACRO (x);
@@ -735,7 +735,7 @@ typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>:
 isnan_impl(const T& x)
 {
   #ifdef __CUDA_ARCH__
-    return (isnan)(x);
+    return (::isnan)(x);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isnan;
     return isnan EIGEN_NOT_A_MACRO (x);
