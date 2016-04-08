@@ -33,14 +33,7 @@ template<> struct packet_traits<half> : default_packet_traits
     AlignedOnScalar = 1,
     size=2,
     HasHalfPacket = 0,
-
-    HasDiv  = 1,
-    HasLog  = 1,
-    HasExp  = 1,
-    HasSqrt = 1,
-    HasRsqrt = 1,
-
-    HasBlend = 0,
+    HasDiv  = 1
   };
 };
 
