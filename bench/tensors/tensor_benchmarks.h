@@ -46,8 +46,13 @@ template <typename Device, typename T> class BenchmarkSuite {
   void typeCasting(int num_iters) {
     eigen_assert(m_ == n_);
     Eigen::array<TensorIndex, 2> sizes;
-    sizes[0] = m_;
-    sizes[1] = k_;
+    if (sizeof(T) >= sizeof(int)) {
+      sizes[0] = m_;
+      sizes[1] = k_;
+    } else {
+      sizes[0] = m_ * sizeof(T) / sizeof(int);
+      sizes[1] = k_ * sizeof(T) / sizeof(int);
+    }
     const TensorMap<Tensor<int, 2, 0, TensorIndex>, Eigen::Aligned> A((int*)a_, sizes);
     TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, sizes);
 
