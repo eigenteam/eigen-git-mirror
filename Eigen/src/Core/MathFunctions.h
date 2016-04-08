@@ -710,7 +710,7 @@ isfinite_impl(const T& x)
     using std::isfinite;
     return isfinite EIGEN_NOT_A_MACRO (x);
   #else
-    return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
+    return x<=NumTraits<T>::highest() && x>=NumTraits<T>::lowest();
   #endif
 }
 
