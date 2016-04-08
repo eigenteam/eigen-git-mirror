@@ -7,7 +7,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC float16
+#define EIGEN_TEST_FUNC cxx11_float16
 
 #include "main.h"
 #include <Eigen/src/Core/arch/CUDA/Half.h>
@@ -64,9 +64,13 @@ void test_conversion()
   VERIFY((numext::isnan)(float(half(__half{0xfc01}))));
   VERIFY((numext::isinf)(float(half(__half{0x7c00}))));
   VERIFY((numext::isnan)(float(half(__half{0x7c01}))));
+
+#if !EIGEN_COMP_MSVC
+  // Visual Studio errors out on divisions by 0
   VERIFY((numext::isnan)(float(half(0.0 / 0.0))));
   VERIFY((numext::isinf)(float(half(1.0 / 0.0))));
   VERIFY((numext::isinf)(float(half(-1.0 / 0.0))));
+#endif
 
   // Exactly same checks as above, just directly on the half representation.
   VERIFY(!(numext::isinf)(half(__half{0x7bff})));
@@ -75,9 +79,13 @@ void test_conversion()
   VERIFY((numext::isnan)(half(__half{0xfc01})));
   VERIFY((numext::isinf)(half(__half{0x7c00})));
   VERIFY((numext::isnan)(half(__half{0x7c01})));
+
+#if !EIGEN_COMP_MSVC
+  // Visual Studio errors out on divisions by 0
   VERIFY((numext::isnan)(half(0.0 / 0.0)));
   VERIFY((numext::isinf)(half(1.0 / 0.0)));
   VERIFY((numext::isinf)(half(-1.0 / 0.0)));
+#endif
 }
 
 void test_arithmetic()
@@ -138,7 +146,7 @@ void test_functions()
   VERIFY_IS_APPROX(float(numext::log(half(10.0f))), 2.30273f);
 }
 
-void test_float16()
+void test_cxx11_float16()
 {
   CALL_SUBTEST(test_conversion());
   CALL_SUBTEST(test_arithmetic());
