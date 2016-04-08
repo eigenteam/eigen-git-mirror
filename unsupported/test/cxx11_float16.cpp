@@ -7,7 +7,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC float16
+#define EIGEN_TEST_FUNC cxx11_float16
 
 #include "main.h"
 #include <Eigen/src/Core/arch/CUDA/Half.h>
@@ -138,7 +138,7 @@ void test_functions()
   VERIFY_IS_APPROX(float(numext::log(half(10.0f))), 2.30273f);
 }
 
-void test_float16()
+void test_cxx11_float16()
 {
   CALL_SUBTEST(test_conversion());
   CALL_SUBTEST(test_arithmetic());

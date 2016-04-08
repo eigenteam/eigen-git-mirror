@@ -110,13 +110,12 @@ ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(kronecker_product)
 
-ei_add_test(float16)
-
 if(EIGEN_TEST_CXX11)
   # It should be safe to always run these tests as there is some fallback code for
   # older compiler that don't support cxx11.
   set(CMAKE_CXX_STANDARD 11)
 
+  ei_add_test(cxx11_float16)
   ei_add_test(cxx11_meta)
   ei_add_test(cxx11_tensor_simple)
 #  ei_add_test(cxx11_tensor_symmetry)
