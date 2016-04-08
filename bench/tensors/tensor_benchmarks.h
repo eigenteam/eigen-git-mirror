@@ -248,7 +248,7 @@ template <typename Device, typename T> class BenchmarkSuite {
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
-      C.device(device_) = A * A.constant(3.14) + B * B.constant(2.7);
+      C.device(device_) = A * A.constant(static_cast<T>(3.14)) + B * B.constant(static_cast<T>(2.7));
     }
     // Record the number of FLOP executed per second (2 multiplications and
     // 1 addition per value)

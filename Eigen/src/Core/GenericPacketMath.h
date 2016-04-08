@@ -76,6 +76,8 @@ struct default_packet_traits
     HasTanh    = 0,
     HasLGamma = 0,
     HasDiGamma = 0,
+    HasZeta = 0,
+    HasPolygamma = 0,
     HasErf = 0,
     HasErfc = 0,
     HasIGamma = 0,
@@ -450,6 +452,14 @@ Packet plgamma(const Packet& a) { using numext::lgamma; return lgamma(a); }
 /** \internal \returns the derivative of lgamma, psi(\a a) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pdigamma(const Packet& a) { using numext::digamma; return digamma(a); }
+    
+/** \internal \returns the zeta function of two arguments (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pzeta(const Packet& x, const Packet& q) { using numext::zeta; return zeta(x, q); }
+
+/** \internal \returns the polygamma function (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet ppolygamma(const Packet& n, const Packet& x) { using numext::polygamma; return polygamma(n, x); }
 
 /** \internal \returns the erf(\a a) (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS

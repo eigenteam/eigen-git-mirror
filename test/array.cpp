@@ -322,6 +322,32 @@ template<typename ArrayType> void array_real(const ArrayType& m)
                     std::numeric_limits<RealScalar>::infinity());
     VERIFY_IS_EQUAL(numext::digamma(Scalar(-1)),
                     std::numeric_limits<RealScalar>::infinity());
+    
+    // Check the zeta function against scipy.special.zeta
+    VERIFY_IS_APPROX(numext::zeta(Scalar(1.5), Scalar(2)), RealScalar(1.61237534869));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(4), Scalar(1.5)), RealScalar(0.234848505667));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(10.5), Scalar(3)), RealScalar(1.03086757337e-5));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(10000.5), Scalar(1.0001)), RealScalar(0.367879440865));
+    VERIFY_IS_APPROX(numext::zeta(Scalar(3), Scalar(-2.5)), RealScalar(0.054102025820864097));
+    VERIFY_IS_EQUAL(numext::zeta(Scalar(1), Scalar(1.2345)), // The second scalar does not matter
+                    std::numeric_limits<RealScalar>::infinity());
+    
+    // Check the polygamma against scipy.special.polygamma examples
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(1), Scalar(2)), RealScalar(0.644934066848));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(1), Scalar(3)), RealScalar(0.394934066848));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(1), Scalar(25.5)), RealScalar(0.0399946696496));
+    
+    // Check the polygamma function over a larger range of values
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(17), Scalar(4.7)), RealScalar(293.334565435));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(31), Scalar(11.8)), RealScalar(0.445487887616));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(28), Scalar(17.7)), RealScalar(-2.47810300902e-07));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(8), Scalar(30.2)), RealScalar(-8.29668781082e-09));
+    /* The following tests only pass for doubles because floats cannot handle the large values of
+       the gamma function.
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(42), Scalar(15.8)), RealScalar(-0.434562276666));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(147), Scalar(54.1)), RealScalar(0.567742190178));
+    VERIFY_IS_APPROX(numext::polygamma(Scalar(170), Scalar(64)), RealScalar(-0.0108615497927));
+    */
 
     {
       // Test various propreties of igamma & igammac.  These are normalized
