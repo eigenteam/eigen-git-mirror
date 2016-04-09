@@ -14,6 +14,9 @@
 
 using std::sqrt;
 
+// tolerance for chekcing number of iterations
+#define LM_EVAL_COUNT_TOL 4/3
+
 int fcn_chkder(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
 {
     /*      subroutine fcn for chkder example. */
@@ -1023,7 +1026,8 @@ void testNistLanczos1(void)
   VERIFY_IS_EQUAL(lm.njev, 72);
   // check norm^2
   std::cout.precision(30);
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.4290986055242372e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  std::cout << lm.fvec.squaredNorm() << "\n";
+  VERIFY(lm.fvec.squaredNorm() <= 1.4307867721E-25);
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02);
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00);
@@ -1044,7 +1048,7 @@ void testNistLanczos1(void)
   VERIFY_IS_EQUAL(lm.nfev, 9);
   VERIFY_IS_EQUAL(lm.njev, 8);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.430571737783119393e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY(lm.fvec.squaredNorm() <= 1.4307867721E-25);
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02);
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00);
@@ -1354,8 +1358,12 @@ void testNistMGH17(void)
   
   // check return value
   VERIFY_IS_EQUAL(info, 2); 
-  VERIFY(lm.nfev < 650);  // 602
-  VERIFY(lm.njev < 600);  // 545
+  ++g_test_level;
+  VERIFY_IS_EQUAL(lm.nfev, 602);  // 602
+  VERIFY_IS_EQUAL(lm.njev, 545);  // 545
+  --g_test_level;
+  VERIFY(lm.nfev < 602 * LM_EVAL_COUNT_TOL);
+  VERIFY(lm.njev < 545 * LM_EVAL_COUNT_TOL);
 
   /*
    * Second try

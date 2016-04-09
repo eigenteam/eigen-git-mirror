@@ -46,8 +46,13 @@ template <typename Device, typename T> class BenchmarkSuite {
   void typeCasting(int num_iters) {
     eigen_assert(m_ == n_);
     Eigen::array<TensorIndex, 2> sizes;
-    sizes[0] = m_;
-    sizes[1] = k_;
+    if (sizeof(T) >= sizeof(int)) {
+      sizes[0] = m_;
+      sizes[1] = k_;
+    } else {
+      sizes[0] = m_ * sizeof(T) / sizeof(int);
+      sizes[1] = k_ * sizeof(T) / sizeof(int);
+    }
     const TensorMap<Tensor<int, 2, 0, TensorIndex>, Eigen::Aligned> A((int*)a_, sizes);
     TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(b_, sizes);
 
@@ -248,7 +253,7 @@ template <typename Device, typename T> class BenchmarkSuite {
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
-      C.device(device_) = A * A.constant(3.14) + B * B.constant(2.7);
+      C.device(device_) = A * A.constant(static_cast<T>(3.14)) + B * B.constant(static_cast<T>(2.7));
     }
     // Record the number of FLOP executed per second (2 multiplications and
     // 1 addition per value)

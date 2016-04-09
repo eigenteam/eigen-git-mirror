@@ -115,6 +115,7 @@ if(EIGEN_TEST_CXX11)
   # older compiler that don't support cxx11.
   set(CMAKE_CXX_STANDARD 11)
 
+  ei_add_test(cxx11_float16)
   ei_add_test(cxx11_meta)
   ei_add_test(cxx11_tensor_simple)
 #  ei_add_test(cxx11_tensor_symmetry)
@@ -175,7 +176,7 @@ endif()
 
 # These tests needs nvcc
 find_package(CUDA 7.0)
-if(CUDA_FOUND AND EIGEN_TEST_NVCC)
+if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   # Make sure to compile without the -pedantic, -Wundef, -Wnon-virtual-dtor
   # and -fno-check-new flags since they trigger thousands of compilation warnings
   # in the CUDA runtime
@@ -189,6 +190,10 @@ if(CUDA_FOUND AND EIGEN_TEST_NVCC)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
   endif()
+  if(EIGEN_TEST_CUDA_CLANG)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_${EIGEN_CUDA_COMPUTE_ARCH}")
+  endif()
+
   set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\"")
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
@@ -205,10 +210,7 @@ if(CUDA_FOUND AND EIGEN_TEST_NVCC)
     ei_add_test(cxx11_tensor_random_cuda)
   endif()
 
-  # Operations other that casting of half floats are only supported starting with arch 5.3
-  if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 52)
-    ei_add_test(cxx11_tensor_of_float16_cuda)
-  endif()
+  ei_add_test(cxx11_tensor_of_float16_cuda)
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()

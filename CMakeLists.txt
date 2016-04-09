@@ -250,7 +250,11 @@ if(NOT MSVC)
     message(STATUS "Enabling NEON in tests/examples")
   endif()
 
-
+  option(EIGEN_TEST_ZVECTOR "Enable/Disable S390X(zEC13) ZVECTOR in tests/examples" OFF)
+  if(EIGEN_TEST_ZVECTOR)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=z13 -mzvector")
+    message(STATUS "Enabling S390X(zEC13) ZVECTOR in tests/examples")
+  endif()
 
   check_cxx_compiler_flag("-fopenmp" COMPILER_SUPPORT_OPENMP)
   if(COMPILER_SUPPORT_OPENMP)
