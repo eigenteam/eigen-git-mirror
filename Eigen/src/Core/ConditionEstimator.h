@@ -65,10 +65,6 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
     const Decomposition& dec) {
   eigen_assert(matrix.rows() == dec.rows());
   eigen_assert(matrix.cols() == dec.cols());
-  eigen_assert(matrix.rows() == matrix.cols());
-  if (dec.rows() <= 1) {
-    return static_cast<typename Decomposition::RealScalar>(1);
-  }
   return ReciprocalConditionNumberEstimate(MatrixL1Norm(matrix), dec);
 }
 
@@ -93,18 +89,20 @@ typename Decomposition::RealScalar ReciprocalConditionNumberEstimate(
     typename Decomposition::RealScalar matrix_norm, const Decomposition& dec) {
   typedef typename Decomposition::RealScalar RealScalar;
   eigen_assert(dec.rows() == dec.cols());
-  if (dec.rows() <= 1) {
-    return static_cast<RealScalar>(1);
+  if (dec.rows() == 0) {
+    return RealScalar(1);
   }
-  if (matrix_norm == static_cast<RealScalar>(0)) {
-    return static_cast<RealScalar>(0);
+  if (matrix_norm == RealScalar(0)) {
+    return RealScalar(0);
+  }
+  if (dec.rows() == 1) {
+    return RealScalar(1);
   }
   const typename Decomposition::RealScalar inverse_matrix_norm =
       InverseMatrixL1NormEstimate(dec);
-  return (inverse_matrix_norm == static_cast<RealScalar>(0)
-              ? static_cast<RealScalar>(0)
-              : (static_cast<RealScalar>(1) / inverse_matrix_norm) /
-                    matrix_norm);
+  return (inverse_matrix_norm == RealScalar(0)
+              ? RealScalar(0)
+              : (RealScalar(1) / inverse_matrix_norm) / matrix_norm);
 }
 
 /**
@@ -143,7 +141,7 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   if (n == 0) {
     return 0;
   }
-  Vector v = dec.solve(Vector::Ones(n) / static_cast<Scalar>(n));
+  Vector v = dec.solve(Vector::Ones(n) / Scalar(n));
 
   // lower_bound is a lower bound on
   //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
@@ -197,16 +195,15 @@ typename Decomposition::RealScalar InverseMatrixL1NormEstimate(
   // exact cancellation (especially when op and op_adjoint correspond to a
   // sequence of backsubstitutions and permutations), which could cause
   // Hager's algorithm to vastly underestimate ||matrix||_1.
-  Scalar alternating_sign(static_cast<RealScalar>(1));
+  Scalar alternating_sign(RealScalar(1));
   for (Index i = 0; i < n; ++i) {
     v[i] = alternating_sign *
-           (static_cast<RealScalar>(1) +
-            (static_cast<RealScalar>(i) / (static_cast<RealScalar>(n - 1))));
+           (RealScalar(1) + (RealScalar(i) / (RealScalar(n - 1))));
     alternating_sign = -alternating_sign;
   }
   v = dec.solve(v);
   const RealScalar alternate_lower_bound =
-      (2 * internal::VectorL1Norm(v)) / (3 * static_cast<RealScalar>(n));
+      (2 * internal::VectorL1Norm(v)) / (3 * RealScalar(n));
   return numext::maxi(lower_bound, alternate_lower_bound);
 }
 
