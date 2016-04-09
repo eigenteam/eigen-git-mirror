@@ -179,6 +179,8 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
 
 // Clang/ARM wrongly advertises __ARM_FEATURE_FMA even when it's not available,
 // then implements a slow software scalar fallback calling fmaf()!
+// Filed LLVM bug:
+//     https://llvm.org/bugs/show_bug.cgi?id=27216
 #if (defined __ARM_FEATURE_FMA) && !(EIGEN_COMP_CLANG && EIGEN_ARCH_ARM)
 // See bug 936.
 // FMA is available on VFPv4 i.e. when compiling with -mfpu=neon-vfpv4.
@@ -195,6 +197,8 @@ template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f&
   // -march=armv7-a, that is a very common case.
   // See e.g. this thread:
   //     http://lists.llvm.org/pipermail/llvm-dev/2013-December/068806.html
+  // Filed LLVM bug:
+  //     https://llvm.org/bugs/show_bug.cgi?id=27219
   Packet4f r = c;
   asm volatile(
     "vmla.f32 %q[r], %q[a], %q[b]"

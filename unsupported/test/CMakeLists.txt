@@ -115,6 +115,7 @@ if(EIGEN_TEST_CXX11)
   # older compiler that don't support cxx11.
   set(CMAKE_CXX_STANDARD 11)
 
+  ei_add_test(cxx11_float16)
   ei_add_test(cxx11_meta)
   ei_add_test(cxx11_tensor_simple)
 #  ei_add_test(cxx11_tensor_symmetry)
@@ -175,7 +176,7 @@ endif()
 
 # These tests needs nvcc
 find_package(CUDA 7.0)
-if(CUDA_FOUND AND EIGEN_TEST_NVCC)
+if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   # Make sure to compile without the -pedantic, -Wundef, -Wnon-virtual-dtor
   # and -fno-check-new flags since they trigger thousands of compilation warnings
   # in the CUDA runtime

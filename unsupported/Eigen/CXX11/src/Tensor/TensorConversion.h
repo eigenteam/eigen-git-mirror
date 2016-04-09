@@ -87,6 +87,7 @@ struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 2, 1> {
 
 template <typename TensorEvaluator, typename SrcPacket, typename TgtPacket>
 struct PacketConverter<TensorEvaluator, SrcPacket, TgtPacket, 4, 1> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   PacketConverter(const TensorEvaluator& impl)
       : m_impl(impl) {}
 

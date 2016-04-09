@@ -91,6 +91,34 @@ double2 pdigamma<double2>(const double2& a)
   using numext::digamma;
   return make_double2(digamma(a.x), digamma(a.y));
 }
+    
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pzeta<float4>(const float4& x, const float4& q)
+{
+    using numext::zeta;
+    return make_float4(zeta(x.x, q.x), zeta(x.y, q.y), zeta(x.z, q.z), zeta(x.w, q.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pzeta<double2>(const double2& x, const double2& q)
+{
+    using numext::zeta;
+    return make_double2(zeta(x.x, q.x), zeta(x.y, q.y));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 ppolygamma<float4>(const float4& n, const float4& x)
+{
+    using numext::polygamma;
+    return make_float4(polygamma(n.x, x.x), polygamma(n.y, x.y), polygamma(n.z, x.z), polygamma(n.w, x.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 ppolygamma<double2>(const double2& n, const double2& x)
+{
+    using numext::polygamma;
+    return make_double2(polygamma(n.x, x.x), polygamma(n.y, x.y));
+}
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 perf<float4>(const float4& a)

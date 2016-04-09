@@ -39,10 +39,6 @@ template<> struct packet_traits<half> : default_packet_traits
     HasExp  = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
-    HasLGamma = 1,
-    HasDiGamma = 1,
-    HasErf = 1,
-    HasErfc = 1,
 
     HasBlend = 0,
   };
