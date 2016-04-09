@@ -789,7 +789,8 @@ void testNistMGH10(void)
   MGH10_functor functor;
   LevenbergMarquardt<MGH10_functor> lm(functor);
   info = lm.minimize(x);
-  VERIFY_IS_EQUAL(info, LevenbergMarquardtSpace::RelativeErrorTooSmall);
+  VERIFY_IS_EQUAL(info, LevenbergMarquardtSpace::RelativeReductionTooSmall);
+  // was: VERIFY_IS_EQUAL(info, 1);
 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec().squaredNorm(), 8.7945855171E+01);
@@ -799,9 +800,13 @@ void testNistMGH10(void)
   VERIFY_IS_APPROX(x[2], 3.4522363462E+02);
   
   // check return value
-  //VERIFY_IS_EQUAL(info, 1);
+
+  ++g_test_level;
   VERIFY_IS_EQUAL(lm.nfev(), 284 );
   VERIFY_IS_EQUAL(lm.njev(), 249 );
+  --g_test_level;
+  VERIFY(lm.nfev() < 284 * 3/2);
+  VERIFY(lm.njev() < 249 * 3/2);
 
   /*
    * Second try
@@ -809,7 +814,10 @@ void testNistMGH10(void)
   x<< 0.02, 4000., 250.;
   // do the computation
   info = lm.minimize(x);
+  ++g_test_level;
   VERIFY_IS_EQUAL(info, LevenbergMarquardtSpace::RelativeReductionTooSmall);
+  // was: VERIFY_IS_EQUAL(info, 1);
+  --g_test_level;
 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec().squaredNorm(), 8.7945855171E+01);
@@ -819,9 +827,12 @@ void testNistMGH10(void)
   VERIFY_IS_APPROX(x[2], 3.4522363462E+02);
   
   // check return value
-  //VERIFY_IS_EQUAL(info, 1);
+  ++g_test_level;
   VERIFY_IS_EQUAL(lm.nfev(), 126);
   VERIFY_IS_EQUAL(lm.njev(), 116);
+  --g_test_level;
+  VERIFY(lm.nfev() < 126 * 3/2);
+  VERIFY(lm.njev() < 116 * 3/2);
 }
 
 
@@ -896,8 +907,12 @@ void testNistBoxBOD(void)
 
   // check return value
   VERIFY_IS_EQUAL(info, 1); 
+  ++g_test_level;
   VERIFY_IS_EQUAL(lm.nfev(), 16 );
   VERIFY_IS_EQUAL(lm.njev(), 15 );
+  --g_test_level;
+  VERIFY(lm.nfev() < 16 * 3/2);
+  VERIFY(lm.njev() < 15 * 3/2);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec().squaredNorm(), 1.1680088766E+03);
   // check x
