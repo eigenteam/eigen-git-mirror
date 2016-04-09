@@ -327,14 +327,23 @@ endif()
 
 # CUDA unit tests
 option(EIGEN_TEST_CUDA "Enable CUDA support in unit tests" OFF)
+option(EIGEN_TEST_CUDA_CLANG "Use clang instead of nvcc to compile the CUDA tests" OFF)
+
+if(EIGEN_TEST_CUDA_CLANG AND NOT CMAKE_CXX_COMPILER MATCHES "clang")
+  message(WARNING "EIGEN_TEST_CUDA_CLANG is set, but CMAKE_CXX_COMPILER does not appear to be clang.")
+endif()
+
 if(EIGEN_TEST_CUDA)
-  
+
 find_package(CUDA 5.0)
 if(CUDA_FOUND)
   
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") 
     set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
+  endif()
+  if(EIGEN_TEST_CUDA_CLANG)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_30")
   endif()
   cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")

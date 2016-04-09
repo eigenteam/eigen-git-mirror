@@ -17,7 +17,8 @@
 // we'll use on the host side (SSE, AVX, ...)
 #if defined(__CUDACC__) && defined(EIGEN_USE_GPU)
 
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
+// Most of the following operations require arch >= 5.3
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
 
 namespace Eigen {
 namespace internal {
@@ -33,14 +34,7 @@ template<> struct packet_traits<half> : default_packet_traits
     AlignedOnScalar = 1,
     size=2,
     HasHalfPacket = 0,
-
-    HasDiv  = 1,
-    HasLog  = 1,
-    HasExp  = 1,
-    HasSqrt = 1,
-    HasRsqrt = 1,
-
-    HasBlend = 0,
+    HasDiv  = 1
   };
 };
 
@@ -74,20 +68,12 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<half>(half* to, co
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Aligned>(const half* from) {
-#if __CUDA_ARCH__ >= 320
   return __ldg((const half2*)from);
-#else
-  return __halves2half2(*(from+0), *(from+1));
-#endif
 }
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Unaligned>(const half* from) {
-#if __CUDA_ARCH__ >= 320
   return __halves2half2(__ldg(from+0), __ldg(from+1));
-#else
-  return __halves2half2(*(from+0), *(from+1));
-#endif
 }
 
 template<> EIGEN_DEVICE_FUNC inline half2 pgather<half, half2>(const half* from, Index stride) {
@@ -120,8 +106,6 @@ ptranspose(PacketBlock<half2,2>& kernel) {
   kernel.packet[1] = __halves2half2(a2, b2);
 }
 
-// The following operations require arch >= 5.3
-#if  __CUDA_ARCH__ >= 530
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 plset<half2>(const half& a) {
   return __halves2half2(a, __hadd(a, __float2half(1.0f)));
 }
@@ -197,7 +181,6 @@ template<> EIGEN_DEVICE_FUNC inline half predux_min<half2>(const half2& a) {
 template<> EIGEN_DEVICE_FUNC inline half predux_mul<half2>(const half2& a) {
   return __hmul(__low2half(a), __high2half(a));
 }
-#endif
 
 } // end namespace internal
 
