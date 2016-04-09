@@ -406,6 +406,9 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half log(const Eigen::ha
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrt(const Eigen::half& a) {
   return Eigen::half(::sqrtf(float(a)));
 }
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half pow(const Eigen::half& a, const Eigen::half& b) {
+  return Eigen::half(::powf(float(a), float(b)));
+}
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floor(const Eigen::half& a) {
   return Eigen::half(::floorf(float(a)));
 }
@@ -431,6 +434,9 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half logh(const Eigen::half&
 }
 static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrth(const Eigen::half& a) {
   return Eigen::half(::sqrtf(float(a)));
+}
+static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half powh(const Eigen::half& a, const Eigen::half& b) {
+  return Eigen::half(::powf(float(a), float(b)));
 }
 static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floorh(const Eigen::half& a) {
   return Eigen::half(::floorf(float(a)));
