@@ -23,6 +23,9 @@
 
 using std::sqrt;
 
+// tolerance for chekcing number of iterations
+#define LM_EVAL_COUNT_TOL 4/3
+
 struct lmder_functor : DenseFunctor<double>
 {
     lmder_functor(void): DenseFunctor<double>(3,15) {}
@@ -631,7 +634,7 @@ void testNistLanczos1(void)
   VERIFY_IS_EQUAL(lm.nfev(), 79);
   VERIFY_IS_EQUAL(lm.njev(), 72);
   // check norm^2
-//   VERIFY_IS_APPROX(lm.fvec().squaredNorm(), 1.430899764097e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY(lm.fvec().squaredNorm() <= 1.4307867721E-25);
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02);
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00);
@@ -652,7 +655,7 @@ void testNistLanczos1(void)
   VERIFY_IS_EQUAL(lm.nfev(), 9);
   VERIFY_IS_EQUAL(lm.njev(), 8);
   // check norm^2
-//   VERIFY_IS_APPROX(lm.fvec().squaredNorm(), 1.428595533845e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY(lm.fvec().squaredNorm() <= 1.4307867721E-25);
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02);
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00);
@@ -805,8 +808,8 @@ void testNistMGH10(void)
   VERIFY_IS_EQUAL(lm.nfev(), 284 );
   VERIFY_IS_EQUAL(lm.njev(), 249 );
   --g_test_level;
-  VERIFY(lm.nfev() < 284 * 3/2);
-  VERIFY(lm.njev() < 249 * 3/2);
+  VERIFY(lm.nfev() < 284 * LM_EVAL_COUNT_TOL);
+  VERIFY(lm.njev() < 249 * LM_EVAL_COUNT_TOL);
 
   /*
    * Second try
@@ -831,8 +834,8 @@ void testNistMGH10(void)
   VERIFY_IS_EQUAL(lm.nfev(), 126);
   VERIFY_IS_EQUAL(lm.njev(), 116);
   --g_test_level;
-  VERIFY(lm.nfev() < 126 * 3/2);
-  VERIFY(lm.njev() < 116 * 3/2);
+  VERIFY(lm.nfev() < 126 * LM_EVAL_COUNT_TOL);
+  VERIFY(lm.njev() < 116 * LM_EVAL_COUNT_TOL);
 }
 
 
@@ -911,8 +914,8 @@ void testNistBoxBOD(void)
   VERIFY_IS_EQUAL(lm.nfev(), 16 );
   VERIFY_IS_EQUAL(lm.njev(), 15 );
   --g_test_level;
-  VERIFY(lm.nfev() < 16 * 3/2);
-  VERIFY(lm.njev() < 15 * 3/2);
+  VERIFY(lm.nfev() < 16 * LM_EVAL_COUNT_TOL);
+  VERIFY(lm.njev() < 15 * LM_EVAL_COUNT_TOL);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec().squaredNorm(), 1.1680088766E+03);
   // check x
