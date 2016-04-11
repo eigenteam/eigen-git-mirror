@@ -234,9 +234,33 @@ template<typename Scalar> struct scalar_exp_op {
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::pexp(a); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_exp_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = packet_traits<Scalar>::HasExp }; };
+template <typename Scalar>
+struct functor_traits<scalar_exp_op<Scalar> > {
+  enum {
+    PacketAccess = packet_traits<Scalar>::HasExp,
+    // The following numbers are based on the AVX implementation.
+#ifdef EIGEN_VECTORIZE_FMA
+    // Haswell can issue 2 add/mul/madd per cycle.
+    Cost =
+    (sizeof(Scalar) == 4
+     // float: 8 pmadd, 4 pmul, 2 padd/psub, 6 other
+     ? (8 * NumTraits<Scalar>::AddCost + 6 * NumTraits<Scalar>::MulCost)
+     // double: 7 pmadd, 5 pmul, 3 padd/psub, 1 div,  13 other
+     : (14 * NumTraits<Scalar>::AddCost +
+        6 * NumTraits<Scalar>::MulCost +
+        NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)),
+#else
+    Cost =
+    (sizeof(Scalar) == 4
+     // float: 7 pmadd, 6 pmul, 4 padd/psub, 10 other
+     ? (21 * NumTraits<Scalar>::AddCost + 13 * NumTraits<Scalar>::MulCost)
+     // double: 7 pmadd, 5 pmul, 3 padd/psub, 1 div,  13 other
+     : (23 * NumTraits<Scalar>::AddCost +
+        12 * NumTraits<Scalar>::MulCost +
+        NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost))
+#endif
+  };
+};
 
 /** \internal
   *
@@ -250,9 +274,24 @@ template<typename Scalar> struct scalar_log_op {
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::plog(a); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_log_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = packet_traits<Scalar>::HasLog }; };
+template <typename Scalar>
+struct functor_traits<scalar_log_op<Scalar> > {
+  enum {
+    PacketAccess = packet_traits<Scalar>::HasLog,
+    Cost =
+    (PacketAccess
+     // The following numbers are based on the AVX implementation.
+#ifdef EIGEN_VECTORIZE_FMA
+     // 8 pmadd, 6 pmul, 8 padd/psub, 16 other, can issue 2 add/mul/madd per cycle.
+     ? (20 * NumTraits<Scalar>::AddCost + 7 * NumTraits<Scalar>::MulCost)
+#else
+     // 8 pmadd, 6 pmul, 8 padd/psub, 20 other
+     ? (36 * NumTraits<Scalar>::AddCost + 14 * NumTraits<Scalar>::MulCost)
+#endif
+     // Measured cost of std::log.
+     : sizeof(Scalar)==4 ? 40 : 85)
+  };
+};
 
 /** \internal
   *
@@ -280,10 +319,19 @@ template<typename Scalar> struct scalar_sqrt_op {
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::psqrt(a); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_sqrt_op<Scalar> >
-{ enum {
-    Cost = 5 * NumTraits<Scalar>::MulCost,
+template <typename Scalar>
+struct functor_traits<scalar_sqrt_op<Scalar> > {
+  enum {
+#if EIGEN_FAST_MATH
+    // The following numbers are based on the AVX implementation.
+    Cost = (sizeof(Scalar) == 8 ? 28
+                                // 4 pmul, 1 pmadd, 3 other
+                                : (3 * NumTraits<Scalar>::AddCost +
+                                   5 * NumTraits<Scalar>::MulCost)),
+#else
+    // The following numbers are based on min VSQRT throughput on Haswell.
+    Cost = (sizeof(Scalar) == 8 ? 28 : 14),
+#endif
     PacketAccess = packet_traits<Scalar>::HasSqrt
   };
 };
@@ -574,8 +622,24 @@ template<typename Scalar>
 struct functor_traits<scalar_tanh_op<Scalar> >
 {
   enum {
-    Cost = 5 * NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasTanh
+    PacketAccess = packet_traits<Scalar>::HasTanh,
+    Cost =
+    (PacketAccess
+     // The following numbers are based on the AVX implementation,
+#ifdef EIGEN_VECTORIZE_FMA
+     // Haswell can issue 2 add/mul/madd per cycle.
+     // 9 pmadd, 2 pmul, 1 div, 2 other
+     ? (2 * NumTraits<Scalar>::AddCost + 6 * NumTraits<Scalar>::MulCost +
+     NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)
+#else
+     ? (11 * NumTraits<Scalar>::AddCost +
+        11 * NumTraits<Scalar>::MulCost +
+        NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)
+#endif
+     // This number assumes a naive implementation of tanh
+     : (6 * NumTraits<Scalar>::AddCost + 3 * NumTraits<Scalar>::MulCost +
+        2 * NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost +
+        functor_traits<scalar_exp_op<Scalar> >::Cost))
   };
 };
 
