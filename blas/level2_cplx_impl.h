@@ -16,7 +16,8 @@
   *  where alpha and beta are scalars, x and y are n element vectors and
   *  A is an n by n hermitian matrix.
   */
-int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
+int EIGEN_BLAS_FUNC(hemv)(const char *uplo, const int *n, const RealScalar *palpha, const RealScalar *pa, const int *lda,
+                          const RealScalar *px, const int *incx, const RealScalar *pbeta, RealScalar *py, const int *incy)
 {
   typedef void (*functype)(int, const Scalar*, int, const Scalar*, Scalar*, Scalar);
   static const functype func[2] = {
@@ -26,11 +27,11 @@ int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
     (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Lower,false,false>::run),
   };
 
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
-  Scalar* x = reinterpret_cast<Scalar*>(px);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
+  const Scalar* x = reinterpret_cast<const Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
-  Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta   = *reinterpret_cast<Scalar*>(pbeta);
+  Scalar alpha  = *reinterpret_cast<const Scalar*>(palpha);
+  Scalar beta   = *reinterpret_cast<const Scalar*>(pbeta);
 
   // check arguments
   int info = 0;
@@ -45,7 +46,7 @@ int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
   if(*n==0)
     return 1;
 
-  Scalar* actual_x = get_compact_vector(x,*n,*incx);
+  const Scalar* actual_x = get_compact_vector(x,*n,*incx);
   Scalar* actual_y = get_compact_vector(y,*n,*incy);
 
   if(beta!=Scalar(1))

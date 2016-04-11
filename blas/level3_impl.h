@@ -9,7 +9,8 @@
 #include <iostream>
 #include "common.h"
 
-int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(gemm)(const char *opa, const char *opb, const int *m, const int *n, const int *k, const RealScalar *palpha,
+                          const RealScalar *pa, const int *lda, const RealScalar *pb, const int *ldb, const RealScalar *pbeta, RealScalar *pc, const int *ldc)
 {
 //   std::cerr << "in gemm " << *opa << " " << *opb << " " << *m << " " << *n << " " << *k << " " << *lda << " " << *ldb << " " << *ldc << " " << *palpha << " " << *pbeta << "\n";
   typedef void (*functype)(DenseIndex, DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar, internal::level3_blocking<Scalar,Scalar>&, Eigen::internal::GemmParallelInfo<DenseIndex>*);
@@ -37,11 +38,11 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
     0
   };
 
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
-  Scalar* b = reinterpret_cast<Scalar*>(pb);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
+  const Scalar* b = reinterpret_cast<const Scalar*>(pb);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta   = *reinterpret_cast<Scalar*>(pbeta);
+  Scalar alpha  = *reinterpret_cast<const Scalar*>(palpha);
+  Scalar beta   = *reinterpret_cast<const Scalar*>(pbeta);
 
   int info = 0;
   if(OP(*opa)==INVALID)                                               info = 1;
@@ -74,7 +75,8 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
   return 0;
 }
 
-int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m, int *n, RealScalar *palpha,  RealScalar *pa, int *lda, RealScalar *pb, int *ldb)
+int EIGEN_BLAS_FUNC(trsm)(const char *side, const char *uplo, const char *opa, const char *diag, const int *m, const int *n,
+                          const RealScalar *palpha,  const RealScalar *pa, const int *lda, RealScalar *pb, const int *ldb)
 {
 //   std::cerr << "in trsm " << *side << " " << *uplo << " " << *opa << " " << *diag << " " << *m << "," << *n << " " << *palpha << " " << *lda << " " << *ldb<< "\n";
   typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, internal::level3_blocking<Scalar,Scalar>&);
@@ -137,9 +139,9 @@ int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m,
     0
   };
 
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
   Scalar* b = reinterpret_cast<Scalar*>(pb);
-  Scalar  alpha = *reinterpret_cast<Scalar*>(palpha);
+  Scalar  alpha = *reinterpret_cast<const Scalar*>(palpha);
 
   int info = 0;
   if(SIDE(*side)==INVALID)                                            info = 1;
@@ -178,7 +180,8 @@ int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m,
 
 // b = alpha*op(a)*b  for side = 'L'or'l'
 // b = alpha*b*op(a)  for side = 'R'or'r'
-int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m, int *n, RealScalar *palpha,  RealScalar *pa, int *lda, RealScalar *pb, int *ldb)
+int EIGEN_BLAS_FUNC(trmm)(const char *side, const char *uplo, const char *opa, const char *diag, const int *m, const int *n,
+                          const RealScalar *palpha, const RealScalar *pa, const int *lda, RealScalar *pb, const int *ldb)
 {
 //   std::cerr << "in trmm " << *side << " " << *uplo << " " << *opa << " " << *diag << " " << *m << " " << *n << " " << *lda << " " << *ldb << " " << *palpha << "\n";
   typedef void (*functype)(DenseIndex, DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, const Scalar&, internal::level3_blocking<Scalar,Scalar>&);
@@ -241,9 +244,9 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
     0
   };
 
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
   Scalar* b = reinterpret_cast<Scalar*>(pb);
-  Scalar  alpha = *reinterpret_cast<Scalar*>(palpha);
+  Scalar  alpha = *reinterpret_cast<const Scalar*>(palpha);
 
   int info = 0;
   if(SIDE(*side)==INVALID)                                            info = 1;
@@ -281,14 +284,15 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
 
 // c = alpha*a*b + beta*c  for side = 'L'or'l'
 // c = alpha*b*a + beta*c  for side = 'R'or'r
-int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(symm)(const char *side, const char *uplo, const int *m, const int *n, const RealScalar *palpha,
+                          const RealScalar *pa, const int *lda, const RealScalar *pb, const int *ldb, const RealScalar *pbeta, RealScalar *pc, const int *ldc)
 {
 //   std::cerr << "in symm " << *side << " " << *uplo << " " << *m << "x" << *n << " lda:" << *lda << " ldb:" << *ldb << " ldc:" << *ldc << " alpha:" << *palpha << " beta:" << *pbeta << "\n";
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
-  Scalar* b = reinterpret_cast<Scalar*>(pb);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
+  const Scalar* b = reinterpret_cast<const Scalar*>(pb);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
+  Scalar alpha = *reinterpret_cast<const Scalar*>(palpha);
+  Scalar beta  = *reinterpret_cast<const Scalar*>(pbeta);
 
   int info = 0;
   if(SIDE(*side)==INVALID)                                            info = 1;
@@ -350,7 +354,8 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
 
 // c = alpha*a*a' + beta*c  for op = 'N'or'n'
 // c = alpha*a'*a + beta*c  for op = 'T'or't','C'or'c'
-int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pbeta, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(syrk)(const char *uplo, const char *op, const int *n, const int *k,
+                          const RealScalar *palpha, const RealScalar *pa, const int *lda, const RealScalar *pbeta, RealScalar *pc, const int *ldc)
 {
 //   std::cerr << "in syrk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
   #if !ISCOMPLEX
@@ -373,10 +378,10 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
   };
   #endif
 
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
+  Scalar alpha = *reinterpret_cast<const Scalar*>(palpha);
+  Scalar beta  = *reinterpret_cast<const Scalar*>(pbeta);
 
   int info = 0;
   if(UPLO(*uplo)==INVALID)                                            info = 1;
@@ -429,13 +434,14 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
 
 // c = alpha*a*b' + alpha*b*a' + beta*c  for op = 'N'or'n'
 // c = alpha*a'*b + alpha*b'*a + beta*c  for op = 'T'or't'
-int EIGEN_BLAS_FUNC(syr2k)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(syr2k)(const char *uplo, const char *op, const int *n, const int *k, const RealScalar *palpha,
+                           const RealScalar *pa, const int *lda, const RealScalar *pb, const int *ldb, const RealScalar *pbeta, RealScalar *pc, const int *ldc)
 {
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
-  Scalar* b = reinterpret_cast<Scalar*>(pb);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
+  const Scalar* b = reinterpret_cast<const Scalar*>(pb);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
+  Scalar alpha = *reinterpret_cast<const Scalar*>(palpha);
+  Scalar beta  = *reinterpret_cast<const Scalar*>(pbeta);
 
 //   std::cerr << "in syr2k " << *uplo << " " << *op << " " << *n << " " << *k << " " << alpha << " " << *lda << " " << *ldb << " " << beta << " " << *ldc << "\n";
 
@@ -496,13 +502,14 @@ int EIGEN_BLAS_FUNC(syr2k)(char *uplo, char *op, int *n, int *k, RealScalar *pal
 
 // c = alpha*a*b + beta*c  for side = 'L'or'l'
 // c = alpha*b*a + beta*c  for side = 'R'or'r
-int EIGEN_BLAS_FUNC(hemm)(char *side, char *uplo, int *m, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(hemm)(const char *side, const char *uplo, const int *m, const int *n, const RealScalar *palpha,
+                          const RealScalar *pa, const int *lda, const RealScalar *pb, const int *ldb, const RealScalar *pbeta, RealScalar *pc, const int *ldc)
 {
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
-  Scalar* b = reinterpret_cast<Scalar*>(pb);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
+  const Scalar* b = reinterpret_cast<const Scalar*>(pb);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
+  Scalar alpha = *reinterpret_cast<const Scalar*>(palpha);
+  Scalar beta  = *reinterpret_cast<const Scalar*>(pbeta);
 
 //   std::cerr << "in hemm " << *side << " " << *uplo << " " << *m << " " << *n << " " << alpha << " " << *lda << " " << beta << " " << *ldc << "\n";
 
@@ -554,7 +561,8 @@ int EIGEN_BLAS_FUNC(hemm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
 
 // c = alpha*a*conj(a') + beta*c  for op = 'N'or'n'
 // c = alpha*conj(a')*a + beta*c  for op  = 'C'or'c'
-int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pbeta, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(herk)(const char *uplo, const char *op, const int *n, const int *k,
+                          const RealScalar *palpha, const RealScalar *pa, const int *lda, const RealScalar *pbeta, RealScalar *pc, const int *ldc)
 {
 //   std::cerr << "in herk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
 
@@ -574,7 +582,7 @@ int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
     0
   };
 
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
   RealScalar alpha = *palpha;
   RealScalar beta  = *pbeta;
@@ -620,12 +628,13 @@ int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
 
 // c = alpha*a*conj(b') + conj(alpha)*b*conj(a') + beta*c,  for op = 'N'or'n'
 // c = alpha*conj(a')*b + conj(alpha)*conj(b')*a + beta*c,  for op = 'C'or'c'
-int EIGEN_BLAS_FUNC(her2k)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(her2k)(const char *uplo, const char *op, const int *n, const int *k,
+                           const RealScalar *palpha, const RealScalar *pa, const int *lda, const RealScalar *pb, const int *ldb, const RealScalar *pbeta, RealScalar *pc, const int *ldc)
 {
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
-  Scalar* b = reinterpret_cast<Scalar*>(pb);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
+  const Scalar* b = reinterpret_cast<const Scalar*>(pb);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+  Scalar alpha = *reinterpret_cast<const Scalar*>(palpha);
   RealScalar beta  = *pbeta;
 
 //   std::cerr << "in her2k " << *uplo << " " << *op << " " << *n << " " << *k << " " << alpha << " " << *lda << " " << *ldb << " " << beta << " " << *ldc << "\n";

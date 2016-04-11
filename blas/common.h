@@ -10,8 +10,8 @@
 #ifndef EIGEN_BLAS_COMMON_H
 #define EIGEN_BLAS_COMMON_H
 
-#include <Eigen/Core>
-#include <Eigen/Jacobi>
+#include "../Eigen/Core"
+#include "../Eigen/Jacobi"
 
 #include <complex>
 
@@ -19,8 +19,7 @@
 #error the token SCALAR must be defined to compile this file
 #endif
 
-#include <Eigen/src/misc/blas.h>
-
+#include "../Eigen/src/misc/blas.h"
 
 #define NOTR    0
 #define TR      1
@@ -94,6 +93,7 @@ enum
 
 typedef Matrix<Scalar,Dynamic,Dynamic,ColMajor> PlainMatrixType;
 typedef Map<Matrix<Scalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > MatrixType;
+typedef Map<const Matrix<Scalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > ConstMatrixType;
 typedef Map<Matrix<Scalar,Dynamic,1>, 0, InnerStride<Dynamic> > StridedVectorType;
 typedef Map<Matrix<Scalar,Dynamic,1> > CompactVectorType;
 
@@ -105,9 +105,22 @@ matrix(T* data, int rows, int cols, int stride)
 }
 
 template<typename T>
+Map<const Matrix<T,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> >
+matrix(const T* data, int rows, int cols, int stride)
+{
+  return Map<const Matrix<T,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> >(data, rows, cols, OuterStride<>(stride));
+}
+
+template<typename T>
 Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> > make_vector(T* data, int size, int incr)
 {
   return Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> >(data, size, InnerStride<Dynamic>(incr));
+}
+
+template<typename T>
+Map<const Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> > make_vector(const T* data, int size, int incr)
+{
+  return Map<const Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> >(data, size, InnerStride<Dynamic>(incr));
 }
 
 template<typename T>
@@ -117,12 +130,18 @@ Map<Matrix<T,Dynamic,1> > make_vector(T* data, int size)
 }
 
 template<typename T>
+Map<const Matrix<T,Dynamic,1> > make_vector(const T* data, int size)
+{
+  return Map<const Matrix<T,Dynamic,1> >(data, size);
+}
+
+template<typename T>
 T* get_compact_vector(T* x, int n, int incx)
 {
   if(incx==1)
     return x;
 
-  T* ret = new Scalar[n];
+  typename Eigen::internal::remove_const<T>::type* ret = new Scalar[n];
   if(incx<0) make_vector(ret,n) = make_vector(x,n,-incx).reverse();
   else       make_vector(ret,n) = make_vector(x,n, incx);
   return ret;
