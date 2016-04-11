@@ -105,15 +105,34 @@ matrix(T* data, int rows, int cols, int stride)
 }
 
 template<typename T>
+Map<const Matrix<T,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> >
+matrix(const T* data, int rows, int cols, int stride)
+{
+  return Map<const Matrix<T,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> >(data, rows, cols, OuterStride<>(stride));
+}
+
+template<typename T>
 Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> > make_vector(T* data, int size, int incr)
 {
   return Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> >(data, size, InnerStride<Dynamic>(incr));
 }
 
 template<typename T>
+Map<const Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> > make_vector(const T* data, int size, int incr)
+{
+  return Map<const Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> >(data, size, InnerStride<Dynamic>(incr));
+}
+
+template<typename T>
 Map<Matrix<T,Dynamic,1> > make_vector(T* data, int size)
 {
   return Map<Matrix<T,Dynamic,1> >(data, size);
+}
+
+template<typename T>
+Map<const Matrix<T,Dynamic,1> > make_vector(const T* data, int size)
+{
+  return Map<const Matrix<T,Dynamic,1> >(data, size);
 }
 
 template<typename T>
