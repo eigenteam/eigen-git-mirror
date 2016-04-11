@@ -113,15 +113,15 @@ namespace Eigen {
 typedef std::complex<double> dcomplex;
 typedef std::complex<float>  scomplex;
 
-#if defined(EIGEN_USE_BLAS) && !defined(EIGEN_USE_MKL)
-typedef int BlasIndex;
-#else
+#if defined(EIGEN_USE_MKL)
 typedef MKL_INT BlasIndex;
+#else
+typedef int BlasIndex;
 #endif
 
 } // end namespace Eigen
 
-#if defined(EIGEN_USE_BLAS) && !defined(EIGEN_USE_MKL)
+#if defined(EIGEN_USE_BLAS)
 #include "../../misc/blas.h"
 #endif
 
