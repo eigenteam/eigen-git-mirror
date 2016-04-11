@@ -11,6 +11,7 @@
 #define EIGEN_LAPACK_COMMON_H
 
 #include "../blas/common.h"
+#include "../Eigen/src/misc/lapack.h"
 
 #define EIGEN_LAPACK_FUNC(FUNC,ARGLIST)               \
   extern "C" { int EIGEN_BLAS_FUNC(FUNC) ARGLIST; }   \
