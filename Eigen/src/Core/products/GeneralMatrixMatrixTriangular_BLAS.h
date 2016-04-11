@@ -87,12 +87,8 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
 \
    BlasIndex lda=convert_index<BlasIndex>(lhsStride), ldc=convert_index<BlasIndex>(resStride), n=convert_index<BlasIndex>(size), k=convert_index<BlasIndex>(depth); \
    char uplo=(IsLower) ? 'L' : 'U', trans=(AStorageOrder==RowMajor) ? 'T':'N'; \
-   BLASTYPE alpha_, beta_; \
-\
-/* Set alpha_ & beta_ */ \
-   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(alpha_, alpha); \
-   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(beta_, EIGTYPE(1)); \
-   BLASFUNC(&uplo, &trans, &n, &k, &alpha_, lhs, &lda, &beta_, res, &ldc); \
+   EIGTYPE beta; \
+   BLASFUNC(&uplo, &trans, &n, &k, &numext::real_ref(alpha), lhs, &lda, &numext::real_ref(beta), res, &ldc); \
   } \
 };
 
@@ -115,9 +111,6 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
    RTYPE alpha_, beta_; \
    const EIGTYPE* a_ptr; \
 \
-/* Set alpha_ & beta_ */ \
-/*   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(alpha_, alpha); */\
-/*   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(beta_, EIGTYPE(1));*/ \
    alpha_ = alpha.real(); \
    beta_ = 1.0; \
 /* Copy with conjugation in some cases*/ \

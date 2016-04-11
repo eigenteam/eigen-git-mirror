@@ -119,46 +119,6 @@ typedef int BlasIndex;
 typedef MKL_INT BlasIndex;
 #endif
 
-namespace internal {
-
-template<typename MKLType, typename EigenType>
-static inline void assign_scalar_eig2mkl(MKLType& mklScalar, const EigenType& eigenScalar) {
-  mklScalar=eigenScalar;
-}
-
-template<typename MKLType, typename EigenType>
-static inline void assign_conj_scalar_eig2mkl(MKLType& mklScalar, const EigenType& eigenScalar) {
-  mklScalar=eigenScalar;
-}
-
-#ifdef EIGEN_USE_MKL
-template <>
-inline void assign_scalar_eig2mkl<MKL_Complex16,dcomplex>(MKL_Complex16& mklScalar, const dcomplex& eigenScalar) {
-  mklScalar.real=eigenScalar.real();
-  mklScalar.imag=eigenScalar.imag();
-}
-
-template <>
-inline void assign_scalar_eig2mkl<MKL_Complex8,scomplex>(MKL_Complex8& mklScalar, const scomplex& eigenScalar) {
-  mklScalar.real=eigenScalar.real();
-  mklScalar.imag=eigenScalar.imag();
-}
-
-template <>
-inline void assign_conj_scalar_eig2mkl<MKL_Complex16,dcomplex>(MKL_Complex16& mklScalar, const dcomplex& eigenScalar) {
-  mklScalar.real=eigenScalar.real();
-  mklScalar.imag=-eigenScalar.imag();
-}
-
-template <>
-inline void assign_conj_scalar_eig2mkl<MKL_Complex8,scomplex>(MKL_Complex8& mklScalar, const scomplex& eigenScalar) {
-  mklScalar.real=eigenScalar.real();
-  mklScalar.imag=-eigenScalar.imag();
-}
-#endif
-
-} // end namespace internal
-
 } // end namespace Eigen
 
 #if defined(EIGEN_USE_BLAS) && !defined(EIGEN_USE_MKL)
