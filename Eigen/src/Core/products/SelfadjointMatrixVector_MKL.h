@@ -71,7 +71,7 @@ EIGEN_MKL_SYMV_SPECIALIZE(float)
 EIGEN_MKL_SYMV_SPECIALIZE(dcomplex)
 EIGEN_MKL_SYMV_SPECIALIZE(scomplex)
 
-#define EIGEN_MKL_SYMV_SPECIALIZATION(EIGTYPE,MKLTYPE,MKLFUNC) \
+#define EIGEN_MKL_SYMV_SPECIALIZATION(EIGTYPE,BLASTYPE,MKLFUNC) \
 template<typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs> \
 struct selfadjoint_matrix_vector_product_symv<EIGTYPE,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs> \
 { \
@@ -85,7 +85,7 @@ const EIGTYPE* _rhs, EIGTYPE* res, EIGTYPE alpha) \
     IsRowMajor = StorageOrder==RowMajor ? 1 : 0, \
     IsLower = UpLo == Lower ? 1 : 0 \
   }; \
-  MKL_INT n=size, lda=lhsStride, incx=1, incy=1; \
+  BlasIndex n=convert_index<BlasIndex>(size), lda=convert_index<BlasIndex>(lhsStride), incx=1, incy=1; \
   EIGTYPE beta(1); \
   const EIGTYPE *x_ptr; \
   char uplo=(IsRowMajor) ? (IsLower ? 'U' : 'L') : (IsLower ? 'L' : 'U'); \
@@ -95,7 +95,7 @@ const EIGTYPE* _rhs, EIGTYPE* res, EIGTYPE alpha) \
     x_tmp=map_x.conjugate(); \
     x_ptr=x_tmp.data(); \
   } else x_ptr=_rhs; \
-  MKLFUNC(&uplo, &n, &numext::real_ref(alpha), (const MKLTYPE*)lhs, &lda, (const MKLTYPE*)x_ptr, &incx, &numext::real_ref(beta), (MKLTYPE*)res, &incy); \
+  MKLFUNC(&uplo, &n, &numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, &numext::real_ref(beta), (BLASTYPE*)res, &incy); \
 }\
 };
 

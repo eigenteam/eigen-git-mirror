@@ -114,7 +114,9 @@ typedef std::complex<double> dcomplex;
 typedef std::complex<float>  scomplex;
 
 #if defined(EIGEN_USE_BLAS) && !defined(EIGEN_USE_MKL)
-typedef int MKL_INT;
+typedef int BlasIndex;
+#else
+typedef MKL_INT BlasIndex;
 #endif
 
 namespace internal {

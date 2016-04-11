@@ -75,7 +75,7 @@ EIGEN_MKL_TRMM_SPECIALIZE(scomplex, true)
 EIGEN_MKL_TRMM_SPECIALIZE(scomplex, false)
 
 // implements col-major += alpha * op(triangular) * op(general)
-#define EIGEN_MKL_TRMM_L(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_MKL_TRMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, MKLPREFIX) \
 template <typename Index, int Mode, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -122,7 +122,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
      /* Make sense to call GEMM */ \
        Map<const MatrixLhs, 0, OuterStride<> > lhsMap(_lhs,rows,depth,OuterStride<>(lhsStride)); \
        MatrixLhs aa_tmp=lhsMap.template triangularView<Mode>(); \
-       MKL_INT aStride = aa_tmp.outerStride(); \
+       BlasIndex aStride = convert_index<BlasIndex>(aa_tmp.outerStride()); \
        gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> gemm_blocking(_rows,_cols,_depth, 1, true); \
        general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor>::run( \
        rows, cols, depth, aa_tmp.data(), aStride, _rhs, rhsStride, res, resStride, alpha, gemm_blocking, 0); \
@@ -134,11 +134,11 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
    char side = 'L', transa, uplo, diag = 'N'; \
    EIGTYPE *b; \
    const EIGTYPE *a; \
-   MKL_INT m, n, lda, ldb; \
+   BlasIndex m, n, lda, ldb; \
 \
 /* Set m, n */ \
-   m = (MKL_INT)diagSize; \
-   n = (MKL_INT)cols; \
+   m = convert_index<BlasIndex>(diagSize); \
+   n = convert_index<BlasIndex>(cols); \
 \
 /* Set trans */ \
    transa = (LhsStorageOrder==RowMajor) ? ((ConjugateLhs) ? 'C' : 'T') : 'N'; \
@@ -149,7 +149,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
 \
    if (ConjugateRhs) b_tmp = rhs.conjugate(); else b_tmp = rhs; \
    b = b_tmp.data(); \
-   ldb = b_tmp.outerStride(); \
+   ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
 \
 /* Set uplo */ \
    uplo = IsLower ? 'L' : 'U'; \
@@ -165,14 +165,14 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
      else if (IsUnitDiag) \
        a_tmp.diagonal().setOnes();\
      a = a_tmp.data(); \
-     lda = a_tmp.outerStride(); \
+     lda = convert_index<BlasIndex>(a_tmp.outerStride()); \
    } else { \
      a = _lhs; \
-     lda = lhsStride; \
+     lda = convert_index<BlasIndex>(lhsStride); \
    } \
    /*std::cout << "TRMM_L: A is square! Go to MKL TRMM implementation! \n";*/ \
 /* call ?trmm*/ \
-   MKLPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)a, &lda, (MKLTYPE*)b, &ldb); \
+   MKLPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)b, &ldb); \
 \
 /* Add op(a_triangular)*b into res*/ \
    Map<MatrixX##EIGPREFIX, 0, OuterStride<> > res_tmp(res,rows,cols,OuterStride<>(resStride)); \
@@ -186,7 +186,7 @@ EIGEN_MKL_TRMM_L(float, float, f, s)
 EIGEN_MKL_TRMM_L(scomplex, float, cf, c)
 
 // implements col-major += alpha * op(general) * op(triangular)
-#define EIGEN_MKL_TRMM_R(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_MKL_TRMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, MKLPREFIX) \
 template <typename Index, int Mode, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -232,7 +232,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
      /* Make sense to call GEMM */ \
        Map<const MatrixRhs, 0, OuterStride<> > rhsMap(_rhs,depth,cols, OuterStride<>(rhsStride)); \
        MatrixRhs aa_tmp=rhsMap.template triangularView<Mode>(); \
-       MKL_INT aStride = aa_tmp.outerStride(); \
+       BlasIndex aStride = convert_index<BlasIndex>(aa_tmp.outerStride()); \
        gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> gemm_blocking(_rows,_cols,_depth, 1, true); \
        general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor>::run( \
        rows, cols, depth, _lhs, lhsStride, aa_tmp.data(), aStride, res, resStride, alpha, gemm_blocking, 0); \
@@ -244,11 +244,11 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
    char side = 'R', transa, uplo, diag = 'N'; \
    EIGTYPE *b; \
    const EIGTYPE *a; \
-   MKL_INT m, n, lda, ldb; \
+   BlasIndex m, n, lda, ldb; \
 \
 /* Set m, n */ \
-   m = (MKL_INT)rows; \
-   n = (MKL_INT)diagSize; \
+   m = convert_index<BlasIndex>(rows); \
+   n = convert_index<BlasIndex>(diagSize); \
 \
 /* Set trans */ \
    transa = (RhsStorageOrder==RowMajor) ? ((ConjugateRhs) ? 'C' : 'T') : 'N'; \
@@ -259,7 +259,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
 \
    if (ConjugateLhs) b_tmp = lhs.conjugate(); else b_tmp = lhs; \
    b = b_tmp.data(); \
-   ldb = b_tmp.outerStride(); \
+   ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
 \
 /* Set uplo */ \
    uplo = IsLower ? 'L' : 'U'; \
@@ -275,14 +275,14 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
      else if (IsUnitDiag) \
        a_tmp.diagonal().setOnes();\
      a = a_tmp.data(); \
-     lda = a_tmp.outerStride(); \
+     lda = convert_index<BlasIndex>(a_tmp.outerStride()); \
    } else { \
      a = _rhs; \
-     lda = rhsStride; \
+     lda = convert_index<BlasIndex>(rhsStride); \
    } \
    /*std::cout << "TRMM_R: A is square! Go to MKL TRMM implementation! \n";*/ \
 /* call ?trmm*/ \
-   MKLPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)a, &lda, (MKLTYPE*)b, &ldb); \
+   MKLPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)b, &ldb); \
 \
 /* Add op(a_triangular)*b into res*/ \
    Map<MatrixX##EIGPREFIX, 0, OuterStride<> > res_tmp(res,rows,cols,OuterStride<>(resStride)); \

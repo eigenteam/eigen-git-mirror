@@ -72,7 +72,7 @@ EIGEN_MKL_RANKUPDATE_SPECIALIZE(float)
 // EIGEN_MKL_RANKUPDATE_SPECIALIZE(scomplex)
 
 // SYRK for float/double
-#define EIGEN_MKL_RANKUPDATE_R(EIGTYPE, MKLTYPE, MKLFUNC) \
+#define EIGEN_MKL_RANKUPDATE_R(EIGTYPE, BLASTYPE, MKLFUNC) \
 template <typename Index, int AStorageOrder, bool ConjugateA, int  UpLo> \
 struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,ColMajor,UpLo> { \
   enum { \
@@ -85,19 +85,19 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
   { \
   /* typedef Matrix<EIGTYPE, Dynamic, Dynamic, RhsStorageOrder> MatrixRhs;*/ \
 \
-   MKL_INT lda=lhsStride, ldc=resStride, n=size, k=depth; \
+   BlasIndex lda=convert_index<BlasIndex>(lhsStride), ldc=convert_index<BlasIndex>(resStride), n=convert_index<BlasIndex>(size), k=convert_index<BlasIndex>(depth); \
    char uplo=(IsLower) ? 'L' : 'U', trans=(AStorageOrder==RowMajor) ? 'T':'N'; \
-   MKLTYPE alpha_, beta_; \
+   BLASTYPE alpha_, beta_; \
 \
 /* Set alpha_ & beta_ */ \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(beta_, EIGTYPE(1)); \
+   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(alpha_, alpha); \
+   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(beta_, EIGTYPE(1)); \
    MKLFUNC(&uplo, &trans, &n, &k, &alpha_, lhs, &lda, &beta_, res, &ldc); \
   } \
 };
 
 // HERK for complex data
-#define EIGEN_MKL_RANKUPDATE_C(EIGTYPE, MKLTYPE, RTYPE, MKLFUNC) \
+#define EIGEN_MKL_RANKUPDATE_C(EIGTYPE, BLASTYPE, RTYPE, MKLFUNC) \
 template <typename Index, int AStorageOrder, bool ConjugateA, int  UpLo> \
 struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,ColMajor,UpLo> { \
   enum { \
@@ -110,14 +110,14 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
   { \
    typedef Matrix<EIGTYPE, Dynamic, Dynamic, AStorageOrder> MatrixType; \
 \
-   MKL_INT lda=lhsStride, ldc=resStride, n=size, k=depth; \
+   BlasIndex lda=convert_index<BlasIndex>(lhsStride), ldc=convert_index<BlasIndex>(resStride), n=convert_index<BlasIndex>(size), k=convert_index<BlasIndex>(depth); \
    char uplo=(IsLower) ? 'L' : 'U', trans=(AStorageOrder==RowMajor) ? 'C':'N'; \
    RTYPE alpha_, beta_; \
    const EIGTYPE* a_ptr; \
 \
 /* Set alpha_ & beta_ */ \
-/*   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); */\
-/*   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(beta_, EIGTYPE(1));*/ \
+/*   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(alpha_, alpha); */\
+/*   assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(beta_, EIGTYPE(1));*/ \
    alpha_ = alpha.real(); \
    beta_ = 1.0; \
 /* Copy with conjugation in some cases*/ \
@@ -128,7 +128,7 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
      lda = a.outerStride(); \
      a_ptr = a.data(); \
    } else a_ptr=lhs; \
-   MKLFUNC(&uplo, &trans, &n, &k, &alpha_, (MKLTYPE*)a_ptr, &lda, &beta_, (MKLTYPE*)res, &ldc); \
+   MKLFUNC(&uplo, &trans, &n, &k, &alpha_, (BLASTYPE*)a_ptr, &lda, &beta_, (BLASTYPE*)res, &ldc); \
   } \
 };
 

@@ -85,7 +85,7 @@ EIGEN_MKL_GEMV_SPECIALIZE(float)
 EIGEN_MKL_GEMV_SPECIALIZE(dcomplex)
 EIGEN_MKL_GEMV_SPECIALIZE(scomplex)
 
-#define EIGEN_MKL_GEMV_SPECIALIZATION(EIGTYPE,MKLTYPE,MKLPREFIX) \
+#define EIGEN_MKL_GEMV_SPECIALIZATION(EIGTYPE,BLASTYPE,MKLPREFIX) \
 template<typename Index, int LhsStorageOrder, bool ConjugateLhs, bool ConjugateRhs> \
 struct general_matrix_vector_product_gemv<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,ConjugateRhs> \
 { \
@@ -97,13 +97,14 @@ static void run( \
   const EIGTYPE* rhs, Index rhsIncr, \
   EIGTYPE* res, Index resIncr, EIGTYPE alpha) \
 { \
-  MKL_INT m=rows, n=cols, lda=lhsStride, incx=rhsIncr, incy=resIncr; \
+  BlasIndex m=convert_index<BlasIndex>(rows), n=convert_index<BlasIndex>(cols), \
+            lda=convert_index<BlasIndex>(lhsStride), incx=convert_index<BlasIndex>(rhsIncr), incy=convert_index<BlasIndex>(resIncr); \
   const EIGTYPE beta(1); \
   const EIGTYPE *x_ptr; \
   char trans=(LhsStorageOrder==ColMajor) ? 'N' : (ConjugateLhs) ? 'C' : 'T'; \
   if (LhsStorageOrder==RowMajor) { \
-    m = cols; \
-    n = rows; \
+    m = convert_index<BlasIndex>(cols); \
+    n = convert_index<BlasIndex>(rows); \
   }\
   GEMVVector x_tmp; \
   if (ConjugateRhs) { \
@@ -112,7 +113,7 @@ static void run( \
     x_ptr=x_tmp.data(); \
     incx=1; \
   } else x_ptr=rhs; \
-  MKLPREFIX##gemv_(&trans, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)lhs, &lda, (const MKLTYPE*)x_ptr, &incx, &numext::real_ref(beta), (MKLTYPE*)res, &incy); \
+  MKLPREFIX##gemv_(&trans, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, &numext::real_ref(beta), (BLASTYPE*)res, &incy); \
 }\
 };
 
