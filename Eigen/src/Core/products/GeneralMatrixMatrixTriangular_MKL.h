@@ -50,25 +50,26 @@ template <typename Index, int LhsStorageOrder, bool ConjugateLhs, \
 struct general_matrix_matrix_triangular_product<Index,Scalar,LhsStorageOrder,ConjugateLhs, \
                Scalar,RhsStorageOrder,ConjugateRhs,ColMajor,UpLo,Specialized> { \
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const Scalar* lhs, Index lhsStride, \
-                          const Scalar* rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha) \
+                          const Scalar* rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha, level3_blocking<Scalar, Scalar>& blocking) \
   { \
     if (lhs==rhs) { \
       general_matrix_matrix_rankupdate<Index,Scalar,LhsStorageOrder,ConjugateLhs,ColMajor,UpLo> \
-      ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resStride,alpha); \
+      ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resStride,alpha,blocking); \
     } else { \
       general_matrix_matrix_triangular_product<Index, \
         Scalar, LhsStorageOrder, ConjugateLhs, \
         Scalar, RhsStorageOrder, ConjugateRhs, \
         ColMajor, UpLo, BuiltIn> \
-      ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resStride,alpha); \
+      ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resStride,alpha,blocking); \
     } \
   } \
 };
 
 EIGEN_MKL_RANKUPDATE_SPECIALIZE(double)
-//EIGEN_MKL_RANKUPDATE_SPECIALIZE(dcomplex)
 EIGEN_MKL_RANKUPDATE_SPECIALIZE(float)
-//EIGEN_MKL_RANKUPDATE_SPECIALIZE(scomplex)
+// TODO handle complex cases
+// EIGEN_MKL_RANKUPDATE_SPECIALIZE(dcomplex)
+// EIGEN_MKL_RANKUPDATE_SPECIALIZE(scomplex)
 
 // SYRK for float/double
 #define EIGEN_MKL_RANKUPDATE_R(EIGTYPE, MKLTYPE, MKLFUNC) \
@@ -80,7 +81,7 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
     conjA = ((AStorageOrder==ColMajor) && ConjugateA) ? 1 : 0 \
   }; \
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const EIGTYPE* lhs, Index lhsStride, \
-                          const EIGTYPE* rhs, Index rhsStride, EIGTYPE* res, Index resStride, EIGTYPE alpha) \
+                          const EIGTYPE* rhs, Index rhsStride, EIGTYPE* res, Index resStride, EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
   /* typedef Matrix<EIGTYPE, Dynamic, Dynamic, RhsStorageOrder> MatrixRhs;*/ \
 \
@@ -105,7 +106,7 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
     conjA = (((AStorageOrder==ColMajor) && ConjugateA) || ((AStorageOrder==RowMajor) && !ConjugateA)) ? 1 : 0 \
   }; \
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const EIGTYPE* lhs, Index lhsStride, \
-                          const EIGTYPE* rhs, Index rhsStride, EIGTYPE* res, Index resStride, EIGTYPE alpha) \
+                          const EIGTYPE* rhs, Index rhsStride, EIGTYPE* res, Index resStride, EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
    typedef Matrix<EIGTYPE, Dynamic, Dynamic, AStorageOrder> MatrixType; \
 \
@@ -132,11 +133,12 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
 };
 
 
-EIGEN_MKL_RANKUPDATE_R(double, double, dsyrk)
-EIGEN_MKL_RANKUPDATE_R(float,  float,  ssyrk)
+EIGEN_MKL_RANKUPDATE_R(double, double, dsyrk_)
+EIGEN_MKL_RANKUPDATE_R(float,  float,  ssyrk_)
 
-//EIGEN_MKL_RANKUPDATE_C(dcomplex, MKL_Complex16, double, zherk)
-//EIGEN_MKL_RANKUPDATE_C(scomplex, MKL_Complex8,  double, cherk)
+// TODO hanlde complex cases
+// EIGEN_MKL_RANKUPDATE_C(dcomplex, double, double, zherk_)
+// EIGEN_MKL_RANKUPDATE_C(scomplex, float,  float, cherk_)
 
 
 } // end namespace internal

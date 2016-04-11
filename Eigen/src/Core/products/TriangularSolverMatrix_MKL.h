@@ -56,9 +56,7 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheLeft,Mode,Conjugate,TriStorage
    MKL_INT m = size, n = otherSize, lda, ldb; \
    char side = 'L', uplo, diag='N', transa; \
    /* Set alpha_ */ \
-   MKLTYPE alpha; \
-   EIGTYPE myone(1); \
-   assign_scalar_eig2mkl(alpha, myone); \
+   EIGTYPE alpha(1); \
    ldb = otherStride;\
 \
    const EIGTYPE *a; \
@@ -82,14 +80,14 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheLeft,Mode,Conjugate,TriStorage
    } \
    if (IsUnitDiag) diag='U'; \
 /* call ?trsm*/ \
-   MKLPREFIX##trsm(&side, &uplo, &transa, &diag, &m, &n, &alpha, (const MKLTYPE*)a, &lda, (MKLTYPE*)_other, &ldb); \
+   MKLPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)a, &lda, (MKLTYPE*)_other, &ldb); \
  } \
 };
 
-EIGEN_MKL_TRSM_L(double, double, d)
-EIGEN_MKL_TRSM_L(dcomplex, MKL_Complex16, z)
-EIGEN_MKL_TRSM_L(float, float, s)
-EIGEN_MKL_TRSM_L(scomplex, MKL_Complex8, c)
+EIGEN_MKL_TRSM_L(double,   double, d)
+EIGEN_MKL_TRSM_L(dcomplex, double, z)
+EIGEN_MKL_TRSM_L(float,    float,  s)
+EIGEN_MKL_TRSM_L(scomplex, float,  c)
 
 
 // implements RightSide general * op(triangular)^-1
@@ -111,9 +109,7 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheRight,Mode,Conjugate,TriStorag
    MKL_INT m = otherSize, n = size, lda, ldb; \
    char side = 'R', uplo, diag='N', transa; \
    /* Set alpha_ */ \
-   MKLTYPE alpha; \
-   EIGTYPE myone(1); \
-   assign_scalar_eig2mkl(alpha, myone); \
+   EIGTYPE alpha(1); \
    ldb = otherStride;\
 \
    const EIGTYPE *a; \
@@ -137,15 +133,15 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheRight,Mode,Conjugate,TriStorag
    } \
    if (IsUnitDiag) diag='U'; \
 /* call ?trsm*/ \
-   MKLPREFIX##trsm(&side, &uplo, &transa, &diag, &m, &n, &alpha, (const MKLTYPE*)a, &lda, (MKLTYPE*)_other, &ldb); \
+   MKLPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)a, &lda, (MKLTYPE*)_other, &ldb); \
    /*std::cout << "TRMS_L specialization!\n";*/ \
  } \
 };
 
-EIGEN_MKL_TRSM_R(double, double, d)
-EIGEN_MKL_TRSM_R(dcomplex, MKL_Complex16, z)
-EIGEN_MKL_TRSM_R(float, float, s)
-EIGEN_MKL_TRSM_R(scomplex, MKL_Complex8, c)
+EIGEN_MKL_TRSM_R(double,   double, d)
+EIGEN_MKL_TRSM_R(dcomplex, double, z)
+EIGEN_MKL_TRSM_R(float,    float,  s)
+EIGEN_MKL_TRSM_R(scomplex, float,  c)
 
 
 } // end namespace internal

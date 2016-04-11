@@ -98,15 +98,13 @@ static void run( \
   EIGTYPE* res, Index resIncr, EIGTYPE alpha) \
 { \
   MKL_INT m=rows, n=cols, lda=lhsStride, incx=rhsIncr, incy=resIncr; \
-  MKLTYPE alpha_, beta_; \
-  const EIGTYPE *x_ptr, myone(1); \
+  const EIGTYPE beta(1); \
+  const EIGTYPE *x_ptr; \
   char trans=(LhsStorageOrder==ColMajor) ? 'N' : (ConjugateLhs) ? 'C' : 'T'; \
   if (LhsStorageOrder==RowMajor) { \
-    m=cols; \
-    n=rows; \
+    m = cols; \
+    n = rows; \
   }\
-  assign_scalar_eig2mkl(alpha_, alpha); \
-  assign_scalar_eig2mkl(beta_, myone); \
   GEMVVector x_tmp; \
   if (ConjugateRhs) { \
     Map<const GEMVVector, 0, InnerStride<> > map_x(rhs,cols,1,InnerStride<>(incx)); \
@@ -114,14 +112,14 @@ static void run( \
     x_ptr=x_tmp.data(); \
     incx=1; \
   } else x_ptr=rhs; \
-  MKLPREFIX##gemv(&trans, &m, &n, &alpha_, (const MKLTYPE*)lhs, &lda, (const MKLTYPE*)x_ptr, &incx, &beta_, (MKLTYPE*)res, &incy); \
+  MKLPREFIX##gemv_(&trans, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)lhs, &lda, (const MKLTYPE*)x_ptr, &incx, &numext::real_ref(beta), (MKLTYPE*)res, &incy); \
 }\
 };
 
-EIGEN_MKL_GEMV_SPECIALIZATION(double,   double,        d)
-EIGEN_MKL_GEMV_SPECIALIZATION(float,    float,         s)
-EIGEN_MKL_GEMV_SPECIALIZATION(dcomplex, MKL_Complex16, z)
-EIGEN_MKL_GEMV_SPECIALIZATION(scomplex, MKL_Complex8,  c)
+EIGEN_MKL_GEMV_SPECIALIZATION(double,   double, d)
+EIGEN_MKL_GEMV_SPECIALIZATION(float,    float,  s)
+EIGEN_MKL_GEMV_SPECIALIZATION(dcomplex, double, z)
+EIGEN_MKL_GEMV_SPECIALIZATION(scomplex, float,  c)
 
 } // end namespase internal
 

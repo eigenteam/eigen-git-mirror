@@ -86,25 +86,23 @@ const EIGTYPE* _rhs, EIGTYPE* res, EIGTYPE alpha) \
     IsLower = UpLo == Lower ? 1 : 0 \
   }; \
   MKL_INT n=size, lda=lhsStride, incx=1, incy=1; \
-  MKLTYPE alpha_, beta_; \
-  const EIGTYPE *x_ptr, myone(1); \
+  EIGTYPE beta(1); \
+  const EIGTYPE *x_ptr; \
   char uplo=(IsRowMajor) ? (IsLower ? 'U' : 'L') : (IsLower ? 'L' : 'U'); \
-  assign_scalar_eig2mkl(alpha_, alpha); \
-  assign_scalar_eig2mkl(beta_, myone); \
   SYMVVector x_tmp; \
   if (ConjugateRhs) { \
     Map<const SYMVVector, 0 > map_x(_rhs,size,1); \
     x_tmp=map_x.conjugate(); \
     x_ptr=x_tmp.data(); \
   } else x_ptr=_rhs; \
-  MKLFUNC(&uplo, &n, &alpha_, (const MKLTYPE*)lhs, &lda, (const MKLTYPE*)x_ptr, &incx, &beta_, (MKLTYPE*)res, &incy); \
+  MKLFUNC(&uplo, &n, &numext::real_ref(alpha), (const MKLTYPE*)lhs, &lda, (const MKLTYPE*)x_ptr, &incx, &numext::real_ref(beta), (MKLTYPE*)res, &incy); \
 }\
 };
 
-EIGEN_MKL_SYMV_SPECIALIZATION(double,   double,        dsymv)
-EIGEN_MKL_SYMV_SPECIALIZATION(float,    float,         ssymv)
-EIGEN_MKL_SYMV_SPECIALIZATION(dcomplex, MKL_Complex16, zhemv)
-EIGEN_MKL_SYMV_SPECIALIZATION(scomplex, MKL_Complex8,  chemv)
+EIGEN_MKL_SYMV_SPECIALIZATION(double,   double, dsymv_)
+EIGEN_MKL_SYMV_SPECIALIZATION(float,    float,  ssymv_)
+EIGEN_MKL_SYMV_SPECIALIZATION(dcomplex, double, zhemv_)
+EIGEN_MKL_SYMV_SPECIALIZATION(scomplex, float,  chemv_)
 
 } // end namespace internal
 

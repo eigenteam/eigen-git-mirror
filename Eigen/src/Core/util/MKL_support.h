@@ -49,7 +49,7 @@
   #define EIGEN_USE_LAPACKE
 #endif
 
-#if defined(EIGEN_USE_BLAS) || defined(EIGEN_USE_LAPACKE) || defined(EIGEN_USE_MKL_VML)
+#if defined(EIGEN_USE_LAPACKE) || defined(EIGEN_USE_MKL_VML)
   #define EIGEN_USE_MKL
 #endif
 
@@ -64,7 +64,6 @@
 #   ifndef EIGEN_USE_MKL
     /*If the MKL version is too old, undef everything*/
 #       undef   EIGEN_USE_MKL_ALL
-#       undef   EIGEN_USE_BLAS
 #       undef   EIGEN_USE_LAPACKE
 #       undef   EIGEN_USE_MKL_VML
 #       undef   EIGEN_USE_LAPACKE_STRICT
@@ -107,11 +106,16 @@
 #else
 #define EIGEN_MKL_DOMAIN_PARDISO MKL_PARDISO
 #endif
+#endif
 
 namespace Eigen {
 
 typedef std::complex<double> dcomplex;
 typedef std::complex<float>  scomplex;
+
+#if defined(EIGEN_USE_BLAS) && !defined(EIGEN_USE_MKL)
+typedef int MKL_INT;
+#endif
 
 namespace internal {
 
@@ -125,6 +129,7 @@ static inline void assign_conj_scalar_eig2mkl(MKLType& mklScalar, const EigenTyp
   mklScalar=eigenScalar;
 }
 
+#ifdef EIGEN_USE_MKL
 template <>
 inline void assign_scalar_eig2mkl<MKL_Complex16,dcomplex>(MKL_Complex16& mklScalar, const dcomplex& eigenScalar) {
   mklScalar.real=eigenScalar.real();
@@ -148,11 +153,14 @@ inline void assign_conj_scalar_eig2mkl<MKL_Complex8,scomplex>(MKL_Complex8& mklS
   mklScalar.real=eigenScalar.real();
   mklScalar.imag=-eigenScalar.imag();
 }
+#endif
 
 } // end namespace internal
 
 } // end namespace Eigen
 
+#if defined(EIGEN_USE_BLAS) && !defined(EIGEN_USE_MKL)
+#include "../../misc/blas.h"
 #endif
 
 #endif // EIGEN_MKL_SUPPORT_H

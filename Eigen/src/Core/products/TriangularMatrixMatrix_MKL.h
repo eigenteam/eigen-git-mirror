@@ -109,7 +109,8 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
 /* Non-square case - doesn't fit to MKL ?TRMM. Fall to default triangular product or call MKL ?GEMM*/ \
    if (rows != depth) { \
 \
-     int nthr = mkl_domain_get_max_threads(EIGEN_MKL_DOMAIN_BLAS); \
+     /* FIXME handle mkl_domain_get_max_threads */ \
+     /*int nthr = mkl_domain_get_max_threads(EIGEN_MKL_DOMAIN_BLAS);*/ int nthr = 1;\
 \
      if (((nthr==1) && (((std::max)(rows,depth)-diagSize)/(double)diagSize < 0.5))) { \
      /* Most likely no benefit to call TRMM or GEMM from MKL*/ \
@@ -134,10 +135,6 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
    EIGTYPE *b; \
    const EIGTYPE *a; \
    MKL_INT m, n, lda, ldb; \
-   MKLTYPE alpha_; \
-\
-/* Set alpha_*/ \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); \
 \
 /* Set m, n */ \
    m = (MKL_INT)diagSize; \
@@ -175,7 +172,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
    } \
    /*std::cout << "TRMM_L: A is square! Go to MKL TRMM implementation! \n";*/ \
 /* call ?trmm*/ \
-   MKLPREFIX##trmm(&side, &uplo, &transa, &diag, &m, &n, &alpha_, (const MKLTYPE*)a, &lda, (MKLTYPE*)b, &ldb); \
+   MKLPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)a, &lda, (MKLTYPE*)b, &ldb); \
 \
 /* Add op(a_triangular)*b into res*/ \
    Map<MatrixX##EIGPREFIX, 0, OuterStride<> > res_tmp(res,rows,cols,OuterStride<>(resStride)); \
@@ -184,9 +181,9 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
 };
 
 EIGEN_MKL_TRMM_L(double, double, d, d)
-EIGEN_MKL_TRMM_L(dcomplex, MKL_Complex16, cd, z)
+EIGEN_MKL_TRMM_L(dcomplex, double, cd, z)
 EIGEN_MKL_TRMM_L(float, float, f, s)
-EIGEN_MKL_TRMM_L(scomplex, MKL_Complex8, cf, c)
+EIGEN_MKL_TRMM_L(scomplex, float, cf, c)
 
 // implements col-major += alpha * op(general) * op(triangular)
 #define EIGEN_MKL_TRMM_R(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
@@ -223,7 +220,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
 /* Non-square case - doesn't fit to MKL ?TRMM. Fall to default triangular product or call MKL ?GEMM*/ \
    if (cols != depth) { \
 \
-     int nthr = mkl_domain_get_max_threads(EIGEN_MKL_DOMAIN_BLAS); \
+     int nthr = 1 /*mkl_domain_get_max_threads(EIGEN_MKL_DOMAIN_BLAS)*/; \
 \
      if ((nthr==1) && (((std::max)(cols,depth)-diagSize)/(double)diagSize < 0.5)) { \
      /* Most likely no benefit to call TRMM or GEMM from MKL*/ \
@@ -248,10 +245,6 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
    EIGTYPE *b; \
    const EIGTYPE *a; \
    MKL_INT m, n, lda, ldb; \
-   MKLTYPE alpha_; \
-\
-/* Set alpha_*/ \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); \
 \
 /* Set m, n */ \
    m = (MKL_INT)rows; \
@@ -289,7 +282,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
    } \
    /*std::cout << "TRMM_R: A is square! Go to MKL TRMM implementation! \n";*/ \
 /* call ?trmm*/ \
-   MKLPREFIX##trmm(&side, &uplo, &transa, &diag, &m, &n, &alpha_, (const MKLTYPE*)a, &lda, (MKLTYPE*)b, &ldb); \
+   MKLPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const MKLTYPE*)a, &lda, (MKLTYPE*)b, &ldb); \
 \
 /* Add op(a_triangular)*b into res*/ \
    Map<MatrixX##EIGPREFIX, 0, OuterStride<> > res_tmp(res,rows,cols,OuterStride<>(resStride)); \
@@ -298,9 +291,9 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
 };
 
 EIGEN_MKL_TRMM_R(double, double, d, d)
-EIGEN_MKL_TRMM_R(dcomplex, MKL_Complex16, cd, z)
+EIGEN_MKL_TRMM_R(dcomplex, double, cd, z)
 EIGEN_MKL_TRMM_R(float, float, f, s)
-EIGEN_MKL_TRMM_R(scomplex, MKL_Complex8, cf, c)
+EIGEN_MKL_TRMM_R(scomplex, float, cf, c)
 
 } // end namespace internal
 

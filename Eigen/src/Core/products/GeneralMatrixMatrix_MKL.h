@@ -68,9 +68,8 @@ static void run(Index rows, Index cols, Index depth, \
   char transa, transb; \
   MKL_INT m, n, k, lda, ldb, ldc; \
   const EIGTYPE *a, *b; \
-  MKLTYPE alpha_, beta_; \
+  EIGTYPE beta(1); \
   MatrixX##EIGPREFIX a_tmp, b_tmp; \
-  EIGTYPE myone(1);\
 \
 /* Set transpose options */ \
   transa = (LhsStorageOrder==RowMajor) ? ((ConjugateLhs) ? 'C' : 'T') : 'N'; \
@@ -80,10 +79,6 @@ static void run(Index rows, Index cols, Index depth, \
   m = (MKL_INT)rows;  \
   n = (MKL_INT)cols;  \
   k = (MKL_INT)depth; \
-\
-/* Set alpha_ & beta_ */ \
-  assign_scalar_eig2mkl(alpha_, alpha); \
-  assign_scalar_eig2mkl(beta_, myone); \
 \
 /* Set lda, ldb, ldc */ \
   lda = (MKL_INT)lhsStride; \
@@ -105,13 +100,13 @@ static void run(Index rows, Index cols, Index depth, \
     ldb = b_tmp.outerStride(); \
   } else b = _rhs; \
 \
-  MKLPREFIX##gemm(&transa, &transb, &m, &n, &k, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)b, &ldb, &beta_, (MKLTYPE*)res, &ldc); \
+  MKLPREFIX##gemm_(&transa, &transb, &m, &n, &k, &numext::real_ref(alpha), (const MKLTYPE*)a, &lda, (const MKLTYPE*)b, &ldb, &numext::real_ref(beta), (MKLTYPE*)res, &ldc); \
 }};
 
-GEMM_SPECIALIZATION(double,   d,  double,        d)
-GEMM_SPECIALIZATION(float,    f,  float,         s)
-GEMM_SPECIALIZATION(dcomplex, cd, MKL_Complex16, z)
-GEMM_SPECIALIZATION(scomplex, cf, MKL_Complex8,  c)
+GEMM_SPECIALIZATION(double,   d,  double, d)
+GEMM_SPECIALIZATION(float,    f,  float,  s)
+GEMM_SPECIALIZATION(dcomplex, cd, double, z)
+GEMM_SPECIALIZATION(scomplex, cf, float,  c)
 
 } // end namespase internal
 
