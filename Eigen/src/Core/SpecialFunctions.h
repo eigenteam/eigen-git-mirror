@@ -79,8 +79,8 @@ namespace cephes {
  */
 template <typename Scalar, int N>
 struct polevl {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static Scalar run(const Scalar x, const Scalar coef[]) {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar x, const Scalar coef[]) {
     EIGEN_STATIC_ASSERT((N > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     return polevl<Scalar, N - 1>::run(x, coef) * x + coef[N];
@@ -89,8 +89,8 @@ struct polevl {
 
 template <typename Scalar>
 struct polevl<Scalar, 0> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static Scalar run(const Scalar, const Scalar coef[]) {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar run(const Scalar, const Scalar coef[]) {
     return coef[0];
   }
 };
@@ -144,7 +144,7 @@ struct digamma_retval {
 template <typename Scalar>
 struct digamma_impl {
   EIGEN_DEVICE_FUNC
-  static Scalar run(Scalar x) {
+  static EIGEN_STRONG_INLINE Scalar run(Scalar x) {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
     return Scalar(0);
@@ -428,20 +428,20 @@ template <typename Scalar> struct igamma_impl;  // predeclare igamma_impl
 
 template <typename Scalar>
 struct igamma_helper {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static Scalar machep() { assert(false && "machep not supported for this type"); return 0.0; }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static Scalar big() { assert(false && "big not supported for this type"); return 0.0; }
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar machep() { assert(false && "machep not supported for this type"); return 0.0; }
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE Scalar big() { assert(false && "big not supported for this type"); return 0.0; }
 };
 
 template <>
 struct igamma_helper<float> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static float machep() {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE float machep() {
     return NumTraits<float>::epsilon() / 2;  // 1.0 - machep == 1.0
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static float big() {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE float big() {
     // use epsneg (1.0 - epsneg == 1.0)
     return 1.0 / (NumTraits<float>::epsilon() / 2);
   }
@@ -449,12 +449,12 @@ struct igamma_helper<float> {
 
 template <>
 struct igamma_helper<double> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static double machep() {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double machep() {
     return NumTraits<double>::epsilon() / 2;  // 1.0 - machep == 1.0
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static double big() {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE double big() {
     return 1.0 / NumTraits<double>::epsilon();
   }
 };
@@ -605,7 +605,7 @@ struct igamma_retval {
 template <typename Scalar>
 struct igamma_impl {
   EIGEN_DEVICE_FUNC
-  static Scalar run(Scalar a, Scalar x) {
+  static EIGEN_STRONG_INLINE Scalar run(Scalar a, Scalar x) {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
     return Scalar(0);
@@ -736,7 +736,7 @@ struct zeta_retval {
 template <typename Scalar>
 struct zeta_impl {
     EIGEN_DEVICE_FUNC
-    static Scalar run(Scalar x, Scalar q) {
+    static EIGEN_STRONG_INLINE Scalar run(Scalar x, Scalar q) {
         EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                             THIS_TYPE_IS_NOT_SUPPORTED);
         return Scalar(0);
@@ -757,8 +757,8 @@ struct zeta_impl_series {
 
 template <>
 struct zeta_impl_series<float> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static bool run(float& a, float& b, float& s, const float x, const float machep) {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE bool run(float& a, float& b, float& s, const float x, const float machep) {
     int i = 0;  
     while(i < 9)
     {
@@ -777,8 +777,8 @@ struct zeta_impl_series<float> {
 
 template <>
 struct zeta_impl_series<double> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  static bool run(double& a, double& b, double& s, const double x, const double machep) {
+  EIGEN_DEVICE_FUNC
+  static EIGEN_STRONG_INLINE bool run(double& a, double& b, double& s, const double x, const double machep) {
     int i = 0;  
     while( (i < 9) || (a <= 9.0) )
     {
@@ -955,7 +955,7 @@ struct polygamma_retval {
 template <typename Scalar>
 struct polygamma_impl {
     EIGEN_DEVICE_FUNC
-    static Scalar run(Scalar n, Scalar x) {
+    static EIGEN_STRONG_INLINE Scalar run(Scalar n, Scalar x) {
         EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                             THIS_TYPE_IS_NOT_SUPPORTED);
         return Scalar(0);
