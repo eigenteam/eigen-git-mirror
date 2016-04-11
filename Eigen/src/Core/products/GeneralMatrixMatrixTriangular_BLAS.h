@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   Level 3 BLAS SYRK/HERK implementation.
  ********************************************************************************
 */
 
-#ifndef EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H
-#define EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H
+#ifndef EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_BLAS_H
+#define EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_BLAS_H
 
 namespace Eigen { 
 
@@ -44,7 +44,7 @@ struct general_matrix_matrix_rankupdate :
 
 
 // try to go to BLAS specialization
-#define EIGEN_MKL_RANKUPDATE_SPECIALIZE(Scalar) \
+#define EIGEN_BLAS_RANKUPDATE_SPECIALIZE(Scalar) \
 template <typename Index, int LhsStorageOrder, bool ConjugateLhs, \
                           int RhsStorageOrder, bool ConjugateRhs, int  UpLo> \
 struct general_matrix_matrix_triangular_product<Index,Scalar,LhsStorageOrder,ConjugateLhs, \
@@ -65,14 +65,14 @@ struct general_matrix_matrix_triangular_product<Index,Scalar,LhsStorageOrder,Con
   } \
 };
 
-EIGEN_MKL_RANKUPDATE_SPECIALIZE(double)
-EIGEN_MKL_RANKUPDATE_SPECIALIZE(float)
+EIGEN_BLAS_RANKUPDATE_SPECIALIZE(double)
+EIGEN_BLAS_RANKUPDATE_SPECIALIZE(float)
 // TODO handle complex cases
-// EIGEN_MKL_RANKUPDATE_SPECIALIZE(dcomplex)
-// EIGEN_MKL_RANKUPDATE_SPECIALIZE(scomplex)
+// EIGEN_BLAS_RANKUPDATE_SPECIALIZE(dcomplex)
+// EIGEN_BLAS_RANKUPDATE_SPECIALIZE(scomplex)
 
 // SYRK for float/double
-#define EIGEN_MKL_RANKUPDATE_R(EIGTYPE, BLASTYPE, MKLFUNC) \
+#define EIGEN_BLAS_RANKUPDATE_R(EIGTYPE, BLASTYPE, BLASFUNC) \
 template <typename Index, int AStorageOrder, bool ConjugateA, int  UpLo> \
 struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,ColMajor,UpLo> { \
   enum { \
@@ -92,12 +92,12 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
 /* Set alpha_ & beta_ */ \
    assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(alpha_, alpha); \
    assign_scalar_eig2mkl<BLASTYPE, EIGTYPE>(beta_, EIGTYPE(1)); \
-   MKLFUNC(&uplo, &trans, &n, &k, &alpha_, lhs, &lda, &beta_, res, &ldc); \
+   BLASFUNC(&uplo, &trans, &n, &k, &alpha_, lhs, &lda, &beta_, res, &ldc); \
   } \
 };
 
 // HERK for complex data
-#define EIGEN_MKL_RANKUPDATE_C(EIGTYPE, BLASTYPE, RTYPE, MKLFUNC) \
+#define EIGEN_BLAS_RANKUPDATE_C(EIGTYPE, BLASTYPE, RTYPE, BLASFUNC) \
 template <typename Index, int AStorageOrder, bool ConjugateA, int  UpLo> \
 struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,ColMajor,UpLo> { \
   enum { \
@@ -128,21 +128,21 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
      lda = a.outerStride(); \
      a_ptr = a.data(); \
    } else a_ptr=lhs; \
-   MKLFUNC(&uplo, &trans, &n, &k, &alpha_, (BLASTYPE*)a_ptr, &lda, &beta_, (BLASTYPE*)res, &ldc); \
+   BLASFUNC(&uplo, &trans, &n, &k, &alpha_, (BLASTYPE*)a_ptr, &lda, &beta_, (BLASTYPE*)res, &ldc); \
   } \
 };
 
 
-EIGEN_MKL_RANKUPDATE_R(double, double, dsyrk_)
-EIGEN_MKL_RANKUPDATE_R(float,  float,  ssyrk_)
+EIGEN_BLAS_RANKUPDATE_R(double, double, dsyrk_)
+EIGEN_BLAS_RANKUPDATE_R(float,  float,  ssyrk_)
 
 // TODO hanlde complex cases
-// EIGEN_MKL_RANKUPDATE_C(dcomplex, double, double, zherk_)
-// EIGEN_MKL_RANKUPDATE_C(scomplex, float,  float, cherk_)
+// EIGEN_BLAS_RANKUPDATE_C(dcomplex, double, double, zherk_)
+// EIGEN_BLAS_RANKUPDATE_C(scomplex, float,  float, cherk_)
 
 
 } // end namespace internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H
+#endif // EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_BLAS_H

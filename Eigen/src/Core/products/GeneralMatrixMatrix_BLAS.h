@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   General matrix-matrix product functionality based on ?GEMM.
  ********************************************************************************
 */
 
-#ifndef EIGEN_GENERAL_MATRIX_MATRIX_MKL_H
-#define EIGEN_GENERAL_MATRIX_MATRIX_MKL_H
+#ifndef EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H
+#define EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H
 
 namespace Eigen { 
 
@@ -46,7 +46,7 @@ namespace internal {
 
 // gemm specialization
 
-#define GEMM_SPECIALIZATION(EIGTYPE, EIGPREFIX, BLASTYPE, MKLPREFIX) \
+#define GEMM_SPECIALIZATION(EIGTYPE, EIGPREFIX, BLASTYPE, BLASPREFIX) \
 template< \
   typename Index, \
   int LhsStorageOrder, bool ConjugateLhs, \
@@ -100,7 +100,7 @@ static void run(Index rows, Index cols, Index depth, \
     ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
   } else b = _rhs; \
 \
-  MKLPREFIX##gemm_(&transa, &transb, &m, &n, &k, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
+  BLASPREFIX##gemm_(&transa, &transb, &m, &n, &k, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 }};
 
 GEMM_SPECIALIZATION(double,   d,  double, d)
@@ -112,4 +112,4 @@ GEMM_SPECIALIZATION(scomplex, cf, float,  c)
 
 } // end namespace Eigen
 
-#endif // EIGEN_GENERAL_MATRIX_MATRIX_MKL_H
+#endif // EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H

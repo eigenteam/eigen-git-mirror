@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   Selfadjoint matrix-vector product functionality based on ?SYMV/HEMV.
  ********************************************************************************
 */
 
-#ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H
-#define EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H
+#ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_BLAS_H
+#define EIGEN_SELFADJOINT_MATRIX_VECTOR_BLAS_H
 
 namespace Eigen { 
 
@@ -47,7 +47,7 @@ template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool Conju
 struct selfadjoint_matrix_vector_product_symv :
   selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,BuiltIn> {};
 
-#define EIGEN_MKL_SYMV_SPECIALIZE(Scalar) \
+#define EIGEN_BLAS_SYMV_SPECIALIZE(Scalar) \
 template<typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs> \
 struct selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,Specialized> { \
 static void run( \
@@ -66,12 +66,12 @@ static void run( \
   } \
 }; \
 
-EIGEN_MKL_SYMV_SPECIALIZE(double)
-EIGEN_MKL_SYMV_SPECIALIZE(float)
-EIGEN_MKL_SYMV_SPECIALIZE(dcomplex)
-EIGEN_MKL_SYMV_SPECIALIZE(scomplex)
+EIGEN_BLAS_SYMV_SPECIALIZE(double)
+EIGEN_BLAS_SYMV_SPECIALIZE(float)
+EIGEN_BLAS_SYMV_SPECIALIZE(dcomplex)
+EIGEN_BLAS_SYMV_SPECIALIZE(scomplex)
 
-#define EIGEN_MKL_SYMV_SPECIALIZATION(EIGTYPE,BLASTYPE,MKLFUNC) \
+#define EIGEN_BLAS_SYMV_SPECIALIZATION(EIGTYPE,BLASTYPE,BLASFUNC) \
 template<typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs> \
 struct selfadjoint_matrix_vector_product_symv<EIGTYPE,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs> \
 { \
@@ -95,17 +95,17 @@ const EIGTYPE* _rhs, EIGTYPE* res, EIGTYPE alpha) \
     x_tmp=map_x.conjugate(); \
     x_ptr=x_tmp.data(); \
   } else x_ptr=_rhs; \
-  MKLFUNC(&uplo, &n, &numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, &numext::real_ref(beta), (BLASTYPE*)res, &incy); \
+  BLASFUNC(&uplo, &n, &numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, &numext::real_ref(beta), (BLASTYPE*)res, &incy); \
 }\
 };
 
-EIGEN_MKL_SYMV_SPECIALIZATION(double,   double, dsymv_)
-EIGEN_MKL_SYMV_SPECIALIZATION(float,    float,  ssymv_)
-EIGEN_MKL_SYMV_SPECIALIZATION(dcomplex, double, zhemv_)
-EIGEN_MKL_SYMV_SPECIALIZATION(scomplex, float,  chemv_)
+EIGEN_BLAS_SYMV_SPECIALIZATION(double,   double, dsymv_)
+EIGEN_BLAS_SYMV_SPECIALIZATION(float,    float,  ssymv_)
+EIGEN_BLAS_SYMV_SPECIALIZATION(dcomplex, double, zhemv_)
+EIGEN_BLAS_SYMV_SPECIALIZATION(scomplex, float,  chemv_)
 
 } // end namespace internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H
+#endif // EIGEN_SELFADJOINT_MATRIX_VECTOR_BLAS_H

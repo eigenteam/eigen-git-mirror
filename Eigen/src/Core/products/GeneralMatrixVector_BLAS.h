@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   General matrix-vector product functionality based on ?GEMV.
  ********************************************************************************
 */
 
-#ifndef EIGEN_GENERAL_MATRIX_VECTOR_MKL_H
-#define EIGEN_GENERAL_MATRIX_VECTOR_MKL_H
+#ifndef EIGEN_GENERAL_MATRIX_VECTOR_BLAS_H
+#define EIGEN_GENERAL_MATRIX_VECTOR_BLAS_H
 
 namespace Eigen { 
 
@@ -49,7 +49,7 @@ namespace internal {
 template<typename Index, typename LhsScalar, int StorageOrder, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
 struct general_matrix_vector_product_gemv;
 
-#define EIGEN_MKL_GEMV_SPECIALIZE(Scalar) \
+#define EIGEN_BLAS_GEMV_SPECIALIZE(Scalar) \
 template<typename Index, bool ConjugateLhs, bool ConjugateRhs> \
 struct general_matrix_vector_product<Index,Scalar,const_blas_data_mapper<Scalar,Index,ColMajor>,ColMajor,ConjugateLhs,Scalar,const_blas_data_mapper<Scalar,Index,RowMajor>,ConjugateRhs,Specialized> { \
 static void run( \
@@ -80,12 +80,12 @@ static void run( \
 } \
 }; \
 
-EIGEN_MKL_GEMV_SPECIALIZE(double)
-EIGEN_MKL_GEMV_SPECIALIZE(float)
-EIGEN_MKL_GEMV_SPECIALIZE(dcomplex)
-EIGEN_MKL_GEMV_SPECIALIZE(scomplex)
+EIGEN_BLAS_GEMV_SPECIALIZE(double)
+EIGEN_BLAS_GEMV_SPECIALIZE(float)
+EIGEN_BLAS_GEMV_SPECIALIZE(dcomplex)
+EIGEN_BLAS_GEMV_SPECIALIZE(scomplex)
 
-#define EIGEN_MKL_GEMV_SPECIALIZATION(EIGTYPE,BLASTYPE,MKLPREFIX) \
+#define EIGEN_BLAS_GEMV_SPECIALIZATION(EIGTYPE,BLASTYPE,BLASPREFIX) \
 template<typename Index, int LhsStorageOrder, bool ConjugateLhs, bool ConjugateRhs> \
 struct general_matrix_vector_product_gemv<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,ConjugateRhs> \
 { \
@@ -113,17 +113,17 @@ static void run( \
     x_ptr=x_tmp.data(); \
     incx=1; \
   } else x_ptr=rhs; \
-  MKLPREFIX##gemv_(&trans, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, &numext::real_ref(beta), (BLASTYPE*)res, &incy); \
+  BLASPREFIX##gemv_(&trans, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, &numext::real_ref(beta), (BLASTYPE*)res, &incy); \
 }\
 };
 
-EIGEN_MKL_GEMV_SPECIALIZATION(double,   double, d)
-EIGEN_MKL_GEMV_SPECIALIZATION(float,    float,  s)
-EIGEN_MKL_GEMV_SPECIALIZATION(dcomplex, double, z)
-EIGEN_MKL_GEMV_SPECIALIZATION(scomplex, float,  c)
+EIGEN_BLAS_GEMV_SPECIALIZATION(double,   double, d)
+EIGEN_BLAS_GEMV_SPECIALIZATION(float,    float,  s)
+EIGEN_BLAS_GEMV_SPECIALIZATION(dcomplex, double, z)
+EIGEN_BLAS_GEMV_SPECIALIZATION(scomplex, float,  c)
 
 } // end namespase internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_GENERAL_MATRIX_VECTOR_MKL_H
+#endif // EIGEN_GENERAL_MATRIX_VECTOR_BLAS_H

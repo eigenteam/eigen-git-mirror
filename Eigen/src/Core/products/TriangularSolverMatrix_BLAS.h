@@ -25,20 +25,20 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   Triangular matrix * matrix product functionality based on ?TRMM.
  ********************************************************************************
 */
 
-#ifndef EIGEN_TRIANGULAR_SOLVER_MATRIX_MKL_H
-#define EIGEN_TRIANGULAR_SOLVER_MATRIX_MKL_H
+#ifndef EIGEN_TRIANGULAR_SOLVER_MATRIX_BLAS_H
+#define EIGEN_TRIANGULAR_SOLVER_MATRIX_BLAS_H
 
 namespace Eigen {
 
 namespace internal {
 
 // implements LeftSide op(triangular)^-1 * general
-#define EIGEN_MKL_TRSM_L(EIGTYPE, BLASTYPE, MKLPREFIX) \
+#define EIGEN_BLAS_TRSM_L(EIGTYPE, BLASTYPE, BLASPREFIX) \
 template <typename Index, int Mode, bool Conjugate, int TriStorageOrder> \
 struct triangular_solve_matrix<EIGTYPE,Index,OnTheLeft,Mode,Conjugate,TriStorageOrder,ColMajor> \
 { \
@@ -80,18 +80,18 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheLeft,Mode,Conjugate,TriStorage
    } \
    if (IsUnitDiag) diag='U'; \
 /* call ?trsm*/ \
-   MKLPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
+   BLASPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
  } \
 };
 
-EIGEN_MKL_TRSM_L(double,   double, d)
-EIGEN_MKL_TRSM_L(dcomplex, double, z)
-EIGEN_MKL_TRSM_L(float,    float,  s)
-EIGEN_MKL_TRSM_L(scomplex, float,  c)
+EIGEN_BLAS_TRSM_L(double,   double, d)
+EIGEN_BLAS_TRSM_L(dcomplex, double, z)
+EIGEN_BLAS_TRSM_L(float,    float,  s)
+EIGEN_BLAS_TRSM_L(scomplex, float,  c)
 
 
 // implements RightSide general * op(triangular)^-1
-#define EIGEN_MKL_TRSM_R(EIGTYPE, BLASTYPE, MKLPREFIX) \
+#define EIGEN_BLAS_TRSM_R(EIGTYPE, BLASTYPE, BLASPREFIX) \
 template <typename Index, int Mode, bool Conjugate, int TriStorageOrder> \
 struct triangular_solve_matrix<EIGTYPE,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor> \
 { \
@@ -133,19 +133,19 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheRight,Mode,Conjugate,TriStorag
    } \
    if (IsUnitDiag) diag='U'; \
 /* call ?trsm*/ \
-   MKLPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
+   BLASPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
    /*std::cout << "TRMS_L specialization!\n";*/ \
  } \
 };
 
-EIGEN_MKL_TRSM_R(double,   double, d)
-EIGEN_MKL_TRSM_R(dcomplex, double, z)
-EIGEN_MKL_TRSM_R(float,    float,  s)
-EIGEN_MKL_TRSM_R(scomplex, float,  c)
+EIGEN_BLAS_TRSM_R(double,   double, d)
+EIGEN_BLAS_TRSM_R(dcomplex, double, z)
+EIGEN_BLAS_TRSM_R(float,    float,  s)
+EIGEN_BLAS_TRSM_R(scomplex, float,  c)
 
 
 } // end namespace internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_TRIANGULAR_SOLVER_MATRIX_MKL_H
+#endif // EIGEN_TRIANGULAR_SOLVER_MATRIX_BLAS_H

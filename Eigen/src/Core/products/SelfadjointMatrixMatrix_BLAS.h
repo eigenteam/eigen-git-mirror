@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   Self adjoint matrix * matrix product functionality based on ?SYMM/?HEMM.
  ********************************************************************************
 */
 
-#ifndef EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
-#define EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
+#ifndef EIGEN_SELFADJOINT_MATRIX_MATRIX_BLAS_H
+#define EIGEN_SELFADJOINT_MATRIX_MATRIX_BLAS_H
 
 namespace Eigen { 
 
@@ -40,7 +40,7 @@ namespace internal {
 
 /* Optimized selfadjoint matrix * matrix (?SYMM/?HEMM) product */
 
-#define EIGEN_MKL_SYMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_SYMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -81,13 +81,13 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
       ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
     } else b = _rhs; \
 \
-    MKLPREFIX##symm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
+    BLASPREFIX##symm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 \
   } \
 };
 
 
-#define EIGEN_MKL_HEMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_HEMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -144,20 +144,20 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
       ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
     } \
 \
-    MKLPREFIX##hemm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
+    BLASPREFIX##hemm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 \
   } \
 };
 
-EIGEN_MKL_SYMM_L(double, double, d, d)
-EIGEN_MKL_SYMM_L(float, float, f, s)
-EIGEN_MKL_HEMM_L(dcomplex, double, cd, z)
-EIGEN_MKL_HEMM_L(scomplex, float, cf, c)
+EIGEN_BLAS_SYMM_L(double, double, d, d)
+EIGEN_BLAS_SYMM_L(float, float, f, s)
+EIGEN_BLAS_HEMM_L(dcomplex, double, cd, z)
+EIGEN_BLAS_HEMM_L(scomplex, float, cf, c)
 
 
 /* Optimized matrix * selfadjoint matrix (?SYMM/?HEMM) product */
 
-#define EIGEN_MKL_SYMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_SYMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -197,13 +197,13 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
       ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
     } else b = _lhs; \
 \
-    MKLPREFIX##symm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
+    BLASPREFIX##symm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 \
   } \
 };
 
 
-#define EIGEN_MKL_HEMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_HEMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -259,17 +259,17 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
       ldb = b_tmp.outerStride(); \
     } \
 \
-    MKLPREFIX##hemm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
+    BLASPREFIX##hemm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
   } \
 };
 
-EIGEN_MKL_SYMM_R(double, double, d, d)
-EIGEN_MKL_SYMM_R(float, float, f, s)
-EIGEN_MKL_HEMM_R(dcomplex, double, cd, z)
-EIGEN_MKL_HEMM_R(scomplex, float, cf, c)
+EIGEN_BLAS_SYMM_R(double, double, d, d)
+EIGEN_BLAS_SYMM_R(float, float, f, s)
+EIGEN_BLAS_HEMM_R(dcomplex, double, cd, z)
+EIGEN_BLAS_HEMM_R(scomplex, float, cf, c)
 
 } // end namespace internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
+#endif // EIGEN_SELFADJOINT_MATRIX_MATRIX_BLAS_H
