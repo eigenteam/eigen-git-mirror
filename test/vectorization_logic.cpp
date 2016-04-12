@@ -147,10 +147,10 @@ struct vectorization_logic
 
     VERIFY(test_assign(Matrix44c().col(1),Matrix44c().col(2)+Matrix44c().col(3),
       InnerVectorizedTraversal,CompleteUnrolling));
-    
+
     VERIFY(test_assign(Matrix44r().row(2),Matrix44r().row(1)+Matrix44r().row(1),
       InnerVectorizedTraversal,CompleteUnrolling));
-        
+
     if(PacketSize>1)
     {
       typedef Matrix<Scalar,3,3,ColMajor> Matrix33c;
@@ -158,17 +158,17 @@ struct vectorization_logic
         LinearTraversal,CompleteUnrolling));
       VERIFY(test_assign(Matrix33c().col(0),Matrix33c().col(1)+Matrix33c().col(1),
         LinearTraversal,CompleteUnrolling));
-              
-      VERIFY(test_assign(Matrix3(),Matrix3().cwiseQuotient(Matrix3()),
-        PacketTraits::HasDiv ? LinearVectorizedTraversal : LinearTraversal,CompleteUnrolling));
-      
+
+      VERIFY(test_assign(Matrix3(),Matrix3().cwiseProduct(Matrix3()),
+        LinearVectorizedTraversal,CompleteUnrolling));
+
       VERIFY(test_assign(Matrix<Scalar,17,17>(),Matrix<Scalar,17,17>()+Matrix<Scalar,17,17>(),
         HalfPacketSize==1 ? InnerVectorizedTraversal : LinearTraversal,NoUnrolling));
-        
+
       VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
         DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
     }
-    
+
     VERIFY(test_redux(Matrix3(),
       LinearVectorizedTraversal,CompleteUnrolling));
 
