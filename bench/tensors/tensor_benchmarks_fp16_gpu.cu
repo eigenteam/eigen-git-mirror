@@ -48,11 +48,11 @@ BM_FuncGPU(colReduction);
   BENCHMARK_RANGE(BM_##FUNC##_##D1##x##D2##x##D3, 10, 5000);
 
 
-/*BM_FuncWithInputDimsGPU(contraction, N, N, N);
+BM_FuncWithInputDimsGPU(contraction, N, N, N);
 BM_FuncWithInputDimsGPU(contraction, 64, N, N);
 BM_FuncWithInputDimsGPU(contraction, N, 64, N);
 BM_FuncWithInputDimsGPU(contraction, N, N, 64);
-*/
+
 
 // Convolutions
 #define BM_FuncWithKernelDimsGPU(FUNC, DIM1, DIM2)                             \
