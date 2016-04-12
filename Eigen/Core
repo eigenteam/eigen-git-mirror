@@ -451,14 +451,14 @@ using std::ptrdiff_t;
 #include "src/Core/ArrayWrapper.h"
 
 #ifdef EIGEN_USE_BLAS
-#include "src/Core/products/GeneralMatrixMatrix_MKL.h"
-#include "src/Core/products/GeneralMatrixVector_MKL.h"
-#include "src/Core/products/GeneralMatrixMatrixTriangular_MKL.h"
-#include "src/Core/products/SelfadjointMatrixMatrix_MKL.h"
-#include "src/Core/products/SelfadjointMatrixVector_MKL.h"
-#include "src/Core/products/TriangularMatrixMatrix_MKL.h"
-#include "src/Core/products/TriangularMatrixVector_MKL.h"
-#include "src/Core/products/TriangularSolverMatrix_MKL.h"
+#include "src/Core/products/GeneralMatrixMatrix_BLAS.h"
+#include "src/Core/products/GeneralMatrixVector_BLAS.h"
+#include "src/Core/products/GeneralMatrixMatrixTriangular_BLAS.h"
+#include "src/Core/products/SelfadjointMatrixMatrix_BLAS.h"
+#include "src/Core/products/SelfadjointMatrixVector_BLAS.h"
+#include "src/Core/products/TriangularMatrixMatrix_BLAS.h"
+#include "src/Core/products/TriangularMatrixVector_BLAS.h"
+#include "src/Core/products/TriangularSolverMatrix_BLAS.h"
 #endif // EIGEN_USE_BLAS
 
 #ifdef EIGEN_USE_MKL_VML

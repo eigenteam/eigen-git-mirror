@@ -1128,14 +1128,12 @@ struct scalar_fuzzy_default_impl<Scalar, false, false>
   template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y, const RealScalar& prec)
   {
-    EIGEN_USING_STD_MATH(abs);
-    return abs(x) <= abs(y) * prec;
+    return numext::abs(x) <= numext::abs(y) * prec;
   }
   EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    EIGEN_USING_STD_MATH(abs);
-    return abs(x - y) <= numext::mini(abs(x), abs(y)) * prec;
+    return numext::abs(x - y) <= numext::mini(numext::abs(x), numext::abs(y)) * prec;
   }
   EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar& prec)

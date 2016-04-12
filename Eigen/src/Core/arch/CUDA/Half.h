@@ -366,12 +366,21 @@ template<> struct is_arithmetic<half> { enum { value = true }; };
 template<> struct NumTraits<Eigen::half>
     : GenericNumTraits<Eigen::half>
 {
-  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE float dummy_precision() { return 1e-3f; }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half epsilon() {
+    return internal::raw_uint16_to_half(0x0800);
+  }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half dummy_precision() { return half(1e-3f); }
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half highest() {
     return internal::raw_uint16_to_half(0x7bff);
   }
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half lowest() {
     return internal::raw_uint16_to_half(0xfbff);
+  }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half infinity() {
+    return internal::raw_uint16_to_half(0x7c00);
+  }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half quiet_NaN() {
+    return internal::raw_uint16_to_half(0x7c01);
   }
 };
 

@@ -10,7 +10,8 @@
 #include "common.h"
 
 // y = alpha*A*x + beta*y
-int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
+int EIGEN_BLAS_FUNC(symv) (const char *uplo, const int *n, const RealScalar *palpha, const RealScalar *pa, const int *lda,
+                           const RealScalar *px, const int *incx, const RealScalar *pbeta, RealScalar *py, const int *incy)
 {
   typedef void (*functype)(int, const Scalar*, int, const Scalar*, Scalar*, Scalar);
   static const functype func[2] = {
@@ -20,11 +21,11 @@ int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *p
     (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Lower,false,false>::run),
   };
 
-  Scalar* a = reinterpret_cast<Scalar*>(pa);
-  Scalar* x = reinterpret_cast<Scalar*>(px);
+  const Scalar* a = reinterpret_cast<const Scalar*>(pa);
+  const Scalar* x = reinterpret_cast<const Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
-  Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta   = *reinterpret_cast<Scalar*>(pbeta);
+  Scalar alpha  = *reinterpret_cast<const Scalar*>(palpha);
+  Scalar beta   = *reinterpret_cast<const Scalar*>(pbeta);
 
   // check arguments
   int info = 0;
@@ -39,7 +40,7 @@ int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *p
   if(*n==0)
     return 0;
 
-  Scalar* actual_x = get_compact_vector(x,*n,*incx);
+  const Scalar* actual_x = get_compact_vector(x,*n,*incx);
   Scalar* actual_y = get_compact_vector(y,*n,*incy);
 
   if(beta!=Scalar(1))
@@ -61,7 +62,7 @@ int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *p
 }
 
 // C := alpha*x*x' + C
-int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(syr)(const char *uplo, const int *n, const RealScalar *palpha, const RealScalar *px, const int *incx, RealScalar *pc, const int *ldc)
 {
 
   typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, const Scalar&);
@@ -72,9 +73,9 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
     (selfadjoint_rank1_update<Scalar,int,ColMajor,Lower,false,Conj>::run),
   };
 
-  Scalar* x = reinterpret_cast<Scalar*>(px);
+  const Scalar* x = reinterpret_cast<const Scalar*>(px);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+  Scalar alpha = *reinterpret_cast<const Scalar*>(palpha);
 
   int info = 0;
   if(UPLO(*uplo)==INVALID)                                            info = 1;
@@ -87,7 +88,7 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
   if(*n==0 || alpha==Scalar(0)) return 1;
 
   // if the increment is not 1, let's copy it to a temporary vector to enable vectorization
-  Scalar* x_cpy = get_compact_vector(x,*n,*incx);
+  const Scalar* x_cpy = get_compact_vector(x,*n,*incx);
 
   int code = UPLO(*uplo);
   if(code>=2 || func[code]==0)
@@ -101,7 +102,7 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
 }
 
 // C := alpha*x*y' + alpha*y*x' + C
-int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pc, int *ldc)
+int EIGEN_BLAS_FUNC(syr2)(const char *uplo, const int *n, const RealScalar *palpha, const RealScalar *px, const int *incx, const RealScalar *py, const int *incy, RealScalar *pc, const int *ldc)
 {
   typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, Scalar);
   static const functype func[2] = {
@@ -111,10 +112,10 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
     (internal::rank2_update_selector<Scalar,int,Lower>::run),
   };
 
-  Scalar* x = reinterpret_cast<Scalar*>(px);
-  Scalar* y = reinterpret_cast<Scalar*>(py);
+  const Scalar* x = reinterpret_cast<const Scalar*>(px);
+  const Scalar* y = reinterpret_cast<const Scalar*>(py);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+  Scalar alpha = *reinterpret_cast<const Scalar*>(palpha);
 
   int info = 0;
   if(UPLO(*uplo)==INVALID)                                            info = 1;
@@ -128,8 +129,8 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
   if(alpha==Scalar(0))
     return 1;
 
-  Scalar* x_cpy = get_compact_vector(x,*n,*incx);
-  Scalar* y_cpy = get_compact_vector(y,*n,*incy);
+  const Scalar* x_cpy = get_compact_vector(x,*n,*incx);
+  const Scalar* y_cpy = get_compact_vector(y,*n,*incy);
 
   int code = UPLO(*uplo);
   if(code>=2 || func[code]==0)

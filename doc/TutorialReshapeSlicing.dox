@@ -37,10 +37,10 @@ Here is another example reshaping a 2x6 matrix to a 6x2 one:
 
 \section TutorialSlicing Slicing
 
-Slicing consists in taking a set of rows, or columns, or elements, uniformly spaced within a matrix.
+Slicing consists in taking a set of rows, columns, or elements, uniformly spaced within a matrix.
 Again, the class Map allows to easily mimic this feature.
 
-For instance, one can take skip every P elements in a vector:
+For instance, one can skip every P elements in a vector:
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr><td>
