@@ -21,7 +21,7 @@ namespace Eigen {
   */
 namespace internal {
 
-template <typename Index, typename InputDims, size_t NumKernelDims, int Layout>
+template <typename Index, typename InputDims, int NumKernelDims, int Layout>
 class IndexMapper {
  public:
   IndexMapper(const InputDims& input_dims, const array<Index, NumKernelDims>& kernel_dims,
@@ -123,7 +123,7 @@ class IndexMapper {
       }
       inputIndex += p * m_inputStrides[NumKernelDims];
     } else {
-      int limit = 0;
+      std::ptrdiff_t limit = 0;
       if (NumKernelDims < NumDims) {
         limit = NumDims - NumKernelDims - 1;
       }
@@ -147,7 +147,7 @@ class IndexMapper {
       }
       outputIndex += p * m_outputStrides[NumKernelDims];
     } else {
-      int limit = 0;
+      std::ptrdiff_t limit = 0;
       if (NumKernelDims < NumDims) {
         limit = NumDims - NumKernelDims - 1;
       }
@@ -206,7 +206,7 @@ class IndexMapper {
   }
 
  private:
-  static const size_t NumDims = internal::array_size<InputDims>::value;
+  static const int NumDims = internal::array_size<InputDims>::value;
   array<Index, NumDims> m_inputStrides;
   array<Index, NumDims> m_outputStrides;
   array<Index, NumDims> m_cudaInputStrides;
@@ -221,7 +221,6 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename promote_storage_type<typename InputXprType::Scalar,
                                         typename KernelXprType::Scalar>::ret Scalar;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<InputXprType>::StorageKind,
                                         typename traits<KernelXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<InputXprType>::Index,
@@ -259,12 +258,9 @@ class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, Input
 {
   public:
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorConvolutionOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::promote_storage_type<typename InputXprType::CoeffReturnType,
                                                   typename KernelXprType::CoeffReturnType>::ret CoeffReturnType;
-  typedef typename internal::promote_storage_type<typename InputXprType::PacketReturnType,
-                                                  typename KernelXprType::PacketReturnType>::ret PacketReturnType;
   typedef typename Eigen::internal::nested<TensorConvolutionOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::Index Index;
@@ -306,6 +302,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     PacketAccess = TensorEvaluator<InputArgType, Device>::PacketAccess & TensorEvaluator<KernelArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<InputArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -372,7 +369,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -752,6 +749,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     PacketAccess = false,
     Layout = TensorEvaluator<InputArgType, GpuDevice>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const GpuDevice& device)
@@ -773,7 +771,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, GpuDevice>::type PacketReturnType;
   typedef typename InputArgType::Scalar Scalar;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_dimensions; }

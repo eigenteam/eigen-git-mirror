@@ -20,6 +20,8 @@ template<typename MatrixType> void diagonal(const MatrixType& m)
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols);
 
+  Scalar s1 = internal::random<Scalar>();
+
   //check diagonal()
   VERIFY_IS_APPROX(m1.diagonal(), m1.transpose().diagonal());
   m2.diagonal() = 2 * m1.diagonal();
@@ -58,6 +60,11 @@ template<typename MatrixType> void diagonal(const MatrixType& m)
     VERIFY_IS_APPROX(m2.template diagonal<N2>(), static_cast<Scalar>(2) * m1.diagonal(N2));
     m2.diagonal(N2)[0] *= 3;
     VERIFY_IS_APPROX(m2.diagonal(N2)[0], static_cast<Scalar>(6) * m1.diagonal(N2)[0]);
+
+    m2.diagonal(N2).x() = s1;
+    VERIFY_IS_APPROX(m2.diagonal(N2).x(), s1);
+    m2.diagonal(N2).coeffRef(0) = Scalar(2)*s1;
+    VERIFY_IS_APPROX(m2.diagonal(N2).coeff(0), Scalar(2)*s1);
   }
 }
 

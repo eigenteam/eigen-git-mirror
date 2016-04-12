@@ -226,7 +226,9 @@ ei_add_test(geo_homogeneous)
 ei_add_test(stdvector)
 ei_add_test(stdvector_overload)
 ei_add_test(stdlist)
+ei_add_test(stdlist_overload)
 ei_add_test(stddeque)
+ei_add_test(stddeque_overload)
 ei_add_test(sparse_basic)
 ei_add_test(sparse_block)
 ei_add_test(sparse_vector)
@@ -323,16 +325,25 @@ if(EIGEN_TEST_EIGEN2)
 endif()
 
 
-# NVCC unit tests
-option(EIGEN_TEST_NVCC "Enable NVCC support in unit tests" OFF)
-if(EIGEN_TEST_NVCC)
-  
+# CUDA unit tests
+option(EIGEN_TEST_CUDA "Enable CUDA support in unit tests" OFF)
+option(EIGEN_TEST_CUDA_CLANG "Use clang instead of nvcc to compile the CUDA tests" OFF)
+
+if(EIGEN_TEST_CUDA_CLANG AND NOT CMAKE_CXX_COMPILER MATCHES "clang")
+  message(WARNING "EIGEN_TEST_CUDA_CLANG is set, but CMAKE_CXX_COMPILER does not appear to be clang.")
+endif()
+
+if(EIGEN_TEST_CUDA)
+
 find_package(CUDA 5.0)
 if(CUDA_FOUND)
   
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") 
     set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
+  endif()
+  if(EIGEN_TEST_CUDA_CLANG)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_30")
   endif()
   cuda_include_directories(${CMAKE_CURRENT_BINARY_DIR})
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION  "cu")
@@ -343,7 +354,7 @@ if(CUDA_FOUND)
 
 endif(CUDA_FOUND)
 
-endif(EIGEN_TEST_NVCC)
+endif(EIGEN_TEST_CUDA)
 
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/failtests)    

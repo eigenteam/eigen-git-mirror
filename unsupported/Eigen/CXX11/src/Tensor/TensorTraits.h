@@ -20,7 +20,7 @@ class compute_tensor_flags
   enum {
     is_dynamic_size_storage = 1,
 
-    aligned_bit =
+    is_aligned =
     (
         ((Options&DontAlign)==0) && (
 #if EIGEN_MAX_STATIC_ALIGN_BYTES>0
@@ -35,12 +35,12 @@ class compute_tensor_flags
             0
 #endif
       )
-    ) ? AlignedBit : 0,
-    packet_access_bit = packet_traits<Scalar>::Vectorizable && aligned_bit ? PacketAccessBit : 0
+     ),
+    packet_access_bit = packet_traits<Scalar>::Vectorizable && is_aligned ? PacketAccessBit : 0
   };
 
   public:
-    enum { ret = packet_access_bit | aligned_bit};
+    enum { ret = packet_access_bit};
 };
 
 
@@ -86,7 +86,7 @@ struct traits<TensorMap<PlainObjectType, Options_> >
   static const int Layout = BaseTraits::Layout;
   enum {
     Options = Options_,
-    Flags = (BaseTraits::Flags & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
+    Flags = BaseTraits::Flags,
   };
 };
 
@@ -102,7 +102,7 @@ struct traits<TensorRef<PlainObjectType> >
   static const int Layout = BaseTraits::Layout;
   enum {
     Options = BaseTraits::Options,
-    Flags = (BaseTraits::Flags & ~AlignedBit) | (Options&Aligned ? AlignedBit : 0),
+    Flags = BaseTraits::Flags,
   };
 };
 

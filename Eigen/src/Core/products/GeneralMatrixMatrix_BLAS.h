@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   General matrix-matrix product functionality based on ?GEMM.
  ********************************************************************************
 */
 
-#ifndef EIGEN_GENERAL_MATRIX_MATRIX_MKL_H
-#define EIGEN_GENERAL_MATRIX_MATRIX_MKL_H
+#ifndef EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H
+#define EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H
 
 namespace Eigen { 
 
@@ -46,7 +46,7 @@ namespace internal {
 
 // gemm specialization
 
-#define GEMM_SPECIALIZATION(EIGTYPE, EIGPREFIX, MKLTYPE, MKLPREFIX) \
+#define GEMM_SPECIALIZATION(EIGTYPE, EIGPREFIX, BLASTYPE, BLASPREFIX) \
 template< \
   typename Index, \
   int LhsStorageOrder, bool ConjugateLhs, \
@@ -66,55 +66,50 @@ static void run(Index rows, Index cols, Index depth, \
   using std::conj; \
 \
   char transa, transb; \
-  MKL_INT m, n, k, lda, ldb, ldc; \
+  BlasIndex m, n, k, lda, ldb, ldc; \
   const EIGTYPE *a, *b; \
-  MKLTYPE alpha_, beta_; \
+  EIGTYPE beta(1); \
   MatrixX##EIGPREFIX a_tmp, b_tmp; \
-  EIGTYPE myone(1);\
 \
 /* Set transpose options */ \
   transa = (LhsStorageOrder==RowMajor) ? ((ConjugateLhs) ? 'C' : 'T') : 'N'; \
   transb = (RhsStorageOrder==RowMajor) ? ((ConjugateRhs) ? 'C' : 'T') : 'N'; \
 \
 /* Set m, n, k */ \
-  m = (MKL_INT)rows;  \
-  n = (MKL_INT)cols;  \
-  k = (MKL_INT)depth; \
-\
-/* Set alpha_ & beta_ */ \
-  assign_scalar_eig2mkl(alpha_, alpha); \
-  assign_scalar_eig2mkl(beta_, myone); \
+  m = convert_index<BlasIndex>(rows);  \
+  n = convert_index<BlasIndex>(cols);  \
+  k = convert_index<BlasIndex>(depth); \
 \
 /* Set lda, ldb, ldc */ \
-  lda = (MKL_INT)lhsStride; \
-  ldb = (MKL_INT)rhsStride; \
-  ldc = (MKL_INT)resStride; \
+  lda = convert_index<BlasIndex>(lhsStride); \
+  ldb = convert_index<BlasIndex>(rhsStride); \
+  ldc = convert_index<BlasIndex>(resStride); \
 \
 /* Set a, b, c */ \
   if ((LhsStorageOrder==ColMajor) && (ConjugateLhs)) { \
     Map<const MatrixX##EIGPREFIX, 0, OuterStride<> > lhs(_lhs,m,k,OuterStride<>(lhsStride)); \
     a_tmp = lhs.conjugate(); \
     a = a_tmp.data(); \
-    lda = a_tmp.outerStride(); \
+    lda = convert_index<BlasIndex>(a_tmp.outerStride()); \
   } else a = _lhs; \
 \
   if ((RhsStorageOrder==ColMajor) && (ConjugateRhs)) { \
     Map<const MatrixX##EIGPREFIX, 0, OuterStride<> > rhs(_rhs,k,n,OuterStride<>(rhsStride)); \
     b_tmp = rhs.conjugate(); \
     b = b_tmp.data(); \
-    ldb = b_tmp.outerStride(); \
+    ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
   } else b = _rhs; \
 \
-  MKLPREFIX##gemm(&transa, &transb, &m, &n, &k, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)b, &ldb, &beta_, (MKLTYPE*)res, &ldc); \
+  BLASPREFIX##gemm_(&transa, &transb, &m, &n, &k, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 }};
 
-GEMM_SPECIALIZATION(double,   d,  double,        d)
-GEMM_SPECIALIZATION(float,    f,  float,         s)
-GEMM_SPECIALIZATION(dcomplex, cd, MKL_Complex16, z)
-GEMM_SPECIALIZATION(scomplex, cf, MKL_Complex8,  c)
+GEMM_SPECIALIZATION(double,   d,  double, d)
+GEMM_SPECIALIZATION(float,    f,  float,  s)
+GEMM_SPECIALIZATION(dcomplex, cd, double, z)
+GEMM_SPECIALIZATION(scomplex, cf, float,  c)
 
 } // end namespase internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_GENERAL_MATRIX_MATRIX_MKL_H
+#endif // EIGEN_GENERAL_MATRIX_MATRIX_BLAS_H

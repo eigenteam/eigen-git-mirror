@@ -48,7 +48,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
       // It basically represents the minimal amount of work to be done to be worth it.
       if(threads>1 && lhsEval.nonZerosEstimate() > 20000)
       {
-        #pragma omp parallel for schedule(static) num_threads(threads)
+        #pragma omp parallel for schedule(dynamic,(n+threads*4-1)/(threads*4)) num_threads(threads)
         for(Index i=0; i<n; ++i)
           processRow(lhsEval,rhs,res,alpha,i,c);
       }

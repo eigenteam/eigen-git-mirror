@@ -117,7 +117,9 @@ class PardisoImpl : public SparseSolverBase<Derived>
     typedef Matrix<StorageIndex, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
     typedef Array<StorageIndex,64,1,DontAlign> ParameterType;
     enum {
-      ScalarIsComplex = NumTraits<Scalar>::IsComplex
+      ScalarIsComplex = NumTraits<Scalar>::IsComplex,
+      ColsAtCompileTime = Dynamic,
+      MaxColsAtCompileTime = Dynamic
     };
 
     PardisoImpl()
@@ -373,7 +375,7 @@ void PardisoImpl<Derived>::_solve_impl(const MatrixBase<BDerived> &b, MatrixBase
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SparseLU
   */
 template<typename MatrixType>
 class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
@@ -425,7 +427,7 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SimplicialLLT
   */
 template<typename MatrixType, int _UpLo>
 class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
@@ -485,7 +487,7 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SimplicialLDLT
   */
 template<typename MatrixType, int Options>
 class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >

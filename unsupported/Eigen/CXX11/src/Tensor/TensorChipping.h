@@ -26,7 +26,6 @@ struct traits<TensorChippingOp<DimId, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -50,7 +49,7 @@ struct nested<TensorChippingOp<DimId, XprType>, 1, typename eval<TensorChippingO
 template <DenseIndex DimId>
 struct DimensionId
 {
-  DimensionId(DenseIndex dim) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DimensionId(DenseIndex dim) {
     eigen_assert(dim == DimId);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex actualDim() const {
@@ -60,7 +59,7 @@ struct DimensionId
 template <>
 struct DimensionId<Dynamic>
 {
-  DimensionId(DenseIndex dim) : actual_dim(dim) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DimensionId(DenseIndex dim) : actual_dim(dim) {
     eigen_assert(dim >= 0);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE DenseIndex actualDim() const {
@@ -80,10 +79,8 @@ class TensorChippingOp : public TensorBase<TensorChippingOp<DimId, XprType> >
 {
   public:
   typedef typename Eigen::internal::traits<TensorChippingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorChippingOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorChippingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorChippingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorChippingOp>::Index Index;
@@ -145,6 +142,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -183,7 +181,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -244,8 +242,8 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
-    Scalar* result = m_impl.data();
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const {
+    CoeffReturnType* result = const_cast<CoeffReturnType*>(m_impl.data());
     if (((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == NumDims) ||
          (static_cast<int>(Layout) == static_cast<int>(RowMajor) && m_dim.actualDim() == 0)) &&
         result) {
@@ -304,6 +302,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -311,7 +310,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
     { }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {

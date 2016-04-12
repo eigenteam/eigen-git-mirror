@@ -31,7 +31,6 @@ class TensorBase<Derived, ReadOnlyAccessors>
     typedef typename DerivedTraits::Scalar Scalar;
     typedef typename DerivedTraits::Index Index;
     typedef typename internal::remove_const<Scalar>::type CoeffReturnType;
-    typedef typename internal::packet_traits<CoeffReturnType>::type PacketReturnType;
     static const int NumDimensions = DerivedTraits::NumDimensions;
 
     // Generic nullary operation support.
@@ -123,6 +122,58 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived>
+    lgamma() const {
+      return unaryExpr(internal::scalar_lgamma_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_digamma_op<Scalar>, const Derived>
+    digamma() const {
+      return unaryExpr(internal::scalar_digamma_op<Scalar>());
+    }
+
+    // igamma(a = this, x = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_igamma_op<Scalar>, const Derived, const OtherDerived>
+    igamma(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_igamma_op<Scalar>());
+    }
+
+    // igammac(a = this, x = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_igammac_op<Scalar>, const Derived, const OtherDerived>
+    igammac(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_igammac_op<Scalar>());
+    }
+
+    // zeta(x = this, q = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_zeta_op<Scalar>, const Derived, const OtherDerived>
+    zeta(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_zeta_op<Scalar>());
+    }
+
+    // polygamma(n = this, x = other)
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorCwiseBinaryOp<internal::scalar_polygamma_op<Scalar>, const Derived, const OtherDerived>
+    polygamma(const OtherDerived& other) const {
+      return binaryExpr(other.derived(), internal::scalar_polygamma_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived>
+    erf() const {
+      return unaryExpr(internal::scalar_erf_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived>
+    erfc() const {
+      return unaryExpr(internal::scalar_erfc_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_sigmoid_op<Scalar>, const Derived>
     sigmoid() const {
       return unaryExpr(internal::scalar_sigmoid_op<Scalar>());
@@ -144,6 +195,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_abs_op<Scalar>, const Derived>
     abs() const {
       return unaryExpr(internal::scalar_abs_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Derived>
+    conjugate() const {
+      return unaryExpr(internal::scalar_conjugate_op<Scalar>());
     }
 
     EIGEN_DEVICE_FUNC
@@ -201,6 +258,25 @@ class TensorBase<Derived, ReadOnlyAccessors>
     cast() const {
       return TensorConversionOp<NewType, const Derived>(derived());
     }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_round_op<Scalar>, const Derived>
+    round() const {
+      return unaryExpr(internal::scalar_round_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_ceil_op<Scalar>, const Derived>
+    ceil() const {
+      return unaryExpr(internal::scalar_ceil_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_floor_op<Scalar>, const Derived>
+    floor() const {
+      return unaryExpr(internal::scalar_floor_op<Scalar>());
+    }
+
 
     // Generic binary operation support.
     template <typename CustomBinaryOp, typename OtherDerived> EIGEN_DEVICE_FUNC
@@ -285,6 +361,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
     operator==(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_cmp_op<Scalar, internal::cmp_EQ>());
     }
+
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_NEQ>, const Derived, const OtherDerived>
     operator!=(const OtherDerived& other) const {
@@ -321,6 +398,23 @@ class TensorBase<Derived, ReadOnlyAccessors>
     EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_NEQ>, const Derived, const TensorCwiseNullaryOp<internal::scalar_constant_op<Scalar>, const Derived> >
     operator!=(Scalar threshold) const {
       return operator!=(constant(threshold));
+    }
+
+    // Checks
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_isnan_op<Scalar>, const Derived>
+    (isnan)() const {
+      return unaryExpr(internal::scalar_isnan_op<Scalar>());
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_isinf_op<Scalar>, const Derived>
+    (isinf)() const {
+      return unaryExpr(internal::scalar_isinf_op<Scalar>());
+    }
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_isfinite_op<Scalar>, const Derived>
+    (isfinite)() const {
+      return unaryExpr(internal::scalar_isfinite_op<Scalar>());
     }
 
     // Coefficient-wise ternary operators.
@@ -544,7 +638,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
     const TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>
     extract_volume_patches(const Index patch_planes, const Index patch_rows, const Index patch_cols,
                            const Index plane_stride = 1, const Index row_stride = 1, const Index col_stride = 1,
-                           const PaddingType padding_type = PADDING_SAME, const Scalar padding_value = 0) const {
+                           const PaddingType padding_type = PADDING_SAME, const Scalar padding_value = Scalar(0)) const {
       return TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
     }
 
@@ -556,7 +650,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
                            const Index plane_inflate_stride, const Index row_inflate_stride, const Index col_inflate_stride,
                            const Index padding_top_z, const Index padding_bottom_z,
                            const Index padding_top, const Index padding_bottom,
-                           const Index padding_left, const Index padding_right, const Scalar padding_value = 0) const {
+                           const Index padding_left, const Index padding_right, const Scalar padding_value = Scalar(0)) const {
       return TensorVolumePatchOp<Dynamic, Dynamic, Dynamic, const Derived>(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, plane_inflate_stride, row_inflate_stride, col_inflate_stride, padding_top_z, padding_bottom_z, padding_top, padding_bottom, padding_left, padding_right, padding_value);
     }
 
@@ -594,7 +688,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     template <typename PaddingDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorPaddingOp<const PaddingDimensions, const Derived>
     pad(const PaddingDimensions& padding) const {
-      return TensorPaddingOp<const PaddingDimensions, const Derived>(derived(), padding);
+      return TensorPaddingOp<const PaddingDimensions, const Derived>(derived(), padding, internal::scalar_cast_op<int, Scalar>()(0));
+    }
+    template <typename PaddingDimensions> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorPaddingOp<const PaddingDimensions, const Derived>
+    pad(const PaddingDimensions& padding, const Scalar padding_value) const {
+      return TensorPaddingOp<const PaddingDimensions, const Derived>(derived(), padding, padding_value);
     }
     template <typename Shuffle> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorShufflingOp<const Shuffle, const Derived>
@@ -652,7 +751,6 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     typedef typename DerivedTraits::Scalar Scalar;
     typedef typename DerivedTraits::Index Index;
     typedef Scalar CoeffReturnType;
-    typedef typename internal::packet_traits<Scalar>::type PacketReturnType;
     static const int NumDimensions = DerivedTraits::NumDimensions;
 
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;

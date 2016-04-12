@@ -181,6 +181,11 @@ template<typename MatrixType> void block(const MatrixType& m)
   dm = m1.row(r1).segment(c1,c2-c1+1).transpose();
   dv = m1.transpose().block(c1,r1,c2-c1+1,r2-r1+1).col(0);
   VERIFY_IS_EQUAL(dv, dm);
+
+  VERIFY_IS_EQUAL( (m1.template block<Dynamic,1>(1,0,0,1)), m1.block(1,0,0,1));
+  VERIFY_IS_EQUAL( (m1.template block<1,Dynamic>(0,1,1,0)), m1.block(0,1,1,0));
+  VERIFY_IS_EQUAL( ((m1*1).template block<Dynamic,1>(1,0,0,1)), m1.block(1,0,0,1));
+  VERIFY_IS_EQUAL( ((m1*1).template block<1,Dynamic>(0,1,1,0)), m1.block(0,1,1,0));
 }
 
 

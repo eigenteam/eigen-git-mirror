@@ -110,14 +110,14 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
     return internal::arg_prod(Indices...);
   }
 
-  Sizes() { }
+  EIGEN_DEVICE_FUNC Sizes() { }
   template <typename DenseIndex>
-  explicit Sizes(const array<DenseIndex, Base::count>& /*indices*/) {
+  explicit EIGEN_DEVICE_FUNC Sizes(const array<DenseIndex, Base::count>& /*indices*/) {
     // todo: add assertion
   }
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  template <typename... DenseIndex> Sizes(DenseIndex...) { }
-  explicit Sizes(std::initializer_list<std::ptrdiff_t> /*l*/) {
+  template <typename... DenseIndex> EIGEN_DEVICE_FUNC Sizes(DenseIndex...) { }
+  explicit EIGEN_DEVICE_FUNC Sizes(std::initializer_list<std::ptrdiff_t> /*l*/) {
     // todo: add assertion
   }
 #endif
@@ -285,17 +285,17 @@ struct DSizes : array<DenseIndex, NumDims> {
   }
   EIGEN_DEVICE_FUNC explicit DSizes(const array<DenseIndex, NumDims>& a) : Base(a) { }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  template<typename... IndexTypes> EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE explicit DSizes(DenseIndex firstDimension, IndexTypes... otherDimensions) {
-    EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 1 == NumDims, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    (*this) = array<DenseIndex, NumDims>{{firstDimension, otherDimensions...}};
-  }
-#else
   EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0) {
     eigen_assert(NumDims == 1);
     (*this)[0] = i0;
   }
+
+#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+  template<typename... IndexTypes> EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE explicit DSizes(DenseIndex firstDimension, DenseIndex secondDimension, IndexTypes... otherDimensions) : Base({{firstDimension, secondDimension, otherDimensions...}}) {
+    EIGEN_STATIC_ASSERT(sizeof...(otherDimensions) + 2 == NumDims, YOU_MADE_A_PROGRAMMING_MISTAKE)
+  }
+#else
   EIGEN_DEVICE_FUNC explicit DSizes(const DenseIndex i0, const DenseIndex i1) {
     eigen_assert(NumDims == 2);
     (*this)[0] = i0;
@@ -405,20 +405,20 @@ template <std::size_t n, std::size_t V1, std::size_t V2, std::size_t V3, std::si
 
 template <typename Dims1, typename Dims2, size_t n, size_t m>
 struct sizes_match_below_dim {
-  static inline bool run(Dims1&, Dims2&) {
+  static EIGEN_DEVICE_FUNC  inline bool run(Dims1&, Dims2&) {
     return false;
   }
 };
 template <typename Dims1, typename Dims2, size_t n>
 struct sizes_match_below_dim<Dims1, Dims2, n, n> {
-  static inline bool run(Dims1& dims1, Dims2& dims2) {
+  static EIGEN_DEVICE_FUNC  inline bool run(Dims1& dims1, Dims2& dims2) {
     return (array_get<n-1>(dims1) == array_get<n-1>(dims2)) &
         sizes_match_below_dim<Dims1, Dims2, n-1, n-1>::run(dims1, dims2);
   }
 };
 template <typename Dims1, typename Dims2>
 struct sizes_match_below_dim<Dims1, Dims2, 0, 0> {
-  static inline bool run(Dims1&, Dims2&) {
+  static EIGEN_DEVICE_FUNC  inline bool run(Dims1&, Dims2&) {
     return true;
   }
 };
@@ -427,7 +427,7 @@ struct sizes_match_below_dim<Dims1, Dims2, 0, 0> {
 
 
 template <typename Dims1, typename Dims2>
-bool dimensions_match(Dims1& dims1, Dims2& dims2) {
+EIGEN_DEVICE_FUNC bool dimensions_match(Dims1& dims1, Dims2& dims2) {
   return internal::sizes_match_below_dim<Dims1, Dims2, internal::array_size<Dims1>::value, internal::array_size<Dims2>::value>::run(dims1, dims2);
 }
 

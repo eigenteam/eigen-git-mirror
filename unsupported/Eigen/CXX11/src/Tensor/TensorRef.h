@@ -125,7 +125,6 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
     typedef typename internal::traits<PlainObjectType>::StorageKind StorageKind;
     typedef typename internal::traits<PlainObjectType>::Index Index;
     typedef typename internal::traits<PlainObjectType>::Scalar Scalar;
-    typedef typename internal::packet_traits<Scalar>::type Packet;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
     typedef Scalar* PointerType;
@@ -139,6 +138,7 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
       PacketAccess = false,
       Layout = PlainObjectType::Layout,
       CoordAccess = false,  // to be implemented
+      RawAccess = false
     };
 
     EIGEN_STRONG_INLINE TensorRef() : m_evaluator(NULL) {
@@ -357,9 +357,8 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
 {
   typedef typename Derived::Index Index;
   typedef typename Derived::Scalar Scalar;
-  typedef typename Derived::Packet Packet;
   typedef typename Derived::Scalar CoeffReturnType;
-  typedef typename Derived::Packet PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename Derived::Dimensions Dimensions;
 
   enum {
@@ -367,6 +366,7 @@ struct TensorEvaluator<const TensorRef<Derived>, Device>
     PacketAccess = false,
     Layout = TensorRef<Derived>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const TensorRef<Derived>& m, const Device&)
@@ -402,9 +402,8 @@ struct TensorEvaluator<TensorRef<Derived>, Device> : public TensorEvaluator<cons
 {
   typedef typename Derived::Index Index;
   typedef typename Derived::Scalar Scalar;
-  typedef typename Derived::Packet Packet;
   typedef typename Derived::Scalar CoeffReturnType;
-  typedef typename Derived::Packet PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename Derived::Dimensions Dimensions;
 
   typedef TensorEvaluator<const TensorRef<Derived>, Device> Base;
@@ -412,6 +411,7 @@ struct TensorEvaluator<TensorRef<Derived>, Device> : public TensorEvaluator<cons
   enum {
     IsAligned = false,
     PacketAccess = false,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(TensorRef<Derived>& m, const Device& d) : Base(m, d)

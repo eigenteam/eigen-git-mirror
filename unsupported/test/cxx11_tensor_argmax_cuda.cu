@@ -7,8 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// TODO(mdevin): Free the cuda memory.
 
+#define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_FUNC cxx11_tensor_cuda
 #define EIGEN_USE_GPU
 
@@ -56,6 +56,10 @@ void test_cuda_simple_argmax()
 
   VERIFY_IS_EQUAL(out_max(Eigen::array<DenseIndex, 1>(0)), 72*53*97 - 1);
   VERIFY_IS_EQUAL(out_min(Eigen::array<DenseIndex, 1>(0)), 0);
+
+  cudaFree(d_in);
+  cudaFree(d_out_max);
+  cudaFree(d_out_min);
 }
 
 template <int DataLayout>
@@ -141,6 +145,9 @@ void test_cuda_argmax_dim()
       // Expect max to be in the last index of the reduced dimension
       VERIFY_IS_EQUAL(tensor_arg.data()[n], tensor.dimension(dim) - 1);
     }
+
+    cudaFree(d_in);
+    cudaFree(d_out);
   }
 }
 
@@ -227,15 +234,18 @@ void test_cuda_argmin_dim()
       // Expect max to be in the last index of the reduced dimension
       VERIFY_IS_EQUAL(tensor_arg.data()[n], tensor.dimension(dim) - 1);
     }
+
+    cudaFree(d_in);
+    cudaFree(d_out);
   }
 }
 
 void test_cxx11_tensor_cuda()
 {
-  CALL_SUBTEST(test_cuda_simple_argmax<RowMajor>());
-  CALL_SUBTEST(test_cuda_simple_argmax<ColMajor>());
-  CALL_SUBTEST(test_cuda_argmax_dim<RowMajor>());
-  CALL_SUBTEST(test_cuda_argmax_dim<ColMajor>());
-  CALL_SUBTEST(test_cuda_argmin_dim<RowMajor>());
-  CALL_SUBTEST(test_cuda_argmin_dim<ColMajor>());
+  CALL_SUBTEST_1(test_cuda_simple_argmax<RowMajor>());
+  CALL_SUBTEST_1(test_cuda_simple_argmax<ColMajor>());
+  CALL_SUBTEST_2(test_cuda_argmax_dim<RowMajor>());
+  CALL_SUBTEST_2(test_cuda_argmax_dim<ColMajor>());
+  CALL_SUBTEST_3(test_cuda_argmin_dim<RowMajor>());
+  CALL_SUBTEST_3(test_cuda_argmin_dim<ColMajor>());
 }

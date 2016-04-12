@@ -67,7 +67,7 @@ template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixURetu
   *
   * \implsparsesolverconcept
   * 
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept
   * \sa \ref OrderingMethods_Module
   */
 template <typename _MatrixType, typename _OrderingType>
@@ -101,7 +101,8 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     {
       initperfvalues(); 
     }
-    explicit SparseLU(const MatrixType& matrix):m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
+    explicit SparseLU(const MatrixType& matrix)
+      : m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
     {
       initperfvalues(); 
       compute(matrix);
@@ -719,7 +720,7 @@ template<typename MatrixLType, typename MatrixUType>
 struct SparseLUMatrixUReturnType : internal::no_assignment_operator
 {
   typedef typename MatrixLType::Scalar Scalar;
-  explicit SparseLUMatrixUReturnType(const MatrixLType& mapL, const MatrixUType& mapU)
+  SparseLUMatrixUReturnType(const MatrixLType& mapL, const MatrixUType& mapU)
   : m_mapL(mapL),m_mapU(mapU)
   { }
   Index rows() { return m_mapL.rows(); }

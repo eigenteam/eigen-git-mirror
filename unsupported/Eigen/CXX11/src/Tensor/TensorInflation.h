@@ -25,7 +25,6 @@ struct traits<TensorInflationOp<Strides, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -53,10 +52,8 @@ class TensorInflationOp : public TensorBase<TensorInflationOp<Strides, XprType>,
 {
   public:
   typedef typename Eigen::internal::traits<TensorInflationOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorInflationOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorInflationOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorInflationOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorInflationOp>::Index Index;
@@ -91,6 +88,7 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -127,7 +125,8 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
 
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 

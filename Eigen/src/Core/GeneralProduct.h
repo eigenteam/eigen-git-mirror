@@ -76,32 +76,6 @@ public:
 #endif
 };
 
-// template<typename Lhs, typename Rhs> struct product_tag
-// {
-// private:
-//   
-//   typedef typename remove_all<Lhs>::type _Lhs;
-//   typedef typename remove_all<Rhs>::type _Rhs;
-//   enum {
-//     Rows  = _Lhs::RowsAtCompileTime,
-//     Cols  = _Rhs::ColsAtCompileTime,
-//     Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::ColsAtCompileTime, _Rhs::RowsAtCompileTime)
-//   };
-// 
-//   enum {
-//     rows_select = Rows==1 ? int(Rows) : int(Large),
-//     cols_select = Cols==1 ? int(Cols) : int(Large),
-//     depth_select = Depth==1 ? int(Depth) : int(Large)
-//   };
-//   typedef product_type_selector<rows_select, cols_select, depth_select> selector;
-// 
-// public:
-//   enum {
-//     ret = selector::ret
-//   };
-// 
-// };
-
 /* The following allows to select the kind of product at compile time
  * based on the three dimensions of the product.
  * This is a compile time mapping from {1,Small,Large}^3 -> {product types} */
@@ -125,8 +99,8 @@ template<>              struct product_type_selector<Small,Small,Large>  { enum 
 template<>              struct product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
 template<>              struct product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
 template<>              struct product_type_selector<Large,Large,Large>  { enum { ret = GemmProduct }; };
-template<>              struct product_type_selector<Large,Small,Small>  { enum { ret = GemmProduct }; };
-template<>              struct product_type_selector<Small,Large,Small>  { enum { ret = GemmProduct }; };
+template<>              struct product_type_selector<Large,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct product_type_selector<Small,Large,Small>  { enum { ret = CoeffBasedProductMode }; };
 template<>              struct product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
 
 } // end namespace internal
@@ -239,15 +213,18 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,true>
     ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(lhs)
                                   * RhsBlasTraits::extractScalarFactor(rhs);
 
+    // make sure Dest is a compile-time vector type (bug 1166)
+    typedef typename conditional<Dest::IsVectorAtCompileTime, Dest, typename Dest::ColXpr>::type ActualDest;
+
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
       // on, the other hand it is good for the cache to pack the vector anyways...
-      EvalToDestAtCompileTime = Dest::InnerStrideAtCompileTime==1,
+      EvalToDestAtCompileTime = (ActualDest::InnerStrideAtCompileTime==1),
       ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex),
-      MightCannotUseDest = (Dest::InnerStrideAtCompileTime!=1) || ComplexByReal
+      MightCannotUseDest = (ActualDest::InnerStrideAtCompileTime!=1) || ComplexByReal
     };
 
-    gemv_static_vector_if<ResScalar,Dest::SizeAtCompileTime,Dest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
+    gemv_static_vector_if<ResScalar,ActualDest::SizeAtCompileTime,ActualDest::MaxSizeAtCompileTime,MightCannotUseDest> static_dest;
 
     const bool alphaIsCompatible = (!ComplexByReal) || (numext::imag(actualAlpha)==RealScalar(0));
     const bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
@@ -340,7 +317,7 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,true>
         actualLhs.rows(), actualLhs.cols(),
         LhsMapper(actualLhs.data(), actualLhs.outerStride()),
         RhsMapper(actualRhsPtr, 1),
-        dest.data(), dest.innerStride(),
+        dest.data(), dest.col(0).innerStride(), //NOTE  if dest is not a vector at compile-time, then dest.innerStride() might be wrong. (bug 1166)
         actualAlpha);
   }
 };

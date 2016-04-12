@@ -26,7 +26,6 @@ struct traits<TensorConcatenationOp<Axis, LhsXprType, RhsXprType> >
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename promote_storage_type<typename LhsXprType::Scalar,
                                         typename RhsXprType::Scalar>::ret Scalar;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<LhsXprType>::StorageKind,
                                         typename traits<RhsXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<LhsXprType>::Index,
@@ -60,14 +59,11 @@ class TensorConcatenationOp : public TensorBase<TensorConcatenationOp<Axis, LhsX
 {
   public:
     typedef typename internal::traits<TensorConcatenationOp>::Scalar Scalar;
-    typedef typename internal::traits<TensorConcatenationOp>::Packet Packet;
     typedef typename internal::traits<TensorConcatenationOp>::StorageKind StorageKind;
     typedef typename internal::traits<TensorConcatenationOp>::Index Index;
     typedef typename internal::nested<TensorConcatenationOp>::type Nested;
     typedef typename internal::promote_storage_type<typename LhsXprType::CoeffReturnType,
                                                     typename RhsXprType::CoeffReturnType>::ret CoeffReturnType;
-    typedef typename internal::promote_storage_type<typename LhsXprType::PacketReturnType,
-                                                    typename RhsXprType::PacketReturnType>::ret PacketReturnType;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorConcatenationOp(const LhsXprType& lhs, const RhsXprType& rhs, Axis axis)
@@ -120,11 +116,12 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -287,6 +284,7 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
     IsAligned = false,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(XprType& op, const Device& device)
@@ -298,7 +296,7 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {

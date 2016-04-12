@@ -21,8 +21,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   
   const Index rows = ref.rows();
   const Index cols = ref.cols();
-  const Index inner = ref.innerSize();
-  const Index outer = ref.outerSize();
+  //const Index inner = ref.innerSize();
+  //const Index outer = ref.outerSize();
 
   typedef typename SparseMatrixType::Scalar Scalar;
   enum { Flags = SparseMatrixType::Flags };
@@ -192,6 +192,11 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(refM4.cwiseProduct(m3), refM4.cwiseProduct(refM3));
 //     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
 
+    VERIFY_IS_APPROX(refM4 + m3, refM4 + refM3);
+    VERIFY_IS_APPROX(m3 + refM4, refM3 + refM4);
+    VERIFY_IS_APPROX(refM4 - m3, refM4 - refM3);
+    VERIFY_IS_APPROX(m3 - refM4, refM3 - refM4);
+
     // test aliasing
     VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
     VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
@@ -322,7 +327,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m3 = m2.template triangularView<Upper>();
     VERIFY_IS_APPROX(m3, refMat3);
 
-    if(inner>=outer) // FIXME this should be implemented for outer>inner as well
     {
       refMat3 = refMat2.template triangularView<UnitUpper>();
       m3 = m2.template triangularView<UnitUpper>();
@@ -454,6 +458,33 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m1.setIdentity();
     refMat1.setIdentity();
     VERIFY_IS_APPROX(m1, refMat1);
+  }
+
+  // test array/vector of InnerIterator
+  {
+    typedef typename SparseMatrixType::InnerIterator IteratorType;
+
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
+    SparseMatrixType m2(rows, cols);
+    initSparse<Scalar>(density, refMat2, m2);
+    IteratorType static_array[2];
+    static_array[0] = IteratorType(m2,0);
+    static_array[1] = IteratorType(m2,m2.outerSize()-1);
+    VERIFY( static_array[0] || m2.innerVector(static_array[0].outer()).nonZeros() == 0 );
+    VERIFY( static_array[1] || m2.innerVector(static_array[1].outer()).nonZeros() == 0 );
+    if(static_array[0] && static_array[1])
+    {
+      ++(static_array[1]);
+      static_array[1] = IteratorType(m2,0);
+      VERIFY( static_array[1] );
+      VERIFY( static_array[1].index() == static_array[0].index() );
+      VERIFY( static_array[1].outer() == static_array[0].outer() );
+      VERIFY( static_array[1].value() == static_array[0].value() );
+    }
+
+    std::vector<IteratorType> iters(2);
+    iters[0] = IteratorType(m2,0);
+    iters[1] = IteratorType(m2,m2.outerSize()-1);
   }
 }
 

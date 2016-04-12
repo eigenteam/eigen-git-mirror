@@ -125,23 +125,18 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 
       int blocksz = std::ceil<int>(static_cast<float>(size)/device.numThreads()) + PacketSize - 1;
       const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
-      const Index numblocks = size / blocksize;
+      const unsigned int numblocks = static_cast<unsigned int>(size / blocksize);
 
-      std::vector<Notification*> results;
-      results.reserve(numblocks);
-      for (int i = 0; i < numblocks; ++i) {
-        results.push_back(device.enqueue(&EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize));
+      Barrier barrier(numblocks);
+      for (unsigned int i = 0; i < numblocks; ++i) {
+        device.enqueue_with_barrier(&barrier, &EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize);
       }
 
-      if (numblocks * blocksize < size) {
+      if (static_cast<Index>(numblocks) * blocksize < size) {
         EvalRange<Evaluator, Index, Vectorizable>::run(evaluator, numblocks * blocksize, size);
       }
 
-      for (int i = 0; i < numblocks; ++i) {
-        wait_until_ready(results[i]);
-        delete results[i];
-      }
-
+      barrier.Wait();
     }
     evaluator.cleanup();
   }
@@ -156,14 +151,14 @@ template <typename Expression>
 class TensorExecutor<Expression, GpuDevice, false> {
  public:
   typedef typename Expression::Index Index;
-  static void run(const Expression& expr, const GpuDevice& device);
+  static EIGEN_DEVICE_FUNC void run(const Expression& expr, const GpuDevice& device);
 };
 
 template <typename Expression>
 class TensorExecutor<Expression, GpuDevice, true> {
  public:
   typedef typename Expression::Index Index;
-  static void run(const Expression& expr, const GpuDevice& device);
+  static EIGEN_DEVICE_FUNC void run(const Expression& expr, const GpuDevice& device);
 };
 
 #if defined(__CUDACC__)
@@ -213,14 +208,14 @@ EigenMetaKernel_Vectorizable(Evaluator memcopied_eval, Index size) {
 
 /*static*/
 template <typename Expression>
-inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
+EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
 {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
   if (needs_assign)
   {
     const int block_size = device.maxCudaThreadsPerBlock();
-    const int max_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size;
+    const int max_blocks = numext::mini<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
     const Index size = array_prod(evaluator.dimensions());
     // Create a least one block to ensure we won't crash if we're called with tensors of size 0.
     const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, (size + block_size - 1) / block_size), 1);
@@ -232,14 +227,14 @@ inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& 
 
 /*static*/
 template<typename Expression>
-inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
+EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
 {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
   if (needs_assign)
   {
     const int block_size = device.maxCudaThreadsPerBlock();
-    const int max_blocks = device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size;
+    const int max_blocks = numext::mini<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
     const Index size = array_prod(evaluator.dimensions());
     // Create a least one block to ensure we won't crash if we're called with tensors of size 0.
     const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, (size + block_size - 1) / block_size), 1);

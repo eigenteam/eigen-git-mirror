@@ -9,6 +9,7 @@
 
 #include "main.h"
 #include <limits>
+#include <numeric>
 #include <Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;

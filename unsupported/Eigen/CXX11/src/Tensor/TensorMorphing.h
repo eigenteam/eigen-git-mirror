@@ -25,7 +25,6 @@ struct traits<TensorReshapingOp<NewDimensions, XprType> > : public traits<XprTyp
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -55,10 +54,7 @@ class TensorReshapingOp : public TensorBase<TensorReshapingOp<NewDimensions, Xpr
 {
   public:
   typedef typename Eigen::internal::traits<TensorReshapingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorReshapingOp>::Packet Packet;
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
   typedef typename Eigen::internal::nested<TensorReshapingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorReshapingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorReshapingOp>::Index Index;
@@ -110,6 +106,7 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -123,7 +120,7 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -145,7 +142,7 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     return m_impl.template packet<LoadMode>(index);
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_impl.data(); }
+  EIGEN_DEVICE_FUNC Scalar* data() const { return const_cast<Scalar*>(m_impl.data()); }
 
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
@@ -170,6 +167,7 @@ template<typename NewDimensions, typename ArgType, typename Device>
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = TensorEvaluator<ArgType, Device>::RawAccess
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -179,7 +177,7 @@ template<typename NewDimensions, typename ArgType, typename Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
@@ -206,7 +204,6 @@ struct traits<TensorSlicingOp<StartIndices, Sizes, XprType> > : public traits<Xp
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -236,10 +233,7 @@ class TensorSlicingOp : public TensorBase<TensorSlicingOp<StartIndices, Sizes, X
 {
   public:
   typedef typename Eigen::internal::traits<TensorSlicingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorSlicingOp>::Packet Packet;
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorSlicingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorSlicingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorSlicingOp>::Index Index;
@@ -316,7 +310,8 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
+    CoordAccess = false,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -358,7 +353,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef Sizes Dimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
@@ -443,7 +438,7 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       return rslt;
     }
     else {
-      typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
       values[0] = m_impl.coeff(inputIndices[0]);
       values[packetSize-1] = m_impl.coeff(inputIndices[1]);
       for (int i = 1; i < packetSize-1; ++i) {
@@ -452,15 +447,6 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       PacketReturnType rslt = internal::pload<PacketReturnType>(values);
       return rslt;
     }
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(const array<Index, NumDims>& coords)
-  {
-    array<Index, NumDims> inputCoords;
-    for (int i = 0; i < NumDims; ++i) {
-      inputCoords = coords[i] + this->m_offsets[i];
-    }
-    return m_impl.coeff(inputCoords);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
@@ -544,7 +530,8 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/false,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
-    CoordAccess = TensorEvaluator<ArgType, Device>::CoordAccess,
+    CoordAccess = false,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -554,7 +541,7 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef Sizes Dimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
@@ -603,15 +590,6 @@ struct TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, ArgType>, Device>
         this->coeffRef(index+i) = values[i];
       }
     }
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(const array<Index, NumDims>& coords)
-  {
-    array<Index, NumDims> inputCoords;
-    for (int i = 0; i < NumDims; ++i) {
-      inputCoords = coords[i] + this->m_offsets[i];
-    }
-    return this->m_impl.coeffRef(inputCoords);
   }
 };
 

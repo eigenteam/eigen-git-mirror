@@ -51,6 +51,7 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
   Index rows = _m.rows();
   Index cols = _m.cols();
   MatrixType m1 = MatrixType::Random(rows,cols);
+  Matrix<Scalar,MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime,ColMajor> m2;
 
   if((MatrixType::SizeAtCompileTime==Dynamic))
   {
@@ -79,9 +80,9 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
     }
     VERIFY( verify_eval_type<2>(m1+m1, m1+m1) );
     VERIFY( verify_eval_type<3>(m1+m1, m1) );
-    VERIFY( verify_eval_type<1>(m1*m1.transpose(), m1) );
-    VERIFY( verify_eval_type<1>(m1*(m1+m1).transpose(), m1) );
-    VERIFY( verify_eval_type<2>(m1*m1.transpose(), m1) );
+    VERIFY( verify_eval_type<1>(m1*m1.transpose(), m2) );
+    VERIFY( verify_eval_type<1>(m1*(m1+m1).transpose(), m2) );
+    VERIFY( verify_eval_type<2>(m1*m1.transpose(), m2) );
     VERIFY( verify_eval_type<1>(m1+m1*m1, m1) );
 
     VERIFY( verify_eval_type<1>(m1.template triangularView<Lower>().solve(m1), m1) );

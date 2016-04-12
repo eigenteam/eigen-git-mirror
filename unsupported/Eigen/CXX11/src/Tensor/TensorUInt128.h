@@ -33,18 +33,34 @@ struct TensorUInt128
   HIGH high;
   LOW low;
 
+  template<typename OTHER_HIGH, typename OTHER_LOW>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(int x) : high(0), low(x) {
+  TensorUInt128(const TensorUInt128<OTHER_HIGH, OTHER_LOW>& other) : high(other.high), low(other.low) {
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_HIGH) <= sizeof(HIGH), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_LOW) <= sizeof(LOW), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  }
+
+  template<typename OTHER_HIGH, typename OTHER_LOW>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  TensorUInt128& operator = (const TensorUInt128<OTHER_HIGH, OTHER_LOW>& other) {
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_HIGH) <= sizeof(HIGH), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT(sizeof(OTHER_LOW) <= sizeof(LOW), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    high = other.high;
+    low = other.low;
+    return *this;
+  }
+
+  template<typename T>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  explicit TensorUInt128(const T& x) : high(0), low(x) {
+    typedef typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type UnsignedT;
+    typedef typename conditional<sizeof(LOW) == 8, uint64_t, uint32_t>::type UnsignedLow;
+    eigen_assert(static_cast<UnsignedT>(x) <= static_cast<UnsignedLow>(NumTraits<LOW>::highest()));
     eigen_assert(x >= 0);
   }
+
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(int64_t x) : high(0), low(x) {
-    eigen_assert(x >= 0);
-  }
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(uint64_t x) : high(0), low(x) { }
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-  TensorUInt128(uint64_t y, uint64_t x) : high(y), low(x) { }
+  TensorUInt128(HIGH y, LOW x) : high(y), low(x) { }
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE operator LOW() const {
     return low;

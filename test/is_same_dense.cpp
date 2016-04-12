@@ -11,9 +11,10 @@
 
 void test_is_same_dense()
 {
-  MatrixXd m1(10,10);
-  Ref<MatrixXd> ref_m1(m1);
-  Ref<const MatrixXd> const_ref_m1(m1);
+  typedef Matrix<double,Dynamic,Dynamic,ColMajor> ColMatrixXd;
+  ColMatrixXd m1(10,10);
+  Ref<ColMatrixXd> ref_m1(m1);
+  Ref<const ColMatrixXd> const_ref_m1(m1);
   VERIFY(is_same_dense(m1,m1));
   VERIFY(is_same_dense(m1,ref_m1));
   VERIFY(is_same_dense(const_ref_m1,m1));
@@ -22,9 +23,9 @@ void test_is_same_dense()
   VERIFY(is_same_dense(m1.block(0,0,m1.rows(),m1.cols()),m1));
   VERIFY(!is_same_dense(m1.row(0),m1.col(0)));
   
-  Ref<const MatrixXd> const_ref_m1_row(m1.row(1));
+  Ref<const ColMatrixXd> const_ref_m1_row(m1.row(1));
   VERIFY(!is_same_dense(m1.row(1),const_ref_m1_row));
   
-  Ref<const MatrixXd> const_ref_m1_col(m1.col(1));
+  Ref<const ColMatrixXd> const_ref_m1_col(m1.col(1));
   VERIFY(is_same_dense(m1.col(1),const_ref_m1_col));
 }

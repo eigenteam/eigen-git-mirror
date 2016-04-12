@@ -452,9 +452,11 @@ class SuperLUBase : public SparseSolverBase<Derived>
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *
+  * \warning This class is only for the 4.x versions of SuperLU. The 3.x and 5.x versions are not supported.
+  *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SparseLU
   */
 template<typename _MatrixType>
 class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
@@ -801,13 +803,13 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
   * This class allows to solve for an approximate solution of A.X = B sparse linear problems via an incomplete LU factorization
   * using the SuperLU library. This class is aimed to be used as a preconditioner of the iterative linear solvers.
   *
-  * \warning This class requires SuperLU 4 or later.
+  * \warning This class is only for the 4.x versions of SuperLU. The 3.x and 5.x versions are not supported.
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers, class ConjugateGradient, class BiCGSTAB
+  * \sa \ref TutorialSparseSolverConcept, class IncompleteLUT, class ConjugateGradient, class BiCGSTAB
   */
 
 template<typename _MatrixType>

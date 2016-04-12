@@ -8,7 +8,7 @@
 NOTE: this routine has been adapted from the CSparse library:
 
 Copyright (c) 2006, Timothy A. Davis.
-http://www.cise.ufl.edu/research/sparse/CSparse
+http://www.suitesparse.com
 
 CSparse is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -84,8 +84,11 @@ StorageIndex cs_tdfs(StorageIndex j, StorageIndex k, StorageIndex *head, const S
 /** \internal
   * \ingroup OrderingMethods_Module 
   * Approximate minimum degree ordering algorithm.
-  * \returns the permutation P reducing the fill-in of the input matrix \a C
-  * The input matrix \a C must be a selfadjoint compressed column major SparseMatrix object. Both the upper and lower parts have to be stored, but the diagonal entries are optional.
+  *
+  * \param[in] C the input selfadjoint matrix stored in compressed column major format.
+  * \param[out] perm the permutation P reducing the fill-in of the input matrix \a C
+  *
+  * Note that the input matrix \a C must be complete, that is both the upper and lower parts have to be stored, as well as the diagonal entries.
   * On exit the values of C are destroyed */
 template<typename Scalar, typename StorageIndex>
 void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,StorageIndex>& C, PermutationMatrix<Dynamic,Dynamic,StorageIndex>& perm)

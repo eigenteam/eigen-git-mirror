@@ -14,22 +14,21 @@
 namespace Eigen {
 namespace internal {
   
-/**
- * \brief Performs numeric block updates from a given supernode to a single column
- * 
- * \param segsize Size of the segment (and blocks ) to use for updates
- * \param[in,out] dense Packed values of the original matrix
- * \param tempv temporary vector to use for updates
- * \param lusup array containing the supernodes
- * \param lda Leading dimension in the supernode
- * \param nrow Number of rows in the rectangular part of the supernode
- * \param lsub compressed row subscripts of supernodes
- * \param lptr pointer to the first column of the current supernode in lsub
- * \param no_zeros Number of nonzeros elements before the diagonal part of the supernode
- * \return 0 on success
- */
 template <int SegSizeAtCompileTime> struct LU_kernel_bmod
 {
+  /** \internal
+    * \brief Performs numeric block updates from a given supernode to a single column
+    *
+    * \param segsize Size of the segment (and blocks ) to use for updates
+    * \param[in,out] dense Packed values of the original matrix
+    * \param tempv temporary vector to use for updates
+    * \param lusup array containing the supernodes
+    * \param lda Leading dimension in the supernode
+    * \param nrow Number of rows in the rectangular part of the supernode
+    * \param lsub compressed row subscripts of supernodes
+    * \param lptr pointer to the first column of the current supernode in lsub
+    * \param no_zeros Number of nonzeros elements before the diagonal part of the supernode
+    */
   template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
   static EIGEN_DONT_INLINE void run(const Index segsize, BlockScalarVector& dense, ScalarVector& tempv, ScalarVector& lusup, Index& luptr, const Index lda,
                                     const Index nrow, IndexVector& lsub, const Index lptr, const Index no_zeros);

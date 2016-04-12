@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   Triangular matrix-vector product functionality based on ?TRMV.
  ********************************************************************************
 */
 
-#ifndef EIGEN_TRIANGULAR_MATRIX_VECTOR_MKL_H
-#define EIGEN_TRIANGULAR_MATRIX_VECTOR_MKL_H
+#ifndef EIGEN_TRIANGULAR_MATRIX_VECTOR_BLAS_H
+#define EIGEN_TRIANGULAR_MATRIX_VECTOR_BLAS_H
 
 namespace Eigen { 
 
@@ -47,7 +47,7 @@ template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename Rh
 struct triangular_matrix_vector_product_trmv :
   triangular_matrix_vector_product<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,StorageOrder,BuiltIn> {};
 
-#define EIGEN_MKL_TRMV_SPECIALIZE(Scalar) \
+#define EIGEN_BLAS_TRMV_SPECIALIZE(Scalar) \
 template<typename Index, int Mode, bool ConjLhs, bool ConjRhs> \
 struct triangular_matrix_vector_product<Index,Mode,Scalar,ConjLhs,Scalar,ConjRhs,ColMajor,Specialized> { \
  static void run(Index _rows, Index _cols, const Scalar* _lhs, Index lhsStride, \
@@ -65,13 +65,13 @@ struct triangular_matrix_vector_product<Index,Mode,Scalar,ConjLhs,Scalar,ConjRhs
   } \
 };
 
-EIGEN_MKL_TRMV_SPECIALIZE(double)
-EIGEN_MKL_TRMV_SPECIALIZE(float)
-EIGEN_MKL_TRMV_SPECIALIZE(dcomplex)
-EIGEN_MKL_TRMV_SPECIALIZE(scomplex)
+EIGEN_BLAS_TRMV_SPECIALIZE(double)
+EIGEN_BLAS_TRMV_SPECIALIZE(float)
+EIGEN_BLAS_TRMV_SPECIALIZE(dcomplex)
+EIGEN_BLAS_TRMV_SPECIALIZE(scomplex)
 
 // implements col-major: res += alpha * op(triangular) * vector
-#define EIGEN_MKL_TRMV_CM(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_TRMV_CM(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template<typename Index, int Mode, bool ConjLhs, bool ConjRhs> \
 struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,ConjRhs,ColMajor> { \
   enum { \
@@ -105,17 +105,15 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
 /* Square part handling */\
 \
    char trans, uplo, diag; \
-   MKL_INT m, n, lda, incx, incy; \
+   BlasIndex m, n, lda, incx, incy; \
    EIGTYPE const *a; \
-   MKLTYPE alpha_, beta_; \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(beta_, EIGTYPE(1)); \
+   EIGTYPE beta(1); \
 \
 /* Set m, n */ \
-   n = (MKL_INT)size; \
-   lda = lhsStride; \
+   n = convert_index<BlasIndex>(size); \
+   lda = convert_index<BlasIndex>(lhsStride); \
    incx = 1; \
-   incy = resIncr; \
+   incy = convert_index<BlasIndex>(resIncr); \
 \
 /* Set uplo, trans and diag*/ \
    trans = 'N'; \
@@ -123,39 +121,39 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
    diag = IsUnitDiag ? 'U' : 'N'; \
 \
 /* call ?TRMV*/ \
-   MKLPREFIX##trmv(&uplo, &trans, &diag, &n, (const MKLTYPE*)_lhs, &lda, (MKLTYPE*)x, &incx); \
+   BLASPREFIX##trmv_(&uplo, &trans, &diag, &n, (const BLASTYPE*)_lhs, &lda, (BLASTYPE*)x, &incx); \
 \
 /* Add op(a_tr)rhs into res*/ \
-   MKLPREFIX##axpy(&n, &alpha_,(const MKLTYPE*)x, &incx, (MKLTYPE*)_res, &incy); \
-/* Non-square case - doesn't fit to MKL ?TRMV. Fall to default triangular product*/ \
+   BLASPREFIX##axpy_(&n, &numext::real_ref(alpha),(const BLASTYPE*)x, &incx, (BLASTYPE*)_res, &incy); \
+/* Non-square case - doesn't fit to BLAS ?TRMV. Fall to default triangular product*/ \
    if (size<(std::max)(rows,cols)) { \
      if (ConjRhs) x_tmp = rhs.conjugate(); else x_tmp = rhs; \
      x = x_tmp.data(); \
      if (size<rows) { \
        y = _res + size*resIncr; \
        a = _lhs + size; \
-       m = rows-size; \
-       n = size; \
+       m = convert_index<BlasIndex>(rows-size); \
+       n = convert_index<BlasIndex>(size); \
      } \
      else { \
        x += size; \
        y = _res; \
        a = _lhs + size*lda; \
-       m = size; \
-       n = cols-size; \
+       m = convert_index<BlasIndex>(size); \
+       n = convert_index<BlasIndex>(cols-size); \
      } \
-     MKLPREFIX##gemv(&trans, &m, &n, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)x, &incx, &beta_, (MKLTYPE*)y, &incy); \
+     BLASPREFIX##gemv_(&trans, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)x, &incx, &numext::real_ref(beta), (BLASTYPE*)y, &incy); \
    } \
   } \
 };
 
-EIGEN_MKL_TRMV_CM(double, double, d, d)
-EIGEN_MKL_TRMV_CM(dcomplex, MKL_Complex16, cd, z)
-EIGEN_MKL_TRMV_CM(float, float, f, s)
-EIGEN_MKL_TRMV_CM(scomplex, MKL_Complex8, cf, c)
+EIGEN_BLAS_TRMV_CM(double,   double, d,  d)
+EIGEN_BLAS_TRMV_CM(dcomplex, double, cd, z)
+EIGEN_BLAS_TRMV_CM(float,    float,  f,  s)
+EIGEN_BLAS_TRMV_CM(scomplex, float,  cf, c)
 
 // implements row-major: res += alpha * op(triangular) * vector
-#define EIGEN_MKL_TRMV_RM(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_TRMV_RM(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template<typename Index, int Mode, bool ConjLhs, bool ConjRhs> \
 struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,ConjRhs,RowMajor> { \
   enum { \
@@ -189,17 +187,15 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
 /* Square part handling */\
 \
    char trans, uplo, diag; \
-   MKL_INT m, n, lda, incx, incy; \
+   BlasIndex m, n, lda, incx, incy; \
    EIGTYPE const *a; \
-   MKLTYPE alpha_, beta_; \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); \
-   assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(beta_, EIGTYPE(1)); \
+   EIGTYPE beta(1); \
 \
 /* Set m, n */ \
-   n = (MKL_INT)size; \
-   lda = lhsStride; \
+   n = convert_index<BlasIndex>(size); \
+   lda = convert_index<BlasIndex>(lhsStride); \
    incx = 1; \
-   incy = resIncr; \
+   incy = convert_index<BlasIndex>(resIncr); \
 \
 /* Set uplo, trans and diag*/ \
    trans = ConjLhs ? 'C' : 'T'; \
@@ -207,39 +203,39 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
    diag = IsUnitDiag ? 'U' : 'N'; \
 \
 /* call ?TRMV*/ \
-   MKLPREFIX##trmv(&uplo, &trans, &diag, &n, (const MKLTYPE*)_lhs, &lda, (MKLTYPE*)x, &incx); \
+   BLASPREFIX##trmv_(&uplo, &trans, &diag, &n, (const BLASTYPE*)_lhs, &lda, (BLASTYPE*)x, &incx); \
 \
 /* Add op(a_tr)rhs into res*/ \
-   MKLPREFIX##axpy(&n, &alpha_,(const MKLTYPE*)x, &incx, (MKLTYPE*)_res, &incy); \
-/* Non-square case - doesn't fit to MKL ?TRMV. Fall to default triangular product*/ \
+   BLASPREFIX##axpy_(&n, &numext::real_ref(alpha),(const BLASTYPE*)x, &incx, (BLASTYPE*)_res, &incy); \
+/* Non-square case - doesn't fit to BLAS ?TRMV. Fall to default triangular product*/ \
    if (size<(std::max)(rows,cols)) { \
      if (ConjRhs) x_tmp = rhs.conjugate(); else x_tmp = rhs; \
      x = x_tmp.data(); \
      if (size<rows) { \
        y = _res + size*resIncr; \
        a = _lhs + size*lda; \
-       m = rows-size; \
-       n = size; \
+       m = convert_index<BlasIndex>(rows-size); \
+       n = convert_index<BlasIndex>(size); \
      } \
      else { \
        x += size; \
        y = _res; \
        a = _lhs + size; \
-       m = size; \
-       n = cols-size; \
+       m = convert_index<BlasIndex>(size); \
+       n = convert_index<BlasIndex>(cols-size); \
      } \
-     MKLPREFIX##gemv(&trans, &n, &m, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)x, &incx, &beta_, (MKLTYPE*)y, &incy); \
+     BLASPREFIX##gemv_(&trans, &n, &m, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)x, &incx, &numext::real_ref(beta), (BLASTYPE*)y, &incy); \
    } \
   } \
 };
 
-EIGEN_MKL_TRMV_RM(double, double, d, d)
-EIGEN_MKL_TRMV_RM(dcomplex, MKL_Complex16, cd, z)
-EIGEN_MKL_TRMV_RM(float, float, f, s)
-EIGEN_MKL_TRMV_RM(scomplex, MKL_Complex8, cf, c)
+EIGEN_BLAS_TRMV_RM(double,   double, d,  d)
+EIGEN_BLAS_TRMV_RM(dcomplex, double, cd, z)
+EIGEN_BLAS_TRMV_RM(float,    float,  f,  s)
+EIGEN_BLAS_TRMV_RM(scomplex, float,  cf, c)
 
 } // end namespase internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_TRIANGULAR_MATRIX_VECTOR_MKL_H
+#endif // EIGEN_TRIANGULAR_MATRIX_VECTOR_BLAS_H

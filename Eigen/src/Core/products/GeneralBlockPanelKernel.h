@@ -178,7 +178,7 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     // We also include a register-level block of the result (mx x nr).
     // (In an ideal world only the lhs panel would stay in L1)
     // Moreover, kc has to be a multiple of 8 to be compatible with loop peeling, leading to a maximum blocking size of:
-    const Index max_kc = ((l1-k_sub)/k_div) & (~(k_peeling-1));
+    const Index max_kc = std::max<Index>(((l1-k_sub)/k_div) & (~(k_peeling-1)),1);
     const Index old_k = k;
     if(k>max_kc)
     {
@@ -252,7 +252,7 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
         // we have both L2 and L3, and problem is small enough to be kept in L2
         // Let's choose m such that lhs's block fit in 1/3 of L2
         actual_lm = l2;
-        max_mc = 576;
+        max_mc = (std::min<Index>)(576,max_mc);
       }
       Index mc = (std::min<Index>)(actual_lm/(3*k*sizeof(LhsScalar)), max_mc);
       if (mc > Traits::mr) mc -= mc % Traits::mr;

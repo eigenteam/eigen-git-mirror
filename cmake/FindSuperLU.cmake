@@ -60,11 +60,21 @@ endif()
 
 cmake_pop_check_state()
 
+if(SuperLU_FIND_VERSION)
+  if(${SUPERLU_VERSION_VAR} VERSION_LESS ${SuperLU_FIND_VERSION})
+    set(SUPERLU_VERSION_OK FALSE)
+  else()
+    set(SUPERLU_VERSION_OK TRUE)
+  endif()
+else()
+  set(SUPERLU_VERSION_OK TRUE)
+endif()
+
 endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SUPERLU
-                                  REQUIRED_VARS SUPERLU_INCLUDES SUPERLU_LIBRARIES
+                                  REQUIRED_VARS SUPERLU_INCLUDES SUPERLU_LIBRARIES SUPERLU_VERSION_OK
                                   VERSION_VAR SUPERLU_VERSION_VAR)
 
 mark_as_advanced(SUPERLU_INCLUDES SUPERLU_LIBRARIES)

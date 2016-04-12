@@ -9,6 +9,7 @@
 
 #include "main.h"
 
+#include <array>
 #include <Eigen/CXX11/Core>
 
 using Eigen::internal::is_same;
@@ -249,8 +250,8 @@ static void test_is_same_gf()
 {
   VERIFY((!is_same_gf<dummy_a, dummy_b>::value));
   VERIFY((!!is_same_gf<dummy_a, dummy_a>::value));
-  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_b>::global_flags), 0);
-  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_a>::global_flags), 0);
+  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_b>::global_flags), false);
+  VERIFY_IS_EQUAL((!!is_same_gf<dummy_a, dummy_a>::global_flags), false);
 }
 
 static void test_apply_op()
@@ -293,8 +294,8 @@ static void test_arg_reductions()
 
 static void test_array_reverse_and_reduce()
 {
-  std::array<int, 6> a{{4, 8, 15, 16, 23, 42}};
-  std::array<int, 6> b{{42, 23, 16, 15, 8, 4}};
+  array<int, 6> a{{4, 8, 15, 16, 23, 42}};
+  array<int, 6> b{{42, 23, 16, 15, 8, 4}};
 
   // there is no operator<< for std::array, so VERIFY_IS_EQUAL will
   // not compile
@@ -308,11 +309,11 @@ static void test_array_reverse_and_reduce()
 
 static void test_array_zip_and_apply()
 {
-  std::array<int, 6> a{{4, 8, 15, 16, 23, 42}};
-  std::array<int, 6> b{{0, 1, 2, 3, 4, 5}};
-  std::array<int, 6> c{{4, 9, 17, 19, 27, 47}};
-  std::array<int, 6> d{{0, 8, 30, 48, 92, 210}};
-  std::array<int, 6> e{{0, 2, 4, 6, 8, 10}};
+  array<int, 6> a{{4, 8, 15, 16, 23, 42}};
+  array<int, 6> b{{0, 1, 2, 3, 4, 5}};
+  array<int, 6> c{{4, 9, 17, 19, 27, 47}};
+  array<int, 6> d{{0, 8, 30, 48, 92, 210}};
+  array<int, 6> e{{0, 2, 4, 6, 8, 10}};
 
   VERIFY((array_zip<sum_op>(a, b) == c));
   VERIFY((array_zip<product_op>(a, b) == d));
@@ -325,8 +326,8 @@ static void test_array_zip_and_apply()
 
 static void test_array_misc()
 {
-  std::array<int, 3> a3{{1, 1, 1}};
-  std::array<int, 6> a6{{2, 2, 2, 2, 2, 2}};
+  array<int, 3> a3{{1, 1, 1}};
+  array<int, 6> a6{{2, 2, 2, 2, 2, 2}};
   VERIFY((repeat<3, int>(1) == a3));
   VERIFY((repeat<6, int>(2) == a6));
 

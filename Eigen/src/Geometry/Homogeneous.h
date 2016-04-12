@@ -112,7 +112,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
     typename MatrixType::Nested m_matrix;
 };
 
-/** \geometry_module
+/** \geometry_module \ingroup Geometry_Module
   *
   * \return an expression of the equivalent homogeneous vector
   *
@@ -131,7 +131,7 @@ MatrixBase<Derived>::homogeneous() const
   return HomogeneousReturnType(derived());
 }
 
-/** \geometry_module
+/** \geometry_module \ingroup Geometry_Module
   *
   * \returns a matrix expression of homogeneous column (or row) vectors
   *
@@ -146,7 +146,7 @@ VectorwiseOp<ExpressionType,Direction>::homogeneous() const
   return HomogeneousReturnType(_expression());
 }
 
-/** \geometry_module
+/** \geometry_module \ingroup Geometry_Module
   *
   * \returns an expression of the homogeneous normalized vector of \c *this
   *
@@ -164,7 +164,7 @@ MatrixBase<Derived>::hnormalized() const
     ColsAtCompileTime==1?1:size()-1) / coeff(size()-1);
 }
 
-/** \geometry_module
+/** \geometry_module \ingroup Geometry_Module
   *
   * \returns an expression of the homogeneous normalized vector of \c *this
   *
@@ -304,7 +304,6 @@ struct evaluator_traits<Homogeneous<ArgType,Direction> >
 {
   typedef typename storage_kind_to_evaluator_kind<typename ArgType::StorageKind>::Kind Kind;
   typedef HomogeneousShape Shape;  
-  static const int AssumeAliasing = 0;
 };
 
 template<> struct AssignmentKind<DenseShape,HomogeneousShape> { typedef Dense2Dense Kind; };

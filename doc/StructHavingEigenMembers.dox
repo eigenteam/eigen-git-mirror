@@ -6,7 +6,7 @@ namespace Eigen {
 
 \section StructHavingEigenMembers_summary Executive Summary
 
-If you define a structure having members of \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen types", you must overload its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you.
+If you define a structure having members of \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen types", you must overload its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, %Eigen provides you with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you.
 
 \section StructHavingEigenMembers_what What kind of code needs to be changed?
 
@@ -48,7 +48,7 @@ Foo *foo = new Foo;
 
 This macro makes "new Foo" always return an aligned pointer.
 
-If this approach is too intrusive, see also the \ref othersolutions.
+If this approach is too intrusive, see also the \ref StructHavingEigenMembers_othersolutions "other solutions".
 
 \section StructHavingEigenMembers_why Why is this needed?
 
@@ -67,7 +67,7 @@ class Foo
 Foo *foo = new Foo;
 \endcode
 
-A Eigen::Vector2d consists of 2 doubles, which is 128 bits. Which is exactly the size of a SSE packet, which makes it possible to use SSE for all sorts of operations on this vector. But SSE instructions (at least the ones that Eigen uses, which are the fast ones) require 128-bit alignment. Otherwise you get a segmentation fault.
+A Eigen::Vector2d consists of 2 doubles, which is 128 bits. Which is exactly the size of a SSE packet, which makes it possible to use SSE for all sorts of operations on this vector. But SSE instructions (at least the ones that %Eigen uses, which are the fast ones) require 128-bit alignment. Otherwise you get a segmentation fault.
 
 For this reason, Eigen takes care by itself to require 128-bit alignment for Eigen::Vector2d, by doing two things:
 \li Eigen requires 128-bit alignment for the Eigen::Vector2d's array (of 2 doubles). With GCC, this is done with a __attribute__ ((aligned(16))).

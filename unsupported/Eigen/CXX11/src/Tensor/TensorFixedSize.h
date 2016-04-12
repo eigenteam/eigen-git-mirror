@@ -33,7 +33,6 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     typedef typename internal::traits<Self>::StorageKind StorageKind;
     typedef typename internal::traits<Self>::Index Index;
     typedef Scalar_ Scalar;
-    typedef typename internal::packet_traits<Scalar>::type Packet;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
 
@@ -41,10 +40,10 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
     enum {
       IsAligned = bool(EIGEN_MAX_ALIGN_BYTES>0),
-      PacketAccess = (internal::packet_traits<Scalar>::size > 1),
       Layout = Options_ & RowMajor ? RowMajor : ColMajor,
       CoordAccess = true,
-   };
+      RawAccess = true
+    };
 
   typedef Dimensions_ Dimensions;
   static const std::size_t NumIndices = Dimensions::count;
@@ -53,7 +52,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
   TensorStorage<Scalar, Dimensions, Options> m_storage;
 
   public:
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                      rank()                   const { return NumIndices; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                    rank()                   const { return NumIndices; }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                    dimension(std::size_t n) const { return m_storage.dimensions()[n]; }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions&        dimensions()             const { return m_storage.dimensions(); }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index                    size()                   const { return m_storage.size(); }
@@ -68,7 +67,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
-    inline const Scalar& coeff(Index firstIndex, IndexTypes... otherIndices) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(Index firstIndex, IndexTypes... otherIndices) const
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -100,7 +99,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
-    inline Scalar& coeffRef(Index firstIndex, IndexTypes... otherIndices)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(Index firstIndex, IndexTypes... otherIndices)
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -132,7 +131,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
-    inline const Scalar& operator()(Index firstIndex, IndexTypes... otherIndices) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()(Index firstIndex, IndexTypes... otherIndices) const
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -171,7 +170,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
-    inline Scalar& operator()(Index firstIndex, IndexTypes... otherIndices)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()(Index firstIndex, IndexTypes... otherIndices)
     {
       // The number of indices used to access a tensor coefficient must be equal to the rank of the tensor.
       EIGEN_STATIC_ASSERT(sizeof...(otherIndices) + 1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -221,7 +220,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     }
 
 #ifdef EIGEN_HAVE_RVALUE_REFERENCES
-    inline TensorFixedSize(Self&& other)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorFixedSize(Self&& other)
       : m_storage(other.m_storage)
     {
     }

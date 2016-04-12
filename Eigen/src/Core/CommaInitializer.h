@@ -22,7 +22,7 @@ namespace Eigen {
   * the return type of MatrixBase::operator<<, and most of the time this is the only
   * way it is used.
   *
-  * \sa \ref MatrixBaseCommaInitRef "MatrixBase::operator<<", CommaInitializer::finished()
+  * \sa \blank \ref MatrixBaseCommaInitRef "MatrixBase::operator<<", CommaInitializer::finished()
   */
 template<typename XprType>
 struct CommaInitializer

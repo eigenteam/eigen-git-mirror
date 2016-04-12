@@ -24,11 +24,13 @@ template<typename Op, typename Dims, typename XprType>
 struct traits<TensorReductionOp<Op, Dims, XprType> >
  : traits<XprType>
 {
-  typedef typename traits<XprType>::Scalar Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
-  typedef typename traits<XprType>::StorageKind StorageKind;
-  typedef typename traits<XprType>::Index Index;
+  typedef traits<XprType> XprTraits;
+  typedef typename XprTraits::Scalar Scalar;
+  typedef typename XprTraits::StorageKind StorageKind;
+  typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
+  static const int NumDimensions = XprTraits::NumDimensions - array_size<Dims>::value;
+  static const int Layout = XprTraits::Layout;
 };
 
 template<typename Op, typename Dims, typename XprType>
@@ -219,127 +221,146 @@ struct FullReducer {
 
 #ifdef EIGEN_USE_THREADS
 // Multithreaded full reducers
-template <typename Eval, typename Op, bool Vectorizable = (Eval::InputPacketAccess & Op::PacketAccess)>
+template <typename Self, typename Op,
+          bool vectorizable = (Self::InputPacketAccess & Op::PacketAccess)>
 struct FullReducerShard {
-  static void run(const Eval& eval, typename Eval::Index firstIndex, typename Eval::Index numValuesToReduce, Op& reducer, FullReducerShard* shard) {
-
-    shard->saccum = reducer.initialize();
-    for (typename Eval::Index j = 0; j < numValuesToReduce; ++j) {
-      reducer.reduce(eval.m_impl.coeff(firstIndex + j), &shard->saccum);
-    }
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void run(const Self& self, typename Self::Index firstIndex,
+                  typename Self::Index numValuesToReduce, Op& reducer,
+                  typename Self::CoeffReturnType* output) {
+    *output = InnerMostDimReducer<Self, Op, vectorizable>::reduce(
+        self, firstIndex, numValuesToReduce, reducer);
   }
-
-  typename Eval::CoeffReturnType saccum;
 };
-
-template <typename Eval, typename Op>
-struct FullReducerShard<Eval, Op, true> {
-  static void run(const Eval& eval, typename Eval::Index firstIndex, typename Eval::Index numValuesToReduce, Op& reducer, FullReducerShard* shard) {
-
-    const int packetSize = internal::unpacket_traits<typename Eval::PacketReturnType>::size;
-    const typename Eval::Index VectorizedSize = (numValuesToReduce / packetSize) * packetSize;
-
-    shard->paccum = reducer.template initializePacket<typename Eval::PacketReturnType>();
-    for (typename Eval::Index j = 0; j < VectorizedSize; j += packetSize) {
-      reducer.reducePacket(eval.m_impl.template packet<Unaligned>(firstIndex + j), &shard->paccum);
-    }
-    shard->saccum = reducer.initialize();
-    for (typename Eval::Index j = VectorizedSize; j < numValuesToReduce; ++j) {
-      reducer.reduce(eval.m_impl.coeff(firstIndex + j), &shard->saccum);
-    }
-  }
-
-  typename Eval::PacketReturnType paccum;
-  typename Eval::CoeffReturnType saccum;
-};
-
 
 template <typename Self, typename Op>
 struct FullReducer<Self, Op, ThreadPoolDevice, false> {
   static const bool HasOptimizedImplementation = !Op::IsStateful;
+  static const int PacketSize =
+      unpacket_traits<typename Self::PacketReturnType>::size;
 
   // launch one reducer per thread and accumulate the result.
-  static void run(const Self& self, Op& reducer, const ThreadPoolDevice& device, typename Self::CoeffReturnType* output) {
+  static void run(const Self& self, Op& reducer, const ThreadPoolDevice& device,
+                  typename Self::CoeffReturnType* output) {
     typedef typename Self::Index Index;
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
-    const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs)/device.numThreads());
-    const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
-    eigen_assert(num_coeffs >= numblocks * blocksize);
-
-    std::vector<Notification*> results;
-    results.reserve(numblocks);
-    std::vector<FullReducerShard<Self, Op, false> > shards;
-    shards.resize(numblocks);
-    for (Index i = 0; i < numblocks; ++i) {
-      results.push_back(device.enqueue(&FullReducerShard<Self, Op, false>::run, self, i*blocksize, blocksize, reducer, &shards[i]));
+    if (num_coeffs == 0) {
+      *output = reducer.finalize(reducer.initialize());
+      return;
     }
-
-    FullReducerShard<Self, Op, false> finalShard;
-    if (numblocks * blocksize < num_coeffs) {
-      FullReducerShard<Self, Op, false>::run(self, numblocks * blocksize, num_coeffs - numblocks * blocksize, reducer, &finalShard);
+    const std::size_t num_threads = device.numThreads();
+    if (num_threads == 1) {
+      *output = InnerMostDimReducer<Self, Op, false>::reduce(self, 0, num_coeffs, reducer);
+      return;
     } else {
-      finalShard.saccum = reducer.initialize();
-    }
+      const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
+      const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
+      eigen_assert(num_coeffs >= static_cast<Index>(numblocks) * blocksize);
 
-    for (Index i = 0; i < numblocks; ++i) {
-      wait_until_ready(results[i]);
-      delete results[i];
-    }
+      Barrier barrier(numblocks);
+      MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
+      for (unsigned int i = 0; i < numblocks; ++i) {
+        device.enqueue_with_barrier(&barrier, &FullReducerShard<Self, Op, false>::run, self,
+                                    i * blocksize, blocksize, reducer, &shards[i]);
+      }
 
-    for (Index i = 0; i < numblocks; ++i) {
-      reducer.reduce(shards[i].saccum, &finalShard.saccum);
+      typename Self::CoeffReturnType finalShard;
+      if (static_cast<Index>(numblocks) * blocksize < num_coeffs) {
+        finalShard = InnerMostDimReducer<Self, Op, false>::reduce(
+            self, numblocks * blocksize, num_coeffs - numblocks * blocksize, reducer);
+      } else {
+        finalShard = reducer.initialize();
+      }
+      barrier.Wait();
+      for (unsigned int i = 0; i < numblocks; ++i) {
+        reducer.reduce(shards[i], &finalShard);
+      }
+      *output = reducer.finalize(finalShard);
     }
-    *output = reducer.finalize(finalShard.saccum);
   }
 };
 
 template <typename Self, typename Op>
 struct FullReducer<Self, Op, ThreadPoolDevice, true> {
   static const bool HasOptimizedImplementation = !Op::IsStateful;
+  static const int PacketSize =
+      unpacket_traits<typename Self::PacketReturnType>::size;
 
   // launch one reducer per thread and accumulate the result.
-  static void run(const Self& self, Op& reducer, const ThreadPoolDevice& device, typename Self::CoeffReturnType* output) {
+  static void run(const Self& self, Op& reducer, const ThreadPoolDevice& device,
+                  typename Self::CoeffReturnType* output) {
     typedef typename Self::Index Index;
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
-    const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs)/device.numThreads());
-    const Index numblocks = blocksize > 0 ? num_coeffs / blocksize : 0;
-    eigen_assert(num_coeffs >= numblocks * blocksize);
-
-    std::vector<Notification*> results;
-    results.reserve(numblocks);
-    std::vector<FullReducerShard<Self, Op, true> > shards;
-    shards.resize(numblocks);
-    for (Index i = 0; i < numblocks; ++i) {
-      results.push_back(device.enqueue(&FullReducerShard<Self, Op, true>::run, self, i*blocksize, blocksize, reducer, &shards[i]));
+    if (num_coeffs == 0) {
+      *output = reducer.finalize(reducer.initialize());
+      return;
     }
+    const std::size_t num_threads = device.numThreads();
+    if (num_threads == 1) {
+      *output = InnerMostDimReducer<Self, Op, true>::reduce(self, 0, num_coeffs, reducer);
+      return;
+    }
+    const Index blocksize = std::floor<Index>(static_cast<float>(num_coeffs) / num_threads);
+    const unsigned int numblocks = blocksize > 0 ? static_cast<unsigned int>(num_coeffs / blocksize) : 0;
+    eigen_assert(num_coeffs >= static_cast<Index>(numblocks) * blocksize);
 
-    FullReducerShard<Self, Op, true> finalShard;
-    if (numblocks * blocksize < num_coeffs) {
-      FullReducerShard<Self, Op, true>::run(self, numblocks * blocksize, num_coeffs - numblocks * blocksize, reducer, &finalShard);
+    Barrier barrier(numblocks);
+    MaxSizeVector<typename Self::CoeffReturnType> shards(numblocks, reducer.initialize());
+    for (unsigned int i = 0; i < numblocks; ++i) {
+      device.enqueue_with_barrier(&barrier, &FullReducerShard<Self, Op, true>::run,
+                                  self, i * blocksize, blocksize, reducer,
+                                  &shards[i]);
+    }
+    typename Self::CoeffReturnType finalShard;
+    if (static_cast<Index>(numblocks) * blocksize < num_coeffs) {
+      finalShard = InnerMostDimReducer<Self, Op, true>::reduce(
+          self, numblocks * blocksize, num_coeffs - numblocks * blocksize, reducer);
     } else {
-      finalShard.paccum = reducer.template initializePacket<typename Self::PacketReturnType>();
-      finalShard.saccum = reducer.initialize();
+      finalShard = reducer.initialize();
     }
 
-    for (Index i = 0; i < numblocks; ++i) {
-      wait_until_ready(results[i]);
-      delete results[i];
+    barrier.Wait();
+    for (unsigned int i = 0; i < numblocks; ++i) {
+      reducer.reduce(shards[i], &finalShard);
     }
-
-    for (Index i = 0; i < numblocks; ++i) {
-      reducer.reducePacket(shards[i].paccum, &finalShard.paccum);
-      reducer.reduce(shards[i].saccum, &finalShard.saccum);
-    }
-
-    *output = reducer.finalizeBoth(finalShard.saccum, finalShard.paccum);
+    *output = reducer.finalize(finalShard);
   }
 };
+
 #endif
+
+
+// Default inner reducer
+template <typename Self, typename Op, typename Device>
+struct InnerReducer {
+  static const bool HasOptimizedImplementation = false;
+
+  EIGEN_DEVICE_FUNC static bool run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+    eigen_assert(false && "Not implemented");
+    return true;
+  }
+};
+
+// Default outer reducer
+template <typename Self, typename Op, typename Device>
+struct OuterReducer {
+  static const bool HasOptimizedImplementation = false;
+
+  EIGEN_DEVICE_FUNC static bool run(const Self&, Op&, const Device&, typename Self::CoeffReturnType*, typename Self::Index, typename Self::Index) {
+    eigen_assert(false && "Not implemented");
+    return true;
+  }
+};
 
 
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <int B, int N, typename S, typename R, typename I>
 __global__ void FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
+
+template <int NPT, typename S, typename R, typename I>
+__global__ void InnerReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
+
+template <int NPT, typename S, typename R, typename I>
+__global__ void OuterReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 #endif
 
 }  // end namespace internal
@@ -349,10 +370,8 @@ template <typename Op, typename Dims, typename XprType>
 class TensorReductionOp : public TensorBase<TensorReductionOp<Op, Dims, XprType>, ReadOnlyAccessors> {
   public:
     typedef typename Eigen::internal::traits<TensorReductionOp>::Scalar Scalar;
-    typedef typename Eigen::internal::traits<TensorReductionOp>::Packet Packet;
     typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
     typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-    typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
     typedef typename Eigen::internal::nested<TensorReductionOp>::type Nested;
     typedef typename Eigen::internal::traits<TensorReductionOp>::StorageKind StorageKind;
     typedef typename Eigen::internal::traits<TensorReductionOp>::Index Index;
@@ -398,6 +417,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     PacketAccess = Self::InputPacketAccess && Op::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   static const bool ReducingInnerMostDims = internal::are_inner_most_dims<Dims, NumInputDims, Layout>::value;
@@ -411,19 +431,18 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     EIGEN_STATIC_ASSERT((!ReducingInnerMostDims | !PreservingInnerMostDims | (NumReducedDims == NumInputDims)),
                         YOU_MADE_A_PROGRAMMING_MISTAKE);
 
-    // Bitmap indicating if an input dimension is reduced or not.
-    array<bool, NumInputDims> reduced;
+    // Build the bitmap indicating if an input dimension is reduced or not.
     for (int i = 0; i < NumInputDims; ++i) {
-      reduced[i] = false;
+      m_reduced[i] = false;
     }
     for (int i = 0; i < NumReducedDims; ++i) {
       eigen_assert(op.dims()[i] >= 0);
       eigen_assert(op.dims()[i] < NumInputDims);
-      reduced[op.dims()[i]] = true;
+      m_reduced[op.dims()[i]] = true;
     }
 
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
-    internal::DimInitializer<Dimensions>::run(input_dims, reduced, &m_dimensions, &m_reducedDims);
+    internal::DimInitializer<Dimensions>::run(input_dims, m_reduced, &m_dimensions, &m_reducedDims);
 
     // Precompute output strides.
     if (NumOutputDims > 0) {
@@ -433,13 +452,13 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 	  m_outputStrides[i] = m_outputStrides[i - 1] * m_dimensions[i - 1];
 	}
       } else {
-	m_outputStrides[NumOutputDims - 1] = 1;
+	m_outputStrides.back() = 1;
 	for (int i = NumOutputDims - 2; i >= 0; --i) {
 	  m_outputStrides[i] = m_outputStrides[i + 1] * m_dimensions[i + 1];
 	}
       }
     }
-    
+
     // Precompute input strides.
     if (NumInputDims > 0) {
       array<Index, NumInputDims> input_strides;
@@ -449,16 +468,16 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 	  input_strides[i] = input_strides[i-1] * input_dims[i-1];
 	}
       } else {
-	input_strides[NumInputDims - 1] = 1;
+	input_strides.back() = 1;
 	for (int i = NumInputDims - 2; i >= 0; --i) {
 	  input_strides[i] = input_strides[i + 1] * input_dims[i + 1];
 	}
       }
-      
+
       int outputIndex = 0;
       int reduceIndex = 0;
       for (int i = 0; i < NumInputDims; ++i) {
-	if (reduced[i]) {
+	if (m_reduced[i]) {
 	  m_reducedStrides[reduceIndex] = input_strides[i];
 	  ++reduceIndex;
 	} else {
@@ -473,19 +492,19 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
       m_preservedStrides[0] = internal::array_prod(input_dims);
     }
   }
-  
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
-  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType* data) {
+  EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool evalSubExprsIfNeeded(CoeffReturnType* data) {
     m_impl.evalSubExprsIfNeeded(NULL);
 
     // Use the FullReducer if possible.
     if (RunningFullReduction && internal::FullReducer<Self, Op, Device>::HasOptimizedImplementation &&
         ((RunningOnGPU && (m_device.majorDeviceVersion() >= 3)) ||
-         (internal::array_prod(m_impl.dimensions()) > 1024 * 1024))) {
+         (!RunningOnGPU && (internal::array_prod(m_impl.dimensions()) > 1024 * 1024)))) {
 
       bool need_assign = false;
       if (!data) {
@@ -497,6 +516,41 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
       Op reducer(m_reducer);
       internal::FullReducer<Self, Op, Device>::run(*this, reducer, m_device, data);
       return need_assign;
+    }
+
+    // Attempt to use an optimized reduction.
+    else if (RunningOnGPU && data && (m_device.majorDeviceVersion() >= 3)) {
+      bool reducing_inner_dims = true;
+      for (int i = 0; i < NumReducedDims; ++i) {
+        if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+          reducing_inner_dims &= m_reduced[i];
+        } else {
+          reducing_inner_dims &= m_reduced[NumInputDims - 1 - i];
+        }
+      }
+      if (internal::InnerReducer<Self, Op, Device>::HasOptimizedImplementation &&
+          (reducing_inner_dims || ReducingInnerMostDims)) {
+        const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
+        const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
+        Op reducer(m_reducer);
+        return internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+      }
+
+      bool preserving_inner_dims = true;
+      for (int i = 0; i < NumReducedDims; ++i) {
+        if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+          preserving_inner_dims &= m_reduced[NumInputDims - 1 - i];
+        } else {
+          preserving_inner_dims &= m_reduced[i];
+        }
+      }
+      if (internal::OuterReducer<Self, Op, Device>::HasOptimizedImplementation &&
+          preserving_inner_dims) {
+        const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
+        const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
+        Op reducer(m_reducer);
+        return internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+      }
     }
     return true;
   }
@@ -579,6 +633,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 #endif
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
   template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
+  template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
+  template <int NPT, typename S, typename R, typename I> friend void internal::OuterReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 #endif
 
   // Returns the Index in the input tensor of the first value that needs to be
@@ -623,6 +679,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     return startInput;
   }
 
+  // Bitmap indicating if an input dimension is reduced or not.
+  array<bool, NumInputDims> m_reduced;
   // Dimensions of the output of the operation.
   Dimensions m_dimensions;
   // Precomputed strides for the output tensor.

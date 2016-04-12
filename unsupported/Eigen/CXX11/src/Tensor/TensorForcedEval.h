@@ -26,7 +26,6 @@ struct traits<TensorForcedEvalOp<XprType> >
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename traits<XprType>::StorageKind StorageKind;
   typedef typename traits<XprType>::Index Index;
   typedef typename XprType::Nested Nested;
@@ -60,10 +59,8 @@ class TensorForcedEvalOp : public TensorBase<TensorForcedEvalOp<XprType> >
 {
   public:
   typedef typename Eigen::internal::traits<TensorForcedEvalOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorForcedEvalOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename internal::remove_const<typename XprType::PacketReturnType>::type PacketReturnType;
   typedef typename Eigen::internal::nested<TensorForcedEvalOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorForcedEvalOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorForcedEvalOp>::Index Index;
@@ -85,13 +82,13 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
 {
   typedef TensorForcedEvalOp<ArgType> XprType;
   typedef typename ArgType::Scalar Scalar;
-  typedef typename ArgType::Packet Packet;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   enum {
     IsAligned = true,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
     Layout = TensorEvaluator<ArgType, Device>::Layout,
+    RawAccess = true
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
@@ -100,12 +97,11 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
 
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType*) {
-    m_impl.evalSubExprsIfNeeded(NULL);
     const Index numValues = m_impl.dimensions().TotalSize();
     m_buffer = (CoeffReturnType*)m_device.allocate(numValues * sizeof(CoeffReturnType));
     // Should initialize the memory in case we're dealing with non POD types.
@@ -116,9 +112,8 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     }
     typedef TensorEvalToOp<const ArgType> EvalTo;
     EvalTo evalToTmp(m_buffer, m_op);
-    const bool PacketAccess = internal::IsVectorizable<Device, ArgType>::value;
+    const bool PacketAccess = internal::IsVectorizable<Device, const ArgType>::value;
     internal::TensorExecutor<const EvalTo, Device, PacketAccess>::run(evalToTmp, m_device);
-    m_impl.cleanup();
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
@@ -134,7 +129,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    return internal::ploadt<Packet, LoadMode>(m_buffer + index);
+    return internal::ploadt<PacketReturnType, LoadMode>(m_buffer + index);
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return m_buffer; }

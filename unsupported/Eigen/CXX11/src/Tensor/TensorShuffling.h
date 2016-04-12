@@ -25,7 +25,6 @@ struct traits<TensorShufflingOp<Shuffle, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -55,10 +54,8 @@ class TensorShufflingOp : public TensorBase<TensorShufflingOp<Shuffle, XprType> 
 {
   public:
   typedef typename Eigen::internal::traits<TensorShufflingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorShufflingOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorShufflingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorShufflingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorShufflingOp>::Index Index;
@@ -113,6 +110,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -148,7 +146,7 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -225,6 +223,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   enum {
     IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -232,7 +231,7 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   { }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {

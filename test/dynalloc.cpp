@@ -31,7 +31,7 @@ void check_handmade_aligned_malloc()
 
 void check_aligned_malloc()
 {
-  for(int i = 1; i < 1000; i++)
+  for(int i = ALIGNMENT; i < 1000; i++)
   {
     char *p = (char*)internal::aligned_malloc(i);
     VERIFY(size_t(p)%ALIGNMENT==0);
@@ -43,7 +43,7 @@ void check_aligned_malloc()
 
 void check_aligned_new()
 {
-  for(int i = 1; i < 1000; i++)
+  for(int i = ALIGNMENT; i < 1000; i++)
   {
     float *p = internal::aligned_new<float>(i);
     VERIFY(size_t(p)%ALIGNMENT==0);
@@ -55,7 +55,7 @@ void check_aligned_new()
 
 void check_aligned_stack_alloc()
 {
-  for(int i = 1; i < 400; i++)
+  for(int i = ALIGNMENT; i < 400; i++)
   {
     ei_declare_aligned_stack_constructed_variable(float,p,i,0);
     VERIFY(size_t(p)%ALIGNMENT==0);

@@ -49,6 +49,12 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sinh,scalar_sinh_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cosh,scalar_cosh_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tanh,scalar_tanh_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(lgamma,scalar_lgamma_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(digamma,scalar_digamma_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(zeta,scalar_zeta_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(polygamma,scalar_polygamma_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erf,scalar_erf_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erfc,scalar_erfc_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(exp,scalar_exp_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log,scalar_log_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log10,scalar_log10_op)
@@ -122,6 +128,36 @@ namespace Eigen
     return Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>(
       a.derived(),
       Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>(s)  
+    );
+  }
+
+  /** \returns an expression of the coefficient-wise igamma(\a a, \a x) to the given arrays.
+    *
+    * This function computes the coefficient-wise incomplete gamma function.
+    *
+    */
+  template<typename Derived,typename ExponentDerived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_igamma_op<typename Derived::Scalar>, const Derived, const ExponentDerived>
+  igamma(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDerived>& x) 
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_igamma_op<typename Derived::Scalar>, const Derived, const ExponentDerived>(
+      a.derived(),
+      x.derived()
+    );
+  }
+
+  /** \returns an expression of the coefficient-wise igammac(\a a, \a x) to the given arrays.
+    *
+    * This function computes the coefficient-wise complementary incomplete gamma function.
+    *
+    */
+  template<typename Derived,typename ExponentDerived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_igammac_op<typename Derived::Scalar>, const Derived, const ExponentDerived>
+  igammac(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDerived>& x) 
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_igammac_op<typename Derived::Scalar>, const Derived, const ExponentDerived>(
+      a.derived(),
+      x.derived()
     );
   }
 

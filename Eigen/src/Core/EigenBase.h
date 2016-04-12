@@ -23,7 +23,7 @@ namespace Eigen {
   *
   * Notice that this class is trivial, it is only used to disambiguate overloaded functions.
   *
-  * \sa \ref TopicClassHierarchy
+  * \sa \blank \ref TopicClassHierarchy
   */
 template<typename Derived> struct EigenBase
 {

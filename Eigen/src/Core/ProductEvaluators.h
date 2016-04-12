@@ -38,10 +38,9 @@ struct evaluator<Product<Lhs, Rhs, Options> >
 // Catch scalar * ( A * B ) and transform it to (A*scalar) * B
 // TODO we should apply that rule only if that's really helpful
 template<typename Lhs, typename Rhs, typename Scalar>
-struct evaluator_traits<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > >
- : evaluator_traits_base<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > >
+struct evaluator_assume_aliasing<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > >
 {
-  enum { AssumeAliasing = 1 };
+  static const bool value = true;
 };
 template<typename Lhs, typename Rhs, typename Scalar>
 struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > > 
@@ -81,17 +80,8 @@ template< typename Lhs, typename Rhs,
 struct generic_product_impl;
 
 template<typename Lhs, typename Rhs>
-struct evaluator_traits<Product<Lhs, Rhs, DefaultProduct> > 
- : evaluator_traits_base<Product<Lhs, Rhs, DefaultProduct> >
-{
-  enum { AssumeAliasing = 1 };
-};
-
-template<typename Lhs, typename Rhs>
-struct evaluator_traits<Product<Lhs, Rhs, AliasFreeProduct> > 
- : evaluator_traits_base<Product<Lhs, Rhs, AliasFreeProduct> >
-{
-  enum { AssumeAliasing = 0 };
+struct evaluator_assume_aliasing<Product<Lhs, Rhs, DefaultProduct> > {
+  static const bool value = true;
 };
 
 // This is the default evaluator implementation for products:
@@ -107,7 +97,8 @@ struct product_evaluator<Product<Lhs, Rhs, Options>, ProductTag, LhsShape, RhsSh
     Flags = Base::Flags | EvalBeforeNestingBit
   };
 
-  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  explicit product_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
@@ -189,6 +180,13 @@ struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBi
 //----------------------------------------
 // Catch "Dense ?= xpr + Product<>" expression to save one temporary
 // FIXME we could probably enable these rules for any product, i.e., not only Dense and DefaultProduct
+// TODO enable it for "Dense ?= xpr - Product<>" as well.
+
+template<typename OtherXpr, typename Lhs, typename Rhs>
+struct evaluator_assume_aliasing<CwiseBinaryOp<internal::scalar_sum_op<typename OtherXpr::Scalar>, const OtherXpr,
+                                               const Product<Lhs,Rhs,DefaultProduct> >, DenseShape > {
+  static const bool value = true;
+};
 
 template<typename DstXprType, typename OtherXpr, typename ProductType, typename Scalar, typename Func1, typename Func2>
 struct assignment_from_xpr_plus_product
@@ -415,7 +413,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   typedef typename XprType::PacketScalar PacketScalar;
   typedef typename XprType::PacketReturnType PacketReturnType;
 
-  EIGEN_DEVICE_FUNC explicit product_evaluator(const XprType& xpr)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  explicit product_evaluator(const XprType& xpr)
     : m_lhs(xpr.lhs()),
       m_rhs(xpr.rhs()),
       m_lhsImpl(m_lhs),     // FIXME the creation of the evaluator objects should result in a no-op, but check that!

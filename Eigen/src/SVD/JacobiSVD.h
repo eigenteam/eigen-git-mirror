@@ -449,8 +449,8 @@ struct traits<JacobiSVD<_MatrixType,QRPreconditioner> >
   *
   * \brief Two-sided Jacobi SVD decomposition of a rectangular matrix
   *
-  * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
-  * \param QRPreconditioner this optional parameter allows to specify the type of QR decomposition that will be used internally
+  * \tparam _MatrixType the type of the matrix of which we are computing the SVD decomposition
+  * \tparam QRPreconditioner this optional parameter allows to specify the type of QR decomposition that will be used internally
   *                        for the R-SVD step for non-square matrices. See discussion of possible values below.
   *
   * SVD decomposition consists in decomposing any n-by-p matrix \a A as a product
@@ -539,7 +539,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       * according to the specified problem size.
       * \sa JacobiSVD()
       */
-    explicit JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
+    JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
     {
       allocate(rows, cols, computationOptions);
     }
@@ -666,7 +666,7 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
   
   if(m_cols>m_rows)   m_qr_precond_morecols.allocate(*this);
   if(m_rows>m_cols)   m_qr_precond_morerows.allocate(*this);
-  if(m_cols!=m_cols)  m_scaledMatrix.resize(rows,cols);
+  if(m_rows!=m_cols)  m_scaledMatrix.resize(rows,cols);
 }
 
 template<typename MatrixType, int QRPreconditioner>

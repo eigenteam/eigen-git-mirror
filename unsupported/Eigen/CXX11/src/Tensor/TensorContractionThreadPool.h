@@ -28,7 +28,7 @@ struct packLhsArg {
 
 template<typename LhsScalar, typename RhsScalar, typename RhsMapper, typename OutputMapper, typename Index>
 struct packRhsAndKernelArg {
-  const std::vector<LhsScalar*>* blockAs;
+  const MaxSizeVector<LhsScalar*>* blockAs;
   RhsScalar* blockB;
   const RhsMapper& rhs;
   OutputMapper& output;
@@ -46,8 +46,8 @@ struct packRhsAndKernelArg {
   const Index n_block_idx;
   const Index m_blocks;
   const Index n_blocks;
-  std::vector<Notification*>* kernel_notifications;
-  const std::vector<Notification*>* lhs_notifications;
+  MaxSizeVector<Notification*>* kernel_notifications;
+  const MaxSizeVector<Notification*>* lhs_notifications;
   const bool need_to_pack;
 };
 
@@ -65,10 +65,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
   typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
-  typedef typename XprType::Packet Packet;
   typedef typename XprType::Index Index;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   enum {
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
@@ -136,8 +135,8 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     this->m_device.memset(buffer, 0, m * n * sizeof(Scalar));
 
 
-    const int lhs_packet_size = internal::packet_traits<LhsScalar>::size;
-    const int rhs_packet_size = internal::packet_traits<RhsScalar>::size;
+    const int lhs_packet_size = internal::unpacket_traits<typename LeftEvaluator::PacketReturnType>::size;
+    const int rhs_packet_size = internal::unpacket_traits<typename RightEvaluator::PacketReturnType>::size;
 
     typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
                                                    LeftEvaluator, left_nocontract_t,
@@ -176,10 +175,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     // compute block sizes (which depend on number of threads)
     const Index num_threads = this->m_device.numThreads();
-    Index mc = m;
-    Index nc = n;
-    Index kc = k;
-    internal::computeProductBlockingSizes<LhsScalar,RhsScalar,1>(kc, mc, nc, num_threads);
+    internal::TensorContractionBlocking<LhsMapper, RhsMapper, Index, internal::ShardByCol> blocking(k, m, n, num_threads);
+    Index mc = blocking.mc();
+    Index nc = blocking.nc();
+    Index kc = blocking.kc();
     eigen_assert(mc <= m);
     eigen_assert(nc <= n);
     eigen_assert(kc <= k);
@@ -203,8 +202,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     //       the alignment requirements with the assumption that
     //       (Traits::mr * sizeof(ResScalar)) % 16 == 0
     const Index numBlockAs = numext::mini(num_threads, m_blocks);
-    std::vector<LhsScalar *> blockAs;
-    blockAs.reserve(num_threads);
+    MaxSizeVector<LhsScalar *> blockAs(num_threads);
     for (int i = 0; i < num_threads; i++) {
       blockAs.push_back(static_cast<LhsScalar *>(this->m_device.allocate(sizeA * sizeof(LhsScalar))));
     }
@@ -213,18 +211,17 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // TODO: is this too much memory to allocate? This simplifies coding a lot, but is wasteful.
     //       Other options: (1) reuse memory when a thread finishes. con: tricky
     //                      (2) allocate block B memory in each thread. con: overhead
-    std::vector<RhsScalar *> blockBs;
-    blockBs.reserve(n_blocks);
+    MaxSizeVector<RhsScalar *> blockBs(n_blocks);
     for (int i = 0; i < n_blocks; i++) {
       blockBs.push_back(static_cast<RhsScalar *>(this->m_device.allocate(sizeB * sizeof(RhsScalar))));
     }
 
     // lhs_notifications starts with all null Notifications
-    std::vector<Notification*> lhs_notifications(num_threads, nullptr);
+    MaxSizeVector<Notification*> lhs_notifications(num_threads, nullptr);
 
     // this should really be numBlockAs * n_blocks;
     const Index num_kernel_notifications = num_threads * n_blocks;
-    std::vector<Notification*> kernel_notifications(num_kernel_notifications,
+    MaxSizeVector<Notification*> kernel_notifications(num_kernel_notifications,
                                                     nullptr);
 
     for (Index k_block_idx = 0; k_block_idx < k_blocks; k_block_idx++) {

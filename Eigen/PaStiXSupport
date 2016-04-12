@@ -12,7 +12,6 @@
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
-#include <complex.h>
 extern "C" {
 #include <pastix_nompi.h>
 #include <pastix.h>

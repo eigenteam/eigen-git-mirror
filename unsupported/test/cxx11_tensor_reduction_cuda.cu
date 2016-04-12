@@ -48,9 +48,12 @@ static void test_full_reductions() {
 
   // Check that the CPU and GPU reductions return the same result.
   VERIFY_IS_APPROX(full_redux(), full_redux_gpu());
+
+  gpu_device.deallocate(gpu_in_ptr);
+  gpu_device.deallocate(gpu_out_ptr);
 }
 
 void test_cxx11_tensor_reduction_cuda() {
-  CALL_SUBTEST(test_full_reductions<ColMajor>());
-  CALL_SUBTEST(test_full_reductions<RowMajor>());
+  CALL_SUBTEST_1(test_full_reductions<ColMajor>());
+  CALL_SUBTEST_2(test_full_reductions<RowMajor>());
 }

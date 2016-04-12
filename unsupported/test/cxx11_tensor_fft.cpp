@@ -14,7 +14,7 @@ using Eigen::Tensor;
 
 template <int DataLayout>
 static void test_fft_2D_golden() {
-  Tensor<float, 2, DataLayout, long> input(2, 3);
+  Tensor<float, 2, DataLayout> input(2, 3);
   input(0, 0) = 1;
   input(0, 1) = 2;
   input(0, 2) = 3;
@@ -22,11 +22,11 @@ static void test_fft_2D_golden() {
   input(1, 1) = 5;
   input(1, 2) = 6;
 
-  array<int, 2> fft;
+  array<ptrdiff_t, 2> fft;
   fft[0] = 0;
   fft[1] = 1;
 
-  Tensor<std::complex<float>, 2, DataLayout, long> output = input.template fft<Eigen::BothParts, Eigen::FFT_FORWARD>(fft);
+  Tensor<std::complex<float>, 2, DataLayout> output = input.template fft<Eigen::BothParts, Eigen::FFT_FORWARD>(fft);
 
   std::complex<float> output_golden[6]; // in ColMajor order
   output_golden[0] = std::complex<float>(21, 0);
@@ -57,24 +57,24 @@ static void test_fft_2D_golden() {
 }
 
 static void test_fft_complex_input_golden() {
-  Tensor<std::complex<float>, 1, ColMajor, long> input(5);
+  Tensor<std::complex<float>, 1, ColMajor> input(5);
   input(0) = std::complex<float>(1, 1);
   input(1) = std::complex<float>(2, 2);
   input(2) = std::complex<float>(3, 3);
   input(3) = std::complex<float>(4, 4);
   input(4) = std::complex<float>(5, 5);
 
-  array<int, 1> fft;
+  array<ptrdiff_t, 1> fft;
   fft[0] = 0;
 
-  Tensor<std::complex<float>, 1, ColMajor, long> forward_output_both_parts = input.fft<BothParts, FFT_FORWARD>(fft);
-  Tensor<std::complex<float>, 1, ColMajor, long> reverse_output_both_parts = input.fft<BothParts, FFT_REVERSE>(fft);
+  Tensor<std::complex<float>, 1, ColMajor> forward_output_both_parts = input.fft<BothParts, FFT_FORWARD>(fft);
+  Tensor<std::complex<float>, 1, ColMajor> reverse_output_both_parts = input.fft<BothParts, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_real_part = input.fft<RealPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_real_part = input.fft<RealPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor> forward_output_real_part = input.fft<RealPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor> reverse_output_real_part = input.fft<RealPart, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_imag_part = input.fft<ImagPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_imag_part = input.fft<ImagPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor> forward_output_imag_part = input.fft<ImagPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor> reverse_output_imag_part = input.fft<ImagPart, FFT_REVERSE>(fft);
 
   VERIFY_IS_EQUAL(forward_output_both_parts.dimension(0), input.dimension(0));
   VERIFY_IS_EQUAL(reverse_output_both_parts.dimension(0), input.dimension(0));
@@ -114,24 +114,24 @@ static void test_fft_complex_input_golden() {
 }
 
 static void test_fft_real_input_golden() {
-  Tensor<float, 1, ColMajor, long> input(5);
+  Tensor<float, 1, ColMajor> input(5);
   input(0) = 1.0;
   input(1) = 2.0;
   input(2) = 3.0;
   input(3) = 4.0;
   input(4) = 5.0;
 
-  array<int, 1> fft;
+  array<ptrdiff_t, 1> fft;
   fft[0] = 0;
 
-  Tensor<std::complex<float>, 1, ColMajor, long> forward_output_both_parts = input.fft<BothParts, FFT_FORWARD>(fft);
-  Tensor<std::complex<float>, 1, ColMajor, long> reverse_output_both_parts = input.fft<BothParts, FFT_REVERSE>(fft);
+  Tensor<std::complex<float>, 1, ColMajor> forward_output_both_parts = input.fft<BothParts, FFT_FORWARD>(fft);
+  Tensor<std::complex<float>, 1, ColMajor> reverse_output_both_parts = input.fft<BothParts, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_real_part = input.fft<RealPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_real_part = input.fft<RealPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor> forward_output_real_part = input.fft<RealPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor> reverse_output_real_part = input.fft<RealPart, FFT_REVERSE>(fft);
 
-  Tensor<float, 1, ColMajor, long> forward_output_imag_part = input.fft<ImagPart, FFT_FORWARD>(fft);
-  Tensor<float, 1, ColMajor, long> reverse_output_imag_part = input.fft<ImagPart, FFT_REVERSE>(fft);
+  Tensor<float, 1, ColMajor> forward_output_imag_part = input.fft<ImagPart, FFT_FORWARD>(fft);
+  Tensor<float, 1, ColMajor> reverse_output_imag_part = input.fft<ImagPart, FFT_REVERSE>(fft);
 
   VERIFY_IS_EQUAL(forward_output_both_parts.dimension(0), input.dimension(0));
   VERIFY_IS_EQUAL(reverse_output_both_parts.dimension(0), input.dimension(0));
@@ -178,21 +178,21 @@ static void test_fft_real_input_golden() {
 template <int DataLayout, typename RealScalar, bool isComplexInput, int FFTResultType, int FFTDirection, int TensorRank>
 static void test_fft_real_input_energy() {
 
-  Eigen::DSizes<long, TensorRank> dimensions;
-  int total_size = 1;
+  Eigen::DSizes<ptrdiff_t, TensorRank> dimensions;
+  ptrdiff_t total_size = 1;
   for (int i = 0; i < TensorRank; ++i) {
     dimensions[i] = rand() % 20 + 1;
     total_size *= dimensions[i];
   }
-  const DSizes<long, TensorRank> arr = dimensions;
+  const DSizes<ptrdiff_t, TensorRank> arr = dimensions;
 
   typedef typename internal::conditional<isComplexInput == true, std::complex<RealScalar>, RealScalar>::type InputScalar;
 
-  Tensor<InputScalar, TensorRank, DataLayout, long> input;
+  Tensor<InputScalar, TensorRank, DataLayout> input;
   input.resize(arr);
   input.setRandom();
 
-  array<int, TensorRank> fft;
+  array<ptrdiff_t, TensorRank> fft;
   for (int i = 0; i < TensorRank; ++i) {
     fft[i] = i;
   }

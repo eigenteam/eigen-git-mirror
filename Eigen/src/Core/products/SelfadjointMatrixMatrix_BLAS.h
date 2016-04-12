@@ -25,13 +25,13 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to BLAS F77
  *   Self adjoint matrix * matrix product functionality based on ?SYMM/?HEMM.
  ********************************************************************************
 */
 
-#ifndef EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
-#define EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
+#ifndef EIGEN_SELFADJOINT_MATRIX_MATRIX_BLAS_H
+#define EIGEN_SELFADJOINT_MATRIX_MATRIX_BLAS_H
 
 namespace Eigen { 
 
@@ -40,7 +40,7 @@ namespace internal {
 
 /* Optimized selfadjoint matrix * matrix (?SYMM/?HEMM) product */
 
-#define EIGEN_MKL_SYMM_L(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_SYMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -52,28 +52,23 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
     EIGTYPE* res,        Index resStride, \
-    EIGTYPE alpha) \
+    EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
     char side='L', uplo='L'; \
-    MKL_INT m, n, lda, ldb, ldc; \
+    BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \
-    MKLTYPE alpha_, beta_; \
+    EIGTYPE beta(1); \
     MatrixX##EIGPREFIX b_tmp; \
-    EIGTYPE myone(1);\
 \
 /* Set transpose options */ \
 /* Set m, n, k */ \
-    m = (MKL_INT)rows;  \
-    n = (MKL_INT)cols;  \
-\
-/* Set alpha_ & beta_ */ \
-    assign_scalar_eig2mkl(alpha_, alpha); \
-    assign_scalar_eig2mkl(beta_, myone); \
+    m = convert_index<BlasIndex>(rows);  \
+    n = convert_index<BlasIndex>(cols);  \
 \
 /* Set lda, ldb, ldc */ \
-    lda = (MKL_INT)lhsStride; \
-    ldb = (MKL_INT)rhsStride; \
-    ldc = (MKL_INT)resStride; \
+    lda = convert_index<BlasIndex>(lhsStride); \
+    ldb = convert_index<BlasIndex>(rhsStride); \
+    ldc = convert_index<BlasIndex>(resStride); \
 \
 /* Set a, b, c */ \
     if (LhsStorageOrder==RowMajor) uplo='U'; \
@@ -83,16 +78,16 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
       Map<const MatrixX##EIGPREFIX, 0, OuterStride<> > rhs(_rhs,n,m,OuterStride<>(rhsStride)); \
       b_tmp = rhs.adjoint(); \
       b = b_tmp.data(); \
-      ldb = b_tmp.outerStride(); \
+      ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
     } else b = _rhs; \
 \
-    MKLPREFIX##symm(&side, &uplo, &m, &n, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)b, &ldb, &beta_, (MKLTYPE*)res, &ldc); \
+    BLASPREFIX##symm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 \
   } \
 };
 
 
-#define EIGEN_MKL_HEMM_L(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_HEMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -103,29 +98,24 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
     EIGTYPE* res,        Index resStride, \
-    EIGTYPE alpha) \
+    EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
     char side='L', uplo='L'; \
-    MKL_INT m, n, lda, ldb, ldc; \
+    BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \
-    MKLTYPE alpha_, beta_; \
+    EIGTYPE beta(1); \
     MatrixX##EIGPREFIX b_tmp; \
     Matrix<EIGTYPE, Dynamic, Dynamic, LhsStorageOrder> a_tmp; \
-    EIGTYPE myone(1); \
 \
 /* Set transpose options */ \
 /* Set m, n, k */ \
-    m = (MKL_INT)rows; \
-    n = (MKL_INT)cols; \
-\
-/* Set alpha_ & beta_ */ \
-    assign_scalar_eig2mkl(alpha_, alpha); \
-    assign_scalar_eig2mkl(beta_, myone); \
+    m = convert_index<BlasIndex>(rows); \
+    n = convert_index<BlasIndex>(cols); \
 \
 /* Set lda, ldb, ldc */ \
-    lda = (MKL_INT)lhsStride; \
-    ldb = (MKL_INT)rhsStride; \
-    ldc = (MKL_INT)resStride; \
+    lda = convert_index<BlasIndex>(lhsStride); \
+    ldb = convert_index<BlasIndex>(rhsStride); \
+    ldc = convert_index<BlasIndex>(resStride); \
 \
 /* Set a, b, c */ \
     if (((LhsStorageOrder==ColMajor) && ConjugateLhs) || ((LhsStorageOrder==RowMajor) && (!ConjugateLhs))) { \
@@ -151,23 +141,23 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
         b_tmp = rhs.transpose(); \
       } \
       b = b_tmp.data(); \
-      ldb = b_tmp.outerStride(); \
+      ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
     } \
 \
-    MKLPREFIX##hemm(&side, &uplo, &m, &n, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)b, &ldb, &beta_, (MKLTYPE*)res, &ldc); \
+    BLASPREFIX##hemm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 \
   } \
 };
 
-EIGEN_MKL_SYMM_L(double, double, d, d)
-EIGEN_MKL_SYMM_L(float, float, f, s)
-EIGEN_MKL_HEMM_L(dcomplex, MKL_Complex16, cd, z)
-EIGEN_MKL_HEMM_L(scomplex, MKL_Complex8, cf, c)
+EIGEN_BLAS_SYMM_L(double, double, d, d)
+EIGEN_BLAS_SYMM_L(float, float, f, s)
+EIGEN_BLAS_HEMM_L(dcomplex, double, cd, z)
+EIGEN_BLAS_HEMM_L(scomplex, float, cf, c)
 
 
 /* Optimized matrix * selfadjoint matrix (?SYMM/?HEMM) product */
 
-#define EIGEN_MKL_SYMM_R(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_SYMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -179,27 +169,22 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
     EIGTYPE* res,        Index resStride, \
-    EIGTYPE alpha) \
+    EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
     char side='R', uplo='L'; \
-    MKL_INT m, n, lda, ldb, ldc; \
+    BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \
-    MKLTYPE alpha_, beta_; \
+    EIGTYPE beta(1); \
     MatrixX##EIGPREFIX b_tmp; \
-    EIGTYPE myone(1);\
 \
 /* Set m, n, k */ \
-    m = (MKL_INT)rows;  \
-    n = (MKL_INT)cols;  \
-\
-/* Set alpha_ & beta_ */ \
-    assign_scalar_eig2mkl(alpha_, alpha); \
-    assign_scalar_eig2mkl(beta_, myone); \
+    m = convert_index<BlasIndex>(rows);  \
+    n = convert_index<BlasIndex>(cols);  \
 \
 /* Set lda, ldb, ldc */ \
-    lda = (MKL_INT)rhsStride; \
-    ldb = (MKL_INT)lhsStride; \
-    ldc = (MKL_INT)resStride; \
+    lda = convert_index<BlasIndex>(rhsStride); \
+    ldb = convert_index<BlasIndex>(lhsStride); \
+    ldc = convert_index<BlasIndex>(resStride); \
 \
 /* Set a, b, c */ \
     if (RhsStorageOrder==RowMajor) uplo='U'; \
@@ -209,16 +194,16 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
       Map<const MatrixX##EIGPREFIX, 0, OuterStride<> > lhs(_lhs,n,m,OuterStride<>(rhsStride)); \
       b_tmp = lhs.adjoint(); \
       b = b_tmp.data(); \
-      ldb = b_tmp.outerStride(); \
+      ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
     } else b = _lhs; \
 \
-    MKLPREFIX##symm(&side, &uplo, &m, &n, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)b, &ldb, &beta_, (MKLTYPE*)res, &ldc); \
+    BLASPREFIX##symm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
 \
   } \
 };
 
 
-#define EIGEN_MKL_HEMM_R(EIGTYPE, MKLTYPE, EIGPREFIX, MKLPREFIX) \
+#define EIGEN_BLAS_HEMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
 template <typename Index, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -229,35 +214,30 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
     const EIGTYPE* _lhs, Index lhsStride, \
     const EIGTYPE* _rhs, Index rhsStride, \
     EIGTYPE* res,        Index resStride, \
-    EIGTYPE alpha) \
+    EIGTYPE alpha, level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/) \
   { \
     char side='R', uplo='L'; \
-    MKL_INT m, n, lda, ldb, ldc; \
+    BlasIndex m, n, lda, ldb, ldc; \
     const EIGTYPE *a, *b; \
-    MKLTYPE alpha_, beta_; \
+    EIGTYPE beta(1); \
     MatrixX##EIGPREFIX b_tmp; \
     Matrix<EIGTYPE, Dynamic, Dynamic, RhsStorageOrder> a_tmp; \
-    EIGTYPE myone(1); \
 \
 /* Set m, n, k */ \
-    m = (MKL_INT)rows; \
-    n = (MKL_INT)cols; \
-\
-/* Set alpha_ & beta_ */ \
-    assign_scalar_eig2mkl(alpha_, alpha); \
-    assign_scalar_eig2mkl(beta_, myone); \
+    m = convert_index<BlasIndex>(rows); \
+    n = convert_index<BlasIndex>(cols); \
 \
 /* Set lda, ldb, ldc */ \
-    lda = (MKL_INT)rhsStride; \
-    ldb = (MKL_INT)lhsStride; \
-    ldc = (MKL_INT)resStride; \
+    lda = convert_index<BlasIndex>(rhsStride); \
+    ldb = convert_index<BlasIndex>(lhsStride); \
+    ldc = convert_index<BlasIndex>(resStride); \
 \
 /* Set a, b, c */ \
     if (((RhsStorageOrder==ColMajor) && ConjugateRhs) || ((RhsStorageOrder==RowMajor) && (!ConjugateRhs))) { \
       Map<const Matrix<EIGTYPE, Dynamic, Dynamic, RhsStorageOrder>, 0, OuterStride<> > rhs(_rhs,n,n,OuterStride<>(rhsStride)); \
       a_tmp = rhs.conjugate(); \
       a = a_tmp.data(); \
-      lda = a_tmp.outerStride(); \
+      lda = convert_index<BlasIndex>(a_tmp.outerStride()); \
     } else a = _rhs; \
     if (RhsStorageOrder==RowMajor) uplo='U'; \
 \
@@ -279,17 +259,17 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
       ldb = b_tmp.outerStride(); \
     } \
 \
-    MKLPREFIX##hemm(&side, &uplo, &m, &n, &alpha_, (const MKLTYPE*)a, &lda, (const MKLTYPE*)b, &ldb, &beta_, (MKLTYPE*)res, &ldc); \
+    BLASPREFIX##hemm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \
   } \
 };
 
-EIGEN_MKL_SYMM_R(double, double, d, d)
-EIGEN_MKL_SYMM_R(float, float, f, s)
-EIGEN_MKL_HEMM_R(dcomplex, MKL_Complex16, cd, z)
-EIGEN_MKL_HEMM_R(scomplex, MKL_Complex8, cf, c)
+EIGEN_BLAS_SYMM_R(double, double, d, d)
+EIGEN_BLAS_SYMM_R(float, float, f, s)
+EIGEN_BLAS_HEMM_R(dcomplex, double, cd, z)
+EIGEN_BLAS_HEMM_R(scomplex, float, cf, c)
 
 } // end namespace internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
+#endif // EIGEN_SELFADJOINT_MATRIX_MATRIX_BLAS_H

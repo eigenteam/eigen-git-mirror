@@ -28,8 +28,8 @@ namespace internal {
   *
   * \brief Robust Cholesky decomposition of a matrix with pivoting
   *
-  * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
-  * \param UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
+  * \tparam _MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
+  * \tparam _UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
   *             The other triangular part won't be read.
   *
   * Perform a robust Cholesky decomposition of a positive semidefinite or negative semidefinite
@@ -266,8 +266,8 @@ template<> struct ldlt_inplace<Lower>
     if (size <= 1)
     {
       transpositions.setIdentity();
-      if (numext::real(mat.coeff(0,0)) > 0) sign = PositiveSemiDef;
-      else if (numext::real(mat.coeff(0,0)) < 0) sign = NegativeSemiDef;
+      if (numext::real(mat.coeff(0,0)) > static_cast<RealScalar>(0) ) sign = PositiveSemiDef;
+      else if (numext::real(mat.coeff(0,0)) < static_cast<RealScalar>(0)) sign = NegativeSemiDef;
       else sign = ZeroSign;
       return true;
     }
@@ -324,12 +324,12 @@ template<> struct ldlt_inplace<Lower>
         A21 /= realAkk;
 
       if (sign == PositiveSemiDef) {
-        if (realAkk < 0) sign = Indefinite;
+        if (realAkk < static_cast<RealScalar>(0)) sign = Indefinite;
       } else if (sign == NegativeSemiDef) {
-        if (realAkk > 0) sign = Indefinite;
+        if (realAkk > static_cast<RealScalar>(0)) sign = Indefinite;
       } else if (sign == ZeroSign) {
-        if (realAkk > 0) sign = PositiveSemiDef;
-        else if (realAkk < 0) sign = NegativeSemiDef;
+        if (realAkk > static_cast<RealScalar>(0)) sign = PositiveSemiDef;
+        else if (realAkk < static_cast<RealScalar>(0)) sign = NegativeSemiDef;
       }
     }
 

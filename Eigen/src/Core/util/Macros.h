@@ -13,7 +13,7 @@
 
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 2
-#define EIGEN_MINOR_VERSION 91
+#define EIGEN_MINOR_VERSION 92
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -99,9 +99,16 @@
   #define EIGEN_COMP_ARM 0
 #endif
 
+/// \internal EIGEN_COMP_ARM set to 1 if the compiler is ARM Compiler
+#if defined(__EMSCRIPTEN__)
+  #define EIGEN_COMP_EMSCRIPTEN 1
+#else
+  #define EIGEN_COMP_EMSCRIPTEN 0
+#endif
+
 
 /// \internal EIGEN_GNUC_STRICT set to 1 if the compiler is really GCC and not a compatible compiler (e.g., ICC, clang, mingw, etc.)
-#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM )
+#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM || EIGEN_COMP_EMSCRIPTEN)
   #define EIGEN_COMP_GNUC_STRICT 1
 #else
   #define EIGEN_COMP_GNUC_STRICT 0
@@ -336,9 +343,15 @@
 // Do we support r-value references?
 #if (__has_feature(cxx_rvalue_references) || \
     (defined(__cplusplus) && __cplusplus >= 201103L) || \
-     defined(__GXX_EXPERIMENTAL_CXX0X__) || \
     (EIGEN_COMP_MSVC >= 1600))
   #define EIGEN_HAVE_RVALUE_REFERENCES
+#endif
+
+// Does the compiler support C99?
+#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
+  || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
+  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER))
+#define EIGEN_HAS_C99_MATH 1
 #endif
 
 // Does the compiler support result_of?
@@ -347,14 +360,18 @@
 #endif
 
 // Does the compiler support variadic templates?
-#if __cplusplus > 199711L
+#if __cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900
+// Disable the use of variadic templates when compiling with nvcc on ARM devices:
+// this prevents nvcc from crashing when compiling Eigen on Tegra X1
+#if !defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
+#endif
 #endif
 
 // Does the compiler support const expressions?
 #ifdef __CUDACC__
-// Const expressions are supported provided that c++11 is enabled and we're using nvcc 7.5 or above
-#if defined(__CUDACC_VER__) &&  __CUDACC_VER__ >= 70500 && __cplusplus > 199711L
+// Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
+#if __cplusplus > 199711L && defined(__CUDACC_VER__) && (defined(__clang__) || __CUDACC_VER__ >= 70500)
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
 #elif (defined(__cplusplus) && __cplusplus >= 201402L) || \

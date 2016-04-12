@@ -23,8 +23,8 @@ namespace Eigen {
   * direction vector \f$ \mathbf{d} \f$ such that the line corresponds to
   * the set \f$ l(t) = \mathbf{o} + t \mathbf{d} \f$, \f$ t \in \mathbf{R} \f$.
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
-  * \param _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients
+  * \tparam _AmbientDim the dimension of the ambient space, can be a compile time value or Dynamic.
   */
 template <typename _Scalar, int _AmbientDim, int _Options>
 class ParametrizedLine
@@ -129,7 +129,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const ParametrizedLine& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
+  bool isApprox(const ParametrizedLine& other, const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_origin.isApprox(other.m_origin, prec) && m_direction.isApprox(other.m_direction, prec); }
 
 protected:

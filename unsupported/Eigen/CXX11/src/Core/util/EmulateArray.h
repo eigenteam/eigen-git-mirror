@@ -13,9 +13,9 @@
 
 
 // The array class is only available starting with cxx11. Emulate our own here
-// if needed.
+// if needed. Beware, msvc still doesn't advertise itself as a c++11 compiler!
 // Moreover, CUDA doesn't support the STL containers, so we use our own instead.
-#if __cplusplus <= 199711L || defined(__CUDACC__) || defined(EIGEN_AVOID_STL_ARRAY)
+#if (__cplusplus <= 199711L && EIGEN_COMP_MSVC < 1900) || defined(__CUDACC__) || defined(EIGEN_AVOID_STL_ARRAY)
 
 namespace Eigen {
 template <typename T, size_t n> class array {
@@ -25,6 +25,16 @@ template <typename T, size_t n> class array {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& operator[] (size_t index) const { return values[index]; }
 
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& front() { return values[0]; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& front() const { return values[0]; }
+
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& back() { return values[n-1]; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& back() const { return values[n-1]; }
+
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   static std::size_t size() { return n; }
 
@@ -32,7 +42,7 @@ template <typename T, size_t n> class array {
 
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array() { }
-  explicit EIGEN_DEVICE_FUNC
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array(const T& v) {
     EIGEN_STATIC_ASSERT(n==1, YOU_MADE_A_PROGRAMMING_MISTAKE)
     values[0] = v;
@@ -123,26 +133,62 @@ template <typename T> class array<T, 0> {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE T& operator[] (size_t) {
     eigen_assert(false && "Can't index a zero size array");
-    return *static_cast<T*>(NULL);
+    return dummy;
   }
-
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE const T& operator[] (size_t) const {
     eigen_assert(false && "Can't index a zero size array");
-    return *static_cast<const T*>(NULL);
+    return dummy;
   }
 
-  static EIGEN_ALWAYS_INLINE std::size_t size() { return 0; }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& front() {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& front() const {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE T& back() {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
+  }
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE const T& back() const {
+    eigen_assert(false && "Can't index a zero size array");
+    return dummy;
+  }
+
+  static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE std::size_t size() { return 0; }
 
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE array() { }
+  EIGEN_STRONG_INLINE array() : dummy() { }
 
 #ifdef EIGEN_HAS_VARIADIC_TEMPLATES
-  array(std::initializer_list<T> l) {
+  EIGEN_DEVICE_FUNC array(std::initializer_list<T> l) : dummy() {
     eigen_assert(l.size() == 0);
   }
 #endif
+
+ private:
+  T dummy;
 };
+
+// Comparison operator
+// Todo: implement !=, <, <=, >,  and >=
+template<class T, std::size_t N>
+EIGEN_DEVICE_FUNC bool operator==(const array<T,N>& lhs, const array<T,N>& rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    if (lhs[i] != rhs[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 
 namespace internal {
 template<std::size_t I, class T, std::size_t N>

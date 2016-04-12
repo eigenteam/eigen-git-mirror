@@ -30,6 +30,10 @@ template<typename Scalar> void check_atan2()
   
   VERIFY_IS_APPROX(res.value(), x.value());
   VERIFY_IS_APPROX(res.derivatives(), x.derivatives());
+
+  res = atan2(r*s+0, r*c+0);
+  VERIFY_IS_APPROX(res.value(), x.value());
+  VERIFY_IS_APPROX(res.derivatives(), x.derivatives());
 }
 
 

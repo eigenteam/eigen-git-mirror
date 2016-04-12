@@ -161,15 +161,15 @@ class BandMatrixBase : public EigenBase<Derived>
   *
   * \brief Represents a rectangular matrix with a banded storage
   *
-  * \param _Scalar Numeric type, i.e. float, double, int
-  * \param Rows Number of rows, or \b Dynamic
-  * \param Cols Number of columns, or \b Dynamic
-  * \param Supers Number of super diagonal
-  * \param Subs Number of sub diagonal
-  * \param _Options A combination of either \b #RowMajor or \b #ColMajor, and of \b #SelfAdjoint
-  *                 The former controls \ref TopicStorageOrders "storage order", and defaults to
-  *                 column-major. The latter controls whether the matrix represents a selfadjoint 
-  *                 matrix in which case either Supers of Subs have to be null.
+  * \tparam _Scalar Numeric type, i.e. float, double, int
+  * \tparam _Rows Number of rows, or \b Dynamic
+  * \tparam _Cols Number of columns, or \b Dynamic
+  * \tparam _Supers Number of super diagonal
+  * \tparam _Subs Number of sub diagonal
+  * \tparam _Options A combination of either \b #RowMajor or \b #ColMajor, and of \b #SelfAdjoint
+  *                  The former controls \ref TopicStorageOrders "storage order", and defaults to
+  *                  column-major. The latter controls whether the matrix represents a selfadjoint
+  *                  matrix in which case either Supers of Subs have to be null.
   *
   * \sa class TridiagonalMatrix
   */
@@ -302,9 +302,9 @@ class BandMatrixWrapper : public BandMatrixBase<BandMatrixWrapper<_CoefficientsT
   *
   * \brief Represents a tridiagonal matrix with a compact banded storage
   *
-  * \param _Scalar Numeric type, i.e. float, double, int
-  * \param Size Number of rows and cols, or \b Dynamic
-  * \param _Options Can be 0 or \b SelfAdjoint
+  * \tparam Scalar Numeric type, i.e. float, double, int
+  * \tparam Size Number of rows and cols, or \b Dynamic
+  * \tparam Options Can be 0 or \b SelfAdjoint
   *
   * \sa class BandMatrix
   */

@@ -14,12 +14,12 @@ void bench(int id, int size = Size)
   Mat A(size,size);
   A.setRandom();
   A = A*A.adjoint();
-  BenchTimer t_llt, t_ldlt, t_lu, t_fplu, t_qr, t_cpqr, t_fpqr, t_jsvd;
+  BenchTimer t_llt, t_ldlt, t_lu, t_fplu, t_qr, t_cpqr, t_cod, t_fpqr, t_jsvd, t_bdcsvd;
   
   int tries = 3;
   int rep = 1000/size;
   if(rep==0) rep = 1;
-  rep = rep*rep;
+//   rep = rep*rep;
   
   LLT<Mat> llt(A);
   LDLT<Mat> ldlt(A);
@@ -27,8 +27,10 @@ void bench(int id, int size = Size)
   FullPivLU<Mat> fplu(A);
   HouseholderQR<Mat> qr(A);
   ColPivHouseholderQR<Mat> cpqr(A);
+  CompleteOrthogonalDecomposition<Mat> cod(A);
   FullPivHouseholderQR<Mat> fpqr(A);
   JacobiSVD<Mat> jsvd(A.rows(),A.cols());
+  BDCSVD<Mat> bdcsvd(A.rows(),A.cols());
   
   BENCH(t_llt, tries, rep, llt.compute(A));
   BENCH(t_ldlt, tries, rep, ldlt.compute(A));
@@ -36,9 +38,11 @@ void bench(int id, int size = Size)
   BENCH(t_fplu, tries, rep, fplu.compute(A));
   BENCH(t_qr, tries, rep, qr.compute(A));
   BENCH(t_cpqr, tries, rep, cpqr.compute(A));
+  BENCH(t_cod, tries, rep, cod.compute(A));
   BENCH(t_fpqr, tries, rep, fpqr.compute(A));
   if(size<500) // JacobiSVD is really too slow for too large matrices
     BENCH(t_jsvd, tries, rep, jsvd.compute(A,ComputeFullU|ComputeFullV));
+  BENCH(t_bdcsvd, tries, rep, bdcsvd.compute(A,ComputeFullU|ComputeFullV));
   
   results["LLT"][id] = t_llt.best();
   results["LDLT"][id] = t_ldlt.best();
@@ -46,8 +50,10 @@ void bench(int id, int size = Size)
   results["FullPivLU"][id] = t_fplu.best();
   results["HouseholderQR"][id] = t_qr.best();
   results["ColPivHouseholderQR"][id] = t_cpqr.best();
+  results["CompleteOrthogonalDecomposition"][id] = t_cod.best();
   results["FullPivHouseholderQR"][id] = t_fpqr.best();
   results["JacobiSVD"][id] = size<500 ? t_jsvd.best() : 0;
+  results["BDCSVD"][id] = t_bdcsvd.best();
 }
 
 int main()
@@ -64,13 +70,15 @@ int main()
   
   IOFormat fmt(3, 0, " \t", "\n", "", "");
   
-  std::cout << "solver/size               " << small << "\t" << medium << "\t" << large << "\t" << xl << "\n";
-  std::cout << "LLT                 (ms)  " << (results["LLT"]/1000.).format(fmt) << "\n";
-  std::cout << "LDLT                 (%)  " << (results["LDLT"]/results["LLT"]).format(fmt) << "\n";
-  std::cout << "PartialPivLU         (%)  " << (results["PartialPivLU"]/results["LLT"]).format(fmt) << "\n";
-  std::cout << "FullPivLU            (%)  " << (results["FullPivLU"]/results["LLT"]).format(fmt) << "\n";
-  std::cout << "HouseholderQR        (%)  " << (results["HouseholderQR"]/results["LLT"]).format(fmt) << "\n";
-  std::cout << "ColPivHouseholderQR  (%)  " << (results["ColPivHouseholderQR"]/results["LLT"]).format(fmt) << "\n";
-  std::cout << "FullPivHouseholderQR (%)  " << (results["FullPivHouseholderQR"]/results["LLT"]).format(fmt) << "\n";
-  std::cout << "JacobiSVD            (%)  " << (results["JacobiSVD"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "solver/size                           " << small << "\t" << medium << "\t" << large << "\t" << xl << "\n";
+  std::cout << "LLT                             (ms)  " << (results["LLT"]/1000.).format(fmt) << "\n";
+  std::cout << "LDLT                             (%)  " << (results["LDLT"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "PartialPivLU                     (%)  " << (results["PartialPivLU"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "FullPivLU                        (%)  " << (results["FullPivLU"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "HouseholderQR                    (%)  " << (results["HouseholderQR"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "ColPivHouseholderQR              (%)  " << (results["ColPivHouseholderQR"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "CompleteOrthogonalDecomposition  (%)  " << (results["CompleteOrthogonalDecomposition"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "FullPivHouseholderQR             (%)  " << (results["FullPivHouseholderQR"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "JacobiSVD                        (%)  " << (results["JacobiSVD"]/results["LLT"]).format(fmt) << "\n";
+  std::cout << "BDCSVD                           (%)  " << (results["BDCSVD"]/results["LLT"]).format(fmt) << "\n";
 }

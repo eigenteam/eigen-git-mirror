@@ -59,6 +59,8 @@ namespace Eigen {
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TutorialMapClass
     \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialReshapeSlicing
+    \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TopicAliasing
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TopicStorageOrders

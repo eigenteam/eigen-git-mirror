@@ -18,15 +18,15 @@
 
 /** \defgroup Geometry_Module Geometry module
   *
-  *
-  *
   * This module provides support for:
   *  - fixed-size homogeneous transformations
   *  - translation, scaling, 2D and 3D rotations
-  *  - quaternions
-  *  - \ref MatrixBase::cross() "cross product"
-  *  - \ref MatrixBase::unitOrthogonal() "orthognal vector generation"
-  *  - some linear components: parametrized-lines and hyperplanes
+  *  - \link Quaternion quaternions \endlink
+  *  - cross products (\ref MatrixBase::cross, \ref MatrixBase::cross3)
+  *  - orthognal vector generation (\ref MatrixBase::unitOrthogonal)
+  *  - some linear components: \link ParametrizedLine parametrized-lines \endlink and \link Hyperplane hyperplanes \endlink
+  *  - \link AlignedBox axis aligned bounding boxes \endlink
+  *  - \link umeyama least-square transformation fitting \endlink
   *
   * \code
   * #include <Eigen/Geometry>

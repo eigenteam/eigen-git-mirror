@@ -1,0 +1,12 @@
+Each benchmark comes in 2 flavors: one that runs on CPU, and one that runs on GPU.
+
+To compile the floating point CPU benchmarks, simply call:
+g++ tensor_benchmarks_cpu.cc benchmark_main.cc -I ../../ -std=c++11 -O3 -DNDEBUG -pthread -mavx -o benchmarks_cpu
+
+To compile the floating point GPU benchmarks, simply call:
+nvcc tensor_benchmarks_gpu.cu benchmark_main.cc -I ../../ -std=c++11 -O2 -DNDEBUG -arch compute_35 -o benchmarks_gpu
+
+
+To compile the half float GPU benchmarks, simply call the command line below. You'll need a recent GPU that supports compute capability 5.3 or higher to run them and nvcc 7.5 or higher to compile the code.
+nvcc tensor_benchmarks_fp16_gpu.cu benchmark_main.cc -I ../../ -std=c++11 -O2 -DNDEBUG -arch compute_53 -o benchmarks_fp16_gpu
+

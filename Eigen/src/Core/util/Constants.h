@@ -56,8 +56,8 @@ const int HugeCost = 10000;
   * for a matrix, this means that the storage order is row-major.
   * If this bit is not set, the storage order is column-major.
   * For an expression, this determines the storage order of
-  * the matrix created by evaluation of that expression. 
-  * \sa \ref TopicStorageOrders */
+  * the matrix created by evaluation of that expression.
+  * \sa \blank  \ref TopicStorageOrders */
 const unsigned int RowMajorBit = 0x1;
 
 /** \ingroup flags
@@ -67,6 +67,7 @@ const unsigned int EvalBeforeNestingBit = 0x2;
 /** \ingroup flags
   * \deprecated
   * means the expression should be evaluated before any assignment */
+EIGEN_DEPRECATED
 const unsigned int EvalBeforeAssigningBit = 0x4; // FIXME deprecated
 
 /** \ingroup flags
@@ -158,7 +159,7 @@ const unsigned int DirectAccessBit = 0x40;
   * expression.packet<Aligned>(0);
   * \endcode
   */
-const unsigned int AlignedBit = 0x80;
+EIGEN_DEPRECATED const unsigned int AlignedBit = 0x80;
 
 const unsigned int NestByRefBit = 0x100;
 
@@ -168,7 +169,7 @@ const unsigned int NestByRefBit = 0x100;
   * can be either row-major or column-major.
   * The precise choice will be decided at evaluation time or when
   * combined with other expressions.
-  * \sa \ref RowMajorBit, \ref TopicStorageOrders */
+  * \sa \blank  \ref RowMajorBit, \ref TopicStorageOrders */
 const unsigned int NoPreferredStorageOrderBit = 0x200;
 
 /** \ingroup flags
@@ -187,8 +188,7 @@ const unsigned int CompressedAccessBit = 0x400;
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
-                                  | EvalBeforeNestingBit
-                                  | EvalBeforeAssigningBit;
+                                  | EvalBeforeNestingBit;
 
 /** \defgroup enums Enumerations
   * \ingroup Core_Module
@@ -224,7 +224,7 @@ enum {
 
 /** \ingroup enums
   * Enum for indicating whether a buffer is aligned or not. */
-enum { 
+enum {
   Unaligned=0,        /**< Data pointer has no specific alignment. */
   Aligned8=8,         /**< Data pointer is aligned on a 8 bytes boundary. */
   Aligned16=16,       /**< Data pointer is aligned on a 16 bytes boundary. */

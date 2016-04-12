@@ -177,7 +177,11 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
   return pset1<Packet4i>(0);
 }
 
-#ifdef __ARM_FEATURE_FMA
+// Clang/ARM wrongly advertises __ARM_FEATURE_FMA even when it's not available,
+// then implements a slow software scalar fallback calling fmaf()!
+// Filed LLVM bug:
+//     https://llvm.org/bugs/show_bug.cgi?id=27216
+#if (defined __ARM_FEATURE_FMA) && !(EIGEN_COMP_CLANG && EIGEN_ARCH_ARM)
 // See bug 936.
 // FMA is available on VFPv4 i.e. when compiling with -mfpu=neon-vfpv4.
 // FMA is a true fused multiply-add i.e. only 1 rounding at the end, no intermediate rounding.
@@ -186,7 +190,27 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
 // MLA: 10 GFlop/s ; FMA: 12 GFlops/s.
 template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vfmaq_f32(c,a,b); }
 #else
-template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vmlaq_f32(c,a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) {
+#if EIGEN_COMP_CLANG && EIGEN_ARCH_ARM
+  // Clang/ARM will replace VMLA by VMUL+VADD at least for some values of -mcpu,
+  // at least -mcpu=cortex-a8 and -mcpu=cortex-a7. Since the former is the default on
+  // -march=armv7-a, that is a very common case.
+  // See e.g. this thread:
+  //     http://lists.llvm.org/pipermail/llvm-dev/2013-December/068806.html
+  // Filed LLVM bug:
+  //     https://llvm.org/bugs/show_bug.cgi?id=27219
+  Packet4f r = c;
+  asm volatile(
+    "vmla.f32 %q[r], %q[a], %q[b]"
+    : [r] "+w" (r)
+    : [a] "w" (a),
+      [b] "w" (b)
+    : );
+  return r;
+#else
+  return vmlaq_f32(c,a,b);
+#endif
+}
 #endif
 
 // No FMA instruction for int, so use MLA unconditionally.
@@ -532,20 +556,21 @@ ptranspose(PacketBlock<Packet4i,4>& kernel) {
 
 #if EIGEN_ARCH_ARM64 && !EIGEN_APPLE_DOUBLE_NEON_BUG
 
-#if (EIGEN_COMP_GNUC_STRICT && defined(__ANDROID__)) || defined(__apple_build_version__)
 // Bug 907: workaround missing declarations of the following two functions in the ADK
-__extension__ static __inline uint64x2_t __attribute__ ((__always_inline__))
-vreinterpretq_u64_f64 (float64x2_t __a)
+// Defining these functions as templates ensures that if these intrinsics are
+// already defined in arm_neon.h, then our workaround doesn't cause a conflict
+// and has lower priority in overload resolution.
+template <typename T>
+uint64x2_t vreinterpretq_u64_f64(T a)
 {
-  return (uint64x2_t) __a;
+  return (uint64x2_t) a;
 }
 
-__extension__ static __inline float64x2_t __attribute__ ((__always_inline__))
-vreinterpretq_f64_u64 (uint64x2_t __a)
+template <typename T>
+float64x2_t vreinterpretq_f64_u64(T a)
 {
-  return (float64x2_t) __a;
+  return (float64x2_t) a;
 }
-#endif
 
 typedef float64x2_t Packet2d;
 typedef float64x1_t Packet1d;

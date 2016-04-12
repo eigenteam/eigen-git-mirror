@@ -103,21 +103,21 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
                      >::type ScalarWithConstIfNotLvalue;
 
     EIGEN_DEVICE_FUNC
-    inline ScalarWithConstIfNotLvalue* data() { return &(m_matrix.const_cast_derived().coeffRef(rowOffset(), colOffset())); }
+    inline ScalarWithConstIfNotLvalue* data() { return &(m_matrix.coeffRef(rowOffset(), colOffset())); }
     EIGEN_DEVICE_FUNC
-    inline const Scalar* data() const { return &(m_matrix.const_cast_derived().coeffRef(rowOffset(), colOffset())); }
+    inline const Scalar* data() const { return &(m_matrix.coeffRef(rowOffset(), colOffset())); }
 
     EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index row, Index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return m_matrix.const_cast_derived().coeffRef(row+rowOffset(), row+colOffset());
+      return m_matrix.coeffRef(row+rowOffset(), row+colOffset());
     }
 
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index row, Index) const
     {
-      return m_matrix.const_cast_derived().coeffRef(row+rowOffset(), row+colOffset());
+      return m_matrix.coeffRef(row+rowOffset(), row+colOffset());
     }
 
     EIGEN_DEVICE_FUNC
@@ -130,13 +130,13 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     inline Scalar& coeffRef(Index idx)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return m_matrix.const_cast_derived().coeffRef(idx+rowOffset(), idx+colOffset());
+      return m_matrix.coeffRef(idx+rowOffset(), idx+colOffset());
     }
 
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index idx) const
     {
-      return m_matrix.const_cast_derived().coeffRef(idx+rowOffset(), idx+colOffset());
+      return m_matrix.coeffRef(idx+rowOffset(), idx+colOffset());
     }
 
     EIGEN_DEVICE_FUNC
@@ -159,7 +159,7 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     }
 
   protected:
-    typename MatrixType::Nested m_matrix;
+    typename internal::ref_selector<MatrixType>::non_const_type m_matrix;
     const internal::variable_if_dynamicindex<Index, DiagIndex> m_index;
 
   private:

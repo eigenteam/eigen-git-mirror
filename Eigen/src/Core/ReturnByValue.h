@@ -13,11 +13,6 @@
 
 namespace Eigen {
 
-/** \class ReturnByValue
-  * \ingroup Core_Module
-  *
-  */
-
 namespace internal {
 
 template<typename Derived>
@@ -48,6 +43,10 @@ struct nested_eval<ReturnByValue<Derived>, n, PlainObject>
 
 } // end namespace internal
 
+/** \class ReturnByValue
+  * \ingroup Core_Module
+  *
+  */
 template<typename Derived> class ReturnByValue
   : public internal::dense_xpr_base< ReturnByValue<Derived> >::type, internal::no_assignment_operator
 {
