@@ -248,7 +248,7 @@ struct functor_traits<scalar_exp_op<Scalar> > {
      // double: 7 pmadd, 5 pmul, 3 padd/psub, 1 div,  13 other
      : (14 * NumTraits<Scalar>::AddCost +
         6 * NumTraits<Scalar>::MulCost +
-        NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)),
+        NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost))
 #else
     Cost =
     (sizeof(Scalar) == 4
