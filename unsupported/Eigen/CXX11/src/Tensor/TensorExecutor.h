@@ -147,104 +147,85 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
 // GPU: the evaluation of the expression is offloaded to a GPU.
 #if defined(EIGEN_USE_GPU)
 
-template <typename Expression>
-class TensorExecutor<Expression, GpuDevice, false> {
+template <typename Expression, bool Vectorizable>
+class TensorExecutor<Expression, GpuDevice, Vectorizable> {
  public:
   typedef typename Expression::Index Index;
-  static EIGEN_DEVICE_FUNC void run(const Expression& expr, const GpuDevice& device);
+  static void run(const Expression& expr, const GpuDevice& device);
 };
 
-template <typename Expression>
-class TensorExecutor<Expression, GpuDevice, true> {
- public:
-  typedef typename Expression::Index Index;
-  static EIGEN_DEVICE_FUNC void run(const Expression& expr, const GpuDevice& device);
-};
 
 #if defined(__CUDACC__)
+template <typename Evaluator, typename Index, bool Vectorizable>
+struct EigenMetaKernelEval {
+  static __device__ EIGEN_ALWAYS_INLINE
+  void run(Evaluator eval, Index first, Index last, Index step_size) {
+    for (Index i = first; i < last; i += step_size) {
+      eval.evalScalar(i);
+    }
+  }
+};
+
+template <typename Evaluator, typename Index>
+struct EigenMetaKernelEval<Evaluator, Index, true> {
+  static __device__ EIGEN_ALWAYS_INLINE
+  void run(Evaluator eval, Index first, Index last, Index step_size) {
+    const Index PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
+    const Index vectorized_size = (last / PacketSize) * PacketSize;
+    const Index vectorized_step_size = step_size * PacketSize;
+
+    // Use the vector path
+    for (Index i = first * PacketSize; i < vectorized_size;
+         i += vectorized_step_size) {
+      eval.evalPacket(i);
+    }
+    for (Index i = vectorized_size + first; i < last; i += step_size) {
+      eval.evalScalar(i);
+    }
+  }
+};
 
 template <typename Evaluator, typename Index>
 __global__ void
 __launch_bounds__(1024)
-EigenMetaKernel_NonVectorizable(Evaluator memcopied_eval, Index size) {
+EigenMetaKernel(Evaluator memcopied_eval, Index size) {
+
+  const Index first_index = blockIdx.x * blockDim.x + threadIdx.x;
+  const Index step_size = blockDim.x * gridDim.x;
+
   // Cuda memcopies the kernel arguments. That's fine for POD, but for more
   // complex types such as evaluators we should really conform to the C++
   // standard and call a proper copy constructor.
   Evaluator eval(memcopied_eval);
 
-  const Index first_index = blockIdx.x * blockDim.x + threadIdx.x;
-  const Index step_size = blockDim.x * gridDim.x;
-
-  // Use the scalar path
-  for (Index i = first_index; i < size; i += step_size) {
-    eval.evalScalar(i);
-  }
-}
-
-template <typename Evaluator, typename Index>
-__global__ void
-__launch_bounds__(1024)
-EigenMetaKernel_Vectorizable(Evaluator memcopied_eval, Index size) {
-  // Cuda memcopies the kernel arguments. That's fine for POD, but for more
-  // complex types such as evaluators we should really conform to the C++
-  // standard and call a proper copy constructor.
-  Evaluator eval(memcopied_eval);
-
-  const Index first_index = blockIdx.x * blockDim.x + threadIdx.x;
-  const Index step_size = blockDim.x * gridDim.x;
-
-  // Use the vector path
-  const Index PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
-  const Index vectorized_step_size = step_size * PacketSize;
-  const Index vectorized_size = (size / PacketSize) * PacketSize;
-  for (Index i = first_index * PacketSize; i < vectorized_size;
-       i += vectorized_step_size) {
-    eval.evalPacket(i);
-  }
-  for (Index i = vectorized_size + first_index; i < size; i += step_size) {
-    eval.evalScalar(i);
-  }
+  const bool vectorizable = Evaluator::PacketAccess & Evaluator::IsAligned;
+  EigenMetaKernelEval<Evaluator, Index, vectorizable>::run(eval, first_index, size, step_size);
 }
 
 /*static*/
-template <typename Expression>
-EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, false>::run(const Expression& expr, const GpuDevice& device)
-{
+template <typename Expression, bool Vectorizable>
+inline void TensorExecutor<Expression, GpuDevice, Vectorizable>::run(
+    const Expression& expr, const GpuDevice& device) {
   TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
-  if (needs_assign)
-  {
+  if (needs_assign) {
     const int block_size = device.maxCudaThreadsPerBlock();
-    const int max_blocks = numext::mini<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
+    const int max_blocks = device.getNumCudaMultiProcessors() *
+                           device.maxCudaThreadsPerMultiProcessor() / block_size;
     const Index size = array_prod(evaluator.dimensions());
-    // Create a least one block to ensure we won't crash if we're called with tensors of size 0.
+    // Create a least one block to ensure we won't crash when tensorflow calls with tensors of size 0.
     const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, (size + block_size - 1) / block_size), 1);
-    LAUNCH_CUDA_KERNEL((EigenMetaKernel_NonVectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
-  }
-  evaluator.cleanup();
-}
 
-
-/*static*/
-template<typename Expression>
-EIGEN_DEVICE_FUNC inline void TensorExecutor<Expression, GpuDevice, true>::run(const Expression& expr, const GpuDevice& device)
-{
-  TensorEvaluator<Expression, GpuDevice> evaluator(expr, device);
-  const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
-  if (needs_assign)
-  {
-    const int block_size = device.maxCudaThreadsPerBlock();
-    const int max_blocks = numext::mini<int>(device.maxBlocks(), device.getNumCudaMultiProcessors() * device.maxCudaThreadsPerMultiProcessor() / block_size);
-    const Index size = array_prod(evaluator.dimensions());
-    // Create a least one block to ensure we won't crash if we're called with tensors of size 0.
-    const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, (size + block_size - 1) / block_size), 1);
-    LAUNCH_CUDA_KERNEL((EigenMetaKernel_Vectorizable<TensorEvaluator<Expression, GpuDevice>, Index>), num_blocks, block_size, 0, device, evaluator, size);
+    LAUNCH_CUDA_KERNEL(
+        (EigenMetaKernel<TensorEvaluator<Expression, GpuDevice>, Index>),
+        num_blocks, block_size, 0, device, evaluator, size);
   }
   evaluator.cleanup();
 }
 
 #endif  // __CUDACC__
 #endif  // EIGEN_USE_GPU
+
 
 } // end namespace internal
 
