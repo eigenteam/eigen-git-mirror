@@ -410,8 +410,6 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   typedef Product<Lhs, Rhs, LazyProduct> XprType;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   explicit product_evaluator(const XprType& xpr)
@@ -437,16 +435,20 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
 
   typedef evaluator<LhsNestedCleaned> LhsEtorType;
   typedef evaluator<RhsNestedCleaned> RhsEtorType;
-  
+
   enum {
     RowsAtCompileTime = LhsNestedCleaned::RowsAtCompileTime,
     ColsAtCompileTime = RhsNestedCleaned::ColsAtCompileTime,
     InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(LhsNestedCleaned::ColsAtCompileTime, RhsNestedCleaned::RowsAtCompileTime),
     MaxRowsAtCompileTime = LhsNestedCleaned::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = RhsNestedCleaned::MaxColsAtCompileTime,
-      
-    PacketSize = packet_traits<Scalar>::size,
+    MaxColsAtCompileTime = RhsNestedCleaned::MaxColsAtCompileTime
+  };
 
+  typedef typename find_best_packet<Scalar,RowsAtCompileTime>::type LhsVecPacketType;
+  typedef typename find_best_packet<Scalar,ColsAtCompileTime>::type RhsVecPacketType;
+
+  enum {
+      
     LhsCoeffReadCost = LhsEtorType::CoeffReadCost,
     RhsCoeffReadCost = RhsEtorType::CoeffReadCost,
     CoeffReadCost = InnerSize==0 ? NumTraits<Scalar>::ReadCost
@@ -459,19 +461,23 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     LhsFlags = LhsEtorType::Flags,
     RhsFlags = RhsEtorType::Flags,
     
-    LhsAlignment = LhsEtorType::Alignment,
-    RhsAlignment = RhsEtorType::Alignment,
-    
     LhsRowMajor = LhsFlags & RowMajorBit,
     RhsRowMajor = RhsFlags & RowMajorBit,
+
+    LhsVecPacketSize = unpacket_traits<LhsVecPacketType>::size,
+    RhsVecPacketSize = unpacket_traits<RhsVecPacketType>::size,
+
+    //
+    LhsAlignment = EIGEN_PLAIN_ENUM_MIN(LhsEtorType::Alignment,LhsVecPacketSize*int(sizeof(typename LhsNestedCleaned::Scalar))),
+    RhsAlignment = EIGEN_PLAIN_ENUM_MIN(RhsEtorType::Alignment,RhsVecPacketSize*int(sizeof(typename RhsNestedCleaned::Scalar))),
       
     SameType = is_same<typename LhsNestedCleaned::Scalar,typename RhsNestedCleaned::Scalar>::value,
 
     CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
-                    && (ColsAtCompileTime == Dynamic || ((ColsAtCompileTime % PacketSize) == 0) ),
+                    && (ColsAtCompileTime == Dynamic || ((ColsAtCompileTime % RhsVecPacketSize) == 0) ),
 
     CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
-                    && (RowsAtCompileTime == Dynamic || ((RowsAtCompileTime % PacketSize) == 0) ),
+                    && (RowsAtCompileTime == Dynamic || ((RowsAtCompileTime % LhsVecPacketSize) == 0) ),
 
     EvalToRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                     : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
@@ -491,10 +497,10 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
               : 0,
 
     /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
-    * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
-    * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect
-    * the Flags, it is safe to make this value depend on ActualPacketAccessBit, that doesn't affect the ABI.
-    */
+     * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
+     * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect
+     * the Flags, it is safe to make this value depend on ActualPacketAccessBit, that doesn't affect the ABI.
+     */
     CanVectorizeInner =    SameType
                         && LhsRowMajor
                         && (!RhsRowMajor)
