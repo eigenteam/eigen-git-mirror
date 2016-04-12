@@ -718,7 +718,7 @@ void test_cuda_zeta()
   assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
 
   VERIFY_IS_EQUAL(out(0), expected_out(0));
-  VERIFY_IS_APPROX_OR_LESS_THAN(out(3), expected_out(3));
+  VERIFY((std::isnan)(out(3)));
 
   for (int i = 1; i < 6; ++i) {
     if (i != 3) {
