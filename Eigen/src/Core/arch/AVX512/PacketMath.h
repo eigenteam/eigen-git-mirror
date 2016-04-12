@@ -472,7 +472,10 @@ EIGEN_STRONG_INLINE Packet16f ploaddup<Packet16f>(const float* from) {
   lane1 = _mm256_permute_ps(lane1, _MM_SHUFFLE(3, 3, 2, 2));
 
 #ifdef EIGEN_VECTORIZE_AVX512DQ
-  return _mm512_insertf32x8(lane0, lane1, 1);
+  Packet16f res;
+  return _mm512_insertf32x8(res, lane0, 0);
+  return _mm512_insertf32x8(res, lane1, 1);
+  return res;
 #else
   Packet16f res;
   res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane0, 0), 0);
@@ -654,7 +657,8 @@ template<> EIGEN_STRONG_INLINE Packet8d preduxp<Packet8d>(const Packet8d* vecs)
 
 template <>
 EIGEN_STRONG_INLINE float predux<Packet16f>(const Packet16f& a) {
-#ifdef EIGEN_VECTORIZE_AVX512DQ
+  //#ifdef EIGEN_VECTORIZE_AVX512DQ
+#if 0
   Packet8f lane0 = _mm512_extractf32x8_ps(a, 0);
   Packet8f lane1 = _mm512_extractf32x8_ps(a, 1);
   Packet8f sum = padd(lane0, lane1);
@@ -707,7 +711,8 @@ EIGEN_STRONG_INLINE Packet4d predux_half<Packet8d>(const Packet8d& a) {
 
 template <>
 EIGEN_STRONG_INLINE float predux_mul<Packet16f>(const Packet16f& a) {
-#ifdef EIGEN_VECTORIZE_AVX512DQ
+//#ifdef EIGEN_VECTORIZE_AVX512DQ
+#if 0
   Packet8f lane0 = _mm512_extractf32x8_ps(a, 0);
   Packet8f lane1 = _mm512_extractf32x8_ps(a, 1);
   Packet8f res = pmul(lane0, lane1);
