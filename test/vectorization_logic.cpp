@@ -22,7 +22,11 @@ template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
-  bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
+  bool res = traits::Traversal==traversal;
+  if(unrolling==InnerUnrolling+CompleteUnrolling)
+    res = res && (traits::Unrolling==InnerUnrolling || traits::Unrolling==CompleteUnrolling);
+  else
+    res = res && traits::Unrolling==unrolling;
   if(!res)
   {
     std::cerr << "Src: " << demangle_flags(Src::Flags) << std::endl;
@@ -167,7 +171,19 @@ struct vectorization_logic
 
       VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
         DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
+
+      VERIFY(test_assign(Vector1(),Matrix11()*Vector1(),
+                         InnerVectorizedTraversal,CompleteUnrolling));
+
+      VERIFY(test_assign(Matrix11(),Matrix11().lazyProduct(Matrix11()),
+                         InnerVectorizedTraversal,InnerUnrolling+CompleteUnrolling));
     }
+
+    VERIFY(test_redux(Vector1(),
+      LinearVectorizedTraversal,CompleteUnrolling));
+
+    VERIFY(test_redux(Matrix<Scalar,PacketSize,3>(),
+      LinearVectorizedTraversal,CompleteUnrolling));
 
     VERIFY(test_redux(Matrix3(),
       LinearVectorizedTraversal,CompleteUnrolling));
@@ -226,6 +242,7 @@ struct vectorization_logic_half
     typedef Matrix<Scalar,PacketSize,1> Vector1;
     typedef Matrix<Scalar,PacketSize,PacketSize> Matrix11;
     typedef Matrix<Scalar,5*PacketSize,7,ColMajor> Matrix57;
+    typedef Matrix<Scalar,3*PacketSize,5,ColMajor> Matrix35;
     typedef Matrix<Scalar,5*PacketSize,7,DontAlign|ColMajor> Matrix57u;
 //     typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16> Matrix44;
 //     typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16,DontAlign|EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION> Matrix44u;
@@ -291,12 +308,24 @@ struct vectorization_logic_half
         
       VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
         DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
+
+      VERIFY(test_assign(Vector1(),Matrix11()*Vector1(),
+                         InnerVectorizedTraversal,CompleteUnrolling));
+
+      VERIFY(test_assign(Matrix11(),Matrix11().lazyProduct(Matrix11()),
+                         InnerVectorizedTraversal,InnerUnrolling+CompleteUnrolling));
     }
     
+    VERIFY(test_redux(Vector1(),
+      LinearVectorizedTraversal,CompleteUnrolling));
+
+    VERIFY(test_redux(Matrix<Scalar,PacketSize,3>(),
+      LinearVectorizedTraversal,CompleteUnrolling));
+
     VERIFY(test_redux(Matrix3(),
       LinearVectorizedTraversal,CompleteUnrolling));
 
-    VERIFY(test_redux(Matrix57(),
+    VERIFY(test_redux(Matrix35(),
       LinearVectorizedTraversal,CompleteUnrolling));
 
     VERIFY(test_redux(Matrix57().template block<PacketSize,3>(1,0),
