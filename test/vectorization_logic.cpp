@@ -24,9 +24,9 @@ bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
   typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
   bool res = traits::Traversal==traversal;
   if(unrolling==InnerUnrolling+CompleteUnrolling)
-    res = res && (traits::Unrolling==InnerUnrolling || traits::Unrolling==CompleteUnrolling);
+    res = res && (int(traits::Unrolling)==InnerUnrolling || int(traits::Unrolling)==CompleteUnrolling);
   else
-    res = res && traits::Unrolling==unrolling;
+    res = res && int(traits::Unrolling)==unrolling;
   if(!res)
   {
     std::cerr << "Src: " << demangle_flags(Src::Flags) << std::endl;
