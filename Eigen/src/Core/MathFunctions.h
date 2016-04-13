@@ -1025,21 +1025,6 @@ double log(const double &x) { return ::log(x); }
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-T tan(const T &x) {
-  EIGEN_USING_STD_MATH(tan);
-  return tan(x);
-}
-
-#ifdef __CUDACC__
-template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float tan(const float &x) { return ::tanf(x); }
-
-template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double tan(const double &x) { return ::tan(x); }
-#endif
-
-template<typename T>
-EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 typename NumTraits<T>::Real abs(const T &x) {
   EIGEN_USING_STD_MATH(abs);
   return abs(x);
@@ -1068,6 +1053,65 @@ template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double exp(const double &x) { return ::exp(x); }
 #endif
 
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T cos(const T &x) {
+  EIGEN_USING_STD_MATH(cos);
+  return cos(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float cos(const float &x) { return ::cosf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double cos(const double &x) { return ::cos(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T sin(const T &x) {
+  EIGEN_USING_STD_MATH(sin);
+  return sin(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float sin(const float &x) { return ::sinf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double sin(const double &x) { return ::sin(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T tan(const T &x) {
+  EIGEN_USING_STD_MATH(tan);
+  return tan(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float tan(const float &x) { return ::tanf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double tan(const double &x) { return ::tan(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T tanh(const T &x) {
+  EIGEN_USING_STD_MATH(tanh);
+  return tanh(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float tanh(const float &x) { return ::tanhf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double tanh(const double &x) { return ::tanh(x); }
+#endif
 
 template <typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
