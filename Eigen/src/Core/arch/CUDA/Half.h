@@ -424,13 +424,30 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrt(const Eigen::h
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half pow(const Eigen::half& a, const Eigen::half& b) {
   return Eigen::half(::powf(float(a), float(b)));
 }
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sin(const Eigen::half& a) {
+  return Eigen::half(::sinf(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half cos(const Eigen::half& a) {
+  return Eigen::half(::cosf(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half tan(const Eigen::half& a) {
+  return Eigen::half(::tanf(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half tanh(const Eigen::half& a) {
+  return Eigen::half(::tanhf(float(a)));
+}
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floor(const Eigen::half& a) {
   return Eigen::half(::floorf(float(a)));
 }
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ceil(const Eigen::half& a) {
   return Eigen::half(::ceilf(float(a)));
 }
-
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half erf(const Eigen::half& a) {
+  return Eigen::half(erff(float(a)));
+}
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half erfc(const Eigen::half& a) {
+  return Eigen::half(erfcf(float(a)));
+}
 } // end namespace numext
 
 } // end namespace Eigen
