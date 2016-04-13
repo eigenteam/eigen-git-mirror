@@ -350,7 +350,7 @@ template<typename MatrixType, int QRPreconditioner>
 struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, false>
 {
   typedef JacobiSVD<MatrixType, QRPreconditioner> SVD;
-  static void run(typename SVD::WorkMatrixType&, SVD&, Index, Index) {}
+  static bool run(typename SVD::WorkMatrixType&, SVD&, Index, Index, const typename MatrixType::RealScalar&) { return true; }
 };
 
 template<typename MatrixType, int QRPreconditioner>
@@ -359,7 +359,7 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
   typedef JacobiSVD<MatrixType, QRPreconditioner> SVD;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  static void run(typename SVD::WorkMatrixType& work_matrix, SVD& svd, Index p, Index q)
+  static bool run(typename SVD::WorkMatrixType& work_matrix, SVD& svd, Index p, Index q, const typename MatrixType::RealScalar& precision)
   {
     using std::sqrt;
     Scalar z;
@@ -368,7 +368,7 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
     
     if(n==0)
     {
-      // make sure firt column is zero (deflation)
+      // make sure first column is zero
       work_matrix.coeffRef(p,p) = work_matrix.coeffRef(q,p) = Scalar(0);
       if(work_matrix.coeff(p,q)!=Scalar(0))
       {
@@ -404,6 +404,12 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
         if(svd.computeU()) svd.m_matrixU.col(q) *= conj(z);
       }
     }
+
+    const RealScalar considerAsZero = RealScalar(2) * std::numeric_limits<RealScalar>::denorm_min();
+    RealScalar threshold = numext::maxi<RealScalar>(considerAsZero,
+                           precision * numext::maxi<RealScalar>(abs(work_matrix.coeff(p,p)), abs(work_matrix.coeff(q,q))));
+    // return true if we still have some work to do
+    return numext::abs(work_matrix(p,q)) > threshold || numext::abs(work_matrix(q,p)) > threshold;
   }
 };
 
@@ -735,18 +741,20 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         if(abs(m_workMatrix.coeff(p,q))>threshold || abs(m_workMatrix.coeff(q,p)) > threshold)
         {
           finished = false;
-
           // perform SVD decomposition of 2x2 sub-matrix corresponding to indices p,q to make it diagonal
-          internal::svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q);
-          JacobiRotation<RealScalar> j_left, j_right;
-          internal::real_2x2_jacobi_svd(m_workMatrix, p, q, &j_left, &j_right);
+          // the complex to real operation returns true is the updated 2x2 block is not already diagonal
+          if(internal::svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q, precision))
+          {
+            JacobiRotation<RealScalar> j_left, j_right;
+            internal::real_2x2_jacobi_svd(m_workMatrix, p, q, &j_left, &j_right);
 
-          // accumulate resulting Jacobi rotations
-          m_workMatrix.applyOnTheLeft(p,q,j_left);
-          if(computeU()) m_matrixU.applyOnTheRight(p,q,j_left.transpose());
+            // accumulate resulting Jacobi rotations
+            m_workMatrix.applyOnTheLeft(p,q,j_left);
+            if(computeU()) m_matrixU.applyOnTheRight(p,q,j_left.transpose());
 
-          m_workMatrix.applyOnTheRight(p,q,j_right);
-          if(computeV()) m_matrixV.applyOnTheRight(p,q,j_right);
+            m_workMatrix.applyOnTheRight(p,q,j_right);
+            if(computeV()) m_matrixV.applyOnTheRight(p,q,j_right);
+          }
         }
       }
     }
