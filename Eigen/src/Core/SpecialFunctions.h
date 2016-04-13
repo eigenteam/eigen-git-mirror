@@ -281,20 +281,18 @@ struct digamma_impl {
      */
 
     Scalar p, q, nz, s, w, y;
-    bool negative;
+    bool negative = false;
 
     const Scalar maxnum = NumTraits<Scalar>::infinity();
-    const Scalar m_pi = EIGEN_PI;
+    const Scalar m_pi(EIGEN_PI);
 
-    negative = 0;
-    nz = 0.0;
-
-    const Scalar zero = 0.0;
-    const Scalar one = 1.0;
-    const Scalar half = 0.5;
+    const Scalar zero = Scalar(0);
+    const Scalar one = Scalar(1);
+    const Scalar half = Scalar(0.5);
+    nz = zero;
 
     if (x <= zero) {
-      negative = one;
+      negative = true;
       q = x;
       p = numext::floor(q);
       if (p == q) {
@@ -463,7 +461,7 @@ template <typename Scalar>
 struct igammac_impl {
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
-    /*							igamc()
+    /*  igamc()
      *
      *	Incomplete gamma integral (modified for Eigen)
      *
@@ -618,7 +616,7 @@ template <typename Scalar>
 struct igamma_impl {
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
-    /*							igam()
+    /*	igam()
      *	Incomplete gamma integral
      *
      *
