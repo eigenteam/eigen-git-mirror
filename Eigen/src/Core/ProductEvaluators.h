@@ -1007,7 +1007,7 @@ struct transposition_matrix_product
     StorageIndex j = 0;
 
     const typename Dest::Scalar *dst_data = internal::extract_data(dst);
-    if(!(is_same<MatrixTypeCleaned,Dest>::value && dst_data == extract_data(mat)))
+    if(!(is_same<MatrixTypeCleaned,Dest>::value && dst_data!=0 && dst_data == extract_data(mat)))
       dst = mat;
 
     for(Index k=(Transposed?size-1:0) ; Transposed?k>=0:k<size ; Transposed?--k:++k)
