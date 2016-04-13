@@ -70,12 +70,18 @@ struct half : public __half {
 
   explicit EIGEN_DEVICE_FUNC half(bool b)
       : __half(internal::raw_uint16_to_half(b ? 0x3c00 : 0)) {}
+  explicit EIGEN_DEVICE_FUNC half(unsigned int ui)
+      : __half(internal::float_to_half_rtne(static_cast<float>(ui))) {}
   explicit EIGEN_DEVICE_FUNC half(int i)
       : __half(internal::float_to_half_rtne(static_cast<float>(i))) {}
+  explicit EIGEN_DEVICE_FUNC half(unsigned long ul)
+      : __half(internal::float_to_half_rtne(static_cast<float>(ul))) {}
   explicit EIGEN_DEVICE_FUNC half(long l)
       : __half(internal::float_to_half_rtne(static_cast<float>(l))) {}
   explicit EIGEN_DEVICE_FUNC half(long long ll)
       : __half(internal::float_to_half_rtne(static_cast<float>(ll))) {}
+  explicit EIGEN_DEVICE_FUNC half(unsigned long long ull)
+      : __half(internal::float_to_half_rtne(static_cast<float>(ull))) {}
   explicit EIGEN_DEVICE_FUNC half(float f)
       : __half(internal::float_to_half_rtne(f)) {}
   explicit EIGEN_DEVICE_FUNC half(double d)
