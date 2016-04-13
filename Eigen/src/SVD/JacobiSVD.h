@@ -368,9 +368,15 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
     
     if(n==0)
     {
-      z = abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
-      work_matrix.row(p) *= z;
-      if(svd.computeU()) svd.m_matrixU.col(p) *= conj(z);
+      // make sure firt column is zero (deflation)
+      work_matrix.coeffRef(p,p) = work_matrix.coeffRef(q,p) = Scalar(0);
+      if(work_matrix.coeff(p,q)!=Scalar(0))
+      {
+        // work_matrix.coeff(p,q) can be zero if work_matrix.coeff(q,p) is not zero but small enough to underflow when computing n
+        z = abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
+        work_matrix.row(p) *= z;
+        if(svd.computeU()) svd.m_matrixU.col(p) *= conj(z);
+      }
       if(work_matrix.coeff(q,q)!=Scalar(0))
       {
         z = abs(work_matrix.coeff(q,q)) / work_matrix.coeff(q,q);
