@@ -1100,6 +1100,82 @@ double tan(const double &x) { return ::tan(x); }
 
 template<typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T acos(const T &x) {
+  EIGEN_USING_STD_MATH(acos);
+  return acos(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float acos(const float &x) { return ::acosf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double acos(const double &x) { return ::acos(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T asin(const T &x) {
+  EIGEN_USING_STD_MATH(asin);
+  return asin(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float asin(const float &x) { return ::asinf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double asin(const double &x) { return ::asin(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T atan(const T &x) {
+  EIGEN_USING_STD_MATH(atan);
+  return atan(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float atan(const float &x) { return ::atanf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double atan(const double &x) { return ::atan(x); }
+#endif
+
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T cosh(const T &x) {
+  EIGEN_USING_STD_MATH(cosh);
+  return cosh(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float cosh(const float &x) { return ::coshf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double cosh(const double &x) { return ::cosh(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T sinh(const T &x) {
+  EIGEN_USING_STD_MATH(sinh);
+  return sinh(x);
+}
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float sinh(const float &x) { return ::sinhf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double sinh(const double &x) { return ::sinh(x); }
+#endif
+
+template<typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T tanh(const T &x) {
   EIGEN_USING_STD_MATH(tanh);
   return tanh(x);
