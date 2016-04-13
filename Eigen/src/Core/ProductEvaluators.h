@@ -467,7 +467,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     LhsVecPacketSize = unpacket_traits<LhsVecPacketType>::size,
     RhsVecPacketSize = unpacket_traits<RhsVecPacketType>::size,
 
-    //
+    // Here, we don't care about alignment larger than the usable packet size.
     LhsAlignment = EIGEN_PLAIN_ENUM_MIN(LhsEtorType::Alignment,LhsVecPacketSize*int(sizeof(typename LhsNestedCleaned::Scalar))),
     RhsAlignment = EIGEN_PLAIN_ENUM_MIN(RhsEtorType::Alignment,RhsVecPacketSize*int(sizeof(typename RhsNestedCleaned::Scalar))),
       
@@ -1006,7 +1006,8 @@ struct transposition_matrix_product
     const Index size = tr.size();
     StorageIndex j = 0;
 
-    if(!(is_same<MatrixTypeCleaned,Dest>::value && extract_data(dst) == extract_data(mat)))
+    const typename Dest::Scalar *dst_data = internal::extract_data(dst);
+    if(!(is_same<MatrixTypeCleaned,Dest>::value && dst_data == extract_data(mat)))
       dst = mat;
 
     for(Index k=(Transposed?size-1:0) ; Transposed?k>=0:k<size ; Transposed?--k:++k)
