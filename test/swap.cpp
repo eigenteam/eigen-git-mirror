@@ -74,10 +74,13 @@ template<typename MatrixType> void swap(const MatrixType& m)
   m1 = m1_copy;
   m3 = m3_copy;
   
-  // test assertion on mismatching size -- matrix case
-  VERIFY_RAISES_ASSERT(m1.swap(m1.row(0)));
-  // test assertion on mismatching size -- xpr case
-  VERIFY_RAISES_ASSERT(m1.row(0).swap(m1));
+  if(m1.rows()>1)
+  {
+    // test assertion on mismatching size -- matrix case
+    VERIFY_RAISES_ASSERT(m1.swap(m1.row(0)));
+    // test assertion on mismatching size -- xpr case
+    VERIFY_RAISES_ASSERT(m1.row(0).swap(m1));
+  }
 }
 
 void test_swap()
