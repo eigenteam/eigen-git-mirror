@@ -986,7 +986,7 @@ void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest
                 &m_sluStat, &info, Scalar());
   StatFree(&m_sluStat);
   
-  if(&x.coeffRef(0) != x_ref.data())
+  if(x.derived().data() != x_ref.data())
     x = x_ref;
 
   m_info = info==0 ? Success : NumericalIssue;
