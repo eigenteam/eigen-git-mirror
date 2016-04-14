@@ -116,6 +116,8 @@ if(EIGEN_TEST_CXX11)
   set(CMAKE_CXX_STANDARD 11)
 
   ei_add_test(cxx11_float16)
+  ei_add_test(cxx11_eventcount "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
+  ei_add_test(cxx11_runqueue "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_meta)
   ei_add_test(cxx11_tensor_simple)
 #  ei_add_test(cxx11_tensor_symmetry)

@@ -8,11 +8,11 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define EIGEN_USE_THREADS
 #include "main.h"
-
 #include <Eigen/CXX11/ThreadPool>
 
-static void test_basic_runqueue()
+void test_basic_runqueue()
 {
   RunQueue<int, 4> q;
   // Check empty state.
@@ -96,7 +96,7 @@ static void test_basic_runqueue()
 // 1 element (either front or back at random). So queue always contains at least
 // 1 element, but otherwise changes chaotically. Another thread constantly tests
 // that the queue is not claimed to be empty.
-static void test_empty_runqueue()
+void test_empty_runqueue()
 {
   RunQueue<int, 4> q;
   q.PushFront(1);
@@ -136,7 +136,7 @@ static void test_empty_runqueue()
 // Stress is a chaotic random test.
 // One thread (owner) calls PushFront/PopFront, other threads call PushBack/
 // PopBack. Ensure that we don't crash, deadlock, and all sanity checks pass.
-static void test_stress_runqueue()
+void test_stress_runqueue()
 {
   const int kEvents = 1 << 18;
   RunQueue<int, 8> q;
