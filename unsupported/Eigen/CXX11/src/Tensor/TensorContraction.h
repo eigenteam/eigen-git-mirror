@@ -440,6 +440,10 @@ struct TensorContractionEvaluatorBase
     return m_result[index];
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0);
+  }
+
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const {
     return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);

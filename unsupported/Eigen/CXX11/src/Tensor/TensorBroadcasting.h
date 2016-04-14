@@ -101,6 +101,9 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions InputDimensions;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -139,9 +142,6 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
       }
     }
   }
-
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -247,9 +247,8 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetColMajor(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     const Index originalIndex = index;
 
@@ -284,12 +283,12 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
     // Todo: this could be extended to the second dimension if we're not
     // broadcasting alongside the first dimension, and so on.
-    if (innermostLoc + packetSize <= m_impl.dimensions()[0]) {
+    if (innermostLoc + PacketSize <= m_impl.dimensions()[0]) {
       return m_impl.template packet<Unaligned>(inputIndex);
     } else {
-      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
       values[0] = m_impl.coeff(inputIndex);
-      for (int i = 1; i < packetSize; ++i) {
+      for (int i = 1; i < PacketSize; ++i) {
         values[i] = coeffColMajor(originalIndex+i);
       }
       PacketReturnType rslt = internal::pload<PacketReturnType>(values);
@@ -300,9 +299,8 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetRowMajor(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     const Index originalIndex = index;
 
@@ -337,12 +335,12 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
     // Todo: this could be extended to the second dimension if we're not
     // broadcasting alongside the first dimension, and so on.
-    if (innermostLoc + packetSize <= m_impl.dimensions()[NumDims-1]) {
+    if (innermostLoc + PacketSize <= m_impl.dimensions()[NumDims-1]) {
       return m_impl.template packet<Unaligned>(inputIndex);
     } else {
-      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+      EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
       values[0] = m_impl.coeff(inputIndex);
-      for (int i = 1; i < packetSize; ++i) {
+      for (int i = 1; i < PacketSize; ++i) {
         values[i] = coeffRowMajor(originalIndex+i);
       }
       PacketReturnType rslt = internal::pload<PacketReturnType>(values);
@@ -350,6 +348,29 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     }
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    double compute_cost = TensorOpCost::AddCost<Index>();
+    if (NumDims > 0) {
+      for (int i = NumDims - 1; i > 0; --i) {
+        compute_cost += TensorOpCost::DivCost<Index>();
+        if (internal::index_statically_eq<Broadcast>()(i, 1)) {
+          compute_cost +=
+              TensorOpCost::MulCost<Index>() + TensorOpCost::AddCost<Index>();
+        } else {
+          if (!internal::index_statically_eq<InputDimensions>()(i, 1)) {
+            compute_cost += TensorOpCost::MulCost<Index>() +
+                            TensorOpCost::ModCost<Index>() +
+                            TensorOpCost::AddCost<Index>();
+          }
+        }
+        compute_cost +=
+            TensorOpCost::MulCost<Index>() + TensorOpCost::AddCost<Index>();
+      }
+    }
+    return m_impl.costPerCoeff(vectorized) +
+           TensorOpCost(0, 0, compute_cost, vectorized, PacketSize);
+  }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 

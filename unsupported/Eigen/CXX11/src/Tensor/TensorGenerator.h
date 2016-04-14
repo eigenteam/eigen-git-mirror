@@ -145,6 +145,14 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     return rslt;
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    // TODO(rmlarsen): This is just a placeholder. Define interface to make
+    // generators return their cost.
+    return TensorOpCost(0, 0, TensorOpCost::AddCost<Scalar>() +
+                                  TensorOpCost::MulCost<Scalar>());
+  }
+
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
  protected:

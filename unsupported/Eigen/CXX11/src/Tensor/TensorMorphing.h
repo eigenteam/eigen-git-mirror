@@ -142,6 +142,10 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
     return m_impl.template packet<LoadMode>(index);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return m_impl.costPerCoeff(vectorized);
+  }
+
   EIGEN_DEVICE_FUNC Scalar* data() const { return const_cast<Scalar*>(m_impl.data()); }
 
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
@@ -448,6 +452,11 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
       return rslt;
     }
   }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, NumDims);
+  }
+
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
     Scalar* result = m_impl.data();

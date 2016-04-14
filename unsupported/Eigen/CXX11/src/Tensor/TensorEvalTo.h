@@ -88,6 +88,10 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   typedef TensorEvalToOp<ArgType> XprType;
   typedef typename ArgType::Scalar Scalar;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
+  typedef typename XprType::Index Index;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = true,
@@ -103,10 +107,6 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ~TensorEvaluator() {
   }
-
-  typedef typename XprType::Index Index;
-  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
@@ -136,6 +136,13 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return internal::ploadt<PacketReturnType, LoadMode>(m_buffer + index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    // We assume that evalPacket or evalScalar is called to perform the
+    // assignment and account for the cost of the write here.
+    return m_impl.costPerCoeff(vectorized) +
+        TensorOpCost(0, sizeof(CoeffReturnType), 0, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_buffer; }

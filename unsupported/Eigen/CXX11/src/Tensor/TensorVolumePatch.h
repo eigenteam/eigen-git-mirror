@@ -171,6 +171,9 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
   static const int NumDims = NumInputDims + 1;
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -336,9 +339,6 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
     }
   }
 
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
@@ -408,16 +408,15 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    const Index packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     if (m_in_row_strides != 1 || m_in_col_strides != 1 || m_row_inflate_strides != 1 || m_col_inflate_strides != 1 ||
         m_in_plane_strides != 1 || m_plane_inflate_strides != 1) {
       return packetWithPossibleZero(index);
     }
 
-    const Index indices[2] = {index, index + packetSize - 1};
+    const Index indices[2] = {index, index + PacketSize - 1};
     const Index patchIndex = indices[0] / m_fastPatchStride;
     if (patchIndex != indices[1] / m_fastPatchStride) {
       return packetWithPossibleZero(index);
@@ -495,6 +494,14 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
     return packetWithPossibleZero(index);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    const double compute_cost =
+        10 * TensorOpCost::DivCost<Index>() + 21 * TensorOpCost::MulCost<Index>() +
+        8 * TensorOpCost::AddCost<Index>();
+    return TensorOpCost(0, 0, compute_cost, vectorized, PacketSize);
+  }
+
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
@@ -518,9 +525,9 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetWithPossibleZero(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
-    for (int i = 0; i < packetSize; ++i) {
+    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+    for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);

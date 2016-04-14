@@ -411,6 +411,9 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device> Self;
   static const bool InputPacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -494,9 +497,6 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
-
-  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool evalSubExprsIfNeeded(CoeffReturnType* data) {
     m_impl.evalSubExprsIfNeeded(NULL);
@@ -584,16 +584,15 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index + packetSize - 1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index + PacketSize - 1 < dimensions().TotalSize());
 
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
     if (ReducingInnerMostDims) {
       const Index num_values_to_reduce =
 	(static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? m_preservedStrides[0] : m_preservedStrides[NumPreservedStrides - 1];
       const Index firstIndex = firstInput(index);
-      for (Index i = 0; i < packetSize; ++i) {
+      for (Index i = 0; i < PacketSize; ++i) {
         Op reducer(m_reducer);
         values[i] = internal::InnerMostDimReducer<Self, Op>::reduce(*this, firstIndex + i * num_values_to_reduce,
                                                                     num_values_to_reduce, reducer);
@@ -602,23 +601,35 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
       const Index firstIndex = firstInput(index);
       const int innermost_dim = (static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? 0 : NumOutputDims - 1;
       // TBD: extend this the the n innermost dimensions that we preserve.
-      if (((firstIndex % m_dimensions[innermost_dim]) + packetSize - 1) < m_dimensions[innermost_dim]) {
+      if (((firstIndex % m_dimensions[innermost_dim]) + PacketSize - 1) < m_dimensions[innermost_dim]) {
         Op reducer(m_reducer);
         typename Self::PacketReturnType accum = reducer.template initializePacket<typename Self::PacketReturnType>();
         internal::InnerMostDimPreserver<NumReducedDims-1, Self, Op>::reduce(*this, firstIndex, reducer, &accum);
         return reducer.finalizePacket(accum);
       } else {
-        for (int i = 0; i < packetSize; ++i) {
+        for (int i = 0; i < PacketSize; ++i) {
           values[i] = coeff(index + i);
         }
       }
     } else {
-      for (int i = 0; i < packetSize; ++i) {
+      for (int i = 0; i < PacketSize; ++i) {
         values[i] = coeff(index + i);
       }
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);
     return rslt;
+  }
+
+  // Must be called after evalSubExprsIfNeeded().
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    if (RunningFullReduction && m_result) {
+      return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
+    } else {
+      const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
+      const double compute_cost = num_values_to_reduce * internal::functor_traits<Op>::Cost;
+      return m_impl.costPerCoeff(vectorized) * num_values_to_reduce +
+          TensorOpCost(0, 0, compute_cost, vectorized, PacketSize);
+    }
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }

@@ -155,6 +155,10 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
     return m_impl.template packet<LoadMode>(index);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return m_impl.costPerCoeff(vectorized);
+  }
+
   EIGEN_DEVICE_FUNC Scalar* data() const { return m_impl.data(); }
 
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
