@@ -142,6 +142,12 @@ void test_basic_functions()
   VERIFY_IS_EQUAL(float(numext::abs(half(3.5f))), 3.5f);
   VERIFY_IS_EQUAL(float(numext::abs(half(-3.5f))), 3.5f);
 
+  VERIFY_IS_APPROX(float(numext::sqrt(half(0.0f))), 0.0f);
+  VERIFY_IS_APPROX(float(numext::sqrt(half(4.0f))), 2.0f);
+
+  VERIFY_IS_APPROX(float(numext::pow(half(0.0f), half(1.0f))), 0.0f);
+  VERIFY_IS_APPROX(float(numext::pow(half(2.0f), half(2.0f))), 4.0f);
+
   VERIFY_IS_EQUAL(float(numext::exp(half(0.0f))), 1.0f);
   VERIFY_IS_APPROX(float(numext::exp(half(EIGEN_PI))), float(20.0 + EIGEN_PI));
 
