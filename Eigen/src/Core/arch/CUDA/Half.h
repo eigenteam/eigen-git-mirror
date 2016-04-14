@@ -510,6 +510,11 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isfinite)(const Eigen::half& a
 
 namespace std {
 
+EIGEN_ALWAYS_INLINE ostream& operator << (ostream& os, const Eigen::half& v) {
+  os << static_cast<float>(v);
+  return os;
+}
+
 #if __cplusplus > 199711L
 template <>
 struct hash<Eigen::half> {
