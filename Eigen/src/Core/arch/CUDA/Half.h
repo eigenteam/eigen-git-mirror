@@ -510,7 +510,7 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isfinite)(const Eigen::half& a
 
 namespace std {
 
-ostream& operator << (ostream& os, const Eigen::half& v) {
+EIGEN_STRONG_INLINE ostream& operator << (ostream& os, const Eigen::half& v) {
   os << static_cast<float>(v);
   return os;
 }
