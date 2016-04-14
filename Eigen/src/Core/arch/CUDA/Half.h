@@ -442,6 +442,8 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floor(const Eigen::
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ceil(const Eigen::half& a) {
   return Eigen::half(::ceilf(float(a)));
 }
+
+#ifdef EIGEN_HAS_C99_MATH
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half lgamma(const Eigen::half& a) {
   return Eigen::half(Eigen::numext::lgamma(static_cast<float>(a)));
 }
@@ -466,7 +468,7 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igamma(const Eigen:
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igammac(const Eigen::half& a, const Eigen::half& x) {
   return Eigen::half(Eigen::numext::igammac(static_cast<float>(a), static_cast<float>(x)));
 }
-
+#endif
 } // end namespace numext
 
 } // end namespace Eigen
