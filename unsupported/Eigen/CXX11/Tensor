@@ -51,11 +51,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #ifdef EIGEN_USE_THREADS
-#include <atomic>
-#include <condition_variable>
-#include <deque>
-#include <mutex>
-#include <thread>
+#include "ThreadPool"
 #endif
 
 #ifdef EIGEN_USE_GPU
