@@ -10,7 +10,6 @@
 #ifndef EIGEN_CXX11_THREADPOOL_MODULE
 #define EIGEN_CXX11_THREADPOOL_MODULE
 
-//#include <Eigen/Core>
 #include "Core"
 
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
@@ -28,17 +27,9 @@
   * \endcode
   */
 
-//#include <vector>
 
-//#include "src/Core/util/EmulateArray.h"
-//#include "src/Core/util/MaxSizeVector.h"
-//#include "third_party/eigen3/Eigen/src/Core/util/Macros.h"
-
-
-// Emulate the cxx11 functionality that we need if the compiler doesn't support it.
-// Visual studio 2015 doesn't advertise itself as cxx11 compliant, although it
-// supports enough of the standard for our needs
-
+// The code depends on CXX11, so only include the module if the
+// compiler supports it.
 #if __cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900
 #include <cstddef>
 #include <cstring>
