@@ -122,6 +122,8 @@ void test_comparison()
   VERIFY(half(1.0f) != half(2.0f));
 
   // Comparisons with NaNs and infinities.
+#if !EIGEN_COMP_MSVC
+  // Visual Studio errors out on divisions by 0
   VERIFY(!(half(0.0 / 0.0) == half(0.0 / 0.0)));
   VERIFY(half(0.0 / 0.0) != half(0.0 / 0.0));
 
@@ -132,6 +134,7 @@ void test_comparison()
 
   VERIFY(half(1.0) < half(1.0 / 0.0));
   VERIFY(half(1.0) > half(-1.0 / 0.0));
+#endif
 }
 
 void test_functions()
