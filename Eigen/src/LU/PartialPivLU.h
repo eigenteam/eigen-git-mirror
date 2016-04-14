@@ -151,13 +151,13 @@ template<typename _MatrixType> class PartialPivLU
       return Solve<PartialPivLU, Rhs>(*this, b.derived());
     }
 
-    /** \returns an estimate of the reciprocal condition number of the matrix of which *this is
+    /** \returns an estimate of the reciprocal condition number of the matrix of which \c *this is
         the LU decomposition.
       */
     inline RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return ReciprocalConditionNumberEstimate(m_l1_norm, *this);
+      return internal::rcond_estimate_helper(m_l1_norm, *this);
     }
 
     /** \returns the inverse of the matrix of which *this is the LU decomposition.

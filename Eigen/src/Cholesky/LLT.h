@@ -136,13 +136,13 @@ template<typename _MatrixType, int _UpLo> class LLT
     LLT& compute(const EigenBase<InputType>& matrix);
 
     /** \returns an estimate of the reciprocal condition number of the matrix of
-     *  which *this is the Cholesky decomposition.
-     */
+      *  which \c *this is the Cholesky decomposition.
+      */
     RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
       eigen_assert(m_info == Success && "LLT failed because matrix appears to be negative");
-      return ReciprocalConditionNumberEstimate(m_l1_norm, *this);
+      return internal::rcond_estimate_helper(m_l1_norm, *this);
     }
 
     /** \returns the LLT decomposition matrix
@@ -169,10 +169,12 @@ template<typename _MatrixType, int _UpLo> class LLT
       return m_info;
     }
 
-    /** \returns the decomposition itself to allow generic code to do
-     *  llt.adjoint().solve(rhs).
-     */
-    const LLT<MatrixType, UpLo>& adjoint() const { return *this; };
+    /** \returns the adjoint of \c *this, that is, a const reference to the decomposition itself as the underlying matrix is self-adjoint.
+      *
+      * This method is provided for compatibility with other matrix decompositions, thus enabling generic code such as:
+      * \code x = decomposition.adjoint().solve(b) \endcode
+      */
+    const LLT& adjoint() const { return *this; };
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -411,22 +413,15 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
 
   // Compute matrix L1 norm = max abs column sum.
   m_l1_norm = RealScalar(0);
-  if (_UpLo == Lower) {
-    for (int col = 0; col < size; ++col) {
-      const RealScalar abs_col_sum = m_matrix.col(col).tail(size - col).template lpNorm<1>() +
-          m_matrix.row(col).head(col).template lpNorm<1>();
-      if (abs_col_sum > m_l1_norm) {
-        m_l1_norm = abs_col_sum;
-      }
-    }
-  } else {
-    for (int col = 0; col < a.cols(); ++col) {
-      const RealScalar abs_col_sum = m_matrix.col(col).head(col).template lpNorm<1>() +
-          m_matrix.row(col).tail(size - col).template lpNorm<1>();
-      if (abs_col_sum > m_l1_norm) {
-        m_l1_norm = abs_col_sum;
-      }
-    }
+  // TODO move this code to SelfAdjointView
+  for (Index col = 0; col < size; ++col) {
+    RealScalar abs_col_sum;
+    if (_UpLo == Lower)
+      abs_col_sum = m_matrix.col(col).tail(size - col).template lpNorm<1>() + m_matrix.row(col).head(col).template lpNorm<1>();
+    else
+      abs_col_sum = m_matrix.col(col).head(col).template lpNorm<1>() + m_matrix.row(col).tail(size - col).template lpNorm<1>();
+    if (abs_col_sum > m_l1_norm)
+      m_l1_norm = abs_col_sum;
   }
 
   m_isInitialized = true;
