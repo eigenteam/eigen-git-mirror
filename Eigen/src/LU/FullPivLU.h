@@ -231,6 +231,15 @@ template<typename _MatrixType> class FullPivLU
       return Solve<FullPivLU, Rhs>(*this, b.derived());
     }
 
+    /** \returns an estimate of the reciprocal condition number of the matrix of which *this is
+        the LU decomposition.
+      */
+    inline RealScalar rcond() const
+    {
+      eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
+      return ReciprocalConditionNumberEstimate(m_l1_norm, *this);
+    }
+
     /** \returns the determinant of the matrix of which
       * *this is the LU decomposition. It has only linear complexity
       * (that is, O(n) where n is the dimension of the square matrix)
@@ -410,6 +419,7 @@ template<typename _MatrixType> class FullPivLU
     IntColVectorType m_rowsTranspositions;
     IntRowVectorType m_colsTranspositions;
     Index m_det_pq, m_nonzero_pivots;
+    RealScalar m_l1_norm;
     RealScalar m_maxpivot, m_prescribedThreshold;
     bool m_isInitialized, m_usePrescribedThreshold;
 };
@@ -455,11 +465,12 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const EigenBase<InputType>
   // the permutations are stored as int indices, so just to be sure:
   eigen_assert(matrix.rows()<=NumTraits<int>::highest() && matrix.cols()<=NumTraits<int>::highest());
 
-  m_isInitialized = true;
   m_lu = matrix.derived();
+  m_l1_norm = m_lu.cwiseAbs().colwise().sum().maxCoeff();
 
   computeInPlace();
 
+  m_isInitialized = true;
   return *this;
 }
 

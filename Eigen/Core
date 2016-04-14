@@ -33,13 +33,13 @@
   #ifdef EIGEN_EXCEPTIONS
   #undef EIGEN_EXCEPTIONS
   #endif
-  
+
   // All functions callable from CUDA code must be qualified with __device__
   #define EIGEN_DEVICE_FUNC __host__ __device__
-  
+
 #else
   #define EIGEN_DEVICE_FUNC
-  
+
 #endif
 
 // When compiling CUDA device code with NVCC, pull in math functions from the
@@ -296,7 +296,7 @@ inline static const char *SimdInstructionSetsInUse(void) {
 // we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
 // ensure QNX/QCC support
 using std::size_t;
-// gcc 4.6.0 wants std:: for ptrdiff_t 
+// gcc 4.6.0 wants std:: for ptrdiff_t
 using std::ptrdiff_t;
 
 /** \defgroup Core_Module Core module
@@ -440,6 +440,7 @@ using std::ptrdiff_t;
 #include "src/Core/products/TriangularSolverVector.h"
 #include "src/Core/BandMatrix.h"
 #include "src/Core/CoreIterators.h"
+#include "src/Core/ConditionEstimator.h"
 
 #include "src/Core/BooleanRedux.h"
 #include "src/Core/Select.h"
