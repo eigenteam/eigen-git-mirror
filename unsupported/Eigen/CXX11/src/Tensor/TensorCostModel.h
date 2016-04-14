@@ -88,6 +88,13 @@ class TensorOpCost {
            compute_cost * compute_cycles_;
   }
 
+  // Drop memory access component. Intended for cases when memory accesses are
+  // sequential or are completely masked by computations.
+  EIGEN_DEVICE_FUNC void dropMemoryCost() {
+    bytes_loaded_ = 0;
+    bytes_stored_ = 0;
+  }
+
   // TODO(rmlarsen): Define min in terms of total cost, not elementwise.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost& cwiseMin(
       const TensorOpCost& rhs) {
@@ -155,24 +162,50 @@ class TensorOpCost {
 template <typename Device>
 class TensorCostModel {
  public:
-  // Costs in device cycles.
-  static const int kLoadCycles = 3;
-  static const int kStoreCycles = 3;
   // Scaling from Eigen compute cost to device cycles.
   static const int kDeviceCyclesPerComputeCycle = 1;
 
-  // Implements a simple "binary" policy: Return 1 if total cost is below
-  // kMinWorkToParallelize and max_threads otherwise.
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int numThreads(
+ // Costs in device cycles.
+  static const int kStartupCycles = 100000;
+  static const int kPerThreadCycles = 100000;
+  static const int kTaskSize = 40000;
+
+  // Returns the number of threads in [1:max_threads] to use for
+  // evaluating an expression with the given output size and cost per
+  // coefficient.
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int numThreads(
       double output_size, const TensorOpCost& cost_per_coeff, int max_threads) {
-    // Compute total cost C in device cycles.
-    const double total_cost =
-        output_size *
+    double cost = totalCost(output_size, cost_per_coeff);
+    int threads = (cost - kStartupCycles) / kPerThreadCycles + 0.9;
+    return numext::mini(max_threads, numext::maxi(1, threads));
+  }
+
+  // taskSize assesses parallel task size.
+  // Value of 1.0 means ideal parallel task size. Values < 1.0 mean that task
+  // granularity needs to be increased to mitigate parallelization overheads.
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double taskSize(
+      double output_size, const TensorOpCost& cost_per_coeff) {
+    return totalCost(output_size, cost_per_coeff) / kTaskSize;
+  }
+
+ private:
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double totalCost(
+      double output_size, const TensorOpCost& cost_per_coeff) {
+    // Cost of memory fetches from L2 cache. 64 is typical cache line size.
+    // 11 is L2 cache latency on Haswell.
+    // We don't know whether data is in L1, L2 or L3. But we are most interested
+    // in single-threaded computational time around 100us-10ms (smaller time
+    // is too small for parallelization, larger time is not intersting
+    // either because we are probably using all available threads already).
+    // And for the target time range, L2 seems to be what matters. Data set
+    // fitting into L1 is too small to take noticeable time. Data set fitting
+    // only into L3 presumably will take more than 10ms to load and process.
+    const double kLoadCycles = 1.0 / 64 * 11;
+    const double kStoreCycles = 1.0 / 64 * 11;
+    // Scaling from Eigen compute cost to device cycles.
+    return output_size *
         cost_per_coeff.total_cost(kLoadCycles, kStoreCycles,
                                   kDeviceCyclesPerComputeCycle);
-    // Smallest work unit to parallelize.
-    const double kMinParallelCost = 1e6;
-    return total_cost < kMinParallelCost ? 1 : max_threads;
   }
 };
 
