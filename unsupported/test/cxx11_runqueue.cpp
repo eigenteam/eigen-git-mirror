@@ -9,6 +9,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #define EIGEN_USE_THREADS
+#include <cstdlib>
 #include "main.h"
 #include <Eigen/CXX11/ThreadPool>
 
@@ -138,7 +139,7 @@ void test_empty_runqueue()
 // PopBack. Ensure that we don't crash, deadlock, and all sanity checks pass.
 void test_stress_runqueue()
 {
-  const int kEvents = 1 << 18;
+  static const int kEvents = 1 << 18;
   RunQueue<int, 8> q;
   std::atomic<int> total(0);
   std::vector<std::unique_ptr<std::thread>> threads;

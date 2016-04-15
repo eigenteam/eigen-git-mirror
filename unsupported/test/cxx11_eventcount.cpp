@@ -67,8 +67,8 @@ const int TestQueue::kQueueSize;
 static void test_stress_eventcount()
 {
   const int kThreads = std::thread::hardware_concurrency();
-  const int kEvents = 1 << 16;
-  const int kQueues = 10;
+  static const int kEvents = 1 << 16;
+  static const int kQueues = 10;
 
   std::vector<EventCount::Waiter> waiters(kThreads);
   EventCount ec(waiters);
