@@ -459,7 +459,6 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
   {
-    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     internal::Selector<PacketSize> select;
     for (Index i = 0; i < PacketSize; ++i) {
       select.select[i] = m_condImpl.coeff(index+i);
