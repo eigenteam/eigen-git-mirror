@@ -129,6 +129,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   typedef typename internal::conditional<FFTResultType == RealPart || FFTResultType == ImagPart, RealScalar, ComplexScalar>::type OutputScalar;
   typedef OutputScalar CoeffReturnType;
   typedef typename PacketType<OutputScalar, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -176,7 +177,6 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     }
   }
 
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     if (m_data) {
       m_device.deallocate(m_data);
@@ -189,9 +189,15 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     return m_data[index];
   }
 
-  template<int LoadMode>
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketReturnType packet(Index index) const {
+  template <int LoadMode>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketReturnType
+  packet(Index index) const {
     return internal::ploadt<PacketReturnType, LoadMode>(m_data + index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return m_data; }

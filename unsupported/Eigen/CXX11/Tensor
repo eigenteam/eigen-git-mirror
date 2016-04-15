@@ -26,6 +26,7 @@
   * \endcode
   */
 
+#include <cmath>
 #include <cstddef>
 #include <cstring>
 
@@ -80,6 +81,7 @@ typedef unsigned __int64 uint64_t;
 
 #include "src/Tensor/TensorBase.h"
 
+#include "src/Tensor/TensorCostModel.h"
 #include "src/Tensor/TensorEvaluator.h"
 #include "src/Tensor/TensorExpr.h"
 #include "src/Tensor/TensorReduction.h"
