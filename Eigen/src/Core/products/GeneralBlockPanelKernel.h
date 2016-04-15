@@ -109,7 +109,7 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
       ksub = Traits::mr * Traits::nr * sizeof(ResScalar),
       kr = 8,
       mr = Traits::mr,
-      nr = Traits::nr,
+      nr = Traits::nr
     };
     // Increasing k gives us more time to prefetch the content of the "C"
     // registers. However once the latency is hidden there is no point in
