@@ -440,7 +440,7 @@ struct TensorContractionEvaluatorBase
     return m_result[index];
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool) const {
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0);
   }
 

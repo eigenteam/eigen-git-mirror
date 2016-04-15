@@ -525,7 +525,6 @@ struct TensorEvaluator<const TensorVolumePatchOp<Planes, Rows, Cols, ArgType>, D
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetWithPossibleZero(Index index) const
   {
-    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
     for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
