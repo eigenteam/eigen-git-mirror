@@ -345,6 +345,22 @@ template<> struct functor_traits<scalar_boolean_or_op> {
 };
 
 /** \internal
+ * \brief Template functor to compute the xor of two booleans
+ *
+ * \sa class CwiseBinaryOp, ArrayBase::operator^
+ */
+struct scalar_boolean_xor_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_boolean_xor_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator() (const bool& a, const bool& b) const { return a ^ b; }
+};
+template<> struct functor_traits<scalar_boolean_xor_op> {
+  enum {
+    Cost = NumTraits<bool>::AddCost,
+    PacketAccess = false
+  };
+};
+
+/** \internal
   * \brief Template functor to compute the incomplete gamma function igamma(a, x)
   *
   * \sa class CwiseBinaryOp, Cwise::igamma
