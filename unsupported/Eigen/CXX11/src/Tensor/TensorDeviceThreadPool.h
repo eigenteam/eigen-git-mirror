@@ -128,6 +128,15 @@ struct ThreadPoolDevice {
     return num_threads_;
   }
 
+  EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
+    return l1CacheSize();
+  }
+
+  EIGEN_STRONG_INLINE size_t lastLevelCacheSize() const {
+    // The l3 cache size is shared between all the cores.
+    return l3CacheSize() / num_threads_;
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
     // Should return an enum that encodes the ISA supported by the CPU
     return 1;
