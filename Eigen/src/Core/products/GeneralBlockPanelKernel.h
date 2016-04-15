@@ -11,8 +11,8 @@
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
 
-namespace Eigen { 
-  
+namespace Eigen {
+
 namespace internal {
 
 template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
@@ -36,7 +36,7 @@ const std::ptrdiff_t defaultL3CacheSize = 512*1024;
 #endif
 
 /** \internal */
-struct CacheSizes { 
+struct CacheSizes {
   CacheSizes(): m_l1(-1),m_l2(-1),m_l3(-1) {
     int l1CacheSize, l2CacheSize, l3CacheSize;
     queryCacheSizes(l1CacheSize, l2CacheSize, l3CacheSize);
@@ -107,13 +107,9 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     enum {
       kdiv = KcFactor * (Traits::mr * sizeof(LhsScalar) + Traits::nr * sizeof(RhsScalar)),
       ksub = Traits::mr * Traits::nr * sizeof(ResScalar),
-      k_mask = -8,
-
+      kr = 8,
       mr = Traits::mr,
-      mr_mask = -mr,
-
       nr = Traits::nr,
-      nr_mask = -nr
     };
     // Increasing k gives us more time to prefetch the content of the "C"
     // registers. However once the latency is hidden there is no point in
@@ -121,7 +117,7 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     // experimentally).
     const Index k_cache = (std::min<Index>)((l1-ksub)/kdiv, 320);
     if (k_cache < k) {
-      k = k_cache & k_mask;
+      k = k_cache - (k_cache % kr);
       eigen_internal_assert(k > 0);
     }
 
@@ -130,10 +126,10 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     if (n_cache <= n_per_thread) {
       // Don't exceed the capacity of the l2 cache.
       eigen_internal_assert(n_cache >= static_cast<Index>(nr));
-      n = n_cache & nr_mask;
+      n = n_cache - (n_cache % nr);
       eigen_internal_assert(n > 0);
     } else {
-      n = (std::min<Index>)(n, (n_per_thread + nr - 1) & nr_mask);
+      n = (std::min<Index>)(n, (n_per_thread + nr - 1) - ((n_per_thread + nr - 1) % nr));
     }
 
     if (l3 > l2) {
@@ -141,10 +137,10 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
       const Index m_cache = (l3-l2) / (sizeof(LhsScalar) * k * num_threads);
       const Index m_per_thread = numext::div_ceil(m, num_threads);
       if(m_cache < m_per_thread && m_cache >= static_cast<Index>(mr)) {
-        m = m_cache & mr_mask;
+        m = m_cache - (m_cache % mr);
         eigen_internal_assert(m > 0);
       } else {
-        m = (std::min<Index>)(m, (m_per_thread + mr - 1) & mr_mask);
+        m = (std::min<Index>)(m, (m_per_thread + mr - 1) - ((m_per_thread + mr - 1) % mr));
       }
     }
   }
@@ -156,23 +152,23 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     l2 = 32*1024;
     l3 = 512*1024;
 #endif
-    
+
     // Early return for small problems because the computation below are time consuming for small problems.
     // Perhaps it would make more sense to consider k*n*m??
     // Note that for very tiny problem, this function should be bypassed anyway
     // because we use the coefficient-based implementation for them.
     if((std::max)(k,(std::max)(m,n))<48)
       return;
-    
+
     typedef typename Traits::ResScalar ResScalar;
     enum {
       k_peeling = 8,
       k_div = KcFactor * (Traits::mr * sizeof(LhsScalar) + Traits::nr * sizeof(RhsScalar)),
       k_sub = Traits::mr * Traits::nr * sizeof(ResScalar)
     };
-    
+
     // ---- 1st level of blocking on L1, yields kc ----
-    
+
     // Blocking on the third dimension (i.e., k) is chosen so that an horizontal panel
     // of size mr x kc of the lhs plus a vertical panel of kc x nr of the rhs both fits within L1 cache.
     // We also include a register-level block of the result (mx x nr).
@@ -187,12 +183,12 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
       //    while keeping the same number of sweeps over the result.
       k = (k%max_kc)==0 ? max_kc
                         : max_kc - k_peeling * ((max_kc-1-(k%max_kc))/(k_peeling*(k/max_kc+1)));
-                        
+
       eigen_internal_assert(((old_k/k) == (old_k/max_kc)) && "the number of sweeps has to remain the same");
     }
-    
+
     // ---- 2nd level of blocking on max(L2,L3), yields nc ----
-    
+
     // TODO find a reliable way to get the actual amount of cache per core to use for 2nd level blocking, that is:
     //      actual_l2 = max(l2, l3/nb_core_sharing_l3)
     // The number below is quite conservative: it is better to underestimate the cache size rather than overestimating it)
@@ -202,7 +198,7 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     #else
     const Index actual_l2 = 1572864; // == 1.5 MB
     #endif
-    
+
     // Here, nc is chosen such that a block of kc x nc of the rhs fit within half of L2.
     // The second half is implicitly reserved to access the result and lhs coefficients.
     // When k<max_kc, then nc can arbitrarily growth. In practice, it seems to be fruitful
