@@ -189,6 +189,11 @@ struct TensorEvaluator<const Derived, Device>
     return loadConstant(m_data+index);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
+                        internal::unpacket_traits<PacketReturnType>::size);
+  }
+
   EIGEN_DEVICE_FUNC const Scalar* data() const { return m_data; }
 
  protected:

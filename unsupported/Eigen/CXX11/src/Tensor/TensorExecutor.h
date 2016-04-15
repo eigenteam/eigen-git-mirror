@@ -59,9 +59,16 @@ class TensorExecutor<Expression, DefaultDevice, true>
     {
       const Index size = array_prod(evaluator.dimensions());
       const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
+      // Manually unroll this loop since compilers don't do it.
+      const Index UnrolledSize = (size / (4 * PacketSize)) * 4 * PacketSize;
+      for (Index i = 0; i < UnrolledSize; i += 4*PacketSize) {
+        evaluator.evalPacket(i);
+        evaluator.evalPacket(i+PacketSize);
+        evaluator.evalPacket(i+2*PacketSize);
+        evaluator.evalPacket(i+3*PacketSize);
+      }
       const Index VectorizedSize = (size / PacketSize) * PacketSize;
-
-      for (Index i = 0; i < VectorizedSize; i += PacketSize) {
+      for (Index i = UnrolledSize; i < VectorizedSize; i += PacketSize) {
         evaluator.evalPacket(i);
       }
       for (Index i = VectorizedSize; i < size; ++i) {
@@ -78,8 +85,9 @@ class TensorExecutor<Expression, DefaultDevice, true>
 #ifdef EIGEN_USE_THREADS
 template <typename Evaluator, typename Index, bool Vectorizable>
 struct EvalRange {
-  static void run(Evaluator evaluator, const Index first, const Index last) {
-    eigen_assert(last > first);
+  static void run(Evaluator* evaluator_in, const Index first, const Index last) {
+    Evaluator evaluator = *evaluator_in;
+    eigen_assert(last >= first);
     for (Index i = first; i < last; ++i) {
       evaluator.evalScalar(i);
     }
@@ -88,28 +96,34 @@ struct EvalRange {
 
 template <typename Evaluator, typename Index>
 struct EvalRange<Evaluator, Index, true> {
-  static void run(Evaluator evaluator, const Index first, const Index last) {
-    eigen_assert(last > first);
-
+  static void run(Evaluator* evaluator_in, const Index first, const Index last) {
+    Evaluator evaluator = *evaluator_in;
+    eigen_assert(last >= first);
     Index i = first;
-    static const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
+    const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
     if (last - first >= PacketSize) {
       eigen_assert(first % PacketSize == 0);
-      Index lastPacket = last - (last % PacketSize);
-      for (; i < lastPacket; i += PacketSize) {
+      Index last_chunk_offset = last - 4 * PacketSize;
+      // Manually unroll this loop since compilers don't do it.
+      for (; i <= last_chunk_offset; i += 4*PacketSize) {
+        evaluator.evalPacket(i);
+        evaluator.evalPacket(i+PacketSize);
+        evaluator.evalPacket(i+2*PacketSize);
+        evaluator.evalPacket(i+3*PacketSize);
+      }
+      last_chunk_offset = last - PacketSize;
+      for (; i <= last_chunk_offset; i += PacketSize) {
         evaluator.evalPacket(i);
       }
     }
-
     for (; i < last; ++i) {
       evaluator.evalScalar(i);
     }
   }
 };
 
-template<typename Expression, bool Vectorizable>
-class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
-{
+template <typename Expression, bool Vectorizable>
+class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
  public:
   typedef typename Expression::Index Index;
   static inline void run(const Expression& expr, const ThreadPoolDevice& device)
@@ -119,24 +133,34 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable>
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
+      const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
       const Index size = array_prod(evaluator.dimensions());
-
-      static const int PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
-
-      int blocksz = std::ceil<int>(static_cast<float>(size)/device.numThreads()) + PacketSize - 1;
-      const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
-      const unsigned int numblocks = static_cast<unsigned int>(size / blocksize);
-
-      Barrier barrier(numblocks);
-      for (unsigned int i = 0; i < numblocks; ++i) {
-        device.enqueue_with_barrier(&barrier, &EvalRange<Evaluator, Index, Vectorizable>::run, evaluator, i*blocksize, (i+1)*blocksize);
+      int num_threads = device.numThreads();
+#ifdef EIGEN_USE_COST_MODEL
+      if (num_threads > 1) {
+        num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
+            size, evaluator.costPerCoeff(Vectorizable), num_threads);
       }
+#endif
+      if (num_threads == 1) {
+        EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, 0, size);
+      } else {
+        Index blocksz = std::ceil<Index>(static_cast<float>(size)/num_threads) + PacketSize - 1;
+        const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
+        const Index numblocks = size / blocksize;
 
-      if (static_cast<Index>(numblocks) * blocksize < size) {
-        EvalRange<Evaluator, Index, Vectorizable>::run(evaluator, numblocks * blocksize, size);
+        Barrier barrier(numblocks);
+        for (int i = 0; i < numblocks; ++i) {
+          device.enqueue_with_barrier(
+              &barrier, &EvalRange<Evaluator, Index, Vectorizable>::run,
+              &evaluator, i * blocksize, (i + 1) * blocksize);
+        }
+        if (numblocks * blocksize < size) {
+          EvalRange<Evaluator, Index, Vectorizable>::run(
+              &evaluator, numblocks * blocksize, size);
+        }
+        barrier.Wait();
       }
-
-      barrier.Wait();
     }
     evaluator.cleanup();
   }
@@ -225,7 +249,6 @@ inline void TensorExecutor<Expression, GpuDevice, Vectorizable>::run(
 
 #endif  // __CUDACC__
 #endif  // EIGEN_USE_GPU
-
 
 } // end namespace internal
 
