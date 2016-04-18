@@ -13,6 +13,15 @@
 #include "main.h"
 #include <Eigen/CXX11/ThreadPool>
 
+
+#ifdef EIGEN_COMP_MSVC_STRICT
+// Visual studio doesn't implementan rand_r() function since its
+// implementation of rand()is already thread safe
+int rand_r(unsigned int*) {
+  return rand();
+}
+#endif
+
 void test_basic_runqueue()
 {
   RunQueue<int, 4> q;
