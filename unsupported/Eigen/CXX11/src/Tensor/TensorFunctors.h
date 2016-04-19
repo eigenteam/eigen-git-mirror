@@ -158,8 +158,8 @@ template <typename T> struct MeanReducer
   }
 
   protected:
-    int scalarCount_;
-    int packetCount_;
+    DenseIndex scalarCount_;
+    DenseIndex packetCount_;
 };
 
 template <typename T> struct MaxReducer
