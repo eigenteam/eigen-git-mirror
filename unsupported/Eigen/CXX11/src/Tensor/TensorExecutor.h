@@ -183,7 +183,7 @@ class TensorExecutor<Expression, GpuDevice, Vectorizable> {
 template <typename Evaluator, typename Index, bool Vectorizable>
 struct EigenMetaKernelEval {
   static __device__ EIGEN_ALWAYS_INLINE
-  void run(Evaluator eval, Index first, Index last, Index step_size) {
+  void run(Evaluator& eval, Index first, Index last, Index step_size) {
     for (Index i = first; i < last; i += step_size) {
       eval.evalScalar(i);
     }
