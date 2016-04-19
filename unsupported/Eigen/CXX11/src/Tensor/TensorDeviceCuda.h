@@ -291,14 +291,17 @@ struct GpuDevice {
   int max_blocks_;
 };
 
-#ifndef __CUDA_ARCH__
+#if !defined(__CUDA_ARCH__)
 #define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)             \
   (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);   \
   assert(cudaGetLastError() == cudaSuccess);
-#else
+#elif __CUDA_ARCH__ >= 350
 #define LAUNCH_CUDA_KERNEL(kernel, ...)                                                     \
   { const auto __attribute__((__unused__)) __makeTheKernelInstantiate = &(kernel); }        \
-  eigen_assert(false && "Cannot launch a kernel from another kernel" __CUDA_ARCH__);
+  eigen_assert(false && "Cannot launch a kernel from another kernel" __CUDA_ARCH__ kernel);
+#else
+#define LAUNCH_CUDA_KERNEL(kernel, ...)                                                     \
+  eigen_assert(false && "Cannot launch a kernel from another kernel" __CUDA_ARCH__ kernel);
 #endif
 
 
