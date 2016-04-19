@@ -47,6 +47,7 @@
 
 #include "src/ThreadPool/EventCount.h"
 #include "src/ThreadPool/RunQueue.h"
+#include "src/ThreadPool/ThreadLocal.h"
 #include "src/ThreadPool/ThreadPoolInterface.h"
 #include "src/ThreadPool/ThreadEnvironment.h"
 #include "src/ThreadPool/SimpleThreadPool.h"
