@@ -12,11 +12,14 @@
 #include "main.h"
 #include <Eigen/CXX11/ThreadPool>
 
+// Visual studio doesn't implement a rand_r() function since its
+// implementation of rand() is already thread safe
+int rand_reentrant(unsigned int* s) {
 #ifdef EIGEN_COMP_MSVC_STRICT
-// Visual studio doesn't implementan rand_r() function since its
-// implementation of rand()is already thread safe
-int rand_r(unsigned int*) {
   return rand();
+#else
+  return rand_r(s);
+endif
 }
 #endif
 
@@ -85,15 +88,15 @@ static void test_stress_eventcount()
   std::vector<std::unique_ptr<std::thread>> producers;
   for (int i = 0; i < kThreads; i++) {
     producers.emplace_back(new std::thread([&ec, &queues]() {
-      unsigned rnd = std::hash<std::thread::id>()(std::this_thread::get_id());
-      for (int i = 0; i < kEvents; i++) {
-        unsigned idx = rand_r(&rnd) % kQueues;
+      unsigned int rnd = static_cast<unsigned int>(std::hash<std::thread::id>()(std::this_thread::get_id()));
+      for (int j = 0; j < kEvents; j++) {
+        unsigned idx = rand_reentrant(&rnd) % kQueues;
         if (queues[idx].Push()) {
           ec.Notify(false);
           continue;
         }
         std::this_thread::yield();
-        i--;
+        j--;
       }
     }));
   }
@@ -102,11 +105,11 @@ static void test_stress_eventcount()
   for (int i = 0; i < kThreads; i++) {
     consumers.emplace_back(new std::thread([&ec, &queues, &waiters, i]() {
       EventCount::Waiter& w = waiters[i];
-      unsigned rnd = std::hash<std::thread::id>()(std::this_thread::get_id());
-      for (int i = 0; i < kEvents; i++) {
-        unsigned idx = rand_r(&rnd) % kQueues;
+      unsigned int rnd = static_cast<unsigned int>(std::hash<std::thread::id>()(std::this_thread::get_id()));
+      for (int j = 0; j < kEvents; k++) {
+        unsigned idx = rand_reentrant(&rnd) % kQueues;
         if (queues[idx].Pop()) continue;
-        i--;
+        j--;
         ec.Prewait(&w);
         bool empty = true;
         for (int q = 0; q < kQueues; q++) {

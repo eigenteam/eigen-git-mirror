@@ -14,11 +14,14 @@
 #include <Eigen/CXX11/ThreadPool>
 
 
+// Visual studio doesn't implement a rand_r() function since its
+// implementation of rand() is already thread safe
+int rand_reentrant(unsigned int* s) {
 #ifdef EIGEN_COMP_MSVC_STRICT
-// Visual studio doesn't implementan rand_r() function since its
-// implementation of rand()is already thread safe
-int rand_r(unsigned int*) {
   return rand();
+#else
+  return rand_r(s);
+endif
 }
 #endif
 
@@ -115,11 +118,11 @@ void test_empty_runqueue()
     unsigned rnd = 0;
     std::vector<int> stolen;
     for (int i = 0; i < 1 << 18; i++) {
-      if (rand_r(&rnd) % 2)
+      if (rand_reentrant(&rnd) % 2)
         VERIFY_IS_EQUAL(0, q.PushFront(1));
       else
         VERIFY_IS_EQUAL(0, q.PushBack(1));
-      if (rand_r(&rnd) % 2)
+      if (rand_reentrant(&rnd) % 2)
         VERIFY_IS_EQUAL(1, q.PopFront());
       else {
         for (;;) {
@@ -176,30 +179,30 @@ void test_stress_runqueue()
   for (int i = 0; i < 2; i++) {
     threads.emplace_back(new std::thread([&q, &total]() {
       int sum = 0;
-      for (int i = 1; i < kEvents; i++) {
-        if (q.PushBack(i) == 0) {
-          sum += i;
+      for (int j = 1; j < kEvents; j++) {
+        if (q.PushBack(j) == 0) {
+          sum += j;
           continue;
         }
         std::this_thread::yield();
-        i--;
+        j--;
       }
       total += sum;
     }));
     threads.emplace_back(new std::thread([&q, &total]() {
       int sum = 0;
       std::vector<int> stolen;
-      for (int i = 1; i < kEvents;) {
+      for (int j = 1; j < kEvents;) {
         if (q.PopBackHalf(&stolen) == 0) {
           std::this_thread::yield();
           continue;
         }
-        while (stolen.size() && i < kEvents) {
+        while (stolen.size() && j < kEvents) {
           int v = stolen.back();
           stolen.pop_back();
           VERIFY_IS_NOT_EQUAL(v, 0);
           sum += v;
-          i++;
+          j++;
         }
       }
       while (stolen.size()) {
