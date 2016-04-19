@@ -18,12 +18,12 @@
 // implementation of rand() is already thread safe
 int rand_reentrant(unsigned int* s) {
 #ifdef EIGEN_COMP_MSVC_STRICT
+  EIGEN_UNUSED_VARIABLE(s);
   return rand();
 #else
   return rand_r(s);
-endif
-}
 #endif
+}
 
 void test_basic_runqueue()
 {

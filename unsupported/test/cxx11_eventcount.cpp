@@ -16,12 +16,12 @@
 // implementation of rand() is already thread safe
 int rand_reentrant(unsigned int* s) {
 #ifdef EIGEN_COMP_MSVC_STRICT
+  EIGEN_UNUSED_VARIABLE(s);
   return rand();
 #else
   return rand_r(s);
-endif
-}
 #endif
+}
 
 static void test_basic_eventcount()
 {
@@ -106,7 +106,7 @@ static void test_stress_eventcount()
     consumers.emplace_back(new std::thread([&ec, &queues, &waiters, i]() {
       EventCount::Waiter& w = waiters[i];
       unsigned int rnd = static_cast<unsigned int>(std::hash<std::thread::id>()(std::this_thread::get_id()));
-      for (int j = 0; j < kEvents; k++) {
+      for (int j = 0; j < kEvents; j++) {
         unsigned idx = rand_reentrant(&rnd) % kQueues;
         if (queues[idx].Pop()) continue;
         j--;
