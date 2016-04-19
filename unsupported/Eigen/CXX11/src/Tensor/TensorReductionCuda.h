@@ -136,7 +136,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
     const int block_size = 256;
     const int num_per_thread = 128;
-    const int num_blocks = std::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
+    const int num_blocks = numext::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
 
     if (num_blocks > 1) {
       // We initialize the outputs outside the reduction kernel when we can't be sure that there
