@@ -126,11 +126,11 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename OutputType>
-  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const GpuDevice&, OutputType*) {
+  static void run(const Self&, Op&, const GpuDevice&, OutputType*) {
     assert(false && "Should only be called on floats");
   }
 
-  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
     typedef typename Self::Index Index;
 
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
@@ -226,12 +226,12 @@ struct InnerReducer<Self, Op, GpuDevice> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename Device, typename OutputType>
-  static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
+  static bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
     assert(false && "Should only be called to reduce floats on a gpu device");
     return true;
   }
 
-  static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+  static bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
 
     // It's faster to use the usual code.
@@ -305,12 +305,12 @@ struct OuterReducer<Self, Op, GpuDevice> {
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
 
   template <typename Device, typename OutputType>
-  static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
+  static bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
     assert(false && "Should only be called to reduce floats on a gpu device");
     return true;
   }
 
-  static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+  static bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
 
     // It's faster to use the usual code.

@@ -193,7 +193,7 @@ struct EigenMetaKernelEval {
 template <typename Evaluator, typename Index>
 struct EigenMetaKernelEval<Evaluator, Index, true> {
   static __device__ EIGEN_ALWAYS_INLINE
-  void run(Evaluator eval, Index first, Index last, Index step_size) {
+  void run(Evaluator& eval, Index first, Index last, Index step_size) {
     const Index PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
     const Index vectorized_size = (last / PacketSize) * PacketSize;
     const Index vectorized_step_size = step_size * PacketSize;
