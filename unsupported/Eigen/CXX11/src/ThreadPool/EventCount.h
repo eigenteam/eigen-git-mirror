@@ -81,7 +81,7 @@ class EventCount {
       if (int64_t((state & kEpochMask) - epoch) < 0) {
         // The preceeding waiter has not decided on its fate. Wait until it
         // calls either CancelWait or CommitWait, or is notified.
-        std::this_thread::yield();
+        EIGEN_THREAD_YIELD();
         state = state_.load(std::memory_order_seq_cst);
         continue;
       }
@@ -112,7 +112,7 @@ class EventCount {
       if (int64_t((state & kEpochMask) - epoch) < 0) {
         // The preceeding waiter has not decided on its fate. Wait until it
         // calls either CancelWait or CommitWait, or is notified.
-        std::this_thread::yield();
+        EIGEN_THREAD_YIELD();
         state = state_.load(std::memory_order_relaxed);
         continue;
       }
