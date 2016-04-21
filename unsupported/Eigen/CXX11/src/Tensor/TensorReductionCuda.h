@@ -134,9 +134,14 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
     typedef typename Self::Index Index;
 
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
+    // Don't crash when we're called with an input tensor of size 0.
+    if (num_coeffs == 0) {
+      return;
+    }
+
     const int block_size = 256;
     const int num_per_thread = 128;
-    const int num_blocks = numext::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
+    const int num_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
 
     if (num_blocks > 1) {
       // We initialize the outputs outside the reduction kernel when we can't be sure that there

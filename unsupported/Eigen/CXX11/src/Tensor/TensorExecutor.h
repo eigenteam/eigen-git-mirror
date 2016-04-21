@@ -238,7 +238,7 @@ inline void TensorExecutor<Expression, GpuDevice, Vectorizable>::run(
                            device.maxCudaThreadsPerMultiProcessor() / block_size;
     const Index size = array_prod(evaluator.dimensions());
     // Create a least one block to ensure we won't crash when tensorflow calls with tensors of size 0.
-    const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, (size + block_size - 1) / block_size), 1);
+    const int num_blocks = numext::maxi<int>(numext::mini<int>(max_blocks, divup<int>(size, block_size)), 1);
 
     LAUNCH_CUDA_KERNEL(
         (EigenMetaKernel<TensorEvaluator<Expression, GpuDevice>, Index>),
