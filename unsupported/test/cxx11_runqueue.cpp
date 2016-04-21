@@ -184,7 +184,7 @@ void test_stress_runqueue()
           sum += j;
           continue;
         }
-        std::this_thread::yield();
+        EIGEN_THREAD_YIELD();
         j--;
       }
       total += sum;
@@ -194,7 +194,7 @@ void test_stress_runqueue()
       std::vector<int> stolen;
       for (int j = 1; j < kEvents;) {
         if (q.PopBackHalf(&stolen) == 0) {
-          std::this_thread::yield();
+          EIGEN_THREAD_YIELD();
           continue;
         }
         while (stolen.size() && j < kEvents) {
@@ -209,7 +209,7 @@ void test_stress_runqueue()
         int v = stolen.back();
         stolen.pop_back();
         VERIFY_IS_NOT_EQUAL(v, 0);
-        while ((v = q.PushBack(v)) != 0) std::this_thread::yield();
+        while ((v = q.PushBack(v)) != 0) EIGEN_THREAD_YIELD();
       }
       total -= sum;
     }));
