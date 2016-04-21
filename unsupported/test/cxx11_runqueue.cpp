@@ -30,11 +30,11 @@ void test_basic_runqueue()
   RunQueue<int, 4> q;
   // Check empty state.
   VERIFY(q.Empty());
-  VERIFY_IS_EQUAL(0, q.Size());
+  VERIFY_IS_EQUAL(0u, q.Size());
   VERIFY_IS_EQUAL(0, q.PopFront());
   std::vector<int> stolen;
   VERIFY_IS_EQUAL(0, q.PopBackHalf(&stolen));
-  VERIFY_IS_EQUAL(0, stolen.size());
+  VERIFY_IS_EQUAL(0u, stolen.size());
   // Push one front, pop one front.
   VERIFY_IS_EQUAL(0, q.PushFront(1));
   VERIFY_IS_EQUAL(1, q.Size());

@@ -168,7 +168,7 @@ class RunQueue {
       // larger than it is during concurrent modifications. E.g. pop can
       // decrement size before the corresponding push has incremented it.
       // So the computed size can be up to kSize + 1, fix it.
-      if (size > kSize) size = kSize;
+      if (size > static_cast<int>(kSize)) size = kSize;
       return size;
     }
   }
