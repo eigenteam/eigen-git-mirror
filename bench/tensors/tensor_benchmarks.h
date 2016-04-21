@@ -201,9 +201,15 @@ template <typename Device, typename T> class BenchmarkSuite {
     size_b[1] = k_/2;
     TensorMap<Tensor<T, 2>, Eigen::Aligned> B(b_, size_b);
 
+#ifndef EIGEN_HAS_INDEX_LIST
     Eigen::array<TensorIndex, 2> strides;
     strides[0] = 1;
     strides[1] = 2;
+#else
+    // Take advantage of cxx11 to give the compiler information it can use to
+    // optimize the code.
+    Eigen::IndexList<Eigen::type2index<1>, Eigen::type2index<2> > strides;
+#endif
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
