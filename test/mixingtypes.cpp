@@ -148,10 +148,14 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX(sd*vd.adjoint()*mcd,  sd*vd.adjoint().template cast<CD>().eval()*mcd);
   VERIFY_IS_APPROX(scd*vd.adjoint()*mcd, scd*vd.adjoint().template cast<CD>().eval()*mcd);
 
-  VERIFY_IS_APPROX(sd*vcd.adjoint()*md.template triangularView<Upper>(),  sd*vcd.adjoint()*md.template cast<CD>().eval().template triangularView<Upper>());
+  VERIFY_IS_APPROX( sd*vcd.adjoint()*md.template triangularView<Upper>(),  sd*vcd.adjoint()*md.template cast<CD>().eval().template triangularView<Upper>());
   VERIFY_IS_APPROX(scd*vcd.adjoint()*md.template triangularView<Lower>(), scd*vcd.adjoint()*md.template cast<CD>().eval().template triangularView<Lower>());
-  VERIFY_IS_APPROX(sd*vd.adjoint()*mcd.template triangularView<Lower>(),  sd*vd.adjoint().template cast<CD>().eval()*mcd.template triangularView<Lower>());
+  VERIFY_IS_APPROX( sd*vcd.adjoint()*md.transpose().template triangularView<Upper>(),  sd*vcd.adjoint()*md.transpose().template cast<CD>().eval().template triangularView<Upper>());
+  VERIFY_IS_APPROX(scd*vcd.adjoint()*md.transpose().template triangularView<Lower>(), scd*vcd.adjoint()*md.transpose().template cast<CD>().eval().template triangularView<Lower>());
+  VERIFY_IS_APPROX( sd*vd.adjoint()*mcd.template triangularView<Lower>(),  sd*vd.adjoint().template cast<CD>().eval()*mcd.template triangularView<Lower>());
   VERIFY_IS_APPROX(scd*vd.adjoint()*mcd.template triangularView<Upper>(), scd*vd.adjoint().template cast<CD>().eval()*mcd.template triangularView<Upper>());
+  VERIFY_IS_APPROX( sd*vd.adjoint()*mcd.transpose().template triangularView<Lower>(),  sd*vd.adjoint().template cast<CD>().eval()*mcd.transpose().template triangularView<Lower>());
+  VERIFY_IS_APPROX(scd*vd.adjoint()*mcd.transpose().template triangularView<Upper>(), scd*vd.adjoint().template cast<CD>().eval()*mcd.transpose().template triangularView<Upper>());
 
   // Not supported yet: trmm
 //   VERIFY_IS_APPROX(sd*mcd*md.template triangularView<Lower>(),  sd*mcd*md.template cast<CD>().eval().template triangularView<Lower>());

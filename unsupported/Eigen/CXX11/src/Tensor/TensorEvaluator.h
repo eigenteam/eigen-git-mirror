@@ -189,6 +189,11 @@ struct TensorEvaluator<const Derived, Device>
     return loadConstant(m_data+index);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
+                        internal::unpacket_traits<PacketReturnType>::size);
+  }
+
   EIGEN_DEVICE_FUNC const Scalar* data() const { return m_data; }
 
  protected:
@@ -454,7 +459,6 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
   {
-    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     internal::Selector<PacketSize> select;
     for (Index i = 0; i < PacketSize; ++i) {
       select.select[i] = m_condImpl.coeff(index+i);

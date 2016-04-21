@@ -212,7 +212,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   }
 
   PerThread* GetPerThread() {
-    static thread_local PerThread per_thread_;
+    EIGEN_THREAD_LOCAL PerThread per_thread_;
     PerThread* pt = &per_thread_;
     if (pt->inited) return pt;
     pt->inited = true;

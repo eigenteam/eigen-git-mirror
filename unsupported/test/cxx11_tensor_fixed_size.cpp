@@ -20,6 +20,8 @@ static void test_0d()
   TensorFixedSize<float, Sizes<> > scalar1;
   TensorFixedSize<float, Sizes<>, RowMajor> scalar2;
   VERIFY_IS_EQUAL(scalar1.rank(), 0);
+  VERIFY_IS_EQUAL(scalar1.size(), 1);
+  VERIFY_IS_EQUAL(array_prod(scalar1.dimensions()), 1);
 
   scalar1() = 7.0;
   scalar2() = 13.0;

@@ -45,6 +45,8 @@
 #include <functional>
 #include <memory>
 
+#include "src/ThreadPool/ThreadLocal.h"
+#include "src/ThreadPool/ThreadYield.h"
 #include "src/ThreadPool/EventCount.h"
 #include "src/ThreadPool/RunQueue.h"
 #include "src/ThreadPool/ThreadPoolInterface.h"

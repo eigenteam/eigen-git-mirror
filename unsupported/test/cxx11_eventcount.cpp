@@ -12,6 +12,17 @@
 #include "main.h"
 #include <Eigen/CXX11/ThreadPool>
 
+// Visual studio doesn't implement a rand_r() function since its
+// implementation of rand() is already thread safe
+int rand_reentrant(unsigned int* s) {
+#ifdef EIGEN_COMP_MSVC_STRICT
+  EIGEN_UNUSED_VARIABLE(s);
+  return rand();
+#else
+  return rand_r(s);
+#endif
+}
+
 static void test_basic_eventcount()
 {
   std::vector<EventCount::Waiter> waiters(1);
@@ -67,8 +78,8 @@ const int TestQueue::kQueueSize;
 static void test_stress_eventcount()
 {
   const int kThreads = std::thread::hardware_concurrency();
-  const int kEvents = 1 << 16;
-  const int kQueues = 10;
+  static const int kEvents = 1 << 16;
+  static const int kQueues = 10;
 
   std::vector<EventCount::Waiter> waiters(kThreads);
   EventCount ec(waiters);
@@ -77,15 +88,15 @@ static void test_stress_eventcount()
   std::vector<std::unique_ptr<std::thread>> producers;
   for (int i = 0; i < kThreads; i++) {
     producers.emplace_back(new std::thread([&ec, &queues]() {
-      unsigned rnd = std::hash<std::thread::id>()(std::this_thread::get_id());
-      for (int i = 0; i < kEvents; i++) {
-        unsigned idx = rand_r(&rnd) % kQueues;
+      unsigned int rnd = static_cast<unsigned int>(std::hash<std::thread::id>()(std::this_thread::get_id()));
+      for (int j = 0; j < kEvents; j++) {
+        unsigned idx = rand_reentrant(&rnd) % kQueues;
         if (queues[idx].Push()) {
           ec.Notify(false);
           continue;
         }
         std::this_thread::yield();
-        i--;
+        j--;
       }
     }));
   }
@@ -94,11 +105,11 @@ static void test_stress_eventcount()
   for (int i = 0; i < kThreads; i++) {
     consumers.emplace_back(new std::thread([&ec, &queues, &waiters, i]() {
       EventCount::Waiter& w = waiters[i];
-      unsigned rnd = std::hash<std::thread::id>()(std::this_thread::get_id());
-      for (int i = 0; i < kEvents; i++) {
-        unsigned idx = rand_r(&rnd) % kQueues;
+      unsigned int rnd = static_cast<unsigned int>(std::hash<std::thread::id>()(std::this_thread::get_id()));
+      for (int j = 0; j < kEvents; j++) {
+        unsigned idx = rand_reentrant(&rnd) % kQueues;
         if (queues[idx].Pop()) continue;
-        i--;
+        j--;
         ec.Prewait(&w);
         bool empty = true;
         for (int q = 0; q < kQueues; q++) {
