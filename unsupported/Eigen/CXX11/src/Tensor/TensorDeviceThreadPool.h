@@ -14,7 +14,13 @@ namespace Eigen {
 
 // Use the SimpleThreadPool by default. We'll switch to the new non blocking
 // thread pool later.
+#ifdef EIGEN_USE_NONBLOCKING_THREAD_POOL
+template <typename Env> using ThreadPoolTempl = NonBlockingThreadPoolTempl<Env>;
+typedef NonBlockingThreadPool ThreadPool;
+#else
+template <typename Env> using ThreadPoolTempl = SimpleThreadPoolTempl<Env>;
 typedef SimpleThreadPool ThreadPool;
+#endif
 
 
 // Barrier is an object that allows one or more threads to wait until

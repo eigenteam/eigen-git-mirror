@@ -397,6 +397,10 @@ CompleteOrthogonalDecomposition<MatrixType>& CompleteOrthogonalDecomposition<
 
   const Index rank = m_cpqr.rank();
   const Index cols = matrix.cols();
+  const Index rows = matrix.rows();
+  m_zCoeffs.resize((std::min)(rows, cols));
+  m_temp.resize(cols);
+
   if (rank < cols) {
     // We have reduced the (permuted) matrix to the form
     //   [R11 R12]

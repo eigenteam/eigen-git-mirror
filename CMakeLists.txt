@@ -221,6 +221,12 @@ if(NOT MSVC)
     message(STATUS "Enabling FMA in tests/examples")
   endif()
 
+  option(EIGEN_TEST_F16C "Enable/Disable F16C in tests/examples" OFF)
+  if(EIGEN_TEST_F16C)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mf16c")
+    message(STATUS "Enabling F16C in tests/examples")
+  endif()
+
   option(EIGEN_TEST_ALTIVEC "Enable/Disable AltiVec in tests/examples" OFF)
   if(EIGEN_TEST_ALTIVEC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maltivec -mabi=altivec")

@@ -95,7 +95,7 @@ static void test_stress_eventcount()
           ec.Notify(false);
           continue;
         }
-        std::this_thread::yield();
+        EIGEN_THREAD_YIELD();
         j--;
       }
     }));

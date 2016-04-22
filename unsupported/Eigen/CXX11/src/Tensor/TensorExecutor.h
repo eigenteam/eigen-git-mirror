@@ -135,7 +135,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
     {
       const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
       const Index size = array_prod(evaluator.dimensions());
-      int num_threads = device.numThreads();
+      size_t num_threads = device.numThreads();
 #ifdef EIGEN_USE_COST_MODEL
       if (num_threads > 1) {
         num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
