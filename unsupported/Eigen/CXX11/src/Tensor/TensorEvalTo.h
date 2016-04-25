@@ -95,7 +95,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
 
   enum {
     IsAligned = true,
-    PacketAccess = true,
+    PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
     RawAccess = true
