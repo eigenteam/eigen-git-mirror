@@ -222,7 +222,7 @@ template<class T, std::size_t N> struct array_size<const array<T,N>& > {
 
 #else
 
-// The compiler supports c++11, and we're not targetting cuda: use std::array as Eigen array
+// The compiler supports c++11, and we're not targetting cuda: use std::array as Eigen::array
 #include <array>
 namespace Eigen {
 
@@ -263,9 +263,5 @@ template<class T, std::size_t N> struct array_size<std::array<T,N> > {
 }  // end namespace Eigen
 
 #endif
-
-
-
-
 
 #endif  // EIGEN_EMULATE_ARRAY_H

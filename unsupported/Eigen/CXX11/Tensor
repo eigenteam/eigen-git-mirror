@@ -11,10 +11,10 @@
 //#ifndef EIGEN_CXX11_TENSOR_MODULE
 //#define EIGEN_CXX11_TENSOR_MODULE
 
-#include "Core"
-
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
+#include "src/util/CXX11Meta.h"
+#include "src/util/MaxSizeVector.h"
 
 /** \defgroup CXX11_Tensor_Module Tensor Module
   *

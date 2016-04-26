@@ -10,8 +10,6 @@
 #ifndef EIGEN_CXX11_THREADPOOL_MODULE
 #define EIGEN_CXX11_THREADPOOL_MODULE
 
-#include "Core"
-
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
 /** \defgroup CXX11_ThreadPool_Module C++11 ThreadPool Module
@@ -44,6 +42,9 @@
 #include <thread>
 #include <functional>
 #include <memory>
+
+#include "src/util/CXX11Meta.h"
+#include "src/util/MaxSizeVector.h"
 
 #include "src/ThreadPool/ThreadLocal.h"
 #include "src/ThreadPool/ThreadYield.h"
