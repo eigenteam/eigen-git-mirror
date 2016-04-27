@@ -465,6 +465,25 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ceil(const Eigen::h
   return Eigen::half(::ceilf(float(a)));
 }
 
+template <> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half mini(const Eigen::half& a, const Eigen::half& b) {
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+  return __hlt(b, a) ? b : a;
+#else
+  const float f1 = static_cast<float>(a);
+  const float f2 = static_cast<float>(b);
+  return f2 < f1 ? b : a;
+#endif
+}
+template <> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half maxi(const Eigen::half& a, const Eigen::half& b) {
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+  return __hlt(a, b) ? b : a;
+#else
+  const float f1 = static_cast<float>(a);
+  const float f2 = static_cast<float>(b);
+  return f1 < f2 ? b : a;
+#endif
+}
+
 #ifdef EIGEN_HAS_C99_MATH
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half lgamma(const Eigen::half& a) {
   return Eigen::half(Eigen::numext::lgamma(static_cast<float>(a)));
