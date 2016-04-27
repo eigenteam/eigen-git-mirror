@@ -937,15 +937,6 @@ template<typename T> EIGEN_DEVICE_FUNC bool (isnan)   (const T &x) { return inte
 template<typename T> EIGEN_DEVICE_FUNC bool (isinf)   (const T &x) { return internal::isinf_impl(x); }
 template<typename T> EIGEN_DEVICE_FUNC bool (isfinite)(const T &x) { return internal::isfinite_impl(x); }
 
-template<typename T> EIGEN_DEVICE_FUNC int (fpclassify)(const T& x){
-  #ifdef __CUDA_ARCH__
-    return (::fpclassify)(x);
-  #else
-    using std::fpclassify;
-    return fpclassify(x);
-  #endif
-}
-
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(round, Scalar) round(const Scalar& x)
