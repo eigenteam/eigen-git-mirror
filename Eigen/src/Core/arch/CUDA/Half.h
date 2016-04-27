@@ -407,6 +407,28 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isnan)(const Eigen::half& a) 
 static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isfinite)(const Eigen::half& a) {
   return !(Eigen::numext::isinf)(a) && !(Eigen::numext::isnan)(a);
 }
+template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (fpclassify)(const Eigen::half& a) {
+  const int exponent = a.x & 0x7c00;
+  const int mantissa = a.x & 0x03ff;
+  if (exponent == 0) {
+    if (mantissa == 0) {
+      // Positive or negative zero.
+      return FP_ZERO;
+    } else {
+      return FP_SUBNORMAL;
+    }
+  } else if (exponent == 0x7c00) {
+    // Maximum possible exponent signifies either NaN or +/- inf.
+    if (mantissa == 0) {
+      return FP_INFINITE;
+    } else {
+      return FP_NAN;
+    }
+  } else {
+    return FP_NORMAL;
+  }
+}
+
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half abs(const Eigen::half& a) {
   Eigen::half result;
   result.x = a.x & 0x7FFF;
