@@ -374,7 +374,7 @@
 #if __cplusplus > 199711L && defined(__CUDACC_VER__) && (EIGEN_COMP_CLANG || __CUDACC_VER__ >= 70500)
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
-#elif __has_feature(cxx_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
+#elif __has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
     EIGEN_GNUC_AT_LEAST(4,8)
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
