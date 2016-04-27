@@ -159,7 +159,7 @@ int EIGEN_BLAS_FUNC(trsm)(const char *side, const char *uplo, const char *opa, c
     return 0;
 
   int code = OP(*opa) | (SIDE(*side) << 2) | (UPLO(*uplo) << 3) | (DIAG(*diag) << 4);
-  
+
   if(SIDE(*side)==LEFT)
   {
     internal::gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic,4> blocking(*m,*n,*m,1,false);
@@ -385,7 +385,7 @@ int EIGEN_BLAS_FUNC(syrk)(const char *uplo, const char *op, const int *n, const 
 
   int info = 0;
   if(UPLO(*uplo)==INVALID)                                            info = 1;
-  else if(OP(*op)==INVALID)                                           info = 2;
+  else if(OP(*op)==INVALID || (ISCOMPLEX && OP(*op)==ADJ) )           info = 2;
   else if(*n<0)                                                       info = 3;
   else if(*k<0)                                                       info = 4;
   else if(*lda<std::max(1,(OP(*op)==NOTR)?*n:*k))                     info = 7;
@@ -447,7 +447,7 @@ int EIGEN_BLAS_FUNC(syr2k)(const char *uplo, const char *op, const int *n, const
 
   int info = 0;
   if(UPLO(*uplo)==INVALID)                                            info = 1;
-  else if(OP(*op)==INVALID)                                           info = 2;
+  else if(OP(*op)==INVALID || (ISCOMPLEX && OP(*op)==ADJ) )           info = 2;
   else if(*n<0)                                                       info = 3;
   else if(*k<0)                                                       info = 4;
   else if(*lda<std::max(1,(OP(*op)==NOTR)?*n:*k))                     info = 7;
@@ -609,7 +609,7 @@ int EIGEN_BLAS_FUNC(herk)(const char *uplo, const char *op, const int *n, const 
     else
       if(beta==Scalar(0)) matrix(c, *n, *n, *ldc).triangularView<Lower>().setZero();
       else                matrix(c, *n, *n, *ldc).triangularView<StrictlyLower>() *= beta;
-  
+
     if(beta!=Scalar(0))
     {
       matrix(c, *n, *n, *ldc).diagonal().real() *= beta;
