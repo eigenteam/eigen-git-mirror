@@ -741,7 +741,6 @@ struct igamma_impl {
     const Scalar one = 1;
     const Scalar machep = igamma_helper<Scalar>::machep();
     const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
-    const Scalar nan = NumTraits<Scalar>::quiet_NaN();
 
     double ans, ax, c, r;
 
