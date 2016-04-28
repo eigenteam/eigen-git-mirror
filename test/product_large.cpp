@@ -71,7 +71,7 @@ void test_product_large()
     std::ptrdiff_t m1 = internal::random<int>(10,100)*16;
     std::ptrdiff_t n1 = internal::random<int>(10,100)*16;
     // only makes sure it compiles fine
-    internal::computeProductBlockingSizes<float,float>(k1,m1,n1,1);
+    internal::computeProductBlockingSizes<float,float,std::ptrdiff_t>(k1,m1,n1,1);
   }
 
   {
