@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
-// Copyright (C) 2010 Konstantinos Margaritis <markos@codex.gr>
+// Copyright (C) 2010 Konstantinos Margaritis <markos@freevec.org>
 // Heavily based on Gael's SSE version.
 //
 // This Source Code Form is subject to the terms of the Mozilla
