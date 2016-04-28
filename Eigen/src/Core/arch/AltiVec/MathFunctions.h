@@ -236,11 +236,6 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
 {
   Packet2d x = _x;
 
-  emm0 = _mm_add_epi32(emm0, p4i_1023_0);
-  emm0 = _mm_slli_epi32(emm0, 20);
-  emm0 = _mm_shuffle_epi32(emm0, _MM_SHUFFLE(1,2,0,3));
-  return pmax(pmul(x, Packet2d(_mm_castsi128_pd(emm0))), _x);
-
   Packet2d tmp, fx;
   Packet2l emm0;
 
