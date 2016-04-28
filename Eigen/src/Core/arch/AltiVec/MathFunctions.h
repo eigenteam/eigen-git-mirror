@@ -62,6 +62,7 @@ static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2f);
 static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1f);
 static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1f);
 
+#ifdef __VSX__
 static _EIGEN_DECLARE_CONST_Packet2d(1 , 1.0);
 static _EIGEN_DECLARE_CONST_Packet2d(2 , 2.0);
 static _EIGEN_DECLARE_CONST_Packet2d(half, 0.5);
@@ -82,7 +83,7 @@ static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q3, 2.00000000000000000009e0);
 
 static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C1, 0.693145751953125);
 static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C2, 1.42860682030941723212e-6);
-
+#endif
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f plog<Packet4f>(const Packet4f& _x)
