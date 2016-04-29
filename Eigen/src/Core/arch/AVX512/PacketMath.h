@@ -208,6 +208,17 @@ EIGEN_STRONG_INLINE Packet8d pmul<Packet8d>(const Packet8d& a,
   return _mm512_mul_pd(a, b);
 }
 
+template <>
+EIGEN_STRONG_INLINE Packet16f pdiv<Packet16f>(const Packet16f& a,
+                                              const Packet16f& b) {
+  return _mm512_div_ps(a, b);
+}
+template <>
+EIGEN_STRONG_INLINE Packet8d pdiv<Packet8d>(const Packet8d& a,
+                                            const Packet8d& b) {
+  return _mm512_div_pd(a, b);
+}
+
 #ifdef __FMA__
 template <>
 EIGEN_STRONG_INLINE Packet16f pmadd(const Packet16f& a, const Packet16f& b,
