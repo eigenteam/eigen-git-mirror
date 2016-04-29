@@ -54,14 +54,17 @@ template<> struct packet_traits<float>  : default_packet_traits
     AlignedOnScalar = 1,
     size = 16,
     HasHalfPacket = 1,
-    HasLog = 1,
-    HasExp = 1,
     HasDiv = 1,
-    HasBlend = 1,
+    HasBlend = 0,
+#if EIGEN_GNUC_AT_LEAST(5, 3)
+#ifdef EIGEN_VECTORIZE_AVX512DQ
+    HasLog = 1,
+#endif
+    HasExp = 1,
     HasSqrt = 1,
     HasRsqrt = 1,
-    HasSelect = 1,
-    HasEq = 1
+#endif
+    HasSelect = 1
   };
  };
 template<> struct packet_traits<double> : default_packet_traits
@@ -73,13 +76,11 @@ template<> struct packet_traits<double> : default_packet_traits
     AlignedOnScalar = 1,
     size = 8,
     HasHalfPacket = 1,
-    HasExp = 0,
-    HasDiv = 1,
-    HasBlend = 1,
+#if EIGEN_GNUC_AT_LEAST(5, 3)
     HasSqrt = 1,
     HasRsqrt = EIGEN_FAST_MATH,
-    HasSelect = 1,
-    HasEq = 1
+#endif
+
   };
 };
 

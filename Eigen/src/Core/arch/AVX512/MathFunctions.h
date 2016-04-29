@@ -14,6 +14,9 @@ namespace Eigen {
 
 namespace internal {
 
+// Disable the code for older versions of gcc that don't support many of the required avx512 instrinsics.
+#if EIGEN_GNUC_AT_LEAST(5, 3)
+
 #define _EIGEN_DECLARE_CONST_Packet16f(NAME, X) \
   const Packet16f p16f_##NAME = pset1<Packet16f>(X)
 
@@ -30,6 +33,7 @@ namespace internal {
 // Computes log(x) as log(2^e * m) = C*e + log(m), where the constant C =log(2)
 // and m is in the range [sqrt(1/2),sqrt(2)). In this range, the logarithm can
 // be easily approximated by a polynomial centered on m=1 for stability.
+#if defined(EIGEN_VECTORIZE_AVX512DQ)
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet16f
 plog<Packet16f>(const Packet16f& _x) {
@@ -118,6 +122,7 @@ plog<Packet16f>(const Packet16f& _x) {
   return _mm512_mask_blend_ps(iszero_mask, p16f_minus_inf,
                               _mm512_mask_blend_ps(invalid_mask, p16f_nan, x));
 }
+#endif
 
 // Exponential function. Works by writing "x = m*log(2) + r" where
 // "m = floor(x/log(2)+1/2)" and "r" is the remainder. The result is then
@@ -381,6 +386,7 @@ template <>
 EIGEN_STRONG_INLINE Packet16f prsqrt<Packet16f>(const Packet16f& x) {
   return _mm512_rsqrt28_ps(x);
 }
+#endif
 #endif
 
 }  // end namespace internal
