@@ -221,17 +221,16 @@ if(NOT MSVC)
     message(STATUS "Enabling FMA in tests/examples")
   endif()
 
-<<<<<<< local
   option(EIGEN_TEST_AVX512 "Enable/Disable AVX512 in tests/examples" OFF)
   if(EIGEN_TEST_AVX512)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -mavx512dq")
     message(STATUS "Enabling AVX512 in tests/examples")
-=======
+  endif()
+
   option(EIGEN_TEST_F16C "Enable/Disable F16C in tests/examples" OFF)
   if(EIGEN_TEST_F16C)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mf16c")
     message(STATUS "Enabling F16C in tests/examples")
->>>>>>> other
   endif()
 
   option(EIGEN_TEST_ALTIVEC "Enable/Disable AltiVec in tests/examples" OFF)
