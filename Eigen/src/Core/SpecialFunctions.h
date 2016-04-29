@@ -549,7 +549,7 @@ struct igammac_impl {
    *   x >= 1
    *   x >= a
    */
-  static Scalar Impl(Scalar a, Scalar x) {
+  EIGEN_DEVICE_FUNC static Scalar Impl(Scalar a, Scalar x) {
     const Scalar zero = 0;
     const Scalar one = 1;
     const Scalar two = 2;
@@ -736,7 +736,7 @@ struct igamma_impl {
    *   a > 0
    *   !(x > 1 && x > a)
    */
-  static Scalar Impl(Scalar a, Scalar x) {
+  EIGEN_DEVICE_FUNC static Scalar Impl(Scalar a, Scalar x) {
     const Scalar zero = 0;
     const Scalar one = 1;
     const Scalar machep = igamma_helper<Scalar>::machep();
