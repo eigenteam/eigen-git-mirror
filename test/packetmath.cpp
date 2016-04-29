@@ -148,6 +148,14 @@ template<typename Scalar> void packetmath()
     else if (offset==5) internal::palign<5>(packets[0], packets[1]);
     else if (offset==6) internal::palign<6>(packets[0], packets[1]);
     else if (offset==7) internal::palign<7>(packets[0], packets[1]);
+    else if (offset==8) internal::palign<8>(packets[0], packets[1]);
+    else if (offset==9) internal::palign<9>(packets[0], packets[1]);
+    else if (offset==10) internal::palign<10>(packets[0], packets[1]);
+    else if (offset==11) internal::palign<11>(packets[0], packets[1]);
+    else if (offset==12) internal::palign<12>(packets[0], packets[1]);
+    else if (offset==13) internal::palign<13>(packets[0], packets[1]);
+    else if (offset==14) internal::palign<14>(packets[0], packets[1]);
+    else if (offset==15) internal::palign<15>(packets[0], packets[1]);
     internal::pstore(data2, packets[0]);
 
     for (int i=0; i<PacketSize; ++i)
