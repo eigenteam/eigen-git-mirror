@@ -110,12 +110,17 @@ ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(kronecker_product)
 
+# TODO: The following tests are prefix with the cxx11 string, since historically
+# they depended on c++11. This isn't the case anymore so we ought to rename them.
+ei_add_test(cxx11_float16)
+ei_add_test(cxx11_tensor_forced_eval)
+
+
 if(EIGEN_TEST_CXX11)
   # It should be safe to always run these tests as there is some fallback code for
   # older compiler that don't support cxx11.
   set(CMAKE_CXX_STANDARD 11)
 
-  ei_add_test(cxx11_float16)
   ei_add_test(cxx11_eventcount "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_runqueue "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_meta)
@@ -130,7 +135,6 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_convolution)
   ei_add_test(cxx11_tensor_expr)
   ei_add_test(cxx11_tensor_math)
-  ei_add_test(cxx11_tensor_forced_eval)
   ei_add_test(cxx11_tensor_fixed_size)
   ei_add_test(cxx11_tensor_const)
   ei_add_test(cxx11_tensor_of_const_values)
