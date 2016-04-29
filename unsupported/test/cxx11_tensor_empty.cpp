@@ -24,10 +24,10 @@ static void test_empty_tensor()
 
 static void test_empty_fixed_size_tensor()
 {
-  TensorFixedSize<float, Sizes<0>> source;
-  TensorFixedSize<float, Sizes<0>> tgt1 = source;
-  TensorFixedSize<float, Sizes<0>> tgt2(source);
-  TensorFixedSize<float, Sizes<0>> tgt3;
+  TensorFixedSize<float, Sizes<0> > source;
+  TensorFixedSize<float, Sizes<0> > tgt1 = source;
+  TensorFixedSize<float, Sizes<0> > tgt2(source);
+  TensorFixedSize<float, Sizes<0> > tgt3;
   tgt3 = tgt1;
   tgt3 = tgt2;
 }
