@@ -64,7 +64,8 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasSqrt = 1,
     HasRsqrt = 1,
 #endif
-    HasSelect = 1
+    HasSelect = 1,
+    HasEq = 1
   };
  };
 template<> struct packet_traits<double> : default_packet_traits
@@ -76,11 +77,13 @@ template<> struct packet_traits<double> : default_packet_traits
     AlignedOnScalar = 1,
     size = 8,
     HasHalfPacket = 1,
-#if EIGEN_GNUC_AT_LEAST(5, 3)
+    HasExp = 0,
+    HasDiv = 1,
+    HasBlend = 1,
     HasSqrt = 1,
     HasRsqrt = EIGEN_FAST_MATH,
-#endif
-
+    HasSelect = 1,
+    HasEq = 1
   };
 };
 
@@ -628,23 +631,24 @@ EIGEN_STRONG_INLINE int pfirst<Packet16i>(const Packet16i& a) {
 
 template<> EIGEN_STRONG_INLINE Packet16f preverse(const Packet16f& a)
 {
-  assert(false && "To be implemented");
+  return _mm512_permutexvar_ps(_mm512_set_epi32(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15), a);
 }
 
 template<> EIGEN_STRONG_INLINE Packet8d preverse(const Packet8d& a)
 {
-  assert(false && "To be implemented");
+  return _mm512_permutexvar_pd(_mm512_set_epi32(0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7), a);
 }
 
 template<> EIGEN_STRONG_INLINE Packet16f pabs(const Packet16f& a)
 {
-  assert(false && "to be implemented");
-  //  return _mm512_abs_ps(a);
+  // _mm512_abs_ps intrinsic not found, so hack around it
+  return (__m512)_mm512_and_si512((__m512i)a, _mm512_set1_epi32(0x7fffffff));
 }
-template<> EIGEN_STRONG_INLINE Packet8d pabs(const Packet8d& a)
-{
-  assert(false && "to be implemented");
-  //  return _mm512_abs_pd(a);
+template <>
+EIGEN_STRONG_INLINE Packet8d pabs(const Packet8d& a) {
+  // _mm512_abs_ps intrinsic not found, so hack around it
+  return (__m512d)_mm512_and_si512((__m512i)a,
+                                   _mm512_set1_epi64(0x7fffffffffffffff));
 }
 
 template<> EIGEN_STRONG_INLINE Packet16f preduxp<Packet16f>(const Packet16f* vecs)
@@ -1061,15 +1065,15 @@ EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet8d, 8>& kernel) {
   PACK_OUTPUT_SQ_D(kernel.packet, tmp.packet, 7, 8);
 }
 template <>
-EIGEN_STRONG_INLINE Packet16f pblend(const Selector<16>& ifPacket,
-                                     const Packet16f& thenPacket,
-                                     const Packet16f& elsePacket) {
+EIGEN_STRONG_INLINE Packet16f pblend(const Selector<16>& /*ifPacket*/,
+                                     const Packet16f& /*thenPacket*/,
+                                     const Packet16f& /*elsePacket*/) {
   assert(false && "To be implemented");
 }
 template <>
-EIGEN_STRONG_INLINE Packet8d pblend(const Selector<8>& ifPacket,
-                                    const Packet8d& thenPacket,
-                                    const Packet8d& elsePacket) {
+EIGEN_STRONG_INLINE Packet8d pblend(const Selector<8>& /*ifPacket*/,
+                                    const Packet8d& /*thenPacket*/,
+                                    const Packet8d& /*elsePacket*/) {
   assert(false && "To be implemented");
 }
 
