@@ -233,7 +233,7 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
   typedef typename Tensor::PacketReturnType Packet;
   typedef typename unpacket_traits<Packet>::half HalfPacket;
 
-  template <int AlignmentType = Alignment>
+  template <int AlignmentType>
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Packet loadPacket(Index i, Index j) const {
     // whole method makes column major assumption
@@ -276,7 +276,7 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
     return pload<Packet>(data);
   }
 
-  template <int AlignmentType = Alignment>
+  template <int AlignmentType>
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE HalfPacket loadHalfPacket(Index i, Index j) const {
     // whole method makes column major assumption
