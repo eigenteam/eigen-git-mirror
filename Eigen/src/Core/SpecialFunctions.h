@@ -281,20 +281,18 @@ struct digamma_impl {
      */
 
     Scalar p, q, nz, s, w, y;
-    bool negative;
+    bool negative = false;
 
     const Scalar maxnum = NumTraits<Scalar>::infinity();
-    const Scalar m_pi = EIGEN_PI;
+    const Scalar m_pi(EIGEN_PI);
 
-    negative = 0;
-    nz = 0.0;
-
-    const Scalar zero = 0.0;
-    const Scalar one = 1.0;
-    const Scalar half = 0.5;
+    const Scalar zero = Scalar(0);
+    const Scalar one = Scalar(1);
+    const Scalar half = Scalar(0.5);
+    nz = zero;
 
     if (x <= zero) {
-      negative = one;
+      negative = true;
       q = x;
       p = numext::floor(q);
       if (p == q) {
@@ -463,7 +461,7 @@ template <typename Scalar>
 struct igammac_impl {
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
-    /*							igamc()
+    /*  igamc()
      *
      *	Incomplete gamma integral (modified for Eigen)
      *
@@ -519,25 +517,50 @@ struct igammac_impl {
     */
     const Scalar zero = 0;
     const Scalar one = 1;
-    const Scalar two = 2;
-    const Scalar machep = igamma_helper<Scalar>::machep();
-    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
-    const Scalar big = igamma_helper<Scalar>::big();
-    const Scalar biginv = 1 / big;
     const Scalar nan = NumTraits<Scalar>::quiet_NaN();
-    const Scalar inf = NumTraits<Scalar>::infinity();
 
-    Scalar ans, ax, c, yc, r, t, y, z;
-    Scalar pk, pkm1, pkm2, qk, qkm1, qkm2;
-
-    if ((x < zero) || ( a <= zero)) {
+    if ((x < zero) || (a <= zero)) {
       // domain error
       return nan;
     }
 
     if ((x < one) || (x < a)) {
-      return (one - igamma_impl<Scalar>::run(a, x));
+      /* The checks above ensure that we meet the preconditions for
+       * igamma_impl::Impl(), so call it, rather than igamma_impl::Run().
+       * Calling Run() would also work, but in that case the compiler may not be
+       * able to prove that igammac_impl::Run and igamma_impl::Run are not
+       * mutually recursive.  This leads to worse code, particularly on
+       * platforms like nvptx, where recursion is allowed only begrudgingly.
+       */
+      return (one - igamma_impl<Scalar>::Impl(a, x));
     }
+
+    return Impl(a, x);
+  }
+
+ private:
+  /* igamma_impl calls igammac_impl::Impl. */
+  friend struct igamma_impl<Scalar>;
+
+  /* Actually computes igamc(a, x).
+   *
+   * Preconditions:
+   *   a > 0
+   *   x >= 1
+   *   x >= a
+   */
+  EIGEN_DEVICE_FUNC static Scalar Impl(Scalar a, Scalar x) {
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar two = 2;
+    const Scalar machep = igamma_helper<Scalar>::machep();
+    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
+    const Scalar big = igamma_helper<Scalar>::big();
+    const Scalar biginv = 1 / big;
+    const Scalar inf = NumTraits<Scalar>::infinity();
+
+    Scalar ans, ax, c, yc, r, t, y, z;
+    Scalar pk, pkm1, pkm2, qk, qkm1, qkm2;
 
     if (x == inf) return zero;  // std::isinf crashes on CUDA
 
@@ -618,7 +641,7 @@ template <typename Scalar>
 struct igamma_impl {
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
-    /*							igam()
+    /*	igam()
      *	Incomplete gamma integral
      *
      *
@@ -680,21 +703,46 @@ struct igamma_impl {
      */
     const Scalar zero = 0;
     const Scalar one = 1;
-    const Scalar machep = igamma_helper<Scalar>::machep();
-    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
     const Scalar nan = NumTraits<Scalar>::quiet_NaN();
-
-    double ans, ax, c, r;
 
     if (x == zero) return zero;
 
-    if ((x < zero) || ( a <= zero)) {  // domain error
+    if ((x < zero) || (a <= zero)) {  // domain error
       return nan;
     }
 
     if ((x > one) && (x > a)) {
-      return (one - igammac_impl<Scalar>::run(a, x));
+      /* The checks above ensure that we meet the preconditions for
+       * igammac_impl::Impl(), so call it, rather than igammac_impl::Run().
+       * Calling Run() would also work, but in that case the compiler may not be
+       * able to prove that igammac_impl::Run and igamma_impl::Run are not
+       * mutually recursive.  This leads to worse code, particularly on
+       * platforms like nvptx, where recursion is allowed only begrudgingly.
+       */
+      return (one - igammac_impl<Scalar>::Impl(a, x));
     }
+
+    return Impl(a, x);
+  }
+
+ private:
+  /* igammac_impl calls igamma_impl::Impl. */
+  friend struct igammac_impl<Scalar>;
+
+  /* Actually computes igam(a, x).
+   *
+   * Preconditions:
+   *   x > 0
+   *   a > 0
+   *   !(x > 1 && x > a)
+   */
+  EIGEN_DEVICE_FUNC static Scalar Impl(Scalar a, Scalar x) {
+    const Scalar zero = 0;
+    const Scalar one = 1;
+    const Scalar machep = igamma_helper<Scalar>::machep();
+    const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
+
+    double ans, ax, c, r;
 
     /* Compute  x**a * exp(-x) / gamma(a)  */
     ax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);

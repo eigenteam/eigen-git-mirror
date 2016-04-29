@@ -85,6 +85,10 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value + 1;
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+
 
   enum {
     IsAligned = false,
@@ -137,9 +141,6 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
     }
   }
 
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
@@ -183,12 +184,11 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     Index output_stride_index = (static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? NumDims - 1 : 0;
-    Index indices[2] = {index, index + packetSize - 1};
+    Index indices[2] = {index, index + PacketSize - 1};
     Index patchIndices[2] = {indices[0] / m_outputStrides[output_stride_index],
                              indices[1] / m_outputStrides[output_stride_index]};
     Index patchOffsets[2] = {indices[0] - patchIndices[0] * m_outputStrides[output_stride_index],
@@ -229,20 +229,28 @@ struct TensorEvaluator<const TensorPatchOp<PatchDim, ArgType>, Device>
     inputIndices[0] += (patchIndices[0] + patchOffsets[0]);
     inputIndices[1] += (patchIndices[1] + patchOffsets[1]);
 
-    if (inputIndices[1] - inputIndices[0] == packetSize - 1) {
+    if (inputIndices[1] - inputIndices[0] == PacketSize - 1) {
       PacketReturnType rslt = m_impl.template packet<Unaligned>(inputIndices[0]);
       return rslt;
     }
     else {
-      EIGEN_ALIGN_MAX CoeffReturnType values[packetSize];
+      EIGEN_ALIGN_MAX CoeffReturnType values[PacketSize];
       values[0] = m_impl.coeff(inputIndices[0]);
-      values[packetSize-1] = m_impl.coeff(inputIndices[1]);
-      for (int i = 1; i < packetSize-1; ++i) {
+      values[PacketSize-1] = m_impl.coeff(inputIndices[1]);
+      for (int i = 1; i < PacketSize-1; ++i) {
         values[i] = coeff(index+i);
       }
       PacketReturnType rslt = internal::pload<PacketReturnType>(values);
       return rslt;
     }
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    const double compute_cost = NumDims * (TensorOpCost::DivCost<Index>() +
+                                           TensorOpCost::MulCost<Index>() +
+                                           2 * TensorOpCost::AddCost<Index>());
+    return m_impl.costPerCoeff(vectorized) +
+           TensorOpCost(0, 0, compute_cost, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }

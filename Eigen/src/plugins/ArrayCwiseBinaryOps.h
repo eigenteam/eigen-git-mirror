@@ -280,3 +280,21 @@ operator||(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   return CwiseBinaryOp<internal::scalar_boolean_or_op, const Derived, const OtherDerived>(derived(),other.derived());
 }
 
+/** \returns an expression of the coefficient-wise ^ operator of *this and \a other
+ *
+ * \warning this operator is for expression of bool only.
+ *
+ * Example: \include Cwise_boolean_xor.cpp
+ * Output: \verbinclude Cwise_boolean_xor.out
+ *
+ * \sa operator&&(), select()
+ */
+template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
+inline const CwiseBinaryOp<internal::scalar_boolean_xor_op, const Derived, const OtherDerived>
+operator^(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value && internal::is_same<bool,typename OtherDerived::Scalar>::value),
+                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
+  return CwiseBinaryOp<internal::scalar_boolean_xor_op, const Derived, const OtherDerived>(derived(),other.derived());
+}

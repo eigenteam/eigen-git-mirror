@@ -532,7 +532,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _solve_impl(const RhsType &rhs, DstType &dst) const {
-      if(!(internal::is_same<RhsType,DstType>::value && internal::extract_data(dst) == internal::extract_data(rhs)))
+      if(!internal::is_same_dense(dst,rhs))
         dst = rhs;
       this->solveInPlace(dst);
     }

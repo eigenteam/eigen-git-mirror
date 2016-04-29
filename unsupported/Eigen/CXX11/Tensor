@@ -11,10 +11,12 @@
 //#ifndef EIGEN_CXX11_TENSOR_MODULE
 //#define EIGEN_CXX11_TENSOR_MODULE
 
-#include "Core"
+#include "../../../Eigen/Core"
 
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
+#include "src/util/CXX11Meta.h"
+#include "src/util/MaxSizeVector.h"
 
 /** \defgroup CXX11_Tensor_Module Tensor Module
   *
@@ -26,6 +28,7 @@
   * \endcode
   */
 
+#include <cmath>
 #include <cstddef>
 #include <cstring>
 
@@ -51,11 +54,7 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 #ifdef EIGEN_USE_THREADS
-#include <atomic>
-#include <condition_variable>
-#include <deque>
-#include <mutex>
-#include <thread>
+#include "ThreadPool"
 #endif
 
 #ifdef EIGEN_USE_GPU
@@ -84,6 +83,7 @@ typedef unsigned __int64 uint64_t;
 
 #include "src/Tensor/TensorBase.h"
 
+#include "src/Tensor/TensorCostModel.h"
 #include "src/Tensor/TensorEvaluator.h"
 #include "src/Tensor/TensorExpr.h"
 #include "src/Tensor/TensorReduction.h"

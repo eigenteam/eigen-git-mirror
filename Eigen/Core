@@ -33,13 +33,13 @@
   #ifdef EIGEN_EXCEPTIONS
   #undef EIGEN_EXCEPTIONS
   #endif
-  
+
   // All functions callable from CUDA code must be qualified with __device__
   #define EIGEN_DEVICE_FUNC __host__ __device__
-  
+
 #else
   #define EIGEN_DEVICE_FUNC
-  
+
 #endif
 
 // When compiling CUDA device code with NVCC, pull in math functions from the
@@ -212,7 +212,7 @@
   #endif
 #endif
 
-#if defined(__F16C__)
+#if defined(__F16C__) && !defined(EIGEN_COMP_CLANG)
   // We can use the optimized fp16 to float and float to fp16 conversion routines
   #define EIGEN_HAS_FP16_C
 #endif
@@ -222,8 +222,12 @@
   #include <vector_types.h>
   #if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
     #define EIGEN_HAS_CUDA_FP16
-    #include <cuda_fp16.h>
   #endif
+#endif
+
+#if defined EIGEN_HAS_CUDA_FP16
+  #include <host_defines.h>
+  #include <cuda_fp16.h>
 #endif
 
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
@@ -306,7 +310,7 @@ inline static const char *SimdInstructionSetsInUse(void) {
 // we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
 // ensure QNX/QCC support
 using std::size_t;
-// gcc 4.6.0 wants std:: for ptrdiff_t 
+// gcc 4.6.0 wants std:: for ptrdiff_t
 using std::ptrdiff_t;
 
 /** \defgroup Core_Module Core module
@@ -455,6 +459,7 @@ using std::ptrdiff_t;
 #include "src/Core/products/TriangularSolverVector.h"
 #include "src/Core/BandMatrix.h"
 #include "src/Core/CoreIterators.h"
+#include "src/Core/ConditionEstimator.h"
 
 #include "src/Core/BooleanRedux.h"
 #include "src/Core/Select.h"

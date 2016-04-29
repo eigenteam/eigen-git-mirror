@@ -10,12 +10,22 @@
 #ifndef EIGEN_CXX11META_H
 #define EIGEN_CXX11META_H
 
+#include <vector>
+#include "EmulateArray.h"
+
+// Emulate the cxx11 functionality that we need if the compiler doesn't support it.
+// Visual studio 2015 doesn't advertise itself as cxx11 compliant, although it
+// supports enough of the standard for our needs
+#if __cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900
+
+#include "CXX11Workarounds.h"
+
 namespace Eigen {
 
 namespace internal {
 
 /** \internal
-  * \file CXX11/Core/util/CXX11Meta.h
+  * \file CXX11/util/CXX11Meta.h
   * This file contains generic metaprogramming classes which are not specifically related to Eigen.
   * This file expands upon Core/util/Meta.h and adds support for C++11 specific features.
   */
@@ -522,5 +532,11 @@ InstType instantiate_by_c_array(ArrType* arr)
 } // end namespace internal
 
 } // end namespace Eigen
+
+#else // Non C++11, fallback to emulation mode
+
+#include "src/Core/util/EmulateCXX11Meta.h"
+
+#endif
 
 #endif // EIGEN_CXX11META_H

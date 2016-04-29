@@ -177,7 +177,6 @@ template <typename Eval, typename Scalar> struct ConversionSubExprEval<true, Eva
 };
 
 
-
 // Eval as rvalue
 template<typename TargetType, typename ArgType, typename Device>
 struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
@@ -190,6 +189,7 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
   typedef typename internal::remove_all<typename internal::traits<ArgType>::Scalar>::type SrcType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   typedef typename PacketType<SrcType, Device>::type PacketSourceType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -229,6 +229,21 @@ struct TensorEvaluator<const TensorConversionOp<TargetType, ArgType>, Device>
     PacketConverter<TensorEvaluator<ArgType, Device>, PacketSourceType, PacketReturnType,
                     SrcCoeffRatio, TgtCoeffRatio> converter(m_impl);
     return converter.template packet<LoadMode>(index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    const double cast_cost = TensorOpCost::CastCost<SrcType, TargetType>();
+    if (vectorized) {
+      const double SrcCoeffRatio =
+          internal::type_casting_traits<SrcType, TargetType>::SrcCoeffRatio;
+      const double TgtCoeffRatio =
+          internal::type_casting_traits<SrcType, TargetType>::TgtCoeffRatio;
+      return m_impl.costPerCoeff(vectorized) * (SrcCoeffRatio / PacketSize) +
+          TensorOpCost(0, 0, TgtCoeffRatio * (cast_cost / PacketSize));
+    } else {
+      return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, cast_cost);
+    }
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }

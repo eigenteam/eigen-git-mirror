@@ -64,7 +64,7 @@ struct scalar_sigmoid_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sigmoid_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator()(const T& x) const {
     const T one = T(1);
-    return one / (one + std::exp(-x));
+    return one / (one + numext::exp(-x));
   }
 
   template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -158,8 +158,8 @@ template <typename T> struct MeanReducer
   }
 
   protected:
-    int scalarCount_;
-    int packetCount_;
+    DenseIndex scalarCount_;
+    DenseIndex packetCount_;
 };
 
 template <typename T> struct MaxReducer
@@ -594,6 +594,8 @@ template <> class UniformRandomGenerator<std::complex<double> > {
 template <typename Scalar>
 struct functor_traits<UniformRandomGenerator<Scalar> > {
   enum {
+    // Rough estimate.
+    Cost = 100 * NumTraits<Scalar>::MulCost,
     PacketAccess = UniformRandomGenerator<Scalar>::PacketAccess
   };
 };
@@ -774,6 +776,8 @@ template <typename T> class NormalRandomGenerator {
 template <typename Scalar>
 struct functor_traits<NormalRandomGenerator<Scalar> > {
   enum {
+    // Rough estimate.
+    Cost = 100 * NumTraits<Scalar>::MulCost,
     PacketAccess = NormalRandomGenerator<Scalar>::PacketAccess
   };
 };
@@ -799,7 +803,7 @@ class GaussianGenerator {
       T offset = coordinates[i] - m_means[i];
       tmp += offset * offset / m_two_sigmas[i];
     }
-    return std::exp(-tmp);
+    return numext::exp(-tmp);
   }
 
  private:
@@ -807,6 +811,15 @@ class GaussianGenerator {
   array<T, NumDims> m_two_sigmas;
 };
 
+template <typename T, typename Index, size_t NumDims>
+struct functor_traits<GaussianGenerator<T, Index, NumDims> > {
+  enum {
+    Cost = NumDims * (2 * NumTraits<T>::AddCost + NumTraits<T>::MulCost +
+                      functor_traits<scalar_quotient_op<T, T> >::Cost) +
+           functor_traits<scalar_exp_op<T> >::Cost,
+    PacketAccess = GaussianGenerator<T, Index, NumDims>::PacketAccess
+  };
+};
 
 } // end namespace internal
 } // end namespace Eigen

@@ -89,6 +89,12 @@ template<typename LeftArgType, typename RightArgType, typename Device>
 struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
 {
   typedef TensorAssignOp<LeftArgType, RightArgType> XprType;
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef typename TensorEvaluator<RightArgType, Device>::Dimensions Dimensions;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = TensorEvaluator<LeftArgType, Device>::IsAligned & TensorEvaluator<RightArgType, Device>::IsAligned,
@@ -103,12 +109,6 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
-
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  typedef typename TensorEvaluator<RightArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
   {
@@ -148,6 +148,19 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
   {
     return m_leftImpl.template packet<LoadMode>(index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    // We assume that evalPacket or evalScalar is called to perform the
+    // assignment and account for the cost of the write here, but reduce left
+    // cost by one load because we are using m_leftImpl.coeffRef.
+    TensorOpCost left = m_leftImpl.costPerCoeff(vectorized);
+    return m_rightImpl.costPerCoeff(vectorized) +
+           TensorOpCost(
+               numext::maxi(0.0, left.bytes_loaded() - sizeof(CoeffReturnType)),
+               left.bytes_stored(), left.compute_cycles()) +
+           TensorOpCost(0, sizeof(CoeffReturnType), 0, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_leftImpl.data(); }

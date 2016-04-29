@@ -22,7 +22,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>
     typedef CwiseUnaryOp<UnaryOp, ArgType> XprType;
 
     class InnerIterator;
-//     class ReverseInnerIterator;
+    class ReverseInnerIterator;
     
     enum {
       CoeffReadCost = evaluator<ArgType>::CoeffReadCost + functor_traits<UnaryOp>::Cost,

@@ -371,10 +371,10 @@
 // Does the compiler support const expressions?
 #ifdef __CUDACC__
 // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-#if __cplusplus > 199711L && defined(__CUDACC_VER__) && (defined(__clang__) || __CUDACC_VER__ >= 70500)
+#if __cplusplus > 199711L && defined(__CUDACC_VER__) && (EIGEN_COMP_CLANG || __CUDACC_VER__ >= 70500)
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
-#elif (defined(__cplusplus) && __cplusplus >= 201402L) || \
+#elif __has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
     EIGEN_GNUC_AT_LEAST(4,8)
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
@@ -572,12 +572,12 @@ namespace Eigen {
 
 //------------------------------------------------------------------------------------------
 // Static and dynamic alignment control
-// 
+//
 // The main purpose of this section is to define EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES
 // as the maximal boundary in bytes on which dynamically and statically allocated data may be alignment respectively.
 // The values of EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES can be specified by the user. If not,
 // a default value is automatically computed based on architecture, compiler, and OS.
-// 
+//
 // This section also defines macros EIGEN_ALIGN_TO_BOUNDARY(N) and the shortcuts EIGEN_ALIGN{8,16,32,_MAX}
 // to be used to declare statically aligned buffers.
 //------------------------------------------------------------------------------------------
@@ -640,7 +640,7 @@ namespace Eigen {
 #ifndef EIGEN_MAX_STATIC_ALIGN_BYTES
 
   // Try to automatically guess what is the best default value for EIGEN_MAX_STATIC_ALIGN_BYTES
-  
+
   // 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable
   // 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
   // enable alignment, but it can be a cause of problems on some platforms, so we just disable it in
@@ -667,13 +667,13 @@ namespace Eigen {
   #else
     #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
   #endif
-  
+
   #if EIGEN_ARCH_WANTS_STACK_ALIGNMENT
     #define EIGEN_MAX_STATIC_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
   #else
     #define EIGEN_MAX_STATIC_ALIGN_BYTES 0
   #endif
-  
+
 #endif
 
 // If EIGEN_MAX_ALIGN_BYTES is defined, then it is considered as an upper bound for EIGEN_MAX_ALIGN_BYTES

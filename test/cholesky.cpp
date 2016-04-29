@@ -17,6 +17,12 @@
 #include <Eigen/Cholesky>
 #include <Eigen/QR>
 
+template<typename MatrixType, int UpLo>
+typename MatrixType::RealScalar matrix_l1_norm(const MatrixType& m) {
+  MatrixType symm = m.template selfadjointView<UpLo>();
+  return symm.cwiseAbs().colwise().sum().maxCoeff();
+}
+
 template<typename MatrixType,template <typename,int> class CholType> void test_chol_update(const MatrixType& symm)
 {
   typedef typename MatrixType::Scalar Scalar;
@@ -77,13 +83,21 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   {
     SquareMatrixType symmUp = symm.template triangularView<Upper>();
     SquareMatrixType symmLo = symm.template triangularView<Lower>();
-    
+
     LLT<SquareMatrixType,Lower> chollo(symmLo);
     VERIFY_IS_APPROX(symm, chollo.reconstructedMatrix());
     vecX = chollo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     matX = chollo.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
+
+    const MatrixType symmLo_inverse = chollo.solve(MatrixType::Identity(rows,cols));
+    RealScalar rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Lower>(symmLo)) /
+                             matrix_l1_norm<MatrixType, Lower>(symmLo_inverse);
+    RealScalar rcond_est = chollo.rcond();
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
+    VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
     // test the upper mode
     LLT<SquareMatrixType,Upper> cholup(symmUp);
@@ -93,6 +107,15 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     matX = cholup.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
 
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
+    const MatrixType symmUp_inverse = cholup.solve(MatrixType::Identity(rows,cols));
+    rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Upper>(symmUp)) /
+                             matrix_l1_norm<MatrixType, Upper>(symmUp_inverse);
+    rcond_est = cholup.rcond();
+    VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
+
+
     MatrixType neg = -symmLo;
     chollo.compute(neg);
     VERIFY(chollo.info()==NumericalIssue);
@@ -101,7 +124,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     VERIFY_IS_APPROX(MatrixType(chollo.matrixU().transpose().conjugate()), MatrixType(chollo.matrixL()));
     VERIFY_IS_APPROX(MatrixType(cholup.matrixL().transpose().conjugate()), MatrixType(cholup.matrixU()));
     VERIFY_IS_APPROX(MatrixType(cholup.matrixU().transpose().conjugate()), MatrixType(cholup.matrixL()));
-    
+
     // test some special use cases of SelfCwiseBinaryOp:
     MatrixType m1 = MatrixType::Random(rows,cols), m2(rows,cols);
     m2 = m1;
@@ -137,12 +160,29 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     matX = ldltlo.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
 
+    const MatrixType symmLo_inverse = ldltlo.solve(MatrixType::Identity(rows,cols));
+    RealScalar rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Lower>(symmLo)) /
+                             matrix_l1_norm<MatrixType, Lower>(symmLo_inverse);
+    RealScalar rcond_est = ldltlo.rcond();
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
+    VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
+
+
     LDLT<SquareMatrixType,Upper> ldltup(symmUp);
     VERIFY_IS_APPROX(symm, ldltup.reconstructedMatrix());
     vecX = ldltup.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     matX = ldltup.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
+
+    // Verify that the estimated condition number is within a factor of 10 of the
+    // truth.
+    const MatrixType symmUp_inverse = ldltup.solve(MatrixType::Identity(rows,cols));
+    rcond = (RealScalar(1) / matrix_l1_norm<MatrixType, Upper>(symmUp)) /
+                             matrix_l1_norm<MatrixType, Upper>(symmUp_inverse);
+    rcond_est = ldltup.rcond();
+    VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
     VERIFY_IS_APPROX(MatrixType(ldltlo.matrixL().transpose().conjugate()), MatrixType(ldltlo.matrixU()));
     VERIFY_IS_APPROX(MatrixType(ldltlo.matrixU().transpose().conjugate()), MatrixType(ldltlo.matrixL()));
@@ -167,7 +207,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     // restore
     if(sign == -1)
       symm = -symm;
-    
+
     // check matrices coming from linear constraints with Lagrange multipliers
     if(rows>=3)
     {
@@ -183,7 +223,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       vecX = ldltlo.solve(vecB);
       VERIFY_IS_APPROX(A * vecX, vecB);
     }
-    
+
     // check non-full rank matrices
     if(rows>=3)
     {
@@ -199,7 +239,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       vecX = ldltlo.solve(vecB);
       VERIFY_IS_APPROX(A * vecX, vecB);
     }
-    
+
     // check matrices with a wide spectrum
     if(rows>=3)
     {
@@ -225,7 +265,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       {
         RealScalar large_tol =  std::sqrt(test_precision<RealScalar>());
         VERIFY((A * vecX).isApprox(vecB, large_tol));
-        
+
         ++g_test_level;
         VERIFY_IS_APPROX(A * vecX,vecB);
         --g_test_level;
@@ -314,14 +354,14 @@ template<typename MatrixType> void cholesky_bug241(const MatrixType& m)
 }
 
 // LDLT is not guaranteed to work for indefinite matrices, but happens to work fine if matrix is diagonal.
-// This test checks that LDLT reports correctly that matrix is indefinite. 
+// This test checks that LDLT reports correctly that matrix is indefinite.
 // See http://forum.kde.org/viewtopic.php?f=74&t=106942 and bug 736
 template<typename MatrixType> void cholesky_definiteness(const MatrixType& m)
 {
   eigen_assert(m.rows() == 2 && m.cols() == 2);
   MatrixType mat;
   LDLT<MatrixType> ldlt(2);
-  
+
   {
     mat << 1, 0, 0, -1;
     ldlt.compute(mat);
@@ -384,11 +424,11 @@ void test_cholesky()
     CALL_SUBTEST_3( cholesky_definiteness(Matrix2d()) );
     CALL_SUBTEST_4( cholesky(Matrix3f()) );
     CALL_SUBTEST_5( cholesky(Matrix4d()) );
-    
-    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);    
+
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
     CALL_SUBTEST_2( cholesky(MatrixXd(s,s)) );
     TEST_SET_BUT_UNUSED_VARIABLE(s)
-    
+
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2);
     CALL_SUBTEST_6( cholesky_cplx(MatrixXcd(s,s)) );
     TEST_SET_BUT_UNUSED_VARIABLE(s)
@@ -402,6 +442,6 @@ void test_cholesky()
   // Test problem size constructors
   CALL_SUBTEST_9( LLT<MatrixXf>(10) );
   CALL_SUBTEST_9( LDLT<MatrixXf>(10) );
-  
+
   TEST_SET_BUT_UNUSED_VARIABLE(nb_temporaries)
 }

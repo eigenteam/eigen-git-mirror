@@ -87,6 +87,10 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
   typedef typename XprType::Index Index;
   static const int NumDims = internal::array_size<PaddingDimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -128,10 +132,6 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       m_outputStrides[0] = m_outputStrides[1] * m_dimensions[0];
     }
   }
-
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -224,21 +224,51 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
     return m_impl.coeff(inputIndex);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    TensorOpCost cost = m_impl.costPerCoeff(vectorized);
+    if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
+      for (int i = 0; i < NumDims; ++i)
+        updateCostPerDimension(cost, i, i == 0);
+    } else {
+      for (int i = NumDims - 1; i >= 0; --i)
+        updateCostPerDimension(cost, i, i == NumDims - 1);
+    }
+    return cost;
+  }
+
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+
+ private:
+  void updateCostPerDimension(TensorOpCost& cost, int i, bool first) const {
+    const double in = static_cast<double>(m_impl.dimensions()[i]);
+    const double out = in + m_padding[i].first + m_padding[i].second;
+    if (out == 0)
+      return;
+    const double reduction = in / out;
+    cost *= reduction;
+    if (first) {
+      cost += TensorOpCost(0, 0, 2 * TensorOpCost::AddCost<Index>() +
+                    reduction * (1 * TensorOpCost::AddCost<Index>()));
+    } else {
+      cost += TensorOpCost(0, 0, 2 * TensorOpCost::AddCost<Index>() +
+                                 2 * TensorOpCost::MulCost<Index>() +
+                    reduction * (2 * TensorOpCost::MulCost<Index>() +
+                                 1 * TensorOpCost::DivCost<Index>()));
+    }
+  }
 
  protected:
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetColMajor(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     const Index initialIndex = index;
     Index inputIndex = 0;
     for (int i = NumDims - 1; i > 0; --i) {
       const Index first = index;
-      const Index last = index + packetSize - 1;
+      const Index last = index + PacketSize - 1;
       const Index lastPaddedLeft = m_padding[i].first * m_outputStrides[i];
       const Index firstPaddedRight = (m_dimensions[i] - m_padding[i].second) * m_outputStrides[i];
       const Index lastPaddedRight = m_outputStrides[i+1];
@@ -263,7 +293,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       }
     }
 
-    const Index last = index + packetSize - 1;
+    const Index last = index + PacketSize - 1;
     const Index first = index;
     const Index lastPaddedLeft = m_padding[0].first;
     const Index firstPaddedRight = (m_dimensions[0] - m_padding[0].second);
@@ -288,16 +318,15 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetRowMajor(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     const Index initialIndex = index;
     Index inputIndex = 0;
 
     for (int i = 0; i < NumDims - 1; ++i) {
       const Index first = index;
-      const Index last = index + packetSize - 1;
+      const Index last = index + PacketSize - 1;
       const Index lastPaddedLeft = m_padding[i].first * m_outputStrides[i+1];
       const Index firstPaddedRight = (m_dimensions[i] - m_padding[i].second) * m_outputStrides[i+1];
       const Index lastPaddedRight = m_outputStrides[i];
@@ -322,7 +351,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
       }
     }
 
-    const Index last = index + packetSize - 1;
+    const Index last = index + PacketSize - 1;
     const Index first = index;
     const Index lastPaddedLeft = m_padding[NumDims-1].first;
     const Index firstPaddedRight = (m_dimensions[NumDims-1] - m_padding[NumDims-1].second);
@@ -347,9 +376,8 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packetWithPossibleZero(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
-    for (int i = 0; i < packetSize; ++i) {
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+    for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);

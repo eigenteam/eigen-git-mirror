@@ -101,6 +101,11 @@ struct TensorEvaluator
     }
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
+                        internal::unpacket_traits<PacketReturnType>::size);
+  }
+
   EIGEN_DEVICE_FUNC Scalar* data() const { return m_data; }
 
  protected:
@@ -184,6 +189,11 @@ struct TensorEvaluator<const Derived, Device>
     return loadConstant(m_data+index);
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
+                        internal::unpacket_traits<PacketReturnType>::size);
+  }
+
   EIGEN_DEVICE_FUNC const Scalar* data() const { return m_data; }
 
  protected:
@@ -219,6 +229,7 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
@@ -235,6 +246,12 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.template packetOp<Index, PacketReturnType>(index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized,
+                        internal::unpacket_traits<PacketReturnType>::size);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
@@ -270,6 +287,7 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_argImpl.dimensions(); }
@@ -291,6 +309,12 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    const double functor_cost = internal::functor_traits<UnaryOp>::Cost;
+    return m_argImpl.costPerCoeff(vectorized) +
+        TensorOpCost(0, 0, functor_cost, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
@@ -330,6 +354,7 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   typedef typename XprType::Scalar Scalar;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
   typedef typename TensorEvaluator<LeftArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
@@ -356,6 +381,14 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     return m_functor.packetOp(m_leftImpl.template packet<LoadMode>(index), m_rightImpl.template packet<LoadMode>(index));
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    const double functor_cost = internal::functor_traits<BinaryOp>::Cost;
+    return m_leftImpl.costPerCoeff(vectorized) +
+           m_rightImpl.costPerCoeff(vectorized) +
+           TensorOpCost(0, 0, functor_cost, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
@@ -398,6 +431,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   typedef typename XprType::Index Index;
   typedef typename internal::traits<XprType>::Scalar CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
   typedef typename TensorEvaluator<IfArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
@@ -425,7 +459,6 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const
   {
-    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     internal::Selector<PacketSize> select;
     for (Index i = 0; i < PacketSize; ++i) {
       select.select[i] = m_condImpl.coeff(index+i);
@@ -433,6 +466,13 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
     return internal::pblend(select,
                             m_thenImpl.template packet<LoadMode>(index),
                             m_elseImpl.template packet<LoadMode>(index));
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    return m_condImpl.costPerCoeff(vectorized) +
+           m_thenImpl.costPerCoeff(vectorized)
+        .cwiseMax(m_elseImpl.costPerCoeff(vectorized));
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }

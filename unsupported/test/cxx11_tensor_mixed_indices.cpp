@@ -14,8 +14,8 @@
 
 static void test_simple()
 {
-  Tensor<float, 1, ColMajor> vec1({6});
-  Tensor<float, 1, ColMajor, int> vec2({6});
+  Tensor<float, 1, ColMajor> vec1(6);
+  Tensor<float, 1, ColMajor, int> vec2(6);
 
   vec1(0) = 4.0;  vec2(0) = 0.0;
   vec1(1) = 8.0;  vec2(1) = 1.0;

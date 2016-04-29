@@ -29,13 +29,10 @@ struct copy_using_evaluator_traits
 {
   typedef typename DstEvaluator::XprType Dst;
   typedef typename Dst::Scalar DstScalar;
-  // TODO distinguish between linear traversal and inner-traversals
-  typedef typename find_best_packet<DstScalar,Dst::SizeAtCompileTime>::type PacketType; 
   
   enum {
     DstFlags = DstEvaluator::Flags,
-    SrcFlags = SrcEvaluator::Flags,
-    RequiredAlignment = unpacket_traits<PacketType>::alignment
+    SrcFlags = SrcEvaluator::Flags
   };
   
 public:
@@ -55,10 +52,25 @@ private:
               : int(DstFlags)&RowMajorBit ? int(Dst::MaxColsAtCompileTime)
               : int(Dst::MaxRowsAtCompileTime),
     OuterStride = int(outer_stride_at_compile_time<Dst>::ret),
-    MaxSizeAtCompileTime = Dst::SizeAtCompileTime,
-    PacketSize = unpacket_traits<PacketType>::size
+    MaxSizeAtCompileTime = Dst::SizeAtCompileTime
   };
 
+  // TODO distinguish between linear traversal and inner-traversals
+  typedef typename find_best_packet<DstScalar,Dst::SizeAtCompileTime>::type LinearPacketType;
+  typedef typename find_best_packet<DstScalar,InnerSize>::type InnerPacketType;
+
+  enum {
+    LinearPacketSize = unpacket_traits<LinearPacketType>::size,
+    InnerPacketSize = unpacket_traits<InnerPacketType>::size
+  };
+
+public:
+  enum {
+    LinearRequiredAlignment = unpacket_traits<LinearPacketType>::alignment,
+    InnerRequiredAlignment = unpacket_traits<InnerPacketType>::alignment
+  };
+
+private:
   enum {
     DstIsRowMajor = DstFlags&RowMajorBit,
     SrcIsRowMajor = SrcFlags&RowMajorBit,
@@ -67,16 +79,16 @@ private:
                   && (int(DstFlags) & int(SrcFlags) & ActualPacketAccessBit)
                   && (functor_traits<AssignFunc>::PacketAccess),
     MayInnerVectorize  = MightVectorize
-                       && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
-                       && int(OuterStride)!=Dynamic && int(OuterStride)%int(PacketSize)==0
-                       && int(JointAlignment)>=int(RequiredAlignment),
+                       && int(InnerSize)!=Dynamic && int(InnerSize)%int(InnerPacketSize)==0
+                       && int(OuterStride)!=Dynamic && int(OuterStride)%int(InnerPacketSize)==0
+                       && int(JointAlignment)>=int(InnerRequiredAlignment),
     MayLinearize = StorageOrdersAgree && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
     MayLinearVectorize = MightVectorize && MayLinearize && DstHasDirectAccess
-                       && ((int(DstAlignment)>=int(RequiredAlignment)) || MaxSizeAtCompileTime == Dynamic),
+                       && ((int(DstAlignment)>=int(LinearRequiredAlignment)) || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
          so it's only good for large enough sizes. */
     MaySliceVectorize  = MightVectorize && DstHasDirectAccess
-                       && (int(InnerMaxSize)==Dynamic || int(InnerMaxSize)>=3*PacketSize)
+                       && (int(InnerMaxSize)==Dynamic || int(InnerMaxSize)>=3*InnerPacketSize)
       /* slice vectorization can be slow, so we only want it if the slices are big, which is
          indicated by InnerMaxSize rather than InnerSize, think of the case of a dynamic block
          in a fixed-size matrix */
@@ -84,7 +96,8 @@ private:
 
 public:
   enum {
-    Traversal = int(MayInnerVectorize)   ? int(InnerVectorizedTraversal)
+    Traversal = int(MayLinearVectorize) && (LinearPacketSize>InnerPacketSize) ? int(LinearVectorizedTraversal)
+              : int(MayInnerVectorize)   ? int(InnerVectorizedTraversal)
               : int(MayLinearVectorize)  ? int(LinearVectorizedTraversal)
               : int(MaySliceVectorize)   ? int(SliceVectorizedTraversal)
               : int(MayLinearize)        ? int(LinearTraversal)
@@ -94,9 +107,14 @@ public:
               || int(Traversal) == SliceVectorizedTraversal
   };
 
+  typedef typename conditional<int(Traversal)==LinearVectorizedTraversal, LinearPacketType, InnerPacketType>::type PacketType;
+
 private:
   enum {
-    UnrollingLimit      = EIGEN_UNROLLING_LIMIT * (Vectorized ? int(PacketSize) : 1),
+    ActualPacketSize    = int(Traversal)==LinearVectorizedTraversal ? LinearPacketSize
+                        : Vectorized ? InnerPacketSize
+                        : 1,
+    UnrollingLimit      = EIGEN_UNROLLING_LIMIT * ActualPacketSize,
     MayUnrollCompletely = int(Dst::SizeAtCompileTime) != Dynamic
                        && int(Dst::SizeAtCompileTime) * int(SrcEvaluator::CoeffReadCost) <= int(UnrollingLimit),
     MayUnrollInner      = int(InnerSize) != Dynamic
@@ -112,7 +130,7 @@ public:
                                              : int(NoUnrolling)
                   )
               : int(Traversal) == int(LinearVectorizedTraversal)
-                ? ( bool(MayUnrollCompletely) && (int(DstAlignment)>=int(RequiredAlignment)) ? int(CompleteUnrolling)
+                ? ( bool(MayUnrollCompletely) && (int(DstAlignment)>=int(LinearRequiredAlignment)) ? int(CompleteUnrolling)
                                                                                              : int(NoUnrolling) )
               : int(Traversal) == int(LinearTraversal)
                 ? ( bool(MayUnrollCompletely) ? int(CompleteUnrolling) 
@@ -131,11 +149,13 @@ public:
     std::cerr.unsetf(std::ios::hex);
     EIGEN_DEBUG_VAR(DstAlignment)
     EIGEN_DEBUG_VAR(SrcAlignment)
-    EIGEN_DEBUG_VAR(RequiredAlignment)
+    EIGEN_DEBUG_VAR(LinearRequiredAlignment)
+    EIGEN_DEBUG_VAR(InnerRequiredAlignment)
     EIGEN_DEBUG_VAR(JointAlignment)
     EIGEN_DEBUG_VAR(InnerSize)
     EIGEN_DEBUG_VAR(InnerMaxSize)
-    EIGEN_DEBUG_VAR(PacketSize)
+    EIGEN_DEBUG_VAR(LinearPacketSize)
+    EIGEN_DEBUG_VAR(InnerPacketSize)
     EIGEN_DEBUG_VAR(StorageOrdersAgree)
     EIGEN_DEBUG_VAR(MightVectorize)
     EIGEN_DEBUG_VAR(MayLinearize)
@@ -370,7 +390,7 @@ struct dense_assignment_loop<Kernel, LinearVectorizedTraversal, NoUnrolling>
     typedef typename Kernel::Scalar Scalar;
     typedef typename Kernel::PacketType PacketType;
     enum {
-      requestedAlignment = Kernel::AssignmentTraits::RequiredAlignment,
+      requestedAlignment = Kernel::AssignmentTraits::LinearRequiredAlignment,
       packetSize = unpacket_traits<PacketType>::size,
       dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(requestedAlignment),
       dstAlignment = packet_traits<Scalar>::AlignedOnScalar ? int(requestedAlignment)
@@ -484,7 +504,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
     typedef typename Kernel::PacketType PacketType;
     enum {
       packetSize = unpacket_traits<PacketType>::size,
-      requestedAlignment = int(Kernel::AssignmentTraits::RequiredAlignment),
+      requestedAlignment = int(Kernel::AssignmentTraits::InnerRequiredAlignment),
       alignable = packet_traits<Scalar>::AlignedOnScalar || int(Kernel::AssignmentTraits::DstAlignment)>=sizeof(Scalar),
       dstIsAligned = int(Kernel::AssignmentTraits::DstAlignment)>=int(requestedAlignment),
       dstAlignment = alignable ? int(requestedAlignment)

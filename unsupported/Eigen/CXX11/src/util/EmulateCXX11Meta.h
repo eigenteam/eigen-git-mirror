@@ -17,7 +17,7 @@ namespace Eigen {
 namespace internal {
 
 /** \internal
-  * \file CXX11/Core/util/EmulateCXX11Meta.h
+  * \file CXX11/util/EmulateCXX11Meta.h
   * This file emulates a subset of the functionality provided by CXXMeta.h for
   * compilers that don't yet support cxx11 such as nvcc.
   */

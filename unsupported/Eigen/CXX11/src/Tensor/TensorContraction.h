@@ -426,112 +426,6 @@ struct TensorContractionEvaluatorBase
         buffer, resIncr, alpha);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
-    m_leftImpl.cleanup();
-    m_rightImpl.cleanup();
-
-    if (m_result != NULL) {
-      m_device.deallocate(m_result);
-      m_result = NULL;
-    }
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
-    return m_result[index];
-  }
-
-  template<int LoadMode>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const {
-    return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);
-  }
-
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return m_result; }
-
-  protected:
-  // Prevent assignment
-  TensorContractionEvaluatorBase& operator = (const TensorContractionEvaluatorBase&);
-  Dimensions m_dimensions;
-
-  contract_t m_k_strides;
-  contract_t m_left_contracting_strides;
-  contract_t m_right_contracting_strides;
-
-  bool m_lhs_inner_dim_contiguous;
-  bool m_rhs_inner_dim_contiguous;
-  bool m_rhs_inner_dim_reordered;
-
-  left_nocontract_t m_i_strides;
-  right_nocontract_t m_j_strides;
-  left_nocontract_t m_left_nocontract_strides;
-  right_nocontract_t m_right_nocontract_strides;
-
-  Index m_i_size;
-  Index m_j_size;
-  Index m_k_size;
-
-  TensorEvaluator<EvalLeftArgType, Device> m_leftImpl;
-  TensorEvaluator<EvalRightArgType, Device> m_rightImpl;
-  const Device& m_device;
-  Scalar* m_result;
-};
-
-
-// evaluator for default device
-template<typename Indices, typename LeftArgType, typename RightArgType, typename Device>
-struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> :
-    public TensorContractionEvaluatorBase<
-      TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> > {
-  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> Self;
-  typedef TensorContractionEvaluatorBase<Self> Base;
-
-  typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
-  typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
-  typedef typename XprType::Index Index;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-
-  enum {
-    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
-  };
-
-  // Most of the code is assuming that both input tensors are ColMajor. If the
-  // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:
-  // If we want to compute A * B = C, where A is LHS and B is RHS, the code
-  // will pretend B is LHS and A is RHS.
-  typedef typename internal::conditional<
-    static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType>::type EvalLeftArgType;
-  typedef typename internal::conditional<
-    static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType>::type EvalRightArgType;
-
-  static const int LDims =
-      internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
-  static const int RDims =
-      internal::array_size<typename TensorEvaluator<EvalRightArgType, Device>::Dimensions>::value;
-  static const int ContractDims = internal::array_size<Indices>::value;
-
-  typedef array<Index, ContractDims> contract_t;
-  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
-  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
-
-  static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
-
-  // Could we use NumDimensions here?
-  typedef DSizes<Index, NumDims> Dimensions;
-
-
-  EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
-      Base(op, device) { }
-
-  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
-  EIGEN_DEVICE_FUNC void evalProduct(Scalar* buffer) const {
-    if (this->m_j_size == 1) {
-      this->template evalGemv<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
-      return;
-    }
-
-    evalGemm<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
-  }
-
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
   EIGEN_DEVICE_FUNC void evalGemm(Scalar* buffer) const {
     // columns in left side, rows in right side
@@ -623,6 +517,116 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     this->m_device.deallocate(blockA);
     this->m_device.deallocate(blockB);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
+    m_leftImpl.cleanup();
+    m_rightImpl.cleanup();
+
+    if (m_result != NULL) {
+      m_device.deallocate(m_result);
+      m_result = NULL;
+    }
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const {
+    return m_result[index];
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0);
+  }
+
+  template<int LoadMode>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const {
+    return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const { return m_result; }
+
+  protected:
+  // Prevent assignment
+  TensorContractionEvaluatorBase& operator = (const TensorContractionEvaluatorBase&);
+  Dimensions m_dimensions;
+
+  contract_t m_k_strides;
+  contract_t m_left_contracting_strides;
+  contract_t m_right_contracting_strides;
+
+  bool m_lhs_inner_dim_contiguous;
+  bool m_rhs_inner_dim_contiguous;
+  bool m_rhs_inner_dim_reordered;
+
+  left_nocontract_t m_i_strides;
+  right_nocontract_t m_j_strides;
+  left_nocontract_t m_left_nocontract_strides;
+  right_nocontract_t m_right_nocontract_strides;
+
+  Index m_i_size;
+  Index m_j_size;
+  Index m_k_size;
+
+  TensorEvaluator<EvalLeftArgType, Device> m_leftImpl;
+  TensorEvaluator<EvalRightArgType, Device> m_rightImpl;
+  const Device& m_device;
+  Scalar* m_result;
+};
+
+
+// evaluator for default device
+template<typename Indices, typename LeftArgType, typename RightArgType, typename Device>
+struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> :
+    public TensorContractionEvaluatorBase<
+      TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> > {
+  typedef TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, Device> Self;
+  typedef TensorContractionEvaluatorBase<Self> Base;
+
+  typedef TensorContractionOp<Indices, LeftArgType, RightArgType> XprType;
+  typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
+  typedef typename XprType::Index Index;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+
+  enum {
+    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+  };
+
+  // Most of the code is assuming that both input tensors are ColMajor. If the
+  // inputs are RowMajor, we will "cheat" by swapping the LHS and RHS:
+  // If we want to compute A * B = C, where A is LHS and B is RHS, the code
+  // will pretend B is LHS and A is RHS.
+  typedef typename internal::conditional<
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), LeftArgType, RightArgType>::type EvalLeftArgType;
+  typedef typename internal::conditional<
+    static_cast<int>(Layout) == static_cast<int>(ColMajor), RightArgType, LeftArgType>::type EvalRightArgType;
+
+  static const int LDims =
+      internal::array_size<typename TensorEvaluator<EvalLeftArgType, Device>::Dimensions>::value;
+  static const int RDims =
+      internal::array_size<typename TensorEvaluator<EvalRightArgType, Device>::Dimensions>::value;
+  static const int ContractDims = internal::array_size<Indices>::value;
+
+  typedef array<Index, ContractDims> contract_t;
+  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
+  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
+
+  static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
+
+  // Could we use NumDimensions here?
+  typedef DSizes<Index, NumDims> Dimensions;
+
+
+  EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
+      Base(op, device) { }
+
+  template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
+  EIGEN_DEVICE_FUNC void evalProduct(Scalar* buffer) const {
+    if (this->m_j_size == 1) {
+      this->template evalGemv<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
+      return;
+    }
+
+    this->template evalGemm<lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, Alignment>(buffer);
   }
 };
 

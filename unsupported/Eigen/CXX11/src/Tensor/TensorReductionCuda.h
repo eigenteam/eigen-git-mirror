@@ -130,13 +130,18 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
     assert(false && "Should only be called on floats");
   }
 
-  static EIGEN_DEVICE_FUNC void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
     typedef typename Self::Index Index;
 
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
+    // Don't crash when we're called with an input tensor of size 0.
+    if (num_coeffs == 0) {
+      return;
+    }
+
     const int block_size = 256;
     const int num_per_thread = 128;
-    const int num_blocks = std::ceil(static_cast<float>(num_coeffs) / (block_size * num_per_thread));
+    const int num_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
 
     if (num_blocks > 1) {
       // We initialize the outputs outside the reduction kernel when we can't be sure that there
@@ -231,7 +236,7 @@ struct InnerReducer<Self, Op, GpuDevice> {
     return true;
   }
 
-  static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+  static bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
 
     // It's faster to use the usual code.
@@ -310,7 +315,7 @@ struct OuterReducer<Self, Op, GpuDevice> {
     return true;
   }
 
-  static EIGEN_DEVICE_FUNC bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+  static bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
 
     // It's faster to use the usual code.

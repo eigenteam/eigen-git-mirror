@@ -83,8 +83,10 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   typedef typename internal::traits<ArgType>::Index Index;
   static const int NumDims = internal::traits<ArgType>::NumDimensions;
   typedef DSizes<Index, NumDims> Dimensions;
-  typedef
-      typename internal::remove_const<typename ArgType::Scalar>::type Scalar;
+  typedef typename internal::remove_const<typename ArgType::Scalar>::type Scalar;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -100,9 +102,6 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   {
     m_dimensions = op.func().dimensions(op.expression());
   }
-
-  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -132,6 +131,11 @@ struct TensorEvaluator<const TensorCustomUnaryOp<CustomUnaryFunc, XprType>, Devi
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const {
     return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    // TODO(rmlarsen): Extend CustomOp API to return its cost estimate.
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_result; }
@@ -236,6 +240,9 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   static const int NumDims = internal::traits<XprType>::NumDimensions;
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
@@ -251,9 +258,6 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   {
     m_dimensions = op.func().dimensions(op.lhsExpression(), op.rhsExpression());
   }
-
-  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -282,6 +286,11 @@ struct TensorEvaluator<const TensorCustomBinaryOp<CustomBinaryFunc, LhsXprType, 
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const {
     return internal::ploadt<PacketReturnType, LoadMode>(m_result + index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    // TODO(rmlarsen): Extend CustomOp API to return its cost estimate.
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_result; }

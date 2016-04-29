@@ -243,8 +243,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     {
       workspace.resize(rows());
       Index vecs = m_length;
-      if(    internal::is_same<typename internal::remove_all<VectorsType>::type,Dest>::value
-          && internal::extract_data(dst) == internal::extract_data(m_vectors))
+      if(is_same_dense(dst,m_vectors))
       {
         // in-place
         dst.diagonal().setOnes();

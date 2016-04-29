@@ -792,7 +792,9 @@ void testNistMGH10(void)
   MGH10_functor functor;
   LevenbergMarquardt<MGH10_functor> lm(functor);
   info = lm.minimize(x);
+  ++g_test_level;
   VERIFY_IS_EQUAL(info, LevenbergMarquardtSpace::RelativeReductionTooSmall);
+  --g_test_level;
   // was: VERIFY_IS_EQUAL(info, 1);
 
   // check norm^2

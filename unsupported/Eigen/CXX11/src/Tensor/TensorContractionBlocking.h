@@ -35,9 +35,7 @@ class TensorContractionBlocking {
       computeProductBlockingSizes<LhsScalar, RhsScalar, 1>(kc_, mc_, nc_, num_threads);
     }
     else {
-      if (kc_ && mc_ && nc_) {
-        mc_ = (((m / num_threads) + 15) / 16) * 16;
-      }
+      computeProductBlockingSizes<LhsScalar, RhsScalar, 1>(kc_, nc_, mc_, num_threads);
     }
   }
 
