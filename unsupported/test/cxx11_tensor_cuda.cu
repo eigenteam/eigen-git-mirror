@@ -661,6 +661,9 @@ void test_cuda_digamma()
   for (int i = 5; i < 7; ++i) {
     VERIFY_IS_EQUAL(out(i), expected_out(i));
   }
+
+  cudaFree(d_in);
+  cudaFree(d_out);
 }
 
 template <typename Scalar>
@@ -725,6 +728,10 @@ void test_cuda_zeta()
       VERIFY_IS_APPROX(out(i), expected_out(i));
     }
   }
+
+  cudaFree(d_in_x);
+  cudaFree(d_in_q);
+  cudaFree(d_out);
 }
 
 template <typename Scalar>
@@ -787,6 +794,10 @@ void test_cuda_polygamma()
   for (int i = 0; i < 7; ++i) {
     VERIFY_IS_APPROX(out(i), expected_out(i));
   }
+
+  cudaFree(d_in_x);
+  cudaFree(d_in_n);
+  cudaFree(d_out);
 }
 
 template <typename Scalar>
@@ -826,9 +837,9 @@ void test_cuda_igamma()
   Scalar* d_a;
   Scalar* d_x;
   Scalar* d_out;
-  cudaMalloc((void**)(&d_a), bytes);
-  cudaMalloc((void**)(&d_x), bytes);
-  cudaMalloc((void**)(&d_out), bytes);
+  assert(cudaMalloc((void**)(&d_a), bytes) == cudaSuccess);
+  assert(cudaMalloc((void**)(&d_x), bytes) == cudaSuccess);
+  assert(cudaMalloc((void**)(&d_out), bytes) == cudaSuccess);
 
   cudaMemcpy(d_a, a.data(), bytes, cudaMemcpyHostToDevice);
   cudaMemcpy(d_x, x.data(), bytes, cudaMemcpyHostToDevice);
@@ -854,6 +865,10 @@ void test_cuda_igamma()
       }
     }
   }
+
+  cudaFree(d_a);
+  cudaFree(d_x);
+  cudaFree(d_out);
 }
 
 template <typename Scalar>
@@ -920,6 +935,10 @@ void test_cuda_igammac()
       }
     }
   }
+
+  cudaFree(d_a);
+  cudaFree(d_x);
+  cudaFree(d_out);
 }
 
 template <typename Scalar>
@@ -935,8 +954,8 @@ void test_cuda_erf(const Scalar stddev)
 
   Scalar* d_in;
   Scalar* d_out;
-  cudaMalloc((void**)(&d_in), bytes);
-  cudaMalloc((void**)(&d_out), bytes);
+  assert(cudaMalloc((void**)(&d_in), bytes) == cudaSuccess);
+  assert(cudaMalloc((void**)(&d_out), bytes) == cudaSuccess);
 
   cudaMemcpy(d_in, in.data(), bytes, cudaMemcpyHostToDevice);
 
