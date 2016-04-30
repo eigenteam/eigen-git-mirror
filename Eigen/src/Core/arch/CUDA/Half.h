@@ -46,6 +46,8 @@
 
 // Make our own __half definition that is similar to CUDA's.
 struct __half {
+  __half() {}
+  explicit __half(unsigned short raw) : x(raw) {}
   unsigned short x;
 };
 
@@ -292,7 +294,7 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff)
   const FP32 f16max = { (127 + 16) << 23 };
   const FP32 denorm_magic = { ((127 - 15) + (23 - 10) + 1) << 23 };
   unsigned int sign_mask = 0x80000000u;
-  __half o = { 0 };
+  __half o(0);
 
   unsigned int sign = f.u & sign_mask;
   f.u ^= sign;
