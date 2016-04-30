@@ -40,7 +40,7 @@ class compute_tensor_flags
   };
 
   public:
-    enum { ret = packet_access_bit};
+    enum { ret = packet_access_bit };
 };
 
 
@@ -54,7 +54,7 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
     Options = Options_,
-    Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0 : LvalueBit),
+    Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0 : LvalueBit)
   };
 };
 
@@ -69,7 +69,7 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
   static const int Layout = Options_ & RowMajor ? RowMajor : ColMajor;
   enum {
     Options = Options_,
-    Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0: LvalueBit),
+    Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0: LvalueBit)
   };
 };
 
@@ -86,7 +86,7 @@ struct traits<TensorMap<PlainObjectType, Options_> >
   static const int Layout = BaseTraits::Layout;
   enum {
     Options = Options_,
-    Flags = BaseTraits::Flags,
+    Flags = BaseTraits::Flags
   };
 };
 
@@ -102,7 +102,7 @@ struct traits<TensorRef<PlainObjectType> >
   static const int Layout = BaseTraits::Layout;
   enum {
     Options = BaseTraits::Options,
-    Flags = BaseTraits::Flags,
+    Flags = BaseTraits::Flags
   };
 };
 
@@ -253,7 +253,7 @@ struct nested<const TensorRef<PlainObjectType> >
 // Pc=0.
 typedef enum {
   PADDING_VALID = 1,
-  PADDING_SAME = 2,
+  PADDING_SAME = 2
 } PaddingType;
 
 }  // end namespace Eigen
