@@ -195,7 +195,10 @@ static void test_3d()
   VERIFY_IS_EQUAL((epsilon(0,2,1)), -1);
   VERIFY_IS_EQUAL((epsilon(1,0,2)), -1);
 
-  array<Eigen::DenseIndex, 3> dims{{2,3,4}};
+  array<Eigen::DenseIndex, 3> dims;
+  dims[0] = 2;
+  dims[1] = 3;
+  dims[2] = 4;
   Tensor<int, 3> t1(dims);
   Tensor<int, 3, RowMajor> t2(dims);
 
