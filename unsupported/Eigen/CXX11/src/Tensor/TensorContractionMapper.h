@@ -16,7 +16,7 @@ namespace internal {
 
 enum {
   Rhs = 0,
-  Lhs = 1,
+  Lhs = 1
 };
 
 /*

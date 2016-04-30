@@ -41,7 +41,7 @@ struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
   static const int Layout = traits<LhsXprType>::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 

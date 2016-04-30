@@ -36,7 +36,7 @@ struct traits<TensorAssignOp<LhsXprType, RhsXprType> >
   static const int Layout = internal::traits<LhsXprType>::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 
@@ -100,7 +100,7 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
     IsAligned = TensorEvaluator<LeftArgType, Device>::IsAligned & TensorEvaluator<RightArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
-    RawAccess = TensorEvaluator<LeftArgType, Device>::RawAccess,
+    RawAccess = TensorEvaluator<LeftArgType, Device>::RawAccess
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
