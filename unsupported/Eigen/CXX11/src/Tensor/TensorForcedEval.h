@@ -34,7 +34,7 @@ struct traits<TensorForcedEvalOp<XprType> >
   static const int Layout = XprTraits::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 

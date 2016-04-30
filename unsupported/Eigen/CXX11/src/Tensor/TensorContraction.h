@@ -588,7 +588,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   enum {
-    Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+    Layout = TensorEvaluator<LeftArgType, Device>::Layout
   };
 
   // Most of the code is assuming that both input tensors are ColMajor. If the

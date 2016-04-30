@@ -233,7 +233,7 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   static const int Layout = traits<InputXprType>::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 
