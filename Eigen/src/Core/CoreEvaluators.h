@@ -850,14 +850,14 @@ struct unary_evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel>, IndexBa
   template<int StoreMode, typename PacketType>
   EIGEN_STRONG_INLINE
   void writePacket(Index row, Index col, const PacketType& x) 
-  { 
+  {
     return m_argImpl.template writePacket<StoreMode,PacketType>(m_startRow.value() + row, m_startCol.value() + col, x); 
   }
   
   template<int StoreMode, typename PacketType>
   EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketType& x) 
-  { 
+  {
     return writePacket<StoreMode,PacketType>(RowsAtCompileTime == 1 ? 0 : index,
                                              RowsAtCompileTime == 1 ? index : 0,
                                              x);
