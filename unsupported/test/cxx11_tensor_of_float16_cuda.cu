@@ -134,6 +134,68 @@ void test_cuda_elementwise() {
   gpu_device.deallocate(d_res_float);
 }
 
+void test_cuda_trancendental() {
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+  int num_elem = 101;
+
+  float* d_float1 = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  float* d_float2 = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  float* d_res1_half = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  float* d_res1_float = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  float* d_res2_half = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  float* d_res2_float = (float*)gpu_device.allocate(num_elem * sizeof(float));
+
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_float1(
+      d_float1, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_float2(
+      d_float2, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res1_half(
+      d_res1_half, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res1_float(
+      d_res1_float, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res2_half(
+      d_res2_half, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res2_float(
+      d_res2_float, num_elem);
+
+  gpu_float1.device(gpu_device) = gpu_float1.random();
+  gpu_float2.device(gpu_device) = gpu_float2.random();
+  gpu_res1_float.device(gpu_device) = gpu_float1.exp();
+  gpu_res2_float.device(gpu_device) = gpu_float2.log();
+  gpu_res1_half.device(gpu_device) = gpu_float1.cast<Eigen::half>().exp().cast<float>();
+  gpu_res2_half.device(gpu_device) = gpu_float2.cast<Eigen::half>().log().cast<float>();
+
+  Tensor<float, 1> input1(num_elem);
+  Tensor<float, 1> half_prec1(num_elem);
+  Tensor<float, 1> full_prec1(num_elem);
+  Tensor<float, 1> input2(num_elem);
+  Tensor<float, 1> half_prec2(num_elem);
+  Tensor<float, 1> full_prec2(num_elem);
+  gpu_device.memcpyDeviceToHost(input1.data(), d_float1, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(input2.data(), d_float2, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(half_prec1.data(), d_res1_half, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(full_prec1.data(), d_res1_float, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(half_prec2.data(), d_res2_half, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(full_prec2.data(), d_res2_float, num_elem*sizeof(float));
+  gpu_device.synchronize();
+
+  for (int i = 0; i < num_elem; ++i) {
+    std::cout << "Checking elemwise exp " << i << " input = " << input1(i) << " full = " << full_prec1(i) << " half = " << half_prec1(i) << std::endl;
+    VERIFY_IS_APPROX(full_prec1(i), half_prec1(i));
+  }
+  for (int i = 0; i < num_elem; ++i) {
+    std::cout << "Checking elemwise log " << i << " input = " << input2(i) << " full = " << full_prec2(i) << " half = " << half_prec2(i) << std::endl;
+    VERIFY_IS_APPROX(full_prec2(i), half_prec2(i));
+  }
+  gpu_device.deallocate(d_float1);
+  gpu_device.deallocate(d_float2);
+  gpu_device.deallocate(d_res1_half);
+  gpu_device.deallocate(d_res1_float);
+  gpu_device.deallocate(d_res2_half);
+  gpu_device.deallocate(d_res2_float);
+}
+
 
 void test_cuda_contractions() {
   Eigen::CudaStreamDevice stream;
@@ -280,6 +342,7 @@ void test_cxx11_tensor_of_float16_cuda()
     CALL_SUBTEST_1(test_cuda_conversion());
     CALL_SUBTEST_1(test_cuda_unary());
     CALL_SUBTEST_1(test_cuda_elementwise());
+    CALL_SUBTEST_1(test_cuda_trancendental());
     CALL_SUBTEST_2(test_cuda_contractions());
     CALL_SUBTEST_3(test_cuda_reductions());
     CALL_SUBTEST_4(test_cuda_forced_evals());
