@@ -294,7 +294,8 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff)
   const FP32 f16max = { (127 + 16) << 23 };
   const FP32 denorm_magic = { ((127 - 15) + (23 - 10) + 1) << 23 };
   unsigned int sign_mask = 0x80000000u;
-  __half o(static_cast<unsigned short>(0x0u));
+  __half o;
+  o.x = static_cast<unsigned short>(0x0u);
 
   unsigned int sign = f.u & sign_mask;
   f.u ^= sign;
