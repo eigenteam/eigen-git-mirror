@@ -40,7 +40,7 @@ struct traits<TensorCwiseNullaryOp<NullaryOp, XprType> >
   static const int Layout = XprTraits::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 
@@ -163,7 +163,7 @@ struct traits<TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType> >
   static const int Layout = XprTraits::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 

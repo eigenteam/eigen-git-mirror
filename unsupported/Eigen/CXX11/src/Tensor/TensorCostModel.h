@@ -34,25 +34,25 @@ class TensorOpCost {
   template <typename ArgType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int MulCost() {
     return internal::functor_traits<
-        internal::scalar_product_op<ArgType, ArgType>>::Cost;
+        internal::scalar_product_op<ArgType, ArgType> >::Cost;
   }
   template <typename ArgType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int AddCost() {
-    return internal::functor_traits<internal::scalar_sum_op<ArgType>>::Cost;
+    return internal::functor_traits<internal::scalar_sum_op<ArgType> >::Cost;
   }
   template <typename ArgType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int DivCost() {
     return internal::functor_traits<
-        internal::scalar_quotient_op<ArgType, ArgType>>::Cost;
+        internal::scalar_quotient_op<ArgType, ArgType> >::Cost;
   }
   template <typename ArgType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int ModCost() {
-    return internal::functor_traits<internal::scalar_mod_op<ArgType>>::Cost;
+    return internal::functor_traits<internal::scalar_mod_op<ArgType> >::Cost;
   }
   template <typename SrcType, typename TargetType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int CastCost() {
     return internal::functor_traits<
-        internal::scalar_cast_op<SrcType, TargetType>>::Cost;
+        internal::scalar_cast_op<SrcType, TargetType> >::Cost;
   }
 
   TensorOpCost() : bytes_loaded_(0), bytes_stored_(0), compute_cycles_(0) {}

@@ -37,7 +37,6 @@ static void test_fixed_size()
   VERIFY_IS_EQUAL(dimensions.TotalSize(), 2*3*7);
 }
 
-
 static void test_match()
 {
   Eigen::DSizes<int, 3> dyn(2,3,7);
@@ -49,10 +48,22 @@ static void test_match()
   VERIFY_IS_EQUAL(Eigen::dimensions_match(dyn1, dyn2), false);
 }
 
+static void test_rank_zero()
+{
+  Eigen::Sizes<> scalar;
+  VERIFY_IS_EQUAL(scalar.TotalSize(), 1);
+  VERIFY_IS_EQUAL(scalar.rank(), 0);
+  VERIFY_IS_EQUAL(internal::array_prod(scalar), 1);
+
+  Eigen::DSizes<ptrdiff_t, 0> dscalar;
+  VERIFY_IS_EQUAL(dscalar.TotalSize(), 1);
+  VERIFY_IS_EQUAL(dscalar.rank(), 0);
+}
 
 void test_cxx11_tensor_dimension()
 {
   CALL_SUBTEST(test_dynamic_size());
   CALL_SUBTEST(test_fixed_size());
   CALL_SUBTEST(test_match());
+  CALL_SUBTEST(test_rank_zero());
 }

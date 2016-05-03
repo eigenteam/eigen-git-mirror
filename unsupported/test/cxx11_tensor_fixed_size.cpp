@@ -130,9 +130,9 @@ static void test_tensor_map()
 static void test_2d()
 {
   float data1[6];
-  TensorMap<TensorFixedSize<float, Sizes<2, 3> >> mat1(data1,2,3);
+  TensorMap<TensorFixedSize<float, Sizes<2, 3> > > mat1(data1,2,3);
   float data2[6];
-  TensorMap<TensorFixedSize<float, Sizes<2, 3>, RowMajor>> mat2(data2,2,3);
+  TensorMap<TensorFixedSize<float, Sizes<2, 3>, RowMajor> > mat2(data2,2,3);
 
   VERIFY_IS_EQUAL((mat1.size()), 2*3);
   VERIFY_IS_EQUAL(mat1.rank(), 2);
@@ -153,7 +153,7 @@ static void test_2d()
   mat2(1,1) = -4.0;
   mat2(1,2) = -5.0;
 
-  TensorFixedSize<float, Sizes<2, 3>> mat3;
+  TensorFixedSize<float, Sizes<2, 3> > mat3;
   TensorFixedSize<float, Sizes<2, 3>, RowMajor> mat4;
   mat3 = mat1.abs();
   mat4 = mat2.abs();

@@ -22,14 +22,15 @@ static void test_simple()
   m1.setRandom();
   m2.setRandom();
 
-  TensorMap<Tensor<float, 2>> mat1(m1.data(), 3,3);
-  TensorMap<Tensor<float, 2>> mat2(m2.data(), 3,3);
+  TensorMap<Tensor<float, 2> > mat1(m1.data(), 3,3);
+  TensorMap<Tensor<float, 2> > mat2(m2.data(), 3,3);
 
   Tensor<float, 2> mat3(3,3);
   mat3 = mat1;
 
   typedef Tensor<float, 1>::DimensionPair DimPair;
-  Eigen::array<DimPair, 1> dims({{DimPair(1, 0)}});
+  Eigen::array<DimPair, 1> dims;
+  dims[0] = DimPair(1, 0);
 
   mat3 = mat3.contract(mat2, dims).eval();
 
@@ -60,7 +61,7 @@ static void test_const()
   Eigen::array<int, 2> bcast;
   bcast[0] = 3;
   bcast[1] = 1;
-  const TensorMap<Tensor<const float, 2>> input_tensor(input.data(), 3, 3);
+  const TensorMap<Tensor<const float, 2> > input_tensor(input.data(), 3, 3);
   Tensor<float, 2> output_tensor= (input_tensor - input_tensor.maximum(depth_dim).eval().reshape(dims2d).broadcast(bcast));
 
   for (int i = 0; i < 3; ++i) {

@@ -535,7 +535,7 @@ InstType instantiate_by_c_array(ArrType* arr)
 
 #else // Non C++11, fallback to emulation mode
 
-#include "src/Core/util/EmulateCXX11Meta.h"
+#include "EmulateCXX11Meta.h"
 
 #endif
 

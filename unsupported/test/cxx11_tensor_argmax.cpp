@@ -64,7 +64,7 @@ static void test_argmax_tuple_reducer()
   Tensor<Tuple<DenseIndex, float>, 0, DataLayout> reduced;
   DimensionList<DenseIndex, 4> dims;
   reduced = index_tuples.reduce(
-      dims, internal::ArgMaxTupleReducer<Tuple<DenseIndex, float>>());
+      dims, internal::ArgMaxTupleReducer<Tuple<DenseIndex, float> >());
 
   Tensor<float, 0, DataLayout> maxi = tensor.maximum();
 
@@ -74,7 +74,7 @@ static void test_argmax_tuple_reducer()
   for (int d = 0; d < 3; ++d) reduce_dims[d] = d;
   Tensor<Tuple<DenseIndex, float>, 1, DataLayout> reduced_by_dims(7);
   reduced_by_dims = index_tuples.reduce(
-      reduce_dims, internal::ArgMaxTupleReducer<Tuple<DenseIndex, float>>());
+      reduce_dims, internal::ArgMaxTupleReducer<Tuple<DenseIndex, float> >());
 
   Tensor<float, 1, DataLayout> max_by_dims = tensor.maximum(reduce_dims);
 
@@ -96,7 +96,7 @@ static void test_argmin_tuple_reducer()
   Tensor<Tuple<DenseIndex, float>, 0, DataLayout> reduced;
   DimensionList<DenseIndex, 4> dims;
   reduced = index_tuples.reduce(
-      dims, internal::ArgMinTupleReducer<Tuple<DenseIndex, float>>());
+      dims, internal::ArgMinTupleReducer<Tuple<DenseIndex, float> >());
 
   Tensor<float, 0, DataLayout> mini = tensor.minimum();
 
@@ -106,7 +106,7 @@ static void test_argmin_tuple_reducer()
   for (int d = 0; d < 3; ++d) reduce_dims[d] = d;
   Tensor<Tuple<DenseIndex, float>, 1, DataLayout> reduced_by_dims(7);
   reduced_by_dims = index_tuples.reduce(
-      reduce_dims, internal::ArgMinTupleReducer<Tuple<DenseIndex, float>>());
+      reduce_dims, internal::ArgMinTupleReducer<Tuple<DenseIndex, float> >());
 
   Tensor<float, 1, DataLayout> min_by_dims = tensor.minimum(reduce_dims);
 

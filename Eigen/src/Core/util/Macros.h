@@ -375,7 +375,7 @@
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
 #elif __has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
-    EIGEN_GNUC_AT_LEAST(4,8)
+  (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L))
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
 
