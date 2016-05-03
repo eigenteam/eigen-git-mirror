@@ -41,7 +41,7 @@ class MaxSizeVector {
   // Construct a new MaxSizeVector, reserve and resize to n.
   // Copy the init value to all elements.
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  explicit MaxSizeVector(size_t n, const T& init)
+  MaxSizeVector(size_t n, const T& init)
       : reserve_(n), size_(n),
         data_(static_cast<T*>(internal::aligned_malloc(n * sizeof(T)))) {
     for (size_t i = 0; i < n; ++i) { new (&data_[i]) T(init); }
