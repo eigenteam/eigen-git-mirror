@@ -67,10 +67,9 @@ class TensorOpCost {
         bytes_stored_(bytes_stored),
         compute_cycles_(vectorized ? compute_cycles / packet_size
                                    : compute_cycles) {
-    using std::isfinite;
-    eigen_assert(bytes_loaded >= 0 && (isfinite)(bytes_loaded));
-    eigen_assert(bytes_stored >= 0 && (isfinite)(bytes_stored));
-    eigen_assert(compute_cycles >= 0 && (isfinite)(compute_cycles));
+    eigen_assert(bytes_loaded >= 0 && (numext::isfinite)(bytes_loaded));
+    eigen_assert(bytes_stored >= 0 && (numext::isfinite)(bytes_stored));
+    eigen_assert(compute_cycles >= 0 && (numext::isfinite)(compute_cycles));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double bytes_loaded() const {
