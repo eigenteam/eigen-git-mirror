@@ -284,7 +284,7 @@ struct digamma_impl {
     bool negative = false;
 
     const Scalar maxnum = NumTraits<Scalar>::infinity();
-    const Scalar m_pi(EIGEN_PI);
+    const Scalar m_pi = Scalar(EIGEN_PI);
 
     const Scalar zero = Scalar(0);
     const Scalar one = Scalar(1);
@@ -441,7 +441,7 @@ struct igamma_helper<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float big() {
     // use epsneg (1.0 - epsneg == 1.0)
-    return 1.0 / (NumTraits<float>::epsilon() / 2);
+    return 1.0f / (NumTraits<float>::epsilon() / 2);
   }
 };
 
@@ -742,7 +742,7 @@ struct igamma_impl {
     const Scalar machep = igamma_helper<Scalar>::machep();
     const Scalar maxlog = numext::log(NumTraits<Scalar>::highest());
 
-    double ans, ax, c, r;
+    Scalar ans, ax, c, r;
 
     /* Compute  x**a * exp(-x) / gamma(a)  */
     ax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);
