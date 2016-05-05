@@ -87,19 +87,14 @@ static void test_scalar()
   vec1.setRandom();
   vec2.setRandom();
 
-  Tensor<float, 1, DataLayout> scalar(1);
-  scalar.setZero();
   Eigen::array<DimPair, 1> dims = {{DimPair(0, 0)}};
-  typedef TensorEvaluator<decltype(vec1.contract(vec2, dims)), DefaultDevice> Evaluator;
-  Evaluator eval(vec1.contract(vec2, dims), DefaultDevice());
-  eval.evalTo(scalar.data());
-  EIGEN_STATIC_ASSERT(Evaluator::NumDims==1ul, YOU_MADE_A_PROGRAMMING_MISTAKE);
+  Tensor<float, 0, DataLayout> scalar = vec1.contract(vec2, dims);
 
   float expected = 0.0f;
   for (int i = 0; i < 6; ++i) {
     expected += vec1(i) * vec2(i);
   }
-  VERIFY_IS_APPROX(scalar(0), expected);
+  VERIFY_IS_APPROX(scalar(), expected);
 }
 
 template<int DataLayout>
