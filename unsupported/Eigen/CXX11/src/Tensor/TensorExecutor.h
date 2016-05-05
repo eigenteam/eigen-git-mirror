@@ -59,13 +59,14 @@ class TensorExecutor<Expression, DefaultDevice, true>
     {
       const Index size = array_prod(evaluator.dimensions());
       const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
-      // Manually unroll this loop since compilers don't do it.
+      // Give the compiler a strong hint to unroll the loop. But don't insist
+      // on unrolling, because if the function is expensive the compiler should not
+      // unroll the loop at the expense of inlining.
       const Index UnrolledSize = (size / (4 * PacketSize)) * 4 * PacketSize;
       for (Index i = 0; i < UnrolledSize; i += 4*PacketSize) {
-        evaluator.evalPacket(i);
-        evaluator.evalPacket(i+PacketSize);
-        evaluator.evalPacket(i+2*PacketSize);
-        evaluator.evalPacket(i+3*PacketSize);
+        for (Index j = 0; j < 4; j++) {
+          evaluator.evalPacket(i + j * PacketSize);
+        }
       }
       const Index VectorizedSize = (size / PacketSize) * PacketSize;
       for (Index i = UnrolledSize; i < VectorizedSize; i += PacketSize) {
@@ -104,12 +105,13 @@ struct EvalRange<Evaluator, Index, true> {
     if (last - first >= PacketSize) {
       eigen_assert(first % PacketSize == 0);
       Index last_chunk_offset = last - 4 * PacketSize;
-      // Manually unroll this loop since compilers don't do it.
+      // Give the compiler a strong hint to unroll the loop. But don't insist
+      // on unrolling, because if the function is expensive the compiler should not
+      // unroll the loop at the expense of inlining.
       for (; i <= last_chunk_offset; i += 4*PacketSize) {
-        evaluator.evalPacket(i);
-        evaluator.evalPacket(i+PacketSize);
-        evaluator.evalPacket(i+2*PacketSize);
-        evaluator.evalPacket(i+3*PacketSize);
+        for (Index j = 0; j < 4; j++) {
+          evaluator.evalPacket(i + j * PacketSize);
+        }
       }
       last_chunk_offset = last - PacketSize;
       for (; i <= last_chunk_offset; i += PacketSize) {
