@@ -179,7 +179,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(FVectorType  &x)
     fjac.resize(m, n);
     if (!useExternalScaling)
         diag.resize(n);
-    eigen_assert( (!useExternalScaling || diag.size()==n) || "When useExternalScaling is set, the caller must provide a valid 'diag'");
+    eigen_assert( (!useExternalScaling || diag.size()==n) && "When useExternalScaling is set, the caller must provide a valid 'diag'");
     qtf.resize(n);
 
     /* Function Body */
@@ -215,7 +215,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
 {
     using std::abs;
     using std::sqrt;
-    
+
     eigen_assert(x.size()==n); // check the caller is not cheating us
 
     /* calculate the jacobian matrix. */
@@ -398,7 +398,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(FVectorType  
     fjac.resize(n, n);
     if (!useExternalScaling)
         diag.resize(n);
-    eigen_assert( (!useExternalScaling || diag.size()==n) || "When useExternalScaling is set, the caller must provide a valid 'diag'");
+    eigen_assert( (!useExternalScaling || diag.size()==n) && "When useExternalScaling is set, the caller must provide a valid 'diag'");
     qtf.resize(n);
 
     /* Function Body */
