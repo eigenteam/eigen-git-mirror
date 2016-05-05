@@ -226,7 +226,7 @@ void test_multithread_contraction_agrees_with_singlethread() {
   for (ptrdiff_t i = 0; i < st_result.size(); i++) {
     // if both of the values are very small, then do nothing (because the test will fail
     // due to numerical precision issues when values are small)
-    if (fabs(st_result.data()[i] - tp_result.data()[i]) >= 1e-4) {
+    if (fabs(st_result.data()[i] - tp_result.data()[i]) >= 1e-4f) {
       VERIFY_IS_APPROX(st_result.data()[i], tp_result.data()[i]);
     }
   }
@@ -264,7 +264,7 @@ void test_full_contraction() {
   VERIFY(dimensions_match(st_result.dimensions(), tp_result.dimensions()));
   // if both of the values are very small, then do nothing (because the test will fail
   // due to numerical precision issues when values are small)
-  if (fabs(st_result() - tp_result()) >= 1e-4) {
+  if (fabs(st_result() - tp_result()) >= 1e-4f) {
     VERIFY_IS_APPROX(st_result(), tp_result());
   }
 }
