@@ -159,8 +159,8 @@ void test_cuda_trancendental() {
   Eigen::TensorMap<Eigen::Tensor<Eigen::half, 1>, Eigen::Aligned> gpu_res2_float(
       d_res2_float, num_elem);
 
-  gpu_float1.device(gpu_device) = gpu_float1.random();
-  gpu_float2.device(gpu_device) = gpu_float2.random();
+  gpu_float1.device(gpu_device) = gpu_float1.random() - 0.5f;
+  gpu_float2.device(gpu_device) = gpu_float2.random() + 0.5f;;
   gpu_res1_float.device(gpu_device) = gpu_float1.exp().cast<Eigen::half>();
   gpu_res2_float.device(gpu_device) = gpu_float2.log().cast<Eigen::half>();
   gpu_res1_half.device(gpu_device) = gpu_float1.cast<Eigen::half>().exp();
