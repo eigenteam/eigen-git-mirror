@@ -466,7 +466,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
     Scalar a2 = R0.slerp(Scalar(k+1)/Scalar(path_steps), R1).angle();
     l += std::abs(a2-a1);
   }
-  VERIFY(l<=EIGEN_PI*(Scalar(1)+NumTraits<Scalar>::epsilon()*Scalar(path_steps/2)));
+  VERIFY(l<=Scalar(EIGEN_PI)*(Scalar(1)+NumTraits<Scalar>::epsilon()*Scalar(path_steps/2)));
   
   // check basic features
   {

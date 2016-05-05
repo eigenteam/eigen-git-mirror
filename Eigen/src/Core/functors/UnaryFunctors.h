@@ -880,9 +880,9 @@ struct scalar_sign_op<Scalar,true> {
   {
     typedef typename NumTraits<Scalar>::Real real_type;
     real_type aa = numext::abs(a);
-    if (aa==0)
+    if (aa==real_type(0))
       return Scalar(0);
-    aa = 1./aa;
+    aa = real_type(1)/aa;
     return Scalar(real(a)*aa, imag(a)*aa );
   }
   //TODO

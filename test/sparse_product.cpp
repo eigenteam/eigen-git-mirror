@@ -245,7 +245,7 @@ template<typename SparseMatrixType> void sparse_product()
     for (int k=0; k<mS.outerSize(); ++k)
       for (typename SparseMatrixType::InnerIterator it(mS,k); it; ++it)
         if (it.index() == k)
-          it.valueRef() *= 0.5;
+          it.valueRef() *= Scalar(0.5);
 
     VERIFY_IS_APPROX(refS.adjoint(), refS);
     VERIFY_IS_APPROX(mS.adjoint(), mS);

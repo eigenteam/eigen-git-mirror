@@ -150,7 +150,7 @@ template<typename SparseMatrixType> void sparse_block(const SparseMatrixType& re
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
     SparseMatrixType m2(rows, cols);
     initSparse<Scalar>(density, refMat2, m2);
-    if(internal::random<float>(0,1)>0.5) m2.makeCompressed();
+    if(internal::random<float>(0,1)>0.5f) m2.makeCompressed();
     Index j0 = internal::random<Index>(0,outer-2);
     Index j1 = internal::random<Index>(0,outer-2);
     Index n0 = internal::random<Index>(1,outer-(std::max)(j0,j1));

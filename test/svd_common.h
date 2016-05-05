@@ -141,14 +141,14 @@ void svd_least_square(const MatrixType& m, unsigned int computationOptions)
       using std::abs;
       
       SolutionType y(x);
-      y.row(k) = (1.+2*NumTraits<RealScalar>::epsilon())*x.row(k);
+      y.row(k) = (RealScalar(1)+2*NumTraits<RealScalar>::epsilon())*x.row(k);
       RealScalar residual_y = (m*y-rhs).norm();
       VERIFY( test_isMuchSmallerThan(abs(residual_y-residual), rhs_norm) || residual < residual_y );
       if(internal::is_same<RealScalar,float>::value) ++g_test_level;
       VERIFY( test_isApprox(residual_y,residual) || residual < residual_y );
       if(internal::is_same<RealScalar,float>::value) --g_test_level;
       
-      y.row(k) = (1.-2*NumTraits<RealScalar>::epsilon())*x.row(k);
+      y.row(k) = (RealScalar(1)-2*NumTraits<RealScalar>::epsilon())*x.row(k);
       residual_y = (m*y-rhs).norm();
       VERIFY( test_isMuchSmallerThan(abs(residual_y-residual), rhs_norm) || residual < residual_y );
       if(internal::is_same<RealScalar,float>::value) ++g_test_level;

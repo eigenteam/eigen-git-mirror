@@ -37,6 +37,7 @@ template <typename MatrixType>
 void matrix_log_compute_2x2(const MatrixType& A, MatrixType& result)
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   using std::abs;
   using std::ceil;
   using std::imag;
@@ -54,14 +55,14 @@ void matrix_log_compute_2x2(const MatrixType& A, MatrixType& result)
   {
     result(0,1) = A(0,1) / A(0,0);
   }
-  else if ((abs(A(0,0)) < 0.5*abs(A(1,1))) || (abs(A(0,0)) > 2*abs(A(1,1))))
+  else if ((abs(A(0,0)) < RealScalar(0.5)*abs(A(1,1))) || (abs(A(0,0)) > 2*abs(A(1,1))))
   {
     result(0,1) = A(0,1) * (logA11 - logA00) / y;
   }
   else
   {
     // computation in previous branch is inaccurate if A(1,1) \approx A(0,0)
-    int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - EIGEN_PI) / (2*EIGEN_PI)));
+    int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - RealScalar(EIGEN_PI)) / RealScalar(2*EIGEN_PI)));
     result(0,1) = A(0,1) * (numext::log1p(y/A(0,0)) + Scalar(0,2*EIGEN_PI*unwindingNumber)) / y;
   }
 }

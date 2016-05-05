@@ -765,14 +765,14 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
     RealScalar muPrev, muCur;
     if (shift == left)
     {
-      muPrev = (right - left) * 0.1;
+      muPrev = (right - left) * RealScalar(0.1);
       if (k == actual_n-1) muCur = right - left;
-      else                 muCur = (right - left) * 0.5; 
+      else                 muCur = (right - left) * RealScalar(0.5);
     }
     else
     {
-      muPrev = -(right - left) * 0.1;
-      muCur = -(right - left) * 0.5;
+      muPrev = -(right - left) * RealScalar(0.1);
+      muCur = -(right - left) * RealScalar(0.5);
     }
 
     RealScalar fPrev = secularEq(muPrev, col0, diag, perm, diagShifted, shift);
@@ -820,11 +820,11 @@ void BDCSVD<MatrixType>::computeSingVals(const ArrayRef& col0, const ArrayRef& d
         leftShifted = (std::numeric_limits<RealScalar>::min)();
         // I don't understand why the case k==0 would be special there:
         // if (k == 0) rightShifted = right - left; else 
-        rightShifted = (k==actual_n-1) ? right : ((right - left) * 0.6); // theoretically we can take 0.5, but let's be safe
+        rightShifted = (k==actual_n-1) ? right : ((right - left) * RealScalar(0.6)); // theoretically we can take 0.5, but let's be safe
       }
       else
       {
-        leftShifted = -(right - left) * 0.6;
+        leftShifted = -(right - left) * RealScalar(0.6);
         rightShifted = -(std::numeric_limits<RealScalar>::min)();
       }
       

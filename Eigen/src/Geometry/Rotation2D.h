@@ -82,15 +82,15 @@ public:
   
   /** \returns the rotation angle in [0,2pi] */
   inline Scalar smallestPositiveAngle() const {
-    Scalar tmp = fmod(m_angle,Scalar(2)*EIGEN_PI);
-    return tmp<Scalar(0) ? tmp + Scalar(2)*EIGEN_PI : tmp;
+    Scalar tmp = numext::fmod(m_angle,Scalar(2*EIGEN_PI));
+    return tmp<Scalar(0) ? tmp + Scalar(2*EIGEN_PI) : tmp;
   }
   
   /** \returns the rotation angle in [-pi,pi] */
   inline Scalar smallestAngle() const {
-    Scalar tmp = fmod(m_angle,Scalar(2)*EIGEN_PI);
-    if(tmp>Scalar(EIGEN_PI))       tmp -= Scalar(2)*Scalar(EIGEN_PI);
-    else if(tmp<-Scalar(EIGEN_PI)) tmp += Scalar(2)*Scalar(EIGEN_PI);
+    Scalar tmp = numext::fmod(m_angle,Scalar(2*EIGEN_PI));
+    if(tmp>Scalar(EIGEN_PI))       tmp -= Scalar(2*EIGEN_PI);
+    else if(tmp<-Scalar(EIGEN_PI)) tmp += Scalar(2*EIGEN_PI);
     return tmp;
   }
 

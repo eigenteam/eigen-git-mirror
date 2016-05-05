@@ -30,7 +30,7 @@ template<typename QuatType> void check_slerp(const QuatType& q0, const QuatType&
   Scalar largeEps = test_precision<Scalar>();
 
   Scalar theta_tot = AA(q1*q0.inverse()).angle();
-  if(theta_tot>EIGEN_PI)
+  if(theta_tot>Scalar(EIGEN_PI))
     theta_tot = Scalar(2.*EIGEN_PI)-theta_tot;
   for(Scalar t=0; t<=Scalar(1.001); t+=Scalar(0.1))
   {
@@ -115,8 +115,8 @@ template<typename Scalar, int Options> void quaternion(void)
   // Do not execute the test if the rotation angle is almost zero, or
   // the rotation axis and v1 are almost parallel.
   if (abs(aa.angle()) > 5*test_precision<Scalar>()
-      && (aa.axis() - v1.normalized()).norm() < 1.99
-      && (aa.axis() + v1.normalized()).norm() < 1.99) 
+      && (aa.axis() - v1.normalized()).norm() < Scalar(1.99)
+      && (aa.axis() + v1.normalized()).norm() < Scalar(1.99))
   {
     VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
   }

@@ -205,15 +205,15 @@ static void test_fft_real_input_energy() {
     VERIFY_IS_EQUAL(output.dimension(i), input.dimension(i));
   }
 
-  float energy_original = 0.0;
-  float energy_after_fft = 0.0;
+  RealScalar energy_original = 0.0;
+  RealScalar energy_after_fft = 0.0;
 
   for (int i = 0; i < total_size; ++i) {
-    energy_original += pow(std::abs(input(i)), 2);
+    energy_original += numext::abs2(input(i));
   }
 
   for (int i = 0; i < total_size; ++i) {
-    energy_after_fft += pow(std::abs(output(i)), 2);
+    energy_after_fft += numext::abs2(output(i));
   }
 
   if(FFTDirection == FFT_FORWARD) {

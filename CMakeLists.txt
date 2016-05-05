@@ -120,7 +120,7 @@ endmacro(ei_add_cxx_compiler_flag)
 if(NOT MSVC)
   # We assume that other compilers are partly compatible with GNUCC
 
-  # clang outputs some warnings for unknwon flags that are not caught by check_cxx_compiler_flag
+  # clang outputs some warnings for unknown flags that are not caught by check_cxx_compiler_flag
   # adding -Werror turns such warnings into errors
   check_cxx_compiler_flag("-Werror" COMPILER_SUPPORT_WERROR)
   if(COMPILER_SUPPORT_WERROR)
@@ -143,6 +143,8 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wshorten-64-to-32")
   ei_add_cxx_compiler_flag("-Wenum-conversion")
   ei_add_cxx_compiler_flag("-Wc++11-extensions")
+  ei_add_cxx_compiler_flag("-Wdouble-promotion")
+#  ei_add_cxx_compiler_flag("-Wconversion")
   
   # -Wshadow is insanely too strict with gcc, hopefully it will become usable with gcc 6
   # if(NOT CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.0.0"))
@@ -158,7 +160,7 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-fno-common")
   ei_add_cxx_compiler_flag("-fstrict-aliasing")
   ei_add_cxx_compiler_flag("-wd981")                    # disable ICC's "operands are evaluated in unspecified order" remark
-  ei_add_cxx_compiler_flag("-wd2304")                   # disbale ICC's "warning #2304: non-explicit constructor with single argument may cause implicit type conversion" produced by -Wnon-virtual-dtor
+  ei_add_cxx_compiler_flag("-wd2304")                   # disable ICC's "warning #2304: non-explicit constructor with single argument may cause implicit type conversion" produced by -Wnon-virtual-dtor
   
   
   # The -ansi flag must be added last, otherwise it is also used as a linker flag by check_cxx_compiler_flag making it fails

@@ -232,11 +232,11 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       for (Index i=0; i<m2.rows(); ++i)
       {
         float x = internal::random<float>(0,1);
-        if (x<0.1)
+        if (x<0.1f)
         {
           // do nothing
         }
-        else if (x<0.5)
+        else if (x<0.5f)
         {
           countFalseNonZero++;
           m2.insert(i,j) = Scalar(0);

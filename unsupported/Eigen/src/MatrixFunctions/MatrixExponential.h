@@ -210,9 +210,9 @@ struct matrix_exp_computeUV<MatrixType, float>
     using std::pow;
     const float l1norm = arg.cwiseAbs().colwise().sum().maxCoeff();
     squarings = 0;
-    if (l1norm < 4.258730016922831e-001) {
+    if (l1norm < 4.258730016922831e-001f) {
       matrix_exp_pade3(arg, U, V);
-    } else if (l1norm < 1.880152677804762e+000) {
+    } else if (l1norm < 1.880152677804762e+000f) {
       matrix_exp_pade5(arg, U, V);
     } else {
       const float maxnorm = 3.925724783138660f;

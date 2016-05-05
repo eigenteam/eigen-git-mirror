@@ -54,7 +54,7 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         long double difpower=0;
         size_t n = (min)( buf1.size(),buf2.size() );
         for (size_t k=0;k<n;++k) {
-            totalpower += (numext::abs2( buf1[k] ) + numext::abs2(buf2[k]) )/2.;
+            totalpower += (numext::abs2( buf1[k] ) + numext::abs2(buf2[k]) )/2;
             difpower += numext::abs2(buf1[k] - buf2[k]);
         }
         return sqrt(difpower/totalpower);

@@ -1192,7 +1192,7 @@ double tanh(const double &x) { return ::tanh(x); }
 template <typename T>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 T fmod(const T& a, const T& b) {
-  EIGEN_USING_STD_MATH(floor);
+  EIGEN_USING_STD_MATH(fmod);
   return fmod(a, b);
 }
 

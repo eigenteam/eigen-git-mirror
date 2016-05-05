@@ -24,7 +24,7 @@ void test2dRotation(double tol)
     s = std::sin(angle);
     B << c, s, -s, c;
 
-    C = Apow(std::ldexp(angle,1) / EIGEN_PI);
+    C = Apow(std::ldexp(angle,1) / T(EIGEN_PI));
     std::cout << "test2dRotation: i = " << i << "   error powerm = " << relerr(C,B) << '\n';
     VERIFY(C.isApprox(B, tol));
   }

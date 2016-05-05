@@ -206,7 +206,7 @@ template<typename MatrixType> void qr_kahan_matrix()
   RealScalar c = std::sqrt(1 - s*s);
   for (Index i = 0; i < rows; ++i) {
     m1(i, i) = pow(s, i);
-    m1.row(i).tail(rows - i - 1) = -pow(s, i) * c * MatrixType::Ones(1, rows - i - 1);
+    m1.row(i).tail(rows - i - 1) = -RealScalar(pow(s, i)) * c * MatrixType::Ones(1, rows - i - 1);
   }
   m1 = (m1 + m1.transpose()).eval();
   ColPivHouseholderQR<MatrixType> qr(m1);

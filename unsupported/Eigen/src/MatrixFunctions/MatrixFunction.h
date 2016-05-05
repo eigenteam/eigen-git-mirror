@@ -132,6 +132,7 @@ template <typename EivalsType, typename Cluster>
 void matrix_function_partition_eigenvalues(const EivalsType& eivals, std::list<Cluster>& clusters)
 {
   typedef typename EivalsType::Index Index;
+  typedef typename EivalsType::RealScalar RealScalar;
   for (Index i=0; i<eivals.rows(); ++i) {
     // Find cluster containing i-th ei'val, adding a new cluster if necessary
     typename std::list<Cluster>::iterator qi = matrix_function_find_cluster(i, clusters);
@@ -145,7 +146,7 @@ void matrix_function_partition_eigenvalues(const EivalsType& eivals, std::list<C
 
     // Look for other element to add to the set
     for (Index j=i+1; j<eivals.rows(); ++j) {
-      if (abs(eivals(j) - eivals(i)) <= matrix_function_separation
+      if (abs(eivals(j) - eivals(i)) <= RealScalar(matrix_function_separation)
           && std::find(qi->begin(), qi->end(), j) == qi->end()) {
         typename std::list<Cluster>::iterator qj = matrix_function_find_cluster(j, clusters);
         if (qj == clusters.end()) {

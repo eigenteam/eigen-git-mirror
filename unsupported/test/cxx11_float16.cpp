@@ -34,8 +34,8 @@ void test_conversion()
   float val1 = float(half(__half(0x3c00)));
   float val2 = float(half(__half(0x3c01)));
   float val3 = float(half(__half(0x3c02)));
-  VERIFY_IS_EQUAL(half(0.5 * (val1 + val2)).x, 0x3c00);
-  VERIFY_IS_EQUAL(half(0.5 * (val2 + val3)).x, 0x3c02);
+  VERIFY_IS_EQUAL(half(0.5f * (val1 + val2)).x, 0x3c00);
+  VERIFY_IS_EQUAL(half(0.5f * (val2 + val3)).x, 0x3c02);
 
   // Conversion from int.
   VERIFY_IS_EQUAL(half(-1).x, 0xbc00);

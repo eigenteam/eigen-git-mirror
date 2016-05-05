@@ -54,7 +54,7 @@ void svd_fill_random(MatrixType &m, int Option = 0)
   }
   
   Matrix<Scalar,Dynamic,1> samples(7);
-  samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -1./NumTraits<RealScalar>::highest(), 1./NumTraits<RealScalar>::highest();
+  samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -RealScalar(1)/NumTraits<RealScalar>::highest(), RealScalar(1)/NumTraits<RealScalar>::highest();
   
   if(Option==Symmetric)
   {

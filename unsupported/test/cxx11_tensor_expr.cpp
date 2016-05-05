@@ -112,13 +112,13 @@ static void test_3d()
   Tensor<float, 3> mat1(2,3,7);
   Tensor<float, 3, RowMajor> mat2(2,3,7);
 
-  float val = 1.0;
+  float val = 1.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         mat1(i,j,k) = val;
         mat2(i,j,k) = val;
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
@@ -142,7 +142,7 @@ static void test_3d()
   Tensor<float, 3, RowMajor> mat11(2,3,7);
   mat11 = mat2 / 3.14f;
 
-  val = 1.0;
+  val = 1.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
@@ -155,7 +155,7 @@ static void test_3d()
         VERIFY_IS_APPROX(mat9(i,j,k), val + 3.14f);
         VERIFY_IS_APPROX(mat10(i,j,k), val - 3.14f);
         VERIFY_IS_APPROX(mat11(i,j,k), val / 3.14f);
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
@@ -167,25 +167,25 @@ static void test_constants()
   Tensor<float, 3> mat2(2,3,7);
   Tensor<float, 3> mat3(2,3,7);
 
-  float val = 1.0;
+  float val = 1.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         mat1(i,j,k) = val;
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
   mat2 = mat1.constant(3.14f);
   mat3 = mat1.cwiseMax(7.3f).exp();
 
-  val = 1.0;
+  val = 1.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         VERIFY_IS_APPROX(mat2(i,j,k), 3.14f);
         VERIFY_IS_APPROX(mat3(i,j,k), expf((std::max)(val, 7.3f)));
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
@@ -228,25 +228,25 @@ static void test_functors()
   Tensor<float, 3> mat2(2,3,7);
   Tensor<float, 3> mat3(2,3,7);
 
-  float val = 1.0;
+  float val = 1.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         mat1(i,j,k) = val;
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
   mat2 = mat1.inverse().unaryExpr(&asinf);
   mat3 = mat1.unaryExpr(&tanhf);
 
-  val = 1.0;
+  val = 1.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         VERIFY_IS_APPROX(mat2(i,j,k), asinf(1.0f / mat1(i,j,k)));
         VERIFY_IS_APPROX(mat3(i,j,k), tanhf(mat1(i,j,k)));
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }

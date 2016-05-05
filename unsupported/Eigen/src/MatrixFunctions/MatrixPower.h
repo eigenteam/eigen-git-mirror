@@ -298,7 +298,7 @@ MatrixPowerAtomic<MatrixType>::computeSuperDiag(const ComplexScalar& curr, const
 
   ComplexScalar logCurr = log(curr);
   ComplexScalar logPrev = log(prev);
-  int unwindingNumber = ceil((numext::imag(logCurr - logPrev) - EIGEN_PI) / (2*EIGEN_PI));
+  int unwindingNumber = ceil((numext::imag(logCurr - logPrev) - RealScalar(EIGEN_PI)) / RealScalar(2*EIGEN_PI));
   ComplexScalar w = numext::log1p((curr-prev)/prev)/RealScalar(2) + ComplexScalar(0, EIGEN_PI*unwindingNumber);
   return RealScalar(2) * exp(RealScalar(0.5) * p * (logCurr + logPrev)) * sinh(p * w) / (curr - prev);
 }

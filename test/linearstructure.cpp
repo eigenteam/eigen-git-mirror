@@ -21,6 +21,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   */
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -32,7 +33,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
              m3(rows, cols);
 
   Scalar s1 = internal::random<Scalar>();
-  while (abs(s1)<1e-3) s1 = internal::random<Scalar>();
+  while (abs(s1)<RealScalar(1e-3)) s1 = internal::random<Scalar>();
 
   Index r = internal::random<Index>(0, rows-1),
         c = internal::random<Index>(0, cols-1);
