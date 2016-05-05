@@ -368,7 +368,7 @@ template <typename Device, typename T> class BenchmarkSuite {
     const TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(
         b_, input_size);
     Eigen::array<TensorIndex, 0> output_size;
-    TensorMap<Tensor<float, 0, 0, TensorIndex>, Eigen::Aligned> C(
+    TensorMap<Tensor<T, 0, 0, TensorIndex>, Eigen::Aligned> C(
         c_, output_size);
 
     StartBenchmarkTiming();
