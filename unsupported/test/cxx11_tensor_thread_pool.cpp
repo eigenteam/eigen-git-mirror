@@ -234,6 +234,42 @@ void test_multithread_contraction_agrees_with_singlethread() {
 
 
 template<int DataLayout>
+void test_full_contraction() {
+  int contract_size1 = internal::random<int>(1, 500);
+  int contract_size2 = internal::random<int>(1, 500);
+
+  Tensor<float, 2, DataLayout> left(contract_size1,
+                                    contract_size2);
+  Tensor<float, 2, DataLayout> right(contract_size1,
+                                    contract_size2);
+  left.setRandom();
+  right.setRandom();
+
+  // add constants to shift values away from 0 for more precision
+  left += left.constant(1.5f);
+  right += right.constant(1.5f);
+
+  typedef Tensor<float, 2>::DimensionPair DimPair;
+  Eigen::array<DimPair, 2> dims({{DimPair(0, 0), DimPair(1, 1)}});
+
+  Eigen::ThreadPool tp(internal::random<int>(2, 11));
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(2, 11));
+
+  Tensor<float, 0, DataLayout> st_result;
+  st_result = left.contract(right, dims);
+
+  Tensor<float, 0, DataLayout> tp_result;
+  tp_result.device(thread_pool_device) = left.contract(right, dims);
+
+  VERIFY(dimensions_match(st_result.dimensions(), tp_result.dimensions()));
+  // if both of the values are very small, then do nothing (because the test will fail
+  // due to numerical precision issues when values are small)
+  if (fabs(st_result() - tp_result()) >= 1e-4) {
+    VERIFY_IS_APPROX(st_result(), tp_result());
+  }
+}
+
+template<int DataLayout>
 void test_multithreaded_reductions() {
   const int num_threads = internal::random<int>(3, 11);
   ThreadPool thread_pool(num_threads);
@@ -323,6 +359,9 @@ void test_cxx11_tensor_thread_pool()
   // Exercise various cases that have been problematic in the past.
   CALL_SUBTEST_4(test_contraction_corner_cases<ColMajor>());
   CALL_SUBTEST_4(test_contraction_corner_cases<RowMajor>());
+
+  CALL_SUBTEST_4(test_full_contraction<ColMajor>());
+  CALL_SUBTEST_4(test_full_contraction<RowMajor>());
 
   CALL_SUBTEST_5(test_multithreaded_reductions<ColMajor>());
   CALL_SUBTEST_5(test_multithreaded_reductions<RowMajor>());

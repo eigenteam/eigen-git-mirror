@@ -84,6 +84,65 @@ void test_cuda_contraction(int m_size, int k_size, int n_size)
   cudaFree((void*)d_t_result);
 }
 
+
+template<int DataLayout>
+void test_scalar(int m_size, int k_size, int n_size)
+{
+  std::cout << "Testing for (" << m_size << "," << k_size << "," << n_size << ")" << std::endl;
+  // with these dimensions, the output has 300 * 140 elements, which is
+  // more than 30 * 1024, which is the number of threads in blocks on
+  // a 15 SM GK110 GPU
+  Tensor<float, 2, DataLayout> t_left(m_size, k_size);
+  Tensor<float, 2, DataLayout> t_right(k_size, n_size);
+  Tensor<float, 0, DataLayout> t_result;
+  Tensor<float, 0, DataLayout> t_result_gpu;
+  Eigen::array<DimPair, 2> dims(DimPair(0, 0), DimPair(1, 1));
+
+  t_left.setRandom();
+  t_right.setRandom();
+
+  std::size_t t_left_bytes = t_left.size()  * sizeof(float);
+  std::size_t t_right_bytes = t_right.size() * sizeof(float);
+  std::size_t t_result_bytes = sizeof(float);
+
+  float* d_t_left;
+  float* d_t_right;
+  float* d_t_result;
+
+  cudaMalloc((void**)(&d_t_left), t_left_bytes);
+  cudaMalloc((void**)(&d_t_right), t_right_bytes);
+  cudaMalloc((void**)(&d_t_result), t_result_bytes);
+
+  cudaMemcpy(d_t_left, t_left.data(), t_left_bytes, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_t_right, t_right.data(), t_right_bytes, cudaMemcpyHostToDevice);
+
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  Eigen::TensorMap<Eigen::Tensor<float, 2, DataLayout> >
+      gpu_t_left(d_t_left, m_size, k_size);
+  Eigen::TensorMap<Eigen::Tensor<float, 2, DataLayout> >
+      gpu_t_right(d_t_right, k_size, n_size);
+  Eigen::TensorMap<Eigen::Tensor<float, 0, DataLayout> >
+      gpu_t_result(d_t_result);
+
+  gpu_t_result.device(gpu_device) = gpu_t_left.contract(gpu_t_right, dims);
+  t_result = t_left.contract(t_right, dims);
+
+  cudaMemcpy(t_result_gpu.data(), d_t_result, t_result_bytes, cudaMemcpyDeviceToHost);
+  if (fabs(t_result() - t_result_gpu()) > 1e-4f &&
+      !Eigen::internal::isApprox(t_result(), t_result_gpu(), 1e-4f)) {
+    std::cout << "mismatch detected: " << t_result()
+              << " vs " <<  t_result_gpu() << std::endl;
+    assert(false);
+  }
+
+  cudaFree((void*)d_t_left);
+  cudaFree((void*)d_t_right);
+  cudaFree((void*)d_t_result);
+}
+
+
 template<int DataLayout>
 void test_cuda_contraction_m() {
   for (int k = 32; k < 256; k++) {
@@ -137,6 +196,9 @@ void test_cxx11_tensor_cuda()
 {
   CALL_SUBTEST_1(test_cuda_contraction<ColMajor>(128, 128, 128));
   CALL_SUBTEST_1(test_cuda_contraction<RowMajor>(128, 128, 128));
+
+  CALL_SUBTEST_1(test_scalar<ColMajor>(128, 128, 128));
+  CALL_SUBTEST_1(test_scalar<RowMajor>(128, 128, 128));
 
   CALL_SUBTEST_2(test_cuda_contraction_m<ColMajor>());
   CALL_SUBTEST_3(test_cuda_contraction_m<RowMajor>());

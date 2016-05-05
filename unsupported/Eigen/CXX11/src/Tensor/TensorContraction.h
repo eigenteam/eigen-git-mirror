@@ -143,8 +143,8 @@ struct TensorContractionEvaluatorBase
   static const int NumDims = LDims + RDims - 2 * ContractDims;
 
   typedef array<Index, ContractDims> contract_t;
-  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
-  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
+  typedef array<Index, LDims - ContractDims> left_nocontract_t;
+  typedef array<Index, RDims - ContractDims> right_nocontract_t;
 
   typedef DSizes<Index, NumDims> Dimensions;
 

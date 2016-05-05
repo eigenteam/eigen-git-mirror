@@ -92,10 +92,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef array<Index, RDims> right_dim_mapper_t;
 
   typedef array<Index, ContractDims> contract_t;
-  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
-  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
+  typedef array<Index, LDims - ContractDims> left_nocontract_t;
+  typedef array<Index, RDims - ContractDims> right_nocontract_t;
 
-  static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
+  static const int NumDims = LDims + RDims - 2 * ContractDims;
 
   typedef DSizes<Index, NumDims> Dimensions;
 
