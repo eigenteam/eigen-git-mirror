@@ -378,7 +378,7 @@ template<> struct NumTraits<Eigen::half>
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half epsilon() {
     return internal::raw_uint16_to_half(0x0800);
   }
-  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half dummy_precision() { return half(1e-3f); }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half dummy_precision() { return half(1e-2f); }
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half highest() {
     return internal::raw_uint16_to_half(0x7bff);
   }
