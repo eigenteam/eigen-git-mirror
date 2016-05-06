@@ -56,7 +56,7 @@ struct nested<TensorEvalToOp<XprType>, 1, typename eval<TensorEvalToOp<XprType> 
 
 
 template<typename XprType>
-class TensorEvalToOp : public TensorBase<TensorEvalToOp<XprType> >
+class TensorEvalToOp : public TensorBase<TensorEvalToOp<XprType>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorEvalToOp>::Scalar Scalar;

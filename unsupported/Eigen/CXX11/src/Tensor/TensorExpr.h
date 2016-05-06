@@ -252,7 +252,7 @@ struct nested<TensorSelectOp<IfXprType, ThenXprType, ElseXprType>, 1, typename e
 
 
 template<typename IfXprType, typename ThenXprType, typename ElseXprType>
-class TensorSelectOp : public TensorBase<TensorSelectOp<IfXprType, ThenXprType, ElseXprType> >
+class TensorSelectOp : public TensorBase<TensorSelectOp<IfXprType, ThenXprType, ElseXprType>, ReadOnlyAccessors>
 {
   public:
     typedef typename Eigen::internal::traits<TensorSelectOp>::Scalar Scalar;

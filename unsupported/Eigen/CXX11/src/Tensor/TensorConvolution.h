@@ -254,7 +254,7 @@ struct nested<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType>, 1, t
 
 
 template<typename Indices, typename InputXprType, typename KernelXprType>
-class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, InputXprType, KernelXprType> >
+class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, InputXprType, KernelXprType>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::Scalar Scalar;
