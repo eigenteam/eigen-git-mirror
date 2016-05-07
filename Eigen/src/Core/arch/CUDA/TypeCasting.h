@@ -71,7 +71,7 @@ struct functor_traits<scalar_cast_op<half, float> >
 
 
 
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
 
 template <>
 struct type_casting_traits<half, float> {

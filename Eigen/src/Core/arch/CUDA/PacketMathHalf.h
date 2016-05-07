@@ -17,8 +17,8 @@
 // we'll use on the host side (SSE, AVX, ...)
 #if defined(__CUDACC__) && defined(EIGEN_USE_GPU)
 
-// Most of the following operations require arch >= 5.3
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+// Most of the following operations require arch >= 3.0
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
 
 namespace Eigen {
 namespace internal {
@@ -67,13 +67,21 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<half>(half* to, co
 }
 
 template<>
-EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Aligned>(const half* from) {
-  return __ldg((const half2*)from);
+ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Aligned>(const half* from) {
+#if __CUDA_ARCH__ >= 320
+   return __ldg((const half2*)from);
+#else
+  return __halves2half2(*(from+0), *(from+1));
+#endif
 }
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Unaligned>(const half* from) {
-  return __halves2half2(__ldg(from+0), __ldg(from+1));
+#if __CUDA_ARCH__ >= 320
+   return __halves2half2(__ldg(from+0), __ldg(from+1));
+#else
+  return __halves2half2(*(from+0), *(from+1));
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC inline half2 pgather<half, half2>(const half* from, Index stride) {
@@ -107,30 +115,83 @@ ptranspose(PacketBlock<half2,2>& kernel) {
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 plset<half2>(const half& a) {
+#if __CUDA_ARCH__ >= 530
   return __halves2half2(a, __hadd(a, __float2half(1.0f)));
+#else
+  float f = __half2float(a) + 1.0f;
+  return __halves2half2(a, __float2half(f));
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 padd<half2>(const half2& a, const half2& b) {
+#if __CUDA_ARCH__ >= 530
   return __hadd2(a, b);
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  float b1 = __low2float(b);
+  float b2 = __high2float(b);
+  float r1 = a1 + b1;
+  float r2 = a2 + b2;
+  return __floats2half2_rn(r1, r2);
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 psub<half2>(const half2& a, const half2& b) {
+#if __CUDA_ARCH__ >= 530
   return __hsub2(a, b);
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  float b1 = __low2float(b);
+  float b2 = __high2float(b);
+  float r1 = a1 - b1;
+  float r2 = a2 - b2;
+  return __floats2half2_rn(r1, r2);
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pnegate(const half2& a) {
+#if __CUDA_ARCH__ >= 530
   return __hneg2(a);
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  return __floats2half2_rn(-a1, -a2);
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pconj(const half2& a) { return a; }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmul<half2>(const half2& a, const half2& b) {
+#if __CUDA_ARCH__ >= 530
   return __hmul2(a, b);
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  float b1 = __low2float(b);
+  float b2 = __high2float(b);
+  float r1 = a1 * b1;
+  float r2 = a2 * b2;
+  return __floats2half2_rn(r1, r2);
+#endif
 }
 
- template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmadd<half2>(const half2& a, const half2& b, const half2& c) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmadd<half2>(const half2& a, const half2& b, const half2& c) {
+#if __CUDA_ARCH__ >= 530
    return __hfma2(a, b, c);
- }
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  float b1 = __low2float(b);
+  float b2 = __high2float(b);
+  float c1 = __low2float(c);
+  float c2 = __high2float(c);
+  float r1 = a1 * b1 + c2;
+  float r2 = a2 * b2 + c2;
+  return __floats2half2_rn(r1, r2);
+#endif
+}
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pdiv<half2>(const half2& a, const half2& b) {
   float a1 = __low2float(a);
@@ -163,23 +224,47 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmax<half2>(const half2& 
 }
 
 template<> EIGEN_DEVICE_FUNC inline half predux<half2>(const half2& a) {
+#if __CUDA_ARCH__ >= 530
   return __hadd(__low2half(a), __high2half(a));
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  return half(__float2half_rn(a1 + a2));
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC inline half predux_max<half2>(const half2& a) {
+#if __CUDA_ARCH__ >= 530
   half first = __low2half(a);
   half second = __high2half(a);
   return __hgt(first, second) ? first : second;
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  return half(__float2half_rn(numext::maxi(a1, a2)));
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC inline half predux_min<half2>(const half2& a) {
+#if __CUDA_ARCH__ >= 530
   half first = __low2half(a);
   half second = __high2half(a);
   return __hlt(first, second) ? first : second;
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  return half(__float2half_rn(numext::mini(a1, a2)));
+#endif
 }
 
 template<> EIGEN_DEVICE_FUNC inline half predux_mul<half2>(const half2& a) {
+#if __CUDA_ARCH__ >= 530
   return __hmul(__low2half(a), __high2half(a));
+#else
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  return half(__float2half_rn(a1 * a2));
+#endif
 }
 
 } // end namespace internal
