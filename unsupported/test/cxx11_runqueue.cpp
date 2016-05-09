@@ -100,6 +100,14 @@ void test_basic_runqueue()
   // Empty again.
   VERIFY(q.Empty());
   VERIFY_IS_EQUAL(0u, q.Size());
+  VERIFY_IS_EQUAL(0, q.PushFront(1));
+  VERIFY_IS_EQUAL(0, q.PushFront(2));
+  VERIFY_IS_EQUAL(0, q.PushFront(3));
+  VERIFY_IS_EQUAL(1, q.PopBack());
+  VERIFY_IS_EQUAL(2, q.PopBack());
+  VERIFY_IS_EQUAL(3, q.PopBack());
+  VERIFY(q.Empty());
+  VERIFY_IS_EQUAL(0, q.Size());
 }
 
 // Empty tests that the queue is not claimed to be empty when is is in fact not.

@@ -100,7 +100,7 @@ class RunQueue {
   // PopBack removes and returns the last elements in the queue.
   // Can fail spuriously.
   Work PopBack() {
-    if (Empty()) return 0;
+    if (Empty()) return Work();
     std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
     if (!lock) return Work();
     unsigned back = back_.load(std::memory_order_relaxed);
