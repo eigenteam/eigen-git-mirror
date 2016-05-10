@@ -193,16 +193,18 @@ static __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self 
   __syncthreads();
 
   if (gridDim.x == 1 && first_index == 0) {
-    reducer.reduce(__low2half(*scratch), output);
-    reducer.reduce(__high2half(*scratch), output);
+    half tmp = __low2half(*scratch);
+    reducer.reduce(__high2half(*scratch), &tmp);
+    *output = tmp;
   }
 }
 
 template <typename Op>
 __global__ void ReductionCleanupKernelHalfFloat(Op& reducer, half* output, half2* scratch) {
   eigen_assert(threadIdx.x == 1);
-  reducer.reduce(__low2half(*scratch), output);
-  reducer.reduce(__high2half(*scratch), output);
+  half tmp = __low2half(*scratch);
+  reducer.reduce(__high2half(*scratch), &tmp);
+  *output = tmp;
 }
 
 #endif
