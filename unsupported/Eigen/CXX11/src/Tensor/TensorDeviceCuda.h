@@ -24,6 +24,9 @@ class StreamInterface {
   // Allocate memory on the actual device where the computation will run
   virtual void* allocate(size_t num_bytes) const = 0;
   virtual void deallocate(void* buffer) const = 0;
+
+  // Return a scratchpad buffer of size 1k
+  virtual void* scratchpad() const = 0;
 };
 
 static cudaDeviceProp* m_deviceProperties;
@@ -62,12 +65,12 @@ static const cudaStream_t default_stream = cudaStreamDefault;
 class CudaStreamDevice : public StreamInterface {
  public:
   // Use the default stream on the current device
-  CudaStreamDevice() : stream_(&default_stream) {
+  CudaStreamDevice() : stream_(&default_stream), scratch_(NULL) {
     cudaGetDevice(&device_);
     initializeDeviceProp();
   }
   // Use the default stream on the specified device
-  CudaStreamDevice(int device) : stream_(&default_stream), device_(device) {
+  CudaStreamDevice(int device) : stream_(&default_stream), device_(device), scratch_(NULL) {
     initializeDeviceProp();
   }
   // Use the specified stream. Note that it's the
@@ -75,7 +78,7 @@ class CudaStreamDevice : public StreamInterface {
   // the specified device. If no device is specified the code
   // assumes that the stream is associated to the current gpu device.
   CudaStreamDevice(const cudaStream_t* stream, int device = -1)
-      : stream_(stream), device_(device) {
+      : stream_(stream), device_(device), scratch_(NULL) {
     if (device < 0) {
       cudaGetDevice(&device_);
     } else {
@@ -87,6 +90,12 @@ class CudaStreamDevice : public StreamInterface {
       device_ = device;
     }
     initializeDeviceProp();
+  }
+
+  virtual ~CudaStreamDevice() {
+    if (scratch_) {
+      deallocate(scratch_);
+    }
   }
 
   const cudaStream_t& stream() const { return *stream_; }
@@ -112,9 +121,17 @@ class CudaStreamDevice : public StreamInterface {
     assert(err == cudaSuccess);
   }
 
+  virtual void* scratchpad() const {
+    if (scratch_ == NULL) {
+      scratch_ = allocate(1024);
+    }
+    return scratch_;
+  }
+
  private:
   const cudaStream_t* stream_;
   int device_;
+  mutable void* scratch_;
 };
 
 struct GpuDevice {
@@ -143,10 +160,18 @@ struct GpuDevice {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
 #ifndef __CUDA_ARCH__
     stream_->deallocate(buffer);
-
 #else
     eigen_assert(false && "The default device should be used instead to generate kernel code");
 #endif
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* scratchpad() const {
+#ifndef __CUDA_ARCH__
+    return stream_->scratchpad();
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+#endif
+    return NULL;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
