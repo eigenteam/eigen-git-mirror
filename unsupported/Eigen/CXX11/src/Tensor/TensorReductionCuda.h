@@ -91,8 +91,8 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer
 #endif
 }
 
-template <typename T>
-__device__ inline void atomicReduce(T* output, T accum, SumReducer<T>&) {
+template <>
+__device__ inline void atomicReduce(float* output, float accum, SumReducer<float>&) {
 #if __CUDA_ARCH__ >= 300
   atomicAdd(output, accum);
 #else
@@ -208,9 +208,14 @@ __global__ void ReductionCleanupKernelHalfFloat(Op& reducer, half* output, half2
 #endif
 
 
-template <typename Self, typename Op, bool is_half>
-struct Launcher {
-  static void run(const Self& self, Op& reducer, const GpuDevice& device, typename Self::CoeffReturnType* output, typename Self::Index num_coeffs) {
+template <typename Self, typename Op>
+struct FullReductionLauncher {
+  template <typename OutputType>
+  static void run(const Self&, Op&, const GpuDevice&, OutputType*, typename Self::Index) {
+    assert(false && "Should only be called on floats and half floats");
+  }
+
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs) {
     typedef typename Self::Index Index;
     typedef typename Self::CoeffReturnType Scalar;
     const int block_size = 256;
@@ -220,18 +225,15 @@ struct Launcher {
     if (num_blocks > 1) {
       // We initialize the outputs outside the reduction kernel when we can't be sure that there
       // won't be a race conditions between multiple thread blocks.
-      LAUNCH_CUDA_KERNEL((ReductionInitKernel<float, Index>),
+      LAUNCH_CUDA_KERNEL((ReductionInitKernel<Scalar, Index>),
                          1, 32, 0, device, reducer.initialize(), 1, output);
     }
 
     LAUNCH_CUDA_KERNEL((FullReductionKernel<block_size, num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs, output);
   }
-};
 
 #ifdef EIGEN_HAS_CUDA_FP16
-template <typename Self, typename Op>
-struct Launcher<Self, Op, true> {
   static void run(const Self& self, Op& reducer, const GpuDevice& device, half* output, typename Self::Index num_coeffs) {
     typedef typename Self::Index Index;
 
@@ -255,8 +257,8 @@ struct Launcher<Self, Op, true> {
                          1, 1, 0, device, reducer, output, scratch);
     }
   }
-};
 #endif
+};
 
 
 template <typename Self, typename Op, bool Vectorizable>
@@ -282,8 +284,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
       return;
     }
 
-    static const bool is_half = internal::is_same<typename Self::CoeffReturnType, half>::value;
-    Launcher<Self, Op, is_half>::run(self, reducer, device, output, num_coeffs);
+    FullReductionLauncher<Self, Op>::run(self, reducer, device, output, num_coeffs);
   }
 };
 
