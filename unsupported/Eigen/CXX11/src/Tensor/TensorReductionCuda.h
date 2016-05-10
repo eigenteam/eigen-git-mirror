@@ -67,6 +67,30 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
 #endif
 }
 
+
+template <template <typename T> class R>
+__device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer) {
+#if __CUDA_ARCH__ >= 300
+  unsigned int oldval = *reinterpret_cast<unsigned int*>(output);
+  unsigned int newval = oldval;
+  reducer.reducePacket(accum, reinterpret_cast<half2*>(&newval));
+  if (newval == oldval) {
+    return;
+  }
+  unsigned int readback;
+  while ((readback = atomicCAS((unsigned int*)output, oldval, newval)) != oldval) {
+    oldval = readback;
+    newval = oldval;
+    reducer.reducePacket(accum, reinterpret_cast<half2*>(&newval));
+    if (newval == oldval) {
+      return;
+    }
+  }
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
+}
+
 template <typename T>
 __device__ inline void atomicReduce(T* output, T accum, SumReducer<T>&) {
 #if __CUDA_ARCH__ >= 300
@@ -108,7 +132,7 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
 
 #pragma unroll
   for (int offset = warpSize/2; offset > 0; offset /= 2) {
-    reducer.reduce(__shfl_down(accum, offset), &accum);
+    reducer.reduce(__shfl_down(accum, offset, warpSize), &accum);
   }
 
   if ((threadIdx.x & (warpSize - 1)) == 0) {
@@ -117,28 +141,78 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
 }
 
 
-template <typename Self, typename Op, bool Vectorizable>
-struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
-  // Unfortunately nvidia doesn't support well exotic types such as complex,
-  // so reduce the scope of the optimized version of the code to the simple case
-  // of floats.
-  static const bool HasOptimizedImplementation = !Op::IsStateful &&
-                                                 internal::is_same<typename Self::CoeffReturnType, float>::value;
+#ifdef EIGEN_HAS_CUDA_FP16
+template <typename Self,
+          typename Reducer, typename Index>
+__global__ void ReductionInitKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs, half2* scratch) {
+  eigen_assert(threadIdx.x == 1);
+  if (num_coeffs % 2 != 0) {
+    half last = input.m_impl.coeff(num_coeffs-1);
+    *scratch = __halves2half2(last, reducer.initialize());
+  } else {
+    *scratch = reducer.template initializePacket<half2>();
+  }
+}
 
-  template <typename OutputType>
-  static EIGEN_DEVICE_FUNC void run(const Self&, Op&, const GpuDevice&, OutputType*) {
-    assert(false && "Should only be called on floats");
+template <int BlockSize, int NumPerThread, typename Self,
+          typename Reducer, typename Index>
+static __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
+                                    half* output, half2* scratch) {
+  eigen_assert(NumPerThread % 2 == 0);
+
+  const Index first_index = blockIdx.x * BlockSize * NumPerThread + 2*threadIdx.x;
+
+  // Initialize the output value if it wasn't initialized by the ReductionInitKernel
+  if (gridDim.x == 1 && first_index == 0) {
+    if (num_coeffs % 2 != 0) {
+      half last = input.m_impl.coeff(num_coeffs-1);
+      *scratch = __halves2half2(last, reducer.initialize());
+    } else {
+      *scratch = reducer.template initializePacket<half2>();
+    }
   }
 
-  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output) {
+  half2 accum = reducer.template initializePacket<half2>();
+  Index max_iter = numext::mini<Index>((num_coeffs - first_index) / 2, NumPerThread*BlockSize / 2);
+  for (Index i = 0; i < max_iter; i += BlockSize) {
+    const Index index = first_index + 2*i;
+    eigen_assert(index + 1 < num_coeffs);
+    half2 val = input.m_impl.template packet<Unaligned>(index);
+    reducer.reducePacket(val, &accum);
+  }
+
+#pragma unroll
+  for (int offset = warpSize/2; offset > 0; offset /= 2) {
+    reducer.reducePacket(__shfl_down(accum, offset, warpSize), &accum);
+  }
+
+  if ((threadIdx.x & (warpSize - 1)) == 0) {
+    atomicReduce(scratch, accum, reducer);
+  }
+
+  __syncthreads();
+
+  if (gridDim.x == 1 && first_index == 0) {
+    reducer.reduce(__low2half(*scratch), output);
+    reducer.reduce(__high2half(*scratch), output);
+  }
+}
+
+template <typename Op>
+__global__ void ReductionCleanupKernelHalfFloat(Op& reducer, half* output, half2* scratch) {
+  eigen_assert(threadIdx.x == 1);
+  reducer.reduce(__low2half(*scratch), output);
+  reducer.reduce(__high2half(*scratch), output);
+}
+
+#endif
+
+
+template <typename Self, typename Op, bool is_half>
+struct Launcher {
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, typename Self::CoeffReturnType* output, typename Self::Index num_coeffs) {
     typedef typename Self::Index Index;
-
-    const Index num_coeffs = array_prod(self.m_impl.dimensions());
-    // Don't crash when we're called with an input tensor of size 0.
-    if (num_coeffs == 0) {
-      return;
-    }
-
+    typedef typename Self::CoeffReturnType Scalar;
     const int block_size = 256;
     const int num_per_thread = 128;
     const int num_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
@@ -152,6 +226,64 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
 
     LAUNCH_CUDA_KERNEL((FullReductionKernel<block_size, num_per_thread, Self, Op, Index>),
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs, output);
+  }
+};
+
+#ifdef EIGEN_HAS_CUDA_FP16
+template <typename Self, typename Op>
+struct Launcher<Self, Op, true> {
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, half* output, typename Self::Index num_coeffs) {
+    typedef typename Self::Index Index;
+
+    const int block_size = 256;
+    const int num_per_thread = 128;
+    const int num_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
+    half2* scratch = static_cast<half2*>(device.scratchpad());
+
+    if (num_blocks > 1) {
+      // We initialize the output and the scrathpad outside the reduction kernel when we can't be sure that there
+      // won't be a race conditions between multiple thread blocks.
+      LAUNCH_CUDA_KERNEL((ReductionInitKernelHalfFloat<Self, Op, Index>),
+                         1, 1, 0, device, reducer, self, num_coeffs, scratch);
+    }
+
+    LAUNCH_CUDA_KERNEL((FullReductionKernelHalfFloat<block_size, num_per_thread, Self, Op, Index>),
+                       num_blocks, block_size, 0, device, reducer, self, num_coeffs, output, scratch);
+
+    if (num_blocks > 1) {
+      LAUNCH_CUDA_KERNEL((ReductionCleanupKernelHalfFloat<Op>),
+                         1, 1, 0, device, reducer, output, scratch);
+    }
+  }
+};
+#endif
+
+
+template <typename Self, typename Op, bool Vectorizable>
+struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
+  // Unfortunately nvidia doesn't support well exotic types such as complex,
+  // so reduce the scope of the optimized version of the code to the simple case
+  // of floats and half floats.
+  #ifdef EIGEN_HAS_CUDA_FP16
+  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+      (internal::is_same<typename Self::CoeffReturnType, float>::value ||
+       internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value);
+#else
+  static const bool HasOptimizedImplementation = !Op::IsStateful &&
+                                                 internal::is_same<typename Self::CoeffReturnType, float>::value;
+#endif
+
+  template <typename OutputType>
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
+    assert(HasOptimizedImplementation && "Should only be called on floats or half floats");
+    const Index num_coeffs = array_prod(self.m_impl.dimensions());
+    // Don't crash when we're called with an input tensor of size 0.
+    if (num_coeffs == 0) {
+      return;
+    }
+
+    static const bool is_half = internal::is_same<typename Self::CoeffReturnType, half>::value;
+    Launcher<Self, Op, is_half>::run(self, reducer, device, output, num_coeffs);
   }
 };
 
@@ -323,7 +455,7 @@ struct OuterReducer<Self, Op, GpuDevice> {
       return true;
     }
 
-     const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
+    const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
     const int block_size = 256;
     const int num_per_thread = 16;
     const int dyn_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
