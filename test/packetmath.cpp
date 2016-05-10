@@ -360,6 +360,13 @@ template<typename Scalar> void packetmath_real()
     VERIFY_IS_EQUAL(std::exp(-std::numeric_limits<Scalar>::denorm_min()), data2[1]);
   }
 
+  if (PacketTraits::HasTanh) {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasTanh,Packet> h;
+    h.store(data2, internal::ptanh(h.load(data1)));
+    VERIFY((numext::isnan)(data2[0]));
+  }
+
 #ifdef EIGEN_HAS_C99_MATH
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
