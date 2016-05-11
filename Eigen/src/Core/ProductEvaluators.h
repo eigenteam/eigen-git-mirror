@@ -128,6 +128,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
+  EIGEN_STRONG_INLINE
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
@@ -141,6 +142,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
+  EIGEN_STRONG_INLINE
   static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
@@ -154,6 +156,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
+  EIGEN_STRONG_INLINE
   static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
@@ -171,6 +174,7 @@ struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBi
 {
   typedef CwiseUnaryOp<internal::scalar_multiple_op<ScalarBis>,
                        const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
+  EIGEN_STRONG_INLINE
   static void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
   {
     call_assignment_no_alias(dst, (src.functor().m_other * src.nestedExpression().lhs())*src.nestedExpression().rhs(), func);
@@ -192,6 +196,7 @@ template<typename DstXprType, typename OtherXpr, typename ProductType, typename 
 struct assignment_from_xpr_plus_product
 {
   typedef CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr, const ProductType> SrcXprType;
+  EIGEN_STRONG_INLINE
   static void run(DstXprType &dst, const SrcXprType &src, const Func1& func)
   {
     call_assignment_no_alias(dst, src.lhs(), func);
@@ -473,7 +478,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
       
     SameType = is_same<typename LhsNestedCleaned::Scalar,typename RhsNestedCleaned::Scalar>::value,
 
-    CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
+    CanVectorizeRhs = bool(RhsRowMajor) && (RhsFlags & PacketAccessBit)
                     && (ColsAtCompileTime == Dynamic || ((ColsAtCompileTime % RhsVecPacketSize) == 0) ),
 
     CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
@@ -481,7 +486,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
 
     EvalToRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                     : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
-                    : (RhsRowMajor && !CanVectorizeLhs),
+                    : (bool(RhsRowMajor) && !CanVectorizeLhs),
 
     Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & ~RowMajorBit)
           | (EvalToRowMajor ? RowMajorBit : 0)
@@ -492,8 +497,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     LhsOuterStrideBytes = int(LhsNestedCleaned::OuterStrideAtCompileTime) * int(sizeof(typename LhsNestedCleaned::Scalar)),
     RhsOuterStrideBytes = int(RhsNestedCleaned::OuterStrideAtCompileTime) * int(sizeof(typename RhsNestedCleaned::Scalar)),
 
-    Alignment = CanVectorizeLhs ? (LhsOuterStrideBytes<0 || (int(LhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,LhsAlignment))!=0 ? 0 : LhsAlignment)
-              : CanVectorizeRhs ? (RhsOuterStrideBytes<0 || (int(RhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,RhsAlignment))!=0 ? 0 : RhsAlignment)
+    Alignment = bool(CanVectorizeLhs) ? (LhsOuterStrideBytes<0 || (int(LhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,LhsAlignment))!=0 ? 0 : LhsAlignment)
+              : bool(CanVectorizeRhs) ? (RhsOuterStrideBytes<0 || (int(RhsOuterStrideBytes) % EIGEN_PLAIN_ENUM_MAX(1,RhsAlignment))!=0 ? 0 : RhsAlignment)
               : 0,
 
     /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside

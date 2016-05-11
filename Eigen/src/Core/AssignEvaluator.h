@@ -75,19 +75,19 @@ private:
     DstIsRowMajor = DstFlags&RowMajorBit,
     SrcIsRowMajor = SrcFlags&RowMajorBit,
     StorageOrdersAgree = (int(DstIsRowMajor) == int(SrcIsRowMajor)),
-    MightVectorize = StorageOrdersAgree
+    MightVectorize = bool(StorageOrdersAgree)
                   && (int(DstFlags) & int(SrcFlags) & ActualPacketAccessBit)
-                  && (functor_traits<AssignFunc>::PacketAccess),
+                  && bool(functor_traits<AssignFunc>::PacketAccess),
     MayInnerVectorize  = MightVectorize
                        && int(InnerSize)!=Dynamic && int(InnerSize)%int(InnerPacketSize)==0
                        && int(OuterStride)!=Dynamic && int(OuterStride)%int(InnerPacketSize)==0
                        && int(JointAlignment)>=int(InnerRequiredAlignment),
-    MayLinearize = StorageOrdersAgree && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
-    MayLinearVectorize = MightVectorize && MayLinearize && DstHasDirectAccess
+    MayLinearize = bool(StorageOrdersAgree) && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
+    MayLinearVectorize = bool(MightVectorize) && MayLinearize && DstHasDirectAccess
                        && ((int(DstAlignment)>=int(LinearRequiredAlignment)) || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
          so it's only good for large enough sizes. */
-    MaySliceVectorize  = MightVectorize && DstHasDirectAccess
+    MaySliceVectorize  = bool(MightVectorize) && bool(DstHasDirectAccess)
                        && (int(InnerMaxSize)==Dynamic || int(InnerMaxSize)>=3*InnerPacketSize)
       /* slice vectorization can be slow, so we only want it if the slices are big, which is
          indicated by InnerMaxSize rather than InnerSize, think of the case of a dynamic block

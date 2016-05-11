@@ -38,8 +38,8 @@ public:
   enum {
     MightVectorize = (int(Derived::Flags)&ActualPacketAccessBit)
                   && (functor_traits<Func>::PacketAccess),
-    MayLinearVectorize = MightVectorize && (int(Derived::Flags)&LinearAccessBit),
-    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize
+    MayLinearVectorize = bool(MightVectorize) && (int(Derived::Flags)&LinearAccessBit),
+    MaySliceVectorize  = bool(MightVectorize) && int(InnerMaxSize)>=3*PacketSize
   };
 
 public:
