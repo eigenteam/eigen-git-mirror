@@ -72,7 +72,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<half>(half* to, co
 
 template<>
  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Aligned>(const half* from) {
-#if __CUDA_ARCH__ >= 320
+#if __CUDA_ARCH__ >= 350
    return __ldg((const half2*)from);
 #else
   return __halves2half2(*(from+0), *(from+1));
@@ -81,7 +81,7 @@ template<>
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Unaligned>(const half* from) {
-#if __CUDA_ARCH__ >= 320
+#if __CUDA_ARCH__ >= 350
    return __halves2half2(__ldg(from+0), __ldg(from+1));
 #else
   return __halves2half2(*(from+0), *(from+1));
