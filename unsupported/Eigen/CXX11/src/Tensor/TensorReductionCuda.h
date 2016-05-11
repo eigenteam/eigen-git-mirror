@@ -68,6 +68,7 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
 }
 
 
+#ifdef EIGEN_HAS_CUDA_FP16
 template <template <typename T> class R>
 __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer) {
 #if __CUDA_ARCH__ >= 300
@@ -90,6 +91,7 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer
   assert(0 && "Shouldn't be called on unsupported device");
 #endif
 }
+#endif
 
 template <>
 __device__ inline void atomicReduce(float* output, float accum, SumReducer<float>&) {
