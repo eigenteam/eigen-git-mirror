@@ -191,7 +191,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmadd<half2>(const half2&
   float b2 = __high2float(b);
   float c1 = __low2float(c);
   float c2 = __high2float(c);
-  float r1 = a1 * b1 + c2;
+  float r1 = a1 * b1 + c1;
   float r2 = a2 * b2 + c2;
   return __floats2half2_rn(r1, r2);
 #endif
