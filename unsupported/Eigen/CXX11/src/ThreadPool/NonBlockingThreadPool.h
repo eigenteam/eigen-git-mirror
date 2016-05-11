@@ -25,9 +25,9 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
         queues_(num_threads),
         coprimes_(num_threads),
         waiters_(num_threads),
-        blocked_(),
-        spinning_(),
-        done_(),
+        blocked_(0),
+        spinning_(0),
+        done_(false),
         ec_(waiters_) {
     // Calculate coprimes of num_threads.
     // Coprimes are used for a random walk over all threads in Steal

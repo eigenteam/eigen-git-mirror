@@ -38,7 +38,7 @@ namespace Eigen {
 template <typename Work, unsigned kSize>
 class RunQueue {
  public:
-  RunQueue() : front_(), back_() {
+  RunQueue() : front_(0), back_(0) {
     // require power-of-two for fast masking
     eigen_assert((kSize & (kSize - 1)) == 0);
     eigen_assert(kSize > 2);            // why would you do this?
