@@ -546,7 +546,7 @@ void test_sparse_basic()
   CALL_SUBTEST_4((big_sparse_triplet<SparseMatrix<double, ColMajor, long int> >(10000, 10000, 0.125)));
 
   // Regression test for bug 1105
-#ifdef EIGEN_TEST_PART_6
+#ifdef EIGEN_TEST_PART_7
   {
     int n = Eigen::internal::random<int>(200,600);
     SparseMatrix<std::complex<double>,0, long> mat(n, n);
