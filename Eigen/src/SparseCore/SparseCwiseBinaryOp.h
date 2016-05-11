@@ -165,7 +165,7 @@ public:
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const binary_evaluator& aEval, Index outer)
-      : m_lhsEval(aEval.m_lhsImpl), m_rhsIter(aEval.m_rhsImpl,outer), m_functor(aEval.m_functor), m_id(-1), m_innerSize(aEval.m_expr.rhs().innerSize())
+      : m_lhsEval(aEval.m_lhsImpl), m_rhsIter(aEval.m_rhsImpl,outer), m_functor(aEval.m_functor), m_value(0), m_id(-1), m_innerSize(aEval.m_expr.rhs().innerSize())
     {
       this->operator++();
     }
@@ -189,7 +189,7 @@ public:
       return *this;
     }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_value; }
+    EIGEN_STRONG_INLINE Scalar value() const { eigen_internal_assert(m_id<m_innerSize); return m_value; }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_id; }
     EIGEN_STRONG_INLINE Index row() const { return IsRowMajor ? m_rhsIter.outer() : m_id; }
@@ -253,7 +253,7 @@ public:
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const binary_evaluator& aEval, Index outer)
-      : m_lhsIter(aEval.m_lhsImpl,outer), m_rhsEval(aEval.m_rhsImpl), m_functor(aEval.m_functor), m_id(-1), m_innerSize(aEval.m_expr.lhs().innerSize())
+      : m_lhsIter(aEval.m_lhsImpl,outer), m_rhsEval(aEval.m_rhsImpl), m_functor(aEval.m_functor), m_value(0), m_id(-1), m_innerSize(aEval.m_expr.lhs().innerSize())
     {
       this->operator++();
     }
@@ -277,7 +277,7 @@ public:
       return *this;
     }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_value; }
+    EIGEN_STRONG_INLINE Scalar value() const { eigen_internal_assert(m_id<m_innerSize); return m_value; }
 
     EIGEN_STRONG_INLINE StorageIndex index() const { return m_id; }
     EIGEN_STRONG_INLINE Index row() const { return IsRowMajor ? m_lhsIter.outer() : m_id; }
