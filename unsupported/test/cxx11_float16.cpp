@@ -88,6 +88,16 @@ void test_conversion()
 #endif
 }
 
+void test_numtraits()
+{
+  std::cout << "expsilin = " << NumTraits<half>::epsilon() << std::endl;
+  std::cout << "highest = " << NumTraits<half>::highest() << std::endl;
+  std::cout << "lowest = " << NumTraits<half>::lowest() << std::endl;
+  std::cout << "inifinty = " << NumTraits<half>::infinity() << std::endl;
+  std::cout << "nan = " << NumTraits<half>::quiet_NaN() << std::endl;
+
+}
+
 void test_arithmetic()
 {
   VERIFY_IS_EQUAL(float(half(2) + half(2)), 4);
@@ -185,6 +195,7 @@ void test_trigonometric_functions()
 void test_cxx11_float16()
 {
   CALL_SUBTEST(test_conversion());
+  CALL_SUBTEST(test_numtraits());
   CALL_SUBTEST(test_arithmetic());
   CALL_SUBTEST(test_comparison());
   CALL_SUBTEST(test_basic_functions());

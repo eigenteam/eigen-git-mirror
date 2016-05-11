@@ -318,7 +318,7 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
     for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
       output[i] = reducer.initialize();
     }
-    _syncthreads();
+    __syncthreads();
   }
 
   for (Index i = blockIdx.x; i < num_input_blocks; i += gridDim.x) {
