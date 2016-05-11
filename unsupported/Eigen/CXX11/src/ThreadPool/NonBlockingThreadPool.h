@@ -36,7 +36,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     // indices as (t + coprime) % num_threads, we will cover all threads without
     // repetitions (effectively getting a presudo-random permutation of thread
     // indices).
-    for (unsigned i = 1; i <= num_threads; i++) {
+    for (int i = 1; i <= num_threads; i++) {
       unsigned a = i;
       unsigned b = num_threads;
       // If GCD(a, b) == 1, then a and b are coprimes.

@@ -57,7 +57,7 @@ static void test_rank_zero()
 
   Eigen::DSizes<ptrdiff_t, 0> dscalar;
   VERIFY_IS_EQUAL(dscalar.TotalSize(), 1);
-  VERIFY_IS_EQUAL(dscalar.rank(), 0);
+  VERIFY_IS_EQUAL(dscalar.rank(), 0u);
 }
 
 void test_cxx11_tensor_dimension()
