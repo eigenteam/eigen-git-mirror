@@ -392,7 +392,7 @@ void test_cuda_forced_evals() {
   no_bcast[0] = 1;
 
   gpu_float.device(gpu_device) = gpu_float.random() - gpu_float.constant(0.5f);
-  gpu_res_float.device(gpu_device) = gpu_float.log();
+  gpu_res_float.device(gpu_device) = gpu_float.abs();
   gpu_res_half1.device(gpu_device) = gpu_float.cast<Eigen::half>().abs().eval().cast<float>();
   gpu_res_half2.device(gpu_device) = gpu_float.cast<Eigen::half>().abs().broadcast(no_bcast).eval().cast<float>();
 
@@ -405,7 +405,7 @@ void test_cuda_forced_evals() {
   gpu_device.synchronize();
 
   for (int i = 0; i < num_elem; ++i) {
-    std::cout << "Checking forced eval " << i << std::endl;
+    std::cout << "Checking forced eval " << i << full_prec(i) << " vs " << half_prec1(i) << " vs " << half_prec2(i) << std::endl;
     VERIFY_IS_APPROX(full_prec(i), half_prec1(i));
     VERIFY_IS_APPROX(full_prec(i), half_prec2(i));
   }

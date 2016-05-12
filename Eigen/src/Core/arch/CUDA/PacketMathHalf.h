@@ -239,8 +239,8 @@ template<> EIGEN_DEVICE_FUNC inline half predux<half2>(const half2& a) {
 
 template<> EIGEN_DEVICE_FUNC inline half predux_max<half2>(const half2& a) {
 #if __CUDA_ARCH__ >= 530
-  half first = __low2half(a);
-  half second = __high2half(a);
+  __half first = __low2half(a);
+  __half second = __high2half(a);
   return __hgt(first, second) ? first : second;
 #else
   float a1 = __low2float(a);
@@ -251,8 +251,8 @@ template<> EIGEN_DEVICE_FUNC inline half predux_max<half2>(const half2& a) {
 
 template<> EIGEN_DEVICE_FUNC inline half predux_min<half2>(const half2& a) {
 #if __CUDA_ARCH__ >= 530
-  half first = __low2half(a);
-  half second = __high2half(a);
+  __half first = __low2half(a);
+  __half second = __high2half(a);
   return __hlt(first, second) ? first : second;
 #else
   float a1 = __low2float(a);
