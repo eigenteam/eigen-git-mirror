@@ -376,7 +376,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
         const Index actual_mc = numext::mini(m_base_start + arg.mc, arg.max_m) - m_base_start;
         gebp(arg.output.getSubMapper(m_base_start, arg.n),
              (*arg.blockAs)[blockAId], arg.blockB,
-             actual_mc, arg.kc, arg.nc, 1.0, -1, -1, 0, 0);
+             actual_mc, arg.kc, arg.nc, Scalar(1), -1, -1, 0, 0);
 
         // Notify that the kernel is done.
         const Index set_idx = blockAId * arg.n_blocks + arg.n_block_idx;

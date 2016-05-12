@@ -503,7 +503,7 @@ struct TensorContractionEvaluatorBase
 
           // call gebp (matrix kernel)
           // The parameters here are copied from Eigen's GEMM implementation
-          gebp(output.getSubMapper(i2, j2), blockA, blockB, actual_mc, actual_kc, actual_nc, 1.0, -1, -1, 0, 0);
+          gebp(output.getSubMapper(i2, j2), blockA, blockB, actual_mc, actual_kc, actual_nc, Scalar(1), -1, -1, 0, 0);
         }
       }
     }
