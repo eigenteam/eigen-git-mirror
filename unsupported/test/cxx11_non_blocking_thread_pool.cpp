@@ -12,6 +12,16 @@
 #include "main.h"
 #include "Eigen/CXX11/ThreadPool"
 
+static void test_create_destroy_empty_pool()
+{
+  // Just create and destroy the pool. This will wind up and tear down worker
+  // threads. Ensure there are no issues in that logic.
+  for (int i = 0; i < 16; ++i) {
+    NonBlockingThreadPool tp(i);
+  }
+}
+
+
 static void test_parallelism()
 {
   // Test we never-ever fail to match available tasks with idle threads.
@@ -87,5 +97,6 @@ static void test_parallelism()
 
 void test_cxx11_non_blocking_thread_pool()
 {
+  CALL_SUBTEST(test_create_destroy_empty_pool());
   CALL_SUBTEST(test_parallelism());
 }

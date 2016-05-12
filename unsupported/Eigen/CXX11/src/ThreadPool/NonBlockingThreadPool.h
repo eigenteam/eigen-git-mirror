@@ -58,7 +58,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   }
 
   ~NonBlockingThreadPoolTempl() {
-    done_.store(true, std::memory_order_relaxed);
+    done_ = true;
     // Now if all threads block without work, they will start exiting.
     // But note that threads can continue to work arbitrary long,
     // block, submit new work, unblock and otherwise live full life.
