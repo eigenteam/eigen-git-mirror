@@ -336,7 +336,7 @@ __device__ int get_random_seed() {
     return clock();
 }
 #else
-int get_random_seed() {
+static inline int get_random_seed() {
 #ifdef _WIN32
     SYSTEMTIME st;
     GetSystemTime(&st);
