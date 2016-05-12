@@ -137,6 +137,13 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
     {
       const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
       const Index size = array_prod(evaluator.dimensions());
+#if defined(EIGEN_USE_NONBLOCKING_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
+      device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
+                         EvalRange::alignBlockSize,
+                         [&evaluator](Index first, Index last) {
+                           EvalRange::run(&evaluator, first, last);
+                         });
+#else
       size_t num_threads = device.numThreads();
 #ifdef EIGEN_USE_COST_MODEL
       if (num_threads > 1) {
@@ -163,11 +170,12 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
         }
         barrier.Wait();
       }
+#endif  // EIGEN_USE_NONBLOCKING_THREAD_POOL
     }
     evaluator.cleanup();
   }
 };
-#endif
+#endif  // EIGEN_USE_THREADS
 
 
 // GPU: the evaluation of the expression is offloaded to a GPU.

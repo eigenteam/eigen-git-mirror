@@ -496,7 +496,7 @@ struct functor_traits<scalar_digamma_op<Scalar> >
     PacketAccess = packet_traits<Scalar>::HasDiGamma
   };
 };
-    
+
 /** \internal
  * \brief Template functor to compute the Riemann Zeta function of two arguments.
  * \sa class CwiseUnaryOp, Cwise::zeta()
@@ -587,6 +587,33 @@ struct functor_traits<scalar_erfc_op<Scalar> >
   };
 };
 
+/** \internal
+  * \brief Template functor to compute the sigmoid of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::sigmoid()
+  */
+template <typename T>
+struct scalar_sigmoid_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_sigmoid_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator()(const T& x) const {
+    const T one = T(1);
+    return one / (one + numext::exp(-x));
+  }
+
+  template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Packet packetOp(const Packet& x) const {
+    const Packet one = pset1<Packet>(T(1));
+    return pdiv(one, padd(one, pexp(pnegate(x))));
+  }
+};
+
+template <typename T>
+struct functor_traits<scalar_sigmoid_op<T> > {
+  enum {
+    Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6,
+    PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
+                   packet_traits<T>::HasNegate && packet_traits<T>::HasExp
+  };
+};
 
 /** \internal
   * \brief Template functor to compute the atan of a scalar
@@ -627,7 +654,7 @@ template<typename Scalar> struct scalar_tanh_op {
     const Packet plus_9 = pset1<Packet>(9.0);
     const Packet minus_9 = pset1<Packet>(-9.0);
     const Packet x = pmax(minus_9, pmin(plus_9, _x));
-    
+
     // The monomial coefficients of the numerator polynomial (odd).
     const Packet alpha_1 = pset1<Packet>(4.89352455891786e-03);
     const Packet alpha_3 = pset1<Packet>(6.37261928875436e-04);
@@ -636,16 +663,16 @@ template<typename Scalar> struct scalar_tanh_op {
     const Packet alpha_9 = pset1<Packet>(-8.60467152213735e-11);
     const Packet alpha_11 = pset1<Packet>(2.00018790482477e-13);
     const Packet alpha_13 = pset1<Packet>(-2.76076847742355e-16);
-    
+
     // The monomial coefficients of the denominator polynomial (even).
     const Packet beta_0 = pset1<Packet>(4.89352518554385e-03);
     const Packet beta_2 = pset1<Packet>(2.26843463243900e-03);
     const Packet beta_4 = pset1<Packet>(1.18534705686654e-04);
     const Packet beta_6 = pset1<Packet>(1.19825839466702e-06);
-    
+
     // Since the polynomials are odd/even, we need x^2.
     const Packet x2 = pmul(x, x);
-  
+
   // Evaluate the numerator polynomial p.
     Packet p = pmadd(x2, alpha_13, alpha_11);
     p = pmadd(x2, p, alpha_9);
@@ -654,12 +681,12 @@ template<typename Scalar> struct scalar_tanh_op {
     p = pmadd(x2, p, alpha_3);
     p = pmadd(x2, p, alpha_1);
     p = pmul(x, p);
-    
+
     // Evaluate the denominator polynomial p.
     Packet q = pmadd(x2, beta_6, beta_4);
     q = pmadd(x2, q, beta_2);
     q = pmadd(x2, q, beta_0);
-    
+
     // Divide the numerator by the denominator.
     return pdiv(p, q);
   }
@@ -938,7 +965,7 @@ struct scalar_sign_op<Scalar,true> {
 template<typename Scalar>
 struct functor_traits<scalar_sign_op<Scalar> >
 { enum {
-    Cost = 
+    Cost =
         NumTraits<Scalar>::IsComplex
         ? ( 8*NumTraits<Scalar>::MulCost  ) // roughly
         : ( 3*NumTraits<Scalar>::AddCost),
