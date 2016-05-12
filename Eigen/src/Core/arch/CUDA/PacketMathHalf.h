@@ -212,8 +212,8 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmin<half2>(const half2& 
   float a2 = __high2float(a);
   float b1 = __low2float(b);
   float b2 = __high2float(b);
-  half r1 = a1 < b1 ? __low2half(a) : __low2half(b);
-  half r2 = a2 < b2 ? __high2half(a) : __high2half(b);
+  __half r1 = a1 < b1 ? __low2half(a) : __low2half(b);
+  __half r2 = a2 < b2 ? __high2half(a) : __high2half(b);
   return __halves2half2(r1, r2);
 }
 
@@ -222,8 +222,8 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pmax<half2>(const half2& 
   float a2 = __high2float(a);
   float b1 = __low2float(b);
   float b2 = __high2float(b);
-  half r1 = a1 > b1 ? __low2half(a) : __low2half(b);
-  half r2 = a2 > b2 ? __high2half(a) : __high2half(b);
+  __half r1 = a1 > b1 ? __low2half(a) : __low2half(b);
+  __half r2 = a2 > b2 ? __high2half(a) : __high2half(b);
   return __halves2half2(r1, r2);
 }
 
@@ -233,7 +233,7 @@ template<> EIGEN_DEVICE_FUNC inline half predux<half2>(const half2& a) {
 #else
   float a1 = __low2float(a);
   float a2 = __high2float(a);
-  return half(__float2half_rn(a1 + a2));
+  return half(internal::raw_uint16_to_half(__float2half_rn(a1 + a2)));
 #endif
 }
 
@@ -267,7 +267,7 @@ template<> EIGEN_DEVICE_FUNC inline half predux_mul<half2>(const half2& a) {
 #else
   float a1 = __low2float(a);
   float a2 = __high2float(a);
-  return half(__float2half_rn(a1 * a2));
+  return half(internal::raw_uint16_to_half(__float2half_rn(a1 * a2)));
 #endif
 }
 

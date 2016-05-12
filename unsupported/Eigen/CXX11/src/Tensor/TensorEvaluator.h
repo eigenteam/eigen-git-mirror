@@ -129,6 +129,10 @@ template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double loadConstant(const double* address) {
   return __ldg(address);
 }
+template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+Eigen::half loadConstant(const Eigen::half* address) {
+  return Eigen::half(internal::raw_uint16_to_half(__ldg(&address->x)));
+}
 #endif
 }
 
