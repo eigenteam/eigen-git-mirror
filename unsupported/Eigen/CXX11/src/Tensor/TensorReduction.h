@@ -122,7 +122,7 @@ struct preserve_inner_most_dims<ReducedDims, NumTensorDims, RowMajor>{
 template <int DimIndex, typename Self, typename Op>
 struct GenericDimReducer {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::CoeffReturnType* accum) {
-    EIGEN_STATIC_ASSERT(DimIndex > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((DimIndex > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
     for (int j = 0; j < self.m_reducedDims[DimIndex]; ++j) {
       const typename Self::Index input = firstIndex + j * self.m_reducedStrides[DimIndex];
       GenericDimReducer<DimIndex-1, Self, Op>::reduce(self, input, reducer, accum);
@@ -183,7 +183,7 @@ struct InnerMostDimPreserver {
 template <int DimIndex, typename Self, typename Op>
 struct InnerMostDimPreserver<DimIndex, Self, Op, true> {
   static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const Self& self, typename Self::Index firstIndex, Op& reducer, typename Self::PacketReturnType* accum) {
-    EIGEN_STATIC_ASSERT(DimIndex > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((DimIndex > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
     for (typename Self::Index j = 0; j < self.m_reducedDims[DimIndex]; ++j) {
       const typename Self::Index input = firstIndex + j * self.m_reducedStrides[DimIndex];
       InnerMostDimPreserver<DimIndex-1, Self, Op>::reduce(self, input, reducer, accum);
@@ -404,7 +404,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_reducer(op.reducer()), m_result(NULL), m_device(device)
   {
-    EIGEN_STATIC_ASSERT(NumInputDims >= NumReducedDims, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((NumInputDims >= NumReducedDims), YOU_MADE_A_PROGRAMMING_MISTAKE);
     EIGEN_STATIC_ASSERT((!ReducingInnerMostDims | !PreservingInnerMostDims | (NumReducedDims == NumInputDims)),
                         YOU_MADE_A_PROGRAMMING_MISTAKE);
 
@@ -566,7 +566,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index + PacketSize - 1 < dimensions().TotalSize());
 
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];

@@ -32,25 +32,25 @@ class TensorOpCost {
   // model based on minimal reciprocal throughput numbers from Intel or
   // Agner Fog's tables would be better than what is there now.
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int MulCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int MulCost() {
     return internal::functor_traits<
         internal::scalar_product_op<ArgType, ArgType> >::Cost;
   }
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int AddCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int AddCost() {
     return internal::functor_traits<internal::scalar_sum_op<ArgType> >::Cost;
   }
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int DivCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int DivCost() {
     return internal::functor_traits<
         internal::scalar_quotient_op<ArgType, ArgType> >::Cost;
   }
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int ModCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int ModCost() {
     return internal::functor_traits<internal::scalar_mod_op<ArgType> >::Cost;
   }
   template <typename SrcType, typename TargetType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int CastCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int CastCost() {
     return internal::functor_traits<
         internal::scalar_cast_op<SrcType, TargetType> >::Cost;
   }
