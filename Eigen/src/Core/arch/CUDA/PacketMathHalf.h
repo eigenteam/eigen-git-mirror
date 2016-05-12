@@ -245,7 +245,7 @@ template<> EIGEN_DEVICE_FUNC inline half predux_max<half2>(const half2& a) {
 #else
   float a1 = __low2float(a);
   float a2 = __high2float(a);
-  return half(__float2half_rn(numext::maxi(a1, a2)));
+  return a1 > a2 ? __low2half(a) : __high2half(a);
 #endif
 }
 
@@ -257,7 +257,7 @@ template<> EIGEN_DEVICE_FUNC inline half predux_min<half2>(const half2& a) {
 #else
   float a1 = __low2float(a);
   float a2 = __high2float(a);
-  return half(__float2half_rn(numext::mini(a1, a2)));
+  return a1 < a2 ? __low2half(a) : __high2half(a);
 #endif
 }
 
