@@ -299,6 +299,18 @@ void test_cuda_reductions() {
     VERIFY_IS_APPROX(full_prec(i), half_prec(i));
   }
 
+  gpu_res_float.device(gpu_device) = gpu_float1.maximum(redux_dim).cast<Eigen::half>();
+  gpu_res_half.device(gpu_device) = gpu_float1.cast<Eigen::half>().maximum(redux_dim);
+
+  gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, size*sizeof(Eigen::half));
+  gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, size*sizeof(Eigen::half));
+  gpu_device.synchronize();
+
+  for (int i = 0; i < size; ++i) {
+    std::cout << "Checking redux " << i << std::endl;
+    VERIFY_IS_APPROX(full_prec(i), half_prec(i));
+ }
+
   gpu_device.deallocate(d_float1);
   gpu_device.deallocate(d_float2);
   gpu_device.deallocate(d_res_half);
@@ -341,6 +353,14 @@ void test_cuda_full_reductions() {
 
   VERIFY_IS_APPROX(full_prec(), half_prec());
 
+  gpu_res_float.device(gpu_device) = gpu_float1.maximum().cast<Eigen::half>();
+  gpu_res_half.device(gpu_device) = gpu_float1.cast<Eigen::half>().maximum();
+  gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, sizeof(Eigen::half));
+  gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, sizeof(Eigen::half));
+  gpu_device.synchronize();
+
+  VERIFY_IS_APPROX(full_prec(), half_prec());
+
   gpu_device.deallocate(d_float1);
   gpu_device.deallocate(d_float2);
   gpu_device.deallocate(d_res_half);
@@ -355,40 +375,47 @@ void test_cuda_forced_evals() {
   int num_elem = 101;
 
   float* d_float = (float*)gpu_device.allocate(num_elem * sizeof(float));
-  float* d_res_half = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  float* d_res_half1 = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  float* d_res_half2 = (float*)gpu_device.allocate(num_elem * sizeof(float));
   float* d_res_float = (float*)gpu_device.allocate(num_elem * sizeof(float));
 
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_float(
       d_float, num_elem);
-  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res_half(
-      d_res_half, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res_half1(
+      d_res_half1, num_elem);
+ Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Unaligned> gpu_res_half2(
+      d_res_half2, num_elem);
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_res_float(
       d_res_float, num_elem);
 
-  gpu_float.device(gpu_device) = gpu_float.random() - gpu_float.constant(0.5f);
-  gpu_res_float.device(gpu_device) = gpu_float.abs();
-  gpu_res_half.device(gpu_device) = gpu_float.cast<Eigen::half>().abs().eval().cast<float>();
+  Eigen::array<int, 1> no_bcast;
+  no_bcast[0] = 1;
 
-  Tensor<float, 1> half_prec(num_elem);
+  gpu_float.device(gpu_device) = gpu_float.random() - gpu_float.constant(0.5f);
+  gpu_res_float.device(gpu_device) = gpu_float.log();
+  gpu_res_half1.device(gpu_device) = gpu_float.cast<Eigen::half>().abs().eval().cast<float>();
+  gpu_res_half2.device(gpu_device) = gpu_float.cast<Eigen::half>().abs().broadcast(no_bcast).eval().cast<float>();
+
+  Tensor<float, 1> half_prec1(num_elem);
+  Tensor<float, 1> half_prec2(num_elem);
   Tensor<float, 1> full_prec(num_elem);
-  gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(half_prec1.data(), d_res_half1, num_elem*sizeof(float));
+  gpu_device.memcpyDeviceToHost(half_prec2.data(), d_res_half1, num_elem*sizeof(float));
   gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, num_elem*sizeof(float));
   gpu_device.synchronize();
 
   for (int i = 0; i < num_elem; ++i) {
-    std::cout << "Checking unary " << i << std::endl;
-    VERIFY_IS_APPROX(full_prec(i), half_prec(i));
+    std::cout << "Checking forced eval " << i << std::endl;
+    VERIFY_IS_APPROX(full_prec(i), half_prec1(i));
+    VERIFY_IS_APPROX(full_prec(i), half_prec2(i));
   }
 
   gpu_device.deallocate(d_float);
-  gpu_device.deallocate(d_res_half);
+  gpu_device.deallocate(d_res_half1);
+  gpu_device.deallocate(d_res_half2);
   gpu_device.deallocate(d_res_float);
 }
-
 #endif
-
-
-
 
 
 void test_cxx11_tensor_of_float16_cuda()
@@ -402,7 +429,6 @@ void test_cxx11_tensor_of_float16_cuda()
   CALL_SUBTEST_3(test_cuda_reductions());
   CALL_SUBTEST_3(test_cuda_full_reductions());
   CALL_SUBTEST_4(test_cuda_forced_evals());
-
 #else
   std::cout << "Half floats are not supported by this version of cuda: skipping the test" << std::endl;
 #endif
