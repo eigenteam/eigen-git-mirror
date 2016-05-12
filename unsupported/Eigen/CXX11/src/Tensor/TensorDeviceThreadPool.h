@@ -260,7 +260,7 @@ struct ThreadPoolDevice {
     barrier.Wait();
   }
 
-  // Convinience wrapper for parallelFor that does not align blocks.
+  // Convenience wrapper for parallelFor that does not align blocks.
   void parallelFor(Index n, const TensorOpCost& cost,
                    std::function<void(Index, Index)> f) const {
     parallelFor(n, cost, nullptr, std::move(f));

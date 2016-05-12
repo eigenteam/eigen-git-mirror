@@ -170,7 +170,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
         }
         barrier.Wait();
       }
-#endif  // EIGEN_USE_NONBLOCKING_THREAD_POOL
+#endif  // defined(EIGEN_USE_NONBLOCKING_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
     }
     evaluator.cleanup();
   }

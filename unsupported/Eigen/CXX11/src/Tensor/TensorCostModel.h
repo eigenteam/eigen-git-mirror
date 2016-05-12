@@ -10,9 +10,9 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_COST_MODEL_H
 #define EIGEN_CXX11_TENSOR_TENSOR_COST_MODEL_H
 
-//#if !defined(EIGEN_USE_GPU)
-//#define EIGEN_USE_COST_MODEL
-//#endif
+#if !defined(EIGEN_USE_GPU)
+#define EIGEN_USE_COST_MODEL
+#endif
 
 namespace Eigen {
 
