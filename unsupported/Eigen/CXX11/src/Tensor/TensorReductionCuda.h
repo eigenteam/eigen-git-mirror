@@ -177,7 +177,7 @@ static __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self 
   }
 
   half2 accum = reducer.template initializePacket<half2>();
-  Index max_iter = numext::mini<Index>((num_coeffs - first_index) / 2, NumPerThread*BlockSize / 2);
+  const Index max_iter = numext::mini<Index>((num_coeffs - first_index) / 2, NumPerThread*BlockSize / 2);
   for (Index i = 0; i < max_iter; i += BlockSize) {
     const Index index = first_index + 2*i;
     eigen_assert(index + 1 < num_coeffs);
@@ -333,7 +333,7 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
       for (Index j = 0; j < NumPerThread; j += unroll_times) {
         const Index last_col = col_begin + blockDim.x * (j + unroll_times - 1);
         if (last_col >= num_coeffs_to_reduce) {
-          for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col +=blockDim.x) {
+          for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col += blockDim.x) {
             const float val = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
             reducer.reduce(val, &reduced_val);
           }
@@ -357,8 +357,6 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
         atomicReduce(&(output[row]), reduced_val, reducer);
       }
     }
-
-    __syncthreads();
   }
 }
 
