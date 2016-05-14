@@ -15,7 +15,7 @@
 
 namespace Eigen {
 
-#ifndef EIGEN_USE_NONBLOCKING_THREAD_POOL
+#ifdef EIGEN_USE_SIMPLE_THREAD_POOL
 namespace internal {
 
 template<typename LhsScalar, typename LhsMapper, typename Index>
@@ -54,7 +54,7 @@ struct packRhsAndKernelArg {
 };
 
 }  // end namespace internal
-#endif  // EIGEN_USE_NONBLOCKING_THREAD_POOL
+#endif  // EIGEN_USE_SIMPLE_THREAD_POOL
 
 template<typename Indices, typename LeftArgType, typename RightArgType>
 struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgType>, ThreadPoolDevice> :
@@ -112,7 +112,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   TensorEvaluator(const XprType& op, const Device& device) :
       Base(op, device) {}
 
-#ifdef EIGEN_USE_NONBLOCKING_THREAD_POOL
+#ifndef EIGEN_USE_SIMPLE_THREAD_POOL
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous,
             bool rhs_inner_dim_reordered, int Alignment>
   void evalProduct(Scalar* buffer) const {
@@ -731,7 +731,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     return 0;
   }
 
-#else  // EIGEN_USE_NONBLOCKING_THREAD_POOL
+#else  // EIGEN_USE_SIMPLE_THREAD_POOL
 
   template <bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered, int Alignment>
   void evalProduct(Scalar* buffer) const {
@@ -1007,7 +1007,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       }
     }
   }
-#endif  // EIGEN_USE_NONBLOCKING_THREAD_POOL
+#endif  // EIGEN_USE_SIMPLE_THREAD_POOL
 
   TensorOpCost contractionCost(Index m, Index n, Index bm, Index bn, Index bk,
                                bool shard_by_col, bool prepacked) const {
