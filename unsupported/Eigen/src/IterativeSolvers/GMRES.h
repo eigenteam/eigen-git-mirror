@@ -157,7 +157,8 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
     // insert coefficients into upper matrix triangle
     H.col(k-1).head(k) = v.head(k);
 
-    bool stop = (k==m || abs(w(k)) < tol * r0Norm || iters == maxIters);
+    tol_error = std::abs(w(k)) / r0Norm;
+    bool stop = (k==m || tol_error < tol || iters == maxIters);
 
     if (stop || k == restart)
     {
