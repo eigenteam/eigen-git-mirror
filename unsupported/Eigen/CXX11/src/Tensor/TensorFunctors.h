@@ -13,6 +13,77 @@
 namespace Eigen {
 namespace internal {
 
+
+/** \internal
+ * \brief Template functor to compute the modulo between an array and a scalar.
+ */
+template <typename Scalar>
+struct scalar_mod_op {
+  EIGEN_DEVICE_FUNC scalar_mod_op(const Scalar& divisor) : m_divisor(divisor) {}
+  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return a % m_divisor; }
+  const Scalar m_divisor;
+};
+template <typename Scalar>
+struct functor_traits<scalar_mod_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
+
+
+/** \internal
+ * \brief Template functor to compute the modulo between 2 arrays.
+ */
+template <typename Scalar>
+struct scalar_mod2_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_mod2_op);
+  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a, const Scalar& b) const { return a % b; }
+};
+template <typename Scalar>
+struct functor_traits<scalar_mod2_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
+
+template <typename Scalar>
+struct scalar_fmod_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_fmod_op);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
+  operator()(const Scalar& a, const Scalar& b) const {
+    return numext::fmod(a, b);
+  }
+};
+template <typename Scalar>
+struct functor_traits<scalar_fmod_op<Scalar> > {
+  enum { Cost = 13,  // Reciprocal throughput of FPREM on Haswell.
+         PacketAccess = false };
+};
+
+
+/** \internal
+  * \brief Template functor to compute the sigmoid of a scalar
+  * \sa class CwiseUnaryOp, ArrayBase::sigmoid()
+  */
+template <typename T>
+struct scalar_sigmoid_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_sigmoid_op)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator()(const T& x) const {
+    const T one = T(1);
+    return one / (one + numext::exp(-x));
+  }
+
+  template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Packet packetOp(const Packet& x) const {
+    const Packet one = pset1<Packet>(T(1));
+    return pdiv(one, padd(one, pexp(pnegate(x))));
+  }
+};
+
+template <typename T>
+struct functor_traits<scalar_sigmoid_op<T> > {
+  enum {
+    Cost = NumTraits<T>::AddCost * 2 + NumTraits<T>::MulCost * 6,
+    PacketAccess = packet_traits<T>::HasAdd && packet_traits<T>::HasDiv &&
+                   packet_traits<T>::HasNegate && packet_traits<T>::HasExp
+  };
+};
+
+
 // Standard reduction functors
 template <typename T> struct SumReducer
 {

@@ -65,10 +65,10 @@ typedef unsigned __int64 uint64_t;
 #endif
 #endif
 
-
 #include "src/Tensor/TensorMacros.h"
 #include "src/Tensor/TensorForwardDeclarations.h"
 #include "src/Tensor/TensorMeta.h"
+#include "src/Tensor/TensorFunctors.h"
 #include "src/Tensor/TensorCostModel.h"
 #include "src/Tensor/TensorDeviceDefault.h"
 #include "src/Tensor/TensorDeviceThreadPool.h"
@@ -78,7 +78,6 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorDimensions.h"
 #include "src/Tensor/TensorInitializer.h"
 #include "src/Tensor/TensorTraits.h"
-#include "src/Tensor/TensorFunctors.h"
 #include "src/Tensor/TensorUInt128.h"
 #include "src/Tensor/TensorIntDiv.h"
 

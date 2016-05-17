@@ -89,13 +89,13 @@ template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op {
   enum {
     Conj = NumTraits<LhsScalar>::IsComplex
   };
-
+  
   typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
-
+  
   EIGEN_EMPTY_STRUCT_CTOR(scalar_conj_product_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const
   { return conj_helper<LhsScalar,RhsScalar,Conj,false>().pmul(a,b); }
-
+  
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return conj_helper<Packet,Packet,Conj,false>().pmul(a,b); }
@@ -591,47 +591,6 @@ template<typename Scalar>
 struct functor_traits<scalar_inverse_mult_op<Scalar> >
 { enum { PacketAccess = packet_traits<Scalar>::HasDiv, Cost = NumTraits<Scalar>::template Div<PacketAccess>::Cost }; };
 
-/** \internal
- * \brief Template functor to compute the modulo between an array and a fixed scalar.
- */
-template <typename Scalar>
-struct scalar_mod_op {
-  EIGEN_DEVICE_FUNC scalar_mod_op(const Scalar& divisor) : m_divisor(divisor) {}
-  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return a % m_divisor; }
-  const Scalar m_divisor;
-};
-template <typename Scalar>
-struct functor_traits<scalar_mod_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
-
-/** \internal
- * \brief Template functor to compute the modulo between two arrays.
- */
-template <typename Scalar>
-struct scalar_mod2_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_mod2_op);
-  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a, const Scalar& b) const { return a % b; }
-};
-template <typename Scalar>
-struct functor_traits<scalar_mod2_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
-
-/** \internal
- * \brief Template functor to compute the float modulo between two arrays.
- */
-template <typename Scalar>
-struct scalar_fmod_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_fmod_op);
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
-  operator()(const Scalar& a, const Scalar& b) const {
-    return numext::fmod(a, b);
-  }
-};
-template <typename Scalar>
-struct functor_traits<scalar_fmod_op<Scalar> > {
-  enum { Cost = 13,  // Reciprocal throughput of FPREM on Haswell.
-         PacketAccess = false };
-};
 
 } // end namespace internal
 
