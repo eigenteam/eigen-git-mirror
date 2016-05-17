@@ -152,7 +152,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
     {
       const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
       const Index size = array_prod(evaluator.dimensions());
-#if defined(EIGEN_USE_NONBLOCKING_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
+#if !defined(EIGEN_USE_SIMPLE_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
       device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
                          EvalRange<Evaluator, Index, Vectorizable>::alignBlockSize,
                          [&evaluator](Index first, Index last) {
