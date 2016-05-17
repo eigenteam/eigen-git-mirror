@@ -253,8 +253,8 @@ struct ThreadPoolDevice {
       }
       // Split into halves and submit to the pool.
       Index mid = first + divup((last - first) / 2, block_size) * block_size;
-      enqueue_func([=, &handleRange]() { handleRange(mid, last); });
-      enqueue_func([=, &handleRange]() { handleRange(first, mid); });
+      pool_->Schedule([=, &handleRange]() { handleRange(mid, last); });
+      pool_->Schedule([=, &handleRange]() { handleRange(first, mid); });
     };
     handleRange(0, n);
     barrier.Wait();
