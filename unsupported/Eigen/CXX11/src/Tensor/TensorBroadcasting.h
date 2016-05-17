@@ -354,11 +354,11 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
     if (NumDims > 0) {
       for (int i = NumDims - 1; i > 0; --i) {
         compute_cost += TensorOpCost::DivCost<Index>();
-        if (internal::index_statically_eq<Broadcast>()(i, 1)) {
+        if (internal::index_statically_eq<Broadcast>(i, 1)) {
           compute_cost +=
               TensorOpCost::MulCost<Index>() + TensorOpCost::AddCost<Index>();
         } else {
-          if (!internal::index_statically_eq<InputDimensions>()(i, 1)) {
+          if (!internal::index_statically_eq<InputDimensions>(i, 1)) {
             compute_cost += TensorOpCost::MulCost<Index>() +
                             TensorOpCost::ModCost<Index>() +
                             TensorOpCost::AddCost<Index>();
