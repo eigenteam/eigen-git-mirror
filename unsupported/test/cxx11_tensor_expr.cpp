@@ -16,8 +16,8 @@ using Eigen::RowMajor;
 
 static void test_1d()
 {
-  Tensor<float, 1> vec1({6});
-  Tensor<float, 1, RowMajor> vec2({6});
+  Tensor<float, 1> vec1(6);
+  Tensor<float, 1, RowMajor> vec2(6);
 
   vec1(0) = 4.0;  vec2(0) = 0.0;
   vec1(1) = 8.0;  vec2(1) = 1.0;
