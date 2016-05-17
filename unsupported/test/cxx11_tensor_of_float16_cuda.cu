@@ -251,7 +251,7 @@ void test_cuda_contractions() {
 void test_cuda_reductions() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
-  int size = 13;
+  int size = 40;
   int num_elem = size*size;
 
   float* d_float1 = (float*)gpu_device.allocate(num_elem * sizeof(float));
