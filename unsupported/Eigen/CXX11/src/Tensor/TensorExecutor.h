@@ -152,23 +152,25 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
     {
       const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
       const Index size = array_prod(evaluator.dimensions());
-#if !defined(EIGEN_USE_SIMPLE_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
-      device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
-                         EvalRange<Evaluator, Index, Vectorizable>::alignBlockSize,
-                         [&evaluator](Index first, Index last) {
-                           EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, first, last);
-                         });
-#else
       size_t num_threads = device.numThreads();
-#ifdef EIGEN_USE_COST_MODEL
+      ThreadOpCost cost;
       if (num_threads > 1) {
+        cost = evaluator.costPerCoeff(Vectorizable)
         num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
             size, evaluator.costPerCoeff(Vectorizable), num_threads);
       }
-#endif
       if (num_threads == 1) {
         EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, 0, size);
       } else {
+#if !defined(EIGEN_USE_SIMPLE_THREAD_POOL)
+        device.parallelFor(
+            size, cost,
+            EvalRange<Evaluator, Index, Vectorizable>::alignBlockSize,
+            [&evaluator](Index first, Index last) {
+              EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, first,
+                                                             last);
+            });
+#else
         Index blocksz = std::ceil<Index>(static_cast<float>(size)/num_threads) + PacketSize - 1;
         const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
         const Index numblocks = size / blocksize;
@@ -184,8 +186,8 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
               &evaluator, numblocks * blocksize, size);
         }
         barrier.Wait();
+#endif  // defined(!EIGEN_USE_SIMPLE_THREAD_POOL)
       }
-#endif  // defined(EIGEN_USE_NONBLOCKING_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
     }
     evaluator.cleanup();
   }

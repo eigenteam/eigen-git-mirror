@@ -248,16 +248,15 @@ struct FullReducer<Self, Op, ThreadPoolDevice, Vectorizable> {
       *output = reducer.finalize(reducer.initialize());
       return;
     }
-#ifdef EIGEN_USE_COST_MODEL
-    const TensorOpCost cost =
-        self.m_impl.costPerCoeff(Vectorizable) +
-        TensorOpCost(0, 0, internal::functor_traits<Op>::Cost, Vectorizable,
-                     PacketSize);
-    const int num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
-        num_coeffs, cost, device.numThreads());
-#else
-    const int num_threads = device.numThreads();
-#endif
+    int num_threads = device.numThreads();
+    if (num_threads > 1) {
+      const TensorOpCost cost =
+          self.m_impl.costPerCoeff(Vectorizable) +
+          TensorOpCost(0, 0, internal::functor_traits<Op>::Cost, Vectorizable,
+                       PacketSize);
+      num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
+          num_coeffs, cost, device.numThreads());
+    }
     if (num_threads == 1) {
       *output =
           InnerMostDimReducer<Self, Op, Vectorizable>::reduce(self, 0, num_coeffs, reducer);
@@ -472,22 +471,14 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  static bool size_large_enough(Index total_size) {
-#ifndef EIGEN_USE_COST_MODEL
-    return total_size > 1024 * 1024;
-#else
-    return true || total_size;
-#endif
-  }
-
   EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool evalSubExprsIfNeeded(CoeffReturnType* data) {
     m_impl.evalSubExprsIfNeeded(NULL);
 
     // Use the FullReducer if possible.
-    if (RunningFullReduction && internal::FullReducer<Self, Op, Device>::HasOptimizedImplementation &&
+    if (RunningFullReduction &&
+        internal::FullReducer<Self, Op, Device>::HasOptimizedImplementation &&
         ((RunningOnGPU && (m_device.majorDeviceVersion() >= 3)) ||
-         (!RunningOnGPU && size_large_enough(internal::array_prod(m_impl.dimensions()))))) {
-
+         !RunningOnGPU)) {
       bool need_assign = false;
       if (!data) {
         m_result = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType)));
