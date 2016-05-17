@@ -93,10 +93,16 @@ struct EvalRange {
       evaluator.evalScalar(i);
     }
   }
+
+  static Index alignBlockSize(Index size) {
+    return size;
+  }
 };
 
 template <typename Evaluator, typename Index>
 struct EvalRange<Evaluator, Index, true> {
+ static const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
+
   static void run(Evaluator* evaluator_in, const Index first, const Index last) {
     Evaluator evaluator = *evaluator_in;
     eigen_assert(last >= first);
@@ -122,6 +128,15 @@ struct EvalRange<Evaluator, Index, true> {
       evaluator.evalScalar(i);
     }
   }
+
+  static Index alignBlockSize(Index size) {
+    // Align block size to packet size and account for unrolling in run above.
+    if (size >= 16 * PacketSize) {
+      return (size + 4 * PacketSize - 1) & ~(4 * PacketSize - 1);
+    }
+    // Aligning to 4 * PacketSize would increase block size by more than 25%.
+    return (size + PacketSize - 1) & ~(PacketSize - 1);
+  }
 };
 
 template <typename Expression, bool Vectorizable>
@@ -139,9 +154,9 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
       const Index size = array_prod(evaluator.dimensions());
 #if defined(EIGEN_USE_NONBLOCKING_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
       device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
-                         EvalRange::alignBlockSize,
+                         EvalRange<Evaluator, Index, Vectorizable>::alignBlockSize,
                          [&evaluator](Index first, Index last) {
-                           EvalRange::run(&evaluator, first, last);
+                           EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, first, last);
                          });
 #else
       size_t num_threads = device.numThreads();
