@@ -177,7 +177,7 @@ static __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self 
   }
 
   half2 accum = reducer.template initializePacket<half2>();
-  Index max_iter = numext::mini<Index>((num_coeffs - first_index) / 2, NumPerThread*BlockSize / 2);
+  const Index max_iter = numext::mini<Index>((num_coeffs - first_index) / 2, NumPerThread*BlockSize / 2);
   for (Index i = 0; i < max_iter; i += BlockSize) {
     const Index index = first_index + 2*i;
     eigen_assert(index + 1 < num_coeffs);
@@ -333,7 +333,7 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
       for (Index j = 0; j < NumPerThread; j += unroll_times) {
         const Index last_col = col_begin + blockDim.x * (j + unroll_times - 1);
         if (last_col >= num_coeffs_to_reduce) {
-          for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col +=blockDim.x) {
+          for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col += blockDim.x) {
             const float val = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
             reducer.reduce(val, &reduced_val);
           }
@@ -357,10 +357,96 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
         atomicReduce(&(output[row]), reduced_val, reducer);
       }
     }
-
-    __syncthreads();
   }
 }
+
+#ifdef EIGEN_HAS_CUDA_FP16
+/*
+template <int NumPerThread, typename Self,
+          typename Reducer, typename Index>
+__global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
+                                              half* output, half2* scratch) {
+  eigen_assert(blockDim.y == 1);
+  eigen_assert(blockDim.z == 1);
+  eigen_assert(gridDim.y == 1);
+  eigen_assert(gridDim.z == 1);
+
+  const int unroll_times = 16;
+  eigen_assert(NumPerThread % unroll_times == 0);
+  eigen_assert(unroll_times % 2 == 0);
+
+  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.x * NumPerThread);
+  const Index num_input_blocks = input_col_blocks * num_preserved_coeffs;
+
+  const Index num_threads = blockDim.x * gridDim.x;
+  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+
+  // Initialize the output values if they weren't initialized by the ReductionInitKernel
+  if (gridDim.x == 1) {
+    Index i = thread_id;
+    for (; i < num_preserved_coeffs; i += 2*num_threads) {
+      ((half2*)output)[i] = reducer.initializePacket();
+    }
+    if (i + 1 < num_preserved_coeffs) {
+      output[i] = reducer.initialize();
+    }
+    __syncthreads();
+  }
+
+  for (Index i = blockIdx.x; i < num_input_blocks; i += gridDim.x) {
+    const Index row = i / input_col_blocks;
+
+    if (row + 1 < num_preserved_coeffs) {
+      const Index col_block = i % input_col_blocks;
+      const Index col_begin = col_block * blockDim.x * NumPerThread + threadIdx.x;
+
+      half2 reduced_val1 = reducer.initializePacket();
+      half2 reduced_val2 = reducer.initializePacket();
+
+      for (Index j = 0; j < NumPerThread; j += unroll_times) {
+        const Index last_col = col_begin + blockDim.x * (j + unroll_times - 1);
+        if (last_col >= num_coeffs_to_reduce) {
+          Index col = col_begin + blockDim.x * j;
+          for (; col + 1 < num_coeffs_to_reduce; col += blockDim.x) {
+            const half2 val = input.m_impl.packet(row * num_coeffs_to_reduce + col);
+            reducer.reduce(val, &reduced_val);
+            // do the same for reduce val2 here
+          }
+          if (col < num_coeffs_to_reduce) {
+            // Peel;
+            const half last = input.m_impl.coeff(row * num_coeffs_to_reduce + col+1);
+            const half2 val = __halves2half2(last, reducer.initialize());
+            reducer.reducePacket(val, &reduced_val);
+          }
+          break;
+        } else {
+          // Faster version of the loop with no branches after unrolling.
+#pragma unroll
+          for (int k = 0; k < unroll_times; ++k) {
+            const Index col = col_begin + blockDim.x * (j + k);
+            reducer.reduce(input.m_impl.packet(row * num_coeffs_to_reduce + col), &reduced_val);
+          }
+        }
+      }
+
+#pragma unroll
+      for (int offset = warpSize/2; offset > 0; offset /= 2) {
+        reducer.reducePacket(__shfl_down(reduced_val, offset, warpSize), &reduced_val);
+      }
+
+      if ((threadIdx.x & (warpSize - 1)) == 0) {
+        if (row + 1 < num_preserved_coeffs) {
+          atomicReduce(&(output[row]), reduced_val, reducer);
+        }
+        else {
+          atomicReduce(scratch, reduced_val, reducer);
+        }
+      }
+    }
+  }
+}
+*/
+#endif
 
 template <typename Self, typename Op>
 struct InnerReducer<Self, Op, GpuDevice> {
