@@ -525,7 +525,7 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
 
   // scalar by array division
   Scalar  s1 = internal::random<Scalar>();
-  const RealScalar tiny = sqrt(std::numeric_limits<RealScalar>::epsilon());
+  const RealScalar tiny = std::sqrt(std::numeric_limits<RealScalar>::epsilon());
   s1 += Scalar(tiny);
   m1 += ArrayType::Constant(rows,cols,Scalar(tiny));
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());

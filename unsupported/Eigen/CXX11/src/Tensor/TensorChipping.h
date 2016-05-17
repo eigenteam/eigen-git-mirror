@@ -152,7 +152,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_dim(op.dim()), m_device(device)
   {
-    EIGEN_STATIC_ASSERT(NumInputDims >= 1, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((NumInputDims >= 1), YOU_MADE_A_PROGRAMMING_MISTAKE);
     eigen_assert(NumInputDims > m_dim.actualDim());
 
     const typename TensorEvaluator<ArgType, Device>::Dimensions& input_dims = m_impl.dimensions();
@@ -202,7 +202,7 @@ struct TensorEvaluator<const TensorChippingOp<DimId, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
     if ((static_cast<int>(Layout) == static_cast<int>(ColMajor) && m_dim.actualDim() == 0) ||
@@ -341,7 +341,7 @@ struct TensorEvaluator<TensorChippingOp<DimId, ArgType>, Device>
   template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
-    EIGEN_STATIC_ASSERT(PacketSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
 
     if ((static_cast<int>(this->Layout) == static_cast<int>(ColMajor) && this->m_dim.actualDim() == 0) ||
 	(static_cast<int>(this->Layout) == static_cast<int>(RowMajor) && this->m_dim.actualDim() == NumInputDims-1)) {
