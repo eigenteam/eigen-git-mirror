@@ -199,7 +199,7 @@ const unsigned int HereditaryBits = RowMajorBit
 /** \ingroup enums
   * Enum containing possible values for the \c Mode or \c UpLo parameter of
   * MatrixBase::selfadjointView() and MatrixBase::triangularView(), and selfadjoint solvers. */
-enum TriangularOptions {
+enum UpLoType {
   /** View matrix as a lower triangular matrix. */
   Lower=0x1,                      
   /** View matrix as an upper triangular matrix. */
@@ -224,7 +224,7 @@ enum TriangularOptions {
 
 /** \ingroup enums
   * Enum for indicating whether a buffer is aligned or not. */
-enum AlignmentOptions {
+enum AlignmentType {
   Unaligned=0,        /**< Data pointer has no specific alignment. */
   Aligned8=8,         /**< Data pointer is aligned on a 8 bytes boundary. */
   Aligned16=16,       /**< Data pointer is aligned on a 16 bytes boundary. */
@@ -273,7 +273,7 @@ enum DirectionType {
 
 /** \internal \ingroup enums
   * Enum to specify how to traverse the entries of a matrix. */
-enum TraversalOptions {
+enum TraversalType {
   /** \internal Default traversal, no vectorization, no index-based access */
   DefaultTraversal,
   /** \internal No vectorization, use index-based access to have only one for loop instead of 2 nested loops */
@@ -295,7 +295,7 @@ enum TraversalOptions {
 
 /** \internal \ingroup enums
   * Enum to specify whether to unroll loops when traversing over the entries of a matrix. */
-enum UnrollingOptions {
+enum UnrollingType {
   /** \internal Do not unroll loops. */
   NoUnrolling,
   /** \internal Unroll only the inner loop, but not the outer loop. */
@@ -307,7 +307,7 @@ enum UnrollingOptions {
 
 /** \internal \ingroup enums
   * Enum to specify whether to use the default (built-in) implementation or the specialization. */
-enum SpecializedOptions {
+enum SpecializedType {
   Specialized,
   BuiltIn
 };
@@ -328,7 +328,7 @@ enum StorageOptions {
 
 /** \ingroup enums
   * Enum for specifying whether to apply or solve on the left or right. */
-enum SolverOptions {
+enum SideType {
   /** Apply transformation on the left. */
   OnTheLeft = 1,  
   /** Apply transformation on the right. */
@@ -353,7 +353,7 @@ enum Default_t    { Default };
 
 /** \internal \ingroup enums
   * Used in AmbiVector. */
-enum AmbiVectorOptions {
+enum AmbiVectorMode {
   IsDense         = 0,
   IsSparse
 };
@@ -480,7 +480,7 @@ namespace Architecture
 
 /** \internal \ingroup enums
   * Enum used as template parameter in Product and product evaluators. */
-enum ProductType
+enum ProductImplType
 { DefaultProduct=0, LazyProduct, AliasFreeProduct, CoeffBasedProductMode, LazyCoeffBasedProductMode, OuterProduct, InnerProduct, GemvProduct, GemmProduct };
 
 /** \internal \ingroup enums

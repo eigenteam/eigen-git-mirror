@@ -207,7 +207,32 @@ void test_autodiff_hessian()
   VERIFY_IS_APPROX(y.derivatives()(1).derivatives(),  -std::sin(s1*s3+s2*s4)*Vector2d(s3*s4,s4*s4));
 }
 
+double bug_1222() {
+  typedef Eigen::AutoDiffScalar<Eigen::Vector3d> AD;
+  const double _cv1_3 = 1.0;
+  const AD chi_3 = 1.0;
+  // this line did not work, because operator+ returns ADS<DerType&>, which then cannot be converted to ADS<DerType>
+  const AD denom = chi_3 + _cv1_3;
+  return denom.value();
+}
 
+double bug_1223() {
+  using std::min;
+  typedef Eigen::AutoDiffScalar<Eigen::Vector3d> AD;
+
+  const double _cv1_3 = 1.0;
+  const AD chi_3 = 1.0;
+  const AD denom = 1.0;
+
+  // failed because implementation of min attempts to construct ADS<DerType&> via constructor AutoDiffScalar(const Real& value)
+  // without initializing m_derivatives (which is a reference in this case)
+  #define EIGEN_TEST_SPACE
+  const AD t = min EIGEN_TEST_SPACE (denom / chi_3, 1.0);
+
+  const AD t2 = min EIGEN_TEST_SPACE (denom / (chi_3 * _cv1_3), 1.0);
+
+  return t.value() + t2.value();
+}
 
 void test_autodiff()
 {
@@ -217,5 +242,8 @@ void test_autodiff()
     CALL_SUBTEST_3( test_autodiff_jacobian<1>() );
     CALL_SUBTEST_4( test_autodiff_hessian<1>() );
   }
+
+  bug_1222();
+  bug_1223();
 }
 

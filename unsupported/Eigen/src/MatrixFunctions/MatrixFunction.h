@@ -404,11 +404,10 @@ struct matrix_function_compute<MatrixType, 0>
     typedef internal::traits<MatrixType> Traits;
     typedef typename Traits::Scalar Scalar;
     static const int Rows = Traits::RowsAtCompileTime, Cols = Traits::ColsAtCompileTime;
-    static const int Options = MatrixType::Options;
     static const int MaxRows = Traits::MaxRowsAtCompileTime, MaxCols = Traits::MaxColsAtCompileTime;
 
     typedef std::complex<Scalar> ComplexScalar;
-    typedef Matrix<ComplexScalar, Rows, Cols, Options, MaxRows, MaxCols> ComplexMatrix;
+    typedef Matrix<ComplexScalar, Rows, Cols, 0, MaxRows, MaxCols> ComplexMatrix;
 
     ComplexMatrix CA = A.template cast<ComplexScalar>();
     ComplexMatrix Cresult;
@@ -509,9 +508,8 @@ template<typename Derived> class MatrixFunctionReturnValue
       typedef internal::traits<NestedEvalTypeClean> Traits;
       static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
       static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
-      static const int Options = NestedEvalTypeClean::Options;
       typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
-      typedef Matrix<ComplexScalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
+      typedef Matrix<ComplexScalar, Dynamic, Dynamic, 0, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
 
       typedef internal::MatrixFunctionAtomic<DynMatrixType> AtomicType;
       AtomicType atomic(m_f);

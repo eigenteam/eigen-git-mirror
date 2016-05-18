@@ -184,6 +184,18 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
                    Mat_cd((scd * mcd * md.template cast<CD>().eval()).template triangularView<Upper>()));
   VERIFY_IS_APPROX(Mat_cd(rcd.template triangularView<Upper>() = scd * md * mcd),
                    Mat_cd((scd * md.template cast<CD>().eval() * mcd).template triangularView<Upper>()));
+
+
+  VERIFY_IS_APPROX( md.array() * mcd.array(), md.template cast<CD>().eval().array() * mcd.array() );
+  VERIFY_IS_APPROX( mcd.array() * md.array(), mcd.array() * md.template cast<CD>().eval().array() );
+
+//   VERIFY_IS_APPROX( md.array() / mcd.array(), md.template cast<CD>().eval().array() / mcd.array() );
+  VERIFY_IS_APPROX( mcd.array() / md.array(), mcd.array() / md.template cast<CD>().eval().array() );
+
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd.array() *= md.array(), mcd.array() * md.template cast<CD>().eval().array() );
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd.array() /= md.array(), mcd.array() / md.template cast<CD>().eval().array() );
 }
 
 void test_mixingtypes()
