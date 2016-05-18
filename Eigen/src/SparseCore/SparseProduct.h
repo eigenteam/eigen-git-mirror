@@ -131,14 +131,14 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::sub_a
 };
 
 template<typename Lhs, typename Rhs, int Options>
-struct evaluator<SparseView<Product<Lhs, Rhs, Options> > > 
+struct unary_evaluator<SparseView<Product<Lhs, Rhs, Options> >, IteratorBased>
  : public evaluator<typename Product<Lhs, Rhs, DefaultProduct>::PlainObject>
 {
   typedef SparseView<Product<Lhs, Rhs, Options> > XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef evaluator<PlainObject> Base;
-  
-  explicit evaluator(const XprType& xpr)
+
+  explicit unary_evaluator(const XprType& xpr)
     : m_result(xpr.rows(), xpr.cols())
   {
     using std::abs;
@@ -147,13 +147,13 @@ struct evaluator<SparseView<Product<Lhs, Rhs, Options> > >
     typedef typename nested_eval<Rhs,Dynamic>::type RhsNested;
     LhsNested lhsNested(xpr.nestedExpression().lhs());
     RhsNested rhsNested(xpr.nestedExpression().rhs());
-    
+
     internal::sparse_sparse_product_with_pruning_selector<typename remove_all<LhsNested>::type,
                                                           typename remove_all<RhsNested>::type, PlainObject>::run(lhsNested,rhsNested,m_result,
                                                                                                                   abs(xpr.reference())*xpr.epsilon());
   }
-  
-protected:  
+
+protected:
   PlainObject m_result;
 };
 

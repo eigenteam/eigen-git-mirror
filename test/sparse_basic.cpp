@@ -372,6 +372,12 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.eval(), refMat2.sparseView().eval());
+
+    // sparse view on expressions:
+    VERIFY_IS_APPROX((s1*m2).eval(), (s1*refMat2).sparseView().eval());
+    VERIFY_IS_APPROX((m2+m2).eval(), (refMat2+refMat2).sparseView().eval());
+    VERIFY_IS_APPROX((m2*m2).eval(), (refMat2.lazyProduct(refMat2)).sparseView().eval());
+    VERIFY_IS_APPROX((m2*m2).eval(), (refMat2*refMat2).sparseView().eval());
   }
 
   // test diagonal
