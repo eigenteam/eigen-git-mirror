@@ -602,7 +602,7 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(log,
 
 template<typename DerType>
 inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar>, const typename internal::remove_all<DerType>::type> >
-pow(const Eigen::AutoDiffScalar<DerType>& x, typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar y)
+pow(const Eigen::AutoDiffScalar<DerType>& x, const typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar &y)
 {
   using namespace Eigen;
   typedef typename internal::remove_all<DerType>::type DerTypeCleaned;
