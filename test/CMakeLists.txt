@@ -259,6 +259,8 @@ ei_add_test(dense_storage)
 ei_add_test(ctorleak)
 ei_add_test(mpl2only)
 
+add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
+
 check_cxx_compiler_flag("-ffast-math" COMPILER_SUPPORT_FASTMATH)
 if(COMPILER_SUPPORT_FASTMATH)
   set(EIGEN_FASTMATH_FLAGS "-ffast-math")
