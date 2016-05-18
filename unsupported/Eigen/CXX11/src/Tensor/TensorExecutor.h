@@ -150,9 +150,8 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
-      const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
       const Index size = array_prod(evaluator.dimensions());
-#if !defined(EIGEN_USE_SIMPLE_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
+#if !defined(EIGEN_USE_SIMPLE_THREAD_POOL)
       device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
                          EvalRange<Evaluator, Index, Vectorizable>::alignBlockSize,
                          [&evaluator](Index first, Index last) {
@@ -160,15 +159,14 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
                          });
 #else
       size_t num_threads = device.numThreads();
-#ifdef EIGEN_USE_COST_MODEL
       if (num_threads > 1) {
         num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
             size, evaluator.costPerCoeff(Vectorizable), num_threads);
       }
-#endif
       if (num_threads == 1) {
         EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, 0, size);
       } else {
+        const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
         Index blocksz = std::ceil<Index>(static_cast<float>(size)/num_threads) + PacketSize - 1;
         const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
         const Index numblocks = size / blocksize;
@@ -185,7 +183,7 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
         }
         barrier.Wait();
       }
-#endif  // defined(EIGEN_USE_NONBLOCKING_THREAD_POOL) && defined(EIGEN_USE_COST_MODEL)
+#endif
     }
     evaluator.cleanup();
   }

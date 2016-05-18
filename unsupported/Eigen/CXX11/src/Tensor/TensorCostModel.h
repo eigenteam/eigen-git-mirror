@@ -10,9 +10,6 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_COST_MODEL_H
 #define EIGEN_CXX11_TENSOR_TENSOR_COST_MODEL_H
 
-// Turn on the cost model by default
-#define EIGEN_USE_COST_MODEL
-
 namespace Eigen {
 
 /** \class TensorEvaluator
