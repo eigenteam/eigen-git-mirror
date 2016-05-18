@@ -548,13 +548,25 @@ inline const AutoDiffScalar<DerType>& real(const AutoDiffScalar<DerType>& x)  { 
 template<typename DerType>
 inline typename DerType::Scalar imag(const AutoDiffScalar<DerType>&)    { return 0.; }
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (min)(const AutoDiffScalar<DerType>& x, const T& y)    { return (x <= y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (min)(const AutoDiffScalar<DerType>& x, const T& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x <= y ? ADS(x) : ADS(y));
+}
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (max)(const AutoDiffScalar<DerType>& x, const T& y)    { return (x >= y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (max)(const AutoDiffScalar<DerType>& x, const T& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x >= y ? ADS(x) : ADS(y));
+}
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (min)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x < y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (min)(const T& x, const AutoDiffScalar<DerType>& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x < y ? ADS(x) : ADS(y));
+}
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (max)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x > y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (max)(const T& x, const AutoDiffScalar<DerType>& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x > y ? ADS(x) : ADS(y));
+}
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
   using std::abs;
