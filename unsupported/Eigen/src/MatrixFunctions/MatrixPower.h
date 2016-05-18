@@ -383,7 +383,7 @@ class MatrixPower : internal::noncopyable
 
   private:
     typedef std::complex<RealScalar> ComplexScalar;
-    typedef Matrix<ComplexScalar, Dynamic, Dynamic, MatrixType::Options,
+    typedef Matrix<ComplexScalar, Dynamic, Dynamic, 0,
               MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> ComplexMatrix;
 
     /** \brief Reference to the base of matrix power. */
