@@ -55,6 +55,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef TriangularBase<SelfAdjointView> Base;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNestedCleaned MatrixTypeNestedCleaned;
+    typedef MatrixTypeNestedCleaned NestedExpression;
 
     /** \brief The type of coefficients in this matrix */
     typedef typename internal::traits<SelfAdjointView>::Scalar Scalar; 
@@ -183,7 +184,18 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
       typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::AdjointReturnType>::type tmp2(tmp1);
       return typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
                                    TriangularView<MatrixType,TriMode>,
-                                   TriangularView<const Transpose<MatrixType>,TriMode> >::type(tmp);
+                                   TriangularView<typename MatrixType::AdjointReturnType,TriMode> >::type(tmp2);
+    }
+
+    /** \returns a const expression of the main diagonal of the matrix \c *this
+      *
+      * This method simply returns the diagonal of the nested expression, thus by-passing the SelfAdjointView decorator.
+      *
+      * \sa MatrixBase::diagonal(), class Diagonal */
+    EIGEN_DEVICE_FUNC
+    typename MatrixType::ConstDiagonalReturnType diagonal() const
+    {
+      return typename MatrixType::ConstDiagonalReturnType(m_matrix);
     }
 
 /////////// Cholesky module ///////////
