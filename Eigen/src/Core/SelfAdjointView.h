@@ -162,6 +162,29 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     EIGEN_DEVICE_FUNC
     SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha = Scalar(1));
 
+    /** \returns an expression of a triangular view extracted from the current selfadjoint view of a given triangular part
+      *
+      * The parameter \a TriMode can have the following values: \c #Upper, \c #StrictlyUpper, \c #UnitUpper,
+      * \c #Lower, \c #StrictlyLower, \c #UnitLower.
+      *
+      * If \c TriMode references the same triangular part than \c *this, then this method simply return a \c TriangularView of the nested expression,
+      * otherwise, the nested expression is first transposed, thus returning a \c TriangularView<Transpose<MatrixType>> object.
+      *
+      * \sa MatrixBase::triangularView(), class TriangularView
+      */
+    template<unsigned int TriMode>
+    EIGEN_DEVICE_FUNC
+    typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+                                   TriangularView<MatrixType,TriMode>,
+                                   TriangularView<const Transpose<MatrixType>,TriMode> >::type
+    triangularView() const
+    {
+      typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, Transpose<MatrixType> >::type tmp(m_matrix);
+      return typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+                                   TriangularView<MatrixType,TriMode>,
+                                   TriangularView<const Transpose<MatrixType>,TriMode> >::type(tmp);
+    }
+
 /////////// Cholesky module ///////////
 
     const LLT<PlainObject, UpLo> llt() const;

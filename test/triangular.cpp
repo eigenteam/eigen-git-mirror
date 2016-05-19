@@ -121,6 +121,12 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
   VERIFY_IS_APPROX(m1.template triangularView<Upper>() * m5, m3*m5);
   VERIFY_IS_APPROX(m6*m1.template triangularView<Upper>(), m6*m3);
 
+  m1up = m1.template triangularView<Upper>();
+  VERIFY_IS_APPROX(m1.template selfadjointView<Upper>().template triangularView<Upper>().toDenseMatrix(), m1up);
+  VERIFY_IS_APPROX(m1up.template selfadjointView<Upper>().template triangularView<Upper>().toDenseMatrix(), m1up);
+  VERIFY_IS_APPROX(m1.template selfadjointView<Upper>().template triangularView<Lower>().toDenseMatrix(), m1up.adjoint());
+  VERIFY_IS_APPROX(m1up.template selfadjointView<Upper>().template triangularView<Lower>().toDenseMatrix(), m1up.adjoint());
+
 }
 
 
