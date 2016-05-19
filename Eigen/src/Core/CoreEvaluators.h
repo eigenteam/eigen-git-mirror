@@ -1325,7 +1325,7 @@ struct evaluator<Diagonal<ArgType, DiagIndex> >
   enum {
     CoeffReadCost = evaluator<ArgType>::CoeffReadCost,
     
-    Flags = (unsigned int)evaluator<ArgType>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit) & ~RowMajorBit,
+    Flags = (unsigned int)(evaluator<ArgType>::Flags & (HereditaryBits | DirectAccessBit) & ~RowMajorBit) | LinearAccessBit,
     
     Alignment = 0
   };
