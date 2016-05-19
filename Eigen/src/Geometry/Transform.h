@@ -32,7 +32,8 @@ template< typename TransformType,
           typename MatrixType,
           int Case = transform_traits<TransformType>::IsProjective ? 0
                    : int(MatrixType::RowsAtCompileTime) == int(transform_traits<TransformType>::HDim) ? 1
-                   : 2>
+                   : 2,
+          int RhsCols = MatrixType::ColsAtCompileTime>
 struct transform_right_product_impl;
 
 template< typename Other,
@@ -436,7 +437,7 @@ public:
     */
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
-  EIGEN_STRONG_INLINE const typename OtherDerived::PlainObject
+  EIGEN_STRONG_INLINE const typename internal::transform_right_product_impl<Transform, OtherDerived>::ResultType
   operator * (const EigenBase<OtherDerived> &other) const
   { return internal::transform_right_product_impl<Transform, OtherDerived>::run(*this,other.derived()); }
 
@@ -1287,8 +1288,8 @@ struct transform_product_result
   };
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 0 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 0, RhsCols>
 {
   typedef typename MatrixType::PlainObject ResultType;
 
@@ -1298,8 +1299,8 @@ struct transform_right_product_impl< TransformType, MatrixType, 0 >
   }
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 1 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 1, RhsCols>
 {
   enum { 
     Dim = TransformType::Dim, 
@@ -1324,8 +1325,8 @@ struct transform_right_product_impl< TransformType, MatrixType, 1 >
   }
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 2 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 2, RhsCols>
 {
   enum { 
     Dim = TransformType::Dim, 
@@ -1345,6 +1346,30 @@ struct transform_right_product_impl< TransformType, MatrixType, 2 >
     TopLeftLhs(res, 0, 0, Dim, other.cols()).noalias() += T.linear() * other;
 
     return res;
+  }
+};
+
+template< typename TransformType, typename MatrixType >
+struct transform_right_product_impl< TransformType, MatrixType, 2, 1> // rhs is a vector of size Dim
+{
+  typedef typename TransformType::MatrixType TransformMatrix;
+  enum {
+    Dim = TransformType::Dim,
+    HDim = TransformType::HDim,
+    OtherRows = MatrixType::RowsAtCompileTime,
+    WorkingRows = EIGEN_PLAIN_ENUM_MIN(TransformMatrix::RowsAtCompileTime,HDim)
+  };
+
+  typedef typename MatrixType::PlainObject ResultType;
+
+  static EIGEN_STRONG_INLINE ResultType run(const TransformType& T, const MatrixType& other)
+  {
+    EIGEN_STATIC_ASSERT(OtherRows==Dim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
+
+    Matrix<typename ResultType::Scalar, Dim+1, 1> rhs;
+    rhs << other,1;
+    Matrix<typename ResultType::Scalar, WorkingRows, 1> res(T.matrix() * rhs);
+    return res.template head<Dim>();
   }
 };
 
