@@ -298,3 +298,37 @@ operator^(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
                       THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
   return CwiseBinaryOp<internal::scalar_boolean_xor_op, const Derived, const OtherDerived>(derived(),other.derived());
 }
+
+// NOTE disabled until we agree on argument order
+#if 0
+/** \cpp11 \returns an expression of the coefficient-wise polygamma function.
+  *
+  * It returns the \a n -th derivative of the digamma(psi) evaluated at \c *this.
+  *
+  * \warning Be careful with the order of the parameters: x.polygamma(n) is equivalent to polygamma(n,x)
+  *
+  * \sa Eigen::polygamma()
+  */
+template<typename DerivedN>
+inline const CwiseBinaryOp<internal::scalar_polygamma_op<Scalar>, const DerivedN, const Derived>
+polygamma(const EIGEN_CURRENT_STORAGE_BASE_CLASS<DerivedN> &n) const
+{
+  return CwiseBinaryOp<internal::scalar_polygamma_op<Scalar>, const DerivedN, const Derived>(n.derived(), this->derived());
+}
+#endif
+
+/** \cpp11 \returns an expression of the coefficient-wise zeta function.
+  *
+  * It returns the Riemann zeta function of two arguments \c *this and \a q:
+  *
+  * \param *this is the exposent, it must be > 1
+  * \param q is the shift, it must be > 0
+  *
+  * \sa Eigen::zeta()
+  */
+template<typename DerivedQ>
+inline const CwiseBinaryOp<internal::scalar_zeta_op<Scalar>, const Derived, const DerivedQ>
+zeta(const EIGEN_CURRENT_STORAGE_BASE_CLASS<DerivedQ> &q) const
+{
+  return CwiseBinaryOp<internal::scalar_zeta_op<Scalar>, const Derived, const DerivedQ>(this->derived(), q.derived());
+}

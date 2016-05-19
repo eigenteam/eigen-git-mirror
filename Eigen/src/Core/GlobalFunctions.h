@@ -51,8 +51,6 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tanh,scalar_tanh_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(lgamma,scalar_lgamma_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(digamma,scalar_digamma_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(zeta,scalar_zeta_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(polygamma,scalar_polygamma_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erf,scalar_erf_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erfc,scalar_erfc_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(exp,scalar_exp_op)
@@ -158,6 +156,42 @@ namespace Eigen
     return Eigen::CwiseBinaryOp<Eigen::internal::scalar_igammac_op<typename Derived::Scalar>, const Derived, const ExponentDerived>(
       a.derived(),
       x.derived()
+    );
+  }
+
+  /** \cpp11 \returns an expression of the coefficient-wise polygamma(\a n, \a x) to the given arrays.
+    *
+    * It returns the \a n -th derivative of the digamma(psi) evaluated at \c x.
+    *
+    */
+  // * \warning Be careful with the order of the parameters: x.polygamma(n) is equivalent to polygamma(n,x)
+  // * \sa ArrayBase::polygamma()
+  template<typename DerivedN,typename DerivedX>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_polygamma_op<typename DerivedX::Scalar>, const DerivedN, const DerivedX>
+  polygamma(const Eigen::ArrayBase<DerivedN>& n, const Eigen::ArrayBase<DerivedX>& x)
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_polygamma_op<typename DerivedX::Scalar>, const DerivedN, const DerivedX>(
+      n.derived(),
+      x.derived()
+    );
+  }
+
+  /** \returns an expression of the coefficient-wise zeta(\a x, \a q) to the given arrays.
+    *
+    * It returns the Riemann zeta function of two arguments \a x and \a q:
+    *
+    * \param x is the exposent, it must be > 1
+    * \param q is the shift, it must be > 0
+    *
+    * \sa ArrayBase::zeta()
+    */
+  template<typename DerivedX,typename DerivedQ>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_zeta_op<typename DerivedX::Scalar>, const DerivedX, const DerivedQ>
+  zeta(const Eigen::ArrayBase<DerivedX>& x, const Eigen::ArrayBase<DerivedQ>& q)
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_zeta_op<typename DerivedX::Scalar>, const DerivedX, const DerivedQ>(
+      x.derived(),
+      q.derived()
     );
   }
 
