@@ -308,13 +308,13 @@ cosh() const
   return CoshReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise ln(|gamma(*this)|).
- *
- * Example: \include Cwise_lgamma.cpp
- * Output: \verbinclude Cwise_lgamma.out
- *
- * \sa cos(), sin(), tan()
- */
+/** \cpp11 \returns an expression of the coefficient-wise ln(|gamma(*this)|).
+  *
+  * Example: \include Cwise_lgamma.cpp
+  * Output: \verbinclude Cwise_lgamma.out
+  *
+  * \sa cos(), sin(), tan()
+  */
 inline const LgammaReturnType
 lgamma() const
 {
@@ -322,9 +322,9 @@ lgamma() const
 }
 
 /** \returns an expression of the coefficient-wise digamma (psi, derivative of lgamma).
- *
- * \sa cos(), sin(), tan()
- */
+  *
+  * \sa cos(), sin(), tan()
+  */
 inline const DigammaReturnType
 digamma() const
 {
@@ -332,43 +332,43 @@ digamma() const
 }
 
 /** \returns an expression of the coefficient-wise zeta function.
- */
+  */
 inline const ZetaReturnType
 zeta() const
 {
     return ZetaReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise polygamma function.
- */
+/** \cpp11 \returns an expression of the coefficient-wise polygamma function.
+  */
 inline const PolygammaReturnType
 polygamma() const
 {
     return PolygammaReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise Gauss error
- * function of *this.
- *
- * Example: \include Cwise_erf.cpp
- * Output: \verbinclude Cwise_erf.out
- *
- * \sa cos(), sin(), tan()
- */
+/** \cpp11 \returns an expression of the coefficient-wise Gauss error
+  * function of *this.
+  *
+  * Example: \include Cwise_erf.cpp
+  * Output: \verbinclude Cwise_erf.out
+  *
+  * \sa cos(), sin(), tan()
+  */
 inline const ErfReturnType
 erf() const
 {
   return ErfReturnType(derived());
 }
 
-/** \returns an expression of the coefficient-wise Complementary error
- * function of *this.
- *
- * Example: \include Cwise_erfc.cpp
- * Output: \verbinclude Cwise_erfc.out
- *
- * \sa cos(), sin(), tan()
- */
+/** \cpp11 \returns an expression of the coefficient-wise Complementary error
+  * function of *this.
+  *
+  * Example: \include Cwise_erfc.cpp
+  * Output: \verbinclude Cwise_erfc.out
+  *
+  * \sa cos(), sin(), tan()
+  */
 inline const ErfcReturnType
 erfc() const
 {

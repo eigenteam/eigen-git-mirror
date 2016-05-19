@@ -166,6 +166,11 @@ div.toc ul {
   margin: 0.2em 0 0.4em 0.5em;
 }
 
+span.cpp11,span.cpp14,span.cpp17 {
+  color: #119911;
+  font-weight: bold;
+}
+
 /**** old Eigen's styles ****/
 
 
