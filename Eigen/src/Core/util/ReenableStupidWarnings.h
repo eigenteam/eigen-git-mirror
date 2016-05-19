@@ -8,6 +8,8 @@
     #pragma warning pop
   #elif defined __clang__
     #pragma clang diagnostic pop
+  #elif defined __GNUC__ && __GNUC__>=6
+    #pragma GCC diagnostic pop
   #endif
 
   #if defined __NVCC__
@@ -19,6 +21,7 @@
 //    #pragma diag_default 2651
 //    #pragma diag_default 2653
   #endif
+
 #endif
 
 #endif // EIGEN_WARNINGS_DISABLED
