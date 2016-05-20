@@ -340,27 +340,36 @@
 # define __has_feature(x) 0
 #endif
 
+// Upperbound on the C++ version to use.
+// Expected values are 03, 11, 14, 17, etc.
+// By default, let's use an arbitrarily large C++ version.
+#ifndef EIGEN_MAX_CPP_VER
+#define EIGEN_MAX_CPP_VER 99
+#endif
+
 // Do we support r-value references?
-#if (__has_feature(cxx_rvalue_references) || \
+#if EIGEN_MAX_CPP_VER>=11 && \
+    (__has_feature(cxx_rvalue_references) || \
     (defined(__cplusplus) && __cplusplus >= 201103L) || \
     (EIGEN_COMP_MSVC >= 1600))
   #define EIGEN_HAVE_RVALUE_REFERENCES
 #endif
 
 // Does the compiler support C99?
-#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
+#if EIGEN_MAX_CPP_VER>=11 && \
+    ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
   || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
-  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER))
+  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)))
 #define EIGEN_HAS_C99_MATH 1
 #endif
 
 // Does the compiler support result_of?
-#if (__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L))
+#if EIGEN_MAX_CPP_VER>=11 && ((__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L)))
 #define EIGEN_HAS_STD_RESULT_OF 1
 #endif
 
 // Does the compiler support variadic templates?
-#if __cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900
+#if EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900)
 // Disable the use of variadic templates when compiling with nvcc on ARM devices:
 // this prevents nvcc from crashing when compiling Eigen on Tegra X1
 #if !defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64
@@ -368,22 +377,22 @@
 #endif
 #endif
 
-// Does the compiler support const expressions?
+// Does the compiler fully support const expressions? (as in c++14)
 #ifdef __CUDACC__
 // Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
-#if __cplusplus > 199711L && defined(__CUDACC_VER__) && (EIGEN_COMP_CLANG || __CUDACC_VER__ >= 70500)
+#if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && defined(__CUDACC_VER__) && (EIGEN_COMP_CLANG || __CUDACC_VER__ >= 70500))
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
-#elif __has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
-  (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L))
+#elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
+  (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L)))
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
 
 // Does the compiler support C++11 math?
 // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
 #ifndef EIGEN_HAS_CXX11_MATH
-  #if (__cplusplus > 201103L) || (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
-      && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
+  #if EIGEN_MAX_CPP_VER>=11 && ((__cplusplus > 201103L) || (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+      && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC))
     #define EIGEN_HAS_CXX11_MATH 1
   #else
     #define EIGEN_HAS_CXX11_MATH 0
@@ -392,9 +401,10 @@
 
 // Does the compiler support proper C++11 containers?
 #ifndef EIGEN_HAS_CXX11_CONTAINERS
-  #if    (__cplusplus > 201103L) \
+  #if    EIGEN_MAX_CPP_VER>=11 && \
+         ((__cplusplus > 201103L) \
       || ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_ICC>=1400)) \
-      || EIGEN_COMP_MSVC >= 1900
+      || EIGEN_COMP_MSVC >= 1900)
     #define EIGEN_HAS_CXX11_CONTAINERS 1
   #else
     #define EIGEN_HAS_CXX11_CONTAINERS 0
@@ -403,9 +413,10 @@
 
 // Does the compiler support C++11 noexcept?
 #ifndef EIGEN_HAS_CXX11_NOEXCEPT
-  #if    (__cplusplus > 201103L) \
+  #if    EIGEN_MAX_CPP_VER>=11 && \
+         ((__cplusplus > 201103L) \
       || ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_ICC>=1400)) \
-      || EIGEN_COMP_MSVC >= 1900
+      || EIGEN_COMP_MSVC >= 1900)
     #define EIGEN_HAS_CXX11_NOEXCEPT 1
   #else
     #define EIGEN_HAS_CXX11_NOEXCEPT 0
