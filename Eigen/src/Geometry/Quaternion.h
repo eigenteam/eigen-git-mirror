@@ -611,24 +611,22 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   return derived();
 }
 
-/** Returns a random quaternion following a uniform distribution law.
-  *
-  * \returns resulting quaternion
+/** \returns a random unit quaternion following a uniform distribution law on SO(3)
   *
   * \note The implementation is based on http://planning.cs.uiuc.edu/node198.html
   */
 template<typename Scalar, int Options>
 Quaternion<Scalar,Options> Quaternion<Scalar,Options>::UniformRandom()
 {
-  const Scalar u1 = internal::random<Scalar>(0,1),
-               u2 = internal::random<Scalar>(0, 2*M_PI),
-               u3 = internal::random<Scalar>(0, 2*M_PI);
-  const Scalar a = std::sqrt (1 - u1),
-               b = std::sqrt (u1);
-  return Quaternion (a * std::sin (u2),
-                     a * std::cos (u2),
-                     b * std::sin (u3),
-                     b * std::cos (u3));
+  using std::sqrt;
+  using std::sin;
+  using std::cos;
+  const Scalar u1 = internal::random<Scalar>(0, 1),
+               u2 = internal::random<Scalar>(0, 2*EIGEN_PI),
+               u3 = internal::random<Scalar>(0, 2*EIGEN_PI);
+  const Scalar a = sqrt(1 - u1),
+               b = sqrt(u1);
+  return Quaternion (a * sin(u2), a * cos(u2), b * sin(u3), b * cos(u3));
 }
 
 
