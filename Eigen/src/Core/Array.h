@@ -147,7 +147,7 @@ class Array
     }
 #endif
 
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+#ifdef EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
     Array(Array&& other)
       : Base(std::move(other))

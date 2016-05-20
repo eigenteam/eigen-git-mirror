@@ -352,7 +352,7 @@
     (__has_feature(cxx_rvalue_references) || \
     (defined(__cplusplus) && __cplusplus >= 201103L) || \
     (EIGEN_COMP_MSVC >= 1600))
-  #define EIGEN_HAVE_RVALUE_REFERENCES
+  #define EIGEN_HAS_RVALUE_REFERENCES
 #endif
 
 // Does the compiler support C99?
