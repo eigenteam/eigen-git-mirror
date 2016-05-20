@@ -254,7 +254,7 @@ protected:
   * upcoming next STL generation (using a templated result member).
   * If none of these members is provided, then the type of the first argument is returned. FIXME, that behavior is a pretty bad hack.
   */
-#ifdef EIGEN_HAS_STD_RESULT_OF
+#if EIGEN_HAS_STD_RESULT_OF
 template<typename T> struct result_of {
   typedef typename std::result_of<T>::type type1;
   typedef typename remove_all<type1>::type type;

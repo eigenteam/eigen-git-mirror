@@ -57,7 +57,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 
   mf+mf;
   VERIFY_RAISES_ASSERT(mf+md);
-#ifndef EIGEN_HAS_STD_RESULT_OF
+#if !EIGEN_HAS_STD_RESULT_OF
   // this one does not even compile with C++11
   VERIFY_RAISES_ASSERT(mf+mcf);
 #endif
