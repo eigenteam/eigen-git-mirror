@@ -309,7 +309,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     {
     }
 
-#ifdef EIGEN_HAS_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorFixedSize(Self&& other)
       : m_storage(other.m_storage)
     {

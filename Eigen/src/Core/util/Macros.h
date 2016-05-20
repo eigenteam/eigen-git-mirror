@@ -348,11 +348,15 @@
 #endif
 
 // Do we support r-value references?
+#ifndef EIGEN_HAS_RVALUE_REFERENCES
 #if EIGEN_MAX_CPP_VER>=11 && \
     (__has_feature(cxx_rvalue_references) || \
     (defined(__cplusplus) && __cplusplus >= 201103L) || \
     (EIGEN_COMP_MSVC >= 1600))
-  #define EIGEN_HAS_RVALUE_REFERENCES
+  #define EIGEN_HAS_RVALUE_REFERENCES 1
+#else
+  #define EIGEN_HAS_RVALUE_REFERENCES 0
+#endif
 #endif
 
 // Does the compiler support C99?

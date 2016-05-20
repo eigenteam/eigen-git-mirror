@@ -268,7 +268,7 @@ class Matrix
       : Base(internal::constructor_without_unaligned_array_assert())
     { Base::_check_template_params(); EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED }
 
-#ifdef EIGEN_HAS_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
     Matrix(Matrix&& other)
       : Base(std::move(other))

@@ -11,7 +11,7 @@
 
 #include <Eigen/Core>
 
-#ifdef EIGEN_HAS_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
 template <typename MatrixType>
 void rvalue_copyassign(const MatrixType& m)
 {
