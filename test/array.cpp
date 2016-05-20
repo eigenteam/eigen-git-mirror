@@ -582,6 +582,7 @@ template<typename ArrayType> void array_special_functions()
   }
 
 
+#ifdef EIGEN_HAS_C99_MATH
   {
     ArrayType n(11), x(11), res(11), ref(11);
     n << 1, 1,    1, 1.5,   17,   31,   28,    8, 42, 147, 170;
@@ -597,12 +598,17 @@ template<typename ArrayType> void array_special_functions()
 //       CALL_SUBTEST( res = x.polygamma(n); verify_component_wise(res.head(8), ref.head(8)); );
       CALL_SUBTEST( res = polygamma(n,x); verify_component_wise(res.head(8), ref.head(8)); );
     }
+#endif
 
   }
 }
 
 void test_array()
 {
+#ifndef EIGEN_HAS_C99_MATH
+  std::cerr << "WARNING: testing of special math functions disabled" << std::endl;
+#endif
+
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array(Array<float, 1, 1>()) );
     CALL_SUBTEST_2( array(Array22f()) );
