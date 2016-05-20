@@ -311,7 +311,11 @@ cosh() const
   * Example: \include Cwise_lgamma.cpp
   * Output: \verbinclude Cwise_lgamma.out
   *
-  * \sa cos(), sin(), tan()
+  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations of lgamma(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa digamma()
   */
 inline const LgammaReturnType
 lgamma() const
@@ -321,7 +325,11 @@ lgamma() const
 
 /** \returns an expression of the coefficient-wise digamma (psi, derivative of lgamma).
   *
-  * \sa cos(), sin(), tan()
+  * \note This function supports only float and double scalar types. To support other scalar types,
+  * the user has to provide implementations of digamma(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa Eigen::digamma(), Eigen::polygamma(), lgamma()
   */
 inline const DigammaReturnType
 digamma() const
@@ -335,7 +343,11 @@ digamma() const
   * Example: \include Cwise_erf.cpp
   * Output: \verbinclude Cwise_erf.out
   *
-  * \sa cos(), sin(), tan()
+  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations of erf(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa erfc()
   */
 inline const ErfReturnType
 erf() const
@@ -349,7 +361,11 @@ erf() const
   * Example: \include Cwise_erfc.cpp
   * Output: \verbinclude Cwise_erfc.out
   *
-  * \sa cos(), sin(), tan()
+  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations of erfc(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa erf()
   */
 inline const ErfcReturnType
 erfc() const

@@ -755,9 +755,9 @@ struct igamma_impl {
 
 #endif  // EIGEN_HAS_C99_MATH
 
-/****************************************************************************
- * Implementation of Riemann zeta function of two arguments                 *
- ****************************************************************************/
+/*****************************************************************************
+ * Implementation of Riemann zeta function of two arguments, based on Cephes *
+ *****************************************************************************/
 
 template <typename Scalar>
 struct zeta_retval {
