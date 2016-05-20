@@ -44,7 +44,7 @@
     typename internal::enable_if< ( __condition__ ) , int >::type = 0
 
 
-#if defined(EIGEN_HAS_CONSTEXPR)
+#if EIGEN_HAS_CONSTEXPR
 #define EIGEN_CONSTEXPR constexpr
 #else
 #define EIGEN_CONSTEXPR
