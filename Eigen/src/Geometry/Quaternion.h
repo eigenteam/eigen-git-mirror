@@ -271,6 +271,8 @@ public:
   explicit inline Quaternion(const Quaternion<OtherScalar, OtherOptions>& other)
   { m_coeffs = other.coeffs().template cast<Scalar>(); }
 
+  static Quaternion UniformRandom();
+
   template<typename Derived1, typename Derived2>
   static Quaternion FromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
 
@@ -607,6 +609,26 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   this->w() = s * Scalar(0.5);
 
   return derived();
+}
+
+/** Returns a random quaternion following a uniform distribution law.
+  *
+  * \returns resulting quaternion
+  *
+  * \note The implementation is based on http://planning.cs.uiuc.edu/node198.html
+  */
+template<typename Scalar, int Options>
+Quaternion<Scalar,Options> Quaternion<Scalar,Options>::UniformRandom()
+{
+  const Scalar u1 = internal::random<Scalar>(0,1),
+               u2 = internal::random<Scalar>(0, 2*M_PI),
+               u3 = internal::random<Scalar>(0, 2*M_PI);
+  const Scalar a = std::sqrt (1 - u1),
+               b = std::sqrt (u1);
+  return Quaternion (a * std::sin (u2),
+                     a * std::cos (u2),
+                     b * std::sin (u3),
+                     b * std::cos (u3));
 }
 
 

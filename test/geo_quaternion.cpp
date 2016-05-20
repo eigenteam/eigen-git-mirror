@@ -50,7 +50,6 @@ template<typename Scalar, int Options> void quaternion(void)
   using std::abs;
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Matrix<Scalar,3,3> Matrix3;
-  typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar,Options> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
 
@@ -157,8 +156,8 @@ template<typename Scalar, int Options> void quaternion(void)
   Quaternionx *q = new Quaternionx;
   delete q;
 
-  q1 = AngleAxisx(a, v0.normalized());
-  q2 = AngleAxisx(b, v1.normalized());
+  q1 = Quaternionx::UniformRandom ();
+  q2 = Quaternionx::UniformRandom ();
   check_slerp(q1,q2);
 
   q1 = AngleAxisx(b, v1.normalized());
@@ -169,7 +168,7 @@ template<typename Scalar, int Options> void quaternion(void)
   q2 = AngleAxisx(-b, -v1.normalized());
   check_slerp(q1,q2);
 
-  q1.coeffs() = Vector4::Random().normalized();
+  q1 = Quaternionx::UniformRandom ();
   q2.coeffs() = -q1.coeffs();
   check_slerp(q1,q2);
 }
