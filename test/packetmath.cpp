@@ -367,7 +367,7 @@ template<typename Scalar> void packetmath_real()
     VERIFY((numext::isnan)(data2[0]));
   }
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     packet_helper<internal::packet_traits<Scalar>::HasLGamma,Packet> h;
@@ -398,7 +398,7 @@ template<typename Scalar> void packetmath_real()
     data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
-#if defined(EIGEN_HAS_C99_MATH) && (__cplusplus > 199711L)
+#if EIGEN_HAS_C99_MATH && (__cplusplus > 199711L)
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErf, std::erf, internal::perf);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErfc, std::erfc, internal::perfc);

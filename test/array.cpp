@@ -217,7 +217,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sinh(), sinh(m1));
   VERIFY_IS_APPROX(m1.cosh(), cosh(m1));
   VERIFY_IS_APPROX(m1.tanh(), tanh(m1));
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
   VERIFY_IS_APPROX(m1.lgamma(), lgamma(m1));
   VERIFY_IS_APPROX(m1.digamma(), digamma(m1));
   VERIFY_IS_APPROX(m1.erf(), erf(m1));
@@ -312,7 +312,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
 
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
   // check special functions (comparing against numpy implementation)
   if (!NumTraits<Scalar>::IsComplex)
   {
@@ -582,7 +582,7 @@ template<typename ArrayType> void array_special_functions()
   }
 
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
   {
     ArrayType n(11), x(11), res(11), ref(11);
     n << 1, 1,    1, 1.5,   17,   31,   28,    8, 42, 147, 170;

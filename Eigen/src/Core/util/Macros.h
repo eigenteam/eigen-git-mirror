@@ -360,11 +360,15 @@
 #endif
 
 // Does the compiler support C99?
+#ifndef EIGEN_HAS_C99_MATH
 #if EIGEN_MAX_CPP_VER>=11 && \
     ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
   || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
   || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)))
-#define EIGEN_HAS_C99_MATH 1
+  #define EIGEN_HAS_C99_MATH 1
+#else
+  #define EIGEN_HAS_C99_MATH 0
+#endif
 #endif
 
 // Does the compiler support result_of?

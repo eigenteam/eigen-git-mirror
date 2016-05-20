@@ -466,7 +466,7 @@ template <> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half maxi(const Eigen::
 #endif
 }
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half lgamma(const Eigen::half& a) {
   return Eigen::half(Eigen::numext::lgamma(static_cast<float>(a)));
 }

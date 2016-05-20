@@ -116,7 +116,7 @@ struct lgamma_retval {
   typedef Scalar type;
 };
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
 template <>
 struct lgamma_impl<float> {
   EIGEN_DEVICE_FUNC
@@ -336,7 +336,7 @@ struct erf_retval {
   typedef Scalar type;
 };
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
 template <>
 struct erf_impl<float> {
   EIGEN_DEVICE_FUNC
@@ -369,7 +369,7 @@ struct erfc_retval {
   typedef Scalar type;
 };
 
-#ifdef EIGEN_HAS_C99_MATH
+#if EIGEN_HAS_C99_MATH
 template <>
 struct erfc_impl<float> {
   EIGEN_DEVICE_FUNC
@@ -426,7 +426,7 @@ struct igamma_helper<double> {
   }
 };
 
-#ifndef EIGEN_HAS_C99_MATH
+#if !EIGEN_HAS_C99_MATH
 
 template <typename Scalar>
 struct igammac_impl {
@@ -608,7 +608,7 @@ struct igamma_retval {
   typedef Scalar type;
 };
 
-#ifndef EIGEN_HAS_C99_MATH
+#if !EIGEN_HAS_C99_MATH
 
 template <typename Scalar>
 struct igamma_impl {
@@ -967,7 +967,7 @@ struct polygamma_retval {
     typedef Scalar type;
 };
     
-#ifndef EIGEN_HAS_C99_MATH
+#if !EIGEN_HAS_C99_MATH
     
 template <typename Scalar>
 struct polygamma_impl {
