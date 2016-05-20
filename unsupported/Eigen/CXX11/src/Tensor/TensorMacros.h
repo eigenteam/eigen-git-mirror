@@ -28,7 +28,7 @@
 
 // SFINAE requires variadic templates
 #ifndef __CUDACC__
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
   // SFINAE doesn't work for gcc <= 4.7
   #ifdef EIGEN_COMP_GNUC
     #if EIGEN_GNUC_AT_LEAST(4,8)

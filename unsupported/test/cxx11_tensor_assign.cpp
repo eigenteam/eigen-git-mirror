@@ -286,7 +286,7 @@ static void test_compound_assign()
 }
 
 static void test_std_initializers_tensor() {
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
   Tensor<int, 1> a(3);
   a.setValues({0, 1, 2});
   VERIFY_IS_EQUAL(a(0), 0);

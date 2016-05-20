@@ -780,7 +780,7 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
       return derived() = this->template random<RandomGenerator>();
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Derived& setValues(
         const typename internal::Initializer<Derived, NumDimensions>::InitList& vals) {

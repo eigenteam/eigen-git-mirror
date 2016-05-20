@@ -117,7 +117,7 @@ template <typename T, size_t n> class array {
     values[7] = v8;
   }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array(std::initializer_list<T> l) {
     eigen_assert(l.size() == n);
@@ -167,7 +167,7 @@ template <typename T> class array<T, 0> {
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE array() : dummy() { }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
   EIGEN_DEVICE_FUNC array(std::initializer_list<T> l) : dummy() {
     eigen_assert(l.size() == 0);
   }

@@ -110,7 +110,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     inline Self& base()             { return *this; }
     inline const Self& base() const { return *this; }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     EIGEN_DEVICE_FUNC inline const Scalar& coeff(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
     {
@@ -150,7 +150,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       return m_storage.data()[index];
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     inline Scalar& coeffRef(Index firstIndex, Index secondIndex, IndexTypes... otherIndices)
     {
@@ -190,7 +190,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       return m_storage.data()[index];
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     inline const Scalar& operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices) const
     {
@@ -257,7 +257,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       return coeff(index);
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     inline Scalar& operator()(Index firstIndex, Index secondIndex, IndexTypes... otherIndices)
     {
@@ -336,7 +336,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Tensor(Index firstDimension, IndexTypes... otherDimensions)
         : m_storage(firstDimension, otherDimensions...)
@@ -418,7 +418,7 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
       return *this;
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes> EIGEN_DEVICE_FUNC
     void resize(Index firstDimension, IndexTypes... otherDimensions)
     {

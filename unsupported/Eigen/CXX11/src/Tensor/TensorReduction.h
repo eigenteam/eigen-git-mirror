@@ -87,7 +87,7 @@ struct preserve_inner_most_dims {
   static const bool value = false;
 };
 
-#if defined(EIGEN_HAS_CONSTEXPR) && defined(EIGEN_HAS_VARIADIC_TEMPLATES)
+#if defined(EIGEN_HAS_CONSTEXPR) && EIGEN_HAS_VARIADIC_TEMPLATES
 template <typename ReducedDims, int NumTensorDims>
 struct are_inner_most_dims<ReducedDims, NumTensorDims, ColMajor>{
   static const bool tmp1 = indices_statically_known_to_increase<ReducedDims>();

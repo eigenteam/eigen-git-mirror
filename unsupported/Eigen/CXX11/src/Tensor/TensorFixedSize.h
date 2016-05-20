@@ -65,7 +65,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     inline Self& base()             { return *this; }
     inline const Self& base() const { return *this; }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& coeff(Index firstIndex, IndexTypes... otherIndices) const
     {
@@ -97,7 +97,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
     }
 
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& coeffRef(Index firstIndex, IndexTypes... otherIndices)
     {
@@ -128,7 +128,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
       return m_storage.data()[0];
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& operator()(Index firstIndex, IndexTypes... otherIndices) const
     {
@@ -213,7 +213,7 @@ class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, 
       return coeff(index);
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar& operator()(Index firstIndex, IndexTypes... otherIndices)
     {
