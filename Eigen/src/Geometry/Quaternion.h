@@ -271,7 +271,7 @@ public:
   explicit inline Quaternion(const Quaternion<OtherScalar, OtherOptions>& other)
   { m_coeffs = other.coeffs().template cast<Scalar>(); }
 
-  static Quaternion UniformRandom();
+  static Quaternion UnitRandom();
 
   template<typename Derived1, typename Derived2>
   static Quaternion FromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
@@ -616,7 +616,7 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   * \note The implementation is based on http://planning.cs.uiuc.edu/node198.html
   */
 template<typename Scalar, int Options>
-Quaternion<Scalar,Options> Quaternion<Scalar,Options>::UniformRandom()
+Quaternion<Scalar,Options> Quaternion<Scalar,Options>::UnitRandom()
 {
   using std::sqrt;
   using std::sin;

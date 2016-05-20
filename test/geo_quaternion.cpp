@@ -156,8 +156,8 @@ template<typename Scalar, int Options> void quaternion(void)
   Quaternionx *q = new Quaternionx;
   delete q;
 
-  q1 = Quaternionx::UniformRandom ();
-  q2 = Quaternionx::UniformRandom ();
+  q1 = Quaternionx::UnitRandom();
+  q2 = Quaternionx::UnitRandom();
   check_slerp(q1,q2);
 
   q1 = AngleAxisx(b, v1.normalized());
@@ -168,7 +168,7 @@ template<typename Scalar, int Options> void quaternion(void)
   q2 = AngleAxisx(-b, -v1.normalized());
   check_slerp(q1,q2);
 
-  q1 = Quaternionx::UniformRandom ();
+  q1 = Quaternionx::UnitRandom();
   q2.coeffs() = -q1.coeffs();
   check_slerp(q1,q2);
 }
