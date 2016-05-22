@@ -55,7 +55,7 @@ template<typename Scalar, int Options> void quaternion(void)
 
   Scalar largeEps = test_precision<Scalar>();
   if (internal::is_same<Scalar,float>::value)
-    largeEps = 1e-3f;
+    largeEps = Scalar(1e-3);
 
   Scalar eps = internal::random<Scalar>() * Scalar(1e-2);
 

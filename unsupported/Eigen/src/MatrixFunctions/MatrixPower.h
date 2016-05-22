@@ -196,11 +196,11 @@ void MatrixPowerAtomic<MatrixType>::computeBig(ResultType& res) const
 {
   using std::ldexp;
   const int digits = std::numeric_limits<RealScalar>::digits;
-  const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
-				    digits <=  53? 2.789358995219730e-1:                    // double precision
-				    digits <=  64? 2.4471944416607995472e-1L:               // extended precision
-				    digits <= 106? 1.1016843812851143391275867258512e-1L:   // double-double
-						   9.134603732914548552537150753385375e-2L; // quadruple precision
+  const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1L                            // single precision
+                                  : digits <=  53? 2.789358995219730e-1L                    // double precision
+                                  : digits <=  64? 2.4471944416607995472e-1L                // extended precision
+                                  : digits <= 106? 1.1016843812851143391275867258512e-1L    // double-double
+                                  :                9.134603732914548552537150753385375e-2L; // quadruple precision
   MatrixType IminusT, sqrtT, T = m_A.template triangularView<Upper>();
   RealScalar normIminusT;
   int degree, degree2, numberOfSquareRoots = 0;
@@ -264,7 +264,7 @@ inline int MatrixPowerAtomic<MatrixType>::getPadeDegree(long double normIminusT)
       1.999045567181744e-1L, 2.789358995219730e-1L };
 #elif LDBL_MANT_DIG <= 64
   const int maxPadeDegree = 8;
-  const double maxNormForPade[] = { 6.3854693117491799460e-3L /* degree = 3 */ , 2.6394893435456973676e-2L,
+  const long double maxNormForPade[] = { 6.3854693117491799460e-3L /* degree = 3 */ , 2.6394893435456973676e-2L,
       6.4216043030404063729e-2L, 1.1701165502926694307e-1L, 1.7904284231268670284e-1L, 2.4471944416607995472e-1L };
 #elif LDBL_MANT_DIG <= 106
   const int maxPadeDegree = 10;

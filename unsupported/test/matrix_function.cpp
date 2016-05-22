@@ -113,8 +113,8 @@ void testMatrixLogarithm(const MatrixType& A)
 
   MatrixType scaledA;
   RealScalar maxImagPartOfSpectrum = A.eigenvalues().imag().cwiseAbs().maxCoeff();
-  if (maxImagPartOfSpectrum >= RealScalar(0.9 * EIGEN_PI))
-    scaledA = A * RealScalar(0.9 * EIGEN_PI) / maxImagPartOfSpectrum;
+  if (maxImagPartOfSpectrum >= RealScalar(0.9L * EIGEN_PI))
+    scaledA = A * RealScalar(0.9L * EIGEN_PI) / maxImagPartOfSpectrum;
   else
     scaledA = A;
 

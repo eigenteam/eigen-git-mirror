@@ -431,7 +431,7 @@ template<typename Scalar> void packetmath_real()
     // VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::denorm_min()), data2[0]);
     VERIFY((numext::isnan)(data2[1]));
 
-    data1[0] = -1.0f;
+    data1[0] = Scalar(-1.0f);
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
 #if !EIGEN_FAST_MATH

@@ -713,11 +713,11 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC 
-    EIGEN_STRONG_INLINE void _init2(const Scalar& val0, const Scalar& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
+    EIGEN_STRONG_INLINE void _init2(const T0& val0, const T1& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
-      m_storage.data()[0] = val0;
-      m_storage.data()[1] = val1;
+      m_storage.data()[0] = Scalar(val0);
+      m_storage.data()[1] = Scalar(val1);
     }
     
     template<typename T0, typename T1>

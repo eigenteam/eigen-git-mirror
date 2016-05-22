@@ -204,9 +204,11 @@ template<typename MatrixType> void qr_kahan_matrix()
   m1.setZero(rows,cols);
   RealScalar s = std::pow(NumTraits<RealScalar>::epsilon(), 1.0 / rows);
   RealScalar c = std::sqrt(1 - s*s);
+  RealScalar pow_s_i(1.0); // pow(s,i)
   for (Index i = 0; i < rows; ++i) {
-    m1(i, i) = pow(s, i);
-    m1.row(i).tail(rows - i - 1) = -RealScalar(pow(s, i)) * c * MatrixType::Ones(1, rows - i - 1);
+    m1(i, i) = pow_s_i;
+    m1.row(i).tail(rows - i - 1) = -pow_s_i * c * MatrixType::Ones(1, rows - i - 1);
+    pow_s_i *= s;
   }
   m1 = (m1 + m1.transpose()).eval();
   ColPivHouseholderQR<MatrixType> qr(m1);
