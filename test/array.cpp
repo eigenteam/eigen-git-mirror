@@ -598,9 +598,8 @@ template<typename ArrayType> void array_special_functions()
 //       CALL_SUBTEST( res = x.polygamma(n); verify_component_wise(res.head(8), ref.head(8)); );
       CALL_SUBTEST( res = polygamma(n,x); verify_component_wise(res.head(8), ref.head(8)); );
     }
-#endif
-
   }
+#endif
 }
 
 void test_array()
