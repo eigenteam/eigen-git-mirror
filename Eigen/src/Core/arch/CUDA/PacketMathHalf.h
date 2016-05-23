@@ -88,11 +88,11 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Unaligned>(const ha
 #endif
 }
 
-template<> EIGEN_DEVICE_FUNC inline half2 pgather<half, half2>(const half* from, Index stride) {
+template<> EIGEN_DEVICE_FUNC inline half2 pgather<half, half2>(const half* from, int stride) {
   return __halves2half2(from[0*stride], from[1*stride]);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void pscatter<half, half2>(half* to, const half2& from, Index stride) {
+template<> EIGEN_DEVICE_FUNC inline void pscatter<half, half2>(half* to, const half2& from, int stride) {
   to[stride*0] = __low2half(from);
   to[stride*1] = __high2half(from);
 }
@@ -309,5 +309,402 @@ template<> EIGEN_DEVICE_FUNC inline half2 prsqrt<half2>(const half2& a) {
 
 #endif
 #endif
+
+#else  // EIGEN_HAS_CUDA_FP16
+
+
+namespace Eigen {
+namespace internal {
+
+#if defined EIGEN_VECTORIZE_AVX
+
+typedef struct {
+  __m128i x;
+} Packet8h;
+
+
+template<> struct is_arithmetic<Packet8h> { enum { value = true }; };
+
+template <>
+struct packet_traits<half> : default_packet_traits {
+  typedef Packet8h type;
+  // There is no half-size packet for Packet8h.
+  typedef Packet8h half;
+  enum {
+    Vectorizable = 1,
+    AlignedOnScalar = 1,
+    size = 8,
+    HasHalfPacket = 0,
+    HasAdd    = 0,
+    HasSub    = 0,
+    HasMul    = 0,
+    HasNegate = 0,
+    HasAbs    = 0,
+    HasAbs2   = 0,
+    HasMin    = 0,
+    HasMax    = 0,
+    HasConj   = 0,
+    HasSetLinear = 0,
+    HasDiv = 0,
+    HasSqrt = 0,
+    HasRsqrt = 0,
+    HasExp = 0,
+    HasLog = 0,
+    HasBlend = 0
+  };
+};
+
+
+template<> struct unpacket_traits<Packet8h> { typedef Eigen::half type; enum {size=8}; typedef Packet8h half; };
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8h pset1<Packet8h>(const half& from) {
+  Packet8h result;
+  result.x = _mm_set1_epi16(from.x);
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half pfirst<Packet8h>(const Packet8h& from) {
+  return raw_uint16_to_half(static_cast<unsigned short>(_mm_extract_epi16(from.x, 0)));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8h pload<Packet8h>(const half* from) {
+  Packet8h result;
+  result.x = _mm_load_si128(reinterpret_cast<const __m128i*>(from));
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8h ploadu<Packet8h>(const half* from) {
+  Packet8h result;
+  result.x = _mm_loadu_si128(reinterpret_cast<const __m128i*>(from));
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstore<half>(half* to, const Packet8h& from) {
+  _mm_store_si128((__m128i*)to, from.x);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<half>(half* to, const Packet8h& from) {
+  _mm_storeu_si128((__m128i*)to, from.x);
+}
+
+template<> EIGEN_DEVICE_FUNC inline Packet8h
+ploadquad(const half* from) {
+  Packet8h result;
+  unsigned short a = from[0].x;
+  unsigned short b = from[1].x;
+  result.x = _mm_set_epi16(b, b, b, b, a, a, a, a);
+  return result;
+}
+
+EIGEN_STRONG_INLINE Packet8f half2float(const Packet8h& a) {
+#ifdef EIGEN_HAS_FP16_C
+  return _mm256_cvtph_ps(a.x);
+#else
+  EIGEN_ALIGN32 half aux[8];
+  pstore(aux, a);
+  float f0(aux[0]);
+  float f1(aux[1]);
+  float f2(aux[2]);
+  float f3(aux[3]);
+  float f4(aux[4]);
+  float f5(aux[5]);
+  float f6(aux[6]);
+  float f7(aux[7]);
+
+  return _mm256_set_ps(f7, f6, f5, f4, f3, f2, f1, f0);
 #endif
+}
+
+EIGEN_STRONG_INLINE Packet8h float2half(const Packet8f& a) {
+#ifdef EIGEN_HAS_FP16_C
+  Packet8h result;
+  result.x = _mm256_cvtps_ph(a);
+  return result;
+#else
+  EIGEN_ALIGN32 float aux[8];
+  pstore(aux, a);
+  half h0(aux[0]);
+  half h1(aux[1]);
+  half h2(aux[2]);
+  half h3(aux[3]);
+  half h4(aux[4]);
+  half h5(aux[5]);
+  half h6(aux[6]);
+  half h7(aux[7]);
+
+  Packet8h result;
+  result.x = _mm_set_epi16(h7.x, h6.x, h5.x, h4.x, h3.x, h2.x, h1.x, h0.x);
+  return result;
+#endif
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8h padd<Packet8h>(const Packet8h& a, const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = padd(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8h pmul<Packet8h>(const Packet8h& a, const Packet8h& b) {
+  Packet8f af = half2float(a);
+  Packet8f bf = half2float(b);
+  Packet8f rf = pmul(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_DEVICE_FUNC inline Packet8h pgather<half, Packet8h>(const half* from, Index stride)
+{
+  Packet8h result;
+  result.x = _mm_set_epi16(from[7*stride].x, from[6*stride].x, from[5*stride].x, from[4*stride].x, from[3*stride].x, from[2*stride].x, from[1*stride].x, from[0*stride].x);
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC inline void pscatter<half, Packet8h>(half* to, const Packet8h& from, Index stride)
+{
+  EIGEN_ALIGN32 half aux[8];
+  pstore(aux, from);
+  to[stride*0].x = aux[0].x;
+  to[stride*1].x = aux[1].x;
+  to[stride*2].x = aux[2].x;
+  to[stride*3].x = aux[3].x;
+  to[stride*4].x = aux[4].x;
+  to[stride*5].x = aux[5].x;
+  to[stride*6].x = aux[6].x;
+  to[stride*7].x = aux[7].x;
+}
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet8h,8>& kernel) {
+  __m128i a = kernel.packet[0].x;
+  __m128i b = kernel.packet[1].x;
+  __m128i c = kernel.packet[2].x;
+  __m128i d = kernel.packet[3].x;
+  __m128i e = kernel.packet[4].x;
+  __m128i f = kernel.packet[5].x;
+  __m128i g = kernel.packet[6].x;
+  __m128i h = kernel.packet[7].x;
+
+  __m128i a03b03 = _mm_unpacklo_epi16(a, b);
+  __m128i c03d03 = _mm_unpacklo_epi16(c, d);
+  __m128i e03f03 = _mm_unpacklo_epi16(e, f);
+  __m128i g03h03 = _mm_unpacklo_epi16(g, h);
+  __m128i a47b47 = _mm_unpackhi_epi16(a, b);
+  __m128i c47d47 = _mm_unpackhi_epi16(c, d);
+  __m128i e47f47 = _mm_unpackhi_epi16(e, f);
+  __m128i g47h47 = _mm_unpackhi_epi16(g, h);
+
+  __m128i a01b01c01d01 = _mm_unpacklo_epi32(a03b03, c03d03);
+  __m128i a23b23c23d23 = _mm_unpackhi_epi32(a03b03, c03d03);
+  __m128i e01f01g01h01 = _mm_unpacklo_epi32(e03f03, g03h03);
+  __m128i e23f23g23h23 = _mm_unpackhi_epi32(e03f03, g03h03);
+  __m128i a45b45c45d45 = _mm_unpacklo_epi32(a47b47, c47d47);
+  __m128i a67b67c67d67 = _mm_unpackhi_epi32(a47b47, c47d47);
+  __m128i e45f45g45h45 = _mm_unpacklo_epi32(e47f47, g47h47);
+  __m128i e67f67g67h67 = _mm_unpackhi_epi32(e47f47, g47h47);
+
+  __m128i a0b0c0d0e0f0g0h0 = _mm_unpacklo_epi64(a01b01c01d01, e01f01g01h01);
+  __m128i a1b1c1d1e1f1g1h1 = _mm_unpackhi_epi64(a01b01c01d01, e01f01g01h01);
+  __m128i a2b2c2d2e2f2g2h2 = _mm_unpacklo_epi64(a23b23c23d23, e23f23g23h23);
+  __m128i a3b3c3d3e3f3g3h3 = _mm_unpackhi_epi64(a23b23c23d23, e23f23g23h23);
+  __m128i a4b4c4d4e4f4g4h4 = _mm_unpacklo_epi64(a45b45c45d45, e45f45g45h45);
+  __m128i a5b5c5d5e5f5g5h5 = _mm_unpackhi_epi64(a45b45c45d45, e45f45g45h45);
+  __m128i a6b6c6d6e6f6g6h6 = _mm_unpacklo_epi64(a67b67c67d67, e67f67g67h67);
+  __m128i a7b7c7d7e7f7g7h7 = _mm_unpackhi_epi64(a67b67c67d67, e67f67g67h67);
+
+  kernel.packet[0].x = a0b0c0d0e0f0g0h0;
+  kernel.packet[1].x = a1b1c1d1e1f1g1h1;
+  kernel.packet[2].x = a2b2c2d2e2f2g2h2;
+  kernel.packet[3].x = a3b3c3d3e3f3g3h3;
+  kernel.packet[4].x = a4b4c4d4e4f4g4h4;
+  kernel.packet[5].x = a5b5c5d5e5f5g5h5;
+  kernel.packet[6].x = a6b6c6d6e6f6g6h6;
+  kernel.packet[7].x = a7b7c7d7e7f7g7h7;
+}
+
+EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet8h,4>& kernel) {
+  EIGEN_ALIGN32 half in[4][8];
+  pstore<half>(in[0], kernel.packet[0]);
+  pstore<half>(in[1], kernel.packet[1]);
+  pstore<half>(in[2], kernel.packet[2]);
+  pstore<half>(in[3], kernel.packet[3]);
+
+  EIGEN_ALIGN32 half out[4][8];
+
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      out[i][j] = in[j][2*i];
+    }
+    for (int j = 0; j < 4; ++j) {
+      out[i][j+4] = in[j][2*i+1];
+    }
+  }
+
+  kernel.packet[0] = pload<Packet8h>(out[0]);
+  kernel.packet[1] = pload<Packet8h>(out[1]);
+  kernel.packet[2] = pload<Packet8h>(out[2]);
+  kernel.packet[3] = pload<Packet8h>(out[3]);
+}
+
+
+#elif defined EIGEN_VECTORIZE_SSE
+
+typedef struct {
+  __m64 x;
+} Packet4h;
+
+
+template<> struct is_arithmetic<Packet4h> { enum { value = true }; };
+
+template <>
+struct packet_traits<half> : default_packet_traits {
+  typedef Packet4h type;
+  // There is no half-size packet for Packet8h.
+  typedef Packet4h half;
+  enum {
+    Vectorizable = 1,
+    AlignedOnScalar = 1,
+    size = 4,
+    HasHalfPacket = 0,
+    HasAdd    = 0,
+    HasSub    = 0,
+    HasMul    = 0,
+    HasNegate = 0,
+    HasAbs    = 0,
+    HasAbs2   = 0,
+    HasMin    = 0,
+    HasMax    = 0,
+    HasConj   = 0,
+    HasSetLinear = 0,
+    HasDiv = 0,
+    HasSqrt = 0,
+    HasRsqrt = 0,
+    HasExp = 0,
+    HasLog = 0,
+    HasBlend = 0
+  };
+};
+
+
+template<> struct unpacket_traits<Packet4h> { typedef Eigen::half type; enum {size=4}; typedef Packet4h half; };
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pset1<Packet4h>(const half& from) {
+  Packet4h result;
+  result.x = _mm_set1_pi16(from.x);
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half pfirst<Packet4h>(const Packet4h& from) {
+  return raw_uint16_to_half(static_cast<unsigned short>(_m_to_int(from.x)));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h padd<Packet4h>(const Packet4h& a, const Packet4h& b) {
+  __int64_t a64 = _m_to_int64(a.x);
+  __int64_t b64 = _m_to_int64(b.x);
+
+  half h[4];
+
+  half ha = raw_uint16_to_half(static_cast<unsigned short>(a64));
+  half hb = raw_uint16_to_half(static_cast<unsigned short>(b64));
+  h[0] = ha + hb;
+  ha = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 16));
+  hb = raw_uint16_to_half(static_cast<unsigned short>(b64 >> 16));
+  h[1] = ha + hb;
+  ha = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 32));
+  hb = raw_uint16_to_half(static_cast<unsigned short>(b64 >> 32));
+  h[2] = ha + hb;
+  ha = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 48));
+  hb = raw_uint16_to_half(static_cast<unsigned short>(b64 >> 48));
+  h[3] = ha + hb;
+  Packet4h result;
+  result.x = _mm_set_pi16(h[3].x, h[2].x, h[1].x, h[0].x);
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pmul<Packet4h>(const Packet4h& a, const Packet4h& b) {
+  __int64_t a64 = _m_to_int64(a.x);
+  __int64_t b64 = _m_to_int64(b.x);
+
+  half h[4];
+
+  half ha = raw_uint16_to_half(static_cast<unsigned short>(a64));
+  half hb = raw_uint16_to_half(static_cast<unsigned short>(b64));
+  h[0] = ha * hb;
+  ha = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 16));
+  hb = raw_uint16_to_half(static_cast<unsigned short>(b64 >> 16));
+  h[1] = ha * hb;
+  ha = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 32));
+  hb = raw_uint16_to_half(static_cast<unsigned short>(b64 >> 32));
+  h[2] = ha * hb;
+  ha = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 48));
+  hb = raw_uint16_to_half(static_cast<unsigned short>(b64 >> 48));
+  h[3] = ha * hb;
+  Packet4h result;
+  result.x = _mm_set_pi16(h[3].x, h[2].x, h[1].x, h[0].x);
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pload<Packet4h>(const half* from) {
+  Packet4h result;
+  result.x = _m_from_int64(*reinterpret_cast<const __int64_t*>(from));
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h ploadu<Packet4h>(const half* from) {
+  Packet4h result;
+  result.x = _m_from_int64(*reinterpret_cast<const __int64_t*>(from));
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstore<half>(half* to, const Packet4h& from) {
+  __int64_t r = _m_to_int64(from.x);
+  *(reinterpret_cast<__int64_t*>(to)) = r;
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<half>(half* to, const Packet4h& from) {
+  __int64_t r = _m_to_int64(from.x);
+  *(reinterpret_cast<__int64_t*>(to)) = r;
+}
+
+template<> EIGEN_DEVICE_FUNC inline Packet4h
+ploadquad(const half* from) {
+  assert(false);
+  return Packet4h();
+}
+
+template<> EIGEN_DEVICE_FUNC inline Packet4h pgather<half, Packet4h>(const half* from, Index stride)
+{
+  Packet4h result;
+  result.x = _mm_set_pi16(from[3*stride].x, from[2*stride].x, from[1*stride].x, from[0*stride].x);
+  return result;
+}
+
+template<> EIGEN_DEVICE_FUNC inline void pscatter<half, Packet4h>(half* to, const Packet4h& from, Index stride)
+{
+  __int64_t a = _m_to_int64(from.x);
+  to[stride*0].x = static_cast<unsigned short>(a);
+  to[stride*1].x = static_cast<unsigned short>(a >> 16);
+  to[stride*2].x = static_cast<unsigned short>(a >> 32);
+  to[stride*3].x = static_cast<unsigned short>(a >> 48);
+}
+
+template<> EIGEN_DEVICE_FUNC inline void
+ptranspose(PacketBlock<Packet4h,4>& kernel) {
+  __m64 T0 = _mm_unpacklo_pi16(kernel.packet[0].x, kernel.packet[1].x);
+  __m64 T1 = _mm_unpacklo_pi16(kernel.packet[2].x, kernel.packet[3].x);
+  __m64 T2 = _mm_unpackhi_pi16(kernel.packet[0].x, kernel.packet[1].x);
+  __m64 T3 = _mm_unpackhi_pi16(kernel.packet[2].x, kernel.packet[3].x);
+
+  kernel.packet[0].x = _mm_unpacklo_pi32(T0, T1);
+  kernel.packet[1].x = _mm_unpackhi_pi32(T0, T1);
+  kernel.packet[2].x = _mm_unpacklo_pi32(T2, T3);
+  kernel.packet[3].x = _mm_unpackhi_pi32(T2, T3);
+}
+
+#endif
+}
+}
+
+#endif  // EIGEN_HAS_CUDA_FP16
+
 #endif // EIGEN_PACKET_MATH_HALF_CUDA_H
