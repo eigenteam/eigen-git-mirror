@@ -568,10 +568,6 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
           (parallel_pack_ ? nm_ + nn_ : (shard_by_col_ ? nn_ : nm_)) +
           nm_ * nn_;
       if (k < nk_) {
-        // It is important to copy out nm_ and nn_, because once we kick off
-        // the last packing operation this and device_ can be destroyed.
-        Index nm = nm_;
-        Index nn = nn_;
         // Issue lhs/rhs packing. Their completion will in turn kick off
         // kernels.
         if (parallel_pack_) {
