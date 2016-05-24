@@ -144,7 +144,7 @@ struct type_casting_traits<half, float> {
 };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4f pcast<Packet4h, Packet4f>(const Packet4h& a) {
-  __int64_t a64 = _m_to_int64(a.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.x);
   half h = raw_uint16_to_half(static_cast<unsigned short>(a64));
   float f1 = static_cast<float>(h);
   h = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 16));
