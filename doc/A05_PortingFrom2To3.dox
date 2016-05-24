@@ -261,7 +261,7 @@ use it unless you are sure of what you are doing, i.e., you have rigourosly meas
 
 The EIGEN_ALIGN_128 macro has been renamed to EIGEN_ALIGN16. Don't be surprised, it's just that we switched to counting in bytes ;-)
 
-The EIGEN_DONT_ALIGN option still exists in Eigen 3, but it has a new cousin: EIGEN_DONT_ALIGN_STATICALLY. It allows to get rid of all static alignment issues while keeping alignment of dynamic-size heap-allocated arrays, thus keeping vectorization for dynamic-size objects.
+The \link TopicPreprocessorDirectivesPerformance EIGEN_DONT_ALIGN \endlink option still exists in Eigen 3, but it has a new cousin: \link TopicPreprocessorDirectivesPerformance  EIGEN_DONT_ALIGN_STATICALLY.\endlink It allows to get rid of all static alignment issues while keeping alignment of dynamic-size heap-allocated arrays. Vectorization of statically allocated arrays is still preserved (unless you define \link TopicPreprocessorDirectivesPerformance EIGEN_UNALIGNED_VECTORIZE \endlink =0), at the cost of unaligned memory stores.
 
 \section AlignedMap Aligned Map objects
 
