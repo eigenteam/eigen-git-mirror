@@ -7,6 +7,14 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#ifdef EIGEN_TEST_PART_1
+#define EIGEN_UNALIGNED_VECTORIZE 1
+#endif
+
+#ifdef EIGEN_TEST_PART_2
+#define EIGEN_UNALIGNED_VECTORIZE 0
+#endif
+
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #undef EIGEN_DEFAULT_TO_ROW_MAJOR
 #endif
@@ -144,10 +152,16 @@ struct vectorization_logic
       InnerVectorizedTraversal,InnerUnrolling));
 
     VERIFY(test_assign(Matrix44u(),Matrix44()+Matrix44(),
-      LinearTraversal,NoUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? InnerVectorizedTraversal : LinearTraversal,
+      EIGEN_UNALIGNED_VECTORIZE ? InnerUnrolling : NoUnrolling));
+
+    VERIFY(test_assign(Matrix1(),Matrix1()+Matrix1(),
+      (Matrix1::InnerSizeAtCompileTime % PacketSize)==0 ? InnerVectorizedTraversal : LinearVectorizedTraversal,
+      CompleteUnrolling));
 
     VERIFY(test_assign(Matrix1u(),Matrix1()+Matrix1(),
-      LinearTraversal,CompleteUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? ((Matrix1::InnerSizeAtCompileTime % PacketSize)==0 ? InnerVectorizedTraversal : LinearVectorizedTraversal)
+                                : LinearTraversal, CompleteUnrolling));
 
     VERIFY(test_assign(Matrix44c().col(1),Matrix44c().col(2)+Matrix44c().col(3),
       InnerVectorizedTraversal,CompleteUnrolling));
@@ -158,19 +172,30 @@ struct vectorization_logic
     if(PacketSize>1)
     {
       typedef Matrix<Scalar,3,3,ColMajor> Matrix33c;
+      typedef Matrix<Scalar,3,1,ColMajor> Vector3;
       VERIFY(test_assign(Matrix33c().row(2),Matrix33c().row(1)+Matrix33c().row(1),
         LinearTraversal,CompleteUnrolling));
+      VERIFY(test_assign(Vector3(),Vector3()+Vector3(),
+        EIGEN_UNALIGNED_VECTORIZE ? (HalfPacketSize==1 ? InnerVectorizedTraversal : LinearVectorizedTraversal) : (HalfPacketSize==1 ? InnerVectorizedTraversal : LinearTraversal), CompleteUnrolling));
       VERIFY(test_assign(Matrix33c().col(0),Matrix33c().col(1)+Matrix33c().col(1),
-        LinearTraversal,CompleteUnrolling));
+        EIGEN_UNALIGNED_VECTORIZE ? (HalfPacketSize==1 ? InnerVectorizedTraversal : LinearVectorizedTraversal) : (HalfPacketSize==1 ? SliceVectorizedTraversal : LinearTraversal),
+        ((!EIGEN_UNALIGNED_VECTORIZE) && HalfPacketSize==1) ? NoUnrolling : CompleteUnrolling));
 
       VERIFY(test_assign(Matrix3(),Matrix3().cwiseProduct(Matrix3()),
         LinearVectorizedTraversal,CompleteUnrolling));
 
       VERIFY(test_assign(Matrix<Scalar,17,17>(),Matrix<Scalar,17,17>()+Matrix<Scalar,17,17>(),
-        HalfPacketSize==1 ? InnerVectorizedTraversal : LinearTraversal,NoUnrolling));
+        HalfPacketSize==1             ? InnerVectorizedTraversal  :
+        EIGEN_UNALIGNED_VECTORIZE ? LinearVectorizedTraversal :
+                                        LinearTraversal,
+        NoUnrolling));
+
+      VERIFY(test_assign(Matrix11(), Matrix11()+Matrix11(),InnerVectorizedTraversal,CompleteUnrolling));
+
 
       VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
-        DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
+        (EIGEN_UNALIGNED_VECTORIZE) ? InnerVectorizedTraversal : DefaultTraversal,
+        (EIGEN_UNALIGNED_VECTORIZE || PacketSize<=4) ? CompleteUnrolling : InnerUnrolling ));
 
       VERIFY(test_assign(Vector1(),Matrix11()*Vector1(),
                          InnerVectorizedTraversal,CompleteUnrolling));
@@ -270,6 +295,12 @@ struct vectorization_logic_half
       InnerVectorizedTraversal,CompleteUnrolling));
     VERIFY(test_assign(Vector1(),Vector1()+Vector1(),
       InnerVectorizedTraversal,CompleteUnrolling));
+    VERIFY(test_assign(Vector1(),Vector1().template segment<PacketSize>(0).derived(),
+      EIGEN_UNALIGNED_VECTORIZE ? InnerVectorizedTraversal : LinearVectorizedTraversal,CompleteUnrolling));
+    VERIFY(test_assign(Vector1(),Scalar(2.1)*Vector1()-Vector1(),
+      InnerVectorizedTraversal,CompleteUnrolling));
+    VERIFY(test_assign(Vector1(),(Scalar(2.1)*Vector1().template segment<PacketSize>(0)-Vector1().template segment<PacketSize>(0)).derived(),
+      EIGEN_UNALIGNED_VECTORIZE ? InnerVectorizedTraversal : LinearVectorizedTraversal,CompleteUnrolling));
     VERIFY(test_assign(Vector1(),Vector1().cwiseProduct(Vector1()),
       InnerVectorizedTraversal,CompleteUnrolling));
     VERIFY(test_assign(Vector1(),Vector1().template cast<Scalar>(),
@@ -287,10 +318,11 @@ struct vectorization_logic_half
       InnerVectorizedTraversal,InnerUnrolling));
 
     VERIFY(test_assign(Matrix57u(),Matrix57()+Matrix57(),
-      LinearTraversal,NoUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? InnerVectorizedTraversal : LinearTraversal,
+      EIGEN_UNALIGNED_VECTORIZE ? InnerUnrolling : NoUnrolling));
 
     VERIFY(test_assign(Matrix1u(),Matrix1()+Matrix1(),
-      LinearTraversal,CompleteUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? ((Matrix1::InnerSizeAtCompileTime % PacketSize)==0 ? InnerVectorizedTraversal : LinearVectorizedTraversal) : LinearTraversal,CompleteUnrolling));
         
     if(PacketSize>1)
     {
@@ -298,16 +330,17 @@ struct vectorization_logic_half
       VERIFY(test_assign(Matrix33c().row(2),Matrix33c().row(1)+Matrix33c().row(1),
         LinearTraversal,CompleteUnrolling));
       VERIFY(test_assign(Matrix33c().col(0),Matrix33c().col(1)+Matrix33c().col(1),
-        LinearTraversal,CompleteUnrolling));
+        EIGEN_UNALIGNED_VECTORIZE ? (PacketSize==1 ? InnerVectorizedTraversal : LinearVectorizedTraversal) : LinearTraversal,CompleteUnrolling));
               
       VERIFY(test_assign(Matrix3(),Matrix3().cwiseQuotient(Matrix3()),
         PacketTraits::HasDiv ? LinearVectorizedTraversal : LinearTraversal,CompleteUnrolling));
         
       VERIFY(test_assign(Matrix<Scalar,17,17>(),Matrix<Scalar,17,17>()+Matrix<Scalar,17,17>(),
-        LinearTraversal,NoUnrolling));
+        EIGEN_UNALIGNED_VECTORIZE ? (PacketSize==1 ? InnerVectorizedTraversal : LinearVectorizedTraversal) : LinearTraversal,
+        NoUnrolling));
         
       VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
-        DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
+        EIGEN_UNALIGNED_VECTORIZE ? InnerVectorizedTraversal : DefaultTraversal,PacketSize>4?InnerUnrolling:CompleteUnrolling));
 
       VERIFY(test_assign(Vector1(),Matrix11()*Vector1(),
                          InnerVectorizedTraversal,CompleteUnrolling));
@@ -367,19 +400,19 @@ void test_vectorization_logic()
   if(internal::packet_traits<float>::Vectorizable)
   {
     VERIFY(test_assign(Matrix<float,3,3>(),Matrix<float,3,3>()+Matrix<float,3,3>(),
-      LinearTraversal,CompleteUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? LinearVectorizedTraversal : LinearTraversal,CompleteUnrolling));
       
     VERIFY(test_redux(Matrix<float,5,2>(),
-      DefaultTraversal,CompleteUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? LinearVectorizedTraversal : DefaultTraversal,CompleteUnrolling));
   }
   
   if(internal::packet_traits<double>::Vectorizable)
   {
     VERIFY(test_assign(Matrix<double,3,3>(),Matrix<double,3,3>()+Matrix<double,3,3>(),
-      LinearTraversal,CompleteUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? LinearVectorizedTraversal : LinearTraversal,CompleteUnrolling));
     
     VERIFY(test_redux(Matrix<double,7,3>(),
-      DefaultTraversal,CompleteUnrolling));
+      EIGEN_UNALIGNED_VECTORIZE ? LinearVectorizedTraversal : DefaultTraversal,CompleteUnrolling));
   }
 #endif // EIGEN_VECTORIZE
 

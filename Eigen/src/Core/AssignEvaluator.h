@@ -81,10 +81,10 @@ private:
     MayInnerVectorize  = MightVectorize
                        && int(InnerSize)!=Dynamic && int(InnerSize)%int(InnerPacketSize)==0
                        && int(OuterStride)!=Dynamic && int(OuterStride)%int(InnerPacketSize)==0
-                       && int(JointAlignment)>=int(InnerRequiredAlignment),
+                       && (EIGEN_UNALIGNED_VECTORIZE  || int(JointAlignment)>=int(InnerRequiredAlignment)),
     MayLinearize = bool(StorageOrdersAgree) && (int(DstFlags) & int(SrcFlags) & LinearAccessBit),
     MayLinearVectorize = bool(MightVectorize) && MayLinearize && DstHasDirectAccess
-                       && ((int(DstAlignment)>=int(LinearRequiredAlignment)) || MaxSizeAtCompileTime == Dynamic),
+                       && (EIGEN_UNALIGNED_VECTORIZE || (int(DstAlignment)>=int(LinearRequiredAlignment)) || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
          so it's only good for large enough sizes. */
     MaySliceVectorize  = bool(MightVectorize) && bool(DstHasDirectAccess)
@@ -130,8 +130,9 @@ public:
                                              : int(NoUnrolling)
                   )
               : int(Traversal) == int(LinearVectorizedTraversal)
-                ? ( bool(MayUnrollCompletely) && (int(DstAlignment)>=int(LinearRequiredAlignment)) ? int(CompleteUnrolling)
-                                                                                             : int(NoUnrolling) )
+                ? ( bool(MayUnrollCompletely) && ( EIGEN_UNALIGNED_VECTORIZE || (int(DstAlignment)>=int(LinearRequiredAlignment)))
+                          ? int(CompleteUnrolling)
+                          : int(NoUnrolling) )
               : int(Traversal) == int(LinearTraversal)
                 ? ( bool(MayUnrollCompletely) ? int(CompleteUnrolling) 
                                               : int(NoUnrolling) )
@@ -156,6 +157,7 @@ public:
     EIGEN_DEBUG_VAR(InnerMaxSize)
     EIGEN_DEBUG_VAR(LinearPacketSize)
     EIGEN_DEBUG_VAR(InnerPacketSize)
+    EIGEN_DEBUG_VAR(ActualPacketSize)
     EIGEN_DEBUG_VAR(StorageOrdersAgree)
     EIGEN_DEBUG_VAR(MightVectorize)
     EIGEN_DEBUG_VAR(MayLinearize)
