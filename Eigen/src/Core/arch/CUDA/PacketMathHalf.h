@@ -355,7 +355,7 @@ struct packet_traits<half> : default_packet_traits {
 };
 
 
-template<> struct unpacket_traits<Packet8h> { typedef Eigen::half type; enum {size=8}; typedef Packet8h half; };
+template<> struct unpacket_traits<Packet8h> { typedef Eigen::half type; enum {size=8, alignment=Aligned16}; typedef Packet8h half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet8h pset1<Packet8h>(const half& from) {
   Packet8h result;
@@ -586,7 +586,7 @@ struct packet_traits<half> : default_packet_traits {
 };
 
 
-template<> struct unpacket_traits<Packet4h> { typedef Eigen::half type; enum {size=4}; typedef Packet4h half; };
+template<> struct unpacket_traits<Packet4h> { typedef Eigen::half type; enum {size=4, alignment=Aligned16}; typedef Packet4h half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pset1<Packet4h>(const half& from) {
   Packet4h result;
