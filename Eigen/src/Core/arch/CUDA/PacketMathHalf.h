@@ -595,12 +595,12 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pset1<Packet4h>(const 
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half pfirst<Packet4h>(const Packet4h& from) {
-  return raw_uint16_to_half(static_cast<unsigned short>(_m_to_int(from.x)));
+  return raw_uint16_to_half(static_cast<unsigned short>(_mm_cvtsi64_si32(from.x)));
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h padd<Packet4h>(const Packet4h& a, const Packet4h& b) {
-  __int64_t a64 = _m_to_int64(a.x);
-  __int64_t b64 = _m_to_int64(b.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.x);
+  __int64_t b64 = _mm_cvtm64_si64(b.x);
 
   half h[4];
 
@@ -622,8 +622,8 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h padd<Packet4h>(const P
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pmul<Packet4h>(const Packet4h& a, const Packet4h& b) {
-  __int64_t a64 = _m_to_int64(a.x);
-  __int64_t b64 = _m_to_int64(b.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.x);
+  __int64_t b64 = _mm_cvtm64_si64(b.x);
 
   half h[4];
 
@@ -646,23 +646,23 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pmul<Packet4h>(const P
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h pload<Packet4h>(const half* from) {
   Packet4h result;
-  result.x = _m_from_int64(*reinterpret_cast<const __int64_t*>(from));
+  result.x = _mm_cvtsi64_m64(*reinterpret_cast<const __int64_t*>(from));
   return result;
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet4h ploadu<Packet4h>(const half* from) {
   Packet4h result;
-  result.x = _m_from_int64(*reinterpret_cast<const __int64_t*>(from));
+  result.x = _mm_cvtsi64_m64(*reinterpret_cast<const __int64_t*>(from));
   return result;
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstore<half>(half* to, const Packet4h& from) {
-  __int64_t r = _m_to_int64(from.x);
+  __int64_t r = _mm_cvtm64_si64(from.x);
   *(reinterpret_cast<__int64_t*>(to)) = r;
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<half>(half* to, const Packet4h& from) {
-  __int64_t r = _m_to_int64(from.x);
+  __int64_t r = _mm_cvtm64_si64(from.x);
   *(reinterpret_cast<__int64_t*>(to)) = r;
 }
 
@@ -681,7 +681,7 @@ template<> EIGEN_DEVICE_FUNC inline Packet4h pgather<half, Packet4h>(const half*
 
 template<> EIGEN_DEVICE_FUNC inline void pscatter<half, Packet4h>(half* to, const Packet4h& from, Index stride)
 {
-  __int64_t a = _m_to_int64(from.x);
+  __int64_t a = _mm_cvtm64_si64(from.x);
   to[stride*0].x = static_cast<unsigned short>(a);
   to[stride*1].x = static_cast<unsigned short>(a >> 16);
   to[stride*2].x = static_cast<unsigned short>(a >> 32);
