@@ -666,12 +666,6 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<half>(half* to, co
   *(reinterpret_cast<__int64_t*>(to)) = r;
 }
 
-template<> EIGEN_DEVICE_FUNC inline Packet4h
-ploadquad(const half* from) {
-  assert(false);
-  return Packet4h();
-}
-
 template<> EIGEN_DEVICE_FUNC inline Packet4h pgather<half, Packet4h>(const half* from, Index stride)
 {
   Packet4h result;
