@@ -123,7 +123,7 @@ double2 ppolygamma<double2>(const double2& n, const double2& x)
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 perf<float4>(const float4& a)
 {
-  return make_float4(erf(a.x), erf(a.y), erf(a.z), erf(a.w));
+  return make_float4(erff(a.x), erff(a.y), erff(a.z), erff(a.w));
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -135,7 +135,7 @@ double2 perf<double2>(const double2& a)
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 perfc<float4>(const float4& a)
 {
-  return make_float4(erfc(a.x), erfc(a.y), erfc(a.z), erfc(a.w));
+  return make_float4(erfcf(a.x), erfcf(a.y), erfcf(a.z), erfcf(a.w));
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
