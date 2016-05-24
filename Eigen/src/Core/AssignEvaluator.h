@@ -256,13 +256,13 @@ struct copy_using_evaluator_innervec_CompleteUnrolling
   enum {
     outer = Index / DstXprType::InnerSizeAtCompileTime,
     inner = Index % DstXprType::InnerSizeAtCompileTime,
-    JointAlignment = Kernel::AssignmentTraits::JointAlignment,
-    DefaultAlignment = unpacket_traits<PacketType>::alignment
+    SrcAlignment = Kernel::AssignmentTraits::SrcAlignment,
+    DstAlignment = Kernel::AssignmentTraits::DstAlignment
   };
 
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
-    kernel.template assignPacketByOuterInner<DefaultAlignment, JointAlignment, PacketType>(outer, inner);
+    kernel.template assignPacketByOuterInner<DstAlignment, SrcAlignment, PacketType>(outer, inner);
     enum { NextIndex = Index + unpacket_traits<PacketType>::size };
     copy_using_evaluator_innervec_CompleteUnrolling<Kernel, NextIndex, Stop>::run(kernel);
   }
@@ -279,11 +279,12 @@ struct copy_using_evaluator_innervec_InnerUnrolling
 {
   typedef typename Kernel::PacketType PacketType;
   enum {
-    DefaultAlignment = unpacket_traits<PacketType>::alignment
+    SrcAlignment = Kernel::AssignmentTraits::SrcAlignment,
+    DstAlignment = Kernel::AssignmentTraits::DstAlignment
   };
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel, Index outer)
   {
-    kernel.template assignPacketByOuterInner<DefaultAlignment, DefaultAlignment, PacketType>(outer, Index_);
+    kernel.template assignPacketByOuterInner<DstAlignment, SrcAlignment, PacketType>(outer, Index_);
     enum { NextIndex = Index_ + unpacket_traits<PacketType>::size };
     copy_using_evaluator_innervec_InnerUnrolling<Kernel, NextIndex, Stop>::run(kernel, outer);
   }
@@ -438,7 +439,8 @@ struct dense_assignment_loop<Kernel, InnerVectorizedTraversal, NoUnrolling>
 {
   typedef typename Kernel::PacketType PacketType;
   enum {
-    DefaultAlignment = unpacket_traits<PacketType>::alignment
+    SrcAlignment = Kernel::AssignmentTraits::SrcAlignment,
+    DstAlignment = Kernel::AssignmentTraits::DstAlignment
   };
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE void run(Kernel &kernel)
   {
@@ -447,7 +449,7 @@ struct dense_assignment_loop<Kernel, InnerVectorizedTraversal, NoUnrolling>
     const Index packetSize = unpacket_traits<PacketType>::size;
     for(Index outer = 0; outer < outerSize; ++outer)
       for(Index inner = 0; inner < innerSize; inner+=packetSize)
-        kernel.template assignPacketByOuterInner<DefaultAlignment, DefaultAlignment, PacketType>(outer, inner);
+        kernel.template assignPacketByOuterInner<DstAlignment, SrcAlignment, PacketType>(outer, inner);
   }
 };
 
