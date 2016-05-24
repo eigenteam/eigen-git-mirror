@@ -434,30 +434,6 @@ template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a)
 template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a)
 { return _mm_shuffle_epi32(a,0x1B); }
 
-template<size_t offset>
-struct protate_impl<offset, Packet4f>
-{
-  static Packet4f run(const Packet4f& a) {
-    return vec4f_swizzle1(a, offset, (offset + 1) % 4, (offset + 2) % 4, (offset + 3) % 4);
-  }
-};
-
-template<size_t offset>
-struct protate_impl<offset, Packet4i>
-{
-  static Packet4i run(const Packet4i& a) {
-    return vec4i_swizzle1(a, offset, (offset + 1) % 4, (offset + 2) % 4, (offset + 3) % 4);
-  }
-};
-
-template<size_t offset>
-struct protate_impl<offset, Packet2d>
-{
-  static Packet2d run(const Packet2d& a) {
-    return vec2d_swizzle1(a, offset, (offset + 1) % 2);
-  }
-};
-
 template<> EIGEN_STRONG_INLINE Packet4f pabs(const Packet4f& a)
 {
   const Packet4f mask = _mm_castsi128_ps(_mm_setr_epi32(0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF,0x7FFFFFFF));
