@@ -688,7 +688,7 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<half, Packet4h>(half* to, cons
   to[stride*3].x = static_cast<unsigned short>(a >> 48);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void
+EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet4h,4>& kernel) {
   __m64 T0 = _mm_unpacklo_pi16(kernel.packet[0].x, kernel.packet[1].x);
   __m64 T1 = _mm_unpacklo_pi16(kernel.packet[2].x, kernel.packet[3].x);
