@@ -827,7 +827,7 @@ template<>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
 {
-  return fmin(x, y);
+  return fminf(x, y);
 }
 template<typename T>
 EIGEN_DEVICE_FUNC
@@ -839,7 +839,7 @@ template<>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE float maxi(const float& x, const float& y)
 {
-  return fmax(x, y);
+  return fmaxf(x, y);
 }
 #endif
 
