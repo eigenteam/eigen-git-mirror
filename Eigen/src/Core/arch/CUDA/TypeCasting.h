@@ -97,7 +97,7 @@ struct type_casting_traits<float, half> {
   };
 };
 
-template<> EIGEN_STRONG_INLINE half2 pcast<float4, half2>(const float4& a) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pcast<float4, half2>(const float4& a) {
   // Simply discard the second half of the input
   return __float22half2_rn(make_float2(a.x, a.y));
 }
