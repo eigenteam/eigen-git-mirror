@@ -108,6 +108,9 @@ run time. However, these assertions do cost time and can thus be turned off.
    See \ref TopicMultiThreading for details.
  - \b EIGEN_DONT_VECTORIZE - disables explicit vectorization when defined. Not defined by default, unless 
    alignment is disabled by %Eigen's platform test or the user defining \c EIGEN_DONT_ALIGN.
+ - \b EIGEN_UNALIGNED_VECTORIZE - disables/enables vectorization with unaligned stores. Default is 1 (enabled).
+   If set to 0 (disabled), then expression for which the destination cannot be aligned are not vectorized (e.g., unaligned
+   small fixed size vectors or matrices)
  - \b EIGEN_FAST_MATH - enables some optimizations which might affect the accuracy of the result. This currently
    enables the SSE vectorization of sin() and cos(), and speedups sqrt() for single precision. Defined to 1 by default.
    Define it to 0 to disable.
