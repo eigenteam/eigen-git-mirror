@@ -88,11 +88,11 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE half2 ploadt_ro<half2, Unaligned>(const ha
 #endif
 }
 
-template<> EIGEN_DEVICE_FUNC inline half2 pgather<half, half2>(const half* from, int stride) {
+template<> EIGEN_DEVICE_FUNC inline half2 pgather<half, half2>(const half* from, Index stride) {
   return __halves2half2(from[0*stride], from[1*stride]);
 }
 
-template<> EIGEN_DEVICE_FUNC inline void pscatter<half, half2>(half* to, const half2& from, int stride) {
+template<> EIGEN_DEVICE_FUNC inline void pscatter<half, half2>(half* to, const half2& from, Index stride) {
   to[stride*0] = __low2half(from);
   to[stride*1] = __high2half(from);
 }
