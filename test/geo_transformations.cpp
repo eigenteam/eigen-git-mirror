@@ -20,7 +20,7 @@ Matrix<T,2,1> angleToVec(T a)
 
 // This permits to workaround a bug in clang/llvm code generation.
 EIGEN_DONT_INLINE
-void dont_over_optimize(void* x) { *(int*)(x)  = ((*(int*)(x))&0xFFFF000) | ((*(int*)(x))&0x0000FFFF); }
+void dont_over_optimize(void* x) { *(int*)(x)  = ((*(int*)(x))&0xFFFF0000) | ((*(int*)(x))&0x0000FFFF); }
 
 template<typename Scalar, int Mode, int Options> void non_projective_only()
 {
