@@ -57,9 +57,9 @@ namespace Eigen {
 
 namespace internal {
 
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half raw_uint16_to_half(unsigned short x);
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff);
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half h);
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half raw_uint16_to_half(unsigned short x);
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff);
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half h);
 
 } // end namespace internal
 
@@ -73,8 +73,8 @@ struct half : public __half {
   explicit EIGEN_DEVICE_FUNC half(bool b)
       : __half(internal::raw_uint16_to_half(b ? 0x3c00 : 0)) {}
   template<class T>
-  explicit EIGEN_DEVICE_FUNC half(const T& x)
-      : __half(internal::float_to_half_rtne(static_cast<float>(x))) {}
+  explicit EIGEN_DEVICE_FUNC half(const T& val)
+      : __half(internal::float_to_half_rtne(static_cast<float>(val))) {}
   explicit EIGEN_DEVICE_FUNC half(float f)
       : __half(internal::float_to_half_rtne(f)) {}
 
@@ -189,55 +189,55 @@ __device__ bool operator >= (const half& a, const half& b) {
 // Definitions for CPUs and older CUDA, mostly working through conversion
 // to/from fp32.
 
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator + (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator + (const half& a, const half& b) {
   return half(float(a) + float(b));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator * (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator * (const half& a, const half& b) {
   return half(float(a) * float(b));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator - (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator - (const half& a, const half& b) {
   return half(float(a) - float(b));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator / (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator / (const half& a, const half& b) {
   return half(float(a) / float(b));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator - (const half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator - (const half& a) {
   half result;
   result.x = a.x ^ 0x8000;
   return result;
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator += (half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator += (half& a, const half& b) {
   a = half(float(a) + float(b));
   return a;
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator *= (half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator *= (half& a, const half& b) {
   a = half(float(a) * float(b));
   return a;
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator -= (half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator -= (half& a, const half& b) {
   a = half(float(a) - float(b));
   return a;
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator /= (half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator /= (half& a, const half& b) {
   a = half(float(a) / float(b));
   return a;
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator == (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator == (const half& a, const half& b) {
   return float(a) == float(b);
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator != (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator != (const half& a, const half& b) {
   return float(a) != float(b);
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator < (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator < (const half& a, const half& b) {
   return float(a) < float(b);
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator <= (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator <= (const half& a, const half& b) {
   return float(a) <= float(b);
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator > (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator > (const half& a, const half& b) {
   return float(a) > float(b);
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator >= (const half& a, const half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator >= (const half& a, const half& b) {
   return float(a) >= float(b);
 }
 
@@ -245,7 +245,7 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator >= (const half& a, co
 
 // Division by an index. Do it in full float precision to avoid accuracy
 // issues in converting the denominator to half.
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator / (const half& a, Index b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator / (const half& a, Index b) {
   return Eigen::half(static_cast<float>(a) / static_cast<float>(b));
 }
 
@@ -256,7 +256,7 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator / (const half& a, Ind
 
 namespace internal {
 
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half raw_uint16_to_half(unsigned short x) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half raw_uint16_to_half(unsigned short x) {
   __half h;
   h.x = x;
   return h;
@@ -267,7 +267,7 @@ union FP32 {
   float f;
 };
 
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __float2half(ff);
 
@@ -322,7 +322,7 @@ static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff)
 #endif
 }
 
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half h) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half h) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
   return __half2float(h);
 
@@ -386,17 +386,17 @@ template<> struct NumTraits<Eigen::half>
 
 namespace numext {
 
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isinf)(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isinf)(const Eigen::half& a) {
   return (a.x & 0x7fff) == 0x7c00;
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isnan)(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isnan)(const Eigen::half& a) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
   return __hisnan(a);
 #else
   return (a.x & 0x7fff) > 0x7c00;
 #endif
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isfinite)(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isfinite)(const Eigen::half& a) {
   return !(Eigen::numext::isinf)(a) && !(Eigen::numext::isnan)(a);
 }
 
@@ -486,36 +486,36 @@ template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igammac(const Eigen
 } // end namespace Eigen
 
 // Standard mathematical functions and trancendentals.
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half fabsh(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half fabsh(const Eigen::half& a) {
   Eigen::half result;
   result.x = a.x & 0x7FFF;
   return result;
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half exph(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half exph(const Eigen::half& a) {
   return Eigen::half(::expf(float(a)));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half logh(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half logh(const Eigen::half& a) {
   return Eigen::half(::logf(float(a)));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrth(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrth(const Eigen::half& a) {
   return Eigen::half(::sqrtf(float(a)));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half powh(const Eigen::half& a, const Eigen::half& b) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half powh(const Eigen::half& a, const Eigen::half& b) {
   return Eigen::half(::powf(float(a), float(b)));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floorh(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half floorh(const Eigen::half& a) {
   return Eigen::half(::floorf(float(a)));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ceilh(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half ceilh(const Eigen::half& a) {
   return Eigen::half(::ceilf(float(a)));
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isnan)(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isnan)(const Eigen::half& a) {
   return (Eigen::numext::isnan)(a);
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isinf)(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isinf)(const Eigen::half& a) {
   return (Eigen::numext::isinf)(a);
 }
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isfinite)(const Eigen::half& a) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC int (isfinite)(const Eigen::half& a) {
   return !(Eigen::numext::isinf)(a) && !(Eigen::numext::isnan)(a);
 }
 
@@ -548,7 +548,7 @@ __device__ EIGEN_STRONG_INLINE Eigen::half __shfl_xor(Eigen::half var, int laneM
 
 // ldg() has an overload for __half, but we also need one for Eigen::half.
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
-static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half __ldg(const Eigen::half* ptr) {
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half __ldg(const Eigen::half* ptr) {
   return Eigen::internal::raw_uint16_to_half(
       __ldg(reinterpret_cast<const unsigned short*>(ptr)));
 }
