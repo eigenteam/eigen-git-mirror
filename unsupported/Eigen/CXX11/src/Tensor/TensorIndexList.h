@@ -569,7 +569,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_pair_first_statically_eq_impl<IndexPairList<FirstType, OtherTypes...> > {
   EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexPairList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexPairList<FirstType, OtherTypes...>()[i].first == value);
+        (IndexPairList<FirstType, OtherTypes...>().operator[](i).first == value);
   }
 };
 
@@ -577,7 +577,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_pair_first_statically_eq_impl<const IndexPairList<FirstType, OtherTypes...> > {
   EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexPairList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexPairList<FirstType, OtherTypes...>()[i].first == value);
+        (IndexPairList<FirstType, OtherTypes...>().operator[](i).first == value);
   }
 };
 
@@ -594,7 +594,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_pair_second_statically_eq_impl<IndexPairList<FirstType, OtherTypes...> > {
   EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexPairList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexPairList<FirstType, OtherTypes...>()[i].second == value);
+        (IndexPairList<FirstType, OtherTypes...>().operator[](i).second == value);
   }
 };
 
@@ -602,7 +602,7 @@ template <typename FirstType, typename... OtherTypes>
 struct index_pair_second_statically_eq_impl<const IndexPairList<FirstType, OtherTypes...> > {
   EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex i, const DenseIndex value) {
     return IndexPairList<FirstType, OtherTypes...>().value_known_statically(i) &
-        (IndexPairList<FirstType, OtherTypes...>()[i].second == value);
+        (IndexPairList<FirstType, OtherTypes...>().operator[](i).second == value);
   }
 };
 
