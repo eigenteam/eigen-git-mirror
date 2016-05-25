@@ -114,8 +114,8 @@ bool operator!=(const Tuple<U, V>& x, const Tuple<U, V>& y) {
 
 // Can't use std::pairs on cuda devices
 template <typename Idx> struct IndexPair {
-  constexpr EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair() : first(0), second(0) {}
-  constexpr EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair(Idx f, Idx s) : first(f), second(s) {}
+  EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair() : first(0), second(0) {}
+  EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair(Idx f, Idx s) : first(f), second(s) {}
 
   EIGEN_DEVICE_FUNC void set(IndexPair<Idx> val) {
     first = val.first;
