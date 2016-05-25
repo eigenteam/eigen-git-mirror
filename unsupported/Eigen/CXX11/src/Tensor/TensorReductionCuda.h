@@ -159,7 +159,7 @@ __global__ void ReductionInitKernelHalfFloat(Reducer reducer, const Self input, 
 
 template <int BlockSize, int NumPerThread, typename Self,
           typename Reducer, typename Index>
-static __global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
+__global__ void FullReductionKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
                                     half* output, half2* scratch) {
   eigen_assert(NumPerThread % 2 == 0);
 
