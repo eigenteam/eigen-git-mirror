@@ -849,7 +849,7 @@ EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(real, Scalar) real(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(real, Scalar)::run(x);
-}  
+}
 
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
