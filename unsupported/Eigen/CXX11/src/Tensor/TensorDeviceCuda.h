@@ -170,8 +170,8 @@ struct GpuDevice {
     return stream_->scratchpad();
 #else
     eigen_assert(false && "The default device should be used instead to generate kernel code");
-#endif
     return NULL;
+#endif
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
