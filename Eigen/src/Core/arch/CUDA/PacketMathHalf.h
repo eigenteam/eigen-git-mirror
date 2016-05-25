@@ -378,7 +378,7 @@ ploadquad<Packet8h>(const Eigen::half* from) {
 
 EIGEN_STRONG_INLINE Packet8f half2float(const Packet8h& a) {
 #ifdef EIGEN_HAS_FP16_C
-  return _mm256_cvtph_ps(a.x);
+  return _mm256_cvtph_ps(a.x, _MM_FROUND_TO_NEAREST_INT|_MM_FROUND_NO_EXC);
 #else
   EIGEN_ALIGN32 Eigen::half aux[8];
   pstore(aux, a);
