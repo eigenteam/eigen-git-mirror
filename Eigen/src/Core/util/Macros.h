@@ -756,6 +756,11 @@ namespace Eigen {
 #define EIGEN_DEFAULT_ALIGN_BYTES EIGEN_MAX_ALIGN_BYTES
 #endif
 
+
+#ifndef EIGEN_UNALIGNED_VECTORIZE
+#define EIGEN_UNALIGNED_VECTORIZE 1
+#endif
+
 //----------------------------------------------------------------------
 
 

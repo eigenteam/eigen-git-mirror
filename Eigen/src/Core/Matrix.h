@@ -27,7 +27,7 @@ private:
       default_alignment = compute_default_alignment<_Scalar,max_size>::value,
       actual_alignment = ((_Options&DontAlign)==0) ? default_alignment : 0,
       required_alignment = unpacket_traits<PacketScalar>::alignment,
-      packet_access_bit = packet_traits<_Scalar>::Vectorizable && (actual_alignment>=required_alignment) ? PacketAccessBit : 0
+      packet_access_bit = (packet_traits<_Scalar>::Vectorizable && (EIGEN_UNALIGNED_VECTORIZE || (actual_alignment>=required_alignment))) ? PacketAccessBit : 0
     };
     
 public:

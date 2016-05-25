@@ -755,9 +755,7 @@ struct evaluator<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
     OuterStrideAtCompileTime = HasSameStorageOrderAsArgType
                              ? int(outer_stride_at_compile_time<ArgType>::ret)
                              : int(inner_stride_at_compile_time<ArgType>::ret),
-    MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % packet_traits<Scalar>::size) == 0)
-                       && (InnerStrideAtCompileTime == 1)
-                        ? PacketAccessBit : 0,
+    MaskPacketAccessBit = (InnerStrideAtCompileTime == 1) ? PacketAccessBit : 0,
     
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1 || (InnerPanel && (evaluator<ArgType>::Flags&LinearAccessBit))) ? LinearAccessBit : 0,    
     FlagsRowMajorBit = XprType::Flags&RowMajorBit,
