@@ -36,7 +36,6 @@ template<> struct packet_traits<Eigen::half> : default_packet_traits
   };
 };
 
-
 template<> struct unpacket_traits<half2> { typedef Eigen::half type; enum {size=2, alignment=Aligned16}; typedef half2 half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 pset1<half2>(const Eigen::half& from) {
@@ -530,7 +529,7 @@ ptranspose(PacketBlock<Packet8h,4>& kernel) {
 }
 
 
-#elif defined EIGEN_VECTORIZE_SSE && !EIGEN_COMP_MSVC
+#elif defined(EIGEN_VECTORIZE_SSE) && !EIGEN_ARCH_x86_64
 
 typedef struct {
   __m64 x;
