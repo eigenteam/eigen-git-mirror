@@ -128,8 +128,8 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
-  EIGEN_STRONG_INLINE
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static EIGEN_STRONG_INLINE
+  void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::evalTo(dst, src.lhs(), src.rhs());
@@ -142,8 +142,8 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
-  EIGEN_STRONG_INLINE
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
+  static EIGEN_STRONG_INLINE
+  void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::addTo(dst, src.lhs(), src.rhs());
@@ -156,8 +156,8 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
-  EIGEN_STRONG_INLINE
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
+  static EIGEN_STRONG_INLINE
+  void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::subTo(dst, src.lhs(), src.rhs());
@@ -174,8 +174,8 @@ struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBi
 {
   typedef CwiseUnaryOp<internal::scalar_multiple_op<ScalarBis>,
                        const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
-  EIGEN_STRONG_INLINE
-  static void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
+  static EIGEN_STRONG_INLINE
+  void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
   {
     call_assignment_no_alias(dst, (src.functor().m_other * src.nestedExpression().lhs())*src.nestedExpression().rhs(), func);
   }
@@ -196,8 +196,8 @@ template<typename DstXprType, typename OtherXpr, typename ProductType, typename 
 struct assignment_from_xpr_plus_product
 {
   typedef CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr, const ProductType> SrcXprType;
-  EIGEN_STRONG_INLINE
-  static void run(DstXprType &dst, const SrcXprType &src, const Func1& func)
+  static EIGEN_STRONG_INLINE
+  void run(DstXprType &dst, const SrcXprType &src, const Func1& func)
   {
     call_assignment_no_alias(dst, src.lhs(), func);
     call_assignment_no_alias(dst, src.rhs(), Func2());
