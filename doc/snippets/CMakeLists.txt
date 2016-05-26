@@ -26,3 +26,4 @@ foreach(snippet_src ${snippets_SRCS})
 endforeach(snippet_src)
 
 ei_add_target_property(compile_tut_arithmetic_transpose_aliasing COMPILE_FLAGS -DEIGEN_NO_DEBUG)
+ei_add_target_property(compile_TopicAliasing_mult4 COMPILE_FLAGS -DEIGEN_NO_DEBUG) # workaroud for Bug 1237
