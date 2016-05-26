@@ -99,7 +99,7 @@ template <typename Scalar, typename Packet>
 struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/true>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_length(high-low), m_divisor(num_steps==1?1:num_steps-1), m_interPacket(plset<Packet>(0))
+    m_low(low), m_length(high-low), m_divisor(convert_index<Scalar>(num_steps==1?1:num_steps-1)), m_interPacket(plset<Packet>(0))
   {}
 
   template<typename Index>
@@ -116,7 +116,7 @@ struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/true>
 
   const Scalar m_low;
   const Scalar m_length;
-  const Index  m_divisor;
+  const Scalar  m_divisor;
   const Packet m_interPacket;
 };
 
