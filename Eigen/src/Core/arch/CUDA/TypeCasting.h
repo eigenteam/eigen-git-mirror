@@ -130,9 +130,6 @@ template<> EIGEN_STRONG_INLINE Packet8h pcast<Packet8f, Packet8h>(const Packet8f
 
 #elif defined(EIGEN_VECTORIZE_SSE) && (!EIGEN_ARCH_x86_64) && (!EIGEN_COMP_MSVC)
 
-namespace Eigen {
-namespace internal {
-
 template <>
 struct type_casting_traits<Eigen::half, float> {
   enum {
