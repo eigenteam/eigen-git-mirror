@@ -27,6 +27,14 @@ namespace internal {
   * we however don't want to add a dependency to Boost.
   */
 
+#if EIGEN_COMP_ICC
+typedef std::intptr_t IntPtr;
+typedef std::uintptr_t UIntPtr;
+#else
+typedef std::ptrdiff_t IntPtr;
+typedef std::size_t UIntPtr;
+#endif
+
 struct true_type {  enum { value = 1 }; };
 struct false_type { enum { value = 0 }; };
 

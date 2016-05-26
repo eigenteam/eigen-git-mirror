@@ -135,7 +135,7 @@ class BlasVectorMapper {
 
   template <typename Packet>
   EIGEN_DEVICE_FUNC bool aligned(Index i) const {
-    return (size_t(m_data+i)%sizeof(Packet))==0;
+    return (UIntPtr(m_data+i)%sizeof(Packet))==0;
   }
 
   protected:
@@ -227,7 +227,7 @@ class blas_data_mapper {
   EIGEN_DEVICE_FUNC const Scalar* data() const { return m_data; }
 
   EIGEN_DEVICE_FUNC Index firstAligned(Index size) const {
-    if (size_t(m_data)%sizeof(Scalar)) {
+    if (UIntPtr(m_data)%sizeof(Scalar)) {
       return -1;
     }
     return internal::first_default_aligned(m_data, size);

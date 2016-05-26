@@ -166,7 +166,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     void checkSanity(typename internal::enable_if<(internal::traits<T>::Alignment>0),void*>::type = 0) const
     {
 #if EIGEN_MAX_ALIGN_BYTES>0
-      eigen_assert((   ((size_t(m_data) % internal::traits<Derived>::Alignment) == 0)
+      eigen_assert((   ((internal::UIntPtr(m_data) % internal::traits<Derived>::Alignment) == 0)
                     || (cols() * rows() * innerStride() * sizeof(Scalar)) < internal::traits<Derived>::Alignment ) && "data is not aligned");
 #endif
     }
