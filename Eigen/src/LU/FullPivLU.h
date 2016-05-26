@@ -418,9 +418,10 @@ template<typename _MatrixType> class FullPivLU
     PermutationQType m_q;
     IntColVectorType m_rowsTranspositions;
     IntRowVectorType m_colsTranspositions;
-    Index m_det_pq, m_nonzero_pivots;
+    Index m_nonzero_pivots;
     RealScalar m_l1_norm;
     RealScalar m_maxpivot, m_prescribedThreshold;
+    char m_det_pq;
     bool m_isInitialized, m_usePrescribedThreshold;
 };
 

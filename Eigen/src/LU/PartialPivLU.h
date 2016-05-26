@@ -254,8 +254,8 @@ template<typename _MatrixType> class PartialPivLU
     MatrixType m_lu;
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
-    Index m_det_p;
     RealScalar m_l1_norm;
+    char m_det_p;
     bool m_isInitialized;
 };
 
@@ -264,8 +264,8 @@ PartialPivLU<MatrixType>::PartialPivLU()
   : m_lu(),
     m_p(),
     m_rowsTranspositions(),
-    m_det_p(0),
     m_l1_norm(0),
+    m_det_p(0),
     m_isInitialized(false)
 {
 }
@@ -275,8 +275,8 @@ PartialPivLU<MatrixType>::PartialPivLU(Index size)
   : m_lu(size, size),
     m_p(size),
     m_rowsTranspositions(size),
-    m_det_p(0),
     m_l1_norm(0),
+    m_det_p(0),
     m_isInitialized(false)
 {
 }
@@ -287,8 +287,8 @@ PartialPivLU<MatrixType>::PartialPivLU(const EigenBase<InputType>& matrix)
   : m_lu(matrix.rows(), matrix.rows()),
     m_p(matrix.rows()),
     m_rowsTranspositions(matrix.rows()),
-    m_det_p(0),
     m_l1_norm(0),
+    m_det_p(0),
     m_isInitialized(false)
 {
   compute(matrix.derived());
