@@ -49,7 +49,7 @@ SelfAdjointEigenSolver<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(c
           && (options&EigVecMask)!=EigVecMask \
           && "invalid option parameter"); \
   bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors; \
-  lapack_int n = matrix.cols(), lda, matrix_order, info; \
+  lapack_int n = internal::convert_index<lapack_int>(matrix.cols()), lda, matrix_order, info; \
   m_eivalues.resize(n,1); \
   m_subdiag.resize(n-1); \
   m_eivec = matrix; \
@@ -64,7 +64,7 @@ SelfAdjointEigenSolver<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(c
     return *this; \
   } \
 \
-  lda = m_eivec.outerStride(); \
+  lda = internal::convert_index<lapack_int>(m_eivec.outerStride()); \
   matrix_order=MKLCOLROW; \
   char jobz, uplo='L'/*, range='A'*/; \
   jobz = computeEigenvectors ? 'V' : 'N'; \
