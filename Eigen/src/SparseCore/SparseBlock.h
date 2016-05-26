@@ -189,9 +189,9 @@ public:
         StorageIndex p = StorageIndex(start);
         for(Index k=0; k<m_outerSize.value(); ++k)
         {
-          Index nnz_k = tmp.innerVector(k).nonZeros();
+          StorageIndex nnz_k = internal::convert_index<StorageIndex>(tmp.innerVector(k).nonZeros());
           if(!m_matrix.isCompressed())
-            matrix.innerNonZeroPtr()[m_outerStart+k] = StorageIndex(nnz_k);
+            matrix.innerNonZeroPtr()[m_outerStart+k] = nnz_k;
           matrix.outerIndexPtr()[m_outerStart+k] = p;
           p += nnz_k;
         }

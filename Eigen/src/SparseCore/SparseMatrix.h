@@ -1080,7 +1080,7 @@ EIGEN_DONT_INLINE SparseMatrix<Scalar,_Options,_Index>& SparseMatrix<Scalar,_Opt
     IndexVector positions(dest.outerSize());
     for (Index j=0; j<dest.outerSize(); ++j)
     {
-      Index tmp = dest.m_outerIndex[j];
+      StorageIndex tmp = dest.m_outerIndex[j];
       dest.m_outerIndex[j] = count;
       positions[j] = count;
       count += tmp;

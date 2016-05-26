@@ -434,7 +434,7 @@ struct partial_lu_impl
       // update permutations and apply them to A_0
       for(Index i=k; i<k+bs; ++i)
       {
-        Index piv = (row_transpositions[i] += k);
+        Index piv = (row_transpositions[i] += internal::convert_index<PivIndex>(k));
         A_0.row(i).swap(A_0.row(piv));
       }
 
