@@ -304,7 +304,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     /** \internal */
     template<typename Dest> inline void applyThisOnTheLeft(Dest& dst) const
     {
-      Matrix<Scalar,1,Dest::ColsAtCompileTime,RowMajor,1,Dest::MaxColsAtCompileTime> workspace(dst.cols());
+      Matrix<Scalar,1,Dest::ColsAtCompileTime,RowMajor,1,Dest::MaxColsAtCompileTime> workspace;
       applyThisOnTheLeft(dst, workspace);
     }
 
