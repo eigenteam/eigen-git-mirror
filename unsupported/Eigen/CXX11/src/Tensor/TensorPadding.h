@@ -219,6 +219,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 #if defined(EIGEN_HAS_INDEX_LIST)
     return internal::index_pair_first_statically_eq<PaddingDimensions>(dim_index, 0);
 #else
+    EIGEN_UNUSED_VARIABLE(dim_index);
     return false;
 #endif
   }
@@ -228,6 +229,7 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 #if defined(EIGEN_HAS_INDEX_LIST)
     return internal::index_pair_second_statically_eq<PaddingDimensions>(dim_index, 0);
 #else
+    EIGEN_UNUSED_VARIABLE(dim_index);
     return false;
 #endif
   }
