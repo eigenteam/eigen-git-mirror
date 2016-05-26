@@ -350,22 +350,22 @@ class Tensor : public TensorBase<Tensor<Scalar_, NumIndices_, Options_, IndexTyp
     {
       EIGEN_STATIC_ASSERT(1 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit Tensor(Index dim1, Index dim2)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Tensor(Index dim1, Index dim2)
       : m_storage(dim1*dim2, array<Index, 2>(dim1, dim2))
     {
       EIGEN_STATIC_ASSERT(2 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit Tensor(Index dim1, Index dim2, Index dim3)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Tensor(Index dim1, Index dim2, Index dim3)
       : m_storage(dim1*dim2*dim3, array<Index, 3>(dim1, dim2, dim3))
     {
       EIGEN_STATIC_ASSERT(3 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit Tensor(Index dim1, Index dim2, Index dim3, Index dim4)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Tensor(Index dim1, Index dim2, Index dim3, Index dim4)
       : m_storage(dim1*dim2*dim3*dim4, array<Index, 4>(dim1, dim2, dim3, dim4))
     {
       EIGEN_STATIC_ASSERT(4 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
     }
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit Tensor(Index dim1, Index dim2, Index dim3, Index dim4, Index dim5)
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Tensor(Index dim1, Index dim2, Index dim3, Index dim4, Index dim5)
       : m_storage(dim1*dim2*dim3*dim4*dim5, array<Index, 5>(dim1, dim2, dim3, dim4, dim5))
     {
       EIGEN_STATIC_ASSERT(5 == NumIndices, YOU_MADE_A_PROGRAMMING_MISTAKE)
