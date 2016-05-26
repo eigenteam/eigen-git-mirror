@@ -73,21 +73,21 @@ struct TensorUInt128
 
 
 template <typename HL, typename LL, typename HR, typename LR>
-static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 bool operator == (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>& rhs)
 {
   return (lhs.high == rhs.high) & (lhs.low == rhs.low);
 }
 
 template <typename HL, typename LL, typename HR, typename LR>
-static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 bool operator != (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>& rhs)
 {
   return (lhs.high != rhs.high) | (lhs.low != rhs.low);
 }
 
 template <typename HL, typename LL, typename HR, typename LR>
-static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 bool operator >= (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>& rhs)
 {
   if (lhs.high != rhs.high) {
@@ -97,7 +97,7 @@ bool operator >= (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>&
 }
 
 template <typename HL, typename LL, typename HR, typename LR>
-static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 bool operator < (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>& rhs)
 {
   if (lhs.high != rhs.high) {
@@ -107,7 +107,7 @@ bool operator < (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>& 
 }
 
 template <typename HL, typename LL, typename HR, typename LR>
-static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 TensorUInt128<uint64_t, uint64_t> operator + (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>& rhs)
 {
   TensorUInt128<uint64_t, uint64_t> result(lhs.high + rhs.high, lhs.low + rhs.low);
@@ -118,7 +118,7 @@ TensorUInt128<uint64_t, uint64_t> operator + (const TensorUInt128<HL, LL>& lhs, 
 }
 
 template <typename HL, typename LL, typename HR, typename LR>
-static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 TensorUInt128<uint64_t, uint64_t> operator - (const TensorUInt128<HL, LL>& lhs, const TensorUInt128<HR, LR>& rhs)
 {
   TensorUInt128<uint64_t, uint64_t> result(lhs.high - rhs.high, lhs.low - rhs.low);
