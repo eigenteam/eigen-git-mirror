@@ -249,6 +249,10 @@ void test_cuda_contractions() {
 
 
 void test_cuda_reductions(int size1, int size2, int redux) {
+
+   std::cout << "Reducing " << size1 << " by " << size2
+             << " tensor along dim " << redux << std::endl; 
+
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
   int num_elem = size1*size2;
@@ -268,8 +272,8 @@ void test_cuda_reductions(int size1, int size2, int redux) {
   Eigen::TensorMap<Eigen::Tensor<Eigen::half, 1>, Eigen::Aligned> gpu_res_float(
       d_res_float, result_size);
 
-  gpu_float1.device(gpu_device) = gpu_float1.random();
-  gpu_float2.device(gpu_device) = gpu_float2.random();
+  gpu_float1.device(gpu_device) = gpu_float1.random() - 0.5f;
+  gpu_float2.device(gpu_device) = gpu_float2.random() - 0.5f;
 
   Eigen::array<int, 1> redux_dim = {{redux}};
   gpu_res_float.device(gpu_device) = gpu_float1.sum(redux_dim).cast<Eigen::half>();
@@ -282,7 +286,6 @@ void test_cuda_reductions(int size1, int size2, int redux) {
   gpu_device.synchronize();
 
   for (int i = 0; i < result_size; ++i) {
-    std::cout << "Checking redux " << i << std::endl;
     VERIFY_IS_APPROX(full_prec(i), half_prec(i));
   }
 
