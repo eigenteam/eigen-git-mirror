@@ -10,6 +10,9 @@
 
 #include "main.h"
 
+#if defined __GNUC__ && __GNUC__>=6
+  #pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
 // using namespace Eigen;
 
 namespace Eigen {
