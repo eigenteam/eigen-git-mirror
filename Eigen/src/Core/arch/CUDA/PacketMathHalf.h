@@ -360,11 +360,11 @@ template<> EIGEN_STRONG_INLINE Packet8h ploadu<Packet8h>(const Eigen::half* from
 }
 
 template<> EIGEN_STRONG_INLINE void pstore<Eigen::half>(Eigen::half* to, const Packet8h& from) {
-  _mm_store_si128((__m128i*)to, from.x);
+  _mm_store_si128(reinterpret_cast<__m128i*>(to), from.x);
 }
 
 template<> EIGEN_STRONG_INLINE void pstoreu<Eigen::half>(Eigen::half* to, const Packet8h& from) {
-  _mm_storeu_si128((__m128i*)to, from.x);
+  _mm_storeu_si128(reinterpret_cast<__m128i*>(to), from.x);
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h
