@@ -10,21 +10,6 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_INDEX_LIST_H
 #define EIGEN_CXX11_TENSOR_TENSOR_INDEX_LIST_H
 
-/*namespace Eigen {
-
-template <typename Index> struct IndexPair {
-  constexpr EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair() : first(0), second(0) {}
-  constexpr EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair(Index f, Index s) : first(f), second(s) {}
-
-  EIGEN_DEVICE_FUNC void set(IndexPair<Index> val) {
-    first = val.first;
-    second = val.second;
-  }
-
-  Index first;
-  Index second;
-};
-}*/
 
 #if EIGEN_HAS_CONSTEXPR && EIGEN_HAS_VARIADIC_TEMPLATES
 

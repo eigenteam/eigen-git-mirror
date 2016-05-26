@@ -321,9 +321,12 @@ __global__ void FullReductionKernel(R, const S, I, typename S::CoeffReturnType*)
 
 #ifdef EIGEN_HAS_CUDA_FP16
 template <typename S, typename R, typename I>
-__global__ void ReductionInitKernelHalfFloat(R, const S, I, half2*);
+__global__ void ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
 template <int B, int N, typename S, typename R, typename I>
 __global__ void FullReductionKernelHalfFloat(R, const S, I, half*, half2*);
+template <int NPT, typename S, typename R, typename I>
+__global__ void InnerReductionKernelHalfFloat(R, const S, I, I, half*);
+
 #endif
 
 template <int NPT, typename S, typename R, typename I>
@@ -615,12 +618,16 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
   template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
 #ifdef EIGEN_HAS_CUDA_FP16
-  template <typename S, typename R, typename I> friend void internal::ReductionInitKernelHalfFloat(R, const S, I, half2*);
+  template <typename S, typename R, typename I> friend void internal::ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
   template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernelHalfFloat(R, const S, I, half*, half2*);
+  template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernelHalfFloat(R, const S, I, I, half*);
 #endif
   template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
+
   template <int NPT, typename S, typename R, typename I> friend void internal::OuterReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 #endif
+
+  template <typename S, typename O, typename D> friend struct internal::InnerReducer;
 
   // Returns the Index in the input tensor of the first value that needs to be
   // used to compute the reduction at output index "index".
