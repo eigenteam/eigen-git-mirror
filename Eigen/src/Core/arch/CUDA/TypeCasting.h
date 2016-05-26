@@ -128,12 +128,7 @@ template<> EIGEN_STRONG_INLINE Packet8h pcast<Packet8f, Packet8h>(const Packet8f
   return float2half(a);
 }
 
-#elif defined(EIGEN_VECTORIZE_SSE) && !EIGEN_ARCH_x86_64
-
-} // end namespace internal
-} // end namespace Eigen
-
-#include <mmintrin.h>
+#elif defined(EIGEN_VECTORIZE_SSE) && (!EIGEN_ARCH_x86_64) && (!EIGEN_COMP_MSVC)
 
 namespace Eigen {
 namespace internal {

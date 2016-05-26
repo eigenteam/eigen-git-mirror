@@ -529,15 +529,7 @@ ptranspose(PacketBlock<Packet8h,4>& kernel) {
 }
 
 
-#elif defined(EIGEN_VECTORIZE_SSE) && !EIGEN_ARCH_x86_64
-
-} // end namespace internal
-} // end namespace Eigen
-
-#include <mmintrin.h>
-
-namespace Eigen {
-namespace internal {
+#elif defined(EIGEN_VECTORIZE_SSE) && (!EIGEN_ARCH_x86_64) && (!EIGEN_COMP_MSVC)
 
 typedef struct {
   __m64 x;
