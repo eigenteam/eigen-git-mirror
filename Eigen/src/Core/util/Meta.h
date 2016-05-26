@@ -115,7 +115,14 @@ private:
 
 public:
   static From ms_from;
+#ifdef __INTEL_COMPILER
+  #pragma warning push
+  #pragma warning ( disable : 2259 )
+#endif
   enum { value = sizeof(test(ms_from, 0))==sizeof(yes) };
+#ifdef __INTEL_COMPILER
+  #pragma warning pop
+#endif
 };
 
 template<typename From, typename To>
