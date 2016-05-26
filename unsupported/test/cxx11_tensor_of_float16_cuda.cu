@@ -255,8 +255,13 @@ void test_cuda_reductions(int size1, int size2, int redux) {
 
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
+<<<<<<< local
   int num_elem = size1*size2;
   int result_size = (redux == 1 ? size1 : size2);
+=======
+  int size = 40;
+  int num_elem = size*size;
+>>>>>>> other
 
   float* d_float1 = (float*)gpu_device.allocate(num_elem * sizeof(float));
   float* d_float2 = (float*)gpu_device.allocate(num_elem * sizeof(float));
