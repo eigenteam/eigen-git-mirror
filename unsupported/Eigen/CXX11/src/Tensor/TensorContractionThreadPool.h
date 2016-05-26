@@ -625,7 +625,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   };
 
   // Decide whether we want to shard m x n contraction by columns or by rows.
-  static bool shardByCol(Index m, Index n, int num_threads) {
+  static bool shardByCol(Index m, Index n, Index num_threads) {
     // Note: we are comparing both n and m against Traits::nr, it is not
     // a mistake. We are trying to figure out how both n and m will fit into
     // the main sharding dimension.

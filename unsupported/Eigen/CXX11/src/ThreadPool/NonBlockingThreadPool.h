@@ -155,7 +155,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   // Steal tries to steal work from other worker threads in best-effort manner.
   Task Steal() {
     PerThread* pt = GetPerThread();
-    unsigned size = queues_.size();
+    const size_t size = queues_.size();
     unsigned r = Rand(&pt->rand);
     unsigned inc = coprimes_[r % coprimes_.size()];
     unsigned victim = r % size;
@@ -219,7 +219,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
 
   int NonEmptyQueueIndex() {
     PerThread* pt = GetPerThread();
-    unsigned size = queues_.size();
+    const size_t size = queues_.size();
     unsigned r = Rand(&pt->rand);
     unsigned inc = coprimes_[r % coprimes_.size()];
     unsigned victim = r % size;
@@ -240,7 +240,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     PerThread* pt = &per_thread_;
     if (pt->inited) return pt;
     pt->inited = true;
-    pt->rand = std::hash<std::thread::id>()(std::this_thread::get_id());
+    pt->rand = static_cast<unsigned>(std::hash<std::thread::id>()(std::this_thread::get_id()));
     return pt;
   }
 
