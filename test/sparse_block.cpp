@@ -17,6 +17,7 @@ template<typename SparseMatrixType> void sparse_block(const SparseMatrixType& re
   const Index outer = ref.outerSize();
 
   typedef typename SparseMatrixType::Scalar Scalar;
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
 
   double density = (std::max)(8./(rows*cols), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
@@ -123,7 +124,7 @@ template<typename SparseMatrixType> void sparse_block(const SparseMatrixType& re
     m3.reserve(VectorXi::Constant(outer,int(inner/2)));
     for(Index j=0; j<outer; ++j)
       for(Index k=0; k<(std::min)(j,inner); ++k)
-        m3.insertByOuterInner(j,k) = k+1;
+        m3.insertByOuterInner(j,k) = internal::convert_index<StorageIndex>(k+1);
     for(Index j=0; j<(std::min)(outer, inner); ++j)
     {
       VERIFY(j==numext::real(m3.innerVector(j).nonZeros()));
