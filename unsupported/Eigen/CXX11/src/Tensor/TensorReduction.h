@@ -325,11 +325,7 @@ __global__ void ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
 template <int B, int N, typename S, typename R, typename I>
 __global__ void FullReductionKernelHalfFloat(R, const S, I, half*, half2*);
 template <int NPT, typename S, typename R, typename I>
-<<<<<<< local
 __global__ void InnerReductionKernelHalfFloat(R, const S, I, I, half*);
-=======
-__global__ void InnerReductionKernelHalfFloat(R, const S, I, I, half*, half2*);
->>>>>>> other
 
 #endif
 
@@ -624,11 +620,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 #ifdef EIGEN_HAS_CUDA_FP16
   template <typename S, typename R, typename I> friend void internal::ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
   template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernelHalfFloat(R, const S, I, half*, half2*);
-<<<<<<< local
   template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernelHalfFloat(R, const S, I, I, half*);
-=======
-  template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernelHalfFloat(R, const S, I, I, half*, half2*);
->>>>>>> other
 #endif
   template <int NPT, typename S, typename R, typename I> friend void internal::InnerReductionKernel(R, const S, I, I, typename S::CoeffReturnType*);
 

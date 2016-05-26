@@ -255,13 +255,8 @@ void test_cuda_reductions(int size1, int size2, int redux) {
 
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
-<<<<<<< local
   int num_elem = size1*size2;
   int result_size = (redux == 1 ? size1 : size2);
-=======
-  int size = 40;
-  int num_elem = size*size;
->>>>>>> other
 
   float* d_float1 = (float*)gpu_device.allocate(num_elem * sizeof(float));
   float* d_float2 = (float*)gpu_device.allocate(num_elem * sizeof(float));
@@ -291,6 +286,7 @@ void test_cuda_reductions(int size1, int size2, int redux) {
   gpu_device.synchronize();
 
   for (int i = 0; i < result_size; ++i) {
+    std::cout << "EXPECTED " << full_prec(i) << " GOT " << half_prec(i) << std::endl;
     VERIFY_IS_APPROX(full_prec(i), half_prec(i));
   }
 

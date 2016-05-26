@@ -391,13 +391,8 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
   eigen_assert(NumPerThread % unroll_times == 0);
   eigen_assert(unroll_times % 2 == 0);
 
-<<<<<<< local
   const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.x * NumPerThread * 2);
   const Index num_input_blocks = divup<Index>(input_col_blocks * num_preserved_coeffs, 2);
-=======
-  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.x * NumPerThread/2);
-  const Index num_input_blocks = input_col_blocks * num_preserved_coeffs;
->>>>>>> other
 
   const Index num_threads = blockDim.x * gridDim.x;
   const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -406,12 +401,8 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
   if (gridDim.x == 1) {
     Index i = 2*thread_id;
     for (; i + 1 < num_preserved_coeffs; i += 2*num_threads) {
-<<<<<<< local
       half* loc = output + i;
       *((half2*)loc) = reducer.template initializePacket<half2>();
-=======
-      ((half2*)output)[i] = reducer.template initializePacket<half2>();
->>>>>>> other
     }
     if (i < num_preserved_coeffs) {
       output[i] = reducer.initialize();
@@ -419,13 +410,8 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
     __syncthreads();
   }
 
-<<<<<<< local
   for (Index i = blockIdx.x; i < num_input_blocks; i += gridDim.x) {
     const Index row = 2 * (i / input_col_blocks);
-=======
-  for (Index i = 2*blockIdx.x; i < num_input_blocks; i += 2*gridDim.x) {
-    const Index row = i / input_col_blocks;
->>>>>>> other
 
     if (row + 1 < num_preserved_coeffs) {
       const Index col_block = i % input_col_blocks;
@@ -446,18 +432,10 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
           }
           if (col < num_coeffs_to_reduce) {
             // Peel;
-<<<<<<< local
             const half last1 = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
-=======
-            const half last1 = input.m_impl.coeff(row * num_coeffs_to_reduce + col+1);
->>>>>>> other
             const half2 val1 = __halves2half2(last1, reducer.initialize());
             reducer.reducePacket(val1, &reduced_val1);
-<<<<<<< local
             const half last2 = input.m_impl.coeff((row+1) * num_coeffs_to_reduce + col);
-=======
-            const half last2 = input.m_impl.coeff((row+1) * num_coeffs_to_reduce + col+1);
->>>>>>> other
             const half2 val2 = __halves2half2(last2, reducer.initialize());
             reducer.reducePacket(val2, &reduced_val2);
           }
@@ -466,17 +444,9 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
           // Faster version of the loop with no branches after unrolling.
 #pragma unroll
           for (int k = 0; k < unroll_times; ++k) {
-<<<<<<< local
             const Index col = col_begin + blockDim.x * (j + k) * 2;
-=======
-            const Index col = col_begin + blockDim.x * (j + k);
->>>>>>> other
             reducer.reducePacket(input.m_impl.template packet<Unaligned>(row * num_coeffs_to_reduce + col), &reduced_val1);
-<<<<<<< local
             reducer.reducePacket(input.m_impl.template packet<Unaligned>((row + 1)* num_coeffs_to_reduce + col), &reduced_val2);
-=======
-            reducer.reducePacket(input.m_impl.template packet<Unaligned>((row +1)* num_coeffs_to_reduce + col), &reduced_val2);
->>>>>>> other
           }
         }
       }
@@ -494,12 +464,8 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
       half2 val = __halves2half2(val1, val2);
 
       if ((threadIdx.x & (warpSize - 1)) == 0) {
-<<<<<<< local
         half* loc = output + row;
         atomicReduce((half2*)loc, val, reducer);
-=======
-        atomicReduce(&(((half2*)output)[row]), val, reducer);
->>>>>>> other
       }
     }
   }
@@ -554,33 +520,18 @@ struct InnerReductionLauncher {
   static bool run(const Self& self, Op& reducer, const GpuDevice& device, half* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
 
-<<<<<<< local
     if (num_preserved_vals % 2 != 0) {
       // Not supported yet, revert to the slower code path
-      std::cout << "BYPASSING OPTIMIZED CODE PATH" << std::endl;
-=======
-    // It's faster to use the usual code.
-    if (num_coeffs_to_reduce <= 32) {
->>>>>>> other
       return true;
     }
 
     const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
-<<<<<<< local
     const int block_size = /*256*/128;
     const int num_per_thread = /*128*/64;
-=======
-    const int block_size = 256;
-    const int num_per_thread = 128;
->>>>>>> other
     const int dyn_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
     const int max_blocks = device.getNumCudaMultiProcessors() *
                            device.maxCudaThreadsPerMultiProcessor() / block_size;
     const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
-<<<<<<< local
-=======
-    half2* scratch = static_cast<half2*>(device.scratchpad());
->>>>>>> other
 
     if (num_blocks > 1) {
       // We initialize the outputs outside the reduction kernel when we can't be sure that there
@@ -590,19 +541,11 @@ struct InnerReductionLauncher {
                            device.maxCudaThreadsPerMultiProcessor() / 1024;
       const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
       LAUNCH_CUDA_KERNEL((ReductionInitKernelHalfFloat<Self, Op, Index>),
-<<<<<<< local
                          1, 1, 0, device, reducer, self, num_preserved_vals, output);
-=======
-                         1, 1, 0, device, reducer, self, num_preserved_vals, scratch);
->>>>>>> other
     }
 
     LAUNCH_CUDA_KERNEL((InnerReductionKernelHalfFloat<num_per_thread, Self, Op, Index>),
-<<<<<<< local
                        num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output);
-=======
-                       num_blocks, block_size, 0, device, reducer, self, num_coeffs_to_reduce, num_preserved_vals, output, scratch);
->>>>>>> other
 
     return false;
   }
@@ -632,14 +575,11 @@ struct InnerReducer<Self, Op, GpuDevice> {
     if (num_coeffs == 0) {
       return true;
     }
-<<<<<<< local
     // It's faster to use the usual code.
     if (num_coeffs_to_reduce <= 128) {
       return true;
     }
-=======
 
->>>>>>> other
     return InnerReductionLauncher<Self, Op>::run(self, reducer, device, output, num_coeffs_to_reduce, num_preserved_vals);
   }
 };
