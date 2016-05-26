@@ -94,7 +94,15 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
   if (n == 0)
     return 0;
 
+  // Disable Index to float conversion warning
+#ifdef __INTEL_COMPILER
+  #pragma warning push
+  #pragma warning ( disable : 2259 )
+#endif
   Vector v = dec.solve(Vector::Ones(n) / Scalar(n));
+#ifdef __INTEL_COMPILER
+  #pragma warning pop
+#endif
 
   // lower_bound is a lower bound on
   //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
