@@ -529,7 +529,9 @@ ptranspose(PacketBlock<Packet8h,4>& kernel) {
 }
 
 
-#elif defined(EIGEN_VECTORIZE_SSE) && (!EIGEN_ARCH_x86_64) && (!EIGEN_COMP_MSVC)
+// Disable the following code since it's broken on too many platforms / compilers.
+//#elif defined(EIGEN_VECTORIZE_SSE) && (!EIGEN_ARCH_x86_64) && (!EIGEN_COMP_MSVC)
+#elif 0
 
 typedef struct {
   __m64 x;
