@@ -811,7 +811,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar* data() const {
-    return nullptr;
+    return NULL;
   }
 
  protected:
