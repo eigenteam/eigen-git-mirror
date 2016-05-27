@@ -19,8 +19,9 @@ Matrix<T,2,1> angleToVec(T a)
 }
 
 // This permits to workaround a bug in clang/llvm code generation.
+template<typename T>
 EIGEN_DONT_INLINE
-void dont_over_optimize(void* x) { *(int*)(x)  = ((*(int*)(x))&0xFFFF0000) | ((*(int*)(x))&0x0000FFFF); }
+void dont_over_optimize(T& x) { volatile typename T::Scalar tmp = x(0); x(0) = tmp; }
 
 template<typename Scalar, int Mode, int Options> void non_projective_only()
 {
@@ -228,7 +229,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
 
   do {
     v3 = Vector3::Random();
-    dont_over_optimize(&v3);
+    dont_over_optimize(v3);
   } while (v3.cwiseAbs().minCoeff()<NumTraits<Scalar>::epsilon());
   Translation3 tv3(v3);
   Transform3 t5(tv3);
