@@ -676,6 +676,12 @@ class TensorBase<Derived, ReadOnlyAccessors>
     slice(const StartIndices& startIndices, const Sizes& sizes) const {
       return TensorSlicingOp<const StartIndices, const Sizes, const Derived>(derived(), startIndices, sizes);
     }
+    template <typename StartIndices, typename StopIndices, typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorStridingSlicingOp<const StartIndices, const StopIndices, const Strides, const Derived>
+    stridedSlice(const StartIndices& startIndices, const StopIndices& stopIndices, const Strides& strides) const {
+      return TensorStridingSlicingOp<const StartIndices, const StopIndices, const Strides,
+                                const Derived>(derived(), startIndices, stopIndices, strides);
+    }
     template <Index DimId> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorChippingOp<DimId, const Derived>
     chip(const Index offset) const {
@@ -849,6 +855,19 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
     TensorSlicingOp<const StartIndices, const Sizes, Derived>
     slice(const StartIndices& startIndices, const Sizes& sizes) {
       return TensorSlicingOp<const StartIndices, const Sizes, Derived>(derived(), startIndices, sizes);
+    }
+
+    template <typename StartIndices, typename StopIndices, typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorStridingSlicingOp<const StartIndices, const StopIndices, const Strides, const Derived>
+    stridedSlice(const StartIndices& startIndices, const StopIndices& stopIndices, const Strides& strides) const {
+      return TensorStridingSlicingOp<const StartIndices, const StopIndices, const Strides,
+                                const Derived>(derived(), startIndices, stopIndices, strides);
+    }
+    template <typename StartIndices, typename StopIndices, typename Strides> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    TensorStridingSlicingOp<const StartIndices, const StopIndices, const Strides, Derived>
+    stridedSlice(const StartIndices& startIndices, const StopIndices& stopIndices, const Strides& strides) {
+      return TensorStridingSlicingOp<const StartIndices, const StopIndices, const Strides,
+                                Derived>(derived(), startIndices, stopIndices, strides);
     }
 
     template <DenseIndex DimId> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
