@@ -708,9 +708,6 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device), m_device(device), m_strides(op.strides())
   {
-    auto clamp = [](Index value, Index min, Index max){
-      return numext::maxi(min,numext::mini(max,value));
-    };
     // Handle degenerate intervals by gracefully clamping and allowing m_dimensions to be zero
     DSizes<Index,NumDims> startIndicesClamped, stopIndicesClamped;
     for (int i = 0; i < internal::array_size<Dimensions>::value; ++i) {
@@ -832,6 +829,10 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
       }
     }
     return inputIndex;
+  }
+
+  static EIGEN_STRONG_INLINE Index clamp(Index value, Index min, Index max) {
+    return numext::maxi(min, numext::mini(max,value));
   }
 
   array<Index, NumDims> m_outputStrides;
