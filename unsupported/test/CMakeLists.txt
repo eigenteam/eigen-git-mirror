@@ -199,7 +199,12 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_${EIGEN_CUDA_COMPUTE_ARCH}")
   endif()
 
-  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\"")
+  set(EIGEN_CUDA_RELAXED_CONSTEXPR "--expt-relaxed-constexpr")
+  if (${CUDA_VERSION} STREQUAL "7.0")
+    set(EIGEN_CUDA_RELAXED_CONSTEXPR "--relaxed-constexpr")
+  endif()
+
+  set(CUDA_NVCC_FLAGS "-std=c++11 ${EIGEN_CUDA_RELAXED_CONSTEXPR} -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\"")
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 
