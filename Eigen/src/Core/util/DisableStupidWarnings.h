@@ -60,7 +60,9 @@
   #pragma diag_suppress 2651
   #pragma diag_suppress 2653
   #pragma diag_suppress 2668
+  #pragma diag_suppress 2669
   #pragma diag_suppress 2670
+  #pragma diag_suppress 2671
 #endif
 
 #endif // not EIGEN_WARNINGS_DISABLED
