@@ -28,8 +28,8 @@ namespace internal {
   */
 
 #if EIGEN_COMP_ICC
-typedef std::intptr_t IntPtr;
-typedef std::uintptr_t UIntPtr;
+typedef intptr_t IntPtr;
+typedef uintptr_t UIntPtr;
 #else
 typedef std::ptrdiff_t IntPtr;
 typedef std::size_t UIntPtr;
