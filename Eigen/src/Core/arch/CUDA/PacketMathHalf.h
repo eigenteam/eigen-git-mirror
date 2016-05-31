@@ -264,6 +264,30 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half predux_mul<half2>(c
 #endif
 }
 
+#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 80000 && defined __CUDA_ARCH__ && __CUDA_ARCH__ >= 530
+
+template<>  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+half2 plog<half2>(const half2& a) {
+  return h2log(a);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+half2 pexp<half2>(const half2& a) {
+  return h2exp(a);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+half2 psqrt<half2>(const half2& a) {
+  return h2sqrt(a);
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+half2 prsqrt<half2>(const half2& a) {
+  return h2rsqrt(a);
+}
+
+#else
+
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 plog<half2>(const half2& a) {
   float a1 = __low2float(a);
   float a2 = __high2float(a);
@@ -295,6 +319,8 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 prsqrt<half2>(const half2
   float r2 = rsqrtf(a2);
   return __floats2half2_rn(r1, r2);
 }
+
+#endif
 
 #elif defined EIGEN_VECTORIZE_AVX
 
