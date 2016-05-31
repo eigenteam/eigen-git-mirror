@@ -324,19 +324,19 @@ struct generic_product_impl_base
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
   template<typename Dst>
-  static void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_STRONG_INLINE void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   { dst.setZero(); scaleAndAddTo(dst, lhs, rhs, Scalar(1)); }
 
   template<typename Dst>
-  static void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_STRONG_INLINE void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   { scaleAndAddTo(dst,lhs, rhs, Scalar(1)); }
 
   template<typename Dst>
-  static void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_STRONG_INLINE void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   { scaleAndAddTo(dst, lhs, rhs, Scalar(-1)); }
   
   template<typename Dst>
-  static void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  static EIGEN_STRONG_INLINE void scaleAndAddTo(Dst& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   { Derived::scaleAndAddTo(dst,lhs,rhs,alpha); }
 
 };
@@ -350,7 +350,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,GemvProduct>
   typedef typename internal::conditional<int(Side)==OnTheRight,Lhs,Rhs>::type MatrixType;
 
   template<typename Dest>
-  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
+  static EIGEN_STRONG_INLINE void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
     internal::gemv_dense_selector<Side,
                             (int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
@@ -365,7 +365,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
   template<typename Dst>
-  static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_STRONG_INLINE void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // Same as: dst.noalias() = lhs.lazyProduct(rhs);
     // but easier on the compiler side
@@ -373,14 +373,14 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   }
   
   template<typename Dst>
-  static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_STRONG_INLINE void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // dst.noalias() += lhs.lazyProduct(rhs);
     call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::add_assign_op<Scalar>());
   }
   
   template<typename Dst>
-  static inline void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_STRONG_INLINE void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // dst.noalias() -= lhs.lazyProduct(rhs);
     call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::sub_assign_op<Scalar>());

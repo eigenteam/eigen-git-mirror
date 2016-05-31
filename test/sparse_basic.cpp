@@ -157,17 +157,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     initSparse<Scalar>(density, refM3, m3);
     initSparse<Scalar>(density, refM4, m4);
 
+    if(internal::random<bool>())
+      m1.makeCompressed();
+
     VERIFY_IS_APPROX(m1*s1, refM1*s1);
     VERIFY_IS_APPROX(m1+m2, refM1+refM2);
     VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
     VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));
     VERIFY_IS_APPROX(m1*s1-m2, refM1*s1-refM2);
-
-    VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
-    VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
-
-    VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
-    VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
 
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.row(0).dot(refM2.row(0)));
@@ -196,6 +193,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m3 + refM4, refM3 + refM4);
     VERIFY_IS_APPROX(refM4 - m3, refM4 - refM3);
     VERIFY_IS_APPROX(m3 - refM4, refM3 - refM4);
+
+    VERIFY_IS_APPROX(m1.sum(), refM1.sum());
+
+    VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
+    VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
+
+    VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
+    VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
 
     // test aliasing
     VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));

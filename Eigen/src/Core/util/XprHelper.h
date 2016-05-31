@@ -67,9 +67,9 @@ template<typename T, int Value> class variable_if_dynamic
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamic)
-    EIGEN_DEVICE_FUNC explicit variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
-    EIGEN_DEVICE_FUNC static T value() { return T(Value); }
-    EIGEN_DEVICE_FUNC void setValue(T) {}
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
+    EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE T value() { return T(Value); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void setValue(T) {}
 };
 
 template<typename T> class variable_if_dynamic<T, Dynamic>
@@ -77,9 +77,9 @@ template<typename T> class variable_if_dynamic<T, Dynamic>
     T m_value;
     EIGEN_DEVICE_FUNC variable_if_dynamic() { eigen_assert(false); }
   public:
-    EIGEN_DEVICE_FUNC explicit variable_if_dynamic(T value) : m_value(value) {}
-    EIGEN_DEVICE_FUNC T value() const { return m_value; }
-    EIGEN_DEVICE_FUNC void setValue(T value) { m_value = value; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit variable_if_dynamic(T value) : m_value(value) {}
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T value() const { return m_value; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void setValue(T value) { m_value = value; }
 };
 
 /** \internal like variable_if_dynamic but for DynamicIndex
@@ -88,9 +88,9 @@ template<typename T, int Value> class variable_if_dynamicindex
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamicindex)
-    EIGEN_DEVICE_FUNC explicit variable_if_dynamicindex(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
-    EIGEN_DEVICE_FUNC static T value() { return T(Value); }
-    EIGEN_DEVICE_FUNC void setValue(T) {}
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit variable_if_dynamicindex(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
+    EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE T value() { return T(Value); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void setValue(T) {}
 };
 
 template<typename T> class variable_if_dynamicindex<T, DynamicIndex>
@@ -98,9 +98,9 @@ template<typename T> class variable_if_dynamicindex<T, DynamicIndex>
     T m_value;
     EIGEN_DEVICE_FUNC variable_if_dynamicindex() { eigen_assert(false); }
   public:
-    EIGEN_DEVICE_FUNC explicit variable_if_dynamicindex(T value) : m_value(value) {}
-    EIGEN_DEVICE_FUNC T value() const { return m_value; }
-    EIGEN_DEVICE_FUNC void setValue(T value) { m_value = value; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit variable_if_dynamicindex(T value) : m_value(value) {}
+    EIGEN_DEVICE_FUNC T EIGEN_STRONG_INLINE value() const { return m_value; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void setValue(T value) { m_value = value; }
 };
 
 template<typename T> struct functor_traits

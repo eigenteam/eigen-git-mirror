@@ -27,9 +27,11 @@ namespace internal {
   * we however don't want to add a dependency to Boost.
   */
 
-#if EIGEN_COMP_ICC
-typedef intptr_t IntPtr;
-typedef uintptr_t UIntPtr;
+// Only recent versions of ICC complain about using ptrdiff_t to hold pointers,
+// and older versions do not provide *intptr_t types.
+#if EIGEN_COMP_ICC>=1600
+typedef std::intptr_t  IntPtr;
+typedef std::uintptr_t UIntPtr;
 #else
 typedef std::ptrdiff_t IntPtr;
 typedef std::size_t UIntPtr;
