@@ -90,6 +90,9 @@ namespace Eigen {
 /** \addtogroup Householder_Module
     \ingroup DenseMatrixManipulation_Reference */ 
 
+/** \addtogroup CoeffwiseMathFunctions
+    \ingroup DenseMatrixManipulation_chapter */
+
 /** \addtogroup QuickRefPage
     \ingroup DenseMatrixManipulation_chapter */
 

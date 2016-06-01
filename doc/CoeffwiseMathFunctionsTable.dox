@@ -1,0 +1,157 @@
+namespace Eigen {
+
+/** \eigenManualPage CoeffwiseMathFunctions Catalog of coefficient-wise math functions
+
+
+<span style="font-size:300%; color:red; font-weight: 900;">!WORK IN PROGRESS!</span>
+
+This table presents a catalog of the coefficient-wise math functions supported by %Eigen.
+In this table, \c a, \c b, refer to Array objects or expressions, and \c m refers to a linear algebra Matrix/Vector object. Standard scalar types are abbreviated as follows:
+  - \c int: \c ui32
+  - \c float: \c f
+  - \c double: \c d
+  - \c std::complex<float>: \c cf
+  - \c std::complex<double>: \c cd
+
+For each row, the first column list the equivalent calls for arrays, and matrices when supported. Of course, all functions are available for matrices by first casting it as an array: \c m.array().
+
+The third column gives some hints in the underlying scalar implementation. In most cases, %Eigen does not implement itself the math function but relies on the STL for standard scalar types, or user-provided functions for custom scalar types.
+For instance, some simply calls the respective function of the STL while preserving <a href="http://en.cppreference.com/w/cpp/language/adl">argument-dependent lookup</a> for custom types.
+The following:
+\code
+using std::foo;
+foo(a[i]);
+\endcode
+means that the STL's function \c std::foo will be potentially called if it is compatible with the underlying scalar type. If not, then the user must ensure that an overload of the function foo is available for the given scalar type (usually defined in the same namespace as the given scalar type).
+This also means that, unless specified, if the function \c std::foo is available only in some recent c++ versions (e.g., c++11), then the respective %Eigen's function/method will be usable on standard types only if the compiler support the required c++ version.
+
+<table class="manual-hl">
+<tr>
+<th>API</th><th>Description</th><th>Default scalar implementation</th><th>SIMD</th>
+</tr>
+<tr><td colspan="4"></td></tr>
+<tr><th colspan="4">Basic operations</th></tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_abs
+  a.\link ArrayBase::abs abs\endlink(); \n
+  \link Eigen::abs abs\endlink(a); \n
+  m.\link MatrixBase::cwiseAbs cwiseAbs\endlink();
+  </td>
+  <td>absolute value (\f$ |a_i| \f$) </td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/fabs">std::abs</a>; \n
+  abs(a[i]);
+  </td>
+  <td>SSE2, AVX (ui32,f,d)</td>
+</tr>
+<tr>
+<th colspan="4">Exponential functions</th>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_exp
+  a.\link ArrayBase::exp exp\endlink(); \n
+  \link Eigen::exp exp\endlink(a);
+  </td>
+  <td>\f$ e \f$ raised to the given power (\f$ e^{a_i} \f$) </td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/exp">std::exp</a>; \n
+  exp(a[i]);
+  </td>
+  <td>SSE2, AVX (f,d)</td>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_log
+  a.\link ArrayBase::log log\endlink(); \n
+  \link Eigen::log log\endlink(a);
+  </td>
+  <td>natural (base \f$ e \f$) logarithm (\f$ ln({a_i}) \f$)</td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/log">std::log</a>; \n
+  log(a[i]);
+  </td>
+  <td>SSE2, AVX (f,d)</td>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_log1p
+  a.\link ArrayBase::log1p log1p\endlink(); \n
+  \link Eigen::log1p log1p\endlink(a);
+  </td>
+  <td>natural (base \f$ e \f$) logarithm of 1 plus \n the given number (\f$ ln({1+a_i}) \f$)</td>
+  <td>built-in generic implementation based on \c log,\n
+  plus \c using <a href="http://en.cppreference.com/w/cpp/numeric/math/log1p">\c std::log1p </a>; \cpp11</td>
+  <td></td>
+</tr>
+<tr>
+<th colspan="4">Power functions</th>
+</tr>
+<tr>
+<th colspan="4">Trigonometric functions</th>
+</tr>
+<tr>
+<th colspan="4">Hyperbolic functions</th>
+</tr>
+<tr>
+<th colspan="4">Error and gamma functions</th>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_erf
+  a.\link ArrayBase::erf erf\endlink(); \n
+  \link Eigen::erf erf\endlink(a);
+  </td>
+  <td>error function</td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/erf">std::erf</a>; \cpp11 \n
+  erf(a[i]);
+  </td>
+  <td></td>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_erfc
+  a.\link ArrayBase::erfc erfc\endlink(); \n
+  \link Eigen::erfc erfc\endlink(a);
+  </td>
+  <td>complementary error function</td>
+  <td class="code">
+  using <a href="http://en.cppreference.com/w/cpp/numeric/math/erfc">std::erfc</a>; \cpp11 \n
+  erfc(a[i]);
+  </td>
+  <td></td>
+</tr>
+<tr>
+<th colspan="4">Nearest integer floating point operations</th>
+</tr>
+<tr>
+<th colspan="4">Floating point manipulation functions</th>
+</tr>
+<tr>
+<th colspan="4">Classification and comparison</th>
+</tr>
+<tr>
+<th colspan="4">Miscellaneous</th>
+</tr>
+<tr>
+  <td class="code">
+  \anchor cwisetable_zeta
+  a.\link ArrayBase::zeta zeta\endlink(b); \n
+  \link Eigen::zeta zeta\endlink(a,b);
+  </td>
+  <td><a href="https://en.wikipedia.org/wiki/Hurwitz_zeta_function">Hurwitz zeta function</a> \n \f$ \zeta(a_i,b_i)=\sum_{k=0}^{\infty}(b_i+k)^{\text{-}a_i} \f$</td>
+  <td>
+  built-in for float and double
+  </td>
+  <td></td>
+</tr>
+<tr><td colspan="4"></td></tr>
+</table>
+
+\n
+
+*/
+
+}
