@@ -11,12 +11,29 @@
 #ifndef EIGEN_GLOBAL_FUNCTIONS_H
 #define EIGEN_GLOBAL_FUNCTIONS_H
 
-#define EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(NAME,FUNCTOR) \
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+
+#define EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(NAME,FUNCTOR,DOC_OP,DOC_DETAILS) \
+  /** \returns an expression of the coefficient-wise DOC_OP of \a x
+
+    DOC_DETAILS
+
+    \sa class CwiseUnaryOp
+    */ \
+  template<typename Derived> \
+  inline const Eigen::CwiseUnaryOp<Eigen::internal::FUNCTOR<typename Derived::Scalar>, const Derived> \
+  NAME(const Eigen::ArrayBase<Derived>& x);
+
+#else
+
+#define EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(NAME,FUNCTOR,DOC_OP,DOC_DETAILS) \
   template<typename Derived> \
   inline const Eigen::CwiseUnaryOp<Eigen::internal::FUNCTOR<typename Derived::Scalar>, const Derived> \
   (NAME)(const Eigen::ArrayBase<Derived>& x) { \
     return Eigen::CwiseUnaryOp<Eigen::internal::FUNCTOR<typename Derived::Scalar>, const Derived>(x.derived()); \
   }
+
+#endif // EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(NAME,FUNCTOR) \
   \
@@ -36,40 +53,44 @@
 
 namespace Eigen
 {
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(real,scalar_real_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(imag,scalar_imag_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(conj,scalar_conjugate_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(inverse,scalar_inverse_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sin,scalar_sin_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cos,scalar_cos_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tan,scalar_tan_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(atan,scalar_atan_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(asin,scalar_asin_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(acos,scalar_acos_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sinh,scalar_sinh_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cosh,scalar_cosh_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tanh,scalar_tanh_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(lgamma,scalar_lgamma_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(digamma,scalar_digamma_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erf,scalar_erf_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erfc,scalar_erfc_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(exp,scalar_exp_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log,scalar_log_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log10,scalar_log10_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(abs,scalar_abs_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(abs2,scalar_abs2_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(arg,scalar_arg_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sqrt,scalar_sqrt_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(square,scalar_square_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cube,scalar_cube_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(round,scalar_round_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(floor,scalar_floor_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(ceil,scalar_ceil_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isnan,scalar_isnan_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isinf,scalar_isinf_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isfinite,scalar_isfinite_op)
-  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sign,scalar_sign_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(real,scalar_real_op,real part,\sa ArrayBase::real)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(imag,scalar_imag_op,imaginary part,\sa ArrayBase::imag)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(conj,scalar_conjugate_op,complex conjugate,\sa ArrayBase::conjugate)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(inverse,scalar_inverse_op,inverse,\sa ArrayBase::inverse)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sin,scalar_sin_op,sine,\sa ArrayBase::sin)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cos,scalar_cos_op,cosine,\sa ArrayBase::cos)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tan,scalar_tan_op,tangent,\sa ArrayBase::tan)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(atan,scalar_atan_op,arc-tangent,\sa ArrayBase::atan)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(asin,scalar_asin_op,arc-sine,\sa ArrayBase::asin)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(acos,scalar_acos_op,arc-consine,\sa ArrayBase::acos)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sinh,scalar_sinh_op,hyperbolic sine,\sa ArrayBase::sinh)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cosh,scalar_cosh_op,hyperbolic cosine,\sa ArrayBase::cosh)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(tanh,scalar_tanh_op,hyperbolic tangent,\sa ArrayBase::tanh)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(lgamma,scalar_lgamma_op,natural logarithm of the gamma function,\sa ArrayBase::lgamma)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(digamma,scalar_digamma_op,derivative of lgamma,\sa ArrayBase::digamma)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erf,scalar_erf_op,error function,\sa ArrayBase::erf)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(erfc,scalar_erfc_op,complement error function,\sa ArrayBase::erfc)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(exp,scalar_exp_op,exponential,\sa ArrayBase::exp)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log,scalar_log_op,natural logarithm,\sa ArrayBase::log)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(log10,scalar_log10_op,base 10 logarithm,)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(abs,scalar_abs_op,absolute value,\sa ArrayBase::abs DOXCOMMA MatrixBase::cwiseAbs)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(abs2,scalar_abs2_op,squared absolute value,\sa ArrayBase::abs2 DOXCOMMA MatrixBase::cwiseAbs2)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(arg,scalar_arg_op,complex argument,\sa ArrayBase::arg)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sqrt,scalar_sqrt_op,square root,\sa ArrayBase::sqrt DOXCOMMA MatrixBase::cwiseSqrt)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(square,scalar_square_op,square (power 2),\sa Eigen::abs2 DOXCOMMA Eigen::pow DOXCOMMA ArrayBase::square)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(cube,scalar_cube_op,cube (power 3),\sa Eigen::pow DOXCOMMA ArrayBase::cube)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(round,scalar_round_op,nearest integer,\sa Eigen::floor DOXCOMMA Eigen::ceil DOXCOMMA ArrayBase::round)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(floor,scalar_floor_op,nearest integer not greater than the giben value,\sa Eigen::ceil DOXCOMMA ArrayBase::floor)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(ceil,scalar_ceil_op,nearest integer not less than the giben value,\sa Eigen::floor DOXCOMMA ArrayBase::ceil)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isnan,scalar_isnan_op,not-a-number test,\sa Eigen::isinf DOXCOMMA Eigen::isfinite DOXCOMMA ArrayBase::isnan)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isinf,scalar_isinf_op,infinite value test,\sa Eigen::isnan DOXCOMMA Eigen::isfinite DOXCOMMA ArrayBase::isinf)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isfinite,scalar_isfinite_op,finite value test,\sa Eigen::isinf DOXCOMMA Eigen::isnan DOXCOMMA ArrayBase::isfinite)
+  EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sign,scalar_sign_op,sign (or 0),\sa ArrayBase::sign)
   
+  /** \returns an expression of the coefficient-wise power of \a x to the given constant \a exponent.
+    *
+    * \sa ArrayBase::pow()
+    */
   template<typename Derived>
   inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar>, const Derived>
   pow(const Eigen::ArrayBase<Derived>& x, const typename Derived::Scalar& exponent) {
