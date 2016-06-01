@@ -11,6 +11,7 @@ typedef CwiseUnaryOp<internal::scalar_boolean_not_op<Scalar>, const Derived> Boo
 
 typedef CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived> ExpReturnType;
 typedef CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived> LogReturnType;
+typedef CwiseUnaryOp<internal::scalar_log1p_op<Scalar>, const Derived> Log1pReturnType;
 typedef CwiseUnaryOp<internal::scalar_log10_op<Scalar>, const Derived> Log10ReturnType;
 typedef CwiseUnaryOp<internal::scalar_cos_op<Scalar>, const Derived> CosReturnType;
 typedef CwiseUnaryOp<internal::scalar_sin_op<Scalar>, const Derived> SinReturnType;
@@ -109,6 +110,20 @@ inline const LogReturnType
 log() const
 {
   return LogReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise logarithm of 1 plus \c *this.
+  *
+  * In exact arithmetic, \c x.log() is equivalent to \c (x+1).log(),
+  * however, with finite precision, this function is much more accurate when \c x is close to zero.
+  *
+  * \sa log()
+  */
+EIGEN_DEVICE_FUNC
+inline const Log1pReturnType
+log1p() const
+{
+  return Log1pReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise base-10 logarithm of *this.
