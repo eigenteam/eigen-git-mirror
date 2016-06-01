@@ -44,7 +44,7 @@ template<typename Derived> class DenseBase
                                             typename NumTraits<typename internal::traits<Derived>::Scalar>::Real,
                                             DenseCoeffsBase<Derived> >
 #else
-  : public DenseCoeffsBase<Derived>
+  : public DenseCoeffsBase<Derived,DirectWriteAccessors>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
