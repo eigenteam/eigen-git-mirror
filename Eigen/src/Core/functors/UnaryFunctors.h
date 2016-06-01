@@ -266,7 +266,7 @@ struct functor_traits<scalar_exp_op<Scalar> > {
   *
   * \brief Template functor to compute the logarithm of a scalar
   *
-  * \sa class CwiseUnaryOp, Cwise::log()
+  * \sa class CwiseUnaryOp, ArrayBase::log()
   */
 template<typename Scalar> struct scalar_log_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_log_op)
@@ -290,6 +290,26 @@ struct functor_traits<scalar_log_op<Scalar> > {
 #endif
      // Measured cost of std::log.
      : sizeof(Scalar)==4 ? 40 : 85)
+  };
+};
+
+/** \internal
+  *
+  * \brief Template functor to compute the logarithm of 1 plus a scalar value
+  *
+  * \sa class CwiseUnaryOp, ArrayBase::log1p()
+  */
+template<typename Scalar> struct scalar_log1p_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_log1p_op)
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { return numext::log1p(a); }
+  template <typename Packet>
+  EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::plog1p(a); }
+};
+template <typename Scalar>
+struct functor_traits<scalar_log1p_op<Scalar> > {
+  enum {
+    PacketAccess = packet_traits<Scalar>::HasLog1p,
+    Cost = functor_traits<scalar_log_op<Scalar> >::Cost // TODO measure cost of log1p
   };
 };
 

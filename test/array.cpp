@@ -244,6 +244,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m3.sqrt(), sqrt(abs(m1)));
   VERIFY_IS_APPROX(m3.rsqrt(), Scalar(1)/sqrt(abs(m1)));
   VERIFY_IS_APPROX(m3.log(), log(m3));
+  VERIFY_IS_APPROX(m3.log1p(), log1p(m3));
   VERIFY_IS_APPROX(m3.log10(), log10(m3));
 
 
@@ -275,6 +276,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   // shift argument of logarithm so that it is not zero
   Scalar smallNumber = NumTraits<Scalar>::dummy_precision();
   VERIFY_IS_APPROX((m3 + smallNumber).log() , log(abs(m1) + smallNumber));
+  VERIFY_IS_APPROX((m3 + smallNumber + 1).log() , log1p(abs(m1) + smallNumber));
 
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));
   VERIFY_IS_APPROX(m1.exp(), exp(m1));
