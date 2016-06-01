@@ -166,12 +166,17 @@ class SparseMapBase<Derived,WriteAccessors>
     using Base::innerIndexPtr;
     using Base::outerIndexPtr;
     using Base::innerNonZeroPtr;
-    inline Scalar* valuePtr()       { return Base::m_values; }
+    /** \copydoc SparseMatrix::valuePtr */
+    inline Scalar* valuePtr()              { return Base::m_values; }
+    /** \copydoc SparseMatrix::innerIndexPtr */
     inline StorageIndex* innerIndexPtr()   { return Base::m_innerIndices; }
+    /** \copydoc SparseMatrix::outerIndexPtr */
     inline StorageIndex* outerIndexPtr()   { return Base::m_outerIndex; }
+    /** \copydoc SparseMatrix::innerNonZeroPtr */
     inline StorageIndex* innerNonZeroPtr() { return Base::m_innerNonZeros; }
     //----------------------------------------
 
+    /** \copydoc SparseMatrix::coeffRef */
     inline Scalar& coeffRef(Index row, Index col)
     {
       const Index outer = IsRowMajor ? row : col;
@@ -188,7 +193,7 @@ class SparseMapBase<Derived,WriteAccessors>
     }
     
     inline SparseMapBase(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr, StorageIndex* innerIndexPtr,
-                              Scalar* valuePtr, StorageIndex* innerNonZerosPtr = 0)
+                         Scalar* valuePtr, StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
     {}
 
@@ -233,13 +238,15 @@ class Map<SparseMatrixType>
       * stored as a sparse format as defined by the pointers \a outerIndexPtr, \a innerIndexPtr, and \a valuePtr.
       * If the optional parameter \a innerNonZerosPtr is the null pointer, then a standard compressed format is assumed.
       *
+      * This constructor is available only if \c SparseMatrixType is non-const.
+      *
       * More details on the expected storage schemes are given in the \ref TutorialSparse "manual pages".
       */
     inline Map(Index rows, Index cols, Index nnz, StorageIndex* outerIndexPtr,
                StorageIndex* innerIndexPtr, Scalar* valuePtr, StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
     {}
-
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Empty destructor */
     inline ~Map() {}
 };
@@ -254,7 +261,12 @@ class Map<const SparseMatrix<MatScalar,MatOptions,MatIndex>, Options, StrideType
     enum { IsRowMajor = Base::IsRowMajor };
 
   public:
-
+#endif
+    /** This is the const version of the above constructor.
+      *
+      * This constructor is available only if \c SparseMatrixType is const, e.g.:
+      * \code Map<const SparseMatrix<double> >  \endcode
+      */
     inline Map(Index rows, Index cols, Index nnz, const StorageIndex* outerIndexPtr,
                const StorageIndex* innerIndexPtr, const Scalar* valuePtr, const StorageIndex* innerNonZerosPtr = 0)
       : Base(rows, cols, nnz, outerIndexPtr, innerIndexPtr, valuePtr, innerNonZerosPtr)
