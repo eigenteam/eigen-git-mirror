@@ -530,6 +530,7 @@ template <typename Self, typename Op>
 struct InnerReductionLauncher<Self, Op, Eigen::half, false> {
   static bool run(const Self&, Op&, const GpuDevice&, half*, typename Self::Index, typename Self::Index) {
     assert(false && "Should not be called since there is no packet accessor");
+    return true;
   }
 };
 
