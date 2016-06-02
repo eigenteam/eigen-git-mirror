@@ -24,13 +24,7 @@ namespace Eigen {
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_SPARSEMATRIXBASE_PLUGIN.
   */
 template<typename Derived> class SparseMatrixBase
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
-                                            typename NumTraits<typename internal::traits<Derived>::Scalar>::Real,
-                                            EigenBase<Derived> >
-#else
   : public EigenBase<Derived>
-#endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
 
@@ -142,7 +136,7 @@ template<typename Derived> class SparseMatrixBase
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<SparseMatrixBase*>(this)); }
 
-    typedef internal::special_scalar_op_base<Derived, Scalar, RealScalar, EigenBase<Derived> > Base;
+    typedef EigenBase<Derived> Base;
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 

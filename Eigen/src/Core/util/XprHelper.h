@@ -450,24 +450,6 @@ struct generic_xpr_base<Derived, XprKind, Dense>
   typedef typename dense_xpr_base<Derived,XprKind>::type type;
 };
 
-/** \internal Helper base class to add a scalar multiple operator
-  * overloads for complex types */
-template<typename Derived, typename Scalar, typename OtherScalar, typename BaseType,
-         bool EnableIt = !is_same<Scalar,OtherScalar>::value >
-struct special_scalar_op_base : public BaseType
-{
-  // dummy operator* so that the
-  // "using special_scalar_op_base::operator*" compiles
-  struct dummy {};
-  void operator*(dummy) const;
-  void operator/(dummy) const;
-};
-
-template<typename Derived,typename Scalar,typename OtherScalar, typename BaseType>
-struct special_scalar_op_base<Derived,Scalar,OtherScalar,BaseType,true>  : public BaseType
-{
-};
-
 template<typename XprType, typename CastType> struct cast_return_type
 {
   typedef typename XprType::Scalar CurrentScalarType;
