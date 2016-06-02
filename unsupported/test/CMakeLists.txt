@@ -176,6 +176,7 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_custom_index)
   ei_add_test(cxx11_tensor_fft)
   ei_add_test(cxx11_tensor_ifft)
+  ei_add_test(cxx11_tensor_scan)
 
 endif()
 

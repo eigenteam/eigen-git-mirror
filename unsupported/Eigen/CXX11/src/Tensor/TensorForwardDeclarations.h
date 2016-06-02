@@ -46,6 +46,7 @@ template<typename StartIndices, typename StopIndices, typename Strides, typename
 template<typename Strides, typename XprType> class TensorInflationOp;
 template<typename Generator, typename XprType> class TensorGeneratorOp;
 template<typename LeftXprType, typename RightXprType> class TensorAssignOp;
+template<typename Op, typename XprType> class TensorScanOp;
 
 template<typename CustomUnaryFunc, typename XprType> class TensorCustomUnaryOp;
 template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType> class TensorCustomBinaryOp;
