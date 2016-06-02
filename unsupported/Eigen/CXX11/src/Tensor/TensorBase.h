@@ -453,6 +453,21 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorFFTOp<const FFT, const Derived, FFTDataType, FFTDirection>(derived(), fft);
     }
 
+    // Scan.
+    typedef TensorScanOp<internal::SumReducer<CoeffReturnType>, const Derived> TensorScanSumOp;
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorScanSumOp
+    cumsum(const Index& axis) const {
+      return TensorScanSumOp(derived(), axis);
+    }
+
+    typedef TensorScanOp<internal::ProdReducer<CoeffReturnType>, const Derived> TensorScanProdOp;
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorScanProdOp
+    cumprod(const Index& axis) const {
+      return TensorScanProdOp(derived(), axis);
+    }
+
     // Reductions.
     template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorReductionOp<internal::SumReducer<CoeffReturnType>, const Dims, const Derived>

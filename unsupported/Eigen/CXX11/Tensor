@@ -114,6 +114,7 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorForcedEval.h"
 #include "src/Tensor/TensorGenerator.h"
 #include "src/Tensor/TensorAssign.h"
+#include "src/Tensor/TensorScan.h"
 
 #include "src/Tensor/TensorExecutor.h"
 #include "src/Tensor/TensorDevice.h"
