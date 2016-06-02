@@ -128,7 +128,7 @@ void test_powers_64bit() {
 void test_specific() {
   // A particular combination that was previously failing
   int64_t div = 209715200;
-  int64_t num = 3238002688;
+  int64_t num = 3238002688ll;
   Eigen::internal::TensorIntDivisor<int64_t> divider(div);
   int64_t result = num/div;
   int64_t result_op = divider.divide(num);

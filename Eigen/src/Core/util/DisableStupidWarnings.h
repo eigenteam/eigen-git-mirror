@@ -15,10 +15,12 @@
   // 4522 - 'class' : multiple assignment operators specified
   // 4700 - uninitialized local variable 'xyz' used
   // 4717 - 'function' : recursive on all control paths, function will cause runtime stack overflow
+  // 4800 - 'type' : forcing value to bool 'true' or 'false' (performance warning)
   #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
     #pragma warning( push )
   #endif
-  #pragma warning( disable : 4100 4101 4127 4181 4211 4244 4273 4324 4503 4512 4522 4700 4717 )
+  #pragma warning( disable : 4100 4101 4127 4181 4211 4244 4273 4324 4503 4512 4522 4700 4717 4800)
+
 #elif defined __INTEL_COMPILER
   // 2196 - routine is both "inline" and "noinline" ("noinline" assumed)
   //        ICC 12 generates this warning even without any inline keyword, when defining class methods 'inline' i.e. inside of class body
@@ -31,6 +33,7 @@
     #pragma warning push
   #endif
   #pragma warning disable 2196 279 1684 2259
+
 #elif defined __clang__
   // -Wconstant-logical-operand - warning: use of logical && with constant operand; switch to bitwise & or remove constant
   //     this is really a stupid warning as it warns on compile-time expressions involving enums
@@ -38,6 +41,28 @@
     #pragma clang diagnostic push
   #endif
   #pragma clang diagnostic ignored "-Wconstant-logical-operand"
+
+#elif defined __GNUC__ && __GNUC__>=6
+
+  #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+    #pragma GCC diagnostic push
+  #endif
+  #pragma GCC diagnostic ignored "-Wignored-attributes"
+
+#endif
+
+#if defined __NVCC__
+  // Disable the "statement is unreachable" message
+  #pragma diag_suppress code_is_unreachable
+  // Disable the "dynamic initialization in unreachable code" message
+  #pragma diag_suppress initialization_not_reachable
+  // Disable the "calling a __host__ function from a __host__ __device__ function is not allowed" messages (yes, there are 4 of them)
+  #pragma diag_suppress 2651
+  #pragma diag_suppress 2653
+  #pragma diag_suppress 2668
+  #pragma diag_suppress 2669
+  #pragma diag_suppress 2670
+  #pragma diag_suppress 2671
 #endif
 
 #endif // not EIGEN_WARNINGS_DISABLED

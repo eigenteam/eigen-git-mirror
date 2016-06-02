@@ -24,6 +24,19 @@ const T2& choose(Cond<false>, const T1&, const T2& second) {
   return second;
 }
 
+
+template <typename T, typename X, typename Y>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T divup(const X x, const Y y) {
+  return static_cast<T>((x + y - 1) / y);
+}
+
+template <typename T>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+T divup(const T x, const T y) {
+  return static_cast<T>((x + y - 1) / y);
+}
+
 template <size_t n> struct max_n_1 {
   static const size_t size = n;
 };
@@ -36,7 +49,7 @@ template <> struct max_n_1<0> {
 template <typename Scalar, typename Device>
 struct PacketType {
   typedef typename internal::packet_traits<Scalar>::type type;
-  static const int size = internal::unpacket_traits<type>::size;
+  enum { size = internal::unpacket_traits<type>::size };
 };
 
 // For CUDA packet types when using a GpuDevice
@@ -98,6 +111,20 @@ bool operator!=(const Tuple<U, V>& x, const Tuple<U, V>& y) {
   return !(x == y);
 }
 
+
+// Can't use std::pairs on cuda devices
+template <typename Idx> struct IndexPair {
+  EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair() : first(0), second(0) {}
+  EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE IndexPair(Idx f, Idx s) : first(f), second(s) {}
+
+  EIGEN_DEVICE_FUNC void set(IndexPair<Idx> val) {
+    first = val.first;
+    second = val.second;
+  }
+
+  Idx first;
+  Idx second;
+};
 
 
 #ifdef EIGEN_HAS_SFINAE

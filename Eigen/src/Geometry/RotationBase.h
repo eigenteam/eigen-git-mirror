@@ -22,8 +22,8 @@ struct rotation_base_generic_product_selector;
   *
   * \brief Common base class for compact rotation representations
   *
-  * \param Derived is the derived type, i.e., a rotation type
-  * \param _Dim the dimension of the space
+  * \tparam Derived is the derived type, i.e., a rotation type
+  * \tparam _Dim the dimension of the space
   */
 template<typename Derived, int _Dim>
 class RotationBase
@@ -164,8 +164,8 @@ namespace internal {
   *
   * Helper function to return an arbitrary rotation object to a rotation matrix.
   *
-  * \param Scalar the numeric type of the matrix coefficients
-  * \param Dim the dimension of the current space
+  * \tparam Scalar the numeric type of the matrix coefficients
+  * \tparam Dim the dimension of the current space
   *
   * It returns a Dim x Dim fixed size matrix.
   *

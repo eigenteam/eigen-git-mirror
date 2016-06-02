@@ -53,11 +53,11 @@ template<> struct mkl_llt<EIGTYPE> \
     EIGTYPE* a; \
     eigen_assert(m.rows()==m.cols()); \
     /* Set up parameters for ?potrf */ \
-    size = m.rows(); \
+    size = convert_index<lapack_int>(m.rows()); \
     StorageOrder = MatrixType::Flags&RowMajorBit?RowMajor:ColMajor; \
     matrix_order = StorageOrder==RowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR; \
     a = &(m.coeffRef(0,0)); \
-    lda = m.outerStride(); \
+    lda = convert_index<lapack_int>(m.outerStride()); \
 \
     info = LAPACKE_##MKLPREFIX##potrf( matrix_order, uplo, size, (MKLTYPE*)a, lda ); \
     info = (info==0) ? -1 : info>0 ? info-1 : size; \

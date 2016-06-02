@@ -34,7 +34,7 @@ template<typename _MatrixType> struct traits<PartialPivLU<_MatrixType> >
   *
   * \brief LU decomposition of a matrix with partial pivoting, and related features
   *
-  * \param MatrixType the type of the matrix of which we are computing the LU decomposition
+  * \tparam _MatrixType the type of the matrix of which we are computing the LU decomposition
   *
   * This class represents a LU decomposition of a \b square \b invertible matrix, with partial pivoting: the matrix A
   * is decomposed as A = PLU where L is unit-lower-triangular, U is upper-triangular, and P
@@ -75,7 +75,6 @@ template<typename _MatrixType> class PartialPivLU
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
     typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
     typedef typename MatrixType::PlainObject PlainObject;
-
 
     /**
       * \brief Default Constructor.
@@ -152,6 +151,15 @@ template<typename _MatrixType> class PartialPivLU
       return Solve<PartialPivLU, Rhs>(*this, b.derived());
     }
 
+    /** \returns an estimate of the reciprocal condition number of the matrix of which \c *this is
+        the LU decomposition.
+      */
+    inline RealScalar rcond() const
+    {
+      eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
+      return internal::rcond_estimate_helper(m_l1_norm, *this);
+    }
+
     /** \returns the inverse of the matrix of which *this is the LU decomposition.
       *
       * \warning The matrix being decomposed here is assumed to be invertible. If you need to check for
@@ -178,7 +186,7 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::determinant()
       */
-    typename internal::traits<MatrixType>::Scalar determinant() const;
+    Scalar determinant() const;
 
     MatrixType reconstructedMatrix() const;
 
@@ -246,7 +254,8 @@ template<typename _MatrixType> class PartialPivLU
     MatrixType m_lu;
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
-    Index m_det_p;
+    RealScalar m_l1_norm;
+    char m_det_p;
     bool m_isInitialized;
 };
 
@@ -255,6 +264,7 @@ PartialPivLU<MatrixType>::PartialPivLU()
   : m_lu(),
     m_p(),
     m_rowsTranspositions(),
+    m_l1_norm(0),
     m_det_p(0),
     m_isInitialized(false)
 {
@@ -265,6 +275,7 @@ PartialPivLU<MatrixType>::PartialPivLU(Index size)
   : m_lu(size, size),
     m_p(size),
     m_rowsTranspositions(size),
+    m_l1_norm(0),
     m_det_p(0),
     m_isInitialized(false)
 {
@@ -276,6 +287,7 @@ PartialPivLU<MatrixType>::PartialPivLU(const EigenBase<InputType>& matrix)
   : m_lu(matrix.rows(), matrix.rows()),
     m_p(matrix.rows()),
     m_rowsTranspositions(matrix.rows()),
+    m_l1_norm(0),
     m_det_p(0),
     m_isInitialized(false)
 {
@@ -422,7 +434,7 @@ struct partial_lu_impl
       // update permutations and apply them to A_0
       for(Index i=k; i<k+bs; ++i)
       {
-        Index piv = (row_transpositions[i] += k);
+        Index piv = (row_transpositions[i] += internal::convert_index<PivIndex>(k));
         A_0.row(i).swap(A_0.row(piv));
       }
 
@@ -467,6 +479,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const EigenBase<Inpu
   eigen_assert(matrix.rows()<NumTraits<int>::highest());
 
   m_lu = matrix.derived();
+  m_l1_norm = m_lu.cwiseAbs().colwise().sum().maxCoeff();
 
   eigen_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
   const Index size = matrix.rows();
@@ -484,7 +497,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const EigenBase<Inpu
 }
 
 template<typename MatrixType>
-typename internal::traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() const
+typename PartialPivLU<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() const
 {
   eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
   return Scalar(m_det_p) * m_lu.diagonal().prod();

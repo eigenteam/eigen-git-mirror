@@ -280,3 +280,60 @@ operator||(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   return CwiseBinaryOp<internal::scalar_boolean_or_op, const Derived, const OtherDerived>(derived(),other.derived());
 }
 
+/** \returns an expression of the coefficient-wise ^ operator of *this and \a other
+ *
+ * \warning this operator is for expression of bool only.
+ *
+ * Example: \include Cwise_boolean_xor.cpp
+ * Output: \verbinclude Cwise_boolean_xor.out
+ *
+ * \sa operator&&(), select()
+ */
+template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
+inline const CwiseBinaryOp<internal::scalar_boolean_xor_op, const Derived, const OtherDerived>
+operator^(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value && internal::is_same<bool,typename OtherDerived::Scalar>::value),
+                      THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
+  return CwiseBinaryOp<internal::scalar_boolean_xor_op, const Derived, const OtherDerived>(derived(),other.derived());
+}
+
+// NOTE disabled until we agree on argument order
+#if 0
+/** \cpp11 \returns an expression of the coefficient-wise polygamma function.
+  *
+  * It returns the \a n -th derivative of the digamma(psi) evaluated at \c *this.
+  *
+  * \warning Be careful with the order of the parameters: x.polygamma(n) is equivalent to polygamma(n,x)
+  *
+  * \sa Eigen::polygamma()
+  */
+template<typename DerivedN>
+inline const CwiseBinaryOp<internal::scalar_polygamma_op<Scalar>, const DerivedN, const Derived>
+polygamma(const EIGEN_CURRENT_STORAGE_BASE_CLASS<DerivedN> &n) const
+{
+  return CwiseBinaryOp<internal::scalar_polygamma_op<Scalar>, const DerivedN, const Derived>(n.derived(), this->derived());
+}
+#endif
+
+/** \returns an expression of the coefficient-wise zeta function.
+  *
+  * It returns the Riemann zeta function of two arguments \c *this and \a q:
+  *
+  * \param *this is the exposent, it must be > 1
+  * \param q is the shift, it must be > 0
+  *
+  * \note This function supports only float and double scalar types. To support other scalar types, the user has
+  * to provide implementations of zeta(T,T) for any scalar type T to be supported.
+  *
+  * This method is an alias for zeta(*this,q);
+  *
+  * \sa Eigen::zeta()
+  */
+template<typename DerivedQ>
+inline const CwiseBinaryOp<internal::scalar_zeta_op<Scalar>, const Derived, const DerivedQ>
+zeta(const EIGEN_CURRENT_STORAGE_BASE_CLASS<DerivedQ> &q) const
+{
+  return CwiseBinaryOp<internal::scalar_zeta_op<Scalar>, const Derived, const DerivedQ>(this->derived(), q.derived());
+}

@@ -18,6 +18,11 @@ Matrix<T,2,1> angleToVec(T a)
   return Matrix<T,2,1>(std::cos(a), std::sin(a));
 }
 
+// This permits to workaround a bug in clang/llvm code generation.
+template<typename T>
+EIGEN_DONT_INLINE
+void dont_over_optimize(T& x) { volatile typename T::Scalar tmp = x(0); x(0) = tmp; }
+
 template<typename Scalar, int Mode, int Options> void non_projective_only()
 {
     /* this test covers the following files:
@@ -224,12 +229,13 @@ template<typename Scalar, int Mode, int Options> void transformations()
 
   do {
     v3 = Vector3::Random();
+    dont_over_optimize(v3);
   } while (v3.cwiseAbs().minCoeff()<NumTraits<Scalar>::epsilon());
   Translation3 tv3(v3);
   Transform3 t5(tv3);
   t4 = tv3;
   VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
-  t4.translate(-v3);
+  t4.translate((-v3).eval());
   VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
   t4 *= tv3;
   VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
@@ -466,7 +472,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
     Scalar a2 = R0.slerp(Scalar(k+1)/Scalar(path_steps), R1).angle();
     l += std::abs(a2-a1);
   }
-  VERIFY(l<=EIGEN_PI*(Scalar(1)+NumTraits<Scalar>::epsilon()*Scalar(path_steps/2)));
+  VERIFY(l<=Scalar(EIGEN_PI)*(Scalar(1)+NumTraits<Scalar>::epsilon()*Scalar(path_steps/2)));
   
   // check basic features
   {

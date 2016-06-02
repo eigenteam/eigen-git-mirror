@@ -10,7 +10,7 @@
 #ifndef EIGEN_LLT_H
 #define EIGEN_LLT_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal{
 template<typename MatrixType, int UpLo> struct LLT_Traits;
@@ -22,8 +22,8 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   *
   * \brief Standard Cholesky decomposition (LL^T) of a matrix and associated features
   *
-  * \param MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
-  * \param UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
+  * \tparam _MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
+  * \tparam _UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
   *             The other triangular part won't be read.
   *
   * This class performs a LL^T Cholesky decomposition of a symmetric, positive definite
@@ -40,7 +40,7 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   *
   * Example: \include LLT_example.cpp
   * Output: \verbinclude LLT_example.out
-  *    
+  *
   * \sa MatrixBase::llt(), SelfAdjointView::llt(), class LDLT
   */
  /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
@@ -135,6 +135,16 @@ template<typename _MatrixType, int _UpLo> class LLT
     template<typename InputType>
     LLT& compute(const EigenBase<InputType>& matrix);
 
+    /** \returns an estimate of the reciprocal condition number of the matrix of
+      *  which \c *this is the Cholesky decomposition.
+      */
+    RealScalar rcond() const
+    {
+      eigen_assert(m_isInitialized && "LLT is not initialized.");
+      eigen_assert(m_info == Success && "LLT failed because matrix appears to be negative");
+      return internal::rcond_estimate_helper(m_l1_norm, *this);
+    }
+
     /** \returns the LLT decomposition matrix
       *
       * TODO: document the storage layout
@@ -159,12 +169,19 @@ template<typename _MatrixType, int _UpLo> class LLT
       return m_info;
     }
 
+    /** \returns the adjoint of \c *this, that is, a const reference to the decomposition itself as the underlying matrix is self-adjoint.
+      *
+      * This method is provided for compatibility with other matrix decompositions, thus enabling generic code such as:
+      * \code x = decomposition.adjoint().solve(b) \endcode
+      */
+    const LLT& adjoint() const { return *this; };
+
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
 
     template<typename VectorType>
     LLT rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
-    
+
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
@@ -172,17 +189,18 @@ template<typename _MatrixType, int _UpLo> class LLT
     #endif
 
   protected:
-    
+
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
-    
+
     /** \internal
       * Used to compute and store L
       * The strict upper part is not used and even not initialized.
       */
     MatrixType m_matrix;
+    RealScalar m_l1_norm;
     bool m_isInitialized;
     ComputationInfo m_info;
 };
@@ -268,7 +286,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   static Index unblocked(MatrixType& mat)
   {
     using std::sqrt;
-    
+
     eigen_assert(mat.rows()==mat.cols());
     const Index size = mat.rows();
     for(Index k = 0; k < size; ++k)
@@ -328,7 +346,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
     return Eigen::internal::llt_rank_update_lower(mat, vec, sigma);
   }
 };
-  
+
 template<typename Scalar> struct llt_inplace<Scalar, Upper>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -387,11 +405,24 @@ template<typename InputType>
 LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>& a)
 {
   check_template_parameters();
-  
+
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
   m_matrix.resize(size, size);
   m_matrix = a.derived();
+
+  // Compute matrix L1 norm = max abs column sum.
+  m_l1_norm = RealScalar(0);
+  // TODO move this code to SelfAdjointView
+  for (Index col = 0; col < size; ++col) {
+    RealScalar abs_col_sum;
+    if (_UpLo == Lower)
+      abs_col_sum = m_matrix.col(col).tail(size - col).template lpNorm<1>() + m_matrix.row(col).head(col).template lpNorm<1>();
+    else
+      abs_col_sum = m_matrix.col(col).head(col).template lpNorm<1>() + m_matrix.row(col).tail(size - col).template lpNorm<1>();
+    if (abs_col_sum > m_l1_norm)
+      m_l1_norm = abs_col_sum;
+  }
 
   m_isInitialized = true;
   bool ok = Traits::inplace_decomposition(m_matrix);
@@ -419,7 +450,7 @@ LLT<_MatrixType,_UpLo> LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, c
 
   return *this;
 }
- 
+
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 template<typename _MatrixType,int _UpLo>
 template<typename RhsType, typename DstType>
@@ -431,15 +462,12 @@ void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
 #endif
 
 /** \internal use x = llt_object.solve(x);
-  * 
+  *
   * This is the \em in-place version of solve().
   *
   * \param bAndX represents both the right-hand side matrix b and result x.
   *
-  * \returns true always! If you need to check for existence of solutions, use another decomposition like LU, QR, or SVD.
-  *
-  * This version avoids a copy when the right hand side matrix b is not
-  * needed anymore.
+  * This version avoids a copy when the right hand side matrix b is not needed anymore.
   *
   * \sa LLT::solve(), MatrixBase::llt()
   */
@@ -486,7 +514,7 @@ SelfAdjointView<MatrixType, UpLo>::llt() const
   return LLT<PlainObject,UpLo>(m_matrix);
 }
 #endif // __CUDACC__
-  
+
 } // end namespace Eigen
 
 #endif // EIGEN_LLT_H

@@ -228,6 +228,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \param[in] diag The vector containing the diagonal of the matrix.
       * \param[in] subdiag The subdiagonal of the matrix.
+      * \param[in] options Can be #ComputeEigenvectors (default) or #EigenvaluesOnly.
       * \returns Reference to \c *this
       *
       * This function assumes that the matrix has been reduced to tridiagonal form.
@@ -299,8 +300,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Example: \include SelfAdjointEigenSolver_operatorSqrt.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_operatorSqrt.out
       *
-      * \sa operatorInverseSqrt(),
-      *     \ref MatrixFunctions_Module "MatrixFunctions Module"
+      * \sa operatorInverseSqrt(), <a href="unsupported/group__MatrixFunctions__Module.html">MatrixFunctions Module</a>
       */
     EIGEN_DEVICE_FUNC
     MatrixType operatorSqrt() const
@@ -325,8 +325,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Example: \include SelfAdjointEigenSolver_operatorInverseSqrt.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_operatorInverseSqrt.out
       *
-      * \sa operatorSqrt(), MatrixBase::inverse(),
-      *     \ref MatrixFunctions_Module "MatrixFunctions Module"
+      * \sa operatorSqrt(), MatrixBase::inverse(), <a href="unsupported/group__MatrixFunctions__Module.html">MatrixFunctions Module</a>
       */
     EIGEN_DEVICE_FUNC
     MatrixType operatorInverseSqrt() const
@@ -376,8 +375,12 @@ namespace internal {
   * Performs a QR step on a tridiagonal symmetric matrix represented as a
   * pair of two vectors \a diag and \a subdiag.
   *
-  * \param matA the input selfadjoint matrix
-  * \param hCoeffs returned Householder coefficients
+  * \param diag the diagonal part of the input selfadjoint tridiagonal matrix
+  * \param subdiag the sub-diagonal part of the input selfadjoint tridiagonal matrix
+  * \param start starting index of the submatrix to work on
+  * \param end last+1 index of the submatrix to work on
+  * \param matrixQ pointer to the column-major matrix holding the eigenvectors, can be 0
+  * \param n size of the input matrix
   *
   * For compilation efficiency reasons, this procedure does not use eigen expression
   * for its arguments.
@@ -411,7 +414,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   if(n==1)
   {
-    m_eivalues.coeffRef(0,0) = numext::real(matrix(0,0));
+    m_eivalues.coeffRef(0,0) = numext::real(matrix.diagonal()[0]);
     if(computeEigenvectors)
       m_eivec.setOnes(n,n);
     m_info = Success;
@@ -468,9 +471,10 @@ namespace internal {
   * \brief Compute the eigendecomposition from a tridiagonal matrix
   *
   * \param[in,out] diag : On input, the diagonal of the matrix, on output the eigenvalues
-  * \param[in] subdiag : The subdiagonal part of the matrix.
-  * \param[in,out] : On input, the maximum number of iterations, on output, the effective number of iterations.
-  * \param[out] eivec : The matrix to store the eigenvectors... if needed. allocated on input
+  * \param[in,out] subdiag : The subdiagonal part of the matrix (entries are modified during the decomposition)
+  * \param[in] maxIterations : the maximum number of iterations
+  * \param[in] computeEigenvectors : whether the eigenvectors have to be computed or not
+  * \param[out] eivec : The matrix to store the eigenvectors if computeEigenvectors==true. Must be allocated on input.
   * \returns \c Success or \c NoConvergence
   */
 template<typename MatrixType, typename DiagType, typename SubDiagType>

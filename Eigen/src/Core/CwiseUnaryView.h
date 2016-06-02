@@ -12,27 +12,13 @@
 
 namespace Eigen {
 
-/** \class CwiseUnaryView
-  * \ingroup Core_Module
-  *
-  * \brief Generic lvalue expression of a coefficient-wise unary operator of a matrix or a vector
-  *
-  * \param ViewOp template functor implementing the view
-  * \param MatrixType the type of the matrix we are applying the unary operator
-  *
-  * This class represents a lvalue expression of a generic unary view operator of a matrix or a vector.
-  * It is the return type of real() and imag(), and most of the time this is the only way it is used.
-  *
-  * \sa MatrixBase::unaryViewExpr(const CustomUnaryOp &) const, class CwiseUnaryOp
-  */
-
 namespace internal {
 template<typename ViewOp, typename MatrixType>
 struct traits<CwiseUnaryView<ViewOp, MatrixType> >
  : traits<MatrixType>
 {
   typedef typename result_of<
-                     ViewOp(typename traits<MatrixType>::Scalar)
+                     ViewOp(const typename traits<MatrixType>::Scalar&)
                    >::type Scalar;
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
@@ -55,6 +41,19 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
 template<typename ViewOp, typename MatrixType, typename StorageKind>
 class CwiseUnaryViewImpl;
 
+/** \class CwiseUnaryView
+  * \ingroup Core_Module
+  *
+  * \brief Generic lvalue expression of a coefficient-wise unary operator of a matrix or a vector
+  *
+  * \tparam ViewOp template functor implementing the view
+  * \tparam MatrixType the type of the matrix we are applying the unary operator
+  *
+  * This class represents a lvalue expression of a generic unary view operator of a matrix or a vector.
+  * It is the return type of real() and imag(), and most of the time this is the only way it is used.
+  *
+  * \sa MatrixBase::unaryViewExpr(const CustomUnaryOp &) const, class CwiseUnaryOp
+  */
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename internal::traits<MatrixType>::StorageKind>
 {
@@ -62,6 +61,7 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
 
     typedef typename CwiseUnaryViewImpl<ViewOp, MatrixType,typename internal::traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryView)
+    typedef typename internal::ref_selector<MatrixType>::non_const_type MatrixTypeNested;
     typedef typename internal::remove_all<MatrixType>::type NestedExpression;
 
     explicit inline CwiseUnaryView(MatrixType& mat, const ViewOp& func = ViewOp())
@@ -76,15 +76,15 @@ class CwiseUnaryView : public CwiseUnaryViewImpl<ViewOp, MatrixType, typename in
     const ViewOp& functor() const { return m_functor; }
 
     /** \returns the nested expression */
-    const typename internal::remove_all<typename MatrixType::Nested>::type&
+    const typename internal::remove_all<MatrixTypeNested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
-    typename internal::remove_all<typename MatrixType::Nested>::type&
+    typename internal::remove_reference<MatrixTypeNested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
   protected:
-    typename internal::ref_selector<MatrixType>::type m_matrix;
+    MatrixTypeNested m_matrix;
     ViewOp m_functor;
 };
 

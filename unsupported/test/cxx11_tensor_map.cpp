@@ -19,8 +19,8 @@ static void test_0d()
   Tensor<int, 0> scalar1;
   Tensor<int, 0, RowMajor> scalar2;
 
-  TensorMap<Tensor<const int, 0>> scalar3(scalar1.data());
-  TensorMap<Tensor<const int, 0, RowMajor>> scalar4(scalar2.data());
+  TensorMap<Tensor<const int, 0> > scalar3(scalar1.data());
+  TensorMap<Tensor<const int, 0, RowMajor> > scalar4(scalar2.data());
 
   scalar1() = 7;
   scalar2() = 13;
@@ -37,8 +37,8 @@ static void test_1d()
   Tensor<int, 1> vec1(6);
   Tensor<int, 1, RowMajor> vec2(6);
 
-  TensorMap<Tensor<const int, 1>> vec3(vec1.data(), 6);
-  TensorMap<Tensor<const int, 1, RowMajor>> vec4(vec2.data(), 6);
+  TensorMap<Tensor<const int, 1> > vec3(vec1.data(), 6);
+  TensorMap<Tensor<const int, 1, RowMajor> > vec4(vec2.data(), 6);
 
   vec1(0) = 4;  vec2(0) = 0;
   vec1(1) = 8;  vec2(1) = 1;
@@ -85,8 +85,8 @@ static void test_2d()
   mat2(1,1) = 4;
   mat2(1,2) = 5;
 
-  TensorMap<Tensor<const int, 2>> mat3(mat1.data(), 2, 3);
-  TensorMap<Tensor<const int, 2, RowMajor>> mat4(mat2.data(), 2, 3);
+  TensorMap<Tensor<const int, 2> > mat3(mat1.data(), 2, 3);
+  TensorMap<Tensor<const int, 2, RowMajor> > mat4(mat2.data(), 2, 3);
 
   VERIFY_IS_EQUAL(mat3.rank(), 2);
   VERIFY_IS_EQUAL(mat3.size(), 6);
@@ -129,8 +129,8 @@ static void test_3d()
     }
   }
 
-  TensorMap<Tensor<const int, 3>> mat3(mat1.data(), 2, 3, 7);
-  TensorMap<Tensor<const int, 3, RowMajor>> mat4(mat2.data(), array<DenseIndex, 3>{{2, 3, 7}});
+  TensorMap<Tensor<const int, 3> > mat3(mat1.data(), 2, 3, 7);
+  TensorMap<Tensor<const int, 3, RowMajor> > mat4(mat2.data(), 2, 3, 7);
 
   VERIFY_IS_EQUAL(mat3.rank(), 3);
   VERIFY_IS_EQUAL(mat3.size(), 2*3*7);
@@ -173,8 +173,8 @@ static void test_from_tensor()
     }
   }
 
-  TensorMap<Tensor<int, 3>> mat3(mat1);
-  TensorMap<Tensor<int, 3, RowMajor>> mat4(mat2);
+  TensorMap<Tensor<int, 3> > mat3(mat1);
+  TensorMap<Tensor<int, 3, RowMajor> > mat4(mat2);
 
   VERIFY_IS_EQUAL(mat3.rank(), 3);
   VERIFY_IS_EQUAL(mat3.size(), 2*3*7);
@@ -199,19 +199,23 @@ static void test_from_tensor()
     }
   }
 
-  TensorFixedSize<int, Sizes<2,3,7>> mat5;
+  TensorFixedSize<int, Sizes<2,3,7> > mat5;
 
   val = 0;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
-        mat5(i,j,k) = val;
+        array<ptrdiff_t, 3> coords;
+        coords[0] = i;
+        coords[1] = j;
+        coords[2] = k;
+        mat5(coords) = val;
         val++;
       }
     }
   }
 
-  TensorMap<TensorFixedSize<int, Sizes<2,3,7>>> mat6(mat5);
+  TensorMap<TensorFixedSize<int, Sizes<2,3,7> > > mat6(mat5);
 
   VERIFY_IS_EQUAL(mat6.rank(), 3);
   VERIFY_IS_EQUAL(mat6.size(), 2*3*7);
@@ -233,8 +237,8 @@ static void test_from_tensor()
 
 static int f(const TensorMap<Tensor<int, 3> >& tensor) {
   //  Size<0> empty;
-  EIGEN_STATIC_ASSERT((internal::array_size<Sizes<>>::value == 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
-  EIGEN_STATIC_ASSERT((internal::array_size<DSizes<int, 0>>::value == 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::array_size<Sizes<> >::value == 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
+  EIGEN_STATIC_ASSERT((internal::array_size<DSizes<int, 0> >::value == 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
   Tensor<int, 0> result = tensor.sum();
   return result();
 }
@@ -253,7 +257,7 @@ static void test_casting()
     }
   }
 
-  TensorMap<Tensor<int, 3>> map(tensor);
+  TensorMap<Tensor<int, 3> > map(tensor);
   int sum1 = f(map);
   int sum2 = f(tensor);
 

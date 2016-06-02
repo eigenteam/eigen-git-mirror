@@ -12,6 +12,7 @@
 #include "svd_fill.h"
 #include <limits>
 #include <Eigen/Eigenvalues>
+#include <Eigen/SparseCore>
 
 
 template<typename MatrixType> void selfadjointeigensolver_essential_check(const MatrixType& m)
@@ -164,6 +165,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   }
 }
 
+template<int>
 void bug_854()
 {
   Matrix3d m;
@@ -173,6 +175,7 @@ void bug_854()
   selfadjointeigensolver_essential_check(m);
 }
 
+template<int>
 void bug_1014()
 {
   Matrix3d m;
@@ -180,6 +183,26 @@ void bug_1014()
        0,     0.11111111111111109107, 0,
        0, 0,  0.11111111111111107719;
   selfadjointeigensolver_essential_check(m);
+}
+
+template<int>
+void bug_1225()
+{
+  Matrix3d m1, m2;
+  m1.setRandom();
+  m1 = m1*m1.transpose();
+  m2 = m1.triangularView<Upper>();
+  SelfAdjointEigenSolver<Matrix3d> eig1(m1);
+  SelfAdjointEigenSolver<Matrix3d> eig2(m2.selfadjointView<Upper>());
+  VERIFY_IS_APPROX(eig1.eigenvalues(), eig2.eigenvalues());
+}
+
+template<int>
+void bug_1204()
+{
+  SparseMatrix<double> A(2,2);
+  A.setIdentity();
+  SelfAdjointEigenSolver<Eigen::SparseMatrix<double> > eig(A);
 }
 
 void test_eigensolver_selfadjoint()
@@ -210,8 +233,10 @@ void test_eigensolver_selfadjoint()
     CALL_SUBTEST_7( selfadjointeigensolver(Matrix<double,2,2>()) );
   }
   
-  CALL_SUBTEST_13( bug_854() );
-  CALL_SUBTEST_13( bug_1014() );
+  CALL_SUBTEST_13( bug_854<0>() );
+  CALL_SUBTEST_13( bug_1014<0>() );
+  CALL_SUBTEST_13( bug_1204<0>() );
+  CALL_SUBTEST_13( bug_1225<0>() );
 
   // Test problem size constructors
   s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);

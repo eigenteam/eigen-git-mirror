@@ -29,7 +29,7 @@ template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
   *
   * \brief LU decomposition of a matrix with complete pivoting, and related features
   *
-  * \param MatrixType the type of the matrix of which we are computing the LU decomposition
+  * \tparam _MatrixType the type of the matrix of which we are computing the LU decomposition
   *
   * This class represents a LU decomposition of any matrix, with complete pivoting: the matrix A is
   * decomposed as \f$ A = P^{-1} L U Q^{-1} \f$ where L is unit-lower-triangular, U is
@@ -231,6 +231,15 @@ template<typename _MatrixType> class FullPivLU
       return Solve<FullPivLU, Rhs>(*this, b.derived());
     }
 
+    /** \returns an estimate of the reciprocal condition number of the matrix of which \c *this is
+        the LU decomposition.
+      */
+    inline RealScalar rcond() const
+    {
+      eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
+      return internal::rcond_estimate_helper(m_l1_norm, *this);
+    }
+
     /** \returns the determinant of the matrix of which
       * *this is the LU decomposition. It has only linear complexity
       * (that is, O(n) where n is the dimension of the square matrix)
@@ -409,8 +418,10 @@ template<typename _MatrixType> class FullPivLU
     PermutationQType m_q;
     IntColVectorType m_rowsTranspositions;
     IntRowVectorType m_colsTranspositions;
-    Index m_det_pq, m_nonzero_pivots;
+    Index m_nonzero_pivots;
+    RealScalar m_l1_norm;
     RealScalar m_maxpivot, m_prescribedThreshold;
+    char m_det_pq;
     bool m_isInitialized, m_usePrescribedThreshold;
 };
 
@@ -455,11 +466,12 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const EigenBase<InputType>
   // the permutations are stored as int indices, so just to be sure:
   eigen_assert(matrix.rows()<=NumTraits<int>::highest() && matrix.cols()<=NumTraits<int>::highest());
 
-  m_isInitialized = true;
   m_lu = matrix.derived();
+  m_l1_norm = m_lu.cwiseAbs().colwise().sum().maxCoeff();
 
   computeInPlace();
 
+  m_isInitialized = true;
   return *this;
 }
 

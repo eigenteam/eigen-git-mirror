@@ -10,7 +10,7 @@
 #include "matrix_functions.h"
 
 template<typename T>
-void test2dRotation(double tol)
+void test2dRotation(const T& tol)
 {
   Matrix<T,2,2> A, B, C;
   T angle, c, s;
@@ -19,19 +19,19 @@ void test2dRotation(double tol)
   MatrixPower<Matrix<T,2,2> > Apow(A);
 
   for (int i=0; i<=20; ++i) {
-    angle = pow(10, (i-10) / 5.);
+    angle = std::pow(T(10), (i-10) / T(5.));
     c = std::cos(angle);
     s = std::sin(angle);
     B << c, s, -s, c;
 
-    C = Apow(std::ldexp(angle,1) / M_PI);
+    C = Apow(std::ldexp(angle,1) / T(EIGEN_PI));
     std::cout << "test2dRotation: i = " << i << "   error powerm = " << relerr(C,B) << '\n';
     VERIFY(C.isApprox(B, tol));
   }
 }
 
 template<typename T>
-void test2dHyperbolicRotation(double tol)
+void test2dHyperbolicRotation(const T& tol)
 {
   Matrix<std::complex<T>,2,2> A, B, C;
   T angle, ch = std::cosh((T)1);
@@ -53,7 +53,7 @@ void test2dHyperbolicRotation(double tol)
 }
 
 template<typename T>
-void test3dRotation(double tol)
+void test3dRotation(const T& tol)
 {
   Matrix<T,3,1> v;
   T angle;
@@ -61,13 +61,13 @@ void test3dRotation(double tol)
   for (int i=0; i<=20; ++i) {
     v = Matrix<T,3,1>::Random();
     v.normalize();
-    angle = pow(10, (i-10) / 5.);
+    angle = std::pow(T(10), (i-10) / T(5.));
     VERIFY(AngleAxis<T>(angle, v).matrix().isApprox(AngleAxis<T>(1,v).matrix().pow(angle), tol));
   }
 }
 
 template<typename MatrixType>
-void testGeneral(const MatrixType& m, double tol)
+void testGeneral(const MatrixType& m, const typename MatrixType::RealScalar& tol)
 {
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType m1, m2, m3, m4, m5;
@@ -97,7 +97,7 @@ void testGeneral(const MatrixType& m, double tol)
 }
 
 template<typename MatrixType>
-void testSingular(const MatrixType& m_const, double tol)
+void testSingular(const MatrixType& m_const, const typename MatrixType::RealScalar& tol)
 {
   // we need to pass by reference in order to prevent errors with
   // MSVC for aligned data types ...
@@ -119,18 +119,18 @@ void testSingular(const MatrixType& m_const, double tol)
     MatrixPower<MatrixType> mpow(m);
 
     T = T.sqrt();
-    VERIFY(mpow(0.5).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
+    VERIFY(mpow(0.5L).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
 
     T = T.sqrt();
-    VERIFY(mpow(0.25).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
+    VERIFY(mpow(0.25L).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
 
     T = T.sqrt();
-    VERIFY(mpow(0.125).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
+    VERIFY(mpow(0.125L).isApprox(U * (TriangularType(T) * U.adjoint()), tol));
   }
 }
 
 template<typename MatrixType>
-void testLogThenExp(const MatrixType& m_const, double tol)
+void testLogThenExp(const MatrixType& m_const, const typename MatrixType::RealScalar& tol)
 {
   // we need to pass by reference in order to prevent errors with
   // MSVC for aligned data types ...
@@ -154,14 +154,14 @@ void test_matrix_power()
 {
   CALL_SUBTEST_2(test2dRotation<double>(1e-13));
   CALL_SUBTEST_1(test2dRotation<float>(2e-5));  // was 1e-5, relaxed for clang 2.8 / linux / x86-64
-  CALL_SUBTEST_9(test2dRotation<long double>(1e-13)); 
+  CALL_SUBTEST_9(test2dRotation<long double>(1e-13L));
   CALL_SUBTEST_2(test2dHyperbolicRotation<double>(1e-14));
   CALL_SUBTEST_1(test2dHyperbolicRotation<float>(1e-5));
-  CALL_SUBTEST_9(test2dHyperbolicRotation<long double>(1e-14));
+  CALL_SUBTEST_9(test2dHyperbolicRotation<long double>(1e-14L));
 
   CALL_SUBTEST_10(test3dRotation<double>(1e-13));
   CALL_SUBTEST_11(test3dRotation<float>(1e-5));
-  CALL_SUBTEST_12(test3dRotation<long double>(1e-13));
+  CALL_SUBTEST_12(test3dRotation<long double>(1e-13L));
 
   CALL_SUBTEST_2(testGeneral(Matrix2d(),         1e-13));
   CALL_SUBTEST_7(testGeneral(Matrix3dRowMajor(), 1e-13));
@@ -171,10 +171,10 @@ void test_matrix_power()
   CALL_SUBTEST_5(testGeneral(Matrix3cf(),        1e-4));
   CALL_SUBTEST_8(testGeneral(Matrix4f(),         1e-4));
   CALL_SUBTEST_6(testGeneral(MatrixXf(2,2),      1e-3)); // see bug 614
-  CALL_SUBTEST_9(testGeneral(MatrixXe(7,7),      1e-13));
+  CALL_SUBTEST_9(testGeneral(MatrixXe(7,7),      1e-13L));
   CALL_SUBTEST_10(testGeneral(Matrix3d(),        1e-13));
   CALL_SUBTEST_11(testGeneral(Matrix3f(),        1e-4));
-  CALL_SUBTEST_12(testGeneral(Matrix3e(),        1e-13));
+  CALL_SUBTEST_12(testGeneral(Matrix3e(),        1e-13L));
 
   CALL_SUBTEST_2(testSingular(Matrix2d(),         1e-13));
   CALL_SUBTEST_7(testSingular(Matrix3dRowMajor(), 1e-13));
@@ -184,10 +184,10 @@ void test_matrix_power()
   CALL_SUBTEST_5(testSingular(Matrix3cf(),        1e-4));
   CALL_SUBTEST_8(testSingular(Matrix4f(),         1e-4));
   CALL_SUBTEST_6(testSingular(MatrixXf(2,2),      1e-3));
-  CALL_SUBTEST_9(testSingular(MatrixXe(7,7),      1e-13));
+  CALL_SUBTEST_9(testSingular(MatrixXe(7,7),      1e-13L));
   CALL_SUBTEST_10(testSingular(Matrix3d(),        1e-13));
   CALL_SUBTEST_11(testSingular(Matrix3f(),        1e-4));
-  CALL_SUBTEST_12(testSingular(Matrix3e(),        1e-13));
+  CALL_SUBTEST_12(testSingular(Matrix3e(),        1e-13L));
 
   CALL_SUBTEST_2(testLogThenExp(Matrix2d(),         1e-13));
   CALL_SUBTEST_7(testLogThenExp(Matrix3dRowMajor(), 1e-13));
@@ -197,8 +197,8 @@ void test_matrix_power()
   CALL_SUBTEST_5(testLogThenExp(Matrix3cf(),        1e-4));
   CALL_SUBTEST_8(testLogThenExp(Matrix4f(),         1e-4));
   CALL_SUBTEST_6(testLogThenExp(MatrixXf(2,2),      1e-3));
-  CALL_SUBTEST_9(testLogThenExp(MatrixXe(7,7),      1e-13));
+  CALL_SUBTEST_9(testLogThenExp(MatrixXe(7,7),      1e-13L));
   CALL_SUBTEST_10(testLogThenExp(Matrix3d(),        1e-13));
   CALL_SUBTEST_11(testLogThenExp(Matrix3f(),        1e-4));
-  CALL_SUBTEST_12(testLogThenExp(Matrix3e(),        1e-13));
+  CALL_SUBTEST_12(testLogThenExp(Matrix3e(),        1e-13L));
 }

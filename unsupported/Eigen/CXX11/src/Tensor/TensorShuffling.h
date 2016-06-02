@@ -25,7 +25,6 @@ struct traits<TensorShufflingOp<Shuffle, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -55,10 +54,8 @@ class TensorShufflingOp : public TensorBase<TensorShufflingOp<Shuffle, XprType> 
 {
   public:
   typedef typename Eigen::internal::traits<TensorShufflingOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorShufflingOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorShufflingOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorShufflingOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorShufflingOp>::Index Index;
@@ -107,12 +104,16 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -147,9 +148,6 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
     }
   }
 
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
@@ -168,16 +166,23 @@ struct TensorEvaluator<const TensorShufflingOp<Shuffle, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
-    for (int i = 0; i < packetSize; ++i) {
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+    for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);
     return rslt;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    const double compute_cost = NumDims * (2 * TensorOpCost::AddCost<Index>() +
+                                           2 * TensorOpCost::MulCost<Index>() +
+                                           TensorOpCost::DivCost<Index>());
+    return m_impl.costPerCoeff(vectorized) +
+           TensorOpCost(0, 0, compute_cost, false /* vectorized */, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
@@ -221,18 +226,19 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = false,
     PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : Base(op, device)
   { }
-
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
@@ -242,12 +248,11 @@ struct TensorEvaluator<TensorShufflingOp<Shuffle, ArgType>, Device>
   template <int StoreMode> EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
-    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
 
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
     internal::pstore<CoeffReturnType, PacketReturnType>(values, x);
-    for (int i = 0; i < packetSize; ++i) {
+    for (int i = 0; i < PacketSize; ++i) {
       this->coeffRef(index+i) = values[i];
     }
   }

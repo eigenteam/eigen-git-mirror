@@ -169,7 +169,7 @@ void TriangularViewImpl<MatrixType,Mode,Dense>::solveInPlace(const MatrixBase<Ot
   eigen_assert( derived().cols() == derived().rows() && ((Side==OnTheLeft && derived().cols() == other.rows()) || (Side==OnTheRight && derived().cols() == other.cols())) );
   eigen_assert((!(Mode & ZeroDiag)) && bool(Mode & (Upper|Lower)));
 
-  enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit  && OtherDerived::IsVectorAtCompileTime };
+  enum { copy = (internal::traits<OtherDerived>::Flags & RowMajorBit)  && OtherDerived::IsVectorAtCompileTime && OtherDerived::SizeAtCompileTime!=1};
   typedef typename internal::conditional<copy,
     typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::type OtherCopy;
   OtherCopy otherCopy(other);
@@ -213,7 +213,7 @@ template<int Side, typename TriangularType, typename Rhs> struct triangular_solv
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
-    if(!(is_same<RhsNestedCleaned,Dest>::value && extract_data(dst) == extract_data(m_rhs)))
+    if(!is_same_dense(dst,m_rhs))
       dst = m_rhs;
     m_triangularMatrix.template solveInPlace<Side>(dst);
   }

@@ -36,7 +36,7 @@ static inline void check_DenseIndex_is_signed() {
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_DENSEBASE_PLUGIN.
   *
-  * \sa \ref TopicClassHierarchy
+  * \sa \blank \ref TopicClassHierarchy
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -44,7 +44,7 @@ template<typename Derived> class DenseBase
                                             typename NumTraits<typename internal::traits<Derived>::Scalar>::Real,
                                             DenseCoeffsBase<Derived> >
 #else
-  : public DenseCoeffsBase<Derived>
+  : public DenseCoeffsBase<Derived,DirectWriteAccessors>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
@@ -60,7 +60,7 @@ template<typename Derived> class DenseBase
       * \brief The type used to store indices
       * \details This typedef is relevant for types that store multiple indices such as
       *          PermutationMatrix or Transpositions, otherwise it defaults to Eigen::Index
-      * \sa \ref TopicPreprocessorDirectives, Eigen::Index, SparseMatrixBase.
+      * \sa \blank \ref TopicPreprocessorDirectives, Eigen::Index, SparseMatrixBase.
      */
     typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
 
@@ -275,13 +275,13 @@ template<typename Derived> class DenseBase
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Derived& operator=(const DenseBase<OtherDerived>& other);
 
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
-    EIGEN_DEVICE_FUNC
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     Derived& operator=(const DenseBase& other);
 
     template<typename OtherDerived>
@@ -388,10 +388,10 @@ template<typename Derived> class DenseBase
     inline bool hasNaN() const;
     inline bool allFinite() const;
 
-    EIGEN_DEVICE_FUNC
-    inline Derived& operator*=(const Scalar& other);
-    EIGEN_DEVICE_FUNC
-    inline Derived& operator/=(const Scalar& other);
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Derived& operator*=(const Scalar& other);
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    Derived& operator/=(const Scalar& other);
 
     typedef typename internal::add_const_on_value_type<typename internal::eval<Derived>::type>::type EvalReturnType;
     /** \returns the matrix or vector obtained by evaluating this expression.

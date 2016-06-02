@@ -13,25 +13,24 @@
 
 namespace Eigen {
 
-/** \class NestByValue
-  * \ingroup Core_Module
-  *
-  * \brief Expression which must be nested by value
-  *
-  * \param ExpressionType the type of the object of which we are requiring nesting-by-value
-  *
-  * This class is the return type of MatrixBase::nestByValue()
-  * and most of the time this is the only way it is used.
-  *
-  * \sa MatrixBase::nestByValue()
-  */
-
 namespace internal {
 template<typename ExpressionType>
 struct traits<NestByValue<ExpressionType> > : public traits<ExpressionType>
 {};
 }
 
+/** \class NestByValue
+  * \ingroup Core_Module
+  *
+  * \brief Expression which must be nested by value
+  *
+  * \tparam ExpressionType the type of the object of which we are requiring nesting-by-value
+  *
+  * This class is the return type of MatrixBase::nestByValue()
+  * and most of the time this is the only way it is used.
+  *
+  * \sa MatrixBase::nestByValue()
+  */
 template<typename ExpressionType> class NestByValue
   : public internal::dense_xpr_base< NestByValue<ExpressionType> >::type
 {

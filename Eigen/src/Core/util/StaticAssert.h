@@ -26,7 +26,7 @@
 
 #ifndef EIGEN_NO_STATIC_ASSERT
 
-  #if defined(__GXX_EXPERIMENTAL_CXX0X__) || (EIGEN_COMP_MSVC >= 1600)
+  #if EIGEN_MAX_CPP_VER>=11 && (__has_feature(cxx_static_assert) || (defined(__cplusplus) && __cplusplus >= 201103L) || (EIGEN_COMP_MSVC >= 1600))
 
     // if native static_assert is enabled, let's use it
     #define EIGEN_STATIC_ASSERT(X,MSG) static_assert(X,#MSG);
@@ -50,6 +50,7 @@
         THIS_METHOD_IS_ONLY_FOR_VECTORS_OF_A_SPECIFIC_SIZE,
         THIS_METHOD_IS_ONLY_FOR_MATRICES_OF_A_SPECIFIC_SIZE,
         THIS_METHOD_IS_ONLY_FOR_OBJECTS_OF_A_SPECIFIC_SIZE,
+        OUT_OF_RANGE_ACCESS,
         YOU_MADE_A_PROGRAMMING_MISTAKE,
         EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT,
         EIGEN_INTERNAL_COMPILATION_ERROR_OR_YOU_MADE_A_PROGRAMMING_MISTAKE,

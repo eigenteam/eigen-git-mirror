@@ -16,7 +16,7 @@ using Eigen::RowMajor;
 
 static void test_tanh()
 {
-  Tensor<float, 1> vec1({6});
+  Tensor<float, 1> vec1(6);
   vec1.setRandom();
 
   Tensor<float, 1> vec2 = vec1.tanh();
@@ -28,7 +28,7 @@ static void test_tanh()
 
 static void test_sigmoid()
 {
-  Tensor<float, 1> vec1({6});
+  Tensor<float, 1> vec1(6);
   vec1.setRandom();
 
   Tensor<float, 1> vec2 = vec1.sigmoid();

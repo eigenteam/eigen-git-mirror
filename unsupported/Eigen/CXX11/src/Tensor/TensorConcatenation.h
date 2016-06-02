@@ -26,7 +26,6 @@ struct traits<TensorConcatenationOp<Axis, LhsXprType, RhsXprType> >
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename promote_storage_type<typename LhsXprType::Scalar,
                                         typename RhsXprType::Scalar>::ret Scalar;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<LhsXprType>::StorageKind,
                                         typename traits<RhsXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<LhsXprType>::Index,
@@ -60,14 +59,11 @@ class TensorConcatenationOp : public TensorBase<TensorConcatenationOp<Axis, LhsX
 {
   public:
     typedef typename internal::traits<TensorConcatenationOp>::Scalar Scalar;
-    typedef typename internal::traits<TensorConcatenationOp>::Packet Packet;
     typedef typename internal::traits<TensorConcatenationOp>::StorageKind StorageKind;
     typedef typename internal::traits<TensorConcatenationOp>::Index Index;
     typedef typename internal::nested<TensorConcatenationOp>::type Nested;
     typedef typename internal::promote_storage_type<typename LhsXprType::CoeffReturnType,
                                                     typename RhsXprType::CoeffReturnType>::ret CoeffReturnType;
-    typedef typename internal::promote_storage_type<typename LhsXprType::PacketReturnType,
-                                                    typename RhsXprType::PacketReturnType>::ret PacketReturnType;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorConcatenationOp(const LhsXprType& lhs, const RhsXprType& rhs, Axis axis)
@@ -120,19 +116,20 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   typedef DSizes<Index, NumDims> Dimensions;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   enum {
     IsAligned = false,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : m_leftImpl(op.lhsExpression(), device), m_rightImpl(op.rhsExpression(), device), m_axis(op.axis())
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout) || NumDims == 1), YOU_MADE_A_PROGRAMMING_MISTAKE);
-    EIGEN_STATIC_ASSERT(NumDims == RightNumDims, YOU_MADE_A_PROGRAMMING_MISTAKE);
-    EIGEN_STATIC_ASSERT(NumDims > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((NumDims == RightNumDims), YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((NumDims > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
 
     eigen_assert(0 <= m_axis && m_axis < NumDims);
     const Dimensions& lhs_dims = m_leftImpl.dimensions();
@@ -251,8 +248,8 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
+    EIGEN_STATIC_ASSERT((packetSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index + packetSize - 1 < dimensions().TotalSize());
 
     EIGEN_ALIGN_MAX CoeffReturnType values[packetSize];
@@ -261,6 +258,21 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);
     return rslt;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    const double compute_cost = NumDims * (2 * TensorOpCost::AddCost<Index>() +
+                                           2 * TensorOpCost::MulCost<Index>() +
+                                           TensorOpCost::DivCost<Index>() +
+                                           TensorOpCost::ModCost<Index>());
+    const double lhs_size = m_leftImpl.dimensions().TotalSize();
+    const double rhs_size = m_rightImpl.dimensions().TotalSize();
+    return (lhs_size / (lhs_size + rhs_size)) *
+               m_leftImpl.costPerCoeff(vectorized) +
+           (rhs_size / (lhs_size + rhs_size)) *
+               m_rightImpl.costPerCoeff(vectorized) +
+           TensorOpCost(0, 0, compute_cost);
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
@@ -287,6 +299,7 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
     IsAligned = false,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(XprType& op, const Device& device)
@@ -298,7 +311,7 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType& coeffRef(Index index)
   {
@@ -331,8 +344,8 @@ template<typename Axis, typename LeftArgType, typename RightArgType, typename De
   template <int StoreMode> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void writePacket(Index index, const PacketReturnType& x)
   {
-    static const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
+    EIGEN_STATIC_ASSERT((packetSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index + packetSize - 1 < this->dimensions().TotalSize());
 
     EIGEN_ALIGN_MAX CoeffReturnType values[packetSize];

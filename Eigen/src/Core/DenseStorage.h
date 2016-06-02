@@ -67,13 +67,13 @@ struct plain_array
   template<typename PtrType>
   EIGEN_ALWAYS_INLINE PtrType eigen_unaligned_array_assert_workaround_gcc47(PtrType array) { return array; }
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask) \
-    eigen_assert((reinterpret_cast<size_t>(eigen_unaligned_array_assert_workaround_gcc47(array)) & (sizemask)) == 0 \
+    eigen_assert((internal::UIntPtr(eigen_unaligned_array_assert_workaround_gcc47(array)) & (sizemask)) == 0 \
               && "this assertion is explained here: " \
               "http://eigen.tuxfamily.org/dox-devel/group__TopicUnalignedArrayAssert.html" \
               " **** READ THIS WEB PAGE !!! ****");
 #else
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask) \
-    eigen_assert((reinterpret_cast<size_t>(array) & (sizemask)) == 0 \
+    eigen_assert((internal::UIntPtr(array) & (sizemask)) == 0 \
               && "this assertion is explained here: " \
               "http://eigen.tuxfamily.org/dox-devel/group__TopicUnalignedArrayAssert.html" \
               " **** READ THIS WEB PAGE !!! ****");
@@ -362,7 +362,7 @@ template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynam
       }
       return *this;
     }
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
@@ -441,7 +441,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
       }
       return *this;
     }    
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))
@@ -514,7 +514,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
       }
       return *this;
     }    
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
     DenseStorage(DenseStorage&& other)
       : m_data(std::move(other.m_data))

@@ -1,4 +1,4 @@
-set(Eigen_CXX11_HEADERS Core Tensor TensorSymmetry)
+set(Eigen_CXX11_HEADERS Tensor TensorSymmetry ThreadPool)
 
 install(FILES
   ${Eigen_CXX11_HEADERS}

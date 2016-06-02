@@ -42,6 +42,17 @@ template<> struct adjoint_specific<false> {
     VERIFY_IS_APPROX(v1, v1.norm() * v3);
     VERIFY_IS_APPROX(v3, v1.normalized());
     VERIFY_IS_APPROX(v3.norm(), RealScalar(1));
+
+    // check null inputs
+    VERIFY_IS_APPROX((v1*0).normalized(), (v1*0));
+#if (!EIGEN_ARCH_i386) || defined(EIGEN_VECTORIZE)
+    RealScalar very_small = (std::numeric_limits<RealScalar>::min)();
+    VERIFY( (v1*very_small).norm() == 0 );
+    VERIFY_IS_APPROX((v1*very_small).normalized(), (v1*very_small));
+    v3 = v1*very_small;
+    v3.normalize();
+    VERIFY_IS_APPROX(v3, (v1*very_small));
+#endif
     
     // check compatibility of dot and adjoint
     ref = NumTraits<Scalar>::IsInteger ? 0 : (std::max)((std::max)(v1.norm(),v2.norm()),(std::max)((square * v2).norm(),(square.adjoint() * v1).norm()));

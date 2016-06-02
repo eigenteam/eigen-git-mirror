@@ -10,7 +10,6 @@
 #if defined(EIGEN_USE_GPU) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_CUDA_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_CUDA_H
 
-
 namespace Eigen {
 
 // This defines an interface that GPUDevice can take to use
@@ -25,6 +24,9 @@ class StreamInterface {
   // Allocate memory on the actual device where the computation will run
   virtual void* allocate(size_t num_bytes) const = 0;
   virtual void deallocate(void* buffer) const = 0;
+
+  // Return a scratchpad buffer of size 1k
+  virtual void* scratchpad() const = 0;
 };
 
 static cudaDeviceProp* m_deviceProperties;
@@ -35,12 +37,23 @@ static void initializeDeviceProp() {
     if (!m_devicePropInitialized) {
       int num_devices;
       cudaError_t status = cudaGetDeviceCount(&num_devices);
-      EIGEN_UNUSED_VARIABLE(status)
-      assert(status == cudaSuccess);
+      if (status != cudaSuccess) {
+        std::cerr << "Failed to get the number of CUDA devices: "
+                  << cudaGetErrorString(status)
+                  << std::endl;
+        assert(status == cudaSuccess);
+      }
       m_deviceProperties = new cudaDeviceProp[num_devices];
       for (int i = 0; i < num_devices; ++i) {
         status = cudaGetDeviceProperties(&m_deviceProperties[i], i);
-        assert(status == cudaSuccess);
+        if (status != cudaSuccess) {
+          std::cerr << "Failed to initialize CUDA device #"
+                    << i
+                    << ": "
+                    << cudaGetErrorString(status)
+                    << std::endl;
+          assert(status == cudaSuccess);
+        }
       }
       m_devicePropInitialized = true;
     }
@@ -52,12 +65,12 @@ static const cudaStream_t default_stream = cudaStreamDefault;
 class CudaStreamDevice : public StreamInterface {
  public:
   // Use the default stream on the current device
-  CudaStreamDevice() : stream_(&default_stream) {
+  CudaStreamDevice() : stream_(&default_stream), scratch_(NULL) {
     cudaGetDevice(&device_);
     initializeDeviceProp();
   }
   // Use the default stream on the specified device
-  CudaStreamDevice(int device) : stream_(&default_stream), device_(device) {
+  CudaStreamDevice(int device) : stream_(&default_stream), device_(device), scratch_(NULL) {
     initializeDeviceProp();
   }
   // Use the specified stream. Note that it's the
@@ -65,7 +78,7 @@ class CudaStreamDevice : public StreamInterface {
   // the specified device. If no device is specified the code
   // assumes that the stream is associated to the current gpu device.
   CudaStreamDevice(const cudaStream_t* stream, int device = -1)
-      : stream_(stream), device_(device) {
+      : stream_(stream), device_(device), scratch_(NULL) {
     if (device < 0) {
       cudaGetDevice(&device_);
     } else {
@@ -77,6 +90,12 @@ class CudaStreamDevice : public StreamInterface {
       device_ = device;
     }
     initializeDeviceProp();
+  }
+
+  virtual ~CudaStreamDevice() {
+    if (scratch_) {
+      deallocate(scratch_);
+    }
   }
 
   const cudaStream_t& stream() const { return *stream_; }
@@ -102,18 +121,28 @@ class CudaStreamDevice : public StreamInterface {
     assert(err == cudaSuccess);
   }
 
+  virtual void* scratchpad() const {
+    if (scratch_ == NULL) {
+      scratch_ = allocate(1024);
+    }
+    return scratch_;
+  }
+
  private:
   const cudaStream_t* stream_;
   int device_;
+  mutable void* scratch_;
 };
 
 struct GpuDevice {
   // The StreamInterface is not owned: the caller is
   // responsible for its initialization and eventual destruction.
-  explicit GpuDevice(const StreamInterface* stream) : stream_(stream) {
+  explicit GpuDevice(const StreamInterface* stream) : stream_(stream), max_blocks_(INT_MAX) {
     eigen_assert(stream);
   }
-
+  explicit GpuDevice(const StreamInterface* stream, int num_blocks) : stream_(stream), max_blocks_(num_blocks) {
+    eigen_assert(stream);
+  }
   // TODO(bsteiner): This is an internal API, we should not expose it.
   EIGEN_STRONG_INLINE const cudaStream_t& stream() const {
     return stream_->stream();
@@ -131,9 +160,17 @@ struct GpuDevice {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
 #ifndef __CUDA_ARCH__
     stream_->deallocate(buffer);
-
 #else
     eigen_assert(false && "The default device should be used instead to generate kernel code");
+#endif
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* scratchpad() const {
+#ifndef __CUDA_ARCH__
+    return stream_->scratchpad();
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return NULL;
 #endif
   }
 
@@ -199,27 +236,68 @@ struct GpuDevice {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void synchronize() const {
 #if defined(__CUDACC__) && !defined(__CUDA_ARCH__)
     cudaError_t err = cudaStreamSynchronize(stream_->stream());
-    EIGEN_UNUSED_VARIABLE(err)
-    assert(err == cudaSuccess);
+    if (err != cudaSuccess) {
+      std::cerr << "Error detected in CUDA stream: "
+                << cudaGetErrorString(err)
+                << std::endl;
+      assert(err == cudaSuccess);
+    }
 #else
     assert(false && "The default device should be used instead to generate kernel code");
 #endif
   }
 
-  inline int getNumCudaMultiProcessors() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int getNumCudaMultiProcessors() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().multiProcessorCount;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int maxCudaThreadsPerBlock() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxCudaThreadsPerBlock() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().maxThreadsPerBlock;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int maxCudaThreadsPerMultiProcessor() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxCudaThreadsPerMultiProcessor() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().maxThreadsPerMultiProcessor;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int sharedMemPerBlock() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int sharedMemPerBlock() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().sharedMemPerBlock;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
   }
-  inline int majorDeviceVersion() const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+#ifndef __CUDA_ARCH__
     return stream_->deviceProperties().major;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int minorDeviceVersion() const {
+#ifndef __CUDA_ARCH__
+    return stream_->deviceProperties().minor;
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return 0;
+#endif
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxBlocks() const {
+    return max_blocks_;
   }
 
   // This function checks if the CUDA runtime recorded an error for the
@@ -235,27 +313,27 @@ struct GpuDevice {
 
  private:
   const StreamInterface* stream_;
-
+  int max_blocks_;
 };
 
-#ifndef __CUDA_ARCH__
-#define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)            \
-  (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);  \
+#define LAUNCH_CUDA_KERNEL(kernel, gridsize, blocksize, sharedmem, device, ...)             \
+  (kernel) <<< (gridsize), (blocksize), (sharedmem), (device).stream() >>> (__VA_ARGS__);   \
   assert(cudaGetLastError() == cudaSuccess);
-#else
-#define LAUNCH_CUDA_KERNEL(...)  \
-   eigen_assert(false && "Cannot launch a kernel from another kernel");
-#endif
+
 
 // FIXME: Should be device and kernel specific.
 #ifdef __CUDACC__
-static inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
+static EIGEN_DEVICE_FUNC inline void setCudaSharedMemConfig(cudaSharedMemConfig config) {
+#ifndef __CUDA_ARCH__
   cudaError_t status = cudaDeviceSetSharedMemConfig(config);
   EIGEN_UNUSED_VARIABLE(status)
   assert(status == cudaSuccess);
+#else
+  EIGEN_UNUSED_VARIABLE(config)
+#endif
 }
 #endif
 
 }  // end namespace Eigen
 
-#endif // EIGEN_CXX11_TENSOR_TENSOR_DEVICE_TYPE_H
+#endif  // EIGEN_CXX11_TENSOR_TENSOR_DEVICE_CUDA_H

@@ -503,7 +503,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
       Scalar lastr(0), lastw(0);
       Index l = n;
 
-      m_matT.coeffRef(n,n) = 1.0;
+      m_matT.coeffRef(n,n) = Scalar(1);
       for (Index i = n-1; i >= 0; i--)
       {
         Scalar w = m_matT.coeff(i,i) - p;

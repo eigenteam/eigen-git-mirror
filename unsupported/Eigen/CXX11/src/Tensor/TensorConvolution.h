@@ -21,7 +21,7 @@ namespace Eigen {
   */
 namespace internal {
 
-template <typename Index, typename InputDims, size_t NumKernelDims, int Layout>
+template <typename Index, typename InputDims, int NumKernelDims, int Layout>
 class IndexMapper {
  public:
   IndexMapper(const InputDims& input_dims, const array<Index, NumKernelDims>& kernel_dims,
@@ -123,7 +123,7 @@ class IndexMapper {
       }
       inputIndex += p * m_inputStrides[NumKernelDims];
     } else {
-      int limit = 0;
+      std::ptrdiff_t limit = 0;
       if (NumKernelDims < NumDims) {
         limit = NumDims - NumKernelDims - 1;
       }
@@ -147,7 +147,7 @@ class IndexMapper {
       }
       outputIndex += p * m_outputStrides[NumKernelDims];
     } else {
-      int limit = 0;
+      std::ptrdiff_t limit = 0;
       if (NumKernelDims < NumDims) {
         limit = NumDims - NumKernelDims - 1;
       }
@@ -206,7 +206,7 @@ class IndexMapper {
   }
 
  private:
-  static const size_t NumDims = internal::array_size<InputDims>::value;
+  static const int NumDims = internal::array_size<InputDims>::value;
   array<Index, NumDims> m_inputStrides;
   array<Index, NumDims> m_outputStrides;
   array<Index, NumDims> m_cudaInputStrides;
@@ -221,7 +221,6 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename promote_storage_type<typename InputXprType::Scalar,
                                         typename KernelXprType::Scalar>::ret Scalar;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename promote_storage_type<typename traits<InputXprType>::StorageKind,
                                         typename traits<KernelXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<InputXprType>::Index,
@@ -234,7 +233,7 @@ struct traits<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType> >
   static const int Layout = traits<InputXprType>::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 
@@ -255,16 +254,13 @@ struct nested<TensorConvolutionOp<Dimensions, InputXprType, KernelXprType>, 1, t
 
 
 template<typename Indices, typename InputXprType, typename KernelXprType>
-class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, InputXprType, KernelXprType> >
+class TensorConvolutionOp : public TensorBase<TensorConvolutionOp<Indices, InputXprType, KernelXprType>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorConvolutionOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename internal::promote_storage_type<typename InputXprType::CoeffReturnType,
                                                   typename KernelXprType::CoeffReturnType>::ret CoeffReturnType;
-  typedef typename internal::promote_storage_type<typename InputXprType::PacketReturnType,
-                                                  typename KernelXprType::PacketReturnType>::ret PacketReturnType;
   typedef typename Eigen::internal::nested<TensorConvolutionOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorConvolutionOp>::Index Index;
@@ -301,11 +297,17 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   typedef typename XprType::Index Index;
   typedef DSizes<Index, NumDims> Dimensions;
 
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
+
   enum {
     IsAligned = TensorEvaluator<InputArgType, Device>::IsAligned & TensorEvaluator<KernelArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<InputArgType, Device>::PacketAccess & TensorEvaluator<KernelArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<InputArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -370,10 +372,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     }
   }
 
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
@@ -408,7 +406,6 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(const Index index) const
   {
-    const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
     Index indices[2] = {index, index+PacketSize-1};
     Index startInputs[2] = {0, 0};
     if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
@@ -449,6 +446,23 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
       convolve(startInputs[1], 0, NumKernelDims-1, data[PacketSize-1]);
       return internal::pload<PacketReturnType>(data);
     }
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    const double kernel_size = m_kernelImpl.dimensions().TotalSize();
+    // We ignore the use of fused multiply-add.
+    const double convolve_compute_cost =
+        TensorOpCost::AddCost<Scalar>() + TensorOpCost::MulCost<Scalar>();
+    const double firstIndex_compute_cost =
+        NumDims *
+        (2 * TensorOpCost::AddCost<Index>() + 2 * TensorOpCost::MulCost<Index>() +
+         TensorOpCost::DivCost<Index>());
+    return TensorOpCost(0, 0, firstIndex_compute_cost, vectorized, PacketSize) +
+           kernel_size * (m_inputImpl.costPerCoeff(vectorized) +
+                          m_kernelImpl.costPerCoeff(vectorized) +
+                          TensorOpCost(0, 0, convolve_compute_cost, vectorized,
+                                       PacketSize));
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
@@ -752,6 +766,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     PacketAccess = false,
     Layout = TensorEvaluator<InputArgType, GpuDevice>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const GpuDevice& device)
@@ -773,8 +788,9 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   }
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
+  typedef typename PacketType<CoeffReturnType, GpuDevice>::type PacketReturnType;
   typedef typename InputArgType::Scalar Scalar;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -1044,6 +1060,25 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
     eigen_assert(m_buf);
     eigen_assert(index < m_dimensions.TotalSize());
     return internal::ploadt<PacketReturnType, LoadMode>(m_buf+index);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    // TODO(rmlarsen): FIXME: For now, this is just a copy of the CPU cost
+    // model.
+    const double kernel_size = m_kernelImpl.dimensions().TotalSize();
+    // We ignore the use of fused multiply-add.
+    const double convolve_compute_cost =
+        TensorOpCost::AddCost<Scalar>() + TensorOpCost::MulCost<Scalar>();
+    const double firstIndex_compute_cost =
+        NumDims *
+        (2 * TensorOpCost::AddCost<Index>() + 2 * TensorOpCost::MulCost<Index>() +
+         TensorOpCost::DivCost<Index>());
+    return TensorOpCost(0, 0, firstIndex_compute_cost, vectorized, PacketSize) +
+           kernel_size * (m_inputImpl.costPerCoeff(vectorized) +
+                          m_kernelImpl.costPerCoeff(vectorized) +
+                          TensorOpCost(0, 0, convolve_compute_cost, vectorized,
+                                       PacketSize));
   }
 
  private:

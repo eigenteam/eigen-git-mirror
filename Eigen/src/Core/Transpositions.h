@@ -12,35 +12,6 @@
 
 namespace Eigen { 
 
-/** \class Transpositions
-  * \ingroup Core_Module
-  *
-  * \brief Represents a sequence of transpositions (row/column interchange)
-  *
-  * \param SizeAtCompileTime the number of transpositions, or Dynamic
-  * \param MaxSizeAtCompileTime the maximum number of transpositions, or Dynamic. This optional parameter defaults to SizeAtCompileTime. Most of the time, you should not have to specify it.
-  *
-  * This class represents a permutation transformation as a sequence of \em n transpositions
-  * \f$[T_{n-1} \ldots T_{i} \ldots T_{0}]\f$. It is internally stored as a vector of integers \c indices.
-  * Each transposition \f$ T_{i} \f$ applied on the left of a matrix (\f$ T_{i} M\f$) interchanges
-  * the rows \c i and \c indices[i] of the matrix \c M.
-  * A transposition applied on the right (e.g., \f$ M T_{i}\f$) yields a column interchange.
-  *
-  * Compared to the class PermutationMatrix, such a sequence of transpositions is what is
-  * computed during a decomposition with pivoting, and it is faster when applying the permutation in-place.
-  * 
-  * To apply a sequence of transpositions to a matrix, simply use the operator * as in the following example:
-  * \code
-  * Transpositions tr;
-  * MatrixXf mat;
-  * mat = tr * mat;
-  * \endcode
-  * In this example, we detect that the matrix appears on both side, and so the transpositions
-  * are applied in-place without any temporary or extra copy.
-  *
-  * \sa class PermutationMatrix
-  */
-
 template<typename Derived>
 class TranspositionsBase
 {
@@ -153,6 +124,35 @@ struct traits<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageInde
   typedef TranspositionsStorage StorageKind;
 };
 }
+
+/** \class Transpositions
+  * \ingroup Core_Module
+  *
+  * \brief Represents a sequence of transpositions (row/column interchange)
+  *
+  * \tparam SizeAtCompileTime the number of transpositions, or Dynamic
+  * \tparam MaxSizeAtCompileTime the maximum number of transpositions, or Dynamic. This optional parameter defaults to SizeAtCompileTime. Most of the time, you should not have to specify it.
+  *
+  * This class represents a permutation transformation as a sequence of \em n transpositions
+  * \f$[T_{n-1} \ldots T_{i} \ldots T_{0}]\f$. It is internally stored as a vector of integers \c indices.
+  * Each transposition \f$ T_{i} \f$ applied on the left of a matrix (\f$ T_{i} M\f$) interchanges
+  * the rows \c i and \c indices[i] of the matrix \c M.
+  * A transposition applied on the right (e.g., \f$ M T_{i}\f$) yields a column interchange.
+  *
+  * Compared to the class PermutationMatrix, such a sequence of transpositions is what is
+  * computed during a decomposition with pivoting, and it is faster when applying the permutation in-place.
+  *
+  * To apply a sequence of transpositions to a matrix, simply use the operator * as in the following example:
+  * \code
+  * Transpositions tr;
+  * MatrixXf mat;
+  * mat = tr * mat;
+  * \endcode
+  * In this example, we detect that the matrix appears on both side, and so the transpositions
+  * are applied in-place without any temporary or extra copy.
+  *
+  * \sa class PermutationMatrix
+  */
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename _StorageIndex>
 class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTime,MaxSizeAtCompileTime,_StorageIndex> >
@@ -325,7 +325,7 @@ class TranspositionsWrapper
 
   protected:
 
-    const typename IndicesType::Nested m_indices;
+    typename IndicesType::Nested m_indices;
 };
 
 

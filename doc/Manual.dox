@@ -59,6 +59,8 @@ namespace Eigen {
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TutorialMapClass
     \ingroup DenseMatrixManipulation_chapter */
+/** \addtogroup TutorialReshapeSlicing
+    \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TopicAliasing
     \ingroup DenseMatrixManipulation_chapter */
 /** \addtogroup TopicStorageOrders
@@ -87,6 +89,9 @@ namespace Eigen {
     \ingroup DenseMatrixManipulation_Reference */ 
 /** \addtogroup Householder_Module
     \ingroup DenseMatrixManipulation_Reference */ 
+
+/** \addtogroup CoeffwiseMathFunctions
+    \ingroup DenseMatrixManipulation_chapter */
 
 /** \addtogroup QuickRefPage
     \ingroup DenseMatrixManipulation_chapter */

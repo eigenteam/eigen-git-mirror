@@ -99,9 +99,16 @@
   #define EIGEN_COMP_ARM 0
 #endif
 
+/// \internal EIGEN_COMP_ARM set to 1 if the compiler is ARM Compiler
+#if defined(__EMSCRIPTEN__)
+  #define EIGEN_COMP_EMSCRIPTEN 1
+#else
+  #define EIGEN_COMP_EMSCRIPTEN 0
+#endif
+
 
 /// \internal EIGEN_GNUC_STRICT set to 1 if the compiler is really GCC and not a compatible compiler (e.g., ICC, clang, mingw, etc.)
-#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM )
+#if EIGEN_COMP_GNUC && !(EIGEN_COMP_CLANG || EIGEN_COMP_ICC || EIGEN_COMP_MINGW || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM || EIGEN_COMP_EMSCRIPTEN)
   #define EIGEN_COMP_GNUC_STRICT 1
 #else
   #define EIGEN_COMP_GNUC_STRICT 0
@@ -333,47 +340,82 @@
 # define __has_feature(x) 0
 #endif
 
+// Upperbound on the C++ version to use.
+// Expected values are 03, 11, 14, 17, etc.
+// By default, let's use an arbitrarily large C++ version.
+#ifndef EIGEN_MAX_CPP_VER
+#define EIGEN_MAX_CPP_VER 99
+#endif
+
 // Do we support r-value references?
-#if (__has_feature(cxx_rvalue_references) || \
+#ifndef EIGEN_HAS_RVALUE_REFERENCES
+#if EIGEN_MAX_CPP_VER>=11 && \
+    (__has_feature(cxx_rvalue_references) || \
     (defined(__cplusplus) && __cplusplus >= 201103L) || \
-     defined(__GXX_EXPERIMENTAL_CXX0X__) || \
     (EIGEN_COMP_MSVC >= 1600))
-  #define EIGEN_HAVE_RVALUE_REFERENCES
+  #define EIGEN_HAS_RVALUE_REFERENCES 1
+#else
+  #define EIGEN_HAS_RVALUE_REFERENCES 0
+#endif
 #endif
 
 // Does the compiler support C99?
-#if (defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
+#ifndef EIGEN_HAS_C99_MATH
+#if EIGEN_MAX_CPP_VER>=11 && \
+    ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
   || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
-  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER))
-#define EIGEN_HAS_C99_MATH 1
+  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)))
+  #define EIGEN_HAS_C99_MATH 1
+#else
+  #define EIGEN_HAS_C99_MATH 0
+#endif
 #endif
 
 // Does the compiler support result_of?
-#if (__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L))
+#ifndef EIGEN_HAS_STD_RESULT_OF
+#if EIGEN_MAX_CPP_VER>=11 && ((__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L)))
 #define EIGEN_HAS_STD_RESULT_OF 1
+#else
+#define EIGEN_HAS_STD_RESULT_OF 0
+#endif
 #endif
 
 // Does the compiler support variadic templates?
-#if __cplusplus > 199711L
+#ifndef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900) \
+    && ( !defined(__NVCC__) || !EIGEN_ARCH_ARM_OR_ARM64 )
+    // ^^ Disable the use of variadic templates when compiling with nvcc on ARM devices:
+    //    this prevents nvcc from crashing when compiling Eigen on Tegra X1
 #define EIGEN_HAS_VARIADIC_TEMPLATES 1
+#else
+#define EIGEN_HAS_VARIADIC_TEMPLATES 0
+#endif
 #endif
 
-// Does the compiler support const expressions?
+// Does the compiler fully support const expressions? (as in c++14)
+#ifndef EIGEN_HAS_CONSTEXPR
+
 #ifdef __CUDACC__
-// Const expressions are supported provided that c++11 is enabled and we're using nvcc 7.5 or above
-#if defined(__CUDACC_VER__) &&  __CUDACC_VER__ >= 70500 && __cplusplus > 199711L
+// Const expressions are supported provided that c++11 is enabled and we're using either clang or nvcc 7.5 or above
+#if EIGEN_MAX_CPP_VER>=14 && (__cplusplus > 199711L && defined(__CUDACC_VER__) && (EIGEN_COMP_CLANG || __CUDACC_VER__ >= 70500))
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
-#elif (defined(__cplusplus) && __cplusplus >= 201402L) || \
-    EIGEN_GNUC_AT_LEAST(4,8)
+#elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
+  (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L)))
 #define EIGEN_HAS_CONSTEXPR 1
+#endif
+
+#ifndef EIGEN_HAS_CONSTEXPR
+#define EIGEN_HAS_CONSTEXPR 0
+#endif
+
 #endif
 
 // Does the compiler support C++11 math?
 // Let's be conservative and enable the default C++11 implementation only if we are sure it exists
 #ifndef EIGEN_HAS_CXX11_MATH
-  #if (__cplusplus > 201103L) || (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
-      && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC)
+  #if EIGEN_MAX_CPP_VER>=11 && ((__cplusplus > 201103L) || (__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_MSVC || EIGEN_COMP_ICC)  \
+      && (EIGEN_ARCH_i386_OR_x86_64) && (EIGEN_OS_GNULINUX || EIGEN_OS_WIN_STRICT || EIGEN_OS_MAC))
     #define EIGEN_HAS_CXX11_MATH 1
   #else
     #define EIGEN_HAS_CXX11_MATH 0
@@ -382,9 +424,10 @@
 
 // Does the compiler support proper C++11 containers?
 #ifndef EIGEN_HAS_CXX11_CONTAINERS
-  #if    (__cplusplus > 201103L) \
+  #if    EIGEN_MAX_CPP_VER>=11 && \
+         ((__cplusplus > 201103L) \
       || ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_ICC>=1400)) \
-      || EIGEN_COMP_MSVC >= 1900
+      || EIGEN_COMP_MSVC >= 1900)
     #define EIGEN_HAS_CXX11_CONTAINERS 1
   #else
     #define EIGEN_HAS_CXX11_CONTAINERS 0
@@ -393,9 +436,10 @@
 
 // Does the compiler support C++11 noexcept?
 #ifndef EIGEN_HAS_CXX11_NOEXCEPT
-  #if    (__cplusplus > 201103L) \
+  #if    EIGEN_MAX_CPP_VER>=11 && \
+         ((__cplusplus > 201103L) \
       || ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_ICC>=1400)) \
-      || EIGEN_COMP_MSVC >= 1900
+      || EIGEN_COMP_MSVC >= 1900)
     #define EIGEN_HAS_CXX11_NOEXCEPT 1
   #else
     #define EIGEN_HAS_CXX11_NOEXCEPT 0
@@ -562,12 +606,12 @@ namespace Eigen {
 
 //------------------------------------------------------------------------------------------
 // Static and dynamic alignment control
-// 
+//
 // The main purpose of this section is to define EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES
 // as the maximal boundary in bytes on which dynamically and statically allocated data may be alignment respectively.
 // The values of EIGEN_MAX_ALIGN_BYTES and EIGEN_MAX_STATIC_ALIGN_BYTES can be specified by the user. If not,
 // a default value is automatically computed based on architecture, compiler, and OS.
-// 
+//
 // This section also defines macros EIGEN_ALIGN_TO_BOUNDARY(N) and the shortcuts EIGEN_ALIGN{8,16,32,_MAX}
 // to be used to declare statically aligned buffers.
 //------------------------------------------------------------------------------------------
@@ -627,7 +671,7 @@ namespace Eigen {
 #ifndef EIGEN_MAX_STATIC_ALIGN_BYTES
 
   // Try to automatically guess what is the best default value for EIGEN_MAX_STATIC_ALIGN_BYTES
-  
+
   // 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable
   // 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
   // enable alignment, but it can be a cause of problems on some platforms, so we just disable it in
@@ -654,13 +698,13 @@ namespace Eigen {
   #else
     #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
   #endif
-  
+
   #if EIGEN_ARCH_WANTS_STACK_ALIGNMENT
     #define EIGEN_MAX_STATIC_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
   #else
     #define EIGEN_MAX_STATIC_ALIGN_BYTES 0
   #endif
-  
+
 #endif
 
 // If EIGEN_MAX_ALIGN_BYTES is defined, then it is considered as an upper bound for EIGEN_MAX_ALIGN_BYTES
@@ -710,6 +754,11 @@ namespace Eigen {
 #define EIGEN_DEFAULT_ALIGN_BYTES EIGEN_IDEAL_MAX_ALIGN_BYTES
 #else
 #define EIGEN_DEFAULT_ALIGN_BYTES EIGEN_MAX_ALIGN_BYTES
+#endif
+
+
+#ifndef EIGEN_UNALIGNED_VECTORIZE
+#define EIGEN_UNALIGNED_VECTORIZE 1
 #endif
 
 //----------------------------------------------------------------------

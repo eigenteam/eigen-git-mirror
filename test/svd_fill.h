@@ -54,7 +54,7 @@ void svd_fill_random(MatrixType &m, int Option = 0)
   }
   
   Matrix<Scalar,Dynamic,1> samples(7);
-  samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -1./NumTraits<RealScalar>::highest(), 1./NumTraits<RealScalar>::highest();
+  samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -RealScalar(1)/NumTraits<RealScalar>::highest(), RealScalar(1)/NumTraits<RealScalar>::highest();
   
   if(Option==Symmetric)
   {
@@ -80,6 +80,8 @@ void svd_fill_random(MatrixType &m, int Option = 0)
           Index i = internal::random<Index>(0,m.rows()-1);
           Index j = internal::random<Index>(0,m.cols()-1);
           m(j,i) = m(i,j) = samples(internal::random<Index>(0,samples.size()-1));
+          if(NumTraits<Scalar>::IsComplex)
+            *(&numext::real_ref(m(j,i))+1) = *(&numext::real_ref(m(i,j))+1) = samples.real()(internal::random<Index>(0,samples.size()-1));
         }
       }
     }
@@ -91,8 +93,14 @@ void svd_fill_random(MatrixType &m, int Option = 0)
     if(!(dup && unit_uv))
     {
       Index n = internal::random<Index>(0,m.size()-1);
-      for(Index i=0; i<n; ++i)
-        m(internal::random<Index>(0,m.rows()-1), internal::random<Index>(0,m.cols()-1)) = samples(internal::random<Index>(0,samples.size()-1));
+      for(Index k=0; k<n; ++k)
+      {
+        Index i = internal::random<Index>(0,m.rows()-1);
+        Index j = internal::random<Index>(0,m.cols()-1);
+        m(i,j) = samples(internal::random<Index>(0,samples.size()-1));
+        if(NumTraits<Scalar>::IsComplex)
+          *(&numext::real_ref(m(i,j))+1) = samples.real()(internal::random<Index>(0,samples.size()-1));
+      }
     }
   }
 }

@@ -243,8 +243,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     {
       workspace.resize(rows());
       Index vecs = m_length;
-      if(    internal::is_same<typename internal::remove_all<VectorsType>::type,Dest>::value
-          && internal::extract_data(dst) == internal::extract_data(m_vectors))
+      if(is_same_dense(dst,m_vectors))
       {
         // in-place
         dst.diagonal().setOnes();
@@ -305,7 +304,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     /** \internal */
     template<typename Dest> inline void applyThisOnTheLeft(Dest& dst) const
     {
-      Matrix<Scalar,1,Dest::ColsAtCompileTime,RowMajor,1,Dest::MaxColsAtCompileTime> workspace(dst.cols());
+      Matrix<Scalar,1,Dest::ColsAtCompileTime,RowMajor,1,Dest::MaxColsAtCompileTime> workspace;
       applyThisOnTheLeft(dst, workspace);
     }
 

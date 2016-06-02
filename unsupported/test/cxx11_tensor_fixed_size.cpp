@@ -20,6 +20,8 @@ static void test_0d()
   TensorFixedSize<float, Sizes<> > scalar1;
   TensorFixedSize<float, Sizes<>, RowMajor> scalar2;
   VERIFY_IS_EQUAL(scalar1.rank(), 0);
+  VERIFY_IS_EQUAL(scalar1.size(), 1);
+  VERIFY_IS_EQUAL(array_prod(scalar1.dimensions()), 1);
 
   scalar1() = 7.0;
   scalar2() = 13.0;
@@ -128,9 +130,9 @@ static void test_tensor_map()
 static void test_2d()
 {
   float data1[6];
-  TensorMap<TensorFixedSize<float, Sizes<2, 3> >> mat1(data1,2,3);
+  TensorMap<TensorFixedSize<float, Sizes<2, 3> > > mat1(data1,2,3);
   float data2[6];
-  TensorMap<TensorFixedSize<float, Sizes<2, 3>, RowMajor>> mat2(data2,2,3);
+  TensorMap<TensorFixedSize<float, Sizes<2, 3>, RowMajor> > mat2(data2,2,3);
 
   VERIFY_IS_EQUAL((mat1.size()), 2*3);
   VERIFY_IS_EQUAL(mat1.rank(), 2);
@@ -151,7 +153,7 @@ static void test_2d()
   mat2(1,1) = -4.0;
   mat2(1,2) = -5.0;
 
-  TensorFixedSize<float, Sizes<2, 3>> mat3;
+  TensorFixedSize<float, Sizes<2, 3> > mat3;
   TensorFixedSize<float, Sizes<2, 3>, RowMajor> mat4;
   mat3 = mat1.abs();
   mat4 = mat2.abs();
@@ -186,13 +188,13 @@ static void test_3d()
   //  VERIFY_IS_EQUAL((mat1.dimension(1)), 3);
   //  VERIFY_IS_EQUAL((mat1.dimension(2)), 7);
 
-  float val = 0.0;
+  float val = 0.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         mat1(i,j,k) = val;
         mat2(i,j,k) = val;
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
@@ -208,13 +210,13 @@ static void test_3d()
   //  VERIFY_IS_EQUAL((mat3.dimension(2)), 7);
 
 
-  val = 0.0;
+  val = 0.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         VERIFY_IS_APPROX(mat3(i,j,k), sqrtf(val));
         VERIFY_IS_APPROX(mat4(i,j,k), sqrtf(val));
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
@@ -224,12 +226,12 @@ static void test_3d()
 static void test_array()
 {
   TensorFixedSize<float, Sizes<2, 3, 7> > mat1;
-  float val = 0.0;
+  float val = 0.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         mat1(i,j,k) = val;
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }
@@ -237,12 +239,12 @@ static void test_array()
   TensorFixedSize<float, Sizes<2, 3, 7> > mat3;
   mat3 = mat1.pow(3.5f);
 
-  val = 0.0;
+  val = 0.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 7; ++k) {
         VERIFY_IS_APPROX(mat3(i,j,k), powf(val, 3.5f));
-        val += 1.0;
+        val += 1.0f;
       }
     }
   }

@@ -97,9 +97,9 @@ template<typename Scalar> void lines()
     Vector u = Vector::Random();
     Vector v = Vector::Random();
     Scalar a = internal::random<Scalar>();
-    while (abs(a-1) < 1e-4) a = internal::random<Scalar>();
-    while (u.norm() < 1e-4) u = Vector::Random();
-    while (v.norm() < 1e-4) v = Vector::Random();
+    while (abs(a-1) < Scalar(1e-4)) a = internal::random<Scalar>();
+    while (u.norm() < Scalar(1e-4)) u = Vector::Random();
+    while (v.norm() < Scalar(1e-4)) v = Vector::Random();
 
     HLine line_u = HLine::Through(center + u, center + a*u);
     HLine line_v = HLine::Through(center + v, center + a*v);
@@ -111,14 +111,14 @@ template<typename Scalar> void lines()
     Vector result = line_u.intersection(line_v);
 
     // the lines should intersect at the point we called "center"
-    if(abs(a-1) > 1e-2 && abs(v.normalized().dot(u.normalized()))<0.9)
+    if(abs(a-1) > Scalar(1e-2) && abs(v.normalized().dot(u.normalized()))<Scalar(0.9))
       VERIFY_IS_APPROX(result, center);
 
     // check conversions between two types of lines
     PLine pl(line_u); // gcc 3.3 will commit suicide if we don't name this variable
     HLine line_u2(pl);
     CoeffsType converted_coeffs = line_u2.coeffs();
-    if(line_u2.normal().dot(line_u.normal())<0.)
+    if(line_u2.normal().dot(line_u.normal())<Scalar(0))
       converted_coeffs = -line_u2.coeffs();
     VERIFY(line_u.coeffs().isApprox(converted_coeffs));
   }

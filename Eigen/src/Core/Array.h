@@ -12,7 +12,16 @@
 
 namespace Eigen {
 
-/** \class Array 
+namespace internal {
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+{
+  typedef ArrayXpr XprKind;
+  typedef ArrayBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > XprBase;
+};
+}
+
+/** \class Array
   * \ingroup Core_Module
   *
   * \brief General-purpose arrays with easy API for coefficient-wise operations
@@ -26,21 +35,12 @@ namespace Eigen {
   *
   * See documentation of class Matrix for detailed information on the template parameters
   * storage layout.
-  * 
+  *
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_ARRAY_PLUGIN.
   *
-  * \sa \ref TutorialArrayClass, \ref TopicClassHierarchy
+  * \sa \blank \ref TutorialArrayClass, \ref TopicClassHierarchy
   */
-namespace internal {
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-{
-  typedef ArrayXpr XprKind;
-  typedef ArrayBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > XprBase;
-};
-}
-
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Array
   : public PlainObjectBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
@@ -147,7 +147,7 @@ class Array
     }
 #endif
 
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
     Array(Array&& other)
       : Base(std::move(other))

@@ -12,153 +12,93 @@
 
 namespace Eigen {
 
-// This defines an interface that ThreadPoolDevice can take to use
-// custom thread pools underneath.
-class ThreadPoolInterface {
+// Use the SimpleThreadPool by default. We'll switch to the new non blocking
+// thread pool later.
+#ifndef EIGEN_USE_SIMPLE_THREAD_POOL
+template <typename Env> using ThreadPoolTempl = NonBlockingThreadPoolTempl<Env>;
+typedef NonBlockingThreadPool ThreadPool;
+#else
+template <typename Env> using ThreadPoolTempl = SimpleThreadPoolTempl<Env>;
+typedef SimpleThreadPool ThreadPool;
+#endif
+
+
+// Barrier is an object that allows one or more threads to wait until
+// Notify has been called a specified number of times.
+class Barrier {
  public:
-  virtual void Schedule(std::function<void()> fn) = 0;
-
-  virtual ~ThreadPoolInterface() {}
-};
-
-// The implementation of the ThreadPool type ensures that the Schedule method
-// runs the functions it is provided in FIFO order when the scheduling is done
-// by a single thread.
-class ThreadPool : public ThreadPoolInterface {
- public:
-  // Construct a pool that contains "num_threads" threads.
-  explicit ThreadPool(int num_threads) {
-    for (int i = 0; i < num_threads; i++) {
-      threads_.push_back(new std::thread([this]() { WorkerLoop(); }));
-    }
+  Barrier(unsigned int count) : state_(count << 1), notified_(false) {
+    eigen_assert(((count << 1) >> 1) == count);
   }
-
-  // Wait until all scheduled work has finished and then destroy the
-  // set of threads.
-  ~ThreadPool()
-  {
-    {
-      // Wait for all work to get done.
-      std::unique_lock<std::mutex> l(mu_);
-      empty_.wait(l, [this]() { return pending_.empty(); });
-      exiting_ = true;
-
-      // Wakeup all waiters.
-      for (auto w : waiters_) {
-        w->ready = true;
-        w->work = nullptr;
-        w->cv.notify_one();
-      }
-    }
-
-    // Wait for threads to finish.
-    for (auto t : threads_) {
-      t->join();
-      delete t;
-    }
+  ~Barrier() {
+    eigen_assert((state_>>1) == 0);
   }
-
-  // Schedule fn() for execution in the pool of threads. The functions are
-  // executed in the order in which they are scheduled.
-  void Schedule(std::function<void()> fn) {
-    std::unique_lock<std::mutex> l(mu_);
-    if (waiters_.empty()) {
-      pending_.push_back(fn);
-    } else {
-      Waiter* w = waiters_.back();
-      waiters_.pop_back();
-      w->ready = true;
-      w->work = fn;
-      w->cv.notify_one();
-    }
-  }
-
- protected:
-  void WorkerLoop() {
-    std::unique_lock<std::mutex> l(mu_);
-    Waiter w;
-    while (!exiting_) {
-      std::function<void()> fn;
-      if (pending_.empty()) {
-        // Wait for work to be assigned to me
-        w.ready = false;
-        waiters_.push_back(&w);
-        w.cv.wait(l, [&w]() { return w.ready; });
-        fn = w.work;
-        w.work = nullptr;
-      } else {
-        // Pick up pending work
-        fn = pending_.front();
-        pending_.pop_front();
-        if (pending_.empty()) {
-          empty_.notify_all();
-        }
-      }
-      if (fn) {
-        mu_.unlock();
-        fn();
-        mu_.lock();
-      }
-    }
-  }
-
- private:
-  struct Waiter {
-    std::condition_variable cv;
-    std::function<void()> work;
-    bool ready;
-  };
-
-  std::mutex mu_;
-  std::vector<std::thread*> threads_;               // All threads
-  std::vector<Waiter*> waiters_;                    // Stack of waiting threads.
-  std::deque<std::function<void()>> pending_;       // Queue of pending work
-  std::condition_variable empty_;                   // Signaled on pending_.empty()
-  bool exiting_ = false;
-};
-
-
-// Notification is an object that allows a user to to wait for another
-// thread to signal a notification that an event has occurred.
-//
-// Multiple threads can wait on the same Notification object.
-// but only one caller must call Notify() on the object.
-class Notification {
- public:
-  Notification() : notified_(false) {}
-  ~Notification() {}
 
   void Notify() {
+    unsigned int v = state_.fetch_sub(2, std::memory_order_acq_rel) - 2;
+    if (v != 1) {
+      eigen_assert(((v + 2) & ~1) != 0);
+      return;  // either count has not dropped to 0, or waiter is not waiting
+    }
     std::unique_lock<std::mutex> l(mu_);
     eigen_assert(!notified_);
     notified_ = true;
     cv_.notify_all();
   }
 
-  void WaitForNotification() {
+  void Wait() {
+    unsigned int v = state_.fetch_or(1, std::memory_order_acq_rel);
+    if ((v >> 1) == 0) return;
     std::unique_lock<std::mutex> l(mu_);
-    cv_.wait(l, [this]() { return notified_; } );
+    while (!notified_) {
+      cv_.wait(l);
+    }
   }
 
  private:
   std::mutex mu_;
   std::condition_variable cv_;
+  std::atomic<unsigned int> state_;  // low bit is waiter flag
   bool notified_;
 };
 
+
+// Notification is an object that allows a user to to wait for another
+// thread to signal a notification that an event has occurred.
+//
+// Multiple threads can wait on the same Notification object,
+// but only one caller must call Notify() on the object.
+struct Notification : Barrier {
+  Notification() : Barrier(1) {};
+};
+
+
 // Runs an arbitrary function and then calls Notify() on the passed in
 // Notification.
-template <typename Function, typename... Args> struct FunctionWrapper
+template <typename Function, typename... Args> struct FunctionWrapperWithNotification
 {
   static void run(Notification* n, Function f, Args... args) {
     f(args...);
-    n->Notify();
+    if (n) {
+      n->Notify();
+    }
   }
 };
 
-static EIGEN_STRONG_INLINE void wait_until_ready(Notification* n) {
+template <typename Function, typename... Args> struct FunctionWrapperWithBarrier
+{
+  static void run(Barrier* b, Function f, Args... args) {
+    f(args...);
+    if (b) {
+      b->Notify();
+    }
+  }
+};
+
+template <typename SyncType>
+static EIGEN_STRONG_INLINE void wait_until_ready(SyncType* n) {
   if (n) {
-    n->WaitForNotification();
+    n->Wait();
   }
 }
 
@@ -194,6 +134,15 @@ struct ThreadPoolDevice {
     return num_threads_;
   }
 
+  EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
+    return l1CacheSize();
+  }
+
+  EIGEN_STRONG_INLINE size_t lastLevelCacheSize() const {
+    // The l3 cache size is shared between all the cores.
+    return l3CacheSize() / num_threads_;
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
     // Should return an enum that encodes the ISA supported by the CPU
     return 1;
@@ -203,14 +152,118 @@ struct ThreadPoolDevice {
   EIGEN_STRONG_INLINE Notification* enqueue(Function&& f, Args&&... args) const {
     Notification* n = new Notification();
     std::function<void()> func =
-      std::bind(&FunctionWrapper<Function, Args...>::run, n, f, args...);
+      std::bind(&FunctionWrapperWithNotification<Function, Args...>::run, n, f, args...);
     pool_->Schedule(func);
     return n;
   }
+
+  template <class Function, class... Args>
+  EIGEN_STRONG_INLINE void enqueue_with_barrier(Barrier* b,
+                                                Function&& f,
+                                                Args&&... args) const {
+    std::function<void()> func = std::bind(
+        &FunctionWrapperWithBarrier<Function, Args...>::run, b, f, args...);
+    pool_->Schedule(func);
+  }
+
   template <class Function, class... Args>
   EIGEN_STRONG_INLINE void enqueueNoNotification(Function&& f, Args&&... args) const {
     std::function<void()> func = std::bind(f, args...);
     pool_->Schedule(func);
+  }
+
+  // parallelFor executes f with [0, n) arguments in parallel and waits for
+  // completion. F accepts a half-open interval [first, last).
+  // Block size is choosen based on the iteration cost and resulting parallel
+  // efficiency. If block_align is not nullptr, it is called to round up the
+  // block size.
+  void parallelFor(Index n, const TensorOpCost& cost,
+                   std::function<Index(Index)> block_align,
+                   std::function<void(Index, Index)> f) const {
+    typedef TensorCostModel<ThreadPoolDevice> CostModel;
+    if (n <= 1 || numThreads() == 1 ||
+        CostModel::numThreads(n, cost, numThreads()) == 1) {
+      f(0, n);
+      return;
+    }
+
+    // Calculate block size based on (1) the iteration cost and (2) parallel
+    // efficiency. We want blocks to be not too small to mitigate
+    // parallelization overheads; not too large to mitigate tail
+    // effect and potential load imbalance and we also want number
+    // of blocks to be evenly dividable across threads.
+
+    double block_size_f = 1.0 / CostModel::taskSize(1, cost);
+    Index block_size = numext::mini(n, numext::maxi<Index>(1, block_size_f));
+    const Index max_block_size =
+        numext::mini(n, numext::maxi<Index>(1, 2 * block_size_f));
+    if (block_align) {
+      Index new_block_size = block_align(block_size);
+      eigen_assert(new_block_size >= block_size);
+      block_size = numext::mini(n, new_block_size);
+    }
+    Index block_count = divup(n, block_size);
+    // Calculate parallel efficiency as fraction of total CPU time used for
+    // computations:
+    double max_efficiency =
+        static_cast<double>(block_count) /
+        (divup<int>(block_count, numThreads()) * numThreads());
+    // Now try to increase block size up to max_block_size as long as it
+    // doesn't decrease parallel efficiency.
+    for (Index prev_block_count = block_count; prev_block_count > 1;) {
+      // This is the next block size that divides size into a smaller number
+      // of blocks than the current block_size.
+      Index coarser_block_size = divup(n, prev_block_count - 1);
+      if (block_align) {
+        Index new_block_size = block_align(coarser_block_size);
+        eigen_assert(new_block_size >= coarser_block_size);
+        coarser_block_size = numext::mini(n, new_block_size);
+      }
+      if (coarser_block_size > max_block_size) {
+        break;  // Reached max block size. Stop.
+      }
+      // Recalculate parallel efficiency.
+      const Index coarser_block_count = divup(n, coarser_block_size);
+      eigen_assert(coarser_block_count < prev_block_count);
+      prev_block_count = coarser_block_count;
+      const double coarser_efficiency =
+          static_cast<double>(coarser_block_count) /
+          (divup<int>(coarser_block_count, numThreads()) * numThreads());
+      if (coarser_efficiency + 0.01 >= max_efficiency) {
+        // Taking it.
+        block_size = coarser_block_size;
+        block_count = coarser_block_count;
+        if (max_efficiency < coarser_efficiency) {
+          max_efficiency = coarser_efficiency;
+        }
+      }
+    }
+
+    // Recursively divide size into halves until we reach block_size.
+    // Division code rounds mid to block_size, so we are guaranteed to get
+    // block_count leaves that do actual computations.
+    Barrier barrier(block_count);
+    std::function<void(Index, Index)> handleRange;
+    handleRange = [=, &handleRange, &barrier, &f](Index first, Index last) {
+      if (last - first <= block_size) {
+        // Single block or less, execute directly.
+        f(first, last);
+        barrier.Notify();
+        return;
+      }
+      // Split into halves and submit to the pool.
+      Index mid = first + divup((last - first) / 2, block_size) * block_size;
+      pool_->Schedule([=, &handleRange]() { handleRange(mid, last); });
+      pool_->Schedule([=, &handleRange]() { handleRange(first, mid); });
+    };
+    handleRange(0, n);
+    barrier.Wait();
+  }
+
+  // Convenience wrapper for parallelFor that does not align blocks.
+  void parallelFor(Index n, const TensorOpCost& cost,
+                   std::function<void(Index, Index)> f) const {
+    parallelFor(n, cost, nullptr, std::move(f));
   }
 
  private:

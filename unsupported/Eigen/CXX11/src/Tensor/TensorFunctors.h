@@ -25,7 +25,34 @@ struct scalar_mod_op {
 };
 template <typename Scalar>
 struct functor_traits<scalar_mod_op<Scalar> >
-{ enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
+
+
+/** \internal
+ * \brief Template functor to compute the modulo between 2 arrays.
+ */
+template <typename Scalar>
+struct scalar_mod2_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_mod2_op);
+  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a, const Scalar& b) const { return a % b; }
+};
+template <typename Scalar>
+struct functor_traits<scalar_mod2_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
+
+template <typename Scalar>
+struct scalar_fmod_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_fmod_op);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
+  operator()(const Scalar& a, const Scalar& b) const {
+    return numext::fmod(a, b);
+  }
+};
+template <typename Scalar>
+struct functor_traits<scalar_fmod_op<Scalar> > {
+  enum { Cost = 13,  // Reciprocal throughput of FPREM on Haswell.
+         PacketAccess = false };
+};
 
 
 /** \internal
@@ -37,12 +64,12 @@ struct scalar_sigmoid_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sigmoid_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T operator()(const T& x) const {
     const T one = T(1);
-    return one / (one + std::exp(-x));
+    return one / (one + numext::exp(-x));
   }
 
   template <typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Packet packetOp(const Packet& x) const {
-    const Packet one = pset1<Packet>(1);
+    const Packet one = pset1<Packet>(T(1));
     return pdiv(one, padd(one, pexp(pnegate(x))));
   }
 };
@@ -60,7 +87,7 @@ struct functor_traits<scalar_sigmoid_op<T> > {
 // Standard reduction functors
 template <typename T> struct SumReducer
 {
-  static const bool PacketAccess = true;
+  static const bool PacketAccess = packet_traits<T>::HasAdd;
   static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
@@ -72,11 +99,12 @@ template <typename T> struct SumReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return static_cast<T>(0);
+    internal::scalar_cast_op<int, T> conv;
+    return conv(0);
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(0);
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
@@ -93,7 +121,7 @@ template <typename T> struct SumReducer
 
 template <typename T> struct MeanReducer
 {
-  static const bool PacketAccess = true;
+  static const bool PacketAccess = packet_traits<T>::HasAdd && !NumTraits<T>::IsInteger;
   static const bool IsStateful = true;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -110,11 +138,12 @@ template <typename T> struct MeanReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return static_cast<T>(0);
+    internal::scalar_cast_op<int, T> conv;
+    return conv(0);
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(0);
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum / scalarCount_;
@@ -129,13 +158,13 @@ template <typename T> struct MeanReducer
   }
 
   protected:
-    int scalarCount_;
-    int packetCount_;
+    DenseIndex scalarCount_;
+    DenseIndex packetCount_;
 };
 
 template <typename T> struct MaxReducer
 {
-  static const bool PacketAccess = true;
+  static const bool PacketAccess = packet_traits<T>::HasMax;
   static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
@@ -147,11 +176,11 @@ template <typename T> struct MaxReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return -(std::numeric_limits<T>::max)();
+    return Eigen::NumTraits<T>::lowest();
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(-(std::numeric_limits<T>::max)());
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
@@ -168,7 +197,7 @@ template <typename T> struct MaxReducer
 
 template <typename T> struct MinReducer
 {
-  static const bool PacketAccess = true;
+  static const bool PacketAccess = packet_traits<T>::HasMin;
   static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
@@ -180,11 +209,11 @@ template <typename T> struct MinReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return (std::numeric_limits<T>::max)();
+    return Eigen::NumTraits<T>::highest();
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>((std::numeric_limits<T>::max)());
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
@@ -202,7 +231,7 @@ template <typename T> struct MinReducer
 
 template <typename T> struct ProdReducer
 {
-  static const bool PacketAccess = true;
+  static const bool PacketAccess = packet_traits<T>::HasMul;
   static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
@@ -214,11 +243,12 @@ template <typename T> struct ProdReducer
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return static_cast<T>(1);
+    internal::scalar_cast_op<int, T> conv;
+    return conv(1);
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
-    return pset1<Packet>(1);
+    return pset1<Packet>(initialize());
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T accum) const {
     return accum;
@@ -237,6 +267,8 @@ template <typename T> struct ProdReducer
 struct AndReducer
 {
   static const bool PacketAccess = false;
+  static const bool IsStateful = false;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(bool t, bool* accum) const {
     *accum = *accum && t;
   }
@@ -250,6 +282,8 @@ struct AndReducer
 
 struct OrReducer {
   static const bool PacketAccess = false;
+  static const bool IsStateful = false;
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(bool t, bool* accum) const {
     *accum = *accum || t;
   }
@@ -302,7 +336,7 @@ __device__ int get_random_seed() {
     return clock();
 }
 #else
-int get_random_seed() {
+static inline int get_random_seed() {
 #ifdef _WIN32
     SYSTEMTIME st;
     GetSystemTime(&st);
@@ -335,50 +369,54 @@ template <typename T> class UniformRandomGenerator {
   }
 
   template<typename Index>
-  T operator()(Index, Index = 0) const {
+  T operator()(Index) const {
     return random<T>();
   }
-  template<typename Index>
-  typename internal::packet_traits<T>::type packetOp(Index, Index = 0) const {
-    const int packetSize = internal::packet_traits<T>::size;
+  template<typename Index, typename PacketType>
+  PacketType packetOp(Index) const {
+    const int packetSize = internal::unpacket_traits<PacketType>::size;
     EIGEN_ALIGN_MAX T values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
       values[i] = random<T>();
     }
-    return internal::pload<typename internal::packet_traits<T>::type>(values);
+    return internal::pload<PacketType>(values);
   }
 
  private:
   bool m_deterministic;
 };
 
-#if __cplusplus > 199711
+#if __cplusplus > 199711 || EIGEN_COMP_MSVC >= 1900
 template <> class UniformRandomGenerator<float> {
  public:
   static const bool PacketAccess = true;
 
-  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_generator(new std::mt19937()) {
     if (!deterministic) {
-      m_generator.seed(get_random_seed());
+      m_generator->seed(get_random_seed());
     }
   }
   UniformRandomGenerator(const UniformRandomGenerator<float>& other) {
-    m_generator.seed(other(0, 0) * UINT_MAX);
+    m_generator = new std::mt19937();
+    m_generator->seed(other(0) * UINT_MAX);
     m_deterministic = other.m_deterministic;
+  }
+  ~UniformRandomGenerator() {
+    delete m_generator;
   }
 
   template<typename Index>
-  float operator()(Index, Index = 0) const {
-    return m_distribution(m_generator);
+  float operator()(Index) const {
+    return m_distribution(*m_generator);
   }
-  template<typename Index>
-  typename internal::packet_traits<float>::type packetOp(Index i, Index j = 0) const {
-    const int packetSize = internal::packet_traits<float>::size;
+  template<typename Index, typename PacketType>
+  PacketType packetOp(Index i) const {
+    const int packetSize = internal::unpacket_traits<PacketType>::size;
     EIGEN_ALIGN_MAX float values[packetSize];
     for (int k = 0; k < packetSize; ++k) {
-      values[k] = this->operator()(i, j);
+      values[k] = this->operator()(i);
     }
-    return internal::pload<typename internal::packet_traits<float>::type>(values);
+    return internal::pload<PacketType>(values);
   }
 
  private:
@@ -386,7 +424,7 @@ template <> class UniformRandomGenerator<float> {
   // Make sure m_deterministic comes first to match the layout of the cpu
   // version of the code.
   bool m_deterministic;
-  mutable std::mt19937 m_generator;
+  std::mt19937* m_generator;
   mutable std::uniform_real_distribution<float> m_distribution;
 };
 
@@ -394,28 +432,32 @@ template <> class UniformRandomGenerator<double> {
  public:
   static const bool PacketAccess = true;
 
-  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {
+  UniformRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_generator(new std::mt19937()) {
     if (!deterministic) {
-      m_generator.seed(get_random_seed());
+      m_generator->seed(get_random_seed());
     }
   }
   UniformRandomGenerator(const UniformRandomGenerator<double>& other) {
-    m_generator.seed(other(0, 0) * UINT_MAX);
+    m_generator = new std::mt19937();
+    m_generator->seed(other(0) * UINT_MAX);
     m_deterministic = other.m_deterministic;
+  }
+  ~UniformRandomGenerator() {
+    delete m_generator;
   }
 
   template<typename Index>
-  double operator()(Index, Index = 0) const {
-    return m_distribution(m_generator);
+  double operator()(Index) const {
+    return m_distribution(*m_generator);
   }
-  template<typename Index>
-  typename internal::packet_traits<double>::type packetOp(Index i, Index j = 0) const {
-    const int packetSize = internal::packet_traits<double>::size;
+  template<typename Index, typename PacketType>
+  PacketType packetOp(Index i) const {
+    const int packetSize = internal::unpacket_traits<PacketType>::size;
     EIGEN_ALIGN_MAX double values[packetSize];
     for (int k = 0; k < packetSize; ++k) {
-      values[k] = this->operator()(i, j);
+      values[k] = this->operator()(i);
     }
-    return internal::pload<typename internal::packet_traits<double>::type>(values);
+    return internal::pload<PacketType>(values);
   }
 
  private:
@@ -423,7 +465,7 @@ template <> class UniformRandomGenerator<double> {
   // Make sure m_deterministic comes first to match the layout of the cpu
   // version of the code.
   bool m_deterministic;
-  mutable std::mt19937 m_generator;
+  std::mt19937* m_generator;
   mutable std::uniform_real_distribution<double> m_distribution;
 };
 #endif
@@ -451,11 +493,12 @@ template <> class UniformRandomGenerator<float> {
   }
 
   template<typename Index>
-  __device__ float operator()(Index, Index = 0) const {
+  __device__ float operator()(Index) const {
     return curand_uniform(&m_state);
   }
-  template<typename Index>
-  __device__ float4 packetOp(Index, Index = 0) const {
+  template<typename Index, typename PacketType>
+  __device__ float4 packetOp(Index) const {
+    EIGEN_STATIC_ASSERT((is_same<PacketType, float4>::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
     return curand_uniform4(&m_state);
   }
 
@@ -480,11 +523,12 @@ template <> class UniformRandomGenerator<double> {
     curand_init(seed, tid, 0, &m_state);
   }
   template<typename Index>
-  __device__ double operator()(Index, Index = 0) const {
+  __device__ double operator()(Index) const {
     return curand_uniform_double(&m_state);
   }
-  template<typename Index>
-  __device__ double2 packetOp(Index, Index = 0) const {
+  template<typename Index, typename PacketType>
+  __device__ double2 packetOp(Index) const {
+    EIGEN_STATIC_ASSERT((is_same<PacketType, double2>::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
     return curand_uniform2_double(&m_state);
   }
 
@@ -509,7 +553,7 @@ template <> class UniformRandomGenerator<std::complex<float> > {
     curand_init(seed, tid, 0, &m_state);
   }
   template<typename Index>
-  __device__ std::complex<float> operator()(Index, Index = 0) const {
+  __device__ std::complex<float> operator()(Index) const {
     float4 vals = curand_uniform4(&m_state);
     return std::complex<float>(vals.x, vals.y);
   }
@@ -535,7 +579,7 @@ template <> class UniformRandomGenerator<std::complex<double> > {
     curand_init(seed, tid, 0, &m_state);
   }
   template<typename Index>
-  __device__ std::complex<double> operator()(Index, Index = 0) const {
+  __device__ std::complex<double> operator()(Index) const {
     double2 vals = curand_uniform2_double(&m_state);
     return std::complex<double>(vals.x, vals.y);
   }
@@ -547,41 +591,56 @@ template <> class UniformRandomGenerator<std::complex<double> > {
 
 #endif
 
+template <typename Scalar>
+struct functor_traits<UniformRandomGenerator<Scalar> > {
+  enum {
+    // Rough estimate.
+    Cost = 100 * NumTraits<Scalar>::MulCost,
+    PacketAccess = UniformRandomGenerator<Scalar>::PacketAccess
+  };
+};
 
-#if (!defined (EIGEN_USE_GPU) || !defined(__CUDACC__) || !defined(__CUDA_ARCH__)) && __cplusplus > 199711
+
+
+#if (!defined (EIGEN_USE_GPU) || !defined(__CUDACC__) || !defined(__CUDA_ARCH__)) && (__cplusplus > 199711 || EIGEN_COMP_MSVC >= 1900)
 // We're not compiling a cuda kernel
 template <typename T> class NormalRandomGenerator {
  public:
   static const bool PacketAccess = true;
 
-  NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_distribution(0, 1) {
+  NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic), m_distribution(0, 1), m_generator(new std::mt19937()) {
     if (!deterministic) {
-      m_generator.seed(get_random_seed());
+      m_generator->seed(get_random_seed());
     }
   }
   NormalRandomGenerator(const NormalRandomGenerator& other)
-      : m_deterministic(other.m_deterministic), m_distribution(other.m_distribution) {
-    m_generator.seed(other(0, 0) * UINT_MAX);
+      : m_deterministic(other.m_deterministic), m_distribution(other.m_distribution), m_generator(new std::mt19937()) {
+    m_generator->seed(other(0) * UINT_MAX);
   }
-
-  template<typename Index>
-  T operator()(Index, Index = 0) const {
-    return m_distribution(m_generator);
+  ~NormalRandomGenerator() {
+    delete m_generator;
   }
   template<typename Index>
-  typename internal::packet_traits<T>::type packetOp(Index, Index = 0) const {
-    const int packetSize = internal::packet_traits<T>::size;
+  T operator()(Index) const {
+    return m_distribution(*m_generator);
+  }
+  template<typename Index, typename PacketType>
+  PacketType packetOp(Index) const {
+    const int packetSize = internal::unpacket_traits<PacketType>::size;
     EIGEN_ALIGN_MAX T values[packetSize];
     for (int i = 0; i < packetSize; ++i) {
-      values[i] = m_distribution(m_generator);
+      values[i] = m_distribution(*m_generator);
     }
-    return internal::pload<typename internal::packet_traits<T>::type>(values);
+    return internal::pload<PacketType>(values);
   }
 
  private:
+  // No assignment
+  NormalRandomGenerator& operator = (const NormalRandomGenerator&);
+
   bool m_deterministic;
   mutable std::normal_distribution<T> m_distribution;
-  mutable std::mt19937 m_generator;
+  std::mt19937* m_generator;
 };
 
 #elif defined (EIGEN_USE_GPU) && defined(__CUDACC__) && defined(__CUDA_ARCH__)
@@ -605,11 +664,12 @@ template <> class NormalRandomGenerator<float> {
     curand_init(seed, tid, 0, &m_state);
   }
   template<typename Index>
-   __device__ float operator()(Index, Index = 0) const {
+  __device__ float operator()(Index) const {
     return curand_normal(&m_state);
   }
-  template<typename Index>
-   __device__ float4 packetOp(Index, Index = 0) const {
+  template<typename Index, typename PacketType>
+   __device__ float4 packetOp(Index) const {
+    EIGEN_STATIC_ASSERT((is_same<PacketType, float4>::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
     return curand_normal4(&m_state);
   }
 
@@ -634,11 +694,12 @@ template <> class NormalRandomGenerator<double> {
     curand_init(seed, tid, 0, &m_state);
   }
   template<typename Index>
-  __device__ double operator()(Index, Index = 0) const {
+  __device__ double operator()(Index) const {
     return curand_normal_double(&m_state);
   }
-  template<typename Index>
-  __device__ double2 packetOp(Index, Index = 0) const {
+  template<typename Index, typename PacketType>
+  __device__ double2 packetOp(Index) const {
+    EIGEN_STATIC_ASSERT((is_same<PacketType, double2>::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
     return curand_normal2_double(&m_state);
   }
 
@@ -663,7 +724,7 @@ template <> class NormalRandomGenerator<std::complex<float> > {
     curand_init(seed, tid, 0, &m_state);
   }
   template<typename Index>
-  __device__ std::complex<float> operator()(Index, Index = 0) const {
+  __device__ std::complex<float> operator()(Index) const {
     float4 vals = curand_normal4(&m_state);
     return std::complex<float>(vals.x, vals.y);
   }
@@ -689,7 +750,7 @@ template <> class NormalRandomGenerator<std::complex<double> > {
     curand_init(seed, tid, 0, &m_state);
   }
   template<typename Index>
-  __device__ std::complex<double> operator()(Index, Index = 0) const {
+  __device__ std::complex<double> operator()(Index) const {
     double2 vals = curand_normal2_double(&m_state);
     return std::complex<double>(vals.x, vals.y);
   }
@@ -703,6 +764,7 @@ template <> class NormalRandomGenerator<std::complex<double> > {
 
 template <typename T> class NormalRandomGenerator {
  public:
+  static const bool PacketAccess = false;
   NormalRandomGenerator(bool deterministic = true) : m_deterministic(deterministic) {}
 
  private:
@@ -710,6 +772,15 @@ template <typename T> class NormalRandomGenerator {
 };
 
 #endif
+
+template <typename Scalar>
+struct functor_traits<NormalRandomGenerator<Scalar> > {
+  enum {
+    // Rough estimate.
+    Cost = 100 * NumTraits<Scalar>::MulCost,
+    PacketAccess = NormalRandomGenerator<Scalar>::PacketAccess
+  };
+};
 
 
 template <typename T, typename Index, size_t NumDims>
@@ -732,7 +803,7 @@ class GaussianGenerator {
       T offset = coordinates[i] - m_means[i];
       tmp += offset * offset / m_two_sigmas[i];
     }
-    return std::exp(-tmp);
+    return numext::exp(-tmp);
   }
 
  private:
@@ -740,6 +811,15 @@ class GaussianGenerator {
   array<T, NumDims> m_two_sigmas;
 };
 
+template <typename T, typename Index, size_t NumDims>
+struct functor_traits<GaussianGenerator<T, Index, NumDims> > {
+  enum {
+    Cost = NumDims * (2 * NumTraits<T>::AddCost + NumTraits<T>::MulCost +
+                      functor_traits<scalar_quotient_op<T, T> >::Cost) +
+           functor_traits<scalar_exp_op<T> >::Cost,
+    PacketAccess = GaussianGenerator<T, Index, NumDims>::PacketAccess
+  };
+};
 
 } // end namespace internal
 } // end namespace Eigen

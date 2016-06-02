@@ -39,18 +39,16 @@ namespace internal {
 } // end namespace internal
 
 /** \ingroup SparseCholesky_Module
-  * \brief A direct sparse Cholesky factorizations
+  * \brief A base class for direct sparse Cholesky factorizations
   *
-  * These classes provide LL^T and LDL^T Cholesky factorizations of sparse matrices that are
-  * selfadjoint and positive definite. The factorization allows for solving A.X = B where
+  * This is a base class for LL^T and LDL^T Cholesky factorizations of sparse matrices that are
+  * selfadjoint and positive definite. These factorizations allow for solving A.X = B where
   * X and B can be either dense or sparse.
   * 
   * In order to reduce the fill-in, a symmetric permutation P is applied prior to the factorization
   * such that the factorized matrix is P A P^-1.
   *
-  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
-  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
-  *               or Upper. Default is Lower.
+  * \tparam Derived the type of the derived class, that is the actual factorization type.
   *
   */
 template<typename Derived>

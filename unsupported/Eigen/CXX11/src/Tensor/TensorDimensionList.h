@@ -44,7 +44,7 @@ template<DenseIndex n, typename Index, std::size_t Rank> const Index array_get(c
 }
 
 
-#if defined(EIGEN_HAS_CONSTEXPR)
+#if EIGEN_HAS_CONSTEXPR
 template <typename Index, std::size_t Rank>
 struct index_known_statically_impl<DimensionList<Index, Rank> > {
   EIGEN_DEVICE_FUNC static constexpr bool run(const DenseIndex) {

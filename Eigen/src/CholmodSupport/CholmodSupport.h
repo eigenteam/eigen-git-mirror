@@ -78,7 +78,7 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_StorageIndex>& mat)
   {
     res.itype = CHOLMOD_INT;
   }
-  else if (internal::is_same<_StorageIndex,SuiteSparse_long>::value)
+  else if (internal::is_same<_StorageIndex,long>::value)
   {
     res.itype = CHOLMOD_LONG;
   }
@@ -178,14 +178,14 @@ class CholmodBase : public SparseSolverBase<Derived>
   public:
 
     CholmodBase()
-      : m_cholmodFactor(0), m_info(Success)
+      : m_cholmodFactor(0), m_info(Success), m_factorizationIsOk(false), m_analysisIsOk(false)
     {
       m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);
       cholmod_start(&m_cholmod);
     }
 
     explicit CholmodBase(const MatrixType& matrix)
-      : m_cholmodFactor(0), m_info(Success)
+      : m_cholmodFactor(0), m_info(Success), m_factorizationIsOk(false), m_analysisIsOk(false)
     {
       m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);
       cholmod_start(&m_cholmod);
@@ -273,9 +273,10 @@ class CholmodBase : public SparseSolverBase<Derived>
       const Index size = m_cholmodFactor->n;
       EIGEN_UNUSED_VARIABLE(size);
       eigen_assert(size==b.rows());
+      
+      // Cholmod needs column-major stoarge without inner-stride, which corresponds to the default behavior of Ref.
+      Ref<const Matrix<typename Rhs::Scalar,Dynamic,Dynamic,ColMajor> > b_ref(b.derived());
 
-      // note: cd stands for Cholmod Dense
-      Rhs& b_ref(b.const_cast_derived());
       cholmod_dense b_cd = viewAsCholmod(b_ref);
       cholmod_dense* x_cd = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &b_cd, &m_cholmod);
       if(!x_cd)
@@ -327,6 +328,57 @@ class CholmodBase : public SparseSolverBase<Derived>
       return derived();
     }
     
+    /** \returns the determinant of the underlying matrix from the current factorization */
+    Scalar determinant() const
+    {
+      using std::exp;
+      return exp(logDeterminant());
+    }
+
+    /** \returns the log determinant of the underlying matrix from the current factorization */
+    Scalar logDeterminant() const
+    {
+      using std::log;
+      using numext::real;
+      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
+
+      RealScalar logDet = 0;
+      Scalar *x = static_cast<Scalar*>(m_cholmodFactor->x);
+      if (m_cholmodFactor->is_super)
+      {
+        // Supernodal factorization stored as a packed list of dense column-major blocs,
+        // as described by the following structure:
+
+        // super[k] == index of the first column of the j-th super node
+        StorageIndex *super = static_cast<StorageIndex*>(m_cholmodFactor->super);
+        // pi[k] == offset to the description of row indices
+        StorageIndex *pi = static_cast<StorageIndex*>(m_cholmodFactor->pi);
+        // px[k] == offset to the respective dense block
+        StorageIndex *px = static_cast<StorageIndex*>(m_cholmodFactor->px);
+
+        Index nb_super_nodes = m_cholmodFactor->nsuper;
+        for (Index k=0; k < nb_super_nodes; ++k)
+        {
+          StorageIndex ncols = super[k + 1] - super[k];
+          StorageIndex nrows = pi[k + 1] - pi[k];
+
+          Map<const Array<Scalar,1,Dynamic>, 0, InnerStride<> > sk(x + px[k], ncols, InnerStride<>(nrows+1));
+          logDet += sk.real().log().sum();
+        }
+      }
+      else
+      {
+        // Simplicial factorization stored as standard CSC matrix.
+        StorageIndex *p = static_cast<StorageIndex*>(m_cholmodFactor->p);
+        Index size = m_cholmodFactor->n;
+        for (Index k=0; k<size; ++k)
+          logDet += log(real( x[p[k]] ));
+      }
+      if (m_cholmodFactor->is_ll)
+        logDet *= 2.0;
+      return logDet;
+    };
+
     template<typename Stream>
     void dumpMemory(Stream& /*s*/)
     {}
@@ -358,7 +410,7 @@ class CholmodBase : public SparseSolverBase<Derived>
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLLT
+  * \sa \ref TutorialSparseSolverConcept, class CholmodSupernodalLLT, class SimplicialLLT
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodSimplicialLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimplicialLLT<_MatrixType, _UpLo> >
@@ -407,7 +459,7 @@ class CholmodSimplicialLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimpl
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLDLT
+  * \sa \ref TutorialSparseSolverConcept, class CholmodSupernodalLLT, class SimplicialLDLT
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodSimplicialLDLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimplicialLDLT<_MatrixType, _UpLo> >
@@ -454,7 +506,7 @@ class CholmodSimplicialLDLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimp
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodSupernodalLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSupernodalLLT<_MatrixType, _UpLo> >
@@ -503,7 +555,7 @@ class CholmodSupernodalLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSuper
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodDecomposition : public CholmodBase<_MatrixType, _UpLo, CholmodDecomposition<_MatrixType, _UpLo> >

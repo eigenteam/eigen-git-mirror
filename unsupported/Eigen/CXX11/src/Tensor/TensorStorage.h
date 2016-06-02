@@ -41,7 +41,10 @@ class TensorStorage<T, FixedDimensions, Options_>
  private:
   static const std::size_t Size = FixedDimensions::total_size;
 
-  EIGEN_ALIGN_MAX T m_data[Size];
+  // Allocate an array of size at least one to prevent compiler warnings.
+  static const std::size_t MinSize = max_n_1<Size>::size;
+  EIGEN_ALIGN_MAX T m_data[MinSize];
+
   FixedDimensions m_dimensions;
 
  public:
@@ -82,6 +85,13 @@ class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
         : m_data(internal::conditional_aligned_new_auto<T,(Options_&DontAlign)==0>(size)), m_dimensions(dimensions)
       { EIGEN_INTERNAL_TENSOR_STORAGE_CTOR_PLUGIN }
 
+#if EIGEN_HAS_VARIADIC_TEMPLATES
+    template <typename... DenseIndex>
+    EIGEN_DEVICE_FUNC TensorStorage(DenseIndex... indices) : m_dimensions(indices...) {
+      m_data = internal::conditional_aligned_new_auto<T,(Options_&DontAlign)==0>(internal::array_prod(m_dimensions));
+    }
+#endif
+
     EIGEN_DEVICE_FUNC TensorStorage(const Self& other)
       : m_data(internal::conditional_aligned_new_auto<T,(Options_&DontAlign)==0>(internal::array_prod(other.m_dimensions)))
       , m_dimensions(other.m_dimensions)
@@ -105,7 +115,6 @@ class TensorStorage<T, DSizes<IndexType, NumIndices_>, Options_>
 
     EIGEN_DEVICE_FUNC void resize(Index size, const array<Index, NumIndices_>& nbDimensions)
     {
-      eigen_assert(size >= 1);
       const Index currentSz = internal::array_prod(m_dimensions);
       if(size != currentSz)
       {

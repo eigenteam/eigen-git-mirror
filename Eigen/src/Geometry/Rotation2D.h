@@ -18,7 +18,7 @@ namespace Eigen {
   *
   * \brief Represents a rotation/orientation in a 2 dimensional space.
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients
   *
   * This class is equivalent to a single scalar representing a counter clock wise rotation
   * as a single angle in radian. It provides some additional features such as the automatic
@@ -82,15 +82,15 @@ public:
   
   /** \returns the rotation angle in [0,2pi] */
   inline Scalar smallestPositiveAngle() const {
-    Scalar tmp = fmod(m_angle,Scalar(2)*EIGEN_PI);
-    return tmp<Scalar(0) ? tmp + Scalar(2)*EIGEN_PI : tmp;
+    Scalar tmp = numext::fmod(m_angle,Scalar(2*EIGEN_PI));
+    return tmp<Scalar(0) ? tmp + Scalar(2*EIGEN_PI) : tmp;
   }
   
   /** \returns the rotation angle in [-pi,pi] */
   inline Scalar smallestAngle() const {
-    Scalar tmp = fmod(m_angle,Scalar(2)*EIGEN_PI);
-    if(tmp>Scalar(EIGEN_PI))       tmp -= Scalar(2)*Scalar(EIGEN_PI);
-    else if(tmp<-Scalar(EIGEN_PI)) tmp += Scalar(2)*Scalar(EIGEN_PI);
+    Scalar tmp = numext::fmod(m_angle,Scalar(2*EIGEN_PI));
+    if(tmp>Scalar(EIGEN_PI))       tmp -= Scalar(2*EIGEN_PI);
+    else if(tmp<-Scalar(EIGEN_PI)) tmp += Scalar(2*EIGEN_PI);
     return tmp;
   }
 

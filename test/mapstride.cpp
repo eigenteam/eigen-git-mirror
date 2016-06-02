@@ -23,7 +23,7 @@ template<int Alignment,typename VectorType> void map_class_vector(const VectorTy
   Scalar* a_array = internal::aligned_new<Scalar>(arraysize+1);
   Scalar* array = a_array;
   if(Alignment!=Aligned)
-    array = (Scalar*)(ptrdiff_t(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
+    array = (Scalar*)(internal::IntPtr(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
 
   {
     Map<VectorType, Alignment, InnerStride<3> > map(array, size);
@@ -63,14 +63,14 @@ template<int Alignment,typename MatrixType> void map_class_matrix(const MatrixTy
   Scalar* a_array1 = internal::aligned_new<Scalar>(arraysize+1);
   Scalar* array1 = a_array1;
   if(Alignment!=Aligned)
-    array1 = (Scalar*)(std::ptrdiff_t(a_array1) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
+    array1 = (Scalar*)(internal::IntPtr(a_array1) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
 
   Scalar a_array2[256];
   Scalar* array2 = a_array2;
   if(Alignment!=Aligned)
-    array2 = (Scalar*)(std::ptrdiff_t(a_array2) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
+    array2 = (Scalar*)(internal::IntPtr(a_array2) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
   else
-    array2 = (Scalar*)(((std::size_t(a_array2)+EIGEN_MAX_ALIGN_BYTES-1)/EIGEN_MAX_ALIGN_BYTES)*EIGEN_MAX_ALIGN_BYTES);
+    array2 = (Scalar*)(((internal::UIntPtr(a_array2)+EIGEN_MAX_ALIGN_BYTES-1)/EIGEN_MAX_ALIGN_BYTES)*EIGEN_MAX_ALIGN_BYTES);
   Index maxsize2 = a_array2 - array2 + 256;
   
   // test no inner stride and some dynamic outer stride

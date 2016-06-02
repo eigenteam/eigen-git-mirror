@@ -25,7 +25,6 @@ struct traits<TensorGeneratorOp<Generator, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -55,10 +54,8 @@ class TensorGeneratorOp : public TensorBase<TensorGeneratorOp<Generator, XprType
 {
   public:
   typedef typename Eigen::internal::traits<TensorGeneratorOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorGeneratorOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorGeneratorOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorGeneratorOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorGeneratorOp>::Index Index;
@@ -88,13 +85,15 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
   static const int NumDims = internal::array_size<Dimensions>::value;
   typedef typename XprType::Scalar Scalar;
-
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
   enum {
     IsAligned = false,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -116,9 +115,6 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     }
   }
 
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* /*data*/) {
@@ -138,7 +134,7 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
+    EIGEN_STATIC_ASSERT((packetSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index+packetSize-1 < dimensions().TotalSize());
 
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
@@ -147,6 +143,14 @@ struct TensorEvaluator<const TensorGeneratorOp<Generator, ArgType>, Device>
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);
     return rslt;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool) const {
+    // TODO(rmlarsen): This is just a placeholder. Define interface to make
+    // generators return their cost.
+    return TensorOpCost(0, 0, TensorOpCost::AddCost<Scalar>() +
+                                  TensorOpCost::MulCost<Scalar>());
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }

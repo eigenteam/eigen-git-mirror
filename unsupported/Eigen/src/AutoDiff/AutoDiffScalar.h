@@ -101,7 +101,7 @@ class AutoDiffScalar
     template<typename OtherDerType>
     AutoDiffScalar(const AutoDiffScalar<OtherDerType>& other
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    , typename internal::enable_if<internal::is_same<Scalar,typename OtherDerType::Scalar>::value,void*>::type = 0
+    , typename internal::enable_if<internal::is_same<Scalar, typename internal::traits<typename internal::remove_all<OtherDerType>::type>::Scalar>::value,void*>::type = 0
 #endif
     )
       : m_value(other.value()), m_derivatives(other.derivatives())
@@ -548,13 +548,25 @@ inline const AutoDiffScalar<DerType>& real(const AutoDiffScalar<DerType>& x)  { 
 template<typename DerType>
 inline typename DerType::Scalar imag(const AutoDiffScalar<DerType>&)    { return 0.; }
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (min)(const AutoDiffScalar<DerType>& x, const T& y)    { return (x <= y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (min)(const AutoDiffScalar<DerType>& x, const T& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x <= y ? ADS(x) : ADS(y));
+}
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (max)(const AutoDiffScalar<DerType>& x, const T& y)    { return (x >= y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (max)(const AutoDiffScalar<DerType>& x, const T& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x >= y ? ADS(x) : ADS(y));
+}
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (min)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x < y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (min)(const T& x, const AutoDiffScalar<DerType>& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x < y ? ADS(x) : ADS(y));
+}
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> (max)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x > y ? x : y); }
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (max)(const T& x, const AutoDiffScalar<DerType>& y) {
+  typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
+  return (x > y ? ADS(x) : ADS(y));
+}
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
   using std::abs;
@@ -589,23 +601,24 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(log,
   return ReturnType(log(x.value()),x.derivatives() * (Scalar(1)/x.value()));)
 
 template<typename DerType>
-inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<DerType>::Scalar>, const DerType> >
-pow(const Eigen::AutoDiffScalar<DerType>& x, typename Eigen::internal::traits<DerType>::Scalar y)
+inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar>, const typename internal::remove_all<DerType>::type> >
+pow(const Eigen::AutoDiffScalar<DerType>& x, const typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar &y)
 {
   using namespace Eigen;
-  typedef typename Eigen::internal::traits<DerType>::Scalar Scalar;
-  return AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const DerType> >(
+  typedef typename internal::remove_all<DerType>::type DerTypeCleaned;
+  typedef typename Eigen::internal::traits<DerTypeCleaned>::Scalar Scalar;
+  return AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const DerTypeCleaned> >(
     std::pow(x.value(),y),
     x.derivatives() * (y * std::pow(x.value(),y-1)));
 }
 
 
 template<typename DerTypeA,typename DerTypeB>
-inline const AutoDiffScalar<Matrix<typename internal::traits<DerTypeA>::Scalar,Dynamic,1> >
+inline const AutoDiffScalar<Matrix<typename internal::traits<typename internal::remove_all<DerTypeA>::type>::Scalar,Dynamic,1> >
 atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
 {
   using std::atan2;
-  typedef typename internal::traits<DerTypeA>::Scalar Scalar;
+  typedef typename internal::traits<typename internal::remove_all<DerTypeA>::type>::Scalar Scalar;
   typedef AutoDiffScalar<Matrix<Scalar,Dynamic,1> > PlainADS;
   PlainADS ret;
   ret.value() = atan2(a.value(), b.value());

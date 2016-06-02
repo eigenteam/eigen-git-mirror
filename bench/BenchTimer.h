@@ -22,7 +22,6 @@
 # endif
 # include <windows.h>
 #elif defined(__APPLE__)
-#include <CoreServices/CoreServices.h>
 #include <mach/mach_time.h>
 #else
 # include <unistd.h>

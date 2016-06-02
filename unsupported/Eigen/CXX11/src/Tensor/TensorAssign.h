@@ -25,7 +25,6 @@ template<typename LhsXprType, typename RhsXprType>
 struct traits<TensorAssignOp<LhsXprType, RhsXprType> >
 {
   typedef typename LhsXprType::Scalar Scalar;
-  typedef typename internal::packet_traits<Scalar>::type Packet;
   typedef typename traits<LhsXprType>::StorageKind StorageKind;
   typedef typename promote_index_type<typename traits<LhsXprType>::Index,
                                       typename traits<RhsXprType>::Index>::type Index;
@@ -37,7 +36,7 @@ struct traits<TensorAssignOp<LhsXprType, RhsXprType> >
   static const int Layout = internal::traits<LhsXprType>::Layout;
 
   enum {
-    Flags = 0,
+    Flags = 0
   };
 };
 
@@ -62,10 +61,8 @@ class TensorAssignOp : public TensorBase<TensorAssignOp<LhsXprType, RhsXprType> 
 {
   public:
   typedef typename Eigen::internal::traits<TensorAssignOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorAssignOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename LhsXprType::CoeffReturnType CoeffReturnType;
-  typedef typename LhsXprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorAssignOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorAssignOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorAssignOp>::Index Index;
@@ -92,11 +89,18 @@ template<typename LeftArgType, typename RightArgType, typename Device>
 struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
 {
   typedef TensorAssignOp<LeftArgType, RightArgType> XprType;
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef typename TensorEvaluator<RightArgType, Device>::Dimensions Dimensions;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = TensorEvaluator<LeftArgType, Device>::IsAligned & TensorEvaluator<RightArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<LeftArgType, Device>::PacketAccess & TensorEvaluator<RightArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<LeftArgType, Device>::Layout,
+    RawAccess = TensorEvaluator<LeftArgType, Device>::RawAccess
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device) :
@@ -105,12 +109,6 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);
   }
-
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
-  typedef typename TensorEvaluator<RightArgType, Device>::Dimensions Dimensions;
 
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const
   {
@@ -151,6 +149,21 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
   {
     return m_leftImpl.template packet<LoadMode>(index);
   }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    // We assume that evalPacket or evalScalar is called to perform the
+    // assignment and account for the cost of the write here, but reduce left
+    // cost by one load because we are using m_leftImpl.coeffRef.
+    TensorOpCost left = m_leftImpl.costPerCoeff(vectorized);
+    return m_rightImpl.costPerCoeff(vectorized) +
+           TensorOpCost(
+               numext::maxi(0.0, left.bytes_loaded() - sizeof(CoeffReturnType)),
+               left.bytes_stored(), left.compute_cycles()) +
+           TensorOpCost(0, sizeof(CoeffReturnType), 0, vectorized, PacketSize);
+  }
+
+  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_leftImpl.data(); }
 
  private:
   TensorEvaluator<LeftArgType, Device> m_leftImpl;

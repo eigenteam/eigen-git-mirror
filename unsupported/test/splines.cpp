@@ -239,7 +239,7 @@ void check_global_interpolation_with_derivatives2d()
   typedef Spline2d::PointType PointType;
   typedef Spline2d::KnotVectorType KnotVectorType;
 
-  const unsigned int numPoints = 100;
+  const Eigen::DenseIndex numPoints = 100;
   const unsigned int dimension = 2;
   const unsigned int degree = 3;
 

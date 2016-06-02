@@ -52,10 +52,10 @@ When doing so, a number of Eigen's algorithms are silently substituted with call
 These substitutions apply only for \b Dynamic \b or \b large enough objects with one of the following four standard scalar types: \c float, \c double, \c complex<float>, and \c complex<double>.
 Operations on other scalar types or mixing reals and complexes will continue to use the built-in algorithms.
 
-In addition you can coarsely select choose which parts will be substituted by defining one or multiple of the following macros:
+In addition you can choose which parts will be substituted by defining one or multiple of the following macros:
 
 <table class="manual">
-<tr><td>\c EIGEN_USE_BLAS </td><td>Enables the use of external BLAS level 2 and 3 routines (currently works with Intel MKL only)</td></tr>
+<tr><td>\c EIGEN_USE_BLAS </td><td>Enables the use of external BLAS level 2 and 3 routines (compatible with any F77 BLAS interface, not only Intel MKL)</td></tr>
 <tr class="alt"><td>\c EIGEN_USE_LAPACKE </td><td>Enables the use of external Lapack routines via the <a href="http://www.netlib.org/lapack/lapacke.html">Intel Lapacke</a> C interface to Lapack (currently works with Intel MKL only)</td></tr>
 <tr><td>\c EIGEN_USE_LAPACKE_STRICT </td><td>Same as \c EIGEN_USE_LAPACKE but algorithm of lower robustness are disabled. This currently concerns only JacobiSVD which otherwise would be replaced by \c gesvd that is less robust than Jacobi rotations.</td></tr>
 <tr class="alt"><td>\c EIGEN_USE_MKL_VML </td><td>Enables the use of Intel VML (vector operations)</td></tr>

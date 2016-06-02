@@ -21,8 +21,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   
   const Index rows = ref.rows();
   const Index cols = ref.cols();
-  const Index inner = ref.innerSize();
-  const Index outer = ref.outerSize();
+  //const Index inner = ref.innerSize();
+  //const Index outer = ref.outerSize();
 
   typedef typename SparseMatrixType::Scalar Scalar;
   enum { Flags = SparseMatrixType::Flags };
@@ -157,17 +157,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     initSparse<Scalar>(density, refM3, m3);
     initSparse<Scalar>(density, refM4, m4);
 
+    if(internal::random<bool>())
+      m1.makeCompressed();
+
     VERIFY_IS_APPROX(m1*s1, refM1*s1);
     VERIFY_IS_APPROX(m1+m2, refM1+refM2);
     VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
     VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));
     VERIFY_IS_APPROX(m1*s1-m2, refM1*s1-refM2);
-
-    VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
-    VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
-
-    VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
-    VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
 
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.row(0).dot(refM2.row(0)));
@@ -191,6 +188,19 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     // dense cwise* sparse
     VERIFY_IS_APPROX(refM4.cwiseProduct(m3), refM4.cwiseProduct(refM3));
 //     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
+
+    VERIFY_IS_APPROX(refM4 + m3, refM4 + refM3);
+    VERIFY_IS_APPROX(m3 + refM4, refM3 + refM4);
+    VERIFY_IS_APPROX(refM4 - m3, refM4 - refM3);
+    VERIFY_IS_APPROX(m3 - refM4, refM3 - refM4);
+
+    VERIFY_IS_APPROX(m1.sum(), refM1.sum());
+
+    VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
+    VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
+
+    VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
+    VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
 
     // test aliasing
     VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
@@ -227,11 +237,11 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       for (Index i=0; i<m2.rows(); ++i)
       {
         float x = internal::random<float>(0,1);
-        if (x<0.1)
+        if (x<0.1f)
         {
           // do nothing
         }
-        else if (x<0.5)
+        else if (x<0.5f)
         {
           countFalseNonZero++;
           m2.insert(i,j) = Scalar(0);
@@ -322,7 +332,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m3 = m2.template triangularView<Upper>();
     VERIFY_IS_APPROX(m3, refMat3);
 
-    if(inner>=outer) // FIXME this should be implemented for outer>inner as well
     {
       refMat3 = refMat2.template triangularView<UnitUpper>();
       m3 = m2.template triangularView<UnitUpper>();
@@ -368,6 +377,12 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.eval(), refMat2.sparseView().eval());
+
+    // sparse view on expressions:
+    VERIFY_IS_APPROX((s1*m2).eval(), (s1*refMat2).sparseView().eval());
+    VERIFY_IS_APPROX((m2+m2).eval(), (refMat2+refMat2).sparseView().eval());
+    VERIFY_IS_APPROX((m2*m2).eval(), (refMat2.lazyProduct(refMat2)).sparseView().eval());
+    VERIFY_IS_APPROX((m2*m2).eval(), (refMat2*refMat2).sparseView().eval());
   }
 
   // test diagonal
@@ -455,6 +470,33 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat1.setIdentity();
     VERIFY_IS_APPROX(m1, refMat1);
   }
+
+  // test array/vector of InnerIterator
+  {
+    typedef typename SparseMatrixType::InnerIterator IteratorType;
+
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
+    SparseMatrixType m2(rows, cols);
+    initSparse<Scalar>(density, refMat2, m2);
+    IteratorType static_array[2];
+    static_array[0] = IteratorType(m2,0);
+    static_array[1] = IteratorType(m2,m2.outerSize()-1);
+    VERIFY( static_array[0] || m2.innerVector(static_array[0].outer()).nonZeros() == 0 );
+    VERIFY( static_array[1] || m2.innerVector(static_array[1].outer()).nonZeros() == 0 );
+    if(static_array[0] && static_array[1])
+    {
+      ++(static_array[1]);
+      static_array[1] = IteratorType(m2,0);
+      VERIFY( static_array[1] );
+      VERIFY( static_array[1].index() == static_array[0].index() );
+      VERIFY( static_array[1].outer() == static_array[0].outer() );
+      VERIFY( static_array[1].value() == static_array[0].value() );
+    }
+
+    std::vector<IteratorType> iters(2);
+    iters[0] = IteratorType(m2,0);
+    iters[1] = IteratorType(m2,m2.outerSize()-1);
+  }
 }
 
 
@@ -515,7 +557,7 @@ void test_sparse_basic()
   CALL_SUBTEST_4((big_sparse_triplet<SparseMatrix<double, ColMajor, long int> >(10000, 10000, 0.125)));
 
   // Regression test for bug 1105
-#ifdef EIGEN_TEST_PART_6
+#ifdef EIGEN_TEST_PART_7
   {
     int n = Eigen::internal::random<int>(200,600);
     SparseMatrix<std::complex<double>,0, long> mat(n, n);

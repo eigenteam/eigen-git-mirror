@@ -11,6 +11,11 @@
 #include <Eigen/LU>
 using namespace std;
 
+template<typename MatrixType>
+typename MatrixType::RealScalar matrix_l1_norm(const MatrixType& m) {
+  return m.cwiseAbs().colwise().sum().maxCoeff();
+}
+
 template<typename MatrixType> void lu_non_invertible()
 {
   typedef typename MatrixType::Index Index;
@@ -143,7 +148,14 @@ template<typename MatrixType> void lu_invertible()
   m3 = MatrixType::Random(size,size);
   m2 = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
-  VERIFY_IS_APPROX(m2, lu.inverse()*m3);
+  MatrixType m1_inverse = lu.inverse();
+  VERIFY_IS_APPROX(m2, m1_inverse*m3);
+
+  RealScalar rcond = (RealScalar(1) / matrix_l1_norm(m1)) / matrix_l1_norm(m1_inverse);
+  const RealScalar rcond_est = lu.rcond();
+  // Verify that the estimated condition number is within a factor of 10 of the
+  // truth.
+  VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
   // test solve with transposed
   lu.template _solve_impl_transposed<false>(m3, m2);
@@ -170,6 +182,7 @@ template<typename MatrixType> void lu_partial_piv()
      PartialPivLU.h
   */
   typedef typename MatrixType::Index Index;
+  typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   Index size = internal::random<Index>(1,4);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
@@ -181,7 +194,13 @@ template<typename MatrixType> void lu_partial_piv()
   m3 = MatrixType::Random(size,size);
   m2 = plu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
-  VERIFY_IS_APPROX(m2, plu.inverse()*m3);
+  MatrixType m1_inverse = plu.inverse();
+  VERIFY_IS_APPROX(m2, m1_inverse*m3);
+
+  RealScalar rcond = (RealScalar(1) / matrix_l1_norm(m1)) / matrix_l1_norm(m1_inverse);
+  const RealScalar rcond_est = plu.rcond();
+  // Verify that the estimate is within a factor of 10 of the truth.
+  VERIFY(rcond_est > rcond / 10 && rcond_est < rcond * 10);
 
   // test solve with transposed
   plu.template _solve_impl_transposed<false>(m3, m2);

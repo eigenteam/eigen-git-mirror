@@ -239,7 +239,7 @@ struct traits<KroneckerProductSparse<_Lhs,_Rhs> >
     RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
     Flags = ((LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
-          | EvalBeforeNestingBit | EvalBeforeAssigningBit,
+          | EvalBeforeNestingBit,
     CoeffReadCost = HugeCost
   };
 

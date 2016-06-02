@@ -456,7 +456,7 @@ class SuperLUBase : public SparseSolverBase<Derived>
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseSolverConcept, class SparseLU
   */
 template<typename _MatrixType>
 class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
@@ -809,7 +809,7 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
   *
   * \implsparsesolverconcept
   *
-  * \sa \ref TutorialSparseDirectSolvers, class ConjugateGradient, class BiCGSTAB
+  * \sa \ref TutorialSparseSolverConcept, class IncompleteLUT, class ConjugateGradient, class BiCGSTAB
   */
 
 template<typename _MatrixType>
@@ -986,7 +986,7 @@ void SuperILU<MatrixType>::_solve_impl(const MatrixBase<Rhs> &b, MatrixBase<Dest
                 &m_sluStat, &info, Scalar());
   StatFree(&m_sluStat);
   
-  if(&x.coeffRef(0) != x_ref.data())
+  if(x.derived().data() != x_ref.data())
     x = x_ref;
 
   m_info = info==0 ? Success : NumericalIssue;

@@ -168,7 +168,7 @@ namespace internal {
 template<typename MatrixType, unsigned int _Mode>
 struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
 {
-  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
+  typedef typename ref_selector<MatrixType>::non_const_type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
   typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   typedef typename MatrixType::PlainObject FullMatrixType;
@@ -213,7 +213,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       IsVectorAtCompileTime = false
     };
 
-    // FIXME This, combined with const_cast_derived in transpose() leads to a const-correctness loophole
     EIGEN_DEVICE_FUNC
     explicit inline TriangularView(MatrixType& matrix) : m_matrix(matrix)
     {}
@@ -235,7 +234,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     /** \returns a reference to the nested expression */
     EIGEN_DEVICE_FUNC
-    NestedExpression& nestedExpression() { return *const_cast<NestedExpression*>(&m_matrix); }
+    NestedExpression& nestedExpression() { return m_matrix; }
     
     typedef TriangularView<const MatrixConjugateReturnType,Mode> ConjugateReturnType;
     /** \sa MatrixBase::conjugate() const */
@@ -255,7 +254,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline TransposeReturnType transpose()
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      typename MatrixType::TransposeReturnType tmp(m_matrix.const_cast_derived());
+      typename MatrixType::TransposeReturnType tmp(m_matrix);
       return TransposeReturnType(tmp);
     }
     
@@ -418,7 +417,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     {
       EIGEN_STATIC_ASSERT_LVALUE(TriangularViewType);
       Base::check_coordinates_internal(row, col);
-      return derived().nestedExpression().const_cast_derived().coeffRef(row, col);
+      return derived().nestedExpression().coeffRef(row, col);
     }
 
     /** Assigns a triangular matrix to a triangular part of a dense matrix */
@@ -533,7 +532,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularViewImpl<_Mat
     template<typename RhsType, typename DstType>
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void _solve_impl(const RhsType &rhs, DstType &dst) const {
-      if(!(internal::is_same<RhsType,DstType>::value && internal::extract_data(dst) == internal::extract_data(rhs)))
+      if(!internal::is_same_dense(dst,rhs))
         dst = rhs;
       this->solveInPlace(dst);
     }
@@ -595,14 +594,7 @@ template<typename Derived>
 template<typename DenseDerived>
 void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
 {
-  if(internal::traits<Derived>::Flags & EvalBeforeAssigningBit)
-  {
-    typename internal::plain_matrix_type<Derived>::type other_evaluated(rows(), cols());
-    evalToLazy(other_evaluated);
-    other.derived().swap(other_evaluated);
-  }
-  else
-    evalToLazy(other.derived());
+  evalToLazy(other.derived());
 }
 
 /***************************************************************************
@@ -711,10 +703,6 @@ struct evaluator_traits<TriangularView<MatrixType,Mode> >
 {
   typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
   typedef typename glue_shapes<typename evaluator_traits<MatrixType>::Shape, TriangularShape>::type Shape;
-  
-  // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
-  // temporary; 0 if not.
-  static const int AssumeAliasing = 0;
 };
 
 template<typename MatrixType, unsigned int Mode>
@@ -788,7 +776,8 @@ public:
 };
 
 template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType, typename Functor>
-EIGEN_DEVICE_FUNC void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
   eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   
@@ -812,7 +801,8 @@ EIGEN_DEVICE_FUNC void call_triangular_assignment_loop(const DstXprType& dst, co
 }
 
 template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType>
-EIGEN_DEVICE_FUNC void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src)
 {
   call_triangular_assignment_loop<Mode,SetOpposite>(dst, src, internal::assign_op<typename DstXprType::Scalar>());
 }

@@ -10,6 +10,9 @@
 
 #include "main.h"
 
+#if defined __GNUC__ && __GNUC__>=6
+  #pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
 // using namespace Eigen;
 
 namespace Eigen {
@@ -177,7 +180,7 @@ template<typename Scalar> void packetmath()
     internal::pstore(data2, internal::pset1<Packet>(data1[offset]));
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
   }
-  
+
   {
     for (int i=0; i<PacketSize*4; ++i)
       ref[i] = data1[i/PacketSize];
@@ -199,9 +202,9 @@ template<typename Scalar> void packetmath()
     internal::pstore(data2+1*PacketSize, A1);
     VERIFY(areApprox(ref, data2, 2*PacketSize) && "internal::pbroadcast2");
   }
-  
+ 
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
-  
+ 
   if(PacketSize>1)
   {
     for(int offset=0;offset<4;++offset)
@@ -212,6 +215,7 @@ template<typename Scalar> void packetmath()
       VERIFY(areApprox(ref, data2, PacketSize) && "ploaddup");
     }
   }
+
   if(PacketSize>2)
   {
     for(int offset=0;offset<4;++offset)
@@ -227,7 +231,7 @@ template<typename Scalar> void packetmath()
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
   VERIFY(isApproxAbs(ref[0], internal::predux(internal::pload<Packet>(data1)), refvalue) && "internal::predux");
-  
+
   {
     for (int i=0; i<4; ++i)
       ref[i] = 0;
@@ -325,6 +329,12 @@ template<typename Scalar> void packetmath_real()
     data2[i] = internal::random<Scalar>(-87,88);
   }
   CHECK_CWISE1_IF(PacketTraits::HasExp, std::exp, internal::pexp);
+  for (int i=0; i<size; ++i)
+  {
+    data1[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
+    data2[i] = internal::random<Scalar>(-1,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
+  }
+  CHECK_CWISE1_IF(PacketTraits::HasTanh, std::tanh, internal::ptanh);
   if(PacketTraits::HasExp && PacketTraits::size>=2)
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
@@ -353,7 +363,14 @@ template<typename Scalar> void packetmath_real()
     VERIFY_IS_EQUAL(std::exp(-std::numeric_limits<Scalar>::denorm_min()), data2[1]);
   }
 
-#ifdef EIGEN_HAS_C99_MATH
+  if (PacketTraits::HasTanh) {
+    data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
+    packet_helper<internal::packet_traits<Scalar>::HasTanh,Packet> h;
+    h.store(data2, internal::ptanh(h.load(data1)));
+    VERIFY((numext::isnan)(data2[0]));
+  }
+
+#if EIGEN_HAS_C99_MATH
   {
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     packet_helper<internal::packet_traits<Scalar>::HasLGamma,Packet> h;
@@ -380,11 +397,11 @@ template<typename Scalar> void packetmath_real()
     data2[i] = internal::random<Scalar>(0,1) * std::pow(Scalar(10), internal::random<Scalar>(-6,6));
   }
 
-  if(internal::random<float>(0,1)<0.1)
+  if(internal::random<float>(0,1)<0.1f)
     data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(PacketTraits::HasSqrt, std::sqrt, internal::psqrt);
   CHECK_CWISE1_IF(PacketTraits::HasLog, std::log, internal::plog);
-#if defined(EIGEN_HAS_C99_MATH) && (__cplusplus > 199711L)
+#if EIGEN_HAS_C99_MATH && (__cplusplus > 199711L)
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLGamma, std::lgamma, internal::plgamma);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErf, std::erf, internal::perf);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasErfc, std::erfc, internal::perfc);
@@ -417,7 +434,7 @@ template<typename Scalar> void packetmath_real()
     // VERIFY_IS_EQUAL(std::log(std::numeric_limits<Scalar>::denorm_min()), data2[0]);
     VERIFY((numext::isnan)(data2[1]));
 
-    data1[0] = -1.0f;
+    data1[0] = Scalar(-1.0f);
     h.store(data2, internal::plog(h.load(data1)));
     VERIFY((numext::isnan)(data2[0]));
 #if !EIGEN_FAST_MATH
@@ -425,6 +442,7 @@ template<typename Scalar> void packetmath_real()
     VERIFY((numext::isnan)(data2[0]));
     VERIFY((numext::isnan)(data2[1]));
 #endif
+
   }
 }
 

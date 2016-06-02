@@ -89,6 +89,7 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -109,6 +110,11 @@ struct TensorEvaluator<const TensorIndexTupleOp<ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
     return CoeffReturnType(index, m_impl.coeff(index));
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    return m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, 1);
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
@@ -134,7 +140,7 @@ struct traits<TensorTupleReducerOp<ReduceOp, Dims, XprType> > : public traits<Xp
   typedef Index Scalar;
   typedef typename XprType::Nested Nested;
   typedef typename remove_reference<Nested>::type _Nested;
-  static const int NumDimensions = XprTraits::NumDimensions;
+  static const int NumDimensions = XprTraits::NumDimensions - array_size<Dims>::value;
   static const int Layout = XprTraits::Layout;
 };
 
@@ -210,6 +216,7 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
     BlockAccess = false,
     Layout = TensorEvaluator<const TensorReductionOp<ReduceOp, Dims, const TensorIndexTupleOp<ArgType> >, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -246,6 +253,14 @@ struct TensorEvaluator<const TensorTupleReducerOp<ReduceOp, Dims, ArgType>, Devi
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
+  costPerCoeff(bool vectorized) const {
+    const double compute_cost = 1.0 +
+        (m_return_dim < 0 ? 0.0 : (TensorOpCost::ModCost<Index>() + TensorOpCost::DivCost<Index>()));
+    return m_orig_impl.costPerCoeff(vectorized) +
+           m_impl.costPerCoeff(vectorized) + TensorOpCost(0, 0, compute_cost);
+  }
 
  private:
   EIGEN_DEVICE_FUNC void gen_strides(const InputDimensions& dims, StrideDims& strides) {

@@ -29,6 +29,9 @@ template<typename Scalar> void check_all_in_range(Scalar x, Scalar y)
   {
     mask( check_in_range(x,y)-x )++;
   }
+  for(Index i=0; i<mask.size(); ++i)
+    if(mask(i)==0)
+      std::cout << "WARNING: value " << x+i << " not reached." << std::endl;
   VERIFY( (mask>0).all() );
 }
 

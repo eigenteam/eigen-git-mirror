@@ -65,18 +65,19 @@ ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynami
   m_colsPermutation.resize(cols); \
   m_colsPermutation.indices().setZero(); \
 \
-  lapack_int lda = m_qr.outerStride(), i; \
+  lapack_int lda = internal::convert_index<lapack_int,Index>(m_qr.outerStride()); \
   lapack_int matrix_order = MKLCOLROW; \
-  LAPACKE_##MKLPREFIX##geqp3( matrix_order, rows, cols, (MKLTYPE*)m_qr.data(), lda, (lapack_int*)m_colsPermutation.indices().data(), (MKLTYPE*)m_hCoeffs.data()); \
+  LAPACKE_##MKLPREFIX##geqp3( matrix_order, internal::convert_index<lapack_int,Index>(rows), internal::convert_index<lapack_int,Index>(cols), \
+                              (MKLTYPE*)m_qr.data(), lda, (lapack_int*)m_colsPermutation.indices().data(), (MKLTYPE*)m_hCoeffs.data()); \
   m_isInitialized = true; \
   m_maxpivot=m_qr.diagonal().cwiseAbs().maxCoeff(); \
   m_hCoeffs.adjointInPlace(); \
   RealScalar premultiplied_threshold = abs(m_maxpivot) * threshold(); \
   lapack_int *perm = m_colsPermutation.indices().data(); \
-  for(i=0;i<size;i++) { \
+  for(Index i=0;i<size;i++) { \
     m_nonzero_pivots += (abs(m_qr.coeff(i,i)) > premultiplied_threshold);\
   } \
-  for(i=0;i<cols;i++) perm[i]--;\
+  for(Index i=0;i<cols;i++) perm[i]--;\
 \
   /*m_det_pq = (number_of_transpositions%2) ? -1 : 1;  // TODO: It's not needed now; fix upon availability in Eigen */ \
 \

@@ -124,7 +124,7 @@ struct member_lpnorm {
 template <typename BinaryOp, typename Scalar>
 struct member_redux {
   typedef typename result_of<
-                     BinaryOp(Scalar,Scalar)
+                     BinaryOp(const Scalar&,const Scalar&)
                    >::type  result_type;
   template<typename _Scalar, int Size> struct Cost
   { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };
@@ -141,8 +141,8 @@ struct member_redux {
   *
   * \brief Pseudo expression providing partial reduction operations
   *
-  * \param ExpressionType the type of the object on which to do partial reductions
-  * \param Direction indicates the direction of the redux (#Vertical or #Horizontal)
+  * \tparam ExpressionType the type of the object on which to do partial reductions
+  * \tparam Direction indicates the direction of the redux (#Vertical or #Horizontal)
   *
   * This class represents a pseudo expression with partial reduction features.
   * It is the return type of DenseBase::colwise() and DenseBase::rowwise()
@@ -187,11 +187,11 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
   protected:
 
-    /** \internal
-      * \returns the i-th subvector according to the \c Direction */
     typedef typename internal::conditional<isVertical,
                                typename ExpressionType::ColXpr,
                                typename ExpressionType::RowXpr>::type SubVector;
+    /** \internal
+      * \returns the i-th subvector according to the \c Direction */
     EIGEN_DEVICE_FUNC
     SubVector subVector(Index i)
     {

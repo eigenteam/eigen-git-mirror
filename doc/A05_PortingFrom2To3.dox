@@ -9,8 +9,8 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
 
 \section CompatibilitySupport Eigen2 compatibility support
 
-Up to version 3.2 %Eigen provides <a href="http://eigen.tuxfamily.org/dox/Eigen2SupportModes.html">Eigen2 support modes</a>. These are removed now, because they were barely used anymore and became hard to maintain after internal re-designs.
-You can still use them by first <a href="http://eigen.tuxfamily.org/dox/Eigen2ToEigen3.html">porting your code to Eigen 3.2</a>.
+Up to version 3.2 %Eigen provides <a href="http://eigen.tuxfamily.org/dox-3.2/Eigen2SupportModes.html">Eigen2 support modes</a>. These are removed now, because they were barely used anymore and became hard to maintain after internal re-designs.
+You can still use them by first <a href="http://eigen.tuxfamily.org/dox-3.2/Eigen2ToEigen3.html">porting your code to Eigen 3.2</a>.
 
 \section Using The USING_PART_OF_NAMESPACE_EIGEN macro
 
@@ -223,7 +223,7 @@ triangular part to work on</td></tr>
 
 \section GeometryModule Changes in the Geometry module
 
-The Geometry module is the one that changed the most. If you rely heavily on it, it's probably a good idea to use the \ref Eigen2SupportModes "Eigen 2 support modes" to perform your migration.
+The Geometry module is the one that changed the most. If you rely heavily on it, it's probably a good idea to use the <a href="http://eigen.tuxfamily.org/dox-3.2/Eigen2SupportModes.html">"Eigen 2 support modes"</a> to perform your migration.
 
 \section Transform The Transform class
 
@@ -261,7 +261,7 @@ use it unless you are sure of what you are doing, i.e., you have rigourosly meas
 
 The EIGEN_ALIGN_128 macro has been renamed to EIGEN_ALIGN16. Don't be surprised, it's just that we switched to counting in bytes ;-)
 
-The EIGEN_DONT_ALIGN option still exists in Eigen 3, but it has a new cousin: EIGEN_DONT_ALIGN_STATICALLY. It allows to get rid of all static alignment issues while keeping alignment of dynamic-size heap-allocated arrays, thus keeping vectorization for dynamic-size objects.
+The \link TopicPreprocessorDirectivesPerformance EIGEN_DONT_ALIGN \endlink option still exists in Eigen 3, but it has a new cousin: \link TopicPreprocessorDirectivesPerformance  EIGEN_DONT_ALIGN_STATICALLY.\endlink It allows to get rid of all static alignment issues while keeping alignment of dynamic-size heap-allocated arrays. Vectorization of statically allocated arrays is still preserved (unless you define \link TopicPreprocessorDirectivesPerformance EIGEN_UNALIGNED_VECTORIZE \endlink =0), at the cost of unaligned memory stores.
 
 \section AlignedMap Aligned Map objects
 

@@ -25,7 +25,6 @@ struct traits<TensorInflationOp<Strides, XprType> > : public traits<XprType>
 {
   typedef typename XprType::Scalar Scalar;
   typedef traits<XprType> XprTraits;
-  typedef typename packet_traits<Scalar>::type Packet;
   typedef typename XprTraits::StorageKind StorageKind;
   typedef typename XprTraits::Index Index;
   typedef typename XprType::Nested Nested;
@@ -53,10 +52,8 @@ class TensorInflationOp : public TensorBase<TensorInflationOp<Strides, XprType>,
 {
   public:
   typedef typename Eigen::internal::traits<TensorInflationOp>::Scalar Scalar;
-  typedef typename Eigen::internal::traits<TensorInflationOp>::Packet Packet;
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
   typedef typename Eigen::internal::nested<TensorInflationOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorInflationOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorInflationOp>::Index Index;
@@ -84,6 +81,10 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
   typedef typename XprType::Index Index;
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
     IsAligned = /*TensorEvaluator<ArgType, Device>::IsAligned*/ false,
@@ -91,6 +92,7 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
+    RawAccess = false
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
@@ -124,10 +126,6 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
       }
     }
   }
-
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketReturnType PacketReturnType;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
@@ -191,16 +189,28 @@ struct TensorEvaluator<const TensorInflationOp<Strides, ArgType>, Device>
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    const int packetSize = internal::unpacket_traits<PacketReturnType>::size;
-    EIGEN_STATIC_ASSERT(packetSize > 1, YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index+packetSize-1 < dimensions().TotalSize());
+    EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
+    eigen_assert(index+PacketSize-1 < dimensions().TotalSize());
 
-    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[packetSize];
-    for (int i = 0; i < packetSize; ++i) {
+    EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
+    for (int i = 0; i < PacketSize; ++i) {
       values[i] = coeff(index+i);
     }
     PacketReturnType rslt = internal::pload<PacketReturnType>(values);
     return rslt;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool vectorized) const {
+    const double compute_cost = NumDims * (3 * TensorOpCost::DivCost<Index>() +
+                                           3 * TensorOpCost::MulCost<Index>() +
+                                           2 * TensorOpCost::AddCost<Index>());
+    const double input_size = m_impl.dimensions().TotalSize();
+    const double output_size = m_dimensions.TotalSize();
+    if (output_size == 0)
+      return TensorOpCost();
+    return m_impl.costPerCoeff(vectorized) +
+           TensorOpCost(sizeof(CoeffReturnType) * input_size / output_size, 0,
+                        compute_cost, vectorized, PacketSize);
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }

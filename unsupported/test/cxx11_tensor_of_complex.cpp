@@ -48,6 +48,25 @@ static void test_abs()
 }
 
 
+static void test_conjugate()
+{
+  Tensor<std::complex<float>, 1> data1(3);
+  Tensor<std::complex<double>, 1> data2(3);
+  Tensor<int, 1> data3(3);
+  data1.setRandom();
+  data2.setRandom();
+  data3.setRandom();
+
+  Tensor<std::complex<float>, 1> conj1 = data1.conjugate();
+  Tensor<std::complex<double>, 1> conj2 = data2.conjugate();
+  Tensor<int, 1> conj3 = data3.conjugate();
+  for (int i = 0; i < 3; ++i) {
+    VERIFY_IS_APPROX(conj1(i), std::conj(data1(i)));
+    VERIFY_IS_APPROX(conj2(i), std::conj(data2(i)));
+    VERIFY_IS_APPROX(conj3(i), data3(i));
+  }
+}
+
 static void test_contractions()
 {
   Tensor<std::complex<float>, 4> t_left(30, 50, 8, 31);
@@ -64,7 +83,9 @@ static void test_contractions()
 
   // This contraction should be equivalent to a regular matrix multiplication
   typedef Tensor<float, 1>::DimensionPair DimPair;
-  Eigen::array<DimPair, 2> dims({{DimPair(2, 0), DimPair(3, 1)}});
+  Eigen::array<DimPair, 2> dims;
+  dims[0] = DimPair(2, 0);
+  dims[1] = DimPair(3, 1);
   t_result = t_left.contract(t_right, dims);
   m_result = m_left * m_right;
   for (int i = 0; i < t_result.dimensions().TotalSize(); i++) {
@@ -77,5 +98,6 @@ void test_cxx11_tensor_of_complex()
 {
   CALL_SUBTEST(test_additions());
   CALL_SUBTEST(test_abs());
+  CALL_SUBTEST(test_conjugate());
   CALL_SUBTEST(test_contractions());
 }

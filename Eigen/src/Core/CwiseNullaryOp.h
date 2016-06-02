@@ -12,24 +12,6 @@
 
 namespace Eigen {
 
-/** \class CwiseNullaryOp
-  * \ingroup Core_Module
-  *
-  * \brief Generic expression of a matrix where all coefficients are defined by a functor
-  *
-  * \param NullaryOp template functor implementing the operator
-  * \param PlainObjectType the underlying plain matrix/array type
-  *
-  * This class represents an expression of a generic nullary operator.
-  * It is the return type of the Ones(), Zero(), Constant(), Identity() and Random() methods,
-  * and most of the time this is the only way it is used.
-  *
-  * However, if you want to write a function returning such an expression, you
-  * will need to use this class.
-  *
-  * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr()
-  */
-
 namespace internal {
 template<typename NullaryOp, typename PlainObjectType>
 struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectType>
@@ -40,6 +22,23 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
 };
 }
 
+/** \class CwiseNullaryOp
+  * \ingroup Core_Module
+  *
+  * \brief Generic expression of a matrix where all coefficients are defined by a functor
+  *
+  * \tparam NullaryOp template functor implementing the operator
+  * \tparam PlainObjectType the underlying plain matrix/array type
+  *
+  * This class represents an expression of a generic nullary operator.
+  * It is the return type of the Ones(), Zero(), Constant(), Identity() and Random() methods,
+  * and most of the time this is the only way it is used.
+  *
+  * However, if you want to write a function returning such an expression, you
+  * will need to use this class.
+  *
+  * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr()
+  */
 template<typename NullaryOp, typename PlainObjectType>
 class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type, internal::no_assignment_operator
 {
@@ -224,7 +223,7 @@ DenseBase<Derived>::Constant(const Scalar& value)
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
   * This particular version of LinSpaced() uses sequential access, i.e. vector access is
@@ -262,7 +261,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
@@ -328,7 +327,7 @@ EIGEN_STRONG_INLINE void DenseBase<Derived>::fill(const Scalar& val)
   setConstant(val);
 }
 
-/** Sets all coefficients in this expression to \a value.
+/** Sets all coefficients in this expression to value \a val.
   *
   * \sa fill(), setConstant(Index,const Scalar&), setConstant(Index,Index,const Scalar&), setZero(), setOnes(), Constant(), class CwiseNullaryOp, setZero(), setOnes()
   */
@@ -338,7 +337,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setConstant(const Scalar& val)
   return derived() = Constant(rows(), cols(), val);
 }
 
-/** Resizes to the given \a size, and sets all coefficients in this expression to the given \a value.
+/** Resizes to the given \a size, and sets all coefficients in this expression to the given value \a val.
   *
   * \only_for_vectors
   *
@@ -355,7 +354,7 @@ PlainObjectBase<Derived>::setConstant(Index size, const Scalar& val)
   return setConstant(val);
 }
 
-/** Resizes to the given size, and sets all coefficients in this expression to the given \a value.
+/** Resizes to the given size, and sets all coefficients in this expression to the given value \a val.
   *
   * \param rows the new number of rows
   * \param cols the new number of columns
@@ -375,7 +374,7 @@ PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& val)
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
@@ -395,7 +394,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index newSize, con
 }
 
 /**
-  * \brief Sets a linearly space vector.
+  * \brief Sets a linearly spaced vector.
   *
   * The function fill *this with equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.

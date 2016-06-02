@@ -11,7 +11,7 @@ You can manipulate a tensor with one of the following classes.  They all are in
 the namespace ```::Eigen.```
 
 
-### Class Tensor&lt;data_type, rank&gt;
+### Class Tensor<data_type, rank>
 
 This is the class to use to create a tensor and allocate memory for it.  The
 class is templatized with the tensor datatype, such as float or int, and the
@@ -21,7 +21,7 @@ matrix.
 Tensors of this class are resizable.  For example, if you assign a tensor of a
 different size to a Tensor, that tensor is resized to match its new value.
 
-#### Constructor Tensor&lt;data_type, rank&gt;(size0, size1, ...)
+#### Constructor Tensor<data_type, rank>(size0, size1, ...)
 
 Constructor for a Tensor.  The constructor must be passed ```rank``` integers
 indicating the sizes of the instance along each of the the ```rank```
@@ -34,18 +34,18 @@ dimensions.
     // Resize t_3d by assigning a tensor of different sizes, but same rank.
     t_3d = Tensor<float, 3>(3, 4, 3);
 
-#### Constructor Tensor&lt;data_type, rank&gt;(size_array)
+#### Constructor Tensor<data_type, rank>(size_array)
 
 Constructor where the sizes for the constructor are specified as an array of
 values instead of an explicitly list of parameters.  The array type to use is
-```Eigen::array&lt;Eigen::Index&gt;```.  The array can be constructed automatically
+```Eigen::array<Eigen::Index>```.  The array can be constructed automatically
 from an initializer list.
 
     // Create a tensor of strings of rank 2 with sizes 5, 7.
     Tensor<string, 2> t_2d({5, 7});
 
 
-### Class TensorFixedSize&lt;data_type, Sizes&lt;size0, size1, ...&gt;&gt;
+### Class TensorFixedSize<data_type, Sizes<size0, size1, ...>>
 
 Class to use for tensors of fixed size, where the size is known at compile
 time.  Fixed sized tensors can provide very fast computations because all their
@@ -57,7 +57,7 @@ tensor data is held onto the stack and does not cause heap allocation and free.
     // Create a 4 x 3 tensor of floats.
     TensorFixedSize<float, Sizes<4, 3>> t_4x3;
 
-### Class TensorMap&lt;Tensor&lt;data_type, rank&gt;&gt;
+### Class TensorMap<Tensor<data_type, rank>>
 
 This is the class to use to create a tensor on top of memory allocated and
 owned by another part of your code.  It allows to view any piece of allocated
@@ -67,7 +67,7 @@ data are stored.
 A TensorMap is not resizable because it does not own the memory where its data
 are stored.
 
-#### Constructor TensorMap&lt;Tensor&lt;data_type, rank&gt;&gt;(data, size0, size1, ...)
+#### Constructor TensorMap<Tensor<data_type, rank>>(data, size0, size1, ...)
 
 Constructor for a Tensor.  The constructor must be passed a pointer to the
 storage for the data, and "rank" size attributes.  The storage has to be
@@ -93,7 +93,7 @@ See Assigning to a TensorRef below.
 
 ## Accessing Tensor Elements
 
-#### &lt;data_type&gt; tensor(index0, index1...)
+#### <data_type> tensor(index0, index1...)
 
 Return the element at position ```(index0, index1...)``` in tensor
 ```tensor```.  You must pass as many parameters as the rank of ```tensor```.
@@ -175,7 +175,7 @@ the following code computes the elementwise addition of two tensors:
 While the code above looks easy enough, it is important to understand that the
 expression ```t1 + t2``` is not actually adding the values of the tensors.  The
 expression instead constructs a "tensor operator" object of the class
-TensorCwiseBinaryOp&lt;scalar_sum&gt;, which has references to the tensors
+TensorCwiseBinaryOp<scalar_sum>, which has references to the tensors
 ```t1``` and ```t2```.  This is a small C++ object that knows how to add
 ```t1``` and ```t2```.  It is only when the value of the expression is assigned
 to the tensor ```t3``` that the addition is actually performed.  Technically,
@@ -452,24 +452,24 @@ memory for tensors with cuda.
 In the documentation of the tensor methods and Operation we mention datatypes
 that are tensor-type specific:
 
-#### &lt;Tensor-Type&gt;::Dimensions
+#### <Tensor-Type>::Dimensions
 
 Acts like an array of ints.  Has an ```int size``` attribute, and can be
 indexed like an array to access individual values.  Used to represent the
 dimensions of a tensor.  See ```dimensions()```.
 
-#### &lt;Tensor-Type&gt;::Index
+#### <Tensor-Type>::Index
 
 Acts like an ```int```.  Used for indexing tensors along their dimensions.  See
 ```operator()```, ```dimension()```, and ```size()```.
 
-#### &lt;Tensor-Type&gt;::Scalar
+#### <Tensor-Type>::Scalar
 
 Represents the datatype of individual tensor elements.  For example, for a
 ```Tensor<float>```, ```Scalar``` is the type ```float```.  See
 ```setConstant()```.
 
-#### &lt;Operation&gt;
+#### <Operation>
 
 We use this pseudo type to indicate that a tensor Operation is returned by a
 method.  We indicate in the text the type and dimensions of the tensor that the
@@ -602,7 +602,7 @@ You can use one of the methods below to initialize the tensor memory.  These
 have an immediate effect on the tensor and return the tensor itself as a
 result.  These are not tensor Operations which delay evaluation.
 
-### &lt;Tensor-Type&gt; setConstant(const Scalar& val)
+### <Tensor-Type> setConstant(const Scalar& val)
 
 Sets all elements of the tensor to the constant value ```val```.  ```Scalar```
 is the type of data stored in the tensor.  You can pass any value that is
@@ -630,7 +630,7 @@ has a copy constructor and an ```operator=()```:
     yolo yolo yolo
 
 
-### &lt;Tensor-Type&gt; setZero()
+### <Tensor-Type> setZero()
 
 Fills the tensor with zeros.  Equivalent to ```setConstant(Scalar(0))```.
 Returns the tensor itself in case you want to chain another call.
@@ -644,7 +644,7 @@ Returns the tensor itself in case you want to chain another call.
     0 0 0 0
 
 
-### &lt;Tensor-Type&gt; setValues({..initializer_list})
+### <Tensor-Type> setValues({..initializer_list})
 
 Fills the tensor with explicit values specified in a std::initializer_list.
 The type of the initializer list depends on the type and rank of the tensor.
@@ -680,7 +680,7 @@ code only sets the values of the first row of the tensor.
     10   20   30
     1000 1000 1000
 
-### &lt;Tensor-Type&gt; setRandom()
+### <Tensor-Type> setRandom()
 
 Fills the tensor with random values.  Returns the tensor itself in case you
 want to chain another call.
@@ -775,7 +775,7 @@ The chain of Operation is evaluated lazily, typically when it is assigned to a
 tensor.  See "Controlling when Expression are Evaluated" for more details about
 their evaluation.
 
-### &lt;Operation&gt; constant(const Scalar& val)
+### <Operation> constant(const Scalar& val)
 
 Returns a tensor of the same type and dimensions as the original tensor but
 where all elements have the value ```val```.
@@ -803,7 +803,7 @@ tensor, or multiply every element of a tensor by a scalar.
     0.6 0.6 0.6
     0.6 0.6 0.6
 
-### &lt;Operation&gt; random()
+### <Operation> random()
 
 Returns a tensor of the same type and dimensions as the current tensor
 but where all elements have random values.
@@ -833,7 +833,7 @@ All these operations take a single input tensor as argument and return a tensor
 of the same type and dimensions as the tensor to which they are applied.  The
 requested operations are applied to each element independently.
 
-### &lt;Operation&gt; operator-()
+### <Operation> operator-()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the opposite values of the original tensor.
@@ -852,42 +852,42 @@ containing the opposite values of the original tensor.
     -1 -1 -1
     -1 -1 -1
 
-### &lt;Operation&gt; sqrt()
+### <Operation> sqrt()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the square roots of the original tensor.
 
-### &lt;Operation&gt; rsqrt()
+### <Operation> rsqrt()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the inverse square roots of the original tensor.
 
-### &lt;Operation&gt; square()
+### <Operation> square()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the squares of the original tensor values.
 
-### &lt;Operation&gt; inverse()
+### <Operation> inverse()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the inverse of the original tensor values.
 
-### &lt;Operation&gt; exp()
+### <Operation> exp()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the exponential of the original tensor.
 
-### &lt;Operation&gt; log()
+### <Operation> log()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the natural logarithms of the original tensor.
 
-### &lt;Operation&gt; abs()
+### <Operation> abs()
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the absolute values of the original tensor.
 
-### &lt;Operation&gt; pow(Scalar exponent)
+### <Operation> pow(Scalar exponent)
 
 Returns a tensor of the same type and dimensions as the original tensor
 containing the coefficients of the original tensor to the power of the
@@ -914,17 +914,17 @@ cubic roots of an int Tensor:
     0 1 2
     3 4 5
 
-### &lt;Operation&gt;  operator * (Scalar scale)
+### <Operation>  operator * (Scalar scale)
 
 Multiplies all the coefficients of the input tensor by the provided scale.
 
-### &lt;Operation&gt;  cwiseMax(Scalar threshold)
+### <Operation>  cwiseMax(Scalar threshold)
 TODO
 
-### &lt;Operation&gt;  cwiseMin(Scalar threshold)
+### <Operation>  cwiseMin(Scalar threshold)
 TODO
 
-### &lt;Operation&gt;  unaryExpr(const CustomUnaryOp& func)
+### <Operation>  unaryExpr(const CustomUnaryOp& func)
 TODO
 
 
@@ -936,39 +936,39 @@ dimensions as the tensors to which they are applied, and unless otherwise
 specified it is also of the same type. The requested operations are applied to
 each pair of elements independently.
 
-### &lt;Operation&gt; operator+(const OtherDerived& other)
+### <Operation> operator+(const OtherDerived& other)
 
 Returns a tensor of the same type and dimensions as the input tensors
 containing the coefficient wise sums of the inputs.
 
-### &lt;Operation&gt; operator-(const OtherDerived& other)
+### <Operation> operator-(const OtherDerived& other)
 
 Returns a tensor of the same type and dimensions as the input tensors
 containing the coefficient wise differences of the inputs.
 
-### &lt;Operation&gt; operator*(const OtherDerived& other)
+### <Operation> operator*(const OtherDerived& other)
 
 Returns a tensor of the same type and dimensions as the input tensors
 containing the coefficient wise products of the inputs.
 
-### &lt;Operation&gt; operator/(const OtherDerived& other)
+### <Operation> operator/(const OtherDerived& other)
 
 Returns a tensor of the same type and dimensions as the input tensors
 containing the coefficient wise quotients of the inputs.
 
 This operator is not supported for integer types.
 
-### &lt;Operation&gt; cwiseMax(const OtherDerived& other)
+### <Operation> cwiseMax(const OtherDerived& other)
 
 Returns a tensor of the same type and dimensions as the input tensors
 containing the coefficient wise maximums of the inputs.
 
-### &lt;Operation&gt; cwiseMin(const OtherDerived& other)
+### <Operation> cwiseMin(const OtherDerived& other)
 
 Returns a tensor of the same type and dimensions as the input tensors
 containing the coefficient wise mimimums of the inputs.
 
-### &lt;Operation&gt; Logical operators
+### <Operation> Logical operators
 
 The following logical operators are supported as well:
 
@@ -1119,58 +1119,96 @@ one-dimension tensor with a single value.
     276
 
 
-### &lt;Operation&gt; sum(const Dimensions& new_dims)
-### &lt;Operation&gt; sum()
+### <Operation> sum(const Dimensions& new_dims)
+### <Operation> sum()
 
 Reduce a tensor using the sum() operator.  The resulting values
 are the sum of the reduced values.
 
-### &lt;Operation&gt; mean(const Dimensions& new_dims)
-### &lt;Operation&gt; mean()
+### <Operation> mean(const Dimensions& new_dims)
+### <Operation> mean()
 
 Reduce a tensor using the mean() operator.  The resulting values
 are the mean of the reduced values.
 
-### &lt;Operation&gt; maximum(const Dimensions& new_dims)
-### &lt;Operation&gt; maximum()
+### <Operation> maximum(const Dimensions& new_dims)
+### <Operation> maximum()
 
 Reduce a tensor using the maximum() operator.  The resulting values are the
 largest of the reduced values.
 
-### &lt;Operation&gt; minimum(const Dimensions& new_dims)
-### &lt;Operation&gt; minimum()
+### <Operation> minimum(const Dimensions& new_dims)
+### <Operation> minimum()
 
 Reduce a tensor using the minimum() operator.  The resulting values
 are the smallest of the reduced values.
 
-### &lt;Operation&gt; prod(const Dimensions& new_dims)
-### &lt;Operation&gt; prod()
+### <Operation> prod(const Dimensions& new_dims)
+### <Operation> prod()
 
 Reduce a tensor using the prod() operator.  The resulting values
 are the product of the reduced values.
 
-### &lt;Operation&gt; all(const Dimensions& new_dims)
-### &lt;Operation&gt; all()
+### <Operation> all(const Dimensions& new_dims)
+### <Operation> all()
 Reduce a tensor using the all() operator.  Casts tensor to bool and then checks
 whether all elements are true.  Runs through all elements rather than
 short-circuiting, so may be significantly inefficient.
 
-### &lt;Operation&gt; any(const Dimensions& new_dims)
-### &lt;Operation&gt; any()
+### <Operation> any(const Dimensions& new_dims)
+### <Operation> any()
 Reduce a tensor using the any() operator.  Casts tensor to bool and then checks
 whether any element is true.  Runs through all elements rather than
 short-circuiting, so may be significantly inefficient.
 
 
-### &lt;Operation&gt; reduce(const Dimensions& new_dims, const Reducer& reducer)
+### <Operation> reduce(const Dimensions& new_dims, const Reducer& reducer)
 
 Reduce a tensor using a user-defined reduction operator.  See ```SumReducer```
 in TensorFunctors.h for information on how to implement a reduction operator.
 
 
+## Scan Operations
+
+A *Scan* operation returns a tensor with the same dimensions as the original
+tensor. The operation performs an inclusive scan along the specified
+axis, which means it computes a running total along the axis for a given
+reduction operation.
+If the reduction operation corresponds to summation, then this computes the
+prefix sum of the tensor along the given axis.
+
+Example:
+dd a comment to this line
+
+    // Create a tensor of 2 dimensions
+    Eigen::Tensor<int, 2> a(2, 3);
+    a.setValues({{1, 2, 3}, {4, 5, 6}});
+    // Scan it along the second dimension (1) using summation
+    Eigen::Tensor<int, 2> b = a.cumsum(1);
+    // The result is a tensor with the same size as the input
+    cout << "a" << endl << a << endl << endl;
+    cout << "b" << endl << b << endl << endl;
+    =>
+    a
+    1 2 3
+    6 5 4
+
+    b
+    1  3  6
+    4  9 15
+
+### <Operation> cumsum(const Index& axis)
+
+Perform a scan by summing consecutive entries.
+
+### <Operation> cumprod(const Index& axis)
+
+Perform a scan by multiplying consecutive entries.
+
+
 ## Convolutions
 
-### &lt;Operation&gt; convolve(const Kernel& kernel, const Dimensions& dims)
+### <Operation> convolve(const Kernel& kernel, const Dimensions& dims)
 
 Returns a tensor that is the output of the convolution of the input tensor with the kernel,
 along the specified dimensions of the input tensor. The dimension size for dimensions of the output tensor
@@ -1213,7 +1251,7 @@ These operations return a Tensor with different dimensions than the original
 Tensor.  They can be used to access slices of tensors, see them with different
 dimensions, or pad tensors with additional data.
 
-### &lt;Operation&gt; reshape(const Dimensions& new_dims)
+### <Operation> reshape(const Dimensions& new_dims)
 
 Returns a view of the input tensor that has been reshaped to the specified
 new dimensions.  The argument new_dims is an array of Index values.  The
@@ -1292,7 +1330,7 @@ Note that "b" itself was not reshaped but that instead the assignment is done to
 the reshape view of b.
 
 
-### &lt;Operation&gt; shuffle(const Shuffle& shuffle)
+### <Operation> shuffle(const Shuffle& shuffle)
 
 Returns a copy of the input tensor whose dimensions have been
 reordered according to the specified permutation. The argument shuffle
@@ -1333,7 +1371,7 @@ Let's rewrite the previous example to take advantage of this feature:
     output.shuffle({2, 0, 1}) = input;
 
 
-### &lt;Operation&gt; stride(const Strides& strides)
+### <Operation> stride(const Strides& strides)
 
 Returns a view of the input tensor that strides (skips stride-1
 elements) along each of the dimensions.  The argument strides is an
@@ -1359,7 +1397,7 @@ It is possible to assign a tensor to a stride:
     output.stride({2, 3, 4}) = input;
 
 
-### &lt;Operation&gt; slice(const StartIndices& offsets, const Sizes& extents)
+### <Operation> slice(const StartIndices& offsets, const Sizes& extents)
 
 Returns a sub-tensor of the given tensor. For each dimension i, the slice is
 made of the coefficients stored between offset[i] and offset[i] + extents[i] in
@@ -1385,7 +1423,7 @@ the input tensor.
      600   700
 
 
-### &lt;Operation&gt; chip(const Index offset, const Index dim)
+### <Operation> chip(const Index offset, const Index dim)
 
 A chip is a special kind of slice. It is the subtensor at the given offset in
 the dimension dim. The returned tensor has one fewer dimension than the input
@@ -1436,7 +1474,7 @@ lvalue. For example:
          0     0     0
 
 
-### &lt;Operation&gt; reverse(const ReverseDimensions& reverse)
+### <Operation> reverse(const ReverseDimensions& reverse)
 
 Returns a view of the input tensor that reverses the order of the coefficients
 along a subset of the dimensions.  The argument reverse is an array of boolean
@@ -1466,7 +1504,7 @@ of a 2D tensor:
        0   100   200
 
 
-### &lt;Operation&gt; broadcast(const Broadcast& broadcast)
+### <Operation> broadcast(const Broadcast& broadcast)
 
 Returns a view of the input tensor in which the input is replicated one to many
 times.
@@ -1490,11 +1528,11 @@ made in each of the dimensions.
        0   100   200    0   100   200
      300   400   500  300   400   500
 
-### &lt;Operation&gt; concatenate(const OtherDerived& other, Axis axis)
+### <Operation> concatenate(const OtherDerived& other, Axis axis)
 
 TODO
 
-### &lt;Operation&gt;  pad(const PaddingDimensions& padding)
+### <Operation>  pad(const PaddingDimensions& padding)
 
 Returns a view of the input tensor in which the input is padded with zeros.
 
@@ -1519,7 +1557,7 @@ Returns a view of the input tensor in which the input is padded with zeros.
        0     0     0    0
 
 
-### &lt;Operation&gt;  extract_patches(const PatchDims& patch_dims)
+### <Operation>  extract_patches(const PatchDims& patch_dims)
 
 Returns a tensor of coefficient patches extracted from the input tensor, where
 each patch is of dimension specified by 'patch_dims'. The returned tensor has
@@ -1606,7 +1644,7 @@ patch index: 5
 6 7
 10 11
 
-### &lt;Operation&gt;  extract_image_patches(const Index patch_rows, const Index patch_cols,
+### <Operation>  extract_image_patches(const Index patch_rows, const Index patch_cols,
                           const Index row_stride, const Index col_stride,
                           const PaddingType padding_type)
 
@@ -1663,7 +1701,7 @@ sizes:
 
 ## Special Operations
 
-### &lt;Operation&gt; cast&lt;T&gt;()
+### <Operation> cast<T>()
 
 Returns a tensor of type T with the same dimensions as the original tensor.
 The returned tensor contains the values of the original tensor converted to
@@ -1692,7 +1730,7 @@ but you can easily cast the tensors to floats to do the division:
     1 2 2
 
 
-### &lt;Operation&gt;     eval()
+### <Operation>     eval()
 
 TODO
 
@@ -1701,7 +1739,7 @@ TODO
 
 Scalar values are often represented by tensors of size 1 and rank 1. It would be
 more logical and user friendly to use tensors of rank 0 instead. For example
-Tensor&lt;T, N&gt;::maximum() currently returns a Tensor&lt;T, 1&gt;. Similarly, the inner
+Tensor<T, N>::maximum() currently returns a Tensor<T, 1>. Similarly, the inner
 product of 2 1d tensors (through contractions) returns a 1d tensor. In the
 future these operations might be updated to return 0d tensors instead.
 

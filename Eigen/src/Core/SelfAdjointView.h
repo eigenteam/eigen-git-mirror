@@ -32,7 +32,7 @@ namespace internal {
 template<typename MatrixType, unsigned int UpLo>
 struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
 {
-  typedef typename ref_selector<MatrixType>::type MatrixTypeNested;
+  typedef typename ref_selector<MatrixType>::non_const_type MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   typedef MatrixType ExpressionType;
   typedef typename MatrixType::PlainObject FullMatrixType;
@@ -55,6 +55,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef TriangularBase<SelfAdjointView> Base;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNestedCleaned MatrixTypeNestedCleaned;
+    typedef MatrixTypeNestedCleaned NestedExpression;
 
     /** \brief The type of coefficients in this matrix */
     typedef typename internal::traits<SelfAdjointView>::Scalar Scalar; 
@@ -97,7 +98,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     {
       EIGEN_STATIC_ASSERT_LVALUE(SelfAdjointView);
       Base::check_coordinates_internal(row, col);
-      return m_matrix.const_cast_derived().coeffRef(row, col);
+      return m_matrix.coeffRef(row, col);
     }
 
     /** \internal */
@@ -107,7 +108,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     EIGEN_DEVICE_FUNC
     const MatrixTypeNestedCleaned& nestedExpression() const { return m_matrix; }
     EIGEN_DEVICE_FUNC
-    MatrixTypeNestedCleaned& nestedExpression() { return *const_cast<MatrixTypeNestedCleaned*>(&m_matrix); }
+    MatrixTypeNestedCleaned& nestedExpression() { return m_matrix; }
 
     /** Efficient triangular matrix times vector/matrix product */
     template<typename OtherDerived>
@@ -162,6 +163,41 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     EIGEN_DEVICE_FUNC
     SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha = Scalar(1));
 
+    /** \returns an expression of a triangular view extracted from the current selfadjoint view of a given triangular part
+      *
+      * The parameter \a TriMode can have the following values: \c #Upper, \c #StrictlyUpper, \c #UnitUpper,
+      * \c #Lower, \c #StrictlyLower, \c #UnitLower.
+      *
+      * If \c TriMode references the same triangular part than \c *this, then this method simply return a \c TriangularView of the nested expression,
+      * otherwise, the nested expression is first transposed, thus returning a \c TriangularView<Transpose<MatrixType>> object.
+      *
+      * \sa MatrixBase::triangularView(), class TriangularView
+      */
+    template<unsigned int TriMode>
+    EIGEN_DEVICE_FUNC
+    typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+                                   TriangularView<MatrixType,TriMode>,
+                                   TriangularView<typename MatrixType::AdjointReturnType,TriMode> >::type
+    triangularView() const
+    {
+      typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::ConstTransposeReturnType>::type tmp1(m_matrix);
+      typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::AdjointReturnType>::type tmp2(tmp1);
+      return typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+                                   TriangularView<MatrixType,TriMode>,
+                                   TriangularView<typename MatrixType::AdjointReturnType,TriMode> >::type(tmp2);
+    }
+
+    /** \returns a const expression of the main diagonal of the matrix \c *this
+      *
+      * This method simply returns the diagonal of the nested expression, thus by-passing the SelfAdjointView decorator.
+      *
+      * \sa MatrixBase::diagonal(), class Diagonal */
+    EIGEN_DEVICE_FUNC
+    typename MatrixType::ConstDiagonalReturnType diagonal() const
+    {
+      return typename MatrixType::ConstDiagonalReturnType(m_matrix);
+    }
+
 /////////// Cholesky module ///////////
 
     const LLT<PlainObject, UpLo> llt() const;
@@ -203,8 +239,6 @@ struct evaluator_traits<SelfAdjointView<MatrixType,Mode> >
 {
   typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
   typedef SelfAdjointShape Shape;
-  
-  static const int AssumeAliasing = 0;
 };
 
 template<int UpLo, int SetOpposite, typename DstEvaluatorTypeT, typename SrcEvaluatorTypeT, typename Functor, int Version>
