@@ -101,13 +101,12 @@ struct EvalRange {
 
 template <typename Evaluator, typename Index>
 struct EvalRange<Evaluator, Index, true> {
- static const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
+  static const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
 
   static void run(Evaluator* evaluator_in, const Index first, const Index last) {
     Evaluator evaluator = *evaluator_in;
     eigen_assert(last >= first);
     Index i = first;
-    const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
     if (last - first >= PacketSize) {
       eigen_assert(first % PacketSize == 0);
       Index last_chunk_offset = last - 4 * PacketSize;
