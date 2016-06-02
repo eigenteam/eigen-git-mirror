@@ -52,8 +52,6 @@ template<typename Derived> class ArrayBase
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     typedef DenseBase<Derived> Base;
-    using Base::operator*;
-    using Base::operator/;
     using Base::RowsAtCompileTime;
     using Base::ColsAtCompileTime;
     using Base::SizeAtCompileTime;

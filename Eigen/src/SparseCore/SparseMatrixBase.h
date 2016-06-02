@@ -143,8 +143,7 @@ template<typename Derived> class SparseMatrixBase
     { return *static_cast<Derived*>(const_cast<SparseMatrixBase*>(this)); }
 
     typedef internal::special_scalar_op_base<Derived, Scalar, RealScalar, EigenBase<Derived> > Base;
-    using Base::operator*;
-    using Base::operator/;
+
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase

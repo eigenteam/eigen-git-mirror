@@ -75,8 +75,6 @@ template<typename Derived> class DenseBase
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef internal::special_scalar_op_base<Derived,Scalar,RealScalar, DenseCoeffsBase<Derived> > Base;
 
-    using Base::operator*;
-    using Base::operator/;
     using Base::derived;
     using Base::const_cast_derived;
     using Base::rows;
