@@ -736,3 +736,8 @@ int main(int argc, char *argv[])
   // remark #1572: floating-point equality and inequality comparisons are unreliable
   #pragma warning disable 279 383 1418 1572
 #endif
+
+#ifdef _MSC_VER
+  // 4503 - decorated name length exceeded, name was truncated
+  #pragma warning( disable : 4503)
+#endif
