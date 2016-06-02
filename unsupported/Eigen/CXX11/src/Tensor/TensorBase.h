@@ -216,10 +216,25 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE friend
+    const TensorCwiseUnaryOp<internal::scalar_add_op<Scalar>, const Derived>
+    operator+ (Scalar lhs, const Derived& rhs) {
+      return rhs + lhs;
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_sub_op<Scalar>, const Derived>
     operator- (Scalar rhs) const {
       EIGEN_STATIC_ASSERT((NumTraits<Scalar>::IsSigned || internal::is_same<Scalar, const std::complex<float> >::value), YOU_MADE_A_PROGRAMMING_MISTAKE);
       return unaryExpr(internal::scalar_sub_op<Scalar>(rhs));
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE friend
+    const TensorCwiseUnaryOp<internal::scalar_add_op<Scalar>,
+                             const TensorCwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const Derived> >
+    operator- (Scalar lhs, const Derived& rhs) {
+      return -rhs + lhs;
     }
 
     EIGEN_DEVICE_FUNC
@@ -229,9 +244,24 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE friend
+    const TensorCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Derived>
+    operator* (Scalar lhs, const Derived& rhs) {
+      return rhs * lhs;
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, const Derived>
     operator/ (Scalar rhs) const {
       return unaryExpr(internal::scalar_quotient1_op<Scalar>(rhs));
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE friend
+    const TensorCwiseUnaryOp<internal::scalar_multiple_op<Scalar>,
+                             const TensorCwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> >
+    operator/ (Scalar lhs, const Derived& rhs) {
+      return rhs.inverse() * lhs;
     }
 
     EIGEN_DEVICE_FUNC
@@ -451,6 +481,21 @@ class TensorBase<Derived, ReadOnlyAccessors>
     const TensorFFTOp<const FFT, const Derived, FFTDataType, FFTDirection>
     fft(const FFT& fft) const {
       return TensorFFTOp<const FFT, const Derived, FFTDataType, FFTDirection>(derived(), fft);
+    }
+
+    // Scan.
+    typedef TensorScanOp<internal::SumReducer<CoeffReturnType>, const Derived> TensorScanSumOp;
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorScanSumOp
+    cumsum(const Index& axis) const {
+      return TensorScanSumOp(derived(), axis);
+    }
+
+    typedef TensorScanOp<internal::ProdReducer<CoeffReturnType>, const Derived> TensorScanProdOp;
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorScanProdOp
+    cumprod(const Index& axis) const {
+      return TensorScanProdOp(derived(), axis);
     }
 
     // Reductions.
