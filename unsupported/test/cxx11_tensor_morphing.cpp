@@ -324,44 +324,40 @@ static void test_strided_slice()
   typedef Tensor<float, 2, DataLayout> Tensor2f;
   typedef Eigen::DSizes<Eigen::DenseIndex, 2> Index2;
   Tensor<float, 5, DataLayout> tensor(2,3,5,7,11);
+  Tensor<float, 2, DataLayout> tensor2(7,11);
   tensor.setRandom();
+  tensor2.setRandom();
 
-  if(true) {
-    Tensor<float, 2, DataLayout> tensor(7,11);
-    tensor.setRandom();
+  if (true) {
     Tensor2f slice(2,3);
     Index2 strides(-2,-1);
     Index2 indicesStart(5,7);
     Index2 indicesStop(0,4);
-    slice = tensor.stridedSlice(indicesStart, indicesStop, strides);
+    slice = tensor2.stridedSlice(indicesStart, indicesStop, strides);
     for (int j = 0; j < 2; ++j) {
       for (int k = 0; k < 3; ++k) {
-        VERIFY_IS_EQUAL(slice(j,k), tensor(5-2*j,7-k));
+        VERIFY_IS_EQUAL(slice(j,k), tensor2(5-2*j,7-k));
       }
     }
   }
 
   if(true) {
-    Tensor<float, 2, DataLayout> tensor(7,11);
-    tensor.setRandom();
     Tensor2f slice(0,1);
     Index2 strides(1,1);
     Index2 indicesStart(5,4);
     Index2 indicesStop(5,5);
-    slice = tensor.stridedSlice(indicesStart, indicesStop, strides);
+    slice = tensor2.stridedSlice(indicesStart, indicesStop, strides);
   }
 
   if(true) { // test clamped degenerate interavls
-    Tensor<float, 2, DataLayout> tensor(7,11);
-    tensor.setRandom();
     Tensor2f slice(7,11);
     Index2 strides(1,-1);
     Index2 indicesStart(-3,20); // should become 0,10
     Index2 indicesStop(20,-11); // should become 11, -1
-    slice = tensor.stridedSlice(indicesStart, indicesStop, strides);
+    slice = tensor2.stridedSlice(indicesStart, indicesStop, strides);
     for (int j = 0; j < 7; ++j) {
       for (int k = 0; k < 11; ++k) {
-        VERIFY_IS_EQUAL(slice(j,k), tensor(j,10-k));
+        VERIFY_IS_EQUAL(slice(j,k), tensor2(j,10-k));
       }
     }
   }
@@ -389,6 +385,7 @@ static void test_strided_slice()
       }
     }
   }
+
   if(true) {
     Tensor5f slice(1,1,2,2,3);
     Index5 strides3(1, 1, -2, 1, -1);
