@@ -438,7 +438,9 @@ DenseBase<Derived>::maxCoeff() const
   return derived().redux(Eigen::internal::scalar_max_op<Scalar>());
 }
 
-/** \returns the sum of all coefficients of *this
+/** \returns the sum of all coefficients of \c *this
+  *
+  * If \c *this is empty, then the value 0 is returned.
   *
   * \sa trace(), prod(), mean()
   */
