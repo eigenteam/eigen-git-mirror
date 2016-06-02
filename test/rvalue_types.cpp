@@ -11,6 +11,8 @@
 
 #include <Eigen/Core>
 
+using internal::UIntPtr;
+
 #if EIGEN_HAS_RVALUE_REFERENCES
 template <typename MatrixType>
 void rvalue_copyassign(const MatrixType& m)
@@ -20,11 +22,11 @@ void rvalue_copyassign(const MatrixType& m)
   
   // create a temporary which we are about to destroy by moving
   MatrixType tmp = m;
-  long src_address = reinterpret_cast<long>(tmp.data());
+  UIntPtr src_address = reinterpret_cast<UIntPtr>(tmp.data());
   
   // move the temporary to n
   MatrixType n = std::move(tmp);
-  long dst_address = reinterpret_cast<long>(n.data());
+  UIntPtr dst_address = reinterpret_cast<UIntPtr>(n.data());
 
   if (MatrixType::RowsAtCompileTime==Dynamic|| MatrixType::ColsAtCompileTime==Dynamic)
   {
