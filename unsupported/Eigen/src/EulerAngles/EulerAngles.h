@@ -29,7 +29,7 @@ namespace Eigen
   class EulerAngles : public RotationBase<EulerAngles<_Scalar, _System>, 3>
   {
     public:
-      /** the scalar type of the coefficients */
+      /** the scalar type of the angles */
       typedef _Scalar Scalar;
       typedef _System System;
     
@@ -38,16 +38,19 @@ namespace Eigen
       typedef Quaternion<Scalar> QuaternionType;
       typedef AngleAxis<Scalar> AngleAxisType;
       
-      static Vector3 HeadingAxisVector() {
-        return internal::NegativeIf<System::IsHeadingOpposite>::run(Vector3::Unit(System::HeadingAxisAbs - 1));
+      static Vector3 AlphaAxisVector() {
+        const Vector3& u = Vector3::Unit(System::AlphaAxisAbs - 1);
+        return System::IsAlphaOpposite ? -u : u;
       }
       
-      static Vector3 PitchAxisVector() {
-        return internal::NegativeIf<System::IsPitchOpposite>::run(Vector3::Unit(System::PitchAxisAbs - 1));
+      static Vector3 BetaAxisVector() {
+        const Vector3& u = Vector3::Unit(System::BetaAxisAbs - 1);
+        return System::IsBetaOpposite ? -u : u;
       }
       
-      static Vector3 RollAxisVector() {
-        return internal::NegativeIf<System::IsRollOpposite>::run(Vector3::Unit(System::RollAxisAbs - 1));
+      static Vector3 GammaAxisVector() {
+        const Vector3& u = Vector3::Unit(System::GammaAxisAbs - 1);
+        return System::IsGammaOpposite ? -u : u;
       }
 
     private:
@@ -56,7 +59,7 @@ namespace Eigen
     public:
 
       EulerAngles() {}
-      inline EulerAngles(Scalar a0, Scalar a1, Scalar a2) : m_angles(a0, a1, a2) {}
+      inline EulerAngles(Scalar alpha, Scalar beta, Scalar gamma) : m_angles(alpha, beta, gamma) {}
       
       template<typename Derived>
       inline EulerAngles(const MatrixBase<Derived>& m) { *this = m; }
@@ -64,11 +67,11 @@ namespace Eigen
       template<typename Derived>
       inline EulerAngles(
         const MatrixBase<Derived>& m,
-        bool positiveRangeHeading,
-        bool positiveRangePitch,
-        bool positiveRangeRoll) {
+        bool positiveRangeAlpha,
+        bool positiveRangeBeta,
+        bool positiveRangeGamma) {
         
-        fromRotation(m, positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
+        System::CalcEulerAngles(*this, m, positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma);
       }
       
       template<typename Derived>
@@ -77,35 +80,24 @@ namespace Eigen
       template<typename Derived>
       inline EulerAngles(
         const RotationBase<Derived, 3>& rot,
-        bool positiveRangeHeading,
-        bool positiveRangePitch,
-        bool positiveRangeRoll) {
+        bool positiveRangeAlpha,
+        bool positiveRangeBeta,
+        bool positiveRangeGamma) {
         
-        fromRotation(rot, positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
+        System::CalcEulerAngles(*this, rot.toRotationMatrix(), positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma);
       }
 
-      Scalar angle(int i) const { return m_angles.coeff(i); }
-      Scalar& angle(int i) { return m_angles.coeffRef(i); }
+      const Vector3& angles() const { return m_angles; }
+      Vector3& angles() { return m_angles; }
 
-      const Vector3& coeffs() const { return m_angles; }
-      Vector3& coeffs() { return m_angles; }
+      Scalar alpha() const { return m_angles[0]; }
+      Scalar& alpha() { return m_angles[0]; }
 
-      Scalar h() const { return m_angles[0]; }
-      Scalar& h() { return m_angles[0]; }
+      Scalar beta() const { return m_angles[1]; }
+      Scalar& beta() { return m_angles[1]; }
 
-      Scalar p() const { return m_angles[1]; }
-      Scalar& p() { return m_angles[1]; }
-
-      Scalar r() const { return m_angles[2]; }
-      Scalar& r() { return m_angles[2]; }
-
-      EulerAngles invert() const
-      {
-        //m_angles = -m_angles;// I want to do this but there could be an aliasing issue!
-        m_angles *= -1;
-        
-        return *this;
-      }
+      Scalar gamma() const { return m_angles[2]; }
+      Scalar& gamma() { return m_angles[2]; }
 
       EulerAngles inverse() const
       {
@@ -121,59 +113,26 @@ namespace Eigen
       
       /** Constructs and \returns an equivalent 3x3 rotation matrix.
         */
-      template<typename Derived>
-      EulerAngles& fromRotation(const MatrixBase<Derived>& m)
+      template<
+        bool PositiveRangeAlpha,
+        bool PositiveRangeBeta,
+        bool PositiveRangeGamma,
+        typename Derived>
+      static EulerAngles FromRotation(const MatrixBase<Derived>& m)
       {
-        System::eulerAngles(*this, m);
-        return *this;
+        EulerAngles e;
+        System::CalcEulerAngles<PositiveRangeAlpha, PositiveRangeBeta, PositiveRangeGamma>(e, m);
+        return e;
       }
       
       template<
-        bool PositiveRangeHeading,
-        bool PositiveRangePitch,
-        bool PositiveRangeRoll,
+        bool PositiveRangeAlpha,
+        bool PositiveRangeBeta,
+        bool PositiveRangeGamma,
         typename Derived>
-      EulerAngles& fromRotation(const MatrixBase<Derived>& m)
+      static EulerAngles& FromRotation(const RotationBase<Derived, 3>& rot)
       {
-        System::eulerAngles<PositiveRangeHeading, PositiveRangePitch, PositiveRangeRoll>(*this, m);
-        return *this;
-      }
-      
-      template<typename Derived>
-      EulerAngles& fromRotation(
-        const MatrixBase<Derived>& m,
-        bool positiveRangeHeading,
-        bool positiveRangePitch,
-        bool positiveRangeRoll)
-      {
-        System::eulerAngles(*this, m, positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
-        return *this;
-      }
-      
-      template<typename Derived>
-      EulerAngles& fromRotation(const RotationBase<Derived, 3>& rot)
-      {
-        return fromRotation(rot.toRotationMatrix());
-      }
-      
-      template<
-        bool PositiveRangeHeading,
-        bool PositiveRangePitch,
-        bool PositiveRangeRoll,
-        typename Derived>
-      EulerAngles& fromRotation(const RotationBase<Derived, 3>& rot)
-      {
-        return fromRotation<PositiveRangeHeading, PositiveRangePitch, PositiveRangeRoll>(rot.toRotationMatrix());
-      }
-      
-      template<typename Derived>
-      EulerAngles& fromRotation(
-        const RotationBase<Derived, 3>& rot,
-        bool positiveRangeHeading,
-        bool positiveRangePitch,
-        bool positiveRangeRoll)
-      {
-        return fromRotation(rot.toRotationMatrix(), positiveRangeHeading, positiveRangePitch, positiveRangeRoll);
+        return FromRotation<PositiveRangeAlpha, PositiveRangeBeta, PositiveRangeGamma>(rot.toRotationMatrix());
       }
       
       /*EulerAngles& fromQuaternion(const QuaternionType& q)
@@ -193,8 +152,9 @@ namespace Eigen
       /** Set \c *this from a rotation matrix(i.e. pure orthogonal matrix with determinent of +1).
         */
       template<typename Derived>
-      EulerAngles& operator=(const MatrixBase<Derived>& mat) {
-        return fromRotation(mat);
+      EulerAngles& operator=(const MatrixBase<Derived>& m) {
+        System::CalcEulerAngles(*this, m);
+        return *this;
       }
 
       // TODO: Assign and construct from another EulerAngles (with different system)
@@ -203,7 +163,8 @@ namespace Eigen
         */
       template<typename Derived>
       EulerAngles& operator=(const RotationBase<Derived, 3>& rot) {
-        return fromRotation(rot.toRotationMatrix());
+        System::CalcEulerAngles(*this, rot.toRotationMatrix());
+        return *this;
       }
       
       // TODO: Support isApprox function
@@ -216,9 +177,9 @@ namespace Eigen
       QuaternionType toQuaternion() const
       {
         return
-          AngleAxisType(h(), HeadingAxisVector()) *
-          AngleAxisType(p(), PitchAxisVector()) *
-          AngleAxisType(r(), RollAxisVector());
+          AngleAxisType(alpha(), AlphaAxisVector()) *
+          AngleAxisType(beta(), BetaAxisVector()) *
+          AngleAxisType(gamma(), GammaAxisVector());
       }
     
       operator QuaternionType() const
@@ -227,20 +188,27 @@ namespace Eigen
       }
   };
 
-  typedef EulerAngles<double, EulerSystemXYZ> EulerAnglesXYZd;
-  typedef EulerAngles<double, EulerSystemXYX> EulerAnglesXYXd;
-  typedef EulerAngles<double, EulerSystemXZY> EulerAnglesXZYd;
-  typedef EulerAngles<double, EulerSystemXZX> EulerAnglesXZXd;
+#define EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(SYSTEM, SCALAR_TYPE, SCALAR_POSTFIX) \
+  typedef EulerAngles<SCALAR_TYPE, SYSTEM> SYSTEM##SCALAR_POSTFIX;
 
-  typedef EulerAngles<double, EulerSystemYZX> EulerAnglesYZXd;
-  typedef EulerAngles<double, EulerSystemYZY> EulerAnglesYZYd;
-  typedef EulerAngles<double, EulerSystemYXZ> EulerAnglesYXZd;
-  typedef EulerAngles<double, EulerSystemYXY> EulerAnglesYXYd;
+#define EIGEN_EULER_ANGLES_TYPEDEFS(SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXYZ, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXYX, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXZY, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXZX, SCALAR_TYPE, SCALAR_POSTFIX) \
+ \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYZX, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYZY, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYXZ, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYXY, SCALAR_TYPE, SCALAR_POSTFIX) \
+ \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZXY, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZXZ, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZYX, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZYZ, SCALAR_TYPE, SCALAR_POSTFIX)
 
-  typedef EulerAngles<double, EulerSystemZXY> EulerAnglesZXYd;
-  typedef EulerAngles<double, EulerSystemZXZ> EulerAnglesZXZd;
-  typedef EulerAngles<double, EulerSystemZYX> EulerAnglesZYXd;
-  typedef EulerAngles<double, EulerSystemZYZ> EulerAnglesZYZd;
+EIGEN_EULER_ANGLES_TYPEDEFS(float, f)
+EIGEN_EULER_ANGLES_TYPEDEFS(double, d)
 
   namespace internal
   {

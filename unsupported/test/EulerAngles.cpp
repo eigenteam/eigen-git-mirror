@@ -15,7 +15,7 @@ using namespace Eigen;
 
 template<typename EulerSystem, typename Scalar>
 void verify_euler_ranged(const Matrix<Scalar,3,1>& ea,
-  bool positiveRangeHeading, bool positiveRangePitch, bool positiveRangeRoll)
+  bool positiveRangeAlpha, bool positiveRangeBeta, bool positiveRangeGamma)
 {
   typedef EulerAngles<Scalar, EulerSystem> EulerAnglesType;
   typedef Matrix<Scalar,3,3> Matrix3;
@@ -24,64 +24,64 @@ void verify_euler_ranged(const Matrix<Scalar,3,1>& ea,
   typedef AngleAxis<Scalar> AngleAxisType;
   using std::abs;
   
-  Scalar headingRangeStart, headingRangeEnd;
-  Scalar pitchRangeStart, pitchRangeEnd;
-  Scalar rollRangeStart, rollRangeEnd;
+  Scalar alphaRangeStart, alphaRangeEnd;
+  Scalar betaRangeStart, betaRangeEnd;
+  Scalar gammaRangeStart, gammaRangeEnd;
   
-  if (positiveRangeHeading)
+  if (positiveRangeAlpha)
   {
-    headingRangeStart = Scalar(0);
-    headingRangeEnd = Scalar(2 * EIGEN_PI);
+    alphaRangeStart = Scalar(0);
+    alphaRangeEnd = Scalar(2 * EIGEN_PI);
   }
   else
   {
-    headingRangeStart = -Scalar(EIGEN_PI);
-    headingRangeEnd = Scalar(EIGEN_PI);
+    alphaRangeStart = -Scalar(EIGEN_PI);
+    alphaRangeEnd = Scalar(EIGEN_PI);
   }
   
-  if (positiveRangePitch)
+  if (positiveRangeBeta)
   {
-    pitchRangeStart = Scalar(0);
-    pitchRangeEnd = Scalar(2 * EIGEN_PI);
+    betaRangeStart = Scalar(0);
+    betaRangeEnd = Scalar(2 * EIGEN_PI);
   }
   else
   {
-    pitchRangeStart = -Scalar(EIGEN_PI);
-    pitchRangeEnd = Scalar(EIGEN_PI);
+    betaRangeStart = -Scalar(EIGEN_PI);
+    betaRangeEnd = Scalar(EIGEN_PI);
   }
   
-  if (positiveRangeRoll)
+  if (positiveRangeGamma)
   {
-    rollRangeStart = Scalar(0);
-    rollRangeEnd = Scalar(2 * EIGEN_PI);
+    gammaRangeStart = Scalar(0);
+    gammaRangeEnd = Scalar(2 * EIGEN_PI);
   }
   else
   {
-    rollRangeStart = -Scalar(EIGEN_PI);
-    rollRangeEnd = Scalar(EIGEN_PI);
+    gammaRangeStart = -Scalar(EIGEN_PI);
+    gammaRangeEnd = Scalar(EIGEN_PI);
   }
   
-  const int i = EulerSystem::HeadingAxisAbs - 1;
-  const int j = EulerSystem::PitchAxisAbs - 1;
-  const int k = EulerSystem::RollAxisAbs - 1;
+  const int i = EulerSystem::AlphaAxisAbs - 1;
+  const int j = EulerSystem::BetaAxisAbs - 1;
+  const int k = EulerSystem::GammaAxisAbs - 1;
   
-  const int iFactor = EulerSystem::IsHeadingOpposite ? -1 : 1;
-  const int jFactor = EulerSystem::IsPitchOpposite ? -1 : 1;
-  const int kFactor = EulerSystem::IsRollOpposite ? -1 : 1;
+  const int iFactor = EulerSystem::IsAlphaOpposite ? -1 : 1;
+  const int jFactor = EulerSystem::IsBetaOpposite ? -1 : 1;
+  const int kFactor = EulerSystem::IsGammaOpposite ? -1 : 1;
   
-  const Vector3 I = EulerAnglesType::HeadingAxisVector();
-  const Vector3 J = EulerAnglesType::PitchAxisVector();
-  const Vector3 K = EulerAnglesType::RollAxisVector();
+  const Vector3 I = EulerAnglesType::AlphaAxisVector();
+  const Vector3 J = EulerAnglesType::BetaAxisVector();
+  const Vector3 K = EulerAnglesType::GammaAxisVector();
   
   EulerAnglesType e(ea[0], ea[1], ea[2]);
   
   Matrix3 m(e);
-  Vector3 eabis = EulerAnglesType(m, positiveRangeHeading, positiveRangePitch, positiveRangeRoll).coeffs();
+  Vector3 eabis = EulerAnglesType(m, positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma).angles();
   
   // Check that eabis in range
-  VERIFY(headingRangeStart <= eabis[0] && eabis[0] <= headingRangeEnd);
-  VERIFY(pitchRangeStart <= eabis[1] && eabis[1] <= pitchRangeEnd);
-  VERIFY(rollRangeStart <= eabis[2] && eabis[2] <= rollRangeEnd);
+  VERIFY(alphaRangeStart <= eabis[0] && eabis[0] <= alphaRangeEnd);
+  VERIFY(betaRangeStart <= eabis[1] && eabis[1] <= betaRangeEnd);
+  VERIFY(gammaRangeStart <= eabis[2] && eabis[2] <= gammaRangeEnd);
   
   Vector3 eabis2 = m.eulerAngles(i, j, k);
   
@@ -91,11 +91,11 @@ void verify_euler_ranged(const Matrix<Scalar,3,1>& ea,
   eabis2[2] *= kFactor;
   
   // Saturate the angles to the correct range
-  if (positiveRangeHeading && (eabis2[0] < 0))
+  if (positiveRangeAlpha && (eabis2[0] < 0))
     eabis2[0] += Scalar(2 * EIGEN_PI);
-  if (positiveRangePitch && (eabis2[1] < 0))
+  if (positiveRangeBeta && (eabis2[1] < 0))
     eabis2[1] += Scalar(2 * EIGEN_PI);
-  if (positiveRangeRoll && (eabis2[2] < 0))
+  if (positiveRangeGamma && (eabis2[2] < 0))
     eabis2[2] += Scalar(2 * EIGEN_PI);
   
   VERIFY_IS_APPROX(eabis, eabis2);// Verify that our estimation is the same as m.eulerAngles() is
@@ -104,7 +104,7 @@ void verify_euler_ranged(const Matrix<Scalar,3,1>& ea,
   VERIFY_IS_APPROX(m,  mbis);
   
   // Tests that are only relevant for no possitive range
-  if (!(positiveRangeHeading || positiveRangePitch || positiveRangeRoll))
+  if (!(positiveRangeAlpha || positiveRangeBeta || positiveRangeGamma))
   {
     /* If I==K, and ea[1]==0, then there no unique solution. */ 
     /* The remark apply in the case where I!=K, and |ea[1]| is close to pi/2. */ 
@@ -117,7 +117,7 @@ void verify_euler_ranged(const Matrix<Scalar,3,1>& ea,
   
   // Quaternions
   QuaternionType q(e);
-  eabis = EulerAnglesType(q, positiveRangeHeading, positiveRangePitch, positiveRangeRoll).coeffs();
+  eabis = EulerAnglesType(q, positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma).angles();
   VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
 }
 
