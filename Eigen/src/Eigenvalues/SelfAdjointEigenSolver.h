@@ -458,7 +458,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   {
     m_eivec.setIdentity(diag.size(), diag.size());
   }
-  m_info = computeFromTridiagonal_impl(m_eivalues, m_subdiag, m_maxIterations, computeEigenvectors, m_eivec);
+  m_info = internal::computeFromTridiagonal_impl(m_eivalues, m_subdiag, m_maxIterations, computeEigenvectors, m_eivec);
 
   m_isInitialized = true;
   m_eigenvectorsOk = computeEigenvectors;
