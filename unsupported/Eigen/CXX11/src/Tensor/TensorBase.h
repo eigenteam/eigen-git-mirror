@@ -498,6 +498,13 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return TensorScanProdOp(derived(), axis);
     }
 
+    template <typename Reducer>
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+    const TensorScanOp<Reducer, const Derived>
+    scan(const Index& axis, const Reducer& reducer) const {
+      return TensorScanOp<Reducer, const Derived>(derived(), axis, reducer);
+    }
+
     // Reductions.
     template <typename Dims> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorReductionOp<internal::SumReducer<CoeffReturnType>, const Dims, const Derived>
