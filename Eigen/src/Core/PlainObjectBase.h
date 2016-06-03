@@ -494,13 +494,13 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 
 #if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
-    PlainObjectBase(PlainObjectBase&& other)
+    PlainObjectBase(PlainObjectBase&& other) EIGEN_NOEXCEPT
       : m_storage( std::move(other.m_storage) )
     {
     }
 
     EIGEN_DEVICE_FUNC
-    PlainObjectBase& operator=(PlainObjectBase&& other)
+    PlainObjectBase& operator=(PlainObjectBase&& other) EIGEN_NOEXCEPT
     {
       using std::swap;
       swap(m_storage, other.m_storage);

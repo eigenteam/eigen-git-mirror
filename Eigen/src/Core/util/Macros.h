@@ -437,7 +437,8 @@
 // Does the compiler support C++11 noexcept?
 #ifndef EIGEN_HAS_CXX11_NOEXCEPT
   #if    EIGEN_MAX_CPP_VER>=11 && \
-         ((__cplusplus > 201103L) \
+         (__has_feature(cxx_noexcept) \
+      || (__cplusplus > 201103L) \
       || ((__cplusplus >= 201103L) && (EIGEN_COMP_GNUC_STRICT || EIGEN_COMP_CLANG || EIGEN_COMP_ICC>=1400)) \
       || EIGEN_COMP_MSVC >= 1900)
     #define EIGEN_HAS_CXX11_NOEXCEPT 1
@@ -911,10 +912,16 @@ namespace Eigen {
 #  define EIGEN_CATCH(X) else
 #endif
 
+
 #if EIGEN_HAS_CXX11_NOEXCEPT
+#   define EIGEN_INCLUDE_TYPE_TRAITS
+#   define EIGEN_NOEXCEPT noexcept
+#   define EIGEN_NOEXCEPT_IF(x) noexcept(x)
 #   define EIGEN_NO_THROW noexcept(true)
 #   define EIGEN_EXCEPTION_SPEC(X) noexcept(false)
 #else
+#   define EIGEN_NOEXCEPT
+#   define EIGEN_NOEXCEPT_IF(x)
 #   define EIGEN_NO_THROW throw()
 #   define EIGEN_EXCEPTION_SPEC(X) throw(X)
 #endif

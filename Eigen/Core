@@ -252,6 +252,11 @@
 // for min/max:
 #include <algorithm>
 
+// for std::is_nothrow_move_assignable
+#ifdef EIGEN_INCLUDE_TYPE_TRAITS
+#include <type_traits>
+#endif
+
 // for outputting debug info
 #ifdef EIGEN_DEBUG_ASSIGN
 #include <iostream>

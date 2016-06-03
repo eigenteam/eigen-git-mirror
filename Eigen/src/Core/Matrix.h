@@ -270,7 +270,7 @@ class Matrix
 
 #if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
-    Matrix(Matrix&& other)
+    Matrix(Matrix&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value)
       : Base(std::move(other))
     {
       Base::_check_template_params();
@@ -278,7 +278,7 @@ class Matrix
         Base::_set_noalias(other);
     }
     EIGEN_DEVICE_FUNC
-    Matrix& operator=(Matrix&& other)
+    Matrix& operator=(Matrix&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)
     {
       other.swap(*this);
       return *this;
