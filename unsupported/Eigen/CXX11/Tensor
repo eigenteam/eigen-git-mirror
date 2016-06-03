@@ -80,6 +80,7 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorTraits.h"
 #include "src/Tensor/TensorUInt128.h"
 #include "src/Tensor/TensorIntDiv.h"
+#include "src/Tensor/TensorGlobalFunctions.h"
 
 #include "src/Tensor/TensorBase.h"
 

@@ -83,6 +83,7 @@ struct default_packet_traits
     HasErfc = 0,
     HasIGamma = 0,
     HasIGammac = 0,
+    HasBetaInc = 0,
 
     HasRound  = 0,
     HasFloor  = 0,
@@ -465,6 +466,10 @@ Packet pigamma(const Packet& a, const Packet& x) { using numext::igamma; return 
 /** \internal \returns the complementary incomplete gamma function igammac(\a a, \a x) */
 template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Packet pigammac(const Packet& a, const Packet& x) { using numext::igammac; return igammac(a, x); }
+
+/** \internal \returns the complementary incomplete gamma function betainc(\a a, \a b, \a x) */
+template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+Packet pbetainc(const Packet& a, const Packet& b,const Packet& x) { using numext::betainc; return betainc(a, b, x); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

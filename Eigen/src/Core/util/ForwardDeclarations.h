@@ -91,6 +91,7 @@ template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename ViewOp,    typename MatrixType>         class CwiseUnaryView;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
+template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>  class CwiseTernaryOp;
 template<typename Decomposition, typename Rhstype>        class Solve;
 template<typename XprType>                                class Inverse;
 
@@ -208,6 +209,7 @@ template<typename Scalar> struct scalar_identity_op;
 template<typename Scalar,bool iscpx> struct scalar_sign_op;
 template<typename Scalar> struct scalar_igamma_op;
 template<typename Scalar> struct scalar_igammac_op;
+template<typename Scalar> struct scalar_betainc_op;
 
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;

@@ -213,6 +213,28 @@ namespace Eigen
     );
   }
 
+  /** \cpp11 \returns an expression of the coefficient-wise betainc(\a x, \a a, \a b) to the given arrays.
+    *
+    * This function computes the regularized incomplete beta function (integral).
+    *
+    * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+    * or float/double in non c++11 mode, the user has to provide implementations of betainc(T,T,T) for any scalar
+    * type T to be supported.
+    *
+    * \sa Eigen::betainc(), Eigen::lgamma()
+    */
+  template<typename ArgADerived, typename ArgBDerived, typename ArgXDerived>
+  inline const Eigen::CwiseTernaryOp<Eigen::internal::scalar_betainc_op<typename ArgXDerived::Scalar>, const ArgADerived, const ArgBDerived, const ArgXDerived>
+  betainc(const Eigen::ArrayBase<ArgADerived>& a, const Eigen::ArrayBase<ArgBDerived>& b, const Eigen::ArrayBase<ArgXDerived>& x)
+  {
+    return Eigen::CwiseTernaryOp<Eigen::internal::scalar_betainc_op<typename ArgXDerived::Scalar>, const ArgADerived, const ArgBDerived, const ArgXDerived>(
+      a.derived(),
+      b.derived(),
+      x.derived()
+    );
+  }
+
+
   /** \returns an expression of the coefficient-wise zeta(\a x, \a q) to the given arrays.
     *
     * It returns the Riemann zeta function of two arguments \a x and \a q:

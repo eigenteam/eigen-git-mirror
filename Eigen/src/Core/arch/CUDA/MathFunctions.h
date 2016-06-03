@@ -181,6 +181,24 @@ double2 pigammac<double2>(const double2& a, const double2& x)
   return make_double2(igammac(a.x, x.x), igammac(a.y, x.y));
 }
 
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pbetainc<float4>(const float4& a, const float4& b, const float4& x)
+{
+  using numext::betainc;
+  return make_float4(
+      betainc(a.x, b.x, x.x),
+      betainc(a.y, b.y, x.y),
+      betainc(a.z, b.z, x.z),
+      betainc(a.w, b.w, x.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pbetainc<double2>(const double2& a, const double2& b, const double2& x)
+{
+  using numext::betainc;
+  return make_double2(betainc(a.x, b.x, x.x), betainc(a.y, b.y, x.y));
+}
+
 #endif
 
 } // end namespace internal

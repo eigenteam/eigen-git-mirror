@@ -307,7 +307,6 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return unaryExpr(internal::scalar_floor_op<Scalar>());
     }
 
-
     // Generic binary operation support.
     template <typename CustomBinaryOp, typename OtherDerived> EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseBinaryOp<CustomBinaryOp, const Derived, const OtherDerived>

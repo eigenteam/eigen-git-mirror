@@ -372,7 +372,7 @@ template<typename Scalar> struct scalar_igamma_op {
   }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& x) const {
-    return internal::pigammac(a, x);
+    return internal::pigamma(a, x);
   }
 };
 template<typename Scalar>
