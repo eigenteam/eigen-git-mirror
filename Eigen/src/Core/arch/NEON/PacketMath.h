@@ -51,14 +51,11 @@ typedef uint32x4_t  Packet4ui;
 
 #if EIGEN_COMP_LLVM && !EIGEN_COMP_CLANG
   //Special treatment for Apple's llvm-gcc, its NEON packet types are unions
-  #define EIGEN_INIT_NEON_PACKET2(X, Y)       {{X, Y}}
-  #define EIGEN_INIT_NEON_PACKET4(X, Y, Z, W) {{X, Y, Z, W}}
+  #define EIGEN_INIT_NEON_PACKET2D(X, Y)       {{X, Y}}
 #else
   //Default initializer for packets
-  #define EIGEN_INIT_NEON_PACKET2(X, Y)       {X, Y}
-  #define EIGEN_INIT_NEON_PACKET4(X, Y, Z, W) {X, Y, Z, W}
+  #define EIGEN_INIT_NEON_PACKET2D(X, Y)       {X, Y}
 #endif
-
 
 // arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
 // which available on LLVM and GCC (at least)
@@ -122,12 +119,14 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   { 
 
 template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a)
 {
-  Packet4f countdown = EIGEN_INIT_NEON_PACKET4(0, 1, 2, 3);
+  const float32_t f[] = {0, 1, 2, 3};
+  Packet4f countdown = vld1q_f32(f);
   return vaddq_f32(pset1<Packet4f>(a), countdown);
 }
 template<> EIGEN_STRONG_INLINE Packet4i plset<Packet4i>(const int& a)
 {
-  Packet4i countdown = EIGEN_INIT_NEON_PACKET4(0, 1, 2, 3);
+  const int32_t i[] = {0, 1, 2, 3};
+  Packet4i countdown = vld1q_s32(i);
   return vaddq_s32(pset1<Packet4i>(a), countdown);
 }
 
@@ -585,7 +584,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) { r
 
 template<> EIGEN_STRONG_INLINE Packet2d plset<Packet2d>(const double& a)
 {
-  Packet2d countdown = EIGEN_INIT_NEON_PACKET2(0, 1);
+  Packet2d countdown = EIGEN_INIT_NEON_PACKET2D(0, 1);
   return vaddq_f64(pset1<Packet2d>(a), countdown);
 }
 template<> EIGEN_STRONG_INLINE Packet2d padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return vaddq_f64(a,b); }
