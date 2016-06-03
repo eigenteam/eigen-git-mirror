@@ -24,7 +24,7 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
   explicit SimpleThreadPoolTempl(int num_threads, Environment env = Environment())
       : env_(env), threads_(num_threads), waiters_(num_threads) {
     for (int i = 0; i < num_threads; i++) {
-      threads_.push_back(env.CreateThread([this]() { WorkerLoop(); }));
+      threads_.push_back(env.CreateThread([this, i]() { WorkerLoop(i); }));
     }
   }
 
@@ -55,7 +55,7 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
 
   // Schedule fn() for execution in the pool of threads. The functions are
   // executed in the order in which they are scheduled.
-  void Schedule(std::function<void()> fn) {
+  void Schedule(std::function<void()> fn) final {
     Task t = env_.CreateTask(std::move(fn));
     std::unique_lock<std::mutex> l(mu_);
     if (waiters_.empty()) {
@@ -69,9 +69,25 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
     }
   }
 
+  size_t NumThreads() const final {
+    return threads_.size();
+  }
+
+  size_t CurrentThreadId() const final {
+    const PerThread* pt = this->GetPerThread();
+    if (pt->pool == this) {
+      return pt->thread_id;
+    } else {
+      return threads_.size();
+    }
+  }
+
  protected:
-  void WorkerLoop() {
+  void WorkerLoop(size_t thread_id) {
     std::unique_lock<std::mutex> l(mu_);
+    PerThread* pt = GetPerThread();
+    pt->pool = this;
+    pt->thread_id = thread_id;
     Waiter w;
     Task t;
     while (!exiting_) {
@@ -111,6 +127,11 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
     bool ready;
   };
 
+  struct PerThread {
+    ThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
+    size_t thread_id;       // Worker thread index in pool.
+  };
+
   Environment env_;
   std::mutex mu_;
   MaxSizeVector<Thread*> threads_;  // All threads
@@ -118,6 +139,11 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
   std::deque<Task> pending_;          // Queue of pending work
   std::condition_variable empty_;          // Signaled on pending_.empty()
   bool exiting_ = false;
+
+  PerThread* GetPerThread() const {
+    static EIGEN_THREAD_LOCAL PerThread per_thread;
+    return &per_thread;
+  }
 };
 
 typedef SimpleThreadPoolTempl<StlThreadEnvironment> SimpleThreadPool;

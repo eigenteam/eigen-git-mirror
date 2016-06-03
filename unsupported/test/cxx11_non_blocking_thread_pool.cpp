@@ -27,6 +27,8 @@ static void test_parallelism()
   // Test we never-ever fail to match available tasks with idle threads.
   const int kThreads = 16;  // code below expects that this is a multiple of 4
   NonBlockingThreadPool tp(kThreads);
+  VERIFY_IS_EQUAL(tp.NumThreads(), kThreads);
+  VERIFY_IS_EQUAL(tp.CurrentThreadId(), kThreads);
   for (int iter = 0; iter < 100; ++iter) {
     std::atomic<int> running(0);
     std::atomic<int> done(0);
@@ -34,6 +36,9 @@ static void test_parallelism()
     // Schedule kThreads tasks and ensure that they all are running.
     for (int i = 0; i < kThreads; ++i) {
       tp.Schedule([&]() {
+        const size_t thread_id = tp.CurrentThreadId();
+        VERIFY_GE(thread_id, 0);
+        VERIFY_LE(thread_id, kThreads - 1);
         running++;
         while (phase < 1) {
         }

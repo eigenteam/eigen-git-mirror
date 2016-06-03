@@ -172,6 +172,10 @@ struct ThreadPoolDevice {
     pool_->Schedule(func);
   }
 
+  EIGEN_STRONG_INLINE size_t currentThreadId() const {
+    return pool_->CurrentThreadId();
+  }
+
   // parallelFor executes f with [0, n) arguments in parallel and waits for
   // completion. F accepts a half-open interval [first, last).
   // Block size is choosen based on the iteration cost and resulting parallel

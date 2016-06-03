@@ -74,7 +74,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     PerThread* pt = GetPerThread();
     if (pt->pool == this) {
       // Worker thread of this pool, push onto the thread's queue.
-      Queue* q = queues_[pt->index];
+      Queue* q = queues_[pt->thread_id];
       t = q->PushFront(std::move(t));
     } else {
       // A free-standing thread (or worker of another pool), push onto a random
@@ -95,13 +95,27 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
       env_.ExecuteTask(t);  // Push failed, execute directly.
   }
 
+  size_t NumThreads() const final {
+    return threads_.size();
+  }
+
+  size_t CurrentThreadId() const {
+    const PerThread* pt =
+        const_cast<NonBlockingThreadPoolTempl*>(this)->GetPerThread();
+    if (pt->pool == this) {
+      return static_cast<size_t>(pt->thread_id);
+    } else {
+      return threads_.size();
+    }
+  }
+
  private:
   typedef typename Environment::EnvThread Thread;
 
   struct PerThread {
     bool inited;
     NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
-    unsigned index;         // Worker thread index in pool.
+    unsigned thread_id;         // Worker thread index in pool.
     unsigned rand;          // Random generator state.
   };
 
@@ -116,12 +130,12 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   EventCount ec_;
 
   // Main worker thread loop.
-  void WorkerLoop(unsigned index) {
+  void WorkerLoop(unsigned thread_id) {
     PerThread* pt = GetPerThread();
     pt->pool = this;
-    pt->index = index;
-    Queue* q = queues_[index];
-    EventCount::Waiter* waiter = &waiters_[index];
+    pt->thread_id = thread_id;
+    Queue* q = queues_[thread_id];
+    EventCount::Waiter* waiter = &waiters_[thread_id];
     for (;;) {
       Task t = q->PopFront();
       if (!t.f) {
