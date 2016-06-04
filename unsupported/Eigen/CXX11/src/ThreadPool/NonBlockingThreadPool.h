@@ -95,17 +95,17 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
       env_.ExecuteTask(t);  // Push failed, execute directly.
   }
 
-  size_t NumThreads() const final {
-    return threads_.size();
+  int NumThreads() const final {
+    return static_cast<int>(threads_.size());
   }
 
-  size_t CurrentThreadId() const {
+  int CurrentThreadId() const {
     const PerThread* pt =
         const_cast<NonBlockingThreadPoolTempl*>(this)->GetPerThread();
     if (pt->pool == this) {
-      return static_cast<size_t>(pt->thread_id);
+      return pt->thread_id;
     } else {
-      return threads_.size();
+      return NumThreads();
     }
   }
 
@@ -114,9 +114,9 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
 
   struct PerThread {
     bool inited;
-    NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
-    unsigned thread_id;         // Worker thread index in pool.
-    unsigned rand;          // Random generator state.
+    NonBlockingThreadPoolTempl*  pool;  // Parent pool, or null for normal threads.
+    int thread_id;  // Worker thread index in pool.
+    unsigned rand;  // Random generator state.
   };
 
   Environment env_;
@@ -130,7 +130,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   EventCount ec_;
 
   // Main worker thread loop.
-  void WorkerLoop(unsigned thread_id) {
+  void WorkerLoop(int thread_id) {
     PerThread* pt = GetPerThread();
     pt->pool = this;
     pt->thread_id = thread_id;

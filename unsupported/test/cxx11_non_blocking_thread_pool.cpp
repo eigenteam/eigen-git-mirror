@@ -36,7 +36,7 @@ static void test_parallelism()
     // Schedule kThreads tasks and ensure that they all are running.
     for (int i = 0; i < kThreads; ++i) {
       tp.Schedule([&]() {
-        const size_t thread_id = tp.CurrentThreadId();
+        const int thread_id = tp.CurrentThreadId();
         VERIFY_GE(thread_id, 0);
         VERIFY_LE(thread_id, kThreads - 1);
         running++;

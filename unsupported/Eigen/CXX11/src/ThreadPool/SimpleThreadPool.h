@@ -69,21 +69,21 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
     }
   }
 
-  size_t NumThreads() const final {
-    return threads_.size();
+  int NumThreads() const final {
+    return static_cast<int>(threads_.size());
   }
 
-  size_t CurrentThreadId() const final {
+  int CurrentThreadId() const final {
     const PerThread* pt = this->GetPerThread();
     if (pt->pool == this) {
       return pt->thread_id;
     } else {
-      return threads_.size();
+      return NumThreads();
     }
   }
 
  protected:
-  void WorkerLoop(size_t thread_id) {
+  void WorkerLoop(int thread_id) {
     std::unique_lock<std::mutex> l(mu_);
     PerThread* pt = GetPerThread();
     pt->pool = this;
@@ -129,15 +129,15 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
 
   struct PerThread {
     ThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
-    size_t thread_id;       // Worker thread index in pool.
+    int thread_id;          // Worker thread index in pool.
   };
 
   Environment env_;
   std::mutex mu_;
   MaxSizeVector<Thread*> threads_;  // All threads
   MaxSizeVector<Waiter*> waiters_;  // Stack of waiting threads.
-  std::deque<Task> pending_;          // Queue of pending work
-  std::condition_variable empty_;          // Signaled on pending_.empty()
+  std::deque<Task> pending_;        // Queue of pending work
+  std::condition_variable empty_;   // Signaled on pending_.empty()
   bool exiting_ = false;
 
   PerThread* GetPerThread() const {

@@ -172,7 +172,7 @@ struct ThreadPoolDevice {
     pool_->Schedule(func);
   }
 
-  EIGEN_STRONG_INLINE size_t currentThreadId() const {
+  EIGEN_STRONG_INLINE int currentThreadId() const {
     return pool_->CurrentThreadId();
   }
 
