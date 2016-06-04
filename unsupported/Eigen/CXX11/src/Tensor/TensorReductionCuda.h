@@ -112,17 +112,40 @@ __global__ void ReductionInitKernel(const CoeffType val, Index num_preserved_coe
   }
 }
 
+
 template <int BlockSize, int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num_coeffs,
-                                    typename Self::CoeffReturnType* output) {
+                                    typename Self::CoeffReturnType* output, unsigned int* semaphore) {
+  // Initialize the output value
   const Index first_index = blockIdx.x * BlockSize * NumPerThread + threadIdx.x;
-
-  // Initialize the output value if it wasn't initialized by the ReductionInitKernel
-  if (gridDim.x == 1 && first_index == 0) {
-    *output = reducer.initialize();
-    __syncthreads();
+  if (gridDim.x == 1) {
+    if (first_index == 0) {
+      *output = reducer.initialize();
+    }
   }
+  else {
+    if (threadIdx.x == 0) {
+      unsigned int block = atomicCAS(semaphore, 0u, 1u);
+      if (block == 0) {
+        // We're the first block to run, initialize the output value
+        atomicExch(output, reducer.initialize());
+        unsigned int old = atomicExch(semaphore, 2u);
+        assert(old == 1u);
+      }
+      else {
+        // Use atomicCAS here to ensure that the reads aren't cached
+        unsigned int val = atomicCAS(semaphore, 2u, 2u);
+        while (val < 2u) {
+          val = atomicCAS(semaphore, 2u, 2u);
+        }
+      }
+    }
+  }
+
+  __syncthreads();
+
+  eigen_assert(gridDim.x == 1 || *semaphore >= 2u);
 
   typename Self::CoeffReturnType accum = reducer.initialize();
   Index max_iter = numext::mini<Index>(num_coeffs - first_index, NumPerThread*BlockSize);
@@ -140,6 +163,15 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
 
   if ((threadIdx.x & (warpSize - 1)) == 0) {
     atomicReduce(output, accum, reducer);
+  }
+
+  if (gridDim.x > 1 && threadIdx.x == 0) {
+    unsigned int ticket = atomicInc(semaphore, UINT_MAX);
+    assert(ticket >= 2u);
+    if (ticket == gridDim.x + 1) {
+      // We're the last block, reset the semaphore
+      *semaphore = 0;
+    }
   }
 }
 
@@ -246,15 +278,13 @@ struct FullReductionLauncher<Self, Op, float, PacketAccess> {
     const int num_per_thread = 128;
     const int num_blocks = divup<int>(num_coeffs, block_size * num_per_thread);
 
+    unsigned int* semaphore = NULL;
     if (num_blocks > 1) {
-      // We initialize the outputs outside the reduction kernel when we can't be sure that there
-      // won't be a race conditions between multiple thread blocks.
-      LAUNCH_CUDA_KERNEL((ReductionInitKernel<Scalar, Index>),
-                         1, 32, 0, device, reducer.initialize(), 1, output);
+      semaphore = device.semaphore();
     }
 
     LAUNCH_CUDA_KERNEL((FullReductionKernel<block_size, num_per_thread, Self, Op, Index>),
-                       num_blocks, block_size, 0, device, reducer, self, num_coeffs, output);
+                       num_blocks, block_size, 0, device, reducer, self, num_coeffs, output, semaphore);
   }
 };
 
