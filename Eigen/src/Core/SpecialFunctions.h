@@ -1050,8 +1050,8 @@ struct betainc_impl {
 template <typename Scalar>
 struct betainc_impl {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(Scalar a, Scalar b, Scalar x) {
-    /*							betaincf.c
+  static EIGEN_STRONG_INLINE Scalar run(Scalar, Scalar, Scalar) {
+    /*	betaincf.c
      *
      *	Incomplete beta integral
      *
