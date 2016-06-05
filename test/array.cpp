@@ -708,6 +708,61 @@ template<typename ArrayType> void array_special_functions()
     CALL_SUBTEST(res = betainc(a, b, x);
                  verify_component_wise(res, v););
   }
+
+  // Test various properties of betainc
+  {
+    ArrayType m1 = ArrayType::Random(32);
+    ArrayType m2 = ArrayType::Random(32);
+    ArrayType m3 = ArrayType::Random(32);
+    ArrayType one = ArrayType::Constant(32, Scalar(1.0));
+    const Scalar eps = std::numeric_limits<Scalar>::epsilon();
+    ArrayType a = (m1 * 4.0).exp();
+    ArrayType b = (m2 * 4.0).exp();
+    ArrayType x = m3.abs();
+
+    // betainc(a, 1, x) == x**a
+    CALL_SUBTEST(
+        ArrayType test = betainc(a, one, x);
+        ArrayType expected = x.pow(a);
+        verify_component_wise(test, expected););
+
+    // betainc(1, b, x) == 1 - (1 - x)**b
+    CALL_SUBTEST(
+        ArrayType test = betainc(one, b, x);
+        ArrayType expected = one - (one - x).pow(b);
+        verify_component_wise(test, expected););
+
+    // betainc(a, b, x) == 1 - betainc(b, a, 1-x)
+    CALL_SUBTEST(
+        ArrayType test = betainc(a, b, x) + betainc(b, a, one - x);
+        ArrayType expected = one;
+        verify_component_wise(test, expected););
+
+    // betainc(a+1, b, x) = betainc(a, b, x) - x**a * (1 - x)**b / (a * beta(a, b))
+    CALL_SUBTEST(
+        ArrayType num = x.pow(a) * (one - x).pow(b);
+        ArrayType denom = a * (a.lgamma() + b.lgamma() - (a + b).lgamma()).exp();
+        // Add eps to rhs and lhs so that component-wise test doesn't result in
+        // nans when both outputs are zeros.
+        ArrayType expected = betainc(a, b, x) - num / denom + eps;
+        ArrayType test = betainc(a + one, b, x) + eps;
+        if (sizeof(Scalar) >= 8) { // double
+          verify_component_wise(test, expected);
+        } else {
+          // Reason for limited test: http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1232
+          verify_component_wise(test.head(8), expected.head(8));
+        });
+
+    // betainc(a, b+1, x) = betainc(a, b, x) + x**a * (1 - x)**b / (b * beta(a, b))
+    CALL_SUBTEST(
+        // Add eps to rhs and lhs so that component-wise test doesn't result in
+        // nans when both outputs are zeros.
+        ArrayType num = x.pow(a) * (one - x).pow(b);
+        ArrayType denom = b * (a.lgamma() + b.lgamma() - (a + b).lgamma()).exp();
+        ArrayType expected = betainc(a, b, x) + num / denom + eps;
+        ArrayType test = betainc(a, b + one, x) + eps;
+        verify_component_wise(test, expected););
+  }
 #endif
 }
 
