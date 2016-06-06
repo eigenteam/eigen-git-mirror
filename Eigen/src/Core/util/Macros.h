@@ -885,9 +885,9 @@ namespace Eigen {
   }
 
 // the expression type of a cwise product
-#define EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS) \
+#define EIGEN_CWISE_BINARY_RETURN_TYPE(LHS,RHS,OPNAME) \
     CwiseBinaryOp< \
-      internal::scalar_product_op< \
+      EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)< \
           typename internal::traits<LHS>::Scalar, \
           typename internal::traits<RHS>::Scalar \
       >, \

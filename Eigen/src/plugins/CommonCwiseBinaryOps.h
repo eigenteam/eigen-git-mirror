@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2016 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -16,7 +16,13 @@
   *
   * \sa class CwiseBinaryOp, operator-=()
   */
-EIGEN_MAKE_CWISE_BINARY_OP(operator-,internal::scalar_difference_op)
+template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,difference)
+operator-(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,difference)(derived(), other.derived());
+}
 
 /** \returns an expression of the sum of \c *this and \a other
   *
@@ -24,7 +30,13 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator-,internal::scalar_difference_op)
   *
   * \sa class CwiseBinaryOp, operator+=()
   */
-EIGEN_MAKE_CWISE_BINARY_OP(operator+,internal::scalar_sum_op)
+template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,sum)
+operator+(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,sum)(derived(), other.derived());
+}
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
   *

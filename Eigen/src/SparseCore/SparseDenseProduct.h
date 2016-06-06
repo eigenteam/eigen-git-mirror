@@ -74,7 +74,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
 // FIXME: what is the purpose of the following specialization? Is it for the BlockedSparse format?
 // -> let's disable it for now as it is conflicting with generic scalar*matrix and matrix*scalar operators
 // template<typename T1, typename T2/*, int _Options, typename _StrideType*/>
-// struct scalar_product_traits<T1, Ref<T2/*, _Options, _StrideType*/> >
+// struct ScalarBinaryOpTraits<T1, Ref<T2/*, _Options, _StrideType*/> >
 // {
 //   enum {
 //     Defined = 1
@@ -97,7 +97,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, A
       for(Index j=0; j<lhs.outerSize(); ++j)
       {
 //        typename Res::Scalar rhs_j = alpha * rhs.coeff(j,c);
-        typename internal::scalar_product_traits<AlphaType, typename Rhs::Scalar>::ReturnType rhs_j(alpha * rhs.coeff(j,c));
+        typename ScalarBinaryOpTraits<AlphaType, typename Rhs::Scalar>::ReturnType rhs_j(alpha * rhs.coeff(j,c));
         for(LhsInnerIterator it(lhsEval,j); it ;++it)
           res.coeffRef(it.index(),c) += it.value() * rhs_j;
       }

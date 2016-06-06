@@ -450,7 +450,7 @@ DenseBase<Derived>::sum() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
     return Scalar(0);
-  return derived().redux(Eigen::internal::scalar_sum_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_sum_op<Scalar,Scalar>());
 }
 
 /** \returns the mean of all coefficients of *this
@@ -465,7 +465,7 @@ DenseBase<Derived>::mean() const
   #pragma warning push
   #pragma warning ( disable : 2259 )
 #endif
-  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar>())) / Scalar(this->size());
+  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar,Scalar>())) / Scalar(this->size());
 #ifdef __INTEL_COMPILER
   #pragma warning pop
 #endif

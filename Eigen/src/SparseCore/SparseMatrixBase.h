@@ -256,7 +256,7 @@ template<typename Derived> class SparseMatrixBase
     Derived& operator/=(const Scalar& other);
 
     template<typename OtherDerived> struct CwiseProductDenseReturnType {
-      typedef CwiseBinaryOp<internal::scalar_product_op<typename internal::scalar_product_traits<
+      typedef CwiseBinaryOp<internal::scalar_product_op<typename ScalarBinaryOpTraits<
                                                           typename internal::traits<Derived>::Scalar,
                                                           typename internal::traits<OtherDerived>::Scalar
                                                         >::ReturnType>,

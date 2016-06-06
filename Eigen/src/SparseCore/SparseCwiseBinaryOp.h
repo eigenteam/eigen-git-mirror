@@ -579,7 +579,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& SparseMatrixBase<Derived>::operator+=(const DiagonalBase<OtherDerived>& other)
 {
-  call_assignment_no_alias(derived(), other.derived(), internal::add_assign_op<Scalar>());
+  call_assignment_no_alias(derived(), other.derived(), internal::add_assign_op<Scalar,typename OtherDerived::Scalar>());
   return derived();
 }
 
@@ -587,7 +587,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& SparseMatrixBase<Derived>::operator-=(const DiagonalBase<OtherDerived>& other)
 {
-  call_assignment_no_alias(derived(), other.derived(), internal::sub_assign_op<Scalar>());
+  call_assignment_no_alias(derived(), other.derived(), internal::sub_assign_op<Scalar,typename OtherDerived::Scalar>());
   return derived();
 }
     
@@ -600,31 +600,31 @@ SparseMatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) c
 }
 
 template<typename DenseDerived, typename SparseDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar>, const DenseDerived, const SparseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar,typename SparseDerived::Scalar>, const DenseDerived, const SparseDerived>
 operator+(const MatrixBase<DenseDerived> &a, const SparseMatrixBase<SparseDerived> &b)
 {
-  return CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar>, const DenseDerived, const SparseDerived>(a.derived(), b.derived());
+  return CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar,typename SparseDerived::Scalar>, const DenseDerived, const SparseDerived>(a.derived(), b.derived());
 }
 
 template<typename SparseDerived, typename DenseDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_sum_op<typename SparseDerived::Scalar,typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>
 operator+(const SparseMatrixBase<SparseDerived> &a, const MatrixBase<DenseDerived> &b)
 {
-  return CwiseBinaryOp<internal::scalar_sum_op<typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>(a.derived(), b.derived());
+  return CwiseBinaryOp<internal::scalar_sum_op<typename SparseDerived::Scalar,typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>(a.derived(), b.derived());
 }
 
 template<typename DenseDerived, typename SparseDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar>, const DenseDerived, const SparseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar,typename SparseDerived::Scalar>, const DenseDerived, const SparseDerived>
 operator-(const MatrixBase<DenseDerived> &a, const SparseMatrixBase<SparseDerived> &b)
 {
-  return CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar>, const DenseDerived, const SparseDerived>(a.derived(), b.derived());
+  return CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar,typename SparseDerived::Scalar>, const DenseDerived, const SparseDerived>(a.derived(), b.derived());
 }
 
 template<typename SparseDerived, typename DenseDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_difference_op<typename SparseDerived::Scalar,typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>
 operator-(const SparseMatrixBase<SparseDerived> &a, const MatrixBase<DenseDerived> &b)
 {
-  return CwiseBinaryOp<internal::scalar_difference_op<typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>(a.derived(), b.derived());
+  return CwiseBinaryOp<internal::scalar_difference_op<typename SparseDerived::Scalar,typename DenseDerived::Scalar>, const SparseDerived, const DenseDerived>(a.derived(), b.derived());
 }
 
 } // end namespace Eigen

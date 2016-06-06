@@ -42,6 +42,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 
   Mat_f mf    = Mat_f::Random(size,size);
   Mat_d md    = mf.template cast<double>();
+  //Mat_d rd    = md;
   Mat_cf mcf  = Mat_cf::Random(size,size);
   Mat_cd mcd  = mcf.template cast<complex<double> >();
   Mat_cd rcd = mcd;
@@ -56,16 +57,12 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 
 
   mf+mf;
-  VERIFY_RAISES_ASSERT(mf+md);
-#if !EIGEN_HAS_STD_RESULT_OF
-  // this one does not even compile with C++11
-  VERIFY_RAISES_ASSERT(mf+mcf);
-#endif
+
+//   VERIFY_RAISES_ASSERT(mf+md); // does not even compile
 
 #ifdef EIGEN_DONT_VECTORIZE
   VERIFY_RAISES_ASSERT(vf=vd);
   VERIFY_RAISES_ASSERT(vf+=vd);
-  VERIFY_RAISES_ASSERT(mcd=md);
 #endif
   
   // check scalar products
@@ -186,16 +183,35 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
                    Mat_cd((scd * md.template cast<CD>().eval() * mcd).template triangularView<Upper>()));
 
 
-  VERIFY_IS_APPROX( md.array() * mcd.array(), md.template cast<CD>().eval().array() * mcd.array() );
-  VERIFY_IS_APPROX( mcd.array() * md.array(), mcd.array() * md.template cast<CD>().eval().array() );
+
+  VERIFY_IS_APPROX( md.array()  * mcd.array(), md.template cast<CD>().eval().array() * mcd.array() );
+  VERIFY_IS_APPROX( mcd.array() * md.array(),  mcd.array() * md.template cast<CD>().eval().array() );
+
+  VERIFY_IS_APPROX( md.array()  + mcd.array(), md.template cast<CD>().eval().array() + mcd.array() );
+  VERIFY_IS_APPROX( mcd.array() + md.array(),  mcd.array() + md.template cast<CD>().eval().array() );
+
+  VERIFY_IS_APPROX( md.array()  - mcd.array(), md.template cast<CD>().eval().array() - mcd.array() );
+  VERIFY_IS_APPROX( mcd.array() - md.array(),  mcd.array() - md.template cast<CD>().eval().array() );
 
 //   VERIFY_IS_APPROX( md.array() / mcd.array(), md.template cast<CD>().eval().array() / mcd.array() );
   VERIFY_IS_APPROX( mcd.array() / md.array(), mcd.array() / md.template cast<CD>().eval().array() );
 
   rcd = mcd;
+  VERIFY_IS_APPROX( rcd = md, md.template cast<CD>().eval() );
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd += md, mcd + md.template cast<CD>().eval() );
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd -= md, mcd - md.template cast<CD>().eval() );
+  rcd = mcd;
   VERIFY_IS_APPROX( rcd.array() *= md.array(), mcd.array() * md.template cast<CD>().eval().array() );
   rcd = mcd;
   VERIFY_IS_APPROX( rcd.array() /= md.array(), mcd.array() / md.template cast<CD>().eval().array() );
+
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd += md + mcd*md, mcd + (md.template cast<CD>().eval()) + mcd*(md.template cast<CD>().eval()));
+
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd += mcd + md*md, mcd + mcd + ((md*md).template cast<CD>().eval()) );
 }
 
 void test_mixingtypes()

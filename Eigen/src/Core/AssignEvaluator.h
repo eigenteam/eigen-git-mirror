@@ -687,7 +687,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(const DstX
 template<typename DstXprType, typename SrcXprType>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src)
 {
-  call_dense_assignment_loop(dst, src, internal::assign_op<typename DstXprType::Scalar>());
+  call_dense_assignment_loop(dst, src, internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar>());
 }
 
 /***************************************************************************
@@ -722,13 +722,13 @@ template<typename Dst, typename Src>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 void call_assignment(Dst& dst, const Src& src)
 {
-  call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
+  call_assignment(dst, src, internal::assign_op<typename Dst::Scalar,typename Src::Scalar>());
 }
 template<typename Dst, typename Src>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 void call_assignment(const Dst& dst, const Src& src)
 {
-  call_assignment(dst, src, internal::assign_op<typename Dst::Scalar>());
+  call_assignment(dst, src, internal::assign_op<typename Dst::Scalar,typename Src::Scalar>());
 }
                      
 // Deal with "assume-aliasing"
@@ -787,7 +787,7 @@ template<typename Dst, typename Src>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 void call_assignment_no_alias(Dst& dst, const Src& src)
 {
-  call_assignment_no_alias(dst, src, internal::assign_op<typename Dst::Scalar>());
+  call_assignment_no_alias(dst, src, internal::assign_op<typename Dst::Scalar,typename Src::Scalar>());
 }
 
 template<typename Dst, typename Src, typename Func>
@@ -809,7 +809,7 @@ template<typename Dst, typename Src>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src)
 {
-  call_assignment_no_alias_no_transpose(dst, src, internal::assign_op<typename Dst::Scalar>());
+  call_assignment_no_alias_no_transpose(dst, src, internal::assign_op<typename Dst::Scalar,typename Src::Scalar>());
 }
 
 // forward declaration
@@ -838,7 +838,7 @@ template< typename DstXprType, typename SrcXprType, typename Functor, typename S
 struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Scalar>
 {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     src.evalTo(dst);

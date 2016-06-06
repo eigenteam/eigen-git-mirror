@@ -21,22 +21,23 @@ namespace internal {
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+, class VectorwiseOp, DenseBase::sum()
   */
-template<typename Scalar> struct scalar_sum_op {
-//   typedef Scalar result_type;
+template<typename LhsScalar,typename RhsScalar> struct scalar_sum_op {
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_sum_op>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sum_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a + b; }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::padd(a,b); }
   template<typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar predux(const Packet& a) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type predux(const Packet& a) const
   { return internal::predux(a); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_sum_op<Scalar> > {
+template<typename LhsScalar,typename RhsScalar>
+struct functor_traits<scalar_sum_op<LhsScalar,RhsScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasAdd
+    Cost = (NumTraits<LhsScalar>::AddCost+NumTraits<RhsScalar>::AddCost)/2, // rough estimate!
+    PacketAccess = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasAdd && packet_traits<RhsScalar>::HasAdd
+    // TODO vectorize mixed sum
   };
 };
 
@@ -45,7 +46,7 @@ struct functor_traits<scalar_sum_op<Scalar> > {
   * This is required to solve Bug 426.
   * \sa DenseBase::count(), DenseBase::any(), ArrayBase::cast(), MatrixBase::cast()
   */
-template<> struct scalar_sum_op<bool> : scalar_sum_op<int> {
+template<> struct scalar_sum_op<bool,bool> : scalar_sum_op<int,int> {
   EIGEN_DEPRECATED
   scalar_sum_op() {}
 };
@@ -57,11 +58,7 @@ template<> struct scalar_sum_op<bool> : scalar_sum_op<int> {
   * \sa class CwiseBinaryOp, Cwise::operator*(), class VectorwiseOp, MatrixBase::redux()
   */
 template<typename LhsScalar,typename RhsScalar> struct scalar_product_op {
-  enum {
-    // TODO vectorize mixed product
-    Vectorizable = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasMul && packet_traits<RhsScalar>::HasMul
-  };
-  typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_product_op>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_product_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a * b; }
   template<typename Packet>
@@ -75,7 +72,8 @@ template<typename LhsScalar,typename RhsScalar>
 struct functor_traits<scalar_product_op<LhsScalar,RhsScalar> > {
   enum {
     Cost = (NumTraits<LhsScalar>::MulCost + NumTraits<RhsScalar>::MulCost)/2, // rough estimate!
-    PacketAccess = scalar_product_op<LhsScalar,RhsScalar>::Vectorizable
+    PacketAccess = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasMul && packet_traits<RhsScalar>::HasMul
+    // TODO vectorize mixed product
   };
 };
 
@@ -90,7 +88,7 @@ template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op {
     Conj = NumTraits<LhsScalar>::IsComplex
   };
   
-  typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_conj_product_op>::ReturnType result_type;
   
   EIGEN_EMPTY_STRUCT_CTOR(scalar_conj_product_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const
@@ -269,18 +267,19 @@ struct functor_traits<scalar_binary_pow_op<Scalar,OtherScalar> > {
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-
   */
-template<typename Scalar> struct scalar_difference_op {
+template<typename LhsScalar,typename RhsScalar> struct scalar_difference_op {
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_difference_op>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_difference_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a - b; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a - b; }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::psub(a,b); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_difference_op<Scalar> > {
+template<typename LhsScalar,typename RhsScalar>
+struct functor_traits<scalar_difference_op<LhsScalar,RhsScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasSub
+    Cost = (NumTraits<LhsScalar>::AddCost+NumTraits<RhsScalar>::AddCost)/2,
+    PacketAccess = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasSub && packet_traits<RhsScalar>::HasSub
   };
 };
 
@@ -290,11 +289,7 @@ struct functor_traits<scalar_difference_op<Scalar> > {
   * \sa class CwiseBinaryOp, Cwise::operator/()
   */
 template<typename LhsScalar,typename RhsScalar> struct scalar_quotient_op {
-  enum {
-    // TODO vectorize mixed product
-    Vectorizable = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasDiv && packet_traits<RhsScalar>::HasDiv
-  };
-  typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_quotient_op>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_quotient_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a / b; }
   template<typename Packet>
@@ -305,7 +300,7 @@ template<typename LhsScalar,typename RhsScalar>
 struct functor_traits<scalar_quotient_op<LhsScalar,RhsScalar> > {
   typedef typename scalar_quotient_op<LhsScalar,RhsScalar>::result_type result_type;
   enum {
-    PacketAccess = scalar_quotient_op<LhsScalar,RhsScalar>::Vectorizable,
+    PacketAccess = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasDiv && packet_traits<RhsScalar>::HasDiv,
     Cost = NumTraits<result_type>::template Div<PacketAccess>::Cost
   };
 };
@@ -446,7 +441,7 @@ struct functor_traits<scalar_multiple_op<Scalar> >
 
 template<typename Scalar1, typename Scalar2>
 struct scalar_multiple2_op {
-  typedef typename scalar_product_traits<Scalar1,Scalar2>::ReturnType result_type;
+  typedef typename ScalarBinaryOpTraits<Scalar1,Scalar2>::ReturnType result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_multiple2_op(const scalar_multiple2_op& other) : m_other(other.m_other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_multiple2_op(const Scalar2& other) : m_other(other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a * m_other; }
@@ -481,7 +476,7 @@ struct functor_traits<scalar_quotient1_op<Scalar> >
 
 template<typename Scalar1, typename Scalar2>
 struct scalar_quotient2_op {
-  typedef typename scalar_product_traits<Scalar1,Scalar2>::ReturnType result_type;
+  typedef typename ScalarBinaryOpTraits<Scalar1,Scalar2>::ReturnType result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient2_op(const scalar_quotient2_op& other) : m_other(other.m_other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient2_op(const Scalar2& other) : m_other(other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a / m_other; }
@@ -490,15 +485,6 @@ struct scalar_quotient2_op {
 template<typename Scalar1,typename Scalar2>
 struct functor_traits<scalar_quotient2_op<Scalar1,Scalar2> >
 { enum { Cost = 2 * NumTraits<Scalar1>::MulCost, PacketAccess = false }; };
-
-// In Eigen, any binary op (Product, CwiseBinaryOp) require the Lhs and Rhs to have the same scalar type, except for multiplication
-// where the mixing of different types is handled by scalar_product_traits
-// In particular, real * complex<real> is allowed.
-// FIXME move this to functor_traits adding a functor_default
-template<typename Functor> struct functor_is_product_like { enum { ret = 0 }; };
-template<typename LhsScalar,typename RhsScalar> struct functor_is_product_like<scalar_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
-template<typename LhsScalar,typename RhsScalar> struct functor_is_product_like<scalar_conj_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
-template<typename LhsScalar,typename RhsScalar> struct functor_is_product_like<scalar_quotient_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
 
 
 /** \internal

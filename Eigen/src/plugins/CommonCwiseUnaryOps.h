@@ -73,7 +73,7 @@ operator/(const Scalar& scalar) const
 /** Overloaded for efficiently multipling with compatible scalar types */
 template <typename T>
 EIGEN_DEVICE_FUNC inline
-typename internal::enable_if<internal::scalar_product_traits<T,Scalar>::Defined,
+typename internal::enable_if<ScalarBinaryOpTraits<T,Scalar>::Defined,
                              const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived> >::type
 operator*(const T& scalar) const
 {
@@ -91,7 +91,7 @@ operator*(const Scalar& scalar, const StorageBaseType& matrix)
 
 template <typename T>
 EIGEN_DEVICE_FUNC inline friend
-typename internal::enable_if<internal::scalar_product_traits<Scalar,T>::Defined,
+typename internal::enable_if<ScalarBinaryOpTraits<Scalar,T>::Defined,
                              const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived> >::type
 operator*(const T& scalar, const StorageBaseType& matrix)
 {
@@ -104,7 +104,7 @@ operator*(const T& scalar, const StorageBaseType& matrix)
 
 template <typename T>
 EIGEN_DEVICE_FUNC inline
-typename internal::enable_if<internal::scalar_product_traits<Scalar,T>::Defined,
+typename internal::enable_if<ScalarBinaryOpTraits<Scalar,T>::Defined,
                              const CwiseUnaryOp<internal::scalar_quotient2_op<Scalar,T>, const Derived> >::type
 operator/(const T& scalar) const
 {

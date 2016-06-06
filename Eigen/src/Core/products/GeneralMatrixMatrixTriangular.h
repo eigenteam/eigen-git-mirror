@@ -40,7 +40,7 @@ template <typename Index, typename LhsScalar, int LhsStorageOrder, bool Conjugat
                           typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo, int Version>
 struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,RowMajor,UpLo,Version>
 {
-  typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
+  typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* lhs, Index lhsStride,
                                       const RhsScalar* rhs, Index rhsStride, ResScalar* res, Index resStride,
                                       const ResScalar& alpha, level3_blocking<RhsScalar,LhsScalar>& blocking)
@@ -57,7 +57,7 @@ template <typename Index, typename LhsScalar, int LhsStorageOrder, bool Conjugat
                           typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo, int Version>
 struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,ColMajor,UpLo,Version>
 {
-  typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
+  typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* _lhs, Index lhsStride,
                                       const RhsScalar* _rhs, Index rhsStride, ResScalar* _res, Index resStride,
                                       const ResScalar& alpha, level3_blocking<LhsScalar,RhsScalar>& blocking)

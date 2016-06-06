@@ -18,11 +18,12 @@ namespace internal {
 
 // Determine the scalar of Product<Lhs, Rhs>. This is normally the same as Lhs::Scalar times
 // Rhs::Scalar, but product with permutation matrices inherit the scalar of the other factor.
+// TODO: this could be removed once ScalarBinaryOpTraits handles void.
 template<typename Lhs, typename Rhs, typename LhsShape = typename evaluator_traits<Lhs>::Shape, 
          typename RhsShape = typename evaluator_traits<Rhs>::Shape >
 struct product_result_scalar
 {
-  typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
+  typedef typename ScalarBinaryOpTraits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
 };
 
 template<typename Lhs, typename Rhs, typename RhsShape>

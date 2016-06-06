@@ -131,6 +131,7 @@ template<typename ExpressionType> class ArrayWrapper;
 template<typename ExpressionType> class MatrixWrapper;
 template<typename Derived> class SolverBase;
 template<typename XprType> class InnerIterator;
+template<typename ScalarA, typename ScalarB, typename BinaryOp=void> struct ScalarBinaryOpTraits;
 
 namespace internal {
 template<typename DecompositionType> struct kernel_retval_base;
@@ -175,8 +176,8 @@ namespace internal {
 // with optional conjugation of the arguments.
 template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRhs=false> struct conj_helper;
 
-template<typename Scalar> struct scalar_sum_op;
-template<typename Scalar> struct scalar_difference_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_sum_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_difference_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op;
 template<typename Scalar> struct scalar_opposite_op;
 template<typename Scalar> struct scalar_conjugate_op;

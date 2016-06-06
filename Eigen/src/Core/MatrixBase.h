@@ -193,7 +193,7 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
+    typename ScalarBinaryOpTraits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
     dot(const MatrixBase<OtherDerived>& other) const;
 
     EIGEN_DEVICE_FUNC RealScalar squaredNorm() const;
@@ -381,7 +381,7 @@ template<typename Derived> class MatrixBase
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /// \internal helper struct to form the return type of the cross product
     template<typename OtherDerived> struct cross_product_return_type {
-      typedef typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType Scalar;
+      typedef typename ScalarBinaryOpTraits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType Scalar;
       typedef Matrix<Scalar,MatrixBase::RowsAtCompileTime,MatrixBase::ColsAtCompileTime> type;
     };
     #endif // EIGEN_PARSED_BY_DOXYGEN

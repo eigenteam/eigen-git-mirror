@@ -501,35 +501,35 @@ struct make_coherent_impl<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows,
   }
 };
 
-template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
-struct scalar_product_traits<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>,A_Scalar>
-{
-  enum { Defined = 1 };
-  typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
-};
-
-template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
-struct scalar_product_traits<A_Scalar, Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> >
-{
-  enum { Defined = 1 };
-  typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
-};
-
-template<typename DerType>
-struct scalar_product_traits<AutoDiffScalar<DerType>,typename DerType::Scalar>
-{
-  enum { Defined = 1 };
-  typedef AutoDiffScalar<DerType> ReturnType;
-};
-
-template<typename DerType>
-struct scalar_product_traits<typename DerType::Scalar,AutoDiffScalar<DerType> >
-{
-  enum { Defined = 1 };
-  typedef AutoDiffScalar<DerType> ReturnType;
-};
-
 } // end namespace internal
+
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
+struct ScalarBinaryOpTraits<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>,A_Scalar>
+{
+  enum { Defined = 1 };
+  typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
+};
+
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
+struct ScalarBinaryOpTraits<A_Scalar, Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> >
+{
+  enum { Defined = 1 };
+  typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
+};
+
+template<typename DerType>
+struct ScalarBinaryOpTraits<AutoDiffScalar<DerType>,typename DerType::Scalar>
+{
+  enum { Defined = 1 };
+  typedef AutoDiffScalar<DerType> ReturnType;
+};
+
+template<typename DerType>
+struct ScalarBinaryOpTraits<typename DerType::Scalar,AutoDiffScalar<DerType> >
+{
+  enum { Defined = 1 };
+  typedef AutoDiffScalar<DerType> ReturnType;
+};
 
 #define EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(FUNC,CODE) \
   template<typename DerType> \

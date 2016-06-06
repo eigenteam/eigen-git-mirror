@@ -320,16 +320,16 @@ template<> struct AssignmentKind<DenseShape,DiagonalShape> { typedef Diagonal2De
 template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
 struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Dense, Scalar>
 {
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
     dst.setZero();
     dst.diagonal() = src.diagonal();
   }
   
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar> &/*func*/)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   { dst.diagonal() += src.diagonal(); }
   
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar> &/*func*/)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   { dst.diagonal() -= src.diagonal(); }
 };
 
