@@ -430,6 +430,30 @@ struct ScalarBinaryOpTraits<T,T,BinaryOp>
   typedef T ReturnType;
 };
 
+// For Matrix * Permutation
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T,void,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// For Permutation * Matrix
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<void,T,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// for Permutation*Permutation
+template<typename BinaryOp>
+struct ScalarBinaryOpTraits<void,void,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef void ReturnType;
+};
+
 template<typename T, typename BinaryOp>
 struct ScalarBinaryOpTraits<T,std::complex<T>,BinaryOp>
 {

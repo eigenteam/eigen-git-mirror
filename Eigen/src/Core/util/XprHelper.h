@@ -610,11 +610,6 @@ bool is_same_dense(const T1 &, const T2 &, typename enable_if<!(has_direct_acces
   return false;
 }
 
-template<typename T, typename U> struct is_same_or_void { enum { value = is_same<T,U>::value }; };
-template<typename T> struct is_same_or_void<void,T>     { enum { value = 1 }; };
-template<typename T> struct is_same_or_void<T,void>     { enum { value = 1 }; };
-template<>           struct is_same_or_void<void,void>  { enum { value = 1 }; };
-
 #ifdef EIGEN_DEBUG_ASSIGN
 std::string demangle_traversal(int t)
 {
@@ -653,9 +648,8 @@ std::string demangle_flags(int f)
 // It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
 // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
 // add together a float matrix and a double matrix.
-// Treat "void" as a special case. Needed for permutation products. TODO: this should be handled by ScalarBinaryOpTraits
 #define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
-  EIGEN_STATIC_ASSERT(int(internal::is_same_or_void<LHS, RHS>::value) || int(ScalarBinaryOpTraits<LHS, RHS,BINOP>::Defined), \
+  EIGEN_STATIC_ASSERT(int(ScalarBinaryOpTraits<LHS, RHS,BINOP>::Defined), \
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     
 } // end namespace Eigen
