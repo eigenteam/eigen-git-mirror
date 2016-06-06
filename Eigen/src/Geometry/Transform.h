@@ -1367,7 +1367,7 @@ struct transform_right_product_impl< TransformType, MatrixType, 2, 1> // rhs is 
     EIGEN_STATIC_ASSERT(OtherRows==Dim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
 
     Matrix<typename ResultType::Scalar, Dim+1, 1> rhs;
-    rhs << other,1;
+    rhs.template head<Dim>() = other; rhs[Dim] = 1;
     Matrix<typename ResultType::Scalar, WorkingRows, 1> res(T.matrix() * rhs);
     return res.template head<Dim>();
   }
