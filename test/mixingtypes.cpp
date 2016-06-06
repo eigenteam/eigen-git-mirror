@@ -208,10 +208,19 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX( rcd.array() /= md.array(), mcd.array() / md.template cast<CD>().eval().array() );
 
   rcd = mcd;
-  VERIFY_IS_APPROX( rcd += md + mcd*md, mcd + (md.template cast<CD>().eval()) + mcd*(md.template cast<CD>().eval()));
+  VERIFY_IS_APPROX( rcd.noalias() += md + mcd*md, mcd + (md.template cast<CD>().eval()) + mcd*(md.template cast<CD>().eval()));
 
+  VERIFY_IS_APPROX( rcd.noalias()  = md*md,       ((md*md).eval().template cast<CD>()) );
   rcd = mcd;
-  VERIFY_IS_APPROX( rcd += mcd + md*md, mcd + mcd + ((md*md).template cast<CD>().eval()) );
+  VERIFY_IS_APPROX( rcd.noalias() += md*md, mcd + ((md*md).eval().template cast<CD>()) );
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd.noalias() -= md*md, mcd - ((md*md).eval().template cast<CD>()) );
+
+  VERIFY_IS_APPROX( rcd.noalias()  = mcd + md*md,       mcd + ((md*md).eval().template cast<CD>()) );
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd.noalias() += mcd + md*md, mcd + mcd + ((md*md).eval().template cast<CD>()) );
+  rcd = mcd;
+  VERIFY_IS_APPROX( rcd.noalias() -= mcd + md*md,           - ((md*md).eval().template cast<CD>()) );
 }
 
 void test_mixingtypes()

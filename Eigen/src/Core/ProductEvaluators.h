@@ -122,14 +122,17 @@ protected:
   PlainObject m_result;
 };
 
+// The following three shortcuts are enabled only if the scalar types match excatly.
+// TODO: we could enable them for different scalar types when the product is not vectorized.
+
 // Dense = Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scalar,typename Product<Lhs,Rhs,Options>::Scalar>, Dense2Dense,
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scalar,Scalar>, Dense2Dense,
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
-  void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename SrcXprType::Scalar> &)
+  void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::evalTo(dst, src.lhs(), src.rhs());
@@ -138,12 +141,12 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
 
 // Dense += Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<Scalar,typename Product<Lhs,Rhs,Options>::Scalar>, Dense2Dense,
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<Scalar,Scalar>, Dense2Dense,
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
-  void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar,typename SrcXprType::Scalar> &)
+  void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar,Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::addTo(dst, src.lhs(), src.rhs());
@@ -152,12 +155,12 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
 
 // Dense -= Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<Scalar,typename Product<Lhs,Rhs,Options>::Scalar>, Dense2Dense,
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<Scalar,Scalar>, Dense2Dense,
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
-  void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar,typename SrcXprType::Scalar> &)
+  void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar,Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::subTo(dst, src.lhs(), src.rhs());
