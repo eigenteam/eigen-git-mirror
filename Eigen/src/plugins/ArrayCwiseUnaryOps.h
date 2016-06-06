@@ -248,6 +248,7 @@ tan() const
   *
   * \sa tan(), asin(), acos()
   */
+EIGEN_DEVICE_FUNC
 inline const AtanReturnType
 atan() const
 {
@@ -289,6 +290,7 @@ asin() const
   *
   * \sa tan(), sinh(), cosh()
   */
+EIGEN_DEVICE_FUNC
 inline const TanhReturnType
 tanh() const
 {
@@ -302,6 +304,7 @@ tanh() const
   *
   * \sa sin(), tanh(), cosh()
   */
+EIGEN_DEVICE_FUNC
 inline const SinhReturnType
 sinh() const
 {
@@ -315,6 +318,7 @@ sinh() const
   *
   * \sa tan(), sinh(), cosh()
   */
+EIGEN_DEVICE_FUNC
 inline const CoshReturnType
 cosh() const
 {
@@ -332,6 +336,7 @@ cosh() const
   *
   * \sa digamma()
   */
+EIGEN_DEVICE_FUNC
 inline const LgammaReturnType
 lgamma() const
 {
@@ -346,6 +351,7 @@ lgamma() const
   *
   * \sa Eigen::digamma(), Eigen::polygamma(), lgamma()
   */
+EIGEN_DEVICE_FUNC
 inline const DigammaReturnType
 digamma() const
 {
@@ -364,6 +370,7 @@ digamma() const
   *
   * \sa erfc()
   */
+EIGEN_DEVICE_FUNC
 inline const ErfReturnType
 erf() const
 {
@@ -382,6 +389,7 @@ erf() const
   *
   * \sa erf()
   */
+EIGEN_DEVICE_FUNC
 inline const ErfcReturnType
 erfc() const
 {
@@ -455,6 +463,7 @@ cube() const
   *
   * \sa ceil(), floor()
   */
+EIGEN_DEVICE_FUNC
 inline const RoundReturnType
 round() const
 {
@@ -468,6 +477,7 @@ round() const
   *
   * \sa ceil(), round()
   */
+EIGEN_DEVICE_FUNC
 inline const FloorReturnType
 floor() const
 {
@@ -481,6 +491,7 @@ floor() const
   *
   * \sa floor(), round()
   */
+EIGEN_DEVICE_FUNC
 inline const CeilReturnType
 ceil() const
 {
@@ -494,6 +505,7 @@ ceil() const
   *
   * \sa isfinite(), isinf()
   */
+EIGEN_DEVICE_FUNC
 inline const IsNaNReturnType
 isNaN() const
 {
@@ -507,6 +519,7 @@ isNaN() const
   *
   * \sa isnan(), isfinite()
   */
+EIGEN_DEVICE_FUNC
 inline const IsInfReturnType
 isInf() const
 {
@@ -520,6 +533,7 @@ isInf() const
   *
   * \sa isnan(), isinf()
   */
+EIGEN_DEVICE_FUNC
 inline const IsFiniteReturnType
 isFinite() const
 {
