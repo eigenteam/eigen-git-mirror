@@ -103,7 +103,7 @@ namespace Eigen
       res[0] = atan2(mat(J,K), mat(K,K));
       Scalar c2 = Vector2(mat(I,I), mat(I,J)).norm();
       if((IsOdd && res[0]<Scalar(0)) || ((!IsOdd) && res[0]>Scalar(0))) {
-        res[0] = (res[0] > Scalar(0)) ? res[0] - Scalar(M_PI) : res[0] + Scalar(M_PI);
+        res[0] = (res[0] > Scalar(0)) ? res[0] - Scalar(EIGEN_PI) : res[0] + Scalar(EIGEN_PI);
         res[1] = atan2(-mat(I,K), -c2);
       }
       else
@@ -126,7 +126,7 @@ namespace Eigen
       res[0] = atan2(mat(J,I), mat(K,I));
       if((IsOdd && res[0]<Scalar(0)) || ((!IsOdd) && res[0]>Scalar(0)))
       {
-        res[0] = (res[0] > Scalar(0)) ? res[0] - Scalar(M_PI) : res[0] + Scalar(M_PI);
+        res[0] = (res[0] > Scalar(0)) ? res[0] - Scalar(EIGEN_PI) : res[0] + Scalar(EIGEN_PI);
         Scalar s2 = Vector2(mat(J,I), mat(K,I)).norm();
         res[1] = -atan2(s2, mat(I,I));
       }
@@ -206,20 +206,23 @@ namespace Eigen
     }
   };
 
-  typedef EulerSystem<EULER_X, EULER_Y, EULER_Z> EulerSystemXYZ;
-  typedef EulerSystem<EULER_X, EULER_Y, EULER_X> EulerSystemXYX;
-  typedef EulerSystem<EULER_X, EULER_Z, EULER_Y> EulerSystemXZY;
-  typedef EulerSystem<EULER_X, EULER_Z, EULER_X> EulerSystemXZX;
-
-  typedef EulerSystem<EULER_Y, EULER_Z, EULER_X> EulerSystemYZX;
-  typedef EulerSystem<EULER_Y, EULER_Z, EULER_Y> EulerSystemYZY;
-  typedef EulerSystem<EULER_Y, EULER_X, EULER_Z> EulerSystemYXZ;
-  typedef EulerSystem<EULER_Y, EULER_X, EULER_Y> EulerSystemYXY;
-
-  typedef EulerSystem<EULER_Z, EULER_X, EULER_Y> EulerSystemZXY;
-  typedef EulerSystem<EULER_Z, EULER_X, EULER_Z> EulerSystemZXZ;
-  typedef EulerSystem<EULER_Z, EULER_Y, EULER_X> EulerSystemZYX;
-  typedef EulerSystem<EULER_Z, EULER_Y, EULER_Z> EulerSystemZYZ;
+#define EIGEN_EULER_SYSTEM_TYPEDEF(A, B, C) \
+  typedef EulerSystem<EULER_##A, EULER_##B, EULER_##C> EulerSystem##A##B##C;
+  
+  EIGEN_EULER_SYSTEM_TYPEDEF(X,Y,Z)
+  EIGEN_EULER_SYSTEM_TYPEDEF(X,Y,X)
+  EIGEN_EULER_SYSTEM_TYPEDEF(X,Z,Y)
+  EIGEN_EULER_SYSTEM_TYPEDEF(X,Z,X)
+  
+  EIGEN_EULER_SYSTEM_TYPEDEF(Y,Z,X)
+  EIGEN_EULER_SYSTEM_TYPEDEF(Y,Z,Y)
+  EIGEN_EULER_SYSTEM_TYPEDEF(Y,X,Z)
+  EIGEN_EULER_SYSTEM_TYPEDEF(Y,X,Y)
+  
+  EIGEN_EULER_SYSTEM_TYPEDEF(Z,X,Y)
+  EIGEN_EULER_SYSTEM_TYPEDEF(Z,X,Z)
+  EIGEN_EULER_SYSTEM_TYPEDEF(Z,Y,X)
+  EIGEN_EULER_SYSTEM_TYPEDEF(Z,Y,Z)
 }
 
 #endif // EIGEN_EULERSYSTEM_H

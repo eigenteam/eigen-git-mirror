@@ -21,9 +21,9 @@ namespace Eigen
     *
     * \brief Represents a rotation in a 3 dimensional space as three Euler angles
     *
-    * \param _Scalar the scalar type, i.e., the type of the angles.
+    * \sa _Scalar the scalar type, i.e., the type of the angles.
     *
-    * \sa cl
+    * \sa _System the EulerSystem to use, which represents the axes of rotation.
     */
   template <typename _Scalar, class _System>
   class EulerAngles : public RotationBase<EulerAngles<_Scalar, _System>, 3>
@@ -38,16 +38,19 @@ namespace Eigen
       typedef Quaternion<Scalar> QuaternionType;
       typedef AngleAxis<Scalar> AngleAxisType;
       
+      /** \returns the axis vector of the first (alpha) rotation */
       static Vector3 AlphaAxisVector() {
         const Vector3& u = Vector3::Unit(System::AlphaAxisAbs - 1);
         return System::IsAlphaOpposite ? -u : u;
       }
       
+      /** \returns the axis vector of the second (beta) rotation */
       static Vector3 BetaAxisVector() {
         const Vector3& u = Vector3::Unit(System::BetaAxisAbs - 1);
         return System::IsBetaOpposite ? -u : u;
       }
       
+      /** \returns the axis vector of the third (gamma) rotation */
       static Vector3 GammaAxisVector() {
         const Vector3& u = Vector3::Unit(System::GammaAxisAbs - 1);
         return System::IsGammaOpposite ? -u : u;
@@ -57,15 +60,31 @@ namespace Eigen
       Vector3 m_angles;
 
     public:
-
+      /** Default constructor without initialization. */
       EulerAngles() {}
-      inline EulerAngles(Scalar alpha, Scalar beta, Scalar gamma) : m_angles(alpha, beta, gamma) {}
+      /** Constructs and initialize euler angles(\p alpha, \p beta, \p gamma). */
+      EulerAngles(Scalar alpha, Scalar beta, Scalar gamma) : m_angles(alpha, beta, gamma) {}
       
+      /** Constructs and initialize euler angles from a 3x3 rotation matrix \p m.
+        *
+        * \note All angles will be in the range [-PI, PI].
+      */
       template<typename Derived>
-      inline EulerAngles(const MatrixBase<Derived>& m) { *this = m; }
+      EulerAngles(const MatrixBase<Derived>& m) { *this = m; }
       
+      /** Constructs and initialize euler angles from a 3x3 rotation matrix \p m,
+        *  with options to choose for each angle the requested range.
+        *
+        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * Otherwise, the specified angle will be in the range [-PI, +PI].
+        *
+        * \param m The 3x3 rotation matrix to convert
+        * \param positiveRangeAlpha If true, alpha will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \param positiveRangeBeta If true, beta will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \param positiveRangeGamma If true, gamma will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+      */
       template<typename Derived>
-      inline EulerAngles(
+      EulerAngles(
         const MatrixBase<Derived>& m,
         bool positiveRangeAlpha,
         bool positiveRangeBeta,
@@ -74,11 +93,26 @@ namespace Eigen
         System::CalcEulerAngles(*this, m, positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma);
       }
       
+      /** Constructs and initialize euler angles from a rotation \p rot.
+        *
+        * \note All angles will be in the range [-PI, PI].
+      */
       template<typename Derived>
-      inline EulerAngles(const RotationBase<Derived, 3>& rot) { *this = rot; }
+      EulerAngles(const RotationBase<Derived, 3>& rot) { *this = rot; }
       
+      /** Constructs and initialize euler angles from a rotation \p rot,
+        *  with options to choose for each angle the requested range.
+        *
+        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * Otherwise, the specified angle will be in the range [-PI, +PI].
+        *
+        * \param rot The 3x3 rotation matrix to convert
+        * \param positiveRangeAlpha If true, alpha will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \param positiveRangeBeta If true, beta will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \param positiveRangeGamma If true, gamma will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+      */
       template<typename Derived>
-      inline EulerAngles(
+      EulerAngles(
         const RotationBase<Derived, 3>& rot,
         bool positiveRangeAlpha,
         bool positiveRangeBeta,
@@ -87,18 +121,29 @@ namespace Eigen
         System::CalcEulerAngles(*this, rot.toRotationMatrix(), positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma);
       }
 
+      /** \returns The angle values stored in a vector (alpha, beta, gamma). */
       const Vector3& angles() const { return m_angles; }
+      /** \returns A read-write reference to the angle values stored in a vector (alpha, beta, gamma). */
       Vector3& angles() { return m_angles; }
 
+      /** \returns The value of the first angle. */
       Scalar alpha() const { return m_angles[0]; }
+      /** \returns A read-write reference to the angle of the first angle. */
       Scalar& alpha() { return m_angles[0]; }
 
+      /** \returns The value of the second angle. */
       Scalar beta() const { return m_angles[1]; }
+      /** \returns A read-write reference to the angle of the second angle. */
       Scalar& beta() { return m_angles[1]; }
 
+      /** \returns The value of the third angle. */
       Scalar gamma() const { return m_angles[2]; }
+      /** \returns A read-write reference to the angle of the third angle. */
       Scalar& gamma() { return m_angles[2]; }
 
+      /** \returns The euler angles rotation inverse (which is as same as the negative),
+        *  (-alpha, -beta, -gamma).
+      */
       EulerAngles inverse() const
       {
         EulerAngles res;
@@ -106,12 +151,24 @@ namespace Eigen
         return res;
       }
 
+      /** \returns The euler angles rotation negative (which is as same as the inverse),
+        *  (-alpha, -beta, -gamma).
+      */
       EulerAngles operator -() const
       {
         return inverse();
       }
       
-      /** Constructs and \returns an equivalent 3x3 rotation matrix.
+      /** Constructs and initialize euler angles from a 3x3 rotation matrix \p m,
+        *  with options to choose for each angle the requested range (__only in compile time__).
+        *
+        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * Otherwise, the specified angle will be in the range [-PI, +PI].
+        *
+        * \param m The 3x3 rotation matrix to convert
+        * \tparam positiveRangeAlpha If true, alpha will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \tparam positiveRangeBeta If true, beta will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \tparam positiveRangeGamma If true, gamma will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
         */
       template<
         bool PositiveRangeAlpha,
@@ -125,6 +182,17 @@ namespace Eigen
         return e;
       }
       
+      /** Constructs and initialize euler angles from a rotation \p rot,
+        *  with options to choose for each angle the requested range (__only in compile time__).
+        *
+        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * Otherwise, the specified angle will be in the range [-PI, +PI].
+        *
+        * \param rot The 3x3 rotation matrix to convert
+        * \tparam positiveRangeAlpha If true, alpha will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \tparam positiveRangeBeta If true, beta will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+        * \tparam positiveRangeGamma If true, gamma will be in [0, 2*PI]. Otherwise, in [-PI, +PI].
+      */
       template<
         bool PositiveRangeAlpha,
         bool PositiveRangeBeta,
@@ -149,8 +217,7 @@ namespace Eigen
         //m_angles[2] = std::atan2(2*(q.w()*q.x() + q.y()*q.z()), (1 - 2*(q.x()*q.x() + y2)));
       }*/
       
-      /** Set \c *this from a rotation matrix(i.e. pure orthogonal matrix with determinent of +1).
-        */
+      /** Set \c *this from a rotation matrix(i.e. pure orthogonal matrix with determinant of +1). */
       template<typename Derived>
       EulerAngles& operator=(const MatrixBase<Derived>& m) {
         System::CalcEulerAngles(*this, m);
@@ -159,8 +226,7 @@ namespace Eigen
 
       // TODO: Assign and construct from another EulerAngles (with different system)
       
-      /** Set \c *this from a rotation.
-        */
+      /** Set \c *this from a rotation. */
       template<typename Derived>
       EulerAngles& operator=(const RotationBase<Derived, 3>& rot) {
         System::CalcEulerAngles(*this, rot.toRotationMatrix());
@@ -169,11 +235,13 @@ namespace Eigen
       
       // TODO: Support isApprox function
 
+      /** \returns an equivalent 3x3 rotation matrix. */
       Matrix3 toRotationMatrix() const
       {
         return static_cast<QuaternionType>(*this).toRotationMatrix();
       }
 
+      /** \returns an equivalent quaternion */
       QuaternionType toQuaternion() const
       {
         return
@@ -181,7 +249,8 @@ namespace Eigen
           AngleAxisType(beta(), BetaAxisVector()) *
           AngleAxisType(gamma(), GammaAxisVector());
       }
-    
+
+      /** Convert the euler angles to quaternion. */
       operator QuaternionType() const
       {
         return toQuaternion();
