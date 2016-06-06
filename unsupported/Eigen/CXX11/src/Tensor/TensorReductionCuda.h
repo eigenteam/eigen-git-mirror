@@ -130,15 +130,17 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
       if (block == 0) {
         // We're the first block to run, initialize the output value
         atomicExch(output, reducer.initialize());
-        unsigned int old = atomicExch(semaphore, 2u);
-        assert(old == 1u);
+        __threadfence();
+        atomicExch(semaphore, 2u);
       }
       else {
+        // Wait for the first block to initialize the output value.
         // Use atomicCAS here to ensure that the reads aren't cached
-        unsigned int val = atomicCAS(semaphore, 2u, 2u);
-        while (val < 2u) {
+        unsigned int val;
+        do {
           val = atomicCAS(semaphore, 2u, 2u);
         }
+        while (val < 2u);
       }
     }
   }
@@ -166,12 +168,8 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
   }
 
   if (gridDim.x > 1 && threadIdx.x == 0) {
-    unsigned int ticket = atomicInc(semaphore, UINT_MAX);
-    assert(ticket >= 2u);
-    if (ticket == gridDim.x + 1) {
-      // We're the last block, reset the semaphore
-      *semaphore = 0;
-    }
+    // Let the last block reset the semaphore
+    atomicInc(semaphore, gridDim.x + 1);
   }
 }
 
