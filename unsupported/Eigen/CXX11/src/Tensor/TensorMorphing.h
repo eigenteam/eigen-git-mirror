@@ -148,7 +148,7 @@ struct TensorEvaluator<const TensorReshapingOp<NewDimensions, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return const_cast<Scalar*>(m_impl.data()); }
 
-  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+  EIGEN_DEVICE_FUNC const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
 
  protected:
   TensorEvaluator<ArgType, Device> m_impl;
