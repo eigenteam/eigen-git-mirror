@@ -106,7 +106,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
         m_output(NULL) {
 
     // Accumulating a scalar isn't supported.
-    EIGEN_STATIC_ASSERT(NumDims > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((NumDims > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
     eigen_assert(m_axis >= 0 && m_axis < NumDims);
 
     // Compute stride of scan axis
@@ -136,7 +136,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
       return true;
     }
   }
-  
+
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const {
     return internal::ploadt<PacketReturnType, LoadMode>(m_output + index);
