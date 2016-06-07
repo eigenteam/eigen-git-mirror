@@ -81,7 +81,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
   typedef typename XprType::Index Index;
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
-  typedef typename XprType::Scalar Scalar;
+  typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
@@ -150,6 +150,10 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
     return m_output[index];
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
