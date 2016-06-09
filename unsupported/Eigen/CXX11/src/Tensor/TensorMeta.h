@@ -47,27 +47,39 @@ template <> struct max_n_1<0> {
 
 // Default packet types
 template <typename Scalar, typename Device>
-struct PacketType {
+struct PacketType : internal::packet_traits<Scalar> {
   typedef typename internal::packet_traits<Scalar>::type type;
-  enum { size = internal::unpacket_traits<type>::size };
 };
 
 // For CUDA packet types when using a GpuDevice
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <>
-  struct PacketType<half, GpuDevice> {
+struct PacketType<half, GpuDevice> {
   typedef half2 type;
   static const int size = 2;
- };
-template <>
-struct PacketType<float, GpuDevice> {
-  typedef float4 type;
-  static const int size = 4;
-};
-template <>
-struct PacketType<double, GpuDevice> {
-  typedef double2 type;
-  static const int size = 2;
+  enum {
+    HasAdd    = 1,
+    HasSub    = 1,
+    HasMul    = 1,
+    HasNegate = 1,
+    HasAbs    = 1,
+    HasArg    = 0,
+    HasAbs2   = 0,
+    HasMin    = 1,
+    HasMax    = 1,
+    HasConj   = 0,
+    HasSetLinear = 0,
+    HasBlend  = 0,
+
+    HasDiv    = 1,
+    HasSqrt   = 1,
+    HasRsqrt  = 1,
+    HasExp    = 1,
+    HasLog    = 1,
+    HasLog1p  = 0,
+    HasLog10  = 0,
+    HasPow    = 1,
+  };
 };
 #endif
 
