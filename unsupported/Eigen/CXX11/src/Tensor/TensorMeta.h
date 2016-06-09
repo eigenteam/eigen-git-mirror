@@ -55,6 +55,11 @@ struct PacketType {
 // For CUDA packet types when using a GpuDevice
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <>
+  struct PacketType<half, GpuDevice> {
+  typedef half2 type;
+  static const int size = 2;
+ };
+template <>
 struct PacketType<float, GpuDevice> {
   typedef float4 type;
   static const int size = 4;

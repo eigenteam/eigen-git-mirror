@@ -84,6 +84,14 @@ struct functor_traits<scalar_sigmoid_op<T> > {
 };
 
 
+template<typename Reducer, typename Device>
+struct reducer_traits {
+  enum {
+    Cost = 1,
+    PacketAccess = false
+  };
+};
+
 // Standard reduction functors
 template <typename T> struct SumReducer
 {
@@ -118,6 +126,15 @@ template <typename T> struct SumReducer
     return saccum + predux(vaccum);
   }
 };
+
+template <typename T, typename Device>
+struct reducer_traits<SumReducer<T>, Device> {
+  enum {
+    Cost = NumTraits<T>::AddCost,
+    PacketAccess = PacketType<T, Device>::type::HasAdd
+  };
+};
+
 
 template <typename T> struct MeanReducer
 {
@@ -162,6 +179,15 @@ template <typename T> struct MeanReducer
     DenseIndex packetCount_;
 };
 
+template <typename T, typename Device>
+struct reducer_traits<MeanReducer<T>, Device> {
+  enum {
+    Cost = NumTraits<T>::AddCost,
+    PacketAccess = PacketType<T, Device>::type::HasAdd
+  };
+};
+
+
 template <typename T> struct MaxReducer
 {
   static const bool PacketAccess = packet_traits<T>::HasMax;
@@ -195,6 +221,15 @@ template <typename T> struct MaxReducer
   }
 };
 
+template <typename T, typename Device>
+struct reducer_traits<MaxReducer<T>, Device> {
+  enum {
+    Cost = NumTraits<T>::AddCost,
+    PacketAccess = PacketType<T, Device>::type::HasMax
+  };
+};
+
+
 template <typename T> struct MinReducer
 {
   static const bool PacketAccess = packet_traits<T>::HasMin;
@@ -226,6 +261,14 @@ template <typename T> struct MinReducer
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalizeBoth(const T saccum, const Packet& vaccum) const {
     return numext::mini(saccum, predux_min(vaccum));
   }
+};
+
+template <typename T, typename Device>
+struct reducer_traits<MinReducer<T>, Device> {
+  enum {
+    Cost = NumTraits<T>::AddCost,
+    PacketAccess = PacketType<T, Device>::type::HasMin
+  };
 };
 
 
@@ -263,6 +306,14 @@ template <typename T> struct ProdReducer
   }
 };
 
+template <typename T, typename Device>
+struct reducer_traits<ProdReducer<T>, Device> {
+  enum {
+    Cost = NumTraits<T>::MulCost,
+    PacketAccess = PacketType<T, Device>::type::HasMul
+  };
+};
+
 
 struct AndReducer
 {
@@ -280,6 +331,15 @@ struct AndReducer
   }
 };
 
+template <typename Device>
+struct reducer_traits<AndReducer, Device> {
+  enum {
+    Cost = 1,
+    PacketAccess = false
+  };
+};
+
+
 struct OrReducer {
   static const bool PacketAccess = false;
   static const bool IsStateful = false;
@@ -294,6 +354,15 @@ struct OrReducer {
     return accum;
   }
 };
+
+template <typename Device>
+struct reducer_traits<OrReducer, Device> {
+  enum {
+    Cost = 1,
+    PacketAccess = false
+  };
+};
+
 
 // Argmin/Argmax reducers
 template <typename T> struct ArgMaxTupleReducer
@@ -312,6 +381,15 @@ template <typename T> struct ArgMaxTupleReducer
   }
 };
 
+template <typename T, typename Device>
+struct reducer_traits<ArgMaxTupleReducer<T>, Device> {
+  enum {
+    Cost = NumTraits<T>::AddCost,
+    PacketAccess = false
+  };
+};
+
+
 template <typename T> struct ArgMinTupleReducer
 {
   static const bool PacketAccess = false;
@@ -326,6 +404,14 @@ template <typename T> struct ArgMinTupleReducer
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T finalize(const T& accum) const {
     return accum;
   }
+};
+
+template <typename T, typename Device>
+struct reducer_traits<ArgMinTupleReducer<T>, Device> {
+  enum {
+    Cost = NumTraits<T>::AddCost,
+    PacketAccess = false
+  };
 };
 
 

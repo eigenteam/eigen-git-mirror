@@ -331,7 +331,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
   #ifdef EIGEN_HAS_CUDA_FP16
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
-       (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && Op::PacketAccess));
+       (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
 #else
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
@@ -346,7 +346,7 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
       return;
     }
 
-    FullReductionLauncher<Self, Op, OutputType, Op::PacketAccess>::run(self, reducer, device, output, num_coeffs);
+    FullReductionLauncher<Self, Op, OutputType, reducer_traits<Op, GpuDevice>::PacketAccess>::run(self, reducer, device, output, num_coeffs);
   }
 };
 
@@ -608,7 +608,7 @@ struct InnerReducer<Self, Op, GpuDevice> {
 #ifdef EIGEN_HAS_CUDA_FP16
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
-       (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && Op::PacketAccess));
+       (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
 #else
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
@@ -627,7 +627,7 @@ struct InnerReducer<Self, Op, GpuDevice> {
       return true;
     }
 
-    return InnerReductionLauncher<Self, Op, OutputType, Op::PacketAccess>::run(self, reducer, device, output, num_coeffs_to_reduce, num_preserved_vals);
+    return InnerReductionLauncher<Self, Op, OutputType, reducer_traits<Op, GpuDevice>::PacketAccess>::run(self, reducer, device, output, num_coeffs_to_reduce, num_preserved_vals);
   }
 };
 
