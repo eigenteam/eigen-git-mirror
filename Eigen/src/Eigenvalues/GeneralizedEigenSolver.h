@@ -339,17 +339,17 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
         RealScalar e = m_matS.coeff(i, i), f = m_matS.coeff(i, i+1), g = m_matS.coeff(i+1, i), h = m_matS.coeff(i+1, i+1);
         RealScalar d = c-a;
         RealScalar gb = g*b;
-        Matrix<RealScalar,2,2> A;
-        A <<  (e*d-gb)*c,  ((e*b+f*d-h*b)*d-gb*b)*a,
-              g*c       ,  (gb+h*d)*a;
+        Matrix<RealScalar,2,2> S2;
+        S2 <<  (e*d-gb)*c,  ((e*b+f*d-h*b)*d-gb*b)*a,
+               g*c       ,  (gb+h*d)*a;
 
         // NOTE, we could also compute the SVD of T's block during the QZ factorization so that the respective T block is guaranteed to be diagonal,
         // and then we could directly apply the formula below (while taking care of scaling S columns by T11,T00):
 
-        Scalar p = Scalar(0.5) * (A.coeff(i, i) - A.coeff(i+1, i+1));
-        Scalar z = sqrt(abs(p * p + A.coeff(i+1, i) * A.coeff(i, i+1)));
-        m_alphas.coeffRef(i)   = ComplexScalar(A.coeff(i+1, i+1) + p, z);
-        m_alphas.coeffRef(i+1) = ComplexScalar(A.coeff(i+1, i+1) + p, -z);
+        Scalar p = Scalar(0.5) * (S2.coeff(0,0) - S2.coeff(1,1));
+        Scalar z = sqrt(abs(p * p + S2.coeff(1,0) * S2.coeff(0,1)));
+        m_alphas.coeffRef(i)   = ComplexScalar(S2.coeff(1,1) + p,  z);
+        m_alphas.coeffRef(i+1) = ComplexScalar(S2.coeff(1,1) + p, -z);
 
         m_betas.coeffRef(i)   =
         m_betas.coeffRef(i+1) = a*c*d;
