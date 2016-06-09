@@ -131,7 +131,7 @@ template <typename T, typename Device>
 struct reducer_traits<SumReducer<T>, Device> {
   enum {
     Cost = NumTraits<T>::AddCost,
-    PacketAccess = PacketType<T, Device>::type::HasAdd
+    PacketAccess = packet_traits<typename PacketType<T, Device>::type>::HasAdd
   };
 };
 
@@ -183,7 +183,7 @@ template <typename T, typename Device>
 struct reducer_traits<MeanReducer<T>, Device> {
   enum {
     Cost = NumTraits<T>::AddCost,
-    PacketAccess = PacketType<T, Device>::type::HasAdd
+    PacketAccess = packet_traits<typename PacketType<T, Device>::type>::HasAdd
   };
 };
 
@@ -225,7 +225,7 @@ template <typename T, typename Device>
 struct reducer_traits<MaxReducer<T>, Device> {
   enum {
     Cost = NumTraits<T>::AddCost,
-    PacketAccess = PacketType<T, Device>::type::HasMax
+    PacketAccess = packet_traits<typename PacketType<T, Device>::type>::HasMax
   };
 };
 
@@ -267,7 +267,7 @@ template <typename T, typename Device>
 struct reducer_traits<MinReducer<T>, Device> {
   enum {
     Cost = NumTraits<T>::AddCost,
-    PacketAccess = PacketType<T, Device>::type::HasMin
+    PacketAccess = packet_traits<typename PacketType<T, Device>::type>::HasMin
   };
 };
 
@@ -310,7 +310,7 @@ template <typename T, typename Device>
 struct reducer_traits<ProdReducer<T>, Device> {
   enum {
     Cost = NumTraits<T>::MulCost,
-    PacketAccess = PacketType<T, Device>::type::HasMul
+    PacketAccess = packet_traits<typename PacketType<T, Device>::type>::HasMul
   };
 };
 
