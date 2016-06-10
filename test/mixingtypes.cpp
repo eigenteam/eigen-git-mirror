@@ -196,6 +196,9 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 //   VERIFY_IS_APPROX( md.array() / mcd.array(), md.template cast<CD>().eval().array() / mcd.array() );
   VERIFY_IS_APPROX( mcd.array() / md.array(), mcd.array() / md.template cast<CD>().eval().array() );
 
+  VERIFY_IS_APPROX( md.array().pow(mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
+  VERIFY_IS_APPROX( mcd.array().pow(md.array()),  mcd.array().pow(md.template cast<CD>().eval().array()) );
+
   rcd = mcd;
   VERIFY_IS_APPROX( rcd = md, md.template cast<CD>().eval() );
   rcd = mcd;
