@@ -425,7 +425,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff() const
 {
-  return derived().redux(Eigen::internal::scalar_min_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_min_op<Scalar,Scalar>());
 }
 
 /** \returns the maximum of all coefficients of \c *this.
@@ -435,7 +435,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff() const
 {
-  return derived().redux(Eigen::internal::scalar_max_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_max_op<Scalar,Scalar>());
 }
 
 /** \returns the sum of all coefficients of \c *this

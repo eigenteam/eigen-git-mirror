@@ -179,6 +179,8 @@ template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRh
 template<typename LhsScalar,typename RhsScalar> struct scalar_sum_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_difference_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_min_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_max_op;
 template<typename Scalar> struct scalar_opposite_op;
 template<typename Scalar> struct scalar_conjugate_op;
 template<typename Scalar> struct scalar_real_op;
@@ -201,8 +203,6 @@ template<typename Scalar> struct scalar_cube_op;
 template<typename Scalar, typename NewType> struct scalar_cast_op;
 template<typename Scalar> struct scalar_multiple_op;
 template<typename Scalar> struct scalar_quotient1_op;
-template<typename Scalar> struct scalar_min_op;
-template<typename Scalar> struct scalar_max_op;
 template<typename Scalar> struct scalar_random_op;
 template<typename Scalar> struct scalar_add_op;
 template<typename Scalar> struct scalar_constant_op;
@@ -212,9 +212,10 @@ template<typename Scalar> struct scalar_igamma_op;
 template<typename Scalar> struct scalar_igammac_op;
 template<typename Scalar> struct scalar_betainc_op;
 
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_hypot_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_quotient_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_quotient2_op;
 
 } // end namespace internal

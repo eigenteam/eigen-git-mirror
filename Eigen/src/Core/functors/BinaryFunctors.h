@@ -111,21 +111,22 @@ struct functor_traits<scalar_conj_product_op<LhsScalar,RhsScalar> > {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class VectorwiseOp, MatrixBase::minCoeff()
   */
-template<typename Scalar> struct scalar_min_op {
+template<typename LhsScalar,typename RhsScalar> struct scalar_min_op {
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_min_op>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_min_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return numext::mini(a, b); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return numext::mini(a, b); }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::pmin(a,b); }
   template<typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar predux(const Packet& a) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type predux(const Packet& a) const
   { return internal::predux_min(a); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_min_op<Scalar> > {
+template<typename LhsScalar,typename RhsScalar>
+struct functor_traits<scalar_min_op<LhsScalar,RhsScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasMin
+    Cost = (NumTraits<LhsScalar>::AddCost+NumTraits<RhsScalar>::AddCost)/2,
+    PacketAccess = internal::is_same<LhsScalar, RhsScalar>::value && packet_traits<LhsScalar>::HasMin
   };
 };
 
@@ -134,21 +135,22 @@ struct functor_traits<scalar_min_op<Scalar> > {
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMax, class VectorwiseOp, MatrixBase::maxCoeff()
   */
-template<typename Scalar> struct scalar_max_op {
+template<typename LhsScalar,typename RhsScalar> struct scalar_max_op {
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_max_op>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_max_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return numext::maxi(a, b); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return numext::maxi(a, b); }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::pmax(a,b); }
   template<typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar predux(const Packet& a) const
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type predux(const Packet& a) const
   { return internal::predux_max(a); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_max_op<Scalar> > {
+template<typename LhsScalar,typename RhsScalar>
+struct functor_traits<scalar_max_op<LhsScalar,RhsScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasMax
+    Cost = (NumTraits<LhsScalar>::AddCost+NumTraits<RhsScalar>::AddCost)/2,
+    PacketAccess = internal::is_same<LhsScalar, RhsScalar>::value && packet_traits<LhsScalar>::HasMax
   };
 };
 
@@ -156,56 +158,56 @@ struct functor_traits<scalar_max_op<Scalar> > {
   * \brief Template functors for comparison of two scalars
   * \todo Implement packet-comparisons
   */
-template<typename Scalar, ComparisonName cmp> struct scalar_cmp_op;
+template<typename LhsScalar, typename RhsScalar, ComparisonName cmp> struct scalar_cmp_op;
 
-template<typename Scalar, ComparisonName cmp>
-struct functor_traits<scalar_cmp_op<Scalar, cmp> > {
+template<typename LhsScalar, typename RhsScalar, ComparisonName cmp>
+struct functor_traits<scalar_cmp_op<LhsScalar,RhsScalar, cmp> > {
   enum {
-    Cost = NumTraits<Scalar>::AddCost,
+    Cost = (NumTraits<LhsScalar>::AddCost+NumTraits<RhsScalar>::AddCost)/2,
     PacketAccess = false
   };
 };
 
-template<ComparisonName Cmp, typename Scalar>
-struct result_of<scalar_cmp_op<Scalar, Cmp>(Scalar,Scalar)> {
+template<ComparisonName Cmp, typename LhsScalar, typename RhsScalar>
+struct result_of<scalar_cmp_op<LhsScalar, RhsScalar, Cmp>(LhsScalar,RhsScalar)> {
   typedef bool type;
 };
 
 
-template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_EQ> {
+template<typename LhsScalar, typename RhsScalar> struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_EQ> {
   typedef bool result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a==b;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const LhsScalar& a, const RhsScalar& b) const {return a==b;}
 };
-template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_LT> {
+template<typename LhsScalar, typename RhsScalar> struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_LT> {
   typedef bool result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a<b;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const LhsScalar& a, const RhsScalar& b) const {return a<b;}
 };
-template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_LE> {
+template<typename LhsScalar, typename RhsScalar> struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_LE> {
   typedef bool result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a<=b;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const LhsScalar& a, const RhsScalar& b) const {return a<=b;}
 };
-template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_GT> {
+template<typename LhsScalar, typename RhsScalar> struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_GT> {
   typedef bool result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a>b;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const LhsScalar& a, const RhsScalar& b) const {return a>b;}
 };
-template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_GE> {
+template<typename LhsScalar, typename RhsScalar> struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_GE> {
   typedef bool result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a>=b;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const LhsScalar& a, const RhsScalar& b) const {return a>=b;}
 };
-template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_UNORD> {
+template<typename LhsScalar, typename RhsScalar> struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_UNORD> {
   typedef bool result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return !(a<=b || b<=a);}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const LhsScalar& a, const RhsScalar& b) const {return !(a<=b || b<=a);}
 };
-template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_NEQ> {
+template<typename LhsScalar, typename RhsScalar> struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_NEQ> {
   typedef bool result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_cmp_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const Scalar& a, const Scalar& b) const {return a!=b;}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool operator()(const LhsScalar& a, const RhsScalar& b) const {return a!=b;}
 };
 
 
@@ -214,7 +216,7 @@ template<typename Scalar> struct scalar_cmp_op<Scalar, cmp_NEQ> {
   *
   * \sa MatrixBase::stableNorm(), class Redux
   */
-template<typename Scalar> struct scalar_hypot_op {
+template<typename Scalar> struct scalar_hypot_op<Scalar,Scalar> {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_hypot_op)
 //   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& _x, const Scalar& _y) const
@@ -235,7 +237,7 @@ template<typename Scalar> struct scalar_hypot_op {
   }
 };
 template<typename Scalar>
-struct functor_traits<scalar_hypot_op<Scalar> > {
+struct functor_traits<scalar_hypot_op<Scalar,Scalar> > {
   enum
   {
     Cost = 3 * NumTraits<Scalar>::AddCost +

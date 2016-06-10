@@ -876,15 +876,7 @@ namespace Eigen {
 
 #define EIGEN_IMPLIES(a,b) (!(a) || (b))
 
-#define EIGEN_MAKE_CWISE_BINARY_OP(METHOD,FUNCTOR) \
-  template<typename OtherDerived> \
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseBinaryOp<FUNCTOR<Scalar>, const Derived, const OtherDerived> \
-  (METHOD)(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
-  { \
-    return CwiseBinaryOp<FUNCTOR<Scalar>, const Derived, const OtherDerived>(derived(), other.derived()); \
-  }
-
-// the expression type of a cwise product
+// the expression type of a standard coefficient wise binary operation
 #define EIGEN_CWISE_BINARY_RETURN_TYPE(LHS,RHS,OPNAME) \
     CwiseBinaryOp< \
       EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)< \
@@ -894,6 +886,14 @@ namespace Eigen {
       const LHS, \
       const RHS \
     >
+
+#define EIGEN_MAKE_CWISE_BINARY_OP(METHOD,OPNAME) \
+  template<typename OtherDerived> \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,OPNAME) \
+  (METHOD)(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
+  { \
+    return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,OPNAME)(derived(), other.derived()); \
+  }
 
 #ifdef EIGEN_EXCEPTIONS
 #  define EIGEN_THROW_X(X) throw X

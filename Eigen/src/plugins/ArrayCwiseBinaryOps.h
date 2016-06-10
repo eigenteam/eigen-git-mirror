@@ -29,14 +29,14 @@ operator/(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   *
   * \sa max()
   */
-EIGEN_MAKE_CWISE_BINARY_OP(min,internal::scalar_min_op)
+EIGEN_MAKE_CWISE_BINARY_OP(min,min)
 
 /** \returns an expression of the coefficient-wise min of \c *this and scalar \a other
   *
   * \sa max()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_min_op<Scalar>, const Derived,
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_min_op<Scalar,Scalar>, const Derived,
                                         const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> >
 #ifdef EIGEN_PARSED_BY_DOXYGEN
 min
@@ -55,14 +55,14 @@ min
   *
   * \sa min()
   */
-EIGEN_MAKE_CWISE_BINARY_OP(max,internal::scalar_max_op)
+EIGEN_MAKE_CWISE_BINARY_OP(max,max)
 
 /** \returns an expression of the coefficient-wise max of \c *this and scalar \a other
   *
   * \sa min()
   */
 EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_max_op<Scalar>, const Derived,
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_max_op<Scalar,Scalar>, const Derived,
                                         const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> >
 #ifdef EIGEN_PARSED_BY_DOXYGEN
 max
@@ -95,13 +95,13 @@ pow(const ArrayBase<ExponentDerived>& exponents) const
 // TODO code generating macros could be moved to Macros.h and could include generation of documentation
 #define EIGEN_MAKE_CWISE_COMP_OP(OP, COMPARATOR) \
 template<typename OtherDerived> \
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const OtherDerived> \
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_cmp_op<Scalar, typename OtherDerived::Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const OtherDerived> \
 OP(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
 { \
-  return CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const OtherDerived>(derived(), other.derived()); \
+  return CwiseBinaryOp<internal::scalar_cmp_op<Scalar, typename OtherDerived::Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const OtherDerived>(derived(), other.derived()); \
 }\
-typedef CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> > Cmp ## COMPARATOR ## ReturnType; \
-typedef CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_ ## COMPARATOR>, const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject>, const Derived > RCmp ## COMPARATOR ## ReturnType; \
+typedef CwiseBinaryOp<internal::scalar_cmp_op<Scalar,Scalar, internal::cmp_ ## COMPARATOR>, const Derived, const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject> > Cmp ## COMPARATOR ## ReturnType; \
+typedef CwiseBinaryOp<internal::scalar_cmp_op<Scalar,Scalar, internal::cmp_ ## COMPARATOR>, const CwiseNullaryOp<internal::scalar_constant_op<Scalar>, PlainObject>, const Derived > RCmp ## COMPARATOR ## ReturnType; \
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Cmp ## COMPARATOR ## ReturnType \
 OP(const Scalar& s) const { \
   return this->OP(Derived::PlainObject::Constant(rows(), cols(), s)); \
@@ -113,10 +113,10 @@ OP(const Scalar& s, const Derived& d) { \
 
 #define EIGEN_MAKE_CWISE_COMP_R_OP(OP, R_OP, RCOMPARATOR) \
 template<typename OtherDerived> \
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_##RCOMPARATOR>, const OtherDerived, const Derived> \
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_cmp_op<typename OtherDerived::Scalar, Scalar, internal::cmp_##RCOMPARATOR>, const OtherDerived, const Derived> \
 OP(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
 { \
-  return CwiseBinaryOp<internal::scalar_cmp_op<Scalar, internal::cmp_##RCOMPARATOR>, const OtherDerived, const Derived>(other.derived(), derived()); \
+  return CwiseBinaryOp<internal::scalar_cmp_op<typename OtherDerived::Scalar, Scalar, internal::cmp_##RCOMPARATOR>, const OtherDerived, const Derived>(other.derived(), derived()); \
 } \
 EIGEN_DEVICE_FUNC \
 inline const RCmp ## RCOMPARATOR ## ReturnType \

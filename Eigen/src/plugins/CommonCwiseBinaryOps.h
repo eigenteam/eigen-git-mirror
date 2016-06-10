@@ -16,13 +16,14 @@
   *
   * \sa class CwiseBinaryOp, operator-=()
   */
-template<typename OtherDerived>
-EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,difference)
-operator-(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
-{
-  return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,difference)(derived(), other.derived());
-}
+EIGEN_MAKE_CWISE_BINARY_OP(operator-,difference)
+// template<typename OtherDerived>
+// EIGEN_DEVICE_FUNC
+// EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,difference)
+// operator-(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+// {
+//   return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,difference)(derived(), other.derived());
+// }
 
 /** \returns an expression of the sum of \c *this and \a other
   *
@@ -30,13 +31,14 @@ operator-(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   *
   * \sa class CwiseBinaryOp, operator+=()
   */
-template<typename OtherDerived>
-EIGEN_DEVICE_FUNC
-EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,sum)
-operator+(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
-{
-  return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,sum)(derived(), other.derived());
-}
+EIGEN_MAKE_CWISE_BINARY_OP(operator+,sum)
+// template<typename OtherDerived>
+// EIGEN_DEVICE_FUNC
+// EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,sum)
+// operator+(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+// {
+//   return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,sum)(derived(), other.derived());
+// }
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
   *
