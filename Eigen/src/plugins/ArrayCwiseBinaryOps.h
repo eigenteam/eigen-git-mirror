@@ -81,16 +81,8 @@ max
   * Example: \include Cwise_array_power_array.cpp
   * Output: \verbinclude Cwise_array_power_array.out
   */
-template<typename ExponentDerived>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-const CwiseBinaryOp<internal::scalar_binary_pow_op<Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>
-pow(const ArrayBase<ExponentDerived>& exponents) const
-{
-  return CwiseBinaryOp<internal::scalar_binary_pow_op<Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>(
-    this->derived(),
-    exponents.derived()
-  );
-}
+EIGEN_MAKE_CWISE_BINARY_OP(pow,binary_pow)
+
 
 // TODO code generating macros could be moved to Macros.h and could include generation of documentation
 #define EIGEN_MAKE_CWISE_COMP_OP(OP, COMPARATOR) \
