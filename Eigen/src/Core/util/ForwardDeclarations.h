@@ -217,6 +217,7 @@ template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_quotient_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;
 template<typename LhsScalar,typename RhsScalar> struct scalar_quotient2_op;
+template<typename ScalarX, typename ScalarY> struct scalar_binary_pow_op;
 
 } // end namespace internal
 

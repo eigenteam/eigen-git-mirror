@@ -251,9 +251,10 @@ struct functor_traits<scalar_hypot_op<Scalar,Scalar> > {
   * \brief Template functor to compute the pow of two scalars
   */
 template<typename Scalar, typename OtherScalar> struct scalar_binary_pow_op {
+  typedef typename ScalarBinaryOpTraits<Scalar,OtherScalar,scalar_binary_pow_op>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_binary_pow_op)
   EIGEN_DEVICE_FUNC
-  inline Scalar operator() (const Scalar& a, const OtherScalar& b) const { return numext::pow(a, b); }
+  inline result_type operator() (const Scalar& a, const OtherScalar& b) const { return numext::pow(a, b); }
 };
 template<typename Scalar, typename OtherScalar>
 struct functor_traits<scalar_binary_pow_op<Scalar,OtherScalar> > {
