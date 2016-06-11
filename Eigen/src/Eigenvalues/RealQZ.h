@@ -630,11 +630,11 @@ namespace Eigen {
             internal::real_2x2_jacobi_svd(m_T, i, i+1, &j_left, &j_right);
 
             // Apply resulting Jacobi rotations
-            m_T.applyOnTheLeft(i,i+1,j_left);
-            m_T.applyOnTheRight(i,i+1,j_right);
             m_S.applyOnTheLeft(i,i+1,j_left);
             m_S.applyOnTheRight(i,i+1,j_right);
-            m_T(i,i+1) = Scalar(0);
+            m_T.applyOnTheLeft(i,i+1,j_left);
+            m_T.applyOnTheRight(i,i+1,j_right);
+            m_T(i+1,i) = m_T(i,i+1) = Scalar(0);
 
             if(m_computeQZ) {
               m_Q.applyOnTheRight(i,i+1,j_left.transpose());
