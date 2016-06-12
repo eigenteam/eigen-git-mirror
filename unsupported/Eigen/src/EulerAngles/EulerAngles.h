@@ -19,11 +19,60 @@ namespace Eigen
 
   /** \class EulerAngles
     *
-    * \brief Represents a rotation in a 3 dimensional space as three Euler angles
+    * \brief Represents a rotation in a 3 dimensional space as three Euler angles.
     *
-    * \sa _Scalar the scalar type, i.e., the type of the angles.
+    * Euler rotation is a set of three rotation of three angles over three fixed axes, defined by the EulerSystem given as a template parameter.
+    * 
+    * Here is how intrinsic Euler angles works:
+    *  - first, rotate the axes system over the alpha axis in angle alpha
+    *  - then, rotate the axes system over the beta axis(which was rotated in the first stage) in angle beta
+    *  - then, rotate the axes system over the gamma axis(which was rotated in the two stages above) in angle gamma
     *
-    * \sa _System the EulerSystem to use, which represents the axes of rotation.
+    * \note This class support only intrinsic Euler angles for simplicity,
+    *  see EulerSystem how to easily overcome it for extrinsic systems.
+    *
+    * ### Rotation representation and conversions ###
+    *
+    * It has been proved(see Wikipedia link below) that every rotation can be represented
+    *  by Euler angles, but there is no singular representation (e.g. unlike rotation matrices).
+    * Therefore, you can convert from Eigen rotation and to them
+    *  (including rotation matrices, which is not called "rotations" by Eigen design).
+    *
+    * Euler angles usually used for:
+    *  - convenient human representation of rotation, especially in interactive GUI.
+    *  - gimbal systems and robotics
+    *  - efficient encoding(i.e. 3 floats only) of rotation for network protocols.
+    *
+    * However, Euler angles are slow comparing to quaternion or matrices,
+    *  because their unnatural math definition, although it's simple for human.
+    * To overcome this, this class provide easy movement from the math friendly representation
+    *  to the human friendly representation, and vise-versa.
+    *
+    * All the user need to do is a safe simple C++ type conversion,
+    *  and this class take care for the math.
+    * Additionally, some axes related computation is done in compile time.
+    *
+    * ### Convenient user typedefs ###
+    *
+    * Convenient typedefs for EulerAngles exist for float and double scalar,
+    *  in a form of EulerAngles{A}{B}{C}{scalar},
+    *  e.g. EulerAnglesXYZd, EulerAnglesZYZf.
+    *
+    * !TODO! Add examples
+    *
+    * Only for positive axes{+x,+y,+z} euler systems are have convenient typedef.
+    * If you need negative axes{-x,-y,-z}, it is recommended to create you own typedef with
+    *  a word that represent what you need, e.g. EulerAnglesUTM (!TODO! make it more clear with example code).
+    *
+    * ### Additional reading ###
+    *
+    * If you're want to get more idea about how Euler system work in Eigen see EulerSystem.
+    *
+    * More information about Euler angles: https://en.wikipedia.org/wiki/Euler_angles
+    *
+    * \tparam _Scalar the scalar type, i.e., the type of the angles.
+    *
+    * \tparam _System the EulerSystem to use, which represents the axes of rotation.
     */
   template <typename _Scalar, class _System>
   class EulerAngles : public RotationBase<EulerAngles<_Scalar, _System>, 3>
@@ -62,17 +111,18 @@ namespace Eigen
     public:
       /** Default constructor without initialization. */
       EulerAngles() {}
-      /** Constructs and initialize euler angles(\p alpha, \p beta, \p gamma). */
-      EulerAngles(Scalar alpha, Scalar beta, Scalar gamma) : m_angles(alpha, beta, gamma) {}
+      /** Constructs and initialize Euler angles(\p alpha, \p beta, \p gamma). */
+      EulerAngles(const Scalar& alpha, const Scalar& beta, const Scalar& gamma) :
+        m_angles(alpha, beta, gamma) {}
       
-      /** Constructs and initialize euler angles from a 3x3 rotation matrix \p m.
+      /** Constructs and initialize Euler angles from a 3x3 rotation matrix \p m.
         *
         * \note All angles will be in the range [-PI, PI].
       */
       template<typename Derived>
       EulerAngles(const MatrixBase<Derived>& m) { *this = m; }
       
-      /** Constructs and initialize euler angles from a 3x3 rotation matrix \p m,
+      /** Constructs and initialize Euler angles from a 3x3 rotation matrix \p m,
         *  with options to choose for each angle the requested range.
         *
         * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
@@ -93,14 +143,16 @@ namespace Eigen
         System::CalcEulerAngles(*this, m, positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma);
       }
       
-      /** Constructs and initialize euler angles from a rotation \p rot.
+      /** Constructs and initialize Euler angles from a rotation \p rot.
         *
-        * \note All angles will be in the range [-PI, PI].
+        * \note All angles will be in the range [-PI, PI], unless \p rot is an EulerAngles.
+        *  If rot is an EulerAngles, expected EulerAngles range is undefined.
+        *  (Use other functions here for enforcing range if this effect is desired)
       */
       template<typename Derived>
       EulerAngles(const RotationBase<Derived, 3>& rot) { *this = rot; }
       
-      /** Constructs and initialize euler angles from a rotation \p rot,
+      /** Constructs and initialize Euler angles from a rotation \p rot,
         *  with options to choose for each angle the requested range.
         *
         * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
@@ -141,7 +193,7 @@ namespace Eigen
       /** \returns A read-write reference to the angle of the third angle. */
       Scalar& gamma() { return m_angles[2]; }
 
-      /** \returns The euler angles rotation inverse (which is as same as the negative),
+      /** \returns The Euler angles rotation inverse (which is as same as the negative),
         *  (-alpha, -beta, -gamma).
       */
       EulerAngles inverse() const
@@ -151,7 +203,7 @@ namespace Eigen
         return res;
       }
 
-      /** \returns The euler angles rotation negative (which is as same as the inverse),
+      /** \returns The Euler angles rotation negative (which is as same as the inverse),
         *  (-alpha, -beta, -gamma).
       */
       EulerAngles operator -() const
@@ -159,7 +211,7 @@ namespace Eigen
         return inverse();
       }
       
-      /** Constructs and initialize euler angles from a 3x3 rotation matrix \p m,
+      /** Constructs and initialize Euler angles from a 3x3 rotation matrix \p m,
         *  with options to choose for each angle the requested range (__only in compile time__).
         *
         * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
@@ -182,7 +234,7 @@ namespace Eigen
         return e;
       }
       
-      /** Constructs and initialize euler angles from a rotation \p rot,
+      /** Constructs and initialize Euler angles from a rotation \p rot,
         *  with options to choose for each angle the requested range (__only in compile time__).
         *
         * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
@@ -241,40 +293,34 @@ namespace Eigen
         return static_cast<QuaternionType>(*this).toRotationMatrix();
       }
 
-      /** \returns an equivalent quaternion */
-      QuaternionType toQuaternion() const
+      /** Convert the Euler angles to quaternion. */
+      operator QuaternionType() const
       {
         return
           AngleAxisType(alpha(), AlphaAxisVector()) *
-          AngleAxisType(beta(), BetaAxisVector()) *
+          AngleAxisType(beta(), BetaAxisVector())   *
           AngleAxisType(gamma(), GammaAxisVector());
-      }
-
-      /** Convert the euler angles to quaternion. */
-      operator QuaternionType() const
-      {
-        return toQuaternion();
       }
   };
 
-#define EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(SYSTEM, SCALAR_TYPE, SCALAR_POSTFIX) \
-  typedef EulerAngles<SCALAR_TYPE, SYSTEM> SYSTEM##SCALAR_POSTFIX;
+#define EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(AXES, SCALAR_TYPE, SCALAR_POSTFIX) \
+  typedef EulerAngles<SCALAR_TYPE, EulerSystem##AXES> EulerSystem##AXES##SCALAR_POSTFIX;
 
 #define EIGEN_EULER_ANGLES_TYPEDEFS(SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXYZ, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXYX, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXZY, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemXZX, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(XYZ, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(XYX, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(XZY, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(XZX, SCALAR_TYPE, SCALAR_POSTFIX) \
  \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYZX, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYZY, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYXZ, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemYXY, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(YZX, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(YZY, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(YXZ, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(YXY, SCALAR_TYPE, SCALAR_POSTFIX) \
  \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZXY, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZXZ, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZYX, SCALAR_TYPE, SCALAR_POSTFIX) \
-  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(EulerSystemZYZ, SCALAR_TYPE, SCALAR_POSTFIX)
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(ZXY, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(ZXZ, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(ZYX, SCALAR_TYPE, SCALAR_POSTFIX) \
+  EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(ZYZ, SCALAR_TYPE, SCALAR_POSTFIX)
 
 EIGEN_EULER_ANGLES_TYPEDEFS(float, f)
 EIGEN_EULER_ANGLES_TYPEDEFS(double, d)

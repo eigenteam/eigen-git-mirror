@@ -1,6 +1,6 @@
-FILE(GLOB Eigen_IterativeSolvers_SRCS "*.h")
+FILE(GLOB Eigen_EulerAngles_SRCS "*.h")
 
 INSTALL(FILES
-  ${Eigen_IterativeSolvers_SRCS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen/src/IterativeSolvers COMPONENT Devel
+  ${Eigen_EulerAngles_SRCS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen/src/EulerAngles COMPONENT Devel
   )

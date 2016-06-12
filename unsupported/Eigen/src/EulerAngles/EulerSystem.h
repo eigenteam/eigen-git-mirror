@@ -38,27 +38,107 @@ namespace Eigen
     };
   }
   
+  /** \brief Representation of a fixed signed rotation axis for EulerAngles.
+    *
+    * Values here represent:
+    *  - The axis of the rotation: X, Y or Z.
+    *  - The sign (i.e. direction of the rotation along the axis): possitive(+) or negative(-)
+    *
+    * Therefore, this could express all the axes {+X,+Y,+Z,-X,-Y,-Z}
+    *
+    * For positive axis, use +EULER_{axis}, and for negative axis use -EULER_{axis}.
+    *
+    * !TODO! Add examples
+    */
   enum EulerAxis
   {
-    EULER_X = 1,
-    EULER_Y = 2,
-    EULER_Z = 3
+    EULER_X = 1, /*!< the X axis */
+    EULER_Y = 2, /*!< the Y axis */
+    EULER_Z = 3  /*!< the Z axis */
   };
-
+  
+  /** \class EulerSystem
+    *
+    * \brief Represents a fixed Euler rotation system.
+    *
+    * This meta-class goal is to represent the Euler system in compilation time, for EulerAngles.
+    *
+    * You can use this class to get two things:
+    *  - Build an Euler system, and then pass it as a template parameter to EulerAngles.
+    *  - Query some compile time data about an Euler system. (e.g. Whether it's tait bryan)
+    *
+    * Euler rotation is a set of three rotation on fixed axes. (see EulerAngles)
+    * This meta-class store constantly those signed axes. (see EulerAxis)
+    *
+    * ### Types of Euler systems ###
+    *
+    * All and only valid 3 dimension Euler rotation over standard
+    *  signed axes{+X,+Y,+Z,-X,-Y,-Z} are supported:
+    *  - all axes X, Y, Z in each valid order (see below what order is valid)
+    *  - rotation over the axis is supported both over the positive and negative directions.
+    *  - both tait bryan and classic Euler angles (i.e. the opposite).
+    *
+    * Since EulerSystem support both positive and negative directions,
+    *  you may call this rotation distinction in other names:
+    *  - right handed or left handed
+    *  - counterclockwise or clockwise
+    *
+    * Notice all axed combination are valid, and would trigger an assertion !TODO!.
+    * Same unsigned axes can't be neighbors, e.g. {X,X,Y} is invalid.
+    * This yield two and only two classes:
+    *  - tait bryan - all unsigned axes are distinct, e.g. {X,Y,Z}
+    *  - proper/classic Euler angles - The first and the third unsigned axes is equal,
+    *     and the second is different, e.g. {X,Y,X}
+    *
+    * !TODO! Add some example code.
+    *
+    * ### Intrinsic vs extrinsic Euler systems ###
+    *
+    * Only intrinsic Euler systems are supported for simplicity.
+    *  If you want to use extrinsic Euler systems,
+    *   just use the equal intrinsic opposite order for axes and angles.
+    *  I.E axes (A,B,C) becomes (C,B,A), and angles (a,b,c) becomes (c,b,a).
+    * !TODO! Make it more clear and add some example code.
+    *
+    * ### Convenient user typedefs ###
+    *
+    * Convenient typedefs for EulerSystem exist (only for positive axes Euler systems),
+    *  in a form of EulerSystem{A}{B}{C}, e.g. EulerSystemXYZd.
+    * !TODO! Make it more clear
+    *
+    * ### Additional reading ###
+    *
+    * More information about Euler angles: https://en.wikipedia.org/wiki/Euler_angles
+    *
+    * \tparam _AlphaAxis the first fixed EulerAxis
+    *
+    * \tparam _AlphaAxis the second fixed EulerAxis
+    *
+    * \tparam _AlphaAxis the third fixed EulerAxis
+    */
   template <int _AlphaAxis, int _BetaAxis, int _GammaAxis>
   class EulerSystem
   {
     public:
     // It's defined this way and not as enum, because I think
     //  that enum is not guerantee to support negative numbers
+    
+    /** The first rotation axis */
     static const int AlphaAxis = _AlphaAxis;
+    
+    /** The second rotation axis */
     static const int BetaAxis = _BetaAxis;
+    
+    /** The third rotation axis */
     static const int GammaAxis = _GammaAxis;
 
     enum
     {
+      /** The first rotation axis unsigned */
       AlphaAxisAbs = internal::Abs<AlphaAxis>::value,
+      /** The second rotation axis unsigned */
       BetaAxisAbs = internal::Abs<BetaAxis>::value,
+      /** The third rotation axis unsigned */
       GammaAxisAbs = internal::Abs<GammaAxis>::value,
       
       IsAlphaOpposite = (AlphaAxis < 0) ? 1 : 0,
@@ -81,7 +161,7 @@ namespace Eigen
 
     enum
     {
-      // I, J, K are the pivot indexes permutation for the rotation matrix, that match this euler system. 
+      // I, J, K are the pivot indexes permutation for the rotation matrix, that match this Euler system. 
       // They are used in this class converters.
       // They are always different from each other, and their possible values are: 0, 1, or 2.
       I = AlphaAxisAbs - 1,
@@ -150,8 +230,6 @@ namespace Eigen
       Scalar c1 = cos(res[0]);
       res[2] = atan2(c1*mat(J,K)-s1*mat(K,K), c1*mat(J,J) - s1 * mat(K,J));
     }
-
-    public:
     
     template<typename Scalar>
     static void CalcEulerAngles(
@@ -204,6 +282,9 @@ namespace Eigen
       if (PositiveRangeGamma && (res.gamma() < 0))
         res.gamma() += Scalar(2 * EIGEN_PI);
     }
+    
+    template <typename _Scalar, class _System>
+    friend class Eigen::EulerAngles;
   };
 
 #define EIGEN_EULER_SYSTEM_TYPEDEF(A, B, C) \

@@ -22,6 +22,10 @@ namespace Eigen {
   * \defgroup EulerAngles_Module EulerAngles module
   * \brief This module provides generic euler angles rotation.
   *
+  * Euler angles are a way to represent 3D rotation.
+  *
+  * !TODO! More about the purpose of this module and examples.
+  *
   * See EulerAngles for more information.
   *
   * \code
