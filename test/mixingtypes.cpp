@@ -67,9 +67,13 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   
   // check scalar products
   VERIFY_IS_APPROX(vcf * sf , vcf * complex<float>(sf));
-  VERIFY_IS_APPROX(sd * vcd, complex<double>(sd) * vcd);
+  VERIFY_IS_APPROX(sd * vcd , complex<double>(sd) * vcd);
   VERIFY_IS_APPROX(vf * scf , vf.template cast<complex<float> >() * scf);
-  VERIFY_IS_APPROX(scd * vd, scd * vd.template cast<complex<double> >());
+  VERIFY_IS_APPROX(scd * vd , scd * vd.template cast<complex<double> >());
+
+  // check scalar quotients
+  VERIFY_IS_APPROX(vcf / sf , vcf / complex<float>(sf));
+  VERIFY_IS_APPROX(vf / scf , vf.template cast<complex<float> >() / scf);
 
   // check dot product
   vf.dot(vf);
