@@ -176,11 +176,11 @@ namespace internal {
 // with optional conjugation of the arguments.
 template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRhs=false> struct conj_helper;
 
-template<typename LhsScalar,typename RhsScalar> struct scalar_sum_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_difference_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_min_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_max_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_sum_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_difference_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_conj_product_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_min_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_max_op;
 template<typename Scalar> struct scalar_opposite_op;
 template<typename Scalar> struct scalar_conjugate_op;
 template<typename Scalar> struct scalar_real_op;
