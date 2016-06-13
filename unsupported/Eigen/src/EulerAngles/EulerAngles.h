@@ -229,6 +229,8 @@ namespace Eigen
         typename Derived>
       static EulerAngles FromRotation(const MatrixBase<Derived>& m)
       {
+        EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived, 3, 3)
+        
         EulerAngles e;
         System::CalcEulerAngles<PositiveRangeAlpha, PositiveRangeBeta, PositiveRangeGamma>(e, m);
         return e;
@@ -272,6 +274,8 @@ namespace Eigen
       /** Set \c *this from a rotation matrix(i.e. pure orthogonal matrix with determinant of +1). */
       template<typename Derived>
       EulerAngles& operator=(const MatrixBase<Derived>& m) {
+        EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived, 3, 3)
+        
         System::CalcEulerAngles(*this, m);
         return *this;
       }

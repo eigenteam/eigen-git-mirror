@@ -38,6 +38,8 @@ namespace Eigen
     };
   }
   
+  #define EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
+  
   /** \brief Representation of a fixed signed rotation axis for EulerAngles.
     *
     * Values here represent:
@@ -83,7 +85,7 @@ namespace Eigen
     *  - right handed or left handed
     *  - counterclockwise or clockwise
     *
-    * Notice all axed combination are valid, and would trigger an assertion !TODO!.
+    * Notice all axed combination are valid, and would trigger a static assertion.
     * Same unsigned axes can't be neighbors, e.g. {X,X,Y} is invalid.
     * This yield two and only two classes:
     *  - tait bryan - all unsigned axes are distinct, e.g. {X,Y,Z}
@@ -147,17 +149,26 @@ namespace Eigen
       
       IsOdd = ((AlphaAxisAbs)%3 == (BetaAxisAbs - 1)%3) ? 0 : 1,
       IsEven = IsOdd ? 0 : 1,
-      
-      // TODO: Assert this, and sort it in a better way
-      IsValid = ((unsigned)AlphaAxisAbs != (unsigned)BetaAxisAbs &&
-        (unsigned)BetaAxisAbs != (unsigned)GammaAxisAbs &&
-        internal::IsValidAxis<AlphaAxis>::value && internal::IsValidAxis<BetaAxis>::value && internal::IsValidAxis<GammaAxis>::value) ? 1 : 0,
 
-      // TODO: After a proper assertation, remove the "IsValid" from this expression
-      IsTaitBryan = (IsValid && (unsigned)AlphaAxisAbs != (unsigned)GammaAxisAbs) ? 1 : 0
+      IsTaitBryan = ((unsigned)AlphaAxisAbs != (unsigned)GammaAxisAbs) ? 1 : 0
     };
-
+    
     private:
+    
+    EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT(internal::IsValidAxis<AlphaAxis>::value,
+      ALPHA_AXIS_IS_INVALID);
+      
+    EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT(internal::IsValidAxis<BetaAxis>::value,
+      BETA_AXIS_IS_INVALID);
+      
+    EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT(internal::IsValidAxis<GammaAxis>::value,
+      GAMMA_AXIS_IS_INVALID);
+      
+    EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT((unsigned)AlphaAxisAbs != (unsigned)BetaAxisAbs,
+      ALPHA_AXIS_CANT_BE_EQUAL_TO_BETA_AXIS);
+      
+    EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT((unsigned)BetaAxisAbs != (unsigned)GammaAxisAbs,
+      BETA_AXIS_CANT_BE_EQUAL_TO_GAMMA_AXIS);
 
     enum
     {
