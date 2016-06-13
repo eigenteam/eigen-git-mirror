@@ -136,21 +136,18 @@ namespace Eigen
 
     enum
     {
-      /** The first rotation axis unsigned */
-      AlphaAxisAbs = internal::Abs<AlphaAxis>::value,
-      /** The second rotation axis unsigned */
-      BetaAxisAbs = internal::Abs<BetaAxis>::value,
-      /** The third rotation axis unsigned */
-      GammaAxisAbs = internal::Abs<GammaAxis>::value,
+      AlphaAxisAbs = internal::Abs<AlphaAxis>::value, /*!< the first rotation axis unsigned */
+      BetaAxisAbs = internal::Abs<BetaAxis>::value, /*!< the second rotation axis unsigned */
+      GammaAxisAbs = internal::Abs<GammaAxis>::value, /*!< the third rotation axis unsigned */
       
-      IsAlphaOpposite = (AlphaAxis < 0) ? 1 : 0,
-      IsBetaOpposite = (BetaAxis < 0) ? 1 : 0,
-      IsGammaOpposite = (GammaAxis < 0) ? 1 : 0,
+      IsAlphaOpposite = (AlphaAxis < 0) ? 1 : 0, /*!< weather alpha axis is negative */
+      IsBetaOpposite = (BetaAxis < 0) ? 1 : 0, /*!< weather beta axis is negative */
+      IsGammaOpposite = (GammaAxis < 0) ? 1 : 0, /*!< weather gamma axis is negative */
       
-      IsOdd = ((AlphaAxisAbs)%3 == (BetaAxisAbs - 1)%3) ? 0 : 1,
-      IsEven = IsOdd ? 0 : 1,
+      IsOdd = ((AlphaAxisAbs)%3 == (BetaAxisAbs - 1)%3) ? 0 : 1, /*!< weather the Euler system is odd */
+      IsEven = IsOdd ? 0 : 1, /*!< weather the Euler system is even */
 
-      IsTaitBryan = ((unsigned)AlphaAxisAbs != (unsigned)GammaAxisAbs) ? 1 : 0
+      IsTaitBryan = ((unsigned)AlphaAxisAbs != (unsigned)GammaAxisAbs) ? 1 : 0 /*!< weather the Euler system is tait bryan */
     };
     
     private:
