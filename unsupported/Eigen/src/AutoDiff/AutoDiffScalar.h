@@ -426,18 +426,18 @@ struct auto_diff_special_op<_DerType, true>
   }
 
 
-  inline const AutoDiffScalar<typename CwiseUnaryOp<scalar_multiple2_op<Scalar,Real>, DerType>::Type >
+  inline const AutoDiffScalar<typename CwiseUnaryOp<bind2nd_op<scalar_product_op<Scalar,Real> >, DerType>::Type >
   operator*(const Real& other) const
   {
-    return AutoDiffScalar<typename CwiseUnaryOp<scalar_multiple2_op<Scalar,Real>, DerType>::Type >(
+    return AutoDiffScalar<typename CwiseUnaryOp<bind2nd_op<scalar_product_op<Scalar,Real> >, DerType>::Type >(
       derived().value() * other,
       derived().derivatives() * other);
   }
 
-  friend inline const AutoDiffScalar<typename CwiseUnaryOp<scalar_multiple2_op<Scalar,Real>, DerType>::Type >
+  friend inline const AutoDiffScalar<typename CwiseUnaryOp<bind1st_op<scalar_product_op<Real,Scalar> >, DerType>::Type >
   operator*(const Real& other, const AutoDiffScalar<_DerType>& a)
   {
-    return AutoDiffScalar<typename CwiseUnaryOp<scalar_multiple2_op<Scalar,Real>, DerType>::Type >(
+    return AutoDiffScalar<typename CwiseUnaryOp<bind1st_op<scalar_product_op<Real,Scalar> >, DerType>::Type >(
       a.value() * other,
       a.derivatives() * other);
   }

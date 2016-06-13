@@ -215,8 +215,6 @@ template<typename Scalar> struct scalar_betainc_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_hypot_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_quotient_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_quotient2_op;
 template<typename ScalarX, typename ScalarY> struct scalar_binary_pow_op;
 
 } // end namespace internal

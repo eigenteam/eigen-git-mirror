@@ -14,7 +14,6 @@
 
 /** \internal Represents a scalar multiple of an expression */
 typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Derived> ScalarMultipleReturnType;
-typedef CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, const Derived> ScalarComplexMultipleReturnType;
 
 /** \internal Represents a quotient of an expression by a scalar*/
 typedef CwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, const Derived> ScalarQuotient1ReturnType;
@@ -73,15 +72,15 @@ operator/(const Scalar& scalar) const
 /** Overloaded for efficiently multipling with compatible scalar types */
 template <typename T>
 EIGEN_DEVICE_FUNC inline
-typename internal::enable_if<ScalarBinaryOpTraits<T,Scalar>::Defined,
-                             const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived> >::type
+typename internal::enable_if<ScalarBinaryOpTraits<Scalar,T>::Defined,
+                             const CwiseUnaryOp<internal::bind2nd_op<internal::scalar_product_op<Scalar,T> >, const Derived> >::type
 operator*(const T& scalar) const
 {
 #ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
   EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
 #endif
-  return CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived>(
-            derived(), internal::scalar_multiple2_op<Scalar,T>(scalar) );
+  typedef internal::bind2nd_op<internal::scalar_product_op<Scalar,T> > op;
+  return CwiseUnaryOp<op, const Derived>(derived(), op(scalar) );
 }
 
 EIGEN_DEVICE_FUNC
@@ -91,28 +90,28 @@ operator*(const Scalar& scalar, const StorageBaseType& matrix)
 
 template <typename T>
 EIGEN_DEVICE_FUNC inline friend
-typename internal::enable_if<ScalarBinaryOpTraits<Scalar,T>::Defined,
-                             const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived> >::type
+typename internal::enable_if<ScalarBinaryOpTraits<T,Scalar>::Defined,
+                             const CwiseUnaryOp<internal::bind1st_op<internal::scalar_product_op<T,Scalar> >, const Derived> >::type
 operator*(const T& scalar, const StorageBaseType& matrix)
 {
 #ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
   EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
 #endif
-  return CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived>(
-            matrix.derived(), internal::scalar_multiple2_op<Scalar,T>(scalar) );
+  typedef internal::bind1st_op<internal::scalar_product_op<T,Scalar> > op;
+  return CwiseUnaryOp<op, const Derived>(matrix.derived(), op(scalar) );
 }
 
 template <typename T>
 EIGEN_DEVICE_FUNC inline
 typename internal::enable_if<ScalarBinaryOpTraits<Scalar,T>::Defined,
-                             const CwiseUnaryOp<internal::scalar_quotient2_op<Scalar,T>, const Derived> >::type
+                             const CwiseUnaryOp<internal::bind2nd_op<internal::scalar_quotient_op<Scalar,T> >, const Derived> >::type
 operator/(const T& scalar) const
 {
 #ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
   EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
 #endif
-  return CwiseUnaryOp<internal::scalar_quotient2_op<Scalar,T>, const Derived>(
-            derived(), internal::scalar_quotient2_op<Scalar,T>(scalar) );
+  typedef internal::bind2nd_op<internal::scalar_quotient_op<Scalar,T> > op;
+  return CwiseUnaryOp<op, const Derived>(derived(), op(scalar) );
 }
 
 template<class NewType> struct CastXpr { typedef typename internal::cast_return_type<Derived,const CwiseUnaryOp<internal::scalar_cast_op<Scalar, NewType>, const Derived> >::type Type; };
