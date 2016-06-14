@@ -116,9 +116,9 @@ private:
                         : 1,
     UnrollingLimit      = EIGEN_UNROLLING_LIMIT * ActualPacketSize,
     MayUnrollCompletely = int(Dst::SizeAtCompileTime) != Dynamic
-                       && int(Dst::SizeAtCompileTime) * int(SrcEvaluator::CoeffReadCost) <= int(UnrollingLimit),
+                       && int(Dst::SizeAtCompileTime) * (int(DstEvaluator::CoeffReadCost)+int(SrcEvaluator::CoeffReadCost)) <= int(UnrollingLimit),
     MayUnrollInner      = int(InnerSize) != Dynamic
-                       && int(InnerSize) * int(SrcEvaluator::CoeffReadCost) <= int(UnrollingLimit)
+                       && int(InnerSize) * (int(DstEvaluator::CoeffReadCost)+int(SrcEvaluator::CoeffReadCost)) <= int(UnrollingLimit)
   };
 
 public:
