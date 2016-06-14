@@ -202,7 +202,6 @@ template<typename Scalar> struct scalar_square_op;
 template<typename Scalar> struct scalar_cube_op;
 template<typename Scalar, typename NewType> struct scalar_cast_op;
 template<typename Scalar> struct scalar_random_op;
-template<typename Scalar> struct scalar_add_op;
 template<typename Scalar> struct scalar_constant_op;
 template<typename Scalar> struct scalar_identity_op;
 template<typename Scalar,bool iscpx> struct scalar_sign_op;

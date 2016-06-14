@@ -32,7 +32,13 @@ template<typename LhsScalar,typename RhsScalar>
 struct scalar_sum_op : binary_op_base<LhsScalar,RhsScalar>
 {
   typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_sum_op>::ReturnType result_type;
+#ifndef EIGEN_SCALAR_BINARY_OP_PLUGIN
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sum_op)
+#else
+  scalar_sum_op() {
+    EIGEN_SCALAR_BINARY_OP_PLUGIN
+  }
+#endif
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a + b; }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
@@ -315,7 +321,13 @@ template<typename LhsScalar,typename RhsScalar>
 struct scalar_difference_op : binary_op_base<LhsScalar,RhsScalar>
 {
   typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_difference_op>::ReturnType result_type;
+#ifndef EIGEN_SCALAR_BINARY_OP_PLUGIN
   EIGEN_EMPTY_STRUCT_CTOR(scalar_difference_op)
+#else
+  scalar_difference_op() {
+    EIGEN_SCALAR_BINARY_OP_PLUGIN
+  }
+#endif
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a - b; }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
@@ -584,7 +596,7 @@ struct functor_traits<scalar_add_op<Scalar> >
 
 /** \internal
   * \brief Template functor to subtract a fixed scalar to another one
-  * \sa class CwiseUnaryOp, Array::operator-, struct scalar_add_op, struct scalar_rsub_op
+  * \sa class CwiseUnaryOp, Array::operator-, struct scalar_add_op
   */
 template<typename Scalar>
 struct scalar_sub_op {
@@ -600,23 +612,6 @@ template<typename Scalar>
 struct functor_traits<scalar_sub_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = packet_traits<Scalar>::HasAdd }; };
 
-/** \internal
-  * \brief Template functor to subtract a scalar to fixed another one
-  * \sa class CwiseUnaryOp, Array::operator-, struct scalar_add_op, struct scalar_sub_op
-  */
-template<typename Scalar>
-struct scalar_rsub_op {
-  EIGEN_DEVICE_FUNC inline scalar_rsub_op(const scalar_rsub_op& other) : m_other(other.m_other) { }
-  EIGEN_DEVICE_FUNC inline scalar_rsub_op(const Scalar& other) : m_other(other) { }
-  EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a) const { return m_other - a; }
-  template <typename Packet>
-  EIGEN_DEVICE_FUNC inline const Packet packetOp(const Packet& a) const
-  { return internal::psub(pset1<Packet>(m_other), a); }
-  const Scalar m_other;
-};
-template<typename Scalar>
-struct functor_traits<scalar_rsub_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = packet_traits<Scalar>::HasAdd }; };
 
 /** \internal
   * \brief Template functor to raise a scalar to a power

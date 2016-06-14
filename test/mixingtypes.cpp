@@ -75,6 +75,18 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX(vcf / sf , vcf / complex<float>(sf));
   VERIFY_IS_APPROX(vf / scf , vf.template cast<complex<float> >() / scf);
 
+  // check scalar increment
+  VERIFY_IS_APPROX(vcf.array() + sf , vcf.array() + complex<float>(sf));
+  VERIFY_IS_APPROX(sd  + vcd.array(), complex<double>(sd) + vcd.array());
+  VERIFY_IS_APPROX(vf.array()  + scf, vf.template cast<complex<float> >().array() + scf);
+  VERIFY_IS_APPROX(scd + vd.array() , scd + vd.template cast<complex<double> >().array());
+
+  // check scalar subtractions
+  VERIFY_IS_APPROX(vcf.array() - sf , vcf.array() - complex<float>(sf));
+  VERIFY_IS_APPROX(sd  - vcd.array(), complex<double>(sd) - vcd.array());
+  VERIFY_IS_APPROX(vf.array()  - scf, vf.template cast<complex<float> >().array() - scf);
+  VERIFY_IS_APPROX(scd - vd.array() , scd - vd.template cast<complex<double> >().array());
+
   // check dot product
   vf.dot(vf);
 #if 0 // we get other compilation errors here than just static asserts

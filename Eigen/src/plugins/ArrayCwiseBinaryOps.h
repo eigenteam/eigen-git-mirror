@@ -192,48 +192,49 @@ EIGEN_MAKE_CWISE_COMP_OP(operator!=, NEQ)
 #undef EIGEN_MAKE_CWISE_COMP_R_OP
 
 // scalar addition
-
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+EIGEN_MAKE_SCALAR_BINARY_OP(operator+,sum);
+#else
 /** \returns an expression of \c *this with each coeff incremented by the constant \a scalar
+  *
+  * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
   *
   * Example: \include Cwise_plus.cpp
   * Output: \verbinclude Cwise_plus.out
   *
   * \sa operator+=(), operator-()
   */
-EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_add_op<Scalar>, const Derived>
-operator+(const Scalar& scalar) const
-{
-  return CwiseUnaryOp<internal::scalar_add_op<Scalar>, const Derived>(derived(), internal::scalar_add_op<Scalar>(scalar));
-}
+template<typename T>
+const CwiseBinaryOp<internal::scalar_sum_op<Scalar,T>,Derived,Constant<Scalar> > operator+(const T& scalar) const;
+/** \returns an expression of \a expr with each coeff incremented by the constant \a scalar
+  *
+  * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
+  */
+template<typename T> friend
+const CwiseBinaryOp<internal::scalar_sum_op<T,Scalar>,Constant<Scalar>,Derived> operator+(const T& scalar, const StorageBaseType& expr);
+#endif
 
-EIGEN_DEVICE_FUNC
-friend inline const CwiseUnaryOp<internal::scalar_add_op<Scalar>, const Derived>
-operator+(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& other)
-{
-  return other + scalar;
-}
-
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+EIGEN_MAKE_SCALAR_BINARY_OP(operator-,difference);
+#else
 /** \returns an expression of \c *this with each coeff decremented by the constant \a scalar
+  *
+  * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
   *
   * Example: \include Cwise_minus.cpp
   * Output: \verbinclude Cwise_minus.out
   *
-  * \sa operator+(), operator-=()
+  * \sa operator+=(), operator-()
   */
-EIGEN_DEVICE_FUNC
-inline const CwiseUnaryOp<internal::scalar_sub_op<Scalar>, const Derived>
-operator-(const Scalar& scalar) const
-{
-  return CwiseUnaryOp<internal::scalar_sub_op<Scalar>, const Derived>(derived(), internal::scalar_sub_op<Scalar>(scalar));;
-}
-
-EIGEN_DEVICE_FUNC
-friend inline const CwiseUnaryOp<internal::scalar_rsub_op<Scalar>, const Derived>
-operator-(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& other)
-{
-  return CwiseUnaryOp<internal::scalar_rsub_op<Scalar>, const Derived>(other.derived(), internal::scalar_rsub_op<Scalar>(scalar));;
-}
+template<typename T>
+const CwiseBinaryOp<internal::scalar_difference_op<Scalar,T>,Derived,Constant<Scalar> > operator-(const T& scalar) const;
+/** \returns an expression of the constant matrix of value \a scalar decremented by the coefficients of \a expr
+  *
+  * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
+  */
+template<typename T> friend
+const CwiseBinaryOp<internal::scalar_difference_op<T,Scalar>,Constant<Scalar>,Derived> operator-(const T& scalar, const StorageBaseType& expr);
+#endif
 
 /** \returns an expression of the coefficient-wise && operator of *this and \a other
   *
