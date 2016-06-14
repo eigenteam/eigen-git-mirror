@@ -82,6 +82,8 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   // check scalar quotients
   VERIFY_MIX_SCALAR(vcf / sf , vcf / complex<float>(sf));
   VERIFY_MIX_SCALAR(vf / scf , vf.template cast<complex<float> >() / scf);
+  VERIFY_MIX_SCALAR(vf.array()  / scf, vf.template cast<complex<float> >().array() / scf);
+  VERIFY_MIX_SCALAR(scd / vd.array() , scd / vd.template cast<complex<double> >().array());
 
   // check scalar increment
   VERIFY_MIX_SCALAR(vcf.array() + sf , vcf.array() + complex<float>(sf));
@@ -225,7 +227,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX( md.array()  - mcd.array(), md.template cast<CD>().eval().array() - mcd.array() );
   VERIFY_IS_APPROX( mcd.array() - md.array(),  mcd.array() - md.template cast<CD>().eval().array() );
 
-//   VERIFY_IS_APPROX( md.array() / mcd.array(), md.template cast<CD>().eval().array() / mcd.array() );
+  VERIFY_IS_APPROX( md.array() / mcd.array(), md.template cast<CD>().eval().array() / mcd.array() );
   VERIFY_IS_APPROX( mcd.array() / md.array(), mcd.array() / md.template cast<CD>().eval().array() );
 
   VERIFY_IS_APPROX( md.array().pow(mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
