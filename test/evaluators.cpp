@@ -21,7 +21,7 @@ namespace Eigen {
   EIGEN_STRONG_INLINE
   DstXprType& copy_using_evaluator(const EigenBase<DstXprType> &dst, const SrcXprType &src)
   {
-    call_assignment(dst.const_cast_derived(), src.derived(), internal::assign_op<typename DstXprType::Scalar>());
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar>());
     return dst.const_cast_derived();
   }
   
@@ -29,7 +29,7 @@ namespace Eigen {
   EIGEN_STRONG_INLINE
   const DstXprType& copy_using_evaluator(const NoAlias<DstXprType, StorageBase>& dst, const SrcXprType &src)
   {
-    call_assignment(dst, src.derived(), internal::assign_op<typename DstXprType::Scalar>());
+    call_assignment(dst, src.derived(), internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar>());
     return dst.expression();
   }
   
@@ -45,7 +45,7 @@ namespace Eigen {
     dst.const_cast_derived().resizeLike(src.derived());
   #endif
     
-    call_assignment(dst.const_cast_derived(), src.derived(), internal::assign_op<typename DstXprType::Scalar>());
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar>());
     return dst.const_cast_derived();
   }
 
@@ -53,28 +53,28 @@ namespace Eigen {
   void add_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   {
     typedef typename DstXprType::Scalar Scalar;
-    call_assignment(const_cast<DstXprType&>(dst), src.derived(), internal::add_assign_op<Scalar>());
+    call_assignment(const_cast<DstXprType&>(dst), src.derived(), internal::add_assign_op<Scalar,typename SrcXprType::Scalar>());
   }
 
   template<typename DstXprType, typename SrcXprType>
   void subtract_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   {
     typedef typename DstXprType::Scalar Scalar;
-    call_assignment(const_cast<DstXprType&>(dst), src.derived(), internal::sub_assign_op<Scalar>());
+    call_assignment(const_cast<DstXprType&>(dst), src.derived(), internal::sub_assign_op<Scalar,typename SrcXprType::Scalar>());
   }
 
   template<typename DstXprType, typename SrcXprType>
   void multiply_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   {
     typedef typename DstXprType::Scalar Scalar;
-    call_assignment(dst.const_cast_derived(), src.derived(), internal::mul_assign_op<Scalar>());
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::mul_assign_op<Scalar,typename SrcXprType::Scalar>());
   }
 
   template<typename DstXprType, typename SrcXprType>
   void divide_assign_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   {
     typedef typename DstXprType::Scalar Scalar;
-    call_assignment(dst.const_cast_derived(), src.derived(), internal::div_assign_op<Scalar>());
+    call_assignment(dst.const_cast_derived(), src.derived(), internal::div_assign_op<Scalar,typename SrcXprType::Scalar>());
   }
   
   template<typename DstXprType, typename SrcXprType>
