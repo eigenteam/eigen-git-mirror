@@ -316,19 +316,6 @@ struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, NestedXpr, const Cwi
   { return Base::extractScalarFactor(x.lhs()) * x.rhs().functor().m_other; }
 };
 
-// pop scalar multiple (using deprecated scalar_multiple_op)
-template<typename Scalar, typename NestedXpr>
-struct blas_traits<CwiseUnaryOp<scalar_multiple_op<Scalar>, NestedXpr> >
- : blas_traits<NestedXpr>
-{
-  typedef blas_traits<NestedXpr> Base;
-  typedef CwiseUnaryOp<scalar_multiple_op<Scalar>, NestedXpr> XprType;
-  typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
-  static inline Scalar extractScalarFactor(const XprType& x)
-  { return x.functor().m_other * Base::extractScalarFactor(x.nestedExpression()); }
-};
-
 // pop opposite
 template<typename Scalar, typename NestedXpr>
 struct blas_traits<CwiseUnaryOp<scalar_opposite_op<Scalar>, NestedXpr> >
