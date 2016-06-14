@@ -28,6 +28,8 @@ template<> struct packet_traits<Eigen::half> : default_packet_traits
     AlignedOnScalar = 1,
     size=2,
     HasHalfPacket = 0,
+    HasAdd    = 1,
+    HasMul    = 1,
     HasDiv    = 1,
     HasSqrt   = 1,
     HasRsqrt  = 1,

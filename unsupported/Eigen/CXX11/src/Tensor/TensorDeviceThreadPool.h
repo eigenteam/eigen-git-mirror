@@ -106,7 +106,7 @@ static EIGEN_STRONG_INLINE void wait_until_ready(SyncType* n) {
 // Build a thread pool device on top the an existing pool of threads.
 struct ThreadPoolDevice {
   // The ownership of the thread pool remains with the caller.
-  ThreadPoolDevice(ThreadPoolInterface* pool, size_t num_cores) : pool_(pool), num_threads_(num_cores) { }
+  ThreadPoolDevice(ThreadPoolInterface* pool, int num_cores) : pool_(pool), num_threads_(num_cores) { }
 
   EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     return internal::aligned_malloc(num_bytes);
@@ -130,7 +130,7 @@ struct ThreadPoolDevice {
     ::memset(buffer, c, n);
   }
 
-  EIGEN_STRONG_INLINE size_t numThreads() const {
+  EIGEN_STRONG_INLINE int numThreads() const {
     return num_threads_;
   }
 
@@ -182,7 +182,7 @@ struct ThreadPoolDevice {
                    std::function<void(Index, Index)> f) const {
     typedef TensorCostModel<ThreadPoolDevice> CostModel;
     if (n <= 1 || numThreads() == 1 ||
-        CostModel::numThreads(n, cost, numThreads()) == 1) {
+        CostModel::numThreads(n, cost, static_cast<int>(numThreads())) == 1) {
       f(0, n);
       return;
     }
@@ -242,7 +242,7 @@ struct ThreadPoolDevice {
     // Recursively divide size into halves until we reach block_size.
     // Division code rounds mid to block_size, so we are guaranteed to get
     // block_count leaves that do actual computations.
-    Barrier barrier(block_count);
+    Barrier barrier(static_cast<unsigned int>(block_count));
     std::function<void(Index, Index)> handleRange;
     handleRange = [=, &handleRange, &barrier, &f](Index first, Index last) {
       if (last - first <= block_size) {
@@ -268,7 +268,7 @@ struct ThreadPoolDevice {
 
  private:
   ThreadPoolInterface* pool_;
-  size_t num_threads_;
+  int num_threads_;
 };
 
 
