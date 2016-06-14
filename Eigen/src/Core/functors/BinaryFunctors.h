@@ -70,7 +70,13 @@ template<typename LhsScalar,typename RhsScalar>
 struct scalar_product_op  : binary_op_base<LhsScalar,RhsScalar>
 {
   typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_product_op>::ReturnType result_type;
+#ifndef EIGEN_SCALAR_BINARY_OP_PLUGIN
   EIGEN_EMPTY_STRUCT_CTOR(scalar_product_op)
+#else
+  scalar_product_op() {
+    EIGEN_SCALAR_BINARY_OP_PLUGIN
+  }
+#endif
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a * b; }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
@@ -332,7 +338,13 @@ template<typename LhsScalar,typename RhsScalar>
 struct scalar_quotient_op  : binary_op_base<LhsScalar,RhsScalar>
 {
   typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar,scalar_quotient_op>::ReturnType result_type;
+#ifndef EIGEN_SCALAR_BINARY_OP_PLUGIN
   EIGEN_EMPTY_STRUCT_CTOR(scalar_quotient_op)
+#else
+  scalar_quotient_op() {
+    EIGEN_SCALAR_BINARY_OP_PLUGIN
+  }
+#endif
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a / b; }
   template<typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const

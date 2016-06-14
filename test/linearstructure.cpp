@@ -9,7 +9,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 static bool g_called;
-#define EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN { g_called = true; }
+#define EIGEN_SCALAR_BINARY_OP_PLUGIN { g_called |= (!internal::is_same<LhsScalar,RhsScalar>::value); }
 
 #include "main.h"
 
