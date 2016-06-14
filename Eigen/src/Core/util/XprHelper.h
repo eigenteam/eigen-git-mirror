@@ -576,6 +576,20 @@ struct plain_diag_type
   >::type type;
 };
 
+template<typename Expr,typename Scalar = typename Expr::Scalar>
+struct plain_constant_type
+{
+  enum { Options = (traits<Expr>::Flags&RowMajorBit)?RowMajor:0 };
+
+  typedef Array<Scalar,  traits<Expr>::RowsAtCompileTime,   traits<Expr>::ColsAtCompileTime,
+                Options, traits<Expr>::MaxRowsAtCompileTime,traits<Expr>::MaxColsAtCompileTime> array_type;
+
+  typedef Matrix<Scalar,  traits<Expr>::RowsAtCompileTime,   traits<Expr>::ColsAtCompileTime,
+                 Options, traits<Expr>::MaxRowsAtCompileTime,traits<Expr>::MaxColsAtCompileTime> matrix_type;
+
+  typedef CwiseNullaryOp<scalar_constant_op<Scalar>, const typename conditional<is_same< typename traits<Expr>::XprKind, MatrixXpr >::value, matrix_type, array_type>::type > type;
+};
+
 template<typename ExpressionType>
 struct is_lvalue
 {

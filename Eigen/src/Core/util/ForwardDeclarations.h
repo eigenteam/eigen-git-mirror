@@ -201,8 +201,6 @@ template<typename Scalar> struct scalar_inverse_op;
 template<typename Scalar> struct scalar_square_op;
 template<typename Scalar> struct scalar_cube_op;
 template<typename Scalar, typename NewType> struct scalar_cast_op;
-template<typename Scalar> struct scalar_multiple_op;
-template<typename Scalar> struct scalar_quotient1_op;
 template<typename Scalar> struct scalar_random_op;
 template<typename Scalar> struct scalar_add_op;
 template<typename Scalar> struct scalar_constant_op;

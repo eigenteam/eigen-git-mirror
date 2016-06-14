@@ -35,22 +35,28 @@ struct evaluator<Product<Lhs, Rhs, Options> >
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
  
-// Catch scalar * ( A * B ) and transform it to (A*scalar) * B
+// Catch "scalar * ( A * B )" and transform it to "(A*scalar) * B"
 // TODO we should apply that rule only if that's really helpful
-template<typename Lhs, typename Rhs, typename Scalar>
-struct evaluator_assume_aliasing<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > >
+template<typename Lhs, typename Rhs, typename Scalar1, typename Scalar2, typename Plain1>
+struct evaluator_assume_aliasing<CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
+                                               const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>,
+                                               const Product<Lhs, Rhs, DefaultProduct> > >
 {
   static const bool value = true;
 };
-template<typename Lhs, typename Rhs, typename Scalar>
-struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > > 
- : public evaluator<Product<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,const Lhs>, Rhs, DefaultProduct> >
+template<typename Lhs, typename Rhs, typename Scalar1, typename Scalar2, typename Plain1>
+struct evaluator<CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
+                               const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>,
+                               const Product<Lhs, Rhs, DefaultProduct> > >
+ : public evaluator<Product<EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar1,Lhs,product), Rhs, DefaultProduct> >
 {
-  typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Product<Lhs, Rhs, DefaultProduct> > XprType;
-  typedef evaluator<Product<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,const Lhs>, Rhs, DefaultProduct> > Base;
-  
+  typedef CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
+                               const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>,
+                               const Product<Lhs, Rhs, DefaultProduct> > XprType;
+  typedef evaluator<Product<EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar1,Lhs,product), Rhs, DefaultProduct> > Base;
+
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
-    : Base(xpr.functor().m_other * xpr.nestedExpression().lhs() * xpr.nestedExpression().rhs())
+    : Base(xpr.lhs().functor().m_other * xpr.rhs().lhs() * xpr.rhs().rhs())
   {}
 };
 
@@ -171,16 +177,17 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<
 // Dense ?= scalar * Product
 // TODO we should apply that rule if that's really helpful
 // for instance, this is not good for inner products
-template< typename DstXprType, typename Lhs, typename Rhs, typename AssignFunc, typename Scalar, typename ScalarBis>
-struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBis>,
+template< typename DstXprType, typename Lhs, typename Rhs, typename AssignFunc, typename Scalar, typename ScalarBis, typename Plain>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_product_op<ScalarBis,Scalar>, const CwiseNullaryOp<internal::scalar_constant_op<ScalarBis>,Plain>,
                                            const Product<Lhs,Rhs,DefaultProduct> >, AssignFunc, Dense2Dense, Scalar>
 {
-  typedef CwiseUnaryOp<internal::scalar_multiple_op<ScalarBis>,
-                       const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
+  typedef CwiseBinaryOp<internal::scalar_product_op<ScalarBis,Scalar>,
+                        const CwiseNullaryOp<internal::scalar_constant_op<ScalarBis>,Plain>,
+                        const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
   static EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
   {
-    call_assignment_no_alias(dst, (src.functor().m_other * src.nestedExpression().lhs())*src.nestedExpression().rhs(), func);
+    call_assignment_no_alias(dst, (src.lhs().functor().m_other * src.rhs().lhs())*src.rhs().rhs(), func);
   }
 };
 

@@ -36,8 +36,9 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   typedef NumTraits<Scalar>                         ScalarTraits;
   typedef Eigen::Index                              Index; ///< \deprecated since Eigen 3.3
   typedef typename ScalarTraits::Real               RealScalar;
-  typedef typename ScalarTraits::NonInteger      NonInteger;
+  typedef typename ScalarTraits::NonInteger         NonInteger;
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1>  VectorType;
+  typedef CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const VectorType, const VectorType> VectorTypeSum;
 
   /** Define constants to name the corners of a 1D, 2D or 3D axis aligned bounding box */
   enum CornerType
@@ -111,10 +112,9 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   inline VectorType& (max)() { return m_max; }
 
   /** \returns the center of the box */
-  inline const CwiseUnaryOp<internal::scalar_quotient1_op<Scalar>,
-                            const CwiseBinaryOp<internal::scalar_sum_op<Scalar,Scalar>, const VectorType, const VectorType> >
+  inline const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(VectorTypeSum, RealScalar, quotient)
   center() const
-  { return (m_min+m_max)/2; }
+  { return (m_min+m_max)/RealScalar(2); }
 
   /** \returns the lengths of the sides of the bounding box.
     * Note that this function does not get the same

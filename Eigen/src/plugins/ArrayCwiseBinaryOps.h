@@ -1,3 +1,4 @@
+
 /** \returns an expression of the coefficient wise product of \c *this and \a other
   *
   * \sa MatrixBase::cwiseProduct
