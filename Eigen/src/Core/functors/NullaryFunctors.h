@@ -26,7 +26,8 @@ struct scalar_constant_op {
 };
 template<typename Scalar>
 struct functor_traits<scalar_constant_op<Scalar> >
-{ enum { Cost = 1, PacketAccess = packet_traits<Scalar>::Vectorizable, IsRepeatable = true }; };
+{ enum { Cost = 0 /* as the constant value should be loaded in register only once for the whole expression */,
+         PacketAccess = packet_traits<Scalar>::Vectorizable, IsRepeatable = true }; };
 
 template<typename Scalar> struct scalar_identity_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_identity_op)
