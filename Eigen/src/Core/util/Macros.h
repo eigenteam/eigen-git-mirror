@@ -462,6 +462,8 @@
 #define EIGEN_CAT2(a,b) a ## b
 #define EIGEN_CAT(a,b) EIGEN_CAT2(a,b)
 
+#define EIGEN_COMMA ,
+
 // convert a token to a string
 #define EIGEN_MAKESTRING2(a) #a
 #define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
