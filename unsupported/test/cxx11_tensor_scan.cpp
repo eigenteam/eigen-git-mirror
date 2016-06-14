@@ -39,6 +39,30 @@ static void test_1d_scan()
 }
 
 template <int DataLayout, typename Type=float>
+static void test_1d_inclusive_scan()
+{
+    int size = 50;
+    Tensor<Type, 1, DataLayout> tensor(size);
+    tensor.setRandom();
+    Tensor<Type, 1, DataLayout> result = tensor.cumsum(0, true);
+
+    VERIFY_IS_EQUAL(tensor.dimension(0), result.dimension(0));
+
+    float accum = 0;
+    for (int i = 0; i < size; i++) {
+      VERIFY_IS_EQUAL(result(i), accum);
+      accum += tensor(i);
+    }
+
+    accum = 1;
+    result = tensor.cumprod(0, true);
+    for (int i = 0; i < size; i++) {
+      VERIFY_IS_EQUAL(result(i), accum);
+      accum *= tensor(i);
+    }
+}
+
+template <int DataLayout, typename Type=float>
 static void test_4d_scan()
 {
     int size = 5;

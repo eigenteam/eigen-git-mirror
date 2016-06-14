@@ -486,22 +486,22 @@ class TensorBase<Derived, ReadOnlyAccessors>
     typedef TensorScanOp<internal::SumReducer<CoeffReturnType>, const Derived> TensorScanSumOp;
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorScanSumOp
-    cumsum(const Index& axis) const {
-      return TensorScanSumOp(derived(), axis);
+    cumsum(const Index& axis, bool exclusive = false) const {
+      return TensorScanSumOp(derived(), axis, exclusive);
     }
 
     typedef TensorScanOp<internal::ProdReducer<CoeffReturnType>, const Derived> TensorScanProdOp;
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorScanProdOp
-    cumprod(const Index& axis) const {
-      return TensorScanProdOp(derived(), axis);
+    cumprod(const Index& axis, bool exclusive = false) const {
+      return TensorScanProdOp(derived(), axis, exclusive);
     }
 
     template <typename Reducer>
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorScanOp<Reducer, const Derived>
-    scan(const Index& axis, const Reducer& reducer) const {
-      return TensorScanOp<Reducer, const Derived>(derived(), axis, reducer);
+    scan(const Index& axis, const Reducer& reducer, bool exclusive = false) const {
+      return TensorScanOp<Reducer, const Derived>(derived(), axis, exclusive, reducer);
     }
 
     // Reductions.
