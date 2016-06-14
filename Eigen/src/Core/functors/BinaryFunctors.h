@@ -295,16 +295,24 @@ struct functor_traits<scalar_hypot_op<Scalar,Scalar> > {
 /** \internal
   * \brief Template functor to compute the pow of two scalars
   */
-template<typename Scalar, typename OtherScalar>
-struct scalar_binary_pow_op  : binary_op_base<Scalar,OtherScalar>
+template<typename Scalar, typename Exponent>
+struct scalar_pow_op  : binary_op_base<Scalar,Exponent>
 {
-  typedef typename ScalarBinaryOpTraits<Scalar,OtherScalar,scalar_binary_pow_op>::ReturnType result_type;
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_binary_pow_op)
+  typedef typename ScalarBinaryOpTraits<Scalar,Exponent,scalar_pow_op>::ReturnType result_type;
+#ifndef EIGEN_SCALAR_BINARY_OP_PLUGIN
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_pow_op)
+#else
+  scalar_pow_op() {
+    typedef Scalar LhsScalar;
+    typedef Exponent RhsScalar;
+    EIGEN_SCALAR_BINARY_OP_PLUGIN
+  }
+#endif
   EIGEN_DEVICE_FUNC
-  inline result_type operator() (const Scalar& a, const OtherScalar& b) const { return numext::pow(a, b); }
+  inline result_type operator() (const Scalar& a, const Exponent& b) const { return numext::pow(a, b); }
 };
-template<typename Scalar, typename OtherScalar>
-struct functor_traits<scalar_binary_pow_op<Scalar,OtherScalar> > {
+template<typename Scalar, typename Exponent>
+struct functor_traits<scalar_pow_op<Scalar,Exponent> > {
   enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
 };
 
@@ -612,23 +620,6 @@ template<typename Scalar>
 struct functor_traits<scalar_sub_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = packet_traits<Scalar>::HasAdd }; };
 
-
-/** \internal
-  * \brief Template functor to raise a scalar to a power
-  * \sa class CwiseUnaryOp, Cwise::pow
-  */
-template<typename Scalar>
-struct scalar_pow_op {
-  // FIXME default copy constructors seems bugged with std::complex<>
-  EIGEN_DEVICE_FUNC inline scalar_pow_op(const scalar_pow_op& other) : m_exponent(other.m_exponent) { }
-  EIGEN_DEVICE_FUNC inline scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
-  EIGEN_DEVICE_FUNC
-  inline Scalar operator() (const Scalar& a) const { return numext::pow(a, m_exponent); }
-  const Scalar m_exponent;
-};
-template<typename Scalar>
-struct functor_traits<scalar_pow_op<Scalar> >
-{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to compute the quotient between a scalar and array entries.

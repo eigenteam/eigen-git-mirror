@@ -23,9 +23,17 @@
 
 #endif
 
+static bool g_called;
+#define EIGEN_SCALAR_BINARY_OP_PLUGIN { g_called |= (!internal::is_same<LhsScalar,RhsScalar>::value); }
+
 #include "main.h"
 
 using namespace std;
+
+#define VERIFY_MIX_SCALAR(XPR,REF) \
+  g_called = false; \
+  VERIFY_IS_APPROX(XPR,REF); \
+  VERIFY( g_called && #XPR" not properly optimized");
 
 template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 {
@@ -66,26 +74,34 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 #endif
   
   // check scalar products
-  VERIFY_IS_APPROX(vcf * sf , vcf * complex<float>(sf));
-  VERIFY_IS_APPROX(sd * vcd , complex<double>(sd) * vcd);
-  VERIFY_IS_APPROX(vf * scf , vf.template cast<complex<float> >() * scf);
-  VERIFY_IS_APPROX(scd * vd , scd * vd.template cast<complex<double> >());
+  VERIFY_MIX_SCALAR(vcf * sf , vcf * complex<float>(sf));
+  VERIFY_MIX_SCALAR(sd * vcd , complex<double>(sd) * vcd);
+  VERIFY_MIX_SCALAR(vf * scf , vf.template cast<complex<float> >() * scf);
+  VERIFY_MIX_SCALAR(scd * vd , scd * vd.template cast<complex<double> >());
 
   // check scalar quotients
-  VERIFY_IS_APPROX(vcf / sf , vcf / complex<float>(sf));
-  VERIFY_IS_APPROX(vf / scf , vf.template cast<complex<float> >() / scf);
+  VERIFY_MIX_SCALAR(vcf / sf , vcf / complex<float>(sf));
+  VERIFY_MIX_SCALAR(vf / scf , vf.template cast<complex<float> >() / scf);
 
   // check scalar increment
-  VERIFY_IS_APPROX(vcf.array() + sf , vcf.array() + complex<float>(sf));
-  VERIFY_IS_APPROX(sd  + vcd.array(), complex<double>(sd) + vcd.array());
-  VERIFY_IS_APPROX(vf.array()  + scf, vf.template cast<complex<float> >().array() + scf);
-  VERIFY_IS_APPROX(scd + vd.array() , scd + vd.template cast<complex<double> >().array());
+  VERIFY_MIX_SCALAR(vcf.array() + sf , vcf.array() + complex<float>(sf));
+  VERIFY_MIX_SCALAR(sd  + vcd.array(), complex<double>(sd) + vcd.array());
+  VERIFY_MIX_SCALAR(vf.array()  + scf, vf.template cast<complex<float> >().array() + scf);
+  VERIFY_MIX_SCALAR(scd + vd.array() , scd + vd.template cast<complex<double> >().array());
 
   // check scalar subtractions
-  VERIFY_IS_APPROX(vcf.array() - sf , vcf.array() - complex<float>(sf));
-  VERIFY_IS_APPROX(sd  - vcd.array(), complex<double>(sd) - vcd.array());
-  VERIFY_IS_APPROX(vf.array()  - scf, vf.template cast<complex<float> >().array() - scf);
-  VERIFY_IS_APPROX(scd - vd.array() , scd - vd.template cast<complex<double> >().array());
+  VERIFY_MIX_SCALAR(vcf.array() - sf , vcf.array() - complex<float>(sf));
+  VERIFY_MIX_SCALAR(sd  - vcd.array(), complex<double>(sd) - vcd.array());
+  VERIFY_MIX_SCALAR(vf.array()  - scf, vf.template cast<complex<float> >().array() - scf);
+  VERIFY_MIX_SCALAR(scd - vd.array() , scd - vd.template cast<complex<double> >().array());
+
+  // check scalar powers
+  VERIFY_MIX_SCALAR( pow(vcf.array(), sf), pow(vcf.array(), complex<float>(sf)) );
+  VERIFY_MIX_SCALAR( vcf.array().pow(sf) , pow(vcf.array(), complex<float>(sf)) );
+  VERIFY_MIX_SCALAR( pow(sd, vcd.array()), pow(complex<double>(sd), vcd.array()) );
+  VERIFY_MIX_SCALAR( pow(vf.array(), scf), pow(vf.template cast<complex<float> >().array(), scf) );
+  VERIFY_MIX_SCALAR( vf.array().pow(scf) , pow(vf.template cast<complex<float> >().array(), scf) );
+  VERIFY_MIX_SCALAR( pow(scd, vd.array()), pow(scd, vd.template cast<complex<double> >().array()) );
 
   // check dot product
   vf.dot(vf);
@@ -214,6 +230,9 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 
   VERIFY_IS_APPROX( md.array().pow(mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
   VERIFY_IS_APPROX( mcd.array().pow(md.array()),  mcd.array().pow(md.template cast<CD>().eval().array()) );
+
+  VERIFY_IS_APPROX( pow(md.array(),mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
+  VERIFY_IS_APPROX( pow(mcd.array(),md.array()),  mcd.array().pow(md.template cast<CD>().eval().array()) );
 
   rcd = mcd;
   VERIFY_IS_APPROX( rcd = md, md.template cast<CD>().eval() );

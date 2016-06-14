@@ -82,7 +82,26 @@ max
   * Example: \include Cwise_array_power_array.cpp
   * Output: \verbinclude Cwise_array_power_array.out
   */
-EIGEN_MAKE_CWISE_BINARY_OP(pow,binary_pow)
+EIGEN_MAKE_CWISE_BINARY_OP(pow,pow)
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(pow,pow);
+#else
+/** \returns an expression of the coefficients of \c *this rasied to the constant power \a exponent
+  *
+  * \tparam T is the scalar type of \a exponent. It must be compatible with the scalar type of the given expression.
+  *
+  * This function computes the coefficient-wise power. The function MatrixBase::pow() in the
+  * unsupported module MatrixFunctions computes the matrix power.
+  *
+  * Example: \include Cwise_pow.cpp
+  * Output: \verbinclude Cwise_pow.out
+  *
+  * \sa ArrayBase::pow(ArrayBase), square(), cube(), exp(), log()
+  */
+template<typename T>
+const CwiseBinaryOp<internal::scalar_pow_op<Scalar,T>,Derived,Constant<Scalar> > pow(const T& exponent) const;
+#endif
 
 
 // TODO code generating macros could be moved to Macros.h and could include generation of documentation

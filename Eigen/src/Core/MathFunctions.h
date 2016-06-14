@@ -498,7 +498,7 @@ template<typename ScalarX,typename ScalarY, bool IsInteger = NumTraits<ScalarX>:
 struct pow_impl
 {
   //typedef Scalar retval;
-  typedef typename ScalarBinaryOpTraits<ScalarX,ScalarY,internal::scalar_binary_pow_op<ScalarX,ScalarY> >::ReturnType result_type;
+  typedef typename ScalarBinaryOpTraits<ScalarX,ScalarY,internal::scalar_pow_op<ScalarX,ScalarY> >::ReturnType result_type;
   static EIGEN_DEVICE_FUNC inline result_type run(const ScalarX& x, const ScalarY& y)
   {
     EIGEN_USING_STD_MATH(pow);

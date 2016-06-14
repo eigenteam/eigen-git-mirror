@@ -26,7 +26,6 @@ typedef CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived> LgammaRe
 typedef CwiseUnaryOp<internal::scalar_digamma_op<Scalar>, const Derived> DigammaReturnType;
 typedef CwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived> ErfReturnType;
 typedef CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived> ErfcReturnType;
-typedef CwiseUnaryOp<internal::scalar_pow_op<Scalar>, const Derived> PowReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
 typedef CwiseUnaryOp<internal::scalar_round_op<Scalar>, const Derived> RoundReturnType;
@@ -387,24 +386,6 @@ erfc() const
 {
   return ErfcReturnType(derived());
 }
-
-/** \returns an expression of the coefficient-wise power of *this to the given exponent.
-  *
-  * This function computes the coefficient-wise power. The function MatrixBase::pow() in the
-  * unsupported module MatrixFunctions computes the matrix power.
-  *
-  * Example: \include Cwise_pow.cpp
-  * Output: \verbinclude Cwise_pow.out
-  *
-  * \sa exp(), log()
-  */
-EIGEN_DEVICE_FUNC
-inline const PowReturnType
-pow(const Scalar& exponent) const
-{
-  return PowReturnType(derived(), internal::scalar_pow_op<Scalar>(exponent));
-}
-
 
 /** \returns an expression of the coefficient-wise inverse of *this.
   *
