@@ -28,6 +28,9 @@ namespace Eigen {
 //                         generic      sparse
 //  4 - dense op dense     product      dense
 //                         generic      dense
+//
+// TODO to ease compiler job, we could specialize product/quotient with a scalar
+//      and fallback to cwise-unary evaluator using bind1st_op and bind2nd_op.
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
@@ -323,12 +326,12 @@ protected:
 };
 
 // "sparse .* sparse"
-template<typename T, typename Lhs, typename Rhs>
-struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs>, IteratorBased, IteratorBased>
-  : evaluator_base<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs> >
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IteratorBased, IteratorBased>
+  : evaluator_base<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
 {
 protected:
-  typedef scalar_product_op<T> BinaryOp;
+  typedef scalar_product_op<T1,T2> BinaryOp;
   typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
   typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
@@ -407,12 +410,12 @@ protected:
 };
 
 // "dense .* sparse"
-template<typename T, typename Lhs, typename Rhs>
-struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs>, IndexBased, IteratorBased>
-  : evaluator_base<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs> >
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IndexBased, IteratorBased>
+  : evaluator_base<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
 {
 protected:
-  typedef scalar_product_op<T> BinaryOp;
+  typedef scalar_product_op<T1,T2> BinaryOp;
   typedef evaluator<Lhs>  LhsEvaluator;
   typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
@@ -480,12 +483,12 @@ protected:
 };
 
 // "sparse .* dense"
-template<typename T, typename Lhs, typename Rhs>
-struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs>, IteratorBased, IndexBased>
-  : evaluator_base<CwiseBinaryOp<scalar_product_op<T>, Lhs, Rhs> >
+template<typename T1, typename T2, typename Lhs, typename Rhs>
+struct binary_evaluator<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs>, IteratorBased, IndexBased>
+  : evaluator_base<CwiseBinaryOp<scalar_product_op<T1,T2>, Lhs, Rhs> >
 {
 protected:
-  typedef scalar_product_op<T> BinaryOp;
+  typedef scalar_product_op<T1,T2> BinaryOp;
   typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
   typedef evaluator<Rhs>  RhsEvaluator;
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> XprType;
