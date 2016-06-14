@@ -55,7 +55,7 @@ EIGEN_MAKE_SCALAR_BINARY_OP(operator*,product);
   */
 template<typename T>
 const CwiseBinaryOp<internal::scalar_product_op<Scalar,T>,Derived,Constant<Scalar> > operator*(const T& scalar) const;
-/** \returns an expression of \c *this scaled by the scalar factor \a scalar
+/** \returns an expression of \a expr scaled by the scalar factor \a scalar
   *
   * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
   */
