@@ -54,13 +54,13 @@ EIGEN_MAKE_SCALAR_BINARY_OP(operator*,product);
   * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
   */
 template<typename T>
-const CwiseBinaryOp<internal::scalar_product_op<Scalar,T>,Derived,Constant<Scalar> > operator*(const T& scalar) const;
+const CwiseBinaryOp<internal::scalar_product_op<Scalar,T>,Derived,Constant<T> > operator*(const T& scalar) const;
 /** \returns an expression of \a expr scaled by the scalar factor \a scalar
   *
   * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
   */
 template<typename T> friend
-const CwiseBinaryOp<internal::scalar_product_op<T,Scalar>,Constant<Scalar>,Derived> operator*(const T& scalar, const StorageBaseType& expr);
+const CwiseBinaryOp<internal::scalar_product_op<T,Scalar>,Constant<T>,Derived> operator*(const T& scalar, const StorageBaseType& expr);
 #endif
 
 
@@ -73,5 +73,5 @@ EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(operator/,quotient);
   * \tparam T is the scalar type of \a scalar. It must be compatible with the scalar type of the given expression.
   */
 template<typename T>
-const CwiseBinaryOp<internal::scalar_quotient_op<Scalar,T>,Derived,Constant<Scalar> > operator/(const T& scalar) const;
+const CwiseBinaryOp<internal::scalar_quotient_op<Scalar,T>,Derived,Constant<T> > operator/(const T& scalar) const;
 #endif

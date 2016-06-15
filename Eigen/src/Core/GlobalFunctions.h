@@ -173,37 +173,6 @@ namespace Eigen
       typename internal::plain_constant_type<Derived,typename Derived::Scalar>::type(exponents.rows(), exponents.cols(), x), exponents.derived() );
   }
 #endif
-  
-  /**
-    * \brief Component-wise division of the scalar \a s by array elements of \a a.
-    *
-    * \tparam Scalar is the scalar type of \a x. It must be compatible with the scalar type of the given array expression (\c Derived::Scalar).
-    *
-    * \relates ArrayBase
-    **/
-#ifdef EIGEN_PARSED_BY_DOXYGEN
-  template<typename Scalar,typename Derived>
-  inline const CwiseBinaryOp<internal::scalar_quotient_op<Scalar,Derived::Scalar>,Constant<Scalar>,Derived>
-  operator/(const Scalar& s,const Eigen::ArrayBase<Derived>& a);
-#else
-  template<typename Scalar, typename Derived>
-  inline typename internal::enable_if<   !(internal::is_same<typename Derived::Scalar,Scalar>::value)
-                                      && ScalarBinaryOpTraits<Scalar,typename Derived::Scalar,internal::scalar_pow_op<Scalar,typename Derived::Scalar> >::Defined,
-          const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar,Derived,quotient) >::type
-  operator/(const Scalar& s, const Eigen::ArrayBase<Derived>& a)
-  {
-    return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar,Derived,quotient)(
-            typename internal::plain_constant_type<Derived,Scalar>::type(a.rows(), a.cols(), s), a.derived() );
-  }
-
-  template<typename Derived>
-  inline const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename Derived::Scalar,Derived,quotient)
-  operator/(const typename Derived::Scalar& s, const Eigen::ArrayBase<Derived>& a)
-  {
-    return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename Derived::Scalar,Derived,quotient)(
-      typename internal::plain_constant_type<Derived,typename Derived::Scalar>::type(a.rows(), a.cols(), s), a.derived() );
-  }
-#endif
 
   /** \cpp11 \returns an expression of the coefficient-wise igamma(\a a, \a x) to the given arrays.
     *
