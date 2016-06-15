@@ -794,7 +794,7 @@ void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& sr
   enum {
       unroll = DstXprType::SizeAtCompileTime != Dynamic
             && SrcEvaluatorType::CoeffReadCost < HugeCost
-            && DstXprType::SizeAtCompileTime * SrcEvaluatorType::CoeffReadCost / 2 <= EIGEN_UNROLLING_LIMIT
+            && DstXprType::SizeAtCompileTime * (DstEvaluatorType::CoeffReadCost+SrcEvaluatorType::CoeffReadCost) / 2 <= EIGEN_UNROLLING_LIMIT
     };
   
   triangular_assignment_loop<Kernel, Mode, unroll ? int(DstXprType::SizeAtCompileTime) : Dynamic, SetOpposite>::run(kernel);
