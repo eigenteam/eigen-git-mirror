@@ -85,7 +85,7 @@ max
 EIGEN_MAKE_CWISE_BINARY_OP(pow,pow)
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(pow,pow);
+EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(pow,pow)
 #else
 /** \returns an expression of the coefficients of \c *this rasied to the constant power \a exponent
   *
@@ -212,7 +212,7 @@ EIGEN_MAKE_CWISE_COMP_OP(operator!=, NEQ)
 
 // scalar addition
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-EIGEN_MAKE_SCALAR_BINARY_OP(operator+,sum);
+EIGEN_MAKE_SCALAR_BINARY_OP(operator+,sum)
 #else
 /** \returns an expression of \c *this with each coeff incremented by the constant \a scalar
   *
@@ -234,7 +234,7 @@ const CwiseBinaryOp<internal::scalar_sum_op<T,Scalar>,Constant<T>,Derived> opera
 #endif
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-EIGEN_MAKE_SCALAR_BINARY_OP(operator-,difference);
+EIGEN_MAKE_SCALAR_BINARY_OP(operator-,difference)
 #else
 /** \returns an expression of \c *this with each coeff decremented by the constant \a scalar
   *

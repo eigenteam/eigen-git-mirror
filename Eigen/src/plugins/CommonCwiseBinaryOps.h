@@ -47,7 +47,7 @@ binaryExpr(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other, const Cu
 
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-EIGEN_MAKE_SCALAR_BINARY_OP(operator*,product);
+EIGEN_MAKE_SCALAR_BINARY_OP(operator*,product)
 #else
 /** \returns an expression of \c *this scaled by the scalar factor \a scalar
   *
@@ -66,7 +66,7 @@ const CwiseBinaryOp<internal::scalar_product_op<T,Scalar>,Constant<T>,Derived> o
 
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(operator/,quotient);
+EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(operator/,quotient)
 #else
 /** \returns an expression of \c *this divided by the scalar value \a scalar
   *
