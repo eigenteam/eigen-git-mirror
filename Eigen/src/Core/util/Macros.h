@@ -914,7 +914,7 @@ namespace Eigen {
   } \
   \
   template <typename T> EIGEN_DEVICE_FUNC inline \
-  typename internal::enable_if<ScalarBinaryOpTraits<Scalar,T>::Defined, \
+  typename internal::enable_if<ScalarBinaryOpTraits<Scalar,T,EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<Scalar,T> >::Defined, \
                                const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,T,OPNAME) >::type \
   (METHOD)(const T& scalar) const { \
     return EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,T,OPNAME)(derived(), \
@@ -930,7 +930,7 @@ namespace Eigen {
   } \
   \
   template <typename T> EIGEN_DEVICE_FUNC inline friend \
-  typename internal::enable_if<ScalarBinaryOpTraits<T,Scalar>::Defined, \
+  typename internal::enable_if<ScalarBinaryOpTraits<T,Scalar,EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<T,Scalar> >::Defined, \
                                const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(T,Derived,OPNAME) >::type \
   (METHOD)(const T& scalar, const StorageBaseType& matrix) { \
     return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(T,Derived,OPNAME)( \
