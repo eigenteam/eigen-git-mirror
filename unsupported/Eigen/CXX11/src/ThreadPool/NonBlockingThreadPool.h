@@ -99,10 +99,12 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   typedef typename Environment::EnvThread Thread;
 
   struct PerThread {
-    bool inited;
+    PerThread() : pool(NULL), index(-1) {
+      rand = std::hash<std::thread::id>()(std::this_thread::get_id());
+    }
     NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
     unsigned index;         // Worker thread index in pool.
-    unsigned rand;          // Random generator state.
+    uint64_t rand;          // Random generator state.
   };
 
   Environment env_;
@@ -235,17 +237,18 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     return -1;
   }
 
-  PerThread* GetPerThread() {
+  static EIGEN_STRONG_INLINE PerThread* GetPerThread() {
     EIGEN_THREAD_LOCAL PerThread per_thread_;
     PerThread* pt = &per_thread_;
-    if (pt->inited) return pt;
-    pt->inited = true;
-    pt->rand = static_cast<unsigned>(std::hash<std::thread::id>()(std::this_thread::get_id()));
     return pt;
   }
 
-  static unsigned Rand(unsigned* state) {
-    return *state = *state * 1103515245 + 12345;
+  static EIGEN_STRONG_INLINE unsigned Rand(uint64_t* state) {
+    uint64_t current = *state;
+    // Update the internal state
+    *state = current * 6364136223846793005ULL + 0xda3e39cb94b95bdbULL;
+    // Generate the random output (using the PCG-XSH-RS scheme)
+    return (current ^ (current >> 22)) >> (22 + (current >> 61));
   }
 };
 
