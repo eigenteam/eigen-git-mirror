@@ -462,7 +462,7 @@ struct arg_retval
 template<typename Scalar, bool isComplex = NumTraits<Scalar>::IsComplex >
 struct log1p_impl
 {
-  static inline Scalar run(const Scalar& x)
+  static EIGEN_DEVICE_FUNC inline Scalar run(const Scalar& x)
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -472,7 +472,7 @@ struct log1p_impl
   }
 };
 
-#if EIGEN_HAS_CXX11_MATH
+#if EIGEN_HAS_CXX11_MATH && !defined(__CUDACC__)
 template<typename Scalar>
 struct log1p_impl<Scalar, false> {
   static inline Scalar run(const Scalar& x)
