@@ -646,6 +646,21 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(acos,
   using std::acos;
   return ReturnType(acos(x.value()),x.derivatives() * (Scalar(-1)/sqrt(1-numext::abs2(x.value()))));)
 
+EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(tanh,
+  using std::cosh;
+  using std::tanh;
+  return ReturnType(tanh(x.value()),x.derivatives() * (Scalar(1)/numext::abs2(cosh(x.value()))));)
+
+EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(sinh,
+  using std::sinh;
+  using std::cosh;
+  return ReturnType(sinh(x.value()),x.derivatives() * cosh(x.value()));)
+
+EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(cosh,
+  using std::sinh;
+  using std::cosh;
+  return ReturnType(cosh(x.value()),x.derivatives() * sinh(x.value()));)
+
 #undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
 
 template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
