@@ -19,6 +19,8 @@ namespace Eigen
 
   /** \class EulerAngles
     *
+    * \ingroup EulerAngles_Module
+    *
     * \brief Represents a rotation in a 3 dimensional space as three Euler angles.
     *
     * Euler rotation is a set of three rotation of three angles over three fixed axes, defined by the EulerSystem given as a template parameter.
@@ -29,7 +31,7 @@ namespace Eigen
     *  - then, rotate the axes system over the gamma axis(which was rotated in the two stages above) in angle gamma
     *
     * \note This class support only intrinsic Euler angles for simplicity,
-    *  see EulerSystem how to easily overcome it for extrinsic systems.
+    *  see EulerSystem how to easily overcome this for extrinsic systems.
     *
     * ### Rotation representation and conversions ###
     *
@@ -52,17 +54,48 @@ namespace Eigen
     *  and this class take care for the math.
     * Additionally, some axes related computation is done in compile time.
     *
+    * #### Euler angles ranges in conversions ####
+    *
+    * When converting some rotation to Euler angles, there are some ways you can guarantee
+    *  the Euler angles ranges.
+    *
+    * #### implicit ranges ####
+    * When using implicit ranges, all angles are guarantee to be in the range [-PI, +PI],
+    *  unless you convert from some other Euler angles.
+    * In this case, the range is __undefined__ (might be even less than -PI or greater than +2*PI).
+    * \sa EulerAngles(const MatrixBase<Derived>&)
+    * \sa EulerAngles(const RotationBase<Derived, 3>&)
+    *
+    * #### explicit ranges ####
+    * When using explicit ranges, all angles are guarantee to be in the range you choose.
+    * In the range Boolean parameter, you're been ask whether you prefer the positive range or not:
+    * - _true_ - force the range between [0, +2*PI]
+    * - _false_ - force the range between [-PI, +PI]
+    *
+    * ##### compile time ranges #####
+    * This is when you have compile time ranges and you prefer to
+    *  use template parameter. (e.g. for performance)
+    * \sa FromRotation()
+    *
+    * ##### run-time time ranges #####
+    * Run-time ranges are also supported.
+    * \sa EulerAngles(const MatrixBase<Derived>&, bool, bool, bool)
+    * \sa EulerAngles(const RotationBase<Derived, 3>&, bool, bool, bool)
+    *
     * ### Convenient user typedefs ###
     *
     * Convenient typedefs for EulerAngles exist for float and double scalar,
     *  in a form of EulerAngles{A}{B}{C}{scalar},
-    *  e.g. EulerAnglesXYZd, EulerAnglesZYZf.
+    *  e.g. \ref EulerAnglesXYZd, \ref EulerAnglesZYZf.
     *
-    * !TODO! Add examples
-    *
-    * Only for positive axes{+x,+y,+z} euler systems are have convenient typedef.
+    * Only for positive axes{+x,+y,+z} Euler systems are have convenient typedef.
     * If you need negative axes{-x,-y,-z}, it is recommended to create you own typedef with
-    *  a word that represent what you need, e.g. EulerAnglesUTM (!TODO! make it more clear with example code).
+    *  a word that represent what you need.
+    *
+    * ### Example ###
+    *
+    * \include EulerAngles.cpp
+    * Output: \verbinclude EulerAngles.out
     *
     * ### Additional reading ###
     *
@@ -80,12 +113,14 @@ namespace Eigen
     public:
       /** the scalar type of the angles */
       typedef _Scalar Scalar;
+      
+      /** the EulerSystem to use, which represents the axes of rotation. */
       typedef _System System;
     
-      typedef Matrix<Scalar,3,3> Matrix3;
-      typedef Matrix<Scalar,3,1> Vector3;
-      typedef Quaternion<Scalar> QuaternionType;
-      typedef AngleAxis<Scalar> AngleAxisType;
+      typedef Matrix<Scalar,3,3> Matrix3; /*!< the equivalent rotation matrix type */
+      typedef Matrix<Scalar,3,1> Vector3; /*!< the equivalent 3 dimension vector type */
+      typedef Quaternion<Scalar> QuaternionType; /*!< the equivalent quaternion type */
+      typedef AngleAxis<Scalar> AngleAxisType; /*!< the equivalent angle-axis type */
       
       /** \returns the axis vector of the first (alpha) rotation */
       static Vector3 AlphaAxisVector() {
@@ -125,7 +160,7 @@ namespace Eigen
       /** Constructs and initialize Euler angles from a 3x3 rotation matrix \p m,
         *  with options to choose for each angle the requested range.
         *
-        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * If positive range is true, then the specified angle will be in the range [0, +2*PI].
         * Otherwise, the specified angle will be in the range [-PI, +PI].
         *
         * \param m The 3x3 rotation matrix to convert
@@ -146,7 +181,7 @@ namespace Eigen
       /** Constructs and initialize Euler angles from a rotation \p rot.
         *
         * \note All angles will be in the range [-PI, PI], unless \p rot is an EulerAngles.
-        *  If rot is an EulerAngles, expected EulerAngles range is undefined.
+        *  If rot is an EulerAngles, expected EulerAngles range is __undefined__.
         *  (Use other functions here for enforcing range if this effect is desired)
       */
       template<typename Derived>
@@ -155,7 +190,7 @@ namespace Eigen
       /** Constructs and initialize Euler angles from a rotation \p rot,
         *  with options to choose for each angle the requested range.
         *
-        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * If positive range is true, then the specified angle will be in the range [0, +2*PI].
         * Otherwise, the specified angle will be in the range [-PI, +PI].
         *
         * \param rot The 3x3 rotation matrix to convert
@@ -214,7 +249,7 @@ namespace Eigen
       /** Constructs and initialize Euler angles from a 3x3 rotation matrix \p m,
         *  with options to choose for each angle the requested range (__only in compile time__).
         *
-        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * If positive range is true, then the specified angle will be in the range [0, +2*PI].
         * Otherwise, the specified angle will be in the range [-PI, +PI].
         *
         * \param m The 3x3 rotation matrix to convert
@@ -232,14 +267,15 @@ namespace Eigen
         EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived, 3, 3)
         
         EulerAngles e;
-        System::CalcEulerAngles<PositiveRangeAlpha, PositiveRangeBeta, PositiveRangeGamma>(e, m);
+        System::template CalcEulerAngles<
+          PositiveRangeAlpha, PositiveRangeBeta, PositiveRangeGamma, _Scalar>(e, m);
         return e;
       }
       
       /** Constructs and initialize Euler angles from a rotation \p rot,
         *  with options to choose for each angle the requested range (__only in compile time__).
         *
-        * If possitive range is true, then the specified angle will be in the range [0, +2*PI].
+        * If positive range is true, then the specified angle will be in the range [0, +2*PI].
         * Otherwise, the specified angle will be in the range [-PI, +PI].
         *
         * \param rot The 3x3 rotation matrix to convert
@@ -252,7 +288,7 @@ namespace Eigen
         bool PositiveRangeBeta,
         bool PositiveRangeGamma,
         typename Derived>
-      static EulerAngles& FromRotation(const RotationBase<Derived, 3>& rot)
+      static EulerAngles FromRotation(const RotationBase<Derived, 3>& rot)
       {
         return FromRotation<PositiveRangeAlpha, PositiveRangeBeta, PositiveRangeGamma>(rot.toRotationMatrix());
       }
@@ -305,10 +341,17 @@ namespace Eigen
           AngleAxisType(beta(), BetaAxisVector())   *
           AngleAxisType(gamma(), GammaAxisVector());
       }
+      
+      friend std::ostream& operator<<(std::ostream& s, const EulerAngles<Scalar, System>& eulerAngles)
+      {
+        s << eulerAngles.angles().transpose();
+        return s;
+      }
   };
 
 #define EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(AXES, SCALAR_TYPE, SCALAR_POSTFIX) \
-  typedef EulerAngles<SCALAR_TYPE, EulerSystem##AXES> EulerSystem##AXES##SCALAR_POSTFIX;
+  /** \ingroup EulerAngles_Module */ \
+  typedef EulerAngles<SCALAR_TYPE, EulerSystem##AXES> EulerAngles##AXES##SCALAR_POSTFIX;
 
 #define EIGEN_EULER_ANGLES_TYPEDEFS(SCALAR_TYPE, SCALAR_POSTFIX) \
   EIGEN_EULER_ANGLES_SINGLE_TYPEDEF(XYZ, SCALAR_TYPE, SCALAR_POSTFIX) \

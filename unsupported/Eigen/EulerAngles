@@ -24,13 +24,12 @@ namespace Eigen {
   *
   * Euler angles are a way to represent 3D rotation.
   *
-  * !TODO! More about the purpose of this module and examples.
-  *
-  * See EulerAngles for more information.
-  *
+  * In order to use this module in your code, include this header:
   * \code
   * #include <unsupported/Eigen/EulerAngles>
   * \endcode
+  *
+  * See \ref EulerAngles for more information.
   *
   */
 

@@ -40,17 +40,17 @@ namespace Eigen
   
   #define EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
   
-  /** \brief Representation of a fixed signed rotation axis for EulerAngles.
+  /** \brief Representation of a fixed signed rotation axis for EulerSystem.
+    *
+    * \ingroup EulerAngles_Module
     *
     * Values here represent:
     *  - The axis of the rotation: X, Y or Z.
-    *  - The sign (i.e. direction of the rotation along the axis): possitive(+) or negative(-)
+    *  - The sign (i.e. direction of the rotation along the axis): positive(+) or negative(-)
     *
     * Therefore, this could express all the axes {+X,+Y,+Z,-X,-Y,-Z}
     *
     * For positive axis, use +EULER_{axis}, and for negative axis use -EULER_{axis}.
-    *
-    * !TODO! Add examples
     */
   enum EulerAxis
   {
@@ -61,6 +61,8 @@ namespace Eigen
   
   /** \class EulerSystem
     *
+    * \ingroup EulerAngles_Module
+    *
     * \brief Represents a fixed Euler rotation system.
     *
     * This meta-class goal is to represent the Euler system in compilation time, for EulerAngles.
@@ -69,8 +71,8 @@ namespace Eigen
     *  - Build an Euler system, and then pass it as a template parameter to EulerAngles.
     *  - Query some compile time data about an Euler system. (e.g. Whether it's tait bryan)
     *
-    * Euler rotation is a set of three rotation on fixed axes. (see EulerAngles)
-    * This meta-class store constantly those signed axes. (see EulerAxis)
+    * Euler rotation is a set of three rotation on fixed axes. (see \ref EulerAngles)
+    * This meta-class store constantly those signed axes. (see \ref EulerAxis)
     *
     * ### Types of Euler systems ###
     *
@@ -78,35 +80,31 @@ namespace Eigen
     *  signed axes{+X,+Y,+Z,-X,-Y,-Z} are supported:
     *  - all axes X, Y, Z in each valid order (see below what order is valid)
     *  - rotation over the axis is supported both over the positive and negative directions.
-    *  - both tait bryan and classic Euler angles (i.e. the opposite).
+    *  - both tait bryan and proper/classic Euler angles (i.e. the opposite).
     *
     * Since EulerSystem support both positive and negative directions,
     *  you may call this rotation distinction in other names:
-    *  - right handed or left handed
-    *  - counterclockwise or clockwise
+    *  - _right handed_ or _left handed_
+    *  - _counterclockwise_ or _clockwise_
     *
     * Notice all axed combination are valid, and would trigger a static assertion.
     * Same unsigned axes can't be neighbors, e.g. {X,X,Y} is invalid.
     * This yield two and only two classes:
-    *  - tait bryan - all unsigned axes are distinct, e.g. {X,Y,Z}
-    *  - proper/classic Euler angles - The first and the third unsigned axes is equal,
+    *  - _tait bryan_ - all unsigned axes are distinct, e.g. {X,Y,Z}
+    *  - _proper/classic Euler angles_ - The first and the third unsigned axes is equal,
     *     and the second is different, e.g. {X,Y,X}
-    *
-    * !TODO! Add some example code.
     *
     * ### Intrinsic vs extrinsic Euler systems ###
     *
     * Only intrinsic Euler systems are supported for simplicity.
     *  If you want to use extrinsic Euler systems,
     *   just use the equal intrinsic opposite order for axes and angles.
-    *  I.E axes (A,B,C) becomes (C,B,A), and angles (a,b,c) becomes (c,b,a).
-    * !TODO! Make it more clear and add some example code.
+    *  I.e axes (A,B,C) becomes (C,B,A), and angles (a,b,c) becomes (c,b,a).
     *
     * ### Convenient user typedefs ###
     *
     * Convenient typedefs for EulerSystem exist (only for positive axes Euler systems),
-    *  in a form of EulerSystem{A}{B}{C}, e.g. EulerSystemXYZd.
-    * !TODO! Make it more clear
+    *  in a form of EulerSystem{A}{B}{C}, e.g. \ref EulerSystemXYZ.
     *
     * ### Additional reading ###
     *
@@ -248,10 +246,10 @@ namespace Eigen
     }
     
     template<
-      typename Scalar,
       bool PositiveRangeAlpha,
       bool PositiveRangeBeta,
-      bool PositiveRangeGamma>
+      bool PositiveRangeGamma,
+      typename Scalar>
     static void CalcEulerAngles(
       EulerAngles<Scalar, EulerSystem>& res,
       const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat)
@@ -296,6 +294,7 @@ namespace Eigen
   };
 
 #define EIGEN_EULER_SYSTEM_TYPEDEF(A, B, C) \
+  /** \ingroup EulerAngles_Module */ \
   typedef EulerSystem<EULER_##A, EULER_##B, EULER_##C> EulerSystem##A##B##C;
   
   EIGEN_EULER_SYSTEM_TYPEDEF(X,Y,Z)
