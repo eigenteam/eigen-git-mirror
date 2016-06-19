@@ -83,6 +83,10 @@ static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q3, 2.00000000000000000009e0);
 
 static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C1, 0.693145751953125);
 static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C2, 1.42860682030941723212e-6);
+
+static Packet2l p2l_1023 = { 1023, 1023 };
+static Packet2ul p2ul_52 = { 52, 52 };
+
 #endif
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
@@ -160,7 +164,7 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
   /* express exp(x) as exp(g + n*log(2)) */
   fx = pmadd(x, p4f_cephes_LOG2EF, p4f_half);
 
-  fx = vec_floor(fx);
+  fx = pfloor(fx);
 
   tmp = pmul(fx, p4f_cephes_exp_C1);
   Packet4f z = pmul(fx, p4f_cephes_exp_C2);
@@ -219,9 +223,11 @@ Packet2d psqrt<Packet2d>(const Packet2d& x)
 // versions of the same compiler.  For gcc version >= 4.9.3, we can use
 // vec_cts to efficiently convert Packet2d to Packet2l.  Otherwise, use
 // a slow version that works with older compilers. 
+// Update: apparently vec_cts/vec_ctf intrinsics for 64-bit doubles
+// are buggy, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70963
 static inline Packet2l ConvertToPacket2l(const Packet2d& x) {
-#if EIGEN_GNUC_AT_LEAST(5, 0) || \
-    (EIGEN_GNUC_AT(4, 9) && __GNUC_PATCHLEVEL__ >= 3)
+#if EIGEN_GNUC_AT_LEAST(5, 4) || \
+    (EIGEN_GNUC_AT(6, 1) && __GNUC_PATCHLEVEL__ >= 1)
   return vec_cts(x, 0);    // TODO: check clang version.
 #else
   double tmp[2];
@@ -242,10 +248,11 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
 
   // clamp x
   x = pmax(pmin(x, p2d_exp_hi), p2d_exp_lo);
-  /* express exp(x) as exp(g + n*log(2)) */
-  fx = pmadd(p2d_cephes_LOG2EF, x, p2d_half);
 
-  fx = vec_floor(fx);
+  /* express exp(x) as exp(g + n*log(2)) */
+  fx = pmadd(x, p2d_cephes_LOG2EF, p2d_half);
+
+  fx = pfloor(fx);
 
   tmp = pmul(fx, p2d_cephes_exp_C1);
   Packet2d z = pmul(fx, p2d_cephes_exp_C2);
@@ -271,9 +278,6 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
   emm0 = ConvertToPacket2l(fx);
 
 #ifdef __POWER8_VECTOR__ 
-  static const Packet2l p2l_1023 = { 1023, 1023 };
-  static const Packet2ul p2ul_52 = { 52, 52 };
-
   emm0 = vec_add(emm0, p2l_1023);
   emm0 = vec_sl(emm0, p2ul_52);
 #else
