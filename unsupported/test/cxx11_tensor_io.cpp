@@ -14,6 +14,20 @@
 
 
 template<int DataLayout>
+static void test_output_0d()
+{
+  Tensor<int, 0, DataLayout> tensor;
+  tensor() = 123;
+
+  std::stringstream os;
+  os << tensor;
+
+  std::string expected("123");
+  VERIFY_IS_EQUAL(std::string(os.str()), expected);
+}
+
+
+template<int DataLayout>
 static void test_output_1d()
 {
   Tensor<int, 1, DataLayout> tensor(5);
@@ -101,6 +115,8 @@ static void test_output_const()
 
 void test_cxx11_tensor_io()
 {
+  CALL_SUBTEST(test_output_0d<ColMajor>());
+  CALL_SUBTEST(test_output_0d<RowMajor>());
   CALL_SUBTEST(test_output_1d<ColMajor>());
   CALL_SUBTEST(test_output_1d<RowMajor>());
   CALL_SUBTEST(test_output_2d<ColMajor>());
