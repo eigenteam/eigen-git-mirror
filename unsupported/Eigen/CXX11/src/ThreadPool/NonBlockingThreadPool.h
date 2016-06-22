@@ -99,7 +99,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   typedef typename Environment::EnvThread Thread;
 
   struct PerThread {
-    PerThread() : pool(NULL), index(-1), rand(0) { }
+    constexpr PerThread() : pool(NULL), index(-1), rand(0) { }
     NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
     unsigned index;         // Worker thread index in pool.
     uint64_t rand;          // Random generator state.
@@ -247,7 +247,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     // Update the internal state
     *state = current * 6364136223846793005ULL + 0xda3e39cb94b95bdbULL;
     // Generate the random output (using the PCG-XSH-RS scheme)
-    return (current ^ (current >> 22)) >> (22 + (current >> 61));
+    return static_cast<unsigned>((current ^ (current >> 22)) >> (22 + (current >> 61)));
   }
 };
 
