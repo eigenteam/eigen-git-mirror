@@ -99,9 +99,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   typedef typename Environment::EnvThread Thread;
 
   struct PerThread {
-    PerThread() : pool(NULL), index(-1) {
-      rand = std::hash<std::thread::id>()(std::this_thread::get_id());
-    }
+    PerThread() : pool(NULL), index(-1), rand(0) { }
     NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
     unsigned index;         // Worker thread index in pool.
     uint64_t rand;          // Random generator state.
@@ -122,6 +120,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     PerThread* pt = GetPerThread();
     pt->pool = this;
     pt->index = index;
+    pt->rand = std::hash<std::thread::id>()(std::this_thread::get_id());
     Queue* q = queues_[index];
     EventCount::Waiter* waiter = &waiters_[index];
     for (;;) {
