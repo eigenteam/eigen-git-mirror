@@ -45,6 +45,34 @@ inline IndexDest convert_index(const IndexSrc& idx) {
 }
 
 
+// promote_scalar_arg is an helper used in operation between an expression and a scalar, like:
+//    expression * scalar
+// Its role is to determine how the type T of the scalar operand should be promoted given the scalar type ExprScalar of the given expression.
+// The IsSupported template parameter must be provided by the caller as: ScalarBinaryOpTraits<ExprScalar,T,op>::Defined using the proper order for ExprScalar and T.
+// Then the logic is as follows:
+//  - if the operation is natively supported as defined by IsSupported, then the scalar type is not promoted, and T is returned.
+//  - otherwise, NumTraits<T>::Literal is returned if T is implicitly convertible to NumTraits<T>::Literal AND that this does not imply a float to integer conversion.
+//  - In all other cases, the promoted type is not defined, and the respective operation is thus invalid and not available (SFINAE).
+template<typename ExprScalar,typename T,
+  bool IsSupported,
+  bool ConvertibleToLiteral = internal::is_convertible<T,typename NumTraits<ExprScalar>::Literal>::value,
+  bool IsSafe = NumTraits<T>::IsInteger || !NumTraits<typename NumTraits<ExprScalar>::Literal>::IsInteger>
+struct promote_scalar_arg
+{
+};
+
+template<typename S,typename T, bool ConvertibleToLiteral, bool IsSafe>
+struct promote_scalar_arg<S,T,true,ConvertibleToLiteral,IsSafe>
+{
+  typedef T type;
+};
+
+template<typename S,typename T>
+struct promote_scalar_arg<S,T,false,true,true>
+{
+  typedef typename NumTraits<S>::Literal type;
+};
+
 //classes inheriting no_assignment_operator don't generate a default operator=.
 class no_assignment_operator
 {

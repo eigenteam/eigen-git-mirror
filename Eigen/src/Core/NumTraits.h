@@ -22,14 +22,16 @@ namespace Eigen {
   * This class stores enums, typedefs and static methods giving information about a numeric type.
   *
   * The provided data consists of:
-  * \li A typedef \a Real, giving the "real part" type of \a T. If \a T is already real,
-  *     then \a Real is just a typedef to \a T. If \a T is \c std::complex<U> then \a Real
+  * \li A typedef \c Real, giving the "real part" type of \a T. If \a T is already real,
+  *     then \c Real is just a typedef to \a T. If \a T is \c std::complex<U> then \c Real
   *     is a typedef to \a U.
-  * \li A typedef \a NonInteger, giving the type that should be used for operations producing non-integral values,
+  * \li A typedef \c NonInteger, giving the type that should be used for operations producing non-integral values,
   *     such as quotients, square roots, etc. If \a T is a floating-point type, then this typedef just gives
   *     \a T again. Note however that many Eigen functions such as internal::sqrt simply refuse to
   *     take integers. Outside of a few cases, Eigen doesn't do automatic type promotion. Thus, this typedef is
   *     only intended as a helper for code that needs to explicitly promote types.
+  * \li A typedef \c Literal giving the type to use for numeric literals such as "2" or "0.5". For instance, for \c std::complex<U>, Literal is defined as \c U.
+  *     Of course, this type must be fully compatible with \a T. In doubt, just use \a T here.
   * \li A typedef \a Nested giving the type to use to nest a value inside of the expression tree. If you don't know what
   *     this means, just use \a T here.
   * \li An enum value \a IsComplex. It is equal to 1 if \a T is a \c std::complex
@@ -84,6 +86,7 @@ template<typename T> struct GenericNumTraits
                      T
                    >::type NonInteger;
   typedef T Nested;
+  typedef T Literal;
 
   EIGEN_DEVICE_FUNC
   static inline Real epsilon()
@@ -145,6 +148,7 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   : GenericNumTraits<std::complex<_Real> >
 {
   typedef _Real Real;
+  typedef typename NumTraits<_Real>::Literal Literal;
   enum {
     IsComplex = 1,
     RequireInitialization = NumTraits<_Real>::RequireInitialization,
@@ -168,6 +172,7 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   typedef typename NumTraits<Scalar>::NonInteger NonIntegerScalar;
   typedef Array<NonIntegerScalar, Rows, Cols, Options, MaxRows, MaxCols> NonInteger;
   typedef ArrayType & Nested;
+  typedef typename NumTraits<Scalar>::Literal Literal;
 
   enum {
     IsComplex = NumTraits<Scalar>::IsComplex,
