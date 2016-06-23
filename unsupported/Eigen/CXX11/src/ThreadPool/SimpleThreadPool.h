@@ -78,7 +78,7 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
     if (pt->pool == this) {
       return pt->thread_id;
     } else {
-      return NumThreads();
+      return -1;
     }
   }
 
@@ -128,8 +128,9 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
   };
 
   struct PerThread {
-    ThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
-    int thread_id;          // Worker thread index in pool.
+    constexpr PerThread() : pool(NULL), thread_id(-1) { }
+    SimpleThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
+    int thread_id;                // Worker thread index in pool.
   };
 
   Environment env_;
@@ -141,7 +142,7 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
   bool exiting_ = false;
 
   PerThread* GetPerThread() const {
-    static EIGEN_THREAD_LOCAL PerThread per_thread;
+    EIGEN_THREAD_LOCAL PerThread per_thread;
     return &per_thread;
   }
 };

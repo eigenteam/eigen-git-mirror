@@ -172,6 +172,8 @@ struct ThreadPoolDevice {
     pool_->Schedule(func);
   }
 
+  // Returns a logical thread index between 0 and pool_->NumThreads() - 1 if
+  // called from one of the threads in pool_. Returns -1 otherwise.
   EIGEN_STRONG_INLINE int currentThreadId() const {
     return pool_->CurrentThreadId();
   }

@@ -99,13 +99,13 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     return static_cast<int>(threads_.size());
   }
 
-  int CurrentThreadId() const {
+  int CurrentThreadId() const final {
     const PerThread* pt =
         const_cast<NonBlockingThreadPoolTempl*>(this)->GetPerThread();
     if (pt->pool == this) {
       return pt->thread_id;
     } else {
-      return NumThreads();
+      return -1;
     }
   }
 
@@ -113,10 +113,10 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   typedef typename Environment::EnvThread Thread;
 
   struct PerThread {
-    constexpr PerThread() : pool(NULL), index(-1), rand(0) { }
+    constexpr PerThread() : pool(NULL), rand(0), thread_id(-1) { }
     NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
-    int thread_id;         // Worker thread index in pool.
-    uint64_t rand;          // Random generator state.
+    uint64_t rand;  // Random generator state.
+    int thread_id;  // Worker thread index in pool.
   };
 
   Environment env_;

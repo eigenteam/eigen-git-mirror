@@ -28,7 +28,7 @@ static void test_parallelism()
   const int kThreads = 16;  // code below expects that this is a multiple of 4
   NonBlockingThreadPool tp(kThreads);
   VERIFY_IS_EQUAL(tp.NumThreads(), kThreads);
-  VERIFY_IS_EQUAL(tp.CurrentThreadId(), kThreads);
+  VERIFY_IS_EQUAL(tp.CurrentThreadId(), -1);
   for (int iter = 0; iter < 100; ++iter) {
     std::atomic<int> running(0);
     std::atomic<int> done(0);
