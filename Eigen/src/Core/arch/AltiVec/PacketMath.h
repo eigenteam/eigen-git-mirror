@@ -112,8 +112,8 @@ static Packet16uc p16uc_HALF64_0_16 = vec_sld(vec_splat((Packet16uc) vec_abs(p4i
 
 static Packet16uc p16uc_PSET64_HI = (Packet16uc) vec_mergeh((Packet4ui)p16uc_PSET32_WODD, (Packet4ui)p16uc_PSET32_WEVEN);     //{ 0,1,2,3, 4,5,6,7, 0,1,2,3, 4,5,6,7 };
 static Packet16uc p16uc_PSET64_LO = (Packet16uc) vec_mergel((Packet4ui)p16uc_PSET32_WODD, (Packet4ui)p16uc_PSET32_WEVEN);     //{ 8,9,10,11, 12,13,14,15, 8,9,10,11, 12,13,14,15 };
-static Packet16uc p16uc_TRANSPOSE64_HI = vec_add(p16uc_PSET64_HI, p16uc_HALF64_0_16);                                         //{ 0,1,2,3, 4,5,6,7, 16,17,18,19, 20,21,22,23};
-static Packet16uc p16uc_TRANSPOSE64_LO = vec_add(p16uc_PSET64_LO, p16uc_HALF64_0_16);                                         //{ 8,9,10,11, 12,13,14,15, 24,25,26,27, 28,29,30,31};
+static Packet16uc p16uc_TRANSPOSE64_HI = p16uc_PSET64_HI + p16uc_HALF64_0_16;                                         //{ 0,1,2,3, 4,5,6,7, 16,17,18,19, 20,21,22,23};
+static Packet16uc p16uc_TRANSPOSE64_LO = p16uc_PSET64_LO + p16uc_HALF64_0_16;                                         //{ 8,9,10,11, 12,13,14,15, 24,25,26,27, 28,29,30,31};
 
 static Packet16uc p16uc_COMPLEX32_REV = vec_sld(p16uc_REVERSE32, p16uc_REVERSE32, 8);                                         //{ 4,5,6,7, 0,1,2,3, 12,13,14,15, 8,9,10,11 };
 
@@ -155,7 +155,11 @@ template<> struct packet_traits<float>  : default_packet_traits
 #else
     HasSqrt = 0,
 #endif
+#if !EIGEN_COMP_CLANG
     HasRsqrt = 1,
+#else
+    HasRsqrt = 0,
+#endif
     HasRound = 1,
     HasFloor = 1,
     HasCeil = 1,
@@ -272,17 +276,13 @@ template<> EIGEN_STRONG_INLINE void pstore<int>(int*       to, const Packet4i& f
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) {
-  float EIGEN_ALIGN16 af[4];
-  af[0] = from;
-  Packet4f vc = pload<Packet4f>(af);
-  return vec_splat(vc, 0);
+  Packet4f v = {from, from, from, from};
+  return v;
 }
 
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   {
-  int EIGEN_ALIGN16 ai[4];
-  ai[0] = from;
-  Packet4i vc = pload<Packet4i>(ai);
-  return vec_splat(vc, 0);
+  Packet4i v = {from, from, from, from};
+  return v;
 }
 template<> EIGEN_STRONG_INLINE void
 pbroadcast4<Packet4f>(const float *a,
@@ -342,22 +342,23 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<int, Packet4i>(int* to, const 
   to[3*stride] = ai[3];
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a) { return vec_add(pset1<Packet4f>(a), p4f_COUNTDOWN); }
-template<> EIGEN_STRONG_INLINE Packet4i plset<Packet4i>(const int& a)   { return vec_add(pset1<Packet4i>(a), p4i_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a) { return pset1<Packet4f>(a) + p4f_COUNTDOWN; }
+template<> EIGEN_STRONG_INLINE Packet4i plset<Packet4i>(const int& a)   { return pset1<Packet4i>(a) + p4i_COUNTDOWN; }
 
-template<> EIGEN_STRONG_INLINE Packet4f padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_add(a,b); }
-template<> EIGEN_STRONG_INLINE Packet4i padd<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_add(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return a + b; }
+template<> EIGEN_STRONG_INLINE Packet4i padd<Packet4i>(const Packet4i& a, const Packet4i& b) { return a + b; }
 
-template<> EIGEN_STRONG_INLINE Packet4f psub<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_sub(a,b); }
-template<> EIGEN_STRONG_INLINE Packet4i psub<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_sub(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f psub<Packet4f>(const Packet4f& a, const Packet4f& b) { return a - b; }
+template<> EIGEN_STRONG_INLINE Packet4i psub<Packet4i>(const Packet4i& a, const Packet4i& b) { return a - b; }
 
-template<> EIGEN_STRONG_INLINE Packet4f pnegate(const Packet4f& a) { return psub<Packet4f>(p4f_ZERO, a); }
-template<> EIGEN_STRONG_INLINE Packet4i pnegate(const Packet4i& a) { return psub<Packet4i>(p4i_ZERO, a); }
+template<> EIGEN_STRONG_INLINE Packet4f pnegate(const Packet4f& a) { return p4f_ZERO - a; }
+template<> EIGEN_STRONG_INLINE Packet4i pnegate(const Packet4i& a) { return p4i_ZERO - a; }
 
 template<> EIGEN_STRONG_INLINE Packet4f pconj(const Packet4f& a) { return a; }
 template<> EIGEN_STRONG_INLINE Packet4i pconj(const Packet4i& a) { return a; }
 
-template<> EIGEN_STRONG_INLINE Packet4f pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_madd(a,b,p4f_ZERO); }
+template<> EIGEN_STRONG_INLINE Packet4f pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_madd(a,b, p4f_ZERO); }
+template<> EIGEN_STRONG_INLINE Packet4i pmul<Packet4i>(const Packet4i& a, const Packet4i& b) { return a * b; }
 
 template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
@@ -383,8 +384,8 @@ template<> EIGEN_STRONG_INLINE Packet4i pdiv<Packet4i>(const Packet4i& /*a*/, co
 }
 
 // for some weird raisons, it has to be overloaded for packet of integers
-template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vec_madd(a, b, c); }
-template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return padd(pmul(a,b), c); }
+template<> EIGEN_STRONG_INLINE Packet4f pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vec_madd(a,b,c); }
+template<> EIGEN_STRONG_INLINE Packet4i pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return a*b + c; }
 
 template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_min(a, b); }
 template<> EIGEN_STRONG_INLINE Packet4i pmin<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_min(a, b); }
@@ -514,8 +515,8 @@ template<> EIGEN_STRONG_INLINE void pstoreu<float>(float*   to, const Packet4f& 
 template<> EIGEN_STRONG_INLINE void prefetch<float>(const float* addr)    { EIGEN_PPC_PREFETCH(addr); }
 template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*     addr)    { EIGEN_PPC_PREFETCH(addr); }
 
-template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; pstore<float>((float *)x, a); return x[0]; }
-template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int   EIGEN_ALIGN16 x[4]; pstore<int>((int *)x, a); return x[0]; }
+template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x; vec_ste(a, 0, &x); return x; }
+template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int   EIGEN_ALIGN16 x; vec_ste(a, 0, &x); return x; }
 
 template<> EIGEN_STRONG_INLINE Packet4f preverse(const Packet4f& a)
 {
@@ -532,9 +533,9 @@ template<> EIGEN_STRONG_INLINE float predux<Packet4f>(const Packet4f& a)
 {
   Packet4f b, sum;
   b   = vec_sld(a, a, 8);
-  sum = vec_add(a, b);
+  sum = a + b;
   b   = vec_sld(sum, sum, 4);
-  sum = vec_add(sum, b);
+  sum += b;
   return pfirst(sum);
 }
 
@@ -557,11 +558,11 @@ template<> EIGEN_STRONG_INLINE Packet4f preduxp<Packet4f>(const Packet4f* vecs)
 
   // Now do the summation:
   // Lines 0+1
-  sum[0] = vec_add(sum[0], sum[1]);
+  sum[0] = sum[0] + sum[1];
   // Lines 2+3
-  sum[1] = vec_add(sum[2], sum[3]);
+  sum[1] = sum[2] + sum[3];
   // Add the results
-  sum[0] = vec_add(sum[0], sum[1]);
+  sum[0] = sum[0] + sum[1];
 
   return sum[0];
 }
@@ -597,11 +598,11 @@ template<> EIGEN_STRONG_INLINE Packet4i preduxp<Packet4i>(const Packet4i* vecs)
 
   // Now do the summation:
   // Lines 0+1
-  sum[0] = vec_add(sum[0], sum[1]);
+  sum[0] = sum[0] + sum[1];
   // Lines 2+3
-  sum[1] = vec_add(sum[2], sum[3]);
+  sum[1] = sum[2] + sum[3];
   // Add the results
-  sum[0] = vec_add(sum[0], sum[1]);
+  sum[0] = sum[0] + sum[1];
 
   return sum[0];
 }
@@ -754,7 +755,11 @@ template<> EIGEN_STRONG_INLINE Packet4f pblend(const Selector<4>& ifPacket, cons
 typedef __vector double              Packet2d;
 typedef __vector unsigned long long  Packet2ul;
 typedef __vector long long           Packet2l;
+#if EIGEN_COMP_CLANG
+typedef Packet2ul                    Packet2bl;
+#else
 typedef __vector __bool long         Packet2bl;
+#endif
 
 static Packet2l  p2l_ONE  = { 1, 1 };
 static Packet2l  p2l_ZERO = reinterpret_cast<Packet2l>(p4i_ZERO);
@@ -857,11 +862,10 @@ template<> EIGEN_STRONG_INLINE void pstore<double>(double*   to, const Packet2d&
 }
 
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) {
-  double EIGEN_ALIGN16 af[2];
-  af[0] = from;
-  Packet2d vc = pload<Packet2d>(af);
-  return vec_splat_dbl<0>(vc);
+  Packet2d v = {from, from};
+  return v;
 }
+
 template<> EIGEN_STRONG_INLINE void
 pbroadcast4<Packet2d>(const double *a,
                       Packet2d& a0, Packet2d& a1, Packet2d& a2, Packet2d& a3)
@@ -889,13 +893,13 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<double, Packet2d>(double* to, 
   to[1*stride] = af[1];
 }
 
-template<> EIGEN_STRONG_INLINE Packet2d plset<Packet2d>(const double& a) { return vec_add(pset1<Packet2d>(a), p2d_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet2d plset<Packet2d>(const double& a) { return pset1<Packet2d>(a) + p2d_COUNTDOWN; }
 
-template<> EIGEN_STRONG_INLINE Packet2d padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_add(a,b); }
+template<> EIGEN_STRONG_INLINE Packet2d padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return a + b; }
 
-template<> EIGEN_STRONG_INLINE Packet2d psub<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_sub(a,b); }
+template<> EIGEN_STRONG_INLINE Packet2d psub<Packet2d>(const Packet2d& a, const Packet2d& b) { return a - b; }
 
-template<> EIGEN_STRONG_INLINE Packet2d pnegate(const Packet2d& a) { return psub<Packet2d>(p2d_ZERO, a); }
+template<> EIGEN_STRONG_INLINE Packet2d pnegate(const Packet2d& a) { return p2d_ZERO - a; }
 
 template<> EIGEN_STRONG_INLINE Packet2d pconj(const Packet2d& a) { return a; }
 
@@ -955,15 +959,15 @@ template<> EIGEN_STRONG_INLINE double predux<Packet2d>(const Packet2d& a)
 {
   Packet2d b, sum;
   b   = reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(a), reinterpret_cast<Packet4f>(a), 8));
-  sum = padd<Packet2d>(a, b);
+  sum = a + b;
   return pfirst<Packet2d>(sum);
 }
 
 template<> EIGEN_STRONG_INLINE Packet2d preduxp<Packet2d>(const Packet2d* vecs)
 {
   Packet2d v[2], sum;
-  v[0] = padd<Packet2d>(vecs[0], reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(vecs[0]), reinterpret_cast<Packet4f>(vecs[0]), 8)));
-  v[1] = padd<Packet2d>(vecs[1], reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(vecs[1]), reinterpret_cast<Packet4f>(vecs[1]), 8)));
+  v[0] = vecs[0] + reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(vecs[0]), reinterpret_cast<Packet4f>(vecs[0]), 8));
+  v[1] = vecs[1] + reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(vecs[1]), reinterpret_cast<Packet4f>(vecs[1]), 8));
  
 #ifdef _BIG_ENDIAN
   sum = reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(v[0]), reinterpret_cast<Packet4f>(v[1]), 8));

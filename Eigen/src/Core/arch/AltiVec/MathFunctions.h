@@ -194,18 +194,22 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
                  isnumber_mask);
 }
 
+#ifndef EIGEN_COMP_CLANG
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f prsqrt<Packet4f>(const Packet4f& x)
 {
   return  vec_rsqrt(x);
 }
+#endif
 
 #ifdef __VSX__
+#ifndef EIGEN_COMP_CLANG
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet2d prsqrt<Packet2d>(const Packet2d& x)
 {
   return  vec_rsqrt(x);
 }
+#endif
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& x)
