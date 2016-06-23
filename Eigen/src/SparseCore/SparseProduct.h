@@ -99,10 +99,10 @@ struct generic_product_impl<Lhs, Rhs, SparseTriangularShape, SparseShape, Produc
 
 // dense = sparse-product (can be sparse*sparse, sparse*perm, etc.)
 template< typename DstXprType, typename Lhs, typename Rhs>
-struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense>
+struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::assign_op<typename DstXprType::Scalar,typename Product<Lhs,Rhs,AliasFreeProduct>::Scalar>, Sparse2Dense>
 {
   typedef Product<Lhs,Rhs,AliasFreeProduct> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &)
   {
     generic_product_impl<Lhs, Rhs>::evalTo(dst,src.lhs(),src.rhs());
   }
@@ -110,10 +110,10 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::assig
 
 // dense += sparse-product (can be sparse*sparse, sparse*perm, etc.)
 template< typename DstXprType, typename Lhs, typename Rhs>
-struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::add_assign_op<typename DstXprType::Scalar>, Sparse2Dense>
+struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::add_assign_op<typename DstXprType::Scalar,typename Product<Lhs,Rhs,AliasFreeProduct>::Scalar>, Sparse2Dense>
 {
   typedef Product<Lhs,Rhs,AliasFreeProduct> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &)
   {
     generic_product_impl<Lhs, Rhs>::addTo(dst,src.lhs(),src.rhs());
   }
@@ -121,10 +121,10 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::add_a
 
 // dense -= sparse-product (can be sparse*sparse, sparse*perm, etc.)
 template< typename DstXprType, typename Lhs, typename Rhs>
-struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::sub_assign_op<typename DstXprType::Scalar>, Sparse2Dense>
+struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::sub_assign_op<typename DstXprType::Scalar,typename Product<Lhs,Rhs,AliasFreeProduct>::Scalar>, Sparse2Dense>
 {
   typedef Product<Lhs,Rhs,AliasFreeProduct> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &)
   {
     generic_product_impl<Lhs, Rhs>::subTo(dst,src.lhs(),src.rhs());
   }

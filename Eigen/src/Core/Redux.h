@@ -425,7 +425,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff() const
 {
-  return derived().redux(Eigen::internal::scalar_min_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_min_op<Scalar,Scalar>());
 }
 
 /** \returns the maximum of all coefficients of \c *this.
@@ -435,7 +435,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff() const
 {
-  return derived().redux(Eigen::internal::scalar_max_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_max_op<Scalar,Scalar>());
 }
 
 /** \returns the sum of all coefficients of \c *this
@@ -450,7 +450,7 @@ DenseBase<Derived>::sum() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
     return Scalar(0);
-  return derived().redux(Eigen::internal::scalar_sum_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_sum_op<Scalar,Scalar>());
 }
 
 /** \returns the mean of all coefficients of *this
@@ -465,7 +465,7 @@ DenseBase<Derived>::mean() const
   #pragma warning push
   #pragma warning ( disable : 2259 )
 #endif
-  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar>())) / Scalar(this->size());
+  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar,Scalar>())) / Scalar(this->size());
 #ifdef __INTEL_COMPILER
   #pragma warning pop
 #endif

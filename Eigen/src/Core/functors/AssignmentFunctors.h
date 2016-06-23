@@ -18,20 +18,24 @@ namespace internal {
   * \brief Template functor for scalar/packet assignment
   *
   */
-template<typename Scalar> struct assign_op {
+template<typename DstScalar,typename SrcScalar> struct assign_op {
 
   EIGEN_EMPTY_STRUCT_CTOR(assign_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Scalar& a, const Scalar& b) const { a = b; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(DstScalar& a, const SrcScalar& b) const { a = b; }
   
   template<int Alignment, typename Packet>
-  EIGEN_STRONG_INLINE void assignPacket(Scalar* a, const Packet& b) const
-  { internal::pstoret<Scalar,Packet,Alignment>(a,b); }
+  EIGEN_STRONG_INLINE void assignPacket(DstScalar* a, const Packet& b) const
+  { internal::pstoret<DstScalar,Packet,Alignment>(a,b); }
 };
-template<typename Scalar>
-struct functor_traits<assign_op<Scalar> > {
+
+// Empty overload for void type (used by PermutationMatrix
+template<typename DstScalar> struct assign_op<DstScalar,void> {};
+
+template<typename DstScalar,typename SrcScalar>
+struct functor_traits<assign_op<DstScalar,SrcScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::ReadCost,
-    PacketAccess = packet_traits<Scalar>::Vectorizable
+    Cost = NumTraits<DstScalar>::ReadCost,
+    PacketAccess = is_same<DstScalar,SrcScalar>::value && packet_traits<DstScalar>::Vectorizable && packet_traits<SrcScalar>::Vectorizable
   };
 };
 
@@ -39,20 +43,20 @@ struct functor_traits<assign_op<Scalar> > {
   * \brief Template functor for scalar/packet assignment with addition
   *
   */
-template<typename Scalar> struct add_assign_op {
+template<typename DstScalar,typename SrcScalar> struct add_assign_op {
 
   EIGEN_EMPTY_STRUCT_CTOR(add_assign_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Scalar& a, const Scalar& b) const { a += b; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(DstScalar& a, const SrcScalar& b) const { a += b; }
   
   template<int Alignment, typename Packet>
-  EIGEN_STRONG_INLINE void assignPacket(Scalar* a, const Packet& b) const
-  { internal::pstoret<Scalar,Packet,Alignment>(a,internal::padd(internal::ploadt<Packet,Alignment>(a),b)); }
+  EIGEN_STRONG_INLINE void assignPacket(DstScalar* a, const Packet& b) const
+  { internal::pstoret<DstScalar,Packet,Alignment>(a,internal::padd(internal::ploadt<Packet,Alignment>(a),b)); }
 };
-template<typename Scalar>
-struct functor_traits<add_assign_op<Scalar> > {
+template<typename DstScalar,typename SrcScalar>
+struct functor_traits<add_assign_op<DstScalar,SrcScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::ReadCost + NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasAdd
+    Cost = NumTraits<DstScalar>::ReadCost + NumTraits<DstScalar>::AddCost,
+    PacketAccess = is_same<DstScalar,SrcScalar>::value && packet_traits<DstScalar>::HasAdd
   };
 };
 
@@ -60,20 +64,20 @@ struct functor_traits<add_assign_op<Scalar> > {
   * \brief Template functor for scalar/packet assignment with subtraction
   *
   */
-template<typename Scalar> struct sub_assign_op {
+template<typename DstScalar,typename SrcScalar> struct sub_assign_op {
 
   EIGEN_EMPTY_STRUCT_CTOR(sub_assign_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Scalar& a, const Scalar& b) const { a -= b; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(DstScalar& a, const SrcScalar& b) const { a -= b; }
   
   template<int Alignment, typename Packet>
-  EIGEN_STRONG_INLINE void assignPacket(Scalar* a, const Packet& b) const
-  { internal::pstoret<Scalar,Packet,Alignment>(a,internal::psub(internal::ploadt<Packet,Alignment>(a),b)); }
+  EIGEN_STRONG_INLINE void assignPacket(DstScalar* a, const Packet& b) const
+  { internal::pstoret<DstScalar,Packet,Alignment>(a,internal::psub(internal::ploadt<Packet,Alignment>(a),b)); }
 };
-template<typename Scalar>
-struct functor_traits<sub_assign_op<Scalar> > {
+template<typename DstScalar,typename SrcScalar>
+struct functor_traits<sub_assign_op<DstScalar,SrcScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::ReadCost + NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasSub
+    Cost = NumTraits<DstScalar>::ReadCost + NumTraits<DstScalar>::AddCost,
+    PacketAccess = is_same<DstScalar,SrcScalar>::value && packet_traits<DstScalar>::HasSub
   };
 };
 
@@ -98,7 +102,6 @@ struct functor_traits<mul_assign_op<DstScalar,SrcScalar> > {
     PacketAccess = is_same<DstScalar,SrcScalar>::value && packet_traits<DstScalar>::HasMul
   };
 };
-template<typename DstScalar,typename SrcScalar> struct functor_is_product_like<mul_assign_op<DstScalar,SrcScalar> > { enum { ret = 1 }; };
 
 /** \internal
   * \brief Template functor for scalar/packet assignment with diviving
@@ -120,7 +123,6 @@ struct functor_traits<div_assign_op<DstScalar,SrcScalar> > {
     PacketAccess = is_same<DstScalar,SrcScalar>::value && packet_traits<DstScalar>::HasDiv
   };
 };
-template<typename DstScalar,typename SrcScalar> struct functor_is_product_like<div_assign_op<DstScalar,SrcScalar> > { enum { ret = 1 }; };
 
 /** \internal
   * \brief Template functor for scalar/packet assignment with swapping

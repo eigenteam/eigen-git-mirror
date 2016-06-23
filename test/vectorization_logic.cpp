@@ -29,7 +29,7 @@ using internal::demangle_unrolling;
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
-  typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
+  typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar,typename Src::Scalar> > traits;
   bool res = traits::Traversal==traversal;
   if(unrolling==InnerUnrolling+CompleteUnrolling)
     res = res && (int(traits::Unrolling)==InnerUnrolling || int(traits::Unrolling)==CompleteUnrolling);
@@ -53,7 +53,7 @@ bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 template<typename Dst, typename Src>
 bool test_assign(int traversal, int unrolling)
 {
-  typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar> > traits;
+  typedef internal::copy_using_evaluator_traits<internal::evaluator<Dst>,internal::evaluator<Src>, internal::assign_op<typename Dst::Scalar,typename Src::Scalar> > traits;
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
@@ -73,7 +73,8 @@ bool test_assign(int traversal, int unrolling)
 template<typename Xpr>
 bool test_redux(const Xpr&, int traversal, int unrolling)
 {
-  typedef internal::redux_traits<internal::scalar_sum_op<typename Xpr::Scalar>,internal::redux_evaluator<Xpr> > traits;
+  typedef typename Xpr::Scalar Scalar;
+  typedef internal::redux_traits<internal::scalar_sum_op<Scalar,Scalar>,internal::redux_evaluator<Xpr> > traits;
   
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)

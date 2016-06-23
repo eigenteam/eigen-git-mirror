@@ -342,7 +342,7 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
 
         m_betas.coeffRef(i)   =
         m_betas.coeffRef(i+1) = a*b;
-
+        
         i += 2;
       }
     }

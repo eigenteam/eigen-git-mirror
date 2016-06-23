@@ -262,7 +262,7 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
     template<typename Expression>
     EIGEN_DEVICE_FUNC void construct(const Expression& expr, internal::false_type)
     {
-      internal::call_assignment_no_alias(m_object,expr,internal::assign_op<Scalar>());
+      internal::call_assignment_no_alias(m_object,expr,internal::assign_op<Scalar,Scalar>());
       Base::construct(m_object);
     }
 

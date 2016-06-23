@@ -363,7 +363,7 @@ class gebp_traits
 public:
   typedef _LhsScalar LhsScalar;
   typedef _RhsScalar RhsScalar;
-  typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
+  typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
   enum {
     ConjLhs = _ConjLhs,
@@ -478,7 +478,7 @@ class gebp_traits<std::complex<RealScalar>, RealScalar, _ConjLhs, false>
 public:
   typedef std::complex<RealScalar> LhsScalar;
   typedef RealScalar RhsScalar;
-  typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
+  typedef typename ScalarBinaryOpTraits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
   enum {
     ConjLhs = _ConjLhs,
