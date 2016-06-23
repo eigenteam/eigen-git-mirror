@@ -12,6 +12,8 @@
 
 namespace Eigen {
 
+static const int kCudaScratchSize = 1024;
+
 // This defines an interface that GPUDevice can take to use
 // CUDA streams underneath.
 class StreamInterface {
@@ -27,6 +29,12 @@ class StreamInterface {
 
   // Return a scratchpad buffer of size 1k
   virtual void* scratchpad() const = 0;
+
+  // Return a semaphore. The semaphore is initially initialized to 0, and
+  // each kernel using it is responsible for resetting to 0 upon completion
+  // to maintain the invariant that the semaphore is always equal to 0 upon
+  // each kernel start.
+  virtual unsigned int* semaphore() const = 0;
 };
 
 static cudaDeviceProp* m_deviceProperties;
@@ -65,12 +73,12 @@ static const cudaStream_t default_stream = cudaStreamDefault;
 class CudaStreamDevice : public StreamInterface {
  public:
   // Use the default stream on the current device
-  CudaStreamDevice() : stream_(&default_stream), scratch_(NULL) {
+  CudaStreamDevice() : stream_(&default_stream), scratch_(NULL), semaphore_(NULL) {
     cudaGetDevice(&device_);
     initializeDeviceProp();
   }
   // Use the default stream on the specified device
-  CudaStreamDevice(int device) : stream_(&default_stream), device_(device), scratch_(NULL) {
+  CudaStreamDevice(int device) : stream_(&default_stream), device_(device), scratch_(NULL), semaphore_(NULL) {
     initializeDeviceProp();
   }
   // Use the specified stream. Note that it's the
@@ -78,7 +86,7 @@ class CudaStreamDevice : public StreamInterface {
   // the specified device. If no device is specified the code
   // assumes that the stream is associated to the current gpu device.
   CudaStreamDevice(const cudaStream_t* stream, int device = -1)
-      : stream_(stream), device_(device), scratch_(NULL) {
+      : stream_(stream), device_(device), scratch_(NULL), semaphore_(NULL) {
     if (device < 0) {
       cudaGetDevice(&device_);
     } else {
@@ -123,15 +131,27 @@ class CudaStreamDevice : public StreamInterface {
 
   virtual void* scratchpad() const {
     if (scratch_ == NULL) {
-      scratch_ = allocate(1024);
+      scratch_ = allocate(kCudaScratchSize + sizeof(unsigned int));
     }
     return scratch_;
+  }
+
+  virtual unsigned int* semaphore() const {
+    if (semaphore_ == NULL) {
+      char* scratch = static_cast<char*>(scratchpad()) + kCudaScratchSize;
+      semaphore_ = reinterpret_cast<unsigned int*>(scratch);
+      cudaError_t err = cudaMemsetAsync(semaphore_, 0, sizeof(unsigned int), *stream_);
+      EIGEN_UNUSED_VARIABLE(err)
+      assert(err == cudaSuccess);
+    }
+    return semaphore_;
   }
 
  private:
   const cudaStream_t* stream_;
   int device_;
   mutable void* scratch_;
+  mutable unsigned int* semaphore_;
 };
 
 struct GpuDevice {
@@ -168,6 +188,15 @@ struct GpuDevice {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* scratchpad() const {
 #ifndef __CUDA_ARCH__
     return stream_->scratchpad();
+#else
+    eigen_assert(false && "The default device should be used instead to generate kernel code");
+    return NULL;
+#endif
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE unsigned int* semaphore() const {
+#ifndef __CUDA_ARCH__
+    return stream_->semaphore();
 #else
     eigen_assert(false && "The default device should be used instead to generate kernel code");
     return NULL;

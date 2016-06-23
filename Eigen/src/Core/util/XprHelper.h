@@ -45,6 +45,34 @@ inline IndexDest convert_index(const IndexSrc& idx) {
 }
 
 
+// promote_scalar_arg is an helper used in operation between an expression and a scalar, like:
+//    expression * scalar
+// Its role is to determine how the type T of the scalar operand should be promoted given the scalar type ExprScalar of the given expression.
+// The IsSupported template parameter must be provided by the caller as: ScalarBinaryOpTraits<ExprScalar,T,op>::Defined using the proper order for ExprScalar and T.
+// Then the logic is as follows:
+//  - if the operation is natively supported as defined by IsSupported, then the scalar type is not promoted, and T is returned.
+//  - otherwise, NumTraits<T>::Literal is returned if T is implicitly convertible to NumTraits<T>::Literal AND that this does not imply a float to integer conversion.
+//  - In all other cases, the promoted type is not defined, and the respective operation is thus invalid and not available (SFINAE).
+template<typename ExprScalar,typename T,
+  bool IsSupported,
+  bool ConvertibleToLiteral = internal::is_convertible<T,typename NumTraits<ExprScalar>::Literal>::value,
+  bool IsSafe = NumTraits<T>::IsInteger || !NumTraits<typename NumTraits<ExprScalar>::Literal>::IsInteger>
+struct promote_scalar_arg
+{
+};
+
+template<typename S,typename T, bool ConvertibleToLiteral, bool IsSafe>
+struct promote_scalar_arg<S,T,true,ConvertibleToLiteral,IsSafe>
+{
+  typedef T type;
+};
+
+template<typename S,typename T>
+struct promote_scalar_arg<S,T,false,true,true>
+{
+  typedef typename NumTraits<S>::Literal type;
+};
+
 //classes inheriting no_assignment_operator don't generate a default operator=.
 class no_assignment_operator
 {
@@ -576,6 +604,20 @@ struct plain_diag_type
   >::type type;
 };
 
+template<typename Expr,typename Scalar = typename Expr::Scalar>
+struct plain_constant_type
+{
+  enum { Options = (traits<Expr>::Flags&RowMajorBit)?RowMajor:0 };
+
+  typedef Array<Scalar,  traits<Expr>::RowsAtCompileTime,   traits<Expr>::ColsAtCompileTime,
+                Options, traits<Expr>::MaxRowsAtCompileTime,traits<Expr>::MaxColsAtCompileTime> array_type;
+
+  typedef Matrix<Scalar,  traits<Expr>::RowsAtCompileTime,   traits<Expr>::ColsAtCompileTime,
+                 Options, traits<Expr>::MaxRowsAtCompileTime,traits<Expr>::MaxColsAtCompileTime> matrix_type;
+
+  typedef CwiseNullaryOp<scalar_constant_op<Scalar>, const typename conditional<is_same< typename traits<Expr>::XprKind, MatrixXpr >::value, matrix_type, array_type>::type > type;
+};
+
 template<typename ExpressionType>
 struct is_lvalue
 {
@@ -609,11 +651,6 @@ bool is_same_dense(const T1 &, const T2 &, typename enable_if<!(has_direct_acces
 {
   return false;
 }
-
-template<typename T, typename U> struct is_same_or_void { enum { value = is_same<T,U>::value }; };
-template<typename T> struct is_same_or_void<void,T>     { enum { value = 1 }; };
-template<typename T> struct is_same_or_void<T,void>     { enum { value = 1 }; };
-template<>           struct is_same_or_void<void,void>  { enum { value = 1 }; };
 
 #ifdef EIGEN_DEBUG_ASSIGN
 std::string demangle_traversal(int t)
@@ -649,17 +686,12 @@ std::string demangle_flags(int f)
 
 } // end namespace internal
 
-// we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
-// that would take two operands of different types. If there were such an example, then this check should be
-// moved to the BinaryOp functors, on a per-case basis. This would however require a change in the BinaryOp functors, as
-// currently they take only one typename Scalar template parameter.
+// We require Lhs and Rhs to have "compatible" scalar types.
 // It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
 // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
 // add together a float matrix and a double matrix.
 #define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
-  EIGEN_STATIC_ASSERT((internal::functor_is_product_like<BINOP>::ret \
-                        ? int(internal::scalar_product_traits<LHS, RHS>::Defined) \
-                        : int(internal::is_same_or_void<LHS, RHS>::value)), \
+  EIGEN_STATIC_ASSERT(int(ScalarBinaryOpTraits<LHS, RHS,BINOP>::Defined), \
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     
 } // end namespace Eigen

@@ -138,7 +138,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& DenseBase<Derived>::operator+=(const EigenBase<OtherDerived> &other)
 {
-  call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar>());
+  call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar,typename OtherDerived::Scalar>());
   return derived();
 }
 
@@ -146,7 +146,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& DenseBase<Derived>::operator-=(const EigenBase<OtherDerived> &other)
 {
-  call_assignment(derived(), other.derived(), internal::sub_assign_op<Scalar>());
+  call_assignment(derived(), other.derived(), internal::sub_assign_op<Scalar,typename OtherDerived::Scalar>());
   return derived();
 }
 

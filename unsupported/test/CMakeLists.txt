@@ -112,6 +112,10 @@ ei_add_test(kronecker_product)
 
 # TODO: The following test names are prefixed with the cxx11 string, since historically
 # the tests depended on c++11. This isn't the case anymore so we ought to rename them.
+# FIXME: Old versions of MSVC fail to compile this code, so we just disable these tests
+# when using visual studio. We should make the check more strict to enable the tests for
+# newer versions of MSVC.
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 ei_add_test(cxx11_float16)
 ei_add_test(cxx11_tensor_dimension)
 ei_add_test(cxx11_tensor_map)
@@ -130,7 +134,8 @@ ei_add_test(cxx11_tensor_io)
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
   # This test requires __uint128_t which is only available on 64bit systems 
   ei_add_test(cxx11_tensor_uint128)
-endif() 
+endif()
+endif()
 
 if(EIGEN_TEST_CXX11)
   # It should be safe to always run these tests as there is some fallback code for

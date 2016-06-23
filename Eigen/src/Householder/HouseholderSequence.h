@@ -108,7 +108,7 @@ struct hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
 
 template<typename OtherScalarType, typename MatrixType> struct matrix_type_times_scalar_type
 {
-  typedef typename scalar_product_traits<OtherScalarType, typename MatrixType::Scalar>::ReturnType
+  typedef typename ScalarBinaryOpTraits<OtherScalarType, typename MatrixType::Scalar>::ReturnType
     ResultScalar;
   typedef Matrix<ResultScalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
                  0, MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime> Type;

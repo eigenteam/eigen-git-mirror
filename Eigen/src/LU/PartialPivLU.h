@@ -525,12 +525,12 @@ MatrixType PartialPivLU<MatrixType>::reconstructedMatrix() const
 namespace internal {
 
 /***** Implementation of inverse() *****************************************************/
-template<typename DstXprType, typename MatrixType, typename Scalar>
-struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+template<typename DstXprType, typename MatrixType>
+struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assign_op<typename DstXprType::Scalar,typename PartialPivLU<MatrixType>::Scalar>, Dense2Dense>
 {
   typedef PartialPivLU<MatrixType> LuType;
   typedef Inverse<LuType> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename LuType::Scalar> &)
   {
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.cols()));
   }

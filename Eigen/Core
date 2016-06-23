@@ -371,6 +371,7 @@ using std::ptrdiff_t;
 
 #include "src/Core/arch/Default/Settings.h"
 
+#include "src/Core/functors/TernaryFunctors.h"
 #include "src/Core/functors/BinaryFunctors.h"
 #include "src/Core/functors/UnaryFunctors.h"
 #include "src/Core/functors/NullaryFunctors.h"
@@ -403,6 +404,7 @@ using std::ptrdiff_t;
 #include "src/Core/PlainObjectBase.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/Array.h"
+#include "src/Core/CwiseTernaryOp.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/CwiseNullaryOp.h"

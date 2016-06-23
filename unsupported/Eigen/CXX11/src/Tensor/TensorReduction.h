@@ -316,7 +316,7 @@ struct OuterReducer {
 
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
 template <int B, int N, typename S, typename R, typename I>
-__global__ void FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
+__global__ void FullReductionKernel(R, const S, I, typename S::CoeffReturnType*, unsigned int*);
 
 
 #ifdef EIGEN_HAS_CUDA_FP16
@@ -558,7 +558,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
     EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
-    eigen_assert(index + PacketSize - 1 < dimensions().TotalSize());
+    eigen_assert(index + PacketSize - 1 < internal::array_prod(dimensions()));
 
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
     if (ReducingInnerMostDims) {
@@ -616,7 +616,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   template <typename S, typename O, bool V> friend struct internal::FullReducerShard;
 #endif
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
-  template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*);
+  template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernel(R, const S, I, typename S::CoeffReturnType*, unsigned int*);
 #ifdef EIGEN_HAS_CUDA_FP16
   template <typename S, typename R, typename I> friend void internal::ReductionInitFullReduxKernelHalfFloat(R, const S, I, half2*);
   template <int B, int N, typename S, typename R, typename I> friend void internal::FullReductionKernelHalfFloat(R, const S, I, half*, half2*);

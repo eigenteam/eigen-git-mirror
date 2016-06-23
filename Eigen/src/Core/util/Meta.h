@@ -328,6 +328,30 @@ struct result_of<Func(ArgType0,ArgType1)> {
     enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
     typedef typename binary_result_of_select<Func, ArgType0, ArgType1, FunctorType>::type type;
 };
+
+template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2, int SizeOf=sizeof(has_none)>
+struct ternary_result_of_select {typedef typename internal::remove_all<ArgType0>::type type;};
+
+template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
+struct ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, sizeof(has_std_result_type)>
+{typedef typename Func::result_type type;};
+
+template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
+struct ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, sizeof(has_tr1_result)>
+{typedef typename Func::template result<Func(ArgType0,ArgType1,ArgType2)>::type type;};
+
+template<typename Func, typename ArgType0, typename ArgType1, typename ArgType2>
+struct result_of<Func(ArgType0,ArgType1,ArgType2)> {
+    template<typename T>
+    static has_std_result_type    testFunctor(T const *, typename T::result_type const * = 0);
+    template<typename T>
+    static has_tr1_result         testFunctor(T const *, typename T::template result<T(ArgType0,ArgType1,ArgType2)>::type const * = 0);
+    static has_none               testFunctor(...);
+
+    // note that the following indirection is needed for gcc-3.3
+    enum {FunctorType = sizeof(testFunctor(static_cast<Func*>(0)))};
+    typedef typename ternary_result_of_select<Func, ArgType0, ArgType1, ArgType2, FunctorType>::type type;
+};
 #endif
 
 /** \internal In short, it computes int(sqrt(\a Y)) with \a Y an integer.
@@ -375,33 +399,6 @@ template<typename T, typename U> struct scalar_product_traits
   enum { Defined = 0 };
 };
 
-template<typename T> struct scalar_product_traits<T,T>
-{
-  enum {
-    // Cost = NumTraits<T>::MulCost,
-    Defined = 1
-  };
-  typedef T ReturnType;
-};
-
-template<typename T> struct scalar_product_traits<T,std::complex<T> >
-{
-  enum {
-    // Cost = 2*NumTraits<T>::MulCost,
-    Defined = 1
-  };
-  typedef std::complex<T> ReturnType;
-};
-
-template<typename T> struct scalar_product_traits<std::complex<T>, T>
-{
-  enum {
-    // Cost = 2*NumTraits<T>::MulCost,
-    Defined = 1
-  };
-  typedef std::complex<T> ReturnType;
-};
-
 // FIXME quick workaround around current limitation of result_of
 // template<typename Scalar, typename ArgType0, typename ArgType1>
 // struct result_of<scalar_product_op<Scalar>(ArgType0,ArgType1)> {
@@ -433,6 +430,67 @@ T div_ceil(const T &a, const T &b)
 }
 
 } // end namespace numext
+
+
+/** \class ScalarBinaryOpTraits
+  * \ingroup Core_Module
+  *
+  * \brief Determines whether the given binary operation of two numeric types is allowed and what the scalar return type is.
+  *
+  * \sa CwiseBinaryOp
+  */
+template<typename ScalarA, typename ScalarB, typename BinaryOp>
+struct ScalarBinaryOpTraits
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  // for backward compatibility, use the hints given by the (deprecated) internal::scalar_product_traits class.
+  : internal::scalar_product_traits<ScalarA,ScalarB>
+#endif // EIGEN_PARSED_BY_DOXYGEN
+{};
+
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T,T,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// For Matrix * Permutation
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T,void,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// For Permutation * Matrix
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<void,T,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// for Permutation*Permutation
+template<typename BinaryOp>
+struct ScalarBinaryOpTraits<void,void,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef void ReturnType;
+};
+
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T,std::complex<T>,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef std::complex<T> ReturnType;
+};
+
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<std::complex<T>, T,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef std::complex<T> ReturnType;
+};
 
 } // end namespace Eigen
 

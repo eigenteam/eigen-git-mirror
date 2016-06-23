@@ -90,13 +90,31 @@ namespace Eigen
   
   /** \returns an expression of the coefficient-wise power of \a x to the given constant \a exponent.
     *
+    * \tparam ScalarExponent is the scalar type of \a exponent. It must be compatible with the scalar type of the given expression (\c Derived::Scalar).
+    *
     * \sa ArrayBase::pow()
+    *
+    * \relates ArrayBase
     */
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+  template<typename Derived,typename ScalarExponent>
+  inline const CwiseBinaryOp<internal::scalar_pow_op<Derived::Scalar,ScalarExponent>,Derived,Constant<ScalarExponent> >
+  pow(const Eigen::ArrayBase<Derived>& x, const ScalarExponent& exponent);
+#else
+  template<typename Derived,typename ScalarExponent>
+  inline typename internal::enable_if<   !(internal::is_same<typename Derived::Scalar,ScalarExponent>::value)
+                                      && ScalarBinaryOpTraits<typename Derived::Scalar,ScalarExponent,internal::scalar_pow_op<typename Derived::Scalar,ScalarExponent> >::Defined,
+          const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,ScalarExponent,pow) >::type
+  pow(const Eigen::ArrayBase<Derived>& x, const ScalarExponent& exponent) {
+    return x.derived().pow(exponent);
+  }
+
   template<typename Derived>
-  inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar>, const Derived>
+  inline const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,typename Derived::Scalar,pow)
   pow(const Eigen::ArrayBase<Derived>& x, const typename Derived::Scalar& exponent) {
     return x.derived().pow(exponent);
   }
+#endif
 
   /** \returns an expression of the coefficient-wise power of \a x to the given array of \a exponents.
     *
@@ -106,12 +124,14 @@ namespace Eigen
     * Output: \verbinclude Cwise_array_power_array.out
     * 
     * \sa ArrayBase::pow()
+    *
+    * \relates ArrayBase
     */
   template<typename Derived,typename ExponentDerived>
-  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>
   pow(const Eigen::ArrayBase<Derived>& x, const Eigen::ArrayBase<ExponentDerived>& exponents) 
   {
-    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>(
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar, typename ExponentDerived::Scalar>, const Derived, const ExponentDerived>(
       x.derived(),
       exponents.derived()
     );
@@ -120,36 +140,39 @@ namespace Eigen
   /** \returns an expression of the coefficient-wise power of the scalar \a x to the given array of \a exponents.
     *
     * This function computes the coefficient-wise power between a scalar and an array of exponents.
-    * Beaware that the scalar type of the input scalar \a x and the exponents \a exponents must be the same.
+    *
+    * \tparam Scalar is the scalar type of \a x. It must be compatible with the scalar type of the given array expression (\c Derived::Scalar).
     *
     * Example: \include Cwise_scalar_power_array.cpp
     * Output: \verbinclude Cwise_scalar_power_array.out
     * 
     * \sa ArrayBase::pow()
+    *
+    * \relates ArrayBase
     */
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+  template<typename Scalar,typename Derived>
+  inline const CwiseBinaryOp<internal::scalar_pow_op<Scalar,Derived::Scalar>,Constant<Scalar>,Derived>
+  pow(const Scalar& x,const Eigen::ArrayBase<Derived>& x);
+#else
+  template<typename Scalar, typename Derived>
+  inline typename internal::enable_if<   !(internal::is_same<typename Derived::Scalar,Scalar>::value)
+                                      && ScalarBinaryOpTraits<Scalar,typename Derived::Scalar,internal::scalar_pow_op<Scalar,typename Derived::Scalar> >::Defined,
+          const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar,Derived,pow) >::type
+  pow(const Scalar& x, const Eigen::ArrayBase<Derived>& exponents)
+  {
+    return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar,Derived,pow)(
+            typename internal::plain_constant_type<Derived,Scalar>::type(exponents.rows(), exponents.cols(), x), exponents.derived() );
+  }
+
   template<typename Derived>
-  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const typename Derived::ConstantReturnType, const Derived>
-  pow(const typename Derived::Scalar& x, const Eigen::ArrayBase<Derived>& exponents) 
+  inline const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename Derived::Scalar,Derived,pow)
+  pow(const typename Derived::Scalar& x, const Eigen::ArrayBase<Derived>& exponents)
   {
-    typename Derived::ConstantReturnType constant_x(exponents.rows(), exponents.cols(), x);
-    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const typename Derived::ConstantReturnType, const Derived>(
-      constant_x,
-      exponents.derived()
-    );
+    return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename Derived::Scalar,Derived,pow)(
+      typename internal::plain_constant_type<Derived,typename Derived::Scalar>::type(exponents.rows(), exponents.cols(), x), exponents.derived() );
   }
-  
-  /**
-    * \brief Component-wise division of a scalar by array elements.
-    **/
-  template <typename Derived>
-  inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>
-    operator/(const typename Derived::Scalar& s, const Eigen::ArrayBase<Derived>& a)
-  {
-    return Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>(
-      a.derived(),
-      Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>(s)  
-    );
-  }
+#endif
 
   /** \cpp11 \returns an expression of the coefficient-wise igamma(\a a, \a x) to the given arrays.
     *
@@ -212,6 +235,28 @@ namespace Eigen
       x.derived()
     );
   }
+
+  /** \cpp11 \returns an expression of the coefficient-wise betainc(\a x, \a a, \a b) to the given arrays.
+    *
+    * This function computes the regularized incomplete beta function (integral).
+    *
+    * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+    * or float/double in non c++11 mode, the user has to provide implementations of betainc(T,T,T) for any scalar
+    * type T to be supported.
+    *
+    * \sa Eigen::betainc(), Eigen::lgamma()
+    */
+  template<typename ArgADerived, typename ArgBDerived, typename ArgXDerived>
+  inline const Eigen::CwiseTernaryOp<Eigen::internal::scalar_betainc_op<typename ArgXDerived::Scalar>, const ArgADerived, const ArgBDerived, const ArgXDerived>
+  betainc(const Eigen::ArrayBase<ArgADerived>& a, const Eigen::ArrayBase<ArgBDerived>& b, const Eigen::ArrayBase<ArgXDerived>& x)
+  {
+    return Eigen::CwiseTernaryOp<Eigen::internal::scalar_betainc_op<typename ArgXDerived::Scalar>, const ArgADerived, const ArgBDerived, const ArgXDerived>(
+      a.derived(),
+      b.derived(),
+      x.derived()
+    );
+  }
+
 
   /** \returns an expression of the coefficient-wise zeta(\a x, \a q) to the given arrays.
     *

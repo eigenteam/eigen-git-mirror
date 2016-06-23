@@ -72,7 +72,7 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(abs(m1.rowwise().sum().sum() - m1.sum()), m1.abs().sum());
   if (!internal::isMuchSmallerThan(abs(m1.sum() - (m1+m2).sum()), m1.abs().sum(), test_precision<Scalar>()))
       VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
-  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
+  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar,Scalar>()));
 
   // vector-wise ops
   m3 = m1;
@@ -592,14 +592,176 @@ template<typename ArrayType> void array_special_functions()
     ref << 0.644934066848, 0.394934066848, 0.0399946696496, nan, 293.334565435, 0.445487887616, -2.47810300902e-07, -8.29668781082e-09, -0.434562276666, 0.567742190178, -0.0108615497927;
     CALL_SUBTEST( verify_component_wise(ref, ref); );
 
-    if(sizeof(RealScalar)>=64) {
-//       CALL_SUBTEST( res = x.polygamma(n); verify_component_wise(res, ref); );
+    if(sizeof(RealScalar)>=8) {  // double
+      // Reason for commented line: http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1232
+      //       CALL_SUBTEST( res = x.polygamma(n); verify_component_wise(res, ref); );
       CALL_SUBTEST( res = polygamma(n,x);  verify_component_wise(res, ref); );
     }
     else {
-//       CALL_SUBTEST( res = x.polygamma(n); verify_component_wise(res.head(8), ref.head(8)); );
+      //       CALL_SUBTEST( res = x.polygamma(n); verify_component_wise(res.head(8), ref.head(8)); );
       CALL_SUBTEST( res = polygamma(n,x); verify_component_wise(res.head(8), ref.head(8)); );
     }
+  }
+#endif
+
+#if EIGEN_HAS_C99_MATH
+  {
+    // Inputs and ground truth generated with scipy via:
+    //   a = np.logspace(-3, 3, 5) - 1e-3
+    //   b = np.logspace(-3, 3, 5) - 1e-3
+    //   x = np.linspace(-0.1, 1.1, 5)
+    //   (full_a, full_b, full_x) = np.vectorize(lambda a, b, x: (a, b, x))(*np.ix_(a, b, x))
+    //   full_a = full_a.flatten().tolist()  # same for full_b, full_x
+    //   v = scipy.special.betainc(full_a, full_b, full_x).flatten().tolist()
+    //
+    // Note in Eigen, we call betainc with arguments in the order (x, a, b).
+    ArrayType a(125);
+    ArrayType b(125);
+    ArrayType x(125);
+    ArrayType v(125);
+    ArrayType res(125);
+
+    a << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999,
+        0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999,
+        0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999,
+        999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999,
+        999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999,
+        999.999, 999.999, 999.999;
+
+    b << 0.0, 0.0, 0.0, 0.0, 0.0, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379, 0.999,
+        0.999, 0.999, 0.999, 0.999, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 31.62177660168379, 999.999,
+        999.999, 999.999, 999.999, 999.999, 0.0, 0.0, 0.0, 0.0, 0.0,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.999, 0.999, 0.999, 0.999,
+        0.999, 31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 999.999, 999.999, 999.999,
+        999.999, 999.999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.999, 0.999, 0.999, 0.999, 0.999,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 999.999, 999.999, 999.999,
+        999.999, 999.999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.999, 0.999, 0.999, 0.999, 0.999,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 999.999, 999.999, 999.999,
+        999.999, 999.999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.03062277660168379,
+        0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+        0.03062277660168379, 0.999, 0.999, 0.999, 0.999, 0.999,
+        31.62177660168379, 31.62177660168379, 31.62177660168379,
+        31.62177660168379, 31.62177660168379, 999.999, 999.999, 999.999,
+        999.999, 999.999;
+
+    x << -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5,
+        0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2,
+        0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1,
+        0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1,
+        -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8,
+        1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5,
+        0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2,
+        0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1,
+        0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5,
+        0.8, 1.1;
+
+    v << nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+        nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+        nan, nan, nan, 0.47972119876364683, 0.5, 0.5202788012363533, nan, nan,
+        0.9518683957740043, 0.9789663010413743, 0.9931729188073435, nan, nan,
+        0.999995949033062, 0.9999999999993698, 0.9999999999999999, nan, nan,
+        0.9999999999999999, 0.9999999999999999, 0.9999999999999999, nan, nan,
+        nan, nan, nan, nan, nan, 0.006827081192655869, 0.0210336989586256,
+        0.04813160422599567, nan, nan, 0.20014344256217678, 0.5000000000000001,
+        0.7998565574378232, nan, nan, 0.9991401428435834, 0.999999999698403,
+        0.9999999999999999, nan, nan, 0.9999999999999999, 0.9999999999999999,
+        0.9999999999999999, nan, nan, nan, nan, nan, nan, nan,
+        1.0646600232370887e-25, 6.301722877826246e-13, 4.050966937974938e-06,
+        nan, nan, 7.864342668429763e-23, 3.015969667594166e-10,
+        0.0008598571564165444, nan, nan, 6.031987710123844e-08,
+        0.5000000000000007, 0.9999999396801229, nan, nan, 0.9999999999999999,
+        0.9999999999999999, 0.9999999999999999, nan, nan, nan, nan, nan, nan,
+        nan, 0.0, 7.029920380986636e-306, 2.2450728208591345e-101, nan, nan,
+        0.0, 9.275871147869727e-302, 1.2232913026152827e-97, nan, nan, 0.0,
+        3.0891393081932924e-252, 2.9303043666183996e-60, nan, nan,
+        2.248913486879199e-196, 0.5000000000004947, 0.9999999999999999, nan;
+
+    CALL_SUBTEST(res = betainc(a, b, x);
+                 verify_component_wise(res, v););
+  }
+
+  // Test various properties of betainc
+  {
+    ArrayType m1 = ArrayType::Random(32);
+    ArrayType m2 = ArrayType::Random(32);
+    ArrayType m3 = ArrayType::Random(32);
+    ArrayType one = ArrayType::Constant(32, Scalar(1.0));
+    const Scalar eps = std::numeric_limits<Scalar>::epsilon();
+    ArrayType a = (m1 * 4.0).exp();
+    ArrayType b = (m2 * 4.0).exp();
+    ArrayType x = m3.abs();
+
+    // betainc(a, 1, x) == x**a
+    CALL_SUBTEST(
+        ArrayType test = betainc(a, one, x);
+        ArrayType expected = x.pow(a);
+        verify_component_wise(test, expected););
+
+    // betainc(1, b, x) == 1 - (1 - x)**b
+    CALL_SUBTEST(
+        ArrayType test = betainc(one, b, x);
+        ArrayType expected = one - (one - x).pow(b);
+        verify_component_wise(test, expected););
+
+    // betainc(a, b, x) == 1 - betainc(b, a, 1-x)
+    CALL_SUBTEST(
+        ArrayType test = betainc(a, b, x) + betainc(b, a, one - x);
+        ArrayType expected = one;
+        verify_component_wise(test, expected););
+
+    // betainc(a+1, b, x) = betainc(a, b, x) - x**a * (1 - x)**b / (a * beta(a, b))
+    CALL_SUBTEST(
+        ArrayType num = x.pow(a) * (one - x).pow(b);
+        ArrayType denom = a * (a.lgamma() + b.lgamma() - (a + b).lgamma()).exp();
+        // Add eps to rhs and lhs so that component-wise test doesn't result in
+        // nans when both outputs are zeros.
+        ArrayType expected = betainc(a, b, x) - num / denom + eps;
+        ArrayType test = betainc(a + one, b, x) + eps;
+        if (sizeof(Scalar) >= 8) { // double
+          verify_component_wise(test, expected);
+        } else {
+          // Reason for limited test: http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1232
+          verify_component_wise(test.head(8), expected.head(8));
+        });
+
+    // betainc(a, b+1, x) = betainc(a, b, x) + x**a * (1 - x)**b / (b * beta(a, b))
+    CALL_SUBTEST(
+        // Add eps to rhs and lhs so that component-wise test doesn't result in
+        // nans when both outputs are zeros.
+        ArrayType num = x.pow(a) * (one - x).pow(b);
+        ArrayType denom = b * (a.lgamma() + b.lgamma() - (a + b).lgamma()).exp();
+        ArrayType expected = betainc(a, b, x) + num / denom + eps;
+        ArrayType test = betainc(a, b + one, x) + eps;
+        verify_component_wise(test, expected););
   }
 #endif
 }
@@ -645,7 +807,7 @@ void test_array()
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<int>::type, int >::value));
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<float>::type, float >::value));
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Array2i>::type, ArrayBase<Array2i> >::value));
-  typedef CwiseUnaryOp<internal::scalar_multiple_op<double>, ArrayXd > Xpr;
+  typedef CwiseUnaryOp<internal::scalar_abs_op<double>, ArrayXd > Xpr;
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Xpr>::type,
                            ArrayBase<Xpr>
                          >::value));

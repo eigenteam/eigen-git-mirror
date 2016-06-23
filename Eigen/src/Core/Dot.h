@@ -28,22 +28,24 @@ template<typename T, typename U,
 >
 struct dot_nocheck
 {
-  typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  typedef scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> conj_prod;
+  typedef typename conj_prod::result_type ResScalar;
   EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
-    return a.template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
+    return a.template binaryExpr<conj_prod>(b).sum();
   }
 };
 
 template<typename T, typename U>
 struct dot_nocheck<T, U, true>
 {
-  typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  typedef scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> conj_prod;
+  typedef typename conj_prod::result_type ResScalar;
   EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
-    return a.transpose().template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
+    return a.transpose().template binaryExpr<conj_prod>(b).sum();
   }
 };
 
@@ -62,7 +64,7 @@ struct dot_nocheck<T, U, true>
 template<typename Derived>
 template<typename OtherDerived>
 EIGEN_DEVICE_FUNC
-typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
+typename ScalarBinaryOpTraits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)

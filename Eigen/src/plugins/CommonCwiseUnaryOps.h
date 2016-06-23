@@ -12,12 +12,6 @@
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
-/** \internal Represents a scalar multiple of an expression */
-typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Derived> ScalarMultipleReturnType;
-typedef CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, const Derived> ScalarComplexMultipleReturnType;
-
-/** \internal Represents a quotient of an expression by a scalar*/
-typedef CwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, const Derived> ScalarQuotient1ReturnType;
 /** \internal the return type of conjugate() */
 typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                     const CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, const Derived>,
@@ -39,7 +33,6 @@ typedef CwiseUnaryOp<internal::scalar_imag_op<Scalar>, const Derived> ImagReturn
 typedef CwiseUnaryView<internal::scalar_imag_ref_op<Scalar>, Derived> NonConstImagReturnType;
 
 typedef CwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const Derived> NegativeReturnType;
-//typedef CwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, const Derived>
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
@@ -49,71 +42,6 @@ EIGEN_DEVICE_FUNC
 inline const NegativeReturnType
 operator-() const { return NegativeReturnType(derived()); }
 
-
-/** \returns an expression of \c *this scaled by the scalar factor \a scalar */
-EIGEN_DEVICE_FUNC
-inline const ScalarMultipleReturnType
-operator*(const Scalar& scalar) const
-{
-  return ScalarMultipleReturnType(derived(), internal::scalar_multiple_op<Scalar>(scalar));
-}
-
-#ifdef EIGEN_PARSED_BY_DOXYGEN
-const ScalarMultipleReturnType operator*(const RealScalar& scalar) const;
-#endif
-
-/** \returns an expression of \c *this divided by the scalar value \a scalar */
-EIGEN_DEVICE_FUNC
-inline const ScalarQuotient1ReturnType
-operator/(const Scalar& scalar) const
-{
-  return ScalarQuotient1ReturnType(derived(), internal::scalar_quotient1_op<Scalar>(scalar));
-}
-
-/** Overloaded for efficiently multipling with compatible scalar types */
-template <typename T>
-EIGEN_DEVICE_FUNC inline
-typename internal::enable_if<internal::scalar_product_traits<T,Scalar>::Defined,
-                             const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived> >::type
-operator*(const T& scalar) const
-{
-#ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
-  EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
-#endif
-  return CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived>(
-            derived(), internal::scalar_multiple2_op<Scalar,T>(scalar) );
-}
-
-EIGEN_DEVICE_FUNC
-inline friend const ScalarMultipleReturnType
-operator*(const Scalar& scalar, const StorageBaseType& matrix)
-{ return matrix*scalar; }
-
-template <typename T>
-EIGEN_DEVICE_FUNC inline friend
-typename internal::enable_if<internal::scalar_product_traits<Scalar,T>::Defined,
-                             const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived> >::type
-operator*(const T& scalar, const StorageBaseType& matrix)
-{
-#ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
-  EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
-#endif
-  return CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,T>, const Derived>(
-            matrix.derived(), internal::scalar_multiple2_op<Scalar,T>(scalar) );
-}
-
-template <typename T>
-EIGEN_DEVICE_FUNC inline
-typename internal::enable_if<internal::scalar_product_traits<Scalar,T>::Defined,
-                             const CwiseUnaryOp<internal::scalar_quotient2_op<Scalar,T>, const Derived> >::type
-operator/(const T& scalar) const
-{
-#ifdef EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
-  EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN
-#endif
-  return CwiseUnaryOp<internal::scalar_quotient2_op<Scalar,T>, const Derived>(
-            derived(), internal::scalar_quotient2_op<Scalar,T>(scalar) );
-}
 
 template<class NewType> struct CastXpr { typedef typename internal::cast_return_type<Derived,const CwiseUnaryOp<internal::scalar_cast_op<Scalar, NewType>, const Derived> >::type Type; };
 

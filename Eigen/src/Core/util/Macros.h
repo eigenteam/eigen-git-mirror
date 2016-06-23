@@ -462,6 +462,8 @@
 #define EIGEN_CAT2(a,b) a ## b
 #define EIGEN_CAT(a,b) EIGEN_CAT2(a,b)
 
+#define EIGEN_COMMA ,
+
 // convert a token to a string
 #define EIGEN_MAKESTRING2(a) #a
 #define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
@@ -876,24 +878,55 @@ namespace Eigen {
 
 #define EIGEN_IMPLIES(a,b) (!(a) || (b))
 
-#define EIGEN_MAKE_CWISE_BINARY_OP(METHOD,FUNCTOR) \
-  template<typename OtherDerived> \
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const CwiseBinaryOp<FUNCTOR<Scalar>, const Derived, const OtherDerived> \
-  (METHOD)(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
-  { \
-    return CwiseBinaryOp<FUNCTOR<Scalar>, const Derived, const OtherDerived>(derived(), other.derived()); \
-  }
-
-// the expression type of a cwise product
-#define EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS) \
+// the expression type of a standard coefficient wise binary operation
+#define EIGEN_CWISE_BINARY_RETURN_TYPE(LHS,RHS,OPNAME) \
     CwiseBinaryOp< \
-      internal::scalar_product_op< \
+      EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)< \
           typename internal::traits<LHS>::Scalar, \
           typename internal::traits<RHS>::Scalar \
       >, \
       const LHS, \
       const RHS \
     >
+
+#define EIGEN_MAKE_CWISE_BINARY_OP(METHOD,OPNAME) \
+  template<typename OtherDerived> \
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,OPNAME) \
+  (METHOD)(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
+  { \
+    return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,OPNAME)(derived(), other.derived()); \
+  }
+
+#define EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(EXPR,SCALAR,OPNAME) \
+  CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<typename internal::traits<EXPR>::Scalar,SCALAR>, const EXPR, \
+                const typename internal::plain_constant_type<EXPR,SCALAR>::type>
+
+#define EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(SCALAR,EXPR,OPNAME) \
+  CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<SCALAR,typename internal::traits<EXPR>::Scalar>, \
+                const typename internal::plain_constant_type<EXPR,SCALAR>::type, const EXPR>
+
+#define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD,OPNAME) \
+  template <typename T> EIGEN_DEVICE_FUNC inline \
+  const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA ScalarBinaryOpTraits<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<Scalar EIGEN_COMMA T> >::Defined>::type,OPNAME) \
+  (METHOD)(const T& scalar) const { \
+    typedef typename internal::promote_scalar_arg<Scalar,T,ScalarBinaryOpTraits<Scalar,T,EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<Scalar,T> >::Defined>::type PromotedT; \
+    return EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,PromotedT,OPNAME)(derived(), \
+           typename internal::plain_constant_type<Derived,PromotedT>::type(derived().rows(), derived().cols(), internal::scalar_constant_op<PromotedT>(scalar))); \
+  }
+
+#define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD,OPNAME) \
+  template <typename T> EIGEN_DEVICE_FUNC inline friend \
+  const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA ScalarBinaryOpTraits<T EIGEN_COMMA Scalar EIGEN_COMMA EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<T EIGEN_COMMA Scalar> >::Defined>::type,Derived,OPNAME) \
+  (METHOD)(const T& scalar, const StorageBaseType& matrix) { \
+    typedef typename internal::promote_scalar_arg<Scalar,T,ScalarBinaryOpTraits<T,Scalar,EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<T,Scalar> >::Defined>::type PromotedT; \
+    return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(PromotedT,Derived,OPNAME)( \
+           typename internal::plain_constant_type<Derived,PromotedT>::type(matrix.derived().rows(), matrix.derived().cols(), internal::scalar_constant_op<PromotedT>(scalar)), matrix.derived()); \
+  }
+
+#define EIGEN_MAKE_SCALAR_BINARY_OP(METHOD,OPNAME) \
+  EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD,OPNAME) \
+  EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD,OPNAME)
+
 
 #ifdef EIGEN_EXCEPTIONS
 #  define EIGEN_THROW_X(X) throw X

@@ -56,13 +56,13 @@ void makeFloor(const MatrixBase<OtherDerived>& other) { derived() = derived().cw
 template<typename OtherDerived>
 void makeCeil(const MatrixBase<OtherDerived>& other) { derived() = derived().cwiseMax(other.derived()); }
 
-const CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>
+const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const ConstantReturnType>
 operator+(const Scalar& scalar) const
-{ return CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>(derived(), internal::scalar_add_op<Scalar>(scalar)); }
+{ return CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const Derived, const ConstantReturnType>(derived(), Constant(rows(),cols(),scalar)); }
 
-friend const CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>
+friend const CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturnType, Derived>
 operator+(const Scalar& scalar, const MatrixBase<Derived>& mat)
-{ return CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>(mat.derived(), internal::scalar_add_op<Scalar>(scalar)); }
+{ return CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const ConstantReturnType, Derived>(Constant(rows(),cols(),scalar), mat.derived()); }
 \endcode
 
 Then one can the following declaration in the config.h or whatever prerequisites header file of his project:
