@@ -26,10 +26,7 @@ struct TensorPrinter {
     typedef typename internal::remove_const<typename Tensor::Scalar>::type Scalar;
     typedef typename Tensor::Index Index;
     const Index total_size = internal::array_prod(tensor.dimensions());
-    if (total_size == 0) {
-      os << "Empty tensor of rank " << Rank;
-    }
-    else {
+    if (total_size > 0) {
       const Index first_dim = Eigen::internal::array_get<0>(tensor.dimensions());
       static const int layout = Tensor::Layout;
       Map<const Array<Scalar, Dynamic, Dynamic, layout> > matrix(const_cast<Scalar*>(tensor.data()), first_dim, total_size/first_dim);
@@ -46,10 +43,7 @@ struct TensorPrinter<Tensor, 1> {
     typedef typename internal::remove_const<typename Tensor::Scalar>::type Scalar;
     typedef typename Tensor::Index Index;
     const Index total_size = internal::array_prod(tensor.dimensions());
-    if (total_size == 0) {
-      os << "Empty tensor of rank 1";
-    }
-    else {
+    if (total_size > 0) {
       Map<const Array<Scalar, Dynamic, 1> > array(const_cast<Scalar*>(tensor.data()), total_size);
       os << array;
     }
