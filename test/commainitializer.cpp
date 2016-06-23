@@ -43,4 +43,27 @@ void test_commainitializer()
         4, 5, 6,
         vec[2].transpose();
   VERIFY_IS_APPROX(m3, ref);
+
+
+  // Check with empty matrices (bug #1242)
+  {
+    int const M = 0;
+    int const N1 = 2;
+    int const N2 = 1;
+
+    {
+      Matrix<double, M, N1> A1;
+      Matrix<double, M, N2> A2;
+      Matrix<double, M, N1 + N2> B;
+      B << A1, A2;
+    }
+    {
+      Matrix<double, N1, M> A1;
+      Matrix<double, N2, M> A2;
+      Matrix<double, N1 + N2, M> B;
+      B << A1,
+           A2;
+    }
+  }
+
 }
