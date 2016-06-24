@@ -67,7 +67,7 @@ template<typename _DerType>
 class AutoDiffScalar
   : public internal::auto_diff_special_op
             <_DerType, !internal::is_same<typename internal::traits<typename internal::remove_all<_DerType>::type>::Scalar,
-                                        typename NumTraits<typename internal::traits<typename internal::remove_all<_DerType>::type>::Scalar>::Real>::value>
+                                          typename NumTraits<typename internal::traits<typename internal::remove_all<_DerType>::type>::Scalar>::Real>::value>
 {
   public:
     typedef internal::auto_diff_special_op
@@ -497,29 +497,29 @@ struct make_coherent_impl<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows,
 
 } // end namespace internal
 
-template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
-struct ScalarBinaryOpTraits<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>,A_Scalar>
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols, typename BinOp>
+struct ScalarBinaryOpTraits<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>,A_Scalar,BinOp>
 {
   enum { Defined = 1 };
   typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
 };
 
-template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
-struct ScalarBinaryOpTraits<A_Scalar, Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> >
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols, typename BinOp>
+struct ScalarBinaryOpTraits<A_Scalar, Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>, BinOp>
 {
   enum { Defined = 1 };
   typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
 };
 
-template<typename DerType>
-struct ScalarBinaryOpTraits<AutoDiffScalar<DerType>,typename DerType::Scalar>
+template<typename DerType, typename BinOp>
+struct ScalarBinaryOpTraits<AutoDiffScalar<DerType>,typename DerType::Scalar,BinOp>
 {
   enum { Defined = 1 };
   typedef AutoDiffScalar<DerType> ReturnType;
 };
 
-template<typename DerType>
-struct ScalarBinaryOpTraits<typename DerType::Scalar,AutoDiffScalar<DerType> >
+template<typename DerType, typename BinOp>
+struct ScalarBinaryOpTraits<typename DerType::Scalar,AutoDiffScalar<DerType>, BinOp>
 {
   enum { Defined = 1 };
   typedef AutoDiffScalar<DerType> ReturnType;
