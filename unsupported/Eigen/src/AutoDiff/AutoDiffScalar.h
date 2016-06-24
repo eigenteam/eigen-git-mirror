@@ -525,6 +525,23 @@ struct ScalarBinaryOpTraits<typename DerType::Scalar,AutoDiffScalar<DerType>, Bi
   typedef AutoDiffScalar<DerType> ReturnType;
 };
 
+
+// The following is an attempt to let Eigen's known about expression template, but that's more tricky!
+
+// template<typename DerType, typename BinOp>
+// struct ScalarBinaryOpTraits<AutoDiffScalar<DerType>,AutoDiffScalar<DerType>, BinOp>
+// {
+//   enum { Defined = 1 };
+//   typedef AutoDiffScalar<typename DerType::PlainObject> ReturnType;
+// };
+//
+// template<typename DerType1,typename DerType2, typename BinOp>
+// struct ScalarBinaryOpTraits<AutoDiffScalar<DerType1>,AutoDiffScalar<DerType2>, BinOp>
+// {
+//   enum { Defined = 1 };//internal::is_same<typename DerType1::Scalar,typename DerType2::Scalar>::value };
+//   typedef AutoDiffScalar<typename DerType1::PlainObject> ReturnType;
+// };
+
 #define EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(FUNC,CODE) \
   template<typename DerType> \
   inline const Eigen::AutoDiffScalar< \
@@ -645,9 +662,10 @@ template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
   : NumTraits< typename NumTraits<typename DerType::Scalar>::Real >
 {
   typedef AutoDiffScalar<Matrix<typename NumTraits<typename DerType::Scalar>::Real,DerType::RowsAtCompileTime,DerType::ColsAtCompileTime,
-                                DerType::Options, DerType::MaxRowsAtCompileTime, DerType::MaxColsAtCompileTime> > Real;
+                                0, DerType::MaxRowsAtCompileTime, DerType::MaxColsAtCompileTime> > Real;
   typedef AutoDiffScalar<DerType> NonInteger;
   typedef AutoDiffScalar<DerType> Nested;
+  typedef typename NumTraits<typename DerType::Scalar>::Literal Literal;
   enum{
     RequireInitialization = 1
   };
