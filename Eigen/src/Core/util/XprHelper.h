@@ -88,8 +88,8 @@ struct promote_scalar_arg_unsupported<ExprScalar,T,PromotedType,false,true>
 {};
 
 // Unsafe real-to-integer, let's stop.
-template<typename S,typename T, typename PromotedType>
-struct promote_scalar_arg_unsupported<S,T,PromotedType,false,false> {};
+template<typename S,typename T, typename PromotedType, bool ConvertibleToLiteral>
+struct promote_scalar_arg_unsupported<S,T,PromotedType,ConvertibleToLiteral,false> {};
 
 // T is not even convertible to ExprScalar, let's stop.
 template<typename S,typename T>
