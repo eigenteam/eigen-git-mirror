@@ -131,7 +131,6 @@ template<typename ExpressionType> class ArrayWrapper;
 template<typename ExpressionType> class MatrixWrapper;
 template<typename Derived> class SolverBase;
 template<typename XprType> class InnerIterator;
-template<typename ScalarA, typename ScalarB, typename BinaryOp=void> struct ScalarBinaryOpTraits;
 
 namespace internal {
 template<typename DecompositionType> struct kernel_retval_base;

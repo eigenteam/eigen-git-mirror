@@ -439,7 +439,7 @@ T div_ceil(const T &a, const T &b)
   *
   * \sa CwiseBinaryOp
   */
-template<typename ScalarA, typename ScalarB, typename BinaryOp>
+template<typename ScalarA, typename ScalarB, typename BinaryOp=void>
 struct ScalarBinaryOpTraits
 #ifndef EIGEN_PARSED_BY_DOXYGEN
   // for backward compatibility, use the hints given by the (deprecated) internal::scalar_product_traits class.
