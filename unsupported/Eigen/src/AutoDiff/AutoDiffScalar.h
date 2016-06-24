@@ -548,7 +548,7 @@ struct ScalarBinaryOpTraits<typename DerType::Scalar,AutoDiffScalar<DerType>, Bi
   EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(typename Eigen::internal::remove_all<DerType>::type, typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar, product) > \
   FUNC(const Eigen::AutoDiffScalar<DerType>& x) { \
     using namespace Eigen; \
-    typedef typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar Scalar; \
+    EIGEN_UNUSED typedef typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar Scalar; \
     CODE; \
   }
 
@@ -617,8 +617,6 @@ EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(typename internal::remove_all<DerType>::t
 pow(const Eigen::AutoDiffScalar<DerType> &x, const typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar &y)
 {
   using namespace Eigen;
-  typedef typename internal::remove_all<DerType>::type DerTypeCleaned;
-  typedef typename Eigen::internal::traits<DerTypeCleaned>::Scalar Scalar;
   return Eigen::MakeAutoDiffScalar(std::pow(x.value(),y), x.derivatives() * (y * std::pow(x.value(),y-1)));
 }
 
