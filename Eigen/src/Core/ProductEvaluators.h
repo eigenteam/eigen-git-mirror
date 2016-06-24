@@ -35,22 +35,28 @@ struct evaluator<Product<Lhs, Rhs, Options> >
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr) : Base(xpr) {}
 };
  
-// Catch scalar * ( A * B ) and transform it to (A*scalar) * B
+// Catch "scalar * ( A * B )" and transform it to "(A*scalar) * B"
 // TODO we should apply that rule only if that's really helpful
-template<typename Lhs, typename Rhs, typename Scalar>
-struct evaluator_assume_aliasing<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > >
+template<typename Lhs, typename Rhs, typename Scalar1, typename Scalar2, typename Plain1>
+struct evaluator_assume_aliasing<CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
+                                               const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>,
+                                               const Product<Lhs, Rhs, DefaultProduct> > >
 {
   static const bool value = true;
 };
-template<typename Lhs, typename Rhs, typename Scalar>
-struct evaluator<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,  const Product<Lhs, Rhs, DefaultProduct>  > > 
- : public evaluator<Product<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,const Lhs>, Rhs, DefaultProduct> >
+template<typename Lhs, typename Rhs, typename Scalar1, typename Scalar2, typename Plain1>
+struct evaluator<CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
+                               const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>,
+                               const Product<Lhs, Rhs, DefaultProduct> > >
+ : public evaluator<Product<EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar1,Lhs,product), Rhs, DefaultProduct> >
 {
-  typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const Product<Lhs, Rhs, DefaultProduct> > XprType;
-  typedef evaluator<Product<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,const Lhs>, Rhs, DefaultProduct> > Base;
-  
+  typedef CwiseBinaryOp<internal::scalar_product_op<Scalar1,Scalar2>,
+                               const CwiseNullaryOp<internal::scalar_constant_op<Scalar1>, Plain1>,
+                               const Product<Lhs, Rhs, DefaultProduct> > XprType;
+  typedef evaluator<Product<EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar1,Lhs,product), Rhs, DefaultProduct> > Base;
+
   EIGEN_DEVICE_FUNC explicit evaluator(const XprType& xpr)
-    : Base(xpr.functor().m_other * xpr.nestedExpression().lhs() * xpr.nestedExpression().rhs())
+    : Base(xpr.lhs().functor().m_other * xpr.rhs().lhs() * xpr.rhs().rhs())
   {}
 };
 
@@ -122,14 +128,17 @@ protected:
   PlainObject m_result;
 };
 
+// The following three shortcuts are enabled only if the scalar types match excatly.
+// TODO: we could enable them for different scalar types when the product is not vectorized.
+
 // Dense = Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scalar>, Dense2Dense,
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scalar,Scalar>, Dense2Dense,
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
-  void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::evalTo(dst, src.lhs(), src.rhs());
@@ -138,12 +147,12 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
 
 // Dense += Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<Scalar>, Dense2Dense,
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<Scalar,Scalar>, Dense2Dense,
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
-  void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar> &)
+  void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar,Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::addTo(dst, src.lhs(), src.rhs());
@@ -152,12 +161,12 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
 
 // Dense -= Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<Scalar>, Dense2Dense,
+struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<Scalar,Scalar>, Dense2Dense,
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
-  void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar> &)
+  void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar,Scalar> &)
   {
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::subTo(dst, src.lhs(), src.rhs());
@@ -168,16 +177,17 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<
 // Dense ?= scalar * Product
 // TODO we should apply that rule if that's really helpful
 // for instance, this is not good for inner products
-template< typename DstXprType, typename Lhs, typename Rhs, typename AssignFunc, typename Scalar, typename ScalarBis>
-struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBis>,
+template< typename DstXprType, typename Lhs, typename Rhs, typename AssignFunc, typename Scalar, typename ScalarBis, typename Plain>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_product_op<ScalarBis,Scalar>, const CwiseNullaryOp<internal::scalar_constant_op<ScalarBis>,Plain>,
                                            const Product<Lhs,Rhs,DefaultProduct> >, AssignFunc, Dense2Dense, Scalar>
 {
-  typedef CwiseUnaryOp<internal::scalar_multiple_op<ScalarBis>,
-                       const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
+  typedef CwiseBinaryOp<internal::scalar_product_op<ScalarBis,Scalar>,
+                        const CwiseNullaryOp<internal::scalar_constant_op<ScalarBis>,Plain>,
+                        const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
   static EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
   {
-    call_assignment_no_alias(dst, (src.functor().m_other * src.nestedExpression().lhs())*src.nestedExpression().rhs(), func);
+    call_assignment_no_alias(dst, (src.lhs().functor().m_other * src.rhs().lhs())*src.rhs().rhs(), func);
   }
 };
 
@@ -187,37 +197,38 @@ struct Assignment<DstXprType, CwiseUnaryOp<internal::scalar_multiple_op<ScalarBi
 // TODO enable it for "Dense ?= xpr - Product<>" as well.
 
 template<typename OtherXpr, typename Lhs, typename Rhs>
-struct evaluator_assume_aliasing<CwiseBinaryOp<internal::scalar_sum_op<typename OtherXpr::Scalar>, const OtherXpr,
+struct evaluator_assume_aliasing<CwiseBinaryOp<internal::scalar_sum_op<typename OtherXpr::Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, const OtherXpr,
                                                const Product<Lhs,Rhs,DefaultProduct> >, DenseShape > {
   static const bool value = true;
 };
 
-template<typename DstXprType, typename OtherXpr, typename ProductType, typename Scalar, typename Func1, typename Func2>
+template<typename DstXprType, typename OtherXpr, typename ProductType, typename Func1, typename Func2>
 struct assignment_from_xpr_plus_product
 {
-  typedef CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr, const ProductType> SrcXprType;
+  typedef CwiseBinaryOp<internal::scalar_sum_op<typename OtherXpr::Scalar,typename ProductType::Scalar>, const OtherXpr, const ProductType> SrcXprType;
+  template<typename InitialFunc>
   static EIGEN_STRONG_INLINE
-  void run(DstXprType &dst, const SrcXprType &src, const Func1& func)
+  void run(DstXprType &dst, const SrcXprType &src, const InitialFunc& /*func*/)
   {
-    call_assignment_no_alias(dst, src.lhs(), func);
+    call_assignment_no_alias(dst, src.lhs(), Func1());
     call_assignment_no_alias(dst, src.rhs(), Func2());
   }
 };
 
-template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr,
-                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::assign_op<Scalar>, Dense2Dense>
-  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, Scalar, internal::assign_op<Scalar>, internal::add_assign_op<Scalar> >
+template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename DstScalar, typename SrcScalar, typename OtherScalar,typename ProdScalar>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<OtherScalar,ProdScalar>, const OtherXpr,
+                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::assign_op<DstScalar,SrcScalar>, Dense2Dense>
+  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, internal::assign_op<DstScalar,OtherScalar>, internal::add_assign_op<DstScalar,ProdScalar> >
 {};
-template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr,
-                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::add_assign_op<Scalar>, Dense2Dense>
-  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, Scalar, internal::add_assign_op<Scalar>, internal::add_assign_op<Scalar> >
+template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename DstScalar, typename SrcScalar, typename OtherScalar,typename ProdScalar>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<OtherScalar,ProdScalar>, const OtherXpr,
+                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::add_assign_op<DstScalar,SrcScalar>, Dense2Dense>
+  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, internal::add_assign_op<DstScalar,OtherScalar>, internal::add_assign_op<DstScalar,ProdScalar> >
 {};
-template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<Scalar>, const OtherXpr,
-                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::sub_assign_op<Scalar>, Dense2Dense>
-  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, Scalar, internal::sub_assign_op<Scalar>, internal::sub_assign_op<Scalar> >
+template< typename DstXprType, typename OtherXpr, typename Lhs, typename Rhs, typename DstScalar, typename SrcScalar, typename OtherScalar,typename ProdScalar>
+struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_sum_op<OtherScalar,ProdScalar>, const OtherXpr,
+                                           const Product<Lhs,Rhs,DefaultProduct> >, internal::sub_assign_op<DstScalar,SrcScalar>, Dense2Dense>
+  : assignment_from_xpr_plus_product<DstXprType, OtherXpr, Product<Lhs,Rhs,DefaultProduct>, internal::sub_assign_op<DstScalar,OtherScalar>, internal::sub_assign_op<DstScalar,ProdScalar> >
 {};
 //----------------------------------------
 
@@ -369,21 +380,21 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   {
     // Same as: dst.noalias() = lhs.lazyProduct(rhs);
     // but easier on the compiler side
-    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::assign_op<Scalar>());
+    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::assign_op<typename Dst::Scalar,Scalar>());
   }
   
   template<typename Dst>
   static EIGEN_STRONG_INLINE void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // dst.noalias() += lhs.lazyProduct(rhs);
-    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::add_assign_op<Scalar>());
+    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::add_assign_op<typename Dst::Scalar,Scalar>());
   }
   
   template<typename Dst>
   static EIGEN_STRONG_INLINE void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // dst.noalias() -= lhs.lazyProduct(rhs);
-    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::sub_assign_op<Scalar>());
+    call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::sub_assign_op<typename Dst::Scalar,Scalar>());
   }
   
 //   template<typename Dst>
@@ -735,7 +746,7 @@ template<typename MatrixType, typename DiagonalType, typename Derived, int Produ
 struct diagonal_product_evaluator_base
   : evaluator_base<Derived>
 {
-   typedef typename scalar_product_traits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
+   typedef typename ScalarBinaryOpTraits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
 public:
   enum {
     CoeffReadCost = NumTraits<Scalar>::MulCost + evaluator<MatrixType>::CoeffReadCost + evaluator<DiagonalType>::CoeffReadCost,

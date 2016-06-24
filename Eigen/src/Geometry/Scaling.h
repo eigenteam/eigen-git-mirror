@@ -107,12 +107,15 @@ public:
 /** \addtogroup Geometry_Module */
 //@{
 
-/** Concatenates a linear transformation matrix and a uniform scaling */
+/** Concatenates a linear transformation matrix and a uniform scaling
+  * \relates UniformScaling
+  */
 // NOTE this operator is defiend in MatrixBase and not as a friend function
 // of UniformScaling to fix an internal crash of Intel's ICC
-template<typename Derived> typename MatrixBase<Derived>::ScalarMultipleReturnType
-MatrixBase<Derived>::operator*(const UniformScaling<Scalar>& s) const
-{ return derived() * s.factor(); }
+template<typename Derived,typename Scalar>
+EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,Scalar,product)
+operator*(const MatrixBase<Derived>& matrix, const UniformScaling<Scalar>& s)
+{ return matrix.derived() * s.factor(); }
 
 /** Constructs a uniform scaling from scale factor \a s */
 static inline UniformScaling<float> Scaling(float s) { return UniformScaling<float>(s); }

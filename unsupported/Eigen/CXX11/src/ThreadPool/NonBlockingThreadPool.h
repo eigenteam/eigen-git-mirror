@@ -74,7 +74,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     PerThread* pt = GetPerThread();
     if (pt->pool == this) {
       // Worker thread of this pool, push onto the thread's queue.
-      Queue* q = queues_[pt->index];
+      Queue* q = queues_[pt->thread_id];
       t = q->PushFront(std::move(t));
     } else {
       // A free-standing thread (or worker of another pool), push onto a random
@@ -95,14 +95,28 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
       env_.ExecuteTask(t);  // Push failed, execute directly.
   }
 
+  int NumThreads() const final {
+    return static_cast<int>(threads_.size());
+  }
+
+  int CurrentThreadId() const final {
+    const PerThread* pt =
+        const_cast<NonBlockingThreadPoolTempl*>(this)->GetPerThread();
+    if (pt->pool == this) {
+      return pt->thread_id;
+    } else {
+      return -1;
+    }
+  }
+
  private:
   typedef typename Environment::EnvThread Thread;
 
   struct PerThread {
-    bool inited;
+    constexpr PerThread() : pool(NULL), rand(0), thread_id(-1) { }
     NonBlockingThreadPoolTempl* pool;  // Parent pool, or null for normal threads.
-    unsigned index;         // Worker thread index in pool.
-    unsigned rand;          // Random generator state.
+    uint64_t rand;  // Random generator state.
+    int thread_id;  // Worker thread index in pool.
   };
 
   Environment env_;
@@ -116,12 +130,13 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   EventCount ec_;
 
   // Main worker thread loop.
-  void WorkerLoop(unsigned index) {
+  void WorkerLoop(int thread_id) {
     PerThread* pt = GetPerThread();
     pt->pool = this;
-    pt->index = index;
-    Queue* q = queues_[index];
-    EventCount::Waiter* waiter = &waiters_[index];
+    pt->rand = std::hash<std::thread::id>()(std::this_thread::get_id());
+    pt->thread_id = thread_id;
+    Queue* q = queues_[thread_id];
+    EventCount::Waiter* waiter = &waiters_[thread_id];
     for (;;) {
       Task t = q->PopFront();
       if (!t.f) {
@@ -235,17 +250,18 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     return -1;
   }
 
-  PerThread* GetPerThread() {
+  static EIGEN_STRONG_INLINE PerThread* GetPerThread() {
     EIGEN_THREAD_LOCAL PerThread per_thread_;
     PerThread* pt = &per_thread_;
-    if (pt->inited) return pt;
-    pt->inited = true;
-    pt->rand = static_cast<unsigned>(std::hash<std::thread::id>()(std::this_thread::get_id()));
     return pt;
   }
 
-  static unsigned Rand(unsigned* state) {
-    return *state = *state * 1103515245 + 12345;
+  static EIGEN_STRONG_INLINE unsigned Rand(uint64_t* state) {
+    uint64_t current = *state;
+    // Update the internal state
+    *state = current * 6364136223846793005ULL + 0xda3e39cb94b95bdbULL;
+    // Generate the random output (using the PCG-XSH-RS scheme)
+    return static_cast<unsigned>((current ^ (current >> 22)) >> (22 + (current >> 61)));
   }
 };
 

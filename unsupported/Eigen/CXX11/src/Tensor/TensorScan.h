@@ -57,8 +57,8 @@ public:
   typedef typename Eigen::internal::traits<TensorScanOp>::Index Index;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorScanOp(
-      const XprType& expr, const Index& axis, const Op& op = Op())
-      : m_expr(expr), m_axis(axis), m_accumulator(op) {}
+      const XprType& expr, const Index& axis, bool exclusive = false, const Op& op = Op())
+      : m_expr(expr), m_axis(axis), m_accumulator(op), m_exclusive(exclusive) {}
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const Index axis() const { return m_axis; }
@@ -66,11 +66,14 @@ public:
   const XprType& expression() const { return m_expr; }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const Op accumulator() const { return m_accumulator; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  bool exclusive() const { return m_exclusive; }
 
 protected:
   typename XprType::Nested m_expr;
   const Index m_axis;
   const Op m_accumulator;
+  const bool m_exclusive;
 };
 
 // Eval as rvalue
@@ -81,7 +84,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
   typedef typename XprType::Index Index;
   static const int NumDims = internal::array_size<typename TensorEvaluator<ArgType, Device>::Dimensions>::value;
   typedef DSizes<Index, NumDims> Dimensions;
-  typedef typename XprType::Scalar Scalar;
+  typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
 
@@ -99,6 +102,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
       : m_impl(op.expression(), device),
         m_device(device),
         m_axis(op.axis()),
+        m_exclusive(op.exclusive()),
         m_accumulator(op.accumulator()),
         m_dimensions(m_impl.dimensions()),
         m_size(m_dimensions[m_axis]),
@@ -106,7 +110,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
         m_output(NULL) {
 
     // Accumulating a scalar isn't supported.
-    EIGEN_STATIC_ASSERT(NumDims > 0, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    EIGEN_STATIC_ASSERT((NumDims > 0), YOU_MADE_A_PROGRAMMING_MISTAKE);
     eigen_assert(m_axis >= 0 && m_axis < NumDims);
 
     // Compute stride of scan axis
@@ -122,7 +126,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const {
-      return m_dimensions;
+    return m_dimensions;
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
@@ -136,7 +140,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
       return true;
     }
   }
-  
+
   template<int LoadMode>
   EIGEN_DEVICE_FUNC PacketReturnType packet(Index index) const {
     return internal::ploadt<PacketReturnType, LoadMode>(m_output + index);
@@ -152,6 +156,10 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
     return m_output[index];
   }
 
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost costPerCoeff(bool) const {
+    return TensorOpCost(sizeof(CoeffReturnType), 0, 0);
+  }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     if (m_output != NULL) {
       m_device.deallocate(m_output);
@@ -164,6 +172,7 @@ protected:
   TensorEvaluator<ArgType, Device> m_impl;
   const Device& m_device;
   const Index m_axis;
+  const bool m_exclusive;
   Op m_accumulator;
   const Dimensions& m_dimensions;
   const Index& m_size;
@@ -172,7 +181,7 @@ protected:
 
   // TODO(ibab) Parallelize this single-threaded implementation if desired
   EIGEN_DEVICE_FUNC void accumulateTo(Scalar* data) {
-    // We fix the index along the scan axis to 0 and perform an
+    // We fix the index along the scan axis to 0 and perform a
     // scan per remaining entry. The iteration is split into two nested
     // loops to avoid an integer division by keeping track of each idx1 and idx2.
     for (Index idx1 = 0; idx1 < dimensions().TotalSize() / m_size; idx1 += m_stride) {
@@ -180,12 +189,17 @@ protected:
           // Calculate the starting offset for the scan
           Index offset = idx1 * m_size + idx2;
 
-          // Compute the prefix sum along the axis, starting at the calculated offset
+          // Compute the scan along the axis, starting at the calculated offset
           CoeffReturnType accum = m_accumulator.initialize();
           for (Index idx3 = 0; idx3 < m_size; idx3++) {
             Index curr = offset + idx3 * m_stride;
-            m_accumulator.reduce(m_impl.coeff(curr), &accum);
-            data[curr] = m_accumulator.finalize(accum);
+            if (m_exclusive) {
+              data[curr] = m_accumulator.finalize(accum);
+              m_accumulator.reduce(m_impl.coeff(curr), &accum);
+            } else {
+              m_accumulator.reduce(m_impl.coeff(curr), &accum);
+              data[curr] = m_accumulator.finalize(accum);
+            }
           }
        }
     }

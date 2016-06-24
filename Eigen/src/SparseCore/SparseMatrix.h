@@ -440,7 +440,7 @@ class SparseMatrix
     template<typename InputIterators,typename DupFunctor>
     void setFromTriplets(const InputIterators& begin, const InputIterators& end, DupFunctor dup_func);
 
-    void sumupDuplicates() { collapseDuplicates(internal::scalar_sum_op<Scalar>()); }
+    void sumupDuplicates() { collapseDuplicates(internal::scalar_sum_op<Scalar,Scalar>()); }
 
     template<typename DupFunctor>
     void collapseDuplicates(DupFunctor dup_func = DupFunctor());
@@ -979,7 +979,7 @@ template<typename Scalar, int _Options, typename _Index>
 template<typename InputIterators>
 void SparseMatrix<Scalar,_Options,_Index>::setFromTriplets(const InputIterators& begin, const InputIterators& end)
 {
-  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index> >(begin, end, *this, internal::scalar_sum_op<Scalar>());
+  internal::set_from_triplets<InputIterators, SparseMatrix<Scalar,_Options,_Index> >(begin, end, *this, internal::scalar_sum_op<Scalar,Scalar>());
 }
 
 /** The same as setFromTriplets but when duplicates are met the functor \a dup_func is applied:

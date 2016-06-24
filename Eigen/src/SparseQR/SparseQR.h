@@ -705,12 +705,12 @@ struct evaluator_traits<SparseQRMatrixQReturnType<SparseQRType> >
 };
 
 template< typename DstXprType, typename SparseQRType>
-struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar>, Sparse2Sparse>
+struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar,typename DstXprType::Scalar>, Sparse2Sparse>
 {
   typedef SparseQRMatrixQReturnType<SparseQRType> SrcXprType;
   typedef typename DstXprType::Scalar Scalar;
   typedef typename DstXprType::StorageIndex StorageIndex;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &/*func*/)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &/*func*/)
   {
     typename DstXprType::PlainObject idMat(src.m_qr.rows(), src.m_qr.rows());
     idMat.setIdentity();
@@ -721,12 +721,12 @@ struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal:
 };
 
 template< typename DstXprType, typename SparseQRType>
-struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar>, Sparse2Dense>
+struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar,typename DstXprType::Scalar>, Sparse2Dense>
 {
   typedef SparseQRMatrixQReturnType<SparseQRType> SrcXprType;
   typedef typename DstXprType::Scalar Scalar;
   typedef typename DstXprType::StorageIndex StorageIndex;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &/*func*/)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &/*func*/)
   {
     dst = src.m_qr.matrixQ() * DstXprType::Identity(src.m_qr.rows(), src.m_qr.rows());
   }

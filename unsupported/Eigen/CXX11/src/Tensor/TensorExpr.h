@@ -227,22 +227,6 @@ struct traits<TensorCwiseTernaryOp<TernaryOp, Arg1XprType, Arg2XprType, Arg3XprT
       TernaryOp(typename Arg1XprType::Scalar,
                 typename Arg2XprType::Scalar,
                 typename Arg3XprType::Scalar)>::type Scalar;
-  EIGEN_STATIC_ASSERT(
-      (internal::is_same<typename traits<Arg1XprType>::StorageKind,
-                         typename traits<Arg2XprType>::StorageKind>::value),
-      STORAGE_KIND_MUST_MATCH)
-  EIGEN_STATIC_ASSERT(
-      (internal::is_same<typename traits<Arg1XprType>::StorageKind,
-                         typename traits<Arg3XprType>::StorageKind>::value),
-      STORAGE_KIND_MUST_MATCH)
-  EIGEN_STATIC_ASSERT(
-      (internal::is_same<typename traits<Arg1XprType>::Index,
-                         typename traits<Arg2XprType>::Index>::value),
-      STORAGE_INDEX_MUST_MATCH)
-  EIGEN_STATIC_ASSERT(
-      (internal::is_same<typename traits<Arg1XprType>::Index,
-                         typename traits<Arg3XprType>::Index>::value),
-      STORAGE_INDEX_MUST_MATCH)
   typedef traits<Arg1XprType> XprTraits;
   typedef typename traits<Arg1XprType>::StorageKind StorageKind;
   typedef typename traits<Arg1XprType>::Index Index;

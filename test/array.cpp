@@ -72,7 +72,7 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(abs(m1.rowwise().sum().sum() - m1.sum()), m1.abs().sum());
   if (!internal::isMuchSmallerThan(abs(m1.sum() - (m1+m2).sum()), m1.abs().sum(), test_precision<Scalar>()))
       VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
-  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
+  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar,Scalar>()));
 
   // vector-wise ops
   m3 = m1;
@@ -807,7 +807,7 @@ void test_array()
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<int>::type, int >::value));
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<float>::type, float >::value));
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Array2i>::type, ArrayBase<Array2i> >::value));
-  typedef CwiseUnaryOp<internal::scalar_multiple_op<double>, ArrayXd > Xpr;
+  typedef CwiseUnaryOp<internal::scalar_abs_op<double>, ArrayXd > Xpr;
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Xpr>::type,
                            ArrayBase<Xpr>
                          >::value));

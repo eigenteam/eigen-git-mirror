@@ -202,7 +202,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // across k dimension.
     const TensorOpCost cost =
         contractionCost(m, n, bm, bn, bk, shard_by_col, false);
-    Index num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
+    int num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
         static_cast<double>(n) * m, cost, this->m_device.numThreads());
 
     // TODO(dvyukov): this is a stop-gap to prevent regressions while the cost
@@ -301,7 +301,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   class Context {
    public:
     Context(const Device& device, int num_threads, LhsMapper& lhs,
-            RhsMapper& rhs, Scalar* buffer, Index m, Index n, Index k, Index bm,
+            RhsMapper& rhs, Scalar* buffer, Index tm, Index tn, Index tk, Index bm,
             Index bn, Index bk, Index nm, Index nn, Index nk, Index gm,
             Index gn, Index nm0, Index nn0, bool shard_by_col,
             bool parallel_pack)
@@ -309,13 +309,13 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
           lhs_(lhs),
           rhs_(rhs),
           buffer_(buffer),
-          output_(buffer, m),
+          output_(buffer, tm),
           num_threads_(num_threads),
           shard_by_col_(shard_by_col),
           parallel_pack_(parallel_pack),
-          m_(m),
-          n_(n),
-          k_(k),
+          m_(tm),
+          n_(tn),
+          k_(tk),
           bm_(bm),
           bn_(bn),
           bk_(bk),

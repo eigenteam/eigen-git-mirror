@@ -149,7 +149,7 @@ class Array
 
 #if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
-    Array(Array&& other)
+    Array(Array&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value)
       : Base(std::move(other))
     {
       Base::_check_template_params();
@@ -157,7 +157,7 @@ class Array
         Base::_set_noalias(other);
     }
     EIGEN_DEVICE_FUNC
-    Array& operator=(Array&& other)
+    Array& operator=(Array&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)
     {
       other.swap(*this);
       return *this;

@@ -91,10 +91,10 @@ protected:
 // Specialization for "dst = dec.solveWithGuess(rhs)"
 // NOTE we need to specialize it for Dense2Dense to avoid ambiguous specialization error and a Sparse2Sparse specialization must exist somewhere
 template<typename DstXprType, typename DecType, typename RhsType, typename GuessType, typename Scalar>
-struct Assignment<DstXprType, SolveWithGuess<DecType,RhsType,GuessType>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, SolveWithGuess<DecType,RhsType,GuessType>, internal::assign_op<Scalar,Scalar>, Dense2Dense, Scalar>
 {
   typedef SolveWithGuess<DecType,RhsType,GuessType> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
     // FIXME shall we resize dst here?
     dst = src.guess();
