@@ -51,27 +51,49 @@ inline IndexDest convert_index(const IndexSrc& idx) {
 // The IsSupported template parameter must be provided by the caller as: ScalarBinaryOpTraits<ExprScalar,T,op>::Defined using the proper order for ExprScalar and T.
 // Then the logic is as follows:
 //  - if the operation is natively supported as defined by IsSupported, then the scalar type is not promoted, and T is returned.
-//  - otherwise, NumTraits<T>::Literal is returned if T is implicitly convertible to NumTraits<T>::Literal AND that this does not imply a float to integer conversion.
+//  - otherwise, NumTraits<ExprScalar>::Literal is returned if T is implicitly convertible to NumTraits<ExprScalar>::Literal AND that this does not imply a float to integer conversion.
+//  - otherwise, ExprScalar is returned if T is implicitly convertible to ExprScalar AND that this does not imply a float to integer conversion.
 //  - In all other cases, the promoted type is not defined, and the respective operation is thus invalid and not available (SFINAE).
-template<typename ExprScalar,typename T,
-  bool IsSupported,
-  bool ConvertibleToLiteral = internal::is_convertible<T,typename NumTraits<ExprScalar>::Literal>::value,
-  bool IsSafe = NumTraits<T>::IsInteger || !NumTraits<typename NumTraits<ExprScalar>::Literal>::IsInteger>
-struct promote_scalar_arg
-{
-};
+template<typename ExprScalar,typename T, bool IsSupported>
+struct promote_scalar_arg;
 
-template<typename S,typename T, bool ConvertibleToLiteral, bool IsSafe>
-struct promote_scalar_arg<S,T,true,ConvertibleToLiteral,IsSafe>
+template<typename S,typename T>
+struct promote_scalar_arg<S,T,true>
 {
   typedef T type;
 };
 
+// Recursively check safe conversion to PromotedType, and then ExprScalar if they are different.
+template<typename ExprScalar,typename T,typename PromotedType,
+  bool ConvertibleToLiteral = internal::is_convertible<T,PromotedType>::value,
+  bool IsSafe = NumTraits<T>::IsInteger || !NumTraits<PromotedType>::IsInteger>
+struct promote_scalar_arg_unsupported;
+
+// Start recursion with NumTraits<ExprScalar>::Literal
 template<typename S,typename T>
-struct promote_scalar_arg<S,T,false,true,true>
+struct promote_scalar_arg<S,T,false> : promote_scalar_arg_unsupported<S,T,typename NumTraits<S>::Literal> {};
+
+// We found a match!
+template<typename S,typename T, typename PromotedType>
+struct promote_scalar_arg_unsupported<S,T,PromotedType,true,true>
 {
-  typedef typename NumTraits<S>::Literal type;
+  typedef PromotedType type;
 };
+
+// No match, but no real-to-integer issues, and ExprScalar and current PromotedType are different,
+// so let's try to promote to ExprScalar
+template<typename ExprScalar,typename T, typename PromotedType>
+struct promote_scalar_arg_unsupported<ExprScalar,T,PromotedType,false,true>
+   : promote_scalar_arg_unsupported<ExprScalar,T,ExprScalar>
+{};
+
+// Unsafe real-to-integer, let's stop.
+template<typename S,typename T, typename PromotedType>
+struct promote_scalar_arg_unsupported<S,T,PromotedType,false,false> {};
+
+// T is not even convertible to ExprScalar, let's stop.
+template<typename S,typename T>
+struct promote_scalar_arg_unsupported<S,T,S,false,true> {};
 
 //classes inheriting no_assignment_operator don't generate a default operator=.
 class no_assignment_operator
