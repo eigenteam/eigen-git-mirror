@@ -510,7 +510,7 @@ template<typename ScalarX,typename ScalarY>
 struct pow_impl<ScalarX,ScalarY, true>
 {
   typedef ScalarX result_type;
-  static EIGEN_DEVICE_FUNC inline ScalarX run(const ScalarX &x, const ScalarY &y)
+  static EIGEN_DEVICE_FUNC inline ScalarX run(ScalarX x, ScalarY y)
   {
     ScalarX res(1);
     eigen_assert(!NumTraits<ScalarY>::IsSigned || y >= 0);
