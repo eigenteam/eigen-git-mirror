@@ -220,6 +220,7 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   ei_add_test(cxx11_tensor_reduction_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
   ei_add_test(cxx11_tensor_cast_float16_cuda)
+#  ei_add_test(cxx11_tensor_scan_cuda)
 
   # The random number generation code requires arch 3.5 or greater.
   if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 34)
