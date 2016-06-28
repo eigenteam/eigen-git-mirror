@@ -14,9 +14,15 @@ namespace Eigen {
 
 namespace internal {
 
-const uint32_t  conj_XOR_DATA[] = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
-static uint32x4_t p4ui_CONJ_XOR = vld1q_u32( conj_XOR_DATA );
-static uint32x2_t p2ui_CONJ_XOR = vld1_u32( conj_XOR_DATA );
+inline uint32x4_t p4ui_CONJ_XOR() {
+  static const uint32_t conj_XOR_DATA[] = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
+  return vld1q_u32( conj_XOR_DATA );
+}
+
+inline uint32x2_t p2ui_CONJ_XOR() {
+  static const uint32_t conj_XOR_DATA[] = { 0x00000000, 0x80000000 };
+  return vld1_u32( conj_XOR_DATA );
+}
 
 //---------- float ----------
 struct Packet2cf
@@ -65,7 +71,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pnegate(const Packet2cf& a) { return Pa
 template<> EIGEN_STRONG_INLINE Packet2cf pconj(const Packet2cf& a)
 {
   Packet4ui b = vreinterpretq_u32_f32(a.v);
-  return Packet2cf(vreinterpretq_f32_u32(veorq_u32(b, p4ui_CONJ_XOR)));
+  return Packet2cf(vreinterpretq_f32_u32(veorq_u32(b, p4ui_CONJ_XOR())));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
@@ -81,7 +87,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   // Multiply the imag a with b
   v2 = vmulq_f32(v2, b.v);
   // Conjugate v2 
-  v2 = vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(v2), p4ui_CONJ_XOR));
+  v2 = vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(v2), p4ui_CONJ_XOR()));
   // Swap real/imag elements in v2.
   v2 = vrev64q_f32(v2);
   // Add and return the result
@@ -196,7 +202,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float> predux_mul<Packet2cf>(const P
   // Multiply the imag a with b
   v2 = vmul_f32(v2, a2);
   // Conjugate v2 
-  v2 = vreinterpret_f32_u32(veor_u32(vreinterpret_u32_f32(v2), p2ui_CONJ_XOR));
+  v2 = vreinterpret_f32_u32(veor_u32(vreinterpret_u32_f32(v2), p2ui_CONJ_XOR()));
   // Swap real/imag elements in v2.
   v2 = vrev64_f32(v2);
   // Add v1, v2
