@@ -167,7 +167,7 @@
 
 #define EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
      ( \
-        (int(internal::size_of_xpr_at_compile_time<TYPE0>::ret)==0 && int(internal::size_of_xpr_at_compile_time<TYPE1>::ret)==0) \
+        (int(Eigen::internal::size_of_xpr_at_compile_time<TYPE0>::ret)==0 && int(Eigen::internal::size_of_xpr_at_compile_time<TYPE1>::ret)==0) \
     || (\
           (int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
         || int(TYPE1::RowsAtCompileTime)==Eigen::Dynamic \
@@ -194,16 +194,16 @@
                           THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS)
 
 #define EIGEN_STATIC_ASSERT_LVALUE(Derived) \
-      EIGEN_STATIC_ASSERT(internal::is_lvalue<Derived>::value, \
+      EIGEN_STATIC_ASSERT(Eigen::internal::is_lvalue<Derived>::value, \
                           THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY)
 
 #define EIGEN_STATIC_ASSERT_ARRAYXPR(Derived) \
-      EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Derived>::XprKind, ArrayXpr>::value), \
+      EIGEN_STATIC_ASSERT((Eigen::internal::is_same<typename Eigen::internal::traits<Derived>::XprKind, ArrayXpr>::value), \
                           THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES)
 
 #define EIGEN_STATIC_ASSERT_SAME_XPR_KIND(Derived1, Derived2) \
-      EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Derived1>::XprKind, \
-                                             typename internal::traits<Derived2>::XprKind \
+      EIGEN_STATIC_ASSERT((Eigen::internal::is_same<typename Eigen::internal::traits<Derived1>::XprKind, \
+                                             typename Eigen::internal::traits<Derived2>::XprKind \
                                             >::value), \
                           YOU_CANNOT_MIX_ARRAYS_AND_MATRICES)
 
