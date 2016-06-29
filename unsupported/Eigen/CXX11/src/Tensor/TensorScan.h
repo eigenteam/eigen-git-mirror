@@ -9,9 +9,11 @@
 
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_SCAN_H
 #define EIGEN_CXX11_TENSOR_TENSOR_SCAN_H
+
 namespace Eigen {
 
 namespace internal {
+
 template <typename Op, typename XprType>
 struct traits<TensorScanOp<Op, XprType> >
     : public traits<XprType> {
@@ -42,9 +44,7 @@ struct nested<TensorScanOp<Op, XprType>, 1,
   * \ingroup CXX11_Tensor_Module
   *
   * \brief Tensor scan class.
-  *
   */
-
 template <typename Op, typename XprType>
 class TensorScanOp
     : public TensorBase<TensorScanOp<Op, XprType>, ReadOnlyAccessors> {
@@ -76,6 +76,9 @@ protected:
   const bool m_exclusive;
 };
 
+template <typename Self, typename Reducer, typename Device>
+struct ScanLauncher;
+
 // Eval as rvalue
 template <typename Op, typename ArgType, typename Device>
 struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
@@ -87,6 +90,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
   typedef typename internal::remove_const<typename XprType::Scalar>::type Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;
   typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> Self;
 
   enum {
     IsAligned = false,
@@ -128,17 +132,42 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
     return m_impl.dimensions();
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& stride() const {
+    return m_stride;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Index& size() const {
+    return m_size;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Op& accumulator() const {
+    return m_accumulator;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool exclusive() const {
+    return m_exclusive;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& inner() const {
+    return m_impl;
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Device& device() const {
+    return m_device;
+  }
+
+  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar* data) {
     m_impl.evalSubExprsIfNeeded(NULL);
+    ScanLauncher<Self, Op, Device> launcher;
     if (data) {
-      accumulateTo(data);
+      launcher(*this, data);
       return false;
-    } else {
-      const Index total_size = internal::array_prod(dimensions());
-      m_output = static_cast<CoeffReturnType*>(m_device.allocate(total_size * sizeof(Scalar)));
-      accumulateTo(m_output);
-      return true;
     }
+
+    const Index total_size = internal::array_prod(dimensions());
+    m_output = static_cast<CoeffReturnType*>(m_device.allocate(total_size * sizeof(Scalar)));
+    launcher(*this, m_output);
+    return true;
   }
 
   template<int LoadMode>
@@ -176,33 +205,82 @@ protected:
   const Index m_size;
   Index m_stride;
   CoeffReturnType* m_output;
+};
 
-  // TODO(ibab) Parallelize this single-threaded implementation if desired
-  EIGEN_DEVICE_FUNC void accumulateTo(Scalar* data) {
+// CPU implementation of scan
+// TODO(ibab) This single-threaded implementation should be parallelized,
+// at least by running multiple scans at the same time.
+template <typename Self, typename Reducer, typename Device>
+struct ScanLauncher {
+  void operator()(Self& self, typename Self::CoeffReturnType *data) {
+    Index total_size = internal::array_prod(self.dimensions());
+
     // We fix the index along the scan axis to 0 and perform a
     // scan per remaining entry. The iteration is split into two nested
     // loops to avoid an integer division by keeping track of each idx1 and idx2.
-    for (Index idx1 = 0; idx1 < dimensions().TotalSize() / m_size; idx1 += m_stride) {
-       for (Index idx2 = 0; idx2 < m_stride; idx2++) {
-          // Calculate the starting offset for the scan
-          Index offset = idx1 * m_size + idx2;
+    for (Index idx1 = 0; idx1 < total_size; idx1 += self.stride() * self.size()) {
+      for (Index idx2 = 0; idx2 < self.stride(); idx2++) {
+        // Calculate the starting offset for the scan
+        Index offset = idx1 + idx2;
 
-          // Compute the scan along the axis, starting at the calculated offset
-          CoeffReturnType accum = m_accumulator.initialize();
-          for (Index idx3 = 0; idx3 < m_size; idx3++) {
-            Index curr = offset + idx3 * m_stride;
-            if (m_exclusive) {
-              data[curr] = m_accumulator.finalize(accum);
-              m_accumulator.reduce(m_impl.coeff(curr), &accum);
-            } else {
-              m_accumulator.reduce(m_impl.coeff(curr), &accum);
-              data[curr] = m_accumulator.finalize(accum);
-            }
+        // Compute the scan along the axis, starting at the calculated offset
+        typename Self::CoeffReturnType accum = self.accumulator().initialize();
+        for (Index idx3 = 0; idx3 < self.size(); idx3++) {
+          Index curr = offset + idx3 * self.stride();
+
+          if (self.exclusive()) {
+            data[curr] = self.accumulator().finalize(accum);
+            self.accumulator().reduce(self.inner().coeff(curr), &accum);
+          } else {
+            self.accumulator().reduce(self.inner().coeff(curr), &accum);
+            data[curr] = self.accumulator().finalize(accum);
           }
-       }
+        }
+      }
     }
   }
 };
+
+#if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
+
+// GPU implementation of scan
+// TODO(ibab) This placeholder implementation performs multiple scans in
+// parallel, but it would be better to use a parallel scan algorithm and
+// optimize memory access.
+template <typename Self, typename Reducer>
+__global__ void ScanKernel(Self self, Index total_size, typename Self::CoeffReturnType* data) {
+  // Compute offset as in the CPU version
+  Index val = threadIdx.x + blockIdx.x * blockDim.x;
+  Index offset = (val / self.stride()) * self.stride() * self.size() + val % self.stride();
+
+  if (offset + (self.size() - 1) * self.stride() < total_size) {
+    // Compute the scan along the axis, starting at the calculated offset
+    typename Self::CoeffReturnType accum = self.accumulator().initialize();
+    for (Index idx = 0; idx < self.size(); idx++) {
+      Index curr = offset + idx * self.stride();
+      if (self.exclusive()) {
+        data[curr] = self.accumulator().finalize(accum);
+        self.accumulator().reduce(self.inner().coeff(curr), &accum);
+      } else {
+        self.accumulator().reduce(self.inner().coeff(curr), &accum);
+        data[curr] = self.accumulator().finalize(accum);
+      }
+    }
+  }
+  __syncthreads();
+
+}
+
+template <typename Self, typename Reducer>
+struct ScanLauncher<Self, Reducer, GpuDevice> {
+  void operator()(const Self& self, typename Self::CoeffReturnType* data) {
+     Index total_size = internal::array_prod(self.dimensions());
+     Index num_blocks = (total_size / self.size() + 63) / 64;
+     Index block_size = 64;
+     LAUNCH_CUDA_KERNEL((ScanKernel<Self, Reducer>), num_blocks, block_size, 0, self.device(), self, total_size, data);
+  }
+};
+#endif  // EIGEN_USE_GPU && __CUDACC__
 
 }  // end namespace Eigen
 
