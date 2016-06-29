@@ -336,9 +336,11 @@ struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
-#else
+#elif __CUDA_ARCH__ >= 300
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
+#else
+  static const bool HasOptimizedImplementation = false;
 #endif
 
   template <typename OutputType>
@@ -617,9 +619,11 @@ struct InnerReducer<Self, Op, GpuDevice> {
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
-#else
+#elif __CUDA_ARCH__ >= 300
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
+#else
+  static const bool HasOptimizedImplementation = false;
 #endif
 
   template <typename OutputType>
@@ -674,8 +678,12 @@ struct OuterReducer<Self, Op, GpuDevice> {
   // Unfortunately nvidia doesn't support well exotic types such as complex,
   // so reduce the scope of the optimized version of the code to the simple case
   // of floats.
+#if __CUDA_ARCH__ >= 300
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                  internal::is_same<typename Self::CoeffReturnType, float>::value;
+#else
+  static const bool HasOptimizedImplementation = false;
+#endif
 
   template <typename Device, typename OutputType>
   static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
