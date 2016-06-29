@@ -117,6 +117,7 @@ template <int BlockSize, int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num_coeffs,
                                     typename Self::CoeffReturnType* output, unsigned int* semaphore) {
+#if __CUDA_ARCH__ >= 300
   // Initialize the output value
   const Index first_index = blockIdx.x * BlockSize * NumPerThread + threadIdx.x;
   if (gridDim.x == 1) {
@@ -171,6 +172,9 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
     // Let the last block reset the semaphore
     atomicInc(semaphore, gridDim.x + 1);
   }
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
 }
 
 
@@ -355,6 +359,7 @@ template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
                                          typename Self::CoeffReturnType* output) {
+#if __CUDA_ARCH__ >= 300
   eigen_assert(blockDim.y == 1);
   eigen_assert(blockDim.z == 1);
   eigen_assert(gridDim.y == 1);
@@ -414,6 +419,9 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
       }
     }
   }
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
 }
 
 #ifdef EIGEN_HAS_CUDA_FP16
