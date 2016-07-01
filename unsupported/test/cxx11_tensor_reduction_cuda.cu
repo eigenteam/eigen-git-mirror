@@ -16,7 +16,7 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 
 
-template<int DataLayout>
+template<typename Type, int DataLayout>
 static void test_full_reductions() {
 
   Eigen::CudaStreamDevice stream;
@@ -25,24 +25,24 @@ static void test_full_reductions() {
   const int num_rows = internal::random<int>(1024, 5*1024);
   const int num_cols = internal::random<int>(1024, 5*1024);
 
-  Tensor<float, 2, DataLayout> in(num_rows, num_cols);
+  Tensor<Type, 2, DataLayout> in(num_rows, num_cols);
   in.setRandom();
 
-  Tensor<float, 0, DataLayout> full_redux;
+  Tensor<Type, 0, DataLayout> full_redux;
   full_redux = in.sum();
 
-  std::size_t in_bytes = in.size() * sizeof(float);
-  std::size_t out_bytes = full_redux.size() * sizeof(float);
-  float* gpu_in_ptr = static_cast<float*>(gpu_device.allocate(in_bytes));
-  float* gpu_out_ptr = static_cast<float*>(gpu_device.allocate(out_bytes));
+  std::size_t in_bytes = in.size() * sizeof(Type);
+  std::size_t out_bytes = full_redux.size() * sizeof(Type);
+  Type* gpu_in_ptr = static_cast<Type*>(gpu_device.allocate(in_bytes));
+  Type* gpu_out_ptr = static_cast<Type*>(gpu_device.allocate(out_bytes));
   gpu_device.memcpyHostToDevice(gpu_in_ptr, in.data(), in_bytes);
 
-  TensorMap<Tensor<float, 2, DataLayout> > in_gpu(gpu_in_ptr, num_rows, num_cols);
-  TensorMap<Tensor<float, 0, DataLayout> > out_gpu(gpu_out_ptr);
+  TensorMap<Tensor<Type, 2, DataLayout> > in_gpu(gpu_in_ptr, num_rows, num_cols);
+  TensorMap<Tensor<Type, 0, DataLayout> > out_gpu(gpu_out_ptr);
 
   out_gpu.device(gpu_device) = in_gpu.sum();
 
-  Tensor<float, 0, DataLayout> full_redux_gpu;
+  Tensor<Type, 0, DataLayout> full_redux_gpu;
   gpu_device.memcpyDeviceToHost(full_redux_gpu.data(), gpu_out_ptr, out_bytes);
   gpu_device.synchronize();
 
@@ -54,6 +54,8 @@ static void test_full_reductions() {
 }
 
 void test_cxx11_tensor_reduction_cuda() {
-  CALL_SUBTEST_1(test_full_reductions<ColMajor>());
-  CALL_SUBTEST_2(test_full_reductions<RowMajor>());
+  CALL_SUBTEST_1((test_full_reductions<float, ColMajor>()));
+  CALL_SUBTEST_1((test_full_reductions<double, ColMajor>()));
+  CALL_SUBTEST_2((test_full_reductions<float, RowMajor>()));
+  CALL_SUBTEST_2((test_full_reductions<double, RowMajor>()));
 }
