@@ -210,6 +210,18 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_real_op<Scalar>, const Derived>
+    real() const {
+      return unaryExpr(internal::scalar_real_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_imag_op<Scalar>, const Derived>
+    imag() const {
+      return unaryExpr(internal::scalar_imag_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::bind2nd_op<internal::scalar_sum_op<Scalar,Scalar> >, const Derived>
     operator+ (Scalar rhs) const {
       return unaryExpr(internal::bind2nd_op<internal::scalar_sum_op<Scalar,Scalar> >(rhs));
