@@ -299,16 +299,6 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
   if (!useSpecificBlockingSizes(k, m, n)) {
     evaluateProductBlockingSizesHeuristic<LhsScalar, RhsScalar, KcFactor, Index>(k, m, n, num_threads);
   }
-
-  typedef gebp_traits<LhsScalar,RhsScalar> Traits;
-  enum {
-    kr = 8,
-    mr = Traits::mr,
-    nr = Traits::nr
-  };
-  if (k > kr) k -= k % kr;
-  if (m > mr) m -= m % mr;
-  if (n > nr) n -= n % nr;
 }
 
 template<typename LhsScalar, typename RhsScalar, typename Index>
