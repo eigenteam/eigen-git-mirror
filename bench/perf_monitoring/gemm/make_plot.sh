@@ -25,7 +25,7 @@ echo "set xtics rotate 1" >> $WHAT.gnuplot
 echo "set term pdf color rounded enhanced fontscale 0.35 size 7in,5in" >> $WHAT.gnuplot
 echo set output "'"$WHAT.pdf"'" >> $WHAT.gnuplot
 
-col=`cat settings.txt | wc -l`
+col=`cat $bench"_settings.txt" | wc -l`
 echo "plot for [col=2:$col+1] '$WHAT.out.header' using 0:col:xticlabels(1) with lines" >> $WHAT.gnuplot
 echo " " >>  $WHAT.gnuplot
 
