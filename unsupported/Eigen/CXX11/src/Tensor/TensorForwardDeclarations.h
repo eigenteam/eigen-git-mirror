@@ -16,7 +16,7 @@ template<typename Scalar_, int NumIndices_, int Options_ = 0, typename IndexType
 template<typename Scalar_, typename Dimensions, int Options_ = 0, typename IndexType = DenseIndex> class TensorFixedSize;
 template<typename PlainObjectType, int Options_ = Unaligned> class TensorMap;
 template<typename PlainObjectType> class TensorRef;
-template<typename Derived, int AccessLevel = internal::accessors_level<Derived>::value> class TensorBase;
+template<typename Derived, int AccessLevel> class TensorBase;
 
 template<typename NullaryOp, typename PlainObjectType> class TensorCwiseNullaryOp;
 template<typename UnaryOp, typename XprType> class TensorCwiseUnaryOp;

@@ -805,8 +805,8 @@ class TensorBase<Derived, ReadOnlyAccessors>
     EIGEN_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
 };
 
-template<typename Derived>
-class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyAccessors> {
+template<typename Derived, int AccessLevel = internal::accessors_level<Derived>::value>
+class TensorBase : public TensorBase<Derived, ReadOnlyAccessors> {
  public:
     typedef internal::traits<Derived> DerivedTraits;
     typedef typename DerivedTraits::Scalar Scalar;
