@@ -11,6 +11,21 @@
 #include <Eigen/SparseCore>
 #include <sstream>
 
+template<typename Solver, typename Rhs, typename Guess,typename Result>
+void solve_with_guess(IterativeSolverBase<Solver>& solver, const MatrixBase<Rhs>& b, const Guess& g, Result &x) {
+  x = solver.derived().solveWithGuess(b.derived(),g);
+}
+
+template<typename Solver, typename Rhs, typename Guess,typename Result>
+void solve_with_guess(SparseSolverBase<Solver>& solver, const MatrixBase<Rhs>& b, const Guess& , Result& x) {
+  x = solver.derived().solve(b);
+}
+
+template<typename Solver, typename Rhs, typename Guess,typename Result>
+void solve_with_guess(SparseSolverBase<Solver>& solver, const SparseMatrixBase<Rhs>& b, const Guess& , Result& x) {
+  x = solver.derived().solve(b);
+}
+
 template<typename Solver, typename Rhs, typename DenseMat, typename DenseRhs>
 void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, const Rhs& b, const DenseMat& dA, const DenseRhs& db)
 {
@@ -35,6 +50,12 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
       std::cerr << "WARNING | sparse solver testing: solving failed (" << typeid(Solver).name() << ")\n";
       return;
     }
+    VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
+    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+
+    x.setZero();
+    solve_with_guess(solver, b, x, x);
+    VERIFY(solver.info() == Success && "solving failed when using analyzePattern/factorize API");
     VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
     VERIFY(x.isApprox(refX,test_precision<Scalar>()));
     

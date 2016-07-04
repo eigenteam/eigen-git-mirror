@@ -81,7 +81,8 @@ struct evaluator<SolveWithGuess<Decomposition,RhsType, GuessType> >
     : m_result(solve.rows(), solve.cols())
   {
     ::new (static_cast<Base*>(this)) Base(m_result);
-    solve.dec()._solve_with_guess_impl(solve.rhs(), m_result, solve().guess());
+    m_result = solve.guess();
+    solve.dec()._solve_with_guess_impl(solve.rhs(), m_result);
   }
   
 protected:  
@@ -91,7 +92,7 @@ protected:
 // Specialization for "dst = dec.solveWithGuess(rhs)"
 // NOTE we need to specialize it for Dense2Dense to avoid ambiguous specialization error and a Sparse2Sparse specialization must exist somewhere
 template<typename DstXprType, typename DecType, typename RhsType, typename GuessType, typename Scalar>
-struct Assignment<DstXprType, SolveWithGuess<DecType,RhsType,GuessType>, internal::assign_op<Scalar,Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, SolveWithGuess<DecType,RhsType,GuessType>, internal::assign_op<Scalar,Scalar>, Dense2Dense>
 {
   typedef SolveWithGuess<DecType,RhsType,GuessType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
