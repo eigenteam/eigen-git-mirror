@@ -68,6 +68,8 @@ struct enable_if_ref<Ref<T>,Derived> {
   *
   * The data of the LU decomposition can be directly accessed through the methods matrixLU(), permutationP().
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  * 
   * \sa MatrixBase::partialPivLu(), MatrixBase::determinant(), MatrixBase::inverse(), MatrixBase::computeInverse(), class FullPivLU
   */
 template<typename _MatrixType> class PartialPivLU
@@ -113,16 +115,9 @@ template<typename _MatrixType> class PartialPivLU
     template<typename InputType>
     explicit PartialPivLU(const EigenBase<InputType>& matrix);
 
-    /** Constructor for inplace decomposition
+    /** Constructor for \link InplaceDecomposition inplace decomposition \endlink
       *
       * \param matrix the matrix of which to compute the LU decomposition.
-      *
-      * If \c MatrixType is an Eigen::Ref, then the storage of \a matrix will be shared
-      * between \a matrix and \c *this and the decomposition will take place in-place.
-      * The memory of \a matrix will be used througrough the lifetime of \c *this. In
-      * particular, further calls to \c this->compute(A) will still operate on the memory
-      * of \a matrix meaning. This also implies that the sizes of \c A must match the
-      * ones of \a matrix.
       *
       * \warning The matrix should have full rank (e.g. if it's square, it should be invertible).
       * If you need to deal with non-full rank, use class FullPivLU instead.

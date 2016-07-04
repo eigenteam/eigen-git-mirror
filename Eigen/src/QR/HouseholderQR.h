@@ -37,6 +37,8 @@ namespace Eigen {
   * This Householder QR decomposition is faster, but less numerically stable and less feature-full than
   * FullPivHouseholderQR or ColPivHouseholderQR.
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  *
   * \sa MatrixBase::householderQr()
   */
 template<typename _MatrixType> class HouseholderQR
@@ -104,7 +106,7 @@ template<typename _MatrixType> class HouseholderQR
 
     /** \brief Constructs a QR factorization from a given matrix
       *
-      * This overloaded constructor is provided for inplace solving when
+      * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when
       * \c MatrixType is a Eigen::Ref.
       *
       * \sa HouseholderQR(const EigenBase&)

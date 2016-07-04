@@ -106,6 +106,8 @@ namespace Eigen {
     \ingroup DenseLinearSolvers_chapter */
 /** \addtogroup LeastSquares 
     \ingroup DenseLinearSolvers_chapter */
+/** \addtogroup InplaceDecomposition
+    \ingroup DenseLinearSolvers_chapter */
 
 /** \addtogroup DenseLinearSolvers_Reference
     \ingroup DenseLinearSolvers_chapter */

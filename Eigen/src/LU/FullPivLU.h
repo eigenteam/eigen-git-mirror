@@ -52,6 +52,8 @@ template<typename _MatrixType> struct traits<FullPivLU<_MatrixType> >
   * \include class_FullPivLU.cpp
   * Output: \verbinclude class_FullPivLU.out
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  * 
   * \sa MatrixBase::fullPivLu(), MatrixBase::determinant(), MatrixBase::inverse()
   */
 template<typename _MatrixType> class FullPivLU
@@ -99,7 +101,7 @@ template<typename _MatrixType> class FullPivLU
 
     /** \brief Constructs a LU factorization from a given matrix
       *
-      * This overloaded constructor is provided for inplace solving when \c MatrixType is a Eigen::Ref.
+      * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when \c MatrixType is a Eigen::Ref.
       *
       * \sa FullPivLU(const EigenBase&)
       */

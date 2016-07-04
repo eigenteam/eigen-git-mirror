@@ -39,6 +39,8 @@ struct traits<CompleteOrthogonalDecomposition<_MatrixType> >
   * \b Q and \b Z are unitary matrices and \b T an upper triangular matrix of
   * size rank-by-rank. \b A may be rank deficient.
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  * 
   * \sa MatrixBase::completeOrthogonalDecomposition()
   */
 template <typename _MatrixType>
@@ -117,7 +119,7 @@ class CompleteOrthogonalDecomposition {
 
   /** \brief Constructs a complete orthogonal decomposition from a given matrix
     *
-    * This overloaded constructor is provided for inplace solving when \c MatrixType is a Eigen::Ref.
+    * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when \c MatrixType is a Eigen::Ref.
     *
     * \sa CompleteOrthogonalDecomposition(const EigenBase&)
     */

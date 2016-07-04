@@ -43,6 +43,8 @@ namespace internal {
   * Remember that Cholesky decompositions are not rank-revealing. Also, do not use a Cholesky
   * decomposition to determine whether a system of equations has a solution.
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  * 
   * \sa MatrixBase::ldlt(), SelfAdjointView::ldlt(), class LLT
   */
 template<typename _MatrixType, int _UpLo> class LDLT
@@ -112,7 +114,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
 
     /** \brief Constructs a LDLT factorization from a given matrix
       *
-      * This overloaded constructor is provided for inplace solving when \c MatrixType is a Eigen::Ref.
+      * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when \c MatrixType is a Eigen::Ref.
       *
       * \sa LDLT(const EigenBase&)
       */
