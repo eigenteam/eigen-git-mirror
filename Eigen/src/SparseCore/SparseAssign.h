@@ -124,8 +124,8 @@ void assign_sparse_to_sparse(DstXprType &dst, const SrcXprType &src)
 }
 
 // Generic Sparse to Sparse assignment
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
@@ -134,8 +134,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Sparse, Scalar>
 };
 
 // Generic Sparse to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
@@ -156,7 +156,7 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense, Scalar>
 // Specialization for "dst = dec.solve(rhs)"
 // NOTE we need to specialize it for Sparse2Sparse to avoid ambiguous specialization error
 template<typename DstXprType, typename DecType, typename RhsType, typename Scalar>
-struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar,Scalar>, Sparse2Sparse, Scalar>
+struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar,Scalar>, Sparse2Sparse>
 {
   typedef Solve<DecType,RhsType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
@@ -169,10 +169,11 @@ struct Diagonal2Sparse {};
 
 template<> struct AssignmentKind<SparseShape,DiagonalShape> { typedef Diagonal2Sparse Kind; };
 
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Sparse, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Sparse>
 {
   typedef typename DstXprType::StorageIndex StorageIndex;
+  typedef typename DstXprType::Scalar Scalar;
   typedef Array<StorageIndex,Dynamic,1> ArrayXI;
   typedef Array<Scalar,Dynamic,1> ArrayXS;
   template<int Options>

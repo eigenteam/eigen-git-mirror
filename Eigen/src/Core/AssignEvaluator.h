@@ -709,7 +709,7 @@ template<> struct AssignmentKind<DenseShape,DenseShape> { typedef Dense2Dense Ki
 // This is the main assignment class
 template< typename DstXprType, typename SrcXprType, typename Functor,
           typename Kind = typename AssignmentKind< typename evaluator_traits<DstXprType>::Shape , typename evaluator_traits<SrcXprType>::Shape >::Kind,
-          typename Scalar = typename DstXprType::Scalar>
+          typename EnableIf = void>
 struct Assignment;
 
 
@@ -816,8 +816,8 @@ void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src)
 template<typename Dst, typename Src> void check_for_aliasing(const Dst &dst, const Src &src);
 
 // Generic Dense to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense>
 {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
@@ -834,8 +834,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Scalar>
 
 // Generic assignment through evalTo.
 // TODO: not sure we have to keep that one, but it helps porting current code to new evaluator mechanism.
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase>
 {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)

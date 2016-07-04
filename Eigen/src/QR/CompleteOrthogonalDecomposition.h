@@ -510,7 +510,7 @@ void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
 namespace internal {
 
 template<typename DstXprType, typename MatrixType, typename Scalar>
-struct Assignment<DstXprType, Inverse<CompleteOrthogonalDecomposition<MatrixType> >, internal::assign_op<Scalar,Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, Inverse<CompleteOrthogonalDecomposition<MatrixType> >, internal::assign_op<Scalar,Scalar>, Dense2Dense>
 {
   typedef CompleteOrthogonalDecomposition<MatrixType> CodType;
   typedef Inverse<CodType> SrcXprType;
