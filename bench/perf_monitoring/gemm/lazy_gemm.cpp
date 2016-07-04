@@ -12,12 +12,13 @@ using namespace Eigen;
 typedef SCALAR Scalar;
 
 template<typename MatA, typename MatB, typename MatC>
-inline void lazy_gemm(const MatA &A, const MatB &B, MatC &C)
+EIGEN_DONT_INLINE
+void lazy_gemm(const MatA &A, const MatB &B, MatC &C)
 {
-  escape((void*)A.data());
-  escape((void*)B.data());
+//   escape((void*)A.data());
+//   escape((void*)B.data());
   C.noalias() += A.lazyProduct(B);
-  escape((void*)C.data());
+//   escape((void*)C.data());
 }
 
 template<int m, int n, int k, int TA>
