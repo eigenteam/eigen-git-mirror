@@ -104,144 +104,142 @@ template<typename Scalar, int Mode, int Options> void transformations()
   typedef Translation<Scalar,2> Translation2;
   typedef Translation<Scalar,3> Translation3;
 
-//   Vector3 v0 = Vector3::Random(),
-//           v1 = Vector3::Random();
-//   Matrix3 matrot1, m;
-//
-//   Scalar a = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
-//   Scalar s0 = internal::random<Scalar>(), s1 = internal::random<Scalar>();
-//
-//   while(v0.norm() < test_precision<Scalar>()) v0 = Vector3::Random();
-//   while(v1.norm() < test_precision<Scalar>()) v1 = Vector3::Random();
-//
-//   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
-//   VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(EIGEN_PI), v0.unitOrthogonal()) * v0);
-//   if(abs(cos(a)) > test_precision<Scalar>())
-//   {
-//     VERIFY_IS_APPROX(cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
-//   }
-//   m = AngleAxisx(a, v0.normalized()).toRotationMatrix().adjoint();
-//   VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxisx(a, v0.normalized()));
-//   VERIFY_IS_APPROX(Matrix3::Identity(), AngleAxisx(a, v0.normalized()) * m);
-//
-//   Quaternionx q1, q2;
-//   q1 = AngleAxisx(a, v0.normalized());
-//   q2 = AngleAxisx(a, v1.normalized());
-//
-//   // rotation matrix conversion
-//   matrot1 = AngleAxisx(Scalar(0.1), Vector3::UnitX())
-//           * AngleAxisx(Scalar(0.2), Vector3::UnitY())
-//           * AngleAxisx(Scalar(0.3), Vector3::UnitZ());
-//   VERIFY_IS_APPROX(matrot1 * v1,
-//        AngleAxisx(Scalar(0.1), Vector3(1,0,0)).toRotationMatrix()
-//     * (AngleAxisx(Scalar(0.2), Vector3(0,1,0)).toRotationMatrix()
-//     * (AngleAxisx(Scalar(0.3), Vector3(0,0,1)).toRotationMatrix() * v1)));
-//
-//   // angle-axis conversion
-//   AngleAxisx aa = AngleAxisx(q1);
-//   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
-//
-//   // The following test is stable only if 2*angle != angle and v1 is not colinear with axis
-//   if( (abs(aa.angle()) > test_precision<Scalar>()) && (abs(aa.axis().dot(v1.normalized()))<(Scalar(1)-Scalar(4)*test_precision<Scalar>())) )
-//   {
-//     VERIFY( !(q1 * v1).isApprox(Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1) );
-//   }
-//
-//   aa.fromRotationMatrix(aa.toRotationMatrix());
-//   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
-//   // The following test is stable only if 2*angle != angle and v1 is not colinear with axis
-//   if( (abs(aa.angle()) > test_precision<Scalar>()) && (abs(aa.axis().dot(v1.normalized()))<(Scalar(1)-Scalar(4)*test_precision<Scalar>())) )
-//   {
-//     VERIFY( !(q1 * v1).isApprox(Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1) );
-//   }
-//
-//   // AngleAxis
-//   VERIFY_IS_APPROX(AngleAxisx(a,v1.normalized()).toRotationMatrix(),
-//     Quaternionx(AngleAxisx(a,v1.normalized())).toRotationMatrix());
-//
-//   AngleAxisx aa1;
-//   m = q1.toRotationMatrix();
-//   aa1 = m;
-//   VERIFY_IS_APPROX(AngleAxisx(m).toRotationMatrix(),
-//     Quaternionx(m).toRotationMatrix());
-//
-//   // Transform
-//   // TODO complete the tests !
-//   a = 0;
-//   while (abs(a)<Scalar(0.1))
-//     a = internal::random<Scalar>(-Scalar(0.4)*Scalar(EIGEN_PI), Scalar(0.4)*Scalar(EIGEN_PI));
-//   q1 = AngleAxisx(a, v0.normalized());
-//   Transform3 t0, t1, t2;
-//
-//   // first test setIdentity() and Identity()
-//   t0.setIdentity();
-//   VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
-//   t0.matrix().setZero();
-//   t0 = Transform3::Identity();
-//   VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
-//
-//   t0.setIdentity();
-//   t1.setIdentity();
-//   v1 << 1, 2, 3;
-//   t0.linear() = q1.toRotationMatrix();
-//   t0.pretranslate(v0);
-//   t0.scale(v1);
-//   t1.linear() = q1.conjugate().toRotationMatrix();
-//   t1.prescale(v1.cwiseInverse());
-//   t1.translate(-v0);
-//
-//   VERIFY((t0 * t1).matrix().isIdentity(test_precision<Scalar>()));
-//
-//   t1.fromPositionOrientationScale(v0, q1, v1);
-//   VERIFY_IS_APPROX(t1.matrix(), t0.matrix());
-//
-//   t0.setIdentity(); t0.scale(v0).rotate(q1.toRotationMatrix());
-//   t1.setIdentity(); t1.scale(v0).rotate(q1);
-//   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
-//
-//   t0.setIdentity(); t0.scale(v0).rotate(AngleAxisx(q1));
-//   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
-//
-//   VERIFY_IS_APPROX(t0.scale(a).matrix(), t1.scale(Vector3::Constant(a)).matrix());
-//   VERIFY_IS_APPROX(t0.prescale(a).matrix(), t1.prescale(Vector3::Constant(a)).matrix());
-//
-//   // More transform constructors, operator=, operator*=
-//
-//   Matrix3 mat3 = Matrix3::Random();
-//   Matrix4 mat4;
-//   mat4 << mat3 , Vector3::Zero() , Vector4::Zero().transpose();
-//   Transform3 tmat3(mat3), tmat4(mat4);
-//   if(Mode!=int(AffineCompact))
-//     tmat4.matrix()(3,3) = Scalar(1);
-//   VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
-//
-//   Scalar a3 = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
-  Vector3 v3;// = Vector3::Random().normalized();
-//   AngleAxisx aa3(a3, v3);
-//   Transform3 t3(aa3);
+  Vector3 v0 = Vector3::Random(),
+          v1 = Vector3::Random();
+  Matrix3 matrot1, m;
+
+  Scalar a = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
+  Scalar s0 = internal::random<Scalar>(), s1 = internal::random<Scalar>();
+  
+  while(v0.norm() < test_precision<Scalar>()) v0 = Vector3::Random();
+  while(v1.norm() < test_precision<Scalar>()) v1 = Vector3::Random();
+
+  VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
+  VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(EIGEN_PI), v0.unitOrthogonal()) * v0);
+  if(abs(cos(a)) > test_precision<Scalar>())
+  {
+    VERIFY_IS_APPROX(cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
+  }
+  m = AngleAxisx(a, v0.normalized()).toRotationMatrix().adjoint();
+  VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxisx(a, v0.normalized()));
+  VERIFY_IS_APPROX(Matrix3::Identity(), AngleAxisx(a, v0.normalized()) * m);
+
+  Quaternionx q1, q2;
+  q1 = AngleAxisx(a, v0.normalized());
+  q2 = AngleAxisx(a, v1.normalized());
+
+  // rotation matrix conversion
+  matrot1 = AngleAxisx(Scalar(0.1), Vector3::UnitX())
+          * AngleAxisx(Scalar(0.2), Vector3::UnitY())
+          * AngleAxisx(Scalar(0.3), Vector3::UnitZ());
+  VERIFY_IS_APPROX(matrot1 * v1,
+       AngleAxisx(Scalar(0.1), Vector3(1,0,0)).toRotationMatrix()
+    * (AngleAxisx(Scalar(0.2), Vector3(0,1,0)).toRotationMatrix()
+    * (AngleAxisx(Scalar(0.3), Vector3(0,0,1)).toRotationMatrix() * v1)));
+
+  // angle-axis conversion
+  AngleAxisx aa = AngleAxisx(q1);
+  VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
+  
+  // The following test is stable only if 2*angle != angle and v1 is not colinear with axis
+  if( (abs(aa.angle()) > test_precision<Scalar>()) && (abs(aa.axis().dot(v1.normalized()))<(Scalar(1)-Scalar(4)*test_precision<Scalar>())) )
+  {
+    VERIFY( !(q1 * v1).isApprox(Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1) );
+  }
+
+  aa.fromRotationMatrix(aa.toRotationMatrix());
+  VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
+  // The following test is stable only if 2*angle != angle and v1 is not colinear with axis
+  if( (abs(aa.angle()) > test_precision<Scalar>()) && (abs(aa.axis().dot(v1.normalized()))<(Scalar(1)-Scalar(4)*test_precision<Scalar>())) )
+  {
+    VERIFY( !(q1 * v1).isApprox(Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1) );
+  }
+
+  // AngleAxis
+  VERIFY_IS_APPROX(AngleAxisx(a,v1.normalized()).toRotationMatrix(),
+    Quaternionx(AngleAxisx(a,v1.normalized())).toRotationMatrix());
+
+  AngleAxisx aa1;
+  m = q1.toRotationMatrix();
+  aa1 = m;
+  VERIFY_IS_APPROX(AngleAxisx(m).toRotationMatrix(),
+    Quaternionx(m).toRotationMatrix());
+
+  // Transform
+  // TODO complete the tests !
+  a = 0;
+  while (abs(a)<Scalar(0.1))
+    a = internal::random<Scalar>(-Scalar(0.4)*Scalar(EIGEN_PI), Scalar(0.4)*Scalar(EIGEN_PI));
+  q1 = AngleAxisx(a, v0.normalized());
+  Transform3 t0, t1, t2;
+
+  // first test setIdentity() and Identity()
+  t0.setIdentity();
+  VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
+  t0.matrix().setZero();
+  t0 = Transform3::Identity();
+  VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
+
+  t0.setIdentity();
+  t1.setIdentity();
+  v1 << 1, 2, 3;
+  t0.linear() = q1.toRotationMatrix();
+  t0.pretranslate(v0);
+  t0.scale(v1);
+  t1.linear() = q1.conjugate().toRotationMatrix();
+  t1.prescale(v1.cwiseInverse());
+  t1.translate(-v0);
+
+  VERIFY((t0 * t1).matrix().isIdentity(test_precision<Scalar>()));
+
+  t1.fromPositionOrientationScale(v0, q1, v1);
+  VERIFY_IS_APPROX(t1.matrix(), t0.matrix());
+
+  t0.setIdentity(); t0.scale(v0).rotate(q1.toRotationMatrix());
+  t1.setIdentity(); t1.scale(v0).rotate(q1);
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  t0.setIdentity(); t0.scale(v0).rotate(AngleAxisx(q1));
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+  VERIFY_IS_APPROX(t0.scale(a).matrix(), t1.scale(Vector3::Constant(a)).matrix());
+  VERIFY_IS_APPROX(t0.prescale(a).matrix(), t1.prescale(Vector3::Constant(a)).matrix());
+
+  // More transform constructors, operator=, operator*=
+
+  Matrix3 mat3 = Matrix3::Random();
+  Matrix4 mat4;
+  mat4 << mat3 , Vector3::Zero() , Vector4::Zero().transpose();
+  Transform3 tmat3(mat3), tmat4(mat4);
+  if(Mode!=int(AffineCompact))
+    tmat4.matrix()(3,3) = Scalar(1);
+  VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
+
+  Scalar a3 = internal::random<Scalar>(-Scalar(EIGEN_PI), Scalar(EIGEN_PI));
+  Vector3 v3 = Vector3::Random().normalized();
+  AngleAxisx aa3(a3, v3);
+  Transform3 t3(aa3);
   Transform3 t4;
-//   t4 = aa3;
-//   VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
-//   t4.rotate(AngleAxisx(-a3,v3));
-//   VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
-//   t4 *= aa3;
-//   VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
+  t4 = aa3;
+  VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
+  t4.rotate(AngleAxisx(-a3,v3));
+  VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
+  t4 *= aa3;
+  VERIFY_IS_APPROX(t3.matrix(), t4.matrix());
 
   do {
-    v3 = Vector3::Ones();//Random();
-//     dont_over_optimize(v3);
+    v3 = Vector3::Random();
+    dont_over_optimize(v3);
   } while (v3.cwiseAbs().minCoeff()<NumTraits<Scalar>::epsilon());
   Translation3 tv3(v3);
   Transform3 t5(tv3);
   t4 = tv3;
-  std::cout << t4.matrix() << "\n\n";
-  std::cout << t5.matrix() << "\n\n";
-//   VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
+  VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
   t4.translate((-v3).eval());
-//   VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
-//   t4 *= tv3;
-//   VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
-#if 0
+  VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
+  t4 *= tv3;
+  VERIFY_IS_APPROX(t5.matrix(), t4.matrix());
+
   AlignedScaling3 sv3(v3);
   Transform3 t6(sv3);
   t4 = sv3;
@@ -484,7 +482,6 @@ template<typename Scalar, int Mode, int Options> void transformations()
     Rotation2D<Scalar> r2(r1);       // copy ctor
     VERIFY_IS_APPROX(r2.angle(),s0);
   }
-#endif
 }
 
 template<typename Scalar> void transform_alignment()
@@ -550,8 +547,8 @@ void test_geo_transformations()
     CALL_SUBTEST_2(( transform_alignment<float>() ));
     
     CALL_SUBTEST_3(( transformations<double,Projective,AutoAlign>() ));
-//     CALL_SUBTEST_3(( transformations<double,Projective,DontAlign>() ));
-//     CALL_SUBTEST_3(( transform_alignment<double>() ));
+    CALL_SUBTEST_3(( transformations<double,Projective,DontAlign>() ));
+    CALL_SUBTEST_3(( transform_alignment<double>() ));
     
     CALL_SUBTEST_4(( transformations<float,Affine,RowMajor|AutoAlign>() ));
     CALL_SUBTEST_4(( non_projective_only<float,Affine,RowMajor>() ));
