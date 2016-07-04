@@ -13,12 +13,24 @@
 
 template<typename Solver, typename Rhs, typename Guess,typename Result>
 void solve_with_guess(IterativeSolverBase<Solver>& solver, const MatrixBase<Rhs>& b, const Guess& g, Result &x) {
-  x = solver.derived().solveWithGuess(b.derived(),g);
+  if(internal::random<bool>())
+  {
+    // With a temporary through evaluator<SolveWithGuess>
+    x = solver.derived().solveWithGuess(b,g) + Result::Zero(x.rows(), x.cols());
+  }
+  else
+  {
+    // direct evaluation within x through Assignment<Result,SolveWithGuess>
+    x = solver.derived().solveWithGuess(b.derived(),g);
+  }
 }
 
 template<typename Solver, typename Rhs, typename Guess,typename Result>
 void solve_with_guess(SparseSolverBase<Solver>& solver, const MatrixBase<Rhs>& b, const Guess& , Result& x) {
-  x = solver.derived().solve(b);
+  if(internal::random<bool>())
+    x = solver.derived().solve(b) + Result::Zero(x.rows(), x.cols());
+  else
+    x = solver.derived().solve(b);
 }
 
 template<typename Solver, typename Rhs, typename Guess,typename Result>

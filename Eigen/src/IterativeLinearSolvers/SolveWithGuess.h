@@ -44,6 +44,7 @@ public:
   typedef typename internal::traits<SolveWithGuess>::Scalar Scalar;
   typedef typename internal::traits<SolveWithGuess>::PlainObject PlainObject;
   typedef typename internal::generic_xpr_base<SolveWithGuess<Decomposition,RhsType,GuessType>, MatrixXpr, typename internal::traits<RhsType>::StorageKind>::type Base;
+  typedef typename internal::ref_selector<SolveWithGuess>::type Nested;
   
   SolveWithGuess(const Decomposition &dec, const RhsType &rhs, const GuessType &guess)
     : m_dec(dec), m_rhs(rhs), m_guess(guess)
