@@ -258,6 +258,7 @@ ei_add_test(rvalue_types)
 ei_add_test(dense_storage)
 ei_add_test(ctorleak)
 ei_add_test(mpl2only)
+ei_add_test(inplace_decomposition)
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
 

@@ -52,7 +52,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options & ~RowMajorBit, // these are the options for the TmpMatrixType, we need a ColMajor matrix here!
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
       UpLo = _UpLo
@@ -61,7 +60,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
     typedef typename MatrixType::StorageIndex StorageIndex;
-    typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
+    typedef Matrix<Scalar, RowsAtCompileTime, 1, 0, MaxRowsAtCompileTime, 1> TmpMatrixType;
 
     typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
@@ -97,11 +96,29 @@ template<typename _MatrixType, int _UpLo> class LDLT
     /** \brief Constructor with decomposition
       *
       * This calculates the decomposition for the input \a matrix.
+      *
       * \sa LDLT(Index size)
       */
     template<typename InputType>
     explicit LDLT(const EigenBase<InputType>& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
+        m_transpositions(matrix.rows()),
+        m_temporary(matrix.rows()),
+        m_sign(internal::ZeroSign),
+        m_isInitialized(false)
+    {
+      compute(matrix.derived());
+    }
+
+    /** \brief Constructs a LDLT factorization from a given matrix
+      *
+      * This overloaded constructor is provided for inplace solving when \c MatrixType is a Eigen::Ref.
+      *
+      * \sa LDLT(const EigenBase&)
+      */
+    template<typename InputType>
+    explicit LDLT(EigenBase<InputType>& matrix)
+      : m_matrix(matrix.derived()),
         m_transpositions(matrix.rows()),
         m_temporary(matrix.rows()),
         m_sign(internal::ZeroSign),

@@ -97,6 +97,15 @@ template<typename _MatrixType> class FullPivLU
     template<typename InputType>
     explicit FullPivLU(const EigenBase<InputType>& matrix);
 
+    /** \brief Constructs a LU factorization from a given matrix
+      *
+      * This overloaded constructor is provided for inplace solving when \c MatrixType is a Eigen::Ref.
+      *
+      * \sa FullPivLU(const EigenBase&)
+      */
+    template<typename InputType>
+    explicit FullPivLU(EigenBase<InputType>& matrix);
+
     /** Computes the LU decomposition of the given matrix.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
@@ -105,7 +114,11 @@ template<typename _MatrixType> class FullPivLU
       * \returns a reference to *this
       */
     template<typename InputType>
-    FullPivLU& compute(const EigenBase<InputType>& matrix);
+    FullPivLU& compute(const EigenBase<InputType>& matrix) {
+      m_lu = matrix.derived();
+      computeInPlace();
+      return *this;
+    }
 
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
@@ -459,25 +472,28 @@ FullPivLU<MatrixType>::FullPivLU(const EigenBase<InputType>& matrix)
 
 template<typename MatrixType>
 template<typename InputType>
-FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const EigenBase<InputType>& matrix)
+FullPivLU<MatrixType>::FullPivLU(EigenBase<InputType>& matrix)
+  : m_lu(matrix.derived()),
+    m_p(matrix.rows()),
+    m_q(matrix.cols()),
+    m_rowsTranspositions(matrix.rows()),
+    m_colsTranspositions(matrix.cols()),
+    m_isInitialized(false),
+    m_usePrescribedThreshold(false)
 {
-  check_template_parameters();
-
-  // the permutations are stored as int indices, so just to be sure:
-  eigen_assert(matrix.rows()<=NumTraits<int>::highest() && matrix.cols()<=NumTraits<int>::highest());
-
-  m_lu = matrix.derived();
-  m_l1_norm = m_lu.cwiseAbs().colwise().sum().maxCoeff();
-
   computeInPlace();
-
-  m_isInitialized = true;
-  return *this;
 }
 
 template<typename MatrixType>
 void FullPivLU<MatrixType>::computeInPlace()
 {
+  check_template_parameters();
+
+  // the permutations are stored as int indices, so just to be sure:
+  eigen_assert(m_lu.rows()<=NumTraits<int>::highest() && m_lu.cols()<=NumTraits<int>::highest());
+
+  m_l1_norm = m_lu.cwiseAbs().colwise().sum().maxCoeff();
+
   const Index size = m_lu.diagonalSize();
   const Index rows = m_lu.rows();
   const Index cols = m_lu.cols();
@@ -557,6 +573,8 @@ void FullPivLU<MatrixType>::computeInPlace()
     m_q.applyTranspositionOnTheRight(k, m_colsTranspositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
+
+  m_isInitialized = true;
 }
 
 template<typename MatrixType>

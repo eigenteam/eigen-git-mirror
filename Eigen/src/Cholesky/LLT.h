@@ -54,7 +54,6 @@ template<typename _MatrixType, int _UpLo> class LLT
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
     typedef typename MatrixType::Scalar Scalar;
@@ -90,6 +89,21 @@ template<typename _MatrixType, int _UpLo> class LLT
     template<typename InputType>
     explicit LLT(const EigenBase<InputType>& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
+        m_isInitialized(false)
+    {
+      compute(matrix.derived());
+    }
+
+    /** \brief Constructs a LDLT factorization from a given matrix
+      *
+      * This overloaded constructor is provided for inplace solving when
+      * \c MatrixType is a Eigen::Ref.
+      *
+      * \sa LLT(const EigenBase&)
+      */
+    template<typename InputType>
+    explicit LLT(EigenBase<InputType>& matrix)
+      : m_matrix(matrix.derived()),
         m_isInitialized(false)
     {
       compute(matrix.derived());
