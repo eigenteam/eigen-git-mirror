@@ -816,7 +816,7 @@ class TensorBase : public TensorBase<Derived, ReadOnlyAccessors> {
 
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
     template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
-    template <typename OtherDerived, int AccessLevel> friend class TensorBase;
+    template <typename OtherDerived, int OtherAccessLevel> friend class TensorBase;
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Derived& setZero() {
