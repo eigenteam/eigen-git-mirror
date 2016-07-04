@@ -103,12 +103,12 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_MIX_SCALAR(scd - vd.array() , scd - vd.template cast<complex<double> >().array());
 
   // check scalar powers
-  VERIFY_MIX_SCALAR( pow(vcf.array(), sf), pow(vcf.array(), complex<float>(sf)) );
-  VERIFY_MIX_SCALAR( vcf.array().pow(sf) , pow(vcf.array(), complex<float>(sf)) );
-  VERIFY_MIX_SCALAR( pow(sd, vcd.array()), pow(complex<double>(sd), vcd.array()) );
-  VERIFY_MIX_SCALAR( pow(vf.array(), scf), pow(vf.template cast<complex<float> >().array(), scf) );
-  VERIFY_MIX_SCALAR( vf.array().pow(scf) , pow(vf.template cast<complex<float> >().array(), scf) );
-  VERIFY_MIX_SCALAR( pow(scd, vd.array()), pow(scd, vd.template cast<complex<double> >().array()) );
+  VERIFY_MIX_SCALAR( pow(vcf.array(), sf),        Eigen::pow(vcf.array(), complex<float>(sf)) );
+  VERIFY_MIX_SCALAR( vcf.array().pow(sf) ,        Eigen::pow(vcf.array(), complex<float>(sf)) );
+  VERIFY_MIX_SCALAR( pow(sd, vcd.array()),        Eigen::pow(complex<double>(sd), vcd.array()) );
+  VERIFY_MIX_SCALAR( Eigen::pow(vf.array(), scf), Eigen::pow(vf.template cast<complex<float> >().array(), scf) );
+  VERIFY_MIX_SCALAR( vf.array().pow(scf) ,        Eigen::pow(vf.template cast<complex<float> >().array(), scf) );
+  VERIFY_MIX_SCALAR( Eigen::pow(scd, vd.array()), Eigen::pow(scd, vd.template cast<complex<double> >().array()) );
 
   // check dot product
   vf.dot(vf);

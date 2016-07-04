@@ -117,7 +117,7 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_APPROX((2*m1).pow(exponents), 4*m1.square());
   VERIFY_IS_APPROX(Eigen::pow(m1,2*exponents), m1.square().square());
   VERIFY_IS_APPROX(m1.pow(2*exponents), m1.square().square());
-  VERIFY_IS_APPROX(pow(m1(0,0), exponents), ArrayType::Constant(rows,cols,m1(0,0)*m1(0,0)));
+  VERIFY_IS_APPROX(Eigen::pow(m1(0,0), exponents), ArrayType::Constant(rows,cols,m1(0,0)*m1(0,0)));
 
   // Check possible conflicts with 1D ctor
   typedef Array<Scalar, Dynamic, 1> OneDArrayType;
