@@ -816,8 +816,10 @@ void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src)
 template<typename Dst, typename Src> void check_for_aliasing(const Dst &dst, const Src &src);
 
 // Generic Dense to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor>
-struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense>
+// Note that the last template argument "Weak" is needed to make it possible to perform
+// both partial specialization+SFINAE without ambiguous specialization
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Weak>
+struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Weak>
 {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
@@ -834,8 +836,10 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense>
 
 // Generic assignment through evalTo.
 // TODO: not sure we have to keep that one, but it helps porting current code to new evaluator mechanism.
-template< typename DstXprType, typename SrcXprType, typename Functor>
-struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase>
+// Note that the last template argument "Weak" is needed to make it possible to perform
+// both partial specialization+SFINAE without ambiguous specialization
+template< typename DstXprType, typename SrcXprType, typename Functor, typename Weak>
+struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Weak>
 {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)

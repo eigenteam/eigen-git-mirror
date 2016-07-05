@@ -145,7 +145,7 @@ struct is_convertible
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.
   */
-template<bool Condition, typename T> struct enable_if;
+template<bool Condition, typename T=void> struct enable_if;
 
 template<typename T> struct enable_if<true,T>
 { typedef T type; };
