@@ -20,8 +20,8 @@ template<typename DecType,typename MatrixType> void inplace(bool square = false,
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> RhsType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> ResType;
 
-  Index rows = MatrixType::RowsAtCompileTime==Dynamic ? internal::random<Index>(2,EIGEN_TEST_MAX_SIZE/2) : MatrixType::RowsAtCompileTime;
-  Index cols = MatrixType::ColsAtCompileTime==Dynamic ? (square?rows:internal::random<Index>(2,rows)) : MatrixType::ColsAtCompileTime;
+  Index rows = MatrixType::RowsAtCompileTime==Dynamic ? internal::random<Index>(2,EIGEN_TEST_MAX_SIZE/2) : Index(MatrixType::RowsAtCompileTime);
+  Index cols = MatrixType::ColsAtCompileTime==Dynamic ? (square?rows:internal::random<Index>(2,rows))    : Index(MatrixType::ColsAtCompileTime);
 
   MatrixType A = MatrixType::Random(rows,cols);
   RhsType b = RhsType::Random(rows);
