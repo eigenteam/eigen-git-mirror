@@ -195,8 +195,7 @@ struct vectorization_logic
 
 
       VERIFY(test_assign(Matrix11(),Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(2,3)+Matrix<Scalar,17,17>().template block<PacketSize,PacketSize>(8,4),
-        (EIGEN_UNALIGNED_VECTORIZE) ? InnerVectorizedTraversal : DefaultTraversal,
-        (EIGEN_UNALIGNED_VECTORIZE || PacketSize<=4) ? CompleteUnrolling : InnerUnrolling ));
+        (EIGEN_UNALIGNED_VECTORIZE) ? InnerVectorizedTraversal : DefaultTraversal, CompleteUnrolling|InnerUnrolling));
 
       VERIFY(test_assign(Vector1(),Matrix11()*Vector1(),
                          InnerVectorizedTraversal,CompleteUnrolling));
@@ -234,7 +233,7 @@ struct vectorization_logic
     VERIFY((test_assign<
             Map<Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>, AlignedMax, InnerStride<3*PacketSize> >,
             Matrix<Scalar,EIGEN_PLAIN_ENUM_MAX(2,PacketSize),EIGEN_PLAIN_ENUM_MAX(2,PacketSize)>
-            >(DefaultTraversal,CompleteUnrolling)));
+            >(DefaultTraversal,PacketSize>=8?InnerUnrolling:CompleteUnrolling)));
 
     VERIFY((test_assign(Matrix11(), Matrix<Scalar,PacketSize,EIGEN_PLAIN_ENUM_MIN(2,PacketSize)>()*Matrix<Scalar,EIGEN_PLAIN_ENUM_MIN(2,PacketSize),PacketSize>(),
                         InnerVectorizedTraversal, CompleteUnrolling)));
@@ -371,7 +370,7 @@ struct vectorization_logic_half
             >(DefaultTraversal,CompleteUnrolling)));
 
     VERIFY((test_assign(Matrix57(), Matrix<Scalar,5*PacketSize,3>()*Matrix<Scalar,3,7>(),
-                        InnerVectorizedTraversal, CompleteUnrolling)));
+                        InnerVectorizedTraversal, InnerUnrolling|CompleteUnrolling)));
     #endif
   }
 };
