@@ -16,6 +16,10 @@
 #include <math_constants.h>
 #endif
 
+#if EIGEN_COMP_ICC>=1600 &&  __cplusplus >= 201103L
+#include <cstdint>
+#endif
+
 namespace Eigen {
 
 namespace internal {
@@ -29,7 +33,7 @@ namespace internal {
 
 // Only recent versions of ICC complain about using ptrdiff_t to hold pointers,
 // and older versions do not provide *intptr_t types.
-#if EIGEN_COMP_ICC>=1600
+#if EIGEN_COMP_ICC>=1600 &&  __cplusplus >= 201103L
 typedef std::intptr_t  IntPtr;
 typedef std::uintptr_t UIntPtr;
 #else
