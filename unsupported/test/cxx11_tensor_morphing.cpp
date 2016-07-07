@@ -470,16 +470,16 @@ void test_cxx11_tensor_morphing()
   CALL_SUBTEST_1(test_const_slice());
   CALL_SUBTEST_2(test_slice_in_expr<ColMajor>());
   CALL_SUBTEST_2(test_slice_in_expr<RowMajor>());
-  CALL_SUBTEST_2(test_slice_as_lvalue<ColMajor>());
-  CALL_SUBTEST_2(test_slice_as_lvalue<RowMajor>());
-  CALL_SUBTEST_2(test_slice_raw_data<ColMajor>());
-  CALL_SUBTEST_2(test_slice_raw_data<RowMajor>());
+  CALL_SUBTEST_3(test_slice_as_lvalue<ColMajor>());
+  CALL_SUBTEST_3(test_slice_as_lvalue<RowMajor>());
+  CALL_SUBTEST_4(test_slice_raw_data<ColMajor>());
+  CALL_SUBTEST_4(test_slice_raw_data<RowMajor>());
 
-  CALL_SUBTEST_3(test_strided_slice_write<ColMajor>());
-  CALL_SUBTEST_3(test_strided_slice<ColMajor>());
-  CALL_SUBTEST_3(test_strided_slice_write<RowMajor>());
-  CALL_SUBTEST_3(test_strided_slice<RowMajor>());
+  CALL_SUBTEST_5(test_strided_slice_write<ColMajor>());
+  CALL_SUBTEST_5(test_strided_slice<ColMajor>());
+  CALL_SUBTEST_5(test_strided_slice_write<RowMajor>());
+  CALL_SUBTEST_5(test_strided_slice<RowMajor>());
 
-  CALL_SUBTEST_3(test_composition<ColMajor>());
-  CALL_SUBTEST_3(test_composition<RowMajor>());
+  CALL_SUBTEST_6(test_composition<ColMajor>());
+  CALL_SUBTEST_6(test_composition<RowMajor>());
 }
