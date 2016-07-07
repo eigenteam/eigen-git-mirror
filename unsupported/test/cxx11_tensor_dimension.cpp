@@ -39,7 +39,7 @@ static void test_fixed_size()
 
 static void test_match()
 {
-  Eigen::DSizes<unsigned int, 3> dyn(2,3,7);
+  Eigen::DSizes<unsigned int, 3> dyn((unsigned int)2,(unsigned int)3,(unsigned int)7);
   Eigen::Sizes<2,3,7> stat;
   VERIFY_IS_EQUAL(Eigen::dimensions_match(dyn, stat), true);
 
