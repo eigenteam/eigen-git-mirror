@@ -63,8 +63,15 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   complex<float>  scf = internal::random<complex<float> >();
   complex<double> scd = internal::random<complex<double> >();
 
-
   mf+mf;
+
+  float  epsf = std::sqrt(std::numeric_limits<float> ::min EIGEN_EMPTY ());
+  double epsd = std::sqrt(std::numeric_limits<double>::min EIGEN_EMPTY ());
+
+  while(std::abs(sf )<epsf) sf  = internal::random<float>();
+  while(std::abs(sd )<epsd) sf  = internal::random<double>();
+  while(std::abs(scf)<epsf) scf = internal::random<CF>();
+  while(std::abs(scd)<epsd) scd = internal::random<CD>();
 
 //   VERIFY_RAISES_ASSERT(mf+md); // does not even compile
 
@@ -222,7 +229,6 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
                    Mat_cd((scd * md.template cast<CD>().eval() * mcd).template triangularView<Upper>()));
 
 
-
   VERIFY_IS_APPROX( md.array()  * mcd.array(), md.template cast<CD>().eval().array() * mcd.array() );
   VERIFY_IS_APPROX( mcd.array() * md.array(),  mcd.array() * md.template cast<CD>().eval().array() );
 
@@ -232,14 +238,23 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_IS_APPROX( md.array()  - mcd.array(), md.template cast<CD>().eval().array() - mcd.array() );
   VERIFY_IS_APPROX( mcd.array() - md.array(),  mcd.array() - md.template cast<CD>().eval().array() );
 
-  VERIFY_IS_APPROX( md.array() / mcd.array(), md.template cast<CD>().eval().array() / mcd.array() );
-  VERIFY_IS_APPROX( mcd.array() / md.array(), mcd.array() / md.template cast<CD>().eval().array() );
+  if(mcd.array().abs().minCoeff()>epsd)
+  {
+    VERIFY_IS_APPROX( md.array() / mcd.array(), md.template cast<CD>().eval().array() / mcd.array() );
+  }
+  if(md.array().abs().minCoeff()>epsd)
+  {
+    VERIFY_IS_APPROX( mcd.array() / md.array(), mcd.array() / md.template cast<CD>().eval().array() );
+  }
 
-  VERIFY_IS_APPROX( md.array().pow(mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
-  VERIFY_IS_APPROX( mcd.array().pow(md.array()),  mcd.array().pow(md.template cast<CD>().eval().array()) );
+  if(md.array().abs().minCoeff()>epsd || mcd.array().abs().minCoeff()>epsd)
+  {
+    VERIFY_IS_APPROX( md.array().pow(mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
+    VERIFY_IS_APPROX( mcd.array().pow(md.array()),  mcd.array().pow(md.template cast<CD>().eval().array()) );
 
-  VERIFY_IS_APPROX( pow(md.array(),mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
-  VERIFY_IS_APPROX( pow(mcd.array(),md.array()),  mcd.array().pow(md.template cast<CD>().eval().array()) );
+    VERIFY_IS_APPROX( pow(md.array(),mcd.array()), md.template cast<CD>().eval().array().pow(mcd.array()) );
+    VERIFY_IS_APPROX( pow(mcd.array(),md.array()),  mcd.array().pow(md.template cast<CD>().eval().array()) );
+  }
 
   rcd = mcd;
   VERIFY_IS_APPROX( rcd = md, md.template cast<CD>().eval() );
@@ -250,7 +265,10 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   rcd = mcd;
   VERIFY_IS_APPROX( rcd.array() *= md.array(), mcd.array() * md.template cast<CD>().eval().array() );
   rcd = mcd;
-  VERIFY_IS_APPROX( rcd.array() /= md.array(), mcd.array() / md.template cast<CD>().eval().array() );
+  if(md.array().abs().minCoeff()>epsd)
+  {
+    VERIFY_IS_APPROX( rcd.array() /= md.array(), mcd.array() / md.template cast<CD>().eval().array() );
+  }
 
   rcd = mcd;
   VERIFY_IS_APPROX( rcd.noalias() += md + mcd*md, mcd + (md.template cast<CD>().eval()) + mcd*(md.template cast<CD>().eval()));
