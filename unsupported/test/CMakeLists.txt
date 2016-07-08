@@ -109,6 +109,7 @@ ei_add_test(gmres)
 ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(kronecker_product)
+ei_add_test(special_functions)
 
 # TODO: The following test names are prefixed with the cxx11 string, since historically
 # the tests depended on c++11. This isn't the case anymore so we ought to rename them.

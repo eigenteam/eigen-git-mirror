@@ -16,29 +16,7 @@ namespace internal {
 
 //---------- associative ternary functors ----------
 
-/** \internal
-  * \brief Template functor to compute the incomplete beta integral betainc(a, b, x)
-  *
-  */
-template<typename Scalar> struct scalar_betainc_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_betainc_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& x, const Scalar& a, const Scalar& b) const {
-    using numext::betainc; return betainc(x, a, b);
-  }
-  template<typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& x, const Packet& a, const Packet& b) const
-  {
-    return internal::pbetainc(x, a, b);
-  }
-};
-template<typename Scalar>
-struct functor_traits<scalar_betainc_op<Scalar> > {
-  enum {
-    // Guesstimate
-    Cost = 400 * NumTraits<Scalar>::MulCost + 400 * NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasBetaInc
-  };
-};
+
 
 } // end namespace internal
 

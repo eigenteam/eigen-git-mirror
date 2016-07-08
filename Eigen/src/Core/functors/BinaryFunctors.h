@@ -429,57 +429,6 @@ template<> struct functor_traits<scalar_boolean_xor_op> {
   };
 };
 
-/** \internal
-  * \brief Template functor to compute the incomplete gamma function igamma(a, x)
-  *
-  * \sa class CwiseBinaryOp, Cwise::igamma
-  */
-template<typename Scalar> struct scalar_igamma_op : binary_op_base<Scalar,Scalar>
-{
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_igamma_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& x) const {
-    using numext::igamma; return igamma(a, x);
-  }
-  template<typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& x) const {
-    return internal::pigamma(a, x);
-  }
-};
-template<typename Scalar>
-struct functor_traits<scalar_igamma_op<Scalar> > {
-  enum {
-    // Guesstimate
-    Cost = 20 * NumTraits<Scalar>::MulCost + 10 * NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasIGamma
-  };
-};
-
-
-/** \internal
-  * \brief Template functor to compute the complementary incomplete gamma function igammac(a, x)
-  *
-  * \sa class CwiseBinaryOp, Cwise::igammac
-  */
-template<typename Scalar> struct scalar_igammac_op : binary_op_base<Scalar,Scalar>
-{
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_igammac_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& x) const {
-    using numext::igammac; return igammac(a, x);
-  }
-  template<typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& x) const
-  {
-    return internal::pigammac(a, x);
-  }
-};
-template<typename Scalar>
-struct functor_traits<scalar_igammac_op<Scalar> > {
-  enum {
-    // Guesstimate
-    Cost = 20 * NumTraits<Scalar>::MulCost + 10 * NumTraits<Scalar>::AddCost,
-    PacketAccess = packet_traits<Scalar>::HasIGammac
-  };
-};
 
 
 //---------- binary functors bound to a constant, thus appearing as a unary functor ----------

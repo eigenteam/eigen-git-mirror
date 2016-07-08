@@ -1,0 +1,6 @@
+FILE(GLOB Eigen_SpecialFunctions_SRCS "*.h")
+
+INSTALL(FILES
+  ${Eigen_SpecialFunctions_SRCS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen/src/SpecialFunctions COMPONENT Devel
+  )

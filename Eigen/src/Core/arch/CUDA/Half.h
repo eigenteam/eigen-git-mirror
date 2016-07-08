@@ -454,36 +454,6 @@ template <> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half maxi(const Eigen::
   return f1 < f2 ? b : a;
 #endif
 }
-
-#if EIGEN_HAS_C99_MATH
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half lgamma(const Eigen::half& a) {
-  return Eigen::half(Eigen::numext::lgamma(static_cast<float>(a)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half digamma(const Eigen::half& a) {
-  return Eigen::half(Eigen::numext::digamma(static_cast<float>(a)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half zeta(const Eigen::half& x, const Eigen::half& q) {
-  return Eigen::half(Eigen::numext::zeta(static_cast<float>(x), static_cast<float>(q)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half polygamma(const Eigen::half& n, const Eigen::half& x) {
-  return Eigen::half(Eigen::numext::polygamma(static_cast<float>(n), static_cast<float>(x)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half erf(const Eigen::half& a) {
-  return Eigen::half(Eigen::numext::erf(static_cast<float>(a)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half erfc(const Eigen::half& a) {
-  return Eigen::half(Eigen::numext::erfc(static_cast<float>(a)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igamma(const Eigen::half& a, const Eigen::half& x) {
-  return Eigen::half(Eigen::numext::igamma(static_cast<float>(a), static_cast<float>(x)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half igammac(const Eigen::half& a, const Eigen::half& x) {
-  return Eigen::half(Eigen::numext::igammac(static_cast<float>(a), static_cast<float>(x)));
-}
-template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half betainc(const Eigen::half& a, const Eigen::half& b, const Eigen::half& x) {
-  return Eigen::half(Eigen::numext::betainc(static_cast<float>(a), static_cast<float>(b), static_cast<float>(x)));
-}
-#endif
 } // end namespace numext
 
 } // end namespace Eigen

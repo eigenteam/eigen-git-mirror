@@ -22,10 +22,6 @@ typedef CwiseUnaryOp<internal::scalar_atan_op<Scalar>, const Derived> AtanReturn
 typedef CwiseUnaryOp<internal::scalar_tanh_op<Scalar>, const Derived> TanhReturnType;
 typedef CwiseUnaryOp<internal::scalar_sinh_op<Scalar>, const Derived> SinhReturnType;
 typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturnType;
-typedef CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived> LgammaReturnType;
-typedef CwiseUnaryOp<internal::scalar_digamma_op<Scalar>, const Derived> DigammaReturnType;
-typedef CwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived> ErfReturnType;
-typedef CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived> ErfcReturnType;
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
 typedef CwiseUnaryOp<internal::scalar_round_op<Scalar>, const Derived> RoundReturnType;
@@ -324,77 +320,6 @@ cosh() const
   return CoshReturnType(derived());
 }
 
-/** \cpp11 \returns an expression of the coefficient-wise ln(|gamma(*this)|).
-  *
-  * Example: \include Cwise_lgamma.cpp
-  * Output: \verbinclude Cwise_lgamma.out
-  *
-  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
-  * or float/double in non c++11 mode, the user has to provide implementations of lgamma(T) for any scalar
-  * type T to be supported.
-  *
-  * \sa digamma()
-  */
-EIGEN_DEVICE_FUNC
-inline const LgammaReturnType
-lgamma() const
-{
-  return LgammaReturnType(derived());
-}
-
-/** \returns an expression of the coefficient-wise digamma (psi, derivative of lgamma).
-  *
-  * \note This function supports only float and double scalar types. To support other scalar types,
-  * the user has to provide implementations of digamma(T) for any scalar
-  * type T to be supported.
-  *
-  * \sa Eigen::digamma(), Eigen::polygamma(), lgamma()
-  */
-EIGEN_DEVICE_FUNC
-inline const DigammaReturnType
-digamma() const
-{
-  return DigammaReturnType(derived());
-}
-
-/** \cpp11 \returns an expression of the coefficient-wise Gauss error
-  * function of *this.
-  *
-  * Example: \include Cwise_erf.cpp
-  * Output: \verbinclude Cwise_erf.out
-  *
-  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
-  * or float/double in non c++11 mode, the user has to provide implementations of erf(T) for any scalar
-  * type T to be supported.
-  *
-  * \sa erfc()
-  */
-EIGEN_DEVICE_FUNC
-inline const ErfReturnType
-erf() const
-{
-  return ErfReturnType(derived());
-}
-
-/** \cpp11 \returns an expression of the coefficient-wise Complementary error
-  * function of *this.
-  *
-  * Example: \include Cwise_erfc.cpp
-  * Output: \verbinclude Cwise_erfc.out
-  *
-  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
-  * or float/double in non c++11 mode, the user has to provide implementations of erfc(T) for any scalar
-  * type T to be supported.
-  *
-  * \sa erf()
-  */
-EIGEN_DEVICE_FUNC
-inline const ErfcReturnType
-erfc() const
-{
-  return ErfcReturnType(derived());
-}
-
 /** \returns an expression of the coefficient-wise inverse of *this.
   *
   * Example: \include Cwise_inverse.cpp
@@ -537,4 +462,91 @@ operator!() const
   EIGEN_STATIC_ASSERT((internal::is_same<bool,Scalar>::value),
                       THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL);
   return BooleanNotReturnType(derived());
+}
+
+
+// --- SpecialFunctions module ---
+
+typedef CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived> LgammaReturnType;
+typedef CwiseUnaryOp<internal::scalar_digamma_op<Scalar>, const Derived> DigammaReturnType;
+typedef CwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived> ErfReturnType;
+typedef CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived> ErfcReturnType;
+
+/** \cpp11 \returns an expression of the coefficient-wise ln(|gamma(*this)|).
+  *
+  * \specialfunctions_module
+  *
+  * Example: \include Cwise_lgamma.cpp
+  * Output: \verbinclude Cwise_lgamma.out
+  *
+  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations of lgamma(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa digamma()
+  */
+EIGEN_DEVICE_FUNC
+inline const LgammaReturnType
+lgamma() const
+{
+  return LgammaReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise digamma (psi, derivative of lgamma).
+  *
+  * \specialfunctions_module
+  *
+  * \note This function supports only float and double scalar types. To support other scalar types,
+  * the user has to provide implementations of digamma(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa Eigen::digamma(), Eigen::polygamma(), lgamma()
+  */
+EIGEN_DEVICE_FUNC
+inline const DigammaReturnType
+digamma() const
+{
+  return DigammaReturnType(derived());
+}
+
+/** \cpp11 \returns an expression of the coefficient-wise Gauss error
+  * function of *this.
+  *
+  * \specialfunctions_module
+  *
+  * Example: \include Cwise_erf.cpp
+  * Output: \verbinclude Cwise_erf.out
+  *
+  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations of erf(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa erfc()
+  */
+EIGEN_DEVICE_FUNC
+inline const ErfReturnType
+erf() const
+{
+  return ErfReturnType(derived());
+}
+
+/** \cpp11 \returns an expression of the coefficient-wise Complementary error
+  * function of *this.
+  *
+  * \specialfunctions_module
+  *
+  * Example: \include Cwise_erfc.cpp
+  * Output: \verbinclude Cwise_erfc.out
+  *
+  * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
+  * or float/double in non c++11 mode, the user has to provide implementations of erfc(T) for any scalar
+  * type T to be supported.
+  *
+  * \sa erf()
+  */
+EIGEN_DEVICE_FUNC
+inline const ErfcReturnType
+erfc() const
+{
+  return ErfcReturnType(derived());
 }

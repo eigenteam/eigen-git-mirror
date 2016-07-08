@@ -1382,7 +1382,7 @@ struct betainc_helper<double> {
     */
     t = lgamma_impl<double>::run(a + b) - lgamma_impl<double>::run(a) -
         lgamma_impl<double>::run(b) + u + numext::log(s);
-    return s = exp(t);
+    return s = numext::exp(t);
   }
 };
 
