@@ -29,25 +29,37 @@ namespace Eigen {
 namespace internal {
 
 namespace {
+
   // Note: result is undefined if val == 0
   template <typename T>
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE int count_leading_zeros(const T val)
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  typename internal::enable_if<sizeof(T)==4,int>::type count_leading_zeros(const T val)
   {
 #ifdef __CUDA_ARCH__
-    return (sizeof(T) == 8) ? __clzll(val) : __clz(val);
+    return __clz(val);
 #elif EIGEN_COMP_MSVC
-	unsigned long index;
-	if (sizeof(T) == 8) {
-      _BitScanReverse64(&index, val);
-    } else {
-      _BitScanReverse(&index, val);
-    }
-    return (sizeof(T) == 8) ? 63 - index : 31 - index;
+    unsigned long index;
+    _BitScanReverse(&index, val);
+    return 31 - index;
 #else
     EIGEN_STATIC_ASSERT(sizeof(unsigned long long) == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
-    return (sizeof(T) == 8) ?
-      __builtin_clzll(static_cast<uint64_t>(val)) :
-      __builtin_clz(static_cast<uint32_t>(val));
+    return __builtin_clz(static_cast<uint32_t>(val));
+#endif
+  }
+
+  template <typename T>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  typename internal::enable_if<sizeof(T)==8,int>::type count_leading_zeros(const T val)
+  {
+#ifdef __CUDA_ARCH__
+    return __clzll(val);
+#elif EIGEN_COMP_MSVC
+    unsigned long index;
+    _BitScanReverse64(&index, val);
+    return 63 - index;
+#else
+    EIGEN_STATIC_ASSERT(sizeof(unsigned long long) == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    return __builtin_clzll(static_cast<uint64_t>(val));
 #endif
   }
 
