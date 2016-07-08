@@ -165,7 +165,7 @@ void test_basic_functions()
   VERIFY_IS_APPROX(float(numext::pow(half(2.0f), half(2.0f))), 4.0f);
 
   VERIFY_IS_EQUAL(float(numext::exp(half(0.0f))), 1.0f);
-  VERIFY_IS_APPROX(float(numext::exp(half(EIGEN_PI))), float(20.0 + EIGEN_PI));
+  VERIFY_IS_APPROX(float(numext::exp(half(EIGEN_PI))), 20.f + float(EIGEN_PI));
 
   VERIFY_IS_EQUAL(float(numext::log(half(1.0f))), 0.0f);
   VERIFY_IS_APPROX(float(numext::log(half(10.0f))), 2.30273f);
