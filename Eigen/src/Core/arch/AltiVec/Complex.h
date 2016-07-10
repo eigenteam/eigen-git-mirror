@@ -53,8 +53,10 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
     HasAbs2   = 0,
     HasMin    = 0,
     HasMax    = 0,
-    HasSetLinear = 0,
-    HasBlend  = 1
+#ifdef __VSX__
+    HasBlend  = 1,
+#endif
+    HasSetLinear = 0
   };
 };
 
@@ -260,11 +262,13 @@ EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet2cf,2>& kernel)
   kernel.packet[0].v = tmp;
 }
 
+#ifdef __VSX__
 template<> EIGEN_STRONG_INLINE Packet2cf pblend(const Selector<2>& ifPacket, const Packet2cf& thenPacket, const Packet2cf& elsePacket) {
   Packet2cf result;
   result.v = reinterpret_cast<Packet4f>(pblend<Packet2d>(ifPacket, reinterpret_cast<Packet2d>(thenPacket.v), reinterpret_cast<Packet2d>(elsePacket.v)));
   return result;
 }
+#endif
 
 //---------- double ----------
 #ifdef __VSX__

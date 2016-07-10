@@ -159,9 +159,9 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
   Packet4i emm0;
 
   // clamp x
-  x = vec_max(vec_min(x, p4f_exp_hi), p4f_exp_lo);
+  x = pmax(pmin(x, p4f_exp_hi), p4f_exp_lo);
 
-  /* express exp(x) as exp(g + n*log(2)) */
+  // express exp(x) as exp(g + n*log(2))
   fx = pmadd(x, p4f_cephes_LOG2EF, p4f_half);
 
   fx = pfloor(fx);

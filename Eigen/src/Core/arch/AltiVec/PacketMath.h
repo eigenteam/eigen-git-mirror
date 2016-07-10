@@ -152,12 +152,13 @@ template<> struct packet_traits<float>  : default_packet_traits
     HasExp  = 1,
 #ifdef __VSX__
     HasSqrt = 1,
-#else
-    HasSqrt = 0,
-#endif
 #if !EIGEN_COMP_CLANG
     HasRsqrt = 1,
 #else
+    HasRsqrt = 0,
+#endif
+#else
+    HasSqrt = 0,
     HasRsqrt = 0,
 #endif
     HasRound = 1,
