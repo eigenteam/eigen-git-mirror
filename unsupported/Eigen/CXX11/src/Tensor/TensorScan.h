@@ -94,7 +94,7 @@ struct TensorEvaluator<const TensorScanOp<Op, ArgType>, Device> {
 
   enum {
     IsAligned = false,
-    PacketAccess = (internal::packet_traits<Scalar>::size > 1),
+    PacketAccess = (internal::unpacket_traits<PacketReturnType>::size > 1),
     BlockAccess = false,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,
