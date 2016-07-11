@@ -20,6 +20,7 @@ struct static_val {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE operator uint64_t() const { return n; }
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static_val() { }
+
   template <typename T>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE static_val(const T& v) {
     eigen_assert(v == n);
@@ -53,7 +54,7 @@ struct TensorUInt128
   template<typename T>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
   explicit TensorUInt128(const T& x) : high(0), low(x) {
-    eigen_assert((static_cast<typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type>(x) <= static_cast<typename conditional<sizeof(LOW) == 8, uint64_t, uint32_t>::type>(NumTraits<LOW>::highest())));
+    eigen_assert((static_cast<typename conditional<sizeof(T) == 8, uint64_t, uint32_t>::type>(x) <= NumTraits<uint64_t>::highest()));
     eigen_assert(x >= 0);
   }
 
