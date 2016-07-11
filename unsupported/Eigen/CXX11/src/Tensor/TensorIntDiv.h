@@ -53,10 +53,20 @@ namespace {
   {
 #ifdef __CUDA_ARCH__
     return __clzll(val);
-#elif EIGEN_COMP_MSVC
+#elif EIGEN_COMP_MSVC && EIGEN_ARCH_x86_64
     unsigned long index;
     _BitScanReverse64(&index, val);
     return 63 - index;
+#elif EIGEN_COMP_MSVC
+    // MSVC's _BitScanReverse64 is not available for 32bits builds.
+    unsigned int lo = (unsigned int)(val&0xffffffff);
+    unsigned int hi = (unsigned int)((val>>32)&0xffffffff);
+    int n;
+    if(hi==0)
+      n = 32 + count_leading_zeros<unsigned int>(lo);
+    else
+      n = count_leading_zeros<unsigned int>(hi);
+    return n;
 #else
     EIGEN_STATIC_ASSERT(sizeof(unsigned long long) == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
     return __builtin_clzll(static_cast<uint64_t>(val));
@@ -110,7 +120,9 @@ namespace {
       return static_cast<uint64_t>((static_cast<__uint128_t>(1) << (64+log_div)) / static_cast<__uint128_t>(divider) - (static_cast<__uint128_t>(1) << 64) + 1);
 #else
       const uint64_t shift = 1ULL << log_div;
-      TensorUInt128<uint64_t, uint64_t> result = (TensorUInt128<uint64_t, static_val<0> >(shift, 0) / TensorUInt128<static_val<0>, uint64_t>(divider) - TensorUInt128<static_val<1>, static_val<0> >(1, 0) + TensorUInt128<static_val<0>, static_val<1> >(1));
+      TensorUInt128<uint64_t, uint64_t> result = TensorUInt128<uint64_t, static_val<0> >(shift, 0) / TensorUInt128<static_val<0>, uint64_t>(divider)
+                                               - TensorUInt128<static_val<1>, static_val<0> >(1, 0)
+                                               + TensorUInt128<static_val<0>, static_val<1> >(1);
       return static_cast<uint64_t>(result);
 #endif
     }
