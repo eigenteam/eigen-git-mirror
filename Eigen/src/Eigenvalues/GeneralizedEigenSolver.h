@@ -310,6 +310,7 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
   if (m_realQZ.info() == Success)
   {
     m_matS = m_realQZ.matrixS();
+    const MatrixType &matT = m_realQZ.matrixT();
     if (computeEigenvectors)
       m_eivec = m_realQZ.matrixZ().transpose();
   
@@ -322,7 +323,7 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
       if (i == A.cols() - 1 || m_matS.coeff(i+1, i) == Scalar(0))
       {
         m_alphas.coeffRef(i) = m_matS.coeff(i, i);
-        m_betas.coeffRef(i)  = m_realQZ.matrixT().coeff(i,i);
+        m_betas.coeffRef(i)  = matT.coeff(i,i);
         ++i;
       }
       else
@@ -332,7 +333,8 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
 
         // T =  [a 0]
         //      [0 b]
-        RealScalar a = m_realQZ.matrixT().coeff(i, i), b = m_realQZ.matrixT().coeff(i+1, i+1);
+        RealScalar a = matT.coeff(i, i),
+                   b = matT(i+1, i+1); // NOTE: using operator() instead of coeff() workarounds a MSVC bug.
         Matrix<RealScalar,2,2> S2 = m_matS.template block<2,2>(i,i) * Matrix<Scalar,2,1>(b,a).asDiagonal();
 
         Scalar p = Scalar(0.5) * (S2.coeff(0,0) - S2.coeff(1,1));
