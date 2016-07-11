@@ -9,6 +9,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "main.h"
+#include "unsupported/Eigen/SpecialFunctions"
 
 #if defined __GNUC__ && __GNUC__>=6
   #pragma GCC diagnostic ignored "-Wignored-attributes"
