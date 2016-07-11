@@ -47,6 +47,10 @@ namespace Eigen {
 #include "src/SpecialFunctions/SpecialFunctionsFunctors.h"
 #include "src/SpecialFunctions/SpecialFunctionsArrayAPI.h"
 
+#if defined EIGEN_VECTORIZE_CUDA
+  #include "src/SpecialFunctions/arch/CUDA/CudaSpecialFunctions.h"
+#endif
+
 namespace Eigen {
 //@}
 }
