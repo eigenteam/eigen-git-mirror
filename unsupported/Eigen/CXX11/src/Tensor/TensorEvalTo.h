@@ -94,7 +94,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
-    IsAligned = true,
+    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented
