@@ -28,7 +28,8 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   JacobiRotation<RealScalar> rot1;
   RealScalar t = m.coeff(0,0) + m.coeff(1,1);
   RealScalar d = m.coeff(1,0) - m.coeff(0,1);
-  if(d == RealScalar(0))
+
+  if(abs(d) < (std::numeric_limits<RealScalar>::min)())
   {
     rot1.s() = RealScalar(0);
     rot1.c() = RealScalar(1);
