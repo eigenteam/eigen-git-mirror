@@ -213,7 +213,7 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
     set(EIGEN_CUDA_RELAXED_CONSTEXPR "--relaxed-constexpr")
   endif()
 
-  if(NOT EIGEN_TEST_CXX11)
+  if( (NOT EIGEN_TEST_CXX11) OR (CMAKE_VERSION VERSION_LESS 3.3))
     set(EIGEN_CUDA_CXX11_FLAG "-std=c++11")
   else()
     # otherwise the flag has already been added because of the above set(CMAKE_CXX_STANDARD 11)
