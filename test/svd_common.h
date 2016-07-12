@@ -42,9 +42,14 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
   RealScalar scaling = m.cwiseAbs().maxCoeff();
-  if(scaling<=(std::numeric_limits<RealScalar>::min)())
-    scaling = RealScalar(1);
-  VERIFY_IS_APPROX(m/scaling, u * (sigma/scaling) * v.adjoint());
+  if(scaling<(std::numeric_limits<RealScalar>::min)())
+  {
+    VERIFY(sigma.cwiseAbs().maxCoeff() <= (std::numeric_limits<RealScalar>::min)());
+  }
+  else
+  {
+    VERIFY_IS_APPROX(m/scaling, u * (sigma/scaling) * v.adjoint());
+  }
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
 }
@@ -336,7 +341,7 @@ void svd_underoverflow()
     M << value_set(id(0)), value_set(id(1)), value_set(id(2)), value_set(id(3));
     svd.compute(M,ComputeFullU|ComputeFullV);
     CALL_SUBTEST( svd_check_full(M,svd) );
-    
+
     id(k)++;
     if(id(k)>=value_set.size())
     {
@@ -344,7 +349,7 @@ void svd_underoverflow()
       id.head(k).setZero();
       k=0;
     }
-    
+
   } while((id<int(value_set.size())).all());
   
 #if defined __INTEL_COMPILER
