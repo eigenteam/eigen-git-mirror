@@ -694,6 +694,16 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   /*** step 2. The main Jacobi SVD iteration. ***/
   RealScalar maxDiagEntry = m_workMatrix.cwiseAbs().diagonal().maxCoeff();
 
+  // For a 1x1 complex matrix this boils down in cancelling the imaginary part
+  // This needs to be done explicitly because the "svd_precondition_2x2_block_to_be_real"
+  // wont't be applied as there is no 2x2 blocks!
+  if(NumTraits<Scalar>::IsComplex && m_diagSize==1 && abs(numext::imag(m_workMatrix.coeff(0,0)))>considerAsZero)
+  {
+    RealScalar z = abs(m_workMatrix.coeff(0,0));
+    if(computeU()) m_matrixU.col(0) *= m_workMatrix.coeff(0,0)/z;
+    m_workMatrix.coeffRef(0,0) = z;
+  }
+
   bool finished = false;
   while(!finished)
   {
@@ -713,7 +723,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         {
           finished = false;
           // perform SVD decomposition of 2x2 sub-matrix corresponding to indices p,q to make it diagonal
-          // the complex to real operation returns true is the updated 2x2 block is not already diagonal
+          // the complex to real operation returns true if the updated 2x2 block is not already diagonal
           if(internal::svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q, maxDiagEntry))
           {
             JacobiRotation<RealScalar> j_left, j_right;
@@ -738,9 +748,10 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
   for(Index i = 0; i < m_diagSize; ++i)
   {
-    RealScalar a = abs(m_workMatrix.coeff(i,i));
-    m_singularValues.coeffRef(i) = a;
-    if(computeU() && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
+    // At this stage, m_workMatrix.coeff(i,i) is supposed to be real.
+    RealScalar a = numext::real(m_workMatrix.coeff(i,i));
+    m_singularValues.coeffRef(i) = abs(a);
+    if(computeU() && (a<RealScalar(0))) m_matrixU.col(i) = -m_matrixU.col(i);
   }
   
   m_singularValues *= scale;
