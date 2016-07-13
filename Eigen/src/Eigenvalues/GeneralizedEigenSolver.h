@@ -333,8 +333,9 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
 
         // T =  [a 0]
         //      [0 b]
-        RealScalar a = matT.coeff(i, i),
-                   b = matT(i+1, i+1); // NOTE: using operator() instead of coeff() workarounds a MSVC bug.
+        RealScalar a = matT.diagonal().coeff(i),
+                   b = matT.diagonal().coeff(i+1);
+        // ^^ NOTE: using diagonal()(i) instead of coeff(i,i) workarounds a MSVC bug.
         Matrix<RealScalar,2,2> S2 = m_matS.template block<2,2>(i,i) * Matrix<Scalar,2,1>(b,a).asDiagonal();
 
         Scalar p = Scalar(0.5) * (S2.coeff(0,0) - S2.coeff(1,1));
