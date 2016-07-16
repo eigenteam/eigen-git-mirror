@@ -284,6 +284,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef typename ReturnType<internal::member_any>::Type AnyReturnType;
     typedef PartialReduxExpr<ExpressionType, internal::member_count<Index>, Direction> CountReturnType;
     typedef typename ReturnType<internal::member_prod>::Type ProdReturnType;
+    typedef Reverse<const ExpressionType, Direction> ConstReverseReturnType;
     typedef Reverse<ExpressionType, Direction> ReverseReturnType;
 
     template<int p> struct LpNormReturnType {
@@ -456,7 +457,15 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       *
       * \sa DenseBase::reverse() */
     EIGEN_DEVICE_FUNC
-    const ReverseReturnType reverse() const
+    const ConstReverseReturnType reverse() const
+    { return ConstReverseReturnType( _expression() ); }
+
+    /** \returns a writable matrix expression
+      * where each column (or row) are reversed.
+      *
+      * \sa reverse() const */
+    EIGEN_DEVICE_FUNC
+    ReverseReturnType reverse()
     { return ReverseReturnType( _expression() ); }
 
     typedef Replicate<ExpressionType,(isVertical?Dynamic:1),(isHorizontal?Dynamic:1)> ReplicateReturnType;
