@@ -89,7 +89,7 @@ struct CommaInitializer
       eigen_assert(m_row+m_currentBlockRows<=m_xpr.rows()
         && "Too many rows passed to comma initializer (operator<<)");
     }
-    eigen_assert(m_col<m_xpr.cols() || (m_xpr.cols()==0 && m_col==0)
+    eigen_assert((m_col<m_xpr.cols() || (m_xpr.cols()==0 && m_col==0))
       && "Too many coefficients passed to comma initializer (operator<<)");
     eigen_assert(m_currentBlockRows==other.rows());
     if (OtherDerived::SizeAtCompileTime != Dynamic)
