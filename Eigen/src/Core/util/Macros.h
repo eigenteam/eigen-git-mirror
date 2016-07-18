@@ -71,6 +71,15 @@
   #define EIGEN_COMP_MSVC 0
 #endif
 
+// For the record, here is a table summarizing the possible values for EIGEN_COMP_MSVC:
+//  name  ver   MSC_VER
+//  2008    9      1500
+//  2010   10      1600
+//  2012   11      1700
+//  2013   12      1800
+//  2015   14      1900
+//  "15"   15      1900
+
 /// \internal EIGEN_COMP_MSVC_STRICT set to 1 if the compiler is really Microsoft Visual C++ and not ,e.g., ICC
 #if EIGEN_COMP_MSVC && !(EIGEN_COMP_ICC)
   #define EIGEN_COMP_MSVC_STRICT _MSC_VER
