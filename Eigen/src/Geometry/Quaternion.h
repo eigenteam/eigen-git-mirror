@@ -726,7 +726,7 @@ QuaternionBase<Derived>::slerp(const Scalar& t, const QuaternionBase<OtherDerive
   using std::acos;
   using std::sin;
   using std::abs;
-  static const Scalar one = Scalar(1) - NumTraits<Scalar>::epsilon();
+  const Scalar one = Scalar(1) - NumTraits<Scalar>::epsilon();
   Scalar d = this->dot(other);
   Scalar absD = abs(d);
 
