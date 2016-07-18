@@ -708,6 +708,67 @@ std::string demangle_flags(int f)
 
 } // end namespace internal
 
+
+/** \class ScalarBinaryOpTraits
+  * \ingroup Core_Module
+  *
+  * \brief Determines whether the given binary operation of two numeric types is allowed and what the scalar return type is.
+  *
+  * \sa CwiseBinaryOp
+  */
+template<typename ScalarA, typename ScalarB, typename BinaryOp=internal::scalar_product_op<ScalarA,ScalarB> >
+struct ScalarBinaryOpTraits
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  // for backward compatibility, use the hints given by the (deprecated) internal::scalar_product_traits class.
+  : internal::scalar_product_traits<ScalarA,ScalarB>
+#endif // EIGEN_PARSED_BY_DOXYGEN
+{};
+
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T,T,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// For Matrix * Permutation
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T,void,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// For Permutation * Matrix
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<void,T,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef T ReturnType;
+};
+
+// for Permutation*Permutation
+template<typename BinaryOp>
+struct ScalarBinaryOpTraits<void,void,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef void ReturnType;
+};
+
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T,std::complex<T>,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef std::complex<T> ReturnType;
+};
+
+template<typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<std::complex<T>, T,BinaryOp>
+{
+  enum { Defined = 1 };
+  typedef std::complex<T> ReturnType;
+};
+
 // We require Lhs and Rhs to have "compatible" scalar types.
 // It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
 // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to

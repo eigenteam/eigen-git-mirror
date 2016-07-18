@@ -435,67 +435,6 @@ T div_ceil(const T &a, const T &b)
 
 } // end namespace numext
 
-
-/** \class ScalarBinaryOpTraits
-  * \ingroup Core_Module
-  *
-  * \brief Determines whether the given binary operation of two numeric types is allowed and what the scalar return type is.
-  *
-  * \sa CwiseBinaryOp
-  */
-template<typename ScalarA, typename ScalarB, typename BinaryOp=void>
-struct ScalarBinaryOpTraits
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-  // for backward compatibility, use the hints given by the (deprecated) internal::scalar_product_traits class.
-  : internal::scalar_product_traits<ScalarA,ScalarB>
-#endif // EIGEN_PARSED_BY_DOXYGEN
-{};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T,T,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef T ReturnType;
-};
-
-// For Matrix * Permutation
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T,void,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef T ReturnType;
-};
-
-// For Permutation * Matrix
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<void,T,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef T ReturnType;
-};
-
-// for Permutation*Permutation
-template<typename BinaryOp>
-struct ScalarBinaryOpTraits<void,void,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef void ReturnType;
-};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T,std::complex<T>,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef std::complex<T> ReturnType;
-};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<std::complex<T>, T,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef std::complex<T> ReturnType;
-};
-
 } // end namespace Eigen
 
 #endif // EIGEN_META_H
