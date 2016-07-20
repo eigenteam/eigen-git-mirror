@@ -327,6 +327,16 @@ if(EIGEN_TEST_EIGEN2)
   message(WARNING "The Eigen2 test suite has been removed")
 endif()
 
+# boost MP unit test
+find_package(Boost)
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+  ei_add_test(boostmultiprec "" "${Boost_LIBRARIES}")
+  ei_add_property(EIGEN_TESTED_BACKENDS "Boost.Multiprecision, ")
+else()
+  ei_add_property(EIGEN_MISSING_BACKENDS "Boost.Multiprecision, ")
+endif()
+
 
 # CUDA unit tests
 option(EIGEN_TEST_CUDA "Enable CUDA support in unit tests" OFF)
