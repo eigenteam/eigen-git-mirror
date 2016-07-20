@@ -10,6 +10,7 @@
 template<typename MatrixType>
 void svd_fill_random(MatrixType &m, int Option = 0)
 {
+  using std::pow;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename MatrixType::Index Index;
@@ -18,7 +19,7 @@ void svd_fill_random(MatrixType &m, int Option = 0)
   s = internal::random<RealScalar>(1,s);
   Matrix<RealScalar,Dynamic,1> d =  Matrix<RealScalar,Dynamic,1>::Random(diagSize);
   for(Index k=0; k<diagSize; ++k)
-    d(k) = d(k)*std::pow(RealScalar(10),internal::random<RealScalar>(-s,s));
+    d(k) = d(k)*pow(RealScalar(10),internal::random<RealScalar>(-s,s));
 
   bool dup     = internal::random<int>(0,10) < 3;
   bool unit_uv = internal::random<int>(0,10) < (dup?7:3); // if we duplicate some diagonal entries, then increase the chance to preserve them using unitary U and V factors

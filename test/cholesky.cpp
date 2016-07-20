@@ -243,11 +243,13 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     // check matrices with a wide spectrum
     if(rows>=3)
     {
+      using std::pow;
+      using std::sqrt;
       RealScalar s = (std::min)(16,std::numeric_limits<RealScalar>::max_exponent10/8);
       Matrix<Scalar,Dynamic,Dynamic> a = Matrix<Scalar,Dynamic,Dynamic>::Random(rows,rows);
       Matrix<RealScalar,Dynamic,1> d =  Matrix<RealScalar,Dynamic,1>::Random(rows);
       for(Index k=0; k<rows; ++k)
-        d(k) = d(k)*std::pow(RealScalar(10),internal::random<RealScalar>(-s,s));
+        d(k) = d(k)*pow(RealScalar(10),internal::random<RealScalar>(-s,s));
       SquareMatrixType A = a * d.asDiagonal() * a.adjoint();
       // Make sure a solution exists:
       vecX.setRandom();
@@ -263,7 +265,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       }
       else
       {
-        RealScalar large_tol =  std::sqrt(test_precision<RealScalar>());
+        RealScalar large_tol =  sqrt(test_precision<RealScalar>());
         VERIFY((A * vecX).isApprox(vecB, large_tol));
 
         ++g_test_level;
