@@ -7,6 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <sstream>
+
 #ifdef EIGEN_TEST_MAX_SIZE
 #undef EIGEN_TEST_MAX_SIZE
 #endif
@@ -57,12 +59,15 @@
 #include <boost/multiprecision/number.hpp>
 
 namespace mp = boost::multiprecision;
-typedef mp::number<mp::cpp_dec_float<100>, mp::et_off> Real;
+typedef mp::number<mp::cpp_dec_float<100>, mp::et_off> Real; // swith to et_on for testing with expression templates
 
 namespace Eigen {
   template<> struct NumTraits<Real> : GenericNumTraits<Real> {
     static inline Real dummy_precision() { return 1e-50; }
   };
+
+  template<typename T1,typename T2,typename T3,typename T4,typename T5>
+  struct NumTraits<boost::multiprecision::detail::expression<T1,T2,T3,T4,T5> > : NumTraits<Real> {};
 
   template<>
   Real test_precision<Real>() { return 1e-50; }
@@ -82,10 +87,11 @@ namespace multiprecision {
     return internal::isApprox(a, b, test_precision<Real>());
   }
 
-  inline bool test_isApproxOrLessThan(const Real& a, const Real& b)
-  { return internal::isApproxOrLessThan(a, b, test_precision<Real>()); }
+  inline bool test_isApproxOrLessThan(const Real& a, const Real& b) {
+    return internal::isApproxOrLessThan(a, b, test_precision<Real>());
+  }
 
-  Real get_test_precision(const Real*) {
+  Real get_test_precision(const Real&) {
     return test_precision<Real>();
   }
 
@@ -107,6 +113,14 @@ void test_boostmultiprec()
   std::cout << "NumTraits<Real>::dummy_precision() = " << NumTraits<Real>::dummy_precision() << std::endl;
   std::cout << "NumTraits<Real>::lowest()          = " << NumTraits<Real>::lowest() << std::endl;
   std::cout << "NumTraits<Real>::highest()         = " << NumTraits<Real>::highest() << std::endl;
+
+  // chekc stream output
+  {
+    Mat A(10,10);
+    A.setRandom();
+    std::stringstream ss;
+    ss << A;
+  }
 
   for(int i = 0; i < g_repeat; i++) {
     int s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);

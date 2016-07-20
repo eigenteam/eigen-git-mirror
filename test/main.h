@@ -452,20 +452,20 @@ T test_relative_error(const AngleAxis<T> &a, const AngleAxis<T> &b)
 }
 
 template<typename Type1, typename Type2>
-inline bool test_isApprox(const Type1& a, const Type2& b)
+inline bool test_isApprox(const Type1& a, const Type2& b, typename Type1::Scalar* = 0) // Enabled for Eigen's type only
 {
   return a.isApprox(b, test_precision<typename Type1::Scalar>());
 }
 
 // get_test_precision is a small wrapper to test_precision allowing to return the scalar precision for either scalars or expressions
 template<typename T>
-typename NumTraits<typename T::Scalar>::Real get_test_precision(const T*, const typename T::Scalar* = 0)
+typename NumTraits<typename T::Scalar>::Real get_test_precision(const T&, const typename T::Scalar* = 0)
 {
   return test_precision<typename NumTraits<typename T::Scalar>::Real>();
 }
 
 template<typename T>
-typename NumTraits<T>::Real get_test_precision(const T*,typename internal::enable_if<internal::is_arithmetic<typename NumTraits<T>::Real>::value, T>::type* = 0)
+typename NumTraits<T>::Real get_test_precision(const T&,typename internal::enable_if<internal::is_arithmetic<typename NumTraits<T>::Real>::value, T>::type* = 0)
 {
   return test_precision<typename NumTraits<T>::Real>();
 }
@@ -477,7 +477,7 @@ inline bool verifyIsApprox(const Type1& a, const Type2& b)
   bool ret = test_isApprox(a,b);
   if(!ret)
   {
-    std::cerr << "Difference too large wrt tolerance " << get_test_precision(static_cast<Type1*>(0))  << ", relative error is: " << test_relative_error(a,b) << std::endl;
+    std::cerr << "Difference too large wrt tolerance " << get_test_precision(a)  << ", relative error is: " << test_relative_error(a,b) << std::endl;
   }
   return ret;
 }
