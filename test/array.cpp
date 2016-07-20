@@ -255,6 +255,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   m3 = m1.abs();
   VERIFY_IS_APPROX(m3.sqrt(), sqrt(abs(m1)));
   VERIFY_IS_APPROX(m3.rsqrt(), Scalar(1)/sqrt(abs(m1)));
+  VERIFY_IS_APPROX(rsqrt(m3), Scalar(1)/sqrt(abs(m1)));
   VERIFY_IS_APPROX(m3.log(), log(m3));
   VERIFY_IS_APPROX(m3.log1p(), log1p(m3));
   VERIFY_IS_APPROX(m3.log10(), log10(m3));
