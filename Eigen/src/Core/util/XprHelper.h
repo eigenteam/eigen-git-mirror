@@ -48,7 +48,7 @@ inline IndexDest convert_index(const IndexSrc& idx) {
 // promote_scalar_arg is an helper used in operation between an expression and a scalar, like:
 //    expression * scalar
 // Its role is to determine how the type T of the scalar operand should be promoted given the scalar type ExprScalar of the given expression.
-// The IsSupported template parameter must be provided by the caller as: ScalarBinaryOpTraits<ExprScalar,T,op>::Defined using the proper order for ExprScalar and T.
+// The IsSupported template parameter must be provided by the caller as: internal::has_ReturnType<ScalarBinaryOpTraits<ExprScalar,T,op> >::value using the proper order for ExprScalar and T.
 // Then the logic is as follows:
 //  - if the operation is natively supported as defined by IsSupported, then the scalar type is not promoted, and T is returned.
 //  - otherwise, NumTraits<ExprScalar>::Literal is returned if T is implicitly convertible to NumTraits<ExprScalar>::Literal AND that this does not imply a float to integer conversion.
@@ -714,6 +714,27 @@ std::string demangle_flags(int f)
   *
   * \brief Determines whether the given binary operation of two numeric types is allowed and what the scalar return type is.
   *
+  * This class permits to control the scalar return type of any binary operation performed on two different scalar types through (partial) template specializations.
+  *
+  * For instance, let \c U1, \c U2 and \c U3 be three user defined scalar types for which most operations between instances of \c U1 and \c U2 returns an \c U3.
+  * You can let Eigen knows that by defining:
+    \code
+    template<typename BinaryOp>
+    struct ScalarBinaryOpTraits<U1,U2,BinaryOp> { typedef U3 ReturnType;  };
+    template<typename BinaryOp>
+    struct ScalarBinaryOpTraits<U2,U1,BinaryOp> { typedef U3 ReturnType;  };
+    \endcode
+  * You can then explicitly disable some particular operations to get more explicit error messages:
+    \code
+    template<>
+    struct ScalarBinaryOpTraits<U1,U2,internal::scalar_max_op<U1,U2> > {};
+    \endcode
+  * Or customize the return type for individual operation:
+    \code
+    template<>
+    struct ScalarBinaryOpTraits<U1,U2,internal::scalar_sum_op<U1,U2> > { typedef U1 ReturnType; };
+    \endcode
+  *
   * \sa CwiseBinaryOp
   */
 template<typename ScalarA, typename ScalarB, typename BinaryOp=internal::scalar_product_op<ScalarA,ScalarB> >
@@ -727,7 +748,6 @@ struct ScalarBinaryOpTraits
 template<typename T, typename BinaryOp>
 struct ScalarBinaryOpTraits<T,T,BinaryOp>
 {
-  enum { Defined = 1 };
   typedef T ReturnType;
 };
 
@@ -735,7 +755,6 @@ struct ScalarBinaryOpTraits<T,T,BinaryOp>
 template<typename T, typename BinaryOp>
 struct ScalarBinaryOpTraits<T,void,BinaryOp>
 {
-  enum { Defined = 1 };
   typedef T ReturnType;
 };
 
@@ -743,7 +762,6 @@ struct ScalarBinaryOpTraits<T,void,BinaryOp>
 template<typename T, typename BinaryOp>
 struct ScalarBinaryOpTraits<void,T,BinaryOp>
 {
-  enum { Defined = 1 };
   typedef T ReturnType;
 };
 
@@ -751,21 +769,18 @@ struct ScalarBinaryOpTraits<void,T,BinaryOp>
 template<typename BinaryOp>
 struct ScalarBinaryOpTraits<void,void,BinaryOp>
 {
-  enum { Defined = 1 };
   typedef void ReturnType;
 };
 
 template<typename T, typename BinaryOp>
 struct ScalarBinaryOpTraits<T,std::complex<T>,BinaryOp>
 {
-  enum { Defined = 1 };
   typedef std::complex<T> ReturnType;
 };
 
 template<typename T, typename BinaryOp>
 struct ScalarBinaryOpTraits<std::complex<T>, T,BinaryOp>
 {
-  enum { Defined = 1 };
   typedef std::complex<T> ReturnType;
 };
 
@@ -774,7 +789,7 @@ struct ScalarBinaryOpTraits<std::complex<T>, T,BinaryOp>
 // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
 // add together a float matrix and a double matrix.
 #define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
-  EIGEN_STATIC_ASSERT(int(ScalarBinaryOpTraits<LHS, RHS,BINOP>::Defined), \
+  EIGEN_STATIC_ASSERT((Eigen::internal::has_ReturnType<ScalarBinaryOpTraits<LHS, RHS,BINOP> >::value), \
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     
 } // end namespace Eigen
