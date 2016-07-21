@@ -410,6 +410,9 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half exp(const Eigen::half& a) {
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half log(const Eigen::half& a) {
   return Eigen::half(::logf(float(a)));
 }
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half log10(const Eigen::half& a) {
+  return Eigen::half(::log10f(float(a)));
+}
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half sqrt(const Eigen::half& a) {
   return Eigen::half(::sqrtf(float(a)));
 }
@@ -453,6 +456,24 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half (max)(const Eigen::half& a, co
   return f1 < f2 ? b : a;
 #endif
 }
+
+namespace internal {
+
+template<>
+struct random_default_impl<half, false, false>
+{
+  static inline half run(const half& x, const half& y)
+  {
+    return x + (y-x) * half(float(std::rand()) / float(RAND_MAX));
+  }
+  static inline half run()
+  {
+    return run(half(-1.f), half(1.f));
+  }
+};
+
+
+} // end namespace internal
 
 } // end namespace Eigen
 
