@@ -3,7 +3,7 @@ namespace Eigen {
 /** \eigenManualPage InplaceDecomposition Inplace matrix decompositions
 
 Starting from %Eigen 3.3, the LU, Cholesky, and QR decompositions can operate \em inplace, that is, directly within the given input matrix.
-This feature is especially useful when dealing with huae matrices, and or when the available memory is very limited (embedded systems).
+This feature is especially useful when dealing with huge matrices, and or when the available memory is very limited (embedded systems).
 
 To this end, the respective decomposition class must be instantiated with a Ref<> matrix type, and the decomposition object must be constructed with the input matrix as argument. As an example, let us consider an inplace LU decomposition with partial pivoting.
 
