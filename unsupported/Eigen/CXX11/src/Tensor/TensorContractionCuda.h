@@ -461,8 +461,8 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
 #undef writeResultShmem
 #undef writeRow
 
-  const int max_i_write = (min)((int)((m_size - base_m - threadIdx.y + 7) / 8), 8);
-  const int max_j_write = (min)((int)((n_size - base_n - threadIdx.z + 7) / 8), 8);
+  const int max_i_write = numext::mini((int)((m_size - base_m - threadIdx.y + 7) / 8), 8);
+  const int max_j_write = numext::mini((int)((n_size - base_n - threadIdx.z + 7) / 8), 8);
 
   if (threadIdx.x < max_i_write) {
     if (max_j_write == 8) {

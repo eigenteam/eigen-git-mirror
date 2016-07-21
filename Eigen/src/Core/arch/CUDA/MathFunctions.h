@@ -27,6 +27,7 @@ float4 plog<float4>(const float4& a)
 template<>  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 double2 plog<double2>(const double2& a)
 {
+  using ::log;
   return make_double2(log(a.x), log(a.y));
 }
 
@@ -39,6 +40,7 @@ float4 pexp<float4>(const float4& a)
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 double2 pexp<double2>(const double2& a)
 {
+  using ::exp;
   return make_double2(exp(a.x), exp(a.y));
 }
 
@@ -51,6 +53,7 @@ float4 psqrt<float4>(const float4& a)
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 double2 psqrt<double2>(const double2& a)
 {
+  using ::sqrt;
   return make_double2(sqrt(a.x), sqrt(a.y));
 }
 
