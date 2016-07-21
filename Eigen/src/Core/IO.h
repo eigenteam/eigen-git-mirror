@@ -131,7 +131,9 @@ struct significant_decimals_default_impl
   typedef typename NumTraits<Scalar>::Real RealScalar;
   static inline int run()
   {
-    return cast<RealScalar,int>(numext::ceil(-numext::log(NumTraits<RealScalar>::epsilon())/numext::log(RealScalar(10))));
+    using std::ceil;
+    using std::log10;
+    return cast<RealScalar,int>(ceil(-log10(NumTraits<RealScalar>::epsilon())));
   }
 };
 
