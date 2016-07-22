@@ -262,7 +262,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half predux_mul<half2>(c
 #else
   float a1 = __low2float(a);
   float a2 = __high2float(a);
-  return Eigen::half(internal::raw_uint16_to_half(__float2half_rn(a1 * a2)));
+  return Eigen::half(half_impl::raw_uint16_to_half(__float2half_rn(a1 * a2)));
 #endif
 }
 
