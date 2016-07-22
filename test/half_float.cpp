@@ -5,10 +5,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#define EIGEN_TEST_NO_LONGDOUBLE
-#define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_float16
-
 #include <sstream>
 
 #include "main.h"
@@ -19,6 +15,8 @@ using Eigen::half;
 
 void test_conversion()
 {
+  using Eigen::half_impl::__half;
+
   // Conversion from float.
   VERIFY_IS_EQUAL(half(1.0f).x, 0x3c00);
   VERIFY_IS_EQUAL(half(0.5f).x, 0x3800);
@@ -232,7 +230,7 @@ void test_array()
   ss << a1;
 }
 
-void test_cxx11_float16()
+void test_half_float()
 {
   CALL_SUBTEST(test_conversion());
   CALL_SUBTEST(test_numtraits());

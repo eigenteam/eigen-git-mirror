@@ -117,7 +117,6 @@ ei_add_test(special_functions)
 # when using visual studio. We should make the check more strict to enable the tests for
 # newer versions of MSVC.
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-ei_add_test(cxx11_float16)
 ei_add_test(cxx11_tensor_dimension)
 ei_add_test(cxx11_tensor_map)
 ei_add_test(cxx11_tensor_assign)
