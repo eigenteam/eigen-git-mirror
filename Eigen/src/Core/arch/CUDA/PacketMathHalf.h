@@ -228,7 +228,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half predux<half2>(const
 #else
   float a1 = __low2float(a);
   float a2 = __high2float(a);
-  return Eigen::half(internal::raw_uint16_to_half(__float2half_rn(a1 + a2)));
+  return Eigen::half(half_impl::raw_uint16_to_half(__float2half_rn(a1 + a2)));
 #endif
 }
 
@@ -372,7 +372,7 @@ template<> EIGEN_STRONG_INLINE Packet8h pset1<Packet8h>(const Eigen::half& from)
 }
 
 template<> EIGEN_STRONG_INLINE Eigen::half pfirst<Packet8h>(const Packet8h& from) {
-  return raw_uint16_to_half(static_cast<unsigned short>(_mm_extract_epi16(from.x, 0)));
+  return half_impl::raw_uint16_to_half(static_cast<unsigned short>(_mm_extract_epi16(from.x, 0)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet8h pload<Packet8h>(const Eigen::half* from) {
