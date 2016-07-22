@@ -259,7 +259,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,InnerProduct>
 
 // Column major result
 template<typename Dst, typename Lhs, typename Rhs, typename Func>
-EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const false_type&)
+void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const false_type&)
 {
   evaluator<Rhs> rhsEval(rhs);
   typename nested_eval<Lhs,Rhs::SizeAtCompileTime>::type actual_lhs(lhs);
@@ -272,7 +272,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, cons
 
 // Row major result
 template<typename Dst, typename Lhs, typename Rhs, typename Func>
-EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const true_type&)
+void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const true_type&)
 {
   evaluator<Lhs> lhsEval(lhs);
   typename nested_eval<Rhs,Lhs::SizeAtCompileTime>::type actual_rhs(rhs);
