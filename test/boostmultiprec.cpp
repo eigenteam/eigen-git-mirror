@@ -71,6 +71,18 @@ namespace Eigen {
 
   template<>
   Real test_precision<Real>() { return 1e-50; }
+
+  // needed in C++93 mode where number does not support explicit cast.
+  namespace internal {
+    template<typename NewType>
+    struct cast_impl<Real,NewType>
+    {
+      static inline NewType run(const Real& x)
+      {
+        return x.template convert_to<NewType>();
+      }
+    };
+  }
 }
 
 namespace boost {
