@@ -21,6 +21,7 @@ using Eigen::Tensor;
 
 #ifdef EIGEN_HAS_CUDA_FP16
 
+template<typename>
 void test_cuda_conversion() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -55,7 +56,7 @@ void test_cuda_conversion() {
   gpu_device.deallocate(d_conv);
 }
 
-
+template<typename>
 void test_cuda_unary() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -92,7 +93,7 @@ void test_cuda_unary() {
   gpu_device.deallocate(d_res_float);
 }
 
-
+template<typename>
 void test_cuda_elementwise() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -134,6 +135,7 @@ void test_cuda_elementwise() {
   gpu_device.deallocate(d_res_float);
 }
 
+template<typename>
 void test_cuda_trancendental() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -196,7 +198,7 @@ void test_cuda_trancendental() {
   gpu_device.deallocate(d_res2_float);
 }
 
-
+template<typename>
 void test_cuda_contractions() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -247,7 +249,7 @@ void test_cuda_contractions() {
   gpu_device.deallocate(d_res_float);
 }
 
-
+template<typename>
 void test_cuda_reductions(int size1, int size2, int redux) {
 
    std::cout << "Reducing " << size1 << " by " << size2
@@ -296,17 +298,19 @@ void test_cuda_reductions(int size1, int size2, int redux) {
   gpu_device.deallocate(d_res_float);
 }
 
+template<typename>
 void test_cuda_reductions() {
-  test_cuda_reductions(13, 13, 0);
-  test_cuda_reductions(13, 13, 1);
+  test_cuda_reductions<void>(13, 13, 0);
+  test_cuda_reductions<void>(13, 13, 1);
 
-  test_cuda_reductions(35, 36, 0);
-  test_cuda_reductions(35, 36, 1);
+  test_cuda_reductions<void>(35, 36, 0);
+  test_cuda_reductions<void>(35, 36, 1);
 
-  test_cuda_reductions(36, 35, 0);
-  test_cuda_reductions(36, 35, 1);
+  test_cuda_reductions<void>(36, 35, 0);
+  test_cuda_reductions<void>(36, 35, 1);
 }
 
+template<typename>
 void test_cuda_full_reductions() {
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
@@ -355,7 +359,7 @@ void test_cuda_full_reductions() {
   gpu_device.deallocate(d_res_float);
 }
 
-
+template<typename>
 void test_cuda_forced_evals() {
 
   Eigen::CudaStreamDevice stream;
@@ -409,14 +413,14 @@ void test_cuda_forced_evals() {
 void test_cxx11_tensor_of_float16_cuda()
 {
 #ifdef EIGEN_HAS_CUDA_FP16
-  CALL_SUBTEST_1(test_cuda_conversion());
-  CALL_SUBTEST_1(test_cuda_unary());
-  CALL_SUBTEST_1(test_cuda_elementwise());
-  CALL_SUBTEST_1(test_cuda_trancendental());
-  CALL_SUBTEST_2(test_cuda_contractions());
-  CALL_SUBTEST_3(test_cuda_reductions());
-  CALL_SUBTEST_4(test_cuda_full_reductions());
-  CALL_SUBTEST_5(test_cuda_forced_evals());
+  CALL_SUBTEST_1(test_cuda_conversion<void>());
+  CALL_SUBTEST_1(test_cuda_unary<void>());
+  CALL_SUBTEST_1(test_cuda_elementwise<void>());
+  CALL_SUBTEST_1(test_cuda_trancendental<void>());
+  CALL_SUBTEST_2(test_cuda_contractions<void>());
+  CALL_SUBTEST_3(test_cuda_reductions<void>());
+  CALL_SUBTEST_4(test_cuda_full_reductions<void>());
+  CALL_SUBTEST_5(test_cuda_forced_evals<void>());
 #else
   std::cout << "Half floats are not supported by this version of cuda: skipping the test" << std::endl;
 #endif
