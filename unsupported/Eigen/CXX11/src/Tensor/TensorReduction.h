@@ -492,7 +492,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     }
 
     // Attempt to use an optimized reduction.
-    else if (RunningOnGPU && data && (m_device.majorDeviceVersion() >= 3)) {
+    else if (RunningOnGPU && (m_device.majorDeviceVersion() >= 3)) {
       bool reducing_inner_dims = true;
       for (int i = 0; i < NumReducedDims; ++i) {
         if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
@@ -505,8 +505,12 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
           (reducing_inner_dims || ReducingInnerMostDims)) {
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
+        if (!data && num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve) {
+          data = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
+          m_result = data;
+        }
         Op reducer(m_reducer);
-        return internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+        return internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve) || (m_result != NULL);
       }
 
       bool preserving_inner_dims = true;
@@ -521,8 +525,12 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
           preserving_inner_dims) {
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
+        if (!data && num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve) {
+          data = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
+          m_result = data;
+        }
         Op reducer(m_reducer);
-        return internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve);
+        return internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve) || (m_result != NULL);
       }
     }
     return true;
@@ -537,8 +545,8 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
   {
-    if (RunningFullReduction && m_result) {
-      return *m_result;
+    if ((RunningFullReduction || RunningOnGPU) && m_result) {
+      return *(m_result + index);
     }
     Op reducer(m_reducer);
     if (ReducingInnerMostDims || RunningFullReduction) {
@@ -559,6 +567,10 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
   {
     EIGEN_STATIC_ASSERT((PacketSize > 1), YOU_MADE_A_PROGRAMMING_MISTAKE)
     eigen_assert(index + PacketSize - 1 < Index(internal::array_prod(dimensions())));
+
+    if (RunningOnGPU && m_result) {
+      return internal::pload<PacketReturnType>(m_result + index);
+    }
 
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
     if (ReducingInnerMostDims) {
