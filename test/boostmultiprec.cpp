@@ -40,10 +40,18 @@
 #endif
 
 #ifdef EIGEN_TEST_PART_7
-#include "jacobisvd.cpp"
+#include "eigensolver_generic.cpp"
 #endif
 
 #ifdef EIGEN_TEST_PART_8
+#include "eigensolver_generalized_real.cpp"
+#endif
+
+#ifdef EIGEN_TEST_PART_9
+#include "jacobisvd.cpp"
+#endif
+
+#ifdef EIGEN_TEST_PART_10
 #include "bdcsvd.cpp"
 #endif
 
@@ -57,9 +65,11 @@
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <boost/multiprecision/number.hpp>
+#include <boost/math/special_functions.hpp>
+#include <boost/math/complex.hpp>
 
 namespace mp = boost::multiprecision;
-typedef mp::number<mp::cpp_dec_float<100>, mp::et_off> Real; // swith to et_on for testing with expression templates
+typedef mp::number<mp::cpp_dec_float<100>, mp::et_on> Real;
 
 namespace Eigen {
   template<> struct NumTraits<Real> : GenericNumTraits<Real> {
@@ -75,11 +85,16 @@ namespace Eigen {
   // needed in C++93 mode where number does not support explicit cast.
   namespace internal {
     template<typename NewType>
-    struct cast_impl<Real,NewType>
-    {
-      static inline NewType run(const Real& x)
-      {
+    struct cast_impl<Real,NewType> {
+      static inline NewType run(const Real& x) {
         return x.template convert_to<NewType>();
+      }
+    };
+
+    template<>
+    struct cast_impl<Real,std::complex<Real> > {
+      static inline std::complex<Real>  run(const Real& x) {
+        return std::complex<Real>(x);
       }
     };
   }
@@ -89,6 +104,14 @@ namespace boost {
 namespace multiprecision {
   // to make ADL works as expected:
   using boost::math::isfinite;
+  using boost::math::isnan;
+  using boost::math::isinf;
+  using boost::math::copysign;
+  using boost::math::hypot;
+
+  // The following is needed for std::complex<Real>:
+  Real fabs(const Real& a) { return abs EIGEN_NOT_A_MACRO (a); }
+  Real fmax(const Real& a, const Real& b) { using std::max; return max(a,b); }
 
   // some specialization for the unit tests:
   inline bool test_isMuchSmallerThan(const Real& a, const Real& b) {
@@ -108,7 +131,8 @@ namespace multiprecision {
   }
 
   Real test_relative_error(const Real &a, const Real &b) {
-    return Eigen::numext::sqrt(Real(Eigen::numext::abs2(a-b))/Real((Eigen::numext::mini)(Eigen::numext::abs2(a),Eigen::numext::abs2(b))));
+    using Eigen::numext::abs2;
+    return sqrt(abs2<Real>(a-b)/Eigen::numext::mini<Real>(abs2(a),abs2(b)));
   }
 }
 }
@@ -120,15 +144,23 @@ namespace Eigen {
 void test_boostmultiprec()
 {
   typedef Matrix<Real,Dynamic,Dynamic> Mat;
+  typedef Matrix<std::complex<Real>,Dynamic,Dynamic> MatC;
 
   std::cout << "NumTraits<Real>::epsilon()         = " << NumTraits<Real>::epsilon() << std::endl;
   std::cout << "NumTraits<Real>::dummy_precision() = " << NumTraits<Real>::dummy_precision() << std::endl;
   std::cout << "NumTraits<Real>::lowest()          = " << NumTraits<Real>::lowest() << std::endl;
   std::cout << "NumTraits<Real>::highest()         = " << NumTraits<Real>::highest() << std::endl;
+  std::cout << "NumTraits<Real>::digits10()        = " << NumTraits<Real>::digits10() << std::endl;
 
   // chekc stream output
   {
     Mat A(10,10);
+    A.setRandom();
+    std::stringstream ss;
+    ss << A;
+  }
+  {
+    MatC A(10,10);
     A.setRandom();
     std::stringstream ss;
     ss << A;
@@ -141,6 +173,8 @@ void test_boostmultiprec()
 
     CALL_SUBTEST_2( lu_non_invertible<Mat>() );
     CALL_SUBTEST_2( lu_invertible<Mat>() );
+    CALL_SUBTEST_2( lu_non_invertible<MatC>() );
+    CALL_SUBTEST_2( lu_invertible<MatC>() );
 
     CALL_SUBTEST_3( qr(Mat(internal::random<int>(1,EIGEN_TEST_MAX_SIZE),internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_3( qr_invertible<Mat>() );
@@ -154,10 +188,14 @@ void test_boostmultiprec()
 
     CALL_SUBTEST_6( selfadjointeigensolver(Mat(s,s)) );
 
+    CALL_SUBTEST_7( eigensolver(Mat(s,s)) );
+
+    CALL_SUBTEST_8( generalized_eigensolver_real(Mat(s,s)) );
+
     TEST_SET_BUT_UNUSED_VARIABLE(s)
   }
 
-  CALL_SUBTEST_7(( jacobisvd(Mat(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
-  CALL_SUBTEST_8(( bdcsvd(Mat(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
+  CALL_SUBTEST_9(( jacobisvd(Mat(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
+  CALL_SUBTEST_10(( bdcsvd(Mat(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
 }
 
