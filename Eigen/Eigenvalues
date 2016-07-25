@@ -45,9 +45,9 @@
 #include "src/Eigenvalues/GeneralizedEigenSolver.h"
 #include "src/Eigenvalues/MatrixBaseEigenvalues.h"
 #ifdef EIGEN_USE_LAPACKE
-#include "src/Eigenvalues/RealSchur_MKL.h"
-#include "src/Eigenvalues/ComplexSchur_MKL.h"
-#include "src/Eigenvalues/SelfAdjointEigenSolver_MKL.h"
+#include "src/Eigenvalues/RealSchur_LAPACKE.h"
+#include "src/Eigenvalues/ComplexSchur_LAPACKE.h"
+#include "src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h"
 #endif
 
 #include "src/Core/util/ReenableStupidWarnings.h"
