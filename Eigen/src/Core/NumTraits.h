@@ -12,6 +12,37 @@
 
 namespace Eigen {
 
+namespace internal {
+
+// default implementation of digits10(), based on numeric_limits if specialized,
+// 0 for integer types, and log10(epsilon()) otherwise.
+template< typename T,
+          bool use_numeric_limits = std::numeric_limits<T>::is_specialized,
+          bool is_integer = NumTraits<T>::IsInteger>
+struct default_digits10_impl
+{
+  static int run() { return std::numeric_limits<T>::digits10; }
+};
+
+template<typename T>
+struct default_digits10_impl<T,false,false> // Floating point
+{
+  static int run() {
+    using std::log10;
+    using std::ceil;
+    typedef typename NumTraits<T>::Real Real;
+    return int(ceil(-log10(NumTraits<Real>::epsilon())));
+  }
+};
+
+template<typename T>
+struct default_digits10_impl<T,false,true> // Integer
+{
+  static int run() { return 0; }
+};
+
+} // end namespace internal
+
 /** \class NumTraits
   * \ingroup Core_Module
   *
@@ -48,6 +79,9 @@ namespace Eigen {
   * \li A dummy_precision() function returning a weak epsilon value. It is mainly used as a default
   *     value by the fuzzy comparison operators.
   * \li highest() and lowest() functions returning the highest and lowest possible values respectively.
+  * \li digits10() function returning the number of decimal digits that can be represented without change. This is
+  *     the analogue of <a href="http://en.cppreference.com/w/cpp/types/numeric_limits/digits10">std::numeric_limits<T>::digits10</a>
+  *     which is used as the default implementation if specialized.
   */
 
 template<typename T> struct GenericNumTraits
@@ -93,6 +127,13 @@ template<typename T> struct GenericNumTraits
   {
     return numext::numeric_limits<T>::epsilon();
   }
+
+  EIGEN_DEVICE_FUNC
+  static inline int digits10()
+  {
+    return internal::default_digits10_impl<T>::run();
+  }
+
   EIGEN_DEVICE_FUNC
   static inline Real dummy_precision()
   {
