@@ -234,6 +234,27 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   static inline RealScalar dummy_precision() { return NumTraits<RealScalar>::dummy_precision(); }
 };
 
+template<> struct NumTraits<std::string>
+  : GenericNumTraits<std::string>
+{
+  enum {
+    RequireInitialization = 1,
+    ReadCost = HugeCost,
+    AddCost  = HugeCost,
+    MulCost  = HugeCost
+  };
+
+  static inline int digits10() { return 0; }
+
+private:
+  static inline std::string epsilon();
+  static inline std::string dummy_precision();
+  static inline std::string lowest();
+  static inline std::string highest();
+  static inline std::string infinity();
+  static inline std::string quiet_NaN();
+};
+
 } // end namespace Eigen
 
 #endif // EIGEN_NUMTRAITS_H

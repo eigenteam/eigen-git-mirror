@@ -13,11 +13,6 @@
 namespace Eigen {
 
 namespace internal {
-template<>
-struct significant_decimals_impl<std::string>
-    : significant_decimals_default_impl<std::string, true>
-{};
-
 
 // Print the tensor as a 2d matrix
 template <typename Tensor, int Rank>

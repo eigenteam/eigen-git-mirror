@@ -260,6 +260,7 @@ ei_add_test(ctorleak)
 ei_add_test(mpl2only)
 ei_add_test(inplace_decomposition)
 ei_add_test(half_float)
+ei_add_test(array_of_string)
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
 
