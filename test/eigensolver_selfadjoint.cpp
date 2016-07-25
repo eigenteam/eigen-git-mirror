@@ -19,7 +19,7 @@ template<typename MatrixType> void selfadjointeigensolver_essential_check(const 
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  RealScalar eival_eps = (std::min)(test_precision<RealScalar>(),  NumTraits<Scalar>::dummy_precision()*20000);
+  RealScalar eival_eps = numext::mini<RealScalar>(test_precision<RealScalar>(),  NumTraits<Scalar>::dummy_precision()*20000);
   
   SelfAdjointEigenSolver<MatrixType> eiSymm(m);
   VERIFY_IS_EQUAL(eiSymm.info(), Success);

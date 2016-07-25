@@ -1052,7 +1052,7 @@ void BDCSVD<MatrixType>::deflation(Index firstCol, Index lastCol, Index k, Index
   
   const RealScalar considerZero = (std::numeric_limits<RealScalar>::min)();
   RealScalar maxDiag = diag.tail((std::max)(Index(1),length-1)).cwiseAbs().maxCoeff();
-  RealScalar epsilon_strict = numext::maxi(considerZero,NumTraits<RealScalar>::epsilon() * maxDiag);
+  RealScalar epsilon_strict = numext::maxi<RealScalar>(considerZero,NumTraits<RealScalar>::epsilon() * maxDiag);
   RealScalar epsilon_coarse = 8 * NumTraits<RealScalar>::epsilon() * numext::maxi<RealScalar>(col0.cwiseAbs().maxCoeff(), maxDiag);
   
 #ifdef EIGEN_BDCSVD_SANITY_CHECKS

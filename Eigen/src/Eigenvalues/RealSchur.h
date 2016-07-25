@@ -304,7 +304,7 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
       {
         m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
         // keep track of the largest diagonal coefficient
-        maxDiagEntry = numext::maxi(maxDiagEntry,abs(m_matT.coeffRef(iu,iu)));
+        maxDiagEntry = numext::maxi<Scalar>(maxDiagEntry,abs(m_matT.coeffRef(iu,iu)));
         if (iu > 0)
           m_matT.coeffRef(iu, iu-1) = Scalar(0);
         iu--;
@@ -314,7 +314,7 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
       {
         splitOffTwoRows(iu, computeU, exshift);
         // keep track of the largest diagonal coefficient
-        maxDiagEntry = numext::maxi(maxDiagEntry,numext::maxi(abs(m_matT.coeff(iu,iu)), abs(m_matT.coeff(iu-1,iu-1))));
+        maxDiagEntry = numext::maxi<Scalar>(maxDiagEntry,numext::maxi(abs(m_matT.coeff(iu,iu)), abs(m_matT.coeff(iu-1,iu-1))));
         iu -= 2;
         iter = 0;
       }
