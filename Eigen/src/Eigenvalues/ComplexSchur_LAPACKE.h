@@ -25,21 +25,19 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to LAPACKe
  *    Complex Schur needed to complex unsymmetrical eigenvalues/eigenvectors.
  ********************************************************************************
 */
 
-#ifndef EIGEN_COMPLEX_SCHUR_MKL_H
-#define EIGEN_COMPLEX_SCHUR_MKL_H
-
-#include "Eigen/src/Core/util/MKL_support.h"
+#ifndef EIGEN_COMPLEX_SCHUR_LAPACKE_H
+#define EIGEN_COMPLEX_SCHUR_LAPACKE_H
 
 namespace Eigen { 
 
-/** \internal Specialization for the data types supported by MKL */
+/** \internal Specialization for the data types supported by LAPACKe */
 
-#define EIGEN_MKL_SCHUR_COMPLEX(EIGTYPE, MKLTYPE, MKLPREFIX, MKLPREFIX_U, EIGCOLROW, MKLCOLROW) \
+#define EIGEN_LAPACKE_SCHUR_COMPLEX(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX, LAPACKE_PREFIX_U, EIGCOLROW, LAPACKE_COLROW) \
 template<> template<typename InputType> inline \
 ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >& \
 ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const EigenBase<InputType>& matrix, bool computeU) \
@@ -61,9 +59,9 @@ ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Eigen
       return *this; \
   } \
   lapack_int n = internal::convert_index<lapack_int>(matrix.cols()), sdim, info; \
-  lapack_int matrix_order = MKLCOLROW; \
+  lapack_int matrix_order = LAPACKE_COLROW; \
   char jobvs, sort='N'; \
-  LAPACK_##MKLPREFIX_U##_SELECT1 select = 0; \
+  LAPACK_##LAPACKE_PREFIX_U##_SELECT1 select = 0; \
   jobvs = (computeU) ? 'V' : 'N'; \
   m_matU.resize(n, n); \
   lapack_int ldvs  = internal::convert_index<lapack_int>(m_matU.outerStride()); \
@@ -71,7 +69,7 @@ ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Eigen
   lapack_int lda = internal::convert_index<lapack_int>(m_matT.outerStride()); \
   Matrix<EIGTYPE, Dynamic, Dynamic> w; \
   w.resize(n, 1);\
-  info = LAPACKE_##MKLPREFIX##gees( matrix_order, jobvs, sort, select, n, (MKLTYPE*)m_matT.data(), lda, &sdim, (MKLTYPE*)w.data(), (MKLTYPE*)m_matU.data(), ldvs ); \
+  info = LAPACKE_##LAPACKE_PREFIX##gees( matrix_order, jobvs, sort, select, n, (LAPACKE_TYPE*)m_matT.data(), lda, &sdim, (LAPACKE_TYPE*)w.data(), (LAPACKE_TYPE*)m_matU.data(), ldvs ); \
   if(info == 0) \
     m_info = Success; \
   else \
@@ -83,11 +81,11 @@ ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Eigen
 \
 }
 
-EIGEN_MKL_SCHUR_COMPLEX(dcomplex, lapack_complex_double, z, Z, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_SCHUR_COMPLEX(scomplex, lapack_complex_float,  c, C, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_SCHUR_COMPLEX(dcomplex, lapack_complex_double, z, Z, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_SCHUR_COMPLEX(scomplex, lapack_complex_float,  c, C, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_SCHUR_COMPLEX(dcomplex, lapack_complex_double, z, Z, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_SCHUR_COMPLEX(scomplex, lapack_complex_float,  c, C, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_SCHUR_COMPLEX(dcomplex, lapack_complex_double, z, Z, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_SCHUR_COMPLEX(scomplex, lapack_complex_float,  c, C, RowMajor, LAPACK_ROW_MAJOR)
 
 } // end namespace Eigen
 
-#endif // EIGEN_COMPLEX_SCHUR_MKL_H
+#endif // EIGEN_COMPLEX_SCHUR_LAPACKE_H

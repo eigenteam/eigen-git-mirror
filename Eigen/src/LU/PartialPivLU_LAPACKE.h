@@ -25,7 +25,7 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to LAPACKe
  *     LU decomposition with partial pivoting based on LAPACKE_?getrf function.
  ********************************************************************************
 */
@@ -33,15 +33,13 @@
 #ifndef EIGEN_PARTIALLU_LAPACK_H
 #define EIGEN_PARTIALLU_LAPACK_H
 
-#include "Eigen/src/Core/util/MKL_support.h"
-
 namespace Eigen { 
 
 namespace internal {
 
-/** \internal Specialization for the data types supported by MKL */
+/** \internal Specialization for the data types supported by LAPACKe */
 
-#define EIGEN_MKL_LU_PARTPIV(EIGTYPE, MKLTYPE, MKLPREFIX) \
+#define EIGEN_LAPACKE_LU_PARTPIV(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX) \
 template<int StorageOrder> \
 struct partial_lu_impl<EIGTYPE, StorageOrder, lapack_int> \
 { \
@@ -61,7 +59,7 @@ struct partial_lu_impl<EIGTYPE, StorageOrder, lapack_int> \
     n = convert_index<lapack_int>(cols); \
     nb_transpositions = 0; \
 \
-    info = LAPACKE_##MKLPREFIX##getrf( matrix_order, m, n, (MKLTYPE*)a, lda, ipiv ); \
+    info = LAPACKE_##LAPACKE_PREFIX##getrf( matrix_order, m, n, (LAPACKE_TYPE*)a, lda, ipiv ); \
 \
     for(int i=0;i<m;i++) { ipiv[i]--; if (ipiv[i]!=i) nb_transpositions++; } \
 \
@@ -73,10 +71,10 @@ struct partial_lu_impl<EIGTYPE, StorageOrder, lapack_int> \
   } \
 };
 
-EIGEN_MKL_LU_PARTPIV(double, double, d)
-EIGEN_MKL_LU_PARTPIV(float, float, s)
-EIGEN_MKL_LU_PARTPIV(dcomplex, lapack_complex_double, z)
-EIGEN_MKL_LU_PARTPIV(scomplex, lapack_complex_float,  c)
+EIGEN_LAPACKE_LU_PARTPIV(double, double, d)
+EIGEN_LAPACKE_LU_PARTPIV(float, float, s)
+EIGEN_LAPACKE_LU_PARTPIV(dcomplex, lapack_complex_double, z)
+EIGEN_LAPACKE_LU_PARTPIV(scomplex, lapack_complex_float,  c)
 
 } // end namespace internal
 

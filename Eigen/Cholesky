@@ -31,6 +31,7 @@
 #include "src/Cholesky/LLT.h"
 #include "src/Cholesky/LDLT.h"
 #ifdef EIGEN_USE_LAPACKE
+#include "src/misc/lapacke.h"
 #include "src/Cholesky/LLT_LAPACKE.h"
 #endif
 

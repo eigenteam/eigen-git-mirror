@@ -124,8 +124,4 @@ typedef int BlasIndex;
 #include "../../misc/blas.h"
 #endif
 
-#ifdef EIGEN_USE_LAPACKE
-#include "../../misc/lapacke.h"
-#endif
-
 #endif // EIGEN_MKL_SUPPORT_H

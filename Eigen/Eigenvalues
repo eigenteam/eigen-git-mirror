@@ -45,6 +45,7 @@
 #include "src/Eigenvalues/GeneralizedEigenSolver.h"
 #include "src/Eigenvalues/MatrixBaseEigenvalues.h"
 #ifdef EIGEN_USE_LAPACKE
+#include "src/misc/lapacke.h"
 #include "src/Eigenvalues/RealSchur_LAPACKE.h"
 #include "src/Eigenvalues/ComplexSchur_LAPACKE.h"
 #include "src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h"

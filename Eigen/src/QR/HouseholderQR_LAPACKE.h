@@ -25,24 +25,22 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to LAPACKe
  *    Householder QR decomposition of a matrix w/o pivoting based on
  *    LAPACKE_?geqrf function.
  ********************************************************************************
 */
 
-#ifndef EIGEN_QR_MKL_H
-#define EIGEN_QR_MKL_H
-
-#include "../Core/util/MKL_support.h"
+#ifndef EIGEN_QR_LAPACKE_H
+#define EIGEN_QR_LAPACKE_H
 
 namespace Eigen { 
 
 namespace internal {
 
-/** \internal Specialization for the data types supported by MKL */
+/** \internal Specialization for the data types supported by LAPACKe */
 
-#define EIGEN_MKL_QR_NOPIV(EIGTYPE, MKLTYPE, MKLPREFIX) \
+#define EIGEN_LAPACKE_QR_NOPIV(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX) \
 template<typename MatrixQR, typename HCoeffs> \
 struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, EIGTYPE, true> \
 { \
@@ -53,18 +51,18 @@ struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, EIGTYPE, true> \
     lapack_int n = (lapack_int) mat.cols(); \
     lapack_int lda = (lapack_int) mat.outerStride(); \
     lapack_int matrix_order = (MatrixQR::IsRowMajor) ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR; \
-    LAPACKE_##MKLPREFIX##geqrf( matrix_order, m, n, (MKLTYPE*)mat.data(), lda, (MKLTYPE*)hCoeffs.data()); \
+    LAPACKE_##LAPACKE_PREFIX##geqrf( matrix_order, m, n, (LAPACKE_TYPE*)mat.data(), lda, (LAPACKE_TYPE*)hCoeffs.data()); \
     hCoeffs.adjointInPlace(); \
   } \
 };
 
-EIGEN_MKL_QR_NOPIV(double, double, d)
-EIGEN_MKL_QR_NOPIV(float, float, s)
-EIGEN_MKL_QR_NOPIV(dcomplex, lapack_complex_double, z)
-EIGEN_MKL_QR_NOPIV(scomplex, lapack_complex_float, c)
+EIGEN_LAPACKE_QR_NOPIV(double, double, d)
+EIGEN_LAPACKE_QR_NOPIV(float, float, s)
+EIGEN_LAPACKE_QR_NOPIV(dcomplex, lapack_complex_double, z)
+EIGEN_LAPACKE_QR_NOPIV(scomplex, lapack_complex_float, c)
 
 } // end namespace internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_QR_MKL_H
+#endif // EIGEN_QR_LAPACKE_H

@@ -25,21 +25,19 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to LAPACKe
  *    Real Schur needed to real unsymmetrical eigenvalues/eigenvectors.
  ********************************************************************************
 */
 
-#ifndef EIGEN_REAL_SCHUR_MKL_H
-#define EIGEN_REAL_SCHUR_MKL_H
-
-#include "Eigen/src/Core/util/MKL_support.h"
+#ifndef EIGEN_REAL_SCHUR_LAPACKE_H
+#define EIGEN_REAL_SCHUR_LAPACKE_H
 
 namespace Eigen { 
 
-/** \internal Specialization for the data types supported by MKL */
+/** \internal Specialization for the data types supported by LAPACKe */
 
-#define EIGEN_MKL_SCHUR_REAL(EIGTYPE, MKLTYPE, MKLPREFIX, MKLPREFIX_U, EIGCOLROW, MKLCOLROW) \
+#define EIGEN_LAPACKE_SCHUR_REAL(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX, LAPACKE_PREFIX_U, EIGCOLROW, LAPACKE_COLROW) \
 template<> template<typename InputType> inline \
 RealSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >& \
 RealSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const EigenBase<InputType>& matrix, bool computeU) \
@@ -47,9 +45,9 @@ RealSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const EigenBas
   eigen_assert(matrix.cols() == matrix.rows()); \
 \
   lapack_int n = internal::convert_index<lapack_int>(matrix.cols()), sdim, info; \
-  lapack_int matrix_order = MKLCOLROW; \
+  lapack_int matrix_order = LAPACKE_COLROW; \
   char jobvs, sort='N'; \
-  LAPACK_##MKLPREFIX_U##_SELECT2 select = 0; \
+  LAPACK_##LAPACKE_PREFIX_U##_SELECT2 select = 0; \
   jobvs = (computeU) ? 'V' : 'N'; \
   m_matU.resize(n, n); \
   lapack_int ldvs  = internal::convert_index<lapack_int>(m_matU.outerStride()); \
@@ -57,7 +55,7 @@ RealSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const EigenBas
   lapack_int lda = internal::convert_index<lapack_int>(m_matT.outerStride()); \
   Matrix<EIGTYPE, Dynamic, Dynamic> wr, wi; \
   wr.resize(n, 1); wi.resize(n, 1); \
-  info = LAPACKE_##MKLPREFIX##gees( matrix_order, jobvs, sort, select, n, (MKLTYPE*)m_matT.data(), lda, &sdim, (MKLTYPE*)wr.data(), (MKLTYPE*)wi.data(), (MKLTYPE*)m_matU.data(), ldvs ); \
+  info = LAPACKE_##LAPACKE_PREFIX##gees( matrix_order, jobvs, sort, select, n, (LAPACKE_TYPE*)m_matT.data(), lda, &sdim, (LAPACKE_TYPE*)wr.data(), (LAPACKE_TYPE*)wi.data(), (LAPACKE_TYPE*)m_matU.data(), ldvs ); \
   if(info == 0) \
     m_info = Success; \
   else \
@@ -69,11 +67,11 @@ RealSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const EigenBas
 \
 }
 
-EIGEN_MKL_SCHUR_REAL(double,   double, d, D, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_SCHUR_REAL(float,    float,  s, S, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_SCHUR_REAL(double,   double, d, D, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_SCHUR_REAL(float,    float,  s, S, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_SCHUR_REAL(double,   double, d, D, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_SCHUR_REAL(float,    float,  s, S, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_SCHUR_REAL(double,   double, d, D, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_SCHUR_REAL(float,    float,  s, S, RowMajor, LAPACK_ROW_MAJOR)
 
 } // end namespace Eigen
 
-#endif // EIGEN_REAL_SCHUR_MKL_H
+#endif // EIGEN_REAL_SCHUR_LAPACKE_H
