@@ -49,7 +49,7 @@
   #define EIGEN_USE_LAPACKE
 #endif
 
-#if defined(EIGEN_USE_LAPACKE) || defined(EIGEN_USE_MKL_VML)
+#if defined(EIGEN_USE_MKL_VML)
   #define EIGEN_USE_MKL
 #endif
 
@@ -72,7 +72,6 @@
 #endif
 
 #if defined EIGEN_USE_MKL
-#include <mkl_lapacke.h>
 #define EIGEN_MKL_VML_THRESHOLD 128
 
 /* MKL_DOMAIN_BLAS, etc are defined only in 10.3 update 7 */
@@ -123,6 +122,10 @@ typedef int BlasIndex;
 
 #if defined(EIGEN_USE_BLAS)
 #include "../../misc/blas.h"
+#endif
+
+#ifdef EIGEN_USE_LAPACKE
+#include "../../misc/lapacke.h"
 #endif
 
 #endif // EIGEN_MKL_SUPPORT_H

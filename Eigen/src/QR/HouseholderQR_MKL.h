@@ -60,8 +60,8 @@ struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, EIGTYPE, true> \
 
 EIGEN_MKL_QR_NOPIV(double, double, d)
 EIGEN_MKL_QR_NOPIV(float, float, s)
-EIGEN_MKL_QR_NOPIV(dcomplex, MKL_Complex16, z)
-EIGEN_MKL_QR_NOPIV(scomplex, MKL_Complex8, c)
+EIGEN_MKL_QR_NOPIV(dcomplex, lapack_complex_double, z)
+EIGEN_MKL_QR_NOPIV(scomplex, lapack_complex_float, c)
 
 } // end namespace internal
 

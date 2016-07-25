@@ -52,40 +52,40 @@ JacobiSVD<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynamic>, ColPiv
   /*const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon();*/ \
   m_nonzeroSingularValues = m_diagSize; \
 \
-  lapack_int lda = matrix.outerStride(), ldu, ldvt; \
+  lapack_int lda = internal::convert_index<lapack_int>(matrix.outerStride()), ldu, ldvt; \
   lapack_int matrix_order = MKLCOLROW; \
   char jobu, jobvt; \
   MKLTYPE *u, *vt, dummy; \
   jobu  = (m_computeFullU) ? 'A' : (m_computeThinU) ? 'S' : 'N'; \
   jobvt = (m_computeFullV) ? 'A' : (m_computeThinV) ? 'S' : 'N'; \
   if (computeU()) { \
-    ldu  = m_matrixU.outerStride(); \
+    ldu  = internal::convert_index<lapack_int>(m_matrixU.outerStride()); \
     u    = (MKLTYPE*)m_matrixU.data(); \
   } else { ldu=1; u=&dummy; }\
   MatrixType localV; \
-  ldvt = (m_computeFullV) ? m_cols : (m_computeThinV) ? m_diagSize : 1; \
+  ldvt = (m_computeFullV) ? internal::convert_index<lapack_int>(m_cols) : (m_computeThinV) ? internal::convert_index<lapack_int>(m_diagSize) : 1; \
   if (computeV()) { \
     localV.resize(ldvt, m_cols); \
     vt   = (MKLTYPE*)localV.data(); \
   } else { ldvt=1; vt=&dummy; }\
   Matrix<MKLRTYPE, Dynamic, Dynamic> superb; superb.resize(m_diagSize, 1); \
   MatrixType m_temp; m_temp = matrix; \
-  LAPACKE_##MKLPREFIX##gesvd( matrix_order, jobu, jobvt, m_rows, m_cols, (MKLTYPE*)m_temp.data(), lda, (MKLRTYPE*)m_singularValues.data(), u, ldu, vt, ldvt, superb.data()); \
+  LAPACKE_##MKLPREFIX##gesvd( matrix_order, jobu, jobvt, internal::convert_index<lapack_int>(m_rows), internal::convert_index<lapack_int>(m_cols), (MKLTYPE*)m_temp.data(), lda, (MKLRTYPE*)m_singularValues.data(), u, ldu, vt, ldvt, superb.data()); \
   if (computeV()) m_matrixV = localV.adjoint(); \
  /* for(int i=0;i<m_diagSize;i++) if (m_singularValues.coeffRef(i) < precision) { m_nonzeroSingularValues--; m_singularValues.coeffRef(i)=RealScalar(0);}*/ \
   m_isInitialized = true; \
   return *this; \
 }
 
-EIGEN_MKL_SVD(double,   double,        double, d, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_SVD(float,    float,         float , s, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_SVD(dcomplex, MKL_Complex16, double, z, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_SVD(scomplex, MKL_Complex8,  float , c, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_MKL_SVD(double,   double,                double, d, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_MKL_SVD(float,    float,                 float , s, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_MKL_SVD(dcomplex, lapack_complex_double, double, z, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_MKL_SVD(scomplex, lapack_complex_float,  float , c, ColMajor, LAPACK_COL_MAJOR)
 
-EIGEN_MKL_SVD(double,   double,        double, d, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_SVD(float,    float,         float , s, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_SVD(dcomplex, MKL_Complex16, double, z, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_SVD(scomplex, MKL_Complex8,  float , c, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_MKL_SVD(double,   double,                double, d, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_MKL_SVD(float,    float,                 float , s, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_MKL_SVD(dcomplex, lapack_complex_double, double, z, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_MKL_SVD(scomplex, lapack_complex_float,  float , c, RowMajor, LAPACK_ROW_MAJOR)
 
 } // end namespace Eigen
 
