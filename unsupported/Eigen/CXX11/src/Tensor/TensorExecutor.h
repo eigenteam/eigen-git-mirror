@@ -159,9 +159,6 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
 #else
       size_t num_threads = device.numThreads();
       if (num_threads > 1) {
-        // FIXME: the following line is broken (see bug 1255),
-        //        but maybe the cost should be used somewhere to drive the execution.
-        //cost = evaluator.costPerCoeff(Vectorizable)
         num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
             size, evaluator.costPerCoeff(Vectorizable), num_threads);
       }
