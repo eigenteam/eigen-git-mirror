@@ -617,7 +617,8 @@ EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(typename internal::remove_all<DerType>::t
 pow(const Eigen::AutoDiffScalar<DerType> &x, const typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar &y)
 {
   using namespace Eigen;
-  return Eigen::MakeAutoDiffScalar(std::pow(x.value(),y), x.derivatives() * (y * std::pow(x.value(),y-1)));
+  using std::pow;
+  return Eigen::MakeAutoDiffScalar(pow(x.value(),y), x.derivatives() * (y * pow(x.value(),y-1)));
 }
 
 
