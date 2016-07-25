@@ -203,6 +203,8 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   static inline Real epsilon() { return NumTraits<Real>::epsilon(); }
   EIGEN_DEVICE_FUNC
   static inline Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
+  EIGEN_DEVICE_FUNC
+  static inline int digits10() { return NumTraits<Real>::digits10(); }
 };
 
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
