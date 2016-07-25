@@ -306,7 +306,7 @@ template<typename Scalar> EIGEN_DEVICE_FUNC inline void prefetch(const Scalar* a
   // 32-bit pointer operand constraint for inlined asm
   asm(" prefetch.L1 [ %1 ];" : "=r"(addr) : "r"(addr));
 #endif
-#elif !EIGEN_COMP_MSVC
+#elif (!EIGEN_COMP_MSVC) && (EIGEN_COMP_GNUC || EIGEN_COMP_CLANG || EIGEN_COMP_ICC)
   __builtin_prefetch(addr);
 #endif
 }
