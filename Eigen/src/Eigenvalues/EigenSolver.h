@@ -453,26 +453,6 @@ EigenSolver<MatrixType>::compute(const EigenBase<InputType>& matrix, bool comput
   return *this;
 }
 
-// Complex scalar division.
-template<typename Scalar>
-std::complex<Scalar> cdiv(const Scalar& xr, const Scalar& xi, const Scalar& yr, const Scalar& yi)
-{
-  using std::abs;
-  Scalar r,d;
-  if (abs(yr) > abs(yi))
-  {
-      r = yi/yr;
-      d = yr + r*yi;
-      return std::complex<Scalar>((xr + r*xi)/d, (xi - r*xr)/d);
-  }
-  else
-  {
-      r = yr/yi;
-      d = yi + r*yr;
-      return std::complex<Scalar>((r*xr + xi)/d, (r*xi - xr)/d);
-  }
-}
-
 
 template<typename MatrixType>
 void EigenSolver<MatrixType>::doComputeEigenvectors()
@@ -559,7 +539,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
       }
       else
       {
-        std::complex<Scalar> cc = cdiv<Scalar>(Scalar(0),-m_matT.coeff(n-1,n),m_matT.coeff(n-1,n-1)-p,q);
+        ComplexScalar cc = ComplexScalar(Scalar(0),-m_matT.coeff(n-1,n)) / ComplexScalar(m_matT.coeff(n-1,n-1)-p,q);
         m_matT.coeffRef(n-1,n-1) = numext::real(cc);
         m_matT.coeffRef(n-1,n) = numext::imag(cc);
       }
@@ -582,7 +562,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
           l = i;
           if (m_eivalues.coeff(i).imag() == RealScalar(0))
           {
-            std::complex<Scalar> cc = cdiv(-ra,-sa,w,q);
+            ComplexScalar cc = ComplexScalar(-ra,-sa) / ComplexScalar(w,q);
             m_matT.coeffRef(i,n-1) = numext::real(cc);
             m_matT.coeffRef(i,n) = numext::imag(cc);
           }
@@ -596,7 +576,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
             if ((vr == Scalar(0)) && (vi == Scalar(0)))
               vr = eps * norm * (abs(w) + abs(q) + abs(x) + abs(y) + abs(lastw));
 
-            std::complex<Scalar> cc = cdiv(x*lastra-lastw*ra+q*sa,x*lastsa-lastw*sa-q*ra,vr,vi);
+            ComplexScalar cc = ComplexScalar(x*lastra-lastw*ra+q*sa,x*lastsa-lastw*sa-q*ra) / ComplexScalar(vr,vi);
             m_matT.coeffRef(i,n-1) = numext::real(cc);
             m_matT.coeffRef(i,n) = numext::imag(cc);
             if (abs(x) > (abs(lastw) + abs(q)))
@@ -606,7 +586,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
             }
             else
             {
-              cc = cdiv(-lastra-y*m_matT.coeff(i,n-1),-lastsa-y*m_matT.coeff(i,n),lastw,q);
+              cc = ComplexScalar(-lastra-y*m_matT.coeff(i,n-1),-lastsa-y*m_matT.coeff(i,n)) / ComplexScalar(lastw,q);
               m_matT.coeffRef(i+1,n-1) = numext::real(cc);
               m_matT.coeffRef(i+1,n) = numext::imag(cc);
             }
