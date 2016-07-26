@@ -53,6 +53,7 @@ Then, one can use the \c lu object as usual, for instance to solve the Ax=b prob
 </table>
 
 Here, since the content of the original matrix \c A has been lost, we had to declared a new matrix \c A0 to verify the result.
+
 Since the memory is shared between \c A and \c lu, modifying the matrix \c A will make \c lu invalid.
 This can easily be verified by modifying the content of \c A and trying to solve the initial problem again:
 
