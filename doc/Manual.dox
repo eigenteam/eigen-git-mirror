@@ -10,6 +10,7 @@ namespace Eigen {
   - \subpage TopicAssertions
   - \subpage TopicCustomizingEigen
   - \subpage TopicMultiThreading
+  - \subpage TopicUsingBlasLapack
   - \subpage TopicUsingIntelMKL
   - \subpage TopicCUDA
   - \subpage TopicPitfalls
