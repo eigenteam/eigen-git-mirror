@@ -54,8 +54,8 @@ void svd_fill_random(MatrixType &m, int Option = 0)
     VT.setRandom();
   }
   
-  Matrix<Scalar,Dynamic,1> samples(7);
-  samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -RealScalar(1)/NumTraits<RealScalar>::highest(), RealScalar(1)/NumTraits<RealScalar>::highest();
+  Matrix<Scalar,Dynamic,1> samples(9);
+  samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -RealScalar(1)/NumTraits<RealScalar>::highest(), RealScalar(1)/NumTraits<RealScalar>::highest(), (std::numeric_limits<RealScalar>::min)(), pow((std::numeric_limits<RealScalar>::min)(),0.8);
   
   if(Option==Symmetric)
   {
