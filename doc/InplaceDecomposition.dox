@@ -98,7 +98,7 @@ The matrix \c A1 is unchanged, and one can thus solve A1*x=b, and directly check
 </table>
 
 
-Here is the list of matrix decomposition supported this inplace mechanism:
+Here is the list of matrix decompositions supporting this inplace mechanism:
 
 - class LLT
 - class LDLT
