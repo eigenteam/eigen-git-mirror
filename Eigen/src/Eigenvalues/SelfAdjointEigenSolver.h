@@ -740,14 +740,18 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
     EigenvectorsType& eivecs = solver.m_eivec;
     VectorType& eivals = solver.m_eivalues;
   
-    // map the matrix coefficients to [-1:1] to avoid over- and underflow.
-    Scalar scale = mat.cwiseAbs().maxCoeff();
-    scale = numext::maxi(scale,Scalar(1));
-    MatrixType scaledMat = mat / scale;
-    
+    // Shift the matrix to the mean eigenvalue and map the matrix coefficients to [-1:1] to avoid over- and underflow.
+    Scalar shift = mat.trace() / Scalar(2);
+    MatrixType scaledMat = mat;
+    scaledMat.coeffRef(0,1) = mat.coeff(1,0);
+    scaledMat.diagonal().array() -= shift;
+    Scalar scale = scaledMat.cwiseAbs().maxCoeff();
+    if(scale > Scalar(0))
+      scaledMat /= scale;
+
     // Compute the eigenvalues
     computeRoots(scaledMat,eivals);
-    
+
     // compute the eigen vectors
     if(computeEigenvectors)
     {
@@ -775,10 +779,11 @@ struct direct_selfadjoint_eigenvalues<SolverType,2,false>
         eivecs.col(0) << eivecs.col(1).unitOrthogonal();
       }
     }
-    
+
     // Rescale back to the original size.
     eivals *= scale;
-    
+    eivals.array() += shift;
+
     solver.m_info = Success;
     solver.m_isInitialized = true;
     solver.m_eigenvectorsOk = computeEigenvectors;
