@@ -31,6 +31,8 @@
 * Generated November, 2011
 *****************************************************************************/
 
+#ifndef _MKL_LAPACKE_H_
+
 #ifndef _LAPACKE_H_
 #define _LAPACKE_H_
 
@@ -16285,3 +16287,5 @@ void LAPACK_zsyr( char* uplo, lapack_int* n, lapack_complex_double* alpha,
 #endif /* __cplusplus */
 
 #endif /* _LAPACKE_H_ */
+
+#endif /* _MKL_LAPACKE_H_ */

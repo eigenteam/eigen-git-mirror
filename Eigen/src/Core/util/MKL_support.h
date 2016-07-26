@@ -72,6 +72,7 @@
 #endif
 
 #if defined EIGEN_USE_MKL
+
 #define EIGEN_MKL_VML_THRESHOLD 128
 
 /* MKL_DOMAIN_BLAS, etc are defined only in 10.3 update 7 */
