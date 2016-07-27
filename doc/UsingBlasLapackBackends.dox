@@ -43,6 +43,13 @@ Do not miss this \link TopicUsingIntelMKL page \endlink for further discussions 
 In order to use an external BLAS and/or LAPACK library, you must link you own application to the respective libraries and their dependencies.
 For LAPACK, you must also link to the standard <a href="http://www.netlib.org/lapack/lapacke.html">Lapacke</a> library, which is used as a convenient think layer between %Eigen's C++ code and LAPACK F77 interface. Then you must activate their usage by defining one or multiple of the following macros (\b before including any %Eigen's header):
 
+\note For Mac users, in order to use the lapack version shipped with the Accelerate framework, you also need the lapacke library.
+Using <a href="https://www.macports.org/">MacPorts</a>, this is as easy as:
+\code
+sudo port install lapack
+\endcode
+and then use the following link flags: \c -framework \c Accelerate \c /opt/local/lib/lapack/liblapacke.dylib
+
 <table class="manual">
 <tr><td>\c EIGEN_USE_BLAS </td><td>Enables the use of external BLAS level 2 and 3 routines (compatible with any F77 BLAS interface)</td></tr>
 <tr class="alt"><td>\c EIGEN_USE_LAPACKE </td><td>Enables the use of external Lapack routines via the <a href="http://www.netlib.org/lapack/lapacke.html">Lapacke</a> C interface to Lapack (compatible with any F77 LAPACK interface)</td></tr>
