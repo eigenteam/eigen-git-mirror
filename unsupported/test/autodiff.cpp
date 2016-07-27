@@ -245,6 +245,17 @@ void bug_1260() {
   A*v;
 }
 
+// check a compilation issue with numext::max
+double bug_1261() {
+  typedef AutoDiffScalar<Matrix2d> AD;
+  typedef Matrix<AD,2,1> VectorAD;
+
+  VectorAD v;
+  const AD maxVal = v.maxCoeff();
+  const AD minVal = v.minCoeff();
+  return maxVal.value() + minVal.value();
+}
+
 void test_autodiff()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -257,5 +268,6 @@ void test_autodiff()
   bug_1222();
   bug_1223();
   bug_1260();
+  bug_1261();
 }
 

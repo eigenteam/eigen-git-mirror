@@ -562,6 +562,15 @@ inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::Plain
   typedef AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> ADS;
   return (x > y ? ADS(x) : ADS(y));
 }
+template<typename DerType>
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (min)(const AutoDiffScalar<DerType>& x, const AutoDiffScalar<DerType>& y) {
+  return (x.value() < y.value() ? x : y);
+}
+template<typename DerType>
+inline AutoDiffScalar<typename Eigen::internal::remove_all<DerType>::type::PlainObject> (max)(const AutoDiffScalar<DerType>& x, const AutoDiffScalar<DerType>& y) {
+  return (x.value() >= y.value() ? x : y);
+}
+
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
   using std::abs;
