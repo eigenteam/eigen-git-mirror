@@ -205,6 +205,10 @@ void test_autodiff_hessian()
   VERIFY_IS_APPROX(y.value().derivatives()(1), s4*std::cos(s1*s3+s2*s4));
   VERIFY_IS_APPROX(y.derivatives()(0).derivatives(), -std::sin(s1*s3+s2*s4)*Vector2d(s3*s3,s4*s3));
   VERIFY_IS_APPROX(y.derivatives()(1).derivatives(),  -std::sin(s1*s3+s2*s4)*Vector2d(s3*s4,s4*s4));
+
+  ADD z = x(0)*x(1);
+  VERIFY_IS_APPROX(z.derivatives()(0).derivatives(), Vector2d(0,1));
+  VERIFY_IS_APPROX(z.derivatives()(1).derivatives(), Vector2d(1,0));
 }
 
 double bug_1222() {
