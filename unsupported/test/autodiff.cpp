@@ -238,6 +238,13 @@ double bug_1223() {
   return t.value() + t2.value();
 }
 
+// regression test for some compilation issues with specializations of ScalarBinaryOpTraits
+void bug_1260() {
+  Matrix4d A;
+  Vector4d v;
+  A*v;
+}
+
 void test_autodiff()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -249,5 +256,6 @@ void test_autodiff()
 
   bug_1222();
   bug_1223();
+  bug_1260();
 }
 
