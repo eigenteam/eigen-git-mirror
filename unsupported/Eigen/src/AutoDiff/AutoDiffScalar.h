@@ -666,13 +666,14 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(cosh,
 #undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
 
 template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
-  : NumTraits< typename NumTraits<typename DerType::Scalar>::Real >
+  : NumTraits< typename NumTraits<typename internal::remove_all<DerType>::type::Scalar>::Real >
 {
-  typedef AutoDiffScalar<Matrix<typename NumTraits<typename DerType::Scalar>::Real,DerType::RowsAtCompileTime,DerType::ColsAtCompileTime,
-                                0, DerType::MaxRowsAtCompileTime, DerType::MaxColsAtCompileTime> > Real;
+  typedef typename internal::remove_all<DerType>::type DerTypeCleaned;
+  typedef AutoDiffScalar<Matrix<typename NumTraits<typename DerTypeCleaned::Scalar>::Real,DerTypeCleaned::RowsAtCompileTime,DerTypeCleaned::ColsAtCompileTime,
+                                0, DerTypeCleaned::MaxRowsAtCompileTime, DerTypeCleaned::MaxColsAtCompileTime> > Real;
   typedef AutoDiffScalar<DerType> NonInteger;
   typedef AutoDiffScalar<DerType> Nested;
-  typedef typename NumTraits<typename DerType::Scalar>::Literal Literal;
+  typedef typename NumTraits<typename DerTypeCleaned::Scalar>::Literal Literal;
   enum{
     RequireInitialization = 1
   };

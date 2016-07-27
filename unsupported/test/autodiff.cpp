@@ -256,6 +256,14 @@ double bug_1261() {
   return maxVal.value() + minVal.value();
 }
 
+double bug_1264() {
+  typedef AutoDiffScalar<Vector2d> AD;
+  const AD s;
+  const Matrix<AD, 3, 1> v1;
+  const Matrix<AD, 3, 1> v2 = (s + 3.0) * v1;
+  return v2(0).value();
+}
+
 void test_autodiff()
 {
   for(int i = 0; i < g_repeat; i++) {
