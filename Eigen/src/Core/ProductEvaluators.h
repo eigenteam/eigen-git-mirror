@@ -489,11 +489,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
       
     SameType = is_same<typename LhsNestedCleaned::Scalar,typename RhsNestedCleaned::Scalar>::value,
 
-    CanVectorizeRhs = bool(RhsRowMajor) && (RhsFlags & PacketAccessBit)
-                    && (ColsAtCompileTime == Dynamic || ((ColsAtCompileTime % RhsVecPacketSize) == 0) ),
-
-    CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
-                    && (RowsAtCompileTime == Dynamic || ((RowsAtCompileTime % LhsVecPacketSize) == 0) ),
+    CanVectorizeRhs = bool(RhsRowMajor) && (RhsFlags & PacketAccessBit),
+    CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit),
 
     EvalToRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                     : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
