@@ -365,10 +365,10 @@ struct has_ReturnType
   typedef char yes[1];
   typedef char no[2];
 
-  template <typename C> static yes& testFunctor(C const *, typename C::ReturnType const * = 0);
-  static no& testFunctor(...);
+  template <typename C> static yes& testFunctor(typename C::ReturnType const *);
+  template <typename C> static no& testFunctor(...);
 
-  static const bool value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(yes);
+  enum { value = sizeof(testFunctor<T>(0)) == sizeof(yes) };
 };
 
 /** \internal In short, it computes int(sqrt(\a Y)) with \a Y an integer.
