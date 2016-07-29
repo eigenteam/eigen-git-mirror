@@ -35,6 +35,11 @@ if(NOT Eigen3_FIND_VERSION)
   set(Eigen3_FIND_VERSION "${Eigen3_FIND_VERSION_MAJOR}.${Eigen3_FIND_VERSION_MINOR}.${Eigen3_FIND_VERSION_PATCH}")
 endif(NOT Eigen3_FIND_VERSION)
 
+# search first if an Eigen3Config.cmake is available in the system,
+# if successful this would set EIGEN3_INCLUDE_DIR and the rest of
+# the script will work as usual
+find_package(Eigen3 ${Eigen3_FIND_VERSION} NO_MODULE QUIET)
+
 macro(_eigen3_check_version)
   file(READ "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
 
