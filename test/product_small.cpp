@@ -177,6 +177,38 @@ void test_lazy_l3()
   CALL_SUBTEST(( test_lazy_all_layout<T,4,-1,-1>(4,cols,depth) ));
 }
 
+template<typename T,int N,int M,int K>
+void test_linear_but_not_vectorizable()
+{
+  // Check tricky cases for which the result of the product is a vector and thus must exhibit the LinearBit flag,
+  // but is not vectorizable along the linear dimension.
+  Index n = N==Dynamic ? internal::random<Index>(1,32) : N;
+  Index m = M==Dynamic ? internal::random<Index>(1,32) : M;
+  Index k = K==Dynamic ? internal::random<Index>(1,32) : K;
+
+  {
+    Matrix<T,N,M+1> A; A.setRandom(n,m+1);
+    Matrix<T,M*2,K> B; B.setRandom(m*2,k);
+    Matrix<T,1,K> C;
+    Matrix<T,1,K> R;
+
+    C.noalias() = A.template topLeftCorner<1,M>() * (B.template topRows<M>()+B.template bottomRows<M>());
+    R.noalias() = A.template topLeftCorner<1,M>() * (B.template topRows<M>()+B.template bottomRows<M>()).eval();
+    VERIFY_IS_APPROX(C,R);
+  }
+
+  {
+    Matrix<T,M+1,N,RowMajor> A; A.setRandom(m+1,n);
+    Matrix<T,K,M*2,RowMajor> B; B.setRandom(k,m*2);
+    Matrix<T,K,1> C;
+    Matrix<T,K,1> R;
+
+    C.noalias() = (B.template leftCols<M>()+B.template rightCols<M>())        * A.template topLeftCorner<M,1>();
+    R.noalias() = (B.template leftCols<M>()+B.template rightCols<M>()).eval() * A.template topLeftCorner<M,1>();
+    VERIFY_IS_APPROX(C,R);
+  }
+}
+
 void test_product_small()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -202,6 +234,10 @@ void test_product_small()
     CALL_SUBTEST_41( test_lazy_l1<std::complex<double> >() );
     CALL_SUBTEST_42( test_lazy_l2<std::complex<double> >() );
     CALL_SUBTEST_43( test_lazy_l3<std::complex<double> >() );
+
+    CALL_SUBTEST_7(( test_linear_but_not_vectorizable<float,2,1,Dynamic>() ));
+    CALL_SUBTEST_7(( test_linear_but_not_vectorizable<float,3,1,Dynamic>() ));
+    CALL_SUBTEST_7(( test_linear_but_not_vectorizable<float,2,1,16>() ));
   }
 
 #ifdef EIGEN_TEST_PART_6
