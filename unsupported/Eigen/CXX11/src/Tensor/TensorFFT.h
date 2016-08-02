@@ -329,7 +329,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
     for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
-        a[i] = data[i] * std::conj(pos_j_base_powered[i]);
+        a[i] = data[i] * numext::conj(pos_j_base_powered[i]);
       }
       else {
         a[i] = data[i] * pos_j_base_powered[i];
@@ -344,7 +344,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         b[i] = pos_j_base_powered[i];
       }
       else {
-        b[i] = std::conj(pos_j_base_powered[i]);
+        b[i] = numext::conj(pos_j_base_powered[i]);
       }
     }
     for (Index i = n; i < m - n; ++i) {
@@ -355,7 +355,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         b[i] = pos_j_base_powered[m-i];
       }
       else {
-        b[i] = std::conj(pos_j_base_powered[m-i]);
+        b[i] = numext::conj(pos_j_base_powered[m-i]);
       }
     }
 
@@ -379,7 +379,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
     for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
-        data[i] = a[i] * std::conj(pos_j_base_powered[i]);
+        data[i] = a[i] * numext::conj(pos_j_base_powered[i]);
       }
       else {
         data[i] = a[i] * pos_j_base_powered[i];
