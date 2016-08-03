@@ -19,6 +19,44 @@
 
 using Eigen::Tensor;
 
+template<typename>
+void test_cuda_numext() {
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+  int num_elem = 101;
+
+  float* d_float = (float*)gpu_device.allocate(num_elem * sizeof(float));
+  bool* d_res_half = (bool*)gpu_device.allocate(num_elem * sizeof(bool));
+  bool* d_res_float = (bool*)gpu_device.allocate(num_elem * sizeof(bool));
+
+  Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_float(
+      d_float, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<bool, 1>, Eigen::Aligned> gpu_res_half(
+      d_res_half, num_elem);
+  Eigen::TensorMap<Eigen::Tensor<bool, 1>, Eigen::Aligned> gpu_res_float(
+      d_res_float, num_elem);
+
+  gpu_float.device(gpu_device) = gpu_float.random() - gpu_float.constant(0.5f);
+  gpu_res_float.device(gpu_device) = gpu_float.unaryExpr(Eigen::internal::scalar_isnan_op<float>());
+  gpu_res_half.device(gpu_device) = gpu_float.cast<Eigen::half>().unaryExpr(Eigen::internal::scalar_isnan_op<Eigen::half>());
+
+  Tensor<bool, 1> half_prec(num_elem);
+  Tensor<bool, 1> full_prec(num_elem);
+  gpu_device.memcpyDeviceToHost(half_prec.data(), d_res_half, num_elem*sizeof(bool));
+  gpu_device.memcpyDeviceToHost(full_prec.data(), d_res_float, num_elem*sizeof(bool));
+  gpu_device.synchronize();
+
+  for (int i = 0; i < num_elem; ++i) {
+    std::cout << "Checking unary " << i << std::endl;
+    VERIFY_IS_EQUAL(full_prec(i), half_prec(i));
+  }
+
+  gpu_device.deallocate(d_float);
+  gpu_device.deallocate(d_res_half);
+  gpu_device.deallocate(d_res_float);
+}
+
+
 #ifdef EIGEN_HAS_CUDA_FP16
 
 template<typename>
@@ -415,6 +453,8 @@ void test_cuda_forced_evals() {
 
 void test_cxx11_tensor_of_float16_cuda()
 {
+  CALL_SUBTEST_1(test_cuda_numext<void>());
+
 #ifdef EIGEN_HAS_CUDA_FP16
   CALL_SUBTEST_1(test_cuda_conversion<void>());
   CALL_SUBTEST_1(test_cuda_unary<void>());
