@@ -11,6 +11,11 @@
 
 #include <Eigen/src/Core/arch/CUDA/Half.h>
 
+// Make sure it's possible to forward declare Eigen::half
+namespace Eigen {
+struct half;
+}
+
 using Eigen::half;
 
 void test_conversion()
