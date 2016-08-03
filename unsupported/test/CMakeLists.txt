@@ -142,9 +142,6 @@ if(EIGEN_TEST_CXX11)
   # older compiler that don't support cxx11.
   set(CMAKE_CXX_STANDARD 11)
 
-  # Todo: remove the c++11 bits from this test to make it work with older compilers.
-  ei_add_test(cxx11_float16)
-
   ei_add_test(cxx11_eventcount "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_runqueue "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_non_blocking_thread_pool "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
