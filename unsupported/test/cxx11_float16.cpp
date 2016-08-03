@@ -11,11 +11,13 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
+// Make sure it's possible to forward declare Eigen::half
+//namespace Eigen {
+//struct half;
+//}
 
 #include "main.h"
 #include <Eigen/src/Core/arch/CUDA/Half.h>
-
-using Eigen::half;
 
 void test_conversion()
 {
@@ -37,8 +39,8 @@ void test_conversion()
   float val1 = float(Eigen::half(half_impl::__half{0x3c00}));
   float val2 = float(Eigen::half(half_impl::__half{0x3c01}));
   float val3 = float(Eigen::half(half_impl::__half{0x3c02}));
-  VERIFY_IS_EQUAL(Eigen::half(0.5 * (val1 + val2)).x, 0x3c00);
-  VERIFY_IS_EQUAL(Eigen::half(0.5 * (val2 + val3)).x, 0x3c02);
+  VERIFY_IS_EQUAL(Eigen::half(0.5f * (val1 + val2)).x, 0x3c00);
+  VERIFY_IS_EQUAL(Eigen::half(0.5f * (val2 + val3)).x, 0x3c02);
 
   // Conversion from int.
   VERIFY_IS_EQUAL(Eigen::half(-1).x, 0xbc00);
@@ -61,26 +63,26 @@ void test_conversion()
   VERIFY_IS_APPROX(float(Eigen::half(half_impl::__half{0x0002})), 1.19209e-07f);
 
   // NaNs and infinities.
-  VERIFY(!isinf(float(Eigen::half(65504.0f))));  // Largest finite number.
-  VERIFY(!isnan(float(Eigen::half(0.0f))));
-  VERIFY(isinf(float(Eigen::half(half_impl::__half{0xfc00}))));
-  VERIFY(isnan(float(Eigen::half(half_impl::__half{0xfc01}))));
-  VERIFY(isinf(float(Eigen::half(half_impl::__half{0x7c00}))));
-  VERIFY(isnan(float(Eigen::half(half_impl::__half{0x7c01}))));
-  VERIFY(isnan(float(Eigen::half(0.0 / 0.0))));
-  VERIFY(isinf(float(Eigen::half(1.0 / 0.0))));
-  VERIFY(isinf(float(Eigen::half(-1.0 / 0.0))));
+  VERIFY(!(isinf)(float(Eigen::half(65504.0f))));  // Largest finite number.
+  VERIFY(!(isnan)(float(Eigen::half(0.0f))));
+  VERIFY((isinf)(float(Eigen::half(half_impl::__half{0xfc00}))));
+  VERIFY((isnan)(float(Eigen::half(half_impl::__half{0xfc01}))));
+  VERIFY((isinf)(float(Eigen::half(half_impl::__half{0x7c00}))));
+  VERIFY((isnan)(float(Eigen::half(half_impl::__half{0x7c01}))));
+  VERIFY((isnan)(float(Eigen::half(0.0 / 0.0))));
+  VERIFY((isinf)(float(Eigen::half(1.0 / 0.0))));
+  VERIFY((isinf)(float(Eigen::half(-1.0 / 0.0))));
 
   // Exactly same checks as above, just directly on the half representation.
-  VERIFY(!numext::isinf(Eigen::half(half_impl::__half{0x7bff})));
-  VERIFY(!numext::isnan(Eigen::half(half_impl::__half{0x0000})));
-  VERIFY(numext::isinf(Eigen::half(half_impl::__half{0xfc00})));
-  VERIFY(numext::isnan(Eigen::half(half_impl::__half{0xfc01})));
-  VERIFY(numext::isinf(Eigen::half(half_impl::__half{0x7c00})));
-  VERIFY(numext::isnan(Eigen::half(half_impl::__half{0x7c01})));
-  VERIFY(numext::isnan(Eigen::half(0.0 / 0.0)));
-  VERIFY(numext::isinf(Eigen::half(1.0 / 0.0)));
-  VERIFY(numext::isinf(Eigen::half(-1.0 / 0.0)));
+  VERIFY(!(numext::isinf)(Eigen::half(half_impl::__half{0x7bff})));
+  VERIFY(!(numext::isnan)(Eigen::half(half_impl::__half{0x0000})));
+  VERIFY((numext::isinf)(Eigen::half(half_impl::__half{0xfc00})));
+  VERIFY((numext::isnan)(Eigen::half(half_impl::__half{0xfc01})));
+  VERIFY((numext::isinf)(Eigen::half(half_impl::__half{0x7c00})));
+  VERIFY((numext::isnan)(Eigen::half(half_impl::__half{0x7c01})));
+  VERIFY((numext::isnan)(Eigen::half(0.0 / 0.0)));
+  VERIFY((numext::isinf)(Eigen::half(1.0 / 0.0)));
+  VERIFY((numext::isinf)(Eigen::half(-1.0 / 0.0)));
 }
 
 void test_arithmetic()
