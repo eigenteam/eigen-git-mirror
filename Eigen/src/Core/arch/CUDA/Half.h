@@ -544,4 +544,31 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half __ldg(const Eigen::half* ptr) 
 }
 #endif
 
+
+#if defined(__CUDA_ARCH__)
+namespace Eigen {
+namespace numext {
+
+template<>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+bool (isnan)(const Eigen::half& h) {
+  return (half_impl::isnan)(h);
+}
+
+template<>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+bool (isinf)(const Eigen::half& h) {
+  return (half_impl::isinf)(h);
+}
+
+template<>
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+bool (isfinite)(const Eigen::half& h) {
+  return (half_impl::isfinite)(h);
+}
+
+} // namespace Eigen
+}  // namespace numext
+#endif
+
 #endif // EIGEN_HALF_CUDA_H
