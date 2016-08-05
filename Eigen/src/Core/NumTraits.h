@@ -12,6 +12,37 @@
 
 namespace Eigen {
 
+namespace internal {
+
+// default implementation of digits10(), based on numeric_limits if specialized,
+// 0 for integer types, and log10(epsilon()) otherwise.
+template< typename T,
+          bool use_numeric_limits = std::numeric_limits<T>::is_specialized,
+          bool is_integer = NumTraits<T>::IsInteger>
+struct default_digits10_impl
+{
+  static int run() { return std::numeric_limits<T>::digits10; }
+};
+
+template<typename T>
+struct default_digits10_impl<T,false,false> // Floating point
+{
+  static int run() {
+    using std::log10;
+    using std::ceil;
+    typedef typename NumTraits<T>::Real Real;
+    return int(ceil(-log10(NumTraits<Real>::epsilon())));
+  }
+};
+
+template<typename T>
+struct default_digits10_impl<T,false,true> // Integer
+{
+  static int run() { return 0; }
+};
+
+} // end namespace internal
+
 /** \class NumTraits
   * \ingroup Core_Module
   *
@@ -44,10 +75,14 @@ namespace Eigen {
   * \li An enum value \a IsSigned. It is equal to \c 1 if \a T is a signed type and to 0 if \a T is unsigned.
   * \li An enum value \a RequireInitialization. It is equal to \c 1 if the constructor of the numeric type \a T must
   *     be called, and to 0 if it is safe not to call it. Default is 0 if \a T is an arithmetic type, and 1 otherwise.
-  * \li An epsilon() function which, unlike std::numeric_limits::epsilon(), returns a \a Real instead of a \a T.
+  * \li An epsilon() function which, unlike <a href="http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon">std::numeric_limits::epsilon()</a>,
+  *     it returns a \a Real instead of a \a T.
   * \li A dummy_precision() function returning a weak epsilon value. It is mainly used as a default
   *     value by the fuzzy comparison operators.
   * \li highest() and lowest() functions returning the highest and lowest possible values respectively.
+  * \li digits10() function returning the number of decimal digits that can be represented without change. This is
+  *     the analogue of <a href="http://en.cppreference.com/w/cpp/types/numeric_limits/digits10">std::numeric_limits<T>::digits10</a>
+  *     which is used as the default implementation if specialized.
   */
 
 template<typename T> struct GenericNumTraits
@@ -93,6 +128,13 @@ template<typename T> struct GenericNumTraits
   {
     return numext::numeric_limits<T>::epsilon();
   }
+
+  EIGEN_DEVICE_FUNC
+  static inline int digits10()
+  {
+    return internal::default_digits10_impl<T>::run();
+  }
+
   EIGEN_DEVICE_FUNC
   static inline Real dummy_precision()
   {
@@ -161,6 +203,8 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
   static inline Real epsilon() { return NumTraits<Real>::epsilon(); }
   EIGEN_DEVICE_FUNC
   static inline Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
+  EIGEN_DEVICE_FUNC
+  static inline int digits10() { return NumTraits<Real>::digits10(); }
 };
 
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
@@ -188,6 +232,27 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   static inline RealScalar epsilon() { return NumTraits<RealScalar>::epsilon(); }
   EIGEN_DEVICE_FUNC
   static inline RealScalar dummy_precision() { return NumTraits<RealScalar>::dummy_precision(); }
+};
+
+template<> struct NumTraits<std::string>
+  : GenericNumTraits<std::string>
+{
+  enum {
+    RequireInitialization = 1,
+    ReadCost = HugeCost,
+    AddCost  = HugeCost,
+    MulCost  = HugeCost
+  };
+
+  static inline int digits10() { return 0; }
+
+private:
+  static inline std::string epsilon();
+  static inline std::string dummy_precision();
+  static inline std::string lowest();
+  static inline std::string highest();
+  static inline std::string infinity();
+  static inline std::string quiet_NaN();
 };
 
 } // end namespace Eigen

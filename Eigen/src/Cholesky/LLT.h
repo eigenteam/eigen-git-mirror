@@ -41,6 +41,8 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * Example: \include LLT_example.cpp
   * Output: \verbinclude LLT_example.out
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  *
   * \sa MatrixBase::llt(), SelfAdjointView::llt(), class LDLT
   */
  /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
@@ -54,7 +56,6 @@ template<typename _MatrixType, int _UpLo> class LLT
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
     typedef typename MatrixType::Scalar Scalar;
@@ -90,6 +91,21 @@ template<typename _MatrixType, int _UpLo> class LLT
     template<typename InputType>
     explicit LLT(const EigenBase<InputType>& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
+        m_isInitialized(false)
+    {
+      compute(matrix.derived());
+    }
+
+    /** \brief Constructs a LDLT factorization from a given matrix
+      *
+      * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when
+      * \c MatrixType is a Eigen::Ref.
+      *
+      * \sa LLT(const EigenBase&)
+      */
+    template<typename InputType>
+    explicit LLT(EigenBase<InputType>& matrix)
+      : m_matrix(matrix.derived()),
         m_isInitialized(false)
     {
       compute(matrix.derived());

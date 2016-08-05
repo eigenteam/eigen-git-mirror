@@ -151,9 +151,7 @@ struct ThreadPoolDevice {
   template <class Function, class... Args>
   EIGEN_STRONG_INLINE Notification* enqueue(Function&& f, Args&&... args) const {
     Notification* n = new Notification();
-    std::function<void()> func =
-      std::bind(&FunctionWrapperWithNotification<Function, Args...>::run, n, f, args...);
-    pool_->Schedule(func);
+    pool_->Schedule(std::bind(&FunctionWrapperWithNotification<Function, Args...>::run, n, f, args...));
     return n;
   }
 
@@ -161,15 +159,13 @@ struct ThreadPoolDevice {
   EIGEN_STRONG_INLINE void enqueue_with_barrier(Barrier* b,
                                                 Function&& f,
                                                 Args&&... args) const {
-    std::function<void()> func = std::bind(
-        &FunctionWrapperWithBarrier<Function, Args...>::run, b, f, args...);
-    pool_->Schedule(func);
+    pool_->Schedule(std::bind(
+        &FunctionWrapperWithBarrier<Function, Args...>::run, b, f, args...));
   }
 
   template <class Function, class... Args>
   EIGEN_STRONG_INLINE void enqueueNoNotification(Function&& f, Args&&... args) const {
-    std::function<void()> func = std::bind(f, args...);
-    pool_->Schedule(func);
+    pool_->Schedule(std::bind(f, args...));
   }
 
   // Returns a logical thread index between 0 and pool_->NumThreads() - 1 if

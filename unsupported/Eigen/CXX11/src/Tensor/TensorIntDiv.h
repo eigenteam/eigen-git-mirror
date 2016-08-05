@@ -29,25 +29,47 @@ namespace Eigen {
 namespace internal {
 
 namespace {
+
   // Note: result is undefined if val == 0
   template <typename T>
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE int count_leading_zeros(const T val)
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  typename internal::enable_if<sizeof(T)==4,int>::type count_leading_zeros(const T val)
   {
 #ifdef __CUDA_ARCH__
-    return (sizeof(T) == 8) ? __clzll(val) : __clz(val);
+    return __clz(val);
 #elif EIGEN_COMP_MSVC
-	unsigned long index;
-	if (sizeof(T) == 8) {
-      _BitScanReverse64(&index, val);
-    } else {
-      _BitScanReverse(&index, val);
-    }
-    return (sizeof(T) == 8) ? 63 - index : 31 - index;
+    unsigned long index;
+    _BitScanReverse(&index, val);
+    return 31 - index;
 #else
     EIGEN_STATIC_ASSERT(sizeof(unsigned long long) == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
-    return (sizeof(T) == 8) ?
-      __builtin_clzll(static_cast<uint64_t>(val)) :
-      __builtin_clz(static_cast<uint32_t>(val));
+    return __builtin_clz(static_cast<uint32_t>(val));
+#endif
+  }
+
+  template <typename T>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+  typename internal::enable_if<sizeof(T)==8,int>::type count_leading_zeros(const T val)
+  {
+#ifdef __CUDA_ARCH__
+    return __clzll(val);
+#elif EIGEN_COMP_MSVC && EIGEN_ARCH_x86_64
+    unsigned long index;
+    _BitScanReverse64(&index, val);
+    return 63 - index;
+#elif EIGEN_COMP_MSVC
+    // MSVC's _BitScanReverse64 is not available for 32bits builds.
+    unsigned int lo = (unsigned int)(val&0xffffffff);
+    unsigned int hi = (unsigned int)((val>>32)&0xffffffff);
+    int n;
+    if(hi==0)
+      n = 32 + count_leading_zeros<unsigned int>(lo);
+    else
+      n = count_leading_zeros<unsigned int>(hi);
+    return n;
+#else
+    EIGEN_STATIC_ASSERT(sizeof(unsigned long long) == 8, YOU_MADE_A_PROGRAMMING_MISTAKE);
+    return __builtin_clzll(static_cast<uint64_t>(val));
 #endif
   }
 
@@ -98,7 +120,9 @@ namespace {
       return static_cast<uint64_t>((static_cast<__uint128_t>(1) << (64+log_div)) / static_cast<__uint128_t>(divider) - (static_cast<__uint128_t>(1) << 64) + 1);
 #else
       const uint64_t shift = 1ULL << log_div;
-      TensorUInt128<uint64_t, uint64_t> result = (TensorUInt128<uint64_t, static_val<0> >(shift, 0) / TensorUInt128<static_val<0>, uint64_t>(divider) - TensorUInt128<static_val<1>, static_val<0> >(1, 0) + TensorUInt128<static_val<0>, static_val<1> >(1));
+      TensorUInt128<uint64_t, uint64_t> result = TensorUInt128<uint64_t, static_val<0> >(shift, 0) / TensorUInt128<static_val<0>, uint64_t>(divider)
+                                               - TensorUInt128<static_val<1>, static_val<0> >(1, 0)
+                                               + TensorUInt128<static_val<0>, static_val<1> >(1);
       return static_cast<uint64_t>(result);
 #endif
     }

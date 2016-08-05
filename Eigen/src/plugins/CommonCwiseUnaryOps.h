@@ -62,7 +62,7 @@ cast() const
 
 /** \returns an expression of the complex conjugate of \c *this.
   *
-  * \sa adjoint() */
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_conj">Math functions</a>, MatrixBase::adjoint() */
 EIGEN_DEVICE_FUNC
 inline ConjugateReturnType
 conjugate() const

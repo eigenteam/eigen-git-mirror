@@ -812,8 +812,8 @@ template<> struct AssignmentKind<DenseShape,TriangularShape>      { typedef Tria
 template<> struct AssignmentKind<TriangularShape,DenseShape>      { typedef Dense2Triangular      Kind; };
 
 
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Triangular, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Triangular>
 {
   EIGEN_DEVICE_FUNC static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
@@ -823,8 +823,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Triangular, Scalar
   }
 };
 
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Dense, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Dense>
 {
   EIGEN_DEVICE_FUNC static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
@@ -832,8 +832,8 @@ struct Assignment<DstXprType, SrcXprType, Functor, Triangular2Dense, Scalar>
   }
 };
 
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Dense2Triangular, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Dense2Triangular>
 {
   EIGEN_DEVICE_FUNC static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
@@ -933,7 +933,7 @@ namespace internal {
   
 // Triangular = Product
 template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_op<Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, Dense2Triangular, Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_op<Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, Dense2Triangular>
 {
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename SrcXprType::Scalar> &)
@@ -945,7 +945,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_
 
 // Triangular += Product
 template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_assign_op<Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, Dense2Triangular, Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_assign_op<Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, Dense2Triangular>
 {
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar,typename SrcXprType::Scalar> &)
@@ -956,7 +956,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::add_ass
 
 // Triangular -= Product
 template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
-struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_assign_op<Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, Dense2Triangular, Scalar>
+struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::sub_assign_op<Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, Dense2Triangular>
 {
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar,typename SrcXprType::Scalar> &)

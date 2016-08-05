@@ -15,6 +15,7 @@
 
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
+#include "../SpecialFunctions"
 #include "src/util/CXX11Meta.h"
 #include "src/util/MaxSizeVector.h"
 

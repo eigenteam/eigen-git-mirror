@@ -218,8 +218,8 @@ struct SparseSelfAdjoint2Sparse {};
 template<> struct AssignmentKind<SparseShape,SparseSelfAdjointShape> { typedef SparseSelfAdjoint2Sparse Kind; };
 template<> struct AssignmentKind<SparseSelfAdjointShape,SparseShape> { typedef Sparse2Sparse Kind; };
 
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, SparseSelfAdjoint2Sparse, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, SparseSelfAdjoint2Sparse>
 {
   typedef typename DstXprType::StorageIndex StorageIndex;
   template<typename DestScalar,int StorageOrder>

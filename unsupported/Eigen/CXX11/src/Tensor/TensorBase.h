@@ -210,6 +210,18 @@ class TensorBase<Derived, ReadOnlyAccessors>
     }
 
     EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_real_op<Scalar>, const Derived>
+    real() const {
+      return unaryExpr(internal::scalar_real_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::scalar_imag_op<Scalar>, const Derived>
+    imag() const {
+      return unaryExpr(internal::scalar_imag_op<Scalar>());
+    }
+
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const TensorCwiseUnaryOp<internal::bind2nd_op<internal::scalar_sum_op<Scalar,Scalar> >, const Derived>
     operator+ (Scalar rhs) const {
       return unaryExpr(internal::bind2nd_op<internal::scalar_sum_op<Scalar,Scalar> >(rhs));
@@ -805,8 +817,8 @@ class TensorBase<Derived, ReadOnlyAccessors>
     EIGEN_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
 };
 
-template<typename Derived>
-class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyAccessors> {
+template<typename Derived, int AccessLevel = internal::accessors_level<Derived>::value>
+class TensorBase : public TensorBase<Derived, ReadOnlyAccessors> {
  public:
     typedef internal::traits<Derived> DerivedTraits;
     typedef typename DerivedTraits::Scalar Scalar;
@@ -816,7 +828,7 @@ class TensorBase<Derived, WriteAccessors> : public TensorBase<Derived, ReadOnlyA
 
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
     template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
-    template <typename OtherDerived, int AccessLevel> friend class TensorBase;
+    template <typename OtherDerived, int OtherAccessLevel> friend class TensorBase;
 
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Derived& setZero() {

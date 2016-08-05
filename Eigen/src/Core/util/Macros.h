@@ -13,7 +13,7 @@
 
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 2
-#define EIGEN_MINOR_VERSION 92
+#define EIGEN_MINOR_VERSION 93
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -70,6 +70,15 @@
 #else
   #define EIGEN_COMP_MSVC 0
 #endif
+
+// For the record, here is a table summarizing the possible values for EIGEN_COMP_MSVC:
+//  name  ver   MSC_VER
+//  2008    9      1500
+//  2010   10      1600
+//  2012   11      1700
+//  2013   12      1800
+//  2015   14      1900
+//  "15"   15      1900
 
 /// \internal EIGEN_COMP_MSVC_STRICT set to 1 if the compiler is really Microsoft Visual C++ and not ,e.g., ICC
 #if EIGEN_COMP_MSVC && !(EIGEN_COMP_ICC)
@@ -897,6 +906,9 @@ namespace Eigen {
     return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,OPNAME)(derived(), other.derived()); \
   }
 
+#define EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,TYPEA,TYPEB) \
+  (Eigen::internal::has_ReturnType<Eigen::ScalarBinaryOpTraits<TYPEA,TYPEB,EIGEN_CAT(EIGEN_CAT(Eigen::internal::scalar_,OPNAME),_op)<TYPEA,TYPEB>  > >::value)
+
 #define EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(EXPR,SCALAR,OPNAME) \
   CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<typename internal::traits<EXPR>::Scalar,SCALAR>, const EXPR, \
                 const typename internal::plain_constant_type<EXPR,SCALAR>::type>
@@ -905,20 +917,27 @@ namespace Eigen {
   CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<SCALAR,typename internal::traits<EXPR>::Scalar>, \
                 const typename internal::plain_constant_type<EXPR,SCALAR>::type, const EXPR>
 
+// Workaround for MSVC 2010 (see ML thread "patch with compile for for MSVC 2010")
+#if EIGEN_COMP_MSVC_STRICT<=1600
+#define EIGEN_MSVC10_WORKAROUND_BINARYOP_RETURN_TYPE(X) typename internal::enable_if<true,X>::type
+#else
+#define EIGEN_MSVC10_WORKAROUND_BINARYOP_RETURN_TYPE(X) X
+#endif
+
 #define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHERIGHT(METHOD,OPNAME) \
   template <typename T> EIGEN_DEVICE_FUNC inline \
-  const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA ScalarBinaryOpTraits<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<Scalar EIGEN_COMMA T> >::Defined>::type,OPNAME) \
+  EIGEN_MSVC10_WORKAROUND_BINARYOP_RETURN_TYPE(const EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,Scalar,T)>::type,OPNAME))\
   (METHOD)(const T& scalar) const { \
-    typedef typename internal::promote_scalar_arg<Scalar,T,ScalarBinaryOpTraits<Scalar,T,EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<Scalar,T> >::Defined>::type PromotedT; \
+    typedef typename internal::promote_scalar_arg<Scalar,T,EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,Scalar,T)>::type PromotedT; \
     return EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(Derived,PromotedT,OPNAME)(derived(), \
            typename internal::plain_constant_type<Derived,PromotedT>::type(derived().rows(), derived().cols(), internal::scalar_constant_op<PromotedT>(scalar))); \
   }
 
 #define EIGEN_MAKE_SCALAR_BINARY_OP_ONTHELEFT(METHOD,OPNAME) \
   template <typename T> EIGEN_DEVICE_FUNC inline friend \
-  const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA ScalarBinaryOpTraits<T EIGEN_COMMA Scalar EIGEN_COMMA EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<T EIGEN_COMMA Scalar> >::Defined>::type,Derived,OPNAME) \
+  EIGEN_MSVC10_WORKAROUND_BINARYOP_RETURN_TYPE(const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(typename internal::promote_scalar_arg<Scalar EIGEN_COMMA T EIGEN_COMMA EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,T,Scalar)>::type,Derived,OPNAME)) \
   (METHOD)(const T& scalar, const StorageBaseType& matrix) { \
-    typedef typename internal::promote_scalar_arg<Scalar,T,ScalarBinaryOpTraits<T,Scalar,EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<T,Scalar> >::Defined>::type PromotedT; \
+    typedef typename internal::promote_scalar_arg<Scalar,T,EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,T,Scalar)>::type PromotedT; \
     return EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(PromotedT,Derived,OPNAME)( \
            typename internal::plain_constant_type<Derived,PromotedT>::type(matrix.derived().rows(), matrix.derived().cols(), internal::scalar_constant_op<PromotedT>(scalar)), matrix.derived()); \
   }

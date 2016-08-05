@@ -41,6 +41,8 @@ template<typename _MatrixType> struct traits<ColPivHouseholderQR<_MatrixType> >
   * This decomposition performs column pivoting in order to be rank-revealing and improve
   * numerical stability. It is slower than HouseholderQR, and faster than FullPivHouseholderQR.
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  * 
   * \sa MatrixBase::colPivHouseholderQr()
   */
 template<typename _MatrixType> class ColPivHouseholderQR
@@ -51,7 +53,6 @@ template<typename _MatrixType> class ColPivHouseholderQR
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
@@ -59,7 +60,6 @@ template<typename _MatrixType> class ColPivHouseholderQR
     typedef typename MatrixType::RealScalar RealScalar;
     // FIXME should be int
     typedef typename MatrixType::StorageIndex StorageIndex;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
     typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
     typedef typename internal::plain_row_type<MatrixType, Index>::type IntRowVectorType;
@@ -133,6 +133,27 @@ template<typename _MatrixType> class ColPivHouseholderQR
         m_usePrescribedThreshold(false)
     {
       compute(matrix.derived());
+    }
+
+    /** \brief Constructs a QR factorization from a given matrix
+      *
+      * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when \c MatrixType is a Eigen::Ref.
+      *
+      * \sa ColPivHouseholderQR(const EigenBase&)
+      */
+    template<typename InputType>
+    explicit ColPivHouseholderQR(EigenBase<InputType>& matrix)
+      : m_qr(matrix.derived()),
+        m_hCoeffs((std::min)(matrix.rows(),matrix.cols())),
+        m_colsPermutation(PermIndexType(matrix.cols())),
+        m_colsTranspositions(matrix.cols()),
+        m_temp(matrix.cols()),
+        m_colNormsUpdated(matrix.cols()),
+        m_colNormsDirect(matrix.cols()),
+        m_isInitialized(false),
+        m_usePrescribedThreshold(false)
+    {
+      computeInPlace();
     }
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
@@ -453,21 +474,19 @@ template<typename MatrixType>
 template<typename InputType>
 ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const EigenBase<InputType>& matrix)
 {
-  check_template_parameters();
-
-  // the column permutation is stored as int indices, so just to be sure:
-  eigen_assert(matrix.cols()<=NumTraits<int>::highest());
-
-  m_qr = matrix;
-
+  m_qr = matrix.derived();
   computeInPlace();
-
   return *this;
 }
 
 template<typename MatrixType>
 void ColPivHouseholderQR<MatrixType>::computeInPlace()
 {
+  check_template_parameters();
+
+  // the column permutation is stored as int indices, so just to be sure:
+  eigen_assert(m_qr.cols()<=NumTraits<int>::highest());
+
   using std::abs;
 
   Index rows = m_qr.rows();
@@ -598,7 +617,7 @@ void ColPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &
 namespace internal {
 
 template<typename DstXprType, typename MatrixType, typename Scalar>
-struct Assignment<DstXprType, Inverse<ColPivHouseholderQR<MatrixType> >, internal::assign_op<Scalar,Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, Inverse<ColPivHouseholderQR<MatrixType> >, internal::assign_op<Scalar,Scalar>, Dense2Dense>
 {
   typedef ColPivHouseholderQR<MatrixType> QrType;
   typedef Inverse<QrType> SrcXprType;

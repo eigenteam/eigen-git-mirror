@@ -5,17 +5,23 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#define EIGEN_TEST_NO_LONGDOUBLE
-#define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_float16
+#include <sstream>
 
 #include "main.h"
+
 #include <Eigen/src/Core/arch/CUDA/Half.h>
+
+// Make sure it's possible to forward declare Eigen::half
+namespace Eigen {
+struct half;
+}
 
 using Eigen::half;
 
 void test_conversion()
 {
+  using Eigen::half_impl::__half;
+
   // Conversion from float.
   VERIFY_IS_EQUAL(half(1.0f).x, 0x3c00);
   VERIFY_IS_EQUAL(half(0.5f).x, 0x3800);
@@ -90,11 +96,11 @@ void test_conversion()
 
 void test_numtraits()
 {
-  std::cout << "expsilin = " << NumTraits<half>::epsilon() << std::endl;
-  std::cout << "highest = " << NumTraits<half>::highest() << std::endl;
-  std::cout << "lowest = " << NumTraits<half>::lowest() << std::endl;
+  std::cout << "epsilon  = " << NumTraits<half>::epsilon() << std::endl;
+  std::cout << "highest  = " << NumTraits<half>::highest() << std::endl;
+  std::cout << "lowest   = " << NumTraits<half>::lowest() << std::endl;
   std::cout << "inifinty = " << NumTraits<half>::infinity() << std::endl;
-  std::cout << "nan = " << NumTraits<half>::quiet_NaN() << std::endl;
+  std::cout << "nan      = " << NumTraits<half>::quiet_NaN() << std::endl;
 
 }
 
@@ -150,49 +156,86 @@ void test_comparison()
 void test_basic_functions()
 {
   VERIFY_IS_EQUAL(float(numext::abs(half(3.5f))), 3.5f);
+  VERIFY_IS_EQUAL(float(abs(half(3.5f))), 3.5f);
   VERIFY_IS_EQUAL(float(numext::abs(half(-3.5f))), 3.5f);
+  VERIFY_IS_EQUAL(float(abs(half(-3.5f))), 3.5f);
 
   VERIFY_IS_EQUAL(float(numext::floor(half(3.5f))), 3.0f);
+  VERIFY_IS_EQUAL(float(floor(half(3.5f))), 3.0f);
   VERIFY_IS_EQUAL(float(numext::floor(half(-3.5f))), -4.0f);
+  VERIFY_IS_EQUAL(float(floor(half(-3.5f))), -4.0f);
 
   VERIFY_IS_EQUAL(float(numext::ceil(half(3.5f))), 4.0f);
+  VERIFY_IS_EQUAL(float(ceil(half(3.5f))), 4.0f);
   VERIFY_IS_EQUAL(float(numext::ceil(half(-3.5f))), -3.0f);
+  VERIFY_IS_EQUAL(float(ceil(half(-3.5f))), -3.0f);
 
   VERIFY_IS_APPROX(float(numext::sqrt(half(0.0f))), 0.0f);
+  VERIFY_IS_APPROX(float(sqrt(half(0.0f))), 0.0f);
   VERIFY_IS_APPROX(float(numext::sqrt(half(4.0f))), 2.0f);
+  VERIFY_IS_APPROX(float(sqrt(half(4.0f))), 2.0f);
 
   VERIFY_IS_APPROX(float(numext::pow(half(0.0f), half(1.0f))), 0.0f);
+  VERIFY_IS_APPROX(float(pow(half(0.0f), half(1.0f))), 0.0f);
   VERIFY_IS_APPROX(float(numext::pow(half(2.0f), half(2.0f))), 4.0f);
+  VERIFY_IS_APPROX(float(pow(half(2.0f), half(2.0f))), 4.0f);
 
   VERIFY_IS_EQUAL(float(numext::exp(half(0.0f))), 1.0f);
-  VERIFY_IS_APPROX(float(numext::exp(half(EIGEN_PI))), float(20.0 + EIGEN_PI));
+  VERIFY_IS_EQUAL(float(exp(half(0.0f))), 1.0f);
+  VERIFY_IS_APPROX(float(numext::exp(half(EIGEN_PI))), 20.f + float(EIGEN_PI));
+  VERIFY_IS_APPROX(float(exp(half(EIGEN_PI))), 20.f + float(EIGEN_PI));
 
   VERIFY_IS_EQUAL(float(numext::log(half(1.0f))), 0.0f);
+  VERIFY_IS_EQUAL(float(log(half(1.0f))), 0.0f);
   VERIFY_IS_APPROX(float(numext::log(half(10.0f))), 2.30273f);
+  VERIFY_IS_APPROX(float(log(half(10.0f))), 2.30273f);
 }
 
 void test_trigonometric_functions()
 {
   VERIFY_IS_APPROX(numext::cos(half(0.0f)), half(cosf(0.0f)));
+  VERIFY_IS_APPROX(cos(half(0.0f)), half(cosf(0.0f)));
   VERIFY_IS_APPROX(numext::cos(half(EIGEN_PI)), half(cosf(EIGEN_PI)));
   //VERIFY_IS_APPROX(numext::cos(half(EIGEN_PI/2)), half(cosf(EIGEN_PI/2)));
   //VERIFY_IS_APPROX(numext::cos(half(3*EIGEN_PI/2)), half(cosf(3*EIGEN_PI/2)));
   VERIFY_IS_APPROX(numext::cos(half(3.5f)), half(cosf(3.5f)));
 
   VERIFY_IS_APPROX(numext::sin(half(0.0f)), half(sinf(0.0f)));
+  VERIFY_IS_APPROX(sin(half(0.0f)), half(sinf(0.0f)));
   //  VERIFY_IS_APPROX(numext::sin(half(EIGEN_PI)), half(sinf(EIGEN_PI)));
   VERIFY_IS_APPROX(numext::sin(half(EIGEN_PI/2)), half(sinf(EIGEN_PI/2)));
   VERIFY_IS_APPROX(numext::sin(half(3*EIGEN_PI/2)), half(sinf(3*EIGEN_PI/2)));
   VERIFY_IS_APPROX(numext::sin(half(3.5f)), half(sinf(3.5f)));
 
   VERIFY_IS_APPROX(numext::tan(half(0.0f)), half(tanf(0.0f)));
+  VERIFY_IS_APPROX(tan(half(0.0f)), half(tanf(0.0f)));
   //  VERIFY_IS_APPROX(numext::tan(half(EIGEN_PI)), half(tanf(EIGEN_PI)));
   //  VERIFY_IS_APPROX(numext::tan(half(EIGEN_PI/2)), half(tanf(EIGEN_PI/2)));
   //VERIFY_IS_APPROX(numext::tan(half(3*EIGEN_PI/2)), half(tanf(3*EIGEN_PI/2)));
   VERIFY_IS_APPROX(numext::tan(half(3.5f)), half(tanf(3.5f)));
 }
 
-void test_cxx11_float16()
+void test_array()
+{
+  typedef Array<half,1,Dynamic> ArrayXh;
+  Index size = internal::random<Index>(1,10);
+  Index i = internal::random<Index>(0,size-1);
+  ArrayXh a1 = ArrayXh::Random(size), a2 = ArrayXh::Random(size);
+  VERIFY_IS_APPROX( a1+a1, half(2)*a1 );
+  VERIFY( (a1.abs() >= half(0)).all() );
+  VERIFY_IS_APPROX( (a1*a1).sqrt(), a1.abs() );
+
+  VERIFY( ((a1.min)(a2) <= (a1.max)(a2)).all() );
+  a1(i) = half(-10.);
+  VERIFY_IS_EQUAL( a1.minCoeff(), half(-10.) );
+  a1(i) = half(10.);
+  VERIFY_IS_EQUAL( a1.maxCoeff(), half(10.) );
+
+  std::stringstream ss;
+  ss << a1;
+}
+
+void test_half_float()
 {
   CALL_SUBTEST(test_conversion());
   CALL_SUBTEST(test_numtraits());
@@ -200,4 +243,5 @@ void test_cxx11_float16()
   CALL_SUBTEST(test_comparison());
   CALL_SUBTEST(test_basic_functions());
   CALL_SUBTEST(test_trigonometric_functions());
+  CALL_SUBTEST(test_array());
 }

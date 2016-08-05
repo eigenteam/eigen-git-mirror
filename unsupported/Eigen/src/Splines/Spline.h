@@ -94,7 +94,7 @@ namespace Eigen
     const KnotVectorType& knots() const { return m_knots; }
     
     /**
-     * \brief Returns the knots of the underlying spline.
+     * \brief Returns the ctrls of the underlying spline.
      **/    
     const ControlPointVectorType& ctrls() const { return m_ctrls; }
 

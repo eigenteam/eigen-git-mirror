@@ -236,7 +236,7 @@ template<typename _MatrixType> class RealSchur
     typedef Matrix<Scalar,3,1> Vector3s;
 
     Scalar computeNormOfT();
-    Index findSmallSubdiagEntry(Index iu);
+    Index findSmallSubdiagEntry(Index iu, const Scalar& maxDiagEntry);
     void splitOffTwoRows(Index iu, bool computeU, const Scalar& exshift);
     void computeShift(Index iu, Index iter, Scalar& exshift, Vector3s& shiftInfo);
     void initFrancisQRStep(Index il, Index iu, const Vector3s& shiftInfo, Index& im, Vector3s& firstHouseholderVector);
@@ -253,19 +253,25 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const EigenBase<InputType>
   if (maxIters == -1)
     maxIters = m_maxIterationsPerRow * matrix.rows();
 
+  Scalar scale = matrix.derived().cwiseAbs().maxCoeff();
+
   // Step 1. Reduce to Hessenberg form
-  m_hess.compute(matrix.derived());
+  m_hess.compute(matrix.derived()/scale);
 
   // Step 2. Reduce to real Schur form  
   computeFromHessenberg(m_hess.matrixH(), m_hess.matrixQ(), computeU);
+
+  m_matT *= scale;
   
   return *this;
 }
 template<typename MatrixType>
 template<typename HessMatrixType, typename OrthMatrixType>
 RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU)
-{  
-  m_matT = matrixH; 
+{
+  using std::abs;
+
+  m_matT = matrixH;
   if(computeU)
     m_matU = matrixQ;
   
@@ -287,14 +293,18 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
 
   if(norm!=0)
   {
+    Scalar maxDiagEntry = m_matT.cwiseAbs().diagonal().maxCoeff();
+
     while (iu >= 0)
     {
-      Index il = findSmallSubdiagEntry(iu);
+      Index il = findSmallSubdiagEntry(iu,maxDiagEntry);
 
       // Check for convergence
       if (il == iu) // One root found
       {
         m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
+        // keep track of the largest diagonal coefficient
+        maxDiagEntry = numext::maxi<Scalar>(maxDiagEntry,abs(m_matT.coeffRef(iu,iu)));
         if (iu > 0)
           m_matT.coeffRef(iu, iu-1) = Scalar(0);
         iu--;
@@ -303,6 +313,8 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
       else if (il == iu-1) // Two roots found
       {
         splitOffTwoRows(iu, computeU, exshift);
+        // keep track of the largest diagonal coefficient
+        maxDiagEntry = numext::maxi<Scalar>(maxDiagEntry,numext::maxi(abs(m_matT.coeff(iu,iu)), abs(m_matT.coeff(iu-1,iu-1))));
         iu -= 2;
         iter = 0;
       }
@@ -317,6 +329,8 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMa
         Index im;
         initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
         performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
+        // keep track of the largest diagonal coefficient
+        maxDiagEntry = numext::maxi(maxDiagEntry,m_matT.cwiseAbs().diagonal().segment(im,iu-im).maxCoeff());
       }
     }
   }
@@ -346,14 +360,13 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
 
 /** \internal Look for single small sub-diagonal element and returns its index */
 template<typename MatrixType>
-inline Index RealSchur<MatrixType>::findSmallSubdiagEntry(Index iu)
+inline Index RealSchur<MatrixType>::findSmallSubdiagEntry(Index iu, const Scalar& maxDiagEntry)
 {
   using std::abs;
   Index res = iu;
   while (res > 0)
   {
-    Scalar s = abs(m_matT.coeff(res-1,res-1)) + abs(m_matT.coeff(res,res));
-    if (abs(m_matT.coeff(res,res-1)) <= NumTraits<Scalar>::epsilon() * s)
+    if (abs(m_matT.coeff(res,res-1)) <= NumTraits<Scalar>::epsilon() * maxDiagEntry)
       break;
     res--;
   }

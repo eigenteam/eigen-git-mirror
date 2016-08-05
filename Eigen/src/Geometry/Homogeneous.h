@@ -329,7 +329,7 @@ protected:
 
 // dense = homogeneous
 template< typename DstXprType, typename ArgType, typename Scalar>
-struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op<Scalar,typename ArgType::Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op<Scalar,typename ArgType::Scalar>, Dense2Dense>
 {
   typedef Homogeneous<ArgType,Vertical> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename ArgType::Scalar> &)
@@ -341,7 +341,7 @@ struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op
 
 // dense = homogeneous
 template< typename DstXprType, typename ArgType, typename Scalar>
-struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_op<Scalar,typename ArgType::Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_op<Scalar,typename ArgType::Scalar>, Dense2Dense>
 {
   typedef Homogeneous<ArgType,Horizontal> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename ArgType::Scalar> &)

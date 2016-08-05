@@ -16,6 +16,10 @@
 #include <math_constants.h>
 #endif
 
+#if EIGEN_COMP_ICC>=1600 &&  __cplusplus >= 201103L
+#include <cstdint>
+#endif
+
 namespace Eigen {
 
 namespace internal {
@@ -29,7 +33,7 @@ namespace internal {
 
 // Only recent versions of ICC complain about using ptrdiff_t to hold pointers,
 // and older versions do not provide *intptr_t types.
-#if EIGEN_COMP_ICC>=1600
+#if EIGEN_COMP_ICC>=1600 &&  __cplusplus >= 201103L
 typedef std::intptr_t  IntPtr;
 typedef std::uintptr_t UIntPtr;
 #else
@@ -145,7 +149,7 @@ struct is_convertible
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.
   */
-template<bool Condition, typename T> struct enable_if;
+template<bool Condition, typename T=void> struct enable_if;
 
 template<typename T> struct enable_if<true,T>
 { typedef T type; };
@@ -354,6 +358,19 @@ struct result_of<Func(ArgType0,ArgType1,ArgType2)> {
 };
 #endif
 
+// Check whether T::ReturnType does exist
+template <typename T>
+struct has_ReturnType
+{
+  typedef char yes[1];
+  typedef char no[2];
+
+  template <typename C> static yes& testFunctor(C const *, typename C::ReturnType const * = 0);
+  static no& testFunctor(...);
+
+  static const bool value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(yes);
+};
+
 /** \internal In short, it computes int(sqrt(\a Y)) with \a Y an integer.
   * Usage example: \code meta_sqrt<1023>::ret \endcode
   */
@@ -430,67 +447,6 @@ T div_ceil(const T &a, const T &b)
 }
 
 } // end namespace numext
-
-
-/** \class ScalarBinaryOpTraits
-  * \ingroup Core_Module
-  *
-  * \brief Determines whether the given binary operation of two numeric types is allowed and what the scalar return type is.
-  *
-  * \sa CwiseBinaryOp
-  */
-template<typename ScalarA, typename ScalarB, typename BinaryOp=void>
-struct ScalarBinaryOpTraits
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-  // for backward compatibility, use the hints given by the (deprecated) internal::scalar_product_traits class.
-  : internal::scalar_product_traits<ScalarA,ScalarB>
-#endif // EIGEN_PARSED_BY_DOXYGEN
-{};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T,T,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef T ReturnType;
-};
-
-// For Matrix * Permutation
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T,void,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef T ReturnType;
-};
-
-// For Permutation * Matrix
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<void,T,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef T ReturnType;
-};
-
-// for Permutation*Permutation
-template<typename BinaryOp>
-struct ScalarBinaryOpTraits<void,void,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef void ReturnType;
-};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T,std::complex<T>,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef std::complex<T> ReturnType;
-};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<std::complex<T>, T,BinaryOp>
-{
-  enum { Defined = 1 };
-  typedef std::complex<T> ReturnType;
-};
 
 } // end namespace Eigen
 

@@ -50,6 +50,8 @@ struct traits<FullPivHouseholderQRMatrixQReturnType<MatrixType> >
   * This decomposition performs a very prudent full pivoting in order to be rank-revealing and achieve optimal
   * numerical stability. The trade-off is that it is slower than HouseholderQR and ColPivHouseholderQR.
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  * 
   * \sa MatrixBase::fullPivHouseholderQr()
   */
 template<typename _MatrixType> class FullPivHouseholderQR
@@ -60,7 +62,6 @@ template<typename _MatrixType> class FullPivHouseholderQR
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
@@ -133,6 +134,26 @@ template<typename _MatrixType> class FullPivHouseholderQR
         m_usePrescribedThreshold(false)
     {
       compute(matrix.derived());
+    }
+
+    /** \brief Constructs a QR factorization from a given matrix
+      *
+      * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when \c MatrixType is a Eigen::Ref.
+      *
+      * \sa FullPivHouseholderQR(const EigenBase&)
+      */
+    template<typename InputType>
+    explicit FullPivHouseholderQR(EigenBase<InputType>& matrix)
+      : m_qr(matrix.derived()),
+        m_hCoeffs((std::min)(matrix.rows(), matrix.cols())),
+        m_rows_transpositions((std::min)(matrix.rows(), matrix.cols())),
+        m_cols_transpositions((std::min)(matrix.rows(), matrix.cols())),
+        m_cols_permutation(matrix.cols()),
+        m_temp(matrix.cols()),
+        m_isInitialized(false),
+        m_usePrescribedThreshold(false)
+    {
+      computeInPlace();
     }
 
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
@@ -430,18 +451,16 @@ template<typename MatrixType>
 template<typename InputType>
 FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(const EigenBase<InputType>& matrix)
 {
-  check_template_parameters();
-  
   m_qr = matrix.derived();
-  
   computeInPlace();
-  
   return *this;
 }
 
 template<typename MatrixType>
 void FullPivHouseholderQR<MatrixType>::computeInPlace()
 {
+  check_template_parameters();
+
   using std::abs;
   Index rows = m_qr.rows();
   Index cols = m_qr.cols();
@@ -560,7 +579,7 @@ void FullPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType 
 namespace internal {
   
 template<typename DstXprType, typename MatrixType, typename Scalar>
-struct Assignment<DstXprType, Inverse<FullPivHouseholderQR<MatrixType> >, internal::assign_op<Scalar,Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, Inverse<FullPivHouseholderQR<MatrixType> >, internal::assign_op<Scalar,Scalar>, Dense2Dense>
 {
   typedef FullPivHouseholderQR<MatrixType> QrType;
   typedef Inverse<QrType> SrcXprType;

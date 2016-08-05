@@ -134,7 +134,7 @@ protected:
 // Dense = Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
 struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scalar,Scalar>, Dense2Dense,
-  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
@@ -148,7 +148,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
 // Dense += Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
 struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<Scalar,Scalar>, Dense2Dense,
-  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
@@ -162,7 +162,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
 // Dense -= Product
 template< typename DstXprType, typename Lhs, typename Rhs, int Options, typename Scalar>
 struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<Scalar,Scalar>, Dense2Dense,
-  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct),Scalar>::type>
+  typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
   static EIGEN_STRONG_INLINE
@@ -179,7 +179,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<
 // for instance, this is not good for inner products
 template< typename DstXprType, typename Lhs, typename Rhs, typename AssignFunc, typename Scalar, typename ScalarBis, typename Plain>
 struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_product_op<ScalarBis,Scalar>, const CwiseNullaryOp<internal::scalar_constant_op<ScalarBis>,Plain>,
-                                           const Product<Lhs,Rhs,DefaultProduct> >, AssignFunc, Dense2Dense, Scalar>
+                                           const Product<Lhs,Rhs,DefaultProduct> >, AssignFunc, Dense2Dense>
 {
   typedef CwiseBinaryOp<internal::scalar_product_op<ScalarBis,Scalar>,
                         const CwiseNullaryOp<internal::scalar_constant_op<ScalarBis>,Plain>,
@@ -259,7 +259,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,InnerProduct>
 
 // Column major result
 template<typename Dst, typename Lhs, typename Rhs, typename Func>
-EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const false_type&)
+void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const false_type&)
 {
   evaluator<Rhs> rhsEval(rhs);
   typename nested_eval<Lhs,Rhs::SizeAtCompileTime>::type actual_lhs(lhs);
@@ -272,7 +272,7 @@ EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, cons
 
 // Row major result
 template<typename Dst, typename Lhs, typename Rhs, typename Func>
-EIGEN_DONT_INLINE void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const true_type&)
+void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const Func& func, const true_type&)
 {
   evaluator<Lhs> lhsEval(lhs);
   typename nested_eval<Rhs,Lhs::SizeAtCompileTime>::type actual_rhs(rhs);
@@ -489,11 +489,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
       
     SameType = is_same<typename LhsNestedCleaned::Scalar,typename RhsNestedCleaned::Scalar>::value,
 
-    CanVectorizeRhs = bool(RhsRowMajor) && (RhsFlags & PacketAccessBit)
-                    && (ColsAtCompileTime == Dynamic || ((ColsAtCompileTime % RhsVecPacketSize) == 0) ),
-
-    CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
-                    && (RowsAtCompileTime == Dynamic || ((RowsAtCompileTime % LhsVecPacketSize) == 0) ),
+    CanVectorizeRhs = bool(RhsRowMajor) && (RhsFlags & PacketAccessBit) && (ColsAtCompileTime!=1),
+    CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit) && (RowsAtCompileTime!=1),
 
     EvalToRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                     : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0

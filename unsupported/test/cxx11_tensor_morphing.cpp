@@ -13,6 +13,7 @@
 
 using Eigen::Tensor;
 
+template<typename>
 static void test_simple_reshape()
 {
   Tensor<float, 5> tensor1(2,3,1,7,1);
@@ -40,7 +41,7 @@ static void test_simple_reshape()
   }
 }
 
-
+template<typename>
 static void test_reshape_in_expr() {
   MatrixXf m1(2,3*5*7*11);
   MatrixXf m2(3*5*7*11,13);
@@ -65,7 +66,7 @@ static void test_reshape_in_expr() {
   }
 }
 
-
+template<typename>
 static void test_reshape_as_lvalue()
 {
   Tensor<float, 3> tensor(2,3,7);
@@ -114,6 +115,7 @@ static void test_simple_slice()
   }
 }
 
+template<typename=void>
 static void test_const_slice()
 {
   const float b[1] = {42};
@@ -459,25 +461,25 @@ static void test_composition()
 
 void test_cxx11_tensor_morphing()
 {
-  CALL_SUBTEST(test_simple_reshape());
-  CALL_SUBTEST(test_reshape_in_expr());
-  CALL_SUBTEST(test_reshape_as_lvalue());
+  CALL_SUBTEST_1(test_simple_reshape<void>());
+  CALL_SUBTEST_1(test_reshape_in_expr<void>());
+  CALL_SUBTEST_1(test_reshape_as_lvalue<void>());
 
-  CALL_SUBTEST(test_simple_slice<ColMajor>());
-  CALL_SUBTEST(test_simple_slice<RowMajor>());
-  CALL_SUBTEST(test_const_slice());
-  CALL_SUBTEST(test_slice_in_expr<ColMajor>());
-  CALL_SUBTEST(test_slice_in_expr<RowMajor>());
-  CALL_SUBTEST(test_slice_as_lvalue<ColMajor>());
-  CALL_SUBTEST(test_slice_as_lvalue<RowMajor>());
-  CALL_SUBTEST(test_slice_raw_data<ColMajor>());
-  CALL_SUBTEST(test_slice_raw_data<RowMajor>());
+  CALL_SUBTEST_1(test_simple_slice<ColMajor>());
+  CALL_SUBTEST_1(test_simple_slice<RowMajor>());
+  CALL_SUBTEST_1(test_const_slice());
+  CALL_SUBTEST_2(test_slice_in_expr<ColMajor>());
+  CALL_SUBTEST_3(test_slice_in_expr<RowMajor>());
+  CALL_SUBTEST_4(test_slice_as_lvalue<ColMajor>());
+  CALL_SUBTEST_4(test_slice_as_lvalue<RowMajor>());
+  CALL_SUBTEST_5(test_slice_raw_data<ColMajor>());
+  CALL_SUBTEST_5(test_slice_raw_data<RowMajor>());
 
-  CALL_SUBTEST(test_strided_slice_write<ColMajor>());
-  CALL_SUBTEST(test_strided_slice<ColMajor>());
-  CALL_SUBTEST(test_strided_slice_write<RowMajor>());
-  CALL_SUBTEST(test_strided_slice<RowMajor>());
+  CALL_SUBTEST_6(test_strided_slice_write<ColMajor>());
+  CALL_SUBTEST_6(test_strided_slice<ColMajor>());
+  CALL_SUBTEST_6(test_strided_slice_write<RowMajor>());
+  CALL_SUBTEST_6(test_strided_slice<RowMajor>());
 
-  CALL_SUBTEST(test_composition<ColMajor>());
-  CALL_SUBTEST(test_composition<RowMajor>());
+  CALL_SUBTEST_7(test_composition<ColMajor>());
+  CALL_SUBTEST_7(test_composition<RowMajor>());
 }

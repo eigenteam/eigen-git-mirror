@@ -317,6 +317,17 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(mapMat2+mapMat3, refMat2+refMat3);
       VERIFY_IS_APPROX(mapMat2+mapMat3, refMat2+refMat3);
     }
+
+    Index i = internal::random<Index>(0,rows-1);
+    Index j = internal::random<Index>(0,cols-1);
+    m2.coeffRef(i,j) = 123;
+    if(internal::random<bool>())
+      m2.makeCompressed();
+    Map<SparseMatrixType> mapMat2(rows, cols, m2.nonZeros(), m2.outerIndexPtr(), m2.innerIndexPtr(), m2.valuePtr(),  m2.innerNonZeroPtr());
+    VERIFY_IS_EQUAL(m2.coeff(i,j),Scalar(123));
+    VERIFY_IS_EQUAL(mapMat2.coeff(i,j),Scalar(123));
+    mapMat2.coeffRef(i,j) = -123;
+    VERIFY_IS_EQUAL(m2.coeff(i,j),Scalar(-123));
   }
 
   // test triangularView

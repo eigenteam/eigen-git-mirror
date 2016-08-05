@@ -138,15 +138,15 @@ do
 done
 
 echo "Float:"
-cat $PREFIX"s"$bench.out"
-echo ""
+cat $PREFIX"s""$bench.out"
+echo " "
 
 echo "Double:"
-cat $PREFIX"d"$bench.out"
+cat $PREFIX"d""$bench.out"
 echo ""
 
 echo "Complex:"
-cat $PREFIX"c"$bench.out"
+cat $PREFIX"c""$bench.out"
 echo ""
 
 ./make_plot.sh $PREFIX"s"$bench $bench

@@ -67,27 +67,32 @@ int main()
       IsSigned = 1,
       IsComplex = 0,
       RequireInitialization = 1,
-      ReadCost = 10,
-      AddCost = 10,
-      MulCost = 40
+      ReadCost = HugeCost,
+      AddCost  = HugeCost,
+      MulCost  = HugeCost
     };
 
     typedef mpfr::mpreal Real;
     typedef mpfr::mpreal NonInteger;
     
-    inline static Real highest   (long Precision = mpfr::mpreal::get_default_prec())  { return  mpfr::maxval(Precision); }
-    inline static Real lowest    (long Precision = mpfr::mpreal::get_default_prec())  { return -mpfr::maxval(Precision); }
+    static inline Real highest  (long Precision = mpfr::mpreal::get_default_prec()) { return  mpfr::maxval(Precision); }
+    static inline Real lowest   (long Precision = mpfr::mpreal::get_default_prec()) { return -mpfr::maxval(Precision); }
 
     // Constants
-    inline static Real Pi       (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_pi(Precision);        }
-    inline static Real Euler    (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_euler(Precision);     }
-    inline static Real Log2     (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_log2(Precision);      }
-    inline static Real Catalan  (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_catalan(Precision);   }
+    static inline Real Pi      (long Precision = mpfr::mpreal::get_default_prec())  { return mpfr::const_pi(Precision);        }
+    static inline Real Euler   (long Precision = mpfr::mpreal::get_default_prec())  { return mpfr::const_euler(Precision);     }
+    static inline Real Log2    (long Precision = mpfr::mpreal::get_default_prec())  { return mpfr::const_log2(Precision);      }
+    static inline Real Catalan (long Precision = mpfr::mpreal::get_default_prec())  { return mpfr::const_catalan(Precision);   }
 
-    inline static Real epsilon  (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::machine_epsilon(Precision); }
-    inline static Real epsilon  (const Real& x)                                         {    return mpfr::machine_epsilon(x); }
+    static inline Real epsilon (long Precision = mpfr::mpreal::get_default_prec())  { return mpfr::machine_epsilon(Precision); }
+    static inline Real epsilon (const Real& x)                                      { return mpfr::machine_epsilon(x); }
 
-    inline static Real dummy_precision()   
+#ifdef MPREAL_HAVE_DYNAMIC_STD_NUMERIC_LIMITS
+    static inline int digits10 (long Precision = mpfr::mpreal::get_default_prec())  { return std::numeric_limits<Real>::digits10(Precision); }
+    static inline int digits10 (const Real& x)                                      { return std::numeric_limits<Real>::digits10(x); }
+#endif
+
+    static inline Real dummy_precision()
     {
       mpfr_prec_t weak_prec = ((mpfr::mpreal::get_default_prec()-1) * 90) / 100;
       return mpfr::machine_epsilon(weak_prec);

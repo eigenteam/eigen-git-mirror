@@ -19,12 +19,22 @@ template<typename MatrixType> void selfadjointeigensolver_essential_check(const 
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  RealScalar eival_eps = (std::min)(test_precision<RealScalar>(),  NumTraits<Scalar>::dummy_precision()*20000);
+  RealScalar eival_eps = numext::mini<RealScalar>(test_precision<RealScalar>(),  NumTraits<Scalar>::dummy_precision()*20000);
   
   SelfAdjointEigenSolver<MatrixType> eiSymm(m);
   VERIFY_IS_EQUAL(eiSymm.info(), Success);
-  VERIFY_IS_APPROX(m.template selfadjointView<Lower>() * eiSymm.eigenvectors(),
-                   eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal());
+
+  RealScalar scaling = m.cwiseAbs().maxCoeff();
+
+  if(scaling<(std::numeric_limits<RealScalar>::min)())
+  {
+    VERIFY(eiSymm.eigenvalues().cwiseAbs().maxCoeff() <= (std::numeric_limits<RealScalar>::min)());
+  }
+  else
+  {
+    VERIFY_IS_APPROX((m.template selfadjointView<Lower>() * eiSymm.eigenvectors())/scaling,
+                     (eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal())/scaling);
+  }
   VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
   VERIFY_IS_UNITARY(eiSymm.eigenvectors());
 
@@ -33,7 +43,6 @@ template<typename MatrixType> void selfadjointeigensolver_essential_check(const 
     SelfAdjointEigenSolver<MatrixType> eiDirect;
     eiDirect.computeDirect(m);  
     VERIFY_IS_EQUAL(eiDirect.info(), Success);
-    VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiDirect.eigenvalues());
     if(! eiSymm.eigenvalues().isApprox(eiDirect.eigenvalues(), eival_eps) )
     {
       std::cerr << "reference eigenvalues: " << eiSymm.eigenvalues().transpose() << "\n"
@@ -41,10 +50,18 @@ template<typename MatrixType> void selfadjointeigensolver_essential_check(const 
                 << "diff:                  " << (eiSymm.eigenvalues()-eiDirect.eigenvalues()).transpose() << "\n"
                 << "error (eps):           " << (eiSymm.eigenvalues()-eiDirect.eigenvalues()).norm() / eiSymm.eigenvalues().norm() << "  (" << eival_eps << ")\n";
     }
-    VERIFY(eiSymm.eigenvalues().isApprox(eiDirect.eigenvalues(), eival_eps));
-    VERIFY_IS_APPROX(m.template selfadjointView<Lower>() * eiDirect.eigenvectors(),
-                    eiDirect.eigenvectors() * eiDirect.eigenvalues().asDiagonal());
-    VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues(), eiDirect.eigenvalues());
+    if(scaling<(std::numeric_limits<RealScalar>::min)())
+    {
+      VERIFY(eiDirect.eigenvalues().cwiseAbs().maxCoeff() <= (std::numeric_limits<RealScalar>::min)());
+    }
+    else
+    {
+      VERIFY_IS_APPROX(eiSymm.eigenvalues()/scaling, eiDirect.eigenvalues()/scaling);
+      VERIFY_IS_APPROX((m.template selfadjointView<Lower>() * eiDirect.eigenvectors())/scaling,
+                       (eiDirect.eigenvectors() * eiDirect.eigenvalues().asDiagonal())/scaling);
+      VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues()/scaling, eiDirect.eigenvalues()/scaling);
+    }
+
     VERIFY_IS_UNITARY(eiDirect.eigenvectors());
   }
 }

@@ -316,8 +316,8 @@ struct Diagonal2Dense {};
 template<> struct AssignmentKind<DenseShape,DiagonalShape> { typedef Diagonal2Dense Kind; };
 
 // Diagonal matrix to Dense assignment
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Dense, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Dense>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {

@@ -10,6 +10,7 @@ namespace Eigen {
   - \subpage TopicAssertions
   - \subpage TopicCustomizingEigen
   - \subpage TopicMultiThreading
+  - \subpage TopicUsingBlasLapack
   - \subpage TopicUsingIntelMKL
   - \subpage TopicCUDA
   - \subpage TopicPitfalls
@@ -105,6 +106,10 @@ namespace Eigen {
 /** \addtogroup TopicLinearAlgebraDecompositions
     \ingroup DenseLinearSolvers_chapter */
 /** \addtogroup LeastSquares 
+    \ingroup DenseLinearSolvers_chapter */
+/** \addtogroup InplaceDecomposition
+    \ingroup DenseLinearSolvers_chapter */
+/** \addtogroup DenseDecompositionBenchmark
     \ingroup DenseLinearSolvers_chapter */
 
 /** \addtogroup DenseLinearSolvers_Reference

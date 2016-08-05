@@ -25,22 +25,20 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
+ *   Content : Eigen bindings to LAPACKe
  *    Householder QR decomposition of a matrix with column pivoting based on
  *    LAPACKE_?geqp3 function.
  ********************************************************************************
 */
 
-#ifndef EIGEN_COLPIVOTINGHOUSEHOLDERQR_MKL_H
-#define EIGEN_COLPIVOTINGHOUSEHOLDERQR_MKL_H
-
-#include "Eigen/src/Core/util/MKL_support.h"
+#ifndef EIGEN_COLPIVOTINGHOUSEHOLDERQR_LAPACKE_H
+#define EIGEN_COLPIVOTINGHOUSEHOLDERQR_LAPACKE_H
 
 namespace Eigen { 
 
-/** \internal Specialization for the data types supported by MKL */
+/** \internal Specialization for the data types supported by LAPACKe */
 
-#define EIGEN_MKL_QR_COLPIV(EIGTYPE, MKLTYPE, MKLPREFIX, EIGCOLROW, MKLCOLROW) \
+#define EIGEN_LAPACKE_QR_COLPIV(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX, EIGCOLROW, LAPACKE_COLROW) \
 template<> template<typename InputType> inline \
 ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynamic> >& \
 ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynamic> >::compute( \
@@ -66,9 +64,9 @@ ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynami
   m_colsPermutation.indices().setZero(); \
 \
   lapack_int lda = internal::convert_index<lapack_int,Index>(m_qr.outerStride()); \
-  lapack_int matrix_order = MKLCOLROW; \
-  LAPACKE_##MKLPREFIX##geqp3( matrix_order, internal::convert_index<lapack_int,Index>(rows), internal::convert_index<lapack_int,Index>(cols), \
-                              (MKLTYPE*)m_qr.data(), lda, (lapack_int*)m_colsPermutation.indices().data(), (MKLTYPE*)m_hCoeffs.data()); \
+  lapack_int matrix_order = LAPACKE_COLROW; \
+  LAPACKE_##LAPACKE_PREFIX##geqp3( matrix_order, internal::convert_index<lapack_int,Index>(rows), internal::convert_index<lapack_int,Index>(cols), \
+                              (LAPACKE_TYPE*)m_qr.data(), lda, (lapack_int*)m_colsPermutation.indices().data(), (LAPACKE_TYPE*)m_hCoeffs.data()); \
   m_isInitialized = true; \
   m_maxpivot=m_qr.diagonal().cwiseAbs().maxCoeff(); \
   m_hCoeffs.adjointInPlace(); \
@@ -84,16 +82,16 @@ ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynami
   return *this; \
 }
 
-EIGEN_MKL_QR_COLPIV(double,   double,        d, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_QR_COLPIV(float,    float,         s, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_QR_COLPIV(dcomplex, MKL_Complex16, z, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_MKL_QR_COLPIV(scomplex, MKL_Complex8,  c, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(double,   double,        d, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(float,    float,         s, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(dcomplex, lapack_complex_double, z, ColMajor, LAPACK_COL_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(scomplex, lapack_complex_float,  c, ColMajor, LAPACK_COL_MAJOR)
 
-EIGEN_MKL_QR_COLPIV(double,   double,        d, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_QR_COLPIV(float,    float,         s, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_QR_COLPIV(dcomplex, MKL_Complex16, z, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_MKL_QR_COLPIV(scomplex, MKL_Complex8,  c, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(double,   double,        d, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(float,    float,         s, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(dcomplex, lapack_complex_double, z, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_QR_COLPIV(scomplex, lapack_complex_float,  c, RowMajor, LAPACK_ROW_MAJOR)
 
 } // end namespace Eigen
 
-#endif // EIGEN_COLPIVOTINGHOUSEHOLDERQR_MKL_H
+#endif // EIGEN_COLPIVOTINGHOUSEHOLDERQR_LAPACKE_H

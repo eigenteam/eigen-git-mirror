@@ -21,7 +21,7 @@ static void test_dynamic_size()
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<0>(dimensions), 2);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<1>(dimensions), 3);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<2>(dimensions), 7);
-  VERIFY_IS_EQUAL(dimensions.TotalSize(), 2*3*7);
+  VERIFY_IS_EQUAL((int)dimensions.TotalSize(), 2*3*7);
   VERIFY_IS_EQUAL((int)dimensions[0], 2);
   VERIFY_IS_EQUAL((int)dimensions[1], 3);
   VERIFY_IS_EQUAL((int)dimensions[2], 7);
@@ -34,12 +34,12 @@ static void test_fixed_size()
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<0>(dimensions), 2);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<1>(dimensions), 3);
   VERIFY_IS_EQUAL((int)Eigen::internal::array_get<2>(dimensions), 7);
-  VERIFY_IS_EQUAL(dimensions.TotalSize(), 2*3*7);
+  VERIFY_IS_EQUAL((int)dimensions.TotalSize(), 2*3*7);
 }
 
 static void test_match()
 {
-  Eigen::DSizes<int, 3> dyn(2,3,7);
+  Eigen::DSizes<unsigned int, 3> dyn((unsigned int)2,(unsigned int)3,(unsigned int)7);
   Eigen::Sizes<2,3,7> stat;
   VERIFY_IS_EQUAL(Eigen::dimensions_match(dyn, stat), true);
 
@@ -51,13 +51,13 @@ static void test_match()
 static void test_rank_zero()
 {
   Eigen::Sizes<> scalar;
-  VERIFY_IS_EQUAL(scalar.TotalSize(), 1);
-  VERIFY_IS_EQUAL(scalar.rank(), 0);
-  VERIFY_IS_EQUAL(internal::array_prod(scalar), 1);
+  VERIFY_IS_EQUAL((int)scalar.TotalSize(), 1);
+  VERIFY_IS_EQUAL((int)scalar.rank(), 0);
+  VERIFY_IS_EQUAL((int)internal::array_prod(scalar), 1);
 
   Eigen::DSizes<ptrdiff_t, 0> dscalar;
-  VERIFY_IS_EQUAL(dscalar.TotalSize(), 1);
-  VERIFY_IS_EQUAL(dscalar.rank(), 0u);
+  VERIFY_IS_EQUAL((int)dscalar.TotalSize(), 1);
+  VERIFY_IS_EQUAL((int)dscalar.rank(), 0);
 }
 
 void test_cxx11_tensor_dimension()

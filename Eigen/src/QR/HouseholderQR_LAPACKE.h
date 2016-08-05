@@ -25,61 +25,44 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  ********************************************************************************
- *   Content : Eigen bindings to Intel(R) MKL
- *     LU decomposition with partial pivoting based on LAPACKE_?getrf function.
+ *   Content : Eigen bindings to LAPACKe
+ *    Householder QR decomposition of a matrix w/o pivoting based on
+ *    LAPACKE_?geqrf function.
  ********************************************************************************
 */
 
-#ifndef EIGEN_PARTIALLU_LAPACK_H
-#define EIGEN_PARTIALLU_LAPACK_H
-
-#include "Eigen/src/Core/util/MKL_support.h"
+#ifndef EIGEN_QR_LAPACKE_H
+#define EIGEN_QR_LAPACKE_H
 
 namespace Eigen { 
 
 namespace internal {
 
-/** \internal Specialization for the data types supported by MKL */
+/** \internal Specialization for the data types supported by LAPACKe */
 
-#define EIGEN_MKL_LU_PARTPIV(EIGTYPE, MKLTYPE, MKLPREFIX) \
-template<int StorageOrder> \
-struct partial_lu_impl<EIGTYPE, StorageOrder, lapack_int> \
+#define EIGEN_LAPACKE_QR_NOPIV(EIGTYPE, LAPACKE_TYPE, LAPACKE_PREFIX) \
+template<typename MatrixQR, typename HCoeffs> \
+struct householder_qr_inplace_blocked<MatrixQR, HCoeffs, EIGTYPE, true> \
 { \
-  /* \internal performs the LU decomposition in-place of the matrix represented */ \
-  static lapack_int blocked_lu(Index rows, Index cols, EIGTYPE* lu_data, Index luStride, lapack_int* row_transpositions, lapack_int& nb_transpositions, lapack_int maxBlockSize=256) \
+  static void run(MatrixQR& mat, HCoeffs& hCoeffs, Index = 32, \
+      typename MatrixQR::Scalar* = 0) \
   { \
-    EIGEN_UNUSED_VARIABLE(maxBlockSize);\
-    lapack_int matrix_order, first_zero_pivot; \
-    lapack_int m, n, lda, *ipiv, info; \
-    EIGTYPE* a; \
-/* Set up parameters for ?getrf */ \
-    matrix_order = StorageOrder==RowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR; \
-    lda = convert_index<lapack_int>(luStride); \
-    a = lu_data; \
-    ipiv = row_transpositions; \
-    m = convert_index<lapack_int>(rows); \
-    n = convert_index<lapack_int>(cols); \
-    nb_transpositions = 0; \
-\
-    info = LAPACKE_##MKLPREFIX##getrf( matrix_order, m, n, (MKLTYPE*)a, lda, ipiv ); \
-\
-    for(int i=0;i<m;i++) { ipiv[i]--; if (ipiv[i]!=i) nb_transpositions++; } \
-\
-    eigen_assert(info >= 0); \
-/* something should be done with nb_transpositions */ \
-\
-    first_zero_pivot = info; \
-    return first_zero_pivot; \
+    lapack_int m = (lapack_int) mat.rows(); \
+    lapack_int n = (lapack_int) mat.cols(); \
+    lapack_int lda = (lapack_int) mat.outerStride(); \
+    lapack_int matrix_order = (MatrixQR::IsRowMajor) ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR; \
+    LAPACKE_##LAPACKE_PREFIX##geqrf( matrix_order, m, n, (LAPACKE_TYPE*)mat.data(), lda, (LAPACKE_TYPE*)hCoeffs.data()); \
+    hCoeffs.adjointInPlace(); \
   } \
 };
 
-EIGEN_MKL_LU_PARTPIV(double, double, d)
-EIGEN_MKL_LU_PARTPIV(float, float, s)
-EIGEN_MKL_LU_PARTPIV(dcomplex, MKL_Complex16, z)
-EIGEN_MKL_LU_PARTPIV(scomplex, MKL_Complex8, c)
+EIGEN_LAPACKE_QR_NOPIV(double, double, d)
+EIGEN_LAPACKE_QR_NOPIV(float, float, s)
+EIGEN_LAPACKE_QR_NOPIV(dcomplex, lapack_complex_double, z)
+EIGEN_LAPACKE_QR_NOPIV(scomplex, lapack_complex_float, c)
 
 } // end namespace internal
 
 } // end namespace Eigen
 
-#endif // EIGEN_PARTIALLU_LAPACK_H
+#endif // EIGEN_QR_LAPACKE_H

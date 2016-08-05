@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2007 Julien Pommier
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2016 Konstantinos Margaritis <markos@freevec.org>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -19,38 +20,79 @@ namespace Eigen {
 
 namespace internal {
 
+static _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
+static _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
+static _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
+static _EIGEN_DECLARE_CONST_Packet4i(23, 23);
+
+static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inv_mant_mask, ~0x7f800000);
+
+/* the smallest non denormalized float number */
+static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(min_norm_pos,  0x00800000);
+static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(minus_inf,     0xff800000); // -1.f/0.f
+static _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(minus_nan,     0xffffffff);
+  
+/* natural logarithm computed for 4 simultaneous float
+  return NaN for x <= 0
+*/
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_SQRTHF, 0.707106781186547524f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p0, 7.0376836292E-2f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p1, - 1.1514610310E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p2, 1.1676998740E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p3, - 1.2420140846E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p4, + 1.4249322787E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p5, - 1.6668057665E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p6, + 2.0000714765E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p7, - 2.4999993993E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p8, + 3.3333331174E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q1, -2.12194440e-4f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q2, 0.693359375f);
+
+static _EIGEN_DECLARE_CONST_Packet4f(exp_hi,  88.3762626647950f);
+static _EIGEN_DECLARE_CONST_Packet4f(exp_lo, -88.3762626647949f);
+
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_LOG2EF, 1.44269504088896341f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C1, 0.693359375f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C2, -2.12194440e-4f);
+
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p0, 1.9875691500E-4f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p1, 1.3981999507E-3f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p2, 8.3334519073E-3f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1f);
+static _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1f);
+
+#ifdef __VSX__
+static _EIGEN_DECLARE_CONST_Packet2d(1 , 1.0);
+static _EIGEN_DECLARE_CONST_Packet2d(2 , 2.0);
+static _EIGEN_DECLARE_CONST_Packet2d(half, 0.5);
+
+static _EIGEN_DECLARE_CONST_Packet2d(exp_hi,  709.437);
+static _EIGEN_DECLARE_CONST_Packet2d(exp_lo, -709.436139303);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_LOG2EF, 1.4426950408889634073599);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p0, 1.26177193074810590878e-4);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p1, 3.02994407707441961300e-2);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p2, 9.99999999999999999910e-1);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q0, 3.00198505138664455042e-6);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q1, 2.52448340349684104192e-3);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q2, 2.27265548208155028766e-1);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q3, 2.00000000000000000009e0);
+
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C1, 0.693145751953125);
+static _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C2, 1.42860682030941723212e-6);
+
+static Packet2l p2l_1023 = { 1023, 1023 };
+static Packet2ul p2ul_52 = { 52, 52 };
+
+#endif
+
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f plog<Packet4f>(const Packet4f& _x)
 {
   Packet4f x = _x;
-  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
-  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
-  _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
-  _EIGEN_DECLARE_CONST_Packet4i(23, 23);
-
-  _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(inv_mant_mask, ~0x7f800000);
-
-  /* the smallest non denormalized float number */
-  _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(min_norm_pos,  0x00800000);
-  _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(minus_inf,     0xff800000); // -1.f/0.f
-  _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(minus_nan,     0xffffffff);
-  
-  /* natural logarithm computed for 4 simultaneous float
-    return NaN for x <= 0
-  */
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_SQRTHF, 0.707106781186547524f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p0, 7.0376836292E-2f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p1, - 1.1514610310E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p2, 1.1676998740E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p3, - 1.2420140846E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p4, + 1.4249322787E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p5, - 1.6668057665E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p6, + 2.0000714765E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p7, - 2.4999993993E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_p8, + 3.3333331174E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q1, -2.12194440e-4f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_log_q2, 0.693359375f);
-
 
   Packet4i emm0;
 
@@ -112,36 +154,17 @@ template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f pexp<Packet4f>(const Packet4f& _x)
 {
   Packet4f x = _x;
-  _EIGEN_DECLARE_CONST_Packet4f(1 , 1.0f);
-  _EIGEN_DECLARE_CONST_Packet4f(half, 0.5f);
-  _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
-  _EIGEN_DECLARE_CONST_Packet4i(23, 23);
-
-
-  _EIGEN_DECLARE_CONST_Packet4f(exp_hi,  88.3762626647950f);
-  _EIGEN_DECLARE_CONST_Packet4f(exp_lo, -88.3762626647949f);
-
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_LOG2EF, 1.44269504088896341f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C1, 0.693359375f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_C2, -2.12194440e-4f);
-
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p0, 1.9875691500E-4f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p1, 1.3981999507E-3f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p2, 8.3334519073E-3f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p3, 4.1665795894E-2f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p4, 1.6666665459E-1f);
-  _EIGEN_DECLARE_CONST_Packet4f(cephes_exp_p5, 5.0000001201E-1f);
 
   Packet4f tmp, fx;
   Packet4i emm0;
 
   // clamp x
-  x = vec_max(vec_min(x, p4f_exp_hi), p4f_exp_lo);
+  x = pmax(pmin(x, p4f_exp_hi), p4f_exp_lo);
 
-  /* express exp(x) as exp(g + n*log(2)) */
+  // express exp(x) as exp(g + n*log(2))
   fx = pmadd(x, p4f_cephes_LOG2EF, p4f_half);
 
-  fx = vec_floor(fx);
+  fx = pfloor(fx);
 
   tmp = pmul(fx, p4f_cephes_exp_C1);
   Packet4f z = pmul(fx, p4f_cephes_exp_C2);
@@ -171,14 +194,44 @@ Packet4f pexp<Packet4f>(const Packet4f& _x)
                  isnumber_mask);
 }
 
+#ifndef EIGEN_COMP_CLANG
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f prsqrt<Packet4f>(const Packet4f& x)
+{
+  return  vec_rsqrt(x);
+}
+#endif
+
 #ifdef __VSX__
+#ifndef EIGEN_COMP_CLANG
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet2d prsqrt<Packet2d>(const Packet2d& x)
+{
+  return  vec_rsqrt(x);
+}
+#endif
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet4f psqrt<Packet4f>(const Packet4f& x)
+{
+  return  vec_sqrt(x);
+}
+
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
+Packet2d psqrt<Packet2d>(const Packet2d& x)
+{
+  return  vec_sqrt(x);
+}
+
 // VSX support varies between different compilers and even different
 // versions of the same compiler.  For gcc version >= 4.9.3, we can use
 // vec_cts to efficiently convert Packet2d to Packet2l.  Otherwise, use
 // a slow version that works with older compilers. 
+// Update: apparently vec_cts/vec_ctf intrinsics for 64-bit doubles
+// are buggy, https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70963
 static inline Packet2l ConvertToPacket2l(const Packet2d& x) {
-#if EIGEN_GNUC_AT_LEAST(5, 0) || \
-    (EIGEN_GNUC_AT(4, 9) && __GNUC_PATCHLEVEL__ >= 3)
+#if EIGEN_GNUC_AT_LEAST(5, 4) || \
+    (EIGEN_GNUC_AT(6, 1) && __GNUC_PATCHLEVEL__ >= 1)
   return vec_cts(x, 0);    // TODO: check clang version.
 #else
   double tmp[2];
@@ -194,36 +247,16 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
 {
   Packet2d x = _x;
 
-  _EIGEN_DECLARE_CONST_Packet2d(1 , 1.0);
-  _EIGEN_DECLARE_CONST_Packet2d(2 , 2.0);
-  _EIGEN_DECLARE_CONST_Packet2d(half, 0.5);
-
-  _EIGEN_DECLARE_CONST_Packet2d(exp_hi,  709.437);
-  _EIGEN_DECLARE_CONST_Packet2d(exp_lo, -709.436139303);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_LOG2EF, 1.4426950408889634073599);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p0, 1.26177193074810590878e-4);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p1, 3.02994407707441961300e-2);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_p2, 9.99999999999999999910e-1);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q0, 3.00198505138664455042e-6);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q1, 2.52448340349684104192e-3);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q2, 2.27265548208155028766e-1);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_q3, 2.00000000000000000009e0);
-
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C1, 0.693145751953125);
-  _EIGEN_DECLARE_CONST_Packet2d(cephes_exp_C2, 1.42860682030941723212e-6);
-
   Packet2d tmp, fx;
   Packet2l emm0;
 
   // clamp x
   x = pmax(pmin(x, p2d_exp_hi), p2d_exp_lo);
-  /* express exp(x) as exp(g + n*log(2)) */
-  fx = pmadd(p2d_cephes_LOG2EF, x, p2d_half);
 
-  fx = vec_floor(fx);
+  /* express exp(x) as exp(g + n*log(2)) */
+  fx = pmadd(x, p2d_cephes_LOG2EF, p2d_half);
+
+  fx = pfloor(fx);
 
   tmp = pmul(fx, p2d_cephes_exp_C1);
   Packet2d z = pmul(fx, p2d_cephes_exp_C2);
@@ -249,9 +282,6 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
   emm0 = ConvertToPacket2l(fx);
 
 #ifdef __POWER8_VECTOR__ 
-  static const Packet2l p2l_1023 = { 1023, 1023 };
-  static const Packet2ul p2ul_52 = { 52, 52 };
-
   emm0 = vec_add(emm0, p2l_1023);
   emm0 = vec_sl(emm0, p2ul_52);
 #else

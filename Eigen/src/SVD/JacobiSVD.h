@@ -713,7 +713,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         {
           finished = false;
           // perform SVD decomposition of 2x2 sub-matrix corresponding to indices p,q to make it diagonal
-          // the complex to real operation returns true is the updated 2x2 block is not already diagonal
+          // the complex to real operation returns true if the updated 2x2 block is not already diagonal
           if(internal::svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q, maxDiagEntry))
           {
             JacobiRotation<RealScalar> j_left, j_right;
@@ -727,7 +727,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
             if(computeV()) m_matrixV.applyOnTheRight(p,q,j_right);
 
             // keep track of the largest diagonal coefficient
-            maxDiagEntry = numext::maxi(maxDiagEntry,numext::maxi(abs(m_workMatrix.coeff(p,p)), abs(m_workMatrix.coeff(q,q))));
+            maxDiagEntry = numext::maxi<RealScalar>(maxDiagEntry,numext::maxi(abs(m_workMatrix.coeff(p,p)), abs(m_workMatrix.coeff(q,q))));
           }
         }
       }
@@ -738,9 +738,22 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
   for(Index i = 0; i < m_diagSize; ++i)
   {
-    RealScalar a = abs(m_workMatrix.coeff(i,i));
-    m_singularValues.coeffRef(i) = a;
-    if(computeU() && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
+    // For a complex matrix, some diagonal coefficients might note have been
+    // treated by svd_precondition_2x2_block_to_be_real, and the imaginary part
+    // of some diagonal entry might not be null.
+    if(NumTraits<Scalar>::IsComplex && abs(numext::imag(m_workMatrix.coeff(i,i)))>considerAsZero)
+    {
+      RealScalar a = abs(m_workMatrix.coeff(i,i));
+      m_singularValues.coeffRef(i) = abs(a);
+      if(computeU()) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
+    }
+    else
+    {
+      // m_workMatrix.coeff(i,i) is already real, no difficulty:
+      RealScalar a = numext::real(m_workMatrix.coeff(i,i));
+      m_singularValues.coeffRef(i) = abs(a);
+      if(computeU() && (a<RealScalar(0))) m_matrixU.col(i) = -m_matrixU.col(i);
+    }
   }
   
   m_singularValues *= scale;

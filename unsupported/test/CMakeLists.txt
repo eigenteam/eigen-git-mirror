@@ -109,6 +109,7 @@ ei_add_test(gmres)
 ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(kronecker_product)
+ei_add_test(special_functions)
 
 # TODO: The following test names are prefixed with the cxx11 string, since historically
 # the tests depended on c++11. This isn't the case anymore so we ought to rename them.
@@ -116,7 +117,6 @@ ei_add_test(kronecker_product)
 # when using visual studio. We should make the check more strict to enable the tests for
 # newer versions of MSVC.
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-ei_add_test(cxx11_float16)
 ei_add_test(cxx11_tensor_dimension)
 ei_add_test(cxx11_tensor_map)
 ei_add_test(cxx11_tensor_assign)
@@ -191,10 +191,12 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   # Make sure to compile without the -pedantic, -Wundef, -Wnon-virtual-dtor
   # and -fno-check-new flags since they trigger thousands of compilation warnings
   # in the CUDA runtime
+  # Also remove -ansi that is incompatible with std=c++11.
   string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-Wnon-virtual-dtor" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-fno-check-new" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-ansi" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
   message(STATUS "Flags used to compile cuda code: " ${CMAKE_CXX_FLAGS})
 
@@ -210,7 +212,14 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
     set(EIGEN_CUDA_RELAXED_CONSTEXPR "--relaxed-constexpr")
   endif()
 
-  set(CUDA_NVCC_FLAGS "-std=c++11 ${EIGEN_CUDA_RELAXED_CONSTEXPR} -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\"")
+  if( (NOT EIGEN_TEST_CXX11) OR (CMAKE_VERSION VERSION_LESS 3.3))
+    set(EIGEN_CUDA_CXX11_FLAG "-std=c++11")
+  else()
+    # otherwise the flag has already been added because of the above set(CMAKE_CXX_STANDARD 11)
+    set(EIGEN_CUDA_CXX11_FLAG "")
+  endif()
+
+  set(CUDA_NVCC_FLAGS  "${EIGEN_CUDA_CXX11_FLAG} ${EIGEN_CUDA_RELAXED_CONSTEXPR} -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\" ${CUDA_NVCC_FLAGS}")
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 

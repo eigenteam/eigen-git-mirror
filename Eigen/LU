@@ -28,7 +28,8 @@
 #include "src/LU/FullPivLU.h"
 #include "src/LU/PartialPivLU.h"
 #ifdef EIGEN_USE_LAPACKE
-#include "src/LU/PartialPivLU_MKL.h"
+#include "src/misc/lapacke.h"
+#include "src/LU/PartialPivLU_LAPACKE.h"
 #endif
 #include "src/LU/Determinant.h"
 #include "src/LU/InverseImpl.h"

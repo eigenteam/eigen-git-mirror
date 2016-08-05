@@ -17,6 +17,7 @@ set(Eigen_HEADERS
   Polynomials
   Skyline 
   SparseExtra
+  SpecialFunctions
   Splines
   )
 

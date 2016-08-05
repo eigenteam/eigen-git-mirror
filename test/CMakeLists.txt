@@ -258,6 +258,9 @@ ei_add_test(rvalue_types)
 ei_add_test(dense_storage)
 ei_add_test(ctorleak)
 ei_add_test(mpl2only)
+ei_add_test(inplace_decomposition)
+ei_add_test(half_float)
+ei_add_test(array_of_string)
 
 add_executable(bug1213 bug1213.cpp bug1213_main.cpp)
 
@@ -324,6 +327,16 @@ option(EIGEN_TEST_EIGEN2 "Run whole Eigen2 test suite against EIGEN2_SUPPORT" OF
 mark_as_advanced(EIGEN_TEST_EIGEN2)
 if(EIGEN_TEST_EIGEN2)
   message(WARNING "The Eigen2 test suite has been removed")
+endif()
+
+# boost MP unit test
+find_package(Boost)
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+  ei_add_test(boostmultiprec "" "${Boost_LIBRARIES}")
+  ei_add_property(EIGEN_TESTED_BACKENDS "Boost.Multiprecision, ")
+else()
+  ei_add_property(EIGEN_MISSING_BACKENDS "Boost.Multiprecision, ")
 endif()
 
 

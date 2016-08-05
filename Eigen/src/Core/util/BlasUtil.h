@@ -111,7 +111,7 @@ template<typename RealScalar,bool Conj> struct conj_helper<RealScalar, std::comp
 };
 
 template<typename From,typename To> struct get_factor {
-  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE To run(const From& x) { return x; }
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE To run(const From& x) { return To(x); }
 };
 
 template<typename Scalar> struct get_factor<Scalar,typename NumTraits<Scalar>::Real> {
