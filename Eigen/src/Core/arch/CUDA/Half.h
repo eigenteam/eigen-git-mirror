@@ -65,8 +65,8 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half float_to_half_rtne(float ff);
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half h);
 
 struct half_base : public __half {
-  explicit EIGEN_DEVICE_FUNC half_base(unsigned short raw) : __half(raw) {}
   EIGEN_DEVICE_FUNC half_base() {}
+  EIGEN_DEVICE_FUNC half_base(const half_base& h) : __half(h) {}
   EIGEN_DEVICE_FUNC half_base(const __half& h) : __half(h) {}
 };
 
