@@ -47,7 +47,7 @@ void test_cuda_numext() {
   gpu_device.synchronize();
 
   for (int i = 0; i < num_elem; ++i) {
-    std::cout << "Checking unary " << i << std::endl;
+    std::cout << "Checking numext " << i << std::endl;
     VERIFY_IS_EQUAL(full_prec(i), half_prec(i));
   }
 
