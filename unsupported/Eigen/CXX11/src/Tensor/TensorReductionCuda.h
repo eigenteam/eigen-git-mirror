@@ -74,15 +74,9 @@ __device__ inline Type atomicExchCustom(Type* address, Type val) {
 }
 
 template <>
-__device__ inline double atomicExchCustom<double>(double* address, double val) {
-  unsigned long long int* address_as_ull = (unsigned long long int*)address;
-  unsigned long long int old = *address_as_ull;
-  unsigned long long int assumed;
-  do {
-    assumed = old;
-    old = atomicCAS(address_as_ull, assumed, __double_as_longlong(val));
-  } while (assumed != old);
-  return __longlong_as_double(old);
+__device__ inline double atomicExchCustom(double* address, double val) {
+  unsigned long long int* address_as_ull = reinterpret_cast<unsigned long long int*>(address);
+  return __longlong_as_double(atomicExch(address_as_ull, __double_as_longlong(val)));
 }
 
 #ifdef EIGEN_HAS_CUDA_FP16
