@@ -189,6 +189,11 @@ void test_basic_functions()
   VERIFY_IS_EQUAL(float(log(half(1.0f))), 0.0f);
   VERIFY_IS_APPROX(float(numext::log(half(10.0f))), 2.30273f);
   VERIFY_IS_APPROX(float(log(half(10.0f))), 2.30273f);
+
+  VERIFY_IS_EQUAL(float(numext::log1p(half(0.0f))), 0.0f);
+  VERIFY_IS_EQUAL(float(log1p(half(0.0f))), 0.0f);
+  VERIFY_IS_APPROX(float(numext::log1p(half(10.0f))), 2.3978953f);
+  VERIFY_IS_APPROX(float(log1p(half(10.0f))), 2.3978953f);
 }
 
 void test_trigonometric_functions()
