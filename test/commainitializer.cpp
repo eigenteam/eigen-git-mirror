@@ -9,6 +9,61 @@
 
 #include "main.h"
 
+
+template<int M1, int M2, int N1, int N2>
+void test_blocks()
+{
+  Matrix<int, M1+M2, N1+N2> m_fixed;
+  MatrixXi m_dynamic(M1+M2, N1+N2);
+
+  Matrix<int, M1, N1> mat11; mat11.setRandom();
+  Matrix<int, M1, N2> mat12; mat12.setRandom();
+  Matrix<int, M2, N1> mat21; mat21.setRandom();
+  Matrix<int, M2, N2> mat22; mat22.setRandom();
+
+  MatrixXi matx11 = mat11, matx12 = mat12, matx21 = mat21, matx22 = mat22;
+
+  // The only remaining border case is M1==M2>0 && N1==N2==0.
+  // In that case it is not possible to decide (without backtracking) if a block starts a new row or does not
+  if(M1 != M2 || M1 == 0 || N1>0 || N2>0)
+  {
+    VERIFY_IS_EQUAL((m_fixed << mat11, mat12, mat21, matx22).finished(), (m_dynamic << mat11, matx12, mat21, matx22).finished());
+    VERIFY_IS_EQUAL((m_fixed << mat12, mat11, matx21, mat22).finished(), (m_dynamic << mat12, matx11, matx21, mat22).finished());
+  }
+
+  if(N1 > 0)
+  {
+    VERIFY_RAISES_ASSERT((m_fixed << mat11, mat12, mat11, mat21, mat22));
+    VERIFY_RAISES_ASSERT((m_fixed << mat11, mat12, mat21, mat21, mat22));
+  }
+  else if(N2 > 0 || M1 != M2) // border case if both sublocks have zero columns and same number of rows
+  {
+    // allow insertion of zero-column blocks:
+    VERIFY_IS_EQUAL((m_fixed << mat11, mat12, mat11, mat11, mat21, mat21, mat22).finished(), (m_dynamic << mat12, mat22).finished());
+  }
+  if(M1 != M2)
+  {
+    VERIFY_RAISES_ASSERT((m_fixed << mat11, mat21, mat12, mat22));
+  }
+}
+
+
+template<int N>
+struct test_block_recursion
+{
+  static void run()
+  {
+    test_blocks<(N>>6)&3, (N>>4)&3, (N>>2)&3, N & 3>();
+    test_block_recursion<N-1>::run();
+  }
+};
+
+template<>
+struct test_block_recursion<-1>
+{
+  static void run() { }
+};
+
 void test_commainitializer()
 {
   Matrix3d m3;
@@ -45,25 +100,6 @@ void test_commainitializer()
   VERIFY_IS_APPROX(m3, ref);
 
 
-  // Check with empty matrices (bug #1242)
-  {
-    int const M = 0;
-    int const N1 = 2;
-    int const N2 = 1;
-
-    {
-      Matrix<double, M, N1> A1;
-      Matrix<double, M, N2> A2;
-      Matrix<double, M, N1 + N2> B;
-      B << A1, A2;
-    }
-    {
-      Matrix<double, N1, M> A1;
-      Matrix<double, N2, M> A2;
-      Matrix<double, N1 + N2, M> B;
-      B << A1,
-           A2;
-    }
-  }
-
+  // recursively test all block-sizes from 0 to 3:
+  test_block_recursion<(1<<8) - 1>();
 }
