@@ -505,12 +505,20 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
           (reducing_inner_dims || ReducingInnerMostDims)) {
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
-        if (!data && num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve) {
+        if (!data && num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 128) {
           data = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
           m_result = data;
         }
         Op reducer(m_reducer);
-        return internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve) || (m_result != NULL);
+        if (internal::InnerReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve)) {
+          if (m_result) {
+            m_device.deallocate(m_result);
+            m_result = NULL;
+          }
+          return true;
+        } else {
+          return (m_result != NULL);
+        }
       }
 
       bool preserving_inner_dims = true;
@@ -525,12 +533,20 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
           preserving_inner_dims) {
         const Index num_values_to_reduce = internal::array_prod(m_reducedDims);
         const Index num_coeffs_to_preserve = internal::array_prod(m_dimensions);
-        if (!data && num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve) {
+        if (!data && num_coeffs_to_preserve < 1024 && num_values_to_reduce > num_coeffs_to_preserve && num_values_to_reduce > 32) {
           data = static_cast<CoeffReturnType*>(m_device.allocate(sizeof(CoeffReturnType) * num_coeffs_to_preserve));
           m_result = data;
         }
         Op reducer(m_reducer);
-        return internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve) || (m_result != NULL);
+        if (internal::OuterReducer<Self, Op, Device>::run(*this, reducer, m_device, data, num_values_to_reduce, num_coeffs_to_preserve)) {
+          if (m_result) {
+            m_device.deallocate(m_result);
+            m_result = NULL;
+          }
+          return true;
+        } else {
+          return (m_result != NULL);
+        }
       }
     }
     return true;
