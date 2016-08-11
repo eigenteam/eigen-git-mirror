@@ -90,8 +90,8 @@ double2 perf<double2>(const double2& a)
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 perfc<float4>(const float4& a)
 {
-  using std::erfcf;
-  return make_float4(erfcf(a.x), erfcf(a.y), erfcf(a.z), erfcf(a.w));
+  using numext::erfc;
+  return make_float4(erfc(a.x), erfc(a.y), erfc(a.z), erfc(a.w));
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
