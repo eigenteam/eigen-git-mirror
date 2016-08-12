@@ -103,9 +103,7 @@ struct CommaInitializer
   EIGEN_EXCEPTION_SPEC(Eigen::eigen_assert_exception)
 #endif
   {
-    eigen_assert((m_row+m_currentBlockRows) == m_xpr.rows()
-         && m_col == m_xpr.cols()
-         && "Too few coefficients passed to comma initializer (operator<<)");
+      finished();
   }
 
   /** \returns the built matrix once all its coefficients have been set.
@@ -116,7 +114,12 @@ struct CommaInitializer
     * \endcode
     */
   EIGEN_DEVICE_FUNC
-  inline XprType& finished() { return m_xpr; }
+  inline XprType& finished() {
+      eigen_assert(((m_row+m_currentBlockRows) == m_xpr.rows() || m_xpr.cols() == 0)
+           && m_col == m_xpr.cols()
+           && "Too few coefficients passed to comma initializer (operator<<)");
+      return m_xpr;
+  }
 
   XprType& m_xpr;           // target expression
   Index m_row;              // current row id
