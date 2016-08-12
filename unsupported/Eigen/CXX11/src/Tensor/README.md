@@ -1102,7 +1102,7 @@ Example: Reduction along two dimensions.
 
 As a special case, if you pass no parameter to a reduction operation the
 original tensor is reduced along *all* its dimensions.  The result is a
-one-dimension tensor with a single value.
+scalar, represented as a zero-dimension tensor.
 
     Eigen::Tensor<float, 3> a(2, 3, 4);
     a.setValues({{{0.0f, 1.0f, 2.0f, 3.0f},
@@ -1112,7 +1112,7 @@ one-dimension tensor with a single value.
                   {19.0f, 18.0f, 17.0f, 16.0f},
                   {20.0f, 21.0f, 22.0f, 23.0f}}});
     // Reduce along all dimensions using the sum() operator.
-    Eigen::Tensor<float, 1> b = a.sum();
+    Eigen::Tensor<float, 0> b = a.sum();
     cout << "b" << endl << b << endl << endl;
     =>
     b
