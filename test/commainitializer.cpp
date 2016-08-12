@@ -23,11 +23,12 @@ void test_blocks()
 
   MatrixXi matx11 = mat11, matx12 = mat12, matx21 = mat21, matx22 = mat22;
 
-  // The only remaining border case is M1==M2>0 && N1==N2==0.
-  // In that case it is not possible to decide (without backtracking) if a block starts a new row or does not
-  if(M1 != M2 || M1 == 0 || N1>0 || N2>0)
   {
     VERIFY_IS_EQUAL((m_fixed << mat11, mat12, mat21, matx22).finished(), (m_dynamic << mat11, matx12, mat21, matx22).finished());
+    VERIFY_IS_EQUAL((m_fixed.template topLeftCorner<M1,N1>()), mat11);
+    VERIFY_IS_EQUAL((m_fixed.template topRightCorner<M1,N2>()), mat12);
+    VERIFY_IS_EQUAL((m_fixed.template bottomLeftCorner<M2,N1>()), mat21);
+    VERIFY_IS_EQUAL((m_fixed.template bottomRightCorner<M2,N2>()), mat22);
     VERIFY_IS_EQUAL((m_fixed << mat12, mat11, matx21, mat22).finished(), (m_dynamic << mat12, matx11, matx21, mat22).finished());
   }
 
@@ -36,7 +37,7 @@ void test_blocks()
     VERIFY_RAISES_ASSERT((m_fixed << mat11, mat12, mat11, mat21, mat22));
     VERIFY_RAISES_ASSERT((m_fixed << mat11, mat12, mat21, mat21, mat22));
   }
-  else if(N2 > 0 || M1 != M2) // border case if both sublocks have zero columns and same number of rows
+  else
   {
     // allow insertion of zero-column blocks:
     VERIFY_IS_EQUAL((m_fixed << mat11, mat12, mat11, mat11, mat21, mat21, mat22).finished(), (m_dynamic << mat12, mat22).finished());

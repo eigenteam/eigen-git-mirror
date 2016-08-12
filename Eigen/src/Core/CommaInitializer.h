@@ -95,9 +95,7 @@ struct CommaInitializer
 
   inline ~CommaInitializer()
   {
-    eigen_assert((m_row+m_currentBlockRows) == m_xpr.rows()
-         && m_col == m_xpr.cols()
-         && "Too few coefficients passed to comma initializer (operator<<)");
+      finished();
   }
 
   /** \returns the built matrix once all its coefficients have been set.
@@ -107,7 +105,12 @@ struct CommaInitializer
     * quaternion.fromRotationMatrix((Matrix3f() << axis0, axis1, axis2).finished());
     * \endcode
     */
-  inline XprType& finished() { return m_xpr; }
+  inline XprType& finished() {
+      eigen_assert(((m_row+m_currentBlockRows) == m_xpr.rows() || m_xpr.cols() == 0)
+           && m_col == m_xpr.cols()
+           && "Too few coefficients passed to comma initializer (operator<<)");
+      return m_xpr;
+  }
 
   XprType& m_xpr;   // target expression
   Index m_row;              // current row id
