@@ -267,16 +267,19 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Eigen::half predux_mul<half2>(c
 #endif
 }
 
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 plog1p<half2>(const half2& a) {
+  float a1 = __low2float(a);
+  float a2 = __high2float(a);
+  float r1 = log1pf(a1);
+  float r2 = log1pf(a2);
+  return __floats2half2_rn(r1, r2);
+}
+
 #if defined __CUDACC_VER__ && __CUDACC_VER__ >= 80000 && defined __CUDA_ARCH__ && __CUDA_ARCH__ >= 530
 
 template<>  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 half2 plog<half2>(const half2& a) {
   return h2log(a);
-}
-
-template<>  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-half2 plog1p<half2>(const half2& a) {
-  return h2log1p(a);
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -301,14 +304,6 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 plog<half2>(const half2& 
   float a2 = __high2float(a);
   float r1 = logf(a1);
   float r2 = logf(a2);
-  return __floats2half2_rn(r1, r2);
-}
-
-template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE half2 plog1p<half2>(const half2& a) {
-  float a1 = __low2float(a);
-  float a2 = __high2float(a);
-  float r1 = log1pf(a1);
-  float r2 = log1pf(a2);
   return __floats2half2_rn(r1, r2);
 }
 
