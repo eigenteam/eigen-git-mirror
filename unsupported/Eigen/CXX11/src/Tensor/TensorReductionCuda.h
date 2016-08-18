@@ -67,11 +67,21 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
 #endif
 }
 
+// We extend atomicExch to support extra data types
+template <typename Type>
+__device__ inline Type atomicExchCustom(Type* address, Type val) {
+  return atomicExch(address, val);
+}
+
+template <>
+__device__ inline double atomicExchCustom(double* address, double val) {
+  unsigned long long int* address_as_ull = reinterpret_cast<unsigned long long int*>(address);
+  return __longlong_as_double(atomicExch(address_as_ull, __double_as_longlong(val)));
+}
 
 #ifdef EIGEN_HAS_CUDA_FP16
 template <template <typename T> class R>
 __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer) {
-#if __CUDA_ARCH__ >= 300
   unsigned int oldval = *reinterpret_cast<unsigned int*>(output);
   unsigned int newval = oldval;
   reducer.reducePacket(accum, reinterpret_cast<half2*>(&newval));
@@ -87,9 +97,6 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer
       return;
     }
   }
-#else
-  assert(0 && "Shouldn't be called on unsupported device");
-#endif
 }
 #endif
 
@@ -130,7 +137,7 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
       unsigned int block = atomicCAS(semaphore, 0u, 1u);
       if (block == 0) {
         // We're the first block to run, initialize the output value
-        atomicExch(output, reducer.initialize());
+        atomicExchCustom(output, reducer.initialize());
         __threadfence();
         atomicExch(semaphore, 2u);
       }
@@ -263,17 +270,22 @@ __global__ void ReductionCleanupKernelHalfFloat(Op& reducer, half* output, half2
 
 #endif
 
-
-template <typename Self, typename Op, typename OutputType, bool PacketAccess>
+template <typename Self, typename Op, typename OutputType, bool PacketAccess, typename Enabled = void>
 struct FullReductionLauncher {
   static void run(const Self&, Op&, const GpuDevice&, OutputType*, typename Self::Index) {
-    assert(false && "Should only be called on floats and half floats");
+    assert(false && "Should only be called on doubles, floats and half floats");
   }
 };
 
-template <typename Self, typename Op, bool PacketAccess>
-struct FullReductionLauncher<Self, Op, float, PacketAccess> {
-  static void run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs) {
+// Specialization for float and double
+template <typename Self, typename Op, typename OutputType, bool PacketAccess>
+struct FullReductionLauncher<
+    Self, Op, OutputType, PacketAccess,
+    typename internal::enable_if<
+      internal::is_same<float, OutputType>::value ||
+      internal::is_same<double, OutputType>::value,
+    void>::type> {
+  static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output, typename Self::Index num_coeffs) {
     typedef typename Self::Index Index;
     typedef typename Self::CoeffReturnType Scalar;
     const int block_size = 256;
@@ -330,20 +342,22 @@ struct FullReductionLauncher<Self, Op, Eigen::half, true> {
 template <typename Self, typename Op, bool Vectorizable>
 struct FullReducer<Self, Op, GpuDevice, Vectorizable> {
   // Unfortunately nvidia doesn't support well exotic types such as complex,
-  // so reduce the scope of the optimized version of the code to the simple case
-  // of floats and half floats.
+  // so reduce the scope of the optimized version of the code to the simple cases
+  // of doubles, floats and half floats
 #ifdef EIGEN_HAS_CUDA_FP16
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
+       internal::is_same<typename Self::CoeffReturnType, double>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
 #else
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
-                                                 internal::is_same<typename Self::CoeffReturnType, float>::value;
+                                                (internal::is_same<typename Self::CoeffReturnType, float>::value ||
+                                                 internal::is_same<typename Self::CoeffReturnType, double>::value);
 #endif
 
   template <typename OutputType>
   static void run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output) {
-    assert(HasOptimizedImplementation && "Should only be called on floats or half floats");
+    assert(HasOptimizedImplementation && "Should only be called on doubles, floats or half floats");
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
     // Don't crash when we're called with an input tensor of size 0.
     if (num_coeffs == 0) {
@@ -360,6 +374,7 @@ template <int NumPerThread, typename Self,
 __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
                                          typename Self::CoeffReturnType* output) {
 #if __CUDA_ARCH__ >= 300
+  typedef typename Self::CoeffReturnType Type;
   eigen_assert(blockDim.y == 1);
   eigen_assert(blockDim.z == 1);
   eigen_assert(gridDim.y == 1);
@@ -389,13 +404,13 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
       const Index col_block = i % input_col_blocks;
       const Index col_begin = col_block * blockDim.x * NumPerThread + threadIdx.x;
 
-      float reduced_val = reducer.initialize();
+      Type reduced_val = reducer.initialize();
 
       for (Index j = 0; j < NumPerThread; j += unroll_times) {
         const Index last_col = col_begin + blockDim.x * (j + unroll_times - 1);
         if (last_col >= num_coeffs_to_reduce) {
           for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col += blockDim.x) {
-            const float val = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
+            const Type val = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
             reducer.reduce(val, &reduced_val);
           }
           break;
@@ -521,17 +536,23 @@ __global__ void InnerReductionKernelHalfFloat(Reducer reducer, const Self input,
 
 #endif
 
-template <typename Self, typename Op, typename OutputType, bool PacketAccess>
+template <typename Self, typename Op, typename OutputType, bool PacketAccess, typename Enabled = void>
 struct InnerReductionLauncher {
   static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const GpuDevice&, OutputType*, typename Self::Index, typename Self::Index) {
-    assert(false && "Should only be called to reduce floats and half floats on a gpu device");
+    assert(false && "Should only be called to reduce doubles, floats and half floats on a gpu device");
     return true;
   }
 };
 
-template <typename Self, typename Op, bool PacketAccess>
-struct InnerReductionLauncher<Self, Op, float, PacketAccess> {
-  static bool run(const Self& self, Op& reducer, const GpuDevice& device, float* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
+// Specialization for float and double
+template <typename Self, typename Op, typename OutputType, bool PacketAccess>
+struct InnerReductionLauncher<
+  Self, Op, OutputType, PacketAccess,
+  typename internal::enable_if<
+    internal::is_same<float, OutputType>::value ||
+    internal::is_same<double, OutputType>::value,
+  void>::type> {
+  static bool run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
     typedef typename Self::Index Index;
 
     const Index num_coeffs = num_coeffs_to_reduce * num_preserved_vals;
@@ -549,7 +570,7 @@ struct InnerReductionLauncher<Self, Op, float, PacketAccess> {
       const int max_blocks = device.getNumCudaMultiProcessors() *
                            device.maxCudaThreadsPerMultiProcessor() / 1024;
       const int num_blocks = numext::mini<int>(max_blocks, dyn_blocks);
-      LAUNCH_CUDA_KERNEL((ReductionInitKernel<float, Index>),
+      LAUNCH_CUDA_KERNEL((ReductionInitKernel<OutputType, Index>),
                          num_blocks, 1024, 0, device, reducer.initialize(),
                          num_preserved_vals, output);
     }
@@ -616,15 +637,17 @@ struct InnerReducer<Self, Op, GpuDevice> {
 #ifdef EIGEN_HAS_CUDA_FP16
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
       (internal::is_same<typename Self::CoeffReturnType, float>::value ||
+       internal::is_same<typename Self::CoeffReturnType, double>::value ||
        (internal::is_same<typename Self::CoeffReturnType, Eigen::half>::value && reducer_traits<Op, GpuDevice>::PacketAccess));
 #else
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
-                                                 internal::is_same<typename Self::CoeffReturnType, float>::value;
+                                                 (internal::is_same<typename Self::CoeffReturnType, float>::value ||
+                                                  internal::is_same<typename Self::CoeffReturnType, double>::value);
 #endif
 
   template <typename OutputType>
   static bool run(const Self& self, Op& reducer, const GpuDevice& device, OutputType* output, typename Self::Index num_coeffs_to_reduce, typename Self::Index num_preserved_vals) {
-    assert(HasOptimizedImplementation && "Should only be called on floats or half floats");
+    assert(HasOptimizedImplementation && "Should only be called on doubles, floats or half floats");
     const Index num_coeffs = array_prod(self.m_impl.dimensions());
     // Don't crash when we're called with an input tensor of size 0.
     if (num_coeffs == 0) {
@@ -675,11 +698,11 @@ struct OuterReducer<Self, Op, GpuDevice> {
   // so reduce the scope of the optimized version of the code to the simple case
   // of floats.
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
-                                                 internal::is_same<typename Self::CoeffReturnType, float>::value;
-
+                                                 (internal::is_same<typename Self::CoeffReturnType, float>::value ||
+                                                  internal::is_same<typename Self::CoeffReturnType, double>::value);
   template <typename Device, typename OutputType>
   static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
-    assert(false && "Should only be called to reduce floats on a gpu device");
+    assert(false && "Should only be called to reduce doubles or floats on a gpu device");
     return true;
   }
 
