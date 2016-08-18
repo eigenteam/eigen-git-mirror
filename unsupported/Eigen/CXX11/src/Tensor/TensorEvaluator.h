@@ -574,7 +574,7 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
         .cwiseMax(m_elseImpl.costPerCoeff(vectorized));
   }
 
-  EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return NULL; }
 
  private:
   TensorEvaluator<IfArgType, Device> m_condImpl;
