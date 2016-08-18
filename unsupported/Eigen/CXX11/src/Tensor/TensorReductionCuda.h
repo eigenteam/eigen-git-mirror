@@ -41,9 +41,6 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
         return;
       }
     }
-#else
-  assert(0 && "Shouldn't be called on unsupported device");
-#endif
   }
   else if (sizeof(T) == 8) {
     unsigned long long oldval = *reinterpret_cast<unsigned long long*>(output);
@@ -65,6 +62,9 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
   else {
     assert(0 && "Wordsize not supported");
   }
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
 }
 
 // We extend atomicExch to support extra data types
@@ -373,6 +373,7 @@ template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
                                          typename Self::CoeffReturnType* output) {
+#if __CUDA_ARCH__ >= 300
   typedef typename Self::CoeffReturnType Type;
   eigen_assert(blockDim.y == 1);
   eigen_assert(blockDim.z == 1);
@@ -433,6 +434,9 @@ __global__ void InnerReductionKernel(Reducer reducer, const Self input, Index nu
       }
     }
   }
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
 }
 
 #ifdef EIGEN_HAS_CUDA_FP16
