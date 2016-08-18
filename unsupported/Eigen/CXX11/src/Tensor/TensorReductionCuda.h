@@ -23,6 +23,7 @@ namespace internal {
 // updated the content of the output address it will try again.
 template <typename T, typename R>
 __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer) {
+#if __CUDA_ARCH__ >= 300
   if (sizeof(T) == 4)
   {
     unsigned int oldval = *reinterpret_cast<unsigned int*>(output);
@@ -40,6 +41,9 @@ __device__ EIGEN_ALWAYS_INLINE void atomicReduce(T* output, T accum, R& reducer)
         return;
       }
     }
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
   }
   else if (sizeof(T) == 8) {
     unsigned long long oldval = *reinterpret_cast<unsigned long long*>(output);
@@ -98,7 +102,11 @@ __device__ inline void atomicReduce(half2* output, half2 accum, R<half>& reducer
 
 template <>
 __device__ inline void atomicReduce(float* output, float accum, SumReducer<float>&) {
+#if __CUDA_ARCH__ >= 300
   atomicAdd(output, accum);
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
 }
 
 
@@ -116,6 +124,7 @@ template <int BlockSize, int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num_coeffs,
                                     typename Self::CoeffReturnType* output, unsigned int* semaphore) {
+#if __CUDA_ARCH__ >= 300
   // Initialize the output value
   const Index first_index = blockIdx.x * BlockSize * NumPerThread + threadIdx.x;
   if (gridDim.x == 1) {
@@ -170,6 +179,9 @@ __global__ void FullReductionKernel(Reducer reducer, const Self input, Index num
     // Let the last block reset the semaphore
     atomicInc(semaphore, gridDim.x + 1);
   }
+#else
+  assert(0 && "Shouldn't be called on unsupported device");
+#endif
 }
 
 
@@ -684,7 +696,6 @@ struct OuterReducer<Self, Op, GpuDevice> {
   static const bool HasOptimizedImplementation = !Op::IsStateful &&
                                                  (internal::is_same<typename Self::CoeffReturnType, float>::value ||
                                                   internal::is_same<typename Self::CoeffReturnType, double>::value);
-
   template <typename Device, typename OutputType>
   static EIGEN_DEVICE_FUNC bool run(const Self&, Op&, const Device&, OutputType*, typename Self::Index, typename Self::Index) {
     assert(false && "Should only be called to reduce doubles or floats on a gpu device");
