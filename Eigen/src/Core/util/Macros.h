@@ -28,9 +28,9 @@
   #define EIGEN_COMP_GNUC 0
 #endif
 
-/// \internal EIGEN_COMP_CLANG set to 1 if the compiler is clang (alias for __clang__)
+/// \internal EIGEN_COMP_CLANG set to major+minor version (e.g., 307 for clang 3.7) if the compiler is clang
 #if defined(__clang__)
-  #define EIGEN_COMP_CLANG 1
+  #define EIGEN_COMP_CLANG (__clang_major__*100+__clang_minor__)
 #else
   #define EIGEN_COMP_CLANG 0
 #endif
