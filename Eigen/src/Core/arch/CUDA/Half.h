@@ -392,7 +392,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half log(const half& a) {
   return half(::logf(float(a)));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half log1p(const half& a) {
-  return half(::log1pf(float(a)));
+  return half(numext::log1p(float(a)));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half log10(const half& a) {
   return half(::log10f(float(a)));
