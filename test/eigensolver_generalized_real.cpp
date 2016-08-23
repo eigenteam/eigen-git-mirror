@@ -42,6 +42,11 @@ template<typename MatrixType> void generalized_eigensolver_real(const MatrixType
     VectorType realEigenvalues = eig.eigenvalues().real();
     std::sort(realEigenvalues.data(), realEigenvalues.data()+realEigenvalues.size());
     VERIFY_IS_APPROX(realEigenvalues, symmEig.eigenvalues());
+
+    // check eigenvectors
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType D = eig.eigenvalues().asDiagonal();
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType V = eig.eigenvectors();
+    VERIFY_IS_APPROX(spdA*V, spdB*V*D);
   }
 
   // non symmetric case:
@@ -54,6 +59,10 @@ template<typename MatrixType> void generalized_eigensolver_real(const MatrixType
         tmp /= tmp.norm();
       VERIFY_IS_MUCH_SMALLER_THAN( std::abs(tmp.determinant()), Scalar(1) );
     }
+    // check eigenvectors
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType D = eig.eigenvalues().asDiagonal();
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType V = eig.eigenvectors();
+    VERIFY_IS_APPROX(a*V, b*V*D);
   }
 
   // regression test for bug 1098
