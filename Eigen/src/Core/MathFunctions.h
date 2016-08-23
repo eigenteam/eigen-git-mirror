@@ -787,6 +787,8 @@ template<typename T> EIGEN_DEVICE_FUNC bool isfinite_impl(const std::complex<T>&
 template<typename T> EIGEN_DEVICE_FUNC bool isnan_impl(const std::complex<T>& x);
 template<typename T> EIGEN_DEVICE_FUNC bool isinf_impl(const std::complex<T>& x);
 
+template<typename T> T generic_fast_tanh_float(const T& a_x);
+
 } // end namespace internal
 
 /****************************************************************************
@@ -1177,6 +1179,11 @@ T tanh(const T &x) {
   EIGEN_USING_STD_MATH(tanh);
   return tanh(x);
 }
+
+#if (!defined(__CUDACC__)) && EIGEN_FAST_MATH
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float tanh(float x) { return internal::generic_fast_tanh_float(x); }
+#endif
 
 #ifdef __CUDACC__
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
