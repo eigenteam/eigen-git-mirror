@@ -177,7 +177,7 @@ template<typename _MatrixType> class GeneralizedEigenSolver
       * \sa eigenvalues()
       */
     EigenvectorsType eigenvectors() const {
-      eigen_assert(m_vectorsOkay && "Eigenvectors for GeneralizedEigenSolver were not calculated.")
+      eigen_assert(m_vectorsOkay && "Eigenvectors for GeneralizedEigenSolver were not calculated.");
       return m_eivec;
     }
 
