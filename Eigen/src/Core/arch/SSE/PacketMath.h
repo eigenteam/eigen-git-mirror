@@ -813,6 +813,16 @@ template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, cons
 #endif
 }
 
+// Scalar path for pmadd with FMA to ensure consistency with vectorized path.
+#ifdef __FMA__
+template<> EIGEN_STRONG_INLINE float pmadd(const float& a, const float& b, const float& c) {
+  return ::fmaf(a,b,c);
+}
+template<> EIGEN_STRONG_INLINE double pmadd(const double& a, const double& b, const double& c) {
+  return ::fma(a,b,c);
+}
+#endif
+
 } // end namespace internal
 
 } // end namespace Eigen
