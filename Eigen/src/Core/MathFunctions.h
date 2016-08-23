@@ -615,16 +615,18 @@ struct random_default_impl<Scalar, false, true>
     typedef typename conditional<NumTraits<Scalar>::IsSigned,std::ptrdiff_t,std::size_t>::type ScalarX;
     if(y<x)
       return x;
+    // the following difference might overflow on a 32 bits system,
+    // but since y>=x the result converted to an unsigned long is still correct.
     std::size_t range = ScalarX(y)-ScalarX(x);
     std::size_t offset = 0;
     // rejection sampling
-    std::size_t divisor    = (range+RAND_MAX-1)/(range+1);
-    std::size_t multiplier = (range+RAND_MAX-1)/std::size_t(RAND_MAX);
-
+    std::size_t divisor = 1;
+    std::size_t multiplier = 1;
+    if(range<RAND_MAX) divisor = (std::size_t(RAND_MAX)+1)/(range+1);
+    else               multiplier = 1 + range/(std::size_t(RAND_MAX)+1);
     do {
-      offset = ( (std::size_t(std::rand()) * multiplier) / divisor );
+      offset = (std::size_t(std::rand()) * multiplier) / divisor;
     } while (offset > range);
-
     return Scalar(ScalarX(x) + offset);
   }
 
