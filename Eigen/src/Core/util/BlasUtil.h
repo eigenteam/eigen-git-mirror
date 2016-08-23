@@ -315,6 +315,11 @@ struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, NestedXpr, const Cwi
   static inline Scalar extractScalarFactor(const XprType& x)
   { return Base::extractScalarFactor(x.lhs()) * x.rhs().functor().m_other; }
 };
+template<typename Scalar, typename Plain1, typename Plain2>
+struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain1>,
+                                                            const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain2> > >
+ : blas_traits<CwiseNullaryOp<scalar_constant_op<Scalar>,Plain1> >
+{};
 
 // pop opposite
 template<typename Scalar, typename NestedXpr>
