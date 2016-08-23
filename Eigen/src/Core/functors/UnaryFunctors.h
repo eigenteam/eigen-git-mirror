@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2016 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -507,21 +507,18 @@ template <typename Scalar>
 struct functor_traits<scalar_tanh_op<Scalar> > {
   enum {
     PacketAccess = packet_traits<Scalar>::HasTanh,
-    Cost = (PacketAccess && (!is_same<Scalar, std::complex<float> >::value) &&
-                    (!is_same<Scalar, std::complex<double> >::value)
+    Cost = ( (EIGEN_FAST_MATH && is_same<Scalar,float>::value)
 // The following numbers are based on the AVX implementation,
 #ifdef EIGEN_VECTORIZE_FMA
                 // Haswell can issue 2 add/mul/madd per cycle.
                 // 9 pmadd, 2 pmul, 1 div, 2 other
                 ? (2 * NumTraits<Scalar>::AddCost +
                    6 * NumTraits<Scalar>::MulCost +
-                   NumTraits<Scalar>::template Div<
-                       packet_traits<Scalar>::HasDiv>::Cost)
+                   NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)
 #else
                 ? (11 * NumTraits<Scalar>::AddCost +
                    11 * NumTraits<Scalar>::MulCost +
-                   NumTraits<Scalar>::template Div<
-                       packet_traits<Scalar>::HasDiv>::Cost)
+                   NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)
 #endif
                 // This number assumes a naive implementation of tanh
                 : (6 * NumTraits<Scalar>::AddCost +
