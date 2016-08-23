@@ -253,7 +253,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     ComputationInfo info() const
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
-      return Success;
+      return m_info;
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -281,6 +281,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     TmpMatrixType m_temporary;
     internal::SignMatrix m_sign;
     bool m_isInitialized;
+    ComputationInfo m_info;
 };
 
 namespace internal {
@@ -298,6 +299,8 @@ template<> struct ldlt_inplace<Lower>
     typedef typename TranspositionType::StorageIndex IndexType;
     eigen_assert(mat.rows()==mat.cols());
     const Index size = mat.rows();
+    bool found_zero_pivot = false;
+    bool ret = true;
 
     if (size <= 1)
     {
@@ -356,8 +359,26 @@ template<> struct ldlt_inplace<Lower>
       // we should only make sure that we do not introduce INF or NaN values.
       // Remark that LAPACK also uses 0 as the cutoff value.
       RealScalar realAkk = numext::real(mat.coeffRef(k,k));
-      if((rs>0) && (abs(realAkk) > RealScalar(0)))
+      bool pivot_is_valid = (abs(realAkk) > RealScalar(0));
+
+      if(k==0 && !pivot_is_valid)
+      {
+        // The entire diagonal is zero, there is nothing more to do
+        // except filling the transpositions, and checking whether the matrix is zero.
+        sign = ZeroSign;
+        for(Index j = 0; j<size; ++j)
+        {
+          transpositions.coeffRef(j) = IndexType(j);
+          ret = ret && (mat.col(j).tail(size-j-1).array()==Scalar(0)).all();
+        }
+        return ret;
+      }
+
+      if((rs>0) && pivot_is_valid)
         A21 /= realAkk;
+
+      if(found_zero_pivot && pivot_is_valid) ret = false; // factorization failed
+      else if(!pivot_is_valid) found_zero_pivot = true;
 
       if (sign == PositiveSemiDef) {
         if (realAkk < static_cast<RealScalar>(0)) sign = Indefinite;
@@ -369,7 +390,7 @@ template<> struct ldlt_inplace<Lower>
       }
     }
 
-    return true;
+    return ret;
   }
 
   // Reference for the algorithm: Davis and Hager, "Multiple Rank
@@ -493,7 +514,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const EigenBase<InputTyp
   m_temporary.resize(size);
   m_sign = internal::ZeroSign;
 
-  internal::ldlt_inplace<UpLo>::unblocked(m_matrix, m_transpositions, m_temporary, m_sign);
+  m_info = internal::ldlt_inplace<UpLo>::unblocked(m_matrix, m_transpositions, m_temporary, m_sign) ? Success : NumericalIssue;
 
   m_isInitialized = true;
   return *this;
