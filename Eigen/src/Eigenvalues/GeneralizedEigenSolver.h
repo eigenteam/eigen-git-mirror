@@ -136,7 +136,8 @@ template<typename _MatrixType> class GeneralizedEigenSolver
         m_betas(size),
         m_valuesOkay(false),
         m_vectorsOkay(false),
-        m_realQZ(size)
+        m_realQZ(size),
+        m_tmp(size)
     {}
 
     /** \brief Constructor; computes the generalized eigendecomposition of given matrix pair.
@@ -157,7 +158,8 @@ template<typename _MatrixType> class GeneralizedEigenSolver
         m_betas(A.cols()),
         m_valuesOkay(false),
         m_vectorsOkay(false),
-        m_realQZ(A.cols())
+        m_realQZ(A.cols()),
+        m_tmp(A.cols())
     {
       compute(A, B, computeEigenvectors);
     }
@@ -277,6 +279,7 @@ template<typename _MatrixType> class GeneralizedEigenSolver
     VectorType m_betas;
     bool m_valuesOkay, m_vectorsOkay;
     RealQZ<MatrixType> m_realQZ;
+    ComplexVectorType m_tmp;
 };
 
 template<typename MatrixType>
@@ -288,6 +291,7 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
   using std::sqrt;
   using std::abs;
   eigen_assert(A.cols() == A.rows() && B.cols() == A.rows() && B.cols() == B.rows());
+  Index size = A.cols();
   m_valuesOkay = false;
   m_vectorsOkay = false;
   // Reduce to generalized real Schur form:
@@ -295,25 +299,26 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
   m_realQZ.compute(A, B, computeEigenvectors);
   if (m_realQZ.info() == Success)
   {
-    // Temp space for the untransformed eigenvectors
-    VectorType v;
-    ComplexVectorType cv;
     // Resize storage
-    m_alphas.resize(A.cols());
-    m_betas.resize(A.cols());
-    if (computeEigenvectors) {
-      m_eivec.resize(A.cols(), A.cols());
-      v.resize(A.cols());
-      cv.resize(A.cols());
+    m_alphas.resize(size);
+    m_betas.resize(size);
+    if (computeEigenvectors)
+    {
+      m_eivec.resize(size,size);
+      m_tmp.resize(size);
     }
-    // Grab some references
-    const MatrixType &mZT = m_realQZ.matrixZ().transpose();
+
+    // Aliases:
+    Map<VectorType> v(reinterpret_cast<Scalar*>(m_tmp.data()), size);
+    ComplexVectorType &cv = m_tmp;
+    const MatrixType &mZ = m_realQZ.matrixZ();
     const MatrixType &mS = m_realQZ.matrixS();
     const MatrixType &mT = m_realQZ.matrixT();
+
     Index i = 0;
-    while (i < A.cols())
+    while (i < size)
     {
-      if (i == A.cols() - 1 || mS.coeff(i+1, i) == Scalar(0))
+      if (i == size - 1 || mS.coeff(i+1, i) == Scalar(0))
       {
         // Real eigenvalue
         m_alphas.coeffRef(i) = mS.diagonal().coeff(i);
@@ -333,14 +338,11 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
               const Index st = j+1;
               const Index sz = i-j;
               if (j > 0 && mS.coeff(j, j-1) != Scalar(0))
-              { // 2x2 block
-                Matrix<Scalar, 2, 1> RHS;
-                RHS[0] = -v.segment(st,sz).transpose().cwiseProduct(beta*mS.block(j-1,st,1,sz) - alpha*mT.block(j-1,st,1,sz)).sum();
-                RHS[1] = -v.segment(st,sz).transpose().cwiseProduct(beta*mS.block(j,st,1,sz) - alpha*mT.block(j,st,1,sz)).sum();
-                Matrix<Scalar, 2, 2> LHS;
-                LHS << beta*mS.coeffRef(j-1,j-1) - alpha*mT.coeffRef(j-1,j-1), beta*mS.coeffRef(j-1,j) - alpha*mT.coeffRef(j-1,j),
-                       beta*mS.coeffRef(j,j-1) - alpha*mT.coeffRef(j,j-1), beta*mS.coeffRef(j,j) - alpha*mT.coeffRef(j,j);
-                v.segment(j-1,2) = LHS.partialPivLu().solve(RHS);
+              {
+                // 2x2 block
+                Matrix<Scalar, 2, 1> rhs = (alpha*mT.template block<2,Dynamic>(j-1,st,2,sz) - beta*mS.template block<2,Dynamic>(j-1,st,2,sz)) .lazyProduct( v.segment(st,sz) );
+                Matrix<Scalar, 2, 2> lhs = beta * mS.template block<2,2>(j-1,j-1) - alpha * mT.template block<2,2>(j-1,j-1);
+                v.template segment<2>(j-1) = lhs.partialPivLu().solve(rhs);
                 j--;
               }
               else
@@ -349,7 +351,8 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
               }
             }
           }
-          m_eivec.col(i).real() = (mZT * v).normalized();
+          m_eivec.col(i).real().noalias() = mZ.transpose() * v;
+          m_eivec.col(i).real().normalize();
           m_eivec.col(i).imag().setConstant(0);
         }
         ++i;
@@ -376,31 +379,32 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
 
         if (computeEigenvectors) {
           // Compute eigenvector in position (i+1) and then position (i) is just the conjugate
-          cv.setConstant(ComplexScalar(0.0, 0.0));
-          cv.coeffRef(i+1) = ComplexScalar(1.0, 0.0);
+          cv.setZero();
+          cv.coeffRef(i+1) = Scalar(1.0);
           cv.coeffRef(i) = -(beta*mS.coeffRef(i,i+1) - alpha*mT.coeffRef(i,i+1)) / (beta*mS.coeffRef(i,i) - alpha*mT.coeffRef(i,i));
-          for (Index j = i-1; j >= 0; j--) {
+          for (Index j = i-1; j >= 0; j--)
+          {
             const Index st = j+1;
             const Index sz = i+1-j;
-            if (j > 0 && mS.coeff(j, j-1) != Scalar(0)) { // 2x2 block
-              Matrix<ComplexScalar, 2, 1> RHS;
-              RHS[0] = -cv.segment(st,sz).transpose().cwiseProduct(beta*mS.block(j-1,st,1,sz) - alpha*mT.block(j-1,st,1,sz)).sum();
-              RHS[1] = -cv.segment(st,sz).transpose().cwiseProduct(beta*mS.block(j,st,1,sz) - alpha*mT.block(j,st,1,sz)).sum();
-              Matrix<ComplexScalar, 2, 2> LHS;
-              LHS << beta*mS.coeffRef(j-1,j-1) - alpha*mT.coeffRef(j-1,j-1), beta*mS.coeffRef(j-1,j) - alpha*mT.coeffRef(j-1,j),
-                     beta*mS.coeffRef(j,j-1) - alpha*mT.coeffRef(j,j-1), beta*mS.coeffRef(j,j) - alpha*mT.coeffRef(j,j);
-              cv.segment(j-1,2) = LHS.partialPivLu().solve(RHS);
+            if (j > 0 && mS.coeff(j, j-1) != Scalar(0))
+            {
+              // 2x2 block
+              Matrix<ComplexScalar, 2, 1> rhs = (alpha*mT.template block<2,Dynamic>(j-1,st,2,sz) - beta*mS.template block<2,Dynamic>(j-1,st,2,sz)) .lazyProduct( cv.segment(st,sz) );
+              Matrix<ComplexScalar, 2, 2> lhs = beta * mS.template block<2,2>(j-1,j-1) - alpha * mT.template block<2,2>(j-1,j-1);
+              cv.template segment<2>(j-1) = lhs.partialPivLu().solve(rhs);
               j--;
             } else {
               cv.coeffRef(j) = -cv.segment(st,sz).transpose().cwiseProduct(beta*mS.block(j,st,1,sz) - alpha*mT.block(j,st,1,sz)).sum() / (beta*mS.coeffRef(j,j) - alpha*mT.coeffRef(j,j));
             }
           }
-          m_eivec.col(i+1) = (mZT * cv).normalized();
-          m_eivec.col(i)   = m_eivec.col(i+1).conjugate();
+          m_eivec.col(i+1).noalias() = (mZ.transpose() * cv);
+          m_eivec.col(i+1).normalize();
+          m_eivec.col(i) = m_eivec.col(i+1).conjugate();
         }
         i += 2;
       }
     }
+
     m_valuesOkay = true;
     m_vectorsOkay = computeEigenvectors;
   }
