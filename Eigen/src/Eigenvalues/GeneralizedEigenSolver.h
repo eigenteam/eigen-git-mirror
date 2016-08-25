@@ -381,7 +381,9 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
           // Compute eigenvector in position (i+1) and then position (i) is just the conjugate
           cv.setZero();
           cv.coeffRef(i+1) = Scalar(1.0);
-          cv.coeffRef(i) = -(beta*mS.coeffRef(i,i+1) - alpha*mT.coeffRef(i,i+1)) / (beta*mS.coeffRef(i,i) - alpha*mT.coeffRef(i,i));
+          // here, the "static_cast" workaound expression template issues.
+          cv.coeffRef(i) = -(static_cast<Scalar>(beta*mS.coeffRef(i,i+1)) - alpha*mT.coeffRef(i,i+1))
+                          / (static_cast<Scalar>(beta*mS.coeffRef(i,i))   - alpha*mT.coeffRef(i,i));
           for (Index j = i-1; j >= 0; j--)
           {
             const Index st = j+1;
@@ -394,7 +396,8 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
               cv.template segment<2>(j-1) = lhs.partialPivLu().solve(rhs);
               j--;
             } else {
-              cv.coeffRef(j) = -cv.segment(st,sz).transpose().cwiseProduct(beta*mS.block(j,st,1,sz) - alpha*mT.block(j,st,1,sz)).sum() / (beta*mS.coeffRef(j,j) - alpha*mT.coeffRef(j,j));
+              cv.coeffRef(j) =  cv.segment(st,sz).transpose().cwiseProduct(beta*mS.block(j,st,1,sz) - alpha*mT.block(j,st,1,sz)).sum()
+                              / (alpha*mT.coeffRef(j,j) - static_cast<Scalar>(beta*mS.coeffRef(j,j)));
             }
           }
           m_eivec.col(i+1).noalias() = (mZ.transpose() * cv);
