@@ -459,30 +459,33 @@ struct arg_retval
 /****************************************************************************
 * Implementation of log1p                                                   *
 ****************************************************************************/
-template<typename Scalar, bool isComplex = NumTraits<Scalar>::IsComplex >
-struct log1p_impl
-{
-  static EIGEN_DEVICE_FUNC inline Scalar run(const Scalar& x)
-  {
+
+namespace std_fallback {
+  // fallback log1p implementation in case there is no log1p(Scalar) function in namespace of Scalar,
+  // or that there is no suitable std::log1p function available
+  template<typename Scalar>
+  EIGEN_DEVICE_FUNC inline Scalar log1p(const Scalar& x) {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     typedef typename NumTraits<Scalar>::Real RealScalar;
     EIGEN_USING_STD_MATH(log);
     Scalar x1p = RealScalar(1) + x;
     return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
   }
-};
+}
 
-#if EIGEN_HAS_CXX11_MATH && !defined(__CUDACC__)
 template<typename Scalar>
-struct log1p_impl<Scalar, false> {
+struct log1p_impl {
   static inline Scalar run(const Scalar& x)
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    #if EIGEN_HAS_CXX11_MATH
     using std::log1p;
+    #endif
+    using std_fallback::log1p;
     return log1p(x);
   }
 };
-#endif
+
 
 template<typename Scalar>
 struct log1p_retval
