@@ -925,6 +925,14 @@ inline EIGEN_MATHFUNC_RETVAL(log1p, Scalar) log1p(const Scalar& x)
   return EIGEN_MATHFUNC_IMPL(log1p, Scalar)::run(x);
 }
 
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float log1p(const float &x) { return ::log1pf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double log1p(const double &x) { return ::log1p(x); }
+#endif
+
 template<typename ScalarX,typename ScalarY>
 EIGEN_DEVICE_FUNC
 inline typename internal::pow_impl<ScalarX,ScalarY>::result_type pow(const ScalarX& x, const ScalarY& y)
