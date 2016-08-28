@@ -32,19 +32,19 @@ EIGEN_DONT_INLINE T generic_fast_tanh_float(const T& a_x)
   const T x = pmax(minus_9, pmin(plus_9, a_x));
 
   // The monomial coefficients of the numerator polynomial (odd).
-  const T alpha_1 = pset1<T>(4.89352455891786e-03);
-  const T alpha_3 = pset1<T>(6.37261928875436e-04);
-  const T alpha_5 = pset1<T>(1.48572235717979e-05);
-  const T alpha_7 = pset1<T>(5.12229709037114e-08);
-  const T alpha_9 = pset1<T>(-8.60467152213735e-11);
-  const T alpha_11 = pset1<T>(2.00018790482477e-13);
-  const T alpha_13 = pset1<T>(-2.76076847742355e-16);
+  const T alpha_1 = pset1<T>(4.89352455891786e-03f);
+  const T alpha_3 = pset1<T>(6.37261928875436e-04f);
+  const T alpha_5 = pset1<T>(1.48572235717979e-05f);
+  const T alpha_7 = pset1<T>(5.12229709037114e-08f);
+  const T alpha_9 = pset1<T>(-8.60467152213735e-11f);
+  const T alpha_11 = pset1<T>(2.00018790482477e-13f);
+  const T alpha_13 = pset1<T>(-2.76076847742355e-16f);
 
   // The monomial coefficients of the denominator polynomial (even).
-  const T beta_0 = pset1<T>(4.89352518554385e-03);
-  const T beta_2 = pset1<T>(2.26843463243900e-03);
-  const T beta_4 = pset1<T>(1.18534705686654e-04);
-  const T beta_6 = pset1<T>(1.19825839466702e-06);
+  const T beta_0 = pset1<T>(4.89352518554385e-03f);
+  const T beta_2 = pset1<T>(2.26843463243900e-03f);
+  const T beta_4 = pset1<T>(1.18534705686654e-04f);
+  const T beta_6 = pset1<T>(1.19825839466702e-06f);
 
   // Since the polynomials are odd/even, we need x^2.
   const T x2 = pmul(x, x);
