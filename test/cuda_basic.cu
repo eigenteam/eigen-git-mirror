@@ -1,4 +1,11 @@
-
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2015-2016 Gael Guennebaud <gael.guennebaud@inria.fr>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // workaround issue between gcc >= 4.7 and cuda 5.5
 #if (defined __GNUC__) && (__GNUC__>4 || __GNUC_MINOR__>=7)
@@ -12,6 +19,8 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 
 #include <math_constants.h>
+#include <cuda.h>
+#include <cuda_fp16.h>
 #include "main.h"
 #include "cuda_common.h"
 
