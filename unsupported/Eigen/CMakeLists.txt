@@ -26,5 +26,6 @@ install(FILES
   DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen COMPONENT Devel
   )
 
-add_subdirectory(src)
+install(DIRECTORY src DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen COMPONENT Devel FILES_MATCHING PATTERN "*.h")
+
 add_subdirectory(CXX11)
