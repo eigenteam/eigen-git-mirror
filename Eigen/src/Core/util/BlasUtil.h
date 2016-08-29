@@ -58,7 +58,7 @@ template<> struct conj_if<false> {
 template<typename LhsScalar, typename RhsScalar, bool ConjLhs, bool ConjRhs>
 struct conj_helper
 {
-  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar>::ReturnType Scalar;
+  typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType Scalar;
 
   EIGEN_STRONG_INLINE Scalar pmadd(const LhsScalar& x, const RhsScalar& y, const Scalar& c) const
   { return padd(c, pmul(x,y)); }
