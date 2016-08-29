@@ -7,6 +7,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define EIGEN_RUNTIME_NO_MALLOC
 #include "main.h"
 #include <limits>
 #include <Eigen/Eigenvalues>
@@ -41,7 +42,11 @@ template<typename MatrixType> void real_qz(const MatrixType& m)
     break;
   }
 
-  RealQZ<MatrixType> qz(A,B);
+  RealQZ<MatrixType> qz(dim);
+  // TODO enable full-prealocation of required memory, this probably requires an in-place mode for HessenbergDecomposition
+  //Eigen::internal::set_is_malloc_allowed(false);
+  qz.compute(A,B);
+  //Eigen::internal::set_is_malloc_allowed(true);
   
   VERIFY_IS_EQUAL(qz.info(), Success);
   // check for zeros

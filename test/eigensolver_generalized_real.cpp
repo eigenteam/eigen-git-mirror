@@ -7,6 +7,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define EIGEN_RUNTIME_NO_MALLOC
 #include "main.h"
 #include <limits>
 #include <Eigen/Eigenvalues>
@@ -51,7 +52,11 @@ template<typename MatrixType> void generalized_eigensolver_real(const MatrixType
 
   // non symmetric case:
   {
-    GeneralizedEigenSolver<MatrixType> eig(a,b);
+    GeneralizedEigenSolver<MatrixType> eig(rows);
+    // TODO enable full-prealocation of required memory, this probably requires an in-place mode for HessenbergDecomposition
+    //Eigen::internal::set_is_malloc_allowed(false);
+    eig.compute(a,b);
+    //Eigen::internal::set_is_malloc_allowed(true);
     for(Index k=0; k<cols; ++k)
     {
       Matrix<ComplexScalar,Dynamic,Dynamic> tmp = (eig.betas()(k)*a).template cast<ComplexScalar>() - eig.alphas()(k)*b;
