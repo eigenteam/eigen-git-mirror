@@ -106,6 +106,25 @@ class SparseCompressedBase
     /** \returns whether \c *this is in compressed form. */
     inline bool isCompressed() const { return innerNonZeroPtr()==0; }
 
+    /** \returns a read-only view of the stored coefficients as a 1D array expression.
+      *
+      * \warning this method is for \b compressed \b storage \b only, and it will trigger an assertion otherwise.
+      *
+      * \sa valuePtr(), isCompressed() */
+    const Map<const Array<Scalar,Dynamic,1> > coeffs() const { eigen_assert(isCompressed()); return Array<Scalar,Dynamic,1>::Map(valuePtr(),nonZeros()); }
+
+    /** \returns a read-write view of the stored coefficients as a 1D array expression
+      *
+      * \warning this method is for \b compressed \b storage \b only, and it will trigger an assertion otherwise.
+      *
+      * Here is an example:
+      * \include SparseMatrix_coeffs.cpp
+      * and the output is:
+      * \include SparseMatrix_coeffs.out
+      *
+      * \sa valuePtr(), isCompressed() */
+    Map<Array<Scalar,Dynamic,1> > coeffs() { eigen_assert(isCompressed()); return Array<Scalar,Dynamic,1>::Map(valuePtr(),nonZeros()); }
+
   protected:
     /** Default constructor. Do nothing. */
     SparseCompressedBase() {}
