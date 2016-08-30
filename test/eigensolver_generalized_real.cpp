@@ -60,7 +60,7 @@ template<typename MatrixType> void generalized_eigensolver_real(const MatrixType
     for(Index k=0; k<cols; ++k)
     {
       Matrix<ComplexScalar,Dynamic,Dynamic> tmp = (eig.betas()(k)*a).template cast<ComplexScalar>() - eig.alphas()(k)*b;
-      if(tmp.norm()>(std::numeric_limits<Scalar>::min)())
+      if(tmp.size()>1 && tmp.norm()>(std::numeric_limits<Scalar>::min)())
         tmp /= tmp.norm();
       VERIFY_IS_MUCH_SMALLER_THAN( std::abs(tmp.determinant()), Scalar(1) );
     }
