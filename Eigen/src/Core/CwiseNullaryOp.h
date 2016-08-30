@@ -37,7 +37,10 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
   * However, if you want to write a function returning such an expression, you
   * will need to use this class.
   *
-  * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr()
+  * See DenseBase::NullaryExpr(Index,const CustomNullaryOp&) for an example binding
+  * C++11 random number generators.
+  *
+  * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr
   */
 template<typename NullaryOp, typename PlainObjectType>
 class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type, internal::no_assignment_operator
