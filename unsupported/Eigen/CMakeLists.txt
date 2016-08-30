@@ -4,6 +4,7 @@ set(Eigen_HEADERS
   ArpackSupport
   AutoDiff
   BVH
+  EulerAngles
   FFT
   IterativeSolvers 
   KroneckerProduct

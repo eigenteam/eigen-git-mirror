@@ -59,6 +59,8 @@ ei_add_test(alignedvector3)
 
 ei_add_test(FFT)
 
+ei_add_test(EulerAngles)
+
 find_package(MPFR 2.3.0)
 find_package(GMP)
 if(MPFR_FOUND AND EIGEN_COMPILER_SUPPORT_CXX11)
