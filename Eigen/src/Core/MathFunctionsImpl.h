@@ -23,7 +23,7 @@ namespace internal {
     This implementation works on both scalars and packets.
 */
 template<typename T>
-EIGEN_DONT_INLINE T generic_fast_tanh_float(const T& a_x)
+T generic_fast_tanh_float(const T& a_x)
 {
   // Clamp the inputs to the range [-9, 9] since anything outside
   // this range is +/-1.0f in single-precision.
