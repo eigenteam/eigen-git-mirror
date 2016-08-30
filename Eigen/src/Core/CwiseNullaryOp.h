@@ -40,6 +40,11 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
   * See DenseBase::NullaryExpr(Index,const CustomNullaryOp&) for an example binding
   * C++11 random number generators.
   *
+  * A nullary expression can also be used to implement custom sophisticated matrix manipulations
+  * that cannot be covered by the existing set of natively supported matrix manipulations.
+  * See this \ref TopicCustomizing_NullaryExpr "page" for some examples and additional explanations
+  * on the behavior of CwiseNullaryOp.
+  *
   * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr
   */
 template<typename NullaryOp, typename PlainObjectType>
