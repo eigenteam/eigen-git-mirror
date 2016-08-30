@@ -151,7 +151,7 @@ struct compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType>
     iC = _mm_mul_ps(rd,iC);
     iD = _mm_mul_ps(rd,iD);
 
-    Index res_stride = result.outerStride();
+    DenseIndex res_stride = result.outerStride();
     float* res = result.data();
     pstoret<float, Packet4f, ResultAlignment>(res+0,            _mm_shuffle_ps(iA,iB,0x77));
     pstoret<float, Packet4f, ResultAlignment>(res+res_stride,   _mm_shuffle_ps(iA,iB,0x22));
@@ -313,7 +313,7 @@ struct compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultType>
     iC1 = _mm_sub_pd(_mm_mul_pd(B1, dC), iC1);
     iC2 = _mm_sub_pd(_mm_mul_pd(B2, dC), iC2);
 
-    Index res_stride = result.outerStride();
+    DenseIndex res_stride = result.outerStride();
     double* res = result.data();
     pstoret<double, Packet2d, ResultAlignment>(res+0,             _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 3), d1));
     pstoret<double, Packet2d, ResultAlignment>(res+res_stride,    _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 0), d2));
