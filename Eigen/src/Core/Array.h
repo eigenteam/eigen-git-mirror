@@ -37,7 +37,7 @@ struct traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : tra
   * storage layout.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
-  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_ARRAY_PLUGIN.
+  * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_ARRAY_PLUGIN.
   *
   * \sa \blank \ref TutorialArrayClass, \ref TopicClassHierarchy
   */

@@ -193,7 +193,7 @@ template<int Mode> struct transform_make_affine;
   * preprocessor token EIGEN_QT_SUPPORT is defined.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
-  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_TRANSFORM_PLUGIN.
+  * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_TRANSFORM_PLUGIN.
   *
   * \sa class Matrix, class Quaternion
   */
