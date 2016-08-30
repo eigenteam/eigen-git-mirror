@@ -1,0 +1,62 @@
+namespace Eigen {
+
+/** \page TopicCustomizing_NullaryExpr Manipulate matrices through nullary-expression
+
+The main purpose of the class CwiseNullaryOp is to define \em procedural matrices such as constant or random matrices as returned by the Ones(), Zero(), Constant(), Identity() and Random() methods.
+Nevertheless, with some imagination it is possible to accomplish very sophisticated matrix manipulation with minimal efforts such that \ref TopicNewExpressionType "implementing new expression" is rarely needed.
+
+\section NullaryExpr_Circulant
+
+To explore these possibilities let us start with the  \em circulant example of the \ref TopicNewExpressionType "implementing new expression" topic.
+Let us recall that a circulant matrix is a matrix where each column is the same as the
+column to the left, except that it is cyclically shifted downwards.
+For example, here is a 4-by-4 circulant matrix:
+\f[ \begin{bmatrix}
+    1 & 8 & 4 & 2 \\
+    2 & 1 & 8 & 4 \\
+    4 & 2 & 1 & 8 \\
+    8 & 4 & 2 & 1
+\end{bmatrix} \f]
+A circulant matrix is uniquely determined by its first column. We wish
+to write a function \c makeCirculant which, given the first column,
+returns an expression representing the circulant matrix.
+
+For this exercise, the return type of \c makeCirculant will be a CwiseNullaryOp that we need to instantiate with:
+1 - a proper \c circulant_functor storing the input vector and implementing the adequate coefficient accessor \c operator(i,j)
+2 - a template instantiation of class Matrix conveying compile-time information such as the scalar type, sizes, and preferred storage layout.
+
+Calling \c ArgType the type of the input vector, we can construct the equivalent squared Matrix type as follows:
+
+\snippet make_circulant2.cpp square
+
+This little helper structure will help us to implement our \c makeCirculant function as follows:
+
+\snippet make_circulant2.cpp makeCirculant
+
+As usual, our function takes as argument a \c MatrixBase (see this \ref TopicFunctionTakingEigenTypes "page" for more details).
+Then, the CwiseNullaryOp object is constructed through the DenseBase::NullaryExpr static method with the adequate runtime sizes.
+
+Then, we need to implement our \c circulant_functor, which is a straightforward exercise:
+
+\snippet make_circulant2.cpp circulant_func
+
+The only subtlety here is that, by default, CwiseNullaryOp assumes that the given nullary functor can be evaluated linearly even for 2D matrices. That is, by default, CwiseNullaryOp will call \c operator(Index index) with \c index=i+j*rows. This is more efficient for non-structured matrices, but not usable for any more sophisticated nullary functor as ours. We need to tell this to %Eigen by specializing the internal::functor_has_linear_access structure for our functor as follows:
+
+\snippet make_circulant2.cpp linear_access
+
+
+We are now all set to try our new feature:
+
+\snippet make_circulant2.cpp main
+
+
+If all the fragments are combined, the following output is produced,
+showing that the program works as expected:
+
+\include make_circulant2.out
+
+This implementation of \c makeCirculant is much simpler than \ref TopicNewExpressionType "defining a new expression" from scratch.
+
+*/
+}
+

@@ -8,6 +8,7 @@ namespace Eigen {
   - \subpage TopicCustomizing_Plugins
   - \subpage TopicCustomizing_InheritingMatrix
   - \subpage TopicCustomizing_CustomScalar
+  - \subpage TopicCustomizing_NullaryExpr
   - \subpage TopicNewExpressionType
   \sa \ref TopicPreprocessorDirectives
 */

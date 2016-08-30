@@ -130,7 +130,7 @@ function can be called.
 If all the fragments are combined, the following output is produced,
 showing that the program works as expected:
 
-\verbinclude make_circulant.out
+\include make_circulant.out
 
 */
 }
