@@ -18,10 +18,9 @@ template<typename Scalar>
 struct scalar_constant_op {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_constant_op(const scalar_constant_op& other) : m_other(other.m_other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_constant_op(const Scalar& other) : m_other(other) { }
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index, Index = 0) const { return m_other; }
-  template<typename Index, typename PacketType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PacketType packetOp(Index, Index = 0) const { return internal::pset1<PacketType>(m_other); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() () const { return m_other; }
+  template<typename PacketType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PacketType packetOp() const { return internal::pset1<PacketType>(m_other); }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -146,26 +145,8 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct linspa
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return impl(i); }
 
-  // We need this function when assigning e.g. a RowVectorXd to a MatrixXd since
-  // there row==0 and col is used for the actual iteration.
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index row, Index col) const 
-  {
-    eigen_assert(col==0 || row==0);
-    return impl(col + row);
-  }
-
-  template<typename Index, typename Packet>
+  template<typename Packet,typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index i) const { return impl.packetOp(i); }
-
-  // We need this function when assigning e.g. a RowVectorXd to a MatrixXd since
-  // there row==0 and col is used for the actual iteration.
-  template<typename Index, typename Packet>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index row, Index col) const
-  {
-    eigen_assert(col==0 || row==0);
-    return impl.packetOp(col + row);
-  }
 
   // This proxy object handles the actual required temporaries, the different
   // implementations (random vs. sequential access) as well as the
@@ -175,11 +156,11 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct linspa
   const linspaced_op_impl<Scalar,PacketType,(NumTraits<Scalar>::IsInteger?true:RandomAccess),NumTraits<Scalar>::IsInteger> impl;
 };
 
-// all functors allow linear access, except scalar_identity_op. So we fix here a quick meta
-// to indicate whether a functor allows linear access, just always answering 'yes' except for
-// scalar_identity_op.
-template<typename Functor> struct functor_has_linear_access { enum { ret = 1 }; };
-template<typename Scalar> struct functor_has_linear_access<scalar_identity_op<Scalar> > { enum { ret = 0 }; };
+// Linear access is automatically determined from the operator() prototypes available for the given functor.
+// If it exposes an operator()(i,j), then we assume the i and j coefficients are required independently
+// and linear access is not possible. In all other cases, linear access is enabled.
+// Users should not have to deal with this struture.
+template<typename Functor> struct functor_has_linear_access { enum { ret = !has_binary_operator<Functor>::value }; };
 
 } // end namespace internal
 

@@ -104,13 +104,29 @@ void testVectorType(const VectorType& base)
 template<typename MatrixType>
 void testMatrixType(const MatrixType& m)
 {
+  using std::abs;
   const Index rows = m.rows();
   const Index cols = m.cols();
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+
+  Scalar s1;
+  do {
+    s1 = internal::random<Scalar>();
+  } while(abs(s1)<RealScalar(1e-5) && (!NumTraits<Scalar>::IsInteger));
 
   MatrixType A;
   A.setIdentity(rows, cols);
   VERIFY(equalsIdentity(A));
   VERIFY(equalsIdentity(MatrixType::Identity(rows, cols)));
+
+
+  A = MatrixType::Constant(rows,cols,s1);
+  Index i = internal::random<Index>(0,rows-1);
+  Index j = internal::random<Index>(0,cols-1);
+  VERIFY_IS_APPROX( MatrixType::Constant(rows,cols,s1)(i,j), s1 );
+  VERIFY_IS_APPROX( MatrixType::Constant(rows,cols,s1).coeff(i,j), s1 );
+  VERIFY_IS_APPROX( A(i,j), s1 );
 }
 
 void test_nullary()
@@ -136,5 +152,23 @@ void test_nullary()
 #ifdef EIGEN_TEST_PART_6
   // Assignment of a RowVectorXd to a MatrixXd (regression test for bug #79).
   VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<double>::epsilon() );
+#endif
+
+#ifdef EIGEN_TEST_PART_10
+  // check some internal logic
+  VERIFY((  internal::has_nullary_operator<internal::scalar_constant_op<double> >::value ));
+  VERIFY(( !internal::has_unary_operator<internal::scalar_constant_op<double> >::value ));
+  VERIFY(( !internal::has_binary_operator<internal::scalar_constant_op<double> >::value ));
+  VERIFY((  internal::functor_has_linear_access<internal::scalar_constant_op<double> >::ret ));
+
+  VERIFY(( !internal::has_nullary_operator<internal::scalar_identity_op<double> >::value ));
+  VERIFY(( !internal::has_unary_operator<internal::scalar_identity_op<double> >::value ));
+  VERIFY((  internal::has_binary_operator<internal::scalar_identity_op<double> >::value ));
+  VERIFY(( !internal::functor_has_linear_access<internal::scalar_identity_op<double> >::ret ));
+
+  VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<float,float,false> >::value ));
+  VERIFY((  internal::has_unary_operator<internal::linspaced_op<float,float,false> >::value ));
+  VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float,float,false> >::value ));
+  VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float,float,false> >::ret ));
 #endif
 }

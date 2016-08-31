@@ -24,16 +24,6 @@
 
 namespace Eigen {
 
-typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE DenseIndex;
-
-/**
- * \brief The Index type as used for the API.
- * \details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
- * \sa \blank \ref TopicPreprocessorDirectives, StorageIndex.
- */
-
-typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE Index;
-
 namespace internal {
 
 template<typename IndexDest, typename IndexSrc>

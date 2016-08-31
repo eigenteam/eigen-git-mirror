@@ -16,8 +16,7 @@ namespace internal {
 
 template<typename Scalar> struct scalar_random_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_random_op)
-  template<typename Index>
-  inline const Scalar operator() (Index, Index = 0) const { return random<Scalar>(); }
+  inline const Scalar operator() () const { return random<Scalar>(); }
 };
 
 template<typename Scalar>

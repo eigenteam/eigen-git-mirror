@@ -22,6 +22,16 @@
 
 namespace Eigen {
 
+typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE DenseIndex;
+
+/**
+ * \brief The Index type as used for the API.
+ * \details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
+ * \sa \blank \ref TopicPreprocessorDirectives, StorageIndex.
+ */
+
+typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE Index;
+
 namespace internal {
 
 /** \internal
@@ -369,6 +379,39 @@ struct has_ReturnType
   template <typename C> static no& testFunctor(...);
 
   enum { value = sizeof(testFunctor<T>(0)) == sizeof(yes) };
+};
+
+template<int> struct any_int {};
+template<typename T> const T& return_ref();
+
+struct meta_yes { char data[1]; };
+struct meta_no  { char data[2]; };
+
+template <typename T>
+struct has_nullary_operator
+{
+  template <typename C> static meta_yes testFunctor(C const *,any_int< sizeof(return_ref<C>()()) > * = 0);
+  static meta_no testFunctor(...);
+
+  enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
+};
+
+template <typename T>
+struct has_unary_operator
+{
+  template <typename C> static meta_yes testFunctor(C const *,any_int< sizeof(return_ref<C>()(Index(0))) > * = 0);
+  static meta_no testFunctor(...);
+
+  enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
+};
+
+template <typename T>
+struct has_binary_operator
+{
+  template <typename C> static meta_yes testFunctor(C const *,any_int< sizeof(return_ref<C>()(Index(0),Index(0))) > * = 0);
+  static meta_no testFunctor(...);
+
+  enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
 };
 
 /** \internal In short, it computes int(sqrt(\a Y)) with \a Y an integer.

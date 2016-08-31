@@ -20,7 +20,8 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
     Flags = traits<PlainObjectType>::Flags & RowMajorBit
   };
 };
-}
+
+} // namespace internal
 
 /** \class CwiseNullaryOp
   * \ingroup Core_Module
@@ -69,30 +70,6 @@ class CwiseNullaryOp : public internal::dense_xpr_base< CwiseNullaryOp<NullaryOp
     EIGEN_STRONG_INLINE Index rows() const { return m_rows.value(); }
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index cols() const { return m_cols.value(); }
-
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar coeff(Index rowId, Index colId) const
-    {
-      return m_functor(rowId, colId);
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(Index rowId, Index colId) const
-    {
-      return m_functor.packetOp(rowId, colId);
-    }
-
-    EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
-    {
-      return m_functor(index);
-    }
-
-    template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
-    {
-      return m_functor.packetOp(index);
-    }
 
     /** \returns the functor representing the nullary operation */
     EIGEN_DEVICE_FUNC
