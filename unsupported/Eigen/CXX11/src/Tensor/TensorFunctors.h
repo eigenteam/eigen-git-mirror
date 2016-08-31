@@ -200,9 +200,12 @@ template <typename T> struct MaxReducer
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) const {
     (*accum) = pmax<Packet>(*accum, p);
   }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return Eigen::NumTraits<T>::lowest();
+    if (Eigen::NumTraits<T>::IsInteger) {
+      return Eigen::NumTraits<T>::lowest();
+    } else {
+      return -Eigen::NumTraits<T>::infinity();
+    }
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
@@ -242,9 +245,12 @@ template <typename T> struct MinReducer
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) const {
     (*accum) = pmin<Packet>(*accum, p);
   }
-
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    return Eigen::NumTraits<T>::highest();
+    if (Eigen::NumTraits<T>::IsInteger) {
+      return Eigen::NumTraits<T>::highest();
+    } else {
+      return Eigen::NumTraits<T>::infinity();
+    }
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
