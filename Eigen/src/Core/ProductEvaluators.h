@@ -530,8 +530,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
    */
   EIGEN_DEVICE_FUNC const CoeffReturnType coeff(Index index) const
   {
-    const Index row = RowsAtCompileTime == 1 ? 0 : index;
-    const Index col = RowsAtCompileTime == 1 ? index : 0;
+    const Index row = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? 0 : index;
+    const Index col = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? index : 0;
     return (m_lhs.row(row).transpose().cwiseProduct( m_rhs.col(col) )).sum();
   }
 
@@ -549,8 +549,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   template<int LoadMode, typename PacketType>
   const PacketType packet(Index index) const
   {
-    const Index row = RowsAtCompileTime == 1 ? 0 : index;
-    const Index col = RowsAtCompileTime == 1 ? index : 0;
+    const Index row = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? 0 : index;
+    const Index col = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? index : 0;
     return packet<LoadMode,PacketType>(row,col);
   }
 
