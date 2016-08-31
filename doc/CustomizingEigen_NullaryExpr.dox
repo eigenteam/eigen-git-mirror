@@ -41,11 +41,6 @@ Then, we need to implement our \c circulant_functor, which is a straightforward 
 
 \snippet make_circulant2.cpp circulant_func
 
-The only subtlety here is that, by default, CwiseNullaryOp assumes that the given nullary functor can be evaluated linearly even for 2D matrices. That is, by default, CwiseNullaryOp will call \c operator(Index index) with \c index=i+j*rows. This is more efficient for non-structured matrices, but not usable for any more sophisticated nullary functor as ours. We need to tell this to %Eigen by specializing the internal::functor_has_linear_access structure for our functor as follows:
-
-\snippet make_circulant2.cpp linear_access
-
-
 We are now all set to try our new feature:
 
 \snippet make_circulant2.cpp main
@@ -59,5 +54,6 @@ showing that the program works as expected:
 This implementation of \c makeCirculant is much simpler than \ref TopicNewExpressionType "defining a new expression" from scratch.
 
 */
+
 }
 
