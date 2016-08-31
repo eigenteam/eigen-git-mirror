@@ -168,6 +168,29 @@ template<typename MatrixType> void product(const MatrixType& m)
     VERIFY_IS_APPROX(res2.block(0,0,1,cols).noalias() = m1.block(0,0,1,cols) * square2,                       (ref2.row(0) = m1.row(0) * square2));
   }
 
+  // vector.block() (see bug 1283)
+  {
+    RowVectorType w1(rows);
+    VERIFY_IS_APPROX(square * v1.block(0,0,rows,1), square * v1);
+    VERIFY_IS_APPROX(w1.noalias() = square * v1.block(0,0,rows,1), square * v1);
+    VERIFY_IS_APPROX(w1.block(0,0,rows,1).noalias() = square * v1.block(0,0,rows,1), square * v1);
+
+    Matrix<Scalar,1,MatrixType::ColsAtCompileTime> w2(cols);
+    VERIFY_IS_APPROX(vc2.block(0,0,cols,1).transpose() * square2, vc2.transpose() * square2);
+    VERIFY_IS_APPROX(w2.noalias() = vc2.block(0,0,cols,1).transpose() * square2, vc2.transpose() * square2);
+    VERIFY_IS_APPROX(w2.block(0,0,1,cols).noalias() = vc2.block(0,0,cols,1).transpose() * square2, vc2.transpose() * square2);
+
+    vc2 = square2.block(0,0,1,cols).transpose();
+    VERIFY_IS_APPROX(square2.block(0,0,1,cols) * square2, vc2.transpose() * square2);
+    VERIFY_IS_APPROX(w2.noalias() = square2.block(0,0,1,cols) * square2, vc2.transpose() * square2);
+    VERIFY_IS_APPROX(w2.block(0,0,1,cols).noalias() = square2.block(0,0,1,cols) * square2, vc2.transpose() * square2);
+
+    vc2 = square2.block(0,0,cols,1);
+    VERIFY_IS_APPROX(square2.block(0,0,cols,1).transpose() * square2, vc2.transpose() * square2);
+    VERIFY_IS_APPROX(w2.noalias() = square2.block(0,0,cols,1).transpose() * square2, vc2.transpose() * square2);
+    VERIFY_IS_APPROX(w2.block(0,0,1,cols).noalias() = square2.block(0,0,cols,1).transpose() * square2, vc2.transpose() * square2);
+  }
+
   // inner product
   {
     Scalar x = square2.row(c) * square2.col(c2);
@@ -204,4 +227,5 @@ template<typename MatrixType> void product(const MatrixType& m)
     VERIFY_IS_APPROX(square * (s1*(square*square)), s1 * square * square * square);
     VERIFY_IS_APPROX(square * (square*square).conjugate(), square * square.conjugate() * square.conjugate());
   }
+
 }
