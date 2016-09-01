@@ -353,8 +353,8 @@ struct nullary_wrapper
 template<typename Scalar,typename NullaryOp>
 struct nullary_wrapper<Scalar,NullaryOp,true,false,false>
 {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, ...) const { return op(); }
-  template <typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, ...) const { return op.template packetOp<T>(); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index=0, Index=0) const { return op(); }
+  template <typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index=0, Index=0) const { return op.template packetOp<T>(); }
 };
 
 template<typename Scalar,typename NullaryOp>
