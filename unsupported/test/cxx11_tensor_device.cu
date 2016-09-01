@@ -13,7 +13,7 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
-
+#include <cuda_fp16.h>
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 

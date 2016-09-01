@@ -12,6 +12,7 @@
 #define EIGEN_TEST_FUNC cxx11_tensor_cuda
 #define EIGEN_USE_GPU
 
+#include <cuda_fp16.h>
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
