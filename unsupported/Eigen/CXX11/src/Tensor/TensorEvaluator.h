@@ -243,13 +243,13 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC CoeffReturnType coeff(Index index) const
   {
-    return m_wrapper(m_functor,index);
+    return m_wrapper(m_functor, index);
   }
 
   template<int LoadMode>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
   {
-    return m_wrapper.template packetOp<PacketReturnType>(m_functor,index);
+    return m_wrapper.template packetOp<PacketReturnType, Index>(m_functor, index);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost
