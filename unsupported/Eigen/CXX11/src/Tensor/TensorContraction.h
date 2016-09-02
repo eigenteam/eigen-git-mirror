@@ -25,7 +25,8 @@ template<typename Dimensions, typename LhsXprType, typename RhsXprType>
 struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
-  typedef typename gebp_traits<typename LhsXprType::Scalar, typename RhsXprType::Scalar>::ResScalar Scalar;
+  typedef typename gebp_traits<typename remove_const<typename LhsXprType::Scalar>::type,
+                               typename remove_const<typename RhsXprType::Scalar>::type>::ResScalar Scalar;
 
   typedef typename promote_storage_type<typename traits<LhsXprType>::StorageKind,
                                         typename traits<RhsXprType>::StorageKind>::ret StorageKind;
