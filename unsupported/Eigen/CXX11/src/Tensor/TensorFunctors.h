@@ -188,6 +188,32 @@ struct reducer_traits<MeanReducer<T>, Device> {
 };
 
 
+template <typename T, bool IsMax = true, bool IsInteger = true>
+struct MinMaxBottomValue {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+    return Eigen::NumTraits<T>::lowest();
+  }
+};
+template <typename T>
+struct MinMaxBottomValue<T, true, false> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+    return -Eigen::NumTraits<T>::infinity();
+  }
+};
+template <typename T>
+struct MinMaxBottomValue<T, false, true> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+    return Eigen::NumTraits<T>::highest();
+  }
+};
+template <typename T>
+struct MinMaxBottomValue<T, false, false> {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+    return Eigen::NumTraits<T>::infinity();
+  }
+};
+
+
 template <typename T> struct MaxReducer
 {
   static const bool PacketAccess = packet_traits<T>::HasMax;
@@ -201,11 +227,7 @@ template <typename T> struct MaxReducer
     (*accum) = pmax<Packet>(*accum, p);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    if (Eigen::NumTraits<T>::IsInteger) {
-      return Eigen::NumTraits<T>::lowest();
-    } else {
-      return -Eigen::NumTraits<T>::infinity();
-    }
+    return MinMaxBottomValue<T, true, Eigen::NumTraits<T>::IsInteger>::bottom_value();
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
@@ -246,11 +268,7 @@ template <typename T> struct MinReducer
     (*accum) = pmin<Packet>(*accum, p);
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T initialize() const {
-    if (Eigen::NumTraits<T>::IsInteger) {
-      return Eigen::NumTraits<T>::highest();
-    } else {
-      return Eigen::NumTraits<T>::infinity();
-    }
+    return MinMaxBottomValue<T, false, Eigen::NumTraits<T>::IsInteger>::bottom_value();
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet initializePacket() const {
