@@ -123,7 +123,7 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
   MaxSizeVector<Thread*> threads_;
   MaxSizeVector<Queue*> queues_;
   MaxSizeVector<unsigned> coprimes_;
-  std::vector<EventCount::Waiter> waiters_;
+  MaxSizeVector<EventCount::Waiter> waiters_;
   std::atomic<unsigned> blocked_;
   std::atomic<bool> spinning_;
   std::atomic<bool> done_;

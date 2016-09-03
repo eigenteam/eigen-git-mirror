@@ -50,7 +50,7 @@ class EventCount {
  public:
   class Waiter;
 
-  EventCount(std::vector<Waiter>& waiters) : waiters_(waiters) {
+  EventCount(MaxSizeVector<Waiter>& waiters) : waiters_(waiters) {
     eigen_assert(waiters.size() < (1 << kWaiterBits) - 1);
     // Initialize epoch to something close to overflow to test overflow.
     state_ = kStackMask | (kEpochMask - kEpochInc * waiters.size() * 2);
@@ -199,7 +199,7 @@ class EventCount {
   static const uint64_t kEpochMask = ((1ull << kEpochBits) - 1) << kEpochShift;
   static const uint64_t kEpochInc = 1ull << kEpochShift;
   std::atomic<uint64_t> state_;
-  std::vector<Waiter>& waiters_;
+  MaxSizeVector<Waiter>& waiters_;
 
   void Park(Waiter* w) {
     std::unique_lock<std::mutex> lock(w->mu);
