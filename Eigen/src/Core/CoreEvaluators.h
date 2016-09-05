@@ -373,11 +373,7 @@ struct nullary_wrapper<Scalar,NullaryOp,false,false,true>
 // In this case, i==0 and j is used for the actual iteration.
 template<typename Scalar,typename NullaryOp>
 struct nullary_wrapper<Scalar,NullaryOp,false,true,false>
-  : nullary_wrapper<Scalar,NullaryOp,false,true,true> // to get the identity wrapper
 {
-  typedef nullary_wrapper<Scalar,NullaryOp,false,true,true> base;
-  using base::operator();
-  using base::packetOp;
   template <typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index i, Index j) const {
     eigen_assert(i==0 || j==0);
@@ -387,6 +383,11 @@ struct nullary_wrapper<Scalar,NullaryOp,false,true,false>
     eigen_assert(i==0 || j==0);
     return op.template packetOp<T>(i+j);
   }
+
+  template <typename Index>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index i) const { return op(i); }
+  template <typename T, typename Index>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index i) const { return op.template packetOp<T>(i); }
 };
 
 template<typename Scalar,typename NullaryOp>
