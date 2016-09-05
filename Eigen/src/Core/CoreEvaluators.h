@@ -343,29 +343,29 @@ template<typename Scalar,typename NullaryOp,
          bool has_binary  = has_binary_operator<NullaryOp>::value>
 struct nullary_wrapper
 {
-  template <typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index i, Index j) const { return op(i,j); }
-  template <typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index i) const { return op(i); }
+  template <typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, IndexType i, IndexType j) const { return op(i,j); }
+  template <typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, IndexType i) const { return op(i); }
 
-  template <typename T, typename Index> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index i, Index j) const { return op.template packetOp<T>(i,j); }
-  template <typename T, typename Index> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index i) const { return op.template packetOp<T>(i); }
+  template <typename T, typename IndexType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, IndexType i, IndexType j) const { return op.template packetOp<T>(i,j); }
+  template <typename T, typename IndexType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, IndexType i) const { return op.template packetOp<T>(i); }
 };
 
 template<typename Scalar,typename NullaryOp>
 struct nullary_wrapper<Scalar,NullaryOp,true,false,false>
 {
-  template <typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index=0, Index=0) const { return op(); }
-  template <typename T, typename Index> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index=0, Index=0) const { return op.template packetOp<T>(); }
+  template <typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, IndexType=0, IndexType=0) const { return op(); }
+  template <typename T, typename IndexType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, IndexType=0, IndexType=0) const { return op.template packetOp<T>(); }
 };
 
 template<typename Scalar,typename NullaryOp>
 struct nullary_wrapper<Scalar,NullaryOp,false,false,true>
 {
-  template <typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index i, Index j=0) const { return op(i,j); }
-  template <typename T, typename Index> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index i, Index j=0) const { return op.template packetOp<T>(i,j); }
+  template <typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, IndexType i, IndexType j=0) const { return op(i,j); }
+  template <typename T, typename IndexType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, IndexType i, IndexType j=0) const { return op.template packetOp<T>(i,j); }
 };
 
 // We need the following specialization for vector-only functors assigned to a runtime vector,
@@ -374,20 +374,20 @@ struct nullary_wrapper<Scalar,NullaryOp,false,false,true>
 template<typename Scalar,typename NullaryOp>
 struct nullary_wrapper<Scalar,NullaryOp,false,true,false>
 {
-  template <typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index i, Index j) const {
+  template <typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, IndexType i, IndexType j) const {
     eigen_assert(i==0 || j==0);
     return op(i+j);
   }
-  template <typename T, typename Index> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index i, Index j) const {
+  template <typename T, typename IndexType> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, IndexType i, IndexType j) const {
     eigen_assert(i==0 || j==0);
     return op.template packetOp<T>(i+j);
   }
 
-  template <typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, Index i) const { return op(i); }
-  template <typename T, typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, Index i) const { return op.template packetOp<T>(i); }
+  template <typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator()(const NullaryOp& op, IndexType i) const { return op(i); }
+  template <typename T, typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T packetOp(const NullaryOp& op, IndexType i) const { return op.template packetOp<T>(i); }
 };
 
 template<typename Scalar,typename NullaryOp>
@@ -474,30 +474,30 @@ struct evaluator<CwiseNullaryOp<NullaryOp,PlainObjectType> >
 
   typedef typename XprType::CoeffReturnType CoeffReturnType;
 
-  template <typename Index>
+  template <typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  CoeffReturnType coeff(Index row, Index col) const
+  CoeffReturnType coeff(IndexType row, IndexType col) const
   {
     return m_wrapper(m_functor, row, col);
   }
 
-  template <typename Index>
+  template <typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  CoeffReturnType coeff(Index index) const
+  CoeffReturnType coeff(IndexType index) const
   {
     return m_wrapper(m_functor,index);
   }
 
-  template<int LoadMode, typename PacketType, typename Index>
+  template<int LoadMode, typename PacketType, typename IndexType>
   EIGEN_STRONG_INLINE
-  PacketType packet(Index row, Index col) const
+  PacketType packet(IndexType row, IndexType col) const
   {
     return m_wrapper.template packetOp<PacketType>(m_functor, row, col);
   }
 
-  template<int LoadMode, typename PacketType, typename Index>
+  template<int LoadMode, typename PacketType, typename IndexType>
   EIGEN_STRONG_INLINE
-  PacketType packet(Index index) const
+  PacketType packet(IndexType index) const
   {
     return m_wrapper.template packetOp<PacketType>(m_functor, index);
   }
