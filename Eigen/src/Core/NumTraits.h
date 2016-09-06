@@ -255,6 +255,9 @@ private:
   static inline std::string quiet_NaN();
 };
 
+// Empty specialization for void to allow template specialization based on NumTraits<T>::Real with T==void and SFINAE.
+template<> struct NumTraits<void> {};
+
 } // end namespace Eigen
 
 #endif // EIGEN_NUMTRAITS_H

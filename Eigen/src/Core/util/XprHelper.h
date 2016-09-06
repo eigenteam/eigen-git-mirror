@@ -707,7 +707,7 @@ std::string demangle_flags(int f)
   * This class permits to control the scalar return type of any binary operation performed on two different scalar types through (partial) template specializations.
   *
   * For instance, let \c U1, \c U2 and \c U3 be three user defined scalar types for which most operations between instances of \c U1 and \c U2 returns an \c U3.
-  * You can let Eigen knows that by defining:
+  * You can let %Eigen knows that by defining:
     \code
     template<typename BinaryOp>
     struct ScalarBinaryOpTraits<U1,U2,BinaryOp> { typedef U3 ReturnType;  };
@@ -725,6 +725,14 @@ std::string demangle_flags(int f)
     struct ScalarBinaryOpTraits<U1,U2,internal::scalar_sum_op<U1,U2> > { typedef U1 ReturnType; };
     \endcode
   *
+  * By default, the following generic combinations are supported:
+  <table class="manual">
+  <tr><th>ScalarA</th><th>ScalarB</th><th>BinaryOp</th><th>ReturnType</th><th>Note</th></tr>
+  <tr            ><td>\c T </td><td>\c T </td><td>\c * </td><td>\c T </td><td></td></tr>
+  <tr class="alt"><td>\c NumTraits<T>::Real </td><td>\c T </td><td>\c * </td><td>\c T </td><td>Only if \c NumTraits<T>::IsComplex </td></tr>
+  <tr            ><td>\c T </td><td>\c NumTraits<T>::Real </td><td>\c * </td><td>\c T </td><td>Only if \c NumTraits<T>::IsComplex </td></tr>
+  </table>
+  *
   * \sa CwiseBinaryOp
   */
 template<typename ScalarA, typename ScalarB, typename BinaryOp=internal::scalar_product_op<ScalarA,ScalarB> >
@@ -737,6 +745,17 @@ struct ScalarBinaryOpTraits
 
 template<typename T, typename BinaryOp>
 struct ScalarBinaryOpTraits<T,T,BinaryOp>
+{
+  typedef T ReturnType;
+};
+
+template <typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<T, typename NumTraits<typename internal::enable_if<NumTraits<T>::IsComplex,T>::type>::Real, BinaryOp>
+{
+  typedef T ReturnType;
+};
+template <typename T, typename BinaryOp>
+struct ScalarBinaryOpTraits<typename NumTraits<typename internal::enable_if<NumTraits<T>::IsComplex,T>::type>::Real, T, BinaryOp>
 {
   typedef T ReturnType;
 };
@@ -760,18 +779,6 @@ template<typename BinaryOp>
 struct ScalarBinaryOpTraits<void,void,BinaryOp>
 {
   typedef void ReturnType;
-};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<T,std::complex<T>,BinaryOp>
-{
-  typedef std::complex<T> ReturnType;
-};
-
-template<typename T, typename BinaryOp>
-struct ScalarBinaryOpTraits<std::complex<T>, T,BinaryOp>
-{
-  typedef std::complex<T> ReturnType;
 };
 
 // We require Lhs and Rhs to have "compatible" scalar types.
