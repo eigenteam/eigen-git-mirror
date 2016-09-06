@@ -38,6 +38,14 @@ struct traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : traits<PlainObjectT
   * However, if you want to write a function returning such an expression, you
   * will need to use this class.
   *
+  * The functor NullaryOp must expose one of the following method:
+    <table class="manual">
+    <tr            ><td>\c operator()() </td><td>if the procedural generation does not depend on the coefficient entries (e.g., random numbers)</td></tr>
+    <tr class="alt"><td>\c operator()(Index i)</td><td>if the procedural generation makes sense for vectors only and that it depends on the coefficient index \c i (e.g., linspace) </td></tr>
+    <tr            ><td>\c operator()(Index i,Index j)</td><td>if the procedural generation depends on the matrix coordinates \c i, \c j (e.g., to generate a checkerboard with 0 and 1)</td></tr>
+    </table>
+  * It is also possible to expose the last two operators if the generation makes sense for matrices but can be optimized for vectors.
+  *
   * See DenseBase::NullaryExpr(Index,const CustomNullaryOp&) for an example binding
   * C++11 random number generators.
   *
