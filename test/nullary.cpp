@@ -171,8 +171,9 @@ void test_nullary()
   VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float,float,false> >::value ));
   VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float,float,false> >::ret ));
 
-  // Regression unit test for a weird MSVC 2012 bug.
-  // Search "nullary_wrapper_workaround_msvc_2012" in CoreEvaluators.h for the details.
+  // Regression unit test for a weird MSVC bug.
+  // Search "nullary_wrapper_workaround_msvc" in CoreEvaluators.h for the details.
+  // See also traits<Ref>::match.
   {
     MatrixXf A = MatrixXf::Random(3,3);
     Ref<const MatrixXf> R = 2.0*A;
@@ -183,6 +184,16 @@ void test_nullary()
     VectorXi V = VectorXi::Random(3);
     Ref<const VectorXi> R2 = VectorXi::LinSpaced(3,1,3)+V;
     VERIFY_IS_APPROX(R2, V+Vector3i(1,2,3));
+
+    VERIFY((  internal::has_nullary_operator<internal::scalar_constant_op<float> >::value ));
+    VERIFY(( !internal::has_unary_operator<internal::scalar_constant_op<float> >::value ));
+    VERIFY(( !internal::has_binary_operator<internal::scalar_constant_op<float> >::value ));
+    VERIFY((  internal::functor_has_linear_access<internal::scalar_constant_op<float> >::ret ));
+
+    VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<int,int,false> >::value ));
+    VERIFY((  internal::has_unary_operator<internal::linspaced_op<int,int,false> >::value ));
+    VERIFY(( !internal::has_binary_operator<internal::linspaced_op<int,int,false> >::value ));
+    VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<int,int,false> >::ret ));
   }
 #endif
 }
