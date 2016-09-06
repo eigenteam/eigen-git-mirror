@@ -393,7 +393,10 @@ struct nullary_wrapper<Scalar,NullaryOp,false,true,false>
 template<typename Scalar,typename NullaryOp>
 struct nullary_wrapper<Scalar,NullaryOp,false,false,false> {};
 
-#if EIGEN_COMP_MSVC>0
+#if 0 && EIGEN_COMP_MSVC>0
+// Disable this ugly workaround. This is now handled in traits<Ref>::match,
+// but this piece of code might still become handly if some other weird compilation
+// erros pop up again.
 
 // MSVC exhibits a weird compilation error when
 // compiling:
