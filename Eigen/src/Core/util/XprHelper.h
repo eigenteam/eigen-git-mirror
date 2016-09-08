@@ -664,6 +664,20 @@ bool is_same_dense(const T1 &, const T2 &, typename enable_if<!(has_direct_acces
   return false;
 }
 
+// Internal helper defining the cost of a scalar division for the type T.
+// The default heuristic can be specialized for each scalar type and architecture.
+template<typename T,bool Vectorized=false,typename EnaleIf = void>
+struct scalar_div_cost {
+  enum { value = 8*NumTraits<T>::MulCost };
+};
+
+
+template<bool Vectorized>
+struct scalar_div_cost<signed long,Vectorized,typename enable_if<sizeof(long)==8>::type> { enum { value = 24 }; };
+template<bool Vectorized>
+struct scalar_div_cost<unsigned long,Vectorized,typename enable_if<sizeof(long)==8>::type> { enum { value = 21 }; };
+
+
 #ifdef EIGEN_DEBUG_ASSIGN
 std::string demangle_traversal(int t)
 {
