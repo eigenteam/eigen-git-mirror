@@ -673,9 +673,9 @@ struct scalar_div_cost {
 
 
 template<bool Vectorized>
-struct scalar_div_cost<signed long,Vectorized,typename enable_if<sizeof(long)==8>::type> { enum { value = 24 }; };
+struct scalar_div_cost<signed long,Vectorized,typename conditional<sizeof(long)==8,void,false_type>::type> { enum { value = 24 }; };
 template<bool Vectorized>
-struct scalar_div_cost<unsigned long,Vectorized,typename enable_if<sizeof(long)==8>::type> { enum { value = 21 }; };
+struct scalar_div_cost<unsigned long,Vectorized,typename conditional<sizeof(long)==8,void,false_type>::type> { enum { value = 21 }; };
 
 
 #ifdef EIGEN_DEBUG_ASSIGN
