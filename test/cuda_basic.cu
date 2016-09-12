@@ -20,11 +20,14 @@
 
 #include <math_constants.h>
 #include <cuda.h>
+#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
 #include <cuda_fp16.h>
+#endif
 #include "main.h"
 #include "cuda_common.h"
 
-#include <Eigen/Eigenvalues>
+// Check that dense modules can be properly parsed by nvcc
+#include <Eigen/Dense>
 
 // struct Foo{
 //   EIGEN_DEVICE_FUNC

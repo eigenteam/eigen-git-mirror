@@ -94,6 +94,9 @@ template<> struct packet_traits<double> : default_packet_traits
   };
 };
 
+template<> struct scalar_div_cost<float,true> { enum { value = 14 }; };
+template<> struct scalar_div_cost<double,true> { enum { value = 16 }; };
+
 /* Proper support for integers is only provided by AVX2. In the meantime, we'll
    use SSE instructions and packets to deal with integers.
 template<> struct packet_traits<int>    : default_packet_traits

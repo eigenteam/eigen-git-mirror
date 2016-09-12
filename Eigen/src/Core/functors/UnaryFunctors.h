@@ -248,7 +248,7 @@ struct functor_traits<scalar_exp_op<Scalar> > {
      // double: 7 pmadd, 5 pmul, 3 padd/psub, 1 div,  13 other
      : (14 * NumTraits<Scalar>::AddCost +
         6 * NumTraits<Scalar>::MulCost +
-        NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost))
+        scalar_div_cost<Scalar,packet_traits<Scalar>::HasDiv>::value))
 #else
     Cost =
     (sizeof(Scalar) == 4
@@ -257,7 +257,7 @@ struct functor_traits<scalar_exp_op<Scalar> > {
      // double: 7 pmadd, 5 pmul, 3 padd/psub, 1 div,  13 other
      : (23 * NumTraits<Scalar>::AddCost +
         12 * NumTraits<Scalar>::MulCost +
-        NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost))
+        scalar_div_cost<Scalar,packet_traits<Scalar>::HasDiv>::value))
 #endif
   };
 };
@@ -514,17 +514,16 @@ struct functor_traits<scalar_tanh_op<Scalar> > {
                 // 9 pmadd, 2 pmul, 1 div, 2 other
                 ? (2 * NumTraits<Scalar>::AddCost +
                    6 * NumTraits<Scalar>::MulCost +
-                   NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)
+                   scalar_div_cost<Scalar,packet_traits<Scalar>::HasDiv>::value)
 #else
                 ? (11 * NumTraits<Scalar>::AddCost +
                    11 * NumTraits<Scalar>::MulCost +
-                   NumTraits<Scalar>::template Div<packet_traits<Scalar>::HasDiv>::Cost)
+                   scalar_div_cost<Scalar,packet_traits<Scalar>::HasDiv>::value)
 #endif
                 // This number assumes a naive implementation of tanh
                 : (6 * NumTraits<Scalar>::AddCost +
                    3 * NumTraits<Scalar>::MulCost +
-                   2 * NumTraits<Scalar>::template Div<
-                           packet_traits<Scalar>::HasDiv>::Cost +
+                   2 * scalar_div_cost<Scalar,packet_traits<Scalar>::HasDiv>::value +
                    functor_traits<scalar_exp_op<Scalar> >::Cost))
   };
 };

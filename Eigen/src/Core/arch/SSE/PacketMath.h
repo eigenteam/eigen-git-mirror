@@ -162,6 +162,11 @@ template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4,
 template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2, alignment=Aligned16}; typedef Packet2d half; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4, alignment=Aligned16}; typedef Packet4i half; };
 
+#ifndef EIGEN_VECTORIZE_AVX
+template<> struct scalar_div_cost<float,true> { enum { value = 7 }; };
+template<> struct scalar_div_cost<double,true> { enum { value = 8 }; };
+#endif
+
 #if EIGEN_COMP_MSVC==1500
 // Workaround MSVC 9 internal compiler error.
 // TODO: It has been detected with win64 builds (amd64), so let's check whether it also happens in 32bits+SSE mode

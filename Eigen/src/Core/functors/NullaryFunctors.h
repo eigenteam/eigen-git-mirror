@@ -30,8 +30,8 @@ struct functor_traits<scalar_constant_op<Scalar> >
 
 template<typename Scalar> struct scalar_identity_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_identity_op)
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index row, Index col) const { return row==col ? Scalar(1) : Scalar(0); }
+  template<typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType row, IndexType col) const { return row==col ? Scalar(1) : Scalar(0); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_identity_op<Scalar> >
@@ -55,15 +55,15 @@ struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/false,/*IsInteger*/false>
     m_packetStep(pset1<Packet>(unpacket_traits<Packet>::size*m_step)),
     m_base(padd(pset1<Packet>(low), pmul(pset1<Packet>(m_step),plset<Packet>(-unpacket_traits<Packet>::size)))) {}
 
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const 
+  template<typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const
   { 
     m_base = padd(m_base, pset1<Packet>(m_step));
     return m_low+Scalar(i)*m_step; 
   }
 
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index) const { return m_base = padd(m_base,m_packetStep); }
+  template<typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType) const { return m_base = padd(m_base,m_packetStep); }
 
   const Scalar m_low;
   const Scalar m_step;
@@ -81,11 +81,11 @@ struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/false>
     m_low(low), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
     m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Packet>(0)) {}
 
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return m_low+i*m_step; }
+  template<typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const { return m_low+i*m_step; }
 
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index i) const
+  template<typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType i) const
   { return internal::padd(m_lowPacket, pmul(m_stepPacket, padd(pset1<Packet>(Scalar(i)),m_interPacket))); }
 
   const Scalar m_low;
@@ -102,15 +102,15 @@ struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/true>
     m_low(low), m_length(high-low), m_divisor(convert_index<Scalar>(num_steps==1?1:num_steps-1)), m_interPacket(plset<Packet>(0))
   {}
 
-  template<typename Index>
+  template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const Scalar operator() (Index i) const {
+  const Scalar operator() (IndexType i) const {
     return m_low + (m_length*Scalar(i))/m_divisor;
   }
 
-  template<typename Index>
+  template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const Packet packetOp(Index i) const {
+  const Packet packetOp(IndexType i) const {
     return internal::padd(pset1<Packet>(m_low), pdiv(pmul(pset1<Packet>(m_length), padd(pset1<Packet>(Scalar(i)),m_interPacket)),
                                                      pset1<Packet>(m_divisor))); }
 
@@ -142,11 +142,11 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct linspa
     : impl((num_steps==1 ? high : low),high,num_steps)
   {}
 
-  template<typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return impl(i); }
+  template<typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const { return impl(i); }
 
-  template<typename Packet,typename Index>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(Index i) const { return impl.packetOp(i); }
+  template<typename Packet,typename IndexType>
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType i) const { return impl.packetOp(i); }
 
   // This proxy object handles the actual required temporaries, the different
   // implementations (random vs. sequential access) as well as the

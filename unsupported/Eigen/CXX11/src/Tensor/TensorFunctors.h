@@ -25,7 +25,7 @@ struct scalar_mod_op {
 };
 template <typename Scalar>
 struct functor_traits<scalar_mod_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
+{ enum { Cost = scalar_div_cost<Scalar,false>::value, PacketAccess = false }; };
 
 
 /** \internal
@@ -38,7 +38,7 @@ struct scalar_mod2_op {
 };
 template <typename Scalar>
 struct functor_traits<scalar_mod2_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::template Div<false>::Cost, PacketAccess = false }; };
+{ enum { Cost = scalar_div_cost<Scalar,false>::value, PacketAccess = false }; };
 
 template <typename Scalar>
 struct scalar_fmod_op {
