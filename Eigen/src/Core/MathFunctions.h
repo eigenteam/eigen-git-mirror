@@ -1046,6 +1046,16 @@ float abs(const float &x) { return ::fabsf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double abs(const double &x) { return ::fabs(x); }
+
+template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float abs(const std::complex<float>& x) {
+  return ::hypotf(real(x), imag(x));
+}
+
+template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double abs(const std::complex<double>& x) {
+  return ::hypot(real(x), imag(x));
+}
 #endif
 
 template<typename T>

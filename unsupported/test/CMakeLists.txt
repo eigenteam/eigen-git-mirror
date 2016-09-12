@@ -227,6 +227,7 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
 
   ei_add_test(cxx11_tensor_device)
   ei_add_test(cxx11_tensor_cuda)
+  ei_add_test(cxx11_tensor_complex_cuda)
   ei_add_test(cxx11_tensor_contract_cuda)
   ei_add_test(cxx11_tensor_reduction_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
