@@ -26,6 +26,7 @@ int rand_reentrant(unsigned int* s) {
 static void test_basic_eventcount()
 {
   MaxSizeVector<EventCount::Waiter> waiters(1);
+  waiters.resize(1);
   EventCount ec(waiters);
   EventCount::Waiter& w = waiters[0];
   ec.Notify(false);
@@ -82,6 +83,7 @@ static void test_stress_eventcount()
   static const int kQueues = 10;
 
   MaxSizeVector<EventCount::Waiter> waiters(kThreads);
+  waiters.resize(kThreads);
   EventCount ec(waiters);
   TestQueue queues[kQueues];
 
