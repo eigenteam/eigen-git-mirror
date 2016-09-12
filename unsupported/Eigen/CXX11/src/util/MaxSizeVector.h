@@ -55,6 +55,17 @@ class MaxSizeVector {
     internal::aligned_free(data_);
   }
 
+  void resize(size_t n) {
+    eigen_assert(n <= reserve_);
+    for (size_t i = size_; i < n; ++i) {
+      new (&data_[i]) T;
+    }
+    for (size_t i = n; i < size_; ++i) {
+      data_[i].~T();
+    }
+    size_ = n;
+  }
+
   // Append new elements (up to reserved size).
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void push_back(const T& t) {
