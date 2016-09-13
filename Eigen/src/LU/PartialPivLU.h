@@ -284,7 +284,7 @@ template<typename _MatrixType> class PartialPivLU
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
     RealScalar m_l1_norm;
-    char m_det_p;
+    signed char m_det_p;
     bool m_isInitialized;
 };
 

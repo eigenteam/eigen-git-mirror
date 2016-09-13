@@ -436,7 +436,7 @@ template<typename _MatrixType> class FullPivLU
     Index m_nonzero_pivots;
     RealScalar m_l1_norm;
     RealScalar m_maxpivot, m_prescribedThreshold;
-    char m_det_pq;
+    signed char m_det_pq;
     bool m_isInitialized, m_usePrescribedThreshold;
 };
 
