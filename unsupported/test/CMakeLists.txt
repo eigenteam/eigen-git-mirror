@@ -225,7 +225,6 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 
-  ei_add_test(cxx11_tensor_device)
   ei_add_test(cxx11_tensor_complex_cuda)
   ei_add_test(cxx11_tensor_reduction_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
@@ -234,6 +233,7 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
 
   # Contractions require arch 3.0 or higher
   if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 29)
+    ei_add_test(cxx11_tensor_device)
     ei_add_test(cxx11_tensor_cuda)
     ei_add_test(cxx11_tensor_contract_cuda)
     ei_add_test(cxx11_tensor_of_float16_cuda)
