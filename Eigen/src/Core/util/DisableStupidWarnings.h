@@ -56,8 +56,11 @@
   #pragma diag_suppress code_is_unreachable
   // Disable the "dynamic initialization in unreachable code" message
   #pragma diag_suppress initialization_not_reachable
-  // Disable the "calling a __host__ function from a __host__ __device__ function is not allowed" messages (yes, there are 4 of them)
+  // Disable the "invalid error number" message that we get with older versions of nvcc
   #pragma diag_suppress 1222
+  // Disable the "calling a __host__ function from a __host__ __device__ function is not allowed" messages (yes, there are many of them and they seem to change with every version of the compiler)
+  #pragma diag_suppress 2527
+  #pragma diag_suppress 2529
   #pragma diag_suppress 2651
   #pragma diag_suppress 2653
   #pragma diag_suppress 2668
