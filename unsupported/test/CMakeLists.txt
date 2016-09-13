@@ -226,20 +226,24 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 
   ei_add_test(cxx11_tensor_device)
-  ei_add_test(cxx11_tensor_cuda)
   ei_add_test(cxx11_tensor_complex_cuda)
-  ei_add_test(cxx11_tensor_contract_cuda)
   ei_add_test(cxx11_tensor_reduction_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
   ei_add_test(cxx11_tensor_cast_float16_cuda)
   ei_add_test(cxx11_tensor_scan_cuda)
+
+  # Contractions require arch 3.0 or higher
+  if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 29)
+    ei_add_test(cxx11_tensor_cuda)
+    ei_add_test(cxx11_tensor_contract_cuda)
+    ei_add_test(cxx11_tensor_of_float16_cuda)
+  endif()
 
   # The random number generation code requires arch 3.5 or greater.
   if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 34)
     ei_add_test(cxx11_tensor_random_cuda)
   endif()
 
-  ei_add_test(cxx11_tensor_of_float16_cuda)
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()
