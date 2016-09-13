@@ -56,9 +56,102 @@ static void test_full_reductions() {
   gpu_device.deallocate(gpu_out_ptr);
 }
 
+template<typename Type, int DataLayout>
+static void test_first_dim_reductions() {
+  int dim_x = 33;
+  int dim_y = 1;
+  int dim_z = 128;
+
+  Tensor<Type, 3, DataLayout> in(dim_x, dim_y, dim_z);
+  in.setRandom();
+
+  Eigen::array<int, 1> red_axis;
+  red_axis[0] = 0;
+  Tensor<Type, 2, DataLayout> redux = in.sum(red_axis);
+
+  // Create device
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice dev(&stream);
+  
+  // Create data(T)
+  Type* in_data = (Type*)dev.allocate(dim_x*dim_y*dim_z*sizeof(Type));
+  Type* out_data = (Type*)dev.allocate(dim_z*dim_y*sizeof(Type));
+  Eigen::TensorMap<Eigen::Tensor<Type, 3, DataLayout> > gpu_in(in_data, dim_x, dim_y, dim_z);
+  Eigen::TensorMap<Eigen::Tensor<Type, 2, DataLayout> > gpu_out(out_data, dim_y, dim_z);
+  
+  // Perform operation
+  dev.memcpyHostToDevice(in_data, in.data(), in.size()*sizeof(Type));
+  gpu_out.device(dev) = gpu_in.sum(red_axis);
+  gpu_out.device(dev) += gpu_in.sum(red_axis);
+  Tensor<Type, 2, DataLayout> redux_gpu(dim_y, dim_z);
+  dev.memcpyDeviceToHost(redux_gpu.data(), out_data, gpu_out.size()*sizeof(Type));
+  dev.synchronize();
+
+  // Check that the CPU and GPU reductions return the same result.
+  for (int i = 0; i < gpu_out.size(); ++i) {
+    VERIFY_IS_APPROX(2*redux(i), redux_gpu(i));
+  }
+
+  dev.deallocate(in_data);
+  dev.deallocate(out_data);
+}
+
+template<typename Type, int DataLayout>
+static void test_last_dim_reductions() {
+  int dim_x = 128;
+  int dim_y = 1;
+  int dim_z = 33;
+
+  Tensor<Type, 3, DataLayout> in(dim_x, dim_y, dim_z);
+  in.setRandom();
+
+  Eigen::array<int, 1> red_axis;
+  red_axis[0] = 2;
+  Tensor<Type, 2, DataLayout> redux = in.sum(red_axis);
+
+  // Create device
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice dev(&stream);
+  
+  // Create data
+  Type* in_data = (Type*)dev.allocate(dim_x*dim_y*dim_z*sizeof(Type));
+  Type* out_data = (Type*)dev.allocate(dim_x*dim_y*sizeof(Type));
+  Eigen::TensorMap<Eigen::Tensor<Type, 3, DataLayout> > gpu_in(in_data, dim_x, dim_y, dim_z);
+  Eigen::TensorMap<Eigen::Tensor<Type, 2, DataLayout> > gpu_out(out_data, dim_x, dim_y);
+  
+  // Perform operation
+  dev.memcpyHostToDevice(in_data, in.data(), in.size()*sizeof(Type));
+  gpu_out.device(dev) = gpu_in.sum(red_axis);
+  gpu_out.device(dev) += gpu_in.sum(red_axis);
+  Tensor<Type, 2, DataLayout> redux_gpu(dim_x, dim_y);
+  dev.memcpyDeviceToHost(redux_gpu.data(), out_data, gpu_out.size()*sizeof(Type));
+  dev.synchronize();
+
+  // Check that the CPU and GPU reductions return the same result.
+  for (int i = 0; i < gpu_out.size(); ++i) {
+    VERIFY_IS_APPROX(2*redux(i), redux_gpu(i));
+  }
+
+  dev.deallocate(in_data);
+  dev.deallocate(out_data);
+}
+
+
 void test_cxx11_tensor_reduction_cuda() {
   CALL_SUBTEST_1((test_full_reductions<float, ColMajor>()));
   CALL_SUBTEST_1((test_full_reductions<double, ColMajor>()));
   CALL_SUBTEST_2((test_full_reductions<float, RowMajor>()));
   CALL_SUBTEST_2((test_full_reductions<double, RowMajor>()));
+  
+  CALL_SUBTEST_3((test_first_dim_reductions<float, ColMajor>()));
+  CALL_SUBTEST_3((test_first_dim_reductions<double, ColMajor>()));
+  CALL_SUBTEST_4((test_first_dim_reductions<float, RowMajor>()));
+// Outer reductions of doubles aren't supported just yet.  					      
+//  CALL_SUBTEST_4((test_first_dim_reductions<double, RowMajor>()))
+
+  CALL_SUBTEST_5((test_last_dim_reductions<float, ColMajor>()));
+// Outer reductions of doubles aren't supported just yet.  					      
+//  CALL_SUBTEST_5((test_last_dim_reductions<double, ColMajor>()));
+  CALL_SUBTEST_6((test_last_dim_reductions<float, RowMajor>()));
+  CALL_SUBTEST_6((test_last_dim_reductions<double, RowMajor>()));
 }
