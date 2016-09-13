@@ -1073,7 +1073,7 @@ void Transform<Scalar,Dim,Mode,Options>::computeRotationScaling(RotationMatrixTy
   }
 }
 
-/** decomposes the linear part of the transformation as a product rotation x scaling, the scaling being
+/** decomposes the linear part of the transformation as a product scaling x rotation, the scaling being
   * not necessarily positive.
   *
   * If either pointer is zero, the corresponding computation is skipped.
