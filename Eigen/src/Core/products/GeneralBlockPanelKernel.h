@@ -434,15 +434,16 @@ public:
   template<typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
   EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, AccPacketType& tmp) const
   {
+    conj_helper<LhsPacketType,RhsPacketType,ConjLhs,ConjRhs> cj;
     // It would be a lot cleaner to call pmadd all the time. Unfortunately if we
     // let gcc allocate the register in which to store the result of the pmul
     // (in the case where there is no FMA) gcc fails to figure out how to avoid
     // spilling register.
 #ifdef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
     EIGEN_UNUSED_VARIABLE(tmp);
-    c = pmadd(a,b,c);
+    c = cj.pmadd(a,b,c);
 #else
-    tmp = b; tmp = pmul(a,tmp); c = padd(c,tmp);
+    tmp = b; tmp = cj.pmul(a,tmp); c = padd(c,tmp);
 #endif
   }
 
@@ -457,9 +458,6 @@ public:
     r = pmadd(c,alpha,r);
   }
 
-protected:
-//   conj_helper<LhsScalar,RhsScalar,ConjLhs,ConjRhs> cj;
-//   conj_helper<LhsPacket,RhsPacket,ConjLhs,ConjRhs> pcj;
 };
 
 template<typename RealScalar, bool _ConjLhs>
