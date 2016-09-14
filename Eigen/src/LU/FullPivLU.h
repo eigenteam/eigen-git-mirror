@@ -156,7 +156,7 @@ template<typename _MatrixType> class FullPivLU
       *
       * \sa permutationQ()
       */
-    inline const PermutationPType& permutationP() const
+    EIGEN_DEVICE_FUNC inline const PermutationPType& permutationP() const
     {
       eigen_assert(m_isInitialized && "LU is not initialized.");
       return m_p;
@@ -406,8 +406,8 @@ template<typename _MatrixType> class FullPivLU
 
     MatrixType reconstructedMatrix() const;
 
-    inline Index rows() const { return m_lu.rows(); }
-    inline Index cols() const { return m_lu.cols(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_lu.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_lu.cols(); }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
@@ -879,7 +879,7 @@ struct Assignment<DstXprType, Inverse<FullPivLU<MatrixType> >, internal::assign_
   *
   * \sa class FullPivLU
   */
-template<typename Derived>
+template<typename Derived> EIGEN_DEVICE_FUNC
 inline const FullPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::fullPivLu() const
 {
