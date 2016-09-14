@@ -954,8 +954,8 @@ namespace Eigen {
 #  define EIGEN_CATCH(X) catch (X)
 #else
 #  ifdef __CUDA_ARCH__
-#    define EIGEN_THROW_X(X) asm("trap;") return {}
-#    define EIGEN_THROW asm("trap;"); return {}
+#    define EIGEN_THROW_X(X) asm("trap;")
+#    define EIGEN_THROW asm("trap;")
 #  else
 #    define EIGEN_THROW_X(X) std::abort()
 #    define EIGEN_THROW std::abort()
