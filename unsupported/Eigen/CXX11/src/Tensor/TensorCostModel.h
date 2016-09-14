@@ -51,12 +51,15 @@ class TensorOpCost {
         internal::scalar_cast_op<SrcType, TargetType> >::Cost;
   }
 
+  EIGEN_DEVICE_FUNC
   TensorOpCost() : bytes_loaded_(0), bytes_stored_(0), compute_cycles_(0) {}
+  EIGEN_DEVICE_FUNC
   TensorOpCost(double bytes_loaded, double bytes_stored, double compute_cycles)
       : bytes_loaded_(bytes_loaded),
         bytes_stored_(bytes_stored),
         compute_cycles_(compute_cycles) {}
 
+  EIGEN_DEVICE_FUNC
   TensorOpCost(double bytes_loaded, double bytes_stored, double compute_cycles,
                bool vectorized, double packet_size)
       : bytes_loaded_(bytes_loaded),
