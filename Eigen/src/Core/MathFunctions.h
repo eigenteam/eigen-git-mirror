@@ -1312,11 +1312,12 @@ template<typename Scalar>
 struct scalar_fuzzy_default_impl<Scalar, true, false>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y, const RealScalar& prec)
   {
     return numext::abs2(x) <= numext::abs2(y) * prec * prec;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     return numext::abs2(x - y) <= numext::mini(numext::abs2(x), numext::abs2(y)) * prec * prec;
