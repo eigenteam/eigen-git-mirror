@@ -190,25 +190,25 @@ struct reducer_traits<MeanReducer<T>, Device> {
 
 template <typename T, bool IsMax = true, bool IsInteger = true>
 struct MinMaxBottomValue {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE T bottom_value() {
     return Eigen::NumTraits<T>::lowest();
   }
 };
 template <typename T>
 struct MinMaxBottomValue<T, true, false> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE T bottom_value() {
     return -Eigen::NumTraits<T>::infinity();
   }
 };
 template <typename T>
 struct MinMaxBottomValue<T, false, true> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE T bottom_value() {
     return Eigen::NumTraits<T>::highest();
   }
 };
 template <typename T>
 struct MinMaxBottomValue<T, false, false> {
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static T bottom_value() {
+  EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE T bottom_value() {
     return Eigen::NumTraits<T>::infinity();
   }
 };
