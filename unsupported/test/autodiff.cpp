@@ -105,6 +105,89 @@ struct TestFunc1
   }
 };
 
+
+#if EIGEN_HAS_VARIADIC_TEMPLATES
+/* Test functor for the C++11 features. */
+template <typename Scalar>
+struct integratorFunctor
+{
+    typedef Matrix<Scalar, 2, 1> InputType;
+    typedef Matrix<Scalar, 2, 1> ValueType;
+
+    /*
+     * Implementation starts here.
+     */
+    integratorFunctor(const Scalar gain) : _gain(gain) {}
+    integratorFunctor(const integratorFunctor& f) : _gain(f._gain) {}
+    const Scalar _gain;
+
+    template <typename T1, typename T2>
+    void operator() (const T1 &input, T2 *output, const Scalar dt) const
+    {
+        T2 &o = *output;
+
+        /* Integrator to test the AD. */
+        o[0] = input[0] + input[1] * dt * _gain;
+        o[1] = input[1] * _gain;
+    }
+
+    /* Only needed for the test */
+    template <typename T1, typename T2, typename T3>
+    void operator() (const T1 &input, T2 *output, T3 *jacobian, const Scalar dt) const
+    {
+        T2 &o = *output;
+
+        /* Integrator to test the AD. */
+        o[0] = input[0] + input[1] * dt * _gain;
+        o[1] = input[1] * _gain;
+
+        if (jacobian)
+        {
+            T3 &j = *jacobian;
+
+            j(0, 0) = 1;
+            j(0, 1) = dt * _gain;
+            j(1, 0) = 0;
+            j(1, 1) = _gain;
+        }
+    }
+
+};
+
+template<typename Func> void forward_jacobian_cpp11(const Func& f)
+{
+    typedef typename Func::ValueType::Scalar Scalar;
+    typedef typename Func::ValueType ValueType;
+    typedef typename Func::InputType InputType;
+    typedef typename AutoDiffJacobian<Func>::JacobianType JacobianType;
+
+    InputType x = InputType::Random(InputType::RowsAtCompileTime);
+    ValueType y, yref;
+    JacobianType j, jref;
+
+    const Scalar dt = internal::random<double>();
+
+    jref.setZero();
+    yref.setZero();
+    f(x, &yref, &jref, dt);
+
+    //std::cerr << "y, yref, jref: " << "\n";
+    //std::cerr << y.transpose() << "\n\n";
+    //std::cerr << yref << "\n\n";
+    //std::cerr << jref << "\n\n";
+
+    AutoDiffJacobian<Func> autoj(f);
+    autoj(x, &y, &j, dt);
+
+    //std::cerr << "y j (via autodiff): " << "\n";
+    //std::cerr << y.transpose() << "\n\n";
+    //std::cerr << j << "\n\n";
+
+    VERIFY_IS_APPROX(y, yref);
+    VERIFY_IS_APPROX(j, jref);
+}
+#endif
+
 template<typename Func> void forward_jacobian(const Func& f)
 {
     typename Func::InputType x = Func::InputType::Random(f.inputs());
@@ -128,7 +211,6 @@ template<typename Func> void forward_jacobian(const Func& f)
     VERIFY_IS_APPROX(j, jref);
 }
 
-
 // TODO also check actual derivatives!
 template <int>
 void test_autodiff_scalar()
@@ -141,6 +223,7 @@ void test_autodiff_scalar()
   VERIFY_IS_APPROX(res.value(), foo(p.x(),p.y()));
 }
 
+
 // TODO also check actual derivatives!
 template <int>
 void test_autodiff_vector()
@@ -151,7 +234,7 @@ void test_autodiff_vector()
   VectorAD ap = p.cast<AD>();
   ap.x().derivatives() = Vector2f::UnitX();
   ap.y().derivatives() = Vector2f::UnitY();
-  
+
   AD res = foo<VectorAD>(ap);
   VERIFY_IS_APPROX(res.value(), foo(p));
 }
@@ -164,6 +247,9 @@ void test_autodiff_jacobian()
   CALL_SUBTEST(( forward_jacobian(TestFunc1<double,3,2>()) ));
   CALL_SUBTEST(( forward_jacobian(TestFunc1<double,3,3>()) ));
   CALL_SUBTEST(( forward_jacobian(TestFunc1<double>(3,3)) ));
+#if EIGEN_HAS_VARIADIC_TEMPLATES
+  CALL_SUBTEST(( forward_jacobian_cpp11(integratorFunctor<double>(10)) ));
+#endif
 }
 
 
