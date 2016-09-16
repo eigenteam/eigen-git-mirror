@@ -141,6 +141,11 @@ template<typename Derived> class SparseMatrixBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+#define EIGEN_DOC_UNARY_ADDONS(METHOD,OP)  /** <p>This method does not change the sparsity of \c *this: the OP is applied to explicitly stored coefficients only. \sa SparseCompressedBase::coeffs() </p> */
+#else
+#define EIGEN_DOC_UNARY_ADDONS(X,Y)
+#endif
 #   include "../plugins/CommonCwiseUnaryOps.h"
 #   include "../plugins/CommonCwiseBinaryOps.h"
 #   include "../plugins/MatrixCwiseUnaryOps.h"
@@ -149,8 +154,8 @@ template<typename Derived> class SparseMatrixBase
 #   ifdef EIGEN_SPARSEMATRIXBASE_PLUGIN
 #     include EIGEN_SPARSEMATRIXBASE_PLUGIN
 #   endif
-#   undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
+#undef EIGEN_DOC_UNARY_ADDONS
 
     /** \returns the number of rows. \sa cols() */
     inline Index rows() const { return derived().rows(); }
