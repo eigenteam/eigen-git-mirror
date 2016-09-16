@@ -143,8 +143,8 @@ template<typename Derived> class SparseMatrixBase
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
 #ifdef EIGEN_PARSED_BY_DOXYGEN
 #define EIGEN_DOC_UNARY_ADDONS(METHOD,OP)           /** <p>This method does not change the sparsity of \c *this: the OP is applied to explicitly stored coefficients only. \sa SparseCompressedBase::coeffs() </p> */
-#define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL      /** <p> \warning This method returns a read-only expression for any sparse matrices. </p> */
-#define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND) /** <p> \warning This method returns a read-write expression for COND sparse matrices only. Otherwise, the returned expression is read-only. </p> */
+#define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL      /** <p> \warning This method returns a read-only expression for any sparse matrices. \sa \ref TutorialSparse_SubMatrices "Sparse block operations" </p> */
+#define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND) /** <p> \warning This method returns a read-write expression for COND sparse matrices only. Otherwise, the returned expression is read-only. \sa \ref TutorialSparse_SubMatrices "Sparse block operations" </p> */
 #else
 #define EIGEN_DOC_UNARY_ADDONS(X,Y)
 #define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
