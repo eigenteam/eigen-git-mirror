@@ -8,7 +8,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 template<typename T>
-Array<T,4,1> four_denorms();
+Array<T,4,1> four_denorms() { return four_denorms<double>().cast<T>(); }
 
 template<>
 Array4f four_denorms() { return Array4f(5.60844e-39f, -5.60844e-39f, 4.94e-44f, -4.94e-44f); }
