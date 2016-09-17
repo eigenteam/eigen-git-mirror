@@ -49,7 +49,8 @@ void check_inf_nan(bool dryrun) {
     VERIFY( !m.allFinite() );
     VERIFY(  m.hasNaN() );
   }
-  m(4) /= T(0.0);
+  T hidden_zero = (std::numeric_limits<T>::min)()*(std::numeric_limits<T>::min)();
+  m(4) /= hidden_zero;
   if(dryrun)
   {
     std::cout << "std::isfinite(" << m(4) << ") = "; check((std::isfinite)(m(4)),false); std::cout << "  ; numext::isfinite = "; check((numext::isfinite)(m(4)), false); std::cout << "\n";
