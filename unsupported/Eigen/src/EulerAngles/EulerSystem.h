@@ -189,7 +189,12 @@ namespace Eigen
       res[0] = atan2(mat(J,K), mat(K,K));
       Scalar c2 = Vector2(mat(I,I), mat(I,J)).norm();
       if((IsOdd && res[0]<Scalar(0)) || ((!IsOdd) && res[0]>Scalar(0))) {
-        res[0] = (res[0] > Scalar(0)) ? res[0] - Scalar(EIGEN_PI) : res[0] + Scalar(EIGEN_PI);
+        if(res[0] > Scalar(0)) {
+          res[0] -= Scalar(EIGEN_PI);
+        }
+        else {
+          res[0] += Scalar(EIGEN_PI);
+        }
         res[1] = atan2(-mat(I,K), -c2);
       }
       else
@@ -212,7 +217,12 @@ namespace Eigen
       res[0] = atan2(mat(J,I), mat(K,I));
       if((IsOdd && res[0]<Scalar(0)) || ((!IsOdd) && res[0]>Scalar(0)))
       {
-        res[0] = (res[0] > Scalar(0)) ? res[0] - Scalar(EIGEN_PI) : res[0] + Scalar(EIGEN_PI);
+        if(res[0] > Scalar(0)) {
+          res[0] -= Scalar(EIGEN_PI);
+        }
+        else {
+          res[0] += Scalar(EIGEN_PI);
+        }
         Scalar s2 = Vector2(mat(J,I), mat(K,I)).norm();
         res[1] = -atan2(s2, mat(I,I));
       }
