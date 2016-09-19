@@ -19,9 +19,15 @@ namespace Eigen {
   *
   *
   */
+/// template <class> class MakePointer_ is added to convert the host pointer to the device pointer.
+/// It is added due to the fact that for our device compiler T* is not allowed.
+/// If we wanted to use the same Evaluator functions we have to convert that type to our pointer T.
+/// This is done through our MakePointer_ class. By default the Type in the MakePointer_<T> is T* .
+/// Therefore, by adding the default value, we managed to convert the type and it does not break any
+/// existing code as its default value is T*.
 namespace internal {
-template<typename XprType>
-struct traits<TensorForcedEvalOp<XprType> >
+template<typename XprType, template <class> class MakePointer_>
+struct traits<TensorForcedEvalOp<XprType, MakePointer_> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
   typedef typename XprType::Scalar Scalar;
@@ -36,26 +42,30 @@ struct traits<TensorForcedEvalOp<XprType> >
   enum {
     Flags = 0
   };
+  template <class T>
+  struct MakePointer {
+    typedef typename MakePointer_<T>::Type Type;
+  };
 };
 
-template<typename XprType>
-struct eval<TensorForcedEvalOp<XprType>, Eigen::Dense>
+template<typename XprType, template <class> class MakePointer_>
+struct eval<TensorForcedEvalOp<XprType, MakePointer_>, Eigen::Dense>
 {
-  typedef const TensorForcedEvalOp<XprType>& type;
+  typedef const TensorForcedEvalOp<XprType, MakePointer_>& type;
 };
 
-template<typename XprType>
-struct nested<TensorForcedEvalOp<XprType>, 1, typename eval<TensorForcedEvalOp<XprType> >::type>
+template<typename XprType, template <class> class MakePointer_>
+struct nested<TensorForcedEvalOp<XprType, MakePointer_>, 1, typename eval<TensorForcedEvalOp<XprType, MakePointer_> >::type>
 {
-  typedef TensorForcedEvalOp<XprType> type;
+  typedef TensorForcedEvalOp<XprType, MakePointer_> type;
 };
 
 }  // end namespace internal
 
 
 
-template<typename XprType>
-class TensorForcedEvalOp : public TensorBase<TensorForcedEvalOp<XprType>, ReadOnlyAccessors>
+template<typename XprType, template <class> class MakePointer_>
+class TensorForcedEvalOp : public TensorBase<TensorForcedEvalOp<XprType, MakePointer_>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorForcedEvalOp>::Scalar Scalar;
@@ -77,10 +87,10 @@ class TensorForcedEvalOp : public TensorBase<TensorForcedEvalOp<XprType>, ReadOn
 };
 
 
-template<typename ArgType, typename Device>
-struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
+template<typename ArgType, typename Device, template <class> class MakePointer_>
+struct TensorEvaluator<const TensorForcedEvalOp<ArgType, MakePointer_>, Device>
 {
-  typedef TensorForcedEvalOp<ArgType> XprType;
+  typedef TensorForcedEvalOp<ArgType, MakePointer_> XprType;
   typedef typename ArgType::Scalar Scalar;
   typedef typename TensorEvaluator<ArgType, Device>::Dimensions Dimensions;
   typedef typename XprType::Index Index;
@@ -96,6 +106,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
+	/// op_ is used for sycl
       : m_impl(op.expression(), device), m_op(op.expression()), m_device(device), m_buffer(NULL)
   { }
 
@@ -110,10 +121,10 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
         new(m_buffer+i) CoeffReturnType();
       }
     }
-    typedef TensorEvalToOp<const ArgType> EvalTo;
+    typedef TensorEvalToOp< const typename internal::remove_const<ArgType>::type > EvalTo;
     EvalTo evalToTmp(m_buffer, m_op);
     const bool PacketAccess = internal::IsVectorizable<Device, const ArgType>::value;
-    internal::TensorExecutor<const EvalTo, Device, PacketAccess>::run(evalToTmp, m_device);
+    internal::TensorExecutor<const EvalTo, typename internal::remove_const<Device>::type, PacketAccess>::run(evalToTmp, m_device);
     return true;
   }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
@@ -136,13 +147,17 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType>, Device>
     return TensorOpCost(sizeof(CoeffReturnType), 0, 0, vectorized, PacketSize);
   }
 
-  EIGEN_DEVICE_FUNC Scalar* data() const { return m_buffer; }
+  EIGEN_DEVICE_FUNC typename MakePointer<Scalar>::Type data() const { return m_buffer; }
 
+  /// required by sycl in order to extract the sycl accessor
+  const TensorEvaluator<ArgType, Device>& impl() { return m_impl; }
+  /// used by sycl in order to build the sycl buffer
+  const Device& device() const{return m_device;}
  private:
   TensorEvaluator<ArgType, Device> m_impl;
   const ArgType m_op;
   const Device& m_device;
-  CoeffReturnType* m_buffer;
+  typename MakePointer<CoeffReturnType>::Type m_buffer;
 };
 
 

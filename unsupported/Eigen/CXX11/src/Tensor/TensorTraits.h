@@ -56,11 +56,12 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
     Options = Options_,
     Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0 : LvalueBit)
   };
+  template <class T> using MakePointer = MakePointer<T>;
 };
 
 
-template<typename Scalar_, typename Dimensions, int Options_, typename IndexType_>
-struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
+template<typename Scalar_, typename Dimensions, int Options_, typename IndexType_, template <class> class MakePointer_>
+struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_, MakePointer_> >
 {
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
@@ -71,11 +72,12 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
     Options = Options_,
     Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0: LvalueBit)
   };
+  template <class T> using MakePointer = MakePointer_<T>;
 };
 
 
-template<typename PlainObjectType, int Options_>
-struct traits<TensorMap<PlainObjectType, Options_> >
+template<typename PlainObjectType, int Options_ , template <class> class MakePointer_>
+struct traits<TensorMap<PlainObjectType, Options_ , MakePointer_> >
   : public traits<PlainObjectType>
 {
   typedef traits<PlainObjectType> BaseTraits;
@@ -88,6 +90,7 @@ struct traits<TensorMap<PlainObjectType, Options_> >
     Options = Options_,
     Flags = BaseTraits::Flags
   };
+  template <class T> using MakePointer = MakePointer_<T>;
 };
 
 template<typename PlainObjectType>

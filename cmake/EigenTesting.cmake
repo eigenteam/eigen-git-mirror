@@ -109,6 +109,103 @@ macro(ei_add_test_internal testname testname_with_suffix)
 
 endmacro(ei_add_test_internal)
 
+# SYCL
+macro(ei_add_test_internal_sycl testname testname_with_suffix)
+  include_directories( SYSTEM ${COMPUTECPP_PACKAGE_ROOT_DIR}/include)
+  set(targetname ${testname_with_suffix})
+
+  if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+    set(filename ${testname}.${EIGEN_ADD_TEST_FILENAME_EXTENSION})
+  else()
+    set(filename ${testname}.cpp)
+  endif()
+
+  set( include_file ${CMAKE_CURRENT_BINARY_DIR}/inc_${filename})
+  set( bc_file ${CMAKE_CURRENT_BINARY_DIR}/${filename})
+  set( host_file ${CMAKE_CURRENT_SOURCE_DIR}/${filename})
+
+  ADD_CUSTOM_COMMAND(
+    OUTPUT ${include_file}
+    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${host_file}\\\"" > ${include_file}
+    COMMAND ${CMAKE_COMMAND} -E echo "\\#include \\\"${bc_file}.sycl\\\"" >> ${include_file}
+    DEPENDS ${filename}
+    COMMENT "Building ComputeCpp integration header file ${include_file}"
+  )
+  # Add a custom target for the generated integration header
+  add_custom_target(${testname}_integration_header_woho DEPENDS ${include_file})
+
+  add_executable(${targetname} ${include_file})
+  add_dependencies(${targetname} ${testname}_integration_header_woho)
+  add_sycl_to_target(${targetname} ${filename} ${CMAKE_CURRENT_BINARY_DIR})
+
+  if (targetname MATCHES "^eigen2_")
+    add_dependencies(eigen2_buildtests ${targetname})
+  else()
+    add_dependencies(buildtests ${targetname})
+  endif()
+
+  if(EIGEN_NO_ASSERTION_CHECKING)
+    ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_NO_ASSERTION_CHECKING=1")
+  else(EIGEN_NO_ASSERTION_CHECKING)
+    if(EIGEN_DEBUG_ASSERTS)
+      ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
+    endif(EIGEN_DEBUG_ASSERTS)
+  endif(EIGEN_NO_ASSERTION_CHECKING)
+
+  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
+
+  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
+
+  if(MSVC AND NOT EIGEN_SPLIT_LARGE_TESTS)
+    ei_add_target_property(${targetname} COMPILE_FLAGS "/bigobj")
+  endif()
+
+  # let the user pass flags.
+  if(${ARGC} GREATER 2)
+    ei_add_target_property(${targetname} COMPILE_FLAGS "${ARGV2}")
+  endif(${ARGC} GREATER 2)
+
+  if(EIGEN_TEST_CUSTOM_CXX_FLAGS)
+    ei_add_target_property(${targetname} COMPILE_FLAGS "${EIGEN_TEST_CUSTOM_CXX_FLAGS}")
+  endif()
+
+  if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+    target_link_libraries(${targetname} ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
+  endif()
+  if(EXTERNAL_LIBS)
+    target_link_libraries(${targetname} ${EXTERNAL_LIBS})
+  endif()
+  if(EIGEN_TEST_CUSTOM_LINKER_FLAGS)
+    target_link_libraries(${targetname} ${EIGEN_TEST_CUSTOM_LINKER_FLAGS})
+  endif()
+
+  if(${ARGC} GREATER 3)
+    set(libs_to_link ${ARGV3})
+    # it could be that some cmake module provides a bad library string " "  (just spaces),
+    # and that severely breaks target_link_libraries ("can't link to -l-lstdc++" errors).
+    # so we check for strings containing only spaces.
+    string(STRIP "${libs_to_link}" libs_to_link_stripped)
+    string(LENGTH "${libs_to_link_stripped}" libs_to_link_stripped_length)
+    if(${libs_to_link_stripped_length} GREATER 0)
+      # notice: no double quotes around ${libs_to_link} here. It may be a list.
+      target_link_libraries(${targetname} ${libs_to_link})
+    endif()
+  endif()
+
+  add_test(${testname_with_suffix} "${targetname}")
+
+  # Specify target and test labels according to EIGEN_CURRENT_SUBPROJECT
+  get_property(current_subproject GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT)
+  if ((current_subproject) AND (NOT (current_subproject STREQUAL "")))
+    set_property(TARGET ${targetname} PROPERTY LABELS "Build${current_subproject}")
+    add_dependencies("Build${current_subproject}" ${targetname})
+    set_property(TEST ${testname_with_suffix} PROPERTY LABELS "${current_subproject}")
+  endif()
+
+
+endmacro(ei_add_test_internal_sycl)
+
+
 # Macro to add a test
 #
 # the unique mandatory parameter testname must correspond to a file
@@ -185,6 +282,39 @@ macro(ei_add_test testname)
   endif(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
 endmacro(ei_add_test)
 
+macro(ei_add_test_sycl testname)
+  get_property(EIGEN_TESTS_LIST GLOBAL PROPERTY EIGEN_TESTS_LIST)
+  set(EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}${testname}\n")
+  set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}")
+
+  if(EIGEN_ADD_TEST_FILENAME_EXTENSION)
+    set(filename ${testname}.${EIGEN_ADD_TEST_FILENAME_EXTENSION})
+  else()
+    set(filename ${testname}.cpp)
+  endif()
+
+  file(READ "${filename}" test_source)
+  set(parts 0)
+  string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+|EIGEN_SUFFIXES(;[0-9]+)+"
+         occurences "${test_source}")
+  string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_|EIGEN_SUFFIXES" "" suffixes "${occurences}")
+  list(REMOVE_DUPLICATES suffixes)
+  if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
+    add_custom_target(${testname})
+    foreach(suffix ${suffixes})
+      ei_add_test_internal_sycl(${testname} ${testname}_${suffix}
+        "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
+      add_dependencies(${testname} ${testname}_${suffix})
+    endforeach(suffix)
+  else(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
+    set(symbols_to_enable_all_parts "")
+    foreach(suffix ${suffixes})
+      set(symbols_to_enable_all_parts
+        "${symbols_to_enable_all_parts} -DEIGEN_TEST_PART_${suffix}=1")
+    endforeach(suffix)
+    ei_add_test_internal_sycl(${testname} ${testname} "${ARGV1} ${symbols_to_enable_all_parts}" "${ARGV2}")
+  endif(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
+endmacro(ei_add_test_sycl)
 
 # adds a failtest, i.e. a test that succeed if the program fails to compile
 # note that the test runner for these is CMake itself, when passed -DEIGEN_FAILTEST=ON
@@ -330,6 +460,11 @@ macro(ei_testing_print_summary)
       message(STATUS "C++11:             OFF")
     endif()
 
+    if(EIGEN_TEST_SYCL)
+      message(STATUS "SYCL:              ON")
+    else()
+      message(STATUS "SYCL:              OFF")
+    endif()
     if(EIGEN_TEST_CUDA)
       if(EIGEN_TEST_CUDA_CLANG)
         message(STATUS "CUDA:              ON (using clang)")

@@ -811,7 +811,7 @@ class TensorBase<Derived, ReadOnlyAccessors>
 
   protected:
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
-    template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
+    template <typename Scalar, typename Dimensions, int Option, typename IndexTypes, template <class> class MakePointer_> friend class TensorFixedSize;
     template <typename OtherDerived, int AccessLevel> friend class TensorBase;
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
@@ -827,7 +827,7 @@ class TensorBase : public TensorBase<Derived, ReadOnlyAccessors> {
     static const int NumDimensions = DerivedTraits::NumDimensions;
 
     template <typename Scalar, int NumIndices, int Options, typename IndexType> friend class Tensor;
-    template <typename Scalar, typename Dimensions, int Option, typename IndexTypes> friend class TensorFixedSize;
+    template <typename Scalar, typename Dimensions, int Option, typename IndexTypes, template <class> class MakePointer_> friend class TensorFixedSize;
     template <typename OtherDerived, int OtherAccessLevel> friend class TensorBase;
 
     EIGEN_DEVICE_FUNC
