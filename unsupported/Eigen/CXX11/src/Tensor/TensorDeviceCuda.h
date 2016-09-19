@@ -168,39 +168,20 @@ struct GpuDevice {
     return stream_->stream();
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE void* allocate(size_t num_bytes) const {
     return stream_->allocate(num_bytes);
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return NULL;
-#endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE void deallocate(void* buffer) const {
     stream_->deallocate(buffer);
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-#endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void* scratchpad() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE void* scratchpad() const {
     return stream_->scratchpad();
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return NULL;
-#endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE unsigned int* semaphore() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE unsigned int* semaphore() const {
     return stream_->semaphore();
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return NULL;
-#endif
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void* dst, const void* src, size_t n) const {
@@ -210,30 +191,22 @@ struct GpuDevice {
     EIGEN_UNUSED_VARIABLE(err)
     assert(err == cudaSuccess);
 #else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
+  eigen_assert(false && "The default device should be used instead to generate kernel code");
 #endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyHostToDevice(void* dst, const void* src, size_t n) const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE void memcpyHostToDevice(void* dst, const void* src, size_t n) const {
     cudaError_t err =
         cudaMemcpyAsync(dst, src, n, cudaMemcpyHostToDevice, stream_->stream());
     EIGEN_UNUSED_VARIABLE(err)
     assert(err == cudaSuccess);
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-#endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyDeviceToHost(void* dst, const void* src, size_t n) const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE void memcpyDeviceToHost(void* dst, const void* src, size_t n) const {
     cudaError_t err =
         cudaMemcpyAsync(dst, src, n, cudaMemcpyDeviceToHost, stream_->stream());
     EIGEN_UNUSED_VARIABLE(err)
     assert(err == cudaSuccess);
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-#endif
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memset(void* buffer, int c, size_t n) const {
@@ -242,21 +215,21 @@ struct GpuDevice {
     EIGEN_UNUSED_VARIABLE(err)
     assert(err == cudaSuccess);
 #else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
+  eigen_assert(false && "The default device should be used instead to generate kernel code");
 #endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t numThreads() const {
+  EIGEN_STRONG_INLINE size_t numThreads() const {
     // FIXME
     return 32;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
+  EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
     // FIXME
     return 48*1024;
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE size_t lastLevelCacheSize() const {
+  EIGEN_STRONG_INLINE size_t lastLevelCacheSize() const {
     // We won't try to take advantage of the l2 cache for the time being, and
     // there is no l3 cache on cuda devices.
     return firstLevelCacheSize();
@@ -276,56 +249,26 @@ struct GpuDevice {
 #endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int getNumCudaMultiProcessors() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE int getNumCudaMultiProcessors() const {
     return stream_->deviceProperties().multiProcessorCount;
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return 0;
-#endif
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxCudaThreadsPerBlock() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE int maxCudaThreadsPerBlock() const {
     return stream_->deviceProperties().maxThreadsPerBlock;
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return 0;
-#endif
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxCudaThreadsPerMultiProcessor() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE int maxCudaThreadsPerMultiProcessor() const {
     return stream_->deviceProperties().maxThreadsPerMultiProcessor;
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return 0;
-#endif
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int sharedMemPerBlock() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE int sharedMemPerBlock() const {
     return stream_->deviceProperties().sharedMemPerBlock;
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return 0;
-#endif
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE int majorDeviceVersion() const {
     return stream_->deviceProperties().major;
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return 0;
-#endif
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int minorDeviceVersion() const {
-#ifndef __CUDA_ARCH__
+  EIGEN_STRONG_INLINE int minorDeviceVersion() const {
     return stream_->deviceProperties().minor;
-#else
-    eigen_assert(false && "The default device should be used instead to generate kernel code");
-    return 0;
-#endif
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int maxBlocks() const {
+  EIGEN_STRONG_INLINE int maxBlocks() const {
     return max_blocks_;
   }
 
