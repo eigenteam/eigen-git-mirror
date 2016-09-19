@@ -330,15 +330,11 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    EIGEN_DEVICE_FUNC
     inline const FullPivLU<PlainObject> fullPivLu() const;
-    EIGEN_DEVICE_FUNC
     inline const PartialPivLU<PlainObject> partialPivLu() const;
 
-    EIGEN_DEVICE_FUNC
     inline const PartialPivLU<PlainObject> lu() const;
 
-    EIGEN_DEVICE_FUNC
     inline const Inverse<Derived> inverse() const;
 
     template<typename ResultType>
