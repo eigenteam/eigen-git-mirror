@@ -327,7 +327,7 @@ struct Assignment<DstXprType, Inverse<XprType>, internal::assign_op<typename Dst
   *
   * \sa computeInverseAndDetWithCheck()
   */
-template<typename Derived> EIGEN_DEVICE_FUNC
+template<typename Derived>
 inline const Inverse<Derived> MatrixBase<Derived>::inverse() const
 {
   EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsInteger,THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES)
