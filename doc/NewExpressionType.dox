@@ -2,6 +2,12 @@ namespace Eigen {
 
 /** \page TopicNewExpressionType Adding a new expression type
 
+<!--<span style="font-size:130%; color:red; font-weight: 900;"></span>-->
+\warning
+Disclaimer: this page is tailored to very advanced users who are not afraid of dealing with some %Eigen's internal aspects.
+In most cases, a custom expression can be avoided by either using custom \ref MatrixBase::unaryExpr "unary" or \ref MatrixBase::binaryExpr "binary" functors,
+while extremely complex matrix manipulations can be achieved by a nullary functors as described in the \ref TopicCustomizing_NullaryExpr "previous page".
+
 This page describes with the help of an example how to implement a new
 light-weight expression type in %Eigen. This consists of three parts:
 the expression type itself, a traits class containing compile-time
@@ -130,7 +136,7 @@ function can be called.
 If all the fragments are combined, the following output is produced,
 showing that the program works as expected:
 
-\verbinclude make_circulant.out
+\include make_circulant.out
 
 */
 }

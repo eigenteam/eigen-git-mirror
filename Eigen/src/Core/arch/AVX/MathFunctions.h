@@ -266,52 +266,10 @@ pexp<Packet8f>(const Packet8f& _x) {
 }
 
 // Hyperbolic Tangent function.
-// Doesn't do anything fancy, just a 13/6-degree rational interpolant which
-// is accurate up to a couple of ulp in the range [-9, 9], outside of which the
-// fl(tanh(x)) = +/-1.
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
-ptanh<Packet8f>(const Packet8f& _x) {
-  // Clamp the inputs to the range [-9, 9] since anything outside
-  // this range is +/-1.0f in single-precision.
-  _EIGEN_DECLARE_CONST_Packet8f(plus_9, 9.0f);
-  _EIGEN_DECLARE_CONST_Packet8f(minus_9, -9.0f);
-  const Packet8f x = pmax(p8f_minus_9, pmin(p8f_plus_9, _x));
-
-  // The monomial coefficients of the numerator polynomial (odd).
-  _EIGEN_DECLARE_CONST_Packet8f(alpha_1, 4.89352455891786e-03f);
-  _EIGEN_DECLARE_CONST_Packet8f(alpha_3, 6.37261928875436e-04f);
-  _EIGEN_DECLARE_CONST_Packet8f(alpha_5, 1.48572235717979e-05f);
-  _EIGEN_DECLARE_CONST_Packet8f(alpha_7, 5.12229709037114e-08f);
-  _EIGEN_DECLARE_CONST_Packet8f(alpha_9, -8.60467152213735e-11f);
-  _EIGEN_DECLARE_CONST_Packet8f(alpha_11, 2.00018790482477e-13f);
-  _EIGEN_DECLARE_CONST_Packet8f(alpha_13, -2.76076847742355e-16f);
-
-  // The monomial coefficients of the denominator polynomial (even).
-  _EIGEN_DECLARE_CONST_Packet8f(beta_0, 4.89352518554385e-03f);
-  _EIGEN_DECLARE_CONST_Packet8f(beta_2, 2.26843463243900e-03f);
-  _EIGEN_DECLARE_CONST_Packet8f(beta_4, 1.18534705686654e-04f);
-  _EIGEN_DECLARE_CONST_Packet8f(beta_6, 1.19825839466702e-06f);
-
-  // Since the polynomials are odd/even, we need x^2.
-  const Packet8f x2 = pmul(x, x);
-
-  // Evaluate the numerator polynomial p.
-  Packet8f p = pmadd(x2, p8f_alpha_13, p8f_alpha_11);
-  p = pmadd(x2, p, p8f_alpha_9);
-  p = pmadd(x2, p, p8f_alpha_7);
-  p = pmadd(x2, p, p8f_alpha_5);
-  p = pmadd(x2, p, p8f_alpha_3);
-  p = pmadd(x2, p, p8f_alpha_1);
-  p = pmul(x, p);
-
-  // Evaluate the denominator polynomial p.
-  Packet8f q = pmadd(x2, p8f_beta_6, p8f_beta_4);
-  q = pmadd(x2, q, p8f_beta_2);
-  q = pmadd(x2, q, p8f_beta_0);
-
-  // Divide the numerator by the denominator.
-  return pdiv(p, q);
+ptanh<Packet8f>(const Packet8f& x) {
+  return internal::generic_fast_tanh_float(x);
 }
 
 template <>

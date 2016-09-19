@@ -169,7 +169,7 @@ void test_adjoint()
   // test a large static matrix only once
   CALL_SUBTEST_7( adjoint(Matrix<float, 100, 100>()) );
 
-#ifdef EIGEN_TEST_PART_4
+#ifdef EIGEN_TEST_PART_13
   {
     MatrixXcf a(10,10), b(10,10);
     VERIFY_RAISES_ASSERT(a = a.transpose());
@@ -187,6 +187,13 @@ void test_adjoint()
     a.transpose() = a.adjoint();
     a.transpose() += a.adjoint();
     a.transpose() += a.adjoint() + b;
+
+    // regression tests for check_for_aliasing
+    MatrixXd c(10,10);
+    c = 1.0 * MatrixXd::Ones(10,10) + c;
+    c = MatrixXd::Ones(10,10) * 1.0 + c;
+    c = c + MatrixXd::Ones(10,10) .cwiseProduct( MatrixXd::Zero(10,10) );
+    c = MatrixXd::Ones(10,10) * MatrixXd::Zero(10,10);
   }
 #endif
 }

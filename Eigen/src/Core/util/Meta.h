@@ -22,6 +22,16 @@
 
 namespace Eigen {
 
+typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE DenseIndex;
+
+/**
+ * \brief The Index type as used for the API.
+ * \details To change this, \c \#define the preprocessor symbol \c EIGEN_DEFAULT_DENSE_INDEX_TYPE.
+ * \sa \blank \ref TopicPreprocessorDirectives, StorageIndex.
+ */
+
+typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE Index;
+
 namespace internal {
 
 /** \internal
@@ -358,17 +368,46 @@ struct result_of<Func(ArgType0,ArgType1,ArgType2)> {
 };
 #endif
 
+struct meta_yes { char a[1]; };
+struct meta_no  { char a[2]; };
+
 // Check whether T::ReturnType does exist
 template <typename T>
 struct has_ReturnType
 {
-  typedef char yes[1];
-  typedef char no[2];
+  template <typename C> static meta_yes testFunctor(typename C::ReturnType const *);
+  template <typename C> static meta_no testFunctor(...);
 
-  template <typename C> static yes& testFunctor(C const *, typename C::ReturnType const * = 0);
-  static no& testFunctor(...);
+  enum { value = sizeof(testFunctor<T>(0)) == sizeof(meta_yes) };
+};
 
-  static const bool value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(yes);
+template<typename T> const T& return_ref();
+
+template <typename T, typename IndexType=Index>
+struct has_nullary_operator
+{
+  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ref<C>().operator()())>0)>::type * = 0);
+  static meta_no testFunctor(...);
+
+  enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
+};
+
+template <typename T, typename IndexType=Index>
+struct has_unary_operator
+{
+  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ref<C>().operator()(IndexType(0)))>0)>::type * = 0);
+  static meta_no testFunctor(...);
+
+  enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
+};
+
+template <typename T, typename IndexType=Index>
+struct has_binary_operator
+{
+  template <typename C> static meta_yes testFunctor(C const *,typename enable_if<(sizeof(return_ref<C>().operator()(IndexType(0),IndexType(0)))>0)>::type * = 0);
+  static meta_no testFunctor(...);
+
+  enum { value = sizeof(testFunctor(static_cast<T*>(0))) == sizeof(meta_yes) };
 };
 
 /** \internal In short, it computes int(sqrt(\a Y)) with \a Y an integer.

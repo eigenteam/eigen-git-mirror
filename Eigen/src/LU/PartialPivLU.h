@@ -284,7 +284,7 @@ template<typename _MatrixType> class PartialPivLU
     PermutationType m_p;
     TranspositionType m_rowsTranspositions;
     RealScalar m_l1_norm;
-    char m_det_p;
+    signed char m_det_p;
     bool m_isInitialized;
 };
 
@@ -584,14 +584,12 @@ struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assi
   *
   * \sa class PartialPivLU
   */
-#ifndef __CUDACC__
 template<typename Derived>
 inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::partialPivLu() const
 {
   return PartialPivLU<PlainObject>(eval());
 }
-#endif
 
 /** \lu_module
   *
@@ -601,14 +599,12 @@ MatrixBase<Derived>::partialPivLu() const
   *
   * \sa class PartialPivLU
   */
-#ifndef __CUDACC__
 template<typename Derived>
 inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::lu() const
 {
   return PartialPivLU<PlainObject>(eval());
 }
-#endif
 
 } // end namespace Eigen
 

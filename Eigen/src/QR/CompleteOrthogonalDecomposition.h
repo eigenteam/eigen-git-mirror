@@ -547,7 +547,6 @@ CompleteOrthogonalDecomposition<MatrixType>::householderQ() const {
   return m_cpqr.householderQ();
 }
 
-#ifndef __CUDACC__
 /** \return the complete orthogonal decomposition of \c *this.
   *
   * \sa class CompleteOrthogonalDecomposition
@@ -557,7 +556,6 @@ const CompleteOrthogonalDecomposition<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::completeOrthogonalDecomposition() const {
   return CompleteOrthogonalDecomposition<PlainObject>(eval());
 }
-#endif  // __CUDACC__
 
 }  // end namespace Eigen
 

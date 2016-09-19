@@ -25,8 +25,9 @@ template<typename Dimensions, typename LhsXprType, typename RhsXprType>
 struct traits<TensorContractionOp<Dimensions, LhsXprType, RhsXprType> >
 {
   // Type promotion to handle the case where the types of the lhs and the rhs are different.
-  typedef typename internal::promote_storage_type<typename LhsXprType::Scalar,
-                                                  typename RhsXprType::Scalar>::ret Scalar;
+  typedef typename gebp_traits<typename remove_const<typename LhsXprType::Scalar>::type,
+                               typename remove_const<typename RhsXprType::Scalar>::type>::ResScalar Scalar;
+
   typedef typename promote_storage_type<typename traits<LhsXprType>::StorageKind,
                                         typename traits<RhsXprType>::StorageKind>::ret StorageKind;
   typedef typename promote_index_type<typename traits<LhsXprType>::Index,
@@ -75,8 +76,8 @@ class TensorContractionOp : public TensorBase<TensorContractionOp<Indices, LhsXp
 {
   public:
   typedef typename Eigen::internal::traits<TensorContractionOp>::Scalar Scalar;
-  typedef typename internal::promote_storage_type<typename LhsXprType::CoeffReturnType,
-                                                  typename RhsXprType::CoeffReturnType>::ret CoeffReturnType;
+  typedef typename internal::gebp_traits<typename LhsXprType::CoeffReturnType,
+                                                   typename RhsXprType::CoeffReturnType>::ResScalar CoeffReturnType;
   typedef typename Eigen::internal::nested<TensorContractionOp>::type Nested;
   typedef typename Eigen::internal::traits<TensorContractionOp>::StorageKind StorageKind;
   typedef typename Eigen::internal::traits<TensorContractionOp>::Index Index;

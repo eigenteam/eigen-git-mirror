@@ -459,30 +459,33 @@ struct arg_retval
 /****************************************************************************
 * Implementation of log1p                                                   *
 ****************************************************************************/
-template<typename Scalar, bool isComplex = NumTraits<Scalar>::IsComplex >
-struct log1p_impl
-{
-  static EIGEN_DEVICE_FUNC inline Scalar run(const Scalar& x)
-  {
+
+namespace std_fallback {
+  // fallback log1p implementation in case there is no log1p(Scalar) function in namespace of Scalar,
+  // or that there is no suitable std::log1p function available
+  template<typename Scalar>
+  EIGEN_DEVICE_FUNC inline Scalar log1p(const Scalar& x) {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     typedef typename NumTraits<Scalar>::Real RealScalar;
     EIGEN_USING_STD_MATH(log);
     Scalar x1p = RealScalar(1) + x;
     return ( x1p == Scalar(1) ) ? x : x * ( log(x1p) / (x1p - RealScalar(1)) );
   }
-};
+}
 
-#if EIGEN_HAS_CXX11_MATH && !defined(__CUDACC__)
 template<typename Scalar>
-struct log1p_impl<Scalar, false> {
+struct log1p_impl {
   static inline Scalar run(const Scalar& x)
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    #if EIGEN_HAS_CXX11_MATH
     using std::log1p;
+    #endif
+    using std_fallback::log1p;
     return log1p(x);
   }
 };
-#endif
+
 
 template<typename Scalar>
 struct log1p_retval
@@ -615,16 +618,18 @@ struct random_default_impl<Scalar, false, true>
     typedef typename conditional<NumTraits<Scalar>::IsSigned,std::ptrdiff_t,std::size_t>::type ScalarX;
     if(y<x)
       return x;
+    // the following difference might overflow on a 32 bits system,
+    // but since y>=x the result converted to an unsigned long is still correct.
     std::size_t range = ScalarX(y)-ScalarX(x);
     std::size_t offset = 0;
     // rejection sampling
-    std::size_t divisor    = (range+RAND_MAX-1)/(range+1);
-    std::size_t multiplier = (range+RAND_MAX-1)/std::size_t(RAND_MAX);
-
+    std::size_t divisor = 1;
+    std::size_t multiplier = 1;
+    if(range<RAND_MAX) divisor = (std::size_t(RAND_MAX)+1)/(range+1);
+    else               multiplier = 1 + range/(std::size_t(RAND_MAX)+1);
     do {
-      offset = ( (std::size_t(std::rand()) * multiplier) / divisor );
+      offset = (std::size_t(std::rand()) * multiplier) / divisor;
     } while (offset > range);
-
     return Scalar(ScalarX(x) + offset);
   }
 
@@ -785,6 +790,8 @@ template<typename T> EIGEN_DEVICE_FUNC bool isfinite_impl(const std::complex<T>&
 template<typename T> EIGEN_DEVICE_FUNC bool isnan_impl(const std::complex<T>& x);
 template<typename T> EIGEN_DEVICE_FUNC bool isinf_impl(const std::complex<T>& x);
 
+template<typename T> T generic_fast_tanh_float(const T& a_x);
+
 } // end namespace internal
 
 /****************************************************************************
@@ -921,6 +928,14 @@ inline EIGEN_MATHFUNC_RETVAL(log1p, Scalar) log1p(const Scalar& x)
   return EIGEN_MATHFUNC_IMPL(log1p, Scalar)::run(x);
 }
 
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float log1p(const float &x) { return ::log1pf(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double log1p(const double &x) { return ::log1p(x); }
+#endif
+
 template<typename ScalarX,typename ScalarY>
 EIGEN_DEVICE_FUNC
 inline typename internal::pow_impl<ScalarX,ScalarY>::result_type pow(const ScalarX& x, const ScalarY& y)
@@ -1031,6 +1046,16 @@ float abs(const float &x) { return ::fabsf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double abs(const double &x) { return ::fabs(x); }
+
+template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float abs(const std::complex<float>& x) {
+  return ::hypotf(real(x), imag(x));
+}
+
+template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double abs(const std::complex<double>& x) {
+  return ::hypot(real(x), imag(x));
+}
 #endif
 
 template<typename T>
@@ -1175,6 +1200,11 @@ T tanh(const T &x) {
   EIGEN_USING_STD_MATH(tanh);
   return tanh(x);
 }
+
+#if (!defined(__CUDACC__)) && EIGEN_FAST_MATH
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float tanh(float x) { return internal::generic_fast_tanh_float(x); }
+#endif
 
 #ifdef __CUDACC__
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE

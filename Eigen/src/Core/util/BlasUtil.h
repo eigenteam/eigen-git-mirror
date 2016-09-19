@@ -44,16 +44,29 @@ template<bool Conjugate> struct conj_if;
 
 template<> struct conj_if<true> {
   template<typename T>
-  inline T operator()(const T& x) { return numext::conj(x); }
+  inline T operator()(const T& x) const { return numext::conj(x); }
   template<typename T>
-  inline T pconj(const T& x) { return internal::pconj(x); }
+  inline T pconj(const T& x) const { return internal::pconj(x); }
 };
 
 template<> struct conj_if<false> {
   template<typename T>
-  inline const T& operator()(const T& x) { return x; }
+  inline const T& operator()(const T& x) const { return x; }
   template<typename T>
-  inline const T& pconj(const T& x) { return x; }
+  inline const T& pconj(const T& x) const { return x; }
+};
+
+// Generic implementation for custom complex types.
+template<typename LhsScalar, typename RhsScalar, bool ConjLhs, bool ConjRhs>
+struct conj_helper
+{
+  typedef typename ScalarBinaryOpTraits<LhsScalar,RhsScalar>::ReturnType Scalar;
+
+  EIGEN_STRONG_INLINE Scalar pmadd(const LhsScalar& x, const RhsScalar& y, const Scalar& c) const
+  { return padd(c, pmul(x,y)); }
+
+  EIGEN_STRONG_INLINE Scalar pmul(const LhsScalar& x, const RhsScalar& y) const
+  { return conj_if<ConjLhs>()(x) *  conj_if<ConjRhs>()(y); }
 };
 
 template<typename Scalar> struct conj_helper<Scalar,Scalar,false,false>
@@ -315,6 +328,11 @@ struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, NestedXpr, const Cwi
   static inline Scalar extractScalarFactor(const XprType& x)
   { return Base::extractScalarFactor(x.lhs()) * x.rhs().functor().m_other; }
 };
+template<typename Scalar, typename Plain1, typename Plain2>
+struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain1>,
+                                                            const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain2> > >
+ : blas_traits<CwiseNullaryOp<scalar_constant_op<Scalar>,Plain1> >
+{};
 
 // pop opposite
 template<typename Scalar, typename NestedXpr>

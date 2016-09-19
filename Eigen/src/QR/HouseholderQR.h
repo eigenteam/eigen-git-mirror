@@ -128,9 +128,6 @@ template<typename _MatrixType> class HouseholderQR
       *
       * \returns a solution.
       *
-      * \note The case where b is a matrix is not yet implemented. Also, this
-      *       code is space inefficient.
-      *
       * \note_about_checking_solutions
       *
       * \note_about_arbitrary_choice_of_solution
@@ -396,7 +393,6 @@ void HouseholderQR<MatrixType>::computeInPlace()
   m_isInitialized = true;
 }
 
-#ifndef __CUDACC__
 /** \return the Householder QR decomposition of \c *this.
   *
   * \sa class HouseholderQR
@@ -407,7 +403,6 @@ MatrixBase<Derived>::householderQr() const
 {
   return HouseholderQR<PlainObject>(eval());
 }
-#endif // __CUDACC__
 
 } // end namespace Eigen
 

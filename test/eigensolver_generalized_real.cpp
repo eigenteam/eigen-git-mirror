@@ -7,6 +7,7 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#define EIGEN_RUNTIME_NO_MALLOC
 #include "main.h"
 #include <limits>
 #include <Eigen/Eigenvalues>
@@ -42,18 +43,31 @@ template<typename MatrixType> void generalized_eigensolver_real(const MatrixType
     VectorType realEigenvalues = eig.eigenvalues().real();
     std::sort(realEigenvalues.data(), realEigenvalues.data()+realEigenvalues.size());
     VERIFY_IS_APPROX(realEigenvalues, symmEig.eigenvalues());
+
+    // check eigenvectors
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType D = eig.eigenvalues().asDiagonal();
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType V = eig.eigenvectors();
+    VERIFY_IS_APPROX(spdA*V, spdB*V*D);
   }
 
   // non symmetric case:
   {
-    GeneralizedEigenSolver<MatrixType> eig(a,b);
+    GeneralizedEigenSolver<MatrixType> eig(rows);
+    // TODO enable full-prealocation of required memory, this probably requires an in-place mode for HessenbergDecomposition
+    //Eigen::internal::set_is_malloc_allowed(false);
+    eig.compute(a,b);
+    //Eigen::internal::set_is_malloc_allowed(true);
     for(Index k=0; k<cols; ++k)
     {
       Matrix<ComplexScalar,Dynamic,Dynamic> tmp = (eig.betas()(k)*a).template cast<ComplexScalar>() - eig.alphas()(k)*b;
-      if(tmp.norm()>(std::numeric_limits<Scalar>::min)())
+      if(tmp.size()>1 && tmp.norm()>(std::numeric_limits<Scalar>::min)())
         tmp /= tmp.norm();
       VERIFY_IS_MUCH_SMALLER_THAN( std::abs(tmp.determinant()), Scalar(1) );
     }
+    // check eigenvectors
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType D = eig.eigenvalues().asDiagonal();
+    typename GeneralizedEigenSolver<MatrixType>::EigenvectorsType V = eig.eigenvectors();
+    VERIFY_IS_APPROX(a*V, b*V*D);
   }
 
   // regression test for bug 1098

@@ -98,9 +98,11 @@ else()
 endif()
 
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
-if(NOT WIN32)
+
+# Disable pkgconfig only for native Windows builds
+if(NOT WIN32 OR NOT CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
   option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
-endif(NOT WIN32)
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -403,7 +405,7 @@ if(EIGEN_BUILD_PKGCONFIG)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen3.pc
         DESTINATION ${PKGCONFIG_INSTALL_DIR}
         )
-endif(EIGEN_BUILD_PKGCONFIG)
+endif()
 
 add_subdirectory(Eigen)
 

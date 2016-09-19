@@ -162,6 +162,11 @@ template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4,
 template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2, alignment=Aligned16}; typedef Packet2d half; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4, alignment=Aligned16}; typedef Packet4i half; };
 
+#ifndef EIGEN_VECTORIZE_AVX
+template<> struct scalar_div_cost<float,true> { enum { value = 7 }; };
+template<> struct scalar_div_cost<double,true> { enum { value = 8 }; };
+#endif
+
 #if EIGEN_COMP_MSVC==1500
 // Workaround MSVC 9 internal compiler error.
 // TODO: It has been detected with win64 builds (amd64), so let's check whether it also happens in 32bits+SSE mode
@@ -812,6 +817,16 @@ template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, cons
   return _mm_or_pd(_mm_andnot_pd(false_mask, thenPacket), _mm_and_pd(false_mask, elsePacket));
 #endif
 }
+
+// Scalar path for pmadd with FMA to ensure consistency with vectorized path.
+#ifdef __FMA__
+template<> EIGEN_STRONG_INLINE float pmadd(const float& a, const float& b, const float& c) {
+  return ::fmaf(a,b,c);
+}
+template<> EIGEN_STRONG_INLINE double pmadd(const double& a, const double& b, const double& c) {
+  return ::fma(a,b,c);
+}
+#endif
 
 } // end namespace internal
 

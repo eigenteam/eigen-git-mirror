@@ -436,7 +436,7 @@ template<typename _MatrixType> class FullPivLU
     Index m_nonzero_pivots;
     RealScalar m_l1_norm;
     RealScalar m_maxpivot, m_prescribedThreshold;
-    char m_det_pq;
+    signed char m_det_pq;
     bool m_isInitialized, m_usePrescribedThreshold;
 };
 
@@ -879,14 +879,12 @@ struct Assignment<DstXprType, Inverse<FullPivLU<MatrixType> >, internal::assign_
   *
   * \sa class FullPivLU
   */
-#ifndef __CUDACC__
 template<typename Derived>
 inline const FullPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::fullPivLu() const
 {
   return FullPivLU<PlainObject>(eval());
 }
-#endif
 
 } // end namespace Eigen
 

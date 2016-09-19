@@ -207,6 +207,16 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
     VERIFY_IS_APPROX((m1 = -m1.transpose()), (refM1 = -refM1.transpose().eval()));
     VERIFY_IS_APPROX((m1 += -m1), (refM1 += -refM1));
+
+    if(m1.isCompressed())
+    {
+      VERIFY_IS_APPROX(m1.coeffs().sum(), m1.sum());
+      m1.coeffs() += s1;
+      for(Index j = 0; j<m1.outerSize(); ++j)
+        for(typename SparseMatrixType::InnerIterator it(m1,j); it; ++it)
+          refM1(it.row(), it.col()) += s1;
+      VERIFY_IS_APPROX(m1, refM1);
+    }
   }
 
   // test transpose

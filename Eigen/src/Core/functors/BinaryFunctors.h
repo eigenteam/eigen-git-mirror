@@ -287,7 +287,7 @@ struct functor_traits<scalar_hypot_op<Scalar,Scalar> > {
   {
     Cost = 3 * NumTraits<Scalar>::AddCost +
            2 * NumTraits<Scalar>::MulCost +
-           2 * NumTraits<Scalar>::template Div<false>::Cost,
+           2 * scalar_div_cost<Scalar,false>::value,
     PacketAccess = false
   };
 };
@@ -375,7 +375,7 @@ struct functor_traits<scalar_quotient_op<LhsScalar,RhsScalar> > {
   typedef typename scalar_quotient_op<LhsScalar,RhsScalar>::result_type result_type;
   enum {
     PacketAccess = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasDiv && packet_traits<RhsScalar>::HasDiv,
-    Cost = NumTraits<result_type>::template Div<PacketAccess>::Cost
+    Cost = scalar_div_cost<result_type,PacketAccess>::value
   };
 };
 

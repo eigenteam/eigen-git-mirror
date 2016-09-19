@@ -63,7 +63,7 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct m
   * \brief %Dense storage base class for matrices and arrays.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
-  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_PLAINOBJECTBASE_PLUGIN.
+  * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_PLAINOBJECTBASE_PLUGIN.
   *
   * \sa \ref TopicClassHierarchy
   */
