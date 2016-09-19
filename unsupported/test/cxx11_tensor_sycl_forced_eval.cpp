@@ -1,7 +1,11 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2016 Benoit Steiner <benoit.steiner.goog@gmail.com>
+// Copyright (C) 2016
+// Mehdi Goli    Codeplay Software Ltd.
+// Ralph Potter  Codeplay Software Ltd.
+// Luke Iwanski  Codeplay Software Ltd.
+// Contact: <eigen@codeplay.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
