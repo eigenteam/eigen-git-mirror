@@ -15,7 +15,7 @@
 #include <cuda_fp16.h>
 #endif
 #include "main.h"
-#include <Eigen/CXX11/Tensor>
+#include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
 
@@ -48,16 +48,16 @@ void test_cuda_complex_cwise_ops() {
   gpu_in2.device(gpu_device) = gpu_in2.constant(b);
 
   enum CwiseOp {
-    Add,
+    Add = 0,
     Sub,
     Mul,
     Div
   };
 
-  Tensor<std::complex<T>, 1, 0, int> actual(2);
-  for (CwiseOp op : {Add, Sub, Mul, Div}) {
+  Tensor<std::complex<T>, 1, 0, int> actual(kNumItems);
+  for (int op = Add; op <= Div; op++) {
     std::complex<T> expected;
-    switch (op) {
+    switch (static_cast<CwiseOp>(op)) {
       case Add:
         gpu_out.device(gpu_device) = gpu_in1 + gpu_in2;
         expected = a + b;
