@@ -226,6 +226,7 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 
   ei_add_test(cxx11_tensor_complex_cuda)
+  ei_add_test(cxx11_tensor_complex_cwise_ops_cuda)
   ei_add_test(cxx11_tensor_reduction_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
   ei_add_test(cxx11_tensor_cast_float16_cuda)
