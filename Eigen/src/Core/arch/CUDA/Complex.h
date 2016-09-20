@@ -25,6 +25,8 @@ namespace internal {
 // building for CUDA to avoid non-constexpr methods.
 
 template<typename T> struct scalar_sum_op<std::complex<T>> {
+  typedef typename std::complex<T> result_type;
+
   EIGEN_EMPTY_STRUCT_CTOR(scalar_sum_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const std::complex<T> operator() (const std::complex<T>& a, const std::complex<T>& b) const {
     return std::complex<T>(numext::real(a) + numext::real(b),
@@ -33,6 +35,8 @@ template<typename T> struct scalar_sum_op<std::complex<T>> {
 };
 
 template<typename T> struct scalar_difference_op<std::complex<T>> {
+  typedef typename std::complex<T> result_type;
+
   EIGEN_EMPTY_STRUCT_CTOR(scalar_difference_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const std::complex<T> operator() (const std::complex<T>& a, const std::complex<T>& b) const {
     return std::complex<T>(numext::real(a) - numext::real(b),
@@ -44,6 +48,8 @@ template<typename T> struct scalar_product_op<std::complex<T>, std::complex<T>> 
   enum {
     Vectorizable = packet_traits<std::complex<T>>::HasMul
   };
+  typedef typename std::complex<T> result_type;
+
   EIGEN_EMPTY_STRUCT_CTOR(scalar_product_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const std::complex<T> operator() (const std::complex<T>& a, const std::complex<T>& b) const {
     const T a_real = numext::real(a);
@@ -59,6 +65,8 @@ template<typename T> struct scalar_quotient_op<std::complex<T>, std::complex<T>>
   enum {
     Vectorizable = packet_traits<std::complex<T>>::HasDiv
   };
+  typedef typename std::complex<T> result_type;
+
   EIGEN_EMPTY_STRUCT_CTOR(scalar_quotient_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const std::complex<T> operator() (const std::complex<T>& a, const std::complex<T>& b) const {
     const T a_real = numext::real(a);
