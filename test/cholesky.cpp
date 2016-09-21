@@ -417,7 +417,7 @@ void cholesky_faillure_cases()
     VERIFY_IS_NOT_APPROX(mat,ldlt.reconstructedMatrix());
     VERIFY(ldlt.info()==NumericalIssue);
   }
-#if (!EIGEN_ARCH_i386) || EIGEN_VECTORIZE_SSE2
+#if (!EIGEN_ARCH_i386) || defined(EIGEN_VECTORIZE_SSE2)
   {
     mat.resize(3,3);
     mat << -1, -3, 3,
