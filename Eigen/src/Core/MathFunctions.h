@@ -97,6 +97,19 @@ struct real_default_impl<Scalar,true>
 
 template<typename Scalar> struct real_impl : real_default_impl<Scalar> {};
 
+#ifdef __CUDA_ARCH__
+template<typename T>
+struct real_impl<std::complex<T> >
+{
+  typedef T RealScalar;
+  EIGEN_DEVICE_FUNC
+  static inline T run(const std::complex<T>& x)
+  {
+    return x.real();
+  }
+};
+#endif
+
 template<typename Scalar>
 struct real_retval
 {
@@ -131,6 +144,19 @@ struct imag_default_impl<Scalar,true>
 };
 
 template<typename Scalar> struct imag_impl : imag_default_impl<Scalar> {};
+
+#ifdef __CUDA_ARCH__
+template<typename T>
+struct imag_impl<std::complex<T> >
+{
+  typedef T RealScalar;
+  EIGEN_DEVICE_FUNC
+  static inline T run(const std::complex<T>& x)
+  {
+    return x.imag();
+  }
+};
+#endif
 
 template<typename Scalar>
 struct imag_retval
