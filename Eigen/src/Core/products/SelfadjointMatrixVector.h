@@ -179,7 +179,7 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,0,true>
   {
     typedef typename Dest::Scalar ResScalar;
     typedef typename Rhs::Scalar RhsScalar;
-    typedef Map<Matrix<ResScalar,Dynamic,1>, Aligned> MappedDest;
+    typedef Map<Matrix<ResScalar,Dynamic,1>, EIGEN_PLAIN_ENUM_MIN(AlignedMax,internal::packet_traits<ResScalar>::size)> MappedDest;
     
     eigen_assert(dest.rows()==a_lhs.rows() && dest.cols()==a_rhs.cols());
 

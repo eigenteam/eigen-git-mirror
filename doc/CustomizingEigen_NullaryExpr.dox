@@ -53,6 +53,33 @@ showing that the program works as expected:
 
 This implementation of \c makeCirculant is much simpler than \ref TopicNewExpressionType "defining a new expression" from scratch.
 
+
+\section NullaryExpr_Indexing Example 2: indexing rows and columns
+
+The goal here is to mimic MatLab's ability to index a matrix through two vectors of indices referencing the rows and columns to be picked respectively, like this:
+
+\snippet nullary_indexing.out main1
+
+To this end, let us first write a nullary-functor storing references to the input matrix and to the two arrays of indices, and implementing the required \c operator()(i,j):
+
+\snippet nullary_indexing.cpp functor
+
+Then, let's create an \c indexing(A,rows,cols) function creating the nullary expression:
+
+\snippet nullary_indexing.cpp function
+
+Finally, here is an example of how this function can be used:
+
+\snippet nullary_indexing.cpp main1
+
+This straightforward implementation is already quite powerful as the row or column index arrays can also be expressions to perform offsetting, modulo, striding, reverse, etc.
+
+\snippet nullary_indexing.cpp main2
+
+and the output is:
+
+\snippet nullary_indexing.out main2
+
 */
 
 }

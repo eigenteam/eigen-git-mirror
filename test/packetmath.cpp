@@ -365,6 +365,7 @@ template<typename Scalar> void packetmath_real()
   }
 
   if (PacketTraits::HasTanh) {
+    // NOTE this test migh fail with GCC prior to 6.3, see MathFunctionsImpl.h for details.
     data1[0] = std::numeric_limits<Scalar>::quiet_NaN();
     packet_helper<internal::packet_traits<Scalar>::HasTanh,Packet> h;
     h.store(data2, internal::ptanh(h.load(data1)));

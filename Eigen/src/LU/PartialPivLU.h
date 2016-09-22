@@ -584,7 +584,7 @@ struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assi
   *
   * \sa class PartialPivLU
   */
-template<typename Derived> EIGEN_DEVICE_FUNC
+template<typename Derived>
 inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::partialPivLu() const
 {
@@ -599,7 +599,7 @@ MatrixBase<Derived>::partialPivLu() const
   *
   * \sa class PartialPivLU
   */
-template<typename Derived> EIGEN_DEVICE_FUNC
+template<typename Derived>
 inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::lu() const
 {

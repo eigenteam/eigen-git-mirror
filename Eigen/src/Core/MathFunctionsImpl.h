@@ -29,8 +29,12 @@ T generic_fast_tanh_float(const T& a_x)
   // this range is +/-1.0f in single-precision.
   const T plus_9 = pset1<T>(9.f);
   const T minus_9 = pset1<T>(-9.f);
-  const T x = pmax(minus_9, pmin(plus_9, a_x));
-
+  // NOTE GCC prior to 6.3 might improperly optimize this max/min
+  //      step such that if a_x is nan, x will be either 9 or -9,
+  //      and tanh will return 1 or -1 instead of nan.
+  //      This is supposed to be fixed in gcc6.3,
+  //      see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
+  const T x = pmax(minus_9,pmin(plus_9,a_x));
   // The monomial coefficients of the numerator polynomial (odd).
   const T alpha_1 = pset1<T>(4.89352455891786e-03f);
   const T alpha_3 = pset1<T>(6.37261928875436e-04f);

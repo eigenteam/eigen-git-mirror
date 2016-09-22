@@ -14,6 +14,8 @@ template<>
 Array4f four_denorms() { return Array4f(5.60844e-39f, -5.60844e-39f, 4.94e-44f, -4.94e-44f); }
 template<>
 Array4d four_denorms() { return Array4d(5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324); }
+template<typename T>
+Array<T,4,1> four_denorms() { return four_denorms<double>().cast<T>(); }
 
 template<typename MatrixType>
 void svd_fill_random(MatrixType &m, int Option = 0)

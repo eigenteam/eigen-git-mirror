@@ -359,6 +359,7 @@ using std::ptrdiff_t;
   #include "src/Core/arch/ZVector/Complex.h"
 #endif
 
+#include "src/Core/arch/CUDA/Complex.h"
 // Half float support
 #include "src/Core/arch/CUDA/Half.h"
 #include "src/Core/arch/CUDA/PacketMathHalf.h"

@@ -216,7 +216,7 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
     typedef internal::blas_traits<Rhs> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     
-    typedef Map<Matrix<ResScalar,Dynamic,1>, Aligned> MappedDest;
+    typedef Map<Matrix<ResScalar,Dynamic,1>, EIGEN_PLAIN_ENUM_MIN(AlignedMax,internal::packet_traits<ResScalar>::size)> MappedDest;
 
     typename internal::add_const_on_value_type<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
