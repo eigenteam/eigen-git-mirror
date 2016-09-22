@@ -220,7 +220,7 @@ DenseBase<Derived>::Constant(const Scalar& value)
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
   * This particular version of LinSpaced() uses sequential access, i.e. vector access is
-  * assumed to be a(0), a(1), ..., a(size). This assumption allows for better vectorization
+  * assumed to be a(0), a(1), ..., a(size-1). This assumption allows for better vectorization
   * and yields faster code than the random access version.
   *
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
@@ -389,7 +389,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index newSize, con
 /**
   * \brief Sets a linearly spaced vector.
   *
-  * The function fill *this with equally spaced values in the closed interval [low,high].
+  * The function fills *this with equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
