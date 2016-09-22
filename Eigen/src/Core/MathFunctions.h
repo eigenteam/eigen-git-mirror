@@ -1049,12 +1049,12 @@ double abs(const double &x) { return ::fabs(x); }
 
 template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float abs(const std::complex<float>& x) {
-  return ::hypotf(real(x), imag(x));
+  return ::hypotf(x.real(), x.imag());
 }
 
 template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double abs(const std::complex<double>& x) {
-  return ::hypot(real(x), imag(x));
+  return ::hypot(x.real(), x.imag());
 }
 #endif
 
