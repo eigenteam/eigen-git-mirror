@@ -314,7 +314,6 @@ template<typename PlainObjectType, int Options_, template <class> class MakePoin
   private:
     typename MakePointer_<Scalar>::Type m_data;
     Dimensions m_dimensions;
-    size_t is_coverted= size_t(0);
 };
 
 } // end namespace Eigen
