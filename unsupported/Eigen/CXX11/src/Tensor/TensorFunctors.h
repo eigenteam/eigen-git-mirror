@@ -895,7 +895,7 @@ class GaussianGenerator {
     }
   }
 
-  T operator()(const array<Index, NumDims>& coordinates) const {
+  EIGEN_DEVICE_FUNC T operator()(const array<Index, NumDims>& coordinates) const {
     T tmp = T(0);
     for (size_t i = 0; i < NumDims; ++i) {
       T offset = coordinates[i] - m_means[i];
