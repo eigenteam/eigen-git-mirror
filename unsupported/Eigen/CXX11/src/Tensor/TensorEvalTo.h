@@ -119,7 +119,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType, MakePointer_>, Device>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ~TensorEvaluator() {
   }
 
-  typedef typename internal::traits<const TensorEvalToOp<ArgType, MakePointer_>>::template MakePointer<CoeffReturnType>::Type DevicePointer;
+  typedef typename internal::traits<const TensorEvalToOp<ArgType, MakePointer_> >::template MakePointer<CoeffReturnType>::Type DevicePointer;
   EIGEN_DEVICE_FUNC const Dimensions& dimensions() const { return m_impl.dimensions(); }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(DevicePointer scalar) {
