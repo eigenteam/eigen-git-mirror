@@ -594,7 +594,7 @@ void test_geo_transformations()
     CALL_SUBTEST_7(( transform_products<double,3,RowMajor|AutoAlign>() ));
     CALL_SUBTEST_7(( transform_products<float,2,AutoAlign>() ));
 
-    CALL_SUBTEST_8(( transform_associativity<double,2,ColMajor>(Rotation2D<double>(internal::random<double>()*double(EIGEN_PI))) ));
-    CALL_SUBTEST_8(( transform_associativity<double,3,ColMajor>(Quaterniond::UnitRandom()) ));
+    CALL_SUBTEST_8(( transform_associativity<double,2,ColMajor>(Rotation2D<double>(internal::random<double>()*double(3.14))) ));
+    CALL_SUBTEST_8(( transform_associativity<double,3,ColMajor>(Quaterniond(Vector4d::Random().normalized())) ));
   }
 }
