@@ -265,7 +265,7 @@ void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const 
   // FIXME not very good if rhs is real and lhs complex while alpha is real too
   const Index cols = dst.cols();
   for (Index j=0; j<cols; ++j)
-    func(dst.col(j), rhsEval.coeff(0,j) * actual_lhs);
+    func(dst.col(j), rhsEval.coeff(Index(0),j) * actual_lhs);
 }
 
 // Row major result
@@ -278,7 +278,7 @@ void outer_product_selector_run(Dst& dst, const Lhs &lhs, const Rhs &rhs, const 
   // FIXME not very good if lhs is real and rhs complex while alpha is real too
   const Index rows = dst.rows();
   for (Index i=0; i<rows; ++i)
-    func(dst.row(i), lhsEval.coeff(i,0) * actual_rhs);
+    func(dst.row(i), lhsEval.coeff(i,Index(0)) * actual_rhs);
 }
 
 template<typename Lhs, typename Rhs>

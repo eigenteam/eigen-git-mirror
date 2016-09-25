@@ -256,6 +256,20 @@ Index compute_block_size()
   return ret;
 }
 
+
+
+template<int>
+void bug_1308()
+{
+  int n = 10;
+  MatrixXd r(n,n);
+  VectorXd v = VectorXd::Random(n);
+  r = v * RowVectorXd::Ones(n);
+  VERIFY_IS_APPROX(r, v.rowwise().replicate(n));
+  r = VectorXd::Ones(n) * v.transpose();
+  VERIFY_IS_APPROX(r, v.rowwise().replicate(n).transpose());
+}
+
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -268,8 +282,10 @@ void test_product_extra()
   }
   CALL_SUBTEST_5( bug_127<0>() );
   CALL_SUBTEST_5( bug_817<0>() );
+  CALL_SUBTEST_5( bug_1308<0>() );
   CALL_SUBTEST_6( unaligned_objects<0>() );
   CALL_SUBTEST_7( compute_block_size<float>() );
   CALL_SUBTEST_7( compute_block_size<double>() );
   CALL_SUBTEST_7( compute_block_size<std::complex<double> >() );
+
 }
