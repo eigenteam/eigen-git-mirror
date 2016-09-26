@@ -437,6 +437,18 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
     EIGEN_INTERNAL_CHECK_COST_VALUE(NumTraits<Scalar>::MulCost);
     EIGEN_INTERNAL_CHECK_COST_VALUE(NumTraits<Scalar>::AddCost);
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
+#if 0
+    std::cerr << "LhsOuterStrideBytes=  " << LhsOuterStrideBytes << "\n";
+    std::cerr << "RhsOuterStrideBytes=  " << RhsOuterStrideBytes << "\n";
+    std::cerr << "LhsAlignment=         " << LhsAlignment << "\n";
+    std::cerr << "RhsAlignment=         " << RhsAlignment << "\n";
+    std::cerr << "CanVectorizeLhs=      " << CanVectorizeLhs << "\n";
+    std::cerr << "CanVectorizeRhs=      " << CanVectorizeRhs << "\n";
+    std::cerr << "CanVectorizeInner=    " << CanVectorizeInner << "\n";
+    std::cerr << "EvalToRowMajor=       " << EvalToRowMajor << "\n";
+    std::cerr << "Alignment=            " << Alignment << "\n";
+    std::cerr << "Flags=                " << Flags << "\n";
+#endif
   }
 
   // Everything below here is taken from CoeffBasedProduct.h
