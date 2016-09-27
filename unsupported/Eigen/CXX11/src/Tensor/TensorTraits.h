@@ -56,7 +56,9 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
     Options = Options_,
     Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0 : LvalueBit)
   };
-  template <class T> using MakePointer = MakePointer<T>;
+	template<class T> struct MakePointer{
+	typedef T* Type;
+	};
 };
 
 
@@ -72,7 +74,9 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_, MakePoi
     Options = Options_,
     Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0: LvalueBit)
   };
-  template <class T> using MakePointer = MakePointer_<T>;
+	template<class T> struct MakePointer{
+		typedef typename MakePointer_<T>::Type Type;
+	};
 };
 
 
@@ -90,7 +94,9 @@ struct traits<TensorMap<PlainObjectType, Options_ , MakePointer_> >
     Options = Options_,
     Flags = BaseTraits::Flags
   };
-  template <class T> using MakePointer = MakePointer_<T>;
+	template<class T> struct MakePointer{
+		typedef typename MakePointer_<T>::Type Type;
+	};
 };
 
 template<typename PlainObjectType>
