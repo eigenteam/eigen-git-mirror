@@ -99,7 +99,8 @@ template <typename T> struct SumReducer
   static const bool IsStateful = false;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) const {
-    (*accum) += t;
+    internal::scalar_sum_op<T> sum_op;
+    *accum = sum_op(*accum, t);
   }
   template <typename Packet>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reducePacket(const Packet& p, Packet* accum) const {
@@ -145,7 +146,8 @@ template <typename T> struct MeanReducer
   MeanReducer() : scalarCount_(0), packetCount_(0) { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void reduce(const T t, T* accum) {
-    (*accum) += t;
+    internal::scalar_sum_op<T> sum_op;
+    *accum = sum_op(*accum, t);
     scalarCount_++;
   }
   template <typename Packet>
