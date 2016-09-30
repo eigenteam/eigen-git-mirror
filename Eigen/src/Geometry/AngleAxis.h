@@ -175,7 +175,7 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived
 
   if (n != Scalar(0))
   {
-    m_angle = Scalar(2)*atan2(n, std::abs(q.w()));
+    m_angle = Scalar(2)*atan2(n, abs(q.w()));
     if(q.w() < 0)
       n = -n;
     m_axis  = q.vec() / n;
