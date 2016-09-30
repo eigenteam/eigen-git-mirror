@@ -402,6 +402,18 @@ struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, DenseShape, Homog
   }
 };
 
+// TODO: the following specialization is to address a regression from 3.2 to 3.3
+// In the future, this path should be optimized.
+template<typename Lhs, typename RhsArg, int ProductTag>
+struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, TriangularShape, HomogeneousShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Homogeneous<RhsArg,Vertical>& rhs)
+  {
+    dst.noalias() = lhs * rhs.eval();
+  }
+};
+
 template<typename Lhs,typename Rhs>
 struct homogeneous_left_product_refactoring_helper
 {
