@@ -159,7 +159,7 @@ typedef AngleAxis<double> AngleAxisd;
 
 /** Set \c *this from a \b unit quaternion.
   *
-  * The resulting axis is normalized, and the the computed angle is in the [-pi,pi] range.
+  * The resulting axis is normalized, and the computed angle is in the [0,pi] range.
   * 
   * This function implicitly normalizes the quaternion \a q.
   */
