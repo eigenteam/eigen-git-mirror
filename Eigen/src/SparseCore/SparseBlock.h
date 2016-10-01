@@ -524,12 +524,14 @@ namespace internal {
   template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
   class GenericSparseBlockInnerIteratorImpl<XprType,BlockRows,BlockCols,InnerPanel,false> : public internal::remove_all<typename XprType::Nested>::type::InnerIterator
   {
+  public:
     typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
     enum {
       IsRowMajor = BlockType::IsRowMajor
     };
-    typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
     typedef typename BlockType::Index Index;
+  protected:
+    typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
     typedef typename _MatrixTypeNested::InnerIterator Base;
     const BlockType& m_block;
     Index m_end;
@@ -556,13 +558,15 @@ namespace internal {
   template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
   class GenericSparseBlockInnerIteratorImpl<XprType,BlockRows,BlockCols,InnerPanel,true>
   {
+  public:
     typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
     enum {
       IsRowMajor = BlockType::IsRowMajor
     };
-    typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
     typedef typename BlockType::Index Index;
     typedef typename BlockType::Scalar Scalar;
+  protected:
+    typedef typename internal::remove_all<typename XprType::Nested>::type _MatrixTypeNested;
     const BlockType& m_block;
     Index m_outerPos;
     Index m_innerIndex;
