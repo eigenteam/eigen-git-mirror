@@ -817,73 +817,79 @@ struct mapbase_evaluator : evaluator_base<Derived>
     ColsAtCompileTime = XprType::ColsAtCompileTime,
     CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
-  
+
   EIGEN_DEVICE_FUNC explicit mapbase_evaluator(const XprType& map)
-    : m_data(const_cast<PointerType>(map.data())),  
-      m_xpr(map)
+    : m_data(const_cast<PointerType>(map.data())),
+      m_innerStride(map.innerStride()),
+      m_outerStride(map.outerStride())
   {
     EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(evaluator<Derived>::Flags&PacketAccessBit, internal::inner_stride_at_compile_time<Derived>::ret==1),
                         PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
- 
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   CoeffReturnType coeff(Index row, Index col) const
   {
-    return m_data[col * m_xpr.colStride() + row * m_xpr.rowStride()];
+    return m_data[col * colStride() + row * rowStride()];
   }
-  
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   CoeffReturnType coeff(Index index) const
   {
-    return m_data[index * m_xpr.innerStride()];
+    return m_data[index * m_innerStride.value()];
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Scalar& coeffRef(Index row, Index col)
   {
-    return m_data[col * m_xpr.colStride() + row * m_xpr.rowStride()];
+    return m_data[col * colStride() + row * rowStride()];
   }
-  
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   Scalar& coeffRef(Index index)
   {
-    return m_data[index * m_xpr.innerStride()];
+    return m_data[index * m_innerStride.value()];
   }
- 
+
   template<int LoadMode, typename PacketType>
   EIGEN_STRONG_INLINE
-  PacketType packet(Index row, Index col) const 
+  PacketType packet(Index row, Index col) const
   {
-    PointerType ptr = m_data + row * m_xpr.rowStride() + col * m_xpr.colStride();
+    PointerType ptr = m_data + row * rowStride() + col * colStride();
     return internal::ploadt<PacketType, LoadMode>(ptr);
   }
 
   template<int LoadMode, typename PacketType>
   EIGEN_STRONG_INLINE
-  PacketType packet(Index index) const 
+  PacketType packet(Index index) const
   {
-    return internal::ploadt<PacketType, LoadMode>(m_data + index * m_xpr.innerStride());
+    return internal::ploadt<PacketType, LoadMode>(m_data + index * m_innerStride.value());
   }
-  
+
   template<int StoreMode, typename PacketType>
   EIGEN_STRONG_INLINE
-  void writePacket(Index row, Index col, const PacketType& x) 
+  void writePacket(Index row, Index col, const PacketType& x)
   {
-    PointerType ptr = m_data + row * m_xpr.rowStride() + col * m_xpr.colStride();
+    PointerType ptr = m_data + row * rowStride() + col * colStride();
     return internal::pstoret<Scalar, PacketType, StoreMode>(ptr, x);
   }
-  
+
   template<int StoreMode, typename PacketType>
   EIGEN_STRONG_INLINE
-  void writePacket(Index index, const PacketType& x) 
+  void writePacket(Index index, const PacketType& x)
   {
-    internal::pstoret<Scalar, PacketType, StoreMode>(m_data + index * m_xpr.innerStride(), x);
+    internal::pstoret<Scalar, PacketType, StoreMode>(m_data + index * m_innerStride.value(), x);
   }
- 
 protected:
+  EIGEN_DEVICE_FUNC
+  inline Index rowStride() const { return XprType::IsRowMajor ? m_outerStride.value() : m_innerStride.value(); }
+  EIGEN_DEVICE_FUNC
+  inline Index colStride() const { return XprType::IsRowMajor ? m_innerStride.value() : m_outerStride.value(); }
+
   PointerType m_data;
-  const XprType& m_xpr;
+  const internal::variable_if_dynamic<Index, XprType::InnerStrideAtCompileTime> m_innerStride;
+  const internal::variable_if_dynamic<Index, XprType::OuterStrideAtCompileTime> m_outerStride;
 };
 
 template<typename PlainObjectType, int MapOptions, typename StrideType> 
