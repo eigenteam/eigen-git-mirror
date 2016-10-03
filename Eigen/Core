@@ -359,7 +359,6 @@ using std::ptrdiff_t;
   #include "src/Core/arch/ZVector/Complex.h"
 #endif
 
-#include "src/Core/arch/CUDA/Complex.h"
 // Half float support
 #include "src/Core/arch/CUDA/Half.h"
 #include "src/Core/arch/CUDA/PacketMathHalf.h"
@@ -378,6 +377,10 @@ using std::ptrdiff_t;
 #include "src/Core/functors/NullaryFunctors.h"
 #include "src/Core/functors/StlFunctors.h"
 #include "src/Core/functors/AssignmentFunctors.h"
+
+// Specialized functors to enable the processing of complex numbers
+// on CUDA devices
+#include "src/Core/arch/CUDA/Complex.h"
 
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"
