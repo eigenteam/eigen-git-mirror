@@ -29,13 +29,13 @@ public:
     {
         typedef typename BlockImpl::Index Index;
       public:
-        inline InnerIterator(const BlockType& xpr, Index outer)
+        inline InnerIterator(const Block<XprType, BlockRows, BlockCols, true>& xpr, Index outer)
           : XprType::InnerIterator(xpr.m_matrix, xpr.m_outerStart + outer), m_outer(outer)
         {}
         inline Index row() const { return IsRowMajor ? m_outer : this->index(); }
         inline Index col() const { return IsRowMajor ? this->index() : m_outer; }
       protected:
-        Index m_outer;
+         Index m_outer;
     };
     class ReverseInnerIterator: public XprType::ReverseInnerIterator
     {
