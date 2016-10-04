@@ -444,9 +444,14 @@ Packet4f pcos<Packet4f>(const Packet4f& _x)
 
 #if EIGEN_FAST_MATH
 
-// This is based on Quake3's fast inverse square root.
+// Functions for sqrt.
+// The EIGEN_FAST_MATH version uses the _mm_rsqrt_ps approximation and one step
+// of Newton's method, at a cost of 1-2 bits of precision as opposed to the
+// exact solution. It does not handle +inf, or denormalized numbers correctly.
+// The main advantage of this approach is not just speed, but also the fact that
+// it can be inlined and pipelined with other computations, further reducing its
+// effective latency. This is similar to Quake3's fast inverse square root.
 // For detail see here: http://www.beyond3d.com/content/articles/8/
-// It lacks 1 (or 2 bits in some rare cases) of precision, and does not handle negative, +inf, or denormalized numbers correctly.
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& _x)
 {
