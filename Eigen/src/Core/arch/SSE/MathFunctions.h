@@ -32,7 +32,7 @@ Packet4f plog<Packet4f>(const Packet4f& _x)
   /* the smallest non denormalized float number */
   _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(min_norm_pos,  0x00800000);
   _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(minus_inf,     0xff800000);//-1.f/0.f);
-  
+
   /* natural logarithm computed for 4 simultaneous float
     return NaN for x <= 0
   */
@@ -451,18 +451,21 @@ template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& _x)
 {
   Packet4f half = pmul(_x, pset1<Packet4f>(.5f));
+  Packet4f denormal_mask = _mm_and_ps(
+      _mm_cmpge_ps(_x, _mm_setzero_ps()),
+      _mm_cmplt_ps(_x, pset1<Packet4f>((std::numeric_limits<float>::min)())));
 
-  /* select only the inverse sqrt of non-zero inputs */
-  Packet4f non_zero_mask = _mm_cmpge_ps(_x, pset1<Packet4f>((std::numeric_limits<float>::min)()));
-  Packet4f x = _mm_and_ps(non_zero_mask, _mm_rsqrt_ps(_x));
-
+  // Compute approximate reciprocal sqrt.
+  Packet4f x = _mm_rsqrt_ps(_x);
+  // Do a single step of Newton's iteration.
   x = pmul(x, psub(pset1<Packet4f>(1.5f), pmul(half, pmul(x,x))));
-  return pmul(_x,x);
+  // Flush results for denormals to zero.
+  return _mm_andnot_ps(denormal_mask, pmul(_x,x));
 }
 
 #else
 
-template<>EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED 
+template<>EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f psqrt<Packet4f>(const Packet4f& x) { return _mm_sqrt_ps(x); }
 
 #endif
@@ -491,7 +494,7 @@ Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
   Packet4f neg_mask = _mm_cmplt_ps(_x, _mm_setzero_ps());
   Packet4f zero_mask = _mm_andnot_ps(neg_mask, le_zero_mask);
   Packet4f infs_and_nans = _mm_or_ps(_mm_and_ps(neg_mask, p4f_nan),
-                                        _mm_and_ps(zero_mask, p4f_inf));
+                                     _mm_and_ps(zero_mask, p4f_inf));
 
   // Do a single step of Newton's iteration.
   x = pmul(x, pmadd(neg_half, pmul(x, x), p4f_one_point_five));
