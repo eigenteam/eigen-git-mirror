@@ -355,9 +355,11 @@ pexp<Packet4d>(const Packet4d& _x) {
 // Functions for sqrt.
 // The EIGEN_FAST_MATH version uses the _mm_rsqrt_ps approximation and one step
 // of Newton's method, at a cost of 1-2 bits of precision as opposed to the
-// exact solution. The main advantage of this approach is not just speed, but
-// also the fact that it can be inlined and pipelined with other computations,
-// further reducing its effective latency.
+// exact solution. It does not handle +inf, or denormalized numbers correctly.
+// The main advantage of this approach is not just speed, but also the fact that
+// it can be inlined and pipelined with other computations, further reducing its
+// effective latency. This is similar to Quake3's fast inverse square root.
+// For detail see here: http://www.beyond3d.com/content/articles/8/
 #if EIGEN_FAST_MATH
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
