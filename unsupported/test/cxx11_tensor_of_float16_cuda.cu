@@ -165,8 +165,8 @@ void test_cuda_elementwise() {
   gpu_device.synchronize();
 
   for (int i = 0; i < num_elem; ++i) {
-    std::cout << "Checking elemwise " << i << std::endl;
-    VERIFY_IS_APPROX(full_prec(i), half_prec(i));
+    std::cout << "Checking elemwise " << i << ": full prec = " << full_prec(i) << " vs half prec = " << half_prec(i) << std::endl;
+    VERIFY_IS_APPROX(static_cast<Eigen::half>(full_prec(i)), static_cast<Eigen::half>(half_prec(i)));
   }
 
   gpu_device.deallocate(d_float1);
