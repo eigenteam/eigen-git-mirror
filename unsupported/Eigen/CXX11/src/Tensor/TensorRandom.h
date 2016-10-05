@@ -61,7 +61,7 @@ static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE unsigned PCG_XSH_RS_generator(uint6
   // Update the internal state
   *state = current * 6364136223846793005ULL + 0xda3e39cb94b95bdbULL;
   // Generate the random output (using the PCG-XSH-RS scheme)
-  return (current ^ (current >> 22)) >> (22 + (current >> 61));
+  return static_cast<unsigned>((current ^ (current >> 22)) >> (22 + (current >> 61)));
 }
 
 static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE uint64_t PCG_XSH_RS_state(uint64_t seed) {
