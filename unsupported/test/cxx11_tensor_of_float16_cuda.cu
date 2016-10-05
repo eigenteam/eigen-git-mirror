@@ -339,8 +339,8 @@ void test_cuda_reductions(int size1, int size2, int redux) {
   Eigen::TensorMap<Eigen::Tensor<Eigen::half, 1>, Eigen::Aligned> gpu_res_float(
       d_res_float, result_size);
 
-  gpu_float1.device(gpu_device) = gpu_float1.random() - 0.5f;
-  gpu_float2.device(gpu_device) = gpu_float2.random() - 0.5f;
+  gpu_float1.device(gpu_device) = gpu_float1.random() * 2.0f;
+  gpu_float2.device(gpu_device) = gpu_float2.random() * 2.0f;
 
   Eigen::array<int, 1> redux_dim = {{redux}};
   gpu_res_float.device(gpu_device) = gpu_float1.sum(redux_dim).cast<Eigen::half>();
