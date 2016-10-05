@@ -13,7 +13,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_sycl_forced_eval
+#define EIGEN_TEST_FUNC cxx11_tensor_forced_eval_sycl
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_SYCL
 
@@ -65,4 +65,6 @@ void test_sycl_gpu() {
 	printf("(a+b)*b Test Passed\n");
 }
 
-void test_cxx11_tensor_sycl_forced_eval() { CALL_SUBTEST(test_sycl_gpu()); }
+void test_cxx11_tensor_forced_eval_sycl() {
+ CALL_SUBTEST(test_sycl_gpu());
+}

@@ -13,7 +13,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_sycl_broadcast
+#define EIGEN_TEST_FUNC cxx11_tensor_broadcast_sycl
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_SYCL
 
@@ -74,6 +74,6 @@ static void test_sycl_broadcast(){
 	printf("Broadcast Test Passed\n");
 }
 
-void test_cxx11_tensor_sycl_broadcast() {
+void test_cxx11_tensor_broadcast_sycl() {
   CALL_SUBTEST(test_sycl_broadcast());
 }
