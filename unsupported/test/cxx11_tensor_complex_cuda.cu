@@ -71,8 +71,45 @@ void test_cuda_nullary() {
 }
 
 
+static void test_cuda_sum_reductions() {
+
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  const int num_rows = internal::random<int>(1024, 5*1024);
+  const int num_cols = internal::random<int>(1024, 5*1024);
+
+  Tensor<std::complex<float>, 2> in(num_rows, num_cols);
+  in.setRandom();
+
+  Tensor<std::complex<float>, 0> full_redux;
+  full_redux = in.sum();
+
+  std::size_t in_bytes = in.size() * sizeof(std::complex<float>);
+  std::size_t out_bytes = full_redux.size() * sizeof(std::complex<float>);
+  std::complex<float>* gpu_in_ptr = static_cast<std::complex<float>*>(gpu_device.allocate(in_bytes));
+  std::complex<float>* gpu_out_ptr = static_cast<std::complex<float>*>(gpu_device.allocate(out_bytes));
+  gpu_device.memcpyHostToDevice(gpu_in_ptr, in.data(), in_bytes);
+
+  TensorMap<Tensor<std::complex<float>, 2> > in_gpu(gpu_in_ptr, num_rows, num_cols);
+  TensorMap<Tensor<std::complex<float>, 0> > out_gpu(gpu_out_ptr);
+
+  out_gpu.device(gpu_device) = in_gpu.sum();
+
+  Tensor<std::complex<float>, 0> full_redux_gpu;
+  gpu_device.memcpyDeviceToHost(full_redux_gpu.data(), gpu_out_ptr, out_bytes);
+  gpu_device.synchronize();
+
+  // Check that the CPU and GPU reductions return the same result.
+  VERIFY_IS_APPROX(full_redux(), full_redux_gpu());
+
+  gpu_device.deallocate(gpu_in_ptr);
+  gpu_device.deallocate(gpu_out_ptr);
+}
+
 
 void test_cxx11_tensor_complex()
 {
   CALL_SUBTEST(test_cuda_nullary());
+  CALL_SUBTEST(test_cuda_sum_reductions());
 }

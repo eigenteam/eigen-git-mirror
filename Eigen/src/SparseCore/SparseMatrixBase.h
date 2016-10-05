@@ -141,6 +141,15 @@ template<typename Derived> class SparseMatrixBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+#define EIGEN_DOC_UNARY_ADDONS(METHOD,OP)           /** <p>This method does not change the sparsity of \c *this: the OP is applied to explicitly stored coefficients only. \sa SparseCompressedBase::coeffs() </p> */
+#define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL      /** <p> \warning This method returns a read-only expression for any sparse matrices. \sa \ref TutorialSparse_SubMatrices "Sparse block operations" </p> */
+#define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND) /** <p> \warning This method returns a read-write expression for COND sparse matrices only. Otherwise, the returned expression is read-only. \sa \ref TutorialSparse_SubMatrices "Sparse block operations" </p> */
+#else
+#define EIGEN_DOC_UNARY_ADDONS(X,Y)
+#define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
+#define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND)
+#endif
 #   include "../plugins/CommonCwiseUnaryOps.h"
 #   include "../plugins/CommonCwiseBinaryOps.h"
 #   include "../plugins/MatrixCwiseUnaryOps.h"
@@ -149,8 +158,10 @@ template<typename Derived> class SparseMatrixBase
 #   ifdef EIGEN_SPARSEMATRIXBASE_PLUGIN
 #     include EIGEN_SPARSEMATRIXBASE_PLUGIN
 #   endif
-#   undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
+#undef EIGEN_DOC_UNARY_ADDONS
+#undef EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
+#undef EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF
 
     /** \returns the number of rows. \sa cols() */
     inline Index rows() const { return derived().rows(); }

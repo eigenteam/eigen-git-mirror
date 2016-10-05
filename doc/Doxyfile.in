@@ -1612,7 +1612,10 @@ EXPAND_AS_DEFINED      = EIGEN_MAKE_TYPEDEFS \
                          EIGEN_EMPTY \
                          EIGEN_EULER_ANGLES_TYPEDEFS \
                          EIGEN_EULER_ANGLES_SINGLE_TYPEDEF \
-                         EIGEN_EULER_SYSTEM_TYPEDEF
+                         EIGEN_EULER_SYSTEM_TYPEDEF \
+                         EIGEN_DOC_UNARY_ADDONS \
+                         EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL \
+                         EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
 # doxygen's preprocessor will remove all references to function-like macros

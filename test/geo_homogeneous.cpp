@@ -111,6 +111,8 @@ template<typename Scalar,int Size> void homogeneous(void)
   
   VERIFY_IS_APPROX( (v0.transpose().homogeneous() .lazyProduct( t2 )).hnormalized(), (v0.transpose().homogeneous()*t2).hnormalized() );
   VERIFY_IS_APPROX( (pts.transpose().rowwise().homogeneous() .lazyProduct( t2 )).rowwise().hnormalized(), (pts1.transpose()*t2).rowwise().hnormalized() );
+
+  VERIFY_IS_APPROX( (t2.template triangularView<Lower>() * v0.homogeneous()).eval(), (t2.template triangularView<Lower>()*hv0) );
 }
 
 void test_geo_homogeneous()

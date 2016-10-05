@@ -355,7 +355,7 @@ if(CUDA_FOUND)
   
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") 
-    set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
+    set(CUDA_NVCC_FLAGS "-ccbin ${CMAKE_C_COMPILER}" CACHE STRING "nvcc flags" FORCE)
   endif()
   if(EIGEN_TEST_CUDA_CLANG)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_30")

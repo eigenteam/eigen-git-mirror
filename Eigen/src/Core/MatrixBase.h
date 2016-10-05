@@ -98,7 +98,7 @@ template<typename Derived> class MatrixBase
     /** \returns the size of the main diagonal, which is min(rows(),cols()).
       * \sa rows(), cols(), SizeAtCompileTime. */
     EIGEN_DEVICE_FUNC
-    inline Index diagonalSize() const { return (std::min)(rows(),cols()); }
+    inline Index diagonalSize() const { return (numext::mini)(rows(),cols()); }
 
     typedef typename Base::PlainObject PlainObject;
 
@@ -121,6 +121,7 @@ template<typename Derived> class MatrixBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::MatrixBase
+#define EIGEN_DOC_UNARY_ADDONS(X,Y)
 #   include "../plugins/CommonCwiseUnaryOps.h"
 #   include "../plugins/CommonCwiseBinaryOps.h"
 #   include "../plugins/MatrixCwiseUnaryOps.h"
@@ -129,6 +130,7 @@ template<typename Derived> class MatrixBase
 #     include EIGEN_MATRIXBASE_PLUGIN
 #   endif
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
+#undef EIGEN_DOC_UNARY_ADDONS
 
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
@@ -328,15 +330,11 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    EIGEN_DEVICE_FUNC
     inline const FullPivLU<PlainObject> fullPivLu() const;
-    EIGEN_DEVICE_FUNC
     inline const PartialPivLU<PlainObject> partialPivLu() const;
 
-    EIGEN_DEVICE_FUNC
     inline const PartialPivLU<PlainObject> lu() const;
 
-    EIGEN_DEVICE_FUNC
     inline const Inverse<Derived> inverse() const;
 
     template<typename ResultType>

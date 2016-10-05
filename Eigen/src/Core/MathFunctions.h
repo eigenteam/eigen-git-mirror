@@ -97,6 +97,19 @@ struct real_default_impl<Scalar,true>
 
 template<typename Scalar> struct real_impl : real_default_impl<Scalar> {};
 
+#ifdef __CUDA_ARCH__
+template<typename T>
+struct real_impl<std::complex<T> >
+{
+  typedef T RealScalar;
+  EIGEN_DEVICE_FUNC
+  static inline T run(const std::complex<T>& x)
+  {
+    return x.real();
+  }
+};
+#endif
+
 template<typename Scalar>
 struct real_retval
 {
@@ -131,6 +144,19 @@ struct imag_default_impl<Scalar,true>
 };
 
 template<typename Scalar> struct imag_impl : imag_default_impl<Scalar> {};
+
+#ifdef __CUDA_ARCH__
+template<typename T>
+struct imag_impl<std::complex<T> >
+{
+  typedef T RealScalar;
+  EIGEN_DEVICE_FUNC
+  static inline T run(const std::complex<T>& x)
+  {
+    return x.imag();
+  }
+};
+#endif
 
 template<typename Scalar>
 struct imag_retval
@@ -1049,12 +1075,12 @@ double abs(const double &x) { return ::fabs(x); }
 
 template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 float abs(const std::complex<float>& x) {
-  return ::hypotf(real(x), imag(x));
+  return ::hypotf(x.real(), x.imag());
 }
 
 template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double abs(const std::complex<double>& x) {
-  return ::hypot(real(x), imag(x));
+  return ::hypot(x.real(), x.imag());
 }
 #endif
 
@@ -1312,11 +1338,12 @@ template<typename Scalar>
 struct scalar_fuzzy_default_impl<Scalar, true, false>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y, const RealScalar& prec)
   {
     return numext::abs2(x) <= numext::abs2(y) * prec * prec;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     return numext::abs2(x - y) <= numext::mini(numext::abs2(x), numext::abs2(y)) * prec * prec;

@@ -13,7 +13,7 @@
 
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 2
-#define EIGEN_MINOR_VERSION 93
+#define EIGEN_MINOR_VERSION 94
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -954,8 +954,8 @@ namespace Eigen {
 #  define EIGEN_CATCH(X) catch (X)
 #else
 #  ifdef __CUDA_ARCH__
-#    define EIGEN_THROW_X(X) asm("trap;") return {}
-#    define EIGEN_THROW asm("trap;"); return {}
+#    define EIGEN_THROW_X(X) asm("trap;")
+#    define EIGEN_THROW asm("trap;")
 #  else
 #    define EIGEN_THROW_X(X) std::abort()
 #    define EIGEN_THROW std::abort()
