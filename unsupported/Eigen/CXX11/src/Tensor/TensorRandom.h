@@ -33,8 +33,8 @@ EIGEN_DEVICE_FUNC uint64_t get_random_seed() {
   // we try to generate seeds faster than the clock resolution.
   // We need 2 random values since the generator only generate 16 bits at
   // a time (https://msdn.microsoft.com/en-us/library/398ax69y.aspx)
-  uint rnd1 = ::rand();
-  uint rnd2 = ::rand();
+  int rnd1 = ::rand();
+  int rnd2 = ::rand();
   uint64_t rnd = (rnd1 | rnd2 << 16) ^ time;
   return rnd;
 
