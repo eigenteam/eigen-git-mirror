@@ -28,7 +28,7 @@ class compute_tensor_flags
 #else
             0
 #endif
-            ||
+            |
 #if EIGEN_MAX_ALIGN_BYTES>0
             is_dynamic_size_storage
 #else
