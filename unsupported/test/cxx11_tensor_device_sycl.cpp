@@ -13,7 +13,7 @@
 
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
-#define EIGEN_TEST_FUNC cxx11_tensor_sycl_device
+#define EIGEN_TEST_FUNC cxx11_tensor_device_sycl
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_SYCL
 
@@ -34,6 +34,6 @@ void test_sycl_device() {
   SyclDevice sycl_device(q);
 	printf("Helo from ComputeCpp: Device Exists\n");
 }
-void test_cxx11_tensor_sycl_device() {
+void test_cxx11_tensor_device_sycl() {
   CALL_SUBTEST(test_sycl_device());
 }
