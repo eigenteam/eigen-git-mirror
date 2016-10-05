@@ -26,13 +26,13 @@ EIGEN_DEVICE_FUNC uint64_t get_random_seed() {
 
 #elif defined _WIN32
   // Use the current time as a baseline.
+  SYSTEMTIME st;
   GetSystemTime(&st);
   int time = st.wSecond + 1000 * st.wMilliseconds;
   // Mix in a random number to make sure that we get different seeds if
   // we try to generate seeds faster than the clock resolution.
   // We need 2 random values since the generator only generate 16 bits at
   // a time (https://msdn.microsoft.com/en-us/library/398ax69y.aspx)
-  SYSTEMTIME st;
   uint rnd1 = ::rand();
   uint rnd2 = ::rand();
   uint64_t rnd = (rnd1 | rnd2 << 16) ^ time;
