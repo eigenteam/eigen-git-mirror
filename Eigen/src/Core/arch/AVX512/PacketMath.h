@@ -514,7 +514,7 @@ EIGEN_STRONG_INLINE Packet8d ploaddup<Packet8d>(const double* from) {
 // {a0, a0  a0, a0, a1, a1, a1, a1, a2, a2, a2, a2, a3, a3, a3, a3}
 template <>
 EIGEN_STRONG_INLINE Packet16f ploadquad<Packet16f>(const float* from) {
-  Packet16f tmp;
+  Packet16f tmp = _mm512_undefined_ps();
   tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from), 0);
   tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from + 1), 1);
   tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from + 2), 2);
@@ -525,7 +525,7 @@ EIGEN_STRONG_INLINE Packet16f ploadquad<Packet16f>(const float* from) {
 // {a0, a0  a0, a0, a1, a1, a1, a1}
 template <>
 EIGEN_STRONG_INLINE Packet8d ploadquad<Packet8d>(const double* from) {
-  Packet8d tmp;
+  Packet8d tmp = _mm512_undefined_pd();
   Packet2d tmp0 = _mm_load_pd1(from);
   Packet2d tmp1 = _mm_load_pd1(from + 1);
   Packet4d lane0 = _mm256_broadcastsd_pd(tmp0);
