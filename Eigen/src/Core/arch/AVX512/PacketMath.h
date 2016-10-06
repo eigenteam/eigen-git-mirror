@@ -76,7 +76,7 @@ template<> struct packet_traits<double> : default_packet_traits
     HasHalfPacket = 1,
 #if EIGEN_GNUC_AT_LEAST(5, 3)
     HasSqrt = 1,
-    HasRsqrt = EIGEN_FAST_MATH
+    HasRsqrt = EIGEN_FAST_MATH,
 #endif
     HasDiv = 1
   };
