@@ -255,7 +255,7 @@ EIGEN_STRONG_INLINE Packet16f pand<Packet16f>(const Packet16f& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_and_ps(a, b);
 #else
-  Packet16f res;
+  Packet16f res = _mm512_undefined_ps();
   Packet4f lane0_a = _mm512_extractf32x4_ps(a, 0);
   Packet4f lane0_b = _mm512_extractf32x4_ps(b, 0);
   res = _mm512_insertf32x4(res, _mm_and_ps(lane0_a, lane0_b), 0);
@@ -281,7 +281,7 @@ EIGEN_STRONG_INLINE Packet8d pand<Packet8d>(const Packet8d& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_and_pd(a, b);
 #else
-  Packet8d res;
+  Packet8d res = _mm512_undefined_pd();
   Packet4d lane0_a = _mm512_extractf64x4_pd(a, 0);
   Packet4d lane0_b = _mm512_extractf64x4_pd(b, 0);
   res = _mm512_insertf64x4(res, _mm256_and_pd(lane0_a, lane0_b), 0);
@@ -299,7 +299,7 @@ EIGEN_STRONG_INLINE Packet16f por<Packet16f>(const Packet16f& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_or_ps(a, b);
 #else
-  Packet16f res;
+  Packet16f res = _mm512_undefined_ps();
   Packet4f lane0_a = _mm512_extractf32x4_ps(a, 0);
   Packet4f lane0_b = _mm512_extractf32x4_ps(b, 0);
   res = _mm512_insertf32x4(res, _mm_or_ps(lane0_a, lane0_b), 0);
@@ -326,7 +326,7 @@ EIGEN_STRONG_INLINE Packet8d por<Packet8d>(const Packet8d& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_or_pd(a, b);
 #else
-  Packet8d res;
+  Packet8d res = _mm512_undefined_pd();
   Packet4d lane0_a = _mm512_extractf64x4_pd(a, 0);
   Packet4d lane0_b = _mm512_extractf64x4_pd(b, 0);
   res = _mm512_insertf64x4(res, _mm256_or_pd(lane0_a, lane0_b), 0);
@@ -345,7 +345,7 @@ EIGEN_STRONG_INLINE Packet16f pxor<Packet16f>(const Packet16f& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_xor_ps(a, b);
 #else
-  Packet16f res;
+  Packet16f res = _mm512_undefined_ps();
   Packet4f lane0_a = _mm512_extractf32x4_ps(a, 0);
   Packet4f lane0_b = _mm512_extractf32x4_ps(b, 0);
   res = _mm512_insertf32x4(res, _mm_xor_ps(lane0_a, lane0_b), 0);
@@ -371,7 +371,7 @@ EIGEN_STRONG_INLINE Packet8d pxor<Packet8d>(const Packet8d& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_xor_pd(a, b);
 #else
-  Packet8d res;
+  Packet8d res = _mm512_undefined_pd();
   Packet4d lane0_a = _mm512_extractf64x4_pd(a, 0);
   Packet4d lane0_b = _mm512_extractf64x4_pd(b, 0);
   res = _mm512_insertf64x4(res, _mm256_xor_pd(lane0_a, lane0_b), 0);
@@ -390,7 +390,7 @@ EIGEN_STRONG_INLINE Packet16f pandnot<Packet16f>(const Packet16f& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_andnot_ps(a, b);
 #else
-  Packet16f res;
+  Packet16f res = _mm512_undefined_ps();
   Packet4f lane0_a = _mm512_extractf32x4_ps(a, 0);
   Packet4f lane0_b = _mm512_extractf32x4_ps(b, 0);
   res = _mm512_insertf32x4(res, _mm_andnot_ps(lane0_a, lane0_b), 0);
@@ -416,7 +416,7 @@ EIGEN_STRONG_INLINE Packet8d pandnot<Packet8d>(const Packet8d& a,
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   return _mm512_andnot_pd(a, b);
 #else
-  Packet8d res;
+  Packet8d res = _mm512_undefined_pd();
   Packet4d lane0_a = _mm512_extractf64x4_pd(a, 0);
   Packet4d lane0_b = _mm512_extractf64x4_pd(b, 0);
   res = _mm512_insertf64x4(res, _mm256_andnot_pd(lane0_a, lane0_b), 0);
@@ -482,12 +482,12 @@ EIGEN_STRONG_INLINE Packet16f ploaddup<Packet16f>(const float* from) {
   lane1 = _mm256_permute_ps(lane1, _MM_SHUFFLE(3, 3, 2, 2));
 
 #ifdef EIGEN_VECTORIZE_AVX512DQ
-  Packet16f res;
+  Packet16f res = _mm512_undefined_ps();
   return _mm512_insertf32x8(res, lane0, 0);
   return _mm512_insertf32x8(res, lane1, 1);
   return res;
 #else
-  Packet16f res;
+  Packet16f res = _mm512_undefined_ps();
   res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane0, 0), 0);
   res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane0, 1), 1);
   res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane1, 0), 2);
@@ -505,7 +505,7 @@ EIGEN_STRONG_INLINE Packet8d ploaddup<Packet8d>(const double* from) {
   Packet4d lane1 = _mm256_broadcast_pd((const __m128d*)(const void*)(from + 2));
   lane1 = _mm256_permute_pd(lane1, 3 << 2);
 
-  Packet8d res;
+  Packet8d res = _mm512_undefined_pd();
   res = _mm512_insertf64x4(res, lane0, 0);
   return _mm512_insertf64x4(res, lane1, 1);
 }
