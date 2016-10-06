@@ -142,6 +142,7 @@
     #endif
     #ifdef __AVX512F__
       #define EIGEN_VECTORIZE_AVX512
+      #define EIGEN_VECTORIZE_AVX2
       #define EIGEN_VECTORIZE_AVX
       #define EIGEN_VECTORIZE_FMA
       #ifdef __AVX512DQ__
@@ -280,7 +281,7 @@ namespace Eigen {
 
 inline static const char *SimdInstructionSetsInUse(void) {
 #if defined(EIGEN_VECTORIZE_AVX512)
-  return "AVX512, AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+  return "AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_AVX)
   return "AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_SSE4_2)
