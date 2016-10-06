@@ -59,33 +59,34 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct m
 } // end namespace internal
 
 /** \class PlainObjectBase
+  * \ingroup Core_Module
   * \brief %Dense storage base class for matrices and arrays.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
-  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_PLAINOBJECTBASE_PLUGIN.
+  * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_PLAINOBJECTBASE_PLUGIN.
   *
   * \sa \ref TopicClassHierarchy
   */
 #ifdef EIGEN_PARSED_BY_DOXYGEN
-namespace internal {
+namespace doxygen {
 
 // this is a workaround to doxygen not being able to understand the inheritance logic
 // when it is hidden by the dense_xpr_base helper struct.
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
-template<typename Derived> struct dense_xpr_base_dispatcher_for_doxygen;// : public MatrixBase<Derived> {};
+template<typename Derived> struct dense_xpr_base_dispatcher;
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct dense_xpr_base_dispatcher_for_doxygen<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+struct dense_xpr_base_dispatcher<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > {};
 /** This class is just a workaround for Doxygen and it does not not actually exist. */
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct dense_xpr_base_dispatcher_for_doxygen<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+struct dense_xpr_base_dispatcher<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     : public ArrayBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > {};
 
-} // namespace internal
+} // namespace doxygen
 
 template<typename Derived>
-class PlainObjectBase : public internal::dense_xpr_base_dispatcher_for_doxygen<Derived>
+class PlainObjectBase : public doxygen::dense_xpr_base_dispatcher<Derived>
 #else
 template<typename Derived>
 class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
@@ -145,6 +146,10 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index cols() const { return m_storage.cols(); }
 
+    /** This is an overloaded version of DenseCoeffsBase<Derived,ReadOnlyAccessors>::coeff(Index,Index) const
+      * provided to by-pass the creation of an evaluator of the expression, thus saving compilation efforts.
+      *
+      * See DenseCoeffsBase<Derived,ReadOnlyAccessors>::coeff(Index) const for details. */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar& coeff(Index rowId, Index colId) const
     {
@@ -154,12 +159,20 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
         return m_storage.data()[rowId + colId * m_storage.rows()];
     }
 
+    /** This is an overloaded version of DenseCoeffsBase<Derived,ReadOnlyAccessors>::coeff(Index) const
+      * provided to by-pass the creation of an evaluator of the expression, thus saving compilation efforts.
+      *
+      * See DenseCoeffsBase<Derived,ReadOnlyAccessors>::coeff(Index) const for details. */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar& coeff(Index index) const
     {
       return m_storage.data()[index];
     }
 
+    /** This is an overloaded version of DenseCoeffsBase<Derived,WriteAccessors>::coeffRef(Index,Index) const
+      * provided to by-pass the creation of an evaluator of the expression, thus saving compilation efforts.
+      *
+      * See DenseCoeffsBase<Derived,WriteAccessors>::coeffRef(Index,Index) const for details. */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar& coeffRef(Index rowId, Index colId)
     {
@@ -169,12 +182,18 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
         return m_storage.data()[rowId + colId * m_storage.rows()];
     }
 
+    /** This is an overloaded version of DenseCoeffsBase<Derived,WriteAccessors>::coeffRef(Index) const
+      * provided to by-pass the creation of an evaluator of the expression, thus saving compilation efforts.
+      *
+      * See DenseCoeffsBase<Derived,WriteAccessors>::coeffRef(Index) const for details. */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
     {
       return m_storage.data()[index];
     }
 
+    /** This is the const version of coeffRef(Index,Index) which is thus synonym of coeff(Index,Index).
+      * It is provided for convenience. */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar& coeffRef(Index rowId, Index colId) const
     {
@@ -184,6 +203,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
         return m_storage.data()[rowId + colId * m_storage.rows()];
     }
 
+    /** This is the const version of coeffRef(Index) which is thus synonym of coeff(Index).
+      * It is provided for convenience. */
     EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar& coeffRef(Index index) const
     {
@@ -471,15 +492,15 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
 #endif
 
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
-    PlainObjectBase(PlainObjectBase&& other)
+    PlainObjectBase(PlainObjectBase&& other) EIGEN_NOEXCEPT
       : m_storage( std::move(other.m_storage) )
     {
     }
 
     EIGEN_DEVICE_FUNC
-    PlainObjectBase& operator=(PlainObjectBase&& other)
+    PlainObjectBase& operator=(PlainObjectBase&& other) EIGEN_NOEXCEPT
     {
       using std::swap;
       swap(m_storage, other.m_storage);
@@ -697,7 +718,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       //_resize_to_match(other);
       // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
       // it wouldn't allow to copy a row-vector into a column-vector.
-      internal::call_assignment_no_alias(this->derived(), other.derived(), internal::assign_op<Scalar>());
+      internal::call_assignment_no_alias(this->derived(), other.derived(), internal::assign_op<Scalar,typename OtherDerived::Scalar>());
       return this->derived();
     }
 
@@ -713,11 +734,11 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     
     template<typename T0, typename T1>
     EIGEN_DEVICE_FUNC 
-    EIGEN_STRONG_INLINE void _init2(const Scalar& val0, const Scalar& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
+    EIGEN_STRONG_INLINE void _init2(const T0& val0, const T1& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
-      m_storage.data()[0] = val0;
-      m_storage.data()[1] = val1;
+      m_storage.data()[0] = Scalar(val0);
+      m_storage.data()[1] = Scalar(val1);
     }
     
     template<typename T0, typename T1>

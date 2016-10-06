@@ -45,7 +45,7 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(m1.rowwise().sum().sum() - m1.sum(), m1.squaredNorm());
   VERIFY_IS_MUCH_SMALLER_THAN(m1.colwise().sum() + m2.colwise().sum() - (m1+m2).colwise().sum(), (m1+m2).squaredNorm());
   VERIFY_IS_MUCH_SMALLER_THAN(m1.rowwise().sum() - m2.rowwise().sum() - (m1-m2).rowwise().sum(), (m1-m2).squaredNorm());
-  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
+  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar,Scalar>()));
 
   // vector-wise ops
   m3 = m1;
@@ -144,9 +144,21 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
 template<typename VectorType> void lpNorm(const VectorType& v)
 {
   using std::sqrt;
+  typedef typename VectorType::RealScalar RealScalar;
   VectorType u = VectorType::Random(v.size());
 
-  VERIFY_IS_APPROX(u.template lpNorm<Infinity>(), u.cwiseAbs().maxCoeff());
+  if(v.size()==0)
+  {
+    VERIFY_IS_APPROX(u.template lpNorm<Infinity>(), RealScalar(0));
+    VERIFY_IS_APPROX(u.template lpNorm<1>(), RealScalar(0));
+    VERIFY_IS_APPROX(u.template lpNorm<2>(), RealScalar(0));
+    VERIFY_IS_APPROX(u.template lpNorm<5>(), RealScalar(0));
+  }
+  else
+  {
+    VERIFY_IS_APPROX(u.template lpNorm<Infinity>(), u.cwiseAbs().maxCoeff());
+  }
+
   VERIFY_IS_APPROX(u.template lpNorm<1>(), u.cwiseAbs().sum());
   VERIFY_IS_APPROX(u.template lpNorm<2>(), sqrt(u.array().abs().square().sum()));
   VERIFY_IS_APPROX(numext::pow(u.template lpNorm<5>(), typename VectorType::RealScalar(5)), u.array().abs().pow(5).sum());
@@ -255,6 +267,8 @@ void test_array_for_matrix()
     CALL_SUBTEST_5( lpNorm(VectorXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_4( lpNorm(VectorXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
+  CALL_SUBTEST_5( lpNorm(VectorXf(0)) );
+  CALL_SUBTEST_4( lpNorm(VectorXcf(0)) );
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_4( resize(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_5( resize(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );

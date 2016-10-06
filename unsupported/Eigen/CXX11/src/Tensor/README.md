@@ -1102,7 +1102,7 @@ Example: Reduction along two dimensions.
 
 As a special case, if you pass no parameter to a reduction operation the
 original tensor is reduced along *all* its dimensions.  The result is a
-one-dimension tensor with a single value.
+scalar, represented as a zero-dimension tensor.
 
     Eigen::Tensor<float, 3> a(2, 3, 4);
     a.setValues({{{0.0f, 1.0f, 2.0f, 3.0f},
@@ -1112,7 +1112,7 @@ one-dimension tensor with a single value.
                   {19.0f, 18.0f, 17.0f, 16.0f},
                   {20.0f, 21.0f, 22.0f, 23.0f}}});
     // Reduce along all dimensions using the sum() operator.
-    Eigen::Tensor<float, 1> b = a.sum();
+    Eigen::Tensor<float, 0> b = a.sum();
     cout << "b" << endl << b << endl << endl;
     =>
     b
@@ -1166,6 +1166,44 @@ short-circuiting, so may be significantly inefficient.
 
 Reduce a tensor using a user-defined reduction operator.  See ```SumReducer```
 in TensorFunctors.h for information on how to implement a reduction operator.
+
+
+## Scan Operations
+
+A *Scan* operation returns a tensor with the same dimensions as the original
+tensor. The operation performs an inclusive scan along the specified
+axis, which means it computes a running total along the axis for a given
+reduction operation.
+If the reduction operation corresponds to summation, then this computes the
+prefix sum of the tensor along the given axis.
+
+Example:
+dd a comment to this line
+
+    // Create a tensor of 2 dimensions
+    Eigen::Tensor<int, 2> a(2, 3);
+    a.setValues({{1, 2, 3}, {4, 5, 6}});
+    // Scan it along the second dimension (1) using summation
+    Eigen::Tensor<int, 2> b = a.cumsum(1);
+    // The result is a tensor with the same size as the input
+    cout << "a" << endl << a << endl << endl;
+    cout << "b" << endl << b << endl << endl;
+    =>
+    a
+    1 2 3
+    6 5 4
+
+    b
+    1  3  6
+    4  9 15
+
+### <Operation> cumsum(const Index& axis)
+
+Perform a scan by summing consecutive entries.
+
+### <Operation> cumprod(const Index& axis)
+
+Perform a scan by multiplying consecutive entries.
 
 
 ## Convolutions

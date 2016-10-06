@@ -32,7 +32,8 @@ template< typename TransformType,
           typename MatrixType,
           int Case = transform_traits<TransformType>::IsProjective ? 0
                    : int(MatrixType::RowsAtCompileTime) == int(transform_traits<TransformType>::HDim) ? 1
-                   : 2>
+                   : 2,
+          int RhsCols = MatrixType::ColsAtCompileTime>
 struct transform_right_product_impl;
 
 template< typename Other,
@@ -192,7 +193,7 @@ template<int Mode> struct transform_make_affine;
   * preprocessor token EIGEN_QT_SUPPORT is defined.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
-  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_TRANSFORM_PLUGIN.
+  * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_TRANSFORM_PLUGIN.
   *
   * \sa class Matrix, class Quaternion
   */
@@ -436,7 +437,7 @@ public:
     */
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
-  EIGEN_STRONG_INLINE const typename OtherDerived::PlainObject
+  EIGEN_STRONG_INLINE const typename internal::transform_right_product_impl<Transform, OtherDerived>::ResultType
   operator * (const EigenBase<OtherDerived> &other) const
   { return internal::transform_right_product_impl<Transform, OtherDerived>::run(*this,other.derived()); }
 
@@ -463,7 +464,7 @@ public:
     operator * (const DiagonalBase<DiagonalDerived> &b) const
   {
     TransformTimeDiagonalReturnType res(*this);
-    res.linear() *= b;
+    res.linearExt() *= b;
     return res;
   }
 
@@ -577,7 +578,7 @@ public:
     return res;
   }
 
-  inline Transform& operator*=(const DiagonalMatrix<Scalar,Dim>& s) { linear() *= s; return *this; }
+  inline Transform& operator*=(const DiagonalMatrix<Scalar,Dim>& s) { linearExt() *= s; return *this; }
 
   template<typename Derived>
   inline Transform& operator=(const RotationBase<Derived,Dim>& r);
@@ -852,7 +853,7 @@ Transform<Scalar,Dim,Mode,Options>::prescale(const MatrixBase<OtherDerived> &oth
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
   EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
-  m_matrix.template block<Dim,HDim>(0,0).noalias() = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0));
+  affine().noalias() = (other.asDiagonal() * affine());
   return *this;
 }
 
@@ -1072,7 +1073,7 @@ void Transform<Scalar,Dim,Mode,Options>::computeRotationScaling(RotationMatrixTy
   }
 }
 
-/** decomposes the linear part of the transformation as a product rotation x scaling, the scaling being
+/** decomposes the linear part of the transformation as a product scaling x rotation, the scaling being
   * not necessarily positive.
   *
   * If either pointer is zero, the corresponding computation is skipped.
@@ -1287,8 +1288,8 @@ struct transform_product_result
   };
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 0 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 0, RhsCols>
 {
   typedef typename MatrixType::PlainObject ResultType;
 
@@ -1298,8 +1299,8 @@ struct transform_right_product_impl< TransformType, MatrixType, 0 >
   }
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 1 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 1, RhsCols>
 {
   enum { 
     Dim = TransformType::Dim, 
@@ -1324,8 +1325,8 @@ struct transform_right_product_impl< TransformType, MatrixType, 1 >
   }
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 2 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 2, RhsCols>
 {
   enum { 
     Dim = TransformType::Dim, 
@@ -1345,6 +1346,30 @@ struct transform_right_product_impl< TransformType, MatrixType, 2 >
     TopLeftLhs(res, 0, 0, Dim, other.cols()).noalias() += T.linear() * other;
 
     return res;
+  }
+};
+
+template< typename TransformType, typename MatrixType >
+struct transform_right_product_impl< TransformType, MatrixType, 2, 1> // rhs is a vector of size Dim
+{
+  typedef typename TransformType::MatrixType TransformMatrix;
+  enum {
+    Dim = TransformType::Dim,
+    HDim = TransformType::HDim,
+    OtherRows = MatrixType::RowsAtCompileTime,
+    WorkingRows = EIGEN_PLAIN_ENUM_MIN(TransformMatrix::RowsAtCompileTime,HDim)
+  };
+
+  typedef typename MatrixType::PlainObject ResultType;
+
+  static EIGEN_STRONG_INLINE ResultType run(const TransformType& T, const MatrixType& other)
+  {
+    EIGEN_STATIC_ASSERT(OtherRows==Dim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
+
+    Matrix<typename ResultType::Scalar, Dim+1, 1> rhs;
+    rhs.template head<Dim>() = other; rhs[Dim] = typename ResultType::Scalar(1);
+    Matrix<typename ResultType::Scalar, WorkingRows, 1> res(T.matrix() * rhs);
+    return res.template head<Dim>();
   }
 };
 

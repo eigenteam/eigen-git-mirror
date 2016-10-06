@@ -17,10 +17,20 @@
 
 namespace Eigen { 
 
-/** \class MapBase
-  * \ingroup Core_Module
+/** \ingroup Core_Module
   *
-  * \brief Base class for Map and Block expression with direct access
+  * \brief Base class for dense Map and Block expression with direct access
+  *
+  * This base class provides the const low-level accessors (e.g. coeff, coeffRef) of dense
+  * Map and Block objects with direct access.
+  * Typical users do not have to directly deal with this class.
+  *
+  * This class can be extended by through the macro plugin \c EIGEN_MAPBASE_PLUGIN.
+  * See \link TopicCustomizing_Plugins customizing Eigen \endlink for details.
+  *
+  * The \c Derived class has to provide the following two methods describing the memory layout:
+  *  \code Index innerStride() const; \endcode
+  *  \code Index outerStride() const; \endcode
   *
   * \sa class Map, class Block
   */
@@ -75,7 +85,9 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
 
     typedef typename Base::CoeffReturnType CoeffReturnType;
 
+    /** \copydoc DenseBase::rows() */
     EIGEN_DEVICE_FUNC inline Index rows() const { return m_rows.value(); }
+    /** \copydoc DenseBase::cols() */
     EIGEN_DEVICE_FUNC inline Index cols() const { return m_cols.value(); }
 
     /** Returns a pointer to the first coefficient of the matrix or vector.
@@ -86,12 +98,14 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       */
     EIGEN_DEVICE_FUNC inline const Scalar* data() const { return m_data; }
 
+    /** \copydoc PlainObjectBase::coeff(Index,Index) const */
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeff(Index rowId, Index colId) const
     {
       return m_data[colId * colStride() + rowId * rowStride()];
     }
 
+    /** \copydoc PlainObjectBase::coeff(Index) const */
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeff(Index index) const
     {
@@ -99,12 +113,14 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       return m_data[index * innerStride()];
     }
 
+    /** \copydoc PlainObjectBase::coeffRef(Index,Index) const */
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
       return this->m_data[colId * colStride() + rowId * rowStride()];
     }
 
+    /** \copydoc PlainObjectBase::coeffRef(Index) const */
     EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
@@ -112,6 +128,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       return this->m_data[index * innerStride()];
     }
 
+    /** \internal */
     template<int LoadMode>
     inline PacketScalar packet(Index rowId, Index colId) const
     {
@@ -119,6 +136,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
                (m_data + (colId * colStride() + rowId * rowStride()));
     }
 
+    /** \internal */
     template<int LoadMode>
     inline PacketScalar packet(Index index) const
     {
@@ -126,6 +144,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       return internal::ploadt<PacketScalar, LoadMode>(m_data + index * innerStride());
     }
 
+    /** \internal Constructor for fixed size matrices or vectors */
     EIGEN_DEVICE_FUNC
     explicit inline MapBase(PointerType dataPtr) : m_data(dataPtr), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
     {
@@ -133,6 +152,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       checkSanity<Derived>();
     }
 
+    /** \internal Constructor for dynamically sized vectors */
     EIGEN_DEVICE_FUNC
     inline MapBase(PointerType dataPtr, Index vecSize)
             : m_data(dataPtr),
@@ -145,6 +165,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
       checkSanity<Derived>();
     }
 
+    /** \internal Constructor for dynamically sized matrices */
     EIGEN_DEVICE_FUNC
     inline MapBase(PointerType dataPtr, Index rows, Index cols)
             : m_data(dataPtr), m_rows(rows), m_cols(cols)
@@ -166,7 +187,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     void checkSanity(typename internal::enable_if<(internal::traits<T>::Alignment>0),void*>::type = 0) const
     {
 #if EIGEN_MAX_ALIGN_BYTES>0
-      eigen_assert((   ((size_t(m_data) % internal::traits<Derived>::Alignment) == 0)
+      eigen_assert((   ((internal::UIntPtr(m_data) % internal::traits<Derived>::Alignment) == 0)
                     || (cols() * rows() * innerStride() * sizeof(Scalar)) < internal::traits<Derived>::Alignment ) && "data is not aligned");
 #endif
     }
@@ -181,6 +202,16 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
 };
 
+/** \ingroup Core_Module
+  *
+  * \brief Base class for non-const dense Map and Block expression with direct access
+  *
+  * This base class provides the non-const low-level accessors (e.g. coeff and coeffRef) of
+  * dense Map and Block objects with direct access.
+  * It inherits MapBase<Derived, ReadOnlyAccessors> which defines the const variant for reading specific entries.
+  *
+  * \sa class Map, class Block
+  */
 template<typename Derived> class MapBase<Derived, WriteAccessors>
   : public MapBase<Derived, ReadOnlyAccessors>
 {

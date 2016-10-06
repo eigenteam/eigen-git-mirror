@@ -117,13 +117,11 @@ template<typename MatrixType> void reverse(const MatrixType& m)
   m2.colwise().reverseInPlace();
   VERIFY_IS_APPROX(m2,m1.colwise().reverse().eval());
 
-  /*
   m1.colwise().reverse()(r, c) = x;
   VERIFY_IS_APPROX(x, m1(rows - 1 - r, c));
 
   m1.rowwise().reverse()(r, c) = x;
   VERIFY_IS_APPROX(x, m1(r, cols - 1 - c));
-  */
 }
 
 void test_array_reverse()

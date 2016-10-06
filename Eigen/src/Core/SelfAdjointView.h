@@ -55,6 +55,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef TriangularBase<SelfAdjointView> Base;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNested MatrixTypeNested;
     typedef typename internal::traits<SelfAdjointView>::MatrixTypeNestedCleaned MatrixTypeNestedCleaned;
+    typedef MatrixTypeNestedCleaned NestedExpression;
 
     /** \brief The type of coefficients in this matrix */
     typedef typename internal::traits<SelfAdjointView>::Scalar Scalar; 
@@ -128,7 +129,7 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     }
     
     friend EIGEN_DEVICE_FUNC
-    const SelfAdjointView<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>,MatrixType>,UpLo>
+    const SelfAdjointView<const EIGEN_SCALAR_BINARYOP_EXPR_RETURN_TYPE(Scalar,MatrixType,product),UpLo>
     operator*(const Scalar& s, const SelfAdjointView& mat)
     {
       return (s*mat.nestedExpression()).template selfadjointView<UpLo>();
@@ -161,6 +162,41 @@ template<typename _MatrixType, unsigned int UpLo> class SelfAdjointView
     template<typename DerivedU>
     EIGEN_DEVICE_FUNC
     SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha = Scalar(1));
+
+    /** \returns an expression of a triangular view extracted from the current selfadjoint view of a given triangular part
+      *
+      * The parameter \a TriMode can have the following values: \c #Upper, \c #StrictlyUpper, \c #UnitUpper,
+      * \c #Lower, \c #StrictlyLower, \c #UnitLower.
+      *
+      * If \c TriMode references the same triangular part than \c *this, then this method simply return a \c TriangularView of the nested expression,
+      * otherwise, the nested expression is first transposed, thus returning a \c TriangularView<Transpose<MatrixType>> object.
+      *
+      * \sa MatrixBase::triangularView(), class TriangularView
+      */
+    template<unsigned int TriMode>
+    EIGEN_DEVICE_FUNC
+    typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+                                   TriangularView<MatrixType,TriMode>,
+                                   TriangularView<typename MatrixType::AdjointReturnType,TriMode> >::type
+    triangularView() const
+    {
+      typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::ConstTransposeReturnType>::type tmp1(m_matrix);
+      typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)), MatrixType&, typename MatrixType::AdjointReturnType>::type tmp2(tmp1);
+      return typename internal::conditional<(TriMode&(Upper|Lower))==(UpLo&(Upper|Lower)),
+                                   TriangularView<MatrixType,TriMode>,
+                                   TriangularView<typename MatrixType::AdjointReturnType,TriMode> >::type(tmp2);
+    }
+
+    /** \returns a const expression of the main diagonal of the matrix \c *this
+      *
+      * This method simply returns the diagonal of the nested expression, thus by-passing the SelfAdjointView decorator.
+      *
+      * \sa MatrixBase::diagonal(), class Diagonal */
+    EIGEN_DEVICE_FUNC
+    typename MatrixType::ConstDiagonalReturnType diagonal() const
+    {
+      return typename MatrixType::ConstDiagonalReturnType(m_matrix);
+    }
 
 /////////// Cholesky module ///////////
 

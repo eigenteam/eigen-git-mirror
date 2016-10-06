@@ -461,8 +461,8 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
 #undef writeResultShmem
 #undef writeRow
 
-  const int max_i_write = (min)((int)((m_size - base_m - threadIdx.y + 7) / 8), 8);
-  const int max_j_write = (min)((int)((n_size - base_n - threadIdx.z + 7) / 8), 8);
+  const int max_i_write = numext::mini((int)((m_size - base_m - threadIdx.y + 7) / 8), 8);
+  const int max_j_write = numext::mini((int)((n_size - base_n - threadIdx.z + 7) / 8), 8);
 
   if (threadIdx.x < max_i_write) {
     if (max_j_write == 8) {
@@ -1240,10 +1240,10 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   typedef array<Index, RDims> right_dim_mapper_t;
 
   typedef array<Index, ContractDims> contract_t;
-  typedef array<Index, max_n_1<LDims - ContractDims>::size> left_nocontract_t;
-  typedef array<Index, max_n_1<RDims - ContractDims>::size> right_nocontract_t;
+  typedef array<Index, LDims - ContractDims> left_nocontract_t;
+  typedef array<Index, RDims - ContractDims> right_nocontract_t;
 
-  static const int NumDims = max_n_1<LDims + RDims - 2 * ContractDims>::size;
+  static const int NumDims = LDims + RDims - 2 * ContractDims;
 
   typedef DSizes<Index, NumDims> Dimensions;
 

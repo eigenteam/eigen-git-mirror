@@ -37,6 +37,8 @@ namespace Eigen {
   * This Householder QR decomposition is faster, but less numerically stable and less feature-full than
   * FullPivHouseholderQR or ColPivHouseholderQR.
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  *
   * \sa MatrixBase::householderQr()
   */
 template<typename _MatrixType> class HouseholderQR
@@ -47,7 +49,6 @@ template<typename _MatrixType> class HouseholderQR
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
@@ -102,15 +103,30 @@ template<typename _MatrixType> class HouseholderQR
       compute(matrix.derived());
     }
 
+
+    /** \brief Constructs a QR factorization from a given matrix
+      *
+      * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when
+      * \c MatrixType is a Eigen::Ref.
+      *
+      * \sa HouseholderQR(const EigenBase&)
+      */
+    template<typename InputType>
+    explicit HouseholderQR(EigenBase<InputType>& matrix)
+      : m_qr(matrix.derived()),
+        m_hCoeffs((std::min)(matrix.rows(),matrix.cols())),
+        m_temp(matrix.cols()),
+        m_isInitialized(false)
+    {
+      computeInPlace();
+    }
+
     /** This method finds a solution x to the equation Ax=b, where A is the matrix of which
       * *this is the QR decomposition, if any exists.
       *
       * \param b the right-hand-side of the equation to solve.
       *
       * \returns a solution.
-      *
-      * \note The case where b is a matrix is not yet implemented. Also, this
-      *       code is space inefficient.
       *
       * \note_about_checking_solutions
       *
@@ -151,7 +167,11 @@ template<typename _MatrixType> class HouseholderQR
     }
 
     template<typename InputType>
-    HouseholderQR& compute(const EigenBase<InputType>& matrix);
+    HouseholderQR& compute(const EigenBase<InputType>& matrix) {
+      m_qr = matrix.derived();
+      computeInPlace();
+      return *this;
+    }
 
     /** \returns the absolute value of the determinant of the matrix of which
       * *this is the QR decomposition. It has only linear complexity
@@ -203,6 +223,8 @@ template<typename _MatrixType> class HouseholderQR
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
+
+    void computeInPlace();
     
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
@@ -354,16 +376,14 @@ void HouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) c
   * \sa class HouseholderQR, HouseholderQR(const MatrixType&)
   */
 template<typename MatrixType>
-template<typename InputType>
-HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const EigenBase<InputType>& matrix)
+void HouseholderQR<MatrixType>::computeInPlace()
 {
   check_template_parameters();
   
-  Index rows = matrix.rows();
-  Index cols = matrix.cols();
+  Index rows = m_qr.rows();
+  Index cols = m_qr.cols();
   Index size = (std::min)(rows,cols);
 
-  m_qr = matrix.derived();
   m_hCoeffs.resize(size);
 
   m_temp.resize(cols);
@@ -371,10 +391,8 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const EigenBase<In
   internal::householder_qr_inplace_blocked<MatrixType, HCoeffsType>::run(m_qr, m_hCoeffs, 48, m_temp.data());
 
   m_isInitialized = true;
-  return *this;
 }
 
-#ifndef __CUDACC__
 /** \return the Householder QR decomposition of \c *this.
   *
   * \sa class HouseholderQR
@@ -385,7 +403,6 @@ MatrixBase<Derived>::householderQr() const
 {
   return HouseholderQR<PlainObject>(eval());
 }
-#endif // __CUDACC__
 
 } // end namespace Eigen
 

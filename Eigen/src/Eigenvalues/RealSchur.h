@@ -253,19 +253,25 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const EigenBase<InputType>
   if (maxIters == -1)
     maxIters = m_maxIterationsPerRow * matrix.rows();
 
+  Scalar scale = matrix.derived().cwiseAbs().maxCoeff();
+
   // Step 1. Reduce to Hessenberg form
-  m_hess.compute(matrix.derived());
+  m_hess.compute(matrix.derived()/scale);
 
   // Step 2. Reduce to real Schur form  
   computeFromHessenberg(m_hess.matrixH(), m_hess.matrixQ(), computeU);
+
+  m_matT *= scale;
   
   return *this;
 }
 template<typename MatrixType>
 template<typename HessMatrixType, typename OrthMatrixType>
 RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU)
-{  
-  m_matT = matrixH; 
+{
+  using std::abs;
+
+  m_matT = matrixH;
   if(computeU)
     m_matU = matrixQ;
   

@@ -193,7 +193,7 @@ template<typename PlainObjectType> class TensorRef : public TensorBase<TensorRef
       return m_evaluator->coeff(index);
     }
 
-#ifdef EIGEN_HAS_VARIADIC_TEMPLATES
+#if EIGEN_HAS_VARIADIC_TEMPLATES
     template<typename... IndexTypes> EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE const Scalar operator()(Index firstIndex, IndexTypes... otherIndices) const
     {

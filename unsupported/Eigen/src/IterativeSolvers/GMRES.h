@@ -62,7 +62,7 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
   typedef typename Dest::RealScalar RealScalar;
   typedef typename Dest::Scalar Scalar;
   typedef Matrix < Scalar, Dynamic, 1 > VectorType;
-  typedef Matrix < Scalar, Dynamic, Dynamic > FMatrixType;
+  typedef Matrix < Scalar, Dynamic, Dynamic, ColMajor> FMatrixType;
 
   RealScalar tol = tol_error;
   const Index maxIters = iters;
@@ -157,7 +157,8 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
     // insert coefficients into upper matrix triangle
     H.col(k-1).head(k) = v.head(k);
 
-    bool stop = (k==m || abs(w(k)) < tol * r0Norm || iters == maxIters);
+    tol_error = abs(w(k)) / r0Norm;
+    bool stop = (k==m || tol_error < tol || iters == maxIters);
 
     if (stop || k == restart)
     {

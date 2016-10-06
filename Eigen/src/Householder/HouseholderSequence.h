@@ -108,7 +108,7 @@ struct hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
 
 template<typename OtherScalarType, typename MatrixType> struct matrix_type_times_scalar_type
 {
-  typedef typename scalar_product_traits<OtherScalarType, typename MatrixType::Scalar>::ReturnType
+  typedef typename ScalarBinaryOpTraits<OtherScalarType, typename MatrixType::Scalar>::ReturnType
     ResultScalar;
   typedef Matrix<ResultScalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
                  0, MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime> Type;
@@ -243,7 +243,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     {
       workspace.resize(rows());
       Index vecs = m_length;
-      if(is_same_dense(dst,m_vectors))
+      if(internal::is_same_dense(dst,m_vectors))
       {
         // in-place
         dst.diagonal().setOnes();
@@ -304,7 +304,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     /** \internal */
     template<typename Dest> inline void applyThisOnTheLeft(Dest& dst) const
     {
-      Matrix<Scalar,1,Dest::ColsAtCompileTime,RowMajor,1,Dest::MaxColsAtCompileTime> workspace(dst.cols());
+      Matrix<Scalar,1,Dest::ColsAtCompileTime,RowMajor,1,Dest::MaxColsAtCompileTime> workspace;
       applyThisOnTheLeft(dst, workspace);
     }
 

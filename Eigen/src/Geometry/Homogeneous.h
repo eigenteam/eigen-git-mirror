@@ -329,10 +329,10 @@ protected:
 
 // dense = homogeneous
 template< typename DstXprType, typename ArgType, typename Scalar>
-struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op<Scalar,typename ArgType::Scalar>, Dense2Dense>
 {
   typedef Homogeneous<ArgType,Vertical> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename ArgType::Scalar> &)
   {
     dst.template topRows<ArgType::RowsAtCompileTime>(src.nestedExpression().rows()) = src.nestedExpression();
     dst.row(dst.rows()-1).setOnes();
@@ -341,10 +341,10 @@ struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op
 
 // dense = homogeneous
 template< typename DstXprType, typename ArgType, typename Scalar>
-struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_op<Scalar,typename ArgType::Scalar>, Dense2Dense>
 {
   typedef Homogeneous<ArgType,Horizontal> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename ArgType::Scalar> &)
   {
     dst.template leftCols<ArgType::ColsAtCompileTime>(src.nestedExpression().cols()) = src.nestedExpression();
     dst.col(dst.cols()-1).setOnes();
@@ -373,7 +373,7 @@ struct homogeneous_right_product_refactoring_helper
   typedef typename Rhs::ConstRowXpr                                     ConstantColumn;
   typedef Replicate<const ConstantColumn,Rows,1>                        ConstantBlock;
   typedef Product<Lhs,LinearBlock,LazyProduct>                          LinearProduct;
-  typedef CwiseBinaryOp<internal::scalar_sum_op<typename Lhs::Scalar>, const LinearProduct, const ConstantBlock> Xpr;
+  typedef CwiseBinaryOp<internal::scalar_sum_op<typename Lhs::Scalar,typename Rhs::Scalar>, const LinearProduct, const ConstantBlock> Xpr;
 };
 
 template<typename Lhs, typename Rhs, int ProductTag>
@@ -402,6 +402,18 @@ struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, DenseShape, Homog
   }
 };
 
+// TODO: the following specialization is to address a regression from 3.2 to 3.3
+// In the future, this path should be optimized.
+template<typename Lhs, typename RhsArg, int ProductTag>
+struct generic_product_impl<Lhs, Homogeneous<RhsArg,Vertical>, TriangularShape, HomogeneousShape, ProductTag>
+{
+  template<typename Dest>
+  static void evalTo(Dest& dst, const Lhs& lhs, const Homogeneous<RhsArg,Vertical>& rhs)
+  {
+    dst.noalias() = lhs * rhs.eval();
+  }
+};
+
 template<typename Lhs,typename Rhs>
 struct homogeneous_left_product_refactoring_helper
 {
@@ -414,7 +426,7 @@ struct homogeneous_left_product_refactoring_helper
   typedef typename Lhs::ConstColXpr                                     ConstantColumn;
   typedef Replicate<const ConstantColumn,1,Cols>                        ConstantBlock;
   typedef Product<LinearBlock,Rhs,LazyProduct>                          LinearProduct;
-  typedef CwiseBinaryOp<internal::scalar_sum_op<typename Lhs::Scalar>, const LinearProduct, const ConstantBlock> Xpr;
+  typedef CwiseBinaryOp<internal::scalar_sum_op<typename Lhs::Scalar,typename Rhs::Scalar>, const LinearProduct, const ConstantBlock> Xpr;
 };
 
 template<typename Lhs, typename Rhs, int ProductTag>

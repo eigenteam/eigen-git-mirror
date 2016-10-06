@@ -12,6 +12,7 @@
 #include <Eigen/LU>
 
 // regression test for bug 447
+template<int>
 void product1x1()
 {
   Matrix<float,1,3> matAstatic;
@@ -177,15 +178,66 @@ void test_lazy_l3()
   CALL_SUBTEST(( test_lazy_all_layout<T,4,-1,-1>(4,cols,depth) ));
 }
 
+template<typename T,int N,int M,int K>
+void test_linear_but_not_vectorizable()
+{
+  // Check tricky cases for which the result of the product is a vector and thus must exhibit the LinearBit flag,
+  // but is not vectorizable along the linear dimension.
+  Index n = N==Dynamic ? internal::random<Index>(1,32) : N;
+  Index m = M==Dynamic ? internal::random<Index>(1,32) : M;
+  Index k = K==Dynamic ? internal::random<Index>(1,32) : K;
+
+  {
+    Matrix<T,N,M+1> A; A.setRandom(n,m+1);
+    Matrix<T,M*2,K> B; B.setRandom(m*2,k);
+    Matrix<T,1,K> C;
+    Matrix<T,1,K> R;
+
+    C.noalias() = A.template topLeftCorner<1,M>() * (B.template topRows<M>()+B.template bottomRows<M>());
+    R.noalias() = A.template topLeftCorner<1,M>() * (B.template topRows<M>()+B.template bottomRows<M>()).eval();
+    VERIFY_IS_APPROX(C,R);
+  }
+
+  {
+    Matrix<T,M+1,N,RowMajor> A; A.setRandom(m+1,n);
+    Matrix<T,K,M*2,RowMajor> B; B.setRandom(k,m*2);
+    Matrix<T,K,1> C;
+    Matrix<T,K,1> R;
+
+    C.noalias() = (B.template leftCols<M>()+B.template rightCols<M>())        * A.template topLeftCorner<M,1>();
+    R.noalias() = (B.template leftCols<M>()+B.template rightCols<M>()).eval() * A.template topLeftCorner<M,1>();
+    VERIFY_IS_APPROX(C,R);
+  }
+}
+
+template<int Rows>
+void bug_1311()
+{
+  Matrix< double, Rows, 2 > A;  A.setRandom();
+  Vector2d b = Vector2d::Random() ;
+  Matrix<double,Rows,1> res;
+  res.noalias() = 1. * (A * b);
+  VERIFY_IS_APPROX(res, A*b);
+  res.noalias() = 1.*A * b;
+  VERIFY_IS_APPROX(res, A*b);
+  res.noalias() = (1.*A).lazyProduct(b);
+  VERIFY_IS_APPROX(res, A*b);
+  res.noalias() = (1.*A).lazyProduct(1.*b);
+  VERIFY_IS_APPROX(res, A*b);
+  res.noalias() = (A).lazyProduct(1.*b);
+  VERIFY_IS_APPROX(res, A*b);
+}
+
 void test_product_small()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( product(Matrix<float, 3, 2>()) );
-    CALL_SUBTEST_2( product(Matrix<int, 3, 5>()) );
+    CALL_SUBTEST_2( product(Matrix<int, 3, 17>()) );
+    CALL_SUBTEST_8( product(Matrix<double, 3, 17>()) );
     CALL_SUBTEST_3( product(Matrix3d()) );
     CALL_SUBTEST_4( product(Matrix4d()) );
     CALL_SUBTEST_5( product(Matrix4f()) );
-    CALL_SUBTEST_6( product1x1() );
+    CALL_SUBTEST_6( product1x1<0>() );
 
     CALL_SUBTEST_11( test_lazy_l1<float>() );
     CALL_SUBTEST_12( test_lazy_l2<float>() );
@@ -202,6 +254,13 @@ void test_product_small()
     CALL_SUBTEST_41( test_lazy_l1<std::complex<double> >() );
     CALL_SUBTEST_42( test_lazy_l2<std::complex<double> >() );
     CALL_SUBTEST_43( test_lazy_l3<std::complex<double> >() );
+
+    CALL_SUBTEST_7(( test_linear_but_not_vectorizable<float,2,1,Dynamic>() ));
+    CALL_SUBTEST_7(( test_linear_but_not_vectorizable<float,3,1,Dynamic>() ));
+    CALL_SUBTEST_7(( test_linear_but_not_vectorizable<float,2,1,16>() ));
+
+    CALL_SUBTEST_6( bug_1311<3>() );
+    CALL_SUBTEST_6( bug_1311<5>() );
   }
 
 #ifdef EIGEN_TEST_PART_6

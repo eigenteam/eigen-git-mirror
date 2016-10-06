@@ -42,9 +42,14 @@ void svd_check_full(const MatrixType& m, const SvdType& svd)
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
   RealScalar scaling = m.cwiseAbs().maxCoeff();
-  if(scaling<=(std::numeric_limits<RealScalar>::min)())
-    scaling = RealScalar(1);
-  VERIFY_IS_APPROX(m/scaling, u * (sigma/scaling) * v.adjoint());
+  if(scaling<(std::numeric_limits<RealScalar>::min)())
+  {
+    VERIFY(sigma.cwiseAbs().maxCoeff() <= (std::numeric_limits<RealScalar>::min)());
+  }
+  else
+  {
+    VERIFY_IS_APPROX(m/scaling, u * (sigma/scaling) * v.adjoint());
+  }
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
 }
@@ -141,14 +146,14 @@ void svd_least_square(const MatrixType& m, unsigned int computationOptions)
       using std::abs;
       
       SolutionType y(x);
-      y.row(k) = (1.+2*NumTraits<RealScalar>::epsilon())*x.row(k);
+      y.row(k) = (RealScalar(1)+2*NumTraits<RealScalar>::epsilon())*x.row(k);
       RealScalar residual_y = (m*y-rhs).norm();
       VERIFY( test_isMuchSmallerThan(abs(residual_y-residual), rhs_norm) || residual < residual_y );
       if(internal::is_same<RealScalar,float>::value) ++g_test_level;
       VERIFY( test_isApprox(residual_y,residual) || residual < residual_y );
       if(internal::is_same<RealScalar,float>::value) --g_test_level;
       
-      y.row(k) = (1.-2*NumTraits<RealScalar>::epsilon())*x.row(k);
+      y.row(k) = (RealScalar(1)-2*NumTraits<RealScalar>::epsilon())*x.row(k);
       residual_y = (m*y-rhs).norm();
       VERIFY( test_isMuchSmallerThan(abs(residual_y-residual), rhs_norm) || residual < residual_y );
       if(internal::is_same<RealScalar,float>::value) ++g_test_level;
@@ -336,7 +341,7 @@ void svd_underoverflow()
     M << value_set(id(0)), value_set(id(1)), value_set(id(2)), value_set(id(3));
     svd.compute(M,ComputeFullU|ComputeFullV);
     CALL_SUBTEST( svd_check_full(M,svd) );
-    
+
     id(k)++;
     if(id(k)>=value_set.size())
     {
@@ -344,7 +349,7 @@ void svd_underoverflow()
       id.head(k).setZero();
       k=0;
     }
-    
+
   } while((id<int(value_set.size())).all());
   
 #if defined __INTEL_COMPILER

@@ -1,4 +1,4 @@
-project(Eigen)
+project(Eigen3)
 
 cmake_minimum_required(VERSION 2.8.5)
 
@@ -7,6 +7,11 @@ cmake_minimum_required(VERSION 2.8.5)
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
 endif()
+
+# Alias Eigen_*_DIR to Eigen3_*_DIR:
+
+set(Eigen_SOURCE_DIR ${Eigen3_SOURCE_DIR})
+set(Eigen_BINARY_DIR ${Eigen3_BINARY_DIR})
 
 # guard against bad build-type strings
 
@@ -93,9 +98,11 @@ else()
 endif()
 
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
-if(NOT WIN32)
+
+# Disable pkgconfig only for native Windows builds
+if(NOT WIN32 OR NOT CMAKE_HOST_SYSTEM_NAME MATCHES Windows)
   option(EIGEN_BUILD_PKGCONFIG "Build pkg-config .pc file for Eigen" ON)
-endif(NOT WIN32)
+endif()
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -120,7 +127,7 @@ endmacro(ei_add_cxx_compiler_flag)
 if(NOT MSVC)
   # We assume that other compilers are partly compatible with GNUCC
 
-  # clang outputs some warnings for unknwon flags that are not caught by check_cxx_compiler_flag
+  # clang outputs some warnings for unknown flags that are not caught by check_cxx_compiler_flag
   # adding -Werror turns such warnings into errors
   check_cxx_compiler_flag("-Werror" COMPILER_SUPPORT_WERROR)
   if(COMPILER_SUPPORT_WERROR)
@@ -142,8 +149,11 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-Wwrite-strings")
   ei_add_cxx_compiler_flag("-Wformat-security")
   ei_add_cxx_compiler_flag("-Wshorten-64-to-32")
+  ei_add_cxx_compiler_flag("-Wlogical-op")
   ei_add_cxx_compiler_flag("-Wenum-conversion")
   ei_add_cxx_compiler_flag("-Wc++11-extensions")
+  ei_add_cxx_compiler_flag("-Wdouble-promotion")
+#  ei_add_cxx_compiler_flag("-Wconversion")
   
   # -Wshadow is insanely too strict with gcc, hopefully it will become usable with gcc 6
   # if(NOT CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "5.0.0"))
@@ -159,7 +169,7 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-fno-common")
   ei_add_cxx_compiler_flag("-fstrict-aliasing")
   ei_add_cxx_compiler_flag("-wd981")                    # disable ICC's "operands are evaluated in unspecified order" remark
-  ei_add_cxx_compiler_flag("-wd2304")                   # disbale ICC's "warning #2304: non-explicit constructor with single argument may cause implicit type conversion" produced by -Wnon-virtual-dtor
+  ei_add_cxx_compiler_flag("-wd2304")                   # disable ICC's "warning #2304: non-explicit constructor with single argument may cause implicit type conversion" produced by -Wnon-virtual-dtor
   
   
   # The -ansi flag must be added last, otherwise it is also used as a linker flag by check_cxx_compiler_flag making it fails
@@ -402,7 +412,7 @@ if(EIGEN_BUILD_PKGCONFIG)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen3.pc
         DESTINATION ${PKGCONFIG_INSTALL_DIR}
         )
-endif(EIGEN_BUILD_PKGCONFIG)
+endif()
 
 add_subdirectory(Eigen)
 

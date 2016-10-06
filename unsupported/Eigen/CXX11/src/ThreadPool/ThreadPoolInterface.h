@@ -18,6 +18,13 @@ class ThreadPoolInterface {
  public:
   virtual void Schedule(std::function<void()> fn) = 0;
 
+  // Returns the number of threads in the pool.
+  virtual int NumThreads() const = 0;
+
+  // Returns a logical thread index between 0 and NumThreads() - 1 if called
+  // from one of the threads in the pool. Returns -1 otherwise.
+  virtual int CurrentThreadId() const = 0;
+
   virtual ~ThreadPoolInterface() {}
 };
 

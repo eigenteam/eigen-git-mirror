@@ -164,6 +164,7 @@
       #if EIGEN_COMP_ICC >= 1110
         #include <immintrin.h>
       #else
+        #include <mmintrin.h>
         #include <emmintrin.h>
         #include <xmmintrin.h>
         #ifdef  EIGEN_VECTORIZE_SSE3
@@ -259,6 +260,11 @@
 // for min/max:
 #include <algorithm>
 
+// for std::is_nothrow_move_assignable
+#ifdef EIGEN_INCLUDE_TYPE_TRAITS
+#include <type_traits>
+#endif
+
 // for outputting debug info
 #ifdef EIGEN_DEBUG_ASSIGN
 #include <iostream>
@@ -332,8 +338,8 @@ using std::ptrdiff_t;
 
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
-#include "src/Core/SpecialFunctions.h"
 #include "src/Core/GenericPacketMath.h"
+#include "src/Core/MathFunctionsImpl.h"
 
 #if defined EIGEN_VECTORIZE_AVX512
   #include "src/Core/arch/SSE/PacketMath.h"
@@ -368,22 +374,28 @@ using std::ptrdiff_t;
   #include "src/Core/arch/ZVector/Complex.h"
 #endif
 
+// Half float support
 #include "src/Core/arch/CUDA/Half.h"
+#include "src/Core/arch/CUDA/PacketMathHalf.h"
+#include "src/Core/arch/CUDA/TypeCasting.h"
 
 #if defined EIGEN_VECTORIZE_CUDA
   #include "src/Core/arch/CUDA/PacketMath.h"
-  #include "src/Core/arch/CUDA/PacketMathHalf.h"
   #include "src/Core/arch/CUDA/MathFunctions.h"
-  #include "src/Core/arch/CUDA/TypeCasting.h"
 #endif
 
 #include "src/Core/arch/Default/Settings.h"
 
+#include "src/Core/functors/TernaryFunctors.h"
 #include "src/Core/functors/BinaryFunctors.h"
 #include "src/Core/functors/UnaryFunctors.h"
 #include "src/Core/functors/NullaryFunctors.h"
 #include "src/Core/functors/StlFunctors.h"
 #include "src/Core/functors/AssignmentFunctors.h"
+
+// Specialized functors to enable the processing of complex numbers
+// on CUDA devices
+#include "src/Core/arch/CUDA/Complex.h"
 
 #include "src/Core/DenseCoeffsBase.h"
 #include "src/Core/DenseBase.h"
@@ -411,6 +423,7 @@ using std::ptrdiff_t;
 #include "src/Core/PlainObjectBase.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/Array.h"
+#include "src/Core/CwiseTernaryOp.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/CwiseNullaryOp.h"

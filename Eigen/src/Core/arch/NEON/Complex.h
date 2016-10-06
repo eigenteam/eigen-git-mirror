@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2010 Konstantinos Margaritis <markos@freevec.org>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -14,8 +15,15 @@ namespace Eigen {
 
 namespace internal {
 
-static uint32x4_t p4ui_CONJ_XOR = EIGEN_INIT_NEON_PACKET4(0x00000000, 0x80000000, 0x00000000, 0x80000000);
-static uint32x2_t p2ui_CONJ_XOR = EIGEN_INIT_NEON_PACKET2(0x00000000, 0x80000000);
+inline uint32x4_t p4ui_CONJ_XOR() {
+  static const uint32_t conj_XOR_DATA[] = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
+  return vld1q_u32( conj_XOR_DATA );
+}
+
+inline uint32x2_t p2ui_CONJ_XOR() {
+  static const uint32_t conj_XOR_DATA[] = { 0x00000000, 0x80000000 };
+  return vld1_u32( conj_XOR_DATA );
+}
 
 //---------- float ----------
 struct Packet2cf
@@ -64,7 +72,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pnegate(const Packet2cf& a) { return Pa
 template<> EIGEN_STRONG_INLINE Packet2cf pconj(const Packet2cf& a)
 {
   Packet4ui b = vreinterpretq_u32_f32(a.v);
-  return Packet2cf(vreinterpretq_f32_u32(veorq_u32(b, p4ui_CONJ_XOR)));
+  return Packet2cf(vreinterpretq_f32_u32(veorq_u32(b, p4ui_CONJ_XOR())));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
@@ -80,7 +88,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pmul<Packet2cf>(const Packet2cf& a, con
   // Multiply the imag a with b
   v2 = vmulq_f32(v2, b.v);
   // Conjugate v2 
-  v2 = vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(v2), p4ui_CONJ_XOR));
+  v2 = vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(v2), p4ui_CONJ_XOR()));
   // Swap real/imag elements in v2.
   v2 = vrev64q_f32(v2);
   // Add and return the result
@@ -195,7 +203,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float> predux_mul<Packet2cf>(const P
   // Multiply the imag a with b
   v2 = vmul_f32(v2, a2);
   // Conjugate v2 
-  v2 = vreinterpret_f32_u32(veor_u32(vreinterpret_u32_f32(v2), p2ui_CONJ_XOR));
+  v2 = vreinterpret_f32_u32(veor_u32(vreinterpret_u32_f32(v2), p2ui_CONJ_XOR()));
   // Swap real/imag elements in v2.
   v2 = vrev64_f32(v2);
   // Add v1, v2
@@ -274,7 +282,8 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
 //---------- double ----------
 #if EIGEN_ARCH_ARM64 && !EIGEN_APPLE_DOUBLE_NEON_BUG
 
-static uint64x2_t p2ul_CONJ_XOR = EIGEN_INIT_NEON_PACKET2(0x0, 0x8000000000000000);
+const uint64_t  p2ul_conj_XOR_DATA[] = { 0x0, 0x8000000000000000 };
+static uint64x2_t p2ul_CONJ_XOR = vld1q_u64( p2ul_conj_XOR_DATA );
 
 struct Packet1cd
 {

@@ -15,8 +15,12 @@ template<typename MatrixType> void qr()
 {
   typedef typename MatrixType::Index Index;
 
-  Index rows = internal::random<Index>(20,200), cols = internal::random<int>(20,200), cols2 = internal::random<int>(20,200);
-  Index rank = internal::random<Index>(1, (std::min)(rows, cols)-1);
+  Index max_size = EIGEN_TEST_MAX_SIZE;
+  Index min_size = numext::maxi(1,EIGEN_TEST_MAX_SIZE/10);
+  Index rows  = internal::random<Index>(min_size,max_size),
+        cols  = internal::random<Index>(min_size,max_size),
+        cols2 = internal::random<Index>(min_size,max_size),
+        rank  = internal::random<Index>(1, (std::min)(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
@@ -59,7 +63,9 @@ template<typename MatrixType> void qr_invertible()
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   typedef typename MatrixType::Scalar Scalar;
 
-  int size = internal::random<int>(10,50);
+  Index max_size = numext::mini(50,EIGEN_TEST_MAX_SIZE);
+  Index min_size = numext::maxi(1,EIGEN_TEST_MAX_SIZE/10);
+  Index size = internal::random<Index>(min_size,max_size);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   m1 = MatrixType::Random(size,size);

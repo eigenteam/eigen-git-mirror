@@ -158,7 +158,8 @@ typedef AngleAxis<float> AngleAxisf;
 typedef AngleAxis<double> AngleAxisd;
 
 /** Set \c *this from a \b unit quaternion.
-  * The resulting axis is normalized.
+  *
+  * The resulting axis is normalized, and the computed angle is in the [0,pi] range.
   * 
   * This function implicitly normalizes the quaternion \a q.
   */
@@ -167,12 +168,16 @@ template<typename QuatDerived>
 AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived>& q)
 {
   using std::atan2;
+  using std::abs;
   Scalar n = q.vec().norm();
   if(n<NumTraits<Scalar>::epsilon())
     n = q.vec().stableNorm();
-  if (n > Scalar(0))
+
+  if (n != Scalar(0))
   {
-    m_angle = Scalar(2)*atan2(n, q.w());
+    m_angle = Scalar(2)*atan2(n, abs(q.w()));
+    if(q.w() < 0)
+      n = -n;
     m_axis  = q.vec() / n;
   }
   else

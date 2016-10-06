@@ -33,73 +33,81 @@ void test_basic_runqueue()
   VERIFY_IS_EQUAL(0u, q.Size());
   VERIFY_IS_EQUAL(0, q.PopFront());
   std::vector<int> stolen;
-  VERIFY_IS_EQUAL(0, q.PopBackHalf(&stolen));
+  VERIFY_IS_EQUAL(0u, q.PopBackHalf(&stolen));
   VERIFY_IS_EQUAL(0u, stolen.size());
   // Push one front, pop one front.
   VERIFY_IS_EQUAL(0, q.PushFront(1));
-  VERIFY_IS_EQUAL(1, q.Size());
+  VERIFY_IS_EQUAL(1u, q.Size());
   VERIFY_IS_EQUAL(1, q.PopFront());
-  VERIFY_IS_EQUAL(0, q.Size());
+  VERIFY_IS_EQUAL(0u, q.Size());
   // Push front to overflow.
   VERIFY_IS_EQUAL(0, q.PushFront(2));
-  VERIFY_IS_EQUAL(1, q.Size());
+  VERIFY_IS_EQUAL(1u, q.Size());
   VERIFY_IS_EQUAL(0, q.PushFront(3));
-  VERIFY_IS_EQUAL(2, q.Size());
+  VERIFY_IS_EQUAL(2u, q.Size());
   VERIFY_IS_EQUAL(0, q.PushFront(4));
-  VERIFY_IS_EQUAL(3, q.Size());
+  VERIFY_IS_EQUAL(3u, q.Size());
   VERIFY_IS_EQUAL(0, q.PushFront(5));
-  VERIFY_IS_EQUAL(4, q.Size());
+  VERIFY_IS_EQUAL(4u, q.Size());
   VERIFY_IS_EQUAL(6, q.PushFront(6));
-  VERIFY_IS_EQUAL(4, q.Size());
+  VERIFY_IS_EQUAL(4u, q.Size());
   VERIFY_IS_EQUAL(5, q.PopFront());
-  VERIFY_IS_EQUAL(3, q.Size());
+  VERIFY_IS_EQUAL(3u, q.Size());
   VERIFY_IS_EQUAL(4, q.PopFront());
-  VERIFY_IS_EQUAL(2, q.Size());
+  VERIFY_IS_EQUAL(2u, q.Size());
   VERIFY_IS_EQUAL(3, q.PopFront());
-  VERIFY_IS_EQUAL(1, q.Size());
+  VERIFY_IS_EQUAL(1u, q.Size());
   VERIFY_IS_EQUAL(2, q.PopFront());
-  VERIFY_IS_EQUAL(0, q.Size());
+  VERIFY_IS_EQUAL(0u, q.Size());
   VERIFY_IS_EQUAL(0, q.PopFront());
   // Push one back, pop one back.
   VERIFY_IS_EQUAL(0, q.PushBack(7));
-  VERIFY_IS_EQUAL(1, q.Size());
-  VERIFY_IS_EQUAL(1, q.PopBackHalf(&stolen));
-  VERIFY_IS_EQUAL(1, stolen.size());
+  VERIFY_IS_EQUAL(1u, q.Size());
+  VERIFY_IS_EQUAL(1u, q.PopBackHalf(&stolen));
+  VERIFY_IS_EQUAL(1u, stolen.size());
   VERIFY_IS_EQUAL(7, stolen[0]);
-  VERIFY_IS_EQUAL(0, q.Size());
+  VERIFY_IS_EQUAL(0u, q.Size());
   stolen.clear();
   // Push back to overflow.
   VERIFY_IS_EQUAL(0, q.PushBack(8));
-  VERIFY_IS_EQUAL(1, q.Size());
+  VERIFY_IS_EQUAL(1u, q.Size());
   VERIFY_IS_EQUAL(0, q.PushBack(9));
-  VERIFY_IS_EQUAL(2, q.Size());
+  VERIFY_IS_EQUAL(2u, q.Size());
   VERIFY_IS_EQUAL(0, q.PushBack(10));
-  VERIFY_IS_EQUAL(3, q.Size());
+  VERIFY_IS_EQUAL(3u, q.Size());
   VERIFY_IS_EQUAL(0, q.PushBack(11));
-  VERIFY_IS_EQUAL(4, q.Size());
+  VERIFY_IS_EQUAL(4u, q.Size());
   VERIFY_IS_EQUAL(12, q.PushBack(12));
-  VERIFY_IS_EQUAL(4, q.Size());
+  VERIFY_IS_EQUAL(4u, q.Size());
   // Pop back in halves.
-  VERIFY_IS_EQUAL(2, q.PopBackHalf(&stolen));
-  VERIFY_IS_EQUAL(2, stolen.size());
+  VERIFY_IS_EQUAL(2u, q.PopBackHalf(&stolen));
+  VERIFY_IS_EQUAL(2u, stolen.size());
   VERIFY_IS_EQUAL(10, stolen[0]);
   VERIFY_IS_EQUAL(11, stolen[1]);
-  VERIFY_IS_EQUAL(2, q.Size());
+  VERIFY_IS_EQUAL(2u, q.Size());
   stolen.clear();
-  VERIFY_IS_EQUAL(1, q.PopBackHalf(&stolen));
-  VERIFY_IS_EQUAL(1, stolen.size());
+  VERIFY_IS_EQUAL(1u, q.PopBackHalf(&stolen));
+  VERIFY_IS_EQUAL(1u, stolen.size());
   VERIFY_IS_EQUAL(9, stolen[0]);
-  VERIFY_IS_EQUAL(1, q.Size());
+  VERIFY_IS_EQUAL(1u, q.Size());
   stolen.clear();
-  VERIFY_IS_EQUAL(1, q.PopBackHalf(&stolen));
-  VERIFY_IS_EQUAL(1, stolen.size());
+  VERIFY_IS_EQUAL(1u, q.PopBackHalf(&stolen));
+  VERIFY_IS_EQUAL(1u, stolen.size());
   VERIFY_IS_EQUAL(8, stolen[0]);
   stolen.clear();
-  VERIFY_IS_EQUAL(0, q.PopBackHalf(&stolen));
-  VERIFY_IS_EQUAL(0, stolen.size());
+  VERIFY_IS_EQUAL(0u, q.PopBackHalf(&stolen));
+  VERIFY_IS_EQUAL(0u, stolen.size());
   // Empty again.
   VERIFY(q.Empty());
-  VERIFY_IS_EQUAL(0, q.Size());
+  VERIFY_IS_EQUAL(0u, q.Size());
+  VERIFY_IS_EQUAL(0, q.PushFront(1));
+  VERIFY_IS_EQUAL(0, q.PushFront(2));
+  VERIFY_IS_EQUAL(0, q.PushFront(3));
+  VERIFY_IS_EQUAL(1, q.PopBack());
+  VERIFY_IS_EQUAL(2, q.PopBack());
+  VERIFY_IS_EQUAL(3, q.PopBack());
+  VERIFY(q.Empty());
+  VERIFY_IS_EQUAL(0u, q.Size());
 }
 
 // Empty tests that the queue is not claimed to be empty when is is in fact not.
@@ -130,7 +138,7 @@ void test_empty_runqueue()
             stolen.clear();
             break;
           }
-          VERIFY_IS_EQUAL(0, stolen.size());
+          VERIFY_IS_EQUAL(0u, stolen.size());
         }
       }
     }

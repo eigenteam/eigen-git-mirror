@@ -91,7 +91,7 @@ void test_multithread_contraction()
 
  for (ptrdiff_t i = 0; i < t_result.size(); i++) {
     VERIFY(&t_result.data()[i] != &m_result.data()[i]);
-    if (fabs(t_result(i) - m_result(i)) < 1e-4) {
+    if (fabsf(t_result(i) - m_result(i)) < 1e-4f) {
       continue;
     }
     if (Eigen::internal::isApprox(t_result(i), m_result(i), 1e-4f)) {
@@ -132,7 +132,7 @@ void test_contraction_corner_cases()
 
   for (ptrdiff_t i = 0; i < t_result.size(); i++) {
     assert(!(numext::isnan)(t_result.data()[i]));
-    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+    if (fabsf(t_result.data()[i] - m_result.data()[i]) >= 1e-4f) {
       std::cout << "mismatch detected at index " << i << " : " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
       assert(false);
     }
@@ -147,7 +147,7 @@ void test_contraction_corner_cases()
   m_result = m_left.transpose() * m_right;
   for (ptrdiff_t i = 0; i < t_result.size(); i++) {
     assert(!(numext::isnan)(t_result.data()[i]));
-    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+    if (fabsf(t_result.data()[i] - m_result.data()[i]) >= 1e-4f) {
       std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
       assert(false);
     }
@@ -165,7 +165,7 @@ void test_contraction_corner_cases()
   m_result = m_left.transpose() * m_right;
   for (ptrdiff_t i = 0; i < t_result.size(); i++) {
     assert(!(numext::isnan)(t_result.data()[i]));
-    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+    if (fabsf(t_result.data()[i] - m_result.data()[i]) >= 1e-4f) {
       std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
       assert(false);
     }
@@ -183,7 +183,7 @@ void test_contraction_corner_cases()
   m_result = m_left.transpose() * m_right;
   for (ptrdiff_t i = 0; i < t_result.size(); i++) {
     assert(!(numext::isnan)(t_result.data()[i]));
-    if (fabs(t_result.data()[i] - m_result.data()[i]) >= 1e-4) {
+    if (fabsf(t_result.data()[i] - m_result.data()[i]) >= 1e-4f) {
       std::cout << "mismatch detected: " << t_result.data()[i] << " vs " <<  m_result.data()[i] << std::endl;
       assert(false);
     }
@@ -226,12 +226,48 @@ void test_multithread_contraction_agrees_with_singlethread() {
   for (ptrdiff_t i = 0; i < st_result.size(); i++) {
     // if both of the values are very small, then do nothing (because the test will fail
     // due to numerical precision issues when values are small)
-    if (fabs(st_result.data()[i] - tp_result.data()[i]) >= 1e-4) {
+    if (numext::abs(st_result.data()[i] - tp_result.data()[i]) >= 1e-4f) {
       VERIFY_IS_APPROX(st_result.data()[i], tp_result.data()[i]);
     }
   }
 }
 
+
+template<int DataLayout>
+void test_full_contraction() {
+  int contract_size1 = internal::random<int>(1, 500);
+  int contract_size2 = internal::random<int>(1, 500);
+
+  Tensor<float, 2, DataLayout> left(contract_size1,
+                                    contract_size2);
+  Tensor<float, 2, DataLayout> right(contract_size1,
+                                    contract_size2);
+  left.setRandom();
+  right.setRandom();
+
+  // add constants to shift values away from 0 for more precision
+  left += left.constant(1.5f);
+  right += right.constant(1.5f);
+
+  typedef Tensor<float, 2>::DimensionPair DimPair;
+  Eigen::array<DimPair, 2> dims({{DimPair(0, 0), DimPair(1, 1)}});
+
+  Eigen::ThreadPool tp(internal::random<int>(2, 11));
+  Eigen::ThreadPoolDevice thread_pool_device(&tp, internal::random<int>(2, 11));
+
+  Tensor<float, 0, DataLayout> st_result;
+  st_result = left.contract(right, dims);
+
+  Tensor<float, 0, DataLayout> tp_result;
+  tp_result.device(thread_pool_device) = left.contract(right, dims);
+
+  VERIFY(dimensions_match(st_result.dimensions(), tp_result.dimensions()));
+  // if both of the values are very small, then do nothing (because the test will fail
+  // due to numerical precision issues when values are small)
+  if (numext::abs(st_result() - tp_result()) >= 1e-4f) {
+    VERIFY_IS_APPROX(st_result(), tp_result());
+  }
+}
 
 template<int DataLayout>
 void test_multithreaded_reductions() {
@@ -323,6 +359,9 @@ void test_cxx11_tensor_thread_pool()
   // Exercise various cases that have been problematic in the past.
   CALL_SUBTEST_4(test_contraction_corner_cases<ColMajor>());
   CALL_SUBTEST_4(test_contraction_corner_cases<RowMajor>());
+
+  CALL_SUBTEST_4(test_full_contraction<ColMajor>());
+  CALL_SUBTEST_4(test_full_contraction<RowMajor>());
 
   CALL_SUBTEST_5(test_multithreaded_reductions<ColMajor>());
   CALL_SUBTEST_5(test_multithreaded_reductions<RowMajor>());

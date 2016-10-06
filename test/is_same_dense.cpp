@@ -9,6 +9,8 @@
 
 #include "main.h"
 
+using internal::is_same_dense;
+
 void test_is_same_dense()
 {
   typedef Matrix<double,Dynamic,Dynamic,ColMajor> ColMatrixXd;

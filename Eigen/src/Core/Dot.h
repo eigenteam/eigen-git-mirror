@@ -28,22 +28,24 @@ template<typename T, typename U,
 >
 struct dot_nocheck
 {
-  typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  typedef scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> conj_prod;
+  typedef typename conj_prod::result_type ResScalar;
   EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
-    return a.template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
+    return a.template binaryExpr<conj_prod>(b).sum();
   }
 };
 
 template<typename T, typename U>
 struct dot_nocheck<T, U, true>
 {
-  typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  typedef scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> conj_prod;
+  typedef typename conj_prod::result_type ResScalar;
   EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
-    return a.transpose().template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
+    return a.transpose().template binaryExpr<conj_prod>(b).sum();
   }
 };
 
@@ -62,7 +64,7 @@ struct dot_nocheck<T, U, true>
 template<typename Derived>
 template<typename OtherDerived>
 EIGEN_DEVICE_FUNC
-typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
+typename ScalarBinaryOpTraits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
@@ -227,9 +229,12 @@ struct lpNorm_selector<Derived, 2>
 template<typename Derived>
 struct lpNorm_selector<Derived, Infinity>
 {
+  typedef typename NumTraits<typename traits<Derived>::Scalar>::Real RealScalar;
   EIGEN_DEVICE_FUNC
-  static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
+  static inline RealScalar run(const MatrixBase<Derived>& m)
   {
+    if(Derived::SizeAtCompileTime==0 || (Derived::SizeAtCompileTime==Dynamic && m.size()==0))
+      return RealScalar(0);
     return m.cwiseAbs().maxCoeff();
   }
 };
@@ -239,6 +244,8 @@ struct lpNorm_selector<Derived, Infinity>
 /** \returns the \b coefficient-wise \f$ \ell^p \f$ norm of \c *this, that is, returns the p-th root of the sum of the p-th powers of the absolute values
   *          of the coefficients of \c *this. If \a p is the special value \a Eigen::Infinity, this function returns the \f$ \ell^\infty \f$
   *          norm, that is the maximum of the absolute values of the coefficients of \c *this.
+  *
+  * In all cases, if \c *this is empty, then the value 0 is returned.
   *
   * \note For matrices, this function does not compute the <a href="https://en.wikipedia.org/wiki/Operator_norm">operator-norm</a>. That is, if \c *this is a matrix, then its coefficients are interpreted as a 1D vector. Nonetheless, you can easily compute the 1-norm and \f$\infty\f$-norm matrix operator norms using \link TutorialReductionsVisitorsBroadcastingReductionsNorm partial reductions \endlink.
   *

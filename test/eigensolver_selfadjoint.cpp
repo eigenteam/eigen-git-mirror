@@ -12,18 +12,29 @@
 #include "svd_fill.h"
 #include <limits>
 #include <Eigen/Eigenvalues>
+#include <Eigen/SparseCore>
 
 
 template<typename MatrixType> void selfadjointeigensolver_essential_check(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  RealScalar eival_eps = (std::min)(test_precision<RealScalar>(),  NumTraits<Scalar>::dummy_precision()*20000);
+  RealScalar eival_eps = numext::mini<RealScalar>(test_precision<RealScalar>(),  NumTraits<Scalar>::dummy_precision()*20000);
   
   SelfAdjointEigenSolver<MatrixType> eiSymm(m);
   VERIFY_IS_EQUAL(eiSymm.info(), Success);
-  VERIFY_IS_APPROX(m.template selfadjointView<Lower>() * eiSymm.eigenvectors(),
-                   eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal());
+
+  RealScalar scaling = m.cwiseAbs().maxCoeff();
+
+  if(scaling<(std::numeric_limits<RealScalar>::min)())
+  {
+    VERIFY(eiSymm.eigenvalues().cwiseAbs().maxCoeff() <= (std::numeric_limits<RealScalar>::min)());
+  }
+  else
+  {
+    VERIFY_IS_APPROX((m.template selfadjointView<Lower>() * eiSymm.eigenvectors())/scaling,
+                     (eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal())/scaling);
+  }
   VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
   VERIFY_IS_UNITARY(eiSymm.eigenvectors());
 
@@ -32,7 +43,6 @@ template<typename MatrixType> void selfadjointeigensolver_essential_check(const 
     SelfAdjointEigenSolver<MatrixType> eiDirect;
     eiDirect.computeDirect(m);  
     VERIFY_IS_EQUAL(eiDirect.info(), Success);
-    VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiDirect.eigenvalues());
     if(! eiSymm.eigenvalues().isApprox(eiDirect.eigenvalues(), eival_eps) )
     {
       std::cerr << "reference eigenvalues: " << eiSymm.eigenvalues().transpose() << "\n"
@@ -40,10 +50,18 @@ template<typename MatrixType> void selfadjointeigensolver_essential_check(const 
                 << "diff:                  " << (eiSymm.eigenvalues()-eiDirect.eigenvalues()).transpose() << "\n"
                 << "error (eps):           " << (eiSymm.eigenvalues()-eiDirect.eigenvalues()).norm() / eiSymm.eigenvalues().norm() << "  (" << eival_eps << ")\n";
     }
-    VERIFY(eiSymm.eigenvalues().isApprox(eiDirect.eigenvalues(), eival_eps));
-    VERIFY_IS_APPROX(m.template selfadjointView<Lower>() * eiDirect.eigenvectors(),
-                    eiDirect.eigenvectors() * eiDirect.eigenvalues().asDiagonal());
-    VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues(), eiDirect.eigenvalues());
+    if(scaling<(std::numeric_limits<RealScalar>::min)())
+    {
+      VERIFY(eiDirect.eigenvalues().cwiseAbs().maxCoeff() <= (std::numeric_limits<RealScalar>::min)());
+    }
+    else
+    {
+      VERIFY_IS_APPROX(eiSymm.eigenvalues()/scaling, eiDirect.eigenvalues()/scaling);
+      VERIFY_IS_APPROX((m.template selfadjointView<Lower>() * eiDirect.eigenvectors())/scaling,
+                       (eiDirect.eigenvectors() * eiDirect.eigenvalues().asDiagonal())/scaling);
+      VERIFY_IS_APPROX(m.template selfadjointView<Lower>().eigenvalues()/scaling, eiDirect.eigenvalues()/scaling);
+    }
+
     VERIFY_IS_UNITARY(eiDirect.eigenvectors());
   }
 }
@@ -164,6 +182,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   }
 }
 
+template<int>
 void bug_854()
 {
   Matrix3d m;
@@ -173,6 +192,7 @@ void bug_854()
   selfadjointeigensolver_essential_check(m);
 }
 
+template<int>
 void bug_1014()
 {
   Matrix3d m;
@@ -180,6 +200,26 @@ void bug_1014()
        0,     0.11111111111111109107, 0,
        0, 0,  0.11111111111111107719;
   selfadjointeigensolver_essential_check(m);
+}
+
+template<int>
+void bug_1225()
+{
+  Matrix3d m1, m2;
+  m1.setRandom();
+  m1 = m1*m1.transpose();
+  m2 = m1.triangularView<Upper>();
+  SelfAdjointEigenSolver<Matrix3d> eig1(m1);
+  SelfAdjointEigenSolver<Matrix3d> eig2(m2.selfadjointView<Upper>());
+  VERIFY_IS_APPROX(eig1.eigenvalues(), eig2.eigenvalues());
+}
+
+template<int>
+void bug_1204()
+{
+  SparseMatrix<double> A(2,2);
+  A.setIdentity();
+  SelfAdjointEigenSolver<Eigen::SparseMatrix<double> > eig(A);
 }
 
 void test_eigensolver_selfadjoint()
@@ -210,8 +250,10 @@ void test_eigensolver_selfadjoint()
     CALL_SUBTEST_7( selfadjointeigensolver(Matrix<double,2,2>()) );
   }
   
-  CALL_SUBTEST_13( bug_854() );
-  CALL_SUBTEST_13( bug_1014() );
+  CALL_SUBTEST_13( bug_854<0>() );
+  CALL_SUBTEST_13( bug_1014<0>() );
+  CALL_SUBTEST_13( bug_1204<0>() );
+  CALL_SUBTEST_13( bug_1225<0>() );
 
   // Test problem size constructors
   s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);

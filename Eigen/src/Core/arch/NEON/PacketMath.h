@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
-// Copyright (C) 2010 Konstantinos Margaritis <markos@codex.gr>
+// Copyright (C) 2010 Konstantinos Margaritis <markos@freevec.org>
 // Heavily based on Gael's SSE version.
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -48,17 +48,6 @@ typedef uint32x4_t  Packet4ui;
 
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i p4i_##NAME = pset1<Packet4i>(X)
-
-#if EIGEN_COMP_LLVM && !EIGEN_COMP_CLANG
-  //Special treatment for Apple's llvm-gcc, its NEON packet types are unions
-  #define EIGEN_INIT_NEON_PACKET2(X, Y)       {{X, Y}}
-  #define EIGEN_INIT_NEON_PACKET4(X, Y, Z, W) {{X, Y, Z, W}}
-#else
-  //Default initializer for packets
-  #define EIGEN_INIT_NEON_PACKET2(X, Y)       {X, Y}
-  #define EIGEN_INIT_NEON_PACKET4(X, Y, Z, W) {X, Y, Z, W}
-#endif
-
 
 // arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
 // which available on LLVM and GCC (at least)
@@ -122,12 +111,14 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from)   { 
 
 template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a)
 {
-  Packet4f countdown = EIGEN_INIT_NEON_PACKET4(0, 1, 2, 3);
+  const float32_t f[] = {0, 1, 2, 3};
+  Packet4f countdown = vld1q_f32(f);
   return vaddq_f32(pset1<Packet4f>(a), countdown);
 }
 template<> EIGEN_STRONG_INLINE Packet4i plset<Packet4i>(const int& a)
 {
-  Packet4i countdown = EIGEN_INIT_NEON_PACKET4(0, 1, 2, 3);
+  const int32_t i[] = {0, 1, 2, 3};
+  Packet4i countdown = vld1q_s32(i);
   return vaddq_s32(pset1<Packet4i>(a), countdown);
 }
 
@@ -333,22 +324,6 @@ template<> EIGEN_STRONG_INLINE Packet4i preverse(const Packet4i& a) {
   a_hi = vget_high_s32(a_r64);
   return vcombine_s32(a_hi, a_lo);
 }
-
-template<size_t offset>
-struct protate_impl<offset, Packet4f>
-{
-  static Packet4f run(const Packet4f& a) {
-    return vextq_f32(a, a, offset);
-  }
-};
-
-template<size_t offset>
-struct protate_impl<offset, Packet4i>
-{
-  static Packet4i run(const Packet4i& a) {
-    return vextq_s32(a, a, offset);
-  }
-};
 
 template<> EIGEN_STRONG_INLINE Packet4f pabs(const Packet4f& a) { return vabsq_f32(a); }
 template<> EIGEN_STRONG_INLINE Packet4i pabs(const Packet4i& a) { return vabsq_s32(a); }
@@ -601,7 +576,8 @@ template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) { r
 
 template<> EIGEN_STRONG_INLINE Packet2d plset<Packet2d>(const double& a)
 {
-  Packet2d countdown = EIGEN_INIT_NEON_PACKET2(0, 1);
+  const double countdown_raw[] = {0.0,1.0};
+  const Packet2d countdown = vld1q_f64(countdown_raw);
   return vaddq_f64(pset1<Packet2d>(a), countdown);
 }
 template<> EIGEN_STRONG_INLINE Packet2d padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return vaddq_f64(a,b); }
@@ -678,14 +654,6 @@ template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { EIGEN
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { return vgetq_lane_f64(a, 0); }
 
 template<> EIGEN_STRONG_INLINE Packet2d preverse(const Packet2d& a) { return vcombine_f64(vget_high_f64(a), vget_low_f64(a)); }
-
-template<size_t offset>
-struct protate_impl<offset, Packet2d>
-{
-  static Packet2d run(const Packet2d& a) {
-    return vextq_f64(a, a, offset);
-  }
-};
 
 template<> EIGEN_STRONG_INLINE Packet2d pabs(const Packet2d& a) { return vabsq_f64(a); }
 

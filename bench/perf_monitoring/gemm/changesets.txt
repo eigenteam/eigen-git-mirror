@@ -42,6 +42,20 @@ before-evaluators
 6984:45f26866c091   # rm dynamic loop swapping, adjust lhs's micro panel height to fully exploit L1 cache
 6986:a675d05b6f8f   # blocking heuristic: block on the rhs in L1 if the lhs fit in L1.
 7013:f875e75f07e5   # organize a little our default cache sizes, and use a saner default L1 outside of x86 (10% faster on Nexus 5)
+7015:8aad8f35c955   # Refactor computeProductBlockingSizes to make room for the possibility of using lookup tables
+7016:a58d253e8c91   # Polish lookup tables generation
+7018:9b27294a8186   # actual_panel_rows computation should always be resilient to parameters not consistent with the known L1 cache size, see comment
+7019:c758b1e2c073   # Provide a empirical lookup table for blocking sizes measured on a Nexus 5. Only for float, only for Android on ARM 32bit for now.
+7085:627e039fba68   # Bug 986: add support for coefficient-based product with 0 depth.
+7098:b6f1db9cf9ec   # Bug 992: don't select a 3p GEMM path with non-vectorizable scalar types, this hits unsupported paths in symm/triangular products code
 7591:09a8e2186610   # 3.3-alpha1
 7650:b0f3c8f43025   # help clang inlining
-
+#8744:74b789ada92a   # Improved the matrix multiplication blocking in the case where mr is not a power of 2 (e.g on Haswell CPUs)
+8789:efcb912e4356   # Made the index type a template parameter to evaluateProductBlockingSizes. Use numext::mini and numext::maxi instead of std::min/std::max to compute blocking sizes
+8972:81d53c711775   # Don't optimize the processing of the last rows of a matrix matrix product in cases that violate the assumptions made by the optimized code path
+8985:d935df21a082   # Remove the rotating kernel.
+8988:6c2dc56e73b3   # Bug 256: enable vectorization with unaligned loads/stores.
+9148:b8b8c421e36c   # Relax mixing-type constraints for binary coefficient-wise operators
+9174:d228bc282ac9   # merge
+9212:c90098affa7b   # Fix performance regression introduced in changeset 8aad8f35c955
+9213:9f1c14e4694b   # Fix performance regression in dgemm introduced by changeset 81d53c711775

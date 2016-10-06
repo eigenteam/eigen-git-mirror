@@ -4,6 +4,7 @@ namespace Eigen {
 
 This page presents a catalogue of the dense matrix decompositions offered by Eigen.
 For an introduction on linear solvers and decompositions, check this \link TutorialLinearAlgebra page \endlink.
+To get an overview of the true relative speed of the different decomposition, check this \link DenseDecompositionBenchmark benchmark \endlink.
 
 \section TopicLinAlgBigTable Catalogue of decompositions offered by Eigen
 
@@ -255,6 +256,7 @@ For an introduction on linear solvers and decompositions, check this \link Tutor
   <dt><b></b></dt>
     <dd></dd>
 </dl>
+
 
 */
 

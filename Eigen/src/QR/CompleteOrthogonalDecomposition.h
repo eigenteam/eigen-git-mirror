@@ -29,16 +29,19 @@ struct traits<CompleteOrthogonalDecomposition<_MatrixType> >
   *
   * \param MatrixType the type of the matrix of which we are computing the COD.
   *
-  * This class performs a rank-revealing complete ortogonal decomposition of a
+  * This class performs a rank-revealing complete orthogonal decomposition of a
   * matrix  \b A into matrices \b P, \b Q, \b T, and \b Z such that
   * \f[
-  *  \mathbf{A} \, \mathbf{P} = \mathbf{Q} \, \begin{matrix} \mathbf{T} &
-  *  \mathbf{0} \\ \mathbf{0} & \mathbf{0} \end{matrix} \, \mathbf{Z}
+  *  \mathbf{A} \, \mathbf{P} = \mathbf{Q} \,
+  *                     \begin{bmatrix} \mathbf{T} &  \mathbf{0} \\
+  *                                     \mathbf{0} & \mathbf{0} \end{bmatrix} \, \mathbf{Z}
   * \f]
   * by using Householder transformations. Here, \b P is a permutation matrix,
   * \b Q and \b Z are unitary matrices and \b T an upper triangular matrix of
   * size rank-by-rank. \b A may be rank deficient.
   *
+  * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
+  * 
   * \sa MatrixBase::completeOrthogonalDecomposition()
   */
 template <typename _MatrixType>
@@ -48,16 +51,12 @@ class CompleteOrthogonalDecomposition {
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-    Options = MatrixType::Options,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
   };
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename MatrixType::StorageIndex StorageIndex;
-  typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options,
-                 MaxRowsAtCompileTime, MaxRowsAtCompileTime>
-      MatrixQType;
   typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
   typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime>
       PermutationType;
@@ -114,12 +113,29 @@ class CompleteOrthogonalDecomposition {
   explicit CompleteOrthogonalDecomposition(const EigenBase<InputType>& matrix)
       : m_cpqr(matrix.rows(), matrix.cols()),
         m_zCoeffs((std::min)(matrix.rows(), matrix.cols())),
-        m_temp(matrix.cols()) {
+        m_temp(matrix.cols())
+  {
     compute(matrix.derived());
   }
 
+  /** \brief Constructs a complete orthogonal decomposition from a given matrix
+    *
+    * This overloaded constructor is provided for \link InplaceDecomposition inplace decomposition \endlink when \c MatrixType is a Eigen::Ref.
+    *
+    * \sa CompleteOrthogonalDecomposition(const EigenBase&)
+    */
+  template<typename InputType>
+  explicit CompleteOrthogonalDecomposition(EigenBase<InputType>& matrix)
+    : m_cpqr(matrix.derived()),
+      m_zCoeffs((std::min)(matrix.rows(), matrix.cols())),
+      m_temp(matrix.cols())
+  {
+    computeInPlace();
+  }
+
+
   /** This method computes the minimum-norm solution X to a least squares
-   * problem \f[\mathrm{minimize} ||A X - B|| \f], where \b A is the matrix of
+   * problem \f[\mathrm{minimize} \|A X - B\|, \f] where \b A is the matrix of
    * which \c *this is the complete orthogonal decomposition.
    *
    * \param B the right-hand sides of the problem to solve.
@@ -165,7 +181,12 @@ class CompleteOrthogonalDecomposition {
   const MatrixType& matrixT() const { return m_cpqr.matrixQR(); }
 
   template <typename InputType>
-  CompleteOrthogonalDecomposition& compute(const EigenBase<InputType>& matrix);
+  CompleteOrthogonalDecomposition& compute(const EigenBase<InputType>& matrix) {
+    // Compute the column pivoted QR factorization A P = Q R.
+    m_cpqr.compute(matrix);
+    computeInPlace();
+    return *this;
+  }
 
   /** \returns a const reference to the column permutation matrix */
   const PermutationType& colsPermutation() const {
@@ -354,6 +375,8 @@ class CompleteOrthogonalDecomposition {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
   }
 
+  void computeInPlace();
+
   /** Overwrites \b rhs with \f$ \mathbf{Z}^* * \mathbf{rhs} \f$.
    */
   template <typename Rhs>
@@ -384,20 +407,16 @@ CompleteOrthogonalDecomposition<MatrixType>::logAbsDeterminant() const {
  * CompleteOrthogonalDecomposition(const MatrixType&)
  */
 template <typename MatrixType>
-template <typename InputType>
-CompleteOrthogonalDecomposition<MatrixType>& CompleteOrthogonalDecomposition<
-    MatrixType>::compute(const EigenBase<InputType>& matrix) {
+void CompleteOrthogonalDecomposition<MatrixType>::computeInPlace()
+{
   check_template_parameters();
 
   // the column permutation is stored as int indices, so just to be sure:
-  eigen_assert(matrix.cols() <= NumTraits<int>::highest());
-
-  // Compute the column pivoted QR factorization A P = Q R.
-  m_cpqr.compute(matrix);
+  eigen_assert(m_cpqr.cols() <= NumTraits<int>::highest());
 
   const Index rank = m_cpqr.rank();
-  const Index cols = matrix.cols();
-  const Index rows = matrix.rows();
+  const Index cols = m_cpqr.cols();
+  const Index rows = m_cpqr.rows();
   m_zCoeffs.resize((std::min)(rows, cols));
   m_temp.resize(cols);
 
@@ -443,7 +462,6 @@ CompleteOrthogonalDecomposition<MatrixType>& CompleteOrthogonalDecomposition<
       }
     }
   }
-  return *this;
 }
 
 template <typename MatrixType>
@@ -509,12 +527,12 @@ void CompleteOrthogonalDecomposition<_MatrixType>::_solve_impl(
 
 namespace internal {
 
-template<typename DstXprType, typename MatrixType, typename Scalar>
-struct Assignment<DstXprType, Inverse<CompleteOrthogonalDecomposition<MatrixType> >, internal::assign_op<Scalar>, Dense2Dense, Scalar>
+template<typename DstXprType, typename MatrixType>
+struct Assignment<DstXprType, Inverse<CompleteOrthogonalDecomposition<MatrixType> >, internal::assign_op<typename DstXprType::Scalar,typename CompleteOrthogonalDecomposition<MatrixType>::Scalar>, Dense2Dense>
 {
   typedef CompleteOrthogonalDecomposition<MatrixType> CodType;
   typedef Inverse<CodType> SrcXprType;
-  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename CodType::Scalar> &)
   {
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.rows()));
   }
@@ -529,7 +547,6 @@ CompleteOrthogonalDecomposition<MatrixType>::householderQ() const {
   return m_cpqr.householderQ();
 }
 
-#ifndef __CUDACC__
 /** \return the complete orthogonal decomposition of \c *this.
   *
   * \sa class CompleteOrthogonalDecomposition
@@ -539,7 +556,6 @@ const CompleteOrthogonalDecomposition<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::completeOrthogonalDecomposition() const {
   return CompleteOrthogonalDecomposition<PlainObject>(eval());
 }
-#endif  // __CUDACC__
 
 }  // end namespace Eigen
 

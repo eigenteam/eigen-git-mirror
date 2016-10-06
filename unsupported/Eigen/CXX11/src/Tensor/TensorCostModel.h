@@ -10,10 +10,6 @@
 #ifndef EIGEN_CXX11_TENSOR_TENSOR_COST_MODEL_H
 #define EIGEN_CXX11_TENSOR_TENSOR_COST_MODEL_H
 
-//#if !defined(EIGEN_USE_GPU)
-//#define EIGEN_USE_COST_MODEL
-//#endif
-
 namespace Eigen {
 
 /** \class TensorEvaluator
@@ -32,45 +28,47 @@ class TensorOpCost {
   // model based on minimal reciprocal throughput numbers from Intel or
   // Agner Fog's tables would be better than what is there now.
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int MulCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int MulCost() {
     return internal::functor_traits<
         internal::scalar_product_op<ArgType, ArgType> >::Cost;
   }
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int AddCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int AddCost() {
     return internal::functor_traits<internal::scalar_sum_op<ArgType> >::Cost;
   }
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int DivCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int DivCost() {
     return internal::functor_traits<
         internal::scalar_quotient_op<ArgType, ArgType> >::Cost;
   }
   template <typename ArgType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int ModCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int ModCost() {
     return internal::functor_traits<internal::scalar_mod_op<ArgType> >::Cost;
   }
   template <typename SrcType, typename TargetType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE static int CastCost() {
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int CastCost() {
     return internal::functor_traits<
         internal::scalar_cast_op<SrcType, TargetType> >::Cost;
   }
 
+  EIGEN_DEVICE_FUNC
   TensorOpCost() : bytes_loaded_(0), bytes_stored_(0), compute_cycles_(0) {}
+  EIGEN_DEVICE_FUNC
   TensorOpCost(double bytes_loaded, double bytes_stored, double compute_cycles)
       : bytes_loaded_(bytes_loaded),
         bytes_stored_(bytes_stored),
         compute_cycles_(compute_cycles) {}
 
+  EIGEN_DEVICE_FUNC
   TensorOpCost(double bytes_loaded, double bytes_stored, double compute_cycles,
                bool vectorized, double packet_size)
       : bytes_loaded_(bytes_loaded),
         bytes_stored_(bytes_stored),
         compute_cycles_(vectorized ? compute_cycles / packet_size
                                    : compute_cycles) {
-    using std::isfinite;
-    eigen_assert(bytes_loaded >= 0 && (isfinite)(bytes_loaded));
-    eigen_assert(bytes_stored >= 0 && (isfinite)(bytes_stored));
-    eigen_assert(compute_cycles >= 0 && (isfinite)(compute_cycles));
+    eigen_assert(bytes_loaded >= 0 && (numext::isfinite)(bytes_loaded));
+    eigen_assert(bytes_stored >= 0 && (numext::isfinite)(bytes_stored));
+    eigen_assert(compute_cycles >= 0 && (numext::isfinite)(compute_cycles));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double bytes_loaded() const {
@@ -96,21 +94,21 @@ class TensorOpCost {
   }
 
   // TODO(rmlarsen): Define min in terms of total cost, not elementwise.
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost& cwiseMin(
-      const TensorOpCost& rhs) {
-    bytes_loaded_ = numext::mini(bytes_loaded_, rhs.bytes_loaded());
-    bytes_stored_ = numext::mini(bytes_stored_, rhs.bytes_stored());
-    compute_cycles_ = numext::mini(compute_cycles_, rhs.compute_cycles());
-    return *this;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost cwiseMin(
+      const TensorOpCost& rhs) const {
+    double bytes_loaded = numext::mini(bytes_loaded_, rhs.bytes_loaded());
+    double bytes_stored = numext::mini(bytes_stored_, rhs.bytes_stored());
+    double compute_cycles = numext::mini(compute_cycles_, rhs.compute_cycles());
+    return TensorOpCost(bytes_loaded, bytes_stored, compute_cycles);
   }
 
   // TODO(rmlarsen): Define max in terms of total cost, not elementwise.
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost& cwiseMax(
-      const TensorOpCost& rhs) {
-    bytes_loaded_ = numext::maxi(bytes_loaded_, rhs.bytes_loaded());
-    bytes_stored_ = numext::maxi(bytes_stored_, rhs.bytes_stored());
-    compute_cycles_ = numext::maxi(compute_cycles_, rhs.compute_cycles());
-    return *this;
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost cwiseMax(
+      const TensorOpCost& rhs) const {
+    double bytes_loaded = numext::maxi(bytes_loaded_, rhs.bytes_loaded());
+    double bytes_stored = numext::maxi(bytes_stored_, rhs.bytes_stored());
+    double compute_cycles = numext::maxi(compute_cycles_, rhs.compute_cycles());
+    return TensorOpCost(bytes_loaded, bytes_stored, compute_cycles);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorOpCost& operator+=(

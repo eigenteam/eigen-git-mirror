@@ -17,7 +17,10 @@ find_path(SUPERLU_INCLUDES
   SRC
 )
 
-find_library(SUPERLU_LIBRARIES NAMES "superlu_4.3" "superlu_4.2" "superlu_4.1" "superlu_4.0" "superlu_3.1" "superlu_3.0" "superlu" PATHS $ENV{SUPERLUDIR} ${LIB_INSTALL_DIR} PATH_SUFFIXES lib)
+find_library(SUPERLU_LIBRARIES
+  NAMES "superlu_5.2.1" "superlu_5.2" "superlu_5.1.1" "superlu_5.1" "superlu_5.0" "superlu_4.3" "superlu_4.2" "superlu_4.1" "superlu_4.0" "superlu_3.1" "superlu_3.0" "superlu"
+  PATHS $ENV{SUPERLUDIR} ${LIB_INSTALL_DIR}
+  PATH_SUFFIXES lib)
 
 if(SUPERLU_INCLUDES AND SUPERLU_LIBRARIES)
 
@@ -48,11 +51,25 @@ int main() {
 }"
 SUPERLU_HAS_CLEAN_ENUMS)
 
-if(SUPERLU_HAS_CLEAN_ENUMS)
+check_cxx_source_compiles("
+typedef int int_t;
+#include <supermatrix.h>
+#include <slu_util.h>
+int main(void)
+{
+  GlobalLU_t glu;
+  return 0;
+}"
+SUPERLU_HAS_GLOBALLU_T)
+
+if(SUPERLU_HAS_GLOBALLU_T)
+  # at least 5.0
+  set(SUPERLU_VERSION_VAR "5.0")
+elseif(SUPERLU_HAS_CLEAN_ENUMS)
   # at least 4.3
   set(SUPERLU_VERSION_VAR "4.3")
 elseif(SUPERLU_HAS_GLOBAL_MEM_USAGE_T)
-  # at least 4.3
+  # at least 4.0
   set(SUPERLU_VERSION_VAR "4.0")
 else()
   set(SUPERLU_VERSION_VAR "3.0")

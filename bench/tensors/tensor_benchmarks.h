@@ -178,9 +178,14 @@ template <typename Device, typename T> class BenchmarkSuite {
     size_b[1] = m_;
     TensorMap<Tensor<T, 2>, Eigen::Aligned> B(b_, size_b);
 
+#if defined(EIGEN_HAS_INDEX_LIST)
+    Eigen::IndexPairList<Eigen::type2indexpair<0, 0>,
+                         Eigen::type2indexpair<2, 1> > paddings;
+#else
     Eigen::array<Eigen::IndexPair<TensorIndex>, 2> paddings;
     paddings[0] = Eigen::IndexPair<TensorIndex>(0, 0);
     paddings[1] = Eigen::IndexPair<TensorIndex>(2, 1);
+#endif
 
     StartBenchmarkTiming();
     for (int iter = 0; iter < num_iters; ++iter) {
@@ -368,7 +373,7 @@ template <typename Device, typename T> class BenchmarkSuite {
     const TensorMap<Tensor<T, 2, 0, TensorIndex>, Eigen::Aligned> B(
         b_, input_size);
     Eigen::array<TensorIndex, 0> output_size;
-    TensorMap<Tensor<float, 0, 0, TensorIndex>, Eigen::Aligned> C(
+    TensorMap<Tensor<T, 0, 0, TensorIndex>, Eigen::Aligned> C(
         c_, output_size);
 
     StartBenchmarkTiming();

@@ -37,6 +37,7 @@ template <typename MatrixType>
 void matrix_log_compute_2x2(const MatrixType& A, MatrixType& result)
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   using std::abs;
   using std::ceil;
   using std::imag;
@@ -54,14 +55,14 @@ void matrix_log_compute_2x2(const MatrixType& A, MatrixType& result)
   {
     result(0,1) = A(0,1) / A(0,0);
   }
-  else if ((abs(A(0,0)) < 0.5*abs(A(1,1))) || (abs(A(0,0)) > 2*abs(A(1,1))))
+  else if ((abs(A(0,0)) < RealScalar(0.5)*abs(A(1,1))) || (abs(A(0,0)) > 2*abs(A(1,1))))
   {
     result(0,1) = A(0,1) * (logA11 - logA00) / y;
   }
   else
   {
     // computation in previous branch is inaccurate if A(1,1) \approx A(0,0)
-    int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - EIGEN_PI) / (2*EIGEN_PI)));
+    int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - RealScalar(EIGEN_PI)) / RealScalar(2*EIGEN_PI)));
     result(0,1) = A(0,1) * (numext::log1p(y/A(0,0)) + Scalar(0,2*EIGEN_PI*unwindingNumber)) / y;
   }
 }
@@ -232,8 +233,8 @@ void matrix_log_compute_big(const MatrixType& A, MatrixType& result)
   MatrixType T = A, sqrtT;
 
   int maxPadeDegree = matrix_log_max_pade_degree<Scalar>::value;
-  const RealScalar maxNormForPade = maxPadeDegree<= 5? 5.3149729967117310e-1:                     // single precision
-                                    maxPadeDegree<= 7? 2.6429608311114350e-1:                     // double precision
+  const RealScalar maxNormForPade = maxPadeDegree<= 5? 5.3149729967117310e-1L:                    // single precision
+                                    maxPadeDegree<= 7? 2.6429608311114350e-1L:                    // double precision
                                     maxPadeDegree<= 8? 2.32777776523703892094e-1L:                // extended precision
                                     maxPadeDegree<=10? 1.05026503471351080481093652651105e-1L:    // double-double
                                                        1.1880960220216759245467951592883642e-1L;  // quadruple precision
@@ -333,9 +334,8 @@ public:
     typedef internal::traits<DerivedEvalTypeClean> Traits;
     static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
     static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
-    static const int Options = DerivedEvalTypeClean::Options;
     typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
-    typedef Matrix<ComplexScalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
+    typedef Matrix<ComplexScalar, Dynamic, Dynamic, 0, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
     typedef internal::MatrixLogarithmAtomic<DynMatrixType> AtomicType;
     AtomicType atomic;
     

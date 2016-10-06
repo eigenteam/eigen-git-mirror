@@ -87,8 +87,8 @@ void call_ref()
   VERIFY_EVALUATION_COUNT( call_ref_3(B, B),  1);
   VERIFY_EVALUATION_COUNT( call_ref_2(B.transpose(), B.transpose()),  0);
   VERIFY_EVALUATION_COUNT( call_ref_3(B.transpose(), B.transpose()),  0);
-  VERIFY_EVALUATION_COUNT( call_ref_2(A*A, AA),  1);
-  VERIFY_EVALUATION_COUNT( call_ref_3(A*A, AA),  1);
+  VERIFY_EVALUATION_COUNT( call_ref_2(A*A, AA),  3);
+  VERIFY_EVALUATION_COUNT( call_ref_3(A*A, AA),  3);
   
   VERIFY(!C.isCompressed());
   VERIFY_EVALUATION_COUNT( call_ref_3(C, C),  1);

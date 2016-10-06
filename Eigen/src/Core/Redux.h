@@ -38,8 +38,8 @@ public:
   enum {
     MightVectorize = (int(Derived::Flags)&ActualPacketAccessBit)
                   && (functor_traits<Func>::PacketAccess),
-    MayLinearVectorize = MightVectorize && (int(Derived::Flags)&LinearAccessBit),
-    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize
+    MayLinearVectorize = bool(MightVectorize) && (int(Derived::Flags)&LinearAccessBit),
+    MaySliceVectorize  = bool(MightVectorize) && int(InnerMaxSize)>=3*PacketSize
   };
 
 public:
@@ -425,7 +425,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::minCoeff() const
 {
-  return derived().redux(Eigen::internal::scalar_min_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_min_op<Scalar,Scalar>());
 }
 
 /** \returns the maximum of all coefficients of \c *this.
@@ -435,10 +435,12 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::maxCoeff() const
 {
-  return derived().redux(Eigen::internal::scalar_max_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_max_op<Scalar,Scalar>());
 }
 
-/** \returns the sum of all coefficients of *this
+/** \returns the sum of all coefficients of \c *this
+  *
+  * If \c *this is empty, then the value 0 is returned.
   *
   * \sa trace(), prod(), mean()
   */
@@ -448,7 +450,7 @@ DenseBase<Derived>::sum() const
 {
   if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
     return Scalar(0);
-  return derived().redux(Eigen::internal::scalar_sum_op<Scalar>());
+  return derived().redux(Eigen::internal::scalar_sum_op<Scalar,Scalar>());
 }
 
 /** \returns the mean of all coefficients of *this
@@ -459,7 +461,14 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::mean() const
 {
-  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar>())) / Scalar(this->size());
+#ifdef __INTEL_COMPILER
+  #pragma warning push
+  #pragma warning ( disable : 2259 )
+#endif
+  return Scalar(derived().redux(Eigen::internal::scalar_sum_op<Scalar,Scalar>())) / Scalar(this->size());
+#ifdef __INTEL_COMPILER
+  #pragma warning pop
+#endif
 }
 
 /** \returns the product of all coefficients of *this

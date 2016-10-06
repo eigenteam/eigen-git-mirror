@@ -122,7 +122,7 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,true,ConjugateLh
       Map<const Matrix<EIGTYPE, Dynamic, Dynamic, LhsStorageOrder>, 0, OuterStride<> > lhs(_lhs,m,m,OuterStride<>(lhsStride)); \
       a_tmp = lhs.conjugate(); \
       a = a_tmp.data(); \
-      lda = a_tmp.outerStride(); \
+      lda = convert_index<BlasIndex>(a_tmp.outerStride()); \
     } else a = _lhs; \
     if (LhsStorageOrder==RowMajor) uplo='U'; \
 \
@@ -256,7 +256,7 @@ struct product_selfadjoint_matrix<EIGTYPE,Index,LhsStorageOrder,false,ConjugateL
         b_tmp = lhs.transpose(); \
       } \
       b = b_tmp.data(); \
-      ldb = b_tmp.outerStride(); \
+      ldb = convert_index<BlasIndex>(b_tmp.outerStride()); \
     } \
 \
     BLASPREFIX##hemm_(&side, &uplo, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (const BLASTYPE*)b, &ldb, &numext::real_ref(beta), (BLASTYPE*)res, &ldc); \

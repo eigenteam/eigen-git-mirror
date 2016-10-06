@@ -9,11 +9,11 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#ifdef EIGEN_TEST_PART_1
 
 #include "sparse.h"
 #include <Eigen/SparseExtra>
 #include <Eigen/KroneckerProduct>
-
 
 template<typename MatrixType>
 void check_dimension(const MatrixType& ab, const int rows,  const int cols)
@@ -230,3 +230,23 @@ void test_kronecker_product()
     VERIFY_IS_APPROX(MatrixXf(sC2),dC);
   }
 }
+
+#endif
+
+#ifdef EIGEN_TEST_PART_2
+
+// simply check that for a dense kronecker product, sparse module is not needed
+
+#include "main.h"
+#include <Eigen/KroneckerProduct>
+
+void test_kronecker_product()
+{
+  MatrixXd a(2,2), b(3,3), c;
+  a.setRandom();
+  b.setRandom();
+  c = kroneckerProduct(a,b);
+  VERIFY_IS_APPROX(c.block(3,3,3,3), a(1,1)*b);
+}
+
+#endif

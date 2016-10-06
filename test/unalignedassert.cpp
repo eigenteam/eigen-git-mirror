@@ -94,7 +94,7 @@ template<typename T>
 void construct_at_boundary(int boundary)
 {
   char buf[sizeof(T)+256];
-  size_t _buf = reinterpret_cast<size_t>(buf);
+  size_t _buf = reinterpret_cast<internal::UIntPtr>(buf);
   _buf += (EIGEN_MAX_ALIGN_BYTES - (_buf % EIGEN_MAX_ALIGN_BYTES)); // make 16/32/...-byte aligned
   _buf += boundary; // make exact boundary-aligned
   T *x = ::new(reinterpret_cast<void*>(_buf)) T;

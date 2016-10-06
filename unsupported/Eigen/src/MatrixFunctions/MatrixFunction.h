@@ -132,6 +132,7 @@ template <typename EivalsType, typename Cluster>
 void matrix_function_partition_eigenvalues(const EivalsType& eivals, std::list<Cluster>& clusters)
 {
   typedef typename EivalsType::Index Index;
+  typedef typename EivalsType::RealScalar RealScalar;
   for (Index i=0; i<eivals.rows(); ++i) {
     // Find cluster containing i-th ei'val, adding a new cluster if necessary
     typename std::list<Cluster>::iterator qi = matrix_function_find_cluster(i, clusters);
@@ -145,7 +146,7 @@ void matrix_function_partition_eigenvalues(const EivalsType& eivals, std::list<C
 
     // Look for other element to add to the set
     for (Index j=i+1; j<eivals.rows(); ++j) {
-      if (abs(eivals(j) - eivals(i)) <= matrix_function_separation
+      if (abs(eivals(j) - eivals(i)) <= RealScalar(matrix_function_separation)
           && std::find(qi->begin(), qi->end(), j) == qi->end()) {
         typename std::list<Cluster>::iterator qj = matrix_function_find_cluster(j, clusters);
         if (qj == clusters.end()) {
@@ -403,11 +404,10 @@ struct matrix_function_compute<MatrixType, 0>
     typedef internal::traits<MatrixType> Traits;
     typedef typename Traits::Scalar Scalar;
     static const int Rows = Traits::RowsAtCompileTime, Cols = Traits::ColsAtCompileTime;
-    static const int Options = MatrixType::Options;
     static const int MaxRows = Traits::MaxRowsAtCompileTime, MaxCols = Traits::MaxColsAtCompileTime;
 
     typedef std::complex<Scalar> ComplexScalar;
-    typedef Matrix<ComplexScalar, Rows, Cols, Options, MaxRows, MaxCols> ComplexMatrix;
+    typedef Matrix<ComplexScalar, Rows, Cols, 0, MaxRows, MaxCols> ComplexMatrix;
 
     ComplexMatrix CA = A.template cast<ComplexScalar>();
     ComplexMatrix Cresult;
@@ -508,9 +508,8 @@ template<typename Derived> class MatrixFunctionReturnValue
       typedef internal::traits<NestedEvalTypeClean> Traits;
       static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
       static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
-      static const int Options = NestedEvalTypeClean::Options;
       typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
-      typedef Matrix<ComplexScalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
+      typedef Matrix<ComplexScalar, Dynamic, Dynamic, 0, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
 
       typedef internal::MatrixFunctionAtomic<DynMatrixType> AtomicType;
       AtomicType atomic(m_f);

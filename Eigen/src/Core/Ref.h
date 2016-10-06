@@ -35,7 +35,13 @@ struct traits<Ref<_PlainObjectType, _Options, _StrideType> >
                       || (int(StrideType::InnerStrideAtCompileTime)==0 && int(Derived::InnerStrideAtCompileTime)==1),
       OuterStrideMatch = Derived::IsVectorAtCompileTime
                       || int(StrideType::OuterStrideAtCompileTime)==int(Dynamic) || int(StrideType::OuterStrideAtCompileTime)==int(Derived::OuterStrideAtCompileTime),
-      AlignmentMatch = (int(traits<PlainObjectType>::Alignment)==int(Unaligned)) || (int(evaluator<Derived>::Alignment) >= int(Alignment)), // FIXME the first condition is not very clear, it should be replaced by the required alignment
+      // NOTE, this indirection of evaluator<Derived>::Alignment is needed
+      // to workaround a very strange bug in MSVC related to the instantiation
+      // of has_*ary_operator in evaluator<CwiseNullaryOp>.
+      // This line is surprisingly very sensitive. For instance, simply adding parenthesis
+      // as "DerivedAlignment = (int(evaluator<Derived>::Alignment))," will make MSVC fail...
+      DerivedAlignment = int(evaluator<Derived>::Alignment),
+      AlignmentMatch = (int(traits<PlainObjectType>::Alignment)==int(Unaligned)) || (DerivedAlignment >= int(Alignment)), // FIXME the first condition is not very clear, it should be replaced by the required alignment
       ScalarTypeMatch = internal::is_same<typename PlainObjectType::Scalar, typename Derived::Scalar>::value,
       MatchAtCompileTime = HasDirectAccess && StorageOrderMatch && InnerStrideMatch && OuterStrideMatch && AlignmentMatch && ScalarTypeMatch
     };
@@ -262,7 +268,7 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
     template<typename Expression>
     EIGEN_DEVICE_FUNC void construct(const Expression& expr, internal::false_type)
     {
-      internal::call_assignment_no_alias(m_object,expr,internal::assign_op<Scalar>());
+      internal::call_assignment_no_alias(m_object,expr,internal::assign_op<Scalar,Scalar>());
       Base::construct(m_object);
     }
 

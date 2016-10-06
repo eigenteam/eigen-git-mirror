@@ -127,16 +127,29 @@ void test_eigensolver_generic()
   }
   );
   
-  // regression test for bug 793
 #ifdef EIGEN_TEST_PART_2
   {
-     MatrixXd a(3,3);
-     a << 0,  0,  1,
-          1,  1, 1,
-          1, 1e+200,  1;
-     Eigen::EigenSolver<MatrixXd> eig(a);
-     VERIFY_IS_APPROX(a * eig.pseudoEigenvectors(), eig.pseudoEigenvectors() * eig.pseudoEigenvalueMatrix());
-     VERIFY_IS_APPROX(a * eig.eigenvectors(), eig.eigenvectors() * eig.eigenvalues().asDiagonal());
+    // regression test for bug 793
+    MatrixXd a(3,3);
+    a << 0,  0,  1,
+        1,  1, 1,
+        1, 1e+200,  1;
+    Eigen::EigenSolver<MatrixXd> eig(a);
+    double scale = 1e-200; // scale to avoid overflow during the comparisons
+    VERIFY_IS_APPROX(a * eig.pseudoEigenvectors()*scale, eig.pseudoEigenvectors() * eig.pseudoEigenvalueMatrix()*scale);
+    VERIFY_IS_APPROX(a * eig.eigenvectors()*scale, eig.eigenvectors() * eig.eigenvalues().asDiagonal()*scale);
+  }
+  {
+    // check a case where all eigenvalues are null.
+    MatrixXd a(2,2);
+    a << 1,  1,
+        -1, -1;
+    Eigen::EigenSolver<MatrixXd> eig(a);
+    VERIFY_IS_APPROX(eig.pseudoEigenvectors().squaredNorm(), 2.);
+    VERIFY_IS_APPROX((a * eig.pseudoEigenvectors()).norm()+1., 1.);
+    VERIFY_IS_APPROX((eig.pseudoEigenvectors() * eig.pseudoEigenvalueMatrix()).norm()+1., 1.);
+    VERIFY_IS_APPROX((a * eig.eigenvectors()).norm()+1., 1.);
+    VERIFY_IS_APPROX((eig.eigenvectors() * eig.eigenvalues().asDiagonal()).norm()+1., 1.);
   }
 #endif
   

@@ -10,19 +10,65 @@
 #define EIGEN_TEST_NO_LONGDOUBLE
 #define EIGEN_TEST_NO_COMPLEX
 #define EIGEN_TEST_FUNC cxx11_tensor_cuda
-#define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
-
+#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
+#include <cuda_fp16.h>
+#endif
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
 using Eigen::Tensor;
 
+void test_cuda_nullary() {
+  Tensor<float, 1, 0, int> in1(2);
+  Tensor<float, 1, 0, int> in2(2);
+  in1.setRandom();
+  in2.setRandom();
+
+  std::size_t tensor_bytes = in1.size() * sizeof(float);
+
+  float* d_in1;
+  float* d_in2;
+  cudaMalloc((void**)(&d_in1), tensor_bytes);
+  cudaMalloc((void**)(&d_in2), tensor_bytes);
+  cudaMemcpy(d_in1, in1.data(), tensor_bytes, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_in2, in2.data(), tensor_bytes, cudaMemcpyHostToDevice);
+
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  Eigen::TensorMap<Eigen::Tensor<float, 1, 0, int>, Eigen::Aligned> gpu_in1(
+      d_in1, 2);
+  Eigen::TensorMap<Eigen::Tensor<float, 1, 0, int>, Eigen::Aligned> gpu_in2(
+      d_in2, 2);
+
+  gpu_in1.device(gpu_device) = gpu_in1.constant(3.14f);
+  gpu_in2.device(gpu_device) = gpu_in2.random();
+
+  Tensor<float, 1, 0, int> new1(2);
+  Tensor<float, 1, 0, int> new2(2);
+
+  assert(cudaMemcpyAsync(new1.data(), d_in1, tensor_bytes, cudaMemcpyDeviceToHost,
+                         gpu_device.stream()) == cudaSuccess);
+  assert(cudaMemcpyAsync(new2.data(), d_in2, tensor_bytes, cudaMemcpyDeviceToHost,
+                         gpu_device.stream()) == cudaSuccess);
+
+  assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
+
+  for (int i = 0; i < 2; ++i) {
+    VERIFY_IS_APPROX(new1(i), 3.14f);
+    VERIFY_IS_NOT_EQUAL(new2(i), in2(i));
+  }
+
+  cudaFree(d_in1);
+  cudaFree(d_in2);
+}
+
 void test_cuda_elementwise_small() {
-  Tensor<float, 1> in1(Eigen::array<int, 1>(2));
-  Tensor<float, 1> in2(Eigen::array<int, 1>(2));
-  Tensor<float, 1> out(Eigen::array<int, 1>(2));
+  Tensor<float, 1> in1(Eigen::array<Eigen::DenseIndex, 1>(2));
+  Tensor<float, 1> in2(Eigen::array<Eigen::DenseIndex, 1>(2));
+  Tensor<float, 1> out(Eigen::array<Eigen::DenseIndex, 1>(2));
   in1.setRandom();
   in2.setRandom();
 
@@ -44,11 +90,11 @@ void test_cuda_elementwise_small() {
   Eigen::GpuDevice gpu_device(&stream);
 
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_in1(
-      d_in1, Eigen::array<int, 1>(2));
+      d_in1, Eigen::array<Eigen::DenseIndex, 1>(2));
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_in2(
-      d_in2, Eigen::array<int, 1>(2));
+      d_in2, Eigen::array<Eigen::DenseIndex, 1>(2));
   Eigen::TensorMap<Eigen::Tensor<float, 1>, Eigen::Aligned> gpu_out(
-      d_out, Eigen::array<int, 1>(2));
+      d_out, Eigen::array<Eigen::DenseIndex, 1>(2));
 
   gpu_out.device(gpu_device) = gpu_in1 + gpu_in2;
 
@@ -58,8 +104,8 @@ void test_cuda_elementwise_small() {
 
   for (int i = 0; i < 2; ++i) {
     VERIFY_IS_APPROX(
-        out(Eigen::array<int, 1>(i)),
-        in1(Eigen::array<int, 1>(i)) + in2(Eigen::array<int, 1>(i)));
+        out(Eigen::array<Eigen::DenseIndex, 1>(i)),
+        in1(Eigen::array<Eigen::DenseIndex, 1>(i)) + in2(Eigen::array<Eigen::DenseIndex, 1>(i)));
   }
 
   cudaFree(d_in1);
@@ -69,10 +115,10 @@ void test_cuda_elementwise_small() {
 
 void test_cuda_elementwise()
 {
-  Tensor<float, 3> in1(Eigen::array<int, 3>(72,53,97));
-  Tensor<float, 3> in2(Eigen::array<int, 3>(72,53,97));
-  Tensor<float, 3> in3(Eigen::array<int, 3>(72,53,97));
-  Tensor<float, 3> out(Eigen::array<int, 3>(72,53,97));
+  Tensor<float, 3> in1(Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
+  Tensor<float, 3> in2(Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
+  Tensor<float, 3> in3(Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
+  Tensor<float, 3> out(Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
   in1.setRandom();
   in2.setRandom();
   in3.setRandom();
@@ -98,10 +144,10 @@ void test_cuda_elementwise()
   Eigen::CudaStreamDevice stream;
   Eigen::GpuDevice gpu_device(&stream);
 
-  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_in1(d_in1, Eigen::array<int, 3>(72,53,97));
-  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_in2(d_in2, Eigen::array<int, 3>(72,53,97));
-  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_in3(d_in3, Eigen::array<int, 3>(72,53,97));
-  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_out(d_out, Eigen::array<int, 3>(72,53,97));
+  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_in1(d_in1, Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
+  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_in2(d_in2, Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
+  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_in3(d_in3, Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
+  Eigen::TensorMap<Eigen::Tensor<float, 3> > gpu_out(d_out, Eigen::array<Eigen::DenseIndex, 3>(72,53,97));
 
   gpu_out.device(gpu_device) = gpu_in1 + gpu_in2 * gpu_in3;
 
@@ -111,7 +157,7 @@ void test_cuda_elementwise()
   for (int i = 0; i < 72; ++i) {
     for (int j = 0; j < 53; ++j) {
       for (int k = 0; k < 97; ++k) {
-        VERIFY_IS_APPROX(out(Eigen::array<int, 3>(i,j,k)), in1(Eigen::array<int, 3>(i,j,k)) + in2(Eigen::array<int, 3>(i,j,k)) * in3(Eigen::array<int, 3>(i,j,k)));
+        VERIFY_IS_APPROX(out(Eigen::array<Eigen::DenseIndex, 3>(i,j,k)), in1(Eigen::array<Eigen::DenseIndex, 3>(i,j,k)) + in2(Eigen::array<Eigen::DenseIndex, 3>(i,j,k)) * in3(Eigen::array<Eigen::DenseIndex, 3>(i,j,k)));
       }
     }
   }
@@ -181,7 +227,7 @@ void test_cuda_reduction()
   Eigen::TensorMap<Eigen::Tensor<float, 4> > gpu_in1(d_in1, 72,53,97,113);
   Eigen::TensorMap<Eigen::Tensor<float, 2> > gpu_out(d_out, 72,97);
 
-  array<int, 2> reduction_axis;
+  array<Eigen::DenseIndex, 2> reduction_axis;
   reduction_axis[0] = 1;
   reduction_axis[1] = 3;
 
@@ -214,8 +260,8 @@ void test_cuda_contraction()
   // more than 30 * 1024, which is the number of threads in blocks on
   // a 15 SM GK110 GPU
   Tensor<float, 4, DataLayout> t_left(6, 50, 3, 31);
-  Tensor<float, 5, DataLayout> t_right(Eigen::array<int, 5>(3, 31, 7, 20, 1));
-  Tensor<float, 5, DataLayout> t_result(Eigen::array<int, 5>(6, 50, 7, 20, 1));
+  Tensor<float, 5, DataLayout> t_right(Eigen::array<Eigen::DenseIndex, 5>(3, 31, 7, 20, 1));
+  Tensor<float, 5, DataLayout> t_result(Eigen::array<Eigen::DenseIndex, 5>(6, 50, 7, 20, 1));
 
   t_left.setRandom();
   t_right.setRandom();
@@ -299,7 +345,7 @@ void test_cuda_convolution_1d()
   Eigen::TensorMap<Eigen::Tensor<float, 1, DataLayout> > gpu_kernel(d_kernel, 4);
   Eigen::TensorMap<Eigen::Tensor<float, 4, DataLayout> > gpu_out(d_out, 74,34,11,137);
 
-  Eigen::array<int, 1> dims(1);
+  Eigen::array<Eigen::DenseIndex, 1> dims(1);
   gpu_out.device(gpu_device) = gpu_input.convolve(gpu_kernel, dims);
 
   assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
@@ -352,7 +398,7 @@ void test_cuda_convolution_inner_dim_col_major_1d()
   Eigen::TensorMap<Eigen::Tensor<float, 1, ColMajor> > gpu_kernel(d_kernel,4);
   Eigen::TensorMap<Eigen::Tensor<float, 4, ColMajor> > gpu_out(d_out,71,9,11,7);
 
-  Eigen::array<int, 1> dims(0);
+  Eigen::array<Eigen::DenseIndex, 1> dims(0);
   gpu_out.device(gpu_device) = gpu_input.convolve(gpu_kernel, dims);
 
   assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
@@ -405,7 +451,7 @@ void test_cuda_convolution_inner_dim_row_major_1d()
   Eigen::TensorMap<Eigen::Tensor<float, 1, RowMajor> > gpu_kernel(d_kernel, 4);
   Eigen::TensorMap<Eigen::Tensor<float, 4, RowMajor> > gpu_out(d_out, 7,9,11,71);
 
-  Eigen::array<int, 1> dims(3);
+  Eigen::array<Eigen::DenseIndex, 1> dims(3);
   gpu_out.device(gpu_device) = gpu_input.convolve(gpu_kernel, dims);
 
   assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
@@ -459,7 +505,7 @@ void test_cuda_convolution_2d()
   Eigen::TensorMap<Eigen::Tensor<float, 2, DataLayout> > gpu_kernel(d_kernel,3,4);
   Eigen::TensorMap<Eigen::Tensor<float, 4, DataLayout> > gpu_out(d_out,74,35,8,137);
 
-  Eigen::array<int, 2> dims(1,2);
+  Eigen::array<Eigen::DenseIndex, 2> dims(1,2);
   gpu_out.device(gpu_device) = gpu_input.convolve(gpu_kernel, dims);
 
   assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
@@ -496,9 +542,9 @@ void test_cuda_convolution_2d()
 template<int DataLayout>
 void test_cuda_convolution_3d()
 {
-  Tensor<float, 5, DataLayout> input(Eigen::array<int, 5>(74,37,11,137,17));
+  Tensor<float, 5, DataLayout> input(Eigen::array<Eigen::DenseIndex, 5>(74,37,11,137,17));
   Tensor<float, 3, DataLayout> kernel(3,4,2);
-  Tensor<float, 5, DataLayout> out(Eigen::array<int, 5>(74,35,8,136,17));
+  Tensor<float, 5, DataLayout> out(Eigen::array<Eigen::DenseIndex, 5>(74,35,8,136,17));
   input = input.constant(10.0f) + input.random();
   kernel = kernel.constant(7.0f) + kernel.random();
 
@@ -523,7 +569,7 @@ void test_cuda_convolution_3d()
   Eigen::TensorMap<Eigen::Tensor<float, 3, DataLayout> > gpu_kernel(d_kernel,3,4,2);
   Eigen::TensorMap<Eigen::Tensor<float, 5, DataLayout> > gpu_out(d_out,74,35,8,136,17);
 
-  Eigen::array<int, 3> dims(1,2,3);
+  Eigen::array<Eigen::DenseIndex, 3> dims(1,2,3);
   gpu_out.device(gpu_device) = gpu_input.convolve(gpu_kernel, dims);
 
   assert(cudaMemcpyAsync(out.data(), d_out, out_bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
@@ -1019,8 +1065,156 @@ void test_cuda_erfc(const Scalar stddev)
   cudaFree(d_out);
 }
 
+template <typename Scalar>
+void test_cuda_betainc()
+{
+  Tensor<Scalar, 1> in_x(125);
+  Tensor<Scalar, 1> in_a(125);
+  Tensor<Scalar, 1> in_b(125);
+  Tensor<Scalar, 1> out(125);
+  Tensor<Scalar, 1> expected_out(125);
+  out.setZero();
+
+  Scalar nan = std::numeric_limits<Scalar>::quiet_NaN();
+
+  Array<Scalar, 1, Dynamic> x(125);
+  Array<Scalar, 1, Dynamic> a(125);
+  Array<Scalar, 1, Dynamic> b(125);
+  Array<Scalar, 1, Dynamic> v(125);
+
+  a << 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999,
+      0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999,
+      0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379, 999.999, 999.999,
+      999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999,
+      999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999,
+      999.999, 999.999, 999.999, 999.999, 999.999, 999.999, 999.999;
+
+  b << 0.0, 0.0, 0.0, 0.0, 0.0, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379, 0.999,
+      0.999, 0.999, 0.999, 0.999, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379, 999.999, 999.999,
+      999.999, 999.999, 999.999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.999, 0.999, 0.999, 0.999, 0.999, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 999.999, 999.999, 999.999, 999.999, 999.999, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379, 0.999,
+      0.999, 0.999, 0.999, 0.999, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379, 999.999, 999.999,
+      999.999, 999.999, 999.999, 0.0, 0.0, 0.0, 0.0, 0.0, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.999, 0.999, 0.999, 0.999, 0.999, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 999.999, 999.999, 999.999, 999.999, 999.999, 0.0, 0.0,
+      0.0, 0.0, 0.0, 0.03062277660168379, 0.03062277660168379,
+      0.03062277660168379, 0.03062277660168379, 0.03062277660168379, 0.999,
+      0.999, 0.999, 0.999, 0.999, 31.62177660168379, 31.62177660168379,
+      31.62177660168379, 31.62177660168379, 31.62177660168379, 999.999, 999.999,
+      999.999, 999.999, 999.999;
+
+  x << -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8,
+      1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5,
+      0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2,
+      0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1,
+      0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1,
+      -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8,
+      1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5,
+      0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2,
+      0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1, -0.1, 0.2, 0.5, 0.8, 1.1;
+
+  v << nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+      nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
+      nan, nan, 0.47972119876364683, 0.5, 0.5202788012363533, nan, nan,
+      0.9518683957740043, 0.9789663010413743, 0.9931729188073435, nan, nan,
+      0.999995949033062, 0.9999999999993698, 0.9999999999999999, nan, nan,
+      0.9999999999999999, 0.9999999999999999, 0.9999999999999999, nan, nan, nan,
+      nan, nan, nan, nan, 0.006827081192655869, 0.0210336989586256,
+      0.04813160422599567, nan, nan, 0.20014344256217678, 0.5000000000000001,
+      0.7998565574378232, nan, nan, 0.9991401428435834, 0.999999999698403,
+      0.9999999999999999, nan, nan, 0.9999999999999999, 0.9999999999999999,
+      0.9999999999999999, nan, nan, nan, nan, nan, nan, nan,
+      1.0646600232370887e-25, 6.301722877826246e-13, 4.050966937974938e-06, nan,
+      nan, 7.864342668429763e-23, 3.015969667594166e-10, 0.0008598571564165444,
+      nan, nan, 6.031987710123844e-08, 0.5000000000000007, 0.9999999396801229,
+      nan, nan, 0.9999999999999999, 0.9999999999999999, 0.9999999999999999, nan,
+      nan, nan, nan, nan, nan, nan, 0.0, 7.029920380986636e-306,
+      2.2450728208591345e-101, nan, nan, 0.0, 9.275871147869727e-302,
+      1.2232913026152827e-97, nan, nan, 0.0, 3.0891393081932924e-252,
+      2.9303043666183996e-60, nan, nan, 2.248913486879199e-196,
+      0.5000000000004947, 0.9999999999999999, nan;
+
+  for (int i = 0; i < 125; ++i) {
+    in_x(i) = x(i);
+    in_a(i) = a(i);
+    in_b(i) = b(i);
+    expected_out(i) = v(i);
+  }
+
+  std::size_t bytes = in_x.size() * sizeof(Scalar);
+
+  Scalar* d_in_x;
+  Scalar* d_in_a;
+  Scalar* d_in_b;
+  Scalar* d_out;
+  cudaMalloc((void**)(&d_in_x), bytes);
+  cudaMalloc((void**)(&d_in_a), bytes);
+  cudaMalloc((void**)(&d_in_b), bytes);
+  cudaMalloc((void**)(&d_out), bytes);
+
+  cudaMemcpy(d_in_x, in_x.data(), bytes, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_in_a, in_a.data(), bytes, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_in_b, in_b.data(), bytes, cudaMemcpyHostToDevice);
+
+  Eigen::CudaStreamDevice stream;
+  Eigen::GpuDevice gpu_device(&stream);
+
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in_x(d_in_x, 125);
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in_a(d_in_a, 125);
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_in_b(d_in_b, 125);
+  Eigen::TensorMap<Eigen::Tensor<Scalar, 1> > gpu_out(d_out, 125);
+
+  gpu_out.device(gpu_device) = betainc(gpu_in_a, gpu_in_b, gpu_in_x);
+
+  assert(cudaMemcpyAsync(out.data(), d_out, bytes, cudaMemcpyDeviceToHost, gpu_device.stream()) == cudaSuccess);
+  assert(cudaStreamSynchronize(gpu_device.stream()) == cudaSuccess);
+
+  for (int i = 1; i < 125; ++i) {
+    if ((std::isnan)(expected_out(i))) {
+      VERIFY((std::isnan)(out(i)));
+    } else {
+      VERIFY_IS_APPROX(out(i), expected_out(i));
+    }
+  }
+
+  cudaFree(d_in_x);
+  cudaFree(d_in_a);
+  cudaFree(d_in_b);
+  cudaFree(d_out);
+}
+
+
 void test_cxx11_tensor_cuda()
 {
+  CALL_SUBTEST_1(test_cuda_nullary());
   CALL_SUBTEST_1(test_cuda_elementwise_small());
   CALL_SUBTEST_1(test_cuda_elementwise());
   CALL_SUBTEST_1(test_cuda_props());
@@ -1086,5 +1280,8 @@ void test_cxx11_tensor_cuda()
 
   CALL_SUBTEST_5(test_cuda_igamma<double>());
   CALL_SUBTEST_5(test_cuda_igammac<double>());
+
+  CALL_SUBTEST_6(test_cuda_betainc<float>());
+  CALL_SUBTEST_6(test_cuda_betainc<double>());
 #endif
 }

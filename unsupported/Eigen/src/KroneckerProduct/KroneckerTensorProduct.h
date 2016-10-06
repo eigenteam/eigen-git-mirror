@@ -203,7 +203,7 @@ struct traits<KroneckerProduct<_Lhs,_Rhs> >
 {
   typedef typename remove_all<_Lhs>::type Lhs;
   typedef typename remove_all<_Rhs>::type Rhs;
-  typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
+  typedef typename ScalarBinaryOpTraits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
   typedef typename promote_index_type<typename Lhs::StorageIndex, typename Rhs::StorageIndex>::type StorageIndex;
 
   enum {
@@ -222,7 +222,7 @@ struct traits<KroneckerProductSparse<_Lhs,_Rhs> >
   typedef MatrixXpr XprKind;
   typedef typename remove_all<_Lhs>::type Lhs;
   typedef typename remove_all<_Rhs>::type Rhs;
-  typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
+  typedef typename ScalarBinaryOpTraits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
   typedef typename cwise_promote_storage_type<typename traits<Lhs>::StorageKind, typename traits<Rhs>::StorageKind, scalar_product_op<typename Lhs::Scalar, typename Rhs::Scalar> >::ret StorageKind;
   typedef typename promote_index_type<typename Lhs::StorageIndex, typename Rhs::StorageIndex>::type StorageIndex;
 
@@ -239,7 +239,7 @@ struct traits<KroneckerProductSparse<_Lhs,_Rhs> >
     RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
     Flags = ((LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
-          | EvalBeforeNestingBit | EvalBeforeAssigningBit,
+          | EvalBeforeNestingBit,
     CoeffReadCost = HugeCost
   };
 

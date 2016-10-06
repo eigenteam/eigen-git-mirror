@@ -143,7 +143,7 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,C
     // If the result is tall and thin (in the extreme case a column vector)
     // then it is faster to sort the coefficients inplace instead of transposing twice.
     // FIXME, the following heuristic is probably not very good.
-    if(lhs.rows()>=rhs.cols())
+    if(lhs.rows()>rhs.cols())
     {
       ColMajorMatrix resCol(lhs.rows(),rhs.cols());
       // perform sorted insertion

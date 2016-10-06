@@ -125,31 +125,17 @@ DenseBase<Derived>::format(const IOFormat& fmt) const
 
 namespace internal {
 
-template<typename Scalar, bool IsInteger>
-struct significant_decimals_default_impl
-{
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  static inline int run()
-  {
-    using std::ceil;
-    using std::log;
-    return cast<RealScalar,int>(ceil(-log(NumTraits<RealScalar>::epsilon())/log(RealScalar(10))));
-  }
-};
-
-template<typename Scalar>
-struct significant_decimals_default_impl<Scalar, true>
-{
-  static inline int run()
-  {
-    return 0;
-  }
-};
-
+// NOTE: This helper is kept for backward compatibility with previous code specializing
+//       this internal::significant_decimals_impl structure. In the future we should directly
+//       call digits10() which has been introduced in July 2016 in 3.3.
 template<typename Scalar>
 struct significant_decimals_impl
-  : significant_decimals_default_impl<Scalar, NumTraits<Scalar>::IsInteger>
-{};
+{
+  static inline int run()
+  {
+    return NumTraits<Scalar>::digits10();
+  }
+};
 
 /** \internal
   * print the matrix \a _m to the output stream \a s using the output format \a fmt */

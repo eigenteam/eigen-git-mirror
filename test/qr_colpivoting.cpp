@@ -93,6 +93,7 @@ void cod_fixedsize() {
 
 template<typename MatrixType> void qr()
 {
+  using std::sqrt;
   typedef typename MatrixType::Index Index;
 
   Index rows = internal::random<Index>(2,EIGEN_TEST_MAX_SIZE), cols = internal::random<Index>(2,EIGEN_TEST_MAX_SIZE), cols2 = internal::random<Index>(2,EIGEN_TEST_MAX_SIZE);
@@ -120,14 +121,14 @@ template<typename MatrixType> void qr()
   // Verify that the absolute value of the diagonal elements in R are
   // non-increasing until they reach the singularity threshold.
   RealScalar threshold =
-      std::sqrt(RealScalar(rows)) * (std::abs)(r(0, 0)) * NumTraits<Scalar>::epsilon();
+      sqrt(RealScalar(rows)) * numext::abs(r(0, 0)) * NumTraits<Scalar>::epsilon();
   for (Index i = 0; i < (std::min)(rows, cols) - 1; ++i) {
-    RealScalar x = (std::abs)(r(i, i));
-    RealScalar y = (std::abs)(r(i + 1, i + 1));
+    RealScalar x = numext::abs(r(i, i));
+    RealScalar y = numext::abs(r(i + 1, i + 1));
     if (x < threshold && y < threshold) continue;
     if (!test_isApproxOrLessThan(y, x)) {
       for (Index j = 0; j < (std::min)(rows, cols); ++j) {
-        std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
+        std::cout << "i = " << j << ", |r_ii| = " << numext::abs(r(j, j)) << std::endl;
       }
       std::cout << "Failure at i=" << i << ", rank=" << rank
                 << ", threshold=" << threshold << std::endl;
@@ -144,6 +145,8 @@ template<typename MatrixType> void qr()
 
 template<typename MatrixType, int Cols2> void qr_fixedsize()
 {
+  using std::sqrt;
+  using std::abs;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
@@ -169,14 +172,14 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   // Verify that the absolute value of the diagonal elements in R are
   // non-increasing until they reache the singularity threshold.
   RealScalar threshold =
-      std::sqrt(RealScalar(Rows)) * (std::abs)(r(0, 0)) * NumTraits<Scalar>::epsilon();
+      sqrt(RealScalar(Rows)) * (std::abs)(r(0, 0)) * NumTraits<Scalar>::epsilon();
   for (Index i = 0; i < (std::min)(int(Rows), int(Cols)) - 1; ++i) {
-    RealScalar x = (std::abs)(r(i, i));
-    RealScalar y = (std::abs)(r(i + 1, i + 1));
+    RealScalar x = numext::abs(r(i, i));
+    RealScalar y = numext::abs(r(i + 1, i + 1));
     if (x < threshold && y < threshold) continue;
     if (!test_isApproxOrLessThan(y, x)) {
       for (Index j = 0; j < (std::min)(int(Rows), int(Cols)); ++j) {
-        std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
+        std::cout << "i = " << j << ", |r_ii| = " << numext::abs(r(j, j)) << std::endl;
       }
       std::cout << "Failure at i=" << i << ", rank=" << rank
                 << ", threshold=" << threshold << std::endl;
@@ -194,6 +197,8 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
 // page 3 for more detail.
 template<typename MatrixType> void qr_kahan_matrix()
 {
+  using std::sqrt;
+  using std::abs;
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
@@ -204,23 +209,25 @@ template<typename MatrixType> void qr_kahan_matrix()
   m1.setZero(rows,cols);
   RealScalar s = std::pow(NumTraits<RealScalar>::epsilon(), 1.0 / rows);
   RealScalar c = std::sqrt(1 - s*s);
+  RealScalar pow_s_i(1.0); // pow(s,i)
   for (Index i = 0; i < rows; ++i) {
-    m1(i, i) = pow(s, i);
-    m1.row(i).tail(rows - i - 1) = -pow(s, i) * c * MatrixType::Ones(1, rows - i - 1);
+    m1(i, i) = pow_s_i;
+    m1.row(i).tail(rows - i - 1) = -pow_s_i * c * MatrixType::Ones(1, rows - i - 1);
+    pow_s_i *= s;
   }
   m1 = (m1 + m1.transpose()).eval();
   ColPivHouseholderQR<MatrixType> qr(m1);
   MatrixType r = qr.matrixQR().template triangularView<Upper>();
 
   RealScalar threshold =
-      std::sqrt(RealScalar(rows)) * (std::abs)(r(0, 0)) * NumTraits<Scalar>::epsilon();
+      std::sqrt(RealScalar(rows)) * numext::abs(r(0, 0)) * NumTraits<Scalar>::epsilon();
   for (Index i = 0; i < (std::min)(rows, cols) - 1; ++i) {
-    RealScalar x = (std::abs)(r(i, i));
-    RealScalar y = (std::abs)(r(i + 1, i + 1));
+    RealScalar x = numext::abs(r(i, i));
+    RealScalar y = numext::abs(r(i + 1, i + 1));
     if (x < threshold && y < threshold) continue;
     if (!test_isApproxOrLessThan(y, x)) {
       for (Index j = 0; j < (std::min)(rows, cols); ++j) {
-        std::cout << "i = " << j << ", |r_ii| = " << (std::abs)(r(j, j)) << std::endl;
+        std::cout << "i = " << j << ", |r_ii| = " << numext::abs(r(j, j)) << std::endl;
       }
       std::cout << "Failure at i=" << i << ", rank=" << qr.rank()
                 << ", threshold=" << threshold << std::endl;

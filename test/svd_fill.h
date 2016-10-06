@@ -7,9 +7,20 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+template<typename T>
+Array<T,4,1> four_denorms();
+
+template<>
+Array4f four_denorms() { return Array4f(5.60844e-39f, -5.60844e-39f, 4.94e-44f, -4.94e-44f); }
+template<>
+Array4d four_denorms() { return Array4d(5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324); }
+template<typename T>
+Array<T,4,1> four_denorms() { return four_denorms<double>().cast<T>(); }
+
 template<typename MatrixType>
 void svd_fill_random(MatrixType &m, int Option = 0)
 {
+  using std::pow;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename MatrixType::Index Index;
@@ -18,7 +29,7 @@ void svd_fill_random(MatrixType &m, int Option = 0)
   s = internal::random<RealScalar>(1,s);
   Matrix<RealScalar,Dynamic,1> d =  Matrix<RealScalar,Dynamic,1>::Random(diagSize);
   for(Index k=0; k<diagSize; ++k)
-    d(k) = d(k)*std::pow(RealScalar(10),internal::random<RealScalar>(-s,s));
+    d(k) = d(k)*pow(RealScalar(10),internal::random<RealScalar>(-s,s));
 
   bool dup     = internal::random<int>(0,10) < 3;
   bool unit_uv = internal::random<int>(0,10) < (dup?7:3); // if we duplicate some diagonal entries, then increase the chance to preserve them using unitary U and V factors
@@ -53,8 +64,9 @@ void svd_fill_random(MatrixType &m, int Option = 0)
     VT.setRandom();
   }
   
-  Matrix<Scalar,Dynamic,1> samples(7);
-  samples << 0, 5.60844e-313, -5.60844e-313, 4.94e-324, -4.94e-324, -1./NumTraits<RealScalar>::highest(), 1./NumTraits<RealScalar>::highest();
+  Matrix<Scalar,Dynamic,1> samples(9);
+  samples << 0, four_denorms<RealScalar>(),
+            -RealScalar(1)/NumTraits<RealScalar>::highest(), RealScalar(1)/NumTraits<RealScalar>::highest(), (std::numeric_limits<RealScalar>::min)(), pow((std::numeric_limits<RealScalar>::min)(),0.8);
   
   if(Option==Symmetric)
   {

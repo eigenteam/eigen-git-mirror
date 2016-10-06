@@ -13,7 +13,9 @@
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE int
 #define EIGEN_USE_GPU
 
-
+#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
+#include <cuda_fp16.h>
+#endif
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
@@ -241,7 +243,7 @@ void test_cpu() {
         const float result = out(i,j,k);
         const float expected = (in1(i,j,k) * 3.14f + in1(i,j+1,k) * 2.7f) +
                                (in1(i,j,k+1) * 0.2f + in1(i,j+1,k+1) * 7.0f);
-        if (fabs(expected) < 1e-4 && fabs(result) < 1e-4) {
+        if (fabs(expected) < 1e-4f && fabs(result) < 1e-4f) {
           continue;
         }
         VERIFY_IS_APPROX(expected, result);
@@ -258,7 +260,7 @@ void test_cpu() {
                                 in1(i,j,k+1) * 0.2f + in1(i,j+1,k+1) * 7.0f) +
                                (in1(i+1,j,k) * -1.0f + in1(i+1,j+1,k) * -0.3f +
                                 in1(i+1,j,k+1) * -0.7f + in1(i+1,j+1,k+1) * -0.5f);
-        if (fabs(expected) < 1e-4 && fabs(result) < 1e-4) {
+        if (fabs(expected) < 1e-4f && fabs(result) < 1e-4f) {
           continue;
         }
         VERIFY_IS_APPROX(expected, result);

@@ -91,6 +91,7 @@ template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename ViewOp,    typename MatrixType>         class CwiseUnaryView;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
+template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>  class CwiseTernaryOp;
 template<typename Decomposition, typename Rhstype>        class Solve;
 template<typename XprType>                                class Inverse;
 
@@ -174,9 +175,11 @@ namespace internal {
 // with optional conjugation of the arguments.
 template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRhs=false> struct conj_helper;
 
-template<typename Scalar> struct scalar_sum_op;
-template<typename Scalar> struct scalar_difference_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_sum_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_difference_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_conj_product_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_min_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_max_op;
 template<typename Scalar> struct scalar_opposite_op;
 template<typename Scalar> struct scalar_conjugate_op;
 template<typename Scalar> struct scalar_real_op;
@@ -192,27 +195,28 @@ template<typename Scalar> struct scalar_sin_op;
 template<typename Scalar> struct scalar_acos_op;
 template<typename Scalar> struct scalar_asin_op;
 template<typename Scalar> struct scalar_tan_op;
-template<typename Scalar> struct scalar_pow_op;
 template<typename Scalar> struct scalar_inverse_op;
 template<typename Scalar> struct scalar_square_op;
 template<typename Scalar> struct scalar_cube_op;
 template<typename Scalar, typename NewType> struct scalar_cast_op;
-template<typename Scalar> struct scalar_multiple_op;
-template<typename Scalar> struct scalar_quotient1_op;
-template<typename Scalar> struct scalar_min_op;
-template<typename Scalar> struct scalar_max_op;
 template<typename Scalar> struct scalar_random_op;
-template<typename Scalar> struct scalar_add_op;
 template<typename Scalar> struct scalar_constant_op;
 template<typename Scalar> struct scalar_identity_op;
 template<typename Scalar,bool iscpx> struct scalar_sign_op;
+template<typename Scalar,typename ScalarExponent> struct scalar_pow_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_hypot_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_quotient_op;
+
+// SpecialFunctions module
+template<typename Scalar> struct scalar_lgamma_op;
+template<typename Scalar> struct scalar_digamma_op;
+template<typename Scalar> struct scalar_erf_op;
+template<typename Scalar> struct scalar_erfc_op;
 template<typename Scalar> struct scalar_igamma_op;
 template<typename Scalar> struct scalar_igammac_op;
-
-template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;
-template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_quotient_op;
-template<typename LhsScalar,typename RhsScalar> struct scalar_quotient2_op;
+template<typename Scalar> struct scalar_zeta_op;
+template<typename Scalar> struct scalar_betainc_op;
 
 } // end namespace internal
 

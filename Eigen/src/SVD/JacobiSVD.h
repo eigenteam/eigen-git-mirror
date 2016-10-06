@@ -419,38 +419,6 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
   }
 };
 
-template<typename MatrixType, typename RealScalar, typename Index>
-void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
-                         JacobiRotation<RealScalar> *j_left,
-                         JacobiRotation<RealScalar> *j_right)
-{
-  using std::sqrt;
-  using std::abs;
-  Matrix<RealScalar,2,2> m;
-  m << numext::real(matrix.coeff(p,p)), numext::real(matrix.coeff(p,q)),
-       numext::real(matrix.coeff(q,p)), numext::real(matrix.coeff(q,q));
-  JacobiRotation<RealScalar> rot1;
-  RealScalar t = m.coeff(0,0) + m.coeff(1,1);
-  RealScalar d = m.coeff(1,0) - m.coeff(0,1);
-  if(d == RealScalar(0))
-  {
-    rot1.s() = RealScalar(0);
-    rot1.c() = RealScalar(1);
-  }
-  else
-  {
-    // If d!=0, then t/d cannot overflow because the magnitude of the
-    // entries forming d are not too small compared to the ones forming t.
-    RealScalar u = t / d;
-    RealScalar tmp = sqrt(RealScalar(1) + numext::abs2(u));
-    rot1.s() = RealScalar(1) / tmp;
-    rot1.c() = u / tmp;
-  }
-  m.applyOnTheLeft(0,1,rot1);
-  j_right->makeJacobi(m,0,1);
-  *j_left = rot1 * j_right->transpose();
-}
-
 template<typename _MatrixType, int QRPreconditioner> 
 struct traits<JacobiSVD<_MatrixType,QRPreconditioner> >
 {
@@ -697,10 +665,8 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   // only worsening the precision of U and V as we accumulate more rotations
   const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon();
 
-  // limit for very small denormal numbers to be considered zero in order to avoid infinite loops (see bug 286)
-  // FIXME What about considerering any denormal numbers as zero, using:
-  // const RealScalar considerAsZero = (std::numeric_limits<RealScalar>::min)();
-  const RealScalar considerAsZero = RealScalar(2) * std::numeric_limits<RealScalar>::denorm_min();
+  // limit for denormal numbers to be considered zero in order to avoid infinite loops (see bug 286)
+  const RealScalar considerAsZero = (std::numeric_limits<RealScalar>::min)();
 
   // Scaling factor to reduce over/under-flows
   RealScalar scale = matrix.cwiseAbs().maxCoeff();
@@ -745,7 +711,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         {
           finished = false;
           // perform SVD decomposition of 2x2 sub-matrix corresponding to indices p,q to make it diagonal
-          // the complex to real operation returns true is the updated 2x2 block is not already diagonal
+          // the complex to real operation returns true if the updated 2x2 block is not already diagonal
           if(internal::svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q, maxDiagEntry))
           {
             JacobiRotation<RealScalar> j_left, j_right;
@@ -759,7 +725,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
             if(computeV()) m_matrixV.applyOnTheRight(p,q,j_right);
 
             // keep track of the largest diagonal coefficient
-            maxDiagEntry = numext::maxi(maxDiagEntry,numext::maxi(abs(m_workMatrix.coeff(p,p)), abs(m_workMatrix.coeff(q,q))));
+            maxDiagEntry = numext::maxi<RealScalar>(maxDiagEntry,numext::maxi(abs(m_workMatrix.coeff(p,p)), abs(m_workMatrix.coeff(q,q))));
           }
         }
       }
@@ -770,9 +736,22 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
   for(Index i = 0; i < m_diagSize; ++i)
   {
-    RealScalar a = abs(m_workMatrix.coeff(i,i));
-    m_singularValues.coeffRef(i) = a;
-    if(computeU() && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
+    // For a complex matrix, some diagonal coefficients might note have been
+    // treated by svd_precondition_2x2_block_to_be_real, and the imaginary part
+    // of some diagonal entry might not be null.
+    if(NumTraits<Scalar>::IsComplex && abs(numext::imag(m_workMatrix.coeff(i,i)))>considerAsZero)
+    {
+      RealScalar a = abs(m_workMatrix.coeff(i,i));
+      m_singularValues.coeffRef(i) = abs(a);
+      if(computeU()) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
+    }
+    else
+    {
+      // m_workMatrix.coeff(i,i) is already real, no difficulty:
+      RealScalar a = numext::real(m_workMatrix.coeff(i,i));
+      m_singularValues.coeffRef(i) = abs(a);
+      if(computeU() && (a<RealScalar(0))) m_matrixU.col(i) = -m_matrixU.col(i);
+    }
   }
   
   m_singularValues *= scale;
@@ -802,7 +781,6 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   return *this;
 }
 
-#ifndef __CUDACC__
 /** \svd_module
   *
   * \return the singular value decomposition of \c *this computed by two-sided
@@ -816,7 +794,6 @@ MatrixBase<Derived>::jacobiSvd(unsigned int computationOptions) const
 {
   return JacobiSVD<PlainObject>(*this, computationOptions);
 }
-#endif // __CUDACC__
 
 } // end namespace Eigen
 

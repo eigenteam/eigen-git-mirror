@@ -31,12 +31,14 @@
   * \endcode
   */
 
+#include "src/misc/RealSvd2x2.h"
 #include "src/SVD/UpperBidiagonalization.h"
 #include "src/SVD/SVDBase.h"
 #include "src/SVD/JacobiSVD.h"
 #include "src/SVD/BDCSVD.h"
 #if defined(EIGEN_USE_LAPACKE) && !defined(EIGEN_USE_LAPACKE_STRICT)
-#include "src/SVD/JacobiSVD_MKL.h"
+#include "src/misc/lapacke.h"
+#include "src/SVD/JacobiSVD_LAPACKE.h"
 #endif
 
 #include "src/Core/util/ReenableStupidWarnings.h"

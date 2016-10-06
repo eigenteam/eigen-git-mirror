@@ -9,7 +9,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 static bool g_called;
-#define EIGEN_SPECIAL_SCALAR_MULTIPLE_PLUGIN { g_called = true; }
+#define EIGEN_SCALAR_BINARY_OP_PLUGIN { g_called |= (!internal::is_same<LhsScalar,RhsScalar>::value); }
 
 #include "main.h"
 
@@ -21,6 +21,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   */
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -32,7 +33,7 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
              m3(rows, cols);
 
   Scalar s1 = internal::random<Scalar>();
-  while (abs(s1)<1e-3) s1 = internal::random<Scalar>();
+  while (abs(s1)<RealScalar(1e-3)) s1 = internal::random<Scalar>();
 
   Index r = internal::random<Index>(0, rows-1),
         c = internal::random<Index>(0, cols-1);
@@ -92,6 +93,22 @@ template<typename MatrixType> void real_complex(DenseIndex rows = MatrixType::Ro
   g_called = false;
   VERIFY_IS_APPROX(m1/s, m1/Scalar(s));
   VERIFY(g_called && "matrix<complex> / real not properly optimized");
+
+  g_called = false;
+  VERIFY_IS_APPROX(s+m1.array(), Scalar(s)+m1.array());
+  VERIFY(g_called && "real + matrix<complex> not properly optimized");
+
+  g_called = false;
+  VERIFY_IS_APPROX(m1.array()+s, m1.array()+Scalar(s));
+  VERIFY(g_called && "matrix<complex> + real not properly optimized");
+
+  g_called = false;
+  VERIFY_IS_APPROX(s-m1.array(), Scalar(s)-m1.array());
+  VERIFY(g_called && "real - matrix<complex> not properly optimized");
+
+  g_called = false;
+  VERIFY_IS_APPROX(m1.array()-s, m1.array()-Scalar(s));
+  VERIFY(g_called && "matrix<complex> - real not properly optimized");
 }
 
 void test_linearstructure()

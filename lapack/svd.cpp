@@ -124,14 +124,15 @@ EIGEN_LAPACK_FUNC(gesvd,(char *jobu, char *jobv, int *m, int* n, Scalar* a, int 
   JacobiSVD<PlainMatrixType> svd(mat,option);
   
   make_vector(s,diag_size) = svd.singularValues().head(diag_size);
-  
+  {
         if(*jobu=='A') matrix(u,*m,*m,*ldu)           = svd.matrixU();
   else  if(*jobu=='S') matrix(u,*m,diag_size,*ldu)    = svd.matrixU();
-  else  if(*jobu=='O') matrix(a,*m,diag_size,*lda)           = svd.matrixU();
-  
+  else  if(*jobu=='O') matrix(a,*m,diag_size,*lda)    = svd.matrixU();
+  }
+  {
         if(*jobv=='A') matrix(vt,*n,*n,*ldvt)         = svd.matrixV().adjoint();
   else  if(*jobv=='S') matrix(vt,diag_size,*n,*ldvt)  = svd.matrixV().adjoint();
   else  if(*jobv=='O') matrix(a,diag_size,*n,*lda)    = svd.matrixV().adjoint();
-    
+  }
   return 0;
 }

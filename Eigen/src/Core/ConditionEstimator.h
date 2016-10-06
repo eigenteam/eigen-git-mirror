@@ -32,33 +32,6 @@ struct rcond_compute_sign<Vector, Vector, false> {
   }
 };
 
-/** \brief Reciprocal condition number estimator.
-  *
-  * Computing a decomposition of a dense matrix takes O(n^3) operations, while
-  * this method estimates the condition number quickly and reliably in O(n^2)
-  * operations.
-  *
-  * \returns an estimate of the reciprocal condition number
-  * (1 / (||matrix||_1 * ||inv(matrix)||_1)) of matrix, given ||matrix||_1 and
-  * its decomposition. Supports the following decompositions: FullPivLU,
-  * PartialPivLU, LDLT, and LLT.
-  *
-  * \sa FullPivLU, PartialPivLU, LDLT, LLT.
-  */
-template <typename Decomposition>
-typename Decomposition::RealScalar
-rcond_estimate_helper(typename Decomposition::RealScalar matrix_norm, const Decomposition& dec)
-{
-  typedef typename Decomposition::RealScalar RealScalar;
-  eigen_assert(dec.rows() == dec.cols());
-  if (dec.rows() == 0)              return RealScalar(1);
-  if (matrix_norm == RealScalar(0)) return RealScalar(0);
-  if (dec.rows() == 1)              return RealScalar(1);
-  const RealScalar inverse_matrix_norm = rcond_invmatrix_L1_norm_estimate(dec);
-  return (inverse_matrix_norm == RealScalar(0) ? RealScalar(0)
-                                               : (RealScalar(1) / inverse_matrix_norm) / matrix_norm);
-}
-
 /**
   * \returns an estimate of ||inv(matrix)||_1 given a decomposition of
   * \a matrix that implements .solve() and .adjoint().solve() methods.
@@ -94,7 +67,15 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
   if (n == 0)
     return 0;
 
+  // Disable Index to float conversion warning
+#ifdef __INTEL_COMPILER
+  #pragma warning push
+  #pragma warning ( disable : 2259 )
+#endif
   Vector v = dec.solve(Vector::Ones(n) / Scalar(n));
+#ifdef __INTEL_COMPILER
+  #pragma warning pop
+#endif
 
   // lower_bound is a lower bound on
   //   ||inv(matrix)||_1  = sup_v ||inv(matrix) v||_1 / ||v||_1
@@ -151,12 +132,40 @@ typename Decomposition::RealScalar rcond_invmatrix_L1_norm_estimate(const Decomp
   // Hager's algorithm to vastly underestimate ||matrix||_1.
   Scalar alternating_sign(RealScalar(1));
   for (Index i = 0; i < n; ++i) {
-    v[i] = alternating_sign * (RealScalar(1) + (RealScalar(i) / (RealScalar(n - 1))));
+    // The static_cast is needed when Scalar is a complex and RealScalar implements expression templates
+    v[i] = alternating_sign * static_cast<RealScalar>(RealScalar(1) + (RealScalar(i) / (RealScalar(n - 1))));
     alternating_sign = -alternating_sign;
   }
   v = dec.solve(v);
   const RealScalar alternate_lower_bound = (2 * v.template lpNorm<1>()) / (3 * RealScalar(n));
   return numext::maxi(lower_bound, alternate_lower_bound);
+}
+
+/** \brief Reciprocal condition number estimator.
+  *
+  * Computing a decomposition of a dense matrix takes O(n^3) operations, while
+  * this method estimates the condition number quickly and reliably in O(n^2)
+  * operations.
+  *
+  * \returns an estimate of the reciprocal condition number
+  * (1 / (||matrix||_1 * ||inv(matrix)||_1)) of matrix, given ||matrix||_1 and
+  * its decomposition. Supports the following decompositions: FullPivLU,
+  * PartialPivLU, LDLT, and LLT.
+  *
+  * \sa FullPivLU, PartialPivLU, LDLT, LLT.
+  */
+template <typename Decomposition>
+typename Decomposition::RealScalar
+rcond_estimate_helper(typename Decomposition::RealScalar matrix_norm, const Decomposition& dec)
+{
+  typedef typename Decomposition::RealScalar RealScalar;
+  eigen_assert(dec.rows() == dec.cols());
+  if (dec.rows() == 0)              return RealScalar(1);
+  if (matrix_norm == RealScalar(0)) return RealScalar(0);
+  if (dec.rows() == 1)              return RealScalar(1);
+  const RealScalar inverse_matrix_norm = rcond_invmatrix_L1_norm_estimate(dec);
+  return (inverse_matrix_norm == RealScalar(0) ? RealScalar(0)
+                                               : (RealScalar(1) / inverse_matrix_norm) / matrix_norm);
 }
 
 }  // namespace internal

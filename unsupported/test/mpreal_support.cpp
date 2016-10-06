@@ -17,6 +17,7 @@ void test_mpreal_support()
   std::cerr << "dummy_precision = " << NumTraits<mpreal>::dummy_precision() << "\n";
   std::cerr << "highest =         " << NumTraits<mpreal>::highest() << "\n";
   std::cerr << "lowest =          " << NumTraits<mpreal>::lowest() << "\n";
+  std::cerr << "digits10 =        " << NumTraits<mpreal>::digits10() << "\n";
 
   for(int i = 0; i < g_repeat; i++) {
     int s = Eigen::internal::random<int>(1,100);

@@ -154,6 +154,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     SquareMatrixType symmLo = symm.template triangularView<Lower>();
 
     LDLT<SquareMatrixType,Lower> ldltlo(symmLo);
+    VERIFY(ldltlo.info()==Success);
     VERIFY_IS_APPROX(symm, ldltlo.reconstructedMatrix());
     vecX = ldltlo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
@@ -170,6 +171,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
 
     LDLT<SquareMatrixType,Upper> ldltup(symmUp);
+    VERIFY(ldltup.info()==Success);
     VERIFY_IS_APPROX(symm, ldltup.reconstructedMatrix());
     vecX = ldltup.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
@@ -243,11 +245,13 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     // check matrices with a wide spectrum
     if(rows>=3)
     {
+      using std::pow;
+      using std::sqrt;
       RealScalar s = (std::min)(16,std::numeric_limits<RealScalar>::max_exponent10/8);
       Matrix<Scalar,Dynamic,Dynamic> a = Matrix<Scalar,Dynamic,Dynamic>::Random(rows,rows);
       Matrix<RealScalar,Dynamic,1> d =  Matrix<RealScalar,Dynamic,1>::Random(rows);
       for(Index k=0; k<rows; ++k)
-        d(k) = d(k)*std::pow(RealScalar(10),internal::random<RealScalar>(-s,s));
+        d(k) = d(k)*pow(RealScalar(10),internal::random<RealScalar>(-s,s));
       SquareMatrixType A = a * d.asDiagonal() * a.adjoint();
       // Make sure a solution exists:
       vecX.setRandom();
@@ -263,7 +267,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       }
       else
       {
-        RealScalar large_tol =  std::sqrt(test_precision<RealScalar>());
+        RealScalar large_tol =  sqrt(test_precision<RealScalar>());
         VERIFY((A * vecX).isApprox(vecB, large_tol));
 
         ++g_test_level;
@@ -329,6 +333,7 @@ template<typename MatrixType> void cholesky_cplx(const MatrixType& m)
     RealMatrixType symmLo = symm.template triangularView<Lower>();
 
     LDLT<RealMatrixType,Lower> ldltlo(symmLo);
+    VERIFY(ldltlo.info()==Success);
     VERIFY_IS_APPROX(symm, ldltlo.reconstructedMatrix());
     vecX = ldltlo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
@@ -365,32 +370,87 @@ template<typename MatrixType> void cholesky_definiteness(const MatrixType& m)
   {
     mat << 1, 0, 0, -1;
     ldlt.compute(mat);
+    VERIFY(ldlt.info()==Success);
     VERIFY(!ldlt.isNegative());
     VERIFY(!ldlt.isPositive());
   }
   {
     mat << 1, 2, 2, 1;
     ldlt.compute(mat);
+    VERIFY(ldlt.info()==Success);
     VERIFY(!ldlt.isNegative());
     VERIFY(!ldlt.isPositive());
   }
   {
     mat << 0, 0, 0, 0;
     ldlt.compute(mat);
+    VERIFY(ldlt.info()==Success);
     VERIFY(ldlt.isNegative());
     VERIFY(ldlt.isPositive());
   }
   {
     mat << 0, 0, 0, 1;
     ldlt.compute(mat);
+    VERIFY(ldlt.info()==Success);
     VERIFY(!ldlt.isNegative());
     VERIFY(ldlt.isPositive());
   }
   {
     mat << -1, 0, 0, 0;
     ldlt.compute(mat);
+    VERIFY(ldlt.info()==Success);
     VERIFY(ldlt.isNegative());
     VERIFY(!ldlt.isPositive());
+  }
+}
+
+template<typename>
+void cholesky_faillure_cases()
+{
+  MatrixXd mat;
+  LDLT<MatrixXd> ldlt;
+
+  {
+    mat.resize(2,2);
+    mat << 0, 1, 1, 0;
+    ldlt.compute(mat);
+    VERIFY_IS_NOT_APPROX(mat,ldlt.reconstructedMatrix());
+    VERIFY(ldlt.info()==NumericalIssue);
+  }
+#if (!EIGEN_ARCH_i386) || defined(EIGEN_VECTORIZE_SSE2)
+  {
+    mat.resize(3,3);
+    mat << -1, -3, 3,
+           -3, -8.9999999999999999999, 1,
+            3, 1, 0;
+    ldlt.compute(mat);
+    VERIFY(ldlt.info()==NumericalIssue);
+    VERIFY_IS_NOT_APPROX(mat,ldlt.reconstructedMatrix());
+  }
+#endif
+  {
+    mat.resize(3,3);
+    mat <<  1, 2, 3,
+            2, 4, 1,
+            3, 1, 0;
+    ldlt.compute(mat);
+    VERIFY(ldlt.info()==NumericalIssue);
+    VERIFY_IS_NOT_APPROX(mat,ldlt.reconstructedMatrix());
+  }
+
+  {
+    mat.resize(8,8);
+    mat <<  0.1, 0, -0.1, 0, 0, 0, 1, 0,
+            0, 4.24667, 0, 2.00333, 0, 0, 0, 0,
+            -0.1, 0, 0.2, 0, -0.1, 0, 0, 0,
+            0, 2.00333, 0, 8.49333, 0, 2.00333, 0, 0,
+            0, 0, -0.1, 0, 0.1, 0, 0, 1,
+            0, 0, 0, 2.00333, 0, 4.24667, 0, 0,
+            1, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 0, 0;
+    ldlt.compute(mat);
+    VERIFY(ldlt.info()==NumericalIssue);
+    VERIFY_IS_NOT_APPROX(mat,ldlt.reconstructedMatrix());
   }
 }
 
@@ -442,6 +502,8 @@ void test_cholesky()
   // Test problem size constructors
   CALL_SUBTEST_9( LLT<MatrixXf>(10) );
   CALL_SUBTEST_9( LDLT<MatrixXf>(10) );
+
+  CALL_SUBTEST_2( cholesky_faillure_cases<void>() );
 
   TEST_SET_BUT_UNUSED_VARIABLE(nb_temporaries)
 }

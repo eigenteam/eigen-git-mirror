@@ -65,7 +65,7 @@ template <typename MatrixType>
 void matrix_exp_pade3(const MatrixType &A, MatrixType &U, MatrixType &V)
 {
   typedef typename NumTraits<typename traits<MatrixType>::Scalar>::Real RealScalar;
-  const RealScalar b[] = {120., 60., 12., 1.};
+  const RealScalar b[] = {120.L, 60.L, 12.L, 1.L};
   const MatrixType A2 = A * A;
   const MatrixType tmp = b[3] * A2 + b[1] * MatrixType::Identity(A.rows(), A.cols());
   U.noalias() = A * tmp;
@@ -81,7 +81,7 @@ template <typename MatrixType>
 void matrix_exp_pade5(const MatrixType &A, MatrixType &U, MatrixType &V)
 {
   typedef typename NumTraits<typename traits<MatrixType>::Scalar>::Real RealScalar;
-  const RealScalar b[] = {30240., 15120., 3360., 420., 30., 1.};
+  const RealScalar b[] = {30240.L, 15120.L, 3360.L, 420.L, 30.L, 1.L};
   const MatrixType A2 = A * A;
   const MatrixType A4 = A2 * A2;
   const MatrixType tmp = b[5] * A4 + b[3] * A2 + b[1] * MatrixType::Identity(A.rows(), A.cols());
@@ -98,7 +98,7 @@ template <typename MatrixType>
 void matrix_exp_pade7(const MatrixType &A, MatrixType &U, MatrixType &V)
 {
   typedef typename NumTraits<typename traits<MatrixType>::Scalar>::Real RealScalar;
-  const RealScalar b[] = {17297280., 8648640., 1995840., 277200., 25200., 1512., 56., 1.};
+  const RealScalar b[] = {17297280.L, 8648640.L, 1995840.L, 277200.L, 25200.L, 1512.L, 56.L, 1.L};
   const MatrixType A2 = A * A;
   const MatrixType A4 = A2 * A2;
   const MatrixType A6 = A4 * A2;
@@ -118,8 +118,8 @@ template <typename MatrixType>
 void matrix_exp_pade9(const MatrixType &A, MatrixType &U, MatrixType &V)
 {
   typedef typename NumTraits<typename traits<MatrixType>::Scalar>::Real RealScalar;
-  const RealScalar b[] = {17643225600., 8821612800., 2075673600., 302702400., 30270240.,
-                          2162160., 110880., 3960., 90., 1.};
+  const RealScalar b[] = {17643225600.L, 8821612800.L, 2075673600.L, 302702400.L, 30270240.L,
+                          2162160.L, 110880.L, 3960.L, 90.L, 1.L};
   const MatrixType A2 = A * A;
   const MatrixType A4 = A2 * A2;
   const MatrixType A6 = A4 * A2;
@@ -139,9 +139,9 @@ template <typename MatrixType>
 void matrix_exp_pade13(const MatrixType &A, MatrixType &U, MatrixType &V)
 {
   typedef typename NumTraits<typename traits<MatrixType>::Scalar>::Real RealScalar;
-  const RealScalar b[] = {64764752532480000., 32382376266240000., 7771770303897600.,
-                          1187353796428800., 129060195264000., 10559470521600., 670442572800.,
-                          33522128640., 1323241920., 40840800., 960960., 16380., 182., 1.};
+  const RealScalar b[] = {64764752532480000.L, 32382376266240000.L, 7771770303897600.L,
+                          1187353796428800.L, 129060195264000.L, 10559470521600.L, 670442572800.L,
+                          33522128640.L, 1323241920.L, 40840800.L, 960960.L, 16380.L, 182.L, 1.L};
   const MatrixType A2 = A * A;
   const MatrixType A4 = A2 * A2;
   const MatrixType A6 = A4 * A2;
@@ -210,9 +210,9 @@ struct matrix_exp_computeUV<MatrixType, float>
     using std::pow;
     const float l1norm = arg.cwiseAbs().colwise().sum().maxCoeff();
     squarings = 0;
-    if (l1norm < 4.258730016922831e-001) {
+    if (l1norm < 4.258730016922831e-001f) {
       matrix_exp_pade3(arg, U, V);
-    } else if (l1norm < 1.880152677804762e+000) {
+    } else if (l1norm < 1.880152677804762e+000f) {
       matrix_exp_pade5(arg, U, V);
     } else {
       const float maxnorm = 3.925724783138660f;

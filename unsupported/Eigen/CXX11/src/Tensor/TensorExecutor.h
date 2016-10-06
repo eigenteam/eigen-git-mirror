@@ -59,13 +59,14 @@ class TensorExecutor<Expression, DefaultDevice, true>
     {
       const Index size = array_prod(evaluator.dimensions());
       const int PacketSize = unpacket_traits<typename TensorEvaluator<Expression, DefaultDevice>::PacketReturnType>::size;
-      // Manually unroll this loop since compilers don't do it.
+      // Give the compiler a strong hint to unroll the loop. But don't insist
+      // on unrolling, because if the function is expensive the compiler should not
+      // unroll the loop at the expense of inlining.
       const Index UnrolledSize = (size / (4 * PacketSize)) * 4 * PacketSize;
       for (Index i = 0; i < UnrolledSize; i += 4*PacketSize) {
-        evaluator.evalPacket(i);
-        evaluator.evalPacket(i+PacketSize);
-        evaluator.evalPacket(i+2*PacketSize);
-        evaluator.evalPacket(i+3*PacketSize);
+        for (Index j = 0; j < 4; j++) {
+          evaluator.evalPacket(i + j * PacketSize);
+        }
       }
       const Index VectorizedSize = (size / PacketSize) * PacketSize;
       for (Index i = UnrolledSize; i < VectorizedSize; i += PacketSize) {
@@ -92,24 +93,30 @@ struct EvalRange {
       evaluator.evalScalar(i);
     }
   }
+
+  static Index alignBlockSize(Index size) {
+    return size;
+  }
 };
 
 template <typename Evaluator, typename Index>
 struct EvalRange<Evaluator, Index, true> {
+  static const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
+
   static void run(Evaluator* evaluator_in, const Index first, const Index last) {
     Evaluator evaluator = *evaluator_in;
     eigen_assert(last >= first);
     Index i = first;
-    const int PacketSize = unpacket_traits<typename Evaluator::PacketReturnType>::size;
     if (last - first >= PacketSize) {
       eigen_assert(first % PacketSize == 0);
       Index last_chunk_offset = last - 4 * PacketSize;
-      // Manually unroll this loop since compilers don't do it.
+      // Give the compiler a strong hint to unroll the loop. But don't insist
+      // on unrolling, because if the function is expensive the compiler should not
+      // unroll the loop at the expense of inlining.
       for (; i <= last_chunk_offset; i += 4*PacketSize) {
-        evaluator.evalPacket(i);
-        evaluator.evalPacket(i+PacketSize);
-        evaluator.evalPacket(i+2*PacketSize);
-        evaluator.evalPacket(i+3*PacketSize);
+        for (Index j = 0; j < 4; j++) {
+          evaluator.evalPacket(i + j * PacketSize);
+        }
       }
       last_chunk_offset = last - PacketSize;
       for (; i <= last_chunk_offset; i += PacketSize) {
@@ -119,6 +126,15 @@ struct EvalRange<Evaluator, Index, true> {
     for (; i < last; ++i) {
       evaluator.evalScalar(i);
     }
+  }
+
+  static Index alignBlockSize(Index size) {
+    // Align block size to packet size and account for unrolling in run above.
+    if (size >= 16 * PacketSize) {
+      return (size + 4 * PacketSize - 1) & ~(4 * PacketSize - 1);
+    }
+    // Aligning to 4 * PacketSize would increase block size by more than 25%.
+    return (size + PacketSize - 1) & ~(PacketSize - 1);
   }
 };
 
@@ -133,18 +149,23 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
     const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
     if (needs_assign)
     {
-      const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
       const Index size = array_prod(evaluator.dimensions());
+#if !defined(EIGEN_USE_SIMPLE_THREAD_POOL)
+      device.parallelFor(size, evaluator.costPerCoeff(Vectorizable),
+                         EvalRange<Evaluator, Index, Vectorizable>::alignBlockSize,
+                         [&evaluator](Index first, Index last) {
+                           EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, first, last);
+                         });
+#else
       size_t num_threads = device.numThreads();
-#ifdef EIGEN_USE_COST_MODEL
       if (num_threads > 1) {
         num_threads = TensorCostModel<ThreadPoolDevice>::numThreads(
             size, evaluator.costPerCoeff(Vectorizable), num_threads);
       }
-#endif
       if (num_threads == 1) {
         EvalRange<Evaluator, Index, Vectorizable>::run(&evaluator, 0, size);
       } else {
+        const Index PacketSize = Vectorizable ? unpacket_traits<typename Evaluator::PacketReturnType>::size : 1;
         Index blocksz = std::ceil<Index>(static_cast<float>(size)/num_threads) + PacketSize - 1;
         const Index blocksize = numext::maxi<Index>(PacketSize, (blocksz - (blocksz % PacketSize)));
         const Index numblocks = size / blocksize;
@@ -161,11 +182,12 @@ class TensorExecutor<Expression, ThreadPoolDevice, Vectorizable> {
         }
         barrier.Wait();
       }
+#endif  // defined(!EIGEN_USE_SIMPLE_THREAD_POOL)
     }
     evaluator.cleanup();
   }
 };
-#endif
+#endif  // EIGEN_USE_THREADS
 
 
 // GPU: the evaluation of the expression is offloaded to a GPU.
@@ -212,15 +234,10 @@ struct EigenMetaKernelEval<Evaluator, Index, true> {
 template <typename Evaluator, typename Index>
 __global__ void
 __launch_bounds__(1024)
-EigenMetaKernel(Evaluator memcopied_eval, Index size) {
+EigenMetaKernel(Evaluator eval, Index size) {
 
   const Index first_index = blockIdx.x * blockDim.x + threadIdx.x;
   const Index step_size = blockDim.x * gridDim.x;
-
-  // Cuda memcopies the kernel arguments. That's fine for POD, but for more
-  // complex types such as evaluators we should really conform to the C++
-  // standard and call a proper copy constructor.
-  Evaluator eval(memcopied_eval);
 
   const bool vectorizable = Evaluator::PacketAccess & Evaluator::IsAligned;
   EigenMetaKernelEval<Evaluator, Index, vectorizable>::run(eval, first_index, size, step_size);

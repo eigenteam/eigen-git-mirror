@@ -379,7 +379,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     mutable bool m_extractedDataAreDirty;
     
   private:
-    UmfPackLU(UmfPackLU& ) { }
+    UmfPackLU(const UmfPackLU& ) { }
 };
 
 

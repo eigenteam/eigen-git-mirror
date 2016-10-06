@@ -189,9 +189,9 @@ public:
         StorageIndex p = StorageIndex(start);
         for(Index k=0; k<m_outerSize.value(); ++k)
         {
-          Index nnz_k = tmp.innerVector(k).nonZeros();
+          StorageIndex nnz_k = internal::convert_index<StorageIndex>(tmp.innerVector(k).nonZeros());
           if(!m_matrix.isCompressed())
-            matrix.innerNonZeroPtr()[m_outerStart+k] = StorageIndex(nnz_k);
+            matrix.innerNonZeroPtr()[m_outerStart+k] = nnz_k;
           matrix.outerIndexPtr()[m_outerStart+k] = p;
           p += nnz_k;
         }
@@ -504,6 +504,7 @@ template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::InnerVectorInnerIterator
  : public EvalIterator
 {
+  enum { IsRowMajor = unary_evaluator::IsRowMajor };
   const XprType& m_block;
   Index m_end;
 public:
@@ -528,6 +529,7 @@ public:
 template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
 class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBased>::OuterVectorInnerIterator
 {
+  enum { IsRowMajor = unary_evaluator::IsRowMajor };
   const unary_evaluator& m_eval;
   Index m_outerPos;
   Index m_innerIndex;

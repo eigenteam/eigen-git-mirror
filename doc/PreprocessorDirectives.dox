@@ -49,6 +49,36 @@ are doing.
    the correct size. Not defined by default.
 
 
+\section TopicPreprocessorDirectivesCppVersion C++ standard features
+
+By default, %Eigen strive to automatically detect and enable langage features at compile-time based on
+the information provided by the compiler.
+
+ - \b EIGEN_MAX_CPP_VER - disables usage of C++ features requiring a version greater than EIGEN_MAX_CPP_VER.
+   Possible values are: 03, 11, 14, 17, etc. If not defined (the default), %Eigen enables all features supported
+   by the compiler.
+
+Individual features can be explicitly enabled or disabled by defining the following token to 0 or 1 respectively.
+For instance, one might limit the C++ version to C++03 by defining EIGEN_MAX_CPP_VER=03, but still enable C99 math
+functions by defining EIGEN_HAS_C99_MATH=1.
+
+ - \b EIGEN_HAS_C99_MATH - controls the usage of C99 math functions such as erf, erfc, lgamma, etc.
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+ - \b EIGEN_HAS_CXX11_MATH - controls the implementation of some functions such as round, logp1, isinf, isnan, etc.
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+ - \b EIGEN_HAS_RVALUE_REFERENCES - defines whetehr rvalue references are supported
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+ - \b EIGEN_HAS_STD_RESULT_OF - defines whether std::result_of is supported
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+ - \b EIGEN_HAS_VARIADIC_TEMPLATES - defines whether variadic templates are supported
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+ - \b EIGEN_HAS_CONSTEXPR - defines whether relaxed const expression are supported
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<14.
+ - \b EIGEN_HAS_CXX11_CONTAINERS - defines whether STL's containers follows C++11 specifications
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+ - \b EIGEN_HAS_CXX11_NOEXCEPT - defines whether noexcept is supported
+   Automatic detection disabled if EIGEN_MAX_CPP_VER<11.
+
 \section TopicPreprocessorDirectivesAssertions Assertions
 
 The %Eigen library contains many assertions to guard against programming errors, both at compile time and at
@@ -78,6 +108,9 @@ run time. However, these assertions do cost time and can thus be turned off.
    See \ref TopicMultiThreading for details.
  - \b EIGEN_DONT_VECTORIZE - disables explicit vectorization when defined. Not defined by default, unless 
    alignment is disabled by %Eigen's platform test or the user defining \c EIGEN_DONT_ALIGN.
+ - \b EIGEN_UNALIGNED_VECTORIZE - disables/enables vectorization with unaligned stores. Default is 1 (enabled).
+   If set to 0 (disabled), then expression for which the destination cannot be aligned are not vectorized (e.g., unaligned
+   small fixed size vectors or matrices)
  - \b EIGEN_FAST_MATH - enables some optimizations which might affect the accuracy of the result. This currently
    enables the SSE vectorization of sin() and cos(), and speedups sqrt() for single precision. Defined to 1 by default.
    Define it to 0 to disable.

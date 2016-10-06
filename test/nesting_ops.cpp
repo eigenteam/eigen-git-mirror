@@ -75,8 +75,8 @@ template <typename MatrixType> void run_nesting_ops_2(const MatrixType& _m)
     }
     else
     {
-      VERIFY( verify_eval_type<1>(2*m1, 2*m1) );
-      VERIFY( verify_eval_type<2>(2*m1, m1) );
+      VERIFY( verify_eval_type<2>(2*m1, 2*m1) );
+      VERIFY( verify_eval_type<3>(2*m1, m1) );
     }
     VERIFY( verify_eval_type<2>(m1+m1, m1+m1) );
     VERIFY( verify_eval_type<3>(m1+m1, m1) );

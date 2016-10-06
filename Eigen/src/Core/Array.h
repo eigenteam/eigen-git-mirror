@@ -37,7 +37,7 @@ struct traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : tra
   * storage layout.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
-  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_ARRAY_PLUGIN.
+  * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_ARRAY_PLUGIN.
   *
   * \sa \blank \ref TutorialArrayClass, \ref TopicClassHierarchy
   */
@@ -147,9 +147,9 @@ class Array
     }
 #endif
 
-#ifdef EIGEN_HAVE_RVALUE_REFERENCES
+#if EIGEN_HAS_RVALUE_REFERENCES
     EIGEN_DEVICE_FUNC
-    Array(Array&& other)
+    Array(Array&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_constructible<Scalar>::value)
       : Base(std::move(other))
     {
       Base::_check_template_params();
@@ -157,7 +157,7 @@ class Array
         Base::_set_noalias(other);
     }
     EIGEN_DEVICE_FUNC
-    Array& operator=(Array&& other)
+    Array& operator=(Array&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)
     {
       other.swap(*this);
       return *this;

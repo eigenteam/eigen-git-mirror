@@ -59,6 +59,8 @@ ei_add_test(alignedvector3)
 
 ei_add_test(FFT)
 
+ei_add_test(EulerAngles)
+
 find_package(MPFR 2.3.0)
 find_package(GMP)
 if(MPFR_FOUND AND EIGEN_COMPILER_SUPPORT_CXX11)
@@ -109,10 +111,14 @@ ei_add_test(gmres)
 ei_add_test(minres)
 ei_add_test(levenberg_marquardt)
 ei_add_test(kronecker_product)
+ei_add_test(special_functions)
 
 # TODO: The following test names are prefixed with the cxx11 string, since historically
 # the tests depended on c++11. This isn't the case anymore so we ought to rename them.
-ei_add_test(cxx11_float16)
+# FIXME: Old versions of MSVC fail to compile this code, so we just disable these tests
+# when using visual studio. We should make the check more strict to enable the tests for
+# newer versions of MSVC.
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 ei_add_test(cxx11_tensor_dimension)
 ei_add_test(cxx11_tensor_map)
 ei_add_test(cxx11_tensor_assign)
@@ -130,7 +136,8 @@ ei_add_test(cxx11_tensor_io)
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
   # This test requires __uint128_t which is only available on 64bit systems 
   ei_add_test(cxx11_tensor_uint128)
-endif() 
+endif()
+endif()
 
 if(EIGEN_TEST_CXX11)
   # It should be safe to always run these tests as there is some fallback code for
@@ -139,6 +146,8 @@ if(EIGEN_TEST_CXX11)
 
   ei_add_test(cxx11_eventcount "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
   ei_add_test(cxx11_runqueue "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
+  ei_add_test(cxx11_non_blocking_thread_pool "-pthread" "${CMAKE_THREAD_LIBS_INIT}")
+
   ei_add_test(cxx11_meta)
   ei_add_test(cxx11_tensor_simple)
 #  ei_add_test(cxx11_tensor_symmetry)
@@ -174,6 +183,7 @@ if(EIGEN_TEST_CXX11)
   ei_add_test(cxx11_tensor_custom_index)
   ei_add_test(cxx11_tensor_fft)
   ei_add_test(cxx11_tensor_ifft)
+  ei_add_test(cxx11_tensor_scan)
 
 endif()
 
@@ -183,37 +193,58 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
   # Make sure to compile without the -pedantic, -Wundef, -Wnon-virtual-dtor
   # and -fno-check-new flags since they trigger thousands of compilation warnings
   # in the CUDA runtime
+  # Also remove -ansi that is incompatible with std=c++11.
   string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-Wnon-virtual-dtor" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   string(REPLACE "-fno-check-new" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE "-ansi" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
   message(STATUS "Flags used to compile cuda code: " ${CMAKE_CXX_FLAGS})
 
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(CUDA_NVCC_FLAGS "-ccbin /usr/bin/clang" CACHE STRING "nvcc flags" FORCE)
+    set(CUDA_NVCC_FLAGS "-ccbin ${CMAKE_C_COMPILER}" CACHE STRING "nvcc flags" FORCE)
   endif()
   if(EIGEN_TEST_CUDA_CLANG)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 --cuda-gpu-arch=sm_${EIGEN_CUDA_COMPUTE_ARCH}")
   endif()
 
-  set(CUDA_NVCC_FLAGS "-std=c++11 --relaxed-constexpr -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\"")
+  set(EIGEN_CUDA_RELAXED_CONSTEXPR "--expt-relaxed-constexpr")
+  if (${CUDA_VERSION} STREQUAL "7.0")
+    set(EIGEN_CUDA_RELAXED_CONSTEXPR "--relaxed-constexpr")
+  endif()
+
+  if( (NOT EIGEN_TEST_CXX11) OR (CMAKE_VERSION VERSION_LESS 3.3))
+    set(EIGEN_CUDA_CXX11_FLAG "-std=c++11")
+  else()
+    # otherwise the flag has already been added because of the above set(CMAKE_CXX_STANDARD 11)
+    set(EIGEN_CUDA_CXX11_FLAG "")
+  endif()
+
+  set(CUDA_NVCC_FLAGS  "${EIGEN_CUDA_CXX11_FLAG} ${EIGEN_CUDA_RELAXED_CONSTEXPR} -arch compute_${EIGEN_CUDA_COMPUTE_ARCH} -Xcudafe \"--display_error_number\" ${CUDA_NVCC_FLAGS}")
   cuda_include_directories("${CMAKE_CURRENT_BINARY_DIR}" "${CUDA_TOOLKIT_ROOT_DIR}/include")
   set(EIGEN_ADD_TEST_FILENAME_EXTENSION "cu")
 
-  ei_add_test(cxx11_tensor_device)
-  ei_add_test(cxx11_tensor_cuda)
-  ei_add_test(cxx11_tensor_contract_cuda)
+  ei_add_test(cxx11_tensor_complex_cuda)
+  ei_add_test(cxx11_tensor_complex_cwise_ops_cuda)
   ei_add_test(cxx11_tensor_reduction_cuda)
   ei_add_test(cxx11_tensor_argmax_cuda)
   ei_add_test(cxx11_tensor_cast_float16_cuda)
+  ei_add_test(cxx11_tensor_scan_cuda)
+
+  # Contractions require arch 3.0 or higher
+  if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 29)
+    ei_add_test(cxx11_tensor_device)
+    ei_add_test(cxx11_tensor_cuda)
+    ei_add_test(cxx11_tensor_contract_cuda)
+    ei_add_test(cxx11_tensor_of_float16_cuda)
+  endif()
 
   # The random number generation code requires arch 3.5 or greater.
   if (${EIGEN_CUDA_COMPUTE_ARCH} GREATER 34)
     ei_add_test(cxx11_tensor_random_cuda)
   endif()
 
-  ei_add_test(cxx11_tensor_of_float16_cuda)
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()

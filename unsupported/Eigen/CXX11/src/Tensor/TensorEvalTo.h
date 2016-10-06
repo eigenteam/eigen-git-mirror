@@ -56,7 +56,7 @@ struct nested<TensorEvalToOp<XprType>, 1, typename eval<TensorEvalToOp<XprType> 
 
 
 template<typename XprType>
-class TensorEvalToOp : public TensorBase<TensorEvalToOp<XprType> >
+class TensorEvalToOp : public TensorBase<TensorEvalToOp<XprType>, ReadOnlyAccessors>
 {
   public:
   typedef typename Eigen::internal::traits<TensorEvalToOp>::Scalar Scalar;
@@ -94,7 +94,7 @@ struct TensorEvaluator<const TensorEvalToOp<ArgType>, Device>
   static const int PacketSize = internal::unpacket_traits<PacketReturnType>::size;
 
   enum {
-    IsAligned = true,
+    IsAligned = TensorEvaluator<ArgType, Device>::IsAligned,
     PacketAccess = TensorEvaluator<ArgType, Device>::PacketAccess,
     Layout = TensorEvaluator<ArgType, Device>::Layout,
     CoordAccess = false,  // to be implemented

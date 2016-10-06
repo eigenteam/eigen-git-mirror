@@ -271,6 +271,8 @@ public:
   explicit inline Quaternion(const Quaternion<OtherScalar, OtherOptions>& other)
   { m_coeffs = other.coeffs().template cast<Scalar>(); }
 
+  static Quaternion UnitRandom();
+
   template<typename Derived1, typename Derived2>
   static Quaternion FromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
 
@@ -609,6 +611,24 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   return derived();
 }
 
+/** \returns a random unit quaternion following a uniform distribution law on SO(3)
+  *
+  * \note The implementation is based on http://planning.cs.uiuc.edu/node198.html
+  */
+template<typename Scalar, int Options>
+Quaternion<Scalar,Options> Quaternion<Scalar,Options>::UnitRandom()
+{
+  using std::sqrt;
+  using std::sin;
+  using std::cos;
+  const Scalar u1 = internal::random<Scalar>(0, 1),
+               u2 = internal::random<Scalar>(0, 2*EIGEN_PI),
+               u3 = internal::random<Scalar>(0, 2*EIGEN_PI);
+  const Scalar a = sqrt(1 - u1),
+               b = sqrt(u1);
+  return Quaternion (a * sin(u2), a * cos(u2), b * sin(u3), b * cos(u3));
+}
+
 
 /** Returns a quaternion representing a rotation between
   * the two arbitrary vectors \a a and \a b. In other words, the built
@@ -706,7 +726,7 @@ QuaternionBase<Derived>::slerp(const Scalar& t, const QuaternionBase<OtherDerive
   using std::acos;
   using std::sin;
   using std::abs;
-  static const Scalar one = Scalar(1) - NumTraits<Scalar>::epsilon();
+  const Scalar one = Scalar(1) - NumTraits<Scalar>::epsilon();
   Scalar d = this->dot(other);
   Scalar absD = abs(d);
 

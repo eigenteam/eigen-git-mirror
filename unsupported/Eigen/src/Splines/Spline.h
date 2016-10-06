@@ -94,7 +94,7 @@ namespace Eigen
     const KnotVectorType& knots() const { return m_knots; }
     
     /**
-     * \brief Returns the knots of the underlying spline.
+     * \brief Returns the ctrls of the underlying spline.
      **/    
     const ControlPointVectorType& ctrls() const { return m_ctrls; }
 
@@ -394,7 +394,7 @@ namespace Eigen
 
     Matrix<Scalar,Order,Order> ndu(p+1,p+1);
 
-    double saved, temp;
+    Scalar saved, temp; // FIXME These were double instead of Scalar. Was there a reason for that?
 
     ndu(0,0) = 1.0;
 
@@ -433,7 +433,7 @@ namespace Eigen
       // Compute the k-th derivative
       for (DenseIndex k=1; k<=static_cast<DenseIndex>(n); ++k)
       {
-        double d = 0.0;
+        Scalar d = 0.0;
         DenseIndex rk,pk,j1,j2;
         rk = r-k; pk = p-k;
 

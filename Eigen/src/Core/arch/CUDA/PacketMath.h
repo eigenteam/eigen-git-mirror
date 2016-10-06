@@ -44,8 +44,9 @@ template<> struct packet_traits<float> : default_packet_traits
     HasPolygamma = 1,
     HasErf = 1,
     HasErfc = 1,
-    HasIgamma = 1,
+    HasIGamma = 1,
     HasIGammac = 1,
+    HasBetaInc = 1,
 
     HasBlend = 0,
   };
@@ -68,10 +69,13 @@ template<> struct packet_traits<double> : default_packet_traits
     HasRsqrt = 1,
     HasLGamma = 1,
     HasDiGamma = 1,
+    HasZeta = 1,
+    HasPolygamma = 1,
     HasErf = 1,
     HasErfc = 1,
     HasIGamma = 1,
     HasIGammac = 1,
+    HasBetaInc = 1,
 
     HasBlend = 0,
   };
@@ -277,35 +281,6 @@ template<> EIGEN_DEVICE_FUNC inline float  predux_mul<float4>(const float4& a) {
 template<> EIGEN_DEVICE_FUNC inline double predux_mul<double2>(const double2& a) {
   return a.x * a.y;
 }
-
-template<size_t offset>
-struct protate_impl<offset, float4>
-{
-  static float4 run(const float4& a) {
-    if (offset == 0) {
-      return make_float4(a.x, a.y, a.z, a.w);
-    }
-    if (offset == 1) {
-      return make_float4(a.w, a.x, a.y, a.z);
-    }
-    if (offset == 2) {
-      return make_float4(a.z, a.w, a.x, a.y);
-    }
-    return make_float4(a.y, a.z, a.w, a.x);
-  }
-};
-
-template<size_t offset>
-struct protate_impl<offset, double2>
-{
-  static double2 run(const double2& a) {
-    if (offset == 0) {
-      return make_double2(a.x, a.y);
-    }
-    return make_double2(a.y, a.x);
-  }
-};
-
 
 template<> EIGEN_DEVICE_FUNC inline float4  pabs<float4>(const float4& a) {
   return make_float4(fabsf(a.x), fabsf(a.y), fabsf(a.z), fabsf(a.w));

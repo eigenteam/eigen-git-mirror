@@ -218,18 +218,18 @@ struct SparseSelfAdjoint2Sparse {};
 template<> struct AssignmentKind<SparseShape,SparseSelfAdjointShape> { typedef SparseSelfAdjoint2Sparse Kind; };
 template<> struct AssignmentKind<SparseSelfAdjointShape,SparseShape> { typedef Sparse2Sparse Kind; };
 
-template< typename DstXprType, typename SrcXprType, typename Functor, typename Scalar>
-struct Assignment<DstXprType, SrcXprType, Functor, SparseSelfAdjoint2Sparse, Scalar>
+template< typename DstXprType, typename SrcXprType, typename Functor>
+struct Assignment<DstXprType, SrcXprType, Functor, SparseSelfAdjoint2Sparse>
 {
   typedef typename DstXprType::StorageIndex StorageIndex;
   template<typename DestScalar,int StorageOrder>
-  static void run(SparseMatrix<DestScalar,StorageOrder,StorageIndex> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  static void run(SparseMatrix<DestScalar,StorageOrder,StorageIndex> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
     internal::permute_symm_to_fullsymm<SrcXprType::Mode>(src.matrix(), dst);
   }
   
   template<typename DestScalar>
-  static void run(DynamicSparseMatrix<DestScalar,ColMajor,StorageIndex>& dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar> &/*func*/)
+  static void run(DynamicSparseMatrix<DestScalar,ColMajor,StorageIndex>& dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
     // TODO directly evaluate into dst;
     SparseMatrix<DestScalar,ColMajor,StorageIndex> tmp(dst.rows(),dst.cols());
@@ -250,11 +250,11 @@ template<int Mode, typename SparseLhsType, typename DenseRhsType, typename Dense
 inline void sparse_selfadjoint_time_dense_product(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const AlphaType& alpha)
 {
   EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-  // TODO use alpha
-  eigen_assert(alpha==AlphaType(1) && "alpha != 1 is not implemented yet, sorry");
   
-  typedef evaluator<SparseLhsType> LhsEval;
-  typedef typename evaluator<SparseLhsType>::InnerIterator LhsIterator;
+  typedef typename internal::nested_eval<SparseLhsType,DenseRhsType::MaxColsAtCompileTime>::type SparseLhsTypeNested;
+  typedef typename internal::remove_all<SparseLhsTypeNested>::type SparseLhsTypeNestedCleaned;
+  typedef evaluator<SparseLhsTypeNestedCleaned> LhsEval;
+  typedef typename LhsEval::InnerIterator LhsIterator;
   typedef typename SparseLhsType::Scalar LhsScalar;
   
   enum {
@@ -266,39 +266,53 @@ inline void sparse_selfadjoint_time_dense_product(const SparseLhsType& lhs, cons
     ProcessSecondHalf = !ProcessFirstHalf
   };
   
-  LhsEval lhsEval(lhs);
-  
-  for (Index j=0; j<lhs.outerSize(); ++j)
+  SparseLhsTypeNested lhs_nested(lhs);
+  LhsEval lhsEval(lhs_nested);
+
+  // work on one column at once
+  for (Index k=0; k<rhs.cols(); ++k)
   {
-    LhsIterator i(lhsEval,j);
-    if (ProcessSecondHalf)
+    for (Index j=0; j<lhs.outerSize(); ++j)
     {
-      while (i && i.index()<j) ++i;
-      if(i && i.index()==j)
+      LhsIterator i(lhsEval,j);
+      // handle diagonal coeff
+      if (ProcessSecondHalf)
       {
-        res.row(j) += i.value() * rhs.row(j);
-        ++i;
+        while (i && i.index()<j) ++i;
+        if(i && i.index()==j)
+        {
+          res(j,k) += alpha * i.value() * rhs(j,k);
+          ++i;
+        }
       }
+
+      // premultiplied rhs for scatters
+      typename ScalarBinaryOpTraits<AlphaType, typename DenseRhsType::Scalar>::ReturnType rhs_j(alpha*rhs(j,k));
+      // accumulator for partial scalar product
+      typename DenseResType::Scalar res_j(0);
+      for(; (ProcessFirstHalf ? i && i.index() < j : i) ; ++i)
+      {
+        LhsScalar lhs_ij = i.value();
+        if(!LhsIsRowMajor) lhs_ij = numext::conj(lhs_ij);
+        res_j += lhs_ij * rhs(i.index(),k);
+        res(i.index(),k) += numext::conj(lhs_ij) * rhs_j;
+      }
+      res(j,k) += alpha * res_j;
+
+      // handle diagonal coeff
+      if (ProcessFirstHalf && i && (i.index()==j))
+        res(j,k) += alpha * i.value() * rhs(j,k);
     }
-    for(; (ProcessFirstHalf ? i && i.index() < j : i) ; ++i)
-    {
-      Index a = LhsIsRowMajor ? j : i.index();
-      Index b = LhsIsRowMajor ? i.index() : j;
-      LhsScalar v = i.value();
-      res.row(a) += (v) * rhs.row(b);
-      res.row(b) += numext::conj(v) * rhs.row(a);
-    }
-    if (ProcessFirstHalf && i && (i.index()==j))
-      res.row(j) += i.value() * rhs.row(j);
   }
 }
 
 
 template<typename LhsView, typename Rhs, int ProductType>
 struct generic_product_impl<LhsView, Rhs, SparseSelfAdjointShape, DenseShape, ProductType>
+: generic_product_impl_base<LhsView, Rhs, generic_product_impl<LhsView, Rhs, SparseSelfAdjointShape, DenseShape, ProductType> >
 {
   template<typename Dest>
-  static void evalTo(Dest& dst, const LhsView& lhsView, const Rhs& rhs)
+  static void scaleAndAddTo(Dest& dst, const LhsView& lhsView, const Rhs& rhs, const typename Dest::Scalar& alpha)
   {
     typedef typename LhsView::_MatrixTypeNested Lhs;
     typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
@@ -306,16 +320,16 @@ struct generic_product_impl<LhsView, Rhs, SparseSelfAdjointShape, DenseShape, Pr
     LhsNested lhsNested(lhsView.matrix());
     RhsNested rhsNested(rhs);
     
-    dst.setZero();
-    internal::sparse_selfadjoint_time_dense_product<LhsView::Mode>(lhsNested, rhsNested, dst, typename Dest::Scalar(1));
+    internal::sparse_selfadjoint_time_dense_product<LhsView::Mode>(lhsNested, rhsNested, dst, alpha);
   }
 };
 
 template<typename Lhs, typename RhsView, int ProductType>
 struct generic_product_impl<Lhs, RhsView, DenseShape, SparseSelfAdjointShape, ProductType>
+: generic_product_impl_base<Lhs, RhsView, generic_product_impl<Lhs, RhsView, DenseShape, SparseSelfAdjointShape, ProductType> >
 {
   template<typename Dest>
-  static void evalTo(Dest& dst, const Lhs& lhs, const RhsView& rhsView)
+  static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const RhsView& rhsView, const typename Dest::Scalar& alpha)
   {
     typedef typename RhsView::_MatrixTypeNested Rhs;
     typedef typename nested_eval<Lhs,Dynamic>::type LhsNested;
@@ -323,10 +337,9 @@ struct generic_product_impl<Lhs, RhsView, DenseShape, SparseSelfAdjointShape, Pr
     LhsNested lhsNested(lhs);
     RhsNested rhsNested(rhsView.matrix());
     
-    dst.setZero();
-    // transpoe everything
+    // transpose everything
     Transpose<Dest> dstT(dst);
-    internal::sparse_selfadjoint_time_dense_product<RhsView::Mode>(rhsNested.transpose(), lhsNested.transpose(), dstT, typename Dest::Scalar(1));
+    internal::sparse_selfadjoint_time_dense_product<RhsView::Mode>(rhsNested.transpose(), lhsNested.transpose(), dstT, alpha);
   }
 };
 
@@ -586,12 +599,12 @@ class SparseSymmetricPermutationProduct
 namespace internal {
   
 template<typename DstXprType, typename MatrixType, int Mode, typename Scalar>
-struct Assignment<DstXprType, SparseSymmetricPermutationProduct<MatrixType,Mode>, internal::assign_op<Scalar>, Sparse2Sparse>
+struct Assignment<DstXprType, SparseSymmetricPermutationProduct<MatrixType,Mode>, internal::assign_op<Scalar,typename MatrixType::Scalar>, Sparse2Sparse>
 {
   typedef SparseSymmetricPermutationProduct<MatrixType,Mode> SrcXprType;
   typedef typename DstXprType::StorageIndex DstIndex;
   template<int Options>
-  static void run(SparseMatrix<Scalar,Options,DstIndex> &dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static void run(SparseMatrix<Scalar,Options,DstIndex> &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename MatrixType::Scalar> &)
   {
     // internal::permute_symm_to_fullsymm<Mode>(m_matrix,_dest,m_perm.indices().data());
     SparseMatrix<Scalar,(Options&RowMajor)==RowMajor ? ColMajor : RowMajor, DstIndex> tmp;
@@ -600,7 +613,7 @@ struct Assignment<DstXprType, SparseSymmetricPermutationProduct<MatrixType,Mode>
   }
   
   template<typename DestType,unsigned int DestMode>
-  static void run(SparseSelfAdjointView<DestType,DestMode>& dst, const SrcXprType &src, const internal::assign_op<Scalar> &)
+  static void run(SparseSelfAdjointView<DestType,DestMode>& dst, const SrcXprType &src, const internal::assign_op<Scalar,typename MatrixType::Scalar> &)
   {
     internal::permute_symm_to_symm<Mode,DestMode>(src.matrix(),dst.matrix(),src.perm().indices().data());
   }

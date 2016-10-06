@@ -82,7 +82,7 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   Atriangular.template triangularView<StrictlyLower>().setZero(); 
   rs3.setMaxIterations(1).compute(Atriangular); // triangular matrices do not need any iterations
   VERIFY_IS_EQUAL(rs3.info(), Success);
-  VERIFY_IS_EQUAL(rs3.matrixT(), Atriangular);
+  VERIFY_IS_APPROX(rs3.matrixT(), Atriangular); // approx because of scaling...
   VERIFY_IS_EQUAL(rs3.matrixU(), MatrixType::Identity(size, size));
 
   // Test computation of only T, not U
