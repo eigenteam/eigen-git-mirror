@@ -521,7 +521,7 @@ EIGEN_STRONG_INLINE Packet16f ploadquad<Packet16f>(const float* from) {
   tmp = _mm512_insertf32x4(tmp, _mm_load_ps1(from + 3), 3);
   return tmp;
 }
-// Loads 4 doubles from memory a returns the packet
+// Loads 2 doubles from memory a returns the packet
 // {a0, a0  a0, a0, a1, a1, a1, a1}
 template <>
 EIGEN_STRONG_INLINE Packet8d ploadquad<Packet8d>(const double* from) {
