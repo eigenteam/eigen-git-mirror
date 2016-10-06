@@ -1299,12 +1299,14 @@ EIGEN_STRONG_INLINE Packet16f pblend(const Selector<16>& /*ifPacket*/,
                                      const Packet16f& /*thenPacket*/,
                                      const Packet16f& /*elsePacket*/) {
   assert(false && "To be implemented");
+  return Packet16f();
 }
 template <>
 EIGEN_STRONG_INLINE Packet8d pblend(const Selector<8>& /*ifPacket*/,
                                     const Packet8d& /*thenPacket*/,
                                     const Packet8d& /*elsePacket*/) {
   assert(false && "To be implemented");
+  return Packet8d();
 }
 
 } // end namespace internal
