@@ -6,7 +6,7 @@ macro(ei_add_blas_test testname)
   set(filename ${testname}.f)
   add_executable(${targetname} ${filename})
 
-  target_link_libraries(${targetname} eigen_blas)
+  target_link_libraries(${targetname} eigen_blas_static)
 
   if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
     target_link_libraries(${targetname} ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
