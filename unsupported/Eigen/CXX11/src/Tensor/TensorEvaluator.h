@@ -46,9 +46,11 @@ struct TensorEvaluator
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device& device)
-      : m_data(const_cast<Scalar*>(m.data())), m_dims(m.dimensions()), m_device(device)
+      : m_data(const_cast<typename internal::traits<Derived>::template MakePointer<Scalar>::Type>(m.data())), m_dims(m.dimensions()), m_device(device), m_impl(m)
   { }
 
+  // Used for accessor extraction in SYCL Managed TensorMap:
+  const Derived& derived() const { return m_impl; }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dims; }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(CoeffReturnType* dest) {
@@ -106,12 +108,16 @@ struct TensorEvaluator
                         internal::unpacket_traits<PacketReturnType>::size);
   }
 
-  EIGEN_DEVICE_FUNC Scalar* data() const { return m_data; }
+  EIGEN_DEVICE_FUNC typename internal::traits<Derived>::template MakePointer<Scalar>::Type data() const { return m_data; }
+
+  /// required by sycl in order to construct sycl buffer from raw pointer
+  const Device& device() const{return m_device;}
 
  protected:
-  Scalar* m_data;
+  typename internal::traits<Derived>::template MakePointer<Scalar>::Type m_data;
   Dimensions m_dims;
   const Device& m_device;
+  const Derived& m_impl;
 };
 
 namespace {
@@ -159,8 +165,11 @@ struct TensorEvaluator<const Derived, Device>
     RawAccess = true
   };
 
+  // Used for accessor extraction in SYCL Managed TensorMap:
+  const Derived& derived() const { return m_impl; }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const Derived& m, const Device& device)
-      : m_data(m.data()), m_dims(m.dimensions()), m_device(device)
+      : m_data(m.data()), m_dims(m.dimensions()), m_device(device), m_impl(m)
   { }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dims; }
@@ -198,12 +207,16 @@ struct TensorEvaluator<const Derived, Device>
                         internal::unpacket_traits<PacketReturnType>::size);
   }
 
-  EIGEN_DEVICE_FUNC const Scalar* data() const { return m_data; }
+  EIGEN_DEVICE_FUNC typename internal::traits<Derived>::template MakePointer<const Scalar>::Type data() const { return m_data; }
+
+  /// added for sycl in order to construct the buffer from the sycl device
+  const Device& device() const{return m_device;}
 
  protected:
-  const Scalar* m_data;
+  typename internal::traits<Derived>::template MakePointer<const Scalar>::Type m_data;
   Dimensions m_dims;
   const Device& m_device;
+  const Derived& m_impl;
 };
 
 
@@ -259,6 +272,12 @@ struct TensorEvaluator<const TensorCwiseNullaryOp<NullaryOp, ArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<ArgType, Device>& impl() const { return m_argImpl; }
+  /// required by sycl in order to extract the accessor
+  NullaryOp functor() const { return m_functor; }
+
 
  private:
   const NullaryOp m_functor;
@@ -323,6 +342,12 @@ struct TensorEvaluator<const TensorCwiseUnaryOp<UnaryOp, ArgType>, Device>
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<ArgType, Device> & impl() const { return m_argImpl; }
+  /// added for sycl in order to construct the buffer from sycl device
+  UnaryOp functor() const { return m_functor; }
+
 
  private:
   const UnaryOp m_functor;
@@ -397,6 +422,12 @@ struct TensorEvaluator<const TensorCwiseBinaryOp<BinaryOp, LeftArgType, RightArg
   }
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<LeftArgType, Device>& left_impl() const { return m_leftImpl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<RightArgType, Device>& right_impl() const { return m_rightImpl; }
+  /// required by sycl in order to extract the accessor
+  BinaryOp functor() const { return m_functor; }
 
  private:
   const BinaryOp m_functor;
@@ -492,10 +523,17 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
 
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return NULL; }
 
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<Arg1Type, Device> & arg1Impl() const { return m_arg1Impl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<Arg2Type, Device>& arg2Impl() const { return m_arg2Impl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<Arg3Type, Device>& arg3Impl() const { return m_arg3Impl; }
+
  private:
   const TernaryOp m_functor;
   TensorEvaluator<Arg1Type, Device> m_arg1Impl;
-  TensorEvaluator<Arg1Type, Device> m_arg2Impl;
+  TensorEvaluator<Arg2Type, Device> m_arg2Impl;
   TensorEvaluator<Arg3Type, Device> m_arg3Impl;
 };
 
@@ -576,6 +614,12 @@ struct TensorEvaluator<const TensorSelectOp<IfArgType, ThenArgType, ElseArgType>
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE CoeffReturnType* data() const { return NULL; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<IfArgType, Device> & cond_impl() const { return m_condImpl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<ThenArgType, Device>& then_impl() const { return m_thenImpl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<ElseArgType, Device>& else_impl() const { return m_elseImpl; }
 
  private:
   TensorEvaluator<IfArgType, Device> m_condImpl;

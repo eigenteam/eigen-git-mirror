@@ -248,3 +248,11 @@ if(CUDA_FOUND AND EIGEN_TEST_CUDA)
 
   unset(EIGEN_ADD_TEST_FILENAME_EXTENSION)
 endif()
+
+
+if(EIGEN_TEST_SYCL)
+  ei_add_test_sycl(cxx11_tensor_sycl "-std=c++11")
+  ei_add_test_sycl(cxx11_tensor_forced_eval_sycl "-std=c++11")
+  ei_add_test_sycl(cxx11_tensor_broadcast_sycl "-std=c++11")
+  ei_add_test_sycl(cxx11_tensor_device_sycl "-std=c++11")
+endif(EIGEN_TEST_SYCL)

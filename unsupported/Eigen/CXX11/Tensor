@@ -75,6 +75,8 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorDeviceDefault.h"
 #include "src/Tensor/TensorDeviceThreadPool.h"
 #include "src/Tensor/TensorDeviceCuda.h"
+#include "src/Tensor/TensorSycl.h"
+#include "src/Tensor/TensorDeviceSycl.h"
 #include "src/Tensor/TensorIndexList.h"
 #include "src/Tensor/TensorDimensionList.h"
 #include "src/Tensor/TensorDimensions.h"
