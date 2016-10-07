@@ -405,7 +405,7 @@ template<> EIGEN_STRONG_INLINE double predux<Packet4d>(const Packet4d& a)
   return pfirst(_mm256_hadd_pd(tmp0,tmp0));
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f predux_half<Packet8f>(const Packet8f& a)
+template<> EIGEN_STRONG_INLINE Packet4f predux_downto4<Packet8f>(const Packet8f& a)
 {
   return _mm_add_ps(_mm256_castps256_ps128(a),_mm256_extractf128_ps(a,1));
 }

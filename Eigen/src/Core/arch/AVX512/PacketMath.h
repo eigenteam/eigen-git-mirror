@@ -905,7 +905,7 @@ EIGEN_STRONG_INLINE double predux<Packet8d>(const Packet8d& a) {
 }
 
 template <>
-EIGEN_STRONG_INLINE Packet8f predux_half<Packet16f>(const Packet16f& a) {
+EIGEN_STRONG_INLINE Packet8f predux_downto4<Packet16f>(const Packet16f& a) {
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   Packet8f lane0 = _mm512_extractf32x8_ps(a, 0);
   Packet8f lane1 = _mm512_extractf32x8_ps(a, 1);
@@ -921,7 +921,7 @@ EIGEN_STRONG_INLINE Packet8f predux_half<Packet16f>(const Packet16f& a) {
 #endif
 }
 template <>
-EIGEN_STRONG_INLINE Packet4d predux_half<Packet8d>(const Packet8d& a) {
+EIGEN_STRONG_INLINE Packet4d predux_downto4<Packet8d>(const Packet8d& a) {
   Packet4d lane0 = _mm512_extractf64x4_pd(a, 0);
   Packet4d lane1 = _mm512_extractf64x4_pd(a, 1);
   Packet4d res = padd(lane0, lane1);

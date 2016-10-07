@@ -580,7 +580,7 @@ DoublePacket<Packet> padd(const DoublePacket<Packet> &a, const DoublePacket<Pack
 }
 
 template<typename Packet>
-const DoublePacket<Packet>& predux_half(const DoublePacket<Packet> &a)
+const DoublePacket<Packet>& predux_downto4(const DoublePacket<Packet> &a)
 {
   return a;
 }
@@ -1596,13 +1596,13 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
                 SRhsPacketHalf b0;
                 straits.loadLhsUnaligned(blB, a0);
                 straits.loadRhs(blA, b0);
-                SAccPacketHalf c0 = predux_half(C0);
+                SAccPacketHalf c0 = predux_downto4(C0);
                 straits.madd(a0,b0,c0,b0);
                 straits.acc(c0, alphav, R);
               }
               else
               {
-                straits.acc(predux_half(C0), alphav, R);
+                straits.acc(predux_downto4(C0), alphav, R);
               }
               res.scatterPacket(i, j2, R);
             }
