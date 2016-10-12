@@ -110,16 +110,16 @@ class SPQR
           max2Norm = RealScalar(1);
         pivotThreshold = 20 * (mat.rows() + mat.cols()) * max2Norm * NumTraits<RealScalar>::epsilon();
       }
-      
       cholmod_sparse A; 
       A = viewAsCholmod(mat);
+      m_rows = matrix.rows();
       Index col = matrix.cols();
       m_rank = SuiteSparseQR<Scalar>(m_ordering, pivotThreshold, col, &A, 
                              &m_cR, &m_E, &m_H, &m_HPinv, &m_HTau, &m_cc);
 
       if (!m_cR)
       {
-        m_info = NumericalIssue; 
+        m_info = NumericalIssue;
         m_isInitialized = false;
         return;
       }
@@ -130,7 +130,7 @@ class SPQR
     /** 
      * Get the number of rows of the input matrix and the Q matrix
      */
-    inline Index rows() const {return m_cR->nrow; }
+    inline Index rows() const {return m_rows; }
     
     /** 
      * Get the number of columns of the input matrix. 
@@ -254,6 +254,7 @@ class SPQR
     mutable Index m_rank; // The rank of the matrix
     mutable cholmod_common m_cc; // Workspace and parameters
     bool m_useDefaultThreshold;     // Use default threshold
+    Index m_rows;
     template<typename ,typename > friend struct SPQR_QProduct;
 };
 

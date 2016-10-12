@@ -18,8 +18,8 @@ int generate_sparse_rectangular_problem(MatrixType& A, DenseMat& dA, int maxRows
   int cols = internal::random<int>(1,rows);
   double density = (std::max)(8./(rows*cols), 0.01);
   
-  A.resize(rows,rows);
-  dA.resize(rows,rows);
+  A.resize(rows,cols);
+  dA.resize(rows,cols);
   initSparse<Scalar>(density, dA, A,ForceNonZeroDiag);
   A.makeCompressed();
   return rows;
