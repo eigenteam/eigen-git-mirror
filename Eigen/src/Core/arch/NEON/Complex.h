@@ -16,8 +16,14 @@ namespace Eigen {
 namespace internal {
 
 inline uint32x4_t p4ui_CONJ_XOR() {
+// See bug 1325, clang fails to call vld1q_u64.
+#if EIGEN_COMP_CLANG
+  uint32x4_t ret = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
+  return ret;
+#else
   static const uint32_t conj_XOR_DATA[] = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
   return vld1q_u32( conj_XOR_DATA );
+#endif
 }
 
 inline uint32x2_t p2ui_CONJ_XOR() {
@@ -282,8 +288,13 @@ ptranspose(PacketBlock<Packet2cf,2>& kernel) {
 //---------- double ----------
 #if EIGEN_ARCH_ARM64 && !EIGEN_APPLE_DOUBLE_NEON_BUG
 
-const uint64_t  p2ul_conj_XOR_DATA[] = { 0x0, 0x8000000000000000 };
-static uint64x2_t p2ul_CONJ_XOR = vld1q_u64( p2ul_conj_XOR_DATA );
+// See bug 1325, clang fails to call vld1q_u64.
+#if EIGEN_COMP_CLANG
+  static uint64x2_t p2ul_CONJ_XOR = {0x0, 0x8000000000000000};
+#else
+  const uint64_t  p2ul_conj_XOR_DATA[] = { 0x0, 0x8000000000000000 };
+  static uint64x2_t p2ul_CONJ_XOR = vld1q_u64( p2ul_conj_XOR_DATA );
+#endif
 
 struct Packet1cd
 {

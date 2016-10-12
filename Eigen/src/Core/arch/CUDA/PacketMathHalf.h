@@ -865,6 +865,30 @@ template<> EIGEN_STRONG_INLINE void pscatter<Eigen::half, Packet8h>(Eigen::half*
   to[stride*7].x = aux[7].x;
 }
 
+template<> EIGEN_STRONG_INLINE Eigen::half predux<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half predux_max<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux_max<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half predux_min<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux_min<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half predux_mul<Packet8h>(const Packet8h& a) {
+  Packet8f af = half2float(a);
+  float reduced = predux_mul<Packet8f>(af);
+  return Eigen::half(reduced);
+}
+
 EIGEN_STRONG_INLINE void
 ptranspose(PacketBlock<Packet8h,8>& kernel) {
   __m128i a = kernel.packet[0].x;

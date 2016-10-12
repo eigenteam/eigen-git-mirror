@@ -54,6 +54,18 @@ template<typename MatrixType> void qr()
   m2 = MatrixType::Random(cols,cols2);
   m2 = qr.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
+
+  {
+    Index size = rows;
+    do {
+      m1 = MatrixType::Random(size,size);
+      qr.compute(m1);
+    } while(!qr.isInvertible());
+    MatrixType m1_inv = qr.inverse();
+    m3 = m1 * MatrixType::Random(size,cols2);
+    m2 = qr.solve(m3);
+    VERIFY_IS_APPROX(m2, m1_inv*m3);
+  }
 }
 
 template<typename MatrixType> void qr_invertible()
