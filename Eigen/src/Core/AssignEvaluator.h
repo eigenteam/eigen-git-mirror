@@ -555,7 +555,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
       for(Index inner = alignedEnd; inner<innerSize ; ++inner)
         kernel.assignCoeffByOuterInner(outer, inner);
 
-      alignedStart = min((Index)(alignedStart+alignedStep)%packetSize, (Index)innerSize);
+      alignedStart = (min)((Index)(alignedStart+alignedStep)%packetSize, (Index)innerSize);
     }
   }
 };

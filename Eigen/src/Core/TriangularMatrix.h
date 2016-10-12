@@ -646,7 +646,7 @@ bool MatrixBase<Derived>::isUpperTriangular(const RealScalar& prec) const
   EIGEN_USING_STD_MATH(min)
   for(Index j = 0; j < cols(); ++j)
   {
-    Index maxi = min(j, rows()-1);
+    Index maxi = (min)(j, rows()-1);
     for(Index i = 0; i <= maxi; ++i)
     {
       RealScalar absValue = abs(coeff(i,j));
@@ -680,7 +680,7 @@ bool MatrixBase<Derived>::isLowerTriangular(const RealScalar& prec) const
   RealScalar threshold = maxAbsOnLowerPart * prec;
   for(Index j = 1; j < cols(); ++j)
   {
-    Index maxi = min(j, rows()-1);
+    Index maxi = (min)(j, rows()-1);
     for(Index i = 0; i < maxi; ++i)
       if(abs(coeff(i, j)) > threshold) return false;
   }
@@ -896,7 +896,7 @@ struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
     EIGEN_USING_STD_MATH(min)
     for(Index j = 0; j < kernel.cols(); ++j)
     {
-      Index maxi = min(j, kernel.rows());
+      Index maxi = (min)(j, kernel.rows());
       Index i = 0;
       if (((Mode&Lower) && SetOpposite) || (Mode&Upper))
       {
