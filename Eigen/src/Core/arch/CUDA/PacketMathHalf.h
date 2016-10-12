@@ -839,11 +839,6 @@ template<> EIGEN_STRONG_INLINE Packet8h pmul<Packet8h>(const Packet8h& a, const 
   return float2half(rf);
 }
 
-template<> EIGEN_STRONG_INLINE half predux<Packet8h>(const Packet8h& from) {
-  Packet8f from_float = half2float(from);
-  return half(predux(from_float));
-}
-
 template<> EIGEN_STRONG_INLINE Packet8h pgather<Eigen::half, Packet8h>(const Eigen::half* from, Index stride)
 {
   Packet8h result;
