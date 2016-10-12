@@ -355,30 +355,27 @@ pexp<Packet4d>(const Packet4d& _x) {
 // Functions for sqrt.
 // The EIGEN_FAST_MATH version uses the _mm_rsqrt_ps approximation and one step
 // of Newton's method, at a cost of 1-2 bits of precision as opposed to the
-// exact solution. The main advantage of this approach is not just speed, but
-// also the fact that it can be inlined and pipelined with other computations,
-// further reducing its effective latency.
+// exact solution. It does not handle +inf, or denormalized numbers correctly.
+// The main advantage of this approach is not just speed, but also the fact that
+// it can be inlined and pipelined with other computations, further reducing its
+// effective latency. This is similar to Quake3's fast inverse square root.
+// For detail see here: http://www.beyond3d.com/content/articles/8/
 #if EIGEN_FAST_MATH
 template <>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
 psqrt<Packet8f>(const Packet8f& _x) {
-  _EIGEN_DECLARE_CONST_Packet8f(one_point_five, 1.5f);
-  _EIGEN_DECLARE_CONST_Packet8f(minus_half, -0.5f);
-  _EIGEN_DECLARE_CONST_Packet8f_FROM_INT(flt_min, 0x00800000);
+  Packet8f half = pmul(_x, pset1<Packet8f>(.5f));
+  Packet8f denormal_mask = _mm256_and_ps(
+      _mm256_cmp_ps(_x, pset1<Packet8f>((std::numeric_limits<float>::min)()),
+                    _CMP_LT_OQ),
+      _mm256_cmp_ps(_x, _mm256_setzero_ps(), _CMP_GE_OQ));
 
-  Packet8f neg_half = pmul(_x, p8f_minus_half);
-
-  // select only the inverse sqrt of positive normal inputs (denormals are
-  // flushed to zero and cause infs as well).
-  Packet8f non_zero_mask = _mm256_cmp_ps(_x, p8f_flt_min, _CMP_GE_OQ);
-  Packet8f x = _mm256_and_ps(non_zero_mask, _mm256_rsqrt_ps(_x));
-
+  // Compute approximate reciprocal sqrt.
+  Packet8f x = _mm256_rsqrt_ps(_x);
   // Do a single step of Newton's iteration.
-  x = pmul(x, pmadd(neg_half, pmul(x, x), p8f_one_point_five));
-
-  // Multiply the original _x by it's reciprocal square root to extract the
-  // square root.
-  return pmul(_x, x);
+  x = pmul(x, psub(pset1<Packet8f>(1.5f), pmul(half, pmul(x,x))));
+  // Flush results for denormals to zero.
+  return _mm256_andnot_ps(denormal_mask, pmul(_x,x));
 }
 #else
 template <> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
