@@ -366,8 +366,9 @@ EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED Packet8f
 psqrt<Packet8f>(const Packet8f& _x) {
   Packet8f half = pmul(_x, pset1<Packet8f>(.5f));
   Packet8f denormal_mask = _mm256_and_ps(
-      _mm256_cmpge_ps(_x, _mm256_setzero_ps()),
-      _mm256_cmplt_ps(_x, pset1<Packet8f>((std::numeric_limits<float>::min)())));
+      _mm256_cmp_ps(_x, pset1<Packet8f>((std::numeric_limits<float>::min)()),
+                    _CMP_LT_OQ),
+      _mm256_cmp_ps(_x, _mm256_setzero_ps(), _CMP_GE_OQ));
 
   // Compute approximate reciprocal sqrt.
   Packet8f x = _mm256_rsqrt_ps(_x);
