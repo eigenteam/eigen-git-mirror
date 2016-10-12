@@ -517,6 +517,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
 {
   EIGEN_DEVICE_FUNC static inline void run(Kernel &kernel)
   {
+    EIGEN_USING_STD_MATH(min)
     typedef typename Kernel::Scalar Scalar;
     typedef typename Kernel::PacketType PacketType;
     enum {
@@ -554,7 +555,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
       for(Index inner = alignedEnd; inner<innerSize ; ++inner)
         kernel.assignCoeffByOuterInner(outer, inner);
 
-      alignedStart = std::min<Index>((alignedStart+alignedStep)%packetSize, innerSize);
+      alignedStart = min((Index)(alignedStart+alignedStep)%packetSize, (Index)innerSize);
     }
   }
 };

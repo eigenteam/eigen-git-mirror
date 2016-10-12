@@ -290,7 +290,7 @@ MatrixBase<Derived>::asDiagonal() const
 template<typename Derived>
 bool MatrixBase<Derived>::isDiagonal(const RealScalar& prec) const
 {
-  using std::abs;
+  EIGEN_USING_STD_MATH(abs)
   if(cols() != rows()) return false;
   RealScalar maxAbsOnDiagonal = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
