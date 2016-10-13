@@ -112,9 +112,9 @@ namespace Eigen
     *
     * \tparam _AlphaAxis the first fixed EulerAxis
     *
-    * \tparam _AlphaAxis the second fixed EulerAxis
+    * \tparam _BetaAxis the second fixed EulerAxis
     *
-    * \tparam _AlphaAxis the third fixed EulerAxis
+    * \tparam _GammaAxis the third fixed EulerAxis
     */
   template <int _AlphaAxis, int _BetaAxis, int _GammaAxis>
   class EulerSystem
@@ -138,14 +138,16 @@ namespace Eigen
       BetaAxisAbs = internal::Abs<BetaAxis>::value, /*!< the second rotation axis unsigned */
       GammaAxisAbs = internal::Abs<GammaAxis>::value, /*!< the third rotation axis unsigned */
       
-      IsAlphaOpposite = (AlphaAxis < 0) ? 1 : 0, /*!< weather alpha axis is negative */
-      IsBetaOpposite = (BetaAxis < 0) ? 1 : 0, /*!< weather beta axis is negative */
-      IsGammaOpposite = (GammaAxis < 0) ? 1 : 0, /*!< weather gamma axis is negative */
-      
-      IsOdd = ((AlphaAxisAbs)%3 == (BetaAxisAbs - 1)%3) ? 0 : 1, /*!< weather the Euler system is odd */
-      IsEven = IsOdd ? 0 : 1, /*!< weather the Euler system is even */
+      IsAlphaOpposite = (AlphaAxis < 0) ? 1 : 0, /*!< whether alpha axis is negative */
+      IsBetaOpposite = (BetaAxis < 0) ? 1 : 0, /*!< whether beta axis is negative */
+      IsGammaOpposite = (GammaAxis < 0) ? 1 : 0, /*!< whether gamma axis is negative */
 
-      IsTaitBryan = ((unsigned)AlphaAxisAbs != (unsigned)GammaAxisAbs) ? 1 : 0 /*!< weather the Euler system is tait bryan */
+      // Parity is even if alpha axis X is followed by beta axis Y, or Y is followed
+      // by Z, or Z is followed by X; otherwise it is odd.
+      IsOdd = ((AlphaAxisAbs)%3 == (BetaAxisAbs - 1)%3) ? 0 : 1, /*!< whether the Euler system is odd */
+      IsEven = IsOdd ? 0 : 1, /*!< whether the Euler system is even */
+
+      IsTaitBryan = ((unsigned)AlphaAxisAbs != (unsigned)GammaAxisAbs) ? 1 : 0 /*!< whether the Euler system is tait bryan */
     };
     
     private:
@@ -180,71 +182,70 @@ namespace Eigen
     static void CalcEulerAngles_imp(Matrix<typename MatrixBase<Derived>::Scalar, 3, 1>& res, const MatrixBase<Derived>& mat, internal::true_type /*isTaitBryan*/)
     {
       using std::atan2;
-      using std::sin;
-      using std::cos;
+      using std::sqrt;
       
       typedef typename Derived::Scalar Scalar;
-      typedef Matrix<Scalar,2,1> Vector2;
-      
-      res[0] = atan2(mat(J,K), mat(K,K));
-      Scalar c2 = Vector2(mat(I,I), mat(I,J)).norm();
-      if((IsOdd && res[0]<Scalar(0)) || ((!IsOdd) && res[0]>Scalar(0))) {
-        if(res[0] > Scalar(0)) {
-          res[0] -= Scalar(EIGEN_PI);
-        }
-        else {
-          res[0] += Scalar(EIGEN_PI);
-        }
-        res[1] = atan2(-mat(I,K), -c2);
+
+      Scalar plusMinus = IsEven? 1 : -1;
+      Scalar minusPlus = IsOdd?  1 : -1;
+
+      Scalar Rsum = sqrt((mat(I,I) * mat(I,I) + mat(I,J) * mat(I,J) + mat(J,K) * mat(J,K) + mat(K,K) * mat(K,K))/2);
+      res[1] = atan2(plusMinus * mat(I,K), Rsum);
+
+      // There is a singularity when cos(beta) = 0
+      if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {
+        res[0] = atan2(minusPlus * mat(J, K), mat(K, K));
+        res[2] = atan2(minusPlus * mat(I, J), mat(I, I));
       }
-      else
-        res[1] = atan2(-mat(I,K), c2);
-      Scalar s1 = sin(res[0]);
-      Scalar c1 = cos(res[0]);
-      res[2] = atan2(s1*mat(K,I)-c1*mat(J,I), c1*mat(J,J) - s1 * mat(K,J));
+      else if(plusMinus * mat(I, K) > 0) {
+        Scalar spos = mat(J, I) + plusMinus * mat(K, J); // 2*sin(alpha + plusMinus * gamma)
+        Scalar cpos = mat(J, J) + minusPlus * mat(K, I); // 2*cos(alpha + plusMinus * gamma);
+        Scalar alphaPlusMinusGamma = atan2(spos, cpos);
+        res[0] = alphaPlusMinusGamma;
+        res[2] = 0;
+      }
+      else {
+        Scalar sneg = plusMinus * (mat(K, J) + minusPlus * mat(J, I)); // 2*sin(alpha + minusPlus*gamma)
+        Scalar cneg = mat(J, J) + plusMinus * mat(K, I);               // 2*cos(alpha + minusPlus*gamma)
+        Scalar alphaMinusPlusBeta = atan2(sneg, cneg);
+        res[0] = alphaMinusPlusBeta;
+        res[2] = 0;
+      }
     }
 
     template <typename Derived>
-    static void CalcEulerAngles_imp(Matrix<typename MatrixBase<Derived>::Scalar,3,1>& res, const MatrixBase<Derived>& mat, internal::false_type /*isTaitBryan*/)
+    static void CalcEulerAngles_imp(Matrix<typename MatrixBase<Derived>::Scalar,3,1>& res,
+                                    const MatrixBase<Derived>& mat, internal::false_type /*isTaitBryan*/)
     {
       using std::atan2;
-      using std::sin;
-      using std::cos;
+      using std::sqrt;
 
       typedef typename Derived::Scalar Scalar;
-      typedef Matrix<Scalar,2,1> Vector2;
-      
-      res[0] = atan2(mat(J,I), mat(K,I));
-      if((IsOdd && res[0]<Scalar(0)) || ((!IsOdd) && res[0]>Scalar(0)))
-      {
-        if(res[0] > Scalar(0)) {
-          res[0] -= Scalar(EIGEN_PI);
-        }
-        else {
-          res[0] += Scalar(EIGEN_PI);
-        }
-        Scalar s2 = Vector2(mat(J,I), mat(K,I)).norm();
-        res[1] = -atan2(s2, mat(I,I));
+
+      Scalar plusMinus = IsEven? 1 : -1;
+      Scalar minusPlus = IsOdd?  1 : -1;
+
+      Scalar Rsum = sqrt((mat(I, J) * mat(I, J) + mat(I, K) * mat(I, K) + mat(J, I) * mat(J, I) + mat(K, I) * mat(K, I)) / 2);
+
+      res[1] = atan2(Rsum, mat(I, I));
+
+      if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {
+        res[0] = atan2(mat(J, I), minusPlus * mat(K, I));
+        res[2] = atan2(mat(I, J), plusMinus * mat(I, K));
       }
-      else
-      {
-        Scalar s2 = Vector2(mat(J,I), mat(K,I)).norm();
-        res[1] = atan2(s2, mat(I,I));
+      else if( mat(I, I) > 0) {
+        Scalar spos = plusMinus * mat(K, J) + minusPlus * mat(J, K); // 2*sin(alpha + gamma)
+        Scalar cpos = mat(J, J) + mat(K, K);                         // 2*cos(alpha + gamma)
+        res[0] = atan2(spos, cpos);
+        res[2] = 0;
+      }
+      else {
+        Scalar sneg = plusMinus * mat(K, J) + plusMinus * mat(J, K); // 2*sin(alpha - gamma)
+        Scalar cneg = mat(J, J) - mat(K, K);                         // 2*cos(alpha - gamma)
+        res[0] = atan2(sneg, cneg);
+        res[1] = 0;
       }
 
-      // With a=(0,1,0), we have i=0; j=1; k=2, and after computing the first two angles,
-      // we can compute their respective rotation, and apply its inverse to M. Since the result must
-      // be a rotation around x, we have:
-      //
-      //  c2  s1.s2 c1.s2                   1  0   0 
-      //  0   c1    -s1       *    M    =   0  c3  s3
-      //  -s2 s1.c2 c1.c2                   0 -s3  c3
-      //
-      //  Thus:  m11.c1 - m21.s1 = c3  &   m12.c1 - m22.s1 = s3
-
-      Scalar s1 = sin(res[0]);
-      Scalar c1 = cos(res[0]);
-      res[2] = atan2(c1*mat(J,K)-s1*mat(K,K), c1*mat(J,J) - s1 * mat(K,J));
     }
     
     template<typename Scalar>
@@ -257,14 +258,13 @@ namespace Eigen
     
     template<
       bool PositiveRangeAlpha,
-      bool PositiveRangeBeta,
       bool PositiveRangeGamma,
       typename Scalar>
     static void CalcEulerAngles(
       EulerAngles<Scalar, EulerSystem>& res,
       const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat)
     {
-      CalcEulerAngles(res, mat, PositiveRangeAlpha, PositiveRangeBeta, PositiveRangeGamma);
+      CalcEulerAngles(res, mat, PositiveRangeAlpha, PositiveRangeGamma);
     }
     
     template<typename Scalar>
@@ -272,28 +272,25 @@ namespace Eigen
       EulerAngles<Scalar, EulerSystem>& res,
       const typename EulerAngles<Scalar, EulerSystem>::Matrix3& mat,
       bool PositiveRangeAlpha,
-      bool PositiveRangeBeta,
       bool PositiveRangeGamma)
     {
       CalcEulerAngles_imp(
         res.angles(), mat,
         typename internal::conditional<IsTaitBryan, internal::true_type, internal::false_type>::type());
 
-      if (IsAlphaOpposite == IsOdd)
+      if (IsAlphaOpposite)
         res.alpha() = -res.alpha();
         
-      if (IsBetaOpposite == IsOdd)
+      if (IsBetaOpposite)
         res.beta() = -res.beta();
         
-      if (IsGammaOpposite == IsOdd)
+      if (IsGammaOpposite)
         res.gamma() = -res.gamma();
       
       // Saturate results to the requested range
       if (PositiveRangeAlpha && (res.alpha() < 0))
         res.alpha() += Scalar(2 * EIGEN_PI);
-      
-      if (PositiveRangeBeta && (res.beta() < 0))
-        res.beta() += Scalar(2 * EIGEN_PI);
+
       
       if (PositiveRangeGamma && (res.gamma() < 0))
         res.gamma() += Scalar(2 * EIGEN_PI);
