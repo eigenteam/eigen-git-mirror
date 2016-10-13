@@ -554,7 +554,7 @@ struct dense_assignment_loop<Kernel, SliceVectorizedTraversal, NoUnrolling>
       for(Index inner = alignedEnd; inner<innerSize ; ++inner)
         kernel.assignCoeffByOuterInner(outer, inner);
 
-      alignedStart = std::min<Index>((alignedStart+alignedStep)%packetSize, innerSize);
+      alignedStart = numext::mini((alignedStart+alignedStep)%packetSize, innerSize);
     }
   }
 };

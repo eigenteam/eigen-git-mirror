@@ -266,7 +266,7 @@ struct scalar_hypot_op<Scalar,Scalar> : binary_op_base<Scalar,Scalar>
 //   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& _x, const Scalar& _y) const
   {
-    using std::sqrt;
+    EIGEN_USING_STD_MATH(sqrt)
     Scalar p, qp;
     if(_x>_y)
     {
