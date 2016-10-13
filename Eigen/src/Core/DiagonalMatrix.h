@@ -290,12 +290,11 @@ MatrixBase<Derived>::asDiagonal() const
 template<typename Derived>
 bool MatrixBase<Derived>::isDiagonal(const RealScalar& prec) const
 {
-  EIGEN_USING_STD_MATH(abs)
   if(cols() != rows()) return false;
   RealScalar maxAbsOnDiagonal = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
   {
-    RealScalar absOnDiagonal = abs(coeff(j,j));
+    RealScalar absOnDiagonal = numext::abs(coeff(j,j));
     if(absOnDiagonal > maxAbsOnDiagonal) maxAbsOnDiagonal = absOnDiagonal;
   }
   for(Index j = 0; j < cols(); ++j)

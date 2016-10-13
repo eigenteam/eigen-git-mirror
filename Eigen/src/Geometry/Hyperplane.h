@@ -145,7 +145,7 @@ public:
   /** \returns the absolute distance between the plane \c *this and a point \a p.
     * \sa signedDistance()
     */
-  EIGEN_DEVICE_FUNC inline Scalar absDistance(const VectorType& p) const { EIGEN_USING_STD_MATH(abs) return abs(signedDistance(p)); }
+  EIGEN_DEVICE_FUNC inline Scalar absDistance(const VectorType& p) const { return numext::abs(signedDistance(p)); }
 
   /** \returns the projection of a point \a p onto the plane \c *this.
     */
@@ -188,14 +188,13 @@ public:
     */
   EIGEN_DEVICE_FUNC VectorType intersection(const Hyperplane& other) const
   {
-    EIGEN_USING_STD_MATH(abs)
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(VectorType, 2)
     Scalar det = coeffs().coeff(0) * other.coeffs().coeff(1) - coeffs().coeff(1) * other.coeffs().coeff(0);
     // since the line equations ax+by=c are normalized with a^2+b^2=1, the following tests
     // whether the two lines are approximately parallel.
     if(internal::isMuchSmallerThan(det, Scalar(1)))
     {   // special case where the two lines are approximately parallel. Pick any point on the first line.
-        if(abs(coeffs().coeff(1))>abs(coeffs().coeff(0)))
+        if(numext::abs(coeffs().coeff(1))>numext::abs(coeffs().coeff(0)))
             return VectorType(coeffs().coeff(1), -coeffs().coeff(2)/coeffs().coeff(1)-coeffs().coeff(0));
         else
             return VectorType(-coeffs().coeff(2)/coeffs().coeff(0)-coeffs().coeff(1), coeffs().coeff(0));

@@ -705,9 +705,8 @@ EIGEN_DEVICE_FUNC inline typename internal::traits<Derived>::Scalar
 QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& other) const
 {
   EIGEN_USING_STD_MATH(atan2)
-  EIGEN_USING_STD_MATH(abs)
   Quaternion<Scalar> d = (*this) * other.conjugate();
-  return Scalar(2) * atan2( d.vec().norm(), abs(d.w()) );
+  return Scalar(2) * atan2( d.vec().norm(), numext::abs(d.w()) );
 }
 
  
@@ -725,10 +724,9 @@ QuaternionBase<Derived>::slerp(const Scalar& t, const QuaternionBase<OtherDerive
 {
   EIGEN_USING_STD_MATH(acos)
   EIGEN_USING_STD_MATH(sin)
-  EIGEN_USING_STD_MATH(abs)
   const Scalar one = Scalar(1) - NumTraits<Scalar>::epsilon();
   Scalar d = this->dot(other);
-  Scalar absD = abs(d);
+  Scalar absD = numext::abs(d);
 
   Scalar scale0;
   Scalar scale1;
