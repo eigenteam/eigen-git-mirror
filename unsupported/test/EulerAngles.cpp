@@ -13,125 +13,80 @@
 
 using namespace Eigen;
 
+// Verify that x is in the approxed range [a, b]
+#define VERIFY_APPROXED_RANGE(a, x, b) \
+	do { \
+	VERIFY_IS_APPROX_OR_LESS_THAN(a, x); \
+	VERIFY_IS_APPROX_OR_LESS_THAN(x, b); \
+	} while(0)
+
 template<typename EulerSystem, typename Scalar>
-void verify_euler_ranged(const Matrix<Scalar,3,1>& ea,
-  bool positiveRangeAlpha, bool positiveRangeBeta, bool positiveRangeGamma)
+void verify_euler(const Matrix<Scalar,3,1>& ea)
 {
   typedef EulerAngles<Scalar, EulerSystem> EulerAnglesType;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Quaternion<Scalar> QuaternionType;
   typedef AngleAxis<Scalar> AngleAxisType;
-  using std::abs;
   
-  Scalar alphaRangeStart, alphaRangeEnd;
+  const Scalar ONE = Scalar(1);
+  const Scalar HALF_PI = Scalar(EIGEN_PI / 2);
+  const Scalar PI = Scalar(EIGEN_PI);
+  
   Scalar betaRangeStart, betaRangeEnd;
-  Scalar gammaRangeStart, gammaRangeEnd;
-  
-  if (positiveRangeAlpha)
+  if (EulerSystem::IsTaitBryan)
   {
-    alphaRangeStart = Scalar(0);
-    alphaRangeEnd = Scalar(2 * EIGEN_PI);
+    betaRangeStart = -HALF_PI;
+    betaRangeEnd = HALF_PI;
   }
   else
   {
-    alphaRangeStart = -Scalar(EIGEN_PI);
-    alphaRangeEnd = Scalar(EIGEN_PI);
+    betaRangeStart = -PI;
+    betaRangeEnd = PI;
   }
-  
-  if (positiveRangeBeta)
-  {
-    betaRangeStart = Scalar(0);
-    betaRangeEnd = Scalar(2 * EIGEN_PI);
-  }
-  else
-  {
-    betaRangeStart = -Scalar(EIGEN_PI);
-    betaRangeEnd = Scalar(EIGEN_PI);
-  }
-  
-  if (positiveRangeGamma)
-  {
-    gammaRangeStart = Scalar(0);
-    gammaRangeEnd = Scalar(2 * EIGEN_PI);
-  }
-  else
-  {
-    gammaRangeStart = -Scalar(EIGEN_PI);
-    gammaRangeEnd = Scalar(EIGEN_PI);
-  }
-  
-  const int i = EulerSystem::AlphaAxisAbs - 1;
-  const int j = EulerSystem::BetaAxisAbs - 1;
-  const int k = EulerSystem::GammaAxisAbs - 1;
-  
-  const int iFactor = EulerSystem::IsAlphaOpposite ? -1 : 1;
-  const int jFactor = EulerSystem::IsBetaOpposite ? -1 : 1;
-  const int kFactor = EulerSystem::IsGammaOpposite ? -1 : 1;
   
   const Vector3 I = EulerAnglesType::AlphaAxisVector();
   const Vector3 J = EulerAnglesType::BetaAxisVector();
   const Vector3 K = EulerAnglesType::GammaAxisVector();
   
   EulerAnglesType e(ea[0], ea[1], ea[2]);
-  
+
   Matrix3 m(e);
-  Vector3 eabis = EulerAnglesType(m, positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma).angles();
+
+  Vector3 eabis = static_cast<EulerAnglesType>(m).angles();
   
   // Check that eabis in range
-  VERIFY(alphaRangeStart <= eabis[0] && eabis[0] <= alphaRangeEnd);
-  VERIFY(betaRangeStart <= eabis[1] && eabis[1] <= betaRangeEnd);
-  VERIFY(gammaRangeStart <= eabis[2] && eabis[2] <= gammaRangeEnd);
-  
-  Vector3 eabis2 = m.eulerAngles(i, j, k);
-  
-  // Invert the relevant axes
-  eabis2[0] *= iFactor;
-  eabis2[1] *= jFactor;
-  eabis2[2] *= kFactor;
-  
-  // Saturate the angles to the correct range
-  if (positiveRangeAlpha && (eabis2[0] < 0))
-    eabis2[0] += Scalar(2 * EIGEN_PI);
-  if (positiveRangeBeta && (eabis2[1] < 0))
-    eabis2[1] += Scalar(2 * EIGEN_PI);
-  if (positiveRangeGamma && (eabis2[2] < 0))
-    eabis2[2] += Scalar(2 * EIGEN_PI);
-  
-  VERIFY_IS_APPROX(eabis, eabis2);// Verify that our estimation is the same as m.eulerAngles() is
-  
+  VERIFY_APPROXED_RANGE(-PI, eabis[0], PI);
+  VERIFY_APPROXED_RANGE(betaRangeStart, eabis[1], betaRangeEnd);
+  VERIFY_APPROXED_RANGE(-PI, eabis[2], PI);
+
   Matrix3 mbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
   VERIFY_IS_APPROX(m,  mbis);
-  
-  // Tests that are only relevant for no possitive range
-  if (!(positiveRangeAlpha || positiveRangeBeta || positiveRangeGamma))
+
+  // Test if ea and eabis are the same
+  // Need to check both singular and non-singular cases
+  // There are two singular cases.
+  // 1. When I==K and sin(ea(1)) == 0
+  // 2. When I!=K and cos(ea(1)) == 0
+
+  // Tests that are only relevant for no positive range
+  /*if (!(positiveRangeAlpha || positiveRangeGamma))
   {
-    /* If I==K, and ea[1]==0, then there no unique solution. */ 
-    /* The remark apply in the case where I!=K, and |ea[1]| is close to pi/2. */ 
+    // If I==K, and ea[1]==0, then there no unique solution.
+    // The remark apply in the case where I!=K, and |ea[1]| is close to pi/2.
     if( (i!=k || ea[1]!=0) && (i==k || !internal::isApprox(abs(ea[1]),Scalar(EIGEN_PI/2),test_precision<Scalar>())) ) 
       VERIFY((ea-eabis).norm() <= test_precision<Scalar>());
     
     // approx_or_less_than does not work for 0
-    VERIFY(0 < eabis[0] || test_isMuchSmallerThan(eabis[0], Scalar(1)));
-  }
+    VERIFY(0 < eabis[0] || VERIFY_IS_MUCH_SMALLER_THAN(eabis[0], Scalar(1)));
+  }*/
   
   // Quaternions
   QuaternionType q(e);
-  eabis = EulerAnglesType(q, positiveRangeAlpha, positiveRangeBeta, positiveRangeGamma).angles();
-  VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
-}
-
-template<typename EulerSystem, typename Scalar>
-void verify_euler(const Matrix<Scalar,3,1>& ea)
-{
-  verify_euler_ranged<EulerSystem>(ea, false, false, false);
-  verify_euler_ranged<EulerSystem>(ea, false, false, true);
-  verify_euler_ranged<EulerSystem>(ea, false, true, false);
-  verify_euler_ranged<EulerSystem>(ea, false, true, true);
-  verify_euler_ranged<EulerSystem>(ea, true, false, false);
-  verify_euler_ranged<EulerSystem>(ea, true, false, true);
-  verify_euler_ranged<EulerSystem>(ea, true, true, false);
-  verify_euler_ranged<EulerSystem>(ea, true, true, true);
+  eabis = static_cast<EulerAnglesType>(q).angles();
+  QuaternionType qbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
+  VERIFY_IS_APPROX(std::abs(q.dot(qbis)), ONE);
+  //VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
 }
 
 template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
@@ -150,6 +105,8 @@ template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
   verify_euler<EulerSystemZXZ>(ea);
   verify_euler<EulerSystemZYX>(ea);
   verify_euler<EulerSystemZYZ>(ea);
+  
+  // TODO: Test negative axes as well! (only test if the angles get negative when needed)
 }
 
 template<typename Scalar> void eulerangles()
