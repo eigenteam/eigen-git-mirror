@@ -28,7 +28,7 @@ using Eigen::TensorMap;
 // Types used in tests:
 using TestTensor = Tensor<float, 3>;
 using TestTensorMap = TensorMap<Tensor<float, 3>>;
-static void test_sycl_broadcast(){
+static void test_broadcast_sycl(){
 
 	cl::sycl::gpu_selector s;
   cl::sycl::queue q(s, [=](cl::sycl::exception_list l) {
@@ -75,5 +75,5 @@ static void test_sycl_broadcast(){
 }
 
 void test_cxx11_tensor_broadcast_sycl() {
-  CALL_SUBTEST(test_sycl_broadcast());
+  CALL_SUBTEST(test_broadcast_sycl());
 }

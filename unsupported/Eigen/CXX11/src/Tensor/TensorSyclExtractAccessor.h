@@ -29,8 +29,8 @@
  *
 *****************************************************************/
 
-#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_EXTRACT_ACCESSOR_HPP
-#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_EXTRACT_ACCESSOR_HPP
+#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_EXTRACT_ACCESSOR_HPP
+#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_EXTRACT_ACCESSOR_HPP
 
 namespace Eigen {
 namespace TensorSycl {
@@ -42,425 +42,160 @@ namespace internal {
 template <typename Evaluator>
 struct ExtractAccessor;
 
-/// specialisation of the \ref ExtractAccessor struct when the node type is
-/// const TensorMap
-template <typename PlainObjectType, int Options_, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<const TensorMap<PlainObjectType, Options_>, Dev>> {
-  using actual_type = typename Eigen::internal::remove_all<
-      typename Eigen::internal::traits<PlainObjectType>::Scalar>::type;
-  static inline auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<const TensorMap<PlainObjectType, Options_>, Dev>
-          eval)
-      -> decltype(utility::tuple::make_tuple(
-          (eval.device()
-               .template get_sycl_accessor<cl::sycl::access::mode::read, true,
-                                           actual_type>(
-                   eval.dimensions().TotalSize(), cgh,
-                   eval.derived().data())))) {
-    return utility::tuple::make_tuple(
-        (eval.device()
-             .template get_sycl_accessor<cl::sycl::access::mode::read, true,
-                                         actual_type>(
-                 eval.dimensions().TotalSize(), cgh, eval.derived().data())));
+struct AccessorConstructor{
+  template<typename Arg> static inline auto getTuple(cl::sycl::handler& cgh, Arg eval)
+  -> decltype(ExtractAccessor<Arg>::getTuple(cgh, eval)) {
+  return ExtractAccessor<Arg>::getTuple(cgh, eval);
+  }
+
+  template<typename Arg1, typename Arg2> static inline auto getTuple(cl::sycl::handler& cgh, Arg1 eval1, Arg2 eval2)
+  -> decltype(utility::tuple::append(ExtractAccessor<Arg1>::getTuple(cgh, eval1), ExtractAccessor<Arg2>::getTuple(cgh, eval2))) {
+    return utility::tuple::append(ExtractAccessor<Arg1>::getTuple(cgh, eval1), ExtractAccessor<Arg2>::getTuple(cgh, eval2));
+  }
+  template<typename Arg1, typename Arg2, typename Arg3>	static inline auto getTuple(cl::sycl::handler& cgh, Arg1 eval1 , Arg2 eval2 , Arg3 eval3)
+  -> decltype(utility::tuple::append(ExtractAccessor<Arg1>::getTuple(cgh, eval1),utility::tuple::append(ExtractAccessor<Arg2>::getTuple(cgh, eval2), ExtractAccessor<Arg3>::getTuple(cgh, eval3)))) {
+    return utility::tuple::append(ExtractAccessor<Arg1>::getTuple(cgh, eval1),utility::tuple::append(ExtractAccessor<Arg2>::getTuple(cgh, eval2), ExtractAccessor<Arg3>::getTuple(cgh, eval3)));
+  }
+  template< cl::sycl::access::mode AcM, typename Arg> static inline auto getAccessor(cl::sycl::handler& cgh, Arg eval)
+  -> decltype(utility::tuple::make_tuple( eval.device().template get_sycl_accessor<AcM, true,
+  typename Eigen::internal::remove_all<typename Arg::CoeffReturnType>::type>(eval.dimensions().TotalSize(), cgh,eval.data()))){
+    return utility::tuple::make_tuple(eval.device().template get_sycl_accessor<AcM, true, typename Eigen::internal::remove_all<typename Arg::CoeffReturnType>::type>(eval.dimensions().TotalSize(), cgh,eval.data()));
   }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
-/// TensorMap
-template <typename PlainObjectType, int Options_, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<TensorMap<PlainObjectType, Options_>, Dev>> {
-  using actual_type = typename Eigen::internal::remove_all<
-      typename Eigen::internal::traits<PlainObjectType>::Scalar>::type;
-
-  static inline auto getTuple(
-      cl::sycl::handler& cgh,
-      TensorEvaluator<TensorMap<PlainObjectType, Options_>, Dev> eval)
-      -> decltype(utility::tuple::make_tuple(
-          (eval.device()
-               .template get_sycl_accessor<cl::sycl::access::mode::read_write,
-                                           true, actual_type>(
-                   eval.dimensions().TotalSize(), cgh,
-                   eval.derived().data())))) {
-    return utility::tuple::make_tuple(
-        (eval.device()
-             .template get_sycl_accessor<cl::sycl::access::mode::read_write,
-                                         true, actual_type>(
-                 eval.dimensions().TotalSize(), cgh, eval.derived().data())));
+/// const TensorCwiseNullaryOp, const TensorCwiseUnaryOp and const TensorBroadcastingOp
+template <template<class, class> class UnaryCategory, typename OP, typename RHSExpr, typename Dev>
+struct ExtractAccessor<TensorEvaluator<const UnaryCategory<OP, RHSExpr>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const UnaryCategory<OP, RHSExpr>, Dev> eval)
+  -> decltype(AccessorConstructor::getTuple(cgh, eval.impl())){
+    return AccessorConstructor::getTuple(cgh, eval.impl());
   }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
-/// const TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<const TensorCwiseNullaryOp<OP, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<const TensorCwiseNullaryOp<OP, RHSExpr>, Dev> eval)
-      -> decltype(ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-          cgh, eval.impl())) {
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.impl());
-    return RHSTuple;
-  }
-};
-
-/// specialisation of the \ref ExtractAccessor struct when the node type is
-/// TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<TensorCwiseNullaryOp<OP, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<TensorCwiseNullaryOp<OP, RHSExpr>, Dev> eval)
-      -> decltype(ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-          cgh, eval.impl())) {
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.impl());
-    return RHSTuple;
-  }
-};
-
-/// specialisation of the \ref ExtractAccessor struct when the node type is
-/// const TensorBroadcastingOp
-template <typename OP, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<const TensorBroadcastingOp<OP, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<const TensorBroadcastingOp<OP, RHSExpr>, Dev> eval)
-      -> decltype(ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-          cgh, eval.impl())) {
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.impl());
-    return RHSTuple;
-  }
-};
-
-/// specialisation of the \ref ExtractAccessor struct when the node type is
-/// TensorBroadcastingOp
-template <typename OP, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<TensorBroadcastingOp<OP, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<TensorBroadcastingOp<OP, RHSExpr>, Dev> eval)
-      -> decltype(ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-          cgh, eval.impl())) {
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.impl());
-    return RHSTuple;
-  }
-};
-
-/// specialisation of the \ref ExtractAccessor struct when the node type is
-/// const TenosorCwiseUnary
-template <typename OP, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<const TensorCwiseUnaryOp<OP, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<const TensorCwiseUnaryOp<OP, RHSExpr>, Dev> eval)
-      -> decltype(ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-          cgh, eval.impl())) {
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.impl());
-    return RHSTuple;
-  }
-};
-
-/// specialisation of the \ref ExtractAccessor struct when the node type is
-/// TenosorCwiseUnary
-template <typename OP, typename RHSExpr, typename Dev>
-struct ExtractAccessor<TensorEvaluator<TensorCwiseUnaryOp<OP, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<TensorCwiseUnaryOp<OP, RHSExpr>, Dev> eval)
-      -> decltype(ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-          cgh, eval.impl())) {
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.impl());
-    return RHSTuple;
-  }
-};
+///  TensorCwiseNullaryOp,  TensorCwiseUnaryOp and  TensorBroadcastingOp
+template <template<class, class> class UnaryCategory, typename OP, typename RHSExpr, typename Dev>
+struct ExtractAccessor<TensorEvaluator<UnaryCategory<OP, RHSExpr>, Dev> >
+: ExtractAccessor<TensorEvaluator<const UnaryCategory<OP, RHSExpr>, Dev> > {};
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// const TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<const TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>, Dev>> {
-  static auto getTuple(cl::sycl::handler& cgh,
-                       const TensorEvaluator<
-                           const TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>, Dev>
-                           eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-              cgh, eval.left_impl()),
-          ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-              cgh, eval.right_impl()))) {
-    auto LHSTuple = ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-        cgh, eval.left_impl());
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.right_impl());
-    return utility::tuple::append(LHSTuple, RHSTuple);
+template <template<class, class, class> class BinaryCategory, typename OP,  typename LHSExpr, typename RHSExpr, typename Dev>
+struct ExtractAccessor<TensorEvaluator<const BinaryCategory<OP, LHSExpr, RHSExpr>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const BinaryCategory<OP, LHSExpr, RHSExpr>, Dev> eval)
+  -> decltype(AccessorConstructor::getTuple(cgh, eval.left_impl(), eval.right_impl())){
+    return AccessorConstructor::getTuple(cgh, eval.left_impl(), eval.right_impl());
   }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>, Dev>
-          eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-              cgh, eval.left_impl()),
-          ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-              cgh, eval.right_impl()))) {
-    auto LHSTuple = ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-        cgh, eval.left_impl());
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.right_impl());
-    return utility::tuple::append(LHSTuple, RHSTuple);
-  }
-};
+template <template<class, class, class> class BinaryCategory, typename OP,  typename LHSExpr, typename RHSExpr, typename Dev>
+struct ExtractAccessor<TensorEvaluator<BinaryCategory<OP, LHSExpr, RHSExpr>, Dev> >
+: ExtractAccessor<TensorEvaluator<const BinaryCategory<OP, LHSExpr, RHSExpr>, Dev> >{};
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// const TensorCwiseTernaryOp
-template <typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr,
-          typename Dev>
-struct ExtractAccessor<TensorEvaluator<
-    const TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<
-          const TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev>
-          eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<Arg1Expr, Dev>>::getTuple(
-              cgh, eval.arg1Impl()),
-          utility::tuple::append(
-              ExtractAccessor<TensorEvaluator<Arg2Expr, Dev>>::getTuple(
-                  cgh, eval.arg2Impl()),
-              ExtractAccessor<TensorEvaluator<Arg3Expr, Dev>>::getTuple(
-                  cgh, eval.arg3Impl())))) {
-    auto Arg1Tuple = ExtractAccessor<TensorEvaluator<Arg1Expr, Dev>>::getTuple(
-        cgh, eval.arg1Impl());
-    auto Arg2Tuple = ExtractAccessor<TensorEvaluator<Arg2Expr, Dev>>::getTuple(
-        cgh, eval.arg2Impl());
-    auto Arg3Tuple = ExtractAccessor<TensorEvaluator<Arg3Expr, Dev>>::getTuple(
-        cgh, eval.arg3Impl());
-    return utility::tuple::append(Arg1Tuple,
-                                  utility::tuple::append(Arg2Tuple, Arg3Tuple));
+template <template<class, class, class, class> class TernaryCategory, typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr, typename Dev>
+struct ExtractAccessor<TensorEvaluator<const TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> eval)
+  -> decltype(AccessorConstructor::getTuple(cgh, eval.arg1Impl(), eval.arg2Impl(), eval.arg3Impl())){
+    return AccessorConstructor::getTuple(cgh, eval.arg1Impl(), eval.arg2Impl(), eval.arg3Impl());
   }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorCwiseTernaryOp
-template <typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr,
-          typename Dev>
-struct ExtractAccessor<TensorEvaluator<
-    TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<
-          TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev>
-          eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<Arg1Expr, Dev>>::getTuple(
-              cgh, eval.arg1Impl()),
-          utility::tuple::append(
-              ExtractAccessor<TensorEvaluator<Arg2Expr, Dev>>::getTuple(
-                  cgh, eval.arg2Impl()),
-              ExtractAccessor<TensorEvaluator<Arg3Expr, Dev>>::getTuple(
-                  cgh, eval.arg3Impl())))) {
-    auto Arg1Tuple = ExtractAccessor<TensorEvaluator<Arg1Expr, Dev>>::getTuple(
-        cgh, eval.arg1Impl());
-    auto Arg2Tuple = ExtractAccessor<TensorEvaluator<Arg2Expr, Dev>>::getTuple(
-        cgh, eval.arg2Impl());
-    auto Arg3Tuple = ExtractAccessor<TensorEvaluator<Arg3Expr, Dev>>::getTuple(
-        cgh, eval.arg3Impl());
-    return utility::tuple::append(Arg1Tuple,
-                                  utility::tuple::append(Arg2Tuple, Arg3Tuple));
+template <template<class, class, class, class> class TernaryCategory, typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr, typename Dev>
+struct ExtractAccessor<TensorEvaluator<TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> >
+: ExtractAccessor<TensorEvaluator<const TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> >{};
+
+/// specialisation of the \ref ExtractAccessor struct when the node type is
+/// const TensorCwiseSelectOp. This is a special case where there is no OP
+template <typename IfExpr, typename ThenExpr, typename ElseExpr, typename Dev>
+struct ExtractAccessor<TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> eval)
+  -> decltype(AccessorConstructor::getTuple(cgh, eval.cond_impl(), eval.then_impl(), eval.else_impl())){
+    return AccessorConstructor::getTuple(cgh, eval.cond_impl(), eval.then_impl(), eval.else_impl());
   }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
-/// const TensorCwiseSelectOp
+/// TensorCwiseSelectOp. This is a special case where there is no OP
 template <typename IfExpr, typename ThenExpr, typename ElseExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>,
-                            Dev>
-          eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<IfExpr, Dev>>::getTuple(
-              cgh, eval.cond_impl()),
-          utility::tuple::append(
-              ExtractAccessor<TensorEvaluator<ThenExpr, Dev>>::getTuple(
-                  cgh, eval.then_impl()),
-              ExtractAccessor<TensorEvaluator<ElseExpr, Dev>>::getTuple(
-                  cgh, eval.else_impl())))) {
-    auto IfTuple = ExtractAccessor<TensorEvaluator<IfExpr, Dev>>::getTuple(
-        cgh, eval.cond_impl());
-    auto ThenTuple = ExtractAccessor<TensorEvaluator<ThenExpr, Dev>>::getTuple(
-        cgh, eval.then_impl());
-    auto ElseTuple = ExtractAccessor<TensorEvaluator<ElseExpr, Dev>>::getTuple(
-        cgh, eval.else_impl());
-    return utility::tuple::append(IfTuple,
-                                  utility::tuple::append(ThenTuple, ElseTuple));
-  }
-};
-
-/// specialisation of the \ref ExtractAccessor struct when the node type is
-/// TensorCwiseSelectOp
-template <typename IfExpr, typename ThenExpr, typename ElseExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev>
-          eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<IfExpr, Dev>>::getTuple(
-              cgh, eval.cond_impl()),
-          utility::tuple::append(
-              ExtractAccessor<TensorEvaluator<ThenExpr, Dev>>::getTuple(
-                  cgh, eval.then_impl()),
-              ExtractAccessor<TensorEvaluator<ElseExpr, Dev>>::getTuple(
-                  cgh, eval.else_impl())))) {
-    auto IfTuple = ExtractAccessor<TensorEvaluator<IfExpr, Dev>>::getTuple(
-        cgh, eval.cond_impl());
-    auto ThenTuple = ExtractAccessor<TensorEvaluator<ThenExpr, Dev>>::getTuple(
-        cgh, eval.then_impl());
-    auto ElseTuple = ExtractAccessor<TensorEvaluator<ElseExpr, Dev>>::getTuple(
-        cgh, eval.else_impl());
-    return utility::tuple::append(IfTuple,
-                                  utility::tuple::append(ThenTuple, ElseTuple));
-  }
-};
+struct ExtractAccessor<TensorEvaluator<TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> >
+: ExtractAccessor<TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> >{};
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// const TensorAssignOp
 template <typename LHSExpr, typename RHSExpr, typename Dev>
-struct ExtractAccessor<
-    TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev> eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-              cgh, eval.left_impl()),
-          ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-              cgh, eval.right_impl()))) {
-    auto LHSTuple = ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-        cgh, eval.left_impl());
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.right_impl());
-    return utility::tuple::append(LHSTuple, RHSTuple);
-  }
+struct ExtractAccessor<TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev> eval)
+  -> decltype(AccessorConstructor::getTuple(cgh, eval.left_impl(), eval.right_impl())){
+    return AccessorConstructor::getTuple(cgh, eval.left_impl(), eval.right_impl());
+ }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorAssignOp
 template <typename LHSExpr, typename RHSExpr, typename Dev>
-struct ExtractAccessor<TensorEvaluator<TensorAssignOp<LHSExpr, RHSExpr>, Dev>> {
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<TensorAssignOp<LHSExpr, RHSExpr>, Dev> eval)
-      -> decltype(utility::tuple::append(
-          ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-              eval.left_impl()),
-          ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-              eval.right_impl()))) {
-    auto LHSTuple = ExtractAccessor<TensorEvaluator<LHSExpr, Dev>>::getTuple(
-        cgh, eval.left_impl());
-    auto RHSTuple = ExtractAccessor<TensorEvaluator<RHSExpr, Dev>>::getTuple(
-        cgh, eval.right_impl());
-    return utility::tuple::append(LHSTuple, RHSTuple);
-  }
+struct ExtractAccessor<TensorEvaluator<TensorAssignOp<LHSExpr, RHSExpr>, Dev> >
+: ExtractAccessor<TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev> >{};
+
+/// specialisation of the \ref ExtractAccessor struct when the node type is
+/// const TensorMap
+#define TENSORMAPEXPR(CVQual, ACCType)\
+template <typename PlainObjectType, int Options_, typename Dev>\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorMap<PlainObjectType, Options_>, Dev> > {\
+  static inline auto getTuple(cl::sycl::handler& cgh,const TensorEvaluator<CVQual TensorMap<PlainObjectType, Options_>, Dev> eval)\
+  -> decltype(AccessorConstructor::template getAccessor<ACCType>(cgh, eval)){\
+    return AccessorConstructor::template getAccessor<ACCType>(cgh, eval);\
+  }\
 };
+TENSORMAPEXPR(const, cl::sycl::access::mode::read)
+TENSORMAPEXPR(, cl::sycl::access::mode::read_write)
+#undef TENSORMAPEXPR
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// const TensorForcedEvalOp
 template <typename Expr, typename Dev>
-struct ExtractAccessor<TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev>> {
-  using actual_type =
-      typename Eigen::internal::remove_all<typename TensorEvaluator<
-          const TensorForcedEvalOp<Expr>, Dev>::CoeffReturnType>::type;
-  static auto getTuple(
-      cl::sycl::handler& cgh,
-      const TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev> eval)
-      -> decltype(utility::tuple::make_tuple(
-          (eval.device()
-               .template get_sycl_accessor<cl::sycl::access::mode::read, false,
-                                           actual_type>(
-                   eval.dimensions().TotalSize(), cgh, eval.data())))) {
-    return utility::tuple::make_tuple(
-        (eval.device()
-             .template get_sycl_accessor<cl::sycl::access::mode::read, false,
-                                         actual_type>(
-                 eval.dimensions().TotalSize(), cgh, eval.data())));
+struct ExtractAccessor<TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev> eval)
+  -> decltype(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval)){
+    return AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval);
   }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorForcedEvalOp
 template <typename Expr, typename Dev>
-struct ExtractAccessor<TensorEvaluator<TensorForcedEvalOp<Expr>, Dev>>
-    : ExtractAccessor<TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev>> {};
+struct ExtractAccessor<TensorEvaluator<TensorForcedEvalOp<Expr>, Dev> >
+: ExtractAccessor<TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev> >{};
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// const TensorEvalToOp
 template <typename Expr, typename Dev>
-struct ExtractAccessor<TensorEvaluator<const TensorEvalToOp<Expr>, Dev>> {
-  using actual_type =
-      typename Eigen::internal::remove_all<typename TensorEvaluator<
-          const TensorEvalToOp<Expr>, Dev>::CoeffReturnType>::type;
-
-  static auto getTuple(cl::sycl::handler& cgh,
-                       TensorEvaluator<const TensorEvalToOp<Expr>, Dev> eval)
-      -> decltype(utility::tuple::append(
-          utility::tuple::make_tuple(
-              (eval.device()
-                   .template get_sycl_accessor<cl::sycl::access::mode::write,
-                                               false, actual_type>(
-                       eval.dimensions().TotalSize(), cgh, eval.data()))),
-          ExtractAccessor<TensorEvaluator<Expr, Dev>>::getTuple(cgh,
-                                                                eval.impl()))) {
-    auto LHSTuple = utility::tuple::make_tuple(
-        (eval.device()
-             .template get_sycl_accessor<cl::sycl::access::mode::write, false,
-                                         actual_type>(
-                 eval.dimensions().TotalSize(), cgh, eval.data())));
-
-    auto RHSTuple =
-        ExtractAccessor<TensorEvaluator<Expr, Dev>>::getTuple(cgh, eval.impl());
-    return utility::tuple::append(LHSTuple, RHSTuple);
+struct ExtractAccessor<TensorEvaluator<const TensorEvalToOp<Expr>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh,const TensorEvaluator<const TensorEvalToOp<Expr>, Dev> eval)
+  -> decltype(utility::tuple::append(AccessorConstructor::template getAccessor<cl::sycl::access::mode::write>(cgh, eval), AccessorConstructor::getTuple(cgh, eval.impl()))){
+    return utility::tuple::append(AccessorConstructor::template getAccessor<cl::sycl::access::mode::write>(cgh, eval), AccessorConstructor::getTuple(cgh, eval.impl()));
   }
 };
 
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// TensorEvalToOp
 template <typename Expr, typename Dev>
-struct ExtractAccessor<TensorEvaluator<TensorEvalToOp<Expr>, Dev>>
-    : ExtractAccessor<TensorEvaluator<const TensorEvalToOp<Expr>, Dev>> {};
+struct ExtractAccessor<TensorEvaluator<TensorEvalToOp<Expr>, Dev> >
+: ExtractAccessor<TensorEvaluator<const TensorEvalToOp<Expr>, Dev> >{};
 
 /// template deduction for \ref ExtractAccessor
 template <typename Evaluator>
 auto createTupleOfAccessors(cl::sycl::handler& cgh, const Evaluator& expr)
-    -> decltype(ExtractAccessor<Evaluator>::getTuple(cgh, expr)) {
+-> decltype(ExtractAccessor<Evaluator>::getTuple(cgh, expr)) {
   return ExtractAccessor<Evaluator>::getTuple(cgh, expr);
 }
 }
 }
 }
-#endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_EXTRACT_ACCESSOR_HPP
+#endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_EXTRACT_ACCESSOR_HPP

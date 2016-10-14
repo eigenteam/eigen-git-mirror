@@ -20,7 +20,7 @@
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
-void test_sycl_device() {
+void test_device_sycl() {
   cl::sycl::gpu_selector s;
   cl::sycl::queue q(s, [=](cl::sycl::exception_list l) {
     for (const auto& e : l) {
@@ -31,9 +31,9 @@ void test_sycl_device() {
       }
     }
   });
-  SyclDevice sycl_device(q);
+  Eigen::SyclDevice sycl_device(q);
 	printf("Helo from ComputeCpp: Device Exists\n");
 }
 void test_cxx11_tensor_device_sycl() {
-  CALL_SUBTEST(test_sycl_device());
+  CALL_SUBTEST(test_device_sycl());
 }
