@@ -22,7 +22,7 @@
 
 using Eigen::Tensor;
 
-void test_sycl_gpu() {
+void test_forced_eval_sycl() {
 	cl::sycl::gpu_selector s;
   cl::sycl::queue q(s, [=](cl::sycl::exception_list l) {
     for (const auto& e : l) {
@@ -65,6 +65,4 @@ void test_sycl_gpu() {
 	printf("(a+b)*b Test Passed\n");
 }
 
-void test_cxx11_tensor_forced_eval_sycl() {
- CALL_SUBTEST(test_sycl_gpu());
-}
+void test_cxx11_tensor_forced_eval_sycl() { CALL_SUBTEST(test_forced_eval_sycl()); }

@@ -19,12 +19,13 @@
  *
 *****************************************************************/
 
-#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_TENSORSYCL_CONVERT_TO_DEVICE_EXPRESSION_HPP
-#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_TENSORSYCL_CONVERT_TO_DEVICE_EXPRESSION_HPP
+#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_CONVERT_TO_DEVICE_EXPRESSION_HPP
+#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_CONVERT_TO_DEVICE_EXPRESSION_HPP
 
 namespace Eigen {
 namespace TensorSycl {
 namespace internal {
+
 /// \struct ConvertToDeviceExpression
 /// \brief This struct is used to convert the MakePointer in the host expression
 /// to the MakeGlobalPointer for the device expression. For the leafNodes
@@ -33,204 +34,74 @@ namespace internal {
 template <typename Expr>
 struct ConvertToDeviceExpression;
 
+template<template<class...> class NonOpCategory, bool IsConst, typename... Args>
+struct NonOpConversion{
+  typedef typename GetType<IsConst, NonOpCategory<typename ConvertToDeviceExpression<Args>::Type...> >::Type Type;
+};
+
+
+template<template<class, template <class> class > class NonOpCategory, bool IsConst, typename Args>
+struct DeviceConvertor{
+  typedef typename GetType<IsConst, NonOpCategory<typename ConvertToDeviceExpression<Args>::Type, MakeGlobalPointer> >::Type Type;
+};
+
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
 /// type is TensorMap
-template <typename Scalar_, int Options_, int Options2_, int NumIndices_,
-          typename IndexType_, template <class> class MakePointer_>
-struct ConvertToDeviceExpression<
-    TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_,
-              MakePointer_>> {
-  using Type = TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>,
-                         Options2_, MakeGlobalPointer>;
+#define TENSORMAPCONVERT(CVQual)\
+template <typename Scalar_, int Options_, int Options2_, int NumIndices_, typename IndexType_, template <class> class MakePointer_>\
+struct ConvertToDeviceExpression<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakePointer_> > {\
+  typedef CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakeGlobalPointer> Type;\
 };
 
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorMap
-template <typename Scalar_, int Options_, int Options2_, int NumIndices_,
-          typename IndexType_, template <class> class MakePointer_>
-struct ConvertToDeviceExpression<
-    const TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>,
-                    Options2_, MakePointer_>> {
-  using Type =
-      const TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>,
-                      Options2_, MakeGlobalPointer>;
-};
+TENSORMAPCONVERT(const)
+TENSORMAPCONVERT()
+#undef TENSORMAPCONVERT
 
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr>
-struct ConvertToDeviceExpression<const TensorCwiseNullaryOp<OP, RHSExpr>> {
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = const TensorCwiseNullaryOp<OP, RHSPlaceHolderType>;
+/// type is TensorCwiseNullaryOp, TensorCwiseUnaryOp, TensorCwiseBinaryOp, TensorCwiseTernaryOp, TensorBroadcastingOp
+#define CATEGORYCONVERT(CVQual)\
+template <template<class, class...> class Category, typename OP, typename... subExprs>\
+struct ConvertToDeviceExpression<CVQual Category<OP, subExprs...> > {\
+  typedef CVQual Category<OP, typename ConvertToDeviceExpression<subExprs>::Type... > Type;\
 };
+CATEGORYCONVERT(const)
+CATEGORYCONVERT()
+#undef CATEGORYCONVERT
+
 
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr>
-struct ConvertToDeviceExpression<TensorCwiseNullaryOp<OP, RHSExpr>> {
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = TensorCwiseNullaryOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorBroadcastingOp
-template <typename OP, typename RHSExpr>
-struct ConvertToDeviceExpression<const TensorBroadcastingOp<OP, RHSExpr>> {
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = const TensorBroadcastingOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is TensorBroadcastingOp
-template <typename OP, typename RHSExpr>
-struct ConvertToDeviceExpression<TensorBroadcastingOp<OP, RHSExpr>> {
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = TensorBroadcastingOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorCwiseUnaryOp
-template <typename OP, typename RHSExpr>
-struct ConvertToDeviceExpression<const TensorCwiseUnaryOp<OP, RHSExpr>> {
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = const TensorCwiseUnaryOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is TensorCwiseUnaryOp
-template <typename OP, typename RHSExpr>
-struct ConvertToDeviceExpression<TensorCwiseUnaryOp<OP, RHSExpr>> {
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = TensorCwiseUnaryOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr>
-struct ConvertToDeviceExpression<
-    const TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>> {
-  using LHSPlaceHolderType = typename ConvertToDeviceExpression<LHSExpr>::Type;
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type =
-      const TensorCwiseBinaryOp<OP, LHSPlaceHolderType, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr>
-struct ConvertToDeviceExpression<TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>> {
-  using LHSPlaceHolderType = typename ConvertToDeviceExpression<LHSExpr>::Type;
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = TensorCwiseBinaryOp<OP, LHSPlaceHolderType, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorCwiseTernaryOp
-template <typename OP, typename Arg1Impl, typename Arg2Impl, typename Arg3Impl>
-struct ConvertToDeviceExpression<
-    const TensorCwiseTernaryOp<OP, Arg1Impl, Arg2Impl, Arg3Impl>> {
-  using Arg1PlaceHolderType =
-      typename ConvertToDeviceExpression<Arg1Impl>::Type;
-  using Arg2PlaceHolderType =
-      typename ConvertToDeviceExpression<Arg2Impl>::Type;
-  using Arg3PlaceHolderType =
-      typename ConvertToDeviceExpression<Arg3Impl>::Type;
-  using Type =
-      const TensorCwiseTernaryOp<OP, Arg1PlaceHolderType, Arg2PlaceHolderType,
-                                 Arg3PlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is TensorCwiseTernaryOp
-template <typename OP, typename Arg1Impl, typename Arg2Impl, typename Arg3Impl>
-struct ConvertToDeviceExpression<
-    TensorCwiseTernaryOp<OP, Arg1Impl, Arg2Impl, Arg3Impl>> {
-  using Arg1PlaceHolderType =
-      typename ConvertToDeviceExpression<Arg1Impl>::Type;
-  using Arg2PlaceHolderType =
-      typename ConvertToDeviceExpression<Arg2Impl>::Type;
-  using Arg3PlaceHolderType =
-      typename ConvertToDeviceExpression<Arg3Impl>::Type;
-  using Type = TensorCwiseTernaryOp<OP, Arg1PlaceHolderType,
-                                    Arg2PlaceHolderType, Arg3PlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorCwiseSelectOp
-template <typename IfExpr, typename ThenExpr, typename ElseExpr>
-struct ConvertToDeviceExpression<
-    const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>> {
-  using IfPlaceHolderType = typename ConvertToDeviceExpression<IfExpr>::Type;
-  using ThenPlaceHolderType =
-      typename ConvertToDeviceExpression<ThenExpr>::Type;
-  using ElsePlaceHolderType =
-      typename ConvertToDeviceExpression<ElseExpr>::Type;
-  using Type = const TensorSelectOp<IfPlaceHolderType, ThenPlaceHolderType,
-                                    ElsePlaceHolderType>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is TensorCwiseSelectOp
-template <typename IfExpr, typename ThenExpr, typename ElseExpr>
-struct ConvertToDeviceExpression<TensorSelectOp<IfExpr, ThenExpr, ElseExpr>> {
-  using IfPlaceHolderType = typename ConvertToDeviceExpression<IfExpr>::Type;
-  using ThenPlaceHolderType =
-      typename ConvertToDeviceExpression<ThenExpr>::Type;
-  using ElsePlaceHolderType =
-      typename ConvertToDeviceExpression<ElseExpr>::Type;
-  using Type = TensorSelectOp<IfPlaceHolderType, ThenPlaceHolderType,
-                              ElsePlaceHolderType>;
-};
+/// type is  TensorCwiseSelectOp
+#define SELECTOPCONVERT(CVQual, Res)\
+template <typename IfExpr, typename ThenExpr, typename ElseExpr>\
+struct ConvertToDeviceExpression<CVQual TensorSelectOp<IfExpr, ThenExpr, ElseExpr> >\
+: NonOpConversion<TensorSelectOp, Res, IfExpr, ThenExpr, ElseExpr> {};
+SELECTOPCONVERT(const, true)
+SELECTOPCONVERT(, false)
+#undef SELECTOPCONVERT
 
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
 /// type is const AssingOP
-template <typename LHSExpr, typename RHSExpr>
-struct ConvertToDeviceExpression<const TensorAssignOp<LHSExpr, RHSExpr>> {
-  using LHSPlaceHolderType = typename ConvertToDeviceExpression<LHSExpr>::Type;
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = const TensorAssignOp<LHSPlaceHolderType, RHSPlaceHolderType>;
-};
+#define ASSIGNCONVERT(CVQual, Res)\
+template <typename LHSExpr, typename RHSExpr>\
+struct ConvertToDeviceExpression<CVQual TensorAssignOp<LHSExpr, RHSExpr> >\
+: NonOpConversion<TensorAssignOp, Res, LHSExpr, RHSExpr>{};
+
+ASSIGNCONVERT(const, true)
+ASSIGNCONVERT(, false)
+#undef ASSIGNCONVERT
 
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is AssingOP
-template <typename LHSExpr, typename RHSExpr>
-struct ConvertToDeviceExpression<TensorAssignOp<LHSExpr, RHSExpr>> {
-  using LHSPlaceHolderType = typename ConvertToDeviceExpression<LHSExpr>::Type;
-  using RHSPlaceHolderType = typename ConvertToDeviceExpression<RHSExpr>::Type;
-  using Type = TensorAssignOp<LHSPlaceHolderType, RHSPlaceHolderType>;
-};
+/// type is either TensorForcedEvalOp or TensorEvalToOp
+#define KERNELBROKERCONVERT(CVQual, Res, ExprNode)\
+template <typename Expr>\
+struct ConvertToDeviceExpression<CVQual ExprNode<Expr> > \
+: DeviceConvertor<ExprNode, Res, Expr>{};
 
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorForcedEvalOp
-template <typename Expr>
-struct ConvertToDeviceExpression<const TensorForcedEvalOp<Expr>> {
-  using PlaceHolderType = typename ConvertToDeviceExpression<Expr>::Type;
-  using Type = const TensorForcedEvalOp<PlaceHolderType, MakeGlobalPointer>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorForcedEvalOp
-template <typename Expr>
-struct ConvertToDeviceExpression<TensorForcedEvalOp<Expr>> {
-  using PlaceHolderType = typename ConvertToDeviceExpression<Expr>::Type;
-  using Type = TensorForcedEvalOp<PlaceHolderType, MakeGlobalPointer>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is const TensorEvalToOp
-template <typename Expr>
-struct ConvertToDeviceExpression<const TensorEvalToOp<Expr>> {
-  using PlaceHolderType = typename ConvertToDeviceExpression<Expr>::Type;
-  using Type = const TensorEvalToOp<PlaceHolderType, MakeGlobalPointer>;
-};
-
-/// specialisation of the \ref ConvertToDeviceExpression struct when the node
-/// type is TensorEvalToOp
-template <typename Expr>
-struct ConvertToDeviceExpression<TensorEvalToOp<Expr>> {
-  using PlaceHolderType = typename ConvertToDeviceExpression<Expr>::Type;
-  using Type = TensorEvalToOp<PlaceHolderType, MakeGlobalPointer>;
-};
+KERNELBROKERCONVERT(const, true, TensorForcedEvalOp)
+KERNELBROKERCONVERT(, false, TensorForcedEvalOp)
+KERNELBROKERCONVERT(const, true, TensorEvalToOp)
+KERNELBROKERCONVERT(, false, TensorEvalToOp)
+#undef KERNELBROKERCONVERT
 }  // namespace internal
 }  // namespace TensorSycl
 }  // namespace Eigen

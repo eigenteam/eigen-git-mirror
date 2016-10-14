@@ -11,19 +11,34 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 // General include header of SYCL target for Tensor Module
-#ifndef TENSORSYCL_H
-#define TENSORSYCL_H
+#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_H
+#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_H
 
 #ifdef EIGEN_USE_SYCL
 
-// trait class to extract different attribute contents
-template <typename T>
-struct Trait;
 // global pointer to set different attribute state for a class
 template <class T>
 struct MakeGlobalPointer {
   typedef typename cl::sycl::global_ptr<T>::pointer_t Type;
 };
+
+namespace Eigen {
+namespace TensorSycl {
+namespace internal {
+
+/// This struct is used for special expression nodes with no operations (for example assign and selectOP).
+  struct NoOP;
+
+template<bool IsConst, typename T> struct GetType{
+  typedef const T Type;
+};
+template<typename T> struct GetType<false, T>{
+  typedef T Type;
+};
+
+}
+}
+}
 
 // tuple construction
 #include "TensorSyclTuple.h"
@@ -59,4 +74,4 @@ struct MakeGlobalPointer {
 #include "TensorSyclRun.h"
 
 #endif  // end of EIGEN_USE_SYCL
-#endif  // TENSORSYCL_H
+#endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_H

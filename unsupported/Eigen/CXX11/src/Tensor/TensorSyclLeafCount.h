@@ -19,8 +19,8 @@
  *
 *****************************************************************/
 
-#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_LEAF_COUNT_HPP
-#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_LEAF_COUNT_HPP
+#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_LEAF_COUNT_HPP
+#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_LEAF_COUNT_HPP
 
 namespace Eigen {
 namespace TensorSycl {
@@ -31,158 +31,81 @@ namespace internal {
 template <typename Expr>
 struct LeafCount;
 
+template<typename... Args> struct CategoryCount;
+
+template<> struct CategoryCount<>
+{
+  static const size_t Count =0;
+};
+
+template<typename Arg, typename... Args>
+struct CategoryCount<Arg,Args...>{
+  static const size_t Count = LeafCount<Arg>::Count + CategoryCount<Args...>::Count;
+};
+
 /// specialisation of the \ref LeafCount struct when the node type is const
 /// TensorMap
-template <typename PlainObjectType, int Options_,
-          template <class> class MakePointer_>
-struct LeafCount<const TensorMap<PlainObjectType, Options_, MakePointer_>> {
-  static const size_t Count = 1;
+template <typename PlainObjectType, int Options_, template <class> class MakePointer_>
+struct LeafCount<const TensorMap<PlainObjectType, Options_, MakePointer_> > {
+  static const size_t Count =1;
 };
 
 /// specialisation of the \ref LeafCount struct when the node type is TensorMap
-template <typename PlainObjectType, int Options_,
-          template <class> class MakePointer_>
-struct LeafCount<TensorMap<PlainObjectType, Options_, MakePointer_>> {
-  static const size_t Count = 1;
-};
+template <typename PlainObjectType, int Options_, template <class> class MakePointer_>
+struct LeafCount<TensorMap<PlainObjectType, Options_, MakePointer_> > :LeafCount<const TensorMap<PlainObjectType, Options_, MakePointer_> >{};
 
-/// specialisation of the \ref LeafCount struct when the node type is const
-/// TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr>
-struct LeafCount<const TensorCwiseNullaryOp<OP, RHSExpr>> {
-  static const size_t Count = LeafCount<RHSExpr>::Count;
-};
+// const TensorCwiseUnaryOp, const TensorCwiseNullaryOp, const TensorCwiseBinaryOp, const TensorCwiseTernaryOp, and Const TensorBroadcastingOp
+template <template <class, class...> class CategoryExpr, typename OP, typename... RHSExpr>
+struct LeafCount<const CategoryExpr<OP, RHSExpr...> >: CategoryCount<RHSExpr...> {};
+// TensorCwiseUnaryOp,  TensorCwiseNullaryOp,  TensorCwiseBinaryOp,  TensorCwiseTernaryOp, and  TensorBroadcastingOp
+template <template <class, class...> class CategoryExpr, typename OP, typename... RHSExpr>
+struct LeafCount<CategoryExpr<OP, RHSExpr...> > :LeafCount<const CategoryExpr<OP, RHSExpr...> >{};
 
 /// specialisation of the \ref LeafCount struct when the node type is
-/// TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr>
-struct LeafCount<TensorCwiseNullaryOp<OP, RHSExpr>> {
-  static const size_t Count = LeafCount<RHSExpr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is const
-/// TensorBroadcastingOp
-template <typename OP, typename RHSExpr>
-struct LeafCount<const TensorBroadcastingOp<OP, RHSExpr>> {
-  static const size_t Count = LeafCount<RHSExpr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is
-/// TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr>
-struct LeafCount<TensorBroadcastingOp<OP, RHSExpr>> {
-  static const size_t Count = LeafCount<RHSExpr>::Count;
-};
-
-// TensorCwiseUnaryOp
-template <typename OP, typename RHSExpr>
-struct LeafCount<const TensorCwiseUnaryOp<OP, RHSExpr>> {
-  static const size_t Count = LeafCount<RHSExpr>::Count;
-};
-
-// TensorCwiseUnaryOp
-template <typename OP, typename RHSExpr>
-struct LeafCount<TensorCwiseUnaryOp<OP, RHSExpr>> {
-  static const size_t Count = LeafCount<RHSExpr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is const
-/// TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr>
-struct LeafCount<const TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>> {
-  static const size_t Count =
-      LeafCount<LHSExpr>::Count + LeafCount<RHSExpr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is
-/// TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr>
-struct LeafCount<TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>> {
-  static const size_t Count =
-      LeafCount<LHSExpr>::Count + LeafCount<RHSExpr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is
-/// TensorCwiseTernaryOp
-template <typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr>
-struct LeafCount<TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>> {
-  static const size_t Count = LeafCount<Arg1Expr>::Count +
-                              LeafCount<Arg2Expr>::Count +
-                              LeafCount<Arg3Expr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is const
-/// TensorCwiseTernaryOp
-template <typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr>
-struct LeafCount<const TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>> {
-  static const size_t Count = LeafCount<Arg1Expr>::Count +
-                              LeafCount<Arg2Expr>::Count +
-                              LeafCount<Arg3Expr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is
-/// TensorCwiseSelectOp
+/// const TensorSelectOp is an exception
 template <typename IfExpr, typename ThenExpr, typename ElseExpr>
-struct LeafCount<TensorSelectOp<IfExpr, ThenExpr, ElseExpr>> {
-  static const size_t Count = LeafCount<IfExpr>::Count +
-                              LeafCount<ThenExpr>::Count +
-                              LeafCount<ElseExpr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is const
-/// TensorCwiseSelectOp
-template <typename IfExpr, typename ThenExpr, typename ElseExpr>
-struct LeafCount<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>> {
-  static const size_t Count = LeafCount<IfExpr>::Count +
-                              LeafCount<ThenExpr>::Count +
-                              LeafCount<ElseExpr>::Count;
-};
-
+struct LeafCount<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr> > : CategoryCount<IfExpr, ThenExpr, ElseExpr> {};
 /// specialisation of the \ref LeafCount struct when the node type is
-/// TensorAssignOp
-template <typename LHSExpr, typename RHSExpr>
-struct LeafCount<TensorAssignOp<LHSExpr, RHSExpr>> {
-  static const size_t Count =
-      LeafCount<LHSExpr>::Count + LeafCount<RHSExpr>::Count;
-};
+/// TensorSelectOp
+template <typename IfExpr, typename ThenExpr, typename ElseExpr>
+struct LeafCount<TensorSelectOp<IfExpr, ThenExpr, ElseExpr> >: LeafCount<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr> > {};
+
 
 /// specialisation of the \ref LeafCount struct when the node type is const
 /// TensorAssignOp
 template <typename LHSExpr, typename RHSExpr>
-struct LeafCount<const TensorAssignOp<LHSExpr, RHSExpr>> {
-  static const size_t Count =
-      LeafCount<LHSExpr>::Count + LeafCount<RHSExpr>::Count;
-};
+struct LeafCount<const TensorAssignOp<LHSExpr, RHSExpr> >: CategoryCount<LHSExpr,RHSExpr> {};
+
+/// specialisation of the \ref LeafCount struct when the node type is
+/// TensorAssignOp is an exception. It is not the same as Unary
+template <typename LHSExpr, typename RHSExpr>
+struct LeafCount<TensorAssignOp<LHSExpr, RHSExpr> > :LeafCount<const TensorAssignOp<LHSExpr, RHSExpr> >{};
 
 /// specialisation of the \ref LeafCount struct when the node type is const
 /// TensorForcedEvalOp
 template <typename Expr>
-struct LeafCount<const TensorForcedEvalOp<Expr>> {
-  static const size_t Count = 1;
+struct LeafCount<const TensorForcedEvalOp<Expr> > {
+    static const size_t Count =1;
 };
 
 /// specialisation of the \ref LeafCount struct when the node type is
 /// TensorForcedEvalOp
 template <typename Expr>
-struct LeafCount<TensorForcedEvalOp<Expr>> {
-  static const size_t Count = 1;
-};
+struct LeafCount<TensorForcedEvalOp<Expr> >: LeafCount<const TensorForcedEvalOp<Expr> > {};
 
 /// specialisation of the \ref LeafCount struct when the node type is const
 /// TensorEvalToOp
 template <typename Expr>
-struct LeafCount<const TensorEvalToOp<Expr>> {
-  static const size_t Count = 1 + LeafCount<Expr>::Count;
+struct LeafCount<const TensorEvalToOp<Expr> > {
+  static const size_t Count = 1 + CategoryCount<Expr>::Count;
 };
 
 /// specialisation of the \ref LeafCount struct when the node type is
 /// TensorEvalToOp
 template <typename Expr>
-struct LeafCount<TensorEvalToOp<Expr>> {
-  static const size_t Count = 1 + LeafCount<Expr>::Count;
-};
+struct LeafCount<TensorEvalToOp<Expr> >: LeafCount<const TensorEvalToOp<Expr> >{};
 }
 }
 }  // namespace Eigen
 
-#endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_LEAF_COUNT_HPP
+#endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_LEAF_COUNT_HPP

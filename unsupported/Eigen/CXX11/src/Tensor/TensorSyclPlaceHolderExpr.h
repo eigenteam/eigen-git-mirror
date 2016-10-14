@@ -19,8 +19,8 @@
  *
 *****************************************************************/
 
-#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_PLACEHOLDER_EXPR_HPP
-#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_PLACEHOLDER_EXPR_HPP
+#ifndef UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_PLACEHOLDER_EXPR_HPP
+#define UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_PLACEHOLDER_EXPR_HPP
 
 namespace Eigen {
 namespace TensorSycl {
@@ -32,262 +32,127 @@ namespace internal {
 template <typename Expr, size_t N>
 struct PlaceHolderExpression;
 
-/// specialisation of the \ref PlaceHolderExpression when the node is TensorMap
-template <typename Scalar_, int Options_, int Options2_, int NumIndices_,
-          typename IndexType_, template <class> class MakePointer_, size_t N>
-struct PlaceHolderExpression<
-    Eigen::TensorMap<Eigen::Tensor<Scalar_, NumIndices_, Options_, IndexType_>,
-                     Options2_, MakePointer_>,
-    N> {
-  using Type = Eigen::internal::PlaceHolder<
-      Eigen::TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>,
-                       Options2_, MakePointer_>,
-      N>;
+template<size_t N, typename... Args>
+struct CalculateIndex;
+
+template<size_t N, typename Arg>
+struct CalculateIndex<N, Arg>{
+  typedef typename PlaceHolderExpression<Arg, N>::Type ArgType;
+  typedef utility::tuple::Tuple<ArgType> ArgsTuple;
 };
 
-/// specialisation of the \ref PlaceHolderExpression when the node is const
+template<size_t N, typename Arg1, typename Arg2>
+struct CalculateIndex<N, Arg1, Arg2>{
+  static const size_t Arg2LeafCount = LeafCount<Arg2>::Count;
+  typedef typename PlaceHolderExpression<Arg1, N - Arg2LeafCount>::Type Arg1Type;
+  typedef typename PlaceHolderExpression<Arg2, N>::Type Arg2Type;
+  typedef utility::tuple::Tuple<Arg1Type, Arg2Type> ArgsTuple;
+};
+
+template<size_t N, typename Arg1, typename Arg2, typename Arg3>
+struct CalculateIndex<N, Arg1, Arg2, Arg3> {
+  static const size_t Arg3LeafCount = LeafCount<Arg3>::Count;
+  static const size_t Arg2LeafCount = LeafCount<Arg2>::Count;
+  typedef typename PlaceHolderExpression<Arg1, N - Arg3LeafCount - Arg2LeafCount>::Type Arg1Type;
+  typedef typename PlaceHolderExpression<Arg2, N - Arg3LeafCount>::Type Arg2Type;
+  typedef typename PlaceHolderExpression<Arg3, N>::Type Arg3Type;
+  typedef utility::tuple::Tuple<Arg1Type, Arg2Type, Arg3Type> ArgsTuple;
+};
+
+template<template<class...> class Category , class OP, class TPL>
+struct CategoryHelper;
+
+template<template<class...> class Category , class OP, class ...T >
+struct CategoryHelper<Category, OP, utility::tuple::Tuple<T...> > {
+  typedef Category<OP, T... > Type;
+};
+
+template<template<class...> class Category , class ...T >
+struct CategoryHelper<Category, NoOP, utility::tuple::Tuple<T...> > {
+  typedef Category<T... > Type;
+};
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorCwiseNullaryOp, TensorCwiseUnaryOp, TensorBroadcastingOp, TensorCwiseBinaryOp,  TensorCwiseTernaryOp
+#define OPEXPRCATEGORY(CVQual)\
+template <template <class, class... > class Category, typename OP, typename... SubExpr, size_t N>\
+struct PlaceHolderExpression<CVQual Category<OP, SubExpr...>, N>{\
+  typedef CVQual typename CategoryHelper<Category, OP, typename CalculateIndex<N, SubExpr...>::ArgsTuple>::Type Type;\
+};
+
+OPEXPRCATEGORY(const)
+OPEXPRCATEGORY()
+#undef OPEXPRCATEGORY
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorCwiseSelectOp
+#define SELECTEXPR(CVQual)\
+template <typename IfExpr, typename ThenExpr, typename ElseExpr, size_t N>\
+struct PlaceHolderExpression<CVQual TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, N> {\
+  typedef CVQual typename CategoryHelper<TensorSelectOp, NoOP, typename CalculateIndex<N, IfExpr, ThenExpr, ElseExpr>::ArgsTuple>::Type Type;\
+};
+
+SELECTEXPR(const)
+SELECTEXPR()
+#undef SELECTEXPR
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorAssignOp
+#define ASSIGNEXPR(CVQual)\
+template <typename LHSExpr, typename RHSExpr, size_t N>\
+struct PlaceHolderExpression<CVQual TensorAssignOp<LHSExpr, RHSExpr>, N> {\
+  typedef CVQual typename CategoryHelper<TensorAssignOp, NoOP, typename CalculateIndex<N, LHSExpr, RHSExpr>::ArgsTuple>::Type Type;\
+};
+
+ASSIGNEXPR(const)
+ASSIGNEXPR()
+#undef ASSIGNEXPR
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorMap
-template <typename Scalar_, int Options_, int Options2_, int NumIndices_,
-          typename IndexType_, template <class> class MakePointer_, size_t N>
-struct PlaceHolderExpression<
-    const Eigen::TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>,
-                           Options2_, MakePointer_>,
-    N> {
-  using Type = const Eigen::internal::PlaceHolder<
-      const TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>,
-                      Options2_, MakePointer_>,
-      N>;
+#define TENSORMAPEXPR(CVQual)\
+template <typename Scalar_, int Options_, int Options2_, int NumIndices_, typename IndexType_, template <class> class MakePointer_, size_t N>\
+struct PlaceHolderExpression< CVQual TensorMap< Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakePointer_>, N> {\
+  typedef CVQual Eigen::internal::PlaceHolder<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakePointer_>, N> Type;\
 };
 
-/// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<TensorCwiseNullaryOp<OP, RHSExpr>, N> {
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-  using Type = TensorCwiseNullaryOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorCwiseNullaryOp
-template <typename OP, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<const TensorCwiseNullaryOp<OP, RHSExpr>, N> {
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-  using Type = const TensorCwiseNullaryOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorBroadcastingOp
-template <typename OP, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<TensorBroadcastingOp<OP, RHSExpr>, N> {
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-  using Type = TensorBroadcastingOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorBroadcastingOp
-template <typename OP, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<const TensorBroadcastingOp<OP, RHSExpr>, N> {
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-  using Type = const TensorBroadcastingOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorCwiseUnaryOp
-template <typename OP, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<TensorCwiseUnaryOp<OP, RHSExpr>, N> {
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-  using Type = TensorCwiseUnaryOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorCwiseUnaryOp
-template <typename OP, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<const TensorCwiseUnaryOp<OP, RHSExpr>, N> {
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-  using Type = const TensorCwiseUnaryOp<OP, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>, N> {
-  static const size_t RHSLeafCount = LeafCount<RHSExpr>::Count;
-
-  using LHSPlaceHolderType =
-      typename PlaceHolderExpression<LHSExpr, N - RHSLeafCount>::Type;
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-
-  using Type = TensorCwiseBinaryOp<OP, LHSPlaceHolderType, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorCwiseBinaryOp
-template <typename OP, typename LHSExpr, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<const TensorCwiseBinaryOp<OP, LHSExpr, RHSExpr>,
-                             N> {
-  static const size_t RHSLeafCount = LeafCount<RHSExpr>::Count;
-
-  using LHSPlaceHolderType =
-      typename PlaceHolderExpression<LHSExpr, N - RHSLeafCount>::Type;
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-
-  using Type =
-      const TensorCwiseBinaryOp<OP, LHSPlaceHolderType, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorCwiseSelectOp
-template <typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr,
-          size_t N>
-struct PlaceHolderExpression<
-    const TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>, N> {
-  static const size_t Arg3LeafCount = LeafCount<Arg3Expr>::Count;
-  static const size_t Arg2LeafCount = LeafCount<Arg2Expr>::Count;
-
-  using Arg1PlaceHolderType =
-      typename PlaceHolderExpression<Arg1Expr,
-                                     N - Arg3LeafCount - Arg2LeafCount>::Type;
-  using Arg2PlaceHolderType =
-      typename PlaceHolderExpression<Arg2Expr, N - Arg3LeafCount>::Type;
-
-  using Arg3PlaceHolderType = typename PlaceHolderExpression<Arg3Expr, N>::Type;
-
-  using Type =
-      const TensorCwiseTernaryOp<OP, Arg1PlaceHolderType, Arg2PlaceHolderType,
-                                 Arg3PlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorCwiseSelectOp
-template <typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr,
-          size_t N>
-struct PlaceHolderExpression<
-    TensorCwiseTernaryOp<OP, Arg1Expr, Arg2Expr, Arg3Expr>, N> {
-  static const size_t Arg3LeafCount = LeafCount<Arg3Expr>::Count;
-  static const size_t Arg2LeafCount = LeafCount<Arg2Expr>::Count;
-
-  using Arg1PlaceHolderType =
-      typename PlaceHolderExpression<Arg1Expr,
-                                     N - Arg3LeafCount - Arg2LeafCount>::Type;
-  using Arg2PlaceHolderType =
-      typename PlaceHolderExpression<Arg2Expr, N - Arg3LeafCount>::Type;
-
-  using Arg3PlaceHolderType = typename PlaceHolderExpression<Arg3Expr, N>::Type;
-
-  using Type = TensorCwiseTernaryOp<OP, Arg1PlaceHolderType,
-                                    Arg2PlaceHolderType, Arg3PlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorCwiseSelectOp
-template <typename IfExpr, typename ThenExpr, typename ElseExpr, size_t N>
-struct PlaceHolderExpression<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>,
-                             N> {
-  static const size_t ElseLeafCount = LeafCount<ElseExpr>::Count;
-  static const size_t ThenLeafCount = LeafCount<ThenExpr>::Count;
-
-  using IfPlaceHolderType =
-      typename PlaceHolderExpression<IfExpr,
-                                     N - ElseLeafCount - ThenLeafCount>::Type;
-  using ThenPlaceHolderType =
-      typename PlaceHolderExpression<ThenExpr, N - ElseLeafCount>::Type;
-
-  using ElsePlaceHolderType = typename PlaceHolderExpression<ElseExpr, N>::Type;
-
-  using Type = const TensorSelectOp<IfPlaceHolderType, ThenPlaceHolderType,
-                                    ElsePlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorCwiseSelectOp
-template <typename IfExpr, typename ThenExpr, typename ElseExpr, size_t N>
-struct PlaceHolderExpression<TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, N> {
-  static const size_t ElseLeafCount = LeafCount<ElseExpr>::Count;
-  static const size_t ThenLeafCount = LeafCount<ThenExpr>::Count;
-
-  using IfPlaceHolderType =
-      typename PlaceHolderExpression<IfExpr,
-                                     N - ElseLeafCount - ThenLeafCount>::Type;
-  using ThenPlaceHolderType =
-      typename PlaceHolderExpression<ThenExpr, N - ElseLeafCount>::Type;
-
-  using ElsePlaceHolderType = typename PlaceHolderExpression<ElseExpr, N>::Type;
-
-  using Type = TensorSelectOp<IfPlaceHolderType, ThenPlaceHolderType,
-                              ElsePlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is
-/// TensorAssignOp
-template <typename LHSExpr, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<TensorAssignOp<LHSExpr, RHSExpr>, N> {
-  static const size_t RHSLeafCount = LeafCount<RHSExpr>::Count;
-
-  using LHSPlaceHolderType =
-      typename PlaceHolderExpression<LHSExpr, N - RHSLeafCount>::Type;
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-
-  using Type = TensorAssignOp<LHSPlaceHolderType, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorAssignOp
-template <typename LHSExpr, typename RHSExpr, size_t N>
-struct PlaceHolderExpression<const TensorAssignOp<LHSExpr, RHSExpr>, N> {
-  static const size_t RHSLeafCount = LeafCount<RHSExpr>::Count;
-
-  using LHSPlaceHolderType =
-      typename PlaceHolderExpression<LHSExpr, N - RHSLeafCount>::Type;
-  using RHSPlaceHolderType = typename PlaceHolderExpression<RHSExpr, N>::Type;
-
-  using Type = const TensorAssignOp<LHSPlaceHolderType, RHSPlaceHolderType>;
-};
-
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorForcedEvalOp
-template <typename Expr, size_t N>
-struct PlaceHolderExpression<const TensorForcedEvalOp<Expr>, N> {
-  using Type =
-      const Eigen::internal::PlaceHolder<const TensorForcedEvalOp<Expr>, N>;
-};
+TENSORMAPEXPR(const)
+TENSORMAPEXPR()
+#undef TENSORMAPEXPR
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorForcedEvalOp
-template <typename Expr, size_t N>
-struct PlaceHolderExpression<TensorForcedEvalOp<Expr>, N> {
-  using Type = Eigen::internal::PlaceHolder<TensorForcedEvalOp<Expr>, N>;
+#define FORCEDEVAL(CVQual)\
+template <typename Expr, size_t N>\
+struct PlaceHolderExpression<CVQual TensorForcedEvalOp<Expr>, N> {\
+  typedef CVQual Eigen::internal::PlaceHolder<CVQual TensorForcedEvalOp<Expr>, N> Type;\
 };
 
-/// specialisation of the \ref PlaceHolderExpression when the node is const
-/// TensorEvalToOp
-template <typename Expr, size_t N>
-struct PlaceHolderExpression<const TensorEvalToOp<Expr>, N> {
-  static const size_t RHSLeafCount = LeafCount<Expr>::Count;
-
-  using RHSPlaceHolderType = typename PlaceHolderExpression<Expr, N>::Type;
-
-  using Type = const TensorEvalToOp<RHSPlaceHolderType>;
-};
+FORCEDEVAL(const)
+FORCEDEVAL()
+#undef FORCEDEVAL
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorEvalToOp
-template <typename Expr, size_t N>
-struct PlaceHolderExpression<TensorEvalToOp<Expr>, N> {
-  static const size_t RHSLeafCount = LeafCount<Expr>::Count;
-
-  using RHSPlaceHolderType = typename PlaceHolderExpression<Expr, N>::Type;
-
-  using Type = TensorEvalToOp<RHSPlaceHolderType>;
+#define EVALTO(CVQual)\
+template <typename Expr, size_t N>\
+struct PlaceHolderExpression<CVQual TensorEvalToOp<Expr>, N> {\
+  typedef CVQual TensorEvalToOp<typename CalculateIndex <N, Expr>::ArgType> Type;\
 };
+
+EVALTO(const)
+EVALTO()
+#undef EVALTO
 
 /// template deduction for \ref PlaceHolderExpression struct
 template <typename Expr>
 struct createPlaceHolderExpression {
   static const size_t TotalLeaves = LeafCount<Expr>::Count;
-  using Type = typename PlaceHolderExpression<Expr, TotalLeaves - 1>::Type;
+  typedef typename PlaceHolderExpression<Expr, TotalLeaves - 1>::Type Type;
 };
+
 }
 }
 }  // namespace Eigen
 
-#endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSORYSYCL_PLACEHOLDER_EXPR_HPP
+#endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_PLACEHOLDER_EXPR_HPP
