@@ -11,6 +11,8 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
+// first thing Eigen does: stop the compiler from committing suicide
+#include "src/Core/util/DisableStupidWarnings.h"
 
 /// This will no longer be needed after the next release of the computecppCE
 #ifdef EIGEN_USE_SYCL
