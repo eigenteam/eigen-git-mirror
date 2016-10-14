@@ -111,7 +111,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, Index depth, 
   double work = static_cast<double>(rows) * static_cast<double>(cols) *
       static_cast<double>(depth);
   double kMinTaskSize = 50000;  // Heuristic.
-  max_threads = std::max<Index>(1, std::min<Index>(max_threads, work / kMinTaskSize));
+  pb_max_threads = std::max<Index>(1, std::min<Index>(pb_max_threads, work / kMinTaskSize));
 
   // compute the number of threads we are going to use
   Index threads = std::min<Index>(nbThreads(), pb_max_threads);
