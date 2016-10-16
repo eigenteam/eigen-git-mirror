@@ -65,6 +65,10 @@
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif
 
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL)
+  #define EIGEN_EXCEPTIONS
+#endif
+
 #ifdef EIGEN_EXCEPTIONS
   #include <new>
 #endif
