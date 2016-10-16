@@ -18,7 +18,7 @@ namespace Eigen
   
   namespace internal
   {
-    // TODO: Check if already exists on the rest API
+    // TODO: Add this trait to the Eigen internal API?
     template <int Num, bool IsPositive = (Num > 0)>
     struct Abs
     {
@@ -186,25 +186,25 @@ namespace Eigen
       
       typedef typename Derived::Scalar Scalar;
 
-      Scalar plusMinus = IsEven? 1 : -1;
-      Scalar minusPlus = IsOdd?  1 : -1;
+      const Scalar plusMinus = IsEven? 1 : -1;
+      const Scalar minusPlus = IsOdd?  1 : -1;
 
-      Scalar Rsum = sqrt((mat(I,I) * mat(I,I) + mat(I,J) * mat(I,J) + mat(J,K) * mat(J,K) + mat(K,K) * mat(K,K))/2);
+      const Scalar Rsum = sqrt((mat(I,I) * mat(I,I) + mat(I,J) * mat(I,J) + mat(J,K) * mat(J,K) + mat(K,K) * mat(K,K))/2);
       res[1] = atan2(plusMinus * mat(I,K), Rsum);
 
-      // There is a singularity when cos(beta) = 0
-      if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {
+      // There is a singularity when cos(beta) == 0
+      if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {// cos(beta) != 0
         res[0] = atan2(minusPlus * mat(J, K), mat(K, K));
         res[2] = atan2(minusPlus * mat(I, J), mat(I, I));
       }
-      else if(plusMinus * mat(I, K) > 0) {
-        Scalar spos = mat(J, I) + plusMinus * mat(K, J); // 2*sin(alpha + plusMinus * gamma)
-        Scalar cpos = mat(J, J) + minusPlus * mat(K, I); // 2*cos(alpha + plusMinus * gamma);
+      else if(plusMinus * mat(I, K) > 0) {// cos(beta) == 0 and sin(beta) == 1
+        Scalar spos = mat(J, I) + plusMinus * mat(K, J); // 2*sin(alpha + plusMinus * gamma
+        Scalar cpos = mat(J, J) + minusPlus * mat(K, I); // 2*cos(alpha + plusMinus * gamma)
         Scalar alphaPlusMinusGamma = atan2(spos, cpos);
         res[0] = alphaPlusMinusGamma;
         res[2] = 0;
       }
-      else {
+      else {// cos(beta) == 0 and sin(beta) == -1
         Scalar sneg = plusMinus * (mat(K, J) + minusPlus * mat(J, I)); // 2*sin(alpha + minusPlus*gamma)
         Scalar cneg = mat(J, J) + plusMinus * mat(K, I);               // 2*cos(alpha + minusPlus*gamma)
         Scalar alphaMinusPlusBeta = atan2(sneg, cneg);
@@ -222,30 +222,30 @@ namespace Eigen
 
       typedef typename Derived::Scalar Scalar;
 
-      Scalar plusMinus = IsEven? 1 : -1;
-      Scalar minusPlus = IsOdd?  1 : -1;
+      const Scalar plusMinus = IsEven? 1 : -1;
+      const Scalar minusPlus = IsOdd?  1 : -1;
 
-      Scalar Rsum = sqrt((mat(I, J) * mat(I, J) + mat(I, K) * mat(I, K) + mat(J, I) * mat(J, I) + mat(K, I) * mat(K, I)) / 2);
+      const Scalar Rsum = sqrt((mat(I, J) * mat(I, J) + mat(I, K) * mat(I, K) + mat(J, I) * mat(J, I) + mat(K, I) * mat(K, I)) / 2);
 
       res[1] = atan2(Rsum, mat(I, I));
 
-      if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {
+      // There is a singularity when sin(beta) == 0
+      if(Rsum > 4 * NumTraits<Scalar>::epsilon()) {// sin(beta) != 0
         res[0] = atan2(mat(J, I), minusPlus * mat(K, I));
         res[2] = atan2(mat(I, J), plusMinus * mat(I, K));
       }
-      else if( mat(I, I) > 0) {
+      else if(mat(I, I) > 0) {// sin(beta) == 0 and cos(beta) == 1
         Scalar spos = plusMinus * mat(K, J) + minusPlus * mat(J, K); // 2*sin(alpha + gamma)
         Scalar cpos = mat(J, J) + mat(K, K);                         // 2*cos(alpha + gamma)
         res[0] = atan2(spos, cpos);
         res[2] = 0;
       }
-      else {
+      else {// sin(beta) == 0 and cos(beta) == -1
         Scalar sneg = plusMinus * mat(K, J) + plusMinus * mat(J, K); // 2*sin(alpha - gamma)
         Scalar cneg = mat(J, J) - mat(K, K);                         // 2*cos(alpha - gamma)
         res[0] = atan2(sneg, cneg);
-        res[1] = 0;
+        res[2] = 0;
       }
-
     }
     
     template<typename Scalar>

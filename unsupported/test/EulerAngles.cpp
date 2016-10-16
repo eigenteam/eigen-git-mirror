@@ -15,13 +15,17 @@ using namespace Eigen;
 
 // Verify that x is in the approxed range [a, b]
 #define VERIFY_APPROXED_RANGE(a, x, b) \
-	do { \
-	VERIFY_IS_APPROX_OR_LESS_THAN(a, x); \
-	VERIFY_IS_APPROX_OR_LESS_THAN(x, b); \
-	} while(0)
+  do { \
+  VERIFY_IS_APPROX_OR_LESS_THAN(a, x); \
+  VERIFY_IS_APPROX_OR_LESS_THAN(x, b); \
+  } while(0)
 
-template<typename EulerSystem, typename Scalar>
-void verify_euler(const Matrix<Scalar,3,1>& ea)
+const char X = EULER_X;
+const char Y = EULER_Y;
+const char Z = EULER_Z;
+
+template<typename Scalar, typename EulerSystem>
+void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
 {
   typedef EulerAngles<Scalar, EulerSystem> EulerAnglesType;
   typedef Matrix<Scalar,3,3> Matrix3;
@@ -41,17 +45,24 @@ void verify_euler(const Matrix<Scalar,3,1>& ea)
   }
   else
   {
-    betaRangeStart = -PI;
-    betaRangeEnd = PI;
+    if (!EulerSystem::IsBetaOpposite)
+    {
+      betaRangeStart = 0;
+      betaRangeEnd = PI;
+    }
+    else
+    {
+      betaRangeStart = -PI;
+      betaRangeEnd = 0;
+    }
   }
   
   const Vector3 I = EulerAnglesType::AlphaAxisVector();
   const Vector3 J = EulerAnglesType::BetaAxisVector();
   const Vector3 K = EulerAnglesType::GammaAxisVector();
-  
-  EulerAnglesType e(ea[0], ea[1], ea[2]);
 
-  Matrix3 m(e);
+  const Matrix3 m(e);
+  VERIFY_IS_APPROX(Scalar(m.determinant()), ONE);
 
   Vector3 eabis = static_cast<EulerAnglesType>(m).angles();
   
@@ -60,8 +71,16 @@ void verify_euler(const Matrix<Scalar,3,1>& ea)
   VERIFY_APPROXED_RANGE(betaRangeStart, eabis[1], betaRangeEnd);
   VERIFY_APPROXED_RANGE(-PI, eabis[2], PI);
 
-  Matrix3 mbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
-  VERIFY_IS_APPROX(m,  mbis);
+  const Matrix3 mbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
+  VERIFY_IS_APPROX(Scalar(mbis.determinant()), ONE);
+  /*std::cout << "===================\n" <<
+    "e: " << e << std::endl <<
+    "eabis: " << eabis.transpose() << std::endl <<
+    "m: " << m << std::endl <<
+    "mbis: " << mbis << std::endl <<
+    "X: " << (m * Vector3::UnitX()).transpose() << std::endl <<
+    "X: " << (mbis * Vector3::UnitX()).transpose() << std::endl;*/
+  VERIFY_IS_APPROX(m, mbis);
 
   // Test if ea and eabis are the same
   // Need to check both singular and non-singular cases
@@ -69,47 +88,107 @@ void verify_euler(const Matrix<Scalar,3,1>& ea)
   // 1. When I==K and sin(ea(1)) == 0
   // 2. When I!=K and cos(ea(1)) == 0
 
-  // Tests that are only relevant for no positive range
-  /*if (!(positiveRangeAlpha || positiveRangeGamma))
-  {
-    // If I==K, and ea[1]==0, then there no unique solution.
-    // The remark apply in the case where I!=K, and |ea[1]| is close to pi/2.
-    if( (i!=k || ea[1]!=0) && (i==k || !internal::isApprox(abs(ea[1]),Scalar(EIGEN_PI/2),test_precision<Scalar>())) ) 
-      VERIFY((ea-eabis).norm() <= test_precision<Scalar>());
-    
-    // approx_or_less_than does not work for 0
-    VERIFY(0 < eabis[0] || VERIFY_IS_MUCH_SMALLER_THAN(eabis[0], Scalar(1)));
-  }*/
+  // TODO: Make this test work well, and use range saturation function.
+  /*// If I==K, and ea[1]==0, then there no unique solution.
+  // The remark apply in the case where I!=K, and |ea[1]| is close to +-pi/2.
+  if( (i!=k || ea[1]!=0) && (i==k || !internal::isApprox(abs(ea[1]),Scalar(EIGEN_PI/2),test_precision<Scalar>())) ) 
+      VERIFY_IS_APPROX(ea, eabis);*/
   
   // Quaternions
-  QuaternionType q(e);
+  const QuaternionType q(e);
   eabis = static_cast<EulerAnglesType>(q).angles();
-  QuaternionType qbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
+  const QuaternionType qbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
   VERIFY_IS_APPROX(std::abs(q.dot(qbis)), ONE);
   //VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
 }
 
-template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
+template<signed char A, signed char B, signed char C, typename Scalar>
+void verify_euler_vec(const Matrix<Scalar,3,1>& ea)
 {
-  verify_euler<EulerSystemXYZ>(ea);
-  verify_euler<EulerSystemXYX>(ea);
-  verify_euler<EulerSystemXZY>(ea);
-  verify_euler<EulerSystemXZX>(ea);
-  
-  verify_euler<EulerSystemYZX>(ea);
-  verify_euler<EulerSystemYZY>(ea);
-  verify_euler<EulerSystemYXZ>(ea);
-  verify_euler<EulerSystemYXY>(ea);
-  
-  verify_euler<EulerSystemZXY>(ea);
-  verify_euler<EulerSystemZXZ>(ea);
-  verify_euler<EulerSystemZYX>(ea);
-  verify_euler<EulerSystemZYZ>(ea);
-  
-  // TODO: Test negative axes as well! (only test if the angles get negative when needed)
+  verify_euler(EulerAngles<Scalar, EulerSystem<A, B, C> >(ea[0], ea[1], ea[2]));
 }
 
-template<typename Scalar> void eulerangles()
+template<signed char A, signed char B, signed char C, typename Scalar>
+void verify_euler_all_neg(const Matrix<Scalar,3,1>& ea)
+{
+  verify_euler_vec<+A,+B,+C>(ea);
+  verify_euler_vec<+A,+B,-C>(ea);
+  verify_euler_vec<+A,-B,+C>(ea);
+  verify_euler_vec<+A,-B,-C>(ea);
+  
+  verify_euler_vec<-A,+B,+C>(ea);
+  verify_euler_vec<-A,+B,-C>(ea);
+  verify_euler_vec<-A,-B,+C>(ea);
+  verify_euler_vec<-A,-B,-C>(ea);
+}
+
+template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
+{
+  verify_euler_all_neg<X,Y,Z>(ea);
+  verify_euler_all_neg<X,Y,X>(ea);
+  verify_euler_all_neg<X,Z,Y>(ea);
+  verify_euler_all_neg<X,Z,X>(ea);
+  
+  verify_euler_all_neg<Y,Z,X>(ea);
+  verify_euler_all_neg<Y,Z,Y>(ea);
+  verify_euler_all_neg<Y,X,Z>(ea);
+  verify_euler_all_neg<Y,X,Y>(ea);
+  
+  verify_euler_all_neg<Z,X,Y>(ea);
+  verify_euler_all_neg<Z,X,Z>(ea);
+  verify_euler_all_neg<Z,Y,X>(ea);
+  verify_euler_all_neg<Z,Y,Z>(ea);
+}
+
+template<typename Scalar> void check_singular_cases(const Scalar& singularBeta)
+{
+  typedef Matrix<Scalar,3,1> Vector3;
+  const Scalar epsilon = std::numeric_limits<Scalar>::epsilon();
+  const Scalar PI = Scalar(EIGEN_PI);
+  
+  check_all_var(Vector3(PI/4, singularBeta, PI/3));
+  check_all_var(Vector3(PI/4, singularBeta - epsilon, PI/3));
+  check_all_var(Vector3(PI/4, singularBeta - Scalar(1.5)*epsilon, PI/3));
+  check_all_var(Vector3(PI/4, singularBeta - 2*epsilon, PI/3));
+  check_all_var(Vector3(PI*Scalar(0.8), singularBeta - epsilon, Scalar(0.9)*PI));
+  check_all_var(Vector3(PI*Scalar(-0.9), singularBeta + epsilon, PI*Scalar(0.3)));
+  check_all_var(Vector3(PI*Scalar(-0.6), singularBeta + Scalar(1.5)*epsilon, PI*Scalar(0.3)));
+  check_all_var(Vector3(PI*Scalar(-0.5), singularBeta + 2*epsilon, PI*Scalar(0.4)));
+  check_all_var(Vector3(PI*Scalar(0.9), singularBeta + epsilon, Scalar(0.8)*PI));
+}
+
+template<typename Scalar> void eulerangles_manual()
+{
+  typedef Matrix<Scalar,3,1> Vector3;
+  const Vector3 Zero = Vector3::Zero();
+  const Scalar PI = Scalar(EIGEN_PI);
+  
+  check_all_var(Zero);
+  
+  // singular cases
+  check_singular_cases(PI/2);
+  check_singular_cases(-PI/2);
+  
+  check_singular_cases(Scalar(0));
+  check_singular_cases(Scalar(-0));
+  
+  check_singular_cases(PI);
+  check_singular_cases(-PI);
+  
+  // non-singular cases
+  VectorXd alpha = VectorXd::LinSpaced(Eigen::Sequential, 20, Scalar(-0.99) * PI, PI);
+  VectorXd beta = VectorXd::LinSpaced(Eigen::Sequential, 20, Scalar(-0.49) * PI, Scalar(0.49) * PI);
+  VectorXd gamma = VectorXd::LinSpaced(Eigen::Sequential, 20, Scalar(-0.99) * PI, PI);
+  for (int i = 0; i < alpha.size(); ++i) {
+    for (int j = 0; j < beta.size(); ++j) {
+      for (int k = 0; k < gamma.size(); ++k) {
+        check_all_var(Vector3d(alpha(i), beta(j), gamma(k)));
+      }
+    }
+  }
+}
+
+template<typename Scalar> void eulerangles_rand()
 {
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
@@ -158,8 +237,14 @@ template<typename Scalar> void eulerangles()
 
 void test_EulerAngles()
 {
+  CALL_SUBTEST_1( eulerangles_manual<float>() );
+  CALL_SUBTEST_2( eulerangles_manual<double>() );
+  
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( eulerangles<float>() );
-    CALL_SUBTEST_2( eulerangles<double>() );
+    CALL_SUBTEST_3( eulerangles_rand<float>() );
+    CALL_SUBTEST_4( eulerangles_rand<double>() );
   }
+  
+  // TODO: Add tests for auto diff
+  // TODO: Add tests for complex numbers
 }

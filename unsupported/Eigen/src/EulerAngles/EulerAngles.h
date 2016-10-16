@@ -36,7 +36,7 @@ namespace Eigen
     * ### Rotation representation and conversions ###
     *
     * It has been proved(see Wikipedia link below) that every rotation can be represented
-    *  by Euler angles, but there is no singular representation (e.g. unlike rotation matrices).
+    *  by Euler angles, but there is no single representation (e.g. unlike rotation matrices).
     * Therefore, you can convert from Eigen rotation and to them
     *  (including rotation matrices, which is not called "rotations" by Eigen design).
     *
@@ -55,10 +55,12 @@ namespace Eigen
     * Additionally, some axes related computation is done in compile time.
     *
     * #### Euler angles ranges in conversions ####
-    * Rotations representation as EulerAngles are not singular (unlike matrices), and even have infinite EulerAngles representations.<BR>
+    * Rotations representation as EulerAngles are not single (unlike matrices),
+    *  and even have infinite EulerAngles representations.<BR>
     * For example, add or subtract 2*PI from either angle of EulerAngles
     *  and you'll get the same rotation.
-    * This is the reason for infinite representation, but it's not the only reason for non-singularity.
+    * This is the general reason for infinite representation,
+    *  but it's not the only general reason for not having a single representation.
     *
     * When converting rotation to EulerAngles, this class convert it to specific ranges
     * When converting some rotation to EulerAngles, the rules for ranges are as follow:
@@ -66,10 +68,10 @@ namespace Eigen
     *  (even when it represented as RotationBase explicitly), angles ranges are __undefined__.
     * - otherwise, Alpha and Gamma angles will be in the range [-PI, PI].<BR>
     *   As for Beta angle:
-    *    - If the system is Tait-Bryan, the beta angle will be in the range [-PI, PI].
+    *    - If the system is Tait-Bryan, the beta angle will be in the range [-PI/2, PI/2].
     *    - otherwise:
-    *      - If the beta axis is positive, the beta angle will be in the range [0, 2*PI]
-    *      - If the beta axis is negative, the beta angle will be in the range [-2*PI, 0]
+    *      - If the beta axis is positive, the beta angle will be in the range [0, PI]
+    *      - If the beta axis is negative, the beta angle will be in the range [-PI, 0]
     *
     * \sa EulerAngles(const MatrixBase<Derived>&)
     * \sa EulerAngles(const RotationBase<Derived, 3>&)
@@ -95,7 +97,7 @@ namespace Eigen
     *
     * More information about Euler angles: https://en.wikipedia.org/wiki/Euler_angles
     *
-    * \tparam _Scalar the scalar type, i.e., the type of the angles.
+    * \tparam _Scalar the scalar type, i.e. the type of the angles.
     *
     * \tparam _System the EulerSystem to use, which represents the axes of rotation.
     */
@@ -146,10 +148,10 @@ namespace Eigen
         *
         * \note Alpha and Gamma angles will be in the range [-PI, PI].<BR>
         *  As for Beta angle:
-        *   - If the system is Tait-Bryan, the beta angle will be in the range [-PI, PI].
+        *   - If the system is Tait-Bryan, the beta angle will be in the range [-PI/2, PI/2].
         *   - otherwise:
-        *     - If the beta axis is positive, the beta angle will be in the range [0, 2*PI]
-        *     - If the beta axis is negative, the beta angle will be in the range [-2*PI, 0]
+        *     - If the beta axis is positive, the beta angle will be in the range [0, PI]
+        *     - If the beta axis is negative, the beta angle will be in the range [-PI, 0]
       */
       template<typename Derived>
       EulerAngles(const MatrixBase<Derived>& m) { System::CalcEulerAngles(*this, m); }
@@ -160,10 +162,10 @@ namespace Eigen
         *  angles ranges are __undefined__.
         *  Otherwise, Alpha and Gamma angles will be in the range [-PI, PI].<BR>
         *  As for Beta angle:
-        *   - If the system is Tait-Bryan, the beta angle will be in the range [-PI, PI].
+        *   - If the system is Tait-Bryan, the beta angle will be in the range [-PI/2, PI/2].
         *   - otherwise:
-        *     - If the beta axis is positive, the beta angle will be in the range [0, 2*PI]
-        *     - If the beta axis is negative, the beta angle will be in the range [-2*PI, 0]
+        *     - If the beta axis is positive, the beta angle will be in the range [0, PI]
+        *     - If the beta axis is negative, the beta angle will be in the range [-PI, 0]
       */
       template<typename Derived>
       EulerAngles(const RotationBase<Derived, 3>& rot) { System::CalcEulerAngles(*this, rot.toRotationMatrix()); }
