@@ -105,8 +105,11 @@ namespace Eigen
   class EulerAngles : public RotationBase<EulerAngles<_Scalar, _System>, 3>
   {
     public:
+      typedef RotationBase<EulerAngles<_Scalar, _System>, 3> Base;
+      
       /** the scalar type of the angles */
       typedef _Scalar Scalar;
+      typedef typename NumTraits<Scalar>::Real RealScalar;
       
       /** the EulerSystem to use, which represents the axes of rotation. */
       typedef _System System;
@@ -248,7 +251,13 @@ namespace Eigen
         return *this;
       }
       
-      // TODO: Support isApprox function
+      /** \returns \c true if \c *this is approximately equal to \a other, within the precision
+        * determined by \a prec.
+        *
+        * \sa MatrixBase::isApprox() */
+      bool isApprox(const EulerAngles& other,
+        const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const
+      { return angles().isApprox(other.angles(), prec); }
 
       /** \returns an equivalent 3x3 rotation matrix. */
       Matrix3 toRotationMatrix() const
@@ -270,6 +279,15 @@ namespace Eigen
       {
         s << eulerAngles.angles().transpose();
         return s;
+      }
+      
+      /** \returns \c *this with scalar type casted to \a NewScalarType */
+      template <typename NewScalarType>
+      EulerAngles<NewScalarType, System> cast() const
+      {
+        EulerAngles<NewScalarType, System> e;
+        e.angles() = angles().cast<NewScalarType>();
+        return e;
       }
   };
 

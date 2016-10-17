@@ -13,6 +13,13 @@
 
 using namespace Eigen;
 
+// Unfortunately, we need to specialize it in order to work. (We could add it in main.h test framework)
+template <typename Scalar, class System>
+bool verifyIsApprox(const Eigen::EulerAngles<Scalar, System>& a, const Eigen::EulerAngles<Scalar, System>& b)
+{
+  return verifyIsApprox(a.angles(), b.angles());
+}
+
 // Verify that x is in the approxed range [a, b]
 #define VERIFY_APPROXED_RANGE(a, x, b) \
   do { \
@@ -24,7 +31,7 @@ const char X = EULER_X;
 const char Y = EULER_Y;
 const char Z = EULER_Z;
 
-template<typename Scalar, typename EulerSystem>
+template<typename Scalar, class EulerSystem>
 void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
 {
   typedef EulerAngles<Scalar, EulerSystem> EulerAnglesType;
@@ -68,6 +75,11 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   const Vector3 I = EulerAnglesType::AlphaAxisVector();
   const Vector3 J = EulerAnglesType::BetaAxisVector();
   const Vector3 K = EulerAnglesType::GammaAxisVector();
+  
+  // Is approx checks
+  VERIFY(e.isApprox(e));
+  VERIFY_IS_APPROX(e, e);
+  VERIFY_IS_NOT_APPROX(e, EulerAnglesType(e.alpha() + ONE, e.beta() + ONE, e.gamma() + ONE));
 
   const Matrix3 m(e);
   VERIFY_IS_APPROX(Scalar(m.determinant()), ONE);
@@ -108,6 +120,11 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   const QuaternionType qbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
   VERIFY(internal::isApprox<Scalar>(std::abs(q.dot(qbis)), ONE, precision));
   //VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
+  
+  // A suggestion for simple product test when will be supported.
+  /*EulerAnglesType e2(PI/2, PI/2, PI/2);
+  Matrix3 m2(e2);
+  VERIFY_IS_APPROX(e*e2, m*m2);*/
 }
 
 template<signed char A, signed char B, signed char C, typename Scalar>
@@ -250,6 +267,11 @@ template<typename Scalar> void eulerangles_rand()
 
 void test_EulerAngles()
 {
+  // Simple cast test
+  EulerAnglesXYZd onesEd(1, 1, 1);
+  EulerAnglesXYZf onesEf = onesEd.cast<float>();
+  VERIFY_IS_APPROX(onesEd, onesEf.cast<double>());
+  
   CALL_SUBTEST_1( eulerangles_manual<float>() );
   CALL_SUBTEST_2( eulerangles_manual<double>() );
   
