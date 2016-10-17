@@ -37,6 +37,14 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   const Scalar HALF_PI = Scalar(EIGEN_PI / 2);
   const Scalar PI = Scalar(EIGEN_PI);
   
+  // It's very important calc the acceptable precision depending on the distance from the pole.
+  const Scalar longitudeRadius = std::abs(
+    EulerSystem::IsTaitBryan ?
+    std::cos(e.beta()) :
+    std::sin(e.beta())
+    );
+  const Scalar precision = test_precision<Scalar>() / longitudeRadius;
+  
   Scalar betaRangeStart, betaRangeEnd;
   if (EulerSystem::IsTaitBryan)
   {
@@ -80,7 +88,7 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
     "mbis: " << mbis << std::endl <<
     "X: " << (m * Vector3::UnitX()).transpose() << std::endl <<
     "X: " << (mbis * Vector3::UnitX()).transpose() << std::endl;*/
-  VERIFY_IS_APPROX(m, mbis);
+  VERIFY(m.isApprox(mbis, precision));
 
   // Test if ea and eabis are the same
   // Need to check both singular and non-singular cases
@@ -98,7 +106,7 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   const QuaternionType q(e);
   eabis = static_cast<EulerAnglesType>(q).angles();
   const QuaternionType qbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
-  VERIFY_IS_APPROX(std::abs(q.dot(qbis)), ONE);
+  VERIFY(internal::isApprox<Scalar>(std::abs(q.dot(qbis)), ONE, precision));
   //VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
 }
 
@@ -143,18 +151,23 @@ template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
 template<typename Scalar> void check_singular_cases(const Scalar& singularBeta)
 {
   typedef Matrix<Scalar,3,1> Vector3;
-  const Scalar epsilon = std::numeric_limits<Scalar>::epsilon();
   const Scalar PI = Scalar(EIGEN_PI);
   
-  check_all_var(Vector3(PI/4, singularBeta, PI/3));
-  check_all_var(Vector3(PI/4, singularBeta - epsilon, PI/3));
-  check_all_var(Vector3(PI/4, singularBeta - Scalar(1.5)*epsilon, PI/3));
-  check_all_var(Vector3(PI/4, singularBeta - 2*epsilon, PI/3));
-  check_all_var(Vector3(PI*Scalar(0.8), singularBeta - epsilon, Scalar(0.9)*PI));
-  check_all_var(Vector3(PI*Scalar(-0.9), singularBeta + epsilon, PI*Scalar(0.3)));
-  check_all_var(Vector3(PI*Scalar(-0.6), singularBeta + Scalar(1.5)*epsilon, PI*Scalar(0.3)));
-  check_all_var(Vector3(PI*Scalar(-0.5), singularBeta + 2*epsilon, PI*Scalar(0.4)));
-  check_all_var(Vector3(PI*Scalar(0.9), singularBeta + epsilon, Scalar(0.8)*PI));
+  for (Scalar epsilon = std::numeric_limits<Scalar>::epsilon(); epsilon < 1; epsilon *= Scalar(1.2))
+  {
+    check_all_var(Vector3(PI/4, singularBeta, PI/3));
+    check_all_var(Vector3(PI/4, singularBeta - epsilon, PI/3));
+    check_all_var(Vector3(PI/4, singularBeta - Scalar(1.5)*epsilon, PI/3));
+    check_all_var(Vector3(PI/4, singularBeta - 2*epsilon, PI/3));
+    check_all_var(Vector3(PI*Scalar(0.8), singularBeta - epsilon, Scalar(0.9)*PI));
+    check_all_var(Vector3(PI*Scalar(-0.9), singularBeta + epsilon, PI*Scalar(0.3)));
+    check_all_var(Vector3(PI*Scalar(-0.6), singularBeta + Scalar(1.5)*epsilon, PI*Scalar(0.3)));
+    check_all_var(Vector3(PI*Scalar(-0.5), singularBeta + 2*epsilon, PI*Scalar(0.4)));
+    check_all_var(Vector3(PI*Scalar(0.9), singularBeta + epsilon, Scalar(0.8)*PI));
+  }
+  
+  // This one for sanity, it had a problem with near pole cases in float scalar.
+  check_all_var(Vector3(PI*Scalar(0.8), singularBeta - Scalar(1E-6), Scalar(0.9)*PI));
 }
 
 template<typename Scalar> void eulerangles_manual()
