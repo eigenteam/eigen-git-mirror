@@ -50,7 +50,7 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
     std::cos(e.beta()) :
     std::sin(e.beta())
     );
-  const Scalar precision = test_precision<Scalar>() / longitudeRadius;
+  Scalar precision = test_precision<Scalar>() / longitudeRadius;
   
   Scalar betaRangeStart, betaRangeEnd;
   if (EulerSystem::IsTaitBryan)
@@ -84,15 +84,22 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   const Matrix3 m(e);
   VERIFY_IS_APPROX(Scalar(m.determinant()), ONE);
 
-  Vector3 eabis = static_cast<EulerAnglesType>(m).angles();
+  EulerAnglesType ebis(m);
+  
+  // When no roll(acting like polar representation), we have the best precision.
+  // One of those cases is when the Euler angles are on the pole, and because it's singular case,
+  //  the computation returns no roll.
+  if (ebis.beta() == 0)
+    precision = test_precision<Scalar>();
   
   // Check that eabis in range
-  VERIFY_APPROXED_RANGE(-PI, eabis[0], PI);
-  VERIFY_APPROXED_RANGE(betaRangeStart, eabis[1], betaRangeEnd);
-  VERIFY_APPROXED_RANGE(-PI, eabis[2], PI);
+  VERIFY_APPROXED_RANGE(-PI, ebis.alpha(), PI);
+  VERIFY_APPROXED_RANGE(betaRangeStart, ebis.beta(), betaRangeEnd);
+  VERIFY_APPROXED_RANGE(-PI, ebis.gamma(), PI);
 
-  const Matrix3 mbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
+  const Matrix3 mbis(AngleAxisType(ebis.alpha(), I) * AngleAxisType(ebis.beta(), J) * AngleAxisType(ebis.gamma(), K));
   VERIFY_IS_APPROX(Scalar(mbis.determinant()), ONE);
+  VERIFY_IS_APPROX(mbis, ebis.toRotationMatrix());
   /*std::cout << "===================\n" <<
     "e: " << e << std::endl <<
     "eabis: " << eabis.transpose() << std::endl <<
@@ -116,8 +123,8 @@ void verify_euler(const EulerAngles<Scalar, EulerSystem>& e)
   
   // Quaternions
   const QuaternionType q(e);
-  eabis = static_cast<EulerAnglesType>(q).angles();
-  const QuaternionType qbis(AngleAxisType(eabis[0], I) * AngleAxisType(eabis[1], J) * AngleAxisType(eabis[2], K));
+  ebis = q;
+  const QuaternionType qbis(ebis);
   VERIFY(internal::isApprox<Scalar>(std::abs(q.dot(qbis)), ONE, precision));
   //VERIFY_IS_APPROX(eabis, eabis2);// Verify that the euler angles are still the same
   
@@ -170,7 +177,7 @@ template<typename Scalar> void check_singular_cases(const Scalar& singularBeta)
   typedef Matrix<Scalar,3,1> Vector3;
   const Scalar PI = Scalar(EIGEN_PI);
   
-  for (Scalar epsilon = std::numeric_limits<Scalar>::epsilon(); epsilon < 1; epsilon *= Scalar(1.2))
+  for (Scalar epsilon = NumTraits<Scalar>::epsilon(); epsilon < 1; epsilon *= Scalar(1.2))
   {
     check_all_var(Vector3(PI/4, singularBeta, PI/3));
     check_all_var(Vector3(PI/4, singularBeta - epsilon, PI/3));
