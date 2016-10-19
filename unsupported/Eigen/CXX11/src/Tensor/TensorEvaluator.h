@@ -495,7 +495,7 @@ struct TensorEvaluator<const TensorCwiseTernaryOp<TernaryOp, Arg1Type, Arg2Type,
  private:
   const TernaryOp m_functor;
   TensorEvaluator<Arg1Type, Device> m_arg1Impl;
-  TensorEvaluator<Arg1Type, Device> m_arg2Impl;
+  TensorEvaluator<Arg2Type, Device> m_arg2Impl;
   TensorEvaluator<Arg3Type, Device> m_arg3Impl;
 };
 
