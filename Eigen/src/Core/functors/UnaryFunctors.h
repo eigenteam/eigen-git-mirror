@@ -321,7 +321,7 @@ struct functor_traits<scalar_log1p_op<Scalar> > {
   */
 template<typename Scalar> struct scalar_log10_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_log10_op)
-  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { using std::log10; return log10(a); }
+  EIGEN_DEVICE_FUNC inline const Scalar operator() (const Scalar& a) const { EIGEN_USING_STD_MATH(log10) return log10(a); }
   template <typename Packet>
   EIGEN_DEVICE_FUNC inline Packet packetOp(const Packet& a) const { return internal::plog10(a); }
 };
