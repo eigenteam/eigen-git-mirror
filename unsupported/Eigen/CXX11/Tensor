@@ -69,6 +69,10 @@ typedef unsigned __int64 uint64_t;
 #endif
 #endif
 
+#ifdef EIGEN_USE_SYCL
+#include <SYCL/sycl.hpp>
+#endif
+
 #include "src/Tensor/TensorMacros.h"
 #include "src/Tensor/TensorForwardDeclarations.h"
 #include "src/Tensor/TensorMeta.h"
