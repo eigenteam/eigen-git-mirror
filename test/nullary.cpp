@@ -73,16 +73,18 @@ void testVectorType(const VectorType& base)
     VERIFY_IS_APPROX(m,n);
     VERIFY( internal::isApprox(m(m.size()-1),high) );
     VERIFY( size==1 || internal::isApprox(m(0),low) );
-
-    // sequential access version
-    m = VectorType::LinSpaced(Sequential,size,low,high);
-    VERIFY_IS_APPROX(m,n);
-    VERIFY( internal::isApprox(m(m.size()-1),high) );
+    VERIFY_IS_EQUAL(m(m.size()-1) , high);
   }
 
-  Scalar tol_factor = (high>=0) ? (1+NumTraits<Scalar>::dummy_precision()) : (1-NumTraits<Scalar>::dummy_precision());
-  VERIFY( m(m.size()-1) <= high*tol_factor );
-  VERIFY( size==1 || internal::isApprox(m(0),low) );
+  VERIFY( m(m.size()-1) <= high );
+
+
+  VERIFY( m(m.size()-1) >= low );
+  if(size>=1)
+  {
+    VERIFY( internal::isApprox(m(0),low) );
+    VERIFY_IS_EQUAL(m(0) , low);
+  }
 
   // check whether everything works with row and col major vectors
   Matrix<Scalar,Dynamic,1> row_vector(size);
@@ -187,10 +189,10 @@ void test_nullary()
   VERIFY((  internal::has_binary_operator<internal::scalar_identity_op<double> >::value ));
   VERIFY(( !internal::functor_has_linear_access<internal::scalar_identity_op<double> >::ret ));
 
-  VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<float,float,false> >::value ));
-  VERIFY((  internal::has_unary_operator<internal::linspaced_op<float,float,false> >::value ));
-  VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float,float,false> >::value ));
-  VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float,float,false> >::ret ));
+  VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<float,float> >::value ));
+  VERIFY((  internal::has_unary_operator<internal::linspaced_op<float,float> >::value ));
+  VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float,float> >::value ));
+  VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float,float> >::ret ));
 
   // Regression unit test for a weird MSVC bug.
   // Search "nullary_wrapper_workaround_msvc" in CoreEvaluators.h for the details.
@@ -211,10 +213,10 @@ void test_nullary()
     VERIFY(( !internal::has_binary_operator<internal::scalar_constant_op<float> >::value ));
     VERIFY((  internal::functor_has_linear_access<internal::scalar_constant_op<float> >::ret ));
 
-    VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<int,int,false> >::value ));
-    VERIFY((  internal::has_unary_operator<internal::linspaced_op<int,int,false> >::value ));
-    VERIFY(( !internal::has_binary_operator<internal::linspaced_op<int,int,false> >::value ));
-    VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<int,int,false> >::ret ));
+    VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<int,int> >::value ));
+    VERIFY((  internal::has_unary_operator<internal::linspaced_op<int,int> >::value ));
+    VERIFY(( !internal::has_binary_operator<internal::linspaced_op<int,int> >::value ));
+    VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<int,int> >::ret ));
   }
 #endif
 }

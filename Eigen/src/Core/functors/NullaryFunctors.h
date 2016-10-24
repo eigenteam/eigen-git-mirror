@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2016 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -37,66 +37,40 @@ template<typename Scalar>
 struct functor_traits<scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
 
-template <typename Scalar, typename Packet, bool RandomAccess, bool IsInteger> struct linspaced_op_impl;
+template <typename Scalar, typename Packet, bool IsInteger> struct linspaced_op_impl;
 
-// linear access for packet ops:
-// 1) initialization
-//   base = [low, ..., low] + ([step, ..., step] * [-size, ..., 0])
-// 2) each step (where size is 1 for coeff access or PacketSize for packet access)
-//   base += [size*step, ..., size*step]
-//
-// TODO: Perhaps it's better to initialize lazily (so not in the constructor but in packetOp)
-//       in order to avoid the padd() in operator() ?
 template <typename Scalar, typename Packet>
-struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/false,/*IsInteger*/false>
+struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/false>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
-    m_packetStep(pset1<Packet>(unpacket_traits<Packet>::size*m_step)),
-    m_base(padd(pset1<Packet>(low), pmul(pset1<Packet>(m_step),plset<Packet>(-unpacket_traits<Packet>::size)))) {}
-
-  template<typename IndexType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const
-  { 
-    m_base = padd(m_base, pset1<Packet>(m_step));
-    return m_low+Scalar(i)*m_step; 
+    m_low(low), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),  m_interPacket(plset<Packet>(0))
+  {
+    // Compute the correction to be applied to ensure 'high' is returned exactly for i==num_steps-1
+    m_corr = (high - (m_low+Scalar(num_steps-1)*m_step))/Scalar(num_steps<=1 ? 1 : num_steps-1);
   }
 
   template<typename IndexType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType) const { return m_base = padd(m_base,m_packetStep); }
-
-  const Scalar m_low;
-  const Scalar m_step;
-  const Packet m_packetStep;
-  mutable Packet m_base;
-};
-
-// random access for packet ops:
-// 1) each step
-//   [low, ..., low] + ( [step, ..., step] * ( [i, ..., i] + [0, ..., size] ) )
-template <typename Scalar, typename Packet>
-struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/false>
-{
-  linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
-    m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Packet>(0)) {}
-
-  template<typename IndexType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const { return m_low+i*m_step; }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const {
+    return m_low + i*m_step + i*m_corr;
+  }
 
   template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType i) const
-  { return internal::padd(m_lowPacket, pmul(m_stepPacket, padd(pset1<Packet>(Scalar(i)),m_interPacket))); }
+  {
+    // Principle:
+    // [low, ..., low] + ( [step, ..., step] * ( [i, ..., i] + [0, ..., size] ) )
+    Packet pi = padd(pset1<Packet>(Scalar(i)),m_interPacket);
+    return padd(padd(pset1<Packet>(m_low), pmul(pset1<Packet>(m_step), pi)),
+                pmul(pset1<Packet>(m_corr), pi)); }
 
   const Scalar m_low;
+  Scalar m_corr;
   const Scalar m_step;
-  const Packet m_lowPacket;
-  const Packet m_stepPacket;
   const Packet m_interPacket;
 };
 
 template <typename Scalar, typename Packet>
-struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/true>
+struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/true>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
     m_low(low),
@@ -124,8 +98,8 @@ struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/true>
 // Forward declaration (we default to random access which does not really give
 // us a speed gain when using packet access but it allows to use the functor in
 // nested expressions).
-template <typename Scalar, typename PacketType, bool RandomAccess = true> struct linspaced_op;
-template <typename Scalar, typename PacketType, bool RandomAccess> struct functor_traits< linspaced_op<Scalar,PacketType,RandomAccess> >
+template <typename Scalar, typename PacketType> struct linspaced_op;
+template <typename Scalar, typename PacketType> struct functor_traits< linspaced_op<Scalar,PacketType> >
 {
   enum
   {
@@ -135,7 +109,7 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct functo
     IsRepeatable = true
   };
 };
-template <typename Scalar, typename PacketType, bool RandomAccess> struct linspaced_op
+template <typename Scalar, typename PacketType> struct linspaced_op
 {
   linspaced_op(const Scalar& low, const Scalar& high, Index num_steps)
     : impl((num_steps==1 ? high : low),high,num_steps)
@@ -147,12 +121,9 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct linspa
   template<typename Packet,typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Packet packetOp(IndexType i) const { return impl.packetOp(i); }
 
-  // This proxy object handles the actual required temporaries, the different
-  // implementations (random vs. sequential access) as well as the
-  // correct piping to size 2/4 packet operations.
-  // As long as we don't have a Bresenham-like implementation for linear-access and integer types,
-  // we have to by-pass RandomAccess for integer types. See bug 698.
-  const linspaced_op_impl<Scalar,PacketType,(NumTraits<Scalar>::IsInteger?true:RandomAccess),NumTraits<Scalar>::IsInteger> impl;
+  // This proxy object handles the actual required temporaries and the different
+  // implementations (integer vs. floating point).
+  const linspaced_op_impl<Scalar,PacketType,NumTraits<Scalar>::IsInteger> impl;
 };
 
 // Linear access is automatically determined from the operator() prototypes available for the given functor.
