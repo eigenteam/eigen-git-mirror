@@ -54,6 +54,8 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 
     typedef typename internal::ref_selector<ExpressionType>::non_const_type NestedExpressionType;
 
+    using Base::coeffRef;
+
     EIGEN_DEVICE_FUNC
     explicit EIGEN_STRONG_INLINE ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -72,63 +74,15 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     inline const Scalar* data() const { return m_expression.data(); }
 
     EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index rowId, Index colId) const
-    {
-      return m_expression.coeff(rowId, colId);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline Scalar& coeffRef(Index rowId, Index colId)
-    {
-      return m_expression.coeffRef(rowId, colId);
-    }
-
-    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
       return m_expression.coeffRef(rowId, colId);
     }
 
     EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index index) const
-    {
-      return m_expression.coeff(index);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline Scalar& coeffRef(Index index)
-    {
-      return m_expression.coeffRef(index);
-    }
-
-    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
       return m_expression.coeffRef(index);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index rowId, Index colId) const
-    {
-      return m_expression.template packet<LoadMode>(rowId, colId);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index rowId, Index colId, const PacketScalar& val)
-    {
-      m_expression.template writePacket<LoadMode>(rowId, colId, val);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index index) const
-    {
-      return m_expression.template packet<LoadMode>(index);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index index, const PacketScalar& val)
-    {
-      m_expression.template writePacket<LoadMode>(index, val);
     }
 
     template<typename Dest>
@@ -197,6 +151,8 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
 
     typedef typename internal::ref_selector<ExpressionType>::non_const_type NestedExpressionType;
 
+    using Base::coeffRef;
+
     EIGEN_DEVICE_FUNC
     explicit inline MatrixWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -215,63 +171,15 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     inline const Scalar* data() const { return m_expression.data(); }
 
     EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index rowId, Index colId) const
-    {
-      return m_expression.coeff(rowId, colId);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline Scalar& coeffRef(Index rowId, Index colId)
-    {
-      return m_expression.coeffRef(rowId, colId);
-    }
-
-    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
       return m_expression.derived().coeffRef(rowId, colId);
     }
 
     EIGEN_DEVICE_FUNC
-    inline CoeffReturnType coeff(Index index) const
-    {
-      return m_expression.coeff(index);
-    }
-
-    EIGEN_DEVICE_FUNC
-    inline Scalar& coeffRef(Index index)
-    {
-      return m_expression.coeffRef(index);
-    }
-
-    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
       return m_expression.coeffRef(index);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index rowId, Index colId) const
-    {
-      return m_expression.template packet<LoadMode>(rowId, colId);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index rowId, Index colId, const PacketScalar& val)
-    {
-      m_expression.template writePacket<LoadMode>(rowId, colId, val);
-    }
-
-    template<int LoadMode>
-    inline const PacketScalar packet(Index index) const
-    {
-      return m_expression.template packet<LoadMode>(index);
-    }
-
-    template<int LoadMode>
-    inline void writePacket(Index index, const PacketScalar& val)
-    {
-      m_expression.template writePacket<LoadMode>(index, val);
     }
 
     EIGEN_DEVICE_FUNC
