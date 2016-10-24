@@ -99,25 +99,24 @@ template <typename Scalar, typename Packet>
 struct linspaced_op_impl<Scalar,Packet,/*RandomAccess*/true,/*IsInteger*/true>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_length(high-low), m_divisor(convert_index<Scalar>(num_steps==1?1:num_steps-1)), m_interPacket(plset<Packet>(0))
+    m_low(low),
+    m_multiplier((high-low)/convert_index<Scalar>(num_steps<=1 ? 1 : num_steps-1)),
+    m_divisor(convert_index<Scalar>(num_steps+high-low)/(high-low+1)),
+    m_use_divisor((high-low+1)<num_steps)
   {}
 
   template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const Scalar operator() (IndexType i) const {
-    return m_low + (m_length*Scalar(i))/m_divisor;
+  const Scalar operator() (IndexType i) const
+  {
+    if(m_use_divisor) return m_low + convert_index<Scalar>(i)/m_divisor;
+    else              return m_low + convert_index<Scalar>(i)*m_multiplier;
   }
 
-  template<typename IndexType>
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-  const Packet packetOp(IndexType i) const {
-    return internal::padd(pset1<Packet>(m_low), pdiv(pmul(pset1<Packet>(m_length), padd(pset1<Packet>(Scalar(i)),m_interPacket)),
-                                                     pset1<Packet>(m_divisor))); }
-
   const Scalar m_low;
-  const Scalar m_length;
-  const Scalar  m_divisor;
-  const Packet m_interPacket;
+  const Scalar m_multiplier;
+  const Scalar m_divisor;
+  const bool m_use_divisor;
 };
 
 // ----- Linspace functor ----------------------------------------------------------------
@@ -131,7 +130,7 @@ template <typename Scalar, typename PacketType, bool RandomAccess> struct functo
   enum
   {
     Cost = 1,
-    PacketAccess =   packet_traits<Scalar>::HasSetLinear
+    PacketAccess =   (!NumTraits<Scalar>::IsInteger) && packet_traits<Scalar>::HasSetLinear
                   && ((!NumTraits<Scalar>::IsInteger) || packet_traits<Scalar>::HasDiv),
     IsRepeatable = true
   };

@@ -264,6 +264,16 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
   * Example: \include DenseBase_LinSpaced.cpp
   * Output: \verbinclude DenseBase_LinSpaced.out
   *
+  * For integer scalar types, an even spacing is possible if and only if the length of the range,
+  * i.e., \c high-low is a scalar multiple of \c size-1, or if \c size is a scalar multiple of the
+  * number of values \c high-low+1 (meaning each value can be repeated the same number of time).
+  * If one of these two considions is not satisfied, then \c high is lowered to the largest value
+  * satisfying one of this constraint.
+  * Here are some examples:
+  *
+  * Example: \include DenseBase_LinSpacedInt.cpp
+  * Output: \verbinclude DenseBase_LinSpacedInt.out
+  *
   * \sa setLinSpaced(Index,const Scalar&,const Scalar&), LinSpaced(Sequential_t,Index,const Scalar&,const Scalar&,Index), CwiseNullaryOp
   */
 template<typename Derived>
@@ -377,7 +387,10 @@ PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& val)
   * Example: \include DenseBase_setLinSpaced.cpp
   * Output: \verbinclude DenseBase_setLinSpaced.out
   *
-  * \sa CwiseNullaryOp
+  * For integer scalar types, do not miss the explanations on the definition
+  * of \link LinSpaced(Index,const Scalar&,const Scalar&) even spacing \endlink.
+  *
+  * \sa LinSpaced(Index,const Scalar&,const Scalar&), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index newSize, const Scalar& low, const Scalar& high)
@@ -389,12 +402,15 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index newSize, con
 /**
   * \brief Sets a linearly spaced vector.
   *
-  * The function fills *this with equally spaced values in the closed interval [low,high].
+  * The function fills \c *this with equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
   *
-  * \sa setLinSpaced(Index, const Scalar&, const Scalar&), CwiseNullaryOp
+  * For integer scalar types, do not miss the explanations on the definition
+  * of \link LinSpaced(Index,const Scalar&,const Scalar&) even spacing \endlink.
+  *
+  * \sa LinSpaced(Index,const Scalar&,const Scalar&), setLinSpaced(Index, const Scalar&, const Scalar&), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low, const Scalar& high)

@@ -57,23 +57,31 @@ void testVectorType(const VectorType& base)
     VERIFY_IS_APPROX(m,n);
   }
 
-  VectorType n(size);
-  for (int i=0; i<size; ++i)
-    n(i) = size==1 ? low : (low + ((high-low)*Scalar(i))/(size-1));
-  VERIFY_IS_APPROX(m,n);
+  if((!NumTraits<Scalar>::IsInteger) || ((high-low)>=size && (Index(high-low)%(size-1))==0) || (Index(high-low+1)<size && (size%Index(high-low+1))==0))
+  {
+    VectorType n(size);
+    if((!NumTraits<Scalar>::IsInteger) || (high-low>=size))
+      for (int i=0; i<size; ++i)
+        n(i) = size==1 ? low : (low + ((high-low)*Scalar(i))/(size-1));
+    else
+      for (int i=0; i<size; ++i)
+        n(i) = size==1 ? low : low + Scalar((double(high-low+1)*double(i))/double(size));
+    VERIFY_IS_APPROX(m,n);
 
-  // random access version
-  m = VectorType::LinSpaced(size,low,high);
-  VERIFY_IS_APPROX(m,n);
+    // random access version
+    m = VectorType::LinSpaced(size,low,high);
+    VERIFY_IS_APPROX(m,n);
+    VERIFY( internal::isApprox(m(m.size()-1),high) );
+    VERIFY( size==1 || internal::isApprox(m(0),low) );
 
-  VERIFY( internal::isApprox(m(m.size()-1),high) );
-  VERIFY( size==1 || internal::isApprox(m(0),low) );
+    // sequential access version
+    m = VectorType::LinSpaced(Sequential,size,low,high);
+    VERIFY_IS_APPROX(m,n);
+    VERIFY( internal::isApprox(m(m.size()-1),high) );
+  }
 
-  // sequential access version
-  m = VectorType::LinSpaced(Sequential,size,low,high);
-  VERIFY_IS_APPROX(m,n);
-
-  VERIFY( internal::isApprox(m(m.size()-1),high) );
+  Scalar tol_factor = (high>=0) ? (1+NumTraits<Scalar>::dummy_precision()) : (1-NumTraits<Scalar>::dummy_precision());
+  VERIFY( m(m.size()-1) <= high*tol_factor );
   VERIFY( size==1 || internal::isApprox(m(0),low) );
 
   // check whether everything works with row and col major vectors
@@ -96,7 +104,7 @@ void testVectorType(const VectorType& base)
   VERIFY_IS_APPROX( ScalarMatrix::LinSpaced(1,low,high), ScalarMatrix::Constant(high) );
 
   // regression test for bug 526 (linear vectorized transversal)
-  if (size > 1) {
+  if (size > 1 && (!NumTraits<Scalar>::IsInteger)) {
     m.tail(size-1).setLinSpaced(low, high);
     VERIFY_IS_APPROX(m(size-1), high);
   }
