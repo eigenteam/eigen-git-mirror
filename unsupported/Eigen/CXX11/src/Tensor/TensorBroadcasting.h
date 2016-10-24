@@ -113,7 +113,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-    : m_impl(op.expression(), device)
+    : m_broadcast(op.broadcast()),m_impl(op.expression(), device)
   {
     // The broadcasting op doesn't change the rank of the tensor. One can't broadcast a scalar
     // and store the result in a scalar. Instead one should reshape the scalar into a a N-D
@@ -374,7 +374,12 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+  const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
+
+  Broadcast functor() const { return m_broadcast; }
+
  protected:
+  const Broadcast m_broadcast;
   Dimensions m_dimensions;
   array<Index, NumDims> m_outputStrides;
   array<Index, NumDims> m_inputStrides;

@@ -423,15 +423,15 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     // Precompute output strides.
     if (NumOutputDims > 0) {
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
-	m_outputStrides[0] = 1;
-	for (int i = 1; i < NumOutputDims; ++i) {
-	  m_outputStrides[i] = m_outputStrides[i - 1] * m_dimensions[i - 1];
-	}
+        m_outputStrides[0] = 1;
+        for (int i = 1; i < NumOutputDims; ++i) {
+          m_outputStrides[i] = m_outputStrides[i - 1] * m_dimensions[i - 1];
+        }
       } else {
-	m_outputStrides.back() = 1;
-	for (int i = NumOutputDims - 2; i >= 0; --i) {
-	  m_outputStrides[i] = m_outputStrides[i + 1] * m_dimensions[i + 1];
-	}
+        m_outputStrides.back() = 1;
+        for (int i = NumOutputDims - 2; i >= 0; --i) {
+          m_outputStrides[i] = m_outputStrides[i + 1] * m_dimensions[i + 1];
+        }
       }
     }
 
@@ -439,27 +439,27 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     if (NumInputDims > 0) {
       array<Index, NumInputDims> input_strides;
       if (static_cast<int>(Layout) == static_cast<int>(ColMajor)) {
-	input_strides[0] = 1;
-	for (int i = 1; i < NumInputDims; ++i) {
-	  input_strides[i] = input_strides[i-1] * input_dims[i-1];
-	}
+        input_strides[0] = 1;
+        for (int i = 1; i < NumInputDims; ++i) {
+          input_strides[i] = input_strides[i-1] * input_dims[i-1];
+        }
       } else {
-	input_strides.back() = 1;
-	for (int i = NumInputDims - 2; i >= 0; --i) {
-	  input_strides[i] = input_strides[i + 1] * input_dims[i + 1];
-	}
+        input_strides.back() = 1;
+        for (int i = NumInputDims - 2; i >= 0; --i) {
+          input_strides[i] = input_strides[i + 1] * input_dims[i + 1];
+        }
       }
 
       int outputIndex = 0;
       int reduceIndex = 0;
       for (int i = 0; i < NumInputDims; ++i) {
-	if (m_reduced[i]) {
-	  m_reducedStrides[reduceIndex] = input_strides[i];
-	  ++reduceIndex;
-	} else {
-	  m_preservedStrides[outputIndex] = input_strides[i];
-	  ++outputIndex;
-	}
+        if (m_reduced[i]) {
+          m_reducedStrides[reduceIndex] = input_strides[i];
+          ++reduceIndex;
+        } else {
+          m_preservedStrides[outputIndex] = input_strides[i];
+          ++outputIndex;
+        }
       }
     }
 
@@ -578,7 +578,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     Op reducer(m_reducer);
     if (ReducingInnerMostDims || RunningFullReduction) {
       const Index num_values_to_reduce =
-	(static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? m_preservedStrides[0] : m_preservedStrides[NumPreservedStrides - 1];
+        (static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? m_preservedStrides[0] : m_preservedStrides[NumPreservedStrides - 1];
       return internal::InnerMostDimReducer<Self, Op>::reduce(*this, firstInput(index),
                                                              num_values_to_reduce, reducer);
     } else {
@@ -602,7 +602,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType>, Device>
     EIGEN_ALIGN_MAX typename internal::remove_const<CoeffReturnType>::type values[PacketSize];
     if (ReducingInnerMostDims) {
       const Index num_values_to_reduce =
-	(static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? m_preservedStrides[0] : m_preservedStrides[NumPreservedStrides - 1];
+        (static_cast<int>(Layout) == static_cast<int>(ColMajor)) ? m_preservedStrides[0] : m_preservedStrides[NumPreservedStrides - 1];
       const Index firstIndex = firstInput(index);
       for (Index i = 0; i < PacketSize; ++i) {
         Op reducer(m_reducer);

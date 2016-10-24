@@ -163,6 +163,11 @@ struct TensorEvaluator<const TensorAssignOp<LeftArgType, RightArgType>, Device>
            TensorOpCost(0, sizeof(CoeffReturnType), 0, vectorized, PacketSize);
   }
 
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<LeftArgType, Device>& left_impl() const { return m_leftImpl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<RightArgType, Device>& right_impl() const { return m_rightImpl; }
+
   EIGEN_DEVICE_FUNC CoeffReturnType* data() const { return m_leftImpl.data(); }
 
  private:

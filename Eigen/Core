@@ -14,9 +14,19 @@
 // first thing Eigen does: stop the compiler from committing suicide
 #include "src/Core/util/DisableStupidWarnings.h"
 
-// Handle NVCC/CUDA
-#ifdef __CUDACC__
-  // Do not try asserts on CUDA!
+/// This will no longer be needed after the next release of the computecppCE
+#ifdef EIGEN_USE_SYCL
+#undef min
+#undef max
+#undef isnan
+#undef isinf
+#undef isfinite
+#include <SYCL/sycl.hpp>
+#endif
+
+// Handle NVCC/CUDA/SYCL
+#if defined(__CUDACC__) || defined(__SYCL_DEVICE_ONLY__)
+  // Do not try asserts on CUDA and SYCL!
   #ifndef EIGEN_NO_DEBUG
   #define EIGEN_NO_DEBUG
   #endif
@@ -25,7 +35,7 @@
   #undef EIGEN_INTERNAL_DEBUGGING
   #endif
 
-  // Do not try to vectorize on CUDA!
+  // Do not try to vectorize on CUDA and SYCL!
   #ifndef EIGEN_DONT_VECTORIZE
   #define EIGEN_DONT_VECTORIZE
   #endif
@@ -35,11 +45,14 @@
   #endif
 
   // All functions callable from CUDA code must be qualified with __device__
-  #define EIGEN_DEVICE_FUNC __host__ __device__
-
-  // We need math_functions.hpp to ensure that that EIGEN_USING_STD_MATH macro
-  // works properly on the device side
-  #include <math_functions.hpp>
+  #ifdef __CUDACC__
+    #define EIGEN_DEVICE_FUNC __host__ __device__
+    // We need math_functions.hpp to ensure that that EIGEN_USING_STD_MATH macro
+    // works properly on the device side
+    #include <math_functions.hpp>
+  #else
+    #define EIGEN_DEVICE_FUNC
+  #endif
 
 #else
   #define EIGEN_DEVICE_FUNC
@@ -55,7 +68,7 @@
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif
 
-#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__) && !defined(EIGEN_EXCEPTIONS)
+#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(__CUDA_ARCH__) && !defined(EIGEN_EXCEPTIONS) && !defined(EIGEN_USE_SYCL)
   #define EIGEN_EXCEPTIONS
 #endif
 
