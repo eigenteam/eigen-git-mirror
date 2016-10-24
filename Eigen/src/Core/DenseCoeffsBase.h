@@ -624,7 +624,7 @@ struct first_aligned_impl<Alignment, Derived, false>
 {
   static inline Index run(const Derived& m)
   {
-    return internal::first_aligned<Alignment>(&m.const_cast_derived().coeffRef(0,0), m.size());
+    return internal::first_aligned<Alignment>(m.data(), m.size());
   }
 };
 
