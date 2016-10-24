@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2010-2011 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2016 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -135,7 +136,7 @@ void test_nullary()
   CALL_SUBTEST_2( testMatrixType(MatrixXcf(internal::random<int>(1,300),internal::random<int>(1,300))) );
   CALL_SUBTEST_3( testMatrixType(MatrixXf(internal::random<int>(1,300),internal::random<int>(1,300))) );
   
-  for(int i = 0; i < g_repeat; i++) {
+  for(int i = 0; i < g_repeat*10; i++) {
     CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,300))) );
     CALL_SUBTEST_5( testVectorType(Vector4d()) );  // regression test for bug 232
     CALL_SUBTEST_6( testVectorType(Vector3d()) );
@@ -152,6 +153,18 @@ void test_nullary()
 #ifdef EIGEN_TEST_PART_6
   // Assignment of a RowVectorXd to a MatrixXd (regression test for bug #79).
   VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<double>::epsilon() );
+#endif
+
+#ifdef EIGEN_TEST_PART_9
+  // Check possible overflow issue
+  {
+    int n = 60000;
+    ArrayXi a1(n), a2(n);
+    a1.setLinSpaced(n, 0, n-1);
+    for(int i=0; i<n; ++i)
+      a2(i) = i;
+    VERIFY_IS_APPROX(a1,a2);
+  }
 #endif
 
 #ifdef EIGEN_TEST_PART_10
