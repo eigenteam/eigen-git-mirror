@@ -30,6 +30,7 @@ bool equalsIdentity(const MatrixType& A)
 
   bool diagOK = (A.diagonal().array() == 1).all();
   return offDiagOK && diagOK;
+
 }
 
 template<typename VectorType>
@@ -42,6 +43,10 @@ void testVectorType(const VectorType& base)
   Scalar high = internal::random<Scalar>(-500,500);
   Scalar low = (size == 1 ? high : internal::random<Scalar>(-500,500));
   if (low>high) std::swap(low,high);
+
+  // check low==high
+  if(internal::random<float>(0.f,1.f)<0.05f)
+    low = high;
 
   const Scalar step = ((size == 1) ? 1 : (high-low)/(size-1));
 
@@ -77,6 +82,8 @@ void testVectorType(const VectorType& base)
   }
 
   VERIFY( m(m.size()-1) <= high );
+  VERIFY( (m.array() <= high).all() );
+  VERIFY( (m.array() >= low).all() );
 
 
   VERIFY( m(m.size()-1) >= low );
