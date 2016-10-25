@@ -559,7 +559,8 @@ pblend(const Selector<unpacket_traits<Packet>::size>& ifPacket, const Packet& th
 }
 
 /** \internal \returns \a a with last coefficients replaced by the scalar b */
-template<typename Packet> EIGEN_DEVICE_FUNC Packet pinsertlast(const Packet& a, typename unpacket_traits<Packet>::type b)
+template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+pinsertlast(const Packet& a, typename unpacket_traits<Packet>::type b)
 {
   // Default implementation based on pblend.
   // It must be specialized for higher performance.
