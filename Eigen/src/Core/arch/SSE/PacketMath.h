@@ -824,7 +824,7 @@ template<> EIGEN_DEVICE_FUNC Packet4f pinsertlast(const Packet4f& a, float b)
   return _mm_blend_ps(a,pset1<Packet4f>(b),(1<<3));
 #else
   const Packet4f mask = _mm_castsi128_ps(_mm_setr_epi32(0x0,0x0,0x0,0xFFFFFFFF));
-  return _mm_or_ps(_mm_andnot_pd(mask, a), _mm_and_pd(mask, pset1<Packet4f>(b)));
+  return _mm_or_ps(_mm_andnot_ps(mask, a), _mm_and_ps(mask, pset1<Packet4f>(b)));
 #endif
 }
 
