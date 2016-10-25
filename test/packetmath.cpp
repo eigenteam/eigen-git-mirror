@@ -289,6 +289,16 @@ template<typename Scalar> void packetmath()
       VERIFY(isApproxAbs(result[i], (selector.select[i] ? data1[i] : data2[i]), refvalue));
     }
   }
+
+  if (PacketTraits::HasBlend) {
+    // pinsertlast
+    for (int i=0; i<PacketSize; ++i)
+      ref[i] = data1[i];
+    Scalar s = internal::random<Scalar>();
+    ref[PacketSize-1] = s;
+    internal::pstore(data2, internal::pinsertlast(internal::pload<Packet>(data1),s));
+    VERIFY(areApprox(ref, data2, PacketSize) && "internal::pinsertlast");
+  }
 }
 
 template<typename Scalar> void packetmath_real()

@@ -604,6 +604,16 @@ template<> EIGEN_STRONG_INLINE Packet4d pblend(const Selector<4>& ifPacket, cons
   return _mm256_blendv_pd(thenPacket, elsePacket, false_mask);
 }
 
+template<> EIGEN_DEVICE_FUNC Packet8f pinsertlast(const Packet8f& a, float b)
+{
+  return _mm256_blend_ps(a,pset1<Packet8f>(b),(1<<7));
+}
+
+template<> EIGEN_DEVICE_FUNC Packet4d pinsertlast(const Packet4d& a, double b)
+{
+  return _mm256_blend_pd(a,pset1<Packet4d>(b),(1<<3));
+}
+
 } // end namespace internal
 
 } // end namespace Eigen

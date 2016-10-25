@@ -558,6 +558,19 @@ pblend(const Selector<unpacket_traits<Packet>::size>& ifPacket, const Packet& th
   return ifPacket.select[0] ? thenPacket : elsePacket;
 }
 
+/** \internal \returns \a a with last coefficients replaced by the scalar b */
+template<typename Packet> EIGEN_DEVICE_FUNC Packet pinsertlast(const Packet& a, typename unpacket_traits<Packet>::type b)
+{
+  // Default implementation based on pblend.
+  // It must be specialized for higher performance.
+  Selector<unpacket_traits<Packet>::size> mask;
+  // This for loop should be optimized away by the compiler.
+  for(Index i=0; i<unpacket_traits<Packet>::size-1; ++i)
+    mask.select[i] = false;
+  mask.select[unpacket_traits<Packet>::size-1] = true;
+  return pblend(mask, pset1<Packet>(b), a);
+}
+
 } // end namespace internal
 
 } // end namespace Eigen
