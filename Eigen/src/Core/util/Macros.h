@@ -356,6 +356,13 @@
 #define EIGEN_MAX_CPP_VER 99
 #endif
 
+#if EIGEN_MAX_CPP_VER>=11 && defined(__cplusplus) && (__cplusplus >= 201103L)
+#define EIGEN_HAS_CXX11 1
+#else
+#define EIGEN_HAS_CXX11 0
+#endif
+
+
 // Do we support r-value references?
 #ifndef EIGEN_HAS_RVALUE_REFERENCES
 #if EIGEN_MAX_CPP_VER>=11 && \
