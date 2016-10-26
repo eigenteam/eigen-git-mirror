@@ -256,7 +256,49 @@ Index compute_block_size()
   return ret;
 }
 
+template<typename>
+void aliasing_with_resize()
+{
+  Index m = internal::random<Index>(10,50);
+  Index n = internal::random<Index>(10,50);
+  MatrixXd A, B, C(m,n), D(m,m);
+  VectorXd a, b, c(n);
+  C.setRandom();
+  D.setRandom();
+  c.setRandom();
+  double s = internal::random<double>(1,10);
 
+  A = C;
+  B = A * A.transpose();
+  A = A * A.transpose();
+  VERIFY_IS_APPROX(A,B);
+
+  A = C;
+  B = (A * A.transpose())/s;
+  A = (A * A.transpose())/s;
+  VERIFY_IS_APPROX(A,B);
+
+  A = C;
+  B = (A * A.transpose()) + D;
+  A = (A * A.transpose()) + D;
+  VERIFY_IS_APPROX(A,B);
+
+  A = C;
+  B = D + (A * A.transpose());
+  A = D + (A * A.transpose());
+  VERIFY_IS_APPROX(A,B);
+
+  A = C;
+  B = s * (A * A.transpose());
+  A = s * (A * A.transpose());
+  VERIFY_IS_APPROX(A,B);
+
+  A = C;
+  a = c;
+  b = (A * a)/s;
+  a = (A * a)/s;
+  VERIFY_IS_APPROX(a,b);
+}
 
 template<int>
 void bug_1308()
@@ -318,5 +360,6 @@ void test_product_extra()
   CALL_SUBTEST_7( compute_block_size<float>() );
   CALL_SUBTEST_7( compute_block_size<double>() );
   CALL_SUBTEST_7( compute_block_size<std::complex<double> >() );
+  CALL_SUBTEST_8( aliasing_with_resize<void>() );
 
 }

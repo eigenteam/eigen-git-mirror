@@ -775,15 +775,18 @@ public:
 
 template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType, typename Functor>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
+void call_triangular_assignment_loop(DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
-  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-  
   typedef evaluator<DstXprType> DstEvaluatorType;
   typedef evaluator<SrcXprType> SrcEvaluatorType;
 
-  DstEvaluatorType dstEvaluator(dst);
   SrcEvaluatorType srcEvaluator(src);
+
+  Index dstRows = src.rows();
+  Index dstCols = src.cols();
+  if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+    dst.resize(dstRows, dstCols);
+  DstEvaluatorType dstEvaluator(dst);
     
   typedef triangular_dense_assignment_kernel< Mode&(Lower|Upper),Mode&(UnitDiag|ZeroDiag|SelfAdjoint),SetOpposite,
                                               DstEvaluatorType,SrcEvaluatorType,Functor> Kernel;
@@ -800,7 +803,7 @@ void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& sr
 
 template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src)
+void call_triangular_assignment_loop(DstXprType& dst, const SrcXprType& src)
 {
   call_triangular_assignment_loop<Mode,SetOpposite>(dst, src, internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar>());
 }
@@ -936,6 +939,11 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename SrcXprType::Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     dst.setZero();
     dst._assignProduct(src, 1);
   }
