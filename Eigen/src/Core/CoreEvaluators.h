@@ -1302,7 +1302,7 @@ struct evaluator<PartialReduxExpr<ArgType, MemberOp, Direction> >
   }
 
 protected:
-  const ArgTypeNested m_arg;
+  typename internal::add_const_on_value_type<ArgTypeNested>::type m_arg;
   const MemberOp m_functor;
 };
 
