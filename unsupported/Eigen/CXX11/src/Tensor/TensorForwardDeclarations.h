@@ -18,8 +18,8 @@ namespace Eigen {
 // T* m_data on the host. It is always called on the device.
 // Specialisation of MakePointer class for creating the sycl buffer with
 // map_allocator.
-template<class T> struct MakePointer{
-	typedef T* Type;
+template<typename T> struct MakePointer {
+  typedef T* Type;
 };
 
 template<typename PlainObjectType, int Options_ = Unaligned, template <class> class MakePointer_ = MakePointer> class TensorMap;
