@@ -139,13 +139,16 @@ struct Assignment<DstXprType, SrcXprType, Functor, Sparse2Dense>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
-    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-
     if(internal::is_same<Functor,internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> >::value)
       dst.setZero();
     
     internal::evaluator<SrcXprType> srcEval(src);
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
     internal::evaluator<DstXprType> dstEval(dst);
+    
     const Index outerEvaluationSize = (internal::evaluator<SrcXprType>::Flags&RowMajorBit) ? src.rows() : src.cols();
     for (Index j=0; j<outerEvaluationSize; ++j)
       for (typename internal::evaluator<SrcXprType>::InnerIterator i(srcEval,j); i; ++i)
@@ -161,6 +164,11 @@ struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar
   typedef Solve<DecType,RhsType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     src.dec()._solve_impl(src.rhs(), dst);
   }
 };
@@ -179,6 +187,11 @@ struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Sparse>
   template<int Options>
   static void run(SparseMatrix<Scalar,Options,StorageIndex> &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     Index size = src.diagonal().size();
     dst.makeCompressed();
     dst.resizeNonZeros(size);

@@ -139,7 +139,11 @@ struct Assignment<DstXprType, Solve<DecType,RhsType>, internal::assign_op<Scalar
   typedef Solve<DecType,RhsType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
-    // FIXME shall we resize dst here?
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     src.dec()._solve_impl(src.rhs(), dst);
   }
 };
@@ -151,6 +155,11 @@ struct Assignment<DstXprType, Solve<Transpose<const DecType>,RhsType>, internal:
   typedef Solve<Transpose<const DecType>,RhsType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     src.dec().nestedExpression().template _solve_impl_transposed<false>(src.rhs(), dst);
   }
 };
@@ -163,6 +172,11 @@ struct Assignment<DstXprType, Solve<CwiseUnaryOp<internal::scalar_conjugate_op<t
   typedef Solve<CwiseUnaryOp<internal::scalar_conjugate_op<typename DecType::Scalar>, const Transpose<const DecType> >,RhsType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+    
     src.dec().nestedExpression().nestedExpression().template _solve_impl_transposed<true>(src.rhs(), dst);
   }
 };

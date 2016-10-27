@@ -104,6 +104,11 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,AliasFreeProduct>, internal::assig
   typedef Product<Lhs,Rhs,AliasFreeProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+    
     generic_product_impl<Lhs, Rhs>::evalTo(dst,src.lhs(),src.rhs());
   }
 };

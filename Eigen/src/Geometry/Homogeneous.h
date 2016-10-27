@@ -334,6 +334,11 @@ struct Assignment<DstXprType, Homogeneous<ArgType,Vertical>, internal::assign_op
   typedef Homogeneous<ArgType,Vertical> SrcXprType;
   EIGEN_DEVICE_FUNC static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename ArgType::Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     dst.template topRows<ArgType::RowsAtCompileTime>(src.nestedExpression().rows()) = src.nestedExpression();
     dst.row(dst.rows()-1).setOnes();
   }
@@ -346,6 +351,11 @@ struct Assignment<DstXprType, Homogeneous<ArgType,Horizontal>, internal::assign_
   typedef Homogeneous<ArgType,Horizontal> SrcXprType;
   EIGEN_DEVICE_FUNC static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename ArgType::Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     dst.template leftCols<ArgType::ColsAtCompileTime>(src.nestedExpression().cols()) = src.nestedExpression();
     dst.col(dst.cols()-1).setOnes();
   }

@@ -697,15 +697,21 @@ protected:
 ***************************************************************************/
 
 template<typename DstXprType, typename SrcXprType, typename Functor>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
-  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-  
   typedef evaluator<DstXprType> DstEvaluatorType;
   typedef evaluator<SrcXprType> SrcEvaluatorType;
 
-  DstEvaluatorType dstEvaluator(dst);
   SrcEvaluatorType srcEvaluator(src);
+
+  // NOTE To properly handle A = (A*A.transpose())/s with A rectangular,
+  // we need to resize the destination after the source evaluator has been created.
+  Index dstRows = src.rows();
+  Index dstCols = src.cols();
+  if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+    dst.resize(dstRows, dstCols);
+
+  DstEvaluatorType dstEvaluator(dst);
     
   typedef generic_dense_assignment_kernel<DstEvaluatorType,SrcEvaluatorType,Functor> Kernel;
   Kernel kernel(dstEvaluator, srcEvaluator, func, dst.const_cast_derived());
@@ -714,7 +720,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(const DstX
 }
 
 template<typename DstXprType, typename SrcXprType>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(const DstXprType& dst, const SrcXprType& src)
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void call_dense_assignment_loop(DstXprType& dst, const SrcXprType& src)
 {
   call_dense_assignment_loop(dst, src, internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar>());
 }
@@ -796,11 +802,6 @@ void call_assignment_no_alias(Dst& dst, const Src& src, const Func& func)
                       ) && int(Dst::SizeAtCompileTime) != 1
   };
 
-  Index dstRows = NeedToTranspose ? src.cols() : src.rows();
-  Index dstCols = NeedToTranspose ? src.rows() : src.cols();
-  if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
-    dst.resize(dstRows, dstCols);
-  
   typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst>::type ActualDstTypeCleaned;
   typedef typename internal::conditional<NeedToTranspose, Transpose<Dst>, Dst&>::type ActualDstType;
   ActualDstType actualDst(dst);
@@ -823,15 +824,11 @@ template<typename Dst, typename Src, typename Func>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 void call_assignment_no_alias_no_transpose(Dst& dst, const Src& src, const Func& func)
 {
-  Index dstRows = src.rows();
-  Index dstCols = src.cols();
-  if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
-    dst.resize(dstRows, dstCols);
-  
   // TODO check whether this is the right place to perform these checks:
   EIGEN_STATIC_ASSERT_LVALUE(Dst)
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Dst,Src)
-  
+  EIGEN_CHECK_BINARY_COMPATIBILIY(Func,typename Dst::Scalar,typename Src::Scalar);
+
   Assignment<Dst,Src,Func>::run(dst, src, func);
 }
 template<typename Dst, typename Src>
@@ -853,8 +850,6 @@ struct Assignment<DstXprType, SrcXprType, Functor, Dense2Dense, Weak>
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const Functor &func)
   {
-    eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-    
 #ifndef EIGEN_NO_DEBUG
     internal::check_for_aliasing(dst, src);
 #endif
@@ -873,6 +868,11 @@ struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Weak>
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
     src.evalTo(dst);
   }

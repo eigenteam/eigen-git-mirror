@@ -98,7 +98,11 @@ struct Assignment<DstXprType, SolveWithGuess<DecType,RhsType,GuessType>, interna
   typedef SolveWithGuess<DecType,RhsType,GuessType> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
-    // FIXME shall we resize dst here?
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     dst = src.guess();
     src.dec()._solve_with_guess_impl(src.rhs(), dst/*, src.guess()*/);
   }
