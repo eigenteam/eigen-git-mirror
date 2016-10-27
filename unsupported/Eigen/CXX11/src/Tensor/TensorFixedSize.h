@@ -23,8 +23,8 @@ namespace Eigen {
   * Eigen::TensorFixedSize<float, Size<3,5,7>> t;
   */
 
-template<typename Scalar_, typename Dimensions_, int Options_, typename IndexType, template <class> class MakePointer_>
-class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, Options_, IndexType, MakePointer_> >
+template<typename Scalar_, typename Dimensions_, int Options_, typename IndexType>
+class TensorFixedSize : public TensorBase<TensorFixedSize<Scalar_, Dimensions_, Options_, IndexType> >
 {
   public:
     typedef TensorFixedSize<Scalar_, Dimensions_, Options_, IndexType> Self;

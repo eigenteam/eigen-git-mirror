@@ -62,8 +62,8 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
 };
 
 
-template<typename Scalar_, typename Dimensions, int Options_, typename IndexType_, template <class> class MakePointer_>
-struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_, MakePointer_> >
+template<typename Scalar_, typename Dimensions, int Options_, typename IndexType_>
+struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
 {
   typedef Scalar_ Scalar;
   typedef Dense StorageKind;
@@ -75,7 +75,7 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_, MakePoi
     Flags = compute_tensor_flags<Scalar_, Options_>::ret | (is_const<Scalar_>::value ? 0: LvalueBit)
   };
   template <typename T> struct MakePointer {
-    typedef typename MakePointer_<T>::Type Type;
+    typedef T* Type;
   };
 };
 

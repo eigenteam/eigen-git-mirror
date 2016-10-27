@@ -24,7 +24,7 @@ template<typename T> struct MakePointer {
 
 template<typename PlainObjectType, int Options_ = Unaligned, template <class> class MakePointer_ = MakePointer> class TensorMap;
 template<typename Scalar_, int NumIndices_, int Options_ = 0, typename IndexType = DenseIndex> class Tensor;
-template<typename Scalar_, typename Dimensions, int Options_ = 0, typename IndexType = DenseIndex, template <class> class MakePointer_ = MakePointer> class TensorFixedSize;
+template<typename Scalar_, typename Dimensions, int Options_ = 0, typename IndexType = DenseIndex> class TensorFixedSize;
 template<typename PlainObjectType> class TensorRef;
 template<typename Derived, int AccessLevel> class TensorBase;
 
