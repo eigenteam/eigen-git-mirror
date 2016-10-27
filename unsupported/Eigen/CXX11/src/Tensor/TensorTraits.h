@@ -95,7 +95,9 @@ struct traits<TensorMap<PlainObjectType, Options_ , MakePointer_> >
     Flags = BaseTraits::Flags
   };
   template <class T> struct MakePointer {
-    typedef typename MakePointer_<T>::Type Type;
+    // Intermediate typedef to workaround MSVC issue.
+    typedef MakePointer_<T> MakePointerT;
+    typedef typename MakePointerT::Type Type;
   };
 };
 
