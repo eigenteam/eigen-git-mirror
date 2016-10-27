@@ -120,13 +120,27 @@ struct lgamma_retval {
 template <>
 struct lgamma_impl<float> {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE float run(float x) { return ::lgammaf(x); }
+  static EIGEN_STRONG_INLINE float run(float x) {
+#ifdef _BSD_SOURCE || _SVID_SOURCE
+    int signgam;
+    return ::lgammaf_r(x, &signgam);
+#else
+    return ::lgammaf(x);
+#endif
+  }
 };
 
 template <>
 struct lgamma_impl<double> {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE double run(double x) { return ::lgamma(x); }
+  static EIGEN_STRONG_INLINE double run(double x) {
+#ifdef _BSD_SOURCE || _SVID_SOURCE
+    int signgam;
+    return ::lgammaf_r(x, &signgam);
+#else
+    return ::lgamma(x);
+#endif
+  }
 };
 #endif
 
@@ -794,7 +808,7 @@ template <>
 struct zeta_impl_series<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE bool run(float& a, float& b, float& s, const float x, const float machep) {
-    int i = 0;  
+    int i = 0;
     while(i < 9)
     {
         i += 1;
@@ -804,7 +818,7 @@ struct zeta_impl_series<float> {
         if( numext::abs(b/s) < machep )
             return true;
     }
-    
+
     //Return whether we are done
     return false;
   }
@@ -814,7 +828,7 @@ template <>
 struct zeta_impl_series<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE bool run(double& a, double& b, double& s, const double x, const double machep) {
-    int i = 0;  
+    int i = 0;
     while( (i < 9) || (a <= 9.0) )
     {
         i += 1;
@@ -824,12 +838,12 @@ struct zeta_impl_series<double> {
         if( numext::abs(b/s) < machep )
             return true;
     }
-    
+
     //Return whether we are done
     return false;
   }
 };
-    
+
 template <typename Scalar>
 struct zeta_impl {
     EIGEN_DEVICE_FUNC
@@ -894,10 +908,10 @@ struct zeta_impl {
          * Series, and Products, p. 1073; Academic Press, 1980.
          *
          */
-        
+
         int i;
         Scalar p, r, a, b, k, s, t, w;
-        
+
         const Scalar A[] = {
             Scalar(12.0),
             Scalar(-720.0),
@@ -912,20 +926,20 @@ struct zeta_impl {
             Scalar(1.8152105401943546773e17), /*1.5511210043330985984e23/854513*/
             Scalar(-7.1661652561756670113e18) /*1.6938241367317436694528e27/236364091*/
             };
-            
+
         const Scalar maxnum = NumTraits<Scalar>::infinity();
         const Scalar zero = 0.0, half = 0.5, one = 1.0;
         const Scalar machep = cephes_helper<Scalar>::machep();
         const Scalar nan = NumTraits<Scalar>::quiet_NaN();
-        
+
         if( x == one )
             return maxnum;
-        
+
         if( x < one )
         {
             return nan;
         }
-        
+
         if( q <= zero )
         {
             if(q == numext::floor(q))
@@ -937,7 +951,7 @@ struct zeta_impl {
             if (p != r)
                 return nan;
         }
-        
+
         /* Permit negative q but continue sum until n+q > +9 .
          * This case should be handled by a reflection formula.
          * If q<0 and x is an integer, there is a relation to
@@ -950,7 +964,7 @@ struct zeta_impl {
         if (zeta_impl_series<Scalar>::run(a, b, s, x, machep)) {
             return s;
         }
-        
+
         w = a;
         s += b*w/(x-one);
         s -= half * b;
@@ -983,9 +997,9 @@ template <typename Scalar>
 struct polygamma_retval {
     typedef Scalar type;
 };
-    
+
 #if !EIGEN_HAS_C99_MATH
-    
+
 template <typename Scalar>
 struct polygamma_impl {
     EIGEN_DEVICE_FUNC
@@ -995,9 +1009,9 @@ struct polygamma_impl {
         return Scalar(0);
     }
 };
-    
+
 #else
-    
+
 template <typename Scalar>
 struct polygamma_impl {
     EIGEN_DEVICE_FUNC
@@ -1005,7 +1019,7 @@ struct polygamma_impl {
         Scalar zero = 0.0, one = 1.0;
         Scalar nplus = n + one;
         const Scalar nan = NumTraits<Scalar>::quiet_NaN();
-        
+
         // Check that n is an integer
         if (numext::floor(n) != n) {
             return nan;
@@ -1021,7 +1035,7 @@ struct polygamma_impl {
         }
   }
 };
-    
+
 #endif  // EIGEN_HAS_C99_MATH
 
 /************************************************************************************************
