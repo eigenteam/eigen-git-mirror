@@ -38,7 +38,9 @@ struct traits<TensorEvalToOp<XprType, MakePointer_> >
   };
   template <class T>
   struct MakePointer {
-    typedef typename MakePointer_<T>::Type Type;
+    // Intermediate typedef to workaround MSVC issue.
+    typedef MakePointer_<T> MakePointerT;
+    typedef typename MakePointerT::Type Type;
   };
 };
 
