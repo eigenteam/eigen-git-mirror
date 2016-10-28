@@ -80,8 +80,8 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
 };
 
 
-template<typename PlainObjectType, int Options_ , template <class> class MakePointer_>
-struct traits<TensorMap<PlainObjectType, Options_ , MakePointer_> >
+template<typename PlainObjectType, int Options_, template <class> class MakePointer_>
+struct traits<TensorMap<PlainObjectType, Options_, MakePointer_> >
   : public traits<PlainObjectType>
 {
   typedef traits<PlainObjectType> BaseTraits;
@@ -142,16 +142,16 @@ struct eval<const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>, Eig
   typedef const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_>& type;
 };
 
-template<typename PlainObjectType, int Options>
-struct eval<TensorMap<PlainObjectType, Options>, Eigen::Dense>
+template<typename PlainObjectType, int Options, template <class> class MakePointer>
+struct eval<TensorMap<PlainObjectType, Options, MakePointer>, Eigen::Dense>
 {
-  typedef const TensorMap<PlainObjectType, Options>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
 };
 
-template<typename PlainObjectType, int Options>
-struct eval<const TensorMap<PlainObjectType, Options>, Eigen::Dense>
+template<typename PlainObjectType, int Options, template <class> class MakePointer>
+struct eval<const TensorMap<PlainObjectType, Options, MakePointer>, Eigen::Dense>
 {
-  typedef const TensorMap<PlainObjectType, Options>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
 };
 
 template<typename PlainObjectType>
@@ -197,16 +197,16 @@ struct nested<const TensorFixedSize<Scalar_, Dimensions, Options, IndexType_> >
 };
 
 
-template <typename PlainObjectType, int Options>
-struct nested<TensorMap<PlainObjectType, Options> >
+template <typename PlainObjectType, int Options, template <class> class MakePointer>
+struct nested<TensorMap<PlainObjectType, Options, MakePointer> >
 {
-  typedef const TensorMap<PlainObjectType, Options>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
 };
 
-template <typename PlainObjectType, int Options>
-struct nested<const TensorMap<PlainObjectType, Options> >
+template <typename PlainObjectType, int Options, template <class> class MakePointer>
+struct nested<const TensorMap<PlainObjectType, Options, MakePointer> >
 {
-  typedef const TensorMap<PlainObjectType, Options>& type;
+  typedef const TensorMap<PlainObjectType, Options, MakePointer>& type;
 };
 
 template <typename PlainObjectType>
