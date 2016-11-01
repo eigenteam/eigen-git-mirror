@@ -15,7 +15,7 @@ namespace Eigen {
 namespace internal {
 
 // Most of the following operations require arch >= 3.0
-#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
+#if defined(EIGEN_HAS_CUDA_FP16) && defined(__CUDACC__) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 300
 
 template<> struct is_arithmetic<half2> { enum { value = true }; };
 
