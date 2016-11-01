@@ -13,7 +13,7 @@
 
 using Eigen::Tensor;
 
-static void test_simple_patch()
+void test_simple_patch()
 {
   Tensor<float, 4> tensor(2,3,5,7);
   tensor.setRandom();
@@ -180,7 +180,7 @@ static void test_simple_patch()
 }
 
 // Verifies VALID padding (no padding) with incrementing values.
-static void test_patch_padding_valid()
+void test_patch_padding_valid()
 {
   int input_depth = 3;
   int input_rows = 3;
@@ -256,7 +256,7 @@ static void test_patch_padding_valid()
 }
 
 // Verifies VALID padding (no padding) with the same value.
-static void test_patch_padding_valid_same_value()
+void test_patch_padding_valid_same_value()
 {
   int input_depth = 1;
   int input_rows = 5;
@@ -329,7 +329,7 @@ static void test_patch_padding_valid_same_value()
 }
 
 // Verifies SAME padding.
-static void test_patch_padding_same()
+void test_patch_padding_same()
 {
   int input_depth = 3;
   int input_rows = 4;
@@ -405,7 +405,7 @@ static void test_patch_padding_same()
   }
 }
 
-static void test_patch_no_extra_dim()
+void test_patch_no_extra_dim()
 {
   Tensor<float, 3> tensor(2,3,5);
   tensor.setRandom();
@@ -553,7 +553,7 @@ static void test_patch_no_extra_dim()
   }
 }
 
-static void test_imagenet_patches()
+void test_imagenet_patches()
 {
   // Test the code on typical configurations used by the 'imagenet' benchmarks at
   // https://github.com/soumith/convnet-benchmarks
@@ -748,10 +748,10 @@ static void test_imagenet_patches()
 
 void test_cxx11_tensor_image_patch()
 {
-  CALL_SUBTEST(test_simple_patch());
-  CALL_SUBTEST(test_patch_no_extra_dim());
-  CALL_SUBTEST(test_patch_padding_valid());
-  CALL_SUBTEST(test_patch_padding_valid_same_value());
-  CALL_SUBTEST(test_patch_padding_same());
-  CALL_SUBTEST(test_imagenet_patches());
+  CALL_SUBTEST_1(test_simple_patch());
+  CALL_SUBTEST_2(test_patch_no_extra_dim());
+  CALL_SUBTEST_3(test_patch_padding_valid());
+  CALL_SUBTEST_4(test_patch_padding_valid_same_value());
+  CALL_SUBTEST_5(test_patch_padding_same());
+  CALL_SUBTEST_6(test_imagenet_patches());
 }

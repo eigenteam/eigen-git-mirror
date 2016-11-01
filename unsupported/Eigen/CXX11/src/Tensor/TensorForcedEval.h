@@ -42,9 +42,10 @@ struct traits<TensorForcedEvalOp<XprType, MakePointer_> >
   enum {
     Flags = 0
   };
-  template <class T>
-  struct MakePointer {
-    typedef typename MakePointer_<T>::Type Type;
+  template <class T> struct MakePointer {
+    // Intermediate typedef to workaround MSVC issue.
+    typedef MakePointer_<T> MakePointerT;
+    typedef typename MakePointerT::Type Type;
   };
 };
 
