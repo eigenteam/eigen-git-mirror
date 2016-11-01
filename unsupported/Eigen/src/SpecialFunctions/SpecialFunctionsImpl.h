@@ -121,7 +121,7 @@ template <>
 struct lgamma_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(float x) {
-#ifdef _BSD_SOURCE || _SVID_SOURCE
+#if !defined(__CUDA_ARCH__) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE))
     int signgam;
     return ::lgammaf_r(x, &signgam);
 #else
@@ -134,9 +134,9 @@ template <>
 struct lgamma_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(double x) {
-#ifdef _BSD_SOURCE || _SVID_SOURCE
+#if !defined(__CUDA_ARCH__) && (defined(_BSD_SOURCE) || defined(_SVID_SOURCE))
     int signgam;
-    return ::lgammaf_r(x, &signgam);
+    return ::lgamma_r(x, &signgam);
 #else
     return ::lgamma(x);
 #endif
