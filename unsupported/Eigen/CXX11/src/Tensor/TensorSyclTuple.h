@@ -105,7 +105,7 @@ TERMINATE_CONDS_TUPLE_GET()
 template <size_t k, class T, class... Ts> \
 typename StaticIf<k != 0, CVQual typename ElemTypeHolder<k, Tuple<T, Ts...> >::type &>::type \
 get(CVQual Tuple<T, Ts...> &t) { \
-  return get<k - 1>(t.tail); \
+  return utility::tuple::get<k - 1>(t.tail); \
 }
 RECURSIVE_TUPLE_GET(const)
 RECURSIVE_TUPLE_GET()
@@ -182,7 +182,7 @@ struct IndexRange: RangeBuilder<MIN, MAX>::type {};
 /// \return Tuple<Args..., T>
 template <typename... Args, typename T, size_t... I>
 Tuple<Args..., T> append_base(Tuple<Args...> t, T a,IndexList<I...>) {
-  return make_tuple(get<I>(t)..., a);
+  return utility::tuple::make_tuple(get<I>(t)..., a);
 }
 
 /// append
@@ -195,7 +195,7 @@ Tuple<Args..., T> append_base(Tuple<Args...> t, T a,IndexList<I...>) {
 /// \return Tuple<Args..., T>
 template <typename... Args, typename T>
 Tuple<Args..., T> append(Tuple<Args...> t, T a) {
-  return append_base(t, a,  IndexRange<0, sizeof...(Args)>());
+  return utility::tuple::append_base(t, a,  IndexRange<0, sizeof...(Args)>());
 }
 
 /// append_base
@@ -213,7 +213,7 @@ Tuple<Args..., T> append(Tuple<Args...> t, T a) {
 /// \return Tuple<Args1..., Args2...>
 template <typename... Args1, typename... Args2, size_t... I1, size_t... I2>
 Tuple<Args1..., Args2...> append_base(Tuple<Args1...> t1, Tuple<Args2...> t2, IndexList<I1...>, IndexList<I2...>) {
-  return make_tuple(get<I1>(t1)...,get<I2>(t2)...);
+  return utility::tuple::make_tuple(get<I1>(t1)...,get<I2>(t2)...);
 }
 
 /// append
@@ -227,7 +227,7 @@ Tuple<Args1..., Args2...> append_base(Tuple<Args1...> t1, Tuple<Args2...> t2, In
 /// \return Tuple<Args1..., Args2...>
 template <typename... Args1, typename... Args2>
 Tuple<Args1..., Args2...> append(Tuple<Args1...> t1,Tuple<Args2...> t2) {
-  return append_base(t1, t2, IndexRange<0, sizeof...(Args1)>(), IndexRange<0, sizeof...(Args2)>());
+  return utility::tuple::append_base(t1, t2, IndexRange<0, sizeof...(Args1)>(), IndexRange<0, sizeof...(Args2)>());
 }
 }  // tuple
 }  // utility
