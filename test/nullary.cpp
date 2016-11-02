@@ -34,9 +34,37 @@ bool equalsIdentity(const MatrixType& A)
 }
 
 template<typename VectorType>
+void check_extremity_accuracy(const VectorType &v, const typename VectorType::Scalar &low, const typename VectorType::Scalar &high)
+{
+  typedef typename VectorType::Scalar Scalar;
+  typedef typename VectorType::RealScalar RealScalar;
+
+  RealScalar prec = internal::is_same<RealScalar,float>::value ? NumTraits<RealScalar>::dummy_precision()*10 : NumTraits<RealScalar>::dummy_precision()/10;
+  Index size = v.size();
+
+  if(size<20)
+    return;
+
+  for (int i=0; i<size; ++i)
+  {
+    if(i<5 || i>size-6)
+    {
+      Scalar ref = (low*RealScalar(size-i-1))/RealScalar(size-1) + (high*RealScalar(i))/RealScalar(size-1);
+      if(std::abs(ref)>1)
+      {
+        if(!internal::isApprox(v(i), ref, prec))
+          std::cout << v(i) << " != " << ref << "  ; relative error: " << std::abs((v(i)-ref)/ref) << "  ; required precision: " << prec << "  ; range: " << low << "," << high << "  ; i: " << i << "\n";
+        VERIFY(internal::isApprox(v(i), (low*RealScalar(size-i-1))/RealScalar(size-1) + (high*RealScalar(i))/RealScalar(size-1), prec));
+      }
+    }
+  }
+}
+
+template<typename VectorType>
 void testVectorType(const VectorType& base)
 {
   typedef typename VectorType::Scalar Scalar;
+  typedef typename VectorType::RealScalar RealScalar;
 
   const Index size = base.size();
   
@@ -47,6 +75,9 @@ void testVectorType(const VectorType& base)
   // check low==high
   if(internal::random<float>(0.f,1.f)<0.05f)
     low = high;
+  // check abs(low) >> abs(high)
+  else if(size>2 && std::numeric_limits<RealScalar>::max_exponent10>0 && internal::random<float>(0.f,1.f)<0.1f)
+    low = -internal::random<Scalar>(1,2) * RealScalar(std::pow(RealScalar(10),std::numeric_limits<RealScalar>::max_exponent10/2));
 
   const Scalar step = ((size == 1) ? 1 : (high-low)/(size-1));
 
@@ -60,6 +91,8 @@ void testVectorType(const VectorType& base)
     for (int i=0; i<size; ++i)
       n(i) = low+i*step;
     VERIFY_IS_APPROX(m,n);
+
+    CALL_SUBTEST( check_extremity_accuracy(m, low, high) );
   }
 
   if((!NumTraits<Scalar>::IsInteger) || ((high-low)>=size && (Index(high-low)%(size-1))==0) || (Index(high-low+1)<size && (size%Index(high-low+1))==0))
@@ -79,6 +112,8 @@ void testVectorType(const VectorType& base)
     VERIFY( internal::isApprox(m(m.size()-1),high) );
     VERIFY( size==1 || internal::isApprox(m(0),low) );
     VERIFY_IS_EQUAL(m(m.size()-1) , high);
+    if(!NumTraits<Scalar>::IsInteger)
+      CALL_SUBTEST( check_extremity_accuracy(m, low, high) );
   }
 
   VERIFY( m(m.size()-1) <= high );
@@ -154,10 +189,10 @@ void test_nullary()
   CALL_SUBTEST_3( testMatrixType(MatrixXf(internal::random<int>(1,300),internal::random<int>(1,300))) );
   
   for(int i = 0; i < g_repeat*10; i++) {
-    CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,300))) );
+    CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,30000))) );
     CALL_SUBTEST_5( testVectorType(Vector4d()) );  // regression test for bug 232
     CALL_SUBTEST_6( testVectorType(Vector3d()) );
-    CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,300))) );
+    CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,30000))) );
     CALL_SUBTEST_8( testVectorType(Vector3f()) );
     CALL_SUBTEST_8( testVectorType(Vector4f()) );
     CALL_SUBTEST_8( testVectorType(Matrix<float,8,1>()) );
