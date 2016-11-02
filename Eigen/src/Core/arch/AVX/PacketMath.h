@@ -604,6 +604,16 @@ template<> EIGEN_STRONG_INLINE Packet4d pblend(const Selector<4>& ifPacket, cons
   return _mm256_blendv_pd(thenPacket, elsePacket, false_mask);
 }
 
+template<> EIGEN_STRONG_INLINE Packet8f pinsertfirst(const Packet8f& a, float b)
+{
+  return _mm256_blend_ps(a,pset1<Packet8f>(b),1);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4d pinsertfirst(const Packet4d& a, double b)
+{
+  return _mm256_blend_pd(a,pset1<Packet4d>(b),1);
+}
+
 template<> EIGEN_STRONG_INLINE Packet8f pinsertlast(const Packet8f& a, float b)
 {
   return _mm256_blend_ps(a,pset1<Packet8f>(b),(1<<7));

@@ -818,6 +818,24 @@ template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, cons
 #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet4f pinsertfirst(const Packet4f& a, float b)
+{
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blend_ps(a,pset1<Packet4f>(b),1);
+#else
+  return _mm_move_ss(a, _mm_load_ss(&b));
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d pinsertfirst(const Packet2d& a, double b)
+{
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blend_pd(a,pset1<Packet2d>(b),1);
+#else
+  return _mm_move_sd(a, _mm_load_sd(&b));
+#endif
+}
+
 template<> EIGEN_STRONG_INLINE Packet4f pinsertlast(const Packet4f& a, float b)
 {
 #ifdef EIGEN_VECTORIZE_SSE4_1
