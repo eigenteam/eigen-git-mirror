@@ -83,6 +83,27 @@ struct PacketType<half, GpuDevice> {
 };
 #endif
 
+#if defined(EIGEN_USE_SYCL)
+template <typename T>
+  struct PacketType<T, SyclDevice> {
+  typedef T type;
+  static const int size = 1;
+  enum {
+    HasAdd    = 0,
+    HasSub    = 0,
+    HasMul    = 0,
+    HasNegate = 0,
+    HasAbs    = 0,
+    HasArg    = 0,
+    HasAbs2   = 0,
+    HasMin    = 0,
+    HasMax    = 0,
+    HasConj   = 0,
+    HasSetLinear = 0,
+    HasBlend  = 0
+  };
+};
+#endif
 
 
 // Tuple mimics std::pair but works on e.g. nvcc.

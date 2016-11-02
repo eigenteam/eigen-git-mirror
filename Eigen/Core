@@ -35,17 +35,17 @@
   #undef EIGEN_INTERNAL_DEBUGGING
   #endif
 
-  // Do not try to vectorize on CUDA and SYCL!
-  #ifndef EIGEN_DONT_VECTORIZE
-  #define EIGEN_DONT_VECTORIZE
-  #endif
-
   #ifdef EIGEN_EXCEPTIONS
   #undef EIGEN_EXCEPTIONS
   #endif
 
   // All functions callable from CUDA code must be qualified with __device__
   #ifdef __CUDACC__
+    // Do not try to vectorize on CUDA and SYCL!
+    #ifndef EIGEN_DONT_VECTORIZE
+    #define EIGEN_DONT_VECTORIZE
+    #endif
+
     #define EIGEN_DEVICE_FUNC __host__ __device__
     // We need math_functions.hpp to ensure that that EIGEN_USING_STD_MATH macro
     // works properly on the device side
