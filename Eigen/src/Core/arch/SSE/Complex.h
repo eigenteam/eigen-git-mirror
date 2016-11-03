@@ -476,6 +476,26 @@ template<>  EIGEN_STRONG_INLINE Packet2cf pblend(const Selector<2>& ifPacket, co
   return Packet2cf(_mm_castpd_ps(result));
 }
 
+template<> EIGEN_STRONG_INLINE Packet2cf pinsertfirst(const Packet2cf& a, std::complex<float> b)
+{
+  return Packet2cf(_mm_loadl_pi(a.v, reinterpret_cast<const __m64*>(&b)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet1cd pinsertfirst(const Packet1cd&, std::complex<double> b)
+{
+  return pset1<Packet1cd>(b);
+}
+
+template<> EIGEN_STRONG_INLINE Packet2cf pinsertlast(const Packet2cf& a, std::complex<float> b)
+{
+  return Packet2cf(_mm_loadh_pi(a.v, reinterpret_cast<const __m64*>(&b)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet1cd pinsertlast(const Packet1cd&, std::complex<double> b)
+{
+  return pset1<Packet1cd>(b);
+}
+
 } // end namespace internal
 
 } // end namespace Eigen

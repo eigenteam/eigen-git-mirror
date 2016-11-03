@@ -283,7 +283,7 @@ class TensorCwiseTernaryOp : public TensorBase<TensorCwiseTernaryOp<TernaryOp, A
     arg1Expression() const { return m_arg1_xpr; }
 
     EIGEN_DEVICE_FUNC
-    const typename internal::remove_all<typename Arg1XprType::Nested>::type&
+    const typename internal::remove_all<typename Arg2XprType::Nested>::type&
     arg2Expression() const { return m_arg2_xpr; }
 
     EIGEN_DEVICE_FUNC
@@ -292,7 +292,7 @@ class TensorCwiseTernaryOp : public TensorBase<TensorCwiseTernaryOp<TernaryOp, A
 
   protected:
     typename Arg1XprType::Nested m_arg1_xpr;
-    typename Arg1XprType::Nested m_arg2_xpr;
+    typename Arg2XprType::Nested m_arg2_xpr;
     typename Arg3XprType::Nested m_arg3_xpr;
     const TernaryOp m_functor;
 };

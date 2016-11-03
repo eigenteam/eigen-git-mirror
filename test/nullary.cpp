@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2010-2011 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2016 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -29,18 +30,54 @@ bool equalsIdentity(const MatrixType& A)
 
   bool diagOK = (A.diagonal().array() == 1).all();
   return offDiagOK && diagOK;
+
+}
+
+template<typename VectorType>
+void check_extremity_accuracy(const VectorType &v, const typename VectorType::Scalar &low, const typename VectorType::Scalar &high)
+{
+  typedef typename VectorType::Scalar Scalar;
+  typedef typename VectorType::RealScalar RealScalar;
+
+  RealScalar prec = internal::is_same<RealScalar,float>::value ? NumTraits<RealScalar>::dummy_precision()*10 : NumTraits<RealScalar>::dummy_precision()/10;
+  Index size = v.size();
+
+  if(size<20)
+    return;
+
+  for (int i=0; i<size; ++i)
+  {
+    if(i<5 || i>size-6)
+    {
+      Scalar ref = (low*RealScalar(size-i-1))/RealScalar(size-1) + (high*RealScalar(i))/RealScalar(size-1);
+      if(std::abs(ref)>1)
+      {
+        if(!internal::isApprox(v(i), ref, prec))
+          std::cout << v(i) << " != " << ref << "  ; relative error: " << std::abs((v(i)-ref)/ref) << "  ; required precision: " << prec << "  ; range: " << low << "," << high << "  ; i: " << i << "\n";
+        VERIFY(internal::isApprox(v(i), (low*RealScalar(size-i-1))/RealScalar(size-1) + (high*RealScalar(i))/RealScalar(size-1), prec));
+      }
+    }
+  }
 }
 
 template<typename VectorType>
 void testVectorType(const VectorType& base)
 {
   typedef typename VectorType::Scalar Scalar;
+  typedef typename VectorType::RealScalar RealScalar;
 
   const Index size = base.size();
   
   Scalar high = internal::random<Scalar>(-500,500);
   Scalar low = (size == 1 ? high : internal::random<Scalar>(-500,500));
   if (low>high) std::swap(low,high);
+
+  // check low==high
+  if(internal::random<float>(0.f,1.f)<0.05f)
+    low = high;
+  // check abs(low) >> abs(high)
+  else if(size>2 && std::numeric_limits<RealScalar>::max_exponent10>0 && internal::random<float>(0.f,1.f)<0.1f)
+    low = -internal::random<Scalar>(1,2) * RealScalar(std::pow(RealScalar(10),std::numeric_limits<RealScalar>::max_exponent10/2));
 
   const Scalar step = ((size == 1) ? 1 : (high-low)/(size-1));
 
@@ -54,26 +91,42 @@ void testVectorType(const VectorType& base)
     for (int i=0; i<size; ++i)
       n(i) = low+i*step;
     VERIFY_IS_APPROX(m,n);
+
+    CALL_SUBTEST( check_extremity_accuracy(m, low, high) );
   }
 
-  VectorType n(size);
-  for (int i=0; i<size; ++i)
-    n(i) = size==1 ? low : (low + ((high-low)*Scalar(i))/(size-1));
-  VERIFY_IS_APPROX(m,n);
+  if((!NumTraits<Scalar>::IsInteger) || ((high-low)>=size && (Index(high-low)%(size-1))==0) || (Index(high-low+1)<size && (size%Index(high-low+1))==0))
+  {
+    VectorType n(size);
+    if((!NumTraits<Scalar>::IsInteger) || (high-low>=size))
+      for (int i=0; i<size; ++i)
+        n(i) = size==1 ? low : (low + ((high-low)*Scalar(i))/(size-1));
+    else
+      for (int i=0; i<size; ++i)
+        n(i) = size==1 ? low : low + Scalar((double(high-low+1)*double(i))/double(size));
+    VERIFY_IS_APPROX(m,n);
 
-  // random access version
-  m = VectorType::LinSpaced(size,low,high);
-  VERIFY_IS_APPROX(m,n);
+    // random access version
+    m = VectorType::LinSpaced(size,low,high);
+    VERIFY_IS_APPROX(m,n);
+    VERIFY( internal::isApprox(m(m.size()-1),high) );
+    VERIFY( size==1 || internal::isApprox(m(0),low) );
+    VERIFY_IS_EQUAL(m(m.size()-1) , high);
+    if(!NumTraits<Scalar>::IsInteger)
+      CALL_SUBTEST( check_extremity_accuracy(m, low, high) );
+  }
 
-  VERIFY( internal::isApprox(m(m.size()-1),high) );
-  VERIFY( size==1 || internal::isApprox(m(0),low) );
+  VERIFY( m(m.size()-1) <= high );
+  VERIFY( (m.array() <= high).all() );
+  VERIFY( (m.array() >= low).all() );
 
-  // sequential access version
-  m = VectorType::LinSpaced(Sequential,size,low,high);
-  VERIFY_IS_APPROX(m,n);
 
-  VERIFY( internal::isApprox(m(m.size()-1),high) );
-  VERIFY( size==1 || internal::isApprox(m(0),low) );
+  VERIFY( m(m.size()-1) >= low );
+  if(size>=1)
+  {
+    VERIFY( internal::isApprox(m(0),low) );
+    VERIFY_IS_EQUAL(m(0) , low);
+  }
 
   // check whether everything works with row and col major vectors
   Matrix<Scalar,Dynamic,1> row_vector(size);
@@ -95,7 +148,7 @@ void testVectorType(const VectorType& base)
   VERIFY_IS_APPROX( ScalarMatrix::LinSpaced(1,low,high), ScalarMatrix::Constant(high) );
 
   // regression test for bug 526 (linear vectorized transversal)
-  if (size > 1) {
+  if (size > 1 && (!NumTraits<Scalar>::IsInteger)) {
     m.tail(size-1).setLinSpaced(low, high);
     VERIFY_IS_APPROX(m(size-1), high);
   }
@@ -135,11 +188,11 @@ void test_nullary()
   CALL_SUBTEST_2( testMatrixType(MatrixXcf(internal::random<int>(1,300),internal::random<int>(1,300))) );
   CALL_SUBTEST_3( testMatrixType(MatrixXf(internal::random<int>(1,300),internal::random<int>(1,300))) );
   
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,300))) );
+  for(int i = 0; i < g_repeat*10; i++) {
+    CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,30000))) );
     CALL_SUBTEST_5( testVectorType(Vector4d()) );  // regression test for bug 232
     CALL_SUBTEST_6( testVectorType(Vector3d()) );
-    CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,300))) );
+    CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,30000))) );
     CALL_SUBTEST_8( testVectorType(Vector3f()) );
     CALL_SUBTEST_8( testVectorType(Vector4f()) );
     CALL_SUBTEST_8( testVectorType(Matrix<float,8,1>()) );
@@ -154,6 +207,18 @@ void test_nullary()
   VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<double>::epsilon() );
 #endif
 
+#ifdef EIGEN_TEST_PART_9
+  // Check possible overflow issue
+  {
+    int n = 60000;
+    ArrayXi a1(n), a2(n);
+    a1.setLinSpaced(n, 0, n-1);
+    for(int i=0; i<n; ++i)
+      a2(i) = i;
+    VERIFY_IS_APPROX(a1,a2);
+  }
+#endif
+
 #ifdef EIGEN_TEST_PART_10
   // check some internal logic
   VERIFY((  internal::has_nullary_operator<internal::scalar_constant_op<double> >::value ));
@@ -166,10 +231,10 @@ void test_nullary()
   VERIFY((  internal::has_binary_operator<internal::scalar_identity_op<double> >::value ));
   VERIFY(( !internal::functor_has_linear_access<internal::scalar_identity_op<double> >::ret ));
 
-  VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<float,float,false> >::value ));
-  VERIFY((  internal::has_unary_operator<internal::linspaced_op<float,float,false> >::value ));
-  VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float,float,false> >::value ));
-  VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float,float,false> >::ret ));
+  VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<float,float> >::value ));
+  VERIFY((  internal::has_unary_operator<internal::linspaced_op<float,float> >::value ));
+  VERIFY(( !internal::has_binary_operator<internal::linspaced_op<float,float> >::value ));
+  VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<float,float> >::ret ));
 
   // Regression unit test for a weird MSVC bug.
   // Search "nullary_wrapper_workaround_msvc" in CoreEvaluators.h for the details.
@@ -190,10 +255,10 @@ void test_nullary()
     VERIFY(( !internal::has_binary_operator<internal::scalar_constant_op<float> >::value ));
     VERIFY((  internal::functor_has_linear_access<internal::scalar_constant_op<float> >::ret ));
 
-    VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<int,int,false> >::value ));
-    VERIFY((  internal::has_unary_operator<internal::linspaced_op<int,int,false> >::value ));
-    VERIFY(( !internal::has_binary_operator<internal::linspaced_op<int,int,false> >::value ));
-    VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<int,int,false> >::ret ));
+    VERIFY(( !internal::has_nullary_operator<internal::linspaced_op<int,int> >::value ));
+    VERIFY((  internal::has_unary_operator<internal::linspaced_op<int,int> >::value ));
+    VERIFY(( !internal::has_binary_operator<internal::linspaced_op<int,int> >::value ));
+    VERIFY((  internal::functor_has_linear_access<internal::linspaced_op<int,int> >::ret ));
   }
 #endif
 }

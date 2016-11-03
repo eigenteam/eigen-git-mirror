@@ -356,6 +356,13 @@
 #define EIGEN_MAX_CPP_VER 99
 #endif
 
+#if EIGEN_MAX_CPP_VER>=11 && defined(__cplusplus) && (__cplusplus >= 201103L)
+#define EIGEN_HAS_CXX11 1
+#else
+#define EIGEN_HAS_CXX11 0
+#endif
+
+
 // Do we support r-value references?
 #ifndef EIGEN_HAS_RVALUE_REFERENCES
 #if EIGEN_MAX_CPP_VER>=11 && \
@@ -804,7 +811,7 @@ namespace Eigen {
 // just an empty macro !
 #define EIGEN_EMPTY
 
-#if EIGEN_COMP_MSVC_STRICT && EIGEN_COMP_MSVC < 1900 // for older MSVC versions using the base operator is sufficient (cf Bug 1000)
+#if EIGEN_COMP_MSVC_STRICT && (EIGEN_COMP_MSVC < 1900 ||  __CUDACC_VER__) // for older MSVC versions, as well as 1900 && CUDA 8, using the base operator is sufficient (cf Bugs 1000, 1324)
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
     using Base::operator =;
 #elif EIGEN_COMP_CLANG // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)

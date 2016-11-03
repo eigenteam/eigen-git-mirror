@@ -69,6 +69,10 @@ typedef unsigned __int64 uint64_t;
 #endif
 #endif
 
+#ifdef EIGEN_USE_SYCL
+#include <SYCL/sycl.hpp>
+#endif
+
 #include "src/Tensor/TensorMacros.h"
 #include "src/Tensor/TensorForwardDeclarations.h"
 #include "src/Tensor/TensorMeta.h"
@@ -77,6 +81,8 @@ typedef unsigned __int64 uint64_t;
 #include "src/Tensor/TensorDeviceDefault.h"
 #include "src/Tensor/TensorDeviceThreadPool.h"
 #include "src/Tensor/TensorDeviceCuda.h"
+#include "src/Tensor/TensorSycl.h"
+#include "src/Tensor/TensorDeviceSycl.h"
 #include "src/Tensor/TensorIndexList.h"
 #include "src/Tensor/TensorDimensionList.h"
 #include "src/Tensor/TensorDimensions.h"

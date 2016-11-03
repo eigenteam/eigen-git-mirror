@@ -818,6 +818,44 @@ template<> EIGEN_STRONG_INLINE Packet2d pblend(const Selector<2>& ifPacket, cons
 #endif
 }
 
+template<> EIGEN_STRONG_INLINE Packet4f pinsertfirst(const Packet4f& a, float b)
+{
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blend_ps(a,pset1<Packet4f>(b),1);
+#else
+  return _mm_move_ss(a, _mm_load_ss(&b));
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d pinsertfirst(const Packet2d& a, double b)
+{
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blend_pd(a,pset1<Packet2d>(b),1);
+#else
+  return _mm_move_sd(a, _mm_load_sd(&b));
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pinsertlast(const Packet4f& a, float b)
+{
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blend_ps(a,pset1<Packet4f>(b),(1<<3));
+#else
+  const Packet4f mask = _mm_castsi128_ps(_mm_setr_epi32(0x0,0x0,0x0,0xFFFFFFFF));
+  return _mm_or_ps(_mm_andnot_ps(mask, a), _mm_and_ps(mask, pset1<Packet4f>(b)));
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet2d pinsertlast(const Packet2d& a, double b)
+{
+#ifdef EIGEN_VECTORIZE_SSE4_1
+  return _mm_blend_pd(a,pset1<Packet2d>(b),(1<<1));
+#else
+  const Packet2d mask = _mm_castsi128_pd(_mm_setr_epi32(0x0,0x0,0xFFFFFFFF,0xFFFFFFFF));
+  return _mm_or_pd(_mm_andnot_pd(mask, a), _mm_and_pd(mask, pset1<Packet2d>(b)));
+#endif
+}
+
 // Scalar path for pmadd with FMA to ensure consistency with vectorized path.
 #ifdef __FMA__
 template<> EIGEN_STRONG_INLINE float pmadd(const float& a, const float& b, const float& c) {

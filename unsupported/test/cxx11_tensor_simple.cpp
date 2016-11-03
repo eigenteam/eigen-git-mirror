@@ -299,22 +299,21 @@ static void test_resize()
   VERIFY_IS_EQUAL(epsilon.dimension(0), 2);
   VERIFY_IS_EQUAL(epsilon.dimension(1), 3);
   VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
-  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 2*3*7);
+  VERIFY_IS_EQUAL(epsilon.size(), 2*3*7);
 
   const int* old_data = epsilon.data();
   epsilon.resize(3,2,7);
   VERIFY_IS_EQUAL(epsilon.dimension(0), 3);
   VERIFY_IS_EQUAL(epsilon.dimension(1), 2);
   VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
-  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 2*3*7);
+  VERIFY_IS_EQUAL(epsilon.size(), 2*3*7);
   VERIFY_IS_EQUAL(epsilon.data(), old_data);
 
   epsilon.resize(3,5,7);
   VERIFY_IS_EQUAL(epsilon.dimension(0), 3);
   VERIFY_IS_EQUAL(epsilon.dimension(1), 5);
   VERIFY_IS_EQUAL(epsilon.dimension(2), 7);
-  VERIFY_IS_EQUAL(epsilon.dimensions().TotalSize(), 3*5*7);
-  VERIFY_IS_NOT_EQUAL(epsilon.data(), old_data);
+  VERIFY_IS_EQUAL(epsilon.size(), 3*5*7);
 }
 
 void test_cxx11_tensor_simple()

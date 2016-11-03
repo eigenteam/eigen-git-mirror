@@ -215,42 +215,29 @@ DenseBase<Derived>::Constant(const Scalar& value)
   return DenseBase<Derived>::NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, internal::scalar_constant_op<Scalar>(value));
 }
 
-/**
-  * \brief Sets a linearly spaced vector.
+/** \deprecated because of accuracy loss. In Eigen 3.3, it is an alias for LinSpaced(Index,const Scalar&,const Scalar&)
   *
-  * The function generates 'size' equally spaced values in the closed interval [low,high].
-  * This particular version of LinSpaced() uses sequential access, i.e. vector access is
-  * assumed to be a(0), a(1), ..., a(size-1). This assumption allows for better vectorization
-  * and yields faster code than the random access version.
-  *
-  * When size is set to 1, a vector of length 1 containing 'high' is returned.
-  *
-  * \only_for_vectors
-  *
-  * Example: \include DenseBase_LinSpaced_seq.cpp
-  * Output: \verbinclude DenseBase_LinSpaced_seq.out
-  *
-  * \sa setLinSpaced(Index,const Scalar&,const Scalar&), LinSpaced(Index,Scalar,Scalar), CwiseNullaryOp
+  * \sa LinSpaced(Index,Scalar,Scalar), setLinSpaced(Index,const Scalar&,const Scalar&)
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturnType
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
 DenseBase<Derived>::LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,PacketScalar,false>(low,high,size));
+  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,PacketScalar>(low,high,size));
 }
 
-/**
-  * \copydoc DenseBase::LinSpaced(Sequential_t, Index, const Scalar&, const Scalar&)
-  * Special version for fixed size types which does not require the size parameter.
+/** \deprecated because of accuracy loss. In Eigen 3.3, it is an alias for LinSpaced(const Scalar&,const Scalar&)
+  *
+  * \sa LinSpaced(Scalar,Scalar)
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturnType
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
 DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,PacketScalar,false>(low,high,Derived::SizeAtCompileTime));
+  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,PacketScalar>(low,high,Derived::SizeAtCompileTime));
 }
 
 /**
@@ -264,14 +251,24 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
   * Example: \include DenseBase_LinSpaced.cpp
   * Output: \verbinclude DenseBase_LinSpaced.out
   *
-  * \sa setLinSpaced(Index,const Scalar&,const Scalar&), LinSpaced(Sequential_t,Index,const Scalar&,const Scalar&,Index), CwiseNullaryOp
+  * For integer scalar types, an even spacing is possible if and only if the length of the range,
+  * i.e., \c high-low is a scalar multiple of \c size-1, or if \c size is a scalar multiple of the
+  * number of values \c high-low+1 (meaning each value can be repeated the same number of time).
+  * If one of these two considions is not satisfied, then \c high is lowered to the largest value
+  * satisfying one of this constraint.
+  * Here are some examples:
+  *
+  * Example: \include DenseBase_LinSpacedInt.cpp
+  * Output: \verbinclude DenseBase_LinSpacedInt.out
+  *
+  * \sa setLinSpaced(Index,const Scalar&,const Scalar&), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
 DenseBase<Derived>::LinSpaced(Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,PacketScalar,true>(low,high,size));
+  return DenseBase<Derived>::NullaryExpr(size, internal::linspaced_op<Scalar,PacketScalar>(low,high,size));
 }
 
 /**
@@ -284,7 +281,7 @@ DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,PacketScalar,true>(low,high,Derived::SizeAtCompileTime));
+  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,PacketScalar>(low,high,Derived::SizeAtCompileTime));
 }
 
 /** \returns true if all coefficients in this matrix are approximately equal to \a val, to within precision \a prec */
@@ -377,24 +374,30 @@ PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& val)
   * Example: \include DenseBase_setLinSpaced.cpp
   * Output: \verbinclude DenseBase_setLinSpaced.out
   *
-  * \sa CwiseNullaryOp
+  * For integer scalar types, do not miss the explanations on the definition
+  * of \link LinSpaced(Index,const Scalar&,const Scalar&) even spacing \endlink.
+  *
+  * \sa LinSpaced(Index,const Scalar&,const Scalar&), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index newSize, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return derived() = Derived::NullaryExpr(newSize, internal::linspaced_op<Scalar,PacketScalar,false>(low,high,newSize));
+  return derived() = Derived::NullaryExpr(newSize, internal::linspaced_op<Scalar,PacketScalar>(low,high,newSize));
 }
 
 /**
   * \brief Sets a linearly spaced vector.
   *
-  * The function fills *this with equally spaced values in the closed interval [low,high].
+  * The function fills \c *this with equally spaced values in the closed interval [low,high].
   * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
   *
-  * \sa setLinSpaced(Index, const Scalar&, const Scalar&), CwiseNullaryOp
+  * For integer scalar types, do not miss the explanations on the definition
+  * of \link LinSpaced(Index,const Scalar&,const Scalar&) even spacing \endlink.
+  *
+  * \sa LinSpaced(Index,const Scalar&,const Scalar&), setLinSpaced(Index, const Scalar&, const Scalar&), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low, const Scalar& high)
@@ -752,7 +755,7 @@ struct setIdentity_impl<Derived, true>
   static EIGEN_STRONG_INLINE Derived& run(Derived& m)
   {
     m.setZero();
-    const Index size = (std::min)(m.rows(), m.cols());
+    const Index size = numext::mini(m.rows(), m.cols());
     for(Index i = 0; i < size; ++i) m.coeffRef(i,i) = typename Derived::Scalar(1);
     return m;
   }

@@ -260,10 +260,10 @@ template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,PlainObject> ConstantReturnType;
-    /** \internal Represents a vector with linearly spaced coefficients that allows sequential access only. */
-    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,PacketScalar,false>,PlainObject> SequentialLinSpacedReturnType;
+    /** \internal \deprecated Represents a vector with linearly spaced coefficients that allows sequential access only. */
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,PacketScalar>,PlainObject> SequentialLinSpacedReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
-    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,PacketScalar,true>,PlainObject> RandomAccessLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,PacketScalar>,PlainObject> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename internal::traits<Derived>::Scalar>::Real, internal::traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
 

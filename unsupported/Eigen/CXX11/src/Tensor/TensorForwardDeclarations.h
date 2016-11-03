@@ -12,9 +12,19 @@
 
 namespace Eigen {
 
+// MakePointer class is used as a container of the adress space of the pointer
+// on the host and on the device. From the host side it generates the T* pointer
+// and when EIGEN_USE_SYCL is used it construct a buffer with a map_allocator to
+// T* m_data on the host. It is always called on the device.
+// Specialisation of MakePointer class for creating the sycl buffer with
+// map_allocator.
+template<typename T> struct MakePointer {
+  typedef T* Type;
+};
+
+template<typename PlainObjectType, int Options_ = Unaligned, template <class> class MakePointer_ = MakePointer> class TensorMap;
 template<typename Scalar_, int NumIndices_, int Options_ = 0, typename IndexType = DenseIndex> class Tensor;
 template<typename Scalar_, typename Dimensions, int Options_ = 0, typename IndexType = DenseIndex> class TensorFixedSize;
-template<typename PlainObjectType, int Options_ = Unaligned> class TensorMap;
 template<typename PlainObjectType> class TensorRef;
 template<typename Derived, int AccessLevel> class TensorBase;
 
@@ -52,8 +62,8 @@ template<typename Op, typename XprType> class TensorScanOp;
 template<typename CustomUnaryFunc, typename XprType> class TensorCustomUnaryOp;
 template<typename CustomBinaryFunc, typename LhsXprType, typename RhsXprType> class TensorCustomBinaryOp;
 
-template<typename XprType> class TensorEvalToOp;
-template<typename XprType> class TensorForcedEvalOp;
+template<typename XprType, template <class> class MakePointer_ = MakePointer> class TensorEvalToOp;
+template<typename XprType, template <class> class MakePointer_ = MakePointer> class TensorForcedEvalOp;
 
 template<typename ExpressionType, typename DeviceType> class TensorDevice;
 template<typename Derived, typename Device> struct TensorEvaluator;
@@ -61,6 +71,7 @@ template<typename Derived, typename Device> struct TensorEvaluator;
 struct DefaultDevice;
 struct ThreadPoolDevice;
 struct GpuDevice;
+struct SyclDevice;
 
 enum FFTResultType {
   RealPart = 0,

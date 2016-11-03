@@ -290,12 +290,11 @@ MatrixBase<Derived>::asDiagonal() const
 template<typename Derived>
 bool MatrixBase<Derived>::isDiagonal(const RealScalar& prec) const
 {
-  using std::abs;
   if(cols() != rows()) return false;
   RealScalar maxAbsOnDiagonal = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
   {
-    RealScalar absOnDiagonal = abs(coeff(j,j));
+    RealScalar absOnDiagonal = numext::abs(coeff(j,j));
     if(absOnDiagonal > maxAbsOnDiagonal) maxAbsOnDiagonal = absOnDiagonal;
   }
   for(Index j = 0; j < cols(); ++j)
@@ -321,6 +320,11 @@ struct Assignment<DstXprType, SrcXprType, Functor, Diagonal2Dense>
 {
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+    
     dst.setZero();
     dst.diagonal() = src.diagonal();
   }

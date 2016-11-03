@@ -437,6 +437,13 @@ else()
   add_subdirectory(lapack EXCLUDE_FROM_ALL)
 endif()
 
+# add SYCL
+option(EIGEN_TEST_SYCL "Add Sycl support." OFF)
+if(EIGEN_TEST_SYCL)
+  set (CMAKE_MODULE_PATH "${CMAKE_ROOT}/Modules" "cmake/Modules/" "${CMAKE_MODULE_PATH}")
+  include(FindComputeCpp)
+endif()
+
 add_subdirectory(unsupported)
 
 add_subdirectory(demos EXCLUDE_FROM_ALL)

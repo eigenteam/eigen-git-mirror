@@ -140,6 +140,10 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
   static EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::evalTo(dst, src.lhs(), src.rhs());
   }
@@ -154,6 +158,10 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
   static EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar,Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::addTo(dst, src.lhs(), src.rhs());
   }
@@ -168,6 +176,10 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<
   static EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar,Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
     // FIXME shall we handle nested_eval here?
     generic_product_impl<Lhs, Rhs>::subTo(dst, src.lhs(), src.rhs());
   }
@@ -567,8 +579,8 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   }
 
 protected:
-  const LhsNested m_lhs;
-  const RhsNested m_rhs;
+  typename internal::add_const_on_value_type<LhsNested>::type m_lhs;
+  typename internal::add_const_on_value_type<RhsNested>::type m_rhs;
   
   LhsEtorType m_lhsImpl;
   RhsEtorType m_rhsImpl;

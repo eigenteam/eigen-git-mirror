@@ -78,6 +78,11 @@ template<typename MatrixType> class Transpose
     typename internal::remove_reference<MatrixTypeNested>::type&
     nestedExpression() { return m_matrix; }
 
+    /** \internal */
+    void resize(Index nrows, Index ncols) {
+      m_matrix.resize(ncols,nrows);
+    }
+
   protected:
     typename internal::ref_selector<MatrixType>::non_const_type m_matrix;
 };

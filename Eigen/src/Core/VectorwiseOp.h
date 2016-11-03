@@ -602,7 +602,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       return m_matrix / extendedTo(other.derived());
     }
 
-    /** \returns an expression where each column of row of the referenced matrix are normalized.
+    /** \returns an expression where each column (or row) of the referenced matrix are normalized.
       * The referenced matrix is \b not modified.
       * \sa MatrixBase::normalized(), normalize()
       */
@@ -625,6 +625,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 /////////// Geometry module ///////////
 
     typedef Homogeneous<ExpressionType,Direction> HomogeneousReturnType;
+    EIGEN_DEVICE_FUNC
     HomogeneousReturnType homogeneous() const;
 
     typedef typename ExpressionType::PlainObject CrossReturnType;
@@ -654,6 +655,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   Direction==Horizontal ? HNormalized_SizeMinusOne : 1> >
             HNormalizedReturnType;
 
+    EIGEN_DEVICE_FUNC
     const HNormalizedReturnType hnormalized() const;
 
   protected:

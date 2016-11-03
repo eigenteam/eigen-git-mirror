@@ -191,7 +191,7 @@ struct find_best_packet
 #if EIGEN_MAX_STATIC_ALIGN_BYTES>0
 template<int ArrayBytes, int AlignmentBytes,
          bool Match     =  bool((ArrayBytes%AlignmentBytes)==0),
-         bool TryHalf   =  bool(AlignmentBytes>EIGEN_MIN_ALIGN_BYTES) >
+         bool TryHalf   =  bool(EIGEN_MIN_ALIGN_BYTES<AlignmentBytes) >
 struct compute_default_alignment_helper
 {
   enum { value = 0 };

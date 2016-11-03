@@ -55,7 +55,7 @@ void test_cuda_cumsum(int m_size, int k_size, int n_size)
   t_result = t_input.cumsum(1);
 
   cudaMemcpy(t_result_gpu.data(), d_t_result, t_result_bytes, cudaMemcpyDeviceToHost);
-  for (size_t i = 0; i < t_result.size(); i++) {
+  for (DenseIndex i = 0; i < t_result.size(); i++) {
     if (fabs(t_result(i) - t_result_gpu(i)) < 1e-4f) {
       continue;
     }

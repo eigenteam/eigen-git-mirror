@@ -267,6 +267,20 @@ inline void TensorExecutor<Expression, GpuDevice, Vectorizable>::run(
 #endif  // __CUDACC__
 #endif  // EIGEN_USE_GPU
 
+// SYCL Executor policy
+#ifdef EIGEN_USE_SYCL
+
+template <typename Expression, bool Vectorizable>
+class TensorExecutor<Expression, SyclDevice, Vectorizable> {
+public:
+  static inline void run(const Expression &expr, const SyclDevice &device) {
+    // call TensorSYCL module
+    TensorSycl::run(expr, device);
+  }
+};
+
+#endif
+
 } // end namespace internal
 
 } // end namespace Eigen

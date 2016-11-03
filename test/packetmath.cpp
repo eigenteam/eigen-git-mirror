@@ -16,6 +16,12 @@
 #endif
 // using namespace Eigen;
 
+#ifdef EIGEN_VECTORIZE_SSE
+const bool g_vectorize_sse = true;
+#else
+const bool g_vectorize_sse = false;
+#endif
+
 namespace Eigen {
 namespace internal {
 template<typename T> T negate(const T& x) { return -x; }
@@ -296,6 +302,26 @@ template<typename Scalar> void packetmath()
     for (int i = 0; i < PacketSize; ++i) {
       VERIFY(isApproxAbs(result[i], (selector.select[i] ? data1[i] : data2[i]), refvalue));
     }
+  }
+
+  if (PacketTraits::HasBlend || g_vectorize_sse) {
+    // pinsertfirst
+    for (int i=0; i<PacketSize; ++i)
+      ref[i] = data1[i];
+    Scalar s = internal::random<Scalar>();
+    ref[0] = s;
+    internal::pstore(data2, internal::pinsertfirst(internal::pload<Packet>(data1),s));
+    VERIFY(areApprox(ref, data2, PacketSize) && "internal::pinsertfirst");
+  }
+
+  if (PacketTraits::HasBlend || g_vectorize_sse) {
+    // pinsertlast
+    for (int i=0; i<PacketSize; ++i)
+      ref[i] = data1[i];
+    Scalar s = internal::random<Scalar>();
+    ref[PacketSize-1] = s;
+    internal::pstore(data2, internal::pinsertlast(internal::pload<Packet>(data1),s));
+    VERIFY(areApprox(ref, data2, PacketSize) && "internal::pinsertlast");
   }
 }
 

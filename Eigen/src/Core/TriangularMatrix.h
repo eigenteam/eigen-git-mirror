@@ -641,21 +641,20 @@ MatrixBase<Derived>::triangularView() const
 template<typename Derived>
 bool MatrixBase<Derived>::isUpperTriangular(const RealScalar& prec) const
 {
-  using std::abs;
   RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
   {
-    Index maxi = (std::min)(j, rows()-1);
+    Index maxi = numext::mini(j, rows()-1);
     for(Index i = 0; i <= maxi; ++i)
     {
-      RealScalar absValue = abs(coeff(i,j));
+      RealScalar absValue = numext::abs(coeff(i,j));
       if(absValue > maxAbsOnUpperPart) maxAbsOnUpperPart = absValue;
     }
   }
   RealScalar threshold = maxAbsOnUpperPart * prec;
   for(Index j = 0; j < cols(); ++j)
     for(Index i = j+1; i < rows(); ++i)
-      if(abs(coeff(i, j)) > threshold) return false;
+      if(numext::abs(coeff(i, j)) > threshold) return false;
   return true;
 }
 
@@ -667,20 +666,19 @@ bool MatrixBase<Derived>::isUpperTriangular(const RealScalar& prec) const
 template<typename Derived>
 bool MatrixBase<Derived>::isLowerTriangular(const RealScalar& prec) const
 {
-  using std::abs;
   RealScalar maxAbsOnLowerPart = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
     for(Index i = j; i < rows(); ++i)
     {
-      RealScalar absValue = abs(coeff(i,j));
+      RealScalar absValue = numext::abs(coeff(i,j));
       if(absValue > maxAbsOnLowerPart) maxAbsOnLowerPart = absValue;
     }
   RealScalar threshold = maxAbsOnLowerPart * prec;
   for(Index j = 1; j < cols(); ++j)
   {
-    Index maxi = (std::min)(j, rows()-1);
+    Index maxi = numext::mini(j, rows()-1);
     for(Index i = 0; i < maxi; ++i)
-      if(abs(coeff(i, j)) > threshold) return false;
+      if(numext::abs(coeff(i, j)) > threshold) return false;
   }
   return true;
 }
@@ -777,15 +775,18 @@ public:
 
 template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType, typename Functor>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src, const Functor &func)
+void call_triangular_assignment_loop(DstXprType& dst, const SrcXprType& src, const Functor &func)
 {
-  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
-  
   typedef evaluator<DstXprType> DstEvaluatorType;
   typedef evaluator<SrcXprType> SrcEvaluatorType;
 
-  DstEvaluatorType dstEvaluator(dst);
   SrcEvaluatorType srcEvaluator(src);
+
+  Index dstRows = src.rows();
+  Index dstCols = src.cols();
+  if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+    dst.resize(dstRows, dstCols);
+  DstEvaluatorType dstEvaluator(dst);
     
   typedef triangular_dense_assignment_kernel< Mode&(Lower|Upper),Mode&(UnitDiag|ZeroDiag|SelfAdjoint),SetOpposite,
                                               DstEvaluatorType,SrcEvaluatorType,Functor> Kernel;
@@ -802,7 +803,7 @@ void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& sr
 
 template<int Mode, bool SetOpposite, typename DstXprType, typename SrcXprType>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
-void call_triangular_assignment_loop(const DstXprType& dst, const SrcXprType& src)
+void call_triangular_assignment_loop(DstXprType& dst, const SrcXprType& src)
 {
   call_triangular_assignment_loop<Mode,SetOpposite>(dst, src, internal::assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar>());
 }
@@ -893,7 +894,7 @@ struct triangular_assignment_loop<Kernel, Mode, Dynamic, SetOpposite>
   {
     for(Index j = 0; j < kernel.cols(); ++j)
     {
-      Index maxi = (std::min)(j, kernel.rows());
+      Index maxi = numext::mini(j, kernel.rows());
       Index i = 0;
       if (((Mode&Lower) && SetOpposite) || (Mode&Upper))
       {
@@ -938,6 +939,11 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename SrcXprType::Scalar> &)
   {
+    Index dstRows = src.rows();
+    Index dstCols = src.cols();
+    if((dst.rows()!=dstRows) || (dst.cols()!=dstCols))
+      dst.resize(dstRows, dstCols);
+
     dst.setZero();
     dst._assignProduct(src, 1);
   }
