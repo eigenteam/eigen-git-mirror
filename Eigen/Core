@@ -157,7 +157,7 @@
     #ifdef __FMA__
       #define EIGEN_VECTORIZE_FMA
     #endif
-    #ifdef __AVX512F__
+    #ifdef __AVX512F__ && EIGEN_ENABLE_AVX512
       #define EIGEN_VECTORIZE_AVX512
       #define EIGEN_VECTORIZE_AVX2
       #define EIGEN_VECTORIZE_AVX
