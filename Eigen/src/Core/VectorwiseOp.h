@@ -602,7 +602,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       return m_matrix / extendedTo(other.derived());
     }
 
-    /** \returns an expression where each column of row of the referenced matrix are normalized.
+    /** \returns an expression where each column (or row) of the referenced matrix are normalized.
       * The referenced matrix is \b not modified.
       * \sa MatrixBase::normalized(), normalize()
       */

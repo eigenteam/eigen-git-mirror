@@ -114,7 +114,9 @@ template<typename MatrixType,int _Direction> class Homogeneous
 
 /** \geometry_module \ingroup Geometry_Module
   *
-  * \return an expression of the equivalent homogeneous vector
+  * \returns a vector expression that is one longer than the vector argument, with the value 1 symbolically appended as the last coefficient.
+  *
+  * This can be used to convert affine coordinates to homogeneous coordinates.
   *
   * \only_for_vectors
   *
@@ -133,7 +135,9 @@ MatrixBase<Derived>::homogeneous() const
 
 /** \geometry_module \ingroup Geometry_Module
   *
-  * \returns a matrix expression of homogeneous column (or row) vectors
+  * \returns an expression where the value 1 is symbolically appended as the final coefficient to each column (or row) of the matrix.
+  *
+  * This can be used to convert affine coordinates to homogeneous coordinates.
   *
   * Example: \include VectorwiseOp_homogeneous.cpp
   * Output: \verbinclude VectorwiseOp_homogeneous.out
@@ -148,7 +152,16 @@ VectorwiseOp<ExpressionType,Direction>::homogeneous() const
 
 /** \geometry_module \ingroup Geometry_Module
   *
-  * \returns an expression of the homogeneous normalized vector of \c *this
+  * \brief homogeneous normalization
+  *
+  * \returns a vector expression of the N-1 first coefficients of \c *this divided by that last coefficient.
+  *
+  * This can be used to convert homogeneous coordinates to affine coordinates.
+  *
+  * It is essentially a shortcut for:
+  * \code
+    this->head(this->size()-1)/this->coeff(this->size()-1);
+    \endcode
   *
   * Example: \include MatrixBase_hnormalized.cpp
   * Output: \verbinclude MatrixBase_hnormalized.out
@@ -166,7 +179,13 @@ MatrixBase<Derived>::hnormalized() const
 
 /** \geometry_module \ingroup Geometry_Module
   *
-  * \returns an expression of the homogeneous normalized vector of \c *this
+  * \brief column or row-wise homogeneous normalization
+  *
+  * \returns an expression of the first N-1 coefficients of each column (or row) of \c *this divided by the last coefficient of each column (or row).
+  *
+  * This can be used to convert homogeneous coordinates to affine coordinates.
+  *
+  * It is conceptually equivalent to calling MatrixBase::hnormalized() to each column (or row) of \c *this.
   *
   * Example: \include DirectionWise_hnormalized.cpp
   * Output: \verbinclude DirectionWise_hnormalized.out
