@@ -14,34 +14,40 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename Scalar, typename CholmodType>
-void cholmod_configure_matrix(CholmodType& mat)
-{
-  if (internal::is_same<Scalar,float>::value)
-  {
-    mat.xtype = CHOLMOD_REAL;
-    mat.dtype = CHOLMOD_SINGLE;
-  }
-  else if (internal::is_same<Scalar,double>::value)
-  {
+template<typename Scalar> struct cholmod_configure_matrix;
+
+template<> struct cholmod_configure_matrix<double> {
+  template<typename CholmodType>
+  static void run(CholmodType& mat) {
     mat.xtype = CHOLMOD_REAL;
     mat.dtype = CHOLMOD_DOUBLE;
   }
-  else if (internal::is_same<Scalar,std::complex<float> >::value)
-  {
-    mat.xtype = CHOLMOD_COMPLEX;
-    mat.dtype = CHOLMOD_SINGLE;
-  }
-  else if (internal::is_same<Scalar,std::complex<double> >::value)
-  {
+};
+
+template<> struct cholmod_configure_matrix<std::complex<double> > {
+  template<typename CholmodType>
+  static void run(CholmodType& mat) {
     mat.xtype = CHOLMOD_COMPLEX;
     mat.dtype = CHOLMOD_DOUBLE;
   }
-  else
-  {
-    eigen_assert(false && "Scalar type not supported by CHOLMOD");
-  }
-}
+};
+
+// Other scalar types are not yet suppotred by Cholmod
+// template<> struct cholmod_configure_matrix<float> {
+//   template<typename CholmodType>
+//   static void run(CholmodType& mat) {
+//     mat.xtype = CHOLMOD_REAL;
+//     mat.dtype = CHOLMOD_SINGLE;
+//   }
+// };
+//
+// template<> struct cholmod_configure_matrix<std::complex<float> > {
+//   template<typename CholmodType>
+//   static void run(CholmodType& mat) {
+//     mat.xtype = CHOLMOD_COMPLEX;
+//     mat.dtype = CHOLMOD_SINGLE;
+//   }
+// };
 
 } // namespace internal
 
@@ -88,7 +94,7 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   }
 
   // setup res.xtype
-  internal::cholmod_configure_matrix<_Scalar>(res);
+  internal::cholmod_configure_matrix<_Scalar>::run(res);
   
   res.stype = 0;
   
@@ -131,7 +137,7 @@ cholmod_dense viewAsCholmod(MatrixBase<Derived>& mat)
   res.x      = (void*)(mat.derived().data());
   res.z      = 0;
 
-  internal::cholmod_configure_matrix<Scalar>(res);
+  internal::cholmod_configure_matrix<Scalar>::run(res);
 
   return res;
 }
@@ -172,14 +178,16 @@ class CholmodBase : internal::noncopyable
     CholmodBase()
       : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
     {
-      m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);
+      EIGEN_STATIC_ASSERT((internal::is_same<double,RealScalar>::value), CHOLMOD_SUPPORTS_DOUBLE_PRECISION_ONLY);
+      m_shiftOffset[0] = m_shiftOffset[1] = 0.0;
       cholmod_start(&m_cholmod);
     }
 
     CholmodBase(const MatrixType& matrix)
       : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
     {
-      m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);
+      EIGEN_STATIC_ASSERT((internal::is_same<double,RealScalar>::value), CHOLMOD_SUPPORTS_DOUBLE_PRECISION_ONLY);
+      m_shiftOffset[0] = m_shiftOffset[1] = 0.0;
       cholmod_start(&m_cholmod);
       compute(matrix);
     }
@@ -277,7 +285,7 @@ class CholmodBase : internal::noncopyable
       eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
       cholmod_sparse A = viewAsCholmod(matrix.template selfadjointView<UpLo>());
       cholmod_factorize_p(&A, m_shiftOffset, 0, 0, m_cholmodFactor, &m_cholmod);
-      
+
       // If the factorization failed, minor is the column at which it did. On success minor == n.
       this->m_info = (m_cholmodFactor->minor == m_cholmodFactor->n ? Success : NumericalIssue);
       m_factorizationIsOk = true;
@@ -344,7 +352,7 @@ class CholmodBase : internal::noncopyable
       */
     Derived& setShift(const RealScalar& offset)
     {
-      m_shiftOffset[0] = offset;
+      m_shiftOffset[0] = double(offset);
       return derived();
     }
     
@@ -355,7 +363,7 @@ class CholmodBase : internal::noncopyable
   protected:
     mutable cholmod_common m_cholmod;
     cholmod_factor* m_cholmodFactor;
-    RealScalar m_shiftOffset[2];
+    double m_shiftOffset[2];
     mutable ComputationInfo m_info;
     bool m_isInitialized;
     int m_factorizationIsOk;
@@ -377,6 +385,8 @@ class CholmodBase : internal::noncopyable
   *               or Upper. Default is Lower.
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
+  *
+  * \warning Only double precision real and complex scalar types are supported by Cholmod.
   *
   * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLLT
   */
@@ -425,6 +435,8 @@ class CholmodSimplicialLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimpl
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
   *
+  * \warning Only double precision real and complex scalar types are supported by Cholmod.
+  *
   * \sa \ref TutorialSparseDirectSolvers, class CholmodSupernodalLLT, class SimplicialLDLT
   */
 template<typename _MatrixType, int _UpLo = Lower>
@@ -469,6 +481,8 @@ class CholmodSimplicialLDLT : public CholmodBase<_MatrixType, _UpLo, CholmodSimp
   *               or Upper. Default is Lower.
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
+  *
+  * \warning Only double precision real and complex scalar types are supported by Cholmod.
   *
   * \sa \ref TutorialSparseDirectSolvers
   */
@@ -516,6 +530,8 @@ class CholmodSupernodalLLT : public CholmodBase<_MatrixType, _UpLo, CholmodSuper
   *               or Upper. Default is Lower.
   *
   * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or non compressed.
+  *
+  * \warning Only double precision real and complex scalar types are supported by Cholmod.
   *
   * \sa \ref TutorialSparseDirectSolvers
   */
