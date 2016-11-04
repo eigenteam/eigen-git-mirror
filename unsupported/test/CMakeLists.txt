@@ -1,6 +1,6 @@
 # generate split test header file only if it does not yet exist
 # in order to prevent a rebuild everytime cmake is configured
-if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)  
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h)
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h "")
   foreach(i RANGE 1 999)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/split_test_helper.h
@@ -16,11 +16,11 @@ endif()
 set_property(GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT "Unsupported")
 add_custom_target(BuildUnsupported)
 
-include_directories(../../test ../../unsupported ../../Eigen 
+include_directories(../../test ../../unsupported ../../Eigen
                     ${CMAKE_CURRENT_BINARY_DIR}/../../test)
 
 find_package (Threads)
-                    
+
 find_package(GoogleHash)
 if(GOOGLEHASH_FOUND)
   add_definitions("-DEIGEN_GOOGLEHASH_SUPPORT")
@@ -134,7 +134,7 @@ ei_add_test(cxx11_tensor_roundings)
 ei_add_test(cxx11_tensor_layout_swap)
 ei_add_test(cxx11_tensor_io)
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-  # This test requires __uint128_t which is only available on 64bit systems 
+  # This test requires __uint128_t which is only available on 64bit systems
   ei_add_test(cxx11_tensor_uint128)
 endif()
 endif()
@@ -145,6 +145,7 @@ if(EIGEN_TEST_CXX11)
     ei_add_test_sycl(cxx11_tensor_forced_eval_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_broadcast_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_device_sycl "-std=c++11")
+    ei_add_test_sycl(cxx11_tensor_reduction_sycl "-std=c++11")
   endif(EIGEN_TEST_SYCL)
   # It should be safe to always run these tests as there is some fallback code for
   # older compiler that don't support cxx11.

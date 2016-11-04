@@ -22,6 +22,13 @@ struct MakeGlobalPointer {
   typedef typename cl::sycl::global_ptr<T>::pointer_t Type;
 };
 
+// global pointer to set different attribute state for a class
+template <class T>
+struct MakeLocalPointer {
+  typedef typename cl::sycl::local_ptr<T>::pointer_t Type;
+};
+
+
 namespace Eigen {
 namespace TensorSycl {
 namespace internal {
@@ -43,9 +50,7 @@ template<typename T> struct GetType<false, T>{
 // tuple construction
 #include "TensorSyclTuple.h"
 
-// This file contains the PlaceHolder that replaces the actual data
-#include "TensorSyclPlaceHolder.h"
-
+// counting number of leaf at compile time
 #include "TensorSyclLeafCount.h"
 
 // The index PlaceHolder takes the actual expression and replaces the actual
@@ -57,9 +62,6 @@ template<typename T> struct GetType<false, T>{
 // creation of an accessor tuple from a tuple of SYCL buffers
 #include "TensorSyclExtractAccessor.h"
 
-// actual data extraction using accessors
-//#include "GetDeviceData.h"
-
 // this is used to change the address space type in tensor map for GPU
 #include "TensorSyclConvertToDeviceExpression.h"
 
@@ -69,6 +71,9 @@ template<typename T> struct GetType<false, T>{
 // this is used to create tensormap on the device
 // this is used to construct the expression on the device
 #include "TensorSyclExprConstructor.h"
+
+/// this is used for extracting tensor reduction
+#include "TensorReductionSycl.h"
 
 // kernel execution using fusion
 #include "TensorSyclRun.h"

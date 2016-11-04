@@ -141,7 +141,30 @@ template <typename RHSExpr, typename Dev>
 struct FunctorExtractor<TensorEvaluator<TensorEvalToOp<RHSExpr>, Dev> >
 : FunctorExtractor<TensorEvaluator<const TensorEvalToOp<RHSExpr>, Dev> > {};
 
+template<typename Dim, size_t NumOutputDim> struct DimConstr {
+template<typename InDim>
+  static inline Dim getDim(InDim dims ) {return dims;}
+};
 
+template<typename Dim> struct DimConstr<Dim, 0> {
+  template<typename InDim>
+    static inline Dim getDim(InDim dims ) {return Dim(dims.TotalSize());}
+};
+
+template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
+struct FunctorExtractor<TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>{
+  typedef TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Evaluator;
+  typedef typename Eigen::internal::conditional<Evaluator::NumOutputDims==0, DSizes<typename Evaluator::Index, 1>, typename Evaluator::Dimensions >::type Dimensions;
+  const Dimensions m_dimensions;
+  const Dimensions& dimensions() const { return m_dimensions; }
+  FunctorExtractor(const TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>& expr)
+  : m_dimensions(DimConstr<Dimensions, Evaluator::NumOutputDims>::getDim(expr.dimensions())) {}
+};
+
+
+template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
+struct FunctorExtractor<TensorEvaluator<TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>
+: FunctorExtractor<TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>{};
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>
 auto inline extractFunctors(const Evaluator& evaluator)-> FunctorExtractor<Evaluator> {

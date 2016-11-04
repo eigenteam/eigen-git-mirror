@@ -33,8 +33,7 @@ struct EvalToLHSConstructor {
   EvalToLHSConstructor(const utility::tuple::Tuple<Params...> &t): expr((&(*(utility::tuple::get<N>(t).get_pointer())))) {}
 };
 
-/// \struct ExprConstructor is used to reconstruct the expression on the device
-/// and
+/// \struct ExprConstructor is used to reconstruct the expression on the device and
 /// recreate the expression with MakeGlobalPointer containing the device address
 /// space for the TensorMap pointers used in eval function.
 /// It receives the original expression type, the functor of the node, the tuple
@@ -49,7 +48,7 @@ struct ExprConstructor;
 template <typename Scalar_, int Options_, int Options2_, int Options3_, int NumIndices_, typename IndexType_,\
 template <class> class MakePointer_, size_t N, typename... Params>\
 struct ExprConstructor< CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakeGlobalPointer>,\
-CVQual Eigen::internal::PlaceHolder<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options3_, MakePointer_>, N>, Params...>{\
+CVQual PlaceHolder<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options3_, MakePointer_>, N>, Params...>{\
   typedef  CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakeGlobalPointer>  Type;\
   Type expr;\
   template <typename FuncDetector>\
@@ -187,7 +186,7 @@ EVALTO()
 #define FORCEDEVAL(CVQual)\
 template <typename OrigExpr, typename DevExpr, size_t N, typename... Params>\
 struct ExprConstructor<CVQual TensorForcedEvalOp<OrigExpr, MakeGlobalPointer>,\
-CVQual Eigen::internal::PlaceHolder<CVQual TensorForcedEvalOp<DevExpr>, N>, Params...> {\
+CVQual PlaceHolder<CVQual TensorForcedEvalOp<DevExpr>, N>, Params...> {\
   typedef CVQual TensorMap<Tensor<typename TensorForcedEvalOp<DevExpr, MakeGlobalPointer>::Scalar,\
   TensorForcedEvalOp<DevExpr, MakeGlobalPointer>::NumDimensions, 0, typename TensorForcedEvalOp<DevExpr>::Index>, 0, MakeGlobalPointer> Type;\
   Type expr;\
@@ -200,14 +199,41 @@ FORCEDEVAL(const)
 FORCEDEVAL()
 #undef FORCEDEVAL
 
+template <bool Conds,  size_t X , size_t Y > struct ValueCondition {
+  static const size_t Res =X;
+};
+template<size_t X, size_t Y> struct ValueCondition<false, X , Y> {
+  static const size_t Res =Y;
+};
+
+/// specialisation of the \ref ExprConstructor struct when the node type is TensorReductionOp
+#define SYCLREDUCTIONEXPR(CVQual)\
+template <typename OP, typename Dim, typename OrigExpr, typename DevExpr, size_t N, typename... Params>\
+struct ExprConstructor<CVQual TensorReductionOp<OP, Dim, OrigExpr, MakeGlobalPointer>,\
+CVQual PlaceHolder<CVQual TensorReductionOp<OP, Dim, DevExpr>, N>, Params...> {\
+  static const size_t NumIndices= ValueCondition< TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>::NumDimensions==0,  1, TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>::NumDimensions >::Res;\
+  typedef CVQual TensorMap<Tensor<typename TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>::Scalar,\
+  NumIndices, 0, typename TensorReductionOp<OP, Dim, DevExpr>::Index>, 0, MakeGlobalPointer> Type;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\
+  : expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}\
+};
+
+SYCLREDUCTIONEXPR(const)
+SYCLREDUCTIONEXPR()
+#undef SYCLREDUCTIONEXPR
+
 /// template deduction for \ref ExprConstructor struct
 template <typename OrigExpr, typename IndexExpr, typename FuncD, typename... Params>
 auto createDeviceExpression(FuncD &funcD, const utility::tuple::Tuple<Params...> &t)
     -> decltype(ExprConstructor<OrigExpr, IndexExpr, Params...>(funcD, t)) {
   return ExprConstructor<OrigExpr, IndexExpr, Params...>(funcD, t);
 }
-}
-}
-}  // namespace Eigen
+
+} /// namespace TensorSycl
+} /// namespace internal
+} /// namespace Eigen
+
 
 #endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_EXPR_CONSTRUCTOR_HPP

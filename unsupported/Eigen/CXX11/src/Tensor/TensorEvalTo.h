@@ -47,13 +47,13 @@ struct traits<TensorEvalToOp<XprType, MakePointer_> >
 template<typename XprType, template <class> class MakePointer_>
 struct eval<TensorEvalToOp<XprType, MakePointer_>, Eigen::Dense>
 {
-  typedef const TensorEvalToOp<XprType>& type;
+  typedef const TensorEvalToOp<XprType, MakePointer_>& type;
 };
 
 template<typename XprType, template <class> class MakePointer_>
 struct nested<TensorEvalToOp<XprType, MakePointer_>, 1, typename eval<TensorEvalToOp<XprType, MakePointer_> >::type>
 {
-  typedef TensorEvalToOp<XprType> type;
+  typedef TensorEvalToOp<XprType, MakePointer_> type;
 };
 
 }  // end namespace internal

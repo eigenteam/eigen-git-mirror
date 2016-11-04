@@ -1,12 +1,11 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2016 Benoit Steiner <benoit.steiner.goog@gmail.com>
 // Mehdi Goli    Codeplay Software Ltd.
 // Ralph Potter  Codeplay Software Ltd.
 // Luke Iwanski  Codeplay Software Ltd.
-// Cummins Chris PhD student at The University of Edinburgh.
 // Contact: <eigen@codeplay.com>
+// Copyright (C) 2016 Benoit Steiner <benoit.steiner.goog@gmail.com>
 
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -25,12 +24,8 @@ namespace Eigen {
 template <typename T, bool MapAllocator>
 struct BufferT {
   using Type = cl::sycl::buffer<T, 1, cl::sycl::map_allocator<T>>;
-  static inline void add_sycl_buffer(
-      const T *ptr, size_t num_bytes,
-      std::map<const void *, std::shared_ptr<void>> &buffer_map) {
-    buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(
-        ptr, std::shared_ptr<void>(std::make_shared<Type>(
-                 Type(const_cast<T *>(ptr), cl::sycl::range<1>(num_bytes))))));
+  static inline void add_sycl_buffer(const T *ptr, size_t num_bytes,std::map<const void *, std::shared_ptr<void>> &buffer_map) {
+    buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(ptr, std::shared_ptr<void>(std::make_shared<Type>(Type(const_cast<T *>(ptr), cl::sycl::range<1>(num_bytes))))));
   }
 };
 
@@ -39,12 +34,8 @@ struct BufferT {
 template <typename T>
 struct BufferT<T, false> {
   using Type = cl::sycl::buffer<T, 1>;
-  static inline void add_sycl_buffer(
-      const T *ptr, size_t num_bytes,
-      std::map<const void *, std::shared_ptr<void>> &buffer_map) {
-    buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(
-        ptr, std::shared_ptr<void>(
-                 std::make_shared<Type>(Type(cl::sycl::range<1>(num_bytes))))));
+  static inline void add_sycl_buffer(const T *ptr, size_t num_bytes, std::map<const void *, std::shared_ptr<void>> &buffer_map) {
+    buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(ptr, std::shared_ptr<void>(std::make_shared<Type>(Type(cl::sycl::range<1>(num_bytes))))));
   }
 };
 
@@ -78,15 +69,20 @@ struct SyclDevice {
   /// for that particular pointer.
   template <cl::sycl::access::mode AcMd, bool MapAllocator, typename T>
   inline cl::sycl::accessor<T, 1, AcMd, cl::sycl::access::target::global_buffer>
-  get_sycl_accessor(size_t num_bytes, cl::sycl::handler &cgh,
-                    const T *ptr) const {
+  get_sycl_accessor(size_t num_bytes, cl::sycl::handler &cgh, const T * ptr) const {
+    return (get_sycl_buffer<MapAllocator,T>(num_bytes, ptr).template get_access<AcMd, cl::sycl::access::target::global_buffer>(cgh));
+  }
+
+template <bool MapAllocator, typename T>
+ inline typename BufferT<T, MapAllocator>::Type
+  get_sycl_buffer(size_t num_bytes,const T * ptr) const {
+    if(MapAllocator && !ptr){
+      eigen_assert("pointer with map_Allocator cannot be null. Please initialise the input pointer"); }
     auto it = buffer_map.find(ptr);
     if (it == buffer_map.end()) {
       BufferT<T, MapAllocator>::add_sycl_buffer(ptr, num_bytes, buffer_map);
     }
-    return (
-        ((typename BufferT<T, MapAllocator>::Type *)(buffer_map.at(ptr).get()))
-            ->template get_access<AcMd>(cgh));
+    return (*((typename BufferT<T, MapAllocator>::Type*)((buffer_map.at(ptr).get()))));
   }
 
   /// allocating memory on the cpu
@@ -100,21 +96,20 @@ struct SyclDevice {
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void *buffer) const {
     internal::aligned_free(buffer);
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void *dst, const void *src,
-                                                    size_t n) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void *dst, const void *src, size_t n) const {
     ::memcpy(dst, src, n);
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyHostToDevice(
-      void *dst, const void *src, size_t n) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyHostToDevice(void *dst, const void *src, size_t n) const {
     memcpy(dst, src, n);
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyDeviceToHost(
-      void *dst, const void *src, size_t n) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const void *src, size_t n) const {
     memcpy(dst, src, n);
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memset(void *buffer, int c,
-                                                    size_t n) const {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memset(void *buffer, int c, size_t n) const {
     ::memset(buffer, c, n);
+  }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+  return 1;
   }
 };
 }  // end namespace Eigen

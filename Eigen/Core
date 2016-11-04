@@ -14,16 +14,6 @@
 // first thing Eigen does: stop the compiler from committing suicide
 #include "src/Core/util/DisableStupidWarnings.h"
 
-/// This will no longer be needed after the next release of the computecppCE
-#ifdef EIGEN_USE_SYCL
-#undef min
-#undef max
-#undef isnan
-#undef isinf
-#undef isfinite
-#include <SYCL/sycl.hpp>
-#endif
-
 // Handle NVCC/CUDA/SYCL
 #if defined(__CUDACC__) || defined(__SYCL_DEVICE_ONLY__)
   // Do not try asserts on CUDA and SYCL!
