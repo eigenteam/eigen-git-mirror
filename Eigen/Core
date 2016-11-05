@@ -147,6 +147,15 @@
     #ifdef __FMA__
       #define EIGEN_VECTORIZE_FMA
     #endif
+    #if defined(__AVX512F__) && defined(EIGEN_ENABLE_AVX512)
+      #define EIGEN_VECTORIZE_AVX512
+      #define EIGEN_VECTORIZE_AVX2
+      #define EIGEN_VECTORIZE_AVX
+      #define EIGEN_VECTORIZE_FMA
+      #ifdef __AVX512DQ__
+        #define EIGEN_VECTORIZE_AVX512DQ
+      #endif
+    #endif
 
     // include files
 
@@ -178,7 +187,7 @@
         #ifdef EIGEN_VECTORIZE_SSE4_2
         #include <nmmintrin.h>
         #endif
-        #ifdef EIGEN_VECTORIZE_AVX
+        #if defined(EIGEN_VECTORIZE_AVX) || defined(EIGEN_VECTORIZE_AVX512)
         #include <immintrin.h>
         #endif
       #endif
@@ -278,7 +287,9 @@
 namespace Eigen {
 
 inline static const char *SimdInstructionSetsInUse(void) {
-#if defined(EIGEN_VECTORIZE_AVX)
+#if defined(EIGEN_VECTORIZE_AVX512)
+  return "AVX512, FMA, AVX2, AVX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+#elif defined(EIGEN_VECTORIZE_AVX)
   return "AVX SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_SSE4_2)
   return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
@@ -338,7 +349,12 @@ using std::ptrdiff_t;
 #include "src/Core/GenericPacketMath.h"
 #include "src/Core/MathFunctionsImpl.h"
 
-#if defined EIGEN_VECTORIZE_AVX
+#if defined EIGEN_VECTORIZE_AVX512
+  #include "src/Core/arch/SSE/PacketMath.h"
+  #include "src/Core/arch/AVX/PacketMath.h"
+  #include "src/Core/arch/AVX512/PacketMath.h"
+  #include "src/Core/arch/AVX512/MathFunctions.h"
+#elif defined EIGEN_VECTORIZE_AVX
   // Use AVX for floats and doubles, SSE for integers
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/Complex.h"

@@ -43,12 +43,17 @@ template <typename Scalar, typename Packet>
 struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/false>
 {
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),  m_interPacket(plset<Packet>(0))
+    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
+    m_interPacket(plset<Packet>(0)),
+    m_flip(std::abs(high)<std::abs(low))
   {}
 
   template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const {
-    return (i==m_size1)? m_high : (m_low + i*m_step);
+    if(m_flip)
+      return (i==0)? m_low : (m_high - (m_size1-i)*m_step);
+    else
+      return (i==m_size1)? m_high : (m_low + i*m_step);
   }
 
   template<typename IndexType>
@@ -56,11 +61,22 @@ struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/false>
   {
     // Principle:
     // [low, ..., low] + ( [step, ..., step] * ( [i, ..., i] + [0, ..., size] ) )
-    Packet pi = padd(pset1<Packet>(Scalar(i)),m_interPacket);
-    Packet res = padd(pset1<Packet>(m_low), pmul(pset1<Packet>(m_step), pi));
-    if(i==m_size1-unpacket_traits<Packet>::size+1)
-      res = pinsertlast(res, m_high);
-    return res;
+    if(m_flip)
+    {
+      Packet pi = padd(pset1<Packet>(Scalar(i-m_size1)),m_interPacket);
+      Packet res = padd(pset1<Packet>(m_high), pmul(pset1<Packet>(m_step), pi));
+      if(i==0)
+        res = pinsertfirst(res, m_low);
+      return res;
+    }
+    else
+    {
+      Packet pi = padd(pset1<Packet>(Scalar(i)),m_interPacket);
+      Packet res = padd(pset1<Packet>(m_low), pmul(pset1<Packet>(m_step), pi));
+      if(i==m_size1-unpacket_traits<Packet>::size+1)
+        res = pinsertlast(res, m_high);
+      return res;
+    }
   }
 
   const Scalar m_low;
@@ -68,6 +84,7 @@ struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/false>
   const Index m_size1;
   const Scalar m_step;
   const Packet m_interPacket;
+  const bool m_flip;
 };
 
 template <typename Scalar, typename Packet>

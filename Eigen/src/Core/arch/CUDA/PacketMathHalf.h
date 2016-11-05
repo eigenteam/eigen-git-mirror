@@ -333,6 +333,374 @@ template<> __device__ EIGEN_STRONG_INLINE half2 prsqrt<half2>(const half2& a) {
 
 #endif
 
+#elif defined EIGEN_VECTORIZE_AVX512
+
+typedef struct {
+  __m256i x;
+} Packet16h;
+
+
+template<> struct is_arithmetic<Packet16h> { enum { value = true }; };
+
+template <>
+struct packet_traits<half> : default_packet_traits {
+  typedef Packet16h type;
+  // There is no half-size packet for Packet16h.
+  typedef Packet16h half;
+  enum {
+    Vectorizable = 1,
+    AlignedOnScalar = 1,
+    size = 16,
+    HasHalfPacket = 0,
+    HasAdd    = 0,
+    HasSub    = 0,
+    HasMul    = 0,
+    HasNegate = 0,
+    HasAbs    = 0,
+    HasAbs2   = 0,
+    HasMin    = 0,
+    HasMax    = 0,
+    HasConj   = 0,
+    HasSetLinear = 0,
+    HasDiv = 0,
+    HasSqrt = 0,
+    HasRsqrt = 0,
+    HasExp = 0,
+    HasLog = 0,
+    HasBlend = 0
+  };
+};
+
+
+template<> struct unpacket_traits<Packet16h> { typedef Eigen::half type; enum {size=16, alignment=Aligned32}; typedef Packet16h half; };
+
+template<> EIGEN_STRONG_INLINE Packet16h pset1<Packet16h>(const Eigen::half& from) {
+  Packet16h result;
+  result.x = _mm256_set1_epi16(from.x);
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE Eigen::half pfirst<Packet16h>(const Packet16h& from) {
+  return half_impl::raw_uint16_to_half(static_cast<unsigned short>(_mm256_extract_epi16(from.x, 0)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pload<Packet16h>(const Eigen::half* from) {
+  Packet16h result;
+  result.x = _mm256_load_si256(reinterpret_cast<const __m256i*>(from));
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h ploadu<Packet16h>(const Eigen::half* from) {
+  Packet16h result;
+  result.x = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(from));
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE void pstore<half>(Eigen::half* to, const Packet16h& from) {
+  _mm256_store_si256((__m256i*)to, from.x);
+}
+
+template<> EIGEN_STRONG_INLINE void pstoreu<half>(Eigen::half* to, const Packet16h& from) {
+  _mm256_storeu_si256((__m256i*)to, from.x);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h
+ploadquad(const Eigen::half* from) {
+  Packet16h result;
+  unsigned short a = from[0].x;
+  unsigned short b = from[1].x;
+  unsigned short c = from[2].x;
+  unsigned short d = from[3].x;
+  result.x = _mm256_set_epi16(d, d, d, d, c, c, c, c, b, b, b, b, a, a, a, a);
+  return result;
+}
+
+EIGEN_STRONG_INLINE Packet16f half2float(const Packet16h& a) {
+#ifdef EIGEN_HAS_FP16_C
+  return _mm512_cvtph_ps(a.x);
+#else
+  EIGEN_ALIGN64 half aux[16];
+  pstore(aux, a);
+  float f0(aux[0]);
+  float f1(aux[1]);
+  float f2(aux[2]);
+  float f3(aux[3]);
+  float f4(aux[4]);
+  float f5(aux[5]);
+  float f6(aux[6]);
+  float f7(aux[7]);
+  float f8(aux[8]);
+  float f9(aux[9]);
+  float fa(aux[10]);
+  float fb(aux[11]);
+  float fc(aux[12]);
+  float fd(aux[13]);
+  float fe(aux[14]);
+  float ff(aux[15]);
+
+  return _mm512_set_ps(
+      ff, fe, fd, fc, fb, fa, f9, f8, f7, f6, f5, f4, f3, f2, f1, f0);
+#endif
+}
+
+EIGEN_STRONG_INLINE Packet16h float2half(const Packet16f& a) {
+#ifdef EIGEN_HAS_FP16_C
+  Packet16h result;
+  result.x = _mm512_cvtps_ph(a, _MM_FROUND_TO_NEAREST_INT|_MM_FROUND_NO_EXC);
+  return result;
+#else
+  EIGEN_ALIGN64 float aux[16];
+  pstore(aux, a);
+  half h0(aux[0]);
+  half h1(aux[1]);
+  half h2(aux[2]);
+  half h3(aux[3]);
+  half h4(aux[4]);
+  half h5(aux[5]);
+  half h6(aux[6]);
+  half h7(aux[7]);
+  half h8(aux[8]);
+  half h9(aux[9]);
+  half ha(aux[10]);
+  half hb(aux[11]);
+  half hc(aux[12]);
+  half hd(aux[13]);
+  half he(aux[14]);
+  half hf(aux[15]);
+
+  Packet16h result;
+  result.x = _mm256_set_epi16(
+      hf.x, he.x, hd.x, hc.x, hb.x, ha.x, h9.x, h8.x,
+      h7.x, h6.x, h5.x, h4.x, h3.x, h2.x, h1.x, h0.x);
+  return result;
+#endif
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h padd<Packet16h>(const Packet16h& a, const Packet16h& b) {
+  Packet16f af = half2float(a);
+  Packet16f bf = half2float(b);
+  Packet16f rf = padd(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pmul<Packet16h>(const Packet16h& a, const Packet16h& b) {
+  Packet16f af = half2float(a);
+  Packet16f bf = half2float(b);
+  Packet16f rf = pmul(af, bf);
+  return float2half(rf);
+}
+
+template<> EIGEN_STRONG_INLINE half predux<Packet16h>(const Packet16h& from) {
+  Packet16f from_float = half2float(from);
+  return half(predux(from_float));
+}
+
+template<> EIGEN_STRONG_INLINE Packet16h pgather<Eigen::half, Packet16h>(const Eigen::half* from, Index stride)
+{
+  Packet16h result;
+  result.x = _mm256_set_epi16(
+      from[15*stride].x, from[14*stride].x, from[13*stride].x, from[12*stride].x,
+      from[11*stride].x, from[10*stride].x, from[9*stride].x, from[8*stride].x,
+      from[7*stride].x, from[6*stride].x, from[5*stride].x, from[4*stride].x,
+      from[3*stride].x, from[2*stride].x, from[1*stride].x, from[0*stride].x);
+  return result;
+}
+
+template<> EIGEN_STRONG_INLINE void pscatter<half, Packet16h>(half* to, const Packet16h& from, Index stride)
+{
+  EIGEN_ALIGN64 half aux[16];
+  pstore(aux, from);
+  to[stride*0].x = aux[0].x;
+  to[stride*1].x = aux[1].x;
+  to[stride*2].x = aux[2].x;
+  to[stride*3].x = aux[3].x;
+  to[stride*4].x = aux[4].x;
+  to[stride*5].x = aux[5].x;
+  to[stride*6].x = aux[6].x;
+  to[stride*7].x = aux[7].x;
+  to[stride*8].x = aux[8].x;
+  to[stride*9].x = aux[9].x;
+  to[stride*10].x = aux[10].x;
+  to[stride*11].x = aux[11].x;
+  to[stride*12].x = aux[12].x;
+  to[stride*13].x = aux[13].x;
+  to[stride*14].x = aux[14].x;
+  to[stride*15].x = aux[15].x;
+}
+
+EIGEN_STRONG_INLINE void
+ptranspose(PacketBlock<Packet16h,16>& kernel) {
+  __m256i a = kernel.packet[0].x;
+  __m256i b = kernel.packet[1].x;
+  __m256i c = kernel.packet[2].x;
+  __m256i d = kernel.packet[3].x;
+  __m256i e = kernel.packet[4].x;
+  __m256i f = kernel.packet[5].x;
+  __m256i g = kernel.packet[6].x;
+  __m256i h = kernel.packet[7].x;
+  __m256i i = kernel.packet[8].x;
+  __m256i j = kernel.packet[9].x;
+  __m256i k = kernel.packet[10].x;
+  __m256i l = kernel.packet[11].x;
+  __m256i m = kernel.packet[12].x;
+  __m256i n = kernel.packet[13].x;
+  __m256i o = kernel.packet[14].x;
+  __m256i p = kernel.packet[15].x;
+
+  __m256i ab_07 = _mm256_unpacklo_epi16(a, b);
+  __m256i cd_07 = _mm256_unpacklo_epi16(c, d);
+  __m256i ef_07 = _mm256_unpacklo_epi16(e, f);
+  __m256i gh_07 = _mm256_unpacklo_epi16(g, h);
+  __m256i ij_07 = _mm256_unpacklo_epi16(i, j);
+  __m256i kl_07 = _mm256_unpacklo_epi16(k, l);
+  __m256i mn_07 = _mm256_unpacklo_epi16(m, n);
+  __m256i op_07 = _mm256_unpacklo_epi16(o, p);
+
+  __m256i ab_8f = _mm256_unpackhi_epi16(a, b);
+  __m256i cd_8f = _mm256_unpackhi_epi16(c, d);
+  __m256i ef_8f = _mm256_unpackhi_epi16(e, f);
+  __m256i gh_8f = _mm256_unpackhi_epi16(g, h);
+  __m256i ij_8f = _mm256_unpackhi_epi16(i, j);
+  __m256i kl_8f = _mm256_unpackhi_epi16(k, l);
+  __m256i mn_8f = _mm256_unpackhi_epi16(m, n);
+  __m256i op_8f = _mm256_unpackhi_epi16(o, p);
+
+  __m256i abcd_03 = _mm256_unpacklo_epi32(ab_07, cd_07);
+  __m256i abcd_47 = _mm256_unpackhi_epi32(ab_07, cd_07);
+  __m256i efgh_03 = _mm256_unpacklo_epi32(ef_07, gh_07);
+  __m256i efgh_47 = _mm256_unpackhi_epi32(ef_07, gh_07);
+  __m256i ijkl_03 = _mm256_unpacklo_epi32(ij_07, kl_07);
+  __m256i ijkl_47 = _mm256_unpackhi_epi32(ij_07, kl_07);
+  __m256i mnop_03 = _mm256_unpacklo_epi32(mn_07, op_07);
+  __m256i mnop_47 = _mm256_unpackhi_epi32(mn_07, op_07);
+
+  __m256i abcd_8b = _mm256_unpacklo_epi32(ab_8f, cd_8f);
+  __m256i abcd_cf = _mm256_unpackhi_epi32(ab_8f, cd_8f);
+  __m256i efgh_8b = _mm256_unpacklo_epi32(ef_8f, gh_8f);
+  __m256i efgh_cf = _mm256_unpackhi_epi32(ef_8f, gh_8f);
+  __m256i ijkl_8b = _mm256_unpacklo_epi32(ij_8f, kl_8f);
+  __m256i ijkl_cf = _mm256_unpackhi_epi32(ij_8f, kl_8f);
+  __m256i mnop_8b = _mm256_unpacklo_epi32(mn_8f, op_8f);
+  __m256i mnop_cf = _mm256_unpackhi_epi32(mn_8f, op_8f);
+
+  __m256i abcdefgh_01 = _mm256_unpacklo_epi64(abcd_03, efgh_03);
+  __m256i abcdefgh_23 = _mm256_unpackhi_epi64(abcd_03, efgh_03);
+  __m256i ijklmnop_01 = _mm256_unpacklo_epi64(ijkl_03, mnop_03);
+  __m256i ijklmnop_23 = _mm256_unpackhi_epi64(ijkl_03, mnop_03);
+  __m256i abcdefgh_45 = _mm256_unpacklo_epi64(abcd_47, efgh_47);
+  __m256i abcdefgh_67 = _mm256_unpackhi_epi64(abcd_47, efgh_47);
+  __m256i ijklmnop_45 = _mm256_unpacklo_epi64(ijkl_47, mnop_47);
+  __m256i ijklmnop_67 = _mm256_unpackhi_epi64(ijkl_47, mnop_47);
+  __m256i abcdefgh_89 = _mm256_unpacklo_epi64(abcd_8b, efgh_8b);
+  __m256i abcdefgh_ab = _mm256_unpackhi_epi64(abcd_8b, efgh_8b);
+  __m256i ijklmnop_89 = _mm256_unpacklo_epi64(ijkl_8b, mnop_8b);
+  __m256i ijklmnop_ab = _mm256_unpackhi_epi64(ijkl_8b, mnop_8b);
+  __m256i abcdefgh_cd = _mm256_unpacklo_epi64(abcd_cf, efgh_cf);
+  __m256i abcdefgh_ef = _mm256_unpackhi_epi64(abcd_cf, efgh_cf);
+  __m256i ijklmnop_cd = _mm256_unpacklo_epi64(ijkl_cf, mnop_cf);
+  __m256i ijklmnop_ef = _mm256_unpackhi_epi64(ijkl_cf, mnop_cf);
+
+  // NOTE: no unpacklo/hi instr in this case, so using permute instr.
+  __m256i a_p_0 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x20);
+  __m256i a_p_1 = _mm256_permute2x128_si256(abcdefgh_01, ijklmnop_01, 0x31);
+  __m256i a_p_2 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x20);
+  __m256i a_p_3 = _mm256_permute2x128_si256(abcdefgh_23, ijklmnop_23, 0x31);
+  __m256i a_p_4 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x20);
+  __m256i a_p_5 = _mm256_permute2x128_si256(abcdefgh_45, ijklmnop_45, 0x31);
+  __m256i a_p_6 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x20);
+  __m256i a_p_7 = _mm256_permute2x128_si256(abcdefgh_67, ijklmnop_67, 0x31);
+  __m256i a_p_8 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x20);
+  __m256i a_p_9 = _mm256_permute2x128_si256(abcdefgh_89, ijklmnop_89, 0x31);
+  __m256i a_p_a = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x20);
+  __m256i a_p_b = _mm256_permute2x128_si256(abcdefgh_ab, ijklmnop_ab, 0x31);
+  __m256i a_p_c = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x20);
+  __m256i a_p_d = _mm256_permute2x128_si256(abcdefgh_cd, ijklmnop_cd, 0x31);
+  __m256i a_p_e = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x20);
+  __m256i a_p_f = _mm256_permute2x128_si256(abcdefgh_ef, ijklmnop_ef, 0x31);
+
+  kernel.packet[0].x = a_p_0;
+  kernel.packet[1].x = a_p_1;
+  kernel.packet[2].x = a_p_2;
+  kernel.packet[3].x = a_p_3;
+  kernel.packet[4].x = a_p_4;
+  kernel.packet[5].x = a_p_5;
+  kernel.packet[6].x = a_p_6;
+  kernel.packet[7].x = a_p_7;
+  kernel.packet[8].x = a_p_8;
+  kernel.packet[9].x = a_p_9;
+  kernel.packet[10].x = a_p_a;
+  kernel.packet[11].x = a_p_b;
+  kernel.packet[12].x = a_p_c;
+  kernel.packet[13].x = a_p_d;
+  kernel.packet[14].x = a_p_e;
+  kernel.packet[15].x = a_p_f;
+}
+
+EIGEN_STRONG_INLINE void
+ptranspose(PacketBlock<Packet16h,8>& kernel) {
+  EIGEN_ALIGN64 half in[8][16];
+  pstore<half>(in[0], kernel.packet[0]);
+  pstore<half>(in[1], kernel.packet[1]);
+  pstore<half>(in[2], kernel.packet[2]);
+  pstore<half>(in[3], kernel.packet[3]);
+  pstore<half>(in[4], kernel.packet[4]);
+  pstore<half>(in[5], kernel.packet[5]);
+  pstore<half>(in[6], kernel.packet[6]);
+  pstore<half>(in[7], kernel.packet[7]);
+
+  EIGEN_ALIGN64 half out[8][16];
+
+  for (int i = 0; i < 8; ++i) {
+    for (int j = 0; j < 8; ++j) {
+      out[i][j] = in[j][2*i];
+    }
+    for (int j = 0; j < 8; ++j) {
+      out[i][j+8] = in[j][2*i+1];
+    }
+  }
+
+  kernel.packet[0] = pload<Packet16h>(out[0]);
+  kernel.packet[1] = pload<Packet16h>(out[1]);
+  kernel.packet[2] = pload<Packet16h>(out[2]);
+  kernel.packet[3] = pload<Packet16h>(out[3]);
+  kernel.packet[4] = pload<Packet16h>(out[4]);
+  kernel.packet[5] = pload<Packet16h>(out[5]);
+  kernel.packet[6] = pload<Packet16h>(out[6]);
+  kernel.packet[7] = pload<Packet16h>(out[7]);
+}
+
+EIGEN_STRONG_INLINE void
+ptranspose(PacketBlock<Packet16h,4>& kernel) {
+  EIGEN_ALIGN64 half in[4][16];
+  pstore<half>(in[0], kernel.packet[0]);
+  pstore<half>(in[1], kernel.packet[1]);
+  pstore<half>(in[2], kernel.packet[2]);
+  pstore<half>(in[3], kernel.packet[3]);
+
+  EIGEN_ALIGN64 half out[4][16];
+
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      out[i][j] = in[j][4*i];
+    }
+    for (int j = 0; j < 4; ++j) {
+      out[i][j+4] = in[j][4*i+1];
+    }
+    for (int j = 0; j < 4; ++j) {
+      out[i][j+8] = in[j][4*i+2];
+    }
+    for (int j = 0; j < 4; ++j) {
+      out[i][j+12] = in[j][4*i+3];
+    }
+  }
+
+  kernel.packet[0] = pload<Packet16h>(out[0]);
+  kernel.packet[1] = pload<Packet16h>(out[1]);
+  kernel.packet[2] = pload<Packet16h>(out[2]);
+  kernel.packet[3] = pload<Packet16h>(out[3]);
+}
+
+
 #elif defined EIGEN_VECTORIZE_AVX
 
 typedef struct {

@@ -13,7 +13,7 @@
 
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 2
-#define EIGEN_MINOR_VERSION 94
+#define EIGEN_MINOR_VERSION 95
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -659,6 +659,9 @@ namespace Eigen {
 // If the user explicitly disable vectorization, then we also disable alignment
 #if defined(EIGEN_DONT_VECTORIZE)
   #define EIGEN_IDEAL_MAX_ALIGN_BYTES 0
+#elif defined(EIGEN_VECTORIZE_AVX512)
+  // 64 bytes static alignmeent is preferred only if really required
+  #define EIGEN_IDEAL_MAX_ALIGN_BYTES 64
 #elif defined(__AVX__)
   // 32 bytes static alignmeent is preferred only if really required
   #define EIGEN_IDEAL_MAX_ALIGN_BYTES 32

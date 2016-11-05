@@ -456,6 +456,26 @@ ptranspose(PacketBlock<Packet2cd,2>& kernel) {
  kernel.packet[0].v = tmp;
 }
 
+template<> EIGEN_STRONG_INLINE Packet4cf pinsertfirst(const Packet4cf& a, std::complex<float> b)
+{
+  return Packet4cf(_mm256_blend_ps(a.v,pset1<Packet4cf>(b).v,1|2));
+}
+
+template<> EIGEN_STRONG_INLINE Packet2cd pinsertfirst(const Packet2cd& a, std::complex<double> b)
+{
+  return Packet2cd(_mm256_blend_pd(a.v,pset1<Packet2cd>(b).v,1|2));
+}
+
+template<> EIGEN_STRONG_INLINE Packet4cf pinsertlast(const Packet4cf& a, std::complex<float> b)
+{
+  return Packet4cf(_mm256_blend_ps(a.v,pset1<Packet4cf>(b).v,(1<<7)|(1<<6)));
+}
+
+template<> EIGEN_STRONG_INLINE Packet2cd pinsertlast(const Packet2cd& a, std::complex<double> b)
+{
+  return Packet2cd(_mm256_blend_pd(a.v,pset1<Packet2cd>(b).v,(1<<3)|(1<<2)));
+}
+
 } // end namespace internal
 
 } // end namespace Eigen
