@@ -351,7 +351,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
       Index ret;
       if((ret=unblocked(A11))>=0) return k+ret;
       if(rs>0) A11.adjoint().template triangularView<Upper>().template solveInPlace<OnTheRight>(A21);
-      if(rs>0) A22.template selfadjointView<Lower>().rankUpdate(A21,-1); // bottleneck
+      if(rs>0) A22.template selfadjointView<Lower>().rankUpdate(A21,typename NumTraits<RealScalar>::Literal(-1)); // bottleneck
     }
     return -1;
   }
