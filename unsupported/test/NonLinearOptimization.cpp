@@ -12,8 +12,6 @@
 // It is intended to be done for this test only.
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
-using std::sqrt;
-
 // tolerance for chekcing number of iterations
 #define LM_EVAL_COUNT_TOL 4/3
 
