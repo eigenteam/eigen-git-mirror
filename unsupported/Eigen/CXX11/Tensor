@@ -20,6 +20,9 @@
 #undef isinf
 #undef isfinite
 #include <SYCL/sycl.hpp>
+#include <map>
+#include <memory>
+#include <utility>
 #endif
 
 #include <Eigen/src/Core/util/DisableStupidWarnings.h>
