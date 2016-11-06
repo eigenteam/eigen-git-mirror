@@ -290,6 +290,14 @@ class SparseVector
       m_data.swap(other.m_data);
     }
 
+    template<int OtherOptions>
+    inline void swap(SparseMatrix<Scalar,OtherOptions,StorageIndex>& other)
+    {
+      eigen_assert(other.outerSize()==1);
+      std::swap(m_size, other.m_innerSize);
+      m_data.swap(other.m_data);
+    }
+
     inline SparseVector& operator=(const SparseVector& other)
     {
       if (other.isRValue())
