@@ -330,25 +330,27 @@ public:
   }
   
   /** \internal */
-  template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
-  void _solve_impl(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+  template<typename Rhs, typename DestDerived>
+  void _solve_impl(const Rhs& b, SparseMatrixBase<DestDerived> &aDest) const
   {
     eigen_assert(rows()==b.rows());
     
     Index rhsCols = b.cols();
     Index size = b.rows();
+    DestDerived& dest(aDest.derived());
+    typedef typename DestDerived::Scalar DestScalar;
     Eigen::Matrix<DestScalar,Dynamic,1> tb(size);
     Eigen::Matrix<DestScalar,Dynamic,1> tx(cols());
     // We do not directly fill dest because sparse expressions have to be free of aliasing issue.
     // For non square least-square problems, b and dest might not have the same size whereas they might alias each-other.
-    SparseMatrix<DestScalar,DestOptions,DestIndex> tmp(cols(),rhsCols);
+    typename DestDerived::PlainObject tmp(cols(),rhsCols);
     for(Index k=0; k<rhsCols; ++k)
     {
       tb = b.col(k);
       tx = derived().solve(tb);
       tmp.col(k) = tx.sparseView(0);
     }
-    tmp.swap(dest);
+    dest.swap(tmp);
   }
 
 protected:
