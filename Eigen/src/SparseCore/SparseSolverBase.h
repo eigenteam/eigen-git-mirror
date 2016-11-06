@@ -19,7 +19,8 @@ namespace internal {
   * The rhs is decomposed into small vertical panels which are solved through dense temporaries.
   */
 template<typename Decomposition, typename Rhs, typename Dest>
-void solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs, Dest &dest)
+typename enable_if<Rhs::ColsAtCompileTime!=1 && Dest::ColsAtCompileTime!=1>::type
+solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs, Dest &dest)
 {
   EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
   typedef typename Dest::Scalar DestScalar;
@@ -38,6 +39,19 @@ void solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs,
     tmpX.leftCols(actualCols) = dec.solve(tmp.leftCols(actualCols));
     dest.middleCols(k,actualCols) = tmpX.leftCols(actualCols).sparseView();
   }
+}
+
+// Overload for vector as rhs
+template<typename Decomposition, typename Rhs, typename Dest>
+typename enable_if<Rhs::ColsAtCompileTime==1 || Dest::ColsAtCompileTime==1>::type
+solve_sparse_through_dense_panels(const Decomposition &dec, const Rhs& rhs, Dest &dest)
+{
+  typedef typename Dest::Scalar DestScalar;
+  Index size = rhs.rows();
+  Eigen::Matrix<DestScalar,Dynamic,1> rhs_dense(rhs);
+  Eigen::Matrix<DestScalar,Dynamic,1> dest_dense(size);
+  dest_dense = dec.solve(rhs_dense);
+  dest = dest_dense.sparseView();
 }
 
 } // end namespace internal
