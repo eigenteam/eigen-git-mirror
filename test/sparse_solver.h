@@ -272,6 +272,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxS
   typedef typename Mat::Scalar Scalar;
   typedef typename Mat::StorageIndex StorageIndex;
   typedef SparseMatrix<Scalar,ColMajor, StorageIndex> SpMat;
+  typedef SparseVector<Scalar, 0, StorageIndex> SpVec;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -288,6 +289,8 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxS
     DenseVector b = DenseVector::Random(size);
     DenseMatrix dB(size,rhsCols);
     initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
+    SpVec c = B.col(0);
+    DenseVector dc = dB.col(0);
   
     CALL_SUBTEST( check_sparse_solving(solver, A,     b,  dA, b)  );
     CALL_SUBTEST( check_sparse_solving(solver, halfA, b,  dA, b)  );
@@ -295,6 +298,8 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver, int maxS
     CALL_SUBTEST( check_sparse_solving(solver, halfA, dB, dA, dB) );
     CALL_SUBTEST( check_sparse_solving(solver, A,     B,  dA, dB) );
     CALL_SUBTEST( check_sparse_solving(solver, halfA, B,  dA, dB) );
+    CALL_SUBTEST( check_sparse_solving(solver, A,     c,  dA, dc) );
+    CALL_SUBTEST( check_sparse_solving(solver, halfA, c,  dA, dc) );
     
     // check only once
     if(i==0)
@@ -396,6 +401,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver, int m
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
   typedef SparseMatrix<Scalar,ColMajor, typename Mat::StorageIndex> SpMat;
+  typedef SparseVector<Scalar, 0, typename Mat::StorageIndex> SpVec;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -413,9 +419,12 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver, int m
     double density = (std::max)(8./(size*rhsCols), 0.1);
     initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
     B.makeCompressed();
+    SpVec c = B.col(0);
+    DenseVector dc = dB.col(0);
     CALL_SUBTEST(check_sparse_solving(solver, A, b,  dA, b));
     CALL_SUBTEST(check_sparse_solving(solver, A, dB, dA, dB));
     CALL_SUBTEST(check_sparse_solving(solver, A, B,  dA, dB));
+    CALL_SUBTEST(check_sparse_solving(solver, A, c,  dA, dc));
     
     // check only once
     if(i==0)
