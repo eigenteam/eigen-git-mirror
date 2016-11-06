@@ -411,6 +411,7 @@ struct evaluator<SparseVector<_Scalar,_Options,_Index> >
   : evaluator_base<SparseVector<_Scalar,_Options,_Index> >
 {
   typedef SparseVector<_Scalar,_Options,_Index> SparseVectorType;
+  typedef evaluator_base<SparseVectorType> Base;
   typedef typename SparseVectorType::InnerIterator InnerIterator;
   typedef typename SparseVectorType::ReverseInnerIterator ReverseInnerIterator;
   
@@ -418,20 +419,22 @@ struct evaluator<SparseVector<_Scalar,_Options,_Index> >
     CoeffReadCost = NumTraits<_Scalar>::ReadCost,
     Flags = SparseVectorType::Flags
   };
+
+  evaluator() : Base() {}
   
-  explicit evaluator(const SparseVectorType &mat) : m_matrix(mat)
+  explicit evaluator(const SparseVectorType &mat) : m_matrix(&mat)
   {
     EIGEN_INTERNAL_CHECK_COST_VALUE(CoeffReadCost);
   }
   
   inline Index nonZerosEstimate() const {
-    return m_matrix.nonZeros();
+    return m_matrix->nonZeros();
   }
   
-  operator SparseVectorType&() { return m_matrix.const_cast_derived(); }
-  operator const SparseVectorType&() const { return m_matrix; }
+  operator SparseVectorType&() { return m_matrix->const_cast_derived(); }
+  operator const SparseVectorType&() const { return *m_matrix; }
   
-  const SparseVectorType &m_matrix;
+  const SparseVectorType *m_matrix;
 };
 
 template< typename Dest, typename Src>
