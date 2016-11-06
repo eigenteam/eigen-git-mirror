@@ -94,6 +94,7 @@ class SparseMatrix
 {
     typedef SparseCompressedBase<SparseMatrix> Base;
     using Base::convert_index;
+    friend class SparseVector<_Scalar,0,_Index>;
   public:
     using Base::isCompressed;
     using Base::nonZeros;
