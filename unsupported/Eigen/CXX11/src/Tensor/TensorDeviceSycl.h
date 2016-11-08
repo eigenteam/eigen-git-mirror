@@ -26,19 +26,21 @@ struct SyclDevice {
   mutable std::map<const void *, std::shared_ptr<void>> buffer_map;
   /// creating device by using selector
   template<typename dev_Selector> SyclDevice(dev_Selector s)
-  :m_queue(cl::sycl::queue(s, [=](cl::sycl::exception_list l) {
-    for (const auto& e : l) {
+  :
 #if EXCEPTIONS_ENABLED
+  m_queue(cl::sycl::queue(s, [=](cl::sycl::exception_list l) {
+    for (const auto& e : l) {
       try {
         std::rethrow_exception(e);
       } catch (cl::sycl::exception e) {
           std::cout << e.what() << std::endl;
         }
-#else
-      assert(false && "SyclDevice: Unhandled exception cought!");
-#endif
     }
-  })) {}
+  }))
+#else
+  m_queue(cl::sycl::queue(s))
+#endif
+  {}
   // destructor
   ~SyclDevice() { deallocate_all(); }
 
