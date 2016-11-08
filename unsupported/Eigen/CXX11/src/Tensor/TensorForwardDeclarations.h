@@ -33,7 +33,7 @@ template<typename UnaryOp, typename XprType> class TensorCwiseUnaryOp;
 template<typename BinaryOp, typename LeftXprType, typename RightXprType> class TensorCwiseBinaryOp;
 template<typename TernaryOp, typename Arg1XprType, typename Arg2XprType, typename Arg3XprType> class TensorCwiseTernaryOp;
 template<typename IfXprType, typename ThenXprType, typename ElseXprType> class TensorSelectOp;
-template<typename Op, typename Dims, typename XprType> class TensorReductionOp;
+template<typename Op, typename Dims, typename XprType, template <class> class MakePointer_ = MakePointer > class TensorReductionOp;
 template<typename XprType> class TensorIndexTupleOp;
 template<typename ReduceOp, typename Dims, typename XprType> class TensorTupleReducerOp;
 template<typename Axis, typename LeftXprType, typename RightXprType> class TensorConcatenationOp;

@@ -20,20 +20,12 @@
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
 
-void test_device_sycl() {
-  cl::sycl::gpu_selector s;
-  cl::sycl::queue q(s, [=](cl::sycl::exception_list l) {
-    for (const auto& e : l) {
-      try {
-        std::rethrow_exception(e);
-      } catch (cl::sycl::exception e) {
-        std::cout << e.what() << std::endl;
-      }
-    }
-  });
-  Eigen::SyclDevice sycl_device(q);
-	printf("Helo from ComputeCpp: Device Exists\n");
+void test_device_sycl(const Eigen::SyclDevice &sycl_device) {
+  std::cout <<"Helo from ComputeCpp: the requested device exists and the device name is : "
+    << sycl_device.m_queue.get_device(). template get_info<cl::sycl::info::device::name>() <<std::endl;;
 }
 void test_cxx11_tensor_device_sycl() {
-  CALL_SUBTEST(test_device_sycl());
+  cl::sycl::gpu_selector s;
+  Eigen::SyclDevice sycl_device(s);
+  CALL_SUBTEST(test_device_sycl(sycl_device));
 }

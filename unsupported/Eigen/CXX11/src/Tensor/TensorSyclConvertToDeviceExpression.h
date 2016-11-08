@@ -102,6 +102,18 @@ KERNELBROKERCONVERT(, false, TensorForcedEvalOp)
 KERNELBROKERCONVERT(const, true, TensorEvalToOp)
 KERNELBROKERCONVERT(, false, TensorEvalToOp)
 #undef KERNELBROKERCONVERT
+
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorReductionOp
+#define KERNELBROKERCONVERTREDUCTION(CVQual)\
+template <typename OP, typename Dim, typename subExpr, template <class> class MakePointer_>\
+struct ConvertToDeviceExpression<CVQual TensorReductionOp<OP, Dim, subExpr, MakePointer_> > {\
+  typedef CVQual TensorReductionOp<OP, Dim, typename ConvertToDeviceExpression<subExpr>::Type, MakeGlobalPointer> Type;\
+};
+
+KERNELBROKERCONVERTREDUCTION(const)
+KERNELBROKERCONVERTREDUCTION()
+#undef KERNELBROKERCONVERTREDUCTION
+
 }  // namespace internal
 }  // namespace TensorSycl
 }  // namespace Eigen

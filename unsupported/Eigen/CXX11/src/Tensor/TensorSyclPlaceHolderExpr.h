@@ -25,6 +25,17 @@
 namespace Eigen {
 namespace TensorSycl {
 namespace internal {
+
+/// \struct PlaceHolder
+/// \brief PlaceHolder is used to replace the \ref TensorMap in the expression
+/// tree.
+/// PlaceHolder contains the order of the leaf node in the expression tree.
+template <typename Scalar, size_t N>
+struct PlaceHolder {
+  static constexpr size_t I = N;
+  typedef Scalar Type;
+};
+
 /// \sttruct PlaceHolderExpression
 /// \brief it is used to create the PlaceHolder expression. The PlaceHolder
 /// expression is a copy of expression type in which the TensorMap of the has
@@ -113,7 +124,7 @@ ASSIGNEXPR()
 #define TENSORMAPEXPR(CVQual)\
 template <typename Scalar_, int Options_, int Options2_, int NumIndices_, typename IndexType_, template <class> class MakePointer_, size_t N>\
 struct PlaceHolderExpression< CVQual TensorMap< Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakePointer_>, N> {\
-  typedef CVQual Eigen::internal::PlaceHolder<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakePointer_>, N> Type;\
+  typedef CVQual PlaceHolder<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakePointer_>, N> Type;\
 };
 
 TENSORMAPEXPR(const)
@@ -125,7 +136,7 @@ TENSORMAPEXPR()
 #define FORCEDEVAL(CVQual)\
 template <typename Expr, size_t N>\
 struct PlaceHolderExpression<CVQual TensorForcedEvalOp<Expr>, N> {\
-  typedef CVQual Eigen::internal::PlaceHolder<CVQual TensorForcedEvalOp<Expr>, N> Type;\
+  typedef CVQual PlaceHolder<CVQual TensorForcedEvalOp<Expr>, N> Type;\
 };
 
 FORCEDEVAL(const)
@@ -144,6 +155,18 @@ EVALTO(const)
 EVALTO()
 #undef EVALTO
 
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorReductionOp
+#define SYCLREDUCTION(CVQual)\
+template <typename OP, typename Dims, typename Expr, size_t N>\
+struct PlaceHolderExpression<CVQual TensorReductionOp<OP, Dims, Expr>, N>{\
+  typedef CVQual PlaceHolder<CVQual TensorReductionOp<OP, Dims,Expr>, N> Type;\
+};
+SYCLREDUCTION(const)
+SYCLREDUCTION()
+#undef SYCLREDUCTION
+
 /// template deduction for \ref PlaceHolderExpression struct
 template <typename Expr>
 struct createPlaceHolderExpression {
@@ -151,8 +174,8 @@ struct createPlaceHolderExpression {
   typedef typename PlaceHolderExpression<Expr, TotalLeaves - 1>::Type Type;
 };
 
-}
-}
+}  // internal
+}  // TensorSycl
 }  // namespace Eigen
 
 #endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_PLACEHOLDER_EXPR_HPP
