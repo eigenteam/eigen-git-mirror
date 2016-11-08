@@ -27,9 +27,9 @@ namespace internal {
 
 template<typename CoeffReturnType, typename KernelName> struct syclGenericBufferReducer{
 template<typename BufferTOut, typename BufferTIn>
-static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+static void run(BufferTOut* bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
   do {
-          auto f = [length, local, &bufOut, &bufI](cl::sycl::handler& h) mutable {
+          auto f = [length, local, bufOut, &bufI](cl::sycl::handler& h) mutable {
             cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(length, local)},
                                     cl::sycl::range<1>{std::min(length, local)}};
             /* Two accessors are used: one to the buffer that is being reduced,
@@ -37,7 +37,7 @@ static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
             auto aI =
                 bufI.template get_access<cl::sycl::access::mode::read_write>(h);
             auto aOut =
-                bufOut.template get_access<cl::sycl::access::mode::discard_write>(h);
+                bufOut->template get_access<cl::sycl::access::mode::discard_write>(h);
             cl::sycl::accessor<CoeffReturnType, 1, cl::sycl::access::mode::read_write,
                                cl::sycl::access::target::local>
                 scratch(cl::sycl::range<1>(local), h);
@@ -134,7 +134,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     /// if the shared memory is less than the GRange, we set shared_mem size to the TotalSize and in this case one kernel would be created for recursion to reduce all to one.
     if (GRange < outTileSize) outTileSize=GRange;
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
-    auto out_buffer =dev.template get_sycl_buffer<true, typename Eigen::internal::remove_all<CoeffReturnType>::type>(self.dimensions().TotalSize(), output);
+    auto out_buffer =dev.template get_sycl_buffer<typename Eigen::internal::remove_all<CoeffReturnType>::type>(self.dimensions().TotalSize(), output);
     /// creating the shared memory for calculating reduction.
     /// This one is used to collect all the reduced value of shared memory as we dont have global barrier on GPU. Once it is saved we can
     /// recursively apply reduction on it in order to reduce the whole.
@@ -208,7 +208,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
     dev.m_queue.submit([&](cl::sycl::handler &cgh) {
       // create a tuple of accessors from Evaluator
       auto tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
-      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write, true>(num_coeffs_to_preserve,cgh, output);
+      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(num_coeffs_to_preserve,cgh, output);
 
       cgh.parallel_for<Self>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
         typedef typename TensorSycl::internal::ConvertToDeviceExpression<const HostExpr>::Type DevExpr;

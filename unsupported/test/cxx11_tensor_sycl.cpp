@@ -27,42 +27,33 @@ using Eigen::SyclDevice;
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
-// Types used in tests:
-using TestTensor = Tensor<float, 3>;
-using TestTensorMap = TensorMap<Tensor<float, 3>>;
-
-void test_sycl_cpu() {
-  cl::sycl::gpu_selector s;
-  cl::sycl::queue q(s, [=](cl::sycl::exception_list l) {
-    for (const auto& e : l) {
-      try {
-        std::rethrow_exception(e);
-      } catch (cl::sycl::exception e) {
-        std::cout << e.what() << std::endl;
-      }
-    }
-  });
-  SyclDevice sycl_device(q);
+void test_sycl_cpu(const Eigen::SyclDevice &sycl_device) {
 
   int sizeDim1 = 100;
   int sizeDim2 = 100;
   int sizeDim3 = 100;
   array<int, 3> tensorRange = {{sizeDim1, sizeDim2, sizeDim3}};
-  TestTensor in1(tensorRange);
-  TestTensor in2(tensorRange);
-  TestTensor in3(tensorRange);
-  TestTensor out(tensorRange);
-  in1 = in1.random();
+  Tensor<float, 3> in1(tensorRange);
+  Tensor<float, 3> in2(tensorRange);
+  Tensor<float, 3> in3(tensorRange);
+  Tensor<float, 3> out(tensorRange);
+
   in2 = in2.random();
   in3 = in3.random();
-  TestTensorMap gpu_in1(in1.data(), tensorRange);
-  TestTensorMap gpu_in2(in2.data(), tensorRange);
-  TestTensorMap gpu_in3(in3.data(), tensorRange);
-  TestTensorMap gpu_out(out.data(), tensorRange);
+
+  float * gpu_in1_data  = static_cast<float*>(sycl_device.allocate(in1.dimensions().TotalSize()*sizeof(float)));
+  float * gpu_in2_data  = static_cast<float*>(sycl_device.allocate(in2.dimensions().TotalSize()*sizeof(float)));
+  float * gpu_in3_data  = static_cast<float*>(sycl_device.allocate(in3.dimensions().TotalSize()*sizeof(float)));
+  float * gpu_out_data =  static_cast<float*>(sycl_device.allocate(out.dimensions().TotalSize()*sizeof(float)));
+
+  TensorMap<Tensor<float, 3>> gpu_in1(gpu_in1_data, tensorRange);
+  TensorMap<Tensor<float, 3>> gpu_in2(gpu_in2_data, tensorRange);
+  TensorMap<Tensor<float, 3>> gpu_in3(gpu_in3_data, tensorRange);
+  TensorMap<Tensor<float, 3>> gpu_out(gpu_out_data, tensorRange);
 
   /// a=1.2f
   gpu_in1.device(sycl_device) = gpu_in1.constant(1.2f);
-  sycl_device.deallocate(in1.data());
+  sycl_device.memcpyDeviceToHost(in1.data(), gpu_in1_data ,(in1.dimensions().TotalSize())*sizeof(float));
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -74,7 +65,7 @@ void test_sycl_cpu() {
 
   /// a=b*1.2f
   gpu_out.device(sycl_device) = gpu_in1 * 1.2f;
-  sycl_device.deallocate(out.data());
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data ,(out.dimensions().TotalSize())*sizeof(float));
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -86,8 +77,9 @@ void test_sycl_cpu() {
   printf("a=b*1.2f Test Passed\n");
 
   /// c=a*b
+  sycl_device.memcpyHostToDevice(gpu_in2_data, in2.data(),(in2.dimensions().TotalSize())*sizeof(float));
   gpu_out.device(sycl_device) = gpu_in1 * gpu_in2;
-  sycl_device.deallocate(out.data());
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(float));
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -101,7 +93,7 @@ void test_sycl_cpu() {
 
   /// c=a+b
   gpu_out.device(sycl_device) = gpu_in1 + gpu_in2;
-  sycl_device.deallocate(out.data());
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(float));
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -115,7 +107,7 @@ void test_sycl_cpu() {
 
   /// c=a*a
   gpu_out.device(sycl_device) = gpu_in1 * gpu_in1;
-  sycl_device.deallocate(out.data());
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(float));
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -125,12 +117,11 @@ void test_sycl_cpu() {
       }
     }
   }
-
   printf("c= a*a Test Passed\n");
 
   //a*3.14f + b*2.7f
   gpu_out.device(sycl_device) =  gpu_in1 * gpu_in1.constant(3.14f) + gpu_in2 * gpu_in2.constant(2.7f);
-  sycl_device.deallocate(out.data());
+  sycl_device.memcpyDeviceToHost(out.data(),gpu_out_data,(out.dimensions().TotalSize())*sizeof(float));
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -143,8 +134,9 @@ void test_sycl_cpu() {
   printf("a*3.14f + b*2.7f Test Passed\n");
 
   ///d= (a>0.5? b:c)
+  sycl_device.memcpyHostToDevice(gpu_in3_data, in3.data(),(in3.dimensions().TotalSize())*sizeof(float));
   gpu_out.device(sycl_device) =(gpu_in1 > gpu_in1.constant(0.5f)).select(gpu_in2, gpu_in3);
-  sycl_device.deallocate(out.data());
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(float));
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -155,8 +147,13 @@ void test_sycl_cpu() {
     }
   }
   printf("d= (a>0.5? b:c) Test Passed\n");
-
+  sycl_device.deallocate(gpu_in1_data);
+  sycl_device.deallocate(gpu_in2_data);
+  sycl_device.deallocate(gpu_in3_data);
+  sycl_device.deallocate(gpu_out_data);
 }
 void test_cxx11_tensor_sycl() {
-  CALL_SUBTEST(test_sycl_cpu());
+  cl::sycl::gpu_selector s;
+  Eigen::SyclDevice sycl_device(s);
+  CALL_SUBTEST(test_sycl_cpu(sycl_device));
 }

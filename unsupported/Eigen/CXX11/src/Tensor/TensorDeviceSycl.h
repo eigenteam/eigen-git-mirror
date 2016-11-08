@@ -16,95 +16,93 @@
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
 
 namespace Eigen {
-/// \struct BufferT is used to specialise add_sycl_buffer function for
-//  two types of buffer we have. When the MapAllocator is true, we create the
-//  sycl buffer with MapAllocator.
-/// We have to const_cast the input pointer in order to work around the fact
-/// that sycl does not accept map allocator for const pointer.
-template <typename T, bool MapAllocator>
-struct BufferT {
-  using Type = cl::sycl::buffer<T, 1, cl::sycl::map_allocator<T>>;
-  static inline void add_sycl_buffer(const T *ptr, size_t num_bytes,std::map<const void *, std::shared_ptr<void>> &buffer_map) {
-    buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(ptr, std::shared_ptr<void>(std::make_shared<Type>(Type(const_cast<T *>(ptr), cl::sycl::range<1>(num_bytes))))));
-  }
-};
-
-/// specialisation of the \ref BufferT when the MapAllocator is false. In this
-/// case we only create the device-only buffer.
-template <typename T>
-struct BufferT<T, false> {
-  using Type = cl::sycl::buffer<T, 1>;
-  static inline void add_sycl_buffer(const T *ptr, size_t num_bytes, std::map<const void *, std::shared_ptr<void>> &buffer_map) {
-    buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(ptr, std::shared_ptr<void>(std::make_shared<Type>(Type(cl::sycl::range<1>(num_bytes))))));
-  }
-};
-
 struct SyclDevice {
   /// class members
   /// sycl queue
-  cl::sycl::queue &m_queue;
+  mutable cl::sycl::queue m_queue;
   /// std::map is the container used to make sure that we create only one buffer
-  /// per pointer. The lifespan of the buffer
-  /// now depends on the lifespan of SyclDevice. If a non-read-only pointer is
-  /// needed to be accessed on the host we should manually deallocate it.
+  /// per pointer. The lifespan of the buffer now depends on the lifespan of SyclDevice.
+  /// If a non-read-only pointer is needed to be accessed on the host we should manually deallocate it.
   mutable std::map<const void *, std::shared_ptr<void>> buffer_map;
-
-  SyclDevice(cl::sycl::queue &q) : m_queue(q) {}
+  /// creating device by using selector
+  template<typename dev_Selector> SyclDevice(dev_Selector s)
+  :m_queue(cl::sycl::queue(s, [=](cl::sycl::exception_list l) {
+    for (const auto& e : l) {
+      try {
+        std::rethrow_exception(e);
+      } catch (cl::sycl::exception e) {
+          std::cout << e.what() << std::endl;
+        }
+    }
+  })) {}
   // destructor
   ~SyclDevice() { deallocate_all(); }
 
-  template <typename T>
-  void deallocate(const T *p) const {
+  template <typename T> void deallocate(T *p) const {
     auto it = buffer_map.find(p);
     if (it != buffer_map.end()) {
       buffer_map.erase(it);
+      internal::aligned_free(p);
     }
   }
-  void deallocate_all() const { buffer_map.clear(); }
+  void deallocate_all() const {
+    std::map<const void *, std::shared_ptr<void>>::iterator it=buffer_map.begin();
+    while (it!=buffer_map.end()) {
+      auto p=it->first;
+      buffer_map.erase(it);
+      internal::aligned_free(const_cast<void*>(p));
+      it=buffer_map.begin();
+    }
+    buffer_map.clear();
+  }
 
   /// creation of sycl accessor for a buffer. This function first tries to find
-  /// the buffer in the buffer_map.
-  /// If found it gets the accessor from it, if not, the function then adds an
-  /// entry by creating a sycl buffer
-  /// for that particular pointer.
-  template <cl::sycl::access::mode AcMd, bool MapAllocator, typename T>
-  inline cl::sycl::accessor<T, 1, AcMd, cl::sycl::access::target::global_buffer>
+  /// the buffer in the buffer_map. If found it gets the accessor from it, if not,
+  ///the function then adds an entry by creating a sycl buffer for that particular pointer.
+  template <cl::sycl::access::mode AcMd, typename T> inline cl::sycl::accessor<T, 1, AcMd, cl::sycl::access::target::global_buffer>
   get_sycl_accessor(size_t num_bytes, cl::sycl::handler &cgh, const T * ptr) const {
-    return (get_sycl_buffer<MapAllocator,T>(num_bytes, ptr).template get_access<AcMd, cl::sycl::access::target::global_buffer>(cgh));
+    return (get_sycl_buffer<T>(num_bytes, ptr)->template get_access<AcMd, cl::sycl::access::target::global_buffer>(cgh));
   }
 
-template <bool MapAllocator, typename T>
- inline typename BufferT<T, MapAllocator>::Type
-  get_sycl_buffer(size_t num_bytes,const T * ptr) const {
-    if(MapAllocator && !ptr){
-      eigen_assert("pointer with map_Allocator cannot be null. Please initialise the input pointer"); }
-    auto it = buffer_map.find(ptr);
-    if (it == buffer_map.end()) {
-      BufferT<T, MapAllocator>::add_sycl_buffer(ptr, num_bytes, buffer_map);
-    }
-    return (*((typename BufferT<T, MapAllocator>::Type*)((buffer_map.at(ptr).get()))));
+  template<typename T> inline  std::pair<std::map<const void *, std::shared_ptr<void>>::iterator,bool> add_sycl_buffer(const T *ptr, size_t num_bytes) const {
+    using Type = cl::sycl::buffer<T, 1>;
+    std::pair<std::map<const void *, std::shared_ptr<void>>::iterator,bool> ret = buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(ptr, std::shared_ptr<void>(new Type(cl::sycl::range<1>(num_bytes)),
+      [](void *dataMem) { delete static_cast<Type*>(dataMem); })));
+    (static_cast<Type*>(buffer_map.at(ptr).get()))->set_final_data(nullptr);
+    return ret;
+  }
+
+  template <typename T> inline cl::sycl::buffer<T, 1>* get_sycl_buffer(size_t num_bytes,const T * ptr) const {
+    return static_cast<cl::sycl::buffer<T, 1>*>(add_sycl_buffer(ptr, num_bytes).first->second.get());
   }
 
   /// allocating memory on the cpu
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void *allocate(size_t num_bytes) const {
-    return internal::aligned_malloc(num_bytes);
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void *allocate(size_t) const {
+    return internal::aligned_malloc(8);
   }
 
   // some runtime conditions that can be applied here
   bool isDeviceSuitable() const { return true; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void deallocate(void *buffer) const {
-    internal::aligned_free(buffer);
-  }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void *dst, const void *src, size_t n) const {
     ::memcpy(dst, src, n);
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyHostToDevice(void *dst, const void *src, size_t n) const {
-    memcpy(dst, src, n);
+
+  template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyHostToDevice(T *dst, const T *src, size_t n) const {
+    auto host_acc= (static_cast<cl::sycl::buffer<T, 1>*>(add_sycl_buffer(dst, n).first->second.get()))-> template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
+    memcpy(host_acc.get_pointer(), src, n);
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const void *src, size_t n) const {
-    memcpy(dst, src, n);
+ /// whith the current implementation of sycl, the data is copied twice from device to host. This will be fixed soon.
+  template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyDeviceToHost(T *dst, const T *src, size_t n) const {
+    auto it = buffer_map.find(src);
+    if (it != buffer_map.end()) {
+      auto host_acc= (static_cast<cl::sycl::buffer<T, 1>*>(it->second.get()))-> template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
+      memcpy(dst,host_acc.get_pointer(),  n);
+    } else{
+      eigen_assert("no device memory found. The memory might be destroyed before creation");
+    }
   }
+
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memset(void *buffer, int c, size_t n) const {
     ::memset(buffer, c, n);
   }
@@ -112,6 +110,7 @@ template <bool MapAllocator, typename T>
   return 1;
   }
 };
+
 }  // end namespace Eigen
 
 #endif  // EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H

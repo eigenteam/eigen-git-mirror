@@ -1,6 +1,21 @@
 #.rst:
 # FindComputeCpp
 #---------------
+#
+#   Copyright 2016 Codeplay Software Ltd.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use these files except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 
 #########################
 #  FindComputeCpp.cmake
@@ -8,6 +23,11 @@
 #
 #  Tools for finding and building with ComputeCpp.
 #
+#  User must define COMPUTECPP_PACKAGE_ROOT_DIR pointing to the ComputeCpp
+#   installation.
+#
+#  Latest version of this file can be found at:
+#    https://github.com/codeplaysoftware/computecpp-sdk
 
 # Require CMake version 3.2.2 or higher
 cmake_minimum_required(VERSION 3.2.2)
@@ -32,7 +52,6 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
       message(FATAL_ERROR
         "host compiler - Not found! (clang version must be at least 3.6)")
     else()
-			set(COMPUTECPP_DISABLE_GCC_DUAL_ABI "True")
       message(STATUS "host compiler - clang ${CMAKE_CXX_COMPILER_VERSION}")
     endif()
 else()
@@ -48,11 +67,12 @@ mark_as_advanced(COMPUTECPP_64_BIT_CODE)
 # Find OpenCL package
 find_package(OpenCL REQUIRED)
 
-# Find ComputeCpp package
-if(EXISTS ${COMPUTECPP_PACKAGE_ROOT_DIR})
-  message(STATUS "ComputeCpp package - Found (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+# Find ComputeCpp packagee
+if(NOT COMPUTECPP_PACKAGE_ROOT_DIR)
+  message(FATAL_ERROR
+    "ComputeCpp package - Not found! (please set COMPUTECPP_PACKAGE_ROOT_DIR")
 else()
-  message(FATAL_ERROR "ComputeCpp package - Not found! (please set COMPUTECPP_PACKAGE_ROOT_DIR) (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+  message(STATUS "ComputeCpp package - Found")
 endif()
 option(COMPUTECPP_PACKAGE_ROOT_DIR "Path to the ComputeCpp Package")
 
@@ -61,9 +81,9 @@ find_program(COMPUTECPP_DEVICE_COMPILER compute++ PATHS
   ${COMPUTECPP_PACKAGE_ROOT_DIR} PATH_SUFFIXES bin)
 if (EXISTS ${COMPUTECPP_DEVICE_COMPILER})
   mark_as_advanced(COMPUTECPP_DEVICE_COMPILER)
-  message(STATUS "compute++ - Found (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+  message(STATUS "compute++ - Found")
 else()
-  message(FATAL_ERROR "compute++ - Not found! (${COMPUTECPP_DEVICE_COMPILER}) (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+  message(FATAL_ERROR "compute++ - Not found! (${COMPUTECPP_DEVICE_COMPILER})")
 endif()
 
 # Obtain the path to computecpp_info
@@ -71,9 +91,9 @@ find_program(COMPUTECPP_INFO_TOOL computecpp_info PATHS
   ${COMPUTECPP_PACKAGE_ROOT_DIR} PATH_SUFFIXES bin)
 if (EXISTS ${COMPUTECPP_INFO_TOOL})
   mark_as_advanced(${COMPUTECPP_INFO_TOOL})
-  message(STATUS "computecpp_info - Found (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+  message(STATUS "computecpp_info - Found")
 else()
-  message(FATAL_ERROR "computecpp_info - Not found! (${COMPUTECPP_INFO_TOOL}) (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+  message(FATAL_ERROR "computecpp_info - Not found! (${COMPUTECPP_INFO_TOOL})")
 endif()
 
 # Obtain the path to the ComputeCpp runtime library
@@ -85,15 +105,15 @@ if (EXISTS ${COMPUTECPP_RUNTIME_LIBRARY})
   mark_as_advanced(COMPUTECPP_RUNTIME_LIBRARY)
   message(STATUS "libComputeCpp.so - Found")
 else()
-  message(FATAL_ERROR "libComputeCpp.so - Not found! (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+  message(FATAL_ERROR "libComputeCpp.so - Not found!")
 endif()
 
 # Obtain the ComputeCpp include directory
 set(COMPUTECPP_INCLUDE_DIRECTORY ${COMPUTECPP_PACKAGE_ROOT_DIR}/include/)
 if (NOT EXISTS ${COMPUTECPP_INCLUDE_DIRECTORY})
-  message(FATAL_ERROR "ComputeCpp includes - Not found! (${COMPUTECPP_PACKAGE_ROOT_DIR}/include/)")
+  message(FATAL_ERROR "ComputeCpp includes - Not found!")
 else()
-  message(STATUS "ComputeCpp includes - Found (${COMPUTECPP_PACKAGE_ROOT_DIR})")
+  message(STATUS "ComputeCpp includes - Found")
 endif()
 
 # Obtain the package version
@@ -144,7 +164,7 @@ endif()
 #
 #  targetName : Name of the target.
 #  sourceFile : Source file to be compiled.
-#  binaryDir  : Intermediate output directory for the integration header.
+#  binaryDir : Intermediate directory to output the integration header.
 #
 function(__build_spir targetName sourceFile binaryDir)
 
@@ -176,12 +196,13 @@ function(__build_spir targetName sourceFile binaryDir)
     OUTPUT ${outputSyclFile}
     COMMAND ${COMPUTECPP_DEVICE_COMPILER}
             ${COMPUTECPP_DEVICE_COMPILER_FLAGS}
-            -I${COMPUTECPP_INCLUDE_DIRECTORY}
+            -isystem ${COMPUTECPP_INCLUDE_DIRECTORY}
             ${COMPUTECPP_PLATFORM_SPECIFIC_ARGS}
             ${device_compiler_includes}
             -o ${outputSyclFile}
             -c ${CMAKE_CURRENT_SOURCE_DIR}/${sourceFile}
     DEPENDS ${sourceFile}
+    WORKING_DIRECTORY ${binaryDir}
   COMMENT "Building ComputeCpp integration header file ${outputSyclFile}")
 
   # Add a custom target for the generated integration header
@@ -189,10 +210,6 @@ function(__build_spir targetName sourceFile binaryDir)
 
   # Add a dependency on the integration header
   add_dependencies(${targetName} ${targetName}_integration_header)
-
-  # Force inclusion of the integration header for the host compiler
-  #set(compileFlags -include ${include_file} "-Wall")
-  target_compile_options(${targetName} PUBLIC ${compileFlags})
 
   # Set the host compiler C++ standard to C++11
   set_property(TARGET ${targetName} PROPERTY CXX_STANDARD 11)
@@ -210,11 +227,11 @@ endfunction()
 #######################
 #
 #  Adds a SYCL compilation custom command associated with an existing
-#  target and sets a dependency on that new command.
+#  target and sets a dependancy on that new command.
 #
 #  targetName : Name of the target to add a SYCL to.
 #  sourceFile : Source file to be compiled for SYCL.
-#  binaryDir  : Intermediate output directory for the integration header.
+#  binaryDir : Intermediate directory to output the integration header.
 #
 function(add_sycl_to_target targetName sourceFile binaryDir)
 

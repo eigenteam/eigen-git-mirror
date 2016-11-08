@@ -662,13 +662,7 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
     }
   }
 
-  /// required by sycl in order to extract the output accessor
-#ifndef EIGEN_USE_SYCL
-  EIGEN_DEVICE_FUNC typename MakePointer_<Scalar>::Type data() const { return NULL; }
-#else
-  EIGEN_DEVICE_FUNC typename MakePointer_<Scalar>::Type data() const {
-    return m_result; }
-#endif
+  EIGEN_DEVICE_FUNC typename MakePointer_<Scalar>::Type data() const { return m_result; }
   /// required by sycl in order to extract the accessor
   const TensorEvaluator<ArgType, Device>& impl() const { return m_impl; }
   /// added for sycl in order to construct the buffer from the sycl device

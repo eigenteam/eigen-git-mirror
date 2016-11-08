@@ -56,10 +56,10 @@ struct AccessorConstructor{
   -> decltype(utility::tuple::append(ExtractAccessor<Arg1>::getTuple(cgh, eval1),utility::tuple::append(ExtractAccessor<Arg2>::getTuple(cgh, eval2), ExtractAccessor<Arg3>::getTuple(cgh, eval3)))) {
     return utility::tuple::append(ExtractAccessor<Arg1>::getTuple(cgh, eval1),utility::tuple::append(ExtractAccessor<Arg2>::getTuple(cgh, eval2), ExtractAccessor<Arg3>::getTuple(cgh, eval3)));
   }
-  template< cl::sycl::access::mode AcM,  bool MapAllocator, typename Arg> static inline auto getAccessor(cl::sycl::handler& cgh, Arg eval)
-  -> decltype(utility::tuple::make_tuple( eval.device().template get_sycl_accessor<AcM, MapAllocator,
+  template< cl::sycl::access::mode AcM, typename Arg> static inline auto getAccessor(cl::sycl::handler& cgh, Arg eval)
+  -> decltype(utility::tuple::make_tuple( eval.device().template get_sycl_accessor<AcM,
   typename Eigen::internal::remove_all<typename Arg::CoeffReturnType>::type>(eval.dimensions().TotalSize(), cgh,eval.data()))){
-    return utility::tuple::make_tuple(eval.device().template get_sycl_accessor<AcM, MapAllocator, typename Eigen::internal::remove_all<typename Arg::CoeffReturnType>::type>(eval.dimensions().TotalSize(), cgh,eval.data()));
+    return utility::tuple::make_tuple(eval.device().template get_sycl_accessor<AcM, typename Eigen::internal::remove_all<typename Arg::CoeffReturnType>::type>(eval.dimensions().TotalSize(), cgh,eval.data()));
   }
 };
 
@@ -141,8 +141,8 @@ struct ExtractAccessor<TensorEvaluator<TensorAssignOp<LHSExpr, RHSExpr>, Dev> >
 template <typename PlainObjectType, int Options_, typename Dev>\
 struct ExtractAccessor<TensorEvaluator<CVQual TensorMap<PlainObjectType, Options_>, Dev> > {\
   static inline auto getTuple(cl::sycl::handler& cgh,const TensorEvaluator<CVQual TensorMap<PlainObjectType, Options_>, Dev> eval)\
-  -> decltype(AccessorConstructor::template getAccessor<ACCType, true>(cgh, eval)){\
-    return AccessorConstructor::template getAccessor<ACCType, true>(cgh, eval);\
+  -> decltype(AccessorConstructor::template getAccessor<ACCType>(cgh, eval)){\
+    return AccessorConstructor::template getAccessor<ACCType>(cgh, eval);\
   }\
 };
 TENSORMAPEXPR(const, cl::sycl::access::mode::read)
@@ -153,8 +153,8 @@ TENSORMAPEXPR(, cl::sycl::access::mode::read_write)
 template <typename Expr, typename Dev>
 struct ExtractAccessor<TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev> > {
   static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const TensorForcedEvalOp<Expr>, Dev> eval)
-  -> decltype(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read, false>(cgh, eval)){
-    return AccessorConstructor::template getAccessor<cl::sycl::access::mode::read, false>(cgh, eval);
+  -> decltype(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval)){
+    return AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval);
   }
 };
 
@@ -167,8 +167,8 @@ struct ExtractAccessor<TensorEvaluator<TensorForcedEvalOp<Expr>, Dev> >
 template <typename Expr, typename Dev>
 struct ExtractAccessor<TensorEvaluator<const TensorEvalToOp<Expr>, Dev> > {
   static inline auto getTuple(cl::sycl::handler& cgh,const TensorEvaluator<const TensorEvalToOp<Expr>, Dev> eval)
-  -> decltype(utility::tuple::append(AccessorConstructor::template getAccessor<cl::sycl::access::mode::write, false>(cgh, eval), AccessorConstructor::getTuple(cgh, eval.impl()))){
-    return utility::tuple::append(AccessorConstructor::template getAccessor<cl::sycl::access::mode::write, false>(cgh, eval), AccessorConstructor::getTuple(cgh, eval.impl()));
+  -> decltype(utility::tuple::append(AccessorConstructor::template getAccessor<cl::sycl::access::mode::write>(cgh, eval), AccessorConstructor::getTuple(cgh, eval.impl()))){
+    return utility::tuple::append(AccessorConstructor::template getAccessor<cl::sycl::access::mode::write>(cgh, eval), AccessorConstructor::getTuple(cgh, eval.impl()));
   }
 };
 
@@ -181,8 +181,8 @@ struct ExtractAccessor<TensorEvaluator<TensorEvalToOp<Expr>, Dev> >
 template <typename OP, typename Dim, typename Expr, typename Dev>
 struct ExtractAccessor<TensorEvaluator<const TensorReductionOp<OP, Dim, Expr>, Dev> > {
   static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const TensorReductionOp<OP, Dim, Expr>, Dev> eval)
-  -> decltype(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read, false>(cgh, eval)){
-    return AccessorConstructor::template getAccessor<cl::sycl::access::mode::read, false>(cgh, eval);
+  -> decltype(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval)){
+    return AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval);
   }
 };
 
