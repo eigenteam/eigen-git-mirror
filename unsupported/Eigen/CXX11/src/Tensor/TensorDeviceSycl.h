@@ -27,7 +27,7 @@ struct SyclDevice {
   /// creating device by using selector
   template<typename dev_Selector> SyclDevice(dev_Selector s)
   :
-#if EXCEPTIONS_ENABLED
+#ifdef EIGEN_EXCEPTIONS
   m_queue(cl::sycl::queue(s, [=](cl::sycl::exception_list l) {
     for (const auto& e : l) {
       try {
