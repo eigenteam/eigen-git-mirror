@@ -762,13 +762,13 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
   // For full reductions
 #if defined(EIGEN_USE_GPU) && defined(__CUDACC__)
   static const bool RunningOnGPU = internal::is_same<Device, Eigen::GpuDevice>::value;
-  static const bool RunningOnSycl=false;
+  static const bool RunningOnSycl = false;
 #elif defined(EIGEN_USE_SYCL)
 static const bool RunningOnSycl = internal::is_same<typename internal::remove_all<Device>::type, Eigen::SyclDevice>::value;
 static const bool RunningOnGPU = false;
 #else
   static const bool RunningOnGPU = false;
-  static const bool RunningOnSycl=false;
+  static const bool RunningOnSycl = false;
 #endif
   typename MakePointer_<CoeffReturnType>::Type m_result;
 
