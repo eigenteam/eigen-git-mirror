@@ -188,15 +188,8 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
     typedef const typename Self::ChildType HostExpr; /// this is the child of reduction
     typedef  typename TensorSycl::internal::createPlaceHolderExpression<HostExpr>::Type PlaceHolderExpr;
     auto functors = TensorSycl::internal::extractFunctors(self.impl());
-
-    size_t tileSize =dev.m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2;
-
-    size_t GRange=num_coeffs_to_preserve;
-    if (tileSize>GRange) tileSize=GRange;
-    else if(GRange>tileSize){
-      size_t xMode = GRange % tileSize;
-      if (xMode != 0) GRange += (tileSize - xMode);
-    }
+    size_t range, GRange, tileSize;
+    dev.parallel_for_setup(num_coeffs_to_preserve, tileSize, range, GRange);
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
     /// creating the shared memory for calculating reduction.
     /// This one is used to collect all the reduced value of shared memory as we dont have global barrier on GPU. Once it is saved we can
@@ -223,7 +216,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
         auto device_self_evaluator = Eigen::TensorEvaluator<decltype(device_self_expr), Eigen::DefaultDevice>(device_self_expr, Eigen::DefaultDevice());
         /// const cast added as a naive solution to solve the qualifier drop error
         auto globalid=itemID.get_global_linear_id();
-        if (globalid< static_cast<size_t>(num_coeffs_to_preserve)) {
+        if (globalid< range) {
           typename DeiceSelf::CoeffReturnType accum = functor.initialize();
           GenericDimReducer<DeiceSelf::NumReducedDims-1, DeiceSelf, Op>::reduce(device_self_evaluator, device_self_evaluator.firstInput(globalid),const_cast<Op&>(functor), &accum);
           functor.finalize(accum);
