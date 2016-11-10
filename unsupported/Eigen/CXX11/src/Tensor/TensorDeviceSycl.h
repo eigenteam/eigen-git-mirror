@@ -78,7 +78,7 @@ struct SyclDevice {
         [](void *dataMem) { delete static_cast<Type*>(dataMem); })));
       (static_cast<Type*>(ret.first->second.get()))->set_final_data(nullptr);
     } else {
-      eigen_assert("The Device memory is not allocated please call allocate on the device is not initialised!!")
+      eigen_assert("The device memory is not allocated. Please call allocate on the device!!");
     }
     return ret;
   }
