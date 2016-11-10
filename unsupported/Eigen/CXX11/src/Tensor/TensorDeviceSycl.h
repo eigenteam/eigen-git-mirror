@@ -44,14 +44,14 @@ struct SyclDevice {
   // destructor
   ~SyclDevice() { deallocate_all(); }
 
-  template <typename T> void deallocate(T *p) const {
+  template <typename T> EIGEN_STRONG_INLINE void deallocate(T *p) const {
     auto it = buffer_map.find(p);
     if (it != buffer_map.end()) {
       buffer_map.erase(it);
       internal::aligned_free(p);
     }
   }
-  void deallocate_all() const {
+  EIGEN_STRONG_INLINE void deallocate_all() const {
     std::map<const void *, std::shared_ptr<void>>::iterator it=buffer_map.begin();
     while (it!=buffer_map.end()) {
       auto p=it->first;
@@ -88,23 +88,23 @@ struct SyclDevice {
   }
 
   /// allocating memory on the cpu
-  void *allocate(size_t) const {
+  EIGEN_STRONG_INLINE void *allocate(size_t) const {
     return internal::aligned_malloc(8);
   }
 
   // some runtime conditions that can be applied here
-  bool isDeviceSuitable() const { return true; }
+  EIGEN_STRONG_INLINE bool isDeviceSuitable() const { return true; }
 
-  void memcpy(void *dst, const void *src, size_t n) const {
+  EIGEN_STRONG_INLINE void memcpy(void *dst, const void *src, size_t n) const {
     ::memcpy(dst, src, n);
   }
 
-  template<typename T> void memcpyHostToDevice(T *dst, const T *src, size_t n) const {
+  template<typename T> EIGEN_STRONG_INLINE void memcpyHostToDevice(T *dst, const T *src, size_t n) const {
     auto host_acc= (static_cast<cl::sycl::buffer<T, 1>*>(add_sycl_buffer(dst, n).first->second.get()))-> template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
     memcpy(host_acc.get_pointer(), src, n);
   }
 
- inline void parallel_for_setup(size_t n, size_t &tileSize, size_t &rng, size_t &GRange)  const {
+  EIGEN_STRONG_INLINE void parallel_for_setup(size_t n, size_t &tileSize, size_t &rng, size_t &GRange)  const {
       tileSize =m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2;
       rng = n;
       if (rng==0) rng=1;
@@ -116,7 +116,7 @@ struct SyclDevice {
       }
     }
 
-  template<typename T> void memcpyDeviceToHost(T *dst, const T *src, size_t n) const {
+  template<typename T> EIGEN_STRONG_INLINE void memcpyDeviceToHost(T *dst, const T *src, size_t n) const {
     auto it = buffer_map.find(src);
     if (it != buffer_map.end()) {
     size_t rng, GRange, tileSize;
@@ -141,7 +141,7 @@ struct SyclDevice {
     }
   }
 
-  template<typename T>  void memset(T *buff, int c, size_t n) const {
+  template<typename T>  EIGEN_STRONG_INLINE void memset(T *buff, int c, size_t n) const {
 
       size_t rng, GRange, tileSize;
       parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
@@ -158,7 +158,7 @@ struct SyclDevice {
       });
       m_queue.throw_asynchronous();
   }
-  int majorDeviceVersion() const {
+  EIGEN_STRONG_INLINE int majorDeviceVersion() const {
   return 1;
   }
 };

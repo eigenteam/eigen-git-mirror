@@ -29,11 +29,11 @@ void test_device_sycl(const Eigen::SyclDevice &sycl_device) {
   array<int, 1> tensorRange = {{sizeDim1}};
   Tensor<int, 1> in(tensorRange);
   Tensor<int, 1> in1(tensorRange);
-  memset(in1.data(), 1,in1.dimensions().TotalSize()*sizeof(int));
-  int * gpu_in_data  = static_cast<int*>(sycl_device.allocate(in.dimensions().TotalSize()*sizeof(int)));
-  sycl_device.memset(gpu_in_data, 1,in.dimensions().TotalSize()*sizeof(int) );
-  sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.dimensions().TotalSize()*sizeof(int) );
-  for (int i=0; i<in.dimensions().TotalSize(); i++)
+  memset(in1.data(), 1,in1.size()*sizeof(int));
+  int * gpu_in_data  = static_cast<int*>(sycl_device.allocate(in.size()*sizeof(int)));
+  sycl_device.memset(gpu_in_data, 1,in.size()*sizeof(int) );
+  sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.size()*sizeof(int) );
+  for (int i=0; i<in.size(); i++)
     VERIFY_IS_APPROX(in(i), in1(i));
   sycl_device.deallocate(gpu_in_data);
 }
