@@ -44,14 +44,14 @@ struct SyclDevice {
   // destructor
   ~SyclDevice() { deallocate_all(); }
 
-  template <typename T> void deallocate(T *p) const {
+  template <typename T> EIGEN_STRONG_INLINE void deallocate(T *p) const {
     auto it = buffer_map.find(p);
     if (it != buffer_map.end()) {
       buffer_map.erase(it);
       internal::aligned_free(p);
     }
   }
-  void deallocate_all() const {
+  EIGEN_STRONG_INLINE void deallocate_all() const {
     std::map<const void *, std::shared_ptr<void>>::iterator it=buffer_map.begin();
     while (it!=buffer_map.end()) {
       auto p=it->first;
@@ -72,9 +72,14 @@ struct SyclDevice {
 
   template<typename T> inline  std::pair<std::map<const void *, std::shared_ptr<void>>::iterator,bool> add_sycl_buffer(const T *ptr, size_t num_bytes) const {
     using Type = cl::sycl::buffer<T, 1>;
-    std::pair<std::map<const void *, std::shared_ptr<void>>::iterator,bool> ret = buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(ptr, std::shared_ptr<void>(new Type(cl::sycl::range<1>(num_bytes)),
-      [](void *dataMem) { delete static_cast<Type*>(dataMem); })));
-    (static_cast<Type*>(buffer_map.at(ptr).get()))->set_final_data(nullptr);
+    std::pair<std::map<const void *, std::shared_ptr<void>>::iterator,bool> ret;
+    if(ptr!=nullptr){
+       ret= buffer_map.insert(std::pair<const void *, std::shared_ptr<void>>(ptr, std::shared_ptr<void>(new Type(cl::sycl::range<1>(num_bytes)),
+        [](void *dataMem) { delete static_cast<Type*>(dataMem); })));
+      (static_cast<Type*>(ret.first->second.get()))->set_final_data(nullptr);
+    } else {
+      eigen_assert("The device memory is not allocated. Please call allocate on the device!!");
+    }
     return ret;
   }
 
@@ -83,36 +88,77 @@ struct SyclDevice {
   }
 
   /// allocating memory on the cpu
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void *allocate(size_t) const {
+  EIGEN_STRONG_INLINE void *allocate(size_t) const {
     return internal::aligned_malloc(8);
   }
 
   // some runtime conditions that can be applied here
-  bool isDeviceSuitable() const { return true; }
+  EIGEN_STRONG_INLINE bool isDeviceSuitable() const { return true; }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpy(void *dst, const void *src, size_t n) const {
+  EIGEN_STRONG_INLINE void memcpy(void *dst, const void *src, size_t n) const {
     ::memcpy(dst, src, n);
   }
 
-  template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyHostToDevice(T *dst, const T *src, size_t n) const {
+  template<typename T> EIGEN_STRONG_INLINE void memcpyHostToDevice(T *dst, const T *src, size_t n) const {
     auto host_acc= (static_cast<cl::sycl::buffer<T, 1>*>(add_sycl_buffer(dst, n).first->second.get()))-> template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
     memcpy(host_acc.get_pointer(), src, n);
   }
- /// whith the current implementation of sycl, the data is copied twice from device to host. This will be fixed soon.
-  template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memcpyDeviceToHost(T *dst, const T *src, size_t n) const {
+
+  EIGEN_STRONG_INLINE void parallel_for_setup(size_t n, size_t &tileSize, size_t &rng, size_t &GRange)  const {
+      tileSize =m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2;
+      rng = n;
+      if (rng==0) rng=1;
+       GRange=rng;
+      if (tileSize>GRange) tileSize=GRange;
+      else if(GRange>tileSize){
+        size_t xMode = GRange % tileSize;
+        if (xMode != 0) GRange += (tileSize - xMode);
+      }
+    }
+
+  template<typename T> EIGEN_STRONG_INLINE void memcpyDeviceToHost(T *dst, const T *src, size_t n) const {
     auto it = buffer_map.find(src);
     if (it != buffer_map.end()) {
-      auto host_acc= (static_cast<cl::sycl::buffer<T, 1>*>(it->second.get()))-> template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::host_buffer>();
-      memcpy(dst,host_acc.get_pointer(),  n);
+    size_t rng, GRange, tileSize;
+    parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
+
+    auto dest_buf = cl::sycl::buffer<T, 1, cl::sycl::map_allocator<T>>(dst, cl::sycl::range<1>(rng));
+    typedef decltype(dest_buf) SYCLDTOH;
+    m_queue.submit([&](cl::sycl::handler &cgh) {
+      auto src_acc= (static_cast<cl::sycl::buffer<T, 1>*>(it->second.get()))-> template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
+      auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+      cgh.parallel_for<SYCLDTOH>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
+      auto globalid=itemID.get_global_linear_id();
+      if (globalid< dst_acc.get_size()) {
+          dst_acc[globalid] = src_acc[globalid];
+      }
+      });
+    });
+    m_queue.throw_asynchronous();
+
     } else{
       eigen_assert("no device memory found. The memory might be destroyed before creation");
     }
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void memset(void *buffer, int c, size_t n) const {
-    ::memset(buffer, c, n);
+  template<typename T>  EIGEN_STRONG_INLINE void memset(T *buff, int c, size_t n) const {
+
+      size_t rng, GRange, tileSize;
+      parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
+      m_queue.submit([&](cl::sycl::handler &cgh) {
+        auto buf_acc =(static_cast<cl::sycl::buffer<T, 1>*>(add_sycl_buffer(buff, n).first->second.get()))-> template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+        cgh.parallel_for<SyclDevice>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
+        auto globalid=itemID.get_global_linear_id();
+        auto buf_ptr= reinterpret_cast<typename cl::sycl::global_ptr<unsigned char>::pointer_t>((&(*buf_acc.get_pointer())));
+        if (globalid< buf_acc.get_size()) {
+          for(size_t i=0; i<sizeof(T); i++)
+            buf_ptr[globalid*sizeof(T) + i] = c;
+        }
+        });
+      });
+      m_queue.throw_asynchronous();
   }
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE int majorDeviceVersion() const {
+  EIGEN_STRONG_INLINE int majorDeviceVersion() const {
   return 1;
   }
 };

@@ -19,10 +19,23 @@
 
 #include "main.h"
 #include <unsupported/Eigen/CXX11/Tensor>
+#include<stdint.h>
 
 void test_device_sycl(const Eigen::SyclDevice &sycl_device) {
   std::cout <<"Helo from ComputeCpp: the requested device exists and the device name is : "
     << sycl_device.m_queue.get_device(). template get_info<cl::sycl::info::device::name>() <<std::endl;;
+  int sizeDim1 = 100;
+
+  array<int, 1> tensorRange = {{sizeDim1}};
+  Tensor<int, 1> in(tensorRange);
+  Tensor<int, 1> in1(tensorRange);
+  memset(in1.data(), 1,in1.size()*sizeof(int));
+  int * gpu_in_data  = static_cast<int*>(sycl_device.allocate(in.size()*sizeof(int)));
+  sycl_device.memset(gpu_in_data, 1,in.size()*sizeof(int) );
+  sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.size()*sizeof(int) );
+  for (int i=0; i<in.size(); i++)
+    VERIFY_IS_APPROX(in(i), in1(i));
+  sycl_device.deallocate(gpu_in_data);
 }
 void test_cxx11_tensor_device_sycl() {
   cl::sycl::gpu_selector s;

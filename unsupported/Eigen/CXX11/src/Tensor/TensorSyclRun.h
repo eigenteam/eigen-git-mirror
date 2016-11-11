@@ -37,18 +37,12 @@ void run(Expr &expr, Dev &dev) {
     typedef  typename internal::createPlaceHolderExpression<Expr>::Type PlaceHolderExpr;
     auto functors = internal::extractFunctors(evaluator);
 
-    size_t tileSize =dev.m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2;
     dev.m_queue.submit([&](cl::sycl::handler &cgh) {
-
       // create a tuple of accessors from Evaluator
       auto tuple_of_accessors = internal::createTupleOfAccessors<decltype(evaluator)>(cgh, evaluator);
-      const auto range = utility::tuple::get<0>(tuple_of_accessors).get_range()[0];
-      size_t GRange=range;
-      if (tileSize>GRange) tileSize=GRange;
-      else if(GRange>tileSize){
-        size_t xMode = GRange % tileSize;
-        if (xMode != 0) GRange += (tileSize - xMode);
-      }
+      size_t range, GRange, tileSize;
+      dev.parallel_for_setup(utility::tuple::get<0>(tuple_of_accessors).get_range()[0], tileSize, range, GRange);
+
       // run the kernel
       cgh.parallel_for<PlaceHolderExpr>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
         typedef  typename internal::ConvertToDeviceExpression<Expr>::Type DevExpr;
