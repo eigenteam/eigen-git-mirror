@@ -503,11 +503,11 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     }
     return NULL;
   }
-  /// used by stcl
+  /// used by sycl
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const{
     return m_impl;
   }
-  /// used by stcl
+  /// used by sycl
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const StartIndices& startIndices() const{
     return m_offsets;
   }
