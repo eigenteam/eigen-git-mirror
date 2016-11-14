@@ -217,6 +217,51 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
           refM1(it.row(), it.col()) += s1;
       VERIFY_IS_APPROX(m1, refM1);
     }
+
+    // and/or
+    {
+      typedef SparseMatrix<bool, SparseMatrixType::Options, typename SparseMatrixType::StorageIndex> SpBool;
+      SpBool mb1 = m1.real().template cast<bool>();
+      SpBool mb2 = m2.real().template cast<bool>();
+      VERIFY_IS_EQUAL(mb1.template cast<int>().sum(), refM1.real().template cast<bool>().count());
+      VERIFY_IS_EQUAL((mb1 && mb2).template cast<int>().sum(), (refM1.real().template cast<bool>() && refM2.real().template cast<bool>()).count());
+      VERIFY_IS_EQUAL((mb1 || mb2).template cast<int>().sum(), (refM1.real().template cast<bool>() || refM2.real().template cast<bool>()).count());
+      SpBool mb3 = mb1 && mb2;
+      if(mb1.coeffs().all() && mb2.coeffs().all())
+      {
+        VERIFY_IS_EQUAL(mb3.nonZeros(), (refM1.real().template cast<bool>() && refM2.real().template cast<bool>()).count());
+      }
+    }
+  }
+
+  // test reverse iterators
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
+    SparseMatrixType m2(rows, cols);
+    initSparse<Scalar>(density, refMat2, m2);
+    std::vector<Scalar> ref_value(m2.innerSize());
+    std::vector<Index> ref_index(m2.innerSize());
+    if(internal::random<bool>())
+      m2.makeCompressed();
+    for(Index j = 0; j<m2.outerSize(); ++j)
+    {
+      Index count_forward = 0;
+
+      for(typename SparseMatrixType::InnerIterator it(m2,j); it; ++it)
+      {
+        ref_value[ref_value.size()-1-count_forward] = it.value();
+        ref_index[ref_index.size()-1-count_forward] = it.index();
+        count_forward++;
+      }
+      Index count_reverse = 0;
+      for(typename SparseMatrixType::ReverseInnerIterator it(m2,j); it; --it)
+      {
+        VERIFY_IS_APPROX( std::abs(ref_value[ref_value.size()-count_forward+count_reverse])+1, std::abs(it.value())+1);
+        VERIFY_IS_EQUAL( ref_index[ref_index.size()-count_forward+count_reverse] , it.index());
+        count_reverse++;
+      }
+      VERIFY_IS_EQUAL(count_forward, count_reverse);
+    }
   }
 
   // test transpose
