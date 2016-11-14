@@ -217,6 +217,21 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
           refM1(it.row(), it.col()) += s1;
       VERIFY_IS_APPROX(m1, refM1);
     }
+
+    // and/or
+    {
+      typedef SparseMatrix<bool, SparseMatrixType::Options, typename SparseMatrixType::StorageIndex> SpBool;
+      SpBool mb1 = m1.real().template cast<bool>();
+      SpBool mb2 = m2.real().template cast<bool>();
+      VERIFY_IS_EQUAL(mb1.template cast<int>().sum(), refM1.real().template cast<bool>().count());
+      VERIFY_IS_EQUAL((mb1 && mb2).template cast<int>().sum(), (refM1.real().template cast<bool>() && refM2.real().template cast<bool>()).count());
+      VERIFY_IS_EQUAL((mb1 || mb2).template cast<int>().sum(), (refM1.real().template cast<bool>() || refM2.real().template cast<bool>()).count());
+      SpBool mb3 = mb1 && mb2;
+      if(mb1.coeffs().all() && mb2.coeffs().all())
+      {
+        VERIFY_IS_EQUAL(mb3.nonZeros(), (refM1.real().template cast<bool>() && refM2.real().template cast<bool>()).count());
+      }
+    }
   }
 
   // test reverse iterators

@@ -134,6 +134,12 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   // count
   VERIFY(((m1.array().abs()+1)>RealScalar(0.1)).count() == rows*cols);
 
+  // and/or
+  VERIFY( ((m1.array()<RealScalar(0)).matrix() && (m1.array()>RealScalar(0)).matrix()).count() == 0);
+  VERIFY( ((m1.array()<RealScalar(0)).matrix() || (m1.array()>=RealScalar(0)).matrix()).count() == rows*cols);
+  RealScalar a = m1.cwiseAbs().mean();
+  VERIFY( ((m1.array()<-a).matrix() || (m1.array()>a).matrix()).count() == (m1.cwiseAbs().array()>a).count());
+
   typedef Matrix<typename MatrixType::Index, Dynamic, 1> VectorOfIndices;
 
   // TODO allows colwise/rowwise for array
