@@ -84,6 +84,7 @@ class CwiseBinaryOp :
 {
   public:
     
+    typedef typename internal::remove_all<BinaryOp>::type Functor;
     typedef typename internal::remove_all<LhsType>::type Lhs;
     typedef typename internal::remove_all<RhsType>::type Rhs;
 
