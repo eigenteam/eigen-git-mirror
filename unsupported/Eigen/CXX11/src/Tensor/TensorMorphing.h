@@ -299,6 +299,16 @@ template <typename Index> struct MemcpyTriggerForSlicing<Index, GpuDevice>  {
   EIGEN_DEVICE_FUNC bool operator ()(Index val) const { return val > 4*1024*1024; }
 };
 #endif
+
+// It is very expensive to start the memcpy kernel on GPU: we therefore only
+// use it for large copies.
+#ifdef EIGEN_USE_SYCL
+template <typename Index> struct MemcpyTriggerForSlicing<Index, const Eigen::SyclDevice>  {
+  EIGEN_DEVICE_FUNC MemcpyTriggerForSlicing(const SyclDevice&) { }
+  EIGEN_DEVICE_FUNC bool operator ()(Index val) const { return val > 4*1024*1024; }
+};
+#endif
+
 }
 
 // Eval as rvalue
@@ -493,7 +503,14 @@ struct TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, ArgType>, Devi
     }
     return NULL;
   }
-
+  /// used by stcl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const{
+    return m_impl;
+  }
+  /// used by stcl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const StartIndices& startIndices() const{
+    return m_offsets;
+  }
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
   {

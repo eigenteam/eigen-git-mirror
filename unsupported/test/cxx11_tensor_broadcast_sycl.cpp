@@ -47,7 +47,8 @@ static void test_broadcast_sycl(const Eigen::SyclDevice &sycl_device){
   float * gpu_in_data  = static_cast<float*>(sycl_device.allocate(input.dimensions().TotalSize()*sizeof(float)));
   float * gpu_out_data  = static_cast<float*>(sycl_device.allocate(out.dimensions().TotalSize()*sizeof(float)));
 
-  TensorMap<Tensor<float, 4>>  gpu_in(gpu_in_data, in_range);
+  TensorMap<TensorFixedSize<float, Sizes<2, 3, 5, 7>>> gpu_in(gpu_in_data, in_range);
+  //TensorMap<Tensor<float, 4>>  gpu_in(gpu_in_data, in_range);
   TensorMap<Tensor<float, 4>> gpu_out(gpu_out_data, out_range);
   sycl_device.memcpyHostToDevice(gpu_in_data, input.data(),(input.dimensions().TotalSize())*sizeof(float));
   gpu_out.device(sycl_device) = gpu_in.broadcast(broadcasts);

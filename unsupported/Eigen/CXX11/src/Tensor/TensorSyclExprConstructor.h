@@ -45,16 +45,17 @@ struct ExprConstructor;
 /// specialisation of the \ref ExprConstructor struct when the node type is
 /// TensorMap
 #define TENSORMAP(CVQual)\
-template <typename Scalar_, int Options_, int Options2_, int Options3_, int NumIndices_, typename IndexType_,\
+template <typename T,  int Options2_, int Options3_,\
 template <class> class MakePointer_, size_t N, typename... Params>\
-struct ExprConstructor< CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakeGlobalPointer>,\
-CVQual PlaceHolder<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options3_, MakePointer_>, N>, Params...>{\
-  typedef  CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakeGlobalPointer>  Type;\
+struct ExprConstructor< CVQual TensorMap<T, Options2_, MakeGlobalPointer>,\
+CVQual PlaceHolder<CVQual TensorMap<T, Options3_, MakePointer_>, N>, Params...>{\
+  typedef  CVQual TensorMap<T, Options2_, MakeGlobalPointer>  Type;\
   Type expr;\
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\
   : expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}\
 };
+
 
 TENSORMAP(const)
 TENSORMAP()
@@ -223,6 +224,25 @@ CVQual PlaceHolder<CVQual TensorReductionOp<OP, Dim, DevExpr>, N>, Params...> {\
 SYCLREDUCTIONEXPR(const)
 SYCLREDUCTIONEXPR()
 #undef SYCLREDUCTIONEXPR
+
+
+
+#define SYCLSLICEOPEXPR(CVQual)\
+template<typename StartIndices, typename Sizes, typename OrigXprType, typename XprType, typename... Params>\
+struct ExprConstructor<CVQual TensorSlicingOp <StartIndices, Sizes, OrigXprType> , CVQual TensorSlicingOp<StartIndices, Sizes, XprType>, Params... >{\
+  typedef ExprConstructor<OrigXprType, XprType, Params...> my_xpr_type;\
+  typedef CVQual TensorSlicingOp<StartIndices, Sizes, typename my_xpr_type::Type> Type ;\
+  my_xpr_type xprExpr;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
+  : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr, funcD.startIndices(), funcD.dimensions()) {}\
+};
+
+SYCLSLICEOPEXPR(const)
+SYCLSLICEOPEXPR()
+#undef SYCLSLICEOPEXPR
+
 
 /// template deduction for \ref ExprConstructor struct
 template <typename OrigExpr, typename IndexExpr, typename FuncD, typename... Params>

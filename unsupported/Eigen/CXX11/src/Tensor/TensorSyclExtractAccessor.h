@@ -191,6 +191,20 @@ template <typename OP, typename Dim, typename Expr, typename Dev>
 struct ExtractAccessor<TensorEvaluator<TensorReductionOp<OP, Dim, Expr>, Dev> >
 : ExtractAccessor<TensorEvaluator<const TensorReductionOp<OP, Dim, Expr>, Dev> >{};
 
+
+/// specialisation of the \ref ExtractAccessor struct when the node type is
+/// const TensorSlicingOp. This is a special case where there is no OP
+template <typename StartIndices, typename Sizes, typename XprType, typename Dev>
+struct ExtractAccessor<TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> > {
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> eval)
+  -> decltype(AccessorConstructor::getTuple(cgh, eval.impl())){
+    return AccessorConstructor::getTuple(cgh, eval.impl());
+  }
+};
+
+template <typename StartIndices, typename Sizes, typename XprType, typename Dev>
+struct ExtractAccessor<TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> >
+:ExtractAccessor<TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> >{};
 /// template deduction for \ref ExtractAccessor
 template <typename Evaluator>
 auto createTupleOfAccessors(cl::sycl::handler& cgh, const Evaluator& expr)

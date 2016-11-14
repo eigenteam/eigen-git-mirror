@@ -103,6 +103,15 @@ struct LeafCount<const TensorReductionOp<OP, Dim, Expr> > {
 template <typename OP, typename Dim, typename Expr>
 struct LeafCount<TensorReductionOp<OP, Dim, Expr> >: LeafCount<const TensorReductionOp<OP, Dim, Expr> >{};
 
+/// specialisation of the \ref LeafCount struct when the node type is const TensorSlicingOp
+template <typename StartIndices, typename Sizes, typename XprType>
+struct LeafCount<const TensorSlicingOp<StartIndices, Sizes, XprType> >:CategoryCount<XprType>{};
+
+/// specialisation of the \ref LeafCount struct when the node type is TensorSlicingOp
+template <typename StartIndices, typename Sizes, typename XprType>
+struct LeafCount<TensorSlicingOp<StartIndices, Sizes, XprType> >
+: LeafCount<const TensorSlicingOp<StartIndices, Sizes, XprType> >{};
+
 /// specialisation of the \ref LeafCount struct when the node type is TensorEvalToOp
 template <typename Expr>
 struct LeafCount<TensorEvalToOp<Expr> >: LeafCount<const TensorEvalToOp<Expr> >{};

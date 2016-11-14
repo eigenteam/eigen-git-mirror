@@ -48,9 +48,9 @@ struct DeviceConvertor{
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
 /// type is TensorMap
 #define TENSORMAPCONVERT(CVQual)\
-template <typename Scalar_, int Options_, int Options2_, int NumIndices_, typename IndexType_, template <class> class MakePointer_>\
-struct ConvertToDeviceExpression<CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakePointer_> > {\
-  typedef CVQual TensorMap<Tensor<Scalar_, NumIndices_, Options_, IndexType_>, Options2_, MakeGlobalPointer> Type;\
+template <typename T,  int Options2_, template <class> class MakePointer_>\
+struct ConvertToDeviceExpression<CVQual TensorMap<T, Options2_, MakePointer_> > {\
+  typedef CVQual TensorMap<T, Options2_, MakeGlobalPointer> Type;\
 };
 
 TENSORMAPCONVERT(const)
@@ -113,6 +113,16 @@ struct ConvertToDeviceExpression<CVQual TensorReductionOp<OP, Dim, subExpr, Make
 KERNELBROKERCONVERTREDUCTION(const)
 KERNELBROKERCONVERTREDUCTION()
 #undef KERNELBROKERCONVERTREDUCTION
+
+#define KERNELBROKERCONVERTSLICEOP(CVQual)\
+template<typename StartIndices, typename Sizes, typename XprType>\
+struct ConvertToDeviceExpression<CVQual TensorSlicingOp <StartIndices, Sizes, XprType> >{\
+  typedef CVQual TensorSlicingOp<StartIndices, Sizes, typename ConvertToDeviceExpression<XprType>::Type> Type;\
+};
+
+KERNELBROKERCONVERTSLICEOP(const)
+KERNELBROKERCONVERTSLICEOP()
+#undef KERNELBROKERCONVERTSLICEOP
 
 }  // namespace internal
 }  // namespace TensorSycl

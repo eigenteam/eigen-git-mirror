@@ -165,6 +165,23 @@ struct FunctorExtractor<TensorEvaluator<const TensorReductionOp<Op, Dims, ArgTyp
 template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
 struct FunctorExtractor<TensorEvaluator<TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>
 : FunctorExtractor<TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>{};
+
+/// specialisation of the \ref FunctorExtractor struct when the node type is
+/// const TensorSlicingOp. This is an specialisation without OP so it has to be separated.
+template <typename StartIndices, typename Sizes, typename XprType, typename Dev>
+struct FunctorExtractor<TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> > {
+  FunctorExtractor<TensorEvaluator<XprType, Dev> > xprExpr;
+  const StartIndices m_offsets;
+  const Sizes m_dimensions;
+  FunctorExtractor(const TensorEvaluator<const  TensorSlicingOp<StartIndices, Sizes, XprType>, Dev>& expr)
+  : xprExpr(expr.impl()), m_offsets(expr.startIndices()), m_dimensions(expr.dimensions()) {}
+  EIGEN_STRONG_INLINE const StartIndices& startIndices() const {return m_offsets;}
+  EIGEN_STRONG_INLINE const Sizes& dimensions() const {return m_dimensions;}
+};
+
+template <typename StartIndices, typename Sizes, typename XprType, typename Dev>
+struct FunctorExtractor<TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> >
+:FunctorExtractor<TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> > {};
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>
 auto inline extractFunctors(const Evaluator& evaluator)-> FunctorExtractor<Evaluator> {

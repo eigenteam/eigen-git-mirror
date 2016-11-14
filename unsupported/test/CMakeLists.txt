@@ -146,6 +146,7 @@ if(EIGEN_TEST_CXX11)
     ei_add_test_sycl(cxx11_tensor_broadcast_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_device_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_reduction_sycl "-std=c++11")
+    ei_add_test_sycl(cxx11_tensor_morphing_sycl "-std=c++11")
   endif(EIGEN_TEST_SYCL)
   # It should be safe to always run these tests as there is some fallback code for
   # older compiler that don't support cxx11.

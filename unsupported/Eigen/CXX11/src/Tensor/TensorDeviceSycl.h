@@ -123,9 +123,45 @@ struct SyclDevice {
   // some runtime conditions that can be applied here
   EIGEN_STRONG_INLINE bool isDeviceSuitable() const { return true; }
 
+  template <typename T> EIGEN_STRONG_INLINE std::map<const void *, std::shared_ptr<void>>::iterator find_nearest(const T* ptr) const {
+    auto it1 = buffer_map.find(ptr);
+    if (it1 != buffer_map.end()){
+      return it1;
+    }
+    else{
+      for(std::map<const void *, std::shared_ptr<void>>::iterator it=buffer_map.begin(); it!=buffer_map.end(); ++it){
+        auto size = ((cl::sycl::buffer<T, 1>*)it->second.get())->get_size();
+        if((static_cast<const T*>(it->first) <  ptr) && (ptr < (static_cast<const T*>(it->first)) + size)) return it;
+      }
+    }
+    return buffer_map.end();
+  }
+
   /// the memcpy function
-  EIGEN_STRONG_INLINE void memcpy(void *dst, const void *src, size_t n) const {
-    ::memcpy(dst, src, n);
+  template<typename T> EIGEN_STRONG_INLINE void memcpy(void *dst, const T *src, size_t n) const {
+    auto it1 = find_nearest(src);
+    auto it2 = find_nearest(static_cast<T*>(dst));
+    if ((it1 != buffer_map.end()) && (it2!=buffer_map.end())) {
+      auto offset= (src - (static_cast<const T*>(it1->first)));
+      auto i= ((static_cast<T*>(dst)) - const_cast<T*>((static_cast<const T*>(it2->first))));
+      size_t rng, GRange, tileSize;
+      parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
+      m_queue.submit([&](cl::sycl::handler &cgh) {
+        auto src_acc =((cl::sycl::buffer<T, 1>*)it1->second.get())-> template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
+        auto dst_acc =((cl::sycl::buffer<T, 1>*)it2->second.get())->  template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+        typedef decltype(src_acc) DevToDev;
+        cgh.parallel_for<DevToDev>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
+          auto globalid=itemID.get_global_linear_id();
+          if (globalid< rng) {
+            dst_acc[globalid+i ]=src_acc[globalid+offset];
+          }
+        });
+      });
+      m_queue.throw_asynchronous();
+    } else{
+      eigen_assert("no source or destination device memory found.");
+    }
+    //::memcpy(dst, src, n);
   }
 
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
@@ -136,7 +172,7 @@ struct SyclDevice {
   template<typename T> EIGEN_STRONG_INLINE void memcpyHostToDevice(T *dst, const T *src, size_t n) const {
 
     auto host_acc= get_sycl_buffer(n, dst)-> template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
-    memcpy(host_acc.get_pointer(), src, n);
+    ::memcpy(host_acc.get_pointer(), src, n);
   }
   /// The memcpyDeviceToHost is used to copy the data from host to device. Here, in order to avoid double copying the data. We create a sycl
   /// buffer with map_allocator for the destination pointer with a discard_write accessor on it. The lifespan of the buffer is bound to the
@@ -145,21 +181,22 @@ struct SyclDevice {
   /// would be available on the dst pointer using fast copy technique (map_allocator). In this case we can make sure that we copy the data back
   /// to the cpu only once per function call.
   template<typename T> EIGEN_STRONG_INLINE void memcpyDeviceToHost(T *dst, const T *src, size_t n) const {
-    auto it = buffer_map.find(src);
+    auto it = find_nearest(src);
+    auto offset = src- (static_cast<const T*>(it->first));
     if (it != buffer_map.end()) {
     size_t rng, GRange, tileSize;
     parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
-
+    // Assuming that the dst is the start of the destination pointer
     auto dest_buf = cl::sycl::buffer<T, 1, cl::sycl::map_allocator<T>>(dst, cl::sycl::range<1>(rng));
     typedef decltype(dest_buf) SYCLDTOH;
     m_queue.submit([&](cl::sycl::handler &cgh) {
       auto src_acc= (static_cast<cl::sycl::buffer<T, 1>*>(it->second.get()))-> template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
       auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for<SYCLDTOH>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
-      auto globalid=itemID.get_global_linear_id();
-      if (globalid< dst_acc.get_size()) {
-          dst_acc[globalid] = src_acc[globalid];
-      }
+        auto globalid=itemID.get_global_linear_id();
+        if (globalid< dst_acc.get_size()) {
+          dst_acc[globalid] = src_acc[globalid + offset];
+        }
       });
     });
     m_queue.throw_asynchronous();
@@ -176,12 +213,12 @@ struct SyclDevice {
       m_queue.submit([&](cl::sycl::handler &cgh) {
         auto buf_acc =get_sycl_buffer(n, buff)-> template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
         cgh.parallel_for<SyclDevice>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
-        auto globalid=itemID.get_global_linear_id();
-        auto buf_ptr= reinterpret_cast<typename cl::sycl::global_ptr<unsigned char>::pointer_t>((&(*buf_acc.get_pointer())));
-        if (globalid< buf_acc.get_size()) {
-          for(size_t i=0; i<sizeof(T); i++)
-            buf_ptr[globalid*sizeof(T) + i] = c;
-        }
+          auto globalid=itemID.get_global_linear_id();
+          auto buf_ptr= reinterpret_cast<typename cl::sycl::global_ptr<unsigned char>::pointer_t>((&(*buf_acc.get_pointer())));
+          if (globalid< buf_acc.get_size()) {
+            for(size_t i=0; i<sizeof(T); i++)
+              buf_ptr[globalid*sizeof(T) + i] = c;
+          }
         });
       });
       m_queue.throw_asynchronous();
