@@ -219,6 +219,36 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     }
   }
 
+  // test reverse iterators
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
+    SparseMatrixType m2(rows, cols);
+    initSparse<Scalar>(density, refMat2, m2);
+    std::vector<Scalar> ref_value(m2.innerSize());
+    std::vector<Index> ref_index(m2.innerSize());
+    if(internal::random<bool>())
+      m2.makeCompressed();
+    for(Index j = 0; j<m2.outerSize(); ++j)
+    {
+      Index count_forward = 0;
+
+      for(typename SparseMatrixType::InnerIterator it(m2,j); it; ++it)
+      {
+        ref_value[ref_value.size()-1-count_forward] = it.value();
+        ref_index[ref_index.size()-1-count_forward] = it.index();
+        count_forward++;
+      }
+      Index count_reverse = 0;
+      for(typename SparseMatrixType::ReverseInnerIterator it(m2,j); it; --it)
+      {
+        VERIFY_IS_APPROX( std::abs(ref_value[ref_value.size()-count_forward+count_reverse])+1, std::abs(it.value())+1);
+        VERIFY_IS_EQUAL( ref_index[ref_index.size()-count_forward+count_reverse] , it.index());
+        count_reverse++;
+      }
+      VERIFY_IS_EQUAL(count_forward, count_reverse);
+    }
+  }
+
   // test transpose
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, cols);
