@@ -412,7 +412,7 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
     }
 
     // update largest diagonal entry
-    maxDiagEntry = numext::maxi(maxDiagEntry,numext::maxi(abs(work_matrix.coeff(p,p)), abs(work_matrix.coeff(q,q))));
+    maxDiagEntry = numext::maxi<RealScalar>(maxDiagEntry,numext::maxi<RealScalar>(abs(work_matrix.coeff(p,p)), abs(work_matrix.coeff(q,q))));
     // and check whether the 2x2 block is already diagonal
     RealScalar threshold = numext::maxi<RealScalar>(considerAsZero, precision * maxDiagEntry);
     return abs(work_matrix.coeff(p,q))>threshold || abs(work_matrix.coeff(q,p)) > threshold;
@@ -725,7 +725,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
             if(computeV()) m_matrixV.applyOnTheRight(p,q,j_right);
 
             // keep track of the largest diagonal coefficient
-            maxDiagEntry = numext::maxi<RealScalar>(maxDiagEntry,numext::maxi(abs(m_workMatrix.coeff(p,p)), abs(m_workMatrix.coeff(q,q))));
+            maxDiagEntry = numext::maxi<RealScalar>(maxDiagEntry,numext::maxi<RealScalar>(abs(m_workMatrix.coeff(p,p)), abs(m_workMatrix.coeff(q,q))));
           }
         }
       }
