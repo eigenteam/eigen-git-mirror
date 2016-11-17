@@ -25,47 +25,53 @@ using Eigen::SyclDevice;
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
-namespace std
-{
-  template<typename T> T rsqrt(T x) { return 1/std::sqrt(x); }
-  template<typename T> T square(T x) { return x*x; }
-  template<typename T> T cube(T x) { return x*x*x; }
-  template<typename T> T inverse(T x) { return 1/x; }
+namespace std {
+template <typename T> T rsqrt(T x) { return 1 / std::sqrt(x); }
+template <typename T> T square(T x) { return x * x; }
+template <typename T> T cube(T x) { return x * x * x; }
+template <typename T> T inverse(T x) { return 1 / x; }
 }
 
-#define TEST_UNARY_BUILTINS_FOR_SCALAR(FUNC, SCALAR)                                            \
-{                                                                                               \
-  Tensor<SCALAR, 3> in1(tensorRange);                                                           \
-  Tensor<SCALAR, 3> out1(tensorRange);                                                          \
-  in1 = in1.random();                                                                           \
-  SCALAR* gpu_data1  = static_cast<SCALAR*>(sycl_device.allocate(in1.size()*sizeof(SCALAR)));   \
-  TensorMap<Tensor<SCALAR, 3>> gpu1(gpu_data1, tensorRange);                                    \
-  sycl_device.memcpyHostToDevice(gpu_data1, in1.data(),(in1.size())*sizeof(SCALAR));            \
-  gpu1.device(sycl_device) = gpu1.FUNC();                                                       \
-  sycl_device.memcpyDeviceToHost(out1.data(), gpu_data1,(out1.size())*sizeof(SCALAR));          \
-  for (int i = 0; i < in1.size(); ++i) {                                                        \
-    VERIFY_IS_APPROX(out1(i), std::FUNC(in1(i)));                                               \
-  }                                                                                             \
-  sycl_device.deallocate(gpu_data1);                                                            \
-} 
+#define TEST_UNARY_BUILTINS_FOR_SCALAR(FUNC, SCALAR)                           \
+  {                                                                            \
+    Tensor<SCALAR, 3> in(tensorRange);                                         \
+    Tensor<SCALAR, 3> out(tensorRange);                                        \
+    in = in.random();                                                          \
+    SCALAR *gpu_data = static_cast<SCALAR *>(                                  \
+        sycl_device.allocate(in.size() * sizeof(SCALAR)));                     \
+    SCALAR *gpu_data_out = static_cast<SCALAR *>(                              \
+        sycl_device.allocate(out.size() * sizeof(SCALAR)));                    \
+    TensorMap<Tensor<SCALAR, 3>> gpu(gpu_data, tensorRange);                   \
+    TensorMap<Tensor<SCALAR, 3>> gpu_out(gpu_data_out, tensorRange);           \
+    sycl_device.memcpyHostToDevice(gpu_data, in.data(),                        \
+                                   (in.size()) * sizeof(SCALAR));              \
+    gpu_out.device(sycl_device) = gpu.FUNC();                                  \
+    sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
+                                   (out.size()) * sizeof(SCALAR));             \
+    for (int i = 0; i < in.size(); ++i) {                                      \
+      VERIFY_IS_APPROX(out(i), std::FUNC(in(i)));                              \
+    }                                                                          \
+    sycl_device.deallocate(gpu_data);                                          \
+    sycl_device.deallocate(gpu_data_out);                                      \
+  }
 
-#define TEST_UNARY_BUILTINS(SCALAR)               \
-TEST_UNARY_BUILTINS_FOR_SCALAR(abs, SCALAR)       \
-TEST_UNARY_BUILTINS_FOR_SCALAR(sqrt, SCALAR)      \
-TEST_UNARY_BUILTINS_FOR_SCALAR(rsqrt, SCALAR)     \
-TEST_UNARY_BUILTINS_FOR_SCALAR(square, SCALAR)    \
-TEST_UNARY_BUILTINS_FOR_SCALAR(cube, SCALAR)      \
-TEST_UNARY_BUILTINS_FOR_SCALAR(inverse, SCALAR)   \
-TEST_UNARY_BUILTINS_FOR_SCALAR(tanh, SCALAR)      \
-TEST_UNARY_BUILTINS_FOR_SCALAR(exp, SCALAR)       \
-TEST_UNARY_BUILTINS_FOR_SCALAR(log, SCALAR)       \
-TEST_UNARY_BUILTINS_FOR_SCALAR(abs, SCALAR)       \
-TEST_UNARY_BUILTINS_FOR_SCALAR(ceil, SCALAR)      \
-TEST_UNARY_BUILTINS_FOR_SCALAR(floor, SCALAR)     \
-TEST_UNARY_BUILTINS_FOR_SCALAR(round, SCALAR)     \
-TEST_UNARY_BUILTINS_FOR_SCALAR(log1p, SCALAR)
+#define TEST_UNARY_BUILTINS(SCALAR)                                            \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(abs, SCALAR)                                  \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(sqrt, SCALAR)                                 \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(rsqrt, SCALAR)                                \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(square, SCALAR)                               \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(cube, SCALAR)                                 \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(inverse, SCALAR)                              \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(tanh, SCALAR)                                 \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(exp, SCALAR)                                  \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(log, SCALAR)                                  \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(abs, SCALAR)                                  \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(ceil, SCALAR)                                 \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(floor, SCALAR)                                \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(round, SCALAR)                                \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(log1p, SCALAR)
 
-static void test_builtin_unary_sycl(const Eigen::SyclDevice &sycl_device){
+static void test_builtin_unary_sycl(const Eigen::SyclDevice &sycl_device) {
   int sizeDim1 = 100;
   int sizeDim2 = 100;
   int sizeDim3 = 100;
@@ -73,8 +79,8 @@ static void test_builtin_unary_sycl(const Eigen::SyclDevice &sycl_device){
 
   TEST_UNARY_BUILTINS(float)
   TEST_UNARY_BUILTINS(double)
-}
 
+}
 
 void test_cxx11_tensor_builtins_sycl() {
   cl::sycl::gpu_selector s;
