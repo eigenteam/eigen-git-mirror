@@ -36,7 +36,7 @@ template <typename T> T inverse(T x) { return 1 / x; }
   {                                                                            \
     Tensor<SCALAR, 3> in(tensorRange);                                         \
     Tensor<SCALAR, 3> out(tensorRange);                                        \
-    in = in.random();                                                          \
+    in = in.random() + static_cast<SCALAR>(0.01);                              \
     SCALAR *gpu_data = static_cast<SCALAR *>(                                  \
         sycl_device.allocate(in.size() * sizeof(SCALAR)));                     \
     SCALAR *gpu_data_out = static_cast<SCALAR *>(                              \
