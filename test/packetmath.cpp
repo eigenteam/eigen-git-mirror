@@ -591,7 +591,7 @@ template<typename Scalar> void packetmath_scatter_gather()
   int stride = internal::random<int>(1,20);
 
   EIGEN_ALIGN_MAX Scalar buffer[PacketSize*20];
-  memset(buffer, 0, 20*sizeof(Packet));
+  memset(buffer, 0, 20*PacketSize*sizeof(Scalar));
   Packet packet = internal::pload<Packet>(data1);
   internal::pscatter<Scalar, Packet>(buffer, packet, stride);
 
