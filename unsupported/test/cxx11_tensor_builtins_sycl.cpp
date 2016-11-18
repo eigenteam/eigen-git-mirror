@@ -100,7 +100,7 @@ template <typename T> T inverse(T x) { return 1 / x; }
 
 #define TEST_IS_THAT_RETURNS_BOOL(SCALAR, FUNC)                                \
   {                                                                            \
-    /* out OPERATOR in.FUNC() */                                               \
+    /* out = in.FUNC() */                                                      \
     Tensor<SCALAR, 3> in(tensorRange);                                         \
     Tensor<bool, 3> out(tensorRange);                                          \
     in = in.random() + static_cast<SCALAR>(0.01);                              \
@@ -136,11 +136,13 @@ static void test_builtin_unary_sycl(const Eigen::SyclDevice &sycl_device) {
   array<int, 3> tensorRange = {{sizeDim1, sizeDim2, sizeDim3}};
 
   TEST_UNARY_BUILTINS(float)
+  /// your GPU must support double. Otherwise, disable the double test.
   TEST_UNARY_BUILTINS(double)
 }
 
 void test_cxx11_tensor_builtins_sycl() {
   cl::sycl::gpu_selector s;
-  Eigen::SyclDevice sycl_device(s);
+  QueueInterface queueInterface(s);
+  Eigen::SyclDevice sycl_device(&queueInterface);
   CALL_SUBTEST(test_builtin_unary_sycl(sycl_device));
 }

@@ -21,42 +21,59 @@
 #include <unsupported/Eigen/CXX11/Tensor>
 #include<stdint.h>
 
-void test_device_memory(const Eigen::SyclDevice &sycl_device) {
-  std::cout << "Running on: "
-	    << sycl_device.m_queue.get_device(). template get_info<cl::sycl::info::device::name>()
-	    << std::endl;
+template <typename DataType, int DataLayout>
+void test_device_sycl(const Eigen::SyclDevice &sycl_device) {
+  std::cout <<"Hello from ComputeCpp: the requested device exists and the device name is : "
+    << sycl_device.sycl_queue().get_device(). template get_info<cl::sycl::info::device::name>() <<std::endl;
   int sizeDim1 = 100;
-
   array<int, 1> tensorRange = {{sizeDim1}};
-  Tensor<int, 1> in(tensorRange);
-  Tensor<int, 1> in1(tensorRange);
-  memset(in1.data(), 1,in1.size()*sizeof(int));
-  int* gpu_in_data  = static_cast<int*>(sycl_device.allocate(in.size()*sizeof(int)));
-  sycl_device.memset(gpu_in_data, 1, in.size()*sizeof(int) );
-  sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.size()*sizeof(int) );
+  Tensor<DataType, 1, DataLayout> in(tensorRange);
+  Tensor<DataType, 1, DataLayout> in1(tensorRange);
+  memset(in1.data(), 1,in1.size()*sizeof(DataType));
+  DataType * gpu_in_data  = static_cast<DataType*>(sycl_device.allocate(in.size()*sizeof(DataType)));
+  sycl_device.memset(gpu_in_data, 1,in.size()*sizeof(DataType) );
+  sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.size()*sizeof(DataType) );
   for (int i=0; i<in.size(); i++) {
     VERIFY_IS_APPROX(in(i), in1(i));
   }
   sycl_device.deallocate(gpu_in_data);
 }
 
-
+template <typename DataType, int DataLayout>
 void test_device_exceptions(const Eigen::SyclDevice &sycl_device) {
-  VERIFY(sycl_device.ok());
-  array<int, 1> tensorDims = {{100}};
-  int* gpu_data = static_cast<int*>(sycl_device.allocate(100*sizeof(int)));
-  TensorMap<Tensor<int, 1>> in(gpu_data, tensorDims);
-  TensorMap<Tensor<int, 1>> out(gpu_data, tensorDims);
-  out.device(sycl_device) = in / in.constant(0);
-  VERIFY(!sycl_device.ok());
+  bool threw_exception = false;
+  int sizeDim1 = 100;
+  array<int, 1> tensorDims = {{sizeDim1}};
+  DataType* gpu_data = static_cast<DataType*>(sycl_device.allocate(sizeDim1*sizeof(DataType)));
+  TensorMap<Tensor<DataType, 1,DataLayout>> in(gpu_data, tensorDims);
+  TensorMap<Tensor<DataType, 1,DataLayout>> out(gpu_data, tensorDims);
+  try {
+    out.device(sycl_device) = in / in.constant(0);
+  } catch(...) {
+    threw_exception = true;
+  }
+  VERIFY(threw_exception);
   sycl_device.deallocate(gpu_data);
 }
 
+template<typename DataType, typename dev_Selector> void sycl_device_test_per_device(dev_Selector s){
+  QueueInterface queueInterface(s);
+  auto sycl_device = Eigen::SyclDevice(&queueInterface);
+  test_device_sycl<DataType, RowMajor>(sycl_device);
+  test_device_sycl<DataType, ColMajor>(sycl_device);
+  /// this test throw an exeption. enable it if you want to see the exception
+  // test_device_exceptions<DataType, RowMajor>(sycl_device);
+  /// this test throw an exeption. enable it if you want to see the exception
+  // test_device_exceptions<DataType, ColMajor>(sycl_device);
+
+}
 
 void test_cxx11_tensor_device_sycl() {
-  cl::sycl::gpu_selector s;
-  Eigen::SyclDevice sycl_device(s);
-  CALL_SUBTEST(test_device_memory(sycl_device));
-  // This deadlocks
-  //CALL_SUBTEST(test_device_exceptions(sycl_device));
+  printf("Test on GPU: OpenCL\n");
+  CALL_SUBTEST(sycl_device_test_per_device<int>((cl::sycl::gpu_selector())));
+  printf("repeating the test on CPU: OpenCL\n");
+  CALL_SUBTEST(sycl_device_test_per_device<int>((cl::sycl::cpu_selector())));
+  printf("repeating the test on CPU: HOST\n");
+  CALL_SUBTEST(sycl_device_test_per_device<int>((cl::sycl::host_selector())));
+  printf("Test Passed******************\n" );
 }

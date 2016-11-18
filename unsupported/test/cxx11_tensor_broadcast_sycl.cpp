@@ -25,38 +25,47 @@ using Eigen::SyclDevice;
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
+template <typename DataType, int DataLayout>
 static void test_broadcast_sycl_fixed(const Eigen::SyclDevice &sycl_device){
 
   // BROADCAST test:
-  array<int, 4> in_range   = {{2, 3, 5, 7}};
-  array<int, 4> broadcasts = {{2, 3, 1, 4}};
+  int inDim1=2;
+  int inDim2=3;
+  int inDim3=5;
+  int inDim4=7;
+  int bDim1=2;
+  int bDim2=3;
+  int bDim3=1;
+  int bDim4=4;
+  array<int, 4> in_range   = {{inDim1, inDim2, inDim3, inDim4}};
+  array<int, 4> broadcasts = {{bDim1, bDim2, bDim3, bDim4}};
   array<int, 4> out_range;  // = in_range * broadcasts
   for (size_t i = 0; i < out_range.size(); ++i)
     out_range[i] = in_range[i] * broadcasts[i];
 
-  Tensor<float, 4>  input(in_range);
-  Tensor<float, 4> out(out_range);
+  Tensor<DataType, 4, DataLayout>  input(in_range);
+  Tensor<DataType, 4, DataLayout> out(out_range);
 
   for (size_t i = 0; i < in_range.size(); ++i)
     VERIFY_IS_EQUAL(out.dimension(i), out_range[i]);
 
 
   for (int i = 0; i < input.size(); ++i)
-    input(i) = static_cast<float>(i);
+    input(i) = static_cast<DataType>(i);
 
-  float * gpu_in_data  = static_cast<float*>(sycl_device.allocate(input.dimensions().TotalSize()*sizeof(float)));
-  float * gpu_out_data  = static_cast<float*>(sycl_device.allocate(out.dimensions().TotalSize()*sizeof(float)));
+  DataType * gpu_in_data  = static_cast<DataType*>(sycl_device.allocate(input.dimensions().TotalSize()*sizeof(DataType)));
+  DataType * gpu_out_data  = static_cast<DataType*>(sycl_device.allocate(out.dimensions().TotalSize()*sizeof(DataType)));
 
-  TensorMap<TensorFixedSize<float, Sizes<2, 3, 5, 7>>> gpu_in(gpu_in_data, in_range);
-  TensorMap<Tensor<float, 4>> gpu_out(gpu_out_data, out_range);
-  sycl_device.memcpyHostToDevice(gpu_in_data, input.data(),(input.dimensions().TotalSize())*sizeof(float));
+  TensorMap<TensorFixedSize<DataType, Sizes<2, 3, 5, 7>, DataLayout>> gpu_in(gpu_in_data, in_range);
+  TensorMap<Tensor<DataType, 4, DataLayout>> gpu_out(gpu_out_data, out_range);
+  sycl_device.memcpyHostToDevice(gpu_in_data, input.data(),(input.dimensions().TotalSize())*sizeof(DataType));
   gpu_out.device(sycl_device) = gpu_in.broadcast(broadcasts);
-  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(float));
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(DataType));
 
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 9; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 28; ++l) {
+  for (int i = 0; i < inDim1*bDim1; ++i) {
+    for (int j = 0; j < inDim2*bDim2; ++j) {
+      for (int k = 0; k < inDim3*bDim3; ++k) {
+        for (int l = 0; l < inDim4*bDim4; ++l) {
           VERIFY_IS_APPROX(input(i%2,j%3,k%5,l%7), out(i,j,k,l));
         }
       }
@@ -67,40 +76,48 @@ static void test_broadcast_sycl_fixed(const Eigen::SyclDevice &sycl_device){
   sycl_device.deallocate(gpu_out_data);
 }
 
-
+template <typename DataType, int DataLayout>
 static void test_broadcast_sycl(const Eigen::SyclDevice &sycl_device){
 
   // BROADCAST test:
-  array<int, 4> in_range   = {{2, 3, 5, 7}};
-  array<int, 4> broadcasts = {{2, 3, 1, 4}};
+  int inDim1=2;
+  int inDim2=3;
+  int inDim3=5;
+  int inDim4=7;
+  int bDim1=2;
+  int bDim2=3;
+  int bDim3=1;
+  int bDim4=4;
+  array<int, 4> in_range   = {{inDim1, inDim2, inDim3, inDim4}};
+  array<int, 4> broadcasts = {{bDim1, bDim2, bDim3, bDim4}};
   array<int, 4> out_range;  // = in_range * broadcasts
   for (size_t i = 0; i < out_range.size(); ++i)
     out_range[i] = in_range[i] * broadcasts[i];
 
-  Tensor<float, 4>  input(in_range);
-  Tensor<float, 4> out(out_range);
+  Tensor<DataType, 4, DataLayout>  input(in_range);
+  Tensor<DataType, 4, DataLayout> out(out_range);
 
   for (size_t i = 0; i < in_range.size(); ++i)
     VERIFY_IS_EQUAL(out.dimension(i), out_range[i]);
 
 
   for (int i = 0; i < input.size(); ++i)
-    input(i) = static_cast<float>(i);
+    input(i) = static_cast<DataType>(i);
 
-  float * gpu_in_data  = static_cast<float*>(sycl_device.allocate(input.dimensions().TotalSize()*sizeof(float)));
-  float * gpu_out_data  = static_cast<float*>(sycl_device.allocate(out.dimensions().TotalSize()*sizeof(float)));
+  DataType * gpu_in_data  = static_cast<DataType*>(sycl_device.allocate(input.dimensions().TotalSize()*sizeof(DataType)));
+  DataType * gpu_out_data  = static_cast<DataType*>(sycl_device.allocate(out.dimensions().TotalSize()*sizeof(DataType)));
 
-  TensorMap<Tensor<float, 4>>  gpu_in(gpu_in_data, in_range);
-  TensorMap<Tensor<float, 4>> gpu_out(gpu_out_data, out_range);
-  sycl_device.memcpyHostToDevice(gpu_in_data, input.data(),(input.dimensions().TotalSize())*sizeof(float));
+  TensorMap<Tensor<DataType, 4, DataLayout>>  gpu_in(gpu_in_data, in_range);
+  TensorMap<Tensor<DataType, 4, DataLayout>> gpu_out(gpu_out_data, out_range);
+  sycl_device.memcpyHostToDevice(gpu_in_data, input.data(),(input.dimensions().TotalSize())*sizeof(DataType));
   gpu_out.device(sycl_device) = gpu_in.broadcast(broadcasts);
-  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(float));
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.dimensions().TotalSize())*sizeof(DataType));
 
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 9; ++j) {
-      for (int k = 0; k < 5; ++k) {
-        for (int l = 0; l < 28; ++l) {
-          VERIFY_IS_APPROX(input(i%2,j%3,k%5,l%7), out(i,j,k,l));
+  for (int i = 0; i < inDim1*bDim1; ++i) {
+    for (int j = 0; j < inDim2*bDim2; ++j) {
+      for (int k = 0; k < inDim3*bDim3; ++k) {
+        for (int l = 0; l < inDim4*bDim4; ++l) {
+          VERIFY_IS_APPROX(input(i%inDim1,j%inDim2,k%inDim3,l%inDim4), out(i,j,k,l));
         }
       }
     }
@@ -110,10 +127,21 @@ static void test_broadcast_sycl(const Eigen::SyclDevice &sycl_device){
   sycl_device.deallocate(gpu_out_data);
 }
 
+template<typename DataType, typename dev_Selector> void sycl_broadcast_test_per_device(dev_Selector s){
+  QueueInterface queueInterface(s);
+  auto sycl_device = Eigen::SyclDevice(&queueInterface);
+  test_broadcast_sycl_fixed<DataType, RowMajor>(sycl_device);
+  test_broadcast_sycl<DataType, RowMajor>(sycl_device);
+  test_broadcast_sycl_fixed<DataType, ColMajor>(sycl_device);
+  test_broadcast_sycl<DataType, ColMajor>(sycl_device);
+}
 
 void test_cxx11_tensor_broadcast_sycl() {
-  cl::sycl::gpu_selector s;
-  Eigen::SyclDevice sycl_device(s);
-  CALL_SUBTEST(test_broadcast_sycl_fixed(sycl_device));
-  CALL_SUBTEST(test_broadcast_sycl(sycl_device));
+  printf("Test on GPU: OpenCL\n");
+  CALL_SUBTEST(sycl_broadcast_test_per_device<float>((cl::sycl::gpu_selector())));
+  printf("repeating the test on CPU: OpenCL\n");
+  CALL_SUBTEST(sycl_broadcast_test_per_device<float>((cl::sycl::cpu_selector())));
+  printf("repeating the test on CPU: HOST\n");
+  CALL_SUBTEST(sycl_broadcast_test_per_device<float>((cl::sycl::host_selector())));
+  printf("Test Passed******************\n" );
 }

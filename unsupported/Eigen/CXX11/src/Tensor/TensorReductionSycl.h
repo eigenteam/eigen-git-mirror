@@ -27,7 +27,7 @@ namespace internal {
 
 template<typename CoeffReturnType, typename KernelName> struct syclGenericBufferReducer{
 template<typename BufferTOut, typename BufferTIn>
-static void run(BufferTOut* bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
+static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& dev, size_t length, size_t local){
   do {
           auto f = [length, local, bufOut, &bufI](cl::sycl::handler& h) mutable {
             cl::sycl::nd_range<1> r{cl::sycl::range<1>{std::max(length, local)},
@@ -37,7 +37,7 @@ static void run(BufferTOut* bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
             auto aI =
                 bufI.template get_access<cl::sycl::access::mode::read_write>(h);
             auto aOut =
-                bufOut->template get_access<cl::sycl::access::mode::discard_write>(h);
+                bufOut.template get_access<cl::sycl::access::mode::discard_write>(h);
             cl::sycl::accessor<CoeffReturnType, 1, cl::sycl::access::mode::read_write,
                                cl::sycl::access::target::local>
                 scratch(cl::sycl::range<1>(local), h);
@@ -61,7 +61,7 @@ static void run(BufferTOut* bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
                   /* Apply the reduction operation between the current local
                    * id and the one on the other half of the vector. */
                   if (globalid < length) {
-                    int min = (length < local) ? length : local;
+                    auto min = (length < local) ? length : local;
                     for (size_t offset = min / 2; offset > 0; offset /= 2) {
                       if (localid < offset) {
                         scratch[localid] += scratch[localid + offset];
@@ -72,14 +72,15 @@ static void run(BufferTOut* bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
                     if (localid == 0) {
                       aI[id.get_group(0)] = scratch[localid];
                       if((length<=local) && globalid ==0){
-                        aOut[globalid]=scratch[localid];
+                        auto aOutPtr = ConvertToActualTypeSycl(CoeffReturnType, aOut);
+                        aOutPtr[0]=scratch[0];
                       }
                     }
                   }
                 });
           };
-            dev.m_queue.submit(f);
-            dev.m_queue.throw_asynchronous();
+            dev.sycl_queue().submit(f);
+            dev.sycl_queue().throw_asynchronous();
 
           /* At this point, you could queue::wait_and_throw() to ensure that
            * errors are caught quickly. However, this would likely impact
@@ -116,7 +117,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     if(rng ==0) {
       red_factor=1;
     };
-    size_t tileSize =dev.m_queue.get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2;
+    size_t tileSize =dev.sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2;
     size_t GRange=std::max((size_t )1, rng);
 
     // convert global range to power of 2 for redecution
@@ -134,7 +135,9 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     /// if the shared memory is less than the GRange, we set shared_mem size to the TotalSize and in this case one kernel would be created for recursion to reduce all to one.
     if (GRange < outTileSize) outTileSize=GRange;
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
-    auto out_buffer =dev.template get_sycl_buffer<typename Eigen::internal::remove_all<CoeffReturnType>::type>(self.dimensions().TotalSize(), output);
+//    auto out_buffer =dev.template get_sycl_buffer<typename Eigen::internal::remove_all<CoeffReturnType>::type>(self.dimensions().TotalSize(), output);
+      auto out_buffer =dev.get_sycl_buffer(self.dimensions().TotalSize(), output);
+
     /// creating the shared memory for calculating reduction.
     /// This one is used to collect all the reduced value of shared memory as we dont have global barrier on GPU. Once it is saved we can
     /// recursively apply reduction on it in order to reduce the whole.
@@ -142,7 +145,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     typedef typename Eigen::internal::remove_all<decltype(self.xprDims())>::type Dims;
     Dims dims= self.xprDims();
     Op functor = reducer;
-    dev.m_queue.submit([&](cl::sycl::handler &cgh) {
+    dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
       // create a tuple of accessors from Evaluator
       auto tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
       auto tmp_global_accessor = temp_global_buffer. template get_access<cl::sycl::access::mode::read_write, cl::sycl::access::target::global_buffer>(cgh);
@@ -161,16 +164,16 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
         auto globalid=itemID.get_global_linear_id();
 
         if(globalid<rng)
-          tmp_global_accessor.get_pointer()[globalid]=InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::reduce(device_self_evaluator, red_factor*globalid, red_factor, const_cast<Op&>(functor));
+          tmp_global_accessor.get_pointer()[globalid]=InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::reduce(device_self_evaluator, static_cast<typename DevExpr::Index>(red_factor*globalid), red_factor, const_cast<Op&>(functor));
         else
           tmp_global_accessor.get_pointer()[globalid]=static_cast<CoeffReturnType>(0);
 
         if(remaining!=0 && globalid==0 )
           // this will add the rest of input buffer when the input size is not devidable to red_factor.
-          tmp_global_accessor.get_pointer()[globalid]+=InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::reduce(device_self_evaluator, red_factor*(rng), remaining, const_cast<Op&>(functor));
+          tmp_global_accessor.get_pointer()[0]+=InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::reduce(device_self_evaluator, static_cast<typename DevExpr::Index>(red_factor*(rng)), static_cast<typename DevExpr::Index>(remaining), const_cast<Op&>(functor));
       });
     });
-  dev.m_queue.throw_asynchronous();
+    dev.sycl_queue().throw_asynchronous();
 
 /// This is used to recursively reduce the tmp value to an element of 1;
   syclGenericBufferReducer<CoeffReturnType,HostExpr>::run(out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
@@ -198,7 +201,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
     Dims dims= self.xprDims();
     Op functor = reducer;
 
-    dev.m_queue.submit([&](cl::sycl::handler &cgh) {
+      dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
       // create a tuple of accessors from Evaluator
       auto tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
       auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(num_coeffs_to_preserve,cgh, output);
@@ -212,19 +215,20 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
         const auto device_self_expr= TensorReductionOp<Op, Dims, decltype(device_expr.expr) ,MakeGlobalPointer>(device_expr.expr, dims, functor);
         /// This is the evaluator for device_self_expr. This is exactly similar to the self which has been passed to run function. The difference is
         /// the device_evaluator is detectable and recognisable on the device.
-        typedef Eigen::TensorEvaluator<decltype(device_self_expr), Eigen::DefaultDevice> DeiceSelf;
+        typedef Eigen::TensorEvaluator<decltype(device_self_expr), Eigen::DefaultDevice> DeviceSelf;
         auto device_self_evaluator = Eigen::TensorEvaluator<decltype(device_self_expr), Eigen::DefaultDevice>(device_self_expr, Eigen::DefaultDevice());
+        auto output_accessor_ptr =ConvertToActualTypeSycl(typename DeviceSelf::CoeffReturnType, output_accessor);
         /// const cast added as a naive solution to solve the qualifier drop error
         auto globalid=itemID.get_global_linear_id();
         if (globalid< range) {
-          typename DeiceSelf::CoeffReturnType accum = functor.initialize();
-          GenericDimReducer<DeiceSelf::NumReducedDims-1, DeiceSelf, Op>::reduce(device_self_evaluator, device_self_evaluator.firstInput(globalid),const_cast<Op&>(functor), &accum);
+          typename DeviceSelf::CoeffReturnType accum = functor.initialize();
+          GenericDimReducer<DeviceSelf::NumReducedDims-1, DeviceSelf, Op>::reduce(device_self_evaluator, device_self_evaluator.firstInput(static_cast<typename DevExpr::Index>(globalid)),const_cast<Op&>(functor), &accum);
           functor.finalize(accum);
-          output_accessor.get_pointer()[globalid]= accum;
+          output_accessor_ptr[globalid]= accum;
         }
       });
     });
-  dev.m_queue.throw_asynchronous();
+    dev.sycl_queue().throw_asynchronous();
     return false;
   }
 };

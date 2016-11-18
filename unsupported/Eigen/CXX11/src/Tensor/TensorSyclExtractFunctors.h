@@ -148,7 +148,7 @@ template<typename InDim>
 
 template<typename Dim> struct DimConstr<Dim, 0> {
   template<typename InDim>
-    static inline Dim getDim(InDim dims ) {return Dim(dims.TotalSize());}
+    static inline Dim getDim(InDim dims ) {return Dim(static_cast<Dim>(dims.TotalSize()));}
 };
 
 template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
