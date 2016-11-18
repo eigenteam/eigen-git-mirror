@@ -380,7 +380,8 @@
 #if EIGEN_MAX_CPP_VER>=11 && \
     ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
   || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
-  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)))
+  || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)) \
+  || (EIGEN_COMP_MSVC >= 1900))
   #define EIGEN_HAS_C99_MATH 1
 #else
   #define EIGEN_HAS_C99_MATH 0
