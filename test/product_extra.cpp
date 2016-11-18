@@ -98,6 +98,16 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   // regression test
   MatrixType tmp = m1 * m1.adjoint() * s1;
   VERIFY_IS_APPROX(tmp, m1 * m1.adjoint() * s1);
+
+  // regression test for bug 1343, assignment to arrays
+  Array<Scalar,Dynamic,1> a1 = m1 * vc2;
+  VERIFY_IS_APPROX(a1.matrix(),m1*vc2);
+  Array<Scalar,Dynamic,1> a2 = s1 * (m1 * vc2);
+  VERIFY_IS_APPROX(a2.matrix(),s1*m1*vc2);
+  Array<Scalar,1,Dynamic> a3 = v1 * m1;
+  VERIFY_IS_APPROX(a3.matrix(),v1*m1);
+  Array<Scalar,Dynamic,Dynamic> a4 = m1 * m2.adjoint();
+  VERIFY_IS_APPROX(a4.matrix(),m1*m2.adjoint());
 }
 
 // Regression test for bug reported at http://forum.kde.org/viewtopic.php?f=74&t=96947
