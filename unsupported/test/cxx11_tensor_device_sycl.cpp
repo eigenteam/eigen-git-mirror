@@ -42,17 +42,13 @@ void test_device_memory(const Eigen::SyclDevice &sycl_device) {
 
 
 void test_device_exceptions(const Eigen::SyclDevice &sycl_device) {
-  bool threw_exception = false;
+  VERIFY(sycl_device.ok());
   array<int, 1> tensorDims = {{100}};
   int* gpu_data = static_cast<int*>(sycl_device.allocate(100*sizeof(int)));
   TensorMap<Tensor<int, 1>> in(gpu_data, tensorDims);
   TensorMap<Tensor<int, 1>> out(gpu_data, tensorDims);
-  try {
-    out.device(sycl_device) = in / in.constant(0);
-  } catch(...) {
-    threw_exception = true;
-  }
-  VERIFY(threw_exception);
+  out.device(sycl_device) = in / in.constant(0);
+  VERIFY(!sycl_device.ok());
   sycl_device.deallocate(gpu_data);
 }
 
@@ -62,5 +58,5 @@ void test_cxx11_tensor_device_sycl() {
   Eigen::SyclDevice sycl_device(s);
   CALL_SUBTEST(test_device_memory(sycl_device));
   // This deadlocks
-  //  CALL_SUBTEST(test_device_exceptions(sycl_device));
+  //CALL_SUBTEST(test_device_exceptions(sycl_device));
 }

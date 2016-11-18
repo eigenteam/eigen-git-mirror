@@ -12,13 +12,16 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#include <iostream>
+
 #if defined(EIGEN_USE_SYCL) && !defined(EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H)
 #define EIGEN_CXX11_TENSOR_TENSOR_DEVICE_SYCL_H
 
 namespace Eigen {
 struct SyclDevice {
   /// class members:
-
+  bool exception_caught_ = false;
+ 
   /// sycl queue
   mutable cl::sycl::queue m_queue;
 
@@ -34,6 +37,7 @@ struct SyclDevice {
     for (const auto& e : l) {
       try {
         if (e) {
+          exception_caught_ = true;
           std::rethrow_exception(e);
         }
       } catch (const cl::sycl::exception& e) {
@@ -230,6 +234,12 @@ struct SyclDevice {
   }
   EIGEN_STRONG_INLINE void synchronize() const {
     m_queue.wait_and_throw();
+  }
+
+  // This function checks if the runtime recorded an error for the                                 
+  // underlying stream device.                                                                         
+  EIGEN_STRONG_INLINE bool ok() const {
+    return !exception_caught_;
   }
 };
 
