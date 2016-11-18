@@ -98,9 +98,36 @@ template <typename T> T inverse(T x) { return 1 / x; }
   TEST_UNARY_BUILTINS_FOR_SCALAR(round, SCALAR, OPERATOR)                      \
   TEST_UNARY_BUILTINS_FOR_SCALAR(log1p, SCALAR, OPERATOR)
 
+#define TEST_IS_THAT_RETURNS_BOOL(SCALAR, FUNC)                                \
+  {                                                                            \
+    /* out OPERATOR in.FUNC() */                                               \
+    Tensor<SCALAR, 3> in(tensorRange);                                         \
+    Tensor<bool, 3> out(tensorRange);                                          \
+    in = in.random() + static_cast<SCALAR>(0.01);                              \
+    SCALAR *gpu_data = static_cast<SCALAR *>(                                  \
+        sycl_device.allocate(in.size() * sizeof(SCALAR)));                     \
+    bool *gpu_data_out =                                                       \
+        static_cast<bool *>(sycl_device.allocate(out.size() * sizeof(bool)));  \
+    TensorMap<Tensor<SCALAR, 3>> gpu(gpu_data, tensorRange);                   \
+    TensorMap<Tensor<bool, 3>> gpu_out(gpu_data_out, tensorRange);             \
+    sycl_device.memcpyHostToDevice(gpu_data, in.data(),                        \
+                                   (in.size()) * sizeof(SCALAR));              \
+    gpu_out.device(sycl_device) = gpu.FUNC();                                  \
+    sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
+                                   (out.size()) * sizeof(bool));               \
+    for (int i = 0; i < out.size(); ++i) {                                     \
+      VERIFY_IS_EQUAL(out(i), std::FUNC(in(i)));                               \
+    }                                                                          \
+    sycl_device.deallocate(gpu_data);                                          \
+    sycl_device.deallocate(gpu_data_out);                                      \
+  }
+
 #define TEST_UNARY_BUILTINS(SCALAR)                                            \
   TEST_UNARY_BUILTINS_OPERATOR(SCALAR, += )                                    \
-  TEST_UNARY_BUILTINS_OPERATOR(SCALAR, = )
+  TEST_UNARY_BUILTINS_OPERATOR(SCALAR, = )                                     \
+  TEST_IS_THAT_RETURNS_BOOL(SCALAR, isnan)                                     \
+  TEST_IS_THAT_RETURNS_BOOL(SCALAR, isfinite)                                  \
+  TEST_IS_THAT_RETURNS_BOOL(SCALAR, isinf)
 
 static void test_builtin_unary_sycl(const Eigen::SyclDevice &sycl_device) {
   int sizeDim1 = 10;

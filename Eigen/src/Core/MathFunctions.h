@@ -983,6 +983,15 @@ template<typename T> EIGEN_DEVICE_FUNC bool (isnan)   (const T &x) { return inte
 template<typename T> EIGEN_DEVICE_FUNC bool (isinf)   (const T &x) { return internal::isinf_impl(x); }
 template<typename T> EIGEN_DEVICE_FUNC bool (isfinite)(const T &x) { return internal::isfinite_impl(x); }
 
+#if defined(__SYCL_DEVICE_ONLY__)
+EIGEN_ALWAYS_INLINE float   isnan(float x) { return cl::sycl::isnan(x); }
+EIGEN_ALWAYS_INLINE double  isnan(double x) { return cl::sycl::isnan(x); }
+EIGEN_ALWAYS_INLINE float   isinf(float x) { return cl::sycl::isinf(x); }
+EIGEN_ALWAYS_INLINE double  isinf(double x) { return cl::sycl::isinf(x); }
+EIGEN_ALWAYS_INLINE float   isfinite(float x) { return cl::sycl::isfinite(x); }
+EIGEN_ALWAYS_INLINE double  isfinite(double x) { return cl::sycl::isfinite(x); }
+#endif // defined(__SYCL_DEVICE_ONLY__)
+
 template<typename Scalar>
 EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(round, Scalar) round(const Scalar& x)
