@@ -158,10 +158,9 @@ struct SyclDevice {
         });
       });
       m_queue.throw_asynchronous();
-    } else{
+    } else {
       eigen_assert("no source or destination device memory found.");
     }
-    //::memcpy(dst, src, n);
   }
 
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
