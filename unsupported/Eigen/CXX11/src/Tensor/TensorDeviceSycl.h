@@ -33,10 +33,12 @@ struct SyclDevice {
   m_queue(cl::sycl::queue(s, [=](cl::sycl::exception_list l) {
     for (const auto& e : l) {
       try {
-        std::rethrow_exception(e);
-      } catch (cl::sycl::exception e) {
-          std::cout << e.what() << std::endl;
+        if (e) {
+          std::rethrow_exception(e);
         }
+      } catch (const cl::sycl::exception& e) {
+        std::cerr << e.what() << std::endl;
+      }
     }
   }))
 #else
@@ -200,7 +202,7 @@ struct SyclDevice {
     });
     m_queue.throw_asynchronous();
 
-    } else{
+    } else {
       eigen_assert("no device memory found. The memory might be destroyed before creation");
     }
   }
@@ -226,8 +228,9 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE int majorDeviceVersion() const {
   return 1;
   }
-  /// There is no need to synchronise the stream in sycl as it is automatically handled by sycl runtime scheduler.
-  EIGEN_STRONG_INLINE void synchronize() const {}
+  EIGEN_STRONG_INLINE void synchronize() const {
+    m_queue.wait_and_throw();
+  }
 };
 
 }  // end namespace Eigen
