@@ -33,7 +33,7 @@ struct functor_traits<scalar_mod_op<Scalar> >
  */
 template <typename Scalar>
 struct scalar_mod2_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_mod2_op);
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_mod2_op)
   EIGEN_DEVICE_FUNC inline Scalar operator() (const Scalar& a, const Scalar& b) const { return a % b; }
 };
 template <typename Scalar>
@@ -42,7 +42,7 @@ struct functor_traits<scalar_mod2_op<Scalar> >
 
 template <typename Scalar>
 struct scalar_fmod_op {
-  EIGEN_EMPTY_STRUCT_CTOR(scalar_fmod_op);
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_fmod_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
   operator()(const Scalar& a, const Scalar& b) const {
     return numext::fmod(a, b);
