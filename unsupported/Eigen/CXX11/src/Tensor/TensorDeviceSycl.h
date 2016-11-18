@@ -31,17 +31,18 @@ struct QueueInterface {
   mutable cl::sycl::queue m_queue;
   /// creating device by using selector
   /// SyclStreamDevice is not owned. it is the caller's responsibility to destroy it.
-  template<typename dev_Selector>  explicit QueueInterface(dev_Selector s):
+  template<typename dev_Selector> explicit QueueInterface(dev_Selector s):
 #ifdef EIGEN_EXCEPTIONS
-  m_queue(cl::sycl::queue(s, [=](cl::sycl::exception_list l) {
+  m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
     for (const auto& e : l) {
       try {
-        if(e){
-           exception_caught_ = true;;
+        if (e) {
+           exception_caught_ = true;
+           std::rethrow_exception(e);
         }
       } catch (cl::sycl::exception e) {
-          std::cerr << e.what() << std::endl;
-        }
+        std::cerr << e.what() << std::endl;
+      }
     }
   }))
 #else
@@ -90,8 +91,8 @@ struct QueueInterface {
 
   // This function checks if the runtime recorded an error for the
   // underlying stream device.
-   EIGEN_STRONG_INLINE bool ok() const {
-      return !exception_caught_;
+  EIGEN_STRONG_INLINE bool ok() const {
+    return !exception_caught_;
   }
   // destructor
   ~QueueInterface() { buffer_map.clear(); }
@@ -106,7 +107,7 @@ template <typename T> class MemCopyFunctor {
     auto src_ptr = ConvertToActualTypeSycl(T, m_src_acc);
     auto dst_ptr = ConvertToActualTypeSycl(T, m_dst_acc);
     auto globalid = itemID.get_global_linear_id();
-    if (globalid< m_rng) {
+    if (globalid < m_rng) {
       dst_ptr[globalid + m_i] = src_ptr[globalid + m_offset];
     }
   }
@@ -120,9 +121,9 @@ template <typename T> class MemCopyFunctor {
 
 struct SyclDevice {
   // class member.
-  QueueInterface* m_queu_stream;
+  QueueInterface* m_queue_stream;
   /// QueueInterface is not owned. it is the caller's responsibility to destroy it.
-  explicit SyclDevice(QueueInterface* queu_stream):m_queu_stream(queu_stream){}
+  explicit SyclDevice(QueueInterface* queue_stream) : m_queue_stream(queue_stream){}
 
   /// Creation of sycl accessor for a buffer. This function first tries to find
   /// the buffer in the buffer_map. If found it gets the accessor from it, if not,
@@ -134,7 +135,7 @@ struct SyclDevice {
 
   /// Accessing the created sycl device buffer for the device pointer
   EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1>& get_sycl_buffer(size_t , const void * ptr) const {
-    return m_queu_stream->find_buffer(ptr)->second;
+    return m_queue_stream->find_buffer(ptr)->second;
   }
 
   /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
@@ -151,11 +152,11 @@ struct SyclDevice {
     }
   /// allocate device memory
   EIGEN_STRONG_INLINE void *allocate(size_t num_bytes) const {
-      return m_queu_stream->allocate(num_bytes);
+      return m_queue_stream->allocate(num_bytes);
   }
   /// deallocate device memory
   EIGEN_STRONG_INLINE void deallocate(const void *p) const {
-     m_queu_stream->deallocate(p);
+     m_queue_stream->deallocate(p);
    }
 
   // some runtime conditions that can be applied here
@@ -164,8 +165,8 @@ struct SyclDevice {
 
   /// the memcpy function
   template<typename T> EIGEN_STRONG_INLINE void memcpy(void *dst, const T *src, size_t n) const {
-    auto it1 = m_queu_stream->find_buffer((void*)src);
-    auto it2 = m_queu_stream->find_buffer(dst);
+    auto it1 = m_queue_stream->find_buffer((void*)src);
+    auto it2 = m_queue_stream->find_buffer(dst);
     auto offset= (static_cast<const uint8_t*>(static_cast<const void*>(src))) - it1->first;
     auto i= (static_cast<const uint8_t*>(dst)) - it2->first;
     offset/=sizeof(T);
@@ -196,7 +197,7 @@ struct SyclDevice {
   /// would be available on the dst pointer using fast copy technique (map_allocator). In this case we can make sure that we copy the data back
   /// to the cpu only once per function call.
   template<typename T> EIGEN_STRONG_INLINE void memcpyDeviceToHost(void *dst, const T *src, size_t n) const {
-    auto it = m_queu_stream->find_buffer(src);
+    auto it = m_queue_stream->find_buffer(src);
     auto offset =static_cast<const uint8_t*>(static_cast<const void*>(src))- it->first;
     offset/=sizeof(T);
     size_t rng, GRange, tileSize;
@@ -211,7 +212,7 @@ struct SyclDevice {
     sycl_queue().throw_asynchronous();
   }
   /// returning the sycl queue
-  EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queu_stream->m_queue;}
+  EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
   /// Here is the implementation of memset function on sycl.
   template<typename T>  EIGEN_STRONG_INLINE void memset(T *buff, int c, size_t n) const {
     size_t rng, GRange, tileSize;
@@ -236,8 +237,8 @@ struct SyclDevice {
   }
   // This function checks if the runtime recorded an error for the
   // underlying stream device.
-   EIGEN_STRONG_INLINE bool ok() const {
-    return m_queu_stream->ok();
+  EIGEN_STRONG_INLINE bool ok() const {
+    return m_queue_stream->ok();
   }
 };
 
