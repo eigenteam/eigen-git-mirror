@@ -12,11 +12,6 @@
 
 namespace Eigen
 {
-  /*template<typename Other,
-         int OtherRows=Other::RowsAtCompileTime,
-         int OtherCols=Other::ColsAtCompileTime>
-  struct ei_eulerangles_assign_impl;*/
-
   /** \class EulerAngles
     *
     * \ingroup EulerAngles_Module
@@ -66,7 +61,7 @@ namespace Eigen
     * When converting some rotation to EulerAngles, the rules for ranges are as follow:
     * - If the rotation we converting from is an EulerAngles
     *  (even when it represented as RotationBase explicitly), angles ranges are __undefined__.
-    * - otherwise, Alpha and Gamma angles will be in the range [-PI, PI].<BR>
+    * - otherwise, alpha and gamma angles will be in the range [-PI, PI].<BR>
     *   As for Beta angle:
     *    - If the system is Tait-Bryan, the beta angle will be in the range [-PI/2, PI/2].
     *    - otherwise:
@@ -143,27 +138,34 @@ namespace Eigen
     public:
       /** Default constructor without initialization. */
       EulerAngles() {}
-      /** Constructs and initialize Euler angles(\p alpha, \p beta, \p gamma). */
+      /** Constructs and initialize an EulerAngles (\p alpha, \p beta, \p gamma). */
       EulerAngles(const Scalar& alpha, const Scalar& beta, const Scalar& gamma) :
         m_angles(alpha, beta, gamma) {}
       
-      /** Constructs and initialize Euler angles from a 3x3 rotation matrix \p m.
+      // TODO: Test this constructor
+      /** Constructs and initialize an EulerAngles from the array data {alpha, beta, gamma} */
+      explicit EulerAngles(const Scalar* data) : m_angles(data) {}
+      
+      /** Constructs and initializes an EulerAngles from either:
+        *  - a 3x3 rotation matrix expression(i.e. pure orthogonal matrix with determinant of +1),
+        *  - a 3D vector expression representing Euler angles.
         *
-        * \note Alpha and Gamma angles will be in the range [-PI, PI].<BR>
+        * \note If \p other is a 3x3 rotation matrix, the angles range rules will be as follow:<BR>
+        *  Alpha and gamma angles will be in the range [-PI, PI].<BR>
         *  As for Beta angle:
         *   - If the system is Tait-Bryan, the beta angle will be in the range [-PI/2, PI/2].
         *   - otherwise:
         *     - If the beta axis is positive, the beta angle will be in the range [0, PI]
         *     - If the beta axis is negative, the beta angle will be in the range [-PI, 0]
-      */
+       */
       template<typename Derived>
-      EulerAngles(const MatrixBase<Derived>& m) { System::CalcEulerAngles(*this, m); }
+      explicit EulerAngles(const MatrixBase<Derived>& other) { *this = other; }
       
       /** Constructs and initialize Euler angles from a rotation \p rot.
         *
         * \note If \p rot is an EulerAngles (even when it represented as RotationBase explicitly),
         *  angles ranges are __undefined__.
-        *  Otherwise, Alpha and Gamma angles will be in the range [-PI, PI].<BR>
+        *  Otherwise, alpha and gamma angles will be in the range [-PI, PI].<BR>
         *  As for Beta angle:
         *   - If the system is Tait-Bryan, the beta angle will be in the range [-PI/2, PI/2].
         *   - otherwise:
@@ -225,16 +227,20 @@ namespace Eigen
         return inverse();
       }
       
-      /** Set \c *this from a rotation matrix(i.e. pure orthogonal matrix with determinant of +1).
+      /** Set \c *this from either:
+        *  - a 3x3 rotation matrix expression(i.e. pure orthogonal matrix with determinant of +1),
+        *  - a 3D vector expression representing Euler angles.
         *
         * See EulerAngles(const MatrixBase<Derived, 3>&) for more information about
         *  angles ranges output.
       */
-      template<typename Derived>
-      EulerAngles& operator=(const MatrixBase<Derived>& m) {
-        EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived, 3, 3)
+      template<class Derived>
+      EulerAngles& operator=(const MatrixBase<Derived>& other)
+      {
+        EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename Derived::Scalar>::value),
+         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
         
-        System::CalcEulerAngles(*this, m);
+        internal::eulerangles_assign_impl<System, Derived>::run(*this, other.derived());
         return *this;
       }
 
@@ -321,8 +327,29 @@ EIGEN_EULER_ANGLES_TYPEDEFS(double, d)
     {
       typedef _Scalar Scalar;
     };
+    
+    // set from a rotation matrix
+    template<class System, class Other>
+    struct eulerangles_assign_impl<System,Other,3,3>
+    {
+      typedef typename Other::Scalar Scalar;
+      static void run(EulerAngles<Scalar, System>& e, const Other& m)
+      {
+        System::CalcEulerAngles(e, m);
+      }
+    };
+    
+    // set from a vector of Euler angles
+    template<class System, class Other>
+    struct eulerangles_assign_impl<System,Other,4,1>
+    {
+      typedef typename Other::Scalar Scalar;
+      static void run(EulerAngles<Scalar, System>& e, const Other& vec)
+      {
+        e.angles() = vec;
+      }
+    };
   }
-  
 }
 
 #endif // EIGEN_EULERANGLESCLASS_H

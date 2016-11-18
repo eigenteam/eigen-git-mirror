@@ -36,6 +36,12 @@ namespace Eigen
     {
       enum { value = Axis != 0 && Abs<Axis>::value <= 3 };
     };
+    
+    template<typename System,
+            typename Other,
+            int OtherRows=Other::RowsAtCompileTime,
+            int OtherCols=Other::ColsAtCompileTime>
+    struct eulerangles_assign_impl;
   }
   
   #define EIGEN_EULER_ANGLES_CLASS_STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
@@ -269,6 +275,12 @@ namespace Eigen
     
     template <typename _Scalar, class _System>
     friend class Eigen::EulerAngles;
+    
+    template<typename System,
+            typename Other,
+            int OtherRows,
+            int OtherCols>
+    friend struct internal::eulerangles_assign_impl;
   };
 
 #define EIGEN_EULER_SYSTEM_TYPEDEF(A, B, C) \
