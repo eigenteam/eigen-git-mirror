@@ -41,18 +41,15 @@ void test_device_sycl(const Eigen::SyclDevice &sycl_device) {
 
 template <typename DataType, int DataLayout>
 void test_device_exceptions(const Eigen::SyclDevice &sycl_device) {
-  bool threw_exception = false;
+  VERIFY(sycl_device.ok());
   int sizeDim1 = 100;
   array<int, 1> tensorDims = {{sizeDim1}};
   DataType* gpu_data = static_cast<DataType*>(sycl_device.allocate(sizeDim1*sizeof(DataType)));
   TensorMap<Tensor<DataType, 1,DataLayout>> in(gpu_data, tensorDims);
   TensorMap<Tensor<DataType, 1,DataLayout>> out(gpu_data, tensorDims);
-  try {
-    out.device(sycl_device) = in / in.constant(0);
-  } catch(...) {
-    threw_exception = true;
-  }
-  VERIFY(threw_exception);
+
+  out.device(sycl_device) = in / in.constant(0);
+  VERIFY(!sycl_device.ok());
   sycl_device.deallocate(gpu_data);
 }
 

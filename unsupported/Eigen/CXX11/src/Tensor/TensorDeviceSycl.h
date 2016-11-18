@@ -21,6 +21,8 @@ namespace Eigen {
 
 struct QueueInterface {
   /// class members:
+  bool exception_caught_ = false;
+
   /// std::map is the container used to make sure that we create only one buffer
   /// per pointer. The lifespan of the buffer now depends on the lifespan of SyclDevice.
   /// If a non-read-only pointer is needed to be accessed on the host we should manually deallocate it.
@@ -35,7 +37,7 @@ struct QueueInterface {
     for (const auto& e : l) {
       try {
         if(e){
-          std::rethrow_exception(e);
+           exception_caught_ = true;;
         }
       } catch (cl::sycl::exception e) {
           std::cerr << e.what() << std::endl;
@@ -86,6 +88,11 @@ struct QueueInterface {
     //return buffer_map.end();
   }
 
+  // This function checks if the runtime recorded an error for the
+  // underlying stream device.
+   EIGEN_STRONG_INLINE bool ok() const {
+      return !exception_caught_;
+  }
   // destructor
   ~QueueInterface() { buffer_map.clear(); }
 };
@@ -227,7 +234,13 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE void synchronize() const {
     sycl_queue().wait_and_throw();
   }
+  // This function checks if the runtime recorded an error for the
+  // underlying stream device.
+   EIGEN_STRONG_INLINE bool ok() const {
+    return m_queu_stream->ok();
+  }
 };
+
 
 }  // end namespace Eigen
 
