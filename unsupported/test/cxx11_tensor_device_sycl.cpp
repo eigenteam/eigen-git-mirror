@@ -31,10 +31,10 @@ void test_device_memory(const Eigen::SyclDevice &sycl_device) {
   array<int, 1> tensorRange = {{sizeDim1}};
   Tensor<DataType, 1, DataLayout> in(tensorRange);
   Tensor<DataType, 1, DataLayout> in1(tensorRange);
-  memset(in1.data(), 1,in1.size()*sizeof(DataType));
-  DataType * gpu_in_data  = static_cast<DataType*>(sycl_device.allocate(in.size()*sizeof(DataType)));
-  sycl_device.memset(gpu_in_data, 1,in.size()*sizeof(DataType) );
-  sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.size()*sizeof(DataType) );
+  memset(in1.data(), 1, in1.size() * sizeof(DataType));
+  DataType* gpu_in_data  = static_cast<DataType*>(sycl_device.allocate(in.size()*sizeof(DataType)));
+  sycl_device.memset(gpu_in_data, 1, in.size()*sizeof(DataType));
+  sycl_device.memcpyDeviceToHost(in.data(), gpu_in_data, in.size()*sizeof(DataType));
   for (int i=0; i<in.size(); i++) {
     VERIFY_IS_EQUAL(in(i), in1(i));
   }
@@ -47,10 +47,13 @@ void test_device_exceptions(const Eigen::SyclDevice &sycl_device) {
   int sizeDim1 = 100;
   array<int, 1> tensorDims = {{sizeDim1}};
   DataType* gpu_data = static_cast<DataType*>(sycl_device.allocate(sizeDim1*sizeof(DataType)));
-  TensorMap<Tensor<DataType, 1,DataLayout>> in(gpu_data, tensorDims);
-  TensorMap<Tensor<DataType, 1,DataLayout>> out(gpu_data, tensorDims);
+  sycl_device.memset(gpu_data, 1, sizeDim1*sizeof(DataType));
 
+  TensorMap<Tensor<DataType, 1, DataLayout>> in(gpu_data, tensorDims);
+  TensorMap<Tensor<DataType, 1, DataLayout>> out(gpu_data, tensorDims);
   out.device(sycl_device) = in / in.constant(0);
+
+  sycl_device.synchronize();
   VERIFY(!sycl_device.ok());
   sycl_device.deallocate(gpu_data);
 }
