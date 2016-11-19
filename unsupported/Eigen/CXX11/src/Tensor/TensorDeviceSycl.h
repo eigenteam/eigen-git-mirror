@@ -105,15 +105,16 @@ struct QueueInterface {
         if((it->first <  (static_cast<const uint8_t*>(ptr))) && ((static_cast<const uint8_t*>(ptr)) < (it->first + size)) ) return it;
       }
     }
-    //eigen_assert("No sycl buffer found. Make sure that you have allocated memory for your buffer by calling allocate function in SyclDevice");
     std::cerr << "No sycl buffer found. Make sure that you have allocated memory for your buffer by calling allocate function in SyclDevice"<< std::endl;
     abort();
-    //return buffer_map.end();
   }
 
   // This function checks if the runtime recorded an error for the
   // underlying stream device.
   EIGEN_STRONG_INLINE bool ok() const {
+    if (!exception_caught_) {
+      m_queue.throw_asynchronous();
+    }
     return !exception_caught_;
   }
   // destructor
