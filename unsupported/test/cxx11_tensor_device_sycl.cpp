@@ -55,8 +55,9 @@ void test_device_exceptions(const Eigen::SyclDevice &sycl_device) {
   sycl_device.deallocate(gpu_data);
 }
 
-template<typename DataType, typename dev_Selector> void sycl_device_test_per_device(dev_Selector s){
-  QueueInterface queueInterface(s);
+template<typename DataType> void sycl_device_test_per_device(const cl::sycl::device& d){
+  std::cout << "Running on " << d.template get_info<cl::sycl::info::device::name>() << std::endl;
+  QueueInterface queueInterface(d);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
   test_device_memory<DataType, RowMajor>(sycl_device);
   test_device_memory<DataType, ColMajor>(sycl_device);
@@ -67,11 +68,7 @@ template<typename DataType, typename dev_Selector> void sycl_device_test_per_dev
 }
 
 void test_cxx11_tensor_device_sycl() {
-  printf("Test on GPU: OpenCL\n");
-  CALL_SUBTEST(sycl_device_test_per_device<int>((cl::sycl::gpu_selector())));
-  //  printf("repeating the test on CPU: OpenCL\n");
-  //  CALL_SUBTEST(sycl_device_test_per_device<int>((cl::sycl::cpu_selector())));
-  printf("repeating the test on CPU: HOST\n");
-  CALL_SUBTEST(sycl_device_test_per_device<int>((cl::sycl::host_selector())));
-  printf("Test Passed******************\n" );
+  for (const auto& device : cl::sycl::device::get_devices()) {
+    CALL_SUBTEST(sycl_device_test_per_device<float>(device));
+  }
 }
