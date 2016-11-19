@@ -50,6 +50,28 @@ struct QueueInterface {
 #endif
   {}
 
+  /// creating device by using selector
+  /// SyclStreamDevice is not owned. it is the caller's responsibility to destroy it.
+  explicit QueueInterface(cl::sycl::device d):
+#ifdef EIGEN_EXCEPTIONS
+  m_queue(cl::sycl::queue(d, [&](cl::sycl::exception_list l) {
+	for (const auto& e : l) {
+	  try {
+	    if (e) {
+	      exception_caught_ = true;
+	      std::rethrow_exception(e);
+	    }
+	  } catch (cl::sycl::exception e) {
+	    std::cerr << e.what() << std::endl;
+	  }
+	}
+      }))
+#else
+  m_queue(cl::sycl::queue(d))
+#endif
+  {}
+
+
   /// Allocating device pointer. This pointer is actually an 8 bytes host pointer used as key to access the sycl device buffer.
   /// The reason is that we cannot use device buffer as a pointer as a m_data in Eigen leafNode expressions. So we create a key
   /// pointer to be used in Eigen expression construction. When we convert the Eigen construction into the sycl construction we
