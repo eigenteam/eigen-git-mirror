@@ -123,8 +123,8 @@ template <typename T> T inverse(T x) { return 1 / x; }
   }
 
 #define TEST_UNARY_BUILTINS(SCALAR)                                            \
-  TEST_UNARY_BUILTINS_OPERATOR(SCALAR, += )                                    \
-  TEST_UNARY_BUILTINS_OPERATOR(SCALAR, = )                                     \
+  TEST_UNARY_BUILTINS_OPERATOR(SCALAR, +=)                                     \
+  TEST_UNARY_BUILTINS_OPERATOR(SCALAR, =)                                      \
   TEST_IS_THAT_RETURNS_BOOL(SCALAR, isnan)                                     \
   TEST_IS_THAT_RETURNS_BOOL(SCALAR, isfinite)                                  \
   TEST_IS_THAT_RETURNS_BOOL(SCALAR, isinf)
@@ -140,9 +140,133 @@ static void test_builtin_unary_sycl(const Eigen::SyclDevice &sycl_device) {
   TEST_UNARY_BUILTINS(double)
 }
 
+namespace std {
+template <typename T> T cwiseMax(T x, T y) { return std::max(x, y); }
+template <typename T> T cwiseMin(T x, T y) { return std::min(x, y); }
+}
+
+#define TEST_BINARY_BUILTINS_FUNC(SCALAR, FUNC)                                \
+  {                                                                            \
+    /* out = in_1.FUNC(in_2) */                                                \
+    Tensor<SCALAR, 3> in_1(tensorRange);                                       \
+    Tensor<SCALAR, 3> in_2(tensorRange);                                       \
+    Tensor<SCALAR, 3> out(tensorRange);                                        \
+    in_1 = in_1.random() + static_cast<SCALAR>(0.01);                          \
+    in_2 = in_2.random() + static_cast<SCALAR>(0.01);                          \
+    out = out.random() + static_cast<SCALAR>(0.01);                            \
+    Tensor<SCALAR, 3> reference(out);                                          \
+    SCALAR *gpu_data_1 = static_cast<SCALAR *>(                                \
+        sycl_device.allocate(in_1.size() * sizeof(SCALAR)));                   \
+    SCALAR *gpu_data_2 = static_cast<SCALAR *>(                                \
+        sycl_device.allocate(in_2.size() * sizeof(SCALAR)));                   \
+    SCALAR *gpu_data_out = static_cast<SCALAR *>(                              \
+        sycl_device.allocate(out.size() * sizeof(SCALAR)));                    \
+    TensorMap<Tensor<SCALAR, 3>> gpu_1(gpu_data_1, tensorRange);               \
+    TensorMap<Tensor<SCALAR, 3>> gpu_2(gpu_data_2, tensorRange);               \
+    TensorMap<Tensor<SCALAR, 3>> gpu_out(gpu_data_out, tensorRange);           \
+    sycl_device.memcpyHostToDevice(gpu_data_1, in_1.data(),                    \
+                                   (in_1.size()) * sizeof(SCALAR));            \
+    sycl_device.memcpyHostToDevice(gpu_data_2, in_2.data(),                    \
+                                   (in_2.size()) * sizeof(SCALAR));            \
+    sycl_device.memcpyHostToDevice(gpu_data_out, out.data(),                   \
+                                   (out.size()) * sizeof(SCALAR));             \
+    gpu_out.device(sycl_device) = gpu_1.FUNC(gpu_2);                           \
+    sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
+                                   (out.size()) * sizeof(SCALAR));             \
+    for (int i = 0; i < out.size(); ++i) {                                     \
+      SCALAR ver = reference(i);                                               \
+      ver = std::FUNC(in_1(i), in_2(i));                                       \
+      VERIFY_IS_APPROX(out(i), ver);                                           \
+    }                                                                          \
+    sycl_device.deallocate(gpu_data_1);                                        \
+    sycl_device.deallocate(gpu_data_2);                                        \
+    sycl_device.deallocate(gpu_data_out);                                      \
+  }
+
+#define TEST_BINARY_BUILTINS_OPERATORS(SCALAR, OPERATOR)                       \
+  {                                                                            \
+    /* out = in_1 OPERATOR in_2 */                                             \
+    Tensor<SCALAR, 3> in_1(tensorRange);                                       \
+    Tensor<SCALAR, 3> in_2(tensorRange);                                       \
+    Tensor<SCALAR, 3> out(tensorRange);                                        \
+    in_1 = in_1.random() + static_cast<SCALAR>(0.01);                          \
+    in_2 = in_2.random() + static_cast<SCALAR>(0.01);                          \
+    out = out.random() + static_cast<SCALAR>(0.01);                            \
+    Tensor<SCALAR, 3> reference(out);                                          \
+    SCALAR *gpu_data_1 = static_cast<SCALAR *>(                                \
+        sycl_device.allocate(in_1.size() * sizeof(SCALAR)));                   \
+    SCALAR *gpu_data_2 = static_cast<SCALAR *>(                                \
+        sycl_device.allocate(in_2.size() * sizeof(SCALAR)));                   \
+    SCALAR *gpu_data_out = static_cast<SCALAR *>(                              \
+        sycl_device.allocate(out.size() * sizeof(SCALAR)));                    \
+    TensorMap<Tensor<SCALAR, 3>> gpu_1(gpu_data_1, tensorRange);               \
+    TensorMap<Tensor<SCALAR, 3>> gpu_2(gpu_data_2, tensorRange);               \
+    TensorMap<Tensor<SCALAR, 3>> gpu_out(gpu_data_out, tensorRange);           \
+    sycl_device.memcpyHostToDevice(gpu_data_1, in_1.data(),                    \
+                                   (in_1.size()) * sizeof(SCALAR));            \
+    sycl_device.memcpyHostToDevice(gpu_data_2, in_2.data(),                    \
+                                   (in_2.size()) * sizeof(SCALAR));            \
+    sycl_device.memcpyHostToDevice(gpu_data_out, out.data(),                   \
+                                   (out.size()) * sizeof(SCALAR));             \
+    gpu_out.device(sycl_device) = gpu_1 OPERATOR gpu_2;                        \
+    sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
+                                   (out.size()) * sizeof(SCALAR));             \
+    for (int i = 0; i < out.size(); ++i) {                                     \
+      VERIFY_IS_APPROX(out(i), in_1(i) OPERATOR in_2(i));                      \
+    }                                                                          \
+    sycl_device.deallocate(gpu_data_1);                                        \
+    sycl_device.deallocate(gpu_data_2);                                        \
+    sycl_device.deallocate(gpu_data_out);                                      \
+  }
+
+#define TEST_BINARY_BUILTINS_OPERATORS_THAT_TAKES_SCALAR(SCALAR, OPERATOR)     \
+  {                                                                            \
+    /* out = in_1 OPERATOR 2 */                                                \
+    Tensor<SCALAR, 3> in_1(tensorRange);                                       \
+    Tensor<SCALAR, 3> out(tensorRange);                                        \
+    in_1 = in_1.random() + static_cast<SCALAR>(0.01);                          \
+    Tensor<SCALAR, 3> reference(out);                                          \
+    SCALAR *gpu_data_1 = static_cast<SCALAR *>(                                \
+        sycl_device.allocate(in_1.size() * sizeof(SCALAR)));                   \
+    SCALAR *gpu_data_out = static_cast<SCALAR *>(                              \
+        sycl_device.allocate(out.size() * sizeof(SCALAR)));                    \
+    TensorMap<Tensor<SCALAR, 3>> gpu_1(gpu_data_1, tensorRange);               \
+    TensorMap<Tensor<SCALAR, 3>> gpu_out(gpu_data_out, tensorRange);           \
+    sycl_device.memcpyHostToDevice(gpu_data_1, in_1.data(),                    \
+                                   (in_1.size()) * sizeof(SCALAR));            \
+    sycl_device.memcpyHostToDevice(gpu_data_out, out.data(),                   \
+                                   (out.size()) * sizeof(SCALAR));             \
+    gpu_out.device(sycl_device) = gpu_1 OPERATOR 2;                            \
+    sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
+                                   (out.size()) * sizeof(SCALAR));             \
+    for (int i = 0; i < out.size(); ++i) {                                     \
+      VERIFY_IS_APPROX(out(i), in_1(i) OPERATOR 2);                            \
+    }                                                                          \
+    sycl_device.deallocate(gpu_data_1);                                        \
+    sycl_device.deallocate(gpu_data_out);                                      \
+  }
+
+#define TEST_BINARY_BUILTINS(SCALAR)                                           \
+  TEST_BINARY_BUILTINS_FUNC(SCALAR, cwiseMax)                                  \
+  TEST_BINARY_BUILTINS_FUNC(SCALAR, cwiseMin)                                  \
+  TEST_BINARY_BUILTINS_OPERATORS(SCALAR, +)                                    \
+  TEST_BINARY_BUILTINS_OPERATORS(SCALAR, -)                                    \
+  TEST_BINARY_BUILTINS_OPERATORS(SCALAR, *)                                    \
+  TEST_BINARY_BUILTINS_OPERATORS(SCALAR, /)
+
+static void test_builtin_binary_sycl(const Eigen::SyclDevice &sycl_device) {
+  int sizeDim1 = 10;
+  int sizeDim2 = 10;
+  int sizeDim3 = 10;
+  array<int, 3> tensorRange = {{sizeDim1, sizeDim2, sizeDim3}};
+  TEST_BINARY_BUILTINS(float)
+  TEST_BINARY_BUILTINS_OPERATORS_THAT_TAKES_SCALAR(int, %)
+}
+
 void test_cxx11_tensor_builtins_sycl() {
   cl::sycl::gpu_selector s;
   QueueInterface queueInterface(s);
   Eigen::SyclDevice sycl_device(&queueInterface);
   CALL_SUBTEST(test_builtin_unary_sycl(sycl_device));
+  CALL_SUBTEST(test_builtin_binary_sycl(sycl_device));
 }
