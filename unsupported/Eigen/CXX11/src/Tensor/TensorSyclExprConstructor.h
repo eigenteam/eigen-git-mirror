@@ -30,7 +30,8 @@ namespace internal {
 template <typename PtrType, size_t N, typename... Params>
 struct EvalToLHSConstructor {
   PtrType expr;
-  EvalToLHSConstructor(const utility::tuple::Tuple<Params...> &t): expr((&(*(utility::tuple::get<N>(t).get_pointer())))) {}
+  EvalToLHSConstructor(const utility::tuple::Tuple<Params...> &t) : expr(ConvertToActualTypeSycl(typename Eigen::internal::remove_all<PtrType>::type, utility::tuple::get<N>(t))) {}
+  //EvalToLHSConstructor(const utility::tuple::Tuple<Params...> &t): expr((&(*(utility::tuple::get<N>(t).get_pointer())))) {}
 };
 
 /// \struct ExprConstructor is used to reconstruct the expression on the device and
@@ -53,8 +54,10 @@ CVQual PlaceHolder<CVQual TensorMap<T, Options3_, MakePointer_>, N>, Params...>{
   Type expr;\
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\
-  : expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}\
+  : expr(Type(ConvertToActualTypeSycl(typename Type::Scalar, utility::tuple::get<N>(t)), fd.dimensions())){}\
 };
+
+//: expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}
 
 
 TENSORMAP(const)
@@ -163,7 +166,7 @@ struct ExprConstructor<CVQual TensorAssignOp<OrigLHSExpr, OrigRHSExpr>,  CVQual 
  ASSIGN()
  #undef ASSIGN
 /// specialisation of the \ref ExprConstructor struct when the node type is
-///  TensorEvalToOp
+///  TensorEvalToOp /// 0 here is the output number in the buffer
 #define EVALTO(CVQual)\
 template <typename OrigExpr, typename Expr, typename... Params>\
 struct ExprConstructor<CVQual TensorEvalToOp<OrigExpr, MakeGlobalPointer>, CVQual TensorEvalToOp<Expr>, Params...> {\
@@ -189,12 +192,13 @@ template <typename OrigExpr, typename DevExpr, size_t N, typename... Params>\
 struct ExprConstructor<CVQual TensorForcedEvalOp<OrigExpr, MakeGlobalPointer>,\
 CVQual PlaceHolder<CVQual TensorForcedEvalOp<DevExpr>, N>, Params...> {\
   typedef CVQual TensorMap<Tensor<typename TensorForcedEvalOp<DevExpr, MakeGlobalPointer>::Scalar,\
-  TensorForcedEvalOp<DevExpr, MakeGlobalPointer>::NumDimensions, 0, typename TensorForcedEvalOp<DevExpr>::Index>, 0, MakeGlobalPointer> Type;\
+  TensorForcedEvalOp<DevExpr, MakeGlobalPointer>::NumDimensions, Eigen::internal::traits<TensorForcedEvalOp<DevExpr, MakeGlobalPointer>>::Layout, typename TensorForcedEvalOp<DevExpr>::Index>, Eigen::internal::traits<TensorForcedEvalOp<DevExpr, MakeGlobalPointer>>::Layout, MakeGlobalPointer> Type;\
   Type expr;\
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\
-  : expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}\
+  : expr(Type(ConvertToActualTypeSycl(typename Type::Scalar, utility::tuple::get<N>(t)), fd.dimensions())) {}\
 };
+//: expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}
 
 FORCEDEVAL(const)
 FORCEDEVAL()
@@ -214,12 +218,13 @@ struct ExprConstructor<CVQual TensorReductionOp<OP, Dim, OrigExpr, MakeGlobalPoi
 CVQual PlaceHolder<CVQual TensorReductionOp<OP, Dim, DevExpr>, N>, Params...> {\
   static const size_t NumIndices= ValueCondition< TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>::NumDimensions==0,  1, TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>::NumDimensions >::Res;\
   typedef CVQual TensorMap<Tensor<typename TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>::Scalar,\
-  NumIndices, 0, typename TensorReductionOp<OP, Dim, DevExpr>::Index>, 0, MakeGlobalPointer> Type;\
+  NumIndices, Eigen::internal::traits<TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>>::Layout, typename TensorReductionOp<OP, Dim, DevExpr>::Index>, Eigen::internal::traits<TensorReductionOp<OP, Dim, DevExpr, MakeGlobalPointer>>::Layout, MakeGlobalPointer> Type;\
   Type expr;\
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\
-  : expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}\
+  :expr(Type(ConvertToActualTypeSycl(typename Type::Scalar, utility::tuple::get<N>(t)), fd.dimensions())) {}\
 };
+//: expr(Type((&(*(utility::tuple::get<N>(t).get_pointer()))), fd.dimensions())) {}
 
 SYCLREDUCTIONEXPR(const)
 SYCLREDUCTIONEXPR()

@@ -13,7 +13,7 @@
 
 #include "../../../Eigen/Core"
 
-#ifdef EIGEN_USE_SYCL
+#if defined(EIGEN_USE_SYCL)
 #undef min
 #undef max
 #undef isnan

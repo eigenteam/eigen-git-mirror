@@ -28,7 +28,7 @@ using Eigen::SyclDevice;
 using Eigen::Tensor;
 using Eigen::TensorMap;
 
-
+template <typename DataType, int DataLayout>
 static void test_simple_slice(const Eigen::SyclDevice &sycl_device)
 {
   int sizeDim1 = 2;
@@ -37,31 +37,31 @@ static void test_simple_slice(const Eigen::SyclDevice &sycl_device)
   int sizeDim4 = 7;
   int sizeDim5 = 11;
   array<int, 5> tensorRange = {{sizeDim1, sizeDim2, sizeDim3, sizeDim4, sizeDim5}};
-  Tensor<float, 5> tensor(tensorRange);
+  Tensor<DataType, 5,DataLayout> tensor(tensorRange);
   tensor.setRandom();
   array<int, 5> slice1_range ={{1, 1, 1, 1, 1}};
-  Tensor<float, 5> slice1(slice1_range);
+  Tensor<DataType, 5,DataLayout> slice1(slice1_range);
 
-  float* gpu_data1  = static_cast<float*>(sycl_device.allocate(tensor.size()*sizeof(float)));
-  float* gpu_data2  = static_cast<float*>(sycl_device.allocate(slice1.size()*sizeof(float)));
-  TensorMap<Tensor<float, 5>> gpu1(gpu_data1, tensorRange);
-  TensorMap<Tensor<float, 5>> gpu2(gpu_data2, slice1_range);
+  DataType* gpu_data1  = static_cast<DataType*>(sycl_device.allocate(tensor.size()*sizeof(DataType)));
+  DataType* gpu_data2  = static_cast<DataType*>(sycl_device.allocate(slice1.size()*sizeof(DataType)));
+  TensorMap<Tensor<DataType, 5,DataLayout>> gpu1(gpu_data1, tensorRange);
+  TensorMap<Tensor<DataType, 5,DataLayout>> gpu2(gpu_data2, slice1_range);
   Eigen::DSizes<ptrdiff_t, 5> indices(1,2,3,4,5);
   Eigen::DSizes<ptrdiff_t, 5> sizes(1,1,1,1,1);
-  sycl_device.memcpyHostToDevice(gpu_data1, tensor.data(),(tensor.size())*sizeof(float));
+  sycl_device.memcpyHostToDevice(gpu_data1, tensor.data(),(tensor.size())*sizeof(DataType));
   gpu2.device(sycl_device)=gpu1.slice(indices, sizes);
-  sycl_device.memcpyDeviceToHost(slice1.data(), gpu_data2,(slice1.size())*sizeof(float));
+  sycl_device.memcpyDeviceToHost(slice1.data(), gpu_data2,(slice1.size())*sizeof(DataType));
   VERIFY_IS_EQUAL(slice1(0,0,0,0,0), tensor(1,2,3,4,5));
 
 
   array<int, 5> slice2_range ={{1,1,2,2,3}};
-  Tensor<float, 5> slice2(slice2_range);
-  float* gpu_data3  = static_cast<float*>(sycl_device.allocate(slice2.size()*sizeof(float)));
-  TensorMap<Tensor<float, 5>> gpu3(gpu_data3, slice2_range);
+  Tensor<DataType, 5,DataLayout> slice2(slice2_range);
+  DataType* gpu_data3  = static_cast<DataType*>(sycl_device.allocate(slice2.size()*sizeof(DataType)));
+  TensorMap<Tensor<DataType, 5,DataLayout>> gpu3(gpu_data3, slice2_range);
   Eigen::DSizes<ptrdiff_t, 5> indices2(1,1,3,4,5);
   Eigen::DSizes<ptrdiff_t, 5> sizes2(1,1,2,2,3);
   gpu3.device(sycl_device)=gpu1.slice(indices2, sizes2);
-  sycl_device.memcpyDeviceToHost(slice2.data(), gpu_data3,(slice2.size())*sizeof(float));
+  sycl_device.memcpyDeviceToHost(slice2.data(), gpu_data3,(slice2.size())*sizeof(DataType));
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 2; ++j) {
       for (int k = 0; k < 3; ++k) {
@@ -74,11 +74,22 @@ static void test_simple_slice(const Eigen::SyclDevice &sycl_device)
   sycl_device.deallocate(gpu_data3);
 }
 
+template<typename DataType, typename dev_Selector> void sycl_slicing_test_per_device(dev_Selector s){
+  QueueInterface queueInterface(s);
+  auto sycl_device = Eigen::SyclDevice(&queueInterface);
+  test_simple_slice<DataType, RowMajor>(sycl_device);
+  test_simple_slice<DataType, ColMajor>(sycl_device);
+}
 void test_cxx11_tensor_morphing_sycl()
 {
   /// Currentlly it only works on cpu. Adding GPU cause LLVM ERROR in cunstructing OpenCL Kernel at runtime.
-  cl::sycl::cpu_selector s;
-  Eigen::SyclDevice sycl_device(s);
-  CALL_SUBTEST(test_simple_slice(sycl_device));
+//	printf("Test on GPU: OpenCL\n");
+//	CALL_SUBTEST(sycl_device_test_per_device((cl::sycl::gpu_selector())));
+  printf("repeating the test on CPU: OpenCL\n");
+  CALL_SUBTEST(sycl_slicing_test_per_device<float>((cl::sycl::cpu_selector())));
+  printf("repeating the test on CPU: HOST\n");
+  CALL_SUBTEST(sycl_slicing_test_per_device<float>((cl::sycl::host_selector())));
+  printf("Test Passed******************\n" );
+
 
 }
