@@ -418,7 +418,8 @@
   #define EIGEN_HAS_CONSTEXPR 1
 #endif
 #elif EIGEN_MAX_CPP_VER>=14 && (__has_feature(cxx_relaxed_constexpr) || (defined(__cplusplus) && __cplusplus >= 201402L) || \
-  (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L)))
+  (EIGEN_GNUC_AT_LEAST(4,8) && (__cplusplus > 199711L)) || \
+  (EIGEN_COMP_CLANG >= 306 && (__cplusplus > 199711L)))
 #define EIGEN_HAS_CONSTEXPR 1
 #endif
 
