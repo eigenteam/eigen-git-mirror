@@ -877,8 +877,11 @@ struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Weak>
     src.evalTo(dst);
   }
 
+  // NOTE The following two functions are templated to avoid their instanciation if not needed
+  //      This is needed because some expressions supports evalTo only and/or have 'void' as scalar type.
+  template<typename SrcScalarType>
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
+  static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<typename DstXprType::Scalar,SrcScalarType> &/*func*/)
   {
     Index dstRows = src.rows();
     Index dstCols = src.cols();
@@ -889,8 +892,9 @@ struct Assignment<DstXprType, SrcXprType, Functor, EigenBase2EigenBase, Weak>
     src.addTo(dst);
   }
 
+  template<typename SrcScalarType>
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,typename SrcXprType::Scalar> &/*func*/)
+  static EIGEN_STRONG_INLINE void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<typename DstXprType::Scalar,SrcScalarType> &/*func*/)
   {
     Index dstRows = src.rows();
     Index dstCols = src.cols();
