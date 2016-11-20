@@ -20,6 +20,7 @@
 #undef isinf
 #undef isfinite
 #include <SYCL/sycl.hpp>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
