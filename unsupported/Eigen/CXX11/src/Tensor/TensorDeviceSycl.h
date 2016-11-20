@@ -23,6 +23,8 @@ struct QueueInterface {
   /// class members:
   bool exception_caught_ = false;
 
+  mutable std::mutex mutex_;
+
   /// std::map is the container used to make sure that we create only one buffer
   /// per pointer. The lifespan of the buffer now depends on the lifespan of SyclDevice.
   /// If a non-read-only pointer is needed to be accessed on the host we should manually deallocate it.
@@ -81,6 +83,7 @@ struct QueueInterface {
     auto buf = cl::sycl::buffer<uint8_t,1>(cl::sycl::range<1>(num_bytes));
     auto ptr =buf.get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>().get_pointer();
     buf.set_final_data(nullptr);
+    std::lock_guard<std::mutex> lock(mutex_);
     buffer_map.insert(std::pair<const uint8_t *, cl::sycl::buffer<uint8_t, 1>>(ptr,buf));
     return static_cast<void*>(ptr);
   }
@@ -88,6 +91,7 @@ struct QueueInterface {
   /// This is used to deallocate the device pointer. p is used as a key inside
   /// the map to find the device buffer and delete it.
   EIGEN_STRONG_INLINE void deallocate(const void *p) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it = buffer_map.find(static_cast<const uint8_t*>(p));
     if (it != buffer_map.end()) {
       buffer_map.erase(it);
@@ -95,10 +99,12 @@ struct QueueInterface {
   }
 
   EIGEN_STRONG_INLINE void deallocate_all() const {
+    std::lock_guard<std::mutex> lock(mutex_);
     buffer_map.clear();
   }
 
   EIGEN_STRONG_INLINE std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator find_buffer(const void* ptr) const {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto it1 = buffer_map.find(static_cast<const uint8_t*>(ptr));
     if (it1 != buffer_map.end()){
       return it1;
