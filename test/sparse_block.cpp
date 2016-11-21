@@ -223,6 +223,33 @@ template<typename SparseMatrixType> void sparse_block(const SparseMatrixType& re
 
     VERIFY_IS_APPROX(m2.block(r0,c0,r1,c1), refMat2.block(r0,c0,r1,c1));
     VERIFY_IS_APPROX((2*m2).block(r0,c0,r1,c1), (2*refMat2).block(r0,c0,r1,c1));
+
+    if(m2.nonZeros()>0)
+    {
+      VERIFY_IS_APPROX(m2, refMat2);
+      SparseMatrixType m3(rows, cols);
+      DenseMatrix refMat3(rows, cols); refMat3.setZero();
+      Index n = internal::random<Index>(1,10);
+      for(Index k=0; k<n; ++k)
+      {
+        Index o1 = internal::random<Index>(0,outer-1);
+        Index o2 = internal::random<Index>(0,outer-1);
+        if(SparseMatrixType::IsRowMajor)
+        {
+          m3.innerVector(o1) = m2.row(o2);
+          refMat3.row(o1) = refMat2.row(o2);
+        }
+        else
+        {
+          m3.innerVector(o1) = m2.col(o2);
+          refMat3.col(o1) = refMat2.col(o2);
+        }
+        if(internal::random<bool>())
+          m3.makeCompressed();
+      }
+      if(m3.nonZeros()>0)
+      VERIFY_IS_APPROX(m3, refMat3);
+    }
   }
 }
 

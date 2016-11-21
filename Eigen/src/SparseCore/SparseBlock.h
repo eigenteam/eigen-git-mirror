@@ -130,7 +130,7 @@ public:
 
       // 2 - let's check whether there is enough allocated memory
       Index nnz           = tmp.nonZeros();
-      Index start         = m_outerStart==0 ? 0 : matrix.outerIndexPtr()[m_outerStart]; // starting position of the current block
+      Index start         = m_outerStart==0 ? 0 : m_matrix.outerIndexPtr()[m_outerStart]; // starting position of the current block
       Index end           = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()]; // ending position of the current block
       Index block_size    = end - start;                                                // available room in the current block
       Index tail_size     = m_matrix.outerIndexPtr()[m_matrix.outerSize()] - end;
@@ -138,6 +138,8 @@ public:
       Index free_size     = m_matrix.isCompressed()
                           ? Index(matrix.data().allocatedSize()) + block_size
                           : block_size;
+
+      Index tmp_start = tmp.outerIndexPtr()[0];
 
       bool update_trailing_pointers = false;
       if(nnz>free_size) 
@@ -148,8 +150,8 @@ public:
         internal::smart_copy(m_matrix.valuePtr(),       m_matrix.valuePtr() + start,      newdata.valuePtr());
         internal::smart_copy(m_matrix.innerIndexPtr(),  m_matrix.innerIndexPtr() + start, newdata.indexPtr());
 
-        internal::smart_copy(tmp.valuePtr(),      tmp.valuePtr() + nnz,       newdata.valuePtr() + start);
-        internal::smart_copy(tmp.innerIndexPtr(), tmp.innerIndexPtr() + nnz,  newdata.indexPtr() + start);
+        internal::smart_copy(tmp.valuePtr() + tmp_start,      tmp.valuePtr() + tmp_start + nnz,       newdata.valuePtr() + start);
+        internal::smart_copy(tmp.innerIndexPtr() + tmp_start, tmp.innerIndexPtr() + tmp_start + nnz,  newdata.indexPtr() + start);
 
         internal::smart_copy(matrix.valuePtr()+end,       matrix.valuePtr()+end + tail_size,      newdata.valuePtr()+start+nnz);
         internal::smart_copy(matrix.innerIndexPtr()+end,  matrix.innerIndexPtr()+end + tail_size, newdata.indexPtr()+start+nnz);
@@ -173,8 +175,8 @@ public:
           update_trailing_pointers = true;
         }
 
-        internal::smart_copy(tmp.valuePtr(),      tmp.valuePtr() + nnz,       matrix.valuePtr() + start);
-        internal::smart_copy(tmp.innerIndexPtr(), tmp.innerIndexPtr() + nnz,  matrix.innerIndexPtr() + start);
+        internal::smart_copy(tmp.valuePtr() + tmp_start,      tmp.valuePtr() + tmp_start + nnz,       matrix.valuePtr() + start);
+        internal::smart_copy(tmp.innerIndexPtr() + tmp_start, tmp.innerIndexPtr() + tmp_start + nnz,  matrix.innerIndexPtr() + start);
       }
 
       // update outer index pointers and innerNonZeros
