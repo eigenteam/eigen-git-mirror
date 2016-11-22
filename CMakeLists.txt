@@ -510,15 +510,59 @@ set ( EIGEN_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}" )
 set ( EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} )
 set ( EIGEN_ROOT_DIR ${CMAKE_INSTALL_PREFIX} )
 
-configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
-                 ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-                 @ONLY ESCAPE_QUOTES
-               )
+# Interface libraries require at least CMake 3.0
+if (NOT CMAKE_VERSION VERSION_LESS 3.0)
+  include (CMakePackageConfigHelpers)
 
-install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
-                ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-          DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
-        )
+  # Imported target support
+  add_library (eigen INTERFACE)
+
+  target_compile_definitions (eigen INTERFACE ${EIGEN_DEFINITIONS})
+  target_include_directories (eigen INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>
+  )
+
+  # Export as title case Eigen
+  set_target_properties (eigen PROPERTIES EXPORT_NAME Eigen)
+
+  install (TARGETS eigen EXPORT Eigen3Targets)
+
+  configure_package_config_file (
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+    INSTALL_DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO # Eigen does not provide components
+  )
+  write_basic_package_version_file (Eigen3ConfigVersion.cmake
+    VERSION ${EIGEN_VERSION_NUMBER} COMPATIBILITY SameMajorVersion)
+
+  # The Eigen target will be located in the Eigen3 namespace. Other CMake
+  # targets can refer to it using Eigen3::Eigen.
+  export (TARGETS eigen NAMESPACE Eigen3:: FILE Eigen3Targets.cmake)
+  # Export Eigen3 package to CMake registry such that it can be easily found by
+  # CMake even if it has not been installed to a standard directory.
+  export (PACKAGE Eigen3)
+
+  install (EXPORT Eigen3Targets NAMESPACE Eigen3:: DESTINATION
+    ${CMAKEPACKAGE_INSTALL_DIR})
+  install (FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/Eigen3ConfigVersion.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
+    DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
+else (NOT CMAKE_VERSION VERSION_LESS 3.0)
+  # Fallback to legacy Eigen3Config.cmake without the imported target
+  configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3ConfigLegacy.cmake.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+                   @ONLY ESCAPE_QUOTES
+                 )
+
+  install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
+                  ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+            DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
+          )
+endif (NOT CMAKE_VERSION VERSION_LESS 3.0)
 
 # Add uninstall target
 add_custom_target ( uninstall
