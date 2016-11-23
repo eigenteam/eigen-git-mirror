@@ -292,7 +292,7 @@ namespace Eigen
       EulerAngles<NewScalarType, System> cast() const
       {
         EulerAngles<NewScalarType, System> e;
-        e.angles() = angles().cast<NewScalarType>();
+        e.angles() = angles().template cast<NewScalarType>();
         return e;
       }
   };
