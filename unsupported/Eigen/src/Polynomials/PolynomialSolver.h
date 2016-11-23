@@ -99,7 +99,7 @@ class PolynomialSolverBase
      */
     inline const RootType& greatestRoot() const
     {
-      std::greater<Scalar> greater;
+      std::greater<RealScalar> greater;
       return selectComplexRoot_withRespectToNorm( greater );
     }
 
@@ -108,7 +108,7 @@ class PolynomialSolverBase
      */
     inline const RootType& smallestRoot() const
     {
-      std::less<Scalar> less;
+      std::less<RealScalar> less;
       return selectComplexRoot_withRespectToNorm( less );
     }
 
@@ -213,7 +213,7 @@ class PolynomialSolverBase
         bool& hasArealRoot,
         const RealScalar& absImaginaryThreshold = NumTraits<Scalar>::dummy_precision() ) const
     {
-      std::greater<Scalar> greater;
+      std::greater<RealScalar> greater;
       return selectRealRoot_withRespectToAbsRealPart( greater, hasArealRoot, absImaginaryThreshold );
     }
 
@@ -236,7 +236,7 @@ class PolynomialSolverBase
         bool& hasArealRoot,
         const RealScalar& absImaginaryThreshold = NumTraits<Scalar>::dummy_precision() ) const
     {
-      std::less<Scalar> less;
+      std::less<RealScalar> less;
       return selectRealRoot_withRespectToAbsRealPart( less, hasArealRoot, absImaginaryThreshold );
     }
 
@@ -259,7 +259,7 @@ class PolynomialSolverBase
         bool& hasArealRoot,
         const RealScalar& absImaginaryThreshold = NumTraits<Scalar>::dummy_precision() ) const
     {
-      std::greater<Scalar> greater;
+      std::greater<RealScalar> greater;
       return selectRealRoot_withRespectToRealPart( greater, hasArealRoot, absImaginaryThreshold );
     }
 
@@ -282,7 +282,7 @@ class PolynomialSolverBase
         bool& hasArealRoot,
         const RealScalar& absImaginaryThreshold = NumTraits<Scalar>::dummy_precision() ) const
     {
-      std::less<Scalar> less;
+      std::less<RealScalar> less;
       return selectRealRoot_withRespectToRealPart( less, hasArealRoot, absImaginaryThreshold );
     }
 
@@ -327,7 +327,7 @@ class PolynomialSolverBase
   * However, almost always, correct accuracy is reached even in these cases for 64bit
   * (double) floating types and small polynomial degree (<20).
   */
-template< typename _Scalar, int _Deg , typename EigenSolverType = EigenSolver<Matrix<_Scalar,_Deg,_Deg> > >
+template<typename _Scalar, int _Deg>
 class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
 {
   public:
@@ -337,7 +337,9 @@ class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
     EIGEN_POLYNOMIAL_SOLVER_BASE_INHERITED_TYPES( PS_Base )
 
     typedef Matrix<Scalar,_Deg,_Deg>                 CompanionMatrixType;
-    //typedef EigenSolver<CompanionMatrixType>         EigenSolverType;
+    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
+                                          ComplexEigenSolver<CompanionMatrixType>,
+                                          EigenSolver<CompanionMatrixType> >::type EigenSolverType;
 
   public:
     /** Computes the complex roots of a new polynomial. */
