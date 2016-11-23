@@ -46,11 +46,11 @@ struct ExprConstructor;
 /// specialisation of the \ref ExprConstructor struct when the node type is
 /// TensorMap
 #define TENSORMAP(CVQual)\
-template <typename T,  int Options2_, int Options3_,\
+template <typename T,  int Options_,\
 template <class> class MakePointer_, size_t N, typename... Params>\
-struct ExprConstructor< CVQual TensorMap<T, Options2_, MakeGlobalPointer>,\
-CVQual PlaceHolder<CVQual TensorMap<T, Options3_, MakePointer_>, N>, Params...>{\
-  typedef  CVQual TensorMap<T, Options2_, MakeGlobalPointer>  Type;\
+struct ExprConstructor< CVQual TensorMap<T, Options_, MakeGlobalPointer>,\
+CVQual PlaceHolder<CVQual TensorMap<T, Options_, MakePointer_>, N>, Params...>{\
+  typedef  CVQual TensorMap<T, Options_, MakeGlobalPointer>  Type;\
   Type expr;\
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\

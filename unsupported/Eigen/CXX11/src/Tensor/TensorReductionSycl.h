@@ -135,8 +135,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
     /// if the shared memory is less than the GRange, we set shared_mem size to the TotalSize and in this case one kernel would be created for recursion to reduce all to one.
     if (GRange < outTileSize) outTileSize=GRange;
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
-//    auto out_buffer =dev.template get_sycl_buffer<typename Eigen::internal::remove_all<CoeffReturnType>::type>(self.dimensions().TotalSize(), output);
-      auto out_buffer =dev.get_sycl_buffer(self.dimensions().TotalSize(), output);
+      auto out_buffer =dev.get_sycl_buffer(output);
 
     /// creating the shared memory for calculating reduction.
     /// This one is used to collect all the reduced value of shared memory as we dont have global barrier on GPU. Once it is saved we can
@@ -191,7 +190,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
     typedef const typename Self::ChildType HostExpr; /// this is the child of reduction
     typedef  typename TensorSycl::internal::createPlaceHolderExpression<HostExpr>::Type PlaceHolderExpr;
     auto functors = TensorSycl::internal::extractFunctors(self.impl());
-    size_t range, GRange, tileSize;
+    typename Self::Index range, GRange, tileSize;
     dev.parallel_for_setup(num_coeffs_to_preserve, tileSize, range, GRange);
     // getting final out buffer at the moment the created buffer is true because there is no need for assign
     /// creating the shared memory for calculating reduction.
@@ -204,7 +203,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
       dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
       // create a tuple of accessors from Evaluator
       auto tuple_of_accessors =  TensorSycl::internal::createTupleOfAccessors(cgh, self.impl());
-      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(num_coeffs_to_preserve,cgh, output);
+      auto output_accessor = dev.template get_sycl_accessor<cl::sycl::access::mode::discard_write>(cgh, output);
 
       cgh.parallel_for<Self>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
         typedef typename TensorSycl::internal::ConvertToDeviceExpression<const HostExpr>::Type DevExpr;

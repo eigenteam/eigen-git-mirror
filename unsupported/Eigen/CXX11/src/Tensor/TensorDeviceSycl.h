@@ -31,7 +31,7 @@ struct QueueInterface {
   mutable std::map<const uint8_t *, cl::sycl::buffer<uint8_t, 1>> buffer_map;
   /// sycl queue
   mutable cl::sycl::queue m_queue;
-  /// creating device by using selector
+  /// creating device by using cl::sycl::selector or cl::sycl::device both are the same and can be captured throufh dev_Selector typename
   /// SyclStreamDevice is not owned. it is the caller's responsibility to destroy it.
   template<typename dev_Selector> explicit QueueInterface(dev_Selector s):
 #ifdef EIGEN_EXCEPTIONS
@@ -51,28 +51,6 @@ struct QueueInterface {
   m_queue(cl::sycl::queue(s))
 #endif
   {}
-
-  /// creating device by using selector
-  /// SyclStreamDevice is not owned. it is the caller's responsibility to destroy it.
-  explicit QueueInterface(cl::sycl::device d):
-#ifdef EIGEN_EXCEPTIONS
-  m_queue(cl::sycl::queue(d, [&](cl::sycl::exception_list l) {
-	for (const auto& e : l) {
-	  try {
-	    if (e) {
-	      exception_caught_ = true;
-	      std::rethrow_exception(e);
-	    }
-	  } catch (cl::sycl::exception e) {
-	    std::cerr << e.what() << std::endl;
-	  }
-	}
-      }))
-#else
-  m_queue(cl::sycl::queue(d))
-#endif
-  {}
-
 
   /// Allocating device pointer. This pointer is actually an 8 bytes host pointer used as key to access the sycl device buffer.
   /// The reason is that we cannot use device buffer as a pointer as a m_data in Eigen leafNode expressions. So we create a key
@@ -162,27 +140,28 @@ struct SyclDevice {
   /// the buffer in the buffer_map. If found it gets the accessor from it, if not,
   /// the function then adds an entry by creating a sycl buffer for that particular pointer.
   template <cl::sycl::access::mode AcMd> EIGEN_STRONG_INLINE cl::sycl::accessor<uint8_t, 1, AcMd, cl::sycl::access::target::global_buffer>
-  get_sycl_accessor(size_t num_bytes, cl::sycl::handler &cgh, const void* ptr) const {
-    return (get_sycl_buffer(num_bytes, ptr).template get_access<AcMd, cl::sycl::access::target::global_buffer>(cgh));
+  get_sycl_accessor(cl::sycl::handler &cgh, const void* ptr) const {
+    return (get_sycl_buffer(ptr).template get_access<AcMd, cl::sycl::access::target::global_buffer>(cgh));
   }
 
   /// Accessing the created sycl device buffer for the device pointer
-  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1>& get_sycl_buffer(size_t , const void * ptr) const {
+  EIGEN_STRONG_INLINE cl::sycl::buffer<uint8_t, 1>& get_sycl_buffer(const void * ptr) const {
     return m_queue_stream->find_buffer(ptr)->second;
   }
 
   /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
-  EIGEN_STRONG_INLINE void parallel_for_setup(size_t n, size_t &tileSize, size_t &rng, size_t &GRange)  const {
-      tileSize =sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2;
-      rng = n;
-      if (rng==0) rng=1;
-      GRange=rng;
-      if (tileSize>GRange) tileSize=GRange;
-      else if(GRange>tileSize){
-        size_t xMode = GRange % tileSize;
-        if (xMode != 0) GRange += (tileSize - xMode);
-      }
+  template<typename T>
+  EIGEN_STRONG_INLINE void parallel_for_setup(T n, T &tileSize, T &rng, T &GRange)  const {
+    tileSize =static_cast<T>(sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2);
+    rng = n;
+    if (rng==0) rng=static_cast<T>(1);
+    GRange=rng;
+    if (tileSize>GRange) tileSize=GRange;
+    else if(GRange>tileSize){
+      T xMode =  static_cast<T>(GRange % tileSize);
+      if (xMode != 0) GRange += static_cast<T>(tileSize - xMode);
     }
+  }
   /// allocate device memory
   EIGEN_STRONG_INLINE void *allocate(size_t num_bytes) const {
       return m_queue_stream->allocate(num_bytes);
@@ -220,7 +199,7 @@ struct SyclDevice {
   /// buffer to host. Then we use the memcpy to copy the data to the host accessor. The first time that
   /// this buffer is accessed, the data will be copied to the device.
   template<typename T> EIGEN_STRONG_INLINE void memcpyHostToDevice(T *dst, const T *src, size_t n) const {
-    auto host_acc= get_sycl_buffer(n, dst). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
+    auto host_acc= get_sycl_buffer(dst). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>();
     ::memcpy(host_acc.get_pointer(), src, n);
   }
   /// The memcpyDeviceToHost is used to copy the data from host to device. Here, in order to avoid double copying the data. We create a sycl
@@ -251,10 +230,10 @@ struct SyclDevice {
     size_t rng, GRange, tileSize;
     parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      auto buf_acc =get_sycl_buffer(n, static_cast<uint8_t*>(static_cast<void*>(buff))). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+      auto buf_acc =get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(buff))). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for<SyclDevice>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
         auto globalid=itemID.get_global_linear_id();
-        if (globalid< buf_acc.get_size()) {
+        if (globalid< n) {
           for(size_t i=0; i<sizeof(T); i++)
             buf_acc[globalid*sizeof(T) + i] = c;
         }

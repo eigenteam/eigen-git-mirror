@@ -122,9 +122,9 @@ ASSIGNEXPR()
 /// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorMap
 #define TENSORMAPEXPR(CVQual)\
-template <typename T, int Options2_, template <class> class MakePointer_, size_t N>\
-struct PlaceHolderExpression< CVQual TensorMap< T, Options2_, MakePointer_>, N> {\
-  typedef CVQual PlaceHolder<CVQual TensorMap<T, Options2_, MakePointer_>, N> Type;\
+template <typename T, int Options_, template <class> class MakePointer_, size_t N>\
+struct PlaceHolderExpression< CVQual TensorMap< T, Options_, MakePointer_>, N> {\
+  typedef CVQual PlaceHolder<CVQual TensorMap<T, Options_, MakePointer_>, N> Type;\
 };
 
 TENSORMAPEXPR(const)

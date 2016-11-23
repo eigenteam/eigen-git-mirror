@@ -264,9 +264,15 @@ static void test_builtin_binary_sycl(const Eigen::SyclDevice &sycl_device) {
 }
 
 void test_cxx11_tensor_builtins_sycl() {
-  cl::sycl::gpu_selector s;
-  QueueInterface queueInterface(s);
-  Eigen::SyclDevice sycl_device(&queueInterface);
-  CALL_SUBTEST(test_builtin_unary_sycl(sycl_device));
-  CALL_SUBTEST(test_builtin_binary_sycl(sycl_device));
+  for (const auto& device : cl::sycl::device::get_devices()) {
+    /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
+    auto s=  device.template get_info<cl::sycl::info::device::vendor>();
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if(!device.is_cpu() || s.find("amd")==std::string::npos){
+      QueueInterface queueInterface(device);
+      Eigen::SyclDevice sycl_device(&queueInterface);
+      CALL_SUBTEST(test_builtin_unary_sycl(sycl_device));
+      CALL_SUBTEST(test_builtin_binary_sycl(sycl_device));
+    }
+  }
 }

@@ -40,16 +40,17 @@ void run(Expr &expr, Dev &dev) {
     dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
       // create a tuple of accessors from Evaluator
       auto tuple_of_accessors = internal::createTupleOfAccessors<decltype(evaluator)>(cgh, evaluator);
-      size_t range, GRange, tileSize;
-      dev.parallel_for_setup(utility::tuple::get<0>(tuple_of_accessors).get_range()[0]/sizeof(typename Expr::Scalar), tileSize, range, GRange);
+      typename Expr::Index range, GRange, tileSize;
+      dev.parallel_for_setup(static_cast<typename Expr::Index>(evaluator.dimensions().TotalSize()), tileSize, range, GRange);
 
       // run the kernel
       cgh.parallel_for<PlaceHolderExpr>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
         typedef  typename internal::ConvertToDeviceExpression<Expr>::Type DevExpr;
         auto device_expr =internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
         auto device_evaluator = Eigen::TensorEvaluator<decltype(device_expr.expr), Eigen::DefaultDevice>(device_expr.expr, Eigen::DefaultDevice());
-        if (itemID.get_global_linear_id() < range) {
-          device_evaluator.evalScalar(static_cast<typename DevExpr::Index>(itemID.get_global_linear_id()));
+        typename DevExpr::Index gId = static_cast<typename DevExpr::Index>(itemID.get_global_linear_id());
+        if (gId < range) {
+          device_evaluator.evalScalar(gId);
         }
       });
     });

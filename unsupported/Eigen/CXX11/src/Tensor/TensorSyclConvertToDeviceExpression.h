@@ -48,9 +48,9 @@ struct DeviceConvertor{
 /// specialisation of the \ref ConvertToDeviceExpression struct when the node
 /// type is TensorMap
 #define TENSORMAPCONVERT(CVQual)\
-template <typename T,  int Options2_, template <class> class MakePointer_>\
-struct ConvertToDeviceExpression<CVQual TensorMap<T, Options2_, MakePointer_> > {\
-  typedef CVQual TensorMap<T, Options2_, MakeGlobalPointer> Type;\
+template <typename T,  int Options_, template <class> class MakePointer_>\
+struct ConvertToDeviceExpression<CVQual TensorMap<T, Options_, MakePointer_> > {\
+  typedef CVQual TensorMap<T, Options_, MakeGlobalPointer> Type;\
 };
 
 TENSORMAPCONVERT(const)

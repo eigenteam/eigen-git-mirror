@@ -72,6 +72,10 @@ template<typename DataType> void sycl_device_test_per_device(const cl::sycl::dev
 
 void test_cxx11_tensor_device_sycl() {
   for (const auto& device : cl::sycl::device::get_devices()) {
-    CALL_SUBTEST(sycl_device_test_per_device<float>(device));
+    /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
+    auto s=  device.template get_info<cl::sycl::info::device::vendor>();
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if(!device.is_cpu() || s.find("amd")==std::string::npos)
+      CALL_SUBTEST(sycl_device_test_per_device<float>(device));
   }
 }

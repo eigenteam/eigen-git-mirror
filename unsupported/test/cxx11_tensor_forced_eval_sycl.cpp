@@ -70,12 +70,11 @@ template <typename DataType, typename Dev_selector> void tensorForced_evalperDev
   test_forced_eval_sycl<DataType, ColMajor>(sycl_device);
 }
 void test_cxx11_tensor_forced_eval_sycl() {
-
-    printf("Test on GPU: OpenCL\n");
-    CALL_SUBTEST(tensorForced_evalperDevice<float>((cl::sycl::gpu_selector())));
-    printf("repeating the test on CPU: OpenCL\n");
-    CALL_SUBTEST(tensorForced_evalperDevice<float>((cl::sycl::cpu_selector())));
-    printf("repeating the test on CPU: HOST\n");
-    CALL_SUBTEST(tensorForced_evalperDevice<float>((cl::sycl::host_selector())));
-    printf("Test Passed******************\n" );
+  for (const auto& device : cl::sycl::device::get_devices()) {
+    /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
+    auto s=  device.template get_info<cl::sycl::info::device::vendor>();
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if(!device.is_cpu() || s.find("amd")==std::string::npos)
+      CALL_SUBTEST(tensorForced_evalperDevice<float>(device));
+  }
 }

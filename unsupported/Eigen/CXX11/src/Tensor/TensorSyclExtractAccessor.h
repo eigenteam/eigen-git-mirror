@@ -57,8 +57,8 @@ struct AccessorConstructor{
     return utility::tuple::append(ExtractAccessor<Arg1>::getTuple(cgh, eval1),utility::tuple::append(ExtractAccessor<Arg2>::getTuple(cgh, eval2), ExtractAccessor<Arg3>::getTuple(cgh, eval3)));
   }
   template< cl::sycl::access::mode AcM, typename Arg> static inline auto getAccessor(cl::sycl::handler& cgh, Arg eval)
-  -> decltype(utility::tuple::make_tuple( eval.device().template get_sycl_accessor<AcM>(eval.dimensions().TotalSize(), cgh,eval.data()))){
-    return utility::tuple::make_tuple(eval.device().template get_sycl_accessor<AcM>(eval.dimensions().TotalSize(), cgh,eval.data()));
+  -> decltype(utility::tuple::make_tuple( eval.device().template get_sycl_accessor<AcM>(cgh,eval.data()))){
+    return utility::tuple::make_tuple(eval.device().template get_sycl_accessor<AcM>(cgh,eval.data()));
   }
 };
 
