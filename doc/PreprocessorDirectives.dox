@@ -97,29 +97,33 @@ run time. However, these assertions do cost time and can thus be turned off.
 
 \section TopicPreprocessorDirectivesPerformance Alignment, vectorization and performance tweaking
 
- - \b EIGEN_MALLOC_ALREADY_ALIGNED - Can be set to 0 or 1 to tell whether default system \c malloc already
+ - \b \c EIGEN_MALLOC_ALREADY_ALIGNED - Can be set to 0 or 1 to tell whether default system \c malloc already
    returns aligned buffers. In not defined, then this information is automatically deduced from the compiler
    and system preprocessor tokens.
- - \b EIGEN_DONT_ALIGN - disables alignment completely. %Eigen will not try to align its objects and does not
-   expect that any objects passed to it are aligned. This will turn off vectorization. Not defined by default.
- - \b EIGEN_DONT_ALIGN_STATICALLY - disables alignment of arrays on the stack. Not defined by default, unless
-   \c EIGEN_DONT_ALIGN is defined.
- - \b EIGEN_DONT_PARALLELIZE - if defined, this disables multi-threading. This is only relevant if you enabled OpenMP.
+ - \b \c EIGEN_MAX_ALIGN_BYTES - Must be a power of two, or 0. Defines an upper bound on the memory boundary in bytes on which dynamically and statically allocated data may be aligned by %Eigen. If not defined, a default value is automatically computed based on architecture, compiler, and OS.
+ This option is typically used to enforce binary compatibility between code/libraries compiled with different SIMD options. For instance, one may compile AVX code and enforce ABI compatibility with existing SSE code by defining \c EIGEN_MAX_ALIGN_BYTES=16. In the other way round, since by default AVX implies 32 bytes alignment for best performance, one can compile SSE code to be ABI compatible with AVX code by defining \c EIGEN_MAX_ALIGN_BYTES=32.
+ - \b \c EIGEN_MAX_STATIC_ALIGN_BYTES - Same as \c EIGEN_MAX_ALIGN_BYTES but for statically allocated data only. By default, if only  \c EIGEN_MAX_ALIGN_BYTES is defined, then \c EIGEN_MAX_STATIC_ALIGN_BYTES == \c EIGEN_MAX_ALIGN_BYTES, otherwise a default value is automatically computed based on architecture, compiler, and OS (can be smaller than the default value of EIGEN_MAX_ALIGN_BYTES on architectures that do not support stack alignment).
+ Let us emphasize that \c EIGEN_MAX_*_ALIGN_BYTES define only a diserable upper bound. In practice data is aligned to largest power-of-two common divisor of \c EIGEN_MAX_STATIC_ALIGN_BYTES and the size of the data, such that memory is not wasted.
+ - \b \c EIGEN_DONT_PARALLELIZE - if defined, this disables multi-threading. This is only relevant if you enabled OpenMP.
    See \ref TopicMultiThreading for details.
  - \b EIGEN_DONT_VECTORIZE - disables explicit vectorization when defined. Not defined by default, unless 
    alignment is disabled by %Eigen's platform test or the user defining \c EIGEN_DONT_ALIGN.
- - \b EIGEN_UNALIGNED_VECTORIZE - disables/enables vectorization with unaligned stores. Default is 1 (enabled).
+ - \b \c EIGEN_UNALIGNED_VECTORIZE - disables/enables vectorization with unaligned stores. Default is 1 (enabled).
    If set to 0 (disabled), then expression for which the destination cannot be aligned are not vectorized (e.g., unaligned
    small fixed size vectors or matrices)
- - \b EIGEN_FAST_MATH - enables some optimizations which might affect the accuracy of the result. This currently
+ - \b \c EIGEN_FAST_MATH - enables some optimizations which might affect the accuracy of the result. This currently
    enables the SSE vectorization of sin() and cos(), and speedups sqrt() for single precision. Defined to 1 by default.
    Define it to 0 to disable.
- - \b EIGEN_UNROLLING_LIMIT - defines the size of a loop to enable meta unrolling. Set it to zero to disable
+ - \b \c EIGEN_UNROLLING_LIMIT - defines the size of a loop to enable meta unrolling. Set it to zero to disable
    unrolling. The size of a loop here is expressed in %Eigen's own notion of "number of FLOPS", it does not
    correspond to the number of iterations or the number of instructions. The default is value 100.
- - \b EIGEN_STACK_ALLOCATION_LIMIT - defines the maximum bytes for a buffer to be allocated on the stack. For internal
+ - \b \c EIGEN_STACK_ALLOCATION_LIMIT - defines the maximum bytes for a buffer to be allocated on the stack. For internal
    temporary buffers, dynamic memory allocation is employed as a fall back. For fixed-size matrices or arrays, exceeding
    this threshold raises a compile time assertion. Use 0 to set no limit. Default is 128 KB.
+
+
+ - \c EIGEN_DONT_ALIGN - Deprecated, it is a synonym for \c EIGEN_MAX_ALIGN_BYTES=0. It disables alignment completely. %Eigen will not try to align its objects and does not expect that any objects passed to it are aligned. This will turn off vectorization if \b EIGEN_UNALIGNED_VECTORIZE=1. Not defined by default.
+ - \c EIGEN_DONT_ALIGN_STATICALLY - Deprecated, it is a synonym for \c EIGEN_MAX_STATIC_ALIGN_BYTES=0. It disables alignment of arrays on the stack. Not defined by default, unless \c EIGEN_DONT_ALIGN is defined.
 
 
 \section TopicPreprocessorDirectivesPlugins Plugins
