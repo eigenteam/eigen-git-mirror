@@ -327,7 +327,7 @@ class PolynomialSolverBase
   * However, almost always, correct accuracy is reached even in these cases for 64bit
   * (double) floating types and small polynomial degree (<20).
   */
-template< typename _Scalar, int _Deg >
+template< typename _Scalar, int _Deg , typename EigenSolverType = EigenSolver<Matrix<_Scalar,_Deg,_Deg> > >
 class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
 {
   public:
@@ -337,7 +337,7 @@ class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
     EIGEN_POLYNOMIAL_SOLVER_BASE_INHERITED_TYPES( PS_Base )
 
     typedef Matrix<Scalar,_Deg,_Deg>                 CompanionMatrixType;
-    typedef EigenSolver<CompanionMatrixType>         EigenSolverType;
+    //typedef EigenSolver<CompanionMatrixType>         EigenSolverType;
 
   public:
     /** Computes the complex roots of a new polynomial. */
