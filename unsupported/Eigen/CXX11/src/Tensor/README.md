@@ -1737,11 +1737,9 @@ TODO
 
 ## Representation of scalar values
 
-Scalar values are often represented by tensors of size 1 and rank 1. It would be
-more logical and user friendly to use tensors of rank 0 instead. For example
-Tensor<T, N>::maximum() currently returns a Tensor<T, 1>. Similarly, the inner
-product of 2 1d tensors (through contractions) returns a 1d tensor. In the
-future these operations might be updated to return 0d tensors instead.
+Scalar values are often represented by tensors of size 1 and rank 0.For example
+Tensor<T, N>::maximum() currently returns a Tensor<T, 0>. Similarly, the inner
+product of 2 1d tensors (through contractions) returns a 0d tensor.
 
 ## Limitations
 
