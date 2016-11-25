@@ -21,6 +21,15 @@ namespace Eigen {
 template<typename T> struct MakePointer {
   typedef T* Type;
 };
+#if defined(EIGEN_USE_SYCL)
+namespace TensorSycl {
+namespace internal{
+template < typename HostExpr, typename PlaceHolderExpr, typename FunctorExpr, typename Tuple_of_Acc, typename Dims, typename Op, typename Index> class ReductionFunctor;
+template <typename T> class MemCopyFunctor;
+}
+}
+#endif
+
 
 template<typename PlainObjectType, int Options_ = Unaligned, template <class> class MakePointer_ = MakePointer> class TensorMap;
 template<typename Scalar_, int NumIndices_, int Options_ = 0, typename IndexType = DenseIndex> class Tensor;

@@ -17,6 +17,23 @@
 
 namespace Eigen {
 
+auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
+  auto devices = cl::sycl::device::get_devices();
+  std::vector<cl::sycl::device>::iterator it =devices.begin();
+  while(it!=devices.end()) {
+    /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
+    auto s=  (*it).template get_info<cl::sycl::info::device::vendor>();
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if((*it).is_cpu() && s.find("amd")!=std::string::npos){
+      it=devices.erase(it);
+    }
+    else{
+      ++it;
+    }
+  }
+  printf("Device size %ld\n", devices.size());
+  return devices;
+}
 #define ConvertToActualTypeSycl(T, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<T>::pointer_t>((&(*buf_acc.get_pointer())))
 
 struct QueueInterface {
@@ -109,27 +126,6 @@ struct QueueInterface {
   ~QueueInterface() { buffer_map.clear(); }
 };
 
-template <typename T> class MemCopyFunctor {
- public:
-  typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer> read_accessor;
-  typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> write_accessor;
-  MemCopyFunctor(read_accessor src_acc, write_accessor dst_acc, size_t rng, size_t i, size_t offset): m_src_acc(src_acc), m_dst_acc(dst_acc), m_rng(rng), m_i(i), m_offset(offset) {}
-  void operator()(cl::sycl::nd_item<1> itemID) {
-    auto src_ptr = ConvertToActualTypeSycl(T, m_src_acc);
-    auto dst_ptr = ConvertToActualTypeSycl(T, m_dst_acc);
-    auto globalid = itemID.get_global_linear_id();
-    if (globalid < m_rng) {
-      dst_ptr[globalid + m_i] = src_ptr[globalid + m_offset];
-    }
-  }
- private:
-  read_accessor m_src_acc;
-  write_accessor m_dst_acc;
-  size_t m_rng;
-  size_t m_i;
-  size_t m_offset;
-};
-
 struct SyclDevice {
   // class member.
   QueueInterface* m_queue_stream;
@@ -150,16 +146,16 @@ struct SyclDevice {
   }
 
   /// This is used to prepare the number of threads and also the number of threads per block for sycl kernels
-  template<typename T>
-  EIGEN_STRONG_INLINE void parallel_for_setup(T n, T &tileSize, T &rng, T &GRange)  const {
-    tileSize =static_cast<T>(sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2);
+  template<typename Index>
+  EIGEN_STRONG_INLINE void parallel_for_setup(Index n, Index &tileSize, Index &rng, Index &GRange)  const {
+    tileSize =static_cast<Index>(sycl_queue().get_device(). template get_info<cl::sycl::info::device::max_work_group_size>()/2);
     rng = n;
-    if (rng==0) rng=static_cast<T>(1);
+    if (rng==0) rng=static_cast<Index>(1);
     GRange=rng;
     if (tileSize>GRange) tileSize=GRange;
     else if(GRange>tileSize){
-      T xMode =  static_cast<T>(GRange % tileSize);
-      if (xMode != 0) GRange += static_cast<T>(tileSize - xMode);
+      Index xMode =  static_cast<Index>(GRange % tileSize);
+      if (xMode != 0) GRange += static_cast<Index>(tileSize - xMode);
     }
   }
   /// allocate device memory
@@ -188,7 +184,7 @@ struct SyclDevice {
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
       auto src_acc =it1->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
       auto dst_acc =it2->second.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
+      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), TensorSycl::internal::MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
     });
     sycl_queue().throw_asynchronous();
   }
@@ -219,7 +215,7 @@ struct SyclDevice {
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
       auto src_acc= it->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
       auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
+      cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), TensorSycl::internal::MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
     });
     sycl_queue().throw_asynchronous();
   }

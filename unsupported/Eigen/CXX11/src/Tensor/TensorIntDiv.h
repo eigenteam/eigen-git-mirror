@@ -37,6 +37,8 @@ namespace {
   {
 #ifdef __CUDA_ARCH__
     return __clz(val);
+#elif defined(__SYCL_DEVICE_ONLY__)
+    return cl::sycl::clz(val);
 #elif EIGEN_COMP_MSVC
     unsigned long index;
     _BitScanReverse(&index, val);
@@ -53,6 +55,8 @@ namespace {
   {
 #ifdef __CUDA_ARCH__
     return __clzll(val);
+#elif defined(__SYCL_DEVICE_ONLY__)
+    return cl::sycl::clz(val);
 #elif EIGEN_COMP_MSVC && EIGEN_ARCH_x86_64
     unsigned long index;
     _BitScanReverse64(&index, val);
@@ -88,6 +92,8 @@ namespace {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE uint32_t muluh(const uint32_t a, const T b) {
 #if defined(__CUDA_ARCH__)
     return __umulhi(a, b);
+#elif defined(__SYCL_DEVICE_ONLY__)
+    return cl::sycl::mul_hi(a, static_cast<uint32_t>(b));
 #else
     return (static_cast<uint64_t>(a) * b) >> 32;
 #endif
@@ -97,6 +103,8 @@ namespace {
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE uint64_t muluh(const uint64_t a, const T b) {
 #if defined(__CUDA_ARCH__)
     return __umul64hi(a, b);
+#elif defined(__SYCL_DEVICE_ONLY__)
+    return cl::sycl::mul_hi(a, static_cast<uint64_t>(b));
 #elif defined(__SIZEOF_INT128__)
     __uint128_t v = static_cast<__uint128_t>(a) * static_cast<__uint128_t>(b);
     return static_cast<uint64_t>(v >> 64);

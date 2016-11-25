@@ -136,21 +136,14 @@ template<typename DataType> void sycl_broadcast_test_per_device(const cl::sycl::
   test_broadcast_sycl<DataType, RowMajor, int>(sycl_device);
   test_broadcast_sycl_fixed<DataType, ColMajor, int>(sycl_device);
   test_broadcast_sycl<DataType, ColMajor, int>(sycl_device);
-
-
   test_broadcast_sycl<DataType, RowMajor, int64_t>(sycl_device);
   test_broadcast_sycl<DataType, ColMajor, int64_t>(sycl_device);
-  // the folowing two test breaks the intel gpu and amd gpu driver (cannot create opencl kernel)
-  // test_broadcast_sycl_fixed<DataType, RowMajor, int64_t>(sycl_device);
-  // test_broadcast_sycl_fixed<DataType, ColMajor, int64_t>(sycl_device);
+  test_broadcast_sycl_fixed<DataType, RowMajor, int64_t>(sycl_device);
+  test_broadcast_sycl_fixed<DataType, ColMajor, int64_t>(sycl_device);
 }
 
 void test_cxx11_tensor_broadcast_sycl() {
-  for (const auto& device : cl::sycl::device::get_devices()) {
-    /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
-    auto s=  device.template get_info<cl::sycl::info::device::vendor>();
-    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if(!device.is_cpu() || s.find("amd")==std::string::npos)
+  for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(sycl_broadcast_test_per_device<float>(device));
   }
 }

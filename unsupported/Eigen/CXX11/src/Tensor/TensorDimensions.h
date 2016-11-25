@@ -68,7 +68,13 @@ struct fixed_size_tensor_index_extraction_helper
                           const Dimensions& dimensions)
   {
     const Index mult = (index == n-1) ? 1 : 0;
-    return array_get<n-1>(dimensions) * mult +
+    return
+#ifdef EIGEN_USE_SYCL
+      utility::tuple::get<n-1>(dimensions)
+#else
+      array_get<n-1>(dimensions)
+#endif
+      * mult +
         fixed_size_tensor_index_extraction_helper<Index, n - 1>::run(index, dimensions);
   }
 };
@@ -92,6 +98,9 @@ struct fixed_size_tensor_index_extraction_helper<Index, 0>
 template <typename std::ptrdiff_t... Indices>
 struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
   typedef internal::numeric_list<std::ptrdiff_t, Indices...> Base;
+  #ifdef EIGEN_USE_SYCL
+  const decltype(utility::tuple::make_tuple(Indices...)) t= utility::tuple::make_tuple(Indices...);
+  #endif
   static const std::ptrdiff_t total_size = internal::arg_prod(Indices...);
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t rank() const {
@@ -120,7 +129,11 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const std::size_t index) const {
+#ifdef EIGEN_USE_SYCL
+    return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count>::run(index, t);
+#else
     return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count>::run(index, *this);
+#endif
   }
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE

@@ -47,8 +47,6 @@ template<typename T> struct GetType<false, T>{
 }
 }
 
-// tuple construction
-#include "TensorSyclTuple.h"
 
 // counting number of leaf at compile time
 #include "TensorSyclLeafCount.h"
@@ -77,6 +75,8 @@ template<typename T> struct GetType<false, T>{
 
 // kernel execution using fusion
 #include "TensorSyclRun.h"
+//sycl functors
+#include "TensorSyclFunctors.h"
 
 #endif  // end of EIGEN_USE_SYCL
 #endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_H
