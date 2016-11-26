@@ -394,10 +394,10 @@ struct sparse_conjunction_evaluator<XprType, IteratorBased, IteratorBased>
 {
 protected:
   typedef typename XprType::Functor BinaryOp;
-  typedef typename XprType::Lhs Lhs;
-  typedef typename XprType::Rhs Rhs;
-  typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
-  typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
+  typedef typename XprType::Lhs LhsArg;
+  typedef typename XprType::Rhs RhsArg;
+  typedef typename evaluator<LhsArg>::InnerIterator  LhsIterator;
+  typedef typename evaluator<RhsArg>::InnerIterator  RhsIterator;
   typedef typename XprType::StorageIndex StorageIndex;
   typedef typename traits<XprType>::Scalar Scalar;
 public:
@@ -449,7 +449,7 @@ public:
   
   
   enum {
-    CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
+    CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
     Flags = XprType::Flags
   };
   
@@ -468,8 +468,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  evaluator<Lhs> m_lhsImpl;
-  evaluator<Rhs> m_rhsImpl;
+  evaluator<LhsArg> m_lhsImpl;
+  evaluator<RhsArg> m_rhsImpl;
 };
 
 // "dense ^ sparse"
@@ -479,10 +479,10 @@ struct sparse_conjunction_evaluator<XprType, IndexBased, IteratorBased>
 {
 protected:
   typedef typename XprType::Functor BinaryOp;
-  typedef typename XprType::Lhs Lhs;
-  typedef typename XprType::Rhs Rhs;
-  typedef evaluator<Lhs>  LhsEvaluator;
-  typedef typename evaluator<Rhs>::InnerIterator  RhsIterator;
+  typedef typename XprType::Lhs LhsArg;
+  typedef typename XprType::Rhs RhsArg;
+  typedef evaluator<LhsArg> LhsEvaluator;
+  typedef typename evaluator<RhsArg>::InnerIterator  RhsIterator;
   typedef typename XprType::StorageIndex StorageIndex;
   typedef typename traits<XprType>::Scalar Scalar;
 public:
@@ -490,7 +490,7 @@ public:
   class ReverseInnerIterator;
   class InnerIterator
   {
-    enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
+    enum { IsRowMajor = (int(RhsArg::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
     
@@ -522,9 +522,9 @@ public:
   
   
   enum {
-    CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
+    CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
     // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(Rhs::Flags)&RowMajorBit)
+    Flags = (XprType::Flags & ~RowMajorBit) | (int(RhsArg::Flags)&RowMajorBit)
   };
   
   explicit sparse_conjunction_evaluator(const XprType& xpr)
@@ -542,8 +542,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  evaluator<Lhs> m_lhsImpl;
-  evaluator<Rhs> m_rhsImpl;
+  evaluator<LhsArg> m_lhsImpl;
+  evaluator<RhsArg> m_rhsImpl;
 };
 
 // "sparse ^ dense"
@@ -553,10 +553,10 @@ struct sparse_conjunction_evaluator<XprType, IteratorBased, IndexBased>
 {
 protected:
   typedef typename XprType::Functor BinaryOp;
-  typedef typename XprType::Lhs Lhs;
-  typedef typename XprType::Rhs Rhs;
-  typedef typename evaluator<Lhs>::InnerIterator  LhsIterator;
-  typedef evaluator<Rhs>  RhsEvaluator;
+  typedef typename XprType::Lhs LhsArg;
+  typedef typename XprType::Rhs RhsArg;
+  typedef typename evaluator<LhsArg>::InnerIterator LhsIterator;
+  typedef evaluator<RhsArg> RhsEvaluator;
   typedef typename XprType::StorageIndex StorageIndex;
   typedef typename traits<XprType>::Scalar Scalar;
 public:
@@ -564,7 +564,7 @@ public:
   class ReverseInnerIterator;
   class InnerIterator
   {
-    enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
+    enum { IsRowMajor = (int(LhsArg::Flags)&RowMajorBit)==RowMajorBit };
 
   public:
     
@@ -590,16 +590,16 @@ public:
     
   protected:
     LhsIterator m_lhsIter;
-    const evaluator<Rhs> &m_rhsEval;
+    const evaluator<RhsArg> &m_rhsEval;
     const BinaryOp& m_functor;
     const Index m_outer;
   };
   
   
   enum {
-    CoeffReadCost = evaluator<Lhs>::CoeffReadCost + evaluator<Rhs>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
+    CoeffReadCost = evaluator<LhsArg>::CoeffReadCost + evaluator<RhsArg>::CoeffReadCost + functor_traits<BinaryOp>::Cost,
     // Expose storage order of the sparse expression
-    Flags = (XprType::Flags & ~RowMajorBit) | (int(Lhs::Flags)&RowMajorBit)
+    Flags = (XprType::Flags & ~RowMajorBit) | (int(LhsArg::Flags)&RowMajorBit)
   };
   
   explicit sparse_conjunction_evaluator(const XprType& xpr)
@@ -617,8 +617,8 @@ public:
 
 protected:
   const BinaryOp m_functor;
-  evaluator<Lhs> m_lhsImpl;
-  evaluator<Rhs> m_rhsImpl;
+  evaluator<LhsArg> m_lhsImpl;
+  evaluator<RhsArg> m_rhsImpl;
 };
 
 }

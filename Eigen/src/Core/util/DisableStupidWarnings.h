@@ -42,6 +42,9 @@
     #pragma clang diagnostic push
   #endif
   #pragma clang diagnostic ignored "-Wconstant-logical-operand"
+  #if __clang_major__ >= 3 && __clang_minor__ >= 5
+    #pragma clang diagnostic ignored "-Wabsolute-value"
+  #endif
 
 #elif defined __GNUC__ && __GNUC__>=6
 
