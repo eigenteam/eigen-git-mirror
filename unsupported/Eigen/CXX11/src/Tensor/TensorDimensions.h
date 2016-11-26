@@ -33,7 +33,7 @@ namespace Eigen {
 namespace internal {
 
 template<std::size_t n, typename Dimension> struct dget {
-  static const std::size_t value = get<n, Dimension>::value;
+  static const std::ptrdiff_t value = get<n, Dimension>::value;
 };
 
 
