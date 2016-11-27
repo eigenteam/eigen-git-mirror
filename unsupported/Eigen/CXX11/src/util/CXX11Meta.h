@@ -123,7 +123,7 @@ template<typename a, typename... as>                      struct get<0, type_lis
 template<typename T, int n, T a, T... as>                        struct get<n, numeric_list<T, a, as...>>   : get<n-1, numeric_list<T, as...>> {};
 template<typename T, T a, T... as>                               struct get<0, numeric_list<T, a, as...>>   { constexpr static T value = a; };
 
-template<std::size_t n, typename T, T a, T... as> constexpr inline const T       array_get(const numeric_list<T, a, as...>& l) {
+template<std::size_t n, typename T, T a, T... as> constexpr inline const T       array_get(const numeric_list<T, a, as...>&) {
   return get<(int)n, numeric_list<T, a, as...>>::value;
 } 
 
