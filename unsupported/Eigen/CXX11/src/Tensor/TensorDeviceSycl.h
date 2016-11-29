@@ -31,7 +31,6 @@ auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
       ++it;
     }
   }
-  printf("Device size %ld\n", devices.size());
   return devices;
 }
 #define ConvertToActualTypeSycl(T, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<T>::pointer_t>((&(*buf_acc.get_pointer())))
@@ -93,11 +92,6 @@ struct QueueInterface {
     }
   }
 
-  EIGEN_STRONG_INLINE void deallocate_all() const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    buffer_map.clear();
-  }
-
   EIGEN_STRONG_INLINE std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator find_buffer(const void* ptr) const {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it1 = buffer_map.find(static_cast<const uint8_t*>(ptr));
@@ -118,10 +112,11 @@ struct QueueInterface {
   // underlying stream device.
   EIGEN_STRONG_INLINE bool ok() const {
     if (!exception_caught_) {
-      m_queue.throw_asynchronous();
+      m_queue.wait_and_throw();
     }
     return !exception_caught_;
   }
+
   // destructor
   ~QueueInterface() { buffer_map.clear(); }
 };
@@ -186,7 +181,7 @@ struct SyclDevice {
       auto dst_acc =it2->second.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), TensorSycl::internal::MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
     });
-    sycl_queue().throw_asynchronous();
+    synchronize();
   }
 
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
@@ -217,7 +212,7 @@ struct SyclDevice {
       auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), TensorSycl::internal::MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
     });
-    sycl_queue().throw_asynchronous();
+    synchronize();
   }
   /// returning the sycl queue
   EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
@@ -235,13 +230,13 @@ struct SyclDevice {
         }
       });
     });
-    sycl_queue().throw_asynchronous();
+    synchronize();
   }
   /// No need for sycl it should act the same as CPU version
   EIGEN_STRONG_INLINE int majorDeviceVersion() const { return 1; }
-  /// There is no need to synchronise the buffer in sycl as it is automatically handled by sycl runtime scheduler.
+
   EIGEN_STRONG_INLINE void synchronize() const {
-    sycl_queue().wait_and_throw();
+    sycl_queue().wait_and_throw(); //pass
   }
   // This function checks if the runtime recorded an error for the
   // underlying stream device.

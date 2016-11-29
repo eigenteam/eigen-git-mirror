@@ -81,7 +81,7 @@ static void run(BufferTOut& bufOut, BufferTIn& bufI, const Eigen::SyclDevice& de
                 });
           };
             dev.sycl_queue().submit(f);
-            dev.sycl_queue().throw_asynchronous();
+            dev.synchronize();
 
           /* At this point, you could queue::wait_and_throw() to ensure that
            * errors are caught quickly. However, this would likely impact
@@ -173,7 +173,7 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
           tmp_global_accessor.get_pointer()[0]+=InnerMostDimReducer<decltype(device_self_evaluator), Op, false>::reduce(device_self_evaluator, static_cast<typename DevExpr::Index>(red_factor*(rng)), static_cast<typename DevExpr::Index>(remaining), const_cast<Op&>(functor));
       });
     });
-    dev.sycl_queue().throw_asynchronous();
+    dev.synchronize();
 
 /// This is used to recursively reduce the tmp value to an element of 1;
   syclGenericBufferReducer<CoeffReturnType,HostExpr>::run(out_buffer, temp_global_buffer,dev, GRange,  outTileSize);
@@ -237,7 +237,7 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
   //      }
   //    });
     });
-    dev.sycl_queue().throw_asynchronous();
+    dev.synchronize();
     return false;
   }
 };

@@ -36,152 +36,164 @@ namespace internal {
 template <typename Evaluator> struct FunctorExtractor{
   typedef typename Evaluator::Dimensions Dimensions;
   const Dimensions m_dimensions;
-  const Dimensions& dimensions() const { return m_dimensions; }
+  EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
   FunctorExtractor(const Evaluator& expr)
   : m_dimensions(expr.dimensions()) {}
 
 };
-
 /// specialisation of the \ref FunctorExtractor struct when the node type is
-/// const TensorCwiseNullaryOp, const TensorCwiseUnaryOp, and const TensorBroadcastingOp
-template <template <class, class> class UnaryCategory, typename OP, typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<const UnaryCategory<OP, RHSExpr>, Dev> > {
-  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;
-  OP func;
-  FunctorExtractor(const TensorEvaluator<const UnaryCategory<OP, RHSExpr>, Dev>& expr)
-  : rhsExpr(expr.impl()), func(expr.functor()) {}
-};
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// TensorCwiseNullaryOp, TensorCwiseUnaryOp, and TensorBroadcastingOp
-template <template <class, class> class UnaryCategory, typename OP, typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<UnaryCategory<OP, RHSExpr>, Dev> >
-: FunctorExtractor<TensorEvaluator<const UnaryCategory<OP, RHSExpr>, Dev> >{};
-
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// const TensorCwiseBinaryOp
-template <template<class, class, class> class BinaryCategory, typename OP, typename LHSExpr, typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<const BinaryCategory<OP, LHSExpr, RHSExpr>, Dev> > {
-  FunctorExtractor<TensorEvaluator<LHSExpr, Dev> > lhsExpr;
-  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;
-  OP func;
-  FunctorExtractor(const TensorEvaluator<const BinaryCategory<OP, LHSExpr, RHSExpr>, Dev>& expr)
-  : lhsExpr(expr.left_impl()),rhsExpr(expr.right_impl()),func(expr.functor()) {}
+/// TensorCwiseNullaryOp,  TensorCwiseUnaryOp, and  TensorBroadcastingOp
+#define SYCLEXTRFUNCUNARY(CVQual)\
+template <template <class, class> class UnaryCategory, typename OP, typename RHSExpr, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual UnaryCategory<OP, RHSExpr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
+  OP func;\
+  FunctorExtractor(const TensorEvaluator<CVQual UnaryCategory<OP, RHSExpr>, Dev>& expr)\
+  : rhsExpr(expr.impl()), func(expr.functor()) {}\
 };
 
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// const TensorCwiseBinaryOp
-template <template <class, class, class> class BinaryCategory, typename OP, typename LHSExpr, typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<BinaryCategory<OP,  LHSExpr, RHSExpr>, Dev> >
-: FunctorExtractor<TensorEvaluator<const BinaryCategory<OP,  LHSExpr, RHSExpr>, Dev> >{};
+SYCLEXTRFUNCUNARY(const)
+SYCLEXTRFUNCUNARY()
+#undef SYCLEXTRFUNCUNARY
 
 /// specialisation of the \ref FunctorExtractor struct when the node type is
-/// const TensorCwiseTernaryOp
-template <template <class, class, class, class> class TernaryCategory, typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr,typename Dev>
-struct FunctorExtractor<TensorEvaluator<const TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> > {
-  FunctorExtractor<TensorEvaluator<Arg1Expr, Dev> > arg1Expr;
-  FunctorExtractor<TensorEvaluator<Arg2Expr, Dev> > arg2Expr;
-  FunctorExtractor<TensorEvaluator<Arg3Expr, Dev> > arg3Expr;
-  OP func;
-  FunctorExtractor(const TensorEvaluator<const TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev>& expr)
-  : arg1Expr(expr.arg1Impl()), arg2Expr(expr.arg2Impl()), arg3Expr(expr.arg3Impl()), func(expr.functor()) {}
+/// TensorCwiseBinaryOp
+#define SYCLEXTRFUNCBIINARY(CVQual)\
+template <template<class, class, class> class BinaryCategory, typename OP, typename LHSExpr, typename RHSExpr, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual BinaryCategory<OP, LHSExpr, RHSExpr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<LHSExpr, Dev> > lhsExpr;\
+  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
+  OP func;\
+  FunctorExtractor(const TensorEvaluator<CVQual BinaryCategory<OP, LHSExpr, RHSExpr>, Dev>& expr)\
+  : lhsExpr(expr.left_impl()),rhsExpr(expr.right_impl()),func(expr.functor()) {}\
 };
 
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// TensorCwiseTernaryOp
-template <template <class, class, class, class> class TernaryCategory, typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr, typename Dev>
-struct FunctorExtractor<TensorEvaluator< TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> >
-:FunctorExtractor<TensorEvaluator<const TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> >{};
+SYCLEXTRFUNCBIINARY(const)
+SYCLEXTRFUNCBIINARY()
+#undef SYCLEXTRFUNCBIINARY
 
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// const TensorCwiseSelectOp. This is an specialisation without OP so it has to be separated.
-template <typename IfExpr, typename ThenExpr, typename ElseExpr, typename Dev>
-struct FunctorExtractor< TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> > {
-  FunctorExtractor<TensorEvaluator<IfExpr, Dev> > ifExpr;
-  FunctorExtractor<TensorEvaluator<ThenExpr, Dev> > thenExpr;
-  FunctorExtractor<TensorEvaluator<ElseExpr, Dev> > elseExpr;
-  FunctorExtractor(const TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev>& expr)
-  : ifExpr(expr.cond_impl()), thenExpr(expr.then_impl()), elseExpr(expr.else_impl()) {}
+/// specialisation of the \ref FunctorExtractor struct when the node type is TensorCwiseTernaryOp
+#define SYCLEXTRFUNCTERNARY(CVQual)\
+template <template <class, class, class, class> class TernaryCategory, typename OP, typename Arg1Expr, typename Arg2Expr, typename Arg3Expr,typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<Arg1Expr, Dev> > arg1Expr;\
+  FunctorExtractor<TensorEvaluator<Arg2Expr, Dev> > arg2Expr;\
+  FunctorExtractor<TensorEvaluator<Arg3Expr, Dev> > arg3Expr;\
+  OP func;\
+  FunctorExtractor(const TensorEvaluator<CVQual TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev>& expr)\
+  : arg1Expr(expr.arg1Impl()), arg2Expr(expr.arg2Impl()), arg3Expr(expr.arg3Impl()), func(expr.functor()) {}\
 };
 
+SYCLEXTRFUNCTERNARY(const)
+SYCLEXTRFUNCTERNARY()
+#undef SYCLEXTRFUNCTERNARY
+
 /// specialisation of the \ref FunctorExtractor struct when the node type is
-/// TensorCwiseSelectOp. This is an specialisation without OP so it has to be separated
-template <typename IfExpr, typename ThenExpr, typename ElseExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> >
-:FunctorExtractor< TensorEvaluator<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> > {};
+/// TensorCwiseSelectOp. This is an specialisation without OP so it has to be separated.
+#define SYCLEXTRFUNCSELECTOP(CVQual)\
+template <typename IfExpr, typename ThenExpr, typename ElseExpr, typename Dev>\
+struct FunctorExtractor< TensorEvaluator<CVQual TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<IfExpr, Dev> > ifExpr;\
+  FunctorExtractor<TensorEvaluator<ThenExpr, Dev> > thenExpr;\
+  FunctorExtractor<TensorEvaluator<ElseExpr, Dev> > elseExpr;\
+  FunctorExtractor(const TensorEvaluator<CVQual TensorSelectOp<IfExpr, ThenExpr, ElseExpr>, Dev>& expr)\
+  : ifExpr(expr.cond_impl()), thenExpr(expr.then_impl()), elseExpr(expr.else_impl()) {}\
+};
+
+SYCLEXTRFUNCSELECTOP(const)
+SYCLEXTRFUNCSELECTOP()
+#undef SYCLEXTRFUNCSELECTOP
 
 /// specialisation of the \ref FunctorExtractor struct when the node type is
 /// const TensorAssignOp. This is an specialisation without OP so it has to be separated.
-template <typename LHSExpr, typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev> > {
-  FunctorExtractor<TensorEvaluator<LHSExpr, Dev> > lhsExpr;
-  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;
-  FunctorExtractor(const TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev>& expr)
-  : lhsExpr(expr.left_impl()), rhsExpr(expr.right_impl()) {}
+#define SYCLEXTRFUNCASSIGNOP(CVQual)\
+template <typename LHSExpr, typename RHSExpr, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorAssignOp<LHSExpr, RHSExpr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<LHSExpr, Dev> > lhsExpr;\
+  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
+  FunctorExtractor(const TensorEvaluator<CVQual TensorAssignOp<LHSExpr, RHSExpr>, Dev>& expr)\
+  : lhsExpr(expr.left_impl()), rhsExpr(expr.right_impl()) {}\
+};
+SYCLEXTRFUNCASSIGNOP(const)
+SYCLEXTRFUNCASSIGNOP()
+#undef SYCLEXTRFUNCASSIGNOP
+
+/// specialisation of the \ref FunctorExtractor struct when the node type is
+/// TensorEvalToOp, This is an specialisation without OP so it has to be separated.
+#define SYCLEXTRFUNCEVALTOOP(CVQual)\
+template <typename RHSExpr, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorEvalToOp<RHSExpr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
+  FunctorExtractor(const TensorEvaluator<CVQual TensorEvalToOp<RHSExpr>, Dev>& expr)\
+  : rhsExpr(expr.impl()) {}\
 };
 
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// TensorAssignOp. This is an specialisation without OP so it has to be separated.
-template <typename LHSExpr, typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<TensorAssignOp<LHSExpr, RHSExpr>, Dev> >
-:FunctorExtractor<TensorEvaluator<const TensorAssignOp<LHSExpr, RHSExpr>, Dev> >{};
-
-
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// const TensorEvalToOp, This is an specialisation without OP so it has to be separated.
-template <typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<const TensorEvalToOp<RHSExpr>, Dev> > {
-  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;
-  FunctorExtractor(const TensorEvaluator<const TensorEvalToOp<RHSExpr>, Dev>& expr)
-  : rhsExpr(expr.impl()) {}
-};
-
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// TensorEvalToOp. This is a specialisation without OP so it has to be separated.
-template <typename RHSExpr, typename Dev>
-struct FunctorExtractor<TensorEvaluator<TensorEvalToOp<RHSExpr>, Dev> >
-: FunctorExtractor<TensorEvaluator<const TensorEvalToOp<RHSExpr>, Dev> > {};
+SYCLEXTRFUNCEVALTOOP(const)
+SYCLEXTRFUNCEVALTOOP()
+#undef SYCLEXTRFUNCEVALTOOP
 
 template<typename Dim, size_t NumOutputDim> struct DimConstr {
 template<typename InDim>
-  static inline Dim getDim(InDim dims ) {return dims;}
+  static EIGEN_STRONG_INLINE Dim getDim(InDim dims ) {return dims;}
 };
 
 template<typename Dim> struct DimConstr<Dim, 0> {
   template<typename InDim>
-    static inline Dim getDim(InDim dims ) {return Dim(static_cast<Dim>(dims.TotalSize()));}
+    static EIGEN_STRONG_INLINE Dim getDim(InDim dims ) {return Dim(static_cast<Dim>(dims.TotalSize()));}
 };
 
-template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
-struct FunctorExtractor<TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>{
-  typedef TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Evaluator;
-  typedef typename Eigen::internal::conditional<Evaluator::NumOutputDims==0, DSizes<typename Evaluator::Index, 1>, typename Evaluator::Dimensions >::type Dimensions;
-  const Dimensions m_dimensions;
-  const Dimensions& dimensions() const { return m_dimensions; }
-  FunctorExtractor(const TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>& expr)
-  : m_dimensions(DimConstr<Dimensions, Evaluator::NumOutputDims>::getDim(expr.dimensions())) {}
+#define SYCLEXTRFUNCREDUCTIONOP(CVQual)\
+template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>{\
+  typedef TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device> Evaluator;\
+  typedef typename Eigen::internal::conditional<Evaluator::NumOutputDims==0, DSizes<typename Evaluator::Index, 1>, typename Evaluator::Dimensions >::type Dimensions;\
+  const Dimensions m_dimensions;\
+  EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }\
+  FunctorExtractor(const TensorEvaluator<CVQual TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>& expr)\
+  : m_dimensions(DimConstr<Dimensions, Evaluator::NumOutputDims>::getDim(expr.dimensions())) {}\
 };
 
 
-template<typename Op, typename Dims, typename ArgType, template <class> class MakePointer_, typename Device>
-struct FunctorExtractor<TensorEvaluator<TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>
-: FunctorExtractor<TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>, Device>>{};
+SYCLEXTRFUNCREDUCTIONOP(const)
+SYCLEXTRFUNCREDUCTIONOP()
+#undef SYCLEXTRFUNCREDUCTIONOP
 
 /// specialisation of the \ref FunctorExtractor struct when the node type is
 /// const TensorSlicingOp. This is an specialisation without OP so it has to be separated.
-template <typename StartIndices, typename Sizes, typename XprType, typename Dev>
-struct FunctorExtractor<TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> > {
-  FunctorExtractor<TensorEvaluator<XprType, Dev> > xprExpr;
-  const StartIndices m_offsets;
-  const Sizes m_dimensions;
-  FunctorExtractor(const TensorEvaluator<const  TensorSlicingOp<StartIndices, Sizes, XprType>, Dev>& expr)
-  : xprExpr(expr.impl()), m_offsets(expr.startIndices()), m_dimensions(expr.dimensions()) {}
-  EIGEN_STRONG_INLINE const StartIndices& startIndices() const {return m_offsets;}
-  EIGEN_STRONG_INLINE const Sizes& dimensions() const {return m_dimensions;}
+#define SYCLEXTRFUNCTSLICEOP(CVQual)\
+template <typename StartIndices, typename Sizes, typename XprType, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<XprType, Dev> > xprExpr;\
+  const StartIndices m_offsets;\
+  const Sizes m_dimensions;\
+  FunctorExtractor(const TensorEvaluator<CVQual  TensorSlicingOp<StartIndices, Sizes, XprType>, Dev>& expr)\
+  : xprExpr(expr.impl()), m_offsets(expr.startIndices()), m_dimensions(expr.dimensions()) {}\
+  EIGEN_STRONG_INLINE const StartIndices& startIndices() const {return m_offsets;}\
+  EIGEN_STRONG_INLINE const Sizes& dimensions() const {return m_dimensions;}\
 };
 
-template <typename StartIndices, typename Sizes, typename XprType, typename Dev>
-struct FunctorExtractor<TensorEvaluator<TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> >
-:FunctorExtractor<TensorEvaluator<const TensorSlicingOp<StartIndices, Sizes, XprType>, Dev> > {};
+SYCLEXTRFUNCTSLICEOP(const)
+SYCLEXTRFUNCTSLICEOP()
+#undef SYCLEXTRFUNCTSLICEOP
+
+// Had to separate reshapeOP otherwise it will be mistaken by UnaryCategory
+#define SYCLRESHAPEANDSHUFFLEOPFUNCEXT(OPEXPR, FUNCCALL, CVQual)\
+template<typename Param, typename XprType, typename Dev>\
+struct FunctorExtractor<Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprType>, Dev> > {\
+  FunctorExtractor<Eigen::TensorEvaluator<XprType, Dev> > xprExpr;\
+  const Param m_param;\
+  EIGEN_STRONG_INLINE const Param& param() const { return m_param; }\
+  FunctorExtractor(const Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprType>, Dev>& expr)\
+  : xprExpr(expr.impl()), m_param(expr.FUNCCALL) {}\
+};
+
+SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorReshapingOp, dimensions(), const)
+SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorReshapingOp, dimensions(), )
+
+SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorShufflingOp, shufflePermutation(), const)
+SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorShufflingOp, shufflePermutation(), )
+#undef SYCLRESHAPEOPEXPR
+
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>
 auto inline extractFunctors(const Evaluator& evaluator)-> FunctorExtractor<Evaluator> {

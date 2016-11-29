@@ -54,7 +54,7 @@ void run(Expr &expr, Dev &dev) {
         }
       });
     });
-      dev.sycl_queue().throw_asynchronous();
+      dev.synchronize();
   }
 
   evaluator.cleanup();

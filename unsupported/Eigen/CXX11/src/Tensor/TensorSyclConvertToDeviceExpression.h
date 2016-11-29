@@ -124,6 +124,20 @@ KERNELBROKERCONVERTSLICEOP(const)
 KERNELBROKERCONVERTSLICEOP()
 #undef KERNELBROKERCONVERTSLICEOP
 
+
+#define KERNELBROKERCONVERTRESHAPEANDSHUFFLEOP(OPEXPR, CVQual)\
+template<typename Param, typename XprType>\
+struct ConvertToDeviceExpression<CVQual OPEXPR <Param, XprType> >{\
+  typedef CVQual OPEXPR<Param, typename ConvertToDeviceExpression<XprType>::Type> Type;\
+};
+
+KERNELBROKERCONVERTRESHAPEANDSHUFFLEOP(TensorReshapingOp, const)
+KERNELBROKERCONVERTRESHAPEANDSHUFFLEOP(TensorReshapingOp, )
+
+KERNELBROKERCONVERTRESHAPEANDSHUFFLEOP(TensorShufflingOp, const)
+KERNELBROKERCONVERTRESHAPEANDSHUFFLEOP(TensorShufflingOp, )
+#undef KERNELBROKERCONVERTRESHAPEANDSHUFFLEOP
+
 }  // namespace internal
 }  // namespace TensorSycl
 }  // namespace Eigen

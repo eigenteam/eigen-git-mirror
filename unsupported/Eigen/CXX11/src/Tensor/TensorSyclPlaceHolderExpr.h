@@ -180,6 +180,18 @@ SLICEOPEXPR(const)
 SLICEOPEXPR()
 #undef SLICEOPEXPR
 
+#define RESHAPEANDSHUFFLEOPPLH(OPEXP , CVQual)\
+template<typename Param, typename XprType, size_t N>\
+struct PlaceHolderExpression<CVQual OPEXP<Param, XprType>, N > {\
+  typedef CVQual OPEXP<Param, typename CalculateIndex<N, XprType>::ArgType> Type;\
+};
+
+RESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, const)
+RESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, )
+
+RESHAPEANDSHUFFLEOPPLH(TensorShufflingOp, const)
+RESHAPEANDSHUFFLEOPPLH(TensorShufflingOp,)
+#undef RESHAPEANDSHUFFLEOPPLH
 
 /// template deduction for \ref PlaceHolderExpression struct
 template <typename Expr>

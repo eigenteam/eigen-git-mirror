@@ -197,7 +197,6 @@ template<typename DataType, typename dev_Selector> void sycl_computing_test_per_
   test_sycl_computations<DataType, ColMajor>(sycl_device);
 }
 void test_cxx11_tensor_sycl() {
-  auto devices =Eigen::get_sycl_supported_devices();
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(sycl_computing_test_per_device<float>(device));
   }

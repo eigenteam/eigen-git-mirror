@@ -44,77 +44,97 @@ struct CategoryCount<Arg,Args...>{
 };
 
 /// specialisation of the \ref LeafCount struct when the node type is const TensorMap
-template <typename PlainObjectType, int Options_, template <class> class MakePointer_>
-struct LeafCount<const TensorMap<PlainObjectType, Options_, MakePointer_> > {
-  static const size_t Count =1;
+#define SYCLTENSORMAPLEAFCOUNT(CVQual)\
+template <typename PlainObjectType, int Options_, template <class> class MakePointer_>\
+struct LeafCount<CVQual TensorMap<PlainObjectType, Options_, MakePointer_> > {\
+  static const size_t Count =1;\
 };
 
-/// specialisation of the \ref LeafCount struct when the node type is TensorMap
-template <typename PlainObjectType, int Options_, template <class> class MakePointer_>
-struct LeafCount<TensorMap<PlainObjectType, Options_, MakePointer_> > :LeafCount<const TensorMap<PlainObjectType, Options_, MakePointer_> >{};
+SYCLTENSORMAPLEAFCOUNT(const)
+SYCLTENSORMAPLEAFCOUNT()
+#undef SYCLTENSORMAPLEAFCOUNT
 
-// const TensorCwiseUnaryOp, const TensorCwiseNullaryOp, const TensorCwiseBinaryOp, const TensorCwiseTernaryOp, and Const TensorBroadcastingOp
-template <template <class, class...> class CategoryExpr, typename OP, typename... RHSExpr>
-struct LeafCount<const CategoryExpr<OP, RHSExpr...> >: CategoryCount<RHSExpr...> {};
-// TensorCwiseUnaryOp,  TensorCwiseNullaryOp,  TensorCwiseBinaryOp,  TensorCwiseTernaryOp, and  TensorBroadcastingOp
-template <template <class, class...> class CategoryExpr, typename OP, typename... RHSExpr>
-struct LeafCount<CategoryExpr<OP, RHSExpr...> > :LeafCount<const CategoryExpr<OP, RHSExpr...> >{};
+//  TensorCwiseUnaryOp,  TensorCwiseNullaryOp,  TensorCwiseBinaryOp,  TensorCwiseTernaryOp, and  TensorBroadcastingOp
+#define SYCLCATEGORYLEAFCOUNT(CVQual)\
+template <template <class, class...> class CategoryExpr, typename OP, typename... RHSExpr>\
+struct LeafCount<CVQual CategoryExpr<OP, RHSExpr...> >: CategoryCount<RHSExpr...> {};
+
+SYCLCATEGORYLEAFCOUNT(const)
+SYCLCATEGORYLEAFCOUNT()
+#undef SYCLCATEGORYLEAFCOUNT
 
 /// specialisation of the \ref LeafCount struct when the node type is const TensorSelectOp is an exception
-template <typename IfExpr, typename ThenExpr, typename ElseExpr>
-struct LeafCount<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr> > : CategoryCount<IfExpr, ThenExpr, ElseExpr> {};
-/// specialisation of the \ref LeafCount struct when the node type is TensorSelectOp
-template <typename IfExpr, typename ThenExpr, typename ElseExpr>
-struct LeafCount<TensorSelectOp<IfExpr, ThenExpr, ElseExpr> >: LeafCount<const TensorSelectOp<IfExpr, ThenExpr, ElseExpr> > {};
+#define SYCLSELECTOPLEAFCOUNT(CVQual)\
+template <typename IfExpr, typename ThenExpr, typename ElseExpr>\
+struct LeafCount<CVQual TensorSelectOp<IfExpr, ThenExpr, ElseExpr> > : CategoryCount<IfExpr, ThenExpr, ElseExpr> {};
+
+SYCLSELECTOPLEAFCOUNT(const)
+SYCLSELECTOPLEAFCOUNT()
+#undef SYCLSELECTOPLEAFCOUNT
 
 
-/// specialisation of the \ref LeafCount struct when the node type is const TensorAssignOp
-template <typename LHSExpr, typename RHSExpr>
-struct LeafCount<const TensorAssignOp<LHSExpr, RHSExpr> >: CategoryCount<LHSExpr,RHSExpr> {};
+/// specialisation of the \ref LeafCount struct when the node type is TensorAssignOp
+#define SYCLLEAFCOUNTASSIGNOP(CVQual)\
+template <typename LHSExpr, typename RHSExpr>\
+struct LeafCount<CVQual TensorAssignOp<LHSExpr, RHSExpr> >: CategoryCount<LHSExpr,RHSExpr> {};
 
-/// specialisation of the \ref LeafCount struct when the node type is
-/// TensorAssignOp is an exception. It is not the same as Unary
-template <typename LHSExpr, typename RHSExpr>
-struct LeafCount<TensorAssignOp<LHSExpr, RHSExpr> > :LeafCount<const TensorAssignOp<LHSExpr, RHSExpr> >{};
+SYCLLEAFCOUNTASSIGNOP(const)
+SYCLLEAFCOUNTASSIGNOP()
+#undef SYCLLEAFCOUNTASSIGNOP
 
 /// specialisation of the \ref LeafCount struct when the node type is const TensorForcedEvalOp
-template <typename Expr>
-struct LeafCount<const TensorForcedEvalOp<Expr> > {
-    static const size_t Count =1;
+#define SYCLFORCEDEVALLEAFCOUNT(CVQual)\
+template <typename Expr>\
+struct LeafCount<CVQual TensorForcedEvalOp<Expr> > {\
+    static const size_t Count =1;\
 };
 
-/// specialisation of the \ref LeafCount struct when the node type is TensorForcedEvalOp
-template <typename Expr>
-struct LeafCount<TensorForcedEvalOp<Expr> >: LeafCount<const TensorForcedEvalOp<Expr> > {};
-
-/// specialisation of the \ref LeafCount struct when the node type is const TensorEvalToOp
-template <typename Expr>
-struct LeafCount<const TensorEvalToOp<Expr> > {
-  static const size_t Count = 1 + CategoryCount<Expr>::Count;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is const TensorReductionOp
-template <typename OP, typename Dim, typename Expr>
-struct LeafCount<const TensorReductionOp<OP, Dim, Expr> > {
-    static const size_t Count =1;
-};
-
-/// specialisation of the \ref LeafCount struct when the node type is TensorReductionOp
-template <typename OP, typename Dim, typename Expr>
-struct LeafCount<TensorReductionOp<OP, Dim, Expr> >: LeafCount<const TensorReductionOp<OP, Dim, Expr> >{};
-
-/// specialisation of the \ref LeafCount struct when the node type is const TensorSlicingOp
-template <typename StartIndices, typename Sizes, typename XprType>
-struct LeafCount<const TensorSlicingOp<StartIndices, Sizes, XprType> >:CategoryCount<XprType>{};
-
-/// specialisation of the \ref LeafCount struct when the node type is TensorSlicingOp
-template <typename StartIndices, typename Sizes, typename XprType>
-struct LeafCount<TensorSlicingOp<StartIndices, Sizes, XprType> >
-: LeafCount<const TensorSlicingOp<StartIndices, Sizes, XprType> >{};
+SYCLFORCEDEVALLEAFCOUNT(const)
+SYCLFORCEDEVALLEAFCOUNT()
+#undef SYCLFORCEDEVALLEAFCOUNT
 
 /// specialisation of the \ref LeafCount struct when the node type is TensorEvalToOp
-template <typename Expr>
-struct LeafCount<TensorEvalToOp<Expr> >: LeafCount<const TensorEvalToOp<Expr> >{};
+#define EVALTOLEAFCOUNT(CVQual)\
+template <typename Expr>\
+struct LeafCount<CVQual TensorEvalToOp<Expr> > {\
+  static const size_t Count = 1 + CategoryCount<Expr>::Count;\
+};
+
+EVALTOLEAFCOUNT(const)
+EVALTOLEAFCOUNT()
+#undef EVALTOLEAFCOUNT
+
+/// specialisation of the \ref LeafCount struct when the node type is const TensorReductionOp
+#define REDUCTIONLEAFCOUNT(CVQual)\
+template <typename OP, typename Dim, typename Expr>\
+struct LeafCount<CVQual TensorReductionOp<OP, Dim, Expr> > {\
+    static const size_t Count =1;\
+};
+
+REDUCTIONLEAFCOUNT(const)
+REDUCTIONLEAFCOUNT()
+#undef REDUCTIONLEAFCOUNT
+
+/// specialisation of the \ref LeafCount struct when the node type is  TensorSlicingOp
+#define SLICEOPLEAFCOUNT(CVQual)\
+template <typename StartIndices, typename Sizes, typename XprType>\
+struct LeafCount<CVQual TensorSlicingOp<StartIndices, Sizes, XprType> >:CategoryCount<XprType>{};
+
+SLICEOPLEAFCOUNT(const)
+SLICEOPLEAFCOUNT()
+#undef SLICEOPLEAFCOUNT
+
+#define RESHAPEANDSHUFFLELEAFCOUNT(OPEXPR, CVQual)\
+template<typename Param, typename XprType>\
+struct LeafCount<CVQual OPEXPR<Param, XprType> >:CategoryCount<XprType>{};
+
+RESHAPEANDSHUFFLELEAFCOUNT(TensorReshapingOp, const)
+RESHAPEANDSHUFFLELEAFCOUNT(TensorReshapingOp, )
+
+RESHAPEANDSHUFFLELEAFCOUNT(TensorShufflingOp, const)
+RESHAPEANDSHUFFLELEAFCOUNT(TensorShufflingOp, )
+#undef RESHAPEANDSHUFFLELEAFCOUNT
+
 
 } /// namespace TensorSycl
 } /// namespace internal
