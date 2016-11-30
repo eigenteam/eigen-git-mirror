@@ -17,7 +17,7 @@
 
 namespace Eigen {
 
-auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
+EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
   auto devices = cl::sycl::device::get_devices();
   std::vector<cl::sycl::device>::iterator it =devices.begin();
   while(it!=devices.end()) {
