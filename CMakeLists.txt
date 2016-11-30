@@ -380,7 +380,7 @@ else()
       )
 endif()
 set(CMAKEPACKAGE_INSTALL_DIR
-    "${CMAKE_INSTALL_LIBDIR}/cmake/eigen3"
+    "${CMAKE_INSTALL_DATADIR}/eigen3/cmake"
     CACHE PATH "The directory relative to CMAKE_PREFIX_PATH where Eigen3Config.cmake is installed"
     )
 set(PKGCONFIG_INSTALL_DIR
@@ -534,8 +534,15 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
     INSTALL_DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
     NO_CHECK_REQUIRED_COMPONENTS_MACRO # Eigen does not provide components
   )
+  # Remove CMAKE_SIZEOF_VOID_P from Eigen3ConfigVersion.cmake since Eigen does
+  # not depend on architecture specific settings or libraries. More
+  # specifically, an Eigen3Config.cmake generated from a 64 bit target can be
+  # used for 32 bit targets as well (and vice versa).
+  set (_Eigen3_CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P})
+  unset (CMAKE_SIZEOF_VOID_P)
   write_basic_package_version_file (Eigen3ConfigVersion.cmake
     VERSION ${EIGEN_VERSION_NUMBER} COMPATIBILITY SameMajorVersion)
+  set (CMAKE_SIZEOF_VOID_P ${_Eigen3_CMAKE_SIZEOF_VOID_P})
 
   # The Eigen target will be located in the Eigen3 namespace. Other CMake
   # targets can refer to it using Eigen3::Eigen.
