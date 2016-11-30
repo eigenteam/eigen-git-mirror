@@ -25,7 +25,8 @@ template<int Rows, int Cols, int Depth> struct product_type_selector;
 template<int Size, int MaxSize> struct product_size_category
 {
   enum { is_large = MaxSize == Dynamic ||
-                    Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD,
+                    Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ||
+                    (Size==Dynamic && MaxSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD),
          value = is_large  ? Large
                : Size == 1 ? 1
                            : Small
