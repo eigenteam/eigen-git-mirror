@@ -168,12 +168,12 @@ template <typename Idx> struct IndexPair {
 #ifdef EIGEN_HAS_SFINAE
 namespace internal {
 
-  template<typename IndexType, Index... Is>
+  template<typename IndexType, typename Index, Index... Is>
   EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array<Index, sizeof...(Is)> customIndices2Array(IndexType& idx, numeric_list<Index, Is...>) {
     return { idx[Is]... };
   }
-  template<typename IndexType>
+  template<typename IndexType, typename Index>
   EIGEN_CONSTEXPR EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   array<Index, 0> customIndices2Array(IndexType&, numeric_list<Index>) {
     return array<Index, 0>();
