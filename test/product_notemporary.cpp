@@ -136,6 +136,10 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( rm3.noalias() -= (cv1) * (rv1 * m1), 1 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (m1*cv1) * (rv1 * m1), 2 );
   VERIFY_EVALUATION_COUNT( rm3.noalias() += (m1*cv1) * (rv1 * m1), 2 );
+
+  // Check nested products
+  VERIFY_EVALUATION_COUNT( cvres.noalias() = m1.adjoint() * m1 * cv1, 1 );
+  VERIFY_EVALUATION_COUNT( rvres.noalias() = rv1 * (m1 * m2.adjoint()), 1 );
 }
 
 void test_product_notemporary()
