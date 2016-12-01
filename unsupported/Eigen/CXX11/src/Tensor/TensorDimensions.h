@@ -68,8 +68,7 @@ struct fixed_size_tensor_index_extraction_helper
                           const Dimensions& dimensions)
   {
     const Index mult = (index == n-1) ? 1 : 0;
-    return
-      array_get<n-1>(dimensions) * mult +
+    return array_get<n-1>(dimensions) * mult +
         fixed_size_tensor_index_extraction_helper<Index, n - 1>::run(index, dimensions);
   }
 };
@@ -96,7 +95,6 @@ struct Sizes {
   const Base t = Base();
   static const std::ptrdiff_t total_size = internal::arg_prod(Indices...);
   static const size_t count = Base::count;
-
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t rank() const {
     return Base::count;
