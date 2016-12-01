@@ -273,7 +273,6 @@ struct evaluator<SparseCompressedBase<Derived> >
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::InnerIterator InnerIterator;
-  typedef typename Derived::ReverseInnerIterator ReverseInnerIterator;
   
   enum {
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
