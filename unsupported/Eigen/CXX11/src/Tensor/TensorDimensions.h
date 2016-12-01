@@ -69,12 +69,7 @@ struct fixed_size_tensor_index_extraction_helper
   {
     const Index mult = (index == n-1) ? 1 : 0;
     return
-#ifdef EIGEN_USE_SYCL
-      utility::tuple::get<n-1>(dimensions)
-#else
-      array_get<n-1>(dimensions)
-#endif
-      * mult +
+      array_get<n-1>(dimensions) * mult +
         fixed_size_tensor_index_extraction_helper<Index, n - 1>::run(index, dimensions);
   }
 };
@@ -96,12 +91,12 @@ struct fixed_size_tensor_index_extraction_helper<Index, 0>
 // Fixed size
 #ifndef EIGEN_EMULATE_CXX11_META_H
 template <typename std::ptrdiff_t... Indices>
-struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
+struct Sizes {
   typedef internal::numeric_list<std::ptrdiff_t, Indices...> Base;
-  #ifdef EIGEN_USE_SYCL
-  const decltype(utility::tuple::make_tuple(Indices...)) t= utility::tuple::make_tuple(Indices...);
-  #endif
+  const Base t = Base();
   static const std::ptrdiff_t total_size = internal::arg_prod(Indices...);
+  static const size_t count = Base::count;
+
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t rank() const {
     return Base::count;
@@ -129,20 +124,16 @@ struct Sizes : internal::numeric_list<std::ptrdiff_t, Indices...> {
   }
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE std::ptrdiff_t operator[] (const std::size_t index) const {
-#ifdef EIGEN_USE_SYCL
     return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count>::run(index, t);
-#else
-    return internal::fixed_size_tensor_index_extraction_helper<std::ptrdiff_t, Base::count>::run(index, *this);
-#endif
   }
 
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfColMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, false>::run(indices, *static_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, false>::run(indices, t);
   }
   template <typename DenseIndex> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   size_t IndexOfRowMajor(const array<DenseIndex, Base::count>& indices) const {
-    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, true>::run(indices, *static_cast<const Base*>(this));
+    return internal::fixed_size_tensor_index_linearization_helper<DenseIndex, Base::count, Base::count, true>::run(indices, t);
   }
 };
 
