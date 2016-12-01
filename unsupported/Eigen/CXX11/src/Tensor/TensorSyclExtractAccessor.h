@@ -209,7 +209,21 @@ SYCLSLICEOPEXTACC(const)
 SYCLSLICEOPEXTACC()
 #undef SYCLSLICEOPEXTACC
 
-#define RESHAPEANDSHUFFOPEXTRACC(OPEXPR, CVQual)\
+#define SYCLSLICESTRIDEOPEXTACC(CVQual)\
+template<typename StartIndices, typename StopIndices, typename Strides, typename XprType, typename Dev>\
+struct ExtractAccessor<TensorEvaluator<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType>, Dev> >{\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType>, Dev>& eval)\
+  -> decltype(AccessorConstructor::getTuple(cgh, eval.impl())){\
+    return AccessorConstructor::getTuple(cgh, eval.impl());\
+  }\
+};
+
+SYCLSLICESTRIDEOPEXTACC(const)
+SYCLSLICESTRIDEOPEXTACC()
+#undef SYCLSLICESTRIDEOPEXTACC
+
+
+#define PADDINGRESHAPEANDSHUFFOPEXTRACC(OPEXPR, CVQual)\
 template<typename Param, typename XprType, typename Dev>\
 struct ExtractAccessor<TensorEvaluator<CVQual OPEXPR<Param, XprType>, Dev> > {\
   static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual OPEXPR<Param, XprType>, Dev>& eval)\
@@ -217,13 +231,17 @@ struct ExtractAccessor<TensorEvaluator<CVQual OPEXPR<Param, XprType>, Dev> > {\
     return AccessorConstructor::getTuple(cgh, eval.impl());\
   }\
 };
+
+// tensor padding
+PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorPaddingOp, const)
+PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorPaddingOp, )
 // tensor reshaping
-RESHAPEANDSHUFFOPEXTRACC(TensorReshapingOp, const)
-RESHAPEANDSHUFFOPEXTRACC(TensorReshapingOp, )
+PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorReshapingOp, const)
+PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorReshapingOp, )
 /// Tensor shuffling
-RESHAPEANDSHUFFOPEXTRACC(TensorShufflingOp, const)
-RESHAPEANDSHUFFOPEXTRACC(TensorShufflingOp, )
-#undef RESHAPEANDSHUFFOPEXTRACC
+PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorShufflingOp, const)
+PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorShufflingOp, )
+#undef PADDINGRESHAPEANDSHUFFOPEXTRACC
 
 /// template deduction for \ref ExtractAccessor
 template <typename Evaluator>

@@ -200,9 +200,6 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
     /// creating the shared memory for calculating reduction.
     /// This one is used to collect all the reduced value of shared memory as we dont have global barrier on GPU. Once it is saved we can
     /// recursively apply reduction on it in order to reduce the whole.
-  //  Dims dims= self.xprDims();
-    //Op functor = reducer;
-
       dev.parallel_for_setup(num_coeffs_to_preserve, tileSize, range, GRange);
       dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
       // create a tuple of accessors from Evaluator
@@ -214,28 +211,6 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
       TensorSycl::internal::ReductionFunctor<HostExpr, PlaceHolderExpr,  FunctorExpr, Tuple_of_Acc, Dims, Op, typename Self::Index>
       (output_accessor, functors, tuple_of_accessors, self.xprDims(), reducer, range));
 
-
-  //     [=](cl::sycl::nd_item<1> itemID) {
-  //      typedef typename TensorSycl::internal::ConvertToDeviceExpression<const HostExpr>::Type DevExpr;
-  //      auto device_expr = TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-        /// reduction cannot be captured automatically through our device conversion recursion. The reason is that reduction has two behaviour
-        /// the first behaviour is when it is used as a root to lauch the sub-kernel. The second one is when it is treated as a leafnode to pass the
-        /// calculated result to its parent kernel. While the latter is automatically detected through our device expression generator. The former is created here.
-  //      const auto device_self_expr= TensorReductionOp<Op, Dims, decltype(device_expr.expr) ,MakeGlobalPointer>(device_expr.expr, dims, functor);
-        /// This is the evaluator for device_self_expr. This is exactly similar to the self which has been passed to run function. The difference is
-        /// the device_evaluator is detectable and recognisable on the device.
-  //      typedef Eigen::TensorEvaluator<decltype(device_self_expr), Eigen::DefaultDevice> DeviceSelf;
-  //      auto device_self_evaluator = Eigen::TensorEvaluator<decltype(device_self_expr), Eigen::DefaultDevice>(device_self_expr, Eigen::DefaultDevice());
-  //      auto output_accessor_ptr =ConvertToActualTypeSycl(typename DeviceSelf::CoeffReturnType, output_accessor);
-        /// const cast added as a naive solution to solve the qualifier drop error
-  //      auto globalid=itemID.get_global_linear_id();
-  //      if (globalid< range) {
-  //        typename DeviceSelf::CoeffReturnType accum = functor.initialize();
-  //        GenericDimReducer<DeviceSelf::NumReducedDims-1, DeviceSelf, Op>::reduce(device_self_evaluator, device_self_evaluator.firstInput(static_cast<typename DevExpr::Index>(globalid)),const_cast<Op&>(functor), &accum);
-  //        functor.finalize(accum);
-  //        output_accessor_ptr[globalid]= accum;
-  //      }
-  //    });
     });
     dev.synchronize();
     return false;

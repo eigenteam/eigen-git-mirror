@@ -826,7 +826,7 @@ template<typename T> T generic_fast_tanh_float(const T& a_x);
 
 namespace numext {
 
-#ifndef __CUDA_ARCH__
+#if !defined(__CUDA_ARCH__) && !defined(__SYCL_DEVICE_ONLY__)
 template<typename T>
 EIGEN_DEVICE_FUNC
 EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
@@ -842,6 +842,84 @@ EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
   EIGEN_USING_STD_MATH(max);
   return max EIGEN_NOT_A_MACRO (x,y);
 }
+
+
+#elif defined(__SYCL_DEVICE_ONLY__)
+template<typename T>
+EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
+{
+
+  return y < x ? y : x;
+}
+
+template<typename T>
+EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
+{
+
+  return x < y ? y : x;
+}
+
+EIGEN_ALWAYS_INLINE int mini(const int& x, const int& y)
+{
+  return cl::sycl::min(x,y);
+}
+
+EIGEN_ALWAYS_INLINE int maxi(const int& x, const int& y)
+{
+  return cl::sycl::max(x,y);
+}
+
+EIGEN_ALWAYS_INLINE unsigned int mini(const unsigned int& x, const unsigned int& y)
+{
+  return cl::sycl::min(x,y);
+}
+
+EIGEN_ALWAYS_INLINE unsigned int maxi(const unsigned int& x, const unsigned int& y)
+{
+  return cl::sycl::max(x,y);
+}
+
+EIGEN_ALWAYS_INLINE  long mini(const long & x, const long & y)
+{
+  return cl::sycl::min(x,y);
+}
+
+EIGEN_ALWAYS_INLINE  long maxi(const long & x, const long & y)
+{
+  return cl::sycl::max(x,y);
+}
+
+EIGEN_ALWAYS_INLINE unsigned long mini(const unsigned long& x, const unsigned long& y)
+{
+  return cl::sycl::min(x,y);
+}
+
+EIGEN_ALWAYS_INLINE unsigned long maxi(const unsigned long& x, const unsigned long& y)
+{
+  return cl::sycl::max(x,y);
+}
+
+
+EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
+{
+  return cl::sycl::fmin(x,y);
+}
+
+EIGEN_ALWAYS_INLINE float maxi(const float& x, const float& y)
+{
+  return cl::sycl::fmax(x,y);
+}
+
+EIGEN_ALWAYS_INLINE double mini(const double& x, const double& y)
+{
+  return cl::sycl::fmin(x,y);
+}
+
+EIGEN_ALWAYS_INLINE double maxi(const double& x, const double& y)
+{
+  return cl::sycl::fmax(x,y);
+}
+
 #else
 template<typename T>
 EIGEN_DEVICE_FUNC

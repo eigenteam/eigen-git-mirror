@@ -124,17 +124,27 @@ SLICEOPLEAFCOUNT(const)
 SLICEOPLEAFCOUNT()
 #undef SLICEOPLEAFCOUNT
 
-#define RESHAPEANDSHUFFLELEAFCOUNT(OPEXPR, CVQual)\
+#define SLICESTRIDEOPLEAFCOUNT(CVQual)\
+template<typename StartIndices, typename StopIndices, typename Strides, typename XprType>\
+struct LeafCount<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType> >:CategoryCount<XprType>{};
+
+SLICESTRIDEOPLEAFCOUNT(const)
+SLICESTRIDEOPLEAFCOUNT()
+#undef SLICESTRIDEOPLEAFCOUNT
+
+#define PADDINGRESHAPEANDSHUFFLELEAFCOUNT(OPEXPR, CVQual)\
 template<typename Param, typename XprType>\
 struct LeafCount<CVQual OPEXPR<Param, XprType> >:CategoryCount<XprType>{};
 
-RESHAPEANDSHUFFLELEAFCOUNT(TensorReshapingOp, const)
-RESHAPEANDSHUFFLELEAFCOUNT(TensorReshapingOp, )
+PADDINGRESHAPEANDSHUFFLELEAFCOUNT(TensorPaddingOp, const)
+PADDINGRESHAPEANDSHUFFLELEAFCOUNT(TensorPaddingOp, )
 
-RESHAPEANDSHUFFLELEAFCOUNT(TensorShufflingOp, const)
-RESHAPEANDSHUFFLELEAFCOUNT(TensorShufflingOp, )
-#undef RESHAPEANDSHUFFLELEAFCOUNT
+PADDINGRESHAPEANDSHUFFLELEAFCOUNT(TensorReshapingOp, const)
+PADDINGRESHAPEANDSHUFFLELEAFCOUNT(TensorReshapingOp, )
 
+PADDINGRESHAPEANDSHUFFLELEAFCOUNT(TensorShufflingOp, const)
+PADDINGRESHAPEANDSHUFFLELEAFCOUNT(TensorShufflingOp, )
+#undef PADDINGRESHAPEANDSHUFFLELEAFCOUNT
 
 } /// namespace TensorSycl
 } /// namespace internal

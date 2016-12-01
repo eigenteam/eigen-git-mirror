@@ -231,7 +231,7 @@ SYCLREDUCTIONEXPR()
 template<typename StartIndices, typename Sizes, typename OrigXprType, typename XprType, typename... Params>\
 struct ExprConstructor<CVQual TensorSlicingOp <StartIndices, Sizes, OrigXprType> , CVQual TensorSlicingOp<StartIndices, Sizes, XprType>, Params... >{\
   typedef ExprConstructor<OrigXprType, XprType, Params...> my_xpr_type;\
-  typedef CVQual TensorSlicingOp<StartIndices, Sizes, typename my_xpr_type::Type> Type ;\
+  typedef CVQual TensorSlicingOp<StartIndices, Sizes, typename my_xpr_type::Type> Type;\
   my_xpr_type xprExpr;\
   Type expr;\
   template <typename FuncDetector>\
@@ -243,6 +243,22 @@ SYCLSLICEOPEXPR(const)
 SYCLSLICEOPEXPR()
 #undef SYCLSLICEOPEXPR
 
+
+#define SYCLSLICESTRIDEOPEXPR(CVQual)\
+template<typename StartIndices, typename StopIndices, typename Strides, typename OrigXprType, typename XprType, typename... Params>\
+struct ExprConstructor<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, OrigXprType>, CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType>, Params... >{\
+  typedef ExprConstructor<OrigXprType, XprType, Params...> my_xpr_type;\
+  typedef CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, typename my_xpr_type::Type> Type;\
+  my_xpr_type xprExpr;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
+  : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr, funcD.startIndices(), funcD.stopIndices(),funcD.strides()) {}\
+};
+
+SYCLSLICESTRIDEOPEXPR(const)
+SYCLSLICESTRIDEOPEXPR()
+#undef SYCLSLICESTRIDEOPEXPR
 
 #define SYCLRESHAPEANDSHUFFLEOPEXPRCONST(OPEXPR, CVQual)\
 template<typename Param, typename OrigXprType, typename XprType, typename... Params>\
@@ -262,6 +278,23 @@ SYCLRESHAPEANDSHUFFLEOPEXPRCONST(TensorReshapingOp, )
 SYCLRESHAPEANDSHUFFLEOPEXPRCONST(TensorShufflingOp, const)
 SYCLRESHAPEANDSHUFFLEOPEXPRCONST(TensorShufflingOp, )
 #undef SYCLRESHAPEANDSHUFFLEOPEXPRCONST
+
+#define SYCLPADDINGOPEXPRCONST(OPEXPR, CVQual)\
+template<typename Param, typename OrigXprType, typename XprType, typename... Params>\
+struct ExprConstructor<CVQual OPEXPR <Param, OrigXprType> , CVQual OPEXPR <Param, XprType>, Params... >{\
+  typedef ExprConstructor<OrigXprType, XprType, Params...> my_xpr_type;\
+  typedef CVQual OPEXPR <Param, typename my_xpr_type::Type> Type ;\
+  my_xpr_type xprExpr;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
+  : xprExpr(funcD.xprExpr, t), expr(xprExpr.expr, funcD.param() , funcD.scalar_param()) {}\
+};
+
+SYCLPADDINGOPEXPRCONST(TensorPaddingOp, const)
+SYCLPADDINGOPEXPRCONST(TensorPaddingOp, )
+#undef SYCLPADDINGOPEXPRCONST
+
 
 
 /// template deduction for \ref ExprConstructor struct

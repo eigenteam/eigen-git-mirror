@@ -49,6 +49,11 @@ struct numeric_list {
   static constexpr std::size_t count = sizeof...(nn);
   const T values[count] = {nn...};
 };
+template<typename T>
+struct numeric_list<T>{
+  static constexpr std::size_t count = 0;
+  //Array of size zero strictly forbiden in ISO C++
+};
 
 #endif
 
