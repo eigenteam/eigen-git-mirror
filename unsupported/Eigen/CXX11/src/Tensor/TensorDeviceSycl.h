@@ -17,6 +17,32 @@
 
 namespace Eigen {
 
+  #define ConvertToActualTypeSycl(Scalar, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<Scalar>::pointer_t>((&(*buf_acc.get_pointer())))
+
+  template <typename Scalar> class MemCopyFunctor {
+  public:
+    typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer> read_accessor;
+    typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> write_accessor;
+
+    MemCopyFunctor(read_accessor src_acc, write_accessor dst_acc, size_t rng, size_t i, size_t offset): m_src_acc(src_acc), m_dst_acc(dst_acc), m_rng(rng), m_i(i), m_offset(offset) {}
+
+    void operator()(cl::sycl::nd_item<1> itemID) {
+      auto src_ptr = ConvertToActualTypeSycl(Scalar, m_src_acc);
+      auto dst_ptr = ConvertToActualTypeSycl(Scalar, m_dst_acc);
+      auto globalid = itemID.get_global_linear_id();
+      if (globalid < m_rng) {
+  dst_ptr[globalid + m_i] = src_ptr[globalid + m_offset];
+      }
+    }
+
+  private:
+    read_accessor m_src_acc;
+    write_accessor m_dst_acc;
+    size_t m_rng;
+    size_t m_i;
+    size_t m_offset;
+  };
+
 EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
   auto devices = cl::sycl::device::get_devices();
   std::vector<cl::sycl::device>::iterator it =devices.begin();
@@ -33,7 +59,6 @@ EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device
   }
   return devices;
 }
-#define ConvertToActualTypeSycl(T, buf_acc) reinterpret_cast<typename cl::sycl::global_ptr<T>::pointer_t>((&(*buf_acc.get_pointer())))
 
 struct QueueInterface {
   /// class members:
@@ -170,30 +195,6 @@ struct SyclDevice {
   // some runtime conditions that can be applied here
   EIGEN_STRONG_INLINE bool isDeviceSuitable() const { return true; }
 
-  template <typename T> class MemCopyFunctor {
-  public:
-    typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer> read_accessor;
-    typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> write_accessor;
-
-    MemCopyFunctor(read_accessor src_acc, write_accessor dst_acc, size_t rng, size_t i, size_t offset): m_src_acc(src_acc), m_dst_acc(dst_acc), m_rng(rng), m_i(i), m_offset(offset) {}
-
-    void operator()(cl::sycl::nd_item<1> itemID) {
-      auto src_ptr = ConvertToActualTypeSycl(T, m_src_acc);
-      auto dst_ptr = ConvertToActualTypeSycl(T, m_dst_acc);
-      auto globalid = itemID.get_global_linear_id();
-      if (globalid < m_rng) {
-	dst_ptr[globalid + m_i] = src_ptr[globalid + m_offset];
-      }
-    }
-
-  private:
-    read_accessor m_src_acc;
-    write_accessor m_dst_acc;
-    size_t m_rng;
-    size_t m_i;
-    size_t m_offset;
-  };
-
   /// the memcpy function
   template<typename T> EIGEN_STRONG_INLINE void memcpy(void *dst, const T *src, size_t n) const {
     auto it1 = m_queue_stream->find_buffer((void*)src);
@@ -259,6 +260,17 @@ struct SyclDevice {
       });
     });
     synchronize();
+  }
+
+  EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
+    // FIXME
+    return 48*1024;
+  }
+
+  EIGEN_STRONG_INLINE size_t lastLevelCacheSize() const {
+    // We won't try to take advantage of the l2 cache for the time being, and
+    // there is no l3 cache on cuda devices.
+    return firstLevelCacheSize();
   }
   /// No need for sycl it should act the same as CPU version
   EIGEN_STRONG_INLINE int majorDeviceVersion() const { return 1; }

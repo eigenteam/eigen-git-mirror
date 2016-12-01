@@ -180,18 +180,32 @@ SLICEOPEXPR(const)
 SLICEOPEXPR()
 #undef SLICEOPEXPR
 
-#define RESHAPEANDSHUFFLEOPPLH(OPEXP , CVQual)\
+
+#define SYCLSLICESTRIDEOPPLH(CVQual)\
+template<typename StartIndices, typename StopIndices, typename Strides, typename XprType, size_t N>\
+struct PlaceHolderExpression<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType>, N> {\
+  typedef CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, typename CalculateIndex<N, XprType>::ArgType> Type;\
+};
+
+SYCLSLICESTRIDEOPPLH(const)
+SYCLSLICESTRIDEOPPLH()
+#undef SYCLSLICESTRIDEOPPLH
+
+#define PADDINGRESHAPEANDSHUFFLEOPPLH(OPEXP , CVQual)\
 template<typename Param, typename XprType, size_t N>\
 struct PlaceHolderExpression<CVQual OPEXP<Param, XprType>, N > {\
   typedef CVQual OPEXP<Param, typename CalculateIndex<N, XprType>::ArgType> Type;\
 };
 
-RESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, const)
-RESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, )
+PADDINGRESHAPEANDSHUFFLEOPPLH(TensorPaddingOp, const)
+PADDINGRESHAPEANDSHUFFLEOPPLH(TensorPaddingOp,)
 
-RESHAPEANDSHUFFLEOPPLH(TensorShufflingOp, const)
-RESHAPEANDSHUFFLEOPPLH(TensorShufflingOp,)
-#undef RESHAPEANDSHUFFLEOPPLH
+PADDINGRESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, const)
+PADDINGRESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, )
+
+PADDINGRESHAPEANDSHUFFLEOPPLH(TensorShufflingOp, const)
+PADDINGRESHAPEANDSHUFFLEOPPLH(TensorShufflingOp,)
+#undef PADDINGRESHAPEANDSHUFFLEOPPLH
 
 /// template deduction for \ref PlaceHolderExpression struct
 template <typename Expr>

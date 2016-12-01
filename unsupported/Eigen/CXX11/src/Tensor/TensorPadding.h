@@ -200,6 +200,13 @@ struct TensorEvaluator<const TensorPaddingOp<PaddingDimensions, ArgType>, Device
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+  /// used by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const PaddingDimensions& padding() const { return m_padding; }
+  /// used by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar& padding_value() const { return m_paddingValue; }
+  /// used by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const{return m_impl;}
+
  private:
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE bool isPaddingAtIndexForDim(
       Index index, int dim_index) const {

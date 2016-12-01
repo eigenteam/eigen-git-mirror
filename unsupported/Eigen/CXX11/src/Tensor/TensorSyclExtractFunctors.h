@@ -176,6 +176,24 @@ SYCLEXTRFUNCTSLICEOP(const)
 SYCLEXTRFUNCTSLICEOP()
 #undef SYCLEXTRFUNCTSLICEOP
 
+#define SYCLEXTRFUNCTSLICESTRIDEOP(CVQual)\
+template<typename StartIndices, typename StopIndices, typename Strides, typename XprType, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorStridingSlicingOp<StartIndices, StopIndices, Strides, XprType>, Dev> >{\
+  FunctorExtractor<TensorEvaluator<XprType, Dev> > xprExpr;\
+  const StartIndices m_startIndices;\
+  const StopIndices m_stopIndices;\
+  const Strides m_strides;\
+  FunctorExtractor(const TensorEvaluator<CVQual  TensorStridingSlicingOp<StartIndices, StopIndices,Strides, XprType>, Dev>& expr)\
+  : xprExpr(expr.impl()), m_startIndices(expr.exprStartIndices()), m_stopIndices(expr.exprStopIndices()), m_strides(expr.strides()) {}\
+  EIGEN_STRONG_INLINE  const StartIndices& startIndices() const { return m_startIndices; }\
+  EIGEN_STRONG_INLINE  const StartIndices& stopIndices() const { return m_stopIndices; }\
+  EIGEN_STRONG_INLINE  const StartIndices& strides() const { return m_strides; }\
+};
+
+SYCLEXTRFUNCTSLICESTRIDEOP(const)
+SYCLEXTRFUNCTSLICESTRIDEOP()
+#undef SYCLEXTRFUNCTSLICESTRIDEOP
+
 // Had to separate reshapeOP otherwise it will be mistaken by UnaryCategory
 #define SYCLRESHAPEANDSHUFFLEOPFUNCEXT(OPEXPR, FUNCCALL, CVQual)\
 template<typename Param, typename XprType, typename Dev>\
@@ -192,7 +210,25 @@ SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorReshapingOp, dimensions(), )
 
 SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorShufflingOp, shufflePermutation(), const)
 SYCLRESHAPEANDSHUFFLEOPFUNCEXT(TensorShufflingOp, shufflePermutation(), )
-#undef SYCLRESHAPEOPEXPR
+#undef SYCLRESHAPEANDSHUFFLEOPFUNCEXT
+
+// Had to separate reshapeOP otherwise it will be mistaken by UnaryCategory
+#define PADDINGOPFUNCEXT(OPEXPR, FUNCCALL, SCALARFUNCCALL, CVQual)\
+template<typename Param, typename XprType, typename Dev>\
+struct FunctorExtractor<Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprType>, Dev> > {\
+  FunctorExtractor<Eigen::TensorEvaluator<XprType, Dev> > xprExpr;\
+  const Param m_param;\
+  typedef typename Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprType>, Dev>::Scalar Scalar;\
+  const Scalar m_scalar_param;\
+  EIGEN_STRONG_INLINE const Param& param() const { return m_param; }\
+  EIGEN_STRONG_INLINE const Scalar& scalar_param() const { return m_scalar_param; }\
+  FunctorExtractor(const Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprType>, Dev>& expr)\
+  : xprExpr(expr.impl()), m_param(expr.FUNCCALL), m_scalar_param(expr.SCALARFUNCCALL)  {}\
+};
+
+PADDINGOPFUNCEXT(TensorPaddingOp, padding(), padding_value(), const)
+PADDINGOPFUNCEXT(TensorPaddingOp, padding(), padding_value(), )
+#undef PADDINGOPFUNCEXT
 
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>

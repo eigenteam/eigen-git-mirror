@@ -723,7 +723,7 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   };
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
-      : m_impl(op.expression(), device), m_device(device), m_strides(op.strides())
+      : m_impl(op.expression(), device), m_device(device), m_strides(op.strides()), m_exprStartIndices(op.startIndices()), m_exprStopIndices(op.stopIndices())
   {
     // Handle degenerate intervals by gracefully clamping and allowing m_dimensions to be zero
     DSizes<Index,NumDims> startIndicesClamped, stopIndicesClamped;
@@ -828,6 +828,15 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     return NULL;
   }
 
+  //use by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const StartIndices& exprStartIndices() const { return m_exprStartIndices; }
+  //use by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE  const StartIndices& exprStopIndices() const { return m_exprStopIndices; }
+  //use by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE  const StartIndices& strides() const { return m_strides; }
+  /// used by sycl
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const TensorEvaluator<ArgType, Device>& impl() const{return m_impl;}
+
  protected:
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index srcCoeff(Index index) const
   {
@@ -862,6 +871,10 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
   DSizes<Index, NumDims> m_offsets; // offset in a flattened shape
   const Strides m_strides;
   std::size_t m_block_total_size_max;
+  //use by sycl
+  const StartIndices m_exprStartIndices;
+  //use by sycl
+  const StopIndices m_exprStopIndices;
 };
 
 // Eval as lvalue

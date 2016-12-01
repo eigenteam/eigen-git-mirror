@@ -148,6 +148,7 @@ if(EIGEN_TEST_CXX11)
     ei_add_test_sycl(cxx11_tensor_reduction_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_morphing_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_shuffling_sycl "-std=c++11")
+    ei_add_test_sycl(cxx11_tensor_padding_sycl "-std=c++11")
     ei_add_test_sycl(cxx11_tensor_builtins_sycl "-std=c++11")
   endif(EIGEN_TEST_SYCL)
   # It should be safe to always run these tests as there is some fallback code for
