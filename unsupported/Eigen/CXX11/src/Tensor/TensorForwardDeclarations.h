@@ -24,8 +24,7 @@ template<typename T> struct MakePointer {
 #if defined(EIGEN_USE_SYCL)
 namespace TensorSycl {
 namespace internal{
-template < typename HostExpr, typename PlaceHolderExpr, typename FunctorExpr, typename Tuple_of_Acc, typename Dims, typename Op, typename Index> class ReductionFunctor;
-template <typename T> class MemCopyFunctor;
+template <typename HostExpr, typename PlaceHolderExpr, typename FunctorExpr, typename Tuple_of_Acc, typename Dims, typename Op, typename Index> class ReductionFunctor;
 }
 }
 #endif
