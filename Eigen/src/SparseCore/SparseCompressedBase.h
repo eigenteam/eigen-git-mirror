@@ -261,8 +261,8 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
     const StorageIndex* m_indices;
     typedef internal::variable_if_dynamic<Index,Derived::IsVectorAtCompileTime?0:Dynamic> OuterType;
     const OuterType m_outer;
-    Index m_id;
     Index m_start;
+    Index m_id;
 };
 
 namespace internal {
