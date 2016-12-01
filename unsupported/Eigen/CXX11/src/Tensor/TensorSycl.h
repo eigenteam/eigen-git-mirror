@@ -47,6 +47,8 @@ template<typename T> struct GetType<false, T>{
 }
 }
 
+// tuple construction
+#include "TensorSyclTuple.h"
 
 // counting number of leaf at compile time
 #include "TensorSyclLeafCount.h"

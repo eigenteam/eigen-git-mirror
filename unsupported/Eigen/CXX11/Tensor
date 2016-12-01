@@ -82,8 +82,6 @@ typedef unsigned __int64 uint64_t;
 #endif
 #endif
 
-// tuple construction
-#include "src/Tensor/TensorSyclTuple.h"
 #include "src/Tensor/TensorMacros.h"
 #include "src/Tensor/TensorForwardDeclarations.h"
 #include "src/Tensor/TensorMeta.h"
