@@ -173,6 +173,13 @@ template<typename Scalar, typename PacketType,typename IndexType>
 struct has_unary_operator<linspaced_op<Scalar,PacketType>,IndexType> { enum { value = 1}; };
 template<typename Scalar, typename PacketType,typename IndexType>
 struct has_binary_operator<linspaced_op<Scalar,PacketType>,IndexType> { enum { value = 0}; };
+
+template<typename Scalar,typename IndexType>
+struct has_nullary_operator<scalar_random_op<Scalar>,IndexType> { enum { value = 1}; };
+template<typename Scalar,typename IndexType>
+struct has_unary_operator<scalar_random_op<Scalar>,IndexType> { enum { value = 0}; };
+template<typename Scalar,typename IndexType>
+struct has_binary_operator<scalar_random_op<Scalar>,IndexType> { enum { value = 0}; };
 #endif
 
 } // end namespace internal

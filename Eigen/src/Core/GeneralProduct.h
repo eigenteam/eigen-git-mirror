@@ -25,7 +25,8 @@ template<int Rows, int Cols, int Depth> struct product_type_selector;
 template<int Size, int MaxSize> struct product_size_category
 {
   enum { is_large = MaxSize == Dynamic ||
-                    Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD,
+                    Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ||
+                    (Size==Dynamic && MaxSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD),
          value = is_large  ? Large
                : Size == 1 ? 1
                            : Small
@@ -329,6 +330,7 @@ template<> struct gemv_dense_selector<OnTheRight,ColMajor,false>
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
+    EIGEN_STATIC_ASSERT((!nested_eval<Lhs,1>::Evaluate),EIGEN_INTERNAL_COMPILATION_ERROR_OR_YOU_MADE_A_PROGRAMMING_MISTAKE);
     // TODO if rhs is large enough it might be beneficial to make sure that dest is sequentially stored in memory, otherwise use a temp
     typename nested_eval<Rhs,1>::type actual_rhs(rhs);
     const Index size = rhs.rows();
@@ -342,6 +344,7 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,false>
   template<typename Lhs, typename Rhs, typename Dest>
   static void run(const Lhs &lhs, const Rhs &rhs, Dest& dest, const typename Dest::Scalar& alpha)
   {
+    EIGEN_STATIC_ASSERT((!nested_eval<Lhs,1>::Evaluate),EIGEN_INTERNAL_COMPILATION_ERROR_OR_YOU_MADE_A_PROGRAMMING_MISTAKE);
     typename nested_eval<Rhs,Lhs::RowsAtCompileTime>::type actual_rhs(rhs);
     const Index rows = dest.rows();
     for(Index i=0; i<rows; ++i)
