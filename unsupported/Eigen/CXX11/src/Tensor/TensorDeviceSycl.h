@@ -92,6 +92,11 @@ struct QueueInterface {
     }
   }
 
+  EIGEN_STRONG_INLINE void deallocate_all() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    buffer_map.clear();
+  }
+
   EIGEN_STRONG_INLINE std::map<const uint8_t *, cl::sycl::buffer<uint8_t,1>>::iterator find_buffer(const void* ptr) const {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it1 = buffer_map.find(static_cast<const uint8_t*>(ptr));
