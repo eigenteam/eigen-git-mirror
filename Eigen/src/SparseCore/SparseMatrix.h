@@ -786,30 +786,38 @@ class SparseMatrix
       EIGEN_DBG_SPARSE(
         s << "Nonzero entries:\n";
         if(m.isCompressed())
+        {
           for (Index i=0; i<m.nonZeros(); ++i)
             s << "(" << m.m_data.value(i) << "," << m.m_data.index(i) << ") ";
+        }
         else
+        {
           for (Index i=0; i<m.outerSize(); ++i)
           {
             Index p = m.m_outerIndex[i];
             Index pe = m.m_outerIndex[i]+m.m_innerNonZeros[i];
             Index k=p;
-            for (; k<pe; ++k)
+            for (; k<pe; ++k) {
               s << "(" << m.m_data.value(k) << "," << m.m_data.index(k) << ") ";
-            for (; k<m.m_outerIndex[i+1]; ++k)
+            }
+            for (; k<m.m_outerIndex[i+1]; ++k) {
               s << "(_,_) ";
+            }
           }
+        }
         s << std::endl;
         s << std::endl;
         s << "Outer pointers:\n";
-        for (Index i=0; i<m.outerSize(); ++i)
+        for (Index i=0; i<m.outerSize(); ++i) {
           s << m.m_outerIndex[i] << " ";
+        }
         s << " $" << std::endl;
         if(!m.isCompressed())
         {
           s << "Inner non zeros:\n";
-          for (Index i=0; i<m.outerSize(); ++i)
+          for (Index i=0; i<m.outerSize(); ++i) {
             s << m.m_innerNonZeros[i] << " ";
+          }
           s << " $" << std::endl;
         }
         s << std::endl;
