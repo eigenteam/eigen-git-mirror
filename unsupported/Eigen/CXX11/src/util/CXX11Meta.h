@@ -36,11 +36,21 @@ struct type_list { constexpr static int count = sizeof...(tt); };
 template<typename t, typename... tt>
 struct type_list<t, tt...> { constexpr static int count = sizeof...(tt) + 1; typedef t first_type; };
 
+#ifndef EIGEN_USE_SYCL
 template<typename T, T... nn>
 struct numeric_list { constexpr static std::size_t count = sizeof...(nn); };
 
 template<typename T, T n, T... nn>
-struct numeric_list<T, n, nn...> { constexpr static std::size_t count = sizeof...(nn) + 1; constexpr static T first_value = n; };
+struct numeric_list<T, n, nn...> { static const std::size_t count = sizeof...(nn) + 1; const static T first_value = n; };
+
+#else
+template<typename T, T... nn>
+struct numeric_list {
+  static constexpr std::size_t count = sizeof...(nn);
+  const T values[count] = {nn...};
+};
+
+#endif
 
 /* numeric list constructors
  *
@@ -123,9 +133,19 @@ template<typename a, typename... as>                      struct get<0, type_lis
 template<typename T, int n, T a, T... as>                        struct get<n, numeric_list<T, a, as...>>   : get<n-1, numeric_list<T, as...>> {};
 template<typename T, T a, T... as>                               struct get<0, numeric_list<T, a, as...>>   { constexpr static T value = a; };
 
-template<std::size_t n, typename T, T a, T... as> constexpr inline const T       array_get(const numeric_list<T, a, as...>&) {
-  return get<(int)n, numeric_list<T, a, as...>>::value;
-} 
+#ifndef EIGEN_USE_SYCL
+template<std::size_t n, typename T, T a, T... as> constexpr T       array_get(const numeric_list<T, a, as...>&) {
+   return get<(int)n, numeric_list<T, a, as...>>::value;
+}
+#else
+template<std::size_t n, typename T, T... as> constexpr T       array_get(const numeric_list<T, as...>& l) {
+   return l.values[n];
+}
+template<std::size_t n, typename T> constexpr T       array_get(const numeric_list<T>& ) {
+  return T(0);
+}
+
+#endif
 
 /* always get type, regardless of dummy; good for parameter pack expansion */
 
