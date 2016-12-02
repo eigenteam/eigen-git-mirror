@@ -45,7 +45,7 @@ struct linspaced_op_impl<Scalar,Packet,/*IsInteger*/false>
   linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
     m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/Scalar(num_steps-1)),
     m_interPacket(plset<Packet>(0)),
-    m_flip(std::abs(high)<std::abs(low))
+    m_flip(numext::abs(high)<numext::abs(low))
   {}
 
   template<typename IndexType>
