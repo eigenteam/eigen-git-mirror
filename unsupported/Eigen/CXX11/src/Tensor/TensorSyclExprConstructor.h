@@ -25,6 +25,15 @@
 namespace Eigen {
 namespace TensorSycl {
 namespace internal {
+
+template <typename Expr, typename Dims>
+struct DeviceFixedSizeTensor;
+
+template <typename Expr, typename std::ptrdiff_t... Indices>
+struct DeviceFixedSizeTensor<Expr, Eigen::Sizes<Indices...>>{
+  template<typename Data>
+  static EIGEN_ALWAYS_INLINE Expr instantiate(Data& dt) {return Expr(ConvertToActualTypeSycl(typename Expr::Scalar, dt), Indices...);}
+};
 /// this class is used by EvalToOp in order to create an lhs expression which is
 /// a pointer from an accessor on device-only buffer
 template <typename PtrType, size_t N, typename... Params>
@@ -60,6 +69,23 @@ CVQual PlaceHolder<CVQual TensorMap<T, Options_, MakePointer_>, N>, Params...>{\
 TENSORMAP(const)
 TENSORMAP()
 #undef TENSORMAP
+
+/// specialisation of the \ref ExprConstructor struct when the node type is
+/// TensorMap
+#define TENSORMAPFIXEDSIZE(CVQual)\
+template <typename Scalar_, typename Dimensions_, int Options_2, typename IndexType, int Options_,\
+template <class> class MakePointer_, size_t N, typename... Params>\
+struct ExprConstructor< CVQual TensorMap<TensorFixedSize<Scalar_, Dimensions_, Options_2, IndexType>, Options_, MakeGlobalPointer>,\
+CVQual PlaceHolder<CVQual TensorMap<TensorFixedSize<Scalar_, Dimensions_, Options_2, IndexType>, Options_, MakePointer_>, N>, Params...>{\
+  typedef  CVQual TensorMap<TensorFixedSize<Scalar_, Dimensions_, Options_2, IndexType>, Options_, MakeGlobalPointer>  Type;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &, const utility::tuple::Tuple<Params...> &t)\
+  : expr(DeviceFixedSizeTensor<Type,Dimensions_>::instantiate(utility::tuple::get<N>(t))){}\
+};
+TENSORMAPFIXEDSIZE(const)
+TENSORMAPFIXEDSIZE()
+#undef TENSORMAPFIXEDSIZE
 
 #define UNARYCATEGORY(CVQual)\
 template <template<class, class> class UnaryCategory, typename OP, typename OrigRHSExpr, typename RHSExpr, typename... Params>\

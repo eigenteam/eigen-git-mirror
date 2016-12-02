@@ -41,6 +41,17 @@ template <typename Evaluator> struct FunctorExtractor{
   : m_dimensions(expr.dimensions()) {}
 
 };
+
+#define SYCLEXTRTENSORMAPFIXEDSIZE(CVQual)\
+template <typename Scalar_, typename Dimensions_, int Options_2, typename IndexType, int Options_, template <class> class MakePointer_, typename Dev>\
+struct FunctorExtractor< TensorEvaluator <CVQual TensorMap<TensorFixedSize<Scalar_, Dimensions_, Options_2, IndexType>, Options_, MakePointer_> , Dev> >{\
+FunctorExtractor(const TensorEvaluator <CVQual TensorMap<TensorFixedSize<Scalar_, Dimensions_, Options_2, IndexType>, Options_, MakePointer_> , Dev>& ){}\
+};
+
+SYCLEXTRTENSORMAPFIXEDSIZE(const)
+SYCLEXTRTENSORMAPFIXEDSIZE()
+#undef SYCLEXTRTENSORMAPFIXEDSIZE
+
 /// specialisation of the \ref FunctorExtractor struct when the node type is
 /// TensorCwiseNullaryOp,  TensorCwiseUnaryOp, and  TensorBroadcastingOp
 #define SYCLEXTRFUNCUNARY(CVQual)\
