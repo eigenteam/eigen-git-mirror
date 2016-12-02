@@ -268,7 +268,7 @@ template<> __device__ EIGEN_STRONG_INLINE Eigen::half predux_mul<half2>(const ha
 #endif
 }
 
-template<> __device__ EIGEN_STRONG_INLINE half2 pexpm1<half2>(const half2& a) {
+template<> __device__ EIGEN_STRONG_INLINE half2 plog1p<half2>(const half2& a) {
   float a1 = __low2float(a);
   float a2 = __high2float(a);
   float r1 = log1pf(a1);
