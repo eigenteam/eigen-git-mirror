@@ -91,6 +91,7 @@ template <typename T> T inverse(T x) { return 1 / x; }
   TEST_UNARY_BUILTINS_FOR_SCALAR(inverse, SCALAR, OPERATOR)                    \
   TEST_UNARY_BUILTINS_FOR_SCALAR(tanh, SCALAR, OPERATOR)                       \
   TEST_UNARY_BUILTINS_FOR_SCALAR(exp, SCALAR, OPERATOR)                        \
+  TEST_UNARY_BUILTINS_FOR_SCALAR(expm1, SCALAR, OPERATOR)                      \
   TEST_UNARY_BUILTINS_FOR_SCALAR(log, SCALAR, OPERATOR)                        \
   TEST_UNARY_BUILTINS_FOR_SCALAR(abs, SCALAR, OPERATOR)                        \
   TEST_UNARY_BUILTINS_FOR_SCALAR(ceil, SCALAR, OPERATOR)                       \

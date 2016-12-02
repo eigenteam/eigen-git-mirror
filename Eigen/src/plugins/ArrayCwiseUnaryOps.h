@@ -10,6 +10,7 @@ typedef CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const Derived> Inverse
 typedef CwiseUnaryOp<internal::scalar_boolean_not_op<Scalar>, const Derived> BooleanNotReturnType;
 
 typedef CwiseUnaryOp<internal::scalar_exp_op<Scalar>, const Derived> ExpReturnType;
+typedef CwiseUnaryOp<internal::scalar_expm1_op<Scalar>, const Derived> Expm1ReturnType;
 typedef CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived> LogReturnType;
 typedef CwiseUnaryOp<internal::scalar_log1p_op<Scalar>, const Derived> Log1pReturnType;
 typedef CwiseUnaryOp<internal::scalar_log10_op<Scalar>, const Derived> Log10ReturnType;
@@ -90,6 +91,20 @@ exp() const
   return ExpReturnType(derived());
 }
 
+/** \returns an expression of the coefficient-wise exponential of *this minus 1.
+  *
+  * In exact arithmetic, \c x.expm1() is equivalent to \c x.exp() - 1,
+  * however, with finite precision, this function is much more accurate when \c x is close to zero.
+  *
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_expm1">Math functions</a>, exp()
+  */
+EIGEN_DEVICE_FUNC
+inline const Expm1ReturnType
+expm1() const
+{
+  return Expm1ReturnType(derived());
+}
+
 /** \returns an expression of the coefficient-wise logarithm of *this.
   *
   * This function computes the coefficient-wise logarithm. The function MatrixBase::log() in the
@@ -98,7 +113,7 @@ exp() const
   * Example: \include Cwise_log.cpp
   * Output: \verbinclude Cwise_log.out
   *
-  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_log">Math functions</a>, exp()
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_log">Math functions</a>, log()
   */
 EIGEN_DEVICE_FUNC
 inline const LogReturnType

@@ -18,7 +18,7 @@ template<typename ArrayType> void array(const ArrayType& m)
   typedef Array<Scalar, 1, ArrayType::ColsAtCompileTime> RowVectorType;
 
   Index rows = m.rows();
-  Index cols = m.cols(); 
+  Index cols = m.cols();
 
   ArrayType m1 = ArrayType::Random(rows, cols),
              m2 = ArrayType::Random(rows, cols),
@@ -44,25 +44,25 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_APPROX(m3, m1 + s2);
   m3 = m1;
   m3 -= s1;
-  VERIFY_IS_APPROX(m3, m1 - s1);  
-  
+  VERIFY_IS_APPROX(m3, m1 - s1);
+
   // scalar operators via Maps
   m3 = m1;
   ArrayType::Map(m1.data(), m1.rows(), m1.cols()) -= ArrayType::Map(m2.data(), m2.rows(), m2.cols());
   VERIFY_IS_APPROX(m1, m3 - m2);
-  
+
   m3 = m1;
   ArrayType::Map(m1.data(), m1.rows(), m1.cols()) += ArrayType::Map(m2.data(), m2.rows(), m2.cols());
   VERIFY_IS_APPROX(m1, m3 + m2);
-  
+
   m3 = m1;
   ArrayType::Map(m1.data(), m1.rows(), m1.cols()) *= ArrayType::Map(m2.data(), m2.rows(), m2.cols());
   VERIFY_IS_APPROX(m1, m3 * m2);
-  
+
   m3 = m1;
   m2 = ArrayType::Random(rows,cols);
   m2 = (m2==0).select(1,m2);
-  ArrayType::Map(m1.data(), m1.rows(), m1.cols()) /= ArrayType::Map(m2.data(), m2.rows(), m2.cols());  
+  ArrayType::Map(m1.data(), m1.rows(), m1.cols()) /= ArrayType::Map(m2.data(), m2.rows(), m2.cols());
   VERIFY_IS_APPROX(m1, m3 / m2);
 
   // reductions
@@ -84,7 +84,7 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_APPROX(m3.rowwise() += rv1, m1.rowwise() + rv1);
   m3 = m1;
   VERIFY_IS_APPROX(m3.rowwise() -= rv1, m1.rowwise() - rv1);
-  
+
   // Conversion from scalar
   VERIFY_IS_APPROX((m3 = s1), ArrayType::Constant(rows,cols,s1));
   VERIFY_IS_APPROX((m3 = 1),  ArrayType::Constant(rows,cols,1));
@@ -102,7 +102,7 @@ template<typename ArrayType> void array(const ArrayType& m)
   f1.setRandom();
   FixedArrayType f4(f1.data());
   VERIFY_IS_APPROX(f4, f1);
-  
+
   // pow
   VERIFY_IS_APPROX(m1.pow(2), m1.square());
   VERIFY_IS_APPROX(pow(m1,2), m1.square());
@@ -144,7 +144,7 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
             m2 = ArrayType::Random(rows, cols),
             m3(rows, cols),
             m4 = m1;
-  
+
   m4 = (m4.abs()==Scalar(0)).select(1,m4);
 
   VERIFY(((m1 + Scalar(1)) > m1).all());
@@ -295,6 +295,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.exp(), exp(m1));
   VERIFY_IS_APPROX(m1.exp() / m2.exp(),(m1-m2).exp());
 
+  VERIFY_IS_APPROX(m1.expm1(), expm1(m1));
+  VERIFY_IS_APPROX((m3 + smallNumber).exp() - 1, expm1(abs(m3) + smallNumber));
+
   VERIFY_IS_APPROX(m3.pow(RealScalar(0.5)), m3.sqrt());
   VERIFY_IS_APPROX(pow(m3,RealScalar(0.5)), m3.sqrt());
 
@@ -329,7 +332,7 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   ArrayType m1 = ArrayType::Random(rows, cols),
             m2(rows, cols),
             m4 = m1;
-  
+
   m4.real() = (m4.real().abs()==RealScalar(0)).select(RealScalar(1),m4.real());
   m4.imag() = (m4.imag().abs()==RealScalar(0)).select(RealScalar(1),m4.imag());
 
