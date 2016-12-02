@@ -523,7 +523,7 @@ template<typename T> struct smart_memmove_helper<T,true> {
 template<typename T> struct smart_memmove_helper<T,false> {
   static inline void run(const T* start, const T* end, T* target)
   { 
-    if (uintptr_t(target) < uintptr_t(start))
+    if (UIntPtr(target) < UIntPtr(start))
     {
       std::copy(start, end, target);
     }
