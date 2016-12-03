@@ -235,9 +235,9 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
   typedef typename Tensor::PacketReturnType Packet;
   typedef typename unpacket_traits<Packet>::half HalfPacket;
 
-  template <int AlignmentType>
+  template <typename PacketT,int AlignmentType>
   EIGEN_DEVICE_FUNC
-  EIGEN_STRONG_INLINE Packet loadPacket(Index i, Index j) const {
+  EIGEN_STRONG_INLINE PacketT load(Index i, Index j) const {
     // whole method makes column major assumption
 
     // don't need to add offsets for now (because operator handles that)
@@ -275,7 +275,13 @@ class BaseTensorContractionMapper : public SimpleTensorContractionMapper<Scalar,
     }
     data[packet_size - 1] = this->m_tensor.coeff(last);
 
-    return pload<Packet>(data);
+    return pload<PacketT>(data);
+  }
+
+  template <int AlignmentType>
+  EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE Packet loadPacket(Index i, Index j) const {
+    return this->load<Packet,AlignmentType>(i,j);
   }
 
   template <int AlignmentType>
@@ -321,6 +327,12 @@ class BaseTensorContractionMapper<Scalar, Index, side, Tensor, nocontract_t, con
     EIGEN_ALIGN_MAX Scalar data[1];
     data[0] = this->m_tensor.coeff(this->computeIndex(i, j));
     return pload<typename Tensor::PacketReturnType>(data);
+  }
+  template <typename PacketT,int> EIGEN_DEVICE_FUNC
+  EIGEN_STRONG_INLINE PacketT load(Index i, Index j) const {
+    EIGEN_ALIGN_MAX Scalar data[1];
+    data[0] = this->m_tensor.coeff(this->computeIndex(i, j));
+    return pload<PacketT>(data);
   }
   template <int> EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE Packet loadHalfPacket(Index i, Index j) const {
@@ -383,6 +395,14 @@ class TensorContractionSubMapper {
       return m_base_mapper.template loadPacket<Alignment>(i, j);
     }
     return m_base_mapper.template loadPacket<Alignment>(i + m_vert_offset, j + m_horiz_offset);
+  }
+
+  template <typename PacketT, int AlignmentType>
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketT loadPacket(Index i, Index j) const {
+    if (UseDirectOffsets) {
+      return m_base_mapper.template load<PacketT,AlignmentType>(i, j);
+    }
+    return m_base_mapper.template loadPacket<PacketT,AlignmentType>(i + m_vert_offset, j + m_horiz_offset);
   }
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE HalfPacket loadHalfPacket(Index i) const {
