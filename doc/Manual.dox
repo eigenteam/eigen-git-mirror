@@ -26,6 +26,7 @@ namespace Eigen {
   - \subpage TopicPitfalls
   - \subpage TopicTemplateKeyword
   - \subpage UserManual_UnderstandingEigen
+  - \subpage TopicCMakeGuide
 */
 
 /** \page UserManual_UnderstandingEigen Understanding Eigen

@@ -53,7 +53,7 @@ namespace half_impl {
 
 // Make our own __half definition that is similar to CUDA's.
 struct __half {
-  EIGEN_DEVICE_FUNC __half() {}
+  EIGEN_DEVICE_FUNC __half() : x(0) {}
   explicit EIGEN_DEVICE_FUNC __half(unsigned short raw) : x(raw) {}
   unsigned short x;
 };

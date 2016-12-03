@@ -59,3 +59,6 @@ before-evaluators
 9174:d228bc282ac9   # merge
 9212:c90098affa7b   # Fix performance regression introduced in changeset 8aad8f35c955
 9213:9f1c14e4694b   # Fix performance regression in dgemm introduced by changeset 81d53c711775
+3.3-beta2
+3.3-rc1
+3.3.0

@@ -763,6 +763,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     {
       // NOTE MSVC 2008 complains if we directly put bool(NumTraits<T>::IsInteger) as the EIGEN_STATIC_ASSERT argument.
       const bool is_integer = NumTraits<T>::IsInteger;
+      EIGEN_UNUSED_VARIABLE(is_integer);
       EIGEN_STATIC_ASSERT(is_integer,
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
       resize(size);

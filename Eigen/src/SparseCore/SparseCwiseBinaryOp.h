@@ -68,7 +68,6 @@ protected:
   typedef typename XprType::StorageIndex StorageIndex;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
   public:
@@ -161,7 +160,6 @@ protected:
   typedef typename XprType::StorageIndex StorageIndex;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
     enum { IsRowMajor = (int(Rhs::Flags)&RowMajorBit)==RowMajorBit };
@@ -249,7 +247,6 @@ protected:
   typedef typename XprType::StorageIndex StorageIndex;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
     enum { IsRowMajor = (int(Lhs::Flags)&RowMajorBit)==RowMajorBit };
@@ -402,7 +399,6 @@ protected:
   typedef typename traits<XprType>::Scalar Scalar;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
   public:
@@ -487,7 +483,6 @@ protected:
   typedef typename traits<XprType>::Scalar Scalar;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
     enum { IsRowMajor = (int(RhsArg::Flags)&RowMajorBit)==RowMajorBit };
@@ -561,7 +556,6 @@ protected:
   typedef typename traits<XprType>::Scalar Scalar;
 public:
 
-  class ReverseInnerIterator;
   class InnerIterator
   {
     enum { IsRowMajor = (int(LhsArg::Flags)&RowMajorBit)==RowMajorBit };
