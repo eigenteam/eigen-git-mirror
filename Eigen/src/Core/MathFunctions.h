@@ -13,6 +13,7 @@
 // source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
 // TODO this should better be moved to NumTraits
 #define EIGEN_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406L
+#define EIGEN_LN2 0.69314718055994530941723212145817656807550013436024425412068001L
 
 
 namespace Eigen {
@@ -480,6 +481,54 @@ template<typename Scalar>
 struct arg_retval
 {
   typedef typename NumTraits<Scalar>::Real type;
+};
+
+/****************************************************************************
+* Implementation of expm1                                                   *
+****************************************************************************/
+
+// This implementation is based on GSL Math's expm1.
+namespace std_fallback {
+  // fallback expm1 implementation in case there is no expm1(Scalar) function in namespace of Scalar,
+  // or that there is no suitable std::expm1 function available. Implementation
+  // attributed to Kahan. See: http://www.plunk.org/~hatch/rightway.php.
+  template<typename Scalar>
+  EIGEN_DEVICE_FUNC inline Scalar expm1(const Scalar& x) {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+
+    EIGEN_USING_STD_MATH(exp);
+    Scalar u = exp(x);
+    if (u == RealScalar(1)) {
+      return x;
+    }
+    if (u - RealScalar(1) == RealScalar(-1)) {
+      return RealScalar(-1);
+    }
+
+    EIGEN_USING_STD_MATH(log);
+    return (u - RealScalar(1)) * x / log(u);
+  }
+}
+
+template<typename Scalar>
+struct expm1_impl {
+  static inline Scalar run(const Scalar& x)
+  {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    #if EIGEN_HAS_CXX11_MATH
+    using std::expm1;
+    #endif
+    using std_fallback::expm1;
+    return expm1(x);
+  }
+};
+
+
+template<typename Scalar>
+struct expm1_retval
+{
+  typedef Scalar type;
 };
 
 /****************************************************************************
@@ -1230,6 +1279,26 @@ float exp(const float &x) { return ::expf(x); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
 double exp(const double &x) { return ::exp(x); }
+#endif
+
+template<typename Scalar>
+EIGEN_DEVICE_FUNC
+inline EIGEN_MATHFUNC_RETVAL(expm1, Scalar) expm1(const Scalar& x)
+{
+  return EIGEN_MATHFUNC_IMPL(expm1, Scalar)::run(x);
+}
+
+#if defined(__SYCL_DEVICE_ONLY__)
+EIGEN_ALWAYS_INLINE float   expm1(float x) { return cl::sycl::expm1(x); }
+EIGEN_ALWAYS_INLINE double  expm1(double x) { return cl::sycl::expm1(x); }
+#endif // defined(__SYCL_DEVICE_ONLY__)
+
+#ifdef __CUDACC__
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+float expm1(const float &x) { return ::expm1f(x); }
+
+template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
+double expm1(const double &x) { return ::expm1(x); }
 #endif
 
 template<typename T>

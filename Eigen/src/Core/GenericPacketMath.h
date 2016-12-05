@@ -61,6 +61,7 @@ struct default_packet_traits
     HasSqrt   = 0,
     HasRsqrt  = 0,
     HasExp    = 0,
+    HasExpm1  = 0,
     HasLog    = 0,
     HasLog1p  = 0,
     HasLog10  = 0,
@@ -400,6 +401,10 @@ Packet ptanh(const Packet& a) { using std::tanh; return tanh(a); }
 /** \internal \returns the exp of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pexp(const Packet& a) { using std::exp; return exp(a); }
+
+/** \internal \returns the expm1 of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pexpm1(const Packet& a) { return numext::expm1(a); }
 
 /** \internal \returns the log of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS

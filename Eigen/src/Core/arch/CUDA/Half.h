@@ -392,6 +392,9 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half exp(const half& a) {
    return half(::expf(float(a)));
 #endif
 }
+EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half expm1(const half& a) {
+  return half(numext::expm1(float(a)));
+}
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half log(const half& a) {
 #if defined(EIGEN_HAS_CUDA_FP16) && defined __CUDACC_VER__ && __CUDACC_VER__ >= 80000 && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
   return half(::hlog(a));

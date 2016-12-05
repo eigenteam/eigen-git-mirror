@@ -75,6 +75,7 @@ struct PacketType<half, GpuDevice> {
     HasSqrt   = 1,
     HasRsqrt  = 1,
     HasExp    = 1,
+    HasExpm1  = 0,
     HasLog    = 1,
     HasLog1p  = 0,
     HasLog10  = 0,

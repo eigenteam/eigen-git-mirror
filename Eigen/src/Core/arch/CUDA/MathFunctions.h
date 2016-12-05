@@ -57,6 +57,19 @@ double2 pexp<double2>(const double2& a)
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+float4 pexp<float4>(const float4& a)
+{
+  return make_float4(expm1f(a.x), expm1f(a.y), expm1f(a.z), expm1f(a.w));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+double2 pexp<double2>(const double2& a)
+{
+  using ::expm1;
+  return make_double2(expm1(a.x), expm1(a.y));
+}
+
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 float4 psqrt<float4>(const float4& a)
 {
   return make_float4(sqrtf(a.x), sqrtf(a.y), sqrtf(a.z), sqrtf(a.w));
