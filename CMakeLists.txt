@@ -531,6 +531,7 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
   configure_package_config_file (
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3Config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+    PATH_VARS EIGEN_INCLUDE_DIR EIGEN_ROOT_DIR
     INSTALL_DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
     NO_CHECK_REQUIRED_COMPONENTS_MACRO # Eigen does not provide components
   )
