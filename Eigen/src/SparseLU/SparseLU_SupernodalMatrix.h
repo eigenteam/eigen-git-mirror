@@ -276,7 +276,7 @@ void MappedSuperNodalMatrix<Scalar,Index_>::solveInPlace( MatrixBase<Dest>&X) co
         
         // Matrix-vector product 
         new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) );
-        work.block(0, 0, nrow, nrhs) = A * U; 
+        work.block(0, 0, nrow, nrhs).noalias() = A * U;
         
         //Begin Scatter 
         for (Index j = 0; j < nrhs; j++)
