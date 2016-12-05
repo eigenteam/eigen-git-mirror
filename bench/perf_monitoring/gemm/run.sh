@@ -1,17 +1,22 @@
 #!/bin/bash
 
-# ./run.sh gemm
-# ./run.sh lazy_gemm
+# ./run.sh gemm gemm_settings.txt
+# ./run.sh lazy_gemm lazy_gemm_settings.txt
+# ./run.sh gemv gemv_settings.txt
+# ./run.sh trmv_up gemv_square_settings.txt
+# ...
 
 # Examples of environment variables to be set:
 #   PREFIX="haswell-fma-"
 #   CXX_FLAGS="-mfma"
+#   CXX=clang++
 
 # Options:
 #   -up : enforce the recomputation of existing data, and keep best results as a merging strategy
 #   -s  : recompute selected changesets only and keep bests
 
 bench=$1
+settings_file=$2
 
 if echo "$*" | grep '\-up' > /dev/null; then
   update=true
@@ -88,7 +93,7 @@ function test_current
   fi
   res=$prev
   count_rev=`echo $prev |  wc -w`
-  count_ref=`cat $bench"_settings.txt" |  wc -l`
+  count_ref=`cat $settings_file |  wc -l`
   if echo "$global_args" | grep "$rev" > /dev/null; then
     rev_found=true
   else
@@ -98,7 +103,7 @@ function test_current
 #  echo $count_rev et $count_ref
   if [ $update == true ] || [ $count_rev != $count_ref ] || ([ $selected == true ] &&  [ $rev_found == true ]); then
     if $CXX -O2 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name; then
-      curr=`./$name`
+      curr=`./$name $settings_file`
       if [ $count_rev == $count_ref ]; then
         echo "merge previous $prev"
         echo "with new       $curr"
@@ -149,8 +154,8 @@ echo "Complex:"
 cat $PREFIX"c""$bench.out"
 echo ""
 
-./make_plot.sh $PREFIX"s"$bench $bench
-./make_plot.sh $PREFIX"d"$bench $bench
-./make_plot.sh $PREFIX"c"$bench $bench
+./make_plot.sh $PREFIX"s"$bench $bench $settings_file
+./make_plot.sh $PREFIX"d"$bench $bench $settings_file
+./make_plot.sh $PREFIX"c"$bench $bench $settings_file
 
 

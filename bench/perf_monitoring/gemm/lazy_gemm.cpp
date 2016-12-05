@@ -84,7 +84,10 @@ int main(int argc, char **argv)
 {
   std::vector<double> results;
   
-  std::ifstream settings("lazy_gemm_settings.txt");
+  std::string filename = std::string("lazy_gemm_settings.txt");
+  if(argc>1)
+    filename = std::string(argv[1]);
+  std::ifstream settings(filename);
   long m, n, k, t;
   while(settings >> m >> n >> k >> t)
   {

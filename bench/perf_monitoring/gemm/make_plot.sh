@@ -5,6 +5,7 @@
 # and generates $1.pdf
 WHAT=$1
 bench=$2
+settings_file=$3
 
 header="rev "
 while read line
@@ -12,7 +13,7 @@ do
   if [ ! -z '$line' ]; then
     header="$header  \"$line\""
   fi
-done < $bench"_settings.txt"
+done < $settings_file
 
 echo $header > $WHAT.out.header
 cat $WHAT.out >> $WHAT.out.header
@@ -25,7 +26,7 @@ echo "set xtics rotate 1" >> $WHAT.gnuplot
 echo "set term pdf color rounded enhanced fontscale 0.35 size 7in,5in" >> $WHAT.gnuplot
 echo set output "'"$WHAT.pdf"'" >> $WHAT.gnuplot
 
-col=`cat $bench"_settings.txt" | wc -l`
+col=`cat $settings_file | wc -l`
 echo "plot for [col=2:$col+1] '$WHAT.out.header' using 0:col:xticlabels(1) with lines" >> $WHAT.gnuplot
 echo " " >>  $WHAT.gnuplot
 
