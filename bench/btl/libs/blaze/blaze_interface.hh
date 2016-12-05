@@ -20,6 +20,7 @@
 
 #include <blaze/Math.h>
 #include <blaze/Blaze.h>
+#include <Eigen/Core>
 // using namespace blaze;
 
 #include <vector>
