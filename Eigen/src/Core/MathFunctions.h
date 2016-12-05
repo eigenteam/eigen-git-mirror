@@ -13,8 +13,6 @@
 // source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
 // TODO this should better be moved to NumTraits
 #define EIGEN_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406L
-#define EIGEN_LN2 0.69314718055994530941723212145817656807550013436024425412068001L
-
 
 namespace Eigen {
 
@@ -499,10 +497,11 @@ namespace std_fallback {
 
     EIGEN_USING_STD_MATH(exp);
     Scalar u = exp(x);
-    if (u == RealScalar(1)) {
+    if (u == Scalar(1)) {
       return x;
     }
-    if (u - RealScalar(1) == RealScalar(-1)) {
+    Scalar um1 = u - RealScalar(1);
+    if (um1 == Scalar(-1)) {
       return RealScalar(-1);
     }
 
