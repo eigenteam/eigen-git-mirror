@@ -224,8 +224,7 @@ class blas_data_mapper {
 
   template <typename PacketT, int AlignmentT>
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE PacketT load(Index i, Index j) const {
-    //return ploadt<PacketT, AlignmentT>(&operator()(i, j));
-    return ploadu<PacketT>(m_data+j*m_stride+i);
+    return ploadt<PacketT, AlignmentT>(&operator()(i, j));
   }
 
   EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE HalfPacket loadHalfPacket(Index i, Index j) const {
