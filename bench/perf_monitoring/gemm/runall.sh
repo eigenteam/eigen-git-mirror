@@ -19,4 +19,5 @@
 ./run.sh trmv_lo gemv_square_settings.txt $*
 ./run.sh trmv_upt gemv_square_settings.txt $*
 ./run.sh trmv_lot gemv_square_settings.txt $*
+./run.sh llt gemm_square_settings.txt $*
 

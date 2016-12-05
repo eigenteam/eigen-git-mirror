@@ -1,7 +1,7 @@
 #include "gemv_common.h"
 
 EIGEN_DONT_INLINE
-void gemv(const Mat &A, Vec &B, const Vec &C)
+void trmv(const Mat &A, Vec &B, const Vec &C)
 {
   B.noalias() += A.transpose().triangularView<Lower>() * C;
 }

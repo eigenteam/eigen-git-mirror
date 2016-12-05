@@ -31,7 +31,6 @@ before-evaluators
 6845:7333ed40c6ef   # change prefetching in gebp
 #6856:b5be5e10eb7f   # merge index conversion
 6893:c3a64aba7c70   # clean blocking size computation
-6898:6fb31ebe6492   # rotating kernel for ARM
 6899:877facace746   # rotating kernel for ARM only
 #6904:c250623ae9fa   # result_of
 6921:915f1b1fc158   # fix prefetching change for ARM
@@ -50,7 +49,7 @@ before-evaluators
 7098:b6f1db9cf9ec   # Bug 992: don't select a 3p GEMM path with non-vectorizable scalar types, this hits unsupported paths in symm/triangular products code
 7591:09a8e2186610   # 3.3-alpha1
 7650:b0f3c8f43025   # help clang inlining
-8744:74b789ada92a   # Improved the matrix multiplication blocking in the case where mr is not a power of 2 (e.g on Haswell CPUs)
+#8744:74b789ada92a   # Improved the matrix multiplication blocking in the case where mr is not a power of 2 (e.g on Haswell CPUs)
 8789:efcb912e4356   # Made the index type a template parameter to evaluateProductBlockingSizes. Use numext::mini and numext::maxi instead of std::min/std::max to compute blocking sizes
 8972:81d53c711775   # Don't optimize the processing of the last rows of a matrix matrix product in cases that violate the assumptions made by the optimized code path
 8985:d935df21a082   # Remove the rotating kernel.
@@ -65,5 +64,5 @@ before-evaluators
 9942:b1d3eba60130   # Operators += and -= do not resize!
 9943:79bb9887afd4   # Ease compiler job to generate clean and efficient code in mat*vec
 9946:2213991340ea   # Complete rewrite of column-major-matrix * vector product to deliver higher performance of modern CPU.
-9953:21acc0e8d782   # Improve performance of row-major-dense-matrix * vector products for recent CPUs.
+9955:630471c3298c   # Improve performance of row-major-dense-matrix * vector products for recent CPUs. (this is the next changeset fixing a typo)
 
