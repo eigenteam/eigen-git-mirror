@@ -396,7 +396,6 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,R
     }
     res[i*resIncr] += alpha*cc0;
   }
-#endif
 }
 
 } // end namespace internal
