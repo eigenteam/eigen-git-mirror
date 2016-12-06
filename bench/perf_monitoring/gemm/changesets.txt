@@ -49,6 +49,7 @@ before-evaluators
 7098:b6f1db9cf9ec   # Bug 992: don't select a 3p GEMM path with non-vectorizable scalar types, this hits unsupported paths in symm/triangular products code
 7591:09a8e2186610   # 3.3-alpha1
 7650:b0f3c8f43025   # help clang inlining
+7708:dfc6ab9d9458   # Improve numerical accuracy in LLT and triangular solve by using true scalar divisions (instead of x * (1/y))
 #8744:74b789ada92a   # Improved the matrix multiplication blocking in the case where mr is not a power of 2 (e.g on Haswell CPUs)
 8789:efcb912e4356   # Made the index type a template parameter to evaluateProductBlockingSizes. Use numext::mini and numext::maxi instead of std::min/std::max to compute blocking sizes
 8972:81d53c711775   # Don't optimize the processing of the last rows of a matrix matrix product in cases that violate the assumptions made by the optimized code path
@@ -65,4 +66,6 @@ before-evaluators
 9943:79bb9887afd4   # Ease compiler job to generate clean and efficient code in mat*vec
 9946:2213991340ea   # Complete rewrite of column-major-matrix * vector product to deliver higher performance of modern CPU.
 9955:630471c3298c   # Improve performance of row-major-dense-matrix * vector products for recent CPUs. (this is the next changeset fixing a typo)
+9975:2eeed9de710c   # Revert vec/y to vec*(1/y) in row-major TRSM
+
 
