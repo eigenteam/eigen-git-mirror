@@ -432,7 +432,6 @@ public:
     
   protected:
 //     friend class internal::GenericSparseBlockInnerIteratorImpl<XprType,BlockRows,BlockCols,InnerPanel>;
-    friend class ReverseInnerIterator;
     friend struct internal::unary_evaluator<Block<XprType,BlockRows,BlockCols,InnerPanel>, internal::IteratorBased, Scalar >;
     
     Index nonZeros() const { return Dynamic; }
@@ -467,8 +466,6 @@ struct unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBa
     typedef Block<ArgType,BlockRows,BlockCols,InnerPanel> XprType;
     typedef typename XprType::StorageIndex StorageIndex;
     typedef typename XprType::Scalar Scalar;
-    
-    class ReverseInnerIterator;
     
     enum {
       IsRowMajor = XprType::IsRowMajor,

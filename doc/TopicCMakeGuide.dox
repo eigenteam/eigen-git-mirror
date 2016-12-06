@@ -32,6 +32,11 @@ which requires at least version 3.3 of %Eigen. Here, `path-to-example-directory`
 is the path to the directory that contains both `CMakeLists.txt` and
 `example.cpp`.
 
+If you have multiple installed version of %Eigen, you can pick your favorite one by setting the \c Eigen3_DIR cmake's variable to the respective path containing the \c Eigen3*.cmake files. For instance:
+\code
+cmake path-to-example-directory -DEigen3_DIR=$HOME/mypackages/share/eigen3/cmake/
+\endcode
+
 If the `REQUIRED` option is omitted when locating %Eigen using
 `find_package`, one can check whether the package was found as follows:
 \code{.cmake}
@@ -45,5 +50,3 @@ endif (TARGET Eigen3::Eigen)
 */
 
 }
-
-// vim: set ft=cpp.doxygen
