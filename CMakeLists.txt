@@ -507,7 +507,6 @@ set ( EIGEN_VERSION_MINOR  ${EIGEN_MAJOR_VERSION} )
 set ( EIGEN_VERSION_PATCH  ${EIGEN_MINOR_VERSION} )
 set ( EIGEN_DEFINITIONS "")
 set ( EIGEN_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}" )
-set ( EIGEN_INCLUDE_DIRS ${EIGEN_INCLUDE_DIR} )
 set ( EIGEN_ROOT_DIR ${CMAKE_INSTALL_PREFIX} )
 
 # Interface libraries require at least CMake 3.0
@@ -561,10 +560,30 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.0)
     DESTINATION ${CMAKEPACKAGE_INSTALL_DIR})
 else (NOT CMAKE_VERSION VERSION_LESS 3.0)
   # Fallback to legacy Eigen3Config.cmake without the imported target
-  configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3ConfigLegacy.cmake.in
-                   ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
-                   @ONLY ESCAPE_QUOTES
-                 )
+  
+  # If CMakePackageConfigHelpers module is available (CMake >= 2.8.8)
+  # create a relocatable Config file, otherwise leave the hardcoded paths       
+  include(CMakePackageConfigHelpers OPTIONAL RESULT_VARIABLE CPCH_PATH)
+  
+  if(CPCH_PATH)
+    configure_package_config_file (
+      ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3ConfigLegacy.cmake.in
+      ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+      PATH_VARS EIGEN_INCLUDE_DIR EIGEN_ROOT_DIR
+      INSTALL_DESTINATION ${CMAKEPACKAGE_INSTALL_DIR}
+      NO_CHECK_REQUIRED_COMPONENTS_MACRO # Eigen does not provide components
+    )
+  else() 
+    # The PACKAGE_* variables are defined by the configure_package_config_file
+    # but without it we define them manually to the hardcoded paths
+    set(PACKAGE_INIT "")
+    set(PACKAGE_EIGEN_INCLUDE_DIR ${EIGEN_INCLUDE_DIR})
+    set(PACKAGE_EIGEN_ROOT_DIR ${EIGEN_ROOT_DIR})
+    configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Eigen3ConfigLegacy.cmake.in
+                     ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
+                     @ONLY ESCAPE_QUOTES
+                   )
+  endif()
 
   install ( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/UseEigen3.cmake
                   ${CMAKE_CURRENT_BINARY_DIR}/Eigen3Config.cmake
