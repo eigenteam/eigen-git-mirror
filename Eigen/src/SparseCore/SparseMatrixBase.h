@@ -213,7 +213,7 @@ template<typename Derived> class SparseMatrixBase
 
       if (Flags&RowMajorBit)
       {
-        const Nested nm(m.derived());
+        Nested nm(m.derived());
         internal::evaluator<NestedCleaned> thisEval(nm);
         for (Index row=0; row<nm.outerSize(); ++row)
         {
@@ -232,7 +232,7 @@ template<typename Derived> class SparseMatrixBase
       }
       else
       {
-        const Nested nm(m.derived());
+        Nested nm(m.derived());
         internal::evaluator<NestedCleaned> thisEval(nm);
         if (m.cols() == 1) {
           Index row = 0;
