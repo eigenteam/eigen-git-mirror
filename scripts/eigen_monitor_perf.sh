@@ -7,12 +7,19 @@ USER='ggael'
 UPLOAD_DIR=perf_monitoring/ggaelmacbook26
 EIGEN_SOURCE_PATH=$HOME/Eigen/eigen
 export PREFIX="haswell-fma-"
-export CXX_FLAGS="-mfma"
+export CXX_FLAGS="-mfma -w"
 
-$EIGEN_SOURCE_PATH/bench/perf_monitoring/gemm/runall.sh $*
+####
+
+BENCH_PATH=$EIGEN_SOURCE_PATH/bench/perf_monitoring/gemm/
+PREVPATH=`pwd`
+cd $BENCH_PATH && ./runall.sh "Haswell 2.6GHz, FMA, Apple's clang" $*
+cd $PREVPATH
+
+ALLFILES="$BENCH_PATH/$PREFIX*.png $BENCH_PATH/$PREFIX*.html $BENCH_PATH/index.html $BENCH_PATH/s1.js $BENCH_PATH/s2.js"
 
 # (the '/' at the end of path is very important, see rsync documentation)
-rsync -az --no-p --delete $EIGEN_SOURCE_PATH/bench/perf_monitoring/gemm/haswell-fma-*.png $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/$UPLOAD_DIR/ || { echo "upload failed"; exit 1; }
+rsync -az --no-p --delete $ALLFILES $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/$UPLOAD_DIR/ || { echo "upload failed"; exit 1; }
 
 # fix the perm
 ssh $USER@ssh.tuxfamily.org "chmod -R g+w /home/eigen/eigen.tuxfamily.org-web/htdocs/perf_monitoring" || { echo "perm failed"; exit 1; }

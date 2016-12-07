@@ -32,8 +32,67 @@ echo " " >>  $WHAT.gnuplot
 
 gnuplot -persist < $WHAT.gnuplot
 
-# generate a png file
-convert -background white -density 1000 -resize 1000  -colors 256 -quality 0 $WHAT.pdf -background white -flatten $WHAT.png
+# generate a png file (thumbnail)
+convert -background white -density 300 -resize 300  -colors 256 -quality 0 $WHAT.pdf -background white -flatten $WHAT.png
 
 # clean
 rm $WHAT.out.header $WHAT.gnuplot
+
+
+# generate html/svg graph
+
+echo " " > $WHAT.html
+cat ../chart_header.html > $WHAT.html
+echo 'var customSettings = {"TITLE":"","SUBTITLE":"","XLABEL":"","YLABEL":""};' >> $WHAT.html
+#  'data' is an array of datasets (i.e. curves), each of which is an object of the form
+#  {
+#    key: <name of the curve>,
+#    color: <optional color of the curve>,
+#    values: [{
+#        r: <revision number>,
+#        v: <GFlops>
+#    }]
+#  }
+echo 'var data = [' >> $WHAT.html
+
+col=2
+while read line
+do
+  if [ ! -z '$line' ]; then
+    header="$header  \"$line\""
+    echo '{"key":"'$line'","values":[' >> $WHAT.html
+    i=0
+    while read line2
+    do
+      if [ ! -z '$line2' ]; then
+        echo '{"r":'$i',"v":'`echo $line2 | cut -f $col -d ' '`'},' >> $WHAT.html
+      fi
+      ((i++))
+    done < $WHAT.out
+    echo ']},'  >> $WHAT.html
+  fi
+  ((col++))
+done < $settings_file
+echo '];'  >> $WHAT.html
+
+echo 'var changesets = [' >> $WHAT.html
+while read line2
+do
+  if [ ! -z '$line2' ]; then
+    echo '"'`echo $line2 | cut -f 1 -d ' '`'",' >> $WHAT.html
+  fi
+done < $WHAT.out
+echo '];'  >> $WHAT.html
+
+echo 'var changesets_count = [' >> $WHAT.html
+i=0
+while read line2
+do
+  if [ ! -z '$line2' ]; then
+    echo $i ',' >> $WHAT.html
+  fi
+  ((i++))
+done < $WHAT.out
+echo '];'  >> $WHAT.html
+
+cat ../chart_footer.html >> $WHAT.html
