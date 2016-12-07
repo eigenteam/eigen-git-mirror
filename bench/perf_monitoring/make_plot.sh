@@ -33,7 +33,7 @@ echo " " >>  $WHAT.gnuplot
 gnuplot -persist < $WHAT.gnuplot
 
 # generate a png file (thumbnail)
-convert -background white -density 300 -resize 300  -colors 256 -quality 0 $WHAT.pdf -background white -flatten $WHAT.png
+convert -colors 256 -background white -density 300 -resize 300  -quality 0 $WHAT.pdf -background white -flatten $WHAT.png
 
 # clean
 rm $WHAT.out.header $WHAT.gnuplot
