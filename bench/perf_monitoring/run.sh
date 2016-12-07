@@ -30,6 +30,16 @@ else
   selected=false
 fi
 
+WORKING_DIR=${PREFIX:?"default"}
+
+if [ -z "$PREFIX" ]; then
+  WORKING_DIR_PREFIX="$WORKING_DIR/"
+else
+  WORKING_DIR_PREFIX="$WORKING_DIR/$PREFIX-"
+fi
+echo "WORKING_DIR_PREFIX=$WORKING_DIR_PREFIX"
+mkdir -p $WORKING_DIR
+
 global_args="$*"
 
 if [ $selected == true ]; then
@@ -122,9 +132,9 @@ function test_current
   fi
 }
 
-make_backup $PREFIX"s"$bench
-make_backup $PREFIX"d"$bench
-make_backup $PREFIX"c"$bench
+make_backup $WORKING_DIR_PREFIX"s"$bench
+make_backup $WORKING_DIR_PREFIX"d"$bench
+make_backup $WORKING_DIR_PREFIX"c"$bench
 
 cut -f1 -d"#" < changesets.txt | grep -E '[[:alnum:]]' | while read rev
 do
@@ -135,27 +145,27 @@ do
     actual_rev=`hg identify | cut -f1 -d' '`
     cd ..
     
-    test_current $actual_rev float                  $PREFIX"s"$bench
-    test_current $actual_rev double                 $PREFIX"d"$bench
-    test_current $actual_rev "std::complex<double>" $PREFIX"c"$bench
+    test_current $actual_rev float                  $WORKING_DIR_PREFIX"s"$bench
+    test_current $actual_rev double                 $WORKING_DIR_PREFIX"d"$bench
+    test_current $actual_rev "std::complex<double>" $WORKING_DIR_PREFIX"c"$bench
   fi
   
 done
 
 echo "Float:"
-cat $PREFIX"s""$bench.out"
+cat $WORKING_DIR_PREFIX"s""$bench.out"
 echo " "
 
 echo "Double:"
-cat $PREFIX"d""$bench.out"
+cat $WORKING_DIR_PREFIX"d""$bench.out"
 echo ""
 
 echo "Complex:"
-cat $PREFIX"c""$bench.out"
+cat $WORKING_DIR_PREFIX"c""$bench.out"
 echo ""
 
-./make_plot.sh $PREFIX"s"$bench $bench $settings_file
-./make_plot.sh $PREFIX"d"$bench $bench $settings_file
-./make_plot.sh $PREFIX"c"$bench $bench $settings_file
+./make_plot.sh $WORKING_DIR_PREFIX"s"$bench $bench $settings_file
+./make_plot.sh $WORKING_DIR_PREFIX"d"$bench $bench $settings_file
+./make_plot.sh $WORKING_DIR_PREFIX"c"$bench $bench $settings_file
 
 

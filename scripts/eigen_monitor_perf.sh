@@ -6,17 +6,17 @@
 USER='ggael'
 UPLOAD_DIR=perf_monitoring/ggaelmacbook26
 EIGEN_SOURCE_PATH=$HOME/Eigen/eigen
-export PREFIX="haswell-fma-"
+export PREFIX="haswell-fma"
 export CXX_FLAGS="-mfma -w"
 
 ####
 
-BENCH_PATH=$EIGEN_SOURCE_PATH/bench/perf_monitoring/gemm/
+BENCH_PATH=$EIGEN_SOURCE_PATH/bench/perf_monitoring/$PREFIX
 PREVPATH=`pwd`
-cd $BENCH_PATH && ./runall.sh "Haswell 2.6GHz, FMA, Apple's clang" $*
+cd $EIGEN_SOURCE_PATH/bench/perf_monitoring && ./runall.sh "Haswell 2.6GHz, FMA, Apple's clang" $*
 cd $PREVPATH
 
-ALLFILES="$BENCH_PATH/$PREFIX*.png $BENCH_PATH/$PREFIX*.html $BENCH_PATH/index.html $BENCH_PATH/s1.js $BENCH_PATH/s2.js"
+ALLFILES="$BENCH_PATH/*.png $BENCH_PATH/*.html $BENCH_PATH/index.html $BENCH_PATH/s1.js $BENCH_PATH/s2.js"
 
 # (the '/' at the end of path is very important, see rsync documentation)
 rsync -az --no-p --delete $ALLFILES $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/$UPLOAD_DIR/ || { echo "upload failed"; exit 1; }

@@ -42,7 +42,7 @@ rm $WHAT.out.header $WHAT.gnuplot
 # generate html/svg graph
 
 echo " " > $WHAT.html
-cat ../chart_header.html > $WHAT.html
+cat resources/chart_header.html > $WHAT.html
 echo 'var customSettings = {"TITLE":"","SUBTITLE":"","XLABEL":"","YLABEL":""};' >> $WHAT.html
 #  'data' is an array of datasets (i.e. curves), each of which is an object of the form
 #  {
@@ -95,4 +95,4 @@ do
 done < $WHAT.out
 echo '];'  >> $WHAT.html
 
-cat ../chart_footer.html >> $WHAT.html
+cat resources/chart_footer.html >> $WHAT.html

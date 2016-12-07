@@ -11,21 +11,21 @@
 #   -up : enforce the recomputation of existing data, and keep best results as a merging strategy
 #   -s  : recompute selected changesets only and keep bests
 
-./run.sh gemm gemm_settings.txt $*
-./run.sh lazy_gemm lazy_gemm_settings.txt $*
-./run.sh gemv gemv_settings.txt $*
-./run.sh gemvt gemv_settings.txt $*
-./run.sh trmv_up gemv_square_settings.txt $*
-./run.sh trmv_lo gemv_square_settings.txt $*
-./run.sh trmv_upt gemv_square_settings.txt $*
-./run.sh trmv_lot gemv_square_settings.txt $*
-./run.sh llt gemm_square_settings.txt $*
+# ./run.sh gemm gemm_settings.txt $*
+# ./run.sh lazy_gemm lazy_gemm_settings.txt $*
+# ./run.sh gemv gemv_settings.txt $*
+# ./run.sh gemvt gemv_settings.txt $*
+# ./run.sh trmv_up gemv_square_settings.txt $*
+# ./run.sh trmv_lo gemv_square_settings.txt $*
+# ./run.sh trmv_upt gemv_square_settings.txt $*
+# ./run.sh trmv_lot gemv_square_settings.txt $*
+# ./run.sh llt gemm_square_settings.txt $*
 
 
 # generate html file
 
 function print_td {
-  echo '<td><a href="'$PREFIX$1"$2"'.html"><img src="'$PREFIX$1"$2"'.png" title="'$3'"></a></td>' >> $htmlfile
+  echo '<td><a href="'$PREFIX'-'$1"$2"'.html"><img src="'$PREFIX'-'$1"$2"'.png" title="'$3'"></a></td>' >> $htmlfile
 }
 
 function print_tr {
@@ -36,8 +36,15 @@ function print_tr {
   print_td c $1 complex
   echo '</tr>' >> $htmlfile
 }
-htmlfile="index.html"
-cat ../header.html > $htmlfile
+
+if [ -n "$PREFIX" ]; then
+
+
+cp resources/s1.js $PREFIX/
+cp resources/s2.js $PREFIX/
+
+htmlfile="$PREFIX/index.html"
+cat resources/header.html > $htmlfile
 
 echo '<h1>'$1'</h1>' >> $htmlfile
 echo '<table>' >> $htmlfile
@@ -51,4 +58,6 @@ print_tr trmv_lo    'y += L &middot; x   &nbsp; (trmv)'
 print_tr trmv_lot   'y += L<sup>T</sup> &middot; x  &nbsp; (trmv)'
 print_tr trmv_lot   'L &middot; L<sup>T<sup> = A &nbsp;  (Cholesky,potrf)'
 
-cat ../footer.html >> $htmlfile
+cat resources/footer.html >> $htmlfile
+
+fi
