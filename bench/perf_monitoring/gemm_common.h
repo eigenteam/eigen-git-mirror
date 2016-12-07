@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <Eigen/Core>
 #include "../../BenchTimer.h"
 using namespace Eigen;
