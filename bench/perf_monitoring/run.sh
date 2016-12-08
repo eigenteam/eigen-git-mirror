@@ -60,7 +60,7 @@ else
   cd ..
 fi
 
-if [ -z '$CXX' ]; then
+if [ -z "$CXX" ]; then
   CXX=g++
 fi
 
