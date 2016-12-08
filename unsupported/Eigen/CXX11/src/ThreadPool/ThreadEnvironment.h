@@ -23,6 +23,7 @@ struct StlThreadEnvironment {
    public:
     EnvThread(std::function<void()> f) : thr_(std::move(f)) {}
     ~EnvThread() { thr_.join(); }
+    void Cancel() { EIGEN_THREAD_CANCEL(thr_); }
 
    private:
     std::thread thr_;

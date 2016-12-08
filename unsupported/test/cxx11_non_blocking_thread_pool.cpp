@@ -10,6 +10,7 @@
 
 #define EIGEN_USE_THREADS
 #include "main.h"
+#include <unistd.h>
 #include "Eigen/CXX11/ThreadPool"
 
 static void test_create_destroy_empty_pool()
@@ -100,8 +101,28 @@ static void test_parallelism()
   }
 }
 
+
+static void test_cancel()
+{
+  NonBlockingThreadPool tp(4);
+
+#ifdef EIGEN_SUPPORTS_THREAD_CANCELLATION
+  // Put 2 threads to sleep for much longer than the default test timeout.
+  tp.Schedule([]() { sleep(3600); } );
+  tp.Schedule([]() { sleep(3600 * 24); } );
+#else
+  // Make 2 threads sleep for a short period of time
+  tp.Schedule([]() { sleep(1); } );
+  tp.Schedule([]() { sleep(2); } );
+#endif
+
+  // Call cancel:
+  tp.Cancel();
+}
+
 void test_cxx11_non_blocking_thread_pool()
 {
   CALL_SUBTEST(test_create_destroy_empty_pool());
   CALL_SUBTEST(test_parallelism());
+  CALL_SUBTEST(test_cancel());
 }
