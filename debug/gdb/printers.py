@@ -128,6 +128,47 @@ class EigenMatrixPrinter:
 	def to_string(self):
 		return "Eigen::%s<%s,%d,%d,%s> (data ptr: %s)" % (self.variety, self.innerType, self.rows, self.cols, "RowMajor" if self.rowMajor else  "ColMajor", self.data)
 
+class EigenSparseMatrixPrinter:
+	"Print an Eigen SparseMatrix"
+
+	def __init__(self, val):
+		"Extract all the necessary information"
+
+		type = val.type
+		if type.code == gdb.TYPE_CODE_REF:
+			type = type.target()
+		self.type = type.unqualified().strip_typedefs()
+		tag = self.type.tag
+		regex = re.compile('\<.*\>')
+		m = regex.findall(tag)[0][1:-1]
+		template_params = m.split(',')
+		template_params = [x.replace(" ", "") for x in template_params]
+
+		self.options = 0
+		if len(template_params) > 1:
+			self.options = template_params[1];
+		
+		self.rowMajor = (int(self.options) & 0x1)
+		
+		self.innerType = self.type.template_argument(0)
+		
+		self.val = val
+
+		self.data = self.val['m_data']
+		self.data = self.data.cast(self.innerType.pointer())
+
+	def to_string(self):
+		if self.data:
+			status = ("not compressed" if self.val['m_innerNonZeros'] else "compressed")
+		else:
+			status = "empty"
+		dimensions  = "%d x %d" % ((self.val['m_outerSize'], self.val['m_innerSize']) if self.rowMajor else
+					   (self.val['m_innerSize'], self.val['m_outerSize']))
+		layout      = "row" if self.rowMajor else "column"
+
+		return "Eigen::SparseMatrix<%s>, %s, %s major, %s" % (
+			self.innerType, dimensions, layout, status )
+
 class EigenQuaternionPrinter:
 	"Print an Eigen Quaternion"
 	
@@ -155,7 +196,7 @@ class EigenQuaternionPrinter:
 			return self
 	
 		def next(self):
-                        return self.__next__()  # Python 2.x compatibility
+			return self.__next__()  # Python 2.x compatibility
 
 		def __next__(self):
 			element = self.currentElement
@@ -179,6 +220,7 @@ class EigenQuaternionPrinter:
 def build_eigen_dictionary ():
 	pretty_printers_dict[re.compile('^Eigen::Quaternion<.*>$')] = lambda val: EigenQuaternionPrinter(val)
 	pretty_printers_dict[re.compile('^Eigen::Matrix<.*>$')] = lambda val: EigenMatrixPrinter("Matrix", val)
+	pretty_printers_dict[re.compile('^Eigen::SparseMatrix<.*>$')] = lambda val: EigenSparseMatrixPrinter(val)
 	pretty_printers_dict[re.compile('^Eigen::Array<.*>$')]  = lambda val: EigenMatrixPrinter("Array",  val)
 
 def register_eigen_printers(obj):
