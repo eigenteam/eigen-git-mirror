@@ -107,10 +107,14 @@ static void test_cancel()
   NonBlockingThreadPool tp(4);
 
 #ifdef EIGEN_SUPPORTS_THREAD_CANCELLATION
+  std::cout << "Thread cancellation is supported on this platform" << std::endl;
+
   // Put 2 threads to sleep for much longer than the default test timeout.
   tp.Schedule([]() { sleep(3600); } );
   tp.Schedule([]() { sleep(3600 * 24); } );
 #else
+  std::cout << "Thread cancellation is a no-op on this platform" << std::endl;
+
   // Make 2 threads sleep for a short period of time
   tp.Schedule([]() { sleep(1); } );
   tp.Schedule([]() { sleep(2); } );
