@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include <Eigen/Core>
+#include "eigen_src/Eigen/Core"
 #include "../../BenchTimer.h"
 using namespace Eigen;
 

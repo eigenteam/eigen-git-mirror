@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <Eigen/Core>
+#include "eigen_src/Eigen/Core"
 #include "../../BenchTimer.h"
 using namespace Eigen;
 
