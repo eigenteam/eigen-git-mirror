@@ -177,6 +177,13 @@ class RunQueue {
   // Can be called by any thread at any time.
   bool Empty() const { return Size() == 0; }
 
+  // Delete all the elements from the queue.
+  void Flush() {
+    while (!Empty()) {
+      PopFront();
+    }
+  }
+
  private:
   static const unsigned kMask = kSize - 1;
   static const unsigned kMask2 = (kSize << 1) - 1;
