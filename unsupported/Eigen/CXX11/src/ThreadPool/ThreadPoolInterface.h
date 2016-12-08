@@ -16,7 +16,11 @@ namespace Eigen {
 // custom thread pools underneath.
 class ThreadPoolInterface {
  public:
+  // Submits a closure to be run by a thread in the pool.
   virtual void Schedule(std::function<void()> fn) = 0;
+
+  // Cancel all the threads in the pool.
+  virtual void Cancel() = 0;
 
   // Returns the number of threads in the pool.
   virtual int NumThreads() const = 0;
