@@ -10,8 +10,7 @@
 
 # Pretty printers for Eigen::Matrix
 # This is still pretty basic as the python extension to gdb is still pretty basic. 
-# It cannot handle complex eigen types and it doesn't support any of the other eigen types
-# Such as quaternion or some other type. 
+# It cannot handle complex eigen types and it doesn't support many of the other eigen types
 # This code supports fixed size as well as dynamic size matrices
 
 # To use it:
