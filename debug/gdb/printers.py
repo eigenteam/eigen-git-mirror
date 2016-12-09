@@ -30,6 +30,44 @@ import re
 import itertools
 from bisect import bisect_left
 
+# Basic row/column iteration code for use with Sparse and Dense matrices
+class _MatrixEntryIterator(object):
+	
+	def __init__ (self, rows, cols, rowMajor):
+		self.rows = rows
+		self.cols = cols
+		self.currentRow = 0
+		self.currentCol = 0
+		self.rowMajor = rowMajor
+
+	def __iter__ (self):
+		return self
+
+	def next(self):
+                return self.__next__()  # Python 2.x compatibility
+
+	def __next__(self):
+		row = self.currentRow
+		col = self.currentCol
+		if self.rowMajor == 0:
+			if self.currentCol >= self.cols:
+				raise StopIteration
+				
+			self.currentRow = self.currentRow + 1
+			if self.currentRow >= self.rows:
+				self.currentRow = 0
+				self.currentCol = self.currentCol + 1
+		else:
+			if self.currentRow >= self.rows:
+				raise StopIteration
+				
+			self.currentCol = self.currentCol + 1
+			if self.currentCol >= self.cols:
+				self.currentCol = 0
+				self.currentRow = self.currentRow + 1
+
+		return (row, col)
+
 class EigenMatrixPrinter:
 	"Print Eigen Matrix or Array of some kind"
 
@@ -76,42 +114,15 @@ class EigenMatrixPrinter:
 			self.data = self.data['array']
 			self.data = self.data.cast(self.innerType.pointer())
 			
-	class _iterator:
+	class _iterator(_MatrixEntryIterator):
 		def __init__ (self, rows, cols, dataPtr, rowMajor):
-			self.rows = rows
-			self.cols = cols
-			self.dataPtr = dataPtr
-			self.currentRow = 0
-			self.currentCol = 0
-			self.rowMajor = rowMajor
-			
-		def __iter__ (self):
-			return self
+			super(EigenMatrixPrinter._iterator, self).__init__(rows, cols, rowMajor)
 
-		def next(self):
-                        return self.__next__()  # Python 2.x compatibility
+			self.dataPtr = dataPtr
 
 		def __next__(self):
 			
-			row = self.currentRow
-			col = self.currentCol
-			if self.rowMajor == 0:
-				if self.currentCol >= self.cols:
-					raise StopIteration
-					
-				self.currentRow = self.currentRow + 1
-				if self.currentRow >= self.rows:
-					self.currentRow = 0
-					self.currentCol = self.currentCol + 1
-			else:
-				if self.currentRow >= self.rows:
-					raise StopIteration
-					
-				self.currentCol = self.currentCol + 1
-				if self.currentCol >= self.cols:
-					self.currentCol = 0
-					self.currentRow = self.currentRow + 1
-				
+			row, col = super(EigenMatrixPrinter._iterator, self).__next__()
 			
 			item = self.dataPtr.dereference()
 			self.dataPtr = self.dataPtr + 1
@@ -157,41 +168,15 @@ class EigenSparseMatrixPrinter:
 		self.data = self.val['m_data']
 		self.data = self.data.cast(self.innerType.pointer())
 
-	class _iterator:
+	class _iterator(_MatrixEntryIterator):
 		def __init__ (self, rows, cols, val, rowMajor):
-			self.rows = rows
-			self.cols = cols
+			super(EigenSparseMatrixPrinter._iterator, self).__init__(rows, cols, rowMajor)
+
 			self.val = val
-			self.currentRow = 0
-			self.currentCol = 0
-			self.rowMajor = rowMajor
 			
-		def __iter__ (self):
-			return self
-
-		def next(self):
-                        return self.__next__()  # Python 2.x compatibility
-
 		def __next__(self):
 			
-			row = self.currentRow
-			col = self.currentCol
-			if self.rowMajor == 0:
-				if self.currentCol >= self.cols:
-					raise StopIteration
-					
-				self.currentRow = self.currentRow + 1
-				if self.currentRow >= self.rows:
-					self.currentRow = 0
-					self.currentCol = self.currentCol + 1
-			else:
-				if self.currentRow >= self.rows:
-					raise StopIteration
-					
-				self.currentCol = self.currentCol + 1
-				if self.currentCol >= self.cols:
-					self.currentCol = 0
-					self.currentRow = self.currentRow + 1
+			row, col = super(EigenSparseMatrixPrinter._iterator, self).__next__()
 				
 			# repeat calculations from SparseMatrix.h:
 			outer = row if self.rowMajor else col
