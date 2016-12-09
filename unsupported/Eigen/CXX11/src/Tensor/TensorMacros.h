@@ -51,4 +51,10 @@
 #endif
 
 
+#if EIGEN_OS_WIN || EIGEN_OS_WIN64
+#define EIGEN_SLEEP(n) Sleep(n)
+#else
+#define EIGEN_SLEEP(n) sleep(n*1000)
+#endif
+
 #endif
