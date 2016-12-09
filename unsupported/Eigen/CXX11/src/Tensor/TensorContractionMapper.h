@@ -412,7 +412,7 @@ class TensorContractionSubMapper {
     return m_base_mapper.template loadHalfPacket<Alignment>(i + m_vert_offset, m_horiz_offset);
   }
 
-  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void storePacket(Index i, Packet p) const {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void storePacket(Index i, const Packet& p) const {
     if (UseDirectOffsets) {
       m_base_mapper.storePacket(i, 0, p);
     }
