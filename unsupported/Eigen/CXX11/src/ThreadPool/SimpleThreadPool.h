@@ -71,7 +71,7 @@ class SimpleThreadPoolTempl : public ThreadPoolInterface {
 
   void Cancel() {
     for (size_t i = 0; i < threads_.size(); i++) {
-      threads_[i]->Cancel();
+      threads_[i]->OnCancel();
     }
   }
 

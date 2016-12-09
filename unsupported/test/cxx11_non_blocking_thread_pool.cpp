@@ -104,23 +104,15 @@ static void test_parallelism()
 
 static void test_cancel()
 {
-  NonBlockingThreadPool tp(4);
+  NonBlockingThreadPool tp(2);
 
-#ifdef EIGEN_SUPPORTS_THREAD_CANCELLATION
-  std::cout << "Thread cancellation is supported on this platform" << std::endl;
+  // Schedule a large number of closure that each sleeps for one second. This
+  // will keep the thread pool busy for much longer than the default test timeout.
+  for (int i = 0; i < 1000; ++i) {
+    tp.Schedule([]() { sleep(2); });
+  }
 
-  // Put 2 threads to sleep for much longer than the default test timeout.
-  tp.Schedule([]() { sleep(3600); } );
-  tp.Schedule([]() { sleep(3600 * 24); } );
-#else
-  std::cout << "Thread cancellation is a no-op on this platform" << std::endl;
-
-  // Make 2 threads sleep for a short period of time
-  tp.Schedule([]() { sleep(1); } );
-  tp.Schedule([]() { sleep(2); } );
-#endif
-
-  // Call cancel:
+  // Cancel the processing of all the closures that are still pending.
   tp.Cancel();
 }
 

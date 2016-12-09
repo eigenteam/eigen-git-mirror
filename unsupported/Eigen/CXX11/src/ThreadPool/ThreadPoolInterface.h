@@ -19,7 +19,8 @@ class ThreadPoolInterface {
   // Submits a closure to be run by a thread in the pool.
   virtual void Schedule(std::function<void()> fn) = 0;
 
-  // Cancel all the threads in the pool.
+  // Stop processing the closures that have been enqueued.
+  // Currently running closures may still be processed.
   virtual void Cancel() = 0;
 
   // Returns the number of threads in the pool.
