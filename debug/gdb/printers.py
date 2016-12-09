@@ -28,7 +28,7 @@
 import gdb
 import re
 import itertools
-
+from bisect import bisect_left
 
 class EigenMatrixPrinter:
 	"Print Eigen Matrix or Array of some kind"
@@ -157,13 +157,87 @@ class EigenSparseMatrixPrinter:
 		self.data = self.val['m_data']
 		self.data = self.data.cast(self.innerType.pointer())
 
+	class _iterator:
+		def __init__ (self, rows, cols, val, rowMajor):
+			self.rows = rows
+			self.cols = cols
+			self.val = val
+			self.currentRow = 0
+			self.currentCol = 0
+			self.rowMajor = rowMajor
+			
+		def __iter__ (self):
+			return self
+
+		def next(self):
+                        return self.__next__()  # Python 2.x compatibility
+
+		def __next__(self):
+			
+			row = self.currentRow
+			col = self.currentCol
+			if self.rowMajor == 0:
+				if self.currentCol >= self.cols:
+					raise StopIteration
+					
+				self.currentRow = self.currentRow + 1
+				if self.currentRow >= self.rows:
+					self.currentRow = 0
+					self.currentCol = self.currentCol + 1
+			else:
+				if self.currentRow >= self.rows:
+					raise StopIteration
+					
+				self.currentCol = self.currentCol + 1
+				if self.currentCol >= self.cols:
+					self.currentCol = 0
+					self.currentRow = self.currentRow + 1
+				
+			# repeat calculations from SparseMatrix.h:
+			outer = row if self.rowMajor else col
+			inner = col if self.rowMajor else row
+			start = self.val['m_outerIndex'][outer]
+			end = ((start + self.val['m_innerNonZeros'][outer]) if self.val['m_innerNonZeros'] else
+			       self.val['m_outerIndex'][outer+1])
+
+			# and from CompressedStorage.h:
+			data = self.val['m_data']
+			if start >= end:
+				item = 0
+			elif (end > start) and (inner == data['m_indices'][end-1]):
+				item = data['m_values'][end-1]
+			else:
+				# create Python index list from the target range within m_indices
+				indices = [data['m_indices'][x] for x in range(int(start), int(end)-1)]
+				# find the index with binary search
+				idx = int(start) + bisect_left(indices, inner)
+				if ((idx < end) and (data['m_indices'][idx] == inner)):
+					item = data['m_values'][idx]
+				else:
+					item = 0
+
+			return ('[%d,%d]' % (row, col), item)
+
+	def children(self):
+		if self.data:
+			return self._iterator(self.rows(), self.cols(), self.val, self.rowMajor)
+
+		return iter([])   # empty matrix, for now
+
+
+	def rows(self):
+		return self.val['m_outerSize'] if self.rowMajor else self.val['m_innerSize']
+
+	def cols(self):
+		return self.val['m_innerSize'] if self.rowMajor else self.val['m_outerSize']
+
 	def to_string(self):
+
 		if self.data:
 			status = ("not compressed" if self.val['m_innerNonZeros'] else "compressed")
 		else:
 			status = "empty"
-		dimensions  = "%d x %d" % ((self.val['m_outerSize'], self.val['m_innerSize']) if self.rowMajor else
-					   (self.val['m_innerSize'], self.val['m_outerSize']))
+		dimensions  = "%d x %d" % (self.rows(), self.cols())
 		layout      = "row" if self.rowMajor else "column"
 
 		return "Eigen::SparseMatrix<%s>, %s, %s major, %s" % (
