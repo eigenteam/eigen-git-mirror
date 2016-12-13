@@ -108,7 +108,14 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
     rm = rp;
     rm.col(i).swap(rm.col(j));
     VERIFY_IS_APPROX(rm, rp2.toDenseMatrix().template cast<Scalar>());
-  }  
+  }
+
+  {
+    // simple compilation check
+    Matrix<Scalar, Cols, Cols> A = rp;
+    Matrix<Scalar, Cols, Cols> B = rp.transpose();
+    VERIFY_IS_APPROX(A, B.transpose());
+  }
 }
 
 template<typename T>
