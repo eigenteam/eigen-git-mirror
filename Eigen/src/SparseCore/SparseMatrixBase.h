@@ -265,6 +265,11 @@ template<typename Derived> class SparseMatrixBase
     template<typename OtherDerived>
     Derived& operator-=(const DiagonalBase<OtherDerived>& other);
 
+    template<typename OtherDerived>
+    Derived& operator+=(const EigenBase<OtherDerived> &other);
+    template<typename OtherDerived>
+    Derived& operator-=(const EigenBase<OtherDerived> &other);
+
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
 
