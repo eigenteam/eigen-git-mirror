@@ -214,7 +214,7 @@ struct SyclDevice {
       auto dst_acc =it2->second.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
     });
-    synchronize();
+    asynchronousExec();
   }
 
   /// The memcpyHostToDevice is used to copy the device only pointer to a host pointer. Using the device
@@ -245,7 +245,7 @@ struct SyclDevice {
       auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, 0));
     });
-    synchronize();
+    asynchronousExec();
   }
   /// returning the sycl queue
   EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
@@ -263,7 +263,7 @@ struct SyclDevice {
         }
       });
     });
-    synchronize();
+    asynchronousExec();
   }
 
   EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
@@ -282,6 +282,10 @@ struct SyclDevice {
   EIGEN_STRONG_INLINE void synchronize() const {
     sycl_queue().wait_and_throw(); //pass
   }
+
+    EIGEN_STRONG_INLINE void asynchronousExec() const {
+      sycl_queue().throw_asynchronous();//pass
+    }
   // This function checks if the runtime recorded an error for the
   // underlying stream device.
   EIGEN_STRONG_INLINE bool ok() const {

@@ -137,8 +137,6 @@ static void test_builtin_unary_sycl(const Eigen::SyclDevice &sycl_device) {
   array<int, 3> tensorRange = {{sizeDim1, sizeDim2, sizeDim3}};
 
   TEST_UNARY_BUILTINS(float)
-  /// your GPU must support double. Otherwise, disable the double test.
-  TEST_UNARY_BUILTINS(double)
 }
 
 namespace std {

@@ -347,7 +347,7 @@ template< typename Self, typename Output, typename Index, typename ContractT, ty
       /// End the kernel
       });
     });
-    self.device().synchronize();
+    self.device().asynchronousExec();
   }
 };
 

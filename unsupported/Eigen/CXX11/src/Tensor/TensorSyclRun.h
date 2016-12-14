@@ -54,7 +54,7 @@ void run(Expr &expr, Dev &dev) {
         }
       });
     });
-      dev.synchronize();
+      dev.asynchronousExec();
   }
   evaluator.cleanup();
 }
