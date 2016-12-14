@@ -531,22 +531,24 @@ class unary_evaluator<Block<ArgType,BlockRows,BlockCols,InnerPanel>, IteratorBas
   enum { IsRowMajor = unary_evaluator::IsRowMajor };
   const unary_evaluator& m_eval;
   Index m_outerPos;
-  Index m_innerIndex;
-  Scalar m_value;
+  const Index m_innerIndex;
   Index m_end;
+  EvalIterator m_it;
 public:
 
   EIGEN_STRONG_INLINE OuterVectorInnerIterator(const unary_evaluator& aEval, Index outer)
     : m_eval(aEval),
-      m_outerPos( (IsRowMajor ? aEval.m_block.startCol() : aEval.m_block.startRow()) - 1), // -1 so that operator++ finds the first non-zero entry
+      m_outerPos( (IsRowMajor ? aEval.m_block.startCol() : aEval.m_block.startRow()) ),
       m_innerIndex(IsRowMajor ? aEval.m_block.startRow() : aEval.m_block.startCol()),
-      m_value(0),
-      m_end(IsRowMajor ? aEval.m_block.startCol()+aEval.m_block.blockCols() : aEval.m_block.startRow()+aEval.m_block.blockRows())
+      m_end(IsRowMajor ? aEval.m_block.startCol()+aEval.m_block.blockCols() : aEval.m_block.startRow()+aEval.m_block.blockRows()),
+      m_it(m_eval.m_argImpl, m_outerPos)
   {
     EIGEN_UNUSED_VARIABLE(outer);
     eigen_assert(outer==0);
 
-    ++(*this);
+    while(m_it && m_it.index() < m_innerIndex) ++m_it;
+    if((!m_it) || (m_it.index()!=m_innerIndex))
+      ++(*this);
   }
 
   inline StorageIndex index() const { return convert_index<StorageIndex>(m_outerPos - (IsRowMajor ? m_eval.m_block.startCol() : m_eval.m_block.startRow())); }
@@ -554,21 +556,20 @@ public:
   inline Index row()    const { return IsRowMajor ? 0 : index(); }
   inline Index col()    const { return IsRowMajor ? index() : 0; }
 
-  inline Scalar value() const { return m_value; }
+  inline Scalar value() const { return m_it.value(); }
+  inline Scalar& valueRef() { return m_it.valueRef(); }
 
   inline OuterVectorInnerIterator& operator++()
   {
     // search next non-zero entry
     while(++m_outerPos<m_end)
     {
-      EvalIterator it(m_eval.m_argImpl, m_outerPos);
+      // Restart iterator at the next inner-vector:
+      m_it.~EvalIterator();
+      ::new (&m_it) EvalIterator(m_eval.m_argImpl, m_outerPos);
       // search for the key m_innerIndex in the current outer-vector
-      while(it && it.index() < m_innerIndex) ++it;
-      if(it && it.index()==m_innerIndex)
-      {
-        m_value = it.value();
-        break;
-      }
+      while(m_it && m_it.index() < m_innerIndex) ++m_it;
+      if(m_it && m_it.index()==m_innerIndex) break;
     }
     return *this;
   }
