@@ -431,6 +431,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m3 = m2.template selfadjointView<Lower>();
     VERIFY_IS_APPROX(m3, refMat3);
 
+    refMat3 += refMat2.template selfadjointView<Lower>();
+    m3 += m2.template selfadjointView<Lower>();
+    VERIFY_IS_APPROX(m3, refMat3);
+
+    refMat3 -= refMat2.template selfadjointView<Lower>();
+    m3 -= m2.template selfadjointView<Lower>();
+    VERIFY_IS_APPROX(m3, refMat3);
+
     // selfadjointView only works for square matrices:
     SparseMatrixType m4(rows, rows+1);
     VERIFY_RAISES_ASSERT(m4.template selfadjointView<Lower>());
