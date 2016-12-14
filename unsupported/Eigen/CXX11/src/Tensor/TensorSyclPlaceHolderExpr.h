@@ -191,21 +191,6 @@ SYCLSLICESTRIDEOPPLH(const)
 SYCLSLICESTRIDEOPPLH()
 #undef SYCLSLICESTRIDEOPPLH
 
-#define PADDINGRESHAPEANDSHUFFLEOPPLH(OPEXP , CVQual)\
-template<typename Param, typename XprType, size_t N>\
-struct PlaceHolderExpression<CVQual OPEXP<Param, XprType>, N > {\
-  typedef CVQual OPEXP<Param, typename CalculateIndex<N, XprType>::ArgType> Type;\
-};
-
-PADDINGRESHAPEANDSHUFFLEOPPLH(TensorPaddingOp, const)
-PADDINGRESHAPEANDSHUFFLEOPPLH(TensorPaddingOp,)
-
-PADDINGRESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, const)
-PADDINGRESHAPEANDSHUFFLEOPPLH(TensorReshapingOp, )
-
-PADDINGRESHAPEANDSHUFFLEOPPLH(TensorShufflingOp, const)
-PADDINGRESHAPEANDSHUFFLEOPPLH(TensorShufflingOp,)
-#undef PADDINGRESHAPEANDSHUFFLEOPPLH
 
 /// template deduction for \ref PlaceHolderExpression struct
 template <typename Expr>

@@ -31,7 +31,7 @@ namespace Eigen {
       auto dst_ptr = ConvertToActualTypeSycl(Scalar, m_dst_acc);
       auto globalid = itemID.get_global_linear_id();
       if (globalid < m_rng) {
-  dst_ptr[globalid + m_i] = src_ptr[globalid + m_offset];
+        dst_ptr[globalid + m_i] = src_ptr[globalid + m_offset];
       }
     }
 
@@ -50,7 +50,7 @@ EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device
     /// get_devices returns all the available opencl devices. Either use device_selector or exclude devices that computecpp does not support (AMD OpenCL for CPU )
     auto s=  (*it).template get_info<cl::sycl::info::device::vendor>();
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if((*it).is_cpu() && s.find("amd")!=std::string::npos){
+    if((*it).is_cpu() && s.find("amd")!=std::string::npos){ // remove amd cpu as it is not supported by computecpp
       it=devices.erase(it);
     }
     else{
@@ -72,9 +72,9 @@ struct QueueInterface {
   mutable std::map<const uint8_t *, cl::sycl::buffer<uint8_t, 1>> buffer_map;
   /// sycl queue
   mutable cl::sycl::queue m_queue;
-  /// creating device by using cl::sycl::selector or cl::sycl::device both are the same and can be captured throufh dev_Selector typename
+  /// creating device by using cl::sycl::selector or cl::sycl::device both are the same and can be captured through dev_Selector typename
   /// SyclStreamDevice is not owned. it is the caller's responsibility to destroy it.
-  template<typename dev_Selector> explicit QueueInterface(dev_Selector s):
+  template<typename dev_Selector> explicit QueueInterface(const dev_Selector& s):
 #ifdef EIGEN_EXCEPTIONS
   m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
     for (const auto& e : l) {
@@ -103,17 +103,21 @@ struct QueueInterface {
     auto ptr =buf.get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::host_buffer>().get_pointer();
     buf.set_final_data(nullptr);
     std::lock_guard<std::mutex> lock(mutex_);
-    buffer_map.insert(std::pair<const uint8_t *, cl::sycl::buffer<uint8_t, 1>>(ptr,buf));
+    buffer_map.insert(std::pair<const uint8_t *, cl::sycl::buffer<uint8_t, 1>>(static_cast<const uint8_t*>(ptr),buf));
     return static_cast<void*>(ptr);
   }
 
   /// This is used to deallocate the device pointer. p is used as a key inside
   /// the map to find the device buffer and delete it.
-  EIGEN_STRONG_INLINE void deallocate(const void *p) const {
+  EIGEN_STRONG_INLINE void deallocate(void *p) const {
     std::lock_guard<std::mutex> lock(mutex_);
     auto it = buffer_map.find(static_cast<const uint8_t*>(p));
     if (it != buffer_map.end()) {
+      auto num_bytes =it->second.get_size();
       buffer_map.erase(it);
+      // Temporary solution for memory leak in computecpp. It will be fixed in the next computecpp version
+      std::allocator<uint8_t> a1; // Default allocator for buffer<uint8_t,1>
+      a1.deallocate(static_cast<uint8_t*>(p), num_bytes);
     }
   }
 
@@ -188,7 +192,7 @@ struct SyclDevice {
       return m_queue_stream->allocate(num_bytes);
   }
   /// deallocate device memory
-  EIGEN_STRONG_INLINE void deallocate(const void *p) const {
+  EIGEN_STRONG_INLINE void deallocate(void *p) const {
      m_queue_stream->deallocate(p);
    }
 
@@ -235,25 +239,25 @@ struct SyclDevice {
     size_t rng, GRange, tileSize;
     parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
     // Assuming that the dst is the start of the destination pointer
-    auto dest_buf = cl::sycl::buffer<uint8_t, 1, cl::sycl::map_allocator<uint8_t> >(static_cast<uint8_t*>(dst), cl::sycl::range<1>(rng*sizeof(T)));
+    auto dest_buf = cl::sycl::buffer<uint8_t, 1, cl::sycl::map_allocator<uint8_t> >(static_cast<uint8_t*>(dst), cl::sycl::range<1>(n));
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
       auto src_acc= it->second.template get_access<cl::sycl::access::mode::read, cl::sycl::access::target::global_buffer>(cgh);
       auto dst_acc =dest_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, offset));
+      cgh.parallel_for( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), MemCopyFunctor<T>(src_acc, dst_acc, rng, 0, 0));
     });
     synchronize();
   }
   /// returning the sycl queue
   EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
   /// Here is the implementation of memset function on sycl.
-  template<typename T>  EIGEN_STRONG_INLINE void memset(T *buff, int c, size_t n) const {
+  template<typename T>  EIGEN_STRONG_INLINE void memset(T *data, int c, size_t n) const {
     size_t rng, GRange, tileSize;
     parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
     sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      auto buf_acc =get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(buff))). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+      auto buf_acc =get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(data))). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
       cgh.parallel_for<SyclDevice>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
         auto globalid=itemID.get_global_linear_id();
-        if (globalid< n) {
+        if (globalid< rng) {
           for(size_t i=0; i<sizeof(T); i++)
             buf_acc[globalid*sizeof(T) + i] = c;
         }

@@ -154,7 +154,6 @@ template <typename T> T cwiseMin(T x, T y) { return std::min(x, y); }
     Tensor<SCALAR, 3> out(tensorRange);                                        \
     in_1 = in_1.random() + static_cast<SCALAR>(0.01);                          \
     in_2 = in_2.random() + static_cast<SCALAR>(0.01);                          \
-    out = out.random() + static_cast<SCALAR>(0.01);                            \
     Tensor<SCALAR, 3> reference(out);                                          \
     SCALAR *gpu_data_1 = static_cast<SCALAR *>(                                \
         sycl_device.allocate(in_1.size() * sizeof(SCALAR)));                   \
@@ -169,8 +168,6 @@ template <typename T> T cwiseMin(T x, T y) { return std::min(x, y); }
                                    (in_1.size()) * sizeof(SCALAR));            \
     sycl_device.memcpyHostToDevice(gpu_data_2, in_2.data(),                    \
                                    (in_2.size()) * sizeof(SCALAR));            \
-    sycl_device.memcpyHostToDevice(gpu_data_out, out.data(),                   \
-                                   (out.size()) * sizeof(SCALAR));             \
     gpu_out.device(sycl_device) = gpu_1.FUNC(gpu_2);                           \
     sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
                                    (out.size()) * sizeof(SCALAR));             \
@@ -192,7 +189,6 @@ template <typename T> T cwiseMin(T x, T y) { return std::min(x, y); }
     Tensor<SCALAR, 3> out(tensorRange);                                        \
     in_1 = in_1.random() + static_cast<SCALAR>(0.01);                          \
     in_2 = in_2.random() + static_cast<SCALAR>(0.01);                          \
-    out = out.random() + static_cast<SCALAR>(0.01);                            \
     Tensor<SCALAR, 3> reference(out);                                          \
     SCALAR *gpu_data_1 = static_cast<SCALAR *>(                                \
         sycl_device.allocate(in_1.size() * sizeof(SCALAR)));                   \
@@ -207,8 +203,6 @@ template <typename T> T cwiseMin(T x, T y) { return std::min(x, y); }
                                    (in_1.size()) * sizeof(SCALAR));            \
     sycl_device.memcpyHostToDevice(gpu_data_2, in_2.data(),                    \
                                    (in_2.size()) * sizeof(SCALAR));            \
-    sycl_device.memcpyHostToDevice(gpu_data_out, out.data(),                   \
-                                   (out.size()) * sizeof(SCALAR));             \
     gpu_out.device(sycl_device) = gpu_1 OPERATOR gpu_2;                        \
     sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
                                    (out.size()) * sizeof(SCALAR));             \
@@ -235,8 +229,6 @@ template <typename T> T cwiseMin(T x, T y) { return std::min(x, y); }
     TensorMap<Tensor<SCALAR, 3>> gpu_out(gpu_data_out, tensorRange);           \
     sycl_device.memcpyHostToDevice(gpu_data_1, in_1.data(),                    \
                                    (in_1.size()) * sizeof(SCALAR));            \
-    sycl_device.memcpyHostToDevice(gpu_data_out, out.data(),                   \
-                                   (out.size()) * sizeof(SCALAR));             \
     gpu_out.device(sycl_device) = gpu_1 OPERATOR 2;                            \
     sycl_device.memcpyDeviceToHost(out.data(), gpu_data_out,                   \
                                    (out.size()) * sizeof(SCALAR));             \

@@ -223,26 +223,6 @@ SYCLSLICESTRIDEOPEXTACC()
 #undef SYCLSLICESTRIDEOPEXTACC
 
 
-#define PADDINGRESHAPEANDSHUFFOPEXTRACC(OPEXPR, CVQual)\
-template<typename Param, typename XprType, typename Dev>\
-struct ExtractAccessor<TensorEvaluator<CVQual OPEXPR<Param, XprType>, Dev> > {\
-  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual OPEXPR<Param, XprType>, Dev>& eval)\
-  -> decltype(AccessorConstructor::getTuple(cgh, eval.impl())){\
-    return AccessorConstructor::getTuple(cgh, eval.impl());\
-  }\
-};
-
-// tensor padding
-PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorPaddingOp, const)
-PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorPaddingOp, )
-// tensor reshaping
-PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorReshapingOp, const)
-PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorReshapingOp, )
-/// Tensor shuffling
-PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorShufflingOp, const)
-PADDINGRESHAPEANDSHUFFOPEXTRACC(TensorShufflingOp, )
-#undef PADDINGRESHAPEANDSHUFFOPEXTRACC
-
 /// template deduction for \ref ExtractAccessor
 template <typename Evaluator>
 auto createTupleOfAccessors(cl::sycl::handler& cgh, const Evaluator& eval)

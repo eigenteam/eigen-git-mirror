@@ -58,7 +58,7 @@ SYCLEXTRTENSORMAPFIXEDSIZE()
 template <template <class, class> class UnaryCategory, typename OP, typename RHSExpr, typename Dev>\
 struct FunctorExtractor<TensorEvaluator<CVQual UnaryCategory<OP, RHSExpr>, Dev> > {\
   FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
-  OP func;\
+  const OP func;\
   FunctorExtractor(const TensorEvaluator<CVQual UnaryCategory<OP, RHSExpr>, Dev>& expr)\
   : rhsExpr(expr.impl()), func(expr.functor()) {}\
 };
@@ -74,7 +74,7 @@ template <template<class, class, class> class BinaryCategory, typename OP, typen
 struct FunctorExtractor<TensorEvaluator<CVQual BinaryCategory<OP, LHSExpr, RHSExpr>, Dev> > {\
   FunctorExtractor<TensorEvaluator<LHSExpr, Dev> > lhsExpr;\
   FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
-  OP func;\
+  const OP func;\
   FunctorExtractor(const TensorEvaluator<CVQual BinaryCategory<OP, LHSExpr, RHSExpr>, Dev>& expr)\
   : lhsExpr(expr.left_impl()),rhsExpr(expr.right_impl()),func(expr.functor()) {}\
 };
@@ -90,7 +90,7 @@ struct FunctorExtractor<TensorEvaluator<CVQual TernaryCategory<OP, Arg1Expr, Arg
   FunctorExtractor<TensorEvaluator<Arg1Expr, Dev> > arg1Expr;\
   FunctorExtractor<TensorEvaluator<Arg2Expr, Dev> > arg2Expr;\
   FunctorExtractor<TensorEvaluator<Arg3Expr, Dev> > arg3Expr;\
-  OP func;\
+  const OP func;\
   FunctorExtractor(const TensorEvaluator<CVQual TernaryCategory<OP, Arg1Expr, Arg2Expr, Arg3Expr>, Dev>& expr)\
   : arg1Expr(expr.arg1Impl()), arg2Expr(expr.arg2Impl()), arg3Expr(expr.arg3Impl()), func(expr.functor()) {}\
 };
@@ -240,6 +240,23 @@ struct FunctorExtractor<Eigen::TensorEvaluator<CVQual Eigen::OPEXPR<Param, XprTy
 PADDINGOPFUNCEXT(TensorPaddingOp, padding(), padding_value(), const)
 PADDINGOPFUNCEXT(TensorPaddingOp, padding(), padding_value(), )
 #undef PADDINGOPFUNCEXT
+
+/// specialisation of the \ref FunctorExtractor struct when the node type is
+/// TensorContractionOp The LHS and RHS here are the original one no need to apply condition on their type.
+#define SYCLEXTRFUNCCONTRACT(CVQual)\
+template <typename Indices, typename LHSExpr, typename RHSExpr, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual TensorContractionOp<Indices, LHSExpr, RHSExpr>, Dev> > {\
+  FunctorExtractor<TensorEvaluator<LHSExpr, Dev> > lhsExpr;\
+  FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
+  const Indices func;\
+  FunctorExtractor(const TensorEvaluator<CVQual TensorContractionOp<Indices, LHSExpr, RHSExpr>, Dev>& expr)\
+  : lhsExpr(expr.left_impl()),rhsExpr(expr.right_impl()),func(expr.indices()) {}\
+};
+
+SYCLEXTRFUNCCONTRACT(const)
+SYCLEXTRFUNCCONTRACT()
+#undef SYCLEXTRFUNCCONTRACT
+
 
 /// template deduction function for FunctorExtractor
 template <typename Evaluator>

@@ -80,5 +80,7 @@ template<typename T> struct GetType<false, T>{
 //sycl functors
 #include "TensorSyclFunctors.h"
 
+#include "TensorContractionSycl.h"
+
 #endif  // end of EIGEN_USE_SYCL
 #endif  // UNSUPPORTED_EIGEN_CXX11_SRC_TENSOR_TENSORSYCL_H

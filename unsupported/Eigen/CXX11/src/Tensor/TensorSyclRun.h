@@ -56,7 +56,6 @@ void run(Expr &expr, Dev &dev) {
     });
       dev.synchronize();
   }
-
   evaluator.cleanup();
 }
 }  // namespace TensorSycl
