@@ -114,9 +114,11 @@ class NonBlockingThreadPoolTempl : public Eigen::ThreadPoolInterface {
     done_ = true;
 
     // Let each thread know it's been cancelled.
+#ifdef EIGEN_THREAD_ENV_SUPPORTS_CANCELLATION
     for (size_t i = 0; i < threads_.size(); i++) {
       threads_[i]->OnCancel();
     }
+#endif
 
     // Wake up the threads without work to let them exit on their own.
     ec_.Notify(true);
