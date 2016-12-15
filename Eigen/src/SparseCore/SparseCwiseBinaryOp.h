@@ -623,6 +623,22 @@ protected:
 
 template<typename Derived>
 template<typename OtherDerived>
+Derived& SparseMatrixBase<Derived>::operator+=(const EigenBase<OtherDerived> &other)
+{
+  call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar,typename OtherDerived::Scalar>());
+  return derived();
+}
+
+template<typename Derived>
+template<typename OtherDerived>
+Derived& SparseMatrixBase<Derived>::operator-=(const EigenBase<OtherDerived> &other)
+{
+  call_assignment(derived(), other.derived(), internal::assign_op<Scalar,typename OtherDerived::Scalar>());
+  return derived();
+}
+
+template<typename Derived>
+template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 SparseMatrixBase<Derived>::operator-=(const SparseMatrixBase<OtherDerived> &other)
 {

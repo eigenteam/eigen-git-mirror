@@ -58,6 +58,18 @@
 #include "src/ThreadPool/SimpleThreadPool.h"
 #include "src/ThreadPool/NonBlockingThreadPool.h"
 
+
+// Use the more efficient NonBlockingThreadPool by default.
+namespace Eigen {
+#ifndef EIGEN_USE_SIMPLE_THREAD_POOL
+template <typename Env> using ThreadPoolTempl = NonBlockingThreadPoolTempl<Env>;
+typedef NonBlockingThreadPool ThreadPool;
+#else
+template <typename Env> using ThreadPoolTempl = SimpleThreadPoolTempl<Env>;
+typedef SimpleThreadPool ThreadPool;
+#endif
+}  // namespace Eigen
+
 #endif
 
 #include <Eigen/src/Core/util/ReenableStupidWarnings.h>

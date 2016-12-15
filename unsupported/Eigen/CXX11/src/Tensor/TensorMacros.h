@@ -51,4 +51,12 @@
 #endif
 
 
+#if EIGEN_OS_WIN || EIGEN_OS_WIN64
+#define EIGEN_SLEEP(n) Sleep(n)
+#elif EIGEN_OS_GNULINUX
+#define EIGEN_SLEEP(n) usleep(n * 1000);
+#else
+#define EIGEN_SLEEP(n) sleep(std::max<unsigned>(1, n/1000))
+#endif
+
 #endif
