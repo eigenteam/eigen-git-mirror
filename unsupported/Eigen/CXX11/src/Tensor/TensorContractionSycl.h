@@ -190,19 +190,24 @@ LeftEvaluator  m_leftImpl;
 RightEvaluator m_rightImpl;
 };
 
-#define TileSizeDimM 32                                      // Tile size for dimension M
-#define TileSizeDimN 32                                      // Tile size for dimension N
-#define TileSizeDimK 16                                      // Tile size for dimension K
-#define WorkLoadPerThreadM 4                                 // Work load per thread in dimension M
-#define WorkLoadPerThreadN 4                                 // work load per thread in dimension N
-#define LocalThreadSizeM (TileSizeDimM/WorkLoadPerThreadM)   // Local thread size for the first dimension (M here)
-#define LocalThreadSizeN (TileSizeDimN/WorkLoadPerThreadN)   // Local thread size for the second dimension (N here)
-#define LoadPerThreadLhs ((TileSizeDimK*WorkLoadPerThreadM*WorkLoadPerThreadN)/(TileSizeDimN))  // workload per thread for Lhs expression
-#define LoadPerThreadRhs ((TileSizeDimK*WorkLoadPerThreadM*WorkLoadPerThreadN)/(TileSizeDimM))  // workload per thread for Rhs expression
-#define RoundUp(x,y) ((((x) + (y) - 1) / (y))*(y))          // RoundUp function to make sure that the global threadId is dividabe by local threadId
-
 template <typename PLEXPR, bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered> struct KernelNameConstructor;
 template <typename LhsScalar, typename RhsScalar, bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered> struct LaunchSyclKernels {
+
+static const int TileSizeDimM = 32;                                      // Tile size for dimension M
+static const int TileSizeDimN = 32;                                      // Tile size for dimension N
+static const int TileSizeDimK = 16;                                      // Tile size for dimension K 
+static const int WorkLoadPerThreadM = 4;                                 // Work load per thread in dimension M
+static const int WorkLoadPerThreadN = 4;                                 // work load per thread in dimension N
+static const int LocalThreadSizeM = (TileSizeDimM/WorkLoadPerThreadM);   // Local thread size for the first dimension (M here)      
+static const int LocalThreadSizeN = (TileSizeDimN/WorkLoadPerThreadN);   // Local thread size for the second dimension (N here)     
+static const int LoadPerThreadLhs = ((TileSizeDimK*WorkLoadPerThreadM*WorkLoadPerThreadN)/(TileSizeDimN));  // workload per thread for Lhs expression
+static const int LoadPerThreadRhs = ((TileSizeDimK*WorkLoadPerThreadM*WorkLoadPerThreadN)/(TileSizeDimM));  // workload per thread for Rhs expression
+
+// RoundUp function to make sure that the global threadId is divisable by local threadId
+static int RoundUp(int x, int y) {
+  return ((((x) + (y) - 1) / (y))*(y));
+}
+
 template< typename Self, typename Output, typename Index, typename ContractT, typename LeftNocontractT, typename RightNocontractT>
   static void Run(const Self& self, Output* buffer,  Index M, Index N, Index K,
     ContractT m_k_strides, ContractT m_left_contracting_strides, ContractT m_right_contracting_strides,
