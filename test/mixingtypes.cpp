@@ -69,7 +69,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   double epsd = std::sqrt(std::numeric_limits<double>::min EIGEN_EMPTY ());
 
   while(std::abs(sf )<epsf) sf  = internal::random<float>();
-  while(std::abs(sd )<epsd) sf  = internal::random<double>();
+  while(std::abs(sd )<epsd) sd  = internal::random<double>();
   while(std::abs(scf)<epsf) scf = internal::random<CF>();
   while(std::abs(scd)<epsd) scd = internal::random<CD>();
 
