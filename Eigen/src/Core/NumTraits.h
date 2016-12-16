@@ -71,7 +71,7 @@ struct default_digits10_impl<T,false,true> // Integer
   *     and to \c 0 otherwise.
   * \li Enum values ReadCost, AddCost and MulCost representing a rough estimate of the number of CPU cycles needed
   *     to by move / add / mul instructions respectively, assuming the data is already stored in CPU registers.
-  *     Stay vague here. No need to do architecture-specific stuff.
+  *     Stay vague here. No need to do architecture-specific stuff. If you don't know what this means, just use \c Eigen::HugeCost.
   * \li An enum value \a IsSigned. It is equal to \c 1 if \a T is a signed type and to 0 if \a T is unsigned.
   * \li An enum value \a RequireInitialization. It is equal to \c 1 if the constructor of the numeric type \a T must
   *     be called, and to 0 if it is safe not to call it. Default is 0 if \a T is an arithmetic type, and 1 otherwise.
