@@ -46,6 +46,8 @@ struct traits<TensorForcedEvalOp<XprType, MakePointer_> >
     // Intermediate typedef to workaround MSVC issue.
     typedef MakePointer_<T> MakePointerT;
     typedef typename MakePointerT::Type Type;
+    typedef typename MakePointerT::RefType RefType;
+
   };
 };
 
@@ -107,7 +109,7 @@ struct TensorEvaluator<const TensorForcedEvalOp<ArgType, MakePointer_>, Device>
   };
 
   EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const Device& device)
-	/// op_ is used for sycl
+  /// op_ is used for sycl
       : m_impl(op.expression(), device), m_op(op.expression()), m_device(device), m_buffer(NULL)
   { }
 

@@ -276,6 +276,12 @@ struct TensorEvaluator<const TensorConcatenationOp<Axis, LeftArgType, RightArgTy
   }
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<LeftArgType, Device>& left_impl() const { return m_leftImpl; }
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<RightArgType, Device>& right_impl() const { return m_rightImpl; }
+  /// required by sycl in order to extract the accessor
+  const Axis& axis() const { return m_axis; }
 
   protected:
     Dimensions m_dimensions;

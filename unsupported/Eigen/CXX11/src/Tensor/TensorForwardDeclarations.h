@@ -20,14 +20,18 @@ namespace Eigen {
 // map_allocator.
 template<typename T> struct MakePointer {
   typedef T* Type;
+  typedef T& RefType;
 };
 #if defined(EIGEN_USE_SYCL)
 namespace TensorSycl {
 namespace internal{
-template <typename HostExpr, typename PlaceHolderExpr, typename FunctorExpr, typename Tuple_of_Acc, typename Dims, typename Op, typename Index> class ReductionFunctor;
+template <typename HostExpr, typename FunctorExpr, typename Tuple_of_Acc, typename Dims, typename Op, typename Index> class ReductionFunctor;
+template<typename CoeffReturnType ,typename OutAccessor, typename HostExpr, typename FunctorExpr, typename Op, typename Dims, typename Index, typename TupleType>
+struct FullReductionKernelFunctor;
 }
 }
 #endif
+
 
 
 template<typename PlainObjectType, int Options_ = Unaligned, template <class> class MakePointer_ = MakePointer> class TensorMap;

@@ -58,6 +58,8 @@ struct traits<Tensor<Scalar_, NumIndices_, Options_, IndexType_> >
   };
   template <typename T> struct MakePointer {
     typedef T* Type;
+    typedef T& RefType;
+
   };
 };
 
@@ -76,6 +78,8 @@ struct traits<TensorFixedSize<Scalar_, Dimensions, Options_, IndexType_> >
   };
   template <typename T> struct MakePointer {
     typedef T* Type;
+    typedef T& RefType;
+
   };
 };
 
@@ -98,6 +102,8 @@ struct traits<TensorMap<PlainObjectType, Options_, MakePointer_> >
     // Intermediate typedef to workaround MSVC issue.
     typedef MakePointer_<T> MakePointerT;
     typedef typename MakePointerT::Type Type;
+    typedef typename MakePointerT::RefType RefType;
+
   };
 };
 
