@@ -101,7 +101,8 @@ template < typename HostExpr, typename FunctorExpr, typename Tuple_of_Acc, typen
 
 
 template<typename CoeffReturnType ,typename OutAccessor, typename HostExpr, typename FunctorExpr, typename Op, typename Dims, typename Index, typename TupleType>
-struct FullReductionKernelFunctor{
+class FullReductionKernelFunctor{
+public:
   typedef  typename TensorSycl::internal::createPlaceHolderExpression<HostExpr>::Type PlaceHolderExpr;
   OutAccessor tmp_global_accessor;
   Index rng , remaining, red_factor;

@@ -27,7 +27,7 @@ namespace TensorSycl {
 namespace internal{
 template <typename HostExpr, typename FunctorExpr, typename Tuple_of_Acc, typename Dims, typename Op, typename Index> class ReductionFunctor;
 template<typename CoeffReturnType ,typename OutAccessor, typename HostExpr, typename FunctorExpr, typename Op, typename Dims, typename Index, typename TupleType>
-struct FullReductionKernelFunctor;
+class FullReductionKernelFunctor;
 }
 }
 #endif
