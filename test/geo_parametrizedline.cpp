@@ -25,6 +25,8 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, LineType::AmbientDimAtCompileTime, 1> VectorType;
   typedef Hyperplane<Scalar,LineType::AmbientDimAtCompileTime> HyperplaneType;
+  typedef Matrix<Scalar, HyperplaneType::AmbientDimAtCompileTime,
+                         HyperplaneType::AmbientDimAtCompileTime> MatrixType;
 
   VectorType p0 = VectorType::Random(dim);
   VectorType p1 = VectorType::Random(dim);
@@ -59,6 +61,31 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   VERIFY_IS_MUCH_SMALLER_THAN(hp.signedDistance(pi), RealScalar(1));
   VERIFY_IS_MUCH_SMALLER_THAN(l0.distance(pi), RealScalar(1));
   VERIFY_IS_APPROX(l0.intersectionPoint(hp), pi);
+
+  // transform
+  if (!NumTraits<Scalar>::IsComplex)
+  {
+    MatrixType rot = MatrixType::Random(dim,dim).householderQr().householderQ();
+    DiagonalMatrix<Scalar,LineType::AmbientDimAtCompileTime> scaling(VectorType::Random());
+    Translation<Scalar,LineType::AmbientDimAtCompileTime> translation(VectorType::Random());
+
+    while(scaling.diagonal().cwiseAbs().minCoeff()<RealScalar(1e-4)) scaling.diagonal() = VectorType::Random();
+
+    LineType l1 = l0;
+    VectorType p3 = l0.pointAt(Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN( l1.transform(rot).distance(rot * p3), Scalar(1) );
+    l1 = l0;
+    VERIFY_IS_MUCH_SMALLER_THAN( l1.transform(rot,Isometry).distance(rot * p3), Scalar(1) );
+    l1 = l0;
+    VERIFY_IS_MUCH_SMALLER_THAN( l1.transform(rot*scaling).distance((rot*scaling) * p3), Scalar(1) );
+    l1 = l0;
+    VERIFY_IS_MUCH_SMALLER_THAN( l1.transform(rot*scaling*translation)
+                                   .distance((rot*scaling*translation) * p3), Scalar(1) );
+    l1 = l0;
+    VERIFY_IS_MUCH_SMALLER_THAN( l1.transform(rot*translation,Isometry)
+                                   .distance((rot*translation) * p3), Scalar(1) );
+  }
+
 }
 
 template<typename Scalar> void parametrizedline_alignment()
