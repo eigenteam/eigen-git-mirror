@@ -88,9 +88,15 @@ struct QueueInterface {
       }
     }
   }))
-#else
-  m_queue(cl::sycl::queue(s))
-#endif
+  #else
+  m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
+    for (const auto& e : l) {
+        if (e) {
+           exception_caught_ = true;
+        }
+    }
+  }))
+  #endif
   {}
 
   /// Allocating device pointer. This pointer is actually an 8 bytes host pointer used as key to access the sycl device buffer.
