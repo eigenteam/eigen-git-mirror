@@ -381,7 +381,7 @@
     ((defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901))       \
   || (defined(__GNUC__) && defined(_GLIBCXX_USE_C99)) \
   || (defined(_LIBCPP_VERSION) && !defined(_MSC_VER)) \
-  || (EIGEN_COMP_MSVC >= 1900))
+  || (EIGEN_COMP_MSVC >= 1900) || defined(__SYCL_DEVICE_ONLY__))
   #define EIGEN_HAS_C99_MATH 1
 #else
   #define EIGEN_HAS_C99_MATH 0
