@@ -241,21 +241,25 @@ PADDINGOPFUNCEXT(TensorPaddingOp, padding(), padding_value(), const)
 PADDINGOPFUNCEXT(TensorPaddingOp, padding(), padding_value(), )
 #undef PADDINGOPFUNCEXT
 
-/// specialisation of the \ref FunctorExtractor struct when the node type is
-/// TensorContractionOp The LHS and RHS here are the original one no need to apply condition on their type.
-#define SYCLEXTRFUNCCONTRACT(CVQual)\
-template <typename Indices, typename LHSExpr, typename RHSExpr, typename Dev>\
-struct FunctorExtractor<TensorEvaluator<CVQual TensorContractionOp<Indices, LHSExpr, RHSExpr>, Dev> > {\
+/// specialisation of the \ref FunctorExtractor struct when the node type is TensorContractionOp and TensorConcatenationOp
+/// for TensorContractionOp the LHS and RHS here are the original one no need to apply condition on their type.
+#define SYCLEXTRFUNCCONTRACTCONCAT(OPEXPR, FUNCCALL, CVQual)\
+template <typename Param, typename LHSExpr, typename RHSExpr, typename Dev>\
+struct FunctorExtractor<TensorEvaluator<CVQual OPEXPR<Param, LHSExpr, RHSExpr>, Dev> > {\
   FunctorExtractor<TensorEvaluator<LHSExpr, Dev> > lhsExpr;\
   FunctorExtractor<TensorEvaluator<RHSExpr, Dev> > rhsExpr;\
-  const Indices func;\
-  FunctorExtractor(const TensorEvaluator<CVQual TensorContractionOp<Indices, LHSExpr, RHSExpr>, Dev>& expr)\
-  : lhsExpr(expr.left_impl()),rhsExpr(expr.right_impl()),func(expr.indices()) {}\
+  const Param func;\
+  FunctorExtractor(const TensorEvaluator<CVQual OPEXPR<Param, LHSExpr, RHSExpr>, Dev>& expr)\
+  : lhsExpr(expr.left_impl()),rhsExpr(expr.right_impl()),func(expr.FUNCCALL) {}\
 };
 
-SYCLEXTRFUNCCONTRACT(const)
-SYCLEXTRFUNCCONTRACT()
-#undef SYCLEXTRFUNCCONTRACT
+// TensorContractionOp
+SYCLEXTRFUNCCONTRACTCONCAT(TensorContractionOp, indices(), const)
+SYCLEXTRFUNCCONTRACTCONCAT(TensorContractionOp, indices(),)
+// TensorConcatenationOp
+SYCLEXTRFUNCCONTRACTCONCAT(TensorConcatenationOp, axis(), const)
+SYCLEXTRFUNCCONTRACTCONCAT(TensorConcatenationOp, axis(),)
+#undef SYCLEXTRFUNCCONTRACTCONCAT
 
 
 /// template deduction function for FunctorExtractor

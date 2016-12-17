@@ -43,6 +43,18 @@ namespace Eigen {
     size_t m_offset;
   };
 
+  struct memsetkernelFunctor{
+   typedef cl::sycl::accessor<uint8_t, 1, cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer> AccType;
+   AccType m_acc;
+   const size_t m_rng, m_c;
+   memsetkernelFunctor(AccType acc, const size_t rng, const size_t c):m_acc(acc), m_rng(rng), m_c(c){}
+   void operator()(cl::sycl::nd_item<1> itemID) {
+     auto globalid=itemID.get_global_linear_id();
+     if (globalid< m_rng) m_acc[globalid] = m_c;
+   }
+
+  };
+
 EIGEN_STRONG_INLINE auto get_sycl_supported_devices()->decltype(cl::sycl::device::get_devices()){
   auto devices = cl::sycl::device::get_devices();
   std::vector<cl::sycl::device>::iterator it =devices.begin();
@@ -88,15 +100,17 @@ struct QueueInterface {
       }
     }
   }))
-  #else
-  m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
-    for (const auto& e : l) {
-        if (e) {
-           exception_caught_ = true;
-        }
-    }
-  }))
-  #endif
+#else
+m_queue(cl::sycl::queue(s, [&](cl::sycl::exception_list l) {
+  for (const auto& e : l) {
+      if (e) {
+         exception_caught_ = true;
+         std::cerr << "Error detected Inside Sycl Device."<< std::endl;
+
+      }
+  }
+}))
+#endif
   {}
 
   /// Allocating device pointer. This pointer is actually an 8 bytes host pointer used as key to access the sycl device buffer.
@@ -256,21 +270,25 @@ struct SyclDevice {
   /// returning the sycl queue
   EIGEN_STRONG_INLINE cl::sycl::queue& sycl_queue() const { return m_queue_stream->m_queue;}
   /// Here is the implementation of memset function on sycl.
-  template<typename T>  EIGEN_STRONG_INLINE void memset(T *data, int c, size_t n) const {
+  EIGEN_STRONG_INLINE void memset(void *data, int c, size_t n) const {
     size_t rng, GRange, tileSize;
-    parallel_for_setup(n/sizeof(T), tileSize, rng, GRange);
-    sycl_queue().submit([&](cl::sycl::handler &cgh) {
-      auto buf_acc =get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(data))). template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
-      cgh.parallel_for<SyclDevice>( cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), [=](cl::sycl::nd_item<1> itemID) {
-        auto globalid=itemID.get_global_linear_id();
-        if (globalid< rng) {
-          for(size_t i=0; i<sizeof(T); i++)
-            buf_acc[globalid*sizeof(T) + i] = c;
-        }
-      });
-    });
+    parallel_for_setup(n, tileSize, rng, GRange);
+    sycl_queue().submit(memsetCghFunctor(get_sycl_buffer(static_cast<uint8_t*>(static_cast<void*>(data))),rng, GRange, tileSize, c ));
     asynchronousExec();
   }
+
+  struct memsetCghFunctor{
+    cl::sycl::buffer<uint8_t, 1>& m_buf;
+    const size_t& rng , GRange, tileSize;
+    const int  &c;
+    memsetCghFunctor(cl::sycl::buffer<uint8_t, 1>& buff,  const size_t& rng_,  const size_t& GRange_,  const size_t& tileSize_, const int& c_)
+    :m_buf(buff), rng(rng_), GRange(GRange_), tileSize(tileSize_), c(c_){}
+
+    void operator()(cl::sycl::handler &cgh) const {
+      auto buf_acc = m_buf.template get_access<cl::sycl::access::mode::discard_write, cl::sycl::access::target::global_buffer>(cgh);
+      cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)), memsetkernelFunctor(buf_acc, rng, c));
+    }
+  };
 
   EIGEN_STRONG_INLINE size_t firstLevelCacheSize() const {
     // FIXME

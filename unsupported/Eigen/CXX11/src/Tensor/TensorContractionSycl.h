@@ -190,16 +190,168 @@ LeftEvaluator  m_leftImpl;
 RightEvaluator m_rightImpl;
 };
 
-template <typename PLEXPR, bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered> struct KernelNameConstructor;
+
+template <typename HostExpr, typename OutScalar, typename LhsScalar, typename RhsScalar,  typename FunctorExpr, typename LhsLocalAcc, typename RhsLocalAcc, typename OutAccessor, typename Index, typename ContractT, typename LeftNocontractT,
+typename RightNocontractT, bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered,
+int TileSizeDimM, int TileSizeDimN,int TileSizeDimK, int WorkLoadPerThreadM,int WorkLoadPerThreadN,
+int LocalThreadSizeM, int LocalThreadSizeN, int LoadPerThreadLhs, int LoadPerThreadRhs, typename TupleType> struct KernelConstructor{
+
+  typedef  typename Eigen::TensorSycl::internal::createPlaceHolderExpression<HostExpr>::Type PlaceHolderExpr;
+
+  FunctorExpr functors;
+  LhsLocalAcc localLhs;
+  RhsLocalAcc localRhs;
+  OutAccessor out_res;
+  Index roundUpK, M, N, K;
+  ContractT m_k_strides, m_left_contracting_strides, m_right_contracting_strides;
+  LeftNocontractT m_i_strides, m_left_nocontract_strides;
+  RightNocontractT m_j_strides,  m_right_nocontract_strides;
+  TupleType tuple_of_accessors;
+
+  KernelConstructor(FunctorExpr functors_, LhsLocalAcc localLhs_, RhsLocalAcc localRhs_, OutAccessor out_res_,
+    Index roundUpK_, Index M_, Index N_, Index K_, ContractT m_k_strides_, ContractT m_left_contracting_strides_,
+    ContractT m_right_contracting_strides_, LeftNocontractT m_i_strides_, RightNocontractT m_j_strides_,
+    LeftNocontractT m_left_nocontract_strides_, RightNocontractT m_right_nocontract_strides_, TupleType tuple_of_accessors_)
+    :functors(functors_), localLhs(localLhs_), localRhs(localRhs_), out_res(out_res_), roundUpK(roundUpK_), M(M_), N(N_), K(K_),
+    m_k_strides(m_k_strides_), m_left_contracting_strides(m_left_contracting_strides_),
+    m_right_contracting_strides(m_right_contracting_strides_),
+    m_i_strides(m_i_strides_), m_left_nocontract_strides(m_left_nocontract_strides_),
+    m_j_strides(m_j_strides_),  m_right_nocontract_strides(m_right_nocontract_strides_),
+    tuple_of_accessors(tuple_of_accessors_){}
+
+    void operator()(cl::sycl::nd_item<1> itemID) {
+      typedef  typename Eigen::TensorSycl::internal::ConvertToDeviceExpression<HostExpr>::Type DevExpr;
+      auto device_expr =Eigen::TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
+      auto device_evaluator = TensorEvaluatorContainer<DevExpr>(device_expr.expr, Eigen::DefaultDevice());
+      typedef TensorEvaluatorContainer<DevExpr> DevEvaluator;
+      typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
+                                                     typename DevEvaluator::LeftEvaluator, LeftNocontractT,
+                                                     ContractT, 1,
+                                                     lhs_inner_dim_contiguous,
+                                                     false, Unaligned, MakeGlobalPointer> LhsMapper;
+
+      typedef internal::TensorContractionInputMapper<RhsScalar, Index, internal::Rhs,
+                                                     typename DevEvaluator::RightEvaluator, RightNocontractT,
+                                                     ContractT, 1,
+                                                     rhs_inner_dim_contiguous,
+                                                     rhs_inner_dim_reordered, Unaligned, MakeGlobalPointer> RhsMapper;
+      // initialize data mappers must happen inside the kernel for device eval
+      LhsMapper lhs(device_evaluator.m_leftImpl, m_left_nocontract_strides, m_i_strides, m_left_contracting_strides, m_k_strides);
+      RhsMapper rhs(device_evaluator.m_rightImpl, m_right_nocontract_strides, m_j_strides, m_right_contracting_strides, m_k_strides);
+      auto out_ptr = ConvertToActualTypeSycl(OutScalar, out_res);
+      // Matmul Kernel
+      // Thread identifiers
+      const int mLocalThreadId = itemID.get_local(0); // Local ID row
+      const int nLocalThreadId = itemID.get_local(1); // Local ID col
+      const int mGroupId = itemID.get_group(0); // Work-group ID row
+      const int nGroupId = itemID.get_group(1); // Work-group ID localCol
+      const int linearLocalThreadId = nLocalThreadId*LocalThreadSizeM + mLocalThreadId; // linear local thread ID
+      // Allocate register space
+      float privateLhs;
+      float privateRhs[WorkLoadPerThreadN];
+      float privateRes[WorkLoadPerThreadM][WorkLoadPerThreadN];
+      // Initialise the privateResumulation registers
+      for (int wLPTM=0; wLPTM<WorkLoadPerThreadM; wLPTM++) {
+          for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
+              privateRes[wLPTM][wLPTN] = 0.0f;
+          }
+      }
+
+      // Tile Lhs
+      for (int lPTL=0; lPTL<LoadPerThreadLhs; lPTL++) {
+          int
+          localLhsLinearId = lPTL*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
+          int localLhsRow =  localLhsLinearId% TileSizeDimM;
+          int localLhsCol = localLhsLinearId/TileSizeDimM;
+          // Load the value (wide vector load)
+          int GlobalLhsColId = TileSizeDimK*0 + localLhsCol;
+          localLhs[0 + ((localLhsCol*TileSizeDimM + localLhsRow)*2)] =((GlobalLhsColId < K)&& (mGroupId*(TileSizeDimM)+ localLhsRow <M))? lhs(mGroupId*(TileSizeDimM) + localLhsRow, GlobalLhsColId):static_cast<OutScalar>(0);
+      }
+      // Tile Rhs
+      for (int lPTR=0; lPTR<LoadPerThreadRhs; lPTR++) {
+          int localRhsLinearId = lPTR*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
+          int localRhsRow =  localRhsLinearId% TileSizeDimN;
+          int localRhsCol = localRhsLinearId/TileSizeDimN;
+          // Load the value (wide vector load)
+          int GlobalRhsRowId = TileSizeDimK*0 + localRhsCol;
+          localRhs[0 + ((localRhsCol*TileSizeDimN + localRhsRow) *2)] = ((GlobalRhsRowId < K)&& ((nGroupId*(TileSizeDimN) + localRhsRow)< N))? rhs(GlobalRhsRowId, nGroupId*(TileSizeDimN) + localRhsRow): static_cast<OutScalar>(0);
+
+      }
+      // Loop over all tiles
+      const int numTiles = roundUpK/TileSizeDimK;
+      int firstHalf=0;
+      do {
+          // Synchronise
+          itemID.barrier(cl::sycl::access::fence_space::local_space);
+          // Load the next tile of Lhs and Rhs into local memory
+          int nextHalf = firstHalf + 1;
+          if (nextHalf < numTiles) {
+              // Tile A
+              for (int lPTL=0; lPTL<LoadPerThreadLhs; lPTL++) {
+                  int localLhsLinearId = lPTL*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
+                  int localLhsRow =  localLhsLinearId% TileSizeDimM;
+                  int localLhsCol = localLhsLinearId/TileSizeDimM;
+                  // global K id
+                  int GlobalLhsColId = TileSizeDimK*nextHalf + localLhsCol;
+                  // Store the loaded value into local memory
+                  localLhs[(nextHalf%2) + ((localLhsCol*TileSizeDimM + localLhsRow) *2)] = ((GlobalLhsColId < K)&& (mGroupId*(TileSizeDimM)+ localLhsRow <M))? lhs(mGroupId*(TileSizeDimM) + localLhsRow, GlobalLhsColId): static_cast<OutScalar>(0);
+              }
+              // Tile B
+              for (int lPTR=0; lPTR<LoadPerThreadRhs; lPTR++) {
+                  int localRhsLinearId = lPTR*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
+                  int localRhsRow =  localRhsLinearId% TileSizeDimN;
+                  int localRhsCol = localRhsLinearId/TileSizeDimN;
+                  // Load the value (wide vector load)
+                  int GlobalRhsRowId = TileSizeDimK*nextHalf + localRhsCol;
+                  // Store the loaded vector into local memory
+                  localRhs[(nextHalf%2) +((localRhsCol*TileSizeDimN + localRhsRow)*2)] = ((GlobalRhsRowId < K)&& ((nGroupId*(TileSizeDimN) + localRhsRow)< N))? rhs(GlobalRhsRowId, nGroupId*(TileSizeDimN) + localRhsRow):static_cast<OutScalar>(0);
+              }
+          }
+          // Loop over the values of a single tile
+          for (int k=0; k<TileSizeDimK; k++) {
+              // Cache the values of localRhs in registers
+              for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
+                  int localRhsCol = nLocalThreadId + wLPTN*LocalThreadSizeN;
+                  privateRhs[wLPTN] = localRhs[(firstHalf%2) +((k*TileSizeDimN + localRhsCol)*2)];
+              }
+              // Perform the computation
+              for (int wLPTM=0; wLPTM<WorkLoadPerThreadM; wLPTM++) {
+                  int localLhsRow = mLocalThreadId + wLPTM*LocalThreadSizeM;
+                  privateLhs = localLhs[(firstHalf%2)+ ((k*TileSizeDimM + localLhsRow)*2)];
+                  for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
+                      privateRes[wLPTM][wLPTN] += privateLhs * privateRhs[wLPTN];
+                  }
+              }
+          }
+          // Next tile
+          firstHalf++;
+      } while (firstHalf<numTiles);
+
+
+      // Store the final results in C
+      for (int wLPTM=0; wLPTM<WorkLoadPerThreadM; wLPTM++) {
+          int globalRow = mGroupId*TileSizeDimM + mLocalThreadId + wLPTM*LocalThreadSizeM;
+          if (globalRow< M){
+            for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
+                int globalCol = nGroupId*TileSizeDimN + nLocalThreadId + wLPTN*LocalThreadSizeN;
+                if(globalCol<N)
+                  out_ptr[globalCol*M + globalRow] = privateRes[wLPTM][wLPTN];
+            }
+          }
+      }
+
+    }
+
+};
 template <typename LhsScalar, typename RhsScalar, bool lhs_inner_dim_contiguous, bool rhs_inner_dim_contiguous, bool rhs_inner_dim_reordered> struct LaunchSyclKernels {
 
 static const int TileSizeDimM = 32;                                      // Tile size for dimension M
 static const int TileSizeDimN = 32;                                      // Tile size for dimension N
-static const int TileSizeDimK = 16;                                      // Tile size for dimension K 
+static const int TileSizeDimK = 16;                                      // Tile size for dimension K
 static const int WorkLoadPerThreadM = 4;                                 // Work load per thread in dimension M
 static const int WorkLoadPerThreadN = 4;                                 // work load per thread in dimension N
-static const int LocalThreadSizeM = (TileSizeDimM/WorkLoadPerThreadM);   // Local thread size for the first dimension (M here)      
-static const int LocalThreadSizeN = (TileSizeDimN/WorkLoadPerThreadN);   // Local thread size for the second dimension (N here)     
+static const int LocalThreadSizeM = (TileSizeDimM/WorkLoadPerThreadM);   // Local thread size for the first dimension (M here)
+static const int LocalThreadSizeN = (TileSizeDimN/WorkLoadPerThreadN);   // Local thread size for the second dimension (N here)
 static const int LoadPerThreadLhs = ((TileSizeDimK*WorkLoadPerThreadM*WorkLoadPerThreadN)/(TileSizeDimN));  // workload per thread for Lhs expression
 static const int LoadPerThreadRhs = ((TileSizeDimK*WorkLoadPerThreadM*WorkLoadPerThreadN)/(TileSizeDimM));  // workload per thread for Rhs expression
 
@@ -208,149 +360,39 @@ static int RoundUp(int x, int y) {
   return ((((x) + (y) - 1) / (y))*(y));
 }
 
-template< typename Self, typename Output, typename Index, typename ContractT, typename LeftNocontractT, typename RightNocontractT>
-  static void Run(const Self& self, Output* buffer,  Index M, Index N, Index K,
+template< typename Self, typename OutScalar, typename Index, typename ContractT, typename LeftNocontractT, typename RightNocontractT>
+  static void Run(const Self& self, OutScalar* buffer,  Index M, Index N, Index K,
     ContractT m_k_strides, ContractT m_left_contracting_strides, ContractT m_right_contracting_strides,
     LeftNocontractT m_i_strides, RightNocontractT m_j_strides, LeftNocontractT m_left_nocontract_strides, RightNocontractT m_right_nocontract_strides){
     // create a tuple of accessors from Evaluator
-    typedef  typename Eigen::TensorSycl::internal::createPlaceHolderExpression<typename Self::XprType>::Type PlaceHolderExpr;
-    typedef KernelNameConstructor<PlaceHolderExpr, lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered> KernelName;
+    typedef typename Self::XprType HostExpr;
+  //  typedef  typename Eigen::TensorSycl::internal::createPlaceHolderExpression<HostExpr>::Type PlaceHolderExpr;
+  //  typedef KernelNameConstructor<PlaceHolderExpr, lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered> KernelName;
     auto functors = Eigen::TensorSycl::internal::extractFunctors(self);
+    typedef decltype(functors) FunctorExpr;
     Index roundUpK = RoundUp(K, TileSizeDimK);
     Index roundUpM = RoundUp(M, TileSizeDimM);
     Index roundUpN = RoundUp(N, TileSizeDimN);
     self.device().sycl_queue().submit([&](cl::sycl::handler &cgh) {
       auto tuple_of_accessors = Eigen::TensorSycl::internal::createTupleOfAccessors<Self>(cgh, self);
+      typedef decltype(tuple_of_accessors) TupleType;
       // Local memory for elements of Lhs
-      cl::sycl::accessor<LhsScalar, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> localLhs(cl::sycl::range<1>(2* TileSizeDimM * TileSizeDimK), cgh);
+      typedef cl::sycl::accessor<LhsScalar, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> LhsLocalAcc;
+      LhsLocalAcc localLhs(cl::sycl::range<1>(2* TileSizeDimM * TileSizeDimK), cgh);
       // Local memory for elements of Rhs
-      cl::sycl::accessor<RhsScalar, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> localRhs(cl::sycl::range<1>(2* TileSizeDimK * TileSizeDimN), cgh);
-      //Output memory
-      auto out_privateRes= self.device(). template get_sycl_accessor<cl::sycl::access::mode::write>(cgh, buffer);
+      typedef cl::sycl::accessor<RhsScalar, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> RhsLocalAcc;
+      RhsLocalAcc localRhs(cl::sycl::range<1>(2* TileSizeDimK * TileSizeDimN), cgh);
+      //OutScalar memory
+      auto out_res= self.device(). template get_sycl_accessor<cl::sycl::access::mode::write>(cgh, buffer);
+      typedef decltype(out_res) OutAccessor;
       // sycl parallel for
-      cgh.parallel_for<KernelName>( cl::sycl::nd_range<2>(cl::sycl::range<2>(roundUpM/WorkLoadPerThreadM, roundUpN/WorkLoadPerThreadN), cl::sycl::range<2>(LocalThreadSizeM, LocalThreadSizeN)), [=](cl::sycl::nd_item<2> itemID) {
-        typedef  typename Eigen::TensorSycl::internal::ConvertToDeviceExpression<typename Self::XprType>::Type DevExpr;
-        auto device_expr =Eigen::TensorSycl::internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
-        auto device_evaluator = TensorEvaluatorContainer<DevExpr>(device_expr.expr, Eigen::DefaultDevice());
-        typedef TensorEvaluatorContainer<DevExpr> DevEvaluator;
-        typedef internal::TensorContractionInputMapper<LhsScalar, Index, internal::Lhs,
-                                                       typename DevEvaluator::LeftEvaluator, LeftNocontractT,
-                                                       ContractT, 1,
-                                                       lhs_inner_dim_contiguous,
-                                                       false, Unaligned, MakeGlobalPointer> LhsMapper;
-
-        typedef internal::TensorContractionInputMapper<RhsScalar, Index, internal::Rhs,
-                                                       typename DevEvaluator::RightEvaluator, RightNocontractT,
-                                                       ContractT, 1,
-                                                       rhs_inner_dim_contiguous,
-                                                       rhs_inner_dim_reordered, Unaligned, MakeGlobalPointer> RhsMapper;
-        // initialize data mappers must happen inside the kernel for device eval
-        LhsMapper lhs(device_evaluator.m_leftImpl, m_left_nocontract_strides, m_i_strides, m_left_contracting_strides, m_k_strides);
-        RhsMapper rhs(device_evaluator.m_rightImpl, m_right_nocontract_strides, m_j_strides, m_right_contracting_strides, m_k_strides);
-        auto out_ptr = ConvertToActualTypeSycl(Output, out_privateRes);
-        // Matmul Kernel
-        // Thread identifiers
-        const int mLocalThreadId = itemID.get_local(0); // Local ID row
-        const int nLocalThreadId = itemID.get_local(1); // Local ID col
-        const int mGroupId = itemID.get_group(0); // Work-group ID row
-        const int nGroupId = itemID.get_group(1); // Work-group ID localCol
-        const int linearLocalThreadId = nLocalThreadId*LocalThreadSizeM + mLocalThreadId; // linear local thread ID
-        // Allocate register space
-        float privateLhs;
-        float privateRhs[WorkLoadPerThreadN];
-        float privateRes[WorkLoadPerThreadM][WorkLoadPerThreadN];
-        // Initialise the privateResumulation registers
-        for (int wLPTM=0; wLPTM<WorkLoadPerThreadM; wLPTM++) {
-            for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
-                privateRes[wLPTM][wLPTN] = 0.0f;
-            }
-        }
-
-        // Tile Lhs
-        for (int lPTL=0; lPTL<LoadPerThreadLhs; lPTL++) {
-            int
-            localLhsLinearId = lPTL*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
-            int localLhsRow =  localLhsLinearId% TileSizeDimM;
-            int localLhsCol = localLhsLinearId/TileSizeDimM;
-            // Load the value (wide vector load)
-            int GlobalLhsColId = TileSizeDimK*0 + localLhsCol;
-            localLhs[0 + ((localLhsCol*TileSizeDimM + localLhsRow)*2)] =((GlobalLhsColId < K)&& (mGroupId*(TileSizeDimM)+ localLhsRow <M))? lhs(mGroupId*(TileSizeDimM) + localLhsRow, GlobalLhsColId):static_cast<Output>(0);
-        }
-        // Tile Rhs
-        for (int lPTR=0; lPTR<LoadPerThreadRhs; lPTR++) {
-            int localRhsLinearId = lPTR*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
-            int localRhsRow =  localRhsLinearId% TileSizeDimN;
-            int localRhsCol = localRhsLinearId/TileSizeDimN;
-            // Load the value (wide vector load)
-            int GlobalRhsRowId = TileSizeDimK*0 + localRhsCol;
-            localRhs[0 + ((localRhsCol*TileSizeDimN + localRhsRow) *2)] = ((GlobalRhsRowId < K)&& ((nGroupId*(TileSizeDimN) + localRhsRow)< N))? rhs(GlobalRhsRowId, nGroupId*(TileSizeDimN) + localRhsRow): static_cast<Output>(0);
-
-        }
-        // Loop over all tiles
-        const int numTiles = roundUpK/TileSizeDimK;
-        int firstHalf=0;
-        do {
-            // Synchronise
-            itemID.barrier(cl::sycl::access::fence_space::local_space);
-            // Load the next tile of Lhs and Rhs into local memory
-            int nextHalf = firstHalf + 1;
-            if (nextHalf < numTiles) {
-                // Tile A
-                for (int lPTL=0; lPTL<LoadPerThreadLhs; lPTL++) {
-                    int localLhsLinearId = lPTL*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
-                    int localLhsRow =  localLhsLinearId% TileSizeDimM;
-                    int localLhsCol = localLhsLinearId/TileSizeDimM;
-                    // global K id
-                    int GlobalLhsColId = TileSizeDimK*nextHalf + localLhsCol;
-                    // Store the loaded value into local memory
-                    localLhs[(nextHalf%2) + ((localLhsCol*TileSizeDimM + localLhsRow) *2)] = ((GlobalLhsColId < K)&& (mGroupId*(TileSizeDimM)+ localLhsRow <M))? lhs(mGroupId*(TileSizeDimM) + localLhsRow, GlobalLhsColId): static_cast<Output>(0);
-                }
-                // Tile B
-                for (int lPTR=0; lPTR<LoadPerThreadRhs; lPTR++) {
-                    int localRhsLinearId = lPTR*LocalThreadSizeN*LocalThreadSizeM + linearLocalThreadId;
-                    int localRhsRow =  localRhsLinearId% TileSizeDimN;
-                    int localRhsCol = localRhsLinearId/TileSizeDimN;
-                    // Load the value (wide vector load)
-                    int GlobalRhsRowId = TileSizeDimK*nextHalf + localRhsCol;
-                    // Store the loaded vector into local memory
-                    localRhs[(nextHalf%2) +((localRhsCol*TileSizeDimN + localRhsRow)*2)] = ((GlobalRhsRowId < K)&& ((nGroupId*(TileSizeDimN) + localRhsRow)< N))? rhs(GlobalRhsRowId, nGroupId*(TileSizeDimN) + localRhsRow):static_cast<Output>(0);
-                }
-            }
-            // Loop over the values of a single tile
-            for (int k=0; k<TileSizeDimK; k++) {
-                // Cache the values of localRhs in registers
-                for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
-                    int localRhsCol = nLocalThreadId + wLPTN*LocalThreadSizeN;
-                    privateRhs[wLPTN] = localRhs[(firstHalf%2) +((k*TileSizeDimN + localRhsCol)*2)];
-                }
-                // Perform the computation
-                for (int wLPTM=0; wLPTM<WorkLoadPerThreadM; wLPTM++) {
-                    int localLhsRow = mLocalThreadId + wLPTM*LocalThreadSizeM;
-                    privateLhs = localLhs[(firstHalf%2)+ ((k*TileSizeDimM + localLhsRow)*2)];
-                    for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
-                        privateRes[wLPTM][wLPTN] += privateLhs * privateRhs[wLPTN];
-                    }
-                }
-            }
-            // Next tile
-            firstHalf++;
-        } while (firstHalf<numTiles);
-
-
-        // Store the final results in C
-        for (int wLPTM=0; wLPTM<WorkLoadPerThreadM; wLPTM++) {
-            int globalRow = mGroupId*TileSizeDimM + mLocalThreadId + wLPTM*LocalThreadSizeM;
-            if (globalRow< M){
-              for (int wLPTN=0; wLPTN<WorkLoadPerThreadN; wLPTN++) {
-                  int globalCol = nGroupId*TileSizeDimN + nLocalThreadId + wLPTN*LocalThreadSizeN;
-                  if(globalCol<N)
-                    out_ptr[globalCol*M + globalRow] = privateRes[wLPTM][wLPTN];
-              }
-            }
-        }
-
-      /// End the kernel
-      });
+      cgh.parallel_for(cl::sycl::nd_range<2>(cl::sycl::range<2>(roundUpM/WorkLoadPerThreadM, roundUpN/WorkLoadPerThreadN),
+      cl::sycl::range<2>(LocalThreadSizeM, LocalThreadSizeN)),
+       KernelConstructor<HostExpr, OutScalar, LhsScalar, RhsScalar,  FunctorExpr, LhsLocalAcc, RhsLocalAcc, OutAccessor, Index, ContractT, LeftNocontractT,
+       RightNocontractT, lhs_inner_dim_contiguous, rhs_inner_dim_contiguous, rhs_inner_dim_reordered, TileSizeDimM, TileSizeDimN, TileSizeDimK,
+       WorkLoadPerThreadM, WorkLoadPerThreadN, LocalThreadSizeM, LocalThreadSizeN, LoadPerThreadLhs, LoadPerThreadRhs, TupleType>(functors,
+          localLhs, localRhs, out_res, roundUpK, M, N, K, m_k_strides, m_left_contracting_strides, m_right_contracting_strides,m_i_strides, m_j_strides,
+          m_left_nocontract_strides,m_right_nocontract_strides, tuple_of_accessors));
     });
     self.device().asynchronousExec();
   }

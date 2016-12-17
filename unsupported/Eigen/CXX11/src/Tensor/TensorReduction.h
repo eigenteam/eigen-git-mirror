@@ -693,9 +693,10 @@ struct TensorEvaluator<const TensorReductionOp<Op, Dims, ArgType, MakePointer_>,
 #endif
 
 #if defined(EIGEN_USE_SYCL)
- template < typename HostExpr_, typename PlaceHolderExpr_, typename FunctorExpr_, typename Tuple_of_Acc_, typename Dims_, typename Op_, typename Index_> friend class TensorSycl::internal::ReductionFunctor;
-
+ template < typename HostExpr_, typename FunctorExpr_, typename Tuple_of_Acc_, typename Dims_, typename Op_, typename Index_> friend class TensorSycl::internal::ReductionFunctor;
+ template<typename CoeffReturnType_ ,typename OutAccessor_, typename HostExpr_, typename FunctorExpr_, typename Op_, typename Dims_, typename Index_, typename TupleType_> friend class TensorSycl::internal::FullReductionKernelFunctor;
 #endif
+
 
   template <typename S, typename O, typename D> friend struct internal::InnerReducer;
 
