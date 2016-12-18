@@ -72,7 +72,7 @@ static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0); //{ 0, 0, 0, 0,}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1); //{ 1, 1, 1, 1}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16); //{ -16, -16, -16, -16}
 static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1); //{ -1, -1, -1, -1}
-static Packet4f p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1); //{ 0x80000000, 0x80000000, 0x80000000, 0x80000000}
+static Packet4f p4f_MZERO = (Packet4f) vec_sl((Packet4ui)p4i_MINUS1, (Packet4ui)p4i_MINUS1); //{ 0x80000000, 0x80000000, 0x80000000, 0x80000000}
 #ifndef __VSX__
 static Packet4f p4f_ONE = vec_ctf(p4i_ONE, 0); //{ 1.0, 1.0, 1.0, 1.0}
 #endif
@@ -358,7 +358,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pnegate(const Packet4i& a) { return p4i_
 template<> EIGEN_STRONG_INLINE Packet4f pconj(const Packet4f& a) { return a; }
 template<> EIGEN_STRONG_INLINE Packet4i pconj(const Packet4i& a) { return a; }
 
-template<> EIGEN_STRONG_INLINE Packet4f pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_madd(a,b, p4f_ZERO); }
+template<> EIGEN_STRONG_INLINE Packet4f pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_madd(a,b, p4f_MZERO); }
 template<> EIGEN_STRONG_INLINE Packet4i pmul<Packet4i>(const Packet4i& a, const Packet4i& b) { return a * b; }
 
 template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const Packet4f& b)
@@ -373,7 +373,7 @@ template<> EIGEN_STRONG_INLINE Packet4f pdiv<Packet4f>(const Packet4f& a, const 
   t   = vec_nmsub(y_0, b, p4f_ONE);
   y_1 = vec_madd(y_0, t, y_0);
 
-  return vec_madd(a, y_1, p4f_ZERO);
+  return vec_madd(a, y_1, p4f_MZERO);
 #else
   return vec_div(a, b);
 #endif
@@ -766,7 +766,7 @@ static Packet2l  p2l_ONE  = { 1, 1 };
 static Packet2l  p2l_ZERO = reinterpret_cast<Packet2l>(p4i_ZERO);
 static Packet2d  p2d_ONE  = { 1.0, 1.0 }; 
 static Packet2d  p2d_ZERO = reinterpret_cast<Packet2d>(p4f_ZERO);
-static Packet2d  p2d_ZERO_ = { -0.0, -0.0 };
+static Packet2d  p2d_MZERO = { -0.0, -0.0 };
 
 #ifdef _BIG_ENDIAN
 static Packet2d p2d_COUNTDOWN = reinterpret_cast<Packet2d>(vec_sld(reinterpret_cast<Packet4f>(p2d_ZERO), reinterpret_cast<Packet4f>(p2d_ONE), 8));
@@ -904,7 +904,7 @@ template<> EIGEN_STRONG_INLINE Packet2d pnegate(const Packet2d& a) { return p2d_
 
 template<> EIGEN_STRONG_INLINE Packet2d pconj(const Packet2d& a) { return a; }
 
-template<> EIGEN_STRONG_INLINE Packet2d pmul<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_madd(a,b,p2d_ZERO); }
+template<> EIGEN_STRONG_INLINE Packet2d pmul<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_madd(a,b,p2d_MZERO); }
 template<> EIGEN_STRONG_INLINE Packet2d pdiv<Packet2d>(const Packet2d& a, const Packet2d& b) { return vec_div(a,b); }
 
 // for some weird raisons, it has to be overloaded for packet of integers
