@@ -28,10 +28,12 @@ namespace internal {
 #define EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
 #endif
 
-// FIXME NEON has 16 quad registers, but since the current register allocator
-// is so bad, it is much better to reduce it to 8
 #ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
+#if EIGEN_ARCH_ARM64
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 32
+#else
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16 
+#endif
 #endif
 
 typedef float32x2_t Packet2f;
