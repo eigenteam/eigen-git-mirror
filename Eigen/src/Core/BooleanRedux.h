@@ -14,56 +14,54 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename Derived, int UnrollCount>
+template<typename Derived, int UnrollCount, int Rows>
 struct all_unroller
 {
-  typedef typename Derived::ExpressionTraits Traits;
   enum {
-    col = (UnrollCount-1) / Traits::RowsAtCompileTime,
-    row = (UnrollCount-1) % Traits::RowsAtCompileTime
+    col = (UnrollCount-1) / Rows,
+    row = (UnrollCount-1) % Rows
   };
 
   static inline bool run(const Derived &mat)
   {
-    return all_unroller<Derived, UnrollCount-1>::run(mat) && mat.coeff(row, col);
+    return all_unroller<Derived, UnrollCount-1, Rows>::run(mat) && mat.coeff(row, col);
   }
 };
 
-template<typename Derived>
-struct all_unroller<Derived, 0>
+template<typename Derived, int Rows>
+struct all_unroller<Derived, 0, Rows>
 {
   static inline bool run(const Derived &/*mat*/) { return true; }
 };
 
-template<typename Derived>
-struct all_unroller<Derived, Dynamic>
+template<typename Derived, int Rows>
+struct all_unroller<Derived, Dynamic, Rows>
 {
   static inline bool run(const Derived &) { return false; }
 };
 
-template<typename Derived, int UnrollCount>
+template<typename Derived, int UnrollCount, int Rows>
 struct any_unroller
 {
-  typedef typename Derived::ExpressionTraits Traits;
   enum {
-    col = (UnrollCount-1) / Traits::RowsAtCompileTime,
-    row = (UnrollCount-1) % Traits::RowsAtCompileTime
+    col = (UnrollCount-1) / Rows,
+    row = (UnrollCount-1) % Rows
   };
   
   static inline bool run(const Derived &mat)
   {
-    return any_unroller<Derived, UnrollCount-1>::run(mat) || mat.coeff(row, col);
+    return any_unroller<Derived, UnrollCount-1, Rows>::run(mat) || mat.coeff(row, col);
   }
 };
 
-template<typename Derived>
-struct any_unroller<Derived, 0>
+template<typename Derived, int Rows>
+struct any_unroller<Derived, 0, Rows>
 {
   static inline bool run(const Derived & /*mat*/) { return false; }
 };
 
-template<typename Derived>
-struct any_unroller<Derived, Dynamic>
+template<typename Derived, int Rows>
+struct any_unroller<Derived, Dynamic, Rows>
 {
   static inline bool run(const Derived &) { return false; }
 };
@@ -87,7 +85,7 @@ inline bool DenseBase<Derived>::all() const
   };
   Evaluator evaluator(derived());
   if(unroll)
-    return internal::all_unroller<Evaluator, unroll ? int(SizeAtCompileTime) : Dynamic>::run(evaluator);
+    return internal::all_unroller<Evaluator, unroll ? int(SizeAtCompileTime) : Dynamic, internal::traits<Derived>::RowsAtCompileTime>::run(evaluator);
   else
   {
     for(Index j = 0; j < cols(); ++j)
@@ -111,7 +109,7 @@ inline bool DenseBase<Derived>::any() const
   };
   Evaluator evaluator(derived());
   if(unroll)
-    return internal::any_unroller<Evaluator, unroll ? int(SizeAtCompileTime) : Dynamic>::run(evaluator);
+    return internal::any_unroller<Evaluator, unroll ? int(SizeAtCompileTime) : Dynamic, internal::traits<Derived>::RowsAtCompileTime>::run(evaluator);
   else
   {
     for(Index j = 0; j < cols(); ++j)
