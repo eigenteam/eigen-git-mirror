@@ -26,6 +26,7 @@ using Eigen::array;
 using Eigen::SyclDevice;
 using Eigen::Tensor;
 using Eigen::TensorMap;
+
 template <typename DataType, int DataLayout>
 void test_sycl_mem_transfers(const Eigen::SyclDevice &sycl_device) {
   int sizeDim1 = 100;
@@ -52,6 +53,7 @@ void test_sycl_mem_transfers(const Eigen::SyclDevice &sycl_device) {
   sycl_device.memcpyDeviceToHost(out1.data(), gpu_data1,(out1.size())*sizeof(DataType));
   sycl_device.memcpyDeviceToHost(out2.data(), gpu_data1,(out2.size())*sizeof(DataType));
   sycl_device.memcpyDeviceToHost(out3.data(), gpu_data2,(out3.size())*sizeof(DataType));
+  sycl_device.synchronize();
 
   for (int i = 0; i < in1.size(); ++i) {
     VERIFY_IS_APPROX(out1(i), in1(i) * 3.14f);
@@ -62,6 +64,35 @@ void test_sycl_mem_transfers(const Eigen::SyclDevice &sycl_device) {
   sycl_device.deallocate(gpu_data1);
   sycl_device.deallocate(gpu_data2);
 }
+
+template <typename DataType, int DataLayout>
+void test_sycl_mem_sync(const Eigen::SyclDevice &sycl_device) {
+  int size = 20;
+  array<int, 1> tensorRange = {{size}};
+  Tensor<DataType, 1, DataLayout> in1(tensorRange);
+  Tensor<DataType, 1, DataLayout> in2(tensorRange);
+  Tensor<DataType, 1, DataLayout> out(tensorRange);
+
+  in1 = in1.random();
+  in2 = in1;
+
+  DataType* gpu_data  = static_cast<DataType*>(sycl_device.allocate(in1.size()*sizeof(DataType)));
+
+  TensorMap<Tensor<DataType, 1, DataLayout>> gpu1(gpu_data, tensorRange);
+  sycl_device.memcpyHostToDevice(gpu_data, in1.data(),(in1.size())*sizeof(DataType));
+  sycl_device.synchronize();
+  in1.setZero();
+
+  sycl_device.memcpyDeviceToHost(out.data(), gpu_data, out.size()*sizeof(DataType));
+  sycl_device.synchronize();
+
+  for (int i = 0; i < in1.size(); ++i) {
+    VERIFY_IS_APPROX(out(i), in2(i));
+  }
+
+  sycl_device.deallocate(gpu_data);
+}
+
 template <typename DataType, int DataLayout>
 void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
 
@@ -90,6 +121,8 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   /// a=1.2f
   gpu_in1.device(sycl_device) = gpu_in1.constant(1.2f);
   sycl_device.memcpyDeviceToHost(in1.data(), gpu_in1_data ,(in1.size())*sizeof(DataType));
+  sycl_device.synchronize();
+
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -102,6 +135,8 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   /// a=b*1.2f
   gpu_out.device(sycl_device) = gpu_in1 * 1.2f;
   sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data ,(out.size())*sizeof(DataType));
+  sycl_device.synchronize();
+
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -116,6 +151,8 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   sycl_device.memcpyHostToDevice(gpu_in2_data, in2.data(),(in2.size())*sizeof(DataType));
   gpu_out.device(sycl_device) = gpu_in1 * gpu_in2;
   sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.size())*sizeof(DataType));
+  sycl_device.synchronize();
+
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -130,6 +167,7 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   /// c=a+b
   gpu_out.device(sycl_device) = gpu_in1 + gpu_in2;
   sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.size())*sizeof(DataType));
+  sycl_device.synchronize();
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -144,6 +182,7 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   /// c=a*a
   gpu_out.device(sycl_device) = gpu_in1 * gpu_in1;
   sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.size())*sizeof(DataType));
+  sycl_device.synchronize();
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -158,6 +197,7 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   //a*3.14f + b*2.7f
   gpu_out.device(sycl_device) =  gpu_in1 * gpu_in1.constant(3.14f) + gpu_in2 * gpu_in2.constant(2.7f);
   sycl_device.memcpyDeviceToHost(out.data(),gpu_out_data,(out.size())*sizeof(DataType));
+  sycl_device.synchronize();
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -173,6 +213,7 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   sycl_device.memcpyHostToDevice(gpu_in3_data, in3.data(),(in3.size())*sizeof(DataType));
   gpu_out.device(sycl_device) =(gpu_in1 > gpu_in1.constant(0.5f)).select(gpu_in2, gpu_in3);
   sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data,(out.size())*sizeof(DataType));
+  sycl_device.synchronize();
   for (int i = 0; i < sizeDim1; ++i) {
     for (int j = 0; j < sizeDim2; ++j) {
       for (int k = 0; k < sizeDim3; ++k) {
@@ -193,9 +234,12 @@ template<typename DataType, typename dev_Selector> void sycl_computing_test_per_
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
   test_sycl_mem_transfers<DataType, RowMajor>(sycl_device);
   test_sycl_computations<DataType, RowMajor>(sycl_device);
+  test_sycl_mem_sync<DataType, RowMajor>(sycl_device);
   test_sycl_mem_transfers<DataType, ColMajor>(sycl_device);
   test_sycl_computations<DataType, ColMajor>(sycl_device);
+  test_sycl_mem_sync<DataType, ColMajor>(sycl_device);
 }
+
 void test_cxx11_tensor_sycl() {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(sycl_computing_test_per_device<float>(device));
