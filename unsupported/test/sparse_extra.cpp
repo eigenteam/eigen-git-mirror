@@ -139,7 +139,7 @@ void check_marketio()
   m1 = DenseMatrix::Random(rows, cols).sparseView();
   saveMarket(m1, "sparse_extra.mtx");
   loadMarket(m2, "sparse_extra.mtx");
-  VERIFY_IS_APPROX(m1,m2);
+  VERIFY_IS_EQUAL(DenseMatrix(m1),DenseMatrix(m2));
 }
 
 void test_sparse_extra()

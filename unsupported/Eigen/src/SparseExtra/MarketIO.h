@@ -231,12 +231,13 @@ template<typename SparseMatrixType>
 bool saveMarket(const SparseMatrixType& mat, const std::string& filename, int sym = 0)
 {
   typedef typename SparseMatrixType::Scalar Scalar;
+  typedef typename SparseMatrixType::RealScalar RealScalar;
   std::ofstream out(filename.c_str(),std::ios::out);
   if(!out)
     return false;
   
   out.flags(std::ios_base::scientific);
-  out.precision(64);
+  out.precision(std::numeric_limits<RealScalar>::digits10 + 2);
   std::string header; 
   internal::putMarketHeader<Scalar>(header, sym); 
   out << header << std::endl; 
@@ -247,7 +248,6 @@ bool saveMarket(const SparseMatrixType& mat, const std::string& filename, int sy
     {
       ++ count;
       internal::PutMatrixElt(it.value(), it.row()+1, it.col()+1, out);
-      // out << it.row()+1 << " " << it.col()+1 << " " << it.value() << "\n";
     }
   out.close();
   return true;
@@ -256,13 +256,14 @@ bool saveMarket(const SparseMatrixType& mat, const std::string& filename, int sy
 template<typename VectorType>
 bool saveMarketVector (const VectorType& vec, const std::string& filename)
 {
- typedef typename VectorType::Scalar Scalar; 
+ typedef typename VectorType::Scalar Scalar;
+ typedef typename VectorType::RealScalar RealScalar;
  std::ofstream out(filename.c_str(),std::ios::out);
   if(!out)
     return false;
   
   out.flags(std::ios_base::scientific);
-  out.precision(64);
+  out.precision(std::numeric_limits<RealScalar>::digits10 + 2);
   if(internal::is_same<Scalar, std::complex<float> >::value || internal::is_same<Scalar, std::complex<double> >::value)
       out << "%%MatrixMarket matrix array complex general\n"; 
   else
