@@ -35,7 +35,7 @@ namespace TensorSycl {
     TupleType tuple_of_accessors;
     Index range;
     ExecExprFunctorKernel(Index range_, FunctorExpr functors_, TupleType tuple_of_accessors_)
-      :range(range_), functors(functors_), tuple_of_accessors(tuple_of_accessors_){}
+      : functors(functors_), tuple_of_accessors(tuple_of_accessors_), range(range_){}
     void operator()(cl::sycl::nd_item<1> itemID) {
       typedef  typename internal::ConvertToDeviceExpression<Expr>::Type DevExpr;
       auto device_expr =internal::createDeviceExpression<DevExpr, PlaceHolderExpr>(functors, tuple_of_accessors);
