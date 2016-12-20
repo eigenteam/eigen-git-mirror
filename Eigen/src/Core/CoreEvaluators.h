@@ -106,7 +106,7 @@ struct evaluator<const T>
 // ---------- base class for all evaluators ----------
 
 template<typename ExpressionType>
-struct evaluator_base : public noncopyable
+struct evaluator_base
 {
   // TODO that's not very nice to have to propagate all these traits. They are currently only needed to handle outer,inner indices.
   typedef traits<ExpressionType> ExpressionTraits;
@@ -114,6 +114,14 @@ struct evaluator_base : public noncopyable
   enum {
     Alignment = 0
   };
+  // noncopyable:
+  // Don't make this class inherit noncopyable as this kills EBO (Empty Base Optimization)
+  // and make complex evaluator much larger than then should do.
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE evaluator_base() {}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE ~evaluator_base() {}
+private:
+  EIGEN_DEVICE_FUNC evaluator_base(const evaluator_base&);
+  EIGEN_DEVICE_FUNC const evaluator_base& operator=(const evaluator_base&);
 };
 
 // -------------------- Matrix and Array --------------------
