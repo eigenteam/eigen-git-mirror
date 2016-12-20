@@ -12,38 +12,38 @@
 #define EIGEN_SPARSE_MARKET_IO_H
 
 #include <iostream>
+#include <vector>
 
 namespace Eigen { 
 
 namespace internal 
 {
-  template <typename Scalar>
-  inline bool GetMarketLine (std::stringstream& line, Index& M, Index& N, Index& i, Index& j, Scalar& value)
+  template <typename Scalar, typename StorageIndex>
+  inline void GetMarketLine (const char* line, StorageIndex& i, StorageIndex& j, Scalar& value)
   {
-    line >> i >> j >> value;
-    i--;
-    j--;
-    if(i>=0 && j>=0 && i<M && j<N)
-    {
-      return true; 
-    }
-    else
-      return false;
+    std::stringstream sline(line);
+    sline >> i >> j >> value;
   }
-  template <typename Scalar>
-  inline bool GetMarketLine (std::stringstream& line, Index& M, Index& N, Index& i, Index& j, std::complex<Scalar>& value)
+
+  template<> inline void GetMarketLine (const char* line, int& i, int& j, float& value)
+  { std::sscanf(line, "%d %d %g", &i, &j, &value); }
+
+  template<> inline void GetMarketLine (const char* line, int& i, int& j, double& value)
+  { std::sscanf(line, "%d %d %lg", &i, &j, &value); }
+
+  template<> inline void GetMarketLine (const char* line, int& i, int& j, std::complex<float>& value)
+  { std::sscanf(line, "%d %d %g %g", &i, &j, &numext::real_ref(value), &numext::imag_ref(value)); }
+
+  template<> inline void GetMarketLine (const char* line, int& i, int& j, std::complex<double>& value)
+  { std::sscanf(line, "%d %d %lg %lg", &i, &j, &numext::real_ref(value), &numext::imag_ref(value)); }
+
+  template <typename Scalar, typename StorageIndex>
+  inline void GetMarketLine (const char* line, StorageIndex& i, StorageIndex& j, std::complex<Scalar>& value)
   {
+    std::stringstream sline(line);
     Scalar valR, valI;
-    line >> i >> j >> valR >> valI;
-    i--;
-    j--;
-    if(i>=0 && j>=0 && i<M && j<N)
-    {
-      value = std::complex<Scalar>(valR, valI);
-      return true; 
-    }
-    else
-      return false;
+    sline >> i >> j >> valR >> valI;
+    value = std::complex<Scalar>(valR,valI);
   }
 
   template <typename RealScalar>
@@ -81,13 +81,13 @@ namespace internal
     }
   }
 
-  template<typename Scalar>
-  inline void PutMatrixElt(Scalar value, int row, int col, std::ofstream& out)
+  template<typename Scalar, typename StorageIndex>
+  inline void PutMatrixElt(Scalar value, StorageIndex row, StorageIndex col, std::ofstream& out)
   {
     out << row << " "<< col << " " << value << "\n";
   }
-  template<typename Scalar>
-  inline void PutMatrixElt(std::complex<Scalar> value, int row, int col, std::ofstream& out)
+  template<typename Scalar, typename StorageIndex>
+  inline void PutMatrixElt(std::complex<Scalar> value, StorageIndex row, StorageIndex col, std::ofstream& out)
   {
     out << row << " " << col << " " << value.real() << " " << value.imag() << "\n";
   }
@@ -133,17 +133,20 @@ template<typename SparseMatrixType>
 bool loadMarket(SparseMatrixType& mat, const std::string& filename)
 {
   typedef typename SparseMatrixType::Scalar Scalar;
-  typedef typename SparseMatrixType::Index Index;
+  typedef typename SparseMatrixType::StorageIndex StorageIndex;
   std::ifstream input(filename.c_str(),std::ios::in);
   if(!input)
     return false;
+
+  char rdbuffer[4096];
+  input.rdbuf()->pubsetbuf(rdbuffer, 4096);
   
   const int maxBuffersize = 2048;
   char buffer[maxBuffersize];
   
   bool readsizes = false;
 
-  typedef Triplet<Scalar,Index> T;
+  typedef Triplet<Scalar,StorageIndex> T;
   std::vector<T> elements;
   
   Index M(-1), N(-1), NNZ(-1);
@@ -154,33 +157,36 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
     //NOTE An appropriate test should be done on the header to get the  symmetry
     if(buffer[0]=='%')
       continue;
-    
-    std::stringstream line(buffer);
-    
+
     if(!readsizes)
     {
+      std::stringstream line(buffer);
       line >> M >> N >> NNZ;
       if(M > 0 && N > 0 && NNZ > 0) 
       {
         readsizes = true;
-        //std::cout << "sizes: " << M << "," << N << "," << NNZ << "\n";
         mat.resize(M,N);
         mat.reserve(NNZ);
       }
     }
     else
     { 
-      Index i(-1), j(-1);
+      StorageIndex i(-1), j(-1);
       Scalar value; 
-      if( internal::GetMarketLine(line, M, N, i, j, value) ) 
+      internal::GetMarketLine(buffer, i, j, value);
+
+      i--;
+      j--;
+      if(i>=0 && j>=0 && i<M && j<N)
       {
-        ++ count;
+        ++count;
         elements.push_back(T(i,j,value));
       }
-      else 
+      else
         std::cerr << "Invalid read: " << i << "," << j << "\n";        
     }
   }
+
   mat.setFromTriplets(elements.begin(), elements.end());
   if(count!=NNZ)
     std::cerr << count << "!=" << NNZ << "\n";
