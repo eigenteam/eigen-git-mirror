@@ -628,6 +628,14 @@ namespace Eigen {
 #endif
 
 
+#if EIGEN_COMP_MSVC
+  // NOTE MSVC often gives C4127 warnings with compiletime if statements. See bug 1362.
+  // This workaround is ugly, but it does the job.
+#  define EIGEN_CONST_CONDITIONAL(cond)  (void)0, cond
+#else
+#  define EIGEN_CONST_CONDITIONAL(cond)  cond
+#endif
+
 //------------------------------------------------------------------------------------------
 // Static and dynamic alignment control
 //
