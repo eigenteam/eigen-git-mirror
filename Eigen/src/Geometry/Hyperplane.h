@@ -218,7 +218,10 @@ public:
   inline Hyperplane& transform(const MatrixBase<XprType>& mat, TransformTraits traits = Affine)
   {
     if (traits==Affine)
+    {
       normal() = mat.inverse().transpose() * normal();
+      m_coeffs /= normal().norm();
+    }
     else if (traits==Isometry)
       normal() = mat * normal();
     else
