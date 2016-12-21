@@ -320,7 +320,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       *
       * \sa umfpackControl()
       */
-    void umfpackReportControl()
+    void printUmfpackControl()
     {
       umfpack_report_control(m_control.data(), Scalar());
     }
@@ -329,7 +329,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       *
       * \sa analyzePattern(), compute()
       */
-    void umfpackReportInfo()
+    void printUmfpackInfo()
     {
       eigen_assert(m_analysisIsOk && "UmfPackLU: you must first call analyzePattern()");
       umfpack_report_info(m_control.data(), m_umfpackInfo.data(), Scalar());
@@ -339,7 +339,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
       *
       * \sa analyzePattern(), compute()
       */
-    void umfpackReportStatus() {
+    void printUmfpackStatus() {
       eigen_assert(m_analysisIsOk && "UmfPackLU: you must first call analyzePattern()");
       umfpack_report_status(m_control.data(), m_fact_errorCode, Scalar());
     }
