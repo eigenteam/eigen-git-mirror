@@ -335,7 +335,7 @@ public:
            OtherModeIsAffineCompact = OtherMode == int(AffineCompact)
     };
 
-    if(ModeIsAffineCompact == OtherModeIsAffineCompact)
+    if(EIGEN_CONST_CONDITIONAL(ModeIsAffineCompact == OtherModeIsAffineCompact))
     {
       // We need the block expression because the code is compiled for all
       // combinations of transformations and will trigger a compile time error
@@ -343,7 +343,7 @@ public:
       m_matrix.template block<Dim,Dim+1>(0,0) = other.matrix().template block<Dim,Dim+1>(0,0);
       makeAffine();
     }
-    else if(OtherModeIsAffineCompact)
+    else if(EIGEN_CONST_CONDITIONAL(OtherModeIsAffineCompact))
     {
       typedef typename Transform<Scalar,Dim,OtherMode,OtherOptions>::MatrixType OtherMatrixType;
       internal::transform_construct_from_matrix<OtherMatrixType,Mode,Options,Dim,HDim>::run(this, other.matrix());
@@ -481,7 +481,7 @@ public:
     TransformTimeDiagonalReturnType res;
     res.linear().noalias() = a*b.linear();
     res.translation().noalias() = a*b.translation();
-    if (Mode!=int(AffineCompact))
+    if (EIGEN_CONST_CONDITIONAL(Mode!=int(AffineCompact)))
       res.matrix().row(Dim) = b.matrix().row(Dim);
     return res;
   }
@@ -755,7 +755,7 @@ template<typename Scalar, int Dim, int Mode,int Options>
 Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::operator=(const QMatrix& other)
 {
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  if (Mode == int(AffineCompact))
+  if (EIGEN_CONST_CONDITIONAL(Mode == int(AffineCompact)))
     m_matrix << other.m11(), other.m21(), other.dx(),
                 other.m12(), other.m22(), other.dy();
   else
@@ -801,7 +801,7 @@ Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::operator
 {
   check_template_params();
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  if (Mode == int(AffineCompact))
+  if (EIGEN_CONST_CONDITIONAL(Mode == int(AffineCompact)))
     m_matrix << other.m11(), other.m21(), other.dx(),
                 other.m12(), other.m22(), other.dy();
   else
@@ -819,7 +819,7 @@ template<typename Scalar, int Dim, int Mode, int Options>
 QTransform Transform<Scalar,Dim,Mode,Options>::toQTransform(void) const
 {
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  if (Mode == int(AffineCompact))
+  if (EIGEN_CONST_CONDITIONAL(Mode == int(AffineCompact)))
     return QTransform(m_matrix.coeff(0,0), m_matrix.coeff(1,0),
                       m_matrix.coeff(0,1), m_matrix.coeff(1,1),
                       m_matrix.coeff(0,2), m_matrix.coeff(1,2));
@@ -912,7 +912,7 @@ EIGEN_DEVICE_FUNC Transform<Scalar,Dim,Mode,Options>&
 Transform<Scalar,Dim,Mode,Options>::pretranslate(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
-  if(int(Mode)==int(Projective))
+  if(EIGEN_CONST_CONDITIONAL(int(Mode)==int(Projective)))
     affine() += other * m_matrix.row(Dim);
   else
     translation() += other;

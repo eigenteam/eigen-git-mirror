@@ -57,6 +57,7 @@ static void test_simple_shuffling_sycl(const Eigen::SyclDevice& sycl_device)
 
   gpu2.device(sycl_device)=gpu1.shuffle(shuffles);
   sycl_device.memcpyDeviceToHost(no_shuffle.data(), gpu_data2, buffSize);
+  sycl_device.synchronize();
 
   VERIFY_IS_EQUAL(no_shuffle.dimension(0), sizeDim1);
   VERIFY_IS_EQUAL(no_shuffle.dimension(1), sizeDim2);
@@ -82,8 +83,9 @@ static void test_simple_shuffling_sycl(const Eigen::SyclDevice& sycl_device)
   DataType* gpu_data3  = static_cast<DataType*>(sycl_device.allocate(buffSize));
   TensorMap<Tensor<DataType, 4,DataLayout,IndexTypes>> gpu3(gpu_data3, tensorrangeShuffle);
 
-    gpu3.device(sycl_device)=gpu1.shuffle(shuffles);
-    sycl_device.memcpyDeviceToHost(shuffle.data(), gpu_data3, buffSize);
+  gpu3.device(sycl_device)=gpu1.shuffle(shuffles);
+  sycl_device.memcpyDeviceToHost(shuffle.data(), gpu_data3, buffSize);
+  sycl_device.synchronize();
 
   VERIFY_IS_EQUAL(shuffle.dimension(0), sizeDim3);
   VERIFY_IS_EQUAL(shuffle.dimension(1), sizeDim4);

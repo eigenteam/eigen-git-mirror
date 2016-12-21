@@ -66,12 +66,15 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
     VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot,Isometry).absDistance(rot * p1), Scalar(1) );
     pl2 = pl1;
     VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*scaling).absDistance((rot*scaling) * p1), Scalar(1) );
+    VERIFY_IS_APPROX( pl2.normal().norm(), RealScalar(1) );
     pl2 = pl1;
     VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*scaling*translation)
                                   .absDistance((rot*scaling*translation) * p1), Scalar(1) );
+    VERIFY_IS_APPROX( pl2.normal().norm(), RealScalar(1) );
     pl2 = pl1;
     VERIFY_IS_MUCH_SMALLER_THAN( pl2.transform(rot*translation,Isometry)
                                  .absDistance((rot*translation) * p1), Scalar(1) );
+    VERIFY_IS_APPROX( pl2.normal().norm(), RealScalar(1) );
   }
 
   // casting

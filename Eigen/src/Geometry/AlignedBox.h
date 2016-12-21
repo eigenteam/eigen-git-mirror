@@ -63,7 +63,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
 
   /** Default constructor initializing a null box. */
   EIGEN_DEVICE_FUNC inline AlignedBox()
-  { if (AmbientDimAtCompileTime!=Dynamic) setEmpty(); }
+  { if (EIGEN_CONST_CONDITIONAL(AmbientDimAtCompileTime!=Dynamic)) setEmpty(); }
 
   /** Constructs a null box with \a _dim the dimension of the ambient space. */
   EIGEN_DEVICE_FUNC inline explicit AlignedBox(Index _dim) : m_min(_dim), m_max(_dim)

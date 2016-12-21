@@ -461,53 +461,21 @@ EIGEN_STRONG_INLINE Packet16i ploadu<Packet16i>(const int* from) {
 // {a0, a0  a1, a1, a2, a2, a3, a3, a4, a4, a5, a5, a6, a6, a7, a7}
 template <>
 EIGEN_STRONG_INLINE Packet16f ploaddup<Packet16f>(const float* from) {
-  Packet8f lane0 = _mm256_broadcast_ps((const __m128*)(const void*)from);
-  // mimic an "inplace" permutation of the lower 128bits using a blend
-  lane0 = _mm256_blend_ps(
-      lane0, _mm256_castps128_ps256(_mm_permute_ps(
-                 _mm256_castps256_ps128(lane0), _MM_SHUFFLE(1, 0, 1, 0))),
-      15);
-  // then we can perform a consistent permutation on the global register to get
-  // everything in shape:
-  lane0 = _mm256_permute_ps(lane0, _MM_SHUFFLE(3, 3, 2, 2));
-
-  Packet8f lane1 = _mm256_broadcast_ps((const __m128*)(const void*)(from + 4));
-  // mimic an "inplace" permutation of the lower 128bits using a blend
-  lane1 = _mm256_blend_ps(
-      lane1, _mm256_castps128_ps256(_mm_permute_ps(
-                 _mm256_castps256_ps128(lane1), _MM_SHUFFLE(1, 0, 1, 0))),
-      15);
-  // then we can perform a consistent permutation on the global register to get
-  // everything in shape:
-  lane1 = _mm256_permute_ps(lane1, _MM_SHUFFLE(3, 3, 2, 2));
-
-#ifdef EIGEN_VECTORIZE_AVX512DQ
-  Packet16f res = _mm512_undefined_ps();
-  return _mm512_insertf32x8(res, lane0, 0);
-  return _mm512_insertf32x8(res, lane1, 1);
-  return res;
-#else
-  Packet16f res = _mm512_undefined_ps();
-  res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane0, 0), 0);
-  res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane0, 1), 1);
-  res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane1, 0), 2);
-  res = _mm512_insertf32x4(res, _mm256_extractf128_ps(lane1, 1), 3);
-  return res;
-#endif
+  __m256i low_half = _mm256_load_si256(reinterpret_cast<const __m256i*>(from));
+  __m512 even_elements = _mm512_castsi512_ps(_mm512_cvtepu32_epi64(low_half));
+  __m512 pairs = _mm512_permute_ps(even_elements, _MM_SHUFFLE(2, 2, 0, 0));
+  return pairs;
 }
 // Loads 4 doubles from memory a returns the packet {a0, a0  a1, a1, a2, a2, a3,
 // a3}
 template <>
 EIGEN_STRONG_INLINE Packet8d ploaddup<Packet8d>(const double* from) {
-  Packet4d lane0 = _mm256_broadcast_pd((const __m128d*)(const void*)from);
-  lane0 = _mm256_permute_pd(lane0, 3 << 2);
-
-  Packet4d lane1 = _mm256_broadcast_pd((const __m128d*)(const void*)(from + 2));
-  lane1 = _mm256_permute_pd(lane1, 3 << 2);
-
-  Packet8d res = _mm512_undefined_pd();
-  res = _mm512_insertf64x4(res, lane0, 0);
-  return _mm512_insertf64x4(res, lane1, 1);
+ __m512d x = _mm512_setzero_pd();
+  x = _mm512_insertf64x2(x, _mm_loaddup_pd(&from[0]), 0);
+  x = _mm512_insertf64x2(x, _mm_loaddup_pd(&from[1]), 1);
+  x = _mm512_insertf64x2(x, _mm_loaddup_pd(&from[2]), 2);
+  x = _mm512_insertf64x2(x, _mm_loaddup_pd(&from[3]), 3);
+  return x;
 }
 
 // Loads 4 floats from memory a returns the packet
@@ -525,11 +493,11 @@ EIGEN_STRONG_INLINE Packet16f ploadquad<Packet16f>(const float* from) {
 // {a0, a0  a0, a0, a1, a1, a1, a1}
 template <>
 EIGEN_STRONG_INLINE Packet8d ploadquad<Packet8d>(const double* from) {
-  Packet8d tmp = _mm512_undefined_pd();
-  Packet2d tmp0 = _mm_load_pd1(from);
-  Packet2d tmp1 = _mm_load_pd1(from + 1);
-  Packet4d lane0 = _mm256_broadcastsd_pd(tmp0);
-  Packet4d lane1 = _mm256_broadcastsd_pd(tmp1);
+  __m128d tmp0 = _mm_load_pd1(from);
+  __m256d lane0 = _mm256_broadcastsd_pd(tmp0);
+  __m128d tmp1 = _mm_load_pd1(from + 1);
+  __m256d lane1 = _mm256_broadcastsd_pd(tmp1);
+  __m512d tmp = _mm512_undefined_pd();
   tmp = _mm512_insertf64x4(tmp, lane0, 0);
   return _mm512_insertf64x4(tmp, lane1, 1);
 }
