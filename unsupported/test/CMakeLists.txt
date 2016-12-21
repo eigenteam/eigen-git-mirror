@@ -21,6 +21,15 @@ include_directories(../../test ../../unsupported ../../Eigen
 
 find_package (Threads)
 
+find_package(Xsmm)
+if(XSMM_FOUND)
+  add_definitions("-DEIGEN_USE_LIBXSMM")
+  include_directories(${XSMM_INCLUDES})
+  ei_add_property(EIGEN_TESTED_BACKENDS  "Xsmm, ")
+else(XSMM_FOUND)
+  ei_add_property(EIGEN_MISSING_BACKENDS  "Xsmm, ")
+endif(XSMM_FOUND)
+
 find_package(GoogleHash)
 if(GOOGLEHASH_FOUND)
   add_definitions("-DEIGEN_GOOGLEHASH_SUPPORT")
