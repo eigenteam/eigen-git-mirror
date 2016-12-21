@@ -84,12 +84,6 @@ macro(ei_add_test_internal testname testname_with_suffix)
     target_link_libraries(${targetname} ${EIGEN_TEST_CUSTOM_LINKER_FLAGS})
   endif()
 
-   if(XSMM_FOUND)
-     include_directories(${XSMM_INCLUDES})
-     link_directories(${XSMM_LIBRARIES})
-     target_link_libraries(${targetname} xsmm)
-   endif()
-   
   if(${ARGC} GREATER 3)
     set(libs_to_link ${ARGV3})
     # it could be that some cmake module provides a bad library string " "  (just spaces),
