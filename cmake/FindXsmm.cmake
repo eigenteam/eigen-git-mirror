@@ -1,24 +1,25 @@
-# libxsmm
+# libxsmm support.
+# libxsmm provides matrix multiplication kernels optimized for
+# the latest Intel architectures.
+# Download the library from https://github.com/hfp/libxsmm
+# Compile with make BLAS=0
 
-if (XSMM_INCLUDES AND XSMM_LIBRARIES)
+if (LIBXSMM)
   set(XSMM_FIND_QUIETLY TRUE)
-endif (XSMM_INCLUDES AND XSMM_LIBRARIES)
+  set(XSMM_INCLUDES ${LIBXSMM}/include)
+  set(XSMM_LIBRARIES ${LIBXSMM}/lib)
+endif (LIBXSMM)
 
-find_path(XSMM_INCLUDES 
+find_path(LIBXSMM 
   NAMES 
-  scotch.h 
+  libxsmm.h 
   PATHS 
-  $ENV{XSMMDIR} 
+  $ENV{XSMMDIR}/include 
   ${INCLUDE_INSTALL_DIR} 
-  PATH_SUFFIXES 
-  scotch
 )
-
-
-find_library(XSMM_LIBRARIES xsmm PATHS $ENV{XSMMDIR} ${LIB_INSTALL_DIR})
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(XSMM DEFAULT_MSG
-                                  XSMM_INCLUDES XSMM_LIBRARIES)
+                                  LIBXSMM)
 
-mark_as_advanced(XSMM_INCLUDES XSMM_LIBRARIES)
+mark_as_advanced(LIBXSMM)
