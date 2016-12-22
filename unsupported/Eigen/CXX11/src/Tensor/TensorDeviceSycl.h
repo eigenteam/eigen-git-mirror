@@ -307,9 +307,12 @@ struct SyclDevice {
     sycl_queue().wait_and_throw(); //pass
   }
 
-    EIGEN_STRONG_INLINE void asynchronousExec() const {
-      sycl_queue().throw_asynchronous();//pass
-    }
+  EIGEN_STRONG_INLINE void asynchronousExec() const {
+    ///FIXEDME:: currently there is a race condition regarding the asynch scheduler.    
+    //sycl_queue().throw_asynchronous();// does not pass. Temporarily disabled
+    sycl_queue().wait_and_throw(); //pass
+
+  }
   // This function checks if the runtime recorded an error for the
   // underlying stream device.
   EIGEN_STRONG_INLINE bool ok() const {
