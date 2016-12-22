@@ -628,8 +628,8 @@ EIGEN_STRONG_INLINE Packet8d pabs(const Packet8d& a) {
 #ifdef EIGEN_VECTORIZE_AVX512DQ
 // AVX512F does not define _mm512_extractf32x8_ps to extract _m256 from _m512
 #define EIGEN_EXTRACT_8f_FROM_16f(INPUT, OUTPUT)                           \
-  __m256 OUTPUT##_0 = _mm512_extractf32x8_ps(INPUT, 0) __m256 OUTPUT##_1 = \
-      _mm512_extractf32x8_ps(INPUT, 1)
+  __m256 OUTPUT##_0 = _mm512_extractf32x8_ps(INPUT, 0);                    \
+  __m256 OUTPUT##_1 = _mm512_extractf32x8_ps(INPUT, 1)
 #else
 #define EIGEN_EXTRACT_8f_FROM_16f(INPUT, OUTPUT)                \
   __m256 OUTPUT##_0 = _mm256_insertf128_ps(                     \
@@ -847,10 +847,8 @@ EIGEN_STRONG_INLINE float predux<Packet16f>(const Packet16f& a) {
 #ifdef EIGEN_VECTORIZE_AVX512DQ
   __m256 lane0 = _mm512_extractf32x8_ps(a, 0);
   __m256 lane1 = _mm512_extractf32x8_ps(a, 1);
-  __m256 sum = _mm256_add_ps(lane0, lane1);
-  __m256 tmp0 = _mm256_hadd_ps(sum, _mm256_permute2f128_ps(a, a, 1));
-  tmp0 = _mm256_hadd_ps(tmp0, tmp0);
-  return _mm_cvtss_f32(_mm256_castps256_ps128(_mm256_hadd_ps(tmp0, tmp0)));
+  Packet8f x = _mm256_add_ps(lane0, lane1);
+  return predux<Packet8f>(x);
 #else
   __m128 lane0 = _mm512_extractf32x4_ps(a, 0);
   __m128 lane1 = _mm512_extractf32x4_ps(a, 1);
