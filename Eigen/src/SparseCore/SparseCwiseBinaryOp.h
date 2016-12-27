@@ -45,7 +45,7 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
       EIGEN_STATIC_ASSERT((
                 (!internal::is_same<typename internal::traits<Lhs>::StorageKind,
                                     typename internal::traits<Rhs>::StorageKind>::value)
-            ||  ((Lhs::Flags&RowMajorBit) == (Rhs::Flags&RowMajorBit))),
+            ||  ((internal::evaluator<Lhs>::Flags&RowMajorBit) == (internal::evaluator<Rhs>::Flags&RowMajorBit))),
             THE_STORAGE_ORDER_OF_BOTH_SIDES_MUST_MATCH);
     }
 };
