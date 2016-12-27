@@ -410,7 +410,7 @@ class UmfPackLU : public SparseSolverBase<UmfPackLU<_MatrixType> >
     mutable LUMatrixType m_l;
     int m_fact_errorCode;
     UmfpackControl m_control;
-    UmfpackInfo m_umfpackInfo;
+    mutable UmfpackInfo m_umfpackInfo;
 
     mutable LUMatrixType m_u;
     mutable IntColVectorType m_p;
