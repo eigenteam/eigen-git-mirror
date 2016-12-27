@@ -25,6 +25,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   //const Index outer = ref.outerSize();
 
   typedef typename SparseMatrixType::Scalar Scalar;
+  typedef typename SparseMatrixType::RealScalar RealScalar;
   enum { Flags = SparseMatrixType::Flags };
 
   double density = (std::max)(8./(rows*cols), 0.01);
@@ -193,6 +194,17 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m3 + refM4, refM3 + refM4);
     VERIFY_IS_APPROX(refM4 - m3, refM4 - refM3);
     VERIFY_IS_APPROX(m3 - refM4, refM3 - refM4);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + RealScalar(0.5)*m3).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + m3*RealScalar(0.5)).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + m3.cwiseProduct(m3)).eval(), RealScalar(0.5)*refM4 + refM3.cwiseProduct(refM3));
+
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + RealScalar(0.5)*m3).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + m3*RealScalar(0.5)).eval(), RealScalar(0.5)*refM4 + RealScalar(0.5)*refM3);
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + (m3+m3)).eval(), RealScalar(0.5)*refM4 + (refM3+refM3));
+    VERIFY_IS_APPROX(((refM3+m3)+RealScalar(0.5)*m3).eval(), RealScalar(0.5)*refM3 + (refM3+refM3));
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + (refM3+m3)).eval(), RealScalar(0.5)*refM4 + (refM3+refM3));
+    VERIFY_IS_APPROX((RealScalar(0.5)*refM4 + (m3+refM3)).eval(), RealScalar(0.5)*refM4 + (refM3+refM3));
+
 
     VERIFY_IS_APPROX(m1.sum(), refM1.sum());
 
