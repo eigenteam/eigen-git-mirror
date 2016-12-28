@@ -185,6 +185,14 @@ class SparseCompressedBase<Derived>::InnerIterator
     }
 
     inline InnerIterator& operator++() { m_id++; return *this; }
+    inline InnerIterator& operator+=(Index i) { m_id += i ; return *this; }
+
+    inline InnerIterator operator+(Index i) 
+    { 
+        InnerIterator result = *this;
+        result += i;
+        return result;
+    }
 
     inline const Scalar& value() const { return m_values[m_id]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id]); }
@@ -245,6 +253,14 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
     }
 
     inline ReverseInnerIterator& operator--() { --m_id; return *this; }
+    inline ReverseInnerIterator& operator-=(Index i) { m_id -= i; return *this; }
+
+    inline ReverseInnerIterator operator-(Index i) 
+    {
+        ReverseInnerIterator result = *this;
+        result -= i;
+        return result;
+    }
 
     inline const Scalar& value() const { return m_values[m_id-1]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id-1]); }
