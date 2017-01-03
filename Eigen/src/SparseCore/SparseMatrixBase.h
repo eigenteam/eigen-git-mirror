@@ -37,7 +37,11 @@ template<typename Derived> class SparseMatrixBase
     
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
+
+    /** The integer type used to \b store indices within a SparseMatrix.
+      * For a \c SparseMatrix<Scalar,Options,IndexType> it an alias of the third template parameter \c IndexType. */
     typedef typename internal::traits<Derived>::StorageIndex StorageIndex;
+
     typedef typename internal::add_const_on_value_type_if_arithmetic<
                          typename internal::packet_traits<Scalar>::type
                      >::type PacketReturnType;
