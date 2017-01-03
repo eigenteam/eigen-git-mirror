@@ -112,6 +112,7 @@ function test_current
 #  echo $update et $selected et $rev_found because $rev et "$global_args"
 #  echo $count_rev et $count_ref
   if [ $update == true ] || [ $count_rev != $count_ref ] || ([ $selected == true ] &&  [ $rev_found == true ]); then
+    echo "RUN: $CXX -O3 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name"
     if $CXX -O3 -DNDEBUG -march=native $CXX_FLAGS -I eigen_src $bench.cpp -DSCALAR=$scalar -o $name; then
       curr=`./$name $settings_file`
       if [ $count_rev == $count_ref ]; then
