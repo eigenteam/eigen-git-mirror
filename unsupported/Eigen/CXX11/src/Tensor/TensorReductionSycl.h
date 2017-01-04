@@ -74,8 +74,8 @@ struct FullReducer<Self, Op, const Eigen::SyclDevice, Vectorizable> {
 
   static void run(const Self& self, Op& reducer, const Eigen::SyclDevice& dev, CoeffReturnType* output) {
     typedef const typename Self::ChildType HostExpr; /// this is the child of reduction
-    auto functors = TensorSycl::internal::extractFunctors(self.impl());
-    typedef decltype(functors) FunctorExpr;
+    typedef decltype(TensorSycl::internal::extractFunctors(self.impl())) FunctorExpr;
+    FunctorExpr functors = TensorSycl::internal::extractFunctors(self.impl());
     int red_factor =256; /// initial reduction. If the size is less than red_factor we only creates one thread.
     size_t inputSize =self.impl().dimensions().TotalSize();
     size_t rng = inputSize/red_factor; // the total number of thread initially is half the size of the input
@@ -136,8 +136,8 @@ struct InnerReducer<Self, Op, const Eigen::SyclDevice> {
 
   static bool run(const Self& self, Op& reducer, const Eigen::SyclDevice& dev, CoeffReturnType* output, typename Self::Index , typename Self::Index num_coeffs_to_preserve) {
     typedef const typename Self::ChildType HostExpr; /// this is the child of reduction
-    auto functors = TensorSycl::internal::extractFunctors(self.impl());
-    typedef decltype(functors) FunctorExpr;
+    typedef decltype(TensorSycl::internal::extractFunctors(self.impl())) FunctorExpr;
+    FunctorExpr functors = TensorSycl::internal::extractFunctors(self.impl());
     typename Self::Index range, GRange, tileSize;
     typedef typename Eigen::internal::remove_all<decltype(self.xprDims())>::type Dims;
 
