@@ -366,7 +366,7 @@ This also means that, unless specified, if the function \c std::foo is available
 <tr>
   <td class="code">
   \anchor cwisetable_isfinite
-  a.\link ArrayBase::isfinite isfinite\endlink(); \n
+  a.\link ArrayBase::isFinite isFinite\endlink(); \n
   \link Eigen::isfinite isfinite\endlink(a);
   </td>
   <td>checks if the given number has finite value</td>
@@ -377,7 +377,7 @@ This also means that, unless specified, if the function \c std::foo is available
 <tr>
   <td class="code">
   \anchor cwisetable_isinf
-  a.\link ArrayBase::isinf isinf\endlink(); \n
+  a.\link ArrayBase::isInf isInf\endlink(); \n
   \link Eigen::isinf isinf\endlink(a);
   </td>
   <td>checks if the given number is infinite</td>
@@ -388,7 +388,7 @@ This also means that, unless specified, if the function \c std::foo is available
 <tr>
   <td class="code">
   \anchor cwisetable_isnan
-  a.\link ArrayBase::isnan isnan\endlink(); \n
+  a.\link ArrayBase::isNaN isNaN\endlink(); \n
   \link Eigen::isnan isnan\endlink(a);
   </td>
   <td>checks if the given number is not a number</td>
@@ -399,7 +399,7 @@ This also means that, unless specified, if the function \c std::foo is available
 <tr>
 <th colspan="4">Error and gamma functions</th>
 </tr>
-<tr> <td colspan="4">  Require \c #include \c <unsupported/Eigen/SpecialFunctions> </td></tr>
+<tr> <td colspan="4">  Require \c \#include \c <unsupported/Eigen/SpecialFunctions> </td></tr>
 <tr>
   <td class="code">
   \anchor cwisetable_erf
@@ -478,7 +478,7 @@ This also means that, unless specified, if the function \c std::foo is available
 <tr>
 <th colspan="4">Special functions</th>
 </tr>
-<tr> <td colspan="4">  Require \c #include \c <unsupported/Eigen/SpecialFunctions> </td></tr>
+<tr> <td colspan="4">  Require \c \#include \c <unsupported/Eigen/SpecialFunctions> </td></tr>
 <tr>
   <td class="code">
   \anchor cwisetable_polygamma

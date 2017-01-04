@@ -560,7 +560,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 
   public:
 
-    /** \copydoc DenseBase::operator=(const EigenBase<OtherDerived>&)
+    /** \brief Copies the generic expression \a other into *this.
+      * \copydetails DenseBase::operator=(const EigenBase<OtherDerived> &other)
       */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC 

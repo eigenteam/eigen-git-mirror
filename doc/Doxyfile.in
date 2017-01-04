@@ -727,7 +727,8 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support" \
+EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/src/Core/products" \
+                         "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support" \
                          "${Eigen_SOURCE_DIR}/Eigen/src/Eigen2Support" \
                          "${Eigen_SOURCE_DIR}/doc/examples" \
                          "${Eigen_SOURCE_DIR}/doc/special_examples" \
