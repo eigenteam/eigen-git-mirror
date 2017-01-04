@@ -319,6 +319,7 @@ public:
 * Implementation of MatrixBase methods
 ***************************************************************************/
 
+/** This is the const version of MatrixBase::selfadjointView() */
 template<typename Derived>
 template<unsigned int UpLo>
 typename MatrixBase<Derived>::template ConstSelfAdjointViewReturnType<UpLo>::Type
@@ -327,6 +328,15 @@ MatrixBase<Derived>::selfadjointView() const
   return typename ConstSelfAdjointViewReturnType<UpLo>::Type(derived());
 }
 
+/** \returns an expression of a symmetric/self-adjoint view extracted from the upper or lower triangular part of the current matrix
+  *
+  * The parameter \a UpLo can be either \c #Upper or \c #Lower
+  *
+  * Example: \include MatrixBase_selfadjointView.cpp
+  * Output: \verbinclude MatrixBase_selfadjointView.out
+  *
+  * \sa class SelfAdjointView
+  */
 template<typename Derived>
 template<unsigned int UpLo>
 typename MatrixBase<Derived>::template SelfAdjointViewReturnType<UpLo>::Type
