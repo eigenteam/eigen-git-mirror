@@ -1591,8 +1591,12 @@ PREDEFINED             = EIGEN_EMPTY_STRUCT \
                          EIGEN_STRONG_INLINE=inline \
                          EIGEN_DEVICE_FUNC= \
                          "EIGEN_MAKE_CWISE_BINARY_OP(METHOD,FUNCTOR)=template<typename OtherDerived> const CwiseBinaryOp<FUNCTOR<Scalar>, const Derived, const OtherDerived> METHOD(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const;" \
-                         "EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS)=CwiseBinaryOp<internal::scalar_product_op<typename LHS::Scalar, typename RHS::Scalar >, const LHS, const RHS>"\
+                         "EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS)=CwiseBinaryOp<internal::scalar_product_op<LHS::Scalar,RHS::Scalar>, const LHS, const RHS>"\
+                         "EIGEN_CAT2(a,b)= a ## b"\
+                         "EIGEN_CAT(a,b)=EIGEN_CAT2(a,b)"\
+                         "EIGEN_CWISE_BINARY_RETURN_TYPE(LHS,RHS,OPNAME)=CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<LHS::Scalar, RHS::Scalar>, const LHS, const RHS>"\
                          DOXCOMMA=,
+
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.
@@ -1616,6 +1620,7 @@ EXPAND_AS_DEFINED      = EIGEN_MAKE_TYPEDEFS \
                          EIGEN_DOC_UNARY_ADDONS \
                          EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL \
                          EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF
+
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
 # doxygen's preprocessor will remove all references to function-like macros
