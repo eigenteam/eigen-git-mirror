@@ -58,6 +58,28 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct m
 
 } // end namespace internal
 
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+namespace doxygen {
+
+// This is a workaround to doxygen not being able to understand the inheritance logic
+// when it is hidden by the dense_xpr_base helper struct.
+// Moreover, doxygen fails to include members that are not documented in the declaration body of
+// MatrixBase if we inherits MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >,
+// this is why we simply inherits MatrixBase, though this does not make sense.
+
+/** This class is just a workaround for Doxygen and it does not not actually exist. */
+template<typename Derived> struct dense_xpr_base_dispatcher;
+/** This class is just a workaround for Doxygen and it does not not actually exist. */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct dense_xpr_base_dispatcher<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+    : public MatrixBase {};
+/** This class is just a workaround for Doxygen and it does not not actually exist. */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct dense_xpr_base_dispatcher<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+    : public ArrayBase {};
+
+} // namespace doxygen
+
 /** \class PlainObjectBase
   * \ingroup Core_Module
   * \brief %Dense storage base class for matrices and arrays.
@@ -65,26 +87,10 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct m
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_PLAINOBJECTBASE_PLUGIN.
   *
+  * \tparam Derived is the derived type, e.g., a Matrix or Array
+  *
   * \sa \ref TopicClassHierarchy
   */
-#ifdef EIGEN_PARSED_BY_DOXYGEN
-namespace doxygen {
-
-// this is a workaround to doxygen not being able to understand the inheritance logic
-// when it is hidden by the dense_xpr_base helper struct.
-/** This class is just a workaround for Doxygen and it does not not actually exist. */
-template<typename Derived> struct dense_xpr_base_dispatcher;
-/** This class is just a workaround for Doxygen and it does not not actually exist. */
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct dense_xpr_base_dispatcher<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-    : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > {};
-/** This class is just a workaround for Doxygen and it does not not actually exist. */
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct dense_xpr_base_dispatcher<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-    : public ArrayBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > {};
-
-} // namespace doxygen
-
 template<typename Derived>
 class PlainObjectBase : public doxygen::dense_xpr_base_dispatcher<Derived>
 #else
