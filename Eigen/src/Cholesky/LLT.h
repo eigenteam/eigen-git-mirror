@@ -150,7 +150,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 
     template<typename Derived>
-    void solveInPlace(MatrixBase<Derived> &bAndX) const;
+    void solveInPlace(const MatrixBase<Derived> &bAndX) const;
 
     template<typename InputType>
     LLT& compute(const EigenBase<InputType>& matrix);
@@ -494,7 +494,7 @@ void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
   */
 template<typename MatrixType, int _UpLo>
 template<typename Derived>
-void LLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
+void LLT<MatrixType,_UpLo>::solveInPlace(const MatrixBase<Derived> &bAndX) const
 {
   eigen_assert(m_isInitialized && "LLT is not initialized.");
   eigen_assert(m_matrix.rows()==bAndX.rows());
