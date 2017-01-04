@@ -429,7 +429,8 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
   m_matrix.resize(size, size);
-  m_matrix = a.derived();
+  if (!internal::is_same_dense(m_matrix, a.derived()))
+    m_matrix = a.derived();
 
   // Compute matrix L1 norm = max abs column sum.
   m_l1_norm = RealScalar(0);
