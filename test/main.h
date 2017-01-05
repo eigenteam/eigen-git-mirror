@@ -372,10 +372,10 @@ inline bool test_isApproxOrLessThan(const half& a, const half& b)
 
 // test_relative_error returns the relative difference between a and b as a real scalar as used in isApprox.
 template<typename T1,typename T2>
-typename T1::RealScalar test_relative_error(const EigenBase<T1> &a, const EigenBase<T2> &b)
+typename NumTraits<typename T1::RealScalar>::NonInteger test_relative_error(const EigenBase<T1> &a, const EigenBase<T2> &b)
 {
   using std::sqrt;
-  typedef typename T1::RealScalar RealScalar;
+  typedef typename NumTraits<typename T1::RealScalar>::NonInteger RealScalar;
   typename internal::nested_eval<T1,2>::type ea(a.derived());
   typename internal::nested_eval<T2,2>::type eb(b.derived());
   return sqrt(RealScalar((ea-eb).cwiseAbs2().sum()) / RealScalar((std::min)(eb.cwiseAbs2().sum(),ea.cwiseAbs2().sum())));
@@ -433,9 +433,9 @@ typename T1::RealScalar test_relative_error(const SparseMatrixBase<T1> &a, const
 }
 
 template<typename T1,typename T2>
-typename NumTraits<T1>::Real test_relative_error(const T1 &a, const T2 &b, typename internal::enable_if<internal::is_arithmetic<typename NumTraits<T1>::Real>::value, T1>::type* = 0)
+typename NumTraits<typename NumTraits<T1>::Real>::NonInteger test_relative_error(const T1 &a, const T2 &b, typename internal::enable_if<internal::is_arithmetic<typename NumTraits<T1>::Real>::value, T1>::type* = 0)
 {
-  typedef typename NumTraits<T1>::Real RealScalar; 
+  typedef typename NumTraits<typename NumTraits<T1>::Real>::NonInteger RealScalar;
   return numext::sqrt(RealScalar(numext::abs2(a-b))/RealScalar((numext::mini)(numext::abs2(a),numext::abs2(b))));
 }
 
