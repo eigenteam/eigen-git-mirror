@@ -557,6 +557,15 @@ template<typename Derived> class DenseBase
     }
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
+    template<typename RowIndices, typename ColIndices>
+    typename internal::enable_if<
+      !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value),
+      IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type,typename internal::MakeIndexing<ColIndices>::type> >::type
+    operator()(const RowIndices& rowIndices, const ColIndices& colIndices) const {
+      return IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type,typename internal::MakeIndexing<ColIndices>::type>(
+                derived(), internal::make_indexing(rowIndices,derived().rows()), internal::make_indexing(colIndices,derived().cols()));
+    }
+
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
 #define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 #define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND)
