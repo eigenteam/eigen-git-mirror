@@ -160,7 +160,7 @@ span(FirstType first, SizeType size)  {
 namespace internal {
 
 template<typename T, int XprSize, typename EnableIf = void> struct get_compile_time_size {
-  enum { value = -1 };
+  enum { value = Dynamic };
 };
 
 template<typename T, int XprSize> struct get_compile_time_size<T,XprSize,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
@@ -173,6 +173,21 @@ template<typename T, int XprSize, int N> struct get_compile_time_size<std::array
 };
 #endif
 
+template<typename T, typename EnableIf = void> struct get_compile_time_incr {
+  enum { value = UndefinedIncr };
+};
+
+template<typename FirstType,typename LastType,typename IncrType>
+struct get_compile_time_incr<Range_t<FirstType,LastType,IncrType> > {
+  enum { value = get_compile_time<IncrType,DynamicIndex>::value };
+};
+
+template<typename FirstType,typename SizeType,typename IncrType>
+struct get_compile_time_incr<Span_t<FirstType,SizeType,IncrType> > {
+  enum { value = get_compile_time<IncrType,DynamicIndex>::value };
+};
+
+
 // MakeIndexing/make_indexing turn an arbitrary object of type T into something usable by MatrixSlice
 template<typename T,typename EnableIf=void>
 struct MakeIndexing {
@@ -180,7 +195,7 @@ struct MakeIndexing {
 };
 
 template<typename T>
-const T& make_indexing(const T& x, Index size) { return x; }
+const T& make_indexing(const T& x, Index /*size*/) { return x; }
 
 struct IntAsArray {
   enum {
@@ -190,6 +205,10 @@ struct IntAsArray {
   Index operator[](Index) const { return m_value; }
   Index size() const { return 1; }
   Index m_value;
+};
+
+template<> struct get_compile_time_incr<IntAsArray> {
+  enum { value = 1 }; // 1 or 0 ??
 };
 
 // Turn a single index into something that looks like an array (i.e., that exposes a .size(), and operatro[](int) methods)
@@ -252,6 +271,10 @@ AllRange make_indexing(all_t , Index size) {
 
 template<int XprSize> struct get_compile_time_size<AllRange,XprSize> {
   enum { value = XprSize };
+};
+
+template<> struct get_compile_time_incr<AllRange> {
+  enum { value = 1 };
 };
 
 } // end namespace internal

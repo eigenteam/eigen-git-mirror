@@ -25,6 +25,10 @@ const int Dynamic = -1;
   */
 const int DynamicIndex = 0xffffff;
 
+/** This value means that the increment to go from one value to another in a sequence is not constant for each step.
+  */
+const int UndefinedIncr = 0xfffffe;
+
 /** This value means +Infinity; it is currently used only as the p parameter to MatrixBase::lpNorm<int>().
   * The value Infinity there means the L-infinity norm.
   */

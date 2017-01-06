@@ -27,7 +27,8 @@ IndexPair decode(Index ij) {
 
 template<typename T>
 bool match(const T& xpr, std::string ref, std::string str_xpr = "") {
-  std::cout << str_xpr << "\n" << xpr << "\n\n";
+  EIGEN_UNUSED_VARIABLE(str_xpr);
+  //std::cout << str_xpr << "\n" << xpr << "\n\n";
   std::stringstream str;
   str << xpr;
   return str.str() == ref;
@@ -102,8 +103,28 @@ void check_indexed_view()
   );
 
   Array44i B;
+  B.setRandom();
   VERIFY( (A(span(2,5), 5)).ColsAtCompileTime == 1);
   VERIFY( (A(span(2,5), 5)).RowsAtCompileTime == Dynamic);
+  VERIFY_IS_EQUAL( (A(span(2,5), 5)).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(span(2,5), 5)).OuterStrideAtCompileTime , A.col(5).OuterStrideAtCompileTime);
+
+  VERIFY_IS_EQUAL( (A(5,span(2,5))).InnerStrideAtCompileTime , A.row(5).InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(5,span(2,5))).OuterStrideAtCompileTime , A.row(5).OuterStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(1,span(1,2))).InnerStrideAtCompileTime , B.row(1).InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(1,span(1,2))).OuterStrideAtCompileTime , B.row(1).OuterStrideAtCompileTime);
+
+  VERIFY_IS_EQUAL( (A(span(2,5), range(1,3))).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(span(2,5), range(1,3))).OuterStrideAtCompileTime , A.OuterStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(span(1,2), range(1,3))).InnerStrideAtCompileTime , B.InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(span(1,2), range(1,3))).OuterStrideAtCompileTime , B.OuterStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(span(2,5,2), range(1,3,2))).InnerStrideAtCompileTime , Dynamic);
+  VERIFY_IS_EQUAL( (A(span(2,5,2), range(1,3,2))).OuterStrideAtCompileTime , Dynamic);
+  VERIFY_IS_EQUAL( (A(span(2,5,fix<2>), range(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
+  VERIFY_IS_EQUAL( (A(span(2,5,fix<2>), range(1,3,fix<3>))).OuterStrideAtCompileTime , Dynamic);
+  VERIFY_IS_EQUAL( (B(span(1,2,fix<2>), range(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
+  VERIFY_IS_EQUAL( (B(span(1,2,fix<2>), range(1,3,fix<3>))).OuterStrideAtCompileTime , 3*4);
+
   VERIFY( (A(span(2,fix<5>), 5)).RowsAtCompileTime == 5);
   VERIFY( (A(4, all)).ColsAtCompileTime == Dynamic);
   VERIFY( (A(4, all)).RowsAtCompileTime == 1);
@@ -113,6 +134,10 @@ void check_indexed_view()
   VERIFY( (B(all,1)).RowsAtCompileTime == 4);
 
   VERIFY( (A(all, eii)).ColsAtCompileTime == eii.SizeAtCompileTime);
+  VERIFY_IS_EQUAL( (A(eii, eii)).Flags&DirectAccessBit, (unsigned int)(0));
+  VERIFY_IS_EQUAL( (A(eii, eii)).InnerStrideAtCompileTime, 0);
+  VERIFY_IS_EQUAL( (A(eii, eii)).OuterStrideAtCompileTime, 0);
+
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
 

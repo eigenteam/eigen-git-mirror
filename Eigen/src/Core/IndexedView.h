@@ -29,12 +29,24 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
                : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
                : XprTypeIsRowMajor,
 
+    RowIncr = get_compile_time_incr<RowIndices>::value,
+    ColIncr = get_compile_time_incr<ColIndices>::value,
+    InnerIncr = IsRowMajor ? ColIncr : RowIncr,
+    OuterIncr = IsRowMajor ? RowIncr : ColIncr,
+
+    HasSameStorageOrderAsXprType = (IsRowMajor == XprTypeIsRowMajor),
+    XprInnerStride = HasSameStorageOrderAsXprType ? int(inner_stride_at_compile_time<XprType>::ret) : int(outer_stride_at_compile_time<XprType>::ret),
+    XprOuterstride = HasSameStorageOrderAsXprType ? int(outer_stride_at_compile_time<XprType>::ret) : int(inner_stride_at_compile_time<XprType>::ret),
+
+    InnerStrideAtCompileTime = InnerIncr<0 || InnerIncr==DynamicIndex || XprInnerStride==Dynamic ? Dynamic : XprInnerStride * InnerIncr,
+    OuterStrideAtCompileTime = OuterIncr<0 || OuterIncr==DynamicIndex || XprOuterstride==Dynamic ? Dynamic : XprOuterstride * OuterIncr,
+
+    // FIXME we deal with compile-time strides if and only if we have DirectAccessBit flag,
+    // but this is too strict regarding negative strides...
+    DirectAccessMask = (InnerIncr!=UndefinedIncr && OuterIncr!=UndefinedIncr && InnerIncr>=0 && OuterIncr>=0) ? DirectAccessBit : 0,
     FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
-    Flags = (traits<XprType>::Flags & HereditaryBits) | FlagsLvalueBit | FlagsRowMajorBit,
-    //MatrixTypeInnerStride =  inner_stride_at_compile_time<XprType>::ret,
-    InnerStrideAtCompileTime = int(Dynamic),
-    OuterStrideAtCompileTime = int(Dynamic)
+    Flags = (traits<XprType>::Flags & (HereditaryBits | DirectAccessMask)) | FlagsLvalueBit | FlagsRowMajorBit
   };
 };
 
@@ -72,21 +84,6 @@ public:
   const RowIndices& rowIndices() const { return m_rowIndices; }
   const ColIndices& colIndices() const { return m_colIndices; }
 
-//   std::pair<Index,Index> index(Index i, Index j) const {
-//     return std::pair<Index,Index>(m_rowIndices[i], m_colIndices[j]);
-//   }
-//
-//   void print() const {
-//     for(Index i=0; i<rows(); ++i)
-//     {
-//       for(Index j=0; j<cols(); ++j)
-//       {
-//         std::pair<Index,Index> k = index(i,j);
-//         std::cout << '(' << k.first << ',' << k.second  << ") ";
-//       }
-//       std::cout << '\n';
-//     }
-//   }
 protected:
   MatrixTypeNested m_xpr;
   RowIndices m_rowIndices;
