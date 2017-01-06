@@ -566,6 +566,13 @@ template<typename Derived> class DenseBase
                 derived(), internal::make_indexing(rowIndices,derived().rows()), internal::make_indexing(colIndices,derived().cols()));
     }
 
+    template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndices>
+    IndexedView<const Derived,const RowIndicesT (&)[RowIndicesN],typename internal::MakeIndexing<ColIndices>::type>
+    operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndices& colIndices) const {
+      return IndexedView<const Derived,const RowIndicesT (&) [RowIndicesN],typename internal::MakeIndexing<ColIndices>::type>(
+                derived(), rowIndices, internal::make_indexing(colIndices,derived().cols()));
+    }
+
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
 #define EIGEN_DOC_BLOCK_ADDONS_NOT_INNER_PANEL
 #define EIGEN_DOC_BLOCK_ADDONS_INNER_PANEL_IF(COND)

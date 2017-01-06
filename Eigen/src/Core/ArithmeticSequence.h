@@ -159,6 +159,12 @@ span(FirstType first, SizeType size)  {
 
 namespace internal {
 
+template<typename T>
+Index size(const T& x) { return x.size(); }
+
+template<typename T,std::size_t N>
+Index size(const T (&x) [N]) { return N; }
+
 template<typename T, int XprSize, typename EnableIf = void> struct get_compile_time_size {
   enum { value = Dynamic };
 };

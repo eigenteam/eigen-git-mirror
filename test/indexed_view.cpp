@@ -93,6 +93,7 @@ void check_indexed_view()
     "600  601  602  603  604  605  606  607  608  609\n"
     "500  501  502  503  504  505  506  507  508  509")
   );
+
   // takes the row numer 3, and repeat it 5 times
   VERIFY( MATCH( A(span(3,5,0), all),
     "300  301  302  303  304  305  306  307  308  309\n"
@@ -138,10 +139,17 @@ void check_indexed_view()
   VERIFY_IS_EQUAL( (A(eii, eii)).InnerStrideAtCompileTime, 0);
   VERIFY_IS_EQUAL( (A(eii, eii)).OuterStrideAtCompileTime, 0);
 
+
+
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
 
   VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(span(1,3,2), span(9,4,-3)) );
+
+#if (!EIGEN_COMP_CLANG) || (EIGEN_COMP_CLANG>=308 && !defined(__apple_build_version__))
+  VERIFY_IS_APPROX( A({3, 1, 6, 5}, all), A(std::array<int,4>{{3, 1, 6, 5}}, all) );
+#endif
+
 #endif
 
 }

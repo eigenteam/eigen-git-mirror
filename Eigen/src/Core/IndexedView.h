@@ -70,8 +70,8 @@ public:
   IndexedView(XprType& xpr, const T0& rowIndices, const T1& colIndices)
     : m_xpr(xpr), m_rowIndices(rowIndices), m_colIndices(colIndices)
   {}
-  Index rows() const { return m_rowIndices.size(); }
-  Index cols() const { return m_colIndices.size(); }
+  Index rows() const { return internal::size(m_rowIndices); }
+  Index cols() const { return internal::size(m_colIndices); }
 
   /** \returns the nested expression */
   const typename internal::remove_all<XprType>::type&
