@@ -569,8 +569,22 @@ template<typename Derived> class DenseBase
     template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndices>
     IndexedView<const Derived,const RowIndicesT (&)[RowIndicesN],typename internal::MakeIndexing<ColIndices>::type>
     operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndices& colIndices) const {
-      return IndexedView<const Derived,const RowIndicesT (&) [RowIndicesN],typename internal::MakeIndexing<ColIndices>::type>(
+      return IndexedView<const Derived,const RowIndicesT (&)[RowIndicesN],typename internal::MakeIndexing<ColIndices>::type>(
                 derived(), rowIndices, internal::make_indexing(colIndices,derived().cols()));
+    }
+
+    template<typename RowIndices, typename ColIndicesT, std::size_t ColIndicesN>
+    IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type, const ColIndicesT (&)[ColIndicesN]>
+    operator()(const RowIndices& rowIndices, const ColIndicesT (&colIndices)[ColIndicesN]) const {
+      return IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type,const ColIndicesT (&)[ColIndicesN]>(
+                derived(), internal::make_indexing(rowIndices,derived().rows()), colIndices);
+    }
+
+    template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndicesT, std::size_t ColIndicesN>
+    IndexedView<const Derived,const RowIndicesT (&)[RowIndicesN], const ColIndicesT (&)[ColIndicesN]>
+    operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndicesT (&colIndices)[ColIndicesN]) const {
+      return IndexedView<const Derived,const RowIndicesT (&)[RowIndicesN],const ColIndicesT (&)[ColIndicesN]>(
+                derived(), rowIndices, colIndices);
     }
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
