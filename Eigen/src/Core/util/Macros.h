@@ -356,7 +356,7 @@
 #define EIGEN_MAX_CPP_VER 99
 #endif
 
-#if EIGEN_MAX_CPP_VER>=11 && defined(__cplusplus) && (__cplusplus >= 201103L)
+#if EIGEN_MAX_CPP_VER>=11 && (defined(__cplusplus) && (__cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
 #define EIGEN_HAS_CXX11 1
 #else
 #define EIGEN_HAS_CXX11 0
