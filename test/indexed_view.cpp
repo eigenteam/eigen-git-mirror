@@ -13,8 +13,8 @@
 
 typedef std::pair<Index,Index> IndexPair;
 
-Index encode(Index i, Index j) {
-  return i*100 + j;
+int encode(Index i, Index j) {
+  return int(i*100 + j);
 }
 
 IndexPair decode(Index ij) {
@@ -96,6 +96,17 @@ void check_indexed_view()
     "300  301  302  303  304  305  306  307  308  309\n"
     "300  301  302  303  304  305  306  307  308  309")
   );
+
+  Array44i B;
+  VERIFY( (A(span(2,5), 5)).ColsAtCompileTime == 1);
+  VERIFY( (A(span(2,5), 5)).RowsAtCompileTime == Dynamic);
+  VERIFY( (A(span(2,fix<5>), 5)).RowsAtCompileTime == 5);
+  VERIFY( (A(4, all)).ColsAtCompileTime == Dynamic);
+  VERIFY( (A(4, all)).RowsAtCompileTime == 1);
+  VERIFY( (B(1, all)).ColsAtCompileTime == 4);
+  VERIFY( (B(1, all)).RowsAtCompileTime == 1);
+  VERIFY( (B(all,1)).ColsAtCompileTime == 1);
+  VERIFY( (B(all,1)).RowsAtCompileTime == 4);
 
 }
 

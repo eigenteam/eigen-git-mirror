@@ -12,6 +12,9 @@
 
 namespace Eigen {
 
+//--------------------------------------------------------------------------------
+// Pseudo keywords: all, last, end
+//--------------------------------------------------------------------------------
 
 struct all_t { all_t() {} };
 static const all_t all;
@@ -51,32 +54,55 @@ struct end_t {
 };
 static const end_t end;
 
-template<int N> struct Index_c {
+//--------------------------------------------------------------------------------
+// integral constant
+//--------------------------------------------------------------------------------
+
+template<int N> struct fix_t {
   static const int value = N;
   operator int() const { return value; }
-  Index_c (Index_c<N> (*)() ) {}
-  Index_c() {}
-  // Needed in C++14 to allow c<N>():
-  Index_c operator() () const { return *this; }
+  fix_t (fix_t<N> (*)() ) {}
+  fix_t() {}
+  // Needed in C++14 to allow fix<N>():
+  fix_t operator() () const { return *this; }
 };
 
+template<typename T, int Default=Dynamic> struct get_compile_time {
+  enum { value = Default };
+};
+
+template<int N,int Default> struct get_compile_time<fix_t<N>,Default> {
+  enum { value = N };
+};
+
+template<typename T> struct is_compile_time       { enum { value = false }; };
+template<int N> struct is_compile_time<fix_t<N> > { enum { value = true }; };
+
+#if __cplusplus > 201103L
+template<int N>
+static const fix_t<N> fix{};
+#else
+template<int N>
+inline fix_t<N> fix() { return fix_t<N>(); }
+#endif
+
 //--------------------------------------------------------------------------------
-// Range(first,last) and Slice(first,step,last)
+// range(first,last,incr) and span(first,size,incr)
 //--------------------------------------------------------------------------------
 
-template<typename FirstType=Index,typename LastType=Index,typename StepType=Index_c<1> >
+template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
 struct Range_t {
   Range_t(FirstType f, LastType l) : m_first(f), m_last(l) {}
-  Range_t(FirstType f, LastType l, StepType s) : m_first(f), m_last(l), m_step(s) {}
+  Range_t(FirstType f, LastType l, IncrType s) : m_first(f), m_last(l), m_incr(s) {}
 
   FirstType m_first;
   LastType  m_last;
-  StepType  m_step;
+  IncrType  m_incr;
 
   enum { SizeAtCompileTime = -1 };
 
-  Index size() const { return (m_last-m_first+m_step)/m_step; }
-  Index operator[] (Index k) const { return m_first + k*m_step; }
+  Index size() const { return (m_last-m_first+m_incr)/m_incr; }
+  Index operator[] (Index k) const { return m_first + k*m_incr; }
 };
 
 template<typename T> struct cleanup_slice_type { typedef Index type; };
@@ -84,8 +110,8 @@ template<> struct cleanup_slice_type<last_t> { typedef last_t type; };
 template<> struct cleanup_slice_type<shifted_last> { typedef shifted_last type; };
 template<> struct cleanup_slice_type<end_t> { typedef end_t type; };
 template<> struct cleanup_slice_type<shifted_end> { typedef shifted_end type; };
-template<int N> struct cleanup_slice_type<Index_c<N> > { typedef Index_c<N> type; };
-template<int N> struct cleanup_slice_type<Index_c<N> (*)() > { typedef Index_c<N> type; };
+template<int N> struct cleanup_slice_type<fix_t<N> > { typedef fix_t<N> type; };
+template<int N> struct cleanup_slice_type<fix_t<N> (*)() > { typedef fix_t<N> type; };
 
 template<typename FirstType,typename LastType>
 Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type >
@@ -93,43 +119,34 @@ range(FirstType f, LastType l)  {
   return Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type>(f,l);
 }
 
-template<typename FirstType,typename LastType,typename StepType>
-Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<StepType>::type >
-range(FirstType f, LastType l, StepType s)  {
-  return Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<StepType>::type>(f,l,typename cleanup_slice_type<StepType>::type(s));
+template<typename FirstType,typename LastType,typename IncrType>
+Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<IncrType>::type >
+range(FirstType f, LastType l, IncrType s)  {
+  return Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<IncrType>::type>(f,l,typename cleanup_slice_type<IncrType>::type(s));
 }
 
 
-template<typename T, int Default=-1> struct get_compile_time {
-  enum { value = Default };
-};
 
-template<int N,int Default> struct get_compile_time<Index_c<N>,Default> {
-  enum { value = N };
-};
 
-template<typename T> struct is_compile_time         { enum { value = false }; };
-template<int N> struct is_compile_time<Index_c<N> > { enum { value = true }; };
-
-template<typename FirstType=Index,typename SizeType=Index,typename StepType=Index_c<1> >
+template<typename FirstType=Index,typename SizeType=Index,typename IncrType=fix_t<1> >
 struct Span_t {
   Span_t(FirstType first, SizeType size) : m_first(first), m_size(size) {}
-  Span_t(FirstType first, SizeType size, StepType step) : m_first(first), m_size(size), m_step(step) {}
+  Span_t(FirstType first, SizeType size, IncrType incr) : m_first(first), m_size(size), m_incr(incr) {}
 
   FirstType m_first;
   SizeType  m_size;
-  StepType  m_step;
+  IncrType  m_incr;
 
   enum { SizeAtCompileTime = get_compile_time<SizeType>::value };
 
   Index size() const { return m_size; }
-  Index operator[] (Index k) const { return m_first + k*m_step; }
+  Index operator[] (Index k) const { return m_first + k*m_incr; }
 };
 
-template<typename FirstType,typename SizeType,typename StepType>
-Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<StepType>::type >
-span(FirstType first, SizeType size, StepType step)  {
-  return Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<StepType>::type>(first,size,step);
+template<typename FirstType,typename SizeType,typename IncrType>
+Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<IncrType>::type >
+span(FirstType first, SizeType size, IncrType incr)  {
+  return Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<IncrType>::type>(first,size,incr);
 }
 
 template<typename FirstType,typename SizeType>
@@ -138,15 +155,23 @@ span(FirstType first, SizeType size)  {
   return Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type>(first,size);
 }
 
-#if __cplusplus > 201103L
-template<int N>
-static const Index_c<N> c{};
-#else
-template<int N>
-inline Index_c<N> c() { return Index_c<N>(); }
-#endif
+
 
 namespace internal {
+
+template<typename T, typename EnableIf = void> struct get_compile_time_size {
+  enum { value = -1 };
+};
+
+template<typename T> struct get_compile_time_size<T,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
+  enum { value = T::SizeAtCompileTime };
+};
+
+#ifdef EIGEN_HAS_CXX11
+template<typename T,int N> struct get_compile_time_size<std::array<T,N> > {
+  enum { value = N };
+};
+#endif
 
 // MakeIndexing/make_indexing turn an arbitrary object of type T into something usable by MatrixSlice
 template<typename T,typename EnableIf=void>
@@ -158,6 +183,9 @@ template<typename T>
 const T& make_indexing(const T& x, Index size) { return x; }
 
 struct IntAsArray {
+  enum {
+    SizeAtCompileTime = 1
+  };
   IntAsArray(Index val) : m_value(val) {}
   Index operator[](Index) const { return m_value; }
   Index size() const { return 1; }
@@ -181,25 +209,25 @@ Index symbolic2value(end_t, Index size)           { return size; }
 Index symbolic2value(shifted_end x, Index size)   { return size+x.offset; }
 
 // Convert a symbolic range into a usable one (i.e., remove last/end "keywords")
-template<typename FirstType,typename LastType,typename StepType>
-struct MakeIndexing<Range_t<FirstType,LastType,StepType> > {
-  typedef Range_t<Index,Index,StepType> type;
+template<typename FirstType,typename LastType,typename IncrType>
+struct MakeIndexing<Range_t<FirstType,LastType,IncrType> > {
+  typedef Range_t<Index,Index,IncrType> type;
 };
 
-template<typename FirstType,typename LastType,typename StepType>
-Range_t<Index,Index,StepType> make_indexing(const Range_t<FirstType,LastType,StepType>& ids, Index size) {
-  return Range_t<Index,Index,StepType>(symbolic2value(ids.m_first,size),symbolic2value(ids.m_last,size),ids.m_step);
+template<typename FirstType,typename LastType,typename IncrType>
+Range_t<Index,Index,IncrType> make_indexing(const Range_t<FirstType,LastType,IncrType>& ids, Index size) {
+  return Range_t<Index,Index,IncrType>(symbolic2value(ids.m_first,size),symbolic2value(ids.m_last,size),ids.m_incr);
 }
 
 // Convert a symbolic span into a usable one (i.e., remove last/end "keywords")
-template<typename FirstType,typename SizeType,typename StepType>
-struct MakeIndexing<Span_t<FirstType,SizeType,StepType> > {
-  typedef Span_t<Index,SizeType,StepType> type;
+template<typename FirstType,typename SizeType,typename IncrType>
+struct MakeIndexing<Span_t<FirstType,SizeType,IncrType> > {
+  typedef Span_t<Index,SizeType,IncrType> type;
 };
 
-template<typename FirstType,typename SizeType,typename StepType>
-Span_t<Index,SizeType,StepType> make_indexing(const Span_t<FirstType,SizeType,StepType>& ids, Index size) {
-  return Span_t<Index,SizeType,StepType>(symbolic2value(ids.m_first,size),ids.m_size,ids.m_step);
+template<typename FirstType,typename SizeType,typename IncrType>
+Span_t<Index,SizeType,IncrType> make_indexing(const Span_t<FirstType,SizeType,IncrType>& ids, Index size) {
+  return Span_t<Index,SizeType,IncrType>(symbolic2value(ids.m_first,size),ids.m_size,ids.m_incr);
 }
 
 // Convert a symbolic 'all' into a usable range

@@ -19,8 +19,19 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
  : traits<XprType>
 {
   enum {
+    RowsAtCompileTime = get_compile_time_size<RowIndices>::value,
+    ColsAtCompileTime = get_compile_time_size<ColIndices>::value,
+    MaxRowsAtCompileTime = RowsAtCompileTime != Dynamic ? int(RowsAtCompileTime) : int(traits<XprType>::MaxRowsAtCompileTime),
+    MaxColsAtCompileTime = ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime) : int(traits<XprType>::MaxColsAtCompileTime),
+
+    XprTypeIsRowMajor = (int(traits<XprType>::Flags)&RowMajorBit) != 0,
+    IsRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
+               : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
+               : XprTypeIsRowMajor,
+
+    FlagsRowMajorBit = IsRowMajor ? RowMajorBit : 0,
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
-    Flags = traits<XprType>::Flags & (RowMajorBit | FlagsLvalueBit /*| DirectAccessBit*/),
+    Flags = (traits<XprType>::Flags & HereditaryBits) | FlagsLvalueBit | FlagsRowMajorBit,
     //MatrixTypeInnerStride =  inner_stride_at_compile_time<XprType>::ret,
     InnerStrideAtCompileTime = int(Dynamic),
     OuterStrideAtCompileTime = int(Dynamic)
