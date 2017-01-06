@@ -178,7 +178,7 @@ template<typename T, int XprSize, int N> struct get_compile_time_size<const T (&
 };
 
 #ifdef EIGEN_HAS_CXX11
-template<typename T, int XprSize, int N> struct get_compile_time_size<std::array<T,N>,XprSize> {
+template<typename T, int XprSize, std::size_t N> struct get_compile_time_size<std::array<T,N>,XprSize> {
   enum { value = N };
 };
 #endif
