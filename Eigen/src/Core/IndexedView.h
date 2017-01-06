@@ -19,8 +19,8 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
  : traits<XprType>
 {
   enum {
-    RowsAtCompileTime = get_compile_time_size<RowIndices>::value,
-    ColsAtCompileTime = get_compile_time_size<ColIndices>::value,
+    RowsAtCompileTime = get_compile_time_size<RowIndices,traits<XprType>::RowsAtCompileTime>::value,
+    ColsAtCompileTime = get_compile_time_size<ColIndices,traits<XprType>::ColsAtCompileTime>::value,
     MaxRowsAtCompileTime = RowsAtCompileTime != Dynamic ? int(RowsAtCompileTime) : int(traits<XprType>::MaxRowsAtCompileTime),
     MaxColsAtCompileTime = ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime) : int(traits<XprType>::MaxColsAtCompileTime),
 

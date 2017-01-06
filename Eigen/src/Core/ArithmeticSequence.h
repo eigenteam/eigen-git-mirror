@@ -159,16 +159,16 @@ span(FirstType first, SizeType size)  {
 
 namespace internal {
 
-template<typename T, typename EnableIf = void> struct get_compile_time_size {
+template<typename T, int XprSize, typename EnableIf = void> struct get_compile_time_size {
   enum { value = -1 };
 };
 
-template<typename T> struct get_compile_time_size<T,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
+template<typename T, int XprSize> struct get_compile_time_size<T,XprSize,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
   enum { value = T::SizeAtCompileTime };
 };
 
 #ifdef EIGEN_HAS_CXX11
-template<typename T,int N> struct get_compile_time_size<std::array<T,N> > {
+template<typename T, int XprSize, int N> struct get_compile_time_size<std::array<T,N>,XprSize> {
   enum { value = N };
 };
 #endif
@@ -249,6 +249,10 @@ struct MakeIndexing<all_t> {
 AllRange make_indexing(all_t , Index size) {
   return AllRange(size);
 }
+
+template<int XprSize> struct get_compile_time_size<AllRange,XprSize> {
+  enum { value = XprSize };
+};
 
 } // end namespace internal
 

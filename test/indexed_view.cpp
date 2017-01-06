@@ -11,6 +11,10 @@
 #include <vector>
 #include "main.h"
 
+#if EIGEN_HAS_CXX11
+#include <array>
+#endif
+
 typedef std::pair<Index,Index> IndexPair;
 
 int encode(Index i, Index j) {
@@ -107,6 +111,13 @@ void check_indexed_view()
   VERIFY( (B(1, all)).RowsAtCompileTime == 1);
   VERIFY( (B(all,1)).ColsAtCompileTime == 1);
   VERIFY( (B(all,1)).RowsAtCompileTime == 4);
+
+  VERIFY( (A(all, eii)).ColsAtCompileTime == eii.SizeAtCompileTime);
+#if EIGEN_HAS_CXX11
+  VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
+
+  VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(span(1,3,2), span(9,4,-3)) );
+#endif
 
 }
 
