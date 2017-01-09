@@ -52,11 +52,11 @@ void check_indexed_view()
   std::valarray<int> vali(4); Map<ArrayXi>(&vali[0],4) = eii;
   std::vector<int> veci(4); Map<ArrayXi>(veci.data(),4) = eii;
 
-  VERIFY( MATCH( A(3, range(9,3,-1)),
+  VERIFY( MATCH( A(3, seq(9,3,-1)),
     "309  308  307  306  305  304  303")
   );
 
-  VERIFY( MATCH( A(span(2,5), range(9,3,-1)),
+  VERIFY( MATCH( A(seqN(2,5), seq(9,3,-1)),
     "209  208  207  206  205  204  203\n"
     "309  308  307  306  305  304  303\n"
     "409  408  407  406  405  404  403\n"
@@ -64,7 +64,7 @@ void check_indexed_view()
     "609  608  607  606  605  604  603")
   );
 
-  VERIFY( MATCH( A(span(2,5), 5),
+  VERIFY( MATCH( A(seqN(2,5), 5),
     "205\n"
     "305\n"
     "405\n"
@@ -72,7 +72,7 @@ void check_indexed_view()
     "605")
   );
 
-  VERIFY( MATCH( A(span(last,5,-1), range(2,last)),
+  VERIFY( MATCH( A(seqN(last,5,-1), seq(2,last)),
     "902  903  904  905  906  907  908  909\n"
     "802  803  804  805  806  807  808  809\n"
     "702  703  704  705  706  707  708  709\n"
@@ -95,7 +95,7 @@ void check_indexed_view()
   );
 
   // takes the row numer 3, and repeat it 5 times
-  VERIFY( MATCH( A(span(3,5,0), all),
+  VERIFY( MATCH( A(seqN(3,5,0), all),
     "300  301  302  303  304  305  306  307  308  309\n"
     "300  301  302  303  304  305  306  307  308  309\n"
     "300  301  302  303  304  305  306  307  308  309\n"
@@ -105,28 +105,28 @@ void check_indexed_view()
 
   Array44i B;
   B.setRandom();
-  VERIFY( (A(span(2,5), 5)).ColsAtCompileTime == 1);
-  VERIFY( (A(span(2,5), 5)).RowsAtCompileTime == Dynamic);
-  VERIFY_IS_EQUAL( (A(span(2,5), 5)).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(span(2,5), 5)).OuterStrideAtCompileTime , A.col(5).OuterStrideAtCompileTime);
+  VERIFY( (A(seqN(2,5), 5)).ColsAtCompileTime == 1);
+  VERIFY( (A(seqN(2,5), 5)).RowsAtCompileTime == Dynamic);
+  VERIFY_IS_EQUAL( (A(seqN(2,5), 5)).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(seqN(2,5), 5)).OuterStrideAtCompileTime , A.col(5).OuterStrideAtCompileTime);
 
-  VERIFY_IS_EQUAL( (A(5,span(2,5))).InnerStrideAtCompileTime , A.row(5).InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(5,span(2,5))).OuterStrideAtCompileTime , A.row(5).OuterStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(1,span(1,2))).InnerStrideAtCompileTime , B.row(1).InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(1,span(1,2))).OuterStrideAtCompileTime , B.row(1).OuterStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(5,seqN(2,5))).InnerStrideAtCompileTime , A.row(5).InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(5,seqN(2,5))).OuterStrideAtCompileTime , A.row(5).OuterStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(1,seqN(1,2))).InnerStrideAtCompileTime , B.row(1).InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(1,seqN(1,2))).OuterStrideAtCompileTime , B.row(1).OuterStrideAtCompileTime);
 
-  VERIFY_IS_EQUAL( (A(span(2,5), range(1,3))).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(span(2,5), range(1,3))).OuterStrideAtCompileTime , A.OuterStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(span(1,2), range(1,3))).InnerStrideAtCompileTime , B.InnerStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (B(span(1,2), range(1,3))).OuterStrideAtCompileTime , B.OuterStrideAtCompileTime);
-  VERIFY_IS_EQUAL( (A(span(2,5,2), range(1,3,2))).InnerStrideAtCompileTime , Dynamic);
-  VERIFY_IS_EQUAL( (A(span(2,5,2), range(1,3,2))).OuterStrideAtCompileTime , Dynamic);
-  VERIFY_IS_EQUAL( (A(span(2,5,fix<2>), range(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
-  VERIFY_IS_EQUAL( (A(span(2,5,fix<2>), range(1,3,fix<3>))).OuterStrideAtCompileTime , Dynamic);
-  VERIFY_IS_EQUAL( (B(span(1,2,fix<2>), range(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
-  VERIFY_IS_EQUAL( (B(span(1,2,fix<2>), range(1,3,fix<3>))).OuterStrideAtCompileTime , 3*4);
+  VERIFY_IS_EQUAL( (A(seqN(2,5), seq(1,3))).InnerStrideAtCompileTime , A.InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(seqN(2,5), seq(1,3))).OuterStrideAtCompileTime , A.OuterStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(seqN(1,2), seq(1,3))).InnerStrideAtCompileTime , B.InnerStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (B(seqN(1,2), seq(1,3))).OuterStrideAtCompileTime , B.OuterStrideAtCompileTime);
+  VERIFY_IS_EQUAL( (A(seqN(2,5,2), seq(1,3,2))).InnerStrideAtCompileTime , Dynamic);
+  VERIFY_IS_EQUAL( (A(seqN(2,5,2), seq(1,3,2))).OuterStrideAtCompileTime , Dynamic);
+  VERIFY_IS_EQUAL( (A(seqN(2,5,fix<2>), seq(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
+  VERIFY_IS_EQUAL( (A(seqN(2,5,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , Dynamic);
+  VERIFY_IS_EQUAL( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
+  VERIFY_IS_EQUAL( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , 3*4);
 
-  VERIFY( (A(span(2,fix<5>), 5)).RowsAtCompileTime == 5);
+  VERIFY( (A(seqN(2,fix<5>), 5)).RowsAtCompileTime == 5);
   VERIFY( (A(4, all)).ColsAtCompileTime == Dynamic);
   VERIFY( (A(4, all)).RowsAtCompileTime == 1);
   VERIFY( (B(1, all)).ColsAtCompileTime == 4);
@@ -139,12 +139,10 @@ void check_indexed_view()
   VERIFY_IS_EQUAL( (A(eii, eii)).InnerStrideAtCompileTime, 0);
   VERIFY_IS_EQUAL( (A(eii, eii)).OuterStrideAtCompileTime, 0);
 
-
-
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
 
-  VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(span(1,3,2), span(9,4,-3)) );
+  VERIFY_IS_APPROX( (A(std::array<int,3>{{1,3,5}}, std::array<int,4>{{9,6,3,0}})), A(seqN(1,3,2), seqN(9,4,-3)) );
 
 #if (!EIGEN_COMP_CLANG) || (EIGEN_COMP_CLANG>=308 && !defined(__apple_build_version__))
   VERIFY_IS_APPROX( A({3, 1, 6, 5}, all), A(std::array<int,4>{{3, 1, 6, 5}}, all) );

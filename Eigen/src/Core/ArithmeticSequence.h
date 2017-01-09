@@ -87,22 +87,33 @@ inline fix_t<N> fix() { return fix_t<N>(); }
 #endif
 
 //--------------------------------------------------------------------------------
-// range(first,last,incr) and span(first,size,incr)
+// seq(first,last,incr) and seqN(first,size,incr)
 //--------------------------------------------------------------------------------
 
-template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
-struct Range_t {
-  Range_t(FirstType f, LastType l) : m_first(f), m_last(l) {}
-  Range_t(FirstType f, LastType l, IncrType s) : m_first(f), m_last(l), m_incr(s) {}
 
+template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
+class ArithemeticSequenceProxyWithBounds
+{
+public:
+  ArithemeticSequenceProxyWithBounds(FirstType f, LastType l) : m_first(f), m_last(l) {}
+  ArithemeticSequenceProxyWithBounds(FirstType f, LastType l, IncrType s) : m_first(f), m_last(l), m_incr(s) {}
+
+  enum {
+    SizeAtCompileTime = -1,
+    IncrAtCompileTime = get_compile_time<IncrType,DynamicIndex>::value
+  };
+
+  Index size() const { return (m_last-m_first+m_incr)/m_incr; }
+  Index operator[](Index i) const { return m_first + i * m_incr; }
+
+  const FirstType& firstObject() const { return m_first; }
+  const LastType&  lastObject()  const { return m_last; }
+  const IncrType&  incrObject()  const { return m_incr; }
+
+protected:
   FirstType m_first;
   LastType  m_last;
   IncrType  m_incr;
-
-  enum { SizeAtCompileTime = -1 };
-
-  Index size() const { return (m_last-m_first+m_incr)/m_incr; }
-  Index operator[] (Index k) const { return m_first + k*m_incr; }
 };
 
 template<typename T> struct cleanup_slice_type { typedef Index type; };
@@ -114,45 +125,55 @@ template<int N> struct cleanup_slice_type<fix_t<N> > { typedef fix_t<N> type; };
 template<int N> struct cleanup_slice_type<fix_t<N> (*)() > { typedef fix_t<N> type; };
 
 template<typename FirstType,typename LastType>
-Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type >
-range(FirstType f, LastType l)  {
-  return Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type>(f,l);
+ArithemeticSequenceProxyWithBounds<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type >
+seq(FirstType f, LastType l)  {
+  return ArithemeticSequenceProxyWithBounds<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type>(f,l);
 }
 
 template<typename FirstType,typename LastType,typename IncrType>
-Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<IncrType>::type >
-range(FirstType f, LastType l, IncrType s)  {
-  return Range_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<IncrType>::type>(f,l,typename cleanup_slice_type<IncrType>::type(s));
+ArithemeticSequenceProxyWithBounds<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<IncrType>::type >
+seq(FirstType f, LastType l, IncrType s)  {
+  return ArithemeticSequenceProxyWithBounds<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<LastType>::type,typename cleanup_slice_type<IncrType>::type>(f,l,typename cleanup_slice_type<IncrType>::type(s));
 }
-
-
 
 
 template<typename FirstType=Index,typename SizeType=Index,typename IncrType=fix_t<1> >
-struct Span_t {
-  Span_t(FirstType first, SizeType size) : m_first(first), m_size(size) {}
-  Span_t(FirstType first, SizeType size, IncrType incr) : m_first(first), m_size(size), m_incr(incr) {}
+class ArithemeticSequenceProxyWithSize
+{
 
+public:
+  ArithemeticSequenceProxyWithSize(FirstType first, SizeType size) : m_first(first), m_size(size) {}
+  ArithemeticSequenceProxyWithSize(FirstType first, SizeType size, IncrType incr) : m_first(first), m_size(size), m_incr(incr) {}
+
+  enum {
+    SizeAtCompileTime = get_compile_time<SizeType>::value,
+    IncrAtCompileTime = get_compile_time<IncrType,DynamicIndex>::value
+  };
+
+  Index size()  const { return m_size; }
+  Index operator[](Index i) const { return m_first + i * m_incr; }
+
+  const FirstType& firstObject() const { return m_first; }
+  const SizeType&  sizeObject()  const { return m_size; }
+  const IncrType&  incrObject()  const { return m_incr; }
+
+protected:
   FirstType m_first;
   SizeType  m_size;
   IncrType  m_incr;
-
-  enum { SizeAtCompileTime = get_compile_time<SizeType>::value };
-
-  Index size() const { return m_size; }
-  Index operator[] (Index k) const { return m_first + k*m_incr; }
 };
 
+
 template<typename FirstType,typename SizeType,typename IncrType>
-Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<IncrType>::type >
-span(FirstType first, SizeType size, IncrType incr)  {
-  return Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<IncrType>::type>(first,size,incr);
+ArithemeticSequenceProxyWithSize<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<IncrType>::type >
+seqN(FirstType first, SizeType size, IncrType incr)  {
+  return ArithemeticSequenceProxyWithSize<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type,typename cleanup_slice_type<IncrType>::type>(first,size,incr);
 }
 
 template<typename FirstType,typename SizeType>
-Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type >
-span(FirstType first, SizeType size)  {
-  return Span_t<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type>(first,size);
+ArithemeticSequenceProxyWithSize<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type >
+seqN(FirstType first, SizeType size)  {
+  return ArithemeticSequenceProxyWithSize<typename cleanup_slice_type<FirstType>::type,typename cleanup_slice_type<SizeType>::type>(first,size);
 }
 
 
@@ -188,12 +209,12 @@ template<typename T, typename EnableIf = void> struct get_compile_time_incr {
 };
 
 template<typename FirstType,typename LastType,typename IncrType>
-struct get_compile_time_incr<Range_t<FirstType,LastType,IncrType> > {
+struct get_compile_time_incr<ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType> > {
   enum { value = get_compile_time<IncrType,DynamicIndex>::value };
 };
 
 template<typename FirstType,typename SizeType,typename IncrType>
-struct get_compile_time_incr<Span_t<FirstType,SizeType,IncrType> > {
+struct get_compile_time_incr<ArithemeticSequenceProxyWithSize<FirstType,SizeType,IncrType> > {
   enum { value = get_compile_time<IncrType,DynamicIndex>::value };
 };
 
@@ -239,24 +260,24 @@ Index symbolic2value(shifted_end x, Index size)   { return size+x.offset; }
 
 // Convert a symbolic range into a usable one (i.e., remove last/end "keywords")
 template<typename FirstType,typename LastType,typename IncrType>
-struct MakeIndexing<Range_t<FirstType,LastType,IncrType> > {
-  typedef Range_t<Index,Index,IncrType> type;
+struct MakeIndexing<ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType> > {
+  typedef ArithemeticSequenceProxyWithBounds<Index,Index,IncrType> type;
 };
 
 template<typename FirstType,typename LastType,typename IncrType>
-Range_t<Index,Index,IncrType> make_indexing(const Range_t<FirstType,LastType,IncrType>& ids, Index size) {
-  return Range_t<Index,Index,IncrType>(symbolic2value(ids.m_first,size),symbolic2value(ids.m_last,size),ids.m_incr);
+ArithemeticSequenceProxyWithBounds<Index,Index,IncrType> make_indexing(const ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size) {
+  return ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>(symbolic2value(ids.firstObject(),size),symbolic2value(ids.lastObject(),size),ids.incrObject());
 }
 
 // Convert a symbolic span into a usable one (i.e., remove last/end "keywords")
 template<typename FirstType,typename SizeType,typename IncrType>
-struct MakeIndexing<Span_t<FirstType,SizeType,IncrType> > {
-  typedef Span_t<Index,SizeType,IncrType> type;
+struct MakeIndexing<ArithemeticSequenceProxyWithSize<FirstType,SizeType,IncrType> > {
+  typedef ArithemeticSequenceProxyWithSize<Index,SizeType,IncrType> type;
 };
 
 template<typename FirstType,typename SizeType,typename IncrType>
-Span_t<Index,SizeType,IncrType> make_indexing(const Span_t<FirstType,SizeType,IncrType>& ids, Index size) {
-  return Span_t<Index,SizeType,IncrType>(symbolic2value(ids.m_first,size),ids.m_size,ids.m_incr);
+ArithemeticSequenceProxyWithSize<Index,SizeType,IncrType> make_indexing(const ArithemeticSequenceProxyWithSize<FirstType,SizeType,IncrType>& ids, Index size) {
+  return ArithemeticSequenceProxyWithSize<Index,SizeType,IncrType>(symbolic2value(ids.firstObject(),size),ids.sizeObject(),ids.incrObject());
 }
 
 // Convert a symbolic 'all' into a usable range
