@@ -139,6 +139,11 @@ void check_indexed_view()
   VERIFY_IS_EQUAL( (A(eii, eii)).InnerStrideAtCompileTime, 0);
   VERIFY_IS_EQUAL( (A(eii, eii)).OuterStrideAtCompileTime, 0);
 
+  VERIFY_IS_APPROX( A(seq(n-1,2,-2), seqN(n-1-6,4)), A(seq(last,2,-2), seqN(last-6,4)) );
+  VERIFY_IS_APPROX( A(seq(n-1-6,n-1-2), seqN(n-1-6,4)), A(seq(last-6,last-2), seqN(6+last-6-6,4)) );
+  VERIFY_IS_APPROX( A(seq((n-1)/2,(n)/2+3), seqN(2,4)), A(seq(last/2,(last+1)/2+3), seqN(last+2-last,4)) );
+  VERIFY_IS_APPROX( A(seq(n-2,2,-2), seqN(n-8,4)), A(seq(end-2,2,-2), seqN(end-8,4)) );
+
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
 
