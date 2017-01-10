@@ -37,11 +37,11 @@ static const all_t all;
   * auto expr = (x+3)/y+z;
   *
   * // And evaluate it: (c++14)
-  * std::cout << expr.eval(std::make_tuple(Symbolic::defineValue(x,6),Symbolic::defineValue(y,3),Symbolic::defineValue(z,-13))) << "\n";
+  * std::cout << expr.eval(std::make_tuple(x=6,y=3,z=-13)) << "\n";
   *
   * // In c++98/11, only one symbol per expression is supported for now:
   * auto expr98 = (3-x)/2;
-  * std::cout << expr98.eval(Symbolic::defineValue(x,6)) << "\n";
+  * std::cout << expr98.eval(x=6) << "\n";
   *
   * It is currently only used internally to define and minipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
   *
@@ -77,7 +77,7 @@ public:
   /** Evaluate the expression given the \a values of the symbols.
     *
     * \param values defines the values of the symbols, it can either be a SymbolValue or a std::tuple of SymbolValue
-    *               as constructed by the defineValue function.
+    *               as constructed by SymbolExpr::operator= operator.
     *
     */
   template<typename T>
@@ -120,7 +120,7 @@ struct is_symbolic {
 
 /** Represents the actual value of a symbol identified by its tag
   *
-  * It is the return type of defineValue(), and most of the time this is only way it is used.
+  * It is the return type of SymbolValue::operator=, and most of the time this is only way it is used.
   */
 template<typename Tag>
 class SymbolValue
@@ -135,12 +135,21 @@ protected:
   Index m_value;
 };
 
+/** Expression of a symbol uniquely identified by the tag \tparam TagT */
 template<typename TagT>
 class SymbolExpr : public BaseExpr<SymbolExpr<TagT> >
 {
 public:
   typedef TagT Tag;
   SymbolExpr() {}
+
+  /** Associate the value \a val to the given symbol \c *this, uniquely identified by its \c Tag.
+    *
+    * The returned object should be passed to ExprBase::eval() to evaluate a given expression with this specified runtime-time value.
+    */
+  SymbolValue<Tag> operator=(Index val) const {
+    return SymbolValue<Tag>(val);
+  }
 
   Index eval(const SymbolValue<Tag> &values) const { return values.value(); }
 
@@ -150,13 +159,6 @@ public:
   Index eval(const std::tuple<Types...>& values) const { return std::get<SymbolValue<Tag> >(values).value(); }
 #endif
 };
-
-/** Associate the value \a val to the symbol \a symb
- */
-template<typename Tag>
-SymbolValue<Tag> defineValue(SymbolExpr<Tag> /*symb*/,Index val) {
-  return SymbolValue<Tag>(val);
-}
 
 template<typename Arg0>
 class NegateExpr : public BaseExpr<NegateExpr<Arg0> >
@@ -488,7 +490,7 @@ fix_t<N> eval_expr_given_size(fix_t<N> x, Index /*size*/)   { return x; }
 template<typename Derived>
 Index eval_expr_given_size(const Symbolic::BaseExpr<Derived> &x, Index size)
 {
-  return x.derived().eval(Symbolic::defineValue(placeholders::last,size-1));
+  return x.derived().eval(placeholders::last=size-1);
 }
 
 // Convert a symbolic span into a usable one (i.e., remove last/end "keywords")
