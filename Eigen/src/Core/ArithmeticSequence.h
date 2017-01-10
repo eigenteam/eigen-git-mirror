@@ -480,7 +480,7 @@ struct MakeIndexing<T,typename internal::enable_if<internal::is_integral<T>::val
 };
 
 // Replace symbolic last/end "keywords" by their true runtime value
-Index eval_expr_given_size(Index x, Index /* size */)   { return x; }
+inline Index eval_expr_given_size(Index x, Index /* size */)   { return x; }
 
 template<int N>
 fix_t<N> eval_expr_given_size(fix_t<N> x, Index /*size*/)   { return x; }
@@ -580,10 +580,10 @@ struct end_t {
 };
 static const end_t end;
 
-Index eval_expr_given_size(last_t, Index size)          { return size-1; }
-Index eval_expr_given_size(shifted_last x, Index size)  { return size+x.offset-1; }
-Index eval_expr_given_size(end_t, Index size)           { return size; }
-Index eval_expr_given_size(shifted_end x, Index size)   { return size+x.offset; }
+inline Index eval_expr_given_size(last_t, Index size)          { return size-1; }
+inline Index eval_expr_given_size(shifted_last x, Index size)  { return size+x.offset-1; }
+inline Index eval_expr_given_size(end_t, Index size)           { return size; }
+inline Index eval_expr_given_size(shifted_end x, Index size)   { return size+x.offset; }
 
 template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
 class ArithemeticSequenceProxyWithBounds

@@ -159,7 +159,7 @@ struct unary_evaluator<IndexedView<ArgType, RowIndices, ColIndices>, IndexBased>
   typedef IndexedView<ArgType, RowIndices, ColIndices> XprType;
 
   enum {
-    CoeffReadCost = evaluator<ArgType>::CoeffReadCost /* + cost of row/col index */,
+    CoeffReadCost = evaluator<ArgType>::CoeffReadCost /* TODO + cost of row/col index */,
 
     Flags = (evaluator<ArgType>::Flags & (HereditaryBits /*| LinearAccessBit | DirectAccessBit*/)),
 
