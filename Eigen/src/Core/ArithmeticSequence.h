@@ -154,8 +154,12 @@ protected:
 
 struct symb_last_tag {};
 
+namespace placeholders {
+
 static const symbolic_value<symb_last_tag> last;
 static const symbolic_add<symbolic_value<symb_last_tag>,symbolic_value_wrapper> end(last+1);
+
+} // end namespace placeholders
 
 //--------------------------------------------------------------------------------
 // integral constant

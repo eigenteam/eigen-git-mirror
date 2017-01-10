@@ -43,6 +43,9 @@ bool match(const T& xpr, std::string ref, std::string str_xpr = "") {
 
 void check_indexed_view()
 {
+  using Eigen::placeholders::last;
+  using Eigen::placeholders::end;
+
   Index n = 10;
 
   ArrayXXi A = ArrayXXi::NullaryExpr(n,n, std::ptr_fun(encode));
