@@ -237,21 +237,25 @@ protected:
   IncrType  m_incr;
 };
 
+namespace internal {
+
 template<typename T, typename EnableIf=void> struct cleanup_seq_type { typedef T type; };
 template<typename T> struct cleanup_seq_type<T,typename internal::enable_if<internal::is_integral<T>::value>::type> { typedef Index type; };
 template<int N> struct cleanup_seq_type<fix_t<N> > { typedef fix_t<N> type; };
 template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type; };
 
+}
+
 template<typename FirstType,typename SizeType,typename IncrType>
-ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<SizeType>::type,typename cleanup_seq_type<IncrType>::type >
+ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_type<IncrType>::type >
 seqN(FirstType first, SizeType size, IncrType incr)  {
-  return ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<SizeType>::type,typename cleanup_seq_type<IncrType>::type>(first,size,incr);
+  return ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_type<IncrType>::type>(first,size,incr);
 }
 
 template<typename FirstType,typename SizeType>
-ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<SizeType>::type >
+ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type >
 seqN(FirstType first, SizeType size)  {
-  return ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<SizeType>::type>(first,size);
+  return ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type>(first,size);
 }
 
 #if EIGEN_HAS_CXX11
@@ -263,15 +267,16 @@ auto seq(FirstType f, LastType l) -> decltype(seqN(f,(l-f+fix<1>())))
 
 template<typename FirstType,typename LastType, typename IncrType>
 auto seq(FirstType f, LastType l, IncrType incr)
-  -> decltype(seqN(f,(l-f+typename cleanup_seq_type<IncrType>::type(incr))/typename cleanup_seq_type<IncrType>::type(incr),typename cleanup_seq_type<IncrType>::type(incr)))
+  -> decltype(seqN(f,   (l-f+typename internal::cleanup_seq_type<IncrType>::type(incr))
+                      / typename internal::cleanup_seq_type<IncrType>::type(incr),typename internal::cleanup_seq_type<IncrType>::type(incr)))
 {
-  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
   return seqN(f,(l-f+CleanedIncrType(incr))/CleanedIncrType(incr),CleanedIncrType(incr));
 }
 #else
 template<typename FirstType,typename LastType>
 typename internal::enable_if<!(Symbolic::is_symbolic<FirstType>::value || Symbolic::is_symbolic<LastType>::value),
-                             ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,Index> >::type
+                             ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,Index> >::type
 seq(FirstType f, LastType l)
 {
   return seqN(f,(l-f+1));
@@ -288,7 +293,7 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, LastType l)
 
 template<typename FirstType,typename LastTypeDerived>
 typename internal::enable_if<!Symbolic::is_symbolic<FirstType>::value,
-    ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,
+    ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,
                         Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr>,Symbolic::ValueExpr> > >::type
 seq(FirstType f, const Symbolic::BaseExpr<LastTypeDerived> &l)
 {
@@ -306,10 +311,10 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<Last
 
 template<typename FirstType,typename LastType, typename IncrType>
 typename internal::enable_if<!(Symbolic::is_symbolic<FirstType>::value || Symbolic::is_symbolic<LastType>::value),
-    ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,Index,typename cleanup_seq_type<IncrType>::type> >::type
+    ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,Index,typename internal::cleanup_seq_type<IncrType>::type> >::type
 seq(FirstType f, LastType l, IncrType incr)
 {
-  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
   return seqN(f,(l-f+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 
@@ -320,23 +325,23 @@ typename internal::enable_if<!Symbolic::is_symbolic<LastType>::value,
                                                                                    Symbolic::ValueExpr>,
                                                                  Symbolic::ValueExpr>,
                                               Symbolic::ValueExpr>,
-                        typename cleanup_seq_type<IncrType>::type> >::type
+                        typename internal::cleanup_seq_type<IncrType>::type> >::type
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, LastType l, IncrType incr)
 {
-  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
   return seqN(f.derived(),(l-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 
 template<typename FirstType,typename LastTypeDerived, typename IncrType>
 typename internal::enable_if<!Symbolic::is_symbolic<FirstType>::value,
-    ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,
+    ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,
                         Symbolic::QuotientExpr<Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr>,
                                                                  Symbolic::ValueExpr>,
                                                Symbolic::ValueExpr>,
-      typename cleanup_seq_type<IncrType>::type> >::type
+      typename internal::cleanup_seq_type<IncrType>::type> >::type
 seq(FirstType f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
-  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
   return seqN(f,(l.derived()-f+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 
@@ -346,10 +351,10 @@ ArithemeticSequence<FirstTypeDerived,
                                                                                Symbolic::NegateExpr<FirstTypeDerived> >,
                                                              Symbolic::ValueExpr>,
                                           Symbolic::ValueExpr>,
-  typename cleanup_seq_type<IncrType>::type>
+  typename internal::cleanup_seq_type<IncrType>::type>
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
-  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
   return seqN(f.derived(),(l.derived()-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 #endif
@@ -423,13 +428,13 @@ struct MakeIndexing<T,typename internal::enable_if<internal::is_integral<T>::val
 };
 
 // Replace symbolic last/end "keywords" by their true runtime value
-Index symbolic2value(Index x, Index /* size */)   { return x; }
+Index eval_expr_given_size(Index x, Index /* size */)   { return x; }
 
 template<int N>
-fix_t<N> symbolic2value(fix_t<N> x, Index /*size*/)   { return x; }
+fix_t<N> eval_expr_given_size(fix_t<N> x, Index /*size*/)   { return x; }
 
 template<typename Derived>
-Index symbolic2value(const Symbolic::BaseExpr<Derived> &x, Index size)
+Index eval_expr_given_size(const Symbolic::BaseExpr<Derived> &x, Index size)
 {
   return x.derived().eval(Symbolic::defineValue(placeholders::last,size-1));
 }
@@ -449,7 +454,7 @@ template<typename FirstType,typename SizeType,typename IncrType>
 ArithemeticSequence<Index,typename make_size_type<SizeType>::type,IncrType>
 make_indexing(const ArithemeticSequence<FirstType,SizeType,IncrType>& ids, Index size) {
   return ArithemeticSequence<Index,typename make_size_type<SizeType>::type,IncrType>(
-            symbolic2value(ids.firstObject(),size),symbolic2value(ids.sizeObject(),size),ids.incrObject());
+            eval_expr_given_size(ids.firstObject(),size),eval_expr_given_size(ids.sizeObject(),size),ids.incrObject());
 }
 
 // Convert a symbolic 'all' into a usable range
@@ -522,10 +527,10 @@ struct end_t {
 };
 static const end_t end;
 
-Index symbolic2value(last_t, Index size)          { return size-1; }
-Index symbolic2value(shifted_last x, Index size)  { return size+x.offset-1; }
-Index symbolic2value(end_t, Index size)           { return size; }
-Index symbolic2value(shifted_end x, Index size)   { return size+x.offset; }
+Index eval_expr_given_size(last_t, Index size)          { return size-1; }
+Index eval_expr_given_size(shifted_last x, Index size)  { return size+x.offset-1; }
+Index eval_expr_given_size(end_t, Index size)           { return size; }
+Index eval_expr_given_size(shifted_end x, Index size)   { return size+x.offset; }
 
 template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
 class ArithemeticSequenceProxyWithBounds
@@ -553,15 +558,21 @@ protected:
 };
 
 template<typename FirstType,typename LastType>
-ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type >
+ArithemeticSequenceProxyWithBounds<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<LastType>::type >
 seq(FirstType f, LastType l)  {
-  return ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type>(f,l);
+  return ArithemeticSequenceProxyWithBounds<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<LastType>::type>(f,l);
 }
 
 template<typename FirstType,typename LastType,typename IncrType>
-ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type,typename cleanup_seq_type<IncrType>::type >
-seq(FirstType f, LastType l, IncrType s)  {
-  return ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type,typename cleanup_seq_type<IncrType>::type>(f,l,typename cleanup_seq_type<IncrType>::type(s));
+ArithemeticSequenceProxyWithBounds< typename internal::cleanup_seq_type<FirstType>::type,
+                                    typename internal::cleanup_seq_type<LastType>::type,
+                                    typename internal::cleanup_seq_type<IncrType>::type >
+seq(FirstType f, LastType l, IncrType s)
+{
+  return ArithemeticSequenceProxyWithBounds<typename internal::cleanup_seq_type<FirstType>::type,
+                                            typename internal::cleanup_seq_type<LastType>::type,
+                                            typename internal::cleanup_seq_type<IncrType>::type>
+                                           (f,l,typename internal::cleanup_seq_type<IncrType>::type(s));
 }
 
 }
@@ -583,7 +594,7 @@ template<typename FirstType,typename LastType,typename IncrType>
 legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>
 make_indexing(const legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size) {
   return legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>(
-            symbolic2value(ids.firstObject(),size),symbolic2value(ids.lastObject(),size),ids.incrObject());
+            eval_expr_given_size(ids.firstObject(),size),eval_expr_given_size(ids.lastObject(),size),ids.incrObject());
 }
 
 }
