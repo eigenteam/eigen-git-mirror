@@ -38,6 +38,9 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
     XprInnerStride = HasSameStorageOrderAsXprType ? int(inner_stride_at_compile_time<XprType>::ret) : int(outer_stride_at_compile_time<XprType>::ret),
     XprOuterstride = HasSameStorageOrderAsXprType ? int(outer_stride_at_compile_time<XprType>::ret) : int(inner_stride_at_compile_time<XprType>::ret),
 
+    IsBlockAlike = InnerIncr==1 && OuterIncr==1,
+    IsInnerPannel = HasSameStorageOrderAsXprType && is_same<AllRange,typename conditional<XprTypeIsRowMajor,ColIndices,RowIndices>::type>::value,
+
     InnerStrideAtCompileTime = InnerIncr<0 || InnerIncr==DynamicIndex || XprInnerStride==Dynamic ? Dynamic : XprInnerStride * InnerIncr,
     OuterStrideAtCompileTime = OuterIncr<0 || OuterIncr==DynamicIndex || XprOuterstride==Dynamic ? Dynamic : XprOuterstride * OuterIncr,
 
@@ -48,7 +51,10 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
     FlagsLvalueBit = is_lvalue<XprType>::value ? LvalueBit : 0,
     Flags = (traits<XprType>::Flags & (HereditaryBits | DirectAccessMask)) | FlagsLvalueBit | FlagsRowMajorBit
   };
+
+  typedef Block<XprType,RowsAtCompileTime,ColsAtCompileTime,IsInnerPannel> BlockType;
 };
+
 
 }
 

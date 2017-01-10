@@ -272,6 +272,7 @@ public:
   };
 
   Index size()  const { return m_size; }
+  Index first()  const { return m_first; }
   Index operator[](Index i) const { return m_first + i * m_incr; }
 
   const FirstType& firstObject() const { return m_first; }
@@ -414,6 +415,9 @@ Index size(const T& x) { return x.size(); }
 template<typename T,std::size_t N>
 Index size(const T (&) [N]) { return N; }
 
+template<typename T>
+Index first(const T& x) { return x.first(); }
+
 template<typename T, int XprSize, typename EnableIf = void> struct get_compile_time_size {
   enum { value = Dynamic };
 };
@@ -458,6 +462,7 @@ struct IntAsArray {
   IntAsArray(Index val) : m_value(val) {}
   Index operator[](Index) const { return m_value; }
   Index size() const { return 1; }
+  Index first() const { return m_value; }
   Index m_value;
 };
 
@@ -512,6 +517,7 @@ struct AllRange {
   AllRange(Index size) : m_size(size) {}
   Index operator[](Index i) const { return i; }
   Index size() const { return m_size; }
+  Index first() const { return 0; }
   Index m_size;
 };
 

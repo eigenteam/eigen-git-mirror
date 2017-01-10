@@ -558,12 +558,33 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
     template<typename RowIndices, typename ColIndices>
+    struct IndexedViewType {
+      typedef IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type,typename internal::MakeIndexing<ColIndices>::type> type;
+    };
+
+    template<typename RowIndices, typename ColIndices>
     typename internal::enable_if<
-      !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value),
-      IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type,typename internal::MakeIndexing<ColIndices>::type> >::type
+      !  (internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
+      || (internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value)),
+      typename IndexedViewType<RowIndices,ColIndices>::type >::type
     operator()(const RowIndices& rowIndices, const ColIndices& colIndices) const {
-      return IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type,typename internal::MakeIndexing<ColIndices>::type>(
+      return typename IndexedViewType<RowIndices,ColIndices>::type(
                 derived(), internal::make_indexing(rowIndices,derived().rows()), internal::make_indexing(colIndices,derived().cols()));
+    }
+
+    template<typename RowIndices, typename ColIndices>
+    typename internal::enable_if<
+      internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike,
+      typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType>::type
+    operator()(const RowIndices& rowIndices, const ColIndices& colIndices) const {
+      typedef typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType BlockType;
+      typename internal::MakeIndexing<RowIndices>::type actualRowIndices = internal::make_indexing(rowIndices,derived().rows());
+      typename internal::MakeIndexing<ColIndices>::type actualColIndices = internal::make_indexing(colIndices,derived().cols());
+      return BlockType(derived(),
+                       internal::first(actualRowIndices),
+                       internal::first(actualColIndices),
+                       internal::size(actualRowIndices),
+                       internal::size(actualColIndices));
     }
 
     template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndices>

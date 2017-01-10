@@ -41,6 +41,13 @@ bool match(const T& xpr, std::string ref, std::string str_xpr = "") {
 
 #define MATCH(X,R) match(X, R, #X)
 
+template<typename T1,typename T2>
+typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
+is_same_type(const T1& a, const T2& b)
+{
+  return (a == b).all();
+}
+
 void check_indexed_view()
 {
   using Eigen::placeholders::last;
@@ -158,6 +165,16 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(seq(n-1-5,7,2), seq(n-1-5,7,2)), A(seq(last-5,7,2), seq(last-5,7,fix<2>)) );
   VERIFY_IS_APPROX( A(seq(1,n-1-2), seq(n-1-5,7)), A(seq(1,last-2), seq(last-5,7)) );
   VERIFY_IS_APPROX( A(seq(n-1-5,n-1-2), seq(n-1-5,n-1-2)), A(seq(last-5,last-2), seq(last-5,last-2)) );
+
+  // Check fall-back to Block
+  {
+    const ArrayXXi& cA(A);
+    VERIFY( is_same_type(cA.col(0), cA(all,0)) );
+    VERIFY( is_same_type(cA.row(0), cA(0,all)) );
+    VERIFY( is_same_type(cA.block(0,0,2,2), cA(seqN(0,2),seq(0,1))) );
+    VERIFY( is_same_type(cA.middleRows(2,4), cA(seqN(2,4),all)) );
+    VERIFY( is_same_type(cA.middleCols(2,4), cA(all,seqN(2,4))) );
+  }
 
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
