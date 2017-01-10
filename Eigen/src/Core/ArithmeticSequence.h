@@ -219,7 +219,8 @@ protected:
   IncrType  m_incr;
 };
 
-template<typename T> struct cleanup_seq_type { typedef T type; };
+template<typename T, typename EnableIf=void> struct cleanup_seq_type { typedef T type; };
+template<typename T> struct cleanup_seq_type<T,typename internal::enable_if<internal::is_integral<T>::value>::type> { typedef Index type; };
 template<int N> struct cleanup_seq_type<fix_t<N> > { typedef fix_t<N> type; };
 template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type; };
 
@@ -235,10 +236,11 @@ seqN(FirstType first, SizeType size)  {
   return ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<SizeType>::type>(first,size);
 }
 
+#if EIGEN_HAS_CXX11
 template<typename FirstType,typename LastType>
-auto seq(FirstType f, LastType l) -> decltype(seqN(f,(l-f+1)))
+auto seq(FirstType f, LastType l) -> decltype(seqN(f,(l-f+fix<1>())))
 {
-  return seqN(f,(l-f+1));
+  return seqN(f,(l-f+fix<1>()));
 }
 
 template<typename FirstType,typename LastType, typename IncrType>
@@ -248,6 +250,80 @@ auto seq(FirstType f, LastType l, IncrType incr)
   typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
   return seqN(f,(l-f+CleanedIncrType(incr))/CleanedIncrType(incr),CleanedIncrType(incr));
 }
+#else
+template<typename FirstType,typename LastType>
+typename internal::enable_if<!(is_symbolic<FirstType>::value || is_symbolic<LastType>::value),
+                             ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,Index> >::type
+seq(FirstType f, LastType l)
+{
+  return seqN(f,(l-f+1));
+}
+
+template<typename FirstTypeDerived,typename LastType>
+typename internal::enable_if<!is_symbolic<LastType>::value,
+    ArithemeticSequence<FirstTypeDerived,symbolic_add<symbolic_add<symbolic_negate<FirstTypeDerived>,symbolic_value_wrapper>,symbolic_value_wrapper> > >::type
+seq(const symbolic_index_base<FirstTypeDerived> &f, LastType l)
+{
+  return seqN(f.derived(),(l-f.derived()+1));
+}
+
+template<typename FirstType,typename LastTypeDerived>
+typename internal::enable_if<!is_symbolic<FirstType>::value,
+    ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,symbolic_add<symbolic_add<LastTypeDerived,symbolic_value_wrapper>,symbolic_value_wrapper> > >::type
+seq(FirstType f, const symbolic_index_base<LastTypeDerived> &l)
+{
+  return seqN(f,(l.derived()-f+1));
+}
+
+template<typename FirstTypeDerived,typename LastTypeDerived>
+ArithemeticSequence<FirstTypeDerived,symbolic_add<symbolic_add<LastTypeDerived,symbolic_negate<FirstTypeDerived> >,symbolic_value_wrapper> >
+seq(const symbolic_index_base<FirstTypeDerived> &f, const symbolic_index_base<LastTypeDerived> &l)
+{
+  return seqN(f.derived(),(l.derived()-f.derived()+1));
+}
+
+
+template<typename FirstType,typename LastType, typename IncrType>
+typename internal::enable_if<!(is_symbolic<FirstType>::value || is_symbolic<LastType>::value),
+    ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,Index,typename cleanup_seq_type<IncrType>::type> >::type
+seq(FirstType f, LastType l, IncrType incr)
+{
+  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  return seqN(f,(l-f+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
+}
+
+template<typename FirstTypeDerived,typename LastType, typename IncrType>
+typename internal::enable_if<!is_symbolic<LastType>::value,
+    ArithemeticSequence<FirstTypeDerived,
+      symbolic_quotient<symbolic_add<symbolic_add<symbolic_negate<FirstTypeDerived>,symbolic_value_wrapper>,symbolic_value_wrapper>,symbolic_value_wrapper>,
+      typename cleanup_seq_type<IncrType>::type> >::type
+seq(const symbolic_index_base<FirstTypeDerived> &f, LastType l, IncrType incr)
+{
+  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  return seqN(f.derived(),(l-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
+}
+
+template<typename FirstType,typename LastTypeDerived, typename IncrType>
+typename internal::enable_if<!is_symbolic<FirstType>::value,
+    ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,
+      symbolic_quotient<symbolic_add<symbolic_add<LastTypeDerived,symbolic_value_wrapper>,symbolic_value_wrapper>,symbolic_value_wrapper>,
+      typename cleanup_seq_type<IncrType>::type> >::type
+seq(FirstType f, const symbolic_index_base<LastTypeDerived> &l, IncrType incr)
+{
+  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  return seqN(f,(l.derived()-f+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
+}
+
+template<typename FirstTypeDerived,typename LastTypeDerived, typename IncrType>
+ArithemeticSequence<FirstTypeDerived,
+  symbolic_quotient<symbolic_add<symbolic_add<LastTypeDerived,symbolic_negate<FirstTypeDerived> >,symbolic_value_wrapper>,symbolic_value_wrapper>,
+  typename cleanup_seq_type<IncrType>::type>
+seq(const symbolic_index_base<FirstTypeDerived> &f, const symbolic_index_base<LastTypeDerived> &l, IncrType incr)
+{
+  typedef typename cleanup_seq_type<IncrType>::type CleanedIncrType;
+  return seqN(f.derived(),(l.derived()-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
+}
+#endif
 
 namespace internal {
 
@@ -255,7 +331,7 @@ template<typename T>
 Index size(const T& x) { return x.size(); }
 
 template<typename T,std::size_t N>
-Index size(const T (&x) [N]) { return N; }
+Index size(const T (&) [N]) { return N; }
 
 template<typename T, int XprSize, typename EnableIf = void> struct get_compile_time_size {
   enum { value = Dynamic };
@@ -326,7 +402,6 @@ fix_t<N> symbolic2value(fix_t<N> x, Index /*size*/)   { return x; }
 template<typename Derived>
 Index symbolic2value(const symbolic_index_base<Derived> &x, Index size)
 {
-  Index h=x.derived().eval(symbolic_value_pair<symb_last_tag>(size-1));
   return x.derived().eval(symbolic_value_pair<symb_last_tag>(size-1));
 }
 

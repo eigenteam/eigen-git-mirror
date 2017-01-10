@@ -7,6 +7,11 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#ifdef EIGEN_TEST_PART_2
+// Make sure we also check c++98 implementation
+#define EIGEN_MAX_CPP_VER 03
+#endif
+
 #include <valarray>
 #include <vector>
 #include "main.h"
@@ -144,6 +149,13 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(seq((n-1)/2,(n)/2+3), seqN(2,4)), A(seq(last/2,(last+1)/2+3), seqN(last+2-last,4)) );
   VERIFY_IS_APPROX( A(seq(n-2,2,-2), seqN(n-8,4)), A(seq(end-2,2,-2), seqN(end-8,4)) );
 
+  // Check all combinations of seq:
+  VERIFY_IS_APPROX( A(seq(1,n-1-2,2), seq(1,n-1-2,2)), A(seq(1,last-2,2), seq(1,last-2,fix<2>)) );
+  VERIFY_IS_APPROX( A(seq(n-1-5,n-1-2,2), seq(n-1-5,n-1-2,2)), A(seq(last-5,last-2,2), seq(last-5,last-2,fix<2>)) );
+  VERIFY_IS_APPROX( A(seq(n-1-5,7,2), seq(n-1-5,7,2)), A(seq(last-5,7,2), seq(last-5,7,fix<2>)) );
+  VERIFY_IS_APPROX( A(seq(1,n-1-2), seq(n-1-5,7)), A(seq(1,last-2), seq(last-5,7)) );
+  VERIFY_IS_APPROX( A(seq(n-1-5,n-1-2), seq(n-1-5,n-1-2)), A(seq(last-5,last-2), seq(last-5,last-2)) );
+
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);
 
@@ -170,5 +182,6 @@ void test_indexed_view()
 {
 //   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( check_indexed_view() );
+    CALL_SUBTEST_2( check_indexed_view() );
 //   }
 }
