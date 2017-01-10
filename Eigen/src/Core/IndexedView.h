@@ -104,6 +104,7 @@ class IndexedView : public IndexedViewImpl<XprType, RowIndices, ColIndices, type
 public:
   typedef typename IndexedViewImpl<XprType, RowIndices, ColIndices, typename internal::traits<XprType>::StorageKind>::Base Base;
   EIGEN_GENERIC_PUBLIC_INTERFACE(IndexedView)
+  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(IndexedView)
 
   typedef typename internal::ref_selector<XprType>::non_const_type MatrixTypeNested;
   typedef typename internal::remove_all<XprType>::type NestedExpression;
@@ -178,6 +179,12 @@ struct unary_evaluator<IndexedView<ArgType, RowIndices, ColIndices>, IndexBased>
   CoeffReturnType coeff(Index row, Index col) const
   {
     return m_argImpl.coeff(m_xpr.rowIndices()[row], m_xpr.colIndices()[col]);
+  }
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
+  Scalar& coeffRef(Index row, Index col)
+  {
+    return m_argImpl.coeffRef(m_xpr.rowIndices()[row], m_xpr.colIndices()[col]);
   }
 
 protected:

@@ -168,6 +168,12 @@ void check_indexed_view()
 
   // Check fall-back to Block
   {
+    VERIFY( is_same_type(A.col(0), A(all,0)) );
+    VERIFY( is_same_type(A.row(0), A(0,all)) );
+    VERIFY( is_same_type(A.block(0,0,2,2), A(seqN(0,2),seq(0,1))) );
+    VERIFY( is_same_type(A.middleRows(2,4), A(seqN(2,4),all)) );
+    VERIFY( is_same_type(A.middleCols(2,4), A(all,seqN(2,4))) );
+
     const ArrayXXi& cA(A);
     VERIFY( is_same_type(cA.col(0), cA(all,0)) );
     VERIFY( is_same_type(cA.row(0), cA(0,all)) );
@@ -175,6 +181,15 @@ void check_indexed_view()
     VERIFY( is_same_type(cA.middleRows(2,4), cA(seqN(2,4),all)) );
     VERIFY( is_same_type(cA.middleCols(2,4), cA(all,seqN(2,4))) );
   }
+
+  ArrayXXi A1=A, A2 = ArrayXXi::Random(4,4);
+  ArrayXi range25(4); range25 << 3,2,4,5;
+  A1(seqN(3,4),seq(2,5)) = A2;
+  VERIFY_IS_APPROX( A1.block(3,2,4,4), A2 );
+  A1 = A;
+  A2.setOnes();
+  A1(seq(6,3,-1),range25) = A2;
+  VERIFY_IS_APPROX( A1.block(3,2,4,4), A2 );
 
 #if EIGEN_HAS_CXX11
   VERIFY( (A(all, std::array<int,4>{{1,3,2,4}})).ColsAtCompileTime == 4);

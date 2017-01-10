@@ -558,27 +558,27 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC void reverseInPlace();
 
     template<typename RowIndices, typename ColIndices>
-    struct IndexedViewType {
+    struct ConstIndexedViewType {
       typedef IndexedView<const Derived,typename internal::MakeIndexing<RowIndices>::type,typename internal::MakeIndexing<ColIndices>::type> type;
     };
 
     template<typename RowIndices, typename ColIndices>
     typename internal::enable_if<
-      !  (internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
+      !  (internal::traits<typename ConstIndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
       || (internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value)),
-      typename IndexedViewType<RowIndices,ColIndices>::type >::type
+      typename ConstIndexedViewType<RowIndices,ColIndices>::type >::type
     operator()(const RowIndices& rowIndices, const ColIndices& colIndices) const {
-      return typename IndexedViewType<RowIndices,ColIndices>::type(
+      return typename ConstIndexedViewType<RowIndices,ColIndices>::type(
                 derived(), internal::make_indexing(rowIndices,derived().rows()), internal::make_indexing(colIndices,derived().cols()));
     }
 
     template<typename RowIndices, typename ColIndices>
     typename internal::enable_if<
-         internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
+         internal::traits<typename ConstIndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
       && !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value),
-      typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType>::type
+      typename internal::traits<typename ConstIndexedViewType<RowIndices,ColIndices>::type>::BlockType>::type
     operator()(const RowIndices& rowIndices, const ColIndices& colIndices) const {
-      typedef typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType BlockType;
+      typedef typename internal::traits<typename ConstIndexedViewType<RowIndices,ColIndices>::type>::BlockType BlockType;
       typename internal::MakeIndexing<RowIndices>::type actualRowIndices = internal::make_indexing(rowIndices,derived().rows());
       typename internal::MakeIndexing<ColIndices>::type actualColIndices = internal::make_indexing(colIndices,derived().cols());
       return BlockType(derived(),
@@ -606,6 +606,58 @@ template<typename Derived> class DenseBase
     IndexedView<const Derived,const RowIndicesT (&)[RowIndicesN], const ColIndicesT (&)[ColIndicesN]>
     operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndicesT (&colIndices)[ColIndicesN]) const {
       return IndexedView<const Derived,const RowIndicesT (&)[RowIndicesN],const ColIndicesT (&)[ColIndicesN]>(
+                derived(), rowIndices, colIndices);
+    }
+
+    template<typename RowIndices, typename ColIndices>
+    struct IndexedViewType {
+      typedef IndexedView<Derived,typename internal::MakeIndexing<RowIndices>::type,typename internal::MakeIndexing<ColIndices>::type> type;
+    };
+
+    template<typename RowIndices, typename ColIndices>
+    typename internal::enable_if<
+      !  (internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
+      || (internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value)),
+      typename IndexedViewType<RowIndices,ColIndices>::type >::type
+    operator()(const RowIndices& rowIndices, const ColIndices& colIndices) {
+      return typename IndexedViewType<RowIndices,ColIndices>::type(
+                derived(), internal::make_indexing(rowIndices,derived().rows()), internal::make_indexing(colIndices,derived().cols()));
+    }
+
+    template<typename RowIndices, typename ColIndices>
+    typename internal::enable_if<
+         internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
+      && !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value),
+      typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType>::type
+    operator()(const RowIndices& rowIndices, const ColIndices& colIndices) {
+      typedef typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType BlockType;
+      typename internal::MakeIndexing<RowIndices>::type actualRowIndices = internal::make_indexing(rowIndices,derived().rows());
+      typename internal::MakeIndexing<ColIndices>::type actualColIndices = internal::make_indexing(colIndices,derived().cols());
+      return BlockType(derived(),
+                       internal::first(actualRowIndices),
+                       internal::first(actualColIndices),
+                       internal::size(actualRowIndices),
+                       internal::size(actualColIndices));
+    }
+
+    template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndices>
+    IndexedView<Derived,const RowIndicesT (&)[RowIndicesN],typename internal::MakeIndexing<ColIndices>::type>
+    operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndices& colIndices) {
+      return IndexedView<Derived,const RowIndicesT (&)[RowIndicesN],typename internal::MakeIndexing<ColIndices>::type>(
+                derived(), rowIndices, internal::make_indexing(colIndices,derived().cols()));
+    }
+
+    template<typename RowIndices, typename ColIndicesT, std::size_t ColIndicesN>
+    IndexedView<Derived,typename internal::MakeIndexing<RowIndices>::type, const ColIndicesT (&)[ColIndicesN]>
+    operator()(const RowIndices& rowIndices, const ColIndicesT (&colIndices)[ColIndicesN]) {
+      return IndexedView<Derived,typename internal::MakeIndexing<RowIndices>::type,const ColIndicesT (&)[ColIndicesN]>(
+                derived(), internal::make_indexing(rowIndices,derived().rows()), colIndices);
+    }
+
+    template<typename RowIndicesT, std::size_t RowIndicesN, typename ColIndicesT, std::size_t ColIndicesN>
+    IndexedView<Derived,const RowIndicesT (&)[RowIndicesN], const ColIndicesT (&)[ColIndicesN]>
+    operator()(const RowIndicesT (&rowIndices)[RowIndicesN], const ColIndicesT (&colIndices)[ColIndicesN]) {
+      return IndexedView<Derived,const RowIndicesT (&)[RowIndicesN],const ColIndicesT (&)[ColIndicesN]>(
                 derived(), rowIndices, colIndices);
     }
 
