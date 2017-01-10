@@ -37,7 +37,7 @@ static const all_t all;
   * auto expr = (x+3)/y+z;
   *
   * // And evaluate it: (c++14)
-  * std::cout << expr.eval(std::make_tuple(x=6,y=3,z=-13)) << "\n";
+  * std::cout << expr.eval(x=6,y=3,z=-13) << "\n";
   *
   * // In c++98/11, only one symbol per expression is supported for now:
   * auto expr98 = (3-x)/2;
@@ -60,7 +60,7 @@ class ValueExpr {
 public:
   ValueExpr(Index val) : m_value(val) {}
   template<typename T>
-  Index eval(const T&) const { return m_value; }
+  Index eval_impl(const T&) const { return m_value; }
 protected:
   Index m_value;
 };
@@ -81,7 +81,12 @@ public:
     *
     */
   template<typename T>
-  Index eval(const T& values) const { return derived().eval(values); }
+  Index eval(const T& values) const { return derived().eval_impl(values); }
+
+#if __cplusplus > 201103L
+  template<typename... Types>
+  Index eval(Types&&... values) const { return derived().eval_impl(std::make_tuple(values...)); }
+#endif
 
   NegateExpr<Derived> operator-() const { return NegateExpr<Derived>(derived()); }
 
@@ -151,12 +156,12 @@ public:
     return SymbolValue<Tag>(val);
   }
 
-  Index eval(const SymbolValue<Tag> &values) const { return values.value(); }
+  Index eval_impl(const SymbolValue<Tag> &values) const { return values.value(); }
 
 #if __cplusplus > 201103L
   // C++14 versions suitable for multiple symbols
   template<typename... Types>
-  Index eval(const std::tuple<Types...>& values) const { return std::get<SymbolValue<Tag> >(values).value(); }
+  Index eval_impl(const std::tuple<Types...>& values) const { return std::get<SymbolValue<Tag> >(values).value(); }
 #endif
 };
 
@@ -167,7 +172,7 @@ public:
   NegateExpr(const Arg0& arg0) : m_arg0(arg0) {}
 
   template<typename T>
-  Index eval(const T& values) const { return -m_arg0.eval(values); }
+  Index eval_impl(const T& values) const { return -m_arg0.eval_impl(values); }
 protected:
   Arg0 m_arg0;
 };
@@ -179,7 +184,7 @@ public:
   AddExpr(const Arg0& arg0, const Arg1& arg1) : m_arg0(arg0), m_arg1(arg1) {}
 
   template<typename T>
-  Index eval(const T& values) const { return m_arg0.eval(values) + m_arg1.eval(values); }
+  Index eval_impl(const T& values) const { return m_arg0.eval_impl(values) + m_arg1.eval_impl(values); }
 protected:
   Arg0 m_arg0;
   Arg1 m_arg1;
@@ -192,7 +197,7 @@ public:
   ProductExpr(const Arg0& arg0, const Arg1& arg1) : m_arg0(arg0), m_arg1(arg1) {}
 
   template<typename T>
-  Index eval(const T& values) const { return m_arg0.eval(values) * m_arg1.eval(values); }
+  Index eval_impl(const T& values) const { return m_arg0.eval_impl(values) * m_arg1.eval_impl(values); }
 protected:
   Arg0 m_arg0;
   Arg1 m_arg1;
@@ -205,7 +210,7 @@ public:
   QuotientExpr(const Arg0& arg0, const Arg1& arg1) : m_arg0(arg0), m_arg1(arg1) {}
 
   template<typename T>
-  Index eval(const T& values) const { return m_arg0.eval(values) / m_arg1.eval(values); }
+  Index eval_impl(const T& values) const { return m_arg0.eval_impl(values) / m_arg1.eval_impl(values); }
 protected:
   Arg0 m_arg0;
   Arg1 m_arg1;
