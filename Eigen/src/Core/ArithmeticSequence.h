@@ -23,6 +23,29 @@ static const all_t all;
 // minimalistic symbolic scalar type
 //--------------------------------------------------------------------------------
 
+
+/** This namespace defines a set of classes and functions to build and evaluate symbolic expressions of scalar type Index.
+  * Here is a simple example:
+  *
+  * \code
+  * // First step, defines symbols:
+  * struct x_tag {};  static const Symbolic::SymbolExpr<x_tag> x;
+  * struct y_tag {};  static const Symbolic::SymbolExpr<y_tag> y;
+  * struct z_tag {};  static const Symbolic::SymbolExpr<z_tag> z;
+  *
+  * // Defines an expression:
+  * auto expr = (x+3)/y+z;
+  *
+  * // And evaluate it: (c++14)
+  * std::cout << expr.eval(std::make_tuple(Symbolic::defineValue(x,6),Symbolic::defineValue(y,3),Symbolic::defineValue(z,-13))) << "\n";
+  *
+  * // In c++98/11, only one symbol per expression is supported for now:
+  * auto expr98 = (3-x)/2;
+  * std::cout << expr98.eval(Symbolic::defineValue(x,6)) << "\n";
+  *
+  * It is currently only used internally to define and minipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
+  *
+  */
 namespace Symbolic {
 
 template<typename Tag> class Symbol;
@@ -42,11 +65,23 @@ protected:
   Index m_value;
 };
 
+/** \class BaseExpr
+  * Common base class of any symbolic expressions
+  */
 template<typename Derived>
 class BaseExpr
 {
 public:
   const Derived& derived() const { return *static_cast<const Derived*>(this); }
+
+  /** Evaluate the expression given the \a values of the symbols.
+    *
+    * \param values defines the values of the symbols, it can either be a SymbolValue or a std::tuple of SymbolValue
+    *               as constructed by the defineValue function.
+    *
+    */
+  template<typename T>
+  Index eval(const T& values) const { return derived().eval(values); }
 
   NegateExpr<Derived> operator-() const { return NegateExpr<Derived>(derived()); }
 
@@ -73,7 +108,7 @@ public:
   { return AddExpr<Derived,NegateExpr<OtherDerived> >(derived(), -b.derived()); }
 
   template<typename OtherDerived>
-  AddExpr<Derived,OtherDerived> operator/(const BaseExpr<OtherDerived> &b) const
+  QuotientExpr<Derived,OtherDerived> operator/(const BaseExpr<OtherDerived> &b) const
   { return QuotientExpr<Derived,OtherDerived>(derived(), b.derived()); }
 };
 
@@ -83,11 +118,18 @@ struct is_symbolic {
   enum { value = internal::is_convertible<T,BaseExpr<T> >::value };
 };
 
+/** Represents the actual value of a symbol identified by its tag
+  *
+  * It is the return type of defineValue(), and most of the time this is only way it is used.
+  */
 template<typename Tag>
 class SymbolValue
 {
 public:
+  /** Default constructor from the value \a val */
   SymbolValue(Index val) : m_value(val) {}
+
+  /** \returns the stored value of the symbol */
   Index value() const { return m_value; }
 protected:
   Index m_value;
@@ -102,12 +144,17 @@ public:
 
   Index eval(const SymbolValue<Tag> &values) const { return values.value(); }
 
-
-  // TODO add a c++14 eval taking a tuple of SymbolValue and getting the value with std::get<SymbolValue<Tag> >...
+#if __cplusplus > 201103L
+  // C++14 versions suitable for multiple symbols
+  template<typename... Types>
+  Index eval(const std::tuple<Types...>& values) const { return std::get<SymbolValue<Tag> >(values).value(); }
+#endif
 };
 
+/** Associate the value \a val to the symbol \a symb
+ */
 template<typename Tag>
-SymbolValue<Tag> defineValue(SymbolExpr<Tag>,Index val) {
+SymbolValue<Tag> defineValue(SymbolExpr<Tag> /*symb*/,Index val) {
   return SymbolValue<Tag>(val);
 }
 
