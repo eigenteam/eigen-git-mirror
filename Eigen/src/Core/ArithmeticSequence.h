@@ -17,6 +17,8 @@ namespace Eigen {
 //--------------------------------------------------------------------------------
 
 struct all_t { all_t() {} };
+
+/** Can be used as a parameter to DenseBase::operator()(const RowIndices&, const ColIndices&) to index all rows or columns */
 static const all_t all;
 
 //--------------------------------------------------------------------------------
@@ -24,7 +26,10 @@ static const all_t all;
 //--------------------------------------------------------------------------------
 
 
-/** This namespace defines a set of classes and functions to build and evaluate symbolic expressions of scalar type Index.
+/** \namespace Symbolic
+  * \ingroup Core_Module
+  *
+  * This namespace defines a set of classes and functions to build and evaluate symbolic expressions of scalar type Index.
   * Here is a simple example:
   *
   * \code
@@ -42,6 +47,7 @@ static const all_t all;
   * // In c++98/11, only one symbol per expression is supported for now:
   * auto expr98 = (3-x)/2;
   * std::cout << expr98.eval(x=6) << "\n";
+  * \endcode
   *
   * It is currently only used internally to define and minipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
   *
@@ -218,13 +224,39 @@ protected:
 
 } // end namespace Symbolic
 
+/** \namespace placeholders
+  */
 namespace placeholders {
 
 namespace internal {
 struct symbolic_last_tag {};
 }
 
+/** Can be used as a parameter to seq and seqN functions to symbolically reference the last element/row/columns
+  * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
+  *
+  * This symbolic placeholder support standard arithmetic operation.
+  *
+  * A typical usage example would be:
+  * \code
+  * using namespace Eigen;
+  * using Eigen::placeholders::last;
+  * VectorXd v(n);
+  * v(seq(2,last-2)).setOnes();
+  * \endcode
+  *
+  * \sa end
+  */
 static const Symbolic::SymbolExpr<internal::symbolic_last_tag> last;
+
+/** Can be used as a parameter to seq and seqN functions to symbolically reference the last+1 element/row/columns
+  * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
+  *
+  * This symbolic placeholder support standard arithmetic operation.
+  * It is essentially an alias to last+1
+  *
+  * \sa last
+  */
 static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr> end(last+1);
 
 } // end namespace placeholders
@@ -265,6 +297,24 @@ inline fix_t<N> fix() { return fix_t<N>(); }
 // seq(first,last,incr) and seqN(first,size,incr)
 //--------------------------------------------------------------------------------
 
+/** \class ArithemeticSequence
+  *
+  * This class represents an arithmetic progression \f$ a_0, a_1, a_2, ..., a_{n-1}\f$ defined by
+  * its \em first value \f$ a_0 \f$, its \em size (aka length) \em n, and the \em increment (aka stride)
+  * that is equal to \f$ a_{i+1}-a_{i}\f$ for any \em i.
+  *
+  * It is internally used as the return type of the seq and seqN functions, and as the input arguments
+  * of DenseBase::operator()(const RowIndices&, const ColIndices&), and most of the time this is the
+  * only way it is used.
+  *
+  * \tparam FirstType type of the first element, usually an Index,
+  *                   but internally it can be a symbolic expression
+  * \tparam SizeType type representing the size of the sequence, usually an Index
+  *                  or a compile time integral constant. Internally, it can also be a symbolic expression
+  * \tparam IncrType type of the increment, can be a runtime Index, or a compile time integral constant (default is compile-time 1)
+  *
+  * \sa seq, seqN, DenseBase::operator()(const RowIndices&, const ColIndices&), class IndexedView
+  */
 template<typename FirstType=Index,typename SizeType=Index,typename IncrType=fix_t<1> >
 class ArithemeticSequence
 {
@@ -278,8 +328,13 @@ public:
     IncrAtCompileTime = get_compile_time<IncrType,DynamicIndex>::value
   };
 
+  /** \returns the size, i.e., number of elements, of the sequence */
   Index size()  const { return m_size; }
+
+  /** \returns the first element \f$ a_0 \f$ in the sequence */
   Index first()  const { return m_first; }
+
+  /** \returns the value \f$ a_i \f$ at index \a i in the sequence. */
   Index operator[](Index i) const { return m_first + i * m_incr; }
 
   const FirstType& firstObject() const { return m_first; }
@@ -301,17 +356,49 @@ template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type
 
 }
 
+/** \returns an ArithemeticSequence starting at \a first, of length \a size, and increment \a incr
+ * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
 template<typename FirstType,typename SizeType,typename IncrType>
 ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_type<IncrType>::type >
 seqN(FirstType first, SizeType size, IncrType incr)  {
   return ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_type<IncrType>::type>(first,size,incr);
 }
 
+/** \returns an ArithemeticSequence starting at \a first, of length \a size, and unit increment
+  * \sa seqN(FirstType,SizeType,IncrType), seq(FirstType,LastType) */
 template<typename FirstType,typename SizeType>
 ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type >
 seqN(FirstType first, SizeType size)  {
   return ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type>(first,size);
 }
+
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+
+/** \returns an ArithemeticSequence starting at \a f, up (or down) to \a l, and unit increment
+  *
+  * It is essentially an alias to:
+  * \code
+  * seqN(f,l-f+1);
+  * \endcode
+  *
+  * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType)
+  */
+template<typename FirstType,typename LastType>
+auto seq(FirstType f, LastType l);
+
+/** \returns an ArithemeticSequence starting at \a f, up (or down) to \a l, and with positive (or negative) increment \a incr
+  *
+  * It is essentially an alias to:
+  * \code
+  * seqN(f, (l-f+incr)/incr, incr);
+  * \endcode
+  *
+  * \sa seqN(FirstType,SizeType,IncrType), seq(FirstType,LastType)
+  */
+template<typename FirstType,typename LastType, typename IncrType>
+auto seq(FirstType f, LastType l, IncrType incr);
+
+#else // EIGEN_PARSED_BY_DOXYGEN
 
 #if EIGEN_HAS_CXX11
 template<typename FirstType,typename LastType>
@@ -413,6 +500,8 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<Last
   return seqN(f.derived(),(l.derived()-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 #endif
+
+#endif // EIGEN_PARSED_BY_DOXYGEN
 
 namespace internal {
 

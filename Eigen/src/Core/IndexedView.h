@@ -85,7 +85,7 @@ class IndexedViewImpl;
   *  - std::vector<int>
   *  - std::valarray<int>
   *  - std::array<int>
-  *  - c++ arrays: int[N]
+  *  - Plain C arrays: int[N]
   *  - Eigen::ArrayXi
   *  - decltype(ArrayXi::LinSpaced(...))
   *  - Any view/expressions of the previous types
@@ -94,7 +94,7 @@ class IndexedViewImpl;
   *  - Eigen::IntAsArray    (helper for single index)
   *  - etc.
   *
-  * In typical usages of %Eigen, this class should never be used directly. It is the return type of DenseBase::operator().
+  * In typical usages of %Eigen, this class should never be used directly. It is the return type of DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
   * \sa class Block
   */
