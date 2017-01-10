@@ -526,7 +526,7 @@ struct MakeIndexing<all_t> {
   typedef AllRange type;
 };
 
-AllRange make_indexing(all_t , Index size) {
+inline AllRange make_indexing(all_t , Index size) {
   return AllRange(size);
 }
 
