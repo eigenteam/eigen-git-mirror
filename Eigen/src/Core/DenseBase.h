@@ -574,7 +574,8 @@ template<typename Derived> class DenseBase
 
     template<typename RowIndices, typename ColIndices>
     typename internal::enable_if<
-      internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike,
+         internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::IsBlockAlike
+      && !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value),
       typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType>::type
     operator()(const RowIndices& rowIndices, const ColIndices& colIndices) const {
       typedef typename internal::traits<typename IndexedViewType<RowIndices,ColIndices>::type>::BlockType BlockType;
