@@ -71,8 +71,8 @@ class IndexedViewImpl;
   * \tparam ColIndices the type of the object defining the sequence of column indices
   *
   * This class represents an expression of a sub-matrix (or sub-vector) defined as the intersection
-  * of sub-sets of rows and columns, that are themself defined by generic sequences of row indices \f${r_0,r_1,..r_{m-1}\f$
-  * and column indices \f${c_0,c_1,..c_{n-1}\f$. Let \f$ A \f$  be the nested matrix, then the resulting matrix \f$ B \f$ has \c m
+  * of sub-sets of rows and columns, that are themself defined by generic sequences of row indices \f$ \{r_0,r_1,..r_{m-1}\} \f$
+  * and column indices \f$ \{c_0,c_1,..c_{n-1} \}\f$. Let \f$ A \f$  be the nested matrix, then the resulting matrix \f$ B \f$ has \c m
   * rows and \c n columns, and its entries are given by: \f$ B(i,j) = A(r_i,c_j) \f$.
   *
   * The \c RowIndices and \c ColIndices types must be compatible with the following API:
