@@ -55,13 +55,49 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
   typedef Block<XprType,RowsAtCompileTime,ColsAtCompileTime,IsInnerPannel> BlockType;
 };
 
-
 }
 
 template<typename XprType, typename RowIndices, typename ColIndices, typename StorageKind>
 class IndexedViewImpl;
 
-// Expression of a generic slice
+
+/** \class IndexedView
+  * \ingroup Core_Module
+  *
+  * \brief Expression of a non-sequential sub-matrix defined by arbitrary sequences of row and column indices
+  *
+  * \tparam XprType the type of the expression in which we are taking the intersections of sub-rows and sub-columns
+  * \tparam RowIndices the type of the object defining the sequence of row indices
+  * \tparam ColIndices the type of the object defining the sequence of column indices
+  *
+  * This class represents an expression of a sub-matrix (or sub-vector) defined as the intersection
+  * of sub-sets of rows and columns, that are themself defined by generic sequences of row indices \f${r_0,r_1,..r_{m-1}\f$
+  * and column indices \f${c_0,c_1,..c_{n-1}\f$. Let \f$ A \f$  be the nested matrix, then the resulting matrix \f$ B \f$ has \c m
+  * rows and \c n columns, and its entries are given by: \f$ B(i,j) = A(r_i,c_j) \f$.
+  *
+  * The \c RowIndices and \c ColIndices types must be compatible with the following API:
+  * \code
+  * <integral type> operator[](Index) const;
+  * Index size() const;
+  * \endcode
+  *
+  * Typical supported types thus include:
+  *  - std::vector<int>
+  *  - std::valarray<int>
+  *  - std::array<int>
+  *  - c++ arrays: int[N]
+  *  - Eigen::ArrayXi
+  *  - decltype(ArrayXi::LinSpaced(...))
+  *  - Any view/expressions of the previous types
+  *  - Eigen::ArithmeticSequence
+  *  - Eigen::AllRange      (helper for Eigen::all)
+  *  - Eigen::IntAsArray    (helper for single index)
+  *  - etc.
+  *
+  * In typical usages of %Eigen, this class should never be used directly. It is the return type of DenseBase::operator().
+  *
+  * \sa class Block
+  */
 template<typename XprType, typename RowIndices, typename ColIndices>
 class IndexedView : public IndexedViewImpl<XprType, RowIndices, ColIndices, typename internal::traits<XprType>::StorageKind>
 {
@@ -76,7 +112,11 @@ public:
   IndexedView(XprType& xpr, const T0& rowIndices, const T1& colIndices)
     : m_xpr(xpr), m_rowIndices(rowIndices), m_colIndices(colIndices)
   {}
+
+  /** \returns number of rows */
   Index rows() const { return internal::size(m_rowIndices); }
+
+  /** \returns number of columns */
   Index cols() const { return internal::size(m_colIndices); }
 
   /** \returns the nested expression */
@@ -87,7 +127,10 @@ public:
   typename internal::remove_reference<XprType>::type&
   nestedExpression() { return m_xpr.const_cast_derived(); }
 
+  /** \returns a const reference to the object storing/generating the row indices */
   const RowIndices& rowIndices() const { return m_rowIndices; }
+
+  /** \returns a const reference to the object storing/generating the column indices */
   const ColIndices& colIndices() const { return m_colIndices; }
 
 protected:
