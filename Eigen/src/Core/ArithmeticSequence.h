@@ -19,41 +19,6 @@ namespace Eigen {
 struct all_t { all_t() {} };
 static const all_t all;
 
-struct shifted_last {
-  explicit shifted_last(int o) : offset(o) {}
-  int offset;
-  shifted_last operator+ (int x) const { return shifted_last(offset+x); }
-  shifted_last operator- (int x) const { return shifted_last(offset-x); }
-  int operator- (shifted_last x) const { return offset-x.offset; }
-};
-
-struct last_t {
-  last_t() {}
-  shifted_last operator- (int offset) const { return shifted_last(-offset); }
-  shifted_last operator+ (int offset) const { return shifted_last(+offset); }
-  int operator- (last_t) const { return 0; }
-  int operator- (shifted_last x) const { return -x.offset; }
-};
-static const last_t last_legacy;
-
-
-struct shifted_end {
-  explicit shifted_end(int o) : offset(o) {}
-  int offset;
-  shifted_end operator+ (int x) const { return shifted_end(offset+x); }
-  shifted_end operator- (int x) const { return shifted_end(offset-x); }
-  int operator- (shifted_end x) const { return offset-x.offset; }
-};
-
-struct end_t {
-  end_t() {}
-  shifted_end operator- (int offset) const { return shifted_end (-offset); }
-  shifted_end operator+ (int offset) const { return shifted_end ( offset); }
-  int operator- (end_t) const { return 0; }
-  int operator- (shifted_end x) const { return -x.offset; }
-};
-static const end_t end_legacy;
-
 // A simple wrapper around an Index to provide the eval method.
 // We could also use a free-function symbolic_eval...
 class symbolic_value_wrapper {
@@ -228,49 +193,6 @@ inline fix_t<N> fix() { return fix_t<N>(); }
 // seq(first,last,incr) and seqN(first,size,incr)
 //--------------------------------------------------------------------------------
 
-
-template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
-class ArithemeticSequenceProxyWithBounds
-{
-public:
-  ArithemeticSequenceProxyWithBounds(FirstType f, LastType l) : m_first(f), m_last(l) {}
-  ArithemeticSequenceProxyWithBounds(FirstType f, LastType l, IncrType s) : m_first(f), m_last(l), m_incr(s) {}
-
-  enum {
-    SizeAtCompileTime = -1,
-    IncrAtCompileTime = get_compile_time<IncrType,DynamicIndex>::value
-  };
-
-  Index size() const { return (m_last-m_first+m_incr)/m_incr; }
-  Index operator[](Index i) const { return m_first + i * m_incr; }
-
-  const FirstType& firstObject() const { return m_first; }
-  const LastType&  lastObject()  const { return m_last; }
-  const IncrType&  incrObject()  const { return m_incr; }
-
-protected:
-  FirstType m_first;
-  LastType  m_last;
-  IncrType  m_incr;
-};
-
-template<typename T> struct cleanup_seq_type { typedef T type; };
-template<int N> struct cleanup_seq_type<fix_t<N> > { typedef fix_t<N> type; };
-template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type; };
-
-template<typename FirstType,typename LastType>
-ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type >
-seq_legacy(FirstType f, LastType l)  {
-  return ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type>(f,l);
-}
-
-template<typename FirstType,typename LastType,typename IncrType>
-ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type,typename cleanup_seq_type<IncrType>::type >
-seq_legacy(FirstType f, LastType l, IncrType s)  {
-  return ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type,typename cleanup_seq_type<IncrType>::type>(f,l,typename cleanup_seq_type<IncrType>::type(s));
-}
-
-
 template<typename FirstType=Index,typename SizeType=Index,typename IncrType=fix_t<1> >
 class ArithemeticSequence
 {
@@ -297,6 +219,9 @@ protected:
   IncrType  m_incr;
 };
 
+template<typename T> struct cleanup_seq_type { typedef T type; };
+template<int N> struct cleanup_seq_type<fix_t<N> > { typedef fix_t<N> type; };
+template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type; };
 
 template<typename FirstType,typename SizeType,typename IncrType>
 ArithemeticSequence<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<SizeType>::type,typename cleanup_seq_type<IncrType>::type >
@@ -354,11 +279,6 @@ template<typename T, typename EnableIf = void> struct get_compile_time_incr {
   enum { value = UndefinedIncr };
 };
 
-template<typename FirstType,typename LastType,typename IncrType>
-struct get_compile_time_incr<ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType> > {
-  enum { value = get_compile_time<IncrType,DynamicIndex>::value };
-};
-
 template<typename FirstType,typename SizeType,typename IncrType>
 struct get_compile_time_incr<ArithemeticSequence<FirstType,SizeType,IncrType> > {
   enum { value = get_compile_time<IncrType,DynamicIndex>::value };
@@ -399,10 +319,6 @@ struct MakeIndexing<T,typename internal::enable_if<internal::is_integral<T>::val
 
 // Replace symbolic last/end "keywords" by their true runtime value
 Index symbolic2value(Index x, Index /* size */)   { return x; }
-Index symbolic2value(last_t, Index size)          { return size-1; }
-Index symbolic2value(shifted_last x, Index size)  { return size+x.offset-1; }
-Index symbolic2value(end_t, Index size)           { return size; }
-Index symbolic2value(shifted_end x, Index size)   { return size+x.offset; }
 
 template<int N>
 fix_t<N> symbolic2value(fix_t<N> x, Index /*size*/)   { return x; }
@@ -412,18 +328,6 @@ Index symbolic2value(const symbolic_index_base<Derived> &x, Index size)
 {
   Index h=x.derived().eval(symbolic_value_pair<symb_last_tag>(size-1));
   return x.derived().eval(symbolic_value_pair<symb_last_tag>(size-1));
-}
-
-
-// Convert a symbolic range into a usable one (i.e., remove last/end "keywords")
-template<typename FirstType,typename LastType,typename IncrType>
-struct MakeIndexing<ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType> > {
-  typedef ArithemeticSequenceProxyWithBounds<Index,Index,IncrType> type;
-};
-
-template<typename FirstType,typename LastType,typename IncrType>
-ArithemeticSequenceProxyWithBounds<Index,Index,IncrType> make_indexing(const ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size) {
-  return ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>(symbolic2value(ids.firstObject(),size),symbolic2value(ids.lastObject(),size),ids.incrObject());
 }
 
 // Convert a symbolic span into a usable one (i.e., remove last/end "keywords")
@@ -473,6 +377,112 @@ template<> struct get_compile_time_incr<AllRange> {
 };
 
 } // end namespace internal
+
+//--------------------------------------------------------------------------------
+
+namespace legacy {
+// Here are some initial code that I keep here for now to compare the quality of the code generated by the compilers
+
+struct shifted_last {
+  explicit shifted_last(int o) : offset(o) {}
+  int offset;
+  shifted_last operator+ (int x) const { return shifted_last(offset+x); }
+  shifted_last operator- (int x) const { return shifted_last(offset-x); }
+  int operator- (shifted_last x) const { return offset-x.offset; }
+};
+
+struct last_t {
+  last_t() {}
+  shifted_last operator- (int offset) const { return shifted_last(-offset); }
+  shifted_last operator+ (int offset) const { return shifted_last(+offset); }
+  int operator- (last_t) const { return 0; }
+  int operator- (shifted_last x) const { return -x.offset; }
+};
+static const last_t last;
+
+
+struct shifted_end {
+  explicit shifted_end(int o) : offset(o) {}
+  int offset;
+  shifted_end operator+ (int x) const { return shifted_end(offset+x); }
+  shifted_end operator- (int x) const { return shifted_end(offset-x); }
+  int operator- (shifted_end x) const { return offset-x.offset; }
+};
+
+struct end_t {
+  end_t() {}
+  shifted_end operator- (int offset) const { return shifted_end (-offset); }
+  shifted_end operator+ (int offset) const { return shifted_end ( offset); }
+  int operator- (end_t) const { return 0; }
+  int operator- (shifted_end x) const { return -x.offset; }
+};
+static const end_t end;
+
+Index symbolic2value(last_t, Index size)          { return size-1; }
+Index symbolic2value(shifted_last x, Index size)  { return size+x.offset-1; }
+Index symbolic2value(end_t, Index size)           { return size; }
+Index symbolic2value(shifted_end x, Index size)   { return size+x.offset; }
+
+template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
+class ArithemeticSequenceProxyWithBounds
+{
+public:
+  ArithemeticSequenceProxyWithBounds(FirstType f, LastType l) : m_first(f), m_last(l) {}
+  ArithemeticSequenceProxyWithBounds(FirstType f, LastType l, IncrType s) : m_first(f), m_last(l), m_incr(s) {}
+
+  enum {
+    SizeAtCompileTime = -1,
+    IncrAtCompileTime = get_compile_time<IncrType,DynamicIndex>::value
+  };
+
+  Index size() const { return (m_last-m_first+m_incr)/m_incr; }
+  Index operator[](Index i) const { return m_first + i * m_incr; }
+
+  const FirstType& firstObject() const { return m_first; }
+  const LastType&  lastObject()  const { return m_last; }
+  const IncrType&  incrObject()  const { return m_incr; }
+
+protected:
+  FirstType m_first;
+  LastType  m_last;
+  IncrType  m_incr;
+};
+
+template<typename FirstType,typename LastType>
+ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type >
+seq(FirstType f, LastType l)  {
+  return ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type>(f,l);
+}
+
+template<typename FirstType,typename LastType,typename IncrType>
+ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type,typename cleanup_seq_type<IncrType>::type >
+seq(FirstType f, LastType l, IncrType s)  {
+  return ArithemeticSequenceProxyWithBounds<typename cleanup_seq_type<FirstType>::type,typename cleanup_seq_type<LastType>::type,typename cleanup_seq_type<IncrType>::type>(f,l,typename cleanup_seq_type<IncrType>::type(s));
+}
+
+}
+
+namespace internal {
+
+template<typename FirstType,typename LastType,typename IncrType>
+struct get_compile_time_incr<legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType> > {
+  enum { value = get_compile_time<IncrType,DynamicIndex>::value };
+};
+
+// Convert a symbolic range into a usable one (i.e., remove last/end "keywords")
+template<typename FirstType,typename LastType,typename IncrType>
+struct MakeIndexing<legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType> > {
+  typedef legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType> type;
+};
+
+template<typename FirstType,typename LastType,typename IncrType>
+legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>
+make_indexing(const legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size) {
+  return legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>(
+            symbolic2value(ids.firstObject(),size),symbolic2value(ids.lastObject(),size),ids.incrObject());
+}
+
+}
 
 } // end namespace Eigen
 

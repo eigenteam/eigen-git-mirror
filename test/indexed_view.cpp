@@ -160,6 +160,10 @@ void check_indexed_view()
 
 #endif
 
+  // check legacy code
+  VERIFY_IS_APPROX( A(legacy::seq(legacy::last,2,-2), legacy::seq(legacy::last-6,7)), A(seq(last,2,-2), seq(last-6,7)) );
+  VERIFY_IS_APPROX( A(seqN(legacy::last,2,-2), seqN(legacy::last-6,3)), A(seqN(last,2,-2), seqN(last-6,3)) );
+
 }
 
 void test_indexed_view()
