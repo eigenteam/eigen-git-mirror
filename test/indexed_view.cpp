@@ -51,6 +51,7 @@ is_same_type(const T1& a, const T2& b)
 
 void check_indexed_view()
 {
+  using Eigen::placeholders::all;
   using Eigen::placeholders::last;
   using Eigen::placeholders::end;
 

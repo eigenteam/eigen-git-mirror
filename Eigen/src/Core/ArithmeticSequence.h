@@ -12,26 +12,10 @@
 
 namespace Eigen {
 
-//--------------------------------------------------------------------------------
-// Pseudo keywords: all, last, end
-//--------------------------------------------------------------------------------
-
-namespace internal {
-
-struct all_t { all_t() {} };
-
-}
-
-/** \var all
-  * \ingroup Core_Module
-  * Can be used as a parameter to DenseBase::operator()(const RowIndices&, const ColIndices&) to index all rows or columns
-  */
-static const internal::all_t all;
-
 /** \namespace Eigen::placeholders
   * \ingroup Core_Module
   *
-  * Namespace containing symbolic placeholders
+  * Namespace containing symbolic placeholder and identifiers
   */
 namespace placeholders {
 
@@ -268,7 +252,7 @@ typename internal::enable_if<!Symbolic::is_symbolic<FirstType>::value,
                         Symbolic::QuotientExpr<Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr>,
                                                                  Symbolic::ValueExpr>,
                                                Symbolic::ValueExpr>,
-      typename internal::cleanup_seq_type<IncrType>::type> >::type
+                        typename internal::cleanup_seq_type<IncrType>::type> >::type
 seq(FirstType f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
   typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
@@ -281,7 +265,7 @@ ArithemeticSequence<FirstTypeDerived,
                                                                                Symbolic::NegateExpr<FirstTypeDerived> >,
                                                              Symbolic::ValueExpr>,
                                           Symbolic::ValueExpr>,
-  typename internal::cleanup_seq_type<IncrType>::type>
+                    typename internal::cleanup_seq_type<IncrType>::type>
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
   typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
@@ -292,76 +276,6 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<Last
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
 namespace internal {
-
-template<typename T>
-Index size(const T& x) { return x.size(); }
-
-template<typename T,std::size_t N>
-Index size(const T (&) [N]) { return N; }
-
-template<typename T>
-Index first(const T& x) { return x.first(); }
-
-template<typename T, int XprSize, typename EnableIf = void> struct get_compile_time_size {
-  enum { value = Dynamic };
-};
-
-template<typename T, int XprSize> struct get_compile_time_size<T,XprSize,typename internal::enable_if<((T::SizeAtCompileTime&0)==0)>::type> {
-  enum { value = T::SizeAtCompileTime };
-};
-
-template<typename T, int XprSize, int N> struct get_compile_time_size<const T (&)[N],XprSize> {
-  enum { value = N };
-};
-
-#ifdef EIGEN_HAS_CXX11
-template<typename T, int XprSize, std::size_t N> struct get_compile_time_size<std::array<T,N>,XprSize> {
-  enum { value = N };
-};
-#endif
-
-template<typename T, typename EnableIf = void> struct get_compile_time_incr {
-  enum { value = UndefinedIncr };
-};
-
-template<typename FirstType,typename SizeType,typename IncrType>
-struct get_compile_time_incr<ArithemeticSequence<FirstType,SizeType,IncrType> > {
-  enum { value = get_compile_time<IncrType,DynamicIndex>::value };
-};
-
-
-// MakeIndexing/make_indexing turn an arbitrary object of type T into something usable by MatrixSlice
-template<typename T,typename EnableIf=void>
-struct MakeIndexing {
-  typedef T type;
-};
-
-template<typename T>
-const T& make_indexing(const T& x, Index /*size*/) { return x; }
-
-struct IntAsArray {
-  enum {
-    SizeAtCompileTime = 1
-  };
-  IntAsArray(Index val) : m_value(val) {}
-  Index operator[](Index) const { return m_value; }
-  Index size() const { return 1; }
-  Index first() const { return m_value; }
-  Index m_value;
-};
-
-template<> struct get_compile_time_incr<IntAsArray> {
-  enum { value = 1 }; // 1 or 0 ??
-};
-
-// Turn a single index into something that looks like an array (i.e., that exposes a .size(), and operatro[](int) methods)
-template<typename T>
-struct MakeIndexing<T,typename internal::enable_if<internal::is_integral<T>::value>::type> {
-  // Here we could simply use Array, but maybe it's less work for the compiler to use
-  // a simpler wrapper as IntAsArray
-  //typedef Eigen::Array<Index,1,1> type;
-  typedef IntAsArray type;
-};
 
 // Replace symbolic last/end "keywords" by their true runtime value
 inline Index eval_expr_given_size(Index x, Index /* size */)   { return x; }
@@ -381,45 +295,21 @@ struct make_size_type {
   typedef typename internal::conditional<Symbolic::is_symbolic<T>::value, Index, T>::type type;
 };
 
-template<typename FirstType,typename SizeType,typename IncrType>
-struct MakeIndexing<ArithemeticSequence<FirstType,SizeType,IncrType> > {
+template<typename FirstType,typename SizeType,typename IncrType,int XprSize>
+struct IndexedViewCompatibleType<ArithemeticSequence<FirstType,SizeType,IncrType>, XprSize> {
   typedef ArithemeticSequence<Index,typename make_size_type<SizeType>::type,IncrType> type;
 };
 
 template<typename FirstType,typename SizeType,typename IncrType>
 ArithemeticSequence<Index,typename make_size_type<SizeType>::type,IncrType>
-make_indexing(const ArithemeticSequence<FirstType,SizeType,IncrType>& ids, Index size) {
+makeIndexedViewCompatible(const ArithemeticSequence<FirstType,SizeType,IncrType>& ids, Index size) {
   return ArithemeticSequence<Index,typename make_size_type<SizeType>::type,IncrType>(
             eval_expr_given_size(ids.firstObject(),size),eval_expr_given_size(ids.sizeObject(),size),ids.incrObject());
 }
 
-// Convert a symbolic 'all' into a usable range
-// Implementation-wise, it would be more efficient to not having to store m_size since
-// this information is already in the nested expression. To this end, we would need a
-// get_size(indices, underlying_size); function returning indices.size() by default.
-struct AllRange {
-  AllRange(Index size) : m_size(size) {}
-  Index operator[](Index i) const { return i; }
-  Index size() const { return m_size; }
-  Index first() const { return 0; }
-  Index m_size;
-};
-
-template<>
-struct MakeIndexing<all_t> {
-  typedef AllRange type;
-};
-
-inline AllRange make_indexing(all_t , Index size) {
-  return AllRange(size);
-}
-
-template<int XprSize> struct get_compile_time_size<AllRange,XprSize> {
-  enum { value = XprSize };
-};
-
-template<> struct get_compile_time_incr<AllRange> {
-  enum { value = 1 };
+template<typename FirstType,typename SizeType,typename IncrType>
+struct get_compile_time_incr<ArithemeticSequence<FirstType,SizeType,IncrType> > {
+  enum { value = get_compile_time<IncrType,DynamicIndex>::value };
 };
 
 } // end namespace internal
@@ -428,6 +318,7 @@ template<> struct get_compile_time_incr<AllRange> {
 
 namespace legacy {
 // Here are some initial code that I keep here for now to compare the quality of the code generated by the compilers
+// This part will be removed once we have checked everything is right.
 
 struct shifted_last {
   explicit shifted_last(int o) : offset(o) {}
@@ -522,14 +413,14 @@ struct get_compile_time_incr<legacy::ArithemeticSequenceProxyWithBounds<FirstTyp
 };
 
 // Convert a symbolic range into a usable one (i.e., remove last/end "keywords")
-template<typename FirstType,typename LastType,typename IncrType>
-struct MakeIndexing<legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType> > {
+template<typename FirstType,typename LastType,typename IncrType,int XprSize>
+struct IndexedViewCompatibleType<legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType>,XprSize> {
   typedef legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType> type;
 };
 
 template<typename FirstType,typename LastType,typename IncrType>
 legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>
-make_indexing(const legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size) {
+makeIndexedViewCompatible(const legacy::ArithemeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size) {
   return legacy::ArithemeticSequenceProxyWithBounds<Index,Index,IncrType>(
             eval_expr_given_size(ids.firstObject(),size),eval_expr_given_size(ids.lastObject(),size),ids.incrObject());
 }
