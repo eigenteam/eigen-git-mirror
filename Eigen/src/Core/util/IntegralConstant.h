@@ -32,6 +32,12 @@ template<int N,int Default> struct get_compile_time<fix_t<N>,Default> {
   enum { value = N };
 };
 
+template<typename T, int N, int Default>
+struct get_compile_time<variable_if_dynamic<T,N>,Default> {
+  enum { value = N };
+};
+
+
 template<typename T> struct is_compile_time       { enum { value = false }; };
 template<int N> struct is_compile_time<fix_t<N> > { enum { value = true }; };
 
