@@ -33,9 +33,10 @@ IndexPair decode(Index ij) {
 template<typename T>
 bool match(const T& xpr, std::string ref, std::string str_xpr = "") {
   EIGEN_UNUSED_VARIABLE(str_xpr);
-  //std::cout << str_xpr << "\n" << xpr << "\n\n";
   std::stringstream str;
   str << xpr;
+  if(!(str.str() == ref))
+    std::cout << str_xpr << "\n" << xpr << "\n\n";
   return str.str() == ref;
 }
 
@@ -55,15 +56,16 @@ void check_indexed_view()
 
   Index n = 10;
 
+  ArrayXd a = ArrayXd::LinSpaced(n,0,n-1);
+  Array<double,1,Dynamic> b = a.transpose();
+
   ArrayXXi A = ArrayXXi::NullaryExpr(n,n, std::ptr_fun(encode));
 
   for(Index i=0; i<n; ++i)
     for(Index j=0; j<n; ++j)
       VERIFY( decode(A(i,j)) == IndexPair(i,j) );
 
-  ArrayXd eia(10); eia.setRandom();
   Array4i eii(4); eii << 3, 1, 6, 5;
-  std::valarray<double> vala(10); Map<ArrayXd>(&vala[0],10) = eia;
   std::valarray<int> vali(4); Map<ArrayXi>(&vali[0],4) = eii;
   std::vector<int> veci(4); Map<ArrayXi>(veci.data(),4) = eii;
 
@@ -117,6 +119,19 @@ void check_indexed_view()
     "300  301  302  303  304  305  306  307  308  309\n"
     "300  301  302  303  304  305  306  307  308  309")
   );
+
+  VERIFY( MATCH( a(seqN(3,3),0), "3\n4\n5" ) );
+  VERIFY( MATCH( a(seq(3,5)), "3\n4\n5" ) );
+  VERIFY( MATCH( a(seqN(3,3,1)), "3\n4\n5" ) );
+  VERIFY( MATCH( a(seqN(5,3,-1)), "5\n4\n3" ) );
+
+  VERIFY( MATCH( b(0,seqN(3,3)), "3  4  5" ) );
+  VERIFY( MATCH( b(seq(3,5)), "3  4  5" ) );
+  VERIFY( MATCH( b(seqN(3,3,1)), "3  4  5" ) );
+  VERIFY( MATCH( b(seqN(5,3,-1)), "5  4  3" ) );
+
+  VERIFY( MATCH( b(all), "0  1  2  3  4  5  6  7  8  9" ) );
+  VERIFY( MATCH( b(eii), "3  1  6  5" ) );
 
   Array44i B;
   B.setRandom();
@@ -180,6 +195,11 @@ void check_indexed_view()
     VERIFY( is_same_type(cA.block(0,0,2,2), cA(seqN(0,2),seq(0,1))) );
     VERIFY( is_same_type(cA.middleRows(2,4), cA(seqN(2,4),all)) );
     VERIFY( is_same_type(cA.middleCols(2,4), cA(all,seqN(2,4))) );
+
+    VERIFY( is_same_type(a.head(4), a(seq(0,3))) );
+    VERIFY( is_same_type(a.tail(4), a(seqN(last-3,4))) );
+    VERIFY( is_same_type(a.tail(4), a(seq(end-4,last))) );
+    VERIFY( is_same_type(a.segment<4>(3), a(seqN(3,fix<4>))) );
   }
 
   ArrayXXi A1=A, A2 = ArrayXXi::Random(4,4);
@@ -203,6 +223,12 @@ void check_indexed_view()
 
   VERIFY_IS_EQUAL( A({1,3,5},{3, 1, 6, 5}).RowsAtCompileTime, 3 );
   VERIFY_IS_EQUAL( A({1,3,5},{3, 1, 6, 5}).ColsAtCompileTime, 4 );
+
+  VERIFY_IS_APPROX( a({3, 1, 6, 5}), a(std::array<int,4>{{3, 1, 6, 5}}) );
+  VERIFY_IS_EQUAL( a({1,3,5}).SizeAtCompileTime, 3 );
+
+  VERIFY_IS_APPROX( b({3, 1, 6, 5}), b(std::array<int,4>{{3, 1, 6, 5}}) );
+  VERIFY_IS_EQUAL( b({1,3,5}).SizeAtCompileTime, 3 );
 #endif
 
 #endif
