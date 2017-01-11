@@ -16,215 +16,22 @@ namespace Eigen {
 // Pseudo keywords: all, last, end
 //--------------------------------------------------------------------------------
 
+namespace internal {
+
 struct all_t { all_t() {} };
 
-/** Can be used as a parameter to DenseBase::operator()(const RowIndices&, const ColIndices&) to index all rows or columns */
-static const all_t all;
+}
 
-//--------------------------------------------------------------------------------
-// minimalistic symbolic scalar type
-//--------------------------------------------------------------------------------
+/** \var all
+  * \ingroup Core_Module
+  * Can be used as a parameter to DenseBase::operator()(const RowIndices&, const ColIndices&) to index all rows or columns
+  */
+static const internal::all_t all;
 
-
-/** \namespace Symbolic
+/** \namespace Eigen::placeholders
   * \ingroup Core_Module
   *
-  * This namespace defines a set of classes and functions to build and evaluate symbolic expressions of scalar type Index.
-  * Here is a simple example:
-  *
-  * \code
-  * // First step, defines symbols:
-  * struct x_tag {};  static const Symbolic::SymbolExpr<x_tag> x;
-  * struct y_tag {};  static const Symbolic::SymbolExpr<y_tag> y;
-  * struct z_tag {};  static const Symbolic::SymbolExpr<z_tag> z;
-  *
-  * // Defines an expression:
-  * auto expr = (x+3)/y+z;
-  *
-  * // And evaluate it: (c++14)
-  * std::cout << expr.eval(x=6,y=3,z=-13) << "\n";
-  *
-  * // In c++98/11, only one symbol per expression is supported for now:
-  * auto expr98 = (3-x)/2;
-  * std::cout << expr98.eval(x=6) << "\n";
-  * \endcode
-  *
-  * It is currently only used internally to define and minipulate the placeholders::last and placeholders::end symbols in Eigen::seq and Eigen::seqN.
-  *
-  */
-namespace Symbolic {
-
-template<typename Tag> class Symbol;
-template<typename Arg0> class NegateExpr;
-template<typename Arg1,typename Arg2> class AddExpr;
-template<typename Arg1,typename Arg2> class ProductExpr;
-template<typename Arg1,typename Arg2> class QuotientExpr;
-
-// A simple wrapper around an Index to provide the eval method.
-// We could also use a free-function symbolic_eval...
-class ValueExpr {
-public:
-  ValueExpr(Index val) : m_value(val) {}
-  template<typename T>
-  Index eval_impl(const T&) const { return m_value; }
-protected:
-  Index m_value;
-};
-
-/** \class BaseExpr
-  * Common base class of any symbolic expressions
-  */
-template<typename Derived>
-class BaseExpr
-{
-public:
-  const Derived& derived() const { return *static_cast<const Derived*>(this); }
-
-  /** Evaluate the expression given the \a values of the symbols.
-    *
-    * \param values defines the values of the symbols, it can either be a SymbolValue or a std::tuple of SymbolValue
-    *               as constructed by SymbolExpr::operator= operator.
-    *
-    */
-  template<typename T>
-  Index eval(const T& values) const { return derived().eval_impl(values); }
-
-#if __cplusplus > 201103L
-  template<typename... Types>
-  Index eval(Types&&... values) const { return derived().eval_impl(std::make_tuple(values...)); }
-#endif
-
-  NegateExpr<Derived> operator-() const { return NegateExpr<Derived>(derived()); }
-
-  AddExpr<Derived,ValueExpr> operator+(Index b) const
-  { return AddExpr<Derived,ValueExpr >(derived(),  b); }
-  AddExpr<Derived,ValueExpr> operator-(Index a) const
-  { return AddExpr<Derived,ValueExpr >(derived(), -a); }
-  QuotientExpr<Derived,ValueExpr> operator/(Index a) const
-  { return QuotientExpr<Derived,ValueExpr>(derived(),a); }
-
-  friend AddExpr<Derived,ValueExpr> operator+(Index a, const BaseExpr& b)
-  { return AddExpr<Derived,ValueExpr>(b.derived(), a); }
-  friend AddExpr<NegateExpr<Derived>,ValueExpr> operator-(Index a, const BaseExpr& b)
-  { return AddExpr<NegateExpr<Derived>,ValueExpr>(-b.derived(), a); }
-  friend AddExpr<ValueExpr,Derived> operator/(Index a, const BaseExpr& b)
-  { return AddExpr<ValueExpr,Derived>(a,b.derived()); }
-
-  template<typename OtherDerived>
-  AddExpr<Derived,OtherDerived> operator+(const BaseExpr<OtherDerived> &b) const
-  { return AddExpr<Derived,OtherDerived>(derived(),  b.derived()); }
-
-  template<typename OtherDerived>
-  AddExpr<Derived,NegateExpr<OtherDerived> > operator-(const BaseExpr<OtherDerived> &b) const
-  { return AddExpr<Derived,NegateExpr<OtherDerived> >(derived(), -b.derived()); }
-
-  template<typename OtherDerived>
-  QuotientExpr<Derived,OtherDerived> operator/(const BaseExpr<OtherDerived> &b) const
-  { return QuotientExpr<Derived,OtherDerived>(derived(), b.derived()); }
-};
-
-template<typename T>
-struct is_symbolic {
-  // BaseExpr has no conversion ctor, so we only to check whether T can be staticaly cast to its base class BaseExpr<T>.
-  enum { value = internal::is_convertible<T,BaseExpr<T> >::value };
-};
-
-/** Represents the actual value of a symbol identified by its tag
-  *
-  * It is the return type of SymbolValue::operator=, and most of the time this is only way it is used.
-  */
-template<typename Tag>
-class SymbolValue
-{
-public:
-  /** Default constructor from the value \a val */
-  SymbolValue(Index val) : m_value(val) {}
-
-  /** \returns the stored value of the symbol */
-  Index value() const { return m_value; }
-protected:
-  Index m_value;
-};
-
-/** Expression of a symbol uniquely identified by the tag \tparam TagT */
-template<typename TagT>
-class SymbolExpr : public BaseExpr<SymbolExpr<TagT> >
-{
-public:
-  typedef TagT Tag;
-  SymbolExpr() {}
-
-  /** Associate the value \a val to the given symbol \c *this, uniquely identified by its \c Tag.
-    *
-    * The returned object should be passed to ExprBase::eval() to evaluate a given expression with this specified runtime-time value.
-    */
-  SymbolValue<Tag> operator=(Index val) const {
-    return SymbolValue<Tag>(val);
-  }
-
-  Index eval_impl(const SymbolValue<Tag> &values) const { return values.value(); }
-
-#if __cplusplus > 201103L
-  // C++14 versions suitable for multiple symbols
-  template<typename... Types>
-  Index eval_impl(const std::tuple<Types...>& values) const { return std::get<SymbolValue<Tag> >(values).value(); }
-#endif
-};
-
-template<typename Arg0>
-class NegateExpr : public BaseExpr<NegateExpr<Arg0> >
-{
-public:
-  NegateExpr(const Arg0& arg0) : m_arg0(arg0) {}
-
-  template<typename T>
-  Index eval_impl(const T& values) const { return -m_arg0.eval_impl(values); }
-protected:
-  Arg0 m_arg0;
-};
-
-template<typename Arg0, typename Arg1>
-class AddExpr : public BaseExpr<AddExpr<Arg0,Arg1> >
-{
-public:
-  AddExpr(const Arg0& arg0, const Arg1& arg1) : m_arg0(arg0), m_arg1(arg1) {}
-
-  template<typename T>
-  Index eval_impl(const T& values) const { return m_arg0.eval_impl(values) + m_arg1.eval_impl(values); }
-protected:
-  Arg0 m_arg0;
-  Arg1 m_arg1;
-};
-
-template<typename Arg0, typename Arg1>
-class ProductExpr : public BaseExpr<ProductExpr<Arg0,Arg1> >
-{
-public:
-  ProductExpr(const Arg0& arg0, const Arg1& arg1) : m_arg0(arg0), m_arg1(arg1) {}
-
-  template<typename T>
-  Index eval_impl(const T& values) const { return m_arg0.eval_impl(values) * m_arg1.eval_impl(values); }
-protected:
-  Arg0 m_arg0;
-  Arg1 m_arg1;
-};
-
-template<typename Arg0, typename Arg1>
-class QuotientExpr : public BaseExpr<QuotientExpr<Arg0,Arg1> >
-{
-public:
-  QuotientExpr(const Arg0& arg0, const Arg1& arg1) : m_arg0(arg0), m_arg1(arg1) {}
-
-  template<typename T>
-  Index eval_impl(const T& values) const { return m_arg0.eval_impl(values) / m_arg1.eval_impl(values); }
-protected:
-  Arg0 m_arg0;
-  Arg1 m_arg1;
-};
-
-} // end namespace Symbolic
-
-/** \namespace placeholders
+  * Namespace containing symbolic placeholders
   */
 namespace placeholders {
 
@@ -232,7 +39,10 @@ namespace internal {
 struct symbolic_last_tag {};
 }
 
-/** Can be used as a parameter to seq and seqN functions to symbolically reference the last element/row/columns
+/** \var last
+  * \ingroup Core_Module
+  *
+  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last element/row/columns
   * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
   * This symbolic placeholder support standard arithmetic operation.
@@ -249,7 +59,10 @@ struct symbolic_last_tag {};
   */
 static const Symbolic::SymbolExpr<internal::symbolic_last_tag> last;
 
-/** Can be used as a parameter to seq and seqN functions to symbolically reference the last+1 element/row/columns
+/** \var end
+  * \ingroup Core_Module
+  *
+  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last+1 element/row/columns
   * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
   * This symbolic placeholder support standard arithmetic operation.
@@ -257,53 +70,26 @@ static const Symbolic::SymbolExpr<internal::symbolic_last_tag> last;
   *
   * \sa last
   */
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+static const auto end = last+1;
+#else
 static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr> end(last+1);
+#endif
 
 } // end namespace placeholders
-
-//--------------------------------------------------------------------------------
-// integral constant
-//--------------------------------------------------------------------------------
-
-template<int N> struct fix_t {
-  static const int value = N;
-  operator int() const { return value; }
-  fix_t (fix_t<N> (*)() ) {}
-  fix_t() {}
-  // Needed in C++14 to allow fix<N>():
-  fix_t operator() () const { return *this; }
-};
-
-template<typename T, int Default=Dynamic> struct get_compile_time {
-  enum { value = Default };
-};
-
-template<int N,int Default> struct get_compile_time<fix_t<N>,Default> {
-  enum { value = N };
-};
-
-template<typename T> struct is_compile_time       { enum { value = false }; };
-template<int N> struct is_compile_time<fix_t<N> > { enum { value = true }; };
-
-#if __cplusplus > 201103L
-template<int N>
-static const fix_t<N> fix{};
-#else
-template<int N>
-inline fix_t<N> fix() { return fix_t<N>(); }
-#endif
 
 //--------------------------------------------------------------------------------
 // seq(first,last,incr) and seqN(first,size,incr)
 //--------------------------------------------------------------------------------
 
 /** \class ArithemeticSequence
+  * \ingroup Core_Module
   *
   * This class represents an arithmetic progression \f$ a_0, a_1, a_2, ..., a_{n-1}\f$ defined by
   * its \em first value \f$ a_0 \f$, its \em size (aka length) \em n, and the \em increment (aka stride)
   * that is equal to \f$ a_{i+1}-a_{i}\f$ for any \em i.
   *
-  * It is internally used as the return type of the seq and seqN functions, and as the input arguments
+  * It is internally used as the return type of the Eigen::seq and Eigen::seqN functions, and as the input arguments
   * of DenseBase::operator()(const RowIndices&, const ColIndices&), and most of the time this is the
   * only way it is used.
   *
@@ -313,9 +99,9 @@ inline fix_t<N> fix() { return fix_t<N>(); }
   *                  or a compile time integral constant. Internally, it can also be a symbolic expression
   * \tparam IncrType type of the increment, can be a runtime Index, or a compile time integral constant (default is compile-time 1)
   *
-  * \sa seq, seqN, DenseBase::operator()(const RowIndices&, const ColIndices&), class IndexedView
+  * \sa Eigen::seq, Eigen::seqN, DenseBase::operator()(const RowIndices&, const ColIndices&), class IndexedView
   */
-template<typename FirstType=Index,typename SizeType=Index,typename IncrType=fix_t<1> >
+template<typename FirstType=Index,typename SizeType=Index,typename IncrType=internal::fix_t<1> >
 class ArithemeticSequence
 {
 
@@ -324,8 +110,8 @@ public:
   ArithemeticSequence(FirstType first, SizeType size, IncrType incr) : m_first(first), m_size(size), m_incr(incr) {}
 
   enum {
-    SizeAtCompileTime = get_compile_time<SizeType>::value,
-    IncrAtCompileTime = get_compile_time<IncrType,DynamicIndex>::value
+    SizeAtCompileTime = internal::get_compile_time<SizeType>::value,
+    IncrAtCompileTime = internal::get_compile_time<IncrType,DynamicIndex>::value
   };
 
   /** \returns the size, i.e., number of elements, of the sequence */
@@ -357,7 +143,8 @@ template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type
 }
 
 /** \returns an ArithemeticSequence starting at \a first, of length \a size, and increment \a incr
- * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
+  *
+  * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
 template<typename FirstType,typename SizeType,typename IncrType>
 ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_type<IncrType>::type >
 seqN(FirstType first, SizeType size, IncrType incr)  {
@@ -365,6 +152,7 @@ seqN(FirstType first, SizeType size, IncrType incr)  {
 }
 
 /** \returns an ArithemeticSequence starting at \a first, of length \a size, and unit increment
+  *
   * \sa seqN(FirstType,SizeType,IncrType), seq(FirstType,LastType) */
 template<typename FirstType,typename SizeType>
 ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type >
@@ -373,18 +161,6 @@ seqN(FirstType first, SizeType size)  {
 }
 
 #ifdef EIGEN_PARSED_BY_DOXYGEN
-
-/** \returns an ArithemeticSequence starting at \a f, up (or down) to \a l, and unit increment
-  *
-  * It is essentially an alias to:
-  * \code
-  * seqN(f,l-f+1);
-  * \endcode
-  *
-  * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType)
-  */
-template<typename FirstType,typename LastType>
-auto seq(FirstType f, LastType l);
 
 /** \returns an ArithemeticSequence starting at \a f, up (or down) to \a l, and with positive (or negative) increment \a incr
   *
@@ -397,6 +173,18 @@ auto seq(FirstType f, LastType l);
   */
 template<typename FirstType,typename LastType, typename IncrType>
 auto seq(FirstType f, LastType l, IncrType incr);
+
+/** \returns an ArithemeticSequence starting at \a f, up (or down) to \a l, and unit increment
+  *
+  * It is essentially an alias to:
+  * \code
+  * seqN(f,l-f+1);
+  * \endcode
+  *
+  * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType)
+  */
+template<typename FirstType,typename LastType>
+auto seq(FirstType f, LastType l);
 
 #else // EIGEN_PARSED_BY_DOXYGEN
 
@@ -681,7 +469,7 @@ inline Index eval_expr_given_size(shifted_last x, Index size)  { return size+x.o
 inline Index eval_expr_given_size(end_t, Index size)           { return size; }
 inline Index eval_expr_given_size(shifted_end x, Index size)   { return size+x.offset; }
 
-template<typename FirstType=Index,typename LastType=Index,typename IncrType=fix_t<1> >
+template<typename FirstType=Index,typename LastType=Index,typename IncrType=internal::fix_t<1> >
 class ArithemeticSequenceProxyWithBounds
 {
 public:
@@ -690,7 +478,7 @@ public:
 
   enum {
     SizeAtCompileTime = -1,
-    IncrAtCompileTime = get_compile_time<IncrType,DynamicIndex>::value
+    IncrAtCompileTime = internal::get_compile_time<IncrType,DynamicIndex>::value
   };
 
   Index size() const { return (m_last-m_first+m_incr)/m_incr; }

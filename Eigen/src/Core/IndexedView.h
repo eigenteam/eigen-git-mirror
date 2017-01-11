@@ -94,7 +94,8 @@ class IndexedViewImpl;
   *  - Eigen::IntAsArray    (helper for single index)
   *  - etc.
   *
-  * In typical usages of %Eigen, this class should never be used directly. It is the return type of DenseBase::operator()(const RowIndices&, const ColIndices&).
+  * In typical usages of %Eigen, this class should never be used directly. It is the return type of
+  * DenseBase::operator()(const RowIndices&, const ColIndices&).
   *
   * \sa class Block
   */

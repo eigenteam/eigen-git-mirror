@@ -354,6 +354,8 @@ using std::ptrdiff_t;
 #include "src/Core/util/StaticAssert.h"
 #include "src/Core/util/XprHelper.h"
 #include "src/Core/util/Memory.h"
+#include "src/Core/util/IntegralConstant.h"
+#include "src/Core/util/SymbolicIndex.h"
 
 #include "src/Core/NumTraits.h"
 #include "src/Core/MathFunctions.h"
