@@ -109,6 +109,7 @@ template<typename T, int Value> class variable_if_dynamic
     EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamic)
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
     EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE T value() { return T(Value); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE operator T() const { return T(Value); }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void setValue(T) {}
 };
 
@@ -119,6 +120,7 @@ template<typename T> class variable_if_dynamic<T, Dynamic>
   public:
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE explicit variable_if_dynamic(T value) : m_value(value) {}
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T value() const { return m_value; }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE operator T() const { return m_value; }
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void setValue(T value) { m_value = value; }
 };
 
