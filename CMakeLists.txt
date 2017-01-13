@@ -28,7 +28,7 @@ endif()
 
 
 #############################################################################
-# retrieve version infomation                                               #
+# retrieve version information                                               #
 #############################################################################
 
 # automatically parse the version number
