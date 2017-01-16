@@ -156,7 +156,7 @@ struct TensorContractionEvaluatorBase
     m_rightImpl(choose(Cond<static_cast<int>(Layout) == static_cast<int>(ColMajor)>(),
                           op.rhsExpression(), op.lhsExpression()), device),
         m_device(device),
-        m_result(NULL), m_expr_indices(op.indices()) {
+        m_result(NULL) {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<LeftArgType, Device>::Layout) ==
          static_cast<int>(TensorEvaluator<RightArgType, Device>::Layout)),
                         YOU_MADE_A_PROGRAMMING_MISTAKE);
@@ -564,9 +564,6 @@ struct TensorContractionEvaluatorBase
   TensorEvaluator<EvalRightArgType, Device> m_rightImpl;
   const Device& m_device;
   Scalar* m_result;
-  /// required for sycl
-  const Indices m_expr_indices;
-
 };
 
 

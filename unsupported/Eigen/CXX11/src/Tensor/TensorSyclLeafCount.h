@@ -115,6 +115,21 @@ REDUCTIONLEAFCOUNT(const)
 REDUCTIONLEAFCOUNT()
 #undef REDUCTIONLEAFCOUNT
 
+/// specialisation of the \ref LeafCount struct when the node type is const TensorContractionOp
+#define CONTRACTIONCONVOLUTIONLEAFCOUNT(CVQual, ExprNode)\
+template <typename Indices, typename LhsXprType, typename RhsXprType>\
+struct LeafCount<CVQual ExprNode<Indices, LhsXprType, RhsXprType> > {\
+    static const size_t Count =1;\
+};
+
+CONTRACTIONCONVOLUTIONLEAFCOUNT(const,TensorContractionOp)
+CONTRACTIONCONVOLUTIONLEAFCOUNT(,TensorContractionOp)
+CONTRACTIONCONVOLUTIONLEAFCOUNT(const,TensorConvolutionOp)
+CONTRACTIONCONVOLUTIONLEAFCOUNT(,TensorConvolutionOp)
+#undef CONTRACTIONCONVOLUTIONLEAFCOUNT
+
+
+
 /// specialisation of the \ref LeafCount struct when the node type is  TensorSlicingOp
 #define SLICEOPLEAFCOUNT(CVQual)\
 template <typename StartIndices, typename Sizes, typename XprType>\

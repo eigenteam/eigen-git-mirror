@@ -49,19 +49,39 @@ template<typename Expr, typename FunctorExpr, typename TupleType > struct ExecEx
 /// based expression tree;
 /// creates the expression tree for the device with accessor to buffers;
 /// construct the kernel and submit it to the sycl queue.
+/// std::array does not have TotalSize. So I have to get the size throgh template specialisation.
+template<typename Index, typename Dimensions> struct DimensionSize{
+  static Index getDimSize(const Dimensions& dim){
+    return dim.TotalSize();
+
+  }
+};
+#define DIMSIZEMACRO(CVQual)\
+template<typename Index, size_t NumDims> struct DimensionSize<Index, CVQual std::array<Index, NumDims>>{\
+  static inline Index getDimSize(const std::array<Index, NumDims>& dim){\
+    return (NumDims == 0) ? 1 : ::Eigen::internal::array_prod(dim);\
+  }\
+};
+
+DIMSIZEMACRO(const)
+DIMSIZEMACRO()
+#undef DIMSIZEMACRO
+
+
 template <typename Expr, typename Dev>
 void run(Expr &expr, Dev &dev) {
   Eigen::TensorEvaluator<Expr, Dev> evaluator(expr, dev);
   const bool needs_assign = evaluator.evalSubExprsIfNeeded(NULL);
   if (needs_assign) {
-    typedef decltype(internal::extractFunctors(evaluator)) FunctorExpr;
+    typedef Eigen::TensorSycl::internal::FunctorExtractor<Eigen::TensorEvaluator<Expr, Dev> > FunctorExpr;
     FunctorExpr functors = internal::extractFunctors(evaluator);
     dev.sycl_queue().submit([&](cl::sycl::handler &cgh) {
       // create a tuple of accessors from Evaluator
-      typedef decltype(internal::createTupleOfAccessors<decltype(evaluator)>(cgh, evaluator)) TupleType;
-      TupleType tuple_of_accessors = internal::createTupleOfAccessors<decltype(evaluator)>(cgh, evaluator);
+      typedef decltype(internal::createTupleOfAccessors<Eigen::TensorEvaluator<Expr, Dev> >(cgh, evaluator)) TupleType;
+      TupleType tuple_of_accessors = internal::createTupleOfAccessors<Eigen::TensorEvaluator<Expr, Dev> >(cgh, evaluator);
       typename Expr::Index range, GRange, tileSize;
-      dev.parallel_for_setup(static_cast<typename Expr::Index>(evaluator.dimensions().TotalSize()), tileSize, range, GRange);
+      typename Expr::Index total_size = static_cast<typename Expr::Index>(DimensionSize<typename Expr::Index, typename Eigen::TensorEvaluator<Expr, Dev>::Dimensions>::getDimSize(evaluator.dimensions()));
+      dev.parallel_for_setup(total_size, tileSize, range, GRange);
 
       cgh.parallel_for(cl::sycl::nd_range<1>(cl::sycl::range<1>(GRange), cl::sycl::range<1>(tileSize)),
       ExecExprFunctorKernel<Expr,FunctorExpr,TupleType>(range

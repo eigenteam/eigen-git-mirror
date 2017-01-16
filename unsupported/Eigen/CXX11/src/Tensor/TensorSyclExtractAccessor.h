@@ -194,6 +194,23 @@ SYCLREDUCTIONEXTACC(const)
 SYCLREDUCTIONEXTACC()
 #undef SYCLREDUCTIONEXTACC
 
+/// specialisation of the \ref ExtractAccessor struct when the node type is TensorReductionOp
+#define SYCLCONTRACTIONCONVOLUTIONEXTACC(CVQual, ExprNode)\
+template<typename Indices, typename LhsXprType, typename RhsXprType, typename Dev>\
+ struct ExtractAccessor<TensorEvaluator<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, Dev> > {\
+  static inline auto getTuple(cl::sycl::handler& cgh, const TensorEvaluator<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, Dev>& eval)\
+  -> decltype(AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval)){\
+    return AccessorConstructor::template getAccessor<cl::sycl::access::mode::read>(cgh, eval);\
+  }\
+};
+
+SYCLCONTRACTIONCONVOLUTIONEXTACC(const,TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTIONEXTACC(,TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTIONEXTACC(const,TensorConvolutionOp)
+SYCLCONTRACTIONCONVOLUTIONEXTACC(,TensorConvolutionOp)
+#undef SYCLCONTRACTIONCONVOLUTIONEXTACC
+
+
 /// specialisation of the \ref ExtractAccessor struct when the node type is
 /// const TensorSlicingOp. This is a special case where there is no OP
 #define SYCLSLICEOPEXTACC(CVQual)\

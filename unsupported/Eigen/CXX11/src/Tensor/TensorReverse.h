@@ -224,6 +224,11 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
 
   EIGEN_DEVICE_FUNC Scalar* data() const { return NULL; }
 
+  /// required by sycl in order to extract the accessor
+  const TensorEvaluator<ArgType, Device> & impl() const { return m_impl; }
+  /// added for sycl in order to construct the buffer from sycl device
+  ReverseDimensions functor() const { return m_reverse; }
+
  protected:
   Dimensions m_dimensions;
   array<Index, NumDims> m_strides;

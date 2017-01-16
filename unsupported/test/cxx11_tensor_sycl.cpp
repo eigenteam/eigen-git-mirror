@@ -229,6 +229,36 @@ void test_sycl_computations(const Eigen::SyclDevice &sycl_device) {
   sycl_device.deallocate(gpu_in3_data);
   sycl_device.deallocate(gpu_out_data);
 }
+template<typename Scalar1, typename Scalar2,  int DataLayout>
+static void test_sycl_cast(const Eigen::SyclDevice& sycl_device){
+    int size = 20;
+    array<int, 1> tensorRange = {{size}};
+    Tensor<Scalar1, 1, DataLayout> in(tensorRange);
+    Tensor<Scalar2, 1, DataLayout> out(tensorRange);
+    Tensor<Scalar2, 1, DataLayout> out_host(tensorRange);
+
+    in = in.random();
+
+    Scalar1* gpu_in_data  = static_cast<Scalar1*>(sycl_device.allocate(in.size()*sizeof(Scalar1)));
+    Scalar2 * gpu_out_data =  static_cast<Scalar2*>(sycl_device.allocate(out.size()*sizeof(Scalar2)));
+
+
+
+
+    TensorMap<Tensor<Scalar1, 1, DataLayout>> gpu_in(gpu_in_data, tensorRange);
+    TensorMap<Tensor<Scalar2, 1, DataLayout>> gpu_out(gpu_out_data, tensorRange);
+    sycl_device.memcpyHostToDevice(gpu_in_data, in.data(),(in.size())*sizeof(Scalar1));
+    gpu_out.device(sycl_device) = gpu_in. template cast<Scalar2>();
+    sycl_device.memcpyDeviceToHost(out.data(), gpu_out_data, out.size()*sizeof(Scalar2));
+    out_host = in. template cast<Scalar2>();
+    for(int i=0; i< size; i++)
+    {
+      VERIFY_IS_APPROX(out(i), out_host(i));
+    }
+    printf("cast Test Passed\n");
+    sycl_device.deallocate(gpu_in_data);
+    sycl_device.deallocate(gpu_out_data);
+}
 template<typename DataType, typename dev_Selector> void sycl_computing_test_per_device(dev_Selector s){
   QueueInterface queueInterface(s);
   auto sycl_device = Eigen::SyclDevice(&queueInterface);
@@ -238,6 +268,8 @@ template<typename DataType, typename dev_Selector> void sycl_computing_test_per_
   test_sycl_mem_transfers<DataType, ColMajor>(sycl_device);
   test_sycl_computations<DataType, ColMajor>(sycl_device);
   test_sycl_mem_sync<DataType, ColMajor>(sycl_device);
+  test_sycl_cast<DataType, int, RowMajor>(sycl_device);
+  test_sycl_cast<DataType, int, ColMajor>(sycl_device);
 }
 
 void test_cxx11_tensor_sycl() {

@@ -711,6 +711,12 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
 {
   typedef TensorStridingSlicingOp<StartIndices, StopIndices, Strides, ArgType> XprType;
   static const int NumDims = internal::array_size<Strides>::value;
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename internal::remove_const<Scalar>::type ScalarNonConst;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
+  typedef Strides Dimensions;
 
   enum {
     // Alignment can't be guaranteed at compile time since it depends on the
@@ -730,12 +736,22 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
     for (size_t i = 0; i < internal::array_size<Dimensions>::value; ++i) {
       eigen_assert(m_strides[i] != 0 && "0 stride is invalid");
       if(m_strides[i]>0){
+        #ifndef __SYCL_DEVICE_ONLY__
         startIndicesClamped[i] = clamp(op.startIndices()[i], 0, m_impl.dimensions()[i]);
         stopIndicesClamped[i] = clamp(op.stopIndices()[i], 0, m_impl.dimensions()[i]);
+        #else
+        startIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.startIndices()[i]), static_cast<Index>(0), static_cast<Index>(m_impl.dimensions()[i]));
+        stopIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.stopIndices()[i]), static_cast<Index>(0), static_cast<Index>(m_impl.dimensions()[i]));
+        #endif
       }else{
-        /* implies m_strides[i]<0 by assert */
+      /* implies m_strides[i]<0 by assert */
+      #ifndef __SYCL_DEVICE_ONLY__
         startIndicesClamped[i] = clamp(op.startIndices()[i], -1, m_impl.dimensions()[i] - 1);
         stopIndicesClamped[i] = clamp(op.stopIndices()[i], -1, m_impl.dimensions()[i] - 1);
+        #else
+        startIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.startIndices()[i]), static_cast<Index>(-1), static_cast<Index>(m_impl.dimensions()[i] - 1));
+        stopIndicesClamped[i] = cl::sycl::clamp(static_cast<Index>(op.stopIndices()[i]), static_cast<Index>(-1), static_cast<Index>(m_impl.dimensions()[i] - 1));
+        #endif
       }
       m_startIndices[i] = startIndicesClamped[i];
     }
@@ -795,13 +811,6 @@ struct TensorEvaluator<const TensorStridingSlicingOp<StartIndices, StopIndices, 
                                           device.lastLevelCacheSize() /
                                           sizeof(Scalar));
   }
-
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename internal::remove_const<Scalar>::type ScalarNonConst;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename PacketType<CoeffReturnType, Device>::type PacketReturnType;
-  typedef Strides Dimensions;
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 

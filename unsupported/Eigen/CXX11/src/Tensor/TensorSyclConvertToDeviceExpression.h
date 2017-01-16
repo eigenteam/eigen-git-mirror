@@ -97,8 +97,18 @@ template <typename Expr>\
 struct ConvertToDeviceExpression<CVQual ExprNode<Expr> > \
 : DeviceConvertor<ExprNode, Res, Expr>{};
 
-KERNELBROKERCONVERT(const, true, TensorForcedEvalOp)
-KERNELBROKERCONVERT(, false, TensorForcedEvalOp)
+/// specialisation of the \ref ConvertToDeviceExpression struct when the node type is TensorReductionOp
+#define KERNELBROKERCONVERTFORCEDEVAL(CVQual)\
+template <typename Expr>\
+struct ConvertToDeviceExpression<CVQual TensorForcedEvalOp<Expr> > {\
+  typedef CVQual TensorForcedEvalOp< typename ConvertToDeviceExpression<Expr>::Type> Type;\
+};
+KERNELBROKERCONVERTFORCEDEVAL(const)
+KERNELBROKERCONVERTFORCEDEVAL()
+#undef KERNELBROKERCONVERTFORCEDEVAL
+
+
+
 KERNELBROKERCONVERT(const, true, TensorEvalToOp)
 KERNELBROKERCONVERT(, false, TensorEvalToOp)
 #undef KERNELBROKERCONVERT

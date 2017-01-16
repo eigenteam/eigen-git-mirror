@@ -188,6 +188,28 @@ struct ExprConstructor<CVQual TensorAssignOp<OrigLHSExpr, OrigRHSExpr>,  CVQual 
  ASSIGN(const)
  ASSIGN()
  #undef ASSIGN
+
+
+
+
+ /// specialisation of the \ref ExprConstructor struct when the node type is
+ /// const TensorAssignOp
+ #define CONVERSIONEXPRCONST(CVQual)\
+ template <typename OrigNestedExpr, typename ConvertType, typename NestedExpr, typename... Params>\
+ struct ExprConstructor<CVQual TensorConversionOp<ConvertType, OrigNestedExpr>,  CVQual TensorConversionOp<ConvertType, NestedExpr>, Params...> {\
+   typedef ExprConstructor<OrigNestedExpr, NestedExpr, Params...> my_nested_type;\
+   typedef CVQual TensorConversionOp<ConvertType, typename my_nested_type::Type>  Type;\
+   my_nested_type nestedExpr;\
+   Type expr;\
+   template <typename FuncDetector>\
+   ExprConstructor(FuncDetector &funcD, const utility::tuple::Tuple<Params...> &t)\
+   : nestedExpr(funcD.subExpr, t), expr(nestedExpr.expr) {}\
+  };
+
+  CONVERSIONEXPRCONST(const)
+  CONVERSIONEXPRCONST()
+  #undef CONVERSIONEXPRCONST
+
 /// specialisation of the \ref ExprConstructor struct when the node type is
 ///  TensorEvalToOp /// 0 here is the output number in the buffer
 #define EVALTO(CVQual)\
@@ -212,10 +234,10 @@ EVALTO()
 /// TensorForcedEvalOp
 #define FORCEDEVAL(CVQual)\
 template <typename OrigExpr, typename DevExpr, size_t N, typename... Params>\
-struct ExprConstructor<CVQual TensorForcedEvalOp<OrigExpr, MakeGlobalPointer>,\
+struct ExprConstructor<CVQual TensorForcedEvalOp<OrigExpr>,\
 CVQual PlaceHolder<CVQual TensorForcedEvalOp<DevExpr>, N>, Params...> {\
-  typedef CVQual TensorMap<Tensor<typename TensorForcedEvalOp<DevExpr, MakeGlobalPointer>::Scalar,\
-  TensorForcedEvalOp<DevExpr, MakeGlobalPointer>::NumDimensions, Eigen::internal::traits<TensorForcedEvalOp<DevExpr, MakeGlobalPointer>>::Layout, typename TensorForcedEvalOp<DevExpr>::Index>, Eigen::internal::traits<TensorForcedEvalOp<DevExpr, MakeGlobalPointer>>::Layout, MakeGlobalPointer> Type;\
+  typedef CVQual TensorMap<Tensor<typename TensorForcedEvalOp<DevExpr>::Scalar,\
+  TensorForcedEvalOp<DevExpr>::NumDimensions, Eigen::internal::traits<TensorForcedEvalOp<DevExpr>>::Layout, typename TensorForcedEvalOp<DevExpr>::Index>, Eigen::internal::traits<TensorForcedEvalOp<DevExpr>>::Layout, MakeGlobalPointer> Type;\
   Type expr;\
   template <typename FuncDetector>\
   ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\
@@ -250,6 +272,30 @@ CVQual PlaceHolder<CVQual TensorReductionOp<OP, Dim, DevExpr>, N>, Params...> {\
 SYCLREDUCTIONEXPR(const)
 SYCLREDUCTIONEXPR()
 #undef SYCLREDUCTIONEXPR
+
+
+/// specialisation of the \ref ExprConstructor struct when the node type is
+/// TensorContractionOp
+#define SYCLCONTRACTIONCONVOLUTION(CVQual, ExprNode)\
+template <typename Indices, typename OrigLhsXprType, typename OrigRhsXprType, typename LhsXprType, typename RhsXprType, size_t N, typename... Params>\
+struct ExprConstructor<CVQual ExprNode<Indices, OrigLhsXprType, OrigRhsXprType>,\
+CVQual PlaceHolder<CVQual ExprNode<Indices, LhsXprType,  RhsXprType>, N>, Params...> {\
+  static const size_t NumIndices= Eigen::internal::traits<ExprNode<Indices, OrigLhsXprType, OrigRhsXprType> >::NumDimensions;\
+  typedef CVQual TensorMap<Tensor<typename ExprNode<Indices, OrigLhsXprType, OrigRhsXprType>::Scalar,\
+  NumIndices, Eigen::internal::traits<ExprNode<Indices, OrigRhsXprType, OrigRhsXprType> >::Layout,\
+  typename ExprNode<Indices, OrigRhsXprType, OrigRhsXprType>::Index>,\
+  Eigen::internal::traits<ExprNode<Indices, OrigRhsXprType, OrigRhsXprType>>::Layout, MakeGlobalPointer> Type;\
+  Type expr;\
+  template <typename FuncDetector>\
+  ExprConstructor(FuncDetector &fd, const utility::tuple::Tuple<Params...> &t)\
+  :expr(Type(ConvertToActualTypeSycl(typename Type::Scalar, utility::tuple::get<N>(t)), fd.dimensions())) {}\
+};
+
+SYCLCONTRACTIONCONVOLUTION(const, TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTION(, TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTION(const, TensorConvolutionOp)
+SYCLCONTRACTIONCONVOLUTION(, TensorConvolutionOp)
+#undef SYCLCONTRACTIONCONVOLUTION
 
 
 

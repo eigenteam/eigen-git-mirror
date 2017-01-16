@@ -169,6 +169,20 @@ SYCLREDUCTION()
 
 
 /// specialisation of the \ref PlaceHolderExpression when the node is
+/// TensorReductionOp
+#define SYCLCONTRACTIONCONVOLUTIONPLH(CVQual, ExprNode)\
+template <typename Indices, typename LhsXprType, typename RhsXprType, size_t N>\
+struct PlaceHolderExpression<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, N>{\
+  typedef CVQual PlaceHolder<CVQual ExprNode<Indices, LhsXprType, RhsXprType>, N> Type;\
+};
+SYCLCONTRACTIONCONVOLUTIONPLH(const, TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTIONPLH(,TensorContractionOp)
+SYCLCONTRACTIONCONVOLUTIONPLH(const, TensorConvolutionOp)
+SYCLCONTRACTIONCONVOLUTIONPLH(,TensorConvolutionOp)
+#undef SYCLCONTRACTIONCONVOLUTIONPLH
+
+
+/// specialisation of the \ref PlaceHolderExpression when the node is
 /// TensorCwiseSelectOp
 #define SLICEOPEXPR(CVQual)\
 template <typename StartIndices, typename Sizes, typename XprType, size_t N>\

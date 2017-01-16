@@ -65,10 +65,9 @@ void test_sycl_contraction(const Device& sycl_device, int m_size, int k_size, in
   sycl_device.memcpyHostToDevice(d_t_right, t_right.data(),t_right_bytes);
 
   gpu_t_result.device(sycl_device) = gpu_t_left.contract(gpu_t_right, dims);
-  t_result = t_left.contract(t_right, dims);
-
   sycl_device.memcpyDeviceToHost(t_result_gpu.data(), d_t_result, t_result_bytes);
 
+  t_result = t_left.contract(t_right, dims);
 
   for (DenseIndex i = 0; i < t_result.size(); i++) {
     if (static_cast<float>(fabs(t_result(i) - t_result_gpu(i))) < 1e-4f) {
@@ -86,6 +85,69 @@ void test_sycl_contraction(const Device& sycl_device, int m_size, int k_size, in
   sycl_device.deallocate(d_t_result);
 }
 
+template<int DataLayout, typename Device>
+void test_TF(const Device& sycl_device)
+{
+  Eigen::array<long, 2> left_dims = {{2, 3}};
+  Eigen::array<long, 2> right_dims = {{3, 1}};
+  Eigen::array<long, 2> res_dims = {{2, 1}};
+  Eigen::array<DimPair, 1> dims = {{DimPair(1, 0)}};
+
+
+  Tensor<float, 2, DataLayout, long> t_left(left_dims);
+  Tensor<float, 2, DataLayout, long> t_right(right_dims);
+  Tensor<float, 2, DataLayout, long> t_result_gpu(res_dims);
+  Tensor<float, 2, DataLayout, long> t_result(res_dims);
+
+  t_left.data()[0] = 1.0f;
+  t_left.data()[1] = 2.0f;
+  t_left.data()[2] = 3.0f;
+  t_left.data()[3] = 4.0f;
+  t_left.data()[4] = 5.0f;
+  t_left.data()[5] = 6.0f;
+
+  t_right.data()[0] = -1.0f;
+  t_right.data()[1] = 0.5f;
+  t_right.data()[2] = 2.0f;
+
+  std::size_t t_left_bytes = t_left.size()  * sizeof(float);
+  std::size_t t_right_bytes = t_right.size() * sizeof(float);
+  std::size_t t_result_bytes = t_result.size()*sizeof(float);
+
+
+  float * d_t_left  = static_cast<float*>(sycl_device.allocate(t_left_bytes));
+  float * d_t_right  = static_cast<float*>(sycl_device.allocate(t_right_bytes));
+  float * d_t_result =  static_cast<float*>(sycl_device.allocate(t_result_bytes));
+
+  Eigen::TensorMap<Eigen::Tensor<float, 2, DataLayout, long> > gpu_t_left(d_t_left, left_dims);
+  Eigen::TensorMap<Eigen::Tensor<float, 2, DataLayout, long> > gpu_t_right(d_t_right, right_dims);
+  Eigen::TensorMap<Eigen::Tensor<float, 2, DataLayout, long> > gpu_t_result(d_t_result, res_dims);
+
+  sycl_device.memcpyHostToDevice(d_t_left, t_left.data(),t_left_bytes);
+  sycl_device.memcpyHostToDevice(d_t_right, t_right.data(),t_right_bytes);
+
+  gpu_t_result.device(sycl_device) = gpu_t_left.contract(gpu_t_right, dims);
+  sycl_device.memcpyDeviceToHost(t_result_gpu.data(), d_t_result, t_result_bytes);
+
+  t_result = t_left.contract(t_right, dims);
+
+  for (DenseIndex i = 0; i < t_result.size(); i++) {
+    if (static_cast<float>(fabs(t_result(i) - t_result_gpu(i))) < 1e-4f) {
+      continue;
+    }
+    if (Eigen::internal::isApprox(t_result(i), t_result_gpu(i), 1e-4f)) {
+      continue;
+    }
+    std::cout << "mismatch detected at index " << i << ": " << t_result(i)
+              << " vs " <<  t_result_gpu(i) << std::endl;
+    assert(false);
+  }
+  sycl_device.deallocate(d_t_left);
+  sycl_device.deallocate(d_t_right);
+  sycl_device.deallocate(d_t_result);
+
+
+}
 
 template<int DataLayout, typename Device>
 void test_scalar(const Device& sycl_device, int m_size, int k_size, int n_size)
@@ -121,9 +183,10 @@ void test_scalar(const Device& sycl_device, int m_size, int k_size, int n_size)
   sycl_device.memcpyHostToDevice(d_t_right, t_right.data(),t_right_bytes);
 
   gpu_t_result.device(sycl_device) = gpu_t_left.contract(gpu_t_right, dims);
+  sycl_device.memcpyDeviceToHost(t_result_gpu.data(), d_t_result, t_result_bytes);
+
   t_result = t_left.contract(t_right, dims);
 
- sycl_device.memcpyDeviceToHost(t_result_gpu.data(), d_t_result, t_result_bytes);
   if (static_cast<float>(fabs(t_result() - t_result_gpu())) > 1e-4f &&
       !Eigen::internal::isApprox(t_result(), t_result_gpu(), 1e-4f)) {
     std::cout << "mismatch detected: " << t_result()
@@ -204,6 +267,9 @@ template <typename Dev_selector> void tensorContractionPerDevice(Dev_selector& s
   test_sycl_contraction_k<RowMajor>(sycl_device);
   test_sycl_contraction_sizes<ColMajor>(sycl_device);
   test_sycl_contraction_sizes<RowMajor>(sycl_device);
+  test_TF<RowMajor>(sycl_device);
+  test_TF<ColMajor>(sycl_device);
+
   end = std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_seconds = end-start;
   std::time_t end_time = std::chrono::system_clock::to_time_t(end);
@@ -211,6 +277,7 @@ template <typename Dev_selector> void tensorContractionPerDevice(Dev_selector& s
             << "elapsed time: " << elapsed_seconds.count() << "s\n";
 
 }
+
 void test_cxx11_tensor_contract_sycl() {
   for (const auto& device :Eigen::get_sycl_supported_devices()) {
     CALL_SUBTEST(tensorContractionPerDevice(device));
