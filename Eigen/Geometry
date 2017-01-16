@@ -44,7 +44,7 @@
 #include "src/Geometry/Transform.h"
 #include "src/Geometry/Translation.h"
 #include "src/Geometry/Scaling.h"
-#include "src/Geometry/HyperPlane.h"
+#include "src/Geometry/Hyperplane.h"
 #include "src/Geometry/ParametrizedLine.h"
 #include "src/Geometry/AlignedBox.h"
 #include "src/Geometry/Umeyama.h"
