@@ -76,7 +76,7 @@ public:
   template<typename T>
   Index eval(const T& values) const { return derived().eval_impl(values); }
 
-#if __cplusplus > 201103L
+#if EIGEN_HAS_CXX14
   template<typename... Types>
   Index eval(Types&&... values) const { return derived().eval_impl(std::make_tuple(values...)); }
 #endif
