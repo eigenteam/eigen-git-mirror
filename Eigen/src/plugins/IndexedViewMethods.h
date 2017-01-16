@@ -38,19 +38,24 @@ typedef typename internal::IndexedViewCompatibleType<Index,1>::type IvcIndex;
 template<typename Indices>
 typename IvcRowType<Indices>::type
 ivcRow(const Indices& indices) const {
-  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,RowsAtCompileTime>(derived().rows()));
+  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,RowsAtCompileTime>(derived().rows()),Specialized);
 };
 
 template<typename Indices>
 typename IvcColType<Indices>::type
 ivcCol(const Indices& indices) const {
-  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,ColsAtCompileTime>(derived().cols()));
+  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,ColsAtCompileTime>(derived().cols()),Specialized);
 };
 
 template<typename Indices>
 typename IvcColType<Indices>::type
 ivcSize(const Indices& indices) const {
-  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,SizeAtCompileTime>(derived().size()));
+  return internal::makeIndexedViewCompatible(indices, internal::variable_if_dynamic<Index,SizeAtCompileTime>(derived().size()),Specialized);
+};
+
+template<typename RowIndices, typename ColIndices>
+struct valid_indexed_view_overload {
+  enum { value = !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value) };
 };
 
 public:
@@ -67,9 +72,8 @@ struct EIGEN_INDEXED_VIEW_METHOD_TYPE {
 // This is the generic version
 
 template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<
-  !  (internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::IsBlockAlike
-  || (internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value)),
+typename internal::enable_if<valid_indexed_view_overload<RowIndices,ColIndices>::value
+  && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsIndexedView,
   typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type >::type
 operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
 {
@@ -80,9 +84,8 @@ operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_IND
 // The folowing overload returns a Block<> object
 
 template<typename RowIndices, typename ColIndices>
-typename internal::enable_if<
-      internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::IsBlockAlike
-  && !(internal::is_integral<RowIndices>::value && internal::is_integral<ColIndices>::value),
+typename internal::enable_if<valid_indexed_view_overload<RowIndices,ColIndices>::value
+  && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsBlock,
   typename internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::BlockType>::type
 operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
 {
@@ -94,6 +97,17 @@ operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_IND
                    internal::first(actualColIndices),
                    internal::size(actualRowIndices),
                    internal::size(actualColIndices));
+}
+
+// The following overload returns a Scalar
+
+template<typename RowIndices, typename ColIndices>
+typename internal::enable_if<valid_indexed_view_overload<RowIndices,ColIndices>::value
+  && internal::traits<typename EIGEN_INDEXED_VIEW_METHOD_TYPE<RowIndices,ColIndices>::type>::ReturnAsScalar,
+  CoeffReturnType >::type
+operator()(const RowIndices& rowIndices, const ColIndices& colIndices) EIGEN_INDEXED_VIEW_METHOD_CONST
+{
+  return Base::operator()(internal::eval_expr_given_size(rowIndices,rows()),internal::eval_expr_given_size(colIndices,cols()));
 }
 
 // The folowing three overloads are needed to handle raw Index[N] arrays.
@@ -148,7 +162,7 @@ operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 
 template<typename Indices>
 typename internal::enable_if<
-  (internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1) && (!internal::is_integral<Indices>::value),
+  (internal::get_compile_time_incr<typename IvcType<Indices>::type>::value==1) && (!internal::is_integral<Indices>::value) && (!Symbolic::is_symbolic<Indices>::value),
   VectorBlock<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,internal::array_size<Indices>::value> >::type
 operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
 {
@@ -156,6 +170,13 @@ operator()(const Indices& indices) EIGEN_INDEXED_VIEW_METHOD_CONST
   typename IvcType<Indices>::type actualIndices = ivcSize(indices);
   return VectorBlock<EIGEN_INDEXED_VIEW_METHOD_CONST Derived,internal::array_size<Indices>::value>
             (derived(), internal::first(actualIndices), internal::size(actualIndices));
+}
+
+template<typename IndexType>
+typename internal::enable_if<Symbolic::is_symbolic<IndexType>::value, CoeffReturnType >::type
+operator()(const IndexType& id) EIGEN_INDEXED_VIEW_METHOD_CONST
+{
+  return Base::operator()(internal::eval_expr_given_size(id,size()));
 }
 
 template<typename IndicesT, std::size_t IndicesN>

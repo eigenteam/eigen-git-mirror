@@ -12,56 +12,6 @@
 
 namespace Eigen {
 
-/** \namespace Eigen::placeholders
-  * \ingroup Core_Module
-  *
-  * Namespace containing symbolic placeholder and identifiers
-  */
-namespace placeholders {
-
-namespace internal {
-struct symbolic_last_tag {};
-}
-
-/** \var last
-  * \ingroup Core_Module
-  *
-  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last element/row/columns
-  * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
-  *
-  * This symbolic placeholder support standard arithmetic operation.
-  *
-  * A typical usage example would be:
-  * \code
-  * using namespace Eigen;
-  * using Eigen::placeholders::last;
-  * VectorXd v(n);
-  * v(seq(2,last-2)).setOnes();
-  * \endcode
-  *
-  * \sa end
-  */
-static const Symbolic::SymbolExpr<internal::symbolic_last_tag> last;
-
-/** \var end
-  * \ingroup Core_Module
-  *
-  * Can be used as a parameter to Eigen::seq and Eigen::seqN functions to symbolically reference the last+1 element/row/columns
-  * of the underlying vector or matrix once passed to DenseBase::operator()(const RowIndices&, const ColIndices&).
-  *
-  * This symbolic placeholder support standard arithmetic operation.
-  * It is essentially an alias to last+1
-  *
-  * \sa last
-  */
-#ifdef EIGEN_PARSED_BY_DOXYGEN
-static const auto end = last+1;
-#else
-static const Symbolic::AddExpr<Symbolic::SymbolExpr<internal::symbolic_last_tag>,Symbolic::ValueExpr> end(last+1);
-#endif
-
-} // end namespace placeholders
-
 //--------------------------------------------------------------------------------
 // seq(first,last,incr) and seqN(first,size,incr)
 //--------------------------------------------------------------------------------
@@ -293,18 +243,6 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<Last
 
 namespace internal {
 
-// Replace symbolic last/end "keywords" by their true runtime value
-inline Index eval_expr_given_size(Index x, Index /* size */)   { return x; }
-
-template<int N>
-fix_t<N> eval_expr_given_size(fix_t<N> x, Index /*size*/)   { return x; }
-
-template<typename Derived>
-Index eval_expr_given_size(const Symbolic::BaseExpr<Derived> &x, Index size)
-{
-  return x.derived().eval(placeholders::last=size-1);
-}
-
 // Convert a symbolic span into a usable one (i.e., remove last/end "keywords")
 template<typename T>
 struct make_size_type {
@@ -318,7 +256,7 @@ struct IndexedViewCompatibleType<ArithmeticSequence<FirstType,SizeType,IncrType>
 
 template<typename FirstType,typename SizeType,typename IncrType>
 ArithmeticSequence<Index,typename make_size_type<SizeType>::type,IncrType>
-makeIndexedViewCompatible(const ArithmeticSequence<FirstType,SizeType,IncrType>& ids, Index size) {
+makeIndexedViewCompatible(const ArithmeticSequence<FirstType,SizeType,IncrType>& ids, Index size,SpecializedType) {
   return ArithmeticSequence<Index,typename make_size_type<SizeType>::type,IncrType>(
             eval_expr_given_size(ids.firstObject(),size),eval_expr_given_size(ids.sizeObject(),size),ids.incrObject());
 }
@@ -436,7 +374,7 @@ struct IndexedViewCompatibleType<legacy::ArithmeticSequenceProxyWithBounds<First
 
 template<typename FirstType,typename LastType,typename IncrType>
 legacy::ArithmeticSequenceProxyWithBounds<Index,Index,IncrType>
-makeIndexedViewCompatible(const legacy::ArithmeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size) {
+makeIndexedViewCompatible(const legacy::ArithmeticSequenceProxyWithBounds<FirstType,LastType,IncrType>& ids, Index size,SpecializedType) {
   return legacy::ArithmeticSequenceProxyWithBounds<Index,Index,IncrType>(
             eval_expr_given_size(ids.firstObject(),size),eval_expr_given_size(ids.lastObject(),size),ids.incrObject());
 }

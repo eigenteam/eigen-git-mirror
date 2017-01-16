@@ -211,6 +211,12 @@ void check_indexed_view()
   VERIFY_IS_APPROX( A(seq(1,n-1-2), seq(n-1-5,7)), A(seq(1,last-2), seq(last-5,7)) );
   VERIFY_IS_APPROX( A(seq(n-1-5,n-1-2), seq(n-1-5,n-1-2)), A(seq(last-5,last-2), seq(last-5,last-2)) );
 
+  VERIFY_IS_APPROX( A.col(A.cols()-1), A(all,last) );
+  VERIFY_IS_APPROX( A(A.rows()-2, A.cols()/2), A(last-1, end/2) );
+  VERIFY_IS_APPROX( a(a.size()-2), a(last-1) );
+  VERIFY_IS_APPROX( a(a.size()/2), a((last+1)/2) );
+
+
   // Check fall-back to Block
   {
     VERIFY( is_same_type(A.col(0), A(all,0)) );
@@ -218,6 +224,8 @@ void check_indexed_view()
     VERIFY( is_same_type(A.block(0,0,2,2), A(seqN(0,2),seq(0,1))) );
     VERIFY( is_same_type(A.middleRows(2,4), A(seqN(2,4),all)) );
     VERIFY( is_same_type(A.middleCols(2,4), A(all,seqN(2,4))) );
+
+    VERIFY( is_same_type(A.col(A.cols()-1), A(all,last)) );
 
     const ArrayXXi& cA(A);
     VERIFY( is_same_type(cA.col(0), cA(all,0)) );

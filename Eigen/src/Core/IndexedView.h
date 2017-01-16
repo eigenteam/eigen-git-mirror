@@ -45,6 +45,10 @@ struct traits<IndexedView<XprType, RowIndices, ColIndices> >
     InnerStrideAtCompileTime = InnerIncr<0 || InnerIncr==DynamicIndex || XprInnerStride==Dynamic ? Dynamic : XprInnerStride * InnerIncr,
     OuterStrideAtCompileTime = OuterIncr<0 || OuterIncr==DynamicIndex || XprOuterstride==Dynamic ? Dynamic : XprOuterstride * OuterIncr,
 
+    ReturnAsScalar = is_same<RowIndices,SingleRange>::value && is_same<ColIndices,SingleRange>::value,
+    ReturnAsBlock = (!ReturnAsScalar) && IsBlockAlike,
+    ReturnAsIndexedView = (!ReturnAsScalar) && (!ReturnAsBlock),
+
     // FIXME we deal with compile-time strides if and only if we have DirectAccessBit flag,
     // but this is too strict regarding negative strides...
     DirectAccessMask = (InnerIncr!=UndefinedIncr && OuterIncr!=UndefinedIncr && InnerIncr>=0 && OuterIncr>=0) ? DirectAccessBit : 0,
@@ -91,8 +95,8 @@ class IndexedViewImpl;
   *  - decltype(ArrayXi::LinSpaced(...))
   *  - Any view/expressions of the previous types
   *  - Eigen::ArithmeticSequence
-  *  - Eigen::AllRange      (helper for Eigen::all)
-  *  - Eigen::IntAsArray    (helper for single index)
+  *  - Eigen::internal::AllRange      (helper for Eigen::all)
+  *  - Eigen::internal::SingleRange  (helper for single index)
   *  - etc.
   *
   * In typical usages of %Eigen, this class should never be used directly. It is the return type of
