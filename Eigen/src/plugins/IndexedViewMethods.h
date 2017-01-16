@@ -195,7 +195,7 @@ operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
   * Each parameter must either be:
   *  - An integer indexing a single row or column
   *  - Eigen::all indexing the full set of respective rows or columns in increasing order
-  *  - An ArithemeticSequence as returned by the Eigen::seq and Eigen::seqN functions
+  *  - An ArithmeticSequence as returned by the Eigen::seq and Eigen::seqN functions
   *  - Any %Eigen's vector/array of integers or expressions
   *  - Plain C arrays: \c int[N]
   *  - And more generally any type exposing the following two member functions:
@@ -212,7 +212,7 @@ operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
   * when all arguments are either:
   *  - An integer
   *  - Eigen::all
-  *  - An ArithemeticSequence with compile-time increment strictly equal to 1, as returned by Eigen::seq(a,b), and Eigen::seqN(a,N).
+  *  - An ArithmeticSequence with compile-time increment strictly equal to 1, as returned by Eigen::seq(a,b), and Eigen::seqN(a,N).
   *
   * Otherwise a more general IndexedView<Derived,RowIndices',ColIndices'> object will be returned, after conversion of the inputs
   * to more suitable types \c RowIndices' and \c ColIndices'.
