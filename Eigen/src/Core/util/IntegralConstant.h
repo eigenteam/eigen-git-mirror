@@ -124,15 +124,16 @@ static const auto fix;
 /** \fn fix(int)
   * \ingroup Core_Module
   *
-  * This function returns an object embedding both a compile-time integer \c N, and a runtime value \a val.
+  * This function returns an object embedding both a compile-time integer \c N, and a fallback runtime value \a val.
   *
   * \tparam N the compile-time integer value
-  * \param  val the runtime integer value
+  * \param  val the fallback runtime integer value
   *
   * This function is a more general version of the \ref fix identifier/function that can be used in template code
-  * where the compile-time value coudl turned out to actually mean "undefined at compile-time". For positive integers
-  * such as a size of a dimension, this case is identified by Eigen::Dynamic, whereas runtime signed integers (e.g., an increment/stride) are identified
-  * as Eigen::DynamicIndex.
+  * where the compile-time value could turn out to actually mean "undefined at compile-time". For positive integers
+  * such as a size or a dimension, this case is identified by Eigen::Dynamic, whereas runtime signed integers
+  * (e.g., an increment/stride) are identified as Eigen::DynamicIndex. In such a case, the runtime value \a val
+  * will be used as a fallback.
   *
   * A typical use case would be:
   * \code
