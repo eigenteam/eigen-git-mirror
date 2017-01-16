@@ -119,10 +119,26 @@ protected:
 
 namespace internal {
 
-template<typename T, typename EnableIf=void> struct cleanup_seq_type { typedef T type; };
-template<typename T> struct cleanup_seq_type<T,typename internal::enable_if<internal::is_integral<T>::value>::type> { typedef Index type; };
-template<int N> struct cleanup_seq_type<fix_t<N> > { typedef fix_t<N> type; };
-template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type; };
+// Cleanup return types:
+
+// By default, no change:
+template<typename T, int DynamicKey=Dynamic, typename EnableIf=void> struct cleanup_seq_type { typedef T type; };
+
+// Convert short, int, unsigned int, etc. to Eigen::Index
+template<typename T, int DynamicKey> struct cleanup_seq_type<T,DynamicKey,typename internal::enable_if<internal::is_integral<T>::value>::type> { typedef Index type; };
+
+// In c++98/c++11, fix<N> is a pointer to function that we better cleanup to a true fix_t<N>:
+template<int N, int DynamicKey> struct cleanup_seq_type<fix_t<N> (*)(), DynamicKey> { typedef fix_t<N> type; };
+
+// If variable_or_fixed does not match DynamicKey, then we turn it to a pure compile-time value:
+template<int N, int DynamicKey> struct cleanup_seq_type<variable_or_fixed<N>, DynamicKey> { typedef fix_t<N> type; };
+// If variable_or_fixed matches DynamicKey, then we turn it to a pure runtime-value (aka Index):
+template<int DynamicKey> struct cleanup_seq_type<variable_or_fixed<DynamicKey>, DynamicKey> { typedef Index type; };
+
+// Helper to cleanup the type of the increment:
+template<typename T> struct cleanup_seq_incr {
+  typedef typename cleanup_seq_type<T,DynamicIndex>::type type;
+};
 
 }
 
@@ -130,9 +146,9 @@ template<int N> struct cleanup_seq_type<fix_t<N> (*)() > { typedef fix_t<N> type
   *
   * \sa seqN(FirstType,SizeType), seq(FirstType,LastType,IncrType) */
 template<typename FirstType,typename SizeType,typename IncrType>
-ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_type<IncrType>::type >
+ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_incr<IncrType>::type >
 seqN(FirstType first, SizeType size, IncrType incr)  {
-  return ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_type<IncrType>::type>(first,size,incr);
+  return ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,typename internal::cleanup_seq_type<SizeType>::type,typename internal::cleanup_seq_incr<IncrType>::type>(first,size,incr);
 }
 
 /** \returns an ArithemeticSequence starting at \a first, of length \a size, and unit increment
@@ -181,10 +197,10 @@ auto seq(FirstType f, LastType l) -> decltype(seqN(f,(l-f+fix<1>())))
 
 template<typename FirstType,typename LastType, typename IncrType>
 auto seq(FirstType f, LastType l, IncrType incr)
-  -> decltype(seqN(f,   (l-f+typename internal::cleanup_seq_type<IncrType>::type(incr))
-                      / typename internal::cleanup_seq_type<IncrType>::type(incr),typename internal::cleanup_seq_type<IncrType>::type(incr)))
+  -> decltype(seqN(f,   (l-f+typename internal::cleanup_seq_incr<IncrType>::type(incr))
+                      / typename internal::cleanup_seq_incr<IncrType>::type(incr),typename internal::cleanup_seq_incr<IncrType>::type(incr)))
 {
-  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
   return seqN(f,(l-f+CleanedIncrType(incr))/CleanedIncrType(incr),CleanedIncrType(incr));
 }
 #else
@@ -225,10 +241,10 @@ seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<Last
 
 template<typename FirstType,typename LastType, typename IncrType>
 typename internal::enable_if<!(Symbolic::is_symbolic<FirstType>::value || Symbolic::is_symbolic<LastType>::value),
-    ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,Index,typename internal::cleanup_seq_type<IncrType>::type> >::type
+    ArithemeticSequence<typename internal::cleanup_seq_type<FirstType>::type,Index,typename internal::cleanup_seq_incr<IncrType>::type> >::type
 seq(FirstType f, LastType l, IncrType incr)
 {
-  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
   return seqN(f,(l-f+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 
@@ -239,10 +255,10 @@ typename internal::enable_if<!Symbolic::is_symbolic<LastType>::value,
                                                                                    Symbolic::ValueExpr>,
                                                                  Symbolic::ValueExpr>,
                                               Symbolic::ValueExpr>,
-                        typename internal::cleanup_seq_type<IncrType>::type> >::type
+                        typename internal::cleanup_seq_incr<IncrType>::type> >::type
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, LastType l, IncrType incr)
 {
-  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
   return seqN(f.derived(),(l-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 
@@ -252,10 +268,10 @@ typename internal::enable_if<!Symbolic::is_symbolic<FirstType>::value,
                         Symbolic::QuotientExpr<Symbolic::AddExpr<Symbolic::AddExpr<LastTypeDerived,Symbolic::ValueExpr>,
                                                                  Symbolic::ValueExpr>,
                                                Symbolic::ValueExpr>,
-                        typename internal::cleanup_seq_type<IncrType>::type> >::type
+                        typename internal::cleanup_seq_incr<IncrType>::type> >::type
 seq(FirstType f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
-  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
   return seqN(f,(l.derived()-f+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 
@@ -265,10 +281,10 @@ ArithemeticSequence<FirstTypeDerived,
                                                                                Symbolic::NegateExpr<FirstTypeDerived> >,
                                                              Symbolic::ValueExpr>,
                                           Symbolic::ValueExpr>,
-                    typename internal::cleanup_seq_type<IncrType>::type>
+                    typename internal::cleanup_seq_incr<IncrType>::type>
 seq(const Symbolic::BaseExpr<FirstTypeDerived> &f, const Symbolic::BaseExpr<LastTypeDerived> &l, IncrType incr)
 {
-  typedef typename internal::cleanup_seq_type<IncrType>::type CleanedIncrType;
+  typedef typename internal::cleanup_seq_incr<IncrType>::type CleanedIncrType;
   return seqN(f.derived(),(l.derived()-f.derived()+CleanedIncrType(incr))/CleanedIncrType(incr), incr);
 }
 #endif
@@ -394,13 +410,13 @@ seq(FirstType f, LastType l)  {
 template<typename FirstType,typename LastType,typename IncrType>
 ArithemeticSequenceProxyWithBounds< typename internal::cleanup_seq_type<FirstType>::type,
                                     typename internal::cleanup_seq_type<LastType>::type,
-                                    typename internal::cleanup_seq_type<IncrType>::type >
+                                    typename internal::cleanup_seq_incr<IncrType>::type >
 seq(FirstType f, LastType l, IncrType s)
 {
   return ArithemeticSequenceProxyWithBounds<typename internal::cleanup_seq_type<FirstType>::type,
                                             typename internal::cleanup_seq_type<LastType>::type,
-                                            typename internal::cleanup_seq_type<IncrType>::type>
-                                           (f,l,typename internal::cleanup_seq_type<IncrType>::type(s));
+                                            typename internal::cleanup_seq_incr<IncrType>::type>
+                                           (f,l,typename internal::cleanup_seq_incr<IncrType>::type(s));
 }
 
 }

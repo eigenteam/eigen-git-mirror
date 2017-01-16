@@ -8,7 +8,12 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifdef EIGEN_TEST_PART_2
-// Make sure we also check c++98 implementation
+// Make sure we also check c++11 max implementation
+#define EIGEN_MAX_CPP_VER 11
+#endif
+
+#ifdef EIGEN_TEST_PART_3
+// Make sure we also check c++98 max implementation
 #define EIGEN_MAX_CPP_VER 03
 #endif
 
@@ -47,6 +52,13 @@ typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
 is_same_type(const T1& a, const T2& b)
 {
   return (a == b).all();
+}
+
+template<typename T1,typename T2>
+typename internal::enable_if<internal::is_same<T1,T2>::value,bool>::type
+is_same_seq_type(const T1& a, const T2& b)
+{
+  return a.size() == b.size() && a.first()==b.first() && Index(a.incrObject())==Index(b.incrObject());
 }
 
 void check_indexed_view()
@@ -156,6 +168,23 @@ void check_indexed_view()
   VERIFY_IS_EQUAL( (A(seqN(2,5,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , Dynamic);
   VERIFY_IS_EQUAL( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).InnerStrideAtCompileTime , 2);
   VERIFY_IS_EQUAL( (B(seqN(1,2,fix<2>), seq(1,3,fix<3>))).OuterStrideAtCompileTime , 3*4);
+
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>), seqN(1,fix<3>))).RowsAtCompileTime, 5);
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>), seqN(1,fix<3>))).ColsAtCompileTime, 3);
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>(5)), seqN(1,fix<3>(3)))).RowsAtCompileTime, 5);
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<5>(5)), seqN(1,fix<3>(3)))).ColsAtCompileTime, 3);
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).RowsAtCompileTime, Dynamic);
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).ColsAtCompileTime, Dynamic);
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).rows(), 5);
+  VERIFY_IS_EQUAL( (A(seqN(2,fix<Dynamic>(5)), seqN(1,fix<Dynamic>(3)))).cols(), 3);
+
+  VERIFY( is_same_seq_type( seqN(2,5,fix<-1>), seqN(2,5,fix<-1>(-1)) ) );
+  VERIFY( is_same_seq_type( seqN(2,5), seqN(2,5,fix<1>(1)) ) );
+  VERIFY( is_same_seq_type( seqN(2,5,3), seqN(2,5,fix<DynamicIndex>(3)) ) );
+  VERIFY( is_same_seq_type( seq(2,7,fix<3>), seqN(2,2,fix<3>) ) );
+  VERIFY( is_same_seq_type( seqN(2,fix<Dynamic>(5),3), seqN(2,5,fix<DynamicIndex>(3)) ) );
+  VERIFY( is_same_seq_type( seqN(2,fix<5>(5),fix<-2>), seqN(2,fix<5>,fix<-2>()) ) );
+
 
   VERIFY( (A(seqN(2,fix<5>), 5)).RowsAtCompileTime == 5);
   VERIFY( (A(4, all)).ColsAtCompileTime == Dynamic);
